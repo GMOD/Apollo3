@@ -1,4 +1,22 @@
 {
+  "configuration": {
+    "Apollo": [
+      {
+        "name": "Demo",
+        "apolloId": "demo-server",
+        "location": {
+          "uri": "http://demo.genomearchitect.org/Apollo2"
+        }
+      },
+      {
+        "name": "Demo (staging)",
+        "apolloId": "demo-staging-server",
+        "location": {
+          "uri": "http://demo.genomearchitect.org/Apollo-staging"
+        }
+      }
+    ]
+  },
   "plugins": [
     {
       "name": "Apollo",
