@@ -1,0 +1,23 @@
+{
+  "plugins": [
+    {
+      "name": "Apollo",
+      "url": "http://localhost:9000/dist/jbrowse-plugin-apollo.umd.development.js"
+    }
+  ],
+  "assemblies": [],
+  "connections": [],
+  "tracks": [],
+  "defaultSession": {
+    "name": "Integration test example",
+    "views": [
+      {
+        "id": "integration_test",
+        "type": "LinearGenomeView",
+        "offsetPx": 2000,
+        "bpPerPx": 0.05,
+        "displayedRegions": []
+      }
+    ]
+  }
+}

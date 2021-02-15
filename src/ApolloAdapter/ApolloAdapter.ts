@@ -2,37 +2,101 @@ import {
   BaseFeatureDataAdapter,
   BaseOptions,
 } from '@jbrowse/core/data_adapters/BaseAdapter'
+import { intersection2 } from '@jbrowse/core/util/range'
 import { NoAssemblyRegion } from '@jbrowse/core/util/types'
 import { ObservableCreate } from '@jbrowse/core/util/rxjs'
 import SimpleFeature, { Feature } from '@jbrowse/core/util/simpleFeature'
-import { Instance } from 'mobx-state-tree'
-// import honeybeeResponse from './test_data/honeybeeGroup1.10.json'
-import volvoxResponse from './test_data/volovox_ctgA.json'
+import apolloUrl from '../apolloUrl'
 
-import MyConfigSchema from './configSchema'
+type ApolloFeature = any
 
-const sampleFeature = volvoxResponse.features[0]
-type ApolloFeature = typeof sampleFeature
+interface SequencesResponse {
+  sequences: {
+    id: number
+    name: string
+    length: number
+    start: number
+    end: number
+  }[]
+}
 
 export default class ApolloAdapter extends BaseFeatureDataAdapter {
-  private refNames = ['ctgA']
+  private refNames: string[] = []
 
-  public constructor(config: Instance<typeof MyConfigSchema>) {
-    super(config)
-  }
-
-  public async getRefNames(_opts: BaseOptions = {}): Promise<string[]> {
+  public async getRefNames(opts: BaseOptions = {}): Promise<string[]> {
+    const { username, password, assemblyName } = opts
+    if (!(username && password)) {
+      throw new Error('Please log in to Apollo')
+    }
+    if (this.refNames.length) {
+      return this.refNames
+    }
+    const data = {
+      organism: assemblyName,
+      username,
+      password,
+    }
+    try {
+      const response = await fetch(
+        `${apolloUrl}/organism/getSequencesForOrganism`,
+        {
+          headers: { 'Content-Type': 'application/json' },
+          method: 'POST',
+          body: JSON.stringify(data),
+        },
+      )
+      if (response.ok) {
+        const result = (await response.json()) as SequencesResponse
+        return result.sequences.map(seq => seq.name)
+      } else {
+        console.error(response.statusText)
+      }
+    } catch (error) {
+      console.error(error)
+    }
     return this.refNames
   }
 
   public getFeatures(query: NoAssemblyRegion, opts: BaseOptions = {}) {
+    const { username, password, assemblyName } = opts
     return ObservableCreate<Feature>(async observer => {
-      if (query.refName === 'ctgA') {
-        volvoxResponse.features.forEach(f => {
-          observer.next(this.apolloFeatureToFeature(f))
-        })
+      const data = {
+        organism: assemblyName,
+        sequence: query.refName,
+        username,
+        password,
       }
-      observer.complete()
+      try {
+        const response = await fetch(
+          `${apolloUrl}/annotationEditor/getFeatures`,
+          {
+            headers: { 'Content-Type': 'application/json' },
+            method: 'POST',
+            body: JSON.stringify(data),
+            signal: opts.signal,
+          },
+        )
+        if (response.ok) {
+          const result = await response.json()
+          const features = result.features.filter(
+            (feature: any) =>
+              intersection2(
+                query.start,
+                query.end,
+                feature.location.fmin,
+                feature.location.fmax,
+              ).length,
+          )
+          features.forEach((f: ApolloFeature) => {
+            observer.next(this.apolloFeatureToFeature(f))
+          })
+          observer.complete()
+        } else {
+          observer.error(response.statusText)
+        }
+      } catch (error) {
+        observer.error(error)
+      }
     }, opts.signal)
   }
 
@@ -58,12 +122,10 @@ export default class ApolloAdapter extends BaseFeatureDataAdapter {
 
   public async hasDataForRefName(
     refName: string,
-    _opts: BaseOptions = {},
+    opts: BaseOptions = {},
   ): Promise<boolean> {
-    if (refName === 'ctgA') {
-      return true
-    }
-    return false
+    const refNames = await this.getRefNames(opts)
+    return refNames.includes(refName)
   }
 
   public freeResources(/* { region } */): void {}

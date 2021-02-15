@@ -8,5 +8,12 @@ module.exports = {
     "react": {
       "version": "detect"
     }
+  },
+  "rules": {
+    "curly": "error",
+    "no-console": [
+      "warn",
+      { "allow": ["error", "warn"] },
+    ],
   }
 }
