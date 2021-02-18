@@ -33,7 +33,7 @@ function LoginModal({ resolve, apolloConfig }: LoginModalProps) {
   const username = sessionStorage.getItem(`${apolloId}-apolloUsername`)
   const password = sessionStorage.getItem(`${apolloId}-apolloPassword`)
 
-  const apolloUrl = readConfObject(apolloConfig, ['location', 'uri'])
+  const apolloUrl = readConfObject(apolloConfig, 'location').uri
 
   useEffect(() => {
     const data = { username, password }

@@ -8,15 +8,27 @@ export async function apolloFetch(
   apolloConfig: AnyConfigurationModel,
   endpoint: string,
   init?: RequestInit,
+  credentials?: { username?: string; password?: string },
 ): Promise<Response> {
   const apolloId = readConfObject(apolloConfig, 'apolloId')
   const apolloName = readConfObject(apolloConfig, 'name')
-  let username = sessionStorage.getItem(`${apolloId}-apolloUsername`)
-  let password = sessionStorage.getItem(`${apolloId}-apolloPassword`)
-  if (!(username && password)) {
-    await checkApolloLogin(apolloConfig)
+  let username
+  let password
+  if (credentials && credentials.username && credentials.password) {
+    username = credentials.username
+    password = credentials.password
+  } else if (typeof sessionStorage === 'undefined') {
+    throw new Error(
+      'Must pass credentials to apolloFetch when running in worker',
+    )
+  } else {
     username = sessionStorage.getItem(`${apolloId}-apolloUsername`)
     password = sessionStorage.getItem(`${apolloId}-apolloPassword`)
+    if (!(username && password)) {
+      await checkApolloLogin(apolloConfig)
+      username = sessionStorage.getItem(`${apolloId}-apolloUsername`)
+      password = sessionStorage.getItem(`${apolloId}-apolloPassword`)
+    }
   }
   if (!(username && password)) {
     throw new Error(`Apollo login for "${apolloName}" failed`)
@@ -32,7 +44,7 @@ export async function apolloFetch(
   } else {
     apolloInit.body = JSON.stringify({ username, password })
   }
-  const location = readConfObject(apolloConfig, ['location', 'uri'])
+  const location = readConfObject(apolloConfig, 'location').uri
   return fetch(`${location}/${endpoint}`, apolloInit)
 }
 

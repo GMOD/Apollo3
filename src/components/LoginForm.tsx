@@ -33,7 +33,7 @@ function LoginForm({ resolve, apolloConfig }: LoginFormProps) {
   // const [rememberMe, setRememberMe] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
-  const apolloUrl = readConfObject(apolloConfig, ['location', 'uri'])
+  const apolloUrl = readConfObject(apolloConfig, 'location').uri
   const apolloId = readConfObject(apolloConfig, 'apolloId')
   const apolloName = readConfObject(apolloConfig, 'name')
 
@@ -76,7 +76,15 @@ function LoginForm({ resolve, apolloConfig }: LoginFormProps) {
     return () => {
       controller.abort()
     }
-  }, [submitted, username, /* rememberMe, */ password, resolve, apolloUrl])
+  }, [
+    submitted,
+    username,
+    /* rememberMe, */
+    password,
+    resolve,
+    apolloUrl,
+    apolloId,
+  ])
 
   function handleUsernameChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
     if (error) {
