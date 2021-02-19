@@ -1,15 +1,29 @@
-import { readConfObject } from '@jbrowse/core/configuration'
+import {
+  ConfigurationSchema,
+  readConfObject,
+} from '@jbrowse/core/configuration'
 import { AnyConfigurationModel } from '@jbrowse/core/configuration/configurationSchema'
 import AdapterType from '@jbrowse/core/pluggableElementTypes/AdapterType'
 import ConnectionType from '@jbrowse/core/pluggableElementTypes/ConnectionType'
+import DisplayType from '@jbrowse/core/pluggableElementTypes/DisplayType'
+import {
+  createBaseTrackConfig,
+  createBaseTrackModel,
+} from '@jbrowse/core/pluggableElementTypes/models'
+import TrackType from '@jbrowse/core/pluggableElementTypes/TrackType'
 import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { runInAction } from 'mobx'
+import {
+  AdapterClass as ApolloAdapterClass,
+  configSchema as apolloAdapterConfigSchema,
+} from './ApolloAdapter'
 import ApolloConnection from './ApolloConnection'
 import {
   AdapterClass as ApolloSequenceAdapterClass,
   configSchema as apolloSequenceAdapterConfigSchema,
 } from './ApolloSequenceAdapter'
+import LinearApolloDisplay from './LinearApolloDisplay'
 import LinearApolloReferenceSequenceDisplay from './LinearApolloReferenceSequenceDisplay'
 
 export default class ApolloPlugin extends Plugin {
@@ -34,6 +48,15 @@ export default class ApolloPlugin extends Plugin {
     pluginManager.addAdapterType(
       () =>
         new AdapterType({
+          name: 'ApolloAdapter',
+          configSchema: apolloAdapterConfigSchema,
+          AdapterClass: ApolloAdapterClass,
+        }),
+    )
+
+    pluginManager.addAdapterType(
+      () =>
+        new AdapterType({
           name: 'ApolloSequenceAdapter',
           configSchema: apolloSequenceAdapterConfigSchema,
           AdapterClass: ApolloSequenceAdapterClass,
@@ -44,6 +67,40 @@ export default class ApolloPlugin extends Plugin {
       'LinearGenomeViewPlugin',
     ) as import('@jbrowse/plugin-linear-genome-view').default
     const { BaseLinearDisplayComponent } = LGVPlugin.exports
+
+    pluginManager.addTrackType(() => {
+      const configSchema = ConfigurationSchema(
+        'ApolloTrack',
+        {},
+        {
+          baseConfiguration: createBaseTrackConfig(pluginManager),
+          explicitIdentifier: 'trackId',
+        },
+      )
+      return new TrackType({
+        name: 'ApolloTrack',
+        configSchema,
+        stateModel: createBaseTrackModel(
+          pluginManager,
+          'ApolloTrack',
+          configSchema,
+        ),
+      })
+    })
+
+    pluginManager.addDisplayType(() => {
+      const { configSchema, stateModel } = pluginManager.load(
+        LinearApolloDisplay,
+      )
+      return new DisplayType({
+        name: 'LinearApolloDisplay',
+        configSchema,
+        stateModel,
+        trackType: 'ApolloTrack',
+        viewType: 'LinearGenomeView',
+        ReactComponent: BaseLinearDisplayComponent,
+      })
+    })
 
     pluginManager.addDisplayType(() => {
       const { stateModel, configSchema } = pluginManager.load(

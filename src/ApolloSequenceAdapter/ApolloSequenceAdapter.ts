@@ -12,16 +12,6 @@ import { Instance } from 'mobx-state-tree'
 import { apolloFetch } from '../apolloFetch'
 import ConfigSchema from './configSchema'
 
-interface SequencesResponse {
-  error?: string
-  sequences: {
-    id: number
-    name: string
-    length: number
-    start: number
-    end: number
-  }[]
-}
 export default class ApolloSequenceAdapter extends BaseFeatureDataAdapter
   implements RegionsAdapter {
   private organismName: string
@@ -54,8 +44,8 @@ export default class ApolloSequenceAdapter extends BaseFeatureDataAdapter
     if (!response.ok) {
       throw new Error(response.statusText)
     }
-    const result = (await response.json()) as SequencesResponse
-    if (result.error) {
+    const result = (await response.json()) as SequencesResponse | ApolloError
+    if ('error' in result) {
       throw new Error(result.error)
     }
     const refSeqs = new Map()
@@ -77,7 +67,8 @@ export default class ApolloSequenceAdapter extends BaseFeatureDataAdapter
 
   public getFeatures(query: NoAssemblyRegion, opts: BaseOptions = {}) {
     const { refName, start, end } = query
-    const { signal, location, username, password } = opts
+    const { signal, username, password } = opts
+    const location = readConfObject(this.apolloConfig, 'location').uri
     return ObservableCreate<Feature>(async observer => {
       const data = { username, password }
       try {

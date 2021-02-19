@@ -9,20 +9,17 @@ export function stateModelFactory(pluginManager: PluginManager) {
 
   const configSchema = pluginManager.jbrequire(configSchemaFactory)
 
-  const SequencePlugin = pluginManager.getPlugin(
-    'SequencePlugin',
-  ) as import('@jbrowse/plugin-sequence').default
-  const { linearReferenceSequenceDisplayModelFactory } = SequencePlugin.exports
-  const BaseRefSeqDisplayModel = linearReferenceSequenceDisplayModelFactory(
-    configSchema,
-  )
+  const LGVPlugin = pluginManager.getPlugin(
+    'LinearGenomeViewPlugin',
+  ) as import('@jbrowse/plugin-linear-genome-view').default
+  const { BaseLinearDisplay } = LGVPlugin.exports
 
   return types
     .compose(
-      'LinearApolloReferenceSequenceDisplay',
-      BaseRefSeqDisplayModel,
+      'LinearApolloDisplay',
+      BaseLinearDisplay,
       types.model({
-        type: types.literal('LinearApolloReferenceSequenceDisplay'),
+        type: types.literal('LinearApolloDisplay'),
         configuration: ConfigurationReference(configSchema),
       }),
     )
@@ -39,6 +36,10 @@ export function stateModelFactory(pluginManager: PluginManager) {
           ...self.composedRenderProps,
           ...getParentRenderProps(self),
           config: self.configuration.renderer,
+          location: readConfObject(self.configuration, [
+            'apolloConfig',
+            'location',
+          ]).uri,
           username,
           password,
         }

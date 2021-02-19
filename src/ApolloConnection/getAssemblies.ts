@@ -1,15 +1,6 @@
 import { AnyConfigurationModel } from '@jbrowse/core/configuration/configurationSchema'
 import { apolloFetch } from '../apolloFetch'
 
-interface Organism {
-  commonName: string
-  id: number
-}
-
-interface ApolloError {
-  error: string
-}
-
 export async function getAssemblies(connectionConfig: AnyConfigurationModel) {
   const response = await apolloFetch(
     connectionConfig.apolloConfig,
