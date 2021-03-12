@@ -3,6 +3,12 @@ import { ConfigurationReference } from '@jbrowse/core/configuration/configuratio
 import PluginManager from '@jbrowse/core/PluginManager'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 import { configSchemaFactory } from './configSchema'
+import { Feature } from '@jbrowse/core/util/simpleFeature'
+import {
+  getSession,
+  isSessionModelWithWidgets,
+  getContainingView,
+} from '@jbrowse/core/util'
 
 export function stateModelFactory(pluginManager: PluginManager) {
   const { types } = pluginManager.lib['mobx-state-tree']
@@ -47,6 +53,27 @@ export function stateModelFactory(pluginManager: PluginManager) {
 
       get rendererTypeName() {
         return self.configuration.renderer.type
+      },
+    }))
+    .actions(self => ({
+      selectFeature(feature: Feature) {
+        const session = getSession(self)
+        if (isSessionModelWithWidgets(session)) {
+          const featureWidget = session.addWidget(
+            'ApolloWidget',
+            'apolloWidget',
+            {
+              featureData: feature.toJSON(),
+              view: getContainingView(self),
+              apolloUrl: readConfObject(self.configuration, [
+                'apolloConfig',
+                'location',
+              ]).uri,
+            },
+          )
+          session.showWidget(featureWidget)
+        }
+        session.setSelection(feature)
       },
     }))
 }

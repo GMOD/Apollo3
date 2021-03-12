@@ -6,6 +6,7 @@ import { AnyConfigurationModel } from '@jbrowse/core/configuration/configuration
 import AdapterType from '@jbrowse/core/pluggableElementTypes/AdapterType'
 import ConnectionType from '@jbrowse/core/pluggableElementTypes/ConnectionType'
 import DisplayType from '@jbrowse/core/pluggableElementTypes/DisplayType'
+import WidgetType from '@jbrowse/core/pluggableElementTypes/WidgetType'
 import {
   createBaseTrackConfig,
   createBaseTrackModel,
@@ -25,6 +26,11 @@ import {
 } from './ApolloSequenceAdapter'
 import LinearApolloDisplay from './LinearApolloDisplay'
 import LinearApolloReferenceSequenceDisplay from './LinearApolloReferenceSequenceDisplay'
+import {
+  configSchema as apolloFeatureDetailConfigSchema,
+  ReactComponent as ApolloFeatureDetailReactComponent,
+  stateModelFactory as ApolloFeatureDetailStateModelFactory,
+} from './ApolloFeatureDetail'
 
 export default class ApolloPlugin extends Plugin {
   name = 'Apollo'
@@ -115,6 +121,18 @@ export default class ApolloPlugin extends Plugin {
         ReactComponent: BaseLinearDisplayComponent,
       }
     })
+
+    // to add the widget
+    pluginManager.addWidgetType(
+      () =>
+        new WidgetType({
+          name: 'ApolloWidget',
+          heading: 'Apollo Feature Details',
+          configSchema: apolloFeatureDetailConfigSchema,
+          stateModel: ApolloFeatureDetailStateModelFactory(pluginManager),
+          ReactComponent: ApolloFeatureDetailReactComponent,
+        }),
+    )
   }
 
   configure(pluginManager: PluginManager) {
@@ -127,6 +145,7 @@ export default class ApolloPlugin extends Plugin {
     const apolloConfigs = readConfObject(rootConfig, 'Apollo')
     runInAction(() => {
       for (const config of apolloConfigs) {
+        // @ts-ignore
         pluginManager.rootModel?.jbrowse.addConnectionConf({
           type: 'ApolloConnection',
           connectionId: `ApolloConnection-${config.name}`,
