@@ -2,6 +2,7 @@ import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import { ElementId } from '@jbrowse/core/util/types/mst'
 import { types } from 'mobx-state-tree'
 import PluginManager from '@jbrowse/core/PluginManager'
+
 // import { Client } from '@stomp/stompjs'
 
 const configSchema = ConfigurationSchema('ApolloWidget', {})
@@ -16,6 +17,8 @@ export default function stateModelFactory(pluginManager: PluginManager) {
         pluginManager.pluggableMstType('view', 'stateModel'),
       ),
       apolloUrl: types.string,
+      apolloId: types.string,
+      fetchedData: types.frozen(),
     })
     .volatile(() => ({
       socket: undefined as any | undefined,
@@ -30,19 +33,31 @@ export default function stateModelFactory(pluginManager: PluginManager) {
       setSocket(socket: any) {
         self.socket = socket
       },
+      setFetchedData(data: any) {
+        self.fetchedData.push(data)
+      },
+      // write actions that send fetch requests when something is edited
       async afterCreate() {
-        const headers = new Headers()
-        const username = 'demo@demo.com'
-        const password = 'demo'
-        const authorization = `${username}:${password}`
-        headers.append('Authorization', 'Basic' + btoa(authorization))
-        const response = await fetch(self.apolloUrl, {
-          mode: 'no-cors',
-          credentials: 'include',
-          method: 'POST',
-          headers: headers,
-        })
-        console.log(response)
+        const data = {
+          username: sessionStorage.getItem(`${self.apolloId}-apolloUsername`), // get from renderProps later
+          password: sessionStorage.getItem(`${self.apolloId}-apolloPassword`), // get from renderProps later
+          sequence: self.featureData.sequence,
+          organism: 'Fictitious', // need to find where in code is organism name
+        }
+        const featureResponse = await fetch(
+          `${self.apolloUrl}/annotationEditor/getFeatures`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+          },
+        )
+        const json = await featureResponse.json()
+        this.setFetchedData({ features: json.features })
+        console.log(json)
+        // TODO make a new tab with the response stuff
       },
       // send something thru the websocket and see if i get a response back
       // will have to create listeners in the widget and set it

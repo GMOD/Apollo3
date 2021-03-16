@@ -69,6 +69,10 @@ export function stateModelFactory(pluginManager: PluginManager) {
                 'apolloConfig',
                 'location',
               ]).uri,
+              apolloId: readConfObject(self.configuration, [
+                'apolloConfig',
+                'apolloId',
+              ]),
             },
           )
           session.showWidget(featureWidget)
