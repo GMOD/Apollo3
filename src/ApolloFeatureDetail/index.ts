@@ -38,8 +38,7 @@ export default function stateModelFactory(pluginManager: PluginManager) {
       pushToFetchedData(data: any) {
         self.fetchedData.push(data)
       },
-      // write actions that send fetch requests when something is edited
-      async afterCreate() {
+      async fetchFeatures() {
         const data = {
           username: sessionStorage.getItem(`${self.apolloId}-apolloUsername`), // get from renderProps later
           password: sessionStorage.getItem(`${self.apolloId}-apolloPassword`), // get from renderProps later
@@ -58,6 +57,10 @@ export default function stateModelFactory(pluginManager: PluginManager) {
         )
         const json = await featureResponse.json()
         this.pushToFetchedData({ features: json.features })
+      },
+      // write actions that send fetch requests when something is edited
+      async afterCreate() {
+        this.fetchFeatures()
         // TODO make a new tab with the response stuff
       },
       // send something thru the websocket and see if i get a response back
