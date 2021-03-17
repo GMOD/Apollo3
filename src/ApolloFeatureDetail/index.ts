@@ -2,6 +2,7 @@ import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import { ElementId } from '@jbrowse/core/util/types/mst'
 import { types } from 'mobx-state-tree'
 import PluginManager from '@jbrowse/core/PluginManager'
+import { observable } from 'mobx'
 
 // import { Client } from '@stomp/stompjs'
 
@@ -18,10 +19,11 @@ export default function stateModelFactory(pluginManager: PluginManager) {
       ),
       apolloUrl: types.string,
       apolloId: types.string,
-      fetchedData: types.frozen(),
     })
     .volatile(() => ({
       socket: undefined as any | undefined,
+      fetchedData: observable([{ main: {} }]) as any | undefined,
+      fetchedFeatures: observable({}) as any | undefined,
     }))
     .actions(self => ({
       setFeatureData(data: any) {
@@ -33,7 +35,7 @@ export default function stateModelFactory(pluginManager: PluginManager) {
       setSocket(socket: any) {
         self.socket = socket
       },
-      setFetchedData(data: any) {
+      pushToFetchedData(data: any) {
         self.fetchedData.push(data)
       },
       // write actions that send fetch requests when something is edited
@@ -55,8 +57,7 @@ export default function stateModelFactory(pluginManager: PluginManager) {
           },
         )
         const json = await featureResponse.json()
-        this.setFetchedData({ features: json.features })
-        console.log(json)
+        this.pushToFetchedData({ features: json.features })
         // TODO make a new tab with the response stuff
       },
       // send something thru the websocket and see if i get a response back

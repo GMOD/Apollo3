@@ -1,13 +1,11 @@
-import { Paper, Typography } from '@material-ui/core'
+import { Paper, Typography, Toolbar, Tab, Tabs } from '@material-ui/core'
+import { toJS } from 'mobx'
 import { observer, PropTypes as MobxPropTypes } from 'mobx-react'
 import React, { FunctionComponent, useState } from 'react'
 import {
   BaseCoreDetails,
   BaseAttributes,
 } from '@jbrowse/core/BaseFeatureWidget/BaseFeatureDetail'
-import Toolbar from '@material-ui/core/Toolbar'
-import Tab from '@material-ui/core/Tab'
-import Tabs from '@material-ui/core/Tabs'
 
 interface AlnCardProps {
   title?: string
@@ -21,11 +19,16 @@ const ApolloFeatureDetails: FunctionComponent<AlnInputProps> = props => {
   const { model } = props
   const [idx, setIdx] = useState(0)
   const feature = JSON.parse(JSON.stringify(model.featureData))
+  const fetchedData = toJS(model.fetchedData)
 
+  // @ts-ignore
   function handleTabChange(event: any, newIdx: any) {
-    console.log(event)
     setIdx(newIdx)
   }
+
+  // so after populating all the features in a tab,
+  // allow user to select a feature in the widget, maybe double click the name and edit it, the editing should send a fetch
+  // to the endpoint to update that feature's name
 
   return (
     <Paper data-testid="apollo-side-drawer">
@@ -37,7 +40,9 @@ const ApolloFeatureDetails: FunctionComponent<AlnInputProps> = props => {
           variant="scrollable"
           scrollButtons="on"
         >
-          {model.fetchedData.map((key: string, index: number) => {
+          {fetchedData.map((object: any, index: number) => {
+            const [key, value] = Object.entries(object)[0]
+            console.log(key, value)
             return (
               <Tab
                 key={`${key}-${index}`}
