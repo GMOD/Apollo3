@@ -6,6 +6,7 @@ import {
   Tabs,
   TextField,
   Button,
+  makeStyles,
 } from '@material-ui/core'
 import { toJS } from 'mobx'
 import { observer, PropTypes as MobxPropTypes } from 'mobx-react'
@@ -30,60 +31,233 @@ interface ApolloData {
   }
 }
 
+interface ApolloFeature {
+  children: any
+  date_creation: number
+  date_last_modified: number
+  id: number
+  location: any
+  name: string
+  owner: string
+  parent_id: string
+  parent_name: string
+  parent_type: any
+  properties: any
+  sequence: string
+  type: {
+    cv: any
+    name: string
+  }
+  uniquename: string
+  symbol: string
+  description: string
+}
+
 // CURRENT PROGRESS GOES HERE:
-// the fetch does push the info successfully, but need to re-render track after?
-// make setup more dynamic than hardcoding that first tab is main, second tab is features, etc
+// made table and on click show text fields
+// symbol and description are not fetching successfully, work on that
+// refactor some code, have some reused line
+// have the table and track reflect changes after refetching
 
 // make API layer so it can be swapped between Apollo 2 and Apollo 3, most likely using
 // some sort of driver setup with apollo js classes or mst classes or pluggable data adapters
-const FeatureNameTab = (aplData: ApolloData, props: AplInputProps) => {
+
+// dont know where to get: status, symbol, description
+
+const useStyles = makeStyles(() => ({
+  dataRow: {
+    '&:hover': {
+      backgroundColor: 'lightblue',
+    },
+  },
+}))
+
+const updateFeatures = async (
+  model: any,
+  apolloData: any,
+  fetchUrl: string,
+) => {
+  const data = {
+    username: sessionStorage.getItem(`${model.apolloId}-apolloUsername`), // get from renderProps later
+    password: sessionStorage.getItem(`${model.apolloId}-apolloPassword`), // get from renderProps later
+    sequence: model.featureData.sequence,
+    organism: 'Fictitious', // need to find where in code is organism name
+    features: apolloData,
+  }
+  const response = await fetch(fetchUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+  console.log(response)
+}
+
+const FeatureNameTab = ({
+  aplData,
+  props,
+}: {
+  aplData: ApolloData
+  props: AplInputProps
+}) => {
   const { model } = props
+  const [clickedFeature, setClickedFeature] = useState<
+    ApolloFeature | undefined
+  >()
+  const classes = useStyles()
   return (
     <>
-      <BaseCard title="Apollo Features">
-        {Object.values(aplData)[0].map((currentFeature: any) => {
-          return (
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Seq</th>
+            <th>Type</th>
+            <th>Length</th>
+            <th>Updated</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.values(aplData)[0].map((currentFeature: ApolloFeature) => {
+            const {
+              name,
+              sequence,
+              type,
+              location,
+              date_last_modified,
+            } = currentFeature
+            return (
+              <tr
+                key={name}
+                className={classes.dataRow}
+                onClick={() => {
+                  setClickedFeature(currentFeature)
+                }}
+              >
+                <td>{name}</td>
+                <td>{sequence}</td>
+                <td>{type.name}</td>
+                <td>{location.fmax - location.fmin}</td>
+                <td>{new Date(date_last_modified).toDateString()}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+
+      {clickedFeature ? (
+        <BaseCard title="Edit Feature">
+          <div>
             <TextField
-              key={currentFeature.name}
-              defaultValue={currentFeature.name}
+              key={clickedFeature.type.name}
+              label="Type"
+              disabled
+              defaultValue={clickedFeature.type.name}
+            />
+            <TextField
+              key={clickedFeature.name}
+              label="Name"
+              defaultValue={clickedFeature.name}
               onBlur={async event => {
-                if (event.target.value !== currentFeature.name) {
+                if (event.target.value !== clickedFeature.name) {
+                  // maybe generalize this, what it does is find the feature that will be changed,
+                  // change the specific field with the event.target.value, and put it back in the array
                   const apolloFeatures = aplData.features
                   const featIndex = apolloFeatures.findIndex(
-                    (feature: any) => feature === currentFeature,
+                    (feature: any) => feature === clickedFeature,
                   )
                   apolloFeatures[featIndex] = {
-                    ...currentFeature,
+                    ...clickedFeature,
                     name: event.target.value,
                   }
-                  const data = {
-                    username: sessionStorage.getItem(
-                      `${model.apolloId}-apolloUsername`,
-                    ), // get from renderProps later
-                    password: sessionStorage.getItem(
-                      `${model.apolloId}-apolloPassword`,
-                    ), // get from renderProps later
-                    sequence: model.featureData.sequence,
-                    organism: 'Fictitious', // need to find where in code is organism name
-                    features: apolloFeatures,
-                  }
-                  const response = await fetch(
+                  await updateFeatures(
+                    model,
+                    apolloFeatures,
                     `${model.apolloUrl}/annotationEditor/setName`,
-                    {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify(data),
-                    },
                   )
-                  console.log(response)
                 }
               }}
             />
-          )
-        })}
-      </BaseCard>
+            <TextField
+              key={`${clickedFeature.name}-${clickedFeature.symbol}`}
+              label="Symbol"
+              defaultValue={clickedFeature.symbol || "''"}
+              onBlur={async event => {
+                if (event.target.value !== clickedFeature.symbol) {
+                  const data = {
+                    uniquename: clickedFeature.uniquename,
+                    symbol: event.target.value,
+                  }
+                  await updateFeatures(
+                    model,
+                    data,
+                    `${model.apolloUrl}/annotationEditor/setSymbol`,
+                  )
+                }
+              }}
+            />
+            <TextField
+              key={`${clickedFeature.name}-${clickedFeature.description}`}
+              label="Description"
+              defaultValue={clickedFeature.description || "''"}
+              onBlur={async event => {
+                if (event.target.value !== clickedFeature.description) {
+                  const data = {
+                    uniquename: clickedFeature.uniquename,
+                    description: event.target.value,
+                  }
+                  await updateFeatures(
+                    model,
+                    data,
+                    `${model.apolloUrl}/annotationEditor/setDescription`,
+                  )
+                }
+              }}
+            />
+            <TextField
+              key={clickedFeature.location.fmin}
+              label="location"
+              disabled
+              defaultValue={`${clickedFeature.location.fmin}-${
+                clickedFeature.location.fmax
+              } strand(${clickedFeature.location.strand === 1 ? '+' : '-'})`}
+            />
+            <TextField
+              key={clickedFeature.sequence}
+              label="Ref Sequence"
+              disabled
+              defaultValue={clickedFeature.sequence}
+            />
+            <TextField
+              key={clickedFeature.owner}
+              label="Owner"
+              disabled
+              defaultValue={clickedFeature.owner}
+            />
+            <TextField
+              key={clickedFeature.date_creation}
+              label="Created"
+              disabled
+              defaultValue={`${new Date(
+                clickedFeature.date_creation,
+              ).toDateString()} ${new Date(
+                clickedFeature.date_creation,
+              ).toTimeString()}`}
+            />
+            <TextField
+              key={clickedFeature.date_last_modified}
+              label="Updated"
+              disabled
+              defaultValue={`${new Date(
+                clickedFeature.date_last_modified,
+              ).toDateString()} ${new Date(
+                clickedFeature.date_last_modified,
+              ).toTimeString()}`}
+            />
+          </div>
+        </BaseCard>
+      ) : null}
       <Button
         color="secondary"
         variant="contained"
@@ -109,7 +283,7 @@ const ApolloFeatureDetails: FunctionComponent<AplInputProps> = props => {
     const keyName = Object.keys(fetchedData[tabIdx])[0]
     switch (keyName) {
       case 'features': {
-        return FeatureNameTab(fetchedData[tabIdx], props)
+        return <FeatureNameTab aplData={fetchedData[tabIdx]} props={props} />
       }
       case 'main': {
         return (
