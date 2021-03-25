@@ -23,7 +23,6 @@ export default function stateModelFactory(pluginManager: PluginManager) {
     .volatile(() => ({
       socket: undefined as any | undefined,
       fetchedData: observable([{ main: {} }]) as any | undefined,
-      fetchedFeatures: observable({}) as any | undefined,
     }))
     .actions(self => ({
       setFeatureData(data: any) {
@@ -57,6 +56,26 @@ export default function stateModelFactory(pluginManager: PluginManager) {
         )
         const json = await featureResponse.json()
         this.pushToFetchedData({ features: json.features })
+
+        // getting the parent feature, need client token
+        // const data2 = {
+        //   username: sessionStorage.getItem(`${self.apolloId}-apolloUsername`), // get from renderProps later
+        //   password: sessionStorage.getItem(`${self.apolloId}-apolloPassword`), // get from renderProps later
+        //   sequence: self.featureData.sequence,
+        //   organism: 'Fictitious', // need to find where in code is organism name
+        // }
+        // const featureResponse2 = await fetch(
+        //   `${self.apolloUrl}/annotator/findAnnotationsForSequence`,
+        //   {
+        //     method: 'POST',
+        //     headers: {
+        //       'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify(data2),
+        //   },
+        // )
+        // const json2 = await featureResponse2.json()
+        // console.log(json2)
       },
       // write actions that send fetch requests when something is edited
       async afterCreate() {
