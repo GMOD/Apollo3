@@ -104,8 +104,7 @@ const ApolloFeatureDetails: FunctionComponent<AplInputProps> = props => {
           value={idx}
           onChange={handleTabChange}
           indicatorColor="primary"
-          variant="scrollable"
-          scrollButtons="on"
+          variant="fullWidth"
         >
           {fetchedData.map((object: any, index: number) => {
             const [key] = Object.entries(object)[0]

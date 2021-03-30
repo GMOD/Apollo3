@@ -1,3 +1,4 @@
+import { DataGrid } from '@material-ui/data-grid'
 import { makeStyles } from '@material-ui/core'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
@@ -5,6 +6,11 @@ import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
 import ArrowDropUpIcon from '@material-ui/icons/ArrowDropUp'
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
 
+interface CodingRow {
+  type: string
+  start: number
+  length: number
+}
 const useStyles = makeStyles(() => ({
   dataRow: {
     '&:hover': {
@@ -24,11 +30,28 @@ const CodingEditingTabDetail = ({
   const [sortedBy, setSortedBy] = useState({ key: '', ascending: false })
   const classes = useStyles()
   const tableKeys = ['type', 'start', 'length']
+  const columns = [
+    { field: 'type', headerName: 'Type' },
+    { field: 'start', headerName: 'Start' },
+    { field: 'length', headerName: 'Length' },
+    { field: 'feature', headerName: 'Feature', hide: true },
+  ]
 
-  // TODO: the ascending/descending of the sortedby is not unique to each column, ask if thats important
+  const rows: CodingRow[] = clickedFeature.children.map(
+    (child: ApolloFeature) => ({
+      type: child.type.name,
+      // increases the fmin by 1 for display since coordinates are handled as zero-based on server-side
+      start: child.location.fmin + 1,
+      length: child.location.fmax - child.location.fmin,
+      feature: child,
+    }),
+  )
+
+  // consider using data grid instead of table
   return (
     <div>
-      <table>
+      {/* <DataGrid rows={rows} columns={columns} /> */}
+      {/* <table>
         <thead>
           <tr>
             {tableKeys.map(key => {
@@ -94,7 +117,7 @@ const CodingEditingTabDetail = ({
               )
             })}
         </tbody>
-      </table>
+      </table> */}
     </div>
   )
 }
