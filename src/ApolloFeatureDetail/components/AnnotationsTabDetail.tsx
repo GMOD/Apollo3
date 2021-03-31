@@ -20,6 +20,7 @@ import {
 } from '../ApolloFeatureDetail'
 import DetailsEditingTabDetail from './DetailsEditingTabDetail'
 import CodingEditingTabDetail from './CodingEditingTabDetail'
+import GoEditingTabDetail from './GoEditingTabDetail'
 
 interface CodingRow {
   name: string
@@ -183,8 +184,11 @@ const AnnotationsTabDetail = ({
         // }
         // case 'Allele Info': {
         // }
-        // case 'Go': {
-        // }
+        case 'Go': {
+          return (
+            <GoEditingTabDetail clickedFeature={clickedFeature} props={props} />
+          )
+        }
         // case 'Gene Product': {
         // }
         // case 'Provenance': {
@@ -202,23 +206,7 @@ const AnnotationsTabDetail = ({
       return
     }
   }
-  //    if (selectedAnnotationInfo != null) {
-  //     exonDetailPanel.updateData(selectedAnnotationInfo);
-  //     goPanel.updateData(selectedAnnotationInfo);
-  //     geneProductPanel.updateData(selectedAnnotationInfo);
-  //     provenancePanel.updateData(selectedAnnotationInfo);
-  //     dbXrefPanel.updateData(selectedAnnotationInfo);
-  //     commentPanel.updateData(selectedAnnotationInfo);
-  //     attributePanel.updateData(selectedAnnotationInfo);
-  // } else {
-  //     exonDetailPanel.updateData();
-  //     goPanel.updateData();
-  //     geneProductPanel.updateData();
-  //     provenancePanel.updateData();
-  //     dbXrefPanel.updateData();
-  //     commentPanel.updateData();
-  //     attributePanel.updateData();
-  // }
+
   const classes = useStyles()
   const columns = [
     { field: 'name', headerName: 'Name' },

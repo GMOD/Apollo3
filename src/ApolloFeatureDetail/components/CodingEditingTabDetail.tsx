@@ -41,7 +41,8 @@ const CodingEditingTabDetail = ({
     (child: ApolloFeature) => ({
       type: child.type.name,
       // increases the fmin by 1 for display since coordinates are handled as zero-based on server-side
-      start: child.location.fmin + 1,
+      start: child.location.fmin + 1, // have this editable
+      end: child.location.fmax, // have this editable
       length: child.location.fmax - child.location.fmin,
       feature: child,
     }),

@@ -62,6 +62,7 @@ function LoginForm({ resolve, apolloConfig }: LoginFormProps) {
         } else {
           sessionStorage.setItem(`${apolloId}-apolloUsername`, username)
           sessionStorage.setItem(`${apolloId}-apolloPassword`, password)
+          sessionStorage.setItem(`clientToken`, '12345678912345678912') // 20 digit random number for clientToken
           resolve()
         }
       } catch (error) {

@@ -58,20 +58,27 @@ export default function stateModelFactory(pluginManager: PluginManager) {
         this.pushToFetchedData({ features: json.features })
 
         // getting the parent feature, need client token
+        // client token can be a random generated number for now
+
         // const data2 = {
+        //   clientToken: sessionStorage.getItem(`clientToken`), // 20 digit random number for clientToken
         //   username: sessionStorage.getItem(`${self.apolloId}-apolloUsername`), // get from renderProps later
         //   password: sessionStorage.getItem(`${self.apolloId}-apolloPassword`), // get from renderProps later
         //   sequence: self.featureData.sequence,
         //   organism: 'Fictitious', // need to find where in code is organism name
         // }
+        // let params = Object.entries(data2)
+        //   .map(([key, val]) => `${key}=${encodeURIComponent(val)}`)
+        //   .join('&')
+
+        // console.log(params)
         // const featureResponse2 = await fetch(
-        //   `${self.apolloUrl}/annotator/findAnnotationsForSequence`,
+        //   `${self.apolloUrl}/annotator/findAnnotationsForSequence/${params}`,
         //   {
-        //     method: 'POST',
+        //     method: 'GET',
         //     headers: {
         //       'Content-Type': 'application/json',
         //     },
-        //     body: JSON.stringify(data2),
         //   },
         // )
         // const json2 = await featureResponse2.json()
