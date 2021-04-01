@@ -64,7 +64,7 @@ const DetailsEditingTabDetail = ({
         }}
       />
       <TextField
-        key={`${clickedFeature.name}-${clickedFeature.symbol}`}
+        key={`${clickedFeature.uniquename}`}
         label="Symbol"
         defaultValue={clickedFeature.symbol || "''"}
         onBlur={async event => {
@@ -84,7 +84,7 @@ const DetailsEditingTabDetail = ({
         }}
       />
       <TextField
-        key={`${clickedFeature.name}-${clickedFeature.description}`}
+        key={`${clickedFeature.uniquename}`}
         label="Description"
         defaultValue={clickedFeature.description || "''"}
         onBlur={async event => {

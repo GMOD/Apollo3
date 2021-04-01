@@ -208,6 +208,7 @@ const AnnotationsTabDetail = ({
   }
 
   const classes = useStyles()
+  const features = Object.values(aplData)[0]
   const columns = [
     { field: 'name', headerName: 'Name' },
     { field: 'seq', headerName: 'Seq' },
@@ -217,66 +218,32 @@ const AnnotationsTabDetail = ({
     { field: 'feature', headerName: 'Feature', hide: true },
   ]
 
-  const rows: CodingRow[] = Object.values(aplData)[0].map(
-    (currentFeature: ApolloFeature) => ({
+  const rows: CodingRow[] = features.map(
+    (currentFeature: ApolloFeature, index: number) => ({
+      id: index,
       name: currentFeature.name,
       seq: currentFeature.sequence,
       type: currentFeature.type.name,
-      location: currentFeature.location.fmax - currentFeature.location.fmin,
+      location: `${currentFeature.location.fmax -
+        currentFeature.location.fmin}`,
       updated: new Date(currentFeature.date_last_modified).toDateString(),
       feature: currentFeature,
     }),
   )
   return (
     <>
-      {/* <DataGrid
-        rows={rows}
-        columns={columns}
-        onRowClick={rowData => {
-          setClickedFeature(rowData.row.feature)
-          setCurrentEditingTabs(findEditingTabs(rowData.row.type.name))
-        }}
-      /> */}
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Seq</th>
-            <th>Type</th>
-            <th>Length</th>
-            <th>Updated</th>
-          </tr>
-        </thead>
-        <tbody>
-          {Object.values(aplData)[0].map((currentFeature: ApolloFeature) => {
-            const {
-              name,
-              sequence,
-              type,
-              location,
-              date_last_modified,
-            } = currentFeature
-            return (
-              <tr
-                key={name}
-                className={classes.dataRow}
-                onClick={() => {
-                  setClickedFeature(currentFeature)
-                  setCurrentEditingTabs(
-                    findEditingTabs(currentFeature.type.name),
-                  )
-                }}
-              >
-                <td>{name}</td>
-                <td>{sequence}</td>
-                <td>{type.name}</td>
-                <td>{location.fmax - location.fmin}</td>
-                <td>{new Date(date_last_modified).toDateString()}</td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+      <div style={{ height: clickedFeature ? 200 : 400, width: '100%' }}>
+        <div style={{ display: 'flex', height: '100%', fontSize: '12' }}>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            onRowClick={rowData => {
+              setClickedFeature(rowData.row.feature)
+              setCurrentEditingTabs(findEditingTabs(rowData.row.type))
+            }}
+          />
+        </div>
+      </div>
 
       {clickedFeature ? (
         <BaseCard title={`${clickedFeature.name} Info`}>

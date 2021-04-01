@@ -10,10 +10,8 @@ import {
   MenuItem,
   Button,
   IconButton,
-  Typography,
 } from '@material-ui/core'
 import CloseIcon from '@material-ui/icons/Close'
-import { observable } from 'mobx'
 
 import { ApolloFeature } from '../ApolloFeatureDetail'
 
@@ -46,6 +44,11 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
+interface RelationObject {
+  prefix: string
+  id: string
+}
+
 export default function GoModal({
   handleClose,
   model,
@@ -70,9 +73,10 @@ export default function GoModal({
   const initialWith = { prefix: '', id: '' }
   const [withInfo, setWithInfo] = useState(initialWith)
   const [referenceInfo, setReferenceInfo] = useState({ prefix: '', id: '' })
-  const [note, setNote] = useState('')
+  const [noteString, setNoteString] = useState('')
+  const [noteArray, setNoteArray] = useState<string[]>([])
 
-  const withArray: { prefix: string; id: string }[] = observable.array()
+  const [withArray, setWithArray] = useState<RelationObject[]>([])
 
   const relationValueText = [
     {
@@ -96,6 +100,16 @@ export default function GoModal({
       values: ['part of', 'colocalizes with', 'is active in'],
     },
   ]
+
+  // go term hits an api and returns suggestions, make sure to do that
+  // https://api.geneontology.org/api/search/entity/autocomplete/lactas?rows=40&prefix=GO&category=biological%20process
+
+  //                {
+  //                    "annotations":[{
+  //                    "geneRelationship":"RO:0002326", "goTerm":"GO:0031084", "references":"[\"ref:12312\"]", "gene":
+  //                    "1743ae6c-9a37-4a41-9b54-345065726d5f", "negate":false, "evidenceCode":"ECO:0000205", "withOrFrom":
+  //                    "[\"adf:12312\"]"
+  //                }]}
 
   return (
     <Dialog
@@ -206,6 +220,8 @@ export default function GoModal({
           />
           <label htmlFor="allECOEvidence">All ECO Evidence</label>
           <br />
+          {/* have one field instead of two, placeholder is prefix:id, check for colon*/}
+          {/* <div> {label} <CloseIconButton/></div> */}
           <div className={classes.prefixIdField}>
             <TextField
               value={withInfo.prefix}
@@ -233,7 +249,9 @@ export default function GoModal({
               style={{ marginTop: 20 }}
               onClick={() => {
                 if (withInfo !== initialWith) {
-                  withArray.push(withInfo)
+                  withArray.length > 0
+                    ? setWithArray([...withArray, withInfo])
+                    : setWithArray([withInfo])
                   console.log(withInfo, withArray)
                   setWithInfo(initialWith)
                 }
@@ -241,12 +259,20 @@ export default function GoModal({
             >
               Add
             </Button>
-            {withArray.map(value => {
-              console.log('here')
+            {withArray.map((value: RelationObject) => {
+              console.log('hello')
               return (
-                <Typography>
-                  {value.prefix} : {value.id}{' '}
-                </Typography>
+                <div key={`${value.prefix}-${value.id}`}>
+                  {value.prefix} : {value.id}
+                  <IconButton
+                    aria-label="close"
+                    onClick={() => {
+                      setWithArray(withArray.filter(obj => obj !== value))
+                    }}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                </div>
               )
             })}
           </div>
@@ -276,9 +302,9 @@ export default function GoModal({
             />
           </div>
           <TextField
-            value={note}
+            value={noteString}
             onChange={event => {
-              setNote(event.target.value)
+              setNoteString(event.target.value)
             }}
             label="Note"
             autoComplete="off"
@@ -288,10 +314,31 @@ export default function GoModal({
             color="primary"
             variant="contained"
             style={{ marginTop: 20 }}
-            onClick={() => {}}
+            onClick={() => {
+              if (noteString !== '') {
+                noteArray.length > 0
+                  ? setNoteArray([...noteArray, noteString])
+                  : setNoteArray([noteString])
+              }
+            }}
           >
             Add
           </Button>
+          {noteArray.map(value => {
+            return (
+              <div key={value}>
+                {value}
+                <IconButton
+                  aria-label="close"
+                  onClick={() => {
+                    setNoteArray(noteArray.filter(note => note !== value))
+                  }}
+                >
+                  <CloseIcon />
+                </IconButton>
+              </div>
+            )
+          })}
         </form>
       </div>
       <div className={classes.buttons}>
@@ -311,7 +358,9 @@ export default function GoModal({
               aspect,
               goTerm: goFormInfo.goTerm,
               geneRelationship: goFormInfo.relationship,
-              evidenceCode: goFormInfo.evidence,
+              evidenceCode: `${goFormInfo.allECOEvidence ? 'ECO:' : ''} ${
+                goFormInfo.evidence
+              }`,
               negate: goFormInfo.not,
               withOrFrom: withArray,
               references: [referenceInfo],
