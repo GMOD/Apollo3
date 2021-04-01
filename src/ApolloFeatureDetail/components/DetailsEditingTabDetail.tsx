@@ -22,7 +22,7 @@ const updateFeatures = async (
     },
     body: JSON.stringify(data),
   })
-  console.log(response)
+  console.log('update features', response)
 }
 
 const DetailsEditingTabDetail = ({

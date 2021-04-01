@@ -6,6 +6,7 @@ import {
   ApolloData,
   ApolloFeature,
 } from '../ApolloFeatureDetail'
+import GoModal from './GoModal'
 
 interface GoAnnotation {
   [key: string]: string
@@ -27,6 +28,11 @@ const GoEditingTabDetail = ({
   const { model } = props
   const classes = useStyles()
   const [goAnnotations, setGoAnnotations] = useState([])
+  const [goDialogInfo, setGoDialogInfo] = useState({ open: false, data: {} })
+
+  const handleClose = () => {
+    setGoDialogInfo({ open: false, data: {} })
+  }
 
   useEffect(() => {
     async function fetchGoAnnotations() {
@@ -100,14 +106,21 @@ const GoEditingTabDetail = ({
         <Button
           color="secondary"
           variant="contained"
-          onClick={async () => {}} // opens up a dialog form
+          onClick={async () => setGoDialogInfo({ open: true, data: {} })} // opens up a dialog form
         >
           New
         </Button>
         <Button
           color="secondary"
           variant="contained"
-          onClick={async () => {}} // opens up the dialog form, populates with info
+          onClick={async () => {
+            setGoDialogInfo({
+              open: true,
+              data: {
+                /* the feature info*/
+              },
+            })
+          }} // opens up the dialog form, populates with info
         >
           Edit
         </Button>
@@ -118,6 +131,14 @@ const GoEditingTabDetail = ({
         >
           Delete
         </Button>
+        {goDialogInfo.open && (
+          <GoModal
+            handleClose={handleClose}
+            model={model}
+            clickedFeature={clickedFeature}
+            data={goDialogInfo.data}
+          />
+        )}
       </div>
     </>
   )

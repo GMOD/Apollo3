@@ -34,6 +34,7 @@ export default function stateModelFactory(pluginManager: PluginManager) {
       setSocket(socket: any) {
         self.socket = socket
       },
+      // note probably change to a map
       pushToFetchedData(data: any) {
         self.fetchedData.push(data)
       },
