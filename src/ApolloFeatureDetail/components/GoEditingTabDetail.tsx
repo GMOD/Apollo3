@@ -1,12 +1,9 @@
 import { Button, makeStyles } from '@material-ui/core'
 import { observer } from 'mobx-react'
 import React, { useState, useEffect } from 'react'
-import {
-  AplInputProps,
-  ApolloData,
-  ApolloFeature,
-} from '../ApolloFeatureDetail'
+import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
 import GoModal from './GoModal'
+import { DataGrid, GridSortDirection } from '@material-ui/data-grid'
 
 interface GoAnnotation {
   [key: string]: string
@@ -56,7 +53,7 @@ const GoEditingTabDetail = ({
   }, [clickedFeature.uniquename, model.apolloUrl, model.apolloId])
 
   console.log('after', goAnnotations)
-  const [selectedRow, setSelectedRow] = useState('') // when find data to loop thru use this
+  const [selectedAnnotation, setSelectedAnnotation] = useState({}) // when find data to loop thru use this
 
   const columns = [
     { field: 'name', headerName: 'Name' },
@@ -65,7 +62,8 @@ const GoEditingTabDetail = ({
     { field: 'reference', headerName: 'Reference' },
   ]
 
-  const rows = goAnnotations.map((annotation: GoAnnotation) => ({
+  const rows = goAnnotations.map((annotation: GoAnnotation, index: number) => ({
+    id: index,
     name: annotation.name,
     evidence: annotation.evidence,
     basedOn: annotation.basedOn,
@@ -74,34 +72,22 @@ const GoEditingTabDetail = ({
 
   return (
     <>
-      <div>
-        {/* <DataGrid
-        rows={rows}
-        columns={columns}
-        sortModel={[{ field: 'reference', sort: 'asc' as GridSortDirection }]}
-      /> */}
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Evidence</th>
-              <th>Based On</th>
-              <th>Reference</th>
-            </tr>
-          </thead>
-        </table>
+      <div style={{ height: 400, width: '100%' }}>
+        <div style={{ display: 'flex', height: '100%' }}>
+          <DataGrid
+            pageSize={25}
+            hideFooterSelectedRowCount={true}
+            rows={rows}
+            columns={columns}
+            sortModel={[
+              { field: 'reference', sort: 'asc' as GridSortDirection },
+            ]}
+            onRowClick={rowData => {
+              setSelectedAnnotation(goAnnotations[rowData.row.id as number])
+            }}
+          />
+        </div>
       </div>
-      {goAnnotations.map(annotation => {
-        const { name, evidence, basedOn, reference } = annotation
-        return (
-          <tr key={name} onClick={() => setSelectedRow(name)}>
-            <td>{name}</td>
-            <td>{evidence}</td>
-            <td>{basedOn}</td>
-            <td>{reference}</td>
-          </tr>
-        )
-      })}
       <div className={classes.buttonDiv}>
         <Button
           color="secondary"
@@ -117,7 +103,7 @@ const GoEditingTabDetail = ({
             setGoDialogInfo({
               open: true,
               data: {
-                /* the feature info*/
+                selectedAnnotation,
               },
             })
           }} // opens up the dialog form, populates with info

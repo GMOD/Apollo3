@@ -39,7 +39,12 @@ const CodingEditingTabDetail = ({
   return (
     <div style={{ height: 400, width: '100%' }}>
       <div style={{ display: 'flex', height: '100%' }}>
-        <DataGrid rows={rows} columns={columns} />
+        <DataGrid
+          pageSize={25}
+          hideFooterSelectedRowCount={true}
+          rows={rows}
+          columns={columns}
+        />
       </div>
     </div>
   )

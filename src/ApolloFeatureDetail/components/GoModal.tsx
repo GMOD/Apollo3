@@ -72,11 +72,10 @@ export default function GoModal({
 
   const initialWith = { prefix: '', id: '' }
   const [withInfo, setWithInfo] = useState(initialWith)
+  const [withArray, setWithArray] = useState<string[]>([])
   const [referenceInfo, setReferenceInfo] = useState({ prefix: '', id: '' })
   const [noteString, setNoteString] = useState('')
   const [noteArray, setNoteArray] = useState<string[]>([])
-
-  const [withArray, setWithArray] = useState<RelationObject[]>([])
 
   const relationValueText = [
     {
@@ -155,6 +154,7 @@ export default function GoModal({
             <MenuItem value="MF">MF</MenuItem>
             <MenuItem value="CC">CC</MenuItem>
           </TextField>
+          {/* TODO: hit the autocomplete api to fill out the terms while they search this textfield*/}
           <TextField
             value={goFormInfo.goTerm}
             onChange={event => {
@@ -177,14 +177,16 @@ export default function GoModal({
               })
             }}
             style={{ width: '70%' }}
+            disabled={!aspect}
           >
+            <MenuItem value="" />
             {relationValueText
               .find(obj => obj.selectedAspect === aspect)
               ?.values.map(value => (
                 <MenuItem key={value} value={value}>
                   {value}
                 </MenuItem>
-              )) || <MenuItem>""</MenuItem>}
+              ))}
           </TextField>
           <input
             id="not"
@@ -205,6 +207,11 @@ export default function GoModal({
             autoComplete="off"
             disabled={!aspect}
             style={{ width: '70%' }}
+            helperText={
+              <a href="http://geneontology.org/docs/guide-go-evidence-codes/">
+                Evidence Code Info
+              </a>
+            }
           />
           <input
             id="allECOEvidence"
@@ -221,7 +228,6 @@ export default function GoModal({
           <label htmlFor="allECOEvidence">All ECO Evidence</label>
           <br />
           {/* have one field instead of two, placeholder is prefix:id, check for colon*/}
-          {/* <div> {label} <CloseIconButton/></div> */}
           <div className={classes.prefixIdField}>
             <TextField
               value={withInfo.prefix}
@@ -249,23 +255,26 @@ export default function GoModal({
               style={{ marginTop: 20 }}
               onClick={() => {
                 if (withInfo !== initialWith) {
+                  const prefixIdString = `${withInfo.prefix}:${withInfo.id}`
                   withArray.length > 0
-                    ? setWithArray([...withArray, withInfo])
-                    : setWithArray([withInfo])
+                    ? setWithArray([...withArray, prefixIdString])
+                    : setWithArray([prefixIdString])
                   setWithInfo(initialWith)
                 }
               }}
             >
               Add
             </Button>
-            {withArray.map((value: RelationObject) => {
+            {withArray.map((value: string) => {
               return (
-                <div key={`${value.prefix}-${value.id}`}>
-                  {value.prefix} : {value.id}
+                <div key={value}>
+                  {value}
                   <IconButton
                     aria-label="close"
                     onClick={() => {
-                      setWithArray(withArray.filter(obj => obj !== value))
+                      setWithArray(
+                        withArray.filter(withString => withString !== value),
+                      )
                     }}
                   >
                     <CloseIcon />
@@ -361,7 +370,7 @@ export default function GoModal({
               }`,
               negate: goFormInfo.not,
               withOrFrom: withArray,
-              references: [referenceInfo],
+              references: [`${referenceInfo.prefix}:${referenceInfo.id}`],
             }
 
             const response = await fetch(

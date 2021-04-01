@@ -211,7 +211,6 @@ const AnnotationsTabDetail = ({
     { field: 'type', headerName: 'Type' },
     { field: 'length', headerName: 'Length' },
     { field: 'updated', headerName: 'Updated' },
-    { field: 'feature', headerName: 'Feature', hide: true },
   ]
 
   const rows: CodingRow[] = features.map(
@@ -222,7 +221,6 @@ const AnnotationsTabDetail = ({
       type: currentFeature.type.name,
       length: currentFeature.location.fmax - currentFeature.location.fmin,
       updated: new Date(currentFeature.date_last_modified).toDateString(),
-      feature: currentFeature,
     }),
   )
   return (
@@ -230,10 +228,12 @@ const AnnotationsTabDetail = ({
       <div style={{ height: clickedFeature ? 200 : 400, width: '100%' }}>
         <div style={{ display: 'flex', height: '100%', fontSize: '12' }}>
           <DataGrid
+            pageSize={25}
+            hideFooterSelectedRowCount={true}
             rows={rows}
             columns={columns}
             onRowClick={rowData => {
-              setClickedFeature(rowData.row.feature)
+              setClickedFeature(features[rowData.row.id as number])
               setCurrentEditingTabs(findEditingTabs(rowData.row.type))
             }}
           />

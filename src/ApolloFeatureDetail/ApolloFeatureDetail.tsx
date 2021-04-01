@@ -45,10 +45,10 @@ export interface ApolloFeature {
 }
 
 // CURRENT PROGRESS GOES HERE:
-// sorting in ascending/descending is possible on the coding table
-// make it possible on the main feature selection table too
-// make the onclick of the coding table
-// add the other editing tabs
+// moved everything to data grid, should work on additional formatting
+// for Coding tab, have an onclick? for the cell of start and end that you can edit
+// for coding tab, have an onclick for the cell of strand that you can toggle
+// for go tab, hook the goterm up to the autocomplete search API, also work on edit and delete
 
 // make API layer so it can be swapped between Apollo 2 and Apollo 3, most likely using
 // some sort of driver setup with apollo js classes or mst classes or pluggable data adapters
