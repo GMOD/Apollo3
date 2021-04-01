@@ -96,6 +96,7 @@ export default function GoModal({
       values: ['part of', 'colocalizes with', 'is active in'],
     },
   ]
+
   return (
     <Dialog
       open
@@ -128,7 +129,7 @@ export default function GoModal({
         <form>
           <TextField
             select
-            label="Choose Aspect"
+            label="Aspect"
             value={aspect}
             onChange={event => {
               setAspect(event.target.value)
@@ -156,7 +157,10 @@ export default function GoModal({
             label="Relationship between Gene Product and GO Term"
             value={goFormInfo.relationship}
             onChange={event => {
-              setGoFormInfo({ ...goFormInfo, relationship: event.target.value })
+              setGoFormInfo({
+                ...goFormInfo,
+                relationship: event.target.value,
+              })
             }}
             style={{ width: '70%' }}
           >
@@ -166,7 +170,7 @@ export default function GoModal({
                 <MenuItem key={value} value={value}>
                   {value}
                 </MenuItem>
-              ))}
+              )) || <MenuItem>""</MenuItem>}
           </TextField>
           <input
             id="not"
