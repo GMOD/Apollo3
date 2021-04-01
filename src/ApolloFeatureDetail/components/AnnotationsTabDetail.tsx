@@ -13,11 +13,7 @@ import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 import { BaseCard } from '@jbrowse/core/BaseFeatureWidget/BaseFeatureDetail'
 import { toJS } from 'mobx'
-import {
-  AplInputProps,
-  ApolloData,
-  ApolloFeature,
-} from '../ApolloFeatureDetail'
+import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
 import DetailsEditingTabDetail from './DetailsEditingTabDetail'
 import CodingEditingTabDetail from './CodingEditingTabDetail'
 import GoEditingTabDetail from './GoEditingTabDetail'
@@ -63,7 +59,7 @@ const AnnotationsTabDetail = ({
   aplData,
   props,
 }: {
-  aplData: ApolloData
+  aplData: ApolloFeature[]
   props: AplInputProps
 }) => {
   const { model } = props
@@ -208,7 +204,7 @@ const AnnotationsTabDetail = ({
   }
 
   const classes = useStyles()
-  const features = Object.values(aplData)[0]
+  const features = aplData
   const columns = [
     { field: 'name', headerName: 'Name' },
     { field: 'seq', headerName: 'Seq' },
@@ -224,8 +220,7 @@ const AnnotationsTabDetail = ({
       name: currentFeature.name,
       seq: currentFeature.sequence,
       type: currentFeature.type.name,
-      location: `${currentFeature.location.fmax -
-        currentFeature.location.fmin}`,
+      length: currentFeature.location.fmax - currentFeature.location.fmin,
       updated: new Date(currentFeature.date_last_modified).toDateString(),
       feature: currentFeature,
     }),

@@ -57,7 +57,7 @@ const ApolloFeatureDetails: FunctionComponent<AplInputProps> = props => {
   const { model } = props
   const [idx, setIdx] = useState(0)
   const feature = JSON.parse(JSON.stringify(model.featureData))
-  const fetchedData = model.fetchedData
+  const fetchedData: Array<any>[] = Array.from(model.fetchedData.entries())
 
   // @ts-ignore
   function handleTabChange(event: any, newIdx: any) {
@@ -65,11 +65,14 @@ const ApolloFeatureDetails: FunctionComponent<AplInputProps> = props => {
   }
 
   function findMatchingTab(tabIdx: number) {
-    const keyName = Object.keys(fetchedData[tabIdx])[0]
+    const keyName = fetchedData[tabIdx] ? fetchedData[tabIdx][0] : ''
     switch (keyName) {
       case 'features': {
         return (
-          <AnnotationsTabDetail aplData={fetchedData[tabIdx]} props={props} />
+          <AnnotationsTabDetail
+            aplData={fetchedData[tabIdx][1]}
+            props={props}
+          />
         )
       }
       case 'main': {
@@ -107,7 +110,7 @@ const ApolloFeatureDetails: FunctionComponent<AplInputProps> = props => {
           variant="fullWidth"
         >
           {fetchedData.map((object: any, index: number) => {
-            const [key] = Object.entries(object)[0]
+            const key = object[0]
             return (
               <Tab
                 key={`${key}-${index}`}

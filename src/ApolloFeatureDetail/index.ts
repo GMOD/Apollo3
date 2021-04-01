@@ -7,6 +7,7 @@ import { observable } from 'mobx'
 // import { Client } from '@stomp/stompjs'
 
 const configSchema = ConfigurationSchema('ApolloWidget', {})
+const initialMap = new Map().set('main', {})
 
 export default function stateModelFactory(pluginManager: PluginManager) {
   return types
@@ -22,7 +23,8 @@ export default function stateModelFactory(pluginManager: PluginManager) {
     })
     .volatile(() => ({
       socket: undefined as any | undefined,
-      fetchedData: observable([{ main: {} }]) as any | undefined,
+      // fetchedData: observable([{ main: {} }]) as any | undefined,
+      fetchedData: observable.map(initialMap) as any | undefined,
     }))
     .actions(self => ({
       setFeatureData(data: any) {
@@ -34,9 +36,8 @@ export default function stateModelFactory(pluginManager: PluginManager) {
       setSocket(socket: any) {
         self.socket = socket
       },
-      // note probably change to a map
-      pushToFetchedData(data: any) {
-        self.fetchedData.push(data)
+      addToFetchedData(data: any) {
+        self.fetchedData.set(data.key, data.value)
       },
       async fetchFeatures() {
         const data = {
@@ -56,7 +57,7 @@ export default function stateModelFactory(pluginManager: PluginManager) {
           },
         )
         const json = await featureResponse.json()
-        this.pushToFetchedData({ features: json.features })
+        this.addToFetchedData({ key: 'features', value: json.features })
 
         // getting the parent feature, need client token
         // client token can be a random generated number for now

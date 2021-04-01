@@ -1,7 +1,6 @@
 import { DataGrid } from '@material-ui/data-grid'
-import { makeStyles } from '@material-ui/core'
 import { observer } from 'mobx-react'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
 
 interface CodingRow {
@@ -9,13 +8,6 @@ interface CodingRow {
   start: number
   length: number
 }
-const useStyles = makeStyles(() => ({
-  dataRow: {
-    '&:hover': {
-      backgroundColor: 'lightblue',
-    },
-  },
-}))
 
 const CodingEditingTabDetail = ({
   clickedFeature,

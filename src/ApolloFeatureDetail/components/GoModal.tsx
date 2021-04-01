@@ -252,7 +252,6 @@ export default function GoModal({
                   withArray.length > 0
                     ? setWithArray([...withArray, withInfo])
                     : setWithArray([withInfo])
-                  console.log(withInfo, withArray)
                   setWithInfo(initialWith)
                 }
               }}
@@ -260,7 +259,6 @@ export default function GoModal({
               Add
             </Button>
             {withArray.map((value: RelationObject) => {
-              console.log('hello')
               return (
                 <div key={`${value.prefix}-${value.id}`}>
                   {value.prefix} : {value.id}
