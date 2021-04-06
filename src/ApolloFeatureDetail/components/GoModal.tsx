@@ -10,11 +10,17 @@ import {
   MenuItem,
   Button,
   IconButton,
+  Typography,
 } from '@material-ui/core'
+import { Autocomplete } from '@material-ui/lab'
+import WarningIcon from '@material-ui/icons/Warning'
 import CloseIcon from '@material-ui/icons/Close'
-
 import { ApolloFeature } from '../ApolloFeatureDetail'
 
+interface GoResults {
+  match: string
+  id: string
+}
 const useStyles = makeStyles(theme => ({
   main: {
     textAlign: 'center',
@@ -49,6 +55,80 @@ interface RelationObject {
   id: string
 }
 
+const fetchGOTermResults = async (aspect: string, currentText: string) => {
+  // https://api.geneontology.org/api/search/entity/autocomplete/lactas?rows=40&prefix=GO&category=biological%20process
+  // https://api.geneontology.org/api/search/entity/autocomplete/A?rows=40&prefix=GO&category=biological%20process
+  const data = {
+    rows: 40,
+    prefix: 'GO',
+    category: aspect,
+  }
+
+  let params = Object.entries(data)
+    .map(([key, val]) => `${key}=${encodeURIComponent(val)}`)
+    .join('&')
+
+  console.log(params)
+  const response = await fetch(
+    `https://api.geneontology.org/api/search/entity/autocomplete/${currentText}?${params}`,
+    {
+      method: 'GET',
+    },
+  )
+
+  const results = await response.json()
+  return results
+}
+
+function GoModalError({
+  handleClose,
+  errorMessageArray,
+}: {
+  handleClose: () => void
+  errorMessageArray: string[]
+}) {
+  const classes = useStyles()
+
+  return (
+    <Dialog
+      open
+      aria-labelledby="error-dialog-title"
+      aria-describedby="error-dialog-description"
+      data-testid="go-editing-modal-error"
+      fullWidth={true}
+      style={{ zIndex: 2000 }}
+    >
+      <DialogTitle id="alert-dialog-title">
+        <IconButton>
+          <WarningIcon />
+        </IconButton>
+        Invalid Go Annotation
+        <IconButton
+          aria-label="close"
+          className={classes.closeButton}
+          onClick={handleClose}
+        >
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent>
+        <DialogContentText>Reasons:</DialogContentText>
+        {errorMessageArray.map(reason => (
+          <DialogContentText key={reason}>{reason}</DialogContentText>
+        ))}
+      </DialogContent>
+      <Button
+        className={classes.buttons}
+        variant="contained"
+        onClick={() => {
+          handleClose()
+        }}
+      >
+        Ok
+      </Button>
+    </Dialog>
+  )
+}
 export default function GoModal({
   handleClose,
   model,
@@ -63,12 +143,13 @@ export default function GoModal({
   const classes = useStyles()
   const [aspect, setAspect] = useState('')
   const [goFormInfo, setGoFormInfo] = useState({
-    goTerm: '',
+    goTerm: { match: '', id: '' },
     relationship: '',
     not: false,
     evidence: '',
     allECOEvidence: false,
   })
+  const [goTermAutocomplete, setGoTermAutocomplete] = useState<GoResults[]>([])
 
   const initialWith = { prefix: '', id: '' }
   const [withInfo, setWithInfo] = useState(initialWith)
@@ -77,38 +158,83 @@ export default function GoModal({
   const [noteString, setNoteString] = useState('')
   const [noteArray, setNoteArray] = useState<string[]>([])
 
+  const [openErrorModal, setOpenErrorModal] = useState(false)
+
   const relationValueText = [
     {
-      selectedAspect: 'BP',
-      values: [
-        'involved in',
-        'acts upstream of',
-        'acts upstream of positive effect',
-        'acts upstream of negative effect',
-        'acts upstream of or within',
-        'acts upstream of or within positive effect',
-        'acts upstream of or within negative effect',
+      selectedAspect: 'biological process',
+      choices: [
+        { text: 'involved in', value: 'RO:0002331' },
+        { text: 'acts upstream of', value: 'RO:0002263' },
+        { text: 'acts upstream of positive effect', value: 'RO:0004034' },
+        { text: 'acts upstream of negative effect', value: 'RO:0004035' },
+        { text: 'acts upstream of or within', value: 'RO:0002264' },
+        {
+          text: 'acts upstream of or within positive effect',
+          value: 'RO:0004032',
+        },
+        {
+          text: 'acts upstream of or within negative effect',
+          value: 'RO:0004033',
+        },
       ],
     },
     {
-      selectedAspect: 'MF',
-      values: ['enables', 'contributes to'],
+      selectedAspect: 'molecular function',
+      choices: [
+        { text: 'enables', value: 'RO:0002327' },
+        { text: 'contributes to', value: 'RO:0002326' },
+      ],
     },
     {
-      selectedAspect: 'CC',
-      values: ['part of', 'colocalizes with', 'is active in'],
+      selectedAspect: 'cellular component',
+      choices: [
+        { text: 'part of', value: 'BFO:0000050' },
+        { text: 'colocalizes with', value: 'RO:0002325' },
+        { text: 'is active in', value: 'RO:0002432' },
+      ],
     },
   ]
 
+  const formValidation = () => {
+    const errorMessageArray = []
+    if (!goFormInfo.goTerm) {
+      errorMessageArray.push('You must provide a GO term')
+    } else if (!goFormInfo.goTerm.id.includes(':')) {
+      errorMessageArray.push(
+        'You must provide a prefix and suffix for the GO term',
+      )
+    }
+
+    if (!goFormInfo.evidence) {
+      errorMessageArray.push('You must provide an ECO term')
+    } else if (
+      !goFormInfo.evidence.includes(':') &&
+      !goFormInfo.allECOEvidence
+    ) {
+      errorMessageArray.push(
+        'You must provide a prefix and suffix for the ECO term',
+      )
+    }
+
+    if (!goFormInfo.relationship) {
+      errorMessageArray.push('You must provide a Gene Relationship')
+    }
+    if (!referenceInfo.prefix || !referenceInfo.id) {
+      errorMessageArray.push(
+        'You must provide atleast one reference prefix and id',
+      )
+    }
+    if (withArray.length <= 0) {
+      errorMessageArray.push(
+        'You must provide at least 1 with for the evidence code',
+      )
+    }
+    return errorMessageArray
+  }
+
   // go term hits an api and returns suggestions, make sure to do that
   // https://api.geneontology.org/api/search/entity/autocomplete/lactas?rows=40&prefix=GO&category=biological%20process
-
-  //                {
-  //                    "annotations":[{
-  //                    "geneRelationship":"RO:0002326", "goTerm":"GO:0031084", "references":"[\"ref:12312\"]", "gene":
-  //                    "1743ae6c-9a37-4a41-9b54-345065726d5f", "negate":false, "evidenceCode":"ECO:0000205", "withOrFrom":
-  //                    "[\"adf:12312\"]"
-  //                }]}
 
   return (
     <Dialog
@@ -132,7 +258,11 @@ export default function GoModal({
       <div>
         <DialogContent>
           <DialogContentText>
-            <a href="http://geneontology.org/docs/go-annotations/">
+            <a
+              href="http://geneontology.org/docs/go-annotations/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Go Annotation Guidance
             </a>
           </DialogContentText>
@@ -148,24 +278,67 @@ export default function GoModal({
               setAspect(event.target.value)
             }}
             style={{ width: '30%', marginRight: 10 }}
+            helperText={aspect || ''}
           >
             <MenuItem value="" />
-            <MenuItem value="BP">BP</MenuItem>
-            <MenuItem value="MF">MF</MenuItem>
-            <MenuItem value="CC">CC</MenuItem>
+            <MenuItem value="biological process">BP</MenuItem>
+            <MenuItem value="molecular function">MF</MenuItem>
+            <MenuItem value="cellular component">CC</MenuItem>
           </TextField>
           {/* TODO: hit the autocomplete api to fill out the terms while they search this textfield*/}
-          <TextField
-            value={goFormInfo.goTerm}
-            onChange={event => {
-              setGoFormInfo({ ...goFormInfo, goTerm: event.target.value })
+          <Autocomplete
+            id="goTerm-autocomplete"
+            freeSolo
+            options={goTermAutocomplete}
+            getOptionLabel={option => `${option.match} (${option.id})`}
+            onChange={(event, value) => {
+              if (value) {
+                setGoFormInfo({
+                  ...goFormInfo,
+                  goTerm: value as GoResults,
+                })
+              }
             }}
-            label="Go term"
-            autoComplete="off"
-            disabled={!aspect}
-            style={{ width: '40%' }}
+            selectOnFocus
+            renderInput={params => (
+              <TextField
+                {...params}
+                value={goFormInfo.goTerm}
+                onChange={async event => {
+                  setGoFormInfo({
+                    ...goFormInfo,
+                    goTerm: {
+                      match: '',
+                      id: event.target.value,
+                    },
+                  })
+                  const result = await fetchGOTermResults(
+                    aspect,
+                    event.target.value,
+                  )
+                  setGoTermAutocomplete(result.docs)
+                }}
+                label="Go term"
+                autoComplete="off"
+                disabled={!aspect}
+                style={{ width: '60%' }}
+                helperText={
+                  goFormInfo.goTerm.match &&
+                  goFormInfo.goTerm.id && (
+                    <a
+                      href={`http://amigo.geneontology.org/amigo/term/${goFormInfo.goTerm.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {goFormInfo.goTerm.match} ({goFormInfo.goTerm.id})
+                    </a>
+                  )
+                }
+              />
+            )}
           />
           <br />
+          {/* ask about clearing this field when switching aspects */}
           <TextField
             select
             label="Relationship between Gene Product and GO Term"
@@ -178,13 +351,27 @@ export default function GoModal({
             }}
             style={{ width: '70%' }}
             disabled={!aspect}
+            helperText={
+              goFormInfo.relationship && (
+                <a
+                  href={`http://www.ontobee.org/ontology/RO?iri=http://purl.obolibrary.org/obo/${goFormInfo.relationship.replace(
+                    ':',
+                    '_',
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {goFormInfo.relationship}
+                </a>
+              )
+            }
           >
             <MenuItem value="" />
             {relationValueText
               .find(obj => obj.selectedAspect === aspect)
-              ?.values.map(value => (
-                <MenuItem key={value} value={value}>
-                  {value}
+              ?.choices.map(choice => (
+                <MenuItem key={choice.value} value={choice.value}>
+                  {choice.text}
                 </MenuItem>
               ))}
           </TextField>
@@ -208,7 +395,11 @@ export default function GoModal({
             disabled={!aspect}
             style={{ width: '70%' }}
             helperText={
-              <a href="http://geneontology.org/docs/guide-go-evidence-codes/">
+              <a
+                href="http://geneontology.org/docs/guide-go-evidence-codes/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Evidence Code Info
               </a>
             }
@@ -354,36 +545,54 @@ export default function GoModal({
           variant="contained"
           style={{ marginRight: 5 }}
           onClick={async () => {
-            const data = {
-              username: sessionStorage.getItem(
-                `${model.apolloId}-apolloUsername`,
-              ),
-              password: sessionStorage.getItem(
-                `${model.apolloId}-apolloPassword`,
-              ),
-              feature: clickedFeature.uniquename,
-              aspect,
-              goTerm: goFormInfo.goTerm,
-              geneRelationship: goFormInfo.relationship,
-              evidenceCode: `${goFormInfo.allECOEvidence ? 'ECO:' : ''} ${
-                goFormInfo.evidence
-              }`,
-              negate: goFormInfo.not,
-              withOrFrom: withArray,
-              references: [`${referenceInfo.prefix}:${referenceInfo.id}`],
-            }
+            const validate = formValidation()
+            if (validate.length > 0) {
+              setOpenErrorModal(true)
+            } else {
+              const data = {
+                username: sessionStorage.getItem(
+                  `${model.apolloId}-apolloUsername`,
+                ),
+                password: sessionStorage.getItem(
+                  `${model.apolloId}-apolloPassword`,
+                ),
+                feature: clickedFeature.uniquename,
+                aspect: aspect
+                  .match(/\b(\w)/g)
+                  ?.join('')
+                  .toUpperCase(), // gets acronym of aspect, ex. biological process => BP
+                goTerm: goFormInfo.goTerm.id,
+                goTermLabel: goFormInfo.goTerm.match,
+                geneRelationship: goFormInfo.relationship,
+                evidenceCode: `${goFormInfo.allECOEvidence ? 'ECO:' : ''}${
+                  goFormInfo.evidence
+                }`,
+                negate: goFormInfo.not,
+                withOrFrom: withArray,
+                references: [`${referenceInfo.prefix}:${referenceInfo.id}`],
+              }
 
-            const response = await fetch(
-              `${model.apolloUrl}/goAnnotation/save`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
+              //                {
+              //                    "annotations":[{
+              //                    "geneRelationship":"RO:0002326", "goTerm":"GO:0031084", "references":"[\"ref:12312\"]", "gene":
+              //                    "1743ae6c-9a37-4a41-9b54-345065726d5f", "negate":false, "evidenceCode":"ECO:0000205", "withOrFrom":
+              //                    "[\"adf:12312\"]"
+              //                }]}
+
+              console.log(data)
+
+              const response = await fetch(
+                `${model.apolloUrl}/goAnnotation/save`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(data),
                 },
-                body: JSON.stringify(data),
-              },
-            )
-            console.log('go', response)
+              )
+              console.log('go', response)
+            }
           }}
         >
           Save
@@ -397,6 +606,12 @@ export default function GoModal({
           Cancel
         </Button>
       </div>
+      {openErrorModal && (
+        <GoModalError
+          handleClose={() => setOpenErrorModal(false)}
+          errorMessageArray={formValidation()}
+        />
+      )}
     </Dialog>
   )
 }
