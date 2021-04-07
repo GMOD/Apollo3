@@ -4,14 +4,15 @@ import React, { useState, useEffect } from 'react'
 import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
 import GoModal from './GoModal'
 import { DataGrid, GridSortDirection } from '@material-ui/data-grid'
+import ConfirmDeleteModal from './ConfirmDeleteModal'
 
 interface GoAnnotation {
   [key: string]: string
 }
 
 const useStyles = makeStyles(theme => ({
-  buttonDiv: {
-    margin: theme.spacing(5),
+  buttons: {
+    marginRight: 10,
   },
 }))
 
@@ -26,6 +27,7 @@ const GoEditingTabDetail = ({
   const classes = useStyles()
   const [goAnnotations, setGoAnnotations] = useState([])
   const [goDialogInfo, setGoDialogInfo] = useState({ open: false, data: {} })
+  const [openConfirmDeleteModal, setOpenConfirmDeleteModal] = useState(false)
 
   const handleClose = () => {
     setGoDialogInfo({ open: false, data: {} })
@@ -52,7 +54,6 @@ const GoEditingTabDetail = ({
     fetchGoAnnotations()
   }, [clickedFeature.uniquename, model.apolloUrl, model.apolloId])
 
-  console.log('after', goAnnotations)
   const [selectedAnnotation, setSelectedAnnotation] = useState({}) // when find data to loop thru use this
 
   const columns = [
@@ -64,9 +65,9 @@ const GoEditingTabDetail = ({
 
   const rows = goAnnotations.map((annotation: GoAnnotation, index: number) => ({
     id: index,
-    name: annotation.name,
-    evidence: annotation.evidence,
-    basedOn: annotation.basedOn,
+    name: `${annotation.goTermLabel} (${annotation.goTerm})`,
+    evidence: annotation.evidenceCode,
+    basedOn: JSON.parse(annotation.withOrFrom).join('\r\n'),
     reference: annotation.reference,
   }))
 
@@ -88,10 +89,11 @@ const GoEditingTabDetail = ({
           />
         </div>
       </div>
-      <div className={classes.buttonDiv}>
+      <div style={{ margin: 5 }}>
         <Button
           color="secondary"
           variant="contained"
+          className={classes.buttons}
           onClick={async () => setGoDialogInfo({ open: true, data: {} })} // opens up a dialog form
         >
           New
@@ -99,6 +101,7 @@ const GoEditingTabDetail = ({
         <Button
           color="secondary"
           variant="contained"
+          className={classes.buttons}
           onClick={async () => {
             setGoDialogInfo({
               open: true,
@@ -113,7 +116,10 @@ const GoEditingTabDetail = ({
         <Button
           color="secondary"
           variant="contained"
-          onClick={async () => {}} // deletes the current selected row from goAnnotations, sends fetch to update
+          className={classes.buttons}
+          onClick={() => {
+            setOpenConfirmDeleteModal(true)
+          }}
         >
           Delete
         </Button>
@@ -122,7 +128,36 @@ const GoEditingTabDetail = ({
             handleClose={handleClose}
             model={model}
             clickedFeature={clickedFeature}
-            data={goDialogInfo.data}
+            loadData={goDialogInfo.data}
+          />
+        )}
+        {openConfirmDeleteModal && (
+          <ConfirmDeleteModal
+            handleClose={() => setOpenConfirmDeleteModal(false)}
+            deleteFunc={async () => {
+              const data = {
+                username: sessionStorage.getItem(
+                  `${model.apolloId}-apolloUsername`,
+                ),
+                password: sessionStorage.getItem(
+                  `${model.apolloId}-apolloPassword`,
+                ),
+                ...selectedAnnotation,
+              }
+              const response = await fetch(
+                `${model.apolloUrl}/goAnnotation/delete`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(data),
+                },
+              )
+            }}
+            objToDeleteName={`GO Annotation: ${
+              (selectedAnnotation as GoAnnotation).goTerm
+            }`}
           />
         )}
       </div>

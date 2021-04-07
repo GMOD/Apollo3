@@ -73,9 +73,8 @@ export default function stateModelFactory(pluginManager: PluginManager) {
         //   .map(([key, val]) => `${key}=${encodeURIComponent(val)}`)
         //   .join('&')
 
-        // console.log(params)
         // const featureResponse2 = await fetch(
-        //   `${self.apolloUrl}/annotator/findAnnotationsForSequence/${params}`,
+        //   `${self.apolloUrl}/annotator/findAnnotationsForSequence/?${params}`,
         //   {
         //     method: 'GET',
         //     headers: {
@@ -84,7 +83,8 @@ export default function stateModelFactory(pluginManager: PluginManager) {
         //   },
         // )
         // const json2 = await featureResponse2.json()
-        // console.log(json2)
+
+        // error JSONObject['clienttoken'] is missing
       },
       // write actions that send fetch requests when something is edited
       async afterCreate() {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -10,17 +10,22 @@ import {
   MenuItem,
   Button,
   IconButton,
-  Typography,
 } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
 import WarningIcon from '@material-ui/icons/Warning'
 import CloseIcon from '@material-ui/icons/Close'
 import { ApolloFeature } from '../ApolloFeatureDetail'
+import GOEvidenceCodes from './GOEvidenceCodes'
 
 interface GoResults {
   match: string
   id: string
 }
+
+interface EvidenceResults extends GoResults {
+  code: string
+}
+
 const useStyles = makeStyles(theme => ({
   main: {
     textAlign: 'center',
@@ -50,25 +55,25 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-interface RelationObject {
-  prefix: string
-  id: string
-}
-
-const fetchGOTermResults = async (aspect: string, currentText: string) => {
-  // https://api.geneontology.org/api/search/entity/autocomplete/lactas?rows=40&prefix=GO&category=biological%20process
-  // https://api.geneontology.org/api/search/entity/autocomplete/A?rows=40&prefix=GO&category=biological%20process
+const fetchGOAutocompleteResults = async (
+  prefix: string,
+  currentText: string,
+  aspect?: string,
+) => {
   const data = {
     rows: 40,
-    prefix: 'GO',
-    category: aspect,
+    prefix,
+  }
+
+  if (prefix === 'GO') {
+    // @ts-ignore
+    data.category = aspect
   }
 
   let params = Object.entries(data)
     .map(([key, val]) => `${key}=${encodeURIComponent(val)}`)
     .join('&')
 
-  console.log(params)
   const response = await fetch(
     `https://api.geneontology.org/api/search/entity/autocomplete/${currentText}?${params}`,
     {
@@ -133,12 +138,12 @@ export default function GoModal({
   handleClose,
   model,
   clickedFeature,
-  data = {},
+  loadData = {},
 }: {
   handleClose: () => void
   model: any
   clickedFeature: ApolloFeature
-  data: any
+  loadData: any
 }) {
   const classes = useStyles()
   const [aspect, setAspect] = useState('')
@@ -146,13 +151,16 @@ export default function GoModal({
     goTerm: { match: '', id: '' },
     relationship: '',
     not: false,
-    evidence: '',
+    evidence: { match: '', id: '', code: '' },
     allECOEvidence: false,
   })
   const [goTermAutocomplete, setGoTermAutocomplete] = useState<GoResults[]>([])
+  const [evidenceAutocomplete, setEvidenceAutocomplete] = useState<
+    EvidenceResults[]
+  >([])
 
-  const initialWith = { prefix: '', id: '' }
-  const [withInfo, setWithInfo] = useState(initialWith)
+  const initialPrefixId = { prefix: '', id: '' }
+  const [withInfo, setWithInfo] = useState(initialPrefixId)
   const [withArray, setWithArray] = useState<string[]>([])
   const [referenceInfo, setReferenceInfo] = useState({ prefix: '', id: '' })
   const [noteString, setNoteString] = useState('')
@@ -209,7 +217,7 @@ export default function GoModal({
     if (!goFormInfo.evidence) {
       errorMessageArray.push('You must provide an ECO term')
     } else if (
-      !goFormInfo.evidence.includes(':') &&
+      !goFormInfo.evidence.id.includes(':') &&
       !goFormInfo.allECOEvidence
     ) {
       errorMessageArray.push(
@@ -233,8 +241,64 @@ export default function GoModal({
     return errorMessageArray
   }
 
-  // go term hits an api and returns suggestions, make sure to do that
-  // https://api.geneontology.org/api/search/entity/autocomplete/lactas?rows=40&prefix=GO&category=biological%20process
+  const clearForm = () => {
+    setGoFormInfo({
+      goTerm: { match: '', id: '' },
+      relationship: '',
+      not: false,
+      evidence: { match: '', id: '', code: '' },
+      allECOEvidence: false,
+    })
+    setGoTermAutocomplete([])
+    setEvidenceAutocomplete([])
+    setWithInfo(initialPrefixId)
+    setWithArray([])
+    setReferenceInfo(initialPrefixId)
+    setNoteString('')
+    setNoteArray([])
+  }
+
+  // need help on autocomplete text field, info is loaded correctly but won't show in field itself when editing
+  // and on clear, won't clear info from field either
+  useEffect(() => {
+    if (Object.keys(loadData).length) {
+      const infoToLoad = loadData.selectedAnnotation
+      switch (infoToLoad.aspect) {
+        case 'BP':
+          setAspect('biological process')
+          break
+        case 'MF':
+          setAspect('molecular function')
+          break
+        case 'CC':
+          setAspect('cellular component')
+          break
+      }
+
+      setGoFormInfo({
+        goTerm: {
+          match: infoToLoad.goTermLabel || '',
+          id: infoToLoad.goTerm || '',
+        },
+        relationship: infoToLoad.geneRelationship || '',
+        not: infoToLoad.negate,
+        evidence: {
+          match: infoToLoad.evidenceCodeLabel || '',
+          id: infoToLoad.evidenceCode || '',
+          code: '',
+        },
+        allECOEvidence: false,
+      })
+      setWithArray(
+        infoToLoad.withOrFrom ? JSON.parse(infoToLoad.withOrFrom) : [],
+      )
+      setReferenceInfo({
+        prefix: infoToLoad.reference?.split(':')[0],
+        id: infoToLoad.reference?.split(':')[1], // probably a better way to do this, fails if they put a colon in prefix name
+      })
+      setNoteArray(infoToLoad.notes ? JSON.parse(infoToLoad.notes) : [])
+    }
+  }, [loadData])
 
   return (
     <Dialog
@@ -276,22 +340,37 @@ export default function GoModal({
             value={aspect}
             onChange={event => {
               setAspect(event.target.value)
+              clearForm()
             }}
             style={{ width: '30%', marginRight: 10 }}
             helperText={aspect || ''}
           >
             <MenuItem value="" />
-            <MenuItem value="biological process">BP</MenuItem>
-            <MenuItem value="molecular function">MF</MenuItem>
-            <MenuItem value="cellular component">CC</MenuItem>
+            <MenuItem value="biological process">
+              Biological Process (BP)
+            </MenuItem>
+            <MenuItem value="molecular function">
+              Molecular Function (MF)
+            </MenuItem>
+            <MenuItem value="cellular component">
+              Cellular Component (CC)
+            </MenuItem>
           </TextField>
-          {/* TODO: hit the autocomplete api to fill out the terms while they search this textfield*/}
           <Autocomplete
             id="goTerm-autocomplete"
             freeSolo
             options={goTermAutocomplete}
             getOptionLabel={option => `${option.match} (${option.id})`}
-            onChange={(event, value) => {
+            onChange={(event, value, reason) => {
+              if (reason === 'clear') {
+                setGoFormInfo({
+                  ...goFormInfo,
+                  goTerm: {
+                    match: '',
+                    id: '',
+                  },
+                })
+              }
               if (value) {
                 setGoFormInfo({
                   ...goFormInfo,
@@ -303,7 +382,7 @@ export default function GoModal({
             renderInput={params => (
               <TextField
                 {...params}
-                value={goFormInfo.goTerm}
+                value={goFormInfo.goTerm.id}
                 onChange={async event => {
                   setGoFormInfo({
                     ...goFormInfo,
@@ -312,9 +391,11 @@ export default function GoModal({
                       id: event.target.value,
                     },
                   })
-                  const result = await fetchGOTermResults(
-                    aspect,
+
+                  const result = await fetchGOAutocompleteResults(
+                    'GO',
                     event.target.value,
+                    aspect,
                   )
                   setGoTermAutocomplete(result.docs)
                 }}
@@ -344,6 +425,7 @@ export default function GoModal({
             label="Relationship between Gene Product and GO Term"
             value={goFormInfo.relationship}
             onChange={event => {
+              // write code in the menu item too
               setGoFormInfo({
                 ...goFormInfo,
                 relationship: event.target.value,
@@ -371,7 +453,7 @@ export default function GoModal({
               .find(obj => obj.selectedAspect === aspect)
               ?.choices.map(choice => (
                 <MenuItem key={choice.value} value={choice.value}>
-                  {choice.text}
+                  {choice.text} ({choice.value})
                 </MenuItem>
               ))}
           </TextField>
@@ -385,25 +467,96 @@ export default function GoModal({
             style={{ marginTop: 40 }}
           />
           <label htmlFor="not">Not</label>
-          <TextField
-            value={goFormInfo.evidence}
-            onChange={event => {
-              setGoFormInfo({ ...goFormInfo, evidence: event.target.value })
+          {/* this is actually an autocomplete endpoint too, also implement this*/}
+          <Autocomplete
+            id="evidence-autocomplete"
+            freeSolo
+            options={evidenceAutocomplete}
+            getOptionLabel={option => {
+              return !goFormInfo.evidence.code
+                ? `${option.match} (${option.id})`
+                : `${option.code} (${option.id}): ${option.match}`
             }}
-            label="Evidence"
-            autoComplete="off"
-            disabled={!aspect}
-            style={{ width: '70%' }}
-            helperText={
-              <a
-                href="http://geneontology.org/docs/guide-go-evidence-codes/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Evidence Code Info
-              </a>
-            }
+            onChange={(event, value, reason) => {
+              if (reason === 'clear') {
+                setGoFormInfo({
+                  ...goFormInfo,
+                  evidence: {
+                    match: '',
+                    id: '',
+                    code: '',
+                  },
+                })
+              }
+              if (value) {
+                setGoFormInfo({
+                  ...goFormInfo,
+                  evidence: value as EvidenceResults,
+                })
+              }
+            }}
+            selectOnFocus
+            renderInput={params => (
+              <TextField
+                {...params}
+                value={goFormInfo.evidence.id}
+                onChange={async event => {
+                  setGoFormInfo({
+                    ...goFormInfo,
+                    evidence: {
+                      match: '',
+                      code: '',
+                      id: event.target.value,
+                    },
+                  })
+
+                  if (goFormInfo.allECOEvidence) {
+                    const result = await fetchGOAutocompleteResults(
+                      'ECO',
+                      event.target.value,
+                    )
+                    setEvidenceAutocomplete(result.docs)
+                  } else {
+                    setEvidenceAutocomplete(
+                      GOEvidenceCodes.filter(
+                        info =>
+                          info.match.includes(event.target.value) ||
+                          info.code.includes(event.target.value),
+                      ),
+                    )
+                  }
+                }}
+                label="Evidence"
+                autoComplete="off"
+                disabled={!aspect}
+                style={{ width: '70%' }}
+                helperText={
+                  <>
+                    {goFormInfo.evidence.match && goFormInfo.evidence.match && (
+                      <a
+                        href={`https://evidenceontology.org/term/${goFormInfo.evidence}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {goFormInfo.evidence.match} ({goFormInfo.evidence.id})
+                      </a>
+                    )}
+                    {goFormInfo.evidence.match && goFormInfo.evidence.match && (
+                      <br />
+                    )}
+                    <a
+                      href="http://geneontology.org/docs/guide-go-evidence-codes/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Evidence Code Info
+                    </a>
+                  </>
+                }
+              />
+            )}
           />
+
           <input
             id="allECOEvidence"
             type="checkbox"
@@ -418,7 +571,6 @@ export default function GoModal({
           />
           <label htmlFor="allECOEvidence">All ECO Evidence</label>
           <br />
-          {/* have one field instead of two, placeholder is prefix:id, check for colon*/}
           <div className={classes.prefixIdField}>
             <TextField
               value={withInfo.prefix}
@@ -445,12 +597,12 @@ export default function GoModal({
               variant="contained"
               style={{ marginTop: 20 }}
               onClick={() => {
-                if (withInfo !== initialWith) {
+                if (withInfo !== initialPrefixId) {
                   const prefixIdString = `${withInfo.prefix}:${withInfo.id}`
                   withArray.length > 0
                     ? setWithArray([...withArray, prefixIdString])
                     : setWithArray([prefixIdString])
-                  setWithInfo(initialWith)
+                  setWithInfo(initialPrefixId)
                 }
               }}
             >
@@ -564,34 +716,27 @@ export default function GoModal({
                 goTerm: goFormInfo.goTerm.id,
                 goTermLabel: goFormInfo.goTerm.match,
                 geneRelationship: goFormInfo.relationship,
-                evidenceCode: `${goFormInfo.allECOEvidence ? 'ECO:' : ''}${
-                  goFormInfo.evidence
-                }`,
+                evidenceCode: goFormInfo.evidence.id,
+                evidenceCodeLabel: !goFormInfo.evidence.code
+                  ? `${goFormInfo.evidence.match} (${goFormInfo.evidence.id})`
+                  : `${goFormInfo.evidence.code} (${goFormInfo.evidence.id}): ${goFormInfo.evidence.match}`,
                 negate: goFormInfo.not,
                 withOrFrom: withArray,
-                references: [`${referenceInfo.prefix}:${referenceInfo.id}`],
+                reference: `${referenceInfo.prefix}:${referenceInfo.id}`,
+                id: loadData.selectedAnnotation?.id || null,
               }
 
-              //                {
-              //                    "annotations":[{
-              //                    "geneRelationship":"RO:0002326", "goTerm":"GO:0031084", "references":"[\"ref:12312\"]", "gene":
-              //                    "1743ae6c-9a37-4a41-9b54-345065726d5f", "negate":false, "evidenceCode":"ECO:0000205", "withOrFrom":
-              //                    "[\"adf:12312\"]"
-              //                }]}
-
-              console.log(data)
-
-              const response = await fetch(
-                `${model.apolloUrl}/goAnnotation/save`,
-                {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify(data),
+              const endpointUrl = Object.keys(loadData).length
+                ? `${model.apolloUrl}/goAnnotation/update`
+                : `${model.apolloUrl}/goAnnotation/save`
+              const response = await fetch(endpointUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
                 },
-              )
-              console.log('go', response)
+                body: JSON.stringify(data),
+              })
+              handleClose()
             }
           }}
         >

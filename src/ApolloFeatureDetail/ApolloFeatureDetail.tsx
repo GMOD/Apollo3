@@ -45,13 +45,15 @@ export interface ApolloFeature {
 }
 
 // CURRENT PROGRESS GOES HERE:
-// moved everything to data grid, should work on additional formatting
-// for Coding tab, have an onclick? for the cell of start and end that you can edit
-// for coding tab, have an onclick for the cell of strand that you can toggle
-// for go tab, hook the goterm up to the autocomplete search API, also work on edit and delete
-
-// make API layer so it can be swapped between Apollo 2 and Apollo 3, most likely using
-// some sort of driver setup with apollo js classes or mst classes or pluggable data adapters
+// finished most of go form functionality
+// New creates a new annotation using the form
+// edit edits the currently selected one from data grid using the form,
+// delete deletes the currently selected one on data grid and has a dialog to confirm deletion
+// goTerm and evidence(if allECOevidence is selected) have autocomplete from geneonotology API
+// evidence pulls from GOEVidenceCodes if above is not selected
+// dialog warning appears if form is not filled out correctly
+// current issue, autocomplete fields dont populate on edit or delete on clear (info is still correct), need to look into fixing that
+// next steps: continue onto gene product, looks to be a similar form to Go editing so probably can reuse some components
 
 const ApolloFeatureDetails: FunctionComponent<AplInputProps> = props => {
   const { model } = props
