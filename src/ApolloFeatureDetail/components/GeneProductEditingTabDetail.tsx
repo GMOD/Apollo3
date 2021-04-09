@@ -7,17 +7,16 @@ import { DataGrid, GridSortDirection } from '@material-ui/data-grid'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import TextImportModal from './TextImportModal'
 
-interface GoAnnotation {
+interface GeneProductAnnotation {
   [key: string]: string
 }
-
 const useStyles = makeStyles(theme => ({
   buttons: {
     marginRight: 10,
   },
 }))
 
-const GoEditingTabDetail = ({
+const GeneProductEditingTabDetail = ({
   clickedFeature,
   props,
 }: {
@@ -26,24 +25,27 @@ const GoEditingTabDetail = ({
 }) => {
   const { model } = props
   const classes = useStyles()
-  const [goAnnotations, setGoAnnotations] = useState([])
-  const [goDialogInfo, setGoDialogInfo] = useState({ open: false, data: {} })
+  const [geneProductAnnotations, setGeneProductAnnotations] = useState([])
+  const [geneProductDialogInfo, setGeneProductDialogInfo] = useState({
+    open: false,
+    data: {},
+  })
   const [openConfirmDeleteModal, setOpenConfirmDeleteModal] = useState(false)
   const [openImportModal, setOpenImportModal] = useState(false)
 
   const handleClose = () => {
-    setGoDialogInfo({ open: false, data: {} })
+    setGeneProductDialogInfo({ open: false, data: {} })
   }
 
   useEffect(() => {
-    async function fetchGoAnnotations() {
+    async function fetchGeneProductAnnotations() {
       const data = {
         username: sessionStorage.getItem(`${model.apolloId}-apolloUsername`), // get from renderProps later
         password: sessionStorage.getItem(`${model.apolloId}-apolloPassword`),
         uniqueName: clickedFeature.uniquename,
       }
 
-      const response = await fetch(`${model.apolloUrl}/goAnnotation`, {
+      const response = await fetch(`${model.apolloUrl}/geneProduct`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -51,12 +53,12 @@ const GoEditingTabDetail = ({
         body: JSON.stringify(data),
       })
       const json = await response.json()
-      setGoAnnotations(json.annotations || [])
+      setGeneProductAnnotations(json.annotations || [])
     }
-    fetchGoAnnotations()
+    fetchGeneProductAnnotations()
   }, [clickedFeature.uniquename, model.apolloUrl, model.apolloId])
 
-  const [selectedAnnotation, setSelectedAnnotation] = useState({}) // when find data to loop thru use this
+  const [selectedAnnotation, setSelectedAnnotation] = useState({})
 
   const columns = [
     { field: 'name', headerName: 'Name' },
@@ -65,13 +67,15 @@ const GoEditingTabDetail = ({
     { field: 'reference', headerName: 'Reference' },
   ]
 
-  const rows = goAnnotations.map((annotation: GoAnnotation, index: number) => ({
-    id: index,
-    name: `${annotation.goTermLabel} (${annotation.goTerm})`,
-    evidence: annotation.evidenceCode,
-    basedOn: JSON.parse(annotation.withOrFrom).join('\r\n'),
-    reference: annotation.reference,
-  }))
+  const rows = geneProductAnnotations.map(
+    (annotation: GeneProductAnnotation, index: number) => ({
+      id: index,
+      name: `${annotation.productName}`,
+      evidence: annotation.evidenceCode,
+      basedOn: JSON.parse(annotation.withOrFrom).join('\r\n'),
+      reference: annotation.reference,
+    }),
+  )
 
   return (
     <>
@@ -86,7 +90,9 @@ const GoEditingTabDetail = ({
               { field: 'reference', sort: 'asc' as GridSortDirection },
             ]}
             onRowClick={rowData => {
-              setSelectedAnnotation(goAnnotations[rowData.row.id as number])
+              setSelectedAnnotation(
+                geneProductAnnotations[rowData.row.id as number],
+              )
             }}
           />
         </div>
@@ -96,7 +102,9 @@ const GoEditingTabDetail = ({
           color="secondary"
           variant="contained"
           className={classes.buttons}
-          onClick={async () => setGoDialogInfo({ open: true, data: {} })}
+          onClick={async () =>
+            setGeneProductDialogInfo({ open: true, data: {} })
+          }
         >
           New
         </Button>
@@ -105,14 +113,7 @@ const GoEditingTabDetail = ({
           variant="contained"
           className={classes.buttons}
           disabled={Object.keys(selectedAnnotation).length === 0}
-          onClick={async () => {
-            setGoDialogInfo({
-              open: true,
-              data: {
-                selectedAnnotation,
-              },
-            })
-          }}
+          onClick={async () => {}}
         >
           Edit
         </Button>
@@ -137,12 +138,12 @@ const GoEditingTabDetail = ({
         >
           Import From Text
         </Button>
-        {goDialogInfo.open && (
+        {geneProductDialogInfo.open && (
           <GoModal
             handleClose={handleClose}
             model={model}
             clickedFeature={clickedFeature}
-            loadData={goDialogInfo.data}
+            loadData={geneProductDialogInfo.data}
           />
         )}
         {openConfirmDeleteModal && (
@@ -159,7 +160,7 @@ const GoEditingTabDetail = ({
                 ...selectedAnnotation,
               }
               const response = await fetch(
-                `${model.apolloUrl}/goAnnotation/delete`,
+                `${model.apolloUrl}/geneProduct/delete`,
                 {
                   method: 'POST',
                   headers: {
@@ -169,8 +170,8 @@ const GoEditingTabDetail = ({
                 },
               )
             }}
-            objToDeleteName={`GO Annotation: ${
-              (selectedAnnotation as GoAnnotation).goTerm
+            objToDeleteName={`Gene Product Annotation: ${
+              (selectedAnnotation as GeneProductAnnotation).productName
             }`}
           />
         )}
@@ -180,22 +181,10 @@ const GoEditingTabDetail = ({
             handleClose={() => {
               setOpenImportModal(false)
             }}
-            endpointUrl={`${model.apolloUrl}/goAnnotation/save`}
+            endpointUrl={`${model.apolloUrl}/geneProduct/save`}
             from="Go Annotation"
             helpText={`Format is:
-             {
-              "feature": "",
-              "aspect": "",
-              "goTerm": "",
-              "goTermLabel": "",
-              "geneRelationship": "",
-              "evidenceCode": "",
-              "evidenceCodeLabel": " ()",
-              "negate": false,
-              "withOrFrom": [],
-              "reference": ":",
-              "id": null
-              "notes": []
+             { // fill this
           }`}
           />
         )}
@@ -204,4 +193,4 @@ const GoEditingTabDetail = ({
   )
 }
 
-export default observer(GoEditingTabDetail)
+export default observer(GeneProductEditingTabDetail)

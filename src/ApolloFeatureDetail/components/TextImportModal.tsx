@@ -47,7 +47,7 @@ export default function TextImportModal({
         fullWidth={true}
       >
         <DialogTitle id="alert-dialog-title">
-          Paste text string below to import {from}
+          Paste JSON text string below to import {from}
           <IconButton
             aria-label="close"
             className={classes.closeButton}
@@ -61,7 +61,7 @@ export default function TextImportModal({
           onChange={event => {
             setText(event.target.value)
           }}
-          label="Paste Import Text Here"
+          label="Paste Import JSON Text Here"
           autoComplete="off"
           placeholder={helpText}
           size="medium"
