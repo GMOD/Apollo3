@@ -53,6 +53,7 @@ export default function ConfirmDeleteModal({
       <div style={{ marginRight: 5, alignSelf: 'flex-end' }}>
         <Button
           className={classes.buttons}
+          color="primary"
           variant="contained"
           onClick={() => {
             deleteFunc()

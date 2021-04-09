@@ -61,11 +61,11 @@ const ApolloFeatureDetails: FunctionComponent<AplInputProps> = props => {
   const feature = JSON.parse(JSON.stringify(model.featureData))
   const fetchedData: Array<any>[] = Array.from(model.fetchedData.entries())
 
-  // @ts-ignore
   function handleTabChange(event: any, newIdx: any) {
     setIdx(newIdx)
   }
 
+  // pairs tab with panel
   function findMatchingTab(tabIdx: number) {
     const keyName = fetchedData[tabIdx] ? fetchedData[tabIdx][0] : ''
     switch (keyName) {

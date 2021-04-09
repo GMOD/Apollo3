@@ -5,6 +5,7 @@ import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
 import GoModal from './GoModal'
 import { DataGrid, GridSortDirection } from '@material-ui/data-grid'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
+import TextImportModal from './TextImportModal'
 
 interface GoAnnotation {
   [key: string]: string
@@ -28,6 +29,7 @@ const GoEditingTabDetail = ({
   const [goAnnotations, setGoAnnotations] = useState([])
   const [goDialogInfo, setGoDialogInfo] = useState({ open: false, data: {} })
   const [openConfirmDeleteModal, setOpenConfirmDeleteModal] = useState(false)
+  const [openImportModal, setOpenImportModal] = useState(false)
 
   const handleClose = () => {
     setGoDialogInfo({ open: false, data: {} })
@@ -94,7 +96,7 @@ const GoEditingTabDetail = ({
           color="secondary"
           variant="contained"
           className={classes.buttons}
-          onClick={async () => setGoDialogInfo({ open: true, data: {} })} // opens up a dialog form
+          onClick={async () => setGoDialogInfo({ open: true, data: {} })}
         >
           New
         </Button>
@@ -103,13 +105,15 @@ const GoEditingTabDetail = ({
           variant="contained"
           className={classes.buttons}
           onClick={async () => {
-            setGoDialogInfo({
-              open: true,
-              data: {
-                selectedAnnotation,
-              },
-            })
-          }} // opens up the dialog form, populates with info
+            if (Object.keys(selectedAnnotation).length) {
+              setGoDialogInfo({
+                open: true,
+                data: {
+                  selectedAnnotation,
+                },
+              })
+            }
+          }}
         >
           Edit
         </Button>
@@ -122,6 +126,16 @@ const GoEditingTabDetail = ({
           }}
         >
           Delete
+        </Button>
+        <Button
+          color="secondary"
+          variant="contained"
+          className={classes.buttons}
+          onClick={() => {
+            setOpenImportModal(true)
+          }}
+        >
+          Import From Text
         </Button>
         {goDialogInfo.open && (
           <GoModal
@@ -158,6 +172,31 @@ const GoEditingTabDetail = ({
             objToDeleteName={`GO Annotation: ${
               (selectedAnnotation as GoAnnotation).goTerm
             }`}
+          />
+        )}
+        {openImportModal && (
+          <TextImportModal
+            model={model}
+            handleClose={() => {
+              setOpenImportModal(false)
+            }}
+            endpointUrl={`${model.apolloUrl}/goAnnotation/save`}
+            from="Go Annotation"
+            helpText={`Format is:
+             {
+              "feature": "",
+              "aspect": "",
+              "goTerm": "",
+              "goTermLabel": "",
+              "geneRelationship": "",
+              "evidenceCode": "",
+              "evidenceCodeLabel": " ()",
+              "negate": false,
+              "withOrFrom": [],
+              "reference": ":",
+              "id": null
+              "notes": []
+          }`}
           />
         )}
       </div>

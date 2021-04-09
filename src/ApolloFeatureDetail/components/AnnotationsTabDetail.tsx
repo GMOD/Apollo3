@@ -12,7 +12,6 @@ import {
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 import { BaseCard } from '@jbrowse/core/BaseFeatureWidget/BaseFeatureDetail'
-import { toJS } from 'mobx'
 import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
 import DetailsEditingTabDetail from './DetailsEditingTabDetail'
 import CodingEditingTabDetail from './CodingEditingTabDetail'
@@ -69,7 +68,7 @@ const AnnotationsTabDetail = ({
   const [currentEditingTabs, setCurrentEditingTabs] = useState([] as string[])
   const [idx, setIdx] = useState(0)
 
-  // have a data structure with the arrays, instead of having a large switch case statement
+  // generate the sub-editing tabs based on type
   const findEditingTabs = (type: string) => {
     switch (type) {
       case 'gene':
@@ -154,6 +153,7 @@ const AnnotationsTabDetail = ({
   function handleTabChange(event: any, newIdx: any) {
     setIdx(newIdx)
   }
+  // match tab index to editing panel
   function findMatchingEditingTab(tabIdx: number) {
     const key = currentEditingTabs[tabIdx]
     if (clickedFeature) {
