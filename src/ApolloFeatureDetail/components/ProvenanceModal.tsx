@@ -9,6 +9,7 @@ import {
   TextField,
   Button,
   IconButton,
+  MenuItem,
 } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
 import WarningIcon from '@material-ui/icons/Warning'
@@ -57,29 +58,6 @@ const useStyles = makeStyles(theme => ({
     color: theme.palette.error.main,
   },
 }))
-
-// search returns a login form right now
-const searchGeneProduct = async (currentText: string, model: any) => {
-  const data = {
-    organism: 'Ficticious',
-    query: currentText,
-  }
-
-  let params = Object.entries(data)
-    .map(([key, val]) => `${key}=${encodeURIComponent(val)}`)
-    .join('&')
-
-  const response = await fetch(
-    `${model.apolloUrl}/geneProduct/search/?${params}`,
-    { method: 'GET' },
-  )
-
-  console.log(response)
-
-  const results = await response.text()
-  console.log(results)
-  return results
-}
 // geneonotogy endpoing for GO Term and evidence autocompletes
 // may move to a utils file if used for more than one folder
 const fetchEvidenceAutocompleteResults = async (currentText: string) => {
@@ -104,7 +82,7 @@ const fetchEvidenceAutocompleteResults = async (currentText: string) => {
 }
 
 // error if form filled out incorrectly, tells user why
-function GeneProductModalError({
+function ProvenanceModalError({
   handleClose,
   errorMessageArray,
 }: {
@@ -126,7 +104,7 @@ function GeneProductModalError({
         <IconButton>
           <WarningIcon />
         </IconButton>
-        Invalid Gene Product
+        Invalid Provenance
         <IconButton
           aria-label="close"
           className={classes.closeButton}
@@ -157,7 +135,7 @@ function GeneProductModalError({
     </Dialog>
   )
 }
-export default function GeneProductModal({
+export default function ProvenanceModal({
   handleClose,
   model,
   clickedFeature,
@@ -171,13 +149,11 @@ export default function GeneProductModal({
   const classes = useStyles()
 
   // form field hooks
-  const [geneProductFormInfo, setGeneProductFormInfo] = useState({
-    productName: '',
-    alternate: false,
+  const [provenanceFormInfo, setProvenanceFormInfo] = useState({
+    field: '',
     evidence: { label: '', id: '', code: '' },
     allECOEvidence: false,
   })
-  const [geneProductAutocomplete, setGeneProductAutocomplete] = useState([]) // will need a type later
   const [evidenceAutocomplete, setEvidenceAutocomplete] = useState<
     EvidenceResults[]
   >([])
@@ -192,15 +168,15 @@ export default function GeneProductModal({
 
   const formValidation = () => {
     const errorMessageArray: string[] = []
-    if (!geneProductFormInfo.productName) {
-      errorMessageArray.push('You must provide a Gene Product name')
+    if (!provenanceFormInfo.field) {
+      errorMessageArray.push('You must provide a field')
     }
 
-    if (!geneProductFormInfo.evidence) {
+    if (!provenanceFormInfo.evidence) {
       errorMessageArray.push('You must provide an ECO term')
     } else if (
-      !geneProductFormInfo.evidence.id.includes(':') &&
-      !geneProductFormInfo.allECOEvidence
+      !provenanceFormInfo.evidence.id.includes(':') &&
+      !provenanceFormInfo.allECOEvidence
     ) {
       errorMessageArray.push(
         'You must provide a prefix and suffix for the ECO term',
@@ -219,13 +195,25 @@ export default function GeneProductModal({
     return errorMessageArray
   }
 
+  const clearForm = () => {
+    setProvenanceFormInfo({
+      field: '',
+      evidence: { label: '', id: '', code: '' },
+      allECOEvidence: false,
+    })
+    setWithInfo(initialPrefixId)
+    setWithArray([])
+    setReferenceInfo(initialPrefixId)
+    setNoteString('')
+    setNoteArray([])
+  }
+
   // loads annotation if selected in datagrid and edit clicked
   useEffect(() => {
     if (Object.keys(loadData).length) {
       const infoToLoad = loadData.selectedAnnotation
-      setGeneProductFormInfo({
-        productName: infoToLoad.productName || '',
-        alternate: infoToLoad.alternate,
+      setProvenanceFormInfo({
+        field: infoToLoad.field || '',
         evidence: {
           label: infoToLoad.evidenceCodeLabel || '',
           id: infoToLoad.evidenceCode || '',
@@ -253,7 +241,7 @@ export default function GeneProductModal({
       fullWidth={true}
     >
       <DialogTitle id="alert-dialog-title">
-        Add new Gene Product to {clickedFeature.name}
+        Add provenance to {clickedFeature.name}
         <IconButton
           aria-label="close"
           className={classes.closeButton}
@@ -266,75 +254,41 @@ export default function GeneProductModal({
       <div>
         <DialogContent>
           <DialogContentText>
-            <a
-              href="http://geneontology.org/docs/go-annotations/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Go Annotation Guidance
-            </a>
+            Provenance describes why annotation details have been set or changed
           </DialogContentText>
         </DialogContent>
       </div>
       <div className={classes.root}>
         <form>
-          <Autocomplete
-            id="geneProduct-autocomplete"
-            freeSolo
-            options={geneProductAutocomplete}
-            value={geneProductFormInfo.productName}
-            getOptionLabel={option => {
-              if (typeof option === 'string') {
-                return option
-              }
-              if (option) {
-                return `${option}`
-              }
-              return option
+          <TextField
+            select
+            label="Field"
+            value={provenanceFormInfo.field}
+            onChange={event => {
+              setProvenanceFormInfo({
+                ...provenanceFormInfo,
+                field: event.target.value,
+              })
+              clearForm()
             }}
-            onChange={(event, value, reason) => {
-              if (reason === 'clear') {
-                setGeneProductFormInfo({
-                  ...geneProductFormInfo,
-                  productName: '',
-                })
-              }
-              if (value) {
-                setGeneProductFormInfo({
-                  ...geneProductFormInfo,
-                  productName: value,
-                })
-              }
-            }}
-            selectOnFocus
-            renderInput={params => (
-              <TextField
-                {...params}
-                onChange={async event => {
-                  setGeneProductFormInfo({
-                    ...geneProductFormInfo,
-                    productName: event.target.value,
-                  })
-
-                  const result = await searchGeneProduct(
-                    event.target.value,
-                    model,
-                  )
-                  setGeneProductAutocomplete([])
-                }}
-                label="Product"
-                autoComplete="off"
-                style={{ width: '60%' }}
-                // helperText={}
-              />
-            )}
-          />
-          <br />
+            style={{ width: '30%', marginRight: 10 }}
+            helperText={provenanceFormInfo.field || ''}
+          >
+            <MenuItem value="" />
+            <MenuItem value="type">TYPE</MenuItem>
+            <MenuItem value="symbol">SYMBOL</MenuItem>
+            <MenuItem value="name">NAME</MenuItem>
+            <MenuItem value="synonym">SYNONYM</MenuItem>
+            <MenuItem value="description">DESCRIPTION</MenuItem>
+            <MenuItem value="db_xref">DB_XREF</MenuItem>
+            <MenuItem value="attribute">ATTRIBUTE</MenuItem>
+            <MenuItem value="comment">COMMENT</MenuItem>
+          </TextField>
           <Autocomplete
             id="evidence-autocomplete"
             freeSolo
             options={evidenceAutocomplete}
-            value={geneProductFormInfo.evidence.id}
+            value={provenanceFormInfo.evidence.id}
             getOptionLabel={option => {
               if (typeof option === 'string') {
                 return option
@@ -348,8 +302,8 @@ export default function GeneProductModal({
             }}
             onChange={(event, value, reason) => {
               if (reason === 'clear') {
-                setGeneProductFormInfo({
-                  ...geneProductFormInfo,
+                setProvenanceFormInfo({
+                  ...provenanceFormInfo,
                   evidence: {
                     label: '',
                     id: '',
@@ -358,8 +312,8 @@ export default function GeneProductModal({
                 })
               }
               if (value) {
-                setGeneProductFormInfo({
-                  ...geneProductFormInfo,
+                setProvenanceFormInfo({
+                  ...provenanceFormInfo,
                   evidence: {
                     label: (value as EvidenceResults).label[0],
                     id: (value as EvidenceResults).id,
@@ -374,8 +328,8 @@ export default function GeneProductModal({
                 {...params}
                 // value={goFormInfo.evidence.id}
                 onChange={async event => {
-                  setGeneProductFormInfo({
-                    ...geneProductFormInfo,
+                  setProvenanceFormInfo({
+                    ...provenanceFormInfo,
                     evidence: {
                       label: '',
                       code: '',
@@ -383,7 +337,7 @@ export default function GeneProductModal({
                     },
                   })
 
-                  if (geneProductFormInfo.allECOEvidence) {
+                  if (provenanceFormInfo.allECOEvidence) {
                     const result = await fetchEvidenceAutocompleteResults(
                       event.target.value,
                     )
@@ -403,19 +357,19 @@ export default function GeneProductModal({
                 style={{ width: '70%' }}
                 helperText={
                   <>
-                    {geneProductFormInfo.evidence.label &&
-                      geneProductFormInfo.evidence.id && (
+                    {provenanceFormInfo.evidence.label &&
+                      provenanceFormInfo.evidence.id && (
                         <a
-                          href={`https://evidenceontology.org/term/${geneProductFormInfo.evidence.id}`}
+                          href={`https://evidenceontology.org/term/${provenanceFormInfo.evidence.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          {geneProductFormInfo.evidence.label} (
-                          {geneProductFormInfo.evidence.id})
+                          {provenanceFormInfo.evidence.label} (
+                          {provenanceFormInfo.evidence.id})
                         </a>
                       )}
-                    {geneProductFormInfo.evidence.label &&
-                      geneProductFormInfo.evidence.id && <br />}
+                    {provenanceFormInfo.evidence.label &&
+                      provenanceFormInfo.evidence.id && <br />}
                     <a
                       href="http://geneontology.org/docs/guide-go-evidence-codes/"
                       target="_blank"
@@ -432,10 +386,10 @@ export default function GeneProductModal({
           <input
             id="allECOEvidence"
             type="checkbox"
-            checked={geneProductFormInfo.allECOEvidence}
+            checked={provenanceFormInfo.allECOEvidence}
             onChange={event => {
-              setGeneProductFormInfo({
-                ...geneProductFormInfo,
+              setProvenanceFormInfo({
+                ...provenanceFormInfo,
                 allECOEvidence: event.target.checked,
               })
             }}
@@ -576,12 +530,11 @@ export default function GeneProductModal({
                   `${model.apolloId}-apolloPassword`,
                 ),
                 feature: clickedFeature.uniquename,
-                productName: geneProductFormInfo.productName,
-                alternate: geneProductFormInfo.alternate,
-                evidenceCode: geneProductFormInfo.evidence.id,
-                evidenceCodeLabel: geneProductFormInfo.evidence.code
-                  ? `${geneProductFormInfo.evidence.code} (${geneProductFormInfo.evidence.id}): ${geneProductFormInfo.evidence.label}`
-                  : `${geneProductFormInfo.evidence.label} (${geneProductFormInfo.evidence.id})`,
+                field: provenanceFormInfo.field,
+                evidenceCode: provenanceFormInfo.evidence.id,
+                evidenceCodeLabel: provenanceFormInfo.evidence.code
+                  ? `${provenanceFormInfo.evidence.code} (${provenanceFormInfo.evidence.id}): ${provenanceFormInfo.evidence.label}`
+                  : `${provenanceFormInfo.evidence.label} (${provenanceFormInfo.evidence.id})`,
                 withOrFrom: withArray,
                 reference: `${referenceInfo.prefix}:${referenceInfo.id}`,
                 id: loadData.selectedAnnotation?.id || null,
@@ -589,8 +542,8 @@ export default function GeneProductModal({
               }
 
               const endpointUrl = Object.keys(loadData).length
-                ? `${model.apolloUrl}/geneProduct/update`
-                : `${model.apolloUrl}/geneProduct/save`
+                ? `${model.apolloUrl}/provenance/update`
+                : `${model.apolloUrl}/provenance/save`
               await fetch(endpointUrl, {
                 method: 'POST',
                 headers: {
@@ -617,26 +570,25 @@ export default function GeneProductModal({
           color="primary"
           variant="contained"
           onClick={() => {
-            const geneProductString = {
+            const provenanceString = {
               feature: clickedFeature.uniquename,
-              productName: geneProductFormInfo.productName,
-              alternate: geneProductFormInfo.alternate,
-              evidenceCode: geneProductFormInfo.evidence.id,
-              evidenceCodeLabel: geneProductFormInfo.evidence.code
-                ? `${geneProductFormInfo.evidence.code} (${geneProductFormInfo.evidence.id}): ${geneProductFormInfo.evidence.label}`
-                : `${geneProductFormInfo.evidence.label} (${geneProductFormInfo.evidence.id})`,
+              field: provenanceFormInfo.field,
+              evidenceCode: provenanceFormInfo.evidence.id,
+              evidenceCodeLabel: provenanceFormInfo.evidence.code
+                ? `${provenanceFormInfo.evidence.code} (${provenanceFormInfo.evidence.id}): ${provenanceFormInfo.evidence.label}`
+                : `${provenanceFormInfo.evidence.label} (${provenanceFormInfo.evidence.id})`,
               withOrFrom: withArray,
               reference: `${referenceInfo.prefix}:${referenceInfo.id}`,
               notes: noteArray,
             }
-            copy(JSON.stringify(geneProductString, null, 4))
+            copy(JSON.stringify(provenanceString, null, 4))
           }}
         >
           Copy JSON to Clipboard
         </Button>
       </div>
       {openErrorModal && (
-        <GeneProductModalError
+        <ProvenanceModalError
           handleClose={() => setOpenErrorModal(false)}
           errorMessageArray={formValidation()}
         />

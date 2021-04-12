@@ -15,14 +15,13 @@ const updateFeatures = async (
     organism: 'Fictitious', // need to find where in code is organism name
     features: apolloData,
   }
-  const response = await fetch(fetchUrl, {
+  await fetch(fetchUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
   })
-  console.log('update features', response)
 }
 
 const DetailsEditingTabDetail = ({

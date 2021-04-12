@@ -44,16 +44,12 @@ export interface ApolloFeature {
   description: string
 }
 
-// CURRENT PROGRESS GOES HERE:
-// finished most of go form functionality
-// New creates a new annotation using the form
-// edit edits the currently selected one from data grid using the form,
-// delete deletes the currently selected one on data grid and has a dialog to confirm deletion
-// goTerm and evidence(if allECOevidence is selected) have autocomplete from geneonotology API
-// evidence pulls from GOEVidenceCodes if above is not selected
-// dialog warning appears if form is not filled out correctly
-// current issue, autocomplete fields dont populate on edit or delete on clear (info is still correct), need to look into fixing that
-// next steps: continue onto gene product, looks to be a similar form to Go editing so probably can reuse some components
+// CURRENT PROGRESS AND UPDATES GO HERE:
+// finish making gene product and provenance forms and tabs
+// gene product's product name line has a weird return on the autocomplete, look at that
+// still need to work on making it more modular
+// maybe a baseeditingtab detail that each one extends, since there is a lot of repeats
+// but also  a lot of unique parts for each form
 
 const ApolloFeatureDetails: FunctionComponent<AplInputProps> = props => {
   const { model } = props

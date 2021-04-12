@@ -2,7 +2,7 @@ import { Button, makeStyles } from '@material-ui/core'
 import { observer } from 'mobx-react'
 import React, { useState, useEffect } from 'react'
 import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
-import GoModal from './GoModal'
+import GeneProductModal from './GeneProductModal'
 import { DataGrid, GridSortDirection } from '@material-ui/data-grid'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import TextImportModal from './TextImportModal'
@@ -139,7 +139,7 @@ const GeneProductEditingTabDetail = ({
           Import From Text
         </Button>
         {geneProductDialogInfo.open && (
-          <GoModal
+          <GeneProductModal
             handleClose={handleClose}
             model={model}
             clickedFeature={clickedFeature}
@@ -159,16 +159,13 @@ const GeneProductEditingTabDetail = ({
                 ),
                 ...selectedAnnotation,
               }
-              const response = await fetch(
-                `${model.apolloUrl}/geneProduct/delete`,
-                {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify(data),
+              await fetch(`${model.apolloUrl}/geneProduct/delete`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
                 },
-              )
+                body: JSON.stringify(data),
+              })
             }}
             objToDeleteName={`Gene Product Annotation: ${
               (selectedAnnotation as GeneProductAnnotation).productName
@@ -182,10 +179,18 @@ const GeneProductEditingTabDetail = ({
               setOpenImportModal(false)
             }}
             endpointUrl={`${model.apolloUrl}/geneProduct/save`}
-            from="Go Annotation"
+            from="Gene Product"
             helpText={`Format is:
-             { // fill this
-          }`}
+            {
+                "feature": "",
+                "productName": "",
+                "alternate": false,
+                "evidenceCode": "",
+                "evidenceCodeLabel": "",
+                "withOrFrom": [],
+                "reference": "",
+                "notes": []
+            }`}
           />
         )}
       </div>

@@ -2,22 +2,21 @@ import { Button, makeStyles } from '@material-ui/core'
 import { observer } from 'mobx-react'
 import React, { useState, useEffect } from 'react'
 import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
-import GoModal from './GoModal'
+import ProvenanceModal from './ProvenanceModal'
 import { DataGrid, GridSortDirection } from '@material-ui/data-grid'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import TextImportModal from './TextImportModal'
 
-interface GoAnnotation {
+interface ProvenanceAnnotation {
   [key: string]: string
 }
-
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   buttons: {
     marginRight: 10,
   },
 }))
 
-const GoEditingTabDetail = ({
+const ProvenanceEditingTabDetail = ({
   clickedFeature,
   props,
 }: {
@@ -26,24 +25,27 @@ const GoEditingTabDetail = ({
 }) => {
   const { model } = props
   const classes = useStyles()
-  const [goAnnotations, setGoAnnotations] = useState([])
-  const [goDialogInfo, setGoDialogInfo] = useState({ open: false, data: {} })
+  const [provenanceAnnotations, setProvenanceAnnotations] = useState([])
+  const [provenanceDialogInfo, setProvenanceDialogInfo] = useState({
+    open: false,
+    data: {},
+  })
   const [openConfirmDeleteModal, setOpenConfirmDeleteModal] = useState(false)
   const [openImportModal, setOpenImportModal] = useState(false)
 
   const handleClose = () => {
-    setGoDialogInfo({ open: false, data: {} })
+    setProvenanceDialogInfo({ open: false, data: {} })
   }
 
   useEffect(() => {
-    async function fetchGoAnnotations() {
+    async function fetchProvenanceAnnotations() {
       const data = {
         username: sessionStorage.getItem(`${model.apolloId}-apolloUsername`), // get from renderProps later
         password: sessionStorage.getItem(`${model.apolloId}-apolloPassword`),
         uniqueName: clickedFeature.uniquename,
       }
 
-      const response = await fetch(`${model.apolloUrl}/goAnnotation`, {
+      const response = await fetch(`${model.apolloUrl}/provenance`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -51,27 +53,29 @@ const GoEditingTabDetail = ({
         body: JSON.stringify(data),
       })
       const json = await response.json()
-      setGoAnnotations(json.annotations || [])
+      setProvenanceAnnotations(json.annotations || [])
     }
-    fetchGoAnnotations()
+    fetchProvenanceAnnotations()
   }, [clickedFeature.uniquename, model.apolloUrl, model.apolloId])
 
-  const [selectedAnnotation, setSelectedAnnotation] = useState({}) // when find data to loop thru use this
+  const [selectedAnnotation, setSelectedAnnotation] = useState({})
 
   const columns = [
-    { field: 'name', headerName: 'Name' },
+    { field: 'field', headerName: 'Field' },
     { field: 'evidence', headerName: 'Evidence' },
     { field: 'basedOn', headerName: 'Based On' },
     { field: 'reference', headerName: 'Reference' },
   ]
 
-  const rows = goAnnotations.map((annotation: GoAnnotation, index: number) => ({
-    id: index,
-    name: `${annotation.goTermLabel} (${annotation.goTerm})`,
-    evidence: annotation.evidenceCode,
-    basedOn: JSON.parse(annotation.withOrFrom).join('\r\n'),
-    reference: annotation.reference,
-  }))
+  const rows = provenanceAnnotations.map(
+    (annotation: ProvenanceAnnotation, index: number) => ({
+      id: index,
+      field: `${annotation.field}`,
+      evidence: annotation.evidenceCode,
+      basedOn: JSON.parse(annotation.withOrFrom).join('\r\n'),
+      reference: annotation.reference,
+    }),
+  )
 
   return (
     <>
@@ -86,7 +90,9 @@ const GoEditingTabDetail = ({
               { field: 'reference', sort: 'asc' as GridSortDirection },
             ]}
             onRowClick={rowData => {
-              setSelectedAnnotation(goAnnotations[rowData.row.id as number])
+              setSelectedAnnotation(
+                provenanceAnnotations[rowData.row.id as number],
+              )
             }}
           />
         </div>
@@ -96,7 +102,9 @@ const GoEditingTabDetail = ({
           color="secondary"
           variant="contained"
           className={classes.buttons}
-          onClick={async () => setGoDialogInfo({ open: true, data: {} })}
+          onClick={async () =>
+            setProvenanceDialogInfo({ open: true, data: {} })
+          }
         >
           New
         </Button>
@@ -105,14 +113,7 @@ const GoEditingTabDetail = ({
           variant="contained"
           className={classes.buttons}
           disabled={Object.keys(selectedAnnotation).length === 0}
-          onClick={async () => {
-            setGoDialogInfo({
-              open: true,
-              data: {
-                selectedAnnotation,
-              },
-            })
-          }}
+          onClick={async () => {}}
         >
           Edit
         </Button>
@@ -137,12 +138,12 @@ const GoEditingTabDetail = ({
         >
           Import From Text
         </Button>
-        {goDialogInfo.open && (
-          <GoModal
+        {provenanceDialogInfo.open && (
+          <ProvenanceModal
             handleClose={handleClose}
             model={model}
             clickedFeature={clickedFeature}
-            loadData={goDialogInfo.data}
+            loadData={provenanceDialogInfo.data}
           />
         )}
         {openConfirmDeleteModal && (
@@ -158,7 +159,7 @@ const GoEditingTabDetail = ({
                 ),
                 ...selectedAnnotation,
               }
-              await fetch(`${model.apolloUrl}/goAnnotation/delete`, {
+              await fetch(`${model.apolloUrl}/provenance/delete`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -166,8 +167,8 @@ const GoEditingTabDetail = ({
                 body: JSON.stringify(data),
               })
             }}
-            objToDeleteName={`GO Annotation: ${
-              (selectedAnnotation as GoAnnotation).goTerm
+            objToDeleteName={`Gene Product Annotation: ${
+              (selectedAnnotation as ProvenanceAnnotation).productName
             }`}
           />
         )}
@@ -177,22 +178,18 @@ const GoEditingTabDetail = ({
             handleClose={() => {
               setOpenImportModal(false)
             }}
-            endpointUrl={`${model.apolloUrl}/goAnnotation/save`}
-            from="Go Annotation"
+            endpointUrl={`${model.apolloUrl}/provenance/save`}
+            from="Provenance"
             helpText={`Format is:
-             {
-              "feature": "",
-              "aspect": "",
-              "goTerm": "",
-              "goTermLabel": "",
-              "geneRelationship": "",
-              "evidenceCode": "",
-              "evidenceCodeLabel": "",
-              "negate": false,
-              "withOrFrom": [],
-              "reference": "",
-              "notes": []
-          }`}
+            {
+                "feature": "",
+                "field": "",
+                "evidenceCode": "",
+                "evidenceCodeLabel": "",
+                "withOrFrom": [],
+                "reference": "",
+                "notes": []
+            }`}
           />
         )}
       </div>
@@ -200,4 +197,4 @@ const GoEditingTabDetail = ({
   )
 }
 
-export default observer(GoEditingTabDetail)
+export default observer(ProvenanceEditingTabDetail)

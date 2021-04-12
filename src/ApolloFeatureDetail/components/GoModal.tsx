@@ -134,7 +134,6 @@ function GoModalError({
         ))}
       </DialogContent>
       <Button
-        className={classes.buttons}
         color="primary"
         variant="contained"
         onClick={() => {
@@ -763,7 +762,7 @@ export default function GoModal({
               const endpointUrl = Object.keys(loadData).length
                 ? `${model.apolloUrl}/goAnnotation/update`
                 : `${model.apolloUrl}/goAnnotation/save`
-              const response = await fetch(endpointUrl, {
+              await fetch(endpointUrl, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -806,7 +805,6 @@ export default function GoModal({
               negate: goFormInfo.not,
               withOrFrom: withArray,
               reference: `${referenceInfo.prefix}:${referenceInfo.id}`,
-              id: loadData.selectedAnnotation?.id || null,
               notes: noteArray,
             }
             copy(JSON.stringify(goString, null, 4))

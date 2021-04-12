@@ -16,6 +16,8 @@ import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
 import DetailsEditingTabDetail from './DetailsEditingTabDetail'
 import CodingEditingTabDetail from './CodingEditingTabDetail'
 import GoEditingTabDetail from './GoEditingTabDetail'
+import GeneProductEditingTabDetail from './GeneProductEditingTabDetail'
+import ProvenanceEditingTabDetail from './ProvenanceEditingTabDetail'
 
 interface CodingRow {
   name: string
@@ -185,10 +187,22 @@ const AnnotationsTabDetail = ({
             <GoEditingTabDetail clickedFeature={clickedFeature} props={props} />
           )
         }
-        // case 'Gene Product': {
-        // }
-        // case 'Provenance': {
-        // }
+        case 'Gene Product': {
+          return (
+            <GeneProductEditingTabDetail
+              clickedFeature={clickedFeature}
+              props={props}
+            />
+          )
+        }
+        case 'Provenance': {
+          return (
+            <ProvenanceEditingTabDetail
+              clickedFeature={clickedFeature}
+              props={props}
+            />
+          )
+        }
         // case 'Db Xref': {
         // }
         // case 'Comment': {
