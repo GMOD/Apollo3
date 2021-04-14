@@ -60,10 +60,27 @@ const useStyles = makeStyles(theme => ({
 
 // search returns a login form right now
 const searchGeneProduct = async (currentText: string, model: any) => {
+  // do this but post request
   const data = {
+    username: sessionStorage.getItem(`${model.apolloId}-apolloUsername`) || '',
+    password: sessionStorage.getItem(`${model.apolloId}-apolloPassword`) || '',
     organism: 'Ficticious',
     query: currentText,
   }
+
+  //   curl 'http://localhost:8080/apollo/auth/login?targetUri=/geneProduct/search?&organism=Ficticious&query=a' \
+  //   -H 'Connection: keep-alive' \
+  //   -H 'sec-ch-ua: "Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"' \
+  //   -H 'sec-ch-ua-mobile: ?0' \
+  //   -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36' \
+  //   -H 'Accept: */*' \
+  //   -H 'Origin: http://localhost:3000' \
+  //   -H 'Sec-Fetch-Site: same-site' \
+  //   -H 'Sec-Fetch-Mode: cors' \
+  //   -H 'Sec-Fetch-Dest: empty' \
+  //   -H 'Referer: http://localhost:3000/' \
+  //   -H 'Accept-Language: en-US,en;q=0.9' \
+  //   --compressed
 
   let params = Object.entries(data)
     .map(([key, val]) => `${key}=${encodeURIComponent(val)}`)
@@ -118,7 +135,7 @@ function GeneProductModalError({
       open
       aria-labelledby="error-dialog-title"
       aria-describedby="error-dialog-description"
-      data-testid="go-editing-modal-error"
+      data-testid="gene-product-editing-modal-error"
       fullWidth={true}
       style={{ zIndex: 2000 }}
     >

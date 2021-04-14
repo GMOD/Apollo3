@@ -96,7 +96,7 @@ function ProvenanceModalError({
       open
       aria-labelledby="error-dialog-title"
       aria-describedby="error-dialog-description"
-      data-testid="go-editing-modal-error"
+      data-testid="provenance-editing-modal-error"
       fullWidth={true}
       style={{ zIndex: 2000 }}
     >
@@ -237,7 +237,7 @@ export default function ProvenanceModal({
       open
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
-      data-testid="gene-product-editing-modal"
+      data-testid="provenance-editing-modal"
       fullWidth={true}
     >
       <DialogTitle id="alert-dialog-title">

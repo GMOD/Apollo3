@@ -18,6 +18,7 @@ import CodingEditingTabDetail from './CodingEditingTabDetail'
 import GoEditingTabDetail from './GoEditingTabDetail'
 import GeneProductEditingTabDetail from './GeneProductEditingTabDetail'
 import ProvenanceEditingTabDetail from './ProvenanceEditingTabDetail'
+import DbXrefEditingTabDetail from './DbXrefEditingTabDetail'
 
 interface CodingRow {
   name: string
@@ -82,7 +83,7 @@ const AnnotationsTabDetail = ({
           'Coding',
           'Go',
           'Gene Product',
-          'DB Xref',
+          'Db Xref',
           'Comment',
           'Attributes',
         ]
@@ -93,7 +94,7 @@ const AnnotationsTabDetail = ({
           'Go',
           'Gene Product',
           'Provenance',
-          'DB Xref',
+          'Db Xref',
           'Comment',
           'Attributes',
         ]
@@ -121,7 +122,7 @@ const AnnotationsTabDetail = ({
           'Go',
           'Gene Product',
           'Provenance',
-          'DB Xref',
+          'Db Xref',
           'Comment',
           'Attributes',
         ]
@@ -129,7 +130,7 @@ const AnnotationsTabDetail = ({
       case 'terminator':
       case 'transposable_element':
       case 'repeat_region': {
-        return ['Details', 'Provenance', 'DB Xref', 'Comment', 'Attributes']
+        return ['Details', 'Provenance', 'Db Xref', 'Comment', 'Attributes']
       }
       case 'deletion':
       case 'insertion':
@@ -143,7 +144,7 @@ const AnnotationsTabDetail = ({
           'Alternate Alleles',
           'Variant Info',
           'Allele Info',
-          'DB Xref',
+          'Db Xref',
           'Comment',
           'Attributes',
         ]
@@ -203,8 +204,14 @@ const AnnotationsTabDetail = ({
             />
           )
         }
-        // case 'Db Xref': {
-        // }
+        case 'Db Xref': {
+          return (
+            <DbXrefEditingTabDetail
+              clickedFeature={clickedFeature}
+              props={props}
+            />
+          )
+        }
         // case 'Comment': {
         // }
         // case 'Attributes': {
