@@ -82,8 +82,9 @@ const GeneProductEditingTabDetail = ({
       <div style={{ height: 400, width: '100%' }}>
         <div style={{ display: 'flex', height: '100%' }}>
           <DataGrid
+            disableColumnMenu
+            hideFooterSelectedRowCount
             pageSize={25}
-            hideFooterSelectedRowCount={true}
             rows={rows}
             columns={columns}
             sortModel={[

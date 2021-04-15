@@ -2,86 +2,83 @@ import { Button, makeStyles } from '@material-ui/core'
 import { observer } from 'mobx-react'
 import React, { useState, useEffect } from 'react'
 import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
-import GoModal from './GoModal'
+import AttributeModal from './AttributeModal'
 import { DataGrid, GridSortDirection } from '@material-ui/data-grid'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import TextImportModal from './TextImportModal'
 
-interface Annotation {
+interface Attribute {
   [key: string]: string
 }
-
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   buttons: {
     marginRight: 10,
   },
 }))
 
-// NOTE: this is a more generic form of tab detail
-// instead of having go editing, gene product editing, etc..
-// not in use right now, here as a concept
-const AnnotationEditingTabDetail = ({
+const AttributeEditingTabDetail = ({
   clickedFeature,
   props,
-  endpoint,
-  title,
-  name,
-  helperText,
 }: {
   clickedFeature: ApolloFeature
   props: AplInputProps
-  endpoint: string
-  title: string
-  name: string
-  helperText: string
 }) => {
   const { model } = props
   const classes = useStyles()
-  const [annotations, setAnnotations] = useState([])
-  const [dialogInfo, setDialogInfo] = useState({ open: false, data: {} })
+  const [attributes, setAttributes] = useState([])
+  const [attributeDialogInfo, setAttributeDialogInfo] = useState({
+    open: false,
+    data: {},
+  })
   const [openConfirmDeleteModal, setOpenConfirmDeleteModal] = useState(false)
   const [openImportModal, setOpenImportModal] = useState(false)
 
   const handleClose = () => {
-    setDialogInfo({ open: false, data: {} })
+    setAttributeDialogInfo({ open: false, data: {} })
   }
 
   useEffect(() => {
-    async function fetchAnnotations() {
+    async function fetchAttributes() {
       const data = {
         username: sessionStorage.getItem(`${model.apolloId}-apolloUsername`), // get from renderProps later
         password: sessionStorage.getItem(`${model.apolloId}-apolloPassword`),
-        uniqueName: clickedFeature.uniquename,
+        sequence: clickedFeature.sequence,
+        organism: 'Fictitious', // need to find where in code is organism name
+        uniquename: clickedFeature.uniquename,
       }
 
-      const response = await fetch(`${model.apolloUrl}/${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${model.apolloUrl}/annotationEditor/getAttributes`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
         },
-        body: JSON.stringify(data),
-      })
+      )
       const json = await response.json()
-      setAnnotations(json.annotations || [])
+      setAttributes(json.annotations || [])
     }
-    fetchAnnotations()
-  }, [clickedFeature.uniquename, model.apolloUrl, model.apolloId, endpoint])
+    fetchAttributes()
+  }, [
+    clickedFeature.uniquename,
+    model.apolloUrl,
+    model.apolloId,
+    clickedFeature.sequence,
+  ])
 
-  const [selectedAnnotation, setSelectedAnnotation] = useState({}) // when find data to loop thru use this
+  const [selectedAnnotation, setSelectedAnnotation] = useState({})
 
   const columns = [
-    { field: 'name', headerName: 'Name' },
-    { field: 'evidence', headerName: 'Evidence' },
-    { field: 'basedOn', headerName: 'Based On' },
-    { field: 'reference', headerName: 'Reference' },
+    { field: 'prefix', headerName: 'Prefix' },
+    { field: 'accession', headerName: 'Accession' },
   ]
 
-  const rows = annotations.map((annotation: Annotation, index: number) => ({
+  const rows = attributes.map((annotation: Attribute, index: number) => ({
     id: index,
-    name: `${name}`,
-    evidence: annotation.evidenceCode,
-    basedOn: JSON.parse(annotation.withOrFrom).join('\r\n'),
-    reference: annotation.reference,
+    prefix: annotation.tag,
+    accession: annotation.value,
   }))
 
   return (
@@ -94,11 +91,9 @@ const AnnotationEditingTabDetail = ({
             pageSize={25}
             rows={rows}
             columns={columns}
-            sortModel={[
-              { field: 'reference', sort: 'asc' as GridSortDirection },
-            ]}
+            sortModel={[{ field: 'prefix', sort: 'asc' as GridSortDirection }]}
             onRowClick={rowData => {
-              setSelectedAnnotation(annotations[rowData.row.id as number])
+              setSelectedAnnotation(attributes[rowData.row.id as number])
             }}
           />
         </div>
@@ -108,7 +103,7 @@ const AnnotationEditingTabDetail = ({
           color="secondary"
           variant="contained"
           className={classes.buttons}
-          onClick={async () => setDialogInfo({ open: true, data: {} })}
+          onClick={async () => setAttributeDialogInfo({ open: true, data: {} })}
         >
           New
         </Button>
@@ -118,7 +113,7 @@ const AnnotationEditingTabDetail = ({
           className={classes.buttons}
           disabled={Object.keys(selectedAnnotation).length === 0}
           onClick={async () => {
-            setDialogInfo({
+            setAttributeDialogInfo({
               open: true,
               data: {
                 selectedAnnotation,
@@ -149,13 +144,12 @@ const AnnotationEditingTabDetail = ({
         >
           Import From Text
         </Button>
-        {/* ask about architecture of this file, how to dynamically pass JSX*/}
-        {dialogInfo.open && (
-          <GoModal
+        {attributeDialogInfo.open && (
+          <AttributeModal
             handleClose={handleClose}
             model={model}
             clickedFeature={clickedFeature}
-            loadData={dialogInfo.data}
+            loadData={attributeDialogInfo.data}
           />
         )}
         {openConfirmDeleteModal && (
@@ -169,10 +163,22 @@ const AnnotationEditingTabDetail = ({
                 password: sessionStorage.getItem(
                   `${model.apolloId}-apolloPassword`,
                 ),
-                ...selectedAnnotation,
+                sequence: clickedFeature.sequence,
+                organism: 'Ficticious',
+                features: [
+                  {
+                    uniquename: clickedFeature.uniquename,
+                    non_reserved_properties: [
+                      {
+                        db: (selectedAnnotation as Attribute).prefix,
+                        accession: (selectedAnnotation as Attribute).accession,
+                      },
+                    ],
+                  },
+                ],
               }
-              const response = await fetch(
-                `${model.apolloUrl}/${endpoint}/delete`,
+              await fetch(
+                `${model.apolloUrl}/annotationEditor/deleteAttribute`,
                 {
                   method: 'POST',
                   headers: {
@@ -182,8 +188,8 @@ const AnnotationEditingTabDetail = ({
                 },
               )
             }}
-            objToDeleteName={`${title}: ${
-              (selectedAnnotation as Annotation).goTerm
+            objToDeleteName={`Attribute: ${
+              (selectedAnnotation as Attribute).prefix
             }`}
           />
         )}
@@ -193,9 +199,14 @@ const AnnotationEditingTabDetail = ({
             handleClose={() => {
               setOpenImportModal(false)
             }}
-            endpointUrl={`${model.apolloUrl}/${endpoint}/save`}
-            from={title}
-            helpText={helperText}
+            endpointUrl={`${model.apolloUrl}/annotationEditor/addAttribute`}
+            from="Attribute"
+            helpText={`Format is:
+            {
+                "sequence": "",
+                "organism": "",
+                "features": [{"uniquename": "", "non_reserved_properties": [{ "db": "", "accession": "" }]}]
+            }`}
           />
         )}
       </div>
@@ -203,4 +214,4 @@ const AnnotationEditingTabDetail = ({
   )
 }
 
-export default observer(AnnotationEditingTabDetail)
+export default observer(AttributeEditingTabDetail)

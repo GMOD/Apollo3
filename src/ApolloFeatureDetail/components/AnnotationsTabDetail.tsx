@@ -20,6 +20,7 @@ import GeneProductEditingTabDetail from './GeneProductEditingTabDetail'
 import ProvenanceEditingTabDetail from './ProvenanceEditingTabDetail'
 import DbXrefEditingTabDetail from './DbXrefEditingTabDetail'
 import CommentEditingTabDetail from './CommentEditingTabDetail'
+import AttributeEditingTabDetail from './AttributeEditingTabDetail'
 
 interface CodingRow {
   name: string
@@ -55,6 +56,9 @@ const useStyles = makeStyles(({ spacing, palette, breakpoints }) => ({
   tabItemStylesWrapper: {
     fontWeight: 'normal',
     letterSpacing: 0.5,
+  },
+  dataGrid: {
+    fontSize: 8,
   },
 }))
 
@@ -221,8 +225,14 @@ const AnnotationsTabDetail = ({
             />
           )
         }
-        // case 'Attributes': {
-        // }
+        case 'Attributes': {
+          return (
+            <AttributeEditingTabDetail
+              clickedFeature={clickedFeature}
+              props={props}
+            />
+          )
+        }
         default:
           return
       }
@@ -254,10 +264,13 @@ const AnnotationsTabDetail = ({
   return (
     <>
       <div style={{ height: clickedFeature ? 200 : 400, width: '100%' }}>
-        <div style={{ display: 'flex', height: '100%', fontSize: '12' }}>
+        <div style={{ display: 'flex', height: '100%', fontSize: '8' }}>
           <DataGrid
+            className={classes.dataGrid}
+            scrollbarSize={10}
+            disableColumnMenu
+            hideFooterSelectedRowCount
             pageSize={25}
-            hideFooterSelectedRowCount={true}
             rows={rows}
             columns={columns}
             onRowClick={rowData => {
@@ -288,7 +301,9 @@ const AnnotationsTabDetail = ({
                         key={`${tab}-${index}`}
                         label={
                           <div>
-                            <Typography>{tab}</Typography>
+                            <Typography style={{ fontSize: 10 }}>
+                              {tab}
+                            </Typography>
                           </div>
                         }
                         tabIndex={idx}

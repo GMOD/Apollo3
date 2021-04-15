@@ -86,8 +86,9 @@ const DbXrefEditingTabDetail = ({
       <div style={{ height: 400, width: '100%' }}>
         <div style={{ display: 'flex', height: '100%' }}>
           <DataGrid
+            disableColumnMenu
+            hideFooterSelectedRowCount
             pageSize={25}
-            hideFooterSelectedRowCount={true}
             rows={rows}
             columns={columns}
             sortModel={[{ field: 'prefix', sort: 'asc' as GridSortDirection }]}
@@ -198,7 +199,7 @@ const DbXrefEditingTabDetail = ({
             helpText={`Format is:
             {
                 "sequence": "",
-                "organism": ""
+                "organism": "",
                 "features": [{"uniquename": "", "dbxrefs": [{ "db": "", "accession": "" }]}]
             }`}
           />
