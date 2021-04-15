@@ -113,7 +113,14 @@ const ProvenanceEditingTabDetail = ({
           variant="contained"
           className={classes.buttons}
           disabled={Object.keys(selectedAnnotation).length === 0}
-          onClick={async () => {}}
+          onClick={async () => {
+            setProvenanceDialogInfo({
+              open: true,
+              data: {
+                selectedAnnotation,
+              },
+            })
+          }}
         >
           Edit
         </Button>

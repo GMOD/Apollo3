@@ -26,6 +26,10 @@ interface EvidenceResults extends GoResults {
   code: string
 }
 
+interface GeneProductResults {
+  [key: string]: string
+}
+
 const useStyles = makeStyles(theme => ({
   main: {
     textAlign: 'center',
@@ -68,32 +72,16 @@ const searchGeneProduct = async (currentText: string, model: any) => {
     query: currentText,
   }
 
-  //   curl 'http://localhost:8080/apollo/auth/login?targetUri=/geneProduct/search?&organism=Ficticious&query=a' \
-  //   -H 'Connection: keep-alive' \
-  //   -H 'sec-ch-ua: "Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"' \
-  //   -H 'sec-ch-ua-mobile: ?0' \
-  //   -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36' \
-  //   -H 'Accept: */*' \
-  //   -H 'Origin: http://localhost:3000' \
-  //   -H 'Sec-Fetch-Site: same-site' \
-  //   -H 'Sec-Fetch-Mode: cors' \
-  //   -H 'Sec-Fetch-Dest: empty' \
-  //   -H 'Referer: http://localhost:3000/' \
-  //   -H 'Accept-Language: en-US,en;q=0.9' \
-  //   --compressed
-
-  let params = Object.entries(data)
-    .map(([key, val]) => `${key}=${encodeURIComponent(val)}`)
-    .join('&')
-
-  const response = await fetch(
-    `${model.apolloUrl}/geneProduct/search/?${params}`,
-    { method: 'GET' },
-  )
-
+  const response = await fetch(`${model.apolloUrl}/geneProduct/search/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
   console.log(response)
 
-  const results = await response.text()
+  const results = await response.json()
   console.log(results)
   return results
 }
@@ -194,7 +182,9 @@ export default function GeneProductModal({
     evidence: { label: '', id: '', code: '' },
     allECOEvidence: false,
   })
-  const [geneProductAutocomplete, setGeneProductAutocomplete] = useState([]) // will need a type later
+  const [geneProductAutocomplete, setGeneProductAutocomplete] = useState<
+    GeneProductResults[]
+  >([]) // will need a type later
   const [evidenceAutocomplete, setEvidenceAutocomplete] = useState<
     EvidenceResults[]
   >([])
@@ -319,7 +309,7 @@ export default function GeneProductModal({
               if (value) {
                 setGeneProductFormInfo({
                   ...geneProductFormInfo,
-                  productName: value,
+                  productName: (value as GeneProductResults).productName,
                 })
               }
             }}
@@ -337,12 +327,11 @@ export default function GeneProductModal({
                     event.target.value,
                     model,
                   )
-                  setGeneProductAutocomplete([])
+                  setGeneProductAutocomplete(result)
                 }}
                 label="Product"
                 autoComplete="off"
                 style={{ width: '60%' }}
-                // helperText={}
               />
             )}
           />

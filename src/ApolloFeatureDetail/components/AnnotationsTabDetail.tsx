@@ -19,6 +19,7 @@ import GoEditingTabDetail from './GoEditingTabDetail'
 import GeneProductEditingTabDetail from './GeneProductEditingTabDetail'
 import ProvenanceEditingTabDetail from './ProvenanceEditingTabDetail'
 import DbXrefEditingTabDetail from './DbXrefEditingTabDetail'
+import CommentEditingTabDetail from './CommentEditingTabDetail'
 
 interface CodingRow {
   name: string
@@ -212,8 +213,14 @@ const AnnotationsTabDetail = ({
             />
           )
         }
-        // case 'Comment': {
-        // }
+        case 'Comment': {
+          return (
+            <CommentEditingTabDetail
+              clickedFeature={clickedFeature}
+              props={props}
+            />
+          )
+        }
         // case 'Attributes': {
         // }
         default:

@@ -113,7 +113,14 @@ const GeneProductEditingTabDetail = ({
           variant="contained"
           className={classes.buttons}
           disabled={Object.keys(selectedAnnotation).length === 0}
-          onClick={async () => {}}
+          onClick={async () => {
+            setGeneProductDialogInfo({
+              open: true,
+              data: {
+                selectedAnnotation,
+              },
+            })
+          }}
         >
           Edit
         </Button>

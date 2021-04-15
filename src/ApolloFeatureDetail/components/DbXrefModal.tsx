@@ -10,6 +10,7 @@ import {
   Button,
   IconButton,
   MenuItem,
+  Typography,
 } from '@material-ui/core'
 import CloseIcon from '@material-ui/icons/Close'
 import { ApolloFeature } from '../ApolloFeatureDetail'
@@ -124,14 +125,14 @@ export default function DbXrefModal({
     prefix: '',
     accession: '',
   })
-  const [PMIDInfo, setPMIDInfo] = useState({ PMID: '', article: '' })
+  const [PMIDInfo, setPMIDInfo] = useState({ PMID: '', article: '', url: '' })
   const [articleToConfirm, setArticleToConfirm] = useState('')
   const [showPMIDConfirm, setShowPMIDConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const clearForm = () => {
     setDbPrefixAccession({ prefix: '', accession: '' })
-    setPMIDInfo({ PMID: '', article: '' })
+    setPMIDInfo({ PMID: '', article: '', url: '' })
   }
 
   // http://demo.genomearchitect.org/Apollo2/ncbiProxyService?db=pubmed&operation=fetch&id=123
@@ -164,10 +165,19 @@ export default function DbXrefModal({
   useEffect(() => {
     if (Object.keys(loadData).length) {
       const infoToLoad = loadData.selectedAnnotation
-      setDbPrefixAccession({
-        prefix: infoToLoad.prefix || '',
-        accession: infoToLoad.accession || '',
-      })
+      if (infoToLoad.tag === 'PMID') {
+        setPMIDInfo({
+          PMID: infoToLoad.value,
+          article: 'Loaded from selection',
+          url: '',
+        })
+        setMode('PMID')
+      } else {
+        setDbPrefixAccession({
+          prefix: infoToLoad.tag || '',
+          accession: infoToLoad.value || '',
+        })
+      }
     }
   }, [loadData])
 
@@ -243,7 +253,7 @@ export default function DbXrefModal({
               <Button
                 color="primary"
                 variant="contained"
-                style={{ marginTop: 20, marginRight: 5 }}
+                style={{ marginTop: 20, marginRight: 20 }}
                 disabled={loading}
                 onClick={async () => {
                   setLoading(true)
@@ -260,13 +270,34 @@ export default function DbXrefModal({
               >
                 {!loading ? 'Search' : 'Searching...'}
               </Button>
-              <br />
               <TextField
                 label="Article"
                 value={PMIDInfo.article}
                 autoComplete="off"
                 disabled
                 placeholder="Search a valid PMID"
+              />
+              <Typography>Or</Typography>
+              <TextField
+                label="PubMed URL"
+                onChange={event => {
+                  let pmUrl
+                  try {
+                    pmUrl = new URL(event.target.value)
+                  } catch (err) {
+                    return
+                  }
+                  if (pmUrl.hostname === 'pubmed.ncbi.nlm.nih.gov') {
+                    const urlPMID = pmUrl.pathname.replaceAll('/', '')
+                    setPMIDInfo({
+                      ...PMIDInfo,
+                      PMID: urlPMID,
+                      url: event.target.value,
+                    })
+                  }
+                }}
+                value={PMIDInfo.url}
+                autoComplete="off"
               />
             </div>
           )}
@@ -277,7 +308,7 @@ export default function DbXrefModal({
           color="primary"
           variant="contained"
           style={{ marginRight: 5 }}
-          disabled={mode === 'PMID' && !PMIDInfo.article} // can't save if don't confirm article
+          disabled={mode === 'PMID' && !PMIDInfo.article && !PMIDInfo.url} // can't save without confirmed pmid
           onClick={async () => {
             const updating = !!Object.keys(loadData).length
             const dbxrefs =
@@ -388,7 +419,7 @@ export default function DbXrefModal({
           confirm={() =>
             setPMIDInfo({ ...PMIDInfo, article: articleToConfirm })
           }
-          cancel={() => setPMIDInfo({ PMID: '', article: '' })}
+          cancel={() => setPMIDInfo({ PMID: '', article: '', url: '' })}
           articleToConfirm={articleToConfirm}
         />
       )}
