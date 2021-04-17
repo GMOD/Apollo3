@@ -61,81 +61,45 @@ export default function stateModelFactory(pluginManager: PluginManager) {
 
         // getting the parent feature, need client token
         // client token can be a random generated number for now
+      },
+      async fetchFeatureTree(additionalData?: any) {
+        let data = {
+          clientToken: sessionStorage.getItem(`clientToken`), // 20 digit random number for clientToken
+          username: sessionStorage.getItem(`${self.apolloId}-apolloUsername`), // get from renderProps later
+          password: sessionStorage.getItem(`${self.apolloId}-apolloPassword`), // get from renderProps later
+          sequence: self.featureData.sequence,
+          organism: 'Fictitious', // need to find where in code is organism name
+        }
+        if (additionalData) {
+          data = { ...data, ...additionalData }
+        }
+        let params = Object.entries(data)
+          .map(([key, val]) => `${key}=${encodeURIComponent(val)}`)
+          .join('&')
 
-        // const data2 = {
-        //   clientToken: sessionStorage.getItem(`clientToken`), // 20 digit random number for clientToken
-        //   username: sessionStorage.getItem(`${self.apolloId}-apolloUsername`), // get from renderProps later
-        //   password: sessionStorage.getItem(`${self.apolloId}-apolloPassword`), // get from renderProps later
-        //   sequence: self.featureData.sequence,
-        //   organism: 'Fictitious', // need to find where in code is organism name
-        // }
-        // let params = Object.entries(data2)
-        //   .map(([key, val]) => `${key}=${encodeURIComponent(val)}`)
-        //   .join('&')
+        console.log(
+          `${self.apolloUrl}/annotator/findAnnotationsForSequence/?${params}`,
+        )
 
-        // const featureResponse2 = await fetch(
-        //   `${self.apolloUrl}/annotator/findAnnotationsForSequence/?${params}`,
-        //   {
-        //     method: 'GET',
-        //     headers: {
-        //       'Content-Type': 'application/json',
-        //     },
-        //   },
-        // )
-        // const json2 = await featureResponse2.json()
-
-        // error JSONObject['clienttoken'] is missing
+        return
+        // dont fetch for now
+        const featureResponse = await fetch(
+          `${self.apolloUrl}/annotator/findAnnotationsForSequence/?${params}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+        const json = await featureResponse.json()
+        return json
       },
       // write actions that send fetch requests when something is edited
       async afterCreate() {
         this.fetchFeatures()
         // TODO make a new tab with the response stuff
       },
-      // send something thru the websocket and see if i get a response back
-      // will have to create listeners in the widget and set it
-      // will pass an update function to socket
-      // anything that runs need to check that socket is set (not undefined)
-      // may have to check for user login stuff, check annotation track in apollo 1 for reference, may have to provide stuff to open the websocket
-      // username and passwword code is in renderProps in LinearApolloDisplay/model.ts
-
-      // the stomp/stompjs stuff, uncomment when websockets are figured out
-      // afterCreate() {
-      //   // const url = self.featureData.url
-      //   // getting the url, more stable than inspecting feature, only use above if can't get any other way to work
-
-      //   const wssUrl =
-      //     self.apolloUrl.replace(/^\/\/|^.*?:(\/\/)?/, 'ws://') + '/stomp'
-      //   const client = new Client({
-      //     brokerURL: wssUrl,
-      //     // add username/pass from render props prob
-      //     connectHeaders: {
-      //       login: 'demo@demo.com',
-      //       passcode: 'demo',
-      //     },
-      //     debug: function(str) {
-      //       // eslint-disable-next-line no-console
-      //       console.log(str)
-      //     },
-      //   })
-      //   client.onConnect = function(frame) {
-      //     console.log('I have connected', frame.body)
-      //   }
-      //   client.onStompError = function(frame) {
-      //     // Will be invoked in case of error encountered at Broker
-      //     // Bad login/passcode typically will cause an error
-      //     // Complaint brokers will set `message` header with a brief message. Body may contain details.
-      //     // Compliant brokers will terminate the connection after any error
-      //     console.log('Broker reported error: ' + frame.headers['message'])
-      //     console.log('Additional details: ' + frame.body)
-      //   }
-
-      //   client.onWebSocketError = function(webSocketError) {
-      //     console.log('websocket error is', webSocketError)
-      //   }
-
-      //   this.setSocket(client)
-      //   client.activate()
-      // },
     }))
 }
 

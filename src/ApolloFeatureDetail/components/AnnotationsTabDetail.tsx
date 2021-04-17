@@ -8,7 +8,10 @@ import {
   Tabs,
   Typography,
   AppBar,
+  TextField,
+  MenuItem,
 } from '@material-ui/core'
+import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 import { BaseCard } from '@jbrowse/core/BaseFeatureWidget/BaseFeatureDetail'
@@ -58,7 +61,7 @@ const useStyles = makeStyles(({ spacing, palette, breakpoints }) => ({
     letterSpacing: 0.5,
   },
   dataGrid: {
-    fontSize: 8,
+    fontSize: 12,
   },
 }))
 
@@ -75,6 +78,22 @@ const AnnotationsTabDetail = ({
   >()
   const [currentEditingTabs, setCurrentEditingTabs] = useState([] as string[])
   const [idx, setIdx] = useState(0)
+  const [type, setType] = useState('')
+  const [users, setUsers] = useState('')
+  const [status, setStatus] = useState('')
+  const [filters, setFilters] = useState(() => [] as string[])
+
+  const handleFilters = async (
+    event: React.MouseEvent<HTMLElement>,
+    newFilters: string[],
+  ) => {
+    setFilters(newFilters)
+    model.fetchFeatureTree({
+      showOnlyGoAnnotations: newFilters.includes('go'),
+      showOnlyGeneProductAnnotations: newFilters.includes('gp'),
+      showOnlyProvenanceAnnotations: newFilters.includes('provenance'),
+    })
+  }
 
   // generate the sub-editing tabs based on type
   const findEditingTabs = (type: string) => {
@@ -263,8 +282,75 @@ const AnnotationsTabDetail = ({
   )
   return (
     <>
+      {/* this contains the filter editing portion */}
+      <div style={{ margin: 5 }}>
+        <TextField
+          label="Annotation Name"
+          onChange={event => {
+            model.fetchFeatureTree({ annotationName: event.target.value })
+          }}
+        />
+        <TextField
+          label="Reference Sequence"
+          onChange={event => {
+            model.fetchFeatureTree({ sequenceName: event.target.value })
+          }}
+        />
+
+        <br />
+        <TextField
+          select
+          value={type}
+          onChange={event => {
+            setType(event.target.value)
+            model.fetchFeatureTree({ type: event.target.value })
+          }}
+        >
+          <MenuItem value="">All Types </MenuItem>
+          <MenuItem value="gene">Gene</MenuItem>
+          <MenuItem value="pseudogene">Pseudogene</MenuItem>
+          <MenuItem value="transposable_element">Transposable Element</MenuItem>
+          <MenuItem value="terminator">Terminator</MenuItem>
+          <MenuItem value="shine_dalgarno_sequence">
+            Shine Dalgarno Sequence
+          </MenuItem>
+          <MenuItem value="repeat_region">Repeat Region</MenuItem>
+          <MenuItem value="variant">Variant</MenuItem>
+        </TextField>
+        <TextField
+          select
+          value={users}
+          onChange={event => {
+            setUsers(event.target.value)
+            model.fetchFeatureTree({ user: event.target.value })
+          }}
+          placeholder="All Users"
+        >
+          <MenuItem value="">All Users </MenuItem>
+          {/* map thru users and create menu item for each one*/}
+        </TextField>
+        <TextField
+          select
+          value={status}
+          onChange={event => {
+            setStatus(event.target.value)
+            model.fetchFeatureTree({ statusString: event.target.value })
+          }}
+          placeholder="All Statuses"
+        >
+          <MenuItem value="">All Statuses </MenuItem>
+          <MenuItem value="no_status_assigned">No Status Assigned</MenuItem>
+          <MenuItem value="any_status_assigned">Any Status Assigned</MenuItem>
+        </TextField>
+        <br />
+        <ToggleButtonGroup value={filters} onChange={handleFilters}>
+          <ToggleButton value="go">GO</ToggleButton>
+          <ToggleButton value="gp">GP</ToggleButton>
+          <ToggleButton value="provenance">Prov</ToggleButton>
+        </ToggleButtonGroup>
+      </div>
       <div style={{ height: clickedFeature ? 200 : 400, width: '100%' }}>
-        <div style={{ display: 'flex', height: '100%', fontSize: '8' }}>
+        <div style={{ display: 'flex', height: '100%' }}>
           <DataGrid
             className={classes.dataGrid}
             scrollbarSize={10}
