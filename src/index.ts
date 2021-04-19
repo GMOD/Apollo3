@@ -14,6 +14,7 @@ import TrackType from '@jbrowse/core/pluggableElementTypes/TrackType'
 import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { runInAction } from 'mobx'
+import { types } from 'mobx-state-tree'
 import {
   AdapterClass as ApolloAdapterClass,
   configSchema as apolloAdapterConfigSchema,
@@ -26,8 +27,26 @@ import {
 import LinearApolloDisplay from './LinearApolloDisplay'
 import LinearApolloReferenceSequenceDisplay from './LinearApolloReferenceSequenceDisplay'
 
+const ApolloConfigurationSchema = ConfigurationSchema(
+  'Apollo',
+  {
+    name: {
+      type: 'string',
+      defaultValue: '',
+    },
+    location: {
+      type: 'fileLocation',
+      defaultValue: { uri: '' },
+    },
+  },
+  { explicitIdentifier: 'apolloId', explicitlyTyped: true },
+)
+
 export default class ApolloPlugin extends Plugin {
   name = 'Apollo'
+
+  // @ts-ignore
+  configurationSchema = types.array(ApolloConfigurationSchema)
 
   install(pluginManager: PluginManager) {
     pluginManager.addConnectionType(() => {

@@ -1007,10 +1007,10 @@
   resolved "https://registry.yarnpkg.com/@istanbuljs/schema/-/schema-0.1.2.tgz#26520bf09abe4a5644cd5414e37125a8954241dd"
   integrity sha512-tsAQNx32a8CoFhjhijUIhI4kccIAgmGhy8LZMZgGfmXcpMbPRUqn5LWmgRttILi6yeGmBJd2xsPkFMs0PzgPCw==
 
-"@jbrowse/core@^1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@jbrowse/core/-/core-1.0.3.tgz#b4b023e58d41fcf061d60f4c52f995144f6d7571"
-  integrity sha512-Xl/3Wqi6wJkDgfK89oKCVJ01BRWbs3o5oYDfygH2aDy9A/AqDFMRpBCezXGdhUxiPte8KzTx/moXChFTtWNXOw==
+"@jbrowse/core@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@jbrowse/core/-/core-1.1.0.tgz#27292992db22bbbd60e0452ff2265d17cba53f29"
+  integrity sha512-H7657Nf+6oam+K+TKlEfP7cJjLB6Zd4toQ18OWf2iVsMMJD9x7L5T0h6/+vDyZF91ogmrljdsJ6t94ga2REPsw==
   dependencies:
     "@librpc/web" rbuels/librpc-web#737bb9706762a52a87169a12c9b59fb241febab0
     "@material-ui/icons" "^4.0.0"
@@ -1027,12 +1027,14 @@
     generic-filehandle "^2.0.1"
     http-range-fetcher "^1.2.2"
     is-object "^1.0.1"
+    jexl "^2.3.0"
     json-stable-stringify "^1.0.1"
     load-script2 "^2.0.5"
     object-hash "^1.3.1"
     object.fromentries "^2.0.0"
     pako "^1.0.10"
     react-error-boundary "^1.2.5"
+    react-intersection-observer "^8.31.0"
     react-measure "^2.3.0"
     shortid "^2.2.13"
     tenacious-fetch "^2.1.0"
@@ -1048,14 +1050,16 @@
     patch-package "^6.2.2"
     tsdx "0.14.1"
 
-"@jbrowse/plugin-linear-genome-view@^1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@jbrowse/plugin-linear-genome-view/-/plugin-linear-genome-view-1.0.3.tgz#3866e88d86179aa2a056acea7b4c725433bca5df"
-  integrity sha512-tDTtZlj1KbQl7CdO1muZPmZl3ft09tYib3UnNBaCXz0u4iF1veFAHcFJBp07yCswvuBC9VWV+qk4KJgIpCnj3Q==
+"@jbrowse/plugin-linear-genome-view@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@jbrowse/plugin-linear-genome-view/-/plugin-linear-genome-view-1.1.0.tgz#46afc7cb5f2a437813cdef6c594bd575f80fe973"
+  integrity sha512-Tgl6wIG9F2C41LIiLXeJK1oA9uTTtAj7MtE9XNWM8h0jF0nUjqf2sp8ur4CQYH4yn1E5CCUk8dga/J5+avrMAA==
   dependencies:
     "@material-ui/icons" "^4.9.1"
     clone "^2.1.2"
     clsx "^1.0.4"
+    copy-to-clipboard "^3.3.1"
+    file-saver "^2.0.0"
     is-object "^1.0.1"
     json-stable-stringify "^1.0.1"
     normalize-wheel "^1.0.1"
@@ -1063,10 +1067,10 @@
     react-sizeme "^2.6.7"
     react-window "^1.8.5"
 
-"@jbrowse/plugin-sequence@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@jbrowse/plugin-sequence/-/plugin-sequence-1.0.2.tgz#48493462e43e9fa3e9203d3043766080b85dd53f"
-  integrity sha512-1n+eIgpvZ6orTmXiGOWoq8EYKcul6KGiO6k5KSITKDFtRYZPJQXli6gWvKMpX3pRoifSbrngelNZJYfzUcTr+Q==
+"@jbrowse/plugin-sequence@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@jbrowse/plugin-sequence/-/plugin-sequence-1.1.0.tgz#c3498af953bec50993f6b915d7dcdfdf2ad5a597"
+  integrity sha512-/9GkKQnCyBvdiJfAJFk0/nS6TnZa+tLiy3sjfXEoFbICgt0YLBsJ+XkguBUG2F6hriMmKPQTKEKPmUOmly5mOA==
   dependencies:
     "@gmod/indexedfasta" "^1.0.13"
     "@gmod/twobit" "^1.1.10"
@@ -1074,10 +1078,10 @@
     clsx "^1.1.0"
     generic-filehandle "^2.0.1"
 
-"@jbrowse/plugin-svg@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@jbrowse/plugin-svg/-/plugin-svg-1.0.2.tgz#344cfb3e828d2f8fcc9d73981153f552c7d02044"
-  integrity sha512-FHevgZunASeKtcWb8A15vYFjOX5k8ndMFbVeU43R/q0ZKCchjzewM8XQ9hjJnnGY7/S1KccsuNVD/iR0/2e7DQ==
+"@jbrowse/plugin-svg@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@jbrowse/plugin-svg/-/plugin-svg-1.1.0.tgz#5758fb73ae51a2255cf739eeab664c5f34aff1e5"
+  integrity sha512-7fhcjulWekm1FN9UQuDIieBJjlU9YlRU13IMiBnUkzqsjmS51olEvZrvPjcvz6mJ+axUaSjhz99p+YB+Bsbe3A==
 
 "@jest/console@^25.5.0":
   version "25.5.0"
@@ -1410,6 +1414,11 @@
   integrity sha512-892K+kWUUi3cl+LlqEWIDrhvLgdL79tECi8JZUyq6IviKy/DNhuzCRlbHUjxK89f4ypPMMaFnFuR9Ie6DoIMsw==
   dependencies:
     type-detect "4.0.8"
+
+"@stomp/stompjs@^6.1.0":
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/@stomp/stompjs/-/stompjs-6.1.0.tgz#b77ca240775a7a34289b2c09618e256be761d142"
+  integrity sha512-Bt+whL0V51rSKP35OkgM1yeVu/usunpz5l1VYuoWw8mGsDMNd3W3FpWa4/4eis6QfXO3uteNGfyE21XWn0pGAQ==
 
 "@types/babel__core@^7.1.7":
   version "7.1.12"
@@ -3577,6 +3586,11 @@ file-entry-cache@^5.0.1:
   dependencies:
     flat-cache "^2.0.1"
 
+file-saver@^2.0.0:
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/file-saver/-/file-saver-2.0.5.tgz#d61cfe2ce059f414d899e9dd6d4107ee25670c38"
+  integrity sha512-P9bmyZ3h/PRG+Nzga+rbdI4OEpNDzAVyy74uVO9ATgzLK6VtAsYybF/+TOCvrc0MO793d6+42lLyZTw7/ArVzA==
+
 file-uri-to-path@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/file-uri-to-path/-/file-uri-to-path-1.0.0.tgz#553a7b8446ff6f684359c445f1e37a05dacc33dd"
@@ -4935,6 +4949,13 @@ jest@^25.3.0:
     "@jest/core" "^25.5.4"
     import-local "^3.0.2"
     jest-cli "^25.5.4"
+
+jexl@^2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/jexl/-/jexl-2.3.0.tgz#73e0694d86ca917ac24fed753f201c1db59a46c5"
+  integrity sha512-ecqln4kTWNkMwbFvTukOMDq1jy1GcPzvshhMp/s4pxU86xdLDq7HbDRa87DfMfbSAOS8V6EwvCdfs0S+w/iycA==
+  dependencies:
+    "@babel/runtime" "^7.10.2"
 
 jpjs@^1.2.1:
   version "1.2.1"
@@ -6476,6 +6497,11 @@ react-error-boundary@^1.2.5:
   version "1.2.5"
   resolved "https://registry.yarnpkg.com/react-error-boundary/-/react-error-boundary-1.2.5.tgz#a362cb799d2e58ff8f114f7c4bc25677ce4e4149"
   integrity sha512-5CPSeLJA2igJNppAgFRwnTL9aK3ojenk65enNzhVyoxYNbHpIJXnChUO7+4vPhkncRA9wvQMXq6Azp2XeXd+iQ==
+
+react-intersection-observer@^8.31.0:
+  version "8.31.1"
+  resolved "https://registry.yarnpkg.com/react-intersection-observer/-/react-intersection-observer-8.31.1.tgz#dea4e9a10bbfc899c4159eadd94354cc083920b5"
+  integrity sha512-Q4OH2aUXcEi6tPBBgOBjfodoRM68wikXqqbPf8FaY4VBMcSACbxulfkW/OqcfLYfSAOEPGvxN+NCn9PqBgAOfQ==
 
 react-is@^16.12.0, react-is@^16.7.0, react-is@^16.8.1:
   version "16.13.1"

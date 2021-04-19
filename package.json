@@ -41,21 +41,22 @@
     "trailingComma": "all"
   },
   "dependencies": {
-    "@material-ui/icons": "4.9.1"
+    "@material-ui/icons": "4.9.1",
+    "@stomp/stompjs": "^6.1.0"
   },
   "peerDependencies": {
-    "@jbrowse/core": "^1.0.3",
-    "@jbrowse/plugin-linear-genome-view": "^1.0.2",
-    "@jbrowse/plugin-sequence": "^1.0.2",
-    "@jbrowse/plugin-svg": "^1.0.2"
+    "@jbrowse/core": "file:///home/garrett/tmp/jbrowse-core-v1.1.0-alpha.4.tgz",
+    "@jbrowse/plugin-linear-genome-view": "^1.1.0",
+    "@jbrowse/plugin-sequence": "^1.1.0",
+    "@jbrowse/plugin-svg": "^1.1.0"
   },
   "devDependencies": {
     "@babel/preset-react": "^7.10.4",
-    "@jbrowse/core": "^1.0.3",
+    "@jbrowse/core": "file:///home/garrett/tmp/jbrowse-core-v1.1.0-alpha.4.tgz",
     "@jbrowse/development-tools": "^1.0.3",
-    "@jbrowse/plugin-linear-genome-view": "^1.0.3",
-    "@jbrowse/plugin-sequence": "^1.0.2",
-    "@jbrowse/plugin-svg": "^1.0.2",
+    "@jbrowse/plugin-linear-genome-view": "^1.1.0",
+    "@jbrowse/plugin-sequence": "^1.1.0",
+    "@jbrowse/plugin-svg": "^1.1.0",
     "@material-ui/core": "^4.9.13",
     "@material-ui/lab": "^4.0.0-alpha.45",
     "@types/react": "^16.8.0",
