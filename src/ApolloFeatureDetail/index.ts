@@ -3,11 +3,11 @@ import { ElementId } from '@jbrowse/core/util/types/mst'
 import { types } from 'mobx-state-tree'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { observable } from 'mobx'
+import { getSession } from '@jbrowse/core/util'
 
 // import { Client } from '@stomp/stompjs'
 
 const configSchema = ConfigurationSchema('ApolloWidget', {})
-const initialMap = new Map().set('main', {})
 
 export default function stateModelFactory(pluginManager: PluginManager) {
   return types
@@ -24,8 +24,16 @@ export default function stateModelFactory(pluginManager: PluginManager) {
     .volatile(() => ({
       socket: undefined as any | undefined,
       // fetchedData: observable([{ main: {} }]) as any | undefined,
-      fetchedData: observable.map(initialMap) as any | undefined,
     }))
+    .volatile(self => {
+      const initialMap = new Map().set('main', {})
+      initialMap.set(
+        'features',
+        // @ts-ignore
+        getSession(self).connectionInstances[0].features,
+      )
+      return { fetchedData: observable.map(initialMap) as any | undefined }
+    })
     .actions(self => ({
       setFeatureData(data: any) {
         self.featureData = data
@@ -96,10 +104,10 @@ export default function stateModelFactory(pluginManager: PluginManager) {
         return json
       },
       // write actions that send fetch requests when something is edited
-      async afterCreate() {
-        this.fetchFeatures()
-        // TODO make a new tab with the response stuff
-      },
+      // async afterCreate() {
+      //   this.fetchFeatures()
+      //   // TODO make a new tab with the response stuff
+      // },
     }))
 }
 

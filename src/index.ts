@@ -48,21 +48,6 @@ const ApolloConfigurationSchema = ConfigurationSchema(
   { explicitIdentifier: 'apolloId', explicitlyTyped: true },
 )
 
-const ApolloConfigurationSchema = ConfigurationSchema(
-  'Apollo',
-  {
-    name: {
-      type: 'string',
-      defaultValue: '',
-    },
-    location: {
-      type: 'fileLocation',
-      defaultValue: { uri: '' },
-    },
-  },
-  { explicitIdentifier: 'apolloId', explicitlyTyped: true },
-)
-
 export default class ApolloPlugin extends Plugin {
   name = 'Apollo'
 

@@ -33,6 +33,10 @@ const Feature = types
     type: types.optional(types.literal('ApolloFeature'), 'ApolloFeature'),
     location: Location,
     children: types.maybe(types.map(types.late((): IAnyModelType => Feature))),
+    name: types.maybe(types.string),
+    refName: types.string,
+    featureType: types.string,
+    dateLastModified: types.maybe(types.number),
   })
   .actions(self => ({
     update({

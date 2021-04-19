@@ -190,6 +190,7 @@ export default class ApolloAnnotationDriver extends BaseAnnotationDriver {
     } else if (featureData.location.strand === -1) {
       strand = '-'
     }
+    console.log('featureData', featureData)
     const feature: SnapshotIn<typeof Feature> = {
       id: featureData.uniquename,
       location: {
@@ -197,6 +198,10 @@ export default class ApolloAnnotationDriver extends BaseAnnotationDriver {
         end: featureData.location.fmax,
         strand,
       },
+      name: featureData.name,
+      refName: featureData.sequence,
+      featureType: featureData.type.name,
+      dateLastModified: featureData.date_last_modified,
     }
     if (featureData.children) {
       const children: Record<string, SnapshotIn<typeof Feature>> = {}

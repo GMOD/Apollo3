@@ -69,7 +69,7 @@ const AnnotationsTabDetail = ({
   aplData,
   props,
 }: {
-  aplData: ApolloFeature[]
+  aplData: any
   props: AplInputProps
 }) => {
   const { model } = props
@@ -261,7 +261,12 @@ const AnnotationsTabDetail = ({
   }
 
   const classes = useStyles()
-  const features = aplData
+  const features = aplData.get('Fictitious')?.get('ctgA') //hard coded for now
+  console.log('aplData', aplData)
+  if (!features) {
+    return null
+  }
+  console.log('features', features)
   const columns = [
     { field: 'name', headerName: 'Name' },
     { field: 'seq', headerName: 'Seq' },
@@ -270,14 +275,14 @@ const AnnotationsTabDetail = ({
     { field: 'updated', headerName: 'Updated' },
   ]
 
-  const rows: CodingRow[] = features.map(
-    (currentFeature: ApolloFeature, index: number) => ({
-      id: index,
+  const rows: CodingRow[] = Array.from(features.values()).map(
+    (currentFeature: any, index: number) => ({
+      id: currentFeature.id,
       name: currentFeature.name,
-      seq: currentFeature.sequence,
-      type: currentFeature.type.name,
-      length: currentFeature.location.fmax - currentFeature.location.fmin,
-      updated: new Date(currentFeature.date_last_modified).toDateString(),
+      seq: currentFeature.refName,
+      type: currentFeature.featureType,
+      length: currentFeature.location.length,
+      updated: new Date(currentFeature.dateLastModified).toDateString(),
     }),
   )
   return (
@@ -360,7 +365,7 @@ const AnnotationsTabDetail = ({
             rows={rows}
             columns={columns}
             onRowClick={rowData => {
-              setClickedFeature(features[rowData.row.id as number])
+              setClickedFeature(features.get(rowData.row.id))
               setCurrentEditingTabs(findEditingTabs(rowData.row.type))
             }}
           />

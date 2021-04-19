@@ -68,7 +68,7 @@ const searchGeneProduct = async (currentText: string, model: any) => {
   const data = {
     username: sessionStorage.getItem(`${model.apolloId}-apolloUsername`) || '',
     password: sessionStorage.getItem(`${model.apolloId}-apolloPassword`) || '',
-    organism: 'Ficticious',
+    organism: 'Fictitious',
     query: currentText,
   }
 
