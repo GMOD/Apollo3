@@ -3,6 +3,7 @@ import { ElementId } from '@jbrowse/core/util/types/mst'
 import { types } from 'mobx-state-tree'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { observable } from 'mobx'
+import { getSession } from '@jbrowse/core/util'
 
 // import { Client } from '@stomp/stompjs'
 
@@ -97,6 +98,9 @@ export default function stateModelFactory(pluginManager: PluginManager) {
       },
       // write actions that send fetch requests when something is edited
       async afterCreate() {
+        const session = getSession(self)
+        // @ts-ignore
+        session.updateDrawerWidth(600)
         this.fetchFeatures()
         // TODO make a new tab with the response stuff
       },
