@@ -134,7 +134,7 @@ export default function AttributeModal({
                     `${model.apolloId}-apolloPassword`,
                   ),
                   sequence: clickedFeature.sequence,
-                  organism: 'Ficticious',
+                  organism: 'Fictitious',
                   features: [
                     {
                       uniquename: clickedFeature.uniquename,
@@ -155,7 +155,7 @@ export default function AttributeModal({
                     `${model.apolloId}-apolloPassword`,
                   ),
                   sequence: clickedFeature.sequence,
-                  organism: 'Ficticious',
+                  organism: 'Fictitious',
                   features: [
                     {
                       uniquename: clickedFeature.uniquename,
@@ -205,7 +205,7 @@ export default function AttributeModal({
           onClick={() => {
             const attributeString = {
               sequence: clickedFeature.sequence,
-              organism: 'Ficticious',
+              organism: 'Fictitious',
               features: [
                 {
                   uniquename: clickedFeature.uniquename,

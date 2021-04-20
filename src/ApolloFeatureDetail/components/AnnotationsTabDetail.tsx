@@ -1,6 +1,5 @@
 import { DataGrid } from '@material-ui/data-grid'
 import {
-  Button,
   makeStyles,
   Paper,
   Toolbar,
@@ -10,7 +9,9 @@ import {
   AppBar,
   TextField,
   MenuItem,
+  IconButton,
 } from '@material-ui/core'
+import CloseIcon from '@material-ui/icons/Close'
 import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
@@ -63,6 +64,12 @@ const useStyles = makeStyles(({ spacing, palette, breakpoints }) => ({
   dataGrid: {
     fontSize: 12,
   },
+  closeButton: {
+    position: 'inherit',
+    right: spacing(1),
+    top: spacing(1),
+    color: palette.grey[500],
+  },
 }))
 
 const AnnotationsTabDetail = ({
@@ -78,9 +85,9 @@ const AnnotationsTabDetail = ({
   >()
   const [currentEditingTabs, setCurrentEditingTabs] = useState([] as string[])
   const [idx, setIdx] = useState(0)
-  const [type, setType] = useState('')
-  const [users, setUsers] = useState('')
-  const [status, setStatus] = useState('')
+  const [type, setType] = useState('all')
+  const [users, setUsers] = useState('all')
+  const [status, setStatus] = useState('all')
   const [filters, setFilters] = useState(() => [] as string[])
 
   const handleFilters = async (
@@ -283,92 +290,111 @@ const AnnotationsTabDetail = ({
   return (
     <>
       {/* this contains the filter editing portion */}
-      <div style={{ margin: 5 }}>
-        <TextField
-          label="Annotation Name"
-          onChange={event => {
-            model.fetchFeatureTree({ annotationName: event.target.value })
-          }}
-        />
-        <TextField
-          label="Reference Sequence"
-          onChange={event => {
-            model.fetchFeatureTree({ sequenceName: event.target.value })
-          }}
-        />
-
-        <br />
-        <TextField
-          select
-          value={type}
-          onChange={event => {
-            setType(event.target.value)
-            model.fetchFeatureTree({ type: event.target.value })
-          }}
-        >
-          <MenuItem value="">All Types </MenuItem>
-          <MenuItem value="gene">Gene</MenuItem>
-          <MenuItem value="pseudogene">Pseudogene</MenuItem>
-          <MenuItem value="transposable_element">Transposable Element</MenuItem>
-          <MenuItem value="terminator">Terminator</MenuItem>
-          <MenuItem value="shine_dalgarno_sequence">
-            Shine Dalgarno Sequence
-          </MenuItem>
-          <MenuItem value="repeat_region">Repeat Region</MenuItem>
-          <MenuItem value="variant">Variant</MenuItem>
-        </TextField>
-        <TextField
-          select
-          value={users}
-          onChange={event => {
-            setUsers(event.target.value)
-            model.fetchFeatureTree({ user: event.target.value })
-          }}
-          placeholder="All Users"
-        >
-          <MenuItem value="">All Users </MenuItem>
-          {/* map thru users and create menu item for each one*/}
-        </TextField>
-        <TextField
-          select
-          value={status}
-          onChange={event => {
-            setStatus(event.target.value)
-            model.fetchFeatureTree({ statusString: event.target.value })
-          }}
-          placeholder="All Statuses"
-        >
-          <MenuItem value="">All Statuses </MenuItem>
-          <MenuItem value="no_status_assigned">No Status Assigned</MenuItem>
-          <MenuItem value="any_status_assigned">Any Status Assigned</MenuItem>
-        </TextField>
-        <br />
-        <ToggleButtonGroup value={filters} onChange={handleFilters}>
-          <ToggleButton value="go">GO</ToggleButton>
-          <ToggleButton value="gp">GP</ToggleButton>
-          <ToggleButton value="provenance">Prov</ToggleButton>
-        </ToggleButtonGroup>
-      </div>
-      <div style={{ height: clickedFeature ? 200 : 400, width: '100%' }}>
-        <div style={{ display: 'flex', height: '100%' }}>
-          <DataGrid
-            className={classes.dataGrid}
-            scrollbarSize={10}
-            disableColumnMenu
-            hideFooterSelectedRowCount
-            pageSize={25}
-            rows={rows}
-            columns={columns}
-            onRowClick={rowData => {
-              setClickedFeature(features[rowData.row.id as number])
-              setCurrentEditingTabs(findEditingTabs(rowData.row.type))
+      <BaseCard title={'Filters'} defaultExpanded={false}>
+        <div style={{ margin: 5 }}>
+          <TextField
+            label="Annotation Name"
+            onChange={event => {
+              model.fetchFeatureTree({ annotationName: event.target.value })
+            }}
+          />{' '}
+          <TextField
+            label="Reference Sequence"
+            onChange={event => {
+              model.fetchFeatureTree({ sequenceName: event.target.value })
             }}
           />
+          <br />
+          <TextField
+            select
+            value={type}
+            onChange={event => {
+              setType(event.target.value)
+              model.fetchFeatureTree({
+                type: event.target.value === 'all' ? '' : event.target.value,
+              })
+            }}
+          >
+            <MenuItem value="all">All Types</MenuItem>
+            <MenuItem value="gene">Gene</MenuItem>
+            <MenuItem value="pseudogene">Pseudogene</MenuItem>
+            <MenuItem value="transposable_element">
+              Transposable Element
+            </MenuItem>
+            <MenuItem value="terminator">Terminator</MenuItem>
+            <MenuItem value="shine_dalgarno_sequence">
+              Shine Dalgarno Sequence
+            </MenuItem>
+            <MenuItem value="repeat_region">Repeat Region</MenuItem>
+            <MenuItem value="variant">Variant</MenuItem>
+          </TextField>{' '}
+          <TextField
+            select
+            value={users}
+            onChange={event => {
+              setUsers(event.target.value)
+              model.fetchFeatureTree({
+                user: event.target.value === 'all' ? '' : event.target.value,
+              })
+            }}
+          >
+            <MenuItem value="all">All Users </MenuItem>
+            {/* map thru users and create menu item for each one*/}
+          </TextField>{' '}
+          <TextField
+            select
+            value={status}
+            onChange={event => {
+              setStatus(event.target.value)
+              model.fetchFeatureTree({
+                statusString:
+                  event.target.value === 'all' ? '' : event.target.value,
+              })
+            }}
+          >
+            <MenuItem value="all">All Statuses </MenuItem>
+            <MenuItem value="no_status_assigned">No Status Assigned</MenuItem>
+            <MenuItem value="any_status_assigned">Any Status Assigned</MenuItem>
+          </TextField>
+          <br />
+          <ToggleButtonGroup value={filters} onChange={handleFilters}>
+            <ToggleButton value="go">GO</ToggleButton>
+            <ToggleButton value="gp">GP</ToggleButton>
+            <ToggleButton value="provenance">Prov</ToggleButton>
+          </ToggleButtonGroup>
         </div>
-      </div>
+      </BaseCard>
+      <BaseCard title={'Feature Table'}>
+        <div style={{ height: clickedFeature ? 200 : 400, width: '100%' }}>
+          <div style={{ display: 'flex', height: '100%' }}>
+            <DataGrid
+              className={classes.dataGrid}
+              scrollbarSize={10}
+              disableColumnMenu
+              hideFooterSelectedRowCount
+              pageSize={25}
+              rows={rows}
+              columns={columns}
+              onRowClick={rowData => {
+                setClickedFeature(features[rowData.row.id as number])
+                setCurrentEditingTabs(findEditingTabs(rowData.row.type))
+              }}
+            />
+          </div>
+        </div>
+      </BaseCard>
 
       {clickedFeature ? (
         <BaseCard title={`${clickedFeature.name} Info`}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <IconButton
+              aria-label="close"
+              className={classes.closeButton}
+              onClick={() => setClickedFeature(undefined)}
+            >
+              <CloseIcon /> Close
+            </IconButton>
+          </div>
           <Paper data-testid="apollo-editing-drawer">
             <Toolbar disableGutters>
               <AppBar position={'static'}>
@@ -405,13 +431,6 @@ const AnnotationsTabDetail = ({
           </Paper>
         </BaseCard>
       ) : null}
-      <Button
-        color="secondary"
-        variant="contained"
-        onClick={async () => await model.fetchFeatures()}
-      >
-        Re-fetch
-      </Button>
     </>
   )
 }

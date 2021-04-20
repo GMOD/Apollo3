@@ -164,7 +164,7 @@ const AttributeEditingTabDetail = ({
                   `${model.apolloId}-apolloPassword`,
                 ),
                 sequence: clickedFeature.sequence,
-                organism: 'Ficticious',
+                organism: 'Fictitious',
                 features: [
                   {
                     uniquename: clickedFeature.uniquename,

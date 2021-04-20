@@ -329,7 +329,7 @@ export default function DbXrefModal({
                     `${model.apolloId}-apolloPassword`,
                   ),
                   sequence: clickedFeature.sequence,
-                  organism: 'Ficticious',
+                  organism: 'Fictitious',
                   features: [
                     {
                       uniquename: clickedFeature.uniquename,
@@ -345,7 +345,7 @@ export default function DbXrefModal({
                     `${model.apolloId}-apolloPassword`,
                   ),
                   sequence: clickedFeature.sequence,
-                  organism: 'Ficticious',
+                  organism: 'Fictitious',
                   features: [
                     {
                       uniquename: clickedFeature.uniquename,
@@ -399,7 +399,7 @@ export default function DbXrefModal({
                 : [{ db: 'PMID', accession: PMIDInfo.PMID }]
             const dbXrefString = {
               sequence: clickedFeature.sequence,
-              organism: 'Ficticious',
+              organism: 'Fictitious',
               features: [
                 {
                   uniquename: clickedFeature.uniquename,
