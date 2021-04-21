@@ -61,10 +61,10 @@ const ProvenanceEditingTabDetail = ({
   const [selectedAnnotation, setSelectedAnnotation] = useState({})
 
   const columns = [
-    { field: 'field', headerName: 'Field' },
-    { field: 'evidence', headerName: 'Evidence' },
-    { field: 'basedOn', headerName: 'Based On' },
-    { field: 'reference', headerName: 'Reference' },
+    { field: 'field', headerName: 'Field', flex: 1 },
+    { field: 'evidence', headerName: 'Evidence', flex: 1 },
+    { field: 'basedOn', headerName: 'Based On', flex: 1.5 },
+    { field: 'reference', headerName: 'Reference', flex: 1 },
   ]
 
   const rows = provenanceAnnotations.map(

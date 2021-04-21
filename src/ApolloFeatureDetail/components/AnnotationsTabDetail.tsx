@@ -62,8 +62,11 @@ const useStyles = makeStyles(({ spacing, palette, breakpoints }) => ({
     letterSpacing: 0.5,
   },
   dataGrid: {
-    fontSize: 12,
+    '& .MuiDataGrid-window': {
+      overflowX: 'hidden',
+    },
   },
+
   closeButton: {
     position: 'inherit',
     right: spacing(1),
@@ -270,11 +273,11 @@ const AnnotationsTabDetail = ({
   const classes = useStyles()
   const features = aplData
   const columns = [
-    { field: 'name', headerName: 'Name' },
-    { field: 'seq', headerName: 'Seq' },
-    { field: 'type', headerName: 'Type' },
-    { field: 'length', headerName: 'Length' },
-    { field: 'updated', headerName: 'Updated' },
+    { field: 'name', headerName: 'Name', flex: 1.5 },
+    { field: 'seq', headerName: 'Seq', flex: 0.75 },
+    { field: 'type', headerName: 'Type', flex: 0.75 },
+    { field: 'length', headerName: 'Length', flex: 0.5 },
+    { field: 'updated', headerName: 'Updated', flex: 1 },
   ]
 
   const rows: CodingRow[] = features.map(
@@ -339,6 +342,13 @@ const AnnotationsTabDetail = ({
             }}
           >
             <MenuItem value="all">All Users </MenuItem>
+            <MenuItem
+              value={`${sessionStorage.getItem(
+                `${model.apolloId}-apolloUsername`,
+              )}`}
+            >
+              {sessionStorage.getItem(`${model.apolloId}-apolloUsername`)}
+            </MenuItem>
             {/* map thru users and create menu item for each one*/}
           </TextField>{' '}
           <TextField
@@ -365,11 +375,11 @@ const AnnotationsTabDetail = ({
         </div>
       </BaseCard>
       <BaseCard title={'Feature Table'}>
-        <div style={{ height: clickedFeature ? 200 : 400, width: '100%' }}>
+        <div style={{ height: clickedFeature ? 200 : 400 }}>
           <div style={{ display: 'flex', height: '100%' }}>
             <DataGrid
               className={classes.dataGrid}
-              scrollbarSize={10}
+              scrollbarSize={5}
               disableColumnMenu
               hideFooterSelectedRowCount
               pageSize={25}

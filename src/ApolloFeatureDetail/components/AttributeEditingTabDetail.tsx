@@ -71,8 +71,8 @@ const AttributeEditingTabDetail = ({
   const [selectedAnnotation, setSelectedAnnotation] = useState({})
 
   const columns = [
-    { field: 'prefix', headerName: 'Prefix' },
-    { field: 'accession', headerName: 'Accession' },
+    { field: 'prefix', headerName: 'Prefix', flex: 1 },
+    { field: 'accession', headerName: 'Accession', flex: 1 },
   ]
 
   const rows = attributes.map((annotation: Attribute, index: number) => ({

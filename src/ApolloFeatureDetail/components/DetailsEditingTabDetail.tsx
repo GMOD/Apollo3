@@ -41,7 +41,7 @@ const DetailsEditingTabDetail = ({
         label="Type"
         disabled
         defaultValue={clickedFeature.type.name}
-      />
+      />{' '}
       <TextField
         key={clickedFeature.name}
         label="Name"
@@ -61,7 +61,7 @@ const DetailsEditingTabDetail = ({
             )
           }
         }}
-      />
+      />{' '}
       <TextField
         key={`${clickedFeature.uniquename}-symbol`}
         label="Symbol"
@@ -81,7 +81,7 @@ const DetailsEditingTabDetail = ({
             )
           }
         }}
-      />
+      />{' '}
       <TextField
         key={`${clickedFeature.uniquename}-desc`}
         label="Description"
@@ -101,27 +101,27 @@ const DetailsEditingTabDetail = ({
             )
           }
         }}
-      />
+      />{' '}
       <TextField
         key={clickedFeature.location.fmin}
-        label="location"
+        label="Location"
         disabled
         defaultValue={`${fmin}-${clickedFeature.location.fmax} strand(${
           clickedFeature.location.strand === 1 ? '+' : '-'
         })`}
-      />
+      />{' '}
       <TextField
         key={clickedFeature.sequence}
         label="Ref Sequence"
         disabled
         defaultValue={clickedFeature.sequence}
-      />
+      />{' '}
       <TextField
         key={clickedFeature.owner}
         label="Owner"
         disabled
         defaultValue={clickedFeature.owner}
-      />
+      />{' '}
       <TextField
         key={clickedFeature.date_creation}
         label="Created"
@@ -131,7 +131,7 @@ const DetailsEditingTabDetail = ({
         ).toDateString()} ${new Date(
           clickedFeature.date_creation,
         ).toTimeString()}`}
-      />
+      />{' '}
       <TextField
         key={clickedFeature.date_last_modified}
         label="Updated"

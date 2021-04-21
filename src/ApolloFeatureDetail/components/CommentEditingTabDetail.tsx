@@ -64,7 +64,7 @@ const CommentEditingTabDetail = ({
     clickedFeature.sequence,
   ])
 
-  const columns = [{ field: 'comment', headerName: 'Comment' }]
+  const columns = [{ field: 'comment', headerName: 'Comment', flex: 1 }]
 
   const rows = comments.map((comment: string, index: number) => ({
     id: index,
