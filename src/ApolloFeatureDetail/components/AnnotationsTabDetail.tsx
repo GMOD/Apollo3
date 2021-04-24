@@ -25,6 +25,7 @@ import ProvenanceEditingTabDetail from './ProvenanceEditingTabDetail'
 import DbXrefEditingTabDetail from './DbXrefEditingTabDetail'
 import CommentEditingTabDetail from './CommentEditingTabDetail'
 import AttributeEditingTabDetail from './AttributeEditingTabDetail'
+import BaseEditingTabDetail from './BaseEditingTabDetail'
 
 interface CodingRow {
   name: string
@@ -219,22 +220,28 @@ const AnnotationsTabDetail = ({
         // }
         case 'Go': {
           return (
-            <GoEditingTabDetail clickedFeature={clickedFeature} props={props} />
+            <BaseEditingTabDetail
+              clickedFeature={clickedFeature}
+              props={props}
+              endpoint="goAnnotation"
+            />
           )
         }
         case 'Gene Product': {
           return (
-            <GeneProductEditingTabDetail
+            <BaseEditingTabDetail
               clickedFeature={clickedFeature}
               props={props}
+              endpoint="geneProduct"
             />
           )
         }
         case 'Provenance': {
           return (
-            <ProvenanceEditingTabDetail
+            <BaseEditingTabDetail
               clickedFeature={clickedFeature}
               props={props}
+              endpoint="provenance"
             />
           )
         }

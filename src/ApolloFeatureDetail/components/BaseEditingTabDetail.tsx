@@ -6,6 +6,8 @@ import GoModal from './GoModal'
 import { DataGrid, GridSortDirection } from '@material-ui/data-grid'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import TextImportModal from './TextImportModal'
+import GeneProductModal from './GeneProductModal'
+import ProvenanceModal from './ProvenanceModal'
 
 interface Annotation {
   [key: string]: string
@@ -20,20 +22,14 @@ const useStyles = makeStyles(theme => ({
 // NOTE: this is a more generic form of tab detail
 // instead of having go editing, gene product editing, etc..
 // not in use right now, here as a concept
-const AnnotationEditingTabDetail = ({
+const BaseEditingTabDetail = ({
   clickedFeature,
   props,
   endpoint,
-  title,
-  name,
-  helperText,
 }: {
   clickedFeature: ApolloFeature
   props: AplInputProps
   endpoint: string
-  title: string
-  name: string
-  helperText: string
 }) => {
   const { model } = props
   const classes = useStyles()
@@ -41,9 +37,97 @@ const AnnotationEditingTabDetail = ({
   const [dialogInfo, setDialogInfo] = useState({ open: false, data: {} })
   const [openConfirmDeleteModal, setOpenConfirmDeleteModal] = useState(false)
   const [openImportModal, setOpenImportModal] = useState(false)
+  const [selectedAnnotation, setSelectedAnnotation] = useState({})
+  const [uniqueIdentifier, setUniqueIdentifier] = useState('')
+  const [helperText, setHelperText] = useState('')
 
   const handleClose = () => {
     setDialogInfo({ open: false, data: {} })
+  }
+
+  // convert the camel case endpoint to sentence
+  const name =
+    endpoint
+      .replace(/([A-Z])/g, ' $1')
+      .charAt(0)
+      .toUpperCase() + endpoint.replace(/([A-Z])/g, ' $1').slice(1)
+
+  const findModal = () => {
+    switch (endpoint) {
+      case 'goAnnotation': {
+        setHelperText(`Format is:
+        {
+         "feature": "",
+         "aspect": "",
+         "goTerm": "",
+         "goTermLabel": "",
+         "geneRelationship": "",
+         "evidenceCode": "",
+         "evidenceCodeLabel": "",
+         "negate": false,
+         "withOrFrom": [],
+         "reference": "",
+         "notes": []
+     }`)
+        setUniqueIdentifier((selectedAnnotation as Annotation).goTerm)
+        return (
+          <GoModal
+            handleClose={handleClose}
+            model={model}
+            clickedFeature={clickedFeature}
+            loadData={dialogInfo.data}
+          />
+        )
+      }
+
+      case 'geneProduct': {
+        setHelperText(`Format is:
+        {
+            "feature": "",
+            "productName": "",
+            "alternate": false,
+            "evidenceCode": "",
+            "evidenceCodeLabel": "",
+            "withOrFrom": [],
+            "reference": "",
+            "notes": []
+        }`)
+        setUniqueIdentifier((selectedAnnotation as Annotation).productName)
+        return (
+          <GeneProductModal
+            handleClose={handleClose}
+            model={model}
+            clickedFeature={clickedFeature}
+            loadData={dialogInfo.data}
+          />
+        )
+      }
+
+      case 'provenance': {
+        setUniqueIdentifier((selectedAnnotation as Annotation).productName)
+        setHelperText(`Format is:
+        {
+            "feature": "",
+            "field": "",
+            "evidenceCode": "",
+            "evidenceCodeLabel": "",
+            "withOrFrom": [],
+            "reference": "",
+            "notes": []
+        }`)
+        return (
+          <ProvenanceModal
+            handleClose={handleClose}
+            model={model}
+            clickedFeature={clickedFeature}
+            loadData={dialogInfo.data}
+          />
+        )
+      }
+
+      default:
+        return null
+    }
   }
 
   useEffect(() => {
@@ -67,7 +151,58 @@ const AnnotationEditingTabDetail = ({
     fetchAnnotations()
   }, [clickedFeature.uniquename, model.apolloUrl, model.apolloId, endpoint])
 
-  const [selectedAnnotation, setSelectedAnnotation] = useState({}) // when find data to loop thru use this
+  useEffect(() => {
+    switch (endpoint) {
+      case 'goAnnotation': {
+        setHelperText(`Format is:
+        {
+         "feature": "",
+         "aspect": "",
+         "goTerm": "",
+         "goTermLabel": "",
+         "geneRelationship": "",
+         "evidenceCode": "",
+         "evidenceCodeLabel": "",
+         "negate": false,
+         "withOrFrom": [],
+         "reference": "",
+         "notes": []
+     }`)
+        setUniqueIdentifier((selectedAnnotation as Annotation).goTerm)
+        break
+      }
+
+      case 'geneProduct': {
+        setHelperText(`Format is:
+        {
+            "feature": "",
+            "productName": "",
+            "alternate": false,
+            "evidenceCode": "",
+            "evidenceCodeLabel": "",
+            "withOrFrom": [],
+            "reference": "",
+            "notes": []
+        }`)
+        setUniqueIdentifier((selectedAnnotation as Annotation).productName)
+        break
+      }
+
+      case 'provenance': {
+        setUniqueIdentifier((selectedAnnotation as Annotation).productName)
+        setHelperText(`Format is:
+        {
+            "feature": "",
+            "field": "",
+            "evidenceCode": "",
+            "evidenceCodeLabel": "",
+            "withOrFrom": [],
+            "reference": "",
+            "notes": []
+        }`)
+      }
+    }
+  }, [endpoint, selectedAnnotation])
 
   const columns = [
     { field: 'name', headerName: 'Name' },
@@ -149,15 +284,7 @@ const AnnotationEditingTabDetail = ({
         >
           Import From Text
         </Button>
-        {/* ask about architecture of this file, how to dynamically pass JSX*/}
-        {dialogInfo.open && (
-          <GoModal
-            handleClose={handleClose}
-            model={model}
-            clickedFeature={clickedFeature}
-            loadData={dialogInfo.data}
-          />
-        )}
+        {dialogInfo.open && findModal()}
         {openConfirmDeleteModal && (
           <ConfirmDeleteModal
             handleClose={() => setOpenConfirmDeleteModal(false)}
@@ -182,9 +309,7 @@ const AnnotationEditingTabDetail = ({
                 },
               )
             }}
-            objToDeleteName={`${title}: ${
-              (selectedAnnotation as Annotation).goTerm
-            }`}
+            objToDeleteName={`${name}: ${uniqueIdentifier}`}
           />
         )}
         {openImportModal && (
@@ -194,7 +319,7 @@ const AnnotationEditingTabDetail = ({
               setOpenImportModal(false)
             }}
             endpointUrl={`${model.apolloUrl}/${endpoint}/save`}
-            from={title}
+            from={name}
             helpText={helperText}
           />
         )}
@@ -203,4 +328,4 @@ const AnnotationEditingTabDetail = ({
   )
 }
 
-export default observer(AnnotationEditingTabDetail)
+export default observer(BaseEditingTabDetail)
