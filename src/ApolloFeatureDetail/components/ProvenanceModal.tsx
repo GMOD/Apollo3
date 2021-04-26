@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -11,21 +11,11 @@ import {
   IconButton,
   MenuItem,
 } from '@material-ui/core'
-import { Autocomplete } from '@material-ui/lab'
 import WarningIcon from '@material-ui/icons/Warning'
 import CloseIcon from '@material-ui/icons/Close'
 import { ApolloFeature } from '../ApolloFeatureDetail'
-import GOEvidenceCodes from './GOEvidenceCodes'
 import copy from 'copy-to-clipboard'
-
-interface GoResults {
-  id: string
-  label: string[]
-}
-
-interface EvidenceResults extends GoResults {
-  code: string
-}
+import EvidenceFormModal from './EvidenceFormModal'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -58,28 +48,6 @@ const useStyles = makeStyles(theme => ({
     color: theme.palette.error.main,
   },
 }))
-// geneonotogy endpoing for GO Term and evidence autocompletes
-// may move to a utils file if used for more than one folder
-const fetchEvidenceAutocompleteResults = async (currentText: string) => {
-  const data = {
-    rows: 40,
-    prefix: 'ECO',
-  }
-
-  let params = Object.entries(data)
-    .map(([key, val]) => `${key}=${encodeURIComponent(val)}`)
-    .join('&')
-
-  const response = await fetch(
-    `https://api.geneontology.org/api/search/entity/autocomplete/${currentText}?${params}`,
-    {
-      method: 'GET',
-    },
-  )
-
-  const results = await response.json()
-  return results
-}
 
 // error if form filled out incorrectly, tells user why
 function ProvenanceModalError({
@@ -149,45 +117,41 @@ export default function ProvenanceModal({
   const classes = useStyles()
 
   // form field hooks
-  const [provenanceFormInfo, setProvenanceFormInfo] = useState({
-    field: '',
+  const [field, setField] = useState('')
+  const [evidenceInfo, setEvidenceInfo] = useState({
     evidence: { label: '', id: '', code: '' },
     allECOEvidence: false,
+    withArray: [] as string[],
+    referenceInfo: { prefix: '', id: '' },
+    noteArray: [] as string[],
   })
-  const [evidenceAutocomplete, setEvidenceAutocomplete] = useState<
-    EvidenceResults[]
-  >([])
-  const initialPrefixId = { prefix: '', id: '' }
-  const [withInfo, setWithInfo] = useState(initialPrefixId)
-  const [withArray, setWithArray] = useState<string[]>([])
-  const [referenceInfo, setReferenceInfo] = useState({ prefix: '', id: '' })
-  const [noteString, setNoteString] = useState('')
-  const [noteArray, setNoteArray] = useState<string[]>([])
+  const update = useCallback(content => setEvidenceInfo(content), [])
+  const [instanceKey, setInstanceKey] = useState(0) // using to reset evidence form modal, ask if there might be a better way
 
   const [openErrorModal, setOpenErrorModal] = useState(false)
 
   const formValidation = () => {
     const errorMessageArray: string[] = []
-    if (!provenanceFormInfo.field) {
+    if (!field) {
       errorMessageArray.push('You must provide a field')
     }
 
-    if (!provenanceFormInfo.evidence) {
+    if (!evidenceInfo.evidence) {
       errorMessageArray.push('You must provide an ECO term')
     } else if (
-      !provenanceFormInfo.evidence.id.includes(':') &&
-      !provenanceFormInfo.allECOEvidence
+      !evidenceInfo.evidence.id.includes(':') &&
+      !evidenceInfo.allECOEvidence
     ) {
       errorMessageArray.push(
         'You must provide a prefix and suffix for the ECO term',
       )
     }
-    if (!referenceInfo.prefix || !referenceInfo.id) {
+    if (!evidenceInfo.referenceInfo.prefix || !evidenceInfo.referenceInfo.id) {
       errorMessageArray.push(
         'You must provide atleast one reference prefix and id',
       )
     }
-    if (withArray.length <= 0) {
+    if (evidenceInfo.withArray.length <= 0) {
       errorMessageArray.push(
         'You must provide at least 1 with for the evidence code',
       )
@@ -196,39 +160,30 @@ export default function ProvenanceModal({
   }
 
   const clearForm = () => {
-    setProvenanceFormInfo({
-      field: '',
-      evidence: { label: '', id: '', code: '' },
-      allECOEvidence: false,
-    })
-    setWithInfo(initialPrefixId)
-    setWithArray([])
-    setReferenceInfo(initialPrefixId)
-    setNoteString('')
-    setNoteArray([])
+    setInstanceKey(i => i + 1)
   }
 
   // loads annotation if selected in datagrid and edit clicked
   useEffect(() => {
     if (Object.keys(loadData).length) {
       const infoToLoad = loadData.selectedAnnotation
-      setProvenanceFormInfo({
-        field: infoToLoad.field || '',
+      setField(infoToLoad.field || '')
+      setEvidenceInfo({
         evidence: {
           label: infoToLoad.evidenceCodeLabel || '',
           id: infoToLoad.evidenceCode || '',
           code: '',
         },
         allECOEvidence: false,
+        withArray: infoToLoad.withOrFrom
+          ? JSON.parse(infoToLoad.withOrFrom)
+          : [],
+        referenceInfo: {
+          prefix: infoToLoad.reference?.split(':')[0],
+          id: infoToLoad.reference?.split(':')[1], // probably a better way to do this, fails if they put a colon in prefix name
+        },
+        noteArray: infoToLoad.notes ? JSON.parse(infoToLoad.notes) : [],
       })
-      setWithArray(
-        infoToLoad.withOrFrom ? JSON.parse(infoToLoad.withOrFrom) : [],
-      )
-      setReferenceInfo({
-        prefix: infoToLoad.reference?.split(':')[0],
-        id: infoToLoad.reference?.split(':')[1], // probably a better way to do this, fails if they put a colon in prefix name
-      })
-      setNoteArray(infoToLoad.notes ? JSON.parse(infoToLoad.notes) : [])
     }
   }, [loadData])
 
@@ -263,16 +218,13 @@ export default function ProvenanceModal({
           <TextField
             select
             label="Field"
-            value={provenanceFormInfo.field}
+            value={field}
             onChange={event => {
-              setProvenanceFormInfo({
-                ...provenanceFormInfo,
-                field: event.target.value,
-              })
+              setField(event.target.value)
               clearForm()
             }}
             style={{ width: '30%', marginRight: 10 }}
-            helperText={provenanceFormInfo.field || ''}
+            helperText={field || ''}
           >
             <MenuItem value="" />
             <MenuItem value="type">TYPE</MenuItem>
@@ -284,232 +236,12 @@ export default function ProvenanceModal({
             <MenuItem value="attribute">ATTRIBUTE</MenuItem>
             <MenuItem value="comment">COMMENT</MenuItem>
           </TextField>
-          <Autocomplete
-            id="evidence-autocomplete"
-            freeSolo
-            options={evidenceAutocomplete}
-            value={provenanceFormInfo.evidence.id}
-            getOptionLabel={option => {
-              if (typeof option === 'string') {
-                return option
-              }
-              if (option.label) {
-                return !option.code
-                  ? `${option.label[0]} (${option.id})`
-                  : `${option.code} (${option.id}): ${option.label[0]}`
-              }
-              return option.id
-            }}
-            onChange={(event, value, reason) => {
-              if (reason === 'clear') {
-                setProvenanceFormInfo({
-                  ...provenanceFormInfo,
-                  evidence: {
-                    label: '',
-                    id: '',
-                    code: '',
-                  },
-                })
-              }
-              if (value) {
-                setProvenanceFormInfo({
-                  ...provenanceFormInfo,
-                  evidence: {
-                    label: (value as EvidenceResults).label[0],
-                    id: (value as EvidenceResults).id,
-                    code: (value as EvidenceResults).code || '',
-                  },
-                })
-              }
-            }}
-            selectOnFocus
-            renderInput={params => (
-              <TextField
-                {...params}
-                // value={goFormInfo.evidence.id}
-                onChange={async event => {
-                  setProvenanceFormInfo({
-                    ...provenanceFormInfo,
-                    evidence: {
-                      label: '',
-                      code: '',
-                      id: event.target.value,
-                    },
-                  })
-
-                  if (provenanceFormInfo.allECOEvidence) {
-                    const result = await fetchEvidenceAutocompleteResults(
-                      event.target.value,
-                    )
-                    setEvidenceAutocomplete(result.docs)
-                  } else {
-                    setEvidenceAutocomplete(
-                      GOEvidenceCodes.filter(
-                        info =>
-                          info.code.includes(event.target.value) ||
-                          info.label[0].includes(event.target.value),
-                      ),
-                    )
-                  }
-                }}
-                label="Evidence"
-                autoComplete="off"
-                style={{ width: '70%' }}
-                helperText={
-                  <>
-                    {provenanceFormInfo.evidence.label &&
-                      provenanceFormInfo.evidence.id && (
-                        <a
-                          href={`https://evidenceontology.org/term/${provenanceFormInfo.evidence.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {provenanceFormInfo.evidence.label} (
-                          {provenanceFormInfo.evidence.id})
-                        </a>
-                      )}
-                    {provenanceFormInfo.evidence.label &&
-                      provenanceFormInfo.evidence.id && <br />}
-                    <a
-                      href="http://geneontology.org/docs/guide-go-evidence-codes/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Evidence Code Info
-                    </a>
-                  </>
-                }
-              />
-            )}
+          <EvidenceFormModal
+            key={instanceKey}
+            updateParentEvidence={update}
+            disableCondition={false}
+            loadData={loadData}
           />
-
-          <input
-            id="allECOEvidence"
-            type="checkbox"
-            checked={provenanceFormInfo.allECOEvidence}
-            onChange={event => {
-              setProvenanceFormInfo({
-                ...provenanceFormInfo,
-                allECOEvidence: event.target.checked,
-              })
-            }}
-            style={{ marginTop: 40, marginRight: 10 }}
-          />
-          <label htmlFor="allECOEvidence">All ECO Evidence</label>
-          <br />
-          <div className={classes.prefixIdField}>
-            <TextField
-              value={withInfo.prefix}
-              onChange={event => {
-                setWithInfo({ ...withInfo, prefix: event.target.value })
-              }}
-              label="With"
-              autoComplete="off"
-              placeholder="Prefix"
-            />
-            <TextField
-              value={withInfo.id}
-              onChange={event => {
-                setWithInfo({ ...withInfo, id: event.target.value })
-              }}
-              label="With Id"
-              autoComplete="off"
-              placeholder="id"
-            />
-            <Button
-              color="primary"
-              variant="contained"
-              style={{ marginTop: 20 }}
-              onClick={() => {
-                if (withInfo !== initialPrefixId) {
-                  const prefixIdString = `${withInfo.prefix}:${withInfo.id}`
-                  withArray.length > 0
-                    ? setWithArray([...withArray, prefixIdString])
-                    : setWithArray([prefixIdString])
-                  setWithInfo(initialPrefixId)
-                }
-              }}
-            >
-              Add
-            </Button>
-            {withArray.map((value: string) => {
-              return (
-                <div key={value}>
-                  {value}
-                  <IconButton
-                    aria-label="close"
-                    onClick={() => {
-                      setWithArray(
-                        withArray.filter(withString => withString !== value),
-                      )
-                    }}
-                  >
-                    <CloseIcon />
-                  </IconButton>
-                </div>
-              )
-            })}
-          </div>
-          <div className={classes.prefixIdField}>
-            <TextField
-              value={referenceInfo.prefix}
-              onChange={event => {
-                setReferenceInfo({
-                  ...referenceInfo,
-                  prefix: event.target.value,
-                })
-              }}
-              label="Reference"
-              autoComplete="off"
-              placeholder="Prefix"
-            />
-            <TextField
-              value={referenceInfo.id}
-              onChange={event => {
-                setReferenceInfo({ ...referenceInfo, id: event.target.value })
-              }}
-              label="Reference Id"
-              autoComplete="off"
-              placeholder="id"
-            />
-          </div>
-          <TextField
-            value={noteString}
-            onChange={event => {
-              setNoteString(event.target.value)
-            }}
-            label="Note"
-            autoComplete="off"
-          />
-          <Button
-            color="primary"
-            variant="contained"
-            style={{ marginTop: 20 }}
-            onClick={() => {
-              if (noteString !== '') {
-                noteArray.length > 0
-                  ? setNoteArray([...noteArray, noteString])
-                  : setNoteArray([noteString])
-              }
-            }}
-          >
-            Add
-          </Button>
-          {noteArray.map(value => {
-            return (
-              <div key={value}>
-                {value}
-                <IconButton
-                  aria-label="close"
-                  onClick={() => {
-                    setNoteArray(noteArray.filter(note => note !== value))
-                  }}
-                >
-                  <CloseIcon />
-                </IconButton>
-              </div>
-            )
-          })}
         </form>
       </div>
       <div className={classes.buttons}>
@@ -530,15 +262,15 @@ export default function ProvenanceModal({
                   `${model.apolloId}-apolloPassword`,
                 ),
                 feature: clickedFeature.uniquename,
-                field: provenanceFormInfo.field,
-                evidenceCode: provenanceFormInfo.evidence.id,
-                evidenceCodeLabel: provenanceFormInfo.evidence.code
-                  ? `${provenanceFormInfo.evidence.code} (${provenanceFormInfo.evidence.id}): ${provenanceFormInfo.evidence.label}`
-                  : `${provenanceFormInfo.evidence.label} (${provenanceFormInfo.evidence.id})`,
-                withOrFrom: withArray,
-                reference: `${referenceInfo.prefix}:${referenceInfo.id}`,
+                field: field,
+                evidenceCode: evidenceInfo.evidence.id,
+                evidenceCodeLabel: evidenceInfo.evidence.code
+                  ? `${evidenceInfo.evidence.code} (${evidenceInfo.evidence.id}): ${evidenceInfo.evidence.label}`
+                  : `${evidenceInfo.evidence.label} (${evidenceInfo.evidence.id})`,
+                withOrFrom: evidenceInfo.withArray,
+                reference: `${evidenceInfo.referenceInfo.prefix}:${evidenceInfo.referenceInfo.id}`,
                 id: loadData.selectedAnnotation?.id || null,
-                notes: noteArray,
+                notes: evidenceInfo.noteArray,
               }
 
               const endpointUrl = Object.keys(loadData).length
@@ -572,14 +304,14 @@ export default function ProvenanceModal({
           onClick={() => {
             const provenanceString = {
               feature: clickedFeature.uniquename,
-              field: provenanceFormInfo.field,
-              evidenceCode: provenanceFormInfo.evidence.id,
-              evidenceCodeLabel: provenanceFormInfo.evidence.code
-                ? `${provenanceFormInfo.evidence.code} (${provenanceFormInfo.evidence.id}): ${provenanceFormInfo.evidence.label}`
-                : `${provenanceFormInfo.evidence.label} (${provenanceFormInfo.evidence.id})`,
-              withOrFrom: withArray,
-              reference: `${referenceInfo.prefix}:${referenceInfo.id}`,
-              notes: noteArray,
+              field: field,
+              evidenceCode: evidenceInfo.evidence.id,
+              evidenceCodeLabel: evidenceInfo.evidence.code
+                ? `${evidenceInfo.evidence.code} (${evidenceInfo.evidence.id}): ${evidenceInfo.evidence.label}`
+                : `${evidenceInfo.evidence.label} (${evidenceInfo.evidence.id})`,
+              withOrFrom: evidenceInfo.withArray,
+              reference: `${evidenceInfo.referenceInfo.prefix}:${evidenceInfo.referenceInfo.id}`,
+              notes: evidenceInfo.noteArray,
             }
             copy(JSON.stringify(provenanceString, null, 4))
           }}

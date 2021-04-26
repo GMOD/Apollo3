@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -15,16 +15,12 @@ import { Autocomplete } from '@material-ui/lab'
 import WarningIcon from '@material-ui/icons/Warning'
 import CloseIcon from '@material-ui/icons/Close'
 import { ApolloFeature } from '../ApolloFeatureDetail'
-import GOEvidenceCodes from './GOEvidenceCodes'
 import copy from 'copy-to-clipboard'
+import EvidenceFormModal from './EvidenceFormModal'
 
 interface GoResults {
   id: string
   label: string[]
-}
-
-interface EvidenceResults extends GoResults {
-  code: string
 }
 
 const useStyles = makeStyles(theme => ({
@@ -62,18 +58,13 @@ const useStyles = makeStyles(theme => ({
 // geneonotogy endpoing for GO Term and evidence autocompletes
 // may move to a utils file if used for more than one folder
 const fetchGOAutocompleteResults = async (
-  prefix: string,
   currentText: string,
-  aspect?: string,
+  aspect: string,
 ) => {
   const data = {
     rows: 40,
-    prefix,
-  }
-
-  if (prefix === 'GO') {
-    // @ts-ignore
-    data.category = aspect
+    prefix: 'GO',
+    category: aspect,
   }
 
   let params = Object.entries(data)
@@ -164,20 +155,17 @@ export default function GoModal({
     goTerm: { label: '', id: '' },
     relationship: '',
     not: false,
-    evidence: { label: '', id: '', code: '' },
-    allECOEvidence: false,
   })
   const [goTermAutocomplete, setGoTermAutocomplete] = useState<GoResults[]>([])
-  const [evidenceAutocomplete, setEvidenceAutocomplete] = useState<
-    EvidenceResults[]
-  >([])
-  const initialPrefixId = { prefix: '', id: '' }
-  const [withInfo, setWithInfo] = useState(initialPrefixId)
-  const [withArray, setWithArray] = useState<string[]>([])
-  const [referenceInfo, setReferenceInfo] = useState({ prefix: '', id: '' })
-  const [noteString, setNoteString] = useState('')
-  const [noteArray, setNoteArray] = useState<string[]>([])
-
+  const [evidenceInfo, setEvidenceInfo] = useState({
+    evidence: { label: '', id: '', code: '' },
+    allECOEvidence: false,
+    withArray: [] as string[],
+    referenceInfo: { prefix: '', id: '' },
+    noteArray: [] as string[],
+  })
+  const update = useCallback(content => setEvidenceInfo(content), [])
+  const [instanceKey, setInstanceKey] = useState(0) // using to reset evidence form modal, ask if there might be a better way
   const [openErrorModal, setOpenErrorModal] = useState(false)
 
   const relationValueText = [
@@ -226,11 +214,11 @@ export default function GoModal({
       )
     }
 
-    if (!goFormInfo.evidence) {
+    if (!evidenceInfo.evidence) {
       errorMessageArray.push('You must provide an ECO term')
     } else if (
-      !goFormInfo.evidence.id.includes(':') &&
-      !goFormInfo.allECOEvidence
+      !evidenceInfo.evidence.id.includes(':') &&
+      !evidenceInfo.allECOEvidence
     ) {
       errorMessageArray.push(
         'You must provide a prefix and suffix for the ECO term',
@@ -240,12 +228,12 @@ export default function GoModal({
     if (!goFormInfo.relationship) {
       errorMessageArray.push('You must provide a Gene Relationship')
     }
-    if (!referenceInfo.prefix || !referenceInfo.id) {
+    if (!evidenceInfo.referenceInfo.prefix || !evidenceInfo.referenceInfo.id) {
       errorMessageArray.push(
         'You must provide atleast one reference prefix and id',
       )
     }
-    if (withArray.length <= 0) {
+    if (evidenceInfo.withArray.length <= 0) {
       errorMessageArray.push(
         'You must provide at least 1 with for the evidence code',
       )
@@ -258,16 +246,9 @@ export default function GoModal({
       goTerm: { label: '', id: '' },
       relationship: '',
       not: false,
-      evidence: { label: '', id: '', code: '' },
-      allECOEvidence: false,
     })
     setGoTermAutocomplete([])
-    setEvidenceAutocomplete([])
-    setWithInfo(initialPrefixId)
-    setWithArray([])
-    setReferenceInfo(initialPrefixId)
-    setNoteString('')
-    setNoteArray([])
+    setInstanceKey(i => i + 1)
   }
 
   // loads annotation if selected in datagrid and edit clicked
@@ -293,21 +274,23 @@ export default function GoModal({
         },
         relationship: infoToLoad.geneRelationship || '',
         not: infoToLoad.negate,
+      })
+      setEvidenceInfo({
         evidence: {
           label: infoToLoad.evidenceCodeLabel || '',
           id: infoToLoad.evidenceCode || '',
           code: '',
         },
         allECOEvidence: false,
+        withArray: infoToLoad.withOrFrom
+          ? JSON.parse(infoToLoad.withOrFrom)
+          : [],
+        referenceInfo: {
+          prefix: infoToLoad.reference?.split(':')[0],
+          id: infoToLoad.reference?.split(':')[1], // probably a better way to do this, fails if they put a colon in prefix name
+        },
+        noteArray: infoToLoad.notes ? JSON.parse(infoToLoad.notes) : [],
       })
-      setWithArray(
-        infoToLoad.withOrFrom ? JSON.parse(infoToLoad.withOrFrom) : [],
-      )
-      setReferenceInfo({
-        prefix: infoToLoad.reference?.split(':')[0],
-        id: infoToLoad.reference?.split(':')[1], // probably a better way to do this, fails if they put a colon in prefix name
-      })
-      setNoteArray(infoToLoad.notes ? JSON.parse(infoToLoad.notes) : [])
     }
   }, [loadData])
 
@@ -416,7 +399,6 @@ export default function GoModal({
                   })
 
                   const result = await fetchGOAutocompleteResults(
-                    'GO',
                     event.target.value,
                     aspect,
                   )
@@ -488,239 +470,12 @@ export default function GoModal({
             style={{ marginTop: 40 }}
           />
           <label htmlFor="not">Not</label>
-          <Autocomplete
-            id="evidence-autocomplete"
-            freeSolo
-            options={evidenceAutocomplete}
-            value={goFormInfo.evidence.id}
-            getOptionLabel={option => {
-              if (typeof option === 'string') {
-                return option
-              }
-              if (option.label) {
-                return !option.code
-                  ? `${option.label[0]} (${option.id})`
-                  : `${option.code} (${option.id}): ${option.label[0]}`
-              }
-              return option.id
-            }}
-            disabled={!aspect}
-            onChange={(event, value, reason) => {
-              if (reason === 'clear') {
-                setGoFormInfo({
-                  ...goFormInfo,
-                  evidence: {
-                    label: '',
-                    id: '',
-                    code: '',
-                  },
-                })
-              }
-              if (value) {
-                setGoFormInfo({
-                  ...goFormInfo,
-                  evidence: {
-                    label: (value as EvidenceResults).label[0],
-                    id: (value as EvidenceResults).id,
-                    code: (value as EvidenceResults).code || '',
-                  },
-                })
-              }
-            }}
-            selectOnFocus
-            renderInput={params => (
-              <TextField
-                {...params}
-                // value={goFormInfo.evidence.id}
-                onChange={async event => {
-                  setGoFormInfo({
-                    ...goFormInfo,
-                    evidence: {
-                      label: '',
-                      code: '',
-                      id: event.target.value,
-                    },
-                  })
-
-                  if (goFormInfo.allECOEvidence) {
-                    const result = await fetchGOAutocompleteResults(
-                      'ECO',
-                      event.target.value,
-                    )
-                    setEvidenceAutocomplete(result.docs)
-                  } else {
-                    setEvidenceAutocomplete(
-                      GOEvidenceCodes.filter(
-                        info =>
-                          info.code.includes(event.target.value) ||
-                          info.label[0].includes(event.target.value),
-                      ),
-                    )
-                  }
-                }}
-                label="Evidence"
-                autoComplete="off"
-                disabled={!aspect}
-                style={{ width: '70%' }}
-                helperText={
-                  <>
-                    {goFormInfo.evidence.label && goFormInfo.evidence.id && (
-                      <a
-                        href={`https://evidenceontology.org/term/${goFormInfo.evidence.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {goFormInfo.evidence.label} ({goFormInfo.evidence.id})
-                      </a>
-                    )}
-                    {goFormInfo.evidence.label && goFormInfo.evidence.id && (
-                      <br />
-                    )}
-                    <a
-                      href="http://geneontology.org/docs/guide-go-evidence-codes/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Evidence Code Info
-                    </a>
-                  </>
-                }
-              />
-            )}
+          <EvidenceFormModal
+            key={instanceKey}
+            updateParentEvidence={update}
+            disableCondition={!aspect}
+            loadData={loadData}
           />
-
-          <input
-            id="allECOEvidence"
-            type="checkbox"
-            checked={goFormInfo.allECOEvidence}
-            onChange={event => {
-              setGoFormInfo({
-                ...goFormInfo,
-                allECOEvidence: event.target.checked,
-              })
-            }}
-            style={{ marginTop: 40, marginRight: 10 }}
-          />
-          <label htmlFor="allECOEvidence">All ECO Evidence</label>
-          <br />
-          <div className={classes.prefixIdField}>
-            <TextField
-              value={withInfo.prefix}
-              onChange={event => {
-                setWithInfo({ ...withInfo, prefix: event.target.value })
-              }}
-              label="With"
-              autoComplete="off"
-              disabled={!aspect}
-              placeholder="Prefix"
-            />
-            <TextField
-              value={withInfo.id}
-              onChange={event => {
-                setWithInfo({ ...withInfo, id: event.target.value })
-              }}
-              label="With Id"
-              autoComplete="off"
-              disabled={!aspect}
-              placeholder="id"
-            />
-            <Button
-              color="primary"
-              variant="contained"
-              style={{ marginTop: 20 }}
-              onClick={() => {
-                if (withInfo !== initialPrefixId) {
-                  const prefixIdString = `${withInfo.prefix}:${withInfo.id}`
-                  withArray.length > 0
-                    ? setWithArray([...withArray, prefixIdString])
-                    : setWithArray([prefixIdString])
-                  setWithInfo(initialPrefixId)
-                }
-              }}
-            >
-              Add
-            </Button>
-            {withArray.map((value: string) => {
-              return (
-                <div key={value}>
-                  {value}
-                  <IconButton
-                    aria-label="close"
-                    onClick={() => {
-                      setWithArray(
-                        withArray.filter(withString => withString !== value),
-                      )
-                    }}
-                  >
-                    <CloseIcon />
-                  </IconButton>
-                </div>
-              )
-            })}
-          </div>
-          <div className={classes.prefixIdField}>
-            <TextField
-              value={referenceInfo.prefix}
-              onChange={event => {
-                setReferenceInfo({
-                  ...referenceInfo,
-                  prefix: event.target.value,
-                })
-              }}
-              label="Reference"
-              autoComplete="off"
-              disabled={!aspect}
-              placeholder="Prefix"
-            />
-            <TextField
-              value={referenceInfo.id}
-              onChange={event => {
-                setReferenceInfo({ ...referenceInfo, id: event.target.value })
-              }}
-              label="Reference Id"
-              autoComplete="off"
-              disabled={!aspect}
-              placeholder="id"
-            />
-          </div>
-          <TextField
-            value={noteString}
-            onChange={event => {
-              setNoteString(event.target.value)
-            }}
-            label="Note"
-            autoComplete="off"
-            disabled={!aspect}
-          />
-          <Button
-            color="primary"
-            variant="contained"
-            style={{ marginTop: 20 }}
-            onClick={() => {
-              if (noteString !== '') {
-                noteArray.length > 0
-                  ? setNoteArray([...noteArray, noteString])
-                  : setNoteArray([noteString])
-              }
-            }}
-          >
-            Add
-          </Button>
-          {noteArray.map(value => {
-            return (
-              <div key={value}>
-                {value}
-                <IconButton
-                  aria-label="close"
-                  onClick={() => {
-                    setNoteArray(noteArray.filter(note => note !== value))
-                  }}
-                >
-                  <CloseIcon />
-                </IconButton>
-              </div>
-            )
-          })}
         </form>
       </div>
       <div className={classes.buttons}>
@@ -748,15 +503,15 @@ export default function GoModal({
                 goTerm: goFormInfo.goTerm.id,
                 goTermLabel: goFormInfo.goTerm.label,
                 geneRelationship: goFormInfo.relationship,
-                evidenceCode: goFormInfo.evidence.id,
-                evidenceCodeLabel: goFormInfo.evidence.code
-                  ? `${goFormInfo.evidence.code} (${goFormInfo.evidence.id}): ${goFormInfo.evidence.label}`
-                  : `${goFormInfo.evidence.label} (${goFormInfo.evidence.id})`,
+                evidenceCode: evidenceInfo.evidence.id,
+                evidenceCodeLabel: evidenceInfo.evidence.code
+                  ? `${evidenceInfo.evidence.code} (${evidenceInfo.evidence.id}): ${evidenceInfo.evidence.label}`
+                  : `${evidenceInfo.evidence.label} (${evidenceInfo.evidence.id})`,
                 negate: goFormInfo.not,
-                withOrFrom: withArray,
-                reference: `${referenceInfo.prefix}:${referenceInfo.id}`,
+                withOrFrom: evidenceInfo.withArray,
+                reference: `${evidenceInfo.referenceInfo.prefix}:${evidenceInfo.referenceInfo.id}`,
                 id: loadData.selectedAnnotation?.id || null,
-                notes: noteArray,
+                notes: evidenceInfo.noteArray,
               }
 
               const endpointUrl = Object.keys(loadData).length
@@ -790,22 +545,22 @@ export default function GoModal({
           onClick={() => {
             const goString = {
               feature: clickedFeature.uniquename,
-              aspect:
-                aspect
-                  .match(/\b(\w)/g)
-                  ?.join('')
-                  .toUpperCase() || '', // gets acronym of aspect, ex. biological process => BP
+              aspect: aspect
+                .match(/\b(\w)/g)
+                ?.join('')
+                .toUpperCase(), // gets acronym of aspect, ex. biological process => BP
               goTerm: goFormInfo.goTerm.id,
               goTermLabel: goFormInfo.goTerm.label,
               geneRelationship: goFormInfo.relationship,
-              evidenceCode: goFormInfo.evidence.id,
-              evidenceCodeLabel: goFormInfo.evidence.code
-                ? `${goFormInfo.evidence.code} (${goFormInfo.evidence.id}): ${goFormInfo.evidence.label}`
-                : `${goFormInfo.evidence.label} (${goFormInfo.evidence.id})`,
+              evidenceCode: evidenceInfo.evidence.id,
+              evidenceCodeLabel: evidenceInfo.evidence.code
+                ? `${evidenceInfo.evidence.code} (${evidenceInfo.evidence.id}): ${evidenceInfo.evidence.label}`
+                : `${evidenceInfo.evidence.label} (${evidenceInfo.evidence.id})`,
               negate: goFormInfo.not,
-              withOrFrom: withArray,
-              reference: `${referenceInfo.prefix}:${referenceInfo.id}`,
-              notes: noteArray,
+              withOrFrom: evidenceInfo.withArray,
+              reference: `${evidenceInfo.referenceInfo.prefix}:${evidenceInfo.referenceInfo.id}`,
+              id: loadData.selectedAnnotation?.id || null,
+              notes: evidenceInfo.noteArray,
             }
             copy(JSON.stringify(goString, null, 4))
           }}
