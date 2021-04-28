@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -55,7 +55,6 @@ const useStyles = makeStyles(theme => ({
 
 // search returns a login form right now
 const searchGeneProduct = async (currentText: string, model: any) => {
-  // do this but post request
   const data = {
     username: sessionStorage.getItem(`${model.apolloId}-apolloUsername`) || '',
     password: sessionStorage.getItem(`${model.apolloId}-apolloPassword`) || '',
@@ -131,6 +130,7 @@ function GeneProductModalError({
     </Dialog>
   )
 }
+
 export default function GeneProductModal({
   handleClose,
   model,
@@ -159,7 +159,6 @@ export default function GeneProductModal({
     referenceInfo: { prefix: '', id: '' },
     noteArray: [] as string[],
   })
-  const update = useCallback(content => setEvidenceInfo(content), [])
 
   const [openErrorModal, setOpenErrorModal] = useState(false)
 
@@ -305,7 +304,8 @@ export default function GeneProductModal({
           />
           <br />
           <EvidenceFormModal
-            updateParentEvidence={update}
+            evidenceInfo={evidenceInfo}
+            setEvidenceInfo={setEvidenceInfo}
             disableCondition={false}
             loadData={loadData}
           />

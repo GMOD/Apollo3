@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -125,8 +125,6 @@ export default function ProvenanceModal({
     referenceInfo: { prefix: '', id: '' },
     noteArray: [] as string[],
   })
-  const update = useCallback(content => setEvidenceInfo(content), [])
-  const [instanceKey, setInstanceKey] = useState(0) // using to reset evidence form modal, ask if there might be a better way
 
   const [openErrorModal, setOpenErrorModal] = useState(false)
 
@@ -160,7 +158,13 @@ export default function ProvenanceModal({
   }
 
   const clearForm = () => {
-    setInstanceKey(i => i + 1)
+    setEvidenceInfo({
+      evidence: { label: '', id: '', code: '' },
+      allECOEvidence: false,
+      withArray: [],
+      referenceInfo: { prefix: '', id: '' },
+      noteArray: [],
+    })
   }
 
   // loads annotation if selected in datagrid and edit clicked
@@ -237,8 +241,8 @@ export default function ProvenanceModal({
             <MenuItem value="comment">COMMENT</MenuItem>
           </TextField>
           <EvidenceFormModal
-            key={instanceKey}
-            updateParentEvidence={update}
+            evidenceInfo={evidenceInfo}
+            setEvidenceInfo={setEvidenceInfo}
             disableCondition={false}
             loadData={loadData}
           />

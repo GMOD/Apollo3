@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -136,6 +136,7 @@ function GoModalError({
     </Dialog>
   )
 }
+
 export default function GoModal({
   handleClose,
   model,
@@ -164,8 +165,6 @@ export default function GoModal({
     referenceInfo: { prefix: '', id: '' },
     noteArray: [] as string[],
   })
-  const update = useCallback(content => setEvidenceInfo(content), [])
-  const [instanceKey, setInstanceKey] = useState(0) // using to reset evidence form modal, ask if there might be a better way
   const [openErrorModal, setOpenErrorModal] = useState(false)
 
   const relationValueText = [
@@ -248,7 +247,13 @@ export default function GoModal({
       not: false,
     })
     setGoTermAutocomplete([])
-    setInstanceKey(i => i + 1)
+    setEvidenceInfo({
+      evidence: { label: '', id: '', code: '' },
+      allECOEvidence: false,
+      withArray: [],
+      referenceInfo: { prefix: '', id: '' },
+      noteArray: [],
+    })
   }
 
   // loads annotation if selected in datagrid and edit clicked
@@ -471,8 +476,8 @@ export default function GoModal({
           />
           <label htmlFor="not">Not</label>
           <EvidenceFormModal
-            key={instanceKey}
-            updateParentEvidence={update}
+            evidenceInfo={evidenceInfo}
+            setEvidenceInfo={setEvidenceInfo}
             disableCondition={!aspect}
             loadData={loadData}
           />

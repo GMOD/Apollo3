@@ -45,11 +45,13 @@ const fetchEvidenceAutocompleteResults = async (currentText: string) => {
 }
 
 export default function EvidenceModal({
-  updateParentEvidence,
+  evidenceInfo,
+  setEvidenceInfo,
   disableCondition = false,
   loadData,
 }: {
-  updateParentEvidence: (content: any) => void
+  evidenceInfo: any
+  setEvidenceInfo: (data: any) => void
   disableCondition: boolean
   loadData: any
 }) {
@@ -58,13 +60,6 @@ export default function EvidenceModal({
   >([])
   const classes = useStyles()
   const initialPrefixId = { prefix: '', id: '' }
-  const [evidenceInfo, setEvidenceInfo] = useState({
-    evidence: { label: '', id: '', code: '' },
-    allECOEvidence: false,
-    withArray: [] as string[],
-    referenceInfo: { prefix: '', id: '' },
-    noteArray: [] as string[],
-  })
   const [withInfo, setWithInfo] = useState(initialPrefixId)
   const [noteString, setNoteString] = useState('')
 
@@ -89,11 +84,11 @@ export default function EvidenceModal({
         noteArray: infoToLoad.notes ? JSON.parse(infoToLoad.notes) : [],
       })
     }
-  }, [loadData])
+  }, [loadData, setEvidenceInfo])
 
   useEffect(() => {
-    updateParentEvidence(evidenceInfo)
-  }, [evidenceInfo, updateParentEvidence])
+    setEvidenceInfo(evidenceInfo)
+  }, [evidenceInfo, setEvidenceInfo])
   return (
     <div>
       <Autocomplete
@@ -139,7 +134,6 @@ export default function EvidenceModal({
         renderInput={params => (
           <TextField
             {...params}
-            // value={goFormInfo.evidence.id}
             onChange={async event => {
               setEvidenceInfo({
                 ...evidenceInfo,
@@ -258,7 +252,7 @@ export default function EvidenceModal({
                   setEvidenceInfo({
                     ...evidenceInfo,
                     withArray: evidenceInfo.withArray.filter(
-                      withString => withString !== value,
+                      (withString: string) => withString !== value,
                     ),
                   })
                 }}
@@ -327,7 +321,7 @@ export default function EvidenceModal({
       >
         Add
       </Button>
-      {evidenceInfo.noteArray.map(value => {
+      {evidenceInfo.noteArray.map((value: string) => {
         return (
           <div key={value}>
             {value}
@@ -337,7 +331,7 @@ export default function EvidenceModal({
                 setEvidenceInfo({
                   ...evidenceInfo,
                   noteArray: evidenceInfo.noteArray.filter(
-                    note => note !== value,
+                    (note: string) => note !== value,
                   ),
                 })
               }}

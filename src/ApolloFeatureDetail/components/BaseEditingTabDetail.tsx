@@ -3,7 +3,12 @@ import { observer } from 'mobx-react'
 import React, { useState, useEffect } from 'react'
 import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
 import GoModal from './GoModal'
-import { DataGrid, GridSortDirection } from '@material-ui/data-grid'
+import {
+  DataGrid,
+  GridRowData,
+  GridColDef,
+  GridSortDirection,
+} from '@material-ui/data-grid'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import TextImportModal from './TextImportModal'
 import GeneProductModal from './GeneProductModal'
@@ -19,9 +24,6 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-// NOTE: this is a more generic form of tab detail
-// instead of having go editing, gene product editing, etc..
-// not in use right now, here as a concept
 const BaseEditingTabDetail = ({
   clickedFeature,
   props,
@@ -33,6 +35,10 @@ const BaseEditingTabDetail = ({
 }) => {
   const { model } = props
   const classes = useStyles()
+
+  const [loading, setLoading] = useState(false)
+  const [rows, setRows] = useState<GridRowData[]>([])
+  const [columns, setColumns] = useState<GridColDef[]>([])
   const [annotations, setAnnotations] = useState([])
   const [dialogInfo, setDialogInfo] = useState({ open: false, data: {} })
   const [openConfirmDeleteModal, setOpenConfirmDeleteModal] = useState(false)
@@ -55,21 +61,6 @@ const BaseEditingTabDetail = ({
   const findModal = () => {
     switch (endpoint) {
       case 'goAnnotation': {
-        setHelperText(`Format is:
-        {
-         "feature": "",
-         "aspect": "",
-         "goTerm": "",
-         "goTermLabel": "",
-         "geneRelationship": "",
-         "evidenceCode": "",
-         "evidenceCodeLabel": "",
-         "negate": false,
-         "withOrFrom": [],
-         "reference": "",
-         "notes": []
-     }`)
-        setUniqueIdentifier((selectedAnnotation as Annotation).goTerm)
         return (
           <GoModal
             handleClose={handleClose}
@@ -81,18 +72,6 @@ const BaseEditingTabDetail = ({
       }
 
       case 'geneProduct': {
-        setHelperText(`Format is:
-        {
-            "feature": "",
-            "productName": "",
-            "alternate": false,
-            "evidenceCode": "",
-            "evidenceCodeLabel": "",
-            "withOrFrom": [],
-            "reference": "",
-            "notes": []
-        }`)
-        setUniqueIdentifier((selectedAnnotation as Annotation).productName)
         return (
           <GeneProductModal
             handleClose={handleClose}
@@ -104,17 +83,6 @@ const BaseEditingTabDetail = ({
       }
 
       case 'provenance': {
-        setUniqueIdentifier((selectedAnnotation as Annotation).productName)
-        setHelperText(`Format is:
-        {
-            "feature": "",
-            "field": "",
-            "evidenceCode": "",
-            "evidenceCodeLabel": "",
-            "withOrFrom": [],
-            "reference": "",
-            "notes": []
-        }`)
         return (
           <ProvenanceModal
             handleClose={handleClose}
@@ -152,6 +120,8 @@ const BaseEditingTabDetail = ({
   }, [clickedFeature.uniquename, model.apolloUrl, model.apolloId, endpoint])
 
   useEffect(() => {
+    // set the column and row here too
+    setLoading(true)
     switch (endpoint) {
       case 'goAnnotation': {
         setHelperText(`Format is:
@@ -169,6 +139,22 @@ const BaseEditingTabDetail = ({
          "notes": []
      }`)
         setUniqueIdentifier((selectedAnnotation as Annotation).goTerm)
+        // note, rows still show undefined for a slight second
+        setColumns([
+          { field: 'name', headerName: 'Name', flex: 1.5 },
+          { field: 'evidence', headerName: 'Evidence', flex: 1 },
+          { field: 'basedOn', headerName: 'Based On', flex: 1.5 },
+          { field: 'reference', headerName: 'Reference', flex: 1 },
+        ])
+        setRows(
+          annotations.map((annotation: Annotation, index: number) => ({
+            id: index,
+            name: `${annotation.goTermLabel} (${annotation.goTerm})`,
+            evidence: annotation.evidenceCode,
+            basedOn: JSON.parse(annotation.withOrFrom).join('\r\n'),
+            reference: annotation.reference,
+          })),
+        )
         break
       }
 
@@ -185,6 +171,21 @@ const BaseEditingTabDetail = ({
             "notes": []
         }`)
         setUniqueIdentifier((selectedAnnotation as Annotation).productName)
+        setRows(
+          annotations.map((annotation: Annotation, index: number) => ({
+            id: index,
+            name: `${annotation.productName}`,
+            evidence: annotation.evidenceCode,
+            basedOn: JSON.parse(annotation.withOrFrom).join('\r\n'),
+            reference: annotation.reference,
+          })),
+        )
+        setColumns([
+          { field: 'name', headerName: 'Name', flex: 1.5 },
+          { field: 'evidence', headerName: 'Evidence', flex: 1 },
+          { field: 'basedOn', headerName: 'Based On', flex: 1.5 },
+          { field: 'reference', headerName: 'Reference', flex: 1 },
+        ])
         break
       }
 
@@ -200,24 +201,24 @@ const BaseEditingTabDetail = ({
             "reference": "",
             "notes": []
         }`)
+        setColumns([
+          { field: 'field', headerName: 'Field', flex: 1 },
+          { field: 'evidence', headerName: 'Evidence', flex: 1 },
+          { field: 'basedOn', headerName: 'Based On', flex: 1.5 },
+          { field: 'reference', headerName: 'Reference', flex: 1 },
+        ])
+        setRows(
+          annotations.map((annotation: Annotation, index: number) => ({
+            id: index,
+            field: `${annotation.field}`,
+            evidence: annotation.evidenceCode,
+            basedOn: JSON.parse(annotation.withOrFrom).join('\r\n'),
+            reference: annotation.reference,
+          })),
+        )
       }
     }
-  }, [endpoint, selectedAnnotation])
-
-  const columns = [
-    { field: 'name', headerName: 'Name' },
-    { field: 'evidence', headerName: 'Evidence' },
-    { field: 'basedOn', headerName: 'Based On' },
-    { field: 'reference', headerName: 'Reference' },
-  ]
-
-  const rows = annotations.map((annotation: Annotation, index: number) => ({
-    id: index,
-    name: `${name}`,
-    evidence: annotation.evidenceCode,
-    basedOn: JSON.parse(annotation.withOrFrom).join('\r\n'),
-    reference: annotation.reference,
-  }))
+  }, [endpoint, selectedAnnotation, annotations, loading])
 
   return (
     <>
@@ -298,16 +299,13 @@ const BaseEditingTabDetail = ({
                 ),
                 ...selectedAnnotation,
               }
-              const response = await fetch(
-                `${model.apolloUrl}/${endpoint}/delete`,
-                {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify(data),
+              await fetch(`${model.apolloUrl}/${endpoint}/delete`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
                 },
-              )
+                body: JSON.stringify(data),
+              })
             }}
             objToDeleteName={`${name}: ${uniqueIdentifier}`}
           />
