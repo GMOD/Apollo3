@@ -19,13 +19,12 @@ import { BaseCard } from '@jbrowse/core/BaseFeatureWidget/BaseFeatureDetail'
 import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
 import DetailsEditingTabDetail from './DetailsEditingTabDetail'
 import CodingEditingTabDetail from './CodingEditingTabDetail'
-// import GoEditingTabDetail from './GoEditingTabDetail'
-// import GeneProductEditingTabDetail from './GeneProductEditingTabDetail'
-// import ProvenanceEditingTabDetail from './ProvenanceEditingTabDetail'
+import GoEditingTabDetail from './GoEditingTabDetail'
+import GeneProductEditingTabDetail from './GeneProductEditingTabDetail'
+import ProvenanceEditingTabDetail from './ProvenanceEditingTabDetail'
 import DbXrefEditingTabDetail from './DbXrefEditingTabDetail'
 import CommentEditingTabDetail from './CommentEditingTabDetail'
 import AttributeEditingTabDetail from './AttributeEditingTabDetail'
-import BaseEditingTabDetail from './BaseEditingTabDetail'
 
 interface CodingRow {
   name: string
@@ -218,51 +217,24 @@ const AnnotationsTabDetail = ({
         // }
         // case 'Allele Info': {
         // }
-        // case 'Go': {
-        //   return (
-        //     <GoEditingTabDetail clickedFeature={clickedFeature} props={props} />
-        //   )
-        // }
-        // case 'Gene Product': {
-        //   return (
-        //     <GeneProductEditingTabDetail
-        //       clickedFeature={clickedFeature}
-        //       props={props}
-        //     />
-        //   )
-        // }
-        // case 'Provenance': {
-        //   return (
-        //     <ProvenanceEditingTabDetail
-        //       clickedFeature={clickedFeature}
-        //       props={props}
-        //     />
-        //   )
-        // }
         case 'Go': {
           return (
-            <BaseEditingTabDetail
-              clickedFeature={clickedFeature}
-              props={props}
-              endpoint="goAnnotation"
-            />
+            <GoEditingTabDetail clickedFeature={clickedFeature} props={props} />
           )
         }
         case 'Gene Product': {
           return (
-            <BaseEditingTabDetail
+            <GeneProductEditingTabDetail
               clickedFeature={clickedFeature}
               props={props}
-              endpoint="geneProduct"
             />
           )
         }
         case 'Provenance': {
           return (
-            <BaseEditingTabDetail
+            <ProvenanceEditingTabDetail
               clickedFeature={clickedFeature}
               props={props}
-              endpoint="provenance"
             />
           )
         }
