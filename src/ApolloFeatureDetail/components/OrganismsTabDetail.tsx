@@ -15,7 +15,7 @@ import {
 import CloseIcon from '@material-ui/icons/Close'
 import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab'
 import { observer } from 'mobx-react'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { BaseCard } from '@jbrowse/core/BaseFeatureWidget/BaseFeatureDetail'
 import { AplInputProps } from '../ApolloFeatureDetail'
 
@@ -103,6 +103,30 @@ const OrganismsTabDetail = ({
   ]
 
   const [idx, setIdx] = useState(0)
+  const [isPublic, setIsPublic] = useState(false)
+  const [isObsolete, setIsObsolete] = useState(false)
+
+  const updateOrganismInfo = async (
+    organism: any,
+    field: string,
+    value: string | number | boolean,
+  ) => {
+    organism[field] = value
+    const data = {
+      username: sessionStorage.getItem(`${model.apolloId}-apolloUsername`),
+      password: sessionStorage.getItem(`${model.apolloId}-apolloPassword`),
+      ...organism,
+    }
+    const endpointUrl = `${model.apolloUrl}/organism/updateOrganismInfo
+    `
+    await fetch(endpointUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+  }
   function handleTabChange(event: any, newIdx: any) {
     setIdx(newIdx)
   }
@@ -115,6 +139,14 @@ const OrganismsTabDetail = ({
       sequences: currentOrganism.sequences,
     }),
   )
+
+  useEffect(() => {
+    if (clickedOrganism) {
+      setIsPublic(clickedOrganism.publicMode)
+      setIsObsolete(clickedOrganism.obsolete)
+    }
+  }, [clickedOrganism])
+
   return (
     <>
       <BaseCard title={'Organism Table'}>
@@ -142,9 +174,21 @@ const OrganismsTabDetail = ({
             className={classes.buttons}
             onClick={() => {
               //open an organism form
+              // just make add form similar to below form
+              // with a save button once changes are finalized, should be simple form
             }}
           >
             Add
+          </Button>
+          <Button
+            color="secondary"
+            variant="contained"
+            className={classes.buttons}
+            onClick={() => {
+              // open upload form
+            }}
+          >
+            Upload
           </Button>
           <Button
             color="secondary"
@@ -217,7 +261,11 @@ const OrganismsTabDetail = ({
                 defaultValue={clickedOrganism.commonName}
                 onBlur={async event => {
                   if (event.target.value !== clickedOrganism.commonName) {
-                    // updateOrganismInfo
+                    updateOrganismInfo(
+                      clickedOrganism,
+                      'commonName',
+                      event.target.value,
+                    )
                   }
                 }}
               />
@@ -228,7 +276,11 @@ const OrganismsTabDetail = ({
                 defaultValue={clickedOrganism.genus}
                 onBlur={async event => {
                   if (event.target.value !== clickedOrganism.genus) {
-                    // updateOrganismInfo
+                    updateOrganismInfo(
+                      clickedOrganism,
+                      'genus',
+                      event.target.value,
+                    )
                   }
                 }}
               />
@@ -239,7 +291,11 @@ const OrganismsTabDetail = ({
                 defaultValue={clickedOrganism.species}
                 onBlur={async event => {
                   if (event.target.value !== clickedOrganism.species) {
-                    // updateOrganismInfo
+                    updateOrganismInfo(
+                      clickedOrganism,
+                      'species',
+                      event.target.value,
+                    )
                   }
                 }}
               />
@@ -251,7 +307,11 @@ const OrganismsTabDetail = ({
                 defaultValue={clickedOrganism.directory}
                 onBlur={async event => {
                   if (event.target.value !== clickedOrganism.directory) {
-                    // updateOrganismInfo
+                    updateOrganismInfo(
+                      clickedOrganism,
+                      'directory',
+                      event.target.value,
+                    )
                   }
                 }}
               />
@@ -262,7 +322,11 @@ const OrganismsTabDetail = ({
                 defaultValue={clickedOrganism.blatdb}
                 onBlur={async event => {
                   if (event.target.value !== clickedOrganism.blatdb) {
-                    // updateOrganismInfo
+                    updateOrganismInfo(
+                      clickedOrganism,
+                      'blatdb',
+                      event.target.value,
+                    )
                   }
                 }}
               />
@@ -276,11 +340,45 @@ const OrganismsTabDetail = ({
                     event.target.value !==
                     clickedOrganism.nonDefaultTranslationTable
                   ) {
-                    // updateOrganismInfo
+                    updateOrganismInfo(
+                      clickedOrganism,
+                      'nonDefaultTranslationTable',
+                      event.target.value,
+                    )
                   }
                 }}
               />
               <br />
+              <input
+                id="Public"
+                type="checkbox"
+                checked={isPublic}
+                onChange={event => {
+                  setIsPublic(event.target.checked)
+                  updateOrganismInfo(
+                    clickedOrganism,
+                    'publicMode',
+                    event.target.checked,
+                  )
+                }}
+                style={{ marginTop: 40 }}
+              />
+              <label htmlFor="not">Public</label>
+              <input
+                id="not"
+                type="checkbox"
+                checked={isObsolete}
+                onChange={event => {
+                  setIsObsolete(event.target.checked)
+                  updateOrganismInfo(
+                    clickedOrganism,
+                    'obsolete',
+                    event.target.checked,
+                  )
+                }}
+                style={{ marginTop: 40 }}
+              />
+              <label htmlFor="not">Obsolete</label>
             </div>
           </Paper>
         </BaseCard>
