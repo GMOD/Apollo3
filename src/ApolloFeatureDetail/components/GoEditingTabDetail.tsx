@@ -2,12 +2,12 @@ import { Button, makeStyles } from '@material-ui/core'
 import { observer } from 'mobx-react'
 import React, { useState, useEffect } from 'react'
 import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
-import GoModal from './GoModal'
+import GOModal from './GOModal'
 import { DataGrid, GridSortDirection } from '@material-ui/data-grid'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import TextImportModal from './TextImportModal'
 
-interface GoAnnotation {
+interface GOAnnotation {
   [key: string]: string
 }
 
@@ -17,7 +17,7 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-const GoEditingTabDetail = ({
+const GOEditingTabDetail = ({
   clickedFeature,
   props,
 }: {
@@ -26,17 +26,17 @@ const GoEditingTabDetail = ({
 }) => {
   const { model } = props
   const classes = useStyles()
-  const [goAnnotations, setGoAnnotations] = useState([])
-  const [goDialogInfo, setGoDialogInfo] = useState({ open: false, data: {} })
+  const [goAnnotations, setGOAnnotations] = useState([])
+  const [goDialogInfo, setGODialogInfo] = useState({ open: false, data: {} })
   const [openConfirmDeleteModal, setOpenConfirmDeleteModal] = useState(false)
   const [openImportModal, setOpenImportModal] = useState(false)
 
   const handleClose = () => {
-    setGoDialogInfo({ open: false, data: {} })
+    setGODialogInfo({ open: false, data: {} })
   }
 
   useEffect(() => {
-    async function fetchGoAnnotations() {
+    async function fetchGOAnnotations() {
       const data = {
         username: sessionStorage.getItem(`${model.apolloId}-apolloUsername`), // get from renderProps later
         password: sessionStorage.getItem(`${model.apolloId}-apolloPassword`),
@@ -51,9 +51,9 @@ const GoEditingTabDetail = ({
         body: JSON.stringify(data),
       })
       const json = await response.json()
-      setGoAnnotations(json.annotations || [])
+      setGOAnnotations(json.annotations || [])
     }
-    fetchGoAnnotations()
+    fetchGOAnnotations()
   }, [clickedFeature.uniquename, model.apolloUrl, model.apolloId])
 
   const [selectedAnnotation, setSelectedAnnotation] = useState({}) // when find data to loop thru use this
@@ -65,7 +65,7 @@ const GoEditingTabDetail = ({
     { field: 'reference', headerName: 'Reference', flex: 1 },
   ]
 
-  const rows = goAnnotations.map((annotation: GoAnnotation, index: number) => ({
+  const rows = goAnnotations.map((annotation: GOAnnotation, index: number) => ({
     id: index,
     name: `${annotation.goTermLabel} (${annotation.goTerm})`,
     evidence: annotation.evidenceCode,
@@ -97,7 +97,7 @@ const GoEditingTabDetail = ({
           color="secondary"
           variant="contained"
           className={classes.buttons}
-          onClick={async () => setGoDialogInfo({ open: true, data: {} })}
+          onClick={async () => setGODialogInfo({ open: true, data: {} })}
         >
           New
         </Button>
@@ -107,7 +107,7 @@ const GoEditingTabDetail = ({
           className={classes.buttons}
           disabled={Object.keys(selectedAnnotation).length === 0}
           onClick={async () => {
-            setGoDialogInfo({
+            setGODialogInfo({
               open: true,
               data: {
                 selectedAnnotation,
@@ -139,7 +139,7 @@ const GoEditingTabDetail = ({
           Import From Text
         </Button>
         {goDialogInfo.open && (
-          <GoModal
+          <GOModal
             handleClose={handleClose}
             model={model}
             clickedFeature={clickedFeature}
@@ -168,7 +168,7 @@ const GoEditingTabDetail = ({
               })
             }}
             objToDeleteName={`GO Annotation: ${
-              (selectedAnnotation as GoAnnotation).goTerm
+              (selectedAnnotation as GOAnnotation).goTerm
             }`}
           />
         )}
@@ -179,7 +179,7 @@ const GoEditingTabDetail = ({
               setOpenImportModal(false)
             }}
             endpointUrl={`${model.apolloUrl}/goAnnotation/save`}
-            from="Go Annotation"
+            from="GO Annotation"
             helpText={`Format is:
              {
               "feature": "",
@@ -201,4 +201,4 @@ const GoEditingTabDetail = ({
   )
 }
 
-export default observer(GoEditingTabDetail)
+export default observer(GOEditingTabDetail)

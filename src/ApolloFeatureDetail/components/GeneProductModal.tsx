@@ -245,7 +245,7 @@ export default function GeneProductModal({
               target="_blank"
               rel="noopener noreferrer"
             >
-              Go Annotation Guidance
+              GO Annotation Guidance
             </a>
           </DialogContentText>
         </DialogContent>

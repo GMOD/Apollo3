@@ -4,13 +4,10 @@ import GOEvidenceCodes from './GOEvidenceCodes'
 import React, { useEffect, useState } from 'react'
 import CloseIcon from '@material-ui/icons/Close'
 
-interface GoResults {
+interface EvidenceResults {
+  code: string
   id: string
   label: string[]
-}
-
-interface EvidenceResults extends GoResults {
-  code: string
 }
 
 const useStyles = makeStyles(theme => ({

@@ -19,7 +19,7 @@ import { BaseCard } from '@jbrowse/core/BaseFeatureWidget/BaseFeatureDetail'
 import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
 import DetailsEditingTabDetail from './DetailsEditingTabDetail'
 import CodingEditingTabDetail from './CodingEditingTabDetail'
-import GoEditingTabDetail from './GoEditingTabDetail'
+import GOEditingTabDetail from './GOEditingTabDetail'
 import GeneProductEditingTabDetail from './GeneProductEditingTabDetail'
 import ProvenanceEditingTabDetail from './ProvenanceEditingTabDetail'
 import DbXrefEditingTabDetail from './DbXrefEditingTabDetail'
@@ -130,7 +130,7 @@ const AnnotationsTabDetail = ({
         return [
           'Details',
           'Coding',
-          'Go',
+          'GO',
           'Gene Product',
           'Db Xref',
           'Comment',
@@ -140,7 +140,7 @@ const AnnotationsTabDetail = ({
         return [
           'Details',
           'Coding',
-          'Go',
+          'GO',
           'Gene Product',
           'Provenance',
           'Db Xref',
@@ -168,7 +168,7 @@ const AnnotationsTabDetail = ({
         return [
           'Details',
           'Coding',
-          'Go',
+          'GO',
           'Gene Product',
           'Provenance',
           'Db Xref',
@@ -232,9 +232,9 @@ const AnnotationsTabDetail = ({
         // }
         // case 'Allele Info': {
         // }
-        case 'Go': {
+        case 'GO': {
           return (
-            <GoEditingTabDetail clickedFeature={clickedFeature} props={props} />
+            <GOEditingTabDetail clickedFeature={clickedFeature} props={props} />
           )
         }
         case 'Gene Product': {

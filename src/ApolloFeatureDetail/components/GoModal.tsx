@@ -18,7 +18,7 @@ import { ApolloFeature } from '../ApolloFeatureDetail'
 import copy from 'copy-to-clipboard'
 import EvidenceFormModal from './EvidenceFormModal'
 
-interface GoResults {
+interface GOResults {
   id: string
   label: string[]
 }
@@ -83,7 +83,7 @@ const fetchGOAutocompleteResults = async (
 }
 
 // error if form filled out incorrectly, tells user why
-function GoModalError({
+function GOModalError({
   handleClose,
   errorMessageArray,
 }: {
@@ -105,7 +105,7 @@ function GoModalError({
         <IconButton>
           <WarningIcon />
         </IconButton>
-        Invalid Go Annotation
+        Invalid GO Annotation
         <IconButton
           aria-label="close"
           className={classes.closeButton}
@@ -137,7 +137,7 @@ function GoModalError({
   )
 }
 
-export default function GoModal({
+export default function GOModal({
   handleClose,
   model,
   clickedFeature,
@@ -152,12 +152,12 @@ export default function GoModal({
 
   // form field hooks
   const [aspect, setAspect] = useState('')
-  const [goFormInfo, setGoFormInfo] = useState({
+  const [goFormInfo, setGOFormInfo] = useState({
     goTerm: { label: '', id: '' },
     relationship: '',
     not: false,
   })
-  const [goTermAutocomplete, setGoTermAutocomplete] = useState<GoResults[]>([])
+  const [goTermAutocomplete, setGOTermAutocomplete] = useState<GOResults[]>([])
   const [evidenceInfo, setEvidenceInfo] = useState({
     evidence: { label: '', id: '', code: '' },
     allECOEvidence: false,
@@ -241,12 +241,12 @@ export default function GoModal({
   }
 
   const clearForm = () => {
-    setGoFormInfo({
+    setGOFormInfo({
       goTerm: { label: '', id: '' },
       relationship: '',
       not: false,
     })
-    setGoTermAutocomplete([])
+    setGOTermAutocomplete([])
     setEvidenceInfo({
       evidence: { label: '', id: '', code: '' },
       allECOEvidence: false,
@@ -272,7 +272,7 @@ export default function GoModal({
           break
       }
 
-      setGoFormInfo({
+      setGOFormInfo({
         goTerm: {
           label: infoToLoad.goTermLabel || '',
           id: infoToLoad.goTerm || '',
@@ -308,7 +308,7 @@ export default function GoModal({
       fullWidth={true}
     >
       <DialogTitle id="alert-dialog-title">
-        Add new Go Annotations to {clickedFeature.name}
+        Add new GO Annotations to {clickedFeature.name}
         <IconButton
           aria-label="close"
           className={classes.closeButton}
@@ -326,7 +326,7 @@ export default function GoModal({
               target="_blank"
               rel="noopener noreferrer"
             >
-              Go Annotation Guidance
+              GO Annotation Guidance
             </a>
           </DialogContentText>
         </DialogContent>
@@ -371,7 +371,7 @@ export default function GoModal({
             }}
             onChange={(event, value, reason) => {
               if (reason === 'clear') {
-                setGoFormInfo({
+                setGOFormInfo({
                   ...goFormInfo,
                   goTerm: {
                     label: '',
@@ -380,11 +380,11 @@ export default function GoModal({
                 })
               }
               if (value) {
-                setGoFormInfo({
+                setGOFormInfo({
                   ...goFormInfo,
                   goTerm: {
-                    label: (value as GoResults).label[0],
-                    id: (value as GoResults).id,
+                    label: (value as GOResults).label[0],
+                    id: (value as GOResults).id,
                   },
                 })
               }
@@ -395,7 +395,7 @@ export default function GoModal({
               <TextField
                 {...params}
                 onChange={async event => {
-                  setGoFormInfo({
+                  setGOFormInfo({
                     ...goFormInfo,
                     goTerm: {
                       label: '',
@@ -407,9 +407,9 @@ export default function GoModal({
                     event.target.value,
                     aspect,
                   )
-                  setGoTermAutocomplete(result.docs)
+                  setGOTermAutocomplete(result.docs)
                 }}
-                label="Go term"
+                label="GO term"
                 autoComplete="off"
                 disabled={!aspect}
                 style={{ width: '60%' }}
@@ -434,7 +434,7 @@ export default function GoModal({
             label="Relationship between Gene Product and GO Term"
             value={goFormInfo.relationship}
             onChange={event => {
-              setGoFormInfo({
+              setGOFormInfo({
                 ...goFormInfo,
                 relationship: event.target.value,
               })
@@ -470,7 +470,7 @@ export default function GoModal({
             type="checkbox"
             checked={goFormInfo.not}
             onChange={event => {
-              setGoFormInfo({ ...goFormInfo, not: event.target.checked })
+              setGOFormInfo({ ...goFormInfo, not: event.target.checked })
             }}
             style={{ marginTop: 40 }}
           />
@@ -574,7 +574,7 @@ export default function GoModal({
         </Button>
       </div>
       {openErrorModal && (
-        <GoModalError
+        <GOModalError
           handleClose={() => setOpenErrorModal(false)}
           errorMessageArray={formValidation()}
         />
