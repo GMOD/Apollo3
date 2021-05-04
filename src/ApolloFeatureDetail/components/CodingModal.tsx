@@ -152,7 +152,7 @@ export default function CodingModal({
               placeholder="strand"
               style={{ width: '20%' }}
             />{' '}
-            <ToggleButtonGroup value={strand} onChange={handleStrand}>
+            <ToggleButtonGroup value={strand} onChange={handleStrand} exclusive>
               <ToggleButton value="+">+</ToggleButton>
               <ToggleButton value="-">-</ToggleButton>
             </ToggleButtonGroup>

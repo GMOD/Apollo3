@@ -96,12 +96,35 @@ export default function stateModelFactory(pluginManager: PluginManager) {
         const json = await featureResponse.json()
         return json
       },
+      async fetchOrganisms(showPublicOnly: boolean) {
+        const data = {
+          username: sessionStorage.getItem(`${self.apolloId}-apolloUsername`), // get from renderProps later
+          password: sessionStorage.getItem(`${self.apolloId}-apolloPassword`), // get from renderProps later
+          showPublicOnly,
+        }
+        const featureResponse = await fetch(
+          `${self.apolloUrl}	/organism/findAllOrganisms`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+          },
+        )
+        const json = await featureResponse.json()
+        this.addToFetchedData({ key: 'organisms', value: json })
+
+        // getting the parent feature, need client token
+        // client token can be a random generated number for now
+      },
       // write actions that send fetch requests when something is edited
       async afterCreate() {
         const session = getSession(self)
         // @ts-ignore
         session.updateDrawerWidth(600)
         this.fetchFeatures()
+        this.fetchOrganisms(false)
         // TODO make a new tab with the response stuff
       },
     }))

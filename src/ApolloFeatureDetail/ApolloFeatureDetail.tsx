@@ -7,6 +7,7 @@ import {
   BaseCard,
 } from '@jbrowse/core/BaseFeatureWidget/BaseFeatureDetail'
 import AnnotationsTabDetail from './components/AnnotationsTabDetail'
+import OrganismsTabDetail from './components/OrganismsTabDetail'
 
 interface AplCardProps {
   title?: string
@@ -71,6 +72,11 @@ const ApolloFeatureDetails: FunctionComponent<AplInputProps> = props => {
             aplData={fetchedData[tabIdx][1]}
             props={props}
           />
+        )
+      }
+      case 'organisms': {
+        return (
+          <OrganismsTabDetail aplData={fetchedData[tabIdx][1]} props={props} />
         )
       }
       case 'main': {

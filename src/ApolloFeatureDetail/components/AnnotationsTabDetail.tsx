@@ -92,6 +92,7 @@ const AnnotationsTabDetail = ({
   const [users, setUsers] = useState('all')
   const [status, setStatus] = useState('all')
   const [filters, setFilters] = useState(() => [] as string[])
+  const [filterVisible, setFilterVisible] = useState<string | null>(`show_all`)
 
   const handleFilters = async (
     event: React.MouseEvent<HTMLElement>,
@@ -103,6 +104,20 @@ const AnnotationsTabDetail = ({
       showOnlyGeneProductAnnotations: newFilters.includes('gp'),
       showOnlyProvenanceAnnotations: newFilters.includes('provenance'),
     })
+  }
+
+  const handleFilterVisible = async (
+    event: React.MouseEvent<HTMLElement>,
+    newFilterVisible: string | null,
+  ) => {
+    setFilterVisible(newFilterVisible)
+    newFilterVisible === 'show_visible'
+      ? model.fetchFeatureTree({
+          range: model.view.coarseVisibleLocStrings,
+        })
+      : model.fetchFeatureTree({
+          range: null,
+        })
   }
 
   // generate the sub-editing tabs based on type
@@ -294,6 +309,15 @@ const AnnotationsTabDetail = ({
     <>
       {/* this contains the filter editing portion */}
       <BaseCard title={'Filters'} defaultExpanded={false}>
+        <ToggleButtonGroup
+          value={filterVisible}
+          onChange={handleFilterVisible}
+          exclusive
+        >
+          <ToggleButton value="show_all">Show All</ToggleButton>
+          <ToggleButton value="show_visible">Show Visible Only</ToggleButton>
+        </ToggleButtonGroup>
+        <br />
         <div style={{ margin: 5 }}>
           <TextField
             label="Annotation Name"
