@@ -18,6 +18,7 @@ import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { BaseCard } from '@jbrowse/core/BaseFeatureWidget/BaseFeatureDetail'
 import { AplInputProps } from '../ApolloFeatureDetail'
+import OrganismModal from './OrganismModal'
 
 interface CodingRow {
   [key: string]: string | number
@@ -105,6 +106,7 @@ const OrganismsTabDetail = ({
   const [idx, setIdx] = useState(0)
   const [isPublic, setIsPublic] = useState(false)
   const [isObsolete, setIsObsolete] = useState(false)
+  const [openModal, setOpenModal] = useState(false)
 
   const updateOrganismInfo = async (
     organism: any,
@@ -129,6 +131,10 @@ const OrganismsTabDetail = ({
   }
   function handleTabChange(event: any, newIdx: any) {
     setIdx(newIdx)
+  }
+
+  const handleClose = () => {
+    setOpenModal(false)
   }
 
   const rows: CodingRow[] = organisms.map(
@@ -173,6 +179,7 @@ const OrganismsTabDetail = ({
             variant="contained"
             className={classes.buttons}
             onClick={() => {
+              setOpenModal(true)
               //open an organism form
               // just make add form similar to below form
               // with a save button once changes are finalized, should be simple form
@@ -212,6 +219,9 @@ const OrganismsTabDetail = ({
           >
             Duplicate
           </Button>
+          {openModal && (
+            <OrganismModal handleClose={handleClose} model={model} />
+          )}
         </div>
       </BaseCard>
 

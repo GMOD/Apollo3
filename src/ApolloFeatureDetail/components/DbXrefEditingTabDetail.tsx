@@ -3,7 +3,11 @@ import { observer } from 'mobx-react'
 import React, { useState, useEffect } from 'react'
 import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
 import DbXrefModal from './DbXrefModal'
-import { DataGrid, GridSortDirection } from '@material-ui/data-grid'
+import {
+  DataGrid,
+  GridSortDirection,
+  GridEditCellPropsParams,
+} from '@material-ui/data-grid'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import TextImportModal from './TextImportModal'
 
@@ -36,6 +40,12 @@ const DbXrefEditingTabDetail = ({
   const handleClose = () => {
     setDbXrefDialogInfo({ open: false, data: {} })
   }
+
+  const handleEditCellChange = ({
+    id,
+    field,
+    props,
+  }: GridEditCellPropsParams) => {}
 
   useEffect(() => {
     async function fetchDbXrefs() {
@@ -71,8 +81,8 @@ const DbXrefEditingTabDetail = ({
   const [selectedAnnotation, setSelectedAnnotation] = useState({})
 
   const columns = [
-    { field: 'prefix', headerName: 'Prefix', flex: 1 },
-    { field: 'accession', headerName: 'Accession', flex: 1 },
+    { field: 'prefix', headerName: 'Prefix', flex: 1, editable: true },
+    { field: 'accession', headerName: 'Accession', flex: 1, editable: true },
   ]
 
   const rows = dbXrefs.map((annotation: DbXref, index: number) => ({
@@ -95,6 +105,7 @@ const DbXrefEditingTabDetail = ({
             onRowClick={rowData => {
               setSelectedAnnotation(dbXrefs[rowData.row.id as number])
             }}
+            onEditCellChange={handleEditCellChange}
           />
         </div>
       </div>
