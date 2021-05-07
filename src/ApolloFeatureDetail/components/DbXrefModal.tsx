@@ -351,8 +351,8 @@ export default function DbXrefModal({
                       uniquename: clickedFeature.uniquename,
                       old_dbxrefs: [
                         {
-                          db: loadData.selectedAnnotation.prefix,
-                          accession: loadData.selectedAnnotation.accession,
+                          db: loadData.selectedAnnotation.tag,
+                          accession: loadData.selectedAnnotation.value,
                         },
                       ],
                       new_dbxrefs: dbxrefs,

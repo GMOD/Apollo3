@@ -2,23 +2,17 @@ import { DataGrid } from '@material-ui/data-grid'
 import {
   makeStyles,
   Paper,
-  Toolbar,
-  Tab,
-  Tabs,
-  Typography,
-  AppBar,
   TextField,
-  MenuItem,
   Button,
   IconButton,
 } from '@material-ui/core'
 import CloseIcon from '@material-ui/icons/Close'
-import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { BaseCard } from '@jbrowse/core/BaseFeatureWidget/BaseFeatureDetail'
 import { AplInputProps } from '../ApolloFeatureDetail'
 import OrganismModal from './OrganismModal'
+import ConfirmDeleteModal from './ConfirmDeleteModal'
 
 interface CodingRow {
   [key: string]: string | number
@@ -103,10 +97,12 @@ const OrganismsTabDetail = ({
     { field: 'refSequences', headerName: 'Ref Sequences', flex: 0.5 },
   ]
 
-  const [idx, setIdx] = useState(0)
   const [isPublic, setIsPublic] = useState(false)
   const [isObsolete, setIsObsolete] = useState(false)
+  const [showObsolete, setShowObsolete] = useState(false)
   const [openModal, setOpenModal] = useState(false)
+  const [openConfirmDeleteModal, setOpenConfirmDeleteModal] = useState(false)
+  const [filterValue, setFilterValue] = useState('')
 
   const updateOrganismInfo = async (
     organism: any,
@@ -129,9 +125,6 @@ const OrganismsTabDetail = ({
       body: JSON.stringify(data),
     })
   }
-  function handleTabChange(event: any, newIdx: any) {
-    setIdx(newIdx)
-  }
 
   const handleClose = () => {
     setOpenModal(false)
@@ -142,7 +135,7 @@ const OrganismsTabDetail = ({
       id: index,
       name: currentOrganism.commonName,
       annotations: currentOrganism.annotationCount,
-      sequences: currentOrganism.sequences,
+      refSequences: currentOrganism.sequences,
     }),
   )
 
@@ -150,11 +143,50 @@ const OrganismsTabDetail = ({
     if (clickedOrganism) {
       setIsPublic(clickedOrganism.publicMode)
       setIsObsolete(clickedOrganism.obsolete)
+
+      console.log(clickedOrganism)
     }
   }, [clickedOrganism])
 
   return (
     <>
+      <BaseCard title={'Filters'} defaultExpanded={false}>
+        <div style={{ margin: 5 }}>
+          <TextField
+            label="Search Common Name"
+            onChange={event => {
+              setFilterValue(event.target.value)
+            }}
+          />{' '}
+          <input
+            id="Show Obsolete"
+            type="checkbox"
+            checked={showObsolete}
+            onChange={async event => {
+              setShowObsolete(event.target.checked)
+              const data = {
+                username: sessionStorage.getItem(
+                  `${model.apolloId}-apolloUsername`,
+                ),
+                password: sessionStorage.getItem(
+                  `${model.apolloId}-apolloPassword`,
+                ),
+                publicOnly: false,
+                showObsolete,
+              }
+              await fetch(`${model.apolloUrl}/organism/findAllOrganisms`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+              })
+            }}
+            style={{ marginTop: 40 }}
+          />
+        </div>
+        <label htmlFor="not">Show Obsolete</label>
+      </BaseCard>
       <BaseCard title={'Organism Table'}>
         <div style={{ height: clickedOrganism ? 200 : 400 }}>
           <div style={{ display: 'flex', height: '100%' }}>
@@ -169,6 +201,15 @@ const OrganismsTabDetail = ({
               onRowClick={rowData => {
                 setClickedOrganism(organisms[rowData.row.id as number])
               }}
+              filterModel={{
+                items: [
+                  {
+                    columnField: 'name',
+                    operatorValue: 'contains',
+                    value: filterValue,
+                  },
+                ],
+              }}
             />
           </div>
         </div>
@@ -180,9 +221,6 @@ const OrganismsTabDetail = ({
             className={classes.buttons}
             onClick={() => {
               setOpenModal(true)
-              //open an organism form
-              // just make add form similar to below form
-              // with a save button once changes are finalized, should be simple form
             }}
           >
             Add
@@ -203,7 +241,7 @@ const OrganismsTabDetail = ({
             className={classes.buttons}
             disabled={!clickedOrganism}
             onClick={() => {
-              // send delete signal
+              setOpenConfirmDeleteModal(true)
             }}
           >
             Delete
@@ -213,8 +251,25 @@ const OrganismsTabDetail = ({
             variant="contained"
             className={classes.buttons}
             disabled={!clickedOrganism}
-            onClick={() => {
-              // duplicate
+            onClick={async () => {
+              const data = {
+                username: sessionStorage.getItem(
+                  `${model.apolloId}-apolloUsername`,
+                ),
+                password: sessionStorage.getItem(
+                  `${model.apolloId}-apolloPassword`,
+                ),
+                ...clickedOrganism,
+                commonName: `Copy of ${clickedOrganism?.commonName}`,
+              }
+
+              await fetch(`${model.apolloUrl}/organism/addOrganism`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+              })
             }}
           >
             Duplicate
@@ -222,11 +277,35 @@ const OrganismsTabDetail = ({
           {openModal && (
             <OrganismModal handleClose={handleClose} model={model} />
           )}
+          {openConfirmDeleteModal && (
+            <ConfirmDeleteModal
+              handleClose={() => setOpenConfirmDeleteModal(false)}
+              deleteFunc={async () => {
+                const data = {
+                  username: sessionStorage.getItem(
+                    `${model.apolloId}-apolloUsername`,
+                  ),
+                  password: sessionStorage.getItem(
+                    `${model.apolloId}-apolloPassword`,
+                  ),
+                  ...clickedOrganism,
+                }
+                await fetch(`${model.apolloUrl}/organism/deleteOrganism`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(data),
+                })
+              }}
+              objToDeleteName={`Organism: ${clickedOrganism?.commonName}`}
+            />
+          )}
         </div>
       </BaseCard>
 
       {clickedOrganism ? (
-        <BaseCard title={`${clickedOrganism.commonName} Info`}>
+        <BaseCard title={`${clickedOrganism.commonName} Detail Info`}>
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <IconButton
               aria-label="close"
@@ -237,36 +316,9 @@ const OrganismsTabDetail = ({
             </IconButton>
           </div>
           <Paper data-testid="apollo-editing-drawer">
-            <Toolbar disableGutters>
-              <AppBar position={'static'}>
-                <Tabs
-                  value={idx}
-                  onChange={handleTabChange}
-                  className={classes.tabStyles}
-                  classes={{
-                    indicator: classes.tabStylesIndicator, //probably a better way to write this in makestyles
-                  }}
-                  variant="fullWidth"
-                >
-                  <Tab
-                    key={idx}
-                    label={
-                      <div>
-                        <Typography style={{ fontSize: 10 }}>
-                          Details
-                        </Typography>
-                      </div>
-                    }
-                    tabIndex={idx}
-                    className={classes.tabItemStyles}
-                    classes={{ wrapper: classes.tabItemStylesWrapper }}
-                  />
-                </Tabs>
-              </AppBar>
-            </Toolbar>
             <div>
               <TextField
-                key={clickedOrganism.commonName}
+                key={`name-${clickedOrganism.commonName}`}
                 label="Name"
                 defaultValue={clickedOrganism.commonName}
                 onBlur={async event => {
@@ -278,10 +330,9 @@ const OrganismsTabDetail = ({
                     )
                   }
                 }}
-              />
-              <br />
+              />{' '}
               <TextField
-                key={clickedOrganism.genus}
+                key={`genus-${clickedOrganism.genus}`}
                 label="Genus"
                 defaultValue={clickedOrganism.genus}
                 onBlur={async event => {
@@ -293,10 +344,9 @@ const OrganismsTabDetail = ({
                     )
                   }
                 }}
-              />
-              <br />
+              />{' '}
               <TextField
-                key={clickedOrganism.species}
+                key={`species-${clickedOrganism.species}`}
                 label="Species"
                 defaultValue={clickedOrganism.species}
                 onBlur={async event => {
@@ -315,6 +365,7 @@ const OrganismsTabDetail = ({
                 key={clickedOrganism.directory}
                 label="Directory"
                 defaultValue={clickedOrganism.directory}
+                style={{ width: '80%' }}
                 onBlur={async event => {
                   if (event.target.value !== clickedOrganism.directory) {
                     updateOrganismInfo(
@@ -324,12 +375,13 @@ const OrganismsTabDetail = ({
                     )
                   }
                 }}
-              />
+              />{' '}
               <br />
               <TextField
                 key={`${clickedOrganism}-blatdb`}
                 label="Search database"
                 defaultValue={clickedOrganism.blatdb}
+                style={{ width: '80%' }}
                 onBlur={async event => {
                   if (event.target.value !== clickedOrganism.blatdb) {
                     updateOrganismInfo(
@@ -345,6 +397,7 @@ const OrganismsTabDetail = ({
                 key={`${clickedOrganism}-translationtable`}
                 label="Non-default Translation Table"
                 defaultValue={clickedOrganism.nonDefaultTranslationTable}
+                style={{ width: '80%' }}
                 onBlur={async event => {
                   if (
                     event.target.value !==

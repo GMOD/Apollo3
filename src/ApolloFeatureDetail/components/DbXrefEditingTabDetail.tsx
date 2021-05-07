@@ -41,11 +41,49 @@ const DbXrefEditingTabDetail = ({
     setDbXrefDialogInfo({ open: false, data: {} })
   }
 
-  const handleEditCellChange = ({
+  const handleEditCellChangeCommitted = ({
     id,
     field,
     props,
-  }: GridEditCellPropsParams) => {}
+  }: GridEditCellPropsParams) => {
+    const preChangeXref: DbXref = JSON.parse(
+      JSON.stringify(dbXrefs[id as number]),
+    )
+    const postChangeXref: DbXref = dbXrefs[id as number]
+    postChangeXref[field] = `${props.value}`
+    const data = {
+      username: sessionStorage.getItem(`${model.apolloId}-apolloUsername`),
+      password: sessionStorage.getItem(`${model.apolloId}-apolloPassword`),
+      sequence: clickedFeature.sequence,
+      organism: 'Fictitious',
+      features: [
+        {
+          uniquename: clickedFeature.uniquename,
+          old_dbxrefs: [
+            {
+              db: preChangeXref.tag,
+              accession: preChangeXref.value,
+            },
+          ],
+          new_dbxrefs: [
+            {
+              db: (selectedAnnotation as DbXref).tag,
+              accession: (selectedAnnotation as DbXref).value,
+            },
+          ],
+        },
+      ],
+    }
+
+    const endpointUrl = `${model.apolloUrl}/annotationEditor/updateDbxref`
+    fetch(endpointUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+  }
 
   useEffect(() => {
     async function fetchDbXrefs() {
@@ -81,14 +119,14 @@ const DbXrefEditingTabDetail = ({
   const [selectedAnnotation, setSelectedAnnotation] = useState({})
 
   const columns = [
-    { field: 'prefix', headerName: 'Prefix', flex: 1, editable: true },
-    { field: 'accession', headerName: 'Accession', flex: 1, editable: true },
+    { field: 'tag', headerName: 'Prefix', flex: 1, editable: true },
+    { field: 'value', headerName: 'Accession', flex: 1, editable: true },
   ]
 
   const rows = dbXrefs.map((annotation: DbXref, index: number) => ({
     id: index,
-    prefix: annotation.tag,
-    accession: annotation.value,
+    tag: annotation.tag,
+    value: annotation.value,
   }))
 
   return (
@@ -101,11 +139,12 @@ const DbXrefEditingTabDetail = ({
             pageSize={25}
             rows={rows}
             columns={columns}
-            sortModel={[{ field: 'prefix', sort: 'asc' as GridSortDirection }]}
+            sortModel={[{ field: 'tag', sort: 'asc' as GridSortDirection }]}
             onRowClick={rowData => {
               setSelectedAnnotation(dbXrefs[rowData.row.id as number])
             }}
-            onEditCellChange={handleEditCellChange}
+            isCellEditable={params => params.row.tag !== 'PMID'}
+            onEditCellChangeCommitted={handleEditCellChangeCommitted}
           />
         </div>
       </div>
@@ -181,8 +220,8 @@ const DbXrefEditingTabDetail = ({
                     uniquename: clickedFeature.uniquename,
                     dbxrefs: [
                       {
-                        db: (selectedAnnotation as DbXref).prefix,
-                        accession: (selectedAnnotation as DbXref).accession,
+                        db: (selectedAnnotation as DbXref).tag,
+                        accession: (selectedAnnotation as DbXref).value,
                       },
                     ],
                   },
@@ -196,7 +235,7 @@ const DbXrefEditingTabDetail = ({
                 body: JSON.stringify(data),
               })
             }}
-            objToDeleteName={`DbXref: ${(selectedAnnotation as DbXref).prefix}`}
+            objToDeleteName={`DbXref: ${(selectedAnnotation as DbXref).tag}`}
           />
         )}
         {openImportModal && (

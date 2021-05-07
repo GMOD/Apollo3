@@ -1,5 +1,5 @@
 import { Button } from '@material-ui/core'
-import { DataGrid } from '@material-ui/data-grid'
+import { DataGrid, GridEditCellPropsParams } from '@material-ui/data-grid'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
@@ -29,9 +29,40 @@ const CodingEditingTabDetail = ({
     setCodingModalInfo({ open: false, data: {} })
   }
 
+  const handleEditCellChangeCommitted = ({
+    id,
+    field,
+    props,
+  }: GridEditCellPropsParams) => {
+    const preChangeCoding: any = JSON.parse(JSON.stringify(selected))
+    let postChangeCoding: any = JSON.parse(JSON.stringify(selected))
+
+    if (field === 'start') {
+      postChangeCoding.location.fmin = parseInt(`${props.value}`)
+    } else if (field === 'end') {
+      postChangeCoding.location.fmax = parseInt(`${props.value}`)
+    }
+
+    console.log(preChangeCoding, postChangeCoding)
+    // send signal to change fmin or fmax and length of child
+  }
+
   const columns = [
-    { field: 'type', headerName: 'Type' },
-    { field: 'start', headerName: 'Start' },
+    { field: 'type', headerName: 'Type', flex: 0.5 },
+    {
+      field: 'start',
+      headerName: 'Start',
+      type: 'number',
+      editable: true,
+      flex: 0.75,
+    },
+    {
+      field: 'end',
+      headerName: 'End',
+      type: 'number',
+      editable: true,
+      flex: 0.75,
+    },
     { field: 'length', headerName: 'Length' },
   ]
 
@@ -59,6 +90,7 @@ const CodingEditingTabDetail = ({
             onRowClick={rowData => {
               setSelected(clickedFeature.children[rowData.row.id as number])
             }}
+            onEditCellChangeCommitted={handleEditCellChangeCommitted}
           />
         </div>
       </div>

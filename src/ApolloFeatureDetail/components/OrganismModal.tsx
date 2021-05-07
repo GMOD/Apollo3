@@ -12,8 +12,7 @@ import {
 } from '@material-ui/core'
 import WarningIcon from '@material-ui/icons/Warning'
 import CloseIcon from '@material-ui/icons/Close'
-import { ApolloFeature } from '../ApolloFeatureDetail'
-// import fs, { promises as fsPromises } from 'fs'
+import * as fs from 'fs'
 import path from 'path'
 
 const useStyles = makeStyles(theme => ({
@@ -127,15 +126,7 @@ export default function OrganismModal({
     }
 
     // let locationPath: string | undefined
-    // try {
-    //   fsPromises
-    //     .realpath(organismInfo.directory)
-    //     .then(data => (locationPath = data))
-    // } catch (e) {
-    //   errorMessageArray.push(
-    //     `Organism directory must be an absolute path pointing to 'trackList.json`,
-    //   )
-    // }
+    // locationPath = organismInfo.directory
     // if (locationPath) {
     //   const trackPath = path.join(organismInfo.directory, 'trackList.json')
     //   if (!fs.existsSync(trackPath)) {
@@ -172,52 +163,55 @@ export default function OrganismModal({
       <Divider />
       <div className={classes.root}>
         <TextField
-          key={organismInfo.commonName}
+          key={`name-${organismInfo.commonName}`}
           label="Name"
           defaultValue={organismInfo.commonName}
-          onChange={async event => {
+          onBlur={async event => {
             setOrganismInfo({ ...organismInfo, commonName: event.target.value })
           }}
-        />
+        />{' '}
         <TextField
-          key={organismInfo.genus}
+          key={`genus-${organismInfo.genus}`}
           label="Genus"
           defaultValue={organismInfo.genus}
-          onChange={async event => {
+          onBlur={async event => {
             setOrganismInfo({ ...organismInfo, genus: event.target.value })
           }}
-        />
+        />{' '}
         <TextField
-          key={organismInfo.species}
+          key={`species-${organismInfo.species}`}
           label="Species"
           defaultValue={organismInfo.species}
-          onChange={async event => {
+          onBlur={async event => {
             setOrganismInfo({ ...organismInfo, species: event.target.value })
           }}
         />
         <br />
         <TextField
-          disabled
           key={organismInfo.directory}
           label="Directory"
           defaultValue={organismInfo.directory}
+          style={{ width: '80%' }}
           onChange={async event => {
             setOrganismInfo({ ...organismInfo, directory: event.target.value })
           }}
-        />
+        />{' '}
+        <br />
         <TextField
           key={`${organismInfo}-blatdb`}
           label="Search database"
           defaultValue={organismInfo.blatdb}
+          style={{ width: '80%' }}
           onChange={async event => {
             setOrganismInfo({ ...organismInfo, blatdb: event.target.value })
           }}
-        />
+        />{' '}
         <br />
         <TextField
           key={`${organismInfo}-translationtable`}
           label="Non-default Translation Table"
           defaultValue={organismInfo.nonDefaultTranslationTable}
+          style={{ width: '80%' }}
           onChange={async event => {
             setOrganismInfo({
               ...organismInfo,
