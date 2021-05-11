@@ -1,5 +1,9 @@
-import { Button } from '@material-ui/core'
-import { DataGrid, GridEditCellPropsParams } from '@material-ui/data-grid'
+import { Button, makeStyles, Theme } from '@material-ui/core'
+import {
+  DataGrid,
+  GridEditCellPropsParams,
+  GridEditRowsModel,
+} from '@material-ui/data-grid'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
@@ -10,6 +14,21 @@ interface CodingRow {
   start: number
   length: number
 }
+
+const useStyles = makeStyles((theme: Theme) => {
+  return {
+    root: {
+      '& .MuiDataGrid-cellEditing': {
+        backgroundColor: 'rgb(255,215,115, 0.19)',
+        color: '#1a3e72',
+      },
+      '& .Mui-error': {
+        backgroundColor: `rgb(126,10,15,  0.1)`,
+        color: '#750f0f',
+      },
+    },
+  }
+})
 
 const CodingEditingTabDetail = ({
   clickedFeature,
@@ -24,9 +43,45 @@ const CodingEditingTabDetail = ({
     open: false,
     data: {},
   })
+  const [editRowsModel, setEditRowsModel] = React.useState<GridEditRowsModel>(
+    {},
+  )
+  const classes = useStyles()
 
   const handleClose = () => {
     setCodingModalInfo({ open: false, data: {} })
+  }
+
+  const validateLength = (value: number, position: string) => {
+    if (value < 0) {
+      return false
+    }
+
+    if (position === 'start') {
+      if (value < selected?.location.fmax) {
+        return true
+      }
+    } else {
+      if (value > selected?.location.fmin) {
+        return true
+      }
+    }
+    return false
+  }
+
+  const handleEditCellChange = (
+    { id, field, props }: GridEditCellPropsParams,
+    event: any,
+  ) => {
+    const value = parseInt(`${props.value}`)
+    const isValid = validateLength(value, field)
+    const newState: GridEditRowsModel = {}
+    newState[id] = {
+      ...editRowsModel[id],
+      [field]: { ...props, error: !isValid },
+    }
+    setEditRowsModel(state => ({ ...state, ...newState }))
+    event.stopPropagation()
   }
 
   const handleEditCellChangeCommitted = ({
@@ -34,17 +89,9 @@ const CodingEditingTabDetail = ({
     field,
     props,
   }: GridEditCellPropsParams) => {
-    const preChangeCoding: any = JSON.parse(JSON.stringify(selected))
     let postChangeCoding: any = JSON.parse(JSON.stringify(selected))
-
-    if (field === 'start') {
-      postChangeCoding.location.fmin = parseInt(`${props.value}`)
-    } else if (field === 'end') {
-      postChangeCoding.location.fmax = parseInt(`${props.value}`)
-    }
-
-    console.log(preChangeCoding, postChangeCoding)
-    // send signal to change fmin or fmax and length of child
+    console.log(postChangeCoding)
+    // send signal
   }
 
   const columns = [
@@ -82,6 +129,7 @@ const CodingEditingTabDetail = ({
       <div style={{ height: 400, width: '100%' }}>
         <div style={{ display: 'flex', height: '100%' }}>
           <DataGrid
+            className={classes.root}
             disableColumnMenu
             hideFooterSelectedRowCount
             pageSize={25}
@@ -90,7 +138,9 @@ const CodingEditingTabDetail = ({
             onRowClick={rowData => {
               setSelected(clickedFeature.children[rowData.row.id as number])
             }}
+            onEditCellChange={handleEditCellChange}
             onEditCellChangeCommitted={handleEditCellChangeCommitted}
+            editRowsModel={editRowsModel}
           />
         </div>
       </div>

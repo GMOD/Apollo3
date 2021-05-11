@@ -3,7 +3,7 @@ import { observer } from 'mobx-react'
 import React, { useState, useEffect } from 'react'
 import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
 import CommentModal from './CommentModal'
-import { DataGrid } from '@material-ui/data-grid'
+import { DataGrid, GridEditCellPropsParams } from '@material-ui/data-grid'
 
 interface Comment {
   [key: string]: string
@@ -31,6 +31,41 @@ const CommentEditingTabDetail = ({
 
   const handleClose = () => {
     setCommentDialogInfo({ open: false, selectedComment: '' })
+  }
+
+  const handleEditCellChangeCommitted = ({
+    id,
+    field,
+    props,
+  }: GridEditCellPropsParams) => {
+    console.log(comments)
+    const preChangeComment: Comment = JSON.parse(
+      JSON.stringify(comments[id as number]),
+    )
+    const changedComment = `${props.value}`
+    console.log(changedComment)
+    const data = {
+      username: sessionStorage.getItem(`${model.apolloId}-apolloUsername`),
+      password: sessionStorage.getItem(`${model.apolloId}-apolloPassword`),
+      sequence: clickedFeature.sequence,
+      organism: 'Fictitious',
+      features: [
+        {
+          uniquename: clickedFeature.uniquename,
+          old_comments: [preChangeComment],
+          new_comments: [changedComment],
+        },
+      ],
+    }
+
+    const endpointUrl = `${model.apolloUrl}/annotationEditor/updateComments`
+    fetch(endpointUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
   }
 
   useEffect(() => {
@@ -64,7 +99,9 @@ const CommentEditingTabDetail = ({
     clickedFeature.sequence,
   ])
 
-  const columns = [{ field: 'comment', headerName: 'Comment', flex: 1 }]
+  const columns = [
+    { field: 'comment', headerName: 'Comment', flex: 1, editable: true },
+  ]
 
   const rows = comments.map((comment: string, index: number) => ({
     id: index,
@@ -87,6 +124,7 @@ const CommentEditingTabDetail = ({
                 selectedComment: comments[rowData.row.id as number],
               })
             }}
+            onEditCellChangeCommitted={handleEditCellChangeCommitted}
           />
         </div>
       </div>
