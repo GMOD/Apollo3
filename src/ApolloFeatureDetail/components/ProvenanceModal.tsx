@@ -144,16 +144,6 @@ export default function ProvenanceModal({
         'You must provide a prefix and suffix for the ECO term',
       )
     }
-    if (!evidenceInfo.referenceInfo.prefix || !evidenceInfo.referenceInfo.id) {
-      errorMessageArray.push(
-        'You must provide atleast one reference prefix and id',
-      )
-    }
-    if (evidenceInfo.withArray.length <= 0) {
-      errorMessageArray.push(
-        'You must provide at least 1 with for the evidence code',
-      )
-    }
     return errorMessageArray
   }
 
@@ -313,8 +303,10 @@ export default function ProvenanceModal({
               evidenceCodeLabel: evidenceInfo.evidence.code
                 ? `${evidenceInfo.evidence.code} (${evidenceInfo.evidence.id}): ${evidenceInfo.evidence.label}`
                 : `${evidenceInfo.evidence.label} (${evidenceInfo.evidence.id})`,
-              withOrFrom: evidenceInfo.withArray,
-              reference: `${evidenceInfo.referenceInfo.prefix}:${evidenceInfo.referenceInfo.id}`,
+              withOrFrom: evidenceInfo.withArray || [],
+              reference: evidenceInfo.referenceInfo.prefix
+                ? `${evidenceInfo.referenceInfo.prefix}:${evidenceInfo.referenceInfo.id}`
+                : '',
               notes: evidenceInfo.noteArray,
             }
             copy(JSON.stringify(provenanceString, null, 4))

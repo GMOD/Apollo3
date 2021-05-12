@@ -3,7 +3,11 @@ import { observer } from 'mobx-react'
 import React, { useState, useEffect } from 'react'
 import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
 import AttributeModal from './AttributeModal'
-import { DataGrid, GridSortDirection } from '@material-ui/data-grid'
+import {
+  DataGrid,
+  GridSortDirection,
+  GridEditCellPropsParams,
+} from '@material-ui/data-grid'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import TextImportModal from './TextImportModal'
 
@@ -35,6 +39,49 @@ const AttributeEditingTabDetail = ({
 
   const handleClose = () => {
     setAttributeDialogInfo({ open: false, data: {} })
+  }
+
+  const handleEditCellChangeCommitted = ({
+    id,
+    field,
+    props,
+  }: GridEditCellPropsParams) => {
+    const preChangeAttribute: Attribute = JSON.parse(
+      JSON.stringify(attributes[id as number]),
+    )
+    const postChangeAttribute: Attribute = attributes[id as number]
+    postChangeAttribute[field] = `${props.value}`
+    const data = {
+      username: sessionStorage.getItem(`${model.apolloId}-apolloUsername`),
+      password: sessionStorage.getItem(`${model.apolloId}-apolloPassword`),
+      sequence: clickedFeature.sequence,
+      organism: 'Fictitious',
+      attributes: [
+        {
+          uniquename: clickedFeature.uniquename,
+          old_non_reserved_properties: [
+            {
+              db: preChangeAttribute.tag,
+              accession: preChangeAttribute.value,
+            },
+          ],
+          new_non_reserved_properties: [
+            {
+              db: (selectedAnnotation as Attribute).tag,
+              accession: (selectedAnnotation as Attribute).value,
+            },
+          ],
+        },
+      ],
+    }
+    const endpointUrl = `${model.apolloUrl}/annotationEditor/updateAttribute`
+    fetch(endpointUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
   }
 
   useEffect(() => {
@@ -71,8 +118,8 @@ const AttributeEditingTabDetail = ({
   const [selectedAnnotation, setSelectedAnnotation] = useState({})
 
   const columns = [
-    { field: 'prefix', headerName: 'Prefix', flex: 1 },
-    { field: 'accession', headerName: 'Accession', flex: 1 },
+    { field: 'prefix', headerName: 'Prefix', flex: 1, editable: true },
+    { field: 'accession', headerName: 'Accession', flex: 1, editable: true },
   ]
 
   const rows = attributes.map((annotation: Attribute, index: number) => ({
@@ -95,6 +142,7 @@ const AttributeEditingTabDetail = ({
             onRowClick={rowData => {
               setSelectedAnnotation(attributes[rowData.row.id as number])
             }}
+            onEditCellChangeCommitted={handleEditCellChangeCommitted}
           />
         </div>
       </div>

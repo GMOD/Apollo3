@@ -223,20 +223,6 @@ export default function GOModal({
         'You must provide a prefix and suffix for the ECO term',
       )
     }
-
-    if (!goFormInfo.relationship) {
-      errorMessageArray.push('You must provide a Gene Relationship')
-    }
-    if (!evidenceInfo.referenceInfo.prefix || !evidenceInfo.referenceInfo.id) {
-      errorMessageArray.push(
-        'You must provide atleast one reference prefix and id',
-      )
-    }
-    if (evidenceInfo.withArray.length <= 0) {
-      errorMessageArray.push(
-        'You must provide at least 1 with for the evidence code',
-      )
-    }
     return errorMessageArray
   }
 
@@ -562,8 +548,10 @@ export default function GOModal({
                 ? `${evidenceInfo.evidence.code} (${evidenceInfo.evidence.id}): ${evidenceInfo.evidence.label}`
                 : `${evidenceInfo.evidence.label} (${evidenceInfo.evidence.id})`,
               negate: goFormInfo.not,
-              withOrFrom: evidenceInfo.withArray,
-              reference: `${evidenceInfo.referenceInfo.prefix}:${evidenceInfo.referenceInfo.id}`,
+              withOrFrom: evidenceInfo.withArray || ['UNKNOWN:NOT_PROVIDED'],
+              reference: evidenceInfo.referenceInfo.prefix
+                ? `${evidenceInfo.referenceInfo.prefix}:${evidenceInfo.referenceInfo.id}`
+                : 'UNKNOWN:NOT_PROVIDED',
               id: loadData.selectedAnnotation?.id || null,
               notes: evidenceInfo.noteArray,
             }

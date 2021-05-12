@@ -38,12 +38,10 @@ const CommentEditingTabDetail = ({
     field,
     props,
   }: GridEditCellPropsParams) => {
-    console.log(comments)
     const preChangeComment: Comment = JSON.parse(
       JSON.stringify(comments[id as number]),
     )
     const changedComment = `${props.value}`
-    console.log(changedComment)
     const data = {
       username: sessionStorage.getItem(`${model.apolloId}-apolloUsername`),
       password: sessionStorage.getItem(`${model.apolloId}-apolloPassword`),
