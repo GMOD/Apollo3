@@ -1,4 +1,4 @@
-import { Button, makeStyles, Theme } from '@material-ui/core'
+import { Button, makeStyles, fade } from '@material-ui/core'
 import {
   DataGrid,
   GridEditCellPropsParams,
@@ -15,7 +15,7 @@ interface CodingRow {
   length: number
 }
 
-const useStyles = makeStyles((theme: Theme) => {
+const useStyles = makeStyles(() => {
   return {
     root: {
       '& .MuiDataGrid-cellEditing': {
@@ -25,6 +25,9 @@ const useStyles = makeStyles((theme: Theme) => {
       '& .Mui-error': {
         backgroundColor: `rgb(126,10,15,  0.1)`,
         color: '#750f0f',
+      },
+      '& .MuiDataGrid-cellEditable': {
+        backgroundColor: fade('#376331', 0.6),
       },
     },
   }

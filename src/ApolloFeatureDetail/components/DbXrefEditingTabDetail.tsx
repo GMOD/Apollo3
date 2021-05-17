@@ -1,4 +1,4 @@
-import { Button, makeStyles } from '@material-ui/core'
+import { Button, makeStyles, fade } from '@material-ui/core'
 import { observer } from 'mobx-react'
 import React, { useState, useEffect } from 'react'
 import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
@@ -17,6 +17,11 @@ interface DbXref {
 const useStyles = makeStyles(() => ({
   buttons: {
     marginRight: 10,
+  },
+  root: {
+    '& .MuiDataGrid-cellEditable': {
+      backgroundColor: fade('#376331', 0.6),
+    },
   },
 }))
 
@@ -134,6 +139,7 @@ const DbXrefEditingTabDetail = ({
       <div style={{ height: 400, width: '100%' }}>
         <div style={{ display: 'flex', height: '100%' }}>
           <DataGrid
+            className={classes.root}
             disableColumnMenu
             hideFooterSelectedRowCount
             pageSize={25}

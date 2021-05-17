@@ -1,4 +1,4 @@
-import { Button, makeStyles } from '@material-ui/core'
+import { Button, makeStyles, fade } from '@material-ui/core'
 import { observer } from 'mobx-react'
 import React, { useState, useEffect } from 'react'
 import { AplInputProps, ApolloFeature } from '../ApolloFeatureDetail'
@@ -17,6 +17,11 @@ interface Attribute {
 const useStyles = makeStyles(() => ({
   buttons: {
     marginRight: 10,
+  },
+  root: {
+    '& .MuiDataGrid-cellEditable': {
+      backgroundColor: fade('#376331', 0.6),
+    },
   },
 }))
 
@@ -56,19 +61,19 @@ const AttributeEditingTabDetail = ({
       password: sessionStorage.getItem(`${model.apolloId}-apolloPassword`),
       sequence: clickedFeature.sequence,
       organism: 'Fictitious',
-      attributes: [
+      features: [
         {
           uniquename: clickedFeature.uniquename,
           old_non_reserved_properties: [
             {
-              db: preChangeAttribute.tag,
-              accession: preChangeAttribute.value,
+              tag: preChangeAttribute.tag,
+              value: preChangeAttribute.value,
             },
           ],
           new_non_reserved_properties: [
             {
-              db: (selectedAnnotation as Attribute).tag,
-              accession: (selectedAnnotation as Attribute).value,
+              tag: (selectedAnnotation as Attribute).tag,
+              value: (selectedAnnotation as Attribute).value,
             },
           ],
         },
@@ -105,7 +110,7 @@ const AttributeEditingTabDetail = ({
         },
       )
       const json = await response.json()
-      setAttributes(json.annotations || [])
+      setAttributes(json.attributes || [])
     }
     fetchAttributes()
   }, [
@@ -133,6 +138,7 @@ const AttributeEditingTabDetail = ({
       <div style={{ height: 400, width: '100%' }}>
         <div style={{ display: 'flex', height: '100%' }}>
           <DataGrid
+            className={classes.root}
             disableColumnMenu
             hideFooterSelectedRowCount
             pageSize={25}

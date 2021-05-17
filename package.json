@@ -42,8 +42,7 @@
   },
   "dependencies": {
     "@material-ui/icons": "4.9.1",
-    "copy-to-clipboard": "^3.3.1",
-    "rollup-plugin-node-globals": "^1.4.0"
+    "copy-to-clipboard": "^3.3.1"
   },
   "peerDependencies": {
     "@jbrowse/core": "file:///Users/peterxie/Documents/GitHub/jbrowse-plugin-apollo/jbrowse-core-v1.1.0-beta.tgz",
@@ -68,7 +67,6 @@
     "mobx-state-tree": "3.14.1",
     "react": "^16.8.0",
     "react-dom": "^16.8.0",
-    "rollup-plugin-node-builtins": "^2.1.2",
     "rxjs": "^6.0.0",
     "serve": "^11.3.2",
     "tslib": "^2.0.3",

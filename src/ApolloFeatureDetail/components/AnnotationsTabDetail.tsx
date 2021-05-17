@@ -1,4 +1,8 @@
-import { DataGrid } from '@material-ui/data-grid'
+import {
+  DataGrid,
+  GridEditCellPropsParams,
+  GridEditRowsModel,
+} from '@material-ui/data-grid'
 import {
   makeStyles,
   Paper,
@@ -10,6 +14,7 @@ import {
   TextField,
   MenuItem,
   IconButton,
+  fade,
 } from '@material-ui/core'
 import CloseIcon from '@material-ui/icons/Close'
 import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab'
@@ -65,6 +70,17 @@ const useStyles = makeStyles(({ spacing, palette, breakpoints }) => ({
     '& .MuiDataGrid-window': {
       overflowX: 'hidden',
     },
+    '& .MuiDataGrid-cellEditing': {
+      backgroundColor: 'rgb(255,215,115, 0.19)',
+      color: '#1a3e72',
+    },
+    '& .Mui-error': {
+      backgroundColor: `rgb(126,10,15,  0.1)`,
+      color: '#750f0f',
+    },
+    '& .MuiDataGrid-cellEditable': {
+      backgroundColor: fade('#376331', 0.6),
+    },
   },
 
   closeButton: {
@@ -93,6 +109,9 @@ const AnnotationsTabDetail = ({
   const [status, setStatus] = useState('all')
   const [filters, setFilters] = useState(() => [] as string[])
   const [filterVisible, setFilterVisible] = useState<string | null>(`show_all`)
+  const [editRowsModel, setEditRowsModel] = React.useState<GridEditRowsModel>(
+    {},
+  )
 
   const handleFilters = async (
     event: React.MouseEvent<HTMLElement>,
@@ -118,6 +137,48 @@ const AnnotationsTabDetail = ({
       : model.fetchFeatureTree({
           range: null,
         })
+  }
+
+  const handleEditCellChange = (
+    { id, field, props }: GridEditCellPropsParams,
+    event: any,
+  ) => {
+    const value = `${props.value}`
+    const notBlank = value.length > 0
+    const newState: GridEditRowsModel = {}
+    newState[id] = {
+      ...editRowsModel[id],
+      [field]: { ...props, error: !notBlank },
+    }
+    setEditRowsModel(state => ({ ...state, ...newState }))
+    event.stopPropagation()
+  }
+
+  const handleEditCellChangeCommitted = ({
+    id,
+    field,
+    props,
+  }: GridEditCellPropsParams) => {
+    console.log(clickedFeature?.name, props.value)
+    if (clickedFeature?.name && props.value !== clickedFeature.name) {
+      const data = {
+        username: sessionStorage.getItem(`${model.apolloId}-apolloUsername`), // get from renderProps later
+        password: sessionStorage.getItem(`${model.apolloId}-apolloPassword`), // get from renderProps later
+        sequence: model.featureData.sequence,
+        organism: 'Fictitious',
+        features: [
+          { uniquename: clickedFeature?.uniquename, name: props.value },
+        ],
+      }
+
+      fetch(`${model.apolloUrl}/annotationEditor/setName`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+    }
   }
 
   // generate the sub-editing tabs based on type
@@ -288,7 +349,7 @@ const AnnotationsTabDetail = ({
   const classes = useStyles()
   const features = aplData
   const columns = [
-    { field: 'name', headerName: 'Name', flex: 1.5 },
+    { field: 'name', headerName: 'Name', flex: 1.5, editable: true },
     { field: 'seq', headerName: 'Seq', flex: 0.75 },
     { field: 'type', headerName: 'Type', flex: 0.75 },
     { field: 'length', headerName: 'Length', flex: 0.5 },
@@ -413,6 +474,9 @@ const AnnotationsTabDetail = ({
                 setClickedFeature(features[rowData.row.id as number])
                 setCurrentEditingTabs(findEditingTabs(rowData.row.type))
               }}
+              onEditCellChange={handleEditCellChange}
+              onEditCellChangeCommitted={handleEditCellChangeCommitted}
+              editRowsModel={editRowsModel}
             />
           </div>
         </div>

@@ -140,8 +140,8 @@ export default function AttributeModal({
                       uniquename: clickedFeature.uniquename,
                       non_reserved_properties: [
                         {
-                          db: prefixAccession.prefix,
-                          accession: prefixAccession.accession,
+                          tag: prefixAccession.prefix,
+                          value: prefixAccession.accession,
                         },
                       ],
                     },
@@ -161,14 +161,14 @@ export default function AttributeModal({
                       uniquename: clickedFeature.uniquename,
                       old_non_reserved_properties: [
                         {
-                          db: loadData.selectedAnnotation.prefix,
-                          accession: loadData.selectedAnnotation.accession,
+                          tag: loadData.selectedAnnotation.prefix,
+                          value: loadData.selectedAnnotation.accession,
                         },
                       ],
                       new_non_reserved_properties: [
                         {
-                          db: prefixAccession.prefix,
-                          accession: prefixAccession.accession,
+                          tag: prefixAccession.prefix,
+                          value: prefixAccession.accession,
                         },
                       ],
                     },
