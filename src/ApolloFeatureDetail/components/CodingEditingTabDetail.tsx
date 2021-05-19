@@ -92,8 +92,6 @@ const CodingEditingTabDetail = ({
     field,
     props,
   }: GridEditCellPropsParams) => {
-    let postChangeCoding: any = JSON.parse(JSON.stringify(selected))
-    console.log(postChangeCoding)
     // send signal
   }
 
@@ -121,8 +119,8 @@ const CodingEditingTabDetail = ({
       id: index,
       type: child.type.name,
       // increases the fmin by 1 for display since coordinates are handled as zero-based on server-side
-      start: child.location.fmin + 1, // have this editable
-      end: child.location.fmax, // have this editable
+      start: child.location.fmin + 1,
+      end: child.location.fmax,
       length: child.location.fmax - child.location.fmin,
     }),
   )

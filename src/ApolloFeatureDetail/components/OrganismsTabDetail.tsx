@@ -143,8 +143,6 @@ const OrganismsTabDetail = ({
     if (clickedOrganism) {
       setIsPublic(clickedOrganism.publicMode)
       setIsObsolete(clickedOrganism.obsolete)
-
-      console.log(clickedOrganism)
     }
   }, [clickedOrganism])
 

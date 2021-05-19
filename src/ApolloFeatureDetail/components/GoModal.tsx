@@ -55,8 +55,6 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-// geneonotogy endpoing for GO Term and evidence autocompletes
-// may move to a utils file if used for more than one folder
 const fetchGOAutocompleteResults = async (
   currentText: string,
   aspect: string,

@@ -159,7 +159,6 @@ const AnnotationsTabDetail = ({
     field,
     props,
   }: GridEditCellPropsParams) => {
-    console.log(clickedFeature?.name, props.value)
     if (clickedFeature?.name && props.value !== clickedFeature.name) {
       const data = {
         username: sessionStorage.getItem(`${model.apolloId}-apolloUsername`), // get from renderProps later

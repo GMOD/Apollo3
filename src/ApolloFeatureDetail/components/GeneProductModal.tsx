@@ -53,7 +53,6 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-// search returns a login form right now
 const searchGeneProduct = async (currentText: string, model: any) => {
   const data = {
     username: sessionStorage.getItem(`${model.apolloId}-apolloUsername`) || '',
@@ -69,10 +68,8 @@ const searchGeneProduct = async (currentText: string, model: any) => {
     },
     body: JSON.stringify(data),
   })
-  console.log(response)
 
   const results = await response.json()
-  console.log(results)
   return results
 }
 
@@ -151,7 +148,7 @@ export default function GeneProductModal({
   })
   const [geneProductAutocomplete, setGeneProductAutocomplete] = useState<
     GeneProductResults[]
-  >([]) // will need a type later
+  >([])
   const [evidenceInfo, setEvidenceInfo] = useState({
     evidence: { label: '', id: '', code: '' },
     allECOEvidence: false,

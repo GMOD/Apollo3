@@ -135,7 +135,6 @@ export default function DbXrefModal({
     setPMIDInfo({ PMID: '', article: '', url: '' })
   }
 
-  // http://demo.genomearchitect.org/Apollo2/ncbiProxyService?db=pubmed&operation=fetch&id=123
   const fetchPMID = async (currentText: string) => {
     const data = {
       id: currentText,

@@ -45,13 +45,6 @@ export interface ApolloFeature {
   description: string
 }
 
-// CURRENT PROGRESS AND UPDATES GO HERE:
-// finish making gene product and provenance forms and tabs
-// gene product's product name line has a weird return on the autocomplete, look at that
-// still need to work on making it more modular
-// maybe a baseeditingtab detail that each one extends, since there is a lot of repeats
-// but also  a lot of unique parts for each form
-
 const ApolloFeatureDetails: FunctionComponent<AplInputProps> = props => {
   const { model } = props
   const [idx, setIdx] = useState(0)

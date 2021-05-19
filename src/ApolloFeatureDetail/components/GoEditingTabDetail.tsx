@@ -56,7 +56,7 @@ const GOEditingTabDetail = ({
     fetchGOAnnotations()
   }, [clickedFeature.uniquename, model.apolloUrl, model.apolloId])
 
-  const [selectedAnnotation, setSelectedAnnotation] = useState({}) // when find data to loop thru use this
+  const [selectedAnnotation, setSelectedAnnotation] = useState({})
 
   const columns = [
     { field: 'name', headerName: 'Name', flex: 1.5 },

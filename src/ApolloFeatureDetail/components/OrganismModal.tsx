@@ -12,8 +12,6 @@ import {
 } from '@material-ui/core'
 import WarningIcon from '@material-ui/icons/Warning'
 import CloseIcon from '@material-ui/icons/Close'
-import * as fs from 'fs'
-import path from 'path'
 
 const useStyles = makeStyles(theme => ({
   main: {
@@ -125,20 +123,9 @@ export default function OrganismModal({
       errorMessageArray.push('You must provide a name for the organism')
     }
 
-    // let locationPath: string | undefined
-    // locationPath = organismInfo.directory
-    // if (locationPath) {
-    //   const trackPath = path.join(organismInfo.directory, 'trackList.json')
-    //   if (!fs.existsSync(trackPath)) {
-    //     errorMessageArray.push(
-    //       `Organism directory must be an absolute path pointing to 'trackList.json`,
-    //     )
-    //   }
-    // } else {
-    //   errorMessageArray.push(
-    //     `Organism directory must be an absolute path pointing to 'trackList.json`,
-    //   )
-    // }
+    if (!organismInfo.directory) {
+      errorMessageArray.push('You must provide a directory for the organism')
+    }
     return errorMessageArray
   }
 
