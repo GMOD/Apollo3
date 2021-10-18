@@ -12,7 +12,7 @@ export class AuthenticateController {
     @UseGuards(LocalAuthGuard)
     @Post('login')
     async login(@Request() req, @Res() response: Response): Promise<Response> {
-      // Return either token with SUCCESS or Failed without token
+      // Return either token with SUCCESS or Failed without token. 
       return await this.authService.login(req.user, response);
     }
  
