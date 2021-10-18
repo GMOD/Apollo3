@@ -4,6 +4,7 @@ import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
+  // Backup copy of MySQL information
   // imports: [AuthenticateModule, UserModule, 
   //   TypeOrmModule.forRoot({
   //     type: 'mysql',
