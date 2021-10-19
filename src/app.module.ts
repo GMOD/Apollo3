@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { AuthenticateModule } from './authenticate/authenticate.module';
-import { UserModule } from './user/user.module';
+import { AuthenticateModule } from './authentication/authenticate.module';
+import { UserModule } from './controller/user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({

@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common';
 
 export type User = any;
 
+/**
+ * DEMO PURPOSE ONLY - TEST DUMMY AUTHENTICATION
+ */
 @Injectable()
 export class UsersService {
   private readonly users: User[];

@@ -1,4 +1,4 @@
-import Grails_user from './../entities/grails_user.entity';
+import Grails_user from '../entity/grails_user.entity';
 import { Connection, ConnectionManager, getConnectionManager } from 'typeorm';
 
 export class Database {

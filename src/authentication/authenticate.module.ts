@@ -12,7 +12,7 @@ import { LocalStrategy } from '../utils/strategies/local.strategy';
   imports: [UsersModule,PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '2400m' },
+      signOptions: { expiresIn: '2400m' }, // Define token expiration time
     }),
     ],
   controllers: [AuthenticateController],
