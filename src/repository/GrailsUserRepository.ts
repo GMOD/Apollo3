@@ -4,6 +4,9 @@ import Grails_user from "../entity/grails_user.entity";
 import { HttpException, HttpStatus, Logger } from "@nestjs/common";
 import { Response } from 'express';
 
+/**
+ * Custom repository for grails_user -table
+ */
 @EntityRepository(Grails_user)
 export class GrailsUserRepository extends Repository<Grails_user> {
     private readonly logger = new Logger(GrailsUserRepository.name);
@@ -62,5 +65,4 @@ export class GrailsUserRepository extends Repository<Grails_user> {
             //return response.status(HttpStatus.NOT_FOUND).json({status: HttpStatus.NOT_FOUND, message: 'No data found'});  
         }
     }
-
 }

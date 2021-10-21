@@ -9,10 +9,10 @@ import { JwtStrategy } from '../utils/strategies/jwt.strategy';
 import { LocalStrategy } from '../utils/strategies/local.strategy';
 
 @Module({
-  imports: [UsersModule,PassportModule,
+  imports: [UsersModule, PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '2400m' }, // Define token expiration time
+      signOptions: { expiresIn: '2400m' }, // Define token expiration time. TODO: Put value into property -file
     }),
     ],
   controllers: [AuthenticateController],

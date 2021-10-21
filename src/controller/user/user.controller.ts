@@ -1,9 +1,11 @@
-import { Controller, Get, HttpException, HttpStatus, Param, Post, Request, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../../utils/jwt-auth.guard';
-import { Response } from 'express';
-import { getCustomRepository, getManager } from 'typeorm';
+import { Request, Response } from 'express';
+import { getCustomRepository } from 'typeorm';
 import { GrailsUserRepository } from '../../repository/GrailsUserRepository';
+import { Roles } from '../../utils/role/role.decorator';
+import { Role } from '../../utils/role/role.enum';
 
 @Controller('user')
 export class UserController {
@@ -17,6 +19,7 @@ export class UserController {
      * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
      */
     @UseGuards(JwtAuthGuard)
+    @Roles(Role.User) // This value is for demo only
     @Get('/all')
     async getAllUsersOrm(@Res() response: Response) {
       return this.userService.getAllUsersORM(response);
@@ -30,7 +33,8 @@ export class UserController {
      * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
      * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
      */
-     @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
+    @Roles()  // Empty value is for demo only
     @Get('/usernames')
     async getAllUsers2(@Res() response: Response) {
       return getCustomRepository(GrailsUserRepository).getAllUsernames(response);
@@ -44,9 +48,10 @@ export class UserController {
      * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
      * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
      */
-     @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
+    @Roles(Role.Admin)  // This value is for demo only
     @Get(':lastname')
-    async getByLastname(@Param('lastname') lastname: string, @Res() response: Response) {
+    async getByLastname(@Param('lastname') lastname: string, @Res() response: Response, @Req() request: Request) {
       return getCustomRepository(GrailsUserRepository).findByLastName(lastname, response);
      }
 }

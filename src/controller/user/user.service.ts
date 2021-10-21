@@ -25,11 +25,11 @@ export class UserService {
     try {
       let returnValue = await Grails_user.find();
       if (returnValue != null) {
-        this.logger.log('Data found');
+        this.logger.log('Data found (getAllUsersORM)');
         this.logger.debug(JSON.stringify(returnValue));
         return response.status(HttpStatus.OK).json(returnValue);
       } else {
-        this.logger.warn('No data found');
+        this.logger.warn('No data found (getAllUsersORM)');
         return response.status(HttpStatus.NOT_FOUND).json({status: HttpStatus.NOT_FOUND, message: 'No data found'});  
       }
     } catch(error) {

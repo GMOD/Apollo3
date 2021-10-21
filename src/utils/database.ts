@@ -8,6 +8,11 @@ export class Database {
     this.connectionManager = getConnectionManager();
   }
 
+  /**
+   * 
+   * @param name Get database connection
+   * @returns Database connection object
+   */
   public async getConnection(name: string): Promise<Connection> {
     const CONNECTION_NAME: string = name;
     let connection: Connection;
