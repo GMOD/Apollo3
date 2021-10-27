@@ -5003,6 +5003,11 @@
   dependencies:
     "safe-buffer" "~5.1.0"
 
+"string-builder@^0.1.8":
+  "integrity" "sha512-0pUtikmhChLaf+uLqzYTgzTCQc4jAjaWHolxPGq3D77SgSoTqkOlv0RVF3XwDxMR9x/y1WPPwkTNalZCA9DGnQ=="
+  "resolved" "https://registry.npmjs.org/string-builder/-/string-builder-0.1.8.tgz"
+  "version" "0.1.8"
+
 "string-length@^4.0.1":
   "integrity" "sha512-+l6rNN5fYHNhZZy41RXsYptCjA2Igmq4EG7kZAYFQI1E1VTXarr6ZPXBg6eq7Y6eK4FEhY6AJlyuFIb/v/S0VQ=="
   "resolved" "https://registry.npmjs.org/string-length/-/string-length-4.0.2.tgz"

@@ -4,6 +4,9 @@ import { UserModule } from './controller/user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './utils/role/role.guards';
+import ApolloUser from './entity/grails_user.entity';
+import UserRole from './entity/userRole.entity';
+
 
 @Module({
   // TODO : Put in property file
@@ -18,7 +21,8 @@ import { RolesGuard } from './utils/role/role.guards';
         database: 'apollo-production',
         autoLoadEntities: true,
         synchronize: false
-      }), ],
+      }), 
+      TypeOrmModule.forFeature([ApolloUser, UserRole])],
     providers: [
       {
         provide: APP_GUARD,

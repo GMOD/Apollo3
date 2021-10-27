@@ -5,7 +5,7 @@
   "username": "apollo",
   "password": "apollo123",
   "database": "apollo-production",
-  "synchronize": true,
+  "synchronize": false,
   "logging": false,
   "entities": [
      "src/entity/**/*.ts"

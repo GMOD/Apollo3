@@ -1,30 +1,30 @@
-import {Entity, PrimaryGeneratedColumn, Column, BaseEntity} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany, ManyToMany, JoinTable} from "typeorm";
+import UserRole from "./userRole.entity";
 
-@Entity()
-export default class Grails_user extends BaseEntity {
+@Entity({ name:'grails_user' })
+export default class ApolloUser extends BaseEntity {
 
     @PrimaryGeneratedColumn()
-    id: number;
+    id: number;      
 
-    @Column()
+    @Column({ name:'version' })
     version: number;
 
-    @Column()
-    first_name: string;
+    @Column({ name:'first_name' })
+    firstName: string;
 
-    @Column()
-    last_name: string;
+    @Column({ name:'last_name' })
+    lastName: string;
 
-    @Column()
+    @Column({ name:'inactive' })
     inactive: boolean;
 
-    @Column()
+    @Column({ name:'metadata' })
     metadata: string;
 
-    @Column()
-    password_hash: string;
+    @Column({ name:'password_hash' })
+    passwordHash: string;
 
-    @Column()
-    username: string;
-
+    @Column({ name:'username' })
+    userName: string;
 }

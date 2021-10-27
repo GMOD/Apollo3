@@ -1,5 +1,6 @@
-import Grails_user from '../entity/grails_user.entity';
+import ApolloUser from '../entity/grails_user.entity';
 import { Connection, ConnectionManager, getConnectionManager } from 'typeorm';
+import UserRole from '../entity/userRole.entity';
 
 export class Database {
   private connectionManager: ConnectionManager;
@@ -33,7 +34,7 @@ export class Database {
             username: 'apollo',
             password: 'apollo123',
             database: 'apollo-production',
-            entities: [Grails_user],
+            entities: [ApolloUser, UserRole],
             synchronize: false
             });
         await connection.connect(); 
