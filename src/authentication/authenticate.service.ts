@@ -41,7 +41,7 @@ export class AuthenticateService {
         // Return token with SUCCESS status
         let returnToken = this.jwtService.sign(payload);
         this.logger.debug('Login successful. Issued token: ' + JSON.stringify(returnToken));
-        return await response.status(HttpStatus.OK).json(returnToken);        
+        return await response.status(HttpStatus.OK).json({status: HttpStatus.OK, token: returnToken});        
         // Return FAILED status with no token
         // this.logger.error('Login refused');
         // return response.status(HttpStatus.UNAUTHORIZED).json();

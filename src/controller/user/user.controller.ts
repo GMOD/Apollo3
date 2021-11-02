@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, Post, Req, Res, UseGuards } from '@nestjs
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../../utils/jwt-auth.guard';
 import { Request, Response } from 'express';
-import { getCustomRepository } from 'typeorm';
+import { getCustomRepository, getManager } from 'typeorm';
 import { GrailsUserRepository } from '../../repository/GrailsUserRepository';
 import { Roles } from '../../utils/role/role.decorator';
 import { Role } from '../../utils/role/role.enum';
@@ -48,12 +48,12 @@ export class UserController {
      * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
      * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
      */
-         @UseGuards(JwtAuthGuard)
-         @Roles()  // Empty value is for demo only
-         @Get('/userandroles')
-         async getAllUsersAndRoles(@Res() response: Response) {
-           return this.userService.getUsersAndRoles(response);
-         }
+    @UseGuards(JwtAuthGuard)
+    @Roles()  // Empty value is for demo only
+    @Get('/userandroles')
+    async getAllUsersAndRoles(@Res() response: Response) {
+      return this.userService.getUsersAndRoles(response);
+    }
      
     /**
      * Get user by lastname using customized ORM in customs repository
@@ -82,7 +82,8 @@ export class UserController {
     @Roles(Role.Admin) 
     @Post()
     async addNewUser(@Body() user: ApolloUser, @Res() response: Response) {     
-      console.log('username=' + user.userName); 
-    return this.userService.addNewUser(user, response);
+      //return getCustomRepository(GrailsUserRepository).addNewUser(user, response);
+      const result = this.userService.addNewUser(user, response);
+      return result;
     }
 }

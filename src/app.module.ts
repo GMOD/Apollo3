@@ -7,7 +7,6 @@ import { RolesGuard } from './utils/role/role.guards';
 import ApolloUser from './entity/grails_user.entity';
 import UserRole from './entity/userRole.entity';
 
-
 @Module({
   // TODO : Put in property file
   imports: [AuthenticateModule, UserModule, 
@@ -30,4 +29,7 @@ import UserRole from './entity/userRole.entity';
       },
     ],
 })
-export class AppModule {}
+
+
+export class AppModule {
+}

@@ -25,7 +25,7 @@ export class RolesGuard implements CanActivate {
       context.getClass(),
     ]);
     try {
-      this.logger.debug('Required roles are =' + requiredRoles + '=');
+      this.logger.verbose('Required roles are =' + requiredRoles + '=');
       // If no role was required in endpoint then return true
       if (!requiredRoles) {
         return true;
@@ -37,12 +37,12 @@ export class RolesGuard implements CanActivate {
       const token = authHeader.split(' ');
       const payloadObject: PayloadObject = this.getDecodedAccessToken(token[1]);
       
-      this.logger.debug('Extracted from token, username =' + payloadObject.username + '=');
+      this.logger.verbose('Extracted from token, username =' + payloadObject.username + '=');
       //this.logger.debug('RolesGuard handler=' + context.getHandler());
 
       // TODO: Check from database if user has required role
       for (const point of requiredRoles) {
-        this.logger.debug('Role =' + point + '=');
+        this.logger.verbose('Role =' + point + '=');
       }
       if (payloadObject.username == 'john') return true; // TODO: Remove hard-coded check
       

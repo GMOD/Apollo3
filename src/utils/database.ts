@@ -4,6 +4,7 @@ import UserRole from '../entity/userRole.entity';
 
 export class Database {
   private connectionManager: ConnectionManager;
+  private readonly mySqlConfig = require('../utils/dbConfig');
 
   constructor() {
     this.connectionManager = getConnectionManager();
@@ -24,19 +25,9 @@ export class Database {
         connection = await connection.connect();
       }
     } else {
-        const connectionManager = new ConnectionManager();
-        // TODO: Read values from property file
-        const connection = connectionManager.create({
-            type: "mysql",
-            name: 'testConnection',
-            host: "localhost",
-            port: 3306,
-            username: 'apollo',
-            password: 'apollo123',
-            database: 'apollo-production',
-            entities: [ApolloUser, UserRole],
-            synchronize: false
-            });
+        const connectionManager = new ConnectionManager();        
+        // Read values from property file
+        const connection = connectionManager.create(this.mySqlConfig.mysql_config_entities);
         await connection.connect(); 
         return connection;
     }
