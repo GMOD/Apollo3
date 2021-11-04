@@ -31,7 +31,7 @@ export class AuthenticateService {
     
 
       /**
-       * Check user's login attempt. THIS IS JUST FOR DEMO PURPOSE!
+       * Check user's login attempt. TODO: THIS IS JUST FOR DEMO PURPOSE!
        * @param user username
        * @param response Incoming httpresponse
        * @returns Return either token with HttpResponse status 'HttpStatus.OK' OR null with 'HttpStatus.UNAUTHORIZED'

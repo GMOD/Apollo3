@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../../utils/jwt-auth.guard';
-import { Request, Response } from 'express';
-import { getCustomRepository, getManager } from 'typeorm';
+import { Response } from 'express';
+import { getCustomRepository } from 'typeorm';
 import { GrailsUserRepository } from '../../repository/GrailsUserRepository';
 import { Roles } from '../../utils/role/role.decorator';
 import { Role } from '../../utils/role/role.enum';
@@ -82,8 +82,8 @@ export class UserController {
     @Roles(Role.Admin) 
     @Post()
     async addNewUser(@Body() user: ApolloUser, @Res() response: Response) {     
-      //return getCustomRepository(GrailsUserRepository).addNewUser(user, response);
-      const result = this.userService.addNewUser(user, response);
-      return result;
+      return this.userService.addNewUserTypeORMTransaction(user, response); // Saves data using TypeORM transaction. This is working ok
+      // return this.userService.addNewUser(user, response); // Saves data using TypeScript transaction. This is working ok
+
     }
 }

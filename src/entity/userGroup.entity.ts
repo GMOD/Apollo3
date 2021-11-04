@@ -1,4 +1,4 @@
-import {Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
 
 @Entity({ name:'user_group' })
 export default class UserGroup extends BaseEntity {
@@ -20,7 +20,4 @@ export default class UserGroup extends BaseEntity {
 
     @Column({ name:'public_group' })
     publicGroup: number;
-
-    //    @OneToMany(mappedBy = "userId", cascade = CascadeType.ALL)
-//    private List<UserRole> userRoles = new ArrayList<>();
 }

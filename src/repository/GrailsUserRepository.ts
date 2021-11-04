@@ -4,12 +4,13 @@ import ApolloUser from "../entity/grails_user.entity";
 import { HttpException, HttpStatus, Logger } from "@nestjs/common";
 import { Response } from 'express';
 import UserRole from "../entity/userRole.entity";
+import { BaseRepository } from "typeorm-transactional-cls-hooked";
 
 /**
  * Custom repository for grails_user -table
  */
 @EntityRepository(ApolloUser)
-export class GrailsUserRepository extends Repository<ApolloUser> {
+export class GrailsUserRepository extends BaseRepository<ApolloUser> {
     private readonly logger = new Logger(GrailsUserRepository.name);
 
     /**

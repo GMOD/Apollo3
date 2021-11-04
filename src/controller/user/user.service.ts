@@ -1,10 +1,11 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { Connection, EntityManager, Repository, TransactionManager } from 'typeorm';
+import { getConnectionManager, Repository } from 'typeorm';
 import { Response } from 'express';
 import ApolloUser from '../../entity/grails_user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Database } from '../../utils/database';
 import UserRole from '../../entity/userRole.entity';
+import { GrailsUserRepository } from '../../repository/GrailsUserRepository';
+import { UserRoleRepository } from '../../repository/UserRole';
 
 @Injectable()
 export class UserService {
@@ -17,6 +18,7 @@ export class UserService {
       private grailsUsersRepository: Repository<ApolloUser>,
       @InjectRepository( UserRole )
       private userRoleRepo: Repository<UserRole>,
+      readonly repository: GrailsUserRepository,
   ) {};
     
   /**
@@ -76,124 +78,67 @@ export class UserService {
     }        
   }
 
-  /**
-   * Check if new user does not exist in database and if not then add it
+    /**
+   * Check if new user does not exist in database and if not then add it. This method is using TypeORM transaction
    * @param newUser New user information
    * @param response 
    * @returns Return new user object with status 'HttpStatus.OK'
    * or in case of user already exists then return error message with 'HttpStatus.CONFLICT'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
-    async addNewUserTestOnly(newUser: ApolloUser, @TransactionManager() manager: EntityManager, response: Response): Promise<Response> {
-      try {
-          let foundUser = await ApolloUser.findOne({ userName: newUser.userName });
-          if (foundUser != null) {
-            let msg: string = 'Username ' + newUser.userName + ' already exists!'
-            this.logger.error(msg);
-            return response.status(HttpStatus.CONFLICT).json({status: HttpStatus.CONFLICT, message: msg});
-          } 
-  
-        //   // The user did not exist yet, so let's insert it and user's role
-          const database = new Database();
-          const dbConn: Connection = await database.getConnection('testConnection');
-          const queryRunner = dbConn.createQueryRunner();
-        //   const manager = new EntityManager(dbConn);
+     //@Transactional() 
+     // If we use @Transactional() -decorator so then db changes are visible only after whole method is finished 
+     // i.e. after inserting new record, 'await ApolloUser.findOne({ userName: newUser.userName });' -function  does not return anything
+     async addNewUserTypeORMTransaction(newUser: ApolloUser, response: Response): Promise<Response> {
+          //let newUser2 = JSON.parse(JSON.stringify(newUser)); // Copy incoming object for test purpose only
 
-        //   // TODO: Role information is now hard-coded
-        //   let userRole = new UserRole();
-        //   userRole.userId = 49; // justAddedUser.id;
-        //   userRole.roleId = 3; // TODO: HARDCODE VALUE FOR DEMO ONLY
-          
-        //   // const connection = getConnection('default');
-        //   newUser.version=1;
-        //   console.log('Nimi=' + newUser.firstName);
-        //   await dbConn.transaction(async manager => {
-        //     // in transactions you MUST use manager instance provided by a transaction,
-        //     // you cannot use global managers, repositories or custom repositories
-        //     // because this manager is exclusive and transactional
-        //     // and if let's say we would do custom repository as a service
-        //     // it has a "manager" property which should be unique instance of EntityManager
-        //     // but there is no global EntityManager instance and cannot be
-        //     // thats why custom managers are specific to each EntityManager and cannot be services.
-        //     // this also opens opportunity to use custom repositories in transactions without any issues:
-            
-        //     const userRepository = manager.getCustomRepository(GrailsUserRepository); // DONT USE GLOBAL getCustomRepository here!
-        //     await userRepository.addNewUserRepo(newUser);
-        //     await userRepository.addNewUserRepo(newUser);
-        //     //const timber = await userRepository.findByName("Timber", "Saw");
-        // });
-          // lets now open a new transaction:
-          await queryRunner.startTransaction();
           try {
-              // execute some operations on this transaction:
-              // manager.save(newUser);
-              const entity = ApolloUser.create(newUser)
-              await ApolloUser.save(entity)
-              // await ApolloUser.create(newUser).save();
-              //await queryRunner.manager.save(newUser);
-              console.log('User added');
-              // await queryRunner.manager.save(userRole);
-              // await UserRole.save(userRole);
-              // await ApolloUser.create(newUser).save();
-              //await queryRunner.manager.save(newUser);
-              const entity1 = ApolloUser.create(newUser)
-              await ApolloUser.save(entity1)
-              console.log('User added');
+                // Check if there is already same username in db
+                let foundUser = await ApolloUser.findOne({ userName: newUser.userName });
+                if (foundUser != null) {
+                  let msg: string = 'Username ' + newUser.userName + ' already exists!'
+                  this.logger.error(msg);
+                  return response.status(HttpStatus.CONFLICT).json({status: HttpStatus.CONFLICT, message: msg});
+                } 
+          
+                // Get connection
+                const conMan = getConnectionManager();
+                const con = conMan.get();    
 
-            // await queryRunner.manager.getCustomRepository(GrailsUserRepository).addNewUserRepo(newUser);
-            // // Get user from database and return it (now it contains userId)
-            // // let justAddedUser = await ApolloUser.findOne({ userName: newUser.userName });
+                // Transaction rollback is not working if we call our own methods in customs repository!!!!
+                await con.transaction(async (transaction) => {
+                    // If you are using Customs repository method addNewUserRepo() then transaction rollback is not working
+                    // await transaction.getCustomRepository(GrailsUserRepository).addNewUserRepo(newUser); 
+                    await transaction.getCustomRepository(GrailsUserRepository).save(newUser);
+                    this.logger.debug("Added new user with id=" + newUser.id);
 
-            // await queryRunner.manager.getCustomRepository(GrailsUserRepository).addNewUserRoleRepo(userRole);
-              // commit transaction now:
-              await queryRunner.commitTransaction();
-              console.log('COMMITTED!')
-          } catch (err) {
-              // since we have errors let's rollback changes we made
-              console.log('ROLLBACK!!!!' + err)
-              await queryRunner.rollbackTransaction();
-          } finally {
-              // you need to release query runner which is manually created:
-              console.log('RELEASE')
-              await queryRunner.release();
-          }
+                    // TODO: Role information is now hard-coded
+                    let userRole = new UserRole();
+                    userRole.userId = newUser.id;
+                    userRole.roleId = 3; // TODO: HARDCODE VALUE FOR DEMO ONLY      
+                    // If you are using Customs repository method addNewUserRoleRepo() then transaction rollback is not working
+                    // await transaction.getCustomRepository(UserRoleRepository).addNewUserRoleRepo(userRole); 
+                    await transaction.getCustomRepository(UserRoleRepository).save(userRole);
+                    this.logger.debug("Added role " + userRole.roleId + ' for new user (id=' + newUser.id + ')');
+                })
+                .then(() => {
+                  this.logger.debug('Commit done!')
+                })
+                .catch(errMsg => { 
+                  this.logger.debug('Rollback done! ' + errMsg)
+                  throw new HttpException('ERROR in addNewUserTypeORMTransaction(transction) : ' + errMsg, HttpStatus.INTERNAL_SERVER_ERROR);
+                });
 
-
-          // Insert user and user role in one transaction
-          // // TRANSACTIONS ARE NOT WORKING !!!!!!!! INSIDE TRANSACTION YOU CANNOT MAKE QUERIES OTHERWISE TRANSACTIONS ARE NOT WORKING
-          // dbConn.transaction(async entityManager => {
-          //   // const grailsUserRepo = entityManager.getCustomRepository(GrailsUserRepository);
-          //   // await grailsUserRepo.addNewUserRepo(newUser);
-          //   // // Get user from database and return it (now it contains userId)
-          //   // let justAddedUser = await ApolloUser.findOne({ userName: newUser.userName });
-
-          //   // TODO: Role information is now hard-coded
-          //   let userRole = new UserRole();
-          //   userRole.userId = 43; //justAddedUser.id;
-          //   //userRole.roleId = 3; // TODO: HARDCODE VALUE FOR DEMO ONLY
-          //   await ApolloUser.save(newUser);
-          //   await UserRole.save(userRole);
-          //   //await grailsUserRepo.addNewUserRoleRepo(userRole);
-          // });
-        //   await getManager().transaction(async transactionalEntityManager => {
-        //     await transactionalEntityManager.save(newUser);
-        //     let userRole = new UserRole();
-        //     userRole.userId = 46; //justAddedUser.id;
-        //     userRole.roleId = 3; // TODO: HARDCODE VALUE FOR DEMO ONLY
-        //     await transactionalEntityManager.save(userRole);
-        //     // ...
-        // });
-
-          // Get user from database and return it (now it contains userId)
-          let justAddedUser = await ApolloUser.findOne({ userName: newUser.userName });
-          return response.status(HttpStatus.OK).json(justAddedUser);
-      } catch(error) {
-          throw new HttpException('Error in addNewUser() : ' + error, HttpStatus.INTERNAL_SERVER_ERROR);
-      }        
-    }
-
+                // Get user from database and return it (now it contains userId). Actually we could also directly use 'newUser' -object because it has id after it was inserted into db
+                let justAddedUser = await ApolloUser.findOne({ userName: newUser.userName });
+                return response.status(HttpStatus.OK).json({status: HttpStatus.OK, message: justAddedUser});    
+            } catch (errMsg) {
+              throw new HttpException('ERROR in addNewUserTypeORMTransaction(catch) : ' + errMsg, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+     }
+ 
   /**
-   * Check if new user does not exist in database and if not then add it
+   * Check if new user does not exist in database and if not then add it. This is using TypeScript/MySQL transaction
    * @param newUser New user information
    * @param response 
    * @returns Return new user object with status 'HttpStatus.OK'

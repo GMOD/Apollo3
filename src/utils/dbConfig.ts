@@ -1,3 +1,4 @@
+// This is needed for MySQL connection pooling
 export const mysql_config = {
   host     : 'localhost',
   user     : 'apollo',
@@ -5,6 +6,7 @@ export const mysql_config = {
   database : 'apollo-production'
 };
 
+//  This is needed for TypeORM
 export const mysql_config_entities = {
     type: "mysql",
     name: 'testConnection',
@@ -13,8 +15,19 @@ export const mysql_config_entities = {
     username: 'apollo',
     password: 'apollo123',
     database: 'apollo-production',
-    //entities: [ApolloUser, UserRole],
-    entities: ['../entity/**/*.ts'],
+    entities: ['../entity/**/*.ts'],     //entities: [ApolloUser, UserRole],
     synchronize: false
 };
 
+// This is just for test purpose....
+export default () => ({
+    type: 'mysql',
+    name: 'default',
+    host: 'localhost',
+    port: 3306,
+    username: 'apollo',
+    password: 'apollo123',
+    database: 'apollo-production',
+    autoLoadEntities: true,
+    synchronize: false
+});
