@@ -1,0 +1,5 @@
+.jbrowse/
+
+# Cypress specific files
+cypress/videos
+cypress/screenshots

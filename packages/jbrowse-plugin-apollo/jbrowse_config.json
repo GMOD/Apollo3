@@ -1,0 +1,8 @@
+{
+  "plugins": [
+    {
+      "name": "Apollo",
+      "url": "http://localhost:9000/dist/jbrowse-plugin-apollo.umd.development.js"
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "version": "0.0.1",
+  "name": "jbrowse-plugin-apollo",
+  "description": "Apollo plugin for JBrowse 2",
+  "repository": "https://github.com/github:GMOD/jbrowse-plugin-apollo",
+  "author": "JBrowse Team",
+  "license": "Apache-2.0",
+  "keywords": [
+    "jbrowse",
+    "jbrowse2"
+  ],
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "config": {
+    "port": 9000,
+    "browse": {
+      "port": 8999
+    },
+    "jbrowse": {
+      "plugin": {
+        "name": "Apollo"
+      }
+    }
+  },
+  "scripts": {
+    "setup": "rimraf .jbrowse && jbrowse create .jbrowse",
+    "clean": "rimraf dist",
+    "start": "yarn clean && npm-run-all --parallel start:watch start:server",
+    "start:watch": "rollup --config --watch",
+    "start:server": "serve --cors --listen 9000 .",
+    "build": "yarn clean && rollup --config",
+    "browse": "cp jbrowse_config.json .jbrowse/config.json && serve --listen 8999 .jbrowse",
+    "test": "jest",
+    "test:e2e": "start-test \"npm-run-all --parallel start browse\" \"9000|8999\" \"npm-run-all cypress:run\"",
+    "cypress:run": "cypress run --headless --browser chrome --config baseUrl=http://localhost:8999",
+    "cypress:open": "cypress open --config baseUrl=http://localhost:8999",
+    "prepublish": "yarn test",
+    "prepack": "yarn build",
+    "postversion": "git push --follow-tags"
+  },
+  "jbrowse-plugin": {
+    "name": "Apollo"
+  },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "<rootDir>/cypress/"
+    ]
+  },
+  "dependencies": {
+    "tslib": "^2.0.3"
+  },
+  "peerDependencies": {
+    "@jbrowse/core": "^1.5.0",
+    "mobx-state-tree": "3.14.1",
+    "react": "^17.0.2"
+  },
+  "devDependencies": {
+    "@jbrowse/cli": "^1.5.1",
+    "@jbrowse/core": "^1.5.0",
+    "@jbrowse/development-tools": "^1.5.2",
+    "@types/cypress": "^1.1.3",
+    "@types/node": "^16.11.6",
+    "@types/react": "^17.0.34",
+    "cypress": "^8.7.0",
+    "jest": "^27.3.1",
+    "mobx-state-tree": "3.14.1",
+    "npm-run-all": "4.1.5",
+    "react": "^17.0.2",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.59.0",
+    "serve": "^11.3.2",
+    "shx": "^0.3.3",
+    "start-server-and-test": "^1.11.7",
+    "ts-node": "^10.3.0",
+    "typescript": "^4.4.4"
+  },
+  "packageManager": "yarn@3.1.0",
+  "private": true
+}
