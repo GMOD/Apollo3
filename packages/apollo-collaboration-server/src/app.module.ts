@@ -5,11 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { APP_GUARD } from '@nestjs/core'
 import { RolesGuard } from './utils/role/role.guards'
 import { initializeTransactionalContext } from 'typeorm-transactional-cls-hooked'
+import { FileHandlingModule } from './file-handling/file-handling.module'
 
 initializeTransactionalContext() // Initialize cls-hooked
 
 @Module({
   imports: [
+    FileHandlingModule,
     AuthenticateModule,
     UserModule,
     TypeOrmModule.forRoot({
@@ -23,6 +25,7 @@ initializeTransactionalContext() // Initialize cls-hooked
       autoLoadEntities: true,
       synchronize: false,
     }),
+    FileHandlingModule,
   ],
   providers: [
     {

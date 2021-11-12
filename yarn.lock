@@ -2785,6 +2785,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/multer@npm:^1.4.7":
+  version: 1.4.7
+  resolution: "@types/multer@npm:1.4.7"
+  dependencies:
+    "@types/express": "*"
+  checksum: 680cb0710aa25264d20cdcdaf34c212b636b55ea141310f06c25354ab1401193c7aa6839f9d22abf64a223fab1f2b8287f2512b0bef7e1628c4e9ffe54b4aeb2
+  languageName: node
+  linkType: hard
+
 "@types/node@npm:*, @types/node@npm:^16.0.0, @types/node@npm:^16.11.6":
   version: 16.11.6
   resolution: "@types/node@npm:16.11.6"
@@ -3815,6 +3824,7 @@ __metadata:
     "@nestjs/typeorm": ^8.0.2
     "@types/express": ^4.17.13
     "@types/jest": ^27.0.1
+    "@types/multer": ^1.4.7
     "@types/node": ^16.0.0
     "@types/passport-local": ^1.0.34
     "@types/supertest": ^2.0.11
