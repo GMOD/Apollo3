@@ -62,7 +62,7 @@
   "devDependencies": {
     "@jbrowse/cli": "^1.5.1",
     "@jbrowse/core": "^1.5.0",
-    "@jbrowse/development-tools": "^1.5.2",
+    "@jbrowse/development-tools": "^1.5.1",
     "@types/cypress": "^1.1.3",
     "@types/node": "^16.11.6",
     "@types/react": "^17.0.34",

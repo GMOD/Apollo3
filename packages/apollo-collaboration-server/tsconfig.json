@@ -15,6 +15,7 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "noImplicitReturns": false // KS 12.11.2021: Otherwise ESLint produces error message 'TS7030: Not all code paths return a value.' in non-relevant places
   }
 }

@@ -225,7 +225,7 @@ export class UserService {
       const addRoleSql =
         'INSERT INTO grails_user_roles (user_id, role_id) VALUES (?, ?)'
       const addRoleArgs = [userRole.userId, userRole.roleId]
-      const queryResultAddRole = await dbConn.query(addRoleSql, addRoleArgs)
+      await dbConn.query(addRoleSql, addRoleArgs)
       this.logger.debug('Added role ' + userRole.roleId + ' for new user')
 
       await dbConn.commit()
@@ -239,7 +239,7 @@ export class UserService {
         .status(HttpStatus.OK)
         .json({ status: HttpStatus.OK, message: justAddedUser })
     } catch (err) {
-      this.logger.error(`ERROR when creating new user: ${err.message}`, err)
+      this.logger.error(`ERROR when creating new user: ` + err)
       dbConn.rollback()
       dbConn.release()
       this.logger.debug('Rollback done')
