@@ -95,6 +95,7 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
     try {
       // TODO: Put connection name to property file
       const dbConn: Connection = await database.getConnection('testConnection')
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const StringBuilder = require('string-builder')
       const sqlQuery = new StringBuilder('')
       // SQL query to get users and roles
