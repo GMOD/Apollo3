@@ -1,10 +1,11 @@
-import { Database } from '../utils/database'
-import { Connection, ConnectionOptions, EntityRepository } from 'typeorm'
-import ApolloUser from '../entity/grails_user.entity'
 import { HttpException, HttpStatus, Logger } from '@nestjs/common'
 import { Response } from 'express'
-import UserRole from '../entity/userRole.entity'
+import { Connection, ConnectionOptions, EntityRepository } from 'typeorm'
 import { BaseRepository } from 'typeorm-transactional-cls-hooked'
+
+import ApolloUser from '../entity/grails_user.entity'
+import UserRole from '../entity/userRole.entity'
+import { Database } from '../utils/database'
 
 /**
  * Custom repository for grails_user -table
@@ -36,14 +37,13 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
           this.logger.log('Data found (getAllUsernames)')
           this.logger.debug(JSON.stringify(returnValue))
           return response.status(HttpStatus.OK).json(returnValue)
-        } else {
-          this.logger.log('No data found (getAllUsernames)')
-          throw new HttpException(
-            'No data found (getAllUsernames)',
-            HttpStatus.NOT_FOUND,
-          )
-          //return response.status(HttpStatus.NOT_FOUND).json({status: HttpStatus.NOT_FOUND, message: 'No data found'});
         }
+        this.logger.log('No data found (getAllUsernames)')
+        throw new HttpException(
+          'No data found (getAllUsernames)',
+          HttpStatus.NOT_FOUND,
+        )
+        // return response.status(HttpStatus.NOT_FOUND).json({status: HttpStatus.NOT_FOUND, message: 'No data found'});
       } else {
         this.logger.error('No connection to database (getAllUsernames)')
         throw new HttpException(
@@ -53,9 +53,9 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
         // return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'No connection to database in getUsernamesFromDatabase()'});
       }
     } catch (error) {
-      this.logger.error('Error in getUsernamesFromDatabase(): ' + error)
+      this.logger.error(`Error in getUsernamesFromDatabase(): ${error}`)
       throw new HttpException(
-        'Error in getUsernamesFromDatabase(): ' + error,
+        `Error in getUsernamesFromDatabase(): ${error}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       )
       // return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Error in getUsernamesFromDatabase(): ' + error});
@@ -70,20 +70,19 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
   async findByLastName(lastname: string, response: Response): Promise<any> {
-    this.logger.log('Find by lastname : "' + lastname + '"')
+    this.logger.log(`Find by lastname : "${lastname}"`)
     const returnValue = await this.findOne({ lastName: lastname })
     if (returnValue != null) {
       this.logger.log('Data found (findByLastName)')
       this.logger.debug(JSON.stringify(returnValue))
       return response.status(HttpStatus.OK).json(returnValue)
-    } else {
-      this.logger.log('No data found (findByLastName)')
-      throw new HttpException(
-        'No data found (findByLastName)',
-        HttpStatus.NOT_FOUND,
-      )
-      //return response.status(HttpStatus.NOT_FOUND).json({status: HttpStatus.NOT_FOUND, message: 'No data found'});
     }
+    this.logger.log('No data found (findByLastName)')
+    throw new HttpException(
+      'No data found (findByLastName)',
+      HttpStatus.NOT_FOUND,
+    )
+    // return response.status(HttpStatus.NOT_FOUND).json({status: HttpStatus.NOT_FOUND, message: 'No data found'});
   }
 
   /**
@@ -116,14 +115,13 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
           this.logger.log('Data found (getUsersAndRolesRepo)')
           this.logger.debug(JSON.stringify(returnValue))
           return response.status(HttpStatus.OK).json(returnValue)
-        } else {
-          this.logger.log('No data found (getUsersAndRolesRepo)')
-          throw new HttpException(
-            'No data found (getUsersAndRolesRepo)',
-            HttpStatus.NOT_FOUND,
-          )
-          //return response.status(HttpStatus.NOT_FOUND).json({status: HttpStatus.NOT_FOUND, message: 'No data found'});
         }
+        this.logger.log('No data found (getUsersAndRolesRepo)')
+        throw new HttpException(
+          'No data found (getUsersAndRolesRepo)',
+          HttpStatus.NOT_FOUND,
+        )
+        // return response.status(HttpStatus.NOT_FOUND).json({status: HttpStatus.NOT_FOUND, message: 'No data found'});
       } else {
         this.logger.error('No connection to database (getUsersAndRolesRepo)')
         throw new HttpException(
@@ -133,9 +131,9 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
         // return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'No connection to database in getUsernamesFromDatabase()'});
       }
     } catch (error) {
-      this.logger.error('Error in getUsersAndRolesRepo(): ' + error)
+      this.logger.error(`Error in getUsersAndRolesRepo(): ${error}`)
       throw new HttpException(
-        'Error in getUsersAndRolesRepo(): ' + error,
+        `Error in getUsersAndRolesRepo(): ${error}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       )
       // return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Error in getUsernamesFromDatabase(): ' + error});
@@ -164,11 +162,11 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
   async addNewUserRepo(newUser: ApolloUser): Promise<Response> {
     try {
       await ApolloUser.save(newUser)
-      this.logger.debug('Added new user: ' + JSON.stringify(newUser))
+      this.logger.debug(`Added new user: ${JSON.stringify(newUser)}`)
       return
     } catch (error) {
       throw new HttpException(
-        'Error in addNewUserRepo() : ' + error,
+        `Error in addNewUserRepo() : ${error}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       )
     }
@@ -184,11 +182,11 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
   async addNewUserRoleRepo(newUserRole: UserRole): Promise<Response> {
     try {
       await UserRole.save(newUserRole)
-      this.logger.debug('Added new user role: ' + JSON.stringify(newUserRole))
+      this.logger.debug(`Added new user role: ${JSON.stringify(newUserRole)}`)
       return
     } catch (error) {
       throw new HttpException(
-        'Error in addNewUserRoleRepo() : ' + error,
+        `Error in addNewUserRoleRepo() : ${error}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       )
     }

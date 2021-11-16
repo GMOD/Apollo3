@@ -1,7 +1,8 @@
 import { Controller, Post, Request, Res, UseGuards } from '@nestjs/common'
-import { AuthenticateService } from './authenticate.service'
-import { LocalAuthGuard } from '../utils/local-auth.guard'
 import { Response } from 'express'
+
+import { LocalAuthGuard } from '../utils/local-auth.guard'
+import { AuthenticateService } from './authenticate.service'
 
 @Controller('auth')
 export class AuthenticateController {
@@ -16,6 +17,6 @@ export class AuthenticateController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Request() req, @Res() response: Response): Promise<Response> {
-    return await this.authService.login(req.user, response)
+    return this.authService.login(req.user, response)
   }
 }

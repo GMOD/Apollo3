@@ -1,8 +1,9 @@
-import { EntityRepository } from 'typeorm'
 import { HttpException, HttpStatus, Logger } from '@nestjs/common'
 import { Response } from 'express'
-import UserRole from '../entity/userRole.entity'
+import { EntityRepository } from 'typeorm'
 import { BaseRepository } from 'typeorm-transactional-cls-hooked'
+
+import UserRole from '../entity/userRole.entity'
 
 /**
  * Custom repository for grails_user -table
@@ -21,11 +22,11 @@ export class UserRoleRepository extends BaseRepository<UserRole> {
   async addNewUserRoleRepo(newUserRole: UserRole): Promise<Response> {
     try {
       await UserRole.save(newUserRole)
-      this.logger.debug('Added new user role: ' + JSON.stringify(newUserRole))
+      this.logger.debug(`Added new user role: ${JSON.stringify(newUserRole)}`)
       return
     } catch (error) {
       throw new HttpException(
-        'Error in addNewUserRoleRepo() : ' + error,
+        `Error in addNewUserRoleRepo() : ${error}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       )
     }

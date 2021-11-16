@@ -4,18 +4,18 @@ import {
   Get,
   Param,
   Post,
-  Req,
   Res,
   UseGuards,
 } from '@nestjs/common'
-import { UserService } from './user.service'
-import { JwtAuthGuard } from '../../utils/jwt-auth.guard'
 import { Response } from 'express'
 import { getCustomRepository } from 'typeorm'
+
+import ApolloUser from '../../entity/grails_user.entity'
 import { GrailsUserRepository } from '../../repository/GrailsUserRepository'
+import { JwtAuthGuard } from '../../utils/jwt-auth.guard'
 import { Roles } from '../../utils/role/role.decorator'
 import { Role } from '../../utils/role/role.enum'
-import ApolloUser from '../../entity/grails_user.entity'
+import { UserService } from './user.service'
 
 @Controller('user')
 export class UserController {

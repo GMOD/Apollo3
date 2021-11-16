@@ -1,9 +1,10 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { getConnectionManager, getCustomRepository, Repository } from 'typeorm'
-import { Response } from 'express'
-import ApolloUser from '../../entity/grails_user.entity'
 import { InjectRepository } from '@nestjs/typeorm'
+import { Response } from 'express'
+import { Repository, getConnectionManager, getCustomRepository } from 'typeorm'
+
+import ApolloUser from '../../entity/grails_user.entity'
 import UserRole from '../../entity/userRole.entity'
 import { GrailsUserRepository } from '../../repository/GrailsUserRepository'
 import { UserRoleRepository } from '../../repository/UserRole'
@@ -45,18 +46,17 @@ export class UserService {
         this.logger.log('Data found (getUsersAndRoles)')
         this.logger.debug(JSON.stringify(returnValue))
         return response.status(HttpStatus.OK).json(returnValue)
-      } else {
-        this.logger.warn('No data found (getUsersAndRoles)')
-        return response
-          .status(HttpStatus.NOT_FOUND)
-          .json({ status: HttpStatus.NOT_FOUND, message: 'No data found' })
       }
+      this.logger.warn('No data found (getUsersAndRoles)')
+      return response
+        .status(HttpStatus.NOT_FOUND)
+        .json({ status: HttpStatus.NOT_FOUND, message: 'No data found' })
     } catch (error) {
       throw new HttpException(
-        'Error in getUsersAndRoles() : ' + error,
+        `Error in getUsersAndRoles() : ${error}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       )
-      //return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Error in getUsersAndRoles() : ' + error});
+      // return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Error in getUsersAndRoles() : ' + error});
     }
   }
 
@@ -74,18 +74,17 @@ export class UserService {
         this.logger.log('Data found (getAllUsersORM)')
         this.logger.debug(JSON.stringify(returnValue))
         return response.status(HttpStatus.OK).json(returnValue)
-      } else {
-        this.logger.warn('No data found (getAllUsersORM)')
-        return response
-          .status(HttpStatus.NOT_FOUND)
-          .json({ status: HttpStatus.NOT_FOUND, message: 'No data found' })
       }
+      this.logger.warn('No data found (getAllUsersORM)')
+      return response
+        .status(HttpStatus.NOT_FOUND)
+        .json({ status: HttpStatus.NOT_FOUND, message: 'No data found' })
     } catch (error) {
       throw new HttpException(
-        'Error in getAllUsersORM() : ' + error,
+        `Error in getAllUsersORM() : ${error}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       )
-      //return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Error in getAllUsersORM() : ' + error});
+      // return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Error in getAllUsersORM() : ' + error});
     }
   }
 
@@ -97,20 +96,20 @@ export class UserService {
    * or in case of user already exists then return error message with 'HttpStatus.CONFLICT'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
-  //@Transactional()
+  // @Transactional()
   // If we use @Transactional() -decorator so then db changes are visible only after whole method is finished
   // i.e. after inserting new record, 'await ApolloUser.findOne({ userName: newUser.userName });' -function  does not return anything
   async addNewUserTypeORMTransaction(
     newUser: ApolloUser,
     response: Response,
   ): Promise<Response> {
-    //let newUser2 = JSON.parse(JSON.stringify(newUser)); // Copy incoming object for test purpose only
+    // let newUser2 = JSON.parse(JSON.stringify(newUser)); // Copy incoming object for test purpose only
 
     try {
       // Check if there is already same username in db
       const foundUser = await ApolloUser.findOne({ userName: newUser.userName })
       if (foundUser != null) {
-        const msg: string = 'Username ' + newUser.userName + ' already exists!'
+        const msg = `Username ${newUser.userName} already exists!`
         this.logger.error(msg)
         return response
           .status(HttpStatus.CONFLICT)
@@ -129,7 +128,7 @@ export class UserService {
           await transaction
             .getCustomRepository(GrailsUserRepository)
             .save(newUser)
-          this.logger.debug('Added new user with id=' + newUser.id)
+          this.logger.debug(`Added new user with id=${newUser.id}`)
 
           // TODO: Role information is now hard-coded
           const userRole = new UserRole()
@@ -141,20 +140,16 @@ export class UserService {
             .getCustomRepository(UserRoleRepository)
             .save(userRole)
           this.logger.debug(
-            'Added role ' +
-              userRole.roleId +
-              ' for new user (id=' +
-              newUser.id +
-              ')',
+            `Added role ${userRole.roleId} for new user (id=${newUser.id})`,
           )
         })
         .then(() => {
           this.logger.debug('Commit done!')
         })
         .catch((errMsg) => {
-          this.logger.debug('Rollback done! ' + errMsg)
+          this.logger.debug(`Rollback done! ${errMsg}`)
           throw new HttpException(
-            'ERROR in addNewUserTypeORMTransaction(transction) : ' + errMsg,
+            `ERROR in addNewUserTypeORMTransaction(transction) : ${errMsg}`,
             HttpStatus.INTERNAL_SERVER_ERROR,
           )
         })
@@ -168,7 +163,7 @@ export class UserService {
         .json({ status: HttpStatus.OK, message: justAddedUser })
     } catch (errMsg) {
       throw new HttpException(
-        'ERROR in addNewUserTypeORMTransaction(catch) : ' + errMsg,
+        `ERROR in addNewUserTypeORMTransaction(catch) : ${errMsg}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       )
     }
@@ -189,7 +184,7 @@ export class UserService {
       // Check if there is already same username in db
       const foundUser = await ApolloUser.findOne({ userName: newUser.userName })
       if (foundUser != null) {
-        const msg = 'Username ' + newUser.userName + ' already exists!'
+        const msg = `Username ${newUser.userName} already exists!`
         this.logger.error(msg)
         return response
           .status(HttpStatus.CONFLICT)
@@ -221,7 +216,7 @@ export class UserService {
       ]
       const queryResultAddUser = await dbConn.query(addUserSql, addUserArgs)
       const newUserId = queryResultAddUser[0].insertId
-      this.logger.debug('Added new user with id = ' + newUserId)
+      this.logger.debug(`Added new user with id = ${newUserId}`)
 
       // Add user role
       // TODO: Role information is now hard-coded
@@ -232,7 +227,7 @@ export class UserService {
         'INSERT INTO grails_user_roles (user_id, role_id) VALUES (?, ?)'
       const addRoleArgs = [userRole.userId, userRole.roleId]
       await dbConn.query(addRoleSql, addRoleArgs)
-      this.logger.debug('Added role ' + userRole.roleId + ' for new user')
+      this.logger.debug(`Added role ${userRole.roleId} for new user`)
 
       await dbConn.commit()
       this.logger.verbose('Committed')
@@ -245,12 +240,12 @@ export class UserService {
         .status(HttpStatus.OK)
         .json({ status: HttpStatus.OK, message: justAddedUser })
     } catch (err) {
-      this.logger.error(`ERROR when creating new user: ` + err)
+      this.logger.error(`ERROR when creating new user: ${err}`)
       dbConn.rollback()
       dbConn.release()
       this.logger.debug('Rollback done')
       throw new HttpException(
-        'ERROR in addNewUser() : ' + err,
+        `ERROR in addNewUser() : ${err}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       )
     }
@@ -265,7 +260,7 @@ export class UserService {
       username: this.configService.get<string>('TYPEORM_USERNAME'),
       password: this.configService.get<string>('TYPEORM_PASSWORD'),
       database: this.configService.get<string>('TYPEORM_DATABASE'),
-      entities: ['../entity/**/*.ts'], //entities: [ApolloUser, UserRole],
+      entities: ['../entity/**/*.ts'], // entities: [ApolloUser, UserRole],
       synchronize: JSON.parse(
         this.configService.get<string>('TYPEORM_SYNCHRONIZE'),
       ),

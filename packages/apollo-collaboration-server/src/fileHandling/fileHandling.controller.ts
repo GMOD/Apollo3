@@ -1,3 +1,6 @@
+import { createReadStream } from 'fs'
+import { join } from 'path'
+
 import {
   Controller,
   Get,
@@ -10,12 +13,11 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common'
-import { FileHandlingService } from './fileHandling.service'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
 import { Response } from 'express'
-import { createReadStream } from 'fs'
-import { join } from 'path'
+
 import { fileSearchFolderConfig } from '../utils/fileConfig'
+import { FileHandlingService } from './fileHandling.service'
 
 @Controller('fileHandling')
 export class FileHandlingController {
@@ -53,17 +55,11 @@ export class FileHandlingController {
     // Check if file exists
     if (!this.fileService.fileExists(filename)) {
       this.logger.error(
-        'File =' +
-          filename +
-          '= does not exist in folder =' +
-          fileSearchFolderConfig.searchFolder +
-          '=',
+        `File =${filename}= does not exist in folder =${fileSearchFolderConfig.searchFolder}=`,
       )
-      throw new InternalServerErrorException(
-        'File ' + filename + ' does not exist!',
-      )
+      throw new InternalServerErrorException(`File ${filename} does not exist!`)
     }
-    this.logger.debug('Starting to download file ' + filename)
+    this.logger.debug(`Starting to download file ${filename}`)
 
     // Download file
     const file = createReadStream(
