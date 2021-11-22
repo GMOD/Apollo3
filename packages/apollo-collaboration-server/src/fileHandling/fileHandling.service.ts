@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common'
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common'
 import { createWriteStream, existsSync } from 'fs'
 import { Response } from 'express'
 import { fileSearchFolderConfig, uploadedFileConfig } from '../utils/fileConfig'
@@ -21,48 +27,37 @@ export class FileHandlingService {
     file: Express.Multer.File,
     response: Response,
   ): Promise<Response> {
-    try {
-      // Check if filesize is 0
-      if (file.size < 1) {
-        const msg = 'File ' + file.originalname + ' is empty!'
-        this.logger.error(msg)
-        return response
-          .status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .json({ status: HttpStatus.INTERNAL_SERVER_ERROR, message: msg })
-      }
-      this.logger.debug(
-        'Starting to save file ' +
-          file.originalname +
-          ', size=' +
-          file.size +
-          ' bytes.',
-      )
-      // Join path+filename
-      const newFullFileName = join(
-        uploadedFileConfig.outputFolder,
-        'uploaded_' +
-          this.commUtils.getCurrentDateTime() +
-          '_' +
-          file.originalname,
-      )
-      this.logger.debug('New file will be saved as ' + newFullFileName)
-
-      // Save file
-      const ws = createWriteStream(newFullFileName)
-      ws.write(file.buffer)
-      ws.close()
-      return response.status(HttpStatus.OK).json({
-        status: HttpStatus.OK,
-        message: 'File ' + file.originalname + ' was saved',
-      })
-    } catch (err) {
-      this.logger.error('ERROR when saving file: ' + err)
-      // Delete file if it was already saved???
-      throw new HttpException(
-        'ERROR in saveNewFile() : ' + err,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      )
+    // Check if filesize is 0
+    if (file.size < 1) {
+      const msg = 'File ' + file.originalname + ' is empty!'
+      this.logger.error(msg)
+      throw new InternalServerErrorException(msg)
     }
+    this.logger.debug(
+      'Starting to save file ' +
+        file.originalname +
+        ', size=' +
+        file.size +
+        ' bytes.',
+    )
+    // Join path+filename
+    const newFullFileName = join(
+      uploadedFileConfig.outputFolder,
+      'uploaded_' +
+        this.commUtils.getCurrentDateTime() +
+        '_' +
+        file.originalname,
+    )
+    this.logger.debug('New file will be saved as ' + newFullFileName)
+
+    // Save file
+    const ws = createWriteStream(newFullFileName)
+    ws.write(file.buffer)
+    ws.close()
+    return response.status(HttpStatus.OK).json({
+      status: HttpStatus.OK,
+      message: 'File ' + file.originalname + ' was saved',
+    })
   }
 
   /**
