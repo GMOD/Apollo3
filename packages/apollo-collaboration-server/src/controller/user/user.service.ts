@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common'
-import { getConnectionManager, Repository } from 'typeorm'
+import { ConfigService } from '@nestjs/config'
+import { getConnectionManager, getCustomRepository, Repository } from 'typeorm'
 import { Response } from 'express'
 import ApolloUser from '../../entity/grails_user.entity'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -11,7 +12,6 @@ import { UserRoleRepository } from '../../repository/UserRole'
 export class UserService {
   private readonly logger = new Logger(UserService.name)
   private readonly mysql = require('mysql2/promise')
-  private readonly mySqlConfig = require('../../utils/dbConfig')
 
   constructor(
     @InjectRepository(ApolloUser)
@@ -19,6 +19,7 @@ export class UserService {
     @InjectRepository(UserRole)
     private userRoleRepo: Repository<UserRole>,
     readonly repository: GrailsUserRepository,
+    private configService: ConfigService,
   ) {}
 
   /**
@@ -196,7 +197,12 @@ export class UserService {
       }
 
       // Create connection
-      const pool = this.mysql.createPool(this.mySqlConfig.mysql_config)
+      const pool = this.mysql.createPool({
+        host: this.configService.get<string>('TYPEORM_HOST'),
+        user: this.configService.get<string>('TYPEORM_USERNAME'),
+        password: this.configService.get<string>('TYPEORM_PASSWORD'),
+        database: this.configService.get<string>('TYPEORM_DATABASE'),
+      })
       this.logger.verbose('Creating connection...')
       dbConn = await pool.getConnection()
       this.logger.verbose('Starting transaction...')
@@ -248,5 +254,21 @@ export class UserService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       )
     }
+  }
+
+  async getAllUsernames(response: Response) {
+    return getCustomRepository(GrailsUserRepository).getAllUsernames(response, {
+      type: this.configService.get<'mysql'>('TYPEORM_CONNECTION'),
+      name: 'testConnection',
+      host: this.configService.get<string>('TYPEORM_HOST'),
+      port: parseInt(this.configService.get<string>('TYPEORM_PORT'), 10),
+      username: this.configService.get<string>('TYPEORM_USERNAME'),
+      password: this.configService.get<string>('TYPEORM_PASSWORD'),
+      database: this.configService.get<string>('TYPEORM_DATABASE'),
+      entities: ['../entity/**/*.ts'], //entities: [ApolloUser, UserRole],
+      synchronize: JSON.parse(
+        this.configService.get<string>('TYPEORM_SYNCHRONIZE'),
+      ),
+    })
   }
 }

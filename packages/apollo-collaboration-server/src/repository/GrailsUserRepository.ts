@@ -1,5 +1,5 @@
 import { Database } from '../utils/database'
-import { Connection, EntityRepository, Repository } from 'typeorm'
+import { Connection, ConnectionOptions, EntityRepository } from 'typeorm'
 import ApolloUser from '../entity/grails_user.entity'
 import { HttpException, HttpStatus, Logger } from '@nestjs/common'
 import { Response } from 'express'
@@ -20,8 +20,11 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
-  async getAllUsernames(response: Response): Promise<Response> {
-    const database = new Database()
+  async getAllUsernames(
+    response: Response,
+    connectionOptions: ConnectionOptions,
+  ): Promise<Response> {
+    const database = new Database(connectionOptions)
     try {
       // TODO: Put connection name to property file
       const dbConn: Connection = await database.getConnection('testConnection')
@@ -90,11 +93,15 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
-  async getUsersAndRolesRepo(response: Response): Promise<Response> {
-    const database = new Database()
+  async getUsersAndRolesRepo(
+    response: Response,
+    connectionOptions: ConnectionOptions,
+  ): Promise<Response> {
+    const database = new Database(connectionOptions)
     try {
       // TODO: Put connection name to property file
       const dbConn: Connection = await database.getConnection('testConnection')
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const StringBuilder = require('string-builder')
       const sqlQuery = new StringBuilder('')
       // SQL query to get users and roles

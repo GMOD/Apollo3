@@ -1,10 +1,16 @@
-import { Connection, ConnectionManager, getConnectionManager } from 'typeorm'
+import {
+  Connection,
+  ConnectionManager,
+  ConnectionOptions,
+  getConnectionManager,
+} from 'typeorm'
 
 export class Database {
   private connectionManager: ConnectionManager
-  private readonly mySqlConfig = require('../utils/dbConfig')
+  private readonly connectionOptions: ConnectionOptions
 
-  constructor() {
+  constructor(connectionOptions: ConnectionOptions) {
+    this.connectionOptions = connectionOptions
     this.connectionManager = getConnectionManager()
   }
 
@@ -22,12 +28,10 @@ export class Database {
       if (!connection.isConnected) {
         connection = await connection.connect()
       }
+      return connection
     } else {
       const connectionManager = new ConnectionManager()
-      // Read values from property file
-      const connection = connectionManager.create(
-        this.mySqlConfig.mysql_config_entities,
-      )
+      const connection = connectionManager.create(this.connectionOptions)
       await connection.connect()
       return connection
     }

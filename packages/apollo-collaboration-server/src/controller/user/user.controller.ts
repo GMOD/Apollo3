@@ -46,7 +46,7 @@ export class UserController {
   @Roles() // Empty value is for demo only
   @Get('/usernames')
   async getAllUsers2(@Res() response: Response) {
-    return getCustomRepository(GrailsUserRepository).getAllUsernames(response)
+    return this.userService.getAllUsernames(response)
   }
 
   /**
