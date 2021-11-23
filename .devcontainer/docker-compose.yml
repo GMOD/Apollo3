@@ -34,7 +34,7 @@ services:
       - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       MYSQL_ROOT_PASSWORD: demo
-      MYSQL_USER: apollo@localhost
+      MYSQL_USER: apollo
       MYSQL_PASSWORD: apollo123
       MYSQL_DATABASE: apollo
 
