@@ -5,9 +5,9 @@ import { AbstractSessionModel, isAbstractMenuManager } from '@jbrowse/core/util'
 
 import { version } from '../package.json'
 import {
-  ReactComponent as HelloViewReactComponent,
-  stateModel as helloViewStateModel,
-} from './HelloView'
+  ApolloView as ApolloViewReactComponent,
+  stateModelFactory as apolloViewStateModelFactory,
+} from './ApolloView'
 
 export default class ApolloPlugin extends Plugin {
   name = 'ApolloPlugin'
@@ -16,9 +16,9 @@ export default class ApolloPlugin extends Plugin {
   install(pluginManager: PluginManager) {
     pluginManager.addViewType(() => {
       return new ViewType({
-        name: 'HelloView',
-        stateModel: helloViewStateModel,
-        ReactComponent: HelloViewReactComponent,
+        name: 'ApolloView',
+        stateModel: apolloViewStateModelFactory(pluginManager),
+        ReactComponent: ApolloViewReactComponent,
       })
     })
   }
@@ -26,9 +26,11 @@ export default class ApolloPlugin extends Plugin {
   configure(pluginManager: PluginManager) {
     if (isAbstractMenuManager(pluginManager.rootModel)) {
       pluginManager.rootModel.appendToMenu('Add', {
-        label: 'Hello View',
+        label: 'Apollo View',
         onClick: (session: AbstractSessionModel) => {
-          session.addView('HelloView', {})
+          session.addView('ApolloView', {
+            linearGenomeView: { type: 'LinearGenomeView' },
+          })
         },
       })
     }
