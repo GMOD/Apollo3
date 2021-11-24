@@ -156,7 +156,7 @@ export class FileHandlingController {
   }
 
   /**
-   * Fetch features based on Chromosome, Start and End -values
+   * Fetch features based on Reference seq, Start and End -values
    * @param searchDto Data Transfer Object that contains information about searchable region
    * @param res
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
