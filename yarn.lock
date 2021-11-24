@@ -1631,6 +1631,35 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@jbrowse/plugin-linear-genome-view@npm:^1.5.1":
+  version: 1.5.1
+  resolution: "@jbrowse/plugin-linear-genome-view@npm:1.5.1"
+  dependencies:
+    "@material-ui/icons": ^4.9.1
+    "@popperjs/core": ^2.9.3
+    clone: ^2.1.2
+    clsx: ^1.0.4
+    copy-to-clipboard: ^3.3.1
+    file-saver: ^2.0.0
+    is-object: ^1.0.1
+    json-stable-stringify: ^1.0.1
+    normalize-wheel: ^1.0.1
+    react-popper: ^2.0.0
+    react-sizeme: ^2.6.7
+  peerDependencies:
+    "@jbrowse/core": ^1.0.0
+    "@material-ui/core": ^4.12.2
+    "@material-ui/lab": ^4.0.0-alpha.45
+    mobx: ^5.0.0
+    mobx-react: ^6.0.0
+    mobx-state-tree: 3.14.1
+    prop-types: ^15.0.0
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: b256e11cf3c83d0c78df22e0c45247aaa5d8b1ff956f737272b92d9427b3d4a7fad5c45fb57458dff354078893e1ba666c9412b2b2443322b6bf3722aa81e185
+  languageName: node
+  linkType: hard
+
 "@jest/console@npm:^25.5.0":
   version: 25.5.0
   resolution: "@jest/console@npm:25.5.0"
@@ -2050,7 +2079,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@material-ui/icons@npm:^4.0.1":
+"@material-ui/icons@npm:^4.0.1, @material-ui/icons@npm:^4.9.1":
   version: 4.11.2
   resolution: "@material-ui/icons@npm:4.11.2"
   dependencies:
@@ -2396,6 +2425,13 @@ __metadata:
     widest-line: ^3.1.0
     wrap-ansi: ^4.0.0
   checksum: 85f4914c0900138978a68daa3dc1b88644bfe96cd87909ee9c6fe0cf5b11d44ca3061d8907ff352d3ee677f0a36d34a5f505f02e0319e2061a8b174d97d6e971
+  languageName: node
+  linkType: hard
+
+"@popperjs/core@npm:^2.9.3":
+  version: 2.10.2
+  resolution: "@popperjs/core@npm:2.10.2"
+  checksum: 43c189e3eb6d032433512d94761b54fc7cae15957ca5528008813f887a67b5760b949f30a5141b476be2ba5a6c677c91def150f603d2d3e30b5e97a5ae51474e
   languageName: node
   linkType: hard
 
@@ -4512,6 +4548,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"batch-processor@npm:1.0.0":
+  version: 1.0.0
+  resolution: "batch-processor@npm:1.0.0"
+  checksum: 5519b024f6cd0e95a543bb3edf0ae19e5badae0c32b30b41839b4469bbb1f91e14fc04bff3759cd9c2621aa9e16def48c938783e9027e7ec977fba62d537a468
+  languageName: node
+  linkType: hard
+
 "bcrypt-pbkdf@npm:^1.0.0":
   version: 1.0.2
   resolution: "bcrypt-pbkdf@npm:1.0.2"
@@ -6190,6 +6233,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"element-resize-detector@npm:^1.2.1":
+  version: 1.2.3
+  resolution: "element-resize-detector@npm:1.2.3"
+  dependencies:
+    batch-processor: 1.0.0
+  checksum: b472b4f3971e27b832f65c761c5eb95ffe615f42248063987c39f32bd7e224c2562209c3c456c60ef45b07c8db6ed3c4f96a03cb5a426b931947821fd1434f44
+  languageName: node
+  linkType: hard
+
 "emitter-listener@npm:^1.0.1":
   version: 1.1.2
   resolution: "emitter-listener@npm:1.1.2"
@@ -7383,6 +7435,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"file-saver@npm:^2.0.0":
+  version: 2.0.5
+  resolution: "file-saver@npm:2.0.5"
+  checksum: c62d96e5cebc58b4bdf3ae8a60d5cf9607ad82f75f798c33a4ee63435ac2203002584d5256a2a780eda7feb5e19dc3b6351c2212e58b3f529e63d265a7cc79f7
+  languageName: node
+  linkType: hard
+
 "file-uri-to-path@npm:^1.0.0":
   version: 1.0.0
   resolution: "file-uri-to-path@npm:1.0.0"
@@ -8553,6 +8612,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"invariant@npm:^2.2.4":
+  version: 2.2.4
+  resolution: "invariant@npm:2.2.4"
+  dependencies:
+    loose-envify: ^1.0.0
+  checksum: cc3182d793aad82a8d1f0af697b462939cb46066ec48bbf1707c150ad5fad6406137e91a262022c269702e01621f35ef60269f6c0d7fd178487959809acdfb14
+  languageName: node
+  linkType: hard
+
 "ip-regex@npm:^2.1.0":
   version: 2.1.0
   resolution: "ip-regex@npm:2.1.0"
@@ -9148,14 +9216,17 @@ __metadata:
     "@jbrowse/cli": ^1.5.1
     "@jbrowse/core": ^1.5.0
     "@jbrowse/development-tools": ^1.5.1
+    "@jbrowse/plugin-linear-genome-view": ^1.5.1
     "@types/cypress": ^1.1.3
     "@types/node": ^16.11.6
     "@types/react": ^17.0.34
     cypress: ^8.7.0
     jest: ^27.3.1
+    mobx-react: ^7.2.1
     mobx-state-tree: 3.14.1
     npm-run-all: 4.1.5
     react: ^17.0.2
+    regenerator-runtime: ^0.13.9
     rimraf: ^3.0.2
     rollup: ^2.59.0
     serve: ^11.3.2
@@ -9166,6 +9237,7 @@ __metadata:
     typescript: 4.4.4
   peerDependencies:
     "@jbrowse/core": ^1.5.0
+    mobx-react: ^7.2.1
     mobx-state-tree: 3.14.1
     react: ^17.0.2
   languageName: unknown
@@ -10842,7 +10914,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"loose-envify@npm:^1.1.0, loose-envify@npm:^1.4.0":
+"loose-envify@npm:^1.0.0, loose-envify@npm:^1.1.0, loose-envify@npm:^1.4.0":
   version: 1.4.0
   resolution: "loose-envify@npm:1.4.0"
   dependencies:
@@ -11238,6 +11310,38 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mobx-react-lite@npm:^3.2.0":
+  version: 3.2.2
+  resolution: "mobx-react-lite@npm:3.2.2"
+  peerDependencies:
+    mobx: ^6.1.0
+    react: ^16.8.0 || ^17
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+    react-native:
+      optional: true
+  checksum: f64957cb71e45f8bbce0429b90f15fef6e0ad06a38e1522cf887900a2869e157beb3438bf6c2621cfc6907ad891428726686d7b544988995745e9a9c8255ff95
+  languageName: node
+  linkType: hard
+
+"mobx-react@npm:^7.2.1":
+  version: 7.2.1
+  resolution: "mobx-react@npm:7.2.1"
+  dependencies:
+    mobx-react-lite: ^3.2.0
+  peerDependencies:
+    mobx: ^6.1.0
+    react: ^16.8.0 || ^17
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+    react-native:
+      optional: true
+  checksum: ddcdab16ce0977dd8e0b9d324f43c0ef5d9de491b4ad881eaf18f127a967e88d916fd580597decc2eac6617f30f444bdf620be540e487194e3391738b2c3b7b2
+  languageName: node
+  linkType: hard
+
 "mobx-state-tree@npm:3.14.1":
   version: 3.14.1
   resolution: "mobx-state-tree@npm:3.14.1"
@@ -11541,6 +11645,13 @@ __metadata:
   version: 3.0.0
   resolution: "normalize-path@npm:3.0.0"
   checksum: 88eeb4da891e10b1318c4b2476b6e2ecbeb5ff97d946815ffea7794c31a89017c70d7f34b3c2ebf23ef4e9fc9fb99f7dffe36da22011b5b5c6ffa34f4873ec20
+  languageName: node
+  linkType: hard
+
+"normalize-wheel@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "normalize-wheel@npm:1.0.1"
+  checksum: 00b32efa040bad9438e732385a4ca27f8532fa2c8c06b54be43b9f75b2da6642bf41a0b4f81e542639dc8d682cde8b059b0a02ae0723fb8ebc3c8f036c8e51d8
   languageName: node
   linkType: hard
 
@@ -12694,6 +12805,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-fast-compare@npm:^3.0.1":
+  version: 3.2.0
+  resolution: "react-fast-compare@npm:3.2.0"
+  checksum: 8ef272c825ae329f61633ce4ce7f15aa5b84e5214d88bc0823880236e03e985a13195befa2c7a4eda7db3b017dc7985729152d88445823f652403cf36c2b86aa
+  languageName: node
+  linkType: hard
+
 "react-intersection-observer@npm:^8.31.0":
   version: 8.32.2
   resolution: "react-intersection-observer@npm:8.32.2"
@@ -12729,6 +12847,34 @@ __metadata:
     react: ">0.13.0"
     react-dom: ">0.13.0"
   checksum: 75bd3cd74d96f3e83f0a42b8f59e8764e6a5eec994492e077c49a4fea0d0b27775a5154502aff2eee3f6af40650ce2e58ed18ac927a64013b14c9942cc9c4872
+  languageName: node
+  linkType: hard
+
+"react-popper@npm:^2.0.0":
+  version: 2.2.5
+  resolution: "react-popper@npm:2.2.5"
+  dependencies:
+    react-fast-compare: ^3.0.1
+    warning: ^4.0.2
+  peerDependencies:
+    "@popperjs/core": ^2.0.0
+    react: ^16.8.0 || ^17
+  checksum: 915fcf08e1da4fd48a200074fcdd936f601ee2173f1e730cfed8a54fd47716aa8bf9cce2392463e3bcbe64a096d0baf463809ed2874b94d3a9d430ae6d817b5d
+  languageName: node
+  linkType: hard
+
+"react-sizeme@npm:^2.6.7":
+  version: 2.6.12
+  resolution: "react-sizeme@npm:2.6.12"
+  dependencies:
+    element-resize-detector: ^1.2.1
+    invariant: ^2.2.4
+    shallowequal: ^1.1.0
+    throttle-debounce: ^2.1.0
+  peerDependencies:
+    react: ^0.14.0 || ^15.0.0-0 || ^16.0.0
+    react-dom: ^0.14.0 || ^15.0.0-0 || ^16.0.0
+  checksum: fef1abf2098adf253e868acce128ba21c90665213ff444ab289e23c1af941664a13978cb049399b573a886d94dbf9982949efc8cb096eb6cca7d3c9eed2367c3
   languageName: node
   linkType: hard
 
@@ -12869,7 +13015,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"regenerator-runtime@npm:^0.13.4, regenerator-runtime@npm:^0.13.7":
+"regenerator-runtime@npm:^0.13.4, regenerator-runtime@npm:^0.13.7, regenerator-runtime@npm:^0.13.9":
   version: 0.13.9
   resolution: "regenerator-runtime@npm:0.13.9"
   checksum: 65ed455fe5afd799e2897baf691ca21c2772e1a969d19bb0c4695757c2d96249eb74ee3553ea34a91062b2a676beedf630b4c1551cc6299afb937be1426ec55e
@@ -13681,6 +13827,13 @@ __metadata:
   bin:
     sha.js: ./bin.js
   checksum: ebd3f59d4b799000699097dadb831c8e3da3eb579144fd7eb7a19484cbcbb7aca3c68ba2bb362242eb09e33217de3b4ea56e4678184c334323eca24a58e3ad07
+  languageName: node
+  linkType: hard
+
+"shallowequal@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "shallowequal@npm:1.1.0"
+  checksum: f4c1de0837f106d2dbbfd5d0720a5d059d1c66b42b580965c8f06bb1db684be8783538b684092648c981294bf817869f743a066538771dbecb293df78f765e00
   languageName: node
   linkType: hard
 
@@ -14714,6 +14867,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"throttle-debounce@npm:^2.1.0":
+  version: 2.3.0
+  resolution: "throttle-debounce@npm:2.3.0"
+  checksum: 6d90aa2ddb294f8dad13d854a1cfcd88fdb757469669a096a7da10f515ee466857ac1e750649cb9da931165c6f36feb448318e7cb92570f0a3679d20e860a925
+  languageName: node
+  linkType: hard
+
 "throttleit@npm:^1.0.0":
   version: 1.0.0
   resolution: "throttleit@npm:1.0.0"
@@ -15742,6 +15902,15 @@ __metadata:
   dependencies:
     makeerror: 1.0.12
   checksum: ad7a257ea1e662e57ef2e018f97b3c02a7240ad5093c392186ce0bcf1f1a60bbadd520d073b9beb921ed99f64f065efb63dfc8eec689a80e569f93c1c5d5e16c
+  languageName: node
+  linkType: hard
+
+"warning@npm:^4.0.2":
+  version: 4.0.3
+  resolution: "warning@npm:4.0.3"
+  dependencies:
+    loose-envify: ^1.0.0
+  checksum: 4f2cb6a9575e4faf71ddad9ad1ae7a00d0a75d24521c193fa464f30e6b04027bd97aa5d9546b0e13d3a150ab402eda216d59c1d0f2d6ca60124d96cd40dfa35c
   languageName: node
   linkType: hard
 
