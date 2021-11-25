@@ -1,4 +1,4 @@
-import { createWriteStream, existsSync, } from 'fs'
+import { createWriteStream, existsSync } from 'fs'
 import * as fs from 'fs/promises'
 import { join } from 'path'
 
@@ -17,6 +17,7 @@ import { Cache } from 'cache-manager'
 import { Response } from 'express'
 
 import {
+  fastaQueryResult,
   gff3ChangeLineObjectDto,
   regionSearchObjectDto,
 } from '../entity/gff3Object.dto'
@@ -126,13 +127,9 @@ export class FileHandlingService {
           message: `File ${postDto.filename} successfully updated!`,
         })
       }
-      this.logger.error(
-        `ERROR when updating file: The following string was not found in GFF3 file='${oldValue}'`,
-      )
-      response.status(HttpStatus.NOT_FOUND).json({
-        status: HttpStatus.NOT_FOUND,
-        message: `ERROR when updating file: The following string was not found in GFF3 file='${oldValue}'`,
-      })
+      const errMsg = `ERROR when updating file: The following string was not found in GFF3 file='${oldValue}'`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
     } catch (err) {
       this.logger.error(`ERROR when reading/updating file: ${err}`)
       throw new InternalServerErrorException(
@@ -202,13 +199,9 @@ export class FileHandlingService {
       }
       // If the cache did not contain any row that matched to postDto.originalLine then return error
       if (cacheKey < 0) {
-        this.logger.error(
-          `ERROR when updating cache: The following string was not found in cache='${oldValue}'`,
-        )
-        return response.status(HttpStatus.NOT_FOUND).json({
-          status: HttpStatus.NOT_FOUND,
-          message: `ERROR when updating cache: The following string was not found in cache='${oldValue}'`,
-        })
+        const errMsg = `ERROR when updating cache: The following string was not found in cache='${oldValue}'`
+        this.logger.error(errMsg)
+        throw new NotFoundException(errMsg)
       }
 
       // Update JSON object
@@ -226,13 +219,16 @@ export class FileHandlingService {
           process.env.FILE_SEARCH_FOLDER,
           process.env.GFF3_DEFAULT_FILENAME_TO_SAVE,
         ),
-        '##gff-version 3\n', // Add decorator as 1st line in the file
+        '',
       )
 
       nberOfEntries.sort((n1, n2) => n1 - n2) // Sort the array
       // Loop cache in sorted order
       for (const keyInd of nberOfEntries) {
         cacheValue = await this.cacheManager.get(keyInd.toString())
+        this.logger.verbose(
+          `Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`,
+        )
         // Write into file line by line
         fs.appendFile(
           join(
@@ -267,7 +263,7 @@ export class FileHandlingService {
    * @param filename GFF3 filename where data is loaded
    */
   async loadGFF3FileIntoCache(filename: string) {
-     try {
+    try {
       this.logger.debug(`Starting to load gff3 file ${filename} into cache!`)
 
       // parse a string of gff3 synchronously
@@ -280,14 +276,28 @@ export class FileHandlingService {
       // Clear old entries from cache
       this.cacheManager.reset()
 
-      // TODO: gff.parseStringSync() method changes the order of lines
-      const arrayOfThings = await gff.parseStringSync(stringOfGFF3)
+      const arrayOfThings = await gff.parseStringSync(stringOfGFF3, {
+        parseAll: true,
+      })
       let ind = 0
 
       // Loop all lines and add those into cache
       for (const entry of arrayOfThings) {
-        this.logger.verbose(`Add into cache new entry=${JSON.stringify(entry)}`)
-        this.cacheManager.set(ind.toString(), JSON.stringify(entry))
+        // Comment, Directive and FASTA -entries are not presented as array so let's put entry into array because gff.formatSync() -method requires an array as argument
+        if (!Array.isArray(entry)) {
+          const result = [entry]
+          this.cacheManager.set(ind.toString(), JSON.stringify(result))
+          this.logger.verbose(
+            `Add Comments, Directive or FASTA into cache=${JSON.stringify(
+              result,
+            )}`,
+          )
+        } else {
+          this.cacheManager.set(ind.toString(), JSON.stringify(entry))
+          this.logger.verbose(
+            `Add into cache new entry=${JSON.stringify(entry)}`,
+          )
+        }
         ind++
       }
       const nberOfEntries = await this.cacheManager.store.keys()
@@ -335,7 +345,7 @@ export class FileHandlingService {
         )
         // Compare cache values vs. searchable values
         if (
-          searchDto.refName.trim() === cacheValueAsJson[0].seq_id.trim() &&
+          searchDto.refName === cacheValueAsJson[0].seq_id &&
           searchDto.start < cacheValueAsJson[0].end &&
           searchDto.end > cacheValueAsJson[0].start
         ) {
@@ -349,11 +359,9 @@ export class FileHandlingService {
 
       // If no feature was found
       if (resultJsonArray.length === 0) {
-        this.logger.debug('No features found for given search criteria')
-        return res.status(HttpStatus.NOT_FOUND).json({
-          status: HttpStatus.NOT_FOUND,
-          message: 'No features found for given search criteria',
-        })
+        const errMsg = 'No features found for given search criteria'
+        this.logger.error(errMsg)
+        throw new NotFoundException(errMsg)
       }
 
       this.logger.debug(
@@ -364,6 +372,89 @@ export class FileHandlingService {
       this.logger.error(`ERROR when searching features by criteria: ${err}`)
       throw new HttpException(
         `ERROR in getFeaturesByCriteria() : ${err}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      )
+    }
+  }
+
+  /**
+   * Fetch embedded FASTA sequence based on Reference seq, Start and End -values
+   * @param searchDto Data Transfer Object that contains information about searchable sequence
+   * @param res
+   * @returns Return 'HttpStatus.OK' and embedded FASTA sequence if search was successful
+   * or if search data was not found in the file then return error message with HttpStatus.NOT_FOUND
+   * or in case of error throw exception
+   */
+  async getFastaByCriteria(
+    searchDto: regionSearchObjectDto,
+    res: Response<any, Record<string, any>>,
+  ) {
+    let cacheValue = ''
+    const resultObject = new fastaQueryResult()
+
+    try {
+      const nberOfEntries = await this.cacheManager.store.keys()
+
+      this.logger.debug(
+        `Fasta search criteria is refName=${
+          searchDto.refName
+        }, start=${JSON.stringify(searchDto.start)} and end=${JSON.stringify(
+          searchDto.end,
+        )}`,
+      )
+
+      // Loop cache
+      for (const keyInd of nberOfEntries) {
+        cacheValue = await this.cacheManager.get(keyInd)
+        const cacheValueAsJson = JSON.parse(cacheValue)
+        this.logger.verbose(`Cache SEQ_ID=${cacheValueAsJson[0].id}`)
+        // Compare cache id vs. searchable refName
+        if (searchDto.refName === cacheValueAsJson[0].id) {
+          // Check end position
+          if (searchDto.end > cacheValueAsJson[0].sequence.length) {
+            const errMsg = `ERROR. Searched FASTA end position ${JSON.stringify(
+              searchDto.end,
+            )} is out range. Sequence lenght is only ${
+              cacheValueAsJson[0].sequence.length
+            }`
+            this.logger.error(errMsg)
+            throw new NotFoundException(errMsg)
+          }
+          // Check start vs. end positions
+          if (searchDto.start >= searchDto.end) {
+            const errMsg =
+              'ERROR. Start position cannot be greater or equal than end position'
+            this.logger.error(errMsg)
+            throw new NotFoundException(errMsg)
+          }
+
+          const foundSequence = cacheValueAsJson[0].sequence.substring(
+            JSON.stringify(searchDto.start),
+            JSON.stringify(searchDto.end),
+          )
+          this.logger.debug(
+            `Found sequence refName=${cacheValueAsJson[0].id} and sequence=${foundSequence}`,
+          )
+          resultObject.id = cacheValueAsJson[0].id
+          resultObject.description = cacheValueAsJson[0].description
+          resultObject.sequence = foundSequence
+          return res.status(HttpStatus.OK).json(resultObject)
+        }
+      }
+
+      throw new NotFoundException(
+        `Fasta sequence for criteria refName=${
+          searchDto.refName
+        }, start=${JSON.stringify(searchDto.start)} and end=${JSON.stringify(
+          searchDto.end,
+        )} was not found`,
+      )
+    } catch (err) {
+      this.logger.error(
+        `ERROR when searching fasta sequence by criteria: ${err}`,
+      )
+      throw new HttpException(
+        `ERROR in getFastaByCriteria() : ${err}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       )
     }

@@ -5,7 +5,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpStatus,
   InternalServerErrorException,
   Logger,
   Param,
@@ -165,5 +164,21 @@ export class FileHandlingController {
     @Res() res: Response,
   ) {
     return this.fileService.getFeaturesByCriteria(searchDto, res)
+  }
+
+  /**
+   * Fetch embedded FASTA sequence based on Reference seq, Start and End -values
+   * @param searchDto Data Transfer Object that contains information about searchable sequence
+   * @param res
+   * @returns Return 'HttpStatus.OK' and embedded FASTA sequence if search was successful
+   * or if search data was not found in the file then return error message with HttpStatus.NOT_FOUND
+   * or in case of error throw exception
+   */
+  @Get('/getFastaByCriteria')
+  getFastaByCriteria(
+    @Body() searchDto: regionSearchObjectDto,
+    @Res() res: Response,
+  ) {
+    return this.fileService.getFastaByCriteria(searchDto, res)
   }
 }

@@ -23,3 +23,9 @@ export class regionSearchObjectDto {
   start: number
   end: number
 }
+
+export class fastaQueryResult {
+  id: string
+  description: string
+  sequence: string
+}
