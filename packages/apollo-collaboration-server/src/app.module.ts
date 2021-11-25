@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
+import { APP_GUARD } from '@nestjs/core'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { initializeTransactionalContext } from 'typeorm-transactional-cls-hooked'
+
 import { AuthenticateModule } from './authentication/authenticate.module'
 import { UserModule } from './controller/user/user.module'
-import { TypeOrmModule } from '@nestjs/typeorm'
-import { APP_GUARD } from '@nestjs/core'
-import { RolesGuard } from './utils/role/role.guards'
-import { initializeTransactionalContext } from 'typeorm-transactional-cls-hooked'
 import { FileHandlingModule } from './fileHandling/fileHandling.module'
+import { RolesGuard } from './utils/role/role.guards'
 
 initializeTransactionalContext() // Initialize cls-hooked
 

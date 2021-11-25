@@ -1,3 +1,6 @@
+import { createReadStream } from 'fs'
+import { join } from 'path'
+
 import {
   Body,
   Controller,
@@ -12,15 +15,14 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common'
-import { FileHandlingService } from './fileHandling.service'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
 import { Response } from 'express'
-import { createReadStream } from 'fs'
-import { join } from 'path'
+
 import {
   gff3ChangeLineObjectDto,
   regionSearchObjectDto,
 } from '../entity/gff3Object.dto'
+import { FileHandlingService } from './fileHandling.service'
 
 @Controller('fileHandling')
 export class FileHandlingController {
@@ -60,17 +62,11 @@ export class FileHandlingController {
     // Check if file exists
     if (!this.fileService.fileExists(filename)) {
       this.logger.error(
-        'File =' +
-          filename +
-          '= does not exist in folder =' +
-          process.env.FILE_SEARCH_FOLDER +
-          '=',
+        `File =${filename}= does not exist in folder =${process.env.FILE_SEARCH_FOLDER}=`,
       )
-      throw new InternalServerErrorException(
-        'File ' + filename + ' does not exist!',
-      )
+      throw new InternalServerErrorException(`File ${filename} does not exist!`)
     }
-    this.logger.debug('Starting to download file ' + filename)
+    this.logger.debug(`Starting to download file ${filename}`)
 
     // Download file
     const file = createReadStream(
@@ -117,9 +113,9 @@ export class FileHandlingController {
     @Body() postDto: gff3ChangeLineObjectDto,
     @Res() res: Response,
   ) {
-    this.logger.debug('Filename=' + postDto.filename)
-    this.logger.debug('Original value=' + JSON.stringify(postDto.originalLine))
-    this.logger.debug('Updated value=' + JSON.stringify(postDto.updatedLine))
+    this.logger.debug(`Filename=${postDto.filename}`)
+    this.logger.debug(`Original value=${JSON.stringify(postDto.originalLine)}`)
+    this.logger.debug(`Updated value=${JSON.stringify(postDto.updatedLine)}`)
     return this.fileService.updateGFF3File(postDto, res)
   }
 
@@ -149,9 +145,9 @@ export class FileHandlingController {
     @Res() res: Response,
   ) {
     this.logger.verbose(
-      'Original value=' + JSON.stringify(postDto.originalLine),
+      `Original value=${JSON.stringify(postDto.originalLine)}`,
     )
-    this.logger.verbose('Updated value=' + JSON.stringify(postDto.updatedLine))
+    this.logger.verbose(`Updated value=${JSON.stringify(postDto.updatedLine)}`)
     return this.fileService.updateGFF3Cache(postDto, res)
   }
 

@@ -1,4 +1,4 @@
-import { Entity, BaseEntity, PrimaryColumn } from 'typeorm'
+import { BaseEntity, Entity, PrimaryColumn } from 'typeorm'
 
 @Entity({ name: 'grails_user_roles' })
 export default class UserRole extends BaseEntity {

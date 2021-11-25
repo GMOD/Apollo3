@@ -1,7 +1,8 @@
 import { HttpStatus, Injectable, Logger } from '@nestjs/common'
-import { UsersService } from '../usersDemo/users.service'
 import { JwtService } from '@nestjs/jwt'
 import { Response } from 'express'
+
+import { UsersService } from '../usersDemo/users.service'
 
 @Injectable()
 export class AuthenticateService {
@@ -39,9 +40,9 @@ export class AuthenticateService {
     // Return token with SUCCESS status
     const returnToken = this.jwtService.sign(payload)
     this.logger.debug(
-      'Login successful. Issued token: ' + JSON.stringify(returnToken),
+      `Login successful. Issued token: ${JSON.stringify(returnToken)}`,
     )
-    return await response
+    return response
       .status(HttpStatus.OK)
       .json({ status: HttpStatus.OK, token: returnToken })
     // Return FAILED status with no token

@@ -23,7 +23,7 @@ class ConfigService {
 
   public isProduction() {
     const mode = this.getValue('MODE', false)
-    return mode != 'DEV'
+    return mode !== 'DEV'
   }
 
   public getTypeOrmConfig(): TypeOrmModuleOptions {
@@ -31,7 +31,7 @@ class ConfigService {
       type: 'mysql',
       name: 'default',
       host: this.getValue('MYSQL_HOST'),
-      port: parseInt(this.getValue('MYSQL_PORT')),
+      port: parseInt(this.getValue('MYSQL_PORT'), 10),
       username: this.getValue('MYSQL_USER'),
       password: this.getValue('MYSQL_PASSWORD'),
       database: this.getValue('MYSQL_DATABASE'),

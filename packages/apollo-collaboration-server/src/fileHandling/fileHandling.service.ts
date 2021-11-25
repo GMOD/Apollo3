@@ -1,3 +1,7 @@
+import { createWriteStream, existsSync } from 'fs'
+import { join } from 'path/posix'
+
+import gff from '@gmod/gff'
 import {
   CACHE_MANAGER,
   HttpException,
@@ -7,16 +11,14 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common'
-import { createWriteStream, existsSync } from 'fs'
-import { Response } from 'express'
-import { commonUtilities } from '../utils/commonUtilities'
-import { join } from 'path/posix'
-import gff from '@gmod/gff'
 import { Cache } from 'cache-manager'
+import { Response } from 'express'
+
 import {
   gff3ChangeLineObjectDto,
   regionSearchObjectDto,
 } from '../entity/gff3Object.dto'
+import { commonUtilities } from '../utils/commonUtilities'
 
 @Injectable()
 export class FileHandlingService {
@@ -38,26 +40,19 @@ export class FileHandlingService {
   ): Promise<Response> {
     // Check if filesize is 0
     if (file.size < 1) {
-      const msg = 'File ' + file.originalname + ' is empty!'
+      const msg = `File ${file.originalname} is empty!`
       this.logger.error(msg)
       throw new InternalServerErrorException(msg)
     }
     this.logger.debug(
-      'Starting to save file ' +
-        file.originalname +
-        ', size=' +
-        file.size +
-        ' bytes.',
+      `Starting to save file ${file.originalname}, size=${file.size} bytes.`,
     )
     // Join path+filename
     const newFullFileName = join(
       process.env.UPLOADED_OUTPUT_FOLDER,
-      'uploaded_' +
-        this.commUtils.getCurrentDateTime() +
-        '_' +
-        file.originalname,
+      `uploaded_${this.commUtils.getCurrentDateTime()}_${file.originalname}`,
     )
-    this.logger.debug('New file will be saved as ' + newFullFileName)
+    this.logger.debug(`New file will be saved as ${newFullFileName}`)
 
     // Save file
     const ws = createWriteStream(newFullFileName)
@@ -65,7 +60,7 @@ export class FileHandlingService {
     ws.close()
     return response.status(HttpStatus.OK).json({
       status: HttpStatus.OK,
-      message: 'File ' + file.originalname + ' was saved',
+      message: `File ${file.originalname} was saved`,
     })
   }
 
@@ -78,16 +73,15 @@ export class FileHandlingService {
   fileExists(filename: string): boolean {
     try {
       // Join path+filename
-      const newFullFileName = join(
-        process.env.FILE_SEARCH_FOLDER,
-        filename,
-      )
-      this.logger.debug('Check if file ' + newFullFileName + ' exists!')
+      const newFullFileName = join(process.env.FILE_SEARCH_FOLDER, filename)
+      this.logger.debug(`Check if file ${newFullFileName} exists!`)
 
       // Check if file exists
-      if (existsSync(newFullFileName)) return true
+      if (existsSync(newFullFileName)) {
+        return true
+      }
     } catch (err) {
-      this.logger.error('ERROR when checking if file exists: ' + err)
+      this.logger.error(`ERROR when checking if file exists: ${err}`)
     }
     return false
   }
@@ -103,23 +97,16 @@ export class FileHandlingService {
     // Check if file exists
     if (!this.fileExists(postDto.filename)) {
       this.logger.error(
-        'File =' +
-          postDto.filename +
-          '= does not exist in folder =' +
-          process.env.FILE_SEARCH_FOLDER +
-          '=',
+        `File =${postDto.filename}= does not exist in folder =${process.env.FILE_SEARCH_FOLDER}=`,
       )
       return response.status(HttpStatus.NOT_FOUND).json({
         status: HttpStatus.NOT_FOUND,
-        message: 'File ' + postDto.filename + ' does not exist!',
+        message: `File ${postDto.filename} does not exist!`,
       })
     }
 
     // Join path+filename
-    const fullFileName = join(
-      process.env.FILE_SEARCH_FOLDER,
-      postDto.filename,
-    )
+    const fullFileName = join(process.env.FILE_SEARCH_FOLDER, postDto.filename)
 
     const oldValue = postDto.originalLine
     const newValue = postDto.updatedLine
@@ -129,9 +116,9 @@ export class FileHandlingService {
     // Read the file
     await fs.readFile(fullFileName, 'utf8', async (err, data) => {
       if (err) {
-        this.logger.error('ERROR when reading/updating file: ' + err)
+        this.logger.error(`ERROR when reading/updating file: ${err}`)
         throw new InternalServerErrorException(
-          'ERROR in updateGFF3File() : ' + err,
+          `ERROR in updateGFF3File() : ${err}`,
         )
       }
 
@@ -140,33 +127,27 @@ export class FileHandlingService {
         const replacer = new RegExp(oldValue, 'g')
         const change = data.replace(replacer, newValue)
         // Write updated content back to file
-        fs.writeFile(fullFileName, change, 'utf8', (err) => {
-          if (err) {
-            this.logger.error('ERROR when writing/updating file: ' + err)
+        fs.writeFile(fullFileName, change, 'utf8', (error) => {
+          if (error) {
+            this.logger.error(`ERROR when writing/updating file: ${error}`)
             throw new InternalServerErrorException(
-              'ERROR in updateGFF3File() : ' + err,
+              `ERROR in updateGFF3File() : ${error}`,
             )
           }
         })
-        this.logger.debug('File ' + postDto.filename + ' successfully updated!')
+        this.logger.debug(`File ${postDto.filename} successfully updated!`)
         return response.status(HttpStatus.OK).json({
           status: HttpStatus.OK,
-          message: 'File ' + postDto.filename + ' successfully updated!',
-        })
-      } else {
-        this.logger.error(
-          "ERROR when updating file: The following string was not found in GFF3 file='" +
-            oldValue +
-            "'",
-        )
-        response.status(HttpStatus.NOT_FOUND).json({
-          status: HttpStatus.NOT_FOUND,
-          message:
-            "ERROR when updating file: The following string was not found in GFF3 file='" +
-            oldValue +
-            "'",
+          message: `File ${postDto.filename} successfully updated!`,
         })
       }
+      this.logger.error(
+        `ERROR when updating file: The following string was not found in GFF3 file='${oldValue}'`,
+      )
+      response.status(HttpStatus.NOT_FOUND).json({
+        status: HttpStatus.NOT_FOUND,
+        message: `ERROR when updating file: The following string was not found in GFF3 file='${oldValue}'`,
+      })
     })
     fs.close()
   }
@@ -184,15 +165,9 @@ export class FileHandlingService {
     // Check if file exists
     if (!this.fileExists(filename)) {
       this.logger.error(
-        'File =' +
-          filename +
-          '= does not exist in folder =' +
-          process.env.FILE_SEARCH_FOLDER +
-          '=',
+        `File =${filename}= does not exist in folder =${process.env.FILE_SEARCH_FOLDER}=`,
       )
-      throw new InternalServerErrorException(
-        'File ' + filename + ' does not exist!',
-      )
+      throw new InternalServerErrorException(`File ${filename} does not exist!`)
     }
     // Load GFF3 file into cache
     this.loadGFF3FileIntoCache(filename)
@@ -202,12 +177,12 @@ export class FileHandlingService {
       .json({ status: 'GFF3 file loaded into cache' })
   }
 
-/**
- * Updates string (or whole line) in CACHE
- * @param postDto Data Transfer Object that contains information about original string/line and updated string/line
- * @param response 
- * @returns 
- */
+  /**
+   * Updates string (or whole line) in CACHE
+   * @param postDto Data Transfer Object that contains information about original string/line and updated string/line
+   * @param response
+   * @returns
+   */
   async updateGFF3Cache(
     postDto: gff3ChangeLineObjectDto,
     response: Response,
@@ -218,7 +193,7 @@ export class FileHandlingService {
     const oldValueAsJson = JSON.parse(postDto.originalLine)
     const newValue = JSON.parse(postDto.updatedLine) // JSON object that contains those key-value -pairs that we will update
 
-    this.logger.debug('Search string=' + oldValue + '=')
+    this.logger.debug(`Search string=${oldValue}=`)
     try {
       const nberOfEntries = await this.cacheManager.store.keys()
       nberOfEntries.sort((n1, n2) => n1 - n2) // Sort the array
@@ -227,7 +202,7 @@ export class FileHandlingService {
       for (const keyInd of nberOfEntries) {
         cacheValue = await this.cacheManager.get(keyInd)
         this.logger.verbose(
-          'Read line from cache=' + cacheValue + '=, key=' + keyInd,
+          `Read line from cache=${cacheValue}=, key=${keyInd}`,
         )
         // Check if cache line is same as 'originalLine' -parameter
         if (this.commUtils.compareTwoJsonObjects(oldValue, cacheValue)) {
@@ -239,16 +214,11 @@ export class FileHandlingService {
       // If the cache did not contain any row that matched to postDto.originalLine then return error
       if (cacheKey < 0) {
         this.logger.error(
-          "ERROR when updating cache: The following string was not found in cache='" +
-            oldValue +
-            "'",
+          `ERROR when updating cache: The following string was not found in cache='${oldValue}'`,
         )
         return response.status(HttpStatus.NOT_FOUND).json({
           status: HttpStatus.NOT_FOUND,
-          message:
-            "ERROR when updating cache: The following string was not found in cache='" +
-            oldValue +
-            "'",
+          message: `ERROR when updating cache: The following string was not found in cache='${oldValue}'`,
         })
       }
 
@@ -267,7 +237,10 @@ export class FileHandlingService {
 
       // Open file for writing and write the 1st line
       fs.writeFileSync(
-        join(process.env.FILE_SEARCH_FOLDER, process.env.GFF3_DEFAULT_FILENAME_TO_SAVE),
+        join(
+          process.env.FILE_SEARCH_FOLDER,
+          process.env.GFF3_DEFAULT_FILENAME_TO_SAVE,
+        ),
         '##gff-version 3\n', // Add decorator as 1st line in the file
       )
 
@@ -277,7 +250,10 @@ export class FileHandlingService {
         cacheValue = await this.cacheManager.get(keyInd.toString())
         // Write into file line by line
         fs.appendFileSync(
-          join(process.env.FILE_SEARCH_FOLDER, process.env.GFF3_DEFAULT_FILENAME_TO_SAVE),
+          join(
+            process.env.FILE_SEARCH_FOLDER,
+            process.env.GFF3_DEFAULT_FILENAME_TO_SAVE,
+          ),
           gff.formatSync(JSON.parse(cacheValue)),
         )
       }
@@ -294,9 +270,9 @@ export class FileHandlingService {
         message: 'Cache and GFF3 file updated successfully!',
       })
     } catch (err) {
-      this.logger.error('ERROR when updating cache: ' + err)
+      this.logger.error(`ERROR when updating cache: ${err}`)
       throw new InternalServerErrorException(
-        'ERROR in updateGFF3Cache() : ' + err,
+        `ERROR in updateGFF3Cache() : ${err}`,
       )
     }
   }
@@ -309,9 +285,7 @@ export class FileHandlingService {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const fs = require('fs')
     try {
-      this.logger.debug(
-        'Starting to load gff3 file ' + filename + ' into cache!',
-      )
+      this.logger.debug(`Starting to load gff3 file ${filename} into cache!`)
 
       // parse a string of gff3 synchronously
       const stringOfGFF3 = fs.readFileSync(
@@ -319,7 +293,7 @@ export class FileHandlingService {
         { encoding: 'utf8', flag: 'r' },
       )
 
-      this.logger.verbose('Data read from file=' + stringOfGFF3)
+      this.logger.verbose(`Data read from file=${stringOfGFF3}`)
       // Clear old entries from cache
       this.cacheManager.reset()
 
@@ -329,16 +303,16 @@ export class FileHandlingService {
 
       // Loop all lines and add those into cache
       for (const entry of arrayOfThings) {
-        this.logger.verbose('Add into cache new entry=' + JSON.stringify(entry))
+        this.logger.verbose(`Add into cache new entry=${JSON.stringify(entry)}`)
         this.cacheManager.set(ind.toString(), JSON.stringify(entry))
         ind++
       }
       const nberOfEntries = await this.cacheManager.store.keys()
-      this.logger.debug('Added ' + nberOfEntries.length + ' entries to cache')
+      this.logger.debug(`Added ${nberOfEntries.length} entries to cache`)
     } catch (err) {
-      this.logger.error('Could not load GFF3 file into cache:' + err)
+      this.logger.error(`Could not load GFF3 file into cache:${err}`)
       throw new InternalServerErrorException(
-        'Could not load GFF3 file into cache:' + err,
+        `Could not load GFF3 file into cache:${err}`,
       )
     }
   }
@@ -362,12 +336,11 @@ export class FileHandlingService {
       const nberOfEntries = await this.cacheManager.store.keys()
 
       this.logger.debug(
-        'Feature search criteria is refName=' +
-          searchDto.refName +
-          ', start=' +
-          JSON.stringify(searchDto.start) +
-          ' and end=' +
-          JSON.stringify(searchDto.end),
+        `Feature search criteria is refName=${
+          searchDto.refName
+        }, start=${JSON.stringify(searchDto.start)} and end=${JSON.stringify(
+          searchDto.end,
+        )}`,
       )
 
       // Loop cache
@@ -375,12 +348,7 @@ export class FileHandlingService {
         cacheValue = await this.cacheManager.get(keyInd)
         const cacheValueAsJson = JSON.parse(cacheValue)
         this.logger.verbose(
-          'Cache SEQ_ID=' +
-            cacheValueAsJson[0].seq_id +
-            ', START=' +
-            cacheValueAsJson[0].start +
-            ' and END=' +
-            cacheValueAsJson[0].end,
+          `Cache SEQ_ID=${cacheValueAsJson[0].seq_id}, START=${cacheValueAsJson[0].start} and END=${cacheValueAsJson[0].end}`,
         )
         // Compare cache values vs. searchable values
         if (
@@ -389,12 +357,7 @@ export class FileHandlingService {
           searchDto.end > cacheValueAsJson[0].start
         ) {
           this.logger.debug(
-            'Matched found refName=' +
-              cacheValueAsJson[0].seq_id +
-              ', start=' +
-              cacheValueAsJson[0].start +
-              ' and end=' +
-              cacheValueAsJson[0].end,
+            `Matched found refName=${cacheValueAsJson[0].seq_id}, start=${cacheValueAsJson[0].start} and end=${cacheValueAsJson[0].end}`,
           )
           // Add found feature into array
           resultJsonArray.push(cacheValueAsJson[0])
@@ -411,13 +374,13 @@ export class FileHandlingService {
       }
 
       this.logger.debug(
-        'Features (n=' + resultJsonArray.length + ') found successfully',
+        `Features (n=${resultJsonArray.length}) found successfully`,
       )
       return res.status(HttpStatus.OK).json(resultJsonArray)
     } catch (err) {
-      this.logger.error('ERROR when searching features by criteria: ' + err)
+      this.logger.error(`ERROR when searching features by criteria: ${err}`)
       throw new HttpException(
-        'ERROR in getFeaturesByCriteria() : ' + err,
+        `ERROR in getFeaturesByCriteria() : ${err}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       )
     }

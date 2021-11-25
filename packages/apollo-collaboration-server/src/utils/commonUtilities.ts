@@ -1,5 +1,7 @@
-import { Injectable } from '@nestjs/common'
 import { join } from 'path'
+
+import { Injectable } from '@nestjs/common'
+
 // import { fileSearchFolderConfig, GFF3 } from './fileConfig'
 
 @Injectable()
@@ -10,14 +12,15 @@ export class commonUtilities {
    */
   getCurrentDateTime() {
     const date = new Date()
-    const dayNber = ('0' + date.getDate()).slice(-2)
-    const monthNber = ('0' + (date.getMonth() + 1)).slice(-2)
+    const dayNber = `0${date.getDate()}`.slice(-2)
+    const monthNber = `0${date.getMonth() + 1}`.slice(-2)
     const yearNber = date.getFullYear().toString()
-    const hourNber = ('0' + date.getHours()).slice(-2)
-    const minuteNber = ('0' + date.getMinutes()).slice(-2)
-    const secondNber = ('0' + date.getSeconds()).slice(-2)
-    const ret =
-      dayNber + monthNber + yearNber + '_' + hourNber + minuteNber + secondNber
+    const hourNber = `0${date.getHours()}`.slice(-2)
+    const minuteNber = `0${date.getMinutes()}`.slice(-2)
+    const secondNber = `0${date.getSeconds()}`.slice(-2)
+    const ret = `${
+      dayNber + monthNber + yearNber
+    }_${hourNber}${minuteNber}${secondNber}`
     return ret
   }
 
@@ -61,15 +64,15 @@ export class commonUtilities {
 
     fs.appendFileSync(
       join(process.env.FILE_SEARCH_FOLDER, process.env.GFF3_CHANGELOG_FILENAME),
-      this.getCurrentDateTime() + ' : ' + username + '\n',
+      `${this.getCurrentDateTime()} : ${username}\n`,
     )
     fs.appendFileSync(
       join(process.env.FILE_SEARCH_FOLDER, process.env.GFF3_CHANGELOG_FILENAME),
-      'ORIGINAL LINE : ' + originalLine + '\n',
+      `ORIGINAL LINE : ${originalLine}\n`,
     )
     fs.appendFileSync(
       join(process.env.FILE_SEARCH_FOLDER, process.env.GFF3_CHANGELOG_FILENAME),
-      'UPDATED VALUE : ' + updatedLine + '\n',
+      `UPDATED VALUE : ${updatedLine}\n`,
     )
     fs.close()
   }
