@@ -8,14 +8,15 @@ export class commonUtilities {
    */
   getCurrentDateTime() {
     const date = new Date()
-    const dayNber = ('0' + date.getDate()).slice(-2)
-    const monthNber = ('0' + (date.getMonth() + 1)).slice(-2)
+    const dayNber = `0${date.getDate()}`.slice(-2)
+    const monthNber = `0${date.getMonth() + 1}`.slice(-2)
     const yearNber = date.getFullYear().toString()
-    const hourNber = ('0' + date.getHours()).slice(-2)
-    const minuteNber = ('0' + date.getMinutes()).slice(-2)
-    const secondNber = ('0' + date.getSeconds()).slice(-2)
-    const ret =
-      dayNber + monthNber + yearNber + '_' + hourNber + minuteNber + secondNber
+    const hourNber = `0${date.getHours()}`.slice(-2)
+    const minuteNber = `0${date.getMinutes()}`.slice(-2)
+    const secondNber = `0${date.getSeconds()}`.slice(-2)
+    const ret = `${
+      dayNber + monthNber + yearNber
+    }_${hourNber}${minuteNber}${secondNber}`
     return ret
   }
 }

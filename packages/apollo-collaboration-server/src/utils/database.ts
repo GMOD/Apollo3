@@ -29,11 +29,10 @@ export class Database {
         connection = await connection.connect()
       }
       return connection
-    } else {
-      const connectionManager = new ConnectionManager()
-      const connection = connectionManager.create(this.connectionOptions)
-      await connection.connect()
-      return connection
     }
+    const connectionManager = new ConnectionManager()
+    connection = connectionManager.create(this.connectionOptions)
+    await connection.connect()
+    return connection
   }
 }

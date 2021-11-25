@@ -1,15 +1,16 @@
 import {
-  Injectable,
   CanActivate,
   ExecutionContext,
+  Injectable,
   Logger,
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { JwtService } from '@nestjs/jwt'
+import jwt_decode from 'jwt-decode'
+
+import { PayloadObject } from '../payloadObject'
 import { ROLES_KEY } from './role.decorator'
 import { Role } from './role.enum'
-import jwt_decode from 'jwt-decode'
-import { PayloadObject } from '../payloadObject'
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -30,7 +31,7 @@ export class RolesGuard implements CanActivate {
       context.getClass(),
     ])
     try {
-      this.logger.verbose('Required roles are =' + requiredRoles + '=')
+      this.logger.verbose(`Required roles are =${requiredRoles}=`)
       // If no role was required in endpoint then return true
       if (!requiredRoles) {
         return true
@@ -38,20 +39,22 @@ export class RolesGuard implements CanActivate {
 
       // Get header and payload object containing username and userid
       const req = context.switchToHttp().getRequest()
-      const authHeader = req.headers['authorization']
+      const authHeader = req.headers.authorization
       const token = authHeader.split(' ')
       const payloadObject: PayloadObject = this.getDecodedAccessToken(token[1])
 
       this.logger.verbose(
-        'Extracted from token, username =' + payloadObject.username + '=',
+        `Extracted from token, username =${payloadObject.username}=`,
       )
-      //this.logger.debug('RolesGuard handler=' + context.getHandler());
+      // this.logger.debug('RolesGuard handler=' + context.getHandler());
 
       // TODO: Check from database if user has required role
       for (const point of requiredRoles) {
-        this.logger.verbose('Role =' + point + '=')
+        this.logger.verbose(`Role =${point}=`)
       }
-      if (payloadObject.username == 'john') return true // TODO: Remove hard-coded check
+      if (payloadObject.username === 'john') {
+        return true
+      } // TODO: Remove hard-coded check
 
       return false
     } catch (Exception) {

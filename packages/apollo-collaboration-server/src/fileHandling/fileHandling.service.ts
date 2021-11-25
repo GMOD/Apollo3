@@ -1,3 +1,6 @@
+import { createWriteStream, existsSync } from 'fs'
+import { join } from 'path/posix'
+
 import {
   HttpException,
   HttpStatus,
@@ -5,11 +8,10 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common'
-import { createWriteStream, existsSync } from 'fs'
 import { Response } from 'express'
-import { fileSearchFolderConfig, uploadedFileConfig } from '../utils/fileConfig'
+
 import { commonUtilities } from '../utils/commonUtilities'
-import { join } from 'path/posix'
+import { fileSearchFolderConfig, uploadedFileConfig } from '../utils/fileConfig'
 
 @Injectable()
 export class FileHandlingService {
@@ -29,26 +31,19 @@ export class FileHandlingService {
   ): Promise<Response> {
     // Check if filesize is 0
     if (file.size < 1) {
-      const msg = 'File ' + file.originalname + ' is empty!'
+      const msg = `File ${file.originalname} is empty!`
       this.logger.error(msg)
       throw new InternalServerErrorException(msg)
     }
     this.logger.debug(
-      'Starting to save file ' +
-        file.originalname +
-        ', size=' +
-        file.size +
-        ' bytes.',
+      `Starting to save file ${file.originalname}, size=${file.size} bytes.`,
     )
     // Join path+filename
     const newFullFileName = join(
       uploadedFileConfig.outputFolder,
-      'uploaded_' +
-        this.commUtils.getCurrentDateTime() +
-        '_' +
-        file.originalname,
+      `uploaded_${this.commUtils.getCurrentDateTime()}_${file.originalname}`,
     )
-    this.logger.debug('New file will be saved as ' + newFullFileName)
+    this.logger.debug(`New file will be saved as ${newFullFileName}`)
 
     // Save file
     const ws = createWriteStream(newFullFileName)
@@ -56,7 +51,7 @@ export class FileHandlingService {
     ws.close()
     return response.status(HttpStatus.OK).json({
       status: HttpStatus.OK,
-      message: 'File ' + file.originalname + ' was saved',
+      message: `File ${file.originalname} was saved`,
     })
   }
 
@@ -74,12 +69,14 @@ export class FileHandlingService {
         fileSearchFolderConfig.searchFolder,
         filename,
       )
-      this.logger.debug('Check if file ' + newFullFileName + ' exists!')
+      this.logger.debug(`Check if file ${newFullFileName} exists!`)
 
       // Check if file exists
-      if (existsSync(newFullFileName)) return true
+      if (existsSync(newFullFileName)) {
+        return true
+      }
     } catch (err) {
-      this.logger.error('ERROR when checking if file exists: ' + err)
+      this.logger.error(`ERROR when checking if file exists: ${err}`)
     }
     return false
   }

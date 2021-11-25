@@ -1,0 +1,25 @@
+name: Push
+
+on: push
+
+jobs:
+  build:
+    name: Lint and build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v2
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - name: Install deps (with cache)
+        uses: bahmutov/npm-install@v1
+      - name: Lint codebase
+        run: yarn eslint --ext .js,.ts,.jsx,.tsx .
+      - name: Build collaboration server
+        run: yarn build
+        working-directory: packages/apollo-collaboration-server
+      # - name: Build plugin
+      #   run: yarn build
+      #   working-directory: jbrowse-plugin-apollo

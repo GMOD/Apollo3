@@ -1,6 +1,7 @@
 import { INestApplication } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
 import * as request from 'supertest'
+
 import { AppModule } from '../../src/app.module'
 
 describe('E2E JWT Sample', () => {
@@ -24,7 +25,7 @@ describe('E2E JWT Sample', () => {
     const token = loginReq.body.access_token
     return request(app.getHttpServer())
       .get('/profile')
-      .set('Authorization', 'Bearer ' + token)
+      .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect({ userId: 1, username: 'john' })
   })
