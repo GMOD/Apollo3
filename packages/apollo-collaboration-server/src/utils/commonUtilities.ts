@@ -62,15 +62,15 @@ export class commonUtilities {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const fs = require('fs')
 
-    fs.appendFileSync(
+    fs.appendFile(
       join(process.env.FILE_SEARCH_FOLDER, process.env.GFF3_CHANGELOG_FILENAME),
       `${this.getCurrentDateTime()} : ${username}\n`,
     )
-    fs.appendFileSync(
+    fs.appendFile(
       join(process.env.FILE_SEARCH_FOLDER, process.env.GFF3_CHANGELOG_FILENAME),
       `ORIGINAL LINE : ${originalLine}\n`,
     )
-    fs.appendFileSync(
+    fs.appendFile(
       join(process.env.FILE_SEARCH_FOLDER, process.env.GFF3_CHANGELOG_FILENAME),
       `UPDATED VALUE : ${updatedLine}\n`,
     )

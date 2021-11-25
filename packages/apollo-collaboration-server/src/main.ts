@@ -12,7 +12,7 @@ async function bootstrap() {
     // logger: ['error', 'warn'],
   })
   // const app = await NestFactory.create(AppModule);
-  await app.listen(3999)
+  await app.listen(process.env.APPLICATION_PORT)
   // eslint-disable-next-line no-console
   console.log(`Application is running on: ${await app.getUrl()}`)
 

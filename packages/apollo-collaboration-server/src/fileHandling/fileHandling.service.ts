@@ -1,5 +1,6 @@
-import { createWriteStream, existsSync } from 'fs'
-import { join } from 'path/posix'
+import { createWriteStream, existsSync, } from 'fs'
+import * as fs from 'fs/promises'
+import { join } from 'path'
 
 import gff from '@gmod/gff'
 import {
@@ -10,6 +11,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 import { Response } from 'express'
@@ -94,47 +96,30 @@ export class FileHandlingService {
     postDto: gff3ChangeLineObjectDto,
     response: Response,
   ): Promise<Response> {
-    // Check if file exists
-    if (!this.fileExists(postDto.filename)) {
-      this.logger.error(
-        `File =${postDto.filename}= does not exist in folder =${process.env.FILE_SEARCH_FOLDER}=`,
-      )
-      return response.status(HttpStatus.NOT_FOUND).json({
-        status: HttpStatus.NOT_FOUND,
-        message: `File ${postDto.filename} does not exist!`,
-      })
-    }
+    // // Check if file exists: "Using fs.exists() to check for the existence of a file before calling fs.open(), fs.readFile() or fs.writeFile() is not recommended"
+    // if (!this.fileExists(postDto.filename)) {
+    //   this.logger.error(
+    //     `File =${postDto.filename}= does not exist in folder =${process.env.FILE_SEARCH_FOLDER}=`,
+    //   )
+    //   throw new NotFoundException(`File ${postDto.filename} does not exist!`)
+    // }
 
     // Join path+filename
     const fullFileName = join(process.env.FILE_SEARCH_FOLDER, postDto.filename)
 
     const oldValue = postDto.originalLine
     const newValue = postDto.updatedLine
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fs = require('fs')
 
     // Read the file
-    await fs.readFile(fullFileName, 'utf8', async (err, data) => {
-      if (err) {
-        this.logger.error(`ERROR when reading/updating file: ${err}`)
-        throw new InternalServerErrorException(
-          `ERROR in updateGFF3File() : ${err}`,
-        )
-      }
-
+    try {
+      const data = await fs.readFile(fullFileName, 'utf8')
       // Check that there is at least one occurance of search string in the file
       if (data.indexOf(oldValue) >= 0) {
         const replacer = new RegExp(oldValue, 'g')
         const change = data.replace(replacer, newValue)
         // Write updated content back to file
-        fs.writeFile(fullFileName, change, 'utf8', (error) => {
-          if (error) {
-            this.logger.error(`ERROR when writing/updating file: ${error}`)
-            throw new InternalServerErrorException(
-              `ERROR in updateGFF3File() : ${error}`,
-            )
-          }
-        })
+        await fs.writeFile(fullFileName, change, 'utf8')
+
         this.logger.debug(`File ${postDto.filename} successfully updated!`)
         return response.status(HttpStatus.OK).json({
           status: HttpStatus.OK,
@@ -148,8 +133,12 @@ export class FileHandlingService {
         status: HttpStatus.NOT_FOUND,
         message: `ERROR when updating file: The following string was not found in GFF3 file='${oldValue}'`,
       })
-    })
-    fs.close()
+    } catch (err) {
+      this.logger.error(`ERROR when reading/updating file: ${err}`)
+      throw new InternalServerErrorException(
+        `ERROR in updateGFF3File() : ${err}`,
+      )
+    }
   }
 
   /**
@@ -232,11 +221,7 @@ export class FileHandlingService {
         JSON.stringify(oldValueAsJson),
       )
 
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const fs = require('fs')
-
-      // Open file for writing and write the 1st line
-      fs.writeFileSync(
+      await fs.writeFile(
         join(
           process.env.FILE_SEARCH_FOLDER,
           process.env.GFF3_DEFAULT_FILENAME_TO_SAVE,
@@ -249,7 +234,7 @@ export class FileHandlingService {
       for (const keyInd of nberOfEntries) {
         cacheValue = await this.cacheManager.get(keyInd.toString())
         // Write into file line by line
-        fs.appendFileSync(
+        fs.appendFile(
           join(
             process.env.FILE_SEARCH_FOLDER,
             process.env.GFF3_DEFAULT_FILENAME_TO_SAVE,
@@ -282,13 +267,11 @@ export class FileHandlingService {
    * @param filename GFF3 filename where data is loaded
    */
   async loadGFF3FileIntoCache(filename: string) {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fs = require('fs')
-    try {
+     try {
       this.logger.debug(`Starting to load gff3 file ${filename} into cache!`)
 
       // parse a string of gff3 synchronously
-      const stringOfGFF3 = fs.readFileSync(
+      const stringOfGFF3 = await fs.readFile(
         join(process.env.FILE_SEARCH_FOLDER, filename),
         { encoding: 'utf8', flag: 'r' },
       )
