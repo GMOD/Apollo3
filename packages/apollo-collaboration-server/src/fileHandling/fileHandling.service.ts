@@ -18,6 +18,7 @@ import { Response } from 'express'
 
 import {
   fastaQueryResult,
+  fastaSequenceInfo,
   gff3ChangeLineObjectDto,
   regionSearchObjectDto,
 } from '../entity/gff3Object.dto'
@@ -283,7 +284,7 @@ export class FileHandlingService {
 
       // Loop all lines and add those into cache
       for (const entry of arrayOfThings) {
-        // Comment, Directive and FASTA -entries are not presented as array so let's put entry into array because gff.formatSync() -method requires an array as argument
+        // Comment, Directive and FASTA -entries are not presented as an array so let's put entry into array because gff.formatSync() -method requires an array as argument
         if (!Array.isArray(entry)) {
           const result = [entry]
           this.cacheManager.set(ind.toString(), JSON.stringify(result))
@@ -315,14 +316,14 @@ export class FileHandlingService {
    * @param searchDto Data Transfer Object that contains information about searchable region
    * @param res
    * @returns Return 'HttpStatus.OK' and array of features (as JSON) if search was successful
-   * or if search data was not found in the file then return error message with HttpStatus.NOT_FOUND
-   * or in case of error return throw exception
+   * or if search data was not found or in case of error return throw exception
    */
   async getFeaturesByCriteria(
     searchDto: regionSearchObjectDto,
     res: Response<any, Record<string, any>>,
   ) {
     let cacheValue = ''
+    let cacheValueAsJson
     const resultJsonArray = [] // Return JSON array
 
     try {
@@ -339,15 +340,18 @@ export class FileHandlingService {
       // Loop cache
       for (const keyInd of nberOfEntries) {
         cacheValue = await this.cacheManager.get(keyInd)
-        const cacheValueAsJson = JSON.parse(cacheValue)
+        cacheValueAsJson = JSON.parse(cacheValue)
         this.logger.verbose(
           `Cache SEQ_ID=${cacheValueAsJson[0].seq_id}, START=${cacheValueAsJson[0].start} and END=${cacheValueAsJson[0].end}`,
         )
         // Compare cache values vs. searchable values
         if (
-          searchDto.refName === cacheValueAsJson[0].seq_id &&
-          searchDto.start < cacheValueAsJson[0].end &&
-          searchDto.end > cacheValueAsJson[0].start
+          cacheValueAsJson[0].hasOwnProperty('seq_id') &&
+          cacheValueAsJson[0].hasOwnProperty('start') &&
+          cacheValueAsJson[0].hasOwnProperty('end') &&
+          cacheValueAsJson[0].seq_id === searchDto.refName &&
+          cacheValueAsJson[0].end > searchDto.start &&
+          cacheValueAsJson[0].start < searchDto.end
         ) {
           this.logger.debug(
             `Matched found refName=${cacheValueAsJson[0].seq_id}, start=${cacheValueAsJson[0].start} and end=${cacheValueAsJson[0].end}`,
@@ -382,14 +386,14 @@ export class FileHandlingService {
    * @param searchDto Data Transfer Object that contains information about searchable sequence
    * @param res
    * @returns Return 'HttpStatus.OK' and embedded FASTA sequence if search was successful
-   * or if search data was not found in the file then return error message with HttpStatus.NOT_FOUND
-   * or in case of error throw exception
+   * or if search data was not found or in case of error throw exception
    */
   async getFastaByCriteria(
     searchDto: regionSearchObjectDto,
     res: Response<any, Record<string, any>>,
   ) {
     let cacheValue = ''
+    let cacheValueAsJson, keyArray
     const resultObject = new fastaQueryResult()
 
     try {
@@ -406,10 +410,17 @@ export class FileHandlingService {
       // Loop cache
       for (const keyInd of nberOfEntries) {
         cacheValue = await this.cacheManager.get(keyInd)
-        const cacheValueAsJson = JSON.parse(cacheValue)
+        cacheValueAsJson = JSON.parse(cacheValue)
         this.logger.verbose(`Cache SEQ_ID=${cacheValueAsJson[0].id}`)
-        // Compare cache id vs. searchable refName
-        if (searchDto.refName === cacheValueAsJson[0].id) {
+        keyArray = Object.keys(cacheValueAsJson[0])
+        // Compare cache id vs. searchable refName. FASTA sequence object size is three ('id', 'description' and 'sequence')
+        if (
+          keyArray.length === 3 &&
+          cacheValueAsJson[0].hasOwnProperty('id') &&
+          cacheValueAsJson[0].hasOwnProperty('description') &&
+          cacheValueAsJson[0].hasOwnProperty('sequence') &&
+          cacheValueAsJson[0].id === searchDto.refName
+        ) {
           // Check end position
           if (searchDto.end > cacheValueAsJson[0].sequence.length) {
             const errMsg = `ERROR. Searched FASTA end position ${JSON.stringify(
@@ -455,6 +466,64 @@ export class FileHandlingService {
       )
       throw new HttpException(
         `ERROR in getFastaByCriteria() : ${err}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      )
+    }
+  }
+
+  /**
+   * Get list of embedded FASTA sequences
+   * @param res
+   * @returns Return 'HttpStatus.OK' and list of embedded FASTA sequences as array of fastaSequenceInfo -object
+   * or if no data was found or in case of error throw exception
+   */
+  async getFastaInfo(res: Response<any, Record<string, any>>) {
+    let cacheValue = ''
+    let cacheValueAsJson, keyArray
+    const resultJsonArray = [] // Return JSON array
+
+    try {
+      const nberOfEntries = await this.cacheManager.store.keys()
+      this.logger.debug('Get embedded FASTA information')
+
+      // Loop cache
+      for (const keyInd of nberOfEntries) {
+        cacheValue = await this.cacheManager.get(keyInd)
+        cacheValueAsJson = JSON.parse(cacheValue)
+        keyArray = Object.keys(cacheValueAsJson[0])
+        // FASTA sequence object size is three ('id', 'description' and 'sequence')
+        if (
+          keyArray.length === 3 &&
+          cacheValueAsJson[0].hasOwnProperty('id') &&
+          cacheValueAsJson[0].hasOwnProperty('description') &&
+          cacheValueAsJson[0].hasOwnProperty('sequence')
+        ) {
+          const tmpInfoObject = new fastaSequenceInfo()
+          tmpInfoObject.refName = cacheValueAsJson[0].id
+          tmpInfoObject.description = cacheValueAsJson[0].description
+          tmpInfoObject.length = cacheValueAsJson[0].sequence.length
+          resultJsonArray.push(tmpInfoObject)
+          this.logger.debug(
+            `Added into result array an object of SEQ_ID=${cacheValueAsJson[0].id}, DESCRIPTION='${cacheValueAsJson[0].description}' and SEQUENCE LENGTH=${cacheValueAsJson[0].sequence.length}`,
+          )
+        }
+      }
+
+      // If no feature was found
+      if (resultJsonArray.length === 0) {
+        const errMsg = 'No embedded FASTA sequences found'
+        this.logger.error(errMsg)
+        throw new NotFoundException(errMsg)
+      }
+
+      this.logger.debug(
+        `Found (n=${resultJsonArray.length}) embedded FASTA sequences`,
+      )
+      return res.status(HttpStatus.OK).json(resultJsonArray)
+    } catch (err) {
+      this.logger.error(`ERROR when searching embedded FASTA sequences: ${err}`)
+      throw new HttpException(
+        `ERROR in getFastaInfo() : ${err}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       )
     }

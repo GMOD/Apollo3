@@ -29,3 +29,9 @@ export class fastaQueryResult {
   description: string
   sequence: string
 }
+
+export class fastaSequenceInfo {
+  refName: string
+  description: string
+  length: number
+}

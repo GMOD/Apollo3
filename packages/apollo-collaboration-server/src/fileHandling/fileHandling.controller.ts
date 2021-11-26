@@ -147,6 +147,7 @@ export class FileHandlingController {
       `Original value=${JSON.stringify(postDto.originalLine)}`,
     )
     this.logger.verbose(`Updated value=${JSON.stringify(postDto.updatedLine)}`)
+
     return this.fileService.updateGFF3Cache(postDto, res)
   }
 
@@ -155,8 +156,7 @@ export class FileHandlingController {
    * @param searchDto Data Transfer Object that contains information about searchable region
    * @param res
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
-   * or if search data was not found in the file then return error message with HttpStatus.NOT_FOUND
-   * or in case of error throw exception
+   * or if search data was not found or in case of error throw exception
    */
   @Get('/getFeaturesByCriteria')
   getFeaturesByCriteria(
@@ -171,8 +171,7 @@ export class FileHandlingController {
    * @param searchDto Data Transfer Object that contains information about searchable sequence
    * @param res
    * @returns Return 'HttpStatus.OK' and embedded FASTA sequence if search was successful
-   * or if search data was not found in the file then return error message with HttpStatus.NOT_FOUND
-   * or in case of error throw exception
+   * or if search data was not found or in case of error throw exception
    */
   @Get('/getFastaByCriteria')
   getFastaByCriteria(
@@ -180,5 +179,16 @@ export class FileHandlingController {
     @Res() res: Response,
   ) {
     return this.fileService.getFastaByCriteria(searchDto, res)
+  }
+
+  /**
+   * Get list of embedded FASTA sequences
+   * @param res
+   * @returns Return 'HttpStatus.OK' and list of embedded FASTA sequences as array of fastaSequenceInfo -object
+   * or if no data was found or in case of error throw exception
+   */
+  @Get('/getFastaInfo')
+  getFastaInfo(@Res() res: Response) {
+    return this.fileService.getFastaInfo(res)
   }
 }
