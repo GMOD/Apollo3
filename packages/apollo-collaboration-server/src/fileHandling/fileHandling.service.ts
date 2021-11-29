@@ -94,10 +94,7 @@ export class FileHandlingService {
    * THIS IS JUST FOR DEMO PURPOSE
    * Update existing GFF3 file in local filesystem.
    */
-  async updateGFF3File(
-    postDto: gff3ChangeLineObjectDto,
-    response: Response,
-  ): Promise<Response> {
+  async updateGFF3File(postDto: gff3ChangeLineObjectDto, response: Response) {
     // // Check if file exists: "Using fs.exists() to check for the existence of a file before calling fs.open(), fs.readFile() or fs.writeFile() is not recommended"
     // if (!this.fileExists(postDto.filename)) {
     //   this.logger.error(
@@ -113,30 +110,32 @@ export class FileHandlingService {
     const newValue = postDto.updatedLine
 
     // Read the file
-    try {
-      const data = await fs.readFile(fullFileName, 'utf8')
-      // Check that there is at least one occurance of search string in the file
-      if (data.indexOf(oldValue) >= 0) {
-        const replacer = new RegExp(oldValue, 'g')
-        const change = data.replace(replacer, newValue)
-        // Write updated content back to file
-        await fs.writeFile(fullFileName, change, 'utf8')
+    await fs
+      .readFile(fullFileName, 'utf8')
+      .then(async (data) => {
+        // Check that there is at least one occurance of search string in the file
+        if (data.indexOf(oldValue) >= 0) {
+          const replacer = new RegExp(oldValue, 'g')
+          const change = data.replace(replacer, newValue)
+          // Write updated content back to file
+          await fs.writeFile(fullFileName, change, 'utf8')
 
-        this.logger.debug(`File ${postDto.filename} successfully updated!`)
-        return response.status(HttpStatus.OK).json({
-          status: HttpStatus.OK,
-          message: `File ${postDto.filename} successfully updated!`,
-        })
-      }
-      const errMsg = `ERROR when updating file: The following string was not found in GFF3 file='${oldValue}'`
-      this.logger.error(errMsg)
-      throw new NotFoundException(errMsg)
-    } catch (err) {
-      this.logger.error(`ERROR when reading/updating file: ${err}`)
-      throw new InternalServerErrorException(
-        `ERROR in updateGFF3File() : ${err}`,
-      )
-    }
+          this.logger.debug(`File ${postDto.filename} successfully updated!`)
+          return response.status(HttpStatus.OK).json({
+            status: HttpStatus.OK,
+            message: `File ${postDto.filename} successfully updated!`,
+          })
+        }
+        const errMsg = `ERROR when updating file: The following string was not found in GFF3 file='${oldValue}'`
+        this.logger.error(errMsg)
+        throw new NotFoundException(errMsg)
+      })
+      .catch((err) => {
+        this.logger.error(`ERROR when reading/updating file: ${err}`)
+        throw new InternalServerErrorException(
+          `ERROR in updateGFF3File() : ${err}`,
+        )
+      })
   }
 
   /**
@@ -170,10 +169,7 @@ export class FileHandlingService {
    * @param response
    * @returns
    */
-  async updateGFF3Cache(
-    postDto: gff3ChangeLineObjectDto,
-    response: Response,
-  ): Promise<Response> {
+  async updateGFF3Cache(postDto: gff3ChangeLineObjectDto, response: Response) {
     let cacheValue = ''
     let cacheKey = -1 // Cache key that specifies the row that we update. All cache keys are > 0
     const oldValue = postDto.originalLine // Search this string in cache
@@ -259,56 +255,109 @@ export class FileHandlingService {
     }
   }
 
+  // /**
+  //  * Loads GFF3 file into cache
+  //  * @param filename GFF3 filename where data is loaded
+  //  */
+  // async loadGFF3FileIntoCache(filename: string) {
+  //   try {
+  //     this.logger.debug(`Starting to load gff3 file ${filename} into cache!`)
+
+  //     // parse a string of gff3 synchronously
+  //     const stringOfGFF3 = await fs.readFile(
+  //       join(process.env.FILE_SEARCH_FOLDER, filename),
+  //       { encoding: 'utf8', flag: 'r' },
+  //     )
+
+  //     this.logger.verbose(`Data read from file=${stringOfGFF3}`)
+  //     // Clear old entries from cache
+  //     this.cacheManager.reset()
+
+  //     const arrayOfThings = await gff.parseStringSync(stringOfGFF3, {
+  //       parseAll: true,
+  //     })
+  //     let ind = 0
+
+  //     // Loop all lines and add those into cache
+  //     for (const entry of arrayOfThings) {
+  //       // Comment, Directive and FASTA -entries are not presented as an array so let's put entry into array because gff.formatSync() -method requires an array as argument
+  //       if (!Array.isArray(entry)) {
+  //         const result = [entry]
+  //         this.cacheManager.set(ind.toString(), JSON.stringify(result))
+  //         this.logger.verbose(
+  //           `Add Comments, Directive or FASTA into cache=${JSON.stringify(
+  //             result,
+  //           )}`,
+  //         )
+  //       } else {
+  //         this.cacheManager.set(ind.toString(), JSON.stringify(entry))
+  //         this.logger.verbose(
+  //           `Add into cache new entry=${JSON.stringify(entry)}`,
+  //         )
+  //       }
+  //       ind++
+  //     }
+  //     const nberOfEntries = await this.cacheManager.store.keys()
+  //     this.logger.debug(`Added ${nberOfEntries.length} entries to cache`)
+  //   } catch (err) {
+  //     this.logger.error(`Could not load GFF3 file into cache:${err}`)
+  //     throw new InternalServerErrorException(
+  //       `Could not load GFF3 file into cache:${err}`,
+  //     )
+  //   }
+  // }
+
   /**
    * Loads GFF3 file into cache
    * @param filename GFF3 filename where data is loaded
    */
   async loadGFF3FileIntoCache(filename: string) {
-    try {
-      this.logger.debug(`Starting to load gff3 file ${filename} into cache!`)
+    this.logger.debug(`Starting to load gff3 file ${filename} into cache!`)
 
-      // parse a string of gff3 synchronously
-      const stringOfGFF3 = await fs.readFile(
-        join(process.env.FILE_SEARCH_FOLDER, filename),
-        { encoding: 'utf8', flag: 'r' },
-      )
-
-      this.logger.verbose(`Data read from file=${stringOfGFF3}`)
-      // Clear old entries from cache
-      this.cacheManager.reset()
-
-      const arrayOfThings = await gff.parseStringSync(stringOfGFF3, {
-        parseAll: true,
+    // parse a string of gff3 synchronously
+    await fs
+      .readFile(join(process.env.FILE_SEARCH_FOLDER, filename), {
+        encoding: 'utf8',
+        flag: 'r',
       })
-      let ind = 0
+      .then(async (stringOfGFF3) => {
+        this.logger.verbose(`Data read from file=${stringOfGFF3}`)
+        // Clear old entries from cache
+        this.cacheManager.reset()
 
-      // Loop all lines and add those into cache
-      for (const entry of arrayOfThings) {
-        // Comment, Directive and FASTA -entries are not presented as an array so let's put entry into array because gff.formatSync() -method requires an array as argument
-        if (!Array.isArray(entry)) {
-          const result = [entry]
-          this.cacheManager.set(ind.toString(), JSON.stringify(result))
-          this.logger.verbose(
-            `Add Comments, Directive or FASTA into cache=${JSON.stringify(
-              result,
-            )}`,
-          )
-        } else {
-          this.cacheManager.set(ind.toString(), JSON.stringify(entry))
-          this.logger.verbose(
-            `Add into cache new entry=${JSON.stringify(entry)}`,
-          )
+        const arrayOfThings = await gff.parseStringSync(stringOfGFF3, {
+          parseAll: true,
+        })
+        let ind = 0
+
+        // Loop all lines and add those into cache
+        for (const entry of arrayOfThings) {
+          // Comment, Directive and FASTA -entries are not presented as an array so let's put entry into array because gff.formatSync() -method requires an array as argument
+          if (!Array.isArray(entry)) {
+            const result = [entry]
+            this.cacheManager.set(ind.toString(), JSON.stringify(result))
+            this.logger.verbose(
+              `Add Comments, Directive or FASTA into cache=${JSON.stringify(
+                result,
+              )}`,
+            )
+          } else {
+            this.cacheManager.set(ind.toString(), JSON.stringify(entry))
+            this.logger.verbose(
+              `Add into cache new entry=${JSON.stringify(entry)}`,
+            )
+          }
+          ind++
         }
-        ind++
-      }
-      const nberOfEntries = await this.cacheManager.store.keys()
-      this.logger.debug(`Added ${nberOfEntries.length} entries to cache`)
-    } catch (err) {
-      this.logger.error(`Could not load GFF3 file into cache:${err}`)
-      throw new InternalServerErrorException(
-        `Could not load GFF3 file into cache:${err}`,
-      )
-    }
+        const nberOfEntries = await this.cacheManager.store.keys()
+        this.logger.debug(`Added ${nberOfEntries.length} entries to cache`)
+      })
+      .catch((err) => {
+        this.logger.error(`Could not load GFF3 file into cache:${err}`)
+        throw new InternalServerErrorException(
+          `Could not load GFF3 file into cache:${err}`,
+        )
+      })
   }
 
   /**
