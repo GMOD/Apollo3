@@ -5,7 +5,7 @@ import { Injectable } from '@nestjs/common'
 // import { fileSearchFolderConfig, GFF3 } from './fileConfig'
 
 @Injectable()
-export class commonUtilities {
+export class CommonUtilities {
   /**
    * Returns current datetime in the following format ddmmyyyy_hh24miss
    * @returns Returns current datetime in the following format ddmmyyyy_hh24miss

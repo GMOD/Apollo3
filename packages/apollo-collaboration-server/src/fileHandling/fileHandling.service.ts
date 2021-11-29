@@ -22,13 +22,13 @@ import {
   gff3ChangeLineObjectDto,
   regionSearchObjectDto,
 } from '../entity/gff3Object.dto'
-import { commonUtilities } from '../utils/commonUtilities'
+import { CommonUtilities } from '../utils/commonUtilities'
 
 @Injectable()
 export class FileHandlingService {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
   private readonly logger = new Logger(FileHandlingService.name)
-  private readonly commUtils = new commonUtilities()
+  private readonly commUtils = new CommonUtilities()
 
   /**
    * THIS IS JUST FOR DEMO PURPOSE
