@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { JwtService } from '@nestjs/jwt'
-import jwt_decode from 'jwt-decode'
+import jwtDecode from 'jwt-decode'
 
 import { PayloadObject } from '../payloadObject'
 import { ROLES_KEY } from './role.decorator'
@@ -70,7 +70,7 @@ export class RolesGuard implements CanActivate {
    */
   getDecodedAccessToken(token: string): any {
     try {
-      return jwt_decode(token)
+      return jwtDecode(token)
     } catch (Error) {
       return null
     }

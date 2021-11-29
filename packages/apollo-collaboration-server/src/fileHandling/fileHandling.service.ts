@@ -10,13 +10,13 @@ import {
 } from '@nestjs/common'
 import { Response } from 'express'
 
-import { commonUtilities } from '../utils/commonUtilities'
+import { CommonUtilities } from '../utils/commonUtilities'
 import { fileSearchFolderConfig, uploadedFileConfig } from '../utils/fileConfig'
 
 @Injectable()
 export class FileHandlingService {
   private readonly logger = new Logger(FileHandlingService.name)
-  private readonly commUtils = new commonUtilities()
+  private readonly commUtils = new CommonUtilities()
 
   /**
    * Save new uploaded file into local filesystem. The filename in local filesystem will be: 'uploaded' + timestamp in ddmmyyyy_hh24miss -format + original filename
