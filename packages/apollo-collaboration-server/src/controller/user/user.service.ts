@@ -39,7 +39,7 @@ export class UserService {
       for (const result of returnValue) {
         // Get user roles and add it to JSON
         const a = await UserRole.find({ userId: result.id })
-        result['userRoles'] = a
+        result.userRoles = a
       }
 
       if (returnValue != null) {
@@ -121,38 +121,26 @@ export class UserService {
       const con = conMan.get()
 
       // Transaction rollback is not working if we call our own methods in customs repository!!!!
-      await con
-        .transaction(async (transaction) => {
-          // If you are using Customs repository method addNewUserRepo() then transaction rollback is not working
-          // await transaction.getCustomRepository(GrailsUserRepository).addNewUserRepo(newUser);
-          await transaction
-            .getCustomRepository(GrailsUserRepository)
-            .save(newUser)
-          this.logger.debug(`Added new user with id=${newUser.id}`)
+      await con.transaction(async (transaction) => {
+        // If you are using Customs repository method addNewUserRepo() then transaction rollback is not working
+        // await transaction.getCustomRepository(GrailsUserRepository).addNewUserRepo(newUser);
+        await transaction
+          .getCustomRepository(GrailsUserRepository)
+          .save(newUser)
+        this.logger.debug(`Added new user with id=${newUser.id}`)
 
-          // TODO: Role information is now hard-coded
-          const userRole = new UserRole()
-          userRole.userId = newUser.id
-          userRole.roleId = 3 // TODO: HARDCODE VALUE FOR DEMO ONLY
-          // If you are using Customs repository method addNewUserRoleRepo() then transaction rollback is not working
-          // await transaction.getCustomRepository(UserRoleRepository).addNewUserRoleRepo(userRole);
-          await transaction
-            .getCustomRepository(UserRoleRepository)
-            .save(userRole)
-          this.logger.debug(
-            `Added role ${userRole.roleId} for new user (id=${newUser.id})`,
-          )
-        })
-        .then(() => {
-          this.logger.debug('Commit done!')
-        })
-        .catch((errMsg) => {
-          this.logger.debug(`Rollback done! ${errMsg}`)
-          throw new HttpException(
-            `ERROR in addNewUserTypeORMTransaction(transction) : ${errMsg}`,
-            HttpStatus.INTERNAL_SERVER_ERROR,
-          )
-        })
+        // TODO: Role information is now hard-coded
+        const userRole = new UserRole()
+        userRole.userId = newUser.id
+        userRole.roleId = 3 // TODO: HARDCODE VALUE FOR DEMO ONLY
+        // If you are using Customs repository method addNewUserRoleRepo() then transaction rollback is not working
+        // await transaction.getCustomRepository(UserRoleRepository).addNewUserRoleRepo(userRole);
+        await transaction.getCustomRepository(UserRoleRepository).save(userRole)
+        this.logger.debug(
+          `Added role ${userRole.roleId} for new user (id=${newUser.id})`,
+        )
+      })
+      this.logger.debug('Commit done!')
 
       // Get user from database and return it (now it contains userId). Actually we could also directly use 'newUser' -object because it has id after it was inserted into db
       const justAddedUser = await ApolloUser.findOne({
