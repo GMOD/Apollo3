@@ -39,7 +39,7 @@ export class UserService {
       for (const result of returnValue) {
         // Get user roles and add it to JSON
         const a = await UserRole.find({ userId: result.id })
-        result.userRoles = a
+        result['userRoles'] = a
       }
 
       if (returnValue != null) {
