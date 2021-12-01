@@ -22,13 +22,16 @@ import {
   gff3ChangeLineObjectDto,
   regionSearchObjectDto,
 } from '../entity/gff3Object.dto'
-import { CommonUtilities } from '../utils/commonUtilities'
+import {
+  compareTwoJsonObjects,
+  getCurrentDateTime,
+  writeIntoGff3ChangeLog,
+} from '../utils/commonUtilities'
 
 @Injectable()
 export class FileHandlingService {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
   private readonly logger = new Logger(FileHandlingService.name)
-  private readonly commUtils = new CommonUtilities()
 
   /**
    * THIS IS JUST FOR DEMO PURPOSE
@@ -54,7 +57,7 @@ export class FileHandlingService {
     // Join path+filename
     const newFullFileName = join(
       process.env.UPLOADED_OUTPUT_FOLDER,
-      `uploaded_${this.commUtils.getCurrentDateTime()}_${file.originalname}`,
+      `uploaded_${getCurrentDateTime()}_${file.originalname}`,
     )
     this.logger.debug(`New file will be saved as ${newFullFileName}`)
 
@@ -188,7 +191,7 @@ export class FileHandlingService {
           `Read line from cache=${cacheValue}=, key=${keyInd}`,
         )
         // Check if cache line is same as 'originalLine' -parameter
-        if (this.commUtils.compareTwoJsonObjects(oldValue, cacheValue)) {
+        if (compareTwoJsonObjects(oldValue, cacheValue)) {
           this.logger.debug('Found original value from cache')
           cacheKey = keyInd
           break
@@ -236,7 +239,7 @@ export class FileHandlingService {
         )
       }
       // Write change -information into separate change log -file
-      this.commUtils.writeIntoGff3ChangeLog(
+      writeIntoGff3ChangeLog(
         'user xxx', // TODO: DON'T USE HARD CODED VALUES IN PRODUCTION!
         postDto.originalLine,
         postDto.updatedLine,
