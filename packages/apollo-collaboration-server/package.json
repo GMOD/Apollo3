@@ -4,6 +4,9 @@
   "description": "",
   "author": "",
   "license": "Apache-2.0",
+  "engines": {
+    "node": ">=14"
+  },
   "scripts": {
     "build": "rimraf dist && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -20,6 +23,7 @@
   },
   "dependencies": {
     "@casl/ability": "^5.4.3",
+    "@gmod/gff": "^1.1.2",
     "@nestjs/common": "^8.0.11",
     "@nestjs/config": "^1.0.3",
     "@nestjs/core": "^8.0.11",
@@ -42,11 +46,9 @@
     "string-builder": "^0.1.8",
     "tslib": "^2.3.1",
     "typeorm": "^0.2.38",
-    "typeorm-transactional-cls-hooked": "^0.1.21",
-    "@gmod/gff": "^1.1.2"
+    "typeorm-transactional-cls-hooked": "^0.1.21"
   },
   "devDependencies": {
-    "@gmod/gff": "^1.1.2",
     "@nestjs/cli": "^8.1.2",
     "@nestjs/schematics": "^8.0.0",
     "@nestjs/testing": "^8.0.0",
