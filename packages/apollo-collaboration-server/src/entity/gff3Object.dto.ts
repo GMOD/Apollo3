@@ -1,4 +1,4 @@
-export class gff3ChangeObjectDto {
+export interface GFF3ChangeObjectDto {
   filename: string
   seqid: string
   source: string
@@ -11,26 +11,26 @@ export class gff3ChangeObjectDto {
   attributes: { key: string; value: string }[]
 }
 
-export class gff3ChangeLineObjectDto {
+export interface GFF3ChangeLineObjectDto {
   filename: string
   rowid: string
   originalLine: string
   updatedLine: string
 }
 
-export class regionSearchObjectDto {
+export interface RegionSearchObjectDto {
   refName: string
   start: number
   end: number
 }
 
-export class fastaQueryResult {
+export interface FastaQueryResult {
   id: string
   description: string
   sequence: string
 }
 
-export class fastaSequenceInfo {
+export interface FastaSequenceInfo {
   refName: string
   description: string
   length: number

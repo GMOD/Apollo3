@@ -17,10 +17,10 @@ import { Cache } from 'cache-manager'
 import { Response } from 'express'
 
 import {
-  fastaQueryResult,
-  fastaSequenceInfo,
-  gff3ChangeLineObjectDto,
-  regionSearchObjectDto,
+  FastaQueryResult,
+  FastaSequenceInfo,
+  GFF3ChangeLineObjectDto,
+  RegionSearchObjectDto,
 } from '../entity/gff3Object.dto'
 import {
   compareTwoJsonObjects,
@@ -97,7 +97,7 @@ export class FileHandlingService {
    * THIS IS JUST FOR DEMO PURPOSE
    * Update existing GFF3 file in local filesystem.
    */
-  async updateGFF3File(postDto: gff3ChangeLineObjectDto, response: Response) {
+  async updateGFF3File(postDto: GFF3ChangeLineObjectDto, response: Response) {
     // // Check if file exists: "Using fs.exists() to check for the existence of a file before calling fs.open(), fs.readFile() or fs.writeFile() is not recommended"
     // if (!this.fileExists(postDto.filename)) {
     //   this.logger.error(
@@ -172,7 +172,7 @@ export class FileHandlingService {
    * @param response
    * @returns
    */
-  async updateGFF3Cache(postDto: gff3ChangeLineObjectDto, response: Response) {
+  async updateGFF3Cache(postDto: GFF3ChangeLineObjectDto, response: Response) {
     let cacheValue = ''
     let cacheKey = -1 // Cache key that specifies the row that we update. All cache keys are > 0
     const oldValue = postDto.originalLine // Search this string in cache
@@ -371,7 +371,7 @@ export class FileHandlingService {
    * or if search data was not found or in case of error return throw exception
    */
   async getFeaturesByCriteria(
-    searchDto: regionSearchObjectDto,
+    searchDto: RegionSearchObjectDto,
     res: Response<any, Record<string, any>>,
   ) {
     let cacheValue = ''
@@ -441,12 +441,11 @@ export class FileHandlingService {
    * or if search data was not found or in case of error throw exception
    */
   async getFastaByCriteria(
-    searchDto: regionSearchObjectDto,
+    searchDto: RegionSearchObjectDto,
     res: Response<any, Record<string, any>>,
   ) {
     let cacheValue = ''
     let cacheValueAsJson, keyArray
-    const resultObject = new fastaQueryResult()
 
     try {
       const nberOfEntries = await this.cacheManager.store.keys()
@@ -498,9 +497,11 @@ export class FileHandlingService {
           this.logger.debug(
             `Found sequence refName=${cacheValueAsJson[0].id} and sequence=${foundSequence}`,
           )
-          resultObject.id = cacheValueAsJson[0].id
-          resultObject.description = cacheValueAsJson[0].description
-          resultObject.sequence = foundSequence
+          const resultObject: FastaQueryResult = {
+            id: cacheValueAsJson[0].id,
+            description: cacheValueAsJson[0].description,
+            sequence: foundSequence,
+          }
           return res.status(HttpStatus.OK).json(resultObject)
         }
       }
@@ -550,10 +551,11 @@ export class FileHandlingService {
           cacheValueAsJson[0].hasOwnProperty('description') &&
           cacheValueAsJson[0].hasOwnProperty('sequence')
         ) {
-          const tmpInfoObject = new fastaSequenceInfo()
-          tmpInfoObject.refName = cacheValueAsJson[0].id
-          tmpInfoObject.description = cacheValueAsJson[0].description
-          tmpInfoObject.length = cacheValueAsJson[0].sequence.length
+          const tmpInfoObject: FastaSequenceInfo = {
+            refName: cacheValueAsJson[0].id,
+            description: cacheValueAsJson[0].description,
+            length: cacheValueAsJson[0].sequence.length,
+          }
           resultJsonArray.push(tmpInfoObject)
           this.logger.debug(
             `Added into result array an object of SEQ_ID=${cacheValueAsJson[0].id}, DESCRIPTION='${cacheValueAsJson[0].description}' and SEQUENCE LENGTH=${cacheValueAsJson[0].sequence.length}`,

@@ -18,8 +18,8 @@ import { FileInterceptor } from '@nestjs/platform-express/multer'
 import { Response } from 'express'
 
 import {
-  gff3ChangeLineObjectDto,
-  regionSearchObjectDto,
+  GFF3ChangeLineObjectDto,
+  RegionSearchObjectDto,
 } from '../entity/gff3Object.dto'
 import { FileHandlingService } from './fileHandling.service'
 
@@ -109,7 +109,7 @@ export class FileHandlingController {
    */
   @Put('/update')
   updateGFF3File(
-    @Body() postDto: gff3ChangeLineObjectDto,
+    @Body() postDto: GFF3ChangeLineObjectDto,
     @Res() res: Response,
   ) {
     this.logger.debug(`Filename=${postDto.filename}`)
@@ -140,7 +140,7 @@ export class FileHandlingController {
    */
   @Put('/updategff3')
   updateGFF3Cache(
-    @Body() postDto: gff3ChangeLineObjectDto,
+    @Body() postDto: GFF3ChangeLineObjectDto,
     @Res() res: Response,
   ) {
     this.logger.verbose(
@@ -160,7 +160,7 @@ export class FileHandlingController {
    */
   @Get('/getFeaturesByCriteria')
   getFeaturesByCriteria(
-    @Body() searchDto: regionSearchObjectDto,
+    @Body() searchDto: RegionSearchObjectDto,
     @Res() res: Response,
   ) {
     return this.fileService.getFeaturesByCriteria(searchDto, res)
@@ -175,7 +175,7 @@ export class FileHandlingController {
    */
   @Get('/getFastaByCriteria')
   getFastaByCriteria(
-    @Body() searchDto: regionSearchObjectDto,
+    @Body() searchDto: RegionSearchObjectDto,
     @Res() res: Response,
   ) {
     return this.fileService.getFastaByCriteria(searchDto, res)
