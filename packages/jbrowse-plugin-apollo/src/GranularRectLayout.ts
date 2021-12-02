@@ -38,30 +38,31 @@ const rectangle = types.model({
   id: types.string,
   l: types.number,
   r: types.number,
-  top: types.union(types.number, null),
+  top: types.maybeNull(types.number),
   h: types.number,
   originalHeight: types.number,
-  data: types.array(types.string),
+  data: types.frozen(), // types.maybe(types.map(types.frozen())),
 })
 const rowState = types.model({
   min: types.number,
   max: types.number,
   offset: types.number,
-  bits: types.array(types.union(types.string, undefined)),
+  //   bits: types.array(
+  //     types.union(types.map(types.frozen()), types.maybe(types.string)),
+  //   ),
+  bits: types.frozen(), // types.array(types.frozen()),
 })
 
 export const LayoutRow = types
   .model('LayoutRow', {
     id: 'LayoutRow',
     type: types.string,
-    allFilled: types.array(types.string),
-    rowState: rowState,
-  })
-  .volatile(() => ({
+    allFilled: types.union(types.map(types.frozen()), types.string),
+    rowState: types.maybe(rowState),
     padding: 1,
     widthLimit: 10000,
-  }))
-  .actions((self: any) => ({
+  })
+  .actions((self) => ({
     setAllFilled(data: string[]): void {
       self.allFilled = data
     },
@@ -117,7 +118,7 @@ export const LayoutRow = types
 
       return true
     },
-    initialize(left: number, right: number): typeof rowState {
+    initialize(left: number, right: number): Instance<typeof rowState> {
       // NOTE: this.rowState.min, this.rowState.max, and this.rowState.offset are interbase coordinates
       const rectWidth = right - left
       return {
@@ -128,7 +129,7 @@ export const LayoutRow = types
       }
       // this.log(`initialize ${this.rowState.min} - ${this.rowState.max} (${this.rowState.bits.length})`)
     },
-    addRect(rect: typeof rectangle, data: string[] | []): void {
+    addRect(rect: Instance<typeof rectangle>, data: string[] | []): void {
       const left = rect.l
       const right = rect.r + self.padding // only padding on the right
       if (!self.rowState) {
@@ -584,25 +585,19 @@ export const LayoutRow = types
 // }
 
 export const GranularRectLayout = types
-  .compose(
-    'GranularRectLayout',
-    LayoutRow,
-    types.model({
-      id: 'GranularRectLayout',
-      type: types.literal('GranularRectLayout'),
-      bitmap: types.array(typeof LayoutRow),
-      pTotalHeight: types.number,
-    }),
-  )
-  .volatile(() => ({
+  .model('GranularRectLayout', {
+    id: 'GranularRectLayout',
+    type: types.literal('GranularRectLayout'),
+    bitmap: types.array(LayoutRow),
+    pTotalHeight: types.number,
+    rectangles: types.map(rectangle),
     pitchX: 10,
     pitchY: 10,
     maxHeightReached: false,
     maxHeight: 10000,
     hardRowLimit: 10000,
     displayMode: 'normal',
-    rectangles: new Map(),
-  }))
+  })
   .views((self) => ({
     hasSeen(id: string): boolean {
       return self.rectangles.has(id)
@@ -634,8 +629,7 @@ export const GranularRectLayout = types
 
     getRectangles(): Map<string, RectTuple> {
       return new Map(
-        Array.from(self.rectangles.entries()).map(([id, rect]: any) => {
-          // TODO: ask about type here
+        Array.from(self.rectangles.entries()).map(([id, rect]) => {
           const { l, r, originalHeight, top } = rect
           const t = (top || 0) * self.pitchY
           const b = t + originalHeight
@@ -647,7 +641,7 @@ export const GranularRectLayout = types
     serializeRegion(region: { start: number; end: number }): SerializedLayout {
       const regionRectangles: { [key: string]: RectTuple } = {}
       let maxHeightReached = false
-      for (const [id, rect] of self.rectangles.entries()) {
+      Array.from(self.rectangles.entries()).forEach(([id, rect]) => {
         const { l, r, originalHeight, top } = rect
         if (rect.top === null) {
           maxHeightReached = true
@@ -663,7 +657,7 @@ export const GranularRectLayout = types
             regionRectangles[id] = [y1, t, y2, b]
           }
         }
-      }
+      })
       return {
         rectangles: regionRectangles,
         totalHeight: this.totalHeight,
@@ -681,13 +675,14 @@ export const GranularRectLayout = types
     },
   }))
   .actions((self: any) => ({
-    setDisplayMode(mode: string) {
-      self.displayMode = mode
-      if (mode === 'compact') {
-        self.pitchY = Math.round(self.pitchY / 4) || 1
-        self.pitchX = Math.round(self.pitchX / 4) || 1
-      }
-    },
+    // TODO probably dont need display mode stuff at all
+    // setDisplayMode(mode: string) {
+    //   self.displayMode = mode
+    //   if (mode === 'compact') {
+    //     self.pitchY = Math.round(self.pitchY / 4) || 1
+    //     self.pitchX = Math.round(self.pitchX / 4) || 1
+    //   }
+    // },
     /**
      * @returns top position for the rect, or Null if laying
      *  out the rect would exceed maxHeight
@@ -697,7 +692,7 @@ export const GranularRectLayout = types
       left: number,
       right: number,
       height: number,
-      data?: string[],
+      data?: any,
     ): number | null {
       // if we have already laid it out, return its layout
       const storedRec = self.rectangles.get(id)
@@ -716,7 +711,7 @@ export const GranularRectLayout = types
       const pRight = Math.floor(right / self.pitchX)
       const pHeight = Math.ceil(height / self.pitchY)
 
-      const addedRect: typeof rectangle = {
+      const addedRect: Instance<typeof rectangle> = {
         id,
         l: pLeft,
         r: pRight,
@@ -730,25 +725,25 @@ export const GranularRectLayout = types
       let top = 0
       if (self.displayMode !== 'collapse') {
         for (; top <= maxTop; top += 1) {
-          if (!this.collides(rectangle, top)) {
+          if (!this.collides(addedRect, top)) {
             break
           }
         }
 
         if (top > maxTop) {
           addedRect.top = null
-          self.rectangles.set(id, rectangle)
+          self.rectangles.set(id, addedRect)
           self.maxHeightReached = true
           return null
         }
       }
-      rectangle.top = top
-      this.addRectToBitmap(rectangle)
-      self.rectangles.set(id, rectangle)
+      addedRect.top = top
+      this.addRectToBitmap(addedRect)
+      self.rectangles.set(id, addedRect)
       self.pTotalHeight = Math.max(self.pTotalHeight || 0, top + pHeight)
       return top * self.pitchY
     },
-    collides(rect: typeof rectangle, top: number): boolean {
+    collides(rect: Instance<typeof rectangle>, top: number): boolean {
       const { bitmap } = self
 
       const maxY = top + rect.h
@@ -761,12 +756,12 @@ export const GranularRectLayout = types
 
       return false
     },
-    addRectToBitmap(rect: typeof rectangle): void {
+    addRectToBitmap(rect: Instance<typeof rectangle>): void {
       if (rect.top === null) {
         return
       }
 
-      const data = rect.data || rect.id
+      const data: string[] = rect.data || rect.id
       const { bitmap } = self
       const yEnd = rect.top + rect.h
       if (rect.r - rect.l > maxFeaturePitchWidth) {
@@ -787,8 +782,11 @@ export const GranularRectLayout = types
     /**
      * make a subarray if it does not exist
      */
-    autovivifyRow(bitmap: typeof LayoutRow[], y: number): typeof LayoutRow {
-      let row = bitmap[y]
+    autovivifyRow(
+      bitmap: Instance<typeof LayoutRow>[],
+      y: number,
+    ): Instance<typeof LayoutRow> {
+      const row = bitmap[y]
       if (!row) {
         if (y > self.hardRowLimit) {
           throw new Error(
@@ -797,7 +795,6 @@ export const GranularRectLayout = types
             }px) exceeded, aborting layout`,
           )
         }
-        row = new LayoutRow()
         bitmap[y] = row
       }
       return row
@@ -1097,5 +1094,5 @@ export const GranularRectLayout = types
 export type LayoutRowStateModel = typeof LayoutRow
 export type LayoutRowModel = Instance<LayoutRowStateModel>
 
-export type GranularRectLayoutStateModel = ReturnType<typeof GranularRectLayout>
+export type GranularRectLayoutStateModel = typeof GranularRectLayout
 export type GranularRectLayoutModel = Instance<GranularRectLayoutStateModel>
