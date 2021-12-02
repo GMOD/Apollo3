@@ -69,7 +69,7 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
-  async findByLastName(lastname: string, response: Response): Promise<any> {
+  async findByLastName(lastname: string, response: Response) {
     this.logger.log(`Find by lastname : "${lastname}"`)
     const returnValue = await this.findOne({ lastName: lastname })
     if (returnValue != null) {
@@ -82,7 +82,6 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
       'No data found (findByLastName)',
       HttpStatus.NOT_FOUND,
     )
-    // return response.status(HttpStatus.NOT_FOUND).json({status: HttpStatus.NOT_FOUND, message: 'No data found'});
   }
 
   /**

@@ -74,7 +74,6 @@ export class FileHandlingService {
   /**
    * Check if given filename exists in default folder
    * @param filename New user information
-   * @param response
    * @returns Return TRUE if file exists, otherwise return FALSE
    */
   fileExists(filename: string): boolean {
@@ -135,13 +134,10 @@ export class FileHandlingService {
   /**
    * Loads GFF3 file data into cache. Cache key is started from 0
    * @param filename File where data is loaded into cache
-   * @param res
+   * @param response
    * @returns
    */
-  async loadGff3IntoCache(
-    filename: string,
-    res: Response<any, Record<string, any>>,
-  ) {
+  async loadGff3IntoCache(filename: string, response: Response) {
     // Check if file exists
     if (!this.fileExists(filename)) {
       this.logger.error(
@@ -152,7 +148,7 @@ export class FileHandlingService {
     // Load GFF3 file into cache
     this.loadGFF3FileIntoCache(filename)
 
-    return res
+    return response
       .status(HttpStatus.OK)
       .json({ status: 'GFF3 file loaded into cache' })
   }
@@ -249,58 +245,6 @@ export class FileHandlingService {
     }
   }
 
-  // /**
-  //  * Loads GFF3 file into cache
-  //  * @param filename GFF3 filename where data is loaded
-  //  */
-  // async loadGFF3FileIntoCache(filename: string) {
-  //   try {
-  //     this.logger.debug(`Starting to load gff3 file ${filename} into cache!`)
-
-  //     // parse a string of gff3 synchronously
-  //     const stringOfGFF3 = await fs.readFile(
-  //       join(process.env.FILE_SEARCH_FOLDER, filename),
-  //       { encoding: 'utf8', flag: 'r' },
-  //     )
-
-  //     this.logger.verbose(`Data read from file=${stringOfGFF3}`)
-  //     // Clear old entries from cache
-  //     this.cacheManager.reset()
-
-  //     const arrayOfThings = await gff.parseStringSync(stringOfGFF3, {
-  //       parseAll: true,
-  //     })
-  //     let ind = 0
-
-  //     // Loop all lines and add those into cache
-  //     for (const entry of arrayOfThings) {
-  //       // Comment, Directive and FASTA -entries are not presented as an array so let's put entry into array because gff.formatSync() -method requires an array as argument
-  //       if (!Array.isArray(entry)) {
-  //         const result = [entry]
-  //         this.cacheManager.set(ind.toString(), JSON.stringify(result))
-  //         this.logger.verbose(
-  //           `Add Comments, Directive or FASTA into cache=${JSON.stringify(
-  //             result,
-  //           )}`,
-  //         )
-  //       } else {
-  //         this.cacheManager.set(ind.toString(), JSON.stringify(entry))
-  //         this.logger.verbose(
-  //           `Add into cache new entry=${JSON.stringify(entry)}`,
-  //         )
-  //       }
-  //       ind++
-  //     }
-  //     const nberOfEntries = await this.cacheManager.store.keys()
-  //     this.logger.debug(`Added ${nberOfEntries.length} entries to cache`)
-  //   } catch (err) {
-  //     this.logger.error(`Could not load GFF3 file into cache:${err}`)
-  //     throw new InternalServerErrorException(
-  //       `Could not load GFF3 file into cache:${err}`,
-  //     )
-  //   }
-  // }
-
   /**
    * Loads GFF3 file into cache
    * @param filename GFF3 filename where data is loaded
@@ -349,13 +293,13 @@ export class FileHandlingService {
   /**
    * Fetch features based on Reference seq, Start and End -values
    * @param searchDto Data Transfer Object that contains information about searchable region
-   * @param res
+   * @param response
    * @returns Return 'HttpStatus.OK' and array of features (as JSON) if search was successful
    * or if search data was not found or in case of error return throw exception
    */
   async getFeaturesByCriteria(
     searchDto: RegionSearchObjectDto,
-    res: Response<any, Record<string, any>>,
+    response: Response,
   ) {
     let cacheValue = ''
     let cacheValueAsJson
@@ -406,7 +350,7 @@ export class FileHandlingService {
       this.logger.debug(
         `Features (n=${resultJsonArray.length}) found successfully`,
       )
-      return res.status(HttpStatus.OK).json(resultJsonArray)
+      return response.status(HttpStatus.OK).json(resultJsonArray)
     } catch (err) {
       this.logger.error(`ERROR when searching features by criteria: ${err}`)
       throw new HttpException(
@@ -419,17 +363,16 @@ export class FileHandlingService {
   /**
    * Fetch embedded FASTA sequence based on Reference seq, Start and End -values
    * @param searchDto Data Transfer Object that contains information about searchable sequence
-   * @param res
+   * @param response
    * @returns Return 'HttpStatus.OK' and embedded FASTA sequence if search was successful
    * or if search data was not found or in case of error throw exception
    */
   async getFastaByCriteria(
     searchDto: RegionSearchObjectDto,
-    res: Response<any, Record<string, any>>,
+    response: Response<FastaQueryResult>,
   ) {
     let cacheValue = ''
     let cacheValueAsJson, keyArray
-
     try {
       const nberOfEntries = await this.cacheManager.store.keys()
 
@@ -485,7 +428,7 @@ export class FileHandlingService {
             description: cacheValueAsJson[0].description,
             sequence: foundSequence,
           }
-          return res.status(HttpStatus.OK).json(resultObject)
+          return response.status(HttpStatus.OK).json(resultObject)
         }
       }
 
@@ -509,11 +452,11 @@ export class FileHandlingService {
 
   /**
    * Get list of embedded FASTA sequences
-   * @param res
+   * @param response
    * @returns Return 'HttpStatus.OK' and list of embedded FASTA sequences as array of fastaSequenceInfo -object
    * or if no data was found or in case of error throw exception
    */
-  async getFastaInfo(res: Response<any, Record<string, any>>) {
+  async getFastaInfo(response: Response) {
     let cacheValue = ''
     let cacheValueAsJson, keyArray
     const resultJsonArray = [] // Return JSON array
@@ -556,7 +499,7 @@ export class FileHandlingService {
       this.logger.debug(
         `Found (n=${resultJsonArray.length}) embedded FASTA sequences`,
       )
-      return res.status(HttpStatus.OK).json(resultJsonArray)
+      return response.status(HttpStatus.OK).json(resultJsonArray)
     } catch (err) {
       this.logger.error(`ERROR when searching embedded FASTA sequences: ${err}`)
       throw new HttpException(
