@@ -8,6 +8,7 @@ export function stateModelFactory(pluginManager: PluginManager) {
       type: types.literal('ApolloView'),
       linearGenomeView: pluginManager.getViewType('LinearGenomeView')
         .stateModel as LinearGenomeViewStateModel,
+      gff3Text: types.maybe(types.string),
     })
     .views((self) => ({
       get width() {
@@ -17,6 +18,9 @@ export function stateModelFactory(pluginManager: PluginManager) {
     .actions((self) => ({
       setWidth(newWidth: number) {
         self.linearGenomeView.setWidth(newWidth)
+      },
+      setGFF3Text(text: string) {
+        self.gff3Text = text
       },
     }))
 }
