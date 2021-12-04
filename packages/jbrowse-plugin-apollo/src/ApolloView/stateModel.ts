@@ -1,3 +1,4 @@
+import { GFF3Item } from '@gmod/gff'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import { Instance, types } from 'mobx-state-tree'
@@ -8,7 +9,7 @@ export function stateModelFactory(pluginManager: PluginManager) {
       type: types.literal('ApolloView'),
       linearGenomeView: pluginManager.getViewType('LinearGenomeView')
         .stateModel as LinearGenomeViewStateModel,
-      gff3Text: types.maybe(types.string),
+      gff3Data: types.frozen(),
     })
     .views((self) => ({
       get width() {
@@ -19,8 +20,8 @@ export function stateModelFactory(pluginManager: PluginManager) {
       setWidth(newWidth: number) {
         self.linearGenomeView.setWidth(newWidth)
       },
-      setGFF3Text(text: string) {
-        self.gff3Text = text
+      setGFF3Data(data: GFF3Item[]) {
+        self.gff3Data = data
       },
     }))
 }

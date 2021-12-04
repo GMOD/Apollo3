@@ -2376,6 +2376,14 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@gmod/gff@portal:/home/garrett/Projects/gff-js::locator=jbrowse-plugin-apollo%40workspace%3Apackages%2Fjbrowse-plugin-apollo":
+  version: 0.0.0-use.local
+  resolution: "@gmod/gff@portal:/home/garrett/Projects/gff-js::locator=jbrowse-plugin-apollo%40workspace%3Apackages%2Fjbrowse-plugin-apollo"
+  bin:
+    gff-to-json: dist/gff-to-json.js
+  languageName: node
+  linkType: soft
+
 "@hapi/hoek@npm:^9.0.0":
   version: 9.2.1
   resolution: "@hapi/hoek@npm:9.2.1"
@@ -10909,6 +10917,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "jbrowse-plugin-apollo@workspace:packages/jbrowse-plugin-apollo"
   dependencies:
+    "@gmod/gff": "portal:/home/garrett/Projects/gff-js"
     "@jbrowse/cli": ^1.5.1
     "@jbrowse/core": ^1.5.2
     "@jbrowse/development-tools": ^1.5.3
