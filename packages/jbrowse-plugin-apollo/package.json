@@ -48,6 +48,7 @@
     ]
   },
   "dependencies": {
+    "@gmod/gff": "portal:/home/garrett/Projects/gff-js",
     "@jbrowse/plugin-linear-genome-view": "^1.5.1",
     "regenerator-runtime": "^0.13.9",
     "tslib": "^2.0.3"
