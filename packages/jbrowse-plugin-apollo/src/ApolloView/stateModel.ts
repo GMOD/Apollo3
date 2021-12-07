@@ -1,15 +1,18 @@
-import { GFF3Item } from '@gmod/gff'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
-import { Instance, types } from 'mobx-state-tree'
+import { Instance, SnapshotIn, types } from 'mobx-state-tree'
+
+import AnnotationFeature from '../AnnotationDrivers/AnnotationFeature'
 
 export function stateModelFactory(pluginManager: PluginManager) {
+  const FeatureMap = types.map(AnnotationFeature)
+  const RefNameMap = types.map(FeatureMap)
   return types
     .model({
       type: types.literal('ApolloView'),
       linearGenomeView: pluginManager.getViewType('LinearGenomeView')
         .stateModel as LinearGenomeViewStateModel,
-      gff3Data: types.frozen(),
+      features: RefNameMap,
     })
     .views((self) => ({
       get width() {
@@ -20,8 +23,8 @@ export function stateModelFactory(pluginManager: PluginManager) {
       setWidth(newWidth: number) {
         self.linearGenomeView.setWidth(newWidth)
       },
-      setGFF3Data(data: GFF3Item[]) {
-        self.gff3Data = data
+      setFeatures(features: SnapshotIn<typeof RefNameMap>) {
+        self.features = features
       },
     }))
 }
