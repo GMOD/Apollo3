@@ -1,4 +1,5 @@
 import gff3, { GFF3FeatureLineWithRefs, GFF3Item } from '@gmod/gff'
+import { getSession } from '@jbrowse/core/util'
 import { Button, makeStyles } from '@material-ui/core'
 import { observer } from 'mobx-react'
 import { SnapshotIn, getEnv } from 'mobx-state-tree'
@@ -31,6 +32,30 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
     })
     const newFeatures = makeFeatures(gff3Contents, 'volvox')
     setFeatures(newFeatures)
+    const session = getSession(model)
+    const trackId = `apollo_track_${model.linearGenomeView.id}`
+    const hasTrack = Boolean(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      session.tracks.find((track) => track.trackId === trackId),
+    )
+    if (hasTrack) {
+      return
+    }
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    session.addTrackConf({
+      type: 'ApolloTrack',
+      trackId,
+      name: `Apollo Track Volvox`,
+      assemblyNames: ['volvox'],
+      displays: [
+        {
+          type: 'LinearApolloDisplay',
+          displayId: `apollo_track_${model.linearGenomeView.id}-LinearApolloDisplay`,
+        },
+      ],
+    })
   }
 
   if (!features.size) {
