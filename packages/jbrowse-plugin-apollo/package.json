@@ -48,28 +48,30 @@
     ]
   },
   "dependencies": {
-    "@gmod/gff": "portal:/home/garrett/Projects/gff-js",
+    "@gmod/gff": "portal:/Users/peterxie/Documents/GitHub/gff-js",
     "@jbrowse/plugin-linear-genome-view": "^1.5.1",
     "regenerator-runtime": "^0.13.9",
     "tslib": "^2.0.3"
   },
   "peerDependencies": {
-    "@jbrowse/core": "^1.5.0",
+    "@jbrowse/core": "*",
     "@material-ui/core": "^4.12.3",
+    "mobx": "^5.0.0",
     "mobx-react": "^7.2.1",
     "mobx-state-tree": "3.14.1",
     "react": "^17.0.2"
   },
   "devDependencies": {
     "@jbrowse/cli": "^1.5.1",
-    "@jbrowse/core": "^1.5.0",
-    "@jbrowse/development-tools": "^1.5.1",
+    "@jbrowse/core": "portal:/Users/peterxie/Documents/GitHub/jbrowse-components/packages/core/dist",
+    "@jbrowse/development-tools": "portal:/Users/peterxie/Documents/GitHub/jbrowse-components/packages/development-tools",
     "@material-ui/core": "^4.12.3",
     "@types/cypress": "^1.1.3",
     "@types/node": "^16.11.6",
     "@types/react": "^17.0.34",
     "cypress": "^8.7.0",
     "jest": "^27.3.1",
+    "mobx": "^5.0.0",
     "mobx-react": "^7.2.1",
     "mobx-state-tree": "3.14.1",
     "npm-run-all": "4.1.5",

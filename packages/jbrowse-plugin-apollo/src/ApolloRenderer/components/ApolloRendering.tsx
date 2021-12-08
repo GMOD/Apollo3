@@ -19,6 +19,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const { regions, bpPerPx, displayModel, blockKey } = props
   const [region] = regions
   const totalWidth = (region.end - region.start) / bpPerPx
+  // gets layout here and draws
   const { featureLayout, featuresForBlock } = displayModel
   const features = featuresForBlock[blockKey]
   const height = 20
@@ -49,6 +50,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
       const widthPx = width / bpPerPx
       ctx.fillStyle = 'black'
       ctx.fillRect(startPx, row * (height + 4), widthPx, height)
+      // when changing to  GRL, itll just be ctx.fillREct(start, top, witdth, height)
       ctx.fillStyle = '#F5CBA7'
       ctx.fillRect(
         startPx + 1,
