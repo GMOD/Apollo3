@@ -40,17 +40,19 @@ const rowState = types.model({
   min: types.number,
   max: types.number,
   offset: types.number,
-  //   bits: types.array(
-  //     types.union(types.map(types.frozen()), types.maybe(types.string)),
-  //   ),
-  bits: types.frozen(), // types.array(types.frozen()),
+  bits: types.array(
+    types.union(types.map(types.frozen()), types.string, types.undefined),
+  ),
+  // bits: types.frozen(), // types.array(types.frozen()),
 })
 
 export const LayoutRow = types
   .model('LayoutRow', {
     id: 'LayoutRow',
-    type: types.string,
-    allFilled: types.union(types.map(types.frozen()), types.string),
+    type: types.optional(types.literal('LayoutRow'), 'LayoutRow'),
+    allFilled: types.maybe(
+      types.union(types.map(types.frozen()), types.string),
+    ),
     rowState: types.maybe(rowState),
     padding: 1,
     widthLimit: 10000,
@@ -59,7 +61,6 @@ export const LayoutRow = types
     setAllFilled(data: string[]): void {
       self.allFilled = data
     },
-
     getItemAt(x: number): any {
       if (self.allFilled) {
         return self.allFilled
@@ -118,7 +119,7 @@ export const LayoutRow = types
         offset: left - rectWidth,
         min: left,
         max: right,
-        bits: new Array(3 * rectWidth),
+        bits: new Array(3 * rectWidth) as any,
       }
       // this.log(`initialize ${this.rowState.min} - ${this.rowState.max} (${this.rowState.bits.length})`)
     },
@@ -147,7 +148,7 @@ export const LayoutRow = types
         } else if (additionalLength > 0) {
           self.rowState.bits = self.rowState.bits.concat(
             new Array(additionalLength),
-          )
+          ) as any
         }
       }
 
@@ -167,7 +168,7 @@ export const LayoutRow = types
         } else {
           self.rowState.bits = new Array(additionalLength).concat(
             self.rowState.bits,
-          )
+          ) as any
           self.rowState.offset -= additionalLength
         }
       }
@@ -251,7 +252,7 @@ export const LayoutRow = types
         self.rowState.bits = self.rowState.bits.slice(
           leftTrimAmount,
           self.rowState.bits.length - rightTrimAmount,
-        )
+        ) as any
         self.rowState.offset += leftTrimAmount
         // if (self.rowState.offset > self.rowState.min) debugger
         // if (self.rowState.bits.length <= self.rowState.max - self.rowState.offset) debugger
@@ -305,9 +306,12 @@ export const LayoutRow = types
 export const GranularRectLayout = types
   .model('GranularRectLayout', {
     id: 'GranularRectLayout',
-    type: types.literal('GranularRectLayout'),
+    type: types.optional(
+      types.literal('GranularRectLayout'),
+      'GranularRectLayout',
+    ),
     bitmap: types.array(LayoutRow),
-    pTotalHeight: types.number,
+    pTotalHeight: 0,
     rectangles: types.map(rectangle),
     pitchX: 10,
     pitchY: 10,
@@ -494,7 +498,7 @@ export const GranularRectLayout = types
       bitmap: Instance<typeof LayoutRow>[],
       y: number,
     ): Instance<typeof LayoutRow> {
-      const row = bitmap[y]
+      let row = bitmap[y]
       if (!row) {
         if (y > self.hardRowLimit) {
           throw new Error(
@@ -503,6 +507,7 @@ export const GranularRectLayout = types
             }px) exceeded, aborting layout`,
           )
         }
+        row = LayoutRow.create({})
         bitmap[y] = row
       }
       return row

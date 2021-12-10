@@ -20,6 +20,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const [region] = regions
   const totalWidth = (region.end - region.start) / bpPerPx
   // gets layout here and draws
+  const { layout } = displayModel
+  console.log('layout', layout)
   const { featureLayout, featuresForBlock } = displayModel
   const features = featuresForBlock[blockKey]
   const height = 20
