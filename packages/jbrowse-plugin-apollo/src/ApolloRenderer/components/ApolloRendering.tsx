@@ -21,7 +21,6 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const totalWidth = (region.end - region.start) / bpPerPx
   // gets layout here and draws
   const { layout } = displayModel
-  console.log('layout', layout)
   const { featureLayout, featuresForBlock } = displayModel
   const features = featuresForBlock[blockKey]
   const height = 20
@@ -30,6 +29,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const totalHeight = highestRow * (height + padding)
   useEffect(() => {
     if (!features) {
+      return
+    }
+    if (!layout || !layout.bitmap) {
       return
     }
     const canvas = canvasRef.current
@@ -41,6 +43,17 @@ function ApolloRendering(props: ApolloRenderingProps) {
       return
     }
     ctx.clearRect(0, 0, totalWidth, totalHeight)
+    layout.rectangles.forEach((rectangle) => {
+      const startPx = rectangle.l / bpPerPx
+      const widthPx = (rectangle.r - rectangle.l) / bpPerPx
+      const { h } = rectangle
+      console.log('rect', rectangle.id, startPx, rectangle.top, widthPx, h)
+      // current drawing problem, start width and height are off by a factor of 10, top is always 0
+      // ctx.fillStyle = 'black'
+      // ctx.fillRect(startPx, rectangle.top || 0, widthPx, h)
+      // ctx.fillStyle = '#F5CBA7'
+      // ctx.fillRect(startPx + 1, rectangle.top || 0 + 1, widthPx - 2, h - 2)
+    })
     features.forEach((feature) => {
       const row = featureLayout[feature.id]
       if (row === undefined) {
@@ -50,6 +63,14 @@ function ApolloRendering(props: ApolloRenderingProps) {
       const width = feature.location.length
       const startPx = start / bpPerPx
       const widthPx = width / bpPerPx
+      console.log(
+        'og drawing',
+        feature.id,
+        startPx,
+        row * (height + 4),
+        widthPx,
+        height,
+      )
       ctx.fillStyle = 'black'
       ctx.fillRect(startPx, row * (height + 4), widthPx, height)
       // when changing to  GRL, itll just be ctx.fillREct(start, top, witdth, height)
@@ -64,6 +85,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   }, [
     bpPerPx,
     features,
+    layout,
     region.start,
     totalWidth,
     featureLayout,

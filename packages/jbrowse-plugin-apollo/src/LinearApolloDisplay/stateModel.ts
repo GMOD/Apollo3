@@ -206,7 +206,7 @@ export function stateModelFactory(
                         feature.id,
                         feature.location.start,
                         feature.location.end,
-                        3,
+                        20, // self.layout.pTotalHeight, // TODO: fix height
                       )
                     })
                   },

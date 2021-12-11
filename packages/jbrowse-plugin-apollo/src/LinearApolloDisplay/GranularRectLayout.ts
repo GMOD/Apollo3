@@ -460,9 +460,11 @@ export const GranularRectLayout = types
 
       const maxY = top + rect.h
       for (let y = top; y < maxY; y += 1) {
-        const row = bitmap[y]
-        if (row && !row.isRangeClear(rect.l, rect.r)) {
-          return true
+        if (y < bitmap.length) {
+          const row = bitmap[y]
+          if (row && !row.isRangeClear(rect.l, rect.r)) {
+            return true
+          }
         }
       }
 
@@ -498,7 +500,7 @@ export const GranularRectLayout = types
       bitmap: Instance<typeof LayoutRow>[],
       y: number,
     ): Instance<typeof LayoutRow> {
-      let row = bitmap[y]
+      let row = bitmap.length > y ? bitmap[y] : undefined
       if (!row) {
         if (y > self.hardRowLimit) {
           throw new Error(
