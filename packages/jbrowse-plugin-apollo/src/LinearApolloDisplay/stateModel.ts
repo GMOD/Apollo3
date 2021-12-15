@@ -4,7 +4,7 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import { getContainingView } from '@jbrowse/core/util'
 import { intersection2 } from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
-import { autorun } from 'mobx'
+import { autorun, transaction } from 'mobx'
 import { Instance, addDisposer, types } from 'mobx-state-tree'
 
 import { AnnotationFeatureI } from '../AnnotationDrivers/AnnotationFeature'
@@ -181,43 +181,47 @@ export function stateModelFactory(
       afterAttach() {
         addDisposer(
           self,
-          autorun(
-            async () => {
-              // this is whats currently run, goes through all features for block
-              // checks if features overlap and assigns it a row number, each row has some height
-              // draw feature using start, end, row#
-              // to get features in granular rect layout,
-              // 1. in the display model there is features on the apolloView, so we might have an autorun
-              // on the display that runs whenever the fetures change, and the autorun loads the features into
-              // GRL, call addRect on each feature, end up with granular layout w features in it
-              // in ApolloRendering.tsx, use GRL to draw rectangles
-              // so the steps are, remove featureLayout below, have an autorun described above, and call layout from
-              // apolloRendering
-              const lgv = getContainingView(self)
-              const apolloView = getContainingView(lgv)
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              const { features } = apolloView
-              if (self.layout) {
-                return features.forEach(
-                  (refNameFeatures: AnnotationFeatureI[]) => {
+          autorun(async () => {
+            // this is whats currently run, goes through all features for block
+            // checks if features overlap and assigns it a row number, each row has some height
+            // draw feature using start, end, row#
+            // to get features in granular rect layout,
+            // 1. in the display model there is features on the apolloView, so we might have an autorun
+            // on the display that runs whenever the fetures change, and the autorun loads the features into
+            // GRL, call addRect on each feature, end up with granular layout w features in it
+            // in ApolloRendering.tsx, use GRL to draw rectangles
+            // so the steps are, remove featureLayout below, have an autorun described above, and call layout from
+            // apolloRendering
+            const lgv = getContainingView(self)
+            const apolloView = getContainingView(lgv)
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const { features } = apolloView
+            if (self.layout) {
+              return features.forEach(
+                (refNameFeatures: AnnotationFeatureI[]) => {
+                  transaction(() => {
                     return refNameFeatures.forEach((feature) => {
                       self.layout?.addRect(
                         feature.id,
                         feature.location.start,
                         feature.location.end,
                         20, // self.layout.pTotalHeight, // TODO: fix height
+                        // heihgt will be from a config file, 20 for now
                       )
                     })
-                  },
-                )
-              }
-            },
-            { delay: 1000 },
-          ),
+                  })
+                },
+              )
+            }
+          }),
         )
       },
     }))
+    .postProcessSnapshot((snap) => {
+      const { layout, ...rest } = snap
+      return rest
+    })
 }
 
 export type LinearApolloDisplayStateModel = ReturnType<typeof stateModelFactory>

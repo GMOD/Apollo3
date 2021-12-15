@@ -1,3 +1,4 @@
+import { getContainingView } from '@jbrowse/core/util'
 import {
   RectTuple,
   SerializedLayout,
@@ -313,8 +314,7 @@ export const GranularRectLayout = types
     bitmap: types.array(LayoutRow),
     pTotalHeight: 0,
     rectangles: types.map(rectangle),
-    pitchX: 10,
-    pitchY: 10,
+    pitchY: 1,
     maxHeightReached: false,
     maxHeight: 10000,
     hardRowLimit: 10000,
@@ -324,21 +324,26 @@ export const GranularRectLayout = types
       return self.rectangles.has(id)
     },
 
+    get pitchX() {
+      const view: any = getContainingView(self)
+      return view.bpPerPx
+    },
+
     getByCoord(x: number, y: number): string[] | string | undefined {
       const pY = Math.floor(y / self.pitchY)
       const row = (self.bitmap as any)[pY]
       if (!row) {
         return undefined
       }
-      const pX = Math.floor(x / self.pitchX)
+      const pX = Math.floor(x / this.pitchX)
       return row.getItemAt(pX)
     },
 
     getByID(id: string): RectTuple | undefined {
       const r = self.rectangles.get(id)
       if (r) {
-        const t = (r.top as number) * self.pitchX
-        return [r.l * self.pitchX, t, r.r * self.pitchX, t + r.originalHeight]
+        const t = (r.top as number) * this.pitchX
+        return [r.l * this.pitchX, t, r.r * this.pitchX, t + r.originalHeight]
       }
 
       return undefined
@@ -354,7 +359,7 @@ export const GranularRectLayout = types
           const { l, r, originalHeight, top } = rect
           const t = (top || 0) * self.pitchY
           const b = t + originalHeight
-          return [id, [l * self.pitchX, t, r * self.pitchX, b]] // left, top, right, bottom
+          return [id, [l * this.pitchX, t, r * this.pitchX, b]] // left, top, right, bottom
         }),
       )
     },
@@ -369,12 +374,12 @@ export const GranularRectLayout = types
         } else {
           const t = (top || 0) * self.pitchY
           const b = t + originalHeight
-          const y1 = l * self.pitchX
-          const y2 = r * self.pitchX
+          const y1 = l * this.pitchX
+          const y2 = r * this.pitchX
           const x1 = region.start
           const x2 = region.end
           // add +/- pitchX to avoid resolution causing errors
-          if (segmentsIntersect(x1, x2, y1 - self.pitchX, y2 + self.pitchX)) {
+          if (segmentsIntersect(x1, x2, y1 - this.pitchX, y2 + this.pitchX)) {
             regionRectangles[id] = [y1, t, y2, b]
           }
         }
