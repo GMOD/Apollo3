@@ -1,6 +1,5 @@
-import { HttpStatus, Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-import { Response } from 'express'
 
 import { UsersService } from '../usersDemo/users.service'
 
@@ -35,18 +34,13 @@ export class AuthenticateService {
    * @param response Incoming httpresponse
    * @returns Return either token with HttpResponse status 'HttpStatus.OK' OR null with 'HttpStatus.UNAUTHORIZED'
    */
-  async login(user: any, response: Response): Promise<Response> {
+  async login(user: any) {
     const payload = { username: user.username, sub: user.userId }
     // Return token with SUCCESS status
     const returnToken = this.jwtService.sign(payload)
     this.logger.debug(
       `Login successful. Issued token: ${JSON.stringify(returnToken)}`,
     )
-    return response
-      .status(HttpStatus.OK)
-      .json({ status: HttpStatus.OK, token: returnToken })
-    // Return FAILED status with no token
-    // this.logger.error('Login refused');
-    // return response.status(HttpStatus.UNAUTHORIZED).json();
+    return { token: returnToken }
   }
 }

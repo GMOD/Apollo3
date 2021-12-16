@@ -14,7 +14,6 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import { Cache } from 'cache-manager'
-import { Response } from 'express'
 
 import {
   FastaQueryResult,
@@ -37,14 +36,10 @@ export class FileHandlingService {
    * THIS IS JUST FOR DEMO PURPOSE
    * Save new uploaded file into local filesystem. The filename in local filesystem will be: 'uploaded' + timestamp in ddmmyyyy_hh24miss -format + original filename
    * @param newUser New user information
-   * @param response
    * @returns Return 'HttpStatus.OK' if save was successful
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
-  async saveNewFile(
-    file: Express.Multer.File,
-    response: Response,
-  ): Promise<Response> {
+  async saveNewFile(file: Express.Multer.File) {
     // Check if filesize is 0
     if (file.size < 1) {
       const msg = `File ${file.originalname} is empty!`
@@ -65,10 +60,7 @@ export class FileHandlingService {
     const ws = createWriteStream(newFullFileName)
     ws.write(file.buffer)
     ws.close()
-    return response.status(HttpStatus.OK).json({
-      status: HttpStatus.OK,
-      message: `File ${file.originalname} was saved`,
-    })
+    return { message: `File ${file.originalname} was saved` }
   }
 
   /**
@@ -96,7 +88,7 @@ export class FileHandlingService {
    * THIS IS JUST FOR DEMO PURPOSE
    * Update existing GFF3 file in local filesystem.
    */
-  async updateGFF3File(postDto: GFF3ChangeLineObjectDto, response: Response) {
+  async updateGFF3File(postDto: GFF3ChangeLineObjectDto) {
     // // Check if file exists: "Using fs.exists() to check for the existence of a file before calling fs.open(), fs.readFile() or fs.writeFile() is not recommended"
     // if (!this.fileExists(postDto.filename)) {
     //   this.logger.error(
@@ -121,10 +113,7 @@ export class FileHandlingService {
       await fs.writeFile(fullFileName, change, 'utf8')
 
       this.logger.debug(`File ${postDto.filename} successfully updated!`)
-      return response.status(HttpStatus.OK).json({
-        status: HttpStatus.OK,
-        message: `File ${postDto.filename} successfully updated!`,
-      })
+      return { message: `File ${postDto.filename} successfully updated!` }
     }
     const errMsg = `ERROR when updating file: The following string was not found in GFF3 file='${oldValue}'`
     this.logger.error(errMsg)
@@ -134,10 +123,9 @@ export class FileHandlingService {
   /**
    * Loads GFF3 file data into cache. Cache key is started from 0
    * @param filename File where data is loaded into cache
-   * @param response
    * @returns
    */
-  async loadGff3IntoCache(filename: string, response: Response) {
+  async loadGff3IntoCache(filename: string) {
     // Check if file exists
     if (!this.fileExists(filename)) {
       this.logger.error(
@@ -148,18 +136,15 @@ export class FileHandlingService {
     // Load GFF3 file into cache
     this.loadGFF3FileIntoCache(filename)
 
-    return response
-      .status(HttpStatus.OK)
-      .json({ status: 'GFF3 file loaded into cache' })
+    return { message: 'GFF3 file loaded into cache' }
   }
 
   /**
    * Updates string (or whole line) in CACHE
    * @param postDto Data Transfer Object that contains information about original string/line and updated string/line
-   * @param response
    * @returns
    */
-  async updateGFF3Cache(postDto: GFF3ChangeLineObjectDto, response: Response) {
+  async updateGFF3Cache(postDto: GFF3ChangeLineObjectDto) {
     let cacheValue = ''
     let cacheKey = -1 // Cache key that specifies the row that we update. All cache keys are > 0
     const oldValue = postDto.originalLine // Search this string in cache
@@ -233,10 +218,7 @@ export class FileHandlingService {
       )
 
       this.logger.debug('Cache and GFF3 file updated successfully')
-      return response.status(HttpStatus.OK).json({
-        status: HttpStatus.OK,
-        message: 'Cache and GFF3 file updated successfully!',
-      })
+      return { message: 'Cache and GFF3 file updated successfully!' }
     } catch (err) {
       this.logger.error(`ERROR when updating cache: ${err}`)
       throw new InternalServerErrorException(
@@ -293,14 +275,10 @@ export class FileHandlingService {
   /**
    * Fetch features based on Reference seq, Start and End -values
    * @param searchDto Data Transfer Object that contains information about searchable region
-   * @param response
-   * @returns Return 'HttpStatus.OK' and array of features (as JSON) if search was successful
+   * @returns Return array of features (as JSON) if search was successful
    * or if search data was not found or in case of error return throw exception
    */
-  async getFeaturesByCriteria(
-    searchDto: RegionSearchObjectDto,
-    response: Response,
-  ) {
+  async getFeaturesByCriteria(searchDto: RegionSearchObjectDto) {
     let cacheValue = ''
     let cacheValueAsJson
     const resultJsonArray = [] // Return JSON array
@@ -350,7 +328,7 @@ export class FileHandlingService {
       this.logger.debug(
         `Features (n=${resultJsonArray.length}) found successfully`,
       )
-      return response.status(HttpStatus.OK).json(resultJsonArray)
+      return resultJsonArray
     } catch (err) {
       this.logger.error(`ERROR when searching features by criteria: ${err}`)
       throw new HttpException(
@@ -363,14 +341,10 @@ export class FileHandlingService {
   /**
    * Fetch embedded FASTA sequence based on Reference seq, Start and End -values
    * @param searchDto Data Transfer Object that contains information about searchable sequence
-   * @param response
-   * @returns Return 'HttpStatus.OK' and embedded FASTA sequence if search was successful
+   * @returns Return embedded FASTA sequence if search was successful
    * or if search data was not found or in case of error throw exception
    */
-  async getFastaByCriteria(
-    searchDto: RegionSearchObjectDto,
-    response: Response<FastaQueryResult>,
-  ) {
+  async getFastaByCriteria(searchDto: RegionSearchObjectDto) {
     let cacheValue = ''
     let cacheValueAsJson, keyArray
     try {
@@ -428,7 +402,7 @@ export class FileHandlingService {
             description: cacheValueAsJson[0].description,
             sequence: foundSequence,
           }
-          return response.status(HttpStatus.OK).json(resultObject)
+          return resultObject
         }
       }
 
@@ -452,11 +426,10 @@ export class FileHandlingService {
 
   /**
    * Get list of embedded FASTA sequences
-   * @param response
-   * @returns Return 'HttpStatus.OK' and list of embedded FASTA sequences as array of fastaSequenceInfo -object
+   * @returns Return list of embedded FASTA sequences as array of fastaSequenceInfo -object
    * or if no data was found or in case of error throw exception
    */
-  async getFastaInfo(response: Response) {
+  async getFastaInfo() {
     let cacheValue = ''
     let cacheValueAsJson, keyArray
     const resultJsonArray = [] // Return JSON array
@@ -499,7 +472,7 @@ export class FileHandlingService {
       this.logger.debug(
         `Found (n=${resultJsonArray.length}) embedded FASTA sequences`,
       )
-      return response.status(HttpStatus.OK).json(resultJsonArray)
+      return resultJsonArray
     } catch (err) {
       this.logger.error(`ERROR when searching embedded FASTA sequences: ${err}`)
       throw new HttpException(
