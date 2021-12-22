@@ -44,7 +44,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const { layout } = displayModel
   // const { featureLayout, featuresForBlock } = displayModel
   // const features = featuresForBlock[blockKey]
-  let totalHeight = 0
+  let totalHeight = 0 // instead of 0, totalHeight = layout.totalHeight
   if (layout) {
     Array.from(layout.rectangles.entries()).map(([id, rect]) => {
       const { top } = rect
@@ -73,9 +73,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
       const widthPx = rect.r - rect.l
       const { h } = rect
       ctx.fillStyle = 'black'
-      ctx.fillRect(startPx, rect.top || 0, widthPx, h)
+      ctx.fillRect(startPx, (rect.top || 0) + 2, widthPx, h - 4)
       ctx.fillStyle = '#F5CBA7'
-      ctx.fillRect(startPx + 1, (rect.top || 0) + 1, widthPx - 2, h - 2)
+      ctx.fillRect(startPx + 1, (rect.top || 0) + 3, widthPx - 2, h - 6)
     })
   }, [bpPerPx, layout, totalHeight, region.start, totalWidth])
 
@@ -88,19 +88,16 @@ function ApolloRendering(props: ApolloRenderingProps) {
     const px = region.reversed
       ? (region.end - region.start) / bpPerPx - offset
       : offsetX
-    const clientBp = region.start + bpPerPx * px
+
     let rectangleUnderMouse: Instance<typeof rectangle> | undefined
     if (layout) {
+      // probably need to determine height too
       Array.from(layout.rectangles.entries()).forEach(([id, rect]) => {
-        if (
-          clientBp <= (rect.l - region.start / bpPerPx) * bpPerPx &&
-          clientBp >= (rect.r - rect.l) * bpPerPx
-        ) {
+        if (px >= rect.l - region.start / bpPerPx && px <= rect.r) {
           rectangleUnderMouse = rect
         }
       })
     }
-    console.log(offset, offsetX, clientBp, rectangleUnderMouse)
     return rectangleUnderMouse
   }
 
@@ -116,13 +113,26 @@ function ApolloRendering(props: ApolloRenderingProps) {
     const px = region.reversed
       ? (region.end - region.start) / bpPerPx - offset
       : offsetX
-    const clientBp = region.start + bpPerPx * px
 
     if (layout && rectangleUnderMouse) {
+      console.log(
+        'checking',
+        px,
+        bpPerPx,
+        region.start,
+        rectangleUnderMouse.l - region.start,
+        rectangleUnderMouse.l - region.start + 30,
+        rectangleUnderMouse.r,
+        rectangleUnderMouse.r - 30,
+        px >= rectangleUnderMouse.l - region.start / bpPerPx,
+        px <= rectangleUnderMouse.l - region.start / bpPerPx + 30,
+        px <= rectangleUnderMouse.r,
+        px >= rectangleUnderMouse.r - 30,
+      )
       if (
-        clientBp ===
-          (rectangleUnderMouse.l - region.start / bpPerPx) * bpPerPx ||
-        clientBp === (rectangleUnderMouse.r - rectangleUnderMouse.l) * bpPerPx
+        (px >= rectangleUnderMouse.l - region.start / bpPerPx &&
+          px <= rectangleUnderMouse.l - region.start / bpPerPx + 30) ||
+        (px <= rectangleUnderMouse.r && px >= rectangleUnderMouse.r - 30)
       ) {
         return true
       }
@@ -140,7 +150,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
           event.clientX,
           rectUnderMouse,
         )
-        console.log('mouse moving', rectUnderMouse, onBorder)
+        console.log('mouse moving', rectUnderMouse?.id, onBorder)
         onMouseMove(
           event,
           rectUnderMouse ? rectUnderMouse.id : undefined,

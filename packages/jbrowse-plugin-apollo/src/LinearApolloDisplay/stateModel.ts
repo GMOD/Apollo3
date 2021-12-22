@@ -197,6 +197,7 @@ export function stateModelFactory(
                         feature.location.start,
                         feature.location.end,
                         20, // eventually get height from config
+                        { id: feature.id },
                       )
                     })
                   },

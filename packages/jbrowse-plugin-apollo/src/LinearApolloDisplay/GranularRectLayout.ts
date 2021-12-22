@@ -28,7 +28,7 @@ function segmentsIntersect(
   return x2 >= y1 && y2 >= x1
 }
 
-const rectangle = types.model({
+export const rectangle = types.model({
   id: types.string,
   l: types.number,
   r: types.number,
