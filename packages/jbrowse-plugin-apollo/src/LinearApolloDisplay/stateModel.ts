@@ -29,7 +29,7 @@ export function stateModelFactory(
       types.model({
         type: types.literal('LinearApolloDisplay'),
         configuration: ConfigurationReference(configSchema),
-        layout: types.maybe(GranularRectLayout),
+        layout: types.optional(GranularRectLayout, {}),
         // layout: import model of granular rect layout
       }),
     )
@@ -196,7 +196,7 @@ export function stateModelFactory(
                         feature.id,
                         feature.location.start,
                         feature.location.end,
-                        20, // eventually get height from config
+                        1, // eventually get height from config
                         { id: feature.id },
                       )
                     })
