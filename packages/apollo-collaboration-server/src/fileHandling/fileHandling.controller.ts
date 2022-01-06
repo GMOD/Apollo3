@@ -22,10 +22,10 @@ import { Request, Response } from 'express'
 
 import {
   GFF3ChangeLineObjectDto,
-  RegionSearchObjectDto,
 } from '../entity/gff3Object.dto'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { FileHandlingService } from './fileHandling.service'
+import { GFF3SequenceRegionDirective } from '@gmod/gff/dist/util'
 
 @Controller('fileHandling')
 export class FileHandlingController {
@@ -166,14 +166,16 @@ export class FileHandlingController {
    */
   @Get('/getFeaturesByCriteria')
   getFeaturesByCriteria(@Req() request: Request) {
-    this.logger.debug(`Refname=${request.query.refname}=`)
+    this.logger.debug(`Seq_id=${request.query.seq_id}=`)
     this.logger.debug(`Start=${request.query.start}=`)
     this.logger.debug(`End=${request.query.end}=`)
 
-    const searchDto: RegionSearchObjectDto = {
-      refName: `${request.query.refname}`,
-      start: parseInt(`${request.query.start}`, 10),
-      end: parseInt(`${request.query.end}`, 10),
+    const searchDto: GFF3SequenceRegionDirective = {
+      value: null,
+      seq_id: `${request.query.seq_id}`,
+      start: `${request.query.start}`,
+      end: `${request.query.end}`,
+      directive: null,
     }
     return this.fileService.getFeaturesByCriteria(searchDto)
   }
@@ -201,15 +203,23 @@ export class FileHandlingController {
    */
   @Get('/getFastaByCriteria')
   getFastaByCriteria(@Req() request: Request) {
-    this.logger.debug(`Refname=${request.query.refname}=`)
+    this.logger.debug(`Refname=${request.query.seq_id}=`)
     this.logger.debug(`Start=${request.query.start}=`)
     this.logger.debug(`End=${request.query.end}=`)
 
-    const searchDto: RegionSearchObjectDto = {
-      refName: `${request.query.refname}`,
-      start: parseInt(`${request.query.start}`, 10),
-      end: parseInt(`${request.query.end}`, 10),
+    // const searchDto: GFF3SequenceRegionDirective = {
+    //   seq_id: `${request.query.seq_id}`,
+    //   start: parseInt(`${request.query.start}`, 10),
+    //   end: parseInt(`${request.query.end}`, 10),
+    // }
+    const searchDto: GFF3SequenceRegionDirective = {
+      value: null,
+      seq_id: `${request.query.seq_id}`,
+      start: `${request.query.start}`,
+      end: `${request.query.end}`,
+      directive: null,
     }
+
     return this.fileService.getFastaByCriteria(searchDto)
   }
 

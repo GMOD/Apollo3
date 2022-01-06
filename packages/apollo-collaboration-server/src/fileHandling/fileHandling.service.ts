@@ -15,17 +15,17 @@ import {
 } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 
+import { GFF3Sequence } from "@gmod/gff"
 import {
-  FastaQueryResult,
   FastaSequenceInfo,
   GFF3ChangeLineObjectDto,
-  RegionSearchObjectDto,
 } from '../entity/gff3Object.dto'
 import {
   compareTwoJsonObjects,
   getCurrentDateTime,
   writeIntoGff3ChangeLog,
 } from '../utils/commonUtilities'
+import { GFF3SequenceRegionDirective } from '@gmod/gff/dist/util'
 
 @Injectable()
 export class FileHandlingService {
@@ -278,7 +278,7 @@ export class FileHandlingService {
    * @returns Return array of features (as JSON) if search was successful
    * or if search data was not found or in case of error return throw exception
    */
-  async getFeaturesByCriteria(searchDto: RegionSearchObjectDto) {
+  async getFeaturesByCriteria(searchDto: GFF3SequenceRegionDirective) {
     let cacheValue = ''
     let cacheValueAsJson
     const resultJsonArray = [] // Return JSON array
@@ -288,10 +288,8 @@ export class FileHandlingService {
 
       this.logger.debug(
         `Feature search criteria is refName=${
-          searchDto.refName
-        }, start=${JSON.stringify(searchDto.start)} and end=${JSON.stringify(
-          searchDto.end,
-        )}`,
+          searchDto.seq_id
+        }, start=${searchDto.start} and end=${searchDto.end}`,
       )
 
       // Loop cache
@@ -306,9 +304,9 @@ export class FileHandlingService {
           cacheValueAsJson[0].hasOwnProperty('seq_id') &&
           cacheValueAsJson[0].hasOwnProperty('start') &&
           cacheValueAsJson[0].hasOwnProperty('end') &&
-          cacheValueAsJson[0].seq_id === searchDto.refName &&
-          cacheValueAsJson[0].end > searchDto.start &&
-          cacheValueAsJson[0].start < searchDto.end
+          cacheValueAsJson[0].seq_id === searchDto.seq_id &&
+          cacheValueAsJson[0].end > parseInt(`${searchDto.start}`, 10) &&
+          cacheValueAsJson[0].start < parseInt(`${searchDto.end}`, 10)
         ) {
           this.logger.debug(
             `Matched found refName=${cacheValueAsJson[0].seq_id}, start=${cacheValueAsJson[0].start} and end=${cacheValueAsJson[0].end}`,
@@ -344,7 +342,7 @@ export class FileHandlingService {
    * @returns Return embedded FASTA sequence if search was successful
    * or if search data was not found or in case of error throw exception
    */
-  async getFastaByCriteria(searchDto: RegionSearchObjectDto) {
+  async getFastaByCriteria(searchDto: GFF3SequenceRegionDirective) {
     let cacheValue = ''
     let cacheValueAsJson, keyArray
     try {
@@ -352,10 +350,8 @@ export class FileHandlingService {
 
       this.logger.debug(
         `Fasta search criteria is refName=${
-          searchDto.refName
-        }, start=${JSON.stringify(searchDto.start)} and end=${JSON.stringify(
-          searchDto.end,
-        )}`,
+          searchDto.seq_id
+        }, start=${searchDto.start} and end=${searchDto.end}`,
       )
 
       // Loop cache
@@ -370,10 +366,10 @@ export class FileHandlingService {
           cacheValueAsJson[0].hasOwnProperty('id') &&
           cacheValueAsJson[0].hasOwnProperty('description') &&
           cacheValueAsJson[0].hasOwnProperty('sequence') &&
-          cacheValueAsJson[0].id === searchDto.refName
+          cacheValueAsJson[0].id === searchDto.seq_id
         ) {
           // Check end position
-          if (searchDto.end > cacheValueAsJson[0].sequence.length) {
+          if (parseInt(`${searchDto.end}`, 10) > cacheValueAsJson[0].sequence.length) {
             const errMsg = `ERROR. Searched FASTA end position ${JSON.stringify(
               searchDto.end,
             )} is out range. Sequence lenght is only ${
@@ -383,7 +379,7 @@ export class FileHandlingService {
             throw new NotFoundException(errMsg)
           }
           // Check start vs. end positions
-          if (searchDto.start >= searchDto.end) {
+          if (parseInt(`${searchDto.start}`, 10) >= parseInt(`${searchDto.end}`, 10)) {
             const errMsg =
               'ERROR. Start position cannot be greater or equal than end position'
             this.logger.error(errMsg)
@@ -391,13 +387,12 @@ export class FileHandlingService {
           }
 
           const foundSequence = cacheValueAsJson[0].sequence.substring(
-            JSON.stringify(searchDto.start),
-            JSON.stringify(searchDto.end),
+            searchDto.start,searchDto.end,
           )
           this.logger.debug(
             `Found sequence refName=${cacheValueAsJson[0].id} and sequence=${foundSequence}`,
           )
-          const resultObject: FastaQueryResult = {
+          const resultObject: GFF3Sequence = {
             id: cacheValueAsJson[0].id,
             description: cacheValueAsJson[0].description,
             sequence: foundSequence,
@@ -408,10 +403,8 @@ export class FileHandlingService {
 
       throw new NotFoundException(
         `Fasta sequence for criteria refName=${
-          searchDto.refName
-        }, start=${JSON.stringify(searchDto.start)} and end=${JSON.stringify(
-          searchDto.end,
-        )} was not found`,
+          searchDto.seq_id
+        }, start=${searchDto.start} and end=${searchDto.end} was not found`,
       )
     } catch (err) {
       this.logger.error(
