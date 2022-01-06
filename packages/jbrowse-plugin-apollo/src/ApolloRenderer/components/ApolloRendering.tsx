@@ -1,7 +1,7 @@
 import { Region } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
 import { Instance } from 'mobx-state-tree'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 import { AnnotationFeatureI } from '../../AnnotationDrivers/AnnotationFeature'
 import { rectangle } from '../../LinearApolloDisplay/GranularRectLayout'
@@ -29,7 +29,6 @@ interface ApolloRenderingProps {
 
 function ApolloRendering(props: ApolloRenderingProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const ref = useRef<HTMLDivElement>(null)
   const {
     regions,
     bpPerPx,
@@ -42,6 +41,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const totalWidth = (region.end - region.start) / bpPerPx
   // gets layout here and draws
   const { layout } = displayModel
+
+  const [onBorder, setOnBorder] = useState(false)
   // const { featureLayout, featuresForBlock } = displayModel
   // const features = featuresForBlock[blockKey]
   let totalHeight = 0 // instead of 0, totalHeight = layout.totalHeight
@@ -84,17 +85,18 @@ function ApolloRendering(props: ApolloRenderingProps) {
     })
   }, [bpPerPx, layout, totalHeight, region.start, totalWidth])
 
-  function getRectangleUnderMouse(eventClientX: number) {
-    let offset = 0
-    if (ref.current) {
-      offset = ref.current.getBoundingClientRect().left
+  function getRectangleUnderMouse(eventClientX: number, eventClientY: number) {
+    let offsetX = 0
+    let offsetY = 0
+    if (canvasRef.current) {
+      offsetX = canvasRef.current.getBoundingClientRect().left
+      offsetY = canvasRef.current.getBoundingClientRect().top
     }
-    const offsetX = eventClientX - offset
+    offsetX = eventClientX - offsetX
+    offsetY = eventClientY - offsetY
     const px = region.reversed
-      ? (region.end - region.start) / bpPerPx - offset
+      ? (region.end - region.start) / bpPerPx - offsetX
       : offsetX
-
-    const clientBp = region.start + bpPerPx * px
 
     let rectangleUnderMouse: Instance<typeof rectangle> | undefined
     if (layout) {
@@ -102,41 +104,48 @@ function ApolloRendering(props: ApolloRenderingProps) {
       const rectArray = Array.from(layout.rectangles.entries())
       for (const rect of rectArray) {
         const [id, rectInfo] = rect
-        if (px >= rectInfo.l - region.start / bpPerPx && px <= rectInfo.r) {
+        if (
+          px >= rectInfo.l - region.start / bpPerPx &&
+          px <= rectInfo.r &&
+          (rectInfo.top || 0) * 20 <= offsetY &&
+          (rectInfo.top || 0) * 20 + rectInfo.h * 20 >= offsetY
+        ) {
           rectangleUnderMouse = rectInfo
           break
         }
       }
-      // Array.from(layout.rectangles.entries()).forEach(([id, rect]) => {
-      //   // console.log(clientBp, px, bpPerPx, region, rect)
-      //   if (px >= rect.l - region.start / bpPerPx && px <= rect.r) {
-      //     rectangleUnderMouse = rect
-      //     return rectangleUnderMouse
-      //   }
-      // })
     }
     return rectangleUnderMouse
   }
 
   function getRectangleBorderUnderMouse(
     eventClientX: number,
+    eventClientY: number,
     rectangleUnderMouse?: Instance<typeof rectangle>,
   ) {
-    let offset = 0
-    if (ref.current) {
-      offset = ref.current.getBoundingClientRect().left
+    let offsetX = 0
+    let offsetY = 0
+    if (canvasRef.current) {
+      offsetX = canvasRef.current.getBoundingClientRect().left
+      offsetY = canvasRef.current.getBoundingClientRect().top
     }
-    const offsetX = eventClientX - offset
+    offsetX = eventClientX - offsetX
+    offsetY = eventClientY - offsetY
     const px = region.reversed
-      ? (region.end - region.start) / bpPerPx - offset
+      ? (region.end - region.start) / bpPerPx - offsetX
       : offsetX
-    const clientBp = region.start + bpPerPx * px
 
-    if (layout && rectangleUnderMouse) {
+    if (
+      layout &&
+      rectangleUnderMouse &&
+      (rectangleUnderMouse.top || 0) * 20 <= offsetY &&
+      (rectangleUnderMouse.top || 0) * 20 + rectangleUnderMouse.h * 20 >=
+        offsetY
+    ) {
       if (
         (px >= rectangleUnderMouse.l - region.start / bpPerPx &&
-          px <= rectangleUnderMouse.l - region.start / bpPerPx + 30) ||
-        (px <= rectangleUnderMouse.r && px >= rectangleUnderMouse.r - 30)
+          px <= rectangleUnderMouse.l - region.start / bpPerPx + 3) ||
+        (px <= rectangleUnderMouse.r && px >= rectangleUnderMouse.r - 3)
       ) {
         return true
       }
@@ -148,11 +157,18 @@ function ApolloRendering(props: ApolloRenderingProps) {
       ref={canvasRef}
       width={totalWidth}
       height={totalHeight * 20}
+      style={{ cursor: onBorder ? 'col-resize' : 'default' }}
       onMouseMove={(event) => {
-        const rectUnderMouse = getRectangleUnderMouse(event.clientX)
-        const onBorder = getRectangleBorderUnderMouse(
+        const rectUnderMouse = getRectangleUnderMouse(
           event.clientX,
-          rectUnderMouse,
+          event.clientY,
+        )
+        setOnBorder(
+          getRectangleBorderUnderMouse(
+            event.clientX,
+            event.clientY,
+            rectUnderMouse,
+          ),
         )
         console.log('mouse moving', rectUnderMouse?.id, onBorder)
         onMouseMove(
@@ -162,10 +178,16 @@ function ApolloRendering(props: ApolloRenderingProps) {
         )
       }}
       onClick={(event) => {
-        const rectUnderMouse = getRectangleUnderMouse(event.clientX)
-        const onBorder = getRectangleBorderUnderMouse(
+        const rectUnderMouse = getRectangleUnderMouse(
           event.clientX,
-          rectUnderMouse,
+          event.clientY,
+        )
+        setOnBorder(
+          getRectangleBorderUnderMouse(
+            event.clientX,
+            event.clientY,
+            rectUnderMouse,
+          ),
         )
         onRectClick(
           event,
