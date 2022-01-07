@@ -1,6 +1,7 @@
 import { createReadStream } from 'fs'
 import { join } from 'path'
 
+import { GFF3SequenceRegionDirective } from '@gmod/gff/dist/util'
 import {
   Body,
   Controller,
@@ -20,33 +21,30 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express/multer'
 import { Request, Response } from 'express'
 
-import {
-  GFF3ChangeLineObjectDto,
-} from '../entity/gff3Object.dto'
+import { GFF3ChangeLineObjectDto } from '../entity/gff3Object.dto'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { FileHandlingService } from './fileHandling.service'
-import { GFF3SequenceRegionDirective } from '@gmod/gff/dist/util'
 
 @Controller('fileHandling')
 export class FileHandlingController {
   constructor(private readonly fileService: FileHandlingService) {}
   private readonly logger = new Logger(FileHandlingController.name)
 
-  /**
-   * THIS IS JUST FOR DEMO PURPOSE
-   * Save new uploaded file into local filesystem. The filename in local filesystem will be: 'uploaded' + timestamp in ddmmyyyy_hh24miss -format + original filename
-   * You can call this endpoint like: curl http://localhost:3000/fileHandling/upload -F 'file=@./save_this_file.txt' -F 'name=test'
-   * @param file File to save
-   * @returns Return status 'HttpStatus.OK' if save was successful
-   * or in case of error return throw exception
-   */
-  // @UseGuards(JwtAuthGuard)
-  // @Roles(Role.User) // This value is for demo only
-  @Post('/upload')
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadFile(@UploadedFile() file: Express.Multer.File) {
-    return this.fileService.saveNewFile(file)
-  }
+  // /**
+  //  * THIS IS JUST FOR DEMO PURPOSE
+  //  * Save new uploaded file into local filesystem. The filename in local filesystem will be: 'uploaded' + timestamp in ddmmyyyy_hh24miss -format + original filename
+  //  * You can call this endpoint like: curl http://localhost:3000/fileHandling/upload -F 'file=@./save_this_file.txt' -F 'name=test'
+  //  * @param file File to save
+  //  * @returns Return status 'HttpStatus.OK' if save was successful
+  //  * or in case of error return throw exception
+  //  */
+  // // @UseGuards(JwtAuthGuard)
+  // // @Roles(Role.User) // This value is for demo only
+  // @Post('/upload')
+  // @UseInterceptors(FileInterceptor('file'))
+  // async uploadFile(@UploadedFile() file: Express.Multer.File) {
+  //   return this.fileService.saveNewFile(file)
+  // }
 
   /**
    * THIS IS JUST FOR DEMO PURPOSE
@@ -232,5 +230,36 @@ export class FileHandlingController {
   @Get('/getFastaInfo')
   getFastaInfo(@Headers() headers) {
     return this.fileService.getFastaInfo()
+  }
+
+  /**
+   * Save new uploaded file into local filesystem and then loads it into cache. The filename in local filesystem will be: 'uploaded' + timestamp in ddmmyyyy_hh24miss -format + original filename
+   * You can call this endpoint like: curl http://localhost:3000/fileHandling/uploadtocache -F 'file=@./save_this_file.txt' -F 'name=test'
+   * @param file File to save
+   * @returns Return status 'HttpStatus.OK' if save was successful
+   * or in case of error return throw exception
+   */
+  // @UseGuards(JwtAuthGuard)
+  // @Roles(Role.User)
+  @Post('/uploadtocache')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadFile(@UploadedFile() file: Express.Multer.File) {
+    const tmpFileName = this.fileService.saveNewFile(file)
+    this.fileService.loadGFF3FileIntoCache(tmpFileName)
+  }
+
+  /**
+   * Download cache. First write cache into file and then download the file
+   * @param res
+   * @returns
+   */
+  @Get('/downloadcache')
+  downloadCache(@Res() res: Response) {
+    this.logger.debug('Starting to write cache into file...')
+    this.fileService.downloadCacheAsGFF3file().then((msg) => {
+      this.logger.debug(`Now downloading file =${msg}`)
+      const file = createReadStream(msg)
+      return file.pipe(res)
+    })
   }
 }

@@ -1,8 +1,10 @@
-import { createWriteStream, existsSync } from 'fs'
+import { createReadStream, createWriteStream, existsSync } from 'fs'
 import * as fs from 'fs/promises'
 import { join } from 'path'
 
 import gff from '@gmod/gff'
+import { GFF3Sequence } from '@gmod/gff'
+import { GFF3SequenceRegionDirective } from '@gmod/gff/dist/util'
 import {
   CACHE_MANAGER,
   HttpException,
@@ -15,7 +17,6 @@ import {
 } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 
-import { GFF3Sequence } from "@gmod/gff"
 import {
   FastaSequenceInfo,
   GFF3ChangeLineObjectDto,
@@ -25,7 +26,6 @@ import {
   getCurrentDateTime,
   writeIntoGff3ChangeLog,
 } from '../utils/commonUtilities'
-import { GFF3SequenceRegionDirective } from '@gmod/gff/dist/util'
 
 @Injectable()
 export class FileHandlingService {
@@ -33,13 +33,12 @@ export class FileHandlingService {
   private readonly logger = new Logger(FileHandlingService.name)
 
   /**
-   * THIS IS JUST FOR DEMO PURPOSE
    * Save new uploaded file into local filesystem. The filename in local filesystem will be: 'uploaded' + timestamp in ddmmyyyy_hh24miss -format + original filename
    * @param newUser New user information
    * @returns Return 'HttpStatus.OK' if save was successful
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
-  async saveNewFile(file: Express.Multer.File) {
+  saveNewFile(file: Express.Multer.File) {
     // Check if filesize is 0
     if (file.size < 1) {
       const msg = `File ${file.originalname} is empty!`
@@ -47,20 +46,29 @@ export class FileHandlingService {
       throw new InternalServerErrorException(msg)
     }
     this.logger.debug(
-      `Starting to save file ${file.originalname}, size=${file.size} bytes.`,
+      `Starting to save file '${file.originalname}', size=${file.size} bytes.`,
     )
+    const filenameWithoutPath = `uploaded_${getCurrentDateTime()}_${
+      file.originalname
+    }`
     // Join path+filename
     const newFullFileName = join(
-      process.env.UPLOADED_OUTPUT_FOLDER,
-      `uploaded_${getCurrentDateTime()}_${file.originalname}`,
+      process.env.FILE_SEARCH_FOLDER,
+      filenameWithoutPath,
     )
     this.logger.debug(`New file will be saved as ${newFullFileName}`)
 
-    // Save file
-    const ws = createWriteStream(newFullFileName)
-    ws.write(file.buffer)
-    ws.close()
-    return { message: `File ${file.originalname} was saved` }
+    // // Save file
+    // const ws = createWriteStream(newFullFileName)
+    // ws.write(file.buffer)
+    // ws.close()
+
+    // Write sync
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fsync = require('fs')
+    fsync.writeFileSync(newFullFileName, file.buffer)
+
+    return filenameWithoutPath
   }
 
   /**
@@ -227,12 +235,46 @@ export class FileHandlingService {
     }
   }
 
+  /**  Write cache into file
+   * @returns Filename where cache was written
+   */
+  async downloadCacheAsGFF3file(): Promise<string> {
+    let cacheValue = ''
+    try {
+      const nberOfEntries = await this.cacheManager.store.keys()
+      const downloadFilename = join(
+        process.env.DOWNLOADED_OUTPUT_FOLDER,
+        `downloaded_${getCurrentDateTime()}.gff3`,
+      )
+      nberOfEntries.sort((n1, n2) => n1 - n2) // Sort the array
+      // Loop cache in sorted order
+      for (const keyInd of nberOfEntries) {
+        cacheValue = await this.cacheManager.get(keyInd.toString())
+        this.logger.verbose(
+          `Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`,
+        )
+        // Write into file line by line
+        fs.appendFile(downloadFilename, gff.formatSync(JSON.parse(cacheValue)))
+      }
+      this.logger.debug(`Cache saved to file ${downloadFilename}' successfully`)
+      return downloadFilename
+    } catch (err) {
+      this.logger.error(`ERROR when saving cache to file: ${err}`)
+      throw new InternalServerErrorException(
+        `ERROR in downloadCacheAsGFF3file() : ${err}`,
+      )
+    }
+  }
+
   /**
    * Loads GFF3 file into cache
    * @param filename GFF3 filename where data is loaded
    */
   async loadGFF3FileIntoCache(filename: string) {
-    this.logger.debug(`Starting to load gff3 file ${filename} into cache!`)
+    this.logger.debug(`Starting to load gff3 file '${filename}' into cache!`)
+
+    const tmp = join(process.env.FILE_SEARCH_FOLDER, filename)
+    this.logger.debug(`Koko polku '${tmp}'`)
 
     // parse a string of gff3 synchronously
     const stringOfGFF3 = await fs.readFile(
@@ -287,9 +329,7 @@ export class FileHandlingService {
       const nberOfEntries = await this.cacheManager.store.keys()
 
       this.logger.debug(
-        `Feature search criteria is refName=${
-          searchDto.seq_id
-        }, start=${searchDto.start} and end=${searchDto.end}`,
+        `Feature search criteria is refName=${searchDto.seq_id}, start=${searchDto.start} and end=${searchDto.end}`,
       )
 
       // Loop cache
@@ -349,9 +389,7 @@ export class FileHandlingService {
       const nberOfEntries = await this.cacheManager.store.keys()
 
       this.logger.debug(
-        `Fasta search criteria is refName=${
-          searchDto.seq_id
-        }, start=${searchDto.start} and end=${searchDto.end}`,
+        `Fasta search criteria is refName=${searchDto.seq_id}, start=${searchDto.start} and end=${searchDto.end}`,
       )
 
       // Loop cache
@@ -369,7 +407,10 @@ export class FileHandlingService {
           cacheValueAsJson[0].id === searchDto.seq_id
         ) {
           // Check end position
-          if (parseInt(`${searchDto.end}`, 10) > cacheValueAsJson[0].sequence.length) {
+          if (
+            parseInt(`${searchDto.end}`, 10) >
+            cacheValueAsJson[0].sequence.length
+          ) {
             const errMsg = `ERROR. Searched FASTA end position ${JSON.stringify(
               searchDto.end,
             )} is out range. Sequence lenght is only ${
@@ -379,7 +420,10 @@ export class FileHandlingService {
             throw new NotFoundException(errMsg)
           }
           // Check start vs. end positions
-          if (parseInt(`${searchDto.start}`, 10) >= parseInt(`${searchDto.end}`, 10)) {
+          if (
+            parseInt(`${searchDto.start}`, 10) >=
+            parseInt(`${searchDto.end}`, 10)
+          ) {
             const errMsg =
               'ERROR. Start position cannot be greater or equal than end position'
             this.logger.error(errMsg)
@@ -387,7 +431,8 @@ export class FileHandlingService {
           }
 
           const foundSequence = cacheValueAsJson[0].sequence.substring(
-            searchDto.start,searchDto.end,
+            searchDto.start,
+            searchDto.end,
           )
           this.logger.debug(
             `Found sequence refName=${cacheValueAsJson[0].id} and sequence=${foundSequence}`,
@@ -402,9 +447,7 @@ export class FileHandlingService {
       }
 
       throw new NotFoundException(
-        `Fasta sequence for criteria refName=${
-          searchDto.seq_id
-        }, start=${searchDto.start} and end=${searchDto.end} was not found`,
+        `Fasta sequence for criteria refName=${searchDto.seq_id}, start=${searchDto.start} and end=${searchDto.end} was not found`,
       )
     } catch (err) {
       this.logger.error(
@@ -474,4 +517,45 @@ export class FileHandlingService {
       )
     }
   }
+
+  //* ***** JATKA TASTA : MIKSI UPLOADATTUA TIEDOSTOA JOKA ON KIRJOITETTU LEVYLLE ONNISTUTA LUKEMAAN VAAN TULEE VIRHE ETTA 'NO SUCH FILE OR DIRECTORY' ******/
+  /**
+   * Save new uploaded file into local filesystem and then loads it into cache. The filename in local filesystem will be: 'uploaded' + timestamp in ddmmyyyy_hh24miss -format + original filename
+   * @param newUser New user information
+   * @returns Return 'HttpStatus.OK' if save was successful
+   * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
+   */
+  // async loadFileIntoCache(file: Express.Multer.File) {
+  // Check if filesize is 0
+  //   if (file.size < 1) {
+  //     const msg = `File ${file.originalname} is empty!`
+  //     this.logger.error(msg)
+  //     throw new InternalServerErrorException(msg)
+  //   }
+  //   this.logger.debug(
+  //     `Starting to save file '${file.originalname}', size=${file.size} bytes.`,
+  //   )
+
+  //   const filenameWithoutPath = `loadedIntoCache_${getCurrentDateTime()}_${
+  //     file.originalname
+  //   }`
+
+  //   // Join path+filename
+  //   const newFullFileName = join(
+  //     process.env.FILE_SEARCH_FOLDER,
+  //     filenameWithoutPath,
+  //   )
+  //   this.logger.debug(`New file will be saved as ${newFullFileName}`)
+
+  //   this.logger.debug(
+  //     `Uploaded file will be saved to '${newFullFileName}' before loading it into cache`,
+  //   )
+
+  //   // Save file
+  //   const ws = createWriteStream(newFullFileName)
+  //   ws.write(file.buffer)
+  //   ws.close()
+
+  //   return filenameWithoutPath
+  // }
 }
