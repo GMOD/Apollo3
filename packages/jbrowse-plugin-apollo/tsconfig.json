@@ -3,6 +3,7 @@
   "compilerOptions": {
     "rootDir": "./src",
     "noEmit": true,
+    "downlevelIteration": true
   },
   "include": ["src"],
   "exclude": ["**/dist/"]
