@@ -43,9 +43,10 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const { layout } = displayModel
 
   const [onBorder, setOnBorder] = useState(false)
+  const [mouseDragging, setMouseDragging] = useState(false)
   // const { featureLayout, featuresForBlock } = displayModel
   // const features = featuresForBlock[blockKey]
-  let totalHeight = 0 // instead of 0, totalHeight = layout.totalHeight
+  let { totalHeight } = layout // instead of 0, totalHeight = layout.totalHeight
   if (layout) {
     Array.from(layout.rectangles.entries()).map(([id, rect]) => {
       const { top } = rect
@@ -152,12 +153,31 @@ function ApolloRendering(props: ApolloRenderingProps) {
     }
     return false
   }
+
+  function recordPxPosition(eventClientX: number, eventClientY: number) {
+    let offsetX = 0
+    let offsetY = 0
+    if (canvasRef.current) {
+      offsetX = canvasRef.current.getBoundingClientRect().left
+      offsetY = canvasRef.current.getBoundingClientRect().top
+    }
+    offsetX = eventClientX - offsetX
+    offsetY = eventClientY - offsetY
+    const px = region.reversed
+      ? (region.end - region.start) / bpPerPx - offsetX
+      : offsetX
+
+    return { px, py: offsetY }
+  }
   return (
     <canvas
       ref={canvasRef}
       width={totalWidth}
       height={totalHeight * 20}
-      style={{ cursor: onBorder ? 'col-resize' : 'default' }}
+      style={{
+        cursor: onBorder ? 'col-resize' : 'default',
+        pointerEvents: 'none',
+      }}
       onMouseMove={(event) => {
         const rectUnderMouse = getRectangleUnderMouse(
           event.clientX,
@@ -177,24 +197,38 @@ function ApolloRendering(props: ApolloRenderingProps) {
           onBorder,
         )
       }}
-      onClick={(event) => {
-        const rectUnderMouse = getRectangleUnderMouse(
-          event.clientX,
-          event.clientY,
-        )
-        setOnBorder(
-          getRectangleBorderUnderMouse(
+      onMouseDown={(event) => {
+        event.preventDefault()
+        setMouseDragging(true)
+        console.log('down')
+        if (onBorder) {
+          console.log('onBorder')
+          const rectUnderMouse = getRectangleUnderMouse(
             event.clientX,
             event.clientY,
-            rectUnderMouse,
-          ),
-        )
-        onRectClick(
-          event,
-          rectUnderMouse ? rectUnderMouse.id : undefined,
-          onBorder,
-        )
+          )
+          const px = recordPxPosition(event.clientX, event.clientY)
+          console.log(px)
+        }
       }}
+      // onClick={(event) => {
+      //   const rectUnderMouse = getRectangleUnderMouse(
+      //     event.clientX,
+      //     event.clientY,
+      //   )
+      //   setOnBorder(
+      //     getRectangleBorderUnderMouse(
+      //       event.clientX,
+      //       event.clientY,
+      //       rectUnderMouse,
+      //     ),
+      //   )
+      //   onRectClick(
+      //     event,
+      //     rectUnderMouse ? rectUnderMouse.id : undefined,
+      //     onBorder,
+      //   )
+      // }}
       onMouseLeave={(event) => onMouseLeave(event)}
     />
   )
