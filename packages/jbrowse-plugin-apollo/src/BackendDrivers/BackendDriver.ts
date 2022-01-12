@@ -9,14 +9,16 @@ export abstract class BackendDriver {
     private clientStore: any, // TODO add client store
   ) {}
 
-  abstract getFeatures(region: Region): AnnotationFeatureI
+  abstract getFeatures(region: Region): Promise<AnnotationFeatureI>
 
-  loadFeatures(region: Region): void {
-    const features = this.getFeatures(region)
+  async loadFeatures(region: Region): Promise<void> {
+    const features = await this.getFeatures(region)
     this.clientStore.load(features)
   }
 
-  abstract getSequence(region: Region): string
+  abstract getSequence(region: Region): Promise<string>
 
-  abstract submitChange(change: Change): ValidationResultSet
+  abstract getRefNames(): Promise<Region[]>
+
+  abstract submitChange(change: Change): Promise<ValidationResultSet>
 }
