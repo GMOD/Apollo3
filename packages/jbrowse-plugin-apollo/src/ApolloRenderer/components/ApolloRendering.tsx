@@ -42,8 +42,21 @@ function ApolloRendering(props: ApolloRenderingProps) {
   // gets layout here and draws
   const { layout } = displayModel
 
-  const [onBorder, setOnBorder] = useState(false)
+  const [onBorder, setOnBorder] = useState({ onBorder: false, edge: '' })
   const [mouseDragging, setMouseDragging] = useState(false)
+  const [startPosition, setStartPosition] = useState<{
+    px: number
+    py: number
+    rectUnderMouse: Instance<typeof rectangle> | undefined
+    edge: string
+  }>({
+    px: 0,
+    py: 0,
+    rectUnderMouse: undefined,
+    edge: '',
+  })
+  const [endPosition, setEndPosition] = useState({ px: 0, py: 0 })
+
   // const { featureLayout, featuresForBlock } = displayModel
   // const features = featuresForBlock[blockKey]
   let { totalHeight } = layout // instead of 0, totalHeight = layout.totalHeight
@@ -144,14 +157,16 @@ function ApolloRendering(props: ApolloRenderingProps) {
         offsetY
     ) {
       if (
-        (px >= rectangleUnderMouse.l - region.start / bpPerPx &&
-          px <= rectangleUnderMouse.l - region.start / bpPerPx + 3) ||
-        (px <= rectangleUnderMouse.r && px >= rectangleUnderMouse.r - 3)
+        px >= rectangleUnderMouse.l - region.start / bpPerPx &&
+        px <= rectangleUnderMouse.l - region.start / bpPerPx + 3
       ) {
-        return true
+        return { onBorder: true, edge: 'left' }
+      }
+      if (px <= rectangleUnderMouse.r && px >= rectangleUnderMouse.r - 3) {
+        return { onBorder: true, edge: 'right' }
       }
     }
-    return false
+    return { onBorder: false, edge: '' }
   }
 
   function recordPxPosition(eventClientX: number, eventClientY: number) {
@@ -175,8 +190,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
       width={totalWidth}
       height={totalHeight * 20}
       style={{
-        cursor: onBorder ? 'col-resize' : 'default',
-        pointerEvents: 'none',
+        cursor: onBorder.onBorder ? 'col-resize' : 'default',
       }}
       onMouseMove={(event) => {
         const rectUnderMouse = getRectangleUnderMouse(
@@ -190,25 +204,71 @@ function ApolloRendering(props: ApolloRenderingProps) {
             rectUnderMouse,
           ),
         )
-        console.log('mouse moving', rectUnderMouse?.id, onBorder)
         onMouseMove(
           event,
           rectUnderMouse ? rectUnderMouse.id : undefined,
-          onBorder,
+          onBorder.onBorder,
         )
       }}
       onMouseDown={(event) => {
-        event.preventDefault()
+        event.stopPropagation()
         setMouseDragging(true)
-        console.log('down')
-        if (onBorder) {
-          console.log('onBorder')
+        if (onBorder.onBorder) {
+          console.log(onBorder)
           const rectUnderMouse = getRectangleUnderMouse(
             event.clientX,
             event.clientY,
           )
-          const px = recordPxPosition(event.clientX, event.clientY)
-          console.log(px)
+          const position = recordPxPosition(event.clientX, event.clientY)
+          setStartPosition({ ...position, rectUnderMouse, edge: onBorder.edge })
+        }
+      }}
+      onMouseUp={(event) => {
+        if (mouseDragging) {
+          const endPos = recordPxPosition(event.clientX, event.clientY)
+          setEndPosition(endPos)
+          setMouseDragging(false)
+          const rect = startPosition.rectUnderMouse
+          const canvas = canvasRef.current
+          if (!canvas) {
+            return
+          }
+          const ctx = canvas.getContext('2d')
+
+          if (rect && ctx) {
+            console.log('start draw loop', endPos)
+            let startPx = rect.l - region.start / bpPerPx
+            let widthPx = rect.r - rect.l
+            const { h } = rect
+            ctx.clearRect(
+              startPx,
+              (rect.top || 0) * 20 + 2,
+              widthPx,
+              h * 20 - 4,
+            )
+            ctx.clearRect(
+              startPx + 1,
+              (rect.top || 0) * 20 + 3,
+              widthPx - 2,
+              h * 20 - 6,
+            )
+
+            if (startPosition.edge === 'left') {
+              startPx = endPos.px - region.start / bpPerPx
+              widthPx = rect.r - endPos.px
+            } else {
+              widthPx = endPos.px - rect.l
+            }
+            ctx.fillStyle = 'black'
+            ctx.fillRect(startPx, (rect.top || 0) * 20 + 2, widthPx, h * 20 - 4)
+            ctx.fillStyle = '#F5CBA7'
+            ctx.fillRect(
+              startPx + 1,
+              (rect.top || 0) * 20 + 3,
+              widthPx - 2,
+              h * 20 - 6,
+            )
+          }
         }
       }}
       // onClick={(event) => {
