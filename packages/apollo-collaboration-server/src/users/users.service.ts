@@ -4,14 +4,14 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { Response } from 'express'
 import { Repository, getConnectionManager, getCustomRepository } from 'typeorm'
 
-import ApolloUser from '../../entity/grails_user.entity'
-import UserRole from '../../entity/userRole.entity'
-import { GrailsUserRepository } from '../../repository/GrailsUserRepository'
-import { UserRoleRepository } from '../../repository/UserRole'
+import ApolloUser from '../entity/grails_user.entity'
+import UserRole from '../entity/userRole.entity'
+import { GrailsUserRepository } from '../repository/GrailsUserRepository'
+import { UserRoleRepository } from '../repository/UserRole'
 
 @Injectable()
-export class UserService {
-  private readonly logger = new Logger(UserService.name)
+export class UsersService {
+  private readonly logger = new Logger(UsersService.name)
   private readonly mysql = require('mysql2/promise')
 
   constructor(

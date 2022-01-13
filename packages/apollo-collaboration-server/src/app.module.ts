@@ -5,8 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { initializeTransactionalContext } from 'typeorm-transactional-cls-hooked'
 
 import { AuthenticationModule } from './authentication/authentication.module'
-import { UserModule } from './controller/user/user.module'
 import { FileHandlingModule } from './fileHandling/fileHandling.module'
+import { UsersModule } from './users/users.module'
 import { RolesGuard } from './utils/role/role.guards'
 
 initializeTransactionalContext() // Initialize cls-hooked
@@ -17,7 +17,7 @@ const nodeEnv = process.env.NODE_ENV || 'production'
   imports: [
     FileHandlingModule,
     AuthenticationModule,
-    UserModule,
+    UsersModule,
     ConfigModule.forRoot({
       envFilePath: nodeEnv === 'production' ? '.env' : '.development.env',
     }),

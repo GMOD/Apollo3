@@ -10,16 +10,16 @@ import {
 import { Response } from 'express'
 import { getCustomRepository } from 'typeorm'
 
-import ApolloUser from '../../entity/grails_user.entity'
-import { GrailsUserRepository } from '../../repository/GrailsUserRepository'
-import { JwtAuthGuard } from '../../utils/jwt-auth.guard'
-import { Roles } from '../../utils/role/role.decorator'
-import { Role } from '../../utils/role/role.enum'
-import { UserService } from './user.service'
+import ApolloUser from '../entity/grails_user.entity'
+import { GrailsUserRepository } from '../repository/GrailsUserRepository'
+import { JwtAuthGuard } from '../utils/jwt-auth.guard'
+import { Roles } from '../utils/role/role.decorator'
+import { Role } from '../utils/role/role.enum'
+import { UsersService } from './users.service'
 
 @Controller('user')
-export class UserController {
-  constructor(private readonly userService: UserService) {}
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
 
   /**
    * Get all users from database using pure ORM
@@ -32,7 +32,7 @@ export class UserController {
   @Roles(Role.User) // This value is for demo only
   @Get('/all')
   async getAllUsersOrm(@Res() response: Response) {
-    return this.userService.getAllUsersORM(response)
+    return this.usersService.getAllUsersORM(response)
   }
 
   /**
@@ -46,7 +46,7 @@ export class UserController {
   @Roles() // Empty value is for demo only
   @Get('/usernames')
   async getAllUsers2(@Res() response: Response) {
-    return this.userService.getAllUsernames(response)
+    return this.usersService.getAllUsernames(response)
   }
 
   /**
@@ -60,7 +60,7 @@ export class UserController {
   @Roles() // Empty value is for demo only
   @Get('/userandroles')
   async getAllUsersAndRoles(@Res() response: Response) {
-    return this.userService.getUsersAndRoles(response)
+    return this.usersService.getUsersAndRoles(response)
   }
 
   /**
@@ -96,7 +96,7 @@ export class UserController {
   @Roles(Role.Admin)
   @Post()
   async addNewUser(@Body() user: ApolloUser, @Res() response: Response) {
-    return this.userService.addNewUserTypeORMTransaction(user, response) // Saves data using TypeORM transaction. This is working ok
-    // return this.userService.addNewUser(user, response); // Saves data using TypeScript transaction. This is working ok
+    return this.usersService.addNewUserTypeORMTransaction(user, response) // Saves data using TypeORM transaction. This is working ok
+    // return this.usersService.addNewUser(user, response); // Saves data using TypeScript transaction. This is working ok
   }
 }
