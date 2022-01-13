@@ -6,8 +6,8 @@ import { UsersModule } from '../usersDemo/users.module'
 import { jwtConstants } from '../utils/constants'
 import { JwtStrategy } from '../utils/strategies/jwt.strategy'
 import { LocalStrategy } from '../utils/strategies/local.strategy'
-import { AuthenticateController } from './authenticate.controller'
-import { AuthenticateService } from './authenticate.service'
+import { AuthenticationController } from './authentication.controller'
+import { AuthenticationService } from './authentication.service'
 
 @Module({
   imports: [
@@ -18,8 +18,8 @@ import { AuthenticateService } from './authenticate.service'
       signOptions: { expiresIn: '2400m' }, // Define token expiration time. TODO: Put value into property -file
     }),
   ],
-  controllers: [AuthenticateController],
-  providers: [AuthenticateService, LocalStrategy, JwtStrategy],
-  exports: [AuthenticateService],
+  controllers: [AuthenticationController],
+  providers: [AuthenticationService, LocalStrategy, JwtStrategy],
+  exports: [AuthenticationService],
 })
-export class AuthenticateModule {}
+export class AuthenticationModule {}

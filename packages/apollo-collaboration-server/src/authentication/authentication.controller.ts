@@ -1,11 +1,11 @@
 import { Controller, Post, Request, UseGuards } from '@nestjs/common'
 
 import { LocalAuthGuard } from '../utils/local-auth.guard'
-import { AuthenticateService } from './authenticate.service'
+import { AuthenticationService } from './authentication.service'
 
 @Controller('auth')
-export class AuthenticateController {
-  constructor(private readonly authService: AuthenticateService) {}
+export class AuthenticationController {
+  constructor(private readonly authService: AuthenticationService) {}
 
   /**
    * POST: Checks user's login attempt.
