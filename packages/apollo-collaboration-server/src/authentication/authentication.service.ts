@@ -14,8 +14,8 @@ export class AuthenticationService {
 
   /**
    * Validates username and password. THIS IS JUST FOR DEMO PURPOSE
-   * @param username Username
-   * @param pass Password
+   * @param username - Username
+   * @param pass - Password
    * @returns User or null
    */
   async validateUser(username: string, pass: string): Promise<any> {
@@ -30,8 +30,8 @@ export class AuthenticationService {
 
   /**
    * Check user's login attempt. TODO: THIS IS JUST FOR DEMO PURPOSE!
-   * @param user username
-   * @param response Incoming httpresponse
+   * @param user - username
+   * @param response - Incoming httpresponse
    * @returns Return either token with HttpResponse status 'HttpStatus.OK' OR null with 'HttpStatus.UNAUTHORIZED'
    */
   async login(user: any) {

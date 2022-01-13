@@ -6,6 +6,7 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
   ],
+  plugins: ['eslint-plugin-tsdoc'],
   settings: {
     react: {
       version: 'latest',
@@ -61,5 +62,14 @@ module.exports = {
       // allow TS /// directives
       { line: { markers: ['/'] } },
     ],
+    'tsdoc/syntax': 'warn',
   },
+  overrides: [
+    {
+      files: ['**/*.js'],
+      rules: {
+        'tsdoc/syntax': 'off',
+      },
+    },
+  ],
 }

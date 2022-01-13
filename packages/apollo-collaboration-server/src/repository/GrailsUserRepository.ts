@@ -16,7 +16,7 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
 
   /**
    * Get all usernames from database - using embedded SQL
-   * @param response
+   * @param response -
    * @returns Return list of usernames with HttpResponse status 'HttpStatus.OK'
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
@@ -64,7 +64,7 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
 
   /**
    * Find user by LastName - using ORM
-   * @param response
+   * @param response -
    * @returns Return user with HttpResponse status 'HttpStatus.OK'
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
@@ -86,7 +86,7 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
 
   /**
    * Get all users and roles from database - using embedded SQL
-   * @param response
+   * @param response -
    * @returns Return list of users and roles with HttpResponse status 'HttpStatus.OK'
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
@@ -141,8 +141,8 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
 
   /**
    * Insert new user into database
-   * @param newUser New user information
-   * @param response
+   * @param newUser - New user information
+   * @param response -
    * @returns Return new user object with status 'HttpStatus.OK'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
@@ -173,8 +173,8 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
 
   /**
    * Insert new user's role into database
-   * @param newUserRole New userId and roleId information
-   * @param response
+   * @param newUserRole - New userId and roleId information
+   * @param response -
    * @returns Return new userRole object with status 'HttpStatus.OK'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */

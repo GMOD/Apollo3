@@ -16,7 +16,7 @@ export class Database {
 
   /**
    *
-   * @param name Get database connection
+   * @param name - Get database connection
    * @returns Database connection object
    */
   public async getConnection(name: string): Promise<Connection> {

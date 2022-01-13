@@ -23,7 +23,7 @@ export class UsersController {
 
   /**
    * Get all users from database using pure ORM
-   * @param response
+   * @param response -
    * @returns Return list of users with HttpResponse status 'HttpStatus.OK'
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
@@ -37,7 +37,7 @@ export class UsersController {
 
   /**
    * Get usernames from database using embedded SQL in customs repository
-   * @param response
+   * @param response - -
    * @returns Return list of usernames with HttpResponse status 'HttpStatus.OK'
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
@@ -51,7 +51,7 @@ export class UsersController {
 
   /**
    * Get users and their roles
-   * @param response
+   * @param response -
    * @returns Return list of users and their roles with HttpResponse status 'HttpStatus.OK'
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
@@ -65,8 +65,8 @@ export class UsersController {
 
   /**
    * Get user by lastname using customized ORM in customs repository
-   * @param lastname
-   * @param response
+   * @param lastname -
+   * @param response -
    * @returns Return user with HttpResponse status 'HttpStatus.OK'
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
@@ -86,8 +86,8 @@ export class UsersController {
 
   /**
    * Adds new user to database unless the user already exist
-   * @param user User object
-   * @param response
+   * @param user - User object
+   * @param response -
    * @returns Return new user object with status 'HttpStatus.OK'
    * or in case of user already exists then return error message with 'HttpStatus.CONFLICT'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'

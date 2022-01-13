@@ -21,7 +21,7 @@ export class RolesGuard implements CanActivate {
 
   /**
    * Check if user belongs to such group that user is allowed to execute endpoint
-   * @param context
+   * @param context -
    * @returns TRUE: user is allowed to execute endpoint
    *          FALSE: user is not allowed to execute endpoint
    */
@@ -65,7 +65,7 @@ export class RolesGuard implements CanActivate {
 
   /**
    * Decode access token
-   * @param token
+   * @param token -
    * @returns Decoded token or null
    */
   getDecodedAccessToken(token: string): any {

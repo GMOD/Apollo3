@@ -35,7 +35,7 @@ export class FileHandlingService {
   /**
    * THIS IS JUST FOR DEMO PURPOSE
    * Save new uploaded file into local filesystem. The filename in local filesystem will be: 'uploaded' + timestamp in ddmmyyyy_hh24miss -format + original filename
-   * @param newUser New user information
+   * @param newUser - New user information
    * @returns Return 'HttpStatus.OK' if save was successful
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
@@ -65,7 +65,7 @@ export class FileHandlingService {
 
   /**
    * Check if given filename exists in default folder
-   * @param filename New user information
+   * @param filename - New user information
    * @returns Return TRUE if file exists, otherwise return FALSE
    */
   fileExists(filename: string): boolean {
@@ -122,7 +122,7 @@ export class FileHandlingService {
 
   /**
    * Loads GFF3 file data into cache. Cache key is started from 0
-   * @param filename File where data is loaded into cache
+   * @param filename - File where data is loaded into cache
    * @returns
    */
   async loadGff3IntoCache(filename: string) {
@@ -141,7 +141,7 @@ export class FileHandlingService {
 
   /**
    * Updates string (or whole line) in CACHE
-   * @param postDto Data Transfer Object that contains information about original string/line and updated string/line
+   * @param postDto - Data Transfer Object that contains information about original string/line and updated string/line
    * @returns
    */
   async updateGFF3Cache(postDto: GFF3ChangeLineObjectDto) {
@@ -229,7 +229,7 @@ export class FileHandlingService {
 
   /**
    * Loads GFF3 file into cache
-   * @param filename GFF3 filename where data is loaded
+   * @param filename - GFF3 filename where data is loaded
    */
   async loadGFF3FileIntoCache(filename: string) {
     this.logger.debug(`Starting to load gff3 file ${filename} into cache!`)
@@ -274,7 +274,7 @@ export class FileHandlingService {
 
   /**
    * Fetch features based on Reference seq, Start and End -values
-   * @param searchDto Data Transfer Object that contains information about searchable region
+   * @param searchDto - Data Transfer Object that contains information about searchable region
    * @returns Return array of features (as JSON) if search was successful
    * or if search data was not found or in case of error return throw exception
    */
@@ -340,7 +340,7 @@ export class FileHandlingService {
 
   /**
    * Fetch embedded FASTA sequence based on Reference seq, Start and End -values
-   * @param searchDto Data Transfer Object that contains information about searchable sequence
+   * @param searchDto - Data Transfer Object that contains information about searchable sequence
    * @returns Return embedded FASTA sequence if search was successful
    * or if search data was not found or in case of error throw exception
    */

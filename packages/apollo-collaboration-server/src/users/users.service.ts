@@ -25,7 +25,7 @@ export class UsersService {
 
   /**
    * Get all users and their roles using ORM
-   * @param response
+   * @param response -
    * @returns Return list of users and their roles with HttpResponse status 'HttpStatus.OK'
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
@@ -62,7 +62,7 @@ export class UsersService {
 
   /**
    * Get all users using ORM
-   * @param response
+   * @param response -
    * @returns Return list of users with HttpResponse status 'HttpStatus.OK'
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
@@ -90,8 +90,8 @@ export class UsersService {
 
   /**
    * Check if new user does not exist in database and if not then add it. This method is using TypeORM transaction
-   * @param newUser New user information
-   * @param response
+   * @param newUser - New user information
+   * @param response -
    * @returns Return new user object with status 'HttpStatus.OK'
    * or in case of user already exists then return error message with 'HttpStatus.CONFLICT'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
@@ -159,8 +159,8 @@ export class UsersService {
 
   /**
    * Check if new user does not exist in database and if not then add it. This is using TypeScript/MySQL transaction
-   * @param newUser New user information
-   * @param response
+   * @param newUser - New user information
+   * @param response -
    * @returns Return new user object with status 'HttpStatus.OK'
    * or in case of user already exists then return error message with 'HttpStatus.CONFLICT'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'

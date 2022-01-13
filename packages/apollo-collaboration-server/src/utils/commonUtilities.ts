@@ -22,8 +22,8 @@ export function getCurrentDateTime() {
 
 /**
  * Compares two JSON objects.
- * @param obj1
- * @param obj2
+ * @param obj1 -
+ * @param obj2 -
  * @returns TRUE if JSON objects are equal, otherwise return false
  */
 export function compareTwoJsonObjects(obj1: any, obj2: any) {
@@ -45,9 +45,9 @@ export function compareTwoJsonObjects(obj1: any, obj2: any) {
 
 /**
  * Add line into GFF3 change log
- * @param username User who requested the change
- * @param originalLine Original line
- * @param updatedLine Requested change to original file
+ * @param username - User who requested the change
+ * @param originalLine - Original line
+ * @param updatedLine - Requested change to original file
  */
 export function writeIntoGff3ChangeLog(
   username: string,
