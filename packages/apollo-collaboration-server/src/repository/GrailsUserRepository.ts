@@ -158,11 +158,10 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
   //         throw new HttpException('Error in addNewUserRepo() : ' + error, HttpStatus.INTERNAL_SERVER_ERROR);
   //     }
   //   }
-  async addNewUserRepo(newUser: ApolloUser): Promise<Response> {
+  async addNewUserRepo(newUser: ApolloUser): Promise<void> {
     try {
       await ApolloUser.save(newUser)
       this.logger.debug(`Added new user: ${JSON.stringify(newUser)}`)
-      return
     } catch (error) {
       throw new HttpException(
         `Error in addNewUserRepo() : ${error}`,
@@ -178,11 +177,10 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
    * @returns Return new userRole object with status 'HttpStatus.OK'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
-  async addNewUserRoleRepo(newUserRole: UserRole): Promise<Response> {
+  async addNewUserRoleRepo(newUserRole: UserRole): Promise<void> {
     try {
       await UserRole.save(newUserRole)
       this.logger.debug(`Added new user role: ${JSON.stringify(newUserRole)}`)
-      return
     } catch (error) {
       throw new HttpException(
         `Error in addNewUserRoleRepo() : ${error}`,
