@@ -1,6 +1,6 @@
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
-import { Instance } from 'mobx-state-tree'
 import { BaseInternetAccountConfig } from '@jbrowse/core/pluggableElementTypes/models'
+import { Instance } from 'mobx-state-tree'
 
 const ApolloConfigSchema = ConfigurationSchema(
   'ApolloInternetAccount',
@@ -25,7 +25,6 @@ const ApolloConfigSchema = ConfigurationSchema(
 
 export type ApolloInternetAccountConfigModel = typeof ApolloConfigSchema
 
-export type ApolloInternetAccountConfig = Instance<
-  ApolloInternetAccountConfigModel
->
+export type ApolloInternetAccountConfig =
+  Instance<ApolloInternetAccountConfigModel>
 export default ApolloConfigSchema

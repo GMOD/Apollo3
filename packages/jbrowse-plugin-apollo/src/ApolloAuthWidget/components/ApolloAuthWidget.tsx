@@ -1,23 +1,22 @@
-import React, { useState } from 'react'
-import { observer } from 'mobx-react'
-import { IAnyStateTreeNode, getRoot } from 'mobx-state-tree'
 import {
-  Paper,
-  Typography,
-  Toolbar,
-  Tab,
-  Tabs,
-  Button,
-  MenuItem,
-  TextField,
-} from '@material-ui/core'
-
-import { getSession } from '@jbrowse/core/util'
-import {
-  BaseCoreDetails,
   BaseAttributes,
   BaseCard,
+  BaseCoreDetails,
 } from '@jbrowse/core/BaseFeatureWidget/BaseFeatureDetail'
+import { getSession } from '@jbrowse/core/util'
+import {
+  Button,
+  MenuItem,
+  Paper,
+  Tab,
+  Tabs,
+  TextField,
+  Toolbar,
+  Typography,
+} from '@material-ui/core'
+import { observer } from 'mobx-react'
+import { IAnyStateTreeNode, getRoot } from 'mobx-state-tree'
+import React, { useState } from 'react'
 
 const checkAllUsers = async (token: string) => {
   const userResponse = await fetch(`http://localhost:8084/api/user`, {
@@ -28,7 +27,9 @@ const checkAllUsers = async (token: string) => {
     },
   })
 
-  if (!userResponse.ok) return []
+  if (!userResponse.ok) {
+    return []
+  }
   return userResponse.json()
 }
 
@@ -41,7 +42,9 @@ const checkSpecificUser = async (token: string, id: string) => {
     },
   })
 
-  if (!userResponse.ok) return ''
+  if (!userResponse.ok) {
+    return ''
+  }
   return userResponse.json()
 }
 
@@ -80,7 +83,7 @@ function ApolloAuth({ model }: { model: IAnyStateTreeNode }) {
             >
               Check All Users
             </Button>
-            {userList.map(user => (
+            {userList.map((user) => (
               <MenuItem value={user.id}>
                 {user.firstName} {user.lastName}
               </MenuItem>
@@ -88,7 +91,7 @@ function ApolloAuth({ model }: { model: IAnyStateTreeNode }) {
 
             <TextField
               label="Enter User ID"
-              onChange={event => {
+              onChange={(event) => {
                 setCurrentId(event.target.value)
               }}
             />
