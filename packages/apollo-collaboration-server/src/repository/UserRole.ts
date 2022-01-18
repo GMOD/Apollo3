@@ -1,5 +1,4 @@
 import { HttpException, HttpStatus, Logger } from '@nestjs/common'
-import { Response } from 'express'
 import { EntityRepository } from 'typeorm'
 import { BaseRepository } from 'typeorm-transactional-cls-hooked'
 
@@ -15,7 +14,6 @@ export class UserRoleRepository extends BaseRepository<UserRole> {
   /**
    * Insert new user's role into database
    * @param newUserRole - New userId and roleId information
-   * @param response -
    * @returns Return new userRole object with status 'HttpStatus.OK'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */

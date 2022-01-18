@@ -12,13 +12,13 @@ import {
   Post,
   Put,
   Req,
-  Res,
+  StreamableFile,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
-import { Request, Response } from 'express'
+import { Request } from 'express'
 
 import {
   GFF3ChangeLineObjectDto,
@@ -53,11 +53,10 @@ export class FileHandlingController {
    * Download file from server to client. The given filename must exists in pre-defined folder (see fileConfig.ts)
    * You can call this endpoint like: curl http://localhost:3000/fileHandling/getfile/your_filename.txt
    * @param filename - File to download
-   * @param res -
    * @returns
    */
   @Get('/getfile/:filename')
-  getFile(@Param('filename') filename: string, @Res() res: Response) {
+  getFile(@Param('filename') filename: string) {
     // Check if file exists
     if (!this.fileService.fileExists(filename)) {
       this.logger.error(
@@ -74,7 +73,7 @@ export class FileHandlingController {
     }
     const file = createReadStream(join(FILE_SEARCH_FOLDER, filename))
 
-    return file.pipe(res)
+    return new StreamableFile(file)
   }
 
   // /**
@@ -131,7 +130,6 @@ export class FileHandlingController {
   /**
    * Updates string (or whole line) in CACHE
    * @param postDto - Data Transfer Object that contains information about original string/line and updated string/line
-   * @param res -
    * @returns Return 'HttpStatus.OK' if update was successful
    * or if search string/line was not found in the file then return error message with HttpStatus.NOT_FOUND
    * or in case of error throw exception

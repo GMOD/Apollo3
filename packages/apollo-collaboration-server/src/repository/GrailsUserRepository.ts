@@ -1,5 +1,4 @@
 import { HttpException, HttpStatus, Logger } from '@nestjs/common'
-import { Response } from 'express'
 import { Connection, ConnectionOptions, EntityRepository } from 'typeorm'
 import { BaseRepository } from 'typeorm-transactional-cls-hooked'
 
@@ -16,15 +15,11 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
 
   /**
    * Get all usernames from database - using embedded SQL
-   * @param response -
    * @returns Return list of usernames with HttpResponse status 'HttpStatus.OK'
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
-  async getAllUsernames(
-    response: Response,
-    connectionOptions: ConnectionOptions,
-  ): Promise<Response> {
+  async getAllUsernames(connectionOptions: ConnectionOptions) {
     const database = new Database(connectionOptions)
     try {
       // TODO: Put connection name to property file
@@ -36,7 +31,7 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
         if (returnValue != null) {
           this.logger.log('Data found (getAllUsernames)')
           this.logger.debug(JSON.stringify(returnValue))
-          return response.status(HttpStatus.OK).json(returnValue)
+          return returnValue
         }
         this.logger.log('No data found (getAllUsernames)')
         throw new HttpException(
@@ -64,18 +59,17 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
 
   /**
    * Find user by LastName - using ORM
-   * @param response -
    * @returns Return user with HttpResponse status 'HttpStatus.OK'
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
-  async findByLastName(lastname: string, response: Response) {
+  async findByLastName(lastname: string) {
     this.logger.log(`Find by lastname : "${lastname}"`)
     const returnValue = await this.findOne({ lastName: lastname })
     if (returnValue != null) {
       this.logger.log('Data found (findByLastName)')
       this.logger.debug(JSON.stringify(returnValue))
-      return response.status(HttpStatus.OK).json(returnValue)
+      return returnValue
     }
     this.logger.log('No data found (findByLastName)')
     throw new HttpException(
@@ -86,15 +80,11 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
 
   /**
    * Get all users and roles from database - using embedded SQL
-   * @param response -
    * @returns Return list of users and roles with HttpResponse status 'HttpStatus.OK'
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
-  async getUsersAndRolesRepo(
-    response: Response,
-    connectionOptions: ConnectionOptions,
-  ): Promise<Response> {
+  async getUsersAndRolesRepo(connectionOptions: ConnectionOptions) {
     const database = new Database(connectionOptions)
     try {
       // TODO: Put connection name to property file
@@ -113,7 +103,7 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
         if (returnValue != null) {
           this.logger.log('Data found (getUsersAndRolesRepo)')
           this.logger.debug(JSON.stringify(returnValue))
-          return response.status(HttpStatus.OK).json(returnValue)
+          return returnValue
         }
         this.logger.log('No data found (getUsersAndRolesRepo)')
         throw new HttpException(
@@ -142,7 +132,6 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
   /**
    * Insert new user into database
    * @param newUser - New user information
-   * @param response -
    * @returns Return new user object with status 'HttpStatus.OK'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
@@ -173,7 +162,6 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
   /**
    * Insert new user's role into database
    * @param newUserRole - New userId and roleId information
-   * @param response -
    * @returns Return new userRole object with status 'HttpStatus.OK'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */

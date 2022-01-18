@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Res,
-  UseGuards,
-} from '@nestjs/common'
-import { Response } from 'express'
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common'
 import { getCustomRepository } from 'typeorm'
 
 import ApolloUser from '../entity/grails_user.entity'
@@ -23,7 +14,6 @@ export class UsersController {
 
   /**
    * Get all users from database using pure ORM
-   * @param response -
    * @returns Return list of users with HttpResponse status 'HttpStatus.OK'
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
@@ -31,13 +21,12 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Roles(Role.User) // This value is for demo only
   @Get('/all')
-  async getAllUsersOrm(@Res() response: Response) {
-    return this.usersService.getAllUsersORM(response)
+  async getAllUsersOrm() {
+    return this.usersService.getAllUsersORM()
   }
 
   /**
    * Get usernames from database using embedded SQL in customs repository
-   * @param response - -
    * @returns Return list of usernames with HttpResponse status 'HttpStatus.OK'
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
@@ -45,13 +34,12 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Roles() // Empty value is for demo only
   @Get('/usernames')
-  async getAllUsers2(@Res() response: Response) {
-    return this.usersService.getAllUsernames(response)
+  async getAllUsers2() {
+    return this.usersService.getAllUsernames()
   }
 
   /**
    * Get users and their roles
-   * @param response -
    * @returns Return list of users and their roles with HttpResponse status 'HttpStatus.OK'
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
@@ -59,14 +47,13 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Roles() // Empty value is for demo only
   @Get('/userandroles')
-  async getAllUsersAndRoles(@Res() response: Response) {
-    return this.usersService.getUsersAndRoles(response)
+  async getAllUsersAndRoles() {
+    return this.usersService.getUsersAndRoles()
   }
 
   /**
    * Get user by lastname using customized ORM in customs repository
    * @param lastname -
-   * @param response -
    * @returns Return user with HttpResponse status 'HttpStatus.OK'
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
@@ -74,20 +61,13 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Roles(Role.Admin) // This value is for demo only
   @Get(':lastname')
-  async getByLastname(
-    @Param('lastname') lastname: string,
-    @Res() response: Response,
-  ) {
-    return getCustomRepository(GrailsUserRepository).findByLastName(
-      lastname,
-      response,
-    )
+  async getByLastname(@Param('lastname') lastname: string) {
+    return getCustomRepository(GrailsUserRepository).findByLastName(lastname)
   }
 
   /**
    * Adds new user to database unless the user already exist
    * @param user - User object
-   * @param response -
    * @returns Return new user object with status 'HttpStatus.OK'
    * or in case of user already exists then return error message with 'HttpStatus.CONFLICT'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
@@ -95,8 +75,8 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Roles(Role.Admin)
   @Post()
-  async addNewUser(@Body() user: ApolloUser, @Res() response: Response) {
-    return this.usersService.addNewUserTypeORMTransaction(user, response) // Saves data using TypeORM transaction. This is working ok
+  async addNewUser(@Body() user: ApolloUser) {
+    return this.usersService.addNewUserTypeORMTransaction(user) // Saves data using TypeORM transaction. This is working ok
     // return this.usersService.addNewUser(user, response); // Saves data using TypeScript transaction. This is working ok
   }
 }

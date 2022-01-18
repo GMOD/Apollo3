@@ -1,7 +1,13 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common'
+import {
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Response } from 'express'
 import { Repository, getConnectionManager, getCustomRepository } from 'typeorm'
 
 import ApolloUser from '../entity/grails_user.entity'
@@ -25,12 +31,11 @@ export class UsersService {
 
   /**
    * Get all users and their roles using ORM
-   * @param response -
    * @returns Return list of users and their roles with HttpResponse status 'HttpStatus.OK'
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
-  async getUsersAndRoles(response: Response): Promise<Response> {
+  async getUsersAndRoles() {
     try {
       // Find all users
       const returnValue = await ApolloUser.find()
@@ -45,12 +50,11 @@ export class UsersService {
       if (returnValue != null) {
         this.logger.log('Data found (getUsersAndRoles)')
         this.logger.debug(JSON.stringify(returnValue))
-        return response.status(HttpStatus.OK).json(returnValue)
+        return returnValue
       }
       this.logger.warn('No data found (getUsersAndRoles)')
-      return response
-        .status(HttpStatus.NOT_FOUND)
-        .json({ status: HttpStatus.NOT_FOUND, message: 'No data found' })
+      throw new NotFoundException('No data found')
+      // return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Error in getUsersAndRoles() : ' + error});
     } catch (error) {
       throw new HttpException(
         `Error in getUsersAndRoles() : ${error}`,
@@ -62,23 +66,21 @@ export class UsersService {
 
   /**
    * Get all users using ORM
-   * @param response -
    * @returns Return list of users with HttpResponse status 'HttpStatus.OK'
    * or in case of 'No data found' return error message with 'HttpStatus.NOT_FOUND'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
-  async getAllUsersORM(response: Response): Promise<Response> {
+  async getAllUsersORM() {
     try {
       const returnValue = await ApolloUser.find()
       if (returnValue != null) {
         this.logger.log('Data found (getAllUsersORM)')
         this.logger.debug(JSON.stringify(returnValue))
-        return response.status(HttpStatus.OK).json(returnValue)
+        return returnValue
       }
       this.logger.warn('No data found (getAllUsersORM)')
-      return response
-        .status(HttpStatus.NOT_FOUND)
-        .json({ status: HttpStatus.NOT_FOUND, message: 'No data found' })
+      throw new NotFoundException('No data found')
+      // return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Error in getAllUsersORM() : ' + error});
     } catch (error) {
       throw new HttpException(
         `Error in getAllUsersORM() : ${error}`,
@@ -91,7 +93,6 @@ export class UsersService {
   /**
    * Check if new user does not exist in database and if not then add it. This method is using TypeORM transaction
    * @param newUser - New user information
-   * @param response -
    * @returns Return new user object with status 'HttpStatus.OK'
    * or in case of user already exists then return error message with 'HttpStatus.CONFLICT'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
@@ -99,10 +100,7 @@ export class UsersService {
   // @Transactional()
   // If we use @Transactional() -decorator so then db changes are visible only after whole method is finished
   // i.e. after inserting new record, 'await ApolloUser.findOne({ userName: newUser.userName });' -function  does not return anything
-  async addNewUserTypeORMTransaction(
-    newUser: ApolloUser,
-    response: Response,
-  ): Promise<Response> {
+  async addNewUserTypeORMTransaction(newUser: ApolloUser) {
     // let newUser2 = JSON.parse(JSON.stringify(newUser)); // Copy incoming object for test purpose only
 
     try {
@@ -111,9 +109,7 @@ export class UsersService {
       if (foundUser != null) {
         const msg = `Username ${newUser.userName} already exists!`
         this.logger.error(msg)
-        return response
-          .status(HttpStatus.CONFLICT)
-          .json({ status: HttpStatus.CONFLICT, message: msg })
+        throw new ConflictException(msg)
       }
 
       // Get connection
@@ -146,9 +142,7 @@ export class UsersService {
       const justAddedUser = await ApolloUser.findOne({
         userName: newUser.userName,
       })
-      return response
-        .status(HttpStatus.OK)
-        .json({ status: HttpStatus.OK, message: justAddedUser })
+      return justAddedUser
     } catch (errMsg) {
       throw new HttpException(
         `ERROR in addNewUserTypeORMTransaction(catch) : ${errMsg}`,
@@ -160,12 +154,11 @@ export class UsersService {
   /**
    * Check if new user does not exist in database and if not then add it. This is using TypeScript/MySQL transaction
    * @param newUser - New user information
-   * @param response -
    * @returns Return new user object with status 'HttpStatus.OK'
    * or in case of user already exists then return error message with 'HttpStatus.CONFLICT'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
-  async addNewUser(newUser: ApolloUser, response: Response): Promise<Response> {
+  async addNewUser(newUser: ApolloUser) {
     let dbConn
 
     try {
@@ -174,9 +167,7 @@ export class UsersService {
       if (foundUser != null) {
         const msg = `Username ${newUser.userName} already exists!`
         this.logger.error(msg)
-        return response
-          .status(HttpStatus.CONFLICT)
-          .json({ status: HttpStatus.CONFLICT, message: msg })
+        throw new ConflictException(msg)
       }
 
       // Create connection
@@ -224,9 +215,7 @@ export class UsersService {
       const justAddedUser = await ApolloUser.findOne({
         userName: newUser.userName,
       })
-      return response
-        .status(HttpStatus.OK)
-        .json({ status: HttpStatus.OK, message: justAddedUser })
+      return justAddedUser
     } catch (err) {
       this.logger.error(`ERROR when creating new user: ${err}`)
       dbConn.rollback()
@@ -239,7 +228,7 @@ export class UsersService {
     }
   }
 
-  async getAllUsernames(response: Response) {
+  async getAllUsernames() {
     const type = this.configService.get<'mysql'>('TYPEORM_CONNECTION')
     if (!type) {
       throw new Error('No TYPEORM_CONNECTION found in .env file')
@@ -252,7 +241,7 @@ export class UsersService {
     if (!synchronize) {
       throw new Error('No TYPEORM_SYNCHRONIZE found in .env file')
     }
-    return getCustomRepository(GrailsUserRepository).getAllUsernames(response, {
+    return getCustomRepository(GrailsUserRepository).getAllUsernames({
       type,
       name: 'testConnection',
       host: this.configService.get<string>('TYPEORM_HOST'),

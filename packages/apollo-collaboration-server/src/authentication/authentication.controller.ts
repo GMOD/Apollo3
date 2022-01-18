@@ -10,7 +10,6 @@ export class AuthenticationController {
   /**
    * POST: Checks user's login attempt.
    * @param req - Request containing username and password
-   * @param response - Response
    * @returns Return either token with HttpResponse status 'HttpStatus.OK' OR null with 'HttpStatus.UNAUTHORIZED'
    */
   @UseGuards(LocalAuthGuard)
