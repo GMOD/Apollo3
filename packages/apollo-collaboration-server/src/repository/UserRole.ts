@@ -17,7 +17,7 @@ export class UserRoleRepository extends BaseRepository<UserRole> {
    * @returns Return new userRole object with status 'HttpStatus.OK'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
-  async addNewUserRoleRepo(newUserRole: UserRole): Promise<void> {
+  async addNewUserRoleRepo(newUserRole: UserRole) {
     await UserRole.save(newUserRole)
     this.logger.debug(`Added new user role: ${JSON.stringify(newUserRole)}`)
   }

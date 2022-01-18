@@ -70,7 +70,7 @@ export class FileHandlingService {
    * @param filename - New user information
    * @returns Return TRUE if file exists, otherwise return FALSE
    */
-  fileExists(filename: string): boolean {
+  fileExists(filename: string) {
     try {
       // Join path+filename
       const { FILE_SEARCH_FOLDER } = process.env

@@ -19,7 +19,7 @@ export class Database {
    * @param name - Get database connection
    * @returns Database connection object
    */
-  public async getConnection(name: string): Promise<Connection> {
+  public async getConnection(name: string) {
     const CONNECTION_NAME: string = name
     let connection: Connection
     const hasConnection = this.connectionManager.has(CONNECTION_NAME)

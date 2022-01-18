@@ -18,7 +18,7 @@ export class AuthenticationService {
    * @param pass - Password
    * @returns User or null
    */
-  async validateUser(username: string, pass: string): Promise<any> {
+  async validateUser(username: string, pass: string) {
     // Check against hard-coded list of users
     const user = await this.usersService.findOne(username)
     if (user && user.password === pass) {
