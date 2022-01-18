@@ -26,9 +26,17 @@ export function getCurrentDateTime() {
  * @param obj2 -
  * @returns TRUE if JSON objects are equal, otherwise return false
  */
-export function compareTwoJsonObjects(obj1: any, obj2: any) {
+export function compareTwoJsonObjects(obj1: unknown, obj2: unknown) {
   let flag = true
-  if (Object.keys(obj1).length == Object.keys(obj2).length) {
+  if (
+    typeof obj1 !== 'object' ||
+    typeof obj2 !== 'object' ||
+    obj1 === null ||
+    obj2 === null
+  ) {
+    throw new Error("can't compare non-object")
+  }
+  if (Object.keys(obj1).length === Object.keys(obj2).length) {
     for (const key in obj1) {
       if (obj1[key] === obj2[key]) {
         continue
