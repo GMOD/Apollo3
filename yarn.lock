@@ -1487,6 +1487,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@gmod/gff@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@gmod/gff@npm:1.2.0"
+  bin:
+    gff-to-json: dist/gff-to-json.js
+  checksum: 8af219b7b592dfb7585ed841f2e76cf45d4ef491ead872ee52e821e8fd6fc4daf13877202b4f4e87de0ef4cca14d79947fa0c724bc3d8c8106a7b040c6f734a4
+  languageName: node
+  linkType: hard
+
 "@hapi/hoek@npm:^9.0.0":
   version: 9.2.1
   resolution: "@hapi/hoek@npm:9.2.1"
@@ -3864,7 +3873,7 @@ __metadata:
   resolution: "apollo-collaboration-server@workspace:packages/apollo-collaboration-server"
   dependencies:
     "@casl/ability": ^5.4.3
-    "@gmod/gff": ^1.1.2
+    "@gmod/gff": ^1.2.0
     "@nestjs/cli": ^8.1.2
     "@nestjs/common": ^8.2.3
     "@nestjs/config": ^1.0.3

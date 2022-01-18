@@ -3,12 +3,19 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm'
 class ConfigService {
   constructor(private env: { [k: string]: string | undefined }) {}
 
-  private getValue(key: string, throwOnMissing = true): string {
+  private getValue(key: string): string | undefined
+  private getValue<T extends boolean>(
+    key: string,
+    throwOnMissing: T,
+  ): T extends true ? string : string | undefined
+  private getValue(key: string, throwOnMissing?: boolean) {
     const value = this.env[key]
-    if (!value && throwOnMissing) {
-      throw new Error(`config error - missing env.${key}`)
+    if (throwOnMissing) {
+      if (!value) {
+        throw new Error(`config error - missing env.${key}`)
+      }
+      return value
     }
-
     return value
   }
 
@@ -31,7 +38,7 @@ class ConfigService {
       type: 'mysql',
       name: 'default',
       host: this.getValue('MYSQL_HOST'),
-      port: parseInt(this.getValue('MYSQL_PORT'), 10),
+      port: parseInt(this.getValue('MYSQL_PORT', true), 10),
       username: this.getValue('MYSQL_USER'),
       password: this.getValue('MYSQL_PASSWORD'),
       database: this.getValue('MYSQL_DATABASE'),

@@ -23,18 +23,26 @@ const nodeEnv = process.env.NODE_ENV || 'production'
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: configService.get<'mysql'>('TYPEORM_CONNECTION'),
-        host: configService.get<string>('TYPEORM_HOST'),
-        port: parseInt(configService.get<string>('TYPEORM_PORT'), 10),
-        username: configService.get<string>('TYPEORM_USERNAME'),
-        password: configService.get<string>('TYPEORM_PASSWORD'),
-        database: configService.get<string>('TYPEORM_DATABASE'),
-        synchronize: JSON.parse(
-          configService.get<string>('TYPEORM_SYNCHRONIZE'),
-        ),
-        autoLoadEntities: true,
-      }),
+      useFactory: (configService: ConfigService) => {
+        const port = configService.get<string>('TYPEORM_PORT')
+        if (!port) {
+          throw new Error('No TYPEORM_PORT found in .env file')
+        }
+        const synchronize = configService.get<string>('TYPEORM_SYNCHRONIZE')
+        if (!synchronize) {
+          throw new Error('No TYPEORM_SYNCHRONIZE found in .env file')
+        }
+        return {
+          type: configService.get<'mysql'>('TYPEORM_CONNECTION'),
+          host: configService.get<string>('TYPEORM_HOST'),
+          port: parseInt(port, 10),
+          username: configService.get<string>('TYPEORM_USERNAME'),
+          password: configService.get<string>('TYPEORM_PASSWORD'),
+          database: configService.get<string>('TYPEORM_DATABASE'),
+          synchronize: JSON.parse(synchronize),
+          autoLoadEntities: true,
+        }
+      },
       inject: [ConfigService],
     }),
     FileHandlingModule,

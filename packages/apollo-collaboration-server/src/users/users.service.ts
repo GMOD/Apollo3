@@ -240,18 +240,28 @@ export class UsersService {
   }
 
   async getAllUsernames(response: Response) {
+    const type = this.configService.get<'mysql'>('TYPEORM_CONNECTION')
+    if (!type) {
+      throw new Error('No TYPEORM_CONNECTION found in .env file')
+    }
+    const port = this.configService.get<string>('TYPEORM_PORT')
+    if (!port) {
+      throw new Error('No TYPEORM_PORT found in .env file')
+    }
+    const synchronize = this.configService.get<string>('TYPEORM_SYNCHRONIZE')
+    if (!synchronize) {
+      throw new Error('No TYPEORM_SYNCHRONIZE found in .env file')
+    }
     return getCustomRepository(GrailsUserRepository).getAllUsernames(response, {
-      type: this.configService.get<'mysql'>('TYPEORM_CONNECTION'),
+      type,
       name: 'testConnection',
       host: this.configService.get<string>('TYPEORM_HOST'),
-      port: parseInt(this.configService.get<string>('TYPEORM_PORT'), 10),
+      port: parseInt(port, 10),
       username: this.configService.get<string>('TYPEORM_USERNAME'),
       password: this.configService.get<string>('TYPEORM_PASSWORD'),
       database: this.configService.get<string>('TYPEORM_DATABASE'),
       entities: ['../entity/**/*.ts'], // entities: [ApolloUser, UserRole],
-      synchronize: JSON.parse(
-        this.configService.get<string>('TYPEORM_SYNCHRONIZE'),
-      ),
+      synchronize: JSON.parse(synchronize),
     })
   }
 }

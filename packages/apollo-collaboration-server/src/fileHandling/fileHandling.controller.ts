@@ -68,9 +68,12 @@ export class FileHandlingController {
     this.logger.debug(`Starting to download file ${filename}`)
 
     // Download file
-    const file = createReadStream(
-      join(process.env.FILE_SEARCH_FOLDER, filename),
-    )
+    const { FILE_SEARCH_FOLDER } = process.env
+    if (!FILE_SEARCH_FOLDER) {
+      throw new Error('No FILE_SEARCH_FOLDER found in .env file')
+    }
+    const file = createReadStream(join(FILE_SEARCH_FOLDER, filename))
+
     return file.pipe(res)
   }
 

@@ -2,7 +2,7 @@ import { createWriteStream, existsSync } from 'fs'
 import * as fs from 'fs/promises'
 import { join } from 'path'
 
-import gff from '@gmod/gff'
+import gff, { GFF3FeatureLine } from '@gmod/gff'
 import {
   CACHE_MANAGER,
   HttpException,
@@ -50,8 +50,12 @@ export class FileHandlingService {
       `Starting to save file ${file.originalname}, size=${file.size} bytes.`,
     )
     // Join path+filename
+    const { UPLOADED_OUTPUT_FOLDER } = process.env
+    if (!UPLOADED_OUTPUT_FOLDER) {
+      throw new Error('No UPLOADED_OUTPUT_FOLDER found in .env file')
+    }
     const newFullFileName = join(
-      process.env.UPLOADED_OUTPUT_FOLDER,
+      UPLOADED_OUTPUT_FOLDER,
       `uploaded_${getCurrentDateTime()}_${file.originalname}`,
     )
     this.logger.debug(`New file will be saved as ${newFullFileName}`)
@@ -71,7 +75,11 @@ export class FileHandlingService {
   fileExists(filename: string): boolean {
     try {
       // Join path+filename
-      const newFullFileName = join(process.env.FILE_SEARCH_FOLDER, filename)
+      const { FILE_SEARCH_FOLDER } = process.env
+      if (!FILE_SEARCH_FOLDER) {
+        throw new Error('No FILE_SEARCH_FOLDER found in .env file')
+      }
+      const newFullFileName = join(FILE_SEARCH_FOLDER, filename)
       this.logger.debug(`Check if file ${newFullFileName} exists!`)
 
       // Check if file exists
@@ -98,7 +106,11 @@ export class FileHandlingService {
     // }
 
     // Join path+filename
-    const fullFileName = join(process.env.FILE_SEARCH_FOLDER, postDto.filename)
+    const { FILE_SEARCH_FOLDER } = process.env
+    if (!FILE_SEARCH_FOLDER) {
+      throw new Error('No FILE_SEARCH_FOLDER found in .env file')
+    }
+    const fullFileName = join(FILE_SEARCH_FOLDER, postDto.filename)
 
     const oldValue = postDto.originalLine
     const newValue = postDto.updatedLine
@@ -145,7 +157,7 @@ export class FileHandlingService {
    * @returns
    */
   async updateGFF3Cache(postDto: GFF3ChangeLineObjectDto) {
-    let cacheValue = ''
+    let cacheValue: string | undefined = ''
     let cacheKey = -1 // Cache key that specifies the row that we update. All cache keys are > 0
     const oldValue = postDto.originalLine // Search this string in cache
     const oldValueAsJson = JSON.parse(postDto.originalLine)
@@ -153,12 +165,18 @@ export class FileHandlingService {
 
     this.logger.debug(`Search string=${oldValue}=`)
     try {
-      const nberOfEntries = await this.cacheManager.store.keys()
+      const nberOfEntries = await this.cacheManager.store.keys?.()
       nberOfEntries.sort((n1, n2) => n1 - n2) // Sort the array
 
       // Loop cache and compare each cache row to postDto.originalLine
       for (const keyInd of nberOfEntries) {
-        cacheValue = await this.cacheManager.get(keyInd)
+        const value = (await this.cacheManager.get(keyInd)) as
+          | string
+          | undefined
+        if (!value) {
+          throw new Error('No cache entry found')
+        }
+        cacheValue = value
         this.logger.verbose(
           `Read line from cache=${cacheValue}=, key=${keyInd}`,
         )
@@ -186,11 +204,15 @@ export class FileHandlingService {
         JSON.stringify(oldValueAsJson),
       )
 
+      const { FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE } = process.env
+      if (!FILE_SEARCH_FOLDER) {
+        throw new Error('No FILE_SEARCH_FOLDER found in .env file')
+      }
+      if (!GFF3_DEFAULT_FILENAME_TO_SAVE) {
+        throw new Error('No GFF3_DEFAULT_FILENAME_TO_SAVE found in .env file')
+      }
       await fs.writeFile(
-        join(
-          process.env.FILE_SEARCH_FOLDER,
-          process.env.GFF3_DEFAULT_FILENAME_TO_SAVE,
-        ),
+        join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
         '',
       )
 
@@ -198,15 +220,15 @@ export class FileHandlingService {
       // Loop cache in sorted order
       for (const keyInd of nberOfEntries) {
         cacheValue = await this.cacheManager.get(keyInd.toString())
+        if (!cacheValue) {
+          throw new Error(`No entry found for ${keyInd.toString()}`)
+        }
         this.logger.verbose(
           `Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`,
         )
         // Write into file line by line
         fs.appendFile(
-          join(
-            process.env.FILE_SEARCH_FOLDER,
-            process.env.GFF3_DEFAULT_FILENAME_TO_SAVE,
-          ),
+          join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
           gff.formatSync(JSON.parse(cacheValue)),
         )
       }
@@ -235,13 +257,14 @@ export class FileHandlingService {
     this.logger.debug(`Starting to load gff3 file ${filename} into cache!`)
 
     // parse a string of gff3 synchronously
-    const stringOfGFF3 = await fs.readFile(
-      join(process.env.FILE_SEARCH_FOLDER, filename),
-      {
-        encoding: 'utf8',
-        flag: 'r',
-      },
-    )
+    const { FILE_SEARCH_FOLDER } = process.env
+    if (!FILE_SEARCH_FOLDER) {
+      throw new Error('No FILE_SEARCH_FOLDER found in .env file')
+    }
+    const stringOfGFF3 = await fs.readFile(join(FILE_SEARCH_FOLDER, filename), {
+      encoding: 'utf8',
+      flag: 'r',
+    })
     this.logger.verbose(`Data read from file=${stringOfGFF3}`)
     // Clear old entries from cache
     this.cacheManager.reset()
@@ -268,7 +291,7 @@ export class FileHandlingService {
       }
       ind++
     }
-    const nberOfEntries = await this.cacheManager.store.keys()
+    const nberOfEntries = await this.cacheManager.store.keys?.()
     this.logger.debug(`Added ${nberOfEntries.length} entries to cache`)
   }
 
@@ -279,12 +302,12 @@ export class FileHandlingService {
    * or if search data was not found or in case of error return throw exception
    */
   async getFeaturesByCriteria(searchDto: RegionSearchObjectDto) {
-    let cacheValue = ''
-    let cacheValueAsJson
-    const resultJsonArray = [] // Return JSON array
+    let cacheValue: string | undefined = ''
+    let cacheValueAsJson: GFF3FeatureLine
+    const resultJsonArray: GFF3FeatureLine[] = [] // Return JSON array
 
     try {
-      const nberOfEntries = await this.cacheManager.store.keys()
+      const nberOfEntries = await this.cacheManager.store.keys?.()
 
       this.logger.debug(
         `Feature search criteria is refName=${
@@ -297,6 +320,9 @@ export class FileHandlingService {
       // Loop cache
       for (const keyInd of nberOfEntries) {
         cacheValue = await this.cacheManager.get(keyInd)
+        if (!cacheValue) {
+          throw new Error(`No entry found for ${keyInd.toString()}`)
+        }
         cacheValueAsJson = JSON.parse(cacheValue)
         this.logger.verbose(
           `Cache SEQ_ID=${cacheValueAsJson[0].seq_id}, START=${cacheValueAsJson[0].start} and END=${cacheValueAsJson[0].end}`,
@@ -345,10 +371,10 @@ export class FileHandlingService {
    * or if search data was not found or in case of error throw exception
    */
   async getFastaByCriteria(searchDto: RegionSearchObjectDto) {
-    let cacheValue = ''
+    let cacheValue: string | undefined = ''
     let cacheValueAsJson, keyArray
     try {
-      const nberOfEntries = await this.cacheManager.store.keys()
+      const nberOfEntries = await this.cacheManager.store.keys?.()
 
       this.logger.debug(
         `Fasta search criteria is refName=${
@@ -361,6 +387,9 @@ export class FileHandlingService {
       // Loop cache
       for (const keyInd of nberOfEntries) {
         cacheValue = await this.cacheManager.get(keyInd)
+        if (!cacheValue) {
+          throw new Error(`No entry found for ${keyInd.toString()}`)
+        }
         cacheValueAsJson = JSON.parse(cacheValue)
         this.logger.verbose(`Cache SEQ_ID=${cacheValueAsJson[0].id}`)
         keyArray = Object.keys(cacheValueAsJson[0])
@@ -430,17 +459,20 @@ export class FileHandlingService {
    * or if no data was found or in case of error throw exception
    */
   async getFastaInfo() {
-    let cacheValue = ''
+    let cacheValue: string | undefined = ''
     let cacheValueAsJson, keyArray
-    const resultJsonArray = [] // Return JSON array
+    const resultJsonArray: FastaSequenceInfo[] = [] // Return JSON array
 
     try {
-      const nberOfEntries = await this.cacheManager.store.keys()
+      const nberOfEntries = await this.cacheManager.store.keys?.()
       this.logger.debug('Get embedded FASTA information')
 
       // Loop cache
       for (const keyInd of nberOfEntries) {
         cacheValue = await this.cacheManager.get(keyInd)
+        if (!cacheValue) {
+          throw new Error(`No entry found for ${keyInd.toString()}`)
+        }
         cacheValueAsJson = JSON.parse(cacheValue)
         keyArray = Object.keys(cacheValueAsJson[0])
         // FASTA sequence object size is three ('id', 'description' and 'sequence')

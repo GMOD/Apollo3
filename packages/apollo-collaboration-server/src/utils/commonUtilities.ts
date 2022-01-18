@@ -57,17 +57,25 @@ export function writeIntoGff3ChangeLog(
   // Write array of things into file
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const fs = require('fs')
+  const fileSearchFolder = process.env.FILE_SEARCH_FOLDER
+  if (!fileSearchFolder) {
+    throw new Error('No FILE_SEARCH_FOLDER env variable defined')
+  }
+  const gff3ChangelogFilename = process.env.GFF3_CHANGELOG_FILENAME
+  if (!gff3ChangelogFilename) {
+    throw new Error('No GFF3_CHANGELOG_FILENAME env variable defined')
+  }
 
   fs.appendFile(
-    join(process.env.FILE_SEARCH_FOLDER, process.env.GFF3_CHANGELOG_FILENAME),
+    join(fileSearchFolder, gff3ChangelogFilename),
     `${getCurrentDateTime()} : ${username}\n`,
   )
   fs.appendFile(
-    join(process.env.FILE_SEARCH_FOLDER, process.env.GFF3_CHANGELOG_FILENAME),
+    join(fileSearchFolder, gff3ChangelogFilename),
     `ORIGINAL LINE : ${originalLine}\n`,
   )
   fs.appendFile(
-    join(process.env.FILE_SEARCH_FOLDER, process.env.GFF3_CHANGELOG_FILENAME),
+    join(fileSearchFolder, gff3ChangelogFilename),
     `UPDATED VALUE : ${updatedLine}\n`,
   )
   fs.close()
