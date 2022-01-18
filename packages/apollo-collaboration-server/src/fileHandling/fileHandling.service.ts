@@ -5,8 +5,6 @@ import { join } from 'path'
 import gff, { GFF3FeatureLine } from '@gmod/gff'
 import {
   CACHE_MANAGER,
-  HttpException,
-  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -164,89 +162,74 @@ export class FileHandlingService {
     const newValue = JSON.parse(postDto.updatedLine) // JSON object that contains those key-value -pairs that we will update
 
     this.logger.debug(`Search string=${oldValue}=`)
-    try {
-      const nberOfEntries = await this.cacheManager.store.keys?.()
-      nberOfEntries.sort((n1, n2) => n1 - n2) // Sort the array
+    const nberOfEntries = await this.cacheManager.store.keys?.()
+    nberOfEntries.sort((n1, n2) => n1 - n2) // Sort the array
 
-      // Loop cache and compare each cache row to postDto.originalLine
-      for (const keyInd of nberOfEntries) {
-        const value = (await this.cacheManager.get(keyInd)) as
-          | string
-          | undefined
-        if (!value) {
-          throw new Error('No cache entry found')
-        }
-        cacheValue = value
-        this.logger.verbose(
-          `Read line from cache=${cacheValue}=, key=${keyInd}`,
-        )
-        // Check if cache line is same as 'originalLine' -parameter
-        if (compareTwoJsonObjects(oldValue, cacheValue)) {
-          this.logger.debug('Found original value from cache')
-          cacheKey = keyInd
-          break
-        }
+    // Loop cache and compare each cache row to postDto.originalLine
+    for (const keyInd of nberOfEntries) {
+      cacheValue = await this.cacheManager.get(keyInd)
+      this.logger.verbose(`Read line from cache=${cacheValue}=, key=${keyInd}`)
+      // Check if cache line is same as 'originalLine' -parameter
+      if (compareTwoJsonObjects(oldValue, cacheValue)) {
+        this.logger.debug('Found original value from cache')
+        cacheKey = keyInd
+        break
       }
-      // If the cache did not contain any row that matched to postDto.originalLine then return error
-      if (cacheKey < 0) {
-        const errMsg = `ERROR when updating cache: The following string was not found in cache='${oldValue}'`
-        this.logger.error(errMsg)
-        throw new NotFoundException(errMsg)
-      }
+    }
+    // If the cache did not contain any row that matched to postDto.originalLine then return error
+    if (cacheKey < 0) {
+      const errMsg = `ERROR when updating cache: The following string was not found in cache='${oldValue}'`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
 
-      // Update JSON object
-      Object.keys(newValue).forEach(function (key) {
-        oldValueAsJson[0][key] = newValue[key]
-      })
-      // Save updated JSON object to cache
-      await this.cacheManager.set(
-        cacheKey.toString(),
-        JSON.stringify(oldValueAsJson),
+    // Update JSON object
+    Object.keys(newValue).forEach(function (key) {
+      oldValueAsJson[0][key] = newValue[key]
+    })
+    // Save updated JSON object to cache
+    await this.cacheManager.set(
+      cacheKey.toString(),
+      JSON.stringify(oldValueAsJson),
+    )
+
+    const { FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE } = process.env
+    if (!FILE_SEARCH_FOLDER) {
+      throw new Error('No FILE_SEARCH_FOLDER found in .env file')
+    }
+    if (!GFF3_DEFAULT_FILENAME_TO_SAVE) {
+      throw new Error('No GFF3_DEFAULT_FILENAME_TO_SAVE found in .env file')
+    }
+    await fs.writeFile(
+      join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
+      '',
+    )
+
+    nberOfEntries.sort((n1, n2) => n1 - n2) // Sort the array
+    // Loop cache in sorted order
+    for (const keyInd of nberOfEntries) {
+      cacheValue = await this.cacheManager.get(keyInd.toString())
+      if (!cacheValue) {
+        throw new Error(`No entry found for ${keyInd.toString()}`)
+      }
+      this.logger.verbose(
+        `Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`,
       )
-
-      const { FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE } = process.env
-      if (!FILE_SEARCH_FOLDER) {
-        throw new Error('No FILE_SEARCH_FOLDER found in .env file')
-      }
-      if (!GFF3_DEFAULT_FILENAME_TO_SAVE) {
-        throw new Error('No GFF3_DEFAULT_FILENAME_TO_SAVE found in .env file')
-      }
-      await fs.writeFile(
+      // Write into file line by line
+      fs.appendFile(
         join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
-        '',
-      )
-
-      nberOfEntries.sort((n1, n2) => n1 - n2) // Sort the array
-      // Loop cache in sorted order
-      for (const keyInd of nberOfEntries) {
-        cacheValue = await this.cacheManager.get(keyInd.toString())
-        if (!cacheValue) {
-          throw new Error(`No entry found for ${keyInd.toString()}`)
-        }
-        this.logger.verbose(
-          `Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`,
-        )
-        // Write into file line by line
-        fs.appendFile(
-          join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
-          gff.formatSync(JSON.parse(cacheValue)),
-        )
-      }
-      // Write change -information into separate change log -file
-      writeIntoGff3ChangeLog(
-        'user xxx', // TODO: DON'T USE HARD CODED VALUES IN PRODUCTION!
-        postDto.originalLine,
-        postDto.updatedLine,
-      )
-
-      this.logger.debug('Cache and GFF3 file updated successfully')
-      return { message: 'Cache and GFF3 file updated successfully!' }
-    } catch (err) {
-      this.logger.error(`ERROR when updating cache: ${err}`)
-      throw new InternalServerErrorException(
-        `ERROR in updateGFF3Cache() : ${err}`,
+        gff.formatSync(JSON.parse(cacheValue)),
       )
     }
+    // Write change -information into separate change log -file
+    writeIntoGff3ChangeLog(
+      'user xxx', // TODO: DON'T USE HARD CODED VALUES IN PRODUCTION!
+      postDto.originalLine,
+      postDto.updatedLine,
+    )
+
+    this.logger.debug('Cache and GFF3 file updated successfully')
+    return { message: 'Cache and GFF3 file updated successfully!' }
   }
 
   /**
@@ -306,62 +289,54 @@ export class FileHandlingService {
     let cacheValueAsJson: GFF3FeatureLine
     const resultJsonArray: GFF3FeatureLine[] = [] // Return JSON array
 
-    try {
-      const nberOfEntries = await this.cacheManager.store.keys?.()
+    const nberOfEntries = await this.cacheManager.store.keys?.()
 
-      this.logger.debug(
-        `Feature search criteria is refName=${
-          searchDto.refName
-        }, start=${JSON.stringify(searchDto.start)} and end=${JSON.stringify(
-          searchDto.end,
-        )}`,
+    this.logger.debug(
+      `Feature search criteria is refName=${
+        searchDto.refName
+      }, start=${JSON.stringify(searchDto.start)} and end=${JSON.stringify(
+        searchDto.end,
+      )}`,
+    )
+
+    // Loop cache
+    for (const keyInd of nberOfEntries) {
+      cacheValue = await this.cacheManager.get(keyInd)
+      if (!cacheValue) {
+        throw new Error(`No entry found for ${keyInd.toString()}`)
+      }
+      cacheValueAsJson = JSON.parse(cacheValue)
+      this.logger.verbose(
+        `Cache SEQ_ID=${cacheValueAsJson[0].seq_id}, START=${cacheValueAsJson[0].start} and END=${cacheValueAsJson[0].end}`,
       )
-
-      // Loop cache
-      for (const keyInd of nberOfEntries) {
-        cacheValue = await this.cacheManager.get(keyInd)
-        if (!cacheValue) {
-          throw new Error(`No entry found for ${keyInd.toString()}`)
-        }
-        cacheValueAsJson = JSON.parse(cacheValue)
-        this.logger.verbose(
-          `Cache SEQ_ID=${cacheValueAsJson[0].seq_id}, START=${cacheValueAsJson[0].start} and END=${cacheValueAsJson[0].end}`,
+      // Compare cache values vs. searchable values
+      if (
+        cacheValueAsJson[0].hasOwnProperty('seq_id') &&
+        cacheValueAsJson[0].hasOwnProperty('start') &&
+        cacheValueAsJson[0].hasOwnProperty('end') &&
+        cacheValueAsJson[0].seq_id === searchDto.refName &&
+        cacheValueAsJson[0].end > searchDto.start &&
+        cacheValueAsJson[0].start < searchDto.end
+      ) {
+        this.logger.debug(
+          `Matched found refName=${cacheValueAsJson[0].seq_id}, start=${cacheValueAsJson[0].start} and end=${cacheValueAsJson[0].end}`,
         )
-        // Compare cache values vs. searchable values
-        if (
-          cacheValueAsJson[0].hasOwnProperty('seq_id') &&
-          cacheValueAsJson[0].hasOwnProperty('start') &&
-          cacheValueAsJson[0].hasOwnProperty('end') &&
-          cacheValueAsJson[0].seq_id === searchDto.refName &&
-          cacheValueAsJson[0].end > searchDto.start &&
-          cacheValueAsJson[0].start < searchDto.end
-        ) {
-          this.logger.debug(
-            `Matched found refName=${cacheValueAsJson[0].seq_id}, start=${cacheValueAsJson[0].start} and end=${cacheValueAsJson[0].end}`,
-          )
-          // Add found feature into array
-          resultJsonArray.push(cacheValueAsJson[0])
-        }
+        // Add found feature into array
+        resultJsonArray.push(cacheValueAsJson[0])
       }
-
-      // If no feature was found
-      if (resultJsonArray.length === 0) {
-        const errMsg = 'No features found for given search criteria'
-        this.logger.error(errMsg)
-        throw new NotFoundException(errMsg)
-      }
-
-      this.logger.debug(
-        `Features (n=${resultJsonArray.length}) found successfully`,
-      )
-      return resultJsonArray
-    } catch (err) {
-      this.logger.error(`ERROR when searching features by criteria: ${err}`)
-      throw new HttpException(
-        `ERROR in getFeaturesByCriteria() : ${err}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      )
     }
+
+    // If no feature was found
+    if (resultJsonArray.length === 0) {
+      const errMsg = 'No features found for given search criteria'
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+
+    this.logger.debug(
+      `Features (n=${resultJsonArray.length}) found successfully`,
+    )
+    return resultJsonArray
   }
 
   /**
@@ -373,84 +348,74 @@ export class FileHandlingService {
   async getFastaByCriteria(searchDto: RegionSearchObjectDto) {
     let cacheValue: string | undefined = ''
     let cacheValueAsJson, keyArray
-    try {
-      const nberOfEntries = await this.cacheManager.store.keys?.()
+    const nberOfEntries = await this.cacheManager.store.keys?.()
 
-      this.logger.debug(
-        `Fasta search criteria is refName=${
-          searchDto.refName
-        }, start=${JSON.stringify(searchDto.start)} and end=${JSON.stringify(
-          searchDto.end,
-        )}`,
-      )
+    this.logger.debug(
+      `Fasta search criteria is refName=${
+        searchDto.refName
+      }, start=${JSON.stringify(searchDto.start)} and end=${JSON.stringify(
+        searchDto.end,
+      )}`,
+    )
 
-      // Loop cache
-      for (const keyInd of nberOfEntries) {
-        cacheValue = await this.cacheManager.get(keyInd)
-        if (!cacheValue) {
-          throw new Error(`No entry found for ${keyInd.toString()}`)
-        }
-        cacheValueAsJson = JSON.parse(cacheValue)
-        this.logger.verbose(`Cache SEQ_ID=${cacheValueAsJson[0].id}`)
-        keyArray = Object.keys(cacheValueAsJson[0])
-        // Compare cache id vs. searchable refName. FASTA sequence object size is three ('id', 'description' and 'sequence')
-        if (
-          keyArray.length === 3 &&
-          cacheValueAsJson[0].hasOwnProperty('id') &&
-          cacheValueAsJson[0].hasOwnProperty('description') &&
-          cacheValueAsJson[0].hasOwnProperty('sequence') &&
-          cacheValueAsJson[0].id === searchDto.refName
-        ) {
-          // Check end position
-          if (searchDto.end > cacheValueAsJson[0].sequence.length) {
-            const errMsg = `ERROR. Searched FASTA end position ${JSON.stringify(
-              searchDto.end,
-            )} is out range. Sequence lenght is only ${
-              cacheValueAsJson[0].sequence.length
-            }`
-            this.logger.error(errMsg)
-            throw new NotFoundException(errMsg)
-          }
-          // Check start vs. end positions
-          if (searchDto.start >= searchDto.end) {
-            const errMsg =
-              'ERROR. Start position cannot be greater or equal than end position'
-            this.logger.error(errMsg)
-            throw new NotFoundException(errMsg)
-          }
-
-          const foundSequence = cacheValueAsJson[0].sequence.substring(
-            JSON.stringify(searchDto.start),
-            JSON.stringify(searchDto.end),
-          )
-          this.logger.debug(
-            `Found sequence refName=${cacheValueAsJson[0].id} and sequence=${foundSequence}`,
-          )
-          const resultObject: FastaQueryResult = {
-            id: cacheValueAsJson[0].id,
-            description: cacheValueAsJson[0].description,
-            sequence: foundSequence,
-          }
-          return resultObject
-        }
+    // Loop cache
+    for (const keyInd of nberOfEntries) {
+      cacheValue = await this.cacheManager.get(keyInd)
+      if (!cacheValue) {
+        throw new Error(`No entry found for ${keyInd.toString()}`)
       }
+      cacheValueAsJson = JSON.parse(cacheValue)
+      this.logger.verbose(`Cache SEQ_ID=${cacheValueAsJson[0].id}`)
+      keyArray = Object.keys(cacheValueAsJson[0])
+      // Compare cache id vs. searchable refName. FASTA sequence object size is three ('id', 'description' and 'sequence')
+      if (
+        keyArray.length === 3 &&
+        cacheValueAsJson[0].hasOwnProperty('id') &&
+        cacheValueAsJson[0].hasOwnProperty('description') &&
+        cacheValueAsJson[0].hasOwnProperty('sequence') &&
+        cacheValueAsJson[0].id === searchDto.refName
+      ) {
+        // Check end position
+        if (searchDto.end > cacheValueAsJson[0].sequence.length) {
+          const errMsg = `ERROR. Searched FASTA end position ${JSON.stringify(
+            searchDto.end,
+          )} is out range. Sequence lenght is only ${
+            cacheValueAsJson[0].sequence.length
+          }`
+          this.logger.error(errMsg)
+          throw new NotFoundException(errMsg)
+        }
+        // Check start vs. end positions
+        if (searchDto.start >= searchDto.end) {
+          const errMsg =
+            'ERROR. Start position cannot be greater or equal than end position'
+          this.logger.error(errMsg)
+          throw new NotFoundException(errMsg)
+        }
 
-      throw new NotFoundException(
-        `Fasta sequence for criteria refName=${
-          searchDto.refName
-        }, start=${JSON.stringify(searchDto.start)} and end=${JSON.stringify(
-          searchDto.end,
-        )} was not found`,
-      )
-    } catch (err) {
-      this.logger.error(
-        `ERROR when searching fasta sequence by criteria: ${err}`,
-      )
-      throw new HttpException(
-        `ERROR in getFastaByCriteria() : ${err}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      )
+        const foundSequence = cacheValueAsJson[0].sequence.substring(
+          JSON.stringify(searchDto.start),
+          JSON.stringify(searchDto.end),
+        )
+        this.logger.debug(
+          `Found sequence refName=${cacheValueAsJson[0].id} and sequence=${foundSequence}`,
+        )
+        const resultObject: FastaQueryResult = {
+          id: cacheValueAsJson[0].id,
+          description: cacheValueAsJson[0].description,
+          sequence: foundSequence,
+        }
+        return resultObject
+      }
     }
+
+    throw new NotFoundException(
+      `Fasta sequence for criteria refName=${
+        searchDto.refName
+      }, start=${JSON.stringify(searchDto.start)} and end=${JSON.stringify(
+        searchDto.end,
+      )} was not found`,
+    )
   }
 
   /**
@@ -463,54 +428,46 @@ export class FileHandlingService {
     let cacheValueAsJson, keyArray
     const resultJsonArray: FastaSequenceInfo[] = [] // Return JSON array
 
-    try {
-      const nberOfEntries = await this.cacheManager.store.keys?.()
-      this.logger.debug('Get embedded FASTA information')
+    const nberOfEntries = await this.cacheManager.store.keys?.()
+    this.logger.debug('Get embedded FASTA information')
 
-      // Loop cache
-      for (const keyInd of nberOfEntries) {
-        cacheValue = await this.cacheManager.get(keyInd)
-        if (!cacheValue) {
-          throw new Error(`No entry found for ${keyInd.toString()}`)
-        }
-        cacheValueAsJson = JSON.parse(cacheValue)
-        keyArray = Object.keys(cacheValueAsJson[0])
-        // FASTA sequence object size is three ('id', 'description' and 'sequence')
-        if (
-          keyArray.length === 3 &&
-          cacheValueAsJson[0].hasOwnProperty('id') &&
-          cacheValueAsJson[0].hasOwnProperty('description') &&
-          cacheValueAsJson[0].hasOwnProperty('sequence')
-        ) {
-          const tmpInfoObject: FastaSequenceInfo = {
-            refName: cacheValueAsJson[0].id,
-            description: cacheValueAsJson[0].description,
-            length: cacheValueAsJson[0].sequence.length,
-          }
-          resultJsonArray.push(tmpInfoObject)
-          this.logger.debug(
-            `Added into result array an object of SEQ_ID=${cacheValueAsJson[0].id}, DESCRIPTION='${cacheValueAsJson[0].description}' and SEQUENCE LENGTH=${cacheValueAsJson[0].sequence.length}`,
-          )
-        }
+    // Loop cache
+    for (const keyInd of nberOfEntries) {
+      cacheValue = await this.cacheManager.get(keyInd)
+      if (!cacheValue) {
+        throw new Error(`No entry found for ${keyInd.toString()}`)
       }
-
-      // If no feature was found
-      if (resultJsonArray.length === 0) {
-        const errMsg = 'No embedded FASTA sequences found'
-        this.logger.error(errMsg)
-        throw new NotFoundException(errMsg)
+      cacheValueAsJson = JSON.parse(cacheValue)
+      keyArray = Object.keys(cacheValueAsJson[0])
+      // FASTA sequence object size is three ('id', 'description' and 'sequence')
+      if (
+        keyArray.length === 3 &&
+        cacheValueAsJson[0].hasOwnProperty('id') &&
+        cacheValueAsJson[0].hasOwnProperty('description') &&
+        cacheValueAsJson[0].hasOwnProperty('sequence')
+      ) {
+        const tmpInfoObject: FastaSequenceInfo = {
+          refName: cacheValueAsJson[0].id,
+          description: cacheValueAsJson[0].description,
+          length: cacheValueAsJson[0].sequence.length,
+        }
+        resultJsonArray.push(tmpInfoObject)
+        this.logger.debug(
+          `Added into result array an object of SEQ_ID=${cacheValueAsJson[0].id}, DESCRIPTION='${cacheValueAsJson[0].description}' and SEQUENCE LENGTH=${cacheValueAsJson[0].sequence.length}`,
+        )
       }
-
-      this.logger.debug(
-        `Found (n=${resultJsonArray.length}) embedded FASTA sequences`,
-      )
-      return resultJsonArray
-    } catch (err) {
-      this.logger.error(`ERROR when searching embedded FASTA sequences: ${err}`)
-      throw new HttpException(
-        `ERROR in getFastaInfo() : ${err}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      )
     }
+
+    // If no feature was found
+    if (resultJsonArray.length === 0) {
+      const errMsg = 'No embedded FASTA sequences found'
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+
+    this.logger.debug(
+      `Found (n=${resultJsonArray.length}) embedded FASTA sequences`,
+    )
+    return resultJsonArray
   }
 }

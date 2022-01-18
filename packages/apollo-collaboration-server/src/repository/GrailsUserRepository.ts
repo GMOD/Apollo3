@@ -21,40 +21,32 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
    */
   async getAllUsernames(connectionOptions: ConnectionOptions) {
     const database = new Database(connectionOptions)
-    try {
-      // TODO: Put connection name to property file
-      const dbConn: Connection = await database.getConnection('testConnection')
-      if (dbConn.isConnected) {
-        const returnValue = await dbConn.manager.query(
-          'SELECT DISTINCT USERNAME FROM GRAILS_USER',
-        )
-        if (returnValue != null) {
-          this.logger.log('Data found (getAllUsernames)')
-          this.logger.debug(JSON.stringify(returnValue))
-          return returnValue
-        }
-        this.logger.log('No data found (getAllUsernames)')
-        throw new HttpException(
-          'No data found (getAllUsernames)',
-          HttpStatus.NOT_FOUND,
-        )
-        // return response.status(HttpStatus.NOT_FOUND).json({status: HttpStatus.NOT_FOUND, message: 'No data found'});
-      } else {
-        this.logger.error('No connection to database (getAllUsernames)')
-        throw new HttpException(
-          'No connection to database in getUsernamesFromDatabase()',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        )
-        // return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'No connection to database in getUsernamesFromDatabase()'});
+    // TODO: Put connection name to property file
+    const dbConn: Connection = await database.getConnection('testConnection')
+    if (dbConn.isConnected) {
+      const returnValue = await dbConn.manager.query(
+        'SELECT DISTINCT USERNAME FROM GRAILS_USER',
+      )
+      if (returnValue != null) {
+        this.logger.log('Data found (getAllUsernames)')
+        this.logger.debug(JSON.stringify(returnValue))
+        return returnValue
       }
-    } catch (error) {
-      this.logger.error(`Error in getUsernamesFromDatabase(): ${error}`)
+      this.logger.log('No data found (getAllUsernames)')
       throw new HttpException(
-        `Error in getUsernamesFromDatabase(): ${error}`,
+        'No data found (getAllUsernames)',
+        HttpStatus.NOT_FOUND,
+      )
+      // return response.status(HttpStatus.NOT_FOUND).json({status: HttpStatus.NOT_FOUND, message: 'No data found'});
+    } else {
+      this.logger.error('No connection to database (getAllUsernames)')
+      throw new HttpException(
+        'No connection to database in getUsernamesFromDatabase()',
         HttpStatus.INTERNAL_SERVER_ERROR,
       )
-      // return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Error in getUsernamesFromDatabase(): ' + error});
+      // return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'No connection to database in getUsernamesFromDatabase()'});
     }
+    // return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Error in getUsernamesFromDatabase(): ' + error});
   }
 
   /**
@@ -86,47 +78,39 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
    */
   async getUsersAndRolesRepo(connectionOptions: ConnectionOptions) {
     const database = new Database(connectionOptions)
-    try {
-      // TODO: Put connection name to property file
-      const dbConn: Connection = await database.getConnection('testConnection')
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const StringBuilder = require('string-builder')
-      const sqlQuery = new StringBuilder('')
-      // SQL query to get users and roles
-      sqlQuery.appendLine(
-        'SELECT DISTINCT U.ID, U.USERNAME, U.FIRST_NAME, U.LAST_NAME, U.METADATA, U.METADATA, R.ROLE_ID ',
-      )
-      sqlQuery.appendLine('FROM GRAILS_USER U, GRAILS_USER_ROLES R ')
-      sqlQuery.appendLine('WHERE U.ID = R.USER_ID ')
-      if (dbConn.isConnected) {
-        const returnValue = await dbConn.manager.query(sqlQuery.toString())
-        if (returnValue != null) {
-          this.logger.log('Data found (getUsersAndRolesRepo)')
-          this.logger.debug(JSON.stringify(returnValue))
-          return returnValue
-        }
-        this.logger.log('No data found (getUsersAndRolesRepo)')
-        throw new HttpException(
-          'No data found (getUsersAndRolesRepo)',
-          HttpStatus.NOT_FOUND,
-        )
-        // return response.status(HttpStatus.NOT_FOUND).json({status: HttpStatus.NOT_FOUND, message: 'No data found'});
-      } else {
-        this.logger.error('No connection to database (getUsersAndRolesRepo)')
-        throw new HttpException(
-          'No connection to database in getUsersAndRolesRepo()',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        )
-        // return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'No connection to database in getUsernamesFromDatabase()'});
+    // TODO: Put connection name to property file
+    const dbConn: Connection = await database.getConnection('testConnection')
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const StringBuilder = require('string-builder')
+    const sqlQuery = new StringBuilder('')
+    // SQL query to get users and roles
+    sqlQuery.appendLine(
+      'SELECT DISTINCT U.ID, U.USERNAME, U.FIRST_NAME, U.LAST_NAME, U.METADATA, U.METADATA, R.ROLE_ID ',
+    )
+    sqlQuery.appendLine('FROM GRAILS_USER U, GRAILS_USER_ROLES R ')
+    sqlQuery.appendLine('WHERE U.ID = R.USER_ID ')
+    if (dbConn.isConnected) {
+      const returnValue = await dbConn.manager.query(sqlQuery.toString())
+      if (returnValue != null) {
+        this.logger.log('Data found (getUsersAndRolesRepo)')
+        this.logger.debug(JSON.stringify(returnValue))
+        return returnValue
       }
-    } catch (error) {
-      this.logger.error(`Error in getUsersAndRolesRepo(): ${error}`)
+      this.logger.log('No data found (getUsersAndRolesRepo)')
       throw new HttpException(
-        `Error in getUsersAndRolesRepo(): ${error}`,
+        'No data found (getUsersAndRolesRepo)',
+        HttpStatus.NOT_FOUND,
+      )
+      // return response.status(HttpStatus.NOT_FOUND).json({status: HttpStatus.NOT_FOUND, message: 'No data found'});
+    } else {
+      this.logger.error('No connection to database (getUsersAndRolesRepo)')
+      throw new HttpException(
+        'No connection to database in getUsersAndRolesRepo()',
         HttpStatus.INTERNAL_SERVER_ERROR,
       )
-      // return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Error in getUsernamesFromDatabase(): ' + error});
+      // return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'No connection to database in getUsernamesFromDatabase()'});
     }
+    // return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Error in getUsernamesFromDatabase(): ' + error});
   }
 
   /**
@@ -147,16 +131,9 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
   //         throw new HttpException('Error in addNewUserRepo() : ' + error, HttpStatus.INTERNAL_SERVER_ERROR);
   //     }
   //   }
-  async addNewUserRepo(newUser: ApolloUser): Promise<void> {
-    try {
-      await ApolloUser.save(newUser)
-      this.logger.debug(`Added new user: ${JSON.stringify(newUser)}`)
-    } catch (error) {
-      throw new HttpException(
-        `Error in addNewUserRepo() : ${error}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      )
-    }
+  async addNewUserRepo(newUser: ApolloUser) {
+    await ApolloUser.save(newUser)
+    this.logger.debug(`Added new user: ${JSON.stringify(newUser)}`)
   }
 
   /**
@@ -165,15 +142,8 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
    * @returns Return new userRole object with status 'HttpStatus.OK'
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
-  async addNewUserRoleRepo(newUserRole: UserRole): Promise<void> {
-    try {
-      await UserRole.save(newUserRole)
-      this.logger.debug(`Added new user role: ${JSON.stringify(newUserRole)}`)
-    } catch (error) {
-      throw new HttpException(
-        `Error in addNewUserRoleRepo() : ${error}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      )
-    }
+  async addNewUserRoleRepo(newUserRole: UserRole) {
+    await UserRole.save(newUserRole)
+    this.logger.debug(`Added new user role: ${JSON.stringify(newUserRole)}`)
   }
 }

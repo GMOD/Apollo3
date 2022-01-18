@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Logger } from '@nestjs/common'
+import { Logger } from '@nestjs/common'
 import { EntityRepository } from 'typeorm'
 import { BaseRepository } from 'typeorm-transactional-cls-hooked'
 
@@ -18,14 +18,7 @@ export class UserRoleRepository extends BaseRepository<UserRole> {
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
   async addNewUserRoleRepo(newUserRole: UserRole): Promise<void> {
-    try {
-      await UserRole.save(newUserRole)
-      this.logger.debug(`Added new user role: ${JSON.stringify(newUserRole)}`)
-    } catch (error) {
-      throw new HttpException(
-        `Error in addNewUserRoleRepo() : ${error}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      )
-    }
+    await UserRole.save(newUserRole)
+    this.logger.debug(`Added new user role: ${JSON.stringify(newUserRole)}`)
   }
 }

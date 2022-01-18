@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { JwtService } from '@nestjs/jwt'
+import { Request } from 'express'
 import jwtDecode from 'jwt-decode'
 
 import { PayloadObject } from '../payloadObject'
@@ -38,10 +39,13 @@ export class RolesGuard implements CanActivate {
       }
 
       // Get header and payload object containing username and userid
-      const req = context.switchToHttp().getRequest()
+      const req = context.switchToHttp().getRequest<Request>()
       const authHeader = req.headers.authorization
+      if (!authHeader) {
+        throw new Error('No "authorization" header')
+      }
       const token = authHeader.split(' ')
-      const payloadObject: PayloadObject = this.getDecodedAccessToken(token[1])
+      const payloadObject = this.getDecodedAccessToken(token[1])
 
       this.logger.verbose(
         `Extracted from token, username =${payloadObject.username}=`,
@@ -66,13 +70,9 @@ export class RolesGuard implements CanActivate {
   /**
    * Decode access token
    * @param token -
-   * @returns Decoded token or null
+   * @returns Decoded token
    */
-  getDecodedAccessToken(token: string): any {
-    try {
-      return jwtDecode(token)
-    } catch (Error) {
-      return null
-    }
+  getDecodedAccessToken(token: string): PayloadObject {
+    return jwtDecode(token)
   }
 }
