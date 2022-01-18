@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common'
 
-export type User = any
+export interface User {
+  userId: number
+  username: string
+  password: string
+}
 
 /**
  * DEMO PURPOSE ONLY - TEST DUMMY AUTHENTICATION

@@ -35,14 +35,16 @@ export class UsersService {
    */
   async getUsersAndRoles() {
     // Find all users
-    const returnValue = await ApolloUser.find()
+    const apolloUsers = await ApolloUser.find()
 
     // Loop all users and add roles
-    for (const result of returnValue) {
-      // Get user roles and add it to JSON
-      const a = await UserRole.find({ userId: result.id })
-      result['userRoles'] = a
-    }
+    const returnValue = await Promise.all(
+      apolloUsers.map(async (user) => {
+        // Get user roles and add it to JSON
+        const roles = await UserRole.find({ userId: user.id })
+        return { ...user, userRoles: roles }
+      }),
+    )
 
     if (returnValue != null) {
       this.logger.log('Data found (getUsersAndRoles)')
