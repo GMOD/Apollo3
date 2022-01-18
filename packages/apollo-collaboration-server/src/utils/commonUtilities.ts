@@ -1,3 +1,4 @@
+import fs from 'fs'
 import { join } from 'path'
 
 // import { fileSearchFolderConfig, GFF3 } from './fileConfig'
@@ -63,8 +64,6 @@ export function writeIntoGff3ChangeLog(
   updatedLine: string,
 ) {
   // Write array of things into file
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const fs = require('fs')
   const fileSearchFolder = process.env.FILE_SEARCH_FOLDER
   if (!fileSearchFolder) {
     throw new Error('No FILE_SEARCH_FOLDER env variable defined')
@@ -74,17 +73,10 @@ export function writeIntoGff3ChangeLog(
     throw new Error('No GFF3_CHANGELOG_FILENAME env variable defined')
   }
 
-  fs.appendFile(
+  fs.appendFileSync(
     join(fileSearchFolder, gff3ChangelogFilename),
-    `${getCurrentDateTime()} : ${username}\n`,
+    `${getCurrentDateTime()} : ${username}\n` +
+      `ORIGINAL LINE : ${originalLine}\n` +
+      `UPDATED VALUE : ${updatedLine}\n`,
   )
-  fs.appendFile(
-    join(fileSearchFolder, gff3ChangelogFilename),
-    `ORIGINAL LINE : ${originalLine}\n`,
-  )
-  fs.appendFile(
-    join(fileSearchFolder, gff3ChangelogFilename),
-    `UPDATED VALUE : ${updatedLine}\n`,
-  )
-  fs.close()
 }
