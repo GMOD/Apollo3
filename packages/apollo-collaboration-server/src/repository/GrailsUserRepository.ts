@@ -1,4 +1,8 @@
-import { HttpException, HttpStatus, Logger } from '@nestjs/common'
+import {
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common'
 import { Connection, ConnectionOptions, EntityRepository } from 'typeorm'
 import { BaseRepository } from 'typeorm-transactional-cls-hooked'
 
@@ -33,16 +37,12 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
         return returnValue
       }
       this.logger.log('No data found (getAllUsernames)')
-      throw new HttpException(
-        'No data found (getAllUsernames)',
-        HttpStatus.NOT_FOUND,
-      )
+      throw new NotFoundException('No data found (getAllUsernames)')
       // return response.status(HttpStatus.NOT_FOUND).json({status: HttpStatus.NOT_FOUND, message: 'No data found'});
     } else {
       this.logger.error('No connection to database (getAllUsernames)')
-      throw new HttpException(
+      throw new NotFoundException(
         'No connection to database in getUsernamesFromDatabase()',
-        HttpStatus.INTERNAL_SERVER_ERROR,
       )
       // return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'No connection to database in getUsernamesFromDatabase()'});
     }
@@ -64,10 +64,7 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
       return returnValue
     }
     this.logger.log('No data found (findByLastName)')
-    throw new HttpException(
-      'No data found (findByLastName)',
-      HttpStatus.NOT_FOUND,
-    )
+    throw new NotFoundException('No data found (findByLastName)')
   }
 
   /**
@@ -97,16 +94,12 @@ export class GrailsUserRepository extends BaseRepository<ApolloUser> {
         return returnValue
       }
       this.logger.log('No data found (getUsersAndRolesRepo)')
-      throw new HttpException(
-        'No data found (getUsersAndRolesRepo)',
-        HttpStatus.NOT_FOUND,
-      )
+      throw new NotFoundException('No data found (getUsersAndRolesRepo)')
       // return response.status(HttpStatus.NOT_FOUND).json({status: HttpStatus.NOT_FOUND, message: 'No data found'});
     } else {
       this.logger.error('No connection to database (getUsersAndRolesRepo)')
-      throw new HttpException(
+      throw new InternalServerErrorException(
         'No connection to database in getUsersAndRolesRepo()',
-        HttpStatus.INTERNAL_SERVER_ERROR,
       )
       // return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'No connection to database in getUsernamesFromDatabase()'});
     }
