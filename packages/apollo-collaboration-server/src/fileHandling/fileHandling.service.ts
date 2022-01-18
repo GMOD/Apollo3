@@ -1,4 +1,4 @@
-import { createWriteStream, existsSync } from 'fs'
+import { existsSync } from 'fs'
 import * as fs from 'fs/promises'
 import { join } from 'path'
 
@@ -59,9 +59,7 @@ export class FileHandlingService {
     this.logger.debug(`New file will be saved as ${newFullFileName}`)
 
     // Save file
-    const ws = createWriteStream(newFullFileName)
-    ws.write(file.buffer)
-    ws.close()
+    await fs.writeFile(newFullFileName, file.buffer)
     return { message: `File ${file.originalname} was saved` }
   }
 
