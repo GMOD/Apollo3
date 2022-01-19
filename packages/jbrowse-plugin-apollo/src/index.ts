@@ -10,10 +10,14 @@ import {
 } from '@jbrowse/core/util'
 
 import { version } from '../package.json'
-import ApolloAuthWidgetF from './ApolloAuthWidget'
 import {
-  configSchema as ApolloConfigSchema,
-  modelFactory as ApolloInternetAccountModelFactory,
+  ReactComponent as ApolloAuthWidgetReactComponent,
+  configSchema as apolloAuthWidgetConfigSchema,
+  stateModel as apolloAuthWidgetStateModel,
+} from './ApolloAuthWidget'
+import {
+  configSchema as apolloInternetAccountConfigSchema,
+  modelFactory as apolloInternetAccountModelFactory,
 } from './ApolloInternetAccount'
 import {
   ReactComponent as HelloViewReactComponent,
@@ -37,15 +41,19 @@ export default class ApolloPlugin extends Plugin {
       return new WidgetType({
         name: 'ApolloAuthWidget',
         heading: 'Auth',
-        ...ApolloAuthWidgetF(pluginManager),
+        configSchema: apolloAuthWidgetConfigSchema,
+        ReactComponent: ApolloAuthWidgetReactComponent,
+        stateModel: apolloAuthWidgetStateModel,
       })
     })
 
     pluginManager.addInternetAccountType(() => {
       return new InternetAccountType({
         name: 'ApolloInternetAccount',
-        configSchema: ApolloConfigSchema,
-        stateModel: ApolloInternetAccountModelFactory(ApolloConfigSchema),
+        configSchema: apolloInternetAccountConfigSchema,
+        stateModel: apolloInternetAccountModelFactory(
+          apolloInternetAccountConfigSchema,
+        ),
       })
     })
   }

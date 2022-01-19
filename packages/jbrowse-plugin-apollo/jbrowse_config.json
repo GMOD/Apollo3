@@ -4,5 +4,14 @@
       "name": "Apollo",
       "url": "http://localhost:9000/dist/jbrowse-plugin-apollo.umd.development.js"
     }
+  ],
+  "internetAccounts": [
+    {
+      "type": "ApolloInternetAccount",
+      "internetAccountId": "apolloInternetAccount",
+      "name": "apollo",
+      "description": "For apollo",
+      "domains": []
+    }
   ]
 }

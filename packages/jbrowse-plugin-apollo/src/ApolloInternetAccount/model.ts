@@ -1,19 +1,10 @@
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
-import { InternetAccount } from '@jbrowse/core/pluggableElementTypes/models'
-import { RemoteFileWithRangeCache } from '@jbrowse/core/util/io'
+import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
 import { UriLocation } from '@jbrowse/core/util/types'
-import { getParent } from 'mobx-state-tree'
+import { Instance, getParent, types } from 'mobx-state-tree'
+
+import { ApolloLoginForm } from './components/ApolloLoginForm'
 import { ApolloInternetAccountConfigModel } from './configSchema'
-import { Instance, types } from 'mobx-state-tree'
-import React, { useState } from 'react'
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogActions,
-  TextField,
-} from '@material-ui/core'
 
 const inWebWorker = typeof sessionStorage === 'undefined'
 
@@ -28,7 +19,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         configuration: ConfigurationReference(configSchema),
       }),
     )
-    .views(self => ({
+    .views((self) => ({
       get authHeader(): string {
         return getConf(self, 'authHeader') || 'Authorization'
       },
@@ -55,9 +46,11 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
       },
     }))
-    .actions(self => {
-      let resolve: Function = () => {}
-      let reject: Function = () => {}
+    .actions((self) => {
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      let resolve: (token: string) => void = () => {}
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      let reject: () => void = () => {}
       let openLocationPromise: Promise<string> | undefined = undefined
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let preAuthInfo: any = {}
@@ -75,7 +68,9 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             reject()
           }
 
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
           resolve = () => {}
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
           reject = () => {}
           openLocationPromise = undefined
         },
@@ -90,13 +85,12 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
               openLocationPromise = new Promise(async (r, x) => {
                 const { session } = getParent(self, 2)
 
-                console.log('about to queue')
-                session.queueDialog((doneCallback: Function) => [
+                session.queueDialog((doneCallback: () => void) => [
                   ApolloLoginForm,
                   {
                     internetAccountId: self.internetAccountId,
-                    handleClose: (token: string) => {
-                      this.handleClose(token)
+                    handleClose: (closeToken: string) => {
+                      this.handleClose(closeToken)
                       doneCallback()
                     },
                   },
@@ -122,92 +116,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         },
       }
     })
-}
-
-const ApolloLoginForm = ({
-  internetAccountId,
-  handleClose,
-}: {
-  internetAccountId: string
-  handleClose: (arg?: string) => void
-}) => {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-    if (username && password) {
-      const data = {
-        username,
-        password,
-      }
-      // const response = await fetch(`http://localhost:8084/api/authenticate`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(data),
-      // })
-
-      // if (!response.ok) handleClose()
-      // const token = await response.text()
-      const token =
-        'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmb28iLCJleHAiOjE2MzQ2MTE3NzgsImlhdCI6MTYzNDU3NTc3OH0.LteCI-zBZPVi2e9UZBCUzRYGuBSSNOtHJPx1amE3Ygs'
-      handleClose(token)
-    } else {
-      handleClose()
-    }
-    event.preventDefault()
-    // event.stopPropagation()
-  }
-
-  return (
-    <>
-      <Dialog open maxWidth="xl" data-testid="login-apollo">
-        <DialogTitle>Log In for {internetAccountId}</DialogTitle>
-        <form onSubmit={onSubmit}>
-          <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-            <TextField
-              required
-              label="Username"
-              variant="outlined"
-              inputProps={{ 'data-testid': 'login-apollo-username' }}
-              onChange={event => {
-                setUsername(event.target.value)
-              }}
-              margin="dense"
-            />
-            <TextField
-              required
-              label="Password"
-              type="password"
-              autoComplete="current-password"
-              variant="outlined"
-              inputProps={{ 'data-testid': 'login-apollo-password' }}
-              onChange={event => {
-                setPassword(event.target.value)
-              }}
-              margin="dense"
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button variant="contained" color="primary" type="submit">
-              Submit
-            </Button>
-            <Button
-              variant="contained"
-              color="default"
-              type="submit"
-              onClick={() => {
-                handleClose()
-              }}
-            >
-              Cancel
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
-    </>
-  )
 }
 
 export default stateModelFactory

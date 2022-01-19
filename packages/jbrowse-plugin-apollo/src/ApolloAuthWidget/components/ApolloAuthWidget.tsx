@@ -1,19 +1,5 @@
-import {
-  BaseAttributes,
-  BaseCard,
-  BaseCoreDetails,
-} from '@jbrowse/core/BaseFeatureWidget/BaseFeatureDetail'
-import { getSession } from '@jbrowse/core/util'
-import {
-  Button,
-  MenuItem,
-  Paper,
-  Tab,
-  Tabs,
-  TextField,
-  Toolbar,
-  Typography,
-} from '@material-ui/core'
+import { BaseCard } from '@jbrowse/core/BaseFeatureWidget/BaseFeatureDetail'
+import { Button, MenuItem, TextField } from '@material-ui/core'
 import { observer } from 'mobx-react'
 import { IAnyStateTreeNode, getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
@@ -64,8 +50,9 @@ function ApolloAuth({ model }: { model: IAnyStateTreeNode }) {
             variant="contained"
             style={{ margin: 10 }}
             onClick={async () => {
-              const token = await rootModel.internetAccounts[0].openLocation()
-              setToken(token)
+              const newToken =
+                await rootModel.internetAccounts[0].openLocation()
+              setToken(newToken)
             }}
             disabled={!!sessionStorage.getItem('apolloInternetAccount-token')}
           >
@@ -83,9 +70,9 @@ function ApolloAuth({ model }: { model: IAnyStateTreeNode }) {
             >
               Check All Users
             </Button>
-            {userList.map((user) => (
-              <MenuItem value={user.id}>
-                {user.firstName} {user.lastName}
+            {userList.map((u) => (
+              <MenuItem value={u.id}>
+                {u.firstName} {u.lastName}
               </MenuItem>
             ))}
 
@@ -99,8 +86,8 @@ function ApolloAuth({ model }: { model: IAnyStateTreeNode }) {
               variant="contained"
               disabled={!currentId}
               onClick={async () => {
-                const user = await checkSpecificUser(token, currentId)
-                setUser(user)
+                const newUser = await checkSpecificUser(token, currentId)
+                setUser(newUser)
               }}
             >
               Search Specific User
