@@ -38,7 +38,7 @@ export class ChangeManager {
 
     // submit to driver
     const backendDriver = this.view.backendDriver as BackendDriver
-    const backendResult = backendDriver.submitChange(change)
+    const backendResult = await backendDriver.submitChange(change)
     if (!backendResult.ok) {
       this.session.notify(
         `Change is not valid: "${result.results
