@@ -2,15 +2,15 @@ describe('My First Test', () => {
   it('visits JBrowse', () => {
     // You can put JBrowse 2 into any session you want this way at the beginning
     // of your test!
-    cy.fixture('hello_view.json').then((sessionData) => {
+    cy.fixture('apollo_view.json').then((sessionData) => {
       cy.writeFile(
-        '.jbrowse/hello_view.json',
+        '.jbrowse/apollo_view.json',
         JSON.stringify(sessionData, null, 2),
       )
-      cy.visit('/?config=hello_view.json')
+      cy.visit('/?config=apollo_view.json')
 
       // The plugin successfully loads
-      cy.contains('Hello plugin developers!')
+      cy.contains('Select assembly to view')
     })
   })
 })
