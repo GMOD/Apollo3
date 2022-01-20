@@ -262,4 +262,15 @@ export class FileHandlingController {
       return file.pipe(res)
     })
   }
+
+  /**
+   * Check if GFF3 is loaded into cache. Basically we check if number of entries > 0 then GFF3 is loaded. Otherwise not
+   * @param res
+   * @returns TRUE: GFF3 is loaded into cache, otherwise return FALSE
+   */
+  @Get('/checkcachekeys')
+  checkCacheKeys() {
+    this.logger.debug('Starting to check cache keys')
+    return this.fileService.checkCacheKeys()
+  }
 }

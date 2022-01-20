@@ -558,4 +558,27 @@ export class FileHandlingService {
 
   //   return filenameWithoutPath
   // }
+
+  /**
+   * Check if GFF3 is loaded into cache. Basically we check if number of entries > 0 then GFF3 is loaded. Otherwise not
+   * @param res
+   * @returns TRUE: GFF3 is loaded into cache, otherwise return FALSE
+   */
+  async checkCacheKeys() {
+    try {
+      const nberOfEntries = await this.cacheManager.store.keys()
+      // Check if there is any item inside. 
+      // Later we will check what kind of items there are in cache so we can check specifically if there is GFF3 data
+      for (const keyInd of nberOfEntries) {
+        return true
+      }
+      return false
+    } catch (err) {
+      this.logger.error(`ERROR in checkCacheKeys: ${err}`)
+      throw new HttpException(
+        `ERROR in checkCacheKeys() : ${err}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      )
+    }
+  }
 }
