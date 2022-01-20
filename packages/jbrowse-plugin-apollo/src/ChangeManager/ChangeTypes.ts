@@ -1,16 +1,25 @@
+import { Change } from './Change'
+
+type ChangeType = new (...args: unknown[]) => Change
+
 class ChangeTypeRegistry {
+  changes: Map<string, ChangeType> = new Map()
 
-    changes: Map<string, Change> = new Map()
-
-    registerChange(name: string, ChangeClass: new (...args: any[]) => Change) {
-        if(this.changes.has(name)) throw new Error(`change type ${name} has already been registered`)
-        this.changes.set(name, ChangeClass)
+  registerChange(name: string, changeType: ChangeType): void {
+    if (this.changes.has(name)) {
+      throw new Error(`change type "${name}" has already been registered`)
     }
+    this.changes.set(name, changeType)
+  }
 
-    getChangeClass(name:string) {
-        return changes.get(name)
+  getChangeType(name: string): ChangeType {
+    const RegisteredChangeType = this.changes.get(name)
+    if (!RegisteredChangeType) {
+      throw new Error(`No change constructor registered for "${name}"`)
     }
+    return RegisteredChangeType
+  }
 }
 
 /** global singleton of all known types of changes */
-export const ChangeRegistry = new ChangeTypeRegistry()
+export const changeRegistry = new ChangeTypeRegistry()
