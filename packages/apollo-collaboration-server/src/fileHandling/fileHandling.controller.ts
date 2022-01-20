@@ -1,6 +1,5 @@
 import { createReadStream } from 'fs'
 import { join } from 'path'
-
 import { GFF3SequenceRegionDirective } from '@gmod/gff/dist/util'
 import {
   Body,
@@ -20,7 +19,6 @@ import {
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
 import { Request, Response } from 'express'
-
 import { GFF3ChangeLineObjectDto } from '../entity/gff3Object.dto'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { FileHandlingService } from './fileHandling.service'
