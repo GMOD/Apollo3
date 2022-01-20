@@ -2,7 +2,7 @@ import { Region } from '@jbrowse/core/util'
 
 import { Change } from '../ChangeManager/Change'
 import { ValidationResultSet } from '../Validations/ValidationSet'
-import { AnnotationFeatureI } from './AnnotationFeatures'
+import { AnnotationFeatureI } from './AnnotationFeature'
 
 export abstract class BackendDriver {
   constructor(
