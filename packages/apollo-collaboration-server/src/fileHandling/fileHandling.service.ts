@@ -439,14 +439,12 @@ export class FileHandlingService {
       cacheValueAsJson = JSON.parse(cacheValue)
       keyArray = Object.keys(cacheValueAsJson[0])
       // FASTA sequence object size is three ('id', 'description' and 'sequence')
-      this.logger.debug(`RIVIN ${keyInd} PITUUS on ${keyArray.length}`)
       if (
         keyArray.length === 3 &&
         cacheValueAsJson[0].hasOwnProperty('id') &&
         cacheValueAsJson[0].hasOwnProperty('description') &&
         cacheValueAsJson[0].hasOwnProperty('sequence')
       ) {
-        this.logger.debug('Loytyi**********')
         const tmpInfoObject: FastaSequenceInfo = {
           refName: cacheValueAsJson[0].id,
           description: cacheValueAsJson[0].description,
