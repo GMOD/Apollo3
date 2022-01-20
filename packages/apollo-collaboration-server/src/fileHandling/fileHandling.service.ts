@@ -2,9 +2,16 @@ import { existsSync } from 'fs'
 import * as fs from 'fs/promises'
 import { join } from 'path'
 
-import gff, { GFF3FeatureLine } from '@gmod/gff'
+import gff from '@gmod/gff'
+import { GFF3Sequence } from '@gmod/gff'
+import {
+  GFF3FeatureLine,
+  GFF3SequenceRegionDirective,
+} from '@gmod/gff/dist/util'
 import {
   CACHE_MANAGER,
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -14,10 +21,8 @@ import {
 import { Cache } from 'cache-manager'
 
 import {
-  FastaQueryResult,
   FastaSequenceInfo,
   GFF3ChangeLineObjectDto,
-  RegionSearchObjectDto,
 } from '../entity/gff3Object.dto'
 import {
   compareTwoJsonObjects,
@@ -31,13 +36,12 @@ export class FileHandlingService {
   private readonly logger = new Logger(FileHandlingService.name)
 
   /**
-   * THIS IS JUST FOR DEMO PURPOSE
    * Save new uploaded file into local filesystem. The filename in local filesystem will be: 'uploaded' + timestamp in ddmmyyyy_hh24miss -format + original filename
    * @param newUser - New user information
    * @returns Return 'HttpStatus.OK' if save was successful
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
-  async saveNewFile(file: Express.Multer.File) {
+  saveNewFile(file: Express.Multer.File) {
     // Check if filesize is 0
     if (file.size < 1) {
       const msg = `File ${file.originalname} is empty!`
@@ -47,20 +51,26 @@ export class FileHandlingService {
     this.logger.debug(
       `Starting to save file ${file.originalname}, size=${file.size} bytes.`,
     )
+    const filenameWithoutPath = `uploaded_${getCurrentDateTime()}_${
+      file.originalname
+    }`
+
     // Join path+filename
     const { UPLOADED_OUTPUT_FOLDER } = process.env
     if (!UPLOADED_OUTPUT_FOLDER) {
       throw new Error('No UPLOADED_OUTPUT_FOLDER found in .env file')
     }
-    const newFullFileName = join(
-      UPLOADED_OUTPUT_FOLDER,
-      `uploaded_${getCurrentDateTime()}_${file.originalname}`,
-    )
+    const newFullFileName = join(UPLOADED_OUTPUT_FOLDER, filenameWithoutPath)
     this.logger.debug(`New file will be saved as ${newFullFileName}`)
 
     // Save file
-    await fs.writeFile(newFullFileName, file.buffer)
-    return { message: `File ${file.originalname} was saved` }
+    // await fs.writeFile(newFullFileName, file.buffer)
+    // return { message: `File ${file.originalname} was saved` }
+    // Write sync
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fsync = require('fs')
+    fsync.writeFileSync(newFullFileName, file.buffer)
+    return filenameWithoutPath
   }
 
   /**
@@ -89,18 +99,9 @@ export class FileHandlingService {
   }
 
   /**
-   * THIS IS JUST FOR DEMO PURPOSE
    * Update existing GFF3 file in local filesystem.
    */
   async updateGFF3File(postDto: GFF3ChangeLineObjectDto) {
-    // // Check if file exists: "Using fs.exists() to check for the existence of a file before calling fs.open(), fs.readFile() or fs.writeFile() is not recommended"
-    // if (!this.fileExists(postDto.filename)) {
-    //   this.logger.error(
-    //     `File =${postDto.filename}= does not exist in folder =${process.env.FILE_SEARCH_FOLDER}=`,
-    //   )
-    //   throw new NotFoundException(`File ${postDto.filename} does not exist!`)
-    // }
-
     // Join path+filename
     const { FILE_SEARCH_FOLDER } = process.env
     if (!FILE_SEARCH_FOLDER) {
@@ -282,7 +283,7 @@ export class FileHandlingService {
    * @returns Return array of features (as JSON) if search was successful
    * or if search data was not found or in case of error return throw exception
    */
-  async getFeaturesByCriteria(searchDto: RegionSearchObjectDto) {
+  async getFeaturesByCriteria(searchDto: GFF3SequenceRegionDirective) {
     let cacheValue: string | undefined = ''
     let cacheValueAsJson: GFF3FeatureLine
     const resultJsonArray: GFF3FeatureLine[] = [] // Return JSON array
@@ -291,7 +292,7 @@ export class FileHandlingService {
 
     this.logger.debug(
       `Feature search criteria is refName=${
-        searchDto.refName
+        searchDto.seq_id
       }, start=${JSON.stringify(searchDto.start)} and end=${JSON.stringify(
         searchDto.end,
       )}`,
@@ -312,7 +313,7 @@ export class FileHandlingService {
         cacheValueAsJson[0].hasOwnProperty('seq_id') &&
         cacheValueAsJson[0].hasOwnProperty('start') &&
         cacheValueAsJson[0].hasOwnProperty('end') &&
-        cacheValueAsJson[0].seq_id === searchDto.refName &&
+        cacheValueAsJson[0].seq_id === searchDto.seq_id &&
         cacheValueAsJson[0].end > searchDto.start &&
         cacheValueAsJson[0].start < searchDto.end
       ) {
@@ -343,14 +344,14 @@ export class FileHandlingService {
    * @returns Return embedded FASTA sequence if search was successful
    * or if search data was not found or in case of error throw exception
    */
-  async getFastaByCriteria(searchDto: RegionSearchObjectDto) {
+  async getFastaByCriteria(searchDto: GFF3SequenceRegionDirective) {
     let cacheValue: string | undefined = ''
     let cacheValueAsJson, keyArray
     const nberOfEntries = await this.cacheManager.store.keys?.()
 
     this.logger.debug(
       `Fasta search criteria is refName=${
-        searchDto.refName
+        searchDto.seq_id
       }, start=${JSON.stringify(searchDto.start)} and end=${JSON.stringify(
         searchDto.end,
       )}`,
@@ -371,7 +372,7 @@ export class FileHandlingService {
         cacheValueAsJson[0].hasOwnProperty('id') &&
         cacheValueAsJson[0].hasOwnProperty('description') &&
         cacheValueAsJson[0].hasOwnProperty('sequence') &&
-        cacheValueAsJson[0].id === searchDto.refName
+        cacheValueAsJson[0].id === searchDto.seq_id
       ) {
         // Check end position
         if (searchDto.end > cacheValueAsJson[0].sequence.length) {
@@ -398,7 +399,7 @@ export class FileHandlingService {
         this.logger.debug(
           `Found sequence refName=${cacheValueAsJson[0].id} and sequence=${foundSequence}`,
         )
-        const resultObject: FastaQueryResult = {
+        const resultObject: GFF3Sequence = {
           id: cacheValueAsJson[0].id,
           description: cacheValueAsJson[0].description,
           sequence: foundSequence,
@@ -409,7 +410,7 @@ export class FileHandlingService {
 
     throw new NotFoundException(
       `Fasta sequence for criteria refName=${
-        searchDto.refName
+        searchDto.seq_id
       }, start=${JSON.stringify(searchDto.start)} and end=${JSON.stringify(
         searchDto.end,
       )} was not found`,
@@ -438,12 +439,14 @@ export class FileHandlingService {
       cacheValueAsJson = JSON.parse(cacheValue)
       keyArray = Object.keys(cacheValueAsJson[0])
       // FASTA sequence object size is three ('id', 'description' and 'sequence')
+      this.logger.debug(`RIVIN ${keyInd} PITUUS on ${keyArray.length}`)
       if (
         keyArray.length === 3 &&
         cacheValueAsJson[0].hasOwnProperty('id') &&
         cacheValueAsJson[0].hasOwnProperty('description') &&
         cacheValueAsJson[0].hasOwnProperty('sequence')
       ) {
+        this.logger.debug('Loytyi**********')
         const tmpInfoObject: FastaSequenceInfo = {
           refName: cacheValueAsJson[0].id,
           description: cacheValueAsJson[0].description,
@@ -467,5 +470,66 @@ export class FileHandlingService {
       `Found (n=${resultJsonArray.length}) embedded FASTA sequences`,
     )
     return resultJsonArray
+  }
+
+  /**  Write cache into file
+   * @returns Filename where cache was written
+   */
+  async downloadCacheAsGFF3file(): Promise<string> {
+    let cacheValue: string | undefined = ''
+    try {
+      // Join path+filename
+      const { DOWNLOADED_OUTPUT_FOLDER } = process.env
+      if (!DOWNLOADED_OUTPUT_FOLDER) {
+        throw new Error('No DOWNLOADED_OUTPUT_FOLDER found in .env file')
+      }
+      const downloadFilename = join(
+        DOWNLOADED_OUTPUT_FOLDER,
+        `downloaded_${getCurrentDateTime()}.gff3`,
+      )
+      const nberOfEntries = await this.cacheManager.store.keys?.()
+      nberOfEntries.sort((n1, n2) => n1 - n2) // Sort the array
+      // Loop cache in sorted order
+      for (const keyInd of nberOfEntries) {
+        cacheValue = await this.cacheManager.get(keyInd.toString())
+        if (!cacheValue) {
+          throw new Error(`No entry found for ${keyInd.toString()}`)
+        }
+        this.logger.verbose(
+          `Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`,
+        )
+        // Write into file line by line
+        fs.appendFile(downloadFilename, gff.formatSync(JSON.parse(cacheValue)))
+      }
+      this.logger.debug(`Cache saved to file ${downloadFilename}' successfully`)
+      return downloadFilename
+    } catch (err) {
+      this.logger.error(`ERROR when saving cache to file: ${err}`)
+      throw new InternalServerErrorException(
+        `ERROR in downloadCacheAsGFF3file() : ${err}`,
+      )
+    }
+  }
+
+  /**
+   * Check if GFF3 is loaded into cache. Basically we check if number of entries > 0 then GFF3 is loaded. Otherwise not
+   * @returns TRUE: GFF3 is loaded into cache, otherwise return FALSE
+   */
+  async checkCacheKeys() {
+    try {
+      const nberOfEntries = await this.cacheManager.store.keys?.()
+      // Check if there is any item inside.
+      // Later we will check what kind of items there are in cache so we can check specifically if there is GFF3 data
+      for (const keyInd of nberOfEntries) {
+        return true
+      }
+      return false
+    } catch (err) {
+      this.logger.error(`ERROR in checkCacheKeys: ${err}`)
+      throw new HttpException(
+        `ERROR in checkCacheKeys() : ${err}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      )
+    }
   }
 }
