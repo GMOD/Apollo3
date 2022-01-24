@@ -1,0 +1,15 @@
+# multi-exon gene - several linked CDSs
+# single exon gene - one CDS only
+kyosti	example	remark	1000	2000	.	.	.	Name=Remark:hga;Alias=hga
+kyosti	example	BAC	1000	20000	.	.	.	ID=b101.2;Name=b101.2;Note=Fingerprinted BAC with end reads
+kyosti	example	clone_start	1000	1500	.	+	.	Parent=b101.2
+kyosti	example	SNP	1000	1000	0.987	.	.	ID=FakeSNP1;Name=FakeSNP;Note=This is a fake SNP that should appear at 1000 with length 1
+kyosti	example	contig	1	50001	.	.	.	Name=kyosti;multivalue=val1,val2,val3
+kyosti	est	EST_match	1050	7300	.	+	.	ID=Match3;Name=agt221.5;Target=agt221.5 1 1253
+##FASTA
+>kyosti the main contig
+cattgttgcggagttgaacaACGGCATTAGGAACACTTCCGTCTCtcacttttatacgattatgattggttctttagccttggtttagattggtagtagtagcggcgctaatgctacctgaattgagaactcgagcgggggctaggcaaattkyostittcagckyosticttctcttggaaccctgcccataaatcaaagggttagtgcggccaaaacgttggacaacggtattagaagaccaackyosticcaccaaaccgtcaattaaccggtatcttctcggaaacggcggttctctcctagatagcgatctgtggtctcaccatgcaatttaaacaggtgagtaaagattgctacaaatacgagactagctgtcaccagatgctgttcatctgttggctccttggtcgctccgttgtacccaggctactttgaaagagcgcagaatacttagacggtatcgatcatggtagcatagcattctgataacatgtatggagttcgaacatccgtctggggccggacggtccgtttgaggttggttgatctgggtgatagtcagcaagatagacgttagataacaaattaaaggattttaccttagattgcgactagtacaacggtacatcggtgattcgcgctctactagatcacgctatgggtaccataaacaaacggtggaccttctcaagctggttgacgcctcagcaacataggcttcctcctccacgcatctcagcataaaaggcttataaactgcttctttgtgccagagcaactcaattaagcccttggtaccgtgggcacgcattctgtcacggtgaccaactgttcatckyostiat
+kyosti	est	EST_match	1050	3202	.	+	.	ID=Match1;Name=agt830.5;Target=agt830.5 1 654
+kyosti	est	match_part	1050	1500	.	+	.	Parent=Match1;Name=agt830.5;Target=agt830.5 1 451
+##gff-version 3
+# Note: See http://song.sourceforge.net
