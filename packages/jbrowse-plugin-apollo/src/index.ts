@@ -20,10 +20,14 @@ import {
   ApolloView as ApolloViewReactComponent,
   stateModelFactory as apolloViewStateModelFactory,
 } from './ApolloView'
+import { changeRegistry } from './ChangeManager/ChangeTypes'
+import { LocationEndChange } from './ChangeManager/LocationEndChange'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
 } from './LinearApolloDisplay'
+
+changeRegistry.registerChange('LocationEndChange', LocationEndChange)
 
 export default class ApolloPlugin extends Plugin {
   name = 'ApolloPlugin'
