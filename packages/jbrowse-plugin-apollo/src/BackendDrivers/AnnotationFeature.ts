@@ -9,7 +9,7 @@ import {
 } from 'mobx-state-tree'
 
 const Location = types
-  .model({
+  .model('Location', {
     refName: types.string,
     start: types.number,
     end: types.number,
@@ -42,7 +42,7 @@ const Location = types
 const ChildFeature = types.late((): IAnyModelType => AnnotationFeature)
 
 const AnnotationFeature = types
-  .model({
+  .model('AnnotationFeature', {
     id: types.identifier,
     type: types.optional(
       types.literal('AnnotationFeature'),
