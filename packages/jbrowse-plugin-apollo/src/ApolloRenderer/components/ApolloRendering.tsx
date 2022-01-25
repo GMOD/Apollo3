@@ -43,7 +43,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
       if (row === undefined) {
         throw new Error('no layout')
       }
-      const start = feature.location.start - region.start
+      const start = feature.location.start - region.start - 1
       const width = feature.location.length
       const startPx = start / bpPerPx
       const widthPx = width / bpPerPx
