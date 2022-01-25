@@ -1,13 +1,13 @@
-import gff3, { GFF3FeatureLineWithRefs, GFF3Item } from '@gmod/gff'
-import { getSession } from '@jbrowse/core/util'
-import { Button, makeStyles } from '@material-ui/core'
+import { getSession, isSessionWithAddTracks } from '@jbrowse/core/util'
+import { Button, Paper, Typography, makeStyles } from '@material-ui/core'
 import { observer } from 'mobx-react'
-import { SnapshotIn, getEnv } from 'mobx-state-tree'
+import { getEnv, resolveIdentifier } from 'mobx-state-tree'
 import React from 'react'
 
 import AnnotationFeature from '../../BackendDrivers/AnnotationFeature'
+import { CollaborationServerDriver } from '../../BackendDrivers/CollaborationServerDriver'
+import { LocationEndChange } from '../../ChangeManager/LocationEndChange'
 import { ApolloViewModel } from '../stateModel'
-import gff3File from './volvoxGff3'
 
 const useStyles = makeStyles((theme) => ({
   setup: {
@@ -23,17 +23,35 @@ const useStyles = makeStyles((theme) => ({
 export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
   const classes = useStyles()
   const { pluginManager } = getEnv(model)
-  const { linearGenomeView, features, setFeatures } = model
+  const { linearGenomeView, dataStore, setDataStore } = model
   const { ReactComponent } = pluginManager.getViewType(linearGenomeView.type)
 
-  function setFeaturesOnModel() {
-    const gff3Contents = gff3.parseStringSync(gff3File, {
-      parseAll: true,
+  function setUpView() {
+    const newDataStore = setDataStore({
+      typeName: 'Client',
+      features: {},
+      backendDriverType: 'CollaborationServerDriver',
     })
-    const newFeatures = makeFeatures(gff3Contents, 'volvox')
-    setFeatures(newFeatures)
+    if (!newDataStore) {
+      throw new Error('No data store')
+    }
+    const backendDriver = new CollaborationServerDriver(newDataStore)
+    // linearGenomeView.staticBlocks.contentBlocks.forEach((block) => {
+    ;[
+      { assemblyName: 'volvox', refName: 'ctgA', start: 0, end: 50000 },
+    ].forEach((block) => {
+      backendDriver.loadFeatures({
+        assemblyName: block.assemblyName,
+        refName: block.refName,
+        start: block.start,
+        end: block.end,
+      })
+    })
     const session = getSession(model)
-    const trackId = `apollo_track_${model.linearGenomeView.id}`
+    if (!isSessionWithAddTracks(session)) {
+      throw new Error('')
+    }
+    const trackId = `apollo_track_${linearGenomeView.id}`
     const hasTrack = Boolean(
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
@@ -42,8 +60,6 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
     if (hasTrack) {
       return
     }
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     session.addTrackConf({
       type: 'ApolloTrack',
       trackId,
@@ -52,20 +68,20 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
       displays: [
         {
           type: 'LinearApolloDisplay',
-          displayId: `apollo_track_${model.linearGenomeView.id}-LinearApolloDisplay`,
+          displayId: `apollo_track_${linearGenomeView.id}-LinearApolloDisplay`,
         },
       ],
     })
   }
 
-  if (!features.size) {
+  if (!dataStore?.features.size) {
     return (
       <div className={classes.setup}>
         <Button
           className={classes.button}
           color="primary"
           variant="contained"
-          onClick={setFeaturesOnModel}
+          onClick={setUpView}
         >
           Load Volvox GFF3
         </Button>
@@ -73,94 +89,59 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
     )
   }
 
-  return <ReactComponent key={linearGenomeView.id} model={linearGenomeView} />
+  const featureId = '428763278'
+  const feature = resolveIdentifier(
+    AnnotationFeature,
+    dataStore.features,
+    featureId,
+  )
+  if (!feature) {
+    throw new Error(`Could not find feature with id "${featureId}"`)
+  }
+
+  return (
+    <>
+      <ReactComponent key={linearGenomeView.id} model={linearGenomeView} />
+
+      <Paper variant="outlined" style={{ padding: 4 }}>
+        <Typography>
+          Feature {featureId} starts at {feature.location.start} and ends at{' '}
+          {feature.location.end}.
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          style={{ marginRight: 4 }}
+          onClick={() => {
+            const oldEnd = feature.location.end
+            const newEnd = oldEnd - 100
+            const change = new LocationEndChange({
+              typeName: 'LocationEndChange',
+              changedIds: [featureId],
+              changes: [{ featureId, oldEnd, newEnd }],
+            })
+            dataStore?.changeManager.submit(change)
+          }}
+        >
+          Decrease end by 100
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => {
+            const oldEnd = feature.location.end
+            const newEnd = oldEnd + 100
+            const change = new LocationEndChange({
+              typeName: 'LocationEndChange',
+              changedIds: [featureId],
+              changes: [{ featureId, oldEnd, newEnd }],
+            })
+            dataStore?.changeManager.submit(change)
+          }}
+        >
+          Increase end by 100
+        </Button>
+      </Paper>
+    </>
+  )
 })
-
-function makeFeatures(gff3Contents: GFF3Item[], assemblyName: string) {
-  const featuresByRefName: Record<
-    string,
-    Record<string, SnapshotIn<typeof AnnotationFeature> | undefined> | undefined
-  > = {}
-  for (const gff3Item of gff3Contents) {
-    if (Array.isArray(gff3Item)) {
-      gff3Item.forEach((feature, idx) => {
-        if (!feature.seq_id) {
-          throw new Error('Got GFF3 record without an ID')
-        }
-        if (!feature.type) {
-          throw new Error('Got GFF3 record without a type')
-        }
-        const convertedFeature = convertFeature(feature, idx, assemblyName)
-        const { refName } = convertedFeature.location
-        let refRecord = featuresByRefName[refName]
-        if (!refRecord) {
-          refRecord = {}
-          featuresByRefName[refName] = refRecord
-        }
-        refRecord[convertedFeature.id] = convertedFeature
-      })
-    }
-  }
-  return featuresByRefName
-}
-
-function convertFeature(
-  feature: GFF3FeatureLineWithRefs,
-  idx: number,
-  assemblyName: string,
-): SnapshotIn<typeof AnnotationFeature> {
-  if (!feature.seq_id) {
-    throw new Error('Got GFF3 record without an ID')
-  }
-  if (!feature.type) {
-    throw new Error('Got GFF3 record without a type')
-  }
-  if (!feature.start) {
-    throw new Error('Got GFF3 record without a start')
-  }
-  if (!feature.end) {
-    throw new Error('Got GFF3 record without an end')
-  }
-  const attributeID = feature.attributes?.ID?.[0]
-  const id = attributeID ? `${attributeID}-${idx}` : objectHash(feature)
-  const children: Record<string, SnapshotIn<typeof AnnotationFeature>> = {}
-  feature.child_features.forEach((childFeatureLocation) => {
-    childFeatureLocation.forEach((childFeature, idx2) => {
-      const childFeat = convertFeature(childFeature, idx2, assemblyName)
-      children[childFeat.id] = childFeat
-    })
-  })
-  const newFeature: SnapshotIn<typeof AnnotationFeature> = {
-    id,
-    assemblyName,
-    location: {
-      refName: feature.seq_id,
-      start: feature.start,
-      end: feature.end,
-    },
-  }
-  if (Array.from(Object.entries(children)).length) {
-    newFeature.children = children
-  }
-  return newFeature
-}
-
-function hashCode(str: string) {
-  let hash = 0
-  let i
-  let chr
-  if (str.length === 0) {
-    return hash
-  }
-  for (i = 0; i < str.length; i++) {
-    chr = str.charCodeAt(i)
-    hash = (hash << 5) - hash + chr
-    hash |= 0 // Convert to 32bit integer
-  }
-  return hash
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function objectHash(obj: Record<string, any>) {
-  return `${hashCode(JSON.stringify(obj))}`
-}

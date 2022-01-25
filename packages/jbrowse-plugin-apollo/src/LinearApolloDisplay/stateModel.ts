@@ -6,6 +6,7 @@ import { intersection2 } from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 import { Instance, types } from 'mobx-state-tree'
 
+import { ApolloViewModel } from '../ApolloView/stateModel'
 import { AnnotationFeatureI } from '../BackendDrivers/AnnotationFeature'
 
 export function stateModelFactory(
@@ -45,10 +46,12 @@ export function stateModelFactory(
       get featuresForBlock() {
         const featuresForBlock: Record<string, AnnotationFeatureI[]> = {}
         const lgv = getContainingView(self)
-        const apolloView = getContainingView(lgv)
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        const { features } = apolloView
+        const apolloView = getContainingView(lgv) as unknown as ApolloViewModel
+        const { dataStore } = apolloView
+        if (!dataStore) {
+          return {}
+        }
+        const { features } = dataStore
         self.blockDefinitions.forEach((block) => {
           if (block.start !== undefined && block.end !== undefined) {
             const assemblyFeatures = features
@@ -76,10 +79,12 @@ export function stateModelFactory(
 
       get featureLayout() {
         const lgv = getContainingView(self)
-        const apolloView = getContainingView(lgv)
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        const { features } = apolloView
+        const apolloView = getContainingView(lgv) as unknown as ApolloViewModel
+        const { dataStore } = apolloView
+        if (!dataStore) {
+          return {}
+        }
+        const { features } = dataStore
         const refNames: Map<string, Set<string>> = new Map()
         self.blockDefinitions.forEach((block) => {
           if (block.refName) {

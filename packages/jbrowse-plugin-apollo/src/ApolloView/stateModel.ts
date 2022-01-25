@@ -1,18 +1,46 @@
 import PluginManager from '@jbrowse/core/PluginManager'
 import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
-import { Instance, SnapshotIn, types } from 'mobx-state-tree'
+import { Instance, SnapshotIn, cast, types } from 'mobx-state-tree'
 
 import AnnotationFeature from '../BackendDrivers/AnnotationFeature'
+import { CollaborationServerDriver } from '../BackendDrivers/CollaborationServerDriver'
+import { ChangeManager } from '../ChangeManager/ChangeManager'
+import { ValidationSet } from '../Validations/ValidationSet'
+
+const FeatureMap = types.map(AnnotationFeature)
+export const FeaturesForRefName = types.map(FeatureMap)
+export const ClientDataStore = types
+  .model('ClientDataStore', {
+    typeName: types.literal('Client'),
+    features: FeaturesForRefName,
+    backendDriverType: types.maybe(
+      types.enumeration('backendDriverType', ['CollaborationServerDriver']),
+    ),
+  })
+  .actions((self) => ({
+    load(features: SnapshotIn<typeof FeaturesForRefName>) {
+      self.features = features
+    },
+  }))
+  .volatile((self) => {
+    if (self.backendDriverType !== 'CollaborationServerDriver') {
+      throw new Error(`Unknown backend driver type "${self.backendDriverType}"`)
+    }
+    return {
+      backendDriver: new CollaborationServerDriver(self),
+    }
+  })
+  .volatile((self) => ({
+    changeManager: new ChangeManager(self, new ValidationSet([])),
+  }))
 
 export function stateModelFactory(pluginManager: PluginManager) {
-  const FeatureMap = types.map(AnnotationFeature)
-  const RefNameMap = types.map(FeatureMap)
   return types
-    .model({
+    .model('ApolloView', {
       type: types.literal('ApolloView'),
       linearGenomeView: pluginManager.getViewType('LinearGenomeView')
         .stateModel as LinearGenomeViewStateModel,
-      features: RefNameMap,
+      dataStore: types.maybe(ClientDataStore),
     })
     .views((self) => ({
       get width() {
@@ -23,8 +51,9 @@ export function stateModelFactory(pluginManager: PluginManager) {
       setWidth(newWidth: number) {
         self.linearGenomeView.setWidth(newWidth)
       },
-      setFeatures(features: SnapshotIn<typeof RefNameMap>) {
-        self.features = features
+      setDataStore(dataStore: SnapshotIn<typeof ClientDataStore>) {
+        self.dataStore = cast(dataStore)
+        return self.dataStore
       },
     }))
 }
