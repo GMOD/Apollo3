@@ -5,7 +5,7 @@ import { observer } from 'mobx-react'
 import { SnapshotIn, getEnv } from 'mobx-state-tree'
 import React from 'react'
 
-import AnnotationFeature from '../../AnnotationDrivers/AnnotationFeature'
+import AnnotationFeature from '../../BackendDrivers/AnnotationFeature'
 import { ApolloViewModel } from '../stateModel'
 import gff3File from './volvoxGff3'
 

@@ -2,7 +2,7 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import { Instance, SnapshotIn, types } from 'mobx-state-tree'
 
-import AnnotationFeature from '../AnnotationDrivers/AnnotationFeature'
+import AnnotationFeature from '../BackendDrivers/AnnotationFeature'
 
 export function stateModelFactory(pluginManager: PluginManager) {
   const FeatureMap = types.map(AnnotationFeature)

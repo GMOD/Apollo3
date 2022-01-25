@@ -6,7 +6,7 @@ import { intersection2 } from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 import { Instance, types } from 'mobx-state-tree'
 
-import { AnnotationFeatureI } from '../AnnotationDrivers/AnnotationFeature'
+import { AnnotationFeatureI } from '../BackendDrivers/AnnotationFeature'
 
 export function stateModelFactory(
   pluginManager: PluginManager,
