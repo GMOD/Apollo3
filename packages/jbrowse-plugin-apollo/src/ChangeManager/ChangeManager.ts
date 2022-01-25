@@ -1,22 +1,21 @@
-import { AbstractSessionModel } from '@jbrowse/core/util'
+import { getSession } from '@jbrowse/core/util'
+import { IAnyStateTreeNode } from 'mobx-state-tree'
 
-import { BackendDriver } from '../BackendDrivers/BackendDriver'
 import { ValidationSet } from '../Validations/ValidationSet'
-import { Change } from './Change'
+import { Change, ClientDataStore } from './Change'
 
 export class ChangeManager {
   constructor(
-    private session: AbstractSessionModel,
+    private dataStore: ClientDataStore & IAnyStateTreeNode,
     private validations: ValidationSet,
-    private clientStore: any, // TODO add client store
-    private view: any, // TODO add view model type
   ) {}
 
   async submit(change: Change) {
     // pre-validate
+    const session = getSession(this.dataStore)
     const result = this.validations.frontendPreValidate(change)
     if (!result.ok) {
-      this.session.notify(
+      session.notify(
         `Change is not valid: "${result.results
           .map((r) => r.error?.message)
           .filter(Boolean)
@@ -27,20 +26,23 @@ export class ChangeManager {
     }
 
     // submit to client data store
-    change.apply(this.clientStore)
+    change.apply(this.dataStore)
 
     // post-validate
     const results2 = this.validations.frontendPostValidate(change)
     if (!results2.ok) {
       // notify of invalid change and revert
-      change.getInverse().applyToClient(this.clientStore)
+      change.getInverse().applyToClient(this.dataStore)
     }
 
     // submit to driver
-    const backendDriver = this.view.backendDriver as BackendDriver
+    const { backendDriver } = this.dataStore
+    if (!backendDriver) {
+      throw new Error(`No backendDriver set`)
+    }
     const backendResult = await backendDriver.submitChange(change)
     if (!backendResult.ok) {
-      this.session.notify(
+      session.notify(
         `Change is not valid: "${result.results
           .map((r) => r.error?.message)
           .filter(Boolean)

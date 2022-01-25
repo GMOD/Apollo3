@@ -1,9 +1,16 @@
+import { Instance, SnapshotIn } from 'mobx-state-tree'
+
+import { FeaturesForRefName } from '../ApolloView/stateModel'
+import { BackendDriver } from '../BackendDrivers/BackendDriver'
 import { changeRegistry } from './ChangeTypes'
 
-interface ClientDataStore {
+export interface ClientDataStore {
   typeName: 'Client'
+  features: Instance<typeof FeaturesForRefName>
+  load(features: SnapshotIn<typeof FeaturesForRefName>): void
+  backendDriver?: BackendDriver
 }
-interface LocalGFF3DataStore {
+export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'
 }
 
@@ -13,7 +20,7 @@ export interface SerializedChange extends Record<string, unknown> {
   typeName: string
 }
 
-type DataStore = LocalGFF3DataStore | ClientDataStore
+export type DataStore = LocalGFF3DataStore | ClientDataStore
 
 export abstract class Change {
   /** have this return name of change type */
@@ -42,8 +49,8 @@ export abstract class Change {
     )
   }
 
-  abstract applyToLocalGFF3(backend: DataStore): void
-  abstract applyToClient(backend: DataStore): void
+  abstract applyToLocalGFF3(backend: LocalGFF3DataStore): void
+  abstract applyToClient(backend: ClientDataStore): void
 
   abstract getInverse(): Change
 }

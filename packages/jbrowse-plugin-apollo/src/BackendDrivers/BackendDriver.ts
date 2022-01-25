@@ -1,15 +1,23 @@
 import { Region } from '@jbrowse/core/util'
+import { SnapshotIn } from 'mobx-state-tree'
 
+import { ClientDataStore } from '../ChangeManager/Change'
 import { Change } from '../ChangeManager/Change'
 import { ValidationResultSet } from '../Validations/ValidationSet'
-import { AnnotationFeatureI } from './AnnotationFeature'
+import AnnotationFeature from './AnnotationFeature'
 
 export abstract class BackendDriver {
-  constructor(
-    private clientStore: any, // TODO add client store
-  ) {}
+  constructor(protected clientStore: ClientDataStore) {}
 
-  abstract getFeatures(region: Region): Promise<AnnotationFeatureI>
+  abstract getFeatures(
+    region: Region,
+  ): Promise<
+    Record<
+      string,
+      | Record<string, SnapshotIn<typeof AnnotationFeature> | undefined>
+      | undefined
+    >
+  >
 
   async loadFeatures(region: Region): Promise<void> {
     const features = await this.getFeatures(region)
@@ -18,7 +26,7 @@ export abstract class BackendDriver {
 
   abstract getSequence(region: Region): Promise<string>
 
-  abstract getRefNames(): Promise<Region[]>
+  abstract getRefNames(): Promise<string[]>
 
   abstract submitChange(change: Change): Promise<ValidationResultSet>
 }
