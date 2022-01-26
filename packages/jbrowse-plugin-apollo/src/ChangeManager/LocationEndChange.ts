@@ -1,13 +1,12 @@
 import { resolveIdentifier } from 'mobx-state-tree'
 
 import AnnotationFeature from '../BackendDrivers/AnnotationFeature'
-import { Change, ClientDataStore, LocalGFF3DataStore } from './Change'
-
-export interface SerializedChange extends Record<string, unknown> {
-  /** The IDs of genes, etc. that were changed in this operation */
-  changedIds: string[]
-  typeName: string
-}
+import {
+  Change,
+  ClientDataStore,
+  LocalGFF3DataStore,
+  SerializedChange,
+} from './Change'
 
 interface EndChange {
   featureId: string
