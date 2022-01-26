@@ -1,12 +1,14 @@
 import { getSession, isSessionWithAddTracks } from '@jbrowse/core/util'
 import { Button, Paper, Typography, makeStyles } from '@material-ui/core'
+import {
+  AnnotationFeature,
+  CollaborationServerDriver,
+  LocationEndChange,
+} from 'apollo-shared'
 import { observer } from 'mobx-react'
 import { getEnv, resolveIdentifier } from 'mobx-state-tree'
 import React from 'react'
 
-import AnnotationFeature from '../../BackendDrivers/AnnotationFeature'
-import { CollaborationServerDriver } from '../../BackendDrivers/CollaborationServerDriver'
-import { LocationEndChange } from '../../ChangeManager/LocationEndChange'
 import { ApolloViewModel } from '../stateModel'
 
 const useStyles = makeStyles((theme) => ({

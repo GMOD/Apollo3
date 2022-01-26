@@ -41,7 +41,7 @@ const Location = types
 
 const ChildFeature = types.late((): IAnyModelType => AnnotationFeature)
 
-const AnnotationFeature = types
+export const AnnotationFeature = types
   .model('AnnotationFeature', {
     id: types.identifier,
     type: types.optional(
@@ -80,6 +80,7 @@ const AnnotationFeature = types
     },
   }))
 
-export default AnnotationFeature
-
 export type AnnotationFeatureI = Instance<typeof AnnotationFeature>
+
+export const FeatureMap = types.map(AnnotationFeature)
+export const FeaturesForRefName = types.map(FeatureMap)

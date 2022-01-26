@@ -2,11 +2,11 @@ import gff3, { GFF3FeatureLineWithRefs, GFF3Item } from '@gmod/gff'
 import { Region, doesIntersect2 } from '@jbrowse/core/util'
 import { SnapshotIn } from 'mobx-state-tree'
 
-import gff3File from '../ApolloView/components/volvoxGff3'
-import AnnotationFeature from '../BackendDrivers/AnnotationFeature'
+import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
 import { Change } from '../ChangeManager/Change'
 import { ValidationResultSet } from '../Validations/ValidationSet'
 import { BackendDriver } from './BackendDriver'
+import gff3File from './volvoxGff3'
 
 const volvoxGFF3Contents = gff3.parseStringSync(gff3File, {
   parseAll: true,

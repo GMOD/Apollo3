@@ -9,6 +9,7 @@ import ViewType from '@jbrowse/core/pluggableElementTypes/ViewType'
 import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel, isAbstractMenuManager } from '@jbrowse/core/util'
+import { LocationEndChange, changeRegistry } from 'apollo-shared'
 
 import { version } from '../package.json'
 import {
@@ -20,8 +21,6 @@ import {
   ApolloView as ApolloViewReactComponent,
   stateModelFactory as apolloViewStateModelFactory,
 } from './ApolloView'
-import { changeRegistry } from './ChangeManager/ChangeTypes'
-import { LocationEndChange } from './ChangeManager/LocationEndChange'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,

@@ -1,10 +1,9 @@
 import { Region } from '@jbrowse/core/util'
 import { SnapshotIn } from 'mobx-state-tree'
 
-import { ClientDataStore } from '../ChangeManager/Change'
-import { Change } from '../ChangeManager/Change'
+import { Change, ClientDataStore } from '../ChangeManager/Change'
 import { ValidationResultSet } from '../Validations/ValidationSet'
-import AnnotationFeature from './AnnotationFeature'
+import { AnnotationFeature } from './AnnotationFeature'
 
 export abstract class BackendDriver {
   constructor(protected clientStore: ClientDataStore) {}

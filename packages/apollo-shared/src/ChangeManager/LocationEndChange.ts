@@ -1,6 +1,6 @@
 import { resolveIdentifier } from 'mobx-state-tree'
 
-import AnnotationFeature from '../BackendDrivers/AnnotationFeature'
+import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
 import {
   Change,
   ClientDataStore,
