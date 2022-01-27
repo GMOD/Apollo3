@@ -5,7 +5,6 @@ import {
   Body,
   Controller,
   Get,
-  Headers,
   InternalServerErrorException,
   Logger,
   Param,
@@ -221,7 +220,7 @@ export class FileHandlingController {
    */
   @UseGuards(JwtAuthGuard)
   @Get('/getFastaInfo')
-  getFastaInfo(@Headers() headers) {
+  getFastaInfo() {
     return this.fileService.getFastaInfo()
   }
 }

@@ -12,7 +12,6 @@
     "baseUrl": "./",
     "incremental": true,
     "strictPropertyInitialization": false,
-    "noImplicitAny": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
   }

@@ -1,7 +1,13 @@
-import { Controller, Post, Request, UseGuards } from '@nestjs/common'
+import { Controller, Post, Req, UseGuards } from '@nestjs/common'
+import { Request } from 'express'
+import { ValidatedUser } from 'src/utils/strategies/jwt.strategy'
 
 import { LocalAuthGuard } from '../utils/local-auth.guard'
 import { AuthenticationService } from './authentication.service'
+
+interface RequestWithValidatedUser extends Request {
+  user: ValidatedUser
+}
 
 @Controller('auth')
 export class AuthenticationController {
@@ -14,7 +20,7 @@ export class AuthenticationController {
    */
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@Request() req) {
+  async login(@Req() req: RequestWithValidatedUser) {
     return this.authService.login(req.user)
   }
 }

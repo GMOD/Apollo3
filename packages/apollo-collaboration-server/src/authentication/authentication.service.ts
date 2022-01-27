@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { ValidatedUser } from 'src/utils/strategies/jwt.strategy'
 
@@ -34,7 +34,10 @@ export class AuthenticationService {
    * @param user - username
    * @returns Return either token with HttpResponse status 'HttpStatus.OK' OR null with 'HttpStatus.UNAUTHORIZED'
    */
-  async login(user: ValidatedUser) {
+  async login(user?: ValidatedUser) {
+    if (!user) {
+      throw new UnauthorizedException('No user provided')
+    }
     const payload = { username: user.username, sub: user.userId }
     // Return token with SUCCESS status
     const returnToken = this.jwtService.sign(payload)
