@@ -10,8 +10,6 @@ import {
 } from '@gmod/gff/dist/util'
 import {
   CACHE_MANAGER,
-  HttpException,
-  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -41,7 +39,7 @@ export class FileHandlingService {
    * @returns Return 'HttpStatus.OK' if save was successful
    * or in case of error return error message with 'HttpStatus.INTERNAL_SERVER_ERROR'
    */
-  saveNewFile(file: Express.Multer.File) {
+  async saveNewFile(file: Express.Multer.File) {
     // Check if filesize is 0
     if (file.size < 1) {
       const msg = `File ${file.originalname} is empty!`
@@ -64,12 +62,7 @@ export class FileHandlingService {
     this.logger.debug(`New file will be saved as ${newFullFileName}`)
 
     // Save file
-    // await fs.writeFile(newFullFileName, file.buffer)
-    // return { message: `File ${file.originalname} was saved` }
-    // Write sync
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fsync = require('fs')
-    fsync.writeFileSync(newFullFileName, file.buffer)
+    await fs.writeFile(newFullFileName, file.buffer)
     return filenameWithoutPath
   }
 
@@ -499,7 +492,7 @@ export class FileHandlingService {
   }
 
   /**
-   * Check if GFF3 is loaded into cache. Basically we check if number of entries > 0 then GFF3 is loaded. Otherwise not
+   * Check if GFF3 is loaded into cache. Basically we check if number of entries is greater than 0 then GFF3 is loaded. Otherwise not
    * @returns TRUE: GFF3 is loaded into cache, otherwise return FALSE
    */
   async checkCacheKeys() {
@@ -508,14 +501,14 @@ export class FileHandlingService {
       // Check if there is any item inside.
       // Later we will check what kind of items there are in cache so we can check specifically if there is GFF3 data
       for (const keyInd of nberOfEntries) {
+        this.logger.verbose(`Read key=${keyInd}`) // TODO: Do check logic here
         return true
       }
       return false
     } catch (err) {
       this.logger.error(`ERROR in checkCacheKeys: ${err}`)
-      throw new HttpException(
+      throw new InternalServerErrorException(
         `ERROR in checkCacheKeys() : ${err}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
       )
     }
   }

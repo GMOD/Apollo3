@@ -13,14 +13,13 @@ import {
   Post,
   Put,
   Req,
-  Res,
   StreamableFile,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
-import { Request, Response } from 'express'
+import { Request } from 'express'
 
 import { GFF3ChangeLineObjectDto } from '../entity/gff3Object.dto'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
@@ -55,7 +54,6 @@ export class FileHandlingController {
       throw new Error('No FILE_SEARCH_FOLDER found in .env file')
     }
     const file = createReadStream(join(FILE_SEARCH_FOLDER, filename))
-
     return new StreamableFile(file)
   }
 
@@ -107,7 +105,7 @@ export class FileHandlingController {
 
   /**
    * Fetch features based on Reference seq, Start and End -values
-   * @param request Constain search criteria i.e. refname, start and end -parameters
+   * @param request - Contain search criteria i.e. refname, start and end -parameters
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
    * or if search data was not found or in case of error throw exception
    */
@@ -130,7 +128,7 @@ export class FileHandlingController {
 
   /**
    * Fetch embedded FASTA sequence based on Reference seq, Start and End -values
-   * @param request Constain search criteria i.e. refname, start and end -parameters
+   * @param request - Contain search criteria i.e. refname, start and end -parameters
    * @returns Return embedded FASTA sequence if search was successful
    * or if search data was not found or in case of error throw exception
    */
@@ -165,38 +163,38 @@ export class FileHandlingController {
 
   /**
    * Save new uploaded file into local filesystem and then loads it into cache. The filename in local filesystem will be: 'uploaded' + timestamp in ddmmyyyy_hh24miss -format + original filename
-   * You can call this endpoint like: curl http://localhost:3000/fileHandling/uploadtocache -F 'file=@./save_this_file.txt' -F 'name=test'
-   * @param file File to save
+   * You can call this endpoint like: curl http://localhost:3000/fileHandling/uploadtocache -F 'file=\@./save_this_file.txt' -F 'name=test'
+   * @param file - File to save
    * @returns Return status 'HttpStatus.OK' if save was successful
    * or in case of error return throw exception
    */
   @UseGuards(JwtAuthGuard)
   @Post('/uploadtocache')
   @UseInterceptors(FileInterceptor('file'))
-  uploadFile(@UploadedFile() file: Express.Multer.File) {
-    const tmpFileName = this.fileService.saveNewFile(file)
-    this.fileService.loadGFF3FileIntoCache(tmpFileName)
+  async uploadFile(@UploadedFile() file: Express.Multer.File) {
+    this.fileService.loadGFF3FileIntoCache(
+      await this.fileService.saveNewFile(file),
+    )
   }
 
   /**
    * Download cache. First write cache into file and then download the file
-   * @param res
    * @returns
    */
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get('/downloadcache')
-  downloadCache(@Res() res: Response) {
+  downloadCache() {
     this.logger.debug('Starting to write cache into file...')
     this.fileService.downloadCacheAsGFF3file().then((msg) => {
       this.logger.debug(`Now downloading file =${msg}`)
       const file = createReadStream(msg)
-      return file.pipe(res)
+      //   return file.pipe(res)
+      return new StreamableFile(file)
     })
   }
 
   /**
-   * Check if GFF3 is loaded into cache. Basically we check if number of entries > 0 then GFF3 is loaded. Otherwise not
-   * @param res
+   * Check if GFF3 is loaded into cache. Basically we check if number of entries is greater than 0 then GFF3 is loaded. Otherwise not
    * @returns TRUE: GFF3 is loaded into cache, otherwise return FALSE
    */
   @UseGuards(JwtAuthGuard)
