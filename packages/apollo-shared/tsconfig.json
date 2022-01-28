@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "incremental": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "target": "ESNext",
+    "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
+  },
+  "include": ["./src"],
+}

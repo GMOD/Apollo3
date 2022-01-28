@@ -8,11 +8,11 @@
     "node": ">=14"
   },
   "scripts": {
-    "build": "rimraf dist && nest build",
+    "build": "yarn build:shared && rimraf dist && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "NODE_ENV=development nest start",
-    "start:dev": "NODE_ENV=development nest start --watch",
-    "start:debug": "NODE_ENV=development nest start --debug --watch",
+    "start": "yarn build:shared && NODE_ENV=development nest start",
+    "start:dev": "yarn build:shared && NODE_ENV=development nest start --watch",
+    "start:debug": "yarn build:shared && NODE_ENV=development nest start --debug --watch",
     "deb": "ts-node-dev src/main.ts",
     "start:prod": "NODE_ENV=production node dist/main",
     "test": "jest",
@@ -67,9 +67,6 @@
     "ts-node": "^10.3.0",
     "ts-node-dev": "^1.1.8",
     "tsconfig-paths": "^3.11.0",
-    "typescript": "4.4.4"
-  },
-  "resolutions": {
     "typescript": "4.4.4"
   },
   "jest": {

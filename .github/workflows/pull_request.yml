@@ -15,5 +15,7 @@ jobs:
           node-version: '14'
       - name: Install deps (with cache)
         uses: bahmutov/npm-install@v1
+        with:
+          install-command: yarn --immutable
       - name: Lint codebase
         run: yarn eslint --report-unused-disable-directives --max-warnings 0 --ext .js,.ts,.jsx,.tsx .
