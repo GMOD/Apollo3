@@ -1,14 +1,13 @@
 import PluginManager from '@jbrowse/core/PluginManager'
 import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
+import {
+  ChangeManager,
+  CollaborationServerDriver,
+  FeaturesForRefName,
+  ValidationSet,
+} from 'apollo-shared'
 import { Instance, SnapshotIn, cast, types } from 'mobx-state-tree'
 
-import AnnotationFeature from '../BackendDrivers/AnnotationFeature'
-import { CollaborationServerDriver } from '../BackendDrivers/CollaborationServerDriver'
-import { ChangeManager } from '../ChangeManager/ChangeManager'
-import { ValidationSet } from '../Validations/ValidationSet'
-
-const FeatureMap = types.map(AnnotationFeature)
-export const FeaturesForRefName = types.map(FeatureMap)
 export const ClientDataStore = types
   .model('ClientDataStore', {
     typeName: types.literal('Client'),

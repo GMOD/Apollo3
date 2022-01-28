@@ -1,8 +1,8 @@
 import { Region } from '@jbrowse/core/util'
+import { AnnotationFeatureI } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import React, { useEffect, useRef } from 'react'
 
-import { AnnotationFeatureI } from '../../BackendDrivers/AnnotationFeature'
 import { LinearApolloDisplay } from '../../LinearApolloDisplay/stateModel'
 
 interface ApolloRenderingProps {

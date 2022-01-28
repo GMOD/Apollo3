@@ -3,8 +3,10 @@
   "compilerOptions": {
     "rootDir": "./src",
     "noEmit": true,
-    "downlevelIteration": true
   },
   "include": ["src"],
-  "exclude": ["**/dist/"]
+  "exclude": ["**/dist/"],
+  "references": [
+    { "path": "../apollo-shared"},
+  ],
 }

@@ -1,6 +1,6 @@
 import { Instance, SnapshotIn } from 'mobx-state-tree'
 
-import { FeaturesForRefName } from '../ApolloView/stateModel'
+import { FeaturesForRefName } from '../BackendDrivers/AnnotationFeature'
 import { BackendDriver } from '../BackendDrivers/BackendDriver'
 import { changeRegistry } from './ChangeTypes'
 

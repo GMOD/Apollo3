@@ -4,10 +4,10 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import { getContainingView } from '@jbrowse/core/util'
 import { intersection2 } from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
+import { AnnotationFeatureI } from 'apollo-shared'
 import { Instance, types } from 'mobx-state-tree'
 
 import { ApolloViewModel } from '../ApolloView/stateModel'
-import { AnnotationFeatureI } from '../BackendDrivers/AnnotationFeature'
 
 export function stateModelFactory(
   pluginManager: PluginManager,
