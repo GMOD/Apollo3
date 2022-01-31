@@ -39,7 +39,10 @@ export function compareTwoJsonObjects(obj1: unknown, obj2: unknown) {
   }
   if (Object.keys(obj1).length === Object.keys(obj2).length) {
     for (const key in obj1) {
-      if (obj1[key] === obj2[key]) {
+      if (
+        (obj1 as Record<string, unknown>)[key] ===
+        (obj2 as Record<string, unknown>)[key]
+      ) {
         continue
       } else {
         flag = false

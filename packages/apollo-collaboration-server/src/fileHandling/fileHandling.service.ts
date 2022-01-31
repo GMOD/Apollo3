@@ -2,7 +2,7 @@ import { existsSync } from 'fs'
 import * as fs from 'fs/promises'
 import { join } from 'path'
 
-import gff, { GFF3FeatureLine, GFF3Sequence } from '@gmod/gff'
+import gff, { GFF3Feature, GFF3FeatureLine, GFF3Sequence } from '@gmod/gff'
 import {
   CACHE_MANAGER,
   Inject,
@@ -150,7 +150,7 @@ export class FileHandlingService {
 
     this.logger.debug(`Search string=${oldValue}=`)
     const nberOfEntries = await this.cacheManager.store.keys?.()
-    nberOfEntries.sort((n1, n2) => n1 - n2) // Sort the array
+    nberOfEntries.sort((n1: number, n2: number) => n1 - n2) // Sort the array
 
     // Loop cache and compare each cache row to postDto.originalLine
     for (const keyInd of nberOfEntries) {
@@ -192,7 +192,7 @@ export class FileHandlingService {
       '',
     )
 
-    nberOfEntries.sort((n1, n2) => n1 - n2) // Sort the array
+    nberOfEntries.sort((n1: number, n2: number) => n1 - n2) // Sort the array
     // Loop cache in sorted order
     for (const keyInd of nberOfEntries) {
       cacheValue = await this.cacheManager.get(keyInd.toString())
@@ -278,7 +278,7 @@ export class FileHandlingService {
    */
   async getFeaturesByCriteria(searchDto: GFF3FeatureLine) {
     let cacheValue: string | undefined = ''
-    let cacheValueAsJson: GFF3FeatureLine
+    let cacheValueAsJson: GFF3Feature
     const resultJsonArray: GFF3FeatureLine[] = [] // Return JSON array
 
     const nberOfEntries = await this.cacheManager.store.keys?.()
@@ -299,13 +299,13 @@ export class FileHandlingService {
           `Cache SEQ_ID=${cacheValueAsJson[0].seq_id}, START=${cacheValueAsJson[0].start} and END=${cacheValueAsJson[0].end}`,
         )
         // Compare cache values vs. searchable values
+        const [value] = cacheValueAsJson
         if (
-          cacheValueAsJson[0].hasOwnProperty('seq_id') &&
-          cacheValueAsJson[0].hasOwnProperty('start') &&
-          cacheValueAsJson[0].hasOwnProperty('end') &&
-          cacheValueAsJson[0].seq_id === searchDto.seq_id &&
-          cacheValueAsJson[0].end > searchDto.start &&
-          cacheValueAsJson[0].start < searchDto.end
+          value.seq_id === searchDto.seq_id &&
+          value.end !== null &&
+          value.end > searchDto.start &&
+          value.start !== null &&
+          value.start < searchDto.end
         ) {
           this.logger.debug(
             `Matched found seq_id=${cacheValueAsJson[0].seq_id}, start=${cacheValueAsJson[0].start} and end=${cacheValueAsJson[0].end}`,
@@ -467,7 +467,7 @@ export class FileHandlingService {
       `downloaded_${getCurrentDateTime()}.gff3`,
     )
     const nberOfEntries = await this.cacheManager.store.keys?.()
-    nberOfEntries.sort((n1, n2) => n1 - n2) // Sort the array
+    nberOfEntries.sort((n1: number, n2: number) => n1 - n2) // Sort the array
     // Loop cache in sorted order
     for (const keyInd of nberOfEntries) {
       cacheValue = await this.cacheManager.get(keyInd.toString())
