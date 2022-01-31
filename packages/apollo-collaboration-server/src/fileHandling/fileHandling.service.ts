@@ -333,7 +333,7 @@ export class FileHandlingService {
    * @returns Return embedded FASTA sequence if search was successful
    * or if search data was not found or in case of error throw exception
    */
-  async getFastaByCriteria(searchDto: GFF3SequenceRegionDirective) {
+  async getFastaByCriteria(searchDto: GFF3FeatureLine) {
     let cacheValue: string | undefined = ''
     let cacheValueAsJson, keyArray
     const nberOfEntries = await this.cacheManager.store.keys?.()
