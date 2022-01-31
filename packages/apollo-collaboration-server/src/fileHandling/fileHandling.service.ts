@@ -2,12 +2,7 @@ import { existsSync } from 'fs'
 import * as fs from 'fs/promises'
 import { join } from 'path'
 
-import gff from '@gmod/gff'
-import { GFF3Sequence } from '@gmod/gff'
-import {
-  GFF3FeatureLine,
-  GFF3SequenceRegionDirective,
-} from '@gmod/gff/dist/util'
+import gff, { GFF3Feature, GFF3FeatureLine, GFF3Sequence } from '@gmod/gff'
 import {
   CACHE_MANAGER,
   Inject,
