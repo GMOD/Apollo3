@@ -474,7 +474,7 @@ export class FileHandlingService {
           `Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`,
         )
         // Write into file line by line
-        fs.appendFile(downloadFilename, gff.formatSync(JSON.parse(cacheValue)))
+        await fs.appendFile(downloadFilename, gff.formatSync(JSON.parse(cacheValue)))
       }
       this.logger.debug(`Cache saved to file ${downloadFilename}' successfully`)
       return downloadFilename
