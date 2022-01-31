@@ -276,7 +276,7 @@ export class FileHandlingService {
    * @returns Return array of features (as JSON) if search was successful
    * or if search data was not found or in case of error return throw exception
    */
-  async getFeaturesByCriteria(searchDto: GFF3SequenceRegionDirective) {
+  async getFeaturesByCriteria(searchDto: GFF3FeatureLine) {
     let cacheValue: string | undefined = ''
     let cacheValueAsJson: GFF3FeatureLine
     const resultJsonArray: GFF3FeatureLine[] = [] // Return JSON array
