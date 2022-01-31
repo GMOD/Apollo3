@@ -50,7 +50,8 @@
     "name": "New session",
     "views": [
       {
-        "type": "HelloView"
+        "type": "ApolloView",
+        "linearGenomeView": { "type": "LinearGenomeView" }
       }
     ]
   }

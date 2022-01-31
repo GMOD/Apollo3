@@ -8,7 +8,8 @@
     "packages/*"
   ],
   "scripts": {
-    "lint": "eslint --report-unused-disable-directives --max-warnings 0 --ext .js,.ts,.jsx,.tsx ."
+    "lint": "eslint --report-unused-disable-directives --max-warnings 0 --ext .js,.ts,.jsx,.tsx .",
+    "build:shared": "yarn workspace apollo-shared run build"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.14.7",

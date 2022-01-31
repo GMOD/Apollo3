@@ -4,5 +4,136 @@
       "name": "Apollo",
       "url": "http://localhost:9000/dist/jbrowse-plugin-apollo.umd.development.js"
     }
+  ],
+  "assemblies": [
+    {
+      "name": "volvox",
+      "aliases": ["vvx"],
+      "sequence": {
+        "type": "ReferenceSequenceTrack",
+        "trackId": "volvox_refseq",
+        "metadata": {
+          "date": "2020-08-20"
+        },
+        "adapter": {
+          "type": "TwoBitAdapter",
+          "twoBitLocation": {
+            "uri": "http://localhost:9000/test_data/volvox.2bit",
+            "locationType": "UriLocation"
+          }
+        }
+      },
+      "refNameAliases": {
+        "adapter": {
+          "type": "FromConfigAdapter",
+          "adapterId": "W6DyPGJ0UU",
+          "features": [
+            {
+              "refName": "ctgA",
+              "uniqueId": "alias1",
+              "aliases": ["A", "contigA"]
+            },
+            {
+              "refName": "ctgB",
+              "uniqueId": "alias2",
+              "aliases": ["B", "contigB"]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "tracks": [
+    {
+      "type": "FeatureTrack",
+      "trackId": "gff3tabix_genes",
+      "assemblyNames": ["volvox"],
+      "name": "GFF3Tabix genes",
+      "category": ["Miscellaneous"],
+      "adapter": {
+        "type": "Gff3TabixAdapter",
+        "gffGzLocation": {
+          "uri": "http://localhost:9000/test_data/volvox.sort.gff3.gz",
+          "locationType": "UriLocation"
+        },
+        "index": {
+          "location": {
+            "uri": "http://localhost:9000/test_data/volvox.sort.gff3.gz.tbi",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    },
+    {
+      "type": "FeatureTrack",
+      "trackId": "bigbed_genes",
+      "name": "BigBed genes",
+      "assemblyNames": ["volvox"],
+      "category": ["Miscellaneous"],
+      "adapter": {
+        "type": "BigBedAdapter",
+        "bigBedLocation": {
+          "uri": "http://localhost:9000/test_data/volvox.bb",
+          "locationType": "UriLocation"
+        }
+      }
+    },
+    {
+      "type": "FeatureTrack",
+      "trackId": "bedtabix_genes",
+      "name": "BedTabix genes",
+      "assemblyNames": ["volvox"],
+      "category": ["Miscellaneous"],
+      "adapter": {
+        "type": "BedTabixAdapter",
+        "bedGzLocation": {
+          "uri": "http://localhost:9000/test_data/volvox-bed12.bed.gz",
+          "locationType": "UriLocation"
+        },
+        "index": {
+          "location": {
+            "uri": "http://localhost:9000/test_data/volvox-bed12.bed.gz.tbi",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    },
+    {
+      "type": "FeatureTrack",
+      "trackId": "single_exon_gene",
+      "category": ["Miscellaneous"],
+      "name": "Single exon gene",
+      "assemblyNames": ["volvox"],
+      "adapter": {
+        "type": "Gff3TabixAdapter",
+        "gffGzLocation": {
+          "uri": "http://localhost:9000/test_data/single_exon_gene.sorted.gff.gz",
+          "locationType": "UriLocation"
+        },
+        "index": {
+          "location": {
+            "uri": "http://localhost:9000/test_data/single_exon_gene.sorted.gff.gz.tbi",
+            "locationType": "UriLocation"
+          }
+        }
+      }
+    },
+    {
+      "type": "FeatureTrack",
+      "trackId": "gtf_plain_text_test",
+      "category": ["Miscellaneous"],
+      "name": "GTF - volvox.sorted.gtf",
+      "assemblyNames": ["volvox"],
+      "textSearching": {
+        "indexingAttributes": ["gene_id"]
+      },
+      "adapter": {
+        "type": "GtfAdapter",
+        "gtfLocation": {
+          "uri": "http://localhost:9000/test_data/volvox.sorted.gtf",
+          "locationType": "UriLocation"
+        }
+      }
+    }
   ]
 }

@@ -15,11 +15,16 @@ jobs:
           node-version: '14'
       - name: Install deps (with cache)
         uses: bahmutov/npm-install@v1
+        with:
+          install-command: yarn --immutable
       - name: Lint codebase
         run: yarn eslint --ext .js,.ts,.jsx,.tsx .
       - name: Build collaboration server
         run: yarn build
         working-directory: packages/apollo-collaboration-server
-      # - name: Build plugin
-      #   run: yarn build
-      #   working-directory: jbrowse-plugin-apollo
+      - name: Build plugin
+        run: yarn build
+        working-directory: packages/jbrowse-plugin-apollo
+      - name: Build sahred
+        run: yarn build
+        working-directory: packages/apollo-shared
