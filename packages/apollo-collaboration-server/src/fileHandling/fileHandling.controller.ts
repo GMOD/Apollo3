@@ -1,7 +1,7 @@
 import { createReadStream } from 'fs'
 import { join } from 'path'
 
-import { GFF3SequenceRegionDirective } from '@gmod/gff/dist/util'
+import { GFF3FeatureLine } from '@gmod/gff'
 import {
   Body,
   Controller,
@@ -116,13 +116,18 @@ export class FileHandlingController {
       `Seq_id=${request.query.seq_id}=, Start=${request.query.start}=, End=${request.query.end}=`,
     )
 
-    const searchDto: GFF3SequenceRegionDirective = {
-      value: '',
+    const searchDto: GFF3FeatureLine = {
       seq_id: `${request.query.seq_id}`,
-      start: `${request.query.start}`,
-      end: `${request.query.end}`,
-      directive: '',
+      start: parseInt(`${request.query.start}`, 10),
+      end: parseInt(`${request.query.end}`, 10),
+      source: null,
+      type: null,
+      score: null,
+      strand: null,
+      phase: null,
+      attributes: null,
     }
+
     return this.fileService.getFeaturesByCriteria(searchDto)
   }
 
@@ -139,12 +144,16 @@ export class FileHandlingController {
       `Seq_id=${request.query.seq_id}=, Start=${request.query.start}=, End=${request.query.end}=`,
     )
 
-    const searchDto: GFF3SequenceRegionDirective = {
-      value: '',
+    const searchDto: GFF3FeatureLine = {
       seq_id: `${request.query.seq_id}`,
-      start: `${request.query.start}`,
-      end: `${request.query.end}`,
-      directive: '',
+      start: parseInt(`${request.query.start}`, 10),
+      end: parseInt(`${request.query.end}`, 10),
+      source: null,
+      type: null,
+      score: null,
+      strand: null,
+      phase: null,
+      attributes: null,
     }
 
     return this.fileService.getFastaByCriteria(searchDto)
@@ -181,14 +190,13 @@ export class FileHandlingController {
    * Download cache. First write cache into file and then download the file
    * @returns
    */
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/downloadcache')
   downloadCache() {
     this.logger.debug('Starting to write cache into file...')
     this.fileService.downloadCacheAsGFF3file().then((msg) => {
       this.logger.debug(`Now downloading file =${msg}`)
       const file = createReadStream(msg)
-      //   return file.pipe(res)
       return new StreamableFile(file)
     })
   }
