@@ -1,11 +1,11 @@
 import { createReadStream } from 'fs'
 import { join } from 'path'
 
+import { GFF3FeatureLine } from '@gmod/gff'
 import {
   Body,
   Controller,
   Get,
-  Headers,
   InternalServerErrorException,
   Logger,
   Param,
@@ -20,10 +20,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express/multer'
 import { Request } from 'express'
 
-import {
-  GFF3ChangeLineObjectDto,
-  RegionSearchObjectDto,
-} from '../entity/gff3Object.dto'
+import { GFF3ChangeLineObjectDto } from '../entity/gff3Object.dto'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { FileHandlingService } from './fileHandling.service'
 
@@ -33,28 +30,12 @@ export class FileHandlingController {
   private readonly logger = new Logger(FileHandlingController.name)
 
   /**
-   * THIS IS JUST FOR DEMO PURPOSE
-   * Save new uploaded file into local filesystem. The filename in local filesystem will be: 'uploaded' + timestamp in ddmmyyyy_hh24miss -format + original filename
-   * You can call this endpoint like: curl http://localhost:3000/fileHandling/upload -F 'file=\@./save_this_file.txt' -F 'name=test'
-   * @param file - File to save
-   * @returns Return status 'HttpStatus.OK' if save was successful
-   * or in case of error return throw exception
-   */
-  // @UseGuards(JwtAuthGuard)
-  // @Roles(Role.User) // This value is for demo only
-  @Post('/upload')
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadFile(@UploadedFile() file: Express.Multer.File) {
-    return this.fileService.saveNewFile(file)
-  }
-
-  /**
-   * THIS IS JUST FOR DEMO PURPOSE
    * Download file from server to client. The given filename must exists in pre-defined folder (see fileConfig.ts)
    * You can call this endpoint like: curl http://localhost:3000/fileHandling/getfile/your_filename.txt
    * @param filename - File to download
    * @returns
    */
+  @UseGuards(JwtAuthGuard)
   @Get('/getfile/:filename')
   getFile(@Param('filename') filename: string) {
     // Check if file exists
@@ -72,35 +53,10 @@ export class FileHandlingController {
       throw new Error('No FILE_SEARCH_FOLDER found in .env file')
     }
     const file = createReadStream(join(FILE_SEARCH_FOLDER, filename))
-
     return new StreamableFile(file)
   }
 
-  // /**
-  //  * THIS IS JUST FOR DEMO PURPOSE
-  //  * Updates string (or whole line) in existing file
-  //  * @param id Filename to be updated
-  //  * @param postDto Data Transfer Object that contains information about original string/line and updated string/line
-  //  * @param res
-  //  * @returns Return 'HttpStatus.OK' if update was successful
-  //  * or if search string/line was not found in the file then return error message with HttpStatus.NOT_FOUND
-  //  * or in case of error return throw exception
-  //  */
-  // @Put('/updategff3/:id')
-  // updateGFF3Cache(
-  //   @Param('id') id: string,
-  //   @Body() postDto: gff3ChangeLineObjectDto,
-  //   @Res() res: Response,
-  // ) {
-  //   this.logger.verbose(
-  //     'Original value=' + JSON.stringify(postDto.originalLine),
-  //   )
-  //   this.logger.verbose('Updated value=' + JSON.stringify(postDto.updatedLine))
-  //   return this.fileService.updateGFF3Cache(id, postDto, res)
-  // }
-
   /**
-   * THIS IS JUST FOR DEMO PURPOSE
    * Updates string (or whole line) in existing file
    * @param id - Filename to be updated
    * @param postDto - Data Transfer Object that contains information about original string/line and updated string/line
@@ -108,6 +64,7 @@ export class FileHandlingController {
    * or if search string/line was not found in the file then return error message with HttpStatus.NOT_FOUND
    * or in case of error return throw exception
    */
+  @UseGuards(JwtAuthGuard)
   @Put('/update')
   updateGFF3File(@Body() postDto: GFF3ChangeLineObjectDto) {
     this.logger.debug(`Filename=${postDto.filename}`)
@@ -117,11 +74,11 @@ export class FileHandlingController {
   }
 
   /**
-   * THIS IS JUST FOR DEMO PURPOSE
    * Loads GFF3 file data into cache. Cache key is started from 0
    * @param filename - File to download
    * @returns
    */
+  @UseGuards(JwtAuthGuard)
   @Get('/getgff3file/:filename')
   getGff3File(@Param('filename') filename: string) {
     return this.fileService.loadGff3IntoCache(filename)
@@ -134,6 +91,7 @@ export class FileHandlingController {
    * or if search string/line was not found in the file then return error message with HttpStatus.NOT_FOUND
    * or in case of error throw exception
    */
+  @UseGuards(JwtAuthGuard)
   @Put('/updategff3')
   updateGFF3Cache(@Body() postDto: GFF3ChangeLineObjectDto) {
     this.logger.verbose(
@@ -144,73 +102,59 @@ export class FileHandlingController {
     return this.fileService.updateGFF3Cache(postDto)
   }
 
-  // /**
-  //  * Fetch features based on Reference seq, Start and End -values
-  //  * @param searchDto Data Transfer Object that contains information about searchable region
-  //  * @param res
-  //  * @returns Return 'HttpStatus.OK' and array of features if search was successful
-  //  * or if search data was not found or in case of error throw exception
-  //  */
-  // @Get('/getFeaturesByCriteria')
-  // getFeaturesByCriteria(
-  //   @Body() searchDto: RegionSearchObjectDto,
-  //   @Res() res: Response,
-  // ) {
-  //   return this.fileService.getFeaturesByCriteria(searchDto, res)
-  // }
-
   /**
    * Fetch features based on Reference seq, Start and End -values
-   * @param request - Constain search criteria i.e. refname, start and end -parameters
+   * @param request - Contain search criteria i.e. refname, start and end -parameters
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
    * or if search data was not found or in case of error throw exception
    */
+  @UseGuards(JwtAuthGuard)
   @Get('/getFeaturesByCriteria')
   getFeaturesByCriteria(@Req() request: Request) {
-    this.logger.debug(`Refname=${request.query.refname}=`)
-    this.logger.debug(`Start=${request.query.start}=`)
-    this.logger.debug(`End=${request.query.end}=`)
+    this.logger.debug(
+      `Seq_id=${request.query.seq_id}=, Start=${request.query.start}=, End=${request.query.end}=`,
+    )
 
-    const searchDto: RegionSearchObjectDto = {
-      refName: `${request.query.refname}`,
+    const searchDto: GFF3FeatureLine = {
+      seq_id: `${request.query.seq_id}`,
       start: parseInt(`${request.query.start}`, 10),
       end: parseInt(`${request.query.end}`, 10),
+      source: null,
+      type: null,
+      score: null,
+      strand: null,
+      phase: null,
+      attributes: null,
     }
+
     return this.fileService.getFeaturesByCriteria(searchDto)
   }
 
-  // /**
-  //  * Fetch embedded FASTA sequence based on Reference seq, Start and End -values
-  //  * @param searchDto Data Transfer Object that contains information about searchable sequence
-  //  * @param res
-  //  * @returns Return 'HttpStatus.OK' and embedded FASTA sequence if search was successful
-  //  * or if search data was not found or in case of error throw exception
-  //  */
-  // @Get('/getFastaByCriteria')
-  // getFastaByCriteria(
-  //   @Body() searchDto: RegionSearchObjectDto,
-  //   @Res() res: Response,
-  // ) {
-  //   return this.fileService.getFastaByCriteria(searchDto, res)
-  // }
-
   /**
    * Fetch embedded FASTA sequence based on Reference seq, Start and End -values
-   * @param request - onstain search criteria i.e. refname, start and end -parameters
+   * @param request - Contain search criteria i.e. refname, start and end -parameters
    * @returns Return embedded FASTA sequence if search was successful
    * or if search data was not found or in case of error throw exception
    */
+  @UseGuards(JwtAuthGuard)
   @Get('/getFastaByCriteria')
   getFastaByCriteria(@Req() request: Request) {
-    this.logger.debug(`Refname=${request.query.refname}=`)
-    this.logger.debug(`Start=${request.query.start}=`)
-    this.logger.debug(`End=${request.query.end}=`)
+    this.logger.debug(
+      `Seq_id=${request.query.seq_id}=, Start=${request.query.start}=, End=${request.query.end}=`,
+    )
 
-    const searchDto: RegionSearchObjectDto = {
-      refName: `${request.query.refname}`,
+    const searchDto: GFF3FeatureLine = {
+      seq_id: `${request.query.seq_id}`,
       start: parseInt(`${request.query.start}`, 10),
       end: parseInt(`${request.query.end}`, 10),
+      source: null,
+      type: null,
+      score: null,
+      strand: null,
+      phase: null,
+      attributes: null,
     }
+
     return this.fileService.getFastaByCriteria(searchDto)
   }
 
@@ -221,7 +165,49 @@ export class FileHandlingController {
    */
   @UseGuards(JwtAuthGuard)
   @Get('/getFastaInfo')
-  getFastaInfo(@Headers() headers) {
+  getFastaInfo() {
     return this.fileService.getFastaInfo()
+  }
+
+  /**
+   * Save new uploaded file into local filesystem and then loads it into cache. The filename in local filesystem will be: 'uploaded' + timestamp in ddmmyyyy_hh24miss -format + original filename
+   * You can call this endpoint like: curl http://localhost:3000/fileHandling/uploadtocache -F 'file=\@./save_this_file.txt' -F 'name=test'
+   * @param file - File to save
+   * @returns Return status 'HttpStatus.OK' if save was successful
+   * or in case of error return throw exception
+   */
+  @UseGuards(JwtAuthGuard)
+  @Post('/uploadtocache')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(@UploadedFile() file: Express.Multer.File) {
+    this.fileService.loadGFF3FileIntoCache(
+      await this.fileService.saveNewFile(file),
+    )
+  }
+
+  /**
+   * Download cache. First write cache into file and then download the file
+   * @returns
+   */
+  @UseGuards(JwtAuthGuard)
+  @Get('/downloadcache')
+  downloadCache() {
+    this.logger.debug('Starting to write cache into file...')
+    this.fileService.downloadCacheAsGFF3file().then((msg) => {
+      this.logger.debug(`Now downloading file =${msg}`)
+      const file = createReadStream(msg)
+      return new StreamableFile(file)
+    })
+  }
+
+  /**
+   * Check if GFF3 is loaded into cache. Basically we check if number of entries is greater than 0 then GFF3 is loaded. Otherwise not
+   * @returns TRUE: GFF3 is loaded into cache, otherwise return FALSE
+   */
+  @UseGuards(JwtAuthGuard)
+  @Get('/checkcachekeys')
+  checkCacheKeys() {
+    this.logger.debug('Starting to check cache keys')
+    return this.fileService.checkCacheKeys()
   }
 }
