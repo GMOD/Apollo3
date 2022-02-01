@@ -1,12 +1,12 @@
 import { Controller, Post, Req, UseGuards } from '@nestjs/common'
 import { Request } from 'express'
-import { ValidatedUser } from 'src/utils/strategies/jwt.strategy'
 
+import { User } from '../usersDemo/users.service'
 import { LocalAuthGuard } from '../utils/local-auth.guard'
 import { AuthenticationService } from './authentication.service'
 
 interface RequestWithValidatedUser extends Request {
-  user: ValidatedUser
+  user: Omit<User, 'password'>
 }
 
 @Controller('auth')
