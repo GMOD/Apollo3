@@ -20,10 +20,8 @@ export const ApolloLoginForm = ({
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
-  async function onSubmit(
-    this: unknown,
-    event: React.FormEvent<HTMLFormElement>,
-  ) {
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
     if (username && password) {
       const url = new URL(authenticationURL)
       const paramsString = `username=${username}&password=${password}`
