@@ -23,13 +23,10 @@ export const ApolloLoginForm = ({
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (username && password) {
-      const url = new URL(authenticationURL)
-      const paramsString = `username=${username}&password=${password}`
-      const queryParams = new URLSearchParams(paramsString)
-      url.search = queryParams.toString()
-
-      const res = await fetch(url.toString(), {
+      const res = await fetch(authenticationURL.toString(), {
         method: 'POST',
+        body: JSON.stringify({ username, password }),
+        headers: { 'Content-Type': 'application/json' },
       })
       const data = await res.json()
       // If authentication was successfull then there is key 'token'
