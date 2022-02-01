@@ -28,22 +28,17 @@ export const ApolloLoginForm = ({
       const queryParams = new URLSearchParams(paramsString)
       url.search = queryParams.toString()
 
-      fetch(url.toString(), {
+      const res = await fetch(url.toString(), {
         method: 'POST',
       })
-        .then((res) => res.json())
-        .then((data) => {
-          // If authentication was successfull then there is key 'token'
-          if ('token' in data) {
-            const responseToken = data.token
-            handleClose(responseToken)
-          } else {
-            alert('Authentication failed')
-          }
-        })
-        .catch((rejected) => {
-          alert(rejected)
-        })
+      const data = await res.json()
+      // If authentication was successfull then there is key 'token'
+      if ('token' in data) {
+        const responseToken = data.token
+        handleClose(responseToken)
+      } else {
+        alert('Authentication failed')
+      }
     } else {
       handleClose()
     }
