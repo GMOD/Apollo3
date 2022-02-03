@@ -8,6 +8,7 @@ import { AuthenticationModule } from './authentication/authentication.module'
 import { FileHandlingModule } from './fileHandling/fileHandling.module'
 import { UsersModule } from './users/users.module'
 import { RolesGuard } from './utils/role/role.guards'
+import { ChangeModule } from './change/change.module';
 
 initializeTransactionalContext() // Initialize cls-hooked
 
@@ -46,6 +47,7 @@ const nodeEnv = process.env.NODE_ENV || 'production'
       inject: [ConfigService],
     }),
     FileHandlingModule,
+    ChangeModule,
   ],
   providers: [
     {
