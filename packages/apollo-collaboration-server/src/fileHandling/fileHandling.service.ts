@@ -22,6 +22,7 @@ import {
   getCurrentDateTime,
   writeIntoGff3ChangeLog,
 } from '../utils/commonUtilities'
+import {v4 as uuidv4} from 'uuid';
 
 @Injectable()
 export class FileHandlingService {
@@ -236,6 +237,10 @@ export class FileHandlingService {
         filename,
       )}'`,
     )
+
+    // This method check that each line has unique id. If not it creates one for each line and overwrites the orignal file
+    this.checkGFF3uniqueKey(join(FILE_SEARCH_FOLDER, filename))
+
     const stringOfGFF3 = await fs.readFile(join(FILE_SEARCH_FOLDER, filename), {
       encoding: 'utf8',
       flag: 'r',
@@ -502,5 +507,58 @@ export class FileHandlingService {
     }
     this.logger.debug('GFF3 is not loaded in cache!')
     return false
+  }
+
+  /**
+   * This method check that each line has unique id. If not it creates one for each line and overwrites the orignal file
+   */
+  async checkGFF3uniqueKey(filenameWithPath: string) {
+    const stringOfGFF3 = await fs.readFile(filenameWithPath, {
+      encoding: 'utf8',
+      flag: 'r',
+    })
+    this.logger.verbose(`Data read from file=${stringOfGFF3}`)
+
+    const arrayOfThings = gff.parseStringSync(stringOfGFF3, {
+      parseAll: true,
+    })
+    let ind = 0
+    this.logger.debug(`Starting to check apollo_ids...`)
+
+    // Loop all lines and check if each line has 'apollo_id' property inside attributes
+    for (const entry of arrayOfThings) {
+      // Comment, Directive and FASTA -entries are not presented as an array
+      if (Array.isArray(entry)) {
+        for (const [key, val] of Object.entries(entry)) {
+          // const assignedVal = Object.assign(val)
+          // if (!assignedVal.attributes.hasOwnProperty('apollo_id')) {
+          //   assignedVal.attributes.apollo_id = uuidv4()
+          //   ind++
+          // }
+
+          if (val.hasOwnProperty('attributes')) {
+            const assignedVal = Object.assign(val)
+            if (!assignedVal.attributes.hasOwnProperty('apollo_id')) {
+              assignedVal.attributes.apollo_id = uuidv4()
+              ind++
+            }
+          }
+        }
+      }
+    }
+
+    // Save into file
+    const { FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_AT_STARTUP } = process.env
+    if (!FILE_SEARCH_FOLDER) {
+      throw new Error('No FILE_SEARCH_FOLDER found in .env file')
+    }
+    if (!GFF3_DEFAULT_FILENAME_AT_STARTUP) {
+      throw new Error('No GFF3_DEFAULT_FILENAME_AT_STARTUP found in .env file')
+    }
+    await fs.writeFile(
+      join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_AT_STARTUP),
+      gff.formatSync(arrayOfThings),
+    )
+    this.logger.debug(`Apollo id was assigned ${ind} times`)
   }
 }
