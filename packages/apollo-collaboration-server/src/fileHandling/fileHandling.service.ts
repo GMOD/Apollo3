@@ -528,7 +528,9 @@ export class FileHandlingService {
     // Loop all lines and check if each line has 'apollo_id' property inside attributes
     for (const entry of arrayOfThings) {
       // Comment, Directive and FASTA -entries are not presented as an array
+
       if (Array.isArray(entry)) {
+        // this.logger.debug(`ITEM=${gff.util.formatItem(entry)}`)
         for (const [key, val] of Object.entries(entry)) {
           // const assignedVal = Object.assign(val)
           // if (!assignedVal.attributes.hasOwnProperty('apollo_id')) {
@@ -538,12 +540,31 @@ export class FileHandlingService {
           this.logger.debug('RIVI =' + JSON.stringify(val))
           if (val.hasOwnProperty('attributes')) {
             const assignedVal = Object.assign(val)
+
+            // Check if there is also childFeatures
+            if (val.hasOwnProperty('child_features')) {
+              if (Object.keys(assignedVal.child_features).length != 0) {
+                this.logger.debug(`CHILD_FEATURES SIZE=${Object.keys(assignedVal.child_features).length}`)
+                // Loop child features
+                for (const [childKey, childVal] of Object.entries(assignedVal.child_features)) {
+                  // const assignedChildVal: any = Object.assign(childVal)
+                  this.logger.debug(`CHILD KEY ${ JSON.stringify(childKey)}, VALUE=${ JSON.stringify(childVal)}`)
+                  this.eachRecursive(assignedVal)
+                }
+                // LOOP RECURSIVELY CHILD FEATURES && AND APOLLO_ID TO EACH CHILD OBJECT
+              }
+
+            }
+
+            // this.logger.debug(`ATTRIBUTES=${gff.util.formatAttributes(assignedVal)}`)
+            // const items = gff.util.formatItem(assignedVal)
+
+
+            // this.logger.debug(`SIZE=${items.length}, FEAS=${gff.util.formatItem(assignedVal)}`)
             if (!assignedVal.attributes.hasOwnProperty('apollo_id')) {
               assignedVal.attributes.apollo_id = uuidv4()
               ind++
             }
-          } else {
-            this.logger.debug('EI OLE ATTRIBUUTTIA =' + JSON.stringify(val))
           }
 
         }
@@ -563,5 +584,17 @@ export class FileHandlingService {
       gff.formatSync(arrayOfThings),
     )
     this.logger.debug(`Apollo id was assigned ${ind} times`)
+  }
+
+  // This function handles arrays and objects
+ eachRecursive(obj: any)
+{
+    for (var k in obj)
+    {
+        if (typeof obj[k] == "object" && obj[k] !== null)
+            this.eachRecursive(obj[k]);
+        else this.logger.debug(`${k}, ALIN ARVO ON = ${obj[k]}`)
+            // do something... 
+    }
   }
 }
