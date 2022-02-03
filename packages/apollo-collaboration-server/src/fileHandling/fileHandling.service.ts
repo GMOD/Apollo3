@@ -1,7 +1,6 @@
 import { existsSync } from 'fs'
 import * as fs from 'fs/promises'
 import { join } from 'path'
-import { json } from 'stream/consumers'
 
 import gff, { GFF3Feature, GFF3FeatureLine, GFF3Sequence } from '@gmod/gff'
 import {
@@ -523,14 +522,18 @@ export class FileHandlingService {
     const arrayOfThings = gff.parseStringSync(stringOfGFF3, {
       parseAll: true,
     })
-    this.logger.debug(`Starting to check apollo_ids...`)
+    this.logger.debug(`Setting apollo_ids if required....`)
 
     // Loop all lines and check if each line has 'apollo_id' property inside attributes
     for (const entry of arrayOfThings) {
       // Comment, Directive and FASTA -entries are not presented as an array
       if (Array.isArray(entry)) {
         for (const [key, val] of Object.entries(entry)) {
-          this.logger.verbose(`GFF3Item =${JSON.stringify(val)}`)
+          this.logger.verbose(
+            `GFF3Item: key=${JSON.stringify(key)}, value=${JSON.stringify(
+              val,
+            )}`,
+          )
           if (val.hasOwnProperty('attributes')) {
             const assignedVal = Object.assign(val)
             // Let's add apollo_id to parent feature if it doesn't exist
@@ -572,6 +575,7 @@ export class FileHandlingService {
   /**
    * Loop child features in parent feature and add apollo_id to each child
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setApolloIdRecursively(obj: any) {
     this.logger.verbose(`Value in recursive method = ${JSON.stringify(obj)}`)
     // If there is child features and size is not 0
@@ -596,7 +600,7 @@ export class FileHandlingService {
         if (
           typeof obj[k] == 'object' &&
           obj[k] !== null &&
-          obj[k].length != undefined &&
+          obj[k].length !== undefined &&
           obj[k].length > 0
         ) {
           const assignedVal = Object.assign(obj[k][0])
