@@ -535,14 +535,17 @@ export class FileHandlingService {
           //   assignedVal.attributes.apollo_id = uuidv4()
           //   ind++
           // }
-
+          this.logger.debug('RIVI =' + JSON.stringify(val))
           if (val.hasOwnProperty('attributes')) {
             const assignedVal = Object.assign(val)
             if (!assignedVal.attributes.hasOwnProperty('apollo_id')) {
               assignedVal.attributes.apollo_id = uuidv4()
               ind++
             }
+          } else {
+            this.logger.debug('EI OLE ATTRIBUUTTIA =' + JSON.stringify(val))
           }
+
         }
       }
     }
