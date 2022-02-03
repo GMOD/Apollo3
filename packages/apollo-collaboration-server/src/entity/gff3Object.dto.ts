@@ -10,3 +10,15 @@ export interface FastaSequenceInfo {
   description: string
   length: number
 }
+
+export interface ChangeObjectTmp {
+  // changedIds: string[]
+  // typeName: string
+  changes: FeatureChangeTmp[]
+}
+
+export interface FeatureChangeTmp {
+  featureId: string
+  oldEnd: number
+  newEnd: number
+}

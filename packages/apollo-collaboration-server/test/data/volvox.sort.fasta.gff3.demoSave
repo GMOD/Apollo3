@@ -2,7 +2,7 @@
 # multi-exon gene - several linked CDSs
 # single exon gene - one CDS only
 ##gff-version 3
-ctgA	example	match	5233	5302	.	-	.	Name=seg04;apollo_id=292fb50b-6bb3-492c-aa15-3974e25eb3b3
+ctgA	example	match	5233	5455	.	-	.	Name=seg04;apollo_id=292fb50b-6bb3-492c-aa15-3974e25eb3b3
 ctgA	example	match	5800	6101	.	-	.	Name=seg04;apollo_id=00c01d0a-83f4-44a6-824a-2d30f4be97b0
 ctgA	example	match	6442	6854	.	-	.	Name=seg04;apollo_id=b861e992-2d4d-4082-8373-a807e3ea5aef
 ctgA	example	match	6885	7241	.	-	.	Name=seg03;apollo_id=a2886a51-fa20-428b-8c3c-f86bcc5de13c
@@ -17,7 +17,7 @@ ctgA	example	CDS	3000	3902	.	+	0	Parent=EDEN.1;apollo_id=4fedf6df-a84a-4f4b-adf2
 ctgA	example	CDS	5000	5500	.	+	0	Parent=EDEN.1;apollo_id=0562d3d1-d7f6-4ad5-9088-dcacb2a6d3bb
 ctgA	example	CDS	7000	7608	.	+	0	Parent=EDEN.1;apollo_id=f8f1a6e6-645f-4a56-8752-a4447327d430
 ctgA	example	three_prime_UTR	7609	9000	.	+	.	Parent=EDEN.1;apollo_id=8019d8a1-4f4c-4728-a303-f79a33e19f78
-ctgA	example	mRNA	1050	9000	.	+	.	ID=EDEN.2;Parent=EDEN;Name=EDEN.2;Note=Eden splice form 2;Index=1;apollo_id=bff6e453-a8ab-4ac3-9f10-63d66094738b
+ctgA	example	mRNA	1050	6789	.	+	.	ID=EDEN.2;Parent=EDEN;Name=EDEN.2;Note=Eden splice form 2;Index=1;apollo_id=bff6e453-a8ab-4ac3-9f10-63d66094738b
 ctgA	example	five_prime_UTR	1050	1200	.	+	.	Parent=EDEN.2;apollo_id=0bb3f707-c807-407c-847e-6ab82da532d1
 ctgA	example	CDS	1201	1500	.	+	0	Parent=EDEN.2;apollo_id=2e4ef85a-33c9-4b96-af04-07b05c340a77
 ctgA	example	CDS	5000	5500	.	+	0	Parent=EDEN.2;apollo_id=9ce0beb4-7f93-4d39-ba54-7a39cc2a6e0c
@@ -33,5 +33,6 @@ ctgA	example	three_prime_UTR	7601	9000	.	+	.	Parent=EDEN.3;apollo_id=2171110c-ec
 ##FASTA
 >ctgA the main contig
 cattgttgcggagtt
+##FASTA
 >ctgB
 ACATGCTAGCTACGT

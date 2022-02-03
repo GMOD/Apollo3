@@ -1,3 +1,4 @@
+import { Cache } from 'cache-manager'
 import { IAnyStateTreeNode, Instance, SnapshotIn } from 'mobx-state-tree'
 
 import { FeaturesForRefName } from '../BackendDrivers/AnnotationFeature'
@@ -13,6 +14,9 @@ export interface ClientDataStore extends IAnyStateTreeNode {
 }
 export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'
+  serializedChange: SerializedChange
+  cacheManager: Cache
+  envMap: Map<string, string>
 }
 
 export interface SerializedChange extends Record<string, unknown> {
