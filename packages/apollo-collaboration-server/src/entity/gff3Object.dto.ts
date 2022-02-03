@@ -19,6 +19,6 @@ export interface ChangeObjectTmp {
 
 export interface FeatureChangeTmp {
   featureId: string
-  oldEnd?: number
-  newEnd?: number
+  oldEnd: number
+  newEnd: number
 }
