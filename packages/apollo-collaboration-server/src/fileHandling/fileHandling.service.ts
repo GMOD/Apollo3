@@ -575,7 +575,6 @@ export class FileHandlingService {
   /**
    * Loop child features in parent feature and add apollo_id to each child
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setApolloIdRecursively(obj: any) {
     this.logger.verbose(`Value in recursive method = ${JSON.stringify(obj)}`)
     // If there is child features and size is not 0
@@ -595,21 +594,15 @@ export class FileHandlingService {
         if (!assignedVal.attributes.hasOwnProperty('apollo_id')) {
           assignedVal.attributes.apollo_id = uuidv4()
         }
-      }
-      for (const k in obj) {
-        if (
-          typeof obj[k] == 'object' &&
-          obj[k] !== null &&
-          obj[k].length !== undefined &&
-          obj[k].length > 0
-        ) {
-          const assignedVal = Object.assign(obj[k][0])
-          this.logger.verbose(
-            `There is nested child feature so let's dive in...${
-              assignedVal.length
-            }, ${JSON.stringify(assignedVal[0])}`,
-          )
-          this.setApolloIdRecursively(assignedVal[0])
+        for (const k in assignedVal) {
+          if (
+            typeof obj[k] == 'object' &&
+            obj[k] !== null &&
+            obj[k].length !== undefined &&
+            obj[k].length > 0
+          ) {
+            this.setApolloIdRecursively(assignedVal)
+          }
         }
       }
     }
