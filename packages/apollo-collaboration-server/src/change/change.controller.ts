@@ -45,7 +45,7 @@ export class ChangeController {
     // this.logger.debug(`change=${JSON.stringify(serializedChange)}`)
     // const toDo = serializedChange as ChangeObjectTmp;
     this.logger.debug(`TODO=${JSON.stringify(change)}`)    
-    this.changeService.changeLocationEnd(change)
+    return this.changeService.changeLocationEnd(change)
     // return JSON.stringify(serializedChange)
   }
 
