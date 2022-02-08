@@ -10,10 +10,12 @@ import {
   UseInterceptors,
 } from '@nestjs/common'
 import { Request } from 'express'
+
 import {
+  Change,
   LocationEndChange,
   SerializedChange,
-  changeRegistry, Change
+  changeRegistry,
 } from '../../../apollo-shared'
 import { ChangeObjectTmp } from '../entity/gff3Object.dto'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
@@ -24,10 +26,10 @@ export class ChangeController {
   private readonly logger = new Logger(ChangeController.name)
   constructor(private readonly changeService: ChangeService) {}
 
-//   @UseGuards(JwtAuthGuard)
+  //   @UseGuards(JwtAuthGuard)
   @Post('/submitchange')
-    submitChange1(@Req() request: Request) {
-        //   submitChange1(@Body() serializedChange: SerializedChange) {
+  submitChange1(@Req() request: Request) {
+    //   submitChange1(@Body() serializedChange: SerializedChange) {
     //    changeRegistry.registerChange('LocationEndChange', LocationEndChange)
     // const change = LocationEndChange.fromJSON(serializedChange)
     // const change = this.fromJSON(serializedChange)
@@ -36,7 +38,7 @@ export class ChangeController {
     // )
 
     // this.logger.debug(`change=${JSON.stringify()}`)
-    const change = request.body as ChangeObjectTmp;
+    const change = request.body as ChangeObjectTmp
     // this.logger.debug(`REQ=${JSON.stringify(request)}`)
     // this.logger.debug(`BODY=${JSON.stringify(request.body)}`)
     // this.changeService.changeLocationEnd(serializedChange)
@@ -44,9 +46,8 @@ export class ChangeController {
 
     // this.logger.debug(`change=${JSON.stringify(serializedChange)}`)
     // const toDo = serializedChange as ChangeObjectTmp;
-    // this.logger.debug(`TODO=${JSON.stringify(change)}`)    
+    // this.logger.debug(`TODO=${JSON.stringify(change)}`)
     return this.changeService.changeLocationEnd(change)
     // return JSON.stringify(serializedChange)
   }
-
 }

@@ -24,69 +24,68 @@ export class ChangeService {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
   private readonly logger = new Logger(ChangeService.name)
 
+  /**
+   * Update location end value in cache and write full new cache to file
+   * @param serializedChange Change object containing information about the requested change
+   * @returns
+   */
   async changeLocationEnd(serializedChange: ChangeObjectTmp): Promise<string> {
-    this.logger.debug(`change=${JSON.stringify(serializedChange)}`)
+    this.logger.debug(`Change request=${JSON.stringify(serializedChange)}`)
     let cacheValue: string | undefined = ''
     const nberOfEntries = await this.cacheManager.store.keys?.()
     await nberOfEntries.sort((n1: number, n2: number) => n1 - n2) // Sort the array
     const { featureId } = serializedChange.changes[0]
+    const { oldEnd } = serializedChange.changes[0]
     const { newEnd } = serializedChange.changes[0]
     const searchApolloIdStr = `"apollo_id":["${featureId}"]`
-    let dataIsUpdated = false
 
     // TODO: UPDATE ALL CHANGES - NOT ONLY ONE I.E. INDEX 0
-    this.logger.debug(`Update featureId=${featureId}`)
     // Loop the cache content
     for (const keyInd of nberOfEntries) {
       cacheValue = await this.cacheManager.get(keyInd)
       this.logger.verbose(`Read line from cache=${cacheValue}=, key=${keyInd}`)
-      // Find apollo_id and check if it matches
+      // Check if apolloId matches
       if (cacheValue?.includes(searchApolloIdStr)) {
         const parsedCache = JSON.parse(cacheValue)
         // Comment, Directive and FASTA -entries are not presented as an array
         if (Array.isArray(parsedCache)) {
-          this.logger.debug(
+          this.logger.verbose(
             `KEY=${keyInd} ORIGINAL CACHE VALUE IS ${cacheValue}`,
           )
           for (const [key, val] of Object.entries(parsedCache)) {
-            this.logger.verbose(
-              `GFF3Item: key=${JSON.stringify(key)}, value=${JSON.stringify(
-                val,
-              )}`,
-            )
             if (val.hasOwnProperty('attributes')) {
               const assignedVal = Object.assign(val)
-              // Let's check apollo_id
+              // Let's check if found apollo_id matches with one we are updating
               if (
                 assignedVal.attributes.hasOwnProperty('apollo_id') &&
                 assignedVal.attributes.apollo_id == featureId
               ) {
+                // Check if old value matches with expected old value
+                if (assignedVal.end != oldEnd) {
+                  throw new Error(
+                    `Old cache value ${assignedVal.end} does not match with expected old value ${oldEnd}`,
+                  )
+                }
                 this.logger.debug(
-                  `OLD END VALUE IS ${assignedVal.end}, NEW VALUE WILL BE ${newEnd}`,
+                  `Feature found: ${JSON.stringify(assignedVal)}`,
                 )
                 assignedVal.end = newEnd
                 this.logger.debug(
-                  `NEW CACHE VALUE IS ${JSON.stringify(parsedCache)}`,
+                  `Old value ${oldEnd} has now been updated to ${newEnd}`,
                 )
-                // cacheValue
                 // Save updated JSON object to cache
                 await this.cacheManager.set(
                   keyInd.toString(),
                   JSON.stringify(parsedCache),
                 )
-                dataIsUpdated = true
+                break
               }
 
-              // Check if there is also childFeatures in parent feature and it's not empty
+              // Check if there is childFeatures in parent feature and it's not empty
               if (
                 val.hasOwnProperty('child_features') &&
                 Object.keys(assignedVal.child_features).length > 0
               ) {
-                this.logger.verbose(
-                  `Size of 1st level child features=${
-                    Object.keys(assignedVal.child_features).length
-                  }`,
-                )
                 // Let's search apollo_id recursively
                 this.searchApolloIdRecursively(
                   assignedVal,
@@ -100,7 +99,6 @@ export class ChangeService {
       }
     }
 
-    // if (dataIsUpdated) {
     const { FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE } = process.env
     if (!FILE_SEARCH_FOLDER) {
       throw new Error('No FILE_SEARCH_FOLDER found in .env file')
@@ -113,12 +111,9 @@ export class ChangeService {
       join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
       '',
     )
-    // Data is updated so we need to write new data into file
-    // nberOfEntries = await this.cacheManager.store.keys?.()
-    await nberOfEntries.sort((n1: number, n2: number) => n1 - n2) // Sort the array
+    // Loop the updated cache and write it into file
     for (const keyInd of nberOfEntries) {
       cacheValue = await this.cacheManager.get(keyInd.toString())
-      this.logger.debug(`KEY=${keyInd.toString()}, VALUE=${JSON.stringify(cacheValue).substring(0,20)}`)
       if (!cacheValue) {
         throw new Error(`No entry found for ${keyInd.toString()}`)
       }
@@ -131,56 +126,68 @@ export class ChangeService {
         gff.formatSync(JSON.parse(cacheValue)),
       )
     }
-    // }
-    return 'No data found'
+    return ''
   }
 
   /**
-   * Loop child features in parent feature and add apollo_id to each child
+   * Process (search and update) child feature recursively
+   * @param parentFeature - Parent feature
+   * @param serializedChange - Change object
+   * @param keyInd - Cache key index of parent feature
    */
   async searchApolloIdRecursively(
-    obj: any,
+    parentFeature: any,
     serializedChange: ChangeObjectTmp,
     keyInd: string,
   ) {
     const { featureId } = serializedChange.changes[0]
     const { newEnd } = serializedChange.changes[0]
+    const { oldEnd } = serializedChange.changes[0]
     // If there is child features and size is not 0
     if (
-      obj.hasOwnProperty('child_features') &&
-      Object.keys(obj.child_features).length > 0
+      parentFeature.hasOwnProperty('child_features') &&
+      Object.keys(parentFeature.child_features).length > 0
     ) {
       // Loop each child feature
-      for (let i = 0; i < Object.keys(obj.child_features).length; i++) {
+      for (
+        let i = 0;
+        i < Object.keys(parentFeature.child_features).length;
+        i++
+      ) {
         this.logger.verbose(
           `Child no #${i} has value=${JSON.stringify(
-            obj.child_features[i][0],
+            parentFeature.child_features[i][0],
           )}`,
         )
-        const assignedVal = Object.assign(obj.child_features[i][0])
+        const assignedVal = Object.assign(parentFeature.child_features[i][0])
         // Let's check apollo_id
         if (
           assignedVal.attributes.hasOwnProperty('apollo_id') &&
           assignedVal.attributes.apollo_id == featureId
         ) {
-          this.logger.debug(
+          this.logger.verbose(
             `OLD END VALUE IS ${assignedVal.end}, NEW VALUE WILL BE ${newEnd}`,
           )
-          this.logger.debug(`ORIGINAL = ${JSON.stringify(obj)}`)
-          // this.logger.debug(
-          //   `RECURSIIVISESTI LOYTYI PAIVITETTAVA APOLLO_ID=${assignedVal.attributes.apollo_id}`,
-          // )
+          // Check if given old value matches with cache old value
+          if (assignedVal.end != oldEnd) {
+            throw new Error(
+              `Old cache value ${assignedVal.end} does not match with expected old value ${oldEnd}`,
+            )
+          }
+          this.logger.debug(
+            `Feature found: ${JSON.stringify(assignedVal)}`,
+          )
           assignedVal.end = newEnd
-          // obj.child_features[i][0] = assignedVal
-          //* **
-          this.logger.debug(`KEY=${keyInd} UPDATED = ${JSON.stringify(obj)}`)
+          this.logger.debug(
+            `Old value ${oldEnd} has now been updated to ${newEnd}`,
+          )
         }
         for (const k in assignedVal) {
           if (
-            typeof obj[k] == 'object' &&
-            obj[k] !== null &&
-            obj[k].length !== undefined &&
-            obj[k].length > 0
+            typeof parentFeature[k] == 'object' &&
+            parentFeature[k] !== null &&
+            parentFeature[k].length !== undefined &&
+            parentFeature[k].length > 0
           ) {
             this.searchApolloIdRecursively(
               assignedVal,
@@ -190,14 +197,7 @@ export class ChangeService {
           }
         }
       }
-      // Save updated JSON object to cache
-      // const tmp = await this.cacheManager.get('197')
-      // this.logger.debug(`Cachesta = ${tmp}`)
-      // this.logger.debug(`obj = ${JSON.stringify(obj)}}`)
-      const valid = '[' + `${JSON.stringify(obj)}` + ']'
-      this.logger.debug(`valid = ${valid}}`)
-      await this.cacheManager.set(keyInd, valid)
-      //* ** */
+      await this.cacheManager.set(keyInd, `[${JSON.stringify(parentFeature)}]`)
     }
   }
 }
