@@ -38,13 +38,13 @@ export class ChangeController {
     // this.logger.debug(`change=${JSON.stringify()}`)
     const change = request.body as ChangeObjectTmp;
     // this.logger.debug(`REQ=${JSON.stringify(request)}`)
-    this.logger.debug(`BODY=${JSON.stringify(request.body)}`)
+    // this.logger.debug(`BODY=${JSON.stringify(request.body)}`)
     // this.changeService.changeLocationEnd(serializedChange)
     // return JSON.stringify(serializedChange)
 
     // this.logger.debug(`change=${JSON.stringify(serializedChange)}`)
     // const toDo = serializedChange as ChangeObjectTmp;
-    this.logger.debug(`TODO=${JSON.stringify(change)}`)    
+    // this.logger.debug(`TODO=${JSON.stringify(change)}`)    
     return this.changeService.changeLocationEnd(change)
     // return JSON.stringify(serializedChange)
   }

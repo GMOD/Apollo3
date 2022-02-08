@@ -28,7 +28,7 @@ export class ChangeService {
     this.logger.debug(`change=${JSON.stringify(serializedChange)}`)
     let cacheValue: string | undefined = ''
     const nberOfEntries = await this.cacheManager.store.keys?.()
-    nberOfEntries.sort((n1: number, n2: number) => n1 - n2) // Sort the array
+    await nberOfEntries.sort((n1: number, n2: number) => n1 - n2) // Sort the array
     const { featureId } = serializedChange.changes[0]
     const { newEnd } = serializedChange.changes[0]
     const searchApolloIdStr = `"apollo_id":["${featureId}"]`
@@ -61,9 +61,6 @@ export class ChangeService {
                 assignedVal.attributes.hasOwnProperty('apollo_id') &&
                 assignedVal.attributes.apollo_id == featureId
               ) {
-                // this.logger.debug(
-                //   `LOYTYI PAIVITETTAVA APOLLO_ID=${assignedVal.attributes.apollo_id}`,
-                // )
                 this.logger.debug(
                   `OLD END VALUE IS ${assignedVal.end}, NEW VALUE WILL BE ${newEnd}`,
                 )
@@ -91,7 +88,11 @@ export class ChangeService {
                   }`,
                 )
                 // Let's search apollo_id recursively
-                this.searchApolloIdRecursively(assignedVal, serializedChange)
+                this.searchApolloIdRecursively(
+                  assignedVal,
+                  serializedChange,
+                  keyInd.toString(),
+                )
               }
             }
           }
@@ -99,44 +100,49 @@ export class ChangeService {
       }
     }
 
-    if (dataIsUpdated) {
-      const { FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE } = process.env
-      if (!FILE_SEARCH_FOLDER) {
-        throw new Error('No FILE_SEARCH_FOLDER found in .env file')
-      }
-      if (!GFF3_DEFAULT_FILENAME_TO_SAVE) {
-        throw new Error('No GFF3_DEFAULT_FILENAME_TO_SAVE found in .env file')
-      }
-      // Replace old file
-      await fs.writeFile(
-        join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
-        '',
-      )
-      // Data is updated so we need to write new data into file
-      nberOfEntries.sort((n1: number, n2: number) => n1 - n2) // Sort the array
-      for (const keyInd of nberOfEntries) {
-        cacheValue = await this.cacheManager.get(keyInd.toString())
-        if (!cacheValue) {
-          throw new Error(`No entry found for ${keyInd.toString()}`)
-        }
-        this.logger.verbose(
-          `Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`,
-        )
-        // Write into file line by line
-        fs.appendFile(
-          join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
-          gff.formatSync(JSON.parse(cacheValue)),
-        )
-      }
+    // if (dataIsUpdated) {
+    const { FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE } = process.env
+    if (!FILE_SEARCH_FOLDER) {
+      throw new Error('No FILE_SEARCH_FOLDER found in .env file')
     }
+    if (!GFF3_DEFAULT_FILENAME_TO_SAVE) {
+      throw new Error('No GFF3_DEFAULT_FILENAME_TO_SAVE found in .env file')
+    }
+    // Replace old file
+    await fs.writeFile(
+      join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
+      '',
+    )
+    // Data is updated so we need to write new data into file
+    // nberOfEntries = await this.cacheManager.store.keys?.()
+    await nberOfEntries.sort((n1: number, n2: number) => n1 - n2) // Sort the array
+    for (const keyInd of nberOfEntries) {
+      cacheValue = await this.cacheManager.get(keyInd.toString())
+      this.logger.debug(`KEY=${keyInd.toString()}, VALUE=${JSON.stringify(cacheValue).substring(0,20)}`)
+      if (!cacheValue) {
+        throw new Error(`No entry found for ${keyInd.toString()}`)
+      }
+      this.logger.verbose(
+        `Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`,
+      )
+      // Write into file line by line
+      await fs.appendFile(
+        join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
+        gff.formatSync(JSON.parse(cacheValue)),
+      )
+    }
+    // }
     return 'No data found'
   }
 
   /**
    * Loop child features in parent feature and add apollo_id to each child
    */
-  searchApolloIdRecursively(obj: any, serializedChange: ChangeObjectTmp) {
-    this.logger.verbose(`Value in recursive method = ${JSON.stringify(obj)}`)
+  async searchApolloIdRecursively(
+    obj: any,
+    serializedChange: ChangeObjectTmp,
+    keyInd: string,
+  ) {
     const { featureId } = serializedChange.changes[0]
     const { newEnd } = serializedChange.changes[0]
     // If there is child features and size is not 0
@@ -158,12 +164,16 @@ export class ChangeService {
           assignedVal.attributes.apollo_id == featureId
         ) {
           this.logger.debug(
-            `RECURSIIVISESTI LOYTYI PAIVITETTAVA APOLLO_ID=${assignedVal.attributes.apollo_id}`,
-          )
-          this.logger.debug(
             `OLD END VALUE IS ${assignedVal.end}, NEW VALUE WILL BE ${newEnd}`,
           )
+          this.logger.debug(`ORIGINAL = ${JSON.stringify(obj)}`)
+          // this.logger.debug(
+          //   `RECURSIIVISESTI LOYTYI PAIVITETTAVA APOLLO_ID=${assignedVal.attributes.apollo_id}`,
+          // )
           assignedVal.end = newEnd
+          // obj.child_features[i][0] = assignedVal
+          //* **
+          this.logger.debug(`KEY=${keyInd} UPDATED = ${JSON.stringify(obj)}`)
         }
         for (const k in assignedVal) {
           if (
@@ -172,87 +182,22 @@ export class ChangeService {
             obj[k].length !== undefined &&
             obj[k].length > 0
           ) {
-            this.searchApolloIdRecursively(assignedVal, serializedChange)
+            this.searchApolloIdRecursively(
+              assignedVal,
+              serializedChange,
+              keyInd,
+            )
           }
         }
       }
+      // Save updated JSON object to cache
+      // const tmp = await this.cacheManager.get('197')
+      // this.logger.debug(`Cachesta = ${tmp}`)
+      // this.logger.debug(`obj = ${JSON.stringify(obj)}}`)
+      const valid = '[' + `${JSON.stringify(obj)}` + ']'
+      this.logger.debug(`valid = ${valid}}`)
+      await this.cacheManager.set(keyInd, valid)
+      //* ** */
     }
-  }
-
-  /**
-   * Updates string (or whole line) in CACHE
-   * @param postDto - Data Transfer Object that contains information about original string/line and updated string/line
-   * @returns
-   */
-  async updateGFF3Cache(postDto: ChangeObjectTmp) {
-    const cacheValue: string | undefined = ''
-    // let cacheKey = -1 // Cache key that specifies the row that we update. All cache keys are > 0
-    // const oldValue = postDto.originalLine // Search this string in cache
-    // const oldValueAsJson = JSON.parse(postDto.originalLine)
-    // const newValue = JSON.parse(postDto.updatedLine) // JSON object that contains those key-value -pairs that we will update
-
-    // this.logger.debug(`Search string=${oldValue}=`)
-    // const nberOfEntries = await this.cacheManager.store.keys?.()
-    // nberOfEntries.sort((n1: number, n2: number) => n1 - n2) // Sort the array
-
-    // // Loop cache and compare each cache row to postDto.originalLine
-    // for (const keyInd of nberOfEntries) {
-    //   cacheValue = await this.cacheManager.get(keyInd)
-    //   this.logger.verbose(`Read line from cache=${cacheValue}=, key=${keyInd}`)
-    //   // Check if cache line is same as 'originalLine' -parameter
-    // //   if (compareTwoJsonObjects(oldValue, cacheValue)) {
-    // //     this.logger.debug('Found original value from cache')
-    // //     cacheKey = keyInd
-    // //     break
-    // //   }
-    // }
-    // // If the cache did not contain any row that matched to postDto.originalLine then return error
-    // if (cacheKey < 0) {
-    //   const errMsg = `ERROR when updating cache: The following string was not found in cache='${oldValue}'`
-    //   this.logger.error(errMsg)
-    //   throw new NotFoundException(errMsg)
-    // }
-
-    // // Update JSON object
-    // Object.keys(newValue).forEach(function (key) {
-    //   oldValueAsJson[0][key] = newValue[key]
-    // })
-    // // Save updated JSON object to cache
-    // await this.cacheManager.set(
-    //   cacheKey.toString(),
-    //   JSON.stringify(oldValueAsJson),
-    // )
-
-    // const { FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE } = process.env
-    // if (!FILE_SEARCH_FOLDER) {
-    //   throw new Error('No FILE_SEARCH_FOLDER found in .env file')
-    // }
-    // if (!GFF3_DEFAULT_FILENAME_TO_SAVE) {
-    //   throw new Error('No GFF3_DEFAULT_FILENAME_TO_SAVE found in .env file')
-    // }
-    // await fs.writeFile(
-    //   join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
-    //   '',
-    // )
-
-    // nberOfEntries.sort((n1: number, n2: number) => n1 - n2) // Sort the array
-    // // Loop cache in sorted order
-    // for (const keyInd of nberOfEntries) {
-    //   cacheValue = await this.cacheManager.get(keyInd.toString())
-    //   if (!cacheValue) {
-    //     throw new Error(`No entry found for ${keyInd.toString()}`)
-    //   }
-    //   this.logger.verbose(
-    //     `Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`,
-    //   )
-    //   // Write into file line by line
-    //   fs.appendFile(
-    //     join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
-    //     gff.formatSync(JSON.parse(cacheValue)),
-    //   )
-    // }
-
-    this.logger.debug('Cache and GFF3 file updated successfully')
-    return { message: 'Cache and GFF3 file updated successfully!' }
   }
 }
