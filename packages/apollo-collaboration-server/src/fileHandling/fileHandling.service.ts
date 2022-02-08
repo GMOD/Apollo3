@@ -511,6 +511,7 @@ export class FileHandlingService {
 
   /**
    * This method check that each line has unique id. If not it creates one for each line and overwrites the orignal file
+   * @param filenameWithPath - filename with path
    */
   async checkGFF3uniqueKey(filenameWithPath: string) {
     const stringOfGFF3 = await fs.readFile(filenameWithPath, {
@@ -545,11 +546,6 @@ export class FileHandlingService {
               val.hasOwnProperty('child_features') &&
               Object.keys(assignedVal.child_features).length > 0
             ) {
-              this.logger.verbose(
-                `Size of 1st level child features=${
-                  Object.keys(assignedVal.child_features).length
-                }`,
-              )
               // Let's add apollo_id to each child recursively
               this.setApolloIdRecursively(assignedVal)
             }
@@ -573,33 +569,41 @@ export class FileHandlingService {
   }
 
   /**
-   * Loop child features in parent feature and add apollo_id to each child
+   * Loop child features in parent feature and add apollo_id to each child's attribute
+   * @param parentFeature - Parent feature
    */
-  setApolloIdRecursively(obj: any) {
-    this.logger.verbose(`Value in recursive method = ${JSON.stringify(obj)}`)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setApolloIdRecursively(parentFeature: any) {
+    this.logger.verbose(
+      `Value in recursive method = ${JSON.stringify(parentFeature)}`,
+    )
     // If there is child features and size is not 0
     if (
-      obj.hasOwnProperty('child_features') &&
-      Object.keys(obj.child_features).length > 0
+      parentFeature.hasOwnProperty('child_features') &&
+      Object.keys(parentFeature.child_features).length > 0
     ) {
       // Loop each child feature
-      for (let i = 0; i < Object.keys(obj.child_features).length; i++) {
+      for (
+        let i = 0;
+        i < Object.keys(parentFeature.child_features).length;
+        i++
+      ) {
         this.logger.verbose(
           `Child no #${i} has value=${JSON.stringify(
-            obj.child_features[i][0],
+            parentFeature.child_features[i][0],
           )}`,
         )
-        const assignedVal = Object.assign(obj.child_features[i][0])
+        const assignedVal = Object.assign(parentFeature.child_features[i][0])
         // Let's add apollo_id if it doesn't exist yet
         if (!assignedVal.attributes.hasOwnProperty('apollo_id')) {
           assignedVal.attributes.apollo_id = uuidv4()
         }
         for (const k in assignedVal) {
           if (
-            typeof obj[k] == 'object' &&
-            obj[k] !== null &&
-            obj[k].length !== undefined &&
-            obj[k].length > 0
+            typeof parentFeature[k] == 'object' &&
+            parentFeature[k] !== null &&
+            parentFeature[k].length !== undefined &&
+            parentFeature[k].length > 0
           ) {
             this.setApolloIdRecursively(assignedVal)
           }
