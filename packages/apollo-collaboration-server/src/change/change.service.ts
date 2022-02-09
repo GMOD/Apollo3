@@ -30,16 +30,16 @@ export class ChangeService {
    * @returns
    */
   async changeLocationEnd(serializedChange: ChangeObjectTmp): Promise<string> {
+    // **** TODO: UPDATE ALL CHANGES - NOW UPDATING ONLY THE FIRST CHANGE IN 'CHANGES' -ARRAY ****//
     this.logger.debug(`Change request=${JSON.stringify(serializedChange)}`)
     let cacheValue: string | undefined = ''
     const nberOfEntries = await this.cacheManager.store.keys?.()
-    await nberOfEntries.sort((n1: number, n2: number) => n1 - n2) // Sort the array
+    await nberOfEntries.sort((n1: number, n2: number) => n1 - n2) 
     const { featureId } = serializedChange.changes[0]
     const { oldEnd } = serializedChange.changes[0]
     const { newEnd } = serializedChange.changes[0]
     const searchApolloIdStr = `"apollo_id":["${featureId}"]`
 
-    // TODO: UPDATE ALL CHANGES - NOT ONLY ONE I.E. INDEX 0
     // Loop the cache content
     for (const keyInd of nberOfEntries) {
       cacheValue = await this.cacheManager.get(keyInd)
@@ -174,9 +174,7 @@ export class ChangeService {
               `Old cache value ${assignedVal.end} does not match with expected old value ${oldEnd}`,
             )
           }
-          this.logger.debug(
-            `Feature found: ${JSON.stringify(assignedVal)}`,
-          )
+          this.logger.debug(`Feature found: ${JSON.stringify(assignedVal)}`)
           assignedVal.end = newEnd
           this.logger.debug(
             `Old value ${oldEnd} has now been updated to ${newEnd}`,
