@@ -1,14 +1,24 @@
 {
   "name": "apollo-shared",
-  "main": "dist/index.js",
+  "main": "./dist/index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./esm/index.js",
+      "require": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "build": "tsc"
+    "build": "yarn build:cjs && yarn build:esm",
+    "build:cjs": "tsc",
+    "build:esm": "tsc --project ./tsconfig.esm.json"
   },
   "dependencies": {
     "@gmod/gff": "^1.2.0",
-    "@jbrowse/core": "^1.5.9",
+    "@jbrowse/core": "^1.6.4",
     "mobx-state-tree": "3.14.1",
     "regenerator-runtime": "^0.13.9",
+    "rxjs": "^6.0.0",
     "tslib": "^2.3.1"
   },
   "devDependencies": {

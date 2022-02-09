@@ -27,9 +27,9 @@
     "setup": "rimraf .jbrowse && jbrowse create .jbrowse",
     "clean": "rimraf dist",
     "start": "yarn clean && npm-run-all --parallel start:watch start:server",
-    "start:watch": "yarn build:shared && rollup --config --watch",
+    "start:watch": "yarn build:shared:esm && rollup --config --watch",
     "start:server": "serve --cors --listen 9000 .",
-    "build": "yarn build:shared && yarn clean && rollup --config",
+    "build": "yarn build:shared:esm && yarn clean && rollup --config",
     "browse": "cp jbrowse_config.json .jbrowse/config.json && serve --listen 8999 .jbrowse",
     "test": "jest",
     "test:e2e": "start-test \"npm-run-all --parallel start browse\" \"9000|8999\" \"npm-run-all cypress:run\"",
@@ -55,7 +55,7 @@
     "tslib": "^2.0.3"
   },
   "peerDependencies": {
-    "@jbrowse/core": "^1.5.2",
+    "@jbrowse/core": "^1.6.4",
     "@material-ui/core": "^4.12.3",
     "mobx-react": "^7.2.1",
     "mobx-state-tree": "3.14.1",
@@ -63,7 +63,7 @@
   },
   "devDependencies": {
     "@jbrowse/cli": "^1.5.1",
-    "@jbrowse/core": "^1.5.2",
+    "@jbrowse/core": "^1.6.4",
     "@jbrowse/development-tools": "^1.5.3",
     "@material-ui/core": "^4.12.3",
     "@types/cypress": "^1.1.3",
