@@ -12,8 +12,8 @@ export interface FastaSequenceInfo {
 }
 
 export interface ChangeObjectTmp {
-  changedIds: string[]
-  typeName: string
+  // changedIds: string[]
+  // typeName: string
   changes: FeatureChangeTmp[]
 }
 
