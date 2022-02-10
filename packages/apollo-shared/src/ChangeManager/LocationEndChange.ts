@@ -33,10 +33,6 @@ export class LocationEndChange extends Change {
     return 'LocationEndChange'
   }
 
-  _fromJSON(json: SerializedLocationEndChange) {
-    return new LocationEndChange(json)
-  }
-
   toJSON() {
     return {
       changedIds: this.changedIds,

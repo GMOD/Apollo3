@@ -26,12 +26,9 @@ export abstract class Change {
   /** have this return name of change type */
   abstract get typeName(): string
 
-  abstract _fromJSON(json: SerializedChange): Change
-
   static fromJSON(json: SerializedChange): Change {
     const ChangeType = changeRegistry.getChangeType(json.typeName)
-    const change = new ChangeType()
-    return change._fromJSON(json)
+    return new ChangeType(json)
   }
 
   abstract toJSON(): SerializedChange
