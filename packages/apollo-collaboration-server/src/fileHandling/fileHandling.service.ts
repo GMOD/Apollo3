@@ -2,7 +2,12 @@ import { existsSync } from 'fs'
 import * as fs from 'fs/promises'
 import { join } from 'path'
 
-import gff, { GFF3Feature, GFF3FeatureLine, GFF3Sequence } from '@gmod/gff'
+import gff, {
+  GFF3Feature,
+  GFF3FeatureLine,
+  GFF3FeatureLineWithRefs,
+  GFF3Sequence,
+} from '@gmod/gff'
 import {
   CACHE_MANAGER,
   Inject,
@@ -12,6 +17,7 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import { Cache } from 'cache-manager'
+import { v4 as uuidv4 } from 'uuid'
 
 import {
   FastaSequenceInfo,
@@ -236,6 +242,10 @@ export class FileHandlingService {
         filename,
       )}'`,
     )
+
+    // This method check that each line has unique id. If not it creates one for each line and overwrites the orignal file
+    this.checkGFF3uniqueKey(join(FILE_SEARCH_FOLDER, filename))
+
     const stringOfGFF3 = await fs.readFile(join(FILE_SEARCH_FOLDER, filename), {
       encoding: 'utf8',
       flag: 'r',
@@ -502,5 +512,106 @@ export class FileHandlingService {
     }
     this.logger.debug('GFF3 is not loaded in cache!')
     return false
+  }
+
+  /**
+   * This method check that each line has unique id. If not it creates one for each line and overwrites the orignal file
+   * @param filenameWithPath - filename with path
+   */
+  async checkGFF3uniqueKey(filenameWithPath: string) {
+    const stringOfGFF3 = await fs.readFile(filenameWithPath, {
+      encoding: 'utf8',
+      flag: 'r',
+    })
+    this.logger.verbose(`Data read from file=${stringOfGFF3}`)
+
+    const arrayOfThings = gff.parseStringSync(stringOfGFF3, {
+      parseAll: true,
+    })
+    this.logger.debug(`Setting apollo_ids if required....`)
+
+    // Loop all lines and check if each line has 'apollo_id' property inside attributes
+    for (const entry of arrayOfThings) {
+      // Comment, Directive and FASTA -entries are not presented as an array
+      if (Array.isArray(entry)) {
+        for (const [key, val] of Object.entries(entry)) {
+          this.logger.verbose(
+            `GFF3Item: key=${JSON.stringify(key)}, value=${JSON.stringify(
+              val,
+            )}`,
+          )
+          if (val.hasOwnProperty('attributes')) {
+            // Let's add apollo_id to parent feature if it doesn't exist
+            const assignedVal: GFF3FeatureLineWithRefs = Object.assign(val)
+            const attributes = assignedVal.attributes || {}
+            if (!('apollo_id' in attributes)) {
+              attributes.apollo_id = [uuidv4()]
+            }
+            assignedVal.attributes = attributes
+
+            // Check if there is also childFeatures in parent feature and it's not empty
+            if (
+              val.hasOwnProperty('child_features') &&
+              Object.keys(assignedVal.child_features).length > 0
+            ) {
+              // Let's add apollo_id to each child recursively
+              this.setApolloIdRecursively(assignedVal)
+            }
+          }
+        }
+      }
+    }
+
+    // Save into file
+    const { FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_AT_STARTUP } = process.env
+    if (!FILE_SEARCH_FOLDER) {
+      throw new Error('No FILE_SEARCH_FOLDER found in .env file')
+    }
+    if (!GFF3_DEFAULT_FILENAME_AT_STARTUP) {
+      throw new Error('No GFF3_DEFAULT_FILENAME_AT_STARTUP found in .env file')
+    }
+    await fs.writeFile(
+      join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_AT_STARTUP),
+      gff.formatSync(arrayOfThings),
+    )
+  }
+
+  /**
+   * Loop child features in parent feature and add apollo_id to each child's attribute
+   * @param parentFeature - Parent feature
+   */
+  setApolloIdRecursively(parentFeature: GFF3FeatureLineWithRefs) {
+    this.logger.verbose(
+      `Value in recursive method = ${JSON.stringify(parentFeature)}`,
+    )
+    // If there is child features and size is not 0
+    if (
+      parentFeature.hasOwnProperty('child_features') &&
+      Object.keys(parentFeature.child_features).length > 0
+    ) {
+      // Loop each child feature
+      for (
+        let i = 0;
+        i < Object.keys(parentFeature.child_features).length;
+        i++
+      ) {
+        // There can be several features with same ID so we need to loop
+        for (let j = 0; parentFeature.child_features[i].length > j; j++) {
+          const assignedVal: GFF3FeatureLineWithRefs = Object.assign(
+            parentFeature.child_features[i][j],
+          )
+          const attributes = assignedVal.attributes || {}
+          // Let's add apollo_id if it doesn't exist yet
+          if (!attributes.hasOwnProperty('apollo_id')) {
+            attributes.apollo_id = [uuidv4()]
+            this.logger.verbose(
+              `Apollo_id assigned ${JSON.stringify(assignedVal)}`,
+            )
+          }
+          assignedVal.attributes = attributes
+          this.setApolloIdRecursively(assignedVal)
+        }
+      }
+    }
   }
 }
