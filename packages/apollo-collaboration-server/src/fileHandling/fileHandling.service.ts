@@ -538,9 +538,10 @@ export class FileHandlingService {
           if (val.hasOwnProperty('attributes')) {
             const assignedVal: GFF3FeatureLineWithRefs = Object.assign(val)
             // Let's add apollo_id to parent feature if it doesn't exist
-            if (!assignedVal.attributes.hasOwnProperty('apollo_id')) {
-              assignedVal.attributes.apollo_id = uuidv4()
+            if (!('apollo_id' in attributes)) {
+              attributes.apollo_id = [uuidv4()]
             }
+            assignedVal.attributes = attributes
             // Check if there is also childFeatures in parent feature and it's not empty
             if (
               val.hasOwnProperty('child_features') &&
