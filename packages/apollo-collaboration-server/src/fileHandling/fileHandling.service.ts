@@ -593,7 +593,9 @@ export class FileHandlingService {
             parentFeature.child_features[i][0],
           )}`,
         )
-        const assignedVal = Object.assign(parentFeature.child_features[i][0])
+        const assignedVal: GFF3FeatureLineWithRefs = Object.assign(
+          parentFeature.child_features[i][0],
+        )
         // Let's add apollo_id if it doesn't exist yet
         if (!assignedVal.attributes.hasOwnProperty('apollo_id')) {
           assignedVal.attributes.apollo_id = uuidv4()
