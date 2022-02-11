@@ -2,7 +2,12 @@ import { existsSync } from 'fs'
 import * as fs from 'fs/promises'
 import { join } from 'path'
 
-import gff, { GFF3Feature, GFF3FeatureLine, GFF3Sequence } from '@gmod/gff'
+import gff, {
+  GFF3Feature,
+  GFF3FeatureLine,
+  GFF3FeatureLineWithRefs,
+  GFF3Sequence,
+} from '@gmod/gff'
 import {
   CACHE_MANAGER,
   Inject,
@@ -536,12 +541,17 @@ export class FileHandlingService {
             )}`,
           )
           if (val.hasOwnProperty('attributes')) {
-            const assignedVal: GFF3FeatureLineWithRefs = Object.assign(val)
             // Let's add apollo_id to parent feature if it doesn't exist
-            if (!('apollo_id' in attributes)) {
-              attributes.apollo_id = [uuidv4()]
+            const assignedVal: GFF3FeatureLineWithRefs =
+              Object.assign(val) || ''
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            if (!('apollo_id' in assignedVal.attributes!)) {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              assignedVal.attributes!.apollo_id = [uuidv4()]
             }
-            assignedVal.attributes = attributes
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            assignedVal.attributes = assignedVal.attributes!
+
             // Check if there is also childFeatures in parent feature and it's not empty
             if (
               val.hasOwnProperty('child_features') &&
@@ -588,26 +598,25 @@ export class FileHandlingService {
         i < Object.keys(parentFeature.child_features).length;
         i++
       ) {
-        this.logger.verbose(
-          `Child no #${i} has value=${JSON.stringify(
-            parentFeature.child_features[i][0],
-          )}`,
-        )
-        const assignedVal: GFF3FeatureLineWithRefs = Object.assign(
-          parentFeature.child_features[i][0],
-        )
-        // Let's add apollo_id if it doesn't exist yet
-        if (!assignedVal.attributes.hasOwnProperty('apollo_id')) {
-          assignedVal.attributes.apollo_id = uuidv4()
-        }
-        for (const k in assignedVal) {
+        // There can be several features with same ID so we need to loop
+        for (let j = 0; parentFeature.child_features[i].length > j; j++) {
           if (
-            typeof parentFeature[k] == 'object' &&
-            parentFeature[k] !== null &&
-            parentFeature[k].length !== undefined &&
-            parentFeature[k].length > 0
+            parentFeature.child_features[i][j] !== null &&
+            parentFeature.child_features[i][j] !== undefined
           ) {
-            this.setApolloIdRecursively(assignedVal)
+            const assignedVal = Object.assign(
+              parentFeature.child_features[i][j],
+            )
+            // Let's add apollo_id if it doesn't exist yet
+            if (!assignedVal.attributes.hasOwnProperty('apollo_id')) {
+              assignedVal.attributes.apollo_id = uuidv4()
+              this.logger.verbose(
+                `Apollo_id assigned ${JSON.stringify(assignedVal)}`,
+              )
+            }
+            for (const k in assignedVal) {
+              this.setApolloIdRecursively(assignedVal)
+            }
           }
         }
       }
