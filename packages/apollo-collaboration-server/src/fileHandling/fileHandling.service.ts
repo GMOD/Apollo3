@@ -536,7 +536,7 @@ export class FileHandlingService {
             )}`,
           )
           if (val.hasOwnProperty('attributes')) {
-            const assignedVal = Object.assign(val)
+            const assignedVal: GFF3FeatureLineWithRefs = Object.assign(val)
             // Let's add apollo_id to parent feature if it doesn't exist
             if (!assignedVal.attributes.hasOwnProperty('apollo_id')) {
               assignedVal.attributes.apollo_id = uuidv4()
