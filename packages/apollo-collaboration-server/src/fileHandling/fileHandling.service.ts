@@ -573,8 +573,7 @@ export class FileHandlingService {
    * Loop child features in parent feature and add apollo_id to each child's attribute
    * @param parentFeature - Parent feature
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setApolloIdRecursively(parentFeature: any) {
+  setApolloIdRecursively(parentFeature: GFF3FeatureLineWithRefs) {
     this.logger.verbose(
       `Value in recursive method = ${JSON.stringify(parentFeature)}`,
     )
