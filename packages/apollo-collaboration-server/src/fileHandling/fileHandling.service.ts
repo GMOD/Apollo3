@@ -542,15 +542,12 @@ export class FileHandlingService {
           )
           if (val.hasOwnProperty('attributes')) {
             // Let's add apollo_id to parent feature if it doesn't exist
-            const assignedVal: GFF3FeatureLineWithRefs =
-              Object.assign(val) || ''
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            if (!('apollo_id' in assignedVal.attributes!)) {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              assignedVal.attributes!.apollo_id = [uuidv4()]
+            const assignedVal: GFF3FeatureLineWithRefs = Object.assign(val)
+            const attributes = assignedVal.attributes || {}
+            if (!('apollo_id' in attributes)) {
+              attributes.apollo_id = [uuidv4()]
             }
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            assignedVal.attributes = assignedVal.attributes!
+            assignedVal.attributes = attributes
 
             // Check if there is also childFeatures in parent feature and it's not empty
             if (
@@ -600,24 +597,19 @@ export class FileHandlingService {
       ) {
         // There can be several features with same ID so we need to loop
         for (let j = 0; parentFeature.child_features[i].length > j; j++) {
-          if (
-            parentFeature.child_features[i][j] !== null &&
-            parentFeature.child_features[i][j] !== undefined
-          ) {
-            const assignedVal = Object.assign(
-              parentFeature.child_features[i][j],
+          const assignedVal: GFF3FeatureLineWithRefs = Object.assign(
+            parentFeature.child_features[i][j],
+          )
+          const attributes = assignedVal.attributes || {}
+          // Let's add apollo_id if it doesn't exist yet
+          if (!attributes.hasOwnProperty('apollo_id')) {
+            attributes.apollo_id = [uuidv4()]
+            this.logger.verbose(
+              `Apollo_id assigned ${JSON.stringify(assignedVal)}`,
             )
-            // Let's add apollo_id if it doesn't exist yet
-            if (!assignedVal.attributes.hasOwnProperty('apollo_id')) {
-              assignedVal.attributes.apollo_id = uuidv4()
-              this.logger.verbose(
-                `Apollo_id assigned ${JSON.stringify(assignedVal)}`,
-              )
-            }
-            for (const k in assignedVal) {
-              this.setApolloIdRecursively(assignedVal)
-            }
           }
+          assignedVal.attributes = attributes
+          this.setApolloIdRecursively(assignedVal)
         }
       }
     }
