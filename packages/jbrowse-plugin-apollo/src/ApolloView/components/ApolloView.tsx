@@ -20,7 +20,7 @@ const useStyles = makeStyles((theme) => ({
 export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
   const classes = useStyles()
   const { pluginManager } = getEnv(model)
-  const { linearGenomeView, dataStore, setDataStore } = model
+  const { linearGenomeView, setDataStore } = model
   const { ReactComponent } = pluginManager.getViewType(linearGenomeView.type)
 
   function setUpView() {
@@ -32,18 +32,6 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
     if (!newDataStore) {
       throw new Error('No data store')
     }
-    const { backendDriver } = newDataStore
-    // linearGenomeView.staticBlocks.contentBlocks.forEach((block) => {
-    ;[
-      { assemblyName: 'volvox', refName: 'ctgA', start: 0, end: 50000 },
-    ].forEach((block) => {
-      backendDriver?.loadFeatures({
-        assemblyName: block.assemblyName,
-        refName: block.refName,
-        start: block.start,
-        end: block.end,
-      })
-    })
     const session = getSession(model)
     if (!isSessionWithAddTracks(session)) {
       throw new Error('')
@@ -54,24 +42,29 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
       // @ts-ignore
       session.tracks.find((track) => track.trackId === trackId),
     )
-    if (hasTrack) {
-      return
+    if (!hasTrack) {
+      session.addTrackConf({
+        type: 'ApolloTrack',
+        trackId,
+        name: `Apollo Track Volvox`,
+        assemblyNames: ['volvox'],
+        displays: [
+          {
+            type: 'LinearApolloDisplay',
+            displayId: `apollo_track_${linearGenomeView.id}-LinearApolloDisplay`,
+          },
+        ],
+      })
     }
-    session.addTrackConf({
-      type: 'ApolloTrack',
-      trackId,
-      name: `Apollo Track Volvox`,
-      assemblyNames: ['volvox'],
-      displays: [
-        {
-          type: 'LinearApolloDisplay',
-          displayId: `apollo_track_${linearGenomeView.id}-LinearApolloDisplay`,
-        },
-      ],
-    })
+    linearGenomeView.setDisplayedRegions([
+      { assemblyName: 'volvox', refName: 'ctgA', start: 0, end: 50000 },
+    ])
+    linearGenomeView.showTrack(trackId, {}, { height: 300 })
+    linearGenomeView.zoomTo(linearGenomeView.maxBpPerPx)
+    linearGenomeView.center()
   }
 
-  if (!dataStore?.features.size) {
+  if (!linearGenomeView.tracks.length) {
     return (
       <div className={classes.setup}>
         <Button

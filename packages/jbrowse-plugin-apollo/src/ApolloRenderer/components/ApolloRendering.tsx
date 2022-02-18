@@ -16,19 +16,15 @@ interface ApolloRenderingProps {
 
 function ApolloRendering(props: ApolloRenderingProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const { regions, bpPerPx, displayModel, blockKey } = props
+  const { regions, bpPerPx, displayModel } = props
   const [region] = regions
   const totalWidth = (region.end - region.start) / bpPerPx
-  const { featureLayout, featuresForBlock } = displayModel
-  const features = featuresForBlock[blockKey]
+  const { featureLayout } = displayModel
   const height = 20
   const padding = 4
-  const highestRow = Math.max(...Array.from(Object.values(featureLayout)))
+  const highestRow = Math.max(...featureLayout.map((l) => l[0]))
   const totalHeight = highestRow * (height + padding)
   useEffect(() => {
-    if (!features) {
-      return
-    }
     const canvas = canvasRef.current
     if (!canvas) {
       return
@@ -38,8 +34,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
       return
     }
     ctx.clearRect(0, 0, totalWidth, totalHeight)
-    features.forEach((feature) => {
-      const row = featureLayout[feature.id]
+    featureLayout.forEach(([row, feature]) => {
       if (row === undefined) {
         throw new Error('no layout')
       }
@@ -59,7 +54,6 @@ function ApolloRendering(props: ApolloRenderingProps) {
     })
   }, [
     bpPerPx,
-    features,
     region.start,
     totalWidth,
     featureLayout,

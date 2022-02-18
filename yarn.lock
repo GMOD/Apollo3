@@ -11030,6 +11030,7 @@ __metadata:
     apollo-shared: "workspace:^"
     cypress: ^8.7.0
     jest: ^27.3.1
+    mobx: ^5.10.1
     mobx-react: ^7.2.1
     mobx-state-tree: 3.14.1
     npm-run-all: 4.1.5
@@ -11046,6 +11047,7 @@ __metadata:
   peerDependencies:
     "@jbrowse/core": ^1.5.2
     "@material-ui/core": ^4.12.3
+    mobx: ^5.10.1
     mobx-react: ^7.2.1
     mobx-state-tree: 3.14.1
     react: ^17.0.2
@@ -13417,6 +13419,13 @@ __metadata:
   peerDependencies:
     mobx: ">=4.8.0 <5.0.0 || >=5.8.0 <6.0.0"
   checksum: 8e427e76cf8407bbd0f2dac62bec2c293ceab169c6af23bab77a82f76d60ef712222a1d5a3044be14d846297f1ba12d45e8bb89398f408fd198a4c8ba725ef85
+  languageName: node
+  linkType: hard
+
+"mobx@npm:^5.10.1":
+  version: 5.15.7
+  resolution: "mobx@npm:5.15.7"
+  checksum: 46aa00c330a256fdde1c030cf8bab0baebc7fdfb23709884400ac486c318ce650acc336fd8f1e629b5c8680d82051f2aed4737406c4ac6fe1b2d9f3d978c4339
   languageName: node
   linkType: hard
 

@@ -18,7 +18,7 @@ export const ClientDataStore = types
   })
   .actions((self) => ({
     load(features: SnapshotIn<typeof FeaturesForRefName>) {
-      self.features = features
+      self.features = cast(features)
     },
   }))
   .volatile((self) => {
@@ -37,8 +37,11 @@ export function stateModelFactory(pluginManager: PluginManager) {
   return types
     .model('ApolloView', {
       type: types.literal('ApolloView'),
-      linearGenomeView: pluginManager.getViewType('LinearGenomeView')
-        .stateModel as LinearGenomeViewStateModel,
+      linearGenomeView: types.optional(
+        pluginManager.getViewType('LinearGenomeView')
+          .stateModel as LinearGenomeViewStateModel,
+        { type: 'LinearGenomeView' },
+      ),
       dataStore: types.maybe(ClientDataStore),
     })
     .views((self) => ({
