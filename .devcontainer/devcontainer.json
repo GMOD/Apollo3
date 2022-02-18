@@ -33,7 +33,8 @@
     "dbaeumer.vscode-eslint",
     "mtxr.sqltools",
     "mtxr.sqltools-driver-mysql",
-    "arcanis.vscode-zipfs"
+    "arcanis.vscode-zipfs",
+    "eamodio.gitlens",
   ],
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
