@@ -5,21 +5,15 @@ import { Instance } from 'mobx-state-tree'
 const ApolloConfigSchema = ConfigurationSchema(
   'ApolloInternetAccount',
   {
-    authHeader: {
-      description: 'custom auth header for authorization',
+    baseURL: {
+      description: 'Location of Apollo server',
       type: 'string',
-      defaultValue: 'Authorization',
+      defaultValue: '',
     },
-    domains: {
-      description:
-        'array of valid domains the url can contain to use this account. Empty = all domains',
-      type: 'stringArray',
-      defaultValue: [],
-    },
-    authenticationURL: {
-      description: 'Properties for internet account',
+    tokenType: {
+      description: 'A custom name for a token to include in the header',
       type: 'string',
-      defaultValue: 'http://localhost:3999/auth/login',
+      defaultValue: 'Bearer',
     },
   },
   {

@@ -136,6 +136,16 @@
       }
     }
   ],
+  "internetAccounts": [
+    {
+      "type": "ApolloInternetAccount",
+      "internetAccountId": "apolloInternetAccount",
+      "name": "Demo Server",
+      "description": "A server hosting a small fictional organism to demonstrate Apollo capabilities",
+      "domains": ["localhost:3999"],
+      "baseURL": "http://localhost:3999"
+    }
+  ],
   "defaultSession": {
     "name": "Apollo Demo",
     "views": [

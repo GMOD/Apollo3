@@ -9,13 +9,13 @@ import {
 import React, { useState } from 'react'
 
 export const ApolloLoginForm = ({
-  authenticationURL,
+  baseURL,
   internetAccountId,
   handleClose,
 }: {
-  authenticationURL: string
+  baseURL: string
   internetAccountId: string
-  handleClose: (arg?: string) => void
+  handleClose: (token?: string | Error) => void
 }) => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -23,7 +23,7 @@ export const ApolloLoginForm = ({
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (username && password) {
-      const res = await fetch(authenticationURL.toString(), {
+      const res = await fetch(new URL('/auth/login', baseURL).href, {
         method: 'POST',
         body: JSON.stringify({ username, password }),
         headers: { 'Content-Type': 'application/json' },
@@ -34,7 +34,7 @@ export const ApolloLoginForm = ({
         const responseToken = data.token
         handleClose(responseToken)
       } else {
-        alert('Authentication failed')
+        handleClose(new Error('Authentication failed'))
       }
     } else {
       handleClose()

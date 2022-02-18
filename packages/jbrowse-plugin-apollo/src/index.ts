@@ -7,22 +7,12 @@ import {
 } from '@jbrowse/core/pluggableElementTypes/models'
 import TrackType from '@jbrowse/core/pluggableElementTypes/TrackType'
 import ViewType from '@jbrowse/core/pluggableElementTypes/ViewType'
-import WidgetType from '@jbrowse/core/pluggableElementTypes/WidgetType'
 import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
-import {
-  AbstractSessionModel,
-  SessionWithWidgets,
-  isAbstractMenuManager,
-} from '@jbrowse/core/util'
+import { AbstractSessionModel, isAbstractMenuManager } from '@jbrowse/core/util'
 import { LocationEndChange, changeRegistry } from 'apollo-shared'
 
 import { version } from '../package.json'
-import {
-  ReactComponent as ApolloAuthWidgetReactComponent,
-  configSchema as apolloAuthWidgetConfigSchema,
-  stateModel as apolloAuthWidgetStateModel,
-} from './ApolloAuthWidget'
 import {
   configSchema as apolloInternetAccountConfigSchema,
   modelFactory as apolloInternetAccountModelFactory,
@@ -76,16 +66,6 @@ export default class ApolloPlugin extends Plugin {
       })
     })
 
-    pluginManager.addWidgetType(() => {
-      return new WidgetType({
-        name: 'ApolloAuthWidget',
-        heading: 'Auth',
-        configSchema: apolloAuthWidgetConfigSchema,
-        ReactComponent: ApolloAuthWidgetReactComponent,
-        stateModel: apolloAuthWidgetStateModel,
-      })
-    })
-
     pluginManager.addInternetAccountType(() => {
       return new InternetAccountType({
         name: 'ApolloInternetAccount',
@@ -133,18 +113,6 @@ export default class ApolloPlugin extends Plugin {
           session.addView('ApolloView', {
             linearGenomeView: { type: 'LinearGenomeView' },
           })
-        },
-      })
-    }
-    if (isAbstractMenuManager(pluginManager.rootModel)) {
-      pluginManager.rootModel.appendToMenu('Auth', {
-        label: 'Open Apollo Auth',
-        onClick: (session: SessionWithWidgets) => {
-          const authWidget = session.addWidget(
-            'ApolloAuthWidget',
-            'apolloAuthWidget',
-          )
-          session.showWidget(authWidget)
         },
       })
     }
