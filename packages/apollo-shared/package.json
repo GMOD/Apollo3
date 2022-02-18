@@ -21,6 +21,7 @@
     "fs.promises": "^0.1.2",
     "mobx-state-tree": "3.14.1",
     "path": "^0.12.7",
+    "promise-fs": "^2.1.1",
     "regenerator-runtime": "^0.13.9",
     "rxjs": "^6.0.0",
     "tsconfig-paths": "^3.12.0",
@@ -28,6 +29,7 @@
   },
   "devDependencies": {
     "@types/cache-manager": "^3",
+    "@types/promise-fs": "^2",
     "typescript": "4.4.4"
   },
   "peerDependencies": {
