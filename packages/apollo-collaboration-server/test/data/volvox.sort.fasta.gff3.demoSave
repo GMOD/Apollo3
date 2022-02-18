@@ -1,0 +1,38 @@
+# Note: See http://song.sourceforge.net
+# multi-exon gene - several linked CDSs
+# single exon gene - one CDS only
+##gff-version 3
+ctgA	example	match	5233	5302	.	-	.	Name=seg04;apollo_id=292fb50b-6bb3-492c-aa15-3974e25eb3b3
+ctgA	example	match	5800	6101	.	-	.	Name=seg04;apollo_id=00c01d0a-83f4-44a6-824a-2d30f4be97b0
+ctgA	example	match	6442	6854	.	-	.	Name=seg04;apollo_id=b861e992-2d4d-4082-8373-a807e3ea5aef
+ctgA	example	match	6885	7241	.	-	.	Name=seg03;apollo_id=a2886a51-fa20-428b-8c3c-f86bcc5de13c
+ctgA	example	BAC	1000	20000	.	.	.	ID=b101.2;Name=b101.2;Note=Fingerprinted BAC with end reads;apollo_id=7a622f37-e2f7-4aaa-87a9-368cd2aad49f
+ctgA	example	clone_start	1000	1500	.	+	.	Parent=b101.2;apollo_id=7d28f482-0ce8-4fdd-b9b3-80e393ed0c92
+ctgA	example	clone_end	19500	20000	.	-	.	Parent=b101.2;apollo_id=ea3d074d-87c2-4ea3-bd9f-126c07cf58b0
+ctgA	example	gene	1050	9000	.	+	.	ID=EDEN;Name=EDEN;Note=protein kinase;apollo_id=2c00cfd2-38b4-4173-afd0-d473790760a6
+ctgA	example	mRNA	1050	9000	.	+	.	ID=EDEN.1;Parent=EDEN;Name=EDEN.1;Note=Eden splice form 1;Index=1;apollo_id=540fe69a-4d6d-4018-b96b-6e1a758864d2
+ctgA	example	five_prime_UTR	1050	1200	.	+	.	Parent=EDEN.1;apollo_id=cd17c8ef-cc12-4048-9b57-99e94291bc32
+ctgA	example	CDS	1201	1500	.	+	0	Parent=EDEN.1;apollo_id=6d1a7742-f783-4dc2-8ffd-06e11d2e09ec
+ctgA	example	CDS	3000	3902	.	+	0	Parent=EDEN.1;apollo_id=4fedf6df-a84a-4f4b-adf2-08d75cbc4908
+ctgA	example	CDS	5000	5500	.	+	0	Parent=EDEN.1;apollo_id=0562d3d1-d7f6-4ad5-9088-dcacb2a6d3bb
+ctgA	example	CDS	7000	7608	.	+	0	Parent=EDEN.1;apollo_id=f8f1a6e6-645f-4a56-8752-a4447327d430
+ctgA	example	three_prime_UTR	7609	9000	.	+	.	Parent=EDEN.1;apollo_id=8019d8a1-4f4c-4728-a303-f79a33e19f78
+ctgA	example	mRNA	1050	9000	.	+	.	ID=EDEN.2;Parent=EDEN;Name=EDEN.2;Note=Eden splice form 2;Index=1;apollo_id=bff6e453-a8ab-4ac3-9f10-63d66094738b
+ctgA	example	five_prime_UTR	1050	1200	.	+	.	Parent=EDEN.2;apollo_id=0bb3f707-c807-407c-847e-6ab82da532d1
+ctgA	example	CDS	1201	1500	.	+	0	Parent=EDEN.2;apollo_id=2e4ef85a-33c9-4b96-af04-07b05c340a77
+ctgA	example	CDS	5000	5500	.	+	0	Parent=EDEN.2;apollo_id=9ce0beb4-7f93-4d39-ba54-7a39cc2a6e0c
+ctgA	example	CDS	7000	7608	.	+	0	Parent=EDEN.2;apollo_id=a4a13001-cb54-425b-b2fe-6c0c8cfd191f
+ctgA	example	three_prime_UTR	7609	9000	.	+	.	Parent=EDEN.2;apollo_id=5bf64f2e-d672-4199-9979-a57ecdde1ce3
+ctgA	example	mRNA	1300	9000	.	+	.	ID=EDEN.3;Parent=EDEN;Name=EDEN.3;Note=Eden splice form 3;Index=1;apollo_id=a396ec9d-2fb3-426f-9a8c-444596b56088
+ctgA	example	five_prime_UTR	1300	1500	.	+	.	Parent=EDEN.3;apollo_id=ba333171-378b-404d-b37f-7db00c729871
+ctgA	example	five_prime_UTR	3000	4789	.	+	.	Parent=EDEN.3;apollo_id=282f01b8-59e8-4595-83d9-751e0f1708c2
+ctgA	example	CDS	3301	3902	.	+	0	Parent=EDEN.3;apollo_id=3fac812e-77d4-41c7-b66f-6a29b8069734
+ctgA	example	CDS	5000	5500	.	+	1	Parent=EDEN.3;apollo_id=ccb736f1-de8f-4f70-bd27-748ef2eb54d3
+ctgA	example	CDS	7000	7600	.	+	1	Parent=EDEN.3;apollo_id=293c8b5b-6311-4677-91c2-bd16db0bfb7a
+ctgA	example	three_prime_UTR	7601	9000	.	+	.	Parent=EDEN.3;apollo_id=2171110c-ecf5-4110-ac48-31d6790aeb00
+##FASTA
+>ctgA the main contig
+cattgttgcggagtt
+##FASTA
+>ctgB
+ACATGCTAGCTACGT
