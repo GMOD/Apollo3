@@ -41,8 +41,13 @@ export class LocationEndChange extends Change {
     }
   }
 
-  applyToLocalGFF3(backend: LocalGFF3DataStore) {
-    throw new Error('Not implemented yet')
+  async applyToLocalGFF3(backend: LocalGFF3DataStore) {
+    // this.logger.debug(`0 Starting applyToLocalGFF3...`)
+    // this.logger.debug(`Change request=${backend}`)
+    //       this.logger.debug(`1 Starting applyToLocalGFF3...`)
+    const change = LocationEndChange.fromJSON(backend.serializedChange)
+    const value1 = await backend.cacheManager.get('0')
+    throw new Error(`backend=${backend.typeName}, change=${JSON.stringify(change)}, value1=${value1}`)
   }
 
   applyToClient(dataStore: ClientDataStore) {

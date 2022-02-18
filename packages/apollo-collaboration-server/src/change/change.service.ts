@@ -24,18 +24,6 @@ import { ChangeObjectTmp } from '../entity/gff3Object.dto'
 export class ChangeService {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
   private readonly logger = new Logger(ChangeService.name)
-
-  async changeLocationEnd(serializedChange: LocalGFF3DataStore, change: any) {
-    // **** TODO: UPDATE ALL CHANGES - NOW UPDATING ONLY THE FIRST CHANGE IN 'CHANGES' -ARRAY ****//
-    this.logger.debug(`Change request=${JSON.stringify(serializedChange)}`)
-    let cacheValue: string | undefined = ''
-    const nberOfEntries = await this.cacheManager.store.keys?.()
-    await nberOfEntries.sort((n1: number, n2: number) => n1 - n2) 
-
-    this.logger.debug('Start calling change.applyToLocalGFF3...')
-    await change.applyToLocalGFF3(serializedChange)
-    this.logger.debug('Returned from change.applyToLocalGFF3')
-  }
   
   /**
    * Update location end value in cache and write full new cache to file

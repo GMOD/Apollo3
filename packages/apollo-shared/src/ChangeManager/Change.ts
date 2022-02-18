@@ -3,6 +3,7 @@ import { Instance, SnapshotIn } from 'mobx-state-tree'
 import { FeaturesForRefName } from '../BackendDrivers/AnnotationFeature'
 import { BackendDriver } from '../BackendDrivers/BackendDriver'
 import { changeRegistry } from './ChangeTypes'
+import { Cache } from 'cache-manager'
 
 export interface ClientDataStore {
   typeName: 'Client'
@@ -12,6 +13,8 @@ export interface ClientDataStore {
 }
 export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'
+  serializedChange: SerializedChange
+  cacheManager: Cache
 }
 
 export interface SerializedChange extends Record<string, unknown> {
