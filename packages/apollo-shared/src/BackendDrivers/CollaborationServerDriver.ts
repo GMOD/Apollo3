@@ -40,7 +40,7 @@ export class CollaborationServerDriver extends BackendDriver {
         featuresForRegion[featureId] = feature
       }
     })
-    return { [refName]: featuresForRefName }
+    return { [refName]: featuresForRegion }
   }
 
   async getSequence(region: Region) {
