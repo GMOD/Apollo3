@@ -135,15 +135,5 @@
         }
       }
     }
-  ],
-  "internetAccounts": [
-    {
-      "type": "ApolloInternetAccount",
-      "internetAccountId": "apolloInternetAccount",
-      "name": "apollo",
-      "description": "For apollo",
-      "domains": [],
-      "authenticationURL": "http://localhost:3999/auth/login"
-    }
   ]
 }
