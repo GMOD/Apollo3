@@ -1,12 +1,7 @@
 import { getSession, isSessionWithAddTracks } from '@jbrowse/core/util'
-import { Button, Paper, Typography, makeStyles } from '@material-ui/core'
-import {
-  AnnotationFeature,
-  CollaborationServerDriver,
-  LocationEndChange,
-} from 'apollo-shared'
+import { Button, makeStyles } from '@material-ui/core'
 import { observer } from 'mobx-react'
-import { getEnv, resolveIdentifier } from 'mobx-state-tree'
+import { getEnv } from 'mobx-state-tree'
 import React from 'react'
 
 import { ApolloViewModel } from '../stateModel'
@@ -37,12 +32,12 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
     if (!newDataStore) {
       throw new Error('No data store')
     }
-    const backendDriver = new CollaborationServerDriver(newDataStore)
+    const { backendDriver } = newDataStore
     // linearGenomeView.staticBlocks.contentBlocks.forEach((block) => {
     ;[
       { assemblyName: 'volvox', refName: 'ctgA', start: 0, end: 50000 },
     ].forEach((block) => {
-      backendDriver.loadFeatures({
+      backendDriver?.loadFeatures({
         assemblyName: block.assemblyName,
         refName: block.refName,
         start: block.start,
@@ -91,59 +86,5 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
     )
   }
 
-  const featureId = '428763278'
-  const feature = resolveIdentifier(
-    AnnotationFeature,
-    dataStore.features,
-    featureId,
-  )
-  if (!feature) {
-    throw new Error(`Could not find feature with id "${featureId}"`)
-  }
-
-  return (
-    <>
-      <ReactComponent key={linearGenomeView.id} model={linearGenomeView} />
-
-      <Paper variant="outlined" style={{ padding: 4 }}>
-        <Typography>
-          Feature {featureId} starts at {feature.location.start} and ends at{' '}
-          {feature.location.end}.
-        </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          style={{ marginRight: 4 }}
-          onClick={() => {
-            const oldEnd = feature.location.end
-            const newEnd = oldEnd - 100
-            const change = new LocationEndChange({
-              typeName: 'LocationEndChange',
-              changedIds: [featureId],
-              changes: [{ featureId, oldEnd, newEnd }],
-            })
-            dataStore?.changeManager.submit(change)
-          }}
-        >
-          Decrease end by 100
-        </Button>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => {
-            const oldEnd = feature.location.end
-            const newEnd = oldEnd + 100
-            const change = new LocationEndChange({
-              typeName: 'LocationEndChange',
-              changedIds: [featureId],
-              changes: [{ featureId, oldEnd, newEnd }],
-            })
-            dataStore?.changeManager.submit(change)
-          }}
-        >
-          Increase end by 100
-        </Button>
-      </Paper>
-    </>
-  )
+  return <ReactComponent key={linearGenomeView.id} model={linearGenomeView} />
 })
