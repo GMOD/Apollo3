@@ -26,7 +26,7 @@ async function bootstrap() {
   const loggerOpions = JSON.parse(LOGGER_OPTIONS)
   const app = await NestFactory.create(AppModule, {
     logger: loggerOpions,
-    cors: cors,
+    cors,
   })
   await app.listen(APPLICATION_PORT)
   // eslint-disable-next-line no-console
