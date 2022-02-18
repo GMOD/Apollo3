@@ -1,29 +1,32 @@
-import { getSession, isSessionWithAddTracks } from '@jbrowse/core/util'
-import { Button, makeStyles } from '@material-ui/core'
+import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import {
+  AppRootModel,
+  getSession,
+  isSessionWithAddTracks,
+} from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
-import { getEnv } from 'mobx-state-tree'
-import React from 'react'
+import { getEnv, getRoot } from 'mobx-state-tree'
+import React, { useEffect, useState } from 'react'
 
 import { ApolloViewModel } from '../stateModel'
-
-const useStyles = makeStyles((theme) => ({
-  setup: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  button: {
-    margin: theme.spacing(4),
-  },
-}))
+import { CollaborationSetup } from './CollaborationSetup'
+import { Welcome } from './Welcome'
 
 export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
-  const classes = useStyles()
+  const [error, setError] = useState<Error>()
+  const [editorType, setEditorType] = useState<'local' | 'collaboration'>()
+  const [assembly, setAssembly] = useState<Assembly>()
   const { pluginManager } = getEnv(model)
-  const { linearGenomeView, setDataStore } = model
+  const { internetAccounts } = getRoot(model) as AppRootModel
+  const { linearGenomeView, dataStore, setDataStore } = model
   const { ReactComponent } = pluginManager.getViewType(linearGenomeView.type)
 
-  function setUpView() {
+  const regions = assembly && assembly.regions
+  useEffect(() => {
+    if (!regions) {
+      return
+    }
+    const [firstRef] = regions
     const newDataStore = setDataStore({
       typeName: 'Client',
       features: {},
@@ -46,8 +49,8 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
       session.addTrackConf({
         type: 'ApolloTrack',
         trackId,
-        name: `Apollo Track Volvox`,
-        assemblyNames: ['volvox'],
+        name: `Apollo Track ${assembly.name}`,
+        assemblyNames: [firstRef.assemblyName],
         displays: [
           {
             type: 'LinearApolloDisplay',
@@ -56,27 +59,31 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
         ],
       })
     }
-    linearGenomeView.setDisplayedRegions([
-      { assemblyName: 'volvox', refName: 'ctgA', start: 0, end: 50000 },
-    ])
+    linearGenomeView.setDisplayedRegions([firstRef])
     linearGenomeView.showTrack(trackId, {}, { height: 300 })
     linearGenomeView.zoomTo(linearGenomeView.maxBpPerPx)
     linearGenomeView.center()
+  }, [regions, model, assembly?.name, linearGenomeView, setDataStore])
+
+  if (error) {
+    return <div>{String(error)}</div>
   }
 
-  if (!linearGenomeView.tracks.length) {
-    return (
-      <div className={classes.setup}>
-        <Button
-          className={classes.button}
-          color="primary"
-          variant="contained"
-          onClick={setUpView}
-        >
-          Load Volvox GFF3
-        </Button>
-      </div>
-    )
+  if (!dataStore) {
+    if (!editorType) {
+      return <Welcome setEditorType={setEditorType} />
+    }
+
+    if (editorType === 'collaboration') {
+      return (
+        <CollaborationSetup
+          internetAccounts={internetAccounts}
+          setAssembly={setAssembly}
+          setError={setError}
+          viewModel={model}
+        />
+      )
+    }
   }
 
   return <ReactComponent key={linearGenomeView.id} model={linearGenomeView} />

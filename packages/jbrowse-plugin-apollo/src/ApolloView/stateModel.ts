@@ -43,6 +43,7 @@ export function stateModelFactory(pluginManager: PluginManager) {
         { type: 'LinearGenomeView' },
       ),
       dataStore: types.maybe(ClientDataStore),
+      displayName: 'Apollo',
     })
     .views((self) => ({
       get width() {
@@ -56,6 +57,9 @@ export function stateModelFactory(pluginManager: PluginManager) {
       setDataStore(dataStore: SnapshotIn<typeof ClientDataStore>) {
         self.dataStore = cast(dataStore)
         return self.dataStore
+      },
+      setDisplayName(displayName: string) {
+        self.displayName = displayName
       },
     }))
 }
