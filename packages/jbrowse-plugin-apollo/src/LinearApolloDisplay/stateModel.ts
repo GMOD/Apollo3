@@ -28,6 +28,10 @@ export function stateModelFactory(
         configuration: ConfigurationReference(configSchema),
       }),
     )
+    .volatile(() => ({
+      apolloFeatureUnderMouse: undefined as AnnotationFeatureI | undefined,
+      apolloRowUnderMouse: undefined as number | undefined,
+    }))
     .views((self) => {
       const { renderProps: superRenderProps } = self
       return {
@@ -73,6 +77,12 @@ export function stateModelFactory(
           }),
         )
       },
+      setApolloFeatureUnderMouse(feature?: AnnotationFeatureI) {
+        self.apolloFeatureUnderMouse = feature
+      },
+      setApolloRowUnderMouse(row?: number) {
+        self.apolloRowUnderMouse = row
+      },
     }))
     .views((self) => ({
       get rendererTypeName() {
@@ -88,69 +98,74 @@ export function stateModelFactory(
         return dataStore.features
       },
       get featureLayout() {
-        const featureLayout: [number, AnnotationFeatureI][] = []
+        const featureLayout: Map<number, AnnotationFeatureI[]> = new Map()
         for (const featuresForRefName of this.features.values()) {
           if (featuresForRefName) {
             let min: number
             let max: number
             const rows: boolean[][] = []
-            ;(
-              Array.from(featuresForRefName.values()) as AnnotationFeatureI[]
-            ).forEach((feature) => {
-              if (min === undefined) {
-                min = feature.location.start
-              }
-              if (max === undefined) {
-                max = feature.location.end
-              }
-              if (feature.location.start < min) {
-                rows.forEach((row) => {
-                  row.unshift(...new Array(min - feature.location.start))
-                })
-                min = feature.location.start
-              }
-              if (feature.location.end > max) {
-                rows.forEach((row) => {
-                  row.push(...new Array(feature.location.end - max))
-                })
-                max = feature.location.end
-              }
-              let rowNumber = 0
-              let placed = false
-              while (!placed) {
-                let row = rows[rowNumber]
-                if (!row) {
-                  rows[rowNumber] = new Array(max - min)
-                  row = rows[rowNumber]
-                  row.fill(
-                    true,
-                    feature.location.start - min,
-                    feature.location.end - min,
-                  )
-                  featureLayout.push([rowNumber, feature])
-                  placed = true
-                } else {
-                  if (
-                    row
-                      .slice(
-                        feature.location.start - min,
-                        feature.location.end - min,
-                      )
-                      .some(Boolean)
-                  ) {
-                    rowNumber += 1
-                  } else {
+            ;(Array.from(featuresForRefName.values()) as AnnotationFeatureI[])
+              .sort((f1, f2) => {
+                const { start: start1, end: end1 } = f1.location
+                const { start: start2, end: end2 } = f2.location
+                return start1 - start2 || end1 - end2
+              })
+              .forEach((feature) => {
+                if (min === undefined) {
+                  min = feature.location.start
+                }
+                if (max === undefined) {
+                  max = feature.location.end
+                }
+                if (feature.location.start < min) {
+                  rows.forEach((row) => {
+                    row.unshift(...new Array(min - feature.location.start))
+                  })
+                  min = feature.location.start
+                }
+                if (feature.location.end > max) {
+                  rows.forEach((row) => {
+                    row.push(...new Array(feature.location.end - max))
+                  })
+                  max = feature.location.end
+                }
+                let rowNumber = 0
+                let placed = false
+                while (!placed) {
+                  let row = rows[rowNumber]
+                  if (!row) {
+                    rows[rowNumber] = new Array(max - min)
+                    row = rows[rowNumber]
                     row.fill(
                       true,
                       feature.location.start - min,
                       feature.location.end - min,
                     )
-                    featureLayout.push([rowNumber, feature])
+                    featureLayout.set(rowNumber, [feature])
                     placed = true
+                  } else {
+                    if (
+                      row
+                        .slice(
+                          feature.location.start - min,
+                          feature.location.end - min,
+                        )
+                        .some(Boolean)
+                    ) {
+                      rowNumber += 1
+                    } else {
+                      row.fill(
+                        true,
+                        feature.location.start - min,
+                        feature.location.end - min,
+                      )
+                      const layoutRow = featureLayout.get(rowNumber)
+                      layoutRow?.push(feature)
+                      placed = true
+                    }
                   }
                 }
-              }
-            })
+              })
           }
         }
         return featureLayout

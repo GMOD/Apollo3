@@ -30,6 +30,7 @@ import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
 } from './LinearApolloDisplay'
+import { makeDisplayComponent } from './makeDisplayComponent'
 
 changeRegistry.registerChange('LocationEndChange', LocationEndChange)
 
@@ -75,12 +76,10 @@ export default class ApolloPlugin extends Plugin {
         ),
       })
     })
-    const LGVPlugin = pluginManager.getPlugin(
-      'LinearGenomeViewPlugin',
-    ) as import('@jbrowse/plugin-linear-genome-view').default
-    const { BaseLinearDisplayComponent } = LGVPlugin.exports
+
     pluginManager.addDisplayType(() => {
       const configSchema = linearApolloDisplayConfigSchemaFactory(pluginManager)
+      const DisplayComponent = makeDisplayComponent(pluginManager)
       return new DisplayType({
         name: 'LinearApolloDisplay',
         configSchema,
@@ -90,7 +89,7 @@ export default class ApolloPlugin extends Plugin {
         ),
         trackType: 'ApolloTrack',
         viewType: 'LinearGenomeView',
-        ReactComponent: BaseLinearDisplayComponent,
+        ReactComponent: DisplayComponent,
       })
     })
 
@@ -107,12 +106,11 @@ export default class ApolloPlugin extends Plugin {
 
   configure(pluginManager: PluginManager) {
     if (isAbstractMenuManager(pluginManager.rootModel)) {
-      pluginManager.rootModel.appendToMenu('Add', {
-        label: 'Apollo View',
+      pluginManager.rootModel.insertMenu('Apollo', -1)
+      pluginManager.rootModel.appendToMenu('Apollo', {
+        label: 'Add Apollo View',
         onClick: (session: AbstractSessionModel) => {
-          session.addView('ApolloView', {
-            linearGenomeView: { type: 'LinearGenomeView' },
-          })
+          session.addView('ApolloView', {})
         },
       })
     }
