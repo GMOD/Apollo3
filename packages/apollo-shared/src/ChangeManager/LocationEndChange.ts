@@ -1,5 +1,4 @@
 import * as fs from 'fs/promises'
-// import * as fs from 'fs'
 import { join } from 'path'
 
 import gff from '@gmod/gff'
