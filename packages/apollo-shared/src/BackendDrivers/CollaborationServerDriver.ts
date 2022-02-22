@@ -1,46 +1,38 @@
-import gff3, { GFF3FeatureLineWithRefs, GFF3Item } from '@gmod/gff'
-import { Region, doesIntersect2 } from '@jbrowse/core/util'
+import { GFF3FeatureLineWithRefs, GFF3Item } from '@gmod/gff'
+import { Region } from '@jbrowse/core/util'
 import { SnapshotIn } from 'mobx-state-tree'
 
 import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
 import { Change } from '../ChangeManager/Change'
 import { ValidationResultSet } from '../Validations/ValidationSet'
 import { BackendDriver } from './BackendDriver'
-import gff3File from './volvoxGff3'
-
-const volvoxGFF3Contents = gff3.parseStringSync(gff3File, {
-  parseAll: true,
-})
 
 export class CollaborationServerDriver extends BackendDriver {
-  private allFeatures = makeFeatures(volvoxGFF3Contents, 'volvox')
-
+  /**
+   * Call backend endpoint to get features by criteria
+   * @param region -  Searchable region containing refName, start and end
+   * @returns
+   */
   async getFeatures(region: Region) {
-    const { refName } = region
-    const featuresForRefName = this.allFeatures[refName]
-    if (!featuresForRefName) {
-      return { [refName]: {} }
-    }
-    const featuresForRegion: Record<
-      string,
-      SnapshotIn<typeof AnnotationFeature> | undefined
-    > = {}
-    Object.entries(featuresForRefName).forEach(([featureId, feature]) => {
-      if (!feature) {
-        return
-      }
-      if (
-        doesIntersect2(
-          region.start,
-          region.end,
-          feature.location.start,
-          feature.location.end,
-        )
-      ) {
-        featuresForRegion[featureId] = feature
-      }
-    })
-    return { [refName]: featuresForRegion }
+    const { refName, start, end } = region
+
+    // console.log(`In CollaborationServerDriver: Query parameters: refName=${refName}, start=${start}, end=${end}`)
+    const url = new URL(
+      'http://localhost:3999/filehandling/getFeaturesByCriteria',
+    )
+    const paramsString = `seq_id=${refName}&start=${start}&end=${end}`
+    const searchParams = new URLSearchParams(paramsString)
+    url.search = searchParams.toString()
+
+    const result = await fetch(url.toString())
+    const data = (await result.json()) as GFF3Item[]
+    // const backendResult = JSON.stringify(data)
+    // console.log(
+    //   `In CollaborationServerDriver: Backend endpoint returned=${backendResult}`,
+    // )
+    const allFeatures = makeFeatures(data, 'volvox')
+
+    return { [refName]: allFeatures[refName] }
   }
 
   async getSequence(region: Region) {
@@ -49,7 +41,8 @@ export class CollaborationServerDriver extends BackendDriver {
   }
 
   async getRefNames() {
-    return Array.from(Object.keys(this.allFeatures))
+    throw new Error('getRefNames not yet implemented')
+    return []
   }
 
   async submitChange(change: Change) {

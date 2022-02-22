@@ -108,7 +108,7 @@ export class FileHandlingController {
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
    * or if search data was not found or in case of error throw exception
    */
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get('/getFeaturesByCriteria')
   getFeaturesByCriteria(@Req() request: Request) {
     this.logger.debug(
