@@ -11,10 +11,10 @@ import {
   LocationEndChange,
   SerializedChange,
   changeRegistry,
+  LocalGFF3DataStore,
 } from 'apollo-shared'
 import { Cache } from 'cache-manager'
 
-import { LocalGFF3DataStore } from '../../../apollo-shared'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { ChangeService } from './change.service'
 
