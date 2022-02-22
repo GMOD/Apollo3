@@ -37,22 +37,25 @@ export class ChangeController {
   //   @UseGuards(JwtAuthGuard)
   @Post('/submitchange')
   async submitChange(@Body() serializedChange: SerializedChange) {
-    // const nberOfEntries = await this.cacheManager.store.keys?.()
-    // // // Loop cache
-    // // for (const keyInd of nberOfEntries) {
-    // //   this.logger.debug(`ARVO is ${value1}`)
-    // //   cacheValue = await this.cacheManager.get(keyInd)
-    // // }
-
-    // const value1 = await this.cacheManager.get('0')
-    // this.logger.debug(`ARVO is ${value1}`)
-    // this.logger.debug(`Cache size is ${nberOfEntries}`)
+    // Get environment variable values and pass those as parameter to applyToLocalGFF3 -method
+    const { FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE } = process.env
+    if (!FILE_SEARCH_FOLDER) {
+      throw new Error('No FILE_SEARCH_FOLDER found in .env file')
+    }
+    if (!GFF3_DEFAULT_FILENAME_TO_SAVE) {
+      throw new Error('No GFF3_DEFAULT_FILENAME_TO_SAVE found in .env file')
+    }
+    const envMap = new Map<string, string>()
+    envMap.set('FILE_SEARCH_FOLDER', FILE_SEARCH_FOLDER)
+    envMap.set('GFF3_DEFAULT_FILENAME_TO_SAVE', GFF3_DEFAULT_FILENAME_TO_SAVE)
+    
     const change = LocationEndChange.fromJSON(serializedChange)
-    this.logger.debug(`change=${JSON.stringify(change)}`)
+    this.logger.debug(`Requested change=${JSON.stringify(change)}`)
     const param1: LocalGFF3DataStore = {
       typeName: 'LocalGFF3',
       serializedChange: serializedChange,
       cacheManager: this.cacheManager,
+      envMap: envMap,
     }
     this.logger.debug('Start calling change.applyToLocalGFF3...')
     await change.applyToLocalGFF3(param1)

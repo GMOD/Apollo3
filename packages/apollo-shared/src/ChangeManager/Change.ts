@@ -15,6 +15,7 @@ export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'
   serializedChange: SerializedChange
   cacheManager: Cache
+  envMap: Map<string, string>
 }
 
 export interface SerializedChange extends Record<string, unknown> {

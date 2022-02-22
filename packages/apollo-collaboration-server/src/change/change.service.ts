@@ -13,10 +13,10 @@ import { Cache } from 'cache-manager'
 
 import {
   Change,
+  LocalGFF3DataStore,
   LocationEndChange,
   SerializedChange,
   changeRegistry,
-  LocalGFF3DataStore,
 } from '../../../apollo-shared'
 import { ChangeObjectTmp } from '../entity/gff3Object.dto'
 
@@ -24,18 +24,20 @@ import { ChangeObjectTmp } from '../entity/gff3Object.dto'
 export class ChangeService {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
   private readonly logger = new Logger(ChangeService.name)
-  
+
   /**
    * Update location end value in cache and write full new cache to file
    * @param serializedChange Change object containing information about the requested change
    * @returns
    */
-  async changeLocationEnd_Original(serializedChange: ChangeObjectTmp): Promise<string> {
+  async changeLocationEndOriginal(
+    serializedChange: ChangeObjectTmp,
+  ): Promise<string> {
     // **** TODO: UPDATE ALL CHANGES - NOW UPDATING ONLY THE FIRST CHANGE IN 'CHANGES' -ARRAY ****//
     this.logger.debug(`Change request=${JSON.stringify(serializedChange)}`)
     let cacheValue: string | undefined = ''
     const nberOfEntries = await this.cacheManager.store.keys?.()
-    await nberOfEntries.sort((n1: number, n2: number) => n1 - n2) 
+    await nberOfEntries.sort((n1: number, n2: number) => n1 - n2)
     const { featureId } = serializedChange.changes[0]
     const { oldEnd } = serializedChange.changes[0]
     const { newEnd } = serializedChange.changes[0]

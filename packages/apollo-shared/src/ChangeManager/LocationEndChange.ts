@@ -1,6 +1,7 @@
-// import * as fs from 'fs'
-// import { join } from 'path'
 import * as fs from 'fs/promises'
+// import * as fs from 'fs'
+import { join } from 'path'
+
 import gff from '@gmod/gff'
 import { Cache } from 'cache-manager'
 import { resolveIdentifier } from 'mobx-state-tree'
@@ -46,18 +47,26 @@ export class LocationEndChange extends Change {
     }
   }
 
+  /**
+   * Applies the required change to cache and overwrites GFF3 file on the server
+   * @param backend
+   * @returns
+   */
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
-    const change = LocationEndChange.fromJSON(backend.serializedChange)
+    // const change = LocationEndChange.fromJSON(backend.serializedChange)
+
+    if (!backend.envMap.has('FILE_SEARCH_FOLDER')) {
+      throw new Error('No FILE_SEARCH_FOLDER found in Map!')
+    }
+    if (!backend.envMap.has('GFF3_DEFAULT_FILENAME_TO_SAVE')) {
+      throw new Error('No GFF3_DEFAULT_FILENAME_TO_SAVE found in Map!')
+    }
 
     // To get rid of 'unknown'
     const newObject = JSON.parse(
       JSON.stringify(backend.serializedChange.changes),
     )
-    const keyArray = Object.keys(newObject[0])
-
-    // throw new Error(
-    //   `newObject=${JSON.stringify(newObject)}, tmp3=${newObject[0].hasOwnProperty('featureId')}, keyarray=${keyArray}, featureId=${newObject[0].featureId}, oldEnd=${newObject[0].oldEnd}`,
-    // )
+    // const keyArray = Object.keys(newObject[0])
 
     // **** TODO: UPDATE ALL CHANGES - NOW UPDATING ONLY THE FIRST CHANGE IN 'CHANGES' -ARRAY ****//
     // this.logger.debug(`Change request=${JSON.stringify(serializedChange)}`)
@@ -68,10 +77,6 @@ export class LocationEndChange extends Change {
     const { oldEnd } = newObject[0]
     const { newEnd } = newObject[0]
     const searchApolloIdStr = `"apollo_id":["${featureId}"]`
-
-    //     throw new Error(
-    //   `newObject=${JSON.stringify(newObject)}, featureId=${featureId}, oldEnd=${oldEnd} and newEnd=${newEnd}`,
-    // )
 
     // Loop the cache content
     for (const keyInd of nberOfEntries) {
@@ -127,21 +132,17 @@ export class LocationEndChange extends Change {
       }
     }
 
-    // const { FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE } = process.env
-    const FILE_SEARCH_FOLDER = './test/data'
-    const GFF3_DEFAULT_FILENAME_TO_SAVE  = 'volvox.sort.fasta.gff3.demoSave'
-    // if (!FILE_SEARCH_FOLDER) {
-    //   throw new Error('No FILE_SEARCH_FOLDER found in .env file')
-    // }
-    // if (!GFF3_DEFAULT_FILENAME_TO_SAVE) {
-    //   throw new Error('No GFF3_DEFAULT_FILENAME_TO_SAVE found in .env file')
-    // }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const FILE_SEARCH_FOLDER = backend.envMap.get('FILE_SEARCH_FOLDER')!
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const GFF3_DEFAULT_FILENAME_TO_SAVE = backend.envMap.get(
+      'GFF3_DEFAULT_FILENAME_TO_SAVE',
+    )!
     // Replace old file
-    await fs.writeFile(FILE_SEARCH_FOLDER + '/' + GFF3_DEFAULT_FILENAME_TO_SAVE, '' )
-    // await fs.writeFile(
-    //   join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
-    //   '',
-    // )
+    await fs.writeFile(
+      join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
+      '',
+    )
     // Loop the updated cache and write it into file
     for (const keyInd of nberOfEntries) {
       cacheValue = await backend.cacheManager.get(keyInd.toString())
@@ -150,11 +151,10 @@ export class LocationEndChange extends Change {
       }
       // this.logger.verbose(`Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`)
       // Write into file line by line
-      // await fs.appendFile(
-      //   join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
-      //   gff.formatSync(JSON.parse(cacheValue)),
-      // )
-      await fs.appendFile(FILE_SEARCH_FOLDER + '/' + GFF3_DEFAULT_FILENAME_TO_SAVE, gff.formatSync(JSON.parse(cacheValue)) )
+      await fs.appendFile(
+        join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
+        gff.formatSync(JSON.parse(cacheValue)),
+      )
     }
     return ''
   }
@@ -206,9 +206,7 @@ export class LocationEndChange extends Change {
     cacheManager: Cache,
   ) {
     // To get rid of 'unknown'
-    const newObject = JSON.parse(
-      JSON.stringify(serializedChange.changes),
-    )
+    const newObject = JSON.parse(JSON.stringify(serializedChange.changes))
     const { featureId } = newObject[0]
     const { oldEnd } = newObject[0]
     const { newEnd } = newObject[0]
