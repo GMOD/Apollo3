@@ -5,10 +5,10 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { initializeTransactionalContext } from 'typeorm-transactional-cls-hooked'
 
 import { AuthenticationModule } from './authentication/authentication.module'
+import { ChangeModule } from './change/change.module'
 import { FileHandlingModule } from './fileHandling/fileHandling.module'
 import { UsersModule } from './users/users.module'
 import { RolesGuard } from './utils/role/role.guards'
-import { ChangeModule } from './change/change.module';
 
 initializeTransactionalContext() // Initialize cls-hooked
 

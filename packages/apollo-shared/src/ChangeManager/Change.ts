@@ -1,9 +1,9 @@
+import { Cache } from 'cache-manager'
 import { Instance, SnapshotIn } from 'mobx-state-tree'
 
 import { FeaturesForRefName } from '../BackendDrivers/AnnotationFeature'
 import { BackendDriver } from '../BackendDrivers/BackendDriver'
 import { changeRegistry } from './ChangeTypes'
-import { Cache } from 'cache-manager'
 
 export interface ClientDataStore {
   typeName: 'Client'

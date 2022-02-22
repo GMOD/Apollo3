@@ -1,6 +1,7 @@
-import { CacheModule, Module } from '@nestjs/common';
-import { ChangeController } from './change.controller';
-import { ChangeService } from './change.service';
+import { CacheModule, Module } from '@nestjs/common'
+
+import { ChangeController } from './change.controller'
+import { ChangeService } from './change.service'
 
 @Module({
   controllers: [ChangeController],

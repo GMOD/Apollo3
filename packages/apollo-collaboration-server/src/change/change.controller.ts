@@ -2,23 +2,17 @@ import {
   Body,
   CACHE_MANAGER,
   Controller,
-  Get,
   Inject,
   Logger,
-  Param,
   Post,
-  Req,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common'
 import {
-  Change,
   LocationEndChange,
   SerializedChange,
   changeRegistry,
 } from 'apollo-shared'
 import { Cache } from 'cache-manager'
-import { Request } from 'express'
 
 import { LocalGFF3DataStore } from '../../../apollo-shared'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
@@ -48,7 +42,7 @@ export class ChangeController {
     const envMap = new Map<string, string>()
     envMap.set('FILE_SEARCH_FOLDER', FILE_SEARCH_FOLDER)
     envMap.set('GFF3_DEFAULT_FILENAME_TO_SAVE', GFF3_DEFAULT_FILENAME_TO_SAVE)
-    
+
     const change = LocationEndChange.fromJSON(serializedChange)
     this.logger.debug(`Requested change=${JSON.stringify(change)}`)
     const param1: LocalGFF3DataStore = {

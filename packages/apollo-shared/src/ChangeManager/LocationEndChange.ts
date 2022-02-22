@@ -1,7 +1,8 @@
+/* eslint-disable prefer-destructuring */
 import * as fs from 'fs/promises'
 import { join } from 'path'
 
-import gff from '@gmod/gff'
+import gff, { GFF3FeatureLineWithRefs } from '@gmod/gff'
 import { Cache } from 'cache-manager'
 import { resolveIdentifier } from 'mobx-state-tree'
 
@@ -48,7 +49,7 @@ export class LocationEndChange extends Change {
 
   /**
    * Applies the required change to cache and overwrites GFF3 file on the server
-   * @param backend
+   * @param backend - parameters from backend
    * @returns
    */
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
@@ -87,6 +88,7 @@ export class LocationEndChange extends Change {
         // Comment, Directive and FASTA -entries are not presented as an array
         if (Array.isArray(parsedCache)) {
           // this.logger.verbose(`KEY=${keyInd} ORIGINAL CACHE VALUE IS ${cacheValue}`)
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           for (const [key, val] of Object.entries(parsedCache)) {
             if (val.hasOwnProperty('attributes')) {
               const assignedVal = Object.assign(val)
@@ -200,6 +202,7 @@ export class LocationEndChange extends Change {
    */
   async searchApolloIdRecursively(
     parentFeature: any,
+    // parentFeature: any,
     serializedChange: SerializedChange,
     keyInd: string,
     cacheManager: Cache,
