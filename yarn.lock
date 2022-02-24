@@ -3199,6 +3199,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nestjs/common@npm:^8.3.1":
+  version: 8.3.1
+  resolution: "@nestjs/common@npm:8.3.1"
+  dependencies:
+    axios: 0.26.0
+    iterare: 1.2.1
+    tslib: 2.3.1
+    uuid: 8.3.2
+  peerDependencies:
+    cache-manager: "*"
+    class-transformer: "*"
+    class-validator: "*"
+    reflect-metadata: ^0.1.12
+    rxjs: ^7.1.0
+  peerDependenciesMeta:
+    cache-manager:
+      optional: true
+    class-transformer:
+      optional: true
+    class-validator:
+      optional: true
+  checksum: 833be13c6fb4a4c81913dd3fea5597ba1ae73675699a33f5e1cc58a36cd2186dc83c3ecafa532b40dd2167d23086aabef2d69cf6b8980b2f319f01c4e5ca356b
+  languageName: node
+  linkType: hard
+
 "@nestjs/config@npm:^1.0.3":
   version: 1.1.0
   resolution: "@nestjs/config@npm:1.1.0"
@@ -3471,6 +3496,13 @@ __metadata:
     widest-line: ^3.1.0
     wrap-ansi: ^4.0.0
   checksum: 85f4914c0900138978a68daa3dc1b88644bfe96cd87909ee9c6fe0cf5b11d44ca3061d8907ff352d3ee677f0a36d34a5f505f02e0319e2061a8b174d97d6e971
+  languageName: node
+  linkType: hard
+
+"@octetstream/promisify@npm:2.0.2":
+  version: 2.0.2
+  resolution: "@octetstream/promisify@npm:2.0.2"
+  checksum: 9926da539baa9e8887a66b369db19a95bcd79aac4a78df94be9ccc973cfd4cd62b6a41f257edad2155f859ac80070f2f9d45ca8b564c50df5e97c009d44b4717
   languageName: node
   linkType: hard
 
@@ -4055,6 +4087,15 @@ __metadata:
   version: 2.4.1
   resolution: "@types/prettier@npm:2.4.1"
   checksum: df330c2d6fe7c282839b0f17701e069a9c6c96d2ff54704e933a1b3c1b98844d963a7cb00c5629d173604892ceee802312bbaeb8a97f5da21e13db8f653b519e
+  languageName: node
+  linkType: hard
+
+"@types/promise-fs@npm:^2":
+  version: 2.1.2
+  resolution: "@types/promise-fs@npm:2.1.2"
+  dependencies:
+    "@types/node": "*"
+  checksum: 238dfd8a906a2e1fab29cd10751c536c45e804eaff3e9cdf8321c133c861ac4978eece157a68d70cbcd2104bebbf174d8e06104222600fcc40ba0f81b4f948a1
   languageName: node
   linkType: hard
 
@@ -5097,9 +5138,19 @@ __metadata:
   dependencies:
     "@gmod/gff": ^1.2.0
     "@jbrowse/core": ^1.6.4
+    "@nestjs/common": ^8.3.1
+    "@types/cache-manager": ^3
+    "@types/promise-fs": ^2
+    cache-manager: ^3.6.0
+    fs: ^0.0.1-security
+    fs.promises: ^0.1.2
     mobx-state-tree: 3.14.1
+    path: ^0.12.7
+    promise-fs: ^2.1.1
+    reflect-metadata: ^0.1.13
     regenerator-runtime: ^0.13.9
     rxjs: ^6.0.0
+    tsconfig-paths: ^3.12.0
     tslib: ^2.3.1
     typescript: 4.4.4
   peerDependencies:
@@ -5453,6 +5504,15 @@ __metadata:
   dependencies:
     follow-redirects: ^1.14.4
   checksum: 468cf496c08a6aadfb7e699bebdac02851e3043d4e7d282350804ea8900e30d368daa6e3cd4ab83b8ddb5a3b1e17a5a21ada13fc9cebd27b74828f47a4236316
+  languageName: node
+  linkType: hard
+
+"axios@npm:0.26.0":
+  version: 0.26.0
+  resolution: "axios@npm:0.26.0"
+  dependencies:
+    follow-redirects: ^1.14.8
+  checksum: d7a8b898f4157bedeb2e06c03b16133b91b354c041205bea732ce58b7a21f373d22057b0eea0d482838145ce6ff482b359750d9bcb8dd19d45e3928e3c65c280
   languageName: node
   linkType: hard
 
@@ -9229,6 +9289,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"follow-redirects@npm:^1.14.8":
+  version: 1.14.9
+  resolution: "follow-redirects@npm:1.14.9"
+  peerDependenciesMeta:
+    debug:
+      optional: true
+  checksum: f5982e0eb481818642492d3ca35a86989c98af1128b8e1a62911a3410621bc15d2b079e8170b35b19d3bdee770b73ed431a257ed86195af773771145baa57845
+  languageName: node
+  linkType: hard
+
 "for-each@npm:^0.3.3":
   version: 0.3.3
   resolution: "for-each@npm:0.3.3"
@@ -9410,10 +9480,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fs.promises@npm:^0.1.2":
+  version: 0.1.2
+  resolution: "fs.promises@npm:0.1.2"
+  checksum: bf5c6cc58029f4d8af726f2d9048e371c8d6dd6dbc14285f81712cd93200a5c755a9eeecefd1974907221a9ecc8f4f2f4f226086e732363c727a408ca1a39521
+  languageName: node
+  linkType: hard
+
 "fs.realpath@npm:^1.0.0":
   version: 1.0.0
   resolution: "fs.realpath@npm:1.0.0"
   checksum: 99ddea01a7e75aa276c250a04eedeffe5662bce66c65c07164ad6264f9de18fb21be9433ead460e54cff20e31721c811f4fb5d70591799df5f85dce6d6746fd0
+  languageName: node
+  linkType: hard
+
+"fs@npm:^0.0.1-security":
+  version: 0.0.1-security
+  resolution: "fs@npm:0.0.1-security"
+  checksum: 53c6230e1faae9fa32c1df82c16a84b51b1243d20f3da2b64bd110bb472b73b9185169b703e008356e3cdc92d155088b617d9d39a63b5227a30b3621baad7f5d
   languageName: node
   linkType: hard
 
@@ -14395,6 +14479,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"path@npm:^0.12.7":
+  version: 0.12.7
+  resolution: "path@npm:0.12.7"
+  dependencies:
+    process: ^0.11.1
+    util: ^0.10.3
+  checksum: 5dedb71e78fc008fcba797defc0b4e1cf06c1f18e0a631e03ba5bb505136f587ff017afc14f9a3d481cbe77aeedff7dc0c1d2ce4d820c1ebf3c4281ca49423a1
+  languageName: node
+  linkType: hard
+
 "pause-stream@npm:0.0.11":
   version: 0.0.11
   resolution: "pause-stream@npm:0.0.11"
@@ -14630,6 +14724,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"process@npm:^0.11.1":
+  version: 0.11.10
+  resolution: "process@npm:0.11.10"
+  checksum: bfcce49814f7d172a6e6a14d5fa3ac92cc3d0c3b9feb1279774708a719e19acd673995226351a082a9ae99978254e320ccda4240ddc474ba31a76c79491ca7c3
+  languageName: node
+  linkType: hard
+
 "progress-estimator@npm:^0.2.2":
   version: 0.2.2
   resolution: "progress-estimator@npm:0.2.2"
@@ -14646,6 +14747,15 @@ __metadata:
   version: 2.0.3
   resolution: "progress@npm:2.0.3"
   checksum: f67403fe7b34912148d9252cb7481266a354bd99ce82c835f79070643bb3c6583d10dbcfda4d41e04bbc1d8437e9af0fb1e1f2135727878f5308682a579429b7
+  languageName: node
+  linkType: hard
+
+"promise-fs@npm:^2.1.1":
+  version: 2.1.1
+  resolution: "promise-fs@npm:2.1.1"
+  dependencies:
+    "@octetstream/promisify": 2.0.2
+  checksum: e06945a9bf9e5e3800f56a1af1745b10b6e1729337334bafbef165c95fe189463f22dd4ceab2c1dde9b5c22f766df8048d44779891b89e9258c4baaed4a9d3ab
   languageName: node
   linkType: hard
 
@@ -17553,6 +17663,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tsconfig-paths@npm:^3.12.0":
+  version: 3.12.0
+  resolution: "tsconfig-paths@npm:3.12.0"
+  dependencies:
+    "@types/json5": ^0.0.29
+    json5: ^1.0.1
+    minimist: ^1.2.0
+    strip-bom: ^3.0.0
+  checksum: 4999ec6cd1c7cc06750a460dbc0d39fe3595a4308cb5f1d0d0a8283009cf9c0a30d5a156508c28fe3a47760508af5263ab288fc23d71e9762779674257a95d3b
+  languageName: node
+  linkType: hard
+
 "tsconfig@npm:^7.0.0":
   version: 7.0.0
   resolution: "tsconfig@npm:7.0.0"
@@ -18082,6 +18204,15 @@ __metadata:
     has-symbols: ^1.0.1
     object.getownpropertydescriptors: ^2.1.1
   checksum: ea371c30b90576862487ae4efd7182aa5855019549a4019d82629acc2709e8ccb0f38944403eebec622fff8ebb44ac3f46a52d745d5f543d30606132a4905f96
+  languageName: node
+  linkType: hard
+
+"util@npm:^0.10.3":
+  version: 0.10.4
+  resolution: "util@npm:0.10.4"
+  dependencies:
+    inherits: 2.0.3
+  checksum: 913f9a90d05a60e91f91af01b8bd37e06bca4cc02d7b49e01089f9d5b78be2fffd61fb1a41b517de7238c5fc7337fa939c62d1fb4eb82e014894c7bee6637aaf
   languageName: node
   linkType: hard
 
