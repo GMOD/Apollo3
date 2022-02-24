@@ -51,9 +51,7 @@ export class ChangeController {
       cacheManager: this.cacheManager,
       envMap: envMap,
     }
-    this.logger.debug('Start calling change.applyToLocalGFF3...')
     await change.applyToLocalGFF3(param1)
-    this.logger.debug('Returned from change.applyToLocalGFF3')
-    return 'ok' // this.changeService.changeLocationEnd(param1, change)
+    return ''
   }
 }

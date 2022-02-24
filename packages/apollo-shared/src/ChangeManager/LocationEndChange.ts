@@ -3,6 +3,7 @@ import * as fs from 'fs/promises'
 import { join } from 'path'
 
 import gff, { GFF3FeatureLineWithRefs } from '@gmod/gff'
+import { Logger } from '@nestjs/common'
 import { Cache } from 'cache-manager'
 import { resolveIdentifier } from 'mobx-state-tree'
 
@@ -28,6 +29,7 @@ interface SerializedLocationEndChange extends SerializedChange {
 export class LocationEndChange extends Change {
   changedIds: string[]
   changes: EndChange[]
+  private readonly logger = new Logger(LocationEndChange.name)
 
   constructor(json: SerializedLocationEndChange) {
     super()
@@ -53,8 +55,6 @@ export class LocationEndChange extends Change {
    * @returns
    */
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
-    // const change = LocationEndChange.fromJSON(backend.serializedChange)
-
     if (!backend.envMap.has('FILE_SEARCH_FOLDER')) {
       throw new Error('No FILE_SEARCH_FOLDER found in Map!')
     }
@@ -66,10 +66,9 @@ export class LocationEndChange extends Change {
     const newObject = JSON.parse(
       JSON.stringify(backend.serializedChange.changes),
     )
-    // const keyArray = Object.keys(newObject[0])
 
     // **** TODO: UPDATE ALL CHANGES - NOW UPDATING ONLY THE FIRST CHANGE IN 'CHANGES' -ARRAY ****//
-    // this.logger.debug(`Change request=${JSON.stringify(serializedChange)}`)
+    this.logger.debug(`Change request: ${JSON.stringify(newObject)}`)
     let cacheValue: string | undefined = ''
     const nberOfEntries = await backend.cacheManager.store.keys?.()
     await nberOfEntries.sort((n1: number, n2: number) => n1 - n2)
@@ -81,13 +80,11 @@ export class LocationEndChange extends Change {
     // Loop the cache content
     for (const keyInd of nberOfEntries) {
       cacheValue = await backend.cacheManager.get(keyInd)
-      // this.logger.verbose(`Read line from cache=${cacheValue}=, key=${keyInd}`)
       // Check if apolloId matches
       if (cacheValue?.includes(searchApolloIdStr)) {
         const parsedCache = JSON.parse(cacheValue)
         // Comment, Directive and FASTA -entries are not presented as an array
         if (Array.isArray(parsedCache)) {
-          // this.logger.verbose(`KEY=${keyInd} ORIGINAL CACHE VALUE IS ${cacheValue}`)
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           for (const [key, val] of Object.entries(parsedCache)) {
             if (val.hasOwnProperty('attributes')) {
@@ -95,17 +92,21 @@ export class LocationEndChange extends Change {
               // Let's check if found apollo_id matches with one we are updating
               if (
                 assignedVal.attributes.hasOwnProperty('apollo_id') &&
-                assignedVal.attributes.apollo_id == featureId
+                String(assignedVal.attributes.apollo_id) === String(featureId)
               ) {
                 // Check if old value matches with expected old value
-                if (assignedVal.end != oldEnd) {
+                if (Number(assignedVal.end) !== Number(oldEnd)) {
                   throw new Error(
                     `Old cache value ${assignedVal.end} does not match with expected old value ${oldEnd}`,
                   )
                 }
-                // this.logger.debug(`Feature found: ${JSON.stringify(assignedVal)}`)
+                this.logger.debug(
+                  `Feature found: ${JSON.stringify(assignedVal)}`,
+                )
                 assignedVal.end = newEnd
-                // this.logger.debug(`Old value ${oldEnd} has now been updated to ${newEnd}`)
+                this.logger.debug(
+                  `Old value ${oldEnd} has now been updated to ${newEnd}`,
+                )
                 // Save updated JSON object to cache
                 await backend.cacheManager.set(
                   keyInd.toString(),
@@ -223,31 +224,25 @@ export class LocationEndChange extends Change {
         i < Object.keys(parentFeature.child_features).length;
         i++
       ) {
-        // this.logger.verbose(
-        //   `Child no #${i} has value=${JSON.stringify(
-        //     parentFeature.child_features[i][0],
-        //   )}`,
-        // )
         const assignedVal = Object.assign(parentFeature.child_features[i][0])
         // Let's check apollo_id
         if (
           assignedVal.attributes.hasOwnProperty('apollo_id') &&
-          assignedVal.attributes.apollo_id == featureId
+          String(assignedVal.attributes.apollo_id) === String(featureId)
         ) {
-          // this.logger.verbose(
-          //   `OLD END VALUE IS ${assignedVal.end}, NEW VALUE WILL BE ${newEnd}`,
-          // )
           // Check if given old value matches with cache old value
-          if (assignedVal.end != oldEnd) {
+          if (Number(assignedVal.end) !== Number(oldEnd)) {
             throw new Error(
               `Old cache value ${assignedVal.end} does not match with expected old value ${oldEnd}`,
             )
           }
-          // this.logger.debug(`Feature found: ${JSON.stringify(assignedVal)}`)
+          this.logger.debug(
+            `Feature found in recursive method: ${JSON.stringify(assignedVal)}`,
+          )
           assignedVal.end = newEnd
-          // this.logger.debug(
-          //   `Old value ${oldEnd} has now been updated to ${newEnd}`,
-          // )
+          this.logger.debug(
+            `Old value ${oldEnd} has now been updated to ${newEnd}`,
+          )
         }
         for (const k in assignedVal) {
           if (
