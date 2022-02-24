@@ -2150,7 +2150,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.10.2, @babel/runtime@npm:^7.11.2, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.15.3, @babel/runtime@npm:^7.2.0, @babel/runtime@npm:^7.4.4, @babel/runtime@npm:^7.7.2, @babel/runtime@npm:^7.8.4":
+"@babel/runtime@npm:^7.10.2, @babel/runtime@npm:^7.11.2, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.4.4, @babel/runtime@npm:^7.7.2, @babel/runtime@npm:^7.8.4":
   version: 7.16.0
   resolution: "@babel/runtime@npm:7.16.0"
   dependencies:
@@ -2465,59 +2465,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/core@npm:^1.5.2":
-  version: 1.5.3
-  resolution: "@jbrowse/core@npm:1.5.3"
-  dependencies:
-    "@babel/runtime": ^7.15.3
-    "@material-ui/icons": ^4.0.1
-    abortable-promise-cache: ^1.1.3
-    base64-js: ^1.3.0
-    canvas: ^2.8.0
-    clsx: ^1.0.4
-    color: ^3.1.3
-    copy-to-clipboard: ^3.3.1
-    deepmerge: ^4.2.2
-    detect-node: ^2.1.0
-    dompurify: ^2.0.11
-    escape-html: ^1.0.3
-    fast-deep-equal: ^3.1.3
-    file-uri-to-path: ^1.0.0
-    generic-filehandle: ^2.2.2
-    http-range-fetcher: ^1.2.2
-    is-object: ^1.0.1
-    jexl: ^2.3.0
-    json-stable-stringify: ^1.0.1
-    librpc-web-mod: ^1.1.4
-    load-script2: ^2.0.5
-    object.fromentries: ^2.0.0
-    rbush: ^3.0.1
-    react-error-boundary: ^3.0.0
-    react-intersection-observer: ^8.31.0
-    react-measure: ^2.3.0
-    sanitize-filename: ^1.6.3
-    shortid: ^2.2.13
-    svg-path-generator: ^1.1.0
-    tenacious-fetch: ^2.1.0
-    util.promisify: ^1.0.0
-  peerDependencies:
-    "@material-ui/core": ^4.12.2
-    "@material-ui/lab": ^4.0.0-alpha.45
-    "@mui/x-data-grid": ^4.0.0
-    mobx: ^5.0.0
-    mobx-react: ^6.0.0
-    mobx-state-tree: ^3.14.1
-    prop-types: ^15.0.0
-    react: ^17.0.0
-    react-dom: ^17.0.0
-    rxjs: ^6.0.0
-  checksum: 0c0e7c4e786428eba84f9e321d95441153e0fadcb25f0df11b06c8bfc8edca679372578f3b51e1e733d89af56228fb88ead2c80a50e4a205f854ccd245f72545
-  languageName: node
-  linkType: hard
-
-"@jbrowse/core@npm:^1.5.9":
-  version: 1.5.9
-  resolution: "@jbrowse/core@npm:1.5.9"
+"@jbrowse/core@file:../../jbrowse-core-7221dd8867b1da7273ad19e894b0bbba2e6ecc89.tgz::locator=apollo-shared%40workspace%3Apackages%2Fapollo-shared":
+  version: 1.6.4
+  resolution: "@jbrowse/core@file:../../jbrowse-core-7221dd8867b1da7273ad19e894b0bbba2e6ecc89.tgz::locator=apollo-shared%40workspace%3Apackages%2Fapollo-shared"
   dependencies:
     "@babel/runtime": ^7.16.3
     "@material-ui/icons": ^4.0.1
@@ -2544,7 +2494,7 @@ __metadata:
     rbush: ^3.0.1
     react-error-boundary: ^3.0.0
     react-intersection-observer: ^8.32.5
-    react-measure: ^2.3.0
+    react-sizeme: ^3.0.2
     sanitize-filename: ^1.6.3
     shortid: ^2.2.13
     svg-path-generator: ^1.1.0
@@ -2561,7 +2511,57 @@ __metadata:
     react: ^17.0.0
     react-dom: ^17.0.0
     rxjs: ^6.0.0
-  checksum: bd90d7850cdaf6a0510cd757b148a34098952f5ecffaca088c3f77c889b7d7cd38f5819d2c27fd62adbd1a341ec81c71d1b50e83460bf2d4612d8a8510ba8b71
+  checksum: 02f62333be1d937221f150eec580be08c1101f769ae45d51962d190df21d35ed002544ed6dda658b0f2128a986a3333e7c490b2634718b17584104eb3ea83244
+  languageName: node
+  linkType: hard
+
+"@jbrowse/core@file:../../jbrowse-core-7221dd8867b1da7273ad19e894b0bbba2e6ecc89.tgz::locator=jbrowse-plugin-apollo%40workspace%3Apackages%2Fjbrowse-plugin-apollo":
+  version: 1.6.4
+  resolution: "@jbrowse/core@file:../../jbrowse-core-7221dd8867b1da7273ad19e894b0bbba2e6ecc89.tgz::locator=jbrowse-plugin-apollo%40workspace%3Apackages%2Fjbrowse-plugin-apollo"
+  dependencies:
+    "@babel/runtime": ^7.16.3
+    "@material-ui/icons": ^4.0.1
+    abortable-promise-cache: ^1.1.3
+    base64-js: ^1.3.0
+    canvas: ^2.8.0
+    clsx: ^1.0.4
+    color: ^3.1.3
+    copy-to-clipboard: ^3.3.1
+    deepmerge: ^4.2.2
+    detect-node: ^2.1.0
+    dompurify: ^2.3.4
+    escape-html: ^1.0.3
+    fast-deep-equal: ^3.1.3
+    file-uri-to-path: ^1.0.0
+    generic-filehandle: ^2.2.2
+    http-range-fetcher: ^1.2.2
+    is-object: ^1.0.1
+    jexl: ^2.3.0
+    json-stable-stringify: ^1.0.1
+    librpc-web-mod: ^1.1.4
+    load-script2: ^2.0.5
+    object.fromentries: ^2.0.0
+    rbush: ^3.0.1
+    react-error-boundary: ^3.0.0
+    react-intersection-observer: ^8.32.5
+    react-sizeme: ^3.0.2
+    sanitize-filename: ^1.6.3
+    shortid: ^2.2.13
+    svg-path-generator: ^1.1.0
+    tenacious-fetch: ^2.1.0
+    util.promisify: ^1.1.1
+  peerDependencies:
+    "@material-ui/core": ^4.12.2
+    "@material-ui/lab": ^4.0.0-alpha.45
+    "@mui/x-data-grid": ^4.0.0
+    mobx: ^5.0.0
+    mobx-react: ^6.0.0
+    mobx-state-tree: ^3.14.1
+    prop-types: ^15.0.0
+    react: ^17.0.0
+    react-dom: ^17.0.0
+    rxjs: ^6.0.0
+  checksum: 02f62333be1d937221f150eec580be08c1101f769ae45d51962d190df21d35ed002544ed6dda658b0f2128a986a3333e7c490b2634718b17584104eb3ea83244
   languageName: node
   linkType: hard
 
@@ -4735,12 +4735,11 @@ __metadata:
   linkType: hard
 
 "abortable-promise-cache@npm:^1.1.3":
-  version: 1.4.1
-  resolution: "abortable-promise-cache@npm:1.4.1"
+  version: 1.5.0
+  resolution: "abortable-promise-cache@npm:1.5.0"
   dependencies:
-    "@babel/runtime": ^7.0.0
     abortcontroller-polyfill: ^1.2.9
-  checksum: ec1e79bfcc0393c54821b7605e21127af5eaafbf41da8325467456cf157bd36c365fbeb5b9014b299d3add4f6d6133d30e0f5f418bfd7ebf6a1e6626dd8e2b3d
+  checksum: fa0e34df693e738a19871ec09a0b288cf6a6f88c86e7a4c40bce26f780b124fc6ba8177b6cd8d8898889a62d28754bcfa829ebc8be1aecbe9238d74169160ed9
   languageName: node
   linkType: hard
 
@@ -5153,7 +5152,7 @@ __metadata:
   resolution: "apollo-shared@workspace:packages/apollo-shared"
   dependencies:
     "@gmod/gff": ^1.2.0
-    "@jbrowse/core": ^1.5.9
+    "@jbrowse/core": "file:../../jbrowse-core-7221dd8867b1da7273ad19e894b0bbba2e6ecc89.tgz"
     mobx-state-tree: 3.14.1
     regenerator-runtime: ^0.13.9
     tslib: ^2.3.1
@@ -6803,7 +6802,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"clsx@npm:^1.0.4":
+"clsx@npm:^1.0.4, clsx@npm:^1.1.1":
   version: 1.1.1
   resolution: "clsx@npm:1.1.1"
   checksum: ff052650329773b9b245177305fc4c4dc3129f7b2be84af4f58dc5defa99538c61d4207be7419405a5f8f3d92007c954f4daba5a7b74e563d5de71c28c830063
@@ -7763,13 +7762,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:^2.0.11":
-  version: 2.3.3
-  resolution: "dompurify@npm:2.3.3"
-  checksum: 947e3661681bd183aae1cd08f991b14c6aa41fd188f6c801c5e916c2dc4575bbefbaa121ed06dbe0cb0f595545527d588a44b53bfc35d1cbb898c214dc0d7930
-  languageName: node
-  linkType: hard
-
 "dompurify@npm:^2.3.4":
   version: 2.3.4
   resolution: "dompurify@npm:2.3.4"
@@ -7869,6 +7861,15 @@ __metadata:
   dependencies:
     batch-processor: 1.0.0
   checksum: b472b4f3971e27b832f65c761c5eb95ffe615f42248063987c39f32bd7e224c2562209c3c456c60ef45b07c8db6ed3c4f96a03cb5a426b931947821fd1434f44
+  languageName: node
+  linkType: hard
+
+"element-resize-detector@npm:^1.2.2":
+  version: 1.2.4
+  resolution: "element-resize-detector@npm:1.2.4"
+  dependencies:
+    batch-processor: 1.0.0
+  checksum: 81c47b7e229c303889d3a9d78ec3f3232e88a6682f1e2424fb0632d9b4f503b2ca011e6954321060604da07749a5a972b6a175fdf6c6806093a3b80a304cde7b
   languageName: node
   linkType: hard
 
@@ -9600,13 +9601,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"get-node-dimensions@npm:^1.2.1":
-  version: 1.2.2
-  resolution: "get-node-dimensions@npm:1.2.2"
-  checksum: 1018db4004ead28c92c02cf5471c3b13572be67cc4dff763c0c7714b8edc370d8020806d3db0400aad87e7e9d3e99635e8582e81636b735a6013051c8e3a4b13
-  languageName: node
-  linkType: hard
-
 "get-package-type@npm:^0.1.0":
   version: 0.1.0
   resolution: "get-package-type@npm:0.1.0"
@@ -11020,16 +11014,19 @@ __metadata:
   dependencies:
     "@gmod/gff": ^1.2.0
     "@jbrowse/cli": ^1.5.1
-    "@jbrowse/core": ^1.5.2
+    "@jbrowse/core": "file:../../jbrowse-core-7221dd8867b1da7273ad19e894b0bbba2e6ecc89.tgz"
     "@jbrowse/development-tools": ^1.5.3
     "@jbrowse/plugin-linear-genome-view": ^1.5.1
     "@material-ui/core": ^4.12.3
+    "@material-ui/icons": ^4.9.1
     "@types/cypress": ^1.1.3
     "@types/node": ^16.11.6
     "@types/react": ^17.0.34
     apollo-shared: "workspace:^"
+    clsx: ^1.1.1
     cypress: ^8.7.0
     jest: ^27.3.1
+    mobx: ^5.10.1
     mobx-react: ^7.2.1
     mobx-state-tree: 3.14.1
     npm-run-all: 4.1.5
@@ -11044,8 +11041,10 @@ __metadata:
     tslib: ^2.0.3
     typescript: 4.4.4
   peerDependencies:
-    "@jbrowse/core": ^1.5.2
+    "@jbrowse/core": "*"
     "@material-ui/core": ^4.12.3
+    "@material-ui/icons": ^4.9.1
+    mobx: ^5.10.1
     mobx-react: ^7.2.1
     mobx-state-tree: 3.14.1
     react: ^17.0.2
@@ -13420,6 +13419,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mobx@npm:^5.10.1":
+  version: 5.15.7
+  resolution: "mobx@npm:5.15.7"
+  checksum: 46aa00c330a256fdde1c030cf8bab0baebc7fdfb23709884400ac486c318ce650acc336fd8f1e629b5c8680d82051f2aed4737406c4ac6fe1b2d9f3d978c4339
+  languageName: node
+  linkType: hard
+
 "mri@npm:^1.1.0":
   version: 1.2.0
   resolution: "mri@npm:1.2.0"
@@ -14984,15 +14990,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-intersection-observer@npm:^8.31.0":
-  version: 8.32.2
-  resolution: "react-intersection-observer@npm:8.32.2"
-  peerDependencies:
-    react: ^15.0.0 || ^16.0.0 || ^17.0.0|| ^18.0.0
-  checksum: d536ed70dff9930539472b745e24cba80048d6e47d0188dbda49bc7151b2e52dd5829744119b763f2e3cfd68025c2afe88826eb1b6c619df94001b2d87a8839c
-  languageName: node
-  linkType: hard
-
 "react-intersection-observer@npm:^8.32.5":
   version: 8.33.1
   resolution: "react-intersection-observer@npm:8.33.1"
@@ -15013,21 +15010,6 @@ __metadata:
   version: 17.0.2
   resolution: "react-is@npm:17.0.2"
   checksum: 9d6d111d8990dc98bc5402c1266a808b0459b5d54830bbea24c12d908b536df7883f268a7868cfaedde3dd9d4e0d574db456f84d2e6df9c4526f99bb4b5344d8
-  languageName: node
-  linkType: hard
-
-"react-measure@npm:^2.3.0":
-  version: 2.5.2
-  resolution: "react-measure@npm:2.5.2"
-  dependencies:
-    "@babel/runtime": ^7.2.0
-    get-node-dimensions: ^1.2.1
-    prop-types: ^15.6.2
-    resize-observer-polyfill: ^1.5.0
-  peerDependencies:
-    react: ">0.13.0"
-    react-dom: ">0.13.0"
-  checksum: 75bd3cd74d96f3e83f0a42b8f59e8764e6a5eec994492e077c49a4fea0d0b27775a5154502aff2eee3f6af40650ce2e58ed18ac927a64013b14c9942cc9c4872
   languageName: node
   linkType: hard
 
@@ -15056,6 +15038,18 @@ __metadata:
     react: ^0.14.0 || ^15.0.0-0 || ^16.0.0
     react-dom: ^0.14.0 || ^15.0.0-0 || ^16.0.0
   checksum: fef1abf2098adf253e868acce128ba21c90665213ff444ab289e23c1af941664a13978cb049399b573a886d94dbf9982949efc8cb096eb6cca7d3c9eed2367c3
+  languageName: node
+  linkType: hard
+
+"react-sizeme@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "react-sizeme@npm:3.0.2"
+  dependencies:
+    element-resize-detector: ^1.2.2
+    invariant: ^2.2.4
+    shallowequal: ^1.1.0
+    throttle-debounce: ^3.0.1
+  checksum: 97cb852c24bbd50acb310da89df564e0d069415f6635676dae3d3bdc583ece88090c0f2ee88a6b0dc36d2793af4a11e83bf6bbb41b86225dd0cf338e8f7e8552
   languageName: node
   linkType: hard
 
@@ -15424,13 +15418,6 @@ __metadata:
   version: 2.0.0
   resolution: "require-main-filename@npm:2.0.0"
   checksum: e9e294695fea08b076457e9ddff854e81bffbe248ed34c1eec348b7abbd22a0d02e8d75506559e2265e96978f3c4720bd77a6dad84755de8162b357eb6c778c7
-  languageName: node
-  linkType: hard
-
-"resize-observer-polyfill@npm:^1.5.0":
-  version: 1.5.1
-  resolution: "resize-observer-polyfill@npm:1.5.1"
-  checksum: 57e7f79489867b00ba43c9c051524a5c8f162a61d5547e99333549afc23e15c44fd43f2f318ea0261ea98c0eb3158cca261e6f48d66e1ed1cd1f340a43977094
   languageName: node
   linkType: hard
 
@@ -17223,6 +17210,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"throttle-debounce@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "throttle-debounce@npm:3.0.1"
+  checksum: e34ef638e8df3a9154249101b68afcbf2652a139c803415ef8a2f6a8bc577bcd4d79e4bb914ad3cd206523ac78b9fb7e80885bfa049f64fbb1927f99d98b5736
+  languageName: node
+  linkType: hard
+
 "throttleit@npm:^1.0.0":
   version: 1.0.0
   resolution: "throttleit@npm:1.0.0"
@@ -18136,7 +18130,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"util.promisify@npm:^1.0.0, util.promisify@npm:^1.1.1":
+"util.promisify@npm:^1.1.1":
   version: 1.1.1
   resolution: "util.promisify@npm:1.1.1"
   dependencies:

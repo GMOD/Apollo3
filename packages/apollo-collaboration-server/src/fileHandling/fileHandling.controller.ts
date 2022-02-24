@@ -170,6 +170,23 @@ export class FileHandlingController {
   }
 
   /**
+   * Get list of assemblies
+   * @returns For now, returns a single hard-coded assembly
+   */
+  @UseGuards(JwtAuthGuard)
+  @Get('/getAssemblies')
+  getAssemblies() {
+    return [
+      {
+        name: 'vvx',
+        id: '0545a542-e565-440c-b2c5-52b208f58f6e',
+        aliases: ['volvox'],
+        displayName: 'Volvox mythicus',
+      },
+    ]
+  }
+
+  /**
    * Save new uploaded file into local filesystem and then loads it into cache. The filename in local filesystem will be: 'uploaded' + timestamp in ddmmyyyy_hh24miss -format + original filename
    * You can call this endpoint like: curl http://localhost:3000/fileHandling/uploadtocache -F 'file=\@./save_this_file.txt' -F 'name=test'
    * @param file - File to save

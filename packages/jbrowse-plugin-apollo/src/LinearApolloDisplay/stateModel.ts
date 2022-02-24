@@ -2,10 +2,11 @@ import { ConfigurationReference } from '@jbrowse/core/configuration'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { getContainingView } from '@jbrowse/core/util'
-import { intersection2 } from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
+import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { AnnotationFeatureI } from 'apollo-shared'
-import { Instance, types } from 'mobx-state-tree'
+import { autorun } from 'mobx'
+import { Instance, addDisposer, types } from 'mobx-state-tree'
 
 import { ApolloViewModel } from '../ApolloView/stateModel'
 
@@ -27,6 +28,10 @@ export function stateModelFactory(
         configuration: ConfigurationReference(configSchema),
       }),
     )
+    .volatile(() => ({
+      apolloFeatureUnderMouse: undefined as AnnotationFeatureI | undefined,
+      apolloRowUnderMouse: undefined as number | undefined,
+    }))
     .views((self) => {
       const { renderProps: superRenderProps } = self
       return {
@@ -39,73 +44,73 @@ export function stateModelFactory(
         },
       }
     })
+    .actions((self) => ({
+      afterAttach() {
+        addDisposer(
+          self,
+          autorun(() => {
+            const lgv = getContainingView(self) as LinearGenomeViewModel
+            const { initialized } = lgv
+            if (!initialized) {
+              return
+            }
+            const apolloView = getContainingView(
+              lgv,
+            ) as unknown as ApolloViewModel
+            const { dataStore } = apolloView
+            if (!dataStore) {
+              return
+            }
+            const { backendDriver } = dataStore
+            if (!backendDriver) {
+              return
+            }
+            const regions = self.blockDefinitions
+              .map(({ assemblyName, refName, start, end }) => ({
+                assemblyName,
+                refName,
+                start,
+                end,
+              }))
+              .filter((block) => block.assemblyName)
+            dataStore.backendDriver.loadFeatures(regions)
+          }),
+        )
+      },
+      setApolloFeatureUnderMouse(feature?: AnnotationFeatureI) {
+        self.apolloFeatureUnderMouse = feature
+      },
+      setApolloRowUnderMouse(row?: number) {
+        self.apolloRowUnderMouse = row
+      },
+    }))
     .views((self) => ({
       get rendererTypeName() {
         return self.configuration.renderer.type
       },
-      get featuresForBlock() {
-        const featuresForBlock: Record<string, AnnotationFeatureI[]> = {}
+      get features() {
         const lgv = getContainingView(self)
         const apolloView = getContainingView(lgv) as unknown as ApolloViewModel
         const { dataStore } = apolloView
         if (!dataStore) {
-          return {}
+          return new Map()
         }
-        const { features } = dataStore
-        self.blockDefinitions.forEach((block) => {
-          if (block.start !== undefined && block.end !== undefined) {
-            const assemblyFeatures = features
-            const refNameFeatures = assemblyFeatures.get(block.refName)
-            const relevantFeatures =
-              refNameFeatures &&
-              (
-                Array.from(refNameFeatures.values()) as AnnotationFeatureI[]
-              ).filter(
-                (feature) =>
-                  intersection2(
-                    feature.location.start,
-                    feature.location.end,
-                    block.start,
-                    block.end,
-                  ).length,
-              )
-            if (relevantFeatures) {
-              featuresForBlock[block.key] = relevantFeatures
-            }
-          }
-        })
-        return featuresForBlock
+        return dataStore.features
       },
-
       get featureLayout() {
-        const lgv = getContainingView(self)
-        const apolloView = getContainingView(lgv) as unknown as ApolloViewModel
-        const { dataStore } = apolloView
-        if (!dataStore) {
-          return {}
-        }
-        const { features } = dataStore
-        const refNames: Map<string, Set<string>> = new Map()
-        self.blockDefinitions.forEach((block) => {
-          if (block.refName) {
-            if (!refNames.has(block.assemblyName)) {
-              refNames.set(block.assemblyName, new Set())
-            }
-            refNames.get(block.assemblyName)?.add(block.refName)
-          }
-        })
-        const featureLayout: Record<string, number> = {}
-        refNames.forEach((refNameList, assemblyName) => {
-          const assemblyFeatures = features
-          refNameList.forEach((refName) => {
-            const refNameFeatures = assemblyFeatures?.get(refName)
-            if (refNameFeatures) {
-              let min: number
-              let max: number
-              const rows: boolean[][] = []
-              ;(
-                Array.from(refNameFeatures.values()) as AnnotationFeatureI[]
-              ).forEach((feature) => {
+        const featureLayout: Map<number, AnnotationFeatureI[]> = new Map()
+        for (const featuresForRefName of this.features.values()) {
+          if (featuresForRefName) {
+            let min: number
+            let max: number
+            const rows: boolean[][] = []
+            ;(Array.from(featuresForRefName.values()) as AnnotationFeatureI[])
+              .sort((f1, f2) => {
+                const { start: start1, end: end1 } = f1.location
+                const { start: start2, end: end2 } = f2.location
+                return start1 - start2 || end1 - end2
+              })
+              .forEach((feature) => {
                 if (min === undefined) {
                   min = feature.location.start
                 }
@@ -136,7 +141,7 @@ export function stateModelFactory(
                       feature.location.start - min,
                       feature.location.end - min,
                     )
-                    featureLayout[feature.id] = rowNumber
+                    featureLayout.set(rowNumber, [feature])
                     placed = true
                   } else {
                     if (
@@ -154,15 +159,15 @@ export function stateModelFactory(
                         feature.location.start - min,
                         feature.location.end - min,
                       )
-                      featureLayout[feature.id] = rowNumber
+                      const layoutRow = featureLayout.get(rowNumber)
+                      layoutRow?.push(feature)
                       placed = true
                     }
                   }
                 }
               })
-            }
-          })
-        })
+          }
+        }
         return featureLayout
       },
     }))

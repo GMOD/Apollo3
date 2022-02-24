@@ -13,7 +13,7 @@ export class ChangeManager {
   async submit(change: Change) {
     // pre-validate
     const session = getSession(this.dataStore)
-    const result = this.validations.frontendPreValidate(change)
+    const result = await this.validations.frontendPreValidate(change)
     if (!result.ok) {
       session.notify(
         `Change is not valid: "${result.results
@@ -29,7 +29,7 @@ export class ChangeManager {
     change.apply(this.dataStore)
 
     // post-validate
-    const results2 = this.validations.frontendPostValidate(change)
+    const results2 = await this.validations.frontendPostValidate(change)
     if (!results2.ok) {
       // notify of invalid change and revert
       change.getInverse().applyToClient(this.dataStore)
