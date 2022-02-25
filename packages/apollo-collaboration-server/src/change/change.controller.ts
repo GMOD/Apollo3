@@ -31,7 +31,7 @@ export class ChangeController {
   //   @UseGuards(JwtAuthGuard)
   @Post('/submitchange')
   async submitChange(@Body() serializedChange: SerializedChange) {
-    // Get environment variable values and pass those as parameter to applyToLocalGFF3 -method
+    // Get environment variable values and pass those as parameter to apply -method
     const { FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE } = process.env
     if (!FILE_SEARCH_FOLDER) {
       throw new Error('No FILE_SEARCH_FOLDER found in .env file')
@@ -50,7 +50,7 @@ export class ChangeController {
       cacheManager: this.cacheManager,
       envMap: envMap,
     }
-    await change.applyToLocalGFF3(param1)
+    await change.apply(param1)
     return ''
   }
 }

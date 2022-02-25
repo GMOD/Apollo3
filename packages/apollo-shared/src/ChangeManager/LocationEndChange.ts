@@ -154,10 +154,9 @@ export class LocationEndChange extends Change {
         gff.formatSync(JSON.parse(cacheValue)),
       )
     }
-    return ''
   }
 
-  applyToClient(dataStore: ClientDataStore) {
+  async applyToClient(dataStore: ClientDataStore) {
     if (!dataStore) {
       throw new Error('No data store')
     }

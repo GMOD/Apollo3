@@ -37,7 +37,7 @@ export abstract class Change {
 
   abstract toJSON(): SerializedChange
 
-  apply(backend: DataStore): void {
+  async apply(backend: DataStore): Promise<void> {
     const backendType = backend.typeName
     if (backendType === 'LocalGFF3') {
       return this.applyToLocalGFF3(backend)
@@ -50,8 +50,8 @@ export abstract class Change {
     )
   }
 
-  abstract applyToLocalGFF3(backend: LocalGFF3DataStore): void
-  abstract applyToClient(backend: ClientDataStore): void
+  abstract applyToLocalGFF3(backend: LocalGFF3DataStore): Promise<void>
+  abstract applyToClient(backend: ClientDataStore): Promise<void>
 
   abstract getInverse(): Change
 }

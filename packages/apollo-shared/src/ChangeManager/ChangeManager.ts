@@ -26,13 +26,13 @@ export class ChangeManager {
     }
 
     // submit to client data store
-    change.apply(this.dataStore)
+    await change.apply(this.dataStore)
 
     // post-validate
     const results2 = await this.validations.frontendPostValidate(change)
     if (!results2.ok) {
       // notify of invalid change and revert
-      change.getInverse().applyToClient(this.dataStore)
+      change.getInverse().apply(this.dataStore)
     }
 
     // submit to driver
