@@ -1,14 +1,15 @@
-import { Instance, SnapshotIn } from 'mobx-state-tree'
+import { IAnyStateTreeNode, Instance, SnapshotIn } from 'mobx-state-tree'
 
 import { FeaturesForRefName } from '../BackendDrivers/AnnotationFeature'
 import { BackendDriver } from '../BackendDrivers/BackendDriver'
 import { changeRegistry } from './ChangeTypes'
 
-export interface ClientDataStore {
+export interface ClientDataStore extends IAnyStateTreeNode {
   typeName: 'Client'
   features: Instance<typeof FeaturesForRefName>
   load(features: SnapshotIn<typeof FeaturesForRefName>): void
   backendDriver?: BackendDriver
+  internetAccountConfigId?: string
 }
 export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'

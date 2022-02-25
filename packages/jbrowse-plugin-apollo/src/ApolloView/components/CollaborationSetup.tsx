@@ -22,6 +22,7 @@ interface CollaborationSetupProps {
   viewModel: ApolloViewModel
   internetAccounts: AppRootModel['internetAccounts']
   setAssembly(assembly: Assembly): void
+  setInternetAccountConfigId(internetAccountConfigId: string): void
   setError(error: Error): void
 }
 
@@ -59,6 +60,7 @@ const useStyles = makeStyles((theme) => ({
 function CollaborationSetup({
   internetAccounts,
   setAssembly,
+  setInternetAccountConfigId,
   viewModel,
 }: CollaborationSetupProps) {
   const classes = useStyles()
@@ -73,6 +75,9 @@ function CollaborationSetup({
           internetAccount={internetAccount}
           key={internetAccount.id}
           setSelected={() => {
+            setInternetAccountConfigId(
+              internetAccount.configuration.internetAccountId,
+            )
             setSelectedAccount(idx)
           }}
           disabled={selectedAccount !== undefined && selectedAccount !== idx}

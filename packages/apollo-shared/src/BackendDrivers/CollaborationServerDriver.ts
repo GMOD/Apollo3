@@ -1,6 +1,8 @@
 import { GFF3FeatureLineWithRefs, GFF3Item } from '@gmod/gff'
-import { Region } from '@jbrowse/core/util'
-import { SnapshotIn } from 'mobx-state-tree'
+import { getConf } from '@jbrowse/core/configuration'
+import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
+import { AppRootModel, Region } from '@jbrowse/core/util'
+import { SnapshotIn, getRoot } from 'mobx-state-tree'
 
 import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
 import { Change } from '../ChangeManager/Change'
@@ -15,16 +17,34 @@ export class CollaborationServerDriver extends BackendDriver {
    */
   async getFeatures(region: Region) {
     const { refName, start, end } = region
-
-    // console.log(`In CollaborationServerDriver: Query parameters: refName=${refName}, start=${start}, end=${end}`)
-    const url = new URL(
-      'http://localhost:3999/filehandling/getFeaturesByCriteria',
+    const { internetAccountConfigId } = this.clientStore
+    const { internetAccounts } = getRoot(this.clientStore) as AppRootModel
+    const internetAccount = internetAccounts.find(
+      (ia) => getConf(ia, 'internetAccountId') === internetAccountConfigId,
     )
-    const paramsString = `seq_id=${refName}&start=${start}&end=${end}`
-    const searchParams = new URLSearchParams(paramsString)
+    if (!internetAccount) {
+      throw new Error(
+        `No InternetAccount found with config id ${internetAccountConfigId}`,
+      )
+    }
+    const { baseURL } = internetAccount as BaseInternetAccountModel & {
+      baseURL: string
+    }
+    const url = new URL('filehandling/getFeaturesByCriteria', baseURL)
+    const searchParams = new URLSearchParams({
+      seq_id: refName,
+      start: String(start),
+      end: String(end),
+    })
     url.search = searchParams.toString()
+    const uri = url.toString()
+    const fetch = internetAccount.getFetcher({
+      locationType: 'UriLocation',
+      uri,
+    })
+    // console.log(`In CollaborationServerDriver: Query parameters: refName=${refName}, start=${start}, end=${end}`)
 
-    const result = await fetch(url.toString())
+    const result = await fetch(uri)
     const data = (await result.json()) as GFF3Item[]
     // const backendResult = JSON.stringify(data)
     // console.log(

@@ -11,7 +11,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       'ApolloInternetAccount',
       InternetAccount,
       types.model({
-        id: 'Apollo',
         type: types.literal('ApolloInternetAccount'),
         configuration: ConfigurationReference(configSchema),
       }),
