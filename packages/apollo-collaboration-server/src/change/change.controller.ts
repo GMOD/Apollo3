@@ -1,3 +1,6 @@
+import { open } from 'fs/promises'
+import { join } from 'path'
+
 import {
   Body,
   CACHE_MANAGER,
@@ -11,7 +14,6 @@ import {
   LocationEndChange,
   SerializedChange,
   changeRegistry,
-  LocalGFF3DataStore,
 } from 'apollo-shared'
 import { Cache } from 'cache-manager'
 
@@ -28,7 +30,7 @@ export class ChangeController {
     changeRegistry.registerChange('LocationEndChange', LocationEndChange) // Do this only once
   }
 
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('/submitchange')
   async submitChange(@Body() serializedChange: SerializedChange) {
     // Get environment variable values and pass those as parameter to apply -method
@@ -45,12 +47,15 @@ export class ChangeController {
 
     const change = LocationEndChange.fromJSON(serializedChange)
     this.logger.debug(`Requested change=${JSON.stringify(change)}`)
-    const param1: LocalGFF3DataStore = {
+    const gff3Handle = await open(
+      join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
+      'w',
+    )
+    await change.apply({
       typeName: 'LocalGFF3',
       cacheManager: this.cacheManager,
-      envMap: envMap,
-    }
-    await change.apply(param1)
+      gff3Handle,
+    })
     return ''
   }
 }

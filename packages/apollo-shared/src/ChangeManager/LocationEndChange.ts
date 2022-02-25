@@ -1,9 +1,5 @@
 /* eslint-disable prefer-destructuring */
-import * as fs from 'fs/promises'
-import { join } from 'path'
-
-import gff, { GFF3FeatureLineWithRefs } from '@gmod/gff'
-import { Logger } from '@nestjs/common'
+import gff from '@gmod/gff'
 import { Cache } from 'cache-manager'
 import { resolveIdentifier } from 'mobx-state-tree'
 
@@ -29,7 +25,6 @@ interface SerializedLocationEndChange extends SerializedChange {
 export class LocationEndChange extends Change {
   changedIds: string[]
   changes: EndChange[]
-  private readonly logger = new Logger(LocationEndChange.name)
 
   constructor(json: SerializedLocationEndChange) {
     super()
@@ -55,17 +50,10 @@ export class LocationEndChange extends Change {
    * @returns
    */
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
-    if (!backend.envMap.has('FILE_SEARCH_FOLDER')) {
-      throw new Error('No FILE_SEARCH_FOLDER found in Map!')
-    }
-    if (!backend.envMap.has('GFF3_DEFAULT_FILENAME_TO_SAVE')) {
-      throw new Error('No GFF3_DEFAULT_FILENAME_TO_SAVE found in Map!')
-    }
-
     const { changes } = this
 
     // **** TODO: UPDATE ALL CHANGES - NOW UPDATING ONLY THE FIRST CHANGE IN 'CHANGES' -ARRAY ****//
-    this.logger.debug(`Change request: ${JSON.stringify(changes)}`)
+    console.debug(`Change request: ${JSON.stringify(changes)}`)
     let cacheValue: string | undefined = ''
     const nberOfEntries = await backend.cacheManager.store.keys?.()
     await nberOfEntries.sort((n1: number, n2: number) => n1 - n2)
@@ -97,11 +85,9 @@ export class LocationEndChange extends Change {
                     `Old cache value ${assignedVal.end} does not match with expected old value ${oldEnd}`,
                   )
                 }
-                this.logger.debug(
-                  `Feature found: ${JSON.stringify(assignedVal)}`,
-                )
+                console.debug(`Feature found: ${JSON.stringify(assignedVal)}`)
                 assignedVal.end = newEnd
-                this.logger.debug(
+                console.debug(
                   `Old value ${oldEnd} has now been updated to ${newEnd}`,
                 )
                 // Save updated JSON object to cache
@@ -129,28 +115,15 @@ export class LocationEndChange extends Change {
         }
       }
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const FILE_SEARCH_FOLDER = backend.envMap.get('FILE_SEARCH_FOLDER')!
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const GFF3_DEFAULT_FILENAME_TO_SAVE = backend.envMap.get(
-      'GFF3_DEFAULT_FILENAME_TO_SAVE',
-    )!
-    // Replace old file
-    await fs.writeFile(
-      join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
-      '',
-    )
     // Loop the updated cache and write it into file
     for (const keyInd of nberOfEntries) {
       cacheValue = await backend.cacheManager.get(keyInd.toString())
       if (!cacheValue) {
         throw new Error(`No entry found for ${keyInd.toString()}`)
       }
-      // this.logger.verbose(`Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`)
+      // console.verbose(`Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`)
       // Write into file line by line
-      await fs.appendFile(
-        join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
+      await backend.gff3Handle.appendFile(
         gff.formatSync(JSON.parse(cacheValue)),
       )
     }
@@ -230,13 +203,11 @@ export class LocationEndChange extends Change {
               `Old cache value ${assignedVal.end} does not match with expected old value ${oldEnd}`,
             )
           }
-          this.logger.debug(
+          console.debug(
             `Feature found in recursive method: ${JSON.stringify(assignedVal)}`,
           )
           assignedVal.end = newEnd
-          this.logger.debug(
-            `Old value ${oldEnd} has now been updated to ${newEnd}`,
-          )
+          console.debug(`Old value ${oldEnd} has now been updated to ${newEnd}`)
         }
         for (const k in assignedVal) {
           if (
