@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "incremental": true,
+    "outDir": "./esm",
+    "rootDir": "./src",
+    "target": "ESNext",
+    "tsBuildInfoFile": "./esm/tsconfig.tsbuildinfo",
+  },
+  "include": ["./src"],
+}

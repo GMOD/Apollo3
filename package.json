@@ -9,7 +9,9 @@
   ],
   "scripts": {
     "lint": "eslint --report-unused-disable-directives --max-warnings 0 --ext .js,.ts,.jsx,.tsx .",
-    "build:shared": "yarn workspace apollo-shared run build"
+    "build:shared": "yarn workspace apollo-shared run build",
+    "build:shared:cjs": "yarn workspace apollo-shared run build:cjs",
+    "build:shared:esm": "yarn workspace apollo-shared run build:esm"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.14.7",
