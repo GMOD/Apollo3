@@ -19,10 +19,10 @@ export class ValidationSet {
     this.validations = new Set(v)
   }
 
-  frontendPreValidate(change: Change): ValidationResultSet {
+  async frontendPreValidate(change: Change): Promise<ValidationResultSet> {
     const results = new ValidationResultSet()
     for (const v of this.validations) {
-      const result = v.frontendPreValidate(change)
+      const result = await v.frontendPreValidate(change)
       results.add(result)
       if (result.error) {
         break
@@ -31,10 +31,10 @@ export class ValidationSet {
     return results
   }
 
-  frontendPostValidate(change: Change): ValidationResultSet {
+  async frontendPostValidate(change: Change): Promise<ValidationResultSet> {
     const results = new ValidationResultSet()
     for (const v of this.validations) {
-      const result = v.frontendPostValidate(change)
+      const result = await v.frontendPostValidate(change)
       results.add(result)
       if (result.error) {
         break
@@ -43,10 +43,10 @@ export class ValidationSet {
     return results
   }
 
-  backendPreValidate(change: Change): ValidationResultSet {
+  async backendPreValidate(change: Change): Promise<ValidationResultSet> {
     const results = new ValidationResultSet()
     for (const v of this.validations) {
-      const result = v.backendPreValidate(change)
+      const result = await v.backendPreValidate(change)
       results.add(result)
       if (result.error) {
         break
@@ -55,10 +55,10 @@ export class ValidationSet {
     return results
   }
 
-  backendPostValidate(change: Change): ValidationResultSet {
+  async backendPostValidate(change: Change): Promise<ValidationResultSet> {
     const results = new ValidationResultSet()
     for (const v of this.validations) {
-      const result = v.backendPostValidate(change)
+      const result = await v.backendPostValidate(change)
       results.add(result)
       if (result.error) {
         break

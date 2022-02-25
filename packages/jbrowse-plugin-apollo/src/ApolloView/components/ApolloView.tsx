@@ -1,54 +1,43 @@
-import { getSession, isSessionWithAddTracks } from '@jbrowse/core/util'
-import { Button, Paper, Typography, makeStyles } from '@material-ui/core'
+import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import {
-  AnnotationFeature,
-  CollaborationServerDriver,
-  LocationEndChange,
-} from 'apollo-shared'
+  AppRootModel,
+  getSession,
+  isSessionWithAddTracks,
+} from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
-import { getEnv, resolveIdentifier } from 'mobx-state-tree'
-import React from 'react'
+import { getEnv, getRoot } from 'mobx-state-tree'
+import React, { useEffect, useState } from 'react'
 
 import { ApolloViewModel } from '../stateModel'
-
-const useStyles = makeStyles((theme) => ({
-  setup: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  button: {
-    margin: theme.spacing(4),
-  },
-}))
+import { CollaborationSetup } from './CollaborationSetup'
+import { Welcome } from './Welcome'
 
 export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
-  const classes = useStyles()
+  const [error, setError] = useState<Error>()
+  const [editorType, setEditorType] = useState<'local' | 'collaboration'>()
+  const [assembly, setAssembly] = useState<Assembly>()
+  const [internetAccountConfigId, setInternetAccountConfigId] =
+    useState<string>()
   const { pluginManager } = getEnv(model)
+  const { internetAccounts } = getRoot(model) as AppRootModel
   const { linearGenomeView, dataStore, setDataStore } = model
   const { ReactComponent } = pluginManager.getViewType(linearGenomeView.type)
 
-  function setUpView() {
+  const regions = assembly?.regions
+  useEffect(() => {
+    if (!regions || !internetAccountConfigId) {
+      return
+    }
+    const [firstRef] = regions
     const newDataStore = setDataStore({
       typeName: 'Client',
       features: {},
       backendDriverType: 'CollaborationServerDriver',
+      internetAccountConfigId,
     })
     if (!newDataStore) {
       throw new Error('No data store')
     }
-    const backendDriver = new CollaborationServerDriver(newDataStore)
-    // linearGenomeView.staticBlocks.contentBlocks.forEach((block) => {
-    ;[
-      { assemblyName: 'volvox', refName: 'ctgA', start: 0, end: 50000 },
-    ].forEach((block) => {
-      backendDriver.loadFeatures({
-        assemblyName: block.assemblyName,
-        refName: block.refName,
-        start: block.start,
-        end: block.end,
-      })
-    })
     const session = getSession(model)
     if (!isSessionWithAddTracks(session)) {
       throw new Error('')
@@ -59,91 +48,54 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
       // @ts-ignore
       session.tracks.find((track) => track.trackId === trackId),
     )
-    if (hasTrack) {
-      return
+    if (!hasTrack) {
+      session.addTrackConf({
+        type: 'ApolloTrack',
+        trackId,
+        name: `Apollo Track ${assembly.name}`,
+        assemblyNames: [firstRef.assemblyName],
+        displays: [
+          {
+            type: 'LinearApolloDisplay',
+            displayId: `apollo_track_${linearGenomeView.id}-LinearApolloDisplay`,
+          },
+        ],
+      })
     }
-    session.addTrackConf({
-      type: 'ApolloTrack',
-      trackId,
-      name: `Apollo Track Volvox`,
-      assemblyNames: ['volvox'],
-      displays: [
-        {
-          type: 'LinearApolloDisplay',
-          displayId: `apollo_track_${linearGenomeView.id}-LinearApolloDisplay`,
-        },
-      ],
-    })
+    linearGenomeView.setDisplayedRegions([firstRef])
+    linearGenomeView.showTrack(trackId, {}, { height: 300 })
+    linearGenomeView.zoomTo(linearGenomeView.maxBpPerPx)
+    linearGenomeView.center()
+  }, [
+    regions,
+    model,
+    assembly?.name,
+    internetAccountConfigId,
+    linearGenomeView,
+    setDataStore,
+  ])
+
+  if (error) {
+    return <div>{String(error)}</div>
   }
 
-  if (!dataStore?.features.size) {
-    return (
-      <div className={classes.setup}>
-        <Button
-          className={classes.button}
-          color="primary"
-          variant="contained"
-          onClick={setUpView}
-        >
-          Load Volvox GFF3
-        </Button>
-      </div>
-    )
+  if (!dataStore) {
+    if (!editorType) {
+      return <Welcome setEditorType={setEditorType} />
+    }
+
+    if (editorType === 'collaboration') {
+      return (
+        <CollaborationSetup
+          internetAccounts={internetAccounts}
+          setAssembly={setAssembly}
+          setInternetAccountConfigId={setInternetAccountConfigId}
+          setError={setError}
+          viewModel={model}
+        />
+      )
+    }
   }
 
-  const featureId = '428763278'
-  const feature = resolveIdentifier(
-    AnnotationFeature,
-    dataStore.features,
-    featureId,
-  )
-  if (!feature) {
-    throw new Error(`Could not find feature with id "${featureId}"`)
-  }
-
-  return (
-    <>
-      <ReactComponent key={linearGenomeView.id} model={linearGenomeView} />
-
-      <Paper variant="outlined" style={{ padding: 4 }}>
-        <Typography>
-          Feature {featureId} starts at {feature.location.start} and ends at{' '}
-          {feature.location.end}.
-        </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          style={{ marginRight: 4 }}
-          onClick={() => {
-            const oldEnd = feature.location.end
-            const newEnd = oldEnd - 100
-            const change = new LocationEndChange({
-              typeName: 'LocationEndChange',
-              changedIds: [featureId],
-              changes: [{ featureId, oldEnd, newEnd }],
-            })
-            dataStore?.changeManager.submit(change)
-          }}
-        >
-          Decrease end by 100
-        </Button>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => {
-            const oldEnd = feature.location.end
-            const newEnd = oldEnd + 100
-            const change = new LocationEndChange({
-              typeName: 'LocationEndChange',
-              changedIds: [featureId],
-              changes: [{ featureId, oldEnd, newEnd }],
-            })
-            dataStore?.changeManager.submit(change)
-          }}
-        >
-          Increase end by 100
-        </Button>
-      </Paper>
-    </>
-  )
+  return <ReactComponent key={linearGenomeView.id} model={linearGenomeView} />
 })

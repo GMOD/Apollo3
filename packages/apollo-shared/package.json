@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@gmod/gff": "^1.2.0",
-    "@jbrowse/core": "^1.6.4",
+    "@jbrowse/core": "file:../../jbrowse-core-7221dd8867b1da7273ad19e894b0bbba2e6ecc89.tgz",
     "@nestjs/common": "^8.3.1",
     "cache-manager": "^3.6.0",
     "fs": "^0.0.1-security",

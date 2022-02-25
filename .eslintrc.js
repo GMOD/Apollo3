@@ -52,6 +52,7 @@ module.exports = {
     'no-console': ['warn', { allow: ['error', 'warn'] }],
     'no-else-return': ['error', { allowElseIf: false }],
     'no-return-await': 'error',
+    'object-shorthand': 'warn',
     'prefer-destructuring': 'warn',
     'prefer-template': 'warn',
     'prettier/prettier': 'warn',

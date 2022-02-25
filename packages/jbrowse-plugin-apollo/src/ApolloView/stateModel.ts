@@ -15,10 +15,11 @@ export const ClientDataStore = types
     backendDriverType: types.maybe(
       types.enumeration('backendDriverType', ['CollaborationServerDriver']),
     ),
+    internetAccountConfigId: types.maybe(types.string),
   })
   .actions((self) => ({
     load(features: SnapshotIn<typeof FeaturesForRefName>) {
-      self.features = features
+      self.features = cast(features)
     },
   }))
   .volatile((self) => {
@@ -37,9 +38,13 @@ export function stateModelFactory(pluginManager: PluginManager) {
   return types
     .model('ApolloView', {
       type: types.literal('ApolloView'),
-      linearGenomeView: pluginManager.getViewType('LinearGenomeView')
-        .stateModel as LinearGenomeViewStateModel,
+      linearGenomeView: types.optional(
+        pluginManager.getViewType('LinearGenomeView')
+          .stateModel as LinearGenomeViewStateModel,
+        { type: 'LinearGenomeView' },
+      ),
       dataStore: types.maybe(ClientDataStore),
+      displayName: 'Apollo',
     })
     .views((self) => ({
       get width() {
@@ -53,6 +58,9 @@ export function stateModelFactory(pluginManager: PluginManager) {
       setDataStore(dataStore: SnapshotIn<typeof ClientDataStore>) {
         self.dataStore = cast(dataStore)
         return self.dataStore
+      },
+      setDisplayName(displayName: string) {
+        self.displayName = displayName
       },
     }))
 }

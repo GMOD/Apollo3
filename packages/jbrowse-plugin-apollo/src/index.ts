@@ -7,22 +7,12 @@ import {
 } from '@jbrowse/core/pluggableElementTypes/models'
 import TrackType from '@jbrowse/core/pluggableElementTypes/TrackType'
 import ViewType from '@jbrowse/core/pluggableElementTypes/ViewType'
-import WidgetType from '@jbrowse/core/pluggableElementTypes/WidgetType'
 import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
-import {
-  AbstractSessionModel,
-  SessionWithWidgets,
-  isAbstractMenuManager,
-} from '@jbrowse/core/util'
+import { AbstractSessionModel, isAbstractMenuManager } from '@jbrowse/core/util'
 import { LocationEndChange, changeRegistry } from 'apollo-shared'
 
 import { version } from '../package.json'
-import {
-  ReactComponent as ApolloAuthWidgetReactComponent,
-  configSchema as apolloAuthWidgetConfigSchema,
-  stateModel as apolloAuthWidgetStateModel,
-} from './ApolloAuthWidget'
 import {
   configSchema as apolloInternetAccountConfigSchema,
   modelFactory as apolloInternetAccountModelFactory,
@@ -40,6 +30,7 @@ import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
 } from './LinearApolloDisplay'
+import { makeDisplayComponent } from './makeDisplayComponent'
 
 changeRegistry.registerChange('LocationEndChange', LocationEndChange)
 
@@ -76,16 +67,6 @@ export default class ApolloPlugin extends Plugin {
       })
     })
 
-    pluginManager.addWidgetType(() => {
-      return new WidgetType({
-        name: 'ApolloAuthWidget',
-        heading: 'Auth',
-        configSchema: apolloAuthWidgetConfigSchema,
-        ReactComponent: ApolloAuthWidgetReactComponent,
-        stateModel: apolloAuthWidgetStateModel,
-      })
-    })
-
     pluginManager.addInternetAccountType(() => {
       return new InternetAccountType({
         name: 'ApolloInternetAccount',
@@ -95,12 +76,10 @@ export default class ApolloPlugin extends Plugin {
         ),
       })
     })
-    const LGVPlugin = pluginManager.getPlugin(
-      'LinearGenomeViewPlugin',
-    ) as import('@jbrowse/plugin-linear-genome-view').default
-    const { BaseLinearDisplayComponent } = LGVPlugin.exports
+
     pluginManager.addDisplayType(() => {
       const configSchema = linearApolloDisplayConfigSchemaFactory(pluginManager)
+      const DisplayComponent = makeDisplayComponent(pluginManager)
       return new DisplayType({
         name: 'LinearApolloDisplay',
         configSchema,
@@ -110,7 +89,7 @@ export default class ApolloPlugin extends Plugin {
         ),
         trackType: 'ApolloTrack',
         viewType: 'LinearGenomeView',
-        ReactComponent: BaseLinearDisplayComponent,
+        ReactComponent: DisplayComponent,
       })
     })
 
@@ -127,24 +106,11 @@ export default class ApolloPlugin extends Plugin {
 
   configure(pluginManager: PluginManager) {
     if (isAbstractMenuManager(pluginManager.rootModel)) {
-      pluginManager.rootModel.appendToMenu('Add', {
-        label: 'Apollo View',
+      pluginManager.rootModel.insertMenu('Apollo', -1)
+      pluginManager.rootModel.appendToMenu('Apollo', {
+        label: 'Add Apollo View',
         onClick: (session: AbstractSessionModel) => {
-          session.addView('ApolloView', {
-            linearGenomeView: { type: 'LinearGenomeView' },
-          })
-        },
-      })
-    }
-    if (isAbstractMenuManager(pluginManager.rootModel)) {
-      pluginManager.rootModel.appendToMenu('Auth', {
-        label: 'Open Apollo Auth',
-        onClick: (session: SessionWithWidgets) => {
-          const authWidget = session.addWidget(
-            'ApolloAuthWidget',
-            'apolloAuthWidget',
-          )
-          session.showWidget(authWidget)
+          session.addView('ApolloView', {})
         },
       })
     }

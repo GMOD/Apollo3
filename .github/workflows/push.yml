@@ -19,12 +19,12 @@ jobs:
           install-command: yarn --immutable
       - name: Lint codebase
         run: yarn eslint --ext .js,.ts,.jsx,.tsx .
+      - name: Build shared
+        run: yarn build
+        working-directory: packages/apollo-shared
       - name: Build collaboration server
         run: yarn build
         working-directory: packages/apollo-collaboration-server
       - name: Build plugin
         run: yarn build
         working-directory: packages/jbrowse-plugin-apollo
-      - name: Build sahred
-        run: yarn build
-        working-directory: packages/apollo-shared
