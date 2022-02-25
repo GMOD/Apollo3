@@ -14,7 +14,6 @@ export interface ClientDataStore extends IAnyStateTreeNode {
 }
 export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'
-  serializedChange: SerializedChange
   cacheManager: Cache
   envMap: Map<string, string>
 }

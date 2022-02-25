@@ -47,7 +47,6 @@ export class ChangeController {
     this.logger.debug(`Requested change=${JSON.stringify(change)}`)
     const param1: LocalGFF3DataStore = {
       typeName: 'LocalGFF3',
-      serializedChange: serializedChange,
       cacheManager: this.cacheManager,
       envMap: envMap,
     }

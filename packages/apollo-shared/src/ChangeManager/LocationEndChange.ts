@@ -62,19 +62,16 @@ export class LocationEndChange extends Change {
       throw new Error('No GFF3_DEFAULT_FILENAME_TO_SAVE found in Map!')
     }
 
-    // To get rid of 'unknown'
-    const newObject = JSON.parse(
-      JSON.stringify(backend.serializedChange.changes),
-    )
+    const { changes } = this
 
     // **** TODO: UPDATE ALL CHANGES - NOW UPDATING ONLY THE FIRST CHANGE IN 'CHANGES' -ARRAY ****//
-    this.logger.debug(`Change request: ${JSON.stringify(newObject)}`)
+    this.logger.debug(`Change request: ${JSON.stringify(changes)}`)
     let cacheValue: string | undefined = ''
     const nberOfEntries = await backend.cacheManager.store.keys?.()
     await nberOfEntries.sort((n1: number, n2: number) => n1 - n2)
-    const { featureId } = newObject[0]
-    const { oldEnd } = newObject[0]
-    const { newEnd } = newObject[0]
+    const { featureId } = changes[0]
+    const { oldEnd } = changes[0]
+    const { newEnd } = changes[0]
     const searchApolloIdStr = `"apollo_id":["${featureId}"]`
 
     // Loop the cache content
@@ -123,7 +120,6 @@ export class LocationEndChange extends Change {
                 // Let's search apollo_id recursively
                 this.searchApolloIdRecursively(
                   assignedVal,
-                  backend.serializedChange,
                   keyInd.toString(),
                   backend.cacheManager,
                 )
@@ -204,15 +200,14 @@ export class LocationEndChange extends Change {
   async searchApolloIdRecursively(
     parentFeature: any,
     // parentFeature: any,
-    serializedChange: SerializedChange,
     keyInd: string,
     cacheManager: Cache,
   ) {
     // To get rid of 'unknown'
-    const newObject = JSON.parse(JSON.stringify(serializedChange.changes))
-    const { featureId } = newObject[0]
-    const { oldEnd } = newObject[0]
-    const { newEnd } = newObject[0]
+    const { changes } = this
+    const { featureId } = changes[0]
+    const { oldEnd } = changes[0]
+    const { newEnd } = changes[0]
     // If there is child features and size is not 0
     if (
       parentFeature.hasOwnProperty('child_features') &&
@@ -251,12 +246,7 @@ export class LocationEndChange extends Change {
             parentFeature[k].length !== undefined &&
             parentFeature[k].length > 0
           ) {
-            this.searchApolloIdRecursively(
-              assignedVal,
-              serializedChange,
-              keyInd,
-              cacheManager,
-            )
+            this.searchApolloIdRecursively(assignedVal, keyInd, cacheManager)
           }
         }
       }
