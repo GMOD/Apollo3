@@ -244,7 +244,7 @@ export class FileHandlingService {
     )
 
     // This method check that each line has unique id. If not it creates one for each line and overwrites the orignal file
-    this.checkGFF3uniqueKey(join(FILE_SEARCH_FOLDER, filename))
+    await this.checkGFF3uniqueKey(join(FILE_SEARCH_FOLDER, filename))
 
     const stringOfGFF3 = await fs.readFile(join(FILE_SEARCH_FOLDER, filename), {
       encoding: 'utf8',
