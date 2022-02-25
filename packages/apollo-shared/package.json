@@ -17,12 +17,6 @@
     "@gmod/gff": "^1.2.0",
     "@jbrowse/core": "file:../../jbrowse-core-7221dd8867b1da7273ad19e894b0bbba2e6ecc89.tgz",
     "@nestjs/common": "^8.3.1",
-    "cache-manager": "^3.6.0",
-    "fs": "^0.0.1-security",
-    "fs.promises": "^0.1.2",
-    "mobx-state-tree": "3.14.1",
-    "path": "^0.12.7",
-    "promise-fs": "^2.1.1",
     "reflect-metadata": "^0.1.13",
     "regenerator-runtime": "^0.13.9",
     "tslib": "^2.3.1"
@@ -30,10 +24,20 @@
   "devDependencies": {
     "@types/cache-manager": "^3",
     "@types/promise-fs": "^2",
+    "mobx-state-tree": "3.14.1",
     "typescript": "4.4.4"
   },
   "peerDependencies": {
-    "mobx": "^5.10.1"
+    "@material-ui/core": "^4.12.2",
+    "@material-ui/lab": "^4.0.0-alpha.45",
+    "@mui/x-data-grid": "^4.0.0",
+    "mobx": "^5.0.0",
+    "mobx-react": "^6.0.0",
+    "mobx-state-tree": "^3.14.1",
+    "prop-types": "^15.0.0",
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0",
+    "rxjs": "^6.0.0"
   },
   "packageManager": "yarn@3.1.0",
   "private": true
