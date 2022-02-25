@@ -289,9 +289,9 @@ export class FileHandlingService {
   async getFeaturesByCriteria(searchDto: GFF3FeatureLine) {
     let cacheValue: string | undefined = ''
     let cacheValueAsJson: GFF3Feature
-    const resultJsonArray: GFF3FeatureLine[] = [] // Return JSON array
+    const resultJsonArray: GFF3Feature[] = [] // Return JSON array
 
-    const nberOfEntries = await this.cacheManager.store.keys?.()
+    const nberOfEntries: string[] = await this.cacheManager.store.keys?.()
 
     this.logger.debug(
       `Feature search criteria is seq_id=${searchDto.seq_id}, start=${searchDto.start} and end=${searchDto.end}`,
@@ -302,26 +302,28 @@ export class FileHandlingService {
       for (const keyInd of nberOfEntries) {
         cacheValue = await this.cacheManager.get(keyInd)
         if (!cacheValue) {
-          throw new Error(`No entry found for ${keyInd.toString()}`)
+          throw new Error(`No entry found for ${keyInd}`)
         }
         cacheValueAsJson = JSON.parse(cacheValue)
         this.logger.verbose(
           `Cache SEQ_ID=${cacheValueAsJson[0].seq_id}, START=${cacheValueAsJson[0].start} and END=${cacheValueAsJson[0].end}`,
         )
         // Compare cache values vs. searchable values
-        const [value] = cacheValueAsJson
-        if (
-          value.seq_id === searchDto.seq_id &&
-          value.end !== null &&
-          value.end > searchDto.start &&
-          value.start !== null &&
-          value.start < searchDto.end
-        ) {
-          this.logger.debug(
-            `Matched found seq_id=${cacheValueAsJson[0].seq_id}, start=${cacheValueAsJson[0].start} and end=${cacheValueAsJson[0].end}`,
-          )
-          // Add found feature into array
-          resultJsonArray.push(cacheValueAsJson[0])
+        for (const value of cacheValueAsJson) {
+          if (
+            value.seq_id === searchDto.seq_id &&
+            value.end !== null &&
+            value.end > searchDto.start &&
+            value.start !== null &&
+            value.start < searchDto.end
+          ) {
+            this.logger.debug(
+              `Matched found seq_id=${value.seq_id}, start=${value.start} and end=${value.end}`,
+            )
+            // Add found feature into array
+            resultJsonArray.push(cacheValueAsJson)
+            break
+          }
         }
       }
     }

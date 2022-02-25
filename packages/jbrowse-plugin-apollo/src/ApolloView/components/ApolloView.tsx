@@ -16,14 +16,16 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
   const [error, setError] = useState<Error>()
   const [editorType, setEditorType] = useState<'local' | 'collaboration'>()
   const [assembly, setAssembly] = useState<Assembly>()
+  const [internetAccountConfigId, setInternetAccountConfigId] =
+    useState<string>()
   const { pluginManager } = getEnv(model)
   const { internetAccounts } = getRoot(model) as AppRootModel
   const { linearGenomeView, dataStore, setDataStore } = model
   const { ReactComponent } = pluginManager.getViewType(linearGenomeView.type)
 
-  const regions = assembly && assembly.regions
+  const regions = assembly?.regions
   useEffect(() => {
-    if (!regions) {
+    if (!regions || !internetAccountConfigId) {
       return
     }
     const [firstRef] = regions
@@ -31,6 +33,7 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
       typeName: 'Client',
       features: {},
       backendDriverType: 'CollaborationServerDriver',
+      internetAccountConfigId,
     })
     if (!newDataStore) {
       throw new Error('No data store')
@@ -63,7 +66,14 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
     linearGenomeView.showTrack(trackId, {}, { height: 300 })
     linearGenomeView.zoomTo(linearGenomeView.maxBpPerPx)
     linearGenomeView.center()
-  }, [regions, model, assembly?.name, linearGenomeView, setDataStore])
+  }, [
+    regions,
+    model,
+    assembly?.name,
+    internetAccountConfigId,
+    linearGenomeView,
+    setDataStore,
+  ])
 
   if (error) {
     return <div>{String(error)}</div>
@@ -79,6 +89,7 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
         <CollaborationSetup
           internetAccounts={internetAccounts}
           setAssembly={setAssembly}
+          setInternetAccountConfigId={setInternetAccountConfigId}
           setError={setError}
           viewModel={model}
         />

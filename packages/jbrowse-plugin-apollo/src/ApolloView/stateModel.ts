@@ -15,6 +15,7 @@ export const ClientDataStore = types
     backendDriverType: types.maybe(
       types.enumeration('backendDriverType', ['CollaborationServerDriver']),
     ),
+    internetAccountConfigId: types.maybe(types.string),
   })
   .actions((self) => ({
     load(features: SnapshotIn<typeof FeaturesForRefName>) {
