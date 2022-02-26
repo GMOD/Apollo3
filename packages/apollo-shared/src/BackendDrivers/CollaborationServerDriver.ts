@@ -10,13 +10,7 @@ import { ValidationResultSet } from '../Validations/ValidationSet'
 import { BackendDriver } from './BackendDriver'
 
 export class CollaborationServerDriver extends BackendDriver {
-  /**
-   * Call backend endpoint to get features by criteria
-   * @param region -  Searchable region containing refName, start and end
-   * @returns
-   */
-  async getFeatures(region: Region) {
-    const { refName, start, end } = region
+  get internetAccount() {
     const { internetAccountConfigId } = this.clientStore
     const { internetAccounts } = getRoot(this.clientStore) as AppRootModel
     const internetAccount = internetAccounts.find(
@@ -27,9 +21,31 @@ export class CollaborationServerDriver extends BackendDriver {
         `No InternetAccount found with config id ${internetAccountConfigId}`,
       )
     }
-    const { baseURL } = internetAccount as BaseInternetAccountModel & {
+    return internetAccount as BaseInternetAccountModel & {
       baseURL: string
     }
+  }
+
+  get baseURL() {
+    return this.internetAccount.baseURL
+  }
+
+  async fetch(info: RequestInfo, init?: RequestInit) {
+    const customFetch = this.internetAccount.getFetcher({
+      locationType: 'UriLocation',
+      uri: info.toString(),
+    })
+    return customFetch(info, init)
+  }
+
+  /**
+   * Call backend endpoint to get features by criteria
+   * @param region -  Searchable region containing refName, start and end
+   * @returns
+   */
+  async getFeatures(region: Region) {
+    const { refName, start, end } = region
+    const { baseURL } = this
     const url = new URL('filehandling/getFeaturesByCriteria', baseURL)
     const searchParams = new URLSearchParams({
       seq_id: refName,
@@ -38,13 +54,9 @@ export class CollaborationServerDriver extends BackendDriver {
     })
     url.search = searchParams.toString()
     const uri = url.toString()
-    const fetch = internetAccount.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
     // console.log(`In CollaborationServerDriver: Query parameters: refName=${refName}, start=${start}, end=${end}`)
 
-    const result = await fetch(uri)
+    const result = await this.fetch(uri)
     const data = (await result.json()) as GFF3Item[]
     // const backendResult = JSON.stringify(data)
     // console.log(
@@ -66,7 +78,18 @@ export class CollaborationServerDriver extends BackendDriver {
   }
 
   async submitChange(change: Change) {
-    return new ValidationResultSet()
+    const { baseURL } = this
+    const url = new URL('change/submitChange', baseURL).href
+    const response = await this.fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(change.toJSON()),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const results = new ValidationResultSet()
+    if (!response.ok) {
+      results.ok = false
+    }
+    return results
   }
 }
 

@@ -31,7 +31,7 @@ export class ChangeController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('/submitchange')
+  @Post('/submitChange')
   async submitChange(@Body() serializedChange: SerializedChange) {
     // Get environment variable values and pass those as parameter to apply -method
     const { FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE } = process.env
@@ -56,6 +56,7 @@ export class ChangeController {
       cacheManager: this.cacheManager,
       gff3Handle,
     })
-    return ''
+    gff3Handle.close()
+    return []
   }
 }
