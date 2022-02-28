@@ -30,13 +30,21 @@ export class CollaborationServerDriver extends BackendDriver {
     const { baseURL } = internetAccount as BaseInternetAccountModel & {
       baseURL: string
     }
-    const url = new URL('filehandling/getFeaturesByCriteria', baseURL)
-    const searchParams = new URLSearchParams({
-      seq_id: refName,
-      start: String(start),
-      end: String(end),
-    })
-    url.search = searchParams.toString()
+
+    // ************** KS TEMP COMMENT BEGINS ***************
+    // const url = new URL('filehandling/getFeaturesByCriteria', baseURL)
+    // const searchParams = new URLSearchParams({
+    //   seq_id: refName,
+    //   start: String(start),
+    //   end: String(end),
+    // })
+    // url.search = searchParams.toString()
+    // ************** KS TEMP COMMENT ENDS ***************    
+    const url = 'filehandling/getFeaturesByCriteria'
+
+
+
+
     const uri = url.toString()
     const fetch = internetAccount.getFetcher({
       locationType: 'UriLocation',
