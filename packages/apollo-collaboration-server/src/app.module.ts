@@ -1,13 +1,10 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
-import { initializeTransactionalContext } from 'typeorm-transactional-cls-hooked'
 
 import { AuthenticationModule } from './authentication/authentication.module'
 import { FileHandlingModule } from './fileHandling/fileHandling.module'
 import { RolesGuard } from './utils/role/role.guards'
-
-initializeTransactionalContext() // Initialize cls-hooked
 
 const nodeEnv = process.env.NODE_ENV || 'production'
 
