@@ -45,7 +45,8 @@ export class ChangeController {
     envMap.set('FILE_SEARCH_FOLDER', FILE_SEARCH_FOLDER)
     envMap.set('GFF3_DEFAULT_FILENAME_TO_SAVE', GFF3_DEFAULT_FILENAME_TO_SAVE)
 
-    const change = LocationEndChange.fromJSON(serializedChange)
+    const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
+    const change = new ChangeType(serializedChange)
     this.logger.debug(`Requested change=${JSON.stringify(change)}`)
     const gff3Handle = await open(
       join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
