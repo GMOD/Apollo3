@@ -88,6 +88,11 @@ export function stateModelFactory(
       get rendererTypeName() {
         return self.configuration.renderer.type
       },
+      get changeManager() {
+        const lgv = getContainingView(self)
+        const apolloView = getContainingView(lgv) as unknown as ApolloViewModel
+        return apolloView.dataStore?.changeManager
+      },
       get features() {
         const lgv = getContainingView(self)
         const apolloView = getContainingView(lgv) as unknown as ApolloViewModel

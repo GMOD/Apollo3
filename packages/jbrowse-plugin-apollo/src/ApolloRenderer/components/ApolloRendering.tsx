@@ -1,5 +1,10 @@
 import { Region } from '@jbrowse/core/util'
-import { AnnotationFeatureI } from 'apollo-shared'
+import {
+  AnnotationFeatureI,
+  Change,
+  LocationEndChange,
+  LocationStartChange,
+} from 'apollo-shared'
 import { observer } from 'mobx-react'
 import React, { useEffect, useRef, useState } from 'react'
 
@@ -18,6 +23,13 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
   const [overEdge, setOverEdge] = useState<'start' | 'end'>()
+  const [dragging, setDragging] = useState<{
+    edge: 'start' | 'end'
+    feature: AnnotationFeatureI
+    row: number
+    bp: number
+    px: number
+  }>()
   const { regions, bpPerPx, displayModel } = props
   const [region] = regions
   const totalWidth = (region.end - region.start) / bpPerPx
@@ -27,6 +39,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     setApolloFeatureUnderMouse,
     apolloRowUnderMouse,
     setApolloRowUnderMouse,
+    changeManager,
   } = displayModel
   const height = 20
   const padding = 4
@@ -85,18 +98,26 @@ function ApolloRendering(props: ApolloRenderingProps) {
       return
     }
     ctx.clearRect(0, 0, totalWidth, totalHeight)
-    if (apolloFeatureUnderMouse && apolloRowUnderMouse !== undefined) {
-      const start = apolloFeatureUnderMouse.location.start - region.start - 1
-      const width = apolloFeatureUnderMouse.location.length
+    if (dragging) {
+      const { feature, row, edge, px } = dragging
+      const featureEdgePx = (feature.location[edge] - region.start) / bpPerPx
+      const startPx = Math.min(px, featureEdgePx)
+      const widthPx = Math.abs(px - featureEdgePx)
+      ctx.strokeStyle = 'red'
+      ctx.setLineDash([6])
+      ctx.strokeRect(startPx, row * (height + 4) + padding, widthPx, height)
+      ctx.fillStyle = 'rgba(255,0,0,.2)'
+      ctx.fillRect(startPx, row * (height + 4) + padding, widthPx, height)
+    }
+    const feature = dragging?.feature || apolloFeatureUnderMouse
+    const row = dragging?.row || apolloRowUnderMouse
+    if (feature && row !== undefined) {
+      const start = feature.location.start - region.start - 1
+      const width = feature.location.length
       const startPx = start / bpPerPx
       const widthPx = width / bpPerPx
       ctx.fillStyle = 'rgba(0,0,0,0.2)'
-      ctx.fillRect(
-        startPx,
-        apolloRowUnderMouse * (height + 4) + padding,
-        widthPx,
-        height,
-      )
+      ctx.fillRect(startPx, row * (height + 4) + padding, widthPx, height)
     }
   }, [
     apolloFeatureUnderMouse,
@@ -105,6 +126,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     totalHeight,
     totalWidth,
     region.start,
+    dragging,
   ])
   function onMouseMove(event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
     const { clientX, clientY } = event
@@ -117,6 +139,27 @@ function ApolloRendering(props: ApolloRenderingProps) {
     // adjust for region reversal
     x = region.reversed ? totalWidth - x : x
     const y = clientY - top
+
+    if (dragging) {
+      const { edge, feature, row } = dragging
+      let px = x
+      let bp = region.start + x * bpPerPx
+      if (edge === 'start' && bp > feature.location.end - 1) {
+        bp = feature.location.end - 1
+        px = (bp - region.start) / bpPerPx
+      } else if (edge === 'end' && bp < feature.location.start + 1) {
+        bp = feature.location.start + 1
+        px = (bp - region.start) / bpPerPx
+      }
+      setDragging({
+        edge,
+        feature,
+        row,
+        px,
+        bp,
+      })
+      return
+    }
 
     const row =
       // this will be false if y is in the padding area between rows
@@ -160,6 +203,46 @@ function ApolloRendering(props: ApolloRenderingProps) {
     setApolloFeatureUnderMouse(undefined)
     setApolloRowUnderMouse(undefined)
   }
+  function onMouseDown(event: React.MouseEvent) {
+    if (apolloFeatureUnderMouse && overEdge) {
+      event.stopPropagation()
+      setDragging({
+        edge: overEdge,
+        feature: apolloFeatureUnderMouse,
+        row: apolloRowUnderMouse || 0,
+        px:
+          (apolloFeatureUnderMouse.location[overEdge] - region.start) / bpPerPx,
+        bp: apolloFeatureUnderMouse.location[overEdge],
+      })
+    }
+  }
+  function onMouseUp() {
+    if (dragging) {
+      const { feature, bp, edge } = dragging
+      let change: Change
+      if (edge === 'end') {
+        const featureId = feature.id
+        const oldEnd = feature.location.end
+        const newEnd = Math.round(bp)
+        change = new LocationEndChange({
+          typeName: 'LocationEndChange',
+          changedIds: [featureId],
+          changes: [{ featureId, oldEnd, newEnd }],
+        })
+      } else {
+        const featureId = feature.id
+        const oldStart = feature.location.start
+        const newStart = Math.round(bp)
+        change = new LocationStartChange({
+          typeName: 'LocationStartChange',
+          changedIds: [featureId],
+          changes: [{ featureId, oldStart, newStart }],
+        })
+      }
+      changeManager?.submit(change)
+    }
+    setDragging(undefined)
+  }
   return (
     <div style={{ position: 'relative', width: totalWidth, height }}>
       <canvas
@@ -174,12 +257,16 @@ function ApolloRendering(props: ApolloRenderingProps) {
         height={totalHeight}
         onMouseMove={onMouseMove}
         onMouseLeave={onMouseLeave}
+        onMouseDown={onMouseDown}
+        onMouseUp={onMouseUp}
         style={{
           position: 'absolute',
           left: 0,
           top: 0,
           cursor:
-            apolloFeatureUnderMouse && overEdge ? 'col-resize' : 'default',
+            dragging || (apolloFeatureUnderMouse && overEdge)
+              ? 'col-resize'
+              : 'default',
         }}
       />
     </div>
