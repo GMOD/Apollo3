@@ -416,6 +416,7 @@ export class FileHandlingService {
     const resultJsonArray: FastaSequenceInfo[] = [] // Return JSON array
 
     const nberOfEntries = await this.cacheManager.store.keys?.()
+    nberOfEntries.sort((n1: number, n2: number) => n1 - n2) // Sort the array
     this.logger.debug('Get embedded FASTA information')
 
     // Loop cache

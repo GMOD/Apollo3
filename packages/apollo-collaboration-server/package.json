@@ -30,7 +30,6 @@
     "@nestjs/jwt": "^8.0.0",
     "@nestjs/passport": "^8.0.1",
     "@nestjs/platform-express": "^8.0.0",
-    "@nestjs/typeorm": "^8.0.2",
     "@types/multer": "^1.4.7",
     "apollo-shared": "workspace:^",
     "cache-manager": "^3.6.0",
@@ -38,8 +37,6 @@
     "jwt-decode": "^3.1.2",
     "mobx": "^5.10.1",
     "mobx-react": "^6.0.0",
-    "mysql": "^2.18.1",
-    "mysql2": "^2.3.0",
     "passport": "^0.5.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
@@ -50,8 +47,6 @@
     "rxjs": "^7.4.0",
     "string-builder": "^0.1.8",
     "tslib": "^2.3.1",
-    "typeorm": "^0.2.38",
-    "typeorm-transactional-cls-hooked": "^0.1.21",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
