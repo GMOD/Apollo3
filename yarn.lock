@@ -3249,31 +3249,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/common@npm:^8.3.1":
-  version: 8.3.1
-  resolution: "@nestjs/common@npm:8.3.1"
-  dependencies:
-    axios: 0.26.0
-    iterare: 1.2.1
-    tslib: 2.3.1
-    uuid: 8.3.2
-  peerDependencies:
-    cache-manager: "*"
-    class-transformer: "*"
-    class-validator: "*"
-    reflect-metadata: ^0.1.12
-    rxjs: ^7.1.0
-  peerDependenciesMeta:
-    cache-manager:
-      optional: true
-    class-transformer:
-      optional: true
-    class-validator:
-      optional: true
-  checksum: 833be13c6fb4a4c81913dd3fea5597ba1ae73675699a33f5e1cc58a36cd2186dc83c3ecafa532b40dd2167d23086aabef2d69cf6b8980b2f319f01c4e5ca356b
-  languageName: node
-  linkType: hard
-
 "@nestjs/config@npm:^1.0.3":
   version: 1.1.0
   resolution: "@nestjs/config@npm:1.1.0"
@@ -4130,15 +4105,6 @@ __metadata:
   version: 2.4.1
   resolution: "@types/prettier@npm:2.4.1"
   checksum: df330c2d6fe7c282839b0f17701e069a9c6c96d2ff54704e933a1b3c1b98844d963a7cb00c5629d173604892ceee802312bbaeb8a97f5da21e13db8f653b519e
-  languageName: node
-  linkType: hard
-
-"@types/promise-fs@npm:^2":
-  version: 2.1.2
-  resolution: "@types/promise-fs@npm:2.1.2"
-  dependencies:
-    "@types/node": "*"
-  checksum: 238dfd8a906a2e1fab29cd10751c536c45e804eaff3e9cdf8321c133c861ac4978eece157a68d70cbcd2104bebbf174d8e06104222600fcc40ba0f81b4f948a1
   languageName: node
   linkType: hard
 
@@ -5192,11 +5158,9 @@ __metadata:
   dependencies:
     "@gmod/gff": ^1.2.0
     "@jbrowse/core": "file:../../jbrowse-core-7221dd8867b1da7273ad19e894b0bbba2e6ecc89.tgz"
-    "@nestjs/common": ^8.3.1
     "@types/cache-manager": ^3
-    "@types/promise-fs": ^2
+    "@types/node": ^16.0.0
     mobx-state-tree: 3.14.1
-    reflect-metadata: ^0.1.13
     regenerator-runtime: ^0.13.9
     tslib: ^2.3.1
     typescript: 4.4.4
@@ -5560,15 +5524,6 @@ __metadata:
   dependencies:
     follow-redirects: ^1.14.4
   checksum: 468cf496c08a6aadfb7e699bebdac02851e3043d4e7d282350804ea8900e30d368daa6e3cd4ab83b8ddb5a3b1e17a5a21ada13fc9cebd27b74828f47a4236316
-  languageName: node
-  linkType: hard
-
-"axios@npm:0.26.0":
-  version: 0.26.0
-  resolution: "axios@npm:0.26.0"
-  dependencies:
-    follow-redirects: ^1.14.8
-  checksum: d7a8b898f4157bedeb2e06c03b16133b91b354c041205bea732ce58b7a21f373d22057b0eea0d482838145ce6ff482b359750d9bcb8dd19d45e3928e3c65c280
   languageName: node
   linkType: hard
 
@@ -9342,16 +9297,6 @@ __metadata:
     debug:
       optional: true
   checksum: f004a76b2ee3a849772c2816e30928253bf47537b0f00184d89f4966413add96a228a4d96ca8c702bc045a683c52c2ba41545c915cc1a5e33bf8fd9d07b59aee
-  languageName: node
-  linkType: hard
-
-"follow-redirects@npm:^1.14.8":
-  version: 1.14.9
-  resolution: "follow-redirects@npm:1.14.9"
-  peerDependenciesMeta:
-    debug:
-      optional: true
-  checksum: f5982e0eb481818642492d3ca35a86989c98af1128b8e1a62911a3410621bc15d2b079e8170b35b19d3bdee770b73ed431a257ed86195af773771145baa57845
   languageName: node
   linkType: hard
 
