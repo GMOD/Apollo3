@@ -1,3 +1,4 @@
+import { Cache } from 'cache-manager'
 import { IAnyStateTreeNode, Instance, SnapshotIn } from 'mobx-state-tree'
 
 import { FeaturesForRefName } from '../BackendDrivers/AnnotationFeature'
@@ -13,6 +14,8 @@ export interface ClientDataStore extends IAnyStateTreeNode {
 }
 export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'
+  cacheManager: Cache
+  gff3Handle: import('fs').promises.FileHandle
 }
 
 export interface SerializedChange extends Record<string, unknown> {
@@ -34,7 +37,7 @@ export abstract class Change {
 
   abstract toJSON(): SerializedChange
 
-  apply(backend: DataStore): void {
+  async apply(backend: DataStore): Promise<void> {
     const backendType = backend.typeName
     if (backendType === 'LocalGFF3') {
       return this.applyToLocalGFF3(backend)
@@ -47,8 +50,8 @@ export abstract class Change {
     )
   }
 
-  abstract applyToLocalGFF3(backend: LocalGFF3DataStore): void
-  abstract applyToClient(backend: ClientDataStore): void
+  abstract applyToLocalGFF3(backend: LocalGFF3DataStore): Promise<void>
+  abstract applyToClient(backend: ClientDataStore): Promise<void>
 
   abstract getInverse(): Change
 }

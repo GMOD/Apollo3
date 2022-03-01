@@ -6,6 +6,7 @@ import gff, {
   GFF3Feature,
   GFF3FeatureLine,
   GFF3FeatureLineWithRefs,
+  GFF3Item,
   GFF3Sequence,
 } from '@gmod/gff'
 import {
@@ -262,18 +263,9 @@ export class FileHandlingService {
     // Loop all lines and add those into cache
     for (const entry of arrayOfThings) {
       // Comment, Directive and FASTA -entries are not presented as an array so let's put entry into array because gff.formatSync() -method requires an array as argument
-      if (!Array.isArray(entry)) {
-        const result = [entry]
-        this.cacheManager.set(ind.toString(), JSON.stringify(result))
-        this.logger.verbose(
-          `Add Comments, Directive or FASTA into cache=${JSON.stringify(
-            result,
-          )}`,
-        )
-      } else {
-        this.cacheManager.set(ind.toString(), JSON.stringify(entry))
-        this.logger.verbose(`Add into cache new entry=${JSON.stringify(entry)}`)
-      }
+
+      this.cacheManager.set(ind.toString(), JSON.stringify(entry))
+      this.logger.verbose(`Add into cache new entry=${JSON.stringify(entry)}`)
       ind++
     }
     const nberOfEntries = await this.cacheManager.store.keys?.()
@@ -288,7 +280,7 @@ export class FileHandlingService {
    */
   async getFeaturesByCriteria(searchDto: GFF3FeatureLine) {
     let cacheValue: string | undefined = ''
-    let cacheValueAsJson: GFF3Feature
+    let cacheValueAsJson: GFF3Item
     const resultJsonArray: GFF3Feature[] = [] // Return JSON array
 
     const nberOfEntries: string[] = await this.cacheManager.store.keys?.()
@@ -305,6 +297,9 @@ export class FileHandlingService {
           throw new Error(`No entry found for ${keyInd}`)
         }
         cacheValueAsJson = JSON.parse(cacheValue)
+        if (!Array.isArray(cacheValueAsJson)) {
+          continue
+        }
         this.logger.verbose(
           `Cache SEQ_ID=${cacheValueAsJson[0].seq_id}, START=${cacheValueAsJson[0].start} and END=${cacheValueAsJson[0].end}`,
         )
@@ -417,10 +412,11 @@ export class FileHandlingService {
    */
   async getFastaInfo() {
     let cacheValue: string | undefined = ''
-    let cacheValueAsJson, keyArray
+    let cacheValueAsJson: GFF3Item
     const resultJsonArray: FastaSequenceInfo[] = [] // Return JSON array
 
     const nberOfEntries = await this.cacheManager.store.keys?.()
+    nberOfEntries.sort((n1: number, n2: number) => n1 - n2) // Sort the array
     this.logger.debug('Get embedded FASTA information')
 
     // Loop cache
@@ -430,22 +426,19 @@ export class FileHandlingService {
         throw new Error(`No entry found for ${keyInd.toString()}`)
       }
       cacheValueAsJson = JSON.parse(cacheValue)
-      keyArray = Object.keys(cacheValueAsJson[0])
+      if (Array.isArray(cacheValueAsJson)) {
+        continue
+      }
       // FASTA sequence object size is three ('id', 'description' and 'sequence')
-      if (
-        keyArray.length === 3 &&
-        cacheValueAsJson[0].hasOwnProperty('id') &&
-        cacheValueAsJson[0].hasOwnProperty('description') &&
-        cacheValueAsJson[0].hasOwnProperty('sequence')
-      ) {
+      if ('sequence' in cacheValueAsJson) {
         const tmpInfoObject: FastaSequenceInfo = {
-          refName: cacheValueAsJson[0].id,
-          description: cacheValueAsJson[0].description,
-          length: cacheValueAsJson[0].sequence.length,
+          refName: cacheValueAsJson.id,
+          description: cacheValueAsJson.description,
+          length: cacheValueAsJson.sequence.length,
         }
         resultJsonArray.push(tmpInfoObject)
         this.logger.debug(
-          `Added into result array an object of seq_id='${cacheValueAsJson[0].id}', description='${cacheValueAsJson[0].description}' and sequence length=${cacheValueAsJson[0].sequence.length}`,
+          `Added into result array an object of seq_id='${cacheValueAsJson.id}', description='${cacheValueAsJson.description}' and sequence length=${cacheValueAsJson.sequence.length}`,
         )
       }
     }

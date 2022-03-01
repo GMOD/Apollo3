@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
 
 import { AuthenticationModule } from './authentication/authentication.module'
+import { ChangeModule } from './change/change.module'
 import { FileHandlingModule } from './fileHandling/fileHandling.module'
 import { RolesGuard } from './utils/role/role.guards'
 
@@ -16,6 +17,7 @@ const nodeEnv = process.env.NODE_ENV || 'production'
       envFilePath: nodeEnv === 'production' ? '.env' : '.development.env',
     }),
     FileHandlingModule,
+    ChangeModule,
   ],
   providers: [
     {
