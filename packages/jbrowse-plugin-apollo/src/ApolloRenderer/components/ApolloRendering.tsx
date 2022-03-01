@@ -1,7 +1,7 @@
 import { Region } from '@jbrowse/core/util'
 import { AnnotationFeatureI } from 'apollo-shared'
 import { observer } from 'mobx-react'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 import { LinearApolloDisplay } from '../../LinearApolloDisplay/stateModel'
 
@@ -17,6 +17,7 @@ interface ApolloRenderingProps {
 function ApolloRendering(props: ApolloRenderingProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
+  const [overEdge, setOverEdge] = useState<'start' | 'end'>()
   const { regions, bpPerPx, displayModel } = props
   const [region] = regions
   const totalWidth = (region.end - region.start) / bpPerPx
@@ -137,6 +138,21 @@ function ApolloRendering(props: ApolloRenderingProps) {
     const feature = layoutRow.find(
       (f) => bp >= f.location.start && bp <= f.location.end,
     )
+    if (feature) {
+      // TODO: check reversed
+      // TODO: ensure feature is in interbase
+      const startPx = (feature.location.start - region.start) / bpPerPx
+      const endPx = (feature.location.end - region.start) / bpPerPx
+      if (endPx - startPx < 8) {
+        setOverEdge(undefined)
+      } else if (Math.abs(startPx - x) < 4) {
+        setOverEdge('start')
+      } else if (Math.abs(endPx - x) < 4) {
+        setOverEdge('end')
+      } else {
+        setOverEdge(undefined)
+      }
+    }
     setApolloFeatureUnderMouse(feature)
     setApolloRowUnderMouse(row)
   }
@@ -158,7 +174,13 @@ function ApolloRendering(props: ApolloRenderingProps) {
         height={totalHeight}
         onMouseMove={onMouseMove}
         onMouseLeave={onMouseLeave}
-        style={{ position: 'absolute', left: 0, top: 0 }}
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          cursor:
+            apolloFeatureUnderMouse && overEdge ? 'col-resize' : 'default',
+        }}
       />
     </div>
   )
