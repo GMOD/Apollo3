@@ -116,17 +116,17 @@ export class LocationEndChange extends Change {
       }
     }
     // Loop the updated cache and write it into file
-    for (const keyInd of nberOfEntries) {
-      cacheValue = await backend.cacheManager.get(keyInd.toString())
-      if (!cacheValue) {
-        throw new Error(`No entry found for ${keyInd.toString()}`)
-      }
-      // console.verbose(`Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`)
-      // Write into file line by line
-      await backend.gff3Handle.appendFile(
-        gff.formatSync(JSON.parse(cacheValue)),
-      )
-    }
+    const gff3 = await Promise.all(
+      cacheKeys.map(async (keyInd): Promise<GFF3Item> => {
+        gff3ItemString = await backend.cacheManager.get(keyInd.toString())
+        if (!gff3ItemString) {
+          throw new Error(`No entry found for ${keyInd.toString()}`)
+        }
+        return JSON.parse(gff3ItemString)
+      }),
+    )
+    // console.verbose(`Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`)
+    await backend.gff3Handle.writeFile(gff.formatSync(gff3))
   }
 
   async applyToClient(dataStore: ClientDataStore) {
