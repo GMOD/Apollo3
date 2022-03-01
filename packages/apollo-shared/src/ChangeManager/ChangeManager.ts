@@ -1,7 +1,10 @@
 import { getSession } from '@jbrowse/core/util'
 import { IAnyStateTreeNode } from 'mobx-state-tree'
 
-import { ValidationSet } from '../Validations/ValidationSet'
+import {
+  ValidationResultSet,
+  ValidationSet,
+} from '../Validations/ValidationSet'
 import { Change, ClientDataStore } from './Change'
 
 export class ChangeManager {
@@ -26,13 +29,13 @@ export class ChangeManager {
     }
 
     // submit to client data store
-    change.apply(this.dataStore)
+    await change.apply(this.dataStore)
 
     // post-validate
     const results2 = await this.validations.frontendPostValidate(change)
     if (!results2.ok) {
       // notify of invalid change and revert
-      change.getInverse().applyToClient(this.dataStore)
+      this.revert(change)
     }
 
     // submit to driver
@@ -40,7 +43,14 @@ export class ChangeManager {
     if (!backendDriver) {
       throw new Error(`No backendDriver set`)
     }
-    const backendResult = await backendDriver.submitChange(change)
+    let backendResult: ValidationResultSet
+    try {
+      backendResult = await backendDriver.submitChange(change)
+    } catch (error) {
+      session.notify(String(error), 'error')
+      this.revert(change)
+      return
+    }
     if (!backendResult.ok) {
       session.notify(
         `Change is not valid: "${result.results
@@ -54,6 +64,6 @@ export class ChangeManager {
   }
 
   async revert(change: Change) {
-    return this.submit(change.getInverse())
+    return change.getInverse().apply(this.dataStore)
   }
 }
