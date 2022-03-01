@@ -1,6 +1,4 @@
-/* eslint-disable prefer-destructuring */
-import gff from '@gmod/gff'
-import { Cache } from 'cache-manager'
+import gff, { GFF3Feature, GFF3Item } from '@gmod/gff'
 import { resolveIdentifier } from 'mobx-state-tree'
 
 import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
@@ -52,65 +50,26 @@ export class LocationEndChange extends Change {
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
     const { changes } = this
 
-    // **** TODO: UPDATE ALL CHANGES - NOW UPDATING ONLY THE FIRST CHANGE IN 'CHANGES' -ARRAY ****//
     console.debug(`Change request: ${JSON.stringify(changes)}`)
-    let cacheValue: string | undefined = ''
-    const nberOfEntries = await backend.cacheManager.store.keys?.()
-    await nberOfEntries.sort((n1: number, n2: number) => n1 - n2)
-    const { featureId } = changes[0]
-    const { oldEnd } = changes[0]
-    const { newEnd } = changes[0]
-    const searchApolloIdStr = `"apollo_id":["${featureId}"]`
+    let gff3ItemString: string | undefined = ''
+    const cacheKeys: string[] = await backend.cacheManager.store.keys?.()
+    cacheKeys.sort((n1: string, n2: string) => Number(n1) - Number(n2))
+    for (const change of changes) {
+      // const { featureId, oldEnd, newEnd } = change
+      // const searchApolloIdStr = `"apollo_id":["${featureId}"]`
 
-    // Loop the cache content
-    for (const keyInd of nberOfEntries) {
-      cacheValue = await backend.cacheManager.get(keyInd)
-      // Check if apolloId matches
-      if (cacheValue?.includes(searchApolloIdStr)) {
-        const parsedCache = JSON.parse(cacheValue)
-        // Comment, Directive and FASTA -entries are not presented as an array
-        if (Array.isArray(parsedCache)) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          for (const [key, val] of Object.entries(parsedCache)) {
-            if (val.hasOwnProperty('attributes')) {
-              const assignedVal = Object.assign(val)
-              // Let's check if found apollo_id matches with one we are updating
-              if (
-                assignedVal.attributes.hasOwnProperty('apollo_id') &&
-                String(assignedVal.attributes.apollo_id) === String(featureId)
-              ) {
-                // Check if old value matches with expected old value
-                if (Number(assignedVal.end) !== Number(oldEnd)) {
-                  throw new Error(
-                    `Old cache value ${assignedVal.end} does not match with expected old value ${oldEnd}`,
-                  )
-                }
-                console.debug(`Feature found: ${JSON.stringify(assignedVal)}`)
-                assignedVal.end = newEnd
-                console.debug(
-                  `Old value ${oldEnd} has now been updated to ${newEnd}`,
-                )
-                // Save updated JSON object to cache
-                await backend.cacheManager.set(
-                  keyInd.toString(),
-                  JSON.stringify(parsedCache),
-                )
-                break
-              }
-
-              // Check if there is childFeatures in parent feature and it's not empty
-              if (
-                val.hasOwnProperty('child_features') &&
-                Object.keys(assignedVal.child_features).length > 0
-              ) {
-                // Let's search apollo_id recursively
-                this.searchApolloIdRecursively(
-                  assignedVal,
-                  keyInd.toString(),
-                  backend.cacheManager,
-                )
-              }
-            }
+      // Loop the cache content
+      for (const lineNumber of cacheKeys) {
+        gff3ItemString = await backend.cacheManager.get(lineNumber)
+        if (!gff3ItemString) {
+          throw new Error(`No cache value found for key ${lineNumber}`)
+        }
+        const gff3Item = JSON.parse(gff3ItemString) as GFF3Item
+        if (Array.isArray(gff3Item)) {
+          const updated = this.getUpdatedCacheEntryForFeature(gff3Item, change)
+          if (updated) {
+            await backend.cacheManager.set(lineNumber, JSON.stringify(gff3Item))
+            break
           }
         }
       }
@@ -163,64 +122,51 @@ export class LocationEndChange extends Change {
     })
   }
 
-  /**
-   * Process (search and update) child feature recursively
-   * @param parentFeature - Parent feature
-   * @param serializedChange - Change object
-   * @param keyInd - Cache key index of parent feature
-   */
-  async searchApolloIdRecursively(
-    parentFeature: any,
-    // parentFeature: any,
-    keyInd: string,
-    cacheManager: Cache,
-  ) {
-    // To get rid of 'unknown'
-    const { changes } = this
-    const { featureId } = changes[0]
-    const { oldEnd } = changes[0]
-    const { newEnd } = changes[0]
-    // If there is child features and size is not 0
-    if (
-      parentFeature.hasOwnProperty('child_features') &&
-      Object.keys(parentFeature.child_features).length > 0
-    ) {
-      // Loop each child feature
-      for (
-        let i = 0;
-        i < Object.keys(parentFeature.child_features).length;
-        i++
+  getUpdatedCacheEntryForFeature(
+    gff3Feature: GFF3Feature,
+    change: EndChange,
+  ): boolean {
+    for (const featureLine of gff3Feature) {
+      if (
+        !(
+          'attributes' in featureLine &&
+          featureLine.attributes &&
+          'apollo_id' in featureLine.attributes &&
+          featureLine.attributes.apollo_id
+        )
       ) {
-        const assignedVal = Object.assign(parentFeature.child_features[i][0])
-        // Let's check apollo_id
-        if (
-          assignedVal.attributes.hasOwnProperty('apollo_id') &&
-          String(assignedVal.attributes.apollo_id) === String(featureId)
-        ) {
-          // Check if given old value matches with cache old value
-          if (Number(assignedVal.end) !== Number(oldEnd)) {
-            throw new Error(
-              `Old cache value ${assignedVal.end} does not match with expected old value ${oldEnd}`,
-            )
-          }
-          console.debug(
-            `Feature found in recursive method: ${JSON.stringify(assignedVal)}`,
-          )
-          assignedVal.end = newEnd
-          console.debug(`Old value ${oldEnd} has now been updated to ${newEnd}`)
-        }
-        for (const k in assignedVal) {
-          if (
-            typeof parentFeature[k] == 'object' &&
-            parentFeature[k] !== null &&
-            parentFeature[k].length !== undefined &&
-            parentFeature[k].length > 0
-          ) {
-            this.searchApolloIdRecursively(assignedVal, keyInd, cacheManager)
-          }
-        }
+        throw new Error(
+          `Encountered feature without apollo_id: ${JSON.stringify(
+            gff3Feature,
+          )}`,
+        )
       }
-      await cacheManager.set(keyInd, `[${JSON.stringify(parentFeature)}]`)
+      if (featureLine.attributes.apollo_id.length > 1) {
+        throw new Error(
+          `Encountered feature with multiple apollo_ids: ${JSON.stringify(
+            gff3Feature,
+          )}`,
+        )
+      }
+      const [apolloId] = featureLine.attributes.apollo_id
+      const { featureId, newEnd, oldEnd } = change
+      if (apolloId === featureId) {
+        if (featureLine.end !== oldEnd) {
+          throw new Error(
+            `Incoming end ${oldEnd} does not match existing end ${featureLine.end}`,
+          )
+        }
+        featureLine.end = newEnd
+        return true
+      }
+      if (featureLine.child_features.length > 0) {
+        return featureLine.child_features
+          .map((childFeature) =>
+            this.getUpdatedCacheEntryForFeature(childFeature, change),
+          )
+          .some((r) => r)
+      }
     }
+    return false
   }
 }

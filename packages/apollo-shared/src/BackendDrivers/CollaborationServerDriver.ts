@@ -56,8 +56,21 @@ export class CollaborationServerDriver extends BackendDriver {
     const uri = url.toString()
     // console.log(`In CollaborationServerDriver: Query parameters: refName=${refName}, start=${start}, end=${end}`)
 
-    const result = await this.fetch(uri)
-    const data = (await result.json()) as GFF3Item[]
+    const response = await this.fetch(uri)
+    if (!response.ok) {
+      let errorMessage
+      try {
+        errorMessage = await response.text()
+      } catch (error) {
+        errorMessage = ''
+      }
+      throw new Error(
+        `getFeatures failed: ${response.status} (${response.statusText})${
+          errorMessage ? ` (${errorMessage})` : ''
+        }`,
+      )
+    }
+    const data = (await response.json()) as GFF3Item[]
     // const backendResult = JSON.stringify(data)
     // console.log(
     //   `In CollaborationServerDriver: Backend endpoint returned=${backendResult}`,
@@ -85,6 +98,19 @@ export class CollaborationServerDriver extends BackendDriver {
       body: JSON.stringify(change.toJSON()),
       headers: { 'Content-Type': 'application/json' },
     })
+    if (!response.ok) {
+      let errorMessage
+      try {
+        errorMessage = await response.text()
+      } catch (error) {
+        errorMessage = ''
+      }
+      throw new Error(
+        `getFeatures failed: ${response.status} (${response.statusText})${
+          errorMessage ? ` (${errorMessage})` : ''
+        }`,
+      )
+    }
     const results = new ValidationResultSet()
     if (!response.ok) {
       results.ok = false
