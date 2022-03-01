@@ -10,7 +10,11 @@ import ViewType from '@jbrowse/core/pluggableElementTypes/ViewType'
 import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel, isAbstractMenuManager } from '@jbrowse/core/util'
-import { LocationEndChange, changeRegistry } from 'apollo-shared'
+import {
+  LocationEndChange,
+  LocationStartChange,
+  changeRegistry,
+} from 'apollo-shared'
 
 import { version } from '../package.json'
 import {
@@ -33,6 +37,7 @@ import {
 import { makeDisplayComponent } from './makeDisplayComponent'
 
 changeRegistry.registerChange('LocationEndChange', LocationEndChange)
+changeRegistry.registerChange('LocationStartChange', LocationStartChange)
 
 export default class ApolloPlugin extends Plugin {
   name = 'ApolloPlugin'

@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common'
 import {
   LocationEndChange,
+  LocationStartChange,
   SerializedChange,
   changeRegistry,
 } from 'apollo-shared'
@@ -28,6 +29,7 @@ export class ChangeController {
     private readonly changeService: ChangeService,
   ) {
     changeRegistry.registerChange('LocationEndChange', LocationEndChange) // Do this only once
+    changeRegistry.registerChange('LocationStartChange', LocationStartChange) // Do this only once
   }
 
   @UseGuards(JwtAuthGuard)
