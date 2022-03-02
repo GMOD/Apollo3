@@ -1,4 +1,7 @@
+import { getConf } from '@jbrowse/core/configuration'
 import PluginManager from '@jbrowse/core/PluginManager'
+import { MenuItem } from '@jbrowse/core/ui'
+import { AppRootModel } from '@jbrowse/core/util'
 import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import {
   ChangeManager,
@@ -6,7 +9,10 @@ import {
   FeaturesForRefName,
   ValidationSet,
 } from 'apollo-shared'
-import { Instance, SnapshotIn, cast, types } from 'mobx-state-tree'
+import { saveAs } from 'file-saver'
+import { Instance, SnapshotIn, cast, getRoot, types } from 'mobx-state-tree'
+
+import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 
 export const ClientDataStore = types
   .model('ClientDataStore', {
@@ -49,6 +55,40 @@ export function stateModelFactory(pluginManager: PluginManager) {
     .views((self) => ({
       get width() {
         return self.linearGenomeView.width
+      },
+      menuItems(): MenuItem[] {
+        return [
+          {
+            label: 'Download GFF3',
+            onClick: async () => {
+              const internetAccountConfigId =
+                self.dataStore?.internetAccountConfigId
+              const { internetAccounts } = getRoot(self) as AppRootModel
+              const internetAccount = internetAccounts.find(
+                (ia) =>
+                  getConf(ia, 'internetAccountId') === internetAccountConfigId,
+              ) as ApolloInternetAccountModel | undefined
+              if (!internetAccount) {
+                throw new Error(
+                  `No InternetAccount found with config id ${internetAccountConfigId}`,
+                )
+              }
+              const url = new URL(
+                'filehandling/downloadcache',
+                internetAccount.baseURL,
+              )
+              const fetch = internetAccount.getFetcher({
+                locationType: 'UriLocation',
+                uri: url.toString(),
+              })
+              const responses = await fetch(url.toString(), {
+                headers: { 'Content-Type': 'application/txt' },
+              })
+              const blob = await responses.blob()
+              saveAs(blob, 'Apollo_download.gff3')
+            },
+          },
+        ]
       },
     }))
     .actions((self) => ({

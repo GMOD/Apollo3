@@ -3882,6 +3882,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/file-saver@npm:^2.0.5":
+  version: 2.0.5
+  resolution: "@types/file-saver@npm:2.0.5"
+  checksum: a31d6ee2abf99598647139f8f35b37b6e1bacf6c7ddf05c66651b9b0e6e53381aa0e8ed13f37faa6e496e0eb1da87c97e6c70fd589d5b83b0c95c57cb64ce92a
+  languageName: node
+  linkType: hard
+
 "@types/graceful-fs@npm:^4.1.2":
   version: 4.1.5
   resolution: "@types/graceful-fs@npm:4.1.5"
@@ -8985,7 +8992,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"file-saver@npm:^2.0.0":
+"file-saver@npm:^2.0.0, file-saver@npm:^2.0.5":
   version: 2.0.5
   resolution: "file-saver@npm:2.0.5"
   checksum: c62d96e5cebc58b4bdf3ae8a60d5cf9607ad82f75f798c33a4ee63435ac2203002584d5256a2a780eda7feb5e19dc3b6351c2212e58b3f529e63d265a7cc79f7
@@ -10846,11 +10853,13 @@ __metadata:
     "@material-ui/core": ^4.12.3
     "@material-ui/icons": ^4.9.1
     "@types/cypress": ^1.1.3
+    "@types/file-saver": ^2.0.5
     "@types/node": ^16.11.6
     "@types/react": ^17.0.34
     apollo-shared: "workspace:^"
     clsx: ^1.1.1
     cypress: ^8.7.0
+    file-saver: ^2.0.5
     jest: ^27.3.1
     mobx: ^5.10.1
     mobx-react: ^7.2.1
