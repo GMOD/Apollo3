@@ -1,5 +1,6 @@
 import { createReadStream } from 'fs'
 import { join } from 'path'
+import { Readable } from 'stream'
 
 import { GFF3FeatureLine } from '@gmod/gff'
 import {
@@ -208,13 +209,12 @@ export class FileHandlingController {
    */
   @UseGuards(JwtAuthGuard)
   @Get('/downloadcache')
-  downloadCache() {
-    this.logger.debug('Starting to write cache into file...')
-    this.fileService.downloadCacheAsGFF3file().then((msg) => {
-      this.logger.debug(`Now downloading file =${msg}`)
-      const file = createReadStream(msg)
-      return new StreamableFile(file)
-    })
+  async downloadCache() {
+    this.logger.debug('Starting to get the file text...')
+    const msg = await this.fileService.downloadCacheAsGFF3file()
+    this.logger.debug('Now downloading file text as a stream')
+    const file = Readable.from(msg)
+    return new StreamableFile(file)
   }
 
   /**
