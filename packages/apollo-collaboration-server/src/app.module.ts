@@ -7,6 +7,8 @@ import { ChangeModule } from './change/change.module'
 import { FileHandlingModule } from './fileHandling/fileHandling.module'
 import { RolesGuard } from './utils/role/role.guards'
 
+import { MongooseModule } from '@nestjs/mongoose'
+
 const nodeEnv = process.env.NODE_ENV || 'production'
 
 @Module({
@@ -18,6 +20,9 @@ const nodeEnv = process.env.NODE_ENV || 'production'
     }),
     FileHandlingModule,
     ChangeModule,
+    MongooseModule.forRoot(
+      'mongodb+srv://apollo:apollo123@cluster0.8a7mi.mongodb.net/apolloDb?retryWrites=true&w=majority'
+    )
   ],
   providers: [
     {

@@ -1,4 +1,4 @@
-import { existsSync } from 'fs'
+import { Mode, existsSync } from 'fs'
 import * as fs from 'fs/promises'
 import { join } from 'path'
 
@@ -17,13 +17,17 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common'
+import { InjectModel } from '@nestjs/mongoose'
 import { Cache } from 'cache-manager'
+import { Model } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 
 import {
   FastaSequenceInfo,
   GFF3ChangeLineObjectDto,
 } from '../entity/gff3Object.dto'
+import { GFF3Model } from '../model/gff3.model'
+import { Product } from '../model/product.model'
 import {
   compareTwoJsonObjects,
   getCurrentDateTime,
@@ -32,8 +36,159 @@ import {
 
 @Injectable()
 export class FileHandlingService {
-  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
+  constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @InjectModel('Product') private readonly productModel: Model<Product>,
+    @InjectModel('GFF3') private readonly gff3Model: Model<GFF3Model>,
+  ) {}
+
   private readonly logger = new Logger(FileHandlingService.name)
+
+  async insertProduct(title: string, desc: string, price: number) {
+    const newProduct = new this.productModel({
+      title,
+      description: desc,
+      price,
+    })
+    const result = await newProduct.save()
+    this.logger.debug(`Added new product, id=${result}`)
+  }
+
+  /**
+   * DEMO - INSERTS GFF3 DATA INTO MONGO
+   */
+  async insertGFF3() {
+    const { GFF3_DEFAULT_FILENAME_AT_STARTUP } = process.env
+    if (!GFF3_DEFAULT_FILENAME_AT_STARTUP) {
+      throw new Error('No GFF3_DEFAULT_FILENAME_AT_STARTUP found in .env file')
+    }
+
+    // parse a string of gff3 synchronously
+    const { FILE_SEARCH_FOLDER } = process.env
+    if (!FILE_SEARCH_FOLDER) {
+      throw new Error('No FILE_SEARCH_FOLDER found in .env file')
+    }
+
+    this.logger.debug(
+      `Starting to load gff3 file ${GFF3_DEFAULT_FILENAME_AT_STARTUP} into cache! Whole path is '${join(
+        FILE_SEARCH_FOLDER,
+        GFF3_DEFAULT_FILENAME_AT_STARTUP,
+      )}'`,
+    )
+
+    // This method check that each line has unique id. If not it creates one for each line and overwrites the orignal file
+    await this.checkGFF3uniqueKey(
+      join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_AT_STARTUP),
+    )
+
+    const stringOfGFF3 = await fs.readFile(
+      join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_AT_STARTUP),
+      {
+        encoding: 'utf8',
+        flag: 'r',
+      },
+    )
+    this.logger.verbose(`Data read from file=${stringOfGFF3}`)
+    // Clear old entries from cache
+    this.cacheManager.reset()
+
+    const arrayOfThings = gff.parseStringSync(stringOfGFF3, {
+      parseAll: true,
+    })
+    let ind = 0
+
+    // Loop all lines and add those into cache
+    for (const entry of arrayOfThings) {
+      let apolloIdArray: string[] // Let's gather here all apollo ids from each feature
+      apolloIdArray = []
+      // Comment, Directive and FASTA -entries are not presented as an array so let's put entry into array because gff.formatSync() -method requires an array as argument
+      this.cacheManager.set(ind.toString(), JSON.stringify(entry))
+      this.logger.verbose(`Add into cache new entry=${JSON.stringify(entry)}\n`)
+
+      // Comment, Directive and FASTA -entries are not presented as an array
+      if (Array.isArray(entry)) {
+        this.logger.verbose(`ENTRY=${JSON.stringify(entry)}`)
+        for (const [key, val] of Object.entries(entry)) {
+          if (val.hasOwnProperty('attributes')) {
+            // Let's add apollo_id to parent feature if it doesn't exist
+            const assignedVal: GFF3FeatureLineWithRefs = Object.assign(val)
+            const attributes = assignedVal.attributes || {}
+            if ('apollo_id' in attributes) {
+              apolloIdArray.push(attributes.apollo_id![0])
+              // break
+            }
+            // Check if there is also childFeatures in parent feature and it's not empty
+            if (
+              val.hasOwnProperty('child_features') &&
+              Object.keys(assignedVal.child_features).length > 0
+            ) {
+              // Let's get apollo_id from recursive method
+              const tmpArray: string[] = this.searchApolloIdRecursively(
+                assignedVal,
+                apolloIdArray,
+              )
+            }
+          }
+        }
+        this.logger.verbose(`So far apollo ids are: ${apolloIdArray.toString()}\n`)
+      }
+      // Add data also into database
+      const newGFFItem = new this.gff3Model({
+        apolloId: apolloIdArray,
+        gff3Item: entry,
+      })
+      const result = await newGFFItem.save()
+      this.logger.debug(`Added new gffItem, id=${result}`)
+
+      ind++
+    }
+
+    const nberOfEntries = await this.cacheManager.store.keys?.()
+    this.logger.debug(`Added ${nberOfEntries.length} entries to cache`)
+  }
+
+  /**
+   * Loop child features in parent feature and save apollo_id from each child's attribute into result array
+   * @param parentFeature - Parent feature
+   */
+  searchApolloIdRecursively(
+    parentFeature: GFF3FeatureLineWithRefs,
+    apolloIdArrAsParam: string[],
+  ): string[] {
+    let apolloIdArray: string[]
+    apolloIdArray = []
+
+    // If there is child features and size is not 0
+    if (
+      parentFeature.hasOwnProperty('child_features') &&
+      Object.keys(parentFeature.child_features).length > 0
+    ) {
+      // Loop each child feature
+      for (
+        let i = 0;
+        i < Object.keys(parentFeature.child_features).length;
+        i++
+      ) {
+        // There can be several features with same ID so we need to loop
+        for (let j = 0; parentFeature.child_features[i].length > j; j++) {
+          const assignedVal: GFF3FeatureLineWithRefs = Object.assign(
+            parentFeature.child_features[i][j],
+          )
+          const attributes = assignedVal.attributes || {}
+          // Let's add apollo_id if it doesn't exist yet
+          if (attributes.hasOwnProperty('apollo_id')) {
+            apolloIdArrAsParam.push(attributes.apollo_id![0])
+            this.logger.verbose(
+              `CHILD APOLLO_ID FOUND ${attributes.apollo_id![0]}`,
+            )
+          }
+          assignedVal.attributes = attributes
+          this.searchApolloIdRecursively(assignedVal, apolloIdArrAsParam)
+        }
+      }
+    }
+    return apolloIdArrAsParam
+  }
 
   /**
    * Save new uploaded file into local filesystem. The filename in local filesystem will be: 'uploaded' + timestamp in ddmmyyyy_hh24miss -format + original filename
