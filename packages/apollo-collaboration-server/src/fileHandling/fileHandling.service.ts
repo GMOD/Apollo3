@@ -25,6 +25,7 @@ import { v4 as uuidv4 } from 'uuid'
 import {
   FastaSequenceInfo,
   GFF3ChangeLineObjectDto,
+  UpdateEndObjectDto,
 } from '../entity/gff3Object.dto'
 import { GFF3Model } from '../model/gff3.model'
 import { Product } from '../model/product.model'
@@ -130,7 +131,9 @@ export class FileHandlingService {
             }
           }
         }
-        this.logger.verbose(`So far apollo ids are: ${apolloIdArray.toString()}\n`)
+        this.logger.verbose(
+          `So far apollo ids are: ${apolloIdArray.toString()}\n`,
+        )
       }
       // Add data also into database
       const newGFFItem = new this.gff3Model({
@@ -188,6 +191,118 @@ export class FileHandlingService {
       }
     }
     return apolloIdArrAsParam
+  }
+
+  /**
+   * MONGO - TEST - Update existing GFF3 file in local filesystem.
+   */
+  async updateEndPosInMongo(postDto: UpdateEndObjectDto) {
+    const { apolloId } = postDto
+    const oldValue = postDto.oldEnd
+    const newValue = postDto.newEnd
+
+    // // Read the file
+    // const data = await fs.readFile(fullFileName, 'utf8')
+    // // Check that there is at least one occurance of search string in the file
+    // if (data.indexOf(oldValue) >= 0) {
+    //   const replacer = new RegExp(oldValue, 'g')
+    //   const change = data.replace(replacer, newValue)
+    //   // Write updated content back to file
+    //   await fs.writeFile(fullFileName, change, 'utf8')
+
+    //   this.logger.debug(`File ${postDto.filename} successfully updated!`)
+    //   return { message: `File ${postDto.filename} successfully updated!` }
+    // }
+    const featureObject = await this.getFeatureByApolloId(apolloId)
+    if (!featureObject) {
+      const errMsg = `ERROR when updating MongoDb: The following apolloId was not found in database ='${apolloId}'`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+    this.logger.debug(`Found feature is ${JSON.stringify(featureObject)}`)
+    // Now we need to find correct GFF3 line inside the feature
+    const updatableObject = await this.getObjectByApolloId(
+      featureObject,
+      apolloId,
+    )
+    if (!updatableObject) {
+      const errMsg = `ERROR when updating MongoDb....`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+    this.logger.debug(`Found object is ${JSON.stringify(updatableObject)}`)
+  }
+
+  /**
+   * DEMO - SEARCH CORRECT OBJECT FROM FEATRUE
+   * @param apolloId
+   * @returns
+   */
+  async getObjectByApolloId(featureObject: GFF3Item[], apolloId: string) {
+    this.logger.debug(`SEARCHABLE OBJECT1=${JSON.stringify(featureObject)}`)
+    this.logger.debug(`SEARCHABLE OBJECT2=${featureObject}`)
+    this.logger.debug(`LEN=${featureObject.length}`)
+    // Loop all lines and add those into cache
+    for (const entry of featureObject) {
+    //   let apolloIdArray: string[] // Let's gather here all apollo ids from each feature
+    //   apolloIdArray = []
+    //   // Comment, Directive and FASTA -entries are not presented as an array so let's put entry into array because gff.formatSync() -method requires an array as argument
+    //   this.cacheManager.set(ind.toString(), JSON.stringify(entry))
+    //   this.logger.verbose(`Add into cache new entry=${JSON.stringify(entry)}\n`)
+
+    //   // Comment, Directive and FASTA -entries are not presented as an array
+    //   if (Array.isArray(entry)) {
+        this.logger.verbose(`ENTRY=${JSON.stringify(entry)}`)
+        for (const [key, val] of Object.entries(entry)) {
+          this.logger.debug(`APOLLO ID=${val.apolloId}`)
+          // if (val.hasOwnProperty('attributes')) {
+          //   // Let's add apollo_id to parent feature if it doesn't exist
+          //   const assignedVal: GFF3FeatureLineWithRefs = Object.assign(val)
+          //   const attributes = assignedVal.attributes || {}
+          //   if ('apollo_id' in attributes) {
+          //     apolloIdArray.push(attributes.apollo_id![0])
+          //     // break
+          //   }
+          //   // Check if there is also childFeatures in parent feature and it's not empty
+          //   if (
+          //     val.hasOwnProperty('child_features') &&
+          //     Object.keys(assignedVal.child_features).length > 0
+          //   ) {
+          //     // Let's get apollo_id from recursive method
+          //     const tmpArray: string[] = this.searchApolloIdRecursively(
+          //       assignedVal,
+          //       apolloIdArray,
+          //     )
+          //   }
+          // }
+        }
+      //   this.logger.verbose(
+      //     `So far apollo ids are: ${apolloIdArray.toString()}\n`,
+      //   )
+      // }
+      // // Add data also into database
+      // const newGFFItem = new this.gff3Model({
+      //   apolloId: apolloIdArray,
+      //   gff3Item: entry,
+      // })
+      // const result = await newGFFItem.save()
+      // this.logger.debug(`Added new gffItem, id=${result}`)
+
+      // ind++
+    }
+
+    return featureObject
+  }
+
+  /**
+   * DEMO - SEARCH CORRECT FEATURE FROM DATABASE
+   * @param apolloId
+   * @returns
+   */
+  async getFeatureByApolloId(apolloId: string) {
+    const featureObject = await this.gff3Model.findOne({ apolloId }).exec() as unknown
+    this.logger.debug(`FEATURE OBJECT=${featureObject}`)
+    return featureObject as GFF3Item[]
   }
 
   /**

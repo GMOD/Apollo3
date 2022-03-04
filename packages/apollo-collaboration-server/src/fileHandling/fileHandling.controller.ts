@@ -21,7 +21,10 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express/multer'
 import { Request } from 'express'
 
-import { GFF3ChangeLineObjectDto } from '../entity/gff3Object.dto'
+import {
+  GFF3ChangeLineObjectDto,
+  UpdateEndObjectDto,
+} from '../entity/gff3Object.dto'
 import { Product } from '../model/product.model'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { FileHandlingService } from './fileHandling.service'
@@ -253,5 +256,17 @@ export class FileHandlingController {
   addGFF3(@Req() request: Request) {
     this.logger.debug(`Add GFF3....`)
     return this.fileService.insertGFF3()
+  }
+
+  /**
+   * MONGOTEST ONLY
+   */
+  //  @UseGuards(JwtAuthGuard)
+  @Put('/updateMongo')
+  updateMongo(@Body() postDto: UpdateEndObjectDto) {
+    this.logger.debug(`ApolloId=${postDto.apolloId}`)
+    this.logger.debug(`Old value=${JSON.stringify(postDto.oldEnd)}`)
+    this.logger.debug(`New value=${JSON.stringify(postDto.newEnd)}`)
+    return this.fileService.updateEndPosInMongo(postDto)
   }
 }

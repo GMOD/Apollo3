@@ -5,6 +5,12 @@ export interface GFF3ChangeLineObjectDto {
   updatedLine: string
 }
 
+export interface UpdateEndObjectDto {
+  apolloId: string
+  oldEnd: string
+  newEnd: string
+}
+
 export interface FastaSequenceInfo {
   refName: string
   description?: string
