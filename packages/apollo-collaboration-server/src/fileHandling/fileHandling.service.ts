@@ -56,7 +56,7 @@ export class FileHandlingService {
   }
 
   /**
-   * DEMO - INSERTS GFF3 DATA INTO MONGO
+   * DEMO - INSERTS GFF3 DATA INTO MONGO - THIS LOADS GFF3 FILE DATA CONTENT INTO MONGO WITHOUT ANY CHECKS
    */
   async insertGFF3() {
     const { GFF3_DEFAULT_FILENAME_AT_STARTUP } = process.env
@@ -194,35 +194,26 @@ export class FileHandlingService {
   }
 
   /**
-   * MONGO - TEST - Update existing GFF3 file in local filesystem.
+   * MONGO - TEST - UPDATES END POSITION IN MONGO DB - AFTER UPDATING THE DB SHOULD WE ALSO UPDATE CACHE?
    */
   async updateEndPosInMongo(postDto: UpdateEndObjectDto) {
     const { apolloId } = postDto
     const oldValue = postDto.oldEnd
     const newValue = postDto.newEnd
 
-    // // Read the file
-    // const data = await fs.readFile(fullFileName, 'utf8')
-    // // Check that there is at least one occurance of search string in the file
-    // if (data.indexOf(oldValue) >= 0) {
-    //   const replacer = new RegExp(oldValue, 'g')
-    //   const change = data.replace(replacer, newValue)
-    //   // Write updated content back to file
-    //   await fs.writeFile(fullFileName, change, 'utf8')
+    // Search correct feature
+    const featureObject = await this.gff3Model.findOne({ apolloId }).exec()
 
-    //   this.logger.debug(`File ${postDto.filename} successfully updated!`)
-    //   return { message: `File ${postDto.filename} successfully updated!` }
-    // }
-    const featureObject = await this.getFeatureByApolloId(apolloId)
     if (!featureObject) {
       const errMsg = `ERROR when updating MongoDb: The following apolloId was not found in database ='${apolloId}'`
       this.logger.error(errMsg)
       throw new NotFoundException(errMsg)
     }
-    this.logger.debug(`Found feature is ${JSON.stringify(featureObject)}`)
-    // Now we need to find correct GFF3 line inside the feature
+    const updatableObjectAsGFFItemArray = featureObject?.gff3Item as unknown
+    this.logger.debug(`Feature found  = ${JSON.stringify(featureObject)}`)
+    // Now we need to find correct top level feature or sub-feature inside the feature
     const updatableObject = await this.getObjectByApolloId(
-      featureObject,
+      updatableObjectAsGFFItemArray as GFF3Item[],
       apolloId,
     )
     if (!updatableObject) {
@@ -230,79 +221,125 @@ export class FileHandlingService {
       this.logger.error(errMsg)
       throw new NotFoundException(errMsg)
     }
-    this.logger.debug(`Found object is ${JSON.stringify(updatableObject)}`)
+    this.logger.debug(`Let's update object ${JSON.stringify(updatableObject)}`)
+    const assignedVal: GFF3FeatureLineWithRefs = Object.assign(updatableObject)
+    if (assignedVal.end !== Number.parseInt(oldValue, 10)) {
+      const errMsg = `Old end value in db ${assignedVal.end} does not match with old value ${oldValue} as given in parameter`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+    // Set new value
+    assignedVal.end = Number.parseInt(newValue, 10)
+    await featureObject.markModified('gff3Item') // Mark as modified. Without this save() -method is not updating data in database
+    await featureObject.save().catch((error) => {
+      throw new InternalServerErrorException(error)
+    })
+    this.logger.debug(`Updated whole object ${JSON.stringify(featureObject)}`)
   }
 
   /**
-   * DEMO - SEARCH CORRECT OBJECT FROM FEATRUE
+   * DEMO - SEARCH CORRECT OBJECT (by apolloId) FROM FEATURE
    * @param apolloId
    * @returns
    */
   async getObjectByApolloId(featureObject: GFF3Item[], apolloId: string) {
-    this.logger.debug(`SEARCHABLE OBJECT1=${JSON.stringify(featureObject)}`)
-    this.logger.debug(`SEARCHABLE OBJECT2=${featureObject}`)
-    this.logger.debug(`LEN=${featureObject.length}`)
     // Loop all lines and add those into cache
     for (const entry of featureObject) {
-    //   let apolloIdArray: string[] // Let's gather here all apollo ids from each feature
-    //   apolloIdArray = []
-    //   // Comment, Directive and FASTA -entries are not presented as an array so let's put entry into array because gff.formatSync() -method requires an array as argument
-    //   this.cacheManager.set(ind.toString(), JSON.stringify(entry))
-    //   this.logger.verbose(`Add into cache new entry=${JSON.stringify(entry)}\n`)
+      this.logger.verbose(`Entry=${JSON.stringify(entry)}`)
+      if (entry.hasOwnProperty('attributes')) {
+        const assignedVal: GFF3FeatureLineWithRefs = Object.assign(entry)
+        const attributes = assignedVal.attributes || {}
 
-    //   // Comment, Directive and FASTA -entries are not presented as an array
-    //   if (Array.isArray(entry)) {
-        this.logger.verbose(`ENTRY=${JSON.stringify(entry)}`)
-        for (const [key, val] of Object.entries(entry)) {
-          this.logger.debug(`APOLLO ID=${val.apolloId}`)
-          // if (val.hasOwnProperty('attributes')) {
-          //   // Let's add apollo_id to parent feature if it doesn't exist
-          //   const assignedVal: GFF3FeatureLineWithRefs = Object.assign(val)
-          //   const attributes = assignedVal.attributes || {}
-          //   if ('apollo_id' in attributes) {
-          //     apolloIdArray.push(attributes.apollo_id![0])
-          //     // break
-          //   }
-          //   // Check if there is also childFeatures in parent feature and it's not empty
-          //   if (
-          //     val.hasOwnProperty('child_features') &&
-          //     Object.keys(assignedVal.child_features).length > 0
-          //   ) {
-          //     // Let's get apollo_id from recursive method
-          //     const tmpArray: string[] = this.searchApolloIdRecursively(
-          //       assignedVal,
-          //       apolloIdArray,
-          //     )
-          //   }
-          // }
+        if ('apollo_id' in attributes) {
+          this.logger.debug(`Top level apollo_id=${attributes.apollo_id![0]}`)
+          // If matches
+          if (attributes.apollo_id![0] === apolloId) {
+            this.logger.debug(
+              `Top level apollo_id matches in object ${JSON.stringify(
+                assignedVal,
+              )}`,
+            )
+            return entry
+          }
+          // Check if there is also childFeatures in parent feature and it's not empty
+          if (
+            entry.hasOwnProperty('child_features') &&
+            Object.keys(assignedVal.child_features).length > 0
+          ) {
+            // Let's get apollo_id from recursive method
+            this.logger.debug(
+              `Apollo_id was not found on top level so lets make recursive call...`,
+            )
+            const foundRecursiveObject =
+              await this.getRecursiveObjectByApolloId(assignedVal, apolloId)
+            if (foundRecursiveObject) {
+              return foundRecursiveObject
+            }
+          }
         }
-      //   this.logger.verbose(
-      //     `So far apollo ids are: ${apolloIdArray.toString()}\n`,
-      //   )
-      // }
-      // // Add data also into database
-      // const newGFFItem = new this.gff3Model({
-      //   apolloId: apolloIdArray,
-      //   gff3Item: entry,
-      // })
-      // const result = await newGFFItem.save()
-      // this.logger.debug(`Added new gffItem, id=${result}`)
-
-      // ind++
+      }
     }
-
-    return featureObject
+    return null
   }
 
-  /**
-   * DEMO - SEARCH CORRECT FEATURE FROM DATABASE
-   * @param apolloId
-   * @returns
-   */
-  async getFeatureByApolloId(apolloId: string) {
-    const featureObject = await this.gff3Model.findOne({ apolloId }).exec() as unknown
-    this.logger.debug(`FEATURE OBJECT=${featureObject}`)
-    return featureObject as GFF3Item[]
+  //  * DEMO - SEARCH RECURSIVELY CORRECT OBJECT FROM FEATRUE
+  async getRecursiveObjectByApolloId(
+    parentFeature: GFF3FeatureLineWithRefs,
+    apolloId: string,
+  ) {
+    // If there is child features and size is not 0
+    if (
+      parentFeature.hasOwnProperty('child_features') &&
+      Object.keys(parentFeature.child_features).length > 0
+    ) {
+      // Loop each child feature
+      for (
+        let i = 0;
+        i < Object.keys(parentFeature.child_features).length;
+        i++
+      ) {
+        // There can be several features with same ID so we need to loop
+        for (let j = 0; parentFeature.child_features[i].length > j; j++) {
+          const assignedVal: GFF3FeatureLineWithRefs = Object.assign(
+            parentFeature.child_features[i][j],
+          )
+          const attributes = assignedVal.attributes || {}
+          // Let's add apollo_id if it doesn't exist yet
+          if (attributes.hasOwnProperty('apollo_id')) {
+            this.logger.verbose(
+              `Recursive object apolloId=${attributes.apollo_id![0]}`,
+            )
+            // If apollo_id matches
+            if (attributes.apollo_id![0] === apolloId) {
+              this.logger.debug(
+                `Found apollo_id from recursive object ${JSON.stringify(
+                  assignedVal,
+                )}`,
+              )
+              return assignedVal
+            }
+          }
+          // Check if there is also childFeatures in parent feature and it's not empty
+          if (
+            assignedVal.hasOwnProperty('child_features') &&
+            Object.keys(assignedVal.child_features).length > 0
+          ) {
+            // Let's add apollo_id to each child recursively
+            const foundObject = (await this.getRecursiveObjectByApolloId(
+              assignedVal,
+              apolloId,
+            )) as GFF3FeatureLineWithRefs
+            this.logger.debug(
+              `Found recursive object is ${JSON.stringify(foundObject)}`,
+            )
+            if (foundObject != null) {
+              return foundObject
+            }
+          }
+        }
+      }
+    }
+    return null
   }
 
   /**

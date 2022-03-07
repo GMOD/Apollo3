@@ -6,7 +6,7 @@ export const GFF3Schema = new mongoose.Schema({
   gff3Item: { type: JSON, required: true },
 })
 
-export interface GFF3Model {
+export interface GFF3Model extends mongoose.Document {
   id: string
   apolloId: string[]
   gff3Item: GFF3Item
