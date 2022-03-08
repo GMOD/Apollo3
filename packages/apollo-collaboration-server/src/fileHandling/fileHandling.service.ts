@@ -151,6 +151,139 @@ export class FileHandlingService {
   }
 
   /**
+   * Loads GFF3 data from db into cache
+   */
+  async loadGFF3FromDbIntoCache() {
+    // Search correct feature
+    const allCollectionDocumentsCursor = await this.gff3Model.find({}).cursor()
+
+    if (!allCollectionDocumentsCursor) {
+      const errMsg = `ERROR when loading data from database into cache: No data found!`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+    let ind = 0
+    // Loop all documents and load them into cache
+    for (
+      let currentDoc = await allCollectionDocumentsCursor.next();
+      currentDoc != null;
+      currentDoc = await allCollectionDocumentsCursor.next()
+    ) {
+      // Use `doc`
+      const updatableObjectAsGFFItemArray = currentDoc.gff3Item as unknown
+      // this.logger.debug(`Entry=${JSON.stringify(updatableObjectAsGFFItemArray)}`)
+      const entry = updatableObjectAsGFFItemArray as GFF3Item[]
+      if (Array.isArray(entry)) {
+        this.cacheManager.set(ind.toString(), JSON.stringify(entry))
+        this.logger.verbose(`Add into cache new entry=${JSON.stringify(entry)}`)
+        ind++
+      }
+    }
+    const nberOfEntries = await this.cacheManager.store.keys?.()
+    this.logger.verbose(`Added ${nberOfEntries.length} entries to cache`)
+  }
+
+  /**
+   * This method loads GFF3 data from db into cache if data exists in db. If db is empty then load GFF3 data from file into db and cache
+   * @param filename - file that contains GFF3 data
+   * @returns
+   */
+  async loadGFF3DataIntoDb(filename: string) {
+    // Check if Gff3Item collection is empty in db
+    const cnt = await this.gff3Model.count({})
+    if (cnt > 1) {
+      this.logger.debug(
+        `There were ${cnt} records in GFF3 collection (in database). Let's load them into cache...`,
+      )
+      await this.loadGFF3FromDbIntoCache()
+      return
+    }
+    this.logger.debug(
+      `There was no GFF3 in database so let's load that from file....`,
+    )
+    // parse a string of gff3 synchronously
+    const { FILE_SEARCH_FOLDER } = process.env
+    if (!FILE_SEARCH_FOLDER) {
+      throw new Error('No FILE_SEARCH_FOLDER found in .env file')
+    }
+
+    this.logger.debug(
+      `Starting to load gff3 file ${filename} into database! Whole file path is '${join(
+        FILE_SEARCH_FOLDER,
+        filename,
+      )}'`,
+    )
+
+    // This method check that each line has unique id. If not it creates one for each line and overwrites the orignal file
+    await this.checkGFF3uniqueKey(join(FILE_SEARCH_FOLDER, filename))
+
+    const stringOfGFF3 = await fs.readFile(join(FILE_SEARCH_FOLDER, filename), {
+      encoding: 'utf8',
+      flag: 'r',
+    })
+    this.logger.verbose(`Data read from file=${stringOfGFF3}`)
+    // Clear old entries from cache
+    this.cacheManager.reset()
+
+    const arrayOfThings = gff.parseStringSync(stringOfGFF3, {
+      parseAll: true,
+    })
+    let ind = 0
+
+    // Loop all lines and add those into cache
+    for (const entry of arrayOfThings) {
+      let apolloIdArray: string[] // Let's gather here all apollo ids from each feature
+      apolloIdArray = []
+      // Comment, Directive and FASTA -entries are not presented as an array so let's put entry into array because gff.formatSync() -method requires an array as argument
+      this.cacheManager.set(ind.toString(), JSON.stringify(entry))
+      this.logger.verbose(`Add into cache new entry=${JSON.stringify(entry)}\n`)
+
+      // Comment, Directive and FASTA -entries are not presented as an array
+      if (Array.isArray(entry)) {
+        this.logger.verbose(`ENTRY=${JSON.stringify(entry)}`)
+        for (const [key, val] of Object.entries(entry)) {
+          if (val.hasOwnProperty('attributes')) {
+            // Let's add apollo_id to parent feature if it doesn't exist
+            const assignedVal: GFF3FeatureLineWithRefs = Object.assign(val)
+            const attributes = assignedVal.attributes || {}
+            if ('apollo_id' in attributes) {
+              apolloIdArray.push(attributes.apollo_id![0])
+            }
+            // Check if there is also childFeatures in parent feature and it's not empty
+            if (
+              val.hasOwnProperty('child_features') &&
+              Object.keys(assignedVal.child_features).length > 0
+            ) {
+              // Let's get apollo_id from recursive method
+              const tmpArray: string[] = this.searchApolloIdRecursively(
+                assignedVal,
+                apolloIdArray,
+              )
+            }
+          }
+        }
+        this.logger.verbose(
+          `So far apollo ids are: ${apolloIdArray.toString()}\n`,
+        )
+      }
+      // Add data also into database
+      const newGFFItem = new this.gff3Model({
+        apolloId: apolloIdArray,
+        gff3Item: entry,
+      })
+      const result = await newGFFItem.save()
+      this.logger.verbose(`Added new gffItem, id=${result}`)
+
+      ind++
+    }
+
+    const nberOfEntries = await this.cacheManager.store.keys?.()
+    this.logger.debug(
+      `Added ${nberOfEntries.length} entries to cache and database`,
+    )
+  }
+
+  /**
    * Loop child features in parent feature and save apollo_id from each child's attribute into result array
    * @param parentFeature - Parent feature
    */
@@ -329,7 +462,7 @@ export class FileHandlingService {
               assignedVal,
               apolloId,
             )) as GFF3FeatureLineWithRefs
-            this.logger.debug(
+            this.logger.verbose(
               `Found recursive object is ${JSON.stringify(foundObject)}`,
             )
             if (foundObject != null) {
