@@ -25,7 +25,6 @@ import {
   GFF3ChangeLineObjectDto,
   UpdateEndObjectDto,
 } from '../entity/gff3Object.dto'
-import { Product } from '../model/product.model'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { FileHandlingService } from './fileHandling.service'
 
@@ -233,30 +232,14 @@ export class FileHandlingController {
     return this.fileService.checkCacheKeys()
   }
 
-  /**
-   * MONGOTEST ONLY
-   */
-  @Get('/addproduct')
-  addProduct(@Req() request: Request) {
-    this.logger.debug(
-      `title=${request.query.title}, description=${request.query.description}, price=${request.query.price}`,
-    )
-
-    return this.fileService.insertProduct(
-      `${request.query.title}`,
-      `${request.query.description}`,
-      parseInt(`${request.query.price}`, 10),
-    )
-  }
-
-  /**
-   * MONGOTEST ONLY
-   */
-  @Get('/addgff3')
-  addGFF3(@Req() request: Request) {
-    this.logger.debug(`Add GFF3....`)
-    return this.fileService.insertGFF3()
-  }
+  // /**
+  //  * MONGOTEST ONLY
+  //  */
+  // @Get('/addgff3')
+  // addGFF3(@Req() request: Request) {
+  //   this.logger.debug(`Add GFF3....`)
+  //   return this.fileService.insertGFF3()
+  // }
 
   /**
    * MONGOTEST ONLY

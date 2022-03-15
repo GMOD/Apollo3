@@ -27,137 +27,129 @@ import {
   GFF3ChangeLineObjectDto,
   UpdateEndObjectDto,
 } from '../entity/gff3Object.dto'
-import { GFF3Model } from '../model/gff3.model'
-import { Product } from '../model/product.model'
+import { FeatureModel } from '../model/feature.model'
 import {
   compareTwoJsonObjects,
   getCurrentDateTime,
   writeIntoGff3ChangeLog,
 } from '../utils/commonUtilities'
+import { AssemblyModel } from '../model/assembly.model'
+import { RefSeqModel } from '../model/refSeq.model'
 
 @Injectable()
 export class FileHandlingService {
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    @InjectModel('Product') private readonly productModel: Model<Product>,
-    @InjectModel('GFF3') private readonly gff3Model: Model<GFF3Model>,
+    @InjectModel('Assembly') private readonly assemblyModel: Model<AssemblyModel>,
+    @InjectModel('RefSeq') private readonly refSeqModel: Model<RefSeqModel>,
+    @InjectModel('Feature') private readonly featureModel: Model<FeatureModel>,
   ) {}
 
   private readonly logger = new Logger(FileHandlingService.name)
 
-  async insertProduct(title: string, desc: string, price: number) {
-    const newProduct = new this.productModel({
-      title,
-      description: desc,
-      price,
-    })
-    const result = await newProduct.save()
-    this.logger.debug(`Added new product, id=${result}`)
-  }
+  // /**
+  //  * DEMO - INSERTS GFF3 DATA INTO MONGO - THIS LOADS GFF3 FILE DATA CONTENT INTO MONGO WITHOUT ANY CHECKS
+  //  */
+  // async insertGFF3() {
+  //   const { GFF3_DEFAULT_FILENAME_AT_STARTUP } = process.env
+  //   if (!GFF3_DEFAULT_FILENAME_AT_STARTUP) {
+  //     throw new Error('No GFF3_DEFAULT_FILENAME_AT_STARTUP found in .env file')
+  //   }
 
-  /**
-   * DEMO - INSERTS GFF3 DATA INTO MONGO - THIS LOADS GFF3 FILE DATA CONTENT INTO MONGO WITHOUT ANY CHECKS
-   */
-  async insertGFF3() {
-    const { GFF3_DEFAULT_FILENAME_AT_STARTUP } = process.env
-    if (!GFF3_DEFAULT_FILENAME_AT_STARTUP) {
-      throw new Error('No GFF3_DEFAULT_FILENAME_AT_STARTUP found in .env file')
-    }
+  //   // parse a string of gff3 synchronously
+  //   const { FILE_SEARCH_FOLDER } = process.env
+  //   if (!FILE_SEARCH_FOLDER) {
+  //     throw new Error('No FILE_SEARCH_FOLDER found in .env file')
+  //   }
 
-    // parse a string of gff3 synchronously
-    const { FILE_SEARCH_FOLDER } = process.env
-    if (!FILE_SEARCH_FOLDER) {
-      throw new Error('No FILE_SEARCH_FOLDER found in .env file')
-    }
+  //   this.logger.debug(
+  //     `Starting to load gff3 file ${GFF3_DEFAULT_FILENAME_AT_STARTUP} into cache! Whole path is '${join(
+  //       FILE_SEARCH_FOLDER,
+  //       GFF3_DEFAULT_FILENAME_AT_STARTUP,
+  //     )}'`,
+  //   )
 
-    this.logger.debug(
-      `Starting to load gff3 file ${GFF3_DEFAULT_FILENAME_AT_STARTUP} into cache! Whole path is '${join(
-        FILE_SEARCH_FOLDER,
-        GFF3_DEFAULT_FILENAME_AT_STARTUP,
-      )}'`,
-    )
+  //   // This method check that each line has unique id. If not it creates one for each line and overwrites the orignal file
+  //   await this.checkGFF3uniqueKey(
+  //     join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_AT_STARTUP),
+  //   )
 
-    // This method check that each line has unique id. If not it creates one for each line and overwrites the orignal file
-    await this.checkGFF3uniqueKey(
-      join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_AT_STARTUP),
-    )
+  //   const stringOfGFF3 = await fs.readFile(
+  //     join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_AT_STARTUP),
+  //     {
+  //       encoding: 'utf8',
+  //       flag: 'r',
+  //     },
+  //   )
+  //   this.logger.verbose(`Data read from file=${stringOfGFF3}`)
+  //   // Clear old entries from cache
+  //   this.cacheManager.reset()
 
-    const stringOfGFF3 = await fs.readFile(
-      join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_AT_STARTUP),
-      {
-        encoding: 'utf8',
-        flag: 'r',
-      },
-    )
-    this.logger.verbose(`Data read from file=${stringOfGFF3}`)
-    // Clear old entries from cache
-    this.cacheManager.reset()
+  //   const arrayOfThings = gff.parseStringSync(stringOfGFF3, {
+  //     parseAll: true,
+  //   })
+  //   let ind = 0
 
-    const arrayOfThings = gff.parseStringSync(stringOfGFF3, {
-      parseAll: true,
-    })
-    let ind = 0
+  //   // Loop all lines and add those into cache
+  //   for (const entry of arrayOfThings) {
+  //     let apolloIdArray: string[] // Let's gather here all apollo ids from each feature
+  //     apolloIdArray = []
+  //     // Comment, Directive and FASTA -entries are not presented as an array so let's put entry into array because gff.formatSync() -method requires an array as argument
+  //     this.cacheManager.set(ind.toString(), JSON.stringify(entry))
+  //     this.logger.verbose(`Add into cache new entry=${JSON.stringify(entry)}\n`)
 
-    // Loop all lines and add those into cache
-    for (const entry of arrayOfThings) {
-      let apolloIdArray: string[] // Let's gather here all apollo ids from each feature
-      apolloIdArray = []
-      // Comment, Directive and FASTA -entries are not presented as an array so let's put entry into array because gff.formatSync() -method requires an array as argument
-      this.cacheManager.set(ind.toString(), JSON.stringify(entry))
-      this.logger.verbose(`Add into cache new entry=${JSON.stringify(entry)}\n`)
+  //     // Comment, Directive and FASTA -entries are not presented as an array
+  //     if (Array.isArray(entry)) {
+  //       this.logger.verbose(`ENTRY=${JSON.stringify(entry)}`)
+  //       for (const [key, val] of Object.entries(entry)) {
+  //         if (val.hasOwnProperty('attributes')) {
+  //           // Let's add apollo_id to parent feature if it doesn't exist
+  //           const assignedVal: GFF3FeatureLineWithRefs = Object.assign(val)
+  //           const attributes = assignedVal.attributes || {}
+  //           if ('apollo_id' in attributes) {
+  //             apolloIdArray.push(attributes.apollo_id![0])
+  //             // break
+  //           }
+  //           // Check if there is also childFeatures in parent feature and it's not empty
+  //           if (
+  //             val.hasOwnProperty('child_features') &&
+  //             Object.keys(assignedVal.child_features).length > 0
+  //           ) {
+  //             // Let's get apollo_id from recursive method
+  //             const tmpArray: string[] = this.searchApolloIdRecursively(
+  //               assignedVal,
+  //               apolloIdArray,
+  //             )
+  //           }
+  //         }
+  //       }
+  //       this.logger.verbose(
+  //         `So far apollo ids are: ${apolloIdArray.toString()}\n`,
+  //       )
+  //     }
+  //     // Add data also into database
+  //     const newGFFItem = new this.gff3Model({
+  //       apolloId: apolloIdArray,
+  //       gff3Item: entry,
+  //     })
+  //     const result = await newGFFItem.save()
+  //     this.logger.debug(`Added new gffItem, id=${result}`)
 
-      // Comment, Directive and FASTA -entries are not presented as an array
-      if (Array.isArray(entry)) {
-        this.logger.verbose(`ENTRY=${JSON.stringify(entry)}`)
-        for (const [key, val] of Object.entries(entry)) {
-          if (val.hasOwnProperty('attributes')) {
-            // Let's add apollo_id to parent feature if it doesn't exist
-            const assignedVal: GFF3FeatureLineWithRefs = Object.assign(val)
-            const attributes = assignedVal.attributes || {}
-            if ('apollo_id' in attributes) {
-              apolloIdArray.push(attributes.apollo_id![0])
-              // break
-            }
-            // Check if there is also childFeatures in parent feature and it's not empty
-            if (
-              val.hasOwnProperty('child_features') &&
-              Object.keys(assignedVal.child_features).length > 0
-            ) {
-              // Let's get apollo_id from recursive method
-              const tmpArray: string[] = this.searchApolloIdRecursively(
-                assignedVal,
-                apolloIdArray,
-              )
-            }
-          }
-        }
-        this.logger.verbose(
-          `So far apollo ids are: ${apolloIdArray.toString()}\n`,
-        )
-      }
-      // Add data also into database
-      const newGFFItem = new this.gff3Model({
-        apolloId: apolloIdArray,
-        gff3Item: entry,
-      })
-      const result = await newGFFItem.save()
-      this.logger.debug(`Added new gffItem, id=${result}`)
+  //     ind++
+  //   }
 
-      ind++
-    }
-
-    const nberOfEntries = await this.cacheManager.store.keys?.()
-    this.logger.debug(`Added ${nberOfEntries.length} entries to cache`)
-  }
+  //   const nberOfEntries = await this.cacheManager.store.keys?.()
+  //   this.logger.debug(`Added ${nberOfEntries.length} entries to cache`)
+  // }
 
   /**
    * Loads GFF3 data from db into cache
    */
   async loadGFF3FromDbIntoCache() {
     // Search correct feature
-    const allCollectionDocumentsCursor = await this.gff3Model.find({}).cursor()
+    const allFeaturesCursor = await this.featureModel.find({}).cursor()
 
-    if (!allCollectionDocumentsCursor) {
+    if (!allFeaturesCursor) {
       const errMsg = `ERROR when loading data from database into cache: No data found!`
       this.logger.error(errMsg)
       throw new NotFoundException(errMsg)
@@ -165,14 +157,11 @@ export class FileHandlingService {
     let ind = 0
     // Loop all documents and load them into cache
     for (
-      let currentDoc = await allCollectionDocumentsCursor.next();
+      let currentDoc = await allFeaturesCursor.next();
       currentDoc != null;
-      currentDoc = await allCollectionDocumentsCursor.next()
+      currentDoc = await allFeaturesCursor.next()
     ) {
-      // Use `doc`
-      const updatableObjectAsGFFItemArray = currentDoc.gff3Item as unknown
-      // this.logger.debug(`Entry=${JSON.stringify(updatableObjectAsGFFItemArray)}`)
-      const entry = updatableObjectAsGFFItemArray as GFF3Item[]
+      const entry = currentDoc as unknown as GFF3FeatureLineWithRefs[]
       if (Array.isArray(entry)) {
         this.cacheManager.set(ind.toString(), JSON.stringify(entry))
         this.logger.verbose(`Add into cache new entry=${JSON.stringify(entry)}`)
@@ -190,16 +179,16 @@ export class FileHandlingService {
    */
   async loadGFF3DataIntoDb(filename: string) {
     // Check if Gff3Item collection is empty in db
-    const cnt = await this.gff3Model.count({})
+    const cnt = await this.featureModel.count({})
     if (cnt > 1) {
       this.logger.debug(
-        `There were ${cnt} records in GFF3 collection (in database). Let's load them into cache...`,
+        `There were ${cnt} records in Feature -collection (in database). Let's load them into cache...`,
       )
       await this.loadGFF3FromDbIntoCache()
       return
     }
     this.logger.debug(
-      `There was no GFF3 in database so let's load that from file....`,
+      `There was no Features in database so let's load that from file....`,
     )
     // parse a string of gff3 synchronously
     const { FILE_SEARCH_FOLDER } = process.env
@@ -214,8 +203,8 @@ export class FileHandlingService {
       )}'`,
     )
 
-    // This method check that each line has unique id. If not it creates one for each line and overwrites the orignal file
-    await this.checkGFF3uniqueKey(join(FILE_SEARCH_FOLDER, filename))
+    // This method check that each line has featureId. If not it creates one for each line and overwrites the orignal file
+    await this.checkIfFeatureIdExists(join(FILE_SEARCH_FOLDER, filename))
 
     const stringOfGFF3 = await fs.readFile(join(FILE_SEARCH_FOLDER, filename), {
       encoding: 'utf8',
@@ -232,8 +221,8 @@ export class FileHandlingService {
 
     // Loop all lines and add those into cache
     for (const entry of arrayOfThings) {
-      let apolloIdArray: string[] // Let's gather here all apollo ids from each feature
-      apolloIdArray = []
+      let featureIdArray: string[] // Let's gather here all feature ids from each feature
+      featureIdArray = []
       // Comment, Directive and FASTA -entries are not presented as an array so let's put entry into array because gff.formatSync() -method requires an array as argument
       this.cacheManager.set(ind.toString(), JSON.stringify(entry))
       this.logger.verbose(`Add into cache new entry=${JSON.stringify(entry)}\n`)
@@ -243,11 +232,11 @@ export class FileHandlingService {
         this.logger.verbose(`ENTRY=${JSON.stringify(entry)}`)
         for (const [key, val] of Object.entries(entry)) {
           if (val.hasOwnProperty('attributes')) {
-            // Let's add apollo_id to parent feature if it doesn't exist
+            // Let's add featureId to parent feature if it doesn't exist
             const assignedVal: GFF3FeatureLineWithRefs = Object.assign(val)
             const attributes = assignedVal.attributes || {}
             if ('apollo_id' in attributes) {
-              apolloIdArray.push(attributes.apollo_id![0])
+              featureIdArray.push(attributes.apollo_id![0])
             }
             // Check if there is also childFeatures in parent feature and it's not empty
             if (
@@ -257,22 +246,29 @@ export class FileHandlingService {
               // Let's get apollo_id from recursive method
               const tmpArray: string[] = this.searchApolloIdRecursively(
                 assignedVal,
-                apolloIdArray,
+                featureIdArray,
               )
             }
           }
         }
         this.logger.verbose(
-          `So far apollo ids are: ${apolloIdArray.toString()}\n`,
+          `So far apollo ids are: ${featureIdArray.toString()}\n`,
         )
       }
+      // // Add data also into database
+      // const newGFFItem = new this.gff3Model({
+      //   apolloId: apolloIdArray,
+      //   gff3Item: entry,
+      // })
       // Add data also into database
-      const newGFFItem = new this.gff3Model({
-        apolloId: apolloIdArray,
-        gff3Item: entry,
+      const newGFFItem = new this.featureModel({
+        refSeqId: 'ref seq id 1', // Demo data
+        apolloId: featureIdArray,
+        gff3FeatureLineWithRefs: entry,
       })
+
       const result = await newGFFItem.save()
-      this.logger.verbose(`Added new gffItem, id=${result}`)
+      this.logger.verbose(`Added new feature, id=${result}`)
 
       ind++
     }
@@ -335,18 +331,20 @@ export class FileHandlingService {
     const newValue = postDto.newEnd
 
     // Search correct feature
-    const featureObject = await this.gff3Model.findOne({ apolloId }).exec()
+    const featureObject = await this.featureModel.findOne({ apolloId }).exec()
 
     if (!featureObject) {
       const errMsg = `ERROR when updating MongoDb: The following apolloId was not found in database ='${apolloId}'`
       this.logger.error(errMsg)
       throw new NotFoundException(errMsg)
     }
-    const updatableObjectAsGFFItemArray = featureObject?.gff3Item as unknown
+
+    const updatableObjectAsGFFItemArray =
+      featureObject.gff3FeatureLineWithRefs as unknown as GFF3FeatureLineWithRefs[]
     this.logger.debug(`Feature found  = ${JSON.stringify(featureObject)}`)
     // Now we need to find correct top level feature or sub-feature inside the feature
     const updatableObject = await this.getObjectByApolloId(
-      updatableObjectAsGFFItemArray as GFF3Item[],
+      updatableObjectAsGFFItemArray,
       apolloId,
     )
     if (!updatableObject) {
@@ -363,7 +361,7 @@ export class FileHandlingService {
     }
     // Set new value
     assignedVal.end = Number.parseInt(newValue, 10)
-    await featureObject.markModified('gff3Item') // Mark as modified. Without this save() -method is not updating data in database
+    await featureObject.markModified('gff3FeatureLineWithRefs') // Mark as modified. Without this save() -method is not updating data in database
     await featureObject.save().catch((error) => {
       throw new InternalServerErrorException(error)
     })
@@ -375,10 +373,14 @@ export class FileHandlingService {
    * @param apolloId
    * @returns
    */
-  async getObjectByApolloId(featureObject: GFF3Item[], apolloId: string) {
+  // async getObjectByApolloId(featureObject: GFF3Item[], apolloId: string) {
+  async getObjectByApolloId(
+    featureObject: GFF3FeatureLineWithRefs[],
+    apolloId: string,
+  ) {
     // Loop all lines and add those into cache
     for (const entry of featureObject) {
-      this.logger.verbose(`Entry=${JSON.stringify(entry)}`)
+      this.logger.debug(`Entry=${JSON.stringify(entry)}`)
       if (entry.hasOwnProperty('attributes')) {
         const assignedVal: GFF3FeatureLineWithRefs = Object.assign(entry)
         const attributes = assignedVal.attributes || {}
@@ -685,7 +687,7 @@ export class FileHandlingService {
     )
 
     // This method check that each line has unique id. If not it creates one for each line and overwrites the orignal file
-    await this.checkGFF3uniqueKey(join(FILE_SEARCH_FOLDER, filename))
+    await this.checkIfFeatureIdExists(join(FILE_SEARCH_FOLDER, filename))
 
     const stringOfGFF3 = await fs.readFile(join(FILE_SEARCH_FOLDER, filename), {
       encoding: 'utf8',
@@ -953,7 +955,7 @@ export class FileHandlingService {
    * This method check that each line has unique id. If not it creates one for each line and overwrites the orignal file
    * @param filenameWithPath - filename with path
    */
-  async checkGFF3uniqueKey(filenameWithPath: string) {
+  async checkIfFeatureIdExists(filenameWithPath: string) {
     const stringOfGFF3 = await fs.readFile(filenameWithPath, {
       encoding: 'utf8',
       flag: 'r',

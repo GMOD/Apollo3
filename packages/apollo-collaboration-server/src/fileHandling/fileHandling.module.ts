@@ -1,8 +1,9 @@
 import { CacheModule, Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 
-import { GFF3Schema } from '../model/gff3.model'
-import { ProductSchema } from '../model/product.model'
+import { AssemblySchema } from '../model/assembly.model'
+import { FeatureSchema } from '../model/feature.model'
+import { RefSeqSchema } from '../model/refSeq.model'
 import { FileHandlingController } from './fileHandling.controller'
 import { FileHandlingService } from './fileHandling.service'
 
@@ -13,8 +14,9 @@ import { FileHandlingService } from './fileHandling.service'
   providers: [FileHandlingService],
   imports: [
     CacheModule.register({ ttl: 0, max: 1000000 }), // 0 = no cache expiration, 100 000 = number of entries
-    MongooseModule.forFeature([{ name: 'Product', schema: ProductSchema }]),
-    MongooseModule.forFeature([{ name: 'GFF3', schema: GFF3Schema }]),
+    MongooseModule.forFeature([{ name: 'Assembly', schema: AssemblySchema }]),
+    MongooseModule.forFeature([{ name: 'RegSeq', schema: RefSeqSchema }]),
+    MongooseModule.forFeature([{ name: 'Feature', schema: FeatureSchema }]),
   ],
 })
 export class FileHandlingModule {}
