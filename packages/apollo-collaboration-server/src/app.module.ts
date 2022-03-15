@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
+import { MongooseModule } from '@nestjs/mongoose'
 
 import { AuthenticationModule } from './authentication/authentication.module'
 import { ChangeModule } from './change/change.module'
@@ -18,6 +19,13 @@ const nodeEnv = process.env.NODE_ENV || 'production'
     }),
     FileHandlingModule,
     ChangeModule,
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGODB_URI'),
+      }),
+      inject: [ConfigService],
+    }),
   ],
   providers: [
     {
