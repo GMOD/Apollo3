@@ -214,6 +214,9 @@ export class FileHandlingService {
         `There were ${cnt} records in GFF3 collection (in database). Let's load them into cache...`,
       )
       await this.loadGFF3FromDbIntoCache()
+      this.logger.debug(
+        `Cache loaded.`,
+      )
       return
     }
     this.logger.debug(
@@ -1055,7 +1058,7 @@ export class FileHandlingService {
       // Comment, Directive and FASTA -entries are not presented as an array
       if (Array.isArray(entry)) {
         for (const [key, val] of Object.entries(entry)) {
-          this.logger.verbose(
+          this.logger.debug(
             `GFF3Item: key=${JSON.stringify(key)}, value=${JSON.stringify(
               val,
             )}`,
@@ -1072,12 +1075,19 @@ export class FileHandlingService {
             // Let's add apollo_id to parent feature if it doesn't exist
             const assignedVal: GFF3FeatureLineWithRefsWithApolloId = Object.assign(val)
             assignedVal.apollo_id = uuidv4()
+
+            this.logger.debug(
+              `NOW ADDED GFF3Item: key=${JSON.stringify(key)}, value=${JSON.stringify(
+                val,
+              )}`,
+            )
+
             // Check if there is also childFeatures in parent feature and it's not empty
             if (
               val.hasOwnProperty('child_features') &&
               Object.keys(assignedVal.child_features).length > 0
             ) {
-              // Let's add apollo_id to each child recursively
+              // Let's add apollo_id to each child recursively 
               this.setApolloIdRecursively(assignedVal)
             }
           }
@@ -1085,6 +1095,8 @@ export class FileHandlingService {
       }
     }
 
+    this.logger.debug(`ARRAY OF THINGS ----------------------------- ${JSON.stringify(arrayOfThings)} -----------------------------`)
+    this.logger.debug(`ARRAY OF THINGS ***************************** ${gff.formatSync(arrayOfThings)} *****************************`)
     // Save into file
     const { FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_AT_STARTUP } = process.env
     if (!FILE_SEARCH_FOLDER) {
