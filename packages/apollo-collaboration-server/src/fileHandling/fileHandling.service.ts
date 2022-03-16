@@ -29,7 +29,7 @@ import {
 } from '../entity/gff3Object.dto'
 import { AssemblyModel } from '../model/assembly.model'
 import { FeatureModel } from '../model/feature.model'
-import { GFF3FeatureLineWithRefsAndApolloId } from '../model/gff3.model'
+import { GFF3FeatureLineWithRefsAndFeatureId } from '../model/gff3.model'
 import { RefSeqModel } from '../model/refSeq.model'
 import {
   compareTwoJsonObjects,
@@ -94,8 +94,8 @@ export class FileHandlingService {
 
   //   // Loop all lines and add those into cache
   //   for (const entry of arrayOfThings) {
-  //     let apolloIdArray: string[] // Let's gather here all apollo ids from each feature
-  //     apolloIdArray = []
+  //     let featureIdArray: string[] // Let's gather here all apollo ids from each feature
+  //     featureIdArray = []
   //     // Comment, Directive and FASTA -entries are not presented as an array so let's put entry into array because gff.formatSync() -method requires an array as argument
   //     this.cacheManager.set(ind.toString(), JSON.stringify(entry))
   //     this.logger.verbose(`Add into cache new entry=${JSON.stringify(entry)}\n`)
@@ -105,11 +105,11 @@ export class FileHandlingService {
   //       this.logger.verbose(`ENTRY=${JSON.stringify(entry)}`)
   //       for (const [key, val] of Object.entries(entry)) {
   //         if (val.hasOwnProperty('attributes')) {
-  //           // Let's add apollo_id to parent feature if it doesn't exist
+  //           // Let's add featureId to parent feature if it doesn't exist
   //           const assignedVal: GFF3FeatureLineWithRefs = Object.assign(val)
   //           const attributes = assignedVal.attributes || {}
-  //           if ('apollo_id' in attributes) {
-  //             apolloIdArray.push(attributes.apollo_id![0])
+  //           if ('featureId' in attributes) {
+  //             featureIdArray.push(attributes.featureId![0])
   //             // break
   //           }
   //           // Check if there is also childFeatures in parent feature and it's not empty
@@ -117,21 +117,21 @@ export class FileHandlingService {
   //             val.hasOwnProperty('child_features') &&
   //             Object.keys(assignedVal.child_features).length > 0
   //           ) {
-  //             // Let's get apollo_id from recursive method
-  //             const tmpArray: string[] = this.searchApolloIdRecursively(
+  //             // Let's get featureId from recursive method
+  //             const tmpArray: string[] = this.searchFeatureIdRecursively(
   //               assignedVal,
-  //               apolloIdArray,
+  //               featureIdArray,
   //             )
   //           }
   //         }
   //       }
   //       this.logger.verbose(
-  //         `So far apollo ids are: ${apolloIdArray.toString()}\n`,
+  //         `So far apollo ids are: ${featureIdArray.toString()}\n`,
   //       )
   //     }
   //     // Add data also into database
   //     const newGFFItem = new this.gff3Model({
-  //       apolloId: apolloIdArray,
+  //       featureId: featureIdArray,
   //       gff3Item: entry,
   //     })
   //     const result = await newGFFItem.save()
@@ -236,12 +236,12 @@ export class FileHandlingService {
         this.logger.verbose(`ENTRY=${JSON.stringify(entry)}`)
         for (const [key, val] of Object.entries(entry)) {
           //* ***********
-          // if (!val.hasOwnProperty('apollo_id')) {
-          // Let's add apollo_id to parent feature if it doesn't exist
-          const assignedVal: GFF3FeatureLineWithRefsAndApolloId =
+          // if (!val.hasOwnProperty('featureId')) {
+          // Let's add featureId to parent feature if it doesn't exist
+          const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
             Object.assign(val)
-            const uid = uuidv4()
-          assignedVal.apollo_id = uid
+          const uid = uuidv4()
+          assignedVal.featureId = uid
           // Add featureId into array
           featureIdArray.push(uid)
 
@@ -255,8 +255,8 @@ export class FileHandlingService {
             val.hasOwnProperty('child_features') &&
             Object.keys(assignedVal.child_features).length > 0
           ) {
-            // Let's add apollo_id to each child recursively
-            const tmpArray: string[] = this.setAndGetApolloIdRecursively(
+            // Let's add featureId to each child recursively
+            const tmpArray: string[] = this.setAndGetFeatureIdRecursively(
               assignedVal,
               featureIdArray,
             )
@@ -264,17 +264,17 @@ export class FileHandlingService {
           // }
 
           //* ***********
-          // if (val.hasOwnProperty('apollo_id')) {
-          //   // Let's add apollo_id to parent feature if it doesn't exist
-          //   const assignedVal: GFF3FeatureLineWithRefsAndApolloId = Object.assign(val)
-          //   featureIdArray.push(assignedVal.apollo_id![0])
+          // if (val.hasOwnProperty('featureId')) {
+          //   // Let's add featureId to parent feature if it doesn't exist
+          //   const assignedVal: GFF3FeatureLineWithRefsAndFeatureId = Object.assign(val)
+          //   featureIdArray.push(assignedVal.featureId![0])
           //   // Check if there is also childFeatures in parent feature and it's not empty
           //   if (
           //     val.hasOwnProperty('child_features') &&
           //     Object.keys(assignedVal.child_features).length > 0
           //   ) {
-          //     // Let's get apollo_id from recursive method
-          //     const tmpArray: string[] = this.searchApolloIdRecursively(
+          //     // Let's get featureId from recursive method
+          //     const tmpArray: string[] = this.searchFeatureIdRecursively(
           //       assignedVal,
           //       featureIdArray,
           //     )
@@ -288,7 +288,7 @@ export class FileHandlingService {
       // Add data also into database
       const newGFFItem = new this.featureModel({
         refSeqId: 'ref seq id 1', // Demo data
-        apolloId: featureIdArray,
+        featureId: featureIdArray,
         gff3FeatureLineWithRefs: entry,
       })
 
@@ -305,15 +305,15 @@ export class FileHandlingService {
   }
 
   /**
-   * Loop child features in parent feature and save apollo_id from each child's attribute into result array
+   * Loop child features in parent feature and save featureId from each child's attribute into result array
    * @param parentFeature - Parent feature
    */
-  searchApolloIdRecursively(
+  searchFeatureIdRecursively(
     parentFeature: GFF3FeatureLineWithRefs,
-    apolloIdArrAsParam: string[],
+    featureIdArrAsParam: string[],
   ): string[] {
-    let apolloIdArray: string[]
-    apolloIdArray = []
+    let featureIdArray: string[]
+    featureIdArray = []
 
     // If there is child features and size is not 0
     if (
@@ -328,36 +328,35 @@ export class FileHandlingService {
       ) {
         // There can be several features with same ID so we need to loop
         for (let j = 0; parentFeature.child_features[i].length > j; j++) {
-          const assignedVal: GFF3FeatureLineWithRefsAndApolloId = Object.assign(
-            parentFeature.child_features[i][j],
-          )
-          // Let's add apollo_id if it doesn't exist yet
-          if (assignedVal.hasOwnProperty('apollo_id')) {
-            apolloIdArrAsParam.push(assignedVal.apollo_id![0])
+          const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
+            Object.assign(parentFeature.child_features[i][j])
+          // Let's add featureId if it doesn't exist yet
+          if (assignedVal.hasOwnProperty('featureId')) {
+            featureIdArrAsParam.push(assignedVal.featureId![0])
             this.logger.verbose(
-              `CHILD APOLLO_ID FOUND ${assignedVal.apollo_id![0]}`,
+              `Child FeatureId found ${assignedVal.featureId![0]}`,
             )
           }
-          this.searchApolloIdRecursively(assignedVal, apolloIdArrAsParam)
+          this.searchFeatureIdRecursively(assignedVal, featureIdArrAsParam)
         }
       }
     }
-    return apolloIdArrAsParam
+    return featureIdArrAsParam
   }
 
   /**
    * MONGO - TEST - UPDATES END POSITION IN MONGO DB - AFTER UPDATING THE DB SHOULD WE ALSO UPDATE CACHE?
    */
   async updateEndPosInMongo(postDto: UpdateEndObjectDto) {
-    const { apolloId } = postDto
+    const { featureId } = postDto
     const oldValue = postDto.oldEnd
     const newValue = postDto.newEnd
 
     // Search correct feature
-    const featureObject = await this.featureModel.findOne({ apolloId }).exec()
+    const featureObject = await this.featureModel.findOne({ featureId }).exec()
 
     if (!featureObject) {
-      const errMsg = `ERROR when updating MongoDb: The following apolloId was not found in database ='${apolloId}'`
+      const errMsg = `ERROR when updating MongoDb: The following featureId was not found in database ='${featureId}'`
       this.logger.error(errMsg)
       throw new NotFoundException(errMsg)
     }
@@ -366,9 +365,9 @@ export class FileHandlingService {
       featureObject.gff3FeatureLineWithRefs as unknown as GFF3FeatureLineWithRefs[]
     this.logger.debug(`Feature found  = ${JSON.stringify(featureObject)}`)
     // Now we need to find correct top level feature or sub-feature inside the feature
-    const updatableObject = await this.getObjectByApolloId(
+    const updatableObject = await this.getObjectByFeatureId(
       updatableObjectAsGFFItemArray,
-      apolloId,
+      featureId,
     )
     if (!updatableObject) {
       const errMsg = `ERROR when updating MongoDb....`
@@ -392,26 +391,26 @@ export class FileHandlingService {
   }
 
   /**
-   * DEMO - SEARCH CORRECT OBJECT (by apolloId) FROM FEATURE
-   * @param apolloId
+   * DEMO - SEARCH CORRECT OBJECT (by featureId) FROM FEATURE
+   * @param featureId
    * @returns
    */
-  // async getObjectByApolloId(featureObject: GFF3Item[], apolloId: string) {
-  async getObjectByApolloId(
+  // async getObjectByFeatureId(featureObject: GFF3Item[], featureId: string) {
+  async getObjectByFeatureId(
     featureObject: GFF3FeatureLineWithRefs[],
-    apolloId: string,
+    featureId: string,
   ) {
     // Loop all lines and add those into cache
     for (const entry of featureObject) {
       this.logger.verbose(`Entry=${JSON.stringify(entry)}`)
-      if (entry.hasOwnProperty('apollo_id')) {
-        const assignedVal: GFF3FeatureLineWithRefsAndApolloId =
+      if (entry.hasOwnProperty('featureId')) {
+        const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
           Object.assign(entry)
-        this.logger.debug(`Top level apollo_id=${assignedVal.apollo_id!}`)
+        this.logger.debug(`Top level featureId=${assignedVal.featureId!}`)
         // If matches
-        if (assignedVal.apollo_id! === apolloId) {
+        if (assignedVal.featureId! === featureId) {
           this.logger.debug(
-            `Top level apollo_id matches in object ${JSON.stringify(
+            `Top level featureId matches in object ${JSON.stringify(
               assignedVal,
             )}`,
           )
@@ -422,13 +421,13 @@ export class FileHandlingService {
           entry.hasOwnProperty('child_features') &&
           Object.keys(assignedVal.child_features).length > 0
         ) {
-          // Let's get apollo_id from recursive method
+          // Let's get featureId from recursive method
           this.logger.debug(
-            `Apollo_id was not found on top level so lets make recursive call...`,
+            `FeatureId was not found on top level so lets make recursive call...`,
           )
-          const foundRecursiveObject = await this.getRecursiveObjectByApolloId(
+          const foundRecursiveObject = await this.getRecursiveObjectByFeatureId(
             assignedVal,
-            apolloId,
+            featureId,
           )
           if (foundRecursiveObject) {
             return foundRecursiveObject
@@ -440,9 +439,9 @@ export class FileHandlingService {
   }
 
   //  * DEMO - SEARCH RECURSIVELY CORRECT OBJECT FROM FEATRUE
-  async getRecursiveObjectByApolloId(
+  async getRecursiveObjectByFeatureId(
     parentFeature: GFF3FeatureLineWithRefs,
-    apolloId: string,
+    featureId: string,
   ) {
     // If there is child features and size is not 0
     if (
@@ -457,18 +456,17 @@ export class FileHandlingService {
       ) {
         // There can be several features with same ID so we need to loop
         for (let j = 0; parentFeature.child_features[i].length > j; j++) {
-          const assignedVal: GFF3FeatureLineWithRefsAndApolloId = Object.assign(
-            parentFeature.child_features[i][j],
-          )
-          // Let's add apollo_id if it doesn't exist yet
-          if (assignedVal.hasOwnProperty('apollo_id')) {
+          const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
+            Object.assign(parentFeature.child_features[i][j])
+          // Let's add featureId if it doesn't exist yet
+          if (assignedVal.hasOwnProperty('featureId')) {
             this.logger.debug(
-              `Recursive object apolloId=${assignedVal.apollo_id}`,
+              `Recursive object featureId=${assignedVal.featureId}`,
             )
-            // If apollo_id matches
-            if (assignedVal.apollo_id === apolloId) {
+            // If featureId matches
+            if (assignedVal.featureId === featureId) {
               this.logger.debug(
-                `Found apollo_id from recursive object ${JSON.stringify(
+                `Found featureId from recursive object ${JSON.stringify(
                   assignedVal,
                 )}`,
               )
@@ -480,10 +478,10 @@ export class FileHandlingService {
             assignedVal.hasOwnProperty('child_features') &&
             Object.keys(assignedVal.child_features).length > 0
           ) {
-            // Let's add apollo_id to each child recursively
-            const foundObject = (await this.getRecursiveObjectByApolloId(
+            // Let's add featureId to each child recursively
+            const foundObject = (await this.getRecursiveObjectByFeatureId(
               assignedVal,
-              apolloId,
+              featureId,
             )) as GFF3FeatureLineWithRefs
             this.logger.verbose(
               `Found recursive object is ${JSON.stringify(foundObject)}`,
@@ -986,9 +984,9 @@ export class FileHandlingService {
   //   const arrayOfThings = gff.parseStringSync(stringOfGFF3, {
   //     parseAll: true,
   //   })
-  //   this.logger.debug(`Setting apollo_ids if required....`)
+  //   this.logger.debug(`Setting featureIds if required....`)
 
-  //   // Loop all lines and check if each line has 'apollo_id' property inside attributes
+  //   // Loop all lines and check if each line has 'featureId' property inside attributes
   //   for (const entry of arrayOfThings) {
   //     // Comment, Directive and FASTA -entries are not presented as an array
   //     if (Array.isArray(entry)) {
@@ -998,11 +996,11 @@ export class FileHandlingService {
   //             val,
   //           )}`,
   //         )
-  //         if (!val.hasOwnProperty('apollo_id')) {
-  //           // Let's add apollo_id to parent feature if it doesn't exist
-  //           const assignedVal: GFF3FeatureLineWithRefsAndApolloId =
+  //         if (!val.hasOwnProperty('featureId')) {
+  //           // Let's add featureId to parent feature if it doesn't exist
+  //           const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
   //             Object.assign(val)
-  //           assignedVal.apollo_id = uuidv4()
+  //           assignedVal.featureId = uuidv4()
 
   //           this.logger.debug(
   //             `Added new FeatureId: key=${JSON.stringify(
@@ -1015,8 +1013,8 @@ export class FileHandlingService {
   //             val.hasOwnProperty('child_features') &&
   //             Object.keys(assignedVal.child_features).length > 0
   //           ) {
-  //             // Let's add apollo_id to each child recursively
-  //             this.setApolloIdRecursively(assignedVal)
+  //             // Let's add featureId to each child recursively
+  //             this.setFeatureIdRecursively(assignedVal)
   //           }
   //         }
   //       }
@@ -1039,15 +1037,15 @@ export class FileHandlingService {
   // }
 
   /**
-   * Loop child features in parent feature and add apollo_id to each child's attribute
+   * Loop child features in parent feature and add featureId to each child's attribute
    * @param parentFeature - Parent feature
    */
-  setAndGetApolloIdRecursively(
-    parentFeature: GFF3FeatureLineWithRefsAndApolloId,
-    apolloIdArrAsParam: string[],
+  setAndGetFeatureIdRecursively(
+    parentFeature: GFF3FeatureLineWithRefsAndFeatureId,
+    featureIdArrAsParam: string[],
   ): string[] {
-    let apolloIdArray: string[]
-    apolloIdArray = []
+    let featureIdArray: string[]
+    featureIdArray = []
     this.logger.verbose(
       `Value in recursive method = ${JSON.stringify(parentFeature)}`,
     )
@@ -1064,30 +1062,31 @@ export class FileHandlingService {
       ) {
         // There can be several features with same ID so we need to loop
         for (let j = 0; parentFeature.child_features[i].length > j; j++) {
-          const assignedVal: GFF3FeatureLineWithRefsAndApolloId = Object.assign(
-            parentFeature.child_features[i][j],
-          )
-          // Let's add apollo_id if it doesn't exist yet
-          if (!assignedVal.hasOwnProperty('apollo_id')) {
+          const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
+            Object.assign(parentFeature.child_features[i][j])
+          // Let's add featureId if it doesn't exist yet
+          if (!assignedVal.hasOwnProperty('featureId')) {
             const uid = uuidv4()
-            assignedVal.apollo_id = uid
+            assignedVal.featureId = uid
             this.logger.verbose(
-              `Apollo_id assigned (recursive level) ${JSON.stringify(assignedVal)}`,
+              `FeatureId assigned (recursive level) ${JSON.stringify(
+                assignedVal,
+              )}`,
             )
-            apolloIdArrAsParam.push(uid)
+            featureIdArrAsParam.push(uid)
           }
-          this.setAndGetApolloIdRecursively(assignedVal, apolloIdArrAsParam)
+          this.setAndGetFeatureIdRecursively(assignedVal, featureIdArrAsParam)
         }
       }
     }
-    return apolloIdArrAsParam
+    return featureIdArrAsParam
   }
 
   // /**
-  //  * Loop child features in parent feature and add apollo_id to each child's attribute
+  //  * Loop child features in parent feature and add featureId to each child's attribute
   //  * @param parentFeature - Parent feature
   //  */
-  // setApolloIdRecursively(parentFeature: GFF3FeatureLineWithRefsAndApolloId) {
+  // setFeatureIdRecursively(parentFeature: GFF3FeatureLineWithRefsAndFeatureId) {
   //   this.logger.verbose(
   //     `Value in recursive method = ${JSON.stringify(parentFeature)}`,
   //   )
@@ -1104,17 +1103,17 @@ export class FileHandlingService {
   //     ) {
   //       // There can be several features with same ID so we need to loop
   //       for (let j = 0; parentFeature.child_features[i].length > j; j++) {
-  //         const assignedVal: GFF3FeatureLineWithRefsAndApolloId = Object.assign(
+  //         const assignedVal: GFF3FeatureLineWithRefsAndFeatureId = Object.assign(
   //           parentFeature.child_features[i][j],
   //         )
-  //         // Let's add apollo_id if it doesn't exist yet
-  //         if (!assignedVal.hasOwnProperty('apollo_id')) {
-  //           assignedVal.apollo_id = uuidv4()
+  //         // Let's add featureId if it doesn't exist yet
+  //         if (!assignedVal.hasOwnProperty('featureId')) {
+  //           assignedVal.featureId = uuidv4()
   //           this.logger.verbose(
-  //             `Apollo_id assigned ${JSON.stringify(assignedVal)}`,
+  //             `FeatureId assigned ${JSON.stringify(assignedVal)}`,
   //           )
   //         }
-  //         this.setApolloIdRecursively(assignedVal)
+  //         this.setFeatureIdRecursively(assignedVal)
   //       }
   //     }
   //   }

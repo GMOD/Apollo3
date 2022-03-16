@@ -6,7 +6,7 @@ export interface GFF3ChangeLineObjectDto {
 }
 
 export interface UpdateEndObjectDto {
-  apolloId: string
+  featureId: string
   oldEnd: string
   newEnd: string
 }

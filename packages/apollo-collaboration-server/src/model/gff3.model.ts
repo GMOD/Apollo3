@@ -1,7 +1,7 @@
-import { GFF3FeatureLineWithRefs, GFF3Item } from '@gmod/gff'
-import * as mongoose from 'mongoose'
+import { GFF3FeatureLineWithRefs } from '@gmod/gff'
 
-export interface GFF3FeatureLineWithRefsAndApolloId extends GFF3FeatureLineWithRefs {
-  apollo_id: string
+export interface GFF3FeatureLineWithRefsAndFeatureId
+  extends GFF3FeatureLineWithRefs {
+  featureId: string
   GFF3FeatureLineWithRefs: GFF3FeatureLineWithRefs
 }
