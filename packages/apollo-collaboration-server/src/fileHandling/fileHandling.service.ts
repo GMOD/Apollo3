@@ -1119,4 +1119,62 @@ export class FileHandlingService {
   //     }
   //   }
   // }
+
+  /**
+   * MONGO - TEST - GET FEATURE OBJECT BY FEATUREID
+   */
+  async getFeatureByFeatureId(featureId: string) {
+    // Search correct feature
+    const featureObject = await this.featureModel.findOne({ featureId }).exec()
+
+    if (!featureObject) {
+      const errMsg = `ERROR: The following featureId was not found in database ='${featureId}'`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+
+    const updatableObjectAsGFFItemArray =
+      featureObject.gff3FeatureLineWithRefs as unknown as GFF3FeatureLineWithRefs[]
+    this.logger.verbose(`Feature found  = ${JSON.stringify(featureObject)}`)
+    // Now we need to find correct top level feature or sub-feature inside the feature
+    const foundFeature = await this.getObjectByFeatureId(
+      updatableObjectAsGFFItemArray,
+      featureId,
+    )
+    if (!foundFeature) {
+      const errMsg = `ERROR when searching feature by featureId`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+    this.logger.debug(`Feature found: ${JSON.stringify(foundFeature)}`)
+    return foundFeature
+  }
+
+  /**
+   * MONGO - TEST - GET FEATURE OBJECT BY FEATUREID
+   */
+  async getFeaturesByCriteriaV1(
+    searchDto: GFF3FeatureLine,
+  ) {
+    // Search correct feature
+    const features = await this.featureModel
+      .find({
+        'gff3FeatureLineWithRefs.start': { $lte: searchDto.end },
+        'gff3FeatureLineWithRefs.end': { $gte: searchDto.start },
+        'gff3FeatureLineWithRefs.seq_id': searchDto.seq_id,
+      })
+      .exec()
+    this.logger.debug(
+      `Searching features for Seq_id=${searchDto.seq_id}=, Start=${searchDto.start}=, End=${searchDto.end}=`,
+    )
+
+    if (!features) {
+      const errMsg = `ERROR: No features were found in database`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+
+    this.logger.debug(`The following feature(s) matched  = ${JSON.stringify(features)}`)
+    return features
+  }
 }

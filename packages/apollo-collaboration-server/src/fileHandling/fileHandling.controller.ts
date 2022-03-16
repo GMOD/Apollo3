@@ -140,7 +140,7 @@ export class FileHandlingController {
    * @returns Return embedded FASTA sequence if search was successful
    * or if search data was not found or in case of error throw exception
    */
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(Jwt uthGuard)
   @Get('/getFastaByCriteria')
   getFastaByCriteria(@Req() request: Request) {
     this.logger.debug(
@@ -256,4 +256,53 @@ export class FileHandlingController {
     )
     return this.fileService.updateEndPosInMongo(postDto)
   }
+
+    /**
+   * MONGOTEST ONLY
+   */
+  //  @UseGuards(JwtAuthGuard)
+  @Get('/getfeature/:featureid')
+  getFeature(@Param('featureid') featureid: string) {
+    this.logger.debug(
+      `Get feature by featureId=${featureid}.`,
+    )
+    return this.fileService.getFeatureByFeatureId(featureid)
+  }
+
+  /**
+   * Fetch features based on Reference seq, Start and End -values
+   * @param request - Contain search criteria i.e. refname, start and end -parameters
+   * @returns Return 'HttpStatus.OK' and array of features if search was successful
+   * or if search data was not found or in case of error throw exception
+   */
+  //  @UseGuards(JwtAuthGuard)
+   @Get('/getFeaturesByCriteriaV1')
+   getFeaturesByCriteriaV1(@Body() request: GFF3FeatureLine) {
+    this.logger.debug(
+       `getFeaturesByCriteria -method: Seq_id=${request.seq_id}=, Start=${request.start}=, End=${request.end}=`,
+     )
+     const searchDto: GFF3FeatureLine = {
+       seq_id: `${request.seq_id}`,
+       start: parseInt(`${request.start}`, 10),
+       end: parseInt(`${request.end}`, 10),
+       source: null,
+       type: null,
+       score: null,
+       strand: null,
+       phase: null,
+       attributes: null,
+     }
+ 
+     return this.fileService.getFeaturesByCriteriaV1(searchDto)
+   }
+    // /**
+  //  * Loads GFF3 file data into cache. Cache key is started from 0
+  //  * @param filename - File to download
+  //  * @returns
+  //  */
+  // @UseGuards(JwtAuthGuard)
+  // @Get('/getgff3file/:filename')
+  // getGff3File(@Param('filename') filename: string) {
+  //   return this.fileService.loadGff3IntoCache(filename)
+  // }
 }
