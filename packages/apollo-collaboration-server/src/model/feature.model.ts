@@ -6,7 +6,7 @@ import * as mongoose from 'mongoose'
 // Feature
 export const FeatureSchema = new mongoose.Schema({
   refSeqId: { type: String, required: true },
-  apolloId: { type: [String], required: true },
+  featureId: { type: [String], required: true },
   gff3FeatureLineWithRefs: { type: JSON, required: true },
 })
 export interface FeatureModel
@@ -14,6 +14,6 @@ export interface FeatureModel
     mongoose.Document {
   id: string
   refSeqId: string
-  apolloId: string[]
+  featureId: string[]
   gff3FeatureLineWithRefs: GFF3FeatureLineWithRefs
 }

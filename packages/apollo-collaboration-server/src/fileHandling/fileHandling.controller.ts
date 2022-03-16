@@ -247,9 +247,13 @@ export class FileHandlingController {
   //  @UseGuards(JwtAuthGuard)
   @Put('/updateMongo')
   updateMongo(@Body() postDto: UpdateEndObjectDto) {
-    this.logger.debug(`ApolloId=${postDto.featureId}`)
-    this.logger.debug(`Old value=${JSON.stringify(postDto.oldEnd)}`)
-    this.logger.debug(`New value=${JSON.stringify(postDto.newEnd)}`)
+    this.logger.debug(
+      `Update Mongo document where featureId=${
+        postDto.featureId
+      } and old value=${JSON.stringify(
+        postDto.oldEnd,
+      )}. New value will be ${JSON.stringify(postDto.newEnd)}.`,
+    )
     return this.fileService.updateEndPosInMongo(postDto)
   }
 }

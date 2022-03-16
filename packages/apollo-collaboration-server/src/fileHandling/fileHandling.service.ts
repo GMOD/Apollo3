@@ -363,7 +363,7 @@ export class FileHandlingService {
 
     const updatableObjectAsGFFItemArray =
       featureObject.gff3FeatureLineWithRefs as unknown as GFF3FeatureLineWithRefs[]
-    this.logger.debug(`Feature found  = ${JSON.stringify(featureObject)}`)
+    this.logger.verbose(`Feature found  = ${JSON.stringify(featureObject)}`)
     // Now we need to find correct top level feature or sub-feature inside the feature
     const updatableObject = await this.getObjectByFeatureId(
       updatableObjectAsGFFItemArray,
@@ -374,7 +374,7 @@ export class FileHandlingService {
       this.logger.error(errMsg)
       throw new NotFoundException(errMsg)
     }
-    this.logger.debug(`Let's update object ${JSON.stringify(updatableObject)}`)
+    this.logger.debug(`Object found: ${JSON.stringify(updatableObject)}`)
     const assignedVal: GFF3FeatureLineWithRefs = Object.assign(updatableObject)
     if (assignedVal.end !== Number.parseInt(oldValue, 10)) {
       const errMsg = `Old end value in db ${assignedVal.end} does not match with old value ${oldValue} as given in parameter`
@@ -387,7 +387,8 @@ export class FileHandlingService {
     await featureObject.save().catch((error) => {
       throw new InternalServerErrorException(error)
     })
-    this.logger.debug(`Updated whole object ${JSON.stringify(featureObject)}`)
+    this.logger.debug(`Object updated in Mongo`)
+    this.logger.verbose(`Updated whole object ${JSON.stringify(featureObject)}`)
   }
 
   /**
@@ -406,7 +407,7 @@ export class FileHandlingService {
       if (entry.hasOwnProperty('featureId')) {
         const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
           Object.assign(entry)
-        this.logger.debug(`Top level featureId=${assignedVal.featureId!}`)
+        this.logger.verbose(`Top level featureId=${assignedVal.featureId!}`)
         // If matches
         if (assignedVal.featureId! === featureId) {
           this.logger.debug(
@@ -422,7 +423,7 @@ export class FileHandlingService {
           Object.keys(assignedVal.child_features).length > 0
         ) {
           // Let's get featureId from recursive method
-          this.logger.debug(
+          this.logger.verbose(
             `FeatureId was not found on top level so lets make recursive call...`,
           )
           const foundRecursiveObject = await this.getRecursiveObjectByFeatureId(
@@ -460,12 +461,12 @@ export class FileHandlingService {
             Object.assign(parentFeature.child_features[i][j])
           // Let's add featureId if it doesn't exist yet
           if (assignedVal.hasOwnProperty('featureId')) {
-            this.logger.debug(
+            this.logger.verbose(
               `Recursive object featureId=${assignedVal.featureId}`,
             )
             // If featureId matches
             if (assignedVal.featureId === featureId) {
-              this.logger.debug(
+              this.logger.verbose(
                 `Found featureId from recursive object ${JSON.stringify(
                   assignedVal,
                 )}`,
