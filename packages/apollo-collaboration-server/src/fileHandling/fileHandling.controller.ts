@@ -77,34 +77,34 @@ export class FileHandlingController {
     return this.fileService.updateGFF3File(postDto)
   }
 
-  /**
-   * Loads GFF3 file data into cache. Cache key is started from 0
-   * @param filename - File to download
-   * @returns
-   */
-  @UseGuards(JwtAuthGuard)
-  @Get('/getgff3file/:filename')
-  getGff3File(@Param('filename') filename: string) {
-    return this.fileService.loadGff3IntoCache(filename)
-  }
+  // /**
+  //  * Loads GFF3 file data into cache. Cache key is started from 0
+  //  * @param filename - File to download
+  //  * @returns
+  //  */
+  // @UseGuards(JwtAuthGuard)
+  // @Get('/getgff3file/:filename')
+  // getGff3File(@Param('filename') filename: string) {
+  //   return this.fileService.loadGff3IntoCache(filename)
+  // }
 
-  /**
-   * Updates string (or whole line) in CACHE
-   * @param postDto - Data Transfer Object that contains information about original string/line and updated string/line
-   * @returns Return 'HttpStatus.OK' if update was successful
-   * or if search string/line was not found in the file then return error message with HttpStatus.NOT_FOUND
-   * or in case of error throw exception
-   */
-  @UseGuards(JwtAuthGuard)
-  @Put('/updategff3')
-  updateGFF3Cache(@Body() postDto: GFF3ChangeLineObjectDto) {
-    this.logger.verbose(
-      `Original value=${JSON.stringify(postDto.originalLine)}`,
-    )
-    this.logger.verbose(`Updated value=${JSON.stringify(postDto.updatedLine)}`)
+  // /**
+  //  * Updates string (or whole line) in CACHE
+  //  * @param postDto - Data Transfer Object that contains information about original string/line and updated string/line
+  //  * @returns Return 'HttpStatus.OK' if update was successful
+  //  * or if search string/line was not found in the file then return error message with HttpStatus.NOT_FOUND
+  //  * or in case of error throw exception
+  //  */
+  // @UseGuards(JwtAuthGuard)
+  // @Put('/updategff3')
+  // updateGFF3Cache(@Body() postDto: GFF3ChangeLineObjectDto) {
+  //   this.logger.verbose(
+  //     `Original value=${JSON.stringify(postDto.originalLine)}`,
+  //   )
+  //   this.logger.verbose(`Updated value=${JSON.stringify(postDto.updatedLine)}`)
 
-    return this.fileService.updateGFF3Cache(postDto)
-  }
+  //   return this.fileService.updateGFF3Cache(postDto)
+  // }
 
   /**
    * Fetch features based on Reference seq, Start and End -values
@@ -190,21 +190,21 @@ export class FileHandlingController {
     ]
   }
 
-  /**
-   * Save new uploaded file into local filesystem and then loads it into cache. The filename in local filesystem will be: 'uploaded' + timestamp in ddmmyyyy_hh24miss -format + original filename
-   * You can call this endpoint like: curl http://localhost:3000/fileHandling/uploadtocache -F 'file=\@./save_this_file.txt' -F 'name=test'
-   * @param file - File to save
-   * @returns Return status 'HttpStatus.OK' if save was successful
-   * or in case of error return throw exception
-   */
-  @UseGuards(JwtAuthGuard)
-  @Post('/uploadtocache')
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadFile(@UploadedFile() file: Express.Multer.File) {
-    this.fileService.loadGFF3FileIntoCache(
-      await this.fileService.saveNewFile(file),
-    )
-  }
+  // /**
+  //  * Save new uploaded file into local filesystem and then loads it into cache. The filename in local filesystem will be: 'uploaded' + timestamp in ddmmyyyy_hh24miss -format + original filename
+  //  * You can call this endpoint like: curl http://localhost:3000/fileHandling/uploadtocache -F 'file=\@./save_this_file.txt' -F 'name=test'
+  //  * @param file - File to save
+  //  * @returns Return status 'HttpStatus.OK' if save was successful
+  //  * or in case of error return throw exception
+  //  */
+  // @UseGuards(JwtAuthGuard)
+  // @Post('/uploadtocache')
+  // @UseInterceptors(FileInterceptor('file'))
+  // async uploadFile(@UploadedFile() file: Express.Multer.File) {
+  //   this.fileService.loadGFF3FileIntoCache(
+  //     await this.fileService.saveNewFile(file),
+  //   )
+  // }
 
   /**
    * Download cache. First write cache into file and then download the file
