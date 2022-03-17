@@ -25,9 +25,7 @@ const nodeEnv = process.env.NODE_ENV || 'production'
     AssembliesModule,
     FeaturesModule,
     RefseqsModule,
-    MongooseModule.forRoot(
-      'mongodb+srv://apollo:apollo123@cluster0.8a7mi.mongodb.net/apolloDb?retryWrites=true&w=majority'
-    )
+    MongooseModule.forRoot(process.env.DB_CONN_STR || ''),
   ],
   providers: [
     {

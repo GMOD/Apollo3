@@ -21,15 +21,16 @@ import { Cache } from 'cache-manager'
 import { Model } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 
-import { FeatureModel } from '../model/feature.model'
-import { GFF3FeatureLineWithRefsAndFeatureId } from '../model/gff3.model'
 import { UpdateEndObjectDto } from '../entity/gff3Object.dto'
+import { GFF3FeatureLineWithRefsAndFeatureId } from '../model/gff3.model'
+import { Feature, FeatureDocument } from '../schemas/feature.schema'
 
 @Injectable()
 export class FeaturesService {
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    @InjectModel('Feature') private readonly featureModel: Model<FeatureModel>,
+    @InjectModel(Feature.name)
+    private readonly featureModel: Model<FeatureDocument>,
   ) {}
 
   private readonly logger = new Logger(FeaturesService.name)
@@ -44,7 +45,7 @@ export class FeaturesService {
     const cnt = await this.featureModel.count({})
     if (cnt > 1) {
       this.logger.debug(
-        `There were ${cnt} records in Feature -collection (in database). Let's load them into cache...`,
+        `There are ${cnt} records in Feature -collection (in database). Let's load them into cache...`,
       )
       await this.loadGFF3FromDbIntoCache()
       this.logger.debug(`Cache loaded.`)
@@ -52,7 +53,7 @@ export class FeaturesService {
     }
 
     this.logger.debug(
-      `There were no Features in database so let's load that from file....`,
+      `There are no Features in database so let's load that from file....`,
     )
     // parse a string of gff3 synchronously
     const { FILE_SEARCH_FOLDER } = process.env
