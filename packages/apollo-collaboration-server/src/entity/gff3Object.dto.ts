@@ -22,3 +22,9 @@ export interface FeatureChangeTmp {
   oldEnd: number
   newEnd: number
 }
+
+export interface UpdateEndObjectDto {
+  featureId: string
+  oldEnd: string
+  newEnd: string
+}

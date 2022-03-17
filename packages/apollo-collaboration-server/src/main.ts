@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core'
 
 import { AppModule } from './app.module'
+import { FeaturesService } from './features/features.service'
 import { FileHandlingService } from './fileHandling/fileHandling.service'
 
 async function bootstrap() {
@@ -34,9 +35,9 @@ async function bootstrap() {
     `Application is running on: ${await app.getUrl()}, CORS = ${cors}`,
   )
 
-  // Load GFF3 file content into cache
-  const appService = app.get(FileHandlingService)
-  appService.loadGFF3FileIntoCache(GFF3_DEFAULT_FILENAME_AT_STARTUP)
+  // Load GFF3 data from database into cache
+  const appService = app.get(FeaturesService)
+  appService.loadGFF3DataIntoDb(GFF3_DEFAULT_FILENAME_AT_STARTUP) // This method loads GFF3 data from db into cache if data exists in db. If not then load GFF3 data from file into db and cache
 }
 bootstrap()
 
