@@ -1,18 +1,19 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { RefseqsService } from './refSeqs.service';
+import { Test, TestingModule } from '@nestjs/testing'
 
-describe('RefseqsService', () => {
-  let service: RefseqsService;
+import { RefSeqsService } from './refSeqs.service'
+
+describe('RefSeqsService', () => {
+  let service: RefSeqsService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [RefseqsService],
-    }).compile();
+      providers: [RefSeqsService],
+    }).compile()
 
-    service = module.get<RefseqsService>(RefseqsService);
-  });
+    service = module.get<RefSeqsService>(RefSeqsService)
+  })
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+    expect(service).toBeDefined()
+  })
+})

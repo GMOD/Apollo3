@@ -1,9 +1,10 @@
-import { Module } from '@nestjs/common';
-import { RefseqsController } from './refSeqs.controller';
-import { RefseqsService } from './refSeqs.service';
+import { Module } from '@nestjs/common'
+
+import { RefSeqsController } from './refSeqs.controller'
+import { RefSeqsService } from './refSeqs.service'
 
 @Module({
-  controllers: [RefseqsController],
-  providers: [RefseqsService]
+  controllers: [RefSeqsController],
+  providers: [RefSeqsService],
 })
-export class RefseqsModule {}
+export class RefSeqsModule {}

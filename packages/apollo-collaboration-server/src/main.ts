@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core'
 
 import { AppModule } from './app.module'
 import { FeaturesService } from './features/features.service'
-import { FileHandlingService } from './fileHandling/fileHandling.service'
 
 async function bootstrap() {
   const {

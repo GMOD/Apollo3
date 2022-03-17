@@ -1,18 +1,19 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { RefseqsController } from '../refseqs/refseqs.controller';
+import { Test, TestingModule } from '@nestjs/testing'
 
-describe('RefseqsController', () => {
-  let controller: RefseqsController;
+import { RefSeqsController } from '../refSeqs/refSeqs.controller'
+
+describe('RefSeqsController', () => {
+  let controller: RefSeqsController
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [RefseqsController],
-    }).compile();
+      controllers: [RefSeqsController],
+    }).compile()
 
-    controller = module.get<RefseqsController>(RefseqsController);
-  });
+    controller = module.get<RefSeqsController>(RefSeqsController)
+  })
 
   it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-});
+    expect(controller).toBeDefined()
+  })
+})
