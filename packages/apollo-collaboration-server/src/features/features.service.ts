@@ -1,13 +1,7 @@
 import * as fs from 'fs/promises'
 import { join } from 'path'
 
-import gff, {
-  GFF3Feature,
-  GFF3FeatureLine,
-  GFF3FeatureLineWithRefs,
-  GFF3Item,
-  GFF3Sequence,
-} from '@gmod/gff'
+import gff, { GFF3FeatureLine, GFF3FeatureLineWithRefs } from '@gmod/gff'
 import {
   CACHE_MANAGER,
   Inject,
@@ -83,6 +77,7 @@ export class FeaturesService {
     // Loop all lines
     for (const entry of arrayOfThings) {
       let featureIdArray: string[] // Let's gather here all feature ids from each feature
+      // eslint-disable-next-line prefer-const
       featureIdArray = []
       // Comment, Directive and FASTA -entries are not presented as an array so let's put entry into array because gff.formatSync() -method requires an array as argument
       this.cacheManager.set(ind.toString(), JSON.stringify(entry))
@@ -111,10 +106,7 @@ export class FeaturesService {
             Object.keys(assignedVal.child_features).length > 0
           ) {
             // Let's add featureId to each child recursively
-            const tmpArray: string[] = this.setAndGetFeatureIdRecursively(
-              assignedVal,
-              featureIdArray,
-            )
+            this.setAndGetFeatureIdRecursively(assignedVal, featureIdArray)
           }
         }
         this.logger.verbose(
@@ -122,6 +114,7 @@ export class FeaturesService {
         )
       }
       // Add data also into database
+      // eslint-disable-next-line new-cap
       const newGFFItem = new this.featureModel({
         refSeqId: 'ref seq id 1', // Demo data
         featureId: featureIdArray,
@@ -178,8 +171,6 @@ export class FeaturesService {
     parentFeature: GFF3FeatureLineWithRefsAndFeatureId,
     featureIdArrAsParam: string[],
   ): string[] {
-    let featureIdArray: string[]
-    featureIdArray = []
     this.logger.verbose(
       `Value in recursive method = ${JSON.stringify(parentFeature)}`,
     )
@@ -245,7 +236,9 @@ export class FeaturesService {
   }
 
   /**
-   * MONGO - TEST - GET FEATURE OBJECT BY FEATUREID
+   * Get feature by featureId. When retrieving features by id, the features and any of its children are returned, but not any of its parent or sibling features.
+   * @param featureid - featureId
+   * @returns Return the feature(s) if search was successful. Otherwise throw exception
    */
   async getFeatureByFeatureId(featureId: string) {
     // Search correct feature
@@ -275,11 +268,11 @@ export class FeaturesService {
   }
 
   /**
-   * DEMO - SEARCH CORRECT OBJECT (by featureId) FROM FEATURE
-   * @param featureId
+   * Get single feature by featureId
+   * @param featureObject -
+   * @param featureId -
    * @returns
    */
-  // async getObjectByFeatureId(featureObject: GFF3Item[], featureId: string) {
   async getObjectByFeatureId(
     featureObject: GFF3FeatureLineWithRefs[],
     featureId: string,
@@ -290,8 +283,10 @@ export class FeaturesService {
       if (entry.hasOwnProperty('featureId')) {
         const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
           Object.assign(entry)
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.logger.verbose(`Top level featureId=${assignedVal.featureId!}`)
         // If matches
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         if (assignedVal.featureId! === featureId) {
           this.logger.debug(
             `Top level featureId matches in object ${JSON.stringify(
@@ -309,7 +304,7 @@ export class FeaturesService {
           this.logger.verbose(
             `FeatureId was not found on top level so lets make recursive call...`,
           )
-          const foundRecursiveObject = await this.getRecursiveObjectByFeatureId(
+          const foundRecursiveObject = await this.getNestedFeatureByFeatureId(
             assignedVal,
             featureId,
           )
@@ -323,7 +318,7 @@ export class FeaturesService {
   }
 
   //  * DEMO - SEARCH RECURSIVELY CORRECT OBJECT FROM FEATRUE
-  async getRecursiveObjectByFeatureId(
+  async getNestedFeatureByFeatureId(
     parentFeature: GFF3FeatureLineWithRefs,
     featureId: string,
   ) {
@@ -363,7 +358,7 @@ export class FeaturesService {
             Object.keys(assignedVal.child_features).length > 0
           ) {
             // Let's add featureId to each child recursively
-            const foundObject = (await this.getRecursiveObjectByFeatureId(
+            const foundObject = (await this.getNestedFeatureByFeatureId(
               assignedVal,
               featureId,
             )) as GFF3FeatureLineWithRefs
@@ -381,7 +376,9 @@ export class FeaturesService {
   }
 
   /**
-   * MONGO - TEST - UPDATES END POSITION IN MONGO DB - AFTER UPDATING THE DB SHOULD WE ALSO UPDATE CACHE?
+   * Updates end position of given feature. Before update, current end -position value is checked (against given old-value)
+   * @param postDto - Interface containing featureId, newEndValue, oldEndValue
+   * @returns Return 'HttpStatus.OK' if featureId was found AND oldEndValue matched AND database update was successfull. Otherwise throw exception.
    */
   async updateEndPosInMongo(postDto: UpdateEndObjectDto) {
     const { featureId } = postDto
