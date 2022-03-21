@@ -17,7 +17,9 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { UpdateEndObjectDto } from '../entity/gff3Object.dto'
 import { GFF3FeatureLineWithRefsAndFeatureId } from '../model/gff3.model'
+import { Assembly, AssemblyDocument } from '../schemas/assembly.schema'
 import { Feature, FeatureDocument } from '../schemas/feature.schema'
+import { RefSeq, RefSeqDocument } from '../schemas/refseq.schema'
 
 @Injectable()
 export class FeaturesService {
@@ -25,6 +27,10 @@ export class FeaturesService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
+    @InjectModel(Assembly.name)
+    private readonly assemblyModel: Model<AssemblyDocument>,
+    @InjectModel(RefSeq.name)
+    private readonly refSeqModel: Model<RefSeqDocument>,
   ) {}
 
   private readonly logger = new Logger(FeaturesService.name)
@@ -208,7 +214,10 @@ export class FeaturesService {
   }
 
   /**
-   * MONGO - TEST - GET FEATURE OBJECT BY FEATUREID
+   * Fetch features based on Reference seq, Start and End -values
+   * @param request - Contain search criteria i.e. refname, start and end -parameters
+   * @returns Return 'HttpStatus.OK' and array of features if search was successful
+   * or if search data was not found or in case of error throw exception
    */
   async getFeaturesByCriteria(searchDto: GFF3FeatureLine) {
     // Search correct feature
@@ -389,7 +398,7 @@ export class FeaturesService {
     const featureObject = await this.featureModel.findOne({ featureId }).exec()
 
     if (!featureObject) {
-      const errMsg = `ERROR when updating MongoDb: The following featureId was not found in database ='${featureId}'`
+      const errMsg = `ERROR when updating MongoDb: The following featureId was not found in database: '${featureId}'`
       this.logger.error(errMsg)
       throw new NotFoundException(errMsg)
     }
