@@ -460,36 +460,21 @@ export class FileHandlingService {
    * @returns Filename where cache was written
    */
   async downloadCacheAsGFF3file(): Promise<string> {
-    let cacheValue: string | undefined = ''
-
-    // Join path+filename
-    const { DOWNLOADED_OUTPUT_FOLDER } = process.env
-    if (!DOWNLOADED_OUTPUT_FOLDER) {
-      throw new Error('No DOWNLOADED_OUTPUT_FOLDER found in .env file')
-    }
-    const downloadFilename = join(
-      DOWNLOADED_OUTPUT_FOLDER,
-      `downloaded_${getCurrentDateTime()}.gff3`,
-    )
-    const nberOfEntries = await this.cacheManager.store.keys?.()
-    nberOfEntries.sort((n1: number, n2: number) => n1 - n2) // Sort the array
+    const nberOfEntries: string[] = await this.cacheManager.store.keys?.()
+    nberOfEntries.sort((n1: string, n2: string) => Number(n1) - Number(n2)) // Sort the array
     // Loop cache in sorted order
-    for (const keyInd of nberOfEntries) {
-      cacheValue = await this.cacheManager.get(keyInd.toString())
-      if (!cacheValue) {
-        throw new Error(`No entry found for ${keyInd.toString()}`)
-      }
-      this.logger.verbose(
-        `Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`,
-      )
-      // Write into file line by line
-      await fs.appendFile(
-        downloadFilename,
-        gff.formatSync(JSON.parse(cacheValue)),
-      )
-    }
-    this.logger.debug(`Cache saved to file ${downloadFilename}' successfully`)
-    return downloadFilename
+    const gff3 = await Promise.all(
+      nberOfEntries.map(async (keyInd: string): Promise<GFF3Item> => {
+        const gff3ItemString: string | undefined = await this.cacheManager.get(
+          keyInd.toString(),
+        )
+        if (!gff3ItemString) {
+          throw new Error(`No entry found for ${keyInd.toString()}`)
+        }
+        return JSON.parse(gff3ItemString)
+      }),
+    )
+    return gff.formatSync(gff3)
   }
 
   /**

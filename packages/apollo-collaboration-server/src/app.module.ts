@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
 import { MongooseModule } from '@nestjs/mongoose'
 
@@ -26,6 +26,13 @@ const nodeEnv = process.env.NODE_ENV || 'production'
     FeaturesModule,
     RefseqsModule,
     MongooseModule.forRoot(process.env.DB_CONN_STR || ''),
+    // MongooseModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   useFactory: async (configService: ConfigService) => ({
+    //     uri: configService.get<string>('MONGODB_URI'),
+    //   }),
+    //   inject: [ConfigService],
+    // }),
   ],
   providers: [
     {
