@@ -426,7 +426,7 @@ export class FeaturesService {
     // Set new value
     assignedVal.end = Number.parseInt(newValue, 10)
     await featureObject.markModified('gff3FeatureLineWithRefs') // Mark as modified. Without this save() -method is not updating data in database
-    await featureObject.save().catch((error) => {
+    await featureObject.save().catch((error: unknown) => {
       throw new InternalServerErrorException(error)
     })
     this.logger.debug(`Object updated in Mongo`)

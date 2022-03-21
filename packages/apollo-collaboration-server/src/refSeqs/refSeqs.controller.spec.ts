@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 
-import { RefSeqsController } from './refSeqs.controller'
+import { RefSeqsController } from '../refSeqs/refSeqs.controller'
 
 describe('RefSeqsController', () => {
   let controller: RefSeqsController
