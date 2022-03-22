@@ -1,8 +1,18 @@
 import { createReadStream } from 'fs'
 
-import { Controller, Get, Logger, Param, StreamableFile } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  Logger,
+  Param,
+  Post,
+  StreamableFile,
+} from '@nestjs/common'
 
 import { AssembliesService } from './assemblies.service'
+import { CreateAssemblyDto } from './dto/create-assembly.dto'
+import { Assembly } from './schemas/assembly.schema'
 
 @Controller('assemblies')
 export class AssembliesController {
@@ -27,5 +37,20 @@ export class AssembliesController {
         const file = createReadStream(msg)
         return new StreamableFile(file)
       })
+  }
+
+  @Post()
+  async create(@Body() createAssemblyDto: CreateAssemblyDto) {
+    await this.assembliesService.create(createAssemblyDto)
+  }
+
+  @Get()
+  async getAll(): Promise<Assembly[]> {
+    return this.assembliesService.findAll()
+  }
+
+  @Get(':id')
+  async getOne(@Param('id') id: string): Promise<Assembly> {
+    return this.assembliesService.find(id)
   }
 }

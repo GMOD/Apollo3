@@ -6,6 +6,9 @@ export type AssemblyDocument = Assembly & Document
 @Schema()
 export class Assembly {
   @Prop({ required: true })
+  name: string
+
+  @Prop()
   description: string
 }
 
