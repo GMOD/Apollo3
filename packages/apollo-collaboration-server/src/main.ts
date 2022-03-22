@@ -1,7 +1,8 @@
-import { NestFactory } from '@nestjs/core'
+import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 
 import { AppModule } from './app.module'
 import { FeaturesService } from './features/features.service'
+import { GlobalExceptionsFilter } from './global-exceptions.filter'
 
 async function bootstrap() {
   const {
@@ -28,6 +29,8 @@ async function bootstrap() {
     logger: loggerOpions,
     cors,
   })
+  const { httpAdapter } = app.get(HttpAdapterHost)
+  app.useGlobalFilters(new GlobalExceptionsFilter(httpAdapter))
   await app.listen(APPLICATION_PORT)
   // eslint-disable-next-line no-console
   console.log(
