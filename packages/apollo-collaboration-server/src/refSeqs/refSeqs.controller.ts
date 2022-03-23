@@ -1,4 +1,4 @@
 import { Controller } from '@nestjs/common'
 
-@Controller('refseqs')
+@Controller('refSeqs')
 export class RefSeqsController {}

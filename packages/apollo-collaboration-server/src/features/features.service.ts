@@ -15,11 +15,14 @@ import { Cache } from 'cache-manager'
 import { Model } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 
+import {
+  Assembly,
+  AssemblyDocument,
+} from '../assemblies/schemas/assembly.schema'
 import { UpdateEndObjectDto } from '../entity/gff3Object.dto'
 import { GFF3FeatureLineWithRefsAndFeatureId } from '../model/gff3.model'
-import { Assembly, AssemblyDocument } from '../schemas/assembly.schema'
-import { Feature, FeatureDocument } from '../schemas/feature.schema'
-import { RefSeq, RefSeqDocument } from '../schemas/refseq.schema'
+import { RefSeq, RefSeqDocument } from '../refSeqs/schemas/refSeq.schema'
+import { Feature, FeatureDocument } from './schemas/feature.schema'
 
 @Injectable()
 export class FeaturesService {

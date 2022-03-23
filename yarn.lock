@@ -3308,16 +3308,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/mongoose@npm:^9.0.2":
-  version: 9.0.2
-  resolution: "@nestjs/mongoose@npm:9.0.2"
+"@nestjs/mongoose@npm:^9.0.3":
+  version: 9.0.3
+  resolution: "@nestjs/mongoose@npm:9.0.3"
   peerDependencies:
     "@nestjs/common": ^6.0.0 || ^7.0.0 || ^8.0.0
     "@nestjs/core": ^6.0.0 || ^7.0.0 || ^8.0.0
     mongoose: ^6.0.2
     reflect-metadata: ^0.1.12
     rxjs: ^6.0.0 || ^7.0.0
-  checksum: 42747563703b0172bdef15a679106cc7a7fdd91429fcf4edb45cd6a19aeb0de388ccc9e076ae9410dca5000fbf8b56d20ee206c13784e8073986f7aeb7020155
+  checksum: 8cc8cdd5af4639e370a8bb7bdd1e0be703f90f402ba55b6f392dde87db33fd477d26bc357dfaa95d2bc5bcb90b527e156270bb363341f4b64893d4341f565f73
   languageName: node
   linkType: hard
 
@@ -5096,7 +5096,7 @@ __metadata:
     "@nestjs/config": ^1.0.3
     "@nestjs/core": ^8.0.11
     "@nestjs/jwt": ^8.0.0
-    "@nestjs/mongoose": ^9.0.2
+    "@nestjs/mongoose": ^9.0.3
     "@nestjs/passport": ^8.0.1
     "@nestjs/platform-express": ^8.0.0
     "@nestjs/schematics": ^8.0.0
@@ -5117,7 +5117,7 @@ __metadata:
     jwt-decode: ^3.1.2
     mobx: ^5.10.1
     mobx-react: ^6.0.0
-    mongoose: ^6.2.6
+    mongoose: ^6.2.7
     passport: ^0.5.0
     passport-jwt: ^4.0.0
     passport-local: ^1.0.0
@@ -13370,9 +13370,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mongoose@npm:^6.2.6":
-  version: 6.2.6
-  resolution: "mongoose@npm:6.2.6"
+"mongoose@npm:^6.2.7":
+  version: 6.2.8
+  resolution: "mongoose@npm:6.2.8"
   dependencies:
     bson: ^4.2.2
     kareem: 2.3.4
@@ -13381,7 +13381,7 @@ __metadata:
     mquery: 4.0.2
     ms: 2.1.3
     sift: 16.0.0
-  checksum: 95ea67a2c6ff2e0052b4aa738c52ad9e911fe60425e3b3474c5ac5d29defdebcdac57813803339fe527969736d5a61074810570810f03aa83dc849d2f09301aa
+  checksum: 238fab1829d220d9fae8c8b5c923fabbbeaf0a9784bc6ae2c79241a11b1a8d9707702758939359f5096d1e005bfa1afa61db0d063a3d365cf41b31eaa4080daf
   languageName: node
   linkType: hard
 

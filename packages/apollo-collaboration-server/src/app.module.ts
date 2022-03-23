@@ -25,15 +25,13 @@ const nodeEnv = process.env.NODE_ENV || 'production'
     AssembliesModule,
     FeaturesModule,
     RefSeqsModule,
-    MongooseModule.forRoot(process.env.DB_CONN_STR || ''),
-    // MongooseModule.forRootAsync({
-    //   imports: [ConfigModule],
-    //   useFactory: async (configService: ConfigService) => ({
-    //     uri: configService.get<string>('MONGODB_URI'),
-    //   }),
-    //   inject: [ConfigService],
-    // }),
-
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGODB_URI'),
+      }),
+      inject: [ConfigService],
+    }),
   ],
   providers: [
     {

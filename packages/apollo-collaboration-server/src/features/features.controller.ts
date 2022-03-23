@@ -1,17 +1,7 @@
 import { GFF3FeatureLine } from '@gmod/gff'
-import {
-  Body,
-  Controller,
-  Get,
-  Logger,
-  Param,
-  Put,
-  UseGuards,
-} from '@nestjs/common'
+import { Body, Controller, Get, Logger, Param, Put } from '@nestjs/common'
 
 import { UpdateEndObjectDto } from '../entity/gff3Object.dto'
-import { JwtAuthGuard } from '../utils/jwt-auth.guard'
-
 import { FeaturesService } from './features.service'
 
 @Controller('features')
