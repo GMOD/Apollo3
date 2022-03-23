@@ -1,11 +1,16 @@
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
+import {
+  Assembly,
+  AssemblySchema,
+  Feature,
+  FeatureSchema,
+  RefSeq,
+  RefSeqSchema,
+} from 'apollo-shared'
 
-import { Feature, FeatureSchema } from '../features/schemas/feature.schema'
-import { RefSeq, RefSeqSchema } from '../refSeqs/schemas/refSeq.schema'
 import { AssembliesController } from './assemblies.controller'
 import { AssembliesService } from './assemblies.service'
-import { Assembly, AssemblySchema } from './schemas/assembly.schema'
 
 @Module({
   controllers: [AssembliesController],

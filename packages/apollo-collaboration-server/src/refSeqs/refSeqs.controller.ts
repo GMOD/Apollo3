@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common'
+import { RefSeq } from 'apollo-shared'
 
 import { CreateRefSeqDto } from './dto/create-refSeq.dto'
 import { RefSeqsService } from './refSeqs.service'
-import { RefSeq } from './schemas/refSeq.schema'
 
 @Controller('refSeqs')
 export class RefSeqsController {

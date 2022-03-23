@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
+import { RefSeq, RefSeqSchema } from 'apollo-shared'
 import idValidator from 'mongoose-id-validator'
 
 import { RefSeqsController } from './refSeqs.controller'
 import { RefSeqsService } from './refSeqs.service'
-import { RefSeq, RefSeqSchema } from './schemas/refSeq.schema'
 
 @Module({
   imports: [

@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
+import { RefSeq, RefSeqDocument } from 'apollo-shared'
 import { Model } from 'mongoose'
 
 import { CreateRefSeqDto } from './dto/create-refSeq.dto'
-import { RefSeq, RefSeqDocument } from './schemas/refSeq.schema'
 
 @Injectable()
 export class RefSeqsService {

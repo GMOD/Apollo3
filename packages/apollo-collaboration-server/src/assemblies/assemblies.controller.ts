@@ -9,10 +9,10 @@ import {
   Post,
   StreamableFile,
 } from '@nestjs/common'
+import { Assembly } from 'apollo-shared'
 
 import { AssembliesService } from './assemblies.service'
 import { CreateAssemblyDto } from './dto/create-assembly.dto'
-import { Assembly } from './schemas/assembly.schema'
 
 @Controller('assemblies')
 export class AssembliesController {

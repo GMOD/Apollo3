@@ -1,11 +1,10 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "composite": true,
-    "incremental": true,
     "outDir": "./esm",
-    "rootDir": "./src",
     "target": "ESNext",
+    "lib": ["DOM", "ESNext"],
+    "module":"ESNext",
     "tsBuildInfoFile": "./esm/tsconfig.tsbuildinfo",
   },
   "include": ["./src"],

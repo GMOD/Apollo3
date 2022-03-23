@@ -4,13 +4,18 @@ import { join } from 'path'
 import gff, { GFF3FeatureLineWithRefs, GFF3Item } from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
+import {
+  Assembly,
+  AssemblyDocument,
+  Feature,
+  FeatureDocument,
+  RefSeq,
+  RefSeqDocument,
+} from 'apollo-shared'
 import { Model } from 'mongoose'
 
-import { Feature, FeatureDocument } from '../features/schemas/feature.schema'
-import { RefSeq, RefSeqDocument } from '../refSeqs/schemas/refSeq.schema'
 import { getCurrentDateTime } from '../utils/commonUtilities'
 import { CreateAssemblyDto } from './dto/create-assembly.dto'
-import { Assembly, AssemblyDocument } from './schemas/assembly.schema'
 
 @Injectable()
 export class AssembliesService {

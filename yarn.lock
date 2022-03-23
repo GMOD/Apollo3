@@ -5177,9 +5177,14 @@ __metadata:
   dependencies:
     "@gmod/gff": ^1.2.0
     "@jbrowse/core": "file:../../jbrowse-core-7221dd8867b1da7273ad19e894b0bbba2e6ecc89.tgz"
+    "@nestjs/common": ^8.2.3
+    "@nestjs/core": ^8.0.11
+    "@nestjs/mongoose": ^9.0.3
     "@types/cache-manager": ^3
     "@types/node": ^16.0.0
     mobx-state-tree: 3.14.1
+    mongoose: ^6.2.7
+    reflect-metadata: ^0.1.13
     regenerator-runtime: ^0.13.9
     tslib: ^2.3.1
     typescript: 4.4.4
