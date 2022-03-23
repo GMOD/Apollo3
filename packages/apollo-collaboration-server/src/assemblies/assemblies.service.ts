@@ -6,10 +6,10 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 
-import { Assembly, AssemblyDocument } from '../schemas/assembly.schema'
-import { Feature, FeatureDocument } from '../schemas/feature.schema'
-import { RefSeq, RefSeqDocument } from '../schemas/refseq.schema'
+import { Feature, FeatureDocument } from '../features/schemas/feature.schema'
+import { RefSeq, RefSeqDocument } from '../refseqs/schemas/refSeq.schema'
 import { getCurrentDateTime } from '../utils/commonUtilities'
+import { Assembly, AssemblyDocument } from './schemas/assembly.schema'
 
 @Injectable()
 export class AssembliesService {

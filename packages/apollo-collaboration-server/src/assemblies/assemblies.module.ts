@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 
-import { Assembly, AssemblySchema } from '../schemas/assembly.schema'
-import { Feature, FeatureSchema } from '../schemas/feature.schema'
-import { RefSeq, RefSeqSchema } from '../schemas/refseq.schema'
+import { Feature, FeatureSchema } from '../features/schemas/feature.schema'
+import { RefSeq, RefSeqSchema } from '../refseqs/schemas/refSeq.schema'
 import { AssembliesController } from './assemblies.controller'
 import { AssembliesService } from './assemblies.service'
+import { Assembly, AssemblySchema } from './schemas/assembly.schema'
 
 @Module({
   controllers: [AssembliesController],

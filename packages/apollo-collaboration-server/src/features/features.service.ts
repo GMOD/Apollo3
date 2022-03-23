@@ -15,11 +15,14 @@ import { Cache } from 'cache-manager'
 import { Model } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 
+import {
+  Assembly,
+  AssemblyDocument,
+} from '../assemblies/schemas/assembly.schema'
 import { UpdateEndObjectDto } from '../entity/gff3Object.dto'
 import { GFF3FeatureLineWithRefsAndFeatureId } from '../model/gff3.model'
-import { Assembly, AssemblyDocument } from '../schemas/assembly.schema'
-import { Feature, FeatureDocument } from '../schemas/feature.schema'
-import { RefSeq, RefSeqDocument } from '../schemas/refseq.schema'
+import { RefSeq, RefSeqDocument } from '../refseqs/schemas/refSeq.schema'
+import { Feature, FeatureDocument } from './schemas/feature.schema'
 
 @Injectable()
 export class FeaturesService {
@@ -41,6 +44,9 @@ export class FeaturesService {
    * @returns
    */
   async loadGFF3DataIntoDb(filename: string) {
+    // TODO : CHECK THAT ASSEMBLY ID EXISTS IN MONGO ********* SHALL WE GET IT AS PARAMETER????
+    //  ************* NOW WE JUST PICK UP ANY ASSEMBLY ID FROM MONGO *********************
+
     // Check if Gff3Item collection is empty in db
     const cnt = await this.featureModel.count({})
     if (cnt > 1) {
@@ -51,7 +57,6 @@ export class FeaturesService {
       this.logger.debug(`Cache loaded.`)
       return
     }
-
     this.logger.debug(
       `There are no Features in database so let's load that from file....`,
     )
@@ -82,9 +87,8 @@ export class FeaturesService {
 
     // Loop all lines
     for (const entry of arrayOfThings) {
-      let featureIdArray: string[] // Let's gather here all feature ids from each feature
       // eslint-disable-next-line prefer-const
-      featureIdArray = []
+      let featureIdArray: string[] = [] // Let's gather here all feature ids from each feature
       // Comment, Directive and FASTA -entries are not presented as an array so let's put entry into array because gff.formatSync() -method requires an array as argument
       this.cacheManager.set(ind.toString(), JSON.stringify(entry))
       this.logger.verbose(`Add into cache new entry=${JSON.stringify(entry)}\n`)
@@ -119,17 +123,12 @@ export class FeaturesService {
           `So far apollo ids are: ${featureIdArray.toString()}\n`,
         )
       }
-      // Add data also into database
-      // eslint-disable-next-line new-cap
-      const newGFFItem = new this.featureModel({
-        refSeqId: 'ref seq id 1', // Demo data
+      const newGFFItem = await this.featureModel.create({
+        refSeqId: 'ref seq id 1', // Demo data ******* TODO : PUT HERE REAL REFSEQID ****************
         featureId: featureIdArray,
         gff3FeatureLineWithRefs: entry,
       })
-
-      const result = await newGFFItem.save()
-      this.logger.verbose(`Added new feature, id=${result}`)
-
+      this.logger.debug(`Added new feature: ${newGFFItem}`)
       ind++
     }
 

@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { Document } from 'mongoose'
+import { Document, model } from 'mongoose'
 
 export type AssemblyDocument = Assembly & Document
 
@@ -10,3 +10,4 @@ export class Assembly {
 }
 
 export const AssemblySchema = SchemaFactory.createForClass(Assembly)
+const module1 = model('Assembly', AssemblySchema)

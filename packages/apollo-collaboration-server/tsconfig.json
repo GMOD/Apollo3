@@ -12,6 +12,7 @@
     "incremental": true,
     "strictPropertyInitialization": false,
     "forceConsistentCasingInFileNames": false,
+    "esModuleInterop": true,
   },
   "references": [
     { "path": "../apollo-shared"},

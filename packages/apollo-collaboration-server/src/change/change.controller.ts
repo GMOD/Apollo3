@@ -32,7 +32,7 @@ export class ChangeController {
     changeRegistry.registerChange('LocationStartChange', LocationStartChange) // Do this only once
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Post('/submitChange')
   async submitChange(@Body() serializedChange: SerializedChange) {
     // Get environment variable values and pass those as parameter to apply -method

@@ -11,7 +11,6 @@ import {
 
 import { UpdateEndObjectDto } from '../entity/gff3Object.dto'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
-
 import { FeaturesService } from './features.service'
 
 @Controller('features')
