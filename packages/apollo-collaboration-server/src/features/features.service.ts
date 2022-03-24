@@ -11,18 +11,20 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
+import {
+  Assembly,
+  AssemblyDocument,
+  Feature,
+  FeatureDocument,
+  RefSeq,
+  RefSeqDocument,
+} from 'apollo-shared'
 import { Cache } from 'cache-manager'
 import { Model } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 
-import {
-  Assembly,
-  AssemblyDocument,
-} from '../assemblies/schemas/assembly.schema'
 import { UpdateEndObjectDto } from '../entity/gff3Object.dto'
 import { GFF3FeatureLineWithRefsAndFeatureId } from '../model/gff3.model'
-import { RefSeq, RefSeqDocument } from '../refseqs/schemas/refSeq.schema'
-import { Feature, FeatureDocument } from './schemas/feature.schema'
 
 @Injectable()
 export class FeaturesService {

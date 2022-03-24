@@ -8,9 +8,8 @@ import { AuthenticationModule } from './authentication/authentication.module'
 import { ChangeModule } from './change/change.module'
 import { FeaturesModule } from './features/features.module'
 import { FileHandlingModule } from './fileHandling/fileHandling.module'
-// import { RefSeqsModule } from './refSeqs/' './refSeqs/refSeqs.module'
 import { RolesGuard } from './utils/role/role.guards'
-import { RefseqsModule } from './refseqs/refseqs.module'
+import { RefSeqsModule } from './refSeqs/refSeqs.module'
 
 const nodeEnv = process.env.NODE_ENV || 'production'
 
@@ -25,11 +24,11 @@ const nodeEnv = process.env.NODE_ENV || 'production'
     ChangeModule,
     AssembliesModule,
     FeaturesModule,
-    RefseqsModule,
+    RefSeqsModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('DB_CONN_STR'),
+        uri: configService.get<string>('MONGODB_URI'),
       }),
       inject: [ConfigService],
     }),

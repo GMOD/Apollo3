@@ -3,7 +3,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { Document } from 'mongoose'
 import * as mongoose from 'mongoose'
 
-import { RefSeq } from '../../refseqs/schemas/refSeq.schema'
+import { RefSeq } from './refSeq.schema'
 
 export type FeatureDocument = Feature & Document
 

@@ -5177,9 +5177,14 @@ __metadata:
   dependencies:
     "@gmod/gff": ^1.2.0
     "@jbrowse/core": "file:../../jbrowse-core-7221dd8867b1da7273ad19e894b0bbba2e6ecc89.tgz"
+    "@nestjs/common": ^8.2.3
+    "@nestjs/core": ^8.0.11
+    "@nestjs/mongoose": ^9.0.3
     "@types/cache-manager": ^3
     "@types/node": ^16.0.0
     mobx-state-tree: 3.14.1
+    mongoose: ^6.2.7
+    reflect-metadata: ^0.1.13
     regenerator-runtime: ^0.13.9
     tslib: ^2.3.1
     typescript: 4.4.4
@@ -13427,8 +13432,8 @@ __metadata:
   linkType: hard
 
 "mongoose@npm:^6.2.7":
-  version: 6.2.7
-  resolution: "mongoose@npm:6.2.7"
+  version: 6.2.8
+  resolution: "mongoose@npm:6.2.8"
   dependencies:
     bson: ^4.2.2
     kareem: 2.3.4
@@ -13437,7 +13442,7 @@ __metadata:
     mquery: 4.0.2
     ms: 2.1.3
     sift: 16.0.0
-  checksum: 01258cd4371a290077bb3b653c0fc42b846a247367aea0be5f25c32711e94b314d620d81525121a06d93ea86315a7a764517401b92c3a81de8bfcb0249c958b6
+  checksum: 238fab1829d220d9fae8c8b5c923fabbbeaf0a9784bc6ae2c79241a11b1a8d9707702758939359f5096d1e005bfa1afa61db0d063a3d365cf41b31eaa4080daf
   languageName: node
   linkType: hard
 

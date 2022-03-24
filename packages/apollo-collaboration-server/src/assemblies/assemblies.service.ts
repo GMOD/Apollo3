@@ -4,12 +4,18 @@ import { join } from 'path'
 import gff, { GFF3FeatureLineWithRefs, GFF3Item } from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
+import {
+  Assembly,
+  AssemblyDocument,
+  Feature,
+  FeatureDocument,
+  RefSeq,
+  RefSeqDocument,
+} from 'apollo-shared'
 import { Model } from 'mongoose'
 
-import { Feature, FeatureDocument } from '../features/schemas/feature.schema'
-import { RefSeq, RefSeqDocument } from '../refseqs/schemas/refSeq.schema'
 import { getCurrentDateTime } from '../utils/commonUtilities'
-import { Assembly, AssemblyDocument } from './schemas/assembly.schema'
+import { CreateAssemblyDto } from './dto/create-assembly.dto'
 
 @Injectable()
 export class AssembliesService {
@@ -85,5 +91,23 @@ export class AssembliesService {
       `Assembly data saved as GFF3 into file ${downloadFilename}'`,
     )
     return downloadFilename
+  }
+
+  async create(createAssemblyDto: CreateAssemblyDto): Promise<Assembly> {
+    // eslint-disable-next-line new-cap
+    const createdAssembly = new this.assemblyModel(createAssemblyDto)
+    return createdAssembly.save()
+  }
+
+  async findAll(): Promise<Assembly[]> {
+    return this.assemblyModel.find().exec()
+  }
+
+  async find(id: string): Promise<Assembly> {
+    const assembly = await this.assemblyModel.findOne({ _id: id }).exec()
+    if (!assembly) {
+      throw new NotFoundException(`Assembly with id "${id}" not found`)
+    }
+    return assembly
   }
 }
