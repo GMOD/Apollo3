@@ -30,15 +30,15 @@ export class ChangeService {
     const change = new ChangeType(serializedChange)
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
     // Check if Gff3Item collection is empty in db
-    // const cnt = await this.featureModel.count({})
-    // try {
-    //   await change.apply({
-    //     typeName: 'LocalGFF3',
-    //     this.featureModel
-    //   })
-    // } catch (error) {
-    //   throw error
-    // }
+    const cnt = await this.featureModel.count({})
+    try {
+      await change.apply({
+        typeName: 'LocalGFF3',
+        featureModel: this.featureModel
+      })
+    } catch (error) {
+      throw error
+    }
     return []
   }
 }
