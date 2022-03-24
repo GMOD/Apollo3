@@ -8,6 +8,7 @@ import {
   RefSeq,
   RefSeqSchema,
 } from 'apollo-shared'
+import { FeaturesModule } from '../features/features.module'
 
 import { AssembliesController } from './assemblies.controller'
 import { AssembliesService } from './assemblies.service'
