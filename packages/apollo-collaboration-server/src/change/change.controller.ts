@@ -36,20 +36,25 @@ export class ChangeController {
   @Post('/submitChange')
   async submitChange(@Body() serializedChange: SerializedChange) {
     // Get environment variable values and pass those as parameter to apply -method
-    const { FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE } = process.env
+    const { FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE, DB_CONN_STR } = process.env
     if (!FILE_SEARCH_FOLDER) {
       throw new Error('No FILE_SEARCH_FOLDER found in .env file')
     }
     if (!GFF3_DEFAULT_FILENAME_TO_SAVE) {
       throw new Error('No GFF3_DEFAULT_FILENAME_TO_SAVE found in .env file')
     }
+    if (!DB_CONN_STR) {
+      throw new Error('No DB_CONN_STR found in .env file')
+    }    
     const envMap = new Map<string, string>()
     envMap.set('FILE_SEARCH_FOLDER', FILE_SEARCH_FOLDER)
     envMap.set('GFF3_DEFAULT_FILENAME_TO_SAVE', GFF3_DEFAULT_FILENAME_TO_SAVE)
+    envMap.set('DB_CONN_STR', DB_CONN_STR)
+
 
     const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
     const change = new ChangeType(serializedChange)
-    this.logger.debug(`Requested change=${JSON.stringify(change)}`)
+    this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
     // TODO: validate change
     // const result = await this.validations.backendPreValidate(change)
     const gff3Handle = await open(
@@ -60,6 +65,7 @@ export class ChangeController {
       await change.apply({
         typeName: 'LocalGFF3',
         cacheManager: this.cacheManager,
+        envMap,
         gff3Handle,
       })
     } catch (error) {

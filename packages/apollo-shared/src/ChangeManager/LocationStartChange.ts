@@ -50,7 +50,7 @@ export class LocationStartChange extends Change {
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
     const { changes } = this
 
-    console.debug(`Change request: ${JSON.stringify(changes)}`)
+    console.debug(`applyToLocalGFF3 -method, Start-change request: ${JSON.stringify(changes)}`)
     let gff3ItemString: string | undefined = ''
     const cacheKeys: string[] = await backend.cacheManager.store.keys?.()
     cacheKeys.sort((n1: string, n2: string) => Number(n1) - Number(n2))

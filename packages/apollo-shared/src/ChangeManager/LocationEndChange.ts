@@ -42,6 +42,52 @@ export class LocationEndChange extends Change {
     }
   }
 
+  // /**
+  //  * Applies the required change to cache and overwrites GFF3 file on the server
+  //  * @param backend - parameters from backend
+  //  * @returns
+  //  */
+  // async applyToLocalGFF3(backend: LocalGFF3DataStore) {
+  //   const { changes } = this
+
+  //   console.debug(`applyToLocalGFF3 -method, End-change request: ${JSON.stringify(changes)}`)
+  //   let gff3ItemString: string | undefined = ''
+  //   const cacheKeys: string[] = await backend.cacheManager.store.keys?.()
+  //   cacheKeys.sort((n1: string, n2: string) => Number(n1) - Number(n2))
+  //   for (const change of changes) {
+  //     // const { featureId, oldEnd, newEnd } = change
+  //     // const searchApolloIdStr = `"apollo_id":["${featureId}"]`
+
+  //     // Loop the cache content
+  //     for (const lineNumber of cacheKeys) {
+  //       gff3ItemString = await backend.cacheManager.get(lineNumber)
+  //       if (!gff3ItemString) {
+  //         throw new Error(`No cache value found for key ${lineNumber}`)
+  //       }
+  //       const gff3Item = JSON.parse(gff3ItemString) as GFF3Item
+  //       if (Array.isArray(gff3Item)) {
+  //         const updated = this.getUpdatedCacheEntryForFeature(gff3Item, change)
+  //         if (updated) {
+  //           await backend.cacheManager.set(lineNumber, JSON.stringify(gff3Item))
+  //           break
+  //         }
+  //       }
+  //     }
+  //   }
+  //   // Loop the updated cache and write it into file
+  //   const gff3 = await Promise.all(
+  //     cacheKeys.map(async (keyInd): Promise<GFF3Item> => {
+  //       gff3ItemString = await backend.cacheManager.get(keyInd.toString())
+  //       if (!gff3ItemString) {
+  //         throw new Error(`No entry found for ${keyInd.toString()}`)
+  //       }
+  //       return JSON.parse(gff3ItemString)
+  //     }),
+  //   )
+  //   // console.verbose(`Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`)
+  //   await backend.gff3Handle.writeFile(gff.formatSync(gff3))
+  // }
+
   /**
    * Applies the required change to cache and overwrites GFF3 file on the server
    * @param backend - parameters from backend
@@ -50,7 +96,16 @@ export class LocationEndChange extends Change {
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
     const { changes } = this
 
-    console.debug(`Change request: ${JSON.stringify(changes)}`)
+    console.debug(
+      `applyToLocalGFF3 -method, End-change request: ${JSON.stringify(
+        changes,
+      )}`,
+    )
+
+    const envMap = backend.envMap.get('DB_CONN_STR')
+    console.debug(`DB: ${envMap}`)
+    // const tmp1: RefSeqDocument
+
     let gff3ItemString: string | undefined = ''
     const cacheKeys: string[] = await backend.cacheManager.store.keys?.()
     cacheKeys.sort((n1: string, n2: string) => Number(n1) - Number(n2))
