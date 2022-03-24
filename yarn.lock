@@ -3308,16 +3308,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/mongoose@npm:^9.0.2":
-  version: 9.0.2
-  resolution: "@nestjs/mongoose@npm:9.0.2"
+"@nestjs/mongoose@npm:^9.0.3":
+  version: 9.0.3
+  resolution: "@nestjs/mongoose@npm:9.0.3"
   peerDependencies:
     "@nestjs/common": ^6.0.0 || ^7.0.0 || ^8.0.0
     "@nestjs/core": ^6.0.0 || ^7.0.0 || ^8.0.0
     mongoose: ^6.0.2
     reflect-metadata: ^0.1.12
     rxjs: ^6.0.0 || ^7.0.0
-  checksum: 42747563703b0172bdef15a679106cc7a7fdd91429fcf4edb45cd6a19aeb0de388ccc9e076ae9410dca5000fbf8b56d20ee206c13784e8073986f7aeb7020155
+  checksum: 8cc8cdd5af4639e370a8bb7bdd1e0be703f90f402ba55b6f392dde87db33fd477d26bc357dfaa95d2bc5bcb90b527e156270bb363341f4b64893d4341f565f73
   languageName: node
   linkType: hard
 
@@ -4002,6 +4002,34 @@ __metadata:
   version: 1.3.2
   resolution: "@types/mime@npm:1.3.2"
   checksum: 0493368244cced1a69cb791b485a260a422e6fcc857782e1178d1e6f219f1b161793e9f87f5fae1b219af0f50bee24fcbe733a18b4be8fdd07a38a8fb91146fd
+  languageName: node
+  linkType: hard
+
+"@types/mongodb@npm:*":
+  version: 4.0.6
+  resolution: "@types/mongodb@npm:4.0.6"
+  dependencies:
+    mongodb: "*"
+  checksum: b0f138120920965b14f30f92d64979a8c6cce0dee195d028255441a3c9b42a5ed531ddbdfcdee04bf2021a007dc16467dd5d13e2158c16ada254b29d29569e1d
+  languageName: node
+  linkType: hard
+
+"@types/mongoose-id-validator@npm:^0.6.2":
+  version: 0.6.2
+  resolution: "@types/mongoose-id-validator@npm:0.6.2"
+  dependencies:
+    "@types/mongoose": 5.10.5
+  checksum: 30da11d435d945735043c212720593578a70147e35ad6b59f9a52fefeb27a8191c7ab70ccc82d03e5ca5f899f25d8f7737e14ae3324b2d66f4b6febfb443f181
+  languageName: node
+  linkType: hard
+
+"@types/mongoose@npm:5.10.5":
+  version: 5.10.5
+  resolution: "@types/mongoose@npm:5.10.5"
+  dependencies:
+    "@types/mongodb": "*"
+    "@types/node": "*"
+  checksum: ab79c72c767c204c786c2884c1473745c6044a1d04cf8b9300c0a8efbd4c327ca03db3bb64a7c69e46892641bfd18ffbc869d0fa993e59f91ede0fb8bbb89a61
   languageName: node
   linkType: hard
 
@@ -5096,7 +5124,7 @@ __metadata:
     "@nestjs/config": ^1.0.3
     "@nestjs/core": ^8.0.11
     "@nestjs/jwt": ^8.0.0
-    "@nestjs/mongoose": ^9.0.2
+    "@nestjs/mongoose": ^9.0.3
     "@nestjs/passport": ^8.0.1
     "@nestjs/platform-express": ^8.0.0
     "@nestjs/schematics": ^8.0.0
@@ -5104,6 +5132,7 @@ __metadata:
     "@types/cache-manager": ^3
     "@types/express": ^4.17.13
     "@types/jest": ^27.0.1
+    "@types/mongoose-id-validator": ^0.6.2
     "@types/multer": ^1.4.7
     "@types/node": ^16.0.0
     "@types/passport-jwt": ^3.0.6
@@ -5117,7 +5146,8 @@ __metadata:
     jwt-decode: ^3.1.2
     mobx: ^5.10.1
     mobx-react: ^6.0.0
-    mongoose: ^6.2.6
+    mongoose: ^6.2.7
+    mongoose-id-validator: ^0.6.0
     passport: ^0.5.0
     passport-jwt: ^4.0.0
     passport-local: ^1.0.0
@@ -13344,13 +13374,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mongodb-connection-string-url@npm:^2.4.1":
+"mongodb-connection-string-url@npm:^2.4.1, mongodb-connection-string-url@npm:^2.5.2":
   version: 2.5.2
   resolution: "mongodb-connection-string-url@npm:2.5.2"
   dependencies:
     "@types/whatwg-url": ^8.2.1
     whatwg-url: ^11.0.0
   checksum: bd13af7d62d33e2d6e5217692961e34b2dafbbba5f41d361417257592754df3e925efc00fa8a5e038624e284245dab39e913d5f06ff962feede86d5f58fc5827
+  languageName: node
+  linkType: hard
+
+"mongodb@npm:*":
+  version: 4.4.1
+  resolution: "mongodb@npm:4.4.1"
+  dependencies:
+    bson: ^4.6.1
+    denque: ^2.0.1
+    mongodb-connection-string-url: ^2.5.2
+    saslprep: ^1.0.3
+    socks: ^2.6.2
+  dependenciesMeta:
+    saslprep:
+      optional: true
+  checksum: 5a2924df04612cc3dfd54e6f4a9b4ab01683fe2bcb8a6aa424485939fc213aea4c7e9b59ef244aa30ccc14948906990335a6371310fe354aec8206983f3f733a
   languageName: node
   linkType: hard
 
@@ -13370,9 +13416,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mongoose@npm:^6.2.6":
-  version: 6.2.6
-  resolution: "mongoose@npm:6.2.6"
+"mongoose-id-validator@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "mongoose-id-validator@npm:0.6.0"
+  dependencies:
+    clone: ^1.0.2
+    traverse: ^0.6.6
+  checksum: 0a38a12546fa908e476bcdc7ab0aaa1fd66a4318cbfee50381cd3c6be61fd6f35fae826ae036628cd58b1f86a0a959af512158910f63198ae1369cd5b62914e4
+  languageName: node
+  linkType: hard
+
+"mongoose@npm:^6.2.7":
+  version: 6.2.7
+  resolution: "mongoose@npm:6.2.7"
   dependencies:
     bson: ^4.2.2
     kareem: 2.3.4
@@ -13381,7 +13437,7 @@ __metadata:
     mquery: 4.0.2
     ms: 2.1.3
     sift: 16.0.0
-  checksum: 95ea67a2c6ff2e0052b4aa738c52ad9e911fe60425e3b3474c5ac5d29defdebcdac57813803339fe527969736d5a61074810570810f03aa83dc849d2f09301aa
+  checksum: 01258cd4371a290077bb3b653c0fc42b846a247367aea0be5f25c32711e94b314d620d81525121a06d93ea86315a7a764517401b92c3a81de8bfcb0249c958b6
   languageName: node
   linkType: hard
 
@@ -16267,7 +16323,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"smart-buffer@npm:^4.1.0":
+"smart-buffer@npm:^4.1.0, smart-buffer@npm:^4.2.0":
   version: 4.2.0
   resolution: "smart-buffer@npm:4.2.0"
   checksum: b5167a7142c1da704c0e3af85c402002b597081dd9575031a90b4f229ca5678e9a36e8a374f1814c8156a725d17008ae3bde63b92f9cfd132526379e580bec8b
@@ -16328,6 +16384,16 @@ __metadata:
     ip: ^1.1.5
     smart-buffer: ^4.1.0
   checksum: 2ca9d616e424f645838ebaabb04f85d94ea999e0f8393dc07f86c435af22ed88cb83958feeabd1bb7bc537c635ed47454255635502c6808a6df61af1f41af750
+  languageName: node
+  linkType: hard
+
+"socks@npm:^2.6.2":
+  version: 2.6.2
+  resolution: "socks@npm:2.6.2"
+  dependencies:
+    ip: ^1.1.5
+    smart-buffer: ^4.2.0
+  checksum: dd9194293059d737759d5c69273850ad4149f448426249325c4bea0e340d1cf3d266c3b022694b0dcf5d31f759de23657244c481fc1e8322add80b7985c36b5e
   languageName: node
   linkType: hard
 
@@ -17319,6 +17385,13 @@ __metadata:
   version: 0.3.9
   resolution: "traverse@npm:0.3.9"
   checksum: 982982e4e249e9bbf063732a41fe5595939892758524bbef5d547c67cdf371b13af72b5434c6a61d88d4bb4351d6dabc6e22d832e0d16bc1bc684ef97a1cc59e
+  languageName: node
+  linkType: hard
+
+"traverse@npm:^0.6.6":
+  version: 0.6.6
+  resolution: "traverse@npm:0.6.6"
+  checksum: e2afa72f11efa9ba31ed763d2d9d2aa244612f22015d16c0ea3ba5f6ca8bf071de87f8108b721885cce06ea4a36ef4605d9228c67e431d9015ea4685cb364420
   languageName: node
   linkType: hard
 
