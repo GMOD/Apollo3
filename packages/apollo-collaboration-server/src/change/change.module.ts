@@ -1,6 +1,13 @@
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
-import { Assembly, AssemblySchema, Feature, FeatureSchema, RefSeq, RefSeqSchema } from 'apollo-shared'
+import {
+  Assembly,
+  AssemblySchema,
+  Feature,
+  FeatureSchema,
+  RefSeq,
+  RefSeqSchema,
+} from 'apollo-shared'
 
 import { ChangeController } from './change.controller'
 import { ChangeService } from './change.service'

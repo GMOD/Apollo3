@@ -8,8 +8,8 @@ import { AuthenticationModule } from './authentication/authentication.module'
 import { ChangeModule } from './change/change.module'
 import { FeaturesModule } from './features/features.module'
 import { FileHandlingModule } from './fileHandling/fileHandling.module'
-import { RolesGuard } from './utils/role/role.guards'
 import { RefSeqsModule } from './refSeqs/refSeqs.module'
+import { RolesGuard } from './utils/role/role.guards'
 
 const nodeEnv = process.env.NODE_ENV || 'production'
 

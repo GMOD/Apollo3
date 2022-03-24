@@ -1,8 +1,10 @@
-import { Cache } from 'cache-manager'
+import { GFF3FeatureLineWithRefs } from '@gmod/gff'
 import { IAnyStateTreeNode, Instance, SnapshotIn } from 'mobx-state-tree'
+import { Model } from 'mongoose'
 
 import { FeaturesForRefName } from '../BackendDrivers/AnnotationFeature'
 import { BackendDriver } from '../BackendDrivers/BackendDriver'
+import { FeatureDocument } from '../schemas/feature.schema'
 import { changeRegistry } from './ChangeTypes'
 
 export interface ClientDataStore extends IAnyStateTreeNode {
@@ -14,9 +16,13 @@ export interface ClientDataStore extends IAnyStateTreeNode {
 }
 export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'
-  cacheManager: Cache
-  envMap: Map<string, string>
-  gff3Handle: import('fs').promises.FileHandle
+  featureModel: Model<FeatureDocument>
+}
+
+export interface GFF3FeatureLineWithRefsAndFeatureId
+  extends GFF3FeatureLineWithRefs {
+  featureId: string
+  GFF3FeatureLineWithRefs: GFF3FeatureLineWithRefs
 }
 
 export interface SerializedChange extends Record<string, unknown> {
@@ -49,6 +55,112 @@ export abstract class Change {
     throw new Error(
       `no change implementation for backend type '${backendType}'`,
     )
+  }
+
+  /**
+   * Get single feature by featureId
+   * @param featureObject -
+   * @param featureId -
+   * @returns
+   */
+  async getObjectByFeatureId(
+    featureObject: GFF3FeatureLineWithRefs[],
+    featureId: string,
+  ) {
+    // Loop all lines and add those into cache
+    for (const entry of featureObject) {
+      console.debug(`Entry=${JSON.stringify(entry)}`)
+      if (entry.hasOwnProperty('featureId')) {
+        const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
+          Object.assign(entry)
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        console.debug(`Top level featureId=${assignedVal.featureId!}`)
+        // If matches
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        if (assignedVal.featureId! === featureId) {
+          console.debug(
+            `Top level featureId matches in object ${JSON.stringify(
+              assignedVal,
+            )}`,
+          )
+          return entry
+        }
+        // Check if there is also childFeatures in parent feature and it's not empty
+        if (
+          entry.hasOwnProperty('child_features') &&
+          Object.keys(assignedVal.child_features).length > 0
+        ) {
+          // Let's get featureId from recursive method
+          console.debug(
+            `FeatureId was not found on top level so lets make recursive call...`,
+          )
+          const foundRecursiveObject = await this.getNestedFeatureByFeatureId(
+            assignedVal,
+            featureId,
+          )
+          if (foundRecursiveObject) {
+            return foundRecursiveObject
+          }
+        }
+      }
+    }
+    return null
+  }
+
+  //  * DEMO - SEARCH RECURSIVELY CORRECT OBJECT FROM FEATRUE
+  async getNestedFeatureByFeatureId(
+    parentFeature: GFF3FeatureLineWithRefs,
+    featureId: string,
+  ) {
+    // If there is child features and size is not 0
+    if (
+      parentFeature.hasOwnProperty('child_features') &&
+      Object.keys(parentFeature.child_features).length > 0
+    ) {
+      // Loop each child feature
+      for (
+        let i = 0;
+        i < Object.keys(parentFeature.child_features).length;
+        i++
+      ) {
+        // There can be several features with same ID so we need to loop
+        for (let j = 0; parentFeature.child_features[i].length > j; j++) {
+          const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
+            Object.assign(parentFeature.child_features[i][j])
+          // Let's add featureId if it doesn't exist yet
+          if (assignedVal.hasOwnProperty('featureId')) {
+            console.debug(`Recursive object featureId=${assignedVal.featureId}`)
+            // If featureId matches
+            if (assignedVal.featureId === featureId) {
+              console.debug(
+                `Found featureId from recursive object ${JSON.stringify(
+                  assignedVal,
+                )}`,
+              )
+              return assignedVal
+            }
+          }
+          // Check if there is also childFeatures in parent feature and it's not empty
+          if (
+            assignedVal.hasOwnProperty('child_features') &&
+            Object.keys(assignedVal.child_features).length > 0
+          ) {
+            // Let's add featureId to each child recursively
+            const foundObject = (await this.getNestedFeatureByFeatureId(
+              assignedVal,
+              featureId,
+            )) as GFF3FeatureLineWithRefs
+            console.debug(
+              `Found recursive object is ${JSON.stringify(foundObject)}`,
+            )
+            if (foundObject != null) {
+              return foundObject
+            }
+          }
+        }
+      }
+    }
+    return null
   }
 
   abstract applyToLocalGFF3(backend: LocalGFF3DataStore): Promise<void>

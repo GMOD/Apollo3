@@ -23,18 +23,34 @@ export class ChangeService {
   private readonly logger = new Logger(ChangeService.name)
 
   /**
+   * Changes Start -position in GFF3
+   */
+  async changeStartPos(serializedChange: SerializedChange) {
+    const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
+    const change = new ChangeType(serializedChange)
+    this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
+    try {
+      await change.apply({
+        typeName: 'LocalGFF3',
+        featureModel: this.featureModel,
+      })
+    } catch (error) {
+      throw error
+    }
+    return []
+  }
+
+  /**
    * Changes End -position in GFF3
    */
   async changeEndPos(serializedChange: SerializedChange) {
     const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
     const change = new ChangeType(serializedChange)
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
-    // Check if Gff3Item collection is empty in db
-    const cnt = await this.featureModel.count({})
     try {
       await change.apply({
         typeName: 'LocalGFF3',
-        featureModel: this.featureModel
+        featureModel: this.featureModel,
       })
     } catch (error) {
       throw error
