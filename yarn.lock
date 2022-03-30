@@ -4022,6 +4022,34 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/mongodb@npm:*":
+  version: 4.0.6
+  resolution: "@types/mongodb@npm:4.0.6"
+  dependencies:
+    mongodb: "*"
+  checksum: b0f138120920965b14f30f92d64979a8c6cce0dee195d028255441a3c9b42a5ed531ddbdfcdee04bf2021a007dc16467dd5d13e2158c16ada254b29d29569e1d
+  languageName: node
+  linkType: hard
+
+"@types/mongoose-id-validator@npm:^0.6.2":
+  version: 0.6.2
+  resolution: "@types/mongoose-id-validator@npm:0.6.2"
+  dependencies:
+    "@types/mongoose": 5.10.5
+  checksum: 30da11d435d945735043c212720593578a70147e35ad6b59f9a52fefeb27a8191c7ab70ccc82d03e5ca5f899f25d8f7737e14ae3324b2d66f4b6febfb443f181
+  languageName: node
+  linkType: hard
+
+"@types/mongoose@npm:5.10.5":
+  version: 5.10.5
+  resolution: "@types/mongoose@npm:5.10.5"
+  dependencies:
+    "@types/mongodb": "*"
+    "@types/node": "*"
+  checksum: ab79c72c767c204c786c2884c1473745c6044a1d04cf8b9300c0a8efbd4c327ca03db3bb64a7c69e46892641bfd18ffbc869d0fa993e59f91ede0fb8bbb89a61
+  languageName: node
+  linkType: hard
+
 "@types/multer@npm:^1.4.7":
   version: 1.4.7
   resolution: "@types/multer@npm:1.4.7"
@@ -5122,6 +5150,7 @@ __metadata:
     "@types/cache-manager": ^3
     "@types/express": ^4.17.13
     "@types/jest": ^27.0.1
+    "@types/mongoose-id-validator": ^0.6.2
     "@types/multer": ^1.4.7
     "@types/node": ^16.0.0
     "@types/passport-jwt": ^3.0.6
@@ -5137,6 +5166,7 @@ __metadata:
     mobx: ^5.10.1
     mobx-react: ^6.0.0
     mongoose: ^6.2.6
+    mongoose-id-validator: ^0.6.0
     passport: ^0.5.0
     passport-jwt: ^4.0.0
     passport-local: ^1.0.0
@@ -13381,13 +13411,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mongodb-connection-string-url@npm:^2.4.1":
+"mongodb-connection-string-url@npm:^2.4.1, mongodb-connection-string-url@npm:^2.5.2":
   version: 2.5.2
   resolution: "mongodb-connection-string-url@npm:2.5.2"
   dependencies:
     "@types/whatwg-url": ^8.2.1
     whatwg-url: ^11.0.0
   checksum: bd13af7d62d33e2d6e5217692961e34b2dafbbba5f41d361417257592754df3e925efc00fa8a5e038624e284245dab39e913d5f06ff962feede86d5f58fc5827
+  languageName: node
+  linkType: hard
+
+"mongodb@npm:*":
+  version: 4.4.1
+  resolution: "mongodb@npm:4.4.1"
+  dependencies:
+    bson: ^4.6.1
+    denque: ^2.0.1
+    mongodb-connection-string-url: ^2.5.2
+    saslprep: ^1.0.3
+    socks: ^2.6.2
+  dependenciesMeta:
+    saslprep:
+      optional: true
+  checksum: 5a2924df04612cc3dfd54e6f4a9b4ab01683fe2bcb8a6aa424485939fc213aea4c7e9b59ef244aa30ccc14948906990335a6371310fe354aec8206983f3f733a
   languageName: node
   linkType: hard
 
@@ -13404,6 +13450,16 @@ __metadata:
     saslprep:
       optional: true
   checksum: 5684b5481bfbf73e4628b8bad7018cd4436fdb23b9548fb38dece3e079b1716fe870d41070a505d13ae4d86c107315afaf34891ba2b64925eb4fa4cd5bb70300
+  languageName: node
+  linkType: hard
+
+"mongoose-id-validator@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "mongoose-id-validator@npm:0.6.0"
+  dependencies:
+    clone: ^1.0.2
+    traverse: ^0.6.6
+  checksum: 0a38a12546fa908e476bcdc7ab0aaa1fd66a4318cbfee50381cd3c6be61fd6f35fae826ae036628cd58b1f86a0a959af512158910f63198ae1369cd5b62914e4
   languageName: node
   linkType: hard
 
@@ -16304,7 +16360,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"smart-buffer@npm:^4.1.0":
+"smart-buffer@npm:^4.1.0, smart-buffer@npm:^4.2.0":
   version: 4.2.0
   resolution: "smart-buffer@npm:4.2.0"
   checksum: b5167a7142c1da704c0e3af85c402002b597081dd9575031a90b4f229ca5678e9a36e8a374f1814c8156a725d17008ae3bde63b92f9cfd132526379e580bec8b
@@ -16365,6 +16421,16 @@ __metadata:
     ip: ^1.1.5
     smart-buffer: ^4.1.0
   checksum: 2ca9d616e424f645838ebaabb04f85d94ea999e0f8393dc07f86c435af22ed88cb83958feeabd1bb7bc537c635ed47454255635502c6808a6df61af1f41af750
+  languageName: node
+  linkType: hard
+
+"socks@npm:^2.6.2":
+  version: 2.6.2
+  resolution: "socks@npm:2.6.2"
+  dependencies:
+    ip: ^1.1.5
+    smart-buffer: ^4.2.0
+  checksum: dd9194293059d737759d5c69273850ad4149f448426249325c4bea0e340d1cf3d266c3b022694b0dcf5d31f759de23657244c481fc1e8322add80b7985c36b5e
   languageName: node
   linkType: hard
 
@@ -17356,6 +17422,13 @@ __metadata:
   version: 0.3.9
   resolution: "traverse@npm:0.3.9"
   checksum: 982982e4e249e9bbf063732a41fe5595939892758524bbef5d547c67cdf371b13af72b5434c6a61d88d4bb4351d6dabc6e22d832e0d16bc1bc684ef97a1cc59e
+  languageName: node
+  linkType: hard
+
+"traverse@npm:^0.6.6":
+  version: 0.6.6
+  resolution: "traverse@npm:0.6.6"
+  checksum: e2afa72f11efa9ba31ed763d2d9d2aa244612f22015d16c0ea3ba5f6ca8bf071de87f8108b721885cce06ea4a36ef4605d9228c67e431d9015ea4685cb364420
   languageName: node
   linkType: hard
 

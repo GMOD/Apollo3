@@ -1,13 +1,23 @@
 import { Module } from '@nestjs/common'
-import { MongooseModule } from '@nestjs/mongoose'
+import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import { RefSeq, RefSeqSchema } from 'apollo-schemas'
+import idValidator from 'mongoose-id-validator'
 
 import { RefSeqsController } from './refSeqs.controller'
 import { RefSeqsService } from './refSeqs.service'
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: RefSeq.name, schema: RefSeqSchema }]),
+    MongooseModule.forFeatureAsync([
+      {
+        name: RefSeq.name,
+        useFactory: (connection) => {
+          RefSeqSchema.plugin(idValidator, { connection })
+          return RefSeqSchema
+        },
+        inject: [getConnectionToken()],
+      },
+    ]),
   ],
   controllers: [RefSeqsController],
   providers: [RefSeqsService],
