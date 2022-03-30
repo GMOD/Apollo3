@@ -9,6 +9,9 @@
     "lib": ["ES2020", "DOM"],
     "module": "CommonJS",
     "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": false,
   },
   "include": ["./src"],
 }
