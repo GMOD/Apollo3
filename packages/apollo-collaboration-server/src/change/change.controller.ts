@@ -1,22 +1,13 @@
 import { open } from 'fs/promises'
 import { join } from 'path'
 
-import {
-  Body,
-  CACHE_MANAGER,
-  Controller,
-  Inject,
-  Logger,
-  Post,
-  UseGuards,
-} from '@nestjs/common'
+import { Body, Controller, Logger, Post, UseGuards } from '@nestjs/common'
 import {
   LocationEndChange,
   LocationStartChange,
   SerializedChange,
   changeRegistry,
 } from 'apollo-shared'
-import { Cache } from 'cache-manager'
 
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { ChangeService } from './change.service'
@@ -24,10 +15,7 @@ import { ChangeService } from './change.service'
 @Controller('change')
 export class ChangeController {
   private readonly logger = new Logger(ChangeController.name)
-  constructor(
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    private readonly changeService: ChangeService,
-  ) {
+  constructor(private readonly changeService: ChangeService) {
     changeRegistry.registerChange('LocationEndChange', LocationEndChange) // Do this only once
     changeRegistry.registerChange('LocationStartChange', LocationStartChange) // Do this only once
   }
@@ -57,11 +45,11 @@ export class ChangeController {
       'r+',
     )
     try {
-      await change.apply({
-        typeName: 'LocalGFF3',
-        cacheManager: this.cacheManager,
-        gff3Handle,
-      })
+      // await change.apply({
+      //   typeName: 'LocalGFF3',
+      //   cacheManager: this.cacheManager,
+      //   gff3Handle,
+      // })
     } catch (error) {
       throw error
     } finally {

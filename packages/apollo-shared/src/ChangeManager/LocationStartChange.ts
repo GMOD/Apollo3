@@ -1,4 +1,4 @@
-import gff, { GFF3Feature, GFF3Item } from '@gmod/gff'
+import { GFF3Feature } from '@gmod/gff'
 import { resolveIdentifier } from 'mobx-state-tree'
 
 import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
@@ -48,41 +48,7 @@ export class LocationStartChange extends Change {
    * @returns
    */
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
-    const { changes } = this
-
-    console.debug(`Change request: ${JSON.stringify(changes)}`)
-    let gff3ItemString: string | undefined = ''
-    const cacheKeys: string[] = await backend.cacheManager.store.keys?.()
-    cacheKeys.sort((n1: string, n2: string) => Number(n1) - Number(n2))
-    for (const change of changes) {
-      // Loop the cache content
-      for (const lineNumber of cacheKeys) {
-        gff3ItemString = await backend.cacheManager.get(lineNumber)
-        if (!gff3ItemString) {
-          throw new Error(`No cache value found for key ${lineNumber}`)
-        }
-        const gff3Item = JSON.parse(gff3ItemString) as GFF3Item
-        if (Array.isArray(gff3Item)) {
-          const updated = this.getUpdatedCacheEntryForFeature(gff3Item, change)
-          if (updated) {
-            await backend.cacheManager.set(lineNumber, JSON.stringify(gff3Item))
-            break
-          }
-        }
-      }
-    }
-    // Loop the updated cache and write it into file
-    const gff3 = await Promise.all(
-      cacheKeys.map(async (keyInd): Promise<GFF3Item> => {
-        gff3ItemString = await backend.cacheManager.get(keyInd.toString())
-        if (!gff3ItemString) {
-          throw new Error(`No entry found for ${keyInd.toString()}`)
-        }
-        return JSON.parse(gff3ItemString)
-      }),
-    )
-    // console.verbose(`Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`)
-    await backend.gff3Handle.writeFile(gff.formatSync(gff3))
+    // Add here same logic as in EndChange
   }
 
   async applyToClient(dataStore: ClientDataStore) {

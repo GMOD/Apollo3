@@ -14,13 +14,16 @@ export class Feature implements GFF3FeatureLineWithRefs {
     type: MongooseSchema.Types.ObjectId,
     ref: 'RefSeq',
   })
-  refSeq: RefSeq
-
-  @Prop({ type: [String], required: true, index: true })
-  featureIds: string[]
+  refSeqId: RefSeq
 
   @Prop({ type: String, required: true, index: true })
-  featureId: string
+  parentFeatureId: string
+
+  @Prop({ type: [String], required: true, index: true })
+  allFeatureIds: string[]
+
+  @Prop({ type: [String], required: true, index: true })
+  featureId: string[]
 
   @Prop({ required: true })
   // eslint-disable-next-line camelcase
