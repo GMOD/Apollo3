@@ -24,4 +24,4 @@ export class UserPermission {
   active: boolean
 }
 
-export const RolePermissionSchema = SchemaFactory.createForClass(RolePermission)
+export const UserPermissionSchema = SchemaFactory.createForClass(UserPermission)

@@ -41,7 +41,11 @@ export class AssembliesController {
 
   @Post()
   async create(@Body() createAssemblyDto: CreateAssemblyDto) {
-    await this.assembliesService.create(createAssemblyDto)
+    this.logger.debug(
+      `Starting to add new assembly: ${JSON.stringify(createAssemblyDto)}`,
+    )
+    const assembly = await this.assembliesService.create(createAssemblyDto)
+    this.logger.debug(`Assembly ${assembly} created`)
   }
 
   @Get()
