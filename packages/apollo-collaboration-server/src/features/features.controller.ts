@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Get,
   Logger,
+  Param,
   Post,
   UploadedFile,
   UseInterceptors,
@@ -32,5 +34,29 @@ export class FeaturesController {
     this.logger.debug(`Adding new features for assemblyId: ${body.assemblyId}`)
     const fileName = await this.featuresService.saveNewFile(file)
     this.featuresService.loadGFF3DataIntoDb(fileName, body.assemblyId)
+  }
+
+    /**
+   * Get feature by featureId. When retrieving features by id, the features and any of its children are returned, but not any of its parent or sibling features.
+   * @param featureid - featureId
+   * @returns Return 'HttpStatus.OK' and the feature(s) if search was successful
+   * or if search data was not found or in case of error throw exception
+   */
+  //  @UseGuards(JwtAuthGuard)
+  @Get('/:featureid')
+  getFeature(@Param('featureid') featureid: string) {
+    this.logger.debug(`Get feature by featureId=${featureid}.`)
+    return this.featuresService.getFeatureByFeatureId(featureid)
+  }
+
+    /**
+   * Fetch all features
+   * @returns Return 'HttpStatus.OK' and array of features if search was successful
+   * or if search data was not found or in case of error throw exception
+   */
+  @Get()
+  findAll() {
+    this.logger.debug(`Get all features`)
+    return this.featuresService.findAll()
   }
 }
