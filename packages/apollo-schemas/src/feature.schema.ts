@@ -1,22 +1,26 @@
 import { GFF3FeatureLineWithRefs } from '@gmod/gff'
-// import { Schema, SchemaFactory } from '@nestjs/mongoose'
-import { Document, Schema } from 'mongoose'
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
+import { Document, Schema as MongooseSchema } from 'mongoose'
 
-// export type FeatureDocument = Feature & Document
+import { RefSeq } from './refSeq.schema'
 
-// @Schema()
-// export class Feature {}
+export type FeatureDocument = Feature & Document
 
-// export const FeatureSchema = SchemaFactory.createForClass(Feature)
+@Schema()
+export class Feature {
+  @Prop({
+    required: true,
+    index: true,
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'RefSeq',
+  })
+  refSeqId: RefSeq
 
-export const FeatureSchema = new Schema({
-  refSeqId: { type: String, required: true },
-  featureId: { type: [String], required: true },
-  gff3FeatureLineWithRefs: { type: JSON, required: true },
-})
-export interface FeatureDocument extends GFF3FeatureLineWithRefs, Document {
-  id: string
-  refSeqId: string
+  @Prop({ type: [String], required: true, index: true })
   featureId: string[]
+
+  @Prop({ type: JSON, required: true })
   gff3FeatureLineWithRefs: GFF3FeatureLineWithRefs
 }
+
+export const FeatureSchema = SchemaFactory.createForClass(Feature)

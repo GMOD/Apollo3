@@ -1,0 +1,36 @@
+import {
+  Body,
+  Controller,
+  Logger,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common'
+import { FileInterceptor } from '@nestjs/platform-express/multer'
+
+import { AssemblyIdDto } from '../model/gff3.model'
+import { FeaturesService } from './features.service'
+
+@Controller('features')
+export class FeaturesController {
+  constructor(private readonly featuresService: FeaturesService) {}
+  private readonly logger = new Logger(FeaturesController.name)
+
+  /**
+   * Save new uploaded file into local filesystem and then loads it into database. The file is first saved to local filesystem using name: 'uploaded' + timestamp in ddmmyyyy_hh24miss -format + original filename
+   * You can call this endpoint like: curl http://localhost:3999/features/importGFF3 -F 'file=\@./save_this_file.txt' -F 'assembly=assemblyId'
+   * @param file - File to save
+   * @returns Return status 'HttpStatus.OK' if save was successful
+   * or in case of error return throw exception
+   */
+  @Post('/importGFF3')
+  @UseInterceptors(FileInterceptor('file'))
+  async importGFF3(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: AssemblyIdDto,
+  ) {
+    this.logger.debug(`Adding new features for assemblyId: ${body.assemblyId}`)
+    const fileName = await this.featuresService.saveNewFile(file)
+    this.featuresService.loadGFF3DataIntoDb(fileName, body.assemblyId)
+  }
+}
