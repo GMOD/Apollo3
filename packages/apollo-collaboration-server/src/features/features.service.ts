@@ -106,13 +106,18 @@ export class FeaturesService {
       parseAll: true,
     })
     let cnt = 0
+    let currentSeqId = ''
+    let refSeqId = ''
+    let isFeature = false // Indicates if we need to get valid AssemblyId and refSeqId
     // Loop all lines
     for (const entry of arrayOfThings) {
       // eslint-disable-next-line prefer-const
       let featureIdArray: string[] = [] // Let's gather here all feature ids from each feature
+      isFeature = false
 
       // Comment, Directive and FASTA -entries are not presented as an array
       if (Array.isArray(entry)) {
+        isFeature = true
         this.logger.verbose(`ENTRY=${JSON.stringify(entry)}`)
         for (const [key, val] of Object.entries(entry)) {
           // Let's add featureId to parent feature if it doesn't exist
@@ -122,7 +127,8 @@ export class FeaturesService {
           assignedVal.featureId = uid
           // Add featureId into array
           featureIdArray.push(uid)
-
+          // Pick up refSeq (i.e. seq_id)
+          currentSeqId = assignedVal.seq_id!
           this.logger.verbose(
             `Added new FeatureId: key=${JSON.stringify(
               key,
@@ -141,8 +147,24 @@ export class FeaturesService {
           `So far apollo ids are: ${featureIdArray.toString()}\n`,
         )
       }
+      refSeqId = '6239be880facb6bf8798030c' // Demo data ******* TODO : PUT HERE REAL REFSEQID ****************
+      // If we are adding feature then we need to retrieve proper refSeqId
+      if (isFeature) {
+        const refSeqDoc = await this.refSeqModel
+          .findOne({ assemblyId, name: currentSeqId })
+          .exec()
+        if (!refSeqDoc) {
+          throw new NotFoundException(
+            `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${currentSeqId}" not found`,
+          )
+        }
+        refSeqId = refSeqDoc._id
+      }
+      this.logger.debug(
+        `Added new feature for refSeq "${refSeqId}" into database`,
+      )
       await this.featureModel.create({
-        refSeqId: '6239be6c0facb6bf87980309', // Demo data ******* TODO : PUT HERE REAL REFSEQID ****************
+        refSeqId,
         featureId: featureIdArray,
         gff3FeatureLineWithRefs: entry,
       })

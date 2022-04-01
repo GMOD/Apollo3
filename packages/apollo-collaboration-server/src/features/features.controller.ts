@@ -36,7 +36,7 @@ export class FeaturesController {
     this.featuresService.loadGFF3DataIntoDb(fileName, body.assemblyId)
   }
 
-    /**
+  /**
    * Get feature by featureId. When retrieving features by id, the features and any of its children are returned, but not any of its parent or sibling features.
    * @param featureid - featureId
    * @returns Return 'HttpStatus.OK' and the feature(s) if search was successful
@@ -49,13 +49,13 @@ export class FeaturesController {
     return this.featuresService.getFeatureByFeatureId(featureid)
   }
 
-    /**
+  /**
    * Fetch all features
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
    * or if search data was not found or in case of error throw exception
    */
   @Get()
-  findAll() {
+  getAll() {
     this.logger.debug(`Get all features`)
     return this.featuresService.findAll()
   }
