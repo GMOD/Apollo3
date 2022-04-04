@@ -1,7 +1,7 @@
 import * as fs from 'fs/promises'
 import { join } from 'path'
 
-import gff, { GFF3FeatureLine, GFF3FeatureLineWithRefs } from '@gmod/gff'
+import gff, { GFF3FeatureLineWithRefs } from '@gmod/gff'
 import {
   Injectable,
   InternalServerErrorException,

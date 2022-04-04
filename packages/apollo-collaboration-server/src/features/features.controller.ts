@@ -1,4 +1,3 @@
-import { GFF3FeatureLine } from '@gmod/gff'
 import {
   Body,
   Controller,
@@ -10,8 +9,8 @@ import {
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
-import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 
+import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { AssemblyIdDto } from '../model/gff3.model'
 import { FeaturesService } from './features.service'
 
