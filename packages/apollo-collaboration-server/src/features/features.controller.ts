@@ -1,3 +1,4 @@
+import { GFF3FeatureLine } from '@gmod/gff'
 import {
   Body,
   Controller,
@@ -9,6 +10,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
+import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 
 import { AssemblyIdDto } from '../model/gff3.model'
 import { FeaturesService } from './features.service'
@@ -43,7 +45,7 @@ export class FeaturesController {
    * or if search data was not found or in case of error throw exception
    */
   //  @UseGuards(JwtAuthGuard)
-  @Get('/:featureid')
+  @Get('/getFeature/:featureid')
   getFeature(@Param('featureid') featureid: string) {
     this.logger.debug(`Get feature by featureId=${featureid}.`)
     return this.featuresService.getFeatureByFeatureId(featureid)
@@ -58,5 +60,21 @@ export class FeaturesController {
   getAll() {
     this.logger.debug(`Get all features`)
     return this.featuresService.findAll()
+  }
+
+  /**
+   * Fetch features based on Reference seq, Start and End -values
+   * @param request - Contain search criteria i.e. refname, start and end -parameters
+   * @returns Return 'HttpStatus.OK' and array of features if search was successful
+   * or if search data was not found or in case of error throw exception
+   */
+  //    @UseGuards(JwtAuthGuard)
+  @Get('/getFeatures')
+  getFeatures(@Body() request: FeatureRangeSearchDto) {
+    this.logger.debug(
+      `getFeaturesByCriteria -method: AssemblyId: ${request.assemblyId} refName: ${request.refName}, start: ${request.start}, end: ${request.end}=`,
+    )
+
+    return this.featuresService.getFeaturesByCriteria(request)
   }
 }

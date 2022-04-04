@@ -11,6 +11,13 @@ export interface FastaSequenceInfo {
   length: number
 }
 
+export interface FeatureRangeSearchDto {
+  assemblyId: string
+  refName: string
+  start: number
+  end: number
+}
+
 export interface ChangeObjectTmp {
   // changedIds: string[]
   // typeName: string
