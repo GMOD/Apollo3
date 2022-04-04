@@ -147,7 +147,7 @@ export class FeaturesService {
           `So far apollo ids are: ${featureIdArray.toString()}\n`,
         )
       }
-      refSeqId = '6239be880facb6bf8798030c' // Demo data ******* TODO : PUT HERE REAL REFSEQID ****************
+      // ******* TODO : CURRENTLY WE ADD ONLY FEATURES (I.E. NOT COMMENTS, DIRECTIVES AND SEQUENCES) INTO DATABASE ****************
       // If we are adding feature then we need to retrieve proper refSeqId
       if (isFeature) {
         const refSeqDoc = await this.refSeqModel
@@ -159,16 +159,16 @@ export class FeaturesService {
           )
         }
         refSeqId = refSeqDoc._id
+        this.logger.debug(
+          `Added new feature for refSeq "${refSeqId}" into database`,
+        )
+        await this.featureModel.create({
+          refSeqId,
+          featureId: featureIdArray,
+          gff3FeatureLineWithRefs: entry,
+        })
+        cnt++
       }
-      this.logger.debug(
-        `Added new feature for refSeq "${refSeqId}" into database`,
-      )
-      await this.featureModel.create({
-        refSeqId,
-        featureId: featureIdArray,
-        gff3FeatureLineWithRefs: entry,
-      })
-      cnt++
     }
     this.logger.debug(`Added ${cnt} features into database`)
   }
