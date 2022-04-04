@@ -128,6 +128,7 @@ export class FeaturesService {
           // Add featureId into array
           featureIdArray.push(uid)
           // Pick up refSeq (i.e. seq_id)
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           currentSeqId = assignedVal.seq_id!
           this.logger.verbose(
             `Added new FeatureId: key=${JSON.stringify(
@@ -255,7 +256,12 @@ export class FeaturesService {
     return null
   }
 
-  //  * DEMO - SEARCH RECURSIVELY CORRECT OBJECT FROM FEATRUE
+  /**
+   *
+   * @param parentFeature - parent feature where search will be started
+   * @param featureId - featureId to search
+   * @returns Found child feature, or return null if feature was not found
+   */
   async getNestedFeatureByFeatureId(
     parentFeature: GFF3FeatureLineWithRefs,
     featureId: string,
