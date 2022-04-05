@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
 import { MongooseModule } from '@nestjs/mongoose'
 
+import { AssembliesModule } from './assemblies/assemblies.module'
 import { AuthenticationModule } from './authentication/authentication.module'
 import { ChangeModule } from './change/change.module'
 import { FileHandlingModule } from './fileHandling/fileHandling.module'
@@ -26,6 +27,7 @@ const nodeEnv = process.env.NODE_ENV || 'production'
       }),
       inject: [ConfigService],
     }),
+    AssembliesModule,
   ],
   providers: [
     {

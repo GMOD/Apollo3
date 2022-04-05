@@ -3308,6 +3308,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nestjs/mapped-types@npm:*":
+  version: 1.0.1
+  resolution: "@nestjs/mapped-types@npm:1.0.1"
+  peerDependencies:
+    "@nestjs/common": ^7.0.8 || ^8.0.0
+    class-transformer: ^0.2.0 || ^0.3.0 || ^0.4.0 || ^0.5.0
+    class-validator: ^0.11.1 || ^0.12.0 || ^0.13.0
+    reflect-metadata: ^0.1.12
+  peerDependenciesMeta:
+    class-transformer:
+      optional: true
+    class-validator:
+      optional: true
+  checksum: ca8dae254f98e8550c92f264d90dee767f30598a5bbe40e80ea93cf622da5c67bd2bc8ef83828198919cc39c543421d4eb977d032ecbbb545863eaea9deb797c
+  languageName: node
+  linkType: hard
+
 "@nestjs/mongoose@npm:^9.0.2":
   version: 9.0.2
   resolution: "@nestjs/mongoose@npm:9.0.2"
@@ -5096,6 +5113,7 @@ __metadata:
     "@nestjs/config": ^1.0.3
     "@nestjs/core": ^8.0.11
     "@nestjs/jwt": ^8.0.0
+    "@nestjs/mapped-types": "*"
     "@nestjs/mongoose": ^9.0.2
     "@nestjs/passport": ^8.0.1
     "@nestjs/platform-express": ^8.0.0
@@ -5110,6 +5128,7 @@ __metadata:
     "@types/passport-local": ^1.0.34
     "@types/supertest": ^2.0.11
     "@types/uuid": ^8
+    apollo-schemas: "workspace:^"
     apollo-shared: "workspace:^"
     cache-manager: ^3.6.0
     dotenv: ^10.0.0
@@ -5141,15 +5160,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"apollo-schemas@workspace:packages/apollo-schemas":
+"apollo-schemas@workspace:^, apollo-schemas@workspace:packages/apollo-schemas":
   version: 0.0.0-use.local
   resolution: "apollo-schemas@workspace:packages/apollo-schemas"
   dependencies:
     "@gmod/gff": ^1.2.0
+    "@nestjs/common": ^8.2.3
+    "@nestjs/core": ^8.0.11
     "@nestjs/mongoose": ^9.0.2
     "@types/node": ^16.0.0
     mongoose: ^6.2.6
+    reflect-metadata: ^0.1.13
     regenerator-runtime: ^0.13.9
+    rxjs: ^7.4.0
     tslib: ^2.3.1
     typescript: 4.4.4
   languageName: unknown

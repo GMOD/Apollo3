@@ -1,21 +1,18 @@
 {
   "name": "apollo-schemas",
   "main": "./dist/index.js",
-  "type": "module",
-  "exports": {
-    ".": {
-      "import": "./esm/index.js",
-      "require": "./dist/index.js"
-    }
-  },
   "scripts": {
     "build": "tsc"
   },
   "dependencies": {
     "@gmod/gff": "^1.2.0",
+    "@nestjs/common": "^8.2.3",
+    "@nestjs/core": "^8.0.11",
     "@nestjs/mongoose": "^9.0.2",
     "mongoose": "^6.2.6",
+    "reflect-metadata": "^0.1.13",
     "regenerator-runtime": "^0.13.9",
+    "rxjs": "^7.4.0",
     "tslib": "^2.3.1"
   },
   "devDependencies": {
