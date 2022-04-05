@@ -1,23 +1,28 @@
-// import { Schema, SchemaFactory } from '@nestjs/mongoose'
-import { Document, Schema } from 'mongoose'
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
+import { Document, Schema as MongooseSchema } from 'mongoose'
 
-// export type RefSeqDocument = RefSeq & Document
+import { Assembly } from './assembly.schema'
 
-// @Schema()
-// export class RefSeq {}
+export type RefSeqDocument = RefSeq & Document
 
-// export const RefSeqSchema = SchemaFactory.createForClass(RefSeq)
+@Schema()
+export class RefSeq {
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Assembly',
+    required: true,
+    index: true,
+  })
+  assembly: Assembly
 
-export const RefSeqSchema = new Schema({
-  assemblyId: { type: String, required: true },
-  name: { type: String, required: true },
-  description: { type: String, required: true },
-  length: { type: Number, required: true },
-})
-export interface RefSeqDocument extends Document {
-  id: string
-  assemblyId: string
+  @Prop({ required: true })
   name: string
+
+  @Prop()
   description: string
+
+  @Prop({ required: true })
   length: number
 }
+
+export const RefSeqSchema = SchemaFactory.createForClass(RefSeq)
