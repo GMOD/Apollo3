@@ -115,7 +115,7 @@ export class FeaturesService {
       if (Array.isArray(entry)) {
         isFeature = true
         this.logger.verbose(`ENTRY=${JSON.stringify(entry)}`)
-        for (const [key, val] of Object.entries(entry)) {
+        for (const val of entry) {
           // Let's add featureId to parent feature if it doesn't exist
           const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
             Object.assign(val)
