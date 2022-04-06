@@ -181,35 +181,21 @@ export class FeaturesService {
     this.logger.verbose(
       `Value in recursive method = ${JSON.stringify(parentFeature)}`,
     )
-    // If there is child features and size is not 0
-    if (
-      parentFeature.hasOwnProperty('child_features') &&
-      Object.keys(parentFeature.child_features).length > 0
-    ) {
-      // Loop each child feature
-      for (
-        let i = 0;
-        i < Object.keys(parentFeature.child_features).length;
-        i++
-      ) {
-        // There can be several features with same ID so we need to loop
-        for (let j = 0; parentFeature.child_features[i].length > j; j++) {
-          const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
-            Object.assign(parentFeature.child_features[i][j])
-          // Let's add featureId if it doesn't exist yet
-          if (!assignedVal.hasOwnProperty('featureId')) {
-            const uid = uuidv4()
-            assignedVal.featureId = uid
-            this.logger.verbose(
-              `FeatureId assigned (recursive level) ${JSON.stringify(
-                assignedVal,
-              )}`,
+    // If there are child features
+    if (parentFeature.child_features) {
+      parentFeature.child_features = parentFeature.child_features.map(
+        (childFeature) =>
+          childFeature.map((childFeatureLine) => {
+            const featureId = uuidv4()
+            featureIdArrAsParam.push(featureId)
+            const newChildFeature = { ...childFeatureLine, featureId }
+            this.setAndGetFeatureIdRecursively(
+              newChildFeature,
+              featureIdArrAsParam,
             )
-            featureIdArrAsParam.push(uid)
-          }
-          this.setAndGetFeatureIdRecursively(assignedVal, featureIdArrAsParam)
-        }
-      }
+            return newChildFeature
+          }),
+      ) as GFF3FeatureLineWithRefsAndFeatureId[][]
     }
     return featureIdArrAsParam
   }
