@@ -104,18 +104,23 @@ export class FeaturesService {
     let cnt = 0
     let currentSeqId = ''
     let refSeqId = ''
-    let isFeature = false // Indicates if we need to get valid AssemblyId and refSeqId
     // Loop all lines
     for (const entry of arrayOfThings) {
       // eslint-disable-next-line prefer-const
       let featureIdArray: string[] = [] // Let's gather here all feature ids from each feature
-      isFeature = false
 
       // Comment, Directive and FASTA -entries are not presented as an array
       if (Array.isArray(entry)) {
-        isFeature = true
         this.logger.verbose(`ENTRY=${JSON.stringify(entry)}`)
-        for (const [key, val] of Object.entries(entry)) {
+        for (const val of entry) {
+          // ------
+          // const uid = uuidv4()
+          // featureIdArray.push(uid)
+          // const assignedVal: GFF3FeatureLineWithRefsAndFeatureId = {
+          //   ...val,
+          //   featureId,
+          // }
+          // -------------
           // Let's add featureId to parent feature if it doesn't exist
           const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
             Object.assign(val)
@@ -123,29 +128,25 @@ export class FeaturesService {
           assignedVal.featureId = uid
           // Add featureId into array
           featureIdArray.push(uid)
+
           // Pick up refSeq (i.e. seq_id)
-          currentSeqId = assignedVal.seq_id!
-          this.logger.verbose(
-            `Added new FeatureId: key=${JSON.stringify(
-              key,
-            )}, value=${JSON.stringify(val)}`,
-          )
-          // Check if there is also childFeatures in parent feature and it's not empty
-          if (
-            val.hasOwnProperty('child_features') &&
-            Object.keys(assignedVal.child_features).length > 0
-          ) {
-            // Let's add featureId to each child recursively
-            this.setAndGetFeatureIdRecursively(assignedVal, featureIdArray)
+          const refName = assignedVal.seq_id
+          if (!refName) {
+            throw new Error(
+              `Valid seq_id not found in feature ${JSON.stringify(val)}`,
+            )
           }
+          currentSeqId = refName
+          this.logger.verbose(
+            `Added new FeatureId: value=${JSON.stringify(val)}`,
+          )
+
+          // Let's add featureId to each child recursively
+          this.setAndGetFeatureIdRecursively(assignedVal, featureIdArray)
         }
         this.logger.verbose(
           `So far apollo ids are: ${featureIdArray.toString()}\n`,
         )
-      }
-      // ******* TODO : CURRENTLY WE ADD ONLY FEATURES (I.E. NOT COMMENTS, DIRECTIVES AND SEQUENCES) INTO DATABASE ****************
-      // If we are adding feature then we need to retrieve proper refSeqId
-      if (isFeature) {
         const refSeqDoc = await this.refSeqModel
           .findOne({ assemblyId, name: currentSeqId })
           .exec()
@@ -155,7 +156,7 @@ export class FeaturesService {
           )
         }
         refSeqId = refSeqDoc._id
-        this.logger.debug(
+        this.logger.verbose(
           `Added new feature for refSeq "${refSeqId}" into database`,
         )
         await this.featureModel.create({
@@ -166,7 +167,7 @@ export class FeaturesService {
         cnt++
       }
     }
-    this.logger.verbose(`Added ${cnt} features into database`)
+    this.logger.debug(`Added ${cnt} features into database`)
   }
 
   /**
