@@ -102,8 +102,8 @@ export class FeaturesService {
           await this.featureModel.create({
             refSeqId,
             parentFeatureId,
-            featureId: featureIdArray,
-            ...val,
+            allFeatureIds: featureIdArray,
+            ...assignedVal,
           })
           cnt++
         }
