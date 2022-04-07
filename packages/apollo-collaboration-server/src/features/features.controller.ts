@@ -17,7 +17,7 @@ export class FeaturesController {
   private readonly logger = new Logger(FeaturesController.name)
 
   /**
-   * Save new uploaded file into local filesystem and then loads it into database. The file is first saved to local filesystem using name: 'uploaded' + timestamp in ddmmyyyy_hh24miss -format + original filename
+   * Load GFF3 file into database.
    * You can call this endpoint like: curl http://localhost:3999/features/importGFF3 -F 'file=\@./save_this_file.txt' -F 'assembly=assemblyId'
    * @param file - File to save
    * @returns Return status 'HttpStatus.OK' if save was successful
@@ -30,7 +30,6 @@ export class FeaturesController {
     @Body() body: AssemblyIdDto,
   ) {
     this.logger.debug(`Adding new features for assemblyId: ${body.assemblyId}`)
-    const fileName = await this.featuresService.saveNewFile(file)
-    this.featuresService.loadGFF3DataIntoDb(fileName, body.assemblyId)
+    this.featuresService.loadGFF3DataIntoDb(file, body.assemblyId)
   }
 }
