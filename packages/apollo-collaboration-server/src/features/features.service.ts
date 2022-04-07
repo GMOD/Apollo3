@@ -60,7 +60,6 @@ export class FeaturesService {
 
       // Comment, Directive and FASTA -entries are not presented as an array
       if (Array.isArray(entry)) {
-        this.logger.verbose(`ENTRY=${JSON.stringify(entry)}`)
         for (const val of entry) {
           // Let's add featureId to parent feature if it doesn't exist
           const featureId = uuidv4()
@@ -119,7 +118,9 @@ export class FeaturesService {
    */
   async getFeatureByFeatureId(featureId: string) {
     // Search correct feature
-    const featureObject = await this.featureModel.findOne({ featureId }).exec()
+    const featureObject = await this.featureModel
+      .findOne({ allFeatureIds: featureId })
+      .exec()
 
     if (!featureObject) {
       const errMsg = `ERROR: The following featureId was not found in database ='${featureId}'`
@@ -127,10 +128,18 @@ export class FeaturesService {
       throw new NotFoundException(errMsg)
     }
 
-    // const updatableObjectAsGFFItemArray = featureObject.gff3FeatureLineWithRefs as unknown as GFF3FeatureLineWithRefs[]
-    // const featureAsGFFItemArray =
-    //   featureObject as unknown as GFF3FeatureLineWithRefs[]
-    this.logger.debug(`Feature found  = ${JSON.stringify(featureObject)}`)
+    // Let's check if featureId is parent feature --> return parent + children
+    const parentFeature = await this.featureModel
+      .findOne({ parentFeatureId: featureId })
+      .exec()
+    if (parentFeature) {
+      this.logger.debug(
+        `Feature was parent level feature: ${JSON.stringify(parentFeature)}`,
+      )
+      return parentFeature
+    }
+    this.logger.verbose(`Feature found: ${JSON.stringify(featureObject)}`)
+
     // Now we need to find correct top level feature or sub-feature inside the feature
     const foundFeature = await this.getObjectByFeatureId(
       featureObject,
@@ -155,15 +164,13 @@ export class FeaturesService {
     entry: GFF3FeatureLineWithRefs,
     featureId: string,
   ) {
-    // Loop all lines and add those into cache
-    // for (const entry of featureObject) {
-    this.logger.debug(`Entry=${JSON.stringify(entry)}`)
-    if (entry.hasOwnProperty('featureId')) {
+    this.logger.verbose(`Entry=${JSON.stringify(entry)}`)
+    if ('featureId' in entry) {
       const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
         Object.assign(entry)
+
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       this.logger.debug(`Top level featureId=${assignedVal.featureId!}`)
-      // If matches
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       if (assignedVal.featureId! === featureId) {
         this.logger.debug(
@@ -175,7 +182,7 @@ export class FeaturesService {
       }
       // Check if there is also childFeatures in parent feature and it's not empty
       if (
-        entry.hasOwnProperty('child_features') &&
+        'child_features' in entry &&
         Object.keys(assignedVal.child_features).length > 0
       ) {
         // Let's get featureId from recursive method
@@ -191,58 +198,8 @@ export class FeaturesService {
         }
       }
     }
-    // }
     return null
   }
-  // /**
-  //  * Get single feature by featureId
-  //  * @param featureObject -
-  //  * @param featureId -
-  //  * @returns
-  //  */
-  // async getObjectByFeatureId(
-  //   featureObject: GFF3FeatureLineWithRefs[],
-  //   featureId: string,
-  // ) {
-  //   // Loop all lines and add those into cache
-  //   for (const entry of featureObject) {
-  //     this.logger.verbose(`Entry=${JSON.stringify(entry)}`)
-  //     if (entry.hasOwnProperty('featureId')) {
-  //       const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
-  //         Object.assign(entry)
-  //       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  //       this.logger.verbose(`Top level featureId=${assignedVal.featureId!}`)
-  //       // If matches
-  //       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  //       if (assignedVal.featureId! === featureId) {
-  //         this.logger.debug(
-  //           `Top level featureId matches in object ${JSON.stringify(
-  //             assignedVal,
-  //           )}`,
-  //         )
-  //         return entry
-  //       }
-  //       // Check if there is also childFeatures in parent feature and it's not empty
-  //       if (
-  //         entry.hasOwnProperty('child_features') &&
-  //         Object.keys(assignedVal.child_features).length > 0
-  //       ) {
-  //         // Let's get featureId from recursive method
-  //         this.logger.verbose(
-  //           `FeatureId was not found on top level so lets make recursive call...`,
-  //         )
-  //         const foundRecursiveObject = await this.getNestedFeatureByFeatureId(
-  //           assignedVal,
-  //           featureId,
-  //         )
-  //         if (foundRecursiveObject) {
-  //           return foundRecursiveObject
-  //         }
-  //       }
-  //     }
-  //   }
-  //   return null
-  // }
 
   /**
    *
@@ -256,7 +213,7 @@ export class FeaturesService {
   ) {
     // If there is child features and size is not 0
     if (
-      parentFeature.hasOwnProperty('child_features') &&
+      'child_features' in parentFeature &&
       Object.keys(parentFeature.child_features).length > 0
     ) {
       // Loop each child feature
@@ -270,7 +227,7 @@ export class FeaturesService {
           const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
             Object.assign(parentFeature.child_features[i][j])
           // Let's add featureId if it doesn't exist yet
-          if (assignedVal.hasOwnProperty('featureId')) {
+          if ('featureId' in assignedVal) {
             this.logger.verbose(
               `Recursive object featureId=${assignedVal.featureId}`,
             )
@@ -286,7 +243,7 @@ export class FeaturesService {
           }
           // Check if there is also childFeatures in parent feature and it's not empty
           if (
-            assignedVal.hasOwnProperty('child_features') &&
+            'child_features' in assignedVal &&
             Object.keys(assignedVal.child_features).length > 0
           ) {
             // Let's add featureId to each child recursively
