@@ -16,11 +16,8 @@ export class Feature implements GFF3FeatureLineWithRefs {
   })
   refSeqId: RefSeq
 
-  @Prop({ type: String, required: true, index: true })
-  parentFeatureId: string
-
   @Prop({ type: [String], required: true, index: true })
-  allFeatureIds: string[]
+  featureIds: string[]
 
   @Prop({ type: [String], required: true, index: true })
   featureId: string[]

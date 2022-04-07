@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
 
-import { AssemblyIdDto } from '../model/gff3.model'
 import { FeaturesService } from './features.service'
 
 @Controller('features')
@@ -27,9 +26,9 @@ export class FeaturesController {
   @UseInterceptors(FileInterceptor('file'))
   async importGFF3(
     @UploadedFile() file: Express.Multer.File,
-    @Body() body: AssemblyIdDto,
+    @Body() body: { assembly: string },
   ) {
-    this.logger.debug(`Adding new features for assemblyId: ${body.assemblyId}`)
-    this.featuresService.loadGFF3DataIntoDb(file, body.assemblyId)
+    this.logger.debug(`Adding new features for assemblyId: ${body.assembly}`)
+    return this.featuresService.loadGFF3DataIntoDb(file, body.assembly)
   }
 }
