@@ -20,6 +20,9 @@ export class Feature implements GFF3FeatureLineWithRefs {
   parentFeatureId: string
 
   @Prop({ type: [String], required: true, index: true })
+  allFeatureIds: string[]
+
+  @Prop({ type: [String], required: true, index: true })
   featureId: string[]
 
   @Prop({ required: true })
