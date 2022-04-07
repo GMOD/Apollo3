@@ -1,13 +1,16 @@
 import {
   Body,
   Controller,
+  Get,
   Logger,
+  Param,
   Post,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
 
+import { AssemblyIdDto } from '../model/gff3.model'
 import { FeaturesService } from './features.service'
 
 @Controller('features')
@@ -26,9 +29,33 @@ export class FeaturesController {
   @UseInterceptors(FileInterceptor('file'))
   async importGFF3(
     @UploadedFile() file: Express.Multer.File,
-    @Body() body: { assembly: string },
+    @Body() body: AssemblyIdDto,
   ) {
-    this.logger.debug(`Adding new features for assemblyId: ${body.assembly}`)
-    return this.featuresService.loadGFF3DataIntoDb(file, body.assembly)
+    this.logger.debug(`Adding new features for assemblyId: ${body.assemblyId}`)
+    this.featuresService.loadGFF3DataIntoDb(file, body.assemblyId)
+  }
+
+  /**
+   * Get feature by featureId. When retrieving features by id, the features and any of its children are returned, but not any of its parent or sibling features.
+   * @param featureid - featureId
+   * @returns Return 'HttpStatus.OK' and the feature(s) if search was successful
+   * or if search data was not found or in case of error throw exception
+   */
+  //  @UseGuards(JwtAuthGuard)
+  @Get('/:featureid')
+  getFeature(@Param('featureid') featureid: string) {
+    this.logger.debug(`Get feature by featureId: ${featureid}`)
+    return this.featuresService.getFeatureByFeatureId(featureid)
+  }
+
+  /**
+   * Fetch all features
+   * @returns Return 'HttpStatus.OK' and array of features if search was successful
+   * or if search data was not found or in case of error throw exception
+   */
+  @Get()
+  getAll() {
+    this.logger.debug(`Get all features`)
+    return this.featuresService.findAll()
   }
 }

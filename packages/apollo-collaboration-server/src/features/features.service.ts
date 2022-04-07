@@ -1,4 +1,8 @@
-import gff, { GFF3Feature, GFF3FeatureLine } from '@gmod/gff'
+import gff, {
+  GFF3Feature,
+  GFF3FeatureLine,
+  GFF3FeatureLineWithRefs,
+} from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
@@ -11,6 +15,8 @@ import {
 } from 'apollo-schemas'
 import { Model } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
+
+import { GFF3FeatureLineWithRefsAndFeatureId } from '../model/gff3.model'
 
 interface GFF3FeatureLineWithOptionalRefs extends GFF3FeatureLine {
   // eslint-disable-next-line camelcase
@@ -31,6 +37,10 @@ export class FeaturesService {
   ) {}
 
   private readonly logger = new Logger(FeaturesService.name)
+
+  findAll() {
+    return this.featureModel.find().exec()
+  }
 
   /**
    * This method loads GFF3 data from file into db
@@ -101,6 +111,159 @@ export class FeaturesService {
       } // else {}
     }
     this.logger.debug(`Added ${cnt} features into database`)
+  }
+
+  /**
+   * Get feature by featureId. When retrieving features by id, the features and any of its children are returned, but not any of its parent or sibling features.
+   * @param featureid - featureId
+   * @returns Return the feature(s) if search was successful. Otherwise throw exception
+   */
+  async getFeatureByFeatureId(featureId: string) {
+    // Search correct feature
+    const featureObject = await this.featureModel
+      .findOne({ allFeatureIds: featureId })
+      .exec()
+
+    if (!featureObject) {
+      const errMsg = `ERROR: The following featureId was not found in database ='${featureId}'`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+
+    // Let's check if featureId is parent feature --> return parent + children
+    const parentFeature = await this.featureModel
+      .findOne({ parentFeatureId: featureId })
+      .exec()
+    if (parentFeature) {
+      this.logger.debug(
+        `Feature was parent level feature: ${JSON.stringify(parentFeature)}`,
+      )
+      return parentFeature
+    }
+    this.logger.verbose(`Feature found: ${JSON.stringify(featureObject)}`)
+
+    // Now we need to find correct top level feature or sub-feature inside the feature
+    const foundFeature = await this.getObjectByFeatureId(
+      featureObject,
+      featureId,
+    )
+    if (!foundFeature) {
+      const errMsg = `ERROR when searching feature by featureId`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+    this.logger.debug(`Feature found: ${JSON.stringify(foundFeature)}`)
+    return foundFeature
+  }
+
+  /**
+   * Get single feature by featureId
+   * @param featureObject -
+   * @param featureId -
+   * @returns
+   */
+  async getObjectByFeatureId(
+    entry: GFF3FeatureLineWithRefs,
+    featureId: string,
+  ) {
+    this.logger.verbose(`Entry=${JSON.stringify(entry)}`)
+    if ('featureId' in entry) {
+      const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
+        Object.assign(entry)
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.logger.debug(`Top level featureId=${assignedVal.featureId!}`)
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      if (assignedVal.featureId! === featureId) {
+        this.logger.debug(
+          `Top level featureId matches in object ${JSON.stringify(
+            assignedVal,
+          )}`,
+        )
+        return entry
+      }
+      // Check if there is also childFeatures in parent feature and it's not empty
+      if (
+        'child_features' in entry &&
+        Object.keys(assignedVal.child_features).length > 0
+      ) {
+        // Let's get featureId from recursive method
+        this.logger.debug(
+          `FeatureId was not found on top level so lets make recursive call...`,
+        )
+        const foundRecursiveObject = await this.getNestedFeatureByFeatureId(
+          assignedVal,
+          featureId,
+        )
+        if (foundRecursiveObject) {
+          return foundRecursiveObject
+        }
+      }
+    }
+    return null
+  }
+
+  /**
+   *
+   * @param parentFeature - parent feature where search will be started
+   * @param featureId - featureId to search
+   * @returns Found child feature, or return null if feature was not found
+   */
+  async getNestedFeatureByFeatureId(
+    parentFeature: GFF3FeatureLineWithRefs,
+    featureId: string,
+  ) {
+    // If there is child features and size is not 0
+    if (
+      'child_features' in parentFeature &&
+      Object.keys(parentFeature.child_features).length > 0
+    ) {
+      // Loop each child feature
+      for (
+        let i = 0;
+        i < Object.keys(parentFeature.child_features).length;
+        i++
+      ) {
+        // There can be several features with same ID so we need to loop
+        for (let j = 0; parentFeature.child_features[i].length > j; j++) {
+          const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
+            Object.assign(parentFeature.child_features[i][j])
+          // Let's add featureId if it doesn't exist yet
+          if ('featureId' in assignedVal) {
+            this.logger.verbose(
+              `Recursive object featureId=${assignedVal.featureId}`,
+            )
+            // If featureId matches
+            if (assignedVal.featureId === featureId) {
+              this.logger.verbose(
+                `Found featureId from recursive object ${JSON.stringify(
+                  assignedVal,
+                )}`,
+              )
+              return assignedVal
+            }
+          }
+          // Check if there is also childFeatures in parent feature and it's not empty
+          if (
+            'child_features' in assignedVal &&
+            Object.keys(assignedVal.child_features).length > 0
+          ) {
+            // Let's add featureId to each child recursively
+            const foundObject = (await this.getNestedFeatureByFeatureId(
+              assignedVal,
+              featureId,
+            )) as GFF3FeatureLineWithRefs
+            this.logger.verbose(
+              `Found recursive object is ${JSON.stringify(foundObject)}`,
+            )
+            if (foundObject != null) {
+              return foundObject
+            }
+          }
+        }
+      }
+    }
+    return null
   }
 
   /**
