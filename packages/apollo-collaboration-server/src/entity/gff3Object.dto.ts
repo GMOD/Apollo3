@@ -24,8 +24,7 @@ export interface FeatureChangeTmp {
 }
 
 export interface FeatureRangeSearchDto {
-  assemblyId: string
-  refName: string
+  refSeq: string
   start: number
   end: number
 }

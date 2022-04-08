@@ -223,30 +223,17 @@ export class FeaturesService {
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
    * or if search data was not found or in case of error throw exception
    */
-  async getFeaturesByCriteria(searchDto: FeatureRangeSearchDto) {
-    // Search refSeqs by assemblyId
-    const refSeqs = await this.refSeqModel
-      .find({ assembly: searchDto.assemblyId })
-      .exec()
-    if (refSeqs.length < 1) {
-      const errMsg = `ERROR: No RefSeqs were found for assemblyId: ${searchDto.assemblyId}`
-      this.logger.error(errMsg)
-      throw new NotFoundException(errMsg)
-    }
-    const refSeqIdIdArray = refSeqs.map((refSeq) => refSeq._id)
-    this.logger.verbose(`Found refSeqs: ${refSeqIdIdArray}`)
-
+  async findByRange(searchDto: FeatureRangeSearchDto) {
     // Search feature
     const features = await this.featureModel
       .find({
-        seq_id: searchDto.refName,
+        refSeq: searchDto.refSeq,
         start: { $lte: searchDto.end },
         end: { $gte: searchDto.start },
-        refSeqId: refSeqIdIdArray,
       })
       .exec()
     this.logger.debug(
-      `Searching features for AssemblyId: ${searchDto.assemblyId}, refName: ${searchDto.refName}, start: ${searchDto.start}, end: ${searchDto.end}`,
+      `Searching features for refSeq: ${searchDto.refSeq}, start: ${searchDto.start}, end: ${searchDto.end}`,
     )
 
     this.logger.verbose(
