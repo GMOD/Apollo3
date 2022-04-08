@@ -249,12 +249,6 @@ export class FeaturesService {
       `Searching features for AssemblyId: ${searchDto.assemblyId}, refName: ${searchDto.refName}, start: ${searchDto.start}, end: ${searchDto.end}`,
     )
 
-    if (features.length < 1) {
-      const errMsg = `ERROR: No features were found in database`
-      this.logger.error(errMsg)
-      throw new NotFoundException(errMsg)
-    }
-
     this.logger.verbose(
       `The following feature(s) matched  = ${JSON.stringify(features)}`,
     )
