@@ -29,3 +29,9 @@ export interface FeatureRangeSearchDto {
   start: number
   end: number
 }
+
+export interface UpdateEndObjectDto {
+  featureId: string
+  oldEnd: string
+  newEnd: string
+}
