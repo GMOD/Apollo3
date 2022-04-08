@@ -76,14 +76,14 @@ export class FeaturesService {
             )
           }
           const refSeqDoc = await this.refSeqModel
-            .findOne({ assemblyId, name: refName })
+            .findOne({ assembly: assemblyId, name: refName })
             .exec()
           if (!refSeqDoc) {
             throw new NotFoundException(
               `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refName}" not found`,
             )
           }
-          const refSeqId = refSeqDoc._id
+          const refSeq = refSeqDoc._id
           // Let's add featureId to parent feature
           const featureId = uuidv4()
           const featureIds = [featureId]
@@ -98,10 +98,10 @@ export class FeaturesService {
           )
 
           this.logger.verbose(
-            `Added new feature for refSeq "${refSeqId}" into database`,
+            `Added new feature for refSeq "${refSeq}" into database`,
           )
           await this.featureModel.create({
-            refSeqId,
+            refSeq,
             featureId,
             featureIds,
             ...featureLine,
