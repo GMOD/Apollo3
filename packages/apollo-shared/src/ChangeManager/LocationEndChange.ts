@@ -1,10 +1,12 @@
-import gff, { GFF3Feature, GFF3Item } from '@gmod/gff'
+import { GFF3Feature, GFF3FeatureLineWithRefs } from '@gmod/gff'
+import { InternalServerErrorException, NotFoundException } from '@nestjs/common'
 import { resolveIdentifier } from 'mobx-state-tree'
 
 import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
 import {
   Change,
   ClientDataStore,
+  GFF3FeatureLineWithRefsAndFeatureId,
   LocalGFF3DataStore,
   SerializedChange,
 } from './Change'
@@ -43,49 +45,96 @@ export class LocationEndChange extends Change {
   }
 
   /**
-   * Applies the required change to cache and overwrites GFF3 file on the server
+   * Applies the required change to database
    * @param backend - parameters from backend
    * @returns
    */
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
     const { changes } = this
-
-    console.debug(`Change request: ${JSON.stringify(changes)}`)
-    let gff3ItemString: string | undefined = ''
-    const cacheKeys: string[] = await backend.cacheManager.store.keys?.()
-    cacheKeys.sort((n1: string, n2: string) => Number(n1) - Number(n2))
-    for (const change of changes) {
-      // const { featureId, oldEnd, newEnd } = change
-      // const searchApolloIdStr = `"apollo_id":["${featureId}"]`
-
-      // Loop the cache content
-      for (const lineNumber of cacheKeys) {
-        gff3ItemString = await backend.cacheManager.get(lineNumber)
-        if (!gff3ItemString) {
-          throw new Error(`No cache value found for key ${lineNumber}`)
-        }
-        const gff3Item = JSON.parse(gff3ItemString) as GFF3Item
-        if (Array.isArray(gff3Item)) {
-          const updated = this.getUpdatedCacheEntryForFeature(gff3Item, change)
-          if (updated) {
-            await backend.cacheManager.set(lineNumber, JSON.stringify(gff3Item))
-            break
-          }
-        }
-      }
-    }
-    // Loop the updated cache and write it into file
-    const gff3 = await Promise.all(
-      cacheKeys.map(async (keyInd): Promise<GFF3Item> => {
-        gff3ItemString = await backend.cacheManager.get(keyInd.toString())
-        if (!gff3ItemString) {
-          throw new Error(`No entry found for ${keyInd.toString()}`)
-        }
-        return JSON.parse(gff3ItemString)
-      }),
+    // eslint-disable-next-line prefer-destructuring
+    const { featureId, oldEnd, newEnd } = changes[0]
+    console.debug(
+      `applyToLocalGFF3 -method, End-change request: ${JSON.stringify(
+        changes,
+      )}`,
     )
-    // console.verbose(`Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`)
-    await backend.gff3Handle.writeFile(gff.formatSync(gff3))
+
+    // Search correct feature
+    const featureObject = await backend.featureModel
+      .findOne({ allFeatureIds: featureId })
+      .exec()
+
+    if (!featureObject) {
+      const errMsg = `ERROR: The following featureId was not found in database ='${featureId}'`
+      console.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+    console.info(`Feature found: ${JSON.stringify(featureObject)}`)
+
+    // Let's check if featureId is parent feature --> return parent + children
+    const parentFeature = await backend.featureModel
+      .findOne({ parentFeatureId: featureId })
+      .exec()
+    if (parentFeature) {
+      console.info(
+        `Feature was parent level feature: ${JSON.stringify(parentFeature)}`,
+      )
+      // ********* OTA PARENT FEATURE AS UPDATABLE OBJECT *******
+    } else {
+      // Feature must be child feature
+      const foundFeature = await this.getObjectByFeatureId(
+        featureObject,
+        featureId,
+      )
+      if (!foundFeature) {
+        const errMsg = `ERROR when searching feature by featureId`
+        console.error(errMsg)
+        throw new NotFoundException(errMsg)
+      }
+      console.debug(
+        `Feature found as child feature: ${JSON.stringify(foundFeature)}`,
+      )
+    }
+
+    // // // Search correct feature
+    // // const featureObject = await backend.featureModel
+    // //   .findOne({ featureId })
+    // //   .exec()
+
+    // // if (!featureObject) {
+    // //   const errMsg = `ERROR when updating MongoDb: The following featureId was not found in database: '${featureId}'`
+    // //   console.error(errMsg)
+    // //   throw new NotFoundException(errMsg)
+    // // }
+
+    // // const updatableObjectAsGFFItemArray =
+    // //   featureObject.gff3FeatureLineWithRefs as unknown as GFF3FeatureLineWithRefs[]
+    // // console.debug(`Feature found  = ${JSON.stringify(featureObject)}`)
+    // // // Now we need to find correct top level feature or sub-feature inside the feature
+    // // const updatableObject = await this.getObjectByFeatureId(
+    // //   updatableObjectAsGFFItemArray,
+    // //   featureId,
+    // // )
+    // // if (!updatableObject) {
+    // //   const errMsg = `ERROR when updating MongoDb....`
+    // //   console.error(errMsg)
+    // //   throw new NotFoundException(errMsg)
+    // // }
+    // // console.debug(`Object found: ${JSON.stringify(updatableObject)}`)
+    // const assignedVal: GFF3FeatureLineWithRefs = Object.assign(foundFeature)
+    // if (assignedVal.end !== oldEnd) {
+    //   const errMsg = `Old end value in db ${assignedVal.end} does not match with old value ${oldEnd} as given in parameter`
+    //   console.error(errMsg)
+    //   throw new NotFoundException(errMsg)
+    // }
+    // // Set new value
+    // assignedVal.end = newEnd
+    // await featureObject.markModified('end') // Mark as modified. Without this save() -method is not updating data in database
+    // await featureObject.save().catch((error: unknown) => {
+    //   throw new InternalServerErrorException(error)
+    // })
+    console.debug(`Object updated in Mongo`)
+    console.debug(`Updated whole object ${JSON.stringify(featureObject)}`)
   }
 
   async applyToClient(dataStore: ClientDataStore) {
@@ -122,51 +171,109 @@ export class LocationEndChange extends Change {
     })
   }
 
-  getUpdatedCacheEntryForFeature(
-    gff3Feature: GFF3Feature,
-    change: EndChange,
-  ): boolean {
-    for (const featureLine of gff3Feature) {
+  /**
+   * Get single feature by featureId
+   * @param featureObject -
+   * @param featureId -
+   * @returns
+   */
+  async getObjectByFeatureId(
+    entry: GFF3FeatureLineWithRefs,
+    featureId: string,
+  ) {
+    console.debug(`Entry=${JSON.stringify(entry)}`)
+    if ('featureId' in entry) {
+      const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
+        Object.assign(entry)
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      console.debug(`Top level featureId=${assignedVal.featureId!}`)
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      if (assignedVal.featureId! === featureId) {
+        console.debug(
+          `Top level featureId matches in object ${JSON.stringify(
+            assignedVal,
+          )}`,
+        )
+        return entry
+      }
+      // Check if there is also childFeatures in parent feature and it's not empty
       if (
-        !(
-          'attributes' in featureLine &&
-          featureLine.attributes &&
-          'apollo_id' in featureLine.attributes &&
-          featureLine.attributes.apollo_id
-        )
+        'child_features' in entry &&
+        Object.keys(assignedVal.child_features).length > 0
       ) {
-        throw new Error(
-          `Encountered feature without apollo_id: ${JSON.stringify(
-            gff3Feature,
-          )}`,
+        // Let's get featureId from recursive method
+        console.debug(
+          `FeatureId was not found on top level so lets make recursive call...`,
         )
-      }
-      if (featureLine.attributes.apollo_id.length > 1) {
-        throw new Error(
-          `Encountered feature with multiple apollo_ids: ${JSON.stringify(
-            gff3Feature,
-          )}`,
+        const foundRecursiveObject = await this.getNestedFeatureByFeatureId(
+          assignedVal,
+          featureId,
         )
-      }
-      const [apolloId] = featureLine.attributes.apollo_id
-      const { featureId, newEnd, oldEnd } = change
-      if (apolloId === featureId) {
-        if (featureLine.end !== oldEnd) {
-          throw new Error(
-            `Incoming end ${oldEnd} does not match existing end ${featureLine.end}`,
-          )
+        if (foundRecursiveObject) {
+          return foundRecursiveObject
         }
-        featureLine.end = newEnd
-        return true
-      }
-      if (featureLine.child_features.length > 0) {
-        return featureLine.child_features
-          .map((childFeature) =>
-            this.getUpdatedCacheEntryForFeature(childFeature, change),
-          )
-          .some((r) => r)
       }
     }
-    return false
+    return null
+  }
+
+  /**
+   *
+   * @param parentFeature - parent feature where search will be started
+   * @param featureId - featureId to search
+   * @returns Found child feature, or return null if feature was not found
+   */
+  async getNestedFeatureByFeatureId(
+    parentFeature: GFF3FeatureLineWithRefs,
+    featureId: string,
+  ) {
+    // If there is child features and size is not 0
+    if (
+      'child_features' in parentFeature &&
+      Object.keys(parentFeature.child_features).length > 0
+    ) {
+      // Loop each child feature
+      for (
+        let i = 0;
+        i < Object.keys(parentFeature.child_features).length;
+        i++
+      ) {
+        // There can be several features with same ID so we need to loop
+        for (let j = 0; parentFeature.child_features[i].length > j; j++) {
+          const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
+            Object.assign(parentFeature.child_features[i][j])
+          // Let's add featureId if it doesn't exist yet
+          if ('featureId' in assignedVal) {
+            console.debug(`Recursive object featureId=${assignedVal.featureId}`)
+            // If featureId matches
+            if (assignedVal.featureId === featureId) {
+              console.debug(
+                `Found featureId from recursive object ${JSON.stringify(
+                  assignedVal,
+                )}`,
+              )
+              return assignedVal
+            }
+          }
+          // Check if there is also childFeatures in parent feature and it's not empty
+          if (
+            'child_features' in assignedVal &&
+            Object.keys(assignedVal.child_features).length > 0
+          ) {
+            // Let's add featureId to each child recursively
+            const foundObject = (await this.getNestedFeatureByFeatureId(
+              assignedVal,
+              featureId,
+            )) as GFF3FeatureLineWithRefs
+            // console.debug(`Found recursive object is ${JSON.stringify(foundObject)}`)
+            if (foundObject != null) {
+              return foundObject
+            }
+          }
+        }
+      }
+    }
+    return null
   }
 }

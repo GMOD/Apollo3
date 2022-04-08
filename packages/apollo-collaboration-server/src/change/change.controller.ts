@@ -3,7 +3,7 @@ import { join } from 'path'
 
 import {
   Body,
-  CACHE_MANAGER,
+  // CACHE_MANAGER,
   Controller,
   Inject,
   Logger,
@@ -16,7 +16,7 @@ import {
   SerializedChange,
   changeRegistry,
 } from 'apollo-shared'
-import { Cache } from 'cache-manager'
+// import { Cache } from 'cache-manager'
 
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { ChangeService } from './change.service'
@@ -25,7 +25,7 @@ import { ChangeService } from './change.service'
 export class ChangeController {
   private readonly logger = new Logger(ChangeController.name)
   constructor(
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    // @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly changeService: ChangeService,
   ) {
     changeRegistry.registerChange('LocationEndChange', LocationEndChange) // Do this only once
@@ -57,11 +57,11 @@ export class ChangeController {
       'r+',
     )
     try {
-      await change.apply({
-        typeName: 'LocalGFF3',
-        cacheManager: this.cacheManager,
-        gff3Handle,
-      })
+      // await change.apply({
+      //   typeName: 'LocalGFF3',
+      //   cacheManager: this.cacheManager,
+      //   gff3Handle,
+      // })
     } catch (error) {
       throw error
     } finally {
