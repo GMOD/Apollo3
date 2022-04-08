@@ -19,8 +19,8 @@ export class Feature implements GFF3FeatureLineWithRefs {
   @Prop({ type: [String], required: true, index: true })
   featureIds: string[]
 
-  @Prop({ type: [String], required: true, index: true })
-  featureId: string[]
+  @Prop({ type: String, required: true, index: true })
+  featureId: string
 
   @Prop({ required: true })
   // eslint-disable-next-line camelcase
