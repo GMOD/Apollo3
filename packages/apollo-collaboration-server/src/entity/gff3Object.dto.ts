@@ -22,3 +22,9 @@ export interface FeatureChangeTmp {
   oldEnd: number
   newEnd: number
 }
+
+export interface FeatureRangeSearchDto {
+  refSeq: string
+  start: number
+  end: number
+}

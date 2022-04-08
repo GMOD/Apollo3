@@ -12,6 +12,8 @@ import {
 import { Model } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 
+import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
+
 interface GFF3FeatureLineWithOptionalRefs extends GFF3FeatureLine {
   // eslint-disable-next-line camelcase
   child_features?: GFF3Feature[]
@@ -74,14 +76,14 @@ export class FeaturesService {
             )
           }
           const refSeqDoc = await this.refSeqModel
-            .findOne({ assemblyId, name: refName })
+            .findOne({ assembly: assemblyId, name: refName })
             .exec()
           if (!refSeqDoc) {
             throw new NotFoundException(
               `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refName}" not found`,
             )
           }
-          const refSeqId = refSeqDoc._id
+          const refSeq = refSeqDoc._id
           // Let's add featureId to parent feature
           const featureId = uuidv4()
           const featureIds = [featureId]
@@ -96,10 +98,10 @@ export class FeaturesService {
           )
 
           this.logger.verbose(
-            `Added new feature for refSeq "${refSeqId}" into database`,
+            `Added new feature for refSeq "${refSeq}" into database`,
           )
           await this.featureModel.create({
-            refSeqId,
+            refSeq,
             featureId,
             featureIds,
             ...featureLine,
@@ -213,5 +215,30 @@ export class FeaturesService {
       )
     }
     return featureIdArrAsParam
+  }
+
+  /**
+   * Fetch features based on Reference seq, Start and End -values
+   * @param request - Contain search criteria i.e. refname, start and end -parameters
+   * @returns Return 'HttpStatus.OK' and array of features if search was successful
+   * or if search data was not found or in case of error throw exception
+   */
+  async findByRange(searchDto: FeatureRangeSearchDto) {
+    // Search feature
+    const features = await this.featureModel
+      .find({
+        refSeq: searchDto.refSeq,
+        start: { $lte: searchDto.end },
+        end: { $gte: searchDto.start },
+      })
+      .exec()
+    this.logger.debug(
+      `Searching features for refSeq: ${searchDto.refSeq}, start: ${searchDto.start}, end: ${searchDto.end}`,
+    )
+
+    this.logger.verbose(
+      `The following feature(s) matched  = ${JSON.stringify(features)}`,
+    )
+    return features
   }
 }
