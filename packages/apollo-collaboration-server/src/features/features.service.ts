@@ -12,6 +12,8 @@ import {
 import { Model } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 
+import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
+
 interface GFF3FeatureLineWithOptionalRefs extends GFF3FeatureLine {
   // eslint-disable-next-line camelcase
   child_features?: GFF3Feature[]
@@ -213,5 +215,49 @@ export class FeaturesService {
       )
     }
     return featureIdArrAsParam
+  }
+
+  /**
+   * Fetch features based on Reference seq, Start and End -values
+   * @param request - Contain search criteria i.e. refname, start and end -parameters
+   * @returns Return 'HttpStatus.OK' and array of features if search was successful
+   * or if search data was not found or in case of error throw exception
+   */
+  async getFeaturesByCriteria(searchDto: FeatureRangeSearchDto) {
+    // Search refSeqs by assemblyId
+    const refSeqs = await this.refSeqModel
+      .find({ assembly: searchDto.assemblyId })
+      .exec()
+    if (refSeqs.length < 1) {
+      const errMsg = `ERROR: No RefSeqs were found for assemblyId: ${searchDto.assemblyId}`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+    const refSeqIdIdArray = refSeqs.map((refSeq) => refSeq._id)
+    this.logger.verbose(`Found refSeqs: ${refSeqIdIdArray}`)
+
+    // Search feature
+    const features = await this.featureModel
+      .find({
+        seq_id: searchDto.refName,
+        start: { $lte: searchDto.end },
+        end: { $gte: searchDto.start },
+        refSeqId: refSeqIdIdArray,
+      })
+      .exec()
+    this.logger.debug(
+      `Searching features for AssemblyId: ${searchDto.assemblyId}, refName: ${searchDto.refName}, start: ${searchDto.start}, end: ${searchDto.end}`,
+    )
+
+    if (features.length < 1) {
+      const errMsg = `ERROR: No features were found in database`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+
+    this.logger.verbose(
+      `The following feature(s) matched  = ${JSON.stringify(features)}`,
+    )
+    return features
   }
 }
