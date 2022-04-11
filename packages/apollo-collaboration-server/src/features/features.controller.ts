@@ -10,6 +10,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
+import { SerializedChange } from 'apollo-shared'
 
 import { FeatureRangeSearchDto, UpdateEndObjectDto } from '../entity/gff3Object.dto'
 import { AssemblyIdDto } from '../model/gff3.model'
@@ -77,21 +78,38 @@ export class FeaturesController {
     return this.featuresService.getFeaturesByCriteria(request)
   }
 
-    /**
+      /**
    * Updates end position of given feature. Before update, current end -position value is checked (against given old-value)
    * @param postDto - Interface containing featureId, newEndValue, oldEndValue
    * @returns Return 'HttpStatus.OK' if featureId was found AND oldEndValue matched AND database update was successfull. Otherwise throw exception.
    */
   //  @UseGuards(JwtAuthGuard)
   @Put('/updateEndPos')
-  updateMongo(@Body() postDto: UpdateEndObjectDto) {
-    this.logger.debug(
-      `Update Mongo document where featureId=${
-        postDto.featureId
-      } and old value=${JSON.stringify(
-        postDto.oldEnd,
-      )}. New value will be ${JSON.stringify(postDto.newEnd)}.`,
-    )
-    return this.featuresService.updateEndPosInMongo(postDto)
+  updateMongo(@Body() serializedChange: SerializedChange) {
+    // this.logger.debug(
+    //   `Update Mongo document where featureId=${
+    //     postDto.featureId
+    //   } and old value=${JSON.stringify(
+    //     postDto.oldEnd,
+    //   )}. New value will be ${JSON.stringify(postDto.newEnd)}.`,
+    // )
+    // return this.featuresService.changeEndPos(postDto)
   }
+  //   /**
+  //  * Updates end position of given feature. Before update, current end -position value is checked (against given old-value)
+  //  * @param postDto - Interface containing featureId, newEndValue, oldEndValue
+  //  * @returns Return 'HttpStatus.OK' if featureId was found AND oldEndValue matched AND database update was successfull. Otherwise throw exception.
+  //  */
+  // //  @UseGuards(JwtAuthGuard)
+  // @Put('/updateEndPos')
+  // updateMongo(@Body() postDto: UpdateEndObjectDto) {
+  //   this.logger.debug(
+  //     `Update Mongo document where featureId=${
+  //       postDto.featureId
+  //     } and old value=${JSON.stringify(
+  //       postDto.oldEnd,
+  //     )}. New value will be ${JSON.stringify(postDto.newEnd)}.`,
+  //   )
+  //   return this.featuresService.changeEndPos(postDto)
+  // }
 }
