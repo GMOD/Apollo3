@@ -93,7 +93,7 @@ export class FeaturesController {
     //     postDto.oldEnd,
     //   )}. New value will be ${JSON.stringify(postDto.newEnd)}.`,
     // )
-    // return this.featuresService.changeEndPos(postDto)
+    return this.featuresService.changeEndPos(serializedChange)
   }
   //   /**
   //  * Updates end position of given feature. Before update, current end -position value is checked (against given old-value)

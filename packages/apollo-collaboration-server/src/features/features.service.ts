@@ -44,14 +44,14 @@ export class FeaturesService {
     const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
     const change = new ChangeType(serializedChange)
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
-    // try {
-    //   await change.apply({
-    //     typeName: 'LocalGFF3',
-    //     featureModel: this.featureModel,
-    //   })
-    // } catch (error) {
-    //   throw error
-    // }
+    try {
+      await change.apply({
+        typeName: 'LocalGFF3',
+        featureModel: this.featureModel,
+      })
+    } catch (error) {
+      throw error
+    }
     return []
   }
 

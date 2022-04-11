@@ -1,10 +1,4 @@
 import gff, { GFF3Feature, GFF3FeatureLineWithRefs, GFF3Item } from '@gmod/gff'
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common'
-import { Feature, FeatureDocument } from 'apollo-schemas'
 import { resolveIdentifier } from 'mobx-state-tree'
 
 import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
@@ -49,6 +43,9 @@ export class LocationEndChange extends Change {
     }
   }
 
+  // ****** JOS KÄYTTÄÄ NESJS/COMMONia niin tulee luultavasti RUNTIME ERROR 
+
+  
   /**
    * Applies the required change to database
    * @param backend - parameters from backend
@@ -72,7 +69,8 @@ export class LocationEndChange extends Change {
     if (!featureObject) {
       const errMsg = `ERROR: The following featureId was not found in database ='${featureId}'`
       console.error(errMsg)
-      throw new NotFoundException(errMsg)
+      throw new Error(errMsg)
+      // throw new NotFoundException(errMsg)  -- This is causing runtime error
     }
     console.info(`Feature found: ${JSON.stringify(featureObject)}`)
 
@@ -98,36 +96,17 @@ export class LocationEndChange extends Change {
       }
       console.debug(`One found: ${JSON.stringify(featureObject)}`)
 
-      const updatableObjectAsGFFItemArray =
-        featureObject.gff3FeatureLineWithRefs as unknown as GFF3FeatureLineWithRefs[]
-      console.info(`Feature found  = ${JSON.stringify(featureObject)}`)
-      // Now we need to find correct top level feature or sub-feature inside the feature
-      const updatableObject = await this.getObjectByFeatureId(
-        updatableObjectAsGFFItemArray,
-        featureId,
-      )
-      if (!updatableObject) {
-        const errMsg = `ERROR when updating MongoDb....`
-        this.logger.error(errMsg)
-        throw new NotFoundException(errMsg)
-      }
-      console.debug(`Object found: ${JSON.stringify(updatableObject)}`)
-      const assignedVal: GFF3FeatureLineWithRefs =
-        Object.assign(updatableObject)
-      if (assignedVal.end !== oldEnd) {
-        const errMsg = `Old end value in db ${assignedVal.end} does not match with old value ${oldEnd} as given in parameter`
-        console.error(errMsg)
-        throw new NotFoundException(errMsg)
-      }
+
       // Set new value
-      assignedVal.end = newEnd
+      // assignedVal.end = newEnd
       await featureObject.markModified('gff3FeatureLineWithRefs') // Mark as modified. Without this save() -method is not updating data in database
       await featureObject.save().catch((error: unknown) => {
-        throw new InternalServerErrorException(error)
+        throw new Error(error!)
       })
       console.debug(`Object updated in Mongo`)
       console.info(`Updated whole object ${JSON.stringify(featureObject)}`)
     }
+      // */
 
     // // // Search correct feature
     // // const featureObject = await backend.featureModel
@@ -166,8 +145,10 @@ export class LocationEndChange extends Change {
     // await featureObject.save().catch((error: unknown) => {
     //   throw new InternalServerErrorException(error)
     // })
-    console.debug(`Object updated in Mongo`)
-    console.debug(`Updated whole object ${JSON.stringify(featureObject)}`)
+
+
+    // console.debug(`Object updated in Mongo`)
+    // console.debug(`Updated whole object ${JSON.stringify(featureObject)}`)
   }
 
   async applyToClient(dataStore: ClientDataStore) {
@@ -278,9 +259,7 @@ export class LocationEndChange extends Change {
             Object.assign(parentFeature.child_features[i][j])
           // Let's add featureId if it doesn't exist yet
           if ('featureId' in assignedVal) {
-            console.info(
-              `Recursive object featureId=${assignedVal.featureId}`,
-            )
+            console.info(`Recursive object featureId=${assignedVal.featureId}`)
             // If featureId matches
             if (assignedVal.featureId === featureId) {
               console.info(
@@ -313,52 +292,4 @@ export class LocationEndChange extends Change {
     }
     return null
   }
-
-  // getUpdatedCacheEntryForFeature(
-  //   gff3Feature: GFF3Feature,
-  //   change: EndChange,
-  // ): boolean {
-  //   for (const featureLine of gff3Feature) {
-  //     if (
-  //       !(
-  //         'attributes' in featureLine &&
-  //         featureLine.attributes &&
-  //         'apollo_id' in featureLine.attributes &&
-  //         featureLine.attributes.apollo_id
-  //       )
-  //     ) {
-  //       throw new Error(
-  //         `Encountered feature without apollo_id: ${JSON.stringify(
-  //           gff3Feature,
-  //         )}`,
-  //       )
-  //     }
-  //     if (featureLine.attributes.apollo_id.length > 1) {
-  //       throw new Error(
-  //         `Encountered feature with multiple apollo_ids: ${JSON.stringify(
-  //           gff3Feature,
-  //         )}`,
-  //       )
-  //     }
-  //     const [apolloId] = featureLine.attributes.apollo_id
-  //     const { featureId, newEnd, oldEnd } = change
-  //     if (apolloId === featureId) {
-  //       if (featureLine.end !== oldEnd) {
-  //         throw new Error(
-  //           `Incoming end ${oldEnd} does not match existing end ${featureLine.end}`,
-  //         )
-  //       }
-  //       featureLine.end = newEnd
-  //       return true
-  //     }
-  //     if (featureLine.child_features.length > 0) {
-  //       return featureLine.child_features
-  //         .map((childFeature) =>
-  //           this.getUpdatedCacheEntryForFeature(childFeature, change),
-  //         )
-  //         .some((r) => r)
-  //     }
-  //   }
-  //   return false
-  // }
 }
