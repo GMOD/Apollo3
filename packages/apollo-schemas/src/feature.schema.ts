@@ -59,3 +59,6 @@ export class Feature implements GFF3FeatureLineWithRefs {
   derived_features: GFF3Feature[]
 }
 export const FeatureSchema = SchemaFactory.createForClass(Feature)
+
+FeatureSchema.index({ refSeq: 1, start: 1 })
+FeatureSchema.index({ refSeq: 1, end: 1 })
