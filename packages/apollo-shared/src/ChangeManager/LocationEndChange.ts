@@ -1,5 +1,10 @@
-import { GFF3Feature, GFF3FeatureLineWithRefs } from '@gmod/gff'
-import { InternalServerErrorException, NotFoundException } from '@nestjs/common'
+import gff, { GFF3Feature, GFF3FeatureLineWithRefs, GFF3Item } from '@gmod/gff'
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common'
+import { Feature, FeatureDocument } from 'apollo-schemas'
 import { resolveIdentifier } from 'mobx-state-tree'
 
 import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
@@ -89,11 +94,39 @@ export class LocationEndChange extends Change {
       if (!foundFeature) {
         const errMsg = `ERROR when searching feature by featureId`
         console.error(errMsg)
+        throw new Error(errMsg)
+      }
+      console.debug(`One found: ${JSON.stringify(featureObject)}`)
+
+      const updatableObjectAsGFFItemArray =
+        featureObject.gff3FeatureLineWithRefs as unknown as GFF3FeatureLineWithRefs[]
+      console.info(`Feature found  = ${JSON.stringify(featureObject)}`)
+      // Now we need to find correct top level feature or sub-feature inside the feature
+      const updatableObject = await this.getObjectByFeatureId(
+        updatableObjectAsGFFItemArray,
+        featureId,
+      )
+      if (!updatableObject) {
+        const errMsg = `ERROR when updating MongoDb....`
+        this.logger.error(errMsg)
         throw new NotFoundException(errMsg)
       }
-      console.debug(
-        `Feature found as child feature: ${JSON.stringify(foundFeature)}`,
-      )
+      console.debug(`Object found: ${JSON.stringify(updatableObject)}`)
+      const assignedVal: GFF3FeatureLineWithRefs =
+        Object.assign(updatableObject)
+      if (assignedVal.end !== oldEnd) {
+        const errMsg = `Old end value in db ${assignedVal.end} does not match with old value ${oldEnd} as given in parameter`
+        console.error(errMsg)
+        throw new NotFoundException(errMsg)
+      }
+      // Set new value
+      assignedVal.end = newEnd
+      await featureObject.markModified('gff3FeatureLineWithRefs') // Mark as modified. Without this save() -method is not updating data in database
+      await featureObject.save().catch((error: unknown) => {
+        throw new InternalServerErrorException(error)
+      })
+      console.debug(`Object updated in Mongo`)
+      console.info(`Updated whole object ${JSON.stringify(featureObject)}`)
     }
 
     // // // Search correct feature
@@ -181,7 +214,7 @@ export class LocationEndChange extends Change {
     entry: GFF3FeatureLineWithRefs,
     featureId: string,
   ) {
-    console.debug(`Entry=${JSON.stringify(entry)}`)
+    console.info(`Entry=${JSON.stringify(entry)}`)
     if ('featureId' in entry) {
       const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
         Object.assign(entry)
@@ -245,10 +278,12 @@ export class LocationEndChange extends Change {
             Object.assign(parentFeature.child_features[i][j])
           // Let's add featureId if it doesn't exist yet
           if ('featureId' in assignedVal) {
-            console.debug(`Recursive object featureId=${assignedVal.featureId}`)
+            console.info(
+              `Recursive object featureId=${assignedVal.featureId}`,
+            )
             // If featureId matches
             if (assignedVal.featureId === featureId) {
-              console.debug(
+              console.info(
                 `Found featureId from recursive object ${JSON.stringify(
                   assignedVal,
                 )}`,
@@ -266,7 +301,9 @@ export class LocationEndChange extends Change {
               assignedVal,
               featureId,
             )) as GFF3FeatureLineWithRefs
-            // console.debug(`Found recursive object is ${JSON.stringify(foundObject)}`)
+            console.info(
+              `Found recursive object is ${JSON.stringify(foundObject)}`,
+            )
             if (foundObject != null) {
               return foundObject
             }
@@ -276,4 +313,52 @@ export class LocationEndChange extends Change {
     }
     return null
   }
+
+  // getUpdatedCacheEntryForFeature(
+  //   gff3Feature: GFF3Feature,
+  //   change: EndChange,
+  // ): boolean {
+  //   for (const featureLine of gff3Feature) {
+  //     if (
+  //       !(
+  //         'attributes' in featureLine &&
+  //         featureLine.attributes &&
+  //         'apollo_id' in featureLine.attributes &&
+  //         featureLine.attributes.apollo_id
+  //       )
+  //     ) {
+  //       throw new Error(
+  //         `Encountered feature without apollo_id: ${JSON.stringify(
+  //           gff3Feature,
+  //         )}`,
+  //       )
+  //     }
+  //     if (featureLine.attributes.apollo_id.length > 1) {
+  //       throw new Error(
+  //         `Encountered feature with multiple apollo_ids: ${JSON.stringify(
+  //           gff3Feature,
+  //         )}`,
+  //       )
+  //     }
+  //     const [apolloId] = featureLine.attributes.apollo_id
+  //     const { featureId, newEnd, oldEnd } = change
+  //     if (apolloId === featureId) {
+  //       if (featureLine.end !== oldEnd) {
+  //         throw new Error(
+  //           `Incoming end ${oldEnd} does not match existing end ${featureLine.end}`,
+  //         )
+  //       }
+  //       featureLine.end = newEnd
+  //       return true
+  //     }
+  //     if (featureLine.child_features.length > 0) {
+  //       return featureLine.child_features
+  //         .map((childFeature) =>
+  //           this.getUpdatedCacheEntryForFeature(childFeature, change),
+  //         )
+  //         .some((r) => r)
+  //     }
+  //   }
+  //   return false
+  // }
 }
