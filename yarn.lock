@@ -4219,6 +4219,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/reflect-metadata@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@types/reflect-metadata@npm:0.1.0"
+  dependencies:
+    reflect-metadata: "*"
+  checksum: 9325a43186aafdf72f14977bdaed95b4a40005a919c8a96622de14bb2f2dbf41d9882e50bfcff4169f9a00df0d9dcee931fdd999d15776f8e5485fba40ff5b99
+  languageName: node
+  linkType: hard
+
 "@types/resolve@npm:1.17.1":
   version: 1.17.1
   resolution: "@types/resolve@npm:1.17.1"
@@ -5180,6 +5189,7 @@ __metadata:
     "@types/node": ^16.0.0
     "@types/passport-jwt": ^3.0.6
     "@types/passport-local": ^1.0.34
+    "@types/reflect-metadata": ^0.1.0
     "@types/supertest": ^2.0.11
     "@types/uuid": ^8
     apollo-schemas: "workspace:^"
@@ -15277,7 +15287,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"reflect-metadata@npm:^0.1.13":
+"reflect-metadata@npm:*, reflect-metadata@npm:^0.1.13":
   version: 0.1.13
   resolution: "reflect-metadata@npm:0.1.13"
   checksum: 798d379a7b6f6455501145419505c97dd11cbc23857a386add2b9ef15963ccf15a48d9d15507afe01d4cd74116df8a213247200bac00320bd7c11ddeaa5e8fb4
