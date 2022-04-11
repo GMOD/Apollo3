@@ -33,7 +33,6 @@
     "@nestjs/passport": "^8.0.1",
     "@nestjs/platform-express": "^8.0.0",
     "@types/multer": "^1.4.7",
-    "@types/reflect-metadata": "^0.1.0",
     "apollo-schemas": "workspace:^",
     "apollo-shared": "workspace:^",
     "cache-manager": "^3.6.0",
