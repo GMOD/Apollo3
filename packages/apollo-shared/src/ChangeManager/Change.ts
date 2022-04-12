@@ -1,5 +1,6 @@
 import { GFF3FeatureLineWithRefs } from '@gmod/gff'
 import { FeatureDocument } from 'apollo-schemas'
+import { Cache } from 'cache-manager'
 import { IAnyStateTreeNode, Instance, SnapshotIn } from 'mobx-state-tree'
 import { Model } from 'mongoose'
 
@@ -14,9 +15,13 @@ export interface ClientDataStore extends IAnyStateTreeNode {
   backendDriver?: BackendDriver
   internetAccountConfigId?: string
 }
-
 export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'
+  cacheManager: Cache
+  gff3Handle: import('fs').promises.FileHandle
+}
+export interface ServerDataStore {
+  typeName: 'Server'
   featureModel: Model<FeatureDocument>
 }
 
@@ -32,7 +37,7 @@ export interface SerializedChange extends Record<string, unknown> {
   typeName: string
 }
 
-export type DataStore = LocalGFF3DataStore | ClientDataStore
+export type DataStore = ServerDataStore | LocalGFF3DataStore | ClientDataStore
 
 export abstract class Change {
   /** have this return name of change type */
@@ -47,6 +52,9 @@ export abstract class Change {
 
   async apply(backend: DataStore): Promise<void> {
     const backendType = backend.typeName
+    if (backendType === 'Server') {
+      return this.applyToServer(backend)
+    }
     if (backendType === 'LocalGFF3') {
       return this.applyToLocalGFF3(backend)
     }
@@ -57,6 +65,8 @@ export abstract class Change {
       `no change implementation for backend type '${backendType}'`,
     )
   }
+
+  abstract applyToServer(backend: ServerDataStore): Promise<void>
   abstract applyToLocalGFF3(backend: LocalGFF3DataStore): Promise<void>
   abstract applyToClient(backend: ClientDataStore): Promise<void>
 

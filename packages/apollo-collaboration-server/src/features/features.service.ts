@@ -57,7 +57,7 @@ export class FeaturesService {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
     try {
       await change.apply({
-        typeName: 'LocalGFF3',
+        typeName: 'Server',
         featureModel: this.featureModel,
       })
     } catch (error) {
