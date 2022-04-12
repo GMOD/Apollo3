@@ -1,4 +1,4 @@
-import gff, { GFF3Feature, GFF3FeatureLineWithRefs, GFF3Item } from '@gmod/gff'
+import { GFF3FeatureLineWithRefs } from '@gmod/gff'
 import { FeatureDocument } from 'apollo-schemas'
 import { resolveIdentifier } from 'mobx-state-tree'
 
@@ -74,7 +74,9 @@ export class LocationEndChange extends Change {
       .exec()
     if (parentFeature) {
       console.debug(
-        `*** Feature was parent level feature: ${JSON.stringify(parentFeature)}`,
+        `*** Feature was parent level feature: ${JSON.stringify(
+          parentFeature,
+        )}`,
       )
       featureObject = parentFeature
       if (featureObject.end !== expectedOldEnd) {
@@ -110,7 +112,9 @@ export class LocationEndChange extends Change {
       throw new Error(error)
     })
     console.debug(
-      `*** Object updated in Mongo. New object: ${JSON.stringify(featureObject)}`,
+      `*** Object updated in Mongo. New object: ${JSON.stringify(
+        featureObject,
+      )}`,
     )
   }
 
