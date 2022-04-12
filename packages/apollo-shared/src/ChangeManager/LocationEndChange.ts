@@ -44,8 +44,7 @@ export class LocationEndChange extends Change {
     }
   }
 
-  // ****** JOS KÄYTTÄÄ NESJS/COMMONia niin tulee luultavasti RUNTIME ERROR
-
+  // ****** JOS KÄYTTÄÄ NESJS/COMMONia niin tulee luultavasti RUNTIME ERROR **********
   /**
    * Applies the required change to database
    * @param backend - parameters from backend
@@ -55,11 +54,6 @@ export class LocationEndChange extends Change {
     const { changes } = this
     // eslint-disable-next-line prefer-destructuring
     const { featureId, oldEnd: expectedOldEnd, newEnd } = changes[0]
-    console.debug(
-      `Apollo-shared, applyToLocalGFF3: End-change request: ${JSON.stringify(
-        changes,
-      )}`,
-    )
 
     // Search correct feature
     let featureObject = await backend.featureModel
@@ -67,58 +61,57 @@ export class LocationEndChange extends Change {
       .exec()
 
     if (!featureObject) {
-      const errMsg = `ERROR: The following featureId was not found in database ='${featureId}'`
+      const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
       console.error(errMsg)
       throw new Error(errMsg)
       // throw new NotFoundException(errMsg)  -- This is causing runtime error because Exception comes from @nestjs/common!!!
     }
-    console.info(`Feature found: ${JSON.stringify(featureObject)}`)
+    console.debug(`*** Feature found: ${JSON.stringify(featureObject)}`)
 
     // Let's check if featureId is parent feature --> return parent + children
     const parentFeature = await backend.featureModel
       .findOne({ parentFeatureId: featureId })
       .exec()
     if (parentFeature) {
-      console.info(
-        `Feature was parent level feature: ${JSON.stringify(parentFeature)}`,
+      console.debug(
+        `*** Feature was parent level feature: ${JSON.stringify(parentFeature)}`,
       )
       featureObject = parentFeature
       if (featureObject.end !== expectedOldEnd) {
-        const errMsg = `ERROR: Feature's current end value ${featureObject.end} doesn't match with expected value ${expectedOldEnd}`
+        const errMsg = `*** ERROR: Feature's current end value ${featureObject.end} doesn't match with expected value ${expectedOldEnd}`
         console.error(errMsg)
         throw new Error(errMsg)
       }
-    // Set new value
-    featureObject.end = newEnd
-    await featureObject.markModified('end') // Mark as modified. Without this save() -method is not updating data in database
-
+      // Set new value
+      featureObject.end = newEnd
+      await featureObject.markModified('end') // Mark as modified. Without this save() -method is not updating data in database
     } else {
-      // Feature must be child feature so let's find it. 
+      // Feature must be child feature so let's find it.
       const childFeature = await this.getObjectByFeatureId(
         featureObject,
         featureId,
         expectedOldEnd,
-        newEnd
+        newEnd,
       )
       if (!childFeature) {
-        const errMsg = `ERROR when searching feature by featureId`
+        const errMsg = `*** ERROR when searching feature by featureId`
         console.error(errMsg)
         throw new Error(errMsg)
       }
-    await featureObject.markModified('child_features') // Mark as modified. Without this save() -method is not updating data in database
+      await featureObject.markModified('child_features') // Mark as modified. Without this save() -method is not updating data in database
       console.debug(
-        `Feature was child level feature: ${JSON.stringify(featureObject)}`,
+        `*** Feature was child level feature: ${JSON.stringify(featureObject)}`,
       )
     }
 
     // Update Mongo
-    // await featureObject.markModified('end') // Mark as modified. Without this save() -method is not updating data in database
     await featureObject.save().catch((error: string) => {
-      console.debug(`Failed.....`)
+      console.debug(`*** Failed: ${error}`)
       throw new Error(error)
     })
-    console.debug(`Object updated in Mongo`)
-    console.info(`Updated whole object ${JSON.stringify(featureObject)}`)
+    console.debug(
+      `*** Object updated in Mongo. New object: ${JSON.stringify(featureObject)}`,
+    )
   }
 
   async applyToClient(dataStore: ClientDataStore) {
@@ -162,39 +155,22 @@ export class LocationEndChange extends Change {
    * @returns
    */
   async getObjectByFeatureId(
-    // entry: GFF3FeatureLineWithRefs,
     entry: FeatureDocument,
     featureId: string,
     expectedOldEnd: number,
-    newEnd: number
+    newEnd: number,
   ) {
     if ('featureId' in entry) {
       const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
         Object.assign(entry)
-
-        // Tama tarkastetaan jo siina missa kutsutaan, etta onko parent level feature!
-      // // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      // console.debug(`Top level featureId=${assignedVal.featureId!}`)
-      // // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      // if (assignedVal.featureId! === featureId) {
-      //   console.debug(
-      //     `Top level featureId matches in object ${JSON.stringify(
-      //       assignedVal,
-      //     )}`,
-      //   )
-      //   return entry
-      // }
-
-      console.debug(`1 CHILD FEATURE LEN = ${Object.keys(assignedVal.child_features).length}`)
-      console.debug(`2 CHILD FEATURE LEN = ${Object.keys(entry.child_features).length}`)
       // Check if there is also childFeatures in parent feature and it's not empty
       if (
         'child_features' in entry &&
-        Object.keys(assignedVal.child_features).length > 0
+        Object.keys(entry.child_features).length > 0
       ) {
         // Let's get featureId from recursive method
         console.debug(
-          `FeatureId was not found on top level so lets make recursive call...`,
+          `*** FeatureId was not found on top level so lets make recursive call...`,
         )
         const foundRecursiveObject = await this.getNestedFeatureByFeatureId(
           assignedVal,
@@ -202,7 +178,7 @@ export class LocationEndChange extends Change {
         )
         if (foundRecursiveObject) {
           if (foundRecursiveObject.end !== expectedOldEnd) {
-            const errMsg = `ERROR: Feature's current end value ${foundRecursiveObject.end} doesn't match with expected value ${expectedOldEnd}`
+            const errMsg = `*** ERROR: Feature's current end value ${foundRecursiveObject.end} doesn't match with expected value ${expectedOldEnd}`
             console.error(errMsg)
             throw new Error(errMsg)
           }
@@ -241,11 +217,10 @@ export class LocationEndChange extends Change {
             Object.assign(parentFeature.child_features[i][j])
           // Let's add featureId if it doesn't exist yet
           if ('featureId' in assignedVal) {
-            console.info(`Recursive object featureId=${assignedVal.featureId}`)
             // If featureId matches
             if (assignedVal.featureId === featureId) {
-              console.info(
-                `Found featureId from recursive object ${JSON.stringify(
+              console.debug(
+                `*** Found featureId from recursive object: ${JSON.stringify(
                   assignedVal,
                 )}`,
               )
@@ -262,8 +237,8 @@ export class LocationEndChange extends Change {
               assignedVal,
               featureId,
             )) as GFF3FeatureLineWithRefs
-            console.info(
-              `Found recursive object is ${JSON.stringify(foundObject)}`,
+            console.debug(
+              `*** Found recursive object: ${JSON.stringify(foundObject)}`,
             )
             if (foundObject != null) {
               return foundObject
