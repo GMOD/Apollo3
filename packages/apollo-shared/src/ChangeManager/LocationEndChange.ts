@@ -1,4 +1,5 @@
 import gff, { GFF3Feature, GFF3FeatureLineWithRefs, GFF3Item } from '@gmod/gff'
+import { FeatureDocument } from 'apollo-schemas'
 import { resolveIdentifier } from 'mobx-state-tree'
 
 import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
@@ -43,9 +44,8 @@ export class LocationEndChange extends Change {
     }
   }
 
-  // ****** JOS KÄYTTÄÄ NESJS/COMMONia niin tulee luultavasti RUNTIME ERROR 
+  // ****** JOS KÄYTTÄÄ NESJS/COMMONia niin tulee luultavasti RUNTIME ERROR
 
-  
   /**
    * Applies the required change to database
    * @param backend - parameters from backend
@@ -54,15 +54,15 @@ export class LocationEndChange extends Change {
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
     const { changes } = this
     // eslint-disable-next-line prefer-destructuring
-    const { featureId, oldEnd, newEnd } = changes[0]
+    const { featureId, oldEnd: expectedOldEnd, newEnd } = changes[0]
     console.debug(
-      `applyToLocalGFF3 -method, End-change request: ${JSON.stringify(
+      `Apollo-shared, applyToLocalGFF3: End-change request: ${JSON.stringify(
         changes,
       )}`,
     )
 
     // Search correct feature
-    const featureObject = await backend.featureModel
+    let featureObject = await backend.featureModel
       .findOne({ allFeatureIds: featureId })
       .exec()
 
@@ -70,7 +70,7 @@ export class LocationEndChange extends Change {
       const errMsg = `ERROR: The following featureId was not found in database ='${featureId}'`
       console.error(errMsg)
       throw new Error(errMsg)
-      // throw new NotFoundException(errMsg)  -- This is causing runtime error
+      // throw new NotFoundException(errMsg)  -- This is causing runtime error because Exception comes from @nestjs/common!!!
     }
     console.info(`Feature found: ${JSON.stringify(featureObject)}`)
 
@@ -82,73 +82,43 @@ export class LocationEndChange extends Change {
       console.info(
         `Feature was parent level feature: ${JSON.stringify(parentFeature)}`,
       )
-      // ********* OTA PARENT FEATURE AS UPDATABLE OBJECT *******
+      featureObject = parentFeature
+      if (featureObject.end !== expectedOldEnd) {
+        const errMsg = `ERROR: Feature's current end value ${featureObject.end} doesn't match with expected value ${expectedOldEnd}`
+        console.error(errMsg)
+        throw new Error(errMsg)
+      }
+    // Set new value
+    featureObject.end = newEnd
+    await featureObject.markModified('end') // Mark as modified. Without this save() -method is not updating data in database
+
     } else {
-      // Feature must be child feature
-      const foundFeature = await this.getObjectByFeatureId(
+      // Feature must be child feature so let's find it. 
+      const childFeature = await this.getObjectByFeatureId(
         featureObject,
         featureId,
+        expectedOldEnd,
+        newEnd
       )
-      if (!foundFeature) {
+      if (!childFeature) {
         const errMsg = `ERROR when searching feature by featureId`
         console.error(errMsg)
         throw new Error(errMsg)
       }
-      console.debug(`One found: ${JSON.stringify(featureObject)}`)
-
-
-      // Set new value
-      // assignedVal.end = newEnd
-      await featureObject.markModified('gff3FeatureLineWithRefs') // Mark as modified. Without this save() -method is not updating data in database
-      await featureObject.save().catch((error: unknown) => {
-        throw new Error(error!)
-      })
-      console.debug(`Object updated in Mongo`)
-      console.info(`Updated whole object ${JSON.stringify(featureObject)}`)
+    await featureObject.markModified('child_features') // Mark as modified. Without this save() -method is not updating data in database
+      console.debug(
+        `Feature was child level feature: ${JSON.stringify(featureObject)}`,
+      )
     }
-      // */
 
-    // // // Search correct feature
-    // // const featureObject = await backend.featureModel
-    // //   .findOne({ featureId })
-    // //   .exec()
-
-    // // if (!featureObject) {
-    // //   const errMsg = `ERROR when updating MongoDb: The following featureId was not found in database: '${featureId}'`
-    // //   console.error(errMsg)
-    // //   throw new NotFoundException(errMsg)
-    // // }
-
-    // // const updatableObjectAsGFFItemArray =
-    // //   featureObject.gff3FeatureLineWithRefs as unknown as GFF3FeatureLineWithRefs[]
-    // // console.debug(`Feature found  = ${JSON.stringify(featureObject)}`)
-    // // // Now we need to find correct top level feature or sub-feature inside the feature
-    // // const updatableObject = await this.getObjectByFeatureId(
-    // //   updatableObjectAsGFFItemArray,
-    // //   featureId,
-    // // )
-    // // if (!updatableObject) {
-    // //   const errMsg = `ERROR when updating MongoDb....`
-    // //   console.error(errMsg)
-    // //   throw new NotFoundException(errMsg)
-    // // }
-    // // console.debug(`Object found: ${JSON.stringify(updatableObject)}`)
-    // const assignedVal: GFF3FeatureLineWithRefs = Object.assign(foundFeature)
-    // if (assignedVal.end !== oldEnd) {
-    //   const errMsg = `Old end value in db ${assignedVal.end} does not match with old value ${oldEnd} as given in parameter`
-    //   console.error(errMsg)
-    //   throw new NotFoundException(errMsg)
-    // }
-    // // Set new value
-    // assignedVal.end = newEnd
+    // Update Mongo
     // await featureObject.markModified('end') // Mark as modified. Without this save() -method is not updating data in database
-    // await featureObject.save().catch((error: unknown) => {
-    //   throw new InternalServerErrorException(error)
-    // })
-
-
-    // console.debug(`Object updated in Mongo`)
-    // console.debug(`Updated whole object ${JSON.stringify(featureObject)}`)
+    await featureObject.save().catch((error: string) => {
+      console.debug(`Failed.....`)
+      throw new Error(error)
+    })
+    console.debug(`Object updated in Mongo`)
+    console.info(`Updated whole object ${JSON.stringify(featureObject)}`)
   }
 
   async applyToClient(dataStore: ClientDataStore) {
@@ -192,25 +162,31 @@ export class LocationEndChange extends Change {
    * @returns
    */
   async getObjectByFeatureId(
-    entry: GFF3FeatureLineWithRefs,
+    // entry: GFF3FeatureLineWithRefs,
+    entry: FeatureDocument,
     featureId: string,
+    expectedOldEnd: number,
+    newEnd: number
   ) {
-    console.info(`Entry=${JSON.stringify(entry)}`)
     if ('featureId' in entry) {
       const assignedVal: GFF3FeatureLineWithRefsAndFeatureId =
         Object.assign(entry)
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      console.debug(`Top level featureId=${assignedVal.featureId!}`)
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      if (assignedVal.featureId! === featureId) {
-        console.debug(
-          `Top level featureId matches in object ${JSON.stringify(
-            assignedVal,
-          )}`,
-        )
-        return entry
-      }
+        // Tama tarkastetaan jo siina missa kutsutaan, etta onko parent level feature!
+      // // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      // console.debug(`Top level featureId=${assignedVal.featureId!}`)
+      // // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      // if (assignedVal.featureId! === featureId) {
+      //   console.debug(
+      //     `Top level featureId matches in object ${JSON.stringify(
+      //       assignedVal,
+      //     )}`,
+      //   )
+      //   return entry
+      // }
+
+      console.debug(`1 CHILD FEATURE LEN = ${Object.keys(assignedVal.child_features).length}`)
+      console.debug(`2 CHILD FEATURE LEN = ${Object.keys(entry.child_features).length}`)
       // Check if there is also childFeatures in parent feature and it's not empty
       if (
         'child_features' in entry &&
@@ -225,6 +201,12 @@ export class LocationEndChange extends Change {
           featureId,
         )
         if (foundRecursiveObject) {
+          if (foundRecursiveObject.end !== expectedOldEnd) {
+            const errMsg = `ERROR: Feature's current end value ${foundRecursiveObject.end} doesn't match with expected value ${expectedOldEnd}`
+            console.error(errMsg)
+            throw new Error(errMsg)
+          }
+          foundRecursiveObject.end = newEnd
           return foundRecursiveObject
         }
       }

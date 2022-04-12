@@ -58,27 +58,6 @@ export class FeaturesService {
   findAll() {
     return this.featureModel.find().exec()
   }
-  // /**
-  //  * Changes End -position in GFF3
-  //  */
-  // async changeEndPos(serializedChange: SerializedChange) {
-  //   const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
-  //   const change = new ChangeType(serializedChange)
-  //   this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
-  //   try {
-  //     await change.apply({
-  //       typeName: 'LocalGFF3',
-  //       featureModel: this.featureModel,
-  //     })
-  //   } catch (error) {
-  //     throw error
-  //   }
-  //   return []
-  // }
-
-  // findAll() {
-  //   return this.featureModel.find().exec()
-  // }
 
   /**
    * This method loads GFF3 data from file into db
