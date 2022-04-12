@@ -1,0 +1,23 @@
+[{
+  "_id": {
+    "$oid": "624ab4c0f8ac0187ed22b563"
+  },
+  "length": 50001,
+  "description": "ctgA description",
+  "name": "ctgA",
+  "assembly": {
+    "$oid": "624a7e97d45d7745c2532b01"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "624ab4d1f8ac0187ed22b566"
+  },
+  "length": 6130,
+  "description": "ctgB description",
+  "name": "ctgB",
+  "assembly": {
+    "$oid": "624a7e97d45d7745c2532b01"
+  },
+  "__v": 0
+}]
