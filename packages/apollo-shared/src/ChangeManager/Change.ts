@@ -2,7 +2,6 @@ import { GFF3FeatureLineWithRefs } from '@gmod/gff'
 import { FeatureDocument } from 'apollo-schemas'
 import { Cache } from 'cache-manager'
 import { IAnyStateTreeNode, Instance, SnapshotIn } from 'mobx-state-tree'
-import { Model } from 'mongoose'
 
 import { FeaturesForRefName } from '../BackendDrivers/AnnotationFeature'
 import { BackendDriver } from '../BackendDrivers/BackendDriver'
@@ -22,7 +21,7 @@ export interface LocalGFF3DataStore {
 }
 export interface ServerDataStore {
   typeName: 'Server'
-  featureModel: Model<FeatureDocument>
+  featureModel: import('mongoose').Model<FeatureDocument>
 }
 
 export interface GFF3FeatureLineWithRefsAndFeatureId
