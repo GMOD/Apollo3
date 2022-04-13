@@ -1,29 +1,14 @@
 import { Module } from '@nestjs/common'
-import { getConnectionToken, MongooseModule } from '@nestjs/mongoose'
-import { Assembly, AssemblySchema, Feature, FeatureSchema, RefSeq, RefSeqSchema } from 'apollo-schemas'
-import idValidator from 'mongoose-id-validator'
 
+import { AssembliesModule } from '../assemblies/assemblies.module'
+import { FeaturesModule } from '../features/features.module'
+import { RefSeqsModule } from '../refSeqs/refSeqs.module'
 import { ChangeController } from './change.controller'
 import { ChangeService } from './change.service'
 
 @Module({
   controllers: [ChangeController],
   providers: [ChangeService],
-  imports: [
-    MongooseModule.forFeature([
-      { name: Assembly.name, schema: AssemblySchema },
-    ]),
-    MongooseModule.forFeature([{ name: RefSeq.name, schema: RefSeqSchema }]),
-    MongooseModule.forFeatureAsync([
-      {
-        name: Feature.name,
-        useFactory: (connection) => {
-          FeatureSchema.plugin(idValidator, { connection })
-          return FeatureSchema
-        },
-        inject: [getConnectionToken()],
-      },
-    ]),
-  ],
+  imports: [AssembliesModule, RefSeqsModule, FeaturesModule],
 })
 export class ChangeModule {}
