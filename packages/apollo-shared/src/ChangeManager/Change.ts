@@ -1,4 +1,3 @@
-import { GFF3FeatureLineWithRefs } from '@gmod/gff'
 import { FeatureDocument } from 'apollo-schemas'
 import { Cache } from 'cache-manager'
 import { IAnyStateTreeNode, Instance, SnapshotIn } from 'mobx-state-tree'
@@ -22,12 +21,6 @@ export interface LocalGFF3DataStore {
 export interface ServerDataStore {
   typeName: 'Server'
   featureModel: import('mongoose').Model<FeatureDocument>
-}
-
-export interface GFF3FeatureLineWithRefsAndFeatureId
-  extends GFF3FeatureLineWithRefs {
-  featureId: string
-  GFF3FeatureLineWithRefs: GFF3FeatureLineWithRefs
 }
 
 export interface SerializedChange extends Record<string, unknown> {
