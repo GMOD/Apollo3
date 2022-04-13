@@ -9,6 +9,6 @@ db.createCollection('refseqs')      -- Create RefSeq collection
 db.createCollection('features')     -- Create Features collection
 
 3. Import test data into your new collections. Open a new OS terminal (not Mongo shell) and run there the following commands
-mongoimport —-db apolloDb —-collection assemblies —-file assemblies.json        -- This loads data into assemblies -collection
-mongoimport —-db apolloDb —-collection refseqs —-file refseqs.json              -- This loads data into refseqs -collection
-mongoimport —-db apolloDb —-collection features —-file features.json            -- This loads data into features -collection
+mongoimport --db=apolloDb --collection=assemblies --file=assemblies.json --jsonArray       -- This loads data into assemblies -collection
+mongoimport —-db=apolloDb —-collection=refseqs —-file=refseqs.json --jsonArray             -- This loads data into refseqs -collection
+mongoimport —-db apolloDb —-collection=features —-file=features.json --jsonArray           -- This loads data into features -collection
