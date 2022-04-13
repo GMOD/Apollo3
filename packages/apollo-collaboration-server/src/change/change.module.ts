@@ -1,4 +1,7 @@
-import { CacheModule, Module } from '@nestjs/common'
+import { Module } from '@nestjs/common'
+import { getConnectionToken, MongooseModule } from '@nestjs/mongoose'
+import { Assembly, AssemblySchema, Feature, FeatureSchema, RefSeq, RefSeqSchema } from 'apollo-schemas'
+import idValidator from 'mongoose-id-validator'
 
 import { ChangeController } from './change.controller'
 import { ChangeService } from './change.service'
@@ -7,7 +10,20 @@ import { ChangeService } from './change.service'
   controllers: [ChangeController],
   providers: [ChangeService],
   imports: [
-    CacheModule.register({ ttl: 0, max: 1000000 }), // 0 = no cache expiration, 100 000 = number of entries
+    MongooseModule.forFeature([
+      { name: Assembly.name, schema: AssemblySchema },
+    ]),
+    MongooseModule.forFeature([{ name: RefSeq.name, schema: RefSeqSchema }]),
+    MongooseModule.forFeatureAsync([
+      {
+        name: Feature.name,
+        useFactory: (connection) => {
+          FeatureSchema.plugin(idValidator, { connection })
+          return FeatureSchema
+        },
+        inject: [getConnectionToken()],
+      },
+    ]),
   ],
 })
 export class ChangeModule {}

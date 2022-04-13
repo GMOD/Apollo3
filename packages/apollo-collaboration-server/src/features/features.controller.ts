@@ -5,12 +5,10 @@ import {
   Logger,
   Param,
   Post,
-  Put,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
-import { SerializedChange } from 'apollo-shared'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { AssemblyIdDto } from '../model/gff3.model'
@@ -76,16 +74,5 @@ export class FeaturesController {
     )
 
     return this.featuresService.getFeaturesByCriteria(request)
-  }
-
-  /**
-   * Updates end position of given feature. Before update, current end -position value is checked (against given old-value)
-   * @param serializedChange - Information containing featureId, newEndValue, oldEndValue
-   * @returns Return 'HttpStatus.OK' if featureId was found AND oldEndValue matched AND database update was successfull. Otherwise throw exception.
-   */
-  //  @UseGuards(JwtAuthGuard)
-  @Put('/updateEndPos')
-  updateMongo(@Body() serializedChange: SerializedChange) {
-    return this.featuresService.changeEndPos(serializedChange)
   }
 }
