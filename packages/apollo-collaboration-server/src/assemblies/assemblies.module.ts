@@ -13,5 +13,6 @@ import { AssembliesService } from './assemblies.service'
       { name: Assembly.name, schema: AssemblySchema },
     ]),
   ],
+  exports: [MongooseModule],
 })
 export class AssembliesModule {}
