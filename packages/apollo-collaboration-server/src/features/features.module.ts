@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
-import { Assembly, AssemblySchema } from 'apollo-schemas'
-import { RefSeq, RefSeqSchema } from 'apollo-schemas'
 import { Feature, FeatureSchema } from 'apollo-schemas'
 import idValidator from 'mongoose-id-validator'
+import { AssembliesModule } from 'src/assemblies/assemblies.module'
+import { RefSeqsModule } from 'src/refSeqs/refSeqs.module'
 
 import { FeaturesController } from './features.controller'
 import { FeaturesService } from './features.service'
@@ -12,10 +12,8 @@ import { FeaturesService } from './features.service'
   controllers: [FeaturesController],
   providers: [FeaturesService],
   imports: [
-    MongooseModule.forFeature([
-      { name: Assembly.name, schema: AssemblySchema },
-    ]),
-    MongooseModule.forFeature([{ name: RefSeq.name, schema: RefSeqSchema }]),
+    AssembliesModule,
+    RefSeqsModule,
     MongooseModule.forFeatureAsync([
       {
         name: Feature.name,
