@@ -21,7 +21,7 @@ export abstract class FeatureChange extends Change {
    * @param featureId -
    * @returns
    */
-  getObjectByFeatureId(
+  static getObjectByFeatureId(
     feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs,
     featureId: string,
   ): GFF3FeatureLineWithFeatureIdAndOptionalRefs | null {
