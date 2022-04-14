@@ -1,7 +1,7 @@
 import { open } from 'fs/promises'
 import { join } from 'path'
 
-import { CACHE_MANAGER, Inject, Logger } from '@nestjs/common'
+import { Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Feature, FeatureDocument } from 'apollo-schemas'
 import {
@@ -10,14 +10,12 @@ import {
   SerializedChange,
   changeRegistry,
 } from 'apollo-shared'
-import { Cache } from 'cache-manager'
 import { Model } from 'mongoose'
 
 export class ChangeService {
   constructor(
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     changeRegistry.registerChange('LocationEndChange', LocationEndChange) // Do this only once
     changeRegistry.registerChange('LocationStartChange', LocationStartChange) // Do this only once
@@ -48,11 +46,11 @@ export class ChangeService {
       'r+',
     )
     try {
-      await change.apply({
-        typeName: 'LocalGFF3',
-        cacheManager: this.cacheManager,
-        gff3Handle,
-      })
+    //   await change.apply({
+    //     typeName: 'LocalGFF3',
+    //     cacheManager: this.cacheManager,
+    //     gff3Handle,
+    //   })
       // await change.apply({
       //   typeName: 'Server',
       //   featureModel: this.featureModel,
@@ -63,10 +61,10 @@ export class ChangeService {
       gff3Handle.close()
     }
     try {
-      await change.apply({
-        typeName: 'Server',
-        featureModel: this.featureModel,
-      })
+    //   await change.apply({
+    //     typeName: 'Server',
+    //     featureModel: this.featureModel,
+    //   })
     } catch (error) {
       this.logger.error(
         'Failed to apply change to DB, but ignoring for now until DB is finalized',
