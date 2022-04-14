@@ -1,18 +1,23 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { RefSeqChunk, RefSeqChunkDocument } from 'apollo-schemas'
+import {
+  RefSeq,
+  RefSeqChunk,
+  RefSeqChunkDocument,
+  RefSeqDocument,
+} from 'apollo-schemas'
 import { Model } from 'mongoose'
 
 import { CreateRefSeqChunkDto } from './dto/create-refSeqChunk.dto'
 import { GetSequenceDto } from './dto/get-sequence.dto'
-
-const chunkSize = 256 * 1024 // 256 KiB
 
 @Injectable()
 export class RefSeqChunksService {
   constructor(
     @InjectModel(RefSeqChunk.name)
     private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
+    @InjectModel(RefSeq.name)
+    private readonly refSeqModel: Model<RefSeqDocument>,
   ) {}
 
   private readonly logger = new Logger(RefSeqChunksService.name)
@@ -21,7 +26,12 @@ export class RefSeqChunksService {
     return this.refSeqChunkModel.create(createRefSeqChunkDto)
   }
 
-  async getSequence({ refSeq, start, end }: GetSequenceDto) {
+  async getSequence({ refSeq: refSeqId, start, end }: GetSequenceDto) {
+    const refSeq = await this.refSeqModel.findById(refSeqId)
+    if (!refSeq) {
+      throw new Error(`RefSeq "${refSeqId}" not found`)
+    }
+    const { chunkSize } = refSeq
     const startChunk = Math.floor(start / chunkSize)
     const endChunk = Math.floor(end / chunkSize)
     const seq: string[] = []

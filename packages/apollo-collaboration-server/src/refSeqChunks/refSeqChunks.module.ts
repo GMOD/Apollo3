@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import { RefSeqChunk, RefSeqChunkSchema } from 'apollo-schemas'
 import idValidator from 'mongoose-id-validator'
+import { RefSeqsModule } from 'src/refSeqs/refSeqs.module'
 
 import { RefSeqChunksController } from './refSeqChunks.controller'
 import { RefSeqChunksService } from './refSeqChunks.service'
@@ -18,6 +19,7 @@ import { RefSeqChunksService } from './refSeqChunks.service'
         inject: [getConnectionToken()],
       },
     ]),
+    RefSeqsModule,
   ],
   exports: [RefSeqChunksService],
   controllers: [RefSeqChunksController],
