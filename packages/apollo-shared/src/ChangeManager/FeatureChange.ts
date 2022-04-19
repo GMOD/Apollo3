@@ -9,7 +9,7 @@ interface GFF3FeatureLineWithOptionalRefs extends GFF3FeatureLine {
   derived_features?: GFF3Feature[]
 }
 
-interface GFF3FeatureLineWithFeatureIdAndOptionalRefs
+export interface GFF3FeatureLineWithFeatureIdAndOptionalRefs
   extends GFF3FeatureLineWithOptionalRefs {
   featureId: string
 }
@@ -21,7 +21,7 @@ export abstract class FeatureChange extends Change {
    * @param featureId -
    * @returns
    */
-  static getObjectByFeatureId(
+  getObjectByFeatureId(
     feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs,
     featureId: string,
   ): GFF3FeatureLineWithFeatureIdAndOptionalRefs | null {
