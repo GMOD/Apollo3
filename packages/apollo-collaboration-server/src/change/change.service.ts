@@ -57,23 +57,18 @@ export class ChangeService {
       //   typeName: 'Server',
       //   featureModel: this.featureModel,
       // })
-    } catch (error) {
-      throw error
     } finally {
       gff3Handle.close()
     }
-    try {
+    await this.featureModel.db.transaction(async (session) => {
       await change.apply({
         typeName: 'Server',
         featureModel: this.featureModel,
+        session,
       })
-    } catch (error) {
-      this.logger.error(
-        'Failed to apply change to DB, but ignoring for now until DB is finalized',
-      )
-      this.logger.error(error)
-    }
-    // const results2 = await this.validations.backendPostValidate(change)
+      // const results2 = await this.validations.backendPostValidate(change)
+      session.endSession()
+    })
     return []
   }
 }

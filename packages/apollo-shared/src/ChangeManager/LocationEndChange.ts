@@ -1,7 +1,6 @@
 import gff, { GFF3Feature, GFF3Item } from '@gmod/gff'
 import { FeatureDocument } from 'apollo-schemas'
 import { resolveIdentifier } from 'mobx-state-tree'
-import mongoose from 'mongoose'
 
 import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
 import {
@@ -54,11 +53,8 @@ export class LocationEndChange extends FeatureChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
+    const { featureModel, session } = backend
     const { changes } = this
-    // Using custom connection
-    const db = mongoose.createConnection('mongodb://localhost:27017/apolloDb')
-    const session = await db.startSession()
-    session.startTransaction()
     const featuresForChanges: {
       feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs
       topLevelFeature: FeatureDocument
@@ -68,7 +64,7 @@ export class LocationEndChange extends FeatureChange {
       const { featureId, oldEnd } = change
 
       // Search correct feature
-      const topLevelFeature = await backend.featureModel
+      const topLevelFeature = await featureModel
         .findOne({ featureIds: featureId })
         .session(session)
         .exec()
@@ -76,8 +72,6 @@ export class LocationEndChange extends FeatureChange {
       if (!topLevelFeature) {
         const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
         console.error(errMsg)
-        session.abortTransaction()
-        session.endSession()
         throw new Error(errMsg)
         // throw new NotFoundException(errMsg)  -- This is causing runtime error because Exception comes from @nestjs/common!!!
       }
@@ -87,16 +81,12 @@ export class LocationEndChange extends FeatureChange {
       if (!foundFeature) {
         const errMsg = `ERROR when searching feature by featureId`
         console.error(errMsg)
-        session.abortTransaction()
-        session.endSession()
         throw new Error(errMsg)
       }
       console.debug(`*** Found feature: ${JSON.stringify(foundFeature)}`)
       if (foundFeature.end !== oldEnd) {
         const errMsg = `*** ERROR: Feature's current end value ${topLevelFeature.end} doesn't match with expected value ${oldEnd}`
         console.error(errMsg)
-        session.abortTransaction()
-        session.endSession()
         throw new Error(errMsg)
       }
       featuresForChanges.push({
@@ -117,14 +107,12 @@ export class LocationEndChange extends FeatureChange {
       }
 
       try {
-        await topLevelFeature.save({ session })
+        await topLevelFeature.save()
       } catch (error) {
         console.debug(`*** FAILED: ${error}`)
         throw error
       } finally {
         // Update Mongo
-        session.abortTransaction()
-        session.endSession()
       }
       console.debug(
         `*** Object updated in Mongo. New object: ${JSON.stringify(
@@ -132,11 +120,6 @@ export class LocationEndChange extends FeatureChange {
         )}`,
       )
     }
-
-    console.debug(`*** Let's commit`)
-    await session.commitTransaction()
-    console.debug(`*** COMMIT done successfully!`)
-    await session.endSession()
   }
 
   /**

@@ -21,6 +21,7 @@ export interface LocalGFF3DataStore {
 export interface ServerDataStore {
   typeName: 'Server'
   featureModel: import('mongoose').Model<FeatureDocument>
+  session: import('mongoose').ClientSession
 }
 
 export interface SerializedChange extends Record<string, unknown> {
