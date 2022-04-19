@@ -60,7 +60,7 @@ export abstract class Change {
   abstract applyToLocalGFF3(backend: LocalGFF3DataStore): Promise<void>
   abstract applyToClient(backend: ClientDataStore): Promise<void>
 
-  //------------
+  // ------------
 
   // /**
   //  * Get single feature by featureId
@@ -163,6 +163,6 @@ export abstract class Change {
   //   }
   //   return null
   // }
-  //------------
+  // ------------
   abstract getInverse(): Change
 }
