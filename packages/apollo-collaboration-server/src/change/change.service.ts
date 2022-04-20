@@ -67,7 +67,6 @@ export class ChangeService {
         session,
       })
       // const results2 = await this.validations.backendPostValidate(change)
-      session.endSession()
     })
     return []
   }
