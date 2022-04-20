@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import { Feature, FeatureSchema } from 'apollo-schemas'
 import idValidator from 'mongoose-id-validator'
-import { AssembliesModule } from 'src/assemblies/assemblies.module'
-import { RefSeqsModule } from 'src/refSeqs/refSeqs.module'
 
+import { AssembliesModule } from '../assemblies/assemblies.module'
+import { RefSeqsModule } from '../refSeqs/refSeqs.module'
 import { FeaturesController } from './features.controller'
 import { FeaturesService } from './features.service'
 
@@ -25,5 +25,6 @@ import { FeaturesService } from './features.service'
       },
     ]),
   ],
+  exports: [MongooseModule],
 })
 export class FeaturesModule {}
