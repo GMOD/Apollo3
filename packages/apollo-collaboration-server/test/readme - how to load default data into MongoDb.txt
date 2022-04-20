@@ -7,8 +7,10 @@ use apolloDb                        -- This creates new database apolloDb, if it
 db.createCollection('assemblies')   -- Create Assembly collection 
 db.createCollection('refseqs')      -- Create RefSeq collection 
 db.createCollection('features')     -- Create Features collection
+db.createCollection('refseqchunks') -- Create RefSeqChunks collection
 
 3. Import test data into your new collections. Open a new OS terminal (not Mongo shell) and run there the following commands
 mongoimport --db=apolloDb --collection=assemblies --file=assemblies.json --jsonArray       -- This loads data into assemblies -collection
 mongoimport —-db=apolloDb —-collection=refseqs —-file=refseqs.json --jsonArray             -- This loads data into refseqs -collection
 mongoimport —-db apolloDb —-collection=features —-file=features.json --jsonArray           -- This loads data into features -collection
+mongoimport —-db=apolloDb —-collection=refseqchunks —-file=refseqchunks.json --jsonArray   -- This loads data into refseqchunks -collection
