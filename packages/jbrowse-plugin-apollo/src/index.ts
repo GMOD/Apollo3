@@ -55,7 +55,7 @@ export default class ApolloPlugin extends Plugin {
     pluginManager.addTrackType(() => {
       const configSchema = ConfigurationSchema(
         'ApolloTrack',
-        {},
+        { adapter: '' },
         {
           baseConfiguration: createBaseTrackConfig(pluginManager),
           explicitIdentifier: 'trackId',
