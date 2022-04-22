@@ -1,4 +1,7 @@
 import { CacheModule, Module } from '@nestjs/common'
+import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
+import { ChangeLog, ChangeLogSchema } from 'apollo-schemas'
+import idValidator from 'mongoose-id-validator'
 
 import { AssembliesModule } from '../assemblies/assemblies.module'
 import { FeaturesModule } from '../features/features.module'
@@ -10,6 +13,16 @@ import { ChangeService } from './change.service'
   controllers: [ChangeController],
   providers: [ChangeService],
   imports: [
+    MongooseModule.forFeatureAsync([
+      {
+        name: ChangeLog.name,
+        useFactory: (connection) => {
+          ChangeLogSchema.plugin(idValidator, { connection })
+          return ChangeLogSchema
+        },
+        inject: [getConnectionToken()],
+      },
+    ]),
     AssembliesModule,
     RefSeqsModule,
     FeaturesModule,

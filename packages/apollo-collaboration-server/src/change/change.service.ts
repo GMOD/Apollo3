@@ -3,7 +3,12 @@ import { join } from 'path'
 
 import { CACHE_MANAGER, Inject, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Feature, FeatureDocument } from 'apollo-schemas'
+import {
+  ChangeLog,
+  ChangeLogDocument,
+  Feature,
+  FeatureDocument,
+} from 'apollo-schemas'
 import {
   LocationEndChange,
   LocationStartChange,
@@ -13,10 +18,15 @@ import {
 import { Cache } from 'cache-manager'
 import { Model } from 'mongoose'
 
+import { ChangeObjectTmp } from '../entity/gff3Object.dto'
+import { ChangeLogDto } from './dto/create-change.dto'
+
 export class ChangeService {
   constructor(
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
+    @InjectModel(ChangeLog.name)
+    private readonly changeLogModel: Model<ChangeLogDocument>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     changeRegistry.registerChange('LocationEndChange', LocationEndChange) // Do this only once
@@ -41,6 +51,8 @@ export class ChangeService {
     const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
     const change = new ChangeType(serializedChange)
     this.logger.debug(`Requested change=${JSON.stringify(change)}`)
+    const { changedIds } = change.toJSON()
+
     // TODO: validate change
     // const result = await this.validations.backendPreValidate(change)
     const gff3Handle = await open(
@@ -66,6 +78,25 @@ export class ChangeService {
         featureModel: this.featureModel,
         session,
       })
+      //* ****
+      // Add change information to changeLog -collection
+      const allFeatures: string[] = []
+      const changes: ChangeObjectTmp = JSON.parse(JSON.stringify(change))
+      this.logger.debug(`ChangeIds=${changedIds}`)
+      for (const oneChange of changes.changes) {
+        allFeatures.push(oneChange.featureId)
+      }
+      // Add entry to changelog
+      const changeLogEntry: ChangeLogDto = {
+        assembly: '624a7e97d45d7745c2532b01', // for test purpose only
+        changeId: changedIds[0],
+        features: allFeatures,
+        change: JSON.stringify(change),
+        user: 'demo user id',
+      }
+      this.changeLogModel.create(changeLogEntry)
+      //* ****
+
       // const results2 = await this.validations.backendPostValidate(change)
     })
     return []
