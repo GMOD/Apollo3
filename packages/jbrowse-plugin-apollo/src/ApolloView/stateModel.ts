@@ -6,6 +6,7 @@ import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import {
   ChangeManager,
   CollaborationServerDriver,
+  CoreValidation,
   FeaturesForRefName,
   ValidationSet,
 } from 'apollo-shared'
@@ -37,7 +38,10 @@ export const ClientDataStore = types
     }
   })
   .volatile((self) => ({
-    changeManager: new ChangeManager(self, new ValidationSet([])),
+    changeManager: new ChangeManager(
+      self,
+      new ValidationSet([new CoreValidation()]),
+    ),
   }))
 
 export function stateModelFactory(pluginManager: PluginManager) {
