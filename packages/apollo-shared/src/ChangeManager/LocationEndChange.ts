@@ -23,16 +23,19 @@ interface EndChange {
 interface SerializedLocationEndChange extends SerializedChange {
   typeName: 'LocationEndChange'
   changes: EndChange[]
+  assemblyId: string
 }
 
 export class LocationEndChange extends FeatureChange {
   changedIds: string[]
   changes: EndChange[]
+  assemblyId: string
 
   constructor(json: SerializedLocationEndChange) {
     super()
     this.changedIds = json.changedIds
     this.changes = json.changes
+    this.assemblyId = json.assemblyId
   }
 
   get typeName(): 'LocationEndChange' {
@@ -44,6 +47,7 @@ export class LocationEndChange extends FeatureChange {
       changedIds: this.changedIds,
       typeName: this.typeName,
       changes: this.changes,
+      assemblyId: this.assemblyId,
     }
   }
 
@@ -199,6 +203,7 @@ export class LocationEndChange extends FeatureChange {
       changedIds: inverseChangedIds,
       typeName: this.typeName,
       changes: inverseChanges,
+      assemblyId: this.assemblyId,
     })
   }
 

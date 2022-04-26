@@ -28,6 +28,7 @@ export interface SerializedChange extends Record<string, unknown> {
   /** The IDs of genes, etc. that were changed in this operation */
   changedIds: string[]
   typeName: string
+  assemblyId: string
 }
 
 export type DataStore = ServerDataStore | LocalGFF3DataStore | ClientDataStore

@@ -23,16 +23,19 @@ interface StartChange {
 interface SerializedLocationStartChange extends SerializedChange {
   typeName: 'LocationStartChange'
   changes: StartChange[]
+  assemblyId: string
 }
 
 export class LocationStartChange extends FeatureChange {
   changedIds: string[]
   changes: StartChange[]
+  assemblyId: string
 
   constructor(json: SerializedLocationStartChange) {
     super()
     this.changedIds = json.changedIds
     this.changes = json.changes
+    this.assemblyId = json.assemblyId
   }
 
   get typeName(): 'LocationStartChange' {
@@ -44,6 +47,7 @@ export class LocationStartChange extends FeatureChange {
       changedIds: this.changedIds,
       typeName: this.typeName,
       changes: this.changes,
+      assemblyId: this.assemblyId,
     }
   }
 
@@ -196,6 +200,7 @@ export class LocationStartChange extends FeatureChange {
       changedIds: inverseChangedIds,
       typeName: this.typeName,
       changes: inverseChanges,
+      assemblyId: this.assemblyId,
     })
   }
 
