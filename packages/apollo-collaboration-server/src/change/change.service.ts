@@ -1,7 +1,12 @@
 import { open } from 'fs/promises'
 import { join } from 'path'
 
-import { CACHE_MANAGER, Inject, Logger } from '@nestjs/common'
+import {
+  CACHE_MANAGER,
+  Inject,
+  Logger,
+  UnprocessableEntityException,
+} from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
   ChangeLog,
@@ -10,9 +15,11 @@ import {
   FeatureDocument,
 } from 'apollo-schemas'
 import {
+  CoreValidation,
   LocationEndChange,
   LocationStartChange,
   SerializedChange,
+  ValidationSet,
   changeRegistry,
 } from 'apollo-shared'
 import { Cache } from 'cache-manager'
@@ -34,6 +41,7 @@ export class ChangeService {
   }
 
   private readonly logger = new Logger(ChangeService.name)
+  private readonly validations = new ValidationSet([new CoreValidation()])
 
   async submitChange(serializedChange: SerializedChange): Promise<string> {
     // Get environment variable values and pass those as parameter to apply -method
@@ -53,8 +61,16 @@ export class ChangeService {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
     const { changedIds, assemblyId } = change.toJSON()
 
-    // TODO: validate change
-    // const result = await this.validations.backendPreValidate(change)
+    const validationResult = await this.validations.backendPreValidate(change)
+    if (!validationResult.ok) {
+      const errorMessage = validationResult.results
+        .map((r) => r.error?.message)
+        .filter(Boolean)
+        .join(', ')
+      throw new UnprocessableEntityException(
+        `Error in backend pre-validation: ${errorMessage}`,
+      )
+    }
     const gff3Handle = await open(
       join(FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE),
       'r+',
@@ -101,7 +117,18 @@ export class ChangeService {
         changeLogEntry,
       )
       changeLogDocId = savedChangedLogDoc._id
-      // const results2 = await this.validations.backendPostValidate(change)
+      const validationResult2 = await this.validations.backendPostValidate(
+        change,
+      )
+      if (!validationResult2.ok) {
+        const errorMessage = validationResult2.results
+          .map((r) => r.error?.message)
+          .filter(Boolean)
+          .join(', ')
+        throw new UnprocessableEntityException(
+          `Error in backend post-validation: ${errorMessage}`,
+        )
+      }
     })
     this.logger.debug(`ChangeLogDocId: ${changeLogDocId}`)
     return changeLogDocId

@@ -19,7 +19,7 @@ export class ChangeManager {
     const result = await this.validations.frontendPreValidate(change)
     if (!result.ok) {
       session.notify(
-        `Change is not valid: "${result.results
+        `Pre-validation failed: "${result.results
           .map((r) => r.error?.message)
           .filter(Boolean)
           .join(', ')}"`,
@@ -53,7 +53,7 @@ export class ChangeManager {
     }
     if (!backendResult.ok) {
       session.notify(
-        `Change is not valid: "${result.results
+        `Post-validation failed: "${result.results
           .map((r) => r.error?.message)
           .filter(Boolean)
           .join(', ')}"`,
