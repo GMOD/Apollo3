@@ -23,6 +23,9 @@ export class RefSeq {
 
   @Prop({ required: true })
   length: number
+
+  @Prop({ default: 256 * 1024 /* 256 KiB */ })
+  chunkSize: number
 }
 
 export const RefSeqSchema = SchemaFactory.createForClass(RefSeq)
