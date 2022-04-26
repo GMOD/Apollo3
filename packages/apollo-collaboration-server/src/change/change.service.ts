@@ -8,7 +8,12 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Feature, FeatureDocument } from 'apollo-schemas'
+import {
+  ChangeLog,
+  ChangeLogDocument,
+  Feature,
+  FeatureDocument,
+} from 'apollo-schemas'
 import {
   CoreValidation,
   LocationEndChange,
@@ -24,6 +29,8 @@ export class ChangeService {
   constructor(
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
+    @InjectModel(ChangeLog.name)
+    private readonly changeLogModel: Model<ChangeLogDocument>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     changeRegistry.registerChange('LocationEndChange', LocationEndChange) // Do this only once
@@ -48,7 +55,8 @@ export class ChangeService {
 
     const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
     const change = new ChangeType(serializedChange)
-    this.logger.debug(`Requested change=${JSON.stringify(change)}`)
+    this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
+
     const validationResult = await this.validations.backendPreValidate(change)
     if (!validationResult.ok) {
       const errorMessage = validationResult.results
@@ -76,12 +84,30 @@ export class ChangeService {
     } finally {
       gff3Handle.close()
     }
+
+    let changeLogDocId
     await this.featureModel.db.transaction(async (session) => {
       await change.apply({
         typeName: 'Server',
         featureModel: this.featureModel,
         session,
       })
+      // Add change information to changeLog -collection
+      this.logger.debug(`ChangeIds: ${change.changedIds}`)
+      this.logger.debug(`AssemblyId: ${change.assemblyId}`)
+
+      // Add entry to changelog
+      const changeLogEntry = {
+        assembly: change.assemblyId,
+        typeName: change.typeName,
+        changedIds: change.changedIds,
+        changes: change.changes,
+        user: 'demo user id',
+      }
+      const savedChangedLogDoc = await this.changeLogModel.create(
+        changeLogEntry,
+      )
+      changeLogDocId = savedChangedLogDoc._id
       const validationResult2 = await this.validations.backendPostValidate(
         change,
       )
@@ -95,6 +121,7 @@ export class ChangeService {
         )
       }
     })
-    return []
+    this.logger.debug(`ChangeLogDocId: ${changeLogDocId}`)
+    return { change: changeLogDocId }
   }
 }

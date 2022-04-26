@@ -1,4 +1,5 @@
 export * from './assembly.schema'
+export * from './changeLog.schema'
 export * from './feature.schema'
 export * from './refSeq.schema'
 export * from './refSeqChunk.schema'

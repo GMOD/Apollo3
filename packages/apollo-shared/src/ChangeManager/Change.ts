@@ -24,17 +24,28 @@ export interface ServerDataStore {
   session: import('mongoose').ClientSession
 }
 
-export interface SerializedChange extends Record<string, unknown> {
+export interface SerializedChange {
   /** The IDs of genes, etc. that were changed in this operation */
   changedIds: string[]
   typeName: string
+  assemblyId: string
+  changes: unknown
 }
 
 export type DataStore = ServerDataStore | LocalGFF3DataStore | ClientDataStore
 
-export abstract class Change {
-  /** have this return name of change type */
-  abstract get typeName(): string
+export abstract class Change implements SerializedChange {
+  abstract typeName: string
+  abstract changes: unknown[]
+
+  assemblyId: string
+  changedIds: string[]
+
+  constructor(json: SerializedChange) {
+    const { assemblyId, changedIds } = json
+    this.assemblyId = assemblyId
+    this.changedIds = changedIds
+  }
 
   static fromJSON(json: SerializedChange): Change {
     const ChangeType = changeRegistry.getChangeType(json.typeName)

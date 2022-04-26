@@ -26,17 +26,12 @@ interface SerializedLocationEndChange extends SerializedChange {
 }
 
 export class LocationEndChange extends FeatureChange {
-  changedIds: string[]
+  typeName = 'LocationEndChange' as const
   changes: EndChange[]
 
   constructor(json: SerializedLocationEndChange) {
-    super()
-    this.changedIds = json.changedIds
+    super(json)
     this.changes = json.changes
-  }
-
-  get typeName(): 'LocationEndChange' {
-    return 'LocationEndChange'
   }
 
   toJSON() {
@@ -44,6 +39,7 @@ export class LocationEndChange extends FeatureChange {
       changedIds: this.changedIds,
       typeName: this.typeName,
       changes: this.changes,
+      assemblyId: this.assemblyId,
     }
   }
 
@@ -199,6 +195,7 @@ export class LocationEndChange extends FeatureChange {
       changedIds: inverseChangedIds,
       typeName: this.typeName,
       changes: inverseChanges,
+      assemblyId: this.assemblyId,
     })
   }
 
