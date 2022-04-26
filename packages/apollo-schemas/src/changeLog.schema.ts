@@ -15,14 +15,14 @@ export class ChangeLog {
   })
   assembly: Assembly
 
-  @Prop({ required: true, index: true })
-  changeId: string // change id of changeObject
-
-  @Prop({ required: true, index: true })
-  features: string[] // featureIds
-
   @Prop({ required: true })
-  change: string // serialized change
+  typeName: string
+
+  @Prop({ required: true, index: true })
+  changedIds: string[] // featureIds
+
+  @Prop({ type: JSON, required: true })
+  changes: unknown // serialized change
 
   @Prop({
     type: MongooseSchema.Types.ObjectId,

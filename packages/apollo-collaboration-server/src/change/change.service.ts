@@ -25,9 +25,6 @@ import {
 import { Cache } from 'cache-manager'
 import { Model } from 'mongoose'
 
-import { ChangeObjectTmp } from '../entity/gff3Object.dto'
-import { ChangeLogDto } from './dto/create-change.dto'
-
 export class ChangeService {
   constructor(
     @InjectModel(Feature.name)
@@ -43,7 +40,7 @@ export class ChangeService {
   private readonly logger = new Logger(ChangeService.name)
   private readonly validations = new ValidationSet([new CoreValidation()])
 
-  async submitChange(serializedChange: SerializedChange): Promise<string> {
+  async submitChange(serializedChange: SerializedChange) {
     // Get environment variable values and pass those as parameter to apply -method
     const { FILE_SEARCH_FOLDER, GFF3_DEFAULT_FILENAME_TO_SAVE } = process.env
     if (!FILE_SEARCH_FOLDER) {
@@ -59,7 +56,6 @@ export class ChangeService {
     const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
     const change = new ChangeType(serializedChange)
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
-    const { changedIds, assemblyId } = change.toJSON()
 
     const validationResult = await this.validations.backendPreValidate(change)
     if (!validationResult.ok) {
@@ -89,7 +85,7 @@ export class ChangeService {
       gff3Handle.close()
     }
 
-    let changeLogDocId = ''
+    let changeLogDocId
     await this.featureModel.db.transaction(async (session) => {
       await change.apply({
         typeName: 'Server',
@@ -97,20 +93,15 @@ export class ChangeService {
         session,
       })
       // Add change information to changeLog -collection
-      const allFeatures: string[] = []
-      const changes: ChangeObjectTmp = JSON.parse(JSON.stringify(change))
-      this.logger.debug(`ChangeIds: ${changedIds}`)
-      this.logger.debug(`AssemblyId: ${assemblyId}`)
+      this.logger.debug(`ChangeIds: ${change.changedIds}`)
+      this.logger.debug(`AssemblyId: ${change.assemblyId}`)
 
-      for (const oneChange of changes.changes) {
-        allFeatures.push(oneChange.featureId)
-      }
       // Add entry to changelog
-      const changeLogEntry: ChangeLogDto = {
-        assembly: assemblyId,
-        changeId: changedIds[0],
-        features: allFeatures,
-        change: JSON.stringify(change),
+      const changeLogEntry = {
+        assembly: change.assemblyId,
+        typeName: change.typeName,
+        changedIds: change.changedIds,
+        changes: change.changes,
         user: 'demo user id',
       }
       const savedChangedLogDoc = await this.changeLogModel.create(
@@ -131,6 +122,6 @@ export class ChangeService {
       }
     })
     this.logger.debug(`ChangeLogDocId: ${changeLogDocId}`)
-    return changeLogDocId
+    return { change: changeLogDocId }
   }
 }

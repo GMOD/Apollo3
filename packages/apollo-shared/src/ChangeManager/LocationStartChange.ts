@@ -23,23 +23,15 @@ interface StartChange {
 interface SerializedLocationStartChange extends SerializedChange {
   typeName: 'LocationStartChange'
   changes: StartChange[]
-  assemblyId: string
 }
 
 export class LocationStartChange extends FeatureChange {
-  changedIds: string[]
+  typeName = 'LocationStartChange' as const
   changes: StartChange[]
-  assemblyId: string
 
   constructor(json: SerializedLocationStartChange) {
-    super()
-    this.changedIds = json.changedIds
+    super(json)
     this.changes = json.changes
-    this.assemblyId = json.assemblyId
-  }
-
-  get typeName(): 'LocationStartChange' {
-    return 'LocationStartChange'
   }
 
   toJSON() {

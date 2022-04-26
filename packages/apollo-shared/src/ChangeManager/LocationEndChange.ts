@@ -23,23 +23,15 @@ interface EndChange {
 interface SerializedLocationEndChange extends SerializedChange {
   typeName: 'LocationEndChange'
   changes: EndChange[]
-  assemblyId: string
 }
 
 export class LocationEndChange extends FeatureChange {
-  changedIds: string[]
+  typeName = 'LocationEndChange' as const
   changes: EndChange[]
-  assemblyId: string
 
   constructor(json: SerializedLocationEndChange) {
-    super()
-    this.changedIds = json.changedIds
+    super(json)
     this.changes = json.changes
-    this.assemblyId = json.assemblyId
-  }
-
-  get typeName(): 'LocationEndChange' {
-    return 'LocationEndChange'
   }
 
   toJSON() {
