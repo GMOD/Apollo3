@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import { RefSeq, RefSeqSchema } from 'apollo-schemas'
 import idValidator from 'mongoose-id-validator'
@@ -19,7 +19,7 @@ import { RefSeqsService } from './refSeqs.service'
         inject: [getConnectionToken()],
       },
     ]),
-    RefSeqChunksModule,
+    forwardRef(() => RefSeqChunksModule),
   ],
   exports: [MongooseModule],
   controllers: [RefSeqsController],
