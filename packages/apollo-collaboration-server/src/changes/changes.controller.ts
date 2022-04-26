@@ -2,12 +2,12 @@ import { Body, Controller, Logger, Post, UseGuards } from '@nestjs/common'
 import { SerializedChange } from 'apollo-shared'
 
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
-import { ChangeService } from './change.service'
+import { ChangesService } from './changes.service'
 
-@Controller('change')
-export class ChangeController {
-  constructor(private readonly changeService: ChangeService) {}
-  private readonly logger = new Logger(ChangeController.name)
+@Controller('changes')
+export class ChangesController {
+  constructor(private readonly changesService: ChangesService) {}
+  private readonly logger = new Logger(ChangesController.name)
 
   /**
    * Updates end position of given feature. Before update, current end -position value is checked (against given old-value)
@@ -22,6 +22,6 @@ export class ChangeController {
         serializedChange.typeName
       }, the whole change: ${JSON.stringify(serializedChange)}`,
     )
-    return this.changeService.submitChange(serializedChange)
+    return this.changesService.submitChange(serializedChange)
   }
 }

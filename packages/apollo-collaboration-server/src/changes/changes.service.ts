@@ -9,8 +9,8 @@ import {
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
-  ChangeLog,
-  ChangeLogDocument,
+  Change,
+  ChangeDocument,
   Feature,
   FeatureDocument,
 } from 'apollo-schemas'
@@ -25,19 +25,21 @@ import {
 import { Cache } from 'cache-manager'
 import { Model } from 'mongoose'
 
-export class ChangeService {
+import { CreateChangeDto } from './dto/create-change.dto'
+
+export class ChangesService {
   constructor(
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
-    @InjectModel(ChangeLog.name)
-    private readonly changeLogModel: Model<ChangeLogDocument>,
+    @InjectModel(Change.name)
+    private readonly changeModel: Model<ChangeDocument>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     changeRegistry.registerChange('LocationEndChange', LocationEndChange) // Do this only once
     changeRegistry.registerChange('LocationStartChange', LocationStartChange) // Do this only once
   }
 
-  private readonly logger = new Logger(ChangeService.name)
+  private readonly logger = new Logger(ChangesService.name)
   private readonly validations = new ValidationSet([new CoreValidation()])
 
   async submitChange(serializedChange: SerializedChange) {
@@ -85,29 +87,27 @@ export class ChangeService {
       gff3Handle.close()
     }
 
-    let changeLogDocId
+    let changeDocId
     await this.featureModel.db.transaction(async (session) => {
       await change.apply({
         typeName: 'Server',
         featureModel: this.featureModel,
         session,
       })
-      // Add change information to changeLog -collection
+      // Add change information to change -collection
       this.logger.debug(`ChangeIds: ${change.changedIds}`)
       this.logger.debug(`AssemblyId: ${change.assemblyId}`)
 
-      // Add entry to changelog
-      const changeLogEntry = {
+      // Add entry to change collection
+      const changeEntry: CreateChangeDto = {
         assembly: change.assemblyId,
         typeName: change.typeName,
         changedIds: change.changedIds,
         changes: change.changes,
         user: 'demo user id',
       }
-      const savedChangedLogDoc = await this.changeLogModel.create(
-        changeLogEntry,
-      )
-      changeLogDocId = savedChangedLogDoc._id
+      const savedChangedLogDoc = await this.changeModel.create(changeEntry)
+      changeDocId = savedChangedLogDoc._id
       const validationResult2 = await this.validations.backendPostValidate(
         change,
       )
@@ -121,7 +121,7 @@ export class ChangeService {
         )
       }
     })
-    this.logger.debug(`ChangeLogDocId: ${changeLogDocId}`)
-    return { change: changeLogDocId }
+    this.logger.debug(`ChangeDocId: ${changeDocId}`)
+    return { change: changeDocId }
   }
 }
