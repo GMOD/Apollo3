@@ -22,14 +22,11 @@
   "type": "contig",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "4f88b7c4-dfb2-49a0-91e6-b00d28506c3b",
+  "featureIds": [
     "4f88b7c4-dfb2-49a0-91e6-b00d28506c3b"
   ],
-  "allFeatureIds": [
-    "4f88b7c4-dfb2-49a0-91e6-b00d28506c3b"
-  ],
-  "parentFeatureId": "4f88b7c4-dfb2-49a0-91e6-b00d28506c3b",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -55,14 +52,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "abb2f0d9-5999-421a-9e0d-b1387de9b78b",
+  "featureIds": [
     "abb2f0d9-5999-421a-9e0d-b1387de9b78b"
   ],
-  "allFeatureIds": [
-    "abb2f0d9-5999-421a-9e0d-b1387de9b78b"
-  ],
-  "parentFeatureId": "abb2f0d9-5999-421a-9e0d-b1387de9b78b",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -88,14 +82,11 @@
   "type": "protein_coding_primary_transcript",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "80e2d556-afd2-4b0b-aff1-ec1e755473de",
+  "featureIds": [
     "80e2d556-afd2-4b0b-aff1-ec1e755473de"
   ],
-  "allFeatureIds": [
-    "80e2d556-afd2-4b0b-aff1-ec1e755473de"
-  ],
-  "parentFeatureId": "80e2d556-afd2-4b0b-aff1-ec1e755473de",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -121,14 +112,11 @@
   "type": "polypeptide",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "b097ca2c-62a1-4eda-8fe4-c88e3a83767c",
+  "featureIds": [
     "b097ca2c-62a1-4eda-8fe4-c88e3a83767c"
   ],
-  "allFeatureIds": [
-    "b097ca2c-62a1-4eda-8fe4-c88e3a83767c"
-  ],
-  "parentFeatureId": "b097ca2c-62a1-4eda-8fe4-c88e3a83767c",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -154,14 +142,11 @@
   "type": "protein_coding_primary_transcript",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "c84d74e1-889b-4085-960c-55f532cea2e1",
+  "featureIds": [
     "c84d74e1-889b-4085-960c-55f532cea2e1"
   ],
-  "allFeatureIds": [
-    "c84d74e1-889b-4085-960c-55f532cea2e1"
-  ],
-  "parentFeatureId": "c84d74e1-889b-4085-960c-55f532cea2e1",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -187,14 +172,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "08b32608-12ab-4cf0-af71-975c2eb48997",
+  "featureIds": [
     "08b32608-12ab-4cf0-af71-975c2eb48997"
   ],
-  "allFeatureIds": [
-    "08b32608-12ab-4cf0-af71-975c2eb48997"
-  ],
-  "parentFeatureId": "08b32608-12ab-4cf0-af71-975c2eb48997",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -220,14 +202,11 @@
   "type": "polypeptide",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "ff43a94a-6997-47df-a2f2-5a04597aaee4",
+  "featureIds": [
     "ff43a94a-6997-47df-a2f2-5a04597aaee4"
   ],
-  "allFeatureIds": [
-    "ff43a94a-6997-47df-a2f2-5a04597aaee4"
-  ],
-  "parentFeatureId": "ff43a94a-6997-47df-a2f2-5a04597aaee4",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -253,14 +232,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "a58bad26-d4ef-4739-8f68-46debd1be601",
+  "featureIds": [
     "a58bad26-d4ef-4739-8f68-46debd1be601"
   ],
-  "allFeatureIds": [
-    "a58bad26-d4ef-4739-8f68-46debd1be601"
-  ],
-  "parentFeatureId": "a58bad26-d4ef-4739-8f68-46debd1be601",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -286,14 +262,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "e1605395-1aa3-44a6-a7e9-9a56f7e0d973",
+  "featureIds": [
     "e1605395-1aa3-44a6-a7e9-9a56f7e0d973"
   ],
-  "allFeatureIds": [
-    "e1605395-1aa3-44a6-a7e9-9a56f7e0d973"
-  ],
-  "parentFeatureId": "e1605395-1aa3-44a6-a7e9-9a56f7e0d973",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -316,14 +289,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "3e168940-73c1-402a-8825-6deba2e4c1d0",
+  "featureIds": [
     "3e168940-73c1-402a-8825-6deba2e4c1d0"
   ],
-  "allFeatureIds": [
-    "3e168940-73c1-402a-8825-6deba2e4c1d0"
-  ],
-  "parentFeatureId": "3e168940-73c1-402a-8825-6deba2e4c1d0",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -346,14 +316,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "b7e9bd25-2ec3-460d-a306-58ddc140b398",
+  "featureIds": [
     "b7e9bd25-2ec3-460d-a306-58ddc140b398"
   ],
-  "allFeatureIds": [
-    "b7e9bd25-2ec3-460d-a306-58ddc140b398"
-  ],
-  "parentFeatureId": "b7e9bd25-2ec3-460d-a306-58ddc140b398",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -376,14 +343,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "19847d2f-0c13-4605-8ea9-91f8a0e8d604",
+  "featureIds": [
     "19847d2f-0c13-4605-8ea9-91f8a0e8d604"
   ],
-  "allFeatureIds": [
-    "19847d2f-0c13-4605-8ea9-91f8a0e8d604"
-  ],
-  "parentFeatureId": "19847d2f-0c13-4605-8ea9-91f8a0e8d604",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -406,14 +370,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "6bc7286c-be9d-4e1a-8d57-9bdc46378b02",
+  "featureIds": [
     "6bc7286c-be9d-4e1a-8d57-9bdc46378b02"
   ],
-  "allFeatureIds": [
-    "6bc7286c-be9d-4e1a-8d57-9bdc46378b02"
-  ],
-  "parentFeatureId": "6bc7286c-be9d-4e1a-8d57-9bdc46378b02",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -436,14 +397,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "2a490420-6b1b-4a29-ab2c-25b00a5a8ba4",
+  "featureIds": [
     "2a490420-6b1b-4a29-ab2c-25b00a5a8ba4"
   ],
-  "allFeatureIds": [
-    "2a490420-6b1b-4a29-ab2c-25b00a5a8ba4"
-  ],
-  "parentFeatureId": "2a490420-6b1b-4a29-ab2c-25b00a5a8ba4",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -466,14 +424,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "4d87bc99-70b6-4744-bd2b-581f871c214d",
+  "featureIds": [
     "4d87bc99-70b6-4744-bd2b-581f871c214d"
   ],
-  "allFeatureIds": [
-    "4d87bc99-70b6-4744-bd2b-581f871c214d"
-  ],
-  "parentFeatureId": "4d87bc99-70b6-4744-bd2b-581f871c214d",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -496,14 +451,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "c37ea285-1dc0-44cf-b107-760de8a62ee5",
+  "featureIds": [
     "c37ea285-1dc0-44cf-b107-760de8a62ee5"
   ],
-  "allFeatureIds": [
-    "c37ea285-1dc0-44cf-b107-760de8a62ee5"
-  ],
-  "parentFeatureId": "c37ea285-1dc0-44cf-b107-760de8a62ee5",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -526,14 +478,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "710b8bdd-0348-4750-b5be-82a8d13125c7",
+  "featureIds": [
     "710b8bdd-0348-4750-b5be-82a8d13125c7"
   ],
-  "allFeatureIds": [
-    "710b8bdd-0348-4750-b5be-82a8d13125c7"
-  ],
-  "parentFeatureId": "710b8bdd-0348-4750-b5be-82a8d13125c7",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -556,14 +505,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "f4322fb8-49da-4c14-bd40-17cf8708f088",
+  "featureIds": [
     "f4322fb8-49da-4c14-bd40-17cf8708f088"
   ],
-  "allFeatureIds": [
-    "f4322fb8-49da-4c14-bd40-17cf8708f088"
-  ],
-  "parentFeatureId": "f4322fb8-49da-4c14-bd40-17cf8708f088",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -586,14 +532,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "09bec62c-998d-46b6-afc0-1ab153475e8d",
+  "featureIds": [
     "09bec62c-998d-46b6-afc0-1ab153475e8d"
   ],
-  "allFeatureIds": [
-    "09bec62c-998d-46b6-afc0-1ab153475e8d"
-  ],
-  "parentFeatureId": "09bec62c-998d-46b6-afc0-1ab153475e8d",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -616,14 +559,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "1b65ad93-fe18-449a-999f-27b0d94940d9",
+  "featureIds": [
     "1b65ad93-fe18-449a-999f-27b0d94940d9"
   ],
-  "allFeatureIds": [
-    "1b65ad93-fe18-449a-999f-27b0d94940d9"
-  ],
-  "parentFeatureId": "1b65ad93-fe18-449a-999f-27b0d94940d9",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -646,14 +586,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "01545a97-9cf0-47a8-8686-3425b2396dec",
+  "featureIds": [
     "01545a97-9cf0-47a8-8686-3425b2396dec"
   ],
-  "allFeatureIds": [
-    "01545a97-9cf0-47a8-8686-3425b2396dec"
-  ],
-  "parentFeatureId": "01545a97-9cf0-47a8-8686-3425b2396dec",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -679,14 +616,11 @@
   "type": "CDS",
   "source": "bare_predicted",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "95b4329d-e764-46df-be4b-2506e0602556",
+  "featureIds": [
     "95b4329d-e764-46df-be4b-2506e0602556"
   ],
-  "allFeatureIds": [
-    "95b4329d-e764-46df-be4b-2506e0602556"
-  ],
-  "parentFeatureId": "95b4329d-e764-46df-be4b-2506e0602556",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -712,14 +646,11 @@
   "type": "polypeptide_domain",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "80c7e31f-926f-4818-a910-386769783177",
+  "featureIds": [
     "80c7e31f-926f-4818-a910-386769783177"
   ],
-  "allFeatureIds": [
-    "80c7e31f-926f-4818-a910-386769783177"
-  ],
-  "parentFeatureId": "80c7e31f-926f-4818-a910-386769783177",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -742,14 +673,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "3ed712f5-f119-4267-8153-03bc729832b6",
+  "featureIds": [
     "3ed712f5-f119-4267-8153-03bc729832b6"
   ],
-  "allFeatureIds": [
-    "3ed712f5-f119-4267-8153-03bc729832b6"
-  ],
-  "parentFeatureId": "3ed712f5-f119-4267-8153-03bc729832b6",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -772,14 +700,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "fc86ecd5-b24b-4419-97c5-7f3872f6a9ce",
+  "featureIds": [
     "fc86ecd5-b24b-4419-97c5-7f3872f6a9ce"
   ],
-  "allFeatureIds": [
-    "fc86ecd5-b24b-4419-97c5-7f3872f6a9ce"
-  ],
-  "parentFeatureId": "fc86ecd5-b24b-4419-97c5-7f3872f6a9ce",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -802,14 +727,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "ec71b825-78af-4805-9654-d17e80ecb9c3",
+  "featureIds": [
     "ec71b825-78af-4805-9654-d17e80ecb9c3"
   ],
-  "allFeatureIds": [
-    "ec71b825-78af-4805-9654-d17e80ecb9c3"
-  ],
-  "parentFeatureId": "ec71b825-78af-4805-9654-d17e80ecb9c3",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -832,14 +754,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "f13a41f9-bcf9-4500-acba-1564ef02e697",
+  "featureIds": [
     "f13a41f9-bcf9-4500-acba-1564ef02e697"
   ],
-  "allFeatureIds": [
-    "f13a41f9-bcf9-4500-acba-1564ef02e697"
-  ],
-  "parentFeatureId": "f13a41f9-bcf9-4500-acba-1564ef02e697",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -865,14 +784,11 @@
   "type": "polypeptide_domain",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "5371a445-e0fc-4ba2-90a3-f84a397b0085",
+  "featureIds": [
     "5371a445-e0fc-4ba2-90a3-f84a397b0085"
   ],
-  "allFeatureIds": [
-    "5371a445-e0fc-4ba2-90a3-f84a397b0085"
-  ],
-  "parentFeatureId": "5371a445-e0fc-4ba2-90a3-f84a397b0085",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -895,14 +811,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "c8114176-78f9-4cb2-a4c1-2cd32c52dc56",
+  "featureIds": [
     "c8114176-78f9-4cb2-a4c1-2cd32c52dc56"
   ],
-  "allFeatureIds": [
-    "c8114176-78f9-4cb2-a4c1-2cd32c52dc56"
-  ],
-  "parentFeatureId": "c8114176-78f9-4cb2-a4c1-2cd32c52dc56",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -925,14 +838,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "6453ba05-fa3f-4394-a9f1-39e5d069922e",
+  "featureIds": [
     "6453ba05-fa3f-4394-a9f1-39e5d069922e"
   ],
-  "allFeatureIds": [
-    "6453ba05-fa3f-4394-a9f1-39e5d069922e"
-  ],
-  "parentFeatureId": "6453ba05-fa3f-4394-a9f1-39e5d069922e",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -955,14 +865,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "e4753093-b87e-4475-b9ee-3cb223184c1f",
+  "featureIds": [
     "e4753093-b87e-4475-b9ee-3cb223184c1f"
   ],
-  "allFeatureIds": [
-    "e4753093-b87e-4475-b9ee-3cb223184c1f"
-  ],
-  "parentFeatureId": "e4753093-b87e-4475-b9ee-3cb223184c1f",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -988,14 +895,11 @@
   "type": "polypeptide_domain",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "e2f98a86-f463-4ab3-881e-d305574a500c",
+  "featureIds": [
     "e2f98a86-f463-4ab3-881e-d305574a500c"
   ],
-  "allFeatureIds": [
-    "e2f98a86-f463-4ab3-881e-d305574a500c"
-  ],
-  "parentFeatureId": "e2f98a86-f463-4ab3-881e-d305574a500c",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1018,14 +922,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "cca67ec3-2164-47ae-bda6-8720f9e6d83c",
+  "featureIds": [
     "cca67ec3-2164-47ae-bda6-8720f9e6d83c"
   ],
-  "allFeatureIds": [
-    "cca67ec3-2164-47ae-bda6-8720f9e6d83c"
-  ],
-  "parentFeatureId": "cca67ec3-2164-47ae-bda6-8720f9e6d83c",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1048,14 +949,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "a5fde89a-92ff-4c2f-af94-a4dbcd60cc39",
+  "featureIds": [
     "a5fde89a-92ff-4c2f-af94-a4dbcd60cc39"
   ],
-  "allFeatureIds": [
-    "a5fde89a-92ff-4c2f-af94-a4dbcd60cc39"
-  ],
-  "parentFeatureId": "a5fde89a-92ff-4c2f-af94-a4dbcd60cc39",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1081,14 +979,11 @@
   "type": "polypeptide_domain",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "48c6b75a-6ad8-4177-990a-fef499fb11aa",
+  "featureIds": [
     "48c6b75a-6ad8-4177-990a-fef499fb11aa"
   ],
-  "allFeatureIds": [
-    "48c6b75a-6ad8-4177-990a-fef499fb11aa"
-  ],
-  "parentFeatureId": "48c6b75a-6ad8-4177-990a-fef499fb11aa",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1111,14 +1006,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "035b1eef-cbc0-4fa0-86a0-602a82c5f121",
+  "featureIds": [
     "035b1eef-cbc0-4fa0-86a0-602a82c5f121"
   ],
-  "allFeatureIds": [
-    "035b1eef-cbc0-4fa0-86a0-602a82c5f121"
-  ],
-  "parentFeatureId": "035b1eef-cbc0-4fa0-86a0-602a82c5f121",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1141,14 +1033,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "fce09723-97e1-40a5-9acd-4ba8d7d09cfc",
+  "featureIds": [
     "fce09723-97e1-40a5-9acd-4ba8d7d09cfc"
   ],
-  "allFeatureIds": [
-    "fce09723-97e1-40a5-9acd-4ba8d7d09cfc"
-  ],
-  "parentFeatureId": "fce09723-97e1-40a5-9acd-4ba8d7d09cfc",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1174,14 +1063,11 @@
   "type": "polypeptide_domain",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "aefaad3c-295b-4833-b837-7d31712c6315",
+  "featureIds": [
     "aefaad3c-295b-4833-b837-7d31712c6315"
   ],
-  "allFeatureIds": [
-    "aefaad3c-295b-4833-b837-7d31712c6315"
-  ],
-  "parentFeatureId": "aefaad3c-295b-4833-b837-7d31712c6315",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1207,14 +1093,11 @@
   "type": "polypeptide_domain",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "8d14c6e3-c618-47a7-82ad-b6643974d8cd",
+  "featureIds": [
     "8d14c6e3-c618-47a7-82ad-b6643974d8cd"
   ],
-  "allFeatureIds": [
-    "8d14c6e3-c618-47a7-82ad-b6643974d8cd"
-  ],
-  "parentFeatureId": "8d14c6e3-c618-47a7-82ad-b6643974d8cd",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1240,14 +1123,11 @@
   "type": "polypeptide_domain",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "de780978-71ea-4866-a077-9f32582fc6f4",
+  "featureIds": [
     "de780978-71ea-4866-a077-9f32582fc6f4"
   ],
-  "allFeatureIds": [
-    "de780978-71ea-4866-a077-9f32582fc6f4"
-  ],
-  "parentFeatureId": "de780978-71ea-4866-a077-9f32582fc6f4",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1270,14 +1150,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "355b6a61-f2b8-4acc-9c51-1020870cdcd8",
+  "featureIds": [
     "355b6a61-f2b8-4acc-9c51-1020870cdcd8"
   ],
-  "allFeatureIds": [
-    "355b6a61-f2b8-4acc-9c51-1020870cdcd8"
-  ],
-  "parentFeatureId": "355b6a61-f2b8-4acc-9c51-1020870cdcd8",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1300,14 +1177,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "4a816f31-4484-4446-ac2e-c07d073c5f12",
+  "featureIds": [
     "4a816f31-4484-4446-ac2e-c07d073c5f12"
   ],
-  "allFeatureIds": [
-    "4a816f31-4484-4446-ac2e-c07d073c5f12"
-  ],
-  "parentFeatureId": "4a816f31-4484-4446-ac2e-c07d073c5f12",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1330,14 +1204,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "ec79b984-22af-4571-9966-5299f792ce9d",
+  "featureIds": [
     "ec79b984-22af-4571-9966-5299f792ce9d"
   ],
-  "allFeatureIds": [
-    "ec79b984-22af-4571-9966-5299f792ce9d"
-  ],
-  "parentFeatureId": "ec79b984-22af-4571-9966-5299f792ce9d",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1360,14 +1231,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "6fd0d673-6eb5-4cd6-902f-dea0c4b2fd44",
+  "featureIds": [
     "6fd0d673-6eb5-4cd6-902f-dea0c4b2fd44"
   ],
-  "allFeatureIds": [
-    "6fd0d673-6eb5-4cd6-902f-dea0c4b2fd44"
-  ],
-  "parentFeatureId": "6fd0d673-6eb5-4cd6-902f-dea0c4b2fd44",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1390,14 +1258,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "4f7e50fd-f108-41ad-972c-a80a2cdab7ac",
+  "featureIds": [
     "4f7e50fd-f108-41ad-972c-a80a2cdab7ac"
   ],
-  "allFeatureIds": [
-    "4f7e50fd-f108-41ad-972c-a80a2cdab7ac"
-  ],
-  "parentFeatureId": "4f7e50fd-f108-41ad-972c-a80a2cdab7ac",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1420,14 +1285,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "abbcbf88-7486-49e5-97ff-d8c01c47c2e9",
+  "featureIds": [
     "abbcbf88-7486-49e5-97ff-d8c01c47c2e9"
   ],
-  "allFeatureIds": [
-    "abbcbf88-7486-49e5-97ff-d8c01c47c2e9"
-  ],
-  "parentFeatureId": "abbcbf88-7486-49e5-97ff-d8c01c47c2e9",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1450,14 +1312,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "ffc02ea7-e3b5-4e72-b600-40f745eaef88",
+  "featureIds": [
     "ffc02ea7-e3b5-4e72-b600-40f745eaef88"
   ],
-  "allFeatureIds": [
-    "ffc02ea7-e3b5-4e72-b600-40f745eaef88"
-  ],
-  "parentFeatureId": "ffc02ea7-e3b5-4e72-b600-40f745eaef88",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1480,14 +1339,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "e456a3ea-bd4d-466b-8aff-6c9687469139",
+  "featureIds": [
     "e456a3ea-bd4d-466b-8aff-6c9687469139"
   ],
-  "allFeatureIds": [
-    "e456a3ea-bd4d-466b-8aff-6c9687469139"
-  ],
-  "parentFeatureId": "e456a3ea-bd4d-466b-8aff-6c9687469139",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1510,14 +1366,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "624aefb6-93b7-47a5-a2a7-13a2d2e40a63",
+  "featureIds": [
     "624aefb6-93b7-47a5-a2a7-13a2d2e40a63"
   ],
-  "allFeatureIds": [
-    "624aefb6-93b7-47a5-a2a7-13a2d2e40a63"
-  ],
-  "parentFeatureId": "624aefb6-93b7-47a5-a2a7-13a2d2e40a63",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1540,14 +1393,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "39286dbc-b644-4078-92a0-be5440ad8ad4",
+  "featureIds": [
     "39286dbc-b644-4078-92a0-be5440ad8ad4"
   ],
-  "allFeatureIds": [
-    "39286dbc-b644-4078-92a0-be5440ad8ad4"
-  ],
-  "parentFeatureId": "39286dbc-b644-4078-92a0-be5440ad8ad4",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1570,14 +1420,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "ce954aca-5c41-4756-9762-831f5a89f5c7",
+  "featureIds": [
     "ce954aca-5c41-4756-9762-831f5a89f5c7"
   ],
-  "allFeatureIds": [
-    "ce954aca-5c41-4756-9762-831f5a89f5c7"
-  ],
-  "parentFeatureId": "ce954aca-5c41-4756-9762-831f5a89f5c7",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1600,14 +1447,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "31fef215-bbae-49ae-a3e4-0f2cf09cd1d3",
+  "featureIds": [
     "31fef215-bbae-49ae-a3e4-0f2cf09cd1d3"
   ],
-  "allFeatureIds": [
-    "31fef215-bbae-49ae-a3e4-0f2cf09cd1d3"
-  ],
-  "parentFeatureId": "31fef215-bbae-49ae-a3e4-0f2cf09cd1d3",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1630,14 +1474,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "464ced75-772e-4782-b481-9f3d21ffd4c9",
+  "featureIds": [
     "464ced75-772e-4782-b481-9f3d21ffd4c9"
   ],
-  "allFeatureIds": [
-    "464ced75-772e-4782-b481-9f3d21ffd4c9"
-  ],
-  "parentFeatureId": "464ced75-772e-4782-b481-9f3d21ffd4c9",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1660,14 +1501,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "e093692c-5334-418e-bcc8-4b8d07ff05a9",
+  "featureIds": [
     "e093692c-5334-418e-bcc8-4b8d07ff05a9"
   ],
-  "allFeatureIds": [
-    "e093692c-5334-418e-bcc8-4b8d07ff05a9"
-  ],
-  "parentFeatureId": "e093692c-5334-418e-bcc8-4b8d07ff05a9",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1693,14 +1531,11 @@
   "type": "polypeptide_domain",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "0ec8a9a8-89f0-48a4-a068-1f92f390c83d",
+  "featureIds": [
     "0ec8a9a8-89f0-48a4-a068-1f92f390c83d"
   ],
-  "allFeatureIds": [
-    "0ec8a9a8-89f0-48a4-a068-1f92f390c83d"
-  ],
-  "parentFeatureId": "0ec8a9a8-89f0-48a4-a068-1f92f390c83d",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1723,14 +1558,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "3af6dd22-ee54-42c2-a572-b4785f2cb40c",
+  "featureIds": [
     "3af6dd22-ee54-42c2-a572-b4785f2cb40c"
   ],
-  "allFeatureIds": [
-    "3af6dd22-ee54-42c2-a572-b4785f2cb40c"
-  ],
-  "parentFeatureId": "3af6dd22-ee54-42c2-a572-b4785f2cb40c",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1753,14 +1585,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "317a25d5-6259-40f8-9a32-cc99a06d6770",
+  "featureIds": [
     "317a25d5-6259-40f8-9a32-cc99a06d6770"
   ],
-  "allFeatureIds": [
-    "317a25d5-6259-40f8-9a32-cc99a06d6770"
-  ],
-  "parentFeatureId": "317a25d5-6259-40f8-9a32-cc99a06d6770",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1783,14 +1612,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "697d3130-10ae-4451-9f9f-42faa88167fe",
+  "featureIds": [
     "697d3130-10ae-4451-9f9f-42faa88167fe"
   ],
-  "allFeatureIds": [
-    "697d3130-10ae-4451-9f9f-42faa88167fe"
-  ],
-  "parentFeatureId": "697d3130-10ae-4451-9f9f-42faa88167fe",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1813,14 +1639,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "78539f9e-44f2-4098-8be4-218a9ed50c5f",
+  "featureIds": [
     "78539f9e-44f2-4098-8be4-218a9ed50c5f"
   ],
-  "allFeatureIds": [
-    "78539f9e-44f2-4098-8be4-218a9ed50c5f"
-  ],
-  "parentFeatureId": "78539f9e-44f2-4098-8be4-218a9ed50c5f",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1843,14 +1666,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "5d1474d2-05df-47df-8399-8d59a3129ac9",
+  "featureIds": [
     "5d1474d2-05df-47df-8399-8d59a3129ac9"
   ],
-  "allFeatureIds": [
-    "5d1474d2-05df-47df-8399-8d59a3129ac9"
-  ],
-  "parentFeatureId": "5d1474d2-05df-47df-8399-8d59a3129ac9",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1873,14 +1693,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "dd690fed-dabb-43da-9f75-1d9a69f437ad",
+  "featureIds": [
     "dd690fed-dabb-43da-9f75-1d9a69f437ad"
   ],
-  "allFeatureIds": [
-    "dd690fed-dabb-43da-9f75-1d9a69f437ad"
-  ],
-  "parentFeatureId": "dd690fed-dabb-43da-9f75-1d9a69f437ad",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1903,14 +1720,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "5be285e2-8209-42a6-9617-b3a4dbd7877a",
+  "featureIds": [
     "5be285e2-8209-42a6-9617-b3a4dbd7877a"
   ],
-  "allFeatureIds": [
-    "5be285e2-8209-42a6-9617-b3a4dbd7877a"
-  ],
-  "parentFeatureId": "5be285e2-8209-42a6-9617-b3a4dbd7877a",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1933,14 +1747,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "b72c1711-e2bb-4e65-b691-05a74507c82b",
+  "featureIds": [
     "b72c1711-e2bb-4e65-b691-05a74507c82b"
   ],
-  "allFeatureIds": [
-    "b72c1711-e2bb-4e65-b691-05a74507c82b"
-  ],
-  "parentFeatureId": "b72c1711-e2bb-4e65-b691-05a74507c82b",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1963,14 +1774,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "8627f271-eafe-4242-acfb-8d2f55b818cc",
+  "featureIds": [
     "8627f271-eafe-4242-acfb-8d2f55b818cc"
   ],
-  "allFeatureIds": [
-    "8627f271-eafe-4242-acfb-8d2f55b818cc"
-  ],
-  "parentFeatureId": "8627f271-eafe-4242-acfb-8d2f55b818cc",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -1993,14 +1801,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "7e8a1bc1-6cdc-416e-8c0c-68723bf1a70c",
+  "featureIds": [
     "7e8a1bc1-6cdc-416e-8c0c-68723bf1a70c"
   ],
-  "allFeatureIds": [
-    "7e8a1bc1-6cdc-416e-8c0c-68723bf1a70c"
-  ],
-  "parentFeatureId": "7e8a1bc1-6cdc-416e-8c0c-68723bf1a70c",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2023,14 +1828,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "39b15250-ed6f-45e6-a66e-de91c5848025",
+  "featureIds": [
     "39b15250-ed6f-45e6-a66e-de91c5848025"
   ],
-  "allFeatureIds": [
-    "39b15250-ed6f-45e6-a66e-de91c5848025"
-  ],
-  "parentFeatureId": "39b15250-ed6f-45e6-a66e-de91c5848025",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2053,14 +1855,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "427e25e8-f6d3-483b-94f9-5dbb7c4b1535",
+  "featureIds": [
     "427e25e8-f6d3-483b-94f9-5dbb7c4b1535"
   ],
-  "allFeatureIds": [
-    "427e25e8-f6d3-483b-94f9-5dbb7c4b1535"
-  ],
-  "parentFeatureId": "427e25e8-f6d3-483b-94f9-5dbb7c4b1535",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2083,14 +1882,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "f67b77b6-d6d2-4733-814a-5825c53f23c4",
+  "featureIds": [
     "f67b77b6-d6d2-4733-814a-5825c53f23c4"
   ],
-  "allFeatureIds": [
-    "f67b77b6-d6d2-4733-814a-5825c53f23c4"
-  ],
-  "parentFeatureId": "f67b77b6-d6d2-4733-814a-5825c53f23c4",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2113,14 +1909,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "0476ec7d-1cee-4821-a73b-a37aeea31fae",
+  "featureIds": [
     "0476ec7d-1cee-4821-a73b-a37aeea31fae"
   ],
-  "allFeatureIds": [
-    "0476ec7d-1cee-4821-a73b-a37aeea31fae"
-  ],
-  "parentFeatureId": "0476ec7d-1cee-4821-a73b-a37aeea31fae",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2143,14 +1936,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "b2122c5f-7eb3-4ed2-ae26-dabf17408078",
+  "featureIds": [
     "b2122c5f-7eb3-4ed2-ae26-dabf17408078"
   ],
-  "allFeatureIds": [
-    "b2122c5f-7eb3-4ed2-ae26-dabf17408078"
-  ],
-  "parentFeatureId": "b2122c5f-7eb3-4ed2-ae26-dabf17408078",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2173,14 +1963,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "70faf34d-e244-4749-ade0-ef397aa510ab",
+  "featureIds": [
     "70faf34d-e244-4749-ade0-ef397aa510ab"
   ],
-  "allFeatureIds": [
-    "70faf34d-e244-4749-ade0-ef397aa510ab"
-  ],
-  "parentFeatureId": "70faf34d-e244-4749-ade0-ef397aa510ab",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2203,14 +1990,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "4f77ddf1-0b21-417f-82f5-e99f43dad724",
+  "featureIds": [
     "4f77ddf1-0b21-417f-82f5-e99f43dad724"
   ],
-  "allFeatureIds": [
-    "4f77ddf1-0b21-417f-82f5-e99f43dad724"
-  ],
-  "parentFeatureId": "4f77ddf1-0b21-417f-82f5-e99f43dad724",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2233,14 +2017,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "da6a41d8-234d-4df5-94d4-860bddb3a4bb",
+  "featureIds": [
     "da6a41d8-234d-4df5-94d4-860bddb3a4bb"
   ],
-  "allFeatureIds": [
-    "da6a41d8-234d-4df5-94d4-860bddb3a4bb"
-  ],
-  "parentFeatureId": "da6a41d8-234d-4df5-94d4-860bddb3a4bb",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2263,14 +2044,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "6403fe53-b593-4017-b070-da62b3e2df5a",
+  "featureIds": [
     "6403fe53-b593-4017-b070-da62b3e2df5a"
   ],
-  "allFeatureIds": [
-    "6403fe53-b593-4017-b070-da62b3e2df5a"
-  ],
-  "parentFeatureId": "6403fe53-b593-4017-b070-da62b3e2df5a",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2293,14 +2071,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "5c3c4b26-1533-4556-9885-4f90e9ae9d41",
+  "featureIds": [
     "5c3c4b26-1533-4556-9885-4f90e9ae9d41"
   ],
-  "allFeatureIds": [
-    "5c3c4b26-1533-4556-9885-4f90e9ae9d41"
-  ],
-  "parentFeatureId": "5c3c4b26-1533-4556-9885-4f90e9ae9d41",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2323,14 +2098,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "2e58e92e-db09-437d-bbdd-9ebe9411e79b",
+  "featureIds": [
     "2e58e92e-db09-437d-bbdd-9ebe9411e79b"
   ],
-  "allFeatureIds": [
-    "2e58e92e-db09-437d-bbdd-9ebe9411e79b"
-  ],
-  "parentFeatureId": "2e58e92e-db09-437d-bbdd-9ebe9411e79b",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2353,14 +2125,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "b135271b-abc1-4f9a-bd24-3f342d2a1ada",
+  "featureIds": [
     "b135271b-abc1-4f9a-bd24-3f342d2a1ada"
   ],
-  "allFeatureIds": [
-    "b135271b-abc1-4f9a-bd24-3f342d2a1ada"
-  ],
-  "parentFeatureId": "b135271b-abc1-4f9a-bd24-3f342d2a1ada",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2383,14 +2152,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "b4ba9015-80f3-4615-ae95-e122ba71b966",
+  "featureIds": [
     "b4ba9015-80f3-4615-ae95-e122ba71b966"
   ],
-  "allFeatureIds": [
-    "b4ba9015-80f3-4615-ae95-e122ba71b966"
-  ],
-  "parentFeatureId": "b4ba9015-80f3-4615-ae95-e122ba71b966",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2413,14 +2179,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "2a0145ff-4543-498d-873d-8840900232bc",
+  "featureIds": [
     "2a0145ff-4543-498d-873d-8840900232bc"
   ],
-  "allFeatureIds": [
-    "2a0145ff-4543-498d-873d-8840900232bc"
-  ],
-  "parentFeatureId": "2a0145ff-4543-498d-873d-8840900232bc",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2443,14 +2206,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "f24bd30d-04b6-4dc8-ae5f-aa3e639eb425",
+  "featureIds": [
     "f24bd30d-04b6-4dc8-ae5f-aa3e639eb425"
   ],
-  "allFeatureIds": [
-    "f24bd30d-04b6-4dc8-ae5f-aa3e639eb425"
-  ],
-  "parentFeatureId": "f24bd30d-04b6-4dc8-ae5f-aa3e639eb425",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2473,14 +2233,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "8536f238-4bac-476a-9252-70216e452dd1",
+  "featureIds": [
     "8536f238-4bac-476a-9252-70216e452dd1"
   ],
-  "allFeatureIds": [
-    "8536f238-4bac-476a-9252-70216e452dd1"
-  ],
-  "parentFeatureId": "8536f238-4bac-476a-9252-70216e452dd1",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2503,14 +2260,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "205f8021-ee08-4982-b857-abc896bfb090",
+  "featureIds": [
     "205f8021-ee08-4982-b857-abc896bfb090"
   ],
-  "allFeatureIds": [
-    "205f8021-ee08-4982-b857-abc896bfb090"
-  ],
-  "parentFeatureId": "205f8021-ee08-4982-b857-abc896bfb090",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2533,14 +2287,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "1578d9c4-9047-489a-acde-2e7971650157",
+  "featureIds": [
     "1578d9c4-9047-489a-acde-2e7971650157"
   ],
-  "allFeatureIds": [
-    "1578d9c4-9047-489a-acde-2e7971650157"
-  ],
-  "parentFeatureId": "1578d9c4-9047-489a-acde-2e7971650157",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2563,14 +2314,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "8b81488f-5dc9-4cf2-a166-a3a9d4be0bc3",
+  "featureIds": [
     "8b81488f-5dc9-4cf2-a166-a3a9d4be0bc3"
   ],
-  "allFeatureIds": [
-    "8b81488f-5dc9-4cf2-a166-a3a9d4be0bc3"
-  ],
-  "parentFeatureId": "8b81488f-5dc9-4cf2-a166-a3a9d4be0bc3",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2593,14 +2341,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "6f61a5dd-edde-4d87-832c-6c8985bb2133",
+  "featureIds": [
     "6f61a5dd-edde-4d87-832c-6c8985bb2133"
   ],
-  "allFeatureIds": [
-    "6f61a5dd-edde-4d87-832c-6c8985bb2133"
-  ],
-  "parentFeatureId": "6f61a5dd-edde-4d87-832c-6c8985bb2133",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2623,14 +2368,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "165fb7e5-2d91-4e1a-8554-9c86f1581e72",
+  "featureIds": [
     "165fb7e5-2d91-4e1a-8554-9c86f1581e72"
   ],
-  "allFeatureIds": [
-    "165fb7e5-2d91-4e1a-8554-9c86f1581e72"
-  ],
-  "parentFeatureId": "165fb7e5-2d91-4e1a-8554-9c86f1581e72",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2653,14 +2395,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "3e86ada8-d166-4175-8abe-cc71396fcf2d",
+  "featureIds": [
     "3e86ada8-d166-4175-8abe-cc71396fcf2d"
   ],
-  "allFeatureIds": [
-    "3e86ada8-d166-4175-8abe-cc71396fcf2d"
-  ],
-  "parentFeatureId": "3e86ada8-d166-4175-8abe-cc71396fcf2d",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2683,14 +2422,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "f009a235-0df2-4f49-97bf-e608c6aa3908",
+  "featureIds": [
     "f009a235-0df2-4f49-97bf-e608c6aa3908"
   ],
-  "allFeatureIds": [
-    "f009a235-0df2-4f49-97bf-e608c6aa3908"
-  ],
-  "parentFeatureId": "f009a235-0df2-4f49-97bf-e608c6aa3908",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2713,14 +2449,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "0dff6214-881f-4dec-a05c-e6851d2e6923",
+  "featureIds": [
     "0dff6214-881f-4dec-a05c-e6851d2e6923"
   ],
-  "allFeatureIds": [
-    "0dff6214-881f-4dec-a05c-e6851d2e6923"
-  ],
-  "parentFeatureId": "0dff6214-881f-4dec-a05c-e6851d2e6923",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2746,14 +2479,11 @@
   "type": "polypeptide_domain",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "d9f622b5-2ed0-4aa2-bdfc-0c8d5ff1670e",
+  "featureIds": [
     "d9f622b5-2ed0-4aa2-bdfc-0c8d5ff1670e"
   ],
-  "allFeatureIds": [
-    "d9f622b5-2ed0-4aa2-bdfc-0c8d5ff1670e"
-  ],
-  "parentFeatureId": "d9f622b5-2ed0-4aa2-bdfc-0c8d5ff1670e",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2779,14 +2509,11 @@
   "type": "polypeptide_domain",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "0a969c5a-5a15-49e1-98e3-7792f0b02a03",
+  "featureIds": [
     "0a969c5a-5a15-49e1-98e3-7792f0b02a03"
   ],
-  "allFeatureIds": [
-    "0a969c5a-5a15-49e1-98e3-7792f0b02a03"
-  ],
-  "parentFeatureId": "0a969c5a-5a15-49e1-98e3-7792f0b02a03",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2809,14 +2536,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "6f69799c-278c-4802-a608-a862ca6fea10",
+  "featureIds": [
     "6f69799c-278c-4802-a608-a862ca6fea10"
   ],
-  "allFeatureIds": [
-    "6f69799c-278c-4802-a608-a862ca6fea10"
-  ],
-  "parentFeatureId": "6f69799c-278c-4802-a608-a862ca6fea10",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2839,14 +2563,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "0705a4a5-f3c1-4e7c-a5ec-286a31b9c0f0",
+  "featureIds": [
     "0705a4a5-f3c1-4e7c-a5ec-286a31b9c0f0"
   ],
-  "allFeatureIds": [
-    "0705a4a5-f3c1-4e7c-a5ec-286a31b9c0f0"
-  ],
-  "parentFeatureId": "0705a4a5-f3c1-4e7c-a5ec-286a31b9c0f0",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2869,14 +2590,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "e8f54651-b94c-411f-bd65-d121d844becf",
+  "featureIds": [
     "e8f54651-b94c-411f-bd65-d121d844becf"
   ],
-  "allFeatureIds": [
-    "e8f54651-b94c-411f-bd65-d121d844becf"
-  ],
-  "parentFeatureId": "e8f54651-b94c-411f-bd65-d121d844becf",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2899,14 +2617,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "92cdda6b-4358-4c68-a619-374df1d9ad01",
+  "featureIds": [
     "92cdda6b-4358-4c68-a619-374df1d9ad01"
   ],
-  "allFeatureIds": [
-    "92cdda6b-4358-4c68-a619-374df1d9ad01"
-  ],
-  "parentFeatureId": "92cdda6b-4358-4c68-a619-374df1d9ad01",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2929,14 +2644,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "70906ea7-1277-4c73-b58d-9089b0fbedc4",
+  "featureIds": [
     "70906ea7-1277-4c73-b58d-9089b0fbedc4"
   ],
-  "allFeatureIds": [
-    "70906ea7-1277-4c73-b58d-9089b0fbedc4"
-  ],
-  "parentFeatureId": "70906ea7-1277-4c73-b58d-9089b0fbedc4",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2959,14 +2671,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "7efd0f58-5b66-45e0-9bcd-e30afd18a327",
+  "featureIds": [
     "7efd0f58-5b66-45e0-9bcd-e30afd18a327"
   ],
-  "allFeatureIds": [
-    "7efd0f58-5b66-45e0-9bcd-e30afd18a327"
-  ],
-  "parentFeatureId": "7efd0f58-5b66-45e0-9bcd-e30afd18a327",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -2989,14 +2698,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "532c489b-799f-4bb8-9a86-d217255d6a66",
+  "featureIds": [
     "532c489b-799f-4bb8-9a86-d217255d6a66"
   ],
-  "allFeatureIds": [
-    "532c489b-799f-4bb8-9a86-d217255d6a66"
-  ],
-  "parentFeatureId": "532c489b-799f-4bb8-9a86-d217255d6a66",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3019,14 +2725,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "35cb2d57-7015-42df-9eba-b820db9df0e9",
+  "featureIds": [
     "35cb2d57-7015-42df-9eba-b820db9df0e9"
   ],
-  "allFeatureIds": [
-    "35cb2d57-7015-42df-9eba-b820db9df0e9"
-  ],
-  "parentFeatureId": "35cb2d57-7015-42df-9eba-b820db9df0e9",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3049,14 +2752,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "d9794611-8791-45e4-afca-d18d4b23f40c",
+  "featureIds": [
     "d9794611-8791-45e4-afca-d18d4b23f40c"
   ],
-  "allFeatureIds": [
-    "d9794611-8791-45e4-afca-d18d4b23f40c"
-  ],
-  "parentFeatureId": "d9794611-8791-45e4-afca-d18d4b23f40c",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3079,14 +2779,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "1e1c7689-215a-4832-9eef-fce31567a781",
+  "featureIds": [
     "1e1c7689-215a-4832-9eef-fce31567a781"
   ],
-  "allFeatureIds": [
-    "1e1c7689-215a-4832-9eef-fce31567a781"
-  ],
-  "parentFeatureId": "1e1c7689-215a-4832-9eef-fce31567a781",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3109,14 +2806,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "7c756894-cd0a-45d4-be1b-842612c7b084",
+  "featureIds": [
     "7c756894-cd0a-45d4-be1b-842612c7b084"
   ],
-  "allFeatureIds": [
-    "7c756894-cd0a-45d4-be1b-842612c7b084"
-  ],
-  "parentFeatureId": "7c756894-cd0a-45d4-be1b-842612c7b084",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3139,14 +2833,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "b01db09d-df8f-46a0-b331-90da54e09e3a",
+  "featureIds": [
     "b01db09d-df8f-46a0-b331-90da54e09e3a"
   ],
-  "allFeatureIds": [
-    "b01db09d-df8f-46a0-b331-90da54e09e3a"
-  ],
-  "parentFeatureId": "b01db09d-df8f-46a0-b331-90da54e09e3a",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3169,14 +2860,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "8d3af89a-49f1-4817-a053-4aff5c8e80c7",
+  "featureIds": [
     "8d3af89a-49f1-4817-a053-4aff5c8e80c7"
   ],
-  "allFeatureIds": [
-    "8d3af89a-49f1-4817-a053-4aff5c8e80c7"
-  ],
-  "parentFeatureId": "8d3af89a-49f1-4817-a053-4aff5c8e80c7",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3199,14 +2887,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "11744bf5-cfaf-4857-adc5-a681a6ddeff7",
+  "featureIds": [
     "11744bf5-cfaf-4857-adc5-a681a6ddeff7"
   ],
-  "allFeatureIds": [
-    "11744bf5-cfaf-4857-adc5-a681a6ddeff7"
-  ],
-  "parentFeatureId": "11744bf5-cfaf-4857-adc5-a681a6ddeff7",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3229,14 +2914,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "8e83e702-6825-412e-ba26-6343cca96d30",
+  "featureIds": [
     "8e83e702-6825-412e-ba26-6343cca96d30"
   ],
-  "allFeatureIds": [
-    "8e83e702-6825-412e-ba26-6343cca96d30"
-  ],
-  "parentFeatureId": "8e83e702-6825-412e-ba26-6343cca96d30",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3259,14 +2941,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "1107fbf7-bf32-4c7c-809b-599ff576a563",
+  "featureIds": [
     "1107fbf7-bf32-4c7c-809b-599ff576a563"
   ],
-  "allFeatureIds": [
-    "1107fbf7-bf32-4c7c-809b-599ff576a563"
-  ],
-  "parentFeatureId": "1107fbf7-bf32-4c7c-809b-599ff576a563",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3289,14 +2968,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "b92ea6ed-7a50-4f66-add0-7486d6846845",
+  "featureIds": [
     "b92ea6ed-7a50-4f66-add0-7486d6846845"
   ],
-  "allFeatureIds": [
-    "b92ea6ed-7a50-4f66-add0-7486d6846845"
-  ],
-  "parentFeatureId": "b92ea6ed-7a50-4f66-add0-7486d6846845",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3322,14 +2998,11 @@
   "type": "polypeptide_domain",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "1f9cfd3f-7fba-484d-9396-b0560d39042d",
+  "featureIds": [
     "1f9cfd3f-7fba-484d-9396-b0560d39042d"
   ],
-  "allFeatureIds": [
-    "1f9cfd3f-7fba-484d-9396-b0560d39042d"
-  ],
-  "parentFeatureId": "1f9cfd3f-7fba-484d-9396-b0560d39042d",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3352,14 +3025,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "341d4ca5-3fcc-4c08-8e0b-ce1986b4de4d",
+  "featureIds": [
     "341d4ca5-3fcc-4c08-8e0b-ce1986b4de4d"
   ],
-  "allFeatureIds": [
-    "341d4ca5-3fcc-4c08-8e0b-ce1986b4de4d"
-  ],
-  "parentFeatureId": "341d4ca5-3fcc-4c08-8e0b-ce1986b4de4d",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3382,14 +3052,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "d2b7014a-bdf0-4f86-a265-620fa901f163",
+  "featureIds": [
     "d2b7014a-bdf0-4f86-a265-620fa901f163"
   ],
-  "allFeatureIds": [
-    "d2b7014a-bdf0-4f86-a265-620fa901f163"
-  ],
-  "parentFeatureId": "d2b7014a-bdf0-4f86-a265-620fa901f163",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3412,14 +3079,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "71e70376-55db-4d5a-898e-918da4443bf3",
+  "featureIds": [
     "71e70376-55db-4d5a-898e-918da4443bf3"
   ],
-  "allFeatureIds": [
-    "71e70376-55db-4d5a-898e-918da4443bf3"
-  ],
-  "parentFeatureId": "71e70376-55db-4d5a-898e-918da4443bf3",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3442,14 +3106,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "d81aaf93-80b3-4eb4-8c54-fcead0e5cd2c",
+  "featureIds": [
     "d81aaf93-80b3-4eb4-8c54-fcead0e5cd2c"
   ],
-  "allFeatureIds": [
-    "d81aaf93-80b3-4eb4-8c54-fcead0e5cd2c"
-  ],
-  "parentFeatureId": "d81aaf93-80b3-4eb4-8c54-fcead0e5cd2c",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3472,14 +3133,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "19b58851-0860-49ad-a68d-8a0d4a327290",
+  "featureIds": [
     "19b58851-0860-49ad-a68d-8a0d4a327290"
   ],
-  "allFeatureIds": [
-    "19b58851-0860-49ad-a68d-8a0d4a327290"
-  ],
-  "parentFeatureId": "19b58851-0860-49ad-a68d-8a0d4a327290",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3502,14 +3160,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "8036e642-5ba0-472e-be24-e3d25c5c5407",
+  "featureIds": [
     "8036e642-5ba0-472e-be24-e3d25c5c5407"
   ],
-  "allFeatureIds": [
-    "8036e642-5ba0-472e-be24-e3d25c5c5407"
-  ],
-  "parentFeatureId": "8036e642-5ba0-472e-be24-e3d25c5c5407",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3532,14 +3187,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "8b7f9e5b-42a6-4435-a0cd-d92a99a672bd",
+  "featureIds": [
     "8b7f9e5b-42a6-4435-a0cd-d92a99a672bd"
   ],
-  "allFeatureIds": [
-    "8b7f9e5b-42a6-4435-a0cd-d92a99a672bd"
-  ],
-  "parentFeatureId": "8b7f9e5b-42a6-4435-a0cd-d92a99a672bd",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3562,14 +3214,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "05295a4c-2d73-4065-a84e-24ef0ec492e3",
+  "featureIds": [
     "05295a4c-2d73-4065-a84e-24ef0ec492e3"
   ],
-  "allFeatureIds": [
-    "05295a4c-2d73-4065-a84e-24ef0ec492e3"
-  ],
-  "parentFeatureId": "05295a4c-2d73-4065-a84e-24ef0ec492e3",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3592,14 +3241,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "c80c80a9-f4d0-4e99-82af-cd77b434ac24",
+  "featureIds": [
     "c80c80a9-f4d0-4e99-82af-cd77b434ac24"
   ],
-  "allFeatureIds": [
-    "c80c80a9-f4d0-4e99-82af-cd77b434ac24"
-  ],
-  "parentFeatureId": "c80c80a9-f4d0-4e99-82af-cd77b434ac24",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3622,14 +3268,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "99606be9-5aae-4155-b19c-50b3a20eb22e",
+  "featureIds": [
     "99606be9-5aae-4155-b19c-50b3a20eb22e"
   ],
-  "allFeatureIds": [
-    "99606be9-5aae-4155-b19c-50b3a20eb22e"
-  ],
-  "parentFeatureId": "99606be9-5aae-4155-b19c-50b3a20eb22e",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3652,14 +3295,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "3e0b6fe4-720f-4343-9781-7fa2ef729e60",
+  "featureIds": [
     "3e0b6fe4-720f-4343-9781-7fa2ef729e60"
   ],
-  "allFeatureIds": [
-    "3e0b6fe4-720f-4343-9781-7fa2ef729e60"
-  ],
-  "parentFeatureId": "3e0b6fe4-720f-4343-9781-7fa2ef729e60",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3682,14 +3322,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "f25acd80-6ec9-4a1d-b140-416349b976bb",
+  "featureIds": [
     "f25acd80-6ec9-4a1d-b140-416349b976bb"
   ],
-  "allFeatureIds": [
-    "f25acd80-6ec9-4a1d-b140-416349b976bb"
-  ],
-  "parentFeatureId": "f25acd80-6ec9-4a1d-b140-416349b976bb",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3712,14 +3349,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "8f475d37-e1c8-4182-9993-c7a2bec7e75b",
+  "featureIds": [
     "8f475d37-e1c8-4182-9993-c7a2bec7e75b"
   ],
-  "allFeatureIds": [
-    "8f475d37-e1c8-4182-9993-c7a2bec7e75b"
-  ],
-  "parentFeatureId": "8f475d37-e1c8-4182-9993-c7a2bec7e75b",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3742,14 +3376,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "8be3db44-b0ce-4649-aab8-7a757ce6b857",
+  "featureIds": [
     "8be3db44-b0ce-4649-aab8-7a757ce6b857"
   ],
-  "allFeatureIds": [
-    "8be3db44-b0ce-4649-aab8-7a757ce6b857"
-  ],
-  "parentFeatureId": "8be3db44-b0ce-4649-aab8-7a757ce6b857",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3772,14 +3403,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "eef8dee2-d1ba-4859-adfe-205a7df0a09c",
+  "featureIds": [
     "eef8dee2-d1ba-4859-adfe-205a7df0a09c"
   ],
-  "allFeatureIds": [
-    "eef8dee2-d1ba-4859-adfe-205a7df0a09c"
-  ],
-  "parentFeatureId": "eef8dee2-d1ba-4859-adfe-205a7df0a09c",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3805,14 +3433,11 @@
   "type": "polypeptide_domain",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "5be3cce8-5b86-4d75-8eb1-e5b9e887f097",
+  "featureIds": [
     "5be3cce8-5b86-4d75-8eb1-e5b9e887f097"
   ],
-  "allFeatureIds": [
-    "5be3cce8-5b86-4d75-8eb1-e5b9e887f097"
-  ],
-  "parentFeatureId": "5be3cce8-5b86-4d75-8eb1-e5b9e887f097",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3835,14 +3460,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "1e10e941-2ea9-4bc2-8a46-a88b945fc713",
+  "featureIds": [
     "1e10e941-2ea9-4bc2-8a46-a88b945fc713"
   ],
-  "allFeatureIds": [
-    "1e10e941-2ea9-4bc2-8a46-a88b945fc713"
-  ],
-  "parentFeatureId": "1e10e941-2ea9-4bc2-8a46-a88b945fc713",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3865,14 +3487,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "3b7c18a0-b312-4e4a-99a1-818633816cd0",
+  "featureIds": [
     "3b7c18a0-b312-4e4a-99a1-818633816cd0"
   ],
-  "allFeatureIds": [
-    "3b7c18a0-b312-4e4a-99a1-818633816cd0"
-  ],
-  "parentFeatureId": "3b7c18a0-b312-4e4a-99a1-818633816cd0",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3895,14 +3514,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "898eb51b-4991-408a-bfa8-98f93dee9c48",
+  "featureIds": [
     "898eb51b-4991-408a-bfa8-98f93dee9c48"
   ],
-  "allFeatureIds": [
-    "898eb51b-4991-408a-bfa8-98f93dee9c48"
-  ],
-  "parentFeatureId": "898eb51b-4991-408a-bfa8-98f93dee9c48",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3925,14 +3541,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "a6a7b840-ccff-4963-b544-c42afbc88d07",
+  "featureIds": [
     "a6a7b840-ccff-4963-b544-c42afbc88d07"
   ],
-  "allFeatureIds": [
-    "a6a7b840-ccff-4963-b544-c42afbc88d07"
-  ],
-  "parentFeatureId": "a6a7b840-ccff-4963-b544-c42afbc88d07",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3955,14 +3568,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "8fb7765e-770f-45d8-88ff-a8ec6c586565",
+  "featureIds": [
     "8fb7765e-770f-45d8-88ff-a8ec6c586565"
   ],
-  "allFeatureIds": [
-    "8fb7765e-770f-45d8-88ff-a8ec6c586565"
-  ],
-  "parentFeatureId": "8fb7765e-770f-45d8-88ff-a8ec6c586565",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -3985,14 +3595,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "358de79a-38ad-472c-a38b-46daa2fd97c2",
+  "featureIds": [
     "358de79a-38ad-472c-a38b-46daa2fd97c2"
   ],
-  "allFeatureIds": [
-    "358de79a-38ad-472c-a38b-46daa2fd97c2"
-  ],
-  "parentFeatureId": "358de79a-38ad-472c-a38b-46daa2fd97c2",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4015,14 +3622,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "b38f7f2e-f7c9-4388-b02f-9e724543785c",
+  "featureIds": [
     "b38f7f2e-f7c9-4388-b02f-9e724543785c"
   ],
-  "allFeatureIds": [
-    "b38f7f2e-f7c9-4388-b02f-9e724543785c"
-  ],
-  "parentFeatureId": "b38f7f2e-f7c9-4388-b02f-9e724543785c",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4045,14 +3649,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "f44e2152-019b-48f9-a2b4-73ad33a17da3",
+  "featureIds": [
     "f44e2152-019b-48f9-a2b4-73ad33a17da3"
   ],
-  "allFeatureIds": [
-    "f44e2152-019b-48f9-a2b4-73ad33a17da3"
-  ],
-  "parentFeatureId": "f44e2152-019b-48f9-a2b4-73ad33a17da3",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4075,14 +3676,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "081742f8-8cff-46a9-84af-91d71b59baaa",
+  "featureIds": [
     "081742f8-8cff-46a9-84af-91d71b59baaa"
   ],
-  "allFeatureIds": [
-    "081742f8-8cff-46a9-84af-91d71b59baaa"
-  ],
-  "parentFeatureId": "081742f8-8cff-46a9-84af-91d71b59baaa",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4105,14 +3703,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "7fad616e-2e52-4035-b87a-df6c6cf76539",
+  "featureIds": [
     "7fad616e-2e52-4035-b87a-df6c6cf76539"
   ],
-  "allFeatureIds": [
-    "7fad616e-2e52-4035-b87a-df6c6cf76539"
-  ],
-  "parentFeatureId": "7fad616e-2e52-4035-b87a-df6c6cf76539",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4135,14 +3730,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "5948275d-266d-4056-8bc6-b5b6bfcdd149",
+  "featureIds": [
     "5948275d-266d-4056-8bc6-b5b6bfcdd149"
   ],
-  "allFeatureIds": [
-    "5948275d-266d-4056-8bc6-b5b6bfcdd149"
-  ],
-  "parentFeatureId": "5948275d-266d-4056-8bc6-b5b6bfcdd149",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4165,14 +3757,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "dc211302-d7e8-40a0-9244-2484c4108a4f",
+  "featureIds": [
     "dc211302-d7e8-40a0-9244-2484c4108a4f"
   ],
-  "allFeatureIds": [
-    "dc211302-d7e8-40a0-9244-2484c4108a4f"
-  ],
-  "parentFeatureId": "dc211302-d7e8-40a0-9244-2484c4108a4f",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4195,14 +3784,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "8e420d3b-b293-4610-ac4b-f1e7f95cbca7",
+  "featureIds": [
     "8e420d3b-b293-4610-ac4b-f1e7f95cbca7"
   ],
-  "allFeatureIds": [
-    "8e420d3b-b293-4610-ac4b-f1e7f95cbca7"
-  ],
-  "parentFeatureId": "8e420d3b-b293-4610-ac4b-f1e7f95cbca7",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4228,14 +3814,11 @@
   "type": "polypeptide_domain",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "19c740e8-59ed-47c0-86ee-c418ea58a777",
+  "featureIds": [
     "19c740e8-59ed-47c0-86ee-c418ea58a777"
   ],
-  "allFeatureIds": [
-    "19c740e8-59ed-47c0-86ee-c418ea58a777"
-  ],
-  "parentFeatureId": "19c740e8-59ed-47c0-86ee-c418ea58a777",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4258,14 +3841,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "09e78488-f5d0-4eb6-950f-5cf185aab80d",
+  "featureIds": [
     "09e78488-f5d0-4eb6-950f-5cf185aab80d"
   ],
-  "allFeatureIds": [
-    "09e78488-f5d0-4eb6-950f-5cf185aab80d"
-  ],
-  "parentFeatureId": "09e78488-f5d0-4eb6-950f-5cf185aab80d",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4288,14 +3868,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "af672452-f0e5-4a2c-97ef-4a8e36886c6a",
+  "featureIds": [
     "af672452-f0e5-4a2c-97ef-4a8e36886c6a"
   ],
-  "allFeatureIds": [
-    "af672452-f0e5-4a2c-97ef-4a8e36886c6a"
-  ],
-  "parentFeatureId": "af672452-f0e5-4a2c-97ef-4a8e36886c6a",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4318,14 +3895,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "9e891791-9d24-42e1-b401-554a77df13b4",
+  "featureIds": [
     "9e891791-9d24-42e1-b401-554a77df13b4"
   ],
-  "allFeatureIds": [
-    "9e891791-9d24-42e1-b401-554a77df13b4"
-  ],
-  "parentFeatureId": "9e891791-9d24-42e1-b401-554a77df13b4",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4348,14 +3922,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "6625c6ef-12a5-4135-9f41-c340903e6468",
+  "featureIds": [
     "6625c6ef-12a5-4135-9f41-c340903e6468"
   ],
-  "allFeatureIds": [
-    "6625c6ef-12a5-4135-9f41-c340903e6468"
-  ],
-  "parentFeatureId": "6625c6ef-12a5-4135-9f41-c340903e6468",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4378,14 +3949,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "f51a3981-fc91-431c-bf26-8b5b75ff9353",
+  "featureIds": [
     "f51a3981-fc91-431c-bf26-8b5b75ff9353"
   ],
-  "allFeatureIds": [
-    "f51a3981-fc91-431c-bf26-8b5b75ff9353"
-  ],
-  "parentFeatureId": "f51a3981-fc91-431c-bf26-8b5b75ff9353",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4408,14 +3976,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "807df4dc-dda5-4c0c-a40b-088d5267996d",
+  "featureIds": [
     "807df4dc-dda5-4c0c-a40b-088d5267996d"
   ],
-  "allFeatureIds": [
-    "807df4dc-dda5-4c0c-a40b-088d5267996d"
-  ],
-  "parentFeatureId": "807df4dc-dda5-4c0c-a40b-088d5267996d",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4438,14 +4003,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "38fef1d6-6df3-446c-b90f-6a7ce655bd1f",
+  "featureIds": [
     "38fef1d6-6df3-446c-b90f-6a7ce655bd1f"
   ],
-  "allFeatureIds": [
-    "38fef1d6-6df3-446c-b90f-6a7ce655bd1f"
-  ],
-  "parentFeatureId": "38fef1d6-6df3-446c-b90f-6a7ce655bd1f",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4468,14 +4030,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "b7766b05-4c37-4267-a47d-eadb8c458db7",
+  "featureIds": [
     "b7766b05-4c37-4267-a47d-eadb8c458db7"
   ],
-  "allFeatureIds": [
-    "b7766b05-4c37-4267-a47d-eadb8c458db7"
-  ],
-  "parentFeatureId": "b7766b05-4c37-4267-a47d-eadb8c458db7",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4498,14 +4057,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "753f3ab9-9159-4850-abf2-d3b117701ca2",
+  "featureIds": [
     "753f3ab9-9159-4850-abf2-d3b117701ca2"
   ],
-  "allFeatureIds": [
-    "753f3ab9-9159-4850-abf2-d3b117701ca2"
-  ],
-  "parentFeatureId": "753f3ab9-9159-4850-abf2-d3b117701ca2",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4528,14 +4084,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "2f46dd02-1252-479e-9acf-4aa74344a522",
+  "featureIds": [
     "2f46dd02-1252-479e-9acf-4aa74344a522"
   ],
-  "allFeatureIds": [
-    "2f46dd02-1252-479e-9acf-4aa74344a522"
-  ],
-  "parentFeatureId": "2f46dd02-1252-479e-9acf-4aa74344a522",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4558,14 +4111,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "7149bde0-1490-4505-8fe1-def786fa0416",
+  "featureIds": [
     "7149bde0-1490-4505-8fe1-def786fa0416"
   ],
-  "allFeatureIds": [
-    "7149bde0-1490-4505-8fe1-def786fa0416"
-  ],
-  "parentFeatureId": "7149bde0-1490-4505-8fe1-def786fa0416",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4588,14 +4138,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "ba4fd8c2-77aa-47e6-b41c-4c0e66a8e6e9",
+  "featureIds": [
     "ba4fd8c2-77aa-47e6-b41c-4c0e66a8e6e9"
   ],
-  "allFeatureIds": [
-    "ba4fd8c2-77aa-47e6-b41c-4c0e66a8e6e9"
-  ],
-  "parentFeatureId": "ba4fd8c2-77aa-47e6-b41c-4c0e66a8e6e9",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4618,14 +4165,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "5083c684-1df1-4f2e-9dab-decfa0b5b800",
+  "featureIds": [
     "5083c684-1df1-4f2e-9dab-decfa0b5b800"
   ],
-  "allFeatureIds": [
-    "5083c684-1df1-4f2e-9dab-decfa0b5b800"
-  ],
-  "parentFeatureId": "5083c684-1df1-4f2e-9dab-decfa0b5b800",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4648,14 +4192,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "4ce8fe4e-642c-48d4-9976-1a0616226223",
+  "featureIds": [
     "4ce8fe4e-642c-48d4-9976-1a0616226223"
   ],
-  "allFeatureIds": [
-    "4ce8fe4e-642c-48d4-9976-1a0616226223"
-  ],
-  "parentFeatureId": "4ce8fe4e-642c-48d4-9976-1a0616226223",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4678,14 +4219,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "748458d2-923b-437d-9daf-c4052c404740",
+  "featureIds": [
     "748458d2-923b-437d-9daf-c4052c404740"
   ],
-  "allFeatureIds": [
-    "748458d2-923b-437d-9daf-c4052c404740"
-  ],
-  "parentFeatureId": "748458d2-923b-437d-9daf-c4052c404740",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4708,14 +4246,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "75aad623-9c81-4457-bb13-0eb26522c5ef",
+  "featureIds": [
     "75aad623-9c81-4457-bb13-0eb26522c5ef"
   ],
-  "allFeatureIds": [
-    "75aad623-9c81-4457-bb13-0eb26522c5ef"
-  ],
-  "parentFeatureId": "75aad623-9c81-4457-bb13-0eb26522c5ef",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4738,14 +4273,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "764d9eaa-6a66-4660-a594-7130d07c5637",
+  "featureIds": [
     "764d9eaa-6a66-4660-a594-7130d07c5637"
   ],
-  "allFeatureIds": [
-    "764d9eaa-6a66-4660-a594-7130d07c5637"
-  ],
-  "parentFeatureId": "764d9eaa-6a66-4660-a594-7130d07c5637",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4768,14 +4300,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "5dd9ad88-6677-48dd-b68e-96ca6cbe599d",
+  "featureIds": [
     "5dd9ad88-6677-48dd-b68e-96ca6cbe599d"
   ],
-  "allFeatureIds": [
-    "5dd9ad88-6677-48dd-b68e-96ca6cbe599d"
-  ],
-  "parentFeatureId": "5dd9ad88-6677-48dd-b68e-96ca6cbe599d",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4798,14 +4327,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "8f4b0c5f-4729-40c3-9559-4bb44736a82c",
+  "featureIds": [
     "8f4b0c5f-4729-40c3-9559-4bb44736a82c"
   ],
-  "allFeatureIds": [
-    "8f4b0c5f-4729-40c3-9559-4bb44736a82c"
-  ],
-  "parentFeatureId": "8f4b0c5f-4729-40c3-9559-4bb44736a82c",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4828,14 +4354,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "48aa459d-2de2-414c-adcc-41392bfddf3b",
+  "featureIds": [
     "48aa459d-2de2-414c-adcc-41392bfddf3b"
   ],
-  "allFeatureIds": [
-    "48aa459d-2de2-414c-adcc-41392bfddf3b"
-  ],
-  "parentFeatureId": "48aa459d-2de2-414c-adcc-41392bfddf3b",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4858,14 +4381,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "831eeaf6-780b-49de-a1e0-d9ce56f89a9f",
+  "featureIds": [
     "831eeaf6-780b-49de-a1e0-d9ce56f89a9f"
   ],
-  "allFeatureIds": [
-    "831eeaf6-780b-49de-a1e0-d9ce56f89a9f"
-  ],
-  "parentFeatureId": "831eeaf6-780b-49de-a1e0-d9ce56f89a9f",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4888,14 +4408,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "2b5c2f73-6e28-4abd-ac05-1bbaafe4664b",
+  "featureIds": [
     "2b5c2f73-6e28-4abd-ac05-1bbaafe4664b"
   ],
-  "allFeatureIds": [
-    "2b5c2f73-6e28-4abd-ac05-1bbaafe4664b"
-  ],
-  "parentFeatureId": "2b5c2f73-6e28-4abd-ac05-1bbaafe4664b",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4918,14 +4435,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "4ba47780-92ed-4b14-816e-b2a01184876a",
+  "featureIds": [
     "4ba47780-92ed-4b14-816e-b2a01184876a"
   ],
-  "allFeatureIds": [
-    "4ba47780-92ed-4b14-816e-b2a01184876a"
-  ],
-  "parentFeatureId": "4ba47780-92ed-4b14-816e-b2a01184876a",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4948,14 +4462,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "360dd1cc-5e7b-4894-b16e-e858b049dd45",
+  "featureIds": [
     "360dd1cc-5e7b-4894-b16e-e858b049dd45"
   ],
-  "allFeatureIds": [
-    "360dd1cc-5e7b-4894-b16e-e858b049dd45"
-  ],
-  "parentFeatureId": "360dd1cc-5e7b-4894-b16e-e858b049dd45",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -4978,14 +4489,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "da6c5e61-ff54-4d9f-9d2a-3ce1b7cbf101",
+  "featureIds": [
     "da6c5e61-ff54-4d9f-9d2a-3ce1b7cbf101"
   ],
-  "allFeatureIds": [
-    "da6c5e61-ff54-4d9f-9d2a-3ce1b7cbf101"
-  ],
-  "parentFeatureId": "da6c5e61-ff54-4d9f-9d2a-3ce1b7cbf101",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5008,14 +4516,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "e6f4eb34-f8a4-46be-9a4b-8adece277463",
+  "featureIds": [
     "e6f4eb34-f8a4-46be-9a4b-8adece277463"
   ],
-  "allFeatureIds": [
-    "e6f4eb34-f8a4-46be-9a4b-8adece277463"
-  ],
-  "parentFeatureId": "e6f4eb34-f8a4-46be-9a4b-8adece277463",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5041,14 +4546,11 @@
   "type": "polypeptide_domain",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "75d2da02-f307-475b-bdac-ad704694666f",
+  "featureIds": [
     "75d2da02-f307-475b-bdac-ad704694666f"
   ],
-  "allFeatureIds": [
-    "75d2da02-f307-475b-bdac-ad704694666f"
-  ],
-  "parentFeatureId": "75d2da02-f307-475b-bdac-ad704694666f",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5071,14 +4573,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "960a4431-7d9e-44c4-b20d-d604961ad6dc",
+  "featureIds": [
     "960a4431-7d9e-44c4-b20d-d604961ad6dc"
   ],
-  "allFeatureIds": [
-    "960a4431-7d9e-44c4-b20d-d604961ad6dc"
-  ],
-  "parentFeatureId": "960a4431-7d9e-44c4-b20d-d604961ad6dc",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5101,14 +4600,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "2ac140db-574d-4c1c-b382-d710df7969ed",
+  "featureIds": [
     "2ac140db-574d-4c1c-b382-d710df7969ed"
   ],
-  "allFeatureIds": [
-    "2ac140db-574d-4c1c-b382-d710df7969ed"
-  ],
-  "parentFeatureId": "2ac140db-574d-4c1c-b382-d710df7969ed",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5131,14 +4627,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "2dbc7e6c-7bf6-48e9-ba98-d1f2b67d0d46",
+  "featureIds": [
     "2dbc7e6c-7bf6-48e9-ba98-d1f2b67d0d46"
   ],
-  "allFeatureIds": [
-    "2dbc7e6c-7bf6-48e9-ba98-d1f2b67d0d46"
-  ],
-  "parentFeatureId": "2dbc7e6c-7bf6-48e9-ba98-d1f2b67d0d46",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5161,14 +4654,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "4428fafc-294d-4c10-893b-8a0c1faf5238",
+  "featureIds": [
     "4428fafc-294d-4c10-893b-8a0c1faf5238"
   ],
-  "allFeatureIds": [
-    "4428fafc-294d-4c10-893b-8a0c1faf5238"
-  ],
-  "parentFeatureId": "4428fafc-294d-4c10-893b-8a0c1faf5238",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5191,14 +4681,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "78eb05e3-a1d8-4672-a9de-339cd65cfb7e",
+  "featureIds": [
     "78eb05e3-a1d8-4672-a9de-339cd65cfb7e"
   ],
-  "allFeatureIds": [
-    "78eb05e3-a1d8-4672-a9de-339cd65cfb7e"
-  ],
-  "parentFeatureId": "78eb05e3-a1d8-4672-a9de-339cd65cfb7e",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5221,14 +4708,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "e57bf0e2-2c63-4b2e-870b-bfbbea1485bc",
+  "featureIds": [
     "e57bf0e2-2c63-4b2e-870b-bfbbea1485bc"
   ],
-  "allFeatureIds": [
-    "e57bf0e2-2c63-4b2e-870b-bfbbea1485bc"
-  ],
-  "parentFeatureId": "e57bf0e2-2c63-4b2e-870b-bfbbea1485bc",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5251,14 +4735,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "328c4574-ea70-4b94-8e26-9bf00e742f88",
+  "featureIds": [
     "328c4574-ea70-4b94-8e26-9bf00e742f88"
   ],
-  "allFeatureIds": [
-    "328c4574-ea70-4b94-8e26-9bf00e742f88"
-  ],
-  "parentFeatureId": "328c4574-ea70-4b94-8e26-9bf00e742f88",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5281,14 +4762,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "670a6689-d6c6-4810-98bc-16f5d229e2f1",
+  "featureIds": [
     "670a6689-d6c6-4810-98bc-16f5d229e2f1"
   ],
-  "allFeatureIds": [
-    "670a6689-d6c6-4810-98bc-16f5d229e2f1"
-  ],
-  "parentFeatureId": "670a6689-d6c6-4810-98bc-16f5d229e2f1",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5311,14 +4789,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "fa6f9868-6eec-473c-aad0-5c0b87ab17e7",
+  "featureIds": [
     "fa6f9868-6eec-473c-aad0-5c0b87ab17e7"
   ],
-  "allFeatureIds": [
-    "fa6f9868-6eec-473c-aad0-5c0b87ab17e7"
-  ],
-  "parentFeatureId": "fa6f9868-6eec-473c-aad0-5c0b87ab17e7",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5341,14 +4816,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "42e93d63-1ceb-49c8-a7a4-c61e150c1bf4",
+  "featureIds": [
     "42e93d63-1ceb-49c8-a7a4-c61e150c1bf4"
   ],
-  "allFeatureIds": [
-    "42e93d63-1ceb-49c8-a7a4-c61e150c1bf4"
-  ],
-  "parentFeatureId": "42e93d63-1ceb-49c8-a7a4-c61e150c1bf4",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5371,14 +4843,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "53c9a17c-a597-46c1-a3d0-c488ee1fcf2b",
+  "featureIds": [
     "53c9a17c-a597-46c1-a3d0-c488ee1fcf2b"
   ],
-  "allFeatureIds": [
-    "53c9a17c-a597-46c1-a3d0-c488ee1fcf2b"
-  ],
-  "parentFeatureId": "53c9a17c-a597-46c1-a3d0-c488ee1fcf2b",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5401,14 +4870,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "e3705a14-69db-4893-9608-e3e6225d92a6",
+  "featureIds": [
     "e3705a14-69db-4893-9608-e3e6225d92a6"
   ],
-  "allFeatureIds": [
-    "e3705a14-69db-4893-9608-e3e6225d92a6"
-  ],
-  "parentFeatureId": "e3705a14-69db-4893-9608-e3e6225d92a6",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5434,14 +4900,11 @@
   "type": "polypeptide_domain",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "8d3f942b-8582-4bd8-81e2-f08b7f61c339",
+  "featureIds": [
     "8d3f942b-8582-4bd8-81e2-f08b7f61c339"
   ],
-  "allFeatureIds": [
-    "8d3f942b-8582-4bd8-81e2-f08b7f61c339"
-  ],
-  "parentFeatureId": "8d3f942b-8582-4bd8-81e2-f08b7f61c339",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5464,14 +4927,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "8ea63acf-ca3c-45bd-bc77-6b8713b36ad2",
+  "featureIds": [
     "8ea63acf-ca3c-45bd-bc77-6b8713b36ad2"
   ],
-  "allFeatureIds": [
-    "8ea63acf-ca3c-45bd-bc77-6b8713b36ad2"
-  ],
-  "parentFeatureId": "8ea63acf-ca3c-45bd-bc77-6b8713b36ad2",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5494,14 +4954,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "22cb76c9-98b0-484f-b350-99a4b531adef",
+  "featureIds": [
     "22cb76c9-98b0-484f-b350-99a4b531adef"
   ],
-  "allFeatureIds": [
-    "22cb76c9-98b0-484f-b350-99a4b531adef"
-  ],
-  "parentFeatureId": "22cb76c9-98b0-484f-b350-99a4b531adef",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5524,14 +4981,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "033c98a2-9fbe-4e42-8f5f-e74f460614c3",
+  "featureIds": [
     "033c98a2-9fbe-4e42-8f5f-e74f460614c3"
   ],
-  "allFeatureIds": [
-    "033c98a2-9fbe-4e42-8f5f-e74f460614c3"
-  ],
-  "parentFeatureId": "033c98a2-9fbe-4e42-8f5f-e74f460614c3",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5554,14 +5008,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "26ff5172-34de-49b9-a89a-10f49e1b6a9c",
+  "featureIds": [
     "26ff5172-34de-49b9-a89a-10f49e1b6a9c"
   ],
-  "allFeatureIds": [
-    "26ff5172-34de-49b9-a89a-10f49e1b6a9c"
-  ],
-  "parentFeatureId": "26ff5172-34de-49b9-a89a-10f49e1b6a9c",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5584,14 +5035,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "0d6210c5-c433-4c5b-a782-88509cc50e48",
+  "featureIds": [
     "0d6210c5-c433-4c5b-a782-88509cc50e48"
   ],
-  "allFeatureIds": [
-    "0d6210c5-c433-4c5b-a782-88509cc50e48"
-  ],
-  "parentFeatureId": "0d6210c5-c433-4c5b-a782-88509cc50e48",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5614,14 +5062,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "414cdee4-867d-44fb-9b40-7629d46a407e",
+  "featureIds": [
     "414cdee4-867d-44fb-9b40-7629d46a407e"
   ],
-  "allFeatureIds": [
-    "414cdee4-867d-44fb-9b40-7629d46a407e"
-  ],
-  "parentFeatureId": "414cdee4-867d-44fb-9b40-7629d46a407e",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5644,14 +5089,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "a6711522-16c8-4684-8acb-cb899505b4d0",
+  "featureIds": [
     "a6711522-16c8-4684-8acb-cb899505b4d0"
   ],
-  "allFeatureIds": [
-    "a6711522-16c8-4684-8acb-cb899505b4d0"
-  ],
-  "parentFeatureId": "a6711522-16c8-4684-8acb-cb899505b4d0",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5674,14 +5116,11 @@
   "type": "match",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "b79f018d-9166-4bb6-9d83-5574ce1cb696",
+  "featureIds": [
     "b79f018d-9166-4bb6-9d83-5574ce1cb696"
   ],
-  "allFeatureIds": [
-    "b79f018d-9166-4bb6-9d83-5574ce1cb696"
-  ],
-  "parentFeatureId": "b79f018d-9166-4bb6-9d83-5574ce1cb696",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5704,14 +5143,11 @@
   "type": "contig",
   "source": "example",
   "seq_id": "ctgB",
-  "featureId": [
+  "featureId": "710e70f0-cfa7-472e-8a89-51f600498b3a",
+  "featureIds": [
     "710e70f0-cfa7-472e-8a89-51f600498b3a"
   ],
-  "allFeatureIds": [
-    "710e70f0-cfa7-472e-8a89-51f600498b3a"
-  ],
-  "parentFeatureId": "710e70f0-cfa7-472e-8a89-51f600498b3a",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4d1f8ac0187ed22b566"
   },
   "__v": 0
@@ -5737,14 +5173,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgB",
-  "featureId": [
+  "featureId": "8ef1a63a-e81b-4741-96d0-739ac85b279b",
+  "featureIds": [
     "8ef1a63a-e81b-4741-96d0-739ac85b279b"
   ],
-  "allFeatureIds": [
-    "8ef1a63a-e81b-4741-96d0-739ac85b279b"
-  ],
-  "parentFeatureId": "8ef1a63a-e81b-4741-96d0-739ac85b279b",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4d1f8ac0187ed22b566"
   },
   "__v": 0
@@ -5770,14 +5203,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgB",
-  "featureId": [
+  "featureId": "63b700ca-3991-4237-8bf1-01febba05491",
+  "featureIds": [
     "63b700ca-3991-4237-8bf1-01febba05491"
   ],
-  "allFeatureIds": [
-    "63b700ca-3991-4237-8bf1-01febba05491"
-  ],
-  "parentFeatureId": "63b700ca-3991-4237-8bf1-01febba05491",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4d1f8ac0187ed22b566"
   },
   "__v": 0
@@ -5803,14 +5233,11 @@
   "type": "remark",
   "source": "example",
   "seq_id": "ctgB",
-  "featureId": [
+  "featureId": "72918adf-970d-473b-8a96-31e44082ff1f",
+  "featureIds": [
     "72918adf-970d-473b-8a96-31e44082ff1f"
   ],
-  "allFeatureIds": [
-    "72918adf-970d-473b-8a96-31e44082ff1f"
-  ],
-  "parentFeatureId": "72918adf-970d-473b-8a96-31e44082ff1f",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4d1f8ac0187ed22b566"
   },
   "__v": 0
@@ -5877,16 +5304,13 @@
   "type": "BAC",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
-    "1c89681d-20e4-4a7e-abc9-dce43242b110"
-  ],
-  "allFeatureIds": [
+  "featureId": "1c89681d-20e4-4a7e-abc9-dce43242b110",
+  "featureIds": [
     "1c89681d-20e4-4a7e-abc9-dce43242b110",
     "574a728d-1d73-46a4-9329-0d2807a2d21c",
     "4be59c3a-848e-4eda-871c-82d1a4ad3d74"
   ],
-  "parentFeatureId": "1c89681d-20e4-4a7e-abc9-dce43242b110",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5912,14 +5336,11 @@
   "type": "SNP",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "dc97a122-1012-4334-a429-9ae69ae7c71b",
+  "featureIds": [
     "dc97a122-1012-4334-a429-9ae69ae7c71b"
   ],
-  "allFeatureIds": [
-    "dc97a122-1012-4334-a429-9ae69ae7c71b"
-  ],
-  "parentFeatureId": "dc97a122-1012-4334-a429-9ae69ae7c71b",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -5995,16 +5416,13 @@
   "type": "EST_match",
   "source": "est",
   "seq_id": "ctgA",
-  "featureId": [
-    "d598b968-c5dd-469a-91d0-0550a6170499"
-  ],
-  "allFeatureIds": [
+  "featureId": "d598b968-c5dd-469a-91d0-0550a6170499",
+  "featureIds": [
     "d598b968-c5dd-469a-91d0-0550a6170499",
     "4b15c01c-4a2c-4c6d-84ba-90d3f7def827",
     "d9862db6-e130-4319-8e40-bb05007a1cc9"
   ],
-  "parentFeatureId": "d598b968-c5dd-469a-91d0-0550a6170499",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -6106,17 +5524,14 @@
   "type": "EST_match",
   "source": "est",
   "seq_id": "ctgA",
-  "featureId": [
-    "f94c2113-e8b0-4e48-84b1-b0c8b71f50cc"
-  ],
-  "allFeatureIds": [
+  "featureId": "f94c2113-e8b0-4e48-84b1-b0c8b71f50cc",
+  "featureIds": [
     "f94c2113-e8b0-4e48-84b1-b0c8b71f50cc",
     "d2269de9-c1b0-40a0-8180-2bb9ce49cd58",
     "bf3740ff-5f3f-410d-b448-e2eb9bb10f85",
     "f38abe94-6201-4dc9-b508-d3bdfdf5a278"
   ],
-  "parentFeatureId": "f94c2113-e8b0-4e48-84b1-b0c8b71f50cc",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -6582,10 +5997,8 @@
   "type": "gene",
   "source": "example",
   "seq_id": "ctgA",
-  "featureId": [
-    "f2484e69-3174-4203-be48-edbd162c6ded"
-  ],
-  "allFeatureIds": [
+  "featureId": "f2484e69-3174-4203-be48-edbd162c6ded",
+  "featureIds": [
     "f2484e69-3174-4203-be48-edbd162c6ded",
     "566c20e8-2a4e-46da-9f5d-44f0594f4325",
     "dac499a4-c01d-4e6c-bf94-d0c7b25f1266",
@@ -6608,8 +6021,7 @@
     "bb59ab5b-1235-46d7-bf42-ff0fd756bd72",
     "622fdec8-6603-4791-b773-94e4ffd6e048"
   ],
-  "parentFeatureId": "f2484e69-3174-4203-be48-edbd162c6ded",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 2
@@ -6711,17 +6123,14 @@
   "type": "EST_match",
   "source": "est",
   "seq_id": "ctgA",
-  "featureId": [
-    "713b0753-b241-4d8f-a667-522c7e2514a7"
-  ],
-  "allFeatureIds": [
+  "featureId": "713b0753-b241-4d8f-a667-522c7e2514a7",
+  "featureIds": [
     "713b0753-b241-4d8f-a667-522c7e2514a7",
     "41bb927a-5b7d-480b-b0af-0b06b379832e",
     "cd7f76d4-f742-43d1-bf7e-ce1e02d812d0",
     "95afab2d-d20c-4917-9e51-d10b79f4f121"
   ],
-  "parentFeatureId": "713b0753-b241-4d8f-a667-522c7e2514a7",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -6797,16 +6206,13 @@
   "type": "EST_match",
   "source": "est",
   "seq_id": "ctgA",
-  "featureId": [
-    "cdc405af-e6f5-4c76-b95f-989ab4c835c0"
-  ],
-  "allFeatureIds": [
+  "featureId": "cdc405af-e6f5-4c76-b95f-989ab4c835c0",
+  "featureIds": [
     "cdc405af-e6f5-4c76-b95f-989ab4c835c0",
     "f2c16bea-bbdd-4cfe-97a2-13fec70feb91",
     "d4157404-707a-47ac-b9db-5ea3f973c61c"
   ],
-  "parentFeatureId": "cdc405af-e6f5-4c76-b95f-989ab4c835c0",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 2
@@ -6829,14 +6235,11 @@
   "type": "EST_match",
   "source": "est",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "21aacd2f-5492-49b5-a259-a2b990b41d59",
+  "featureIds": [
     "21aacd2f-5492-49b5-a259-a2b990b41d59"
   ],
-  "allFeatureIds": [
-    "21aacd2f-5492-49b5-a259-a2b990b41d59"
-  ],
-  "parentFeatureId": "21aacd2f-5492-49b5-a259-a2b990b41d59",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -6859,14 +6262,11 @@
   "type": "EST_match",
   "source": "est",
   "seq_id": "ctgA",
-  "featureId": [
+  "featureId": "612d43ad-dc46-4c74-9f85-712829fa40ad",
+  "featureIds": [
     "612d43ad-dc46-4c74-9f85-712829fa40ad"
   ],
-  "allFeatureIds": [
-    "612d43ad-dc46-4c74-9f85-712829fa40ad"
-  ],
-  "parentFeatureId": "612d43ad-dc46-4c74-9f85-712829fa40ad",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -6953,17 +6353,14 @@
   "type": "mRNA",
   "source": "predicted",
   "seq_id": "ctgA",
-  "featureId": [
-    "3b809954-47ca-494a-9685-e18838dbb7a7"
-  ],
-  "allFeatureIds": [
+  "featureId": "3b809954-47ca-494a-9685-e18838dbb7a7",
+  "featureIds": [
     "3b809954-47ca-494a-9685-e18838dbb7a7",
     "e3394fbe-d0e8-4cac-8854-a2fe7d89f83d",
     "3a3284c9-4053-439a-a356-747f474bb6ab",
     "656345c0-60c9-4714-a6b6-efa74cf837c1"
   ],
-  "parentFeatureId": "3b809954-47ca-494a-9685-e18838dbb7a7",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
@@ -7090,10 +6487,8 @@
   "type": "mRNA",
   "source": "exonerate",
   "seq_id": "ctgA",
-  "featureId": [
-    "5caea88b-1386-4479-a980-8e0a95335483"
-  ],
-  "allFeatureIds": [
+  "featureId": "5caea88b-1386-4479-a980-8e0a95335483",
+  "featureIds": [
     "5caea88b-1386-4479-a980-8e0a95335483",
     "4ffdf6f8-bb10-4777-834b-4a5cc8886bca",
     "c2c756d1-efbc-48e0-a5d0-0e5318e004fd",
@@ -7101,8 +6496,7 @@
     "7c1c4995-763a-4a61-866f-163f6bbe7577",
     "92f236ed-90c6-4aaf-a606-9be98b0912bf"
   ],
-  "parentFeatureId": "5caea88b-1386-4479-a980-8e0a95335483",
-  "refSeqId": {
+  "refSeq": {
     "$oid": "624ab4c0f8ac0187ed22b563"
   },
   "__v": 0
