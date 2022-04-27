@@ -107,6 +107,14 @@ export function stateModelFactory(pluginManager: PluginManager) {
               response.body?.pipeTo(fileStream)
             },
           },
+          {
+            label: 'Undo',
+            onClick: async () => {
+              console.log(`Start undo...`)
+              const returnValue = await self.dataStore?.changeManager.revertLastChange()
+              console.log(`Undo done. Returned ${returnValue}`)
+            },
+          },
         ]
       },
     }))

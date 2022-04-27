@@ -13,6 +13,8 @@ export class ChangeManager {
     public validations: ValidationSet,
   ) {}
 
+  listOfChanges: Change[] = []
+
   async submit(change: Change) {
     // pre-validate
     const session = getSession(this.dataStore)
@@ -61,9 +63,22 @@ export class ChangeManager {
       )
       this.revert(change)
     }
+    // Push the change into array
+    this.listOfChanges.push(change)
   }
 
   async revert(change: Change) {
     return change.getInverse().apply(this.dataStore)
+  }
+
+  // Undo the last change
+  async revertLastChange() {
+    console.log(
+      `Undo the last change: ${
+        this.listOfChanges[this.listOfChanges.length - 1]
+      }`,
+    )
+    this.revert(this.listOfChanges[this.listOfChanges.length - 1])
+    return 'Undo done in revertLastChange()!'
   }
 }
