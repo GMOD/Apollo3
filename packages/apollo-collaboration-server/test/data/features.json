@@ -2,8 +2,6 @@
   "_id": {
     "$oid": "624ea14c50a96c2271925b3e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "ctgA"
@@ -34,8 +32,6 @@
   "_id": {
     "$oid": "624ea14c50a96c2271925b42"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "Remark:hga"
@@ -64,8 +60,6 @@
   "_id": {
     "$oid": "624ea14c50a96c2271925b46"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "Gene:hga"
@@ -94,8 +88,6 @@
   "_id": {
     "$oid": "624ea14c50a96c2271925b4a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "Protein:HGA"
@@ -124,8 +116,6 @@
   "_id": {
     "$oid": "624ea14d50a96c2271925b4e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "Gene:hgb"
@@ -154,8 +144,6 @@
   "_id": {
     "$oid": "624ea14d50a96c2271925b52"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "f07"
@@ -184,8 +172,6 @@
   "_id": {
     "$oid": "624ea14d50a96c2271925b56"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "Protein:HGB"
@@ -214,8 +200,6 @@
   "_id": {
     "$oid": "624ea14d50a96c2271925b5a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "f06"
@@ -244,8 +228,6 @@
   "_id": {
     "$oid": "624ea14e50a96c2271925b5e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "f05"
@@ -274,8 +256,6 @@
   "_id": {
     "$oid": "624ea14e50a96c2271925b62"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg04"
@@ -301,8 +281,6 @@
   "_id": {
     "$oid": "624ea14e50a96c2271925b66"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg04"
@@ -328,8 +306,6 @@
   "_id": {
     "$oid": "624ea14e50a96c2271925b6a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg04"
@@ -355,8 +331,6 @@
   "_id": {
     "$oid": "624ea14f50a96c2271925b6e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg03"
@@ -382,8 +356,6 @@
   "_id": {
     "$oid": "624ea14f50a96c2271925b72"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg04"
@@ -409,8 +381,6 @@
   "_id": {
     "$oid": "624ea14f50a96c2271925b76"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg03"
@@ -436,8 +406,6 @@
   "_id": {
     "$oid": "624ea14f50a96c2271925b7a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg04"
@@ -463,8 +431,6 @@
   "_id": {
     "$oid": "624ea15050a96c2271925b7e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg03"
@@ -490,8 +456,6 @@
   "_id": {
     "$oid": "624ea15050a96c2271925b82"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg03"
@@ -517,8 +481,6 @@
   "_id": {
     "$oid": "624ea15050a96c2271925b86"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg04"
@@ -544,8 +506,6 @@
   "_id": {
     "$oid": "624ea15050a96c2271925b8a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg04"
@@ -571,8 +531,6 @@
   "_id": {
     "$oid": "624ea15150a96c2271925b8e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg04"
@@ -598,8 +556,6 @@
   "_id": {
     "$oid": "624ea15150a96c2271925b92"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "Apple1"
@@ -628,8 +584,6 @@
   "_id": {
     "$oid": "624ea15150a96c2271925b96"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "m11"
@@ -658,8 +612,6 @@
   "_id": {
     "$oid": "624ea15150a96c2271925b9a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg12"
@@ -685,8 +637,6 @@
   "_id": {
     "$oid": "624ea15150a96c2271925b9e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg12"
@@ -712,8 +662,6 @@
   "_id": {
     "$oid": "624ea15250a96c2271925ba2"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "f08"
@@ -739,8 +687,6 @@
   "_id": {
     "$oid": "624ea15250a96c2271925ba6"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg12"
@@ -766,8 +712,6 @@
   "_id": {
     "$oid": "624ea15250a96c2271925baa"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "m05"
@@ -796,8 +740,6 @@
   "_id": {
     "$oid": "624ea15350a96c2271925bae"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg12"
@@ -823,8 +765,6 @@
   "_id": {
     "$oid": "624ea15350a96c2271925bb2"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg12"
@@ -850,8 +790,6 @@
   "_id": {
     "$oid": "624ea15350a96c2271925bb6"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg12"
@@ -877,8 +815,6 @@
   "_id": {
     "$oid": "624ea15350a96c2271925bba"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "m14"
@@ -907,8 +843,6 @@
   "_id": {
     "$oid": "624ea15450a96c2271925bbe"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg12"
@@ -934,8 +868,6 @@
   "_id": {
     "$oid": "624ea15450a96c2271925bc2"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "f10"
@@ -961,8 +893,6 @@
   "_id": {
     "$oid": "624ea15450a96c2271925bc6"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "m03"
@@ -991,8 +921,6 @@
   "_id": {
     "$oid": "624ea15450a96c2271925bca"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg12"
@@ -1018,8 +946,6 @@
   "_id": {
     "$oid": "624ea15550a96c2271925bce"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg12"
@@ -1045,8 +971,6 @@
   "_id": {
     "$oid": "624ea15550a96c2271925bd2"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "m08"
@@ -1075,8 +999,6 @@
   "_id": {
     "$oid": "624ea15550a96c2271925bd6"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "m13"
@@ -1105,8 +1027,6 @@
   "_id": {
     "$oid": "624ea15550a96c2271925bda"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "m07"
@@ -1135,8 +1055,6 @@
   "_id": {
     "$oid": "624ea15650a96c2271925bde"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg08"
@@ -1162,8 +1080,6 @@
   "_id": {
     "$oid": "624ea15650a96c2271925be2"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg08"
@@ -1189,8 +1105,6 @@
   "_id": {
     "$oid": "624ea15650a96c2271925be6"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "f13"
@@ -1216,8 +1130,6 @@
   "_id": {
     "$oid": "624ea15650a96c2271925bea"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg06"
@@ -1243,8 +1155,6 @@
   "_id": {
     "$oid": "624ea15750a96c2271925bee"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg08"
@@ -1270,8 +1180,6 @@
   "_id": {
     "$oid": "624ea15750a96c2271925bf2"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg06"
@@ -1297,8 +1205,6 @@
   "_id": {
     "$oid": "624ea15750a96c2271925bf6"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg08"
@@ -1324,8 +1230,6 @@
   "_id": {
     "$oid": "624ea15750a96c2271925bfa"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg06"
@@ -1351,8 +1255,6 @@
   "_id": {
     "$oid": "624ea15850a96c2271925bfe"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg06"
@@ -1378,8 +1280,6 @@
   "_id": {
     "$oid": "624ea15850a96c2271925c02"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg08"
@@ -1405,8 +1305,6 @@
   "_id": {
     "$oid": "624ea15850a96c2271925c06"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg06"
@@ -1432,8 +1330,6 @@
   "_id": {
     "$oid": "624ea15850a96c2271925c0a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg08"
@@ -1459,8 +1355,6 @@
   "_id": {
     "$oid": "624ea15950a96c2271925c0e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg06"
@@ -1486,8 +1380,6 @@
   "_id": {
     "$oid": "624ea15950a96c2271925c12"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg08"
@@ -1513,8 +1405,6 @@
   "_id": {
     "$oid": "624ea15950a96c2271925c16"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "m12"
@@ -1543,8 +1433,6 @@
   "_id": {
     "$oid": "624ea15950a96c2271925c1a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "f15"
@@ -1570,8 +1458,6 @@
   "_id": {
     "$oid": "624ea15a50a96c2271925c1e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg06"
@@ -1597,8 +1483,6 @@
   "_id": {
     "$oid": "624ea15a50a96c2271925c22"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg08"
@@ -1624,8 +1508,6 @@
   "_id": {
     "$oid": "624ea15a50a96c2271925c26"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg08"
@@ -1651,8 +1533,6 @@
   "_id": {
     "$oid": "624ea15a50a96c2271925c2a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg06"
@@ -1678,8 +1558,6 @@
   "_id": {
     "$oid": "624ea15b50a96c2271925c2e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "f14"
@@ -1705,8 +1583,6 @@
   "_id": {
     "$oid": "624ea15b50a96c2271925c32"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg08"
@@ -1732,8 +1608,6 @@
   "_id": {
     "$oid": "624ea15b50a96c2271925c36"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg08"
@@ -1759,8 +1633,6 @@
   "_id": {
     "$oid": "624ea15b50a96c2271925c3a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg11"
@@ -1786,8 +1658,6 @@
   "_id": {
     "$oid": "624ea15c50a96c2271925c3e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg08"
@@ -1813,8 +1683,6 @@
   "_id": {
     "$oid": "624ea15c50a96c2271925c42"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "f02"
@@ -1840,8 +1708,6 @@
   "_id": {
     "$oid": "624ea15c50a96c2271925c46"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg11"
@@ -1867,8 +1733,6 @@
   "_id": {
     "$oid": "624ea15c50a96c2271925c4a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg11"
@@ -1894,8 +1758,6 @@
   "_id": {
     "$oid": "624ea15d50a96c2271925c4e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg08"
@@ -1921,8 +1783,6 @@
   "_id": {
     "$oid": "624ea15d50a96c2271925c52"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg11"
@@ -1948,8 +1808,6 @@
   "_id": {
     "$oid": "624ea15d50a96c2271925c56"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg11"
@@ -1975,8 +1833,6 @@
   "_id": {
     "$oid": "624ea15d50a96c2271925c5a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -2002,8 +1858,6 @@
   "_id": {
     "$oid": "624ea15e50a96c2271925c5e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -2029,8 +1883,6 @@
   "_id": {
     "$oid": "624ea15e50a96c2271925c62"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -2056,8 +1908,6 @@
   "_id": {
     "$oid": "624ea15e50a96c2271925c66"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg11"
@@ -2083,8 +1933,6 @@
   "_id": {
     "$oid": "624ea15e50a96c2271925c6a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg11"
@@ -2110,8 +1958,6 @@
   "_id": {
     "$oid": "624ea15f50a96c2271925c6e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -2137,8 +1983,6 @@
   "_id": {
     "$oid": "624ea15f50a96c2271925c72"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -2164,8 +2008,6 @@
   "_id": {
     "$oid": "624ea15f50a96c2271925c76"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -2191,8 +2033,6 @@
   "_id": {
     "$oid": "624ea15f50a96c2271925c7a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg11"
@@ -2218,8 +2058,6 @@
   "_id": {
     "$oid": "624ea16050a96c2271925c7e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -2245,8 +2083,6 @@
   "_id": {
     "$oid": "624ea16050a96c2271925c82"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -2272,8 +2108,6 @@
   "_id": {
     "$oid": "624ea16050a96c2271925c86"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -2299,8 +2133,6 @@
   "_id": {
     "$oid": "624ea16050a96c2271925c8a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg11"
@@ -2326,8 +2158,6 @@
   "_id": {
     "$oid": "624ea16150a96c2271925c8e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -2353,8 +2183,6 @@
   "_id": {
     "$oid": "624ea16150a96c2271925c92"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -2380,8 +2208,6 @@
   "_id": {
     "$oid": "624ea16150a96c2271925c96"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -2407,8 +2233,6 @@
   "_id": {
     "$oid": "624ea16150a96c2271925c9a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg11"
@@ -2434,8 +2258,6 @@
   "_id": {
     "$oid": "624ea16250a96c2271925c9e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -2461,8 +2283,6 @@
   "_id": {
     "$oid": "624ea16250a96c2271925ca2"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "m02"
@@ -2491,8 +2311,6 @@
   "_id": {
     "$oid": "624ea16250a96c2271925ca6"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "m10"
@@ -2521,8 +2339,6 @@
   "_id": {
     "$oid": "624ea16250a96c2271925caa"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg11"
@@ -2548,8 +2364,6 @@
   "_id": {
     "$oid": "624ea16350a96c2271925cae"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg11"
@@ -2575,8 +2389,6 @@
   "_id": {
     "$oid": "624ea16350a96c2271925cb2"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -2602,8 +2414,6 @@
   "_id": {
     "$oid": "624ea16350a96c2271925cb6"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -2629,8 +2439,6 @@
   "_id": {
     "$oid": "624ea16350a96c2271925cba"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg11"
@@ -2656,8 +2464,6 @@
   "_id": {
     "$oid": "624ea16450a96c2271925cbe"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -2683,8 +2489,6 @@
   "_id": {
     "$oid": "624ea16450a96c2271925cc2"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -2710,8 +2514,6 @@
   "_id": {
     "$oid": "624ea16450a96c2271925cc6"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg11"
@@ -2737,8 +2539,6 @@
   "_id": {
     "$oid": "624ea16450a96c2271925cca"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -2764,8 +2564,6 @@
   "_id": {
     "$oid": "624ea16550a96c2271925cce"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg10"
@@ -2791,8 +2589,6 @@
   "_id": {
     "$oid": "624ea16550a96c2271925cd2"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg11"
@@ -2818,8 +2614,6 @@
   "_id": {
     "$oid": "624ea16550a96c2271925cd6"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg10"
@@ -2845,8 +2639,6 @@
   "_id": {
     "$oid": "624ea16550a96c2271925cda"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -2872,8 +2664,6 @@
   "_id": {
     "$oid": "624ea16650a96c2271925cde"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg11"
@@ -2899,8 +2689,6 @@
   "_id": {
     "$oid": "624ea16650a96c2271925ce2"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -2926,8 +2714,6 @@
   "_id": {
     "$oid": "624ea16650a96c2271925ce6"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -2953,8 +2739,6 @@
   "_id": {
     "$oid": "624ea16650a96c2271925cea"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg11"
@@ -2980,8 +2764,6 @@
   "_id": {
     "$oid": "624ea16750a96c2271925cee"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "m06"
@@ -3010,8 +2792,6 @@
   "_id": {
     "$oid": "624ea16750a96c2271925cf2"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -3037,8 +2817,6 @@
   "_id": {
     "$oid": "624ea16750a96c2271925cf6"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg10"
@@ -3064,8 +2842,6 @@
   "_id": {
     "$oid": "624ea16750a96c2271925cfa"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -3091,8 +2867,6 @@
   "_id": {
     "$oid": "624ea16850a96c2271925cfe"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -3118,8 +2892,6 @@
   "_id": {
     "$oid": "624ea16850a96c2271925d02"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -3145,8 +2917,6 @@
   "_id": {
     "$oid": "624ea16850a96c2271925d06"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -3172,8 +2942,6 @@
   "_id": {
     "$oid": "624ea16850a96c2271925d0a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg10"
@@ -3199,8 +2967,6 @@
   "_id": {
     "$oid": "624ea16950a96c2271925d0e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -3226,8 +2992,6 @@
   "_id": {
     "$oid": "624ea16950a96c2271925d12"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -3253,8 +3017,6 @@
   "_id": {
     "$oid": "624ea16950a96c2271925d16"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg01"
@@ -3280,8 +3042,6 @@
   "_id": {
     "$oid": "624ea16950a96c2271925d1a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg10"
@@ -3307,8 +3067,6 @@
   "_id": {
     "$oid": "624ea16950a96c2271925d1e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -3334,8 +3092,6 @@
   "_id": {
     "$oid": "624ea16a50a96c2271925d22"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -3361,8 +3117,6 @@
   "_id": {
     "$oid": "624ea16a50a96c2271925d26"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -3388,8 +3142,6 @@
   "_id": {
     "$oid": "624ea16a50a96c2271925d2a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -3415,8 +3167,6 @@
   "_id": {
     "$oid": "624ea16a50a96c2271925d2e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "m04"
@@ -3445,8 +3195,6 @@
   "_id": {
     "$oid": "624ea16b50a96c2271925d32"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -3472,8 +3220,6 @@
   "_id": {
     "$oid": "624ea16b50a96c2271925d36"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -3499,8 +3245,6 @@
   "_id": {
     "$oid": "624ea16b50a96c2271925d3a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -3526,8 +3270,6 @@
   "_id": {
     "$oid": "624ea16b50a96c2271925d3e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -3553,8 +3295,6 @@
   "_id": {
     "$oid": "624ea16c50a96c2271925d42"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg02"
@@ -3580,8 +3320,6 @@
   "_id": {
     "$oid": "624ea16c50a96c2271925d46"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -3607,8 +3345,6 @@
   "_id": {
     "$oid": "624ea16c50a96c2271925d4a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -3634,8 +3370,6 @@
   "_id": {
     "$oid": "624ea16c50a96c2271925d4e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg05"
@@ -3661,8 +3395,6 @@
   "_id": {
     "$oid": "624ea16d50a96c2271925d52"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "f09"
@@ -3688,8 +3420,6 @@
   "_id": {
     "$oid": "624ea16d50a96c2271925d56"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg09"
@@ -3715,8 +3445,6 @@
   "_id": {
     "$oid": "624ea16d50a96c2271925d5a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "f03"
@@ -3742,8 +3470,6 @@
   "_id": {
     "$oid": "624ea16d50a96c2271925d5e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg09"
@@ -3769,8 +3495,6 @@
   "_id": {
     "$oid": "624ea16e50a96c2271925d62"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "f04"
@@ -3796,8 +3520,6 @@
   "_id": {
     "$oid": "624ea16e50a96c2271925d66"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "m15"
@@ -3826,8 +3548,6 @@
   "_id": {
     "$oid": "624ea16e50a96c2271925d6a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg15"
@@ -3853,8 +3573,6 @@
   "_id": {
     "$oid": "624ea16e50a96c2271925d6e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg15"
@@ -3880,8 +3598,6 @@
   "_id": {
     "$oid": "624ea16f50a96c2271925d72"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg15"
@@ -3907,8 +3623,6 @@
   "_id": {
     "$oid": "624ea16f50a96c2271925d76"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg14"
@@ -3934,8 +3648,6 @@
   "_id": {
     "$oid": "624ea16f50a96c2271925d7a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg15"
@@ -3961,8 +3673,6 @@
   "_id": {
     "$oid": "624ea16f50a96c2271925d7e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg15"
@@ -3988,8 +3698,6 @@
   "_id": {
     "$oid": "624ea17050a96c2271925d82"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg14"
@@ -4015,8 +3723,6 @@
   "_id": {
     "$oid": "624ea17050a96c2271925d86"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg15"
@@ -4042,8 +3748,6 @@
   "_id": {
     "$oid": "624ea17050a96c2271925d8a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg14"
@@ -4069,8 +3773,6 @@
   "_id": {
     "$oid": "624ea17050a96c2271925d8e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg15"
@@ -4096,8 +3798,6 @@
   "_id": {
     "$oid": "624ea17150a96c2271925d92"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg14"
@@ -4123,8 +3823,6 @@
   "_id": {
     "$oid": "624ea17150a96c2271925d96"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg14"
@@ -4150,8 +3848,6 @@
   "_id": {
     "$oid": "624ea17150a96c2271925d9a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg15"
@@ -4177,8 +3873,6 @@
   "_id": {
     "$oid": "624ea17150a96c2271925d9e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg15"
@@ -4204,8 +3898,6 @@
   "_id": {
     "$oid": "624ea17150a96c2271925da2"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg14"
@@ -4231,8 +3923,6 @@
   "_id": {
     "$oid": "624ea17250a96c2271925da6"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg07"
@@ -4258,8 +3948,6 @@
   "_id": {
     "$oid": "624ea17250a96c2271925daa"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg15"
@@ -4285,8 +3973,6 @@
   "_id": {
     "$oid": "624ea17250a96c2271925dae"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg07"
@@ -4312,8 +3998,6 @@
   "_id": {
     "$oid": "624ea17250a96c2271925db2"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "f01"
@@ -4339,8 +4023,6 @@
   "_id": {
     "$oid": "624ea17350a96c2271925db6"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg14"
@@ -4366,8 +4048,6 @@
   "_id": {
     "$oid": "624ea17350a96c2271925dba"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg14"
@@ -4393,8 +4073,6 @@
   "_id": {
     "$oid": "624ea17350a96c2271925dbe"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg15"
@@ -4420,8 +4098,6 @@
   "_id": {
     "$oid": "624ea17350a96c2271925dc2"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg07"
@@ -4447,8 +4123,6 @@
   "_id": {
     "$oid": "624ea17450a96c2271925dc6"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg15"
@@ -4474,8 +4148,6 @@
   "_id": {
     "$oid": "624ea17450a96c2271925dca"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg14"
@@ -4501,8 +4173,6 @@
   "_id": {
     "$oid": "624ea17450a96c2271925dce"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg07"
@@ -4528,8 +4198,6 @@
   "_id": {
     "$oid": "624ea17450a96c2271925dd2"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "m09"
@@ -4558,8 +4226,6 @@
   "_id": {
     "$oid": "624ea17550a96c2271925dd6"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg14"
@@ -4585,8 +4251,6 @@
   "_id": {
     "$oid": "624ea17550a96c2271925dda"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg15"
@@ -4612,8 +4276,6 @@
   "_id": {
     "$oid": "624ea17550a96c2271925dde"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg07"
@@ -4639,8 +4301,6 @@
   "_id": {
     "$oid": "624ea17550a96c2271925de2"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg15"
@@ -4666,8 +4326,6 @@
   "_id": {
     "$oid": "624ea17650a96c2271925de6"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg14"
@@ -4693,8 +4351,6 @@
   "_id": {
     "$oid": "624ea17650a96c2271925dea"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "f11"
@@ -4720,8 +4376,6 @@
   "_id": {
     "$oid": "624ea17650a96c2271925dee"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg07"
@@ -4747,8 +4401,6 @@
   "_id": {
     "$oid": "624ea17650a96c2271925df2"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg15"
@@ -4774,8 +4426,6 @@
   "_id": {
     "$oid": "624ea17750a96c2271925df6"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg14"
@@ -4801,8 +4451,6 @@
   "_id": {
     "$oid": "624ea17750a96c2271925dfa"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg07"
@@ -4828,8 +4476,6 @@
   "_id": {
     "$oid": "624ea17750a96c2271925dfe"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg15"
@@ -4855,8 +4501,6 @@
   "_id": {
     "$oid": "624ea17750a96c2271925e02"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg15"
@@ -4882,8 +4526,6 @@
   "_id": {
     "$oid": "624ea17850a96c2271925e06"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "m01"
@@ -4912,8 +4554,6 @@
   "_id": {
     "$oid": "624ea17850a96c2271925e0a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg07"
@@ -4939,8 +4579,6 @@
   "_id": {
     "$oid": "624ea17850a96c2271925e0e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg07"
@@ -4966,8 +4604,6 @@
   "_id": {
     "$oid": "624ea17850a96c2271925e12"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg13"
@@ -4993,8 +4629,6 @@
   "_id": {
     "$oid": "624ea17850a96c2271925e16"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg07"
@@ -5020,8 +4654,6 @@
   "_id": {
     "$oid": "624ea17950a96c2271925e1a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "f12"
@@ -5047,8 +4679,6 @@
   "_id": {
     "$oid": "624ea17950a96c2271925e1e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg13"
@@ -5074,8 +4704,6 @@
   "_id": {
     "$oid": "624ea17950a96c2271925e22"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg07"
@@ -5101,8 +4729,6 @@
   "_id": {
     "$oid": "624ea17950a96c2271925e26"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "seg07"
@@ -5128,8 +4754,6 @@
   "_id": {
     "$oid": "624ea17a50a96c2271925e2a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "ctgB"
@@ -5155,8 +4779,6 @@
   "_id": {
     "$oid": "624ea17a50a96c2271925e2e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "f07"
@@ -5185,8 +4807,6 @@
   "_id": {
     "$oid": "624ea17a50a96c2271925e32"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "f06"
@@ -5215,8 +4835,6 @@
   "_id": {
     "$oid": "624ea17a50a96c2271925e36"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "f05"
@@ -5245,7 +4863,6 @@
   "_id": {
     "$oid": "624ea17b50a96c2271925e3a"
   },
-  "derived_features": [],
   "child_features": [
     [
       {
@@ -5262,8 +4879,6 @@
             "b101.2"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "574a728d-1d73-46a4-9329-0d2807a2d21c"
       }
     ],
@@ -5282,8 +4897,6 @@
             "b101.2"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "4be59c3a-848e-4eda-871c-82d1a4ad3d74"
       }
     ]
@@ -5318,8 +4931,6 @@
   "_id": {
     "$oid": "624ea17b50a96c2271925e3e"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "FakeSNP"
@@ -5348,7 +4959,6 @@
   "_id": {
     "$oid": "624ea17b50a96c2271925e42"
   },
-  "derived_features": [],
   "child_features": [
     [
       {
@@ -5371,8 +4981,6 @@
             "agt830.5 1 451"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "4b15c01c-4a2c-4c6d-84ba-90d3f7def827"
       }
     ],
@@ -5397,8 +5005,6 @@
             "agt830.5 452 654"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "d9862db6-e130-4319-8e40-bb05007a1cc9"
       }
     ]
@@ -5430,7 +5036,6 @@
   "_id": {
     "$oid": "624ea17b50a96c2271925e46"
   },
-  "derived_features": [],
   "child_features": [
     [
       {
@@ -5453,8 +5058,6 @@
             "agt221.5 1 451"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "d2269de9-c1b0-40a0-8180-2bb9ce49cd58"
       }
     ],
@@ -5479,8 +5082,6 @@
             "agt221.5 452 952"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "bf3740ff-5f3f-410d-b448-e2eb9bb10f85"
       }
     ],
@@ -5505,8 +5106,6 @@
             "agt221.5 953 1253"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "f38abe94-6201-4dc9-b508-d3bdfdf5a278"
       }
     ]
@@ -5539,7 +5138,6 @@
   "_id": {
     "$oid": "624ea17c50a96c2271925e4a"
   },
-  "derived_features": [],
   "child_features": [
     [
       {
@@ -5584,8 +5182,6 @@
                   "EDEN.1"
                 ]
               },
-              "child_features": [],
-              "derived_features": [],
               "featureId": "dac499a4-c01d-4e6c-bf94-d0c7b25f1266"
             }
           ],
@@ -5604,8 +5200,6 @@
                   "EDEN.1"
                 ]
               },
-              "child_features": [],
-              "derived_features": [],
               "featureId": "9a65fde3-fa39-463a-b91a-a3e32fd4dfbc"
             }
           ],
@@ -5624,8 +5218,6 @@
                   "EDEN.1"
                 ]
               },
-              "child_features": [],
-              "derived_features": [],
               "featureId": "d9bc2380-028c-4c56-9d18-63e3509fc1e1"
             }
           ],
@@ -5644,8 +5236,6 @@
                   "EDEN.1"
                 ]
               },
-              "child_features": [],
-              "derived_features": [],
               "featureId": "c7d72fbf-8148-408b-8f13-cdfd61b28ef9"
             }
           ],
@@ -5664,8 +5254,6 @@
                   "EDEN.1"
                 ]
               },
-              "child_features": [],
-              "derived_features": [],
               "featureId": "18a22885-ecf0-460f-b1bf-72d4ec360f73"
             }
           ],
@@ -5684,13 +5272,10 @@
                   "EDEN.1"
                 ]
               },
-              "child_features": [],
-              "derived_features": [],
               "featureId": "af6c5760-2087-418d-94a0-10a3f5e67f01"
             }
           ]
         ],
-        "derived_features": [],
         "featureId": "566c20e8-2a4e-46da-9f5d-44f0594f4325"
       }
     ],
@@ -5737,8 +5322,6 @@
                   "EDEN.2"
                 ]
               },
-              "child_features": [],
-              "derived_features": [],
               "featureId": "34d6cf23-6058-482d-8449-d768adfeaf1c"
             }
           ],
@@ -5757,8 +5340,6 @@
                   "EDEN.2"
                 ]
               },
-              "child_features": [],
-              "derived_features": [],
               "featureId": "2ca64e76-9561-4bc0-a42d-72dc8c5cbc25"
             }
           ],
@@ -5777,8 +5358,6 @@
                   "EDEN.2"
                 ]
               },
-              "child_features": [],
-              "derived_features": [],
               "featureId": "2156d644-1256-47db-bdec-fa4eda60db3e"
             }
           ],
@@ -5797,8 +5376,6 @@
                   "EDEN.2"
                 ]
               },
-              "child_features": [],
-              "derived_features": [],
               "featureId": "57475cf2-52c5-4987-b934-9bfe8e9afd82"
             }
           ],
@@ -5817,13 +5394,10 @@
                   "EDEN.2"
                 ]
               },
-              "child_features": [],
-              "derived_features": [],
               "featureId": "35c35a2a-8909-4438-b8ed-a9b07e384c3e"
             }
           ]
         ],
-        "derived_features": [],
         "featureId": "1f4a59f2-704c-45cd-a02f-c639f8195c6f"
       }
     ],
@@ -5870,8 +5444,6 @@
                   "EDEN.3"
                 ]
               },
-              "child_features": [],
-              "derived_features": [],
               "featureId": "1abc4442-d05b-4dc9-8049-c02b6e0fa13e"
             }
           ],
@@ -5890,8 +5462,6 @@
                   "EDEN.3"
                 ]
               },
-              "child_features": [],
-              "derived_features": [],
               "featureId": "04c97bd5-c9f6-4eb6-aca3-52cba86fe85a"
             }
           ],
@@ -5910,8 +5480,6 @@
                   "EDEN.3"
                 ]
               },
-              "child_features": [],
-              "derived_features": [],
               "featureId": "0e92f07e-f95c-42b1-8305-0cb24985b88c"
             }
           ],
@@ -5930,8 +5498,6 @@
                   "EDEN.3"
                 ]
               },
-              "child_features": [],
-              "derived_features": [],
               "featureId": "4dadd592-05f6-43aa-8b64-f2a67108f854"
             }
           ],
@@ -5950,8 +5516,6 @@
                   "EDEN.3"
                 ]
               },
-              "child_features": [],
-              "derived_features": [],
               "featureId": "bb59ab5b-1235-46d7-bf42-ff0fd756bd72"
             }
           ],
@@ -5970,13 +5534,10 @@
                   "EDEN.3"
                 ]
               },
-              "child_features": [],
-              "derived_features": [],
               "featureId": "622fdec8-6603-4791-b773-94e4ffd6e048"
             }
           ]
         ],
-        "derived_features": [],
         "featureId": "424e930c-a1dc-4cfe-9582-46f84a6c5670"
       }
     ]
@@ -6029,7 +5590,6 @@
   "_id": {
     "$oid": "624ea17c50a96c2271925e4e"
   },
-  "derived_features": [],
   "child_features": [
     [
       {
@@ -6052,8 +5612,6 @@
             "agt767.5 1 351"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "41bb927a-5b7d-480b-b0af-0b06b379832e"
       }
     ],
@@ -6078,8 +5636,6 @@
             "agt767.5 352 852"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "cd7f76d4-f742-43d1-bf7e-ce1e02d812d0"
       }
     ],
@@ -6104,8 +5660,6 @@
             "agt767.5 853 1153"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "95afab2d-d20c-4917-9e51-d10b79f4f121"
       }
     ]
@@ -6138,7 +5692,6 @@
   "_id": {
     "$oid": "624ea17c50a96c2271925e52"
   },
-  "derived_features": [],
   "child_features": [
     [
       {
@@ -6161,8 +5714,6 @@
             "agt830.3 505 595"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "f2c16bea-bbdd-4cfe-97a2-13fec70feb91"
       }
     ],
@@ -6187,8 +5738,6 @@
             "agt830.3 1 504"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "d4157404-707a-47ac-b9db-5ea3f973c61c"
       }
     ]
@@ -6220,8 +5769,6 @@
   "_id": {
     "$oid": "624ea17c50a96c2271925e56"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "agt221.3"
@@ -6247,8 +5794,6 @@
   "_id": {
     "$oid": "624ea17d50a96c2271925e5a"
   },
-  "derived_features": [],
-  "child_features": [],
   "attributes": {
     "Name": [
       "agt767.3"
@@ -6274,7 +5819,6 @@
   "_id": {
     "$oid": "624ea17d50a96c2271925e5e"
   },
-  "derived_features": [],
   "child_features": [
     [
       {
@@ -6291,8 +5835,6 @@
             "cds-Apple2"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "e3394fbe-d0e8-4cac-8854-a2fe7d89f83d"
       }
     ],
@@ -6311,8 +5853,6 @@
             "cds-Apple2"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "3a3284c9-4053-439a-a356-747f474bb6ab"
       }
     ],
@@ -6331,8 +5871,6 @@
             "cds-Apple2"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "656345c0-60c9-4714-a6b6-efa74cf837c1"
       }
     ]
@@ -6368,7 +5906,6 @@
   "_id": {
     "$oid": "624ea17d50a96c2271925e62"
   },
-  "derived_features": [],
   "child_features": [
     [
       {
@@ -6385,8 +5922,6 @@
             "rna-Apple3"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "4ffdf6f8-bb10-4777-834b-4a5cc8886bca"
       }
     ],
@@ -6405,8 +5940,6 @@
             "rna-Apple3"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "c2c756d1-efbc-48e0-a5d0-0e5318e004fd"
       }
     ],
@@ -6425,8 +5958,6 @@
             "rna-Apple3"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "186f049d-13f2-4dac-9644-bc0943c209b6"
       }
     ],
@@ -6445,8 +5976,6 @@
             "rna-Apple3"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "7c1c4995-763a-4a61-866f-163f6bbe7577"
       }
     ],
@@ -6465,8 +5994,6 @@
             "rna-Apple3"
           ]
         },
-        "child_features": [],
-        "derived_features": [],
         "featureId": "92f236ed-90c6-4aaf-a606-9be98b0912bf"
       }
     ]
