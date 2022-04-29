@@ -9,6 +9,12 @@ export class Assembly {
   name: string
 
   @Prop()
+  displayName: string
+
+  @Prop({ type: [String] })
+  aliases: string[]
+
+  @Prop()
   description: string
 }
 

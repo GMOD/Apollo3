@@ -98,10 +98,11 @@ interface AccountCardProps {
 }
 
 interface ApolloAssembly {
+  _id: string
   name: string
-  id: string
-  aliases: string[]
-  displayName: string
+  displayName?: string
+  description?: string
+  aliases?: string[]
 }
 
 function AccountCard({
@@ -120,7 +121,7 @@ function AccountCard({
     const { signal } = aborter
     async function getAssemblies() {
       const { baseURL } = internetAccount
-      const uri = new URL('fileHandling/getAssemblies', baseURL).href
+      const uri = new URL('assemblies', baseURL).href
       const fetch = internetAccount.getFetcher({
         locationType: 'UriLocation',
         uri,
@@ -150,7 +151,7 @@ function AccountCard({
       }
       let fetchedAssemblies
       try {
-        fetchedAssemblies = await response.json()
+        fetchedAssemblies = (await response.json()) as ApolloAssembly[]
       } catch (e) {
         setError(e instanceof Error ? e : new Error(String(e)))
         return
@@ -241,7 +242,7 @@ function AccountCard({
             {assemblies.map((assembly, idx) => (
               <ListItem
                 button
-                key={assembly.id}
+                key={assembly._id}
                 onClick={() => {
                   setSelectedAssemblyIdx(idx)
                   setSelected()
@@ -254,13 +255,15 @@ function AccountCard({
                   selectedAssemblyIdx === idx ? (
                     <CircularProgress variant="indeterminate" />
                   ) : (
-                    <Avatar>{assembly.displayName.slice(0, 1)}</Avatar>
+                    <Avatar>
+                      {(assembly.displayName || assembly.name).slice(0, 1)}
+                    </Avatar>
                   )}
                 </ListItemAvatar>
                 <ListItemText
-                  primary={assembly.displayName}
+                  primary={assembly.displayName || assembly.name}
                   secondary={`${assembly.name}${
-                    assembly.aliases.length
+                    assembly.aliases?.length
                       ? ` (${assembly.aliases.join(', ')})`
                       : ''
                   }`}
