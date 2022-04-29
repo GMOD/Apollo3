@@ -114,6 +114,7 @@ export function stateModelFactory(pluginManager: PluginManager) {
               const returnValue = await self.dataStore?.changeManager.revertLastChange()
               console.log(`Undo done. Returned ${returnValue}`)
             },
+            disabled: !self.dataStore
           },
         ]
       },

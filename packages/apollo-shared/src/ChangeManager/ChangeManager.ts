@@ -73,12 +73,16 @@ export class ChangeManager {
 
   // Undo the last change
   async revertLastChange() {
+    if (this.listOfChanges.length < 1) {
+      return
+    }
     console.log(
       `Undo the last change: ${
         this.listOfChanges[this.listOfChanges.length - 1]
       }`,
     )
     this.revert(this.listOfChanges[this.listOfChanges.length - 1])
-    return 'Undo done in revertLastChange()!'
+    this.listOfChanges.splice(-1, 1) // Remove the last item from array
+    return 'Undo done!'
   }
 }
