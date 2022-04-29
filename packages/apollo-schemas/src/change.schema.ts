@@ -3,10 +3,10 @@ import { Document, Schema as MongooseSchema } from 'mongoose'
 
 import { Assembly } from './assembly.schema'
 
-export type ChangeLogDocument = ChangeLog & Document
+export type ChangeDocument = Change & Document
 
 @Schema({ timestamps: true })
-export class ChangeLog {
+export class Change {
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     ref: 'Assembly',
@@ -26,12 +26,12 @@ export class ChangeLog {
 
   @Prop({
     type: MongooseSchema.Types.ObjectId,
-    ref: 'ChangeLog',
+    ref: 'Change',
   })
-  reverts: ChangeLog
+  reverts: Change
 
   @Prop({ required: true, index: true })
   user: string
 }
 
-export const ChangeLogSchema = SchemaFactory.createForClass(ChangeLog)
+export const ChangeSchema = SchemaFactory.createForClass(Change)
