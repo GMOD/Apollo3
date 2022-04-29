@@ -105,6 +105,14 @@ interface ApolloAssembly {
   aliases?: string[]
 }
 
+interface ApolloRefSeq {
+  _id: string
+  name: string
+  description?: string
+  length: string
+  assembly: string
+}
+
 function AccountCard({
   internetAccount,
   setSelected,
@@ -176,7 +184,8 @@ function AccountCard({
     let selectedAssembly = assemblyManager.get(assembly.name)
     if (!selectedAssembly) {
       const { baseURL } = internetAccount
-      const uri = new URL('fileHandling/getFastaInfo', baseURL).href
+      const searchParams = new URLSearchParams({ assembly: assembly._id })
+      const uri = new URL(`refSeqs?${searchParams.toString()}`, baseURL).href
       const fetch = internetAccount.getFetcher({
         locationType: 'UriLocation',
         uri,
@@ -195,14 +204,11 @@ function AccountCard({
           })${errorMessage ? ` (${errorMessage})` : ''}`,
         )
       }
-      const f = (await response.json()) as {
-        refName: string
-        length: number
-      }[]
+      const f = (await response.json()) as ApolloRefSeq[]
 
-      const features = f.map((contig: { refName: string; length: number }) => ({
-        refName: contig.refName,
-        uniqueId: contig.refName,
+      const features = f.map((contig) => ({
+        refName: contig.name,
+        uniqueId: contig._id,
         start: 0,
         end: contig.length,
         seq: '',
