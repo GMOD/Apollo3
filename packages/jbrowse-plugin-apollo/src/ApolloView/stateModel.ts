@@ -23,6 +23,7 @@ export const ClientDataStore = types
       types.enumeration('backendDriverType', ['CollaborationServerDriver']),
     ),
     internetAccountConfigId: types.maybe(types.string),
+    assemblyId: types.string,
   })
   .actions((self) => ({
     load(features: SnapshotIn<typeof FeaturesForRefName>) {

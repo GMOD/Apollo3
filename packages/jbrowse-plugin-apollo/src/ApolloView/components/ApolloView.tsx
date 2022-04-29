@@ -35,6 +35,7 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
       features: {},
       backendDriverType: 'CollaborationServerDriver',
       internetAccountConfigId,
+      assemblyId: assembly.name,
     })
     if (!newDataStore) {
       throw new Error('No data store')
