@@ -4901,7 +4901,11 @@
       }
     ]
   ],
+  "derived_features": [],
   "attributes": {
+    "ID": [
+      "b101.2"
+    ],
     "Name": [
       "b101.2"
     ],
@@ -4932,6 +4936,9 @@
     "$oid": "624ea17b50a96c2271925e3e"
   },
   "attributes": {
+    "ID": [
+      "FakeSNP1"
+    ],
     "Name": [
       "FakeSNP"
     ],
@@ -5009,9 +5016,16 @@
       }
     ]
   ],
+  "derived_features": [],
   "attributes": {
+    "ID": [
+      "Match1"
+    ],
     "Name": [
       "agt830.5"
+    ],
+    "Target": [
+      "agt830.5 1 654"
     ]
   },
   "phase": null,
@@ -5110,9 +5124,16 @@
       }
     ]
   ],
+  "derived_features": [],
   "attributes": {
+    "ID": [
+      "Match3"
+    ],
     "Name": [
       "agt221.5"
+    ],
+    "Target": [
+      "agt221.5 1 1253"
     ]
   },
   "phase": null,
@@ -5276,6 +5297,7 @@
             }
           ]
         ],
+        "derived_features": [],
         "featureId": "566c20e8-2a4e-46da-9f5d-44f0594f4325"
       }
     ],
@@ -5398,6 +5420,7 @@
             }
           ]
         ],
+        "derived_features": [],
         "featureId": "1f4a59f2-704c-45cd-a02f-c639f8195c6f"
       }
     ],
@@ -5538,11 +5561,16 @@
             }
           ]
         ],
+        "derived_features": [],
         "featureId": "424e930c-a1dc-4cfe-9582-46f84a6c5670"
       }
     ]
   ],
+  "derived_features": [],
   "attributes": {
+    "ID": [
+      "EDEN"
+    ],
     "Name": [
       "EDEN"
     ],
@@ -5664,9 +5692,16 @@
       }
     ]
   ],
+  "derived_features": [],
   "attributes": {
+    "ID": [
+      "Match5"
+    ],
     "Name": [
       "agt767.5"
+    ],
+    "Target": [
+      "agt767.5 1 1153"
     ]
   },
   "phase": null,
@@ -5742,9 +5777,16 @@
       }
     ]
   ],
+  "derived_features": [],
   "attributes": {
+    "ID": [
+      "Match2"
+    ],
     "Name": [
       "agt830.3"
+    ],
+    "Target": [
+      "agt830.3 1 595"
     ]
   },
   "phase": null,
@@ -5770,8 +5812,14 @@
     "$oid": "624ea17c50a96c2271925e56"
   },
   "attributes": {
+    "ID": [
+      "Match4"
+    ],
     "Name": [
       "agt221.3"
+    ],
+    "Target": [
+      "agt221.3 1 501"
     ]
   },
   "phase": null,
@@ -5795,8 +5843,14 @@
     "$oid": "624ea17d50a96c2271925e5a"
   },
   "attributes": {
+    "ID": [
+      "Match6"
+    ],
     "Name": [
       "agt767.3"
+    ],
+    "Target": [
+      "agt767.3 1 1001"
     ]
   },
   "phase": null,
@@ -5875,7 +5929,11 @@
       }
     ]
   ],
+  "derived_features": [],
   "attributes": {
+    "ID": [
+      "cds-Apple2"
+    ],
     "Name": [
       "Apple2"
     ],
@@ -5998,7 +6056,11 @@
       }
     ]
   ],
+  "derived_features": [],
   "attributes": {
+    "ID": [
+      "rna-Apple3"
+    ],
     "Name": [
       "Apple3"
     ],

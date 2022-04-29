@@ -10,8 +10,8 @@ import {
   FeaturesForRefName,
   ValidationSet,
 } from 'apollo-shared'
-import { saveAs } from 'file-saver'
 import { Instance, SnapshotIn, cast, getRoot, types } from 'mobx-state-tree'
+import streamsaver from 'streamsaver'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 
@@ -77,19 +77,24 @@ export function stateModelFactory(pluginManager: PluginManager) {
                   `No InternetAccount found with config id ${internetAccountConfigId}`,
                 )
               }
-              const url = new URL(
-                'filehandling/downloadcache',
+              const searchParams = new URLSearchParams({
+                assembly: self.dataStore?.assemblyId || '',
+              })
+              const uri = new URL(
+                `features/exportGFF3?${searchParams.toString()}`,
                 internetAccount.baseURL,
-              )
+              ).href
               const fetch = internetAccount.getFetcher({
                 locationType: 'UriLocation',
-                uri: url.toString(),
+                uri,
               })
-              const responses = await fetch(url.toString(), {
+              const response = await fetch(uri, {
                 headers: { 'Content-Type': 'application/txt' },
               })
-              const blob = await responses.blob()
-              saveAs(blob, 'Apollo_download.gff3')
+              const fileStream = streamsaver.createWriteStream(
+                'Apollo_download.gff3',
+              )
+              response.body?.pipeTo(fileStream)
             },
           },
         ]
