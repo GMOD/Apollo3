@@ -1,4 +1,5 @@
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import { getConf } from '@jbrowse/core/configuration'
 import {
   AppRootModel,
   getSession,
@@ -52,7 +53,9 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
       session.addTrackConf({
         type: 'ApolloTrack',
         trackId,
-        name: `Apollo Track ${assembly.name}`,
+        name: `Annotations (${
+          getConf(assembly, 'displayName') || assembly.name
+        })`,
         assemblyNames: [firstRef.assemblyName],
         displays: [
           {
@@ -69,7 +72,7 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
   }, [
     regions,
     model,
-    assembly?.name,
+    assembly,
     internetAccountConfigId,
     linearGenomeView,
     setDataStore,

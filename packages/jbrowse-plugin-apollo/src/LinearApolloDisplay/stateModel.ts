@@ -1,7 +1,7 @@
 import { ConfigurationReference } from '@jbrowse/core/configuration'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { getContainingView } from '@jbrowse/core/util'
+import { getContainingView, getSession } from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { AnnotationFeatureI } from 'apollo-shared'
@@ -174,6 +174,14 @@ export function stateModelFactory(
           }
         }
         return featureLayout
+      },
+      getAssemblyId(assemblyName: string) {
+        const { assemblyManager } = getSession(self)
+        const assembly = assemblyManager.get(assemblyName)
+        if (!assembly) {
+          throw new Error(`Could not find assembly named ${assemblyName}`)
+        }
+        return assembly.name
       },
     }))
 }

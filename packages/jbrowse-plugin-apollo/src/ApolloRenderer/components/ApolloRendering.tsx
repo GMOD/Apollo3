@@ -40,6 +40,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     apolloRowUnderMouse,
     setApolloRowUnderMouse,
     changeManager,
+    getAssemblyId,
   } = displayModel
   const height = 20
   const padding = 4
@@ -218,6 +219,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   }
   function onMouseUp() {
     if (dragging) {
+      const assemblyId = getAssemblyId(region.assemblyName)
       const { feature, bp, edge } = dragging
       let change: Change
       if (edge === 'end') {
@@ -228,6 +230,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
           typeName: 'LocationEndChange',
           changedIds: [featureId],
           changes: [{ featureId, oldEnd, newEnd }],
+          assemblyId,
         })
       } else {
         const featureId = feature.id
@@ -237,6 +240,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
           typeName: 'LocationStartChange',
           changedIds: [featureId],
           changes: [{ featureId, oldStart, newStart }],
+          assemblyId,
         })
       }
       changeManager?.submit(change)

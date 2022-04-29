@@ -214,7 +214,9 @@ function AccountCard({
         seq: '',
       }))
       const assemblyConfig = {
-        name: assembly.name,
+        name: assembly._id,
+        aliases: [assembly.name, ...(assembly.aliases || [])],
+        displayName: assembly.displayName,
         sequence: {
           trackId: `sequenceConfigId-${assembly.name}`,
           type: 'ReferenceSequenceTrack',
@@ -225,7 +227,7 @@ function AccountCard({
         },
       }
       session.addAssembly?.(assemblyConfig)
-      selectedAssembly = assemblyManager.get(assembly.name)
+      selectedAssembly = assemblyManager.get(assembly._id)
     }
     if (!selectedAssembly) {
       throw new Error(`Assembly "${assembly.name}" could not be added`)
