@@ -34,22 +34,28 @@ export interface SerializedChange {
 
 export type DataStore = ServerDataStore | LocalGFF3DataStore | ClientDataStore
 
+export interface ChangeOptions {
+  logger: import('@nestjs/common').LoggerService
+}
+
 export abstract class Change implements SerializedChange {
+  protected logger: import('@nestjs/common').LoggerService
   abstract typeName: string
   abstract changes: unknown[]
 
   assemblyId: string
   changedIds: string[]
 
-  constructor(json: SerializedChange) {
+  constructor(json: SerializedChange, options?: ChangeOptions) {
     const { assemblyId, changedIds } = json
     this.assemblyId = assemblyId
     this.changedIds = changedIds
+    this.logger = options?.logger || console
   }
 
-  static fromJSON(json: SerializedChange): Change {
+  static fromJSON(json: SerializedChange, options?: ChangeOptions): Change {
     const ChangeType = changeRegistry.getChangeType(json.typeName)
-    return new ChangeType(json)
+    return new ChangeType(json, options?.logger && { logger: options.logger })
   }
 
   abstract toJSON(): SerializedChange

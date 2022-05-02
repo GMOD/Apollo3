@@ -4,6 +4,7 @@ import { resolveIdentifier } from 'mobx-state-tree'
 
 import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
 import {
+  ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
   SerializedChange,
@@ -29,8 +30,9 @@ export class LocationStartChange extends FeatureChange {
   typeName = 'LocationStartChange' as const
   changes: StartChange[]
 
-  constructor(json: SerializedLocationStartChange) {
-    super(json)
+  constructor(json: SerializedLocationStartChange, options?: ChangeOptions) {
+    super(json, options)
+    this.changedIds = json.changedIds
     this.changes = json.changes
   }
 
@@ -67,22 +69,24 @@ export class LocationStartChange extends FeatureChange {
 
       if (!topLevelFeature) {
         const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
-        console.error(errMsg)
+        this.logger.error(errMsg)
         throw new Error(errMsg)
         // throw new NotFoundException(errMsg)  -- This is causing runtime error because Exception comes from @nestjs/common!!!
       }
-      console.debug(`*** Feature found: ${JSON.stringify(topLevelFeature)}`)
+      this.logger.debug?.(
+        `*** Feature found: ${JSON.stringify(topLevelFeature)}`,
+      )
 
       const foundFeature = this.getObjectByFeatureId(topLevelFeature, featureId)
       if (!foundFeature) {
         const errMsg = `ERROR when searching feature by featureId`
-        console.error(errMsg)
+        this.logger.error(errMsg)
         throw new Error(errMsg)
       }
-      console.debug(`*** Found feature: ${JSON.stringify(foundFeature)}`)
+      this.logger.debug?.(`*** Found feature: ${JSON.stringify(foundFeature)}`)
       if (foundFeature.start !== oldStart) {
         const errMsg = `*** ERROR: Feature's current start value ${topLevelFeature.start} doesn't match with expected value ${oldStart}`
-        console.error(errMsg)
+        this.logger.error(errMsg)
         throw new Error(errMsg)
       }
       featuresForChanges.push({
@@ -105,12 +109,12 @@ export class LocationStartChange extends FeatureChange {
       try {
         await topLevelFeature.save()
       } catch (error) {
-        console.debug(`*** FAILED: ${error}`)
+        this.logger.debug?.(`*** FAILED: ${error}`)
         throw error
       } finally {
         // Update Mongo
       }
-      console.debug(
+      this.logger.debug?.(
         `*** Object updated in Mongo. New object: ${JSON.stringify(
           topLevelFeature,
         )}`,
@@ -126,7 +130,7 @@ export class LocationStartChange extends FeatureChange {
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
     const { changes } = this
 
-    console.debug(`Change request: ${JSON.stringify(changes)}`)
+    this.logger.debug?.(`Change request: ${JSON.stringify(changes)}`)
     let gff3ItemString: string | undefined = ''
     const cacheKeys: string[] = await backend.cacheManager.store.keys?.()
     cacheKeys.sort((n1: string, n2: string) => Number(n1) - Number(n2))
@@ -157,7 +161,7 @@ export class LocationStartChange extends FeatureChange {
         return JSON.parse(gff3ItemString)
       }),
     )
-    // console.verbose(`Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`)
+    // this.logger.verbose(`Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`)
     await backend.gff3Handle.writeFile(gff.formatSync(gff3))
   }
 
@@ -188,12 +192,15 @@ export class LocationStartChange extends FeatureChange {
         oldStart: startChange.newStart,
         newStart: startChange.oldStart,
       }))
-    return new LocationStartChange({
-      changedIds: inverseChangedIds,
-      typeName: this.typeName,
-      changes: inverseChanges,
-      assemblyId: this.assemblyId,
-    })
+    return new LocationStartChange(
+      {
+        changedIds: inverseChangedIds,
+        typeName: this.typeName,
+        changes: inverseChanges,
+        assemblyId: this.assemblyId,
+      },
+      { logger: this.logger },
+    )
   }
 
   getUpdatedCacheEntryForFeature(
