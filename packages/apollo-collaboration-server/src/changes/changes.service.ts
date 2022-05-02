@@ -41,7 +41,7 @@ export class ChangesService {
 
   async submitChange(serializedChange: SerializedChange) {
     const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
-    const change = new ChangeType(serializedChange)
+    const change = new ChangeType(serializedChange, { logger: this.logger })
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
 
     const validationResult = await this.validations.backendPreValidate(change)

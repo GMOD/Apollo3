@@ -25,18 +25,18 @@ export abstract class FeatureChange extends Change {
     feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs,
     featureId: string,
   ): GFF3FeatureLineWithFeatureIdAndOptionalRefs | null {
-    console.debug(`Entry=${JSON.stringify(feature)}`)
+    this.logger.debug?.(`Entry=${JSON.stringify(feature)}`)
 
-    console.debug(`Top level featureId=${feature.featureId}`)
+    this.logger.debug?.(`Top level featureId=${feature.featureId}`)
     if (feature.featureId === featureId) {
-      console.debug(
+      this.logger.debug?.(
         `Top level featureId matches in object ${JSON.stringify(feature)}`,
       )
       return feature
     }
     // Check if there is also childFeatures in parent feature and it's not empty
     // Let's get featureId from recursive method
-    console.debug(
+    this.logger.debug?.(
       `FeatureId was not found on top level so lets make recursive call...`,
     )
     for (const childFeature of feature.child_features || []) {
