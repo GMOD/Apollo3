@@ -8,20 +8,24 @@ export interface ValidationResult {
 }
 
 export abstract class Validation {
-  abstract getName(): string
+  abstract name: string
   async frontendPreValidate(_change: Change): Promise<ValidationResult> {
-    return { validationName: this.getName() }
+    return { validationName: this.name }
   }
 
   async frontendPostValidate(_change: Change): Promise<ValidationResult> {
-    return { validationName: this.getName() }
+    return { validationName: this.name }
   }
 
   async backendPreValidate(_change: Change): Promise<ValidationResult> {
-    return { validationName: this.getName() }
+    return { validationName: this.name }
   }
 
   async backendPostValidate(_change: Change): Promise<ValidationResult> {
-    return { validationName: this.getName() }
+    return { validationName: this.name }
+  }
+
+  async possibleValues(key: string): Promise<unknown[] | undefined> {
+    return undefined
   }
 }
