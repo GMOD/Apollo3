@@ -71,6 +71,13 @@ export function stateModelFactory(pluginManager: PluginManager) {
         return self.linearGenomeView.width
       },
       menuItems(): MenuItem[] {
+        let undoDisabled = true
+        if (self.dataStore) {
+          const { changeManager } = self.dataStore
+          if (changeManager.recentChanges.length) {
+            undoDisabled = false
+          }
+        }
         return [
           {
             label: 'Download GFF3',
@@ -106,6 +113,13 @@ export function stateModelFactory(pluginManager: PluginManager) {
               )
               response.body?.pipeTo(fileStream)
             },
+          },
+          {
+            label: 'Undo',
+            onClick: () => {
+              self.dataStore?.changeManager.revertLastChange()
+            },
+            disabled: undoDisabled,
           },
         ]
       },

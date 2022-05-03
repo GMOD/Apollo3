@@ -13,7 +13,9 @@ export class ChangeManager {
     public validations: ValidationSet,
   ) {}
 
-  async submit(change: Change) {
+  recentChanges: Change[] = []
+
+  async submit(change: Change, addToRecents = true) {
     // pre-validate
     const session = getSession(this.dataStore)
     const result = await this.validations.frontendPreValidate(change)
@@ -61,9 +63,27 @@ export class ChangeManager {
       )
       this.revert(change)
     }
+    if (addToRecents) {
+      // Push the change into array
+      this.recentChanges.push(change)
+    }
   }
 
   async revert(change: Change) {
-    return change.getInverse().apply(this.dataStore)
+    const inverseChange = change.getInverse()
+    return this.submit(inverseChange, false)
+  }
+
+  /**
+   * Undo the last change
+   */
+  async revertLastChange() {
+    const lastChange = this.recentChanges.pop()
+    if (!lastChange) {
+      const session = getSession(this.dataStore)
+      session.notify('No changes to undo!', 'warning')
+      return
+    }
+    return this.revert(lastChange)
   }
 }
