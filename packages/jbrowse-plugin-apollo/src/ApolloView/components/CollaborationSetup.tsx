@@ -98,10 +98,19 @@ interface AccountCardProps {
 }
 
 interface ApolloAssembly {
+  _id: string
   name: string
-  id: string
-  aliases: string[]
-  displayName: string
+  displayName?: string
+  description?: string
+  aliases?: string[]
+}
+
+interface ApolloRefSeq {
+  _id: string
+  name: string
+  description?: string
+  length: string
+  assembly: string
 }
 
 function AccountCard({
@@ -120,7 +129,7 @@ function AccountCard({
     const { signal } = aborter
     async function getAssemblies() {
       const { baseURL } = internetAccount
-      const uri = new URL('fileHandling/getAssemblies', baseURL).href
+      const uri = new URL('assemblies', baseURL).href
       const fetch = internetAccount.getFetcher({
         locationType: 'UriLocation',
         uri,
@@ -150,7 +159,7 @@ function AccountCard({
       }
       let fetchedAssemblies
       try {
-        fetchedAssemblies = await response.json()
+        fetchedAssemblies = (await response.json()) as ApolloAssembly[]
       } catch (e) {
         setError(e instanceof Error ? e : new Error(String(e)))
         return
@@ -175,7 +184,8 @@ function AccountCard({
     let selectedAssembly = assemblyManager.get(assembly.name)
     if (!selectedAssembly) {
       const { baseURL } = internetAccount
-      const uri = new URL('fileHandling/getFastaInfo', baseURL).href
+      const searchParams = new URLSearchParams({ assembly: assembly._id })
+      const uri = new URL(`refSeqs?${searchParams.toString()}`, baseURL).href
       const fetch = internetAccount.getFetcher({
         locationType: 'UriLocation',
         uri,
@@ -194,20 +204,19 @@ function AccountCard({
           })${errorMessage ? ` (${errorMessage})` : ''}`,
         )
       }
-      const f = (await response.json()) as {
-        refName: string
-        length: number
-      }[]
+      const f = (await response.json()) as ApolloRefSeq[]
 
-      const features = f.map((contig: { refName: string; length: number }) => ({
-        refName: contig.refName,
-        uniqueId: contig.refName,
+      const features = f.map((contig) => ({
+        refName: contig.name,
+        uniqueId: contig._id,
         start: 0,
         end: contig.length,
         seq: '',
       }))
       const assemblyConfig = {
-        name: assembly.name,
+        name: assembly._id,
+        aliases: [assembly.name, ...(assembly.aliases || [])],
+        displayName: assembly.displayName,
         sequence: {
           trackId: `sequenceConfigId-${assembly.name}`,
           type: 'ReferenceSequenceTrack',
@@ -218,7 +227,7 @@ function AccountCard({
         },
       }
       session.addAssembly?.(assemblyConfig)
-      selectedAssembly = assemblyManager.get(assembly.name)
+      selectedAssembly = assemblyManager.get(assembly._id)
     }
     if (!selectedAssembly) {
       throw new Error(`Assembly "${assembly.name}" could not be added`)
@@ -241,7 +250,7 @@ function AccountCard({
             {assemblies.map((assembly, idx) => (
               <ListItem
                 button
-                key={assembly.id}
+                key={assembly._id}
                 onClick={() => {
                   setSelectedAssemblyIdx(idx)
                   setSelected()
@@ -254,13 +263,15 @@ function AccountCard({
                   selectedAssemblyIdx === idx ? (
                     <CircularProgress variant="indeterminate" />
                   ) : (
-                    <Avatar>{assembly.displayName.slice(0, 1)}</Avatar>
+                    <Avatar>
+                      {(assembly.displayName || assembly.name).slice(0, 1)}
+                    </Avatar>
                   )}
                 </ListItemAvatar>
                 <ListItemText
-                  primary={assembly.displayName}
+                  primary={assembly.displayName || assembly.name}
                   secondary={`${assembly.name}${
-                    assembly.aliases.length
+                    assembly.aliases?.length
                       ? ` (${assembly.aliases.join(', ')})`
                       : ''
                   }`}

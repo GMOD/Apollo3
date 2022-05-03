@@ -3,6 +3,8 @@
     "$oid": "624a7e97d45d7745c2532b01"
   },
   "description": "Description of demo assembly",
-  "name": "Demo assembly",
+  "name": "vvx",
+  "displayName": "Volvox mythicus",
+  "aliases": ["volvox"],
   "__v": 0
 }]

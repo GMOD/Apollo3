@@ -4126,13 +4126,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/file-saver@npm:^2.0.5":
-  version: 2.0.5
-  resolution: "@types/file-saver@npm:2.0.5"
-  checksum: a31d6ee2abf99598647139f8f35b37b6e1bacf6c7ddf05c66651b9b0e6e53381aa0e8ed13f37faa6e496e0eb1da87c97e6c70fd589d5b83b0c95c57cb64ce92a
-  languageName: node
-  linkType: hard
-
 "@types/graceful-fs@npm:^4.1.2":
   version: 4.1.5
   resolution: "@types/graceful-fs@npm:4.1.5"
@@ -4431,6 +4424,13 @@ __metadata:
   version: 2.0.1
   resolution: "@types/stack-utils@npm:2.0.1"
   checksum: 205fdbe3326b7046d7eaf5e494d8084f2659086a266f3f9cf00bccc549c8e36e407f88168ad4383c8b07099957ad669f75f2532ed4bc70be2b037330f7bae019
+  languageName: node
+  linkType: hard
+
+"@types/streamsaver@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@types/streamsaver@npm:2.0.1"
+  checksum: f347d17f0bc6f70fd49971e1ed74a595ccd280a66bc4dbe5a1c9eab67e147e4874cb98c2fa7d9a9f103045ea53bf0320e685cadcdf68a08c69d567f4aa9b29bc
   languageName: node
   linkType: hard
 
@@ -9316,7 +9316,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"file-saver@npm:^2.0.0, file-saver@npm:^2.0.5":
+"file-saver@npm:^2.0.0":
   version: 2.0.5
   resolution: "file-saver@npm:2.0.5"
   checksum: c62d96e5cebc58b4bdf3ae8a60d5cf9607ad82f75f798c33a4ee63435ac2203002584d5256a2a780eda7feb5e19dc3b6351c2212e58b3f529e63d265a7cc79f7
@@ -11168,13 +11168,12 @@ __metadata:
     "@material-ui/core": ^4.12.3
     "@material-ui/icons": ^4.9.1
     "@types/cypress": ^1.1.3
-    "@types/file-saver": ^2.0.5
     "@types/node": ^16.11.6
     "@types/react": ^17.0.34
+    "@types/streamsaver": ^2.0.1
     apollo-shared: "workspace:^"
     clsx: ^1.1.1
     cypress: ^8.7.0
-    file-saver: ^2.0.5
     jest: ^27.3.1
     mobx: ^5.10.1
     mobx-react: ^7.2.1
@@ -11187,6 +11186,7 @@ __metadata:
     serve: ^11.3.2
     shx: ^0.3.3
     start-server-and-test: ^1.11.7
+    streamsaver: ^2.0.6
     ts-node: ^10.3.0
     tslib: ^2.0.3
     typescript: 4.4.4
@@ -16856,6 +16856,13 @@ __metadata:
   dependencies:
     duplexer: ~0.1.1
   checksum: 844b622cfe8b9de45a6007404f613b60aaf85200ab9862299066204242f89a7c8033b1c356c998aa6cfc630f6cd9eba119ec1c6dc1f93e245982be4a847aee7d
+  languageName: node
+  linkType: hard
+
+"streamsaver@npm:^2.0.6":
+  version: 2.0.6
+  resolution: "streamsaver@npm:2.0.6"
+  checksum: 7b4b06d8da3864b74f1887e5e9d142de380abb48864ca1d6ba38ba3b7b9b964213c5976820f5f09b3b7164fe05d824b4d6296e23b142e7d1c42f87f998f63a2a
   languageName: node
   linkType: hard
 

@@ -114,6 +114,21 @@ export class FeaturesService {
     this.logger.debug(`Added ${cnt} features into database`)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async exportGFF3(assembly: string): Promise<any> {
+    const refSeqs = await this.refSeqModel.find({ assembly }).exec()
+    const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
+    const query = { refSeq: { $in: refSeqIds } }
+    this.logger.log(query)
+    return this.featureModel
+      .find(query)
+      .cursor({
+        transform: (chunk: FeatureDocument) =>
+          chunk.toObject({ flattenMaps: true }),
+      })
+      .pipe(gff.formatStream({ insertVersionDirective: true }))
+  }
+
   /**
    * Get feature by featureId. When retrieving features by id, the features and any of its children are returned, but not any of its parent or sibling features.
    * @param featureid - featureId

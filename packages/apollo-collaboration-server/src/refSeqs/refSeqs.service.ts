@@ -4,6 +4,7 @@ import { RefSeq, RefSeqDocument } from 'apollo-schemas'
 import { Model } from 'mongoose'
 
 import { CreateRefSeqDto } from './dto/create-refSeq.dto'
+import { FindRefSeqDto } from './dto/find-refSeq.dto'
 import { UpdateRefSeqDto } from './dto/update-refSeq.dto'
 
 @Injectable()
@@ -19,8 +20,8 @@ export class RefSeqsService {
     return this.refSeqModel.create(createRefSeqDto)
   }
 
-  findAll() {
-    return this.refSeqModel.find().exec()
+  findAll(filter?: FindRefSeqDto) {
+    return this.refSeqModel.find(filter || {}).exec()
   }
 
   async findOne(id: string) {

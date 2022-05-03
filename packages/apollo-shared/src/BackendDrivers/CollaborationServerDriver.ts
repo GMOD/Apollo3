@@ -1,13 +1,21 @@
-import { GFF3FeatureLineWithRefs, GFF3Item } from '@gmod/gff'
+import { GFF3FeatureLine } from '@gmod/gff'
 import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
-import { AppRootModel, Region } from '@jbrowse/core/util'
+import { AppRootModel, Region, getSession } from '@jbrowse/core/util'
 import { SnapshotIn, getRoot } from 'mobx-state-tree'
 
 import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
 import { Change } from '../ChangeManager/Change'
 import { ValidationResultSet } from '../Validations/ValidationSet'
 import { BackendDriver } from './BackendDriver'
+
+interface ApolloFeatureLine extends GFF3FeatureLine {
+  // eslint-disable-next-line camelcase
+  child_features?: ApolloFeatureLine[][]
+  // eslint-disable-next-line camelcase
+  derived_features?: ApolloFeatureLine[][]
+  featureId: string
+}
 
 export class CollaborationServerDriver extends BackendDriver {
   get internetAccount() {
@@ -44,11 +52,26 @@ export class CollaborationServerDriver extends BackendDriver {
    * @returns
    */
   async getFeatures(region: Region) {
-    const { refName, start, end } = region
+    const { assemblyName, refName, start, end } = region
+    const { assemblyManager } = getSession(this.clientStore)
+    const assembly = assemblyManager.get(assemblyName)
+    if (!assembly) {
+      throw new Error(`Could not find assembly with name "${assemblyName}"`)
+    }
+    const { features } = getConf(assembly, ['sequence', 'adapter']) as {
+      features: {
+        refName: string
+        uniqueId: string
+      }[]
+    }
+    const feature = features.find((f) => f.refName === refName)
+    if (!feature) {
+      throw new Error(`Could not find refName "${refName}"`)
+    }
     const { baseURL } = this
-    const url = new URL('filehandling/getFeaturesByCriteria', baseURL)
+    const url = new URL('features/getFeatures', baseURL)
     const searchParams = new URLSearchParams({
-      seq_id: refName,
+      refSeq: feature.uniqueId,
       start: String(start),
       end: String(end),
     })
@@ -70,7 +93,7 @@ export class CollaborationServerDriver extends BackendDriver {
         }`,
       )
     }
-    const data = (await response.json()) as GFF3Item[]
+    const data = (await response.json()) as ApolloFeatureLine[]
     // const backendResult = JSON.stringify(data)
     // console.log(
     //   `In CollaborationServerDriver: Backend endpoint returned=${backendResult}`,
@@ -119,56 +142,49 @@ export class CollaborationServerDriver extends BackendDriver {
   }
 }
 
-function makeFeatures(gff3Contents: GFF3Item[], assemblyName: string) {
+function makeFeatures(
+  apolloFeatures: ApolloFeatureLine[],
+  assemblyName: string,
+) {
   const featuresByRefName: Record<
     string,
     Record<string, SnapshotIn<typeof AnnotationFeature> | undefined> | undefined
   > = {}
-  for (const gff3Item of gff3Contents) {
-    if (Array.isArray(gff3Item)) {
-      gff3Item.forEach((feature) => {
-        if (!feature.seq_id) {
-          throw new Error('Got GFF3 record without an ID')
-        }
-        if (!feature.type) {
-          throw new Error('Got GFF3 record without a type')
-        }
-        const convertedFeature = convertFeature(feature, assemblyName)
-        const { refName } = convertedFeature.location
-        let refRecord = featuresByRefName[refName]
-        if (!refRecord) {
-          refRecord = {}
-          featuresByRefName[refName] = refRecord
-        }
-        refRecord[convertedFeature.id] = convertedFeature
-      })
+  for (const apolloFeature of apolloFeatures) {
+    const convertedFeature = convertFeature(apolloFeature, assemblyName)
+    const { refName } = convertedFeature.location
+    let refRecord = featuresByRefName[refName]
+    if (!refRecord) {
+      refRecord = {}
+      featuresByRefName[refName] = refRecord
     }
+    refRecord[convertedFeature.id] = convertedFeature
   }
   return featuresByRefName
 }
 
 function convertFeature(
-  feature: GFF3FeatureLineWithRefs,
+  apolloFeature: ApolloFeatureLine,
   assemblyName: string,
 ): SnapshotIn<typeof AnnotationFeature> {
-  if (!feature.seq_id) {
+  if (!apolloFeature.seq_id) {
     throw new Error('Got GFF3 record without an ID')
   }
-  if (!feature.type) {
+  if (!apolloFeature.type) {
     throw new Error('Got GFF3 record without a type')
   }
-  if (!feature.start) {
+  if (!apolloFeature.start) {
     throw new Error('Got GFF3 record without a start')
   }
-  if (!feature.end) {
+  if (!apolloFeature.end) {
     throw new Error('Got GFF3 record without an end')
   }
-  const id = feature.attributes?.apollo_id?.[0]
+  const id = apolloFeature.featureId
   if (!id) {
     throw new Error('Apollo feature without apollo_id encountered')
   }
   const children: Record<string, SnapshotIn<typeof AnnotationFeature>> = {}
-  feature.child_features.forEach((childFeatureLocation) => {
+  apolloFeature.child_features?.forEach((childFeatureLocation) => {
     childFeatureLocation.forEach((childFeature) => {
       const childFeat = convertFeature(childFeature, assemblyName)
       children[childFeat.id] = childFeat
@@ -178,9 +194,9 @@ function convertFeature(
     id,
     assemblyName,
     location: {
-      refName: feature.seq_id,
-      start: feature.start,
-      end: feature.end,
+      refName: apolloFeature.seq_id,
+      start: apolloFeature.start,
+      end: apolloFeature.end,
     },
   }
   if (Array.from(Object.entries(children)).length) {

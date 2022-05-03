@@ -13,6 +13,7 @@ import {
 import { GetSequenceDto } from '../refSeqChunks/dto/get-sequence.dto'
 import { RefSeqChunksService } from '../refSeqChunks/refSeqChunks.service'
 import { CreateRefSeqDto } from './dto/create-refSeq.dto'
+import { FindRefSeqDto } from './dto/find-refSeq.dto'
 import { UpdateRefSeqDto } from './dto/update-refSeq.dto'
 import { RefSeqsService } from './refSeqs.service'
 
@@ -31,8 +32,8 @@ export class RefSeqsController {
   }
 
   @Get()
-  findAll() {
-    return this.refSeqsService.findAll()
+  findAll(@Query() request: FindRefSeqDto) {
+    return this.refSeqsService.findAll(request)
   }
 
   @Get('getSequence')

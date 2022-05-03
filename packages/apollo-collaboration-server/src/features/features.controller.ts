@@ -6,10 +6,13 @@ import {
   Param,
   Post,
   Query,
+  Response,
+  StreamableFile,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
+import { Response as ExpressResponse } from 'express'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { FeaturesService } from './features.service'
@@ -34,6 +37,27 @@ export class FeaturesController {
   ) {
     this.logger.debug(`Adding new features for assemblyId: ${body.assembly}`)
     return this.featuresService.loadGFF3DataIntoDb(file, body.assembly)
+  }
+
+  /**
+   * Export GFF3 from database.
+   * e.g: curl http://localhost:3999/features/exportGFF3?assembly=624a7e97d45d7745c2532b01
+   *
+   * @param request -
+   * @param res -
+   * @returns A StreamableFile of the GFF3
+   */
+  @Get('exportGFF3')
+  async exportGFF3(
+    @Query() request: { assembly: string },
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ) {
+    res.set({
+      'Content-Type': 'application/text',
+      'Content-Disposition': 'attachment; filename="apollo.gff3"',
+    })
+    const stream = await this.featuresService.exportGFF3(request.assembly)
+    return new StreamableFile(stream)
   }
 
   /**
