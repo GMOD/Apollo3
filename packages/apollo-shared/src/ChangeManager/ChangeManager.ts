@@ -74,6 +74,7 @@ export class ChangeManager {
   // Undo the last change
   async revertLastChange() {
     if (this.listOfChanges.length < 1) {
+      console.log('No changes to undo!')
       return
     }
     console.log(

@@ -111,10 +111,23 @@ export function stateModelFactory(pluginManager: PluginManager) {
             label: 'Undo',
             onClick: async () => {
               console.log(`Start undo...`)
-              const returnValue = await self.dataStore?.changeManager.revertLastChange()
+              const internetAccountConfigId =
+                self.dataStore?.internetAccountConfigId
+              const { internetAccounts } = getRoot(self) as AppRootModel
+              const internetAccount = internetAccounts.find(
+                (ia) =>
+                  getConf(ia, 'internetAccountId') === internetAccountConfigId,
+              ) as ApolloInternetAccountModel | undefined
+              if (!internetAccount) {
+                throw new Error(
+                  `No InternetAccount found with config id ${internetAccountConfigId}`,
+                )
+              }
+              const returnValue =
+                await self.dataStore?.changeManager.revertLastChange()
               console.log(`Undo done. Returned ${returnValue}`)
             },
-            disabled: !self.dataStore
+            disabled: !self.dataStore,
           },
         ]
       },
