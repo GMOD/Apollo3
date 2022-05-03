@@ -30,6 +30,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
     bp: number
     px: number
   }>()
+  const [movedDuringLastMouseDown, setMovedDuringLastMouseDown] =
+    useState(false)
   const { regions, bpPerPx, displayModel } = props
   const [region] = regions
   const totalWidth = (region.end - region.start) / bpPerPx
@@ -41,6 +43,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
     setApolloRowUnderMouse,
     changeManager,
     getAssemblyId,
+    selectedFeature,
+    setSelectedFeature,
   } = displayModel
   const height = 20
   const padding = 4
@@ -71,7 +75,10 @@ function ApolloRendering(props: ApolloRenderingProps) {
             widthPx - 2,
             height - 2,
           )
-          ctx.fillStyle = 'rgba(255,255,255,0.75)'
+          ctx.fillStyle =
+            feature.id === selectedFeature?.id
+              ? 'rgba(0,0,126,0.3)'
+              : 'rgba(255,255,255,0.75)'
           ctx.fillRect(
             startPx + 1,
             row * (height + padding) + 1 + padding,
@@ -88,6 +95,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     featureLayout,
     highestRow,
     totalHeight,
+    selectedFeature,
   ])
   useEffect(() => {
     const canvas = overlayCanvasRef.current
@@ -130,7 +138,10 @@ function ApolloRendering(props: ApolloRenderingProps) {
     dragging,
   ])
   function onMouseMove(event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
-    const { clientX, clientY } = event
+    const { clientX, clientY, buttons } = event
+    if (!movedDuringLastMouseDown && buttons === 1) {
+      setMovedDuringLastMouseDown(true)
+    }
     const { left, top } = canvasRef.current?.getBoundingClientRect() || {
       left: 0,
       top: 0,
@@ -218,7 +229,11 @@ function ApolloRendering(props: ApolloRenderingProps) {
     }
   }
   function onMouseUp() {
-    if (dragging) {
+    if (!movedDuringLastMouseDown) {
+      if (apolloFeatureUnderMouse) {
+        setSelectedFeature(apolloFeatureUnderMouse)
+      }
+    } else if (dragging) {
       const assemblyId = getAssemblyId(region.assemblyName)
       const { feature, bp, edge } = dragging
       let change: Change
@@ -246,6 +261,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
       changeManager?.submit(change)
     }
     setDragging(undefined)
+    setMovedDuringLastMouseDown(false)
   }
   return (
     <div style={{ position: 'relative', width: totalWidth, height }}>

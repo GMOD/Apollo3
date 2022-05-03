@@ -4,6 +4,8 @@ import { MenuItem } from '@jbrowse/core/ui'
 import { AppRootModel } from '@jbrowse/core/util'
 import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import {
+  AnnotationFeature,
+  AnnotationFeatureI,
   ChangeManager,
   CollaborationServerDriver,
   CoreValidation,
@@ -13,6 +15,7 @@ import {
 import { Instance, SnapshotIn, cast, getRoot, types } from 'mobx-state-tree'
 import streamsaver from 'streamsaver'
 
+import { ApolloDetailsViewStateModel } from '../ApolloDetailsView/stateModel'
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 
 export const ClientDataStore = types
@@ -54,6 +57,12 @@ export function stateModelFactory(pluginManager: PluginManager) {
           .stateModel as LinearGenomeViewStateModel,
         { type: 'LinearGenomeView' },
       ),
+      apolloDetailsView: types.optional(
+        pluginManager.getViewType('ApolloDetailsView')
+          .stateModel as ApolloDetailsViewStateModel,
+        { type: 'ApolloDetailsView' },
+      ),
+      selectedFeature: types.maybe(types.reference(AnnotationFeature)),
       dataStore: types.maybe(ClientDataStore),
       displayName: 'Apollo',
     })
@@ -111,6 +120,9 @@ export function stateModelFactory(pluginManager: PluginManager) {
       },
       setDisplayName(displayName: string) {
         self.displayName = displayName
+      },
+      setSelectedFeature(feature: AnnotationFeatureI) {
+        self.selectedFeature = feature
       },
     }))
 }
