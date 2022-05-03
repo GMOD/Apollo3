@@ -52,6 +52,7 @@ export const AnnotationFeature = types
     location: Location,
     children: types.maybe(types.map(ChildFeature)),
     name: types.maybe(types.string),
+    featureType: types.maybe(types.string),
   })
   .actions((self) => ({
     update({
@@ -68,6 +69,9 @@ export const AnnotationFeature = types
     },
     addChild(childFeature: SnapshotOrInstance<typeof ChildFeature>) {
       self.children?.set(childFeature.id, childFeature)
+    },
+    setFeatureType(featureType: string) {
+      self.featureType = featureType
     },
   }))
   .views((self) => ({

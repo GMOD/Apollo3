@@ -13,10 +13,15 @@ import { AbstractSessionModel, isAbstractMenuManager } from '@jbrowse/core/util'
 import {
   LocationEndChange,
   LocationStartChange,
+  TypeChange,
   changeRegistry,
 } from 'apollo-shared'
 
 import { version } from '../package.json'
+import {
+  ApolloDetailsView as ApolloDetailsViewReactComponent,
+  stateModelFactory as apolloDetailsViewStateModelFactory,
+} from './ApolloDetailsView'
 import {
   configSchema as apolloInternetAccountConfigSchema,
   modelFactory as apolloInternetAccountModelFactory,
@@ -38,12 +43,21 @@ import { makeDisplayComponent } from './makeDisplayComponent'
 
 changeRegistry.registerChange('LocationEndChange', LocationEndChange)
 changeRegistry.registerChange('LocationStartChange', LocationStartChange)
+changeRegistry.registerChange('TypeChange', TypeChange)
 
 export default class ApolloPlugin extends Plugin {
   name = 'ApolloPlugin'
   version = version
 
   install(pluginManager: PluginManager) {
+    pluginManager.addViewType(() => {
+      return new ViewType({
+        name: 'ApolloDetailsView',
+        stateModel: apolloDetailsViewStateModelFactory(pluginManager),
+        ReactComponent: ApolloDetailsViewReactComponent,
+      })
+    })
+
     pluginManager.addViewType(() => {
       return new ViewType({
         name: 'ApolloView',

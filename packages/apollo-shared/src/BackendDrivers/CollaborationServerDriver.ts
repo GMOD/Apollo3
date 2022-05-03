@@ -198,6 +198,7 @@ function convertFeature(
       start: apolloFeature.start,
       end: apolloFeature.end,
     },
+    featureType: apolloFeature.type,
   }
   if (Array.from(Object.entries(children)).length) {
     newFeature.children = children

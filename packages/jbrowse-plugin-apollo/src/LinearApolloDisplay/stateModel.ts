@@ -44,6 +44,12 @@ export function stateModelFactory(
         },
       }
     })
+    .views((self) => ({
+      get apolloView() {
+        const lgv = getContainingView(self)
+        return getContainingView(lgv) as unknown as ApolloViewModel
+      },
+    }))
     .actions((self) => ({
       afterAttach() {
         addDisposer(
@@ -54,10 +60,7 @@ export function stateModelFactory(
             if (!initialized) {
               return
             }
-            const apolloView = getContainingView(
-              lgv,
-            ) as unknown as ApolloViewModel
-            const { dataStore } = apolloView
+            const { dataStore } = self.apolloView
             if (!dataStore) {
               return
             }
@@ -89,14 +92,10 @@ export function stateModelFactory(
         return self.configuration.renderer.type
       },
       get changeManager() {
-        const lgv = getContainingView(self)
-        const apolloView = getContainingView(lgv) as unknown as ApolloViewModel
-        return apolloView.dataStore?.changeManager
+        return self.apolloView.dataStore?.changeManager
       },
       get features() {
-        const lgv = getContainingView(self)
-        const apolloView = getContainingView(lgv) as unknown as ApolloViewModel
-        const { dataStore } = apolloView
+        const { dataStore } = self.apolloView
         if (!dataStore) {
           return new Map()
         }
@@ -182,6 +181,12 @@ export function stateModelFactory(
           throw new Error(`Could not find assembly named ${assemblyName}`)
         }
         return assembly.name
+      },
+      get selectedFeature(): AnnotationFeatureI | undefined {
+        return self.apolloView.selectedFeature
+      },
+      get setSelectedFeature() {
+        return self.apolloView.setSelectedFeature
       },
     }))
 }

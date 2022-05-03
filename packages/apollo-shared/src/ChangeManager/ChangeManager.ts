@@ -10,7 +10,7 @@ import { Change, ClientDataStore } from './Change'
 export class ChangeManager {
   constructor(
     private dataStore: ClientDataStore & IAnyStateTreeNode,
-    private validations: ValidationSet,
+    public validations: ValidationSet,
   ) {}
 
   async submit(change: Change) {

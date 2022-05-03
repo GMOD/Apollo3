@@ -21,8 +21,12 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
     useState<string>()
   const { pluginManager } = getEnv(model)
   const { internetAccounts } = getRoot(model) as AppRootModel
-  const { linearGenomeView, dataStore, setDataStore } = model
-  const { ReactComponent } = pluginManager.getViewType(linearGenomeView.type)
+  const { apolloDetailsView, linearGenomeView, dataStore, setDataStore } = model
+  const { ReactComponent: LGVReactComponent } = pluginManager.getViewType(
+    linearGenomeView.type,
+  )
+  const { ReactComponent: ApolloDetailsViewReactComponent } =
+    pluginManager.getViewType(apolloDetailsView.type)
 
   const regions = assembly?.regions
   useEffect(() => {
@@ -101,5 +105,13 @@ export const ApolloView = observer(({ model }: { model: ApolloViewModel }) => {
     }
   }
 
-  return <ReactComponent key={linearGenomeView.id} model={linearGenomeView} />
+  return (
+    <>
+      <LGVReactComponent key={linearGenomeView.id} model={linearGenomeView} />
+      <ApolloDetailsViewReactComponent
+        key={apolloDetailsView.id}
+        model={apolloDetailsView}
+      />
+    </>
+  )
 })

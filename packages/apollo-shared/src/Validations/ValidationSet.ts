@@ -66,4 +66,14 @@ export class ValidationSet {
     }
     return results
   }
+
+  async possibleValues(key: string) {
+    for (const v of this.validations) {
+      const vals = await v.possibleValues(key)
+      if (vals) {
+        return vals
+      }
+    }
+    return undefined
+  }
 }

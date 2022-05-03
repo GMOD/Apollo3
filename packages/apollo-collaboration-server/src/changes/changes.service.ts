@@ -16,6 +16,7 @@ import {
   LocationEndChange,
   LocationStartChange,
   SerializedChange,
+  TypeChange,
   ValidationSet,
   changeRegistry,
 } from 'apollo-shared'
@@ -32,8 +33,9 @@ export class ChangesService {
     private readonly changeModel: Model<ChangeDocument>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
-    changeRegistry.registerChange('LocationEndChange', LocationEndChange) // Do this only once
-    changeRegistry.registerChange('LocationStartChange', LocationStartChange) // Do this only once
+    changeRegistry.registerChange('LocationEndChange', LocationEndChange)
+    changeRegistry.registerChange('LocationStartChange', LocationStartChange)
+    changeRegistry.registerChange('TypeChange', TypeChange)
   }
 
   private readonly logger = new Logger(ChangesService.name)
