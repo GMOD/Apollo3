@@ -68,7 +68,8 @@ export class ChangeManager {
   }
 
   async revert(change: Change) {
-    return change.getInverse().apply(this.dataStore)
+    const inverseChange = change.getInverse()
+    return this.submit(inverseChange)
   }
 
   // Undo the last change
@@ -78,9 +79,9 @@ export class ChangeManager {
       return
     }
     console.log(
-      `Undo the last change: ${
-        this.listOfChanges[this.listOfChanges.length - 1]
-      }`,
+      `Undo the last change: ${JSON.stringify(
+        this.listOfChanges[this.listOfChanges.length - 1],
+      )}`,
     )
     this.revert(this.listOfChanges[this.listOfChanges.length - 1])
     this.listOfChanges.splice(-1, 1) // Remove the last item from array
