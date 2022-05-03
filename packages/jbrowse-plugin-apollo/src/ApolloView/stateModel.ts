@@ -71,6 +71,13 @@ export function stateModelFactory(pluginManager: PluginManager) {
         return self.linearGenomeView.width
       },
       menuItems(): MenuItem[] {
+        let undoDisabled = true
+        if (self.dataStore) {
+          const { changeManager } = self.dataStore
+          if (changeManager.recentChanges.length) {
+            undoDisabled = false
+          }
+        }
         return [
           {
             label: 'Download GFF3',
@@ -109,25 +116,10 @@ export function stateModelFactory(pluginManager: PluginManager) {
           },
           {
             label: 'Undo',
-            onClick: async () => {
-              console.log(`Start undo...`)
-              const internetAccountConfigId =
-                self.dataStore?.internetAccountConfigId
-              const { internetAccounts } = getRoot(self) as AppRootModel
-              const internetAccount = internetAccounts.find(
-                (ia) =>
-                  getConf(ia, 'internetAccountId') === internetAccountConfigId,
-              ) as ApolloInternetAccountModel | undefined
-              if (!internetAccount) {
-                throw new Error(
-                  `No InternetAccount found with config id ${internetAccountConfigId}`,
-                )
-              }
-              const returnValue =
-                await self.dataStore?.changeManager.revertLastChange()
-              console.log(`Undo done. Returned ${returnValue}`)
+            onClick: () => {
+              self.dataStore?.changeManager.revertLastChange()
             },
-            disabled: !self.dataStore,
+            disabled: undoDisabled,
           },
         ]
       },
