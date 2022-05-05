@@ -1,3 +1,5 @@
+import * as fs from 'fs/promises'
+
 import {
   Body,
   Controller,
@@ -16,6 +18,8 @@ import { Response as ExpressResponse } from 'express'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { FeaturesService } from './features.service'
+import { FileStorageEngine } from '../utils/FileStorageEngine'
+import { diskStorage } from 'multer'
 
 @Controller('features')
 export class FeaturesController {
@@ -38,6 +42,39 @@ export class FeaturesController {
     this.logger.debug(`Adding new features for assemblyId: ${body.assembly}`)
     return this.featuresService.loadGFF3DataIntoDb(file, body.assembly)
   }
+
+  /**
+   * Stream file to server and check checksum
+   * You can call this endpoint like: curl http://localhost:3999/features/streamFile -F file=\@./volvox.sort.gff3
+   * @param file - File to save
+   * @returns Return status 'HttpStatus.OK' if save was successful
+   * or in case of error return throw exception
+   */
+  @Post('streamFile')
+  @UseInterceptors(FileInterceptor('file', { storage: new FileStorageEngine() }))
+  async streamFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: JSON,
+  ) {
+    this.logger.debug(` Body: ${JSON.stringify(body)} `)
+    const values = Object.values(body)
+    this.logger.debug(` Checksum: ${values[0]} `)
+    return 'success'
+  }
+
+  // @Post('/uploadtocache')
+  // @UseInterceptors( FileInterceptor('file', { storage: diskStorage({ destination: './test',}), }), )
+  // // @UseInterceptors(FileInterceptor('file'))
+  // async uploadtocache(@UploadedFile() file: Express.Multer.File) {
+  //   console.log(file)
+  //   // await this.saveNewFile(file)
+  // }
+
+  // @Post('upload')
+  // @UseInterceptors(FileInterceptor('file'))
+  // uploadFile(@UploadedFile() file: Express.Multer.File) {
+  //   console.log(file)
+  // }
 
   /**
    * Export GFF3 from database.
