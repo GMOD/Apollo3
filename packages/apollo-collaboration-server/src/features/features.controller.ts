@@ -17,9 +17,8 @@ import { FileInterceptor } from '@nestjs/platform-express/multer'
 import { Response as ExpressResponse } from 'express'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
-import { FeaturesService } from './features.service'
 import { FileStorageEngine } from '../utils/FileStorageEngine'
-import { diskStorage } from 'multer'
+import { FeaturesService } from './features.service'
 
 @Controller('features')
 export class FeaturesController {
@@ -45,13 +44,15 @@ export class FeaturesController {
 
   /**
    * Stream file to server and check checksum
-   * You can call this endpoint like: curl http://localhost:3999/features/streamFile -F file=\@./volvox.sort.gff3
+   * You can call this endpoint like: curl http://localhost:3999/features/streamFile -F file=\@./volvox.sort.gff3  (add also checksum into body part....)
    * @param file - File to save
-   * @returns Return status 'HttpStatus.OK' if save was successful
+   * @returns Return ....  if save was successful
    * or in case of error return throw exception
    */
   @Post('streamFile')
-  @UseInterceptors(FileInterceptor('file', { storage: new FileStorageEngine() }))
+  @UseInterceptors(
+    FileInterceptor('file', { storage: new FileStorageEngine('83d5568fdd38026c75a3aed528e9e81d') }),
+  )
   async streamFile(
     @UploadedFile() file: Express.Multer.File,
     @Body() body: JSON,
@@ -59,7 +60,8 @@ export class FeaturesController {
     this.logger.debug(` Body: ${JSON.stringify(body)} `)
     const values = Object.values(body)
     this.logger.debug(` Checksum: ${values[0]} `)
-    return 'success'
+
+    return 'File saved'
   }
 
   /**
