@@ -62,20 +62,6 @@ export class FeaturesController {
     return 'success'
   }
 
-  // @Post('/uploadtocache')
-  // @UseInterceptors( FileInterceptor('file', { storage: diskStorage({ destination: './test',}), }), )
-  // // @UseInterceptors(FileInterceptor('file'))
-  // async uploadtocache(@UploadedFile() file: Express.Multer.File) {
-  //   console.log(file)
-  //   // await this.saveNewFile(file)
-  // }
-
-  // @Post('upload')
-  // @UseInterceptors(FileInterceptor('file'))
-  // uploadFile(@UploadedFile() file: Express.Multer.File) {
-  //   console.log(file)
-  // }
-
   /**
    * Export GFF3 from database.
    * e.g: curl http://localhost:3999/features/exportGFF3?assembly=624a7e97d45d7745c2532b01
