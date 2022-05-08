@@ -1,4 +1,5 @@
-import { createWriteStream } from 'fs'
+import { createHash } from 'crypto'
+import { createWriteStream, rename } from 'fs'
 import { join } from 'path'
 import { createGzip } from 'zlib'
 
@@ -19,28 +20,39 @@ export class FileStorageEngine implements StorageEngine {
     req: Express.Request,
     file: Express.Multer.File,
     cb: (error?: unknown, info?: Partial<Express.Multer.File>) => void,
-  ) {
+  ): Promise<string> {
     const { FILE_UPLOAD_FOLDER } = process.env
     if (!FILE_UPLOAD_FOLDER) {
       throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
     }
-    const newFullFileName = join(
+    const tempFullFileName = join(
       FILE_UPLOAD_FOLDER,
       `${file.originalname}_${getCurrentDateTime()}.gz`,
     )
     this.logger.debug(`Original file checksum: ${this.originalCheckSum}`)
     this.logger.debug(`Filename: ${file.originalname}`)
-    this.logger.debug(`Mimetype: ${file.mimetype}`)
+    // this.logger.debug(`Mimetype: ${file.mimetype}`)
 
-    const fileWriteStream = createWriteStream(newFullFileName)
+    // Check md5 checksum of saved file
+    const hash = createHash('md5')
+    const fileWriteStream = createWriteStream(tempFullFileName)
     const gz = createGzip()
     gz.pipe(fileWriteStream)
     for await (const chunk of file.stream) {
       gz.write(chunk)
+      hash.update(chunk, 'utf8')
     }
     gz.end()
-    this.logger.debug(`Compressed file: ${newFullFileName}`)
-
+    this.logger.debug(`Compressed file: ${tempFullFileName}`)
+    const fileChecksum = hash.digest('hex')
+    this.logger.debug(`Uploaded file checksum: ${fileChecksum}`)
+    const finalFullFileName = join(FILE_UPLOAD_FOLDER, `${fileChecksum}.gz`)
+    this.logger.debug(`finalFullFileName: ${finalFullFileName}`)
+    await rename(tempFullFileName, finalFullFileName, (err) => {
+      if (err) {
+        throw new Error(`Error in renaming uploaded file: ${err}`)
+      }
+    })
     // new FilesService(new Model<UserFileDocument>()).create(mongoDoc)
     // te.create(mongoDoc)
     // this.filesService.create(mongoDoc)
@@ -86,7 +98,7 @@ export class FileStorageEngine implements StorageEngine {
     //   })
 
     cb(null, file)
-    return 'juuu'
+    return 'abds'
   }
 
   _removeFile(
