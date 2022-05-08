@@ -12,15 +12,13 @@ import { getCurrentDateTime } from './commonUtilities'
 export class FileStorageEngine implements StorageEngine {
   private readonly logger = new Logger(FileStorageEngine.name)
 
-  constructor(
-    private readonly originalCheckSum: string, // private readonly timeStamp: string
-  ) {}
+  constructor(private readonly originalCheckSum: string) {}
 
   async _handleFile(
     req: Express.Request,
     file: Express.Multer.File,
     cb: (error?: unknown, info?: Partial<Express.Multer.File>) => void,
-  ): Promise<string> {
+  ) {
     const { FILE_UPLOAD_FOLDER } = process.env
     if (!FILE_UPLOAD_FOLDER) {
       throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
@@ -31,7 +29,6 @@ export class FileStorageEngine implements StorageEngine {
     )
     this.logger.debug(`Original file checksum: ${this.originalCheckSum}`)
     this.logger.debug(`Filename: ${file.originalname}`)
-    // this.logger.debug(`Mimetype: ${file.mimetype}`)
 
     // Check md5 checksum of saved file
     const hash = createHash('md5')
@@ -98,7 +95,6 @@ export class FileStorageEngine implements StorageEngine {
     //   })
 
     cb(null, file)
-    return 'abds'
   }
 
   _removeFile(
