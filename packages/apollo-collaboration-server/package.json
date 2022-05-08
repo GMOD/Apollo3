@@ -25,7 +25,7 @@
     "@casl/ability": "^5.4.3",
     "@gmod/gff": "^1.2.0",
     "@nestjs/common": "^8.2.3",
-    "@nestjs/config": "^1.0.3",
+    "@nestjs/config": "^2.0.0",
     "@nestjs/core": "^8.0.11",
     "@nestjs/jwt": "^8.0.0",
     "@nestjs/mapped-types": "*",

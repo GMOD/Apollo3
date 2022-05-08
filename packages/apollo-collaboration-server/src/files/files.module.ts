@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
-import { File, FileSchema } from 'apollo-schemas'
+import { Assembly, AssemblySchema } from 'apollo-schemas'
 
 import { FilesController } from './files.controller'
 import { FilesService } from './files.service'
@@ -9,9 +9,10 @@ import { FilesService } from './files.service'
   controllers: [FilesController],
   providers: [FilesService],
   imports: [
-    MongooseModule.forFeature([{ name: File.name, schema: FileSchema }]),
+    MongooseModule.forFeature([
+      { name: Assembly.name, schema: AssemblySchema },
+    ]),
   ],
   exports: [MongooseModule],
 })
 export class FilesModule {}
-

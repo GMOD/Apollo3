@@ -7,8 +7,8 @@ import {
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
-import { File, FileDocument } from 'apollo-schemas'
 import { Model } from 'mongoose'
+import { AssemblyDocument } from 'apollo-schemas'
 
 import { FileStorageEngine } from '../utils/FileStorageEngine'
 import { FilesService } from './files.service'
@@ -29,8 +29,9 @@ export class FilesController {
   @Post('streamFile')
   @UseInterceptors(
     FileInterceptor('file', {
-        // storage: new FileStorageEngine(new Model<FileDocument>(), '83d5568fdd38026c75a3aed528e9e81d'), // Here we should pass original file checksum that comes in from Request/Body/Query param
-        storage: new FileStorageEngine('83d5568fdd38026c75a3aed528e9e81d', new FilesService(new Model<FileDocument>())), // Here we should pass original file checksum that comes in from Request/Body/Query param
+        storage: new FileStorageEngine('83d5568fdd38026c75a3aed528e9e81d', new Model<AssemblyDocument>()), // Here we should pass original file checksum that comes in from Request/Body/Query param
+        // storage: new FileStorageEngine(new Model<UserFileDocument>(), '83d5568fdd38026c75a3aed528e9e81d'), // Here we should pass original file checksum that comes in from Request/Body/Query param
+        // storage: new FileStorageEngine('83d5568fdd38026c75a3aed528e9e81d', new FilesService(new Model<FileDocument>())), // Here we should pass original file checksum that comes in from Request/Body/Query param
     //   storage: new FileStorageEngine('83d5568fdd38026c75a3aed528e9e81d'), // Here we should pass original file checksum that comes in from Request/Body/Query param
     }),
   )

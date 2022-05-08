@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { Document } from 'mongoose'
 
-export type FileDocument = File & Document
+export type UserFileDocument = UserFile & Document
 
 @Schema({ timestamps: true })
-export class File {
+export class UserFile {
   @Prop({ required: true })
   basename: string
 
@@ -18,4 +18,4 @@ export class File {
   user: string
 }
 
-export const FileSchema = SchemaFactory.createForClass(File)
+export const UserFileSchema = SchemaFactory.createForClass(UserFile)

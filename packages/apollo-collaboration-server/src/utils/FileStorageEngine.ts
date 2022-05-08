@@ -2,24 +2,25 @@ import { createWriteStream } from 'fs'
 import { join } from 'path'
 import { createGzip } from 'zlib'
 
-import { Logger } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
+import { InjectModel } from '@nestjs/mongoose'
+// import { UserFile, UserFileDocument } from 'apollo-schemas'
+import { Assembly, AssemblyDocument } from 'apollo-schemas'
+import { Model } from 'mongoose'
 import { StorageEngine } from 'multer'
 
 import { CreateFileDto } from '../files/dto/create-file.dto'
-import { InjectModel } from '@nestjs/mongoose'
-import { Model } from 'mongoose'
-import { File, FileDocument } from 'apollo-schemas'
 import { FilesService } from '../files/files.service'
 
+@Injectable()
 export class FileStorageEngine implements StorageEngine {
   private readonly logger = new Logger(FileStorageEngine.name)
 
   constructor(
-    // @InjectModel(File.name)
-    // private readonly FileModel: Model<FileDocument>,
-    private readonly originalCheckSum: string,
-    private readonly filesService: FilesService,
-
+    private readonly originalCheckSum: string, 
+    @InjectModel(Assembly.name)
+    private readonly UserFileModel: Model<AssemblyDocument>,
+    // private readonly filesService: FilesService,
   ) {}
   // constructor(private readonly originalCheckSum: string) {}
 
@@ -53,11 +54,10 @@ export class FileStorageEngine implements StorageEngine {
       type: file.mimetype,
       user: 'na',
     }
-    this.filesService.create(mongoDoc)
+    // this.filesService.create(mongoDoc)
     // this.logger.debug(`Add uploaded file info into Mongo: ${JSON.stringify(mongoDoc)}`)
     // this.FileModel.create(mongoDoc)
     // this.logger.debug(`Added document into Mongo`)
-
 
     // // **** TODO: Later we need to implement to a way to check original file checksum vs. saved file checksum.
     // const origCheckSum = this.originalCheckSum

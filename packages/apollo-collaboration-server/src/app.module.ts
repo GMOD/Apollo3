@@ -22,7 +22,6 @@ const nodeEnv = process.env.NODE_ENV || 'production'
     ConfigModule.forRoot({
       envFilePath: nodeEnv === 'production' ? '.env' : '.development.env',
     }),
-    FileHandlingModule,
     ChangesModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
