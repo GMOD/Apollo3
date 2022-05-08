@@ -7,17 +7,15 @@ import {
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
-import { Model } from 'mongoose'
-import { AssemblyDocument } from 'apollo-schemas'
 
 import { FileStorageEngine } from '../utils/FileStorageEngine'
+import { CreateFileDto } from './dto/create-file.dto'
 import { FilesService } from './files.service'
 
 @Controller('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
   private readonly logger = new Logger(FilesController.name)
-  //   private readonly fileServ = this?.filesService?
 
   /**
    * Stream file to server and check checksum
@@ -29,18 +27,24 @@ export class FilesController {
   @Post('streamFile')
   @UseInterceptors(
     FileInterceptor('file', {
-        storage: new FileStorageEngine('83d5568fdd38026c75a3aed528e9e81d', new Model<AssemblyDocument>()), // Here we should pass original file checksum that comes in from Request/Body/Query param
-        // storage: new FileStorageEngine(new Model<UserFileDocument>(), '83d5568fdd38026c75a3aed528e9e81d'), // Here we should pass original file checksum that comes in from Request/Body/Query param
-        // storage: new FileStorageEngine('83d5568fdd38026c75a3aed528e9e81d', new FilesService(new Model<FileDocument>())), // Here we should pass original file checksum that comes in from Request/Body/Query param
-    //   storage: new FileStorageEngine('83d5568fdd38026c75a3aed528e9e81d'), // Here we should pass original file checksum that comes in from Request/Body/Query param
+      storage: new FileStorageEngine('83d5568fdd38026c75a3aed528e9e81d'), // Here we should pass original file checksum that comes in from Request/Body/Query param
     }),
   )
   async streamFile(
     @UploadedFile() file: Express.Multer.File,
     @Body() body: JSON,
   ) {
-    // const values = Object.values(body)
-    // this.logger.debug(`Original file checksum: '${values[0]}'`)
+    const values = Object.values(body)
+    this.logger.debug(`Original file checksum: '${values[0]}'`)
+    // Add information into MongoDb
+    const mongoDoc: CreateFileDto = {
+      basename: file.originalname,
+      compressedFileName: file.originalname, // Here we may need to add more unique suffix (userstamp / timestamp etc.) to make filename unique to avoid overwriting
+      checksum: values[0],
+      type: file.mimetype,
+      user: 'na',
+    }
+    this.filesService.create(mongoDoc)
     return 'File saved'
   }
 }

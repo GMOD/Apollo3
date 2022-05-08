@@ -3,26 +3,17 @@ import { join } from 'path'
 import { createGzip } from 'zlib'
 
 import { Injectable, Logger } from '@nestjs/common'
-import { InjectModel } from '@nestjs/mongoose'
-// import { UserFile, UserFileDocument } from 'apollo-schemas'
-import { Assembly, AssemblyDocument } from 'apollo-schemas'
-import { Model } from 'mongoose'
 import { StorageEngine } from 'multer'
 
-import { CreateFileDto } from '../files/dto/create-file.dto'
-import { FilesService } from '../files/files.service'
+import { getCurrentDateTime } from './commonUtilities'
 
 @Injectable()
 export class FileStorageEngine implements StorageEngine {
   private readonly logger = new Logger(FileStorageEngine.name)
 
   constructor(
-    private readonly originalCheckSum: string, 
-    @InjectModel(Assembly.name)
-    private readonly UserFileModel: Model<AssemblyDocument>,
-    // private readonly filesService: FilesService,
+    private readonly originalCheckSum: string, // private readonly timeStamp: string
   ) {}
-  // constructor(private readonly originalCheckSum: string) {}
 
   async _handleFile(
     req: Express.Request,
@@ -33,27 +24,25 @@ export class FileStorageEngine implements StorageEngine {
     if (!FILE_UPLOAD_FOLDER) {
       throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
     }
-    const newFullFileName = join(FILE_UPLOAD_FOLDER, file.originalname)
+    const newFullFileName = join(
+      FILE_UPLOAD_FOLDER,
+      `${file.originalname}_${getCurrentDateTime()}.gz`,
+    )
     this.logger.debug(`Original file checksum: ${this.originalCheckSum}`)
     this.logger.debug(`Filename: ${file.originalname}`)
     this.logger.debug(`Mimetype: ${file.mimetype}`)
 
-    const fileWriteStream = createWriteStream(`${newFullFileName}.gz`)
+    const fileWriteStream = createWriteStream(newFullFileName)
     const gz = createGzip()
     gz.pipe(fileWriteStream)
     for await (const chunk of file.stream) {
       gz.write(chunk)
     }
     gz.end()
-    this.logger.debug(`Compressed file: ${newFullFileName}.gz`)
+    this.logger.debug(`Compressed file: ${newFullFileName}`)
 
-    // Add information into MongoDb
-    const mongoDoc: CreateFileDto = {
-      basename: file.originalname,
-      checksum: this.originalCheckSum,
-      type: file.mimetype,
-      user: 'na',
-    }
+    // new FilesService(new Model<UserFileDocument>()).create(mongoDoc)
+    // te.create(mongoDoc)
     // this.filesService.create(mongoDoc)
     // this.logger.debug(`Add uploaded file info into Mongo: ${JSON.stringify(mongoDoc)}`)
     // this.FileModel.create(mongoDoc)
@@ -97,6 +86,7 @@ export class FileStorageEngine implements StorageEngine {
     //   })
 
     cb(null, file)
+    return 'juuu'
   }
 
   _removeFile(
