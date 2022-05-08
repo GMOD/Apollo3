@@ -18,7 +18,7 @@ export class FileStorageEngine implements StorageEngine {
     // @InjectModel(File.name)
     // private readonly FileModel: Model<FileDocument>,
     private readonly originalCheckSum: string,
-    // private readonly filesService: FilesService,
+    private readonly filesService: FilesService,
 
   ) {}
   // constructor(private readonly originalCheckSum: string) {}
@@ -47,13 +47,13 @@ export class FileStorageEngine implements StorageEngine {
     this.logger.debug(`Compressed file: ${newFullFileName}.gz`)
 
     // Add information into MongoDb
-    // const mongoDoc: CreateFileDto = {
-    //   basename: file.originalname,
-    //   checksum: this.originalCheckSum,
-    //   type: file.mimetype,
-    //   user: 'na',
-    // }
-    // // this.filesService.create(mongoDoc)
+    const mongoDoc: CreateFileDto = {
+      basename: file.originalname,
+      checksum: this.originalCheckSum,
+      type: file.mimetype,
+      user: 'na',
+    }
+    this.filesService.create(mongoDoc)
     // this.logger.debug(`Add uploaded file info into Mongo: ${JSON.stringify(mongoDoc)}`)
     // this.FileModel.create(mongoDoc)
     // this.logger.debug(`Added document into Mongo`)

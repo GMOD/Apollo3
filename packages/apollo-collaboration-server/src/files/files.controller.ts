@@ -29,9 +29,9 @@ export class FilesController {
   @Post('streamFile')
   @UseInterceptors(
     FileInterceptor('file', {
-      //   storage: new FileStorageEngine(new Model<FileDocument>(), '83d5568fdd38026c75a3aed528e9e81d'), // Here we should pass original file checksum that comes in from Request/Body/Query param
-      //   storage: new FileStorageEngine('83d5568fdd38026c75a3aed528e9e81d', new FilesService(new Model<FileDocument>())), // Here we should pass original file checksum that comes in from Request/Body/Query param
-      storage: new FileStorageEngine('83d5568fdd38026c75a3aed528e9e81d'), // Here we should pass original file checksum that comes in from Request/Body/Query param
+        // storage: new FileStorageEngine(new Model<FileDocument>(), '83d5568fdd38026c75a3aed528e9e81d'), // Here we should pass original file checksum that comes in from Request/Body/Query param
+        storage: new FileStorageEngine('83d5568fdd38026c75a3aed528e9e81d', new FilesService(new Model<FileDocument>())), // Here we should pass original file checksum that comes in from Request/Body/Query param
+    //   storage: new FileStorageEngine('83d5568fdd38026c75a3aed528e9e81d'), // Here we should pass original file checksum that comes in from Request/Body/Query param
     }),
   )
   async streamFile(
