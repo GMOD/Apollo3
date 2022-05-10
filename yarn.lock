@@ -5482,7 +5482,6 @@ __metadata:
     "@gmod/gff": ^1.2.0
     "@jbrowse/core": ^1.7.4
     "@nestjs/common": ^8.4.4
-    "@types/cache-manager": ^3
     "@types/node": ^16.0.0
     apollo-schemas: "workspace:^"
     mobx-state-tree: 3.14.1

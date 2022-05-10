@@ -22,7 +22,6 @@
     "tslib": "^2.3.1"
   },
   "devDependencies": {
-    "@types/cache-manager": "^3",
     "@types/node": "^16.0.0",
     "mobx-state-tree": "3.14.1",
     "mongoose": "^6.2.10",
