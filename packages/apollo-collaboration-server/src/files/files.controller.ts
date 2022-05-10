@@ -46,7 +46,7 @@ export class FilesController {
     // Add information into MongoDb
     const mongoDoc: CreateFileDto = {
       basename: file.originalname,
-      compressedFileName: file.originalname,  // ************* MITEN TANNE SAA CHECKSUM TIEDON FILESTORAGEENGINE LUOKASTA ????  ***********
+      compressedFileName: file.originalname, // ************* MITEN TANNE SAA CHECKSUM TIEDON FILESTORAGEENGINE LUOKASTA ????  ***********
       checksum: body.checksum,
       type: body.type,
       user: 'na',

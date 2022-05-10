@@ -50,7 +50,15 @@ export class FileStorageEngine implements StorageEngine {
         throw new Error(`Error in renaming uploaded file: ${err}`)
       }
     })
-    // new FilesService(new Model<UserFileDocument>()).create(mongoDoc)
+
+    // // Add information into MongoDb
+    // const mongoDoc: CreateFileDto = {
+    //   basename: file.originalname,
+    //   compressedFileName: file.originalname, // ************* MITEN TANNE SAA CHECKSUM TIEDON FILESTORAGEENGINE LUOKASTA ????  ***********
+    //   checksum: 'body.checksum',
+    //   type: 'body.type',
+    //   user: 'na',
+    // }
     // te.create(mongoDoc)
     // this.filesService.create(mongoDoc)
     // this.logger.debug(`Add uploaded file info into Mongo: ${JSON.stringify(mongoDoc)}`)
