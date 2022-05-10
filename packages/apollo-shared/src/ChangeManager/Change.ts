@@ -27,7 +27,6 @@ export interface SerializedChange {
   changedIds: string[]
   typeName: string
   assemblyId: string
-  changes: unknown
 }
 
 export type DataStore = ServerDataStore | LocalGFF3DataStore | ClientDataStore
@@ -39,7 +38,6 @@ export interface ChangeOptions {
 export abstract class Change implements SerializedChange {
   protected logger: import('@nestjs/common').LoggerService
   abstract typeName: string
-  abstract changes: unknown[]
 
   assemblyId: string
   changedIds: string[]

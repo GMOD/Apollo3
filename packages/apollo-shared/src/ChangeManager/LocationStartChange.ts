@@ -15,33 +15,55 @@ import {
   GFF3FeatureLineWithFeatureIdAndOptionalRefs,
 } from './FeatureChange'
 
-interface StartChange {
+interface SerializedLocationStartChangeBase extends SerializedChange {
+  typeName: 'LocationStartChange'
+}
+
+interface LocationStartChangeDetails {
   featureId: string
   oldStart: number
   newStart: number
 }
 
-interface SerializedLocationStartChange extends SerializedChange {
-  typeName: 'LocationStartChange'
-  changes: StartChange[]
+interface SerializedLocationStartChangeSingle
+  extends SerializedLocationStartChangeBase,
+    LocationStartChangeDetails {}
+
+interface SerializedLocationStartChangeMultiple
+  extends SerializedLocationStartChangeBase {
+  changes: LocationStartChangeDetails[]
 }
+
+type SerializedLocationStartChange =
+  | SerializedLocationStartChangeSingle
+  | SerializedLocationStartChangeMultiple
 
 export class LocationStartChange extends FeatureChange {
   typeName = 'LocationStartChange' as const
-  changes: StartChange[]
+  changes: LocationStartChangeDetails[]
 
   constructor(json: SerializedLocationStartChange, options?: ChangeOptions) {
     super(json, options)
-    this.changedIds = json.changedIds
-    this.changes = json.changes
+    this.changes = 'changes' in json ? json.changes : [json]
   }
 
-  toJSON() {
+  toJSON(): SerializedLocationStartChange {
+    if (this.changes.length === 1) {
+      const [{ featureId, oldStart, newStart }] = this.changes
+      return {
+        typeName: this.typeName,
+        changedIds: this.changedIds,
+        assemblyId: this.assemblyId,
+        featureId,
+        oldStart,
+        newStart,
+      }
+    }
     return {
-      changedIds: this.changedIds,
       typeName: this.typeName,
-      changes: this.changes,
+      changedIds: this.changedIds,
       assemblyId: this.assemblyId,
+      changes: this.changes,
     }
   }
 
@@ -111,8 +133,6 @@ export class LocationStartChange extends FeatureChange {
       } catch (error) {
         this.logger.debug?.(`*** FAILED: ${error}`)
         throw error
-      } finally {
-        // Update Mongo
       }
       this.logger.debug?.(
         `*** Object updated in Mongo. New object: ${JSON.stringify(
@@ -166,7 +186,7 @@ export class LocationStartChange extends FeatureChange {
 
   getUpdatedCacheEntryForFeature(
     gff3Feature: GFF3Feature,
-    change: StartChange,
+    change: LocationStartChangeDetails,
   ): boolean {
     for (const featureLine of gff3Feature) {
       if (

@@ -131,7 +131,9 @@ export const ApolloDetailsView = observer(
         change = new LocationStartChange({
           typeName: 'LocationStartChange',
           changedIds: [featureId],
-          changes: [{ featureId, oldStart, newStart: Number(newValue) }],
+          featureId,
+          oldStart,
+          newStart: Number(newValue),
           assemblyId,
         })
       } else if (field === 'end' && changedFeature.end !== Number(newValue)) {
@@ -140,7 +142,9 @@ export const ApolloDetailsView = observer(
         change = new LocationEndChange({
           typeName: 'LocationEndChange',
           changedIds: [featureId],
-          changes: [{ featureId, oldEnd, newEnd: Number(newValue) }],
+          featureId,
+          oldEnd,
+          newEnd: Number(newValue),
           assemblyId,
         })
       } else if (
@@ -155,7 +159,9 @@ export const ApolloDetailsView = observer(
         change = new TypeChange({
           typeName: 'TypeChange',
           changedIds: [featureId],
-          changes: [{ featureId, oldType, newType: String(newValue) }],
+          featureId,
+          oldType,
+          newType: String(newValue),
           assemblyId,
         })
       }

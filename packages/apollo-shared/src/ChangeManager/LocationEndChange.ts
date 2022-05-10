@@ -15,33 +15,55 @@ import {
   GFF3FeatureLineWithFeatureIdAndOptionalRefs,
 } from './FeatureChange'
 
-interface EndChange {
+interface SerializedLocationEndChangeBase extends SerializedChange {
+  typeName: 'LocationEndChange'
+}
+
+interface LocationEndChangeDetails {
   featureId: string
   oldEnd: number
   newEnd: number
 }
 
-interface SerializedLocationEndChange extends SerializedChange {
-  typeName: 'LocationEndChange'
-  changes: EndChange[]
+interface SerializedLocationEndChangeSingle
+  extends SerializedLocationEndChangeBase,
+    LocationEndChangeDetails {}
+
+interface SerializedLocationEndChangeMultiple
+  extends SerializedLocationEndChangeBase {
+  changes: LocationEndChangeDetails[]
 }
+
+type SerializedLocationEndChange =
+  | SerializedLocationEndChangeSingle
+  | SerializedLocationEndChangeMultiple
 
 export class LocationEndChange extends FeatureChange {
   typeName = 'LocationEndChange' as const
-  changes: EndChange[]
+  changes: LocationEndChangeDetails[]
 
   constructor(json: SerializedLocationEndChange, options?: ChangeOptions) {
     super(json, options)
-    this.changedIds = json.changedIds
-    this.changes = json.changes
+    this.changes = 'changes' in json ? json.changes : [json]
   }
 
-  toJSON() {
+  toJSON(): SerializedLocationEndChange {
+    if (this.changes.length === 1) {
+      const [{ featureId, oldEnd, newEnd }] = this.changes
+      return {
+        typeName: this.typeName,
+        changedIds: this.changedIds,
+        assemblyId: this.assemblyId,
+        featureId,
+        oldEnd,
+        newEnd,
+      }
+    }
     return {
-      changedIds: this.changedIds,
       typeName: this.typeName,
-      changes: this.changes,
+      changedIds: this.changedIds,
       assemblyId: this.assemblyId,
+      changes: this.changes,
     }
   }
 
@@ -164,7 +186,7 @@ export class LocationEndChange extends FeatureChange {
 
   getUpdatedCacheEntryForFeature(
     gff3Feature: GFF3Feature,
-    change: EndChange,
+    change: LocationEndChangeDetails,
   ): boolean {
     for (const featureLine of gff3Feature) {
       if (

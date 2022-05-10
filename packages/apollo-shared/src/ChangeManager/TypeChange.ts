@@ -15,34 +15,54 @@ import {
   GFF3FeatureLineWithFeatureIdAndOptionalRefs,
 } from './FeatureChange'
 
-interface SingleTypeChange {
+interface SerializedTypeChangeBase extends SerializedChange {
+  typeName: 'TypeChange'
+}
+
+interface TypeChangeDetails {
   featureId: string
   oldType: string
   newType: string
 }
 
-interface SerializedTypeChange extends SerializedChange {
-  typeName: 'TypeChange'
-  changes: SingleTypeChange[]
+interface SerializedTypeChangeSingle
+  extends SerializedTypeChangeBase,
+    TypeChangeDetails {}
+
+interface SerializedTypeChangeMultiple extends SerializedTypeChangeBase {
+  changes: TypeChangeDetails[]
 }
+
+type SerializedTypeChange =
+  | SerializedTypeChangeSingle
+  | SerializedTypeChangeMultiple
 
 export class TypeChange extends FeatureChange {
   typeName = 'TypeChange' as const
-  changedIds: string[]
-  changes: SingleTypeChange[]
+  changes: TypeChangeDetails[]
 
   constructor(json: SerializedTypeChange, options?: ChangeOptions) {
     super(json, options)
-    this.changedIds = json.changedIds
-    this.changes = json.changes
+    this.changes = 'changes' in json ? json.changes : [json]
   }
 
-  toJSON() {
+  toJSON(): SerializedTypeChange {
+    if (this.changes.length === 1) {
+      const [{ featureId, oldType, newType }] = this.changes
+      return {
+        typeName: this.typeName,
+        changedIds: this.changedIds,
+        assemblyId: this.assemblyId,
+        featureId,
+        oldType,
+        newType,
+      }
+    }
     return {
-      changedIds: this.changedIds,
       typeName: this.typeName,
-      changes: this.changes,
+      changedIds: this.changedIds,
       assemblyId: this.assemblyId,
+      changes: this.changes,
     }
   }
 
@@ -165,7 +185,7 @@ export class TypeChange extends FeatureChange {
 
   getUpdatedCacheEntryForFeature(
     gff3Feature: GFF3Feature,
-    change: SingleTypeChange,
+    change: TypeChangeDetails,
   ): boolean {
     for (const featureLine of gff3Feature) {
       if (
