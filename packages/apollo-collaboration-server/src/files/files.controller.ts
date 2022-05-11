@@ -25,7 +25,6 @@ export class FilesController {
 
   /**
    * Stream GFF3 file to server and check checksum
-   * You can call this endpoint like: curl http://localhost:3999/files/streamFile -F file=\@./volvox.sort.gff3  (add also checksum into body part....)
    * @param file - File to save
    * @returns Return ....  if save was successful
    * or in case of error return throw exception
@@ -33,21 +32,17 @@ export class FilesController {
   @Post('/gff3')
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: new FileStorageEngine('83d5568fdd38026c75a3aed528e9e81d'), // Here we should pass original file checksum that comes in from Request/Body/Query param
+      storage: new FileStorageEngine(),
     }),
   )
   async streamGFF3File(
     @UploadedFile() file: Express.Multer.File,
     @Body() body: any,
   ) {
-    this.logger.debug(
-      `Original GFF3 file checksum: '${body.checksum}', type : '${body.type}'`,
-    )
     // Add information into MongoDb
     const mongoDoc: CreateFileDto = {
       basename: file.originalname,
-      compressedFileName: file.originalname, // ************* MITEN TANNE SAA CHECKSUM TIEDON FILESTORAGEENGINE LUOKASTA ????  ***********
-      checksum: body.checksum,
+      checksum: file.filename,
       type: body.type,
       user: 'na',
     }

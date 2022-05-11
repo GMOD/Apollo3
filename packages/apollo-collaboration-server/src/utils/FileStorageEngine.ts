@@ -6,13 +6,9 @@ import { createGzip } from 'zlib'
 import { Injectable, Logger } from '@nestjs/common'
 import { StorageEngine } from 'multer'
 
-import { getCurrentDateTime } from './commonUtilities'
-
 @Injectable()
 export class FileStorageEngine implements StorageEngine {
   private readonly logger = new Logger(FileStorageEngine.name)
-
-  constructor(private readonly originalCheckSum: string) {}
 
   async _handleFile(
     req: Express.Request,
@@ -23,12 +19,9 @@ export class FileStorageEngine implements StorageEngine {
     if (!FILE_UPLOAD_FOLDER) {
       throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
     }
-    const tempFullFileName = join(
-      FILE_UPLOAD_FOLDER,
-      `${file.originalname}_${getCurrentDateTime()}.gz`,
-    )
-    this.logger.debug(`Original file checksum: ${this.originalCheckSum}`)
-    this.logger.debug(`Filename: ${file.originalname}`)
+    // First we need to write new file using temp name. After writing has completed then we rename the file to match with file checksum
+    const tempFullFileName = join(FILE_UPLOAD_FOLDER, `${file.originalname}.gz`)
+    this.logger.debug(`User uploaded file: ${file.originalname}`)
 
     // Check md5 checksum of saved file
     const hash = createHash('md5')
@@ -44,63 +37,13 @@ export class FileStorageEngine implements StorageEngine {
     const fileChecksum = hash.digest('hex')
     this.logger.debug(`Uploaded file checksum: ${fileChecksum}`)
     const finalFullFileName = join(FILE_UPLOAD_FOLDER, `${fileChecksum}.gz`)
-    this.logger.debug(`finalFullFileName: ${finalFullFileName}`)
-    await rename(tempFullFileName, finalFullFileName, (err) => {
+    this.logger.debug(`FinalFullFileName: ${finalFullFileName}`)
+    rename(tempFullFileName, finalFullFileName, (err) => {
       if (err) {
         throw new Error(`Error in renaming uploaded file: ${err}`)
       }
     })
-
-    // // Add information into MongoDb
-    // const mongoDoc: CreateFileDto = {
-    //   basename: file.originalname,
-    //   compressedFileName: file.originalname, // ************* MITEN TANNE SAA CHECKSUM TIEDON FILESTORAGEENGINE LUOKASTA ????  ***********
-    //   checksum: 'body.checksum',
-    //   type: 'body.type',
-    //   user: 'na',
-    // }
-    // te.create(mongoDoc)
-    // this.filesService.create(mongoDoc)
-    // this.logger.debug(`Add uploaded file info into Mongo: ${JSON.stringify(mongoDoc)}`)
-    // this.FileModel.create(mongoDoc)
-    // this.logger.debug(`Added document into Mongo`)
-
-    // // **** TODO: Later we need to implement to a way to check original file checksum vs. saved file checksum.
-    // const origCheckSum = this.originalCheckSum
-    // let fileChecksum = ''
-    // const fileWriteStream = createWriteStream(newFullFileName)
-    // for await (const chunk of file.stream) {
-    //   fileWriteStream.write(chunk)
-    // }
-    // // Check md5 checksum of saved file
-    // const hash = createHash('md5')
-    // const stream = createReadStream(newFullFileName)
-    // stream
-    //   .on('data', function (data: string) {
-    //     hash.update(data, 'utf8')
-    //   })
-    //   .on('end', function () {
-    //     fileChecksum = hash.digest('hex')
-    //     console.log(`checksum on ${fileChecksum}`)
-
-    //     // Check that checksums match and compress the file
-    //     if (fileChecksum === origCheckSum) {
-    //       console.log(`Compressed the file...`)
-    //       const compressStream = createReadStream(newFullFileName)
-    //       compressStream
-    //         .pipe(createGzip())
-    //         .pipe(createWriteStream(`${newFullFileName}.gz`))
-    //         .on('finish', () =>
-    //           console.log(
-    //             `Successfully compressed the file at ${newFullFileName}`,
-    //           ),
-    //         )
-    //     } else {
-    //       const errMsg = `Original file checksum '${origCheckSum}' did not match with saved file checksum '${fileChecksum}'`
-    //       console.log(errMsg)
-    //       throw new InternalServerErrorException(errMsg)
-    //     }
-    //   })
+    file.filename = fileChecksum
 
     cb(null, file)
   }

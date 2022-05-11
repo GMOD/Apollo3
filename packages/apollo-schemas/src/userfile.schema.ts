@@ -9,9 +9,6 @@ export class UserFile {
   basename: string
 
   @Prop({ required: true })
-  compressedFileName: string
-
-  @Prop({ required: true })
   checksum: string
 
   @Prop({ required: true })
