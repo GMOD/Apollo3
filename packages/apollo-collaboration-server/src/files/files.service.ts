@@ -48,7 +48,7 @@ export class FilesService {
       changedIds: ['1', '2'],
       typeName: 'AddFeaturesFromFileChange',
       assemblyId: 'assembly id 123',
-      changes: [{ fileChecksum: '22ca8686bfa31a2ae5f55a7f60009e14' }],
+      changes: [{ fileChecksum: '83d5568fdd38026c75a3aed528e9e81d' }],
     }
     const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
     const change = new ChangeType(serializedChange, { logger: this.logger })

@@ -1,6 +1,11 @@
-import gff, { GFF3Feature, GFF3Item } from '@gmod/gff'
+import { createReadStream, createWriteStream } from 'fs'
+import { join } from 'path'
+import { createGunzip, createUnzip } from 'zlib'
+
+import gff, { GFF3Feature, GFF3FeatureLine, GFF3Item } from '@gmod/gff'
 import { FeatureDocument } from 'apollo-schemas'
 import { resolveIdentifier } from 'mobx-state-tree'
+import { v4 as uuidv4 } from 'uuid'
 
 import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
 import {
@@ -15,8 +20,16 @@ import {
   GFF3FeatureLineWithFeatureIdAndOptionalRefs,
 } from './FeatureChange'
 
+interface GFF3FeatureLineWithOptionalRefs extends GFF3FeatureLine {
+  // eslint-disable-next-line camelcase
+  child_features?: GFF3Feature[]
+  // eslint-disable-next-line camelcase
+  derived_features?: GFF3Feature[]
+}
+
 interface FeaturesFromFileChange {
   fileChecksum: string
+  assemblyId: string
 }
 
 interface SerializedAddFeaturesFromFileChange extends SerializedChange {
@@ -54,77 +67,81 @@ export class AddFeaturesFromFileChange extends FeatureChange {
   async applyToServer(backend: ServerDataStore) {
     const { featureModel, session } = backend
     const { changes } = this
-    const featuresForChanges: {
-      feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs
-      topLevelFeature: FeatureDocument
-    }[] = []
 
-    // // Let's first check that all features are found and those old values match with expected ones. We do this just to be sure that all changes can be done.
     for (const change of changes) {
       const { fileChecksum } = change
-      this.logger.debug?.(`*** File checksum: ${fileChecksum}`)
+      this.logger.debug?.(`*** File checksum: '${fileChecksum}'`)
+
+      const { FILE_UPLOAD_FOLDER } = process.env
+      if (!FILE_UPLOAD_FOLDER) {
+        throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
+      }
+      const compressedFullFileName = join(
+        FILE_UPLOAD_FOLDER,
+        `${fileChecksum}.gz`,
+      )
+      const uncompressedFullFileName = join(
+        FILE_UPLOAD_FOLDER,
+        `${fileChecksum}`,
+      )
+      await this.uncompressFile(
+        compressedFullFileName,
+        uncompressedFullFileName,
+      ) // ** UNCOMPRESS SYNCHRONOUSLY ** //
+
+      const uncompressedFullFileName2 = join(FILE_UPLOAD_FOLDER, 'eka')
+      await createReadStream(uncompressedFullFileName2) // ******* WHY CONTENT CANNOT BE READ FROM UNCOMPRESSED FILE ?????********//
+        .pipe(gff.parseStream({ parseSequences: false }))
+        .on('data', (gff3Item) => {
+          if (Array.isArray(gff3Item)) {
+            // gff3Item is a GFF3Feature
+            this.logger.verbose?.(`ENTRY=${JSON.stringify(gff3Item)}`)
+            for (const featureLine of gff3Item) {
+              const refName = featureLine.seq_id
+              if (!refName) {
+                throw new Error(
+                  `Valid seq_id not found in feature ${JSON.stringify(
+                    featureLine,
+                  )}`,
+                )
+              }
+              // const refSeqDoc = await this.refSeqModel
+              //   .findOne({ assembly: assemblyId, name: refName })
+              //   .exec()
+              // if (!refSeqDoc) {
+              //   throw new NotFoundException(
+              //     `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refName}" not found`,
+              //   )
+              // }
+              // const refSeq = refSeqDoc._id
+              // Let's add featureId to parent feature
+              const featureId = uuidv4()
+              const featureIds = [featureId]
+              this.logger.verbose?.(
+                `Added new FeatureId: value=${JSON.stringify(featureLine)}`,
+              )
+
+              // Let's add featureId to each child recursively
+              this.setAndGetFeatureIdRecursively(featureLine, featureIds)
+              this.logger.verbose?.(
+                `So far apollo ids are: ${featureIds.toString()}\n`,
+              )
+
+              const refSeq = '624ab4c0f8ac0187ed22b563' // ********* HARDCODED REFSEQ VALUE BECAUSE NOW IT CANNOT BE RETRIEVED BECAUSE ASSEMBLY INFORMATION IS MISSING ***********
+              // console.log(
+              //   `Added new feature for refSeq "${refSeq}" into database`,
+              // )
+              // Add into Mongo
+              featureModel.create({
+                refSeq,
+                featureId,
+                featureIds,
+                ...featureLine,
+              })
+            }
+          }
+        })
     }
-    // // Let's first check that all features are found and those old values match with expected ones. We do this just to be sure that all changes can be done.
-    // for (const change of changes) {
-    //   const { featureId, oldEnd } = change
-
-    //   // Search correct feature
-    //   const topLevelFeature = await featureModel
-    //     .findOne({ featureIds: featureId })
-    //     .session(session)
-    //     .exec()
-
-    //   if (!topLevelFeature) {
-    //     const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
-    //     this.logger.error(errMsg)
-    //     throw new Error(errMsg)
-    //     // throw new NotFoundException(errMsg)  -- This is causing runtime error because Exception comes from @nestjs/common!!!
-    //   }
-    //   this.logger.debug?.(
-    //     `*** Feature found: ${JSON.stringify(topLevelFeature)}`,
-    //   )
-
-    //   const foundFeature = this.getObjectByFeatureId(topLevelFeature, featureId)
-    //   if (!foundFeature) {
-    //     const errMsg = `ERROR when searching feature by featureId`
-    //     this.logger.error(errMsg)
-    //     throw new Error(errMsg)
-    //   }
-    //   this.logger.debug?.(`*** Found feature: ${JSON.stringify(foundFeature)}`)
-    //   if (foundFeature.end !== oldEnd) {
-    //     const errMsg = `*** ERROR: Feature's current end value ${topLevelFeature.end} doesn't match with expected value ${oldEnd}`
-    //     this.logger.error(errMsg)
-    //     throw new Error(errMsg)
-    //   }
-    //   featuresForChanges.push({
-    //     feature: foundFeature,
-    //     topLevelFeature,
-    //   })
-    // }
-
-    // // Let's update objects.
-    // for (const [idx, change] of changes.entries()) {
-    //   const { newEnd } = change
-    //   const { feature, topLevelFeature } = featuresForChanges[idx]
-    //   feature.end = newEnd
-    //   if (topLevelFeature.featureId === feature.featureId) {
-    //     topLevelFeature.markModified('end') // Mark as modified. Without this save() -method is not updating data in database
-    //   } else {
-    //     topLevelFeature.markModified('child_features') // Mark as modified. Without this save() -method is not updating data in database
-    //   }
-
-    //   try {
-    //     await topLevelFeature.save()
-    //   } catch (error) {
-    //     this.logger.debug?.(`*** FAILED: ${error}`)
-    //     throw error
-    //   }
-    //   this.logger.debug?.(
-    //     `*** Object updated in Mongo. New object: ${JSON.stringify(
-    //       topLevelFeature,
-    //     )}`,
-    //   )
-    // }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -143,5 +160,58 @@ export class AddFeaturesFromFileChange extends FeatureChange {
       },
       { logger: this.logger },
     )
+  }
+
+  async uncompressFile(
+    compressedFullFileName: string,
+    uncompressedFullFileName: string,
+  ) {
+    // Uncompress the file
+    const fileContents = createReadStream(compressedFullFileName)
+    const writeStream = createWriteStream(uncompressedFullFileName)
+    const unzip = createGunzip()
+    fileContents.pipe(unzip).pipe(writeStream)
+    fileContents.close()
+    writeStream.close()
+    unzip.close()
+    this.logger.debug?.(
+      `*** Uncompress function - file uncompressed: '${uncompressedFullFileName}'`,
+    )
+  }
+
+  /**
+   * Loop child features in parent feature and add featureId to each child's attribute
+   * @param parentFeature - Parent feature
+   */
+  setAndGetFeatureIdRecursively(
+    parentFeature: GFF3FeatureLineWithOptionalRefs,
+    featureIdArrAsParam: string[],
+  ): string[] {
+    this.logger.verbose?.(
+      `Value in recursive method = ${JSON.stringify(parentFeature)}`,
+    )
+    if (parentFeature.child_features?.length === 0) {
+      delete parentFeature.child_features
+    }
+    if (parentFeature.derived_features?.length === 0) {
+      delete parentFeature.derived_features
+    }
+    // If there are child features
+    if (parentFeature.child_features) {
+      parentFeature.child_features = parentFeature.child_features.map(
+        (childFeature) =>
+          childFeature.map((childFeatureLine) => {
+            const featureId = uuidv4()
+            featureIdArrAsParam.push(featureId)
+            const newChildFeature = { ...childFeatureLine, featureId }
+            this.setAndGetFeatureIdRecursively(
+              newChildFeature,
+              featureIdArrAsParam,
+            )
+            return newChildFeature
+          }),
+      )
+    }
+    return featureIdArrAsParam
   }
 }
