@@ -8,6 +8,7 @@ import { AuthenticationModule } from './authentication/authentication.module'
 import { ChangesModule } from './changes/changes.module'
 import { FeaturesModule } from './features/features.module'
 import { FileHandlingModule } from './fileHandling/fileHandling.module'
+import { FilesModule } from './files/files.module'
 import { RefSeqChunksModule } from './refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from './refSeqs/refSeqs.module'
 import { RolesGuard } from './utils/role/role.guards'
@@ -21,7 +22,6 @@ const nodeEnv = process.env.NODE_ENV || 'production'
     ConfigModule.forRoot({
       envFilePath: nodeEnv === 'production' ? '.env' : '.development.env',
     }),
-    FileHandlingModule,
     ChangesModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
@@ -34,6 +34,7 @@ const nodeEnv = process.env.NODE_ENV || 'production'
     RefSeqChunksModule,
     RefSeqsModule,
     FeaturesModule,
+    FilesModule,
   ],
   providers: [
     {
