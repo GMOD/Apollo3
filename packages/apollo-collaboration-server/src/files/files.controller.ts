@@ -92,4 +92,16 @@ export class FilesController {
     const gunzip = createGunzip()
     return new StreamableFile(fileStream.pipe(gunzip))
   }
+
+  /**
+   * Get GFF3 file from server
+   * @param filename - File to stream
+   * @returns
+   */
+  @Get('/dummy')
+  dummy() {
+    this.logger.debug(`Dummy`)
+    this.filesService.dummy()
+    return 'Dummy called'
+  }
 }
