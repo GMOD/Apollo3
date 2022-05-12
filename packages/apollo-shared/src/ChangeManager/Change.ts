@@ -25,7 +25,6 @@ export interface ServerDataStore {
   featureModel: import('mongoose').Model<FeatureDocument>
   assemblyModel: import('mongoose').Model<AssemblyDocument>
   refSeqModel: import('mongoose').Model<RefSeqDocument>
-  // refSeqChunkModel: import('mongoose').Model<RefSeqChunkDocument>
   session: import('mongoose').ClientSession
 }
 

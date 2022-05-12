@@ -13,8 +13,6 @@ import {
   Feature,
   FeatureDocument,
   RefSeq,
-  RefSeqChunk,
-  RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
 import {

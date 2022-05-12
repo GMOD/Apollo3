@@ -1,4 +1,4 @@
-import { createReadStream, createWriteStream } from 'fs'
+import { createReadStream } from 'fs'
 import { join } from 'path'
 import { createGunzip } from 'zlib'
 
@@ -14,19 +14,19 @@ import {
 } from './Change'
 import { FeatureChange } from './FeatureChange'
 
-interface GFF3FeatureLineWithOptionalRefs extends GFF3FeatureLine {
+export interface GFF3FeatureLineWithOptionalRefs extends GFF3FeatureLine {
   // eslint-disable-next-line camelcase
   child_features?: GFF3Feature[]
   // eslint-disable-next-line camelcase
   derived_features?: GFF3Feature[]
 }
 
-interface FeaturesFromFileChange {
+export interface FeaturesFromFileChange {
   fileChecksum: string
   assemblyId: string
 }
 
-interface SerializedAddFeaturesFromFileChange extends SerializedChange {
+export interface SerializedAddFeaturesFromFileChange extends SerializedChange {
   typeName: 'AddFeaturesFromFileChange'
   changes: FeaturesFromFileChange[]
 }
@@ -64,7 +64,7 @@ export class AddFeaturesFromFileChange extends FeatureChange {
 
     for (const change of changes) {
       const { fileChecksum } = change
-      this.logger.debug?.(`*** File checksum: '${fileChecksum}'`)
+      this.logger.debug?.(`File checksum: '${fileChecksum}'`)
 
       const { FILE_UPLOAD_FOLDER } = process.env
       if (!FILE_UPLOAD_FOLDER) {
@@ -74,17 +74,10 @@ export class AddFeaturesFromFileChange extends FeatureChange {
         FILE_UPLOAD_FOLDER,
         `${fileChecksum}.gz`,
       )
-      const uncompressedFullFileName = join(
-        FILE_UPLOAD_FOLDER,
-        `${fileChecksum}`,
-      )
-      await this.uncompressFile(
-        compressedFullFileName,
-        uncompressedFullFileName,
-      )
 
-      const uncompressedFullFileName2 = join(FILE_UPLOAD_FOLDER, 'eka')
-      await createReadStream(uncompressedFullFileName2) // ******* WHY CONTENT CANNOT BE READ FROM UNCOMPRESSED FILE ?????********//
+      // Read data from compressed file and parse the content
+      await createReadStream(compressedFullFileName)
+        .pipe(createGunzip())
         .pipe(gff.parseStream({ parseSequences: false }))
         .on('data', async (gff3Item) => {
           if (Array.isArray(gff3Item)) {
@@ -149,23 +142,6 @@ export class AddFeaturesFromFileChange extends FeatureChange {
         assemblyId: this.assemblyId,
       },
       { logger: this.logger },
-    )
-  }
-
-  async uncompressFile(
-    compressedFullFileName: string,
-    uncompressedFullFileName: string,
-  ) {
-    // Uncompress the file
-    const fileContents = createReadStream(compressedFullFileName)
-    const writeStream = createWriteStream(uncompressedFullFileName)
-    const unzip = createGunzip()
-    fileContents.pipe(unzip).pipe(writeStream)
-    fileContents.close()
-    writeStream.close()
-    unzip.close()
-    this.logger.debug?.(
-      `*** Uncompress function - file uncompressed: '${uncompressedFullFileName}'`,
     )
   }
 

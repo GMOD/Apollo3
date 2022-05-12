@@ -10,14 +10,15 @@ import {
   RefSeq,
   RefSeqDocument,
 } from 'apollo-schemas'
-import {
-  AddFeaturesFromFileChange,
-  SerializedChange,
-  changeRegistry,
-} from 'apollo-shared'
 import { Model } from 'mongoose'
 
 import { CreateFileDto } from './dto/create-file.dto'
+
+// import {
+// AddFeaturesFromFileChange,
+// SerializedChange,
+// changeRegistry,
+// } from 'apollo-shared'
 
 @Injectable()
 export class FilesService {
@@ -29,12 +30,12 @@ export class FilesService {
     @InjectModel(Assembly.name)
     private readonly assemblyModel: Model<AssemblyDocument>,
     @InjectModel(RefSeq.name)
-    private readonly refSeqModel: Model<RefSeqDocument>, // @InjectModel(RefSeqChunk.name) // private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
+    private readonly refSeqModel: Model<RefSeqDocument>,
   ) {
-    changeRegistry.registerChange(
-      'AddFeaturesFromFileChange',
-      AddFeaturesFromFileChange,
-    )
+    // changeRegistry.registerChange(
+    //   'AddFeaturesFromFileChange',
+    //   AddFeaturesFromFileChange,
+    // )
   }
 
   private readonly logger = new Logger(FilesService.name)
@@ -54,29 +55,30 @@ export class FilesService {
     return assembly
   }
 
-  async create2(createFileDto: CreateFileDto) {
-    // Add information into MongoDb
-    const serializedChange: SerializedChange = {
-      changedIds: ['1', '2'],
-      typeName: 'AddFeaturesFromFileChange',
-      assemblyId: '624a7e97d45d7745c2532b01',
-      changes: [{ fileChecksum: '83d5568fdd38026c75a3aed528e9e81d' }],
-    }
-    const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
-    const change = new ChangeType(serializedChange, { logger: this.logger })
-    this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
+  // **** JUST FOR TEST *** //
+  // async create2(createFileDto: CreateFileDto) {
+  //   // Add information into MongoDb
+  //   const serializedChange: SerializedChange = {
+  //     changedIds: ['1', '2'],
+  //     typeName: 'AddFeaturesFromFileChange',
+  //     assemblyId: '624a7e97d45d7745c2532b01',
+  //     changes: [{ fileChecksum: '83d5568fdd38026c75a3aed528e9e81d' }],
+  //   }
+  //   const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
+  //   const change = new ChangeType(serializedChange, { logger: this.logger })
+  //   this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
 
-    await this.featureModel.db.transaction(async (session) => {
-      await change.apply({
-        typeName: 'Server',
-        featureModel: this.featureModel,
-        assemblyModel: this.assemblyModel,
-        refSeqModel: this.refSeqModel,
-        // refSeqChunkModel: this.refSeqChunkModel,
-        session,
-      })
-    })
+  //   // await this.featureModel.db.transaction(async (session) => {
+  //   //   await change.apply({
+  //   //     typeName: 'Server',
+  //   //     featureModel: this.featureModel,
+  //   //     assemblyModel: this.assemblyModel,
+  //   //     refSeqModel: this.refSeqModel,
+  //   //     // refSeqChunkModel: this.refSeqChunkModel,
+  //   //     session,
+  //   //   })
+  //   // })
 
-    return this.fileModel.create(createFileDto)
-  }
+  //   return this.fileModel.create(createFileDto)
+  // }
 }
