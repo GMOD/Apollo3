@@ -1,13 +1,10 @@
 import { createReadStream, createWriteStream } from 'fs'
 import { join } from 'path'
-import { createGunzip, createUnzip } from 'zlib'
+import { createGunzip } from 'zlib'
 
-import gff, { GFF3Feature, GFF3FeatureLine, GFF3Item } from '@gmod/gff'
-import { FeatureDocument } from 'apollo-schemas'
-import { resolveIdentifier } from 'mobx-state-tree'
+import gff, { GFF3Feature, GFF3FeatureLine } from '@gmod/gff'
 import { v4 as uuidv4 } from 'uuid'
 
-import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
 import {
   ChangeOptions,
   ClientDataStore,
@@ -15,10 +12,7 @@ import {
   SerializedChange,
   ServerDataStore,
 } from './Change'
-import {
-  FeatureChange,
-  GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-} from './FeatureChange'
+import { FeatureChange } from './FeatureChange'
 
 interface GFF3FeatureLineWithOptionalRefs extends GFF3FeatureLine {
   // eslint-disable-next-line camelcase
@@ -65,8 +59,8 @@ export class AddFeaturesFromFileChange extends FeatureChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { featureModel, session } = backend
-    const { changes } = this
+    const { featureModel, refSeqModel } = backend
+    const { changes, assemblyId } = this
 
     for (const change of changes) {
       const { fileChecksum } = change
@@ -87,12 +81,12 @@ export class AddFeaturesFromFileChange extends FeatureChange {
       await this.uncompressFile(
         compressedFullFileName,
         uncompressedFullFileName,
-      ) // ** UNCOMPRESS SYNCHRONOUSLY ** //
+      )
 
       const uncompressedFullFileName2 = join(FILE_UPLOAD_FOLDER, 'eka')
       await createReadStream(uncompressedFullFileName2) // ******* WHY CONTENT CANNOT BE READ FROM UNCOMPRESSED FILE ?????********//
         .pipe(gff.parseStream({ parseSequences: false }))
-        .on('data', (gff3Item) => {
+        .on('data', async (gff3Item) => {
           if (Array.isArray(gff3Item)) {
             // gff3Item is a GFF3Feature
             this.logger.verbose?.(`ENTRY=${JSON.stringify(gff3Item)}`)
@@ -105,15 +99,14 @@ export class AddFeaturesFromFileChange extends FeatureChange {
                   )}`,
                 )
               }
-              // const refSeqDoc = await this.refSeqModel
-              //   .findOne({ assembly: assemblyId, name: refName })
-              //   .exec()
-              // if (!refSeqDoc) {
-              //   throw new NotFoundException(
-              //     `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refName}" not found`,
-              //   )
-              // }
-              // const refSeq = refSeqDoc._id
+              const refSeqDoc = await refSeqModel
+                .findOne({ assembly: assemblyId, name: refName })
+                .exec()
+              if (!refSeqDoc) {
+                throw new Error(
+                  `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refName}" not found`,
+                )
+              }
               // Let's add featureId to parent feature
               const featureId = uuidv4()
               const featureIds = [featureId]
@@ -127,13 +120,9 @@ export class AddFeaturesFromFileChange extends FeatureChange {
                 `So far apollo ids are: ${featureIds.toString()}\n`,
               )
 
-              const refSeq = '624ab4c0f8ac0187ed22b563' // ********* HARDCODED REFSEQ VALUE BECAUSE NOW IT CANNOT BE RETRIEVED BECAUSE ASSEMBLY INFORMATION IS MISSING ***********
-              // console.log(
-              //   `Added new feature for refSeq "${refSeq}" into database`,
-              // )
               // Add into Mongo
               featureModel.create({
-                refSeq,
+                refSeq: refSeqDoc._id,
                 featureId,
                 featureIds,
                 ...featureLine,
@@ -142,6 +131,7 @@ export class AddFeaturesFromFileChange extends FeatureChange {
           }
         })
     }
+    this.logger.debug?.(`New features added into database!`)
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function

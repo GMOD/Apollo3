@@ -1,4 +1,8 @@
-import { FeatureDocument } from 'apollo-schemas'
+import {
+  AssemblyDocument,
+  FeatureDocument,
+  RefSeqDocument,
+} from 'apollo-schemas'
 import { IAnyStateTreeNode, Instance, SnapshotIn } from 'mobx-state-tree'
 
 import { FeaturesForRefName } from '../BackendDrivers/AnnotationFeature'
@@ -19,6 +23,9 @@ export interface LocalGFF3DataStore {
 export interface ServerDataStore {
   typeName: 'Server'
   featureModel: import('mongoose').Model<FeatureDocument>
+  assemblyModel: import('mongoose').Model<AssemblyDocument>
+  refSeqModel: import('mongoose').Model<RefSeqDocument>
+  // refSeqChunkModel: import('mongoose').Model<RefSeqChunkDocument>
   session: import('mongoose').ClientSession
 }
 

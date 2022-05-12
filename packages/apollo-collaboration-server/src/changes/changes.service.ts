@@ -6,10 +6,16 @@ import {
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
+  Assembly,
+  AssemblyDocument,
   Change,
   ChangeDocument,
   Feature,
   FeatureDocument,
+  RefSeq,
+  RefSeqChunk,
+  RefSeqChunkDocument,
+  RefSeqDocument,
 } from 'apollo-schemas'
 import {
   CoreValidation,
@@ -29,6 +35,12 @@ export class ChangesService {
   constructor(
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
+    @InjectModel(Assembly.name)
+    private readonly assemblyModel: Model<AssemblyDocument>,
+    @InjectModel(RefSeq.name)
+    private readonly refSeqModel: Model<RefSeqDocument>,
+    // @InjectModel(RefSeqChunk.name)
+    // private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -62,6 +74,9 @@ export class ChangesService {
       await change.apply({
         typeName: 'Server',
         featureModel: this.featureModel,
+        assemblyModel: this.assemblyModel,
+        refSeqModel: this.refSeqModel,
+        // refSeqChunkModel: this.refSeqChunkModel,
         session,
       })
       // Add change information to change -collection

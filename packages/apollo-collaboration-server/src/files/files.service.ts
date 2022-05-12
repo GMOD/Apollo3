@@ -1,6 +1,15 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Feature, FeatureDocument, File, FileDocument } from 'apollo-schemas'
+import {
+  Assembly,
+  AssemblyDocument,
+  Feature,
+  FeatureDocument,
+  File,
+  FileDocument,
+  RefSeq,
+  RefSeqDocument,
+} from 'apollo-schemas'
 import {
   AddFeaturesFromFileChange,
   SerializedChange,
@@ -16,7 +25,11 @@ export class FilesService {
     @InjectModel(File.name)
     private readonly fileModel: Model<FileDocument>,
     @InjectModel(Feature.name)
-    private readonly featureModel: Model<FeatureDocument>
+    private readonly featureModel: Model<FeatureDocument>,
+    @InjectModel(Assembly.name)
+    private readonly assemblyModel: Model<AssemblyDocument>,
+    @InjectModel(RefSeq.name)
+    private readonly refSeqModel: Model<RefSeqDocument>, // @InjectModel(RefSeqChunk.name) // private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
   ) {
     changeRegistry.registerChange(
       'AddFeaturesFromFileChange',
@@ -42,12 +55,11 @@ export class FilesService {
   }
 
   async create2(createFileDto: CreateFileDto) {
-
     // Add information into MongoDb
     const serializedChange: SerializedChange = {
       changedIds: ['1', '2'],
       typeName: 'AddFeaturesFromFileChange',
-      assemblyId: 'assembly id 123',
+      assemblyId: '624a7e97d45d7745c2532b01',
       changes: [{ fileChecksum: '83d5568fdd38026c75a3aed528e9e81d' }],
     }
     const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
@@ -58,6 +70,9 @@ export class FilesService {
       await change.apply({
         typeName: 'Server',
         featureModel: this.featureModel,
+        assemblyModel: this.assemblyModel,
+        refSeqModel: this.refSeqModel,
+        // refSeqChunkModel: this.refSeqChunkModel,
         session,
       })
     })
