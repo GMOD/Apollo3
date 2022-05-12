@@ -244,7 +244,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
         change = new LocationEndChange({
           typeName: 'LocationEndChange',
           changedIds: [featureId],
-          changes: [{ featureId, oldEnd, newEnd }],
+          featureId,
+          oldEnd,
+          newEnd,
           assemblyId,
         })
       } else {
@@ -254,7 +256,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
         change = new LocationStartChange({
           typeName: 'LocationStartChange',
           changedIds: [featureId],
-          changes: [{ featureId, oldStart, newStart }],
+          featureId,
+          oldStart,
+          newStart,
           assemblyId,
         })
       }

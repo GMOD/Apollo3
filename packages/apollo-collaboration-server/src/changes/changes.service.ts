@@ -71,9 +71,7 @@ export class ChangesService {
       // Add entry to change collection
       const changeEntry: CreateChangeDto = {
         assembly: change.assemblyId,
-        typeName: change.typeName,
-        changedIds: change.changedIds,
-        changes: change.changes,
+        ...change,
         user: 'demo user id',
       }
       const savedChangedLogDoc = await this.changeModel.create(changeEntry)

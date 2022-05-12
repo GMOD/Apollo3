@@ -1,4 +1,4 @@
-import gff, { GFF3Feature, GFF3Item } from '@gmod/gff'
+import { GFF3Feature } from '@gmod/gff'
 import { FeatureDocument } from 'apollo-schemas'
 import { resolveIdentifier } from 'mobx-state-tree'
 
@@ -15,34 +15,54 @@ import {
   GFF3FeatureLineWithFeatureIdAndOptionalRefs,
 } from './FeatureChange'
 
-interface SingleTypeChange {
+interface SerializedTypeChangeBase extends SerializedChange {
+  typeName: 'TypeChange'
+}
+
+interface TypeChangeDetails {
   featureId: string
   oldType: string
   newType: string
 }
 
-interface SerializedTypeChange extends SerializedChange {
-  typeName: 'TypeChange'
-  changes: SingleTypeChange[]
+interface SerializedTypeChangeSingle
+  extends SerializedTypeChangeBase,
+    TypeChangeDetails {}
+
+interface SerializedTypeChangeMultiple extends SerializedTypeChangeBase {
+  changes: TypeChangeDetails[]
 }
+
+type SerializedTypeChange =
+  | SerializedTypeChangeSingle
+  | SerializedTypeChangeMultiple
 
 export class TypeChange extends FeatureChange {
   typeName = 'TypeChange' as const
-  changedIds: string[]
-  changes: SingleTypeChange[]
+  changes: TypeChangeDetails[]
 
   constructor(json: SerializedTypeChange, options?: ChangeOptions) {
     super(json, options)
-    this.changedIds = json.changedIds
-    this.changes = json.changes
+    this.changes = 'changes' in json ? json.changes : [json]
   }
 
-  toJSON() {
+  toJSON(): SerializedTypeChange {
+    if (this.changes.length === 1) {
+      const [{ featureId, oldType, newType }] = this.changes
+      return {
+        typeName: this.typeName,
+        changedIds: this.changedIds,
+        assemblyId: this.assemblyId,
+        featureId,
+        oldType,
+        newType,
+      }
+    }
     return {
-      changedIds: this.changedIds,
       typeName: this.typeName,
-      changes: this.changes,
+      changedIds: this.changedIds,
       assemblyId: this.assemblyId,
+      changes: this.changes,
     }
   }
 
@@ -121,50 +141,8 @@ export class TypeChange extends FeatureChange {
     }
   }
 
-  /**
-   * Applies the required change to cache and overwrites GFF3 file on the server
-   * @param backend - parameters from backend
-   * @returns
-   */
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
-    const { changes } = this
-
-    this.logger.debug?.(`Change request: ${JSON.stringify(changes)}`)
-    let gff3ItemString: string | undefined = ''
-    const cacheKeys: string[] = await backend.cacheManager.store.keys?.()
-    cacheKeys.sort((n1: string, n2: string) => Number(n1) - Number(n2))
-    for (const change of changes) {
-      // const { featureId, oldType, newType } = change
-      // const searchApolloIdStr = `"apollo_id":["${featureId}"]`
-
-      // Loop the cache content
-      for (const lineNumber of cacheKeys) {
-        gff3ItemString = await backend.cacheManager.get(lineNumber)
-        if (!gff3ItemString) {
-          throw new Error(`No cache value found for key ${lineNumber}`)
-        }
-        const gff3Item = JSON.parse(gff3ItemString) as GFF3Item
-        if (Array.isArray(gff3Item)) {
-          const updated = this.getUpdatedCacheEntryForFeature(gff3Item, change)
-          if (updated) {
-            await backend.cacheManager.set(lineNumber, JSON.stringify(gff3Item))
-            break
-          }
-        }
-      }
-    }
-    // Loop the updated cache and write it into file
-    const gff3 = await Promise.all(
-      cacheKeys.map(async (keyInd): Promise<GFF3Item> => {
-        gff3ItemString = await backend.cacheManager.get(keyInd.toString())
-        if (!gff3ItemString) {
-          throw new Error(`No entry found for ${keyInd.toString()}`)
-        }
-        return JSON.parse(gff3ItemString)
-      }),
-    )
-    // this.logger.verbose(`Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`)
-    await backend.gff3Handle.writeFile(gff.formatSync(gff3))
+    throw new Error('applyToLocalGFF3 not implemented')
   }
 
   async applyToClient(dataStore: ClientDataStore) {
@@ -207,7 +185,7 @@ export class TypeChange extends FeatureChange {
 
   getUpdatedCacheEntryForFeature(
     gff3Feature: GFF3Feature,
-    change: SingleTypeChange,
+    change: TypeChangeDetails,
   ): boolean {
     for (const featureLine of gff3Feature) {
       if (

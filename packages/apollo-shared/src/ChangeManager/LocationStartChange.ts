@@ -1,4 +1,4 @@
-import gff, { GFF3Feature, GFF3Item } from '@gmod/gff'
+import { GFF3Feature } from '@gmod/gff'
 import { FeatureDocument } from 'apollo-schemas'
 import { resolveIdentifier } from 'mobx-state-tree'
 
@@ -15,33 +15,55 @@ import {
   GFF3FeatureLineWithFeatureIdAndOptionalRefs,
 } from './FeatureChange'
 
-interface StartChange {
+interface SerializedLocationStartChangeBase extends SerializedChange {
+  typeName: 'LocationStartChange'
+}
+
+interface LocationStartChangeDetails {
   featureId: string
   oldStart: number
   newStart: number
 }
 
-interface SerializedLocationStartChange extends SerializedChange {
-  typeName: 'LocationStartChange'
-  changes: StartChange[]
+interface SerializedLocationStartChangeSingle
+  extends SerializedLocationStartChangeBase,
+    LocationStartChangeDetails {}
+
+interface SerializedLocationStartChangeMultiple
+  extends SerializedLocationStartChangeBase {
+  changes: LocationStartChangeDetails[]
 }
+
+type SerializedLocationStartChange =
+  | SerializedLocationStartChangeSingle
+  | SerializedLocationStartChangeMultiple
 
 export class LocationStartChange extends FeatureChange {
   typeName = 'LocationStartChange' as const
-  changes: StartChange[]
+  changes: LocationStartChangeDetails[]
 
   constructor(json: SerializedLocationStartChange, options?: ChangeOptions) {
     super(json, options)
-    this.changedIds = json.changedIds
-    this.changes = json.changes
+    this.changes = 'changes' in json ? json.changes : [json]
   }
 
-  toJSON() {
+  toJSON(): SerializedLocationStartChange {
+    if (this.changes.length === 1) {
+      const [{ featureId, oldStart, newStart }] = this.changes
+      return {
+        typeName: this.typeName,
+        changedIds: this.changedIds,
+        assemblyId: this.assemblyId,
+        featureId,
+        oldStart,
+        newStart,
+      }
+    }
     return {
-      changedIds: this.changedIds,
       typeName: this.typeName,
-      changes: this.changes,
+      changedIds: this.changedIds,
       assemblyId: this.assemblyId,
+      changes: this.changes,
     }
   }
 
@@ -111,8 +133,6 @@ export class LocationStartChange extends FeatureChange {
       } catch (error) {
         this.logger.debug?.(`*** FAILED: ${error}`)
         throw error
-      } finally {
-        // Update Mongo
       }
       this.logger.debug?.(
         `*** Object updated in Mongo. New object: ${JSON.stringify(
@@ -122,47 +142,8 @@ export class LocationStartChange extends FeatureChange {
     }
   }
 
-  /**
-   * Applies the required change to cache and overwrites GFF3 file on the server
-   * @param backend - parameters from backend
-   * @returns
-   */
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
-    const { changes } = this
-
-    this.logger.debug?.(`Change request: ${JSON.stringify(changes)}`)
-    let gff3ItemString: string | undefined = ''
-    const cacheKeys: string[] = await backend.cacheManager.store.keys?.()
-    cacheKeys.sort((n1: string, n2: string) => Number(n1) - Number(n2))
-    for (const change of changes) {
-      // Loop the cache content
-      for (const lineNumber of cacheKeys) {
-        gff3ItemString = await backend.cacheManager.get(lineNumber)
-        if (!gff3ItemString) {
-          throw new Error(`No cache value found for key ${lineNumber}`)
-        }
-        const gff3Item = JSON.parse(gff3ItemString) as GFF3Item
-        if (Array.isArray(gff3Item)) {
-          const updated = this.getUpdatedCacheEntryForFeature(gff3Item, change)
-          if (updated) {
-            await backend.cacheManager.set(lineNumber, JSON.stringify(gff3Item))
-            break
-          }
-        }
-      }
-    }
-    // Loop the updated cache and write it into file
-    const gff3 = await Promise.all(
-      cacheKeys.map(async (keyInd): Promise<GFF3Item> => {
-        gff3ItemString = await backend.cacheManager.get(keyInd.toString())
-        if (!gff3ItemString) {
-          throw new Error(`No entry found for ${keyInd.toString()}`)
-        }
-        return JSON.parse(gff3ItemString)
-      }),
-    )
-    // this.logger.verbose(`Write into file =${JSON.stringify(cacheValue)}, key=${keyInd}`)
-    await backend.gff3Handle.writeFile(gff.formatSync(gff3))
+    throw new Error('applyToLocalGFF3 not implemented')
   }
 
   async applyToClient(dataStore: ClientDataStore) {
@@ -205,7 +186,7 @@ export class LocationStartChange extends FeatureChange {
 
   getUpdatedCacheEntryForFeature(
     gff3Feature: GFF3Feature,
-    change: StartChange,
+    change: LocationStartChangeDetails,
   ): boolean {
     for (const featureLine of gff3Feature) {
       if (
