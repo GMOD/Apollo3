@@ -59,9 +59,12 @@ export class AddAssemblyFromFileChange extends Change {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { refSeqModel, assemblyModel } = backend
+    const { refSeqModel, assemblyModel, refSeqChunkModel } = backend
     const { changes } = this
     const { CHUNK_LEN } = process.env
+    if (!CHUNK_LEN) {
+      throw new Error('No CHUNK_LEN found in .env file')
+    }
 
     for (const change of changes) {
       const { fileChecksum, assemblyName } = change
@@ -114,7 +117,7 @@ export class AddAssemblyFromFileChange extends Change {
                 `RefSeq "${data.id}" already exists in assemblyId "${newAssemblyDoc._id}"`,
               )
             }
-            // Add assembly
+            // Add refSeq
             const newRefSeqDoc = await refSeqModel.create({
               name: data.id,
               description: data.id,
@@ -124,6 +127,22 @@ export class AddAssemblyFromFileChange extends Change {
             this.logger.debug?.(
               `Added new refSeq "${data.id}", docId "${newRefSeqDoc._id}"`,
             )
+
+            let ind = 0
+            //   const chunkArray = await data.sequence.match(/.{1,5000}/g) // *** THIS WORKS FINE WHEN THERE IS NO SPACE BETWEEN 1 AND 5000. i.e. {1,5000} works but {1, 5000} doesn't ***** //
+            const chunkArray = await data.sequence.match(/.{1,5000}/g) // *** HOW TO USE VARIABLE 'CHUNK_LEN' instead of 5000 ??? *** //
+            for (const chunk of chunkArray) {
+              // Add refSeqChunks
+              const newRefSeqChunkDoc = await refSeqChunkModel.create({
+                refSeq: newRefSeqDoc._id,
+                n: ind,
+                sequence: chunk,
+              })
+              this.logger.debug?.(
+                `Added new refSeqChunk (n=${ind}) docId "${newRefSeqChunkDoc._id}" for refSeq "${newRefSeqDoc._id}"`,
+              )
+              ind++
+            }
           }
         })
     }

@@ -1,6 +1,7 @@
 import {
   AssemblyDocument,
   FeatureDocument,
+  RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
 import { IAnyStateTreeNode, Instance, SnapshotIn } from 'mobx-state-tree'
@@ -25,6 +26,7 @@ export interface ServerDataStore {
   featureModel: import('mongoose').Model<FeatureDocument>
   assemblyModel: import('mongoose').Model<AssemblyDocument>
   refSeqModel: import('mongoose').Model<RefSeqDocument>
+  refSeqChunkModel: import('mongoose').Model<RefSeqChunkDocument>
   session: import('mongoose').ClientSession
   fs: typeof import('fs')
 }

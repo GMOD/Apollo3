@@ -8,6 +8,8 @@ import {
   File,
   FileDocument,
   RefSeq,
+  RefSeqChunk,
+  RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
 import {
@@ -30,7 +32,8 @@ export class FilesService {
     private readonly assemblyModel: Model<AssemblyDocument>,
     @InjectModel(RefSeq.name)
     private readonly refSeqModel: Model<RefSeqDocument>,
-  ) {
+    @InjectModel(RefSeqChunk.name)
+    private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,  ) {
     changeRegistry.registerChange(
       'AddAssemblyFromFileChange',
       AddAssemblyFromFileChange,
@@ -77,7 +80,7 @@ export class FilesService {
         featureModel: this.featureModel,
         assemblyModel: this.assemblyModel,
         refSeqModel: this.refSeqModel,
-        // refSeqChunkModel: this.refSeqChunkModel,
+        refSeqChunkModel: this.refSeqChunkModel,
         session,
       })
     })

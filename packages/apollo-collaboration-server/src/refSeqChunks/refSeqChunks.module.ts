@@ -8,6 +8,8 @@ import { RefSeqChunksController } from './refSeqChunks.controller'
 import { RefSeqChunksService } from './refSeqChunks.service'
 
 @Module({
+  controllers: [RefSeqChunksController],
+  providers: [RefSeqChunksService],
   imports: [
     MongooseModule.forFeatureAsync([
       {
@@ -21,8 +23,6 @@ import { RefSeqChunksService } from './refSeqChunks.service'
     ]),
     forwardRef(() => RefSeqsModule),
   ],
-  exports: [RefSeqChunksService],
-  controllers: [RefSeqChunksController],
-  providers: [RefSeqChunksService],
+  exports: [MongooseModule, RefSeqChunksService],
 })
 export class RefSeqChunksModule {}

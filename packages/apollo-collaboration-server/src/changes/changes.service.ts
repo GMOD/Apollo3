@@ -15,6 +15,8 @@ import {
   Feature,
   FeatureDocument,
   RefSeq,
+  RefSeqChunk,
+  RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
 import {
@@ -39,8 +41,8 @@ export class ChangesService {
     private readonly assemblyModel: Model<AssemblyDocument>,
     @InjectModel(RefSeq.name)
     private readonly refSeqModel: Model<RefSeqDocument>,
-    // @InjectModel(RefSeqChunk.name)
-    // private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
+    @InjectModel(RefSeqChunk.name)
+    private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -76,7 +78,7 @@ export class ChangesService {
         featureModel: this.featureModel,
         assemblyModel: this.assemblyModel,
         refSeqModel: this.refSeqModel,
-        // refSeqChunkModel: this.refSeqChunkModel,
+        refSeqChunkModel: this.refSeqChunkModel,
         session,
         fs,
       })
