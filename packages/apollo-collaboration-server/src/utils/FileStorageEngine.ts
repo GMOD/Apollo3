@@ -1,10 +1,19 @@
 import { createHash } from 'crypto'
-import { createWriteStream, rename } from 'fs'
+import { createWriteStream } from 'fs'
+import { mkdir, rename } from 'fs/promises'
 import { join } from 'path'
 import { createGzip } from 'zlib'
 
-import { Injectable, Logger } from '@nestjs/common'
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common'
 import { StorageEngine } from 'multer'
+
+export interface UploadedFile extends Express.Multer.File {
+  checksum: string
+}
 
 @Injectable()
 export class FileStorageEngine implements StorageEngine {
@@ -13,12 +22,17 @@ export class FileStorageEngine implements StorageEngine {
   async _handleFile(
     req: Express.Request,
     file: Express.Multer.File,
-    cb: (error?: unknown, info?: Partial<Express.Multer.File>) => void,
+    cb: (error?: unknown, info?: UploadedFile) => void,
   ) {
     const { FILE_UPLOAD_FOLDER } = process.env
     if (!FILE_UPLOAD_FOLDER) {
-      throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
+      return cb(
+        new InternalServerErrorException(
+          'No FILE_UPLOAD_FOLDER found in .env file',
+        ),
+      )
     }
+    await mkdir(FILE_UPLOAD_FOLDER, { recursive: true })
     // First we need to write new file using temp name. After writing has completed then we rename the file to match with file checksum
     const tempFullFileName = join(FILE_UPLOAD_FOLDER, `${file.originalname}.gz`)
     this.logger.debug(`User uploaded file: ${file.originalname}`)
@@ -36,23 +50,17 @@ export class FileStorageEngine implements StorageEngine {
     this.logger.debug(`Compressed file: ${tempFullFileName}`)
     const fileChecksum = hash.digest('hex')
     this.logger.debug(`Uploaded file checksum: ${fileChecksum}`)
-    const finalFullFileName = join(FILE_UPLOAD_FOLDER, `${fileChecksum}.gz`)
+    const finalFullFileName = join(FILE_UPLOAD_FOLDER, fileChecksum)
     this.logger.debug(`FinalFullFileName: ${finalFullFileName}`)
-    rename(tempFullFileName, finalFullFileName, (err) => {
-      if (err) {
-        throw new Error(`Error in renaming uploaded file: ${err}`)
-      }
-    })
-    file.filename = fileChecksum
+    await rename(tempFullFileName, finalFullFileName)
 
-    cb(null, file)
+    cb(null, { ...file, checksum: fileChecksum })
   }
 
   _removeFile(
     req: Express.Request,
     file: Express.Multer.File,
     cb: (error: Error | null) => void,
-  ) {
-    this.logger.debug(file)
-  }
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+  ) {}
 }
