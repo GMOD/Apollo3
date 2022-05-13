@@ -2,7 +2,7 @@ import { createReadStream } from 'fs'
 import { join } from 'path'
 import { createGunzip } from 'zlib'
 
-import gff, { GFF3Feature, GFF3FeatureLine } from '@gmod/gff'
+import gff, { GFF3Feature } from '@gmod/gff'
 import { v4 as uuidv4 } from 'uuid'
 
 import {
@@ -12,44 +12,59 @@ import {
   SerializedChange,
   ServerDataStore,
 } from './Change'
-import { FeatureChange } from './FeatureChange'
+import {
+  FeatureChange,
+  GFF3FeatureLineWithFeatureIdAndOptionalRefs,
+} from './FeatureChange'
 
-export interface GFF3FeatureLineWithOptionalRefs extends GFF3FeatureLine {
-  // eslint-disable-next-line camelcase
-  child_features?: GFF3Feature[]
-  // eslint-disable-next-line camelcase
-  derived_features?: GFF3Feature[]
-}
-
-export interface FeaturesFromFileChange {
-  fileChecksum: string
-  assemblyId: string
-}
-
-export interface SerializedAddFeaturesFromFileChange extends SerializedChange {
+interface SerializedAddFeaturesFromFileChangeBase extends SerializedChange {
   typeName: 'AddFeaturesFromFileChange'
-  changes: FeaturesFromFileChange[]
 }
+
+interface AddFeaturesFromFileChangeDetails {
+  fileChecksum: string
+}
+
+interface SerializedAddFeaturesFromFileChangeSingle
+  extends SerializedAddFeaturesFromFileChangeBase,
+    AddFeaturesFromFileChangeDetails {}
+
+interface SerializedAddFeaturesFromFileChangeMultiple
+  extends SerializedAddFeaturesFromFileChangeBase {
+  changes: AddFeaturesFromFileChangeDetails[]
+}
+
+type SerializedAddFeaturesFromFileChange =
+  | SerializedAddFeaturesFromFileChangeSingle
+  | SerializedAddFeaturesFromFileChangeMultiple
 
 export class AddFeaturesFromFileChange extends FeatureChange {
   typeName = 'AddFeaturesFromFileChange' as const
-  changes: FeaturesFromFileChange[]
+  changes: AddFeaturesFromFileChangeDetails[]
 
   constructor(
     json: SerializedAddFeaturesFromFileChange,
     options?: ChangeOptions,
   ) {
     super(json, options)
-    this.changedIds = json.changedIds
-    this.changes = json.changes
+    this.changes = 'changes' in json ? json.changes : [json]
   }
 
-  toJSON() {
+  toJSON(): SerializedAddFeaturesFromFileChange {
+    if (this.changes.length === 1) {
+      const [{ fileChecksum }] = this.changes
+      return {
+        typeName: this.typeName,
+        changedIds: this.changedIds,
+        assemblyId: this.assemblyId,
+        fileChecksum,
+      }
+    }
     return {
-      changedIds: this.changedIds,
       typeName: this.typeName,
-      changes: this.changes,
+      changedIds: this.changedIds,
       assemblyId: this.assemblyId,
+      changes: this.changes,
     }
   }
 
@@ -76,59 +91,67 @@ export class AddFeaturesFromFileChange extends FeatureChange {
       )
 
       // Read data from compressed file and parse the content
-      await createReadStream(compressedFullFileName)
+      createReadStream(compressedFullFileName)
         .pipe(createGunzip())
-        .pipe(gff.parseStream({ parseSequences: false }))
-        .on('data', async (gff3Item) => {
-          if (Array.isArray(gff3Item)) {
-            // gff3Item is a GFF3Feature
-            this.logger.verbose?.(`ENTRY=${JSON.stringify(gff3Item)}`)
-            for (const featureLine of gff3Item) {
-              const refName = featureLine.seq_id
-              if (!refName) {
-                throw new Error(
-                  `Valid seq_id not found in feature ${JSON.stringify(
-                    featureLine,
-                  )}`,
-                )
-              }
-              const refSeqDoc = await refSeqModel
-                .findOne({ assembly: assemblyId, name: refName })
-                .exec()
-              if (!refSeqDoc) {
-                throw new Error(
-                  `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refName}" not found`,
-                )
-              }
-              // Let's add featureId to parent feature
-              const featureId = uuidv4()
-              const featureIds = [featureId]
-              this.logger.verbose?.(
-                `Added new FeatureId: value=${JSON.stringify(featureLine)}`,
+        .pipe(
+          gff.parseStream({
+            parseSequences: false,
+            parseComments: false,
+            parseDirectives: false,
+            parseFeatures: true,
+          }),
+        )
+        .on('data', async (gff3Item: GFF3Feature) => {
+          this.logger.verbose?.(`ENTRY=${JSON.stringify(gff3Item)}`)
+          for (const featureLine of gff3Item) {
+            const refName = featureLine.seq_id
+            if (!refName) {
+              throw new Error(
+                `Valid seq_id not found in feature ${JSON.stringify(
+                  featureLine,
+                )}`,
               )
-
-              // Let's add featureId to each child recursively
-              this.setAndGetFeatureIdRecursively(featureLine, featureIds)
-              this.logger.verbose?.(
-                `So far apollo ids are: ${featureIds.toString()}\n`,
-              )
-
-              // Add into Mongo
-              featureModel.create({
-                refSeq: refSeqDoc._id,
-                featureId,
-                featureIds,
-                ...featureLine,
-              })
             }
+            const refSeqDoc = await refSeqModel
+              .findOne({ assembly: assemblyId, name: refName })
+              .exec()
+            if (!refSeqDoc) {
+              throw new Error(
+                `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refName}" not found`,
+              )
+            }
+            // Let's add featureId to parent feature
+            const featureId = uuidv4()
+            const featureIds = [featureId]
+            this.logger.verbose?.(
+              `Added new FeatureId: value=${JSON.stringify(featureLine)}`,
+            )
+
+            // Let's add featureId to each child recursively
+            this.setAndGetFeatureIdRecursively(
+              { ...featureLine, featureId },
+              featureIds,
+            )
+            this.logger.verbose?.(
+              `So far apollo ids are: ${featureIds.toString()}\n`,
+            )
+
+            // Add into Mongo
+            featureModel.create({
+              refSeq: refSeqDoc._id,
+              featureId,
+              featureIds,
+              ...featureLine,
+            })
           }
         })
     }
     this.logger.debug?.(`New features added into database!`)
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  async applyToLocalGFF3(backend: LocalGFF3DataStore) {}
+  async applyToLocalGFF3(backend: LocalGFF3DataStore) {
+    throw new Error('applyToLocalGFF3 not implemented')
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   async applyToClient(dataStore: ClientDataStore) {}
@@ -150,7 +173,7 @@ export class AddFeaturesFromFileChange extends FeatureChange {
    * @param parentFeature - Parent feature
    */
   setAndGetFeatureIdRecursively(
-    parentFeature: GFF3FeatureLineWithOptionalRefs,
+    parentFeature: GFF3FeatureLineWithFeatureIdAndOptionalRefs,
     featureIdArrAsParam: string[],
   ): string[] {
     this.logger.verbose?.(

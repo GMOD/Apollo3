@@ -1,46 +1,20 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import {
-  Assembly,
-  AssemblyDocument,
-  Feature,
-  FeatureDocument,
-  File,
-  FileDocument,
-  RefSeq,
-  RefSeqDocument,
-} from 'apollo-schemas'
+import { File, FileDocument } from 'apollo-schemas'
 import { Model } from 'mongoose'
 
 import { CreateFileDto } from './dto/create-file.dto'
-
-// import {
-// AddFeaturesFromFileChange,
-// SerializedChange,
-// changeRegistry,
-// } from 'apollo-shared'
 
 @Injectable()
 export class FilesService {
   constructor(
     @InjectModel(File.name)
     private readonly fileModel: Model<FileDocument>,
-    @InjectModel(Feature.name)
-    private readonly featureModel: Model<FeatureDocument>,
-    @InjectModel(Assembly.name)
-    private readonly assemblyModel: Model<AssemblyDocument>,
-    @InjectModel(RefSeq.name)
-    private readonly refSeqModel: Model<RefSeqDocument>,
-  ) {
-    // changeRegistry.registerChange(
-    //   'AddFeaturesFromFileChange',
-    //   AddFeaturesFromFileChange,
-    // )
-  }
+  ) {}
 
   private readonly logger = new Logger(FilesService.name)
 
-  async create(createFileDto: CreateFileDto) {
+  create(createFileDto: CreateFileDto) {
     this.logger.debug(
       `Add uploaded file info into Mongo: ${JSON.stringify(createFileDto)}`,
     )
