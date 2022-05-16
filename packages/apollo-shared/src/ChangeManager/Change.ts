@@ -26,6 +26,7 @@ export interface ServerDataStore {
   assemblyModel: import('mongoose').Model<AssemblyDocument>
   refSeqModel: import('mongoose').Model<RefSeqDocument>
   session: import('mongoose').ClientSession
+  fs: typeof import('fs')
 }
 
 export interface SerializedChange {

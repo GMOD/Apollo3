@@ -1,3 +1,5 @@
+import fs from 'fs'
+
 import {
   CACHE_MANAGER,
   Inject,
@@ -76,6 +78,7 @@ export class ChangesService {
         refSeqModel: this.refSeqModel,
         // refSeqChunkModel: this.refSeqChunkModel,
         session,
+        fs,
       })
       // Add change information to change -collection
       this.logger.debug(`ChangeIds: ${change.changedIds}`)

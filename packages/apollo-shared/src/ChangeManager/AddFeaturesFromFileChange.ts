@@ -1,4 +1,3 @@
-import { createReadStream } from 'fs'
 import { join } from 'path'
 import { createGunzip } from 'zlib'
 
@@ -74,7 +73,7 @@ export class AddFeaturesFromFileChange extends FeatureChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { featureModel, refSeqModel } = backend
+    const { featureModel, refSeqModel, fs } = backend
     const { changes, assemblyId } = this
 
     for (const change of changes) {
@@ -85,13 +84,10 @@ export class AddFeaturesFromFileChange extends FeatureChange {
       if (!FILE_UPLOAD_FOLDER) {
         throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
       }
-      const compressedFullFileName = join(
-        FILE_UPLOAD_FOLDER,
-        `${fileChecksum}.gz`,
-      )
+      const compressedFullFileName = join(FILE_UPLOAD_FOLDER, fileChecksum)
 
       // Read data from compressed file and parse the content
-      createReadStream(compressedFullFileName)
+      fs.createReadStream(compressedFullFileName)
         .pipe(createGunzip())
         .pipe(
           gff.parseStream({
