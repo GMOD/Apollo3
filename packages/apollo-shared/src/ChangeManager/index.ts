@@ -1,3 +1,4 @@
+export * from './AddFeaturesFromFileChange'
 export * from './Change'
 export * from './ChangeManager'
 export * from './ChangeTypes'
