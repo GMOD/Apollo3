@@ -2,8 +2,7 @@ import { createReadStream } from 'fs'
 import { join } from 'path'
 import { createGunzip } from 'zlib'
 
-import gff, { GFF3Feature, GFF3FeatureLine } from '@gmod/gff'
-import { v4 as uuidv4 } from 'uuid'
+import gff from '@gmod/gff'
 
 import {
   Change,
@@ -14,26 +13,32 @@ import {
   ServerDataStore,
 } from './Change'
 
-// export interface GFF3FeatureLineWithOptionalRefs extends GFF3FeatureLine {
-//   // eslint-disable-next-line camelcase
-//   child_features?: GFF3Feature[]
-//   // eslint-disable-next-line camelcase
-//   derived_features?: GFF3Feature[]
-// }
+export interface SerializedAddAssemblyFromFileChangeBase
+  extends SerializedChange {
+  typeName: 'AddAssemblyFromFileChange'
+}
 
-export interface AssembliesFromFileChange {
+export interface AddAssemblyFromFileChangeDetails {
   assemblyName: string
   fileChecksum: string
 }
 
-export interface SerializedAddAssemblyFromFileChange extends SerializedChange {
-  typeName: 'AddAssemblyFromFileChange'
-  changes: AssembliesFromFileChange[]
+export interface SerializedAddAssemblyFromFileChangeSingle
+  extends SerializedAddAssemblyFromFileChangeBase,
+    AddAssemblyFromFileChangeDetails {}
+
+export interface SerializedAddAssemblyFromFileChangeMultiple
+  extends SerializedAddAssemblyFromFileChangeBase {
+  changes: AddAssemblyFromFileChangeDetails[]
 }
+
+export type SerializedAddAssemblyFromFileChange =
+  | SerializedAddAssemblyFromFileChangeSingle
+  | SerializedAddAssemblyFromFileChangeMultiple
 
 export class AddAssemblyFromFileChange extends Change {
   typeName = 'AddAssemblyFromFileChange' as const
-  changes: AssembliesFromFileChange[]
+  changes: AddAssemblyFromFileChangeDetails[]
 
   constructor(
     json: SerializedAddAssemblyFromFileChange,
@@ -41,7 +46,7 @@ export class AddAssemblyFromFileChange extends Change {
   ) {
     super(json, options)
     this.changedIds = json.changedIds
-    this.changes = json.changes
+    this.changes = 'changes' in json ? json.changes : [json]
   }
 
   toJSON() {
@@ -129,8 +134,11 @@ export class AddAssemblyFromFileChange extends Change {
             )
 
             let ind = 0
+            const temp1 = `/.{1,${CHUNK_LEN}}/g`
+            this.logger.debug?.(`temp "${temp1}"`)
             //   const chunkArray = await data.sequence.match(/.{1,5000}/g) // *** THIS WORKS FINE WHEN THERE IS NO SPACE BETWEEN 1 AND 5000. i.e. {1,5000} works but {1, 5000} doesn't ***** //
-            const chunkArray = await data.sequence.match(/.{1,5000}/g) // *** HOW TO USE VARIABLE 'CHUNK_LEN' instead of 5000 ??? *** //
+            const chunkArray = await data.sequence.match(/.{1,5000}/g) // *** THIS WORKS FINE WHEN THERE IS NO SPACE BETWEEN 1 AND 5000. i.e. {1,5000} works but {1, 5000} doesn't ***** //
+            // const chunkArray = await data.sequence.match(`${temp1}`) // *** HOW TO USE VARIABLE 'CHUNK_LEN' instead of 5000 ??? *** //
             for (const chunk of chunkArray) {
               // Add refSeqChunks
               const newRefSeqChunkDoc = await refSeqChunkModel.create({

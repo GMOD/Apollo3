@@ -14,7 +14,7 @@ import {
 } from 'apollo-schemas'
 import {
   AddAssemblyFromFileChange,
-  SerializedChange,
+  SerializedAddAssemblyFromFileChangeSingle,
   changeRegistry,
 } from 'apollo-shared'
 import { Model } from 'mongoose'
@@ -33,7 +33,8 @@ export class FilesService {
     @InjectModel(RefSeq.name)
     private readonly refSeqModel: Model<RefSeqDocument>,
     @InjectModel(RefSeqChunk.name)
-    private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,  ) {
+    private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
+  ) {
     changeRegistry.registerChange(
       'AddAssemblyFromFileChange',
       AddAssemblyFromFileChange,
@@ -57,18 +58,25 @@ export class FilesService {
     return assembly
   }
 
+  // **** JUST FOR TEST *** //
   async dummy() {
-    // **** JUST FOR TEST *** //
-    const serializedChange: SerializedChange = {
+    // const serializedChange: SerializedChange = {
+    //   changedIds: ['1', '2'],
+    //   typeName: 'AddAssemblyFromFileChange',
+    //   assemblyId: '624a7e97d45d7745c2532b01',
+    //   changes: [
+    //     {
+    //       fileChecksum: '83d5568fdd38026c75a3aed528e9e81d',
+    //       assemblyName: 'first demo assembly',
+    //     },
+    //   ],
+    // }
+    const serializedChange: SerializedAddAssemblyFromFileChangeSingle = {
       changedIds: ['1', '2'],
       typeName: 'AddAssemblyFromFileChange',
       assemblyId: '624a7e97d45d7745c2532b01',
-      changes: [
-        {
-          fileChecksum: '83d5568fdd38026c75a3aed528e9e81d',
-          assemblyName: 'first demo assembly',
-        },
-      ],
+      fileChecksum: '83d5568fdd38026c75a3aed528e9e81d',
+      assemblyName: 'first demo assembly',
     }
     const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
     const change = new ChangeType(serializedChange, { logger: this.logger })
