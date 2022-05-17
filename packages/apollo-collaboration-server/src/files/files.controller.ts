@@ -51,17 +51,17 @@ export class FilesController {
       basename: file.originalname,
       checksum: file.checksum,
       type: body.type,
+      user: 'na',
     })
   }
 
-
-/**
- * Download file from userFiles -collection
- * @param id 
- * @param req 
- * @param res 
- * @returns 
- */
+  /**
+   * Download file from userFiles -collection
+   * @param id
+   * @param req
+   * @param res
+   * @returns
+   */
   @Get(':id')
   async downloadFile(
     @Param('id') id: string,
