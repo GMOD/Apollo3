@@ -1,4 +1,3 @@
-import { createReadStream } from 'fs'
 import { join } from 'path'
 import { createGunzip } from 'zlib'
 
@@ -64,7 +63,7 @@ export class AddAssemblyFromFileChange extends Change {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { refSeqModel, assemblyModel, refSeqChunkModel } = backend
+    const { refSeqModel, assemblyModel, refSeqChunkModel, fs } = backend
     const { changes } = this
     const { CHUNK_LEN } = process.env
     if (!CHUNK_LEN) {
@@ -79,10 +78,7 @@ export class AddAssemblyFromFileChange extends Change {
       if (!FILE_UPLOAD_FOLDER) {
         throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
       }
-      const compressedFullFileName = join(
-        FILE_UPLOAD_FOLDER,
-        `${fileChecksum}.gz`,
-      )
+      const compressedFullFileName = join(FILE_UPLOAD_FOLDER, `${fileChecksum}`)
 
       // Check and add new assembly
       const assemblyDoc = await assemblyModel
@@ -98,7 +94,8 @@ export class AddAssemblyFromFileChange extends Change {
       )
 
       // Read data from compressed file and parse the content
-      await createReadStream(compressedFullFileName)
+      await fs
+        .createReadStream(compressedFullFileName)
         .pipe(createGunzip())
         .pipe(
           gff.parseStream({
@@ -134,16 +131,14 @@ export class AddAssemblyFromFileChange extends Change {
             )
 
             let ind = 0
-            const temp1 = `/.{1,${CHUNK_LEN}}/g`
-            this.logger.debug?.(`temp "${temp1}"`)
-            //   const chunkArray = await data.sequence.match(/.{1,5000}/g) // *** THIS WORKS FINE WHEN THERE IS NO SPACE BETWEEN 1 AND 5000. i.e. {1,5000} works but {1, 5000} doesn't ***** //
-            const chunkArray = await data.sequence.match(/.{1,5000}/g) // *** THIS WORKS FINE WHEN THERE IS NO SPACE BETWEEN 1 AND 5000. i.e. {1,5000} works but {1, 5000} doesn't ***** //
-            // const chunkArray = await data.sequence.match(`${temp1}`) // *** HOW TO USE VARIABLE 'CHUNK_LEN' instead of 5000 ??? *** //
-            for (const chunk of chunkArray) {
-              // Add refSeqChunks
+            const chunkLength = Number(CHUNK_LEN)
+            const numChunks = Math.ceil(data.sequence.length / chunkLength)
+            for (let chunkNum = 0; chunkNum < numChunks - 1; chunkNum++) {
+              const start = chunkNum * chunkLength
+              const chunk = data.sequence.slice(start, start + chunkLength)
               const newRefSeqChunkDoc = await refSeqChunkModel.create({
                 refSeq: newRefSeqDoc._id,
-                n: ind,
+                n: chunkNum,
                 sequence: chunk,
               })
               this.logger.debug?.(

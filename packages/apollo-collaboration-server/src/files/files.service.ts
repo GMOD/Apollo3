@@ -12,6 +12,7 @@ import {
   RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
+import fs from 'fs'
 import {
   AddAssemblyFromFileChange,
   SerializedAddAssemblyFromFileChangeSingle,
@@ -51,11 +52,11 @@ export class FilesService {
   }
 
   async findOne(id: string) {
-    const assembly = await this.fileModel.findById(id).exec()
-    if (!assembly) {
-      throw new NotFoundException(`Assembly with id "${id}" not found`)
+    const userFile = await this.fileModel.findById(id).exec()
+    if (!userFile) {
+      throw new NotFoundException(`File with id "${id}" not found`)
     }
-    return assembly
+    return userFile
   }
 
   // **** JUST FOR TEST *** //
@@ -90,6 +91,7 @@ export class FilesService {
         refSeqModel: this.refSeqModel,
         refSeqChunkModel: this.refSeqChunkModel,
         session,
+        fs,
       })
     })
   }

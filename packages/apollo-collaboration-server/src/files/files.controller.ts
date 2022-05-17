@@ -54,11 +54,14 @@ export class FilesController {
     })
   }
 
-  /**
-   * Get file from server
-   * @param filename - File to stream
-   * @returns
-   */
+
+/**
+ * Download file from userFiles -collection
+ * @param id 
+ * @param req 
+ * @param res 
+ * @returns 
+ */
   @Get(':id')
   async downloadFile(
     @Param('id') id: string,
@@ -98,7 +101,7 @@ export class FilesController {
    * @param filename - File to stream
    * @returns
    */
-  @Get('/dummy')
+  @Get('/dummy/dummy')
   dummy() {
     this.logger.debug(`Dummy`)
     this.filesService.dummy()
