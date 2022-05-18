@@ -104,89 +104,77 @@ export class AddAssemblyFromFileChange extends Change {
 
       const { CHUNK_SIZE } = process.env
       const chunkSize = Number(CHUNK_SIZE)
+      let chunkIndex = 0
+      let refSeqLen = 0
+      let refSeqDocId = ''
 
       // Read data from compressed file and parse the content
       const sequenceStream = fs
         .createReadStream(compressedFullFileName)
         .pipe(createGunzip())
-
       for await (const data of sequenceStream) {
         const chunk = data.toString()
-        // this.logger.debug?.(`Chunk: "${chunk}, kpl: ${Math.ceil(chunk.length / chunkSize)}"`)
-        this.logger.debug?.(`${chunk.length}, ${chunkSize}"`)
-
         const numChunks = Math.ceil(chunk.length / chunkSize)
-        let refSeqInfoChars = 0 // this indicates how many chars are used for reference sequnece information. i.e. these chars will not be included in sequence chunks
+        const refSeqInfoChars = 0 // this indicates how many chars are used for reference sequnece information. i.e. these chars will not be included in sequence chunks
+
+        // Let's read chunk by chunk
         for (let chunkNum = 0; chunkNum < numChunks; chunkNum++) {
+          let chunkSequenceBlock = ''
           const start = chunkNum * chunkSize + refSeqInfoChars
           const oneChunk = chunk.slice(start, start + chunkSize)
 
           this.logger.debug?.(
-            `Luku alkoi positiosta ${start} ja chunk on : "${oneChunk}"`,
+            `Current chunk read started from position ${start}, the chunk is: \n"${oneChunk}"`,
           )
-          // const linesInChunkArray = chunk.match(/[^\r\n]+/g)
-          // for (const oneLine of linesInChunkArray) {
-          // this.logger.debug?.(`ONE LINE: "${oneLine}"`)
-          // const defMatch = /^>\s*(\S+)\s*(.*)/.exec(oneChunk)
-          const defMatch = />\s*(\S+)\s*(.*)/.exec(oneChunk)
-          if (defMatch) {
-            // *** TODO: If matched then we need to read the whole line, otherwise refseq description may not be complete ***
-            // *** TODO: If chunk does not start with '>' but it's in middle of chunk, then the beginning of chunk is previous ref seq sequence 
-            let refSeqDesc = ''
-            this.logger.debug?.(`MATCHED: "${defMatch[1]}"`)
-            if (defMatch[2]) {
+          // Split chunk by linefeed
+          const linesInChunkArray = oneChunk.match(/[^\r\n]+/g)
+          for (const oneLine of linesInChunkArray) {
+            const defMatch = /^>\s*(\S+)\s*(.*)/.exec(oneLine)
+            // Now we are processing Reference sequence information (i.e. line starts with '>')
+            if (defMatch) {
+              let refSeqDesc = ''
+              if (defMatch[2]) {
+                refSeqDesc = defMatch[2].trim()
+              }
+              // If there is sequence from previous sequence we need to add it
+              if (chunkSequenceBlock !== '') {
+                refSeqLen += chunkSequenceBlock.length
+                this.logger.debug?.(
+                  `*** Add the last chunk of previous ref seq "${chunkSequenceBlock}", total length was ${refSeqLen}, chunk index was ${chunkIndex} and refSeqDoc "${refSeqDocId}"`,
+                )
+                chunkSequenceBlock = ''
+                refSeqLen = 0
+                chunkIndex = 0
+              }
               this.logger.debug?.(
-                `MATCHED SEQUENCE DESCRIPTION: "${defMatch[2]}"`,
+                `*** Add new ref seq "${defMatch[1]}", desc "${refSeqDesc}"`,
               )
-              refSeqDesc = defMatch[2].trim()
+              refSeqDocId = defMatch[1] // TODO: *** Here we must get document id from Mongo
+
+              // // TODO??? : The sequence reference information was the first line in this chunk so we need to extend the first sequence block by the lenght of RefSeq information
+              // if (chunkSequenceBlock === '') {
+              //   const splitted = chunk.match(/[^\r\n]+/g)
+              //   this.logger.debug?.(
+              //     `splitted eka arvon pituus: "${splitted[0]}", "${splitted[0].length}"`,
+              //   )
+              //   refSeqInfoChars += splitted[0].length
+              //   const twoChunk = chunk.slice(
+              //     start + splitted[0].length,
+              //     start + chunkSize + splitted[0].length,
+              //   )
+              //   this.logger.debug?.(`Two chunk: "${twoChunk.replace(/\s/g, '')}"`)
+              // }
+            } else if (/\S/.test(oneChunk)) {
+              chunkSequenceBlock += oneLine.replace(/\s/g, '')
             }
-            const splitted = chunk.match(/[^\r\n]+/g)
-            this.logger.debug?.(
-              `splitted eka arvon pituus: "${splitted[0]}", "${splitted[0].length}"`,
-            )
-            refSeqInfoChars += splitted[0].length
-            const twoChunk = chunk.slice(
-              start + splitted[0].length,
-              start + chunkSize + splitted[0].length,
-            )
-            this.logger.debug?.(`Two chunk: "${twoChunk.replace(/\s/g, '')}"`)
-            // Add new reference sequence into database
-            // } else if (this.currentSequence && /\S/.test(chunk)) {
-          } else if (/\S/.test(oneChunk)) {
-            // this.currentSequence.sequence += chunk.replace(/\s/g, '')
-            this.logger.debug?.(`SEQUENCE : "${oneChunk.replace(/\s/g, '')}"`)
-            // this.currentSequence.sequence += chunk.replace(/\s/g, '')
-          } else {
-            this.logger.debug?.(` *********** IHAN JOTAIN MUUTA ************"`)
           }
-          // }
-
-          //   const defMatch = /^>\s*(\S+)\s*(.*)/.exec(oneChunk)
-          // if (defMatch) {
-          //   let refSeqDesc = ''
-          //   this.logger.debug?.(`MATCHED: "${defMatch[1]}"`)
-          //   if (defMatch[2]) {
-          //     this.logger.debug?.(
-          //       `MATCHED SEQUENCE DESCRIPTION: "${defMatch[2]}"`,
-          //     )
-          //     refSeqDesc = defMatch[2].trim()
-          //   }
-          //   const splitted = chunk.match(/[^\r\n]+/g)
-          // this.logger.debug?.(`splitted eka arvon pituus: "${splitted[0]}", "${splitted[0].length}"`)
-          // refSeqInfoChars += splitted[0].length
-          // const twoChunk = chunk.slice(start + splitted[0].length, start + chunkSize + splitted[0].length)
-          // this.logger.debug?.(`Two chunk: "${twoChunk.replace(/\s/g, '')}"`)
-          //   // Add new reference sequence into database
-          //   // } else if (this.currentSequence && /\S/.test(chunk)) {
-          // } else if (/\S/.test(oneChunk)) {
-          //   // this.currentSequence.sequence += chunk.replace(/\s/g, '')
-          //   this.logger.debug?.(`SEQUENCE : "${oneChunk.replace(/\s/g, '')}"`)
-          //   // this.currentSequence.sequence += chunk.replace(/\s/g, '')
-          // } else {
-          //   this.logger.debug?.(` *********** IHAN JOTAIN MUUTA ************"`)
-          // }
+          this.logger.debug?.(
+            `*** Add chunk (index ${chunkIndex}): "${chunkSequenceBlock}"`,
+          )
+          refSeqLen += chunkSequenceBlock.length
+          chunkIndex++
         }
-
+        this.logger.debug?.(`*** The ref seq total length was ${refSeqLen} and refSeqDoc "${refSeqDocId}"`)
         // const refSeqDoc = await refSeqModel
         //   .findOne({ assembly: newAssemblyDoc._id, name: sequence.id })
         //   .session(session)
