@@ -16,7 +16,6 @@ import fs from 'fs'
 import {
   AddAssemblyFromFileChange,
   SerializedAddAssemblyFromFileChangeSingle,
-  changeRegistry,
 } from 'apollo-shared'
 import { Model } from 'mongoose'
 
@@ -35,12 +34,7 @@ export class FilesService {
     private readonly refSeqModel: Model<RefSeqDocument>,
     @InjectModel(RefSeqChunk.name)
     private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
-  ) {
-    changeRegistry.registerChange(
-      'AddAssemblyFromFileChange',
-      AddAssemblyFromFileChange,
-    )
-  }
+  ) {}
 
   private readonly logger = new Logger(FilesService.name)
 
