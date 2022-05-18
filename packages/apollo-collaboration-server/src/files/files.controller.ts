@@ -56,10 +56,8 @@ export class FilesController {
   }
 
   /**
-   * Download file from userFiles -collection
-   * @param id
-   * @param req
-   * @param res
+   * Download file from files -collection
+   * @param id -
    * @returns
    */
   @Get(':id')
@@ -94,17 +92,5 @@ export class FilesController {
     }
     const gunzip = createGunzip()
     return new StreamableFile(fileStream.pipe(gunzip))
-  }
-
-  /**
-   * Get GFF3 file from server
-   * @param filename - File to stream
-   * @returns
-   */
-  @Get('/dummy/dummy')
-  dummy() {
-    this.logger.debug(`Dummy`)
-    this.filesService.dummy()
-    return 'Dummy called'
   }
 }

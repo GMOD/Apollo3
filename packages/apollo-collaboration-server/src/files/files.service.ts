@@ -12,11 +12,6 @@ import {
   RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
-import fs from 'fs'
-import {
-  AddAssemblyFromFileChange,
-  SerializedAddAssemblyFromFileChangeSingle,
-} from 'apollo-shared'
 import { Model } from 'mongoose'
 
 import { CreateFileDto } from './dto/create-file.dto'
@@ -46,48 +41,10 @@ export class FilesService {
   }
 
   async findOne(id: string) {
-    const userFile = await this.fileModel.findById(id).exec()
-    if (!userFile) {
+    const file = await this.fileModel.findById(id).exec()
+    if (!file) {
       throw new NotFoundException(`File with id "${id}" not found`)
     }
-    return userFile
-  }
-
-  // **** JUST FOR TEST *** //
-  async dummy() {
-    // const serializedChange: SerializedChange = {
-    //   changedIds: ['1', '2'],
-    //   typeName: 'AddAssemblyFromFileChange',
-    //   assemblyId: '624a7e97d45d7745c2532b01',
-    //   changes: [
-    //     {
-    //       fileChecksum: '83d5568fdd38026c75a3aed528e9e81d',
-    //       assemblyName: 'first demo assembly',
-    //     },
-    //   ],
-    // }
-    const serializedChange: SerializedAddAssemblyFromFileChangeSingle = {
-      changedIds: ['1', '2'],
-      typeName: 'AddAssemblyFromFileChange',
-      assemblyId: '624a7e97d45d7745c2532b01',
-      fileChecksum: '196d4f3a253b7c65aca19427edc346da', // THIS IS FASTA FILE checksum
-      // fileChecksum: '83d5568fdd38026c75a3aed528e9e81d', // THIS IS GFF3 FILE checksum 
-      assemblyName: 'First demo assembly',
-    }
-    const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
-    const change = new ChangeType(serializedChange, { logger: this.logger })
-    this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
-
-    await this.featureModel.db.transaction(async (session) => {
-      await change.apply({
-        typeName: 'Server',
-        featureModel: this.featureModel,
-        assemblyModel: this.assemblyModel,
-        refSeqModel: this.refSeqModel,
-        refSeqChunkModel: this.refSeqChunkModel,
-        session,
-        fs,
-      })
-    })
+    return file
   }
 }
