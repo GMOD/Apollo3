@@ -112,8 +112,22 @@ export class AddAssemblyFromFileChange extends Change {
       const sequenceStream = fs
         .createReadStream(compressedFullFileName)
         .pipe(createGunzip())
+      // let currentSequence
+      // let buffer = ''
       for await (const data of sequenceStream) {
         const chunk = data.toString()
+
+        // // chunk is small enough that you can split the whole thing into lines
+        // // without having to make it into smaller chunks first.
+        // const lines = chunk.split(/\r?\n/)
+        // lines.forEach(line => {
+        //   if (line matches something)
+        //   {
+        //     start a new sequence
+        //   }
+        //   else { do stuff with current sequence }
+        // })
+
         const numChunks = Math.ceil(chunk.length / chunkSize)
         const refSeqInfoChars = 0 // this indicates how many chars are used for reference sequnece information. i.e. these chars will not be included in sequence chunks
 
@@ -174,7 +188,9 @@ export class AddAssemblyFromFileChange extends Change {
           refSeqLen += chunkSequenceBlock.length
           chunkIndex++
         }
-        this.logger.debug?.(`*** The ref seq total length was ${refSeqLen} and refSeqDoc "${refSeqDocId}"`)
+        this.logger.debug?.(
+          `*** The ref seq total length was ${refSeqLen} and refSeqDoc "${refSeqDocId}"`,
+        )
         // const refSeqDoc = await refSeqModel
         //   .findOne({ assembly: newAssemblyDoc._id, name: sequence.id })
         //   .session(session)
