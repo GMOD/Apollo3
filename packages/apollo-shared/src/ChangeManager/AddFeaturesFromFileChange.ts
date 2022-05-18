@@ -73,7 +73,7 @@ export class AddFeaturesFromFileChange extends FeatureChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { featureModel, refSeqModel, fs } = backend
+    const { featureModel, refSeqModel, fs, session } = backend
     const { changes, assemblyId } = this
 
     for (const change of changes) {
@@ -87,7 +87,8 @@ export class AddFeaturesFromFileChange extends FeatureChange {
       const compressedFullFileName = join(FILE_UPLOAD_FOLDER, fileChecksum)
 
       // Read data from compressed file and parse the content
-      fs.createReadStream(compressedFullFileName)
+      const featureStream = fs
+        .createReadStream(compressedFullFileName)
         .pipe(createGunzip())
         .pipe(
           gff.parseStream({
@@ -97,50 +98,57 @@ export class AddFeaturesFromFileChange extends FeatureChange {
             parseFeatures: true,
           }),
         )
-        .on('data', async (gff3Item: GFF3Feature) => {
-          this.logger.verbose?.(`ENTRY=${JSON.stringify(gff3Item)}`)
-          for (const featureLine of gff3Item) {
-            const refName = featureLine.seq_id
-            if (!refName) {
-              throw new Error(
-                `Valid seq_id not found in feature ${JSON.stringify(
-                  featureLine,
-                )}`,
-              )
-            }
-            const refSeqDoc = await refSeqModel
-              .findOne({ assembly: assemblyId, name: refName })
-              .exec()
-            if (!refSeqDoc) {
-              throw new Error(
-                `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refName}" not found`,
-              )
-            }
-            // Let's add featureId to parent feature
-            const featureId = uuidv4()
-            const featureIds = [featureId]
-            this.logger.verbose?.(
-              `Added new FeatureId: value=${JSON.stringify(featureLine)}`,
+      for await (const f of featureStream) {
+        const gff3Feature = f as GFF3Feature
+        this.logger.verbose?.(`ENTRY=${JSON.stringify(gff3Feature)}`)
+        for (const featureLine of gff3Feature) {
+          const refName = featureLine.seq_id
+          if (!refName) {
+            throw new Error(
+              `Valid seq_id not found in feature ${JSON.stringify(
+                featureLine,
+              )}`,
             )
-
-            // Let's add featureId to each child recursively
-            this.setAndGetFeatureIdRecursively(
-              { ...featureLine, featureId },
-              featureIds,
-            )
-            this.logger.verbose?.(
-              `So far apollo ids are: ${featureIds.toString()}\n`,
-            )
-
-            // Add into Mongo
-            featureModel.create({
-              refSeq: refSeqDoc._id,
-              featureId,
-              featureIds,
-              ...featureLine,
-            })
           }
-        })
+          const refSeqDoc = await refSeqModel
+            .findOne({ assembly: assemblyId, name: refName })
+            .session(session)
+            .exec()
+          if (!refSeqDoc) {
+            throw new Error(
+              `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refName}" not found`,
+            )
+          }
+          // Let's add featureId to parent feature
+          const featureId = uuidv4()
+          const featureIds = [featureId]
+          this.logger.verbose?.(
+            `Added new FeatureId: value=${JSON.stringify(featureLine)}`,
+          )
+
+          // Let's add featureId to each child recursively
+          this.setAndGetFeatureIdRecursively(
+            { ...featureLine, featureId },
+            featureIds,
+          )
+          this.logger.verbose?.(
+            `So far apollo ids are: ${featureIds.toString()}\n`,
+          )
+
+          // Add into Mongo
+          featureModel.create(
+            [
+              {
+                refSeq: refSeqDoc._id,
+                featureId,
+                featureIds,
+                ...featureLine,
+              },
+            ],
+            { session },
+          )
+        }
+      }
     }
     this.logger.debug?.(`New features added into database!`)
   }
@@ -153,13 +161,9 @@ export class AddFeaturesFromFileChange extends FeatureChange {
   async applyToClient(dataStore: ClientDataStore) {}
 
   getInverse() {
+    const { changedIds, typeName, changes, assemblyId } = this
     return new AddFeaturesFromFileChange(
-      {
-        changedIds: this.changedIds,
-        typeName: 'AddFeaturesFromFileChange',
-        changes: this.changes,
-        assemblyId: this.assemblyId,
-      },
+      { changedIds, typeName, changes, assemblyId },
       { logger: this.logger },
     )
   }

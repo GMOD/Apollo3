@@ -11,6 +11,8 @@ import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel, isAbstractMenuManager } from '@jbrowse/core/util'
 import {
+  AddAssemblyFromFileChange,
+  AddFeaturesFromFileChange,
   LocationEndChange,
   LocationStartChange,
   TypeChange,
@@ -41,6 +43,14 @@ import {
 } from './LinearApolloDisplay'
 import { makeDisplayComponent } from './makeDisplayComponent'
 
+changeRegistry.registerChange(
+  'AddAssemblyFromFileChange',
+  AddAssemblyFromFileChange,
+)
+changeRegistry.registerChange(
+  'AddFeaturesFromFileChange',
+  AddFeaturesFromFileChange,
+)
 changeRegistry.registerChange('LocationEndChange', LocationEndChange)
 changeRegistry.registerChange('LocationStartChange', LocationStartChange)
 changeRegistry.registerChange('TypeChange', TypeChange)

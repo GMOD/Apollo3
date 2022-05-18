@@ -1,3 +1,4 @@
+export * from './AddAssemblyFromFileChange'
 export * from './AddFeaturesFromFileChange'
 export * from './Change'
 export * from './ChangeManager'

@@ -51,12 +51,13 @@ export class FilesController {
       basename: file.originalname,
       checksum: file.checksum,
       type: body.type,
+      user: 'na',
     })
   }
 
   /**
-   * Get file from server
-   * @param filename - File to stream
+   * Download file from files -collection
+   * @param id -
    * @returns
    */
   @Get(':id')

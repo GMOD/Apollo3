@@ -15,9 +15,13 @@ import {
   Feature,
   FeatureDocument,
   RefSeq,
+  RefSeqChunk,
+  RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
 import {
+  AddAssemblyFromFileChange,
+  AddFeaturesFromFileChange,
   CoreValidation,
   LocationEndChange,
   LocationStartChange,
@@ -39,12 +43,20 @@ export class ChangesService {
     private readonly assemblyModel: Model<AssemblyDocument>,
     @InjectModel(RefSeq.name)
     private readonly refSeqModel: Model<RefSeqDocument>,
-    // @InjectModel(RefSeqChunk.name)
-    // private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
+    @InjectModel(RefSeqChunk.name)
+    private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
+    changeRegistry.registerChange(
+      'AddAssemblyFromFileChange',
+      AddAssemblyFromFileChange,
+    )
+    changeRegistry.registerChange(
+      'AddFeaturesFromFileChange',
+      AddFeaturesFromFileChange,
+    )
     changeRegistry.registerChange('LocationEndChange', LocationEndChange)
     changeRegistry.registerChange('LocationStartChange', LocationStartChange)
     changeRegistry.registerChange('TypeChange', TypeChange)
@@ -76,7 +88,7 @@ export class ChangesService {
         featureModel: this.featureModel,
         assemblyModel: this.assemblyModel,
         refSeqModel: this.refSeqModel,
-        // refSeqChunkModel: this.refSeqChunkModel,
+        refSeqChunkModel: this.refSeqChunkModel,
         session,
         fs,
       })
@@ -90,7 +102,10 @@ export class ChangesService {
         ...change,
         user: 'demo user id',
       }
-      const savedChangedLogDoc = await this.changeModel.create(changeEntry)
+      const [savedChangedLogDoc] = await this.changeModel.create(
+        [changeEntry],
+        { session },
+      )
       changeDocId = savedChangedLogDoc._id
       const validationResult2 = await this.validations.backendPostValidate(
         change,
