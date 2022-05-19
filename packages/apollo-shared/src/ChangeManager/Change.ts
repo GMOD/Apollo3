@@ -1,6 +1,7 @@
 import {
   AssemblyDocument,
   FeatureDocument,
+  FileDocument,
   RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
@@ -27,6 +28,7 @@ export interface ServerDataStore {
   assemblyModel: import('mongoose').Model<AssemblyDocument>
   refSeqModel: import('mongoose').Model<RefSeqDocument>
   refSeqChunkModel: import('mongoose').Model<RefSeqChunkDocument>
+  fileModel: import('mongoose').Model<FileDocument>
   session: import('mongoose').ClientSession
   fs: typeof import('fs')
 }

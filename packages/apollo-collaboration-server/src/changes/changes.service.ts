@@ -18,6 +18,8 @@ import {
   RefSeqChunk,
   RefSeqChunkDocument,
   RefSeqDocument,
+  File,
+  FileDocument,
 } from 'apollo-schemas'
 import {
   AddAssemblyFromFileChange,
@@ -45,6 +47,8 @@ export class ChangesService {
     private readonly refSeqModel: Model<RefSeqDocument>,
     @InjectModel(RefSeqChunk.name)
     private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
+    @InjectModel(File.name)
+    private readonly fileModel: Model<FileDocument>,
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -89,6 +93,7 @@ export class ChangesService {
         assemblyModel: this.assemblyModel,
         refSeqModel: this.refSeqModel,
         refSeqChunkModel: this.refSeqChunkModel,
+        fileModel: this.fileModel,
         session,
         fs,
       })
