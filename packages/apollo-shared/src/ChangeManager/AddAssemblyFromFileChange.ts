@@ -103,14 +103,10 @@ export class AddAssemblyFromFileChange extends Change {
         throw new Error(`Assembly "${assemblyName}" already exists`)
       }
       // Add assembly
-      // const [newAssemblyDoc] = await assemblyModel.create(   // *** IF USING THIS THEN NEWLY CREATED ASSEMBLY DOC ID IS NOT AVAILABLE WHEN ADDING REFSEQ DOCS ---> 'ID NOT EXISTS ERROR'
-      //   [{ _id: assemblyId, name: assemblyName }],
-      //   { session },
-      // )
-      const newAssemblyDoc = await assemblyModel.create({
-        _id: assemblyId,
-        name: assemblyName,
-      })
+      const [newAssemblyDoc] = await assemblyModel.create(
+        [{ _id: assemblyId, name: assemblyName }],
+        { session },
+      )
       this.logger.debug?.(
         `Added new assembly "${assemblyName}", docId "${newAssemblyDoc._id}"`,
       )
@@ -167,15 +163,20 @@ export class AddAssemblyFromFileChange extends Change {
               this.logger.debug?.(
                 `*** Add the last chunk of previous ref seq ("${refSeqDocId}", index ${chunkIndex} and total length for ref seq is ${refSeqLen}): "${chunkSequenceBlock}"`,
               )
-              await refSeqChunkModel.create({
-                refSeq: refSeqDocId,
-                n: chunkIndex,
-                sequence: chunkSequenceBlock,
-              })
+              await refSeqChunkModel.create(
+                [
+                  {
+                    refSeq: refSeqDocId,
+                    n: chunkIndex,
+                    sequence: chunkSequenceBlock,
+                  },
+                ],
+                { session },
+              )
               let totalLen = 0
-              for await (const doc of refSeqChunkModel.find({
-                refSeq: refSeqDocId,
-              })) {
+              for await (const doc of refSeqChunkModel
+                .find({ refSeq: refSeqDocId })
+                .session(session)) {
                 this.logger.debug?.(
                   `Chunk ${doc.n}, the length is ${doc.sequence.length}`,
                 )
@@ -185,6 +186,7 @@ export class AddAssemblyFromFileChange extends Change {
               await refSeqModel.updateOne(
                 { _id: refSeqDocId },
                 { length: totalLen },
+                { session },
               )
 
               chunkSequenceBlock = ''
@@ -194,25 +196,18 @@ export class AddAssemblyFromFileChange extends Change {
             this.logger.debug?.(
               `*** Add new ref seq "${defMatch[1]}", desc "${refSeqDesc}", assemblyId "${newAssemblyDoc._id}"`,
             )
-            const newRefSeqDoc = await refSeqModel.create({
-              name: defMatch[1],
-              description: refSeqDesc,
-              assembly: newAssemblyDoc._id,
-              length: 0,
-              ...(CHUNK_SIZE ? { chunkSize: Number(CHUNK_SIZE) } : null),
-            })
-            // const [newRefSeqDoc] = await refSeqModel.create(   // **** IF USING THIS THEN 'MongoServerError: Transaction 1 has been committed.'
-            //   [
-            //     {
-            //       name: defMatch[1],
-            //       description: refSeqDesc,
-            //       assembly: newAssemblyDoc._id,
-            //       length: 0,
-            //       ...(CHUNK_SIZE ? { chunkSize: Number(CHUNK_SIZE) } : null),
-            //     },
-            //   ],
-            //   { session },
-            // )
+            const [newRefSeqDoc] = await refSeqModel.create(
+              [
+                {
+                  name: defMatch[1],
+                  description: refSeqDesc,
+                  assembly: newAssemblyDoc._id,
+                  length: 0,
+                  ...(CHUNK_SIZE ? { chunkSize: Number(CHUNK_SIZE) } : null),
+                },
+              ],
+              { session },
+            )
             this.logger.debug?.(
               `Added new refSeq "${defMatch[1]}", docId "${newRefSeqDoc._id}"`,
             )
@@ -226,11 +221,16 @@ export class AddAssemblyFromFileChange extends Change {
               this.logger.debug?.(
                 `*** Add chunk (("${refSeqDocId}", index ${chunkIndex} and total length ${refSeqLen})): "${wholeChunk}"`,
               )
-              await refSeqChunkModel.create({
-                refSeq: refSeqDocId,
-                n: chunkIndex,
-                sequence: wholeChunk,
-              })
+              await refSeqChunkModel.create(
+                [
+                  {
+                    refSeq: refSeqDocId,
+                    n: chunkIndex,
+                    sequence: wholeChunk,
+                  },
+                ],
+                { session },
+              )
               chunkIndex++
               // Set remaining sequence
               chunkSequenceBlock = chunkSequenceBlock.slice(chunkSize)
@@ -246,22 +246,31 @@ export class AddAssemblyFromFileChange extends Change {
         this.logger.debug?.(
           `*** Add the very last chunk to ref seq ("${refSeqDocId}", index ${chunkIndex} and total length for ref seq is ${refSeqLen}): "${chunkSequenceBlock}"`,
         )
-        await refSeqChunkModel.create({
-          refSeq: refSeqDocId,
-          n: chunkIndex,
-          sequence: chunkSequenceBlock,
-        })
+        await refSeqChunkModel.create(
+          [
+            {
+              refSeq: refSeqDocId,
+              n: chunkIndex,
+              sequence: chunkSequenceBlock,
+            },
+          ],
+          { session },
+        )
         let totalLen = 0
-        for await (const doc of refSeqChunkModel.find({
-          refSeq: refSeqDocId,
-        })) {
+        for await (const doc of refSeqChunkModel
+          .find({ refSeq: refSeqDocId })
+          .session(session)) {
           this.logger.debug?.(
             `Chunk ${doc.n}, the length is ${doc.sequence.length}`,
           )
           totalLen += doc.sequence.length
         }
         this.logger.debug?.(`Total length is ${totalLen}`)
-        await refSeqModel.updateOne({ _id: refSeqDocId }, { length: totalLen })
+        await refSeqModel.updateOne(
+          { _id: refSeqDocId },
+          { length: totalLen },
+          { session },
+        )
       }
     }
   }
