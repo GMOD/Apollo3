@@ -215,7 +215,7 @@ export class AddAssemblyFromFileChange extends Change {
           } else if (/\S/.test(oneLine)) {
             chunkSequenceBlock += oneLine.replace(/\s/g, '')
             // If sequence block > chunk size then save chunk into Mongo
-            if (chunkSequenceBlock.length >= chunkSize) {
+            while (chunkSequenceBlock.length >= chunkSize) {
               const wholeChunk = chunkSequenceBlock.slice(0, chunkSize)
               refSeqLen += wholeChunk.length
               this.logger.debug?.(
