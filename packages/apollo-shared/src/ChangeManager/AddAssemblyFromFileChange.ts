@@ -145,7 +145,6 @@ export class AddAssemblyFromFileChange extends Change {
         // chunk is small enough that you can split the whole thing into lines without having to make it into smaller chunks first.
         const lines = chunk.split(/\r?\n/)
         for await (const oneLine of lines) {
-          // this.logger.debug?.(`${oneLine.trim()}`)
           // In case of GFF3 file we start to read after '##FASTA' is found
           if (!fastaInfoStarted && oneLine.trim() === '##FASTA') {
             fastaInfoStarted = true
@@ -155,7 +154,6 @@ export class AddAssemblyFromFileChange extends Change {
             continue
           }
 
-          // this.logger.debug?.(`Line:\n"${oneLine}"`)
           const defMatch = /^>\s*(\S+)\s*(.*)/.exec(oneLine)
           // Let's check if we are processing reference seq info
           if (defMatch) {
@@ -174,6 +172,21 @@ export class AddAssemblyFromFileChange extends Change {
                 n: chunkIndex,
                 sequence: chunkSequenceBlock,
               })
+              let totalLen = 0
+              for await (const doc of refSeqChunkModel.find({
+                refSeq: refSeqDocId,
+              })) {
+                this.logger.debug?.(
+                  `Chunk ${doc.n}, the length is ${doc.sequence.length}`,
+                )
+                totalLen += doc.sequence.length
+              }
+              this.logger.debug?.(`Total length is ${totalLen}`)
+              await refSeqModel.updateOne(
+                { _id: refSeqDocId },
+                { length: totalLen },
+              )
+
               chunkSequenceBlock = ''
               refSeqLen = 0
               chunkIndex = 0
@@ -238,73 +251,18 @@ export class AddAssemblyFromFileChange extends Change {
           n: chunkIndex,
           sequence: chunkSequenceBlock,
         })
-
-        // ************** TODO: UPDATE REF SEQ LEN OF THE LAST REF SEQ *******************
+        let totalLen = 0
+        for await (const doc of refSeqChunkModel.find({
+          refSeq: refSeqDocId,
+        })) {
+          this.logger.debug?.(
+            `Chunk ${doc.n}, the length is ${doc.sequence.length}`,
+          )
+          totalLen += doc.sequence.length
+        }
+        this.logger.debug?.(`Total length is ${totalLen}`)
+        await refSeqModel.updateOne({ _id: refSeqDocId }, { length: totalLen })
       }
-
-      // // Read data from compressed file and parse the content
-      // const sequenceStream = fs
-      //   .createReadStream(compressedFullFileName)
-      //   .pipe(createGunzip())
-      //   .pipe(
-      //     gff.parseStream({
-      //       parseSequences: true,
-      //       parseComments: false,
-      //       parseDirectives: false,
-      //       parseFeatures: false,
-      //     }),
-      //   )
-      // for await (const s of sequenceStream) {
-      //   const sequence = s as GFF3Sequence
-      //   this.logger.debug?.(
-      //     `RefSeq: "${sequence.id}", length: ${sequence.sequence.length}`,
-      //   )
-      //   this.logger.debug?.(`RefSeq: "${sequence.id}"`)
-      //   const refSeqDoc = await refSeqModel
-      //     .findOne({ assembly: newAssemblyDoc._id, name: sequence.id })
-      //     .session(session)
-      //     .exec()
-      //   if (refSeqDoc) {
-      //     throw new Error(
-      //       `RefSeq "${sequence.id}" already exists in assemblyId "${newAssemblyDoc._id}"`,
-      //     )
-      //   }
-      //   // Add refSeq
-      //   const { CHUNK_SIZE } = process.env
-      //   const [newRefSeqDoc] = await refSeqModel.create(
-      //     [
-      //       {
-      //         name: sequence.id,
-      //         description: sequence.id,
-      //         assembly: newAssemblyDoc._id,
-      //         length: sequence.sequence.length,
-      //         ...(CHUNK_SIZE ? { chunkSize: Number(CHUNK_SIZE) } : null),
-      //       },
-      //     ],
-      //     { session },
-      //   )
-      //   this.logger.debug?.(
-      //     `Added new refSeq "${sequence.id}", docId "${newRefSeqDoc._id}"`,
-      //   )
-
-      //   const { chunkSize } = newRefSeqDoc
-      //   const numChunks = Math.ceil(sequence.sequence.length / chunkSize)
-      //   for (let chunkNum = 0; chunkNum < numChunks; chunkNum++) {
-      //     const start = chunkNum * chunkSize
-      //     const chunk = sequence.sequence.slice(start, start + chunkSize)
-      //     await refSeqChunkModel.create(
-      //       [
-      //         {
-      //           refSeq: newRefSeqDoc._id,
-      //           n: chunkNum,
-      //           sequence: chunk,
-      //           chunkSize,
-      //         },
-      //       ],
-      //       { session },
-      //     )
-      //   }
-      // }
     }
   }
 
