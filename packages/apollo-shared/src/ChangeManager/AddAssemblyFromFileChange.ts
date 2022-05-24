@@ -238,7 +238,6 @@ export class AddAssemblyFromFileChange extends Change {
             }
           }
         }
-        // })
       }
 
       if (chunkSequenceBlock.length > 0) {
