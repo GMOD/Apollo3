@@ -37,6 +37,7 @@ import {
   ApolloView as ApolloViewReactComponent,
   stateModelFactory as apolloViewStateModelFactory,
 } from './ApolloView'
+import { AddAssembly } from './components'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
@@ -140,6 +141,20 @@ export default class ApolloPlugin extends Plugin {
         label: 'Add Apollo View',
         onClick: (session: AbstractSessionModel) => {
           session.addView('ApolloView', {})
+        },
+      })
+      pluginManager.rootModel.appendToMenu('Apollo', {
+        label: 'Add Assembly',
+        onClick: (session: AbstractSessionModel) => {
+          session.queueDialog((doneCallback) => [
+            AddAssembly,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+            },
+          ])
         },
       })
     }
