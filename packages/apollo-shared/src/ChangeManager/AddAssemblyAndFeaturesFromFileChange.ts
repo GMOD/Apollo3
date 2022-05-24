@@ -4,6 +4,7 @@ import { createGunzip } from 'zlib'
 import gff, { GFF3Feature } from '@gmod/gff'
 
 import {
+  Change,
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
@@ -11,43 +12,43 @@ import {
   ServerDataStore,
 } from './Change'
 import { addFeatureIntoDb } from './Common'
-import { FeatureChange } from './FeatureChange'
 
-export interface SerializedAddFeaturesFromFileChangeBase
+export interface SerializedAddAssemblyAndFeaturesFromFileChangeBase
   extends SerializedChange {
-  typeName: 'AddFeaturesFromFileChange'
+  typeName: 'AddAssemblyAndFeaturesFromFileChange'
 }
 
-export interface AddFeaturesFromFileChangeDetails {
+export interface AddAssemblyAndFeaturesFromFileChangeDetails {
+  assemblyName: string
   fileChecksum: string
 }
 
-export interface SerializedAddFeaturesFromFileChangeSingle
-  extends SerializedAddFeaturesFromFileChangeBase,
-    AddFeaturesFromFileChangeDetails {}
+export interface SerializedAddAssemblyAndFeaturesFromFileChangeSingle
+  extends SerializedAddAssemblyAndFeaturesFromFileChangeBase,
+    AddAssemblyAndFeaturesFromFileChangeDetails {}
 
-export interface SerializedAddFeaturesFromFileChangeMultiple
-  extends SerializedAddFeaturesFromFileChangeBase {
-  changes: AddFeaturesFromFileChangeDetails[]
+export interface SerializedAddAssemblyAndFeaturesFromFileChangeMultiple
+  extends SerializedAddAssemblyAndFeaturesFromFileChangeBase {
+  changes: AddAssemblyAndFeaturesFromFileChangeDetails[]
 }
 
-export type SerializedAddFeaturesFromFileChange =
-  | SerializedAddFeaturesFromFileChangeSingle
-  | SerializedAddFeaturesFromFileChangeMultiple
+export type SerializedAddAssemblyAndFeaturesFromFileChange =
+  | SerializedAddAssemblyAndFeaturesFromFileChangeSingle
+  | SerializedAddAssemblyAndFeaturesFromFileChangeMultiple
 
-export class AddFeaturesFromFileChange extends FeatureChange {
-  typeName = 'AddFeaturesFromFileChange' as const
-  changes: AddFeaturesFromFileChangeDetails[]
+export class AddAssemblyAndFeaturesFromFileChange extends Change {
+  typeName = 'AddAssemblyAndFeaturesFromFileChange' as const
+  changes: AddAssemblyAndFeaturesFromFileChangeDetails[]
 
   constructor(
-    json: SerializedAddFeaturesFromFileChange,
+    json: SerializedAddAssemblyAndFeaturesFromFileChange,
     options?: ChangeOptions,
   ) {
     super(json, options)
     this.changes = 'changes' in json ? json.changes : [json]
   }
 
-  toJSON(): SerializedAddFeaturesFromFileChange {
+  toJSON() {
     if (this.changes.length === 1) {
       const [{ fileChecksum }] = this.changes
       return {
@@ -71,11 +72,11 @@ export class AddFeaturesFromFileChange extends FeatureChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { featureModel, refSeqModel, fs, session } = backend
+    const { assemblyModel, refSeqModel, featureModel, fileModel, fs, session } =
+      backend
     const { changes, assemblyId } = this
-
     for (const change of changes) {
-      const { fileChecksum } = change
+      const { fileChecksum, assemblyName } = change
       this.logger.debug?.(`File checksum: '${fileChecksum}'`)
 
       const { FILE_UPLOAD_FOLDER } = process.env
@@ -84,6 +85,32 @@ export class AddFeaturesFromFileChange extends FeatureChange {
       }
       const compressedFullFileName = join(FILE_UPLOAD_FOLDER, fileChecksum)
 
+      // Check and add new assembly
+      const assemblyDoc = await assemblyModel
+        .findOne({ name: assemblyName })
+        .session(session)
+        .exec()
+      if (assemblyDoc) {
+        throw new Error(`Assembly "${assemblyName}" already exists`)
+      }
+      // Add assembly
+      const [newAssemblyDoc] = await assemblyModel.create(
+        [{ _id: assemblyId, name: assemblyName }],
+        { session },
+      )
+      this.logger.debug?.(
+        `Added new assembly "${assemblyName}", docId "${newAssemblyDoc._id}"`,
+      )
+      this.logger.debug?.(`Find file document by "${fileChecksum}"`)
+      // Get file type from Mongo
+      const fileDoc = await fileModel
+        .findOne({ checksum: fileChecksum })
+        .session(session)
+        .exec()
+      if (!fileDoc) {
+        throw new Error(`File "${fileChecksum}" information not found in Mongo`)
+      }
+      this.logger.debug?.(`File type: "${fileDoc.type}"`)
       // Read data from compressed file and parse the content
       const featureStream = fs
         .createReadStream(compressedFullFileName)
@@ -111,7 +138,6 @@ export class AddFeaturesFromFileChange extends FeatureChange {
         )
       }
     }
-    this.logger.debug?.(`New features added into database!`)
   }
 
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
@@ -123,45 +149,9 @@ export class AddFeaturesFromFileChange extends FeatureChange {
 
   getInverse() {
     const { changedIds, typeName, changes, assemblyId } = this
-    return new AddFeaturesFromFileChange(
+    return new AddAssemblyAndFeaturesFromFileChange(
       { changedIds, typeName, changes, assemblyId },
       { logger: this.logger },
     )
   }
-
-  // /**
-  //  * Loop child features in parent feature and add featureId to each child's attribute
-  //  * @param parentFeature - Parent feature
-  //  */
-  // setAndGetFeatureIdRecursively(
-  //   parentFeature: GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-  //   featureIdArrAsParam: string[],
-  // ): string[] {
-  //   this.logger.verbose?.(
-  //     `Value in recursive method = ${JSON.stringify(parentFeature)}`,
-  //   )
-  //   if (parentFeature.child_features?.length === 0) {
-  //     delete parentFeature.child_features
-  //   }
-  //   if (parentFeature.derived_features?.length === 0) {
-  //     delete parentFeature.derived_features
-  //   }
-  //   // If there are child features
-  //   if (parentFeature.child_features) {
-  //     parentFeature.child_features = parentFeature.child_features.map(
-  //       (childFeature) =>
-  //         childFeature.map((childFeatureLine) => {
-  //           const featureId = uuidv4()
-  //           featureIdArrAsParam.push(featureId)
-  //           const newChildFeature = { ...childFeatureLine, featureId }
-  //           this.setAndGetFeatureIdRecursively(
-  //             newChildFeature,
-  //             featureIdArrAsParam,
-  //           )
-  //           return newChildFeature
-  //         }),
-  //     )
-  //   }
-  //   return featureIdArrAsParam
-  // }
 }

@@ -1,11 +1,6 @@
 import { join } from 'path'
 import { createGunzip } from 'zlib'
 
-import gff, { GFF3Sequence } from '@gmod/gff'
-import { RefSeqChunkDocument, RefSeqDocument } from 'apollo-schemas'
-import { string } from 'mobx-state-tree/dist/internal'
-import { Model } from 'mongoose'
-
 import {
   Change,
   ChangeOptions,

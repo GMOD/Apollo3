@@ -15,8 +15,11 @@ import {
   RefSeqDocument,
 } from 'apollo-schemas'
 import {
+  AddAssemblyAndFeaturesFromFileChange,
   AddAssemblyFromFileChange,
+  SerializedAddAssemblyAndFeaturesFromFileChangeSingle,
   SerializedAddAssemblyFromFileChangeSingle,
+  SerializedAddFeaturesFromFileChange,
   changeRegistry,
 } from 'apollo-shared' // *** FOR TEST ONLY
 import { Model } from 'mongoose'
@@ -73,15 +76,38 @@ export class FilesService {
     //     },
     //   ],
     // }
-    const serializedChange: SerializedAddAssemblyFromFileChangeSingle = {
-      changedIds: ['1', '2'],
-      typeName: 'AddAssemblyFromFileChange',
-      assemblyId: '624a7e97d45d7745c2532b01',
-      // fileChecksum: 'fb2999de4a94c1b14a686e7aacd18f89', // THIS IS SMALL FASTA FILE checksum
-      // fileChecksum: '196d4f3a253b7c65aca19427edc346da', // THIS IS FASTA FILE checksum
-      fileChecksum: '83d5568fdd38026c75a3aed528e9e81d', // THIS IS GFF3 FILE checksum
-      assemblyName: 'First demo assembly',
-    }
+
+    // const serializedChange: SerializedAddFeaturesFromFileChange = {
+    //   changedIds: ['1', '2'],
+    //   typeName: 'AddFeaturesFromFileChange',
+    //   assemblyId: '624a7e97d45d7745c2532b01',
+    //   changes: [
+    //     {
+    //       fileChecksum: '83d5568fdd38026c75a3aed528e9e81d',
+    //     },
+    //   ],
+    // }
+
+    // const serializedChange: SerializedAddAssemblyFromFileChangeSingle = {
+    //   changedIds: ['1', '2'],
+    //   typeName: 'AddAssemblyFromFileChange',
+    //   assemblyId: '624a7e97d45d7745c2532b01',
+    //   // fileChecksum: 'fb2999de4a94c1b14a686e7aacd18f89', // THIS IS SMALL FASTA FILE checksum
+    //   // fileChecksum: '196d4f3a253b7c65aca19427edc346da', // THIS IS FASTA FILE checksum
+    //   fileChecksum: '83d5568fdd38026c75a3aed528e9e81d', // THIS IS GFF3 FILE checksum
+    //   assemblyName: 'First demo assembly',
+    // }
+
+    const serializedChange: SerializedAddAssemblyAndFeaturesFromFileChangeSingle =
+      {
+        changedIds: ['1', '2'],
+        typeName: 'AddAssemblyAndFeaturesFromFileChange',
+        assemblyId: '624a7e97d45d7745c2532b01',
+        // fileChecksum: 'fb2999de4a94c1b14a686e7aacd18f89', // THIS IS SMALL FASTA FILE checksum
+        // fileChecksum: '196d4f3a253b7c65aca19427edc346da', // THIS IS FASTA FILE checksum
+        fileChecksum: '83d5568fdd38026c75a3aed528e9e81d', // THIS IS GFF3 FILE checksum
+        assemblyName: 'First demo assembly from demo',
+      }
     const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
     const change = new ChangeType(serializedChange, { logger: this.logger })
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)

@@ -14,14 +14,15 @@ import {
   ChangeDocument,
   Feature,
   FeatureDocument,
+  File,
+  FileDocument,
   RefSeq,
   RefSeqChunk,
   RefSeqChunkDocument,
   RefSeqDocument,
-  File,
-  FileDocument,
 } from 'apollo-schemas'
 import {
+  AddAssemblyAndFeaturesFromFileChange,
   AddAssemblyFromFileChange,
   AddFeaturesFromFileChange,
   CoreValidation,
@@ -60,6 +61,10 @@ export class ChangesService {
     changeRegistry.registerChange(
       'AddFeaturesFromFileChange',
       AddFeaturesFromFileChange,
+    )
+    changeRegistry.registerChange(
+      'AddAssemblyAndFeaturesFromFileChange',
+      AddAssemblyAndFeaturesFromFileChange,
     )
     changeRegistry.registerChange('LocationEndChange', LocationEndChange)
     changeRegistry.registerChange('LocationStartChange', LocationStartChange)
