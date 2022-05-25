@@ -141,10 +141,19 @@ export class AddAssemblyFromFileChange extends Change {
       let previousOneLine = ''
       let refSeqId = ''
       let refSeqDesc = ''
+      // let incompleteLine = ''
       for await (const data of sequenceStream) {
         const chunk = data.toString()
+        // const lastLineIsIncomplete = !chunk.endsWith('\n')
         // chunk is small enough that you can split the whole thing into lines without having to make it into smaller chunks first.
         const lines = chunk.split(/\r?\n/)
+        // if (incompleteLine) {
+        //   lines[0] = `${incompleteLine}${lines[0]}`
+        //   incompleteLine = ''
+        // }
+        // if (lastLineIsIncomplete) {
+        //   incompleteLine = lines.pop() || ''
+        // }
         let lineIndex = 0
         for await (const oneLine of lines) {
           lineIndex++
