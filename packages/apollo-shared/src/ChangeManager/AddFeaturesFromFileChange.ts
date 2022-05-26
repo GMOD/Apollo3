@@ -10,7 +10,6 @@ import {
   SerializedChange,
   ServerDataStore,
 } from './Change'
-import { addFeatureIntoDb } from './Common'
 import { FeatureChange } from './FeatureChange'
 
 export interface SerializedAddFeaturesFromFileChangeBase
@@ -71,8 +70,8 @@ export class AddFeaturesFromFileChange extends FeatureChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { featureModel, refSeqModel, fs, session } = backend
-    const { changes, assemblyId } = this
+    const { fs } = backend
+    const { changes } = this
 
     for (const change of changes) {
       const { fileChecksum } = change
@@ -101,14 +100,7 @@ export class AddFeaturesFromFileChange extends FeatureChange {
         this.logger.verbose?.(`ENTRY=${JSON.stringify(gff3Feature)}`)
 
         // Add new feature into database
-        await addFeatureIntoDb(
-          gff3Feature,
-          session,
-          featureModel,
-          refSeqModel,
-          assemblyId,
-          this.logger,
-        )
+        await this.addFeatureIntoDb(gff3Feature, backend)
       }
     }
     this.logger.debug?.(`New features added into database!`)
@@ -128,40 +120,4 @@ export class AddFeaturesFromFileChange extends FeatureChange {
       { logger: this.logger },
     )
   }
-
-  // /**
-  //  * Loop child features in parent feature and add featureId to each child's attribute
-  //  * @param parentFeature - Parent feature
-  //  */
-  // setAndGetFeatureIdRecursively(
-  //   parentFeature: GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-  //   featureIdArrAsParam: string[],
-  // ): string[] {
-  //   this.logger.verbose?.(
-  //     `Value in recursive method = ${JSON.stringify(parentFeature)}`,
-  //   )
-  //   if (parentFeature.child_features?.length === 0) {
-  //     delete parentFeature.child_features
-  //   }
-  //   if (parentFeature.derived_features?.length === 0) {
-  //     delete parentFeature.derived_features
-  //   }
-  //   // If there are child features
-  //   if (parentFeature.child_features) {
-  //     parentFeature.child_features = parentFeature.child_features.map(
-  //       (childFeature) =>
-  //         childFeature.map((childFeatureLine) => {
-  //           const featureId = uuidv4()
-  //           featureIdArrAsParam.push(featureId)
-  //           const newChildFeature = { ...childFeatureLine, featureId }
-  //           this.setAndGetFeatureIdRecursively(
-  //             newChildFeature,
-  //             featureIdArrAsParam,
-  //           )
-  //           return newChildFeature
-  //         }),
-  //     )
-  //   }
-  //   return featureIdArrAsParam
-  // }
 }
