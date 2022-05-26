@@ -4,14 +4,13 @@ import { createGunzip } from 'zlib'
 import gff, { GFF3Feature } from '@gmod/gff'
 
 import {
-  Change,
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
   SerializedChange,
   ServerDataStore,
 } from './Change'
-import { addFeatureIntoDb } from './Common'
+import { FeatureChange } from './FeatureChange'
 
 export interface SerializedAddAssemblyAndFeaturesFromFileChangeBase
   extends SerializedChange {
@@ -36,7 +35,7 @@ export type SerializedAddAssemblyAndFeaturesFromFileChange =
   | SerializedAddAssemblyAndFeaturesFromFileChangeSingle
   | SerializedAddAssemblyAndFeaturesFromFileChangeMultiple
 
-export class AddAssemblyAndFeaturesFromFileChange extends Change {
+export class AddAssemblyAndFeaturesFromFileChange extends FeatureChange {
   typeName = 'AddAssemblyAndFeaturesFromFileChange' as const
   changes: AddAssemblyAndFeaturesFromFileChangeDetails[]
 
@@ -72,8 +71,7 @@ export class AddAssemblyAndFeaturesFromFileChange extends Change {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { assemblyModel, refSeqModel, featureModel, fileModel, fs, session } =
-      backend
+    const { assemblyModel, fileModel, fs, session } = backend
     const { changes, assemblyId } = this
     for (const change of changes) {
       const { fileChecksum, assemblyName } = change
@@ -126,16 +124,8 @@ export class AddAssemblyAndFeaturesFromFileChange extends Change {
       for await (const f of featureStream) {
         const gff3Feature = f as GFF3Feature
         this.logger.verbose?.(`ENTRY=${JSON.stringify(gff3Feature)}`)
-
         // Add new feature into database
-        await addFeatureIntoDb(
-          gff3Feature,
-          session,
-          featureModel,
-          refSeqModel,
-          assemblyId,
-          this.logger,
-        )
+        await this.addFeatureIntoDb(gff3Feature, backend)
       }
     }
   }
