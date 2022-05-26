@@ -61,6 +61,7 @@ export class FilesService {
   }
 
   // **** JUST FOR TEST *** //
+  // **** WHEN YOU CALL THIS YOU HAVE TO PASS 'type' with value 'text/x-gff3' or 'text/x-fasta'
   async dummy() {
     // const serializedChange: SerializedChange = {
     //   changedIds: ['1', '2'],
@@ -79,7 +80,9 @@ export class FilesService {
       assemblyId: '624a7e97d45d7745c2532b01',
       // fileChecksum: 'fb2999de4a94c1b14a686e7aacd18f89', // THIS IS SMALL FASTA FILE checksum
       // fileChecksum: '196d4f3a253b7c65aca19427edc346da', // THIS IS FASTA FILE checksum
-      fileChecksum: '83d5568fdd38026c75a3aed528e9e81d', // THIS IS GFF3 FILE checksum
+      // fileChecksum: '83d5568fdd38026c75a3aed528e9e81d', // THIS IS GFF3 FILE checksum
+      // fileChecksum: '20456a37df25aa01186610c816349383', // THIS IS GFF3 FILE that ends with 'GGGGG\n'
+      fileChecksum: 'a318536dbb70da44e2bba18c6e7f6349', // THIS IS GFF3 FILE that ends with 'GGGGG' and without line break
       assemblyName: 'First demo assembly',
     }
     const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)

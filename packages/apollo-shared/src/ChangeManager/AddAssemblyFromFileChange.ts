@@ -1,11 +1,6 @@
 import { join } from 'path'
 import { createGunzip } from 'zlib'
 
-import gff, { GFF3Sequence } from '@gmod/gff'
-import { RefSeqChunkDocument, RefSeqDocument } from 'apollo-schemas'
-import { string } from 'mobx-state-tree/dist/internal'
-import { Model } from 'mongoose'
-
 import {
   Change,
   ChangeOptions,
@@ -14,6 +9,11 @@ import {
   SerializedChange,
   ServerDataStore,
 } from './Change'
+
+// import gff, { GFF3Sequence } from '@gmod/gff'
+// import { RefSeqChunkDocument, RefSeqDocument } from 'apollo-schemas'
+// import { string } from 'mobx-state-tree/dist/internal'
+// import { Model } from 'mongoose'
 
 export interface SerializedAddAssemblyFromFileChangeBase
   extends SerializedChange {
@@ -136,65 +136,37 @@ export class AddAssemblyFromFileChange extends Change {
         .createReadStream(compressedFullFileName, { highWaterMark: 12 })
         .pipe(createGunzip())
       let chunkSequenceBlock = ''
-      let refSeqDescSplitted = false
-      const refSeqIdSplitted = false
-      let previousOneLine = ''
       let refSeqId = ''
       let refSeqDesc = ''
-      // let incompleteLine = ''
+      let incompleteLine = ''
+      let lastLineIsIncomplete = true
       for await (const data of sequenceStream) {
         const chunk = data.toString()
-        // const lastLineIsIncomplete = !chunk.endsWith('\n')
+        lastLineIsIncomplete = !chunk.endsWith('\n')
         // chunk is small enough that you can split the whole thing into lines without having to make it into smaller chunks first.
         const lines = chunk.split(/\r?\n/)
-        // if (incompleteLine) {
-        //   lines[0] = `${incompleteLine}${lines[0]}`
-        //   incompleteLine = ''
-        // }
-        // if (lastLineIsIncomplete) {
-        //   incompleteLine = lines.pop() || ''
-        // }
-        let lineIndex = 0
+        if (incompleteLine) {
+          lines[0] = `${incompleteLine}${lines[0]}`
+          incompleteLine = ''
+        }
+        if (lastLineIsIncomplete) {
+          incompleteLine = lines.pop() || ''
+        }
         for await (const oneLine of lines) {
-          lineIndex++
           // In case of GFF3 file we start to read sequence after '##FASTA' is found
           if (!fastaInfoStarted && oneLine.trim() === '##FASTA') {
             fastaInfoStarted = true
             continue
           }
-          // Due to stream chunks, it may happen that "##FASTA" string is splitted into 2 chunks
-          if (
-            previousOneLine !== '' &&
-            (previousOneLine += oneLine).trim() === '##FASTA'
-          ) {
-            this.logger.debug?.(
-              `"##FASTA" string was splitted into two chunks. Whole string is now "${previousOneLine}"`,
-            )
-            fastaInfoStarted = true
-            previousOneLine = ''
-            continue
-          }
-          // We need to save this line because the line may continue in next chunks to contain whole '###FASTA' string
-          if (oneLine.charAt(0) === '#') {
-            this.logger.debug?.(
-              `LINE STARTED WITH '#' : "${oneLine}". "##FASTA" string may be splitted into two chunks`,
-            )
-            previousOneLine = oneLine
-          } else {
-            previousOneLine = ''
-          }
           if (!fastaInfoStarted) {
             continue
           }
 
-          // await new Promise((resolve) => setTimeout(resolve, 2000))
-
-          const refSeqInfoStarted = /^>\s*(\S+)\s*(.*)/.exec(oneLine)
-          // Let's check if we are processing starting line of reference seq info OR remaining part of previous starting of ref seq info line
-          // i.e. it may happen that for example ref seq info ">ctgA the main contig that has description" will be split into 2 chunks
-          if (refSeqInfoStarted || refSeqDescSplitted || refSeqIdSplitted) {
+          const refSeqInfoLine = /^>\s*(\S+)\s*(.*)/.exec(oneLine)
+          // Add new ref sequence infor if we are reference seq info line
+          if (refSeqInfoLine) {
             this.logger.debug?.(
-              `*** RefSeqInfoStarted "${refSeqInfoStarted}", refSeqIdSplitted "${refSeqIdSplitted}", refSeqDescSplitted "${refSeqDescSplitted}"`,
+              `Reference sequence information line "${refSeqInfoLine}"`,
             )
 
             // If there is sequence from previous reference sequence then we need to add it to previous ref seq
@@ -234,19 +206,12 @@ export class AddAssemblyFromFileChange extends Change {
               chunkIndex = 0
             }
 
-            // If previous chunk included the start of ref seq info but not whole line. Now we need to append the 1st line of this chunk to it before we add it into database
-            if ((refSeqDescSplitted || refSeqIdSplitted) && lineIndex === 1) {
-              // If the previous chunk ref seq description was cut
-              if (refSeqDescSplitted) {
-                refSeqDesc += oneLine
+            if (refSeqInfoLine) {
+              refSeqId = refSeqInfoLine[1].trim()
+              if (refSeqInfoLine[2]) {
+                refSeqDesc = refSeqInfoLine[2].trim()
               }
-              // If the previous chunk ref seq id was cut
-              if (refSeqIdSplitted) {
-                const tmp = oneLine.split(/' '(.*)/s)
-                refSeqId += tmp[0].trim()
-                // eslint-disable-next-line prefer-destructuring
-                refSeqDesc = tmp[1]
-              }
+
               const [newRefSeqDoc] = await refSeqModel.create(
                 [
                   {
@@ -263,49 +228,6 @@ export class AddAssemblyFromFileChange extends Change {
                 `Added new refSeq "${refSeqId}", desc "${refSeqDesc}", docId "${newRefSeqDoc._id}"`,
               )
               refSeqDocId = newRefSeqDoc._id
-              refSeqDescSplitted = false
-              refSeqId = ''
-              refSeqDesc = ''
-            }
-
-            if (refSeqInfoStarted) {
-              refSeqId = refSeqInfoStarted[1].trim()
-              if (refSeqInfoStarted[2]) {
-                refSeqDesc = refSeqInfoStarted[2].trim()
-              }
-              this.logger.debug?.(
-                `*** Starting to process new ref seq "${refSeqId}", desc "${refSeqDesc}", assemblyId "${newAssemblyDoc._id}"`,
-              )
-
-              // Check if current line is not the last line in the chunk (i.e. then the whole description is included in this line)
-              if (lineIndex < lines.length) {
-                const [newRefSeqDoc] = await refSeqModel.create(
-                  [
-                    {
-                      name: refSeqId.trim(),
-                      description: refSeqDesc.trim(),
-                      assembly: newAssemblyDoc._id,
-                      length: 0,
-                      ...(CHUNK_SIZE
-                        ? { chunkSize: Number(CHUNK_SIZE) }
-                        : null),
-                    },
-                  ],
-                  { session },
-                )
-                this.logger.debug?.(
-                  `Added new refSeq "${refSeqId}", desc "${refSeqDesc}", docId "${newRefSeqDoc._id}"`,
-                )
-                refSeqDocId = newRefSeqDoc._id
-                refSeqDescSplitted = false
-                refSeqId = ''
-                refSeqDesc = ''
-              } else {
-                this.logger.debug?.(
-                  `*** Ref seq information is splitted into two chunks`,
-                )
-                refSeqDescSplitted = true
-              }
             }
           } else if (/\S/.test(oneLine)) {
             chunkSequenceBlock += oneLine.replace(/\s/g, '')
@@ -314,7 +236,7 @@ export class AddAssemblyFromFileChange extends Change {
               const wholeChunk = chunkSequenceBlock.slice(0, chunkSize)
               refSeqLen += wholeChunk.length
               this.logger.debug?.(
-                `*** Add chunk (("${refSeqDocId}", index ${chunkIndex} and total length ${refSeqLen})): "${wholeChunk}"`,
+                `Add chunk (("${refSeqDocId}", index ${chunkIndex} and total length ${refSeqLen})): "${wholeChunk}"`,
               )
               await refSeqChunkModel.create(
                 [
@@ -335,7 +257,11 @@ export class AddAssemblyFromFileChange extends Change {
         }
       }
 
-      if (chunkSequenceBlock.length > 0) {
+      if (chunkSequenceBlock.length > 0 || lastLineIsIncomplete) {
+        // If the file did not end with line break so the last line is incomplete
+        if (lastLineIsIncomplete) {
+          chunkSequenceBlock += incompleteLine
+        }
         refSeqLen += chunkSequenceBlock.length
         this.logger.debug?.(
           `*** Add the very last chunk to ref seq ("${refSeqDocId}", index ${chunkIndex} and total length for ref seq is ${refSeqLen}): "${chunkSequenceBlock}"`,

@@ -14,12 +14,12 @@ import {
   ChangeDocument,
   Feature,
   FeatureDocument,
+  File,
+  FileDocument,
   RefSeq,
   RefSeqChunk,
   RefSeqChunkDocument,
   RefSeqDocument,
-  File,
-  FileDocument,
 } from 'apollo-schemas'
 import {
   AddAssemblyFromFileChange,
