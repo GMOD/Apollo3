@@ -2,7 +2,7 @@ import { types, Instance } from 'mobx-state-tree'
 
 const stateModel = types
   .model({
-    type: types.literal('HelloView'),
+    // type: types.literal(''),
     assemblyName: types.optional(types.string, ''),
     assemblyDesc: types.optional(types.string, ''),
   })
