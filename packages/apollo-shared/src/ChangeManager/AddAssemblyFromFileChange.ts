@@ -126,7 +126,7 @@ export class AddAssemblyFromFileChange extends Change {
 
       // Read data from compressed file and parse the content
       const sequenceStream = fs
-        .createReadStream(compressedFullFileName, { highWaterMark: 12 })
+        .createReadStream(compressedFullFileName)
         .pipe(createGunzip())
       let sequenceBuffer = ''
       let incompleteLine = ''
