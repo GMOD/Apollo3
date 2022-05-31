@@ -5,6 +5,7 @@ import idValidator from 'mongoose-id-validator'
 
 import { AssembliesModule } from '../assemblies/assemblies.module'
 import { FeaturesModule } from '../features/features.module'
+import { FilesModule } from '../files/files.module'
 import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
 import { ChangesController } from './changes.controller'
@@ -28,6 +29,7 @@ import { ChangesService } from './changes.service'
     RefSeqsModule,
     RefSeqChunksModule,
     FeaturesModule,
+    FilesModule,
     CacheModule.register({ ttl: 0, max: 1000000 }), // 0 = no cache expiration, 100 000 = number of entries
   ],
 })
