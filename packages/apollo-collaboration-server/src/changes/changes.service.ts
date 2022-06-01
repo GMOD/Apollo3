@@ -55,16 +55,16 @@ export class ChangesService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     changeRegistry.registerChange(
+      'AddAssemblyAndFeaturesFromFileChange',
+      AddAssemblyAndFeaturesFromFileChange,
+    )
+    changeRegistry.registerChange(
       'AddAssemblyFromFileChange',
       AddAssemblyFromFileChange,
     )
     changeRegistry.registerChange(
       'AddFeaturesFromFileChange',
       AddFeaturesFromFileChange,
-    )
-    changeRegistry.registerChange(
-      'AddAssemblyAndFeaturesFromFileChange',
-      AddAssemblyAndFeaturesFromFileChange,
     )
     changeRegistry.registerChange('LocationEndChange', LocationEndChange)
     changeRegistry.registerChange('LocationStartChange', LocationStartChange)
