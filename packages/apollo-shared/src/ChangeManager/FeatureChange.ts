@@ -1,3 +1,5 @@
+import { createGunzip } from 'zlib'
+
 import { GFF3Feature, GFF3FeatureLine } from '@gmod/gff'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -70,6 +72,72 @@ export abstract class FeatureChange extends Change {
       }
     }
     return null
+  }
+
+  async addRefSeqIntoDb(
+    fileDocType: string,
+    compressedFullFileName: string,
+    assemblyId: string,
+    backend: ServerDataStore,
+  ) {
+    const { refSeqModel, session, fs } = backend
+    let fastaInfoStarted = true
+    if (fileDocType === 'text/x-gff3') {
+      fastaInfoStarted = false
+    }
+    const sequenceStream = fs
+      .createReadStream(compressedFullFileName)
+      .pipe(createGunzip())
+    // Loop sequence and add refseqs into Mongo (unless they exist)
+    for await (const data of sequenceStream) {
+      const chunk = data.toString()
+
+      const lines = chunk.split(/\r?\n/)
+      for await (const oneLine of lines) {
+        // In case of GFF3 file we start to read after '##FASTA' is found
+        if (!fastaInfoStarted && oneLine.trim() === '##FASTA') {
+          fastaInfoStarted = true
+          continue
+        }
+        if (!fastaInfoStarted) {
+          continue
+        }
+
+        const defMatch = /^>\s*(\S+)\s*(.*)/.exec(oneLine)
+        // Let's check if we are processing reference seq info
+        if (defMatch) {
+          let refSeqDesc = ''
+          if (defMatch[2]) {
+            refSeqDesc = defMatch[2].trim()
+          }
+
+          // Check and add new assembly
+          const refSeqDoc = await refSeqModel
+            .findOne({ name: defMatch[1], assembly: assemblyId })
+            .session(session)
+            .exec()
+          if (refSeqDoc) {
+            throw new Error(
+              `Ref seq "${defMatch[1]}" already exists in assembly "${assemblyId}"`,
+            )
+          }
+          const [newRefSeqDoc] = await refSeqModel.create(
+            [
+              {
+                name: defMatch[1],
+                description: refSeqDesc,
+                assembly: assemblyId,
+                length: 0,
+              },
+            ],
+            { session },
+          )
+          this.logger.debug?.(
+            `Added new refSeq "${defMatch[1]}", desc "${refSeqDesc}", docId "${newRefSeqDoc._id}"`,
+          )
+        }
+      }
+    }
   }
 
   async addFeatureIntoDb(gff3Feature: GFF3Feature, backend: ServerDataStore) {

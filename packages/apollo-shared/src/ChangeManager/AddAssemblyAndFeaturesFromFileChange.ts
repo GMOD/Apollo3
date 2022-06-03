@@ -109,7 +109,16 @@ export class AddAssemblyAndFeaturesFromFileChange extends FeatureChange {
         throw new Error(`File "${fileChecksum}" information not found in Mongo`)
       }
       this.logger.debug?.(`File type: "${fileDoc.type}"`)
-      // Read data from compressed file and parse the content
+
+      // Add refSeqs
+      await this.addRefSeqIntoDb(
+        fileDoc.type,
+        compressedFullFileName,
+        newAssemblyDoc._id,
+        backend,
+      )
+
+      // Loop all features
       const featureStream = fs
         .createReadStream(compressedFullFileName)
         .pipe(createGunzip())
