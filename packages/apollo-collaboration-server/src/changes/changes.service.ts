@@ -66,10 +66,6 @@ export class ChangesService {
       'AddFeaturesFromFileChange',
       AddFeaturesFromFileChange,
     )
-    changeRegistry.registerChange(
-      'AddAssemblyAndFeaturesFromFileChange',
-      AddAssemblyAndFeaturesFromFileChange,
-    )
     changeRegistry.registerChange('LocationEndChange', LocationEndChange)
     changeRegistry.registerChange('LocationStartChange', LocationStartChange)
     changeRegistry.registerChange('TypeChange', TypeChange)
