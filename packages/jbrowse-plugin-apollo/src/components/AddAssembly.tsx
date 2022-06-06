@@ -68,14 +68,34 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
     // *** FILE UPLOAD ENDS ****
 
     // *** NEW FETCH STARTS *****
-    const uri = new URL('/changes/submitChange', baseURL).href
-// const apolloFetch = apolloInternetAccount.getFetcher({
-//   locationType: 'UriLocation',
-//   uri,
-// })
-// const res2 = await apolloFetch(uri, { //...})
-    // *** NEW FETCH STARTS *****
+    // const uri = new URL('/changes/submitChange', baseURL).href
+    // const apolloFetch = apolloInternetAccount?.getFetcher({
+    //   locationType: 'UriLocation',
+    //   uri,
+    // })
+    // if (apolloFetch) {
+    //   const res = await apolloFetch(uri, {
+    //     method: 'POST',
+    //     body: JSON.stringify({
+    //       changedIds: ['1'],
+    //       typeName: 'AddAssemblyFromFileChange',
+    //       assemblyId: '624a7e97d45d7745c2532b03', // How to get this id?
+    //       fileChecksum, // This is uploaded GFF3 file checksum
+    //       assemblyName,
+    //     }),
+    //   })
+    //   console.log(`Response is ${res.status}`)
+    //   if (res.ok) {
+    //     alert('Assembly added succesfully!')
+    //   } else {
+    //     throw new Error(
+    //       `Error when inserting new assembly: ${res.status}, ${res.text}`,
+    //     )
+    //   }
+    // }
+    // *** NEW FETCH ENDS *****
 
+    // *** CURRENT FETCH STARTS *****
     console.log(`Assembly name is "${assemblyName}"`)
     const res = await fetch(new URL('/changes/submitChange', baseURL).href, {
       method: 'POST',
@@ -99,6 +119,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
         `Error when inserting new assembly: ${res.status}, ${res.text}`,
       )
     }
+    // *** CURRENT FETCH ENDS *****
     // make sure response is ok and then reload page
     handleClose()
     event.preventDefault()
@@ -110,10 +131,9 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText>Enter new assembly info</DialogContentText>
-          <h3>Upload GFF3 file</h3>
+          <h4>Upload GFF3 or FASTA file</h4>
           {/* <input type="file" onChange={(e) => setFile(e.target.value)} /> */}
           <input type="file" onChange={handleChange} />
-          {/* <button type="submit">Upload</button> */}
           <TextField
             autoFocus
             margin="dense"
