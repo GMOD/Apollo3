@@ -8,6 +8,7 @@ import {
   DialogTitle,
   TextField,
 } from '@material-ui/core'
+import axios from 'axios'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
@@ -30,7 +31,15 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
   }
   const { baseURL, internetAccountId } = apolloInternetAccount
   const [assemblyName, setAssemblyName] = useState('')
-//   const [setAssemblyDesc, setAssemblyDesc] = useState('')
+  const [file, setFile] = useState<any>()
+  // //   const [setAssemblyDesc, setAssemblyDesc] = useState('')
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files) {
+      return
+    }
+    setFile(e.target.files[0])
+  }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -39,15 +48,42 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
       alert('You must authenticate first!')
       return
     }
-    console.log(`Assembly name is "${assemblyName}"`)
+    // *** FILE UPLOAD STARTS ****
+    let fileChecksum = ''
+    const url = new URL('/files', baseURL).href
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('fileName', file.name)
+    formData.append('type', 'text/x-gff3') // How to decide value here?
+    const config = {
+      headers: {
+        'content-type': 'multipart/form-data',
+      },
+    }
+    await axios.post(url, formData, config).then((response: any) => {
+      console.log(`Response is ${response.status}`)
+      fileChecksum = response.data
+    })
+    console.log(`File uploaded, file checksum "${fileChecksum}"`)
+    // *** FILE UPLOAD ENDS ****
 
+    // *** NEW FETCH STARTS *****
+    const uri = new URL('/changes/submitChange', baseURL).href
+// const apolloFetch = apolloInternetAccount.getFetcher({
+//   locationType: 'UriLocation',
+//   uri,
+// })
+// const res2 = await apolloFetch(uri, { //...})
+    // *** NEW FETCH STARTS *****
+
+    console.log(`Assembly name is "${assemblyName}"`)
     const res = await fetch(new URL('/changes/submitChange', baseURL).href, {
       method: 'POST',
       body: JSON.stringify({
         changedIds: ['1'],
         typeName: 'AddAssemblyFromFileChange',
-        assemblyId: '624a7e97d45d7745c2532b03',
-        fileChecksum: '83d5568fdd38026c75a3aed528e9e81d', // This is uploaded GFF3 file checksum
+        assemblyId: '624a7e97d45d7745c2532b03', // How to get this id?
+        fileChecksum, // This is uploaded GFF3 file checksum
         assemblyName,
       }),
       headers: new Headers({
@@ -73,7 +109,11 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
       <DialogTitle>Add assembly to {internetAccountId}</DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-          <DialogContentText>Enter new assembly information</DialogContentText>
+          <DialogContentText>Enter new assembly info</DialogContentText>
+          <h3>Upload GFF3 file</h3>
+          {/* <input type="file" onChange={(e) => setFile(e.target.value)} /> */}
+          <input type="file" onChange={handleChange} />
+          {/* <button type="submit">Upload</button> */}
           <TextField
             autoFocus
             margin="dense"

@@ -47,12 +47,16 @@ export class FilesController {
     if (!file) {
       throw new UnprocessableEntityException('No "file" found in request')
     }
-    return this.filesService.create({
+    this.logger.debug(`Upload file alkaa...`)
+    this.logger.debug(`Upload ${file.originalname}`)
+    this.logger.debug(`Upload ${file.checksum}`)
+    await this.filesService.create({
       basename: file.originalname,
       checksum: file.checksum,
       type: body.type,
       user: 'na',
     })
+    return file.checksum
   }
 
   /**

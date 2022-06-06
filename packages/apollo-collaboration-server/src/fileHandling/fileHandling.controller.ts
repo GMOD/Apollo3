@@ -198,6 +198,7 @@ export class FileHandlingController {
   @Post('/uploadtocache')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
+    this.logger.debug(`Now uploading a file "${file.originalname}"`)
     this.fileService.loadGFF3FileIntoCache(
       await this.fileService.saveNewFile(file),
     )

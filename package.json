@@ -42,5 +42,8 @@
   "resolutions": {
     "typescript": "4.4.4"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "axios": "^0.27.2"
+  }
 }
