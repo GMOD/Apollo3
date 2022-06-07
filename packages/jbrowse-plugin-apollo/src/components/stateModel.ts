@@ -5,6 +5,7 @@ const stateModel = types
     // type: types.literal(''),
     assemblyName: types.optional(types.string, ''),
     assemblyDesc: types.optional(types.string, ''),
+    // collection: types.optional(types.array,[]),
     // file: typeof Blob,
   })
   .actions(self => ({
@@ -14,8 +15,8 @@ const stateModel = types
     setAssemblyDesc(message: string) {
       self.assemblyDesc = message
     },
-    // setFile(file: Blob) {
-    //   self.file = file
+    // setCollection(items: Array) {
+    //   self.collection = items
     // }, 
    }))
 
