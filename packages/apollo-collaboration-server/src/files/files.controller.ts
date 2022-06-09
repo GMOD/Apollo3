@@ -24,8 +24,8 @@ import {
   FileStorageEngine,
   UploadedFile as UploadedApolloFile,
 } from '../utils/FileStorageEngine'
-import { FilesService } from './files.service'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
+import { FilesService } from './files.service'
 
 @Controller('files')
 export class FilesController {
@@ -50,9 +50,9 @@ export class FilesController {
     if (!file) {
       throw new UnprocessableEntityException('No "file" found in request')
     }
-    this.logger.debug(`Upload file alkaa...`)
-    this.logger.debug(`Upload ${file.originalname}`)
-    this.logger.debug(`Upload ${file.checksum}`)
+    this.logger.debug(
+      `Upload file "${file.originalname}", checksum "${file.checksum}"`,
+    )
     await this.filesService.create({
       basename: file.originalname,
       checksum: file.checksum,

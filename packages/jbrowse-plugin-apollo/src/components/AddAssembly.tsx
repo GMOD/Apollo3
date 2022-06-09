@@ -63,21 +63,38 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
       uri: url,
     })
     if (apolloFetchFile) {
-      const res = await apolloFetchFile(url, {
+      console.log(`File uploaded`)
+      await apolloFetchFile(url, {
         method: 'POST',
         body: formData,
+      }).then((response) => (await response.json()))
+      .then((resp) => {
+      console.log(`1File uploaded`)
+      console.log(`2File uploaded "${resp}"`)
+      console.log(`3File uploaded "${resp.data}"`)
+      fileChecksum = resp.data
       })
-      console.log(`Response is ${res.status}`)
-      if (res.ok) {
-        alert('Assembly added succesfully!')
-        fileChecksum = (await res.json()).data
-      } else {
-        throw new Error(
-          `Error when inserting new assembly: ${res.status}, ${res.text}`,
-        )
-      }
+  //     // console.log(`1Response is ${res.status}`)
+  //     if (res.ok) {
+  //       // alert('Assembly added succesfully!')
+  //     // console.log(`1AResponse is ${res}`)
+  //     // console.log(`2AResponse is ${res.text()}`)
+  //     // console.log(`3AResponse is ${res.json()}`)
+  //     // console.log(`2AResponse is ${(await res.text())}`)
+  //     // console.log(`3AResponse is ${(await res.json())}`)
+  //     // console.log(`File uploaded "${await res.json()}"`)
+  //     // console.log(`1AResponse is ${res.status}`)
+  //     console.log(`File uploaded "${(await res.json()).data}"`)
+  //     console.log(`1AResponse is ${res.status}`)
+  //     fileChecksum = (await res.json()).data
+  //   console.log(`File uploaded, file checksum "${fileChecksum}"`)
+  // } else {
+  //       throw new Error(
+  //         `Error when inserting new assembly: ${res.status}, ${res.text}`,
+  //       )
+  //     }
     }
-    console.log(`File uploaded, file checksum "${fileChecksum}"`)
+      console.log(`File uploaded, file checksum "${fileChecksum}"`)
 
     const uri = new URL('/changes/submitChange', baseURL).href
     const apolloFetch = apolloInternetAccount?.getFetcher({
