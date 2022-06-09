@@ -8,12 +8,11 @@ import {
   DialogTitle,
   TextField,
 } from '@material-ui/core'
-import axios from 'axios'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { ViewModel } from './stateModel'
+import { ObjectID } from 'bson'
 
 interface AddAssemblyProps {
   session: AbstractSessionModel
@@ -48,22 +47,13 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
       alert('You must authenticate first!')
       return
     }
-    // *** FILE UPLOAD STARTS ****
+
     let fileChecksum = ''
     const url = new URL('/files', baseURL).href
     const formData = new FormData()
     formData.append('file', file)
     formData.append('fileName', file.name)
     formData.append('type', 'text/x-gff3') // How to decide value here?
-    const config = {
-      headers: {
-        'content-type': 'multipart/form-data',
-      },
-    }
-    // await axios.post(url, formData, config).then((response: any) => {
-    //   console.log(`Response is ${response.status}`)
-    //   fileChecksum = response.data
-    // })
     const apolloFetchFile = apolloInternetAccount?.getFetcher({
       locationType: 'UriLocation',
       uri: url,
@@ -72,9 +62,6 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
       const res = await apolloFetchFile(url, {
         method: 'POST',
         body: formData,
-        // headers: new Headers({
-        //   'content-type': 'multipart/form-data',
-        // }),
       })
       console.log(`Response is ${res.status}`)
       if (res.ok) {
@@ -86,11 +73,8 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
         )
       }
     }
-
     console.log(`File uploaded, file checksum "${fileChecksum}"`)
-    // *** FILE UPLOAD ENDS ****
 
-    // *** NEW FETCH STARTS *****
     const uri = new URL('/changes/submitChange', baseURL).href
     const apolloFetch = apolloInternetAccount?.getFetcher({
       locationType: 'UriLocation',
@@ -102,8 +86,8 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
         body: JSON.stringify({
           changedIds: ['1'],
           typeName: 'AddAssemblyFromFileChange',
-          assemblyId: '624a7e97d45d7745c2532b07', // How to get this id?
-          fileChecksum, // This is uploaded GFF3 file checksum
+          assemblyId: new ObjectID(),
+          fileChecksum,
           assemblyName,
         }),
         headers: new Headers({
@@ -119,36 +103,6 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
         )
       }
     }
-    // *** NEW FETCH ENDS *****
-
-    //     import { ObjectID } from 'bson';
-    // const id  = new ObjectID();
-
-    // *** CURRENT FETCH STARTS *****
-    // console.log(`Assembly name is "${assemblyName}"`)
-    // const res = await fetch(new URL('/changes/submitChange', baseURL).href, {
-    //   method: 'POST',
-    //   body: JSON.stringify({
-    //     changedIds: ['1'],
-    //     typeName: 'AddAssemblyFromFileChange',
-    //     assemblyId: '624a7e97d45d7745c2532b05', // How to get this id?
-    //     fileChecksum,
-    //     assemblyName,
-    //   }),
-    //   headers: new Headers({
-    //     Authorization: `Bearer ${sessionToken}`,
-    //     'Content-Type': 'application/json',
-    //   }),
-    // })
-    // console.log(`Response is ${res.status}`)
-    // if (res.ok) {
-    //   alert('Assembly added succesfully!')
-    // } else {
-    //   throw new Error(
-    //     `Error when inserting new assembly: ${res.status}, ${res.text}`,
-    //   )
-    // }
-    // *** CURRENT FETCH ENDS *****
     // make sure response is ok and then reload page
     handleClose()
     event.preventDefault()
