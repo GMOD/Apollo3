@@ -95,15 +95,24 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
     formData.append('file', file)
     formData.append('fileName', file.name)
     formData.append('type', 'text/x-gff3')
-    const config = {
-      headers: {
-        'content-type': 'multipart/form-data',
-      },
-    }
-    await axios.post(url, formData, config).then((response: any) => {
-      console.log(`Response is ${response.status}`)
-      fileChecksum = response.data
+    const apolloFetchFile = apolloInternetAccount?.getFetcher({
+      locationType: 'UriLocation',
+      uri: url,
     })
+    if (apolloFetchFile) {
+      const res = await apolloFetchFile(url, {
+        method: 'POST',
+        body: formData,
+      })
+      console.log(`Response is ${res.status}`)
+      if (res.ok) {
+        fileChecksum = (await res.json()).data
+      } else {
+        throw new Error(
+          `Error when inserting new assembly: ${res.status}, ${res.text}`,
+        )
+      }
+    }
     console.log(`File uploaded, file checksum "${fileChecksum}"`)
     console.log(`AssemblyId is "${assemblyId}"`)
     const res = await fetch(new URL('/changes/submitChange', baseURL).href, {
