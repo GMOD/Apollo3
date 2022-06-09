@@ -17,6 +17,11 @@ interface ImportFeaturesProps {
   handleClose(): void
 }
 
+interface Collection {
+  _id: string
+  name: string
+}
+
 export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const apolloInternetAccount = internetAccounts.find(
@@ -28,7 +33,7 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
   const { baseURL, internetAccountId } = apolloInternetAccount
   const [assemblyName, setAssemblyName] = useState('')
   const [file, setFile] = useState<any>()
-  const [collection, setCollection] = useState([{ _id: '', name: '' }])
+  const [collection, setCollection] = useState<Collection[]>([])
   const [assemblyId, setValue] = useState('')
 
   function handleChangeAssembly(e: React.ChangeEvent<HTMLSelectElement>) {
@@ -47,8 +52,7 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
   useEffect(() => {
     myFunction()
     return () => {
-    //   setCollection([collection.shift()!]) // This worked for me
-      setCollection([{ _id: '', name: '' }]) // This worked for me
+      setCollection([{ _id: '', name: '' }])
     }
   }, [])
 
