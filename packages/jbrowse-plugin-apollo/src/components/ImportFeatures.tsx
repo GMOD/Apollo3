@@ -8,7 +8,7 @@ import {
 } from '@material-ui/core'
 import axios from 'axios'
 import { getRoot } from 'mobx-state-tree'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 
@@ -28,17 +28,8 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
   const { baseURL, internetAccountId } = apolloInternetAccount
   const [assemblyName, setAssemblyName] = useState('')
   const [file, setFile] = useState<any>()
-//   const [collection, setCollection] = React.useState<any[]>([])
-
-  const options = [
-    { label: '', value: '' },
-    { label: 'hardcoded assembly name', value: '624a7e97d45d7745c2532b03' },
-  ]
-  const [assemblyId, setValue] = React.useState('')
-
-  console.log(`getAssemblies() call starts...`)
-  getAssemblies()
-  console.log(`getAssemblies() call ended`)
+  const [collection, setCollection] = useState([{ _id: '', name: '' }])
+  const [assemblyId, setValue] = useState('')
 
   function handleChangeAssembly(e: React.ChangeEvent<HTMLSelectElement>) {
     setValue(e.target.value)
@@ -53,28 +44,38 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
     setFile(e.target.files[0])
   }
 
-  // Get assemblies **** DOES NOT WORK ****
-  async function getAssemblies() {
+  useEffect(() => {
+    myFunction()
+    return () => {
+    //   setCollection([collection.shift()!]) // This worked for me
+      setCollection([{ _id: '', name: '' }]) // This worked for me
+    }
+  }, [])
+
+  const myFunction = () => {
     const uri = new URL('/assemblies', baseURL).href
     const apolloFetch = apolloInternetAccount?.getFetcher({
       locationType: 'UriLocation',
       uri,
     })
     if (apolloFetch) {
-      await apolloFetch(uri, {
+      apolloFetch(uri, {
         method: 'GET',
       })
         .then((response) => response.json())
         .then((res) => {
           console.log(JSON.stringify(res))
-          //   res.forEach((item: any) => {
-          //     // console.log(`Id: ${item._id}`)
-          //     // console.log(`Name: ${item.name}`)
-          //   })
-          options.push({ label: 'demo123', value: 'demoValue123' })
+          res.forEach((item: any) => {
+            setCollection((result) => [
+              ...result,
+              {
+                _id: item._id,
+                name: item.name,
+              },
+            ])
+          })
         })
     }
-    console.log(`getAssemblies() finished`)
   }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -134,8 +135,8 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <h4>Select assembly</h4>
           <select value={assemblyId} onChange={handleChangeAssembly}>
-            {options.map((option) => (
-              <option value={option.value}>{option.label}</option>
+            {collection.map((option) => (
+              <option value={option._id}>{option.name}</option>
             ))}
           </select>
           <h4>Upload GFF3 to load features</h4>

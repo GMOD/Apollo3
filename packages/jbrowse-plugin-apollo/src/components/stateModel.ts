@@ -5,8 +5,7 @@ const stateModel = types
     // type: types.literal(''),
     assemblyName: types.optional(types.string, ''),
     assemblyDesc: types.optional(types.string, ''),
-    // collection: types.optional(types.array,[]),
-    // file: typeof Blob,
+    // collection: types.optional(types.array, [{label: '', value: ''}]),
   })
   .actions(self => ({
     setAssemblyName(message: string) {

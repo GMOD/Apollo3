@@ -13,7 +13,6 @@ import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { ViewModel } from './stateModel'
 
 interface AddAssemblyProps {
   session: AbstractSessionModel
@@ -32,7 +31,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
   const { baseURL, internetAccountId } = apolloInternetAccount
   const [assemblyName, setAssemblyName] = useState('')
   const [file, setFile] = useState<any>()
-  // //   const [setAssemblyDesc, setAssemblyDesc] = useState('')
+  const [assemblyDesc, setAssemblyDesc] = useState('')
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (!e.target.files) {
@@ -120,7 +119,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
       )
     }
     // *** CURRENT FETCH ENDS *****
-    
+
     // make sure response is ok and then reload page
     handleClose()
     event.preventDefault()
@@ -128,13 +127,9 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
 
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
-      <DialogTitle>Add assembly to {internetAccountId}</DialogTitle>
+      <DialogTitle>Add new assembly</DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-          <DialogContentText>Enter new assembly info</DialogContentText>
-          <h4>Upload GFF3 or FASTA file</h4>
-          {/* <input type="file" onChange={(e) => setFile(e.target.value)} /> */}
-          <input type="file" onChange={handleChange} />
           <TextField
             autoFocus
             margin="dense"
@@ -152,8 +147,10 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
             type="TextField"
             fullWidth
             variant="standard"
-            // onChange={(e) => setAssemblyDesc(e.target.value)}
+            onChange={(e) => setAssemblyDesc(e.target.value)}
           />
+          <h4>Upload GFF3 or FASTA file</h4>
+          <input type="file" onChange={handleChange} />
         </DialogContent>
         <DialogActions>
           <Button variant="contained" color="primary" type="submit">
