@@ -14,6 +14,7 @@ import {
   StreamableFile,
   UnprocessableEntityException,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
@@ -24,6 +25,7 @@ import {
   UploadedFile as UploadedApolloFile,
 } from '../utils/FileStorageEngine'
 import { FilesService } from './files.service'
+import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 
 @Controller('files')
 export class FilesController {
@@ -36,6 +38,7 @@ export class FilesController {
    * @returns Return ....  if save was successful
    * or in case of error return throw exception
    */
+  @UseGuards(JwtAuthGuard)
   @Post()
   @UseInterceptors(
     FileInterceptor('file', { storage: new FileStorageEngine() }),
