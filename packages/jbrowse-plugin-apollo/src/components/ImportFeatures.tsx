@@ -1,21 +1,16 @@
-import { EDEADLK } from 'constants'
-
 import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
 import {
   Button,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
-  TextField,
 } from '@material-ui/core'
 import axios from 'axios'
 import { getRoot } from 'mobx-state-tree'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { ViewModel } from './stateModel'
 
 interface ImportFeaturesProps {
   session: AbstractSessionModel
@@ -33,13 +28,13 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
   const { baseURL, internetAccountId } = apolloInternetAccount
   const [assemblyName, setAssemblyName] = useState('')
   const [file, setFile] = useState<any>()
-  const [collection, setCollection] = React.useState<any[]>([])
+//   const [collection, setCollection] = React.useState<any[]>([])
 
   const options = [
     { label: '', value: '' },
     { label: 'hardcoded assembly name', value: '624a7e97d45d7745c2532b03' },
   ]
-  const [value, setValue] = React.useState('')
+  const [assemblyId, setValue] = React.useState('')
 
   console.log(`getAssemblies() call starts...`)
   getAssemblies()
@@ -47,6 +42,8 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
 
   function handleChangeAssembly(e: React.ChangeEvent<HTMLSelectElement>) {
     setValue(e.target.value)
+    const ind = e.target.selectedIndex
+    setAssemblyName(e.target[ind].innerText)
   }
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -56,7 +53,7 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
     setFile(e.target.files[0])
   }
 
-  // Get assemblies
+  // Get assemblies **** DOES NOT WORK ****
   async function getAssemblies() {
     const uri = new URL('/assemblies', baseURL).href
     const apolloFetch = apolloInternetAccount?.getFetcher({
@@ -74,7 +71,7 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
           //     // console.log(`Id: ${item._id}`)
           //     // console.log(`Name: ${item.name}`)
           //   })
-          options.push({ label: 'item._id21', value: 'item.name21' })
+          options.push({ label: 'demo123', value: 'demoValue123' })
         })
     }
     console.log(`getAssemblies() finished`)
@@ -87,13 +84,12 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
       alert('You must authenticate first!')
       return
     }
-    // *** FILE UPLOAD STARTS ****
     let fileChecksum = ''
     const url = new URL('/files', baseURL).href
     const formData = new FormData()
     formData.append('file', file)
     formData.append('fileName', file.name)
-    formData.append('type', 'text/x-gff3') // How to decide value here?
+    formData.append('type', 'text/x-gff3')
     const config = {
       headers: {
         'content-type': 'multipart/form-data',
@@ -104,17 +100,14 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
       fileChecksum = response.data
     })
     console.log(`File uploaded, file checksum "${fileChecksum}"`)
-    // *** FILE UPLOAD ENDS ****
-
-    // *** CURRENT FETCH STARTS *****
-    console.log(`Assembly name is "${assemblyName}"`)
+    console.log(`AssemblyId is "${assemblyId}"`)
     const res = await fetch(new URL('/changes/submitChange', baseURL).href, {
       method: 'POST',
       body: JSON.stringify({
         changedIds: ['1'],
-        typeName: 'ImportFeaturesFromFileChange',
-        assemblyId: '624a7e97d45d7745c2532b03', // How to get this id?
-        fileChecksum, // This is uploaded GFF3 file checksum
+        typeName: 'AddFeaturesFromFileChange',
+        assemblyId,
+        fileChecksum,
         assemblyName,
       }),
       headers: new Headers({
@@ -124,14 +117,12 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
     })
     console.log(`Response is ${res.status}`)
     if (res.ok) {
-      alert('Assembly added succesfully!')
+      alert('Features added succesfully!')
     } else {
       throw new Error(
-        `Error when inserting new assembly: ${res.status}, ${res.text}`,
+        `Error when inserting new features: ${res.status}, ${res.text}`,
       )
     }
-    // *** CURRENT FETCH ENDS *****
-    // make sure response is ok and then reload page
     handleClose()
     event.preventDefault()
   }
@@ -140,47 +131,15 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Import Features from GFF3 file</DialogTitle>
       <form onSubmit={onSubmit}>
-        {/* <div>
-          <h4>Select assembly</h4>
-          <select value={value} onChange={handleChangeAssembly}>
-            {options.map((option) => (
-              <option value={option.value}>{option.label}</option>
-            ))}
-          </select>
-          <p>Selected assembly is {value}!</p>
-        </div> */}
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-        <h4>Select assembly</h4>
-          <select value={value} onChange={handleChangeAssembly}>
+          <h4>Select assembly</h4>
+          <select value={assemblyId} onChange={handleChangeAssembly}>
             {options.map((option) => (
               <option value={option.value}>{option.label}</option>
             ))}
           </select>
-          <p>Selected assembly is {value}!</p>
-
-          {/* <DialogContentText>Enter new assembly info</DialogContentText> */}
           <h4>Upload GFF3 to load features</h4>
-          {/* <input type="file" onChange={(e) => setFile(e.target.value)} /> */}
           <input type="file" onChange={handleChangeFile} />
-          {/* <TextField
-            autoFocus
-            margin="dense"
-            id="name"
-            label="Assembly name"
-            type="TextField"
-            fullWidth
-            variant="standard"
-            onChange={(e) => setAssemblyName(e.target.value)}
-          />
-          <TextField
-            margin="dense"
-            id="description"
-            label="Assembly description"
-            type="TextField"
-            fullWidth
-            variant="standard"
-            // onChange={(e) => setAssemblyDesc(e.target.value)}
-          /> */}
         </DialogContent>
         <DialogActions>
           <Button variant="contained" color="primary" type="submit">

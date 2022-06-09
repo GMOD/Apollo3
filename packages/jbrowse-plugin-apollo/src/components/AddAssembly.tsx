@@ -120,6 +120,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
       )
     }
     // *** CURRENT FETCH ENDS *****
+    
     // make sure response is ok and then reload page
     handleClose()
     event.preventDefault()
