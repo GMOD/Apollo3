@@ -4,15 +4,19 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
   TextField,
 } from '@material-ui/core'
+import { ObjectID } from 'bson'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { ObjectID } from 'bson'
 
 interface AddAssemblyProps {
   session: AbstractSessionModel
@@ -20,7 +24,6 @@ interface AddAssemblyProps {
 }
 
 export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
-  // export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',
@@ -32,6 +35,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
   const [assemblyName, setAssemblyName] = useState('')
   const [file, setFile] = useState<any>()
   const [assemblyDesc, setAssemblyDesc] = useState('')
+  const [fileType, setFileType] = useState('text/x-gff3')
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
     if (!e.target.files) {
@@ -53,7 +57,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
     const formData = new FormData()
     formData.append('file', file)
     formData.append('fileName', file.name)
-    formData.append('type', 'text/x-gff3') // How to decide value here?
+    formData.append('type', fileType)
     const apolloFetchFile = apolloInternetAccount?.getFetcher({
       locationType: 'UriLocation',
       uri: url,
@@ -86,7 +90,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
         body: JSON.stringify({
           changedIds: ['1'],
           typeName: 'AddAssemblyFromFileChange',
-          assemblyId: new ObjectID(),
+          assemblyId: '624a7e97d45d7745c2532b13', // new ObjectID(),
           fileChecksum,
           assemblyName,
         }),
@@ -132,7 +136,26 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
             variant="standard"
             onChange={(e) => setAssemblyDesc(e.target.value)}
           />
-          <h4>Select GFF3 or FASTA file</h4>
+          <FormControl>
+            <FormLabel>Select GFF3 or FASTA file</FormLabel>
+            <RadioGroup
+              aria-labelledby="demo-radio-buttons-group-label"
+              defaultValue="text/x-gff3"
+              name="radio-buttons-group"
+              onChange={(e) => setFileType(e.target.value)}
+            >
+              <FormControlLabel
+                value="text/x-gff3"
+                control={<Radio />}
+                label="GFF3"
+              />
+              <FormControlLabel
+                value="text/x-fasta"
+                control={<Radio />}
+                label="FASTA"
+              />
+            </RadioGroup>
+          </FormControl>
           <input type="file" onChange={handleChangeFile} />
         </DialogContent>
         <DialogActions>
