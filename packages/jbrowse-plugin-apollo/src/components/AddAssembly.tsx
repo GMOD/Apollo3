@@ -31,10 +31,10 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
   if (!apolloInternetAccount) {
     throw new Error('No Apollo internet account found')
   }
-  const { baseURL, internetAccountId } = apolloInternetAccount
+  const { baseURL } = apolloInternetAccount
   const [assemblyName, setAssemblyName] = useState('')
   const [file, setFile] = useState<any>()
-  const [assemblyDesc, setAssemblyDesc] = useState('')
+  // const [assemblyDesc, setAssemblyDesc] = useState('')
   const [fileType, setFileType] = useState('text/x-gff3')
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -46,13 +46,14 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    let fileChecksum = ''
     const sessionToken = sessionStorage.getItem('apolloInternetAccount-token')
     if (sessionToken == null) {
       alert('You must authenticate first!')
       return
     }
 
-    let fileChecksum = ''
+    // First upload file
     const url = new URL('/files', baseURL).href
     const formData = new FormData()
     formData.append('file', file)
@@ -63,39 +64,22 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
       uri: url,
     })
     if (apolloFetchFile) {
-      console.log(`File uploaded`)
-      await apolloFetchFile(url, {
+      const res = await apolloFetchFile(url, {
         method: 'POST',
         body: formData,
-      }).then((response) => (await response.json()))
-      .then((resp) => {
-      console.log(`1File uploaded`)
-      console.log(`2File uploaded "${resp}"`)
-      console.log(`3File uploaded "${resp.data}"`)
-      fileChecksum = resp.data
       })
-  //     // console.log(`1Response is ${res.status}`)
-  //     if (res.ok) {
-  //       // alert('Assembly added succesfully!')
-  //     // console.log(`1AResponse is ${res}`)
-  //     // console.log(`2AResponse is ${res.text()}`)
-  //     // console.log(`3AResponse is ${res.json()}`)
-  //     // console.log(`2AResponse is ${(await res.text())}`)
-  //     // console.log(`3AResponse is ${(await res.json())}`)
-  //     // console.log(`File uploaded "${await res.json()}"`)
-  //     // console.log(`1AResponse is ${res.status}`)
-  //     console.log(`File uploaded "${(await res.json()).data}"`)
-  //     console.log(`1AResponse is ${res.status}`)
-  //     fileChecksum = (await res.json()).data
-  //   console.log(`File uploaded, file checksum "${fileChecksum}"`)
-  // } else {
-  //       throw new Error(
-  //         `Error when inserting new assembly: ${res.status}, ${res.text}`,
-  //       )
-  //     }
+      console.log(`File upload response is ${res.status}`)
+      if (res.ok) {
+        fileChecksum = (await res.json()).checksum
+      } else {
+        throw new Error(
+          `Error when inserting new assembly (while uploading file): ${res.status}, ${res.text}`,
+        )
+      }
     }
-      console.log(`File uploaded, file checksum "${fileChecksum}"`)
+    console.log(`File uploaded, file checksum "${fileChecksum}"`)
 
+    // Add assembly and refSeqs
     const uri = new URL('/changes/submitChange', baseURL).href
     const apolloFetch = apolloInternetAccount?.getFetcher({
       locationType: 'UriLocation',
@@ -107,7 +91,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
         body: JSON.stringify({
           changedIds: ['1'],
           typeName: 'AddAssemblyFromFileChange',
-          assemblyId: '624a7e97d45d7745c2532b13', // new ObjectID(),
+          assemblyId: new ObjectID(),
           fileChecksum,
           assemblyName,
         }),
@@ -144,7 +128,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
             variant="standard"
             onChange={(e) => setAssemblyName(e.target.value)}
           />
-          <TextField
+          {/* <TextField
             margin="dense"
             id="description"
             label="Assembly description"
@@ -152,7 +136,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
             fullWidth
             variant="standard"
             onChange={(e) => setAssemblyDesc(e.target.value)}
-          />
+          /> */}
           <FormControl>
             <FormLabel>Select GFF3 or FASTA file</FormLabel>
             <RadioGroup

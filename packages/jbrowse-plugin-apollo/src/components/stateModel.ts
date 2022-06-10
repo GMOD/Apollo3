@@ -1,4 +1,4 @@
-import { types, Instance } from 'mobx-state-tree'
+import { Instance, types } from 'mobx-state-tree'
 
 const stateModel = types
   .model({
@@ -6,17 +6,17 @@ const stateModel = types
     assemblyDesc: types.optional(types.string, ''),
     fileType: types.optional(types.string, ''),
   })
-  .actions(self => ({
+  .actions((self) => ({
     setAssemblyName(message: string) {
       self.assemblyName = message
     },
-    setAssemblyDesc(message: string) {
-      self.assemblyDesc = message
-    },
+    // setAssemblyDesc(message: string) {
+    //   self.assemblyDesc = message
+    // },
     setFileType(message: string) {
       self.fileType = message
     },
-   }))
+  }))
 
 export default stateModel
 export type ViewModel = Instance<typeof stateModel>
