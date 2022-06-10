@@ -1,18 +1,20 @@
-import { types, Instance } from 'mobx-state-tree'
+import { Instance, types } from 'mobx-state-tree'
 
 const stateModel = types
   .model({
-    // type: types.literal(''),
     assemblyName: types.optional(types.string, ''),
     assemblyDesc: types.optional(types.string, ''),
-    // collection: types.optional(types.array, [{label: '', value: ''}]),
+    fileType: types.optional(types.string, ''),
   })
-  .actions(self => ({
+  .actions((self) => ({
     setAssemblyName(message: string) {
       self.assemblyName = message
     },
-    setAssemblyDesc(message: string) {
-      self.assemblyDesc = message
+    // setAssemblyDesc(message: string) {
+    //   self.assemblyDesc = message
+    // },
+    setFileType(message: string) {
+      self.fileType = message
     },
     // setCollection(items: Array) {
     //   self.collection = items

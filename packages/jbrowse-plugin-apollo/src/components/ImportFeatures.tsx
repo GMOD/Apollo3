@@ -30,7 +30,7 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
   if (!apolloInternetAccount) {
     throw new Error('No Apollo internet account found')
   }
-  const { baseURL, internetAccountId } = apolloInternetAccount
+  const { baseURL } = apolloInternetAccount
   const [assemblyName, setAssemblyName] = useState('')
   const [file, setFile] = useState<any>()
   const [collection, setCollection] = useState<Collection[]>([])

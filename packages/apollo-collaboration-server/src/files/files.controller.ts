@@ -14,6 +14,7 @@ import {
   StreamableFile,
   UnprocessableEntityException,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
@@ -23,6 +24,7 @@ import {
   FileStorageEngine,
   UploadedFile as UploadedApolloFile,
 } from '../utils/FileStorageEngine'
+import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { FilesService } from './files.service'
 
 @Controller('files')
@@ -36,6 +38,7 @@ export class FilesController {
    * @returns Return ....  if save was successful
    * or in case of error return throw exception
    */
+  @UseGuards(JwtAuthGuard)
   @Post()
   @UseInterceptors(
     FileInterceptor('file', { storage: new FileStorageEngine() }),
@@ -47,16 +50,16 @@ export class FilesController {
     if (!file) {
       throw new UnprocessableEntityException('No "file" found in request')
     }
-    this.logger.debug(`Upload file alkaa...`)
-    this.logger.debug(`Upload ${file.originalname}`)
-    this.logger.debug(`Upload ${file.checksum}`)
+    this.logger.debug(
+      `Upload file "${file.originalname}", checksum "${file.checksum}"`,
+    )
     await this.filesService.create({
       basename: file.originalname,
       checksum: file.checksum,
       type: body.type,
       user: 'na',
     })
-    return file.checksum
+    return { checksum: file.checksum }
   }
 
   /**
