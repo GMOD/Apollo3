@@ -16,10 +16,7 @@ const stateModel = types
     setFileType(message: string) {
       self.fileType = message
     },
-    // setCollection(items: Array) {
-    //   self.collection = items
-    // }, 
-   }))
+  }))
 
 export default stateModel
 export type ViewModel = Instance<typeof stateModel>

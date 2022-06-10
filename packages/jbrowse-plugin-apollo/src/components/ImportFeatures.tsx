@@ -6,7 +6,6 @@ import {
   DialogContent,
   DialogTitle,
 } from '@material-ui/core'
-import axios from 'axios'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
@@ -50,13 +49,13 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
   }
 
   useEffect(() => {
-    myFunction()
+    getAssemblies()
     return () => {
       setCollection([{ _id: '', name: '' }])
     }
   }, [])
 
-  const myFunction = () => {
+  const getAssemblies = () => {
     const uri = new URL('/assemblies', baseURL).href
     const apolloFetch = apolloInternetAccount?.getFetcher({
       locationType: 'UriLocation',
@@ -68,8 +67,8 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
       })
         .then((response) => response.json())
         .then((res) => {
-          console.log(JSON.stringify(res))
-          res.forEach((item: any) => {
+          console.log(`Found assemblies: ${JSON.stringify(res)}`)
+          res.forEach((item: Collection) => {
             setCollection((result) => [
               ...result,
               {
@@ -84,12 +83,14 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    let fileChecksum = ''
     const sessionToken = sessionStorage.getItem('apolloInternetAccount-token')
     if (sessionToken == null) {
       alert('You must authenticate first!')
       return
     }
-    let fileChecksum = ''
+
+    // First upload file
     const url = new URL('/files', baseURL).href
     const formData = new FormData()
     formData.append('file', file)
@@ -104,12 +105,12 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
         method: 'POST',
         body: formData,
       })
-      console.log(`Response is ${res.status}`)
+      console.log(`File upload response is ${res.status}`)
       if (res.ok) {
-        fileChecksum = (await res.json()).data
+        fileChecksum = (await res.json()).checksum
       } else {
         throw new Error(
-          `Error when inserting new assembly: ${res.status}, ${res.text}`,
+          `Error when inserting new features (while file uploading): ${res.status}, ${res.text}`,
         )
       }
     }
@@ -129,7 +130,7 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
         'Content-Type': 'application/json',
       }),
     })
-    console.log(`Response is ${res.status}`)
+    console.log(`Adding features response is ${res.status}`)
     if (res.ok) {
       alert('Features added succesfully!')
     } else {
