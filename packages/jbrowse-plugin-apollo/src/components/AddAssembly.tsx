@@ -33,6 +33,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
   }
   const { baseURL } = apolloInternetAccount
   const [assemblyName, setAssemblyName] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
   const [file, setFile] = useState<any>()
   // const [assemblyDesc, setAssemblyDesc] = useState('')
   const [fileType, setFileType] = useState('text/x-gff3')
@@ -46,6 +47,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setErrorMessage('')
     let fileChecksum = ''
     const sessionToken = sessionStorage.getItem('apolloInternetAccount-token')
     if (sessionToken == null) {
@@ -72,9 +74,13 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
       if (res.ok) {
         fileChecksum = (await res.json()).checksum
       } else {
-        throw new Error(
+        // throw new Error(
+        //   `Error when inserting new assembly (while uploading file): ${res.status}, ${res.text}`,
+        // )
+        setErrorMessage(
           `Error when inserting new assembly (while uploading file): ${res.status}, ${res.text}`,
         )
+        return
       }
     }
     console.log(`File uploaded, file checksum "${fileChecksum}"`)
@@ -100,12 +106,14 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
         }),
       })
       console.log(`Response is ${res.status}`)
-      if (res.ok) {
-        alert('Assembly added succesfully!')
-      } else {
-        throw new Error(
+      if (!res.ok) {
+        // throw new Error(
+        //   `Error when inserting new assembly: ${res.status}, ${res.text}`,
+        // )
+        setErrorMessage(
           `Error when inserting new assembly: ${res.status}, ${res.text}`,
         )
+        return
       }
     }
     // make sure response is ok and then reload page
@@ -160,7 +168,12 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
           <input type="file" onChange={handleChangeFile} />
         </DialogContent>
         <DialogActions>
-          <Button variant="contained" color="primary" type="submit">
+          <Button
+            disabled={!(assemblyName && file)}
+            variant="contained"
+            color="primary"
+            type="submit"
+          >
             Submit
           </Button>
           <Button
@@ -174,6 +187,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
             Cancel
           </Button>
         </DialogActions>
+        <p style={{ backgroundColor: 'red' }}> {errorMessage} </p>
       </form>
     </Dialog>
   )
