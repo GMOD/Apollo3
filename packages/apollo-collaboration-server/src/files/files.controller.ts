@@ -9,8 +9,8 @@ import {
   Logger,
   Param,
   Post,
-  Request,
-  Response,
+  Req,
+  Res,
   StreamableFile,
   UnprocessableEntityException,
   UploadedFile,
@@ -18,7 +18,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
-import { Request as ExpressRequest, Response as ExpressResponse } from 'express'
+import { Request, Response } from 'express'
 
 import {
   FileStorageEngine,
@@ -69,8 +69,8 @@ export class FilesController {
   @Get(':id')
   async downloadFile(
     @Param('id') id: string,
-    @Request() req: ExpressRequest,
-    @Response({ passthrough: true }) res: ExpressResponse,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<StreamableFile> {
     const file = await this.filesService.findOne(id)
     const { FILE_UPLOAD_FOLDER } = process.env

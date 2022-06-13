@@ -28,13 +28,28 @@ export const ApolloLoginForm = ({
         body: JSON.stringify({ username, password }),
         headers: { 'Content-Type': 'application/json' },
       })
+      if (!res.ok) {
+        let errorMessage
+        try {
+          errorMessage = await res.text()
+        } catch (e) {
+          errorMessage = ''
+        }
+        handleClose(
+          new Error(
+            `Authentication failed — ${res.status} (${res.statusText})${
+              errorMessage ? ` (${errorMessage})` : ''
+            }`,
+          ),
+        )
+      }
       const data = await res.json()
       // If authentication was successfull then there is key 'token'
       if ('token' in data) {
         const responseToken = data.token
         handleClose(responseToken)
       } else {
-        handleClose(new Error('Authentication failed'))
+        handleClose(new Error('Authentication failed — no token in response'))
       }
     } else {
       handleClose()
