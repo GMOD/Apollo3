@@ -92,7 +92,6 @@ export class ChangesService {
         session,
         fs,
       })
-
       // Add change information to change -collection
       this.logger.debug(`ChangeIds: ${change.changedIds}`)
       this.logger.debug(`AssemblyId: ${change.assemblyId}`)

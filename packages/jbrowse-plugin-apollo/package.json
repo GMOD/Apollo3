@@ -51,7 +51,6 @@
     "@gmod/gff": "^1.2.0",
     "@jbrowse/plugin-linear-genome-view": "^1.7.4",
     "apollo-shared": "workspace:^",
-    "axios": "^0.27.2",
     "bson": "^4.6.4",
     "clsx": "^1.1.1",
     "regenerator-runtime": "^0.13.9",

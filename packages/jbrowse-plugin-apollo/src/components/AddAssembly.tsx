@@ -125,7 +125,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
             label="Assembly name"
             type="TextField"
             fullWidth
-            variant="standard"
+            variant="outlined"
             onChange={(e) => setAssemblyName(e.target.value)}
           />
           {/* <TextField
