@@ -4,7 +4,10 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  DialogContentText,
   DialogTitle,
+  MenuItem,
+  Select,
 } from '@material-ui/core'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
@@ -31,14 +34,14 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
   }
   const { baseURL } = apolloInternetAccount
   const [assemblyName, setAssemblyName] = useState('')
-  const [file, setFile] = useState<any>()
+  const [file, setFile] = useState<File>()
   const [collection, setCollection] = useState<Collection[]>([])
-  const [assemblyId, setValue] = useState('')
+  const [assemblyId, setAssemblyId] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
 
-  function handleChangeAssembly(e: React.ChangeEvent<HTMLSelectElement>) {
-    setValue(e.target.value)
-    const ind = e.target.selectedIndex
-    setAssemblyName(e.target[ind].innerText)
+  function handleChangeAssembly(e: any) {
+    setAssemblyId(e.target.value)
+    setAssemblyName(e.currentTarget.innerText)
   }
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -67,7 +70,6 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
       })
         .then((response) => response.json())
         .then((res) => {
-          console.log(`Found assemblies: ${JSON.stringify(res)}`)
           res.forEach((item: Collection) => {
             setCollection((result) => [
               ...result,
@@ -83,11 +85,10 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setErrorMessage('')
     let fileChecksum = ''
-    const sessionToken = sessionStorage.getItem('apolloInternetAccount-token')
-    if (sessionToken == null) {
-      alert('You must authenticate first!')
-      return
+    if (!file) {
+      throw new Error('must select a file')
     }
 
     // First upload file
@@ -105,38 +106,57 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
         method: 'POST',
         body: formData,
       })
-      console.log(`File upload response is ${res.status}`)
-      if (res.ok) {
-        fileChecksum = (await res.json()).checksum
-      } else {
-        throw new Error(
-          `Error when inserting new features (while file uploading): ${res.status}, ${res.text}`,
+      if (!res.ok) {
+        let msg
+        try {
+          msg = await res.text()
+        } catch (e) {
+          msg = ''
+        }
+        setErrorMessage(
+          `Error when inserting new features (while uploading file) — ${
+            res.status
+          } (${res.statusText})${msg ? ` (${msg})` : ''}`,
         )
+        return
       }
+      fileChecksum = (await res.json()).checksum
     }
-    console.log(`File uploaded, file checksum "${fileChecksum}"`)
-    console.log(`AssemblyId is "${assemblyId}"`)
-    const res = await fetch(new URL('/changes/submitChange', baseURL).href, {
-      method: 'POST',
-      body: JSON.stringify({
-        changedIds: ['1'],
-        typeName: 'AddFeaturesFromFileChange',
-        assemblyId,
-        fileChecksum,
-        assemblyName,
-      }),
-      headers: new Headers({
-        Authorization: `Bearer ${sessionToken}`,
-        'Content-Type': 'application/json',
-      }),
+
+    // Add features
+    const uri = new URL('/changes/submitChange', baseURL).href
+    const apolloFetch = apolloInternetAccount?.getFetcher({
+      locationType: 'UriLocation',
+      uri,
     })
-    console.log(`Adding features response is ${res.status}`)
-    if (res.ok) {
-      alert('Features added succesfully!')
-    } else {
-      throw new Error(
-        `Error when inserting new features: ${res.status}, ${res.text}`,
-      )
+    if (apolloFetch) {
+      const res = await apolloFetch(uri, {
+        method: 'POST',
+        body: JSON.stringify({
+          changedIds: ['1'],
+          typeName: 'AddFeaturesFromFileChange',
+          assemblyId,
+          fileChecksum,
+          assemblyName,
+        }),
+        headers: new Headers({
+          'Content-Type': 'application/json',
+        }),
+      })
+      if (!res.ok) {
+        let msg
+        try {
+          msg = await res.text()
+        } catch (e) {
+          msg = ''
+        }
+        setErrorMessage(
+          `Error when inserting new features — ${res.status} (${
+            res.statusText
+          })${msg ? ` (${msg})` : ''}`,
+        )
+        return
+      }
     }
     handleClose()
     event.preventDefault()
@@ -147,17 +167,29 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
       <DialogTitle>Import Features from GFF3 file</DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-          <h4>Select assembly</h4>
-          <select value={assemblyId} onChange={handleChangeAssembly}>
+          <DialogContentText>Select assembly</DialogContentText>
+          <Select
+            labelId="label"
+            value={assemblyId}
+            onChange={handleChangeAssembly}
+          >
+            <MenuItem value="10">Ten</MenuItem>
+            <MenuItem value="20">Twenty</MenuItem>
             {collection.map((option) => (
-              <option value={option._id}>{option.name}</option>
+              <MenuItem value={option._id}>{option.name}</MenuItem>
             ))}
-          </select>
-          <h4>Upload GFF3 to load features</h4>
+          </Select>
+          <p />
+          <DialogContentText>Upload GFF3 to load features</DialogContentText>
           <input type="file" onChange={handleChangeFile} />
         </DialogContent>
         <DialogActions>
-          <Button variant="contained" color="primary" type="submit">
+          <Button
+            disabled={!(assemblyName && file)}
+            variant="contained"
+            color="primary"
+            type="submit"
+          >
             Submit
           </Button>
           <Button
@@ -172,6 +204,11 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
           </Button>
         </DialogActions>
       </form>
+      {errorMessage ? (
+        <DialogContent>
+          <DialogContentText color="error">{errorMessage}</DialogContentText>
+        </DialogContent>
+      ) : null}
     </Dialog>
   )
 }

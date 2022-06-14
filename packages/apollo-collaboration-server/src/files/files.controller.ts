@@ -53,11 +53,7 @@ export class FilesController {
     this.logger.debug(
       `Upload file "${file.originalname}", checksum "${file.checksum}"`,
     )
-<<<<<<< HEAD
-    await this.filesService.create({
-=======
     return this.filesService.create({
->>>>>>> 99dbcd1e34c42b8d61e4c1952bc44f875c87d5f2
       basename: file.originalname,
       checksum: file.checksum,
       type: body.type,
