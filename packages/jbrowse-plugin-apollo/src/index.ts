@@ -37,7 +37,11 @@ import {
   ApolloView as ApolloViewReactComponent,
   stateModelFactory as apolloViewStateModelFactory,
 } from './ApolloView'
+<<<<<<< HEAD
 import { AddAssembly, ImportFeatures } from './components'
+=======
+import { AddAssembly } from './components'
+>>>>>>> 99dbcd1e34c42b8d61e4c1952bc44f875c87d5f2
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,

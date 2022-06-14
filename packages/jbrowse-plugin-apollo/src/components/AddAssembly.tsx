@@ -4,6 +4,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  DialogContentText,
   DialogTitle,
   FormControl,
   FormControlLabel,
@@ -33,8 +34,8 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
   }
   const { baseURL } = apolloInternetAccount
   const [assemblyName, setAssemblyName] = useState('')
-  const [file, setFile] = useState<any>()
-  // const [assemblyDesc, setAssemblyDesc] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [file, setFile] = useState<File>()
   const [fileType, setFileType] = useState('text/x-gff3')
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -46,11 +47,10 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setErrorMessage('')
     let fileChecksum = ''
-    const sessionToken = sessionStorage.getItem('apolloInternetAccount-token')
-    if (sessionToken == null) {
-      alert('You must authenticate first!')
-      return
+    if (!file) {
+      throw new Error('must select a file')
     }
 
     // First upload file
@@ -68,16 +68,22 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
         method: 'POST',
         body: formData,
       })
-      console.log(`File upload response is ${res.status}`)
-      if (res.ok) {
-        fileChecksum = (await res.json()).checksum
-      } else {
-        throw new Error(
-          `Error when inserting new assembly (while uploading file): ${res.status}, ${res.text}`,
+      if (!res.ok) {
+        let msg
+        try {
+          msg = await res.text()
+        } catch (e) {
+          msg = ''
+        }
+        setErrorMessage(
+          `Error when inserting new assembly (while uploading file) — ${
+            res.status
+          } (${res.statusText})${msg ? ` (${msg})` : ''}`,
         )
+        return
       }
+      fileChecksum = (await res.json()).checksum
     }
-    console.log(`File uploaded, file checksum "${fileChecksum}"`)
 
     // Add assembly and refSeqs
     const uri = new URL('/changes/submitChange', baseURL).href
@@ -99,13 +105,19 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
           'Content-Type': 'application/json',
         }),
       })
-      console.log(`Response is ${res.status}`)
-      if (res.ok) {
-        alert('Assembly added succesfully!')
-      } else {
-        throw new Error(
-          `Error when inserting new assembly: ${res.status}, ${res.text}`,
+      if (!res.ok) {
+        let msg
+        try {
+          msg = await res.text()
+        } catch (e) {
+          msg = ''
+        }
+        setErrorMessage(
+          `Error when inserting new assembly — ${res.status} (${
+            res.statusText
+          })${msg ? ` (${msg})` : ''}`,
         )
+        return
       }
     }
     // make sure response is ok and then reload page
@@ -125,18 +137,9 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
             label="Assembly name"
             type="TextField"
             fullWidth
-            variant="standard"
+            variant="outlined"
             onChange={(e) => setAssemblyName(e.target.value)}
           />
-          {/* <TextField
-            margin="dense"
-            id="description"
-            label="Assembly description"
-            type="TextField"
-            fullWidth
-            variant="standard"
-            onChange={(e) => setAssemblyDesc(e.target.value)}
-          /> */}
           <FormControl>
             <FormLabel>Select GFF3 or FASTA file</FormLabel>
             <RadioGroup
@@ -160,7 +163,12 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
           <input type="file" onChange={handleChangeFile} />
         </DialogContent>
         <DialogActions>
-          <Button variant="contained" color="primary" type="submit">
+          <Button
+            disabled={!(assemblyName && file)}
+            variant="contained"
+            color="primary"
+            type="submit"
+          >
             Submit
           </Button>
           <Button
@@ -175,6 +183,11 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
           </Button>
         </DialogActions>
       </form>
+      {errorMessage ? (
+        <DialogContent>
+          <DialogContentText color="error">{errorMessage}</DialogContentText>
+        </DialogContent>
+      ) : null}
     </Dialog>
   )
 }
