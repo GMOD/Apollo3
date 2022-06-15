@@ -40,21 +40,16 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
   const [assemblyId, setAssemblyId] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
 
-  // function handleChangeAssemblyOld(e: any) {
-  //   setAssemblyId(e.target.value)
-  //   setAssemblyName(e.currentTarget.innerText)
-  // }
-
   function handleChangeAssembly(
     e: React.ChangeEvent<{
       name?: string | undefined
       value: unknown
     }>,
   ) {
-    // console.log(`Event name "${e.target.name as string}"`)
-    // console.log(`Event value "${e.target.value as string}"`)
     setAssemblyId(e.target.value as string)
-    setAssemblyName(e.target.value as string)
+    setAssemblyName(
+      collection.find((i) => i._id === e.target.value)?.name as string,
+    )
   }
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -172,7 +167,7 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
       }
     }
     notify(
-      `Features added to assembly successfully`,
+      `Features added to assembly "${assemblyName}" successfully`,
       'success',
     )
     handleClose()

@@ -87,16 +87,20 @@ export class ChangesService {
 
     let changeDocId
     await this.featureModel.db.transaction(async (session) => {
-      await change.apply({
-        typeName: 'Server',
-        featureModel: this.featureModel,
-        assemblyModel: this.assemblyModel,
-        refSeqModel: this.refSeqModel,
-        refSeqChunkModel: this.refSeqChunkModel,
-        fileModel: this.fileModel,
-        session,
-        fs,
-      })
+      try {
+        await change.apply({
+          typeName: 'Server',
+          featureModel: this.featureModel,
+          assemblyModel: this.assemblyModel,
+          refSeqModel: this.refSeqModel,
+          refSeqChunkModel: this.refSeqChunkModel,
+          fileModel: this.fileModel,
+          session,
+          fs,
+        })
+      } catch (e) {
+        throw new UnprocessableEntityException(String(e))
+      }
 
       // Add change information to change -collection
       this.logger.debug(`ChangeIds: ${change.changedIds}`)
