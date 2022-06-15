@@ -1,16 +1,13 @@
 import { join } from 'path'
-import { createGunzip } from 'zlib'
-
-import { RefSeqDocument } from 'apollo-schemas'
 
 import {
-  Change,
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
   SerializedChange,
   ServerDataStore,
 } from './Change'
+import { FeatureChange } from './FeatureChange'
 
 export interface SerializedAddAssemblyFromFileChangeBase
   extends SerializedChange {
@@ -35,7 +32,7 @@ export type SerializedAddAssemblyFromFileChange =
   | SerializedAddAssemblyFromFileChangeSingle
   | SerializedAddAssemblyFromFileChangeMultiple
 
-export class AddAssemblyFromFileChange extends Change {
+export class AddAssemblyFromFileChange extends FeatureChange {
   typeName = 'AddAssemblyFromFileChange' as const
   changes: AddAssemblyFromFileChangeDetails[]
 
@@ -73,10 +70,10 @@ export class AddAssemblyFromFileChange extends Change {
   async applyToServer(backend: ServerDataStore) {
     const {
       assemblyModel,
-      refSeqModel,
-      refSeqChunkModel,
+      // refSeqModel,
+      // refSeqChunkModel,
       fileModel,
-      fs,
+      // fs,
       session,
     } = backend
     const { changes, assemblyId } = this
@@ -117,148 +114,14 @@ export class AddAssemblyFromFileChange extends Change {
         throw new Error(`File "${fileChecksum}" information not found in Mongo`)
       }
       this.logger.debug?.(`File type: "${fileDoc.type}"`)
-      const { CHUNK_SIZE } = process.env
-      const chunkSize = Number(CHUNK_SIZE)
-      let chunkIndex = 0
-      let refSeqLen = 0
-      let refSeqDoc: RefSeqDocument | undefined = undefined
-      let fastaInfoStarted = fileDoc.type !== 'text/x-gff3'
 
-      // Read data from compressed file and parse the content
-      const sequenceStream = fs
-        .createReadStream(compressedFullFileName)
-        .pipe(createGunzip())
-      let sequenceBuffer = ''
-      let incompleteLine = ''
-      let lastLineIsIncomplete = true
-      for await (const data of sequenceStream) {
-        const chunk = data.toString()
-        lastLineIsIncomplete = !chunk.endsWith('\n')
-        // chunk is small enough that you can split the whole thing into lines without having to make it into smaller chunks first.
-        const lines = chunk.split(/\r?\n/)
-        if (incompleteLine) {
-          lines[0] = `${incompleteLine}${lines[0]}`
-          incompleteLine = ''
-        }
-        if (lastLineIsIncomplete) {
-          incompleteLine = lines.pop() || ''
-        }
-        for await (const line of lines) {
-          // In case of GFF3 file we start to read sequence after '##FASTA' is found
-          if (!fastaInfoStarted) {
-            if (line.trim() === '##FASTA') {
-              fastaInfoStarted = true
-            }
-            continue
-          }
-          const refSeqInfoLine = /^>\s*(\S+)\s*(.*)/.exec(line)
-          // Add new ref sequence infor if we are reference seq info line
-          if (refSeqInfoLine) {
-            this.logger.debug?.(
-              `Reference sequence information line "${refSeqInfoLine}"`,
-            )
-
-            // If there is sequence from previous reference sequence then we need to add it to previous ref seq
-            if (sequenceBuffer !== '') {
-              if (!refSeqDoc) {
-                throw new Error('No refSeq document found')
-              }
-              refSeqLen += sequenceBuffer.length
-              this.logger.debug?.(
-                `*** Add the last chunk of previous ref seq ("${refSeqDoc._id}", index ${chunkIndex} and total length for ref seq is ${refSeqLen}): "${sequenceBuffer}"`,
-              )
-              await refSeqChunkModel.create(
-                [
-                  {
-                    refSeq: refSeqDoc._id,
-                    n: chunkIndex,
-                    sequence: sequenceBuffer,
-                  },
-                ],
-                { session },
-              )
-              sequenceBuffer = ''
-            }
-            await refSeqDoc?.updateOne({ length: refSeqLen }, { session })
-            refSeqLen = 0
-            chunkIndex = 0
-
-            const name = refSeqInfoLine[1].trim()
-            const description = refSeqInfoLine[2]
-              ? refSeqInfoLine[2].trim()
-              : ''
-
-            const [newRefSeqDoc] = await refSeqModel.create(
-              [
-                {
-                  name,
-                  description,
-                  assembly: newAssemblyDoc._id,
-                  length: 0,
-                  ...(CHUNK_SIZE ? { chunkSize: Number(CHUNK_SIZE) } : null),
-                },
-              ],
-              { session },
-            )
-            this.logger.debug?.(
-              `Added new refSeq "${name}", desc "${description}", docId "${newRefSeqDoc._id}"`,
-            )
-            refSeqDoc = newRefSeqDoc
-          } else if (/\S/.test(line)) {
-            if (!refSeqDoc) {
-              throw new Error('No refSeq document found')
-            }
-            sequenceBuffer += line.replace(/\s/g, '')
-            // If sequence block > chunk size then save chunk into Mongo
-            while (sequenceBuffer.length >= chunkSize) {
-              const sequence = sequenceBuffer.slice(0, chunkSize)
-              refSeqLen += sequence.length
-              this.logger.debug?.(
-                `Add chunk (("${refSeqDoc._id}", index ${chunkIndex} and total length ${refSeqLen})): "${sequence}"`,
-              )
-              await refSeqChunkModel.create(
-                [
-                  {
-                    refSeq: refSeqDoc._id,
-                    n: chunkIndex,
-                    sequence,
-                  },
-                ],
-                { session },
-              )
-              chunkIndex++
-              // Set remaining sequence
-              sequenceBuffer = sequenceBuffer.slice(chunkSize)
-              this.logger.debug?.(`Remaining sequence: "${sequenceBuffer}"`)
-            }
-          }
-        }
-      }
-
-      if (sequenceBuffer || lastLineIsIncomplete) {
-        if (!refSeqDoc) {
-          throw new Error('No refSeq document found')
-        }
-        // If the file did not end with line break so the last line is incomplete
-        if (lastLineIsIncomplete) {
-          sequenceBuffer += incompleteLine
-        }
-        refSeqLen += sequenceBuffer.length
-        this.logger.debug?.(
-          `*** Add the very last chunk to ref seq ("${refSeqDoc._id}", index ${chunkIndex} and total length for ref seq is ${refSeqLen}): "${sequenceBuffer}"`,
-        )
-        await refSeqChunkModel.create(
-          [
-            {
-              refSeq: refSeqDoc._id,
-              n: chunkIndex,
-              sequence: sequenceBuffer,
-            },
-          ],
-          { session },
-        )
-        await refSeqDoc.updateOne({ length: refSeqLen }, { session })
-      }
+      // Add refSeqs
+      await this.addRefSeqIntoDb(
+        fileDoc.type,
+        compressedFullFileName,
+        newAssemblyDoc._id,
+        backend,
+      )
     }
   }
 
