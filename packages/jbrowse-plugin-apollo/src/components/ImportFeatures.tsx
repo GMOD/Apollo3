@@ -26,6 +26,7 @@ interface Collection {
 
 export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
+  const { notify } = session
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel | undefined
@@ -39,9 +40,21 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
   const [assemblyId, setAssemblyId] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
 
-  function handleChangeAssembly(e: any) {
+  function handleChangeAssemblyOld(e: any) {
     setAssemblyId(e.target.value)
     setAssemblyName(e.currentTarget.innerText)
+  }
+
+  function handleChangeAssembly(
+    e: React.ChangeEvent<{
+      name?: string | undefined
+      value: unknown
+    }>,
+  ) {
+    console.log(`Event name "${e.target.name as string}"`)
+    console.log(`Event value "${e.target.value as string}"`)
+    setAssemblyId(e.target.value as string)
+    setAssemblyName(e.target.value as string)
   }
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -158,6 +171,10 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
         return
       }
     }
+    notify(
+      `Features added to assembly "${assemblyName} successfully`,
+      'success',
+    )
     handleClose()
     event.preventDefault()
   }
@@ -173,10 +190,10 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
             value={assemblyId}
             onChange={handleChangeAssembly}
           >
-            <MenuItem value="10">Ten</MenuItem>
-            <MenuItem value="20">Twenty</MenuItem>
             {collection.map((option) => (
-              <MenuItem value={option._id}>{option.name}</MenuItem>
+              <MenuItem key={option._id} value={option._id}>
+                {option.name}
+              </MenuItem>
             ))}
           </Select>
           <p />

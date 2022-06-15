@@ -26,6 +26,7 @@ interface AddAssemblyProps {
 
 export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
+  const { notify } = session
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel | undefined
@@ -120,7 +121,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
         return
       }
     }
-    // make sure response is ok and then reload page
+    notify(`Assembly "${assemblyName}" added successfully`, 'success')
     handleClose()
     event.preventDefault()
   }
