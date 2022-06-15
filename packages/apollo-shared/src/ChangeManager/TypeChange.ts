@@ -1,4 +1,3 @@
-import { GFF3Feature } from '@gmod/gff'
 import { FeatureDocument } from 'apollo-schemas'
 import { resolveIdentifier } from 'mobx-state-tree'
 
@@ -181,53 +180,5 @@ export class TypeChange extends FeatureChange {
       },
       { logger: this.logger },
     )
-  }
-
-  getUpdatedCacheEntryForFeature(
-    gff3Feature: GFF3Feature,
-    change: TypeChangeDetails,
-  ): boolean {
-    for (const featureLine of gff3Feature) {
-      if (
-        !(
-          'attributes' in featureLine &&
-          featureLine.attributes &&
-          'apollo_id' in featureLine.attributes &&
-          featureLine.attributes.apollo_id
-        )
-      ) {
-        throw new Error(
-          `Encountered feature without apollo_id: ${JSON.stringify(
-            gff3Feature,
-          )}`,
-        )
-      }
-      if (featureLine.attributes.apollo_id.length > 1) {
-        throw new Error(
-          `Encountered feature with multiple apollo_ids: ${JSON.stringify(
-            gff3Feature,
-          )}`,
-        )
-      }
-      const [apolloId] = featureLine.attributes.apollo_id
-      const { featureId, newType, oldType } = change
-      if (apolloId === featureId) {
-        if (featureLine.type !== oldType) {
-          throw new Error(
-            `Incoming type ${oldType} does not match existing type ${featureLine.type}`,
-          )
-        }
-        featureLine.type = newType
-        return true
-      }
-      if (featureLine.child_features.length > 0) {
-        return featureLine.child_features
-          .map((childFeature) =>
-            this.getUpdatedCacheEntryForFeature(childFeature, change),
-          )
-          .some((r) => r)
-      }
-    }
-    return false
   }
 }

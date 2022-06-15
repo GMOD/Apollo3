@@ -7,7 +7,6 @@ import { AssembliesModule } from './assemblies/assemblies.module'
 import { AuthenticationModule } from './authentication/authentication.module'
 import { ChangesModule } from './changes/changes.module'
 import { FeaturesModule } from './features/features.module'
-import { FileHandlingModule } from './fileHandling/fileHandling.module'
 import { FilesModule } from './files/files.module'
 import { RefSeqChunksModule } from './refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from './refSeqs/refSeqs.module'
@@ -17,7 +16,6 @@ const nodeEnv = process.env.NODE_ENV || 'production'
 
 @Module({
   imports: [
-    FileHandlingModule,
     AuthenticationModule,
     ConfigModule.forRoot({
       envFilePath: nodeEnv === 'production' ? '.env' : '.development.env',

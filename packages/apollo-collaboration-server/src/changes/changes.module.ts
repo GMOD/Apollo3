@@ -1,4 +1,4 @@
-import { CacheModule, Module } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import { Change, ChangeSchema } from 'apollo-schemas'
 import idValidator from 'mongoose-id-validator'
@@ -30,7 +30,6 @@ import { ChangesService } from './changes.service'
     RefSeqChunksModule,
     FeaturesModule,
     FilesModule,
-    CacheModule.register({ ttl: 0, max: 1000000 }), // 0 = no cache expiration, 100 000 = number of entries
   ],
 })
 export class ChangesModule {}
