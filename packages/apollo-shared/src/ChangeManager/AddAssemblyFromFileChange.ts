@@ -68,14 +68,7 @@ export class AddAssemblyFromFileChange extends FeatureChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const {
-      assemblyModel,
-      // refSeqModel,
-      // refSeqChunkModel,
-      fileModel,
-      // fs,
-      session,
-    } = backend
+    const { assemblyModel, fileModel, session } = backend
     const { changes, assemblyId } = this
 
     for (const change of changes) {
