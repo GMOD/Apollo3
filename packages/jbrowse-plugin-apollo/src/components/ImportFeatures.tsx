@@ -40,10 +40,10 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
   const [assemblyId, setAssemblyId] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
 
-  function handleChangeAssemblyOld(e: any) {
-    setAssemblyId(e.target.value)
-    setAssemblyName(e.currentTarget.innerText)
-  }
+  // function handleChangeAssemblyOld(e: any) {
+  //   setAssemblyId(e.target.value)
+  //   setAssemblyName(e.currentTarget.innerText)
+  // }
 
   function handleChangeAssembly(
     e: React.ChangeEvent<{
@@ -51,8 +51,8 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
       value: unknown
     }>,
   ) {
-    console.log(`Event name "${e.target.name as string}"`)
-    console.log(`Event value "${e.target.value as string}"`)
+    // console.log(`Event name "${e.target.name as string}"`)
+    // console.log(`Event value "${e.target.value as string}"`)
     setAssemblyId(e.target.value as string)
     setAssemblyName(e.target.value as string)
   }
@@ -172,7 +172,7 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
       }
     }
     notify(
-      `Features added to assembly "${assemblyName} successfully`,
+      `Features added to assembly successfully`,
       'success',
     )
     handleClose()
@@ -202,7 +202,7 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
         </DialogContent>
         <DialogActions>
           <Button
-            disabled={!(assemblyName && file)}
+            disabled={!(assemblyId && file)}
             variant="contained"
             color="primary"
             type="submit"
