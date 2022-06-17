@@ -59,7 +59,6 @@ export class FilesController {
       type: body.type,
       user: 'na',
     })
-    return { checksum: file.checksum }
   }
 
   /**

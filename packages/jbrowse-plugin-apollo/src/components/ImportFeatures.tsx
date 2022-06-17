@@ -60,36 +60,47 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
   }
 
   useEffect(() => {
+    async function getAssemblies() {
+      const uri = new URL('/assemblies', baseURL).href
+      const apolloFetch = apolloInternetAccount?.getFetcher({
+        locationType: 'UriLocation',
+        uri,
+      })
+      if (apolloFetch) {
+        const response = await apolloFetch(uri, {
+          method: 'GET',
+        })
+        if (!response.ok) {
+          let msg
+          try {
+            msg = await response.text()
+          } catch (e) {
+            msg = ''
+          }
+          setErrorMessage(
+            `Error when inserting new features (while uploading file) — ${
+              response.status
+            } (${response.statusText})${msg ? ` (${msg})` : ''}`,
+          )
+          return
+        }
+        const data = await response.json()
+        data.forEach((item: Collection) => {
+          setCollection((result) => [
+            ...result,
+            {
+              _id: item._id,
+              name: item.name,
+            },
+          ])
+        })
+      }
+    }
     getAssemblies()
     return () => {
       setCollection([{ _id: '', name: '' }])
     }
-  }, [])
-
-  const getAssemblies = () => {
-    const uri = new URL('/assemblies', baseURL).href
-    const apolloFetch = apolloInternetAccount?.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
-    if (apolloFetch) {
-      apolloFetch(uri, {
-        method: 'GET',
-      })
-        .then((response) => response.json())
-        .then((res) => {
-          res.forEach((item: Collection) => {
-            setCollection((result) => [
-              ...result,
-              {
-                _id: item._id,
-                name: item.name,
-              },
-            ])
-          })
-        })
-    }
-  }
+  }, [apolloInternetAccount, baseURL])
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
