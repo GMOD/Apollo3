@@ -22,6 +22,7 @@ import {
   RefSeqDocument,
 } from 'apollo-schemas'
 import {
+  AddAssemblyAndFeaturesFromFileChange,
   AddAssemblyFromFileChange,
   AddFeaturesFromFileChange,
   CoreValidation,
@@ -53,6 +54,10 @@ export class ChangesService {
     private readonly changeModel: Model<ChangeDocument>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
+    changeRegistry.registerChange(
+      'AddAssemblyAndFeaturesFromFileChange',
+      AddAssemblyAndFeaturesFromFileChange,
+    )
     changeRegistry.registerChange(
       'AddAssemblyFromFileChange',
       AddAssemblyFromFileChange,

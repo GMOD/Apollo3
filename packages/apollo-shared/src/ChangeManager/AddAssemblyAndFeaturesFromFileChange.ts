@@ -12,41 +12,42 @@ import {
 } from './Change'
 import { FeatureChange } from './FeatureChange'
 
-export interface SerializedAddFeaturesFromFileChangeBase
+export interface SerializedAddAssemblyAndFeaturesFromFileChangeBase
   extends SerializedChange {
-  typeName: 'AddFeaturesFromFileChange'
+  typeName: 'AddAssemblyAndFeaturesFromFileChange'
 }
 
-export interface AddFeaturesFromFileChangeDetails {
+export interface AddAssemblyAndFeaturesFromFileChangeDetails {
+  assemblyName: string
   fileChecksum: string
 }
 
-export interface SerializedAddFeaturesFromFileChangeSingle
-  extends SerializedAddFeaturesFromFileChangeBase,
-    AddFeaturesFromFileChangeDetails {}
+export interface SerializedAddAssemblyAndFeaturesFromFileChangeSingle
+  extends SerializedAddAssemblyAndFeaturesFromFileChangeBase,
+    AddAssemblyAndFeaturesFromFileChangeDetails {}
 
-export interface SerializedAddFeaturesFromFileChangeMultiple
-  extends SerializedAddFeaturesFromFileChangeBase {
-  changes: AddFeaturesFromFileChangeDetails[]
+export interface SerializedAddAssemblyAndFeaturesFromFileChangeMultiple
+  extends SerializedAddAssemblyAndFeaturesFromFileChangeBase {
+  changes: AddAssemblyAndFeaturesFromFileChangeDetails[]
 }
 
-export type SerializedAddFeaturesFromFileChange =
-  | SerializedAddFeaturesFromFileChangeSingle
-  | SerializedAddFeaturesFromFileChangeMultiple
+export type SerializedAddAssemblyAndFeaturesFromFileChange =
+  | SerializedAddAssemblyAndFeaturesFromFileChangeSingle
+  | SerializedAddAssemblyAndFeaturesFromFileChangeMultiple
 
-export class AddFeaturesFromFileChange extends FeatureChange {
-  typeName = 'AddFeaturesFromFileChange' as const
-  changes: AddFeaturesFromFileChangeDetails[]
+export class AddAssemblyAndFeaturesFromFileChange extends FeatureChange {
+  typeName = 'AddAssemblyAndFeaturesFromFileChange' as const
+  changes: AddAssemblyAndFeaturesFromFileChangeDetails[]
 
   constructor(
-    json: SerializedAddFeaturesFromFileChange,
+    json: SerializedAddAssemblyAndFeaturesFromFileChange,
     options?: ChangeOptions,
   ) {
     super(json, options)
     this.changes = 'changes' in json ? json.changes : [json]
   }
 
-  toJSON(): SerializedAddFeaturesFromFileChange {
+  toJSON() {
     if (this.changes.length === 1) {
       const [{ fileChecksum }] = this.changes
       return {
@@ -70,11 +71,10 @@ export class AddFeaturesFromFileChange extends FeatureChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { fs } = backend
-    const { changes } = this
-
+    const { assemblyModel, fileModel, fs, session } = backend
+    const { changes, assemblyId } = this
     for (const change of changes) {
-      const { fileChecksum } = change
+      const { fileChecksum, assemblyName } = change
       this.logger.debug?.(`File checksum: '${fileChecksum}'`)
 
       const { FILE_UPLOAD_FOLDER } = process.env
@@ -83,7 +83,42 @@ export class AddFeaturesFromFileChange extends FeatureChange {
       }
       const compressedFullFileName = join(FILE_UPLOAD_FOLDER, fileChecksum)
 
-      // Read data from compressed file and parse the content
+      // Check and add new assembly
+      const assemblyDoc = await assemblyModel
+        .findOne({ name: assemblyName })
+        .session(session)
+        .exec()
+      if (assemblyDoc) {
+        throw new Error(`Assembly "${assemblyName}" already exists`)
+      }
+      // Add assembly
+      const [newAssemblyDoc] = await assemblyModel.create(
+        [{ _id: assemblyId, name: assemblyName }],
+        { session },
+      )
+      this.logger.debug?.(
+        `Added new assembly "${assemblyName}", docId "${newAssemblyDoc._id}"`,
+      )
+      this.logger.debug?.(`Find file document by "${fileChecksum}"`)
+      // Get file type from Mongo
+      const fileDoc = await fileModel
+        .findOne({ checksum: fileChecksum })
+        .session(session)
+        .exec()
+      if (!fileDoc) {
+        throw new Error(`File "${fileChecksum}" information not found in Mongo`)
+      }
+      this.logger.debug?.(`File type: "${fileDoc.type}"`)
+
+      // Add refSeqs
+      await this.addRefSeqIntoDb(
+        fileDoc.type,
+        compressedFullFileName,
+        newAssemblyDoc._id,
+        backend,
+      )
+
+      // Loop all features
       const featureStream = fs
         .createReadStream(compressedFullFileName)
         .pipe(createGunzip())
@@ -98,12 +133,10 @@ export class AddFeaturesFromFileChange extends FeatureChange {
       for await (const f of featureStream) {
         const gff3Feature = f as GFF3Feature
         this.logger.verbose?.(`ENTRY=${JSON.stringify(gff3Feature)}`)
-
         // Add new feature into database
         await this.addFeatureIntoDb(gff3Feature, backend)
       }
     }
-    this.logger.debug?.(`New features added into database!`)
   }
 
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
@@ -115,7 +148,7 @@ export class AddFeaturesFromFileChange extends FeatureChange {
 
   getInverse() {
     const { changedIds, typeName, changes, assemblyId } = this
-    return new AddFeaturesFromFileChange(
+    return new AddAssemblyAndFeaturesFromFileChange(
       { changedIds, typeName, changes, assemblyId },
       { logger: this.logger },
     )
