@@ -2,248 +2,248 @@
 # multi-exon gene - several linked CDSs
 # single exon gene - one CDS only
 ##gff-version 3
-ctgA	example	contig	1	50001	.	.	.	Name=ctgA;multivalue=val1,val2,val3;apollo_id=e5ece9b1-cbfe-4202-9a6a-02cf80f56e52
-ctgA	example	remark	1000	2000	.	.	.	Name=Remark:hga;Alias=hga;apollo_id=5029f2fc-cc1f-49b6-8628-5f94dd09844d
-ctgA	example	protein_coding_primary_transcript	1100	2000	.	+	.	Name=Gene:hga;Alias=hga;apollo_id=4beab7da-d7a2-446c-9c82-3daa64d4eae1
-ctgA	example	polypeptide	1200	1900	.	+	.	Name=Protein:HGA;Alias=hga;apollo_id=8f246067-80b4-47a0-a6bd-70daa52f6bed
-ctgA	example	protein_coding_primary_transcript	1600	3000	.	-	.	Name=Gene:hgb;Alias=hgb;apollo_id=52347e1a-ef46-4322-b5ea-01b887306b64
-ctgA	example	remark	1659	1984	.	+	.	Name=f07;Note=This is an example;apollo_id=1fde4e86-bcb8-4800-9d89-94b51946e3b5
-ctgA	example	polypeptide	1800	2900	.	-	.	Name=Protein:HGB;Alias=hgb;apollo_id=b4efacf5-dcab-4460-86ba-83353e6e949a
-ctgA	example	remark	3014	6130	.	+	.	Name=f06;Note=This is another example;apollo_id=e48be139-3e37-48e2-acae-def0337262eb
-ctgA	example	remark	4715	5968	.	-	.	Name=f05;Note=Ok! Ok! I get the message.;apollo_id=8a799a5b-9262-4942-958f-c17203b16901
-ctgA	example	match	5233	5302	.	-	.	Name=seg04;apollo_id=df168a78-9c78-4750-a94a-56effea6b513
-ctgA	example	match	5800	6101	.	-	.	Name=seg04;apollo_id=925e573c-fa18-4544-9b47-3ea0e8b697b6
-ctgA	example	match	6442	6854	.	-	.	Name=seg04;apollo_id=a537ea66-ef84-4c64-a27e-54d3560479a7
-ctgA	example	match	6885	7241	.	-	.	Name=seg03;apollo_id=83fc5717-3f5e-422e-bf25-37f699dd4d4d
-ctgA	example	match	7106	7211	.	-	.	Name=seg04;apollo_id=f48ddcda-a25d-4917-bdb3-51bf6021848a
-ctgA	example	match	7410	7737	.	-	.	Name=seg03;apollo_id=b0293e0e-1f3d-4492-922c-1787cdb31054
-ctgA	example	match	7695	8177	.	-	.	Name=seg04;apollo_id=b53432d9-6302-4f0b-a269-0a07707807f0
-ctgA	example	match	8055	8080	.	-	.	Name=seg03;apollo_id=66665e0e-2da1-47d4-9bdb-638768fafd4e
-ctgA	example	match	8306	8999	.	-	.	Name=seg03;apollo_id=5c0f207c-3b5d-4ada-93ef-1f88b529e85a
-ctgA	example	match	8545	8783	.	-	.	Name=seg04;apollo_id=5cb71667-c1f4-4b68-b87e-b0e9b8f43d2f
-ctgA	example	match	8869	8935	.	-	.	Name=seg04;apollo_id=3f2c28bf-6b5f-4979-bf08-b4e2fd1cb7b5
-ctgA	example	match	9404	9825	.	-	.	Name=seg04;apollo_id=893e2372-9278-4e48-853b-10f702920113
-ctgA	bare_predicted	CDS	10000	11500	.	+	0	Name=Apple1;Note=CDS with no parent;apollo_id=6948621f-ea7f-4d84-bac7-a7e180a27b77
-ctgA	example	polypeptide_domain	11911	15561	.	+	.	Name=m11;Note=kinase;apollo_id=5efa55bd-4274-4944-b6fe-905f19e52c74
-ctgA	example	match	12531	12895	.	+	.	Name=seg12;apollo_id=a51a7cb0-a7e0-4829-8b19-0b49afc99d6d
-ctgA	example	match	13122	13449	.	+	.	Name=seg12;apollo_id=a70093d1-2e78-406c-a467-bde5a40e002b
-ctgA	example	remark	13280	16394	.	+	.	Name=f08;apollo_id=a61ad465-e6f1-4fb4-9ce5-d2b9136088cf
-ctgA	example	match	13452	13745	.	+	.	Name=seg12;apollo_id=3b62c177-39be-4b0a-a477-2e0f27873fa4
-ctgA	example	polypeptide_domain	13801	14007	.	-	.	Name=m05;Note=helix loop helix;apollo_id=fcd2d0c3-f079-458a-b7a5-408c335bdbfb
-ctgA	example	match	13908	13965	.	+	.	Name=seg12;apollo_id=84abcd91-1e2f-4abf-ace4-85999f07bd5f
-ctgA	example	match	13998	14488	.	+	.	Name=seg12;apollo_id=b7f02ce8-16cb-4529-8c46-5218229fc636
-ctgA	example	match	14564	14899	.	+	.	Name=seg12;apollo_id=1d0c2cbf-213e-4092-a1d0-ad05b412197c
-ctgA	example	polypeptide_domain	14731	17239	.	-	.	Name=m14;Note=kinase;apollo_id=3795ab24-50b0-4d86-86cb-41207eb9aac7
-ctgA	example	match	15185	15276	.	+	.	Name=seg12;apollo_id=390dcbb9-d725-4561-9beb-593f39dead0f
-ctgA	example	remark	15329	15533	.	+	.	Name=f10;apollo_id=2d62867d-c411-4205-bf09-a414d9cf58e0
-ctgA	example	polypeptide_domain	15396	16159	.	+	.	Name=m03;Note=zinc finger;apollo_id=5dbe7d78-c538-4a64-aa3a-63c8116cc3a0
-ctgA	example	match	15639	15736	.	+	.	Name=seg12;apollo_id=0626f0b5-8808-461c-9fcd-bedcee314cf0
-ctgA	example	match	15745	15870	.	+	.	Name=seg12;apollo_id=8f5c2acd-dd68-4dcc-889d-76915b6a0f8e
-ctgA	example	polypeptide_domain	17023	17675	.	+	.	Name=m08;Note=7-transmembrane;apollo_id=525ff215-97e9-4dd4-91da-204bced50515
-ctgA	example	polypeptide_domain	17667	17690	.	+	.	Name=m13;Note=DEAD box;apollo_id=5defb999-7424-4b8f-929e-9e52ec944570
-ctgA	example	polypeptide_domain	18048	18552	.	-	.	Name=m07;Note=7-transmembrane;apollo_id=b36315ce-5126-46e6-81f3-fbecc0bbd613
-ctgA	example	match	18509	18985	.	+	.	Name=seg08;apollo_id=d8024146-d803-4086-9cfe-c522e56c2ee1
-ctgA	example	match	18989	19388	.	+	.	Name=seg08;apollo_id=962d8ef6-7022-4c82-ba57-f724888a5b24
-ctgA	example	remark	19157	22915	.	-	.	Name=f13;apollo_id=d5dbb65e-ef28-4cd4-963f-9a0279c26af8
-ctgA	example	match	19249	19559	.	+	.	Name=seg06;apollo_id=3af9f97f-73e4-443b-98be-8816df1e41ed
-ctgA	example	match	19496	19962	.	+	.	Name=seg08;apollo_id=ed8e5690-cd33-4e74-a931-250ef8b538d2
-ctgA	example	match	19975	20260	.	+	.	Name=seg06;apollo_id=2f588118-fd64-44b4-a489-04194dcc03e8
-ctgA	example	match	20093	20580	.	+	.	Name=seg08;apollo_id=f5397370-1d03-45b3-ae7d-3c0268cd576a
-ctgA	example	match	20379	20491	.	+	.	Name=seg06;apollo_id=96bb0fc3-e1fb-4e1c-b3a6-20de1d05624d
-ctgA	example	match	20533	21005	.	+	.	Name=seg06;apollo_id=8889323b-32fe-4028-b745-b6f7c52d8743
-ctgA	example	match	20970	21052	.	+	.	Name=seg08;apollo_id=cfc42ff5-2620-40ee-8551-3566a5251b1e
-ctgA	example	match	21122	21331	.	+	.	Name=seg06;apollo_id=f7e5ee47-9b61-4560-b420-baac98e5335c
-ctgA	example	match	21270	21277	.	+	.	Name=seg08;apollo_id=e5f308e6-7085-4050-ae1c-43a26a85aa27
-ctgA	example	match	21682	22176	.	+	.	Name=seg06;apollo_id=c66c1d66-d7c0-4335-8727-4688f46d8ff5
-ctgA	example	match	21685	22168	.	+	.	Name=seg08;apollo_id=c802c5e4-6044-43cb-8a73-a37af91668fa
-ctgA	example	polypeptide_domain	21748	25612	.	+	.	Name=m12;Note=kinase;apollo_id=1ca0e016-a0e9-4fd0-b4da-df6c37f400a6
-ctgA	example	remark	22132	24633	.	+	.	Name=f15;apollo_id=6b778a4b-02ab-4d1d-845c-02f22da5c755
-ctgA	example	match	22374	22570	.	+	.	Name=seg06;apollo_id=456c7085-fb2d-4e8c-9ea4-a51e71c21d78
-ctgA	example	match	22564	22869	.	+	.	Name=seg08;apollo_id=54f63d1d-c511-4dc0-bdc9-1bdb74f1573e
-ctgA	example	match	22958	23298	.	+	.	Name=seg08;apollo_id=44f4c05b-0ff8-40c7-a8b3-3369a1b8e83d
-ctgA	example	match	23025	23427	.	+	.	Name=seg06;apollo_id=b1bd2438-8790-4668-aaf6-4011bb31a781
-ctgA	example	remark	23072	23185	.	+	.	Name=f14;apollo_id=1614f193-f3ee-4744-8240-8afcc2ae77b0
-ctgA	example	match	23412	23469	.	+	.	Name=seg08;apollo_id=4038c8a0-ecd0-4e83-ba97-49cf3c500f91
-ctgA	example	match	23932	23932	.	+	.	Name=seg08;apollo_id=1ea3f5bf-e85b-465e-b122-8b82ed874f38
-ctgA	example	match	24228	24510	.	+	.	Name=seg11;apollo_id=067de620-243d-4906-b0df-e49c1b3511df
-ctgA	example	match	24328	24787	.	+	.	Name=seg08;apollo_id=0eb23574-dee4-4192-b675-cf3f0ca0871a
-ctgA	example	remark	24562	28338	.	+	.	Name=f02;apollo_id=0f640916-7bdf-4afe-9537-0d350acb4bec
-ctgA	example	match	24868	25012	.	+	.	Name=seg11;apollo_id=35e3da69-cc28-4ad2-b25f-40a4980b417a
-ctgA	example	match	25212	25426	.	+	.	Name=seg11;apollo_id=e1ccdc64-4719-4028-beef-65ac94b74d72
-ctgA	example	match	25228	25367	.	+	.	Name=seg08;apollo_id=458b9406-6637-48ca-85fe-149bbbedc153
-ctgA	example	match	25794	25874	.	+	.	Name=seg11;apollo_id=0f4fa8eb-dcc0-48c7-8a98-4ff7309e9d0d
-ctgA	example	match	26075	26519	.	+	.	Name=seg11;apollo_id=df332486-74c0-4f85-8990-19165c3d29a6
-ctgA	example	match	26122	26126	.	+	.	Name=seg02;apollo_id=c493bf7a-d7a7-4aba-b505-e07d6de557ac
-ctgA	example	match	26497	26869	.	+	.	Name=seg02;apollo_id=b3d9310f-4ccd-4037-8848-ce9b13d99d18
-ctgA	example	match	26503	26799	.	-	.	Name=seg05;apollo_id=39cef2f6-6898-46da-9af0-ed4d4516a0ef
-ctgA	example	match	26930	26940	.	+	.	Name=seg11;apollo_id=099908f4-884e-4dc9-9d1e-bba8471ef416
-ctgA	example	match	26975	27063	.	+	.	Name=seg11;apollo_id=96908a84-619d-470a-8f01-cf99f4f691a7
-ctgA	example	match	27172	27185	.	-	.	Name=seg05;apollo_id=856fe089-5e24-41fe-9b0f-93e0248a2e52
-ctgA	example	match	27201	27325	.	+	.	Name=seg02;apollo_id=eae89e7c-c537-4f0b-9bc2-7b115a268560
-ctgA	example	match	27372	27433	.	+	.	Name=seg02;apollo_id=7c34bab6-5a24-4a5c-ab96-0c4fc3b758ff
-ctgA	example	match	27415	27799	.	+	.	Name=seg11;apollo_id=683eb9db-80a8-4648-a3b6-5aa50f28fa37
-ctgA	example	match	27448	27860	.	-	.	Name=seg05;apollo_id=8af729ef-acec-47cd-bdb3-14fbc7e7cb89
-ctgA	example	match	27565	27565	.	+	.	Name=seg02;apollo_id=4e8c5d34-5260-4a6b-9e6c-1412bb05cb19
-ctgA	example	match	27813	28091	.	+	.	Name=seg02;apollo_id=6c257518-3eeb-41ca-9c06-54f7de9df9ef
-ctgA	example	match	27880	27943	.	+	.	Name=seg11;apollo_id=99708576-af03-476e-8d2b-9065a8df048c
-ctgA	example	match	27887	28076	.	-	.	Name=seg05;apollo_id=84449d6d-aed3-4b3f-8b5f-03763a7dc0a9
-ctgA	example	match	28093	28201	.	+	.	Name=seg02;apollo_id=670141b1-9d08-41db-bd12-ceef57dfead2
-ctgA	example	match	28225	28316	.	-	.	Name=seg05;apollo_id=240f7cf7-d3d9-4732-832c-fc6d08a7732e
-ctgA	example	match	28225	28346	.	+	.	Name=seg11;apollo_id=57dceefc-a576-41e3-8ef6-97d5f4fd122d
-ctgA	example	match	28329	28377	.	+	.	Name=seg02;apollo_id=ea86a6ed-0dfd-4ddf-983e-8fe06a22c150
-ctgA	example	polypeptide_domain	28332	30033	.	-	.	Name=m02;Note=HOX;apollo_id=73b6774d-a9d4-44d7-9b43-d1a54e50c8ad
-ctgA	example	polypeptide_domain	28342	28447	.	-	.	Name=m10;Note=DEAD box;apollo_id=965074e2-8705-4cbc-800b-c126c4592286
-ctgA	example	match	28375	28570	.	+	.	Name=seg11;apollo_id=c12a03e8-fc6c-4b28-82bd-e27d40979e17
-ctgA	example	match	28758	29041	.	+	.	Name=seg11;apollo_id=7a4e1a93-2786-4458-b593-e3a73a9f19f3
-ctgA	example	match	28777	29058	.	-	.	Name=seg05;apollo_id=abc6ac36-1a45-480c-9fa7-511a7bf7296c
-ctgA	example	match	28829	29194	.	+	.	Name=seg02;apollo_id=466147b6-e234-4128-97cf-b5e1570dbc86
-ctgA	example	match	29101	29302	.	+	.	Name=seg11;apollo_id=66672493-5d14-4020-9720-ed34e05eea43
-ctgA	example	match	29513	29647	.	-	.	Name=seg05;apollo_id=989c96d5-0485-443f-aa98-98ee9ddcc0f8
-ctgA	example	match	29517	29702	.	+	.	Name=seg02;apollo_id=96a9294a-21e5-4836-b66b-0ca27db1f6eb
-ctgA	example	match	29604	29702	.	+	.	Name=seg11;apollo_id=e60824f3-351b-4018-865d-0fc4540b2c1a
-ctgA	example	match	29713	30061	.	+	.	Name=seg02;apollo_id=629a45b9-50d7-4255-885f-8a8b131eb638
-ctgA	example	match	29771	29942	.	+	.	Name=seg10;apollo_id=5af72b18-7860-4e1d-9014-58b2f0847f62
-ctgA	example	match	29867	29885	.	+	.	Name=seg11;apollo_id=016d969f-b4d8-4b54-94ae-59571a2cf7f1
-ctgA	example	match	30042	30340	.	+	.	Name=seg10;apollo_id=dadd303d-1023-49d6-bfd0-f1104ae7b56b
-ctgA	example	match	30108	30216	.	-	.	Name=seg05;apollo_id=a0616f6b-f974-4955-9974-dbacb9375ff7
-ctgA	example	match	30241	30246	.	+	.	Name=seg11;apollo_id=474d0e57-ca43-4942-9679-092dcff55bfc
-ctgA	example	match	30329	30774	.	+	.	Name=seg02;apollo_id=3832a89f-002a-43d3-8d69-7d3d98d92bdb
-ctgA	example	match	30465	30798	.	-	.	Name=seg05;apollo_id=c1c2d6ba-2a9c-4fae-a4d6-430d96a0cca3
-ctgA	example	match	30575	30738	.	+	.	Name=seg11;apollo_id=915f2f38-94e3-4a32-9e05-bbf0f2e6a953
-ctgA	example	polypeptide_domain	30578	31748	.	+	.	Name=m06;Note=SUSHI repeat;apollo_id=8aef2171-d562-46fb-a78f-d38440a71738
-ctgA	example	match	30808	31306	.	+	.	Name=seg02;apollo_id=625b0a6b-ec77-4e5c-a0a0-9196fc774b37
-ctgA	example	match	30810	31307	.	+	.	Name=seg10;apollo_id=5668c686-a612-443e-aef5-965088d962a1
-ctgA	example	match	31232	31236	.	-	.	Name=seg05;apollo_id=27737e8a-9cb8-43ab-ab06-0a5756e01180
-ctgA	example	match	31421	31817	.	-	.	Name=seg05;apollo_id=04622d9e-3f47-4e3c-abd9-b5ef0dc6bf77
-ctgA	example	match	31516	31729	.	+	.	Name=seg02;apollo_id=46a4641f-c225-43ce-8b1d-86bdd9478ab1
-ctgA	example	match	31753	32154	.	+	.	Name=seg02;apollo_id=4da3a3e3-01d0-4255-b587-bc9796996fbc
-ctgA	example	match	31761	31984	.	+	.	Name=seg10;apollo_id=c7344768-14bb-4c01-ba68-fe00a067fe38
-ctgA	example	match	32010	32057	.	-	.	Name=seg05;apollo_id=aa7c4e9a-6ced-4c33-8745-921d04541b81
-ctgA	example	match	32208	32680	.	-	.	Name=seg05;apollo_id=6d5c24ec-2f81-418c-a1d3-f16a773e2549
-ctgA	example	match	32329	32359	.	+	.	Name=seg01;apollo_id=7dbf5b09-c99d-43a2-aea1-43119183e7ef
-ctgA	example	match	32374	32937	.	+	.	Name=seg10;apollo_id=6a2c87cf-fb1f-471c-a173-ba8bae4af60f
-ctgA	example	match	32595	32696	.	+	.	Name=seg02;apollo_id=9e32e4fa-00a7-415f-af77-6f87b67f1146
-ctgA	example	match	32892	32901	.	+	.	Name=seg02;apollo_id=caa5fab6-29fb-4b18-8a22-85db94460fe8
-ctgA	example	match	33053	33325	.	-	.	Name=seg05;apollo_id=a6fbeb4f-eaaf-4c28-9f0a-0cdb0936173c
-ctgA	example	match	33127	33388	.	+	.	Name=seg02;apollo_id=7a53bf98-b645-4352-a2d6-8af514e7d66f
-ctgA	example	polypeptide_domain	33325	35791	.	+	.	Name=m04;Note=Ig-like;apollo_id=17eedb59-f2cc-4176-98f8-aef67d8889b0
-ctgA	example	match	33438	33868	.	-	.	Name=seg05;apollo_id=4c82f036-ec70-4330-a083-2fba12a9ce74
-ctgA	example	match	33439	33443	.	+	.	Name=seg02;apollo_id=53ee5f89-dee3-42b5-b069-652f6b0ba5b0
-ctgA	example	match	33759	34209	.	+	.	Name=seg02;apollo_id=f9a2c705-75ef-40df-8645-82d9c24cfdc5
-ctgA	example	match	34244	34313	.	-	.	Name=seg05;apollo_id=b46ab305-133c-4eed-b19e-36c14e6970ea
-ctgA	example	match	34401	34466	.	+	.	Name=seg02;apollo_id=8e2e7f1d-38f8-4777-ad03-f5db384a28a5
-ctgA	example	match	34605	34983	.	-	.	Name=seg05;apollo_id=ea9a350c-1ade-4ccc-a0b8-c91a00d495eb
-ctgA	example	match	35333	35507	.	-	.	Name=seg05;apollo_id=7ca080d0-ea10-4c10-a6d4-ebe7f29e6293
-ctgA	example	match	35642	35904	.	-	.	Name=seg05;apollo_id=e829a977-d35c-4eae-8d2b-dff4b3c668fa
-ctgA	example	remark	36034	38167	.	+	.	Name=f09;apollo_id=7b75c03f-ed36-44eb-bb13-19cf28c1e7a6
-ctgA	example	match	36616	37057	.	-	.	Name=seg09;apollo_id=b55940e3-814d-45c2-bef6-8fcacf3ed055
-ctgA	example	remark	36649	40440	.	-	.	Name=f03;apollo_id=7e244921-c583-4d68-a349-236bedf1c439
-ctgA	example	match	37208	37227	.	-	.	Name=seg09;apollo_id=3a8301c4-b285-4846-ac91-2f288faf44a3
-ctgA	example	remark	37242	38653	.	+	.	Name=f04;apollo_id=e7e8a7d9-979c-420e-b1cb-6602fe95157a
-ctgA	example	polypeptide_domain	37497	40559	.	-	.	Name=m15;Note=7-transmembrane;apollo_id=7add15e3-f624-432c-90de-7c0dfe963b2b
-ctgA	example	match	39265	39361	.	-	.	Name=seg15;apollo_id=c67926ec-97bb-49ff-a380-14f1f2a386b6
-ctgA	example	match	39753	40034	.	-	.	Name=seg15;apollo_id=a4c6a440-f76e-475c-a83a-dbae07052a75
-ctgA	example	match	40515	40954	.	-	.	Name=seg15;apollo_id=90600b4b-6f4b-4470-8eb0-00e4c950a16f
-ctgA	example	match	41137	41318	.	-	.	Name=seg14;apollo_id=c503d7d4-8094-43d3-b7bb-2e441473e40d
-ctgA	example	match	41252	41365	.	-	.	Name=seg15;apollo_id=2c717b42-5621-427d-9fe0-e35a41dce064
-ctgA	example	match	41492	41504	.	-	.	Name=seg15;apollo_id=9ccc2c7c-fd9a-43c2-8260-59556435a8f6
-ctgA	example	match	41754	41948	.	-	.	Name=seg14;apollo_id=7d631e72-ca3b-4d09-bac7-a5edd1aad5e8
-ctgA	example	match	41941	42377	.	-	.	Name=seg15;apollo_id=cd4c1801-6e59-4c92-8b8f-d6f3ea08be9f
-ctgA	example	match	42057	42474	.	-	.	Name=seg14;apollo_id=58a70620-0003-411a-b5b0-ca7bae03b13b
-ctgA	example	match	42748	42954	.	-	.	Name=seg15;apollo_id=8e3cb6f9-51d1-4a66-9a73-61c48fb736a3
-ctgA	example	match	42890	43270	.	-	.	Name=seg14;apollo_id=8db2e344-ac3e-46a6-84fe-b114251f6edd
-ctgA	example	match	43395	43811	.	-	.	Name=seg14;apollo_id=358598bb-42e4-42a0-986e-8a4c2989b41c
-ctgA	example	match	43401	43897	.	-	.	Name=seg15;apollo_id=3c43accf-a638-4bb3-8ed2-7f7d83c3e927
-ctgA	example	match	44043	44113	.	-	.	Name=seg15;apollo_id=95417864-652b-49a0-98a9-ba52b42e1739
-ctgA	example	match	44065	44556	.	-	.	Name=seg14;apollo_id=04e25afb-9853-49bd-b1aa-a3b2399a8662
-ctgA	example	match	44191	44514	.	-	.	Name=seg07;apollo_id=a114690d-1c82-4aa0-8139-e90bc01472cc
-ctgA	example	match	44399	44888	.	-	.	Name=seg15;apollo_id=ee701500-8be4-43ec-a1e3-42b5051f108e
-ctgA	example	match	44552	45043	.	-	.	Name=seg07;apollo_id=a2e06173-c394-403e-bd99-d9c101ba0576
-ctgA	example	remark	44705	47713	.	-	.	Name=f01;apollo_id=956640fe-d5e6-4dbf-8c7f-af7d634fdf93
-ctgA	example	match	44763	45030	.	-	.	Name=seg14;apollo_id=2ee060a6-fdac-4618-9bb5-176cb64a082e
-ctgA	example	match	45231	45488	.	-	.	Name=seg14;apollo_id=ba9bf414-c5d7-4248-9ede-27790539c351
-ctgA	example	match	45281	45375	.	-	.	Name=seg15;apollo_id=04366f1e-6fb7-4fea-b668-bd8044f09095
-ctgA	example	match	45373	45600	.	-	.	Name=seg07;apollo_id=ed9ff9ca-88aa-4808-b0fd-984a4325193f
-ctgA	example	match	45711	46041	.	-	.	Name=seg15;apollo_id=082d12de-3a06-4fa4-81b1-13d154e24a78
-ctgA	example	match	45790	46022	.	-	.	Name=seg14;apollo_id=fe36f7c4-5617-48de-851b-59ae27dbed6a
-ctgA	example	match	45897	46315	.	-	.	Name=seg07;apollo_id=64200478-e531-4624-85c1-62a41dda182b
-ctgA	example	polypeptide_domain	46012	48851	.	+	.	Name=m09;Note=kinase;apollo_id=0204e4d3-51a1-4dba-80b9-2a602689f8c0
-ctgA	example	match	46092	46318	.	-	.	Name=seg14;apollo_id=3630be10-8e62-4f47-be36-d4125609fe75
-ctgA	example	match	46425	46564	.	-	.	Name=seg15;apollo_id=a8429c71-2051-4f7d-acee-17a40d32a578
-ctgA	example	match	46491	46890	.	-	.	Name=seg07;apollo_id=592374b0-4741-4c71-9d97-91ff8da67d4e
-ctgA	example	match	46738	47087	.	-	.	Name=seg15;apollo_id=185da708-df20-4d8d-94d9-9d356ac432ce
-ctgA	example	match	46816	46992	.	-	.	Name=seg14;apollo_id=1a781b28-03c2-4093-9ca2-f0042304d56f
-ctgA	example	remark	46990	48410	.	-	.	Name=f11;apollo_id=9347fc3f-2b1d-4395-9a60-ba3507dd2350
-ctgA	example	match	47126	47297	.	-	.	Name=seg07;apollo_id=0b7d40f7-926b-4749-86e7-6bf3d1bf4606
-ctgA	example	match	47329	47595	.	-	.	Name=seg15;apollo_id=d1d9037d-1399-4f8a-a561-434ab4c548ce
-ctgA	example	match	47449	47829	.	-	.	Name=seg14;apollo_id=3494b6ca-f999-4a31-9de5-f83d548f9cc2
-ctgA	example	match	47735	47983	.	-	.	Name=seg07;apollo_id=6f5d021e-14f3-48f3-a2f5-55e997b32c1a
-ctgA	example	match	47858	47979	.	-	.	Name=seg15;apollo_id=fd9a9ae9-774a-498b-8235-948955a36b3b
-ctgA	example	match	48169	48453	.	-	.	Name=seg15;apollo_id=d7091fb9-d8b0-469a-af6b-5cf179eebb59
-ctgA	example	polypeptide_domain	48253	48366	.	+	.	Name=m01;Note=WD40;apollo_id=1d63f30a-a6c1-4f1a-9663-26f821180973
-ctgA	example	match	48447	48709	.	-	.	Name=seg07;apollo_id=36bb05c5-7c60-4f93-b0ca-bbd4c4d75970
-ctgA	example	match	48931	49186	.	-	.	Name=seg07;apollo_id=1f40e27e-1423-45d7-9ba5-e38f7bdf6c65
-ctgA	example	match	49406	49476	.	+	.	Name=seg13;apollo_id=afefd512-653b-4fe9-b97b-79468113c564
-ctgA	example	match	49472	49699	.	-	.	Name=seg07;apollo_id=465f2a0c-f844-4b42-a3a3-7e7fa6103ece
-ctgA	example	remark	49758	50000	.	-	.	Name=f12;apollo_id=20624f9e-0dd3-49da-b678-333b8797f3f0
-ctgA	example	match	49762	50000	.	+	.	Name=seg13;apollo_id=256a57aa-2002-4b68-ba5a-c514d1e1d845
-ctgA	example	match	49957	50000	.	-	.	Name=seg07;apollo_id=ab0b46ac-0cdd-4cbe-934a-5989a73835e1
-ctgA	example	match	49957	50000	.	-	.	Name=seg07;apollo_id=60c7bdee-9bac-4501-b654-e78acf845685
-ctgB	example	contig	1	6079	.	.	.	Name=ctgB;apollo_id=39548533-06ee-4d35-85ea-eeaf4b51b4f5
-ctgB	example	remark	1659	1984	.	+	.	Name=f07;Note=This is an example;apollo_id=90a56267-e21f-4097-8c4d-489f7dd205ad
-ctgB	example	remark	3014	6130	.	+	.	Name=f06;Note=This is another example;apollo_id=076adc5b-62c0-4881-b557-80b90b461144
-ctgB	example	remark	4715	5968	.	-	.	Name=f05;Note=ああ、この機能は、世界中を旅しています！;apollo_id=669bfc94-fb99-4a3b-940a-4414e15c401d
-ctgA	example	BAC	1000	20000	.	.	.	ID=b101.2;Name=b101.2;Note=Fingerprinted BAC with end reads;apollo_id=ce5d396d-b5c8-4dd0-8eb6-ae0e735137c6
-ctgA	example	clone_start	1000	1500	.	+	.	Parent=b101.2;apollo_id=107c5459-1944-4937-9a80-0fe8d6b82bd8
-ctgA	example	clone_end	19500	20000	.	-	.	Parent=b101.2;apollo_id=29c48aff-f757-49ac-8cc9-0d38649c7469
-ctgA	example	SNP	1000	1000	0.987	.	.	ID=FakeSNP1;Name=FakeSNP;Note=This is a fake SNP that should appear at 1000 with length 1;apollo_id=d00f7389-5c25-40e0-94a1-411255aa8762
-ctgA	est	EST_match	1050	3202	.	+	.	ID=Match1;Name=agt830.5;Target=agt830.5 1 654;apollo_id=8b6d1d4f-c159-439c-880c-6c3741574b54
-ctgA	est	match_part	1050	1500	.	+	.	Parent=Match1;Name=agt830.5;Target=agt830.5 1 451;apollo_id=7f2cf8f1-8722-4523-a905-94db725bd8aa
-ctgA	est	match_part	3000	3202	.	+	.	Parent=Match1;Name=agt830.5;Target=agt830.5 452 654;apollo_id=e760bdc9-2654-491a-8690-adcecc9ff8c8
-ctgA	est	EST_match	1050	7300	.	+	.	ID=Match3;Name=agt221.5;Target=agt221.5 1 1253;apollo_id=21d97396-6eff-4795-89a5-c248f0f42473
-ctgA	est	match_part	1050	1500	.	+	.	Parent=Match3;Name=agt221.5;Target=agt221.5 1 451;apollo_id=52896819-fafc-4ebe-9180-6d285a4320bc
-ctgA	est	match_part	5000	5500	.	+	.	Parent=Match3;Name=agt221.5;Target=agt221.5 452 952;apollo_id=b2feb9b6-fca1-47a7-99ce-4db92e3b7ea6
-ctgA	est	match_part	7000	7300	.	+	.	Parent=Match3;Name=agt221.5;Target=agt221.5 953 1253;apollo_id=465bc8e8-1041-4981-a0c8-8912cc63cdef
-ctgA	example	gene	1050	9000	.	+	.	ID=EDEN;Name=EDEN;Note=protein kinase;apollo_id=8123e585-5ccc-466b-8d84-ca5abd9446b4
-ctgA	example	mRNA	1050	9000	.	+	.	ID=EDEN.1;Parent=EDEN;Name=EDEN.1;Note=Eden splice form 1;Index=1;apollo_id=7062f019-2710-40ac-a169-d39958dcdd2d
-ctgA	example	five_prime_UTR	1050	1200	.	+	.	Parent=EDEN.1;apollo_id=08368e7c-4ab1-4f56-b85f-f0c46be6729a
-ctgA	example	CDS	1201	1500	.	+	0	Parent=EDEN.1;apollo_id=af76573f-f7ef-4b69-9dde-0a8c8a5f23c3
-ctgA	example	CDS	3000	3902	.	+	0	Parent=EDEN.1;apollo_id=23b96ff7-7bc0-4800-9416-a4c13f648615
-ctgA	example	CDS	5000	5500	.	+	0	Parent=EDEN.1;apollo_id=4b2c5799-59a9-433b-b32d-ada7ac2831de
-ctgA	example	CDS	7000	7608	.	+	0	Parent=EDEN.1;apollo_id=8c56f60a-66c0-4d86-b4c9-37324cd43434
-ctgA	example	three_prime_UTR	7609	9000	.	+	.	Parent=EDEN.1;apollo_id=fe8daa45-a009-4a1d-b551-fce7e43e5334
-ctgA	example	mRNA	1050	9000	.	+	.	ID=EDEN.2;Parent=EDEN;Name=EDEN.2;Note=Eden splice form 2;Index=1;apollo_id=64ebde5b-a82f-4139-a984-40d03386bbe7
-ctgA	example	five_prime_UTR	1050	1200	.	+	.	Parent=EDEN.2;apollo_id=229437c5-30aa-49c8-bdee-a4a7bb21b414
-ctgA	example	CDS	1201	1500	.	+	0	Parent=EDEN.2;apollo_id=8deea7ec-dda6-41f8-8871-e849806d1ce1
-ctgA	example	CDS	5000	5500	.	+	0	Parent=EDEN.2;apollo_id=92d784df-4677-4f2a-9b8e-1b6586f57ed8
-ctgA	example	CDS	7000	7608	.	+	0	Parent=EDEN.2;apollo_id=289a168e-6299-4378-aca1-a101152f6377
-ctgA	example	three_prime_UTR	7609	9000	.	+	.	Parent=EDEN.2;apollo_id=21b1dced-b439-4a3d-9f26-fe8a4b02508a
-ctgA	example	mRNA	1300	9000	.	+	.	ID=EDEN.3;Parent=EDEN;Name=EDEN.3;Note=Eden splice form 3;Index=1;apollo_id=2079c523-6500-4ae6-8a6f-ff13ba3e0e48
-ctgA	example	five_prime_UTR	1300	1500	.	+	.	Parent=EDEN.3;apollo_id=59bb937c-4825-47e0-8b22-c0ac7227bfe7
-ctgA	example	five_prime_UTR	3000	3300	.	+	.	Parent=EDEN.3;apollo_id=6b880764-9597-49eb-9a4b-9e6c373bb4a3
-ctgA	example	CDS	3301	3902	.	+	0	Parent=EDEN.3;apollo_id=5781bc5d-ad9b-4458-b95b-bbe21923cfbb
-ctgA	example	CDS	5000	5500	.	+	1	Parent=EDEN.3;apollo_id=1d90da19-d512-443c-9860-de63590c4ce2
-ctgA	example	CDS	7000	7600	.	+	1	Parent=EDEN.3;apollo_id=7d6324de-611e-4fd5-97b9-6e4ac0fa0890
-ctgA	example	three_prime_UTR	7601	9000	.	+	.	Parent=EDEN.3;apollo_id=23b2b2e8-b94d-42a6-b0c0-2e4a233761b4
-ctgA	est	EST_match	1150	7200	.	+	.	ID=Match5;Name=agt767.5;Target=agt767.5 1 1153;apollo_id=6507814b-f699-4077-b0d5-4b41fc8fc31a
-ctgA	est	match_part	1150	1500	.	+	.	Parent=Match5;Name=agt767.5;Target=agt767.5 1 351;apollo_id=bc74dc07-4df3-4571-a1c4-55f59207184b
-ctgA	est	match_part	5000	5500	.	+	.	Parent=Match5;Name=agt767.5;Target=agt767.5 352 852;apollo_id=f218c705-2512-4206-81fd-b6dfdf1d9c04
-ctgA	est	match_part	7000	7200	.	+	.	Parent=Match5;Name=agt767.5;Target=agt767.5 853 1153;apollo_id=06702d84-0c8d-44bc-946a-21b41d07d49e
-ctgA	est	EST_match	5410	7503	.	-	.	ID=Match2;Name=agt830.3;Target=agt830.3 1 595;apollo_id=5f841d8e-d5a2-428a-9996-5e32005c59c6
-ctgA	est	match_part	5410	5500	.	-	.	Parent=Match2;Name=agt830.3;Target=agt830.3 505 595;apollo_id=94d92344-1127-4363-b412-b044e503878c
-ctgA	est	match_part	7000	7503	.	-	.	Parent=Match2;Name=agt830.3;Target=agt830.3 1 504;apollo_id=a45263b2-51f6-4e38-9a2e-77b5eb32549a
-ctgA	est	EST_match	7500	8000	.	-	.	ID=Match4;Name=agt221.3;Target=agt221.3 1 501;apollo_id=765696bd-323d-4e71-bad5-6829c9374a0f
-ctgA	est	EST_match	8000	9000	.	-	.	ID=Match6;Name=agt767.3;Target=agt767.3 1 1001;apollo_id=0cec3f09-c089-41d0-b467-0759208d9222
-ctgA	predicted	mRNA	13000	17200	.	+	0	ID=cds-Apple2;Name=Apple2;Note=mRNA with CDSs but no UTRs;apollo_id=1fb72493-5239-498d-a95f-f6e2eb46b778
-ctgA	predicted	CDS	13500	13800	.	+	0	Parent=cds-Apple2;apollo_id=4700c152-7373-4a18-9426-1000dfbb203b
-ctgA	predicted	CDS	15000	15500	.	+	1	Parent=cds-Apple2;apollo_id=e31e4852-8c97-4ea8-9af8-2818549ecb36
-ctgA	predicted	CDS	16500	17000	.	+	2	Parent=cds-Apple2;apollo_id=4c0c16fb-1a0c-4f69-a888-a2bd6094933c
-ctgA	exonerate	mRNA	17400	23000	.	+	.	ID=rna-Apple3;Name=Apple3;Note=mRNA with both CDSs and UTRs;apollo_id=2b4c708a-e65c-4d5c-8e43-e15278b5a02f
-ctgA	exonerate	UTR	17400	17999	.	+	.	Parent=rna-Apple3;apollo_id=ec34aa48-14c5-4376-ad4a-358e37dfac48
-ctgA	exonerate	CDS	18000	18800	.	+	0	Parent=rna-Apple3;apollo_id=e753d0d4-58bf-4fea-b8f4-165cc9b4a36c
-ctgA	exonerate	CDS	19000	19500	.	+	1	Parent=rna-Apple3;apollo_id=84e56165-3034-4aab-9009-47b5c764a16c
-ctgA	exonerate	CDS	21000	21200	.	+	2	Parent=rna-Apple3;apollo_id=2ab4d031-2ded-4c6d-8c98-8ca1aea88539
-ctgA	exonerate	UTR	21201	23000	.	+	.	Parent=rna-Apple3;apollo_id=7871cab1-4d34-461a-99f4-2dc124b505d0
+ctgA	example	contig	1	50001	.	.	.	Name=ctgA;multivalue=val1,val2,val3
+ctgA	example	remark	1000	2000	.	.	.	Name=Remark:hga;Alias=hga
+ctgA	example	protein_coding_primary_transcript	1100	2000	.	+	.	Name=Gene:hga;Alias=hga
+ctgA	example	polypeptide	1200	1900	.	+	.	Name=Protein:HGA;Alias=hga
+ctgA	example	protein_coding_primary_transcript	1600	3000	.	-	.	Name=Gene:hgb;Alias=hgb
+ctgA	example	remark	1659	1984	.	+	.	Name=f07;Note=This is an example
+ctgA	example	polypeptide	1800	2900	.	-	.	Name=Protein:HGB;Alias=hgb
+ctgA	example	remark	3014	6130	.	+	.	Name=f06;Note=This is another example
+ctgA	example	remark	4715	5968	.	-	.	Name=f05;Note=Ok! Ok! I get the message.
+ctgA	example	match	5233	5302	.	-	.	Name=seg04
+ctgA	example	match	5800	6101	.	-	.	Name=seg04
+ctgA	example	match	6442	6854	.	-	.	Name=seg04
+ctgA	example	match	6885	7241	.	-	.	Name=seg03
+ctgA	example	match	7106	7211	.	-	.	Name=seg04
+ctgA	example	match	7410	7737	.	-	.	Name=seg03
+ctgA	example	match	7695	8177	.	-	.	Name=seg04
+ctgA	example	match	8055	8080	.	-	.	Name=seg03
+ctgA	example	match	8306	8999	.	-	.	Name=seg03
+ctgA	example	match	8545	8783	.	-	.	Name=seg04
+ctgA	example	match	8869	8935	.	-	.	Name=seg04
+ctgA	example	match	9404	9825	.	-	.	Name=seg04
+ctgA	bare_predicted	CDS	10000	11500	.	+	0	Name=Apple1;Note=CDS with no parent
+ctgA	example	polypeptide_domain	11911	15561	.	+	.	Name=m11;Note=kinase
+ctgA	example	match	12531	12895	.	+	.	Name=seg12
+ctgA	example	match	13122	13449	.	+	.	Name=seg12
+ctgA	example	remark	13280	16394	.	+	.	Name=f08
+ctgA	example	match	13452	13745	.	+	.	Name=seg12
+ctgA	example	polypeptide_domain	13801	14007	.	-	.	Name=m05;Note=helix loop helix
+ctgA	example	match	13908	13965	.	+	.	Name=seg12
+ctgA	example	match	13998	14488	.	+	.	Name=seg12
+ctgA	example	match	14564	14899	.	+	.	Name=seg12
+ctgA	example	polypeptide_domain	14731	17239	.	-	.	Name=m14;Note=kinase
+ctgA	example	match	15185	15276	.	+	.	Name=seg12
+ctgA	example	remark	15329	15533	.	+	.	Name=f10
+ctgA	example	polypeptide_domain	15396	16159	.	+	.	Name=m03;Note=zinc finger
+ctgA	example	match	15639	15736	.	+	.	Name=seg12
+ctgA	example	match	15745	15870	.	+	.	Name=seg12
+ctgA	example	polypeptide_domain	17023	17675	.	+	.	Name=m08;Note=7-transmembrane
+ctgA	example	polypeptide_domain	17667	17690	.	+	.	Name=m13;Note=DEAD box
+ctgA	example	polypeptide_domain	18048	18552	.	-	.	Name=m07;Note=7-transmembrane
+ctgA	example	match	18509	18985	.	+	.	Name=seg08
+ctgA	example	match	18989	19388	.	+	.	Name=seg08
+ctgA	example	remark	19157	22915	.	-	.	Name=f13
+ctgA	example	match	19249	19559	.	+	.	Name=seg06
+ctgA	example	match	19496	19962	.	+	.	Name=seg08
+ctgA	example	match	19975	20260	.	+	.	Name=seg06
+ctgA	example	match	20093	20580	.	+	.	Name=seg08
+ctgA	example	match	20379	20491	.	+	.	Name=seg06
+ctgA	example	match	20533	21005	.	+	.	Name=seg06
+ctgA	example	match	20970	21052	.	+	.	Name=seg08
+ctgA	example	match	21122	21331	.	+	.	Name=seg06
+ctgA	example	match	21270	21277	.	+	.	Name=seg08
+ctgA	example	match	21682	22176	.	+	.	Name=seg06
+ctgA	example	match	21685	22168	.	+	.	Name=seg08
+ctgA	example	polypeptide_domain	21748	25612	.	+	.	Name=m12;Note=kinase
+ctgA	example	remark	22132	24633	.	+	.	Name=f15
+ctgA	example	match	22374	22570	.	+	.	Name=seg06
+ctgA	example	match	22564	22869	.	+	.	Name=seg08
+ctgA	example	match	22958	23298	.	+	.	Name=seg08
+ctgA	example	match	23025	23427	.	+	.	Name=seg06
+ctgA	example	remark	23072	23185	.	+	.	Name=f14
+ctgA	example	match	23412	23469	.	+	.	Name=seg08
+ctgA	example	match	23932	23932	.	+	.	Name=seg08
+ctgA	example	match	24228	24510	.	+	.	Name=seg11
+ctgA	example	match	24328	24787	.	+	.	Name=seg08
+ctgA	example	remark	24562	28338	.	+	.	Name=f02
+ctgA	example	match	24868	25012	.	+	.	Name=seg11
+ctgA	example	match	25212	25426	.	+	.	Name=seg11
+ctgA	example	match	25228	25367	.	+	.	Name=seg08
+ctgA	example	match	25794	25874	.	+	.	Name=seg11
+ctgA	example	match	26075	26519	.	+	.	Name=seg11
+ctgA	example	match	26122	26126	.	+	.	Name=seg02
+ctgA	example	match	26497	26869	.	+	.	Name=seg02
+ctgA	example	match	26503	26799	.	-	.	Name=seg05
+ctgA	example	match	26930	26940	.	+	.	Name=seg11
+ctgA	example	match	26975	27063	.	+	.	Name=seg11
+ctgA	example	match	27172	27185	.	-	.	Name=seg05
+ctgA	example	match	27201	27325	.	+	.	Name=seg02
+ctgA	example	match	27372	27433	.	+	.	Name=seg02
+ctgA	example	match	27415	27799	.	+	.	Name=seg11
+ctgA	example	match	27448	27860	.	-	.	Name=seg05
+ctgA	example	match	27565	27565	.	+	.	Name=seg02
+ctgA	example	match	27813	28091	.	+	.	Name=seg02
+ctgA	example	match	27880	27943	.	+	.	Name=seg11
+ctgA	example	match	27887	28076	.	-	.	Name=seg05
+ctgA	example	match	28093	28201	.	+	.	Name=seg02
+ctgA	example	match	28225	28316	.	-	.	Name=seg05
+ctgA	example	match	28225	28346	.	+	.	Name=seg11
+ctgA	example	match	28329	28377	.	+	.	Name=seg02
+ctgA	example	polypeptide_domain	28332	30033	.	-	.	Name=m02;Note=HOX
+ctgA	example	polypeptide_domain	28342	28447	.	-	.	Name=m10;Note=DEAD box
+ctgA	example	match	28375	28570	.	+	.	Name=seg11
+ctgA	example	match	28758	29041	.	+	.	Name=seg11
+ctgA	example	match	28777	29058	.	-	.	Name=seg05
+ctgA	example	match	28829	29194	.	+	.	Name=seg02
+ctgA	example	match	29101	29302	.	+	.	Name=seg11
+ctgA	example	match	29513	29647	.	-	.	Name=seg05
+ctgA	example	match	29517	29702	.	+	.	Name=seg02
+ctgA	example	match	29604	29702	.	+	.	Name=seg11
+ctgA	example	match	29713	30061	.	+	.	Name=seg02
+ctgA	example	match	29771	29942	.	+	.	Name=seg10
+ctgA	example	match	29867	29885	.	+	.	Name=seg11
+ctgA	example	match	30042	30340	.	+	.	Name=seg10
+ctgA	example	match	30108	30216	.	-	.	Name=seg05
+ctgA	example	match	30241	30246	.	+	.	Name=seg11
+ctgA	example	match	30329	30774	.	+	.	Name=seg02
+ctgA	example	match	30465	30798	.	-	.	Name=seg05
+ctgA	example	match	30575	30738	.	+	.	Name=seg11
+ctgA	example	polypeptide_domain	30578	31748	.	+	.	Name=m06;Note=SUSHI repeat
+ctgA	example	match	30808	31306	.	+	.	Name=seg02
+ctgA	example	match	30810	31307	.	+	.	Name=seg10
+ctgA	example	match	31232	31236	.	-	.	Name=seg05
+ctgA	example	match	31421	31817	.	-	.	Name=seg05
+ctgA	example	match	31516	31729	.	+	.	Name=seg02
+ctgA	example	match	31753	32154	.	+	.	Name=seg02
+ctgA	example	match	31761	31984	.	+	.	Name=seg10
+ctgA	example	match	32010	32057	.	-	.	Name=seg05
+ctgA	example	match	32208	32680	.	-	.	Name=seg05
+ctgA	example	match	32329	32359	.	+	.	Name=seg01
+ctgA	example	match	32374	32937	.	+	.	Name=seg10
+ctgA	example	match	32595	32696	.	+	.	Name=seg02
+ctgA	example	match	32892	32901	.	+	.	Name=seg02
+ctgA	example	match	33053	33325	.	-	.	Name=seg05
+ctgA	example	match	33127	33388	.	+	.	Name=seg02
+ctgA	example	polypeptide_domain	33325	35791	.	+	.	Name=m04;Note=Ig-like
+ctgA	example	match	33438	33868	.	-	.	Name=seg05
+ctgA	example	match	33439	33443	.	+	.	Name=seg02
+ctgA	example	match	33759	34209	.	+	.	Name=seg02
+ctgA	example	match	34244	34313	.	-	.	Name=seg05
+ctgA	example	match	34401	34466	.	+	.	Name=seg02
+ctgA	example	match	34605	34983	.	-	.	Name=seg05
+ctgA	example	match	35333	35507	.	-	.	Name=seg05
+ctgA	example	match	35642	35904	.	-	.	Name=seg05
+ctgA	example	remark	36034	38167	.	+	.	Name=f09
+ctgA	example	match	36616	37057	.	-	.	Name=seg09
+ctgA	example	remark	36649	40440	.	-	.	Name=f03
+ctgA	example	match	37208	37227	.	-	.	Name=seg09
+ctgA	example	remark	37242	38653	.	+	.	Name=f04
+ctgA	example	polypeptide_domain	37497	40559	.	-	.	Name=m15;Note=7-transmembrane
+ctgA	example	match	39265	39361	.	-	.	Name=seg15
+ctgA	example	match	39753	40034	.	-	.	Name=seg15
+ctgA	example	match	40515	40954	.	-	.	Name=seg15
+ctgA	example	match	41137	41318	.	-	.	Name=seg14
+ctgA	example	match	41252	41365	.	-	.	Name=seg15
+ctgA	example	match	41492	41504	.	-	.	Name=seg15
+ctgA	example	match	41754	41948	.	-	.	Name=seg14
+ctgA	example	match	41941	42377	.	-	.	Name=seg15
+ctgA	example	match	42057	42474	.	-	.	Name=seg14
+ctgA	example	match	42748	42954	.	-	.	Name=seg15
+ctgA	example	match	42890	43270	.	-	.	Name=seg14
+ctgA	example	match	43395	43811	.	-	.	Name=seg14
+ctgA	example	match	43401	43897	.	-	.	Name=seg15
+ctgA	example	match	44043	44113	.	-	.	Name=seg15
+ctgA	example	match	44065	44556	.	-	.	Name=seg14
+ctgA	example	match	44191	44514	.	-	.	Name=seg07
+ctgA	example	match	44399	44888	.	-	.	Name=seg15
+ctgA	example	match	44552	45043	.	-	.	Name=seg07
+ctgA	example	remark	44705	47713	.	-	.	Name=f01
+ctgA	example	match	44763	45030	.	-	.	Name=seg14
+ctgA	example	match	45231	45488	.	-	.	Name=seg14
+ctgA	example	match	45281	45375	.	-	.	Name=seg15
+ctgA	example	match	45373	45600	.	-	.	Name=seg07
+ctgA	example	match	45711	46041	.	-	.	Name=seg15
+ctgA	example	match	45790	46022	.	-	.	Name=seg14
+ctgA	example	match	45897	46315	.	-	.	Name=seg07
+ctgA	example	polypeptide_domain	46012	48851	.	+	.	Name=m09;Note=kinase
+ctgA	example	match	46092	46318	.	-	.	Name=seg14
+ctgA	example	match	46425	46564	.	-	.	Name=seg15
+ctgA	example	match	46491	46890	.	-	.	Name=seg07
+ctgA	example	match	46738	47087	.	-	.	Name=seg15
+ctgA	example	match	46816	46992	.	-	.	Name=seg14
+ctgA	example	remark	46990	48410	.	-	.	Name=f11
+ctgA	example	match	47126	47297	.	-	.	Name=seg07
+ctgA	example	match	47329	47595	.	-	.	Name=seg15
+ctgA	example	match	47449	47829	.	-	.	Name=seg14
+ctgA	example	match	47735	47983	.	-	.	Name=seg07
+ctgA	example	match	47858	47979	.	-	.	Name=seg15
+ctgA	example	match	48169	48453	.	-	.	Name=seg15
+ctgA	example	polypeptide_domain	48253	48366	.	+	.	Name=m01;Note=WD40
+ctgA	example	match	48447	48709	.	-	.	Name=seg07
+ctgA	example	match	48931	49186	.	-	.	Name=seg07
+ctgA	example	match	49406	49476	.	+	.	Name=seg13
+ctgA	example	match	49472	49699	.	-	.	Name=seg07
+ctgA	example	remark	49758	50000	.	-	.	Name=f12
+ctgA	example	match	49762	50000	.	+	.	Name=seg13
+ctgA	example	match	49957	50000	.	-	.	Name=seg07
+ctgA	example	match	49957	50000	.	-	.	Name=seg07
+ctgB	example	contig	1	6079	.	.	.	Name=ctgB
+ctgB	example	remark	1659	1984	.	+	.	Name=f07;Note=This is an example
+ctgB	example	remark	3014	6130	.	+	.	Name=f06;Note=This is another example
+ctgB	example	remark	4715	5968	.	-	.	Name=f05;Note=ああ、この機能は、世界中を旅しています！
+ctgA	example	BAC	1000	20000	.	.	.	ID=b101.2;Name=b101.2;Note=Fingerprinted BAC with end reads
+ctgA	example	clone_start	1000	1500	.	+	.	Parent=b101.2
+ctgA	example	clone_end	19500	20000	.	-	.	Parent=b101.2
+ctgA	example	SNP	1000	1000	0.987	.	.	ID=FakeSNP1;Name=FakeSNP;Note=This is a fake SNP that should appear at 1000 with length 1
+ctgA	est	EST_match	1050	3202	.	+	.	ID=Match1;Name=agt830.5;Target=agt830.5 1 654
+ctgA	est	match_part	1050	1500	.	+	.	Parent=Match1;Name=agt830.5;Target=agt830.5 1 451
+ctgA	est	match_part	3000	3202	.	+	.	Parent=Match1;Name=agt830.5;Target=agt830.5 452 654
+ctgA	est	EST_match	1050	7300	.	+	.	ID=Match3;Name=agt221.5;Target=agt221.5 1 1253
+ctgA	est	match_part	1050	1500	.	+	.	Parent=Match3;Name=agt221.5;Target=agt221.5 1 451
+ctgA	est	match_part	5000	5500	.	+	.	Parent=Match3;Name=agt221.5;Target=agt221.5 452 952
+ctgA	est	match_part	7000	7300	.	+	.	Parent=Match3;Name=agt221.5;Target=agt221.5 953 1253
+ctgA	example	gene	1050	9000	.	+	.	ID=EDEN;Name=EDEN;Note=protein kinase
+ctgA	example	mRNA	1050	9000	.	+	.	ID=EDEN.1;Parent=EDEN;Name=EDEN.1;Note=Eden splice form 1;Index=1
+ctgA	example	five_prime_UTR	1050	1200	.	+	.	Parent=EDEN.1
+ctgA	example	CDS	1201	1500	.	+	0	Parent=EDEN.1
+ctgA	example	CDS	3000	3902	.	+	0	Parent=EDEN.1
+ctgA	example	CDS	5000	5500	.	+	0	Parent=EDEN.1
+ctgA	example	CDS	7000	7608	.	+	0	Parent=EDEN.1
+ctgA	example	three_prime_UTR	7609	9000	.	+	.	Parent=EDEN.1
+ctgA	example	mRNA	1050	9000	.	+	.	ID=EDEN.2;Parent=EDEN;Name=EDEN.2;Note=Eden splice form 2;Index=1
+ctgA	example	five_prime_UTR	1050	1200	.	+	.	Parent=EDEN.2
+ctgA	example	CDS	1201	1500	.	+	0	Parent=EDEN.2
+ctgA	example	CDS	5000	5500	.	+	0	Parent=EDEN.2
+ctgA	example	CDS	7000	7608	.	+	0	Parent=EDEN.2
+ctgA	example	three_prime_UTR	7609	9000	.	+	.	Parent=EDEN.2
+ctgA	example	mRNA	1300	9000	.	+	.	ID=EDEN.3;Parent=EDEN;Name=EDEN.3;Note=Eden splice form 3;Index=1
+ctgA	example	five_prime_UTR	1300	1500	.	+	.	Parent=EDEN.3
+ctgA	example	five_prime_UTR	3000	3300	.	+	.	Parent=EDEN.3
+ctgA	example	CDS	3301	3902	.	+	0	Parent=EDEN.3
+ctgA	example	CDS	5000	5500	.	+	1	Parent=EDEN.3
+ctgA	example	CDS	7000	7600	.	+	1	Parent=EDEN.3
+ctgA	example	three_prime_UTR	7601	9000	.	+	.	Parent=EDEN.3
+ctgA	est	EST_match	1150	7200	.	+	.	ID=Match5;Name=agt767.5;Target=agt767.5 1 1153
+ctgA	est	match_part	1150	1500	.	+	.	Parent=Match5;Name=agt767.5;Target=agt767.5 1 351
+ctgA	est	match_part	5000	5500	.	+	.	Parent=Match5;Name=agt767.5;Target=agt767.5 352 852
+ctgA	est	match_part	7000	7200	.	+	.	Parent=Match5;Name=agt767.5;Target=agt767.5 853 1153
+ctgA	est	EST_match	5410	7503	.	-	.	ID=Match2;Name=agt830.3;Target=agt830.3 1 595
+ctgA	est	match_part	5410	5500	.	-	.	Parent=Match2;Name=agt830.3;Target=agt830.3 505 595
+ctgA	est	match_part	7000	7503	.	-	.	Parent=Match2;Name=agt830.3;Target=agt830.3 1 504
+ctgA	est	EST_match	7500	8000	.	-	.	ID=Match4;Name=agt221.3;Target=agt221.3 1 501
+ctgA	est	EST_match	8000	9000	.	-	.	ID=Match6;Name=agt767.3;Target=agt767.3 1 1001
+ctgA	predicted	mRNA	13000	17200	.	+	0	ID=cds-Apple2;Name=Apple2;Note=mRNA with CDSs but no UTRs
+ctgA	predicted	CDS	13500	13800	.	+	0	Parent=cds-Apple2
+ctgA	predicted	CDS	15000	15500	.	+	1	Parent=cds-Apple2
+ctgA	predicted	CDS	16500	17000	.	+	2	Parent=cds-Apple2
+ctgA	exonerate	mRNA	17400	23000	.	+	.	ID=rna-Apple3;Name=Apple3;Note=mRNA with both CDSs and UTRs
+ctgA	exonerate	UTR	17400	17999	.	+	.	Parent=rna-Apple3
+ctgA	exonerate	CDS	18000	18800	.	+	0	Parent=rna-Apple3
+ctgA	exonerate	CDS	19000	19500	.	+	1	Parent=rna-Apple3
+ctgA	exonerate	CDS	21000	21200	.	+	2	Parent=rna-Apple3
+ctgA	exonerate	UTR	21201	23000	.	+	.	Parent=rna-Apple3
 ##FASTA
 >ctgA the main contig
 cattgttgcggagttgaacaACGGCATTAGGAACACTTCCGTCTCtcacttttatacgattatgattggttctttagccttggtttagattggtagtagtagcggcgctaatgctacctgaattgagaactcgagcgggggctaggcaaattctgattcagcctgacttctcttggaaccctgcccataaatcaaagggttagtgcggccaaaacgttggacaacggtattagaagaccaacctgaccaccaaaccgtcaattaaccggtatcttctcggaaacggcggttctctcctagatagcgatctgtggtctcaccatgcaatttaaacaggtgagtaaagattgctacaaatacgagactagctgtcaccagatgctgttcatctgttggctccttggtcgctccgttgtacccaggctactttgaaagagcgcagaatacttagacggtatcgatcatggtagcatagcattctgataacatgtatggagttcgaacatccgtctggggccggacggtccgtttgaggttggttgatctgggtgatagtcagcaagatagacgttagataacaaattaaaggattttaccttagattgcgactagtacaacggtacatcggtgattcgcgctctactagatcacgctatgggtaccataaacaaacggtggaccttctcaagctggttgacgcctcagcaacataggcttcctcctccacgcatctcagcataaaaggcttataaactgcttctttgtgccagagcaactcaattaagcccttggtaccgtgggcacgcattctgtcacggtgaccaactgttcatcctgaatcgccgaatgggactatttggtacaggaatcaagcggatggcactactgcagcttatttacgacggtattcttaaagtttttaagacaatgtatttcatgggtagttcggtttgttttattgctacacaggctcttgtagacgacctacttagcactacggccgagcgcaataacccccggaaagcacttgctactgggaggcgggtttatccatcggcaataggggttatcagtactaccaagaagattgtgaagatattaacagcattgaaaaaagttcggactgggcatgaaacgtgtgtcagagttagagtccttgagggactgaatgggtttgtcccaggcccaagcttgaggtggatgtcacctcgggtactgcctctattacagaggtatcttaatggcgcatccagccttgtggctgggtctacgtacgcgtgggcaccatacgtatgttggcaggaaaggtcaatcatgcttgtttcctcgtcgcagaaacgttcacactattggctcgcgggatcgaacgggcctgattatttttccagctcctgcgttcctatcacgccaactgtcgctaataaaatgttatatagagataacccattgctatgcaaggatggagaaaccgcttcacaacaccctagaattacttcagcactaacatctaagataccgggaaaaccgtaggtgccacttggttttgagggcaatgcctcttgcactggcgattcgtggagtaaccttgctaccgatttccaccttttctaggtatgattacatgcgatcgccattgtcagtcgtcgtacgaaatccaggaaggaattcgaatacatgaccgaaagctatggcatcataagcgtggctctttactaaggacacgtgtagtcggctgatttcgcgcagaacttcgctcaccggacagtgactgctgtccgaacttgggggcagcgtagattctagctagagaccgcagcgaaaatgccactcgctaggtggctatggacgtccagctataggcccccacattcgtatgtatactccggtaattgagtctacctttcgaaagatcaaagttcacaaaccttctctcacgttaacatagatgctcgcacatagctagtccggtgataaagcggccgtgcatgcgagtatttagcgcacggaacagatattaggctgcgaaataccctcatatgctacagcgcaggtaacagacggttgatctccccgtagaattccctcaaggccggatcgttctcatgagtagcctttgtctgacatttcctctcaatagattgcagactcctgtgtcgtgggaaaacttcgcggaatcgctgtcgttacataaatctaaacagtgcagtccaagctatttactaccacgtatcataatgaacatctctttgtgaaatacgccggtacgccgagagatcgcccacattgcgtgtcaccaagacccagtgtctattgggcgcgctggttatagtatgcggaggcacccgatgtgctgctaatcactacaaactcgacaccaagaggcgaccgcgtgcgggagggctagaacgcgagagccacgtcaacgtggtggtaccgctcctgatgatacgagcactgtgctggcaccgctgccctatgtccagctaacaggtgtcacataatatcgcatctatagttgagtatcttatcgctagcgttacttgtgagttctcgggtagaatcgtcgtagcattctagtccttagcgtaagcaacgatatcgccgatattataggggcaataggtctcacccaccacgggtgtatatttaacgccctaagtagttaacggagactattaaacaattatgcacgtgaaagattagggtactgcacacgtgtcacgttgacgatgtaaacaccataaaggttgttctgtgatgcgatgcccatacctgcggtgcaacgtcctaaacttatgcggatcaccttctaattcagccgacgttgagaacgccagctatactctgtgagtacaaggtgaaagccccagatcaaaatattggagtcttgtccgtagctcttgggtggagagtgtgaccacgtttatcccttaatactgagactcttctcgttccacgccccggacattcgcgatacagcctagtttgataggtggctacaagggctctatccgaatagcacaaaactcagtcctagtgcgtataggtcgtgctctgcggttatacgctccacagaagaaagtacccactgcagtttgtcggtgggacttagcaaaacctgtaaccaaaaccgcacatggactctgttttggtggcgtggagtgtgcccgccgcctttatgctgggtcaaaatactatatgatttgttgtggtcgggcgcgacattggctcttatggtttataactattattcggtgcacagaaccgacttatgccccgattttgcacctcccgagagaaatggtactagtcattgtctcggggttttacaactcaaggataatctgccagcggtaccccgaaaaatcccatcccgaacggctggtacctatgctggagaccgaaatggagccagtgctatgcaaaccctcgctctttctatttggcccgaccagctgcgagagtcattcgacatacattgcgatggctggttcatctctctgcttcggattccgatcctgctgcctatggccacaacacgaaagagatcttggatacgtcctcaccatagtccaacggacaaatatggaggtgtacgcgcacggatacgagtacgacgggccgcccaatgctggtccttcgtgttatactgtttacttgcctccggtaagagtgtacagcttgtacccacgcggtggaggaccttacgcgtcgtccgcaggtgtggagatttcgctacctgttgcattggggcctcgccttacgtttttttcgacggaggcccgacccgccaggccagaccctcatcattgggatttttactgccttggacggcagattctgatgctggtaacgcgcttggcacacaccctggtcgtaattacgtactatcacctctattttaccaggggcgggccccgcctcaacgatcggtagtctcgttagaacagttgcttatactccgttagcactcacaactcggagaatgagcttacacagtccgtaatagtctccacagcttcccctggaaggttcgtacaggggccctggggtctaatgtgctaccgcctaacttcgttagtgtaaggtctcgtgtgcacctccaataacgctgcatttttgtatagaactcctttataggcctgactcttcggaacagcccactaattgacgtgcacgatgctgcatatacccttctcaatgacgcataccggtgactaaatcctgtggctggttgacactttgcataacccaccacgaaaacgcggtttgcacgtggttggaagcgagtaccggttaagggaagttacgtaaacccaacatagtgagcgatgcttaaaacactgcatgcgaacaacgaccggaacgagagcctaatagaaccaaatggataggtggttacgaaatccgcgcacaagtgtcgtgccactctcgtaaagaatgattgcttgcttatctatgagaaacctaataggcacgcacgtgtcgccagggaaaaaccaccatccgacaagacgctgaaaatcgagatagatgcagcccgcgcgtactttaagcacgatagccatcttgagcgcgacgattcagcttacggagattacttctcaaagcggacacctcgacgctgaagctctctatcgatgcacttgcatgtccatctacggcttgagcgaaccatgcttaacgcttggatgacgttgttagtcggattcgatcgtaccatactgtcctatccatcataacttcccgaattaaaactcattttctaccctcatttgtttcattggcgcatatgagcgccccatgggcgctgatcgacacaggcttgtagcgcacggctcgtcttgcagtagataaccatagtctttacgtcgcatatattaatatatcctcagacttccactgcggtattttggatcgtggcgtctgggacagtcacactctttaacgggagcgcgttcaatgtctgagtccatccgtgcagttcggtgcgattttattcttccctgcatcttccggattccttcttcttgtcggagaattcgccgctcgatcaaactcatcattggtacttattgaccgtttcatgctattacaccggtacactgatgataacgctgcggttttatcccccccaatacgcgcacacacgcttctttcggtgcgtcctgtcgtacccctattgcgcatcatggcactccagccgagcaatgctttggacaggtgtaaccaagctggatctagcgtgggttcgacacagctcggttcgtataaccacacgcatgaactgcgagtgcctcgccccagcgccgctgtctacttgctgtttagaggaagaagcaacagcttgcacccaatccgcatatctgcatataggtggccgttcctccgtggcgcgccgctacgttgtagcgcacggatcaaaagcgctgtgttactatacactggttcggagacggttcatgacgagcgcgctatatgtcggcatctgcgccccatgagcggccgctgtccggcggcacgaataatatagtgcaagaaaaaccgaagactacggttatatatgatggaacggccctcacagcattctaacaggtttgacaaacttaataaatgatgggccgcgcctgctgtgaatcccggacggtttggccggaaatacctaggcagtctttggaaaagcttttcctagatcaccatatcgttgtcagtggccaaggtttcgttaactctcggcgtacccagtatcggcgcaataggcctttgatcaacccttggaagattagtcgatcgtaacttcctacatcccggtgaaaggctttaattctaagtcttcgccacaaacgcttcaggagcgtcgagttctatcactttcgaggtactgccacttactatacaccggtacacttgttaagcaagtgtttgcggatgtggttaaattttgatggcagatttctgggtgttttagctatagctgtatcctcgaggtcgtcgtttaaccgctcctgttgctagatcatatgtatcgttgttcgagacgctagtagtcgctcctaccgaatcttacaggttcgatctctgctcggcttttgccgcgggccggtgcttgtgctataattataatgataagggcagtggccgcacaactgcagattactgacacttgagtgagaactaagccttgaagcatagtgttgaatgttgtagaaaagtatactgtgacaaaaacagggcctggtgtcaagtgtcctcagtgatctggatatcatcacgccttgttagcaggatttacccgcatagtaatggccggactttatattgccctgctgcgctagctagtactgcgggggctctcttccccctattgatattccgggcagaatgcgcgggtagtcagcattcatgtcaggcttctatcaacgtctcattcacccttggagtgtgacctacgtgttagaggcaatgtagcccgagagcccgttcaaagacaaactcccgaattaaacagacaccggttatgggagtgtgagtagtgacttccgaccagtgtttggtttcagcctgtcggttaacctcgcagggctaggagaatgagctgctagtaggtgattaccgaagtctccccagaaagggaacagtcttatagagtagagaatgtcaaatagcgttattgagttctgtctactgcactaccaagagcatgcccaccagagatgcgtcgcagtcgtagcgtagacgtcgtaatgacccaggtggcgttcggcctattcgcgtcggacgcgcgcgctactacaacgaagggttctgaaagtgcatgttcacactgaaattctaagtgttagtaaacaaacgcgtgtattccagggtcgtgtgtgacattatggctgtctgcgcccctcaatgatcatcaagacgttcaattgtatgttaacgtagatatcaggtttagttatccgtatactttttacgccgcgcgcttggaacagattctcctaacagccctcgcggtttcaaaaagaaccaaagtctataccatccttgttcccaattctgcctggttgcggagaaaagaccgcctccatacgtacccgactcggtattggtaagtggggaagcagtcgaacgcatatttcttggttatatcacaggccacgttctatatcggaagtggccggattacgatttgacgttctatccccgagagcgcattcttgtttgttactactaccacgcgggcgcttcttattcccagaccagagggaatgtgcggaagctttttccacagattggcggaactccagcgtgcttagtgcaggcggagaacgtccgttcagtggtgcgtgctttatttttcaatctgacccgacctgcgctcaagggttgcaagttgttgtgcgcccgagtaataggcgactcgtcgcaatgggtctggtacattgcattttcatcggtacggcgcttcataaagtgcggcaaatttctcaccccagtactcatgtttatagggtatcaggacccgaagcttctctgttccaaagaaatgtactgtttggctcccctgtccatattggaggtagatcacttgtggattatgcaatgaatgaatgaaagtttggtgctccccaccggggcgctctcaaagagagtgagctaaatttgaacatttaaattgctattccaacccggagtcctgaccggaacagtaatgaaacttcaaccatgccggacagactagaagaagggaaagttgcttgtatatgggagtaaaaatgatgttggtgccgtaatggtgccggaagtgactatagagcatgtcgtgacgcaccggtaggcagtgctataatcgtatgtccttcaggcgccgccggacctacgaagctgaaattagacaccggcacactagccccgtcagcgacggtgcgcggccgctgccctgcagcgaatggggctaacacgcataaaacgcccgcataaccactcgagctacgggaattcactcaggctgttgcttcgacgtgtagtctcattacataatcataatacctccaagaccaacggctgctcatgactctcttaccttgttagggacatttcggcactagggaagagctgaggactttgaaaacgtcgataaaaccatcgcgggaactagctgcgttagaactccatattttacgggtcgcaagcttgaggtcctgtcccggcagctgcaagtgctacggcaggaggggatctacctaacgtgcagtaacgagcccctgcccgtaatgaggcgtactcgtctctaatcgtcagtaagttactatgtccgaggacgcctctacgagttgaactctggctaggcccacctgtccgcgccctgctcgggtaccccatctgcttatccaacttcacctcgccttacggaatctctggttgccagtcatccgatggtcattaagcagcgtggtacatcgtagccaatacttcagggcgccagccatattcccagccaagcggctgcataattacagcgcctggcacgactaatcgatcccacaagcctggtagatgacccttagccctaaagcgccctctgacctatctgcacgtgatacttgattatttgtaatgagcggacagggtagatgactaatatacagggtcgtctaggtttgcacaatgcagacatcatccgcgcaaggcccggacggctgtactcacacagctagctccatctccctcagcagcactaagattcccacgtgaccagggcgacgggcctcagccaaacgtatccttgatatctacttaagtcaaggttgactccgaaccctatgggtcggtgccgttaacagggagtctatatctcggcgttccattgcttgtttcaaactcctgctataaggtgaaagcgctggagggcatagtttatgcccaaagttgcgcgtagatccgtcgggatatgtgctataataaggactgctcgaggtaggcggtaacggctcccgccttcagtaggcgcggaactcgaatcggagttacaggacttgaccgagtcatatccaagtttatgttacccgatcggatccggatgctcgtatctgcgacgaggtcggaagacggacgaaatacgattcaaccgcgcgaaccattagcatctaacctttagcctcaatgggtgttaacgtggtgggctcactcggcgtactctttgtgcaactattccgtatgaacaacagtcaagttgcgacatgatgctcttacgtgattcccacagtttcccacctcaggatgctttctttagctaaacccaatagttatggcggcaccttcagactcccacgaggacggctatgacgttgctaaaccattcgccgccaaaggctagcgctaacgagttctgtgagtttgttccgggccagatctccaggatggtcgcaacaacgcagtaccggttttatactggtgaccctctacctgttattaagttacagcgttgtcctacgtacatggtcgtgagtactcgcgtagtcaaacgccaggactagcagcgagaattattgtcgcgatacttactacaatacttacccgatattgacgtgcagggttgaaagagatggacagttgaatatctattttgacggaatcctcaaaactccctccacctcaggtaacggccctgtccgggaccgcattcttgcatatattggttcccagagcgtatctaagttagtctcttgaccgttcaccgactctagggcgactcgttatcgccctccgaaacgatgctttcgttacctcaatgatgacaggctgtaacgtaagtgatcccaatctcactcgtgccttgtccaccgttccgtgaagacgaagcaatacgcggaatacgtggcttcgtaatattttgacgatatggggctgggacgctcaagacttccatgacaaacaaagtgaagagcaactgcatccctcatcatgatcactattaccagagtagcgatggataacgctaatttggtcagggcagctatcgcatcccgcaggtgtaggcggagactttttcttttgttgcgagttgacaggtaatctcacggtataagcacggttatttacgcaagcgacgtccctgggagaatccgcccacgtaggaccccataatccataaatactgcggtcgaaaccttcatatcgtgacagaaccgctttctagggatgcggtccccgcattcagagttctactttggccagcgtgagacttaacaactccacttacgcggtacattgaagtcgttcagtccagtgtgacctgtgtaccgaataacgtgtagaccagcgcgtctacgacttagcgcggctccactccaaagcaccttttgggactttccaacgagcctgttggccgttaagcggtatttcacaaatagatcaccctagtgtcggtaaccgactaccctattgggatcatcgtgagctcgaaacactagaggcggaccaacggatgacatttgattcggctctacagagcttgtcgccagagaaaaactgtggcaatctacgctcgcggggaattgactttagcggcccctagacaggtgtgggacactagtctagattcacgtcctacacgacataacagcaccttcctggccagcccagaaatagtacctggacgacatccagccttccgacgccataatgtgagccgtagcgcccacgacgatcaacgaggagaaatttacaaaggctgtgtgaatgctacgtcgtctaccattgctcatcgaaacgaacgcaacgcacagcatacaacgtttaccatgccggagcgggatcctcaagtacagaaaacagaggtctaaacatgatccgaacaaatcggtaggtttacacagctacctcgtccattggcgtactgcatcgatcgtgcttactacggtcatgccggcccgcgatgcacgtacgaaggaataccctgtctgcccccgcgcgagttacgctgtctcgcacataccgagcactgtcgttcgaagctaaactatgagcccagccgagctccttatggccgcaacgctggtgcggccagctgataaattccacagtacacgatcctcgtgtaagatctcgggcatagtaagtcatttcacatggttaggagagatagaatacatggttctggtagctcaaccaggatttgtggaacccttggcccttggtgagtgctacaataaaattctccgtatgggacaaccaaagggtgctggatgtgacttcccggcccaggttagatgtccatatcattcatacattgcccgaccgacccaatgcctaaatcagaggcgccttagctagttcttgtagtgtgccacgtccggccacgcagacacgaccctcggcgagtgatcaccattaccggattggcatcgaagtctttttctgggaagttagccagtttggtgtgcggtgcttagaatcttattcccagtcaaacgcccctgggacgaattgctaaccctagttgccacgccggaaccatcttcgggagagtagacaaatccgagttagatatgttagcgtcttcgtgagtctgaaatgtatcacttcaccgcagaatacgcgaatgtctgtttgccctggactgacggaattggcttaaaagccgactagagcattttggtacggttcctatccgcgatgtaattacctatctaggttatcgctagacgaatagcgagtacagtgtagcaggccctttgttagcaagttgctctaaacagttgtcaaaacgtaggcacaatagtgcgattcttctaaatccgggaagctcatggcgctgggcagaaatatcacatacgggaataatcaacctccattttggttcgttttactcgatgagtgccccttgcttgagacgagcgttctgagttgatggcatgtcgaaaggtttacgcggtgagtagagcactttacccctacagatcggaatcctcgaggaggacagttggaacttcacattaacctttgttcgattgcatgaaggttgtgttctgggagtaggctcccaaggtagcggttcatgctgggggcagccctaagtttgtattatgtgagtttgcgtctgaaactacatttagcatgaggaacgtaagctttctggagggatcttctaaagccaggtatcgcccgctacgatgccggagccggtggttcacagctacctgtgctcaaaggcttaaggctaatcatagcaacagtgcgaaaggacgtctttcagatttcgaaaggtgctgacacaacaagggtcagggcggtcctacccttctgattccctacctggttttttagcaagggtcaaggctaggcttatactcccgaacgctttaaacactatcccacccctgacggggggaagttgcgcgttaagtataagaataagatttaacagtacactttaggttcctcttccgcgagccgtcatacagcaccgagcgccgttgaaacgcgattaacgcgtattgtcgtgcgaaaaaaaaacgctcgccagcatattggagtgtcgacttgaaatattgaacaacaccgcatatcaaggacgaatagtagggcttcactacctccacctgacggccctaggacttatactcgaaaaagaccttccatcacgatgtcccttaccggcgagagggctatatacgcatgaatagcagatcttgccgtcgctgagtgtcacccagggttgctccagaaaggagatagggcggagagccatcgacagcagctctcgtctaggtggtagcagctaaggagtcgtgtcgtcgcgccgagttggaacattatcgatgtacatcaatgcagtaatgatgctgatagactcgggagtttcctcaaacccagagttacgagaagacgcaggtctatcagttagaaggagtcagtattggcctttgaaagatcttatgctcatgcccaatcgtagttaaacgcgaatcgggaaggccaatctggcggttttgacccccggactcttaagacgtccaatgtggctagacataagtaacgaattactctataccgaggggcgggaaccggccaatttattacgagagcacgagagccttgtagcggccagcacactatcctcgagtccctctatcctgagacgtagatatacatatacgcctagagagaatagccgtctaggcttccgtcgccctctccgtcgttcgcgtgaaccgtaagtcttccgcattcccttcctcaagcgcgttggtgtgagagtggtattgaggcccagtcttataacgcatatacttgtgcactctattacttaccatgggaaccaatggcactctcgaatcatgctcacagctgagcaacggtgctgctcaccaattacatatgagtcgtggtttagcgttggagcggaagatgaatttccatctgttcgcgcgcatcactaaccaatatacggttatcccagcgctatctagttctgaccgggttggtagcgaacccttttgcaagccggcttagtggatgtgaagtgggagtgataacttaagccgccacgttcgggggggactcgtttatattggtgctggaatacgaacggcgtgattcgtagtcgccctaatcgggcgcgacaacacatgtagtactgtcgaggcggtttaaacccacagtaggtactctatcagcagaattatgctagaagtttcacaacaactttccgcatgaggctcagcggcagcgtcgcactcccaatggccagtgccggtagcgatgtttggtggaattagttccttcggaatacgaaccggatttaaagagcctcggagaacctaaacgaatccgtacgcatcttgcccaaggtgctgagccttgtcgcctttctcagttccacctacattaatgcaatgcgttcgaagctctgaccgcaaacaggaatcaagttcagacagagtgcaagagtttcgcaataattgggaacgacccacttgatataggtgcttttagagatgtgtgtacgaccgtccttcgagcatacctacgggttacaattgctccggtaagtcaaggcacatagaaaacatagccaactgagagtgtatacaagattacctcatgtagactgaaatacacacatcgctttaagctctcaaccgatgtagaacagattttgggcggcgttgacagcgtgcccgctcaccggtttgctcccttctcaccaaataaccatgagacgactttggtgactggactgccagatgacgggctacaaccgttttggttccgaattcgctctaactcaactaacatcatactatatgcgccaggatattctcgcggttggacccccctgccaattcgggttaaaaccactccccccatgtagggagctgccgcaattacaatatcgacgatcccagatggacgctcacaaaatatcagtcctttcacgatccgctcatatagacggatgaagggactgaggctgttagatagtgacgtcgagcatggcgtagacgagcgcaaccgggtcgaggcccgcattaccgtgacacccagttgaaaggatttacactgcttcattcgatatttaccactttgtatgaggagctcaacctaagtcaacacggaccatcatacaggtcgccagtaatgagaaggctgctgtgccatggagaagcgctgctacagcacacaacgaacatcttgcaatgtgaaggagggtgctcttttgggatgagcctacggggatgtgtatccctgccctgtaggcagttgggacttagcgcgactatctagataactaaggcgccagccgcggctgtttgccgaagtcgtgctgatgctgtacaacgaagggcgagcgtgttaacatgctacacgttgacctagactagtccaagtctgaaagtcccaatttaggtcgggtagtacagtcctcggttccagtcccatgttgtgccgacaaggacaagcgatcatcaaatcgactgaaattgaatcagctacctcagaccacattcagctctcggtaacatgggaggcttgtggttgcaccgtaaaagggggatagcccatccatcctgtaaacctacaatcgcgcgtagcttaatacgctcacattagacattcgatcgagagacctggtttcaagagccttcccttttgctttagtgggccaaatcgcaaccctgctcccctcccttacgccttatacacttcagtgcaaattcatgcgttcagcgaacaactggacttctgttgtacgtagtccacgggggcttattcattatagaaagccccctactgtcaccgttatatggttcacacatgagctgatcacctagagagtcgtcatgcacattcgcctaacaaggacatatgagtaaccgggaggggatatcttcgatttgcagcaccaatcgacgttgtactggtctattgtcggttaggtccgattatccgaccggcaatgaggcaagcccatctattcaggaaacttaggcagttccctgtgctggcccgacgtcgatgagttaagtctatacaggccggccgcgagtagttaacgagaccaacatagaactatcatactagccggcaatgatcaatagggtcttagtgccactgtccttcgagccctcgcctaatttagcgcgaccggtttcctattggcctgtggggttgcgggcgcgtccgctttaagaatggtccttaacacctacccggagatccattgcatagcacactctccccattagcctagacacgtcgtcgcccgtcgactttggctggaatttaatcgccggggatatcgaactttcacgccctttaacgacgaggaaacctaccgtcgcctggctggtaaatgggtgccttacggggactcacgatgctgtgaaccgcccgccagtctctggggctcccaaaatccaggttggaattacggacctccgccggtactacgcattacggggtggaaagtcctaagataggtgaatgaaagggcttcgctaaaccagtaagtcattaacaggacatcggcgtcacgtctcgcgggtttacacggcgcacaaatcctattcccatgataaacaccttatgccaatccacatccctcgctgcctaataaaattgtcacacctgcgctactgactaacgtttacgcaatgagagatgaattccgacacccacgcttgttgcaagcacagccgtatgggttctcgggtaaggtaacacgaggcacactccggcgcggccacttcggcccctccctgacgatgaccctcattggtcaagcatcagtcgaatgattcgtaacaaggagcaaccgactcagtagagagggtgaatctcacgcgctagcctgaggaccgcctaagtgcttgctgtgcgtcgcggcagtcgcgaggtgcgggctaaagtaaataattactggtcttacctaattaaagttggtggttagggacaacgttaccactaccagggtgcgcccctgaattcgggtatcggactatccagggcgccttttgcggccttaaatacctttttaatcacgctggagctagaaggccatcgggatagacggggttctaggtactcgaaaaaacaggcctaataactttattgcgcttggactaacctatgtacaacacgttgtagcatactatggaatgttactgacctacacggatagcatttgttcgggagcgtcattgacctcccagaccctatgccgatctgcaccattcagtgaccatccacaagtctctaggtttagccaaaggtgacaggtcaagcacttgcgcatgtccactagtcgattatgcaacgtctctgaacagttagcacttatctcccgccgtgtgactcacgcagtgaacttacctatagcatacgcctactattgaatgttcgttgttctaacacagcgctaatacctcactggcagaggtgcgcacgctcctagtatgggagggagtcaggtcagagtgtatgagactgatttttattcccgataggggttcagtgaaatcgacctctcaaaagagaggcgcagaattcgctgataagctctgctacgatcgctaaggcacgataagcagggcggtgaaggttggagcaagataatatcacccggacgcgggtcctgtcgcaacgagcggccgtgagacctggtgcgcaccgtgtctcgatcggccgaatatcggaacccactgcgtgactcaaatgatatttttgctatctgtgggggatttatgtcccggtagaactctgcttctagcagaggataaactttacaaggacggcgaatatggtgtcagagcgccctaatgatcccgtgctattccgcgggccaccggccgttaatggacttcgggttagaaggatgggttattcatcttccacagaaacgcccagccgcaatcgtgggtttactcgaccgcggttatctgcctacttagctgcattcctaaaacaggattaaaaaggccgcgagggttgcgaacctatggttgagaacagagtcatagagtcagatgcgcagggacggcacggatccacatggcagttaactaatattaatacccccttagcctcgtatatgggcgtgtgcagtcttgtccactcgcggacgcgtatccgagcgattctgtcttccaacgctattcgttaccactttggcacctctttgctaagcaggatgagaacatctcactcactacgagccttgactttcagcacgcggtacgagggcactgggcttctcgtcctttgctagatgtaggtgccttcccgccctcatgacgatgtcacgtctatcggtttattaaggtcggggaccattacgagattaccccgcgaccttcgtccaaatgggatcacggcaacgttccacgaggggcgcgttgcctgagccactcgggtatccccttccgatatccgcagaagtctagctaggagcaccgccaagcattacccgattaagcaaagcctactcatcgcatacacggttcttggggtttgcgtcagatagcaacttccggcggcagtagagatgatattttatccgattgagcttgcccagcgcaccctcgggccccgtggctcttctcttaaatgtgccctgcacgatgttagcggttcctactcctccccgagccctatgggtggacagactcgccctctgaggctgcgtgttcaactggttccaagtccggcgcctgtggatctacgacgcgaccagcaacattataccaatgtctaggcttagctcgaaaactagtaagccttagaactagggtcgtagcttcttctaaatgaagggcagcgtcatagccatccacgttagcgcttactcaatcgcctgtcggctgtcatgttaccgctgccgtaagttcgtgaacataaaatacaacacattttaggtttaacaaggattgtttaccgccacgtactggtgccggtagtgaaacgaaaaacctcagcatcgggaggaggagaacggaatccctaccaatcttatctctacttaaagaacaaagcgcgcggtacatggcgcagacgagaatgaatccccgaacgggccgagttagactcctcaacctgtcgaaaagttgcgatccgctagatcgtagagtacggacttaaaaaagaaaagaaggtctctacccgagcggtgagcccaaccagttccaggttgctgccggattcttccacacggcggtgccatatggacgaccccgtactttgggcattctaggctacctactgcgaacgcctcgcgttcatgcgcaaagttttctctagataggcgcgctttggtaagcatagtaataggttcttcagcgtctaaagcccgcccattaggcctggcgactctgctttagtggtaaagagatagcatcgatgtacatcgatggagagagtattttcacgaaagtgcgcgccgtacactatttatcggcatgcgcgctaaactggagggtctaataaccagatcacgcaacgaggtcccatgtacggttcgcattgcgaaagtatgggatactagaggttttatcgggcctcgcttgaggtctgtctgggactggcgcacatcgctcgtcgcccagtcgatagcggggtgattaaataagaaatatgttagtgcccggatttggaaccaaccagtcccggtagcggtacaaaaagcctttcctgctagttctatgcttaaagcgtactcctgttacaatccgtaggcaacctgaagaggcaacctggttttcctttatttcgactttgtttgccatttccaatgtgatactgtgcggcgaccttaatgctttttggtaaaaccataccgagatccagcgcacgcgacattcagaccggtcccggtttggcggtcaacctcgtactctgcactgttcagctagaggggtctcctatcccgaggtaccggtcgtctaacgggtggttacaggggctggtcctactctaccaacagttaaggagggcaacaagttcgatggggcatcgtataacttgaatgccattggacaaataataattgctccacgtcccaaacctcaactgaccttgtacgcataggtgccacctgcacgcaaccgagctcgttcaagtgtccttcttagctggcgccgagtgaacctgcatctgagagtctacccaacgatctagtatcataatgtctgtagccagcgactatgacacttagagagccgcctaagaaagtgtttgcggctcctgccccggtgcgcttgttcggtgggaggtcgttatatagaaccatggggatataatgaatggtaacatatctgccacgttgacaagccgctattatgaattcagggttggatactattatggcccttcacggtcacttgtaggacggccccaaacaggattagtaaagtcggtggtctaagtgtaagcgataggcaaactgcggttattcgcgtagaccgcttgatgatgtaaaataacagttttcatgtctttgcaattaccgcgtgtagtctgaggacttaaggccccttctcggatagtgaaatagttcaggtccggctgttgacaggtgtcctgaccggaacgctttacagctcctgaggagcgtagcgccctacgtccttcctgatccagccgcacccatagctagtaaacaagttgactgcgagacacaaagtcaagggcctgggcaagcgcgggccggactgcttgtcgaatattgaagcgtactcgatccagatctgcgccattgagttaaaaggactatacgcctgtctccagccgattgcagaaaggacagatcctaatagaagaactggggctccattctctcaccgacaccctcctattcctatcccactggccccattgctggtaacccaaacctctcacgacgattcagcgctgcgattaaagagtggagtaaggttaaaatcggttggggcgagtagtgtttgatgcaagatccattgattatcgccagtgggatggcggcaaaggtaccatacctcgagcttatttgggtgcctcactcctcggggaaccatatagacttgcacttggcaaaatatggtcgggttcaaccgaccttttatgcctggaccctctgctgagggcctcttgatcaaaatgcttgcgttgcttataagttgccgcttgatgtccaggattattattccagcgtggaacgggaaatgatagcttatctgttactcagggcgcctgaattagggttgccattacataaaggaacgacaaggtgagcactgggagggcgcattcttataaccgggcatatgcgcggaacaccagcgttggatggcctacctccgcggaggtcggggtcgaaggcccccgtttcctggaacaataacactgtcccacttggtttgtaaagaacctccactcgtcatgacacggcctagcggtgttatcggcgacgataatcatgggtctttacaagtgaatcaggcttaccaggcggaccaggaggaaacactccacgagtgagacctggatccggggggatggcatacatcccatacgctcactcagcatgcacgttcctagcacatgctggaatcttgcaagctggacagagtgtattgtggcccttgagctatacttctaacgccagatccatgtttgcaaacatagctccagtggcctattcgacggtttagcctctgcaccatgttatggctcttataggtgttgggtcgacagtgggtgactagacgtaaagagagtatgccgtggttgaaccgagacctaaaaagctcaagatcacgacggatatctttaacggataccagcaatcggctaagaccagtgtctactactcgtgatcggcaccggccgcccgttatctggtgtagtagtcagccccgcatcacccgtgcctatgcgagccttgactctatcagtctaagagcacacgtttagacctgagccaagcgtaggtcactatcgagtcaaccttaaccctagttgattaatgctcttgacgtgtatgattacaccgaccgcgaataaactctcacgcgcgtgacggtttcctcgctagaagaagccatatactgtacacactgctgtgaccgacaagacttacctttggtttacgtacaggtggacagttgtttctcccctcgggtcgatagcgtttggtcgtgattccaataagtgccagatgtcggaacaacatgtttccataaagacgcgtgacatgatatggtttgctatgaagccactacgaaaatgccagtgcttctctttatattttgcagatgtggaagaagtgcatccattatagtccttttacgtacctggattctccgccagcactgccactactttcttactatccgttggggggggacgctcaacagagcgcggactcaggaatcagataacgaccggaacggggcatatgcccagcattcgttgttgtaaagcgattgagtttgggctgctaaggggccggcagttcgttccgggatacccgcaaaatttatgcctttgtccggtgattctaggtttagctcgatccacgaatacgacaatacaaggtttgcctcctctttcgtctatcacgcaagcttagagttgctaaaatttcgtagtccgtgcgttaaagctccctacatttctaagctgtacgacaccacactatcttgcaacaagagtcactctatttctcatatccgaatgaatatcgtcctgtacacgggtggcaatctcggcaagatggccgagatgtgtagcactgtcacgttcaaaagctcaaacttctgcccactgccagccctaacagaatctggagacatcataccagcgctgtcccatgtggcggagagttgcttcaatagaacgctatcaccgtgggatcacatacgtcactactccgtgtgacactatttattattcctttacctccaatacgcccgtccttgcatcgcattttgtagtaagacatcagacgacgttactgccacggaaccataaaacgtgctgagcccacgtaaacgtcctatcggtgaggtccgctcatcgtacgactctgaaatttggaaactaccagtttgttggcggtgaatatccaacctgtcggcatacacgctcacgcgtatggttggtacatgcgaaaaactacccaagcaccgggcgcgcgagacactatgagtttagtgatgatttacggagcacgttttttgaactcaacagaccgattgaatccttcaaacagggttactcgttcgtgacaaccgattacagcattctgaacgtggtacgtgcacatagcttggagagttgcgcgaatctctttcgtaccgtattctacctgatcgctagctttccggggtaacgacatcggcaatgatgagtagcagccagtatccatactggacaggtactccatataaaactcccgcttcaacacgcgagatttgaaccgcacagtgattgtgctgagtcctagtcaccatcccgatcttgtacacgggtaggggtgtaacgtgggcagatgatgcttacccttccgctggcttgtaaaggtgccccgcttcacttgatgagctgcgtcgacaagaccacccaacccgagccacgtggttccgacgactcaatgatttccagtatggtccaatcgagcaccttccactcatgaaatttgagcactgttggggatcgagtatgtgttttgcagtgggtctgtagcatggaaagatgtaccctaacccggctctggcattatcaacggtggattgggtggttaaacagcttcccttcggagacttaatggactaaaacgaatgaatcagacgccgagaacgagaactcaccatctggcccaggagccatatttttgattggtaaatcgctcgcatagtgcccgatacgatgcgtacttgagcgtaaacggcgcagcctctaatcataggtgattgctaagtctacggtcatccccagtggctgacgaggaattaaagacctatttccgtacttgttgcgcgccttcaattatccagcgtataccccgatggctactgctacatgtctaaagtgactagccagaaaaacctaaccctcgcccacgaggccttgatcatctcaatcatagagtaatgttcattgaattgcacggctcttggtgtgcacattgagacaatttctaaaccgacaagtttaatggccgagctcctcctgcgtccagctggaccttcatgcaggcatgaaggtccatatatattgtcctcccatagcccgccgaccgggtctgactcaactgtgttttcgctatcccaggctagcacttctattctttgttacgtccagtcatagtgttactatagggtaattttagtcatagtagacggccgctttttcgtatggcccgagaccgtccaccggctacccaattaagtcacatccggatcttgggtctagatattcctatcgaaaatagtctcgccgcctcactgcgtagttcagggggcgtcacacttgttcgcggcttttcctcatgggatctttacccgatggttgatgcaataaatgtctacaccggactggcgtgtccgagacgactttatacacgtgtgacgagtagatcagatcgtacgaatggtctgtctcacctatcccagtgggaggatggaaaacactcctgcctaccgggtcgaattatttacgcgtgttacaatatgtaatttagaaaaagggattgctggtcgatgcgtctccaagggattttttatctaaaagcatccttttgggtgtactctgatcgcacgtcgcagacagcagtgggttttgacgcagtccgtaggcccacagactcgtttgttgtttattaatcccaggggagcgttgaagccacacctattctgtagctgtttgaaaggtagctagcccggatattactcaaggtgactcccttcagaatcacacgtcgctggagtcgccacagggtggcatatacgagtgatagagcaccttactttcgaggtagcggtacattagtgcaacgatgaacccactatagtcttagtgatttcatgttttacttacgcgaaaacgtggggttttgtcaacacgtatacgttgaatgcacatgcctcatcctaaactgatgcactgccacaagtctgaaagagcgacagtctgcaacatagcggaaggttacgcccaagccagtggtgatcccccataagcttggagggactccccttagcgttggatgtctttgccccagcggcctcggtgtacgggttctccaccccactatggtttggaactatgaagaggtacggcaacctacccgaggcaccaaatcgtgaacctacgcctatatatacggatagcagggtatccattcttaccatgagctcgtaaaccactccgctgaattcgatgggctttggcgcacatcaccgtttctatcacagatctgtcaacggaatctaacgctatttactcggcgcacacagatcggaaaacccaactgtggcgcgggacggactccaggaatcgttacgcgttatcaccttcggctaagtcttgacgacattagagctatatggtattaatagtagctgtacatcaaatgataaaattatctgaattataagtgatagcgcccacataatgacacacacgttttagatagttagtagacgctcgagactttgcgagcaagaatggactgttaaccttaggggcgggttcccgcttacaaaagctgattcgctcctagagatctataagcgaagttcaacccctaattaccattgcataagaccgggagaacctgtgacacctgttcccatgggattagcgaaggattgttgacttattgccgagtgacctagtattgattaaaaatgcgacgtgaagtaaccaggccttcgatgggcgtctccgaatgggccagtaacaaccatatacaaactacaagttaaacccgaaaccgtggctaccatgctcatctagtcgggttcccgatggaacattccacggtgagcggccttggatgtcggaccaccatttggcaggacaaccgtcacgattcgcaacagcggttaaagcaagatggacgccaataatgatattcgaaagtggggttaaaactggccgccgcttgatcggtcctacttagtagcgtctcagatgctagaaccattccgagtgcaatgtgtgctagcaacagtggaatcggtctataacggtttcatgatcccttctccggccatccattgagaacgattctacattaatctgttaagcgaccgccaatcactgattagctccagaaaacctaagattaccgtatataagaatcaacctgctaaagtaggaaggcgcaggttgccgatgaacagatcaagttcatacaggagctcttaatccaccgtacccaagacctagtcaagcgggatgtcgttaacaactttgtacagacatttgggagcattgcaccacagactccaatgaataacgcatccgctaggaccggatatagactgaagaaagtatagtcagctgcctcctaaaggaggcagtagtaggagccaacctaacgtcgtggatacgcattactcggtagcgtggtaaacacacgaacccgatctcagaattttagcggcgagaagttccataaatcatatttctacttcgtgctccggcttcatctgatggtggtcattattctccatatgcatccagtagagcttgcgcttcacgcaaagttccaggatgctcacatatgtccatacggcgctactacatttactcgaacacttggaagcccgccgtcgggtgtatgactagcctttgactgagactcagcctcgcaattgtatgtaactagcgtatcccggcaaagtttataggtccatattaacaacagatgggagtagagcagcagcttttattcggactggcacctcatcgctttcgctgtctgcgggatcaccggtctctcttgaacgtgttagagcctgagggatctgagggcacacacggcacttgtatccggaaaacctatgtatagagcctcggttgccagtactagttcgtggtccatagcgcctgaggggattaaacgcctccggaaacacgcgagttgttcttgtgcacgtaaaaatcacttgatgttatcgtgttcggccccagtcgctgtctcacttcaaaccagcgccgtatccattctatgcaattacgattatacttttgacccgatctacgaatcagttacccatgaatgcgacctgcgataacatacagtgcgacctccagtcctgttcgattaaatcgacagagggtcccgaacgcatccaagcggcttgggtcccgctggcaccgctgggaagtaggtagagacgtattgaaggaagcgtgtacagattggtgattacggtgctcttataggaccagactcgggcgattctacggggtcgtccacactatggacccgagcatcgaatcagtatgtcaatctgaagggactaatcggggagacgctggactccgtcaggagtgaccagaagcagggatgcaaagacatcccggacgtggatagactacaaatcggacactcagatacatacctctagaaaatactattccccgtttctattccgttccgcggccttttacgtttagcttggagcaaactatatagccgaggagggtactacaacgcgacgcacttatatcccaatgaaagaataaaagctggtaagacaacgctagccactctacctgtgttgcactcgcgatattagggagacaggttacaatcagctgacacatgactagctgacccggagcactcaattctgcccatcggggatctgatcaaattcgtcgtcgcattggacggcttccctgcgtagcgaaggaatggttaccgtacgcctcccaacacacggcggtcaaaatagtcttcagcaacagtaacacaaatctcttcctagtactcttggtacacggccctagagttaattgtgtgcccccccatactctctacatgtgataacagcgacccactaggttgccaaacagagtcggaagtcctatcgagtccagggcgctgtagggcctacagactctccgatgtcctgtgttcttcgtaattgcaatattttcgggacccttctgctgttgtcagattcagtctgttccatcttctggaaatgttgaggaactcgaaaacgctaactccctgatatttgtggccttacatcaaccgtcctcaggtgaagcccaatgctaaaggagtgaaccagacgtgcaggaagaagctgttgaccctttaaagctctagttcttgtcaggtgttccgactcgctggcgagagtatgatccagtaagcggcggacctgcgaccacatgatgaggtccctacaaaatcctatgctccctgcgaattacaactcacagagaacagcctaggctttcttagttattgatgcacattctactgacgaacgcagcattcgaactaaaccattggtaatgtaattgtgacacgtgggaatctatttaaagctgcaagaactccaccacgtgttcatccacatcggtctctgtggaatggtccaggaccgtcccaatagggggaattgcgagacccaactaatcgagtgattgaacatgggagcaattcccgaatagaaacttgcaacgcgcagtactacgacgatggtagcaataacgacgcgctacttcagctcatgggtctaaattagggcgaacgattgcacctaatctgctggcttctctagattgtagatccacagggccaattaacagtgcaaagaatagcgtcatatgattagtttgaaaataatatacatgaaaatcgagcacccgcatcaataagctacgagagtctttggagagtgccaatacacctagcacatgctgtgcttatgttatgaaaattcatacttgactaacgttagccaccagccgatggcgctgtcacaacgaccctgggttaccgtttagttctctaagaagggtcactctaccagcggggttaaatataccggccgactgtctcgagagtgggttgagataactcaatttggatcagcattaagtctagagcgattctcgcggagcgatctatgcgcactgacttactcttggaatgtcactcgcggcttacatgcctccttgttccgcggattgaatattttatgcggtagtcatgactttaatcgtttctacagaaaagaccgtttgaaatggcagaggaaacaaccctgctggatcctccctaagtcacatccggacggacagattctacttaacctccaataaattgagaaaaatgcaaaaggatgccaatacctatagtacattttacgtttcccgtgtggttcgtgccaacccctggacggtggatgtccccggtgggtttttggaccgggcgaaattattggccaacccggaaacccaccgagagcctaagacgtgcatgatagttataagtttaatgggagccttaattgcaaccgatgggggcgggtatttgtctcctacaccgacactatggttgttatttgcggcttcactcaactacaatctggtctgtagagagtaaccccgtattatcttcccttgcgccctgggtgcgttagcggaagtatggggattaaggggcgtgaacaatgcttctaagagcccggcgctaacggacggtgtcacagagtgtctaggcagagtccccactgtggaatacgcatgcgtagcgaaccgcgcgagtcagtaggaacacattgggagcgattgttcctcctatcagccggcctagcaagcatgacgtcaaaccttagtgagcagcccaagaaataacgctcggactgcaacagatctaagcgggaaatatatcgatagcgaggaagccgagaggactaagcagagagacgaagaggtgagccggagtgatttagccccagatggcaggtatagcttccgttcacaacgaattgaacagaaagtccggcgcccctggaatttcgaaacgtcaccaggttggccgtaaggttggtaactcaacaccctaagactagcggtcttgcgtcatgcaagcggggcgtgtagcctgcacagacataatacggtagggaggttaggcgtggggcgacacagtaagatctgatgaatccatgtacgttgcctccccgtcgtacgcagttgatacttcgcatcatacttagcagaaagcatcatcgcgacctctcgtacaatggcaaaaaggagggcttcgtgcacggggtagagtcttccgcactctaatgaatcaacagtcgaggttcatggccacaaatgtaacgacgcgatatgactcgttatgtctaggtcccactgcggatctccttagaagcgaattgtataaatctcatagccccccccttagcaagtggtacgtagcccacacgatttacgcagagtggggtaagacctcccccacgacttggggaacgcgcgctcaccggatagctactgccactgtagagccactagcgcatagtgtatccatagtgatgtacgtagccaagcggggagtccttgtcttatgactagcgccatggggctatcaactgagaacggatgcacaaacggtccggccattcgcacagtccgccggtcactaatgaccggtctgcatggggctgcaacgatcgcccaaggattggaaattgttaataagagtccagtggacaatttagtaacgcgacgcgcatctctccccgcctaacaaggctcatttttagcttgacggcgcgtctcacgttgccgggctcagctcgagctcacgtgccgcgcggggttacctcaggtttgaggaatgtgtcttgaacggttcgtaccggcttagcgtcgggtgctcctcagggttcccagcaacattcttaccgcaatccaatactgagggcgctaccaatctaacgtatcactgacccagtaaaactcggtattacgggggcgatatatgtgcttgcctcaacatagaactaccgccttgacgttagaacgttaagttagagcacctgcccatctggattgcggcgataaaatcgattattgtcacctggatgaggaatatggcggacaaacgatcgtgtggacctgcgccgcaaccgtgggatgccgcagcagaatatctacagagcgtttgcaggagggccacgcggtatccacgtaagttcgcgcaatagcagcatcatctcgttcggggttgctgctctcagactgtcgatacgtccgaataccagcaacccctcgaggctttgtaatatttacggagtcctaagggatttggtgccccaagtatagttttgccgaagggggggcacagtgccgtgactacgattgggctattgggcaacccgaccccgtgcgcacacgtttgatctcagacagagggcaaaaagacgaagccacgagctcttcgaaatcaatctacatctatgctgggataagttctggtccacacctagatccgagaatggaccgtggataacgagcaccgttacctttgaggcggcagcacttttaacaccgtaaaagtaactctatagttgtcagcctttaaagattgcgttcccaatacggtacgcaccgtctactaccgtcaacacaccgtagcttaggtccccccgcggcagcgcttccatcgtggagggctgtcccccatcctccgtagaactgcgtttaccggtctggggagactccctaaagaaacaccacaggtgaggtggacgggaatcaagttaacgcattcacgtaattcactcctgttcacttacataagagaagttctggttcgcgccttaagtgccatccatgaggcatacgatgcgatggggaccacgcctgtagactagagaaacaccatcaagttgataaggagtgaaaattagtataggtctggcccgctcgtctgttgatagggcctttaaatgtaataggcctccgctctgaacgagtccgtacttatctgttggatagtaagaacacggttctcagtccgcaaggtagtatatgactacgcgtcgatggacctaaagatacgtttggcatcgtcctgagcagcttatgaaaattgctgcgcgtttcaggtggaagaatctgtgttattagtgcggggacggtagtttcgtagggaattatgggtagtacagatctatggacgggaggtgactgtcagcagactgtgcgcaggcgctggtggtataatcgctgggaccacgtactggcaagacgcatgcagcctggtgacatccacaccgccctcgctcagataggacggacgtgcggcaataccctatctggctcctggacacggaaaaacagcagtttaaaaaaaagtgggttttgtgcattatcactttgtccgttcgacagtttattgcacctcccagcatgctagtaaccccttgctctgatttgagatttattatcgtaacacggagtcgacgtgaagtttgatctgcggagaataggccgagaagcccctacgtaccctatgattcccgccatgtgcggtgtaaaattaaccactacttatggatttcatccaaattaactgacgcattatatatacctcgagtgtgtaagccggccctcgcggtaccaaatttcgggctgcatacctagaagtgtatgtcatctaaacctaaggatcgggtagtgacgtgtaactaacacgtgggacaatgtctgtcctgagctacgtcttaagaagtatttagtcctacgtactcaggcatcgatactccccgatgttgggtgcagtggggcgtccgggcggctaagatagtccagccactccttatgtgaatttatcaaaccgggaagaccagtgcataggccacgacctacgtagcacctccgtacaaccttgctccagggcacgtctaaatgtcgtactgggttcggactccatgcctggcgactagcctggcggtccacatattttacaaatccgagacaacaaagcacttccaaagtcgcgtggaccttaaggaaggcaacacaggggacatttagccactctaaagacccgcatactccagggcatacacgtaacgcgttctcttcactacggagtccgcgagcgaacgactaagggcgagggccgtagatctccttctcgtaaatataatcaaggttgccagcgcttatcggtgccaccgatccgaagagcgtaaggacgttacagtgtaggatacatggtttgcgcccgtccatacataatcgaccatcaaatcgaaagcgcgtatgcagtacctcgtactgcccaaaggacagagcgcattacgtcaccccgagcgtagcttaccatgttaagaccgtgctcatggtttccacccgtaagatgagcacagattgcttgctctaggtaacatagtaataagagaacattcatagacgttggaccacggttgaaagaccgcctcttaactactgaaaaacaatatttgtccttagtaaccaagatacattaatcaatcctccgctaatgaagttggtaggcaagccttcagtagcgtaccgtggatttgtgtttactgcatttacaccgcggctgggtacgaagcggtgtcgggcacgcacacgcgttcgatactgtaggtttcgttggggttgcttgttgccgctaacgttcgggtcgcttacttctgcaggcttgattactgagttcattcgatcggttcccaacttcggactattgcgccatcatcaatgtgggaaatcatttttaggaatacacctcgtacatgcatatgaagtctgcgtgcaacagactttccatgatgcgagctgggcttcccgtcctgcgggatgcaattggcccagtgcgcgaaggctgggctgattacggacatatctgctgtcctgacaatcgatggtgtagagcgtaacaatcattccaatttttcgacacgggccagggctttaggccactacgcacctgggttaacactcggcgacccgcctaacactgggtggacattcccgagttataacgacacctcattttcaacaaccacaaaaaggcataggcaaccgaactaaccttttgtttagttacttctggtatgttcatagtgtagggcaggtgatcggttaaacgcttgtacggaccccattctgtagcgcttttctgaacgataacactacgttgggagatacttgttgcgcagtcgtgggttaaaagcgagccgacgataaactgcaataaggaaagcggacctgtcacctcccgcgggtaaatctactcgctcgtttagaggccgtaaagcgacataacggtgtccagtacaagcccaactggtttagagaattcttctcctactacattcaccgtccgtatttcggcgcgccctacggtattcgtggtgttctgagcatacatgggatggactatcacccctgcgcgtaaggactagcagttgtaagtcacgttaaggttgcgtaggcaactgttggagtgcgtccatacttttcagcaccccgaatttgtacgcccaagttgtatcgtcgtgctgggacgagactcagcctttaccctaagcgtttaggaaagcgatgttttaccgcagacgcatatgagagaacgttgcaagatcgatctttctcgcgcacgttctgtagctagacctgcagctaatctaactgccgaactgttaggatgttttctctcctagacgcagggaccagttgtaagtaagggtttctcatcgctaggctagggtgatggtaggtgataccaatggagcggcgcgttaaaagggttgtaatctcggtgatatgtgcaccatagattgttccgttattttccttggtcatttagatacgagataggggcgccccagtgccacgaggtccatcttatgctgttgcgtagctagagccctacaactttctaagtaaaacctccatcgagtgcgcttggagaatttcatgtaccgtggcggtaccttacttgatgccgcgacccctatctaattaaagaccgcttcccgatgggcgaccttaatcttgctgcagtccaagttaacttcctctacgcccgatgacaaatttagccggagtaagttgttaacctagcctaatttgtaccgaattttgggttgtgagaagaccatttctacccgacgatcatgggttcctctcaactatacctagtgtcggttaatgatttatggcaaacaatcccccaatgtagcacccatatgggcgcaattatgtgaacttcaacactaactattggtttagttagtgatatttagcgcaaataagaggcatgggctgcgaaaagattgtgtttccgcaatgctagggaacctgacggcatacccgagatgatagttaggtgagcccgaatcatgcttgattaacgtaacgtctatcactacccgtgggcttttgcgattgcgatgcgttactcaaggcatactcaatggggctggtaataccgatatgggcctgtgtcttagcagcgacgtgtcgataatcgaagtacaatacgccagtctacgttagggctttgctaacacatcacccacagttgaagcatcacgcacagccctcattaggttgtcgtcaacctggaactcctagcaggctgggcagtatggcatccttcacgaacaatcttaagagacgcacttgacacaggttgcgacagtcaggatggggagcttctgaaaatctctacataaggtggcctcgtgatatcgtattaactcggagagcggttggactaatgagtgagtccaatcagtgatcggtttttaatgccgggaccacggcttgcggctgcgcgatctatttccctcgcgttacacaaggggtaggcataagcaacaagcccaaaaaaatcctcacgcaggcgtcaggtacagactttttccctcagcaacgcaaggtacacgtgtagtcgaatgtggtcataaccagcagctgtcttgcgcaagggcggtgctacacgcatgtttcactccacagtgacatgatgcccgctcttcggttgttctatgcagcgcgctggtcgcaccttaagcccagttcaatccatgcaattcaccgttgcagcactagatcatataccgcatacttcgtcagagcacaaccagatcacttacaacgaccgcaagctaagcatccctatcgtgcgtatgtgtcgaggcgcaagtactatggtcggatgaggaggtgtgccctcaggacacacagtatcgctcctcattcgacgacgcaagtcgtctagttctatgataggcgaagtgagtactgcggatcactacgcccaagacttggagtgacgacgccggctactagcgatggcagttcagaatggtgccttccaagggacactcggtcctaatcaggcacacgcgtctcaaagccactactcattcatgagctcgctggcgtggcagtggtcttatgcggctagcgaccagaatttctactagccttaggcgtacaagcgttgggcaggtcgcgagtaacctctacactctatcatggaccacacccatccatgttttaaacacagaggtcttaagaatagcgatggtacggttgagaacgtgggagttttttgctctacagcaagcacgttgcagtgaggagagctttaatcctaaatcataagtgatactggtgccgagcatctttcggacgaatatgaagacccaacgctaatgtgcctgttcgtcggcacattctcttgggacacccgctacccacatgtatgtgaattgggcccgtcttgattgtgtcgtagatgccaacggttcaatcagccccgacgacgagaagcatttctacgtctccagccttgcaacggtttctagagtcttgctgttcgtaaattgaagaatctactgtgcagactttatcgacccacgatacgctaatccgagcgcgactcggtctcggaaaattatccgagggagctcgttcaatgcggcggaggctctgagtgaagtttaaggctgagatagtcacacgcattcgggtccctacaccttgtttcgaatgtccaacgcgaactctgggcaacatcgcgagactttgaaagatgagggggctgtgacagggcctttgtaataggggtactttaagggcggcacaatgtgatacctatgtattcctatggtctgggtcagttatttaaattgaccggacaagaatctgactcgtagactgctgtatagatcacgattagagtttggcaatggttctgaaagtgatcatgtctaacgtaccggatgacactagtaataactgcagcagcgtgacgatgtaggggacttactctgtttacgggtctcgtctgccataaacatcctgctccggcagcggtcaaagacgtcctattatcgcactcgggcagaaactccagtcatggtgaggcacaccaacagtgtggggtcggttcgtggttaccaagccaccatttttcggcccaaactcatcttgaatagtcgtcctcattcatttgatcgatcgtcattacaaggttcataaatgcccagcgccgcgtctccggccagatggaagagctacgtgcaggcggtaagcaattgacgctatagccctatatacgtatgtgggactcaaggcgacatgctataccgactggtatcgaggcgaacgacaattgctatgggtcatcacctcatatttagattcagcccctggtggcgtcgctttgaccaactagttaaggttgaggagttcgctctcaaacctgataacgagctaggccatgtaccaaccttggctgtgcaccgacgagctgaaggaccgagctgctaggaggtcgcagtatcgattgctctttcagccttctaaaggtgcgacagaaacttgaacctctcggtactctaacactaggggtacgagtggataactcgattacattagtcctggtacaaaagtcctccttccgggcgccttaagctgctttaaagctatgtccgcttacgagaaaggggcgcacggtccgatctacttacagactgtcaaaacggtgtagtcggaatgggctcgaacgacgctaatagatacacgcgcattggcatggtacttcaccaatactatatctttaaagaagggcggcgagcctatttacccacttcgattaggggataacacaggtgattgagttttctggaaccgtcatctaatagccgaagcagtccacattacagtccattgcatttaaccactaggaatcgcgccaatcttgcgcttatgttgtttaggaggggccacgctagatcttgcctatcctgagttatatgagggacgatcctacatgtatcctcaaagttcgcgctcatccttagattctaggagatggattactaagtgtgtgtccatagtttaacgcaacacataatgttcgtgtcgtgatgcgtatccttggtcccgacctactactctagacctatacgatagcgttcaaagctccaccatcgatgcaacgtggtcgtaccagtacttatgaaaccttttttcgcagttcgaaccgcctggaaagaagcatacgcaatatcgtgtgatcagcacgcagggtatcagttaaagagcccaagacttagtctatcgagcagaagaccgattagggtatacaccatgtcagaatcgcctccagactagtggctgatatcgtacgttacacgaggtcgctcttgtcgagtgctcgaacgatctatcccctagatcacgcgtcccagtcggagtatcccgcctcggatcgaaatgacggctaaaaggtgtaatcacgcgcgtaattcctgcaagctctctgagttctgctcgctggttcgaatgagcctgcaggcagtacctacaattcctgctcggaggacctgttgcgagggatgcccccatacactgctgagggtaagtagctgaagtataaaggcggcaatcttctgacaaacacccttcttccccttggttaaccagacaagctggatttatcacccctcccggggacactgccctgttttatatcgcggacttgcatcagtcgcagtagtccgcgtagatgtggggacccctcccaccttacatggcaacgcgtgatggagtagtatctcgcgtcagtgagcgagttcgcatatttgtagggcgtcataacaaatgtaaatgctagtaagtgaaagatgtcaacatgcgggctcggttttgcgctccaggtatatcctgcatctgatgaacttttcaatgaccgtgtctggcgcagggctgtcgttttgcaggaggggatgcccagcgcatctcgagaatcatcggctaatcaacgcgaaaaagttaatcttctatcagtcagcgggctataactccttgaccaacagaggatcgcaggtatttgtactgtggagaaacaatcgtaagatggccggccatgaggcaaggattgtaatataccggggtggttatcgaagaagtaaagtaaggcctaccttctggggagcaatggggttctcagacgctaactcttcgttcacctacaacacgattggacttagagagggacctacggacccgaaattcacataggggggttccccgataagccaaggcaggatagagtctgaatccatggacttccatcaaacccctgtggtggttccgttcaagtcagggagtatcacgactcacttactgagtcacgtcctcaatatgactgaagtcgataagacgaaggcttaatttacggaacccccgtttagtaatcaagaaacgcattggcgcgggtctaacgtaagctcttcacaccgccgtctacgaaccagttcccggcgttgcatggtgatcgccgggttcccttggagggagtaccttgtgccctgcccgtatggtcgttcctaaatagcgaccaagtattagttgactgttgcgacttaaaatccaacccataagcatatatcgtgcacccagggactggagggcctcagccccttctttcgaaacttaaaccgtcttcttatgggtgaaatgtaagtttctacgtctggaataaacggttcgggccaccatgaagcgtctcgtgtgatagagattcgcaatgagtctgggaagtagaatcacaccaagttagaaaaattctccaactcagctaccgcgacccatccgttggggtaacgcaagggtattagccgctcagaggccaaagattagagaaacgcgacgcctgcggctgtcttgtgactactccgaccatgccgtcagctggagaccctacggtgggtagttgggtagagcgccgatagctaattctcgagtggaactgcggaatgtgtcatatgaggtagcgatattgggctatcacaagtacgtgagcctgtgaaaacggacgactcactagcaagtaagcacggccctggcgtggcggcggtacgcgtacaaacctccactgcttggggaataaggtgcgaacaccgtgatccattgaggcgtggaggcatagggccggagtgttcccgtaccaattacgagctaagaccgcctgtccagccctggtgattacgtagtaagctcggtacaagcctgtaattagcttccgggtggcggacattcgttcatattgccagtcacggcagaggccgcgctagctaggccagccccgatgaaacacgtgctagttttctatcgtgcctaaggatcgatggctatcgcggcattgttaacttatcaagcagccgaatcggcgatagtggacacaacatgaacacgctaagctctgagtgccagactctaccgcggcgaatcctaggccctgctggggctcccccacagagcagtaatggtcttctgcggccgcgtgcattcaatccgcgctggtcaatgcgttccatcgtgccttaagcggggcagtgtgataagacaattttgggggtttcatggagatatcttcagaaacctcgcgaggtgcgtttagataccacacgcgcggcggtcttttcacacaattcagtccgcggccggtaacctaactttgcttatcaatacataatcctcccaaatgtacggtttcgaaggagatacctctcccctgttagactctaggttttgcagtgctacctagagatcacaccagcattaaaccaaggtatcagcatcgtaacatggggaggcacgcgcttggcggtaagtacccgccacgattactctgtttcatagcgccaacgcccgtatagtgtgcttttaacgtcctcagaaatcaccgactgatcagtatggcgacatcggagggaggttggcgaaatgttgcttttatagatcgttaaaacctatcgttggcgcgtatcgcctccatagaacttcttactcacctagtctgatcccgggactggtcgaaatggagacgacgtagcttgagatctggatcgatcgactgatatcacacttaaatatgatcagattttactacggtcgatctccatatatctatcccagcacttgatacctcctgtccagccgactgcttggaccctagcacgcgatattagagggcgcgttgtagctcaaagtaaccagtgggacgacccgagtgaggttaccgctggcacgtaagggtgacatgactcccccagaaacactgaatttgtctagcagtacatcataatctgagaacatttagcgaagacgagaacaagctgtctcaatggacgtaggacgagaggaatgtgacggttataatacgcgacctctatgtgtctattaaatccctacgggccgtagcgagcaagctcgggatctttagtagcggatcgggtcttctacatggcgcaccaggtttgatatttcgagctagagttgctctaaagaaacgctcttgcttgggaaagtgacctggggtacgacgaagacacgggcctggttgcataccgtctcaccttcattcatcgagcgcgatagcgtagcattatccagcacgggaggcacctggcatgggcgtgaaatacaatccgaagagcagcatgaaaaaaaaatgagcggtcgtgacccgagggtgcgtccctccgaacgttgttcgttgccaaggtaagggacccacgccaagcatggttagggaagcgtgaccgacacaacatagaggacaatctcaatatgccttctgggtatcacctgggtgtgtagcagtgctactgttacaagtcgcgccatctgcgacgtcgttcgtccctattccctcctaaaggccccgactctgaaaaaacctacaatcctagacacgttgtggcccagcacaacgcgtctgctatacagcaagtcattcgtcgaatggggcaacacgtataagaaggccgtgattccaagggcacatggcgggtctctcaatgatctacgacgtgacgcaaacggggaaaggctggaccgttgtccggtaggcgatccatcataaaaggcgtctggttctgtggttattgtgtacacgtttgaaatatctgactgtagaacgatggaggtctctacgtagctctgcacgattccctcgggctcacgttcatggcaaggcgacatcacatgaacagggttgggtaacagccatctctgaagcattcccccagctcgcacggctcctttacccgctactacgtcatgcactggctagagacccaccaactattgtgcaagtaaagaccataaaattttggagctgtagcgaaagcgagttgctgcgatggttagaccaacattgggtcaaactattctaatccggctaggctcattaagcatcgcagattgccgatactaatgctaacgagcgatgaatgggcctcttcgagacgcgtccgtacctgcgaatatcaaccatgaaccctaatctggaaagtttgatgccgctgtgatagccactcctgtgtcgcgacggcaacgtaatgtacgtgcttggtttgagctctaaacataccttcgttagagttggtcagaggaggatattgtcatagcgctacaaccagcgccaaaggatagctccgtggctggtcggacgcgctagaatctaggcagaacacgtgcggcttcttgcactctgacgctcacgcattggactttggcggtcatctggttctcataagtccgaatcacagtagataaagatccgcgtgataagatatgcctacgtacttaagtagcaccctctgttcttggcgatcctatcattgcgggttctatacatatgttgatccaaccatcggccgccgggccgtcgtaggatctaatggccaacacatcaatcaaatcactcgcgaggacgcggaggtcccgtccataggtgtgtatgttggtacgcagcacctaatctggtctggtcaagcaactggcttgttccagtatataatctcagatagactgccctgaaagtagacaatgataaatatgtaagagcggggaaatcccatcgtcgactgtgttgcggacgattagcttgcaaagagaggtgtgagcggctgtcttaaattatggactcctcgcttccgtcgaacgtctgactagagaatctcttggaggtacacacgaacgtaggttcctcacagtatgtggcatggacaccggacaggtcacttgtatttatccattgaacgtgatatagtgtgtcgagtcgttatacaatacatactccaagcgtactccctttgggtaacgggtttgggtacatattaccatggtgtggaccgatttgtaaccctataagcgttccgggtactttaccatcgcggatgcgatcgcggatctacctatgtcagcgacatactgcccgtccaaaagtgattcagtatgtgttaatcagcgtattgcatcatcagtcattgagagtggaccgttctcgaagagcaagattcctgaccctttccactgggccatccagtacacccaattatatgcagacgaaaagctccatacatatataatacctcttcacaccgtgtgcagagaccaacttgatcgatattgtactcactcgtacggaataattagaagggcccgactgtcgagaccgttagcatttgcattatcgcggtgagcgtatagaaacaattataggctttgctgcgatcgcagtgtctgggacagagtctcctagacctagatcagcttaaaacaatgattgtaggtaatgtgcgttgccgtcgggccacacctttcagttcggttacaccgactcagaattatcttctatcgggaccctcaaactgataatggggtcaaatggtggtggtcccgtctttctgcagtgctttgtgagcagaatagctctcgagcgctccagtacgcctgagtatggctgcgcccaccaattggcgccgttaatgcgtggcgacacaagagaaccagtccacataagttatgcccttaagaagatcaccgggtttgcgccatcctgattcaggtaacggacgtccgtgtacacgaaccatactaatgagttctacatcgctccaacgcgtcttgaaccctatcgacaattacaaatgcaaagtattagttgggtcagtgcgtagcttatccaagggctgcagtaagtcgtccccatgacagacggacggcataagggccaaaaattccgccgcattagctgttaataatgccatccagaaccggacagtctcgatatataacttacggctgcgaactggcccttatgaattacatccacgtgctagttaacaggacggatcgcccggactaattgccgatcggccgtcccattctccgtacgatgtactgaacccaggcgtgtgaatgggtatgtcaacgtttacccatcgaccctgcctatagacctgagtttcattccagttgagcgtagaatgggatgagcagctttgcttgaggtgcgatattcgggagacctggtcagcaggattgatggttttatagtgctggattccctgctgaaattctctcttctgccgcatgtgaagaaggccttgcttcccttccacatgattgtaagatttcctaaggcctcccagctgcgtggaactgtgagtcaattaaacctctttcctttataaattacccagtctcaggtatttccttatcgtggtatgagaacggattaatacagttgtgtaagccagctccttataataaatctctctccctctctctgcctctcatctatgtatgtatgtatctgtcatctatctcctataagttgtttcttttgagaactctgactaacatagacattaaataaacaatttgtatactgaataattatataactactgcttgggggtgtggttgtgttgtgtggtgagggggtgtagaaatgtctaggggttgatctagcctaacaccttccagatgaccctaggttctggcctttccccaaagagtcctggtctactcagtcatctcccacaatttggccatcttcttgggtgctcaggacaataaatgacccagccagatcctctagagtcgacctgcaggcatgcaagcttggcgtaatcatggtcatagctgtttgctgtgtgaaattgttatgcgctcacattgcacacaacatacgagccggaagcatacagtgtagagcctggggtggcgtatgagtgagctaactcacattaatttgcgtttgcgctcactgccgcttttcagtcggggaaactgtcgtgacagctgcatttaatgatcggtcatcgcgcggggagatgcggttttgcgtattgtgccgcaggtggttatttctctcaacagtgagacgggcacagctgattgccctcaccggctgggctgagagagttgcagcaagcgtacacgcggggtttgcccagcagggcgaaattcctgttgtgatgtggattccgaatcgggcaaatgccctataaatcaaagcatagtccgagatagggtttgagtgtgttcagttttgggacagaggtcactataaagaacgttgactgcacgtcaagggcgagaaacgtcatcaggcgattgcactacgtgacatcaccaatcagttttttgggtcaggtgcgtgagacttatcggaactaaaggagcccgttttagcttcggggaaacgcgaagtgtcggaagaaggaaaacgaagagcgggtatcgcggaatgtacgtgctgagcgaaaccaacgcgcgttacggtcaagcgtgtatgtgttttggaggtaagtttccctgataaagcggaacaggggctatgtgtttacgggggtcgcatggagtacaagggggcaggacaagatttgcgcgacatggttttttttaaattgcgggagatggttggctgtcccgatgagattagaacctgcttttgttttagtttcggttcggtcagttcggactttggattggttttgttgggtatttaagaagggtgtttgtgggatgtttttttttgggtcgagcatcactggactatgtgtgtcctgcgtatcgtggcggggcctcgaacttagaggtaggacgattccgatgcaacaaccttatgctttactccaagcgatggtgaggcaaccttgtacagaagtgcaaccgccattgtggctgggtcggcccaaggaacggatattctcctgggtactgacaacccaggtctactgggttctatcgacggtacagtcaagcctcgagtttactgtctcccacttaagtccgctctgggcattaatgagtctgtggggtatcaagggtcacccaacgaagtagctagtcccgttgtacatttcgcgcgttacctagggagcacggtgagctacgagggtgtagctgcacacagcacggtatataggaacgcaaacatagtagtatgtccctatgcataacagggagaagtgactctccgacggtcatttatcccagactctcctcgctccctactaattgttctatatacaatcggagtaaattggtacctctctgacaacataggggggttgaagtttatgccacgcagtctgttacacttttgccggggaattgtgtagaccatgactcaaggtggtggtgcgagttactctactatctactgcttctcattacacatctcttggcttacaggccccagttatcagttacgaggctgccttaagagaaggccaacattcatgatcagatccccgcacacgggatgatagtctgagatctgccggacgctcgtctgctacaagtgtgggttgagcatagggtaagcctaagggctcgtaatggtacttcgcgatgtttattcgatatgagctacaaggtataacgttgccttcaccatttcggctcacgactcttacctcgcctcaccgctagacaccctgaccaaccgttagggtactgacaaccgatcaggcgactcctaaaggacctctcagcctcccagacatgaggtccgctcgcatgctgttcagcgagtccatatcaggaacagcaacgagacaaggcgagagcaacactagacttggagacataccaccacatctgtttactcttgattcaggaagacctgtggtaactgggcgacgcgtgcgtttatccgtcttccaatctccacagaatctgctccgtcagagggatgtatgactaacgcactgattttttgttcagtaaccgggcgcggattacggggcgtattccaggggtacattcaacgggaccccaaggaaaagttcggggtatttaaggaggcggtccaactctcggacttattgggcgacgtaatgataagcacacctctgctcatacagtgcacgaagaccggcattgttcaaacacagccgtccattccgcgactattgtcctgtgtacaggtgcctcgggtcccaaatccagcttatacccaaaactctcccggacttttttcgtccttgcaggaggaaaggacctgactccacgtttattaggggatcgttgggcccggacaatcgtgtattcaacataataaatgggttctagtttaaagccggaggtgacggtggattatggactagaggtaaacatttccggcgtaggtcagaaagaatatagaccctaaatttacgcaaaacgtgcacacgattgtaggtggagtcgtattaggaactcagggcgggtggaacgagtgtgttttaggcttaccatgaaccgtcgcgcggaaaatgatgacagaatggacggtgcttttttgcggggccaacaaaactcgcttatgttcgccattggatgtaagtaccgctatactacgcagcgaccccttacgacattgttgatttccaatgctttcatggaggtttgtgagcggtcgctaggaatcttcctccagcgagtagccagctggccactagttagcaaccagagttcatatgagctccagtaacacgaaggtacataaggaacgcaagcaagttcgggactacatagaacttggggtgcgtctaagccggggatcttaatagacaagaggccatcgtatgggtcaaatttcatgtttcgtcagatgccctatccgtggacacctaaatcaagcatcatatcctaatgctatttgctctcgctttggtatgattcatatgcagccctgtccgtaaaatgacgggccagaggatacctgtcactacctatttcagattaccactgttcgaaaccttgctctgaaatcgatcttcgtagagtgttcgttaatcgccgcgtgaattatataatcccccaaggagtacccttcgtcggtgcagtctacgtaactttcccaggttagcccccatctaatcgacgtacgtgagggggctacgggagatcgcacaagccgaagcatttctgctctgtttcgttacaactggaatcctcatcacgcagcgctaccggatgccatccctagtcatccccgcgagtttaaccagtcgagatggctcgaaccgtgtttcgaaggctggctattgaaccagttataaagcaggggcgactgtccgtcggacttcgatataaactatcacaaatttggcataagtatatacagccaagaaggctcagataggcacacgcacccaaatagtgaccgcctacgttcaggttgcccggcaacgaagcgcgcttgctccattaatccactatcagaggtaacgaccctctttcaccgtagctgcccccatgtcggggcaacagtttcccaccgataacgtgttctgtctagtacgtgaaacggattggctaacccctgtcagcctaattagatgacatcctcgtacctctagagaaggtgaggagaccgctggaacataagtaaacagtttaccaaacaatgatcatacatataacagaaaggagagatgcccggtggggtcgaagatacagctgtggttgatatctgcaacggccaggctgtcatgaagatcacgcgcacgaagctatttatgaaagatacccatgccggggcggcagcggtacctagtcctaaataccgacacgtagcaacgcgtcccctgaggcccaccctagtcaagggaacttaaaatatacgctgactttgtctaccaatcatcttcgattaacaccggcatactaagtctaccctggacccagcaatgagaaaaacttttccgaatgatcattgtgagtttacagagattaggaacaccaaaaaaatttacgtacgtccggttacccctgtgtgacccttggccacaaaccgtaaggtgcagcatgggcgttgagtccagggtttgtgacaccagacatgaataccctgtggcgggttgttagcatgttattcggatccgatttcagagggtccgttgataccgggcagtacaagacaccccacaccactgaggtggtacgtccgccagtctgctccctacgttatgcaaaattccttccccggcgttcttgcctgtactactcctaaagggccgtgaaatccgacgttgctgctccgtctcgggacacccacacaacagctacggaaaatcgtgaggatgcacaagggtcttgcattgttgatctatacagctcttcgcacggtgtgctactgttttccacaatgggcaaggggcgtgtaggtcttatgtaggagtaccccgtgatctggctataccttgctatctattccaccaaaatagccggggtcttatagttttattccggatctatcaagtgacaagtccatggggtaaacggtaagtttcgtacgctgggcggtgatccccgcttataaacgagcaaaccgccaaagcaaccattgccgggcttccagctagtaaatgttgggtgtcaatcgtgcatgtgactacttacccacaaagggacgcttgaagcgcctgaactcgtcacgtcatgcctagctcccggttgaaacacgaagacgcgtgaacctatctttgcttactattcgcctcctttaagaggcttcttgatgtggctctgcgacatggacagtagtagttgtacctgggtatgttagtgaaattacaagtacctcaaaaacgaattacgtgtatagagattatgtcactccgtcac
