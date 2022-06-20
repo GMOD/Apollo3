@@ -181,7 +181,7 @@ function convertFeature(
   }
   const id = apolloFeature.featureId
   if (!id) {
-    throw new Error('Apollo feature without apollo_id encountered')
+    throw new Error('Apollo feature without featureId encountered')
   }
   const children: Record<string, SnapshotIn<typeof AnnotationFeature>> = {}
   apolloFeature.child_features?.forEach((childFeatureLocation) => {

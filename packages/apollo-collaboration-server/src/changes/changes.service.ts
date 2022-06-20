@@ -1,11 +1,6 @@
 import fs from 'fs'
 
-import {
-  CACHE_MANAGER,
-  Inject,
-  Logger,
-  UnprocessableEntityException,
-} from '@nestjs/common'
+import { Logger, UnprocessableEntityException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
   Assembly,
@@ -33,7 +28,6 @@ import {
   ValidationSet,
   changeRegistry,
 } from 'apollo-shared'
-import { Cache } from 'cache-manager'
 import { Model } from 'mongoose'
 
 import { CreateChangeDto } from './dto/create-change.dto'
@@ -52,7 +46,6 @@ export class ChangesService {
     private readonly fileModel: Model<FileDocument>,
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     changeRegistry.registerChange(
       'AddAssemblyAndFeaturesFromFileChange',

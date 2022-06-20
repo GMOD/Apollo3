@@ -4096,13 +4096,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/cache-manager@npm:^3":
-  version: 3.4.2
-  resolution: "@types/cache-manager@npm:3.4.2"
-  checksum: 121cad75d66da5e65aa9096dfe706d2ec696b20b6bd558128606063488dcedebdafaafc16b27ff620e1fd9c860ca64e088866f01e05cbaf0708a4d43b341c9d5
-  languageName: node
-  linkType: hard
-
 "@types/connect@npm:*":
   version: 3.4.35
   resolution: "@types/connect@npm:3.4.35"
@@ -5415,7 +5408,6 @@ __metadata:
     "@nestjs/platform-express": ^8.0.0
     "@nestjs/schematics": ^8.0.0
     "@nestjs/testing": ^8.0.0
-    "@types/cache-manager": ^3
     "@types/express": ^4.17.13
     "@types/jest": ^27.0.1
     "@types/multer": ^1.4.7
@@ -5426,7 +5418,6 @@ __metadata:
     "@types/uuid": ^8
     apollo-schemas: "workspace:^"
     apollo-shared: "workspace:^"
-    cache-manager: ^3.6.0
     dotenv: ^10.0.0
     jest: ^27.0.6
     jwt-decode: ^3.1.2
@@ -5755,13 +5746,6 @@ __metadata:
   version: 2.0.0
   resolution: "astral-regex@npm:2.0.0"
   checksum: 876231688c66400473ba505731df37ea436e574dd524520294cc3bbc54ea40334865e01fa0d074d74d036ee874ee7e62f486ea38bc421ee8e6a871c06f011766
-  languageName: node
-  linkType: hard
-
-"async@npm:3.2.0":
-  version: 3.2.0
-  resolution: "async@npm:3.2.0"
-  checksum: 6739fae769e6c9f76b272558f118ef041d45c979c573a8fe93f8cfbc32eb9c92da032e9effe6bbcc9b1131292cde6c4a9e61a442894aa06a262addd8dd3adda1
   languageName: node
   linkType: hard
 
@@ -6663,17 +6647,6 @@ __metadata:
     union-value: ^1.0.0
     unset-value: ^1.0.0
   checksum: 9114b8654fe2366eedc390bad0bcf534e2f01b239a888894e2928cb58cdc1e6ea23a73c6f3450dcfd2058aa73a8a981e723cd1e7c670c047bf11afdc65880107
-  languageName: node
-  linkType: hard
-
-"cache-manager@npm:^3.6.0":
-  version: 3.6.0
-  resolution: "cache-manager@npm:3.6.0"
-  dependencies:
-    async: 3.2.0
-    lodash: ^4.17.21
-    lru-cache: 6.0.0
-  checksum: c768d2b2927fb245b44a1dbf90d0815ad5318bfa1e4fc733e84a1538189227a4218dade7bfcad0a800e0b0c29e0338d79901cbe506e2e59f729155d73b7a3c51
   languageName: node
   linkType: hard
 
@@ -13175,15 +13148,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lru-cache@npm:6.0.0, lru-cache@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "lru-cache@npm:6.0.0"
-  dependencies:
-    yallist: ^4.0.0
-  checksum: f97f499f898f23e4585742138a22f22526254fdba6d75d41a1c2526b3b6cc5747ef59c5612ba7375f42aca4f8461950e925ba08c991ead0651b4918b7c978297
-  languageName: node
-  linkType: hard
-
 "lru-cache@npm:^4.0.1":
   version: 4.1.5
   resolution: "lru-cache@npm:4.1.5"
@@ -13191,6 +13155,15 @@ __metadata:
     pseudomap: ^1.0.2
     yallist: ^2.1.2
   checksum: 4bb4b58a36cd7dc4dcec74cbe6a8f766a38b7426f1ff59d4cf7d82a2aa9b9565cd1cb98f6ff60ce5cd174524868d7bc9b7b1c294371851356066ca9ac4cf135a
+  languageName: node
+  linkType: hard
+
+"lru-cache@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "lru-cache@npm:6.0.0"
+  dependencies:
+    yallist: ^4.0.0
+  checksum: f97f499f898f23e4585742138a22f22526254fdba6d75d41a1c2526b3b6cc5747ef59c5612ba7375f42aca4f8461950e925ba08c991ead0651b4918b7c978297
   languageName: node
   linkType: hard
 
