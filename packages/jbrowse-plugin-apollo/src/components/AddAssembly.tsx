@@ -1,6 +1,7 @@
 import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
 import {
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
@@ -8,6 +9,7 @@ import {
   DialogTitle,
   FormControl,
   FormControlLabel,
+  FormGroup,
   FormLabel,
   Radio,
   RadioGroup,
@@ -38,12 +40,20 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
   const [errorMessage, setErrorMessage] = useState('')
   const [file, setFile] = useState<File>()
   const [fileType, setFileType] = useState('text/x-gff3')
+  const [importFeatures, setImportFeatures] = useState(true)
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
     if (!e.target.files) {
       return
     }
     setFile(e.target.files[0])
+  }
+
+  function handleChangeFileType(e: React.ChangeEvent<HTMLInputElement>) {
+    setFileType(e.target.value)
+    if (e.target.value !== 'text/x-gff3') {
+      setImportFeatures(false)
+    }
   }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -86,6 +96,11 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
       fileChecksum = (await res.json()).checksum
     }
 
+    let typeName = 'AddAssemblyFromFileChange'
+    if (fileType === 'text/x-gff3' && importFeatures) {
+      typeName = 'AddAssemblyAndFeaturesFromFileChange'
+    }
+
     // Add assembly and refSeqs
     const uri = new URL('/changes/submitChange', baseURL).href
     const apolloFetch = apolloInternetAccount?.getFetcher({
@@ -97,7 +112,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
         method: 'POST',
         body: JSON.stringify({
           changedIds: ['1'],
-          typeName: 'AddAssemblyFromFileChange',
+          typeName,
           assemblyId: new ObjectID(),
           fileChecksum,
           assemblyName,
@@ -147,7 +162,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
               aria-labelledby="demo-radio-buttons-group-label"
               defaultValue="text/x-gff3"
               name="radio-buttons-group"
-              onChange={(e) => setFileType(e.target.value)}
+              onChange={handleChangeFileType}
             >
               <FormControlLabel
                 value="text/x-gff3"
@@ -162,6 +177,19 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
             </RadioGroup>
           </FormControl>
           <input type="file" onChange={handleChangeFile} />
+          <label htmlFor="checkbox">Load also features from GFF3 file</label>
+          <FormGroup>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={importFeatures}
+                  onChange={() => setImportFeatures(!importFeatures)}
+                  disabled={fileType !== 'text/x-gff3'}
+                />
+              }
+              label="Also load features from GFF3 file"
+            />
+          </FormGroup>
         </DialogContent>
         <DialogActions>
           <Button

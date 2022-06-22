@@ -202,7 +202,6 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
               </MenuItem>
             ))}
           </Select>
-          <p />
           <DialogContentText>Upload GFF3 to load features</DialogContentText>
           <input type="file" onChange={handleChangeFile} />
         </DialogContent>
