@@ -1,6 +1,7 @@
 import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
 import {
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
@@ -8,6 +9,7 @@ import {
   DialogTitle,
   FormControl,
   FormControlLabel,
+  FormGroup,
   FormLabel,
   Radio,
   RadioGroup,
@@ -38,8 +40,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
   const [errorMessage, setErrorMessage] = useState('')
   const [file, setFile] = useState<File>()
   const [fileType, setFileType] = useState('text/x-gff3')
-  const [checked, setChecked] = useState(false)
-  const [enableCheckBox, setEnableCheckBox] = useState(true)
+  const [importFeatures, setImportFeatures] = useState(true)
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
     if (!e.target.files) {
@@ -50,12 +51,8 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
 
   function handleChangeFileType(e: React.ChangeEvent<HTMLInputElement>) {
     setFileType(e.target.value)
-    if (e.target.value === 'text/x-gff3') {
-      setEnableCheckBox(true)
-      setChecked(false)
-    } else {
-      setEnableCheckBox(false)
-      setChecked(true)
+    if (e.target.value !== 'text/x-gff3') {
+      setImportFeatures(false)
     }
   }
 
@@ -100,7 +97,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
     }
 
     let typeName = 'AddAssemblyFromFileChange'
-    if (fileType === 'text/x-gff3' && checked) {
+    if (fileType === 'text/x-gff3' && importFeatures) {
       typeName = 'AddAssemblyAndFeaturesFromFileChange'
     }
 
@@ -180,14 +177,19 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
             </RadioGroup>
           </FormControl>
           <input type="file" onChange={handleChangeFile} />
-          <p />
-          <input
-            type="checkbox"
-            defaultChecked={checked}
-            disabled={!enableCheckBox}
-            onChange={(e) => setChecked(!checked)}
-          />
           <label htmlFor="checkbox">Load also features from GFF3 file</label>
+          <FormGroup>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={importFeatures}
+                  onChange={() => setImportFeatures(!importFeatures)}
+                  disabled={fileType !== 'text/x-gff3'}
+                />
+              }
+              label="Also load features from GFF3 file"
+            />
+          </FormGroup>
         </DialogContent>
         <DialogActions>
           <Button
