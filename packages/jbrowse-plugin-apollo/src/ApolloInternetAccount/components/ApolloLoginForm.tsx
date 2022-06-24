@@ -86,12 +86,11 @@ export const ApolloLoginForm = ({
             />
           </DialogContent>
           <DialogActions>
-            <Button variant="contained" color="primary" type="submit">
+            <Button variant="contained" type="submit">
               Submit
             </Button>
             <Button
-              variant="contained"
-              color="default"
+              variant="outlined"
               type="submit"
               onClick={() => {
                 handleClose()

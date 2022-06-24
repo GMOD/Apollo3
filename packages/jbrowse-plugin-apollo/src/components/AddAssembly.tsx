@@ -195,14 +195,12 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
           <Button
             disabled={!(assemblyName && file)}
             variant="contained"
-            color="primary"
             type="submit"
           >
             Submit
           </Button>
           <Button
-            variant="contained"
-            color="default"
+            variant="outlined"
             type="submit"
             onClick={() => {
               handleClose()

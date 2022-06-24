@@ -209,14 +209,12 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
           <Button
             disabled={!(assemblyId && file)}
             variant="contained"
-            color="primary"
             type="submit"
           >
             Submit
           </Button>
           <Button
-            variant="contained"
-            color="default"
+            variant="outlined"
             type="submit"
             onClick={() => {
               handleClose()
