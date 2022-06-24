@@ -19,7 +19,7 @@ export interface SerializedAddAssemblyAndFeaturesFromFileChangeBase
 
 export interface AddAssemblyAndFeaturesFromFileChangeDetails {
   assemblyName: string
-  fileChecksum: string
+  fileId: string
 }
 
 export interface SerializedAddAssemblyAndFeaturesFromFileChangeSingle
@@ -49,12 +49,12 @@ export class AddAssemblyAndFeaturesFromFileChange extends FeatureChange {
 
   toJSON() {
     if (this.changes.length === 1) {
-      const [{ fileChecksum }] = this.changes
+      const [{ fileId }] = this.changes
       return {
         typeName: this.typeName,
         changedIds: this.changedIds,
         assemblyId: this.assemblyId,
-        fileChecksum,
+        fileId,
       }
     }
     return {
@@ -74,14 +74,19 @@ export class AddAssemblyAndFeaturesFromFileChange extends FeatureChange {
     const { assemblyModel, fileModel, fs, session } = backend
     const { changes, assemblyId } = this
     for (const change of changes) {
-      const { fileChecksum, assemblyName } = change
-      this.logger.debug?.(`File checksum: '${fileChecksum}'`)
+      const { fileId, assemblyName } = change
 
       const { FILE_UPLOAD_FOLDER } = process.env
       if (!FILE_UPLOAD_FOLDER) {
         throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
       }
-      const compressedFullFileName = join(FILE_UPLOAD_FOLDER, fileChecksum)
+      // Get file checksum
+      const fileDoc = await fileModel.findById(fileId).session(session).exec()
+      if (!fileDoc) {
+        throw new Error(`File "${fileId}" not found in Mongo`)
+      }
+      this.logger.debug?.(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
+      const compressedFullFileName = join(FILE_UPLOAD_FOLDER, fileDoc.checksum)
 
       // Check and add new assembly
       const assemblyDoc = await assemblyModel
@@ -99,15 +104,6 @@ export class AddAssemblyAndFeaturesFromFileChange extends FeatureChange {
       this.logger.debug?.(
         `Added new assembly "${assemblyName}", docId "${newAssemblyDoc._id}"`,
       )
-      this.logger.debug?.(`Find file document by "${fileChecksum}"`)
-      // Get file type from Mongo
-      const fileDoc = await fileModel
-        .findOne({ checksum: fileChecksum })
-        .session(session)
-        .exec()
-      if (!fileDoc) {
-        throw new Error(`File "${fileChecksum}" information not found in Mongo`)
-      }
       this.logger.debug?.(`File type: "${fileDoc.type}"`)
 
       // Add refSeqs

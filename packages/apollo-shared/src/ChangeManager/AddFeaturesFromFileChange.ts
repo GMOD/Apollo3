@@ -18,7 +18,7 @@ export interface SerializedAddFeaturesFromFileChangeBase
 }
 
 export interface AddFeaturesFromFileChangeDetails {
-  fileChecksum: string
+  fileId: string
 }
 
 export interface SerializedAddFeaturesFromFileChangeSingle
@@ -48,12 +48,12 @@ export class AddFeaturesFromFileChange extends FeatureChange {
 
   toJSON(): SerializedAddFeaturesFromFileChange {
     if (this.changes.length === 1) {
-      const [{ fileChecksum }] = this.changes
+      const [{ fileId }] = this.changes
       return {
         typeName: this.typeName,
         changedIds: this.changedIds,
         assemblyId: this.assemblyId,
-        fileChecksum,
+        fileId,
       }
     }
     return {
@@ -70,18 +70,23 @@ export class AddFeaturesFromFileChange extends FeatureChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { fs } = backend
+    const { fs, fileModel, session } = backend
     const { changes } = this
 
     for (const change of changes) {
-      const { fileChecksum } = change
-      this.logger.debug?.(`File checksum: '${fileChecksum}'`)
+      const { fileId } = change
 
       const { FILE_UPLOAD_FOLDER } = process.env
       if (!FILE_UPLOAD_FOLDER) {
         throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
       }
-      const compressedFullFileName = join(FILE_UPLOAD_FOLDER, fileChecksum)
+      // Get file checksum
+      const fileDoc = await fileModel.findById(fileId).session(session).exec()
+      if (!fileDoc) {
+        throw new Error(`File "${fileId}" not found in Mongo`)
+      }
+      this.logger.debug?.(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
+      const compressedFullFileName = join(FILE_UPLOAD_FOLDER, fileDoc.checksum)
 
       // Read data from compressed file and parse the content
       const featureStream = fs

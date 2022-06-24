@@ -105,7 +105,10 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    let fileChecksum = ''
+    // let fileChecksum = ''
+    let fileId = ''
+    let msg
+
     if (!file) {
       throw new Error('must select a file')
     }
@@ -139,7 +142,9 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
         )
         return
       }
-      fileChecksum = (await res.json()).checksum
+      const result = await res.json()
+      // fileChecksum = result.checksum
+      fileId = result._id
     }
 
     // Add features
@@ -155,7 +160,7 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
           changedIds: ['1'],
           typeName: 'AddFeaturesFromFileChange',
           assemblyId,
-          fileChecksum,
+          fileId,
           assemblyName,
         }),
         headers: new Headers({
@@ -163,7 +168,6 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
         }),
       })
       if (!res.ok) {
-        let msg
         try {
           msg = await res.text()
         } catch (e) {
@@ -174,6 +178,29 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
             res.statusText
           })${msg ? ` (${msg})` : ''}`,
         )
+        // Let's delete the uploaded file
+        const deleteFileUri = new URL(`/files/${fileId}`, baseURL).href
+        const apolloDeleteFile = apolloInternetAccount?.getFetcher({
+          locationType: 'UriLocation',
+          uri: deleteFileUri,
+        })
+        if (apolloDeleteFile) {
+          const resDeleteFile = await apolloDeleteFile(deleteFileUri, {
+            method: 'DELETE',
+          })
+          if (!resDeleteFile.ok) {
+            try {
+              msg = await resDeleteFile.text()
+            } catch (e) {
+              msg = ''
+            }
+            setErrorMessage(
+              `Error when deleting uploaded file after unsuccessfully inserting features — ${
+                resDeleteFile.status
+              } (${resDeleteFile.statusText})${msg ? ` (${msg})` : ''}`,
+            )
+          }
+        }
         return
       }
     }
