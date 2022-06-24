@@ -129,7 +129,6 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
         body: formData,
       })
       if (!res.ok) {
-        let msg
         try {
           msg = await res.text()
         } catch (e) {
