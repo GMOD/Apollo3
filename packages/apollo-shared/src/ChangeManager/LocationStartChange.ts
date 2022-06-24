@@ -1,7 +1,7 @@
 import { FeatureDocument } from 'apollo-schemas'
 import { resolveIdentifier } from 'mobx-state-tree'
 
-import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
+import { AnnotationFeatureLocation } from '../BackendDrivers/AnnotationFeature'
 import {
   ChangeOptions,
   ClientDataStore,
@@ -151,14 +151,14 @@ export class LocationStartChange extends FeatureChange {
     }
     this.changedIds.forEach((changedId, idx) => {
       const feature = resolveIdentifier(
-        AnnotationFeature,
+        AnnotationFeatureLocation,
         dataStore.features,
         changedId,
       )
       if (!feature) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
-      feature.location.setStart(this.changes[idx].newStart)
+      feature.setStart(this.changes[idx].newStart)
     })
   }
 

@@ -9,6 +9,7 @@ import {
   useGridApiContext,
 } from '@mui/x-data-grid'
 import {
+  AnnotationFeatureI,
   Change,
   ChangeManager,
   LocationEndChange,
@@ -93,30 +94,28 @@ export const ApolloDetailsView = observer(
       return <div>click on a feature to see details</div>
     }
     // const sequenceTypes = changeManager?.validations.getPossibleValues('type')
-    const {
-      id,
-      featureType,
-      assemblyName,
-      location: { refName, start, end },
-    } = selectedFeature
+    const { id, featureType, assemblyName, refName, start, end } =
+      selectedFeature
     const selectedFeatureRows = [
       { id, featureType, assemblyName, refName, start, end, model },
     ]
     function addChildFeatures(f: typeof selectedFeature) {
-      f?.children?.forEach((child: typeof selectedFeature, childId: string) => {
-        if (!child) {
-          throw new Error(`No child with id ${childId}`)
-        }
-        selectedFeatureRows.push({
-          id: childId,
-          featureType: child.featureType,
-          assemblyName: child.assemblyName,
-          refName: child.location.refName,
-          start: child.location.start,
-          end: child.location.end,
-          model,
+      f?.children?.forEach((child: AnnotationFeatureI, childId: string) => {
+        child.locations.forEach((childLocation) => {
+          if (!childLocation) {
+            throw new Error(`No child with id ${childId}`)
+          }
+          selectedFeatureRows.push({
+            id: childId,
+            featureType: childLocation.featureType,
+            assemblyName: childLocation.assemblyName,
+            refName: childLocation.refName,
+            start: childLocation.start,
+            end: childLocation.end,
+            model,
+          })
+          addChildFeatures(childLocation)
         })
-        addChildFeatures(child)
       })
     }
     addChildFeatures(selectedFeature)

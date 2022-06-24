@@ -3,11 +3,14 @@ import { SnapshotIn } from 'mobx-state-tree'
 
 import { Change, ClientDataStore } from '../ChangeManager/Change'
 import { ValidationResultSet } from '../Validations/ValidationSet'
-import { AnnotationFeature } from './AnnotationFeature'
+import { AnnotationFeatureLocation } from './AnnotationFeature'
 
-type FeaturesForRefNameSnapshot = Record<
+// Doing this because `SnapshotIn<typeof FeaturesForRefName>` for some reason
+// resolves to `any`, so this offers better typechecking.
+export type FeaturesForRefNameSnapshot = Record<
   string,
-  Record<string, SnapshotIn<typeof AnnotationFeature> | undefined> | undefined
+  | Record<string, SnapshotIn<typeof AnnotationFeatureLocation> | undefined>
+  | undefined
 >
 
 export abstract class BackendDriver {

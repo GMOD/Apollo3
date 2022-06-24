@@ -1,7 +1,7 @@
 import PluginManager from '@jbrowse/core/PluginManager'
 import { getContainingView, getSession } from '@jbrowse/core/util'
 import { ElementId } from '@jbrowse/core/util/types/mst'
-import { AnnotationFeatureI, ChangeManager } from 'apollo-shared'
+import { AnnotationFeatureLocationI, ChangeManager } from 'apollo-shared'
 import { Instance, getParent, types } from 'mobx-state-tree'
 
 export function stateModelFactory(pluginManager: PluginManager) {
@@ -11,7 +11,7 @@ export function stateModelFactory(pluginManager: PluginManager) {
       type: types.literal('ApolloDetailsView'),
     })
     .views((self) => ({
-      get selectedFeature(): AnnotationFeatureI | undefined {
+      get selectedFeature(): AnnotationFeatureLocationI | undefined {
         return getParent(self).selectedFeature
       },
       get setSelectedFeature() {

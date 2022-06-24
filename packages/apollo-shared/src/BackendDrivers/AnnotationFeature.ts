@@ -1,26 +1,83 @@
+import { findParentThatIs } from '@jbrowse/core/util'
 import {
-  IAnyModelType,
+  IAnyType,
   Instance,
-  SnapshotIn,
   SnapshotOrInstance,
   cast,
-  getParent,
   types,
 } from 'mobx-state-tree'
 
-const Location = types
-  .model('Location', {
+export function isAnnotationFeatureLocationModel(
+  thing: unknown,
+): thing is AnnotationFeatureLocationI {
+  return (
+    typeof thing === 'object' &&
+    thing !== null &&
+    'type' in thing &&
+    (thing as AnnotationFeatureLocationI).type === 'AnnotationFeatureLocation'
+  )
+}
+
+export const LateAnnotationFeature = types.late(
+  (): IAnyType => AnnotationFeature,
+)
+
+export const AnnotationFeatureLocation = types
+  .model('AnnotationFeatureLocation', {
+    id: types.identifier,
+    type: types.optional(
+      types.literal('AnnotationFeatureLocation'),
+      'AnnotationFeatureLocation',
+    ),
+    assemblyName: types.string,
     refName: types.string,
     start: types.number,
     end: types.number,
     strand: types.maybe(types.enumeration('Strand', ['+', '-'])),
+    children: types.maybe(types.map(LateAnnotationFeature)),
+    name: types.maybe(types.string),
+    featureType: types.maybe(types.string),
   })
   .views((self) => ({
     get length() {
       return self.end - self.start
     },
+    /**
+     * Possibly different from `start` because "The GFF3 format does not enforce
+     * a rule in which features must be wholly contained within the location of
+     * their parents"
+     */
+    get min() {
+      let min = self.start
+      self.children?.forEach((child: AnnotationFeatureI) => {
+        child.locations.forEach((childLocation) => {
+          min = Math.min(min, childLocation.min)
+        })
+      })
+      return min
+    },
+    /**
+     * Possibly different from `end` because "The GFF3 format does not enforce a
+     * rule in which features must be wholly contained within the location of
+     * their parents"
+     */
+    get max() {
+      let max = self.end
+      self.children?.forEach((child: AnnotationFeatureI) => {
+        child.locations.forEach((childLocation) => {
+          max = Math.max(max, childLocation.max)
+        })
+      })
+      return max
+    },
   }))
   .actions((self) => ({
+    setFeatureType(featureType: string) {
+      self.featureType = featureType
+    },
+    setRefName(refName: string) {
+      self.refName = refName
+    },
     setStart(start: number) {
       if (start > self.end) {
         throw new Error(`Start "${start}" is greater than end "${self.end}"`)
@@ -37,9 +94,50 @@ const Location = types
         self.end = end
       }
     },
+    setStrand(strand?: '+' | '-') {
+      self.strand = strand
+    },
   }))
-
-const ChildFeature = types.late((): IAnyModelType => AnnotationFeature)
+  .actions((self) => ({
+    update({
+      refName,
+      start,
+      end,
+      strand,
+      children,
+    }: {
+      refName: string
+      start: number
+      end: number
+      strand?: '+' | '-'
+      children?: SnapshotOrInstance<typeof LateAnnotationFeature>
+    }) {
+      self.setRefName(refName)
+      self.setStart(start)
+      self.setEnd(end)
+      self.setStrand(strand)
+      if (children) {
+        self.children = cast(children)
+      }
+    },
+    addChild(childFeature: SnapshotOrInstance<typeof LateAnnotationFeature>) {
+      self.children?.set(childFeature.id, childFeature)
+    },
+  }))
+  .views((self) => ({
+    parentId() {
+      let parent: AnnotationFeatureLocationI | undefined = undefined
+      try {
+        parent = findParentThatIs(self, isAnnotationFeatureLocationModel)
+      } catch (error) {
+        // pass
+      }
+      return parent?.id
+    },
+    get length() {
+      return self.end - self.start
+    },
+  }))
 
 export const AnnotationFeature = types
   .model('AnnotationFeature', {
@@ -48,43 +146,39 @@ export const AnnotationFeature = types
       types.literal('AnnotationFeature'),
       'AnnotationFeature',
     ),
-    assemblyName: types.string,
-    location: Location,
-    children: types.maybe(types.map(ChildFeature)),
-    name: types.maybe(types.string),
-    featureType: types.maybe(types.string),
+    locations: types.map(AnnotationFeatureLocation),
   })
-  .actions((self) => ({
-    update({
-      location,
-      children,
-    }: {
-      location: SnapshotIn<typeof Location>
-      children?: SnapshotOrInstance<typeof self.children>
-    }) {
-      self.location = cast(location)
-      if (children) {
-        self.children = cast(children)
-      }
-    },
-    addChild(childFeature: SnapshotOrInstance<typeof ChildFeature>) {
-      self.children?.set(childFeature.id, childFeature)
-    },
-    setFeatureType(featureType: string) {
-      self.featureType = featureType
-    },
-  }))
   .views((self) => ({
-    parentId() {
-      const parent = getParent(self, 2)
-      if (parent.type === 'AnnotationFeature') {
-        return (parent as Instance<typeof AnnotationFeature>).id
+    get min(): number {
+      let min: number | undefined = undefined
+      self.locations.forEach((location) => {
+        min = min === undefined ? location.min : Math.min(min, location.min)
+      })
+      if (min === undefined) {
+        throw new Error(
+          `AnnotationFeature does not have any locations: "${self.id}"`,
+        )
       }
-      return undefined
+      return min
+    },
+    get max(): number {
+      let max: number | undefined = undefined
+      self.locations.forEach((location) => {
+        max = max === undefined ? location.max : Math.max(max, location.max)
+      })
+      if (max === undefined) {
+        throw new Error(
+          `AnnotationFeature does not have any locations: "${self.id}"`,
+        )
+      }
+      return max
     },
   }))
 
 export type AnnotationFeatureI = Instance<typeof AnnotationFeature>
+export type AnnotationFeatureLocationI = Instance<
+  typeof AnnotationFeatureLocation
+>
 
-export const FeatureMap = types.map(AnnotationFeature)
+export const FeatureMap = types.map(AnnotationFeatureLocation)
 export const FeaturesForRefName = types.map(FeatureMap)

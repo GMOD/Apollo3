@@ -4,8 +4,8 @@ import { MenuItem } from '@jbrowse/core/ui'
 import { AppRootModel } from '@jbrowse/core/util'
 import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import {
-  AnnotationFeature,
-  AnnotationFeatureI,
+  AnnotationFeatureLocation,
+  AnnotationFeatureLocationI,
   ChangeManager,
   CollaborationServerDriver,
   CoreValidation,
@@ -62,7 +62,7 @@ export function stateModelFactory(pluginManager: PluginManager) {
           .stateModel as ApolloDetailsViewStateModel,
         { type: 'ApolloDetailsView' },
       ),
-      selectedFeature: types.maybe(types.reference(AnnotationFeature)),
+      selectedFeature: types.maybe(types.reference(AnnotationFeatureLocation)),
       dataStore: types.maybe(ClientDataStore),
       displayName: 'Apollo',
     })
@@ -135,7 +135,7 @@ export function stateModelFactory(pluginManager: PluginManager) {
       setDisplayName(displayName: string) {
         self.displayName = displayName
       },
-      setSelectedFeature(feature: AnnotationFeatureI) {
+      setSelectedFeature(feature: AnnotationFeatureLocationI) {
         self.selectedFeature = feature
       },
     }))
