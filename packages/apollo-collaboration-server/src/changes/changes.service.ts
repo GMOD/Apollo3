@@ -117,6 +117,7 @@ export class ChangesService {
       changeDocId = savedChangedLogDoc._id
       const validationResult2 = await this.validations.backendPostValidate(
         change,
+        this.featureModel,
       )
       if (!validationResult2.ok) {
         const errorMessage = validationResult2.results

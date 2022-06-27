@@ -34,7 +34,10 @@ export class ChangeManager {
     await change.apply(this.dataStore)
 
     // post-validate
-    const results2 = await this.validations.frontendPostValidate(change)
+    const results2 = await this.validations.frontendPostValidate(
+      change,
+      this.dataStore,
+    )
     if (!results2.ok) {
       // notify of invalid change and revert
       this.revert(change)
