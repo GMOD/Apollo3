@@ -5,6 +5,8 @@ import {
   GridCellEditCommitParams,
   GridColumns,
   GridRenderEditCellParams,
+  MuiBaseEvent,
+  useGridApiContext,
 } from '@mui/x-data-grid'
 import {
   Change,
@@ -25,7 +27,9 @@ const featureColums: GridColumns = [
     headerName: 'Type',
     width: 250,
     editable: true,
-    renderEditCell: AutocompleteInputCell,
+    renderEditCell: (params: GridRenderEditCellParams) => (
+      <AutocompleteInputCell {...params} />
+    ),
   },
   { field: 'refName', headerName: 'Ref Seq', width: 150 },
   { field: 'start', headerName: 'Start', type: 'number', editable: true },
@@ -36,12 +40,12 @@ function AutocompleteInputCell(props: GridRenderEditCellParams) {
   const {
     id,
     value,
-    api,
     field,
     row: { model },
   } = props
   const { changeManager } = model as { changeManager?: ChangeManager }
-  const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>()
+  const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>(['CNA'])
+  const apiRef = useGridApiContext()
 
   useEffect(() => {
     async function getSOSequenceTerms() {
@@ -57,10 +61,10 @@ function AutocompleteInputCell(props: GridRenderEditCellParams) {
     getSOSequenceTerms()
   }, [changeManager])
 
-  const handleChange = (event: unknown, newValue?: string | null) => {
-    api.setEditCellValue({ id, field, value: newValue }, event)
-    api.commitCellChange({ id, field })
-    api.setCellMode(id, field, 'view')
+  const handleChange = (event: MuiBaseEvent, newValue?: string | null) => {
+    apiRef.current.setEditCellValue({ id, field, value: newValue }, event)
+    apiRef.current.commitCellChange({ id, field })
+    apiRef.current.setCellMode(id, field, 'view')
   }
 
   if (!soSequenceTerms) {
@@ -72,11 +76,12 @@ function AutocompleteInputCell(props: GridRenderEditCellParams) {
       id="type-combo-box"
       options={soSequenceTerms}
       style={{ width: 245 }}
-      renderInput={(params) => (
-        <TextField {...params} label="Combo box" variant="outlined" />
-      )}
+      renderInput={(params) => <TextField {...params} variant="outlined" />}
       value={String(value)}
       onChange={handleChange}
+      selectOnFocus
+      clearOnBlur
+      handleHomeEndKeys
     />
   )
 }
