@@ -18,7 +18,7 @@ interface SerializedLocationEndChangeBase extends SerializedChange {
   typeName: 'LocationEndChange'
 }
 
-interface LocationEndChangeDetails {
+export interface LocationEndChangeDetails {
   featureId: string
   oldEnd: number
   newEnd: number
@@ -183,3 +183,4 @@ export class LocationEndChange extends FeatureChange {
     )
   }
 }
+

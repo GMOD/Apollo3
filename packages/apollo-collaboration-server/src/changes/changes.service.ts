@@ -27,6 +27,7 @@ import {
   TypeChange,
   ValidationSet,
   changeRegistry,
+  ParentChildValidation,
 } from 'apollo-shared'
 import { Model } from 'mongoose'
 
@@ -66,11 +67,19 @@ export class ChangesService {
 
   private readonly logger = new Logger(ChangesService.name)
   private readonly validations = new ValidationSet([new CoreValidation()])
+  private readonly parentChildValidation = new ValidationSet([
+    new ParentChildValidation(),
+  ])
 
   async submitChange(serializedChange: SerializedChange) {
     const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
     const change = new ChangeType(serializedChange, { logger: this.logger })
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
+
+    // DEMO validation check 
+    this.logger.debug(`DEMO VALIDATION CHECK STARTS...`)
+    const validationResult0 = await this.parentChildValidation.backendPostValidate(change, this.featureModel)
+    this.logger.debug(`DEMO VALIDATION CHECK ENDS...`)
 
     const validationResult = await this.validations.backendPreValidate(change)
     if (!validationResult.ok) {
