@@ -241,18 +241,18 @@ export abstract class FeatureChange extends Change {
         .exec()
       if (!refSeqDoc) {
         throw new Error(
-          `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refName}" not found, this.assembly "${this.assemblyId}", type "${backend.typeName}"`,
+          `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refName}" not found`,
         )
       }
       // Let's add featureId to parent feature
       const featureId = uuidv4()
       const featureIds = [featureId]
       this.logger.verbose?.(
-        `Adding new FeatureId: value=${JSON.stringify(featureLine)}`,
+        `Added new FeatureId: value=${JSON.stringify(featureLine)}`,
       )
 
       // Let's add featureId to each child recursively
-      this.setAndGetFeatureIdRecursively(
+      const newFeatureLine = this.setAndGetFeatureIdRecursively(
         { ...featureLine, featureId },
         featureIds,
       )
@@ -263,9 +263,8 @@ export abstract class FeatureChange extends Change {
         [
           {
             refSeq: refSeqDoc._id,
-            featureId,
             featureIds,
-            ...featureLine,
+            ...newFeatureLine,
           },
         ],
         { session },
@@ -281,7 +280,7 @@ export abstract class FeatureChange extends Change {
   setAndGetFeatureIdRecursively(
     parentFeature: GFF3FeatureLineWithFeatureIdAndOptionalRefs,
     featureIdArrAsParam: string[],
-  ): string[] {
+  ): GFF3FeatureLineWithFeatureIdAndOptionalRefs {
     if (parentFeature.child_features?.length === 0) {
       delete parentFeature.child_features
     }
@@ -304,6 +303,6 @@ export abstract class FeatureChange extends Change {
           }),
       )
     }
-    return featureIdArrAsParam
+    return parentFeature
   }
 }
