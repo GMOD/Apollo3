@@ -20,12 +20,6 @@ class MinAndMaxValue {
   maxStart: number | undefined
   minEnd: number | undefined
   maxEnd: number | undefined
-  //   constructor(mins: number, maxs: number, mine: number, maxe: number) {
-  //     this.minStart = mins | undefined
-  //     this.maxStart = maxs
-  //     this.minEnd = mine
-  //     this.maxEnd = maxe
-  //   }
 }
 
 export class ParentChildValidation extends Validation {
@@ -48,16 +42,6 @@ export class ParentChildValidation extends Validation {
   }
 
   async backendPreValidate(_change: Change): Promise<ValidationResult> {
-    // console.log(`backendPreValidate: ${JSON.stringify(_change)}`)
-    // const jsonObj = JSON.parse(JSON.stringify(_change))
-
-    // // for (const [key, value] of Object.entries(_change)) {
-    // //   console.log(`${key}: ${value}`)
-    // // }
-    // const { featureId } = jsonObj
-    // console.log(`featureId: "${jsonObj.featureId}"`)
-    // const parentFeatureWithChildren = FeatureService.findById(jsonObj.featureId)
-
     return { validationName: this.name }
   }
 
@@ -65,23 +49,48 @@ export class ParentChildValidation extends Validation {
     _change: Change,
     featureModel: Model<FeatureDocument>,
   ): Promise<ValidationResult> {
-    console.log(`1. backendPostValidate: ${JSON.stringify(_change)}`)
-    const jsonObj = JSON.parse(JSON.stringify(_change))
+    let featureId = ''
+    let newEnd = -1
+    console.log(`backendPostValidate - change: ${JSON.stringify(_change)}`)
+    for (const [key, value] of Object.entries(_change)) {
+      if (key === 'changes') {
+        const allChanges = JSON.parse(JSON.stringify(value))
+        for (const ch of allChanges) {
+          console.log(`Change: ${JSON.stringify(ch)}`)
+          console.log(`FeatureId: ${ch.featureId}`)
+          console.log(`NewEnd: ${ch.newEnd}`)
+          featureId = ch.featureId
+          newEnd = ch.newEnd
 
-    // for (const [key, value] of Object.entries(_change)) {
-    //   console.log(`${key}: ${value}`)
-    // }
-    const { featureId } = jsonObj
-    console.log(`featureId: "${jsonObj.featureId}"`)
-    const parentFeatureWithChildren = this.findById(
-      jsonObj.featureId,
-      featureModel,
-    )
-    console.log(`2. backendPostValidate: ${parentFeatureWithChildren}`)
-    console.log(
-      `3. backendPostValidate: ${JSON.stringify(parentFeatureWithChildren)}`,
-    )
+          const parentFeatureWithChildren = await this.findById(
+            featureId,
+            featureModel,
+          )
+          // console.log(`Feature found: ${JSON.stringify(parentFeatureWithChildren)}`)
 
+          const minAndMax = new MinAndMaxValue()
+          this.getChildrenMinAndMaxValsue(
+            parentFeatureWithChildren,
+            featureId,
+            minAndMax,
+          )
+          console.log(
+            `Feature's start ${parentFeatureWithChildren.start} and end ${parentFeatureWithChildren.end}`,
+          )
+          console.log(
+            `Children's minStart is ${minAndMax.minStart}, maxStart ${minAndMax.maxStart}, minEnd ${minAndMax.minEnd} and maxEnd ${minAndMax.maxEnd}`,
+          )
+          if (!minAndMax.maxEnd) {
+            throw new Error('There is no max end value for children')
+          }
+          if (minAndMax.maxEnd > newEnd) {
+            throw new Error(
+              `Children's maxEnd value (${minAndMax.maxEnd}) cannot be greater than new set end value (${newEnd})`,
+            )
+          }
+        }
+      }
+    }
     return { validationName: this.name }
   }
 
@@ -116,13 +125,6 @@ export class ParentChildValidation extends Validation {
       //   this.logger.error(errMsg)
       throw new Error(errMsg)
     }
-    console.log(`Feature found: ${JSON.stringify(foundFeature)}`)
-
-    const minAndMax = new MinAndMaxValue()
-    this.getMinAndMaxValue(foundFeature, featureId, minAndMax)
-    console.log(
-      `Min and max values are: ${minAndMax.minStart}, ${minAndMax.maxStart}, ${minAndMax.minEnd}, ${minAndMax.maxStart}`,
-    )
     return foundFeature
   }
 
@@ -136,18 +138,11 @@ export class ParentChildValidation extends Validation {
     feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs,
     featureId: string,
   ): GFF3FeatureLineWithFeatureIdAndOptionalRefs | null {
-    // console.log(`Top level featureId=${feature.featureId}`)
     if (feature.featureId === featureId) {
-      //     console.log(
-      //     `Top level featureId matches in object ${JSON.stringify(feature)}`,
-      //   )
       return feature
     }
     // Check if there is also childFeatures in parent feature and it's not empty
     // Let's get featureId from recursive method
-    // console.log(
-    //   `FeatureId was not found on top level so lets make recursive call...`,
-    // )
     for (const childFeature of feature.child_features || []) {
       for (const childFeatureLine of childFeature) {
         const subFeature: GFF3FeatureLineWithFeatureIdAndOptionalRefs | null =
@@ -164,12 +159,12 @@ export class ParentChildValidation extends Validation {
   }
 
   /**
-   * Get single feature by featureId
+   * Get children's min and max start and end values
    * @param featureObject -
    * @param featureId -
-   * @returns
+   * @returns - class of min and max values
    */
-  getMinAndMaxValue(
+  getChildrenMinAndMaxValsue(
     feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs,
     featureId: string,
     minAndMaxValues: MinAndMaxValue,
@@ -204,9 +199,8 @@ export class ParentChildValidation extends Validation {
         ) {
           minAndMaxValues.maxEnd = childFeatureLine.end
         }
-        console.log(`ChildFeatureLine start=${childFeatureLine.start}, end=${childFeatureLine.end}`)
         const subFeature: GFF3FeatureLineWithFeatureIdAndOptionalRefs | null =
-          this.getMinAndMaxValue(
+          this.getChildrenMinAndMaxValsue(
             childFeatureLine as GFF3FeatureLineWithFeatureIdAndOptionalRefs,
             featureId,
             minAndMaxValues,
