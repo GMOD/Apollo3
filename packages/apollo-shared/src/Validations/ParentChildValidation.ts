@@ -100,59 +100,22 @@ export class ParentChildValidation extends Validation {
       console.log(`TOP LEVEL ATTRIBUTES: "${JSON.stringify(jsonObj)}"`)
       console.log(`TOP LEVEL ID: "${jsonObj.ID}"`)
       const topLevelId = jsonObj.ID
-      const eka = new EndValueClass(
+      const topLevelValues = new EndValueClass(
         topLevelId,
         '',
         topLevelFeature.start,
         topLevelFeature.end,
       )
-      const arr = new Array<EndValueClass>()
-      arr.push(eka)
-      const tulos = this.getMinMaxValues(topLevelFeature, arr)
+      const arrayOfMinMaxValues = new Array<EndValueClass>()
+      arrayOfMinMaxValues.push(topLevelValues)
+      this.getMinMaxValues(topLevelFeature, arrayOfMinMaxValues)
 
-    //   for (const item of arr) {
-    //     console.log(`ARRAY: myId: "${item}"`)
-    //   }
-      for (const i in arr) {
-        console.log(`ARRAY: myId: "${arr[i].myId}", myParentId: "${arr[i].myParentId}", myStart: "${arr[i].myStart}", myEnd: "${arr[i].myEnd}"`)
+      for (const i in arrayOfMinMaxValues) {
+        console.log(
+          `ARRAY[${i}]: myId: "${arrayOfMinMaxValues[i].myId}", myParentId: "${arrayOfMinMaxValues[i].myParentId}", myStart: "${arrayOfMinMaxValues[i].myStart}", myEnd: "${arrayOfMinMaxValues[i].myEnd}"`,
+        )
       }
-      //   const tulos = this.checkEndMaxValidation(
-      //     topLevelFeature,
-      //     topLevelId,
-      //     newEnd,
-      //   )
-      //   console.log(`TULOS: "${tulos}"`)
-      //   console.log(`TOP LEVEL ID: "${topLevelId}"`)
-
-      //   const parentFeatureWithChildren = await this.findById(
-      //     featureId,
-      //     featureModel,
-      //   )
-      //   console.log(`Feature found: ${JSON.stringify(parentFeatureWithChildren)}`)
-
-      //   const minAndMax = new MinAndMaxValue()
-      //   this.getChildrenMinAndMaxValsue(
-      //     parentFeatureWithChildren,
-      //     featureId,
-      //     minAndMax,
-      //   )
-      //   console.log(
-      //     `Feature's start ${parentFeatureWithChildren.start} and end ${parentFeatureWithChildren.end}`,
-      //   )
-      //   console.log(
-      //     `Children's minStart is ${minAndMax.minStart}, maxStart ${minAndMax.maxStart}, minEnd ${minAndMax.minEnd} and maxEnd ${minAndMax.maxEnd}`,
-      //   )
-      //   if (!minAndMax.maxEnd) {
-      //     throw new Error('There is no max end value for children')
-      //   }
-      //   if (minAndMax.maxEnd > newEnd) {
-      //     throw new Error(
-      //       `Children's maxEnd value (${minAndMax.maxEnd}) cannot be greater than new set end value (${newEnd})`,
-      //     )
-      //   }
     }
-    //   }
-    // }
     return { validationName: this.name }
   }
 
@@ -164,8 +127,7 @@ export class ParentChildValidation extends Validation {
    */
   getMinMaxValues(
     feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-    // featureId: string,
-    minAndMaxValues: Array<EndValueClass>,
+    arrayOfMinAndMaxValues: Array<EndValueClass>,
   ): GFF3FeatureLineWithFeatureIdAndOptionalRefs | null {
     for (const childFeature of feature.child_features || []) {
       for (const childFeatureLine of childFeature) {
@@ -173,27 +135,23 @@ export class ParentChildValidation extends Validation {
           let myId = ''
           let myParentId = ''
           if (childFeatureLine.attributes.ID) {
-            myId = childFeatureLine.attributes.ID[0]
+            myId = childFeatureLine.attributes.ID as unknown as string
           }
           if (childFeatureLine.attributes.Parent) {
-            myParentId = childFeatureLine.attributes.Parent[0]
+            myParentId = childFeatureLine.attributes.Parent as unknown as string
           }
-          console.log(
-            `myId: "${myId}", myParentId: "${myParentId}", myStart: "${childFeatureLine.start}", myEnd: "${childFeatureLine.end}"`,
-          )
-          const eka = new EndValueClass(
-            myId[0],
-            myParentId[0],
+          const tmpClass = new EndValueClass(
+            myId,
+            myParentId,
             childFeatureLine.start!,
             childFeatureLine.end!,
           )
-          minAndMaxValues.push(eka)
+          arrayOfMinAndMaxValues.push(tmpClass)
         }
         const subFeature: GFF3FeatureLineWithFeatureIdAndOptionalRefs | null =
           this.getMinMaxValues(
             childFeatureLine as GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-            // featureId,
-            minAndMaxValues,
+            arrayOfMinAndMaxValues,
           )
         if (subFeature) {
           return subFeature
@@ -202,61 +160,6 @@ export class ParentChildValidation extends Validation {
     }
     return null
   }
-
-  //   /**
-  //    * Get single feature by featureId
-  //    * @param featureObject -
-  //    * @param featureId -
-  //    * @returns
-  //    */
-  //   checkEndMaxValidation(
-  //     feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-  //     // featureId: string,
-  //     parentId: string,
-  //     parentEnd: number,
-  //   ): GFF3FeatureLineWithFeatureIdAndOptionalRefs | null {
-  //     // if (feature.featureId === featureId) {
-  //     //   return feature
-  //     // }
-  //     // Check if there is also childFeatures in parent feature and it's not empty
-  //     // Let's get featureId from recursive method
-  //     for (const childFeature of feature.child_features || []) {
-  //       for (const childFeatureLine of childFeature) {
-  //         let newParentId = parentId
-  //         let newParentEnd = parentEnd
-  //         if (
-  //           childFeatureLine &&
-  //           childFeatureLine.attributes &&
-  //           childFeatureLine.attributes.Parent
-  //         ) {
-  //           const myParent = childFeatureLine.attributes.Parent
-  //           console.log(
-  //             `myParent: "${myParent}", myEnd: "${childFeatureLine.end}"`,
-  //           )
-  //           newParentId = myParent[0]
-  //           newParentEnd = childFeatureLine.end!
-  //           // Check validation
-  //           if (childFeatureLine.end! > parentEnd) {
-  //             const errMsg = `ERROR: Child's end position "${childFeatureLine.end}" cannot be greater than parent's end position "${parentEnd}"`
-  //             //   this.logger.error(errMsg)
-  //             throw new Error(errMsg)
-  //           }
-  //         }
-  //         const subFeature: GFF3FeatureLineWithFeatureIdAndOptionalRefs | null =
-  //           this.checkEndMaxValidation(
-  //             childFeatureLine as GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-  //             // featureId,
-  //             // parentId,
-  //             newParentId,
-  //             newParentEnd
-  //           )
-  //         if (subFeature) {
-  //           return subFeature
-  //         }
-  //       }
-  //     }
-  //     return null
-  //   }
 
   async possibleValues(key: string) {
     if (key === 'type') {
@@ -264,116 +167,4 @@ export class ParentChildValidation extends Validation {
     }
     return undefined
   }
-
-  /**
-   * Get feature by featureId. When retrieving features by id, the features and any of its children are returned, but not any of its parent or sibling features.
-   * @param featureid - featureId
-   * @returns Return the feature(s) if search was successful. Otherwise throw exception
-   */
-  async findById(featureId: string, featureModel: Model<FeatureDocument>) {
-    // Search correct feature
-    const topLevelFeature = await featureModel
-      .findOne({ featureIds: featureId })
-      .exec()
-
-    if (!topLevelFeature) {
-      const errMsg = `ERROR: The following featureId was not found in database ='${featureId}'`
-      //   this.logger.error(errMsg)
-      throw new Error(errMsg)
-    }
-
-    // Now we need to find correct top level feature or sub-feature inside the feature
-    const foundFeature = this.getObjectByFeatureId(topLevelFeature, featureId)
-    if (!foundFeature) {
-      const errMsg = `ERROR when searching feature by featureId`
-      //   this.logger.error(errMsg)
-      throw new Error(errMsg)
-    }
-    return foundFeature
-  }
-
-  /**
-   * Get single feature by featureId
-   * @param featureObject -
-   * @param featureId -
-   * @returns
-   */
-  getObjectByFeatureId(
-    feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-    featureId: string,
-  ): GFF3FeatureLineWithFeatureIdAndOptionalRefs | null {
-    if (feature.featureId === featureId) {
-      return feature
-    }
-    // Check if there is also childFeatures in parent feature and it's not empty
-    // Let's get featureId from recursive method
-    for (const childFeature of feature.child_features || []) {
-      for (const childFeatureLine of childFeature) {
-        const subFeature: GFF3FeatureLineWithFeatureIdAndOptionalRefs | null =
-          this.getObjectByFeatureId(
-            childFeatureLine as GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-            featureId,
-          )
-        if (subFeature) {
-          return subFeature
-        }
-      }
-    }
-    return null
-  }
-
-  //   /**
-  //    * Get children's min and max start and end values
-  //    * @param featureObject -
-  //    * @param featureId -
-  //    * @returns - class of min and max values
-  //    */
-  //   getChildrenMinAndMaxValsue(
-  //     feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-  //     featureId: string,
-  //     minAndMaxValues: MinAndMaxValue,
-  //   ): GFF3FeatureLineWithFeatureIdAndOptionalRefs | null {
-  //     for (const childFeature of feature.child_features || []) {
-  //       for (const childFeatureLine of childFeature) {
-  //         if (
-  //           childFeatureLine.start &&
-  //           (!minAndMaxValues.minStart ||
-  //             childFeatureLine.start < minAndMaxValues.minStart)
-  //         ) {
-  //           minAndMaxValues.minStart = childFeatureLine.start
-  //         }
-  //         if (
-  //           childFeatureLine.start &&
-  //           (!minAndMaxValues.maxStart ||
-  //             childFeatureLine.start > minAndMaxValues.maxStart)
-  //         ) {
-  //           minAndMaxValues.maxStart = childFeatureLine.start
-  //         }
-  //         if (
-  //           childFeatureLine.end &&
-  //           (!minAndMaxValues.minEnd ||
-  //             childFeatureLine.end < minAndMaxValues.minEnd)
-  //         ) {
-  //           minAndMaxValues.minEnd = childFeatureLine.end
-  //         }
-  //         if (
-  //           childFeatureLine.end &&
-  //           (!minAndMaxValues.maxEnd ||
-  //             childFeatureLine.end > minAndMaxValues.maxEnd)
-  //         ) {
-  //           minAndMaxValues.maxEnd = childFeatureLine.end
-  //         }
-  //         const subFeature: GFF3FeatureLineWithFeatureIdAndOptionalRefs | null =
-  //           this.getChildrenMinAndMaxValsue(
-  //             childFeatureLine as GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-  //             featureId,
-  //             minAndMaxValues,
-  //           )
-  //         if (subFeature) {
-  //           return subFeature
-  //         }
-  //       }
-  //     }
-  //     return null
-  //   }
 }
