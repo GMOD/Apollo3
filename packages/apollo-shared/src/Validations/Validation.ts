@@ -1,5 +1,5 @@
 import { FeatureDocument } from 'apollo-schemas'
-import { Model } from 'mongoose'
+import { ClientSession, Model } from 'mongoose'
 
 import { Change, ClientDataStore } from '../ChangeManager/Change'
 
@@ -28,8 +28,11 @@ export abstract class Validation {
   }
 
   async backendPostValidate(
-    _change: Change,
-    featureModel: Model<FeatureDocument>,
+    change: Change,
+    {
+      session,
+      featureModel,
+    }: { session: ClientSession; featureModel: Model<FeatureDocument> },
   ): Promise<ValidationResult> {
     return { validationName: this.name }
   }

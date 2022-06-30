@@ -183,3 +183,9 @@ export class LocationStartChange extends FeatureChange {
     )
   }
 }
+
+export function isLocationStartChange(
+  change: unknown,
+): change is LocationStartChange {
+  return (change as LocationStartChange).typeName === 'LocationStartChange'
+}

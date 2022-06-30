@@ -1,32 +1,13 @@
 import { FeatureDocument } from 'apollo-schemas'
-import { Model } from 'mongoose'
+import { ClientSession, Model } from 'mongoose'
 
-import {
-  Change,
-  ClientDataStore,
-  SerializedChange,
-} from '../ChangeManager/Change'
-import {
-  FeatureChange,
-  GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-} from '../ChangeManager/FeatureChange'
-import { TypeChange } from '../ChangeManager/TypeChange'
+import { Change, ClientDataStore } from '../ChangeManager/Change'
+import { GFF3FeatureLineWithFeatureIdAndOptionalRefs } from '../ChangeManager/FeatureChange'
 import soSequenceTypes from './soSequenceTypes'
 import { Validation, ValidationResult } from './Validation'
-import {
-  LocationEndChange,
-  LocationEndChangeDetails,
-  isLocationEndChange,
-} from '..'
+import { isLocationEndChange, isLocationStartChange } from '..'
 
-// class MinAndMaxValue {
-//   minStart: number | undefined
-//   maxStart: number | undefined
-//   minEnd: number | undefined
-//   maxEnd: number | undefined
-// }
-
-class EndValueClass {
+class StartEndValueClass {
   myId: string
   myParentId: string
   myStart: number
@@ -70,22 +51,25 @@ export class ParentChildValidation extends Validation {
 
   async backendPostValidate(
     change: Change,
-    featureModel: Model<FeatureDocument>,
+    {
+      session,
+      featureModel,
+    }: { session: ClientSession; featureModel: Model<FeatureDocument> },
   ): Promise<ValidationResult> {
-    if (!isLocationEndChange(change)) {
+    if (!(isLocationEndChange(change) || isLocationStartChange(change))) {
       return { validationName: this.name }
     }
     let featureId = ''
-    let newEnd = -1
     for (const ch of change.changes) {
       console.log(`Change: ${JSON.stringify(ch)}`)
       console.log(`FeatureId: ${ch.featureId}`)
+      // eslint-disable-next-line prefer-destructuring
       featureId = ch.featureId
-      newEnd = ch.newEnd
 
       // Search correct feature
       const topLevelFeature = await featureModel
         .findOne({ featureIds: featureId })
+        .session(session)
         .exec()
 
       if (!topLevelFeature) {
@@ -99,17 +83,17 @@ export class ParentChildValidation extends Validation {
 
       // Check start and end validations only if there is hierachy
       if (topLevelId) {
-        const topLevelValues = new EndValueClass(
+        const topLevelValues = new StartEndValueClass(
           topLevelId,
           '',
           topLevelFeature.start,
           topLevelFeature.end,
         )
-        const arrayOfMinMaxValues = new Array<EndValueClass>()
+        const arrayOfMinMaxValues = new Array<StartEndValueClass>()
         arrayOfMinMaxValues.push(topLevelValues)
         this.getMinMaxValues(topLevelFeature, arrayOfMinMaxValues)
 
-        const clonedArray = new Array<EndValueClass>()
+        const clonedArray = new Array<StartEndValueClass>()
         arrayOfMinMaxValues.forEach((val) =>
           clonedArray.push(Object.assign({}, val)),
         )
@@ -129,12 +113,17 @@ export class ParentChildValidation extends Validation {
               clonedArray[j].myParentId,
             )
             if (outerId === innerParentId) {
-              console.log(
-                `Compare: "Child's parentId: "${arrayOfMinMaxValues[i].myId}". Is child's end (${clonedArray[j].myEnd}) > parent's end (${arrayOfMinMaxValues[i].myEnd}) ?`,
-              )
               if (clonedArray[j].myEnd > arrayOfMinMaxValues[i].myEnd) {
                 throw new Error(
                   `Child's end value (${clonedArray[j].myEnd}) cannot be greater than parent's end value (${arrayOfMinMaxValues[i].myEnd})`,
+                )
+              }
+              //   console.log(
+              //     `Compare: "Child's parentId: "${arrayOfMinMaxValues[i].myId}". Is child's start (${clonedArray[j].myStart}) < parent's start (${arrayOfMinMaxValues[i].myStart}) ?`,
+              //   )
+              if (clonedArray[j].myStart < arrayOfMinMaxValues[i].myStart) {
+                throw new Error(
+                  `Child's start value (${clonedArray[j].myStart}) cannot be less than parent's start value (${arrayOfMinMaxValues[i].myStart})`,
                 )
               }
             }
@@ -153,7 +142,7 @@ export class ParentChildValidation extends Validation {
    */
   getMinMaxValues(
     feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-    arrayOfMinAndMaxValues: Array<EndValueClass>,
+    arrayOfMinAndMaxValues: Array<StartEndValueClass>,
   ): GFF3FeatureLineWithFeatureIdAndOptionalRefs | null {
     for (const childFeature of feature.child_features || []) {
       for (const childFeatureLine of childFeature) {
@@ -166,13 +155,15 @@ export class ParentChildValidation extends Validation {
           if (childFeatureLine.attributes.Parent) {
             myParentId = childFeatureLine.attributes.Parent as unknown as string
           }
-          const tmpClass = new EndValueClass(
-            myId,
-            myParentId,
-            childFeatureLine.start!,
-            childFeatureLine.end!,
-          )
-          arrayOfMinAndMaxValues.push(tmpClass)
+          if (childFeatureLine.start && childFeatureLine.end) {
+            const tmpClass = new StartEndValueClass(
+              myId,
+              myParentId,
+              childFeatureLine.start,
+              childFeatureLine.end,
+            )
+            arrayOfMinAndMaxValues.push(tmpClass)
+          }
         }
         const subFeature: GFF3FeatureLineWithFeatureIdAndOptionalRefs | null =
           this.getMinMaxValues(
