@@ -1,4 +1,4 @@
-import { FeatureDocument } from 'apollo-schemas'
+import { Change, FeatureDocument } from 'apollo-schemas'
 import { resolveIdentifier } from 'mobx-state-tree'
 
 import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
@@ -184,3 +184,11 @@ export class LocationEndChange extends FeatureChange {
   }
 }
 
+export function isLocationEndChange(
+  change: unknown,
+): change is LocationEndChange {
+  return (
+    // change instanceof Change &&
+    (change as LocationEndChange).typeName === 'LocationEndChange'
+  )
+}
