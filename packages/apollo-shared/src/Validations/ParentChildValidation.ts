@@ -100,20 +100,89 @@ export class ParentChildValidation extends Validation {
       console.log(`TOP LEVEL ATTRIBUTES: "${JSON.stringify(jsonObj)}"`)
       console.log(`TOP LEVEL ID: "${jsonObj.ID}"`)
       const topLevelId = jsonObj.ID
-      const topLevelValues = new EndValueClass(
-        topLevelId,
-        '',
-        topLevelFeature.start,
-        topLevelFeature.end,
-      )
-      const arrayOfMinMaxValues = new Array<EndValueClass>()
-      arrayOfMinMaxValues.push(topLevelValues)
-      this.getMinMaxValues(topLevelFeature, arrayOfMinMaxValues)
 
-      for (const i in arrayOfMinMaxValues) {
-        console.log(
-          `ARRAY[${i}]: myId: "${arrayOfMinMaxValues[i].myId}", myParentId: "${arrayOfMinMaxValues[i].myParentId}", myStart: "${arrayOfMinMaxValues[i].myStart}", myEnd: "${arrayOfMinMaxValues[i].myEnd}"`,
+      //   const dummy1 = new EndValueClass('eka', '', 10, 20)
+      //   const dummy2 = new EndValueClass('', 'eka', 10, 20)
+      //   const eka1: string = dummy1.myId
+      //   const toka1: string = dummy2.myParentId
+      //   console.log(`+++++++++++++++++++++++++++++++: "${eka1 == toka1}", '${eka1}' == '${toka1}'`)
+      //   const dummyArray = new Array<EndValueClass>()
+      //   dummyArray.push(dummy1)
+      //   dummyArray.push(dummy2)
+      //   const eka11: string = dummyArray[0].myId
+      //   const toka11: string = dummyArray[1].myParentId
+      //   console.log(`+++++++++++++++++++++++++++++++: "${eka11 == toka11}", '${eka11}' == '${toka11}'`)
+
+      // Check start and end validations only if there is hierachy
+      if (topLevelId) {
+        const topLevelValues = new EndValueClass(
+          topLevelId,
+          '',
+          topLevelFeature.start,
+          topLevelFeature.end,
         )
+        const arrayOfMinMaxValues = new Array<EndValueClass>()
+        arrayOfMinMaxValues.push(topLevelValues)
+        this.getMinMaxValues(topLevelFeature, arrayOfMinMaxValues)
+
+        const clonedArray = new Array<EndValueClass>()
+        arrayOfMinMaxValues.forEach((val) =>
+          clonedArray.push(Object.assign({}, val)),
+        )
+
+        for (const i in arrayOfMinMaxValues) {
+          console.log(
+            `ARRAY: myId: "${arrayOfMinMaxValues[i].myId}", myParentId: "${arrayOfMinMaxValues[i].myParentId}", myStart: "${arrayOfMinMaxValues[i].myStart}", myEnd: "${arrayOfMinMaxValues[i].myEnd}"`,
+          )
+        }
+        for (let i = 0; i < arrayOfMinMaxValues.length; i++) {
+          const outerId: string = JSON.stringify(arrayOfMinMaxValues[i].myId)
+          console.log(
+            `OUTER ARRAY: myId: "${outerId}", myParentId: "${arrayOfMinMaxValues[i].myParentId}", myStart: "${arrayOfMinMaxValues[i].myStart}", myEnd: "${arrayOfMinMaxValues[i].myEnd}"`,
+          )
+          for (let j = 0; j < clonedArray.length; j++) {
+            const innerParentId: string = JSON.stringify(clonedArray[j].myParentId)
+            // console.log(`${typeof outerId} ja ${typeof innerParentId}`)
+            // console.log(
+            //   `INNER ARRAY: outerId: "${outerId}", myParentId: "${innerParentId}", myStart: "${clonedArray[j].myStart}", myEnd: "${clonedArray[j].myEnd}"`,
+            // )
+            // console.log(
+            //   `0 BOOLEAN: "${
+            //     outerId == innerParentId
+            //   }", '${outerId}' == '${innerParentId}'`,
+            // )
+
+            // if (outerId == innerParentId) {
+            //   console.log('*** OUTERID === INNERPARENTID ***')
+            // }
+            // console.log(`1 BOOLEAN: "${outerId === innerParentId}"`)
+            // console.log(`2 BOOLEAN: "${outerId == innerParentId}"`)
+            // console.log(
+            //   `3 BOOLEAN: "${
+            //     (outerId as string) === (innerParentId as string)
+            //   }"`,
+            // )
+            if (outerId === innerParentId) {
+              console.log(
+                `COMPARE: ("${arrayOfMinMaxValues[i].myId}" === "${arrayOfMinMaxValues[j].myParentId}") --> ONKO  "${arrayOfMinMaxValues[j].myEnd}" > "${arrayOfMinMaxValues[i].myEnd}"`,
+              )
+            }
+          }
+        }
+        // for (const i in arrayOfMinMaxValues) {
+        //   for (const j in arrayOfMinMaxValues) {
+        //     console.log(
+        //       `arrayOfMinMaxValues[i].myId: "${arrayOfMinMaxValues[i].myId}", arrayOfMinMaxValues[j].myParentId: "${arrayOfMinMaxValues[j].myParentId}"`,
+        //     )
+        //     if (
+        //       arrayOfMinMaxValues[i].myId === arrayOfMinMaxValues[j].myParentId
+        //     ) {
+        //       console.log(
+        //         `VERTAA: ("${arrayOfMinMaxValues[i].myId}" === "${arrayOfMinMaxValues[j].myParentId}") --> ONKO  "${arrayOfMinMaxValues[j].myEnd}" > "${arrayOfMinMaxValues[i].myEnd}"`,
+        //       )
+        //     }
+        //   }
+        // }
       }
     }
     return { validationName: this.name }
