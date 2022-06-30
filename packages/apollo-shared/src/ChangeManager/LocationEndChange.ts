@@ -106,7 +106,7 @@ export class LocationEndChange extends FeatureChange {
       }
       this.logger.debug?.(`*** Found feature: ${JSON.stringify(foundFeature)}`)
       if (foundFeature.end !== oldEnd) {
-        const errMsg = `*** ERROR: Feature's current end value ${topLevelFeature.end} doesn't match with expected value ${oldEnd}`
+        const errMsg = `*** ERROR: Feature's current end value ${foundFeature.end} doesn't match with expected value ${oldEnd}`
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }

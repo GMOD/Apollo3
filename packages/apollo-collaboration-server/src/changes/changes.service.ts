@@ -78,12 +78,10 @@ export class ChangesService {
 
     // // DEMO validation check 
     this.logger.debug(`DEMO VALIDATION CHECK STARTS...`)
-    const validationResult2 = await this.validations.backendPostValidate(
+    const validationResultDemo = await this.validations.backendPostValidate(
       change,
       this.featureModel,
     )
-    // const validationResult0 = await this.parentChildValidation.backendPostValidate(change, this.featureModel)
-    // // const validationResult0 = await this.parentChildValidation.backendPostValidate(change, this.featureModel)
     this.logger.debug(`DEMO VALIDATION CHECK ENDS...`)
 
     const validationResult = await this.validations.backendPreValidate(change)
@@ -129,10 +127,10 @@ export class ChangesService {
         { session },
       )
       changeDocId = savedChangedLogDoc._id
-      // const validationResult2 = await this.validations.backendPostValidate(
-      //   change,
-      //   this.featureModel,
-      // )
+      const validationResult2 = await this.validations.backendPostValidate(
+        change,
+        this.featureModel,
+      )
       if (!validationResult2.ok) {
         const errorMessage = validationResult2.results
           .map((r) => r.error?.message)

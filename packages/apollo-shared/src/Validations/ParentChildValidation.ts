@@ -80,7 +80,6 @@ export class ParentChildValidation extends Validation {
     for (const ch of change.changes) {
       console.log(`Change: ${JSON.stringify(ch)}`)
       console.log(`FeatureId: ${ch.featureId}`)
-      //   console.log(`NewEnd: ${ch.newEnd}`)
       featureId = ch.featureId
       newEnd = ch.newEnd
 
@@ -91,27 +90,12 @@ export class ParentChildValidation extends Validation {
 
       if (!topLevelFeature) {
         const errMsg = `ERROR: The following featureId was not found in database ='${featureId}'`
-        //   this.logger.error(errMsg)
         throw new Error(errMsg)
       }
-      console.log(`TOP LEVEL FEATUREID: "${topLevelFeature.featureId}"`)
-      console.log(`TOP LEVEL END: "${topLevelFeature.end}"`)
+      console.log(`Top level featureId: "${topLevelFeature.featureId}"`)
       const jsonObj = JSON.parse(JSON.stringify(topLevelFeature.attributes))
-      console.log(`TOP LEVEL ATTRIBUTES: "${JSON.stringify(jsonObj)}"`)
-      console.log(`TOP LEVEL ID: "${jsonObj.ID}"`)
+      console.log(`Top level attributes: "${JSON.stringify(jsonObj)}"`)
       const topLevelId = jsonObj.ID
-
-      //   const dummy1 = new EndValueClass('eka', '', 10, 20)
-      //   const dummy2 = new EndValueClass('', 'eka', 10, 20)
-      //   const eka1: string = dummy1.myId
-      //   const toka1: string = dummy2.myParentId
-      //   console.log(`+++++++++++++++++++++++++++++++: "${eka1 == toka1}", '${eka1}' == '${toka1}'`)
-      //   const dummyArray = new Array<EndValueClass>()
-      //   dummyArray.push(dummy1)
-      //   dummyArray.push(dummy2)
-      //   const eka11: string = dummyArray[0].myId
-      //   const toka11: string = dummyArray[1].myParentId
-      //   console.log(`+++++++++++++++++++++++++++++++: "${eka11 == toka11}", '${eka11}' == '${toka11}'`)
 
       // Check start and end validations only if there is hierachy
       if (topLevelId) {
@@ -130,59 +114,32 @@ export class ParentChildValidation extends Validation {
           clonedArray.push(Object.assign({}, val)),
         )
 
+        // Print whole array
         for (const i in arrayOfMinMaxValues) {
           console.log(
-            `ARRAY: myId: "${arrayOfMinMaxValues[i].myId}", myParentId: "${arrayOfMinMaxValues[i].myParentId}", myStart: "${arrayOfMinMaxValues[i].myStart}", myEnd: "${arrayOfMinMaxValues[i].myEnd}"`,
+            `Array[${i}]: myId: "${arrayOfMinMaxValues[i].myId}", parentId: "${arrayOfMinMaxValues[i].myParentId}", myStart: "${arrayOfMinMaxValues[i].myStart}", myEnd: "${arrayOfMinMaxValues[i].myEnd}"`,
           )
         }
+
+        // Loop and compare
         for (let i = 0; i < arrayOfMinMaxValues.length; i++) {
           const outerId: string = JSON.stringify(arrayOfMinMaxValues[i].myId)
-          console.log(
-            `OUTER ARRAY: myId: "${outerId}", myParentId: "${arrayOfMinMaxValues[i].myParentId}", myStart: "${arrayOfMinMaxValues[i].myStart}", myEnd: "${arrayOfMinMaxValues[i].myEnd}"`,
-          )
-          for (let j = 0; j < clonedArray.length; j++) {
-            const innerParentId: string = JSON.stringify(clonedArray[j].myParentId)
-            // console.log(`${typeof outerId} ja ${typeof innerParentId}`)
-            // console.log(
-            //   `INNER ARRAY: outerId: "${outerId}", myParentId: "${innerParentId}", myStart: "${clonedArray[j].myStart}", myEnd: "${clonedArray[j].myEnd}"`,
-            // )
-            // console.log(
-            //   `0 BOOLEAN: "${
-            //     outerId == innerParentId
-            //   }", '${outerId}' == '${innerParentId}'`,
-            // )
-
-            // if (outerId == innerParentId) {
-            //   console.log('*** OUTERID === INNERPARENTID ***')
-            // }
-            // console.log(`1 BOOLEAN: "${outerId === innerParentId}"`)
-            // console.log(`2 BOOLEAN: "${outerId == innerParentId}"`)
-            // console.log(
-            //   `3 BOOLEAN: "${
-            //     (outerId as string) === (innerParentId as string)
-            //   }"`,
-            // )
+          for (let j = i + 1; j < clonedArray.length; j++) {
+            const innerParentId: string = JSON.stringify(
+              clonedArray[j].myParentId,
+            )
             if (outerId === innerParentId) {
               console.log(
-                `COMPARE: ("${arrayOfMinMaxValues[i].myId}" === "${arrayOfMinMaxValues[j].myParentId}") --> ONKO  "${arrayOfMinMaxValues[j].myEnd}" > "${arrayOfMinMaxValues[i].myEnd}"`,
+                `Compare: "Child's parentId: "${arrayOfMinMaxValues[i].myId}". Is child's end (${clonedArray[j].myEnd}) > parent's end (${arrayOfMinMaxValues[i].myEnd}) ?`,
               )
+              if (clonedArray[j].myEnd > arrayOfMinMaxValues[i].myEnd) {
+                throw new Error(
+                  `Child's end value (${clonedArray[j].myEnd}) cannot be greater than parent's end value (${arrayOfMinMaxValues[i].myEnd})`,
+                )
+              }
             }
           }
         }
-        // for (const i in arrayOfMinMaxValues) {
-        //   for (const j in arrayOfMinMaxValues) {
-        //     console.log(
-        //       `arrayOfMinMaxValues[i].myId: "${arrayOfMinMaxValues[i].myId}", arrayOfMinMaxValues[j].myParentId: "${arrayOfMinMaxValues[j].myParentId}"`,
-        //     )
-        //     if (
-        //       arrayOfMinMaxValues[i].myId === arrayOfMinMaxValues[j].myParentId
-        //     ) {
-        //       console.log(
-        //         `VERTAA: ("${arrayOfMinMaxValues[i].myId}" === "${arrayOfMinMaxValues[j].myParentId}") --> ONKO  "${arrayOfMinMaxValues[j].myEnd}" > "${arrayOfMinMaxValues[i].myEnd}"`,
-        //       )
-        //     }
-        //   }
-        // }
       }
     }
     return { validationName: this.name }
