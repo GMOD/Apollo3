@@ -1,4 +1,4 @@
-import { unlink } from 'fs'
+import { unlink } from 'fs/promises'
 import { join } from 'path'
 
 import {
@@ -70,9 +70,7 @@ export class FilesService {
 
     // If same file is not used anywhere else then we delete the file from server folder
     const otherFiles = await this.fileModel
-      .findOne({
-        checksum: file.checksum,
-      })
+      .findOne({ checksum: file.checksum })
       .exec()
     if (!otherFiles) {
       const { FILE_UPLOAD_FOLDER } = process.env
@@ -84,13 +82,13 @@ export class FilesService {
         `Delete the file "${compressedFullFileName}" from server folder`,
       )
 
-      unlink(compressedFullFileName, (err) => {
-        if (err) {
-          throw new InternalServerErrorException(
-            `File "${compressedFullFileName}" could not be deleted from server`,
-          )
-        }
-      })
+      try {
+        await unlink(compressedFullFileName)
+      } catch (error) {
+        throw new InternalServerErrorException(
+          `File "${compressedFullFileName}" could not be deleted from server`,
+        )
+      }
     }
     return
   }

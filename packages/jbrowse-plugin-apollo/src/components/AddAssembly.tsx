@@ -201,7 +201,6 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
             </RadioGroup>
           </FormControl>
           <input type="file" onChange={handleChangeFile} />
-          {/* <label htmlFor="checkbox">Load also features from GFF3 file</label> */}
           <FormGroup>
             <FormControlLabel
               control={
