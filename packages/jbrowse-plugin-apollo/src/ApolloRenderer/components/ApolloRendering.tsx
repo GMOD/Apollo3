@@ -6,12 +6,12 @@ import {
   LocationStartChange,
 } from 'apollo-shared'
 import { observer } from 'mobx-react'
+import { getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useRef, useState } from 'react'
 
 import { LinearApolloDisplay } from '../../LinearApolloDisplay/stateModel'
 
 interface ApolloRenderingProps {
-  features: Map<string, Map<string, Map<string, AnnotationFeatureLocationI>>>
   assemblyName: string
   regions: Region[]
   bpPerPx: number
@@ -43,13 +43,14 @@ function ApolloRendering(props: ApolloRenderingProps) {
     setApolloRowUnderMouse,
     changeManager,
     getAssemblyId,
-    selectedFeature,
     setSelectedFeature,
+    features,
   } = displayModel
   const height = 20
-  const padding = 4
   const highestRow = Math.max(...featureLayout.keys())
-  const totalHeight = highestRow * (height + padding)
+  const totalHeight = highestRow * height
+  // use this to convince useEffect that the features really did change
+  const featureSnap = getSnapshot(features)
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) {
@@ -60,42 +61,24 @@ function ApolloRendering(props: ApolloRenderingProps) {
       return
     }
     ctx.clearRect(0, 0, totalWidth, totalHeight)
-    for (const [row, features] of featureLayout.entries()) {
-      features.forEach((feature) => {
-        const start = feature.start - region.start - 1
-        const width = feature.length
-        const startPx = start / bpPerPx
-        const widthPx = width / bpPerPx
-        ctx.fillStyle = 'black'
-        ctx.fillRect(startPx, row * (height + 4) + padding, widthPx, height)
-        if (widthPx > 2) {
-          ctx.clearRect(
-            startPx + 1,
-            row * (height + padding) + 1 + padding,
-            widthPx - 2,
-            height - 2,
-          )
-          ctx.fillStyle =
-            feature.id === selectedFeature?.id
-              ? 'rgba(0,0,126,0.3)'
-              : 'rgba(255,255,255,0.75)'
-          ctx.fillRect(
-            startPx + 1,
-            row * (height + padding) + 1 + padding,
-            widthPx - 2,
-            height - 2,
-          )
+    for (const [row, featureInfos] of featureLayout) {
+      for (const [featureRow, feature] of featureInfos) {
+        if (featureRow > 0) {
+          continue
         }
-      })
+        const start = feature.start - region.start - 1
+        const startPx = start / bpPerPx
+        feature.draw(ctx, startPx, row * height, bpPerPx, height)
+      }
     }
   }, [
     bpPerPx,
     region.start,
     totalWidth,
     featureLayout,
-    highestRow,
     totalHeight,
-    selectedFeature,
+    features,
+    featureSnap,
   ])
   useEffect(() => {
     const canvas = overlayCanvasRef.current
@@ -114,9 +97,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
       const widthPx = Math.abs(px - featureEdgePx)
       ctx.strokeStyle = 'red'
       ctx.setLineDash([6])
-      ctx.strokeRect(startPx, row * (height + 4) + padding, widthPx, height)
+      ctx.strokeRect(startPx, row * height, widthPx, height * feature.rowCount)
       ctx.fillStyle = 'rgba(255,0,0,.2)'
-      ctx.fillRect(startPx, row * (height + 4) + padding, widthPx, height)
+      ctx.fillRect(startPx, row * height, widthPx, height * feature.rowCount)
     }
     const feature = dragging?.feature || apolloFeatureUnderMouse
     const row = dragging?.row || apolloRowUnderMouse
@@ -126,7 +109,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
       const startPx = start / bpPerPx
       const widthPx = width / bpPerPx
       ctx.fillStyle = 'rgba(0,0,0,0.2)'
-      ctx.fillRect(startPx, row * (height + 4) + padding, widthPx, height)
+      ctx.fillRect(startPx, row * height, widthPx, height * feature.rowCount)
     }
   }, [
     apolloFeatureUnderMouse,
@@ -173,11 +156,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
       return
     }
 
-    const row =
-      // this will be false if y is in the padding area between rows
-      y % (height + padding) > padding
-        ? Math.floor(y / (height + padding))
-        : undefined
+    const row = Math.floor(y / height)
     if (row === undefined) {
       setApolloFeatureUnderMouse(undefined)
       setApolloRowUnderMouse(undefined)
@@ -190,7 +169,20 @@ function ApolloRendering(props: ApolloRenderingProps) {
       return
     }
     const bp = region.start + bpPerPx * x
-    const feature = layoutRow.find((f) => bp >= f.start && bp <= f.end)
+    const [featureRow, feat] =
+      layoutRow.find((f) => bp >= f[1].min && bp <= f[1].max) || []
+    let feature: AnnotationFeatureLocationI | undefined = feat
+    if (feature && featureRow) {
+      const topRow = row - featureRow
+      const startPx = (feature.start - region.start) / bpPerPx
+      const thisX = x - startPx
+      feature = feature.getFeatureFromLayout(
+        thisX,
+        y - topRow * height,
+        bpPerPx,
+        height,
+      ) as AnnotationFeatureLocationI
+    }
     if (feature) {
       // TODO: check reversed
       // TODO: ensure feature is in interbase

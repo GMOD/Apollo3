@@ -200,7 +200,7 @@ function convertFeature(
         throw new Error('Feature location found without feature ID')
       }
     } else if (!childFeatureId) {
-      childFeatureId = Object.values(locations)[0].id
+      childFeatureId = `${Object.values(locations)[0].id}-feature`
     }
     children[childFeatureId] = {
       id: childFeatureId,
