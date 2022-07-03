@@ -1,4 +1,12 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { unlink } from 'fs/promises'
+import { join } from 'path'
+
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
   Assembly,
@@ -46,5 +54,42 @@ export class FilesService {
       throw new NotFoundException(`File with id "${id}" not found`)
     }
     return file
+  }
+
+  /**
+   * Delete file from Files collection in Mongo. Check and see if that checksum is used elsewhere in the collection; if not, delete the file as well
+   * @param id - fileId to be deleted
+   * @returns
+   */
+  async remove(id: string) {
+    const file = await this.fileModel.findById(id).exec()
+    if (!file) {
+      throw new NotFoundException(`File with id "${id}" not found`)
+    }
+    await this.fileModel.findByIdAndDelete(id).exec()
+
+    // If same file is not used anywhere else then we delete the file from server folder
+    const otherFiles = await this.fileModel
+      .findOne({ checksum: file.checksum })
+      .exec()
+    if (!otherFiles) {
+      const { FILE_UPLOAD_FOLDER } = process.env
+      if (!FILE_UPLOAD_FOLDER) {
+        throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
+      }
+      const compressedFullFileName = join(FILE_UPLOAD_FOLDER, file.checksum)
+      this.logger.debug(
+        `Delete the file "${compressedFullFileName}" from server folder`,
+      )
+
+      try {
+        await unlink(compressedFullFileName)
+      } catch (error) {
+        throw new InternalServerErrorException(
+          `File "${compressedFullFileName}" could not be deleted from server`,
+        )
+      }
+    }
+    return
   }
 }

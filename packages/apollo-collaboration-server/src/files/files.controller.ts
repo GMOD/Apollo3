@@ -5,6 +5,7 @@ import { createGunzip } from 'zlib'
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Logger,
   Param,
@@ -66,6 +67,7 @@ export class FilesController {
    * @param id -
    * @returns
    */
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async downloadFile(
     @Param('id') id: string,
@@ -98,5 +100,17 @@ export class FilesController {
     }
     const gunzip = createGunzip()
     return new StreamableFile(fileStream.pipe(gunzip))
+  }
+
+  /**
+   * Delete file from Files collection in Mongo. Check and see if that checksum is used elsewhere in the collection; if not, delete the file as well
+   * @param id - fileId to be deleted
+   * @returns
+   */
+  //  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    this.logger.debug(`Delete fileId "${id}" from Mongo`)
+    return this.filesService.remove(id)
   }
 }

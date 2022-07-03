@@ -59,7 +59,9 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    let fileChecksum = ''
+    // let fileChecksum = ''
+    let fileId = ''
+    let msg
     if (!file) {
       throw new Error('must select a file')
     }
@@ -80,7 +82,6 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
         body: formData,
       })
       if (!res.ok) {
-        let msg
         try {
           msg = await res.text()
         } catch (e) {
@@ -93,7 +94,8 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
         )
         return
       }
-      fileChecksum = (await res.json()).checksum
+      const result = await res.json()
+      fileId = result._id
     }
 
     let typeName = 'AddAssemblyFromFileChange'
@@ -114,7 +116,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
           changedIds: ['1'],
           typeName,
           assemblyId: new ObjectID(),
-          fileChecksum,
+          fileId,
           assemblyName,
         }),
         headers: new Headers({
@@ -122,7 +124,6 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
         }),
       })
       if (!res.ok) {
-        let msg
         try {
           msg = await res.text()
         } catch (e) {
@@ -133,6 +134,29 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
             res.statusText
           })${msg ? ` (${msg})` : ''}`,
         )
+        // Let's delete the uploaded file
+        const deleteFileUri = new URL(`/files/${fileId}`, baseURL).href
+        const apolloDeleteFile = apolloInternetAccount?.getFetcher({
+          locationType: 'UriLocation',
+          uri: deleteFileUri,
+        })
+        if (apolloDeleteFile) {
+          const resDeleteFile = await apolloDeleteFile(deleteFileUri, {
+            method: 'DELETE',
+          })
+          if (!resDeleteFile.ok) {
+            try {
+              msg = await resDeleteFile.text()
+            } catch (e) {
+              msg = ''
+            }
+            setErrorMessage(
+              `Error when deleting uploaded file after unsuccessfully inserting assembly — ${
+                resDeleteFile.status
+              } (${resDeleteFile.statusText})${msg ? ` (${msg})` : ''}`,
+            )
+          }
+        }
         return
       }
     }
@@ -177,7 +201,6 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
             </RadioGroup>
           </FormControl>
           <input type="file" onChange={handleChangeFile} />
-          <label htmlFor="checkbox">Load also features from GFF3 file</label>
           <FormGroup>
             <FormControlLabel
               control={
