@@ -18,7 +18,7 @@ interface SerializedLocationEndChangeBase extends SerializedChange {
   typeName: 'LocationEndChange'
 }
 
-interface LocationEndChangeDetails {
+export interface LocationEndChangeDetails {
   featureId: string
   oldEnd: number
   newEnd: number
@@ -106,7 +106,7 @@ export class LocationEndChange extends FeatureChange {
       }
       this.logger.debug?.(`*** Found feature: ${JSON.stringify(foundFeature)}`)
       if (foundFeature.end !== oldEnd) {
-        const errMsg = `*** ERROR: Feature's current end value ${topLevelFeature.end} doesn't match with expected value ${oldEnd}`
+        const errMsg = `*** ERROR: Feature's current end value ${foundFeature.end} doesn't match with expected value ${oldEnd}`
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
@@ -182,4 +182,10 @@ export class LocationEndChange extends FeatureChange {
       { logger: this.logger },
     )
   }
+}
+
+export function isLocationEndChange(
+  change: unknown,
+): change is LocationEndChange {
+  return (change as LocationEndChange).typeName === 'LocationEndChange'
 }

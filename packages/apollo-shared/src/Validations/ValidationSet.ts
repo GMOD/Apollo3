@@ -1,4 +1,7 @@
-import { Change } from '../ChangeManager/Change'
+import { FeatureDocument } from 'apollo-schemas'
+import { ClientSession, Model } from 'mongoose'
+
+import { Change, ClientDataStore } from '../ChangeManager/Change'
 import { Validation, ValidationResult } from './Validation'
 
 export class ValidationResultSet {
@@ -31,10 +34,13 @@ export class ValidationSet {
     return results
   }
 
-  async frontendPostValidate(change: Change): Promise<ValidationResultSet> {
+  async frontendPostValidate(
+    change: Change,
+    dataStore: ClientDataStore,
+  ): Promise<ValidationResultSet> {
     const results = new ValidationResultSet()
     for (const v of this.validations) {
-      const result = await v.frontendPostValidate(change)
+      const result = await v.frontendPostValidate(change, dataStore)
       results.add(result)
       if (result.error) {
         break
@@ -55,10 +61,19 @@ export class ValidationSet {
     return results
   }
 
-  async backendPostValidate(change: Change): Promise<ValidationResultSet> {
+  async backendPostValidate(
+    change: Change,
+    {
+      session,
+      featureModel,
+    }: { session: ClientSession; featureModel: Model<FeatureDocument> },
+  ): Promise<ValidationResultSet> {
     const results = new ValidationResultSet()
     for (const v of this.validations) {
-      const result = await v.backendPostValidate(change)
+      const result = await v.backendPostValidate(change, {
+        featureModel,
+        session,
+      })
       results.add(result)
       if (result.error) {
         break

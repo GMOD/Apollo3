@@ -23,6 +23,7 @@ import {
   CoreValidation,
   LocationEndChange,
   LocationStartChange,
+  ParentChildValidation,
   SerializedChange,
   TypeChange,
   ValidationSet,
@@ -65,7 +66,10 @@ export class ChangesService {
   }
 
   private readonly logger = new Logger(ChangesService.name)
-  private readonly validations = new ValidationSet([new CoreValidation()])
+  private readonly validations = new ValidationSet([
+    new CoreValidation(),
+    new ParentChildValidation(),
+  ])
 
   async submitChange(serializedChange: SerializedChange) {
     const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
@@ -117,6 +121,7 @@ export class ChangesService {
       changeDocId = savedChangedLogDoc._id
       const validationResult2 = await this.validations.backendPostValidate(
         change,
+        { featureModel: this.featureModel, session },
       )
       if (!validationResult2.ok) {
         const errorMessage = validationResult2.results

@@ -1,4 +1,7 @@
-import { Change } from '../ChangeManager/Change'
+import { FeatureDocument } from 'apollo-schemas'
+import { ClientSession, Model } from 'mongoose'
+
+import { Change, ClientDataStore } from '../ChangeManager/Change'
 
 export interface ValidationResult {
   validationName: string
@@ -13,7 +16,10 @@ export abstract class Validation {
     return { validationName: this.name }
   }
 
-  async frontendPostValidate(_change: Change): Promise<ValidationResult> {
+  async frontendPostValidate(
+    _change: Change,
+    _dataStore: ClientDataStore,
+  ): Promise<ValidationResult> {
     return { validationName: this.name }
   }
 
@@ -21,7 +27,13 @@ export abstract class Validation {
     return { validationName: this.name }
   }
 
-  async backendPostValidate(_change: Change): Promise<ValidationResult> {
+  async backendPostValidate(
+    change: Change,
+    {
+      session,
+      featureModel,
+    }: { session: ClientSession; featureModel: Model<FeatureDocument> },
+  ): Promise<ValidationResult> {
     return { validationName: this.name }
   }
 
