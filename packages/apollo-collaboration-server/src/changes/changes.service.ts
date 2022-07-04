@@ -1,4 +1,8 @@
-import { Logger, UnprocessableEntityException } from '@nestjs/common'
+import {
+  Logger,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
   Assembly,
@@ -18,6 +22,7 @@ import {
   AddAssemblyAndFeaturesFromFileChange,
   AddAssemblyFromFileChange,
   AddFeaturesFromFileChange,
+  ChangeFilter,
   CoreValidation,
   LocationEndChange,
   LocationStartChange,
@@ -135,5 +140,32 @@ export class ChangesService {
     })
     this.logger.debug(`ChangeDocId: ${changeDocId}`)
     return { change: changeDocId }
+  }
+
+  async findChange(changeFilter: ChangeFilter) {
+    // Search correct feature
+    // const change = await this.changeModel.findById('626b9febb247545614431a42').exec()
+    const queryCond: any = {}
+    if (changeFilter.assemblyId) {
+      queryCond.assembly = changeFilter.assemblyId
+    }
+    if (changeFilter.typeName) {
+      queryCond.typeName = changeFilter.typeName
+    }
+    if (changeFilter.userName) {
+      queryCond.user = changeFilter.userName
+    }
+    const change = await this.changeModel
+      .find(queryCond)
+      .sort({ createdAt: -1 })
+      .exec()
+
+    if (!change) {
+      const errMsg = `ERROR: The following change was not found in database....`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+
+    return change
   }
 }

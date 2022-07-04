@@ -37,7 +37,7 @@ import {
   ApolloView as ApolloViewReactComponent,
   stateModelFactory as apolloViewStateModelFactory,
 } from './ApolloView'
-import { AddAssembly, ImportFeatures } from './components'
+import { AddAssembly, ImportFeatures, ViewChangeLog } from './components'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
@@ -162,6 +162,20 @@ export default class ApolloPlugin extends Plugin {
         onClick: (session: AbstractSessionModel) => {
           session.queueDialog((doneCallback) => [
             ImportFeatures,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+            },
+          ])
+        },
+      })
+      pluginManager.rootModel.appendToMenu('Apollo', {
+        label: 'View Change Log',
+        onClick: (session: AbstractSessionModel) => {
+          session.queueDialog((doneCallback) => [
+            ViewChangeLog,
             {
               session,
               handleClose: () => {
