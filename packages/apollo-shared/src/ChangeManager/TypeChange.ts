@@ -1,7 +1,7 @@
 import { FeatureDocument } from 'apollo-schemas'
 import { resolveIdentifier } from 'mobx-state-tree'
 
-import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
+import { AnnotationFeatureLocation } from '../BackendDrivers/AnnotationFeature'
 import {
   ChangeOptions,
   ClientDataStore,
@@ -150,7 +150,7 @@ export class TypeChange extends FeatureChange {
     }
     this.changedIds.forEach((changedId, idx) => {
       const feature = resolveIdentifier(
-        AnnotationFeature,
+        AnnotationFeatureLocation,
         dataStore.features,
         changedId,
       )

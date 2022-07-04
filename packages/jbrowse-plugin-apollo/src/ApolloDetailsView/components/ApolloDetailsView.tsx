@@ -2,13 +2,14 @@ import { TextField } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
 import {
   DataGrid,
-  GridCellEditCommitParams,
   GridColumns,
   GridRenderEditCellParams,
+  GridRowModel,
   MuiBaseEvent,
   useGridApiContext,
 } from '@mui/x-data-grid'
 import {
+  AnnotationFeatureI,
   Change,
   ChangeManager,
   LocationEndChange,
@@ -44,7 +45,7 @@ function AutocompleteInputCell(props: GridRenderEditCellParams) {
     row: { model },
   } = props
   const { changeManager } = model as { changeManager?: ChangeManager }
-  const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>(['CNA'])
+  const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>([])
   const apiRef = useGridApiContext()
 
   useEffect(() => {
@@ -61,26 +62,34 @@ function AutocompleteInputCell(props: GridRenderEditCellParams) {
     getSOSequenceTerms()
   }, [changeManager])
 
-  const handleChange = (event: MuiBaseEvent, newValue?: string | null) => {
-    apiRef.current.setEditCellValue({ id, field, value: newValue }, event)
-    apiRef.current.commitCellChange({ id, field })
-    apiRef.current.setCellMode(id, field, 'view')
+  const handleChange = async (
+    event: MuiBaseEvent,
+    newValue?: string | null,
+  ) => {
+    const isValid = await apiRef.current.setEditCellValue({
+      id,
+      field,
+      value: newValue,
+    })
+    if (isValid) {
+      apiRef.current.stopCellEditMode({ id, field })
+    }
   }
 
-  if (!soSequenceTerms) {
+  if (!soSequenceTerms.length) {
     return null
   }
 
   return (
     <Autocomplete
-      id="type-combo-box"
       options={soSequenceTerms}
       style={{ width: 245 }}
       renderInput={(params) => <TextField {...params} variant="outlined" />}
       value={String(value)}
       onChange={handleChange}
+      disablePortal
+      disableClearable
       selectOnFocus
-      clearOnBlur
       handleHomeEndKeys
     />
   )
@@ -93,86 +102,89 @@ export const ApolloDetailsView = observer(
       return <div>click on a feature to see details</div>
     }
     // const sequenceTypes = changeManager?.validations.getPossibleValues('type')
-    const {
-      id,
-      featureType,
-      assemblyName,
-      location: { refName, start, end },
-    } = selectedFeature
+    const { id, featureType, assemblyName, refName, start, end } =
+      selectedFeature
     const selectedFeatureRows = [
       { id, featureType, assemblyName, refName, start, end, model },
     ]
     function addChildFeatures(f: typeof selectedFeature) {
-      f?.children?.forEach((child: typeof selectedFeature, childId: string) => {
-        if (!child) {
-          throw new Error(`No child with id ${childId}`)
-        }
-        selectedFeatureRows.push({
-          id: childId,
-          featureType: child.featureType,
-          assemblyName: child.assemblyName,
-          refName: child.location.refName,
-          start: child.location.start,
-          end: child.location.end,
-          model,
+      f?.children?.forEach((child: AnnotationFeatureI, childId: string) => {
+        child.locations.forEach((childLocation) => {
+          if (!childLocation) {
+            throw new Error(`No child with id ${childId}`)
+          }
+          selectedFeatureRows.push({
+            id: childLocation.id,
+            featureType: childLocation.featureType,
+            assemblyName: childLocation.assemblyName,
+            refName: childLocation.refName,
+            start: childLocation.start,
+            end: childLocation.end,
+            model,
+          })
+          addChildFeatures(childLocation)
         })
-        addChildFeatures(child)
       })
     }
     addChildFeatures(selectedFeature)
-    function onCellEditCommit({
-      id: rowId,
-      field,
-      value: newValue,
-    }: GridCellEditCommitParams) {
-      const changedFeature = selectedFeatureRows.find((r) => r.id === rowId)
-      if (!changedFeature) {
-        throw new Error(`Could not find feature with id ${rowId}`)
-      }
+    function processRowUpdate(
+      newRow: GridRowModel<typeof selectedFeatureRows[0]>,
+      oldRow: GridRowModel<typeof selectedFeatureRows[0]>,
+    ) {
       let change: Change | undefined = undefined
-      if (field === 'start' && changedFeature.start !== Number(newValue)) {
-        const { start: oldStart, id: featureId } = changedFeature
-        const assemblyId = getAssemblyId(changedFeature.assemblyName)
+      if (newRow.start !== oldRow.start) {
+        const {
+          start: oldStart,
+          id: featureId,
+          assemblyName: rowAssemblyName,
+        } = oldRow
+        const { start: newStart } = newRow
+        const assemblyId = getAssemblyId(rowAssemblyName)
         change = new LocationStartChange({
           typeName: 'LocationStartChange',
           changedIds: [featureId],
           featureId,
           oldStart,
-          newStart: Number(newValue),
+          newStart: Number(newStart),
           assemblyId,
         })
-      } else if (field === 'end' && changedFeature.end !== Number(newValue)) {
-        const { end: oldEnd, id: featureId } = changedFeature
-        const assemblyId = getAssemblyId(changedFeature.assemblyName)
+      } else if (newRow.start !== oldRow.start) {
+        const {
+          end: oldEnd,
+          id: featureId,
+          assemblyName: rowAssemblyName,
+        } = oldRow
+        const { end: newEnd } = newRow
+        const assemblyId = getAssemblyId(rowAssemblyName)
         change = new LocationEndChange({
           typeName: 'LocationEndChange',
           changedIds: [featureId],
           featureId,
           oldEnd,
-          newEnd: Number(newValue),
+          newEnd: Number(newEnd),
           assemblyId,
         })
-      } else if (
-        field === 'featureType' &&
-        changedFeature.featureType !== String(newValue)
-      ) {
-        const { featureType: oldType, id: featureId } = changedFeature
-        if (!oldType) {
-          throw new Error(`Feature did not have a type: "${rowId}"`)
-        }
-        const assemblyId = getAssemblyId(changedFeature.assemblyName)
+      } else if (newRow.featureType !== oldRow.featureType) {
+        const {
+          featureType: oldType,
+          id: featureId,
+          assemblyName: rowAssemblyName,
+        } = oldRow
+        const { featureType: newType } = newRow
+        const assemblyId = getAssemblyId(rowAssemblyName)
         change = new TypeChange({
           typeName: 'TypeChange',
           changedIds: [featureId],
           featureId,
-          oldType,
-          newType: String(newValue),
+          oldType: String(oldType),
+          newType: String(newType),
           assemblyId,
         })
       }
       if (change) {
         changeManager?.submit(change)
       }
+      return newRow
     }
     return (
       <div style={{ width: '100%' }}>
@@ -180,7 +192,9 @@ export const ApolloDetailsView = observer(
           autoHeight
           rows={selectedFeatureRows}
           columns={featureColums}
-          onCellEditCommit={onCellEditCommit}
+          experimentalFeatures={{ newEditingApi: true }}
+          processRowUpdate={processRowUpdate}
+          onProcessRowUpdateError={console.error}
         />
       </div>
     )

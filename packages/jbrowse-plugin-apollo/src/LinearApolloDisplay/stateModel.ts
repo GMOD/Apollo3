@@ -4,7 +4,7 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import { getContainingView, getSession } from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { AnnotationFeatureI } from 'apollo-shared'
+import { AnnotationFeatureLocationI } from 'apollo-shared'
 import { autorun } from 'mobx'
 import { Instance, addDisposer, types } from 'mobx-state-tree'
 
@@ -29,7 +29,9 @@ export function stateModelFactory(
       }),
     )
     .volatile(() => ({
-      apolloFeatureUnderMouse: undefined as AnnotationFeatureI | undefined,
+      apolloFeatureUnderMouse: undefined as
+        | AnnotationFeatureLocationI
+        | undefined,
       apolloRowUnderMouse: undefined as number | undefined,
     }))
     .views((self) => {
@@ -80,7 +82,7 @@ export function stateModelFactory(
           }),
         )
       },
-      setApolloFeatureUnderMouse(feature?: AnnotationFeatureI) {
+      setApolloFeatureUnderMouse(feature?: AnnotationFeatureLocationI) {
         self.apolloFeatureUnderMouse = feature
       },
       setApolloRowUnderMouse(row?: number) {
@@ -96,81 +98,102 @@ export function stateModelFactory(
       },
       get features() {
         const { dataStore } = self.apolloView
-        if (!dataStore) {
-          return new Map()
+        return dataStore?.features
+      },
+      get featuresMinMax() {
+        const minMax: Record<string, [number, number]> = {}
+        for (const [refName, featuresForRefName] of this.features || []) {
+          let min: number | undefined = undefined
+          let max: number | undefined = undefined
+          for (const [, featureLocation] of featuresForRefName) {
+            if (min === undefined) {
+              ;({ min } = featureLocation)
+            }
+            if (max === undefined) {
+              ;({ max } = featureLocation)
+            }
+            if (featureLocation.min < min) {
+              ;({ min } = featureLocation)
+            }
+            if (featureLocation.end > max) {
+              ;({ max } = featureLocation)
+            }
+          }
+          if (min !== undefined && max !== undefined) {
+            minMax[refName] = [min, max]
+          }
         }
-        return dataStore.features
+        return minMax
       },
       get featureLayout() {
-        const featureLayout: Map<number, AnnotationFeatureI[]> = new Map()
-        for (const featuresForRefName of this.features.values()) {
-          if (featuresForRefName) {
-            let min: number
-            let max: number
-            const rows: boolean[][] = []
-            ;(Array.from(featuresForRefName.values()) as AnnotationFeatureI[])
-              .sort((f1, f2) => {
-                const { start: start1, end: end1 } = f1.location
-                const { start: start2, end: end2 } = f2.location
-                return start1 - start2 || end1 - end2
-              })
-              .forEach((feature) => {
-                if (min === undefined) {
-                  min = feature.location.start
-                }
-                if (max === undefined) {
-                  max = feature.location.end
-                }
-                if (feature.location.start < min) {
-                  rows.forEach((row) => {
-                    row.unshift(...new Array(min - feature.location.start))
-                  })
-                  min = feature.location.start
-                }
-                if (feature.location.end > max) {
-                  rows.forEach((row) => {
-                    row.push(...new Array(feature.location.end - max))
-                  })
-                  max = feature.location.end
-                }
-                let rowNumber = 0
-                let placed = false
-                while (!placed) {
-                  let row = rows[rowNumber]
-                  if (!row) {
-                    rows[rowNumber] = new Array(max - min)
-                    row = rows[rowNumber]
-                    row.fill(
-                      true,
-                      feature.location.start - min,
-                      feature.location.end - min,
-                    )
-                    featureLayout.set(rowNumber, [feature])
-                    placed = true
-                  } else {
-                    if (
-                      row
-                        .slice(
-                          feature.location.start - min,
-                          feature.location.end - min,
-                        )
-                        .some(Boolean)
-                    ) {
-                      rowNumber += 1
-                    } else {
-                      row.fill(
-                        true,
-                        feature.location.start - min,
-                        feature.location.end - min,
-                      )
-                      const layoutRow = featureLayout.get(rowNumber)
-                      layoutRow?.push(feature)
-                      placed = true
-                    }
-                  }
-                }
-              })
+        const featureLayout: Map<
+          number,
+          [number, AnnotationFeatureLocationI][]
+        > = new Map()
+        for (const [refName, featuresForRefName] of this.features || []) {
+          if (!featuresForRefName) {
+            continue
           }
+          const [min, max] = this.featuresMinMax[refName]
+          const rows: boolean[][] = []
+          Array.from(featuresForRefName.values())
+            .sort((f1, f2) => {
+              const { min: start1, max: end1 } = f1
+              const { min: start2, max: end2 } = f2
+              return start1 - start2 || end1 - end2
+            })
+            .forEach((featureLocation) => {
+              const { rowCount } = featureLocation
+              let startingRow = 0
+              let placed = false
+              while (!placed) {
+                let rowsForFeature = rows.slice(
+                  startingRow,
+                  startingRow + rowCount,
+                )
+                if (rowsForFeature.length < rowCount) {
+                  for (let i = 0; i < rowCount - rowsForFeature.length; i++) {
+                    const newRowNumber = rows.length
+                    rows[newRowNumber] = new Array(max - min)
+                    featureLayout.set(newRowNumber, [])
+                  }
+                  rowsForFeature = rows.slice(
+                    startingRow,
+                    startingRow + rowCount,
+                  )
+                }
+                if (
+                  rowsForFeature
+                    .map((rowForFeature) =>
+                      rowForFeature
+                        .slice(
+                          featureLocation.min - min,
+                          featureLocation.max - min,
+                        )
+                        .some(Boolean),
+                    )
+                    .some(Boolean)
+                ) {
+                  startingRow += 1
+                  continue
+                }
+                for (
+                  let rowNum = startingRow;
+                  rowNum < startingRow + rowCount;
+                  rowNum++
+                ) {
+                  const row = rows[rowNum]
+                  row.fill(
+                    true,
+                    featureLocation.min - min,
+                    featureLocation.max - min,
+                  )
+                  const layoutRow = featureLayout.get(rowNum)
+                  layoutRow?.push([rowNum - startingRow, featureLocation])
+                }
+                placed = true
+              }
+            })
         }
         return featureLayout
       },
@@ -182,7 +205,7 @@ export function stateModelFactory(
         }
         return assembly.name
       },
-      get selectedFeature(): AnnotationFeatureI | undefined {
+      get selectedFeature(): AnnotationFeatureLocationI | undefined {
         return self.apolloView.selectedFeature
       },
       get setSelectedFeature() {

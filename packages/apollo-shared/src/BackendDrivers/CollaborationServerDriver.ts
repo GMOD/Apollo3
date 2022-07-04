@@ -4,10 +4,13 @@ import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { AppRootModel, Region, getSession } from '@jbrowse/core/util'
 import { SnapshotIn, getRoot } from 'mobx-state-tree'
 
-import { AnnotationFeature } from '../BackendDrivers/AnnotationFeature'
+import {
+  AnnotationFeature,
+  AnnotationFeatureLocation,
+} from '../BackendDrivers/AnnotationFeature'
 import { Change } from '../ChangeManager/Change'
 import { ValidationResultSet } from '../Validations/ValidationSet'
-import { BackendDriver } from './BackendDriver'
+import { BackendDriver, FeaturesForRefNameSnapshot } from './BackendDriver'
 
 interface ApolloFeatureLine extends GFF3FeatureLine {
   // eslint-disable-next-line camelcase
@@ -146,13 +149,10 @@ function makeFeatures(
   apolloFeatures: ApolloFeatureLine[],
   assemblyName: string,
 ) {
-  const featuresByRefName: Record<
-    string,
-    Record<string, SnapshotIn<typeof AnnotationFeature> | undefined> | undefined
-  > = {}
+  const featuresByRefName: FeaturesForRefNameSnapshot = {}
   for (const apolloFeature of apolloFeatures) {
     const convertedFeature = convertFeature(apolloFeature, assemblyName)
-    const { refName } = convertedFeature.location
+    const { refName } = convertedFeature
     let refRecord = featuresByRefName[refName]
     if (!refRecord) {
       refRecord = {}
@@ -166,7 +166,7 @@ function makeFeatures(
 function convertFeature(
   apolloFeature: ApolloFeatureLine,
   assemblyName: string,
-): SnapshotIn<typeof AnnotationFeature> {
+): SnapshotIn<typeof AnnotationFeatureLocation> {
   if (!apolloFeature.seq_id) {
     throw new Error('Got GFF3 record without an ID')
   }
@@ -184,20 +184,37 @@ function convertFeature(
     throw new Error('Apollo feature without featureId encountered')
   }
   const children: Record<string, SnapshotIn<typeof AnnotationFeature>> = {}
-  apolloFeature.child_features?.forEach((childFeatureLocation) => {
-    childFeatureLocation.forEach((childFeature) => {
-      const childFeat = convertFeature(childFeature, assemblyName)
-      children[childFeat.id] = childFeat
+  apolloFeature.child_features?.forEach((childFeature) => {
+    let childFeatureId: string | undefined = undefined
+    const locations: Record<
+      string,
+      SnapshotIn<typeof AnnotationFeatureLocation>
+    > = {}
+    childFeature.forEach((childFeatureLine) => {
+      childFeatureId = childFeatureLine?.attributes?.ID?.[0]
+      const childFeat = convertFeature(childFeatureLine, assemblyName)
+      locations[childFeat.id] = childFeat
     })
+    if (Object.keys(locations).length > 1) {
+      if (!childFeatureId) {
+        throw new Error('Feature location found without feature ID')
+      }
+    } else if (!childFeatureId) {
+      childFeatureId = `${Object.values(locations)[0].id}-feature`
+    }
+    children[childFeatureId] = {
+      id: childFeatureId,
+      type: 'AnnotationFeature',
+      locations,
+    }
   })
-  const newFeature: SnapshotIn<typeof AnnotationFeature> = {
+  const newFeature: SnapshotIn<typeof AnnotationFeatureLocation> = {
     id,
+    type: 'AnnotationFeatureLocation',
     assemblyName,
-    location: {
-      refName: apolloFeature.seq_id,
-      start: apolloFeature.start,
-      end: apolloFeature.end,
-    },
+    refName: apolloFeature.seq_id,
+    start: apolloFeature.start,
+    end: apolloFeature.end,
     featureType: apolloFeature.type,
   }
   if (Array.from(Object.entries(children)).length) {
