@@ -18,24 +18,32 @@ export interface SerializedCopyFeaturesAndAnnotationsChangeBase
   typeName: 'CopyFeaturesAndAnnotationsChange'
 }
 
-export interface CopyFeaturesAndAnnotationsDetails {
+export interface CopyFeaturesAndAnnotationsChangeDetails {
   assemblyId: string
   targetAssemblyId: string
   featureId: string
 }
 
+// export interface SerializedCopyFeaturesAndAnnotationsChangeDetails extends SerializedCopyFeaturesAndAnnotationsChangeBase, CopyFeaturesAndAnnotationsChangeDetails {
+  export interface SerializedCopyFeaturesAndAnnotationsChangeDetails extends SerializedCopyFeaturesAndAnnotationsChangeBase {
+  changes: CopyFeaturesAndAnnotationsChangeDetails[]
+}
+
 export class CopyFeaturesAndAnnotationsChange extends FeatureChange {
   typeName = 'CopyFeaturesAndAnnotationsChange' as const
+  changes: CopyFeaturesAndAnnotationsChangeDetails[]
 
-  constructor(json: SerializedChange, options?: ChangeOptions) {
+  constructor(json: SerializedCopyFeaturesAndAnnotationsChangeDetails, options?: ChangeOptions) {
     super(json, options)
+    this.changes = 'changes' in json ? json.changes : [json]
   }
 
-  toJSON(): SerializedCopyFeaturesAndAnnotationsChangeBase {
+  toJSON() {
     return {
       typeName: this.typeName,
       changedIds: this.changedIds,
       assemblyId: this.assemblyId,
+      changes: this.changes,
     }
   }
 
@@ -94,9 +102,9 @@ export class CopyFeaturesAndAnnotationsChange extends FeatureChange {
   async applyToClient(dataStore: ClientDataStore) {}
 
   getInverse() {
-    const { changedIds, typeName, assemblyId } = this
+    const { changedIds, typeName, changes, assemblyId } = this
     return new CopyFeaturesAndAnnotationsChange(
-      { changedIds, typeName, assemblyId },
+      { changedIds, typeName, changes, assemblyId },
       { logger: this.logger },
     )
   }
