@@ -30,6 +30,7 @@ import {
   TypeChange,
   ValidationSet,
   changeRegistry,
+  CopyFeaturesAndAnnotationsChange,
 } from 'apollo-shared'
 import { Model } from 'mongoose'
 
@@ -67,6 +68,7 @@ export class ChangesService {
     )
     changeRegistry.registerChange('LocationEndChange', LocationEndChange)
     changeRegistry.registerChange('LocationStartChange', LocationStartChange)
+    changeRegistry.registerChange('CopyFeaturesAndAnnotationsChange', CopyFeaturesAndAnnotationsChange)
     changeRegistry.registerChange('TypeChange', TypeChange)
   }
 
