@@ -1,4 +1,5 @@
 import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import { UNKNOWN } from '@jbrowse/core/util/tracks'
 import {
   Button,
   Dialog,
@@ -19,6 +20,7 @@ import {
   GridRowsProp,
 } from '@mui/x-data-grid'
 import { getRoot } from 'mobx-state-tree'
+import { string } from 'mobx-state-tree/dist/internal'
 import React, { useEffect, useState } from 'react'
 import useCollapse from 'react-collapsed'
 
@@ -90,12 +92,23 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
         </strong>
       ),
     },
-    { field: 'assembly', headerName: 'AssemblyId', width: 200 },
+    // { field: 'assembly', headerName: 'AssemblyId', width: 200 },
+    {
+      field: 'assemblyName',
+      headerName: 'Assembly name',
+      width: 200,
+      renderCell: (params) => (
+        <div>
+          {params.value.map((assembly: any, index: any) => (
+            <p>{assembly.name}</p>
+          ))}
+          </div>
+      ),
+    },
     { field: 'typeName', headerName: 'Change type', width: 200 },
     {
       field: 'changes',
       headerName: 'Changes (old - new)',
-      // flex: 1,
       width: 200,
       renderCell: (params) => (
         <ul className="flex">
@@ -179,7 +192,13 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
       value: unknown
     }>,
   ) {
-    await setChangeType(e.currentTarget.value as string)
+    console.log(`0A Change: "${e.target.name}"`)
+    console.log(`0A Change: "${e.target.value}"`)
+    console.log(`0B Change: "${e.currentTarget.name}"`)
+    console.log(`0B Change: "${e.currentTarget.value}"`)
+    await setChangeType(e.currentTarget.value as string) // NAYTTAA AIEMMAN ARVON - EI UUTTA ARVOA
+    console.log(`1 Change: "${typeName}"`)
+
     getGridData()
   }
 
@@ -235,11 +254,10 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
   }
 
   return (
-    // <Dialog open maxWidth="xl" data-testid="login-apollo">
-    <Dialog open style={{ width: 1500 }} data-testid="login-apollo">
+    <Dialog open maxWidth="xl" data-testid="login-apollo">
+    // <Dialog open style={{ width: 1500 }} data-testid="login-apollo">
       <DialogTitle>View Change Log</DialogTitle>
       <form onSubmit={onSubmit}>
-        {/* <form> */}
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="collapsible">
             <div
@@ -261,9 +279,6 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
                         }
                   }
                 ></div>
-                {/* {isExpanded
-                  ? 'Click me to hide filters'
-                  : 'Click me to show filters'} */}
               </h3>
             </div>
             {/* *** CHEVRON IS NOT WORKING *** */}
@@ -358,13 +373,6 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
           </Button>
         </DialogActions>
         <div style={{ height: 700, width: 700 }}>
-          {/* <DataGrid
-            autoPageSize
-            pagination
-            rows={displayGridData}
-            columns={gridColumns}
-            getRowId={(row) => row._id}
-          /> */}
           <StyledDataGrid
             autoPageSize
             pagination

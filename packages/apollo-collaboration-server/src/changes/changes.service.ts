@@ -155,25 +155,29 @@ export class ChangesService {
     if (changeFilter.userName) {
       queryCond.user = changeFilter.userName
     }
-    // this.logger.debug(`MATCH "${JSON.stringify(queryCond)}"`)
-    // const change2 = await this.changeModel
-    //   .aggregate([
-    //     // { $match: { "assembly": new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028')} }, *** WORKS FINE ***
-    //     // { $match: { "assembly": new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028'), "typeName":"LocationEndChange"} },   *** WORKS FINE ***
-    //     // { $match: { "assembly": new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028'), "typeName":""} },  *** NO DATA FOUND ***
-    //     {
-    //       $lookup: {
-    //         localField: 'assembly',
-    //         from: 'assemblies', // the collection name, (bad)before i had Phrase as the model
-    //         foreignField: '_id',
-    //         as: 'assembly name',
-    //       },
-    //     },
-    //   ])
-    //   .exec()
-    // this.logger.debug(
-    //   `******************* CHANGE: "${JSON.stringify(change2)}"`,
-    // )
+
+    // ********** BEGIN
+    this.logger.debug(`MATCH "${JSON.stringify(queryCond)}"`)
+    const change2 = await this.changeModel
+      .aggregate([
+        // { $match: { "assembly": new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028')} }, *** WORKS FINE ***
+        { $match: { "assembly": new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028'), "typeName":"LocationEndChange"} },   //*** WORKS FINE ***
+        // { $match: { "assembly": new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028'), "typeName":""} },  *** NO DATA FOUND ***
+        {
+          $lookup: {
+            localField: 'assembly',
+            from: 'assemblies', 
+            foreignField: '_id',
+            as: 'assemblyName',
+          },
+        },
+      ])
+      .exec()
+    this.logger.debug(
+      `******************* CHANGE: "${JSON.stringify(change2)}"`,
+    )
+    return change2
+    //***** END */
 
     const change = await this.changeModel
       .find(queryCond)
