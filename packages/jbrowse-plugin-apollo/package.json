@@ -55,6 +55,7 @@
     "@mui/icons-material": "^5.8.4",
     "apollo-shared": "workspace:^",
     "clsx": "^1.1.1",
+    "react-collapsed": "^3.3.2",
     "regenerator-runtime": "^0.13.9",
     "tslib": "^2.0.3"
   },

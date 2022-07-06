@@ -6,12 +6,20 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  IconButton,
   MenuItem,
   Select,
   TextField,
 } from '@material-ui/core'
+import {
+  DataGrid,
+  GridColDef,
+  GridRenderCellParams,
+  GridRowsProp,
+} from '@mui/x-data-grid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
+import useCollapse from 'react-collapsed'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 
@@ -41,7 +49,35 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
   const [assemblyId, setAssemblyId] = useState('')
   const [typeName, setChangeType] = useState('')
   const [userName, setUserName] = useState('')
-  const [displayData, setDisplayData] = useState('')
+  const [disableUndo, setDisableUndo] = useState<boolean>(true)
+  const [displayGridData, setDisplayGridData] = useState<GridRowsProp[]>([])
+  const [isExpanded, setExpanded] = useState(false)
+  const { getCollapseProps, getToggleProps } = useCollapse({ isExpanded })
+
+  const gridColumns: GridColDef[] = [
+    {
+      field: '_id',
+      headerName: 'Revert',
+      width: 150,
+      renderCell: (params) => (
+        <strong>
+          <Button
+            variant="contained"
+            size="small"
+            style={{ marginLeft: 16 }}
+            tabIndex={params.hasFocus ? 0 : -1}
+            disabled={disableUndo}
+          >
+            Undo
+          </Button>
+        </strong>
+      ),
+    },
+    { field: 'assembly', headerName: 'AssemblyId', width: 200 },
+    { field: 'typeName', headerName: 'Change type', width: 200 },
+    { field: 'user', headerName: 'User', width: 100 },
+    { field: 'createdAt', headerName: 'DateTime', width: 200 },
+  ]
 
   useEffect(() => {
     async function getAssemblies() {
@@ -85,6 +121,10 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
       setCollection([{ _id: '', name: '' }])
     }
   }, [apolloInternetAccount, baseURL])
+
+  function handleOnClickExpanded() {
+    setExpanded(!isExpanded)
+  }
 
   function handleChangeAssembly(
     e: React.ChangeEvent<{
@@ -149,19 +189,8 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
         return
       }
       const data = await res.json()
+      setDisplayGridData(data)
       console.log(`Data: "${JSON.stringify(data)}"`)
-      const DisplayData = data.map((info: any) => {
-        return (
-          <tr>
-            <td>{info._id}</td>
-            <td>{info.assembly}</td>
-            <td>{info.typeName}</td>
-            <td>{info.user}</td>
-            <td>{info.createdAt}</td>
-          </tr>
-        )
-      })
-      setDisplayData(DisplayData)
     }
     // handleClose()
     // event.preventDefault()
@@ -172,44 +201,107 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
       <DialogTitle>View Change Log</DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-          <DialogContentText>Filter by assembly</DialogContentText>
-          <Select
-            labelId="label"
-            value={assemblyId}
-            onChange={handleChangeAssembly}
-          >
-            {collection.map((option) => (
-              <MenuItem key={option._id} value={option._id}>
-                {option.name}
-              </MenuItem>
-            ))}
-          </Select>
-          <p />
-          <DialogContentText>Filter by change type</DialogContentText>
-          <Select value={typeName} onChange={handleChangeType}>
-            <option value="">Any</option>
-            <option value="LocationStartChange">Location start change</option>
-            <option value="LocationEndChange">Location end change</option>
-            <option value="AddAssemblyFromFileChange">
-              Add assembly from file
-            </option>
-            <option value="AddAssemblyAndFeaturesFromFileChange">
-              Add assembly and features from file
-            </option>
-            <option value="AddFeaturesFromFileChange">
-              Add features from file
-            </option>
-          </Select>
-          <p />
-          <DialogContentText>Filter by username</DialogContentText>
-          <TextField
-            id="name"
-            label="Username"
-            type="TextField"
-            fullWidth
-            variant="outlined"
-            onChange={(e) => setUserName(e.target.value)}
-          />
+          <div className="collapsible">
+            <div
+              className="header"
+              {...getToggleProps({ onClick: handleOnClickExpanded })}
+            >
+              <h3>
+                <div
+                  className="content"
+                  dangerouslySetInnerHTML={
+                    isExpanded
+                      ? {
+                          __html:
+                            '<strong><u>Click me</u></strong> to hide filters',
+                        }
+                      : {
+                          __html:
+                            '<strong><u>Click me</u></strong> to hide filters',
+                        }
+                  }
+                ></div>
+                {/* {isExpanded
+                  ? 'Click me to hide filters'
+                  : 'Click me to show filters'} */}
+              </h3>
+            </div>
+            {/* *** CHEVRON IS NOT WORKING *** */}
+            <i className="fa fa-chevron-circle-up" aria-hidden="true"></i>
+            <div {...getCollapseProps()}>
+              <div className="icon">
+                <i
+                  className={`fas fa-chevron-circle-${
+                    isExpanded ? 'up' : 'down'
+                  }`}
+                ></i>
+              </div>
+              <div className="content">
+                <table>
+                  <tr>
+                    <th style={{ width: 200, alignItems: 'flex-start' }}>
+                      Filter by assembly
+                    </th>
+                    <th style={{ width: 200, alignItems: 'flex-start' }}>
+                      Filter by change
+                    </th>
+                    <th style={{ width: 200, alignItems: 'flex-start' }}>
+                      Filter by username
+                    </th>
+                  </tr>
+                  <tr>
+                    <td>
+                      <Select
+                        style={{ width: 200, alignItems: 'flex-start' }}
+                        labelId="label"
+                        value={assemblyId}
+                        onChange={handleChangeAssembly}
+                      >
+                        {collection.map((option) => (
+                          <MenuItem key={option._id} value={option._id}>
+                            {option.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </td>
+                    <td>
+                      <Select
+                        style={{ width: 200, alignItems: 'flex-start' }}
+                        value={typeName}
+                        onChange={handleChangeType}
+                      >
+                        <option value="">Any</option>
+                        <option value="LocationStartChange">
+                          Location start change
+                        </option>
+                        <option value="LocationEndChange">
+                          Location end change
+                        </option>
+                        <option value="AddAssemblyFromFileChange">
+                          Add assembly from file
+                        </option>
+                        <option value="AddAssemblyAndFeaturesFromFileChange">
+                          Add assembly and features from file
+                        </option>
+                        <option value="AddFeaturesFromFileChange">
+                          Add features from file
+                        </option>
+                      </Select>
+                    </td>
+                    <td>
+                      <TextField
+                        id="name"
+                        type="TextField"
+                        style={{ width: 200, alignItems: 'flex-end' }}
+                        variant="outlined"
+                        onChange={(e) => setUserName(e.target.value)}
+                      />
+                    </td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+          </div>
         </DialogContent>
         <DialogActions>
           <Button variant="contained" type="submit">
@@ -225,19 +317,14 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
             Cancel
           </Button>
         </DialogActions>
-        <div>
-          <table className="table table-striped">
-            <thead>
-              <tr>
-                <th>Doc id</th>
-                <th>Assembly</th>
-                <th>Type name</th>
-                <th>User</th>
-                <th>Created</th>
-              </tr>
-            </thead>
-            <tbody>{displayData}</tbody>
-          </table>
+        <div style={{ height: 700, width: 700 }}>
+          <DataGrid
+            autoPageSize
+            pagination
+            rows={displayGridData}
+            columns={gridColumns}
+            getRowId={(row) => row._id}
+          />
         </div>
       </form>
       {errorMessage ? (
