@@ -45,5 +45,8 @@
   "resolutions": {
     "typescript": "^4.7.4"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "react-collapsed": "^3.3.2"
+  }
 }

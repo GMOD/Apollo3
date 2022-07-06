@@ -10,6 +10,7 @@ import {
   MenuItem,
   Select,
   TextField,
+  withStyles,
 } from '@material-ui/core'
 import {
   DataGrid,
@@ -54,11 +55,27 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
   const [isExpanded, setExpanded] = useState(false)
   const { getCollapseProps, getToggleProps } = useCollapse({ isExpanded })
 
+  const StyledDataGrid = withStyles({
+    root: {
+      '& .MuiDataGrid-renderingZone': {
+        maxHeight: 'none !important',
+      },
+      '& .MuiDataGrid-cell': {
+        lineHeight: 'unset !important',
+        maxHeight: 'none !important',
+        whiteSpace: 'normal',
+      },
+      '& .MuiDataGrid-row': {
+        maxHeight: 'none !important',
+      },
+    },
+  })(DataGrid)
   const gridColumns: GridColDef[] = [
     {
       field: '_id',
-      headerName: 'Revert',
-      width: 150,
+      headerName: ' ',
+      // flex: 1,
+      width: 100,
       renderCell: (params) => (
         <strong>
           <Button
@@ -75,11 +92,28 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
     },
     { field: 'assembly', headerName: 'AssemblyId', width: 200 },
     { field: 'typeName', headerName: 'Change type', width: 200 },
+    {
+      field: 'changes',
+      headerName: 'Changes (old - new)',
+      // flex: 1,
+      width: 200,
+      renderCell: (params) => (
+        <ul className="flex">
+          {params.value.map((change: any, index: any) => (
+            <li key={index}>
+              {change.oldStart} - {change.newStart}
+            </li>
+          ))}
+        </ul>
+      ),
+    },
     { field: 'user', headerName: 'User', width: 100 },
     { field: 'createdAt', headerName: 'DateTime', width: 200 },
   ]
 
   useEffect(() => {
+    getGridData()
+
     async function getAssemblies() {
       const uri = new URL('/assemblies', baseURL).href
       const apolloFetch = apolloInternetAccount?.getFetcher({
@@ -126,7 +160,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
     setExpanded(!isExpanded)
   }
 
-  function handleChangeAssembly(
+  async function handleChangeAssembly(
     e: React.ChangeEvent<{
       name?: string | undefined
       value: unknown
@@ -134,28 +168,27 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
   ) {
     setAssemblyId(e.target.value as string)
     setAssemblyName(
-      collection.find((i) => i._id === e.target.value)?.name as string,
+      (await collection.find((i) => i._id === e.target.value)?.name) as string,
     )
+    getGridData()
   }
 
-  function handleChangeType(
+  async function handleChangeType(
     e: React.ChangeEvent<{
       name?: string | undefined
       value: unknown
     }>,
   ) {
-    setChangeType(e.target.value as string)
+    await setChangeType(e.currentTarget.value as string)
+    getGridData()
   }
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  async function getGridData() {
+    let msg
 
     console.log(`Assembly: "${assemblyId}"`)
     console.log(`Change: "${typeName}"`)
     console.log(`Username: "${userName}"`)
-
-    setErrorMessage('')
-    let msg
 
     // Get changes
     const uri = new URL('/changes/getChange', baseURL).href
@@ -190,16 +223,23 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
       }
       const data = await res.json()
       setDisplayGridData(data)
-      console.log(`Data: "${JSON.stringify(data)}"`)
+      // console.log(`Data: "${JSON.stringify(data)}"`)
     }
+  }
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setErrorMessage('')
+    getGridData()
     // handleClose()
     // event.preventDefault()
   }
 
   return (
-    <Dialog open maxWidth="xl" data-testid="login-apollo">
+    // <Dialog open maxWidth="xl" data-testid="login-apollo">
+    <Dialog open style={{ width: 1500 }} data-testid="login-apollo">
       <DialogTitle>View Change Log</DialogTitle>
       <form onSubmit={onSubmit}>
+        {/* <form> */}
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="collapsible">
             <div
@@ -217,7 +257,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
                         }
                       : {
                           __html:
-                            '<strong><u>Click me</u></strong> to hide filters',
+                            '<strong><u>Click me</u></strong> to show filters',
                         }
                   }
                 ></div>
@@ -272,19 +312,19 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
                       >
                         <option value="">Any</option>
                         <option value="LocationStartChange">
-                          Location start change
+                          LocationStartChange
                         </option>
                         <option value="LocationEndChange">
-                          Location end change
+                          LocationEndChange
                         </option>
                         <option value="AddAssemblyFromFileChange">
-                          Add assembly from file
+                          AddAssemblyFromFileChange
                         </option>
                         <option value="AddAssemblyAndFeaturesFromFileChange">
-                          Add assembly and features from file
+                          AddAssemblyAndFeaturesFromFileChange
                         </option>
                         <option value="AddFeaturesFromFileChange">
-                          Add features from file
+                          AddFeaturesFromFileChange
                         </option>
                       </Select>
                     </td>
@@ -304,9 +344,9 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
           </div>
         </DialogContent>
         <DialogActions>
-          <Button variant="contained" type="submit">
+          {/* <Button variant="contained" type="submit">
             Submit
-          </Button>
+          </Button> */}
           <Button
             variant="outlined"
             type="submit"
@@ -314,11 +354,18 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
               handleClose()
             }}
           >
-            Cancel
+            Close
           </Button>
         </DialogActions>
         <div style={{ height: 700, width: 700 }}>
-          <DataGrid
+          {/* <DataGrid
+            autoPageSize
+            pagination
+            rows={displayGridData}
+            columns={gridColumns}
+            getRowId={(row) => row._id}
+          /> */}
+          <StyledDataGrid
             autoPageSize
             pagination
             rows={displayGridData}

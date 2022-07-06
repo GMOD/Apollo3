@@ -33,6 +33,7 @@ import {
   changeRegistry,
 } from 'apollo-shared'
 import { Model } from 'mongoose'
+import mongoose from 'mongoose'
 
 import { FilesService } from '../files/files.service'
 import { CreateChangeDto } from './dto/create-change.dto'
@@ -144,7 +145,6 @@ export class ChangesService {
 
   async findChange(changeFilter: ChangeFilter) {
     // Search correct feature
-    // const change = await this.changeModel.findById('626b9febb247545614431a42').exec()
     const queryCond: any = {}
     if (changeFilter.assemblyId) {
       queryCond.assembly = changeFilter.assemblyId
@@ -155,6 +155,26 @@ export class ChangesService {
     if (changeFilter.userName) {
       queryCond.user = changeFilter.userName
     }
+    // this.logger.debug(`MATCH "${JSON.stringify(queryCond)}"`)
+    // const change2 = await this.changeModel
+    //   .aggregate([
+    //     // { $match: { "assembly": new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028')} }, *** WORKS FINE ***
+    //     // { $match: { "assembly": new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028'), "typeName":"LocationEndChange"} },   *** WORKS FINE ***
+    //     // { $match: { "assembly": new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028'), "typeName":""} },  *** NO DATA FOUND ***
+    //     {
+    //       $lookup: {
+    //         localField: 'assembly',
+    //         from: 'assemblies', // the collection name, (bad)before i had Phrase as the model
+    //         foreignField: '_id',
+    //         as: 'assembly name',
+    //       },
+    //     },
+    //   ])
+    //   .exec()
+    // this.logger.debug(
+    //   `******************* CHANGE: "${JSON.stringify(change2)}"`,
+    // )
+
     const change = await this.changeModel
       .find(queryCond)
       .sort({ createdAt: -1 })
