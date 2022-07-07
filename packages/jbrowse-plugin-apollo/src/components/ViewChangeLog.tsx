@@ -255,7 +255,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
 
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
-    // <Dialog open style={{ width: 1500 }} data-testid="login-apollo">
+    {/* // <Dialog open style={{ width: 1500 }} data-testid="login-apollo"> */}
       <DialogTitle>View Change Log</DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
