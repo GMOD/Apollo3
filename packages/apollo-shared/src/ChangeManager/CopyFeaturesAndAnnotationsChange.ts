@@ -1,5 +1,3 @@
-import { GFF3Feature, GFF3FeatureLineWithRefs } from '@gmod/gff'
-import { FeatureDocument } from 'apollo-schemas'
 import { ObjectID } from 'bson'
 import { resolveIdentifier } from 'mobx-state-tree'
 import { v4 as uuidv4 } from 'uuid'
@@ -12,10 +10,7 @@ import {
   SerializedChange,
   ServerDataStore,
 } from './Change'
-import {
-  FeatureChange,
-  GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-} from './FeatureChange'
+import { FeatureChange } from './FeatureChange'
 
 interface SerializedCopyFeaturesAndAnnotationsChangeBase
   extends SerializedChange {
@@ -79,10 +74,7 @@ export class CopyFeaturesAndAnnotationsChange extends FeatureChange {
   async applyToServer(backend: ServerDataStore) {
     const { featureModel, session, refSeqModel } = backend
     const { changes, assemblyId } = this
-    // const featuresForChanges: {
-    //   feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs
-    //   topLevelFeature: FeatureDocument
-    // }[] = []
+
     // Loop the changes
     for (const change of changes) {
       const { featureId, targetAssemblyId } = change
@@ -102,10 +94,9 @@ export class CopyFeaturesAndAnnotationsChange extends FeatureChange {
         `*** Feature found: ${JSON.stringify(topLevelFeature)}`,
       )
 
-      const jsonArray2 = JSON.parse(`[${JSON.stringify(topLevelFeature)}]`)
-      // const refSeqName = topLevelFeature.seq_id
+      const jsonArray = JSON.parse(`[${JSON.stringify(topLevelFeature)}]`)
 
-      for (const featureLine of jsonArray2) {
+      for (const featureLine of jsonArray) {
         const newFeatureId = uuidv4() // Set new featureId in target assembly
         const featureIds = [newFeatureId]
         featureLine._id = new ObjectID() // Set new doc id
@@ -123,26 +114,28 @@ export class CopyFeaturesAndAnnotationsChange extends FeatureChange {
         featureLine.refSeq = refSeqDoc._id // Set new reference seq id from target assembly
 
         // Let's add featureId to each child recursively
-        const newFeatureLine = this.setAndGetFeatureIdRecursively(
+        const newFeatureLine = await this.setAndGetFeatureIdRecursively(
           { ...featureLine, newFeatureId },
           featureIds,
         )
-        this.logger.debug?.(`New assemblyId: ${targetAssemblyId}`)
-        this.logger.debug?.(`New refSeqId: ${refSeqDoc._id}`)
-        this.logger.debug?.(`New featureId: ${newFeatureLine.featureId}`)
-        this.logger.debug?.(`New feature: ${JSON.stringify(newFeatureLine)}`)
+        const newFeatureWithAllFeatureIds: any = newFeatureLine as unknown
+        newFeatureWithAllFeatureIds.featureIds = featureIds
+        this.logger.verbose?.(`New featureIds: ${featureIds}`)
+        this.logger.verbose?.(`New assemblyId: ${targetAssemblyId}`)
+        this.logger.verbose?.(`New refSeqId: ${refSeqDoc._id}`)
+        this.logger.verbose?.(`New featureId: ${newFeatureLine.featureId}`)
+        this.logger.verbose?.(`New feature: ${JSON.stringify(newFeatureLine)}`)
 
         // Add into Mongo
         const [newFeatureDoc] = await featureModel.create(
           [
             {
-              featureIds,
-              ...newFeatureLine,
+              ...newFeatureWithAllFeatureIds,
             },
           ],
           { session },
         )
-        this.logger.debug?.(`Added docId "${newFeatureDoc._id}"`)
+        this.logger.debug?.(`Added new feature, docId "${newFeatureDoc._id}"`)
       }
     }
   }
@@ -164,7 +157,6 @@ export class CopyFeaturesAndAnnotationsChange extends FeatureChange {
       if (!feature) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
-      // feature.setEnd(this.changes[idx].TargetAssemblyId)
     })
   }
 
@@ -176,7 +168,6 @@ export class CopyFeaturesAndAnnotationsChange extends FeatureChange {
       .map((endChange) => ({
         featureId: endChange.featureId,
         targetAssemblyId: endChange.targetAssemblyId,
-        // newEnd: endChange.TargetAssemblyId,
       }))
     return new CopyFeaturesAndAnnotationsChange(
       {
