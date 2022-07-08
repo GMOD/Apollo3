@@ -1,5 +1,6 @@
-import { GFF3Feature } from '@gmod/gff'
+import { GFF3Feature, GFF3FeatureLineWithRefs } from '@gmod/gff'
 import { FeatureDocument } from 'apollo-schemas'
+import { ObjectID } from 'bson'
 import { resolveIdentifier } from 'mobx-state-tree'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -78,17 +79,15 @@ export class CopyFeaturesAndAnnotationsChange extends FeatureChange {
   async applyToServer(backend: ServerDataStore) {
     const { featureModel, session, refSeqModel } = backend
     const { changes, assemblyId } = this
-    const featuresForChanges: {
-      feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs
-      topLevelFeature: FeatureDocument
-    }[] = []
-    // Let's first check that all features are found
+    // const featuresForChanges: {
+    //   feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs
+    //   topLevelFeature: FeatureDocument
+    // }[] = []
+    // Loop the changes
     for (const change of changes) {
-      // const { featureId, targetAssemblyId: TargetAssemblyId } = change
-      // const { featureId, targetAssemblyId } = change
       const { featureId, targetAssemblyId } = change
 
-      // Search correct feature
+      // Search feature
       const topLevelFeature = await featureModel
         .findOne({ featureIds: featureId })
         .session(session)
@@ -103,31 +102,31 @@ export class CopyFeaturesAndAnnotationsChange extends FeatureChange {
         `*** Feature found: ${JSON.stringify(topLevelFeature)}`,
       )
 
-      // const regSeqId = '62c5c9d43109f9acb5d9f663'
-      const gff3Feature = topLevelFeature as unknown as GFF3Feature
-      const jsonArray = JSON.parse(`[${JSON.stringify(gff3Feature)}]`)
+      const jsonArray2 = JSON.parse(`[${JSON.stringify(topLevelFeature)}]`)
+      // const refSeqName = topLevelFeature.seq_id
 
-      for (const featureLine of jsonArray) {
-        this.logger.debug?.(`One feature line: ${JSON.stringify(featureLine)}`)
-        // Let's add featureId to parent feature
-        const newFeatureId = uuidv4()
+      for (const featureLine of jsonArray2) {
+        const newFeatureId = uuidv4() // Set new featureId in target assembly
         const featureIds = [newFeatureId]
-        featureLine._id = null
+        featureLine._id = new ObjectID() // Set new doc id
+        featureLine.featureId = newFeatureId // Set new featureId in top level
+
+        const refSeqDoc = await refSeqModel
+          .findOne({ assembly: targetAssemblyId, name: featureLine.seq_id })
+          .session(session)
+          .exec()
+        if (!refSeqDoc) {
+          throw new Error(
+            `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${featureLine.seq_id}" not found`,
+          )
+        }
+        featureLine.refSeq = refSeqDoc._id // Set new reference seq id from target assembly
 
         // Let's add featureId to each child recursively
         const newFeatureLine = this.setAndGetFeatureIdRecursively(
           { ...featureLine, newFeatureId },
           featureIds,
         )
-        const refSeqDoc = await refSeqModel
-          .findOne({ assembly: targetAssemblyId, name: newFeatureLine.seq_id })
-          .session(session)
-          .exec()
-        if (!refSeqDoc) {
-          throw new Error(
-            `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${newFeatureLine.seq_id}" not found`,
-          )
-        }
         this.logger.debug?.(`New assemblyId: ${targetAssemblyId}`)
         this.logger.debug?.(`New refSeqId: ${refSeqDoc._id}`)
         this.logger.debug?.(`New featureId: ${newFeatureLine.featureId}`)
@@ -137,7 +136,6 @@ export class CopyFeaturesAndAnnotationsChange extends FeatureChange {
         const [newFeatureDoc] = await featureModel.create(
           [
             {
-              refSeq: refSeqDoc._id,
               featureIds,
               ...newFeatureLine,
             },
@@ -146,22 +144,6 @@ export class CopyFeaturesAndAnnotationsChange extends FeatureChange {
         )
         this.logger.debug?.(`Added docId "${newFeatureDoc._id}"`)
       }
-
-      this.logger.debug?.(`LOPPUU...`)
-
-      // this.logger.debug?.(`NEW FEATURE ID ENTRY=${newFeatureLine}`)
-
-      // // const gff3Feature = topLevelFeature as unknown as GFF3Feature
-      // const gff3Feature = newFeatureLine as unknown as GFF3Feature
-      // const jsonArray = JSON.parse(`[${JSON.stringify(gff3Feature)}]`)
-      // this.logger.debug?.(`ENTRY=${JSON.stringify(jsonArray)}`)
-
-      // this.logger.debug?.(`AssemblyId: "${this.assemblyId}"`)
-      // this.logger.debug?.(`TargetAssemblyId: "${targetAssemblyId}"`)
-      // this.assemblyId = targetAssemblyId
-      // // Add new feature into database
-      // const jsonArray = JSON.parse(`[${JSON.stringify(newFeatureLine)}]`)
-      // await this.addFeatureIntoDb(jsonArray, backend)
     }
   }
 
