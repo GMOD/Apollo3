@@ -13,7 +13,6 @@ import {
   ValidationSet,
 } from 'apollo-shared'
 import { Instance, SnapshotIn, cast, getRoot, types } from 'mobx-state-tree'
-import streamsaver from 'streamsaver'
 
 import { ApolloDetailsViewStateModel } from '../ApolloDetailsView/stateModel'
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
@@ -101,17 +100,7 @@ export function stateModelFactory(pluginManager: PluginManager) {
                 `features/exportGFF3?${searchParams.toString()}`,
                 internetAccount.baseURL,
               ).href
-              const fetch = internetAccount.getFetcher({
-                locationType: 'UriLocation',
-                uri,
-              })
-              const response = await fetch(uri, {
-                headers: { 'Content-Type': 'application/txt' },
-              })
-              const fileStream = streamsaver.createWriteStream(
-                'Apollo_download.gff3',
-              )
-              response.body?.pipeTo(fileStream)
+              window.open(uri, '_blank')
             },
           },
           {

@@ -54,7 +54,7 @@ export class FeaturesController {
   ) {
     res.set({
       'Content-Type': 'application/text',
-      'Content-Disposition': 'attachment; filename="apollo.gff3"',
+      'Content-Disposition': `attachment; filename="${request.assembly}_apollo.gff3"`,
     })
     const stream = await this.featuresService.exportGFF3(request.assembly)
     return new StreamableFile(stream)
