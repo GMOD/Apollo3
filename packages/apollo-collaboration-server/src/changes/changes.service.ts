@@ -156,33 +156,33 @@ export class ChangesService {
       queryCond.user = changeFilter.userName
     }
 
-    // ********** BEGIN  ******* JOIN COLLECTION TEST **************
-    this.logger.debug(`MATCH "${JSON.stringify(queryCond)}"`)
-    const change2 = await this.changeModel
-      .aggregate([
-        // { $match: { "assembly": new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028')} }, *** WORKS FINE ***
-        {
-          $match: {
-            assembly: new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028'),
-            typeName: 'LocationEndChange',
-          },
-        }, //* ** WORKS FINE ***
-        // { $match: { "assembly": new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028'), "typeName":""} },  *** NO DATA FOUND ***
-        {
-          $lookup: {
-            localField: 'assembly',
-            from: 'assemblies',
-            foreignField: '_id',
-            as: 'assemblyName',
-          },
-        },
-      ])
-      .exec()
-    this.logger.debug(
-      `******************* CHANGE: "${JSON.stringify(change2)}"`,
-    )
-    return change2
-    //* **** END  ******* JOIN COLLECTION TEST **************
+    // // ********** BEGIN  ******* JOIN COLLECTION TEST **************
+    // this.logger.debug(`MATCH "${JSON.stringify(queryCond)}"`)
+    // const change2 = await this.changeModel
+    //   .aggregate([
+    //     // { $match: { "assembly": new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028')} }, *** WORKS FINE ***
+    //     {
+    //       $match: {
+    //         assembly: new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028'),
+    //         typeName: 'LocationEndChange',
+    //       },
+    //     }, //* ** WORKS FINE ***
+    //     // { $match: { "assembly": new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028'), "typeName":""} },  *** NO DATA FOUND ***
+    //     {
+    //       $lookup: {
+    //         localField: 'assembly',
+    //         from: 'assemblies',
+    //         foreignField: '_id',
+    //         as: 'assemblyName',
+    //       },
+    //     },
+    //   ])
+    //   .exec()
+    // this.logger.debug(
+    //   `******************* CHANGE: "${JSON.stringify(change2)}"`,
+    // )
+    // return change2
+    // //* **** END  ******* JOIN COLLECTION TEST **************
 
     const change = await this.changeModel
       .find(queryCond)

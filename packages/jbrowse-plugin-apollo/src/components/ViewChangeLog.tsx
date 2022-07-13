@@ -76,7 +76,6 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
     {
       field: '_id',
       headerName: ' ',
-      // flex: 1,
       width: 100,
       renderCell: (params) => (
         <strong>
@@ -92,19 +91,19 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
         </strong>
       ),
     },
-    // { field: 'assembly', headerName: 'AssemblyId', width: 200 },
-    {
-      field: 'assemblyName',
-      headerName: 'Assembly name',
-      width: 200,
-      renderCell: (params) => (
-        <div>
-          {params.value.map((assembly: any, index: any) => (
-            <p>{assembly.name}</p>
-          ))}
-          </div>
-      ),
-    },
+    { field: 'assembly', headerName: 'AssemblyId', width: 200 },
+    // {
+    //   field: 'assemblyName',
+    //   headerName: 'Assembly name',
+    //   width: 200,
+    //   renderCell: (params) => (
+    //     <div>
+    //       {params.value.map((assembly: any, index: any) => (
+    //         <p>{assembly.name}</p>
+    //       ))}
+    //       </div>
+    //   ),
+    // },
     { field: 'typeName', headerName: 'Change type', width: 200 },
     {
       field: 'changes',
@@ -114,7 +113,8 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
         <ul className="flex">
           {params.value.map((change: any, index: any) => (
             <li key={index}>
-              {change.oldStart} - {change.newStart}
+              {change.oldStart} {change.oldEnd} - {change.newStart}{' '}
+              {change.newEnd}
             </li>
           ))}
         </ul>
@@ -192,12 +192,15 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
       value: unknown
     }>,
   ) {
-    console.log(`0A Change: "${e.target.name}"`)
-    console.log(`0A Change: "${e.target.value}"`)
-    console.log(`0B Change: "${e.currentTarget.name}"`)
-    console.log(`0B Change: "${e.currentTarget.value}"`)
-    await setChangeType(e.currentTarget.value as string) // NAYTTAA AIEMMAN ARVON - EI UUTTA ARVOA
-    console.log(`1 Change: "${typeName}"`)
+    console.log(``)
+    console.log(`1. ChangeType: "${e.target.name}" (e.target.name)`)
+    console.log(`2. ChangeType: "${e.target.value}" (e.target.value)`)
+    console.log(
+      `3. ChangeType: "${e.currentTarget.value}" (e.currentTarget.value)`,
+    )
+    await setChangeType(e.target.value as string) // NAYTTAA AIEMMAN ARVON - EI UUTTA ARVOA
+    // await setChangeType(e.currentTarget.value as string) // NAYTTAA AIEMMAN ARVON - EI UUTTA ARVOA
+    console.log(`4. ChangeType: "${typeName}" (typeName)`)
 
     getGridData()
   }
@@ -205,9 +208,9 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
   async function getGridData() {
     let msg
 
-    console.log(`Assembly: "${assemblyId}"`)
-    console.log(`Change: "${typeName}"`)
-    console.log(`Username: "${userName}"`)
+    console.log(`getGridData(): Assembly: "${assemblyId}"`)
+    console.log(`getGridData(): ChangeType: "${typeName}"`)
+    // console.log(`getGridData(): Username: "${userName}"`)
 
     // Get changes
     const uri = new URL('/changes/getChange', baseURL).href
@@ -255,7 +258,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
 
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
-    {/* // <Dialog open style={{ width: 1500 }} data-testid="login-apollo"> */}
+      {/* // <Dialog open style={{ width: 1500 }} data-testid="login-apollo"> */}
       <DialogTitle>View Change Log</DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
@@ -293,75 +296,79 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
               </div>
               <div className="content">
                 <table>
-                  <tr>
-                    <th style={{ width: 200, alignItems: 'flex-start' }}>
-                      Filter by assembly
-                    </th>
-                    <th style={{ width: 200, alignItems: 'flex-start' }}>
-                      Filter by change
-                    </th>
-                    <th style={{ width: 200, alignItems: 'flex-start' }}>
-                      Filter by username
-                    </th>
-                  </tr>
-                  <tr>
-                    <td>
-                      <Select
-                        style={{ width: 200, alignItems: 'flex-start' }}
-                        labelId="label"
-                        value={assemblyId}
-                        onChange={handleChangeAssembly}
-                      >
-                        {collection.map((option) => (
-                          <MenuItem key={option._id} value={option._id}>
-                            {option.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </td>
-                    <td>
-                      <Select
-                        style={{ width: 200, alignItems: 'flex-start' }}
-                        value={typeName}
-                        onChange={handleChangeType}
-                      >
-                        <option value="">Any</option>
-                        <option value="LocationStartChange">
-                          LocationStartChange
-                        </option>
-                        <option value="LocationEndChange">
-                          LocationEndChange
-                        </option>
-                        <option value="AddAssemblyFromFileChange">
-                          AddAssemblyFromFileChange
-                        </option>
-                        <option value="AddAssemblyAndFeaturesFromFileChange">
-                          AddAssemblyAndFeaturesFromFileChange
-                        </option>
-                        <option value="AddFeaturesFromFileChange">
-                          AddFeaturesFromFileChange
-                        </option>
-                      </Select>
-                    </td>
-                    <td>
-                      <TextField
-                        id="name"
-                        type="TextField"
-                        style={{ width: 200, alignItems: 'flex-end' }}
-                        variant="outlined"
-                        onChange={(e) => setUserName(e.target.value)}
-                      />
-                    </td>
-                  </tr>
+                  <thead>
+                    <tr>
+                      <th style={{ width: 200, alignItems: 'flex-start' }}>
+                        Filter by assembly
+                      </th>
+                      <th style={{ width: 200, alignItems: 'flex-start' }}>
+                        Filter by change
+                      </th>
+                      <th style={{ width: 200, alignItems: 'flex-start' }}>
+                        Filter by username
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <Select
+                          style={{ width: 200, alignItems: 'flex-start' }}
+                          labelId="label"
+                          value={assemblyId}
+                          onChange={handleChangeAssembly}
+                        >
+                          {collection.map((option) => (
+                            <MenuItem key={option._id} value={option._id}>
+                              {option.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </td>
+                      <td>
+                        <Select
+                          style={{ width: 200, alignItems: 'flex-start' }}
+                          value={typeName}
+                          onChange={handleChangeType}
+                        >
+                          <option value="">Any</option>
+                          <option value="LocationStartChange">
+                            LocationStartChange
+                          </option>
+                          <option value="LocationEndChange">
+                            LocationEndChange
+                          </option>
+                          <option value="AddAssemblyFromFileChange">
+                            AddAssemblyFromFileChange
+                          </option>
+                          <option value="AddAssemblyAndFeaturesFromFileChange">
+                            AddAssemblyAndFeaturesFromFileChange
+                          </option>
+                          <option value="AddFeaturesFromFileChange">
+                            AddFeaturesFromFileChange
+                          </option>
+                        </Select>
+                      </td>
+                      <td>
+                        <TextField
+                          id="name"
+                          type="TextField"
+                          style={{ width: 200, alignItems: 'flex-end' }}
+                          variant="outlined"
+                          onChange={(e) => setUserName(e.target.value)}
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
                 </table>
               </div>
             </div>
           </div>
         </DialogContent>
         <DialogActions>
-          {/* <Button variant="contained" type="submit">
+          <Button variant="contained" type="submit">
             Submit
-          </Button> */}
+          </Button>
           <Button
             variant="outlined"
             type="submit"
