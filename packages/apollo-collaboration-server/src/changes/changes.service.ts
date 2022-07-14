@@ -155,9 +155,9 @@ export class ChangesService {
     if (changeFilter.userName) {
       queryCond.user = changeFilter.userName
     }
+    this.logger.debug(`Search criteria: "${JSON.stringify(queryCond)}"`)
 
     // // ********** BEGIN  ******* JOIN COLLECTION TEST **************
-    // this.logger.debug(`MATCH "${JSON.stringify(queryCond)}"`)
     // const change2 = await this.changeModel
     //   .aggregate([
     //     // { $match: { "assembly": new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028')} }, *** WORKS FINE ***
