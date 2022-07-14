@@ -30,7 +30,9 @@ export interface ServerDataStore {
   refSeqChunkModel: import('mongoose').Model<RefSeqChunkDocument>
   fileModel: import('mongoose').Model<FileDocument>
   session: import('mongoose').ClientSession
-  fs: typeof import('fs')
+  filesService: {
+    getFileStream(file: FileDocument): import('fs').ReadStream
+  }
 }
 
 export interface SerializedChange {

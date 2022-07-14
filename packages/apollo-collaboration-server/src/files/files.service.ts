@@ -1,5 +1,7 @@
+import { ReadStream, createReadStream } from 'fs'
 import { unlink } from 'fs/promises'
 import { join } from 'path'
+import { Gunzip, createGunzip } from 'zlib'
 
 import {
   Injectable,
@@ -54,6 +56,24 @@ export class FilesService {
       throw new NotFoundException(`File with id "${id}" not found`)
     }
     return file
+  }
+
+  getFileStream<T extends boolean>(
+    file: FileDocument,
+    compressed: T,
+  ): T extends true ? Gunzip : ReadStream
+  getFileStream(file: FileDocument): ReadStream
+  getFileStream(file: FileDocument, compressed = false) {
+    const { FILE_UPLOAD_FOLDER } = process.env
+    if (!FILE_UPLOAD_FOLDER) {
+      throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
+    }
+    const fileStream = createReadStream(join(FILE_UPLOAD_FOLDER, file.checksum))
+    if (compressed) {
+      return fileStream
+    }
+    const gunzip = createGunzip()
+    return fileStream.pipe(gunzip)
   }
 
   /**

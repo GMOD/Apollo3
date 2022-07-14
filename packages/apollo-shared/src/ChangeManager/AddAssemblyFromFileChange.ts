@@ -1,5 +1,3 @@
-import { join } from 'path'
-
 import {
   ChangeOptions,
   ClientDataStore,
@@ -84,7 +82,6 @@ export class AddAssemblyFromFileChange extends FeatureChange {
         throw new Error(`File "${fileId}" not found in Mongo`)
       }
       this.logger.debug?.(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
-      const compressedFullFileName = join(FILE_UPLOAD_FOLDER, fileDoc.checksum)
 
       // Check and add new assembly
       const assemblyDoc = await assemblyModel
@@ -105,12 +102,7 @@ export class AddAssemblyFromFileChange extends FeatureChange {
       this.logger.debug?.(`File type: "${fileDoc.type}"`)
 
       // Add refSeqs
-      await this.addRefSeqIntoDb(
-        fileDoc.type,
-        compressedFullFileName,
-        newAssemblyDoc._id,
-        backend,
-      )
+      await this.addRefSeqIntoDb(fileDoc, newAssemblyDoc._id, backend)
     }
   }
 

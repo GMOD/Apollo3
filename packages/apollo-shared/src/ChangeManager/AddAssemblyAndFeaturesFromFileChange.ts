@@ -1,6 +1,3 @@
-import { join } from 'path'
-import { createGunzip } from 'zlib'
-
 import gff, { GFF3Feature } from '@gmod/gff'
 
 import {
@@ -71,7 +68,7 @@ export class AddAssemblyAndFeaturesFromFileChange extends FeatureChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { assemblyModel, fileModel, fs, session } = backend
+    const { assemblyModel, fileModel, filesService, session } = backend
     const { changes, assemblyId } = this
     for (const change of changes) {
       const { fileId, assemblyName } = change
@@ -86,7 +83,6 @@ export class AddAssemblyAndFeaturesFromFileChange extends FeatureChange {
         throw new Error(`File "${fileId}" not found in Mongo`)
       }
       this.logger.debug?.(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
-      const compressedFullFileName = join(FILE_UPLOAD_FOLDER, fileDoc.checksum)
 
       // Check and add new assembly
       const assemblyDoc = await assemblyModel
@@ -107,25 +103,17 @@ export class AddAssemblyAndFeaturesFromFileChange extends FeatureChange {
       this.logger.debug?.(`File type: "${fileDoc.type}"`)
 
       // Add refSeqs
-      await this.addRefSeqIntoDb(
-        fileDoc.type,
-        compressedFullFileName,
-        newAssemblyDoc._id,
-        backend,
-      )
+      await this.addRefSeqIntoDb(fileDoc, newAssemblyDoc._id, backend)
 
       // Loop all features
-      const featureStream = fs
-        .createReadStream(compressedFullFileName)
-        .pipe(createGunzip())
-        .pipe(
-          gff.parseStream({
-            parseSequences: false,
-            parseComments: false,
-            parseDirectives: false,
-            parseFeatures: true,
-          }),
-        )
+      const featureStream = filesService.getFileStream(fileDoc).pipe(
+        gff.parseStream({
+          parseSequences: false,
+          parseComments: false,
+          parseDirectives: false,
+          parseFeatures: true,
+        }),
+      )
       for await (const f of featureStream) {
         const gff3Feature = f as GFF3Feature
         this.logger.verbose?.(`ENTRY=${JSON.stringify(gff3Feature)}`)

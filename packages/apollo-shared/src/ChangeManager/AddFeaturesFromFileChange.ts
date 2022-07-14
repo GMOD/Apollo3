@@ -1,6 +1,3 @@
-import { join } from 'path'
-import { createGunzip } from 'zlib'
-
 import gff, { GFF3Feature } from '@gmod/gff'
 
 import {
@@ -70,7 +67,7 @@ export class AddFeaturesFromFileChange extends FeatureChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { fs, fileModel, session } = backend
+    const { filesService, fileModel, session } = backend
     const { changes } = this
 
     for (const change of changes) {
@@ -86,20 +83,16 @@ export class AddFeaturesFromFileChange extends FeatureChange {
         throw new Error(`File "${fileId}" not found in Mongo`)
       }
       this.logger.debug?.(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
-      const compressedFullFileName = join(FILE_UPLOAD_FOLDER, fileDoc.checksum)
 
       // Read data from compressed file and parse the content
-      const featureStream = fs
-        .createReadStream(compressedFullFileName)
-        .pipe(createGunzip())
-        .pipe(
-          gff.parseStream({
-            parseSequences: false,
-            parseComments: false,
-            parseDirectives: false,
-            parseFeatures: true,
-          }),
-        )
+      const featureStream = filesService.getFileStream(fileDoc).pipe(
+        gff.parseStream({
+          parseSequences: false,
+          parseComments: false,
+          parseDirectives: false,
+          parseFeatures: true,
+        }),
+      )
       for await (const f of featureStream) {
         const gff3Feature = f as GFF3Feature
         this.logger.verbose?.(`ENTRY=${JSON.stringify(gff3Feature)}`)

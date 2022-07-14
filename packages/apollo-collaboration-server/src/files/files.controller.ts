@@ -1,7 +1,3 @@
-import { createReadStream } from 'fs'
-import { join } from 'path'
-import { createGunzip } from 'zlib'
-
 import {
   Body,
   Controller,
@@ -93,13 +89,11 @@ export class FilesController {
       'Content-Type': file.type,
       'Content-Disposition': `attachment; filename="${file.basename}"`,
     })
-    const fileStream = createReadStream(join(FILE_UPLOAD_FOLDER, file.checksum))
     if (acceptGzip) {
       res.set({ 'Content-Encoding': 'gzip' })
-      return new StreamableFile(fileStream)
+      return new StreamableFile(this.filesService.getFileStream(file, true))
     }
-    const gunzip = createGunzip()
-    return new StreamableFile(fileStream.pipe(gunzip))
+    return new StreamableFile(this.filesService.getFileStream(file))
   }
 
   /**
