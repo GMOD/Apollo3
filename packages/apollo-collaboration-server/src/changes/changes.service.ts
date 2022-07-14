@@ -33,7 +33,6 @@ import {
   changeRegistry,
 } from 'apollo-shared'
 import { Model } from 'mongoose'
-import mongoose from 'mongoose'
 
 import { FilesService } from '../files/files.service'
 import { CreateChangeDto } from './dto/create-change.dto'
@@ -153,7 +152,7 @@ export class ChangesService {
       queryCond.typeName = changeFilter.typeName
     }
     if (changeFilter.userName) {
-      queryCond.user = changeFilter.userName
+      queryCond.user = { $regex: `${changeFilter.userName}`, $options: 'i' }
     }
     this.logger.debug(`Search criteria: "${JSON.stringify(queryCond)}"`)
 

@@ -47,6 +47,7 @@
   },
   "private": true,
   "dependencies": {
+    "@mui/icons-material": "^5.8.4",
     "react-collapsed": "^3.3.2"
   }
 }

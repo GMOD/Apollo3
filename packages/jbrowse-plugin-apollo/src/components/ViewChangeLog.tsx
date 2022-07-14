@@ -1,5 +1,4 @@
-import { AbstractSessionModel, AppRootModel, iterMap } from '@jbrowse/core/util'
-import { UNKNOWN } from '@jbrowse/core/util/tracks'
+import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
 import {
   Button,
   Dialog,
@@ -7,7 +6,6 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  IconButton,
   MenuItem,
   Select,
   TextField,
@@ -18,14 +16,9 @@ import AccordionDetails from '@material-ui/core/AccordionDetails'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
 import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import {
-  DataGrid,
-  GridColDef,
-  GridRowsProp,
-} from '@mui/x-data-grid'
+import { DataGrid, GridColDef, GridRowsProp } from '@mui/x-data-grid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
-import useCollapse from 'react-collapsed'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 
@@ -41,7 +34,6 @@ interface Collection {
 
 export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
-  const { notify } = session
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel | undefined
@@ -57,11 +49,6 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
   const [userName, setUserName] = useState('')
   const [disableUndo, setDisableUndo] = useState<boolean>(true)
   const [displayGridData, setDisplayGridData] = useState<GridRowsProp[]>([])
-  const [isExpanded, setExpanded] = useState(false)
-  const { getCollapseProps, getToggleProps } = useCollapse({ isExpanded })
-
-  const currentValue = '3'
-  // let defaultValueDrop = ''
 
   const StyledDataGrid = withStyles({
     root: {
@@ -88,8 +75,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
           <Button
             variant="contained"
             size="small"
-            style={{ marginLeft: 16 }}
-            tabIndex={params.hasFocus ? 0 : -1}
+            style={{ marginLeft: 5 }}
             disabled={disableUndo}
           >
             Undo
@@ -105,7 +91,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
       renderCell: (params) => JSON.stringify(params.value),
     },
     { field: 'user', headerName: 'User', width: 100 },
-    { field: 'createdAt', headerName: 'DateTime', width: 200 },
+    { field: 'createdAt', headerName: 'Time', width: 200 },
   ]
 
   useEffect(() => {
@@ -188,6 +174,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
       }
     }
     getGridData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assemblyId, typeName, userName])
 
   useEffect(() => {
@@ -195,10 +182,6 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
       setAssemblyId(collection[0]._id)
     }
   }, [collection])
-
-  function handleOnClickExpanded() {
-    setExpanded(!isExpanded)
-  }
 
   async function handleChangeAssembly(
     e: React.ChangeEvent<{
@@ -208,7 +191,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
   ) {
     setAssemblyId(e.target.value as string)
     setAssemblyName(
-      (await collection.find((i) => i._id === e.target.value)?.name) as string,
+      collection.find((i) => i._id === e.target.value)?.name as string,
     )
   }
 
@@ -226,13 +209,12 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
     setErrorMessage('')
   }
   return (
-      // <Dialog open style={{ width: 1000 }} data-testid="login-apollo">
-      <Dialog open maxWidth="xl" data-testid="login-apollo">
-      <DialogTitle>View Change Log</DialogTitle>
+    <Dialog open maxWidth="xl" data-testid="login-apollo">
+      <DialogTitle>View change log</DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <div>
-            <Accordion style={{ width: 800 }}>
+            <Accordion defaultExpanded={true} style={{ width: 700 }}>
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
                 aria-controls="panel1a-content"
@@ -244,22 +226,16 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
                   <table>
                     <thead>
                       <tr>
-                        <th style={{ width: 200, alignItems: 'flex-start' }}>
-                          Filter by assembly
-                        </th>
-                        <th style={{ width: 200, alignItems: 'flex-start' }}>
-                          Filter by change
-                        </th>
-                        <th style={{ width: 200, alignItems: 'flex-start' }}>
-                          Filter by username
-                        </th>
+                        <th>Assembly</th>
+                        <th>Change type</th>
+                        <th>Username</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
                         <td>
                           <Select
-                            style={{ width: 200, alignItems: 'flex-start' }}
+                            style={{ width: 200, alignItems: 'self-start' }}
                             value={assemblyId}
                             onChange={handleChangeAssembly}
                           >
@@ -272,7 +248,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
                         </td>
                         <td>
                           <Select
-                            style={{ width: 200, alignItems: 'flex-start' }}
+                            style={{ width: 300, alignItems: 'flex-start' }}
                             value={typeName}
                             onChange={handleChangeType}
                           >
@@ -292,13 +268,16 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
                             <option value="AddFeaturesFromFileChange">
                               AddFeaturesFromFileChange
                             </option>
+                            <option value="CopyFeaturesAndAnnotationsChange">
+                              CopyFeaturesAndAnnotationsChange
+                            </option>
                           </Select>
                         </td>
                         <td>
                           <TextField
                             id="name"
                             type="TextField"
-                            style={{ width: 200, alignItems: 'flex-end' }}
+                            style={{ width: 150, alignItems: 'flex-end' }}
                             variant="outlined"
                             onChange={(e) => setUserName(e.target.value)}
                           />
@@ -322,7 +301,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
             Close
           </Button>
         </DialogActions>
-        <div style={{ height: 700, width: 1000 }}>
+        <div style={{ height: 600, width: 1000 }}>
           <StyledDataGrid
             autoPageSize
             pagination
