@@ -1,4 +1,4 @@
-import gff, { GFF3Feature } from '@gmod/gff'
+import { GFF3Feature } from '@gmod/gff'
 
 import {
   ChangeOptions,
@@ -85,13 +85,8 @@ export class AddFeaturesFromFileChange extends FeatureChange {
       this.logger.debug?.(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
 
       // Read data from compressed file and parse the content
-      const featureStream = filesService.getFileStream(fileDoc).pipe(
-        gff.parseStream({
-          parseSequences: false,
-          parseComments: false,
-          parseDirectives: false,
-          parseFeatures: true,
-        }),
+      const featureStream = filesService.parseGFF3(
+        filesService.getFileStream(fileDoc),
       )
       for await (const f of featureStream) {
         const gff3Feature = f as GFF3Feature

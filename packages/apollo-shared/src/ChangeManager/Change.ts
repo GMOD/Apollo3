@@ -1,3 +1,5 @@
+import { ReadStream } from 'fs'
+
 import {
   AssemblyDocument,
   FeatureDocument,
@@ -32,6 +34,7 @@ export interface ServerDataStore {
   session: import('mongoose').ClientSession
   filesService: {
     getFileStream(file: FileDocument): import('fs').ReadStream
+    parseGFF3(stream: ReadStream): ReadStream
   }
 }
 

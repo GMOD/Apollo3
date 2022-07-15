@@ -3,6 +3,7 @@ import { unlink } from 'fs/promises'
 import { join } from 'path'
 import { Gunzip, createGunzip } from 'zlib'
 
+import gff from '@gmod/gff'
 import {
   Injectable,
   InternalServerErrorException,
@@ -74,6 +75,18 @@ export class FilesService {
     }
     const gunzip = createGunzip()
     return fileStream.pipe(gunzip)
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  parseGFF3(stream: ReadStream): any {
+    return stream.pipe(
+      gff.parseStream({
+        parseSequences: false,
+        parseComments: false,
+        parseDirectives: false,
+        parseFeatures: true,
+      }),
+    )
   }
 
   /**
