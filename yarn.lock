@@ -6519,15 +6519,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bson@npm:^4.6.4":
-  version: 4.6.4
-  resolution: "bson@npm:4.6.4"
-  dependencies:
-    buffer: ^5.6.0
-  checksum: f56375865c8fc048179075296019a0d2e058edbbb6692e54e2751da738840968de678a48a2276faf2ec8f8b36c5c26f14670ab4d414fe68f0169215efe15d570
-  languageName: node
-  linkType: hard
-
 "buffer-crc32@npm:~0.2.3":
   version: 0.2.13
   resolution: "buffer-crc32@npm:0.2.13"
@@ -11251,7 +11242,6 @@ __metadata:
     "@types/react": ^17.0.34
     "@types/streamsaver": ^2.0.1
     apollo-shared: "workspace:^"
-    bson: ^4.6.4
     clsx: ^1.1.1
     cypress: ^8.7.0
     jest: ^27.3.1
