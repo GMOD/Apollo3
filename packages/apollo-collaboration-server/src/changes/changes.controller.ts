@@ -1,4 +1,4 @@
-import { Body, Controller, Logger, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Logger, Post, UseGuards } from '@nestjs/common'
 import { ChangeFilter, SerializedChange } from 'apollo-shared'
 
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
@@ -31,5 +31,10 @@ export class ChangesController {
     this.logger.debug(`ChangeFilter: ${JSON.stringify(changeFilter)}`)
     const chg = await this.changesService.findChange(changeFilter)
     return chg
+  }
+
+  @Get('/getChangeTypes')
+  findChangeTypes() {
+    return this.changesService.getChangeTypes()
   }
 }

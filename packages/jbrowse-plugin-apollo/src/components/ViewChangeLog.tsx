@@ -43,7 +43,10 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
   const { baseURL } = apolloInternetAccount
   const [assemblyName, setAssemblyName] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
-  const [collection, setCollection] = useState<Collection[]>([])
+  const [assemblyCollection, setAssemblyCollection] = useState<Collection[]>([])
+  const [changeTypeCollection, setChangeTypeCollection] = useState<
+    Collection[]
+  >([])
   const [assemblyId, setAssemblyId] = useState('')
   const [typeName, setChangeType] = useState('')
   const [userName, setUserName] = useState('')
@@ -121,7 +124,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
         }
         const data = await response.json()
         data.forEach((item: Collection) => {
-          setCollection((result) => [
+          setAssemblyCollection((result) => [
             ...result,
             {
               _id: item._id,
@@ -131,7 +134,44 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
         })
       }
     }
+    async function getChangeTypes() {
+      const uri = new URL('/changes/getChangeTypes', baseURL).href
+      const apolloFetch = apolloInternetAccount?.getFetcher({
+        locationType: 'UriLocation',
+        uri,
+      })
+      if (apolloFetch) {
+        const response = await apolloFetch(uri, {
+          method: 'GET',
+        })
+        if (!response.ok) {
+          let msg
+          try {
+            msg = await response.text()
+          } catch (e) {
+            msg = ''
+          }
+          setErrorMessage(
+            `Error when retrieving change types from server — ${
+              response.status
+            } (${response.statusText})${msg ? ` (${msg})` : ''}`,
+          )
+          return
+        }
+        const data = await response.json()
+        data.forEach((item: string) => {
+          setChangeTypeCollection((result) => [
+            ...result,
+            {
+              _id: item,
+              name: item,
+            },
+          ])
+        })
+      }
+    }
     getAssemblies()
+    getChangeTypes()
   }, [apolloInternetAccount, baseURL])
 
   useEffect(() => {
@@ -178,10 +218,10 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
   }, [assemblyId, typeName, userName])
 
   useEffect(() => {
-    if (collection.length === 1) {
-      setAssemblyId(collection[0]._id)
+    if (assemblyCollection.length === 1) {
+      setAssemblyId(assemblyCollection[0]._id)
     }
-  }, [collection])
+  }, [assemblyCollection])
 
   async function handleChangeAssembly(
     e: React.ChangeEvent<{
@@ -191,7 +231,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
   ) {
     setAssemblyId(e.target.value as string)
     setAssemblyName(
-      collection.find((i) => i._id === e.target.value)?.name as string,
+      assemblyCollection.find((i) => i._id === e.target.value)?.name as string,
     )
   }
 
@@ -208,12 +248,13 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
     event.preventDefault()
     setErrorMessage('')
   }
+
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>View change log</DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-          <div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             <Accordion defaultExpanded={true} style={{ width: 700 }}>
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
@@ -222,7 +263,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
                 <Typography>Filter</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <div className="content">
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <table>
                     <thead>
                       <tr>
@@ -235,11 +276,15 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
                       <tr>
                         <td>
                           <Select
-                            style={{ width: 200, alignItems: 'self-start' }}
+                            style={{
+                              width: 200,
+                              alignItems: 'self-start',
+                              flexDirection: 'column',
+                            }}
                             value={assemblyId}
                             onChange={handleChangeAssembly}
                           >
-                            {collection.map((option) => (
+                            {assemblyCollection.map((option) => (
                               <MenuItem key={option._id} value={option._id}>
                                 {option.name}
                               </MenuItem>
@@ -248,29 +293,20 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
                         </td>
                         <td>
                           <Select
-                            style={{ width: 300, alignItems: 'flex-start' }}
+                            style={{
+                              width: 300,
+                              alignItems: 'flex-start',
+                              flexDirection: 'row',
+                            }}
                             value={typeName}
                             onChange={handleChangeType}
                           >
-                            <option value="">Any</option>
-                            <option value="LocationStartChange">
-                              LocationStartChange
-                            </option>
-                            <option value="LocationEndChange">
-                              LocationEndChange
-                            </option>
-                            <option value="AddAssemblyFromFileChange">
-                              AddAssemblyFromFileChange
-                            </option>
-                            <option value="AddAssemblyAndFeaturesFromFileChange">
-                              AddAssemblyAndFeaturesFromFileChange
-                            </option>
-                            <option value="AddFeaturesFromFileChange">
-                              AddFeaturesFromFileChange
-                            </option>
-                            <option value="CopyFeaturesAndAnnotationsChange">
-                              CopyFeaturesAndAnnotationsChange
-                            </option>
+                            <MenuItem value="">All</MenuItem>
+                            {changeTypeCollection.map((option) => (
+                              <MenuItem key={option._id} value={option._id}>
+                                {option.name}
+                              </MenuItem>
+                            ))}
                           </Select>
                         </td>
                         <td>

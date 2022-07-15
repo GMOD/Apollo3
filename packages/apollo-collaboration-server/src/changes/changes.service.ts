@@ -196,4 +196,9 @@ export class ChangesService {
 
     return change
   }
+
+  async getChangeTypes() {
+    const changeTypes = await this.changeModel.distinct('typeName').exec()
+    return changeTypes
+  }
 }
