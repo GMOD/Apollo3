@@ -10,10 +10,10 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
-  makeStyles,
-} from '@material-ui/core'
+} from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
+import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { ApolloViewModel } from '../stateModel'
@@ -26,7 +26,7 @@ interface CollaborationSetupProps {
   setError(error: Error): void
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   root: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -63,7 +63,7 @@ function CollaborationSetup({
   setInternetAccountConfigId,
   viewModel,
 }: CollaborationSetupProps) {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const [selectedAccount, setSelectedAccount] = useState<number>()
   const apolloInternetAccounts = internetAccounts.filter(
     (internetAccount) => internetAccount.type === 'ApolloInternetAccount',
@@ -123,7 +123,7 @@ function AccountCard({
   const [error, setError] = useState<Error>()
   const [assemblies, setAssemblies] = useState<ApolloAssembly[]>()
   const [selectedAssemblyIdx, setSelectedAssemblyIdx] = useState<number>()
-  const classes = useStyles()
+  const { classes } = useStyles()
   useEffect(() => {
     const aborter = new AbortController()
     const { signal } = aborter

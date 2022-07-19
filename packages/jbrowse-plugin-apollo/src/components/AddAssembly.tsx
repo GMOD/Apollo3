@@ -16,7 +16,7 @@ import {
   Radio,
   RadioGroup,
   TextField,
-} from '@material-ui/core'
+} from '@mui/material'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
