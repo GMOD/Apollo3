@@ -4,6 +4,8 @@ import { ElementId } from '@jbrowse/core/util/types/mst'
 import { AnnotationFeatureLocationI, ChangeManager } from 'apollo-shared'
 import { Instance, getParent, types } from 'mobx-state-tree'
 
+import { ApolloViewModel } from '../ApolloView/stateModel'
+
 export function stateModelFactory(pluginManager: PluginManager) {
   return types
     .model('ApolloDetailsView', {
@@ -12,10 +14,7 @@ export function stateModelFactory(pluginManager: PluginManager) {
     })
     .views((self) => ({
       get selectedFeature(): AnnotationFeatureLocationI | undefined {
-        return getParent(self).selectedFeature
-      },
-      get setSelectedFeature() {
-        return getParent(self).setSelectedFeature
+        return getParent<ApolloViewModel>(self).selectedFeature
       },
       getAssemblyId(assemblyName: string) {
         const { assemblyManager } = getSession(self)
@@ -31,6 +30,11 @@ export function stateModelFactory(pluginManager: PluginManager) {
         return (apolloView as any).dataStore?.changeManager as
           | ChangeManager
           | undefined
+      },
+    }))
+    .actions((self) => ({
+      setSelectedFeature(feature: AnnotationFeatureLocationI) {
+        getParent<ApolloViewModel>(self).setSelectedFeature(feature)
       },
     }))
 }
