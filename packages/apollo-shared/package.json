@@ -16,13 +16,13 @@
   "dependencies": {
     "@gmod/gff": "^1.2.0",
     "@jbrowse/core": "^1.7.4",
-    "@nestjs/common": "^8.4.4",
     "apollo-schemas": "workspace:^",
     "regenerator-runtime": "^0.13.9",
     "tslib": "^2.3.1",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@nestjs/common": "^9.0.4",
     "@types/node": "^16.0.0",
     "@types/uuid": "^8",
     "mobx-state-tree": "3.14.1",
