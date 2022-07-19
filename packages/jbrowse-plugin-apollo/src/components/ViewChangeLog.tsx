@@ -8,15 +8,15 @@ import {
   DialogTitle,
   MenuItem,
   Select,
-  TextField,
-  withStyles,
 } from '@material-ui/core'
-import Accordion from '@material-ui/core/Accordion'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import { DataGrid, GridColDef, GridRowsProp } from '@mui/x-data-grid'
+import UndoIcon from '@material-ui/icons/Undo'
+import {
+  DataGrid,
+  GridActionsCellItem,
+  GridColumns,
+  GridRowsProp,
+  GridToolbar,
+} from '@mui/x-data-grid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
@@ -41,60 +41,57 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
     throw new Error('No Apollo internet account found')
   }
   const { baseURL } = apolloInternetAccount
-  const [assemblyName, setAssemblyName] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [assemblyCollection, setAssemblyCollection] = useState<Collection[]>([])
-  const [changeTypeCollection, setChangeTypeCollection] = useState<
-    Collection[]
-  >([])
   const [assemblyId, setAssemblyId] = useState('')
-  const [typeName, setChangeType] = useState('')
-  const [userName, setUserName] = useState('')
-  const [disableUndo, setDisableUndo] = useState<boolean>(true)
   const [displayGridData, setDisplayGridData] = useState<GridRowsProp[]>([])
 
-  const StyledDataGrid = withStyles({
-    root: {
-      '& .MuiDataGrid-renderingZone': {
-        maxHeight: 'none !important',
-      },
-      '& .MuiDataGrid-cell': {
-        lineHeight: 'unset !important',
-        maxHeight: 'none !important',
-        whiteSpace: 'normal',
-      },
-      '& .MuiDataGrid-row': {
-        maxHeight: 'none !important',
-      },
-    },
-  })(DataGrid)
-  const gridColumns: GridColDef[] = [
+  const gridColumns: GridColumns = [
     {
-      field: '_id',
-      headerName: ' ',
-      width: 100,
-      renderCell: (params) => (
-        <strong>
-          <Button
-            variant="contained"
-            size="small"
-            style={{ marginLeft: 5 }}
-            disabled={disableUndo}
-          >
-            Undo
-          </Button>
-        </strong>
-      ),
+      field: 'actions',
+      type: 'actions',
+      width: 80,
+      getActions: (/* params */) => [
+        <GridActionsCellItem
+          icon={<UndoIcon />}
+          label="Undo"
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          onClick={() => {}}
+          disabled
+          showInMenu
+        />,
+      ],
     },
-    { field: 'typeName', headerName: 'Change type', width: 200 },
+    {
+      field: 'typeName',
+      headerName: 'Change type',
+      width: 200,
+      type: 'singleSelect',
+      valueOptions: [
+        'AddAssemblyFromFileChange',
+        'AddFeaturesFromFileChange',
+        'LocationEndChange',
+        'LocationStartChange',
+        'TypeChange',
+      ],
+    },
     {
       field: 'changes',
       headerName: 'Change JSON',
       width: 600,
-      renderCell: (params) => JSON.stringify(params.value),
+      renderCell: ({ value }) => (
+        <div style={{ fontFamily: 'monospace' }}>{JSON.stringify(value)}</div>
+      ),
+      valueFormatter: ({ value }) => JSON.stringify(value),
     },
     { field: 'user', headerName: 'User', width: 100 },
-    { field: 'createdAt', headerName: 'Time', width: 200 },
+    {
+      field: 'createdAt',
+      headerName: 'Time',
+      width: 200,
+      type: 'dateTime',
+      valueGetter: ({ value }) => value && new Date(value),
+    },
   ]
 
   useEffect(() => {
@@ -134,44 +131,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
         })
       }
     }
-    async function getChangeTypes() {
-      const uri = new URL('/changes/getChangeTypes', baseURL).href
-      const apolloFetch = apolloInternetAccount?.getFetcher({
-        locationType: 'UriLocation',
-        uri,
-      })
-      if (apolloFetch) {
-        const response = await apolloFetch(uri, {
-          method: 'GET',
-        })
-        if (!response.ok) {
-          let msg
-          try {
-            msg = await response.text()
-          } catch (e) {
-            msg = ''
-          }
-          setErrorMessage(
-            `Error when retrieving change types from server — ${
-              response.status
-            } (${response.statusText})${msg ? ` (${msg})` : ''}`,
-          )
-          return
-        }
-        const data = await response.json()
-        data.forEach((item: string) => {
-          setChangeTypeCollection((result) => [
-            ...result,
-            {
-              _id: item,
-              name: item,
-            },
-          ])
-        })
-      }
-    }
     getAssemblies()
-    getChangeTypes()
   }, [apolloInternetAccount, baseURL])
 
   useEffect(() => {
@@ -189,8 +149,6 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
           method: 'POST',
           body: JSON.stringify({
             assemblyId,
-            typeName,
-            userName,
           }),
           headers: new Headers({
             'Content-Type': 'application/json',
@@ -215,7 +173,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
     }
     getGridData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assemblyId, typeName, userName])
+  }, [assemblyId])
 
   useEffect(() => {
     if (assemblyCollection.length === 1) {
@@ -230,123 +188,51 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
     }>,
   ) {
     setAssemblyId(e.target.value as string)
-    setAssemblyName(
-      assemblyCollection.find((i) => i._id === e.target.value)?.name as string,
-    )
-  }
-
-  async function handleChangeType(
-    e: React.ChangeEvent<{
-      name?: string | undefined
-      value: unknown
-    }>,
-  ) {
-    setChangeType(e.target.value as string)
-  }
-
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setErrorMessage('')
   }
 
   return (
-    <Dialog open maxWidth="xl" data-testid="login-apollo">
-      <DialogTitle>View change log</DialogTitle>
-      <form onSubmit={onSubmit}>
-        <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <Accordion defaultExpanded={true} style={{ width: 700 }}>
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                aria-controls="panel1a-content"
-              >
-                <Typography>Filter</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Assembly</th>
-                        <th>Change type</th>
-                        <th>Username</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>
-                          <Select
-                            style={{
-                              width: 200,
-                              alignItems: 'self-start',
-                              flexDirection: 'column',
-                            }}
-                            value={assemblyId}
-                            onChange={handleChangeAssembly}
-                          >
-                            {assemblyCollection.map((option) => (
-                              <MenuItem key={option._id} value={option._id}>
-                                {option.name}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </td>
-                        <td>
-                          <Select
-                            style={{
-                              width: 300,
-                              alignItems: 'flex-start',
-                              flexDirection: 'row',
-                            }}
-                            value={typeName}
-                            onChange={handleChangeType}
-                          >
-                            <MenuItem value="">All</MenuItem>
-                            {changeTypeCollection.map((option) => (
-                              <MenuItem key={option._id} value={option._id}>
-                                {option.name}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </td>
-                        <td>
-                          <TextField
-                            id="name"
-                            type="TextField"
-                            style={{ width: 150, alignItems: 'flex-end' }}
-                            variant="outlined"
-                            onChange={(e) => setUserName(e.target.value)}
-                          />
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </AccordionDetails>
-            </Accordion>
-          </div>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            variant="outlined"
-            type="submit"
-            onClick={() => {
-              handleClose()
-            }}
-          >
-            Close
-          </Button>
-        </DialogActions>
-        <div style={{ height: 600, width: 1000 }}>
-          <StyledDataGrid
+    <Dialog open maxWidth="xl" data-testid="login-apollo" fullScreen>
+      <DialogTitle>
+        View change log
+        <div style={{ width: 100 }} />
+        <Select
+          style={{ width: 200 }}
+          value={assemblyId}
+          onChange={handleChangeAssembly}
+        >
+          {assemblyCollection.map((option) => (
+            <MenuItem key={option._id} value={option._id}>
+              {option.name}
+            </MenuItem>
+          ))}
+        </Select>
+      </DialogTitle>
+
+      <DialogContent>
+        <div style={{ height: '100%', width: '100%' }}>
+          <DataGrid
+            // className={classes.root}
             autoPageSize
             pagination
             rows={displayGridData}
             columns={gridColumns}
             getRowId={(row) => row._id}
+            components={{ Toolbar: GridToolbar }}
+            getRowHeight={() => 'auto'}
           />
         </div>
-      </form>
+      </DialogContent>
+      <DialogActions>
+        <Button
+          variant="outlined"
+          type="submit"
+          onClick={() => {
+            handleClose()
+          }}
+        >
+          Close
+        </Button>
+      </DialogActions>
       {errorMessage ? (
         <DialogContent>
           <DialogContentText color="error">{errorMessage}</DialogContentText>
