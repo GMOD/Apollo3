@@ -10,6 +10,7 @@ import {
   Select,
 } from '@material-ui/core'
 import { getRoot } from 'mobx-state-tree'
+import { model } from 'mobx-state-tree/dist/internal'
 import React, { useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
@@ -17,8 +18,8 @@ import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 interface CopyFeaturesAndAnnotationsProps {
   session: AbstractSessionModel
   handleClose(): void
-  sourceFeatureId: string
-  sourceAssemblyId: string
+  sourceFeatureId: any
+  sourceAssemblyId: any
 }
 
 interface Collection {
@@ -77,9 +78,9 @@ export function CopyFeaturesAndAnnotations({
             msg = ''
           }
           setErrorMessage(
-            `Error when inserting new features (while uploading file) — ${
-              response.status
-            } (${response.statusText})${msg ? ` (${msg})` : ''}`,
+            `Error when copying features — ${response.status} (${
+              response.statusText
+            })${msg ? ` (${msg})` : ''}`,
           )
           return
         }
@@ -98,8 +99,7 @@ export function CopyFeaturesAndAnnotations({
         })
       }
     }
-    console.log('Source assembly:', sourceAssemblyId)
-    console.log('Source feature:', sourceFeatureId)
+    console.log(`Source assembly "${sourceAssemblyId}" and source feature "${sourceFeatureId}"`)
     getAssemblies()
     return () => {
       setCollection([{ _id: '', name: '' }])

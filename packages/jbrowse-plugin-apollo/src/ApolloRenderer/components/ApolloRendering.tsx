@@ -33,7 +33,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const handleContextMenu = useCallback(
     (event) => {
       console.log(
-        `Set featureId: "${props.displayModel.apolloFeatureUnderMouse?.id}"`,
+        'Set featureId: ',
+        props.displayModel.apolloFeatureUnderMouse?.id,
       )
       setSelectedFeatureId(props.displayModel.apolloFeatureUnderMouse?.id)
       event.preventDefault()
@@ -333,8 +334,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
                     handleClose: () => {
                       doneCallback()
                     },
-                    selectedFeatureId,
-                    currentAssemblyId,
+                    sourceFeatureId: selectedFeatureId,
+                    sourceAssemblyId: currentAssemblyId,
                   },
                 ])
               }}
