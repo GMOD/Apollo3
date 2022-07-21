@@ -1,4 +1,5 @@
-import { Region } from '@jbrowse/core/util'
+import { Region, getSession } from '@jbrowse/core/util'
+import { Menu, MenuItem } from '@material-ui/core'
 import {
   AnnotationFeatureLocationI,
   Change,
@@ -7,8 +8,9 @@ import {
 } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import { getSnapshot } from 'mobx-state-tree'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
+import { CopyFeaturesAndAnnotations } from '../../components/CopyFeaturesAndAnnotations'
 import { LinearApolloDisplay } from '../../LinearApolloDisplay/stateModel'
 
 interface ApolloRenderingProps {
@@ -20,6 +22,28 @@ interface ApolloRenderingProps {
 }
 
 function ApolloRendering(props: ApolloRenderingProps) {
+  const [anchorPoint, setAnchorPoint] = useState({ x: 0, y: 0 })
+  const [show, setShow] = useState(false)
+  type Coord = [number, number]
+  const [contextCoord, setContextCoord] = useState<Coord>([10, 10])
+  const [clientRect, setClientRect] = useState<DOMRect>()
+  const [offsetMouseCoord, setOffsetMouseCoord] = useState<Coord>([0, 0])
+  const [clientMouseCoord, setClientMouseCoord] = useState<Coord>([0, 0])
+  const [selectedFeatureId, setSelectedFeatureId] = useState<string>()
+  const handleContextMenu = useCallback(
+    (event) => {
+      console.log(
+        `Set featureId: "${props.displayModel.apolloFeatureUnderMouse?.id}"`,
+      )
+      setSelectedFeatureId(props.displayModel.apolloFeatureUnderMouse?.id)
+      event.preventDefault()
+      setAnchorPoint({ x: event.pageX, y: event.pageY })
+      setShow(true)
+    },
+    [setAnchorPoint],
+  )
+  const ref = useRef<HTMLDivElement>(null)
+
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
   const [overEdge, setOverEdge] = useState<'start' | 'end'>()
@@ -33,6 +57,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const [movedDuringLastMouseDown, setMovedDuringLastMouseDown] =
     useState(false)
   const { regions, bpPerPx, displayModel } = props
+  const session = getSession(displayModel)
+
   const [region] = regions
   const totalWidth = (region.end - region.start) / bpPerPx
   const {
@@ -122,6 +148,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   ])
   function onMouseMove(event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
     const { clientX, clientY, buttons } = event
+    setContextCoord([clientX, clientY])
     if (!movedDuringLastMouseDown && buttons === 1) {
       setMovedDuringLastMouseDown(true)
     }
@@ -256,8 +283,69 @@ function ApolloRendering(props: ApolloRenderingProps) {
     setDragging(undefined)
     setMovedDuringLastMouseDown(false)
   }
+
   return (
     <div style={{ position: 'relative', width: totalWidth, height }}>
+      <div
+        ref={ref}
+        onContextMenu={(event) => {
+          event.preventDefault()
+          setContextCoord([event.clientX, event.clientY])
+        }}
+        onMouseMove={(event) => {
+          if (!ref.current) {
+            return
+          }
+          const rect = ref.current.getBoundingClientRect()
+          const { left, top } = rect
+          setOffsetMouseCoord([event.clientX - left, event.clientY - top])
+          setClientMouseCoord([event.clientX, event.clientY])
+          setClientRect(rect)
+        }}
+      >
+        {show && selectedFeatureId ? (
+          <Menu
+            open={Boolean(contextCoord)}
+            anchorReference="anchorPosition"
+            anchorPosition={
+              contextCoord
+                ? { top: contextCoord[1], left: contextCoord[0] }
+                : undefined
+            }
+            data-testid="base_linear_display_context_menu"
+            onClose={() => {
+              setShow(false)
+            }}
+          >
+            <MenuItem
+              key={1}
+              value={2}
+              onClick={(event) => {
+                const currentAssemblyId = getAssemblyId(region.assemblyName)
+                console.log(`FeatureId ${selectedFeatureId}`)
+                console.log(`AssemblyId ${currentAssemblyId}`)
+                console.log(`Open dialog to copy features...`)
+                setShow(false)
+                session.queueDialog((doneCallback) => [
+                  CopyFeaturesAndAnnotations,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                    },
+                    selectedFeatureId,
+                    currentAssemblyId,
+                  },
+                ])
+              }}
+            >
+              {'Copy features and annotations'}
+            </MenuItem>
+          </Menu>
+        ) : (
+          <> </>
+        )}
+      </div>
       <canvas
         ref={canvasRef}
         width={totalWidth}
@@ -265,6 +353,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
         style={{ position: 'absolute', left: 0, top: 0 }}
       />
       <canvas
+        onContextMenu={handleContextMenu}
         ref={overlayCanvasRef}
         width={totalWidth}
         height={totalHeight}
