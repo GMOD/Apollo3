@@ -10,8 +10,10 @@
   "scripts": {
     "lint": "eslint --report-unused-disable-directives --max-warnings 0 --ext .js,.ts,.jsx,.tsx .",
     "build:shared": "yarn workspace apollo-shared run build",
-    "build:shared:cjs": "yarn workspace apollo-shared run build:cjs",
-    "build:shared:esm": "yarn workspace apollo-shared run build:esm"
+    "start:shared": "yarn workspace apollo-shared run start",
+    "start:server": "yarn workspace apollo-collaboration-server run start",
+    "start:plugin": "yarn workspace jbrowse-plugin-apollo run start",
+    "start": "npm-run-all --print-label --parallel start:shared start:server start:plugin"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.14.7",
@@ -34,6 +36,7 @@
     "import-sort-parser-typescript": "^6.0.0",
     "import-sort-style-module": "^6.0.0",
     "jest": "^27.3.1",
+    "npm-run-all": "^4.1.5",
     "prettier": "^2.4.1",
     "prettier-plugin-import-sort": "^0.0.7",
     "react": "^17.0.2",

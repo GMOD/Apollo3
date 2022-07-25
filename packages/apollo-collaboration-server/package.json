@@ -8,11 +8,12 @@
     "node": ">=14"
   },
   "scripts": {
-    "build": "yarn build:shared:cjs && rimraf dist && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "yarn build:shared:cjs && NODE_ENV=development nest start",
-    "start:dev": "yarn build:shared:cjs && NODE_ENV=development nest start --watch",
-    "start:debug": "yarn build:shared:cjs && NODE_ENV=development nest start --debug --watch",
+    "build": "yarn build:shared && rimraf dist && nest build",
+    "start": "yarn build:shared && yarn start:nest --watch",
+    "start:nest": "NODE_ENV=development nest start",
+    "start:no-watch": "yarn build:shared && yarn start:nest",
+    "start:debug": "yarn build:shared && yarn start:nest --debug --watch",
     "deb": "ts-node-dev src/main.ts",
     "start:prod": "NODE_ENV=production node dist/main",
     "test": "jest",
