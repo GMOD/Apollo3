@@ -1,5 +1,5 @@
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
-import { InternetAccount } from '@jbrowse/core/pluggableElementTypes/models'
+import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
 import { Instance, getRoot, types } from 'mobx-state-tree'
 
 import { ApolloLoginForm } from './components/ApolloLoginForm'

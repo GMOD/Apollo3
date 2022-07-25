@@ -1,5 +1,3 @@
-import fs from 'fs'
-
 import { Logger, UnprocessableEntityException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
@@ -31,6 +29,7 @@ import {
 } from 'apollo-shared'
 import { Model } from 'mongoose'
 
+import { FilesService } from '../files/files.service'
 import { CreateChangeDto } from './dto/create-change.dto'
 
 export class ChangesService {
@@ -47,6 +46,7 @@ export class ChangesService {
     private readonly fileModel: Model<FileDocument>,
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
+    private readonly filesService: FilesService,
   ) {
     changeRegistry.registerChange(
       'AddAssemblyAndFeaturesFromFileChange',
@@ -98,7 +98,7 @@ export class ChangesService {
           refSeqChunkModel: this.refSeqChunkModel,
           fileModel: this.fileModel,
           session,
-          fs,
+          filesService: this.filesService,
         })
       } catch (e) {
         throw new UnprocessableEntityException(String(e))

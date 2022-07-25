@@ -19,6 +19,6 @@ import { FilesService } from './files.service'
     RefSeqsModule,
     RefSeqChunksModule,
   ],
-  exports: [MongooseModule],
+  exports: [MongooseModule, FilesService],
 })
 export class FilesModule {}

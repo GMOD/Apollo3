@@ -1,3 +1,5 @@
+import { ReadStream } from 'fs'
+
 import {
   AssemblyDocument,
   FeatureDocument,
@@ -30,7 +32,10 @@ export interface ServerDataStore {
   refSeqChunkModel: import('mongoose').Model<RefSeqChunkDocument>
   fileModel: import('mongoose').Model<FileDocument>
   session: import('mongoose').ClientSession
-  fs: typeof import('fs')
+  filesService: {
+    getFileStream(file: FileDocument): import('fs').ReadStream
+    parseGFF3(stream: ReadStream): ReadStream
+  }
 }
 
 export interface SerializedChange {

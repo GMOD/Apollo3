@@ -1,12 +1,12 @@
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
-import DisplayType from '@jbrowse/core/pluggableElementTypes/DisplayType'
-import InternetAccountType from '@jbrowse/core/pluggableElementTypes/InternetAccountType'
 import {
+  DisplayType,
+  InternetAccountType,
+  TrackType,
+  ViewType,
   createBaseTrackConfig,
   createBaseTrackModel,
-} from '@jbrowse/core/pluggableElementTypes/models'
-import TrackType from '@jbrowse/core/pluggableElementTypes/TrackType'
-import ViewType from '@jbrowse/core/pluggableElementTypes/ViewType'
+} from '@jbrowse/core/pluggableElementTypes'
 import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel, isAbstractMenuManager } from '@jbrowse/core/util'

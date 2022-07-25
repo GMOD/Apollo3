@@ -1,7 +1,5 @@
-import { createGunzip } from 'zlib'
-
 import { GFF3Feature, GFF3FeatureLine } from '@gmod/gff'
-import { RefSeqDocument } from 'apollo-schemas'
+import { FileDocument, RefSeqDocument } from 'apollo-schemas'
 import { v4 as uuidv4 } from 'uuid'
 
 import {
@@ -76,23 +74,20 @@ export abstract class FeatureChange extends Change {
   }
 
   async addRefSeqIntoDb(
-    fileDocType: string,
-    compressedFullFileName: string,
+    fileDoc: FileDocument,
     assemblyId: string,
     backend: ServerDataStore,
   ) {
-    const { refSeqModel, refSeqChunkModel, session, fs } = backend
+    const { refSeqModel, refSeqChunkModel, session, filesService } = backend
     const { CHUNK_SIZE } = process.env
     const chunkSize = Number(CHUNK_SIZE)
     let chunkIndex = 0
     let refSeqLen = 0
     let refSeqDoc: RefSeqDocument | undefined = undefined
-    let fastaInfoStarted = fileDocType !== 'text/x-gff3'
+    let fastaInfoStarted = fileDoc.type !== 'text/x-gff3'
 
     // Read data from compressed file and parse the content
-    const sequenceStream = fs
-      .createReadStream(compressedFullFileName)
-      .pipe(createGunzip())
+    const sequenceStream = filesService.getFileStream(fileDoc)
     let sequenceBuffer = ''
     let incompleteLine = ''
     let lastLineIsIncomplete = true
