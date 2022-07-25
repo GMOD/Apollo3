@@ -211,7 +211,6 @@ function AccountCard({
         uniqueId: contig._id,
         start: 0,
         end: contig.length,
-        seq: '',
       }))
       const assemblyConfig = {
         name: assembly._id,
@@ -221,7 +220,7 @@ function AccountCard({
           trackId: `sequenceConfigId-${assembly.name}`,
           type: 'ReferenceSequenceTrack',
           adapter: {
-            type: 'FromConfigSequenceAdapter',
+            type: 'FromConfigRegionsAdapter',
             features,
           },
         },
