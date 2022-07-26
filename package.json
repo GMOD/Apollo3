@@ -3,7 +3,7 @@
   "description": "Monorepo containing Apollo front and back end code",
   "version": "0.0.1",
   "repository": "git@github.com:GMOD/jbrowse-plugin-apollo.git",
-  "packageManager": "yarn@3.1.0",
+  "packageManager": "yarn@3.2.2",
   "workspaces": [
     "packages/*"
   ],
@@ -40,10 +40,10 @@
     "prettier": "^2.4.1",
     "prettier-plugin-import-sort": "^0.0.7",
     "react": "^17.0.2",
-    "typescript": "4.4.4"
+    "typescript": "^4.7.4"
   },
   "resolutions": {
-    "typescript": "4.4.4"
+    "typescript": "^4.7.4"
   },
   "private": true
 }
