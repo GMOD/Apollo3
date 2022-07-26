@@ -4152,7 +4152,6 @@ __metadata:
   resolution: "apollo3@workspace:."
   dependencies:
     "@babel/eslint-parser": ^7.14.7
-    "@mui/icons-material": ^5.8.4
     "@typescript-eslint/eslint-plugin": ^4.0.0
     "@typescript-eslint/parser": ^4.0.0
     eslint: ^7.5.0
@@ -4176,7 +4175,6 @@ __metadata:
     prettier: ^2.4.1
     prettier-plugin-import-sort: ^0.0.7
     react: ^17.0.2
-    react-collapsed: ^3.3.2
     typescript: ^4.7.4
   languageName: unknown
   linkType: soft
@@ -8890,7 +8888,6 @@ __metadata:
     mobx-state-tree: ^5.1.5
     npm-run-all: 4.1.5
     react: ^17.0.2
-    react-collapsed: ^3.3.2
     regenerator-runtime: ^0.13.9
     rimraf: ^3.0.2
     rollup: ^2.59.0
@@ -11753,15 +11750,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"raf@npm:^3.4.1":
-  version: 3.4.1
-  resolution: "raf@npm:3.4.1"
-  dependencies:
-    performance-now: ^2.1.0
-  checksum: 50ba284e481c8185dbcf45fc4618ba3aec580bb50c9121385d5698cb6012fe516d2015b1df6dd407a7b7c58d44be8086108236affbce1861edd6b44637c8cd52
-  languageName: node
-  linkType: hard
-
 "ramda@npm:~0.27.1":
   version: 0.27.2
   resolution: "ramda@npm:0.27.2"
@@ -11834,19 +11822,6 @@ __metadata:
   bin:
     rc: ./cli.js
   checksum: 2e26e052f8be2abd64e6d1dabfbd7be03f80ec18ccbc49562d31f617d0015fbdbcf0f9eed30346ea6ab789e0fdfe4337f033f8016efdbee0df5354751842080e
-  languageName: node
-  linkType: hard
-
-"react-collapsed@npm:^3.3.2":
-  version: 3.3.2
-  resolution: "react-collapsed@npm:3.3.2"
-  dependencies:
-    raf: ^3.4.1
-    tiny-warning: ^1.0.3
-  peerDependencies:
-    react: ">=16.8"
-    react-dom: ">=16.8"
-  checksum: 066763d9f6c53ffc2faef50dc2820292709d5d7c9c9d995b8783268b1c00a8378cb672425837894bf8c4fff44359f94fab1d62a0c4b78005ea744a21a085f1c0
   languageName: node
   linkType: hard
 
@@ -13503,13 +13478,6 @@ __metadata:
   version: 2.3.8
   resolution: "through@npm:2.3.8"
   checksum: a38c3e059853c494af95d50c072b83f8b676a9ba2818dcc5b108ef252230735c54e0185437618596c790bbba8fcdaef5b290405981ffa09dce67b1f1bf190cbd
-  languageName: node
-  linkType: hard
-
-"tiny-warning@npm:^1.0.3":
-  version: 1.0.3
-  resolution: "tiny-warning@npm:1.0.3"
-  checksum: da62c4acac565902f0624b123eed6dd3509bc9a8d30c06e017104bedcf5d35810da8ff72864400ad19c5c7806fc0a8323c68baf3e326af7cb7d969f846100d71
   languageName: node
   linkType: hard
 
