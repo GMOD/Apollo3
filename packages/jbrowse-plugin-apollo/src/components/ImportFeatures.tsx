@@ -8,7 +8,8 @@ import {
   DialogTitle,
   MenuItem,
   Select,
-} from '@material-ui/core'
+  SelectChangeEvent,
+} from '@mui/material'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
@@ -40,12 +41,7 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
   const [assemblyId, setAssemblyId] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
 
-  function handleChangeAssembly(
-    e: React.ChangeEvent<{
-      name?: string | undefined
-      value: unknown
-    }>,
-  ) {
+  function handleChangeAssembly(e: SelectChangeEvent<string>) {
     setAssemblyId(e.target.value as string)
     setAssemblyName(
       collection.find((i) => i._id === e.target.value)?.name as string,

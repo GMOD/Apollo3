@@ -1,3 +1,4 @@
+import WarningIcon from '@mui/icons-material/Warning'
 import {
   Card,
   CardActionArea,
@@ -7,12 +8,11 @@ import {
   SvgIcon,
   SvgIconProps,
   Typography,
-  makeStyles,
-} from '@material-ui/core'
-import WarningIcon from '@material-ui/icons/Warning'
+} from '@mui/material'
 import clsx from 'clsx'
 import { observer } from 'mobx-react'
 import React from 'react'
+import { makeStyles } from 'tss-react/mui'
 
 interface WelcomeProps {
   setEditorType(type?: 'local' | 'collaboration'): void
@@ -34,7 +34,7 @@ function AccountGroupIcon(props: SvgIconProps) {
   )
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   root: {
     display: 'flex',
     alignItems: 'center',
@@ -65,7 +65,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 function Welcome({ setEditorType }: WelcomeProps) {
-  const classes = useStyles()
+  const { classes } = useStyles()
   return (
     <div className={classes.root}>
       <img

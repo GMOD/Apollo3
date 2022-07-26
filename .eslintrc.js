@@ -9,7 +9,7 @@ module.exports = {
   plugins: ['eslint-plugin-tsdoc'],
   settings: {
     react: {
-      version: 'latest',
+      version: 'detect',
     },
   },
   parserOptions: {
