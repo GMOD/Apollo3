@@ -139,20 +139,17 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
       let msg
 
       // Get changes
-      const uri = new URL('/changes/getChange', baseURL).href
+      const url = new URL('changes', baseURL)
+      const searchParams = new URLSearchParams({ assemblyId })
+      url.search = searchParams.toString()
+      const uri = url.toString()
       const apolloFetch = apolloInternetAccount?.getFetcher({
         locationType: 'UriLocation',
         uri,
       })
       if (apolloFetch) {
         const res = await apolloFetch(uri, {
-          method: 'POST',
-          body: JSON.stringify({
-            assemblyId,
-          }),
-          headers: new Headers({
-            'Content-Type': 'application/json',
-          }),
+          headers: new Headers({ 'Content-Type': 'application/json' }),
         })
         if (!res.ok) {
           try {

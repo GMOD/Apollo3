@@ -15,7 +15,7 @@ export class ChangesController {
    * @returns Return 'HttpStatus.OK' if featureId was found AND oldEndValue matched AND database update was successfull. Otherwise throw exception.
    */
   @UseGuards(JwtAuthGuard)
-  @Post('/submitChange')
+  @Post()
   async submitChange(@Body() serializedChange: SerializedChange) {
     this.logger.debug(
       `Requested type: ${
@@ -26,8 +26,8 @@ export class ChangesController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('/getChange')
-  async getChange(@Body() changeFilter: ChangeFilter) {
+  @Get()
+  async getChange(@Query() changeFilter: ChangeFilter) {
     this.logger.debug(`ChangeFilter: ${JSON.stringify(changeFilter)}`)
     const chg = await this.changesService.findChange(changeFilter)
     return chg

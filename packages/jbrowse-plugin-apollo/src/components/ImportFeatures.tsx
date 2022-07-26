@@ -143,7 +143,7 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
     }
 
     // Add features
-    const uri = new URL('/changes/submitChange', baseURL).href
+    const uri = new URL('changes', baseURL).href
     const apolloFetch = apolloInternetAccount?.getFetcher({
       locationType: 'UriLocation',
       uri,

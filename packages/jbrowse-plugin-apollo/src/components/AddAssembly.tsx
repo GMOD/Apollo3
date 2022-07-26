@@ -105,7 +105,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
     }
 
     // Add assembly and refSeqs
-    const uri = new URL('/changes/submitChange', baseURL).href
+    const uri = new URL('changes', baseURL).href
     const apolloFetch = apolloInternetAccount?.getFetcher({
       locationType: 'UriLocation',
       uri,
