@@ -22,7 +22,6 @@ import {
   AddAssemblyAndFeaturesFromFileChange,
   AddAssemblyFromFileChange,
   AddFeaturesFromFileChange,
-  ChangeFilter,
   CoreValidation,
   LocationEndChange,
   LocationStartChange,
@@ -36,6 +35,7 @@ import { Model } from 'mongoose'
 
 import { FilesService } from '../files/files.service'
 import { CreateChangeDto } from './dto/create-change.dto'
+import { FindChangeDto } from './dto/find-change.dto'
 
 export class ChangesService {
   constructor(
@@ -142,7 +142,7 @@ export class ChangesService {
     return { change: changeDocId }
   }
 
-  async findChange(changeFilter: ChangeFilter) {
+  async findChange(changeFilter: FindChangeDto) {
     // Search correct feature
     const queryCond: any = {}
     if (changeFilter.assemblyId) {

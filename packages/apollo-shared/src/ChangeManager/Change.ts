@@ -45,12 +45,6 @@ export interface SerializedChange {
   assemblyId: string
 }
 
-export interface ChangeFilter {
-  assemblyId: string
-  typeName: string
-  userName: string
-}
-
 export type DataStore = ServerDataStore | LocalGFF3DataStore | ClientDataStore
 
 export interface ChangeOptions {
