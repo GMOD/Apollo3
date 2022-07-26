@@ -2,7 +2,7 @@
   "name": "apollo-shared",
   "main": "./dist/index.js",
   "scripts": {
-    "start": "yarn clean && tsc --build --watch",
+    "start": "tsc --build --watch",
     "build": "yarn clean && tsc --build",
     "clean": "rimraf dist"
   },

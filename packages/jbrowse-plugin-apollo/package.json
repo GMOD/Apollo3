@@ -27,7 +27,7 @@
     "setup": "rimraf .jbrowse && jbrowse create .jbrowse",
     "clean": "rimraf dist",
     "start": "yarn clean && npm-run-all --parallel start:watch start:server",
-    "start:watch": "yarn build:shared && JB_NPM=false NODE_ENV=development rollup --config --watch",
+    "start:watch": "JB_NPM=false NODE_ENV=development rollup --config --watch",
     "start:server": "serve --cors --listen 9000 .",
     "build": "yarn build:shared && yarn clean && rollup --config",
     "browse": "cp jbrowse_config.json .jbrowse/config.json && serve --listen 8999 .jbrowse",
