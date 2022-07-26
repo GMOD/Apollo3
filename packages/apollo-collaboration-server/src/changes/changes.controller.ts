@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Logger, Post, UseGuards } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  Logger,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common'
 import { SerializedChange } from 'apollo-shared'
 
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
@@ -17,25 +25,19 @@ export class ChangesController {
    */
   @UseGuards(JwtAuthGuard)
   @Post()
-  async submitChange(@Body() serializedChange: SerializedChange) {
+  async create(@Body() serializedChange: SerializedChange) {
     this.logger.debug(
       `Requested type: ${
         serializedChange.typeName
       }, the whole change: ${JSON.stringify(serializedChange)}`,
     )
-    return this.changesService.submitChange(serializedChange)
+    return this.changesService.create(serializedChange)
   }
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async getChange(@Query() changeFilter: FindChangeDto) {
+  async findAll(@Query() changeFilter: FindChangeDto) {
     this.logger.debug(`ChangeFilter: ${JSON.stringify(changeFilter)}`)
-    const chg = await this.changesService.findChange(changeFilter)
-    return chg
-  }
-
-  @Get('/getChangeTypes')
-  findChangeTypes() {
-    return this.changesService.getChangeTypes()
+    return this.changesService.findAll(changeFilter)
   }
 }

@@ -76,7 +76,7 @@ export class ChangesService {
     new ParentChildValidation(),
   ])
 
-  async submitChange(serializedChange: SerializedChange) {
+  async create(serializedChange: SerializedChange) {
     const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
     const change = new ChangeType(serializedChange, { logger: this.logger })
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
@@ -92,7 +92,7 @@ export class ChangesService {
       )
     }
 
-    let changeDocId
+    let changeDoc: ChangeDocument | undefined
     await this.featureModel.db.transaction(async (session) => {
       try {
         await change.apply({
@@ -123,7 +123,7 @@ export class ChangesService {
         [changeEntry],
         { session },
       )
-      changeDocId = savedChangedLogDoc._id
+      changeDoc = savedChangedLogDoc
       const validationResult2 = await this.validations.backendPostValidate(
         change,
         { featureModel: this.featureModel, session },
@@ -138,50 +138,19 @@ export class ChangesService {
         )
       }
     })
-    this.logger.debug(`ChangeDocId: ${changeDocId}`)
-    return { change: changeDocId }
+    this.logger.debug(`ChangeDocId: ${changeDoc?._id}`)
+    return changeDoc
   }
 
-  async findChange(changeFilter: FindChangeDto) {
-    // Search correct feature
-    const queryCond: any = {}
-    if (changeFilter.assemblyId) {
-      queryCond.assembly = changeFilter.assemblyId
-    }
-    if (changeFilter.typeName) {
-      queryCond.typeName = changeFilter.typeName
-    }
-    if (changeFilter.userName) {
-      queryCond.user = { $regex: `${changeFilter.userName}`, $options: 'i' }
+  async findAll(changeFilter: FindChangeDto) {
+    const queryCond = {
+      ...changeFilter,
+      user: changeFilter.user && {
+        $regex: `${changeFilter.user}`,
+        $options: 'i',
+      },
     }
     this.logger.debug(`Search criteria: "${JSON.stringify(queryCond)}"`)
-
-    // // ********** BEGIN  ******* JOIN COLLECTION TEST **************
-    // const change2 = await this.changeModel
-    //   .aggregate([
-    //     // { $match: { "assembly": new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028')} }, *** WORKS FINE ***
-    //     {
-    //       $match: {
-    //         assembly: new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028'),
-    //         typeName: 'LocationEndChange',
-    //       },
-    //     }, //* ** WORKS FINE ***
-    //     // { $match: { "assembly": new mongoose.Types.ObjectId('62c5c9d433d0d0b97ef20028'), "typeName":""} },  *** NO DATA FOUND ***
-    //     {
-    //       $lookup: {
-    //         localField: 'assembly',
-    //         from: 'assemblies',
-    //         foreignField: '_id',
-    //         as: 'assemblyName',
-    //       },
-    //     },
-    //   ])
-    //   .exec()
-    // this.logger.debug(
-    //   `******************* CHANGE: "${JSON.stringify(change2)}"`,
-    // )
-    // return change2
-    // //* **** END  ******* JOIN COLLECTION TEST **************
 
     const change = await this.changeModel
       .find(queryCond)
@@ -195,10 +164,5 @@ export class ChangesService {
     }
 
     return change
-  }
-
-  async getChangeTypes() {
-    const changeTypes = await this.changeModel.distinct('typeName').exec()
-    return changeTypes
   }
 }

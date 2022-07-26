@@ -1,4 +1,5 @@
 import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import UndoIcon from '@mui/icons-material/Undo'
 import {
   Button,
   Dialog,
@@ -8,8 +9,8 @@ import {
   DialogTitle,
   MenuItem,
   Select,
-} from '@material-ui/core'
-import UndoIcon from '@material-ui/icons/Undo'
+  SelectChangeEvent,
+} from '@mui/material'
 import {
   DataGrid,
   GridActionsCellItem,
@@ -27,7 +28,7 @@ interface ViewChangeLogProps {
   handleClose(): void
 }
 
-interface Collection {
+interface AssemblyDocument {
   _id: string
   name: string
 }
@@ -41,22 +42,26 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
     throw new Error('No Apollo internet account found')
   }
   const { baseURL } = apolloInternetAccount
-  const [errorMessage, setErrorMessage] = useState('')
-  const [assemblyCollection, setAssemblyCollection] = useState<Collection[]>([])
-  const [assemblyId, setAssemblyId] = useState('')
+  const [errorMessage, setErrorMessage] = useState<string>()
+  const [assemblyCollection, setAssemblyCollection] = useState<
+    AssemblyDocument[]
+  >([])
+  const [assemblyId, setAssemblyId] = useState<string>()
   const [displayGridData, setDisplayGridData] = useState<GridRowsProp[]>([])
 
   const gridColumns: GridColumns = [
     {
       field: 'actions',
       type: 'actions',
-      width: 80,
+      width: 40,
       getActions: (/* params */) => [
         <GridActionsCellItem
           icon={<UndoIcon />}
           label="Undo"
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
-          onClick={() => {}}
+          onClick={() => {
+            // eslint-disable-next-line no-console
+            console.log('click')
+          }}
           disabled
           showInMenu
         />,
@@ -67,6 +72,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
       headerName: 'Change type',
       width: 200,
       type: 'singleSelect',
+      // TODO: Get these from change manager once it's on the session
       valueOptions: [
         'AddAssemblyFromFileChange',
         'AddFeaturesFromFileChange',
@@ -84,11 +90,11 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
       ),
       valueFormatter: ({ value }) => JSON.stringify(value),
     },
-    { field: 'user', headerName: 'User', width: 100 },
+    { field: 'user', headerName: 'User', width: 140 },
     {
       field: 'createdAt',
       headerName: 'Time',
-      width: 200,
+      width: 160,
       type: 'dateTime',
       valueGetter: ({ value }) => value && new Date(value),
     },
@@ -119,23 +125,24 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
           )
           return
         }
-        const data = await response.json()
-        data.forEach((item: Collection) => {
-          setAssemblyCollection((result) => [
-            ...result,
-            {
-              _id: item._id,
-              name: item.name,
-            },
-          ])
-        })
+        const data = (await response.json()) as AssemblyDocument[]
+        setAssemblyCollection(data)
       }
     }
     getAssemblies()
   }, [apolloInternetAccount, baseURL])
 
   useEffect(() => {
+    if (!assemblyId && assemblyCollection.length) {
+      setAssemblyId(assemblyCollection[0]._id)
+    }
+  }, [assemblyId, assemblyCollection])
+
+  useEffect(() => {
     async function getGridData() {
+      if (!assemblyId) {
+        return
+      }
       let msg
 
       // Get changes
@@ -169,21 +176,9 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
       }
     }
     getGridData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assemblyId])
+  }, [assemblyId, apolloInternetAccount, baseURL])
 
-  useEffect(() => {
-    if (assemblyCollection.length === 1) {
-      setAssemblyId(assemblyCollection[0]._id)
-    }
-  }, [assemblyCollection])
-
-  async function handleChangeAssembly(
-    e: React.ChangeEvent<{
-      name?: string | undefined
-      value: unknown
-    }>,
-  ) {
+  async function handleChangeAssembly(e: SelectChangeEvent<string>) {
     setAssemblyId(e.target.value as string)
   }
 
@@ -191,9 +186,8 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
     <Dialog open maxWidth="xl" data-testid="login-apollo" fullScreen>
       <DialogTitle>
         View change log
-        <div style={{ width: 100 }} />
         <Select
-          style={{ width: 200 }}
+          style={{ width: 200, marginLeft: 40 }}
           value={assemblyId}
           onChange={handleChangeAssembly}
         >
