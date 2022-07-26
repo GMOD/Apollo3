@@ -66,12 +66,12 @@ export class ChangesService {
       'AddFeaturesFromFileChange',
       AddFeaturesFromFileChange,
     )
-    changeRegistry.registerChange('LocationEndChange', LocationEndChange)
-    changeRegistry.registerChange('LocationStartChange', LocationStartChange)
     changeRegistry.registerChange(
       'CopyFeaturesAndAnnotationsChange',
       CopyFeaturesAndAnnotationsChange,
     )
+    changeRegistry.registerChange('LocationEndChange', LocationEndChange)
+    changeRegistry.registerChange('LocationStartChange', LocationStartChange)
     changeRegistry.registerChange('TypeChange', TypeChange)
   }
 

@@ -94,49 +94,39 @@ export class CopyFeaturesAndAnnotationsChange extends FeatureChange {
         `*** Feature found: ${JSON.stringify(topLevelFeature)}`,
       )
 
-      const jsonArray = JSON.parse(`[${JSON.stringify(topLevelFeature)}]`)
+      const newFeatureId = uuidv4() // Set new featureId in target assembly
+      const featureIds = [newFeatureId]
+      topLevelFeature._id = new ObjectID() // Set new doc id
+      topLevelFeature.featureId = newFeatureId // Set new featureId in top level
 
-      for (const featureLine of jsonArray) {
-        const newFeatureId = uuidv4() // Set new featureId in target assembly
-        const featureIds = [newFeatureId]
-        featureLine._id = new ObjectID() // Set new doc id
-        featureLine.featureId = newFeatureId // Set new featureId in top level
-
-        const refSeqDoc = await refSeqModel
-          .findOne({ assembly: targetAssemblyId, name: featureLine.seq_id })
-          .session(session)
-          .exec()
-        if (!refSeqDoc) {
-          throw new Error(
-            `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${featureLine.seq_id}" not found`,
-          )
-        }
-        featureLine.refSeq = refSeqDoc._id // Set new reference seq id from target assembly
-
-        // Let's add featureId to each child recursively
-        const newFeatureLine = await this.setAndGetFeatureIdRecursively(
-          { ...featureLine, newFeatureId },
-          featureIds,
+      const refSeqDoc = await refSeqModel
+        .findOne({ assembly: targetAssemblyId, name: topLevelFeature.seq_id })
+        .session(session)
+        .exec()
+      if (!refSeqDoc) {
+        throw new Error(
+          `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${topLevelFeature.seq_id}" not found`,
         )
-        const newFeatureWithAllFeatureIds: any = newFeatureLine as unknown
-        newFeatureWithAllFeatureIds.featureIds = featureIds
-        this.logger.verbose?.(`New featureIds: ${featureIds}`)
-        this.logger.verbose?.(`New assemblyId: ${targetAssemblyId}`)
-        this.logger.verbose?.(`New refSeqId: ${refSeqDoc._id}`)
-        this.logger.verbose?.(`New featureId: ${newFeatureLine.featureId}`)
-        this.logger.verbose?.(`New feature: ${JSON.stringify(newFeatureLine)}`)
-
-        // Add into Mongo
-        const [newFeatureDoc] = await featureModel.create(
-          [
-            {
-              ...newFeatureWithAllFeatureIds,
-            },
-          ],
-          { session },
-        )
-        this.logger.debug?.(`Added new feature, docId "${newFeatureDoc._id}"`)
       }
+      topLevelFeature.refSeq = refSeqDoc._id // Set new reference seq id from target assembly
+
+      // Let's add featureId to each child recursively
+      const newFeatureLine = this.setAndGetFeatureIdRecursively(
+        { ...topLevelFeature, featureId: newFeatureId },
+        featureIds,
+      )
+      this.logger.verbose?.(`New featureIds: ${featureIds}`)
+      this.logger.verbose?.(`New assemblyId: ${targetAssemblyId}`)
+      this.logger.verbose?.(`New refSeqId: ${refSeqDoc._id}`)
+      this.logger.verbose?.(`New featureId: ${newFeatureLine.featureId}`)
+      this.logger.verbose?.(`New feature: ${JSON.stringify(newFeatureLine)}`)
+
+      // Add into Mongo
+      const [newFeatureDoc] = await featureModel.create(
+        [{ ...newFeatureLine, featureIds }],
+        { session },
+      )
+      this.logger.debug?.(`Added new feature, docId "${newFeatureDoc._id}"`)
     }
   }
 

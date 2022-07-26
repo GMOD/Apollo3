@@ -13,6 +13,7 @@ import { AbstractSessionModel, isAbstractMenuManager } from '@jbrowse/core/util'
 import {
   AddAssemblyFromFileChange,
   AddFeaturesFromFileChange,
+  CopyFeaturesAndAnnotationsChange,
   LocationEndChange,
   LocationStartChange,
   TypeChange,
@@ -51,6 +52,10 @@ changeRegistry.registerChange(
 changeRegistry.registerChange(
   'AddFeaturesFromFileChange',
   AddFeaturesFromFileChange,
+)
+changeRegistry.registerChange(
+  'CopyFeaturesAndAnnotationsChange',
+  CopyFeaturesAndAnnotationsChange,
 )
 changeRegistry.registerChange('LocationEndChange', LocationEndChange)
 changeRegistry.registerChange('LocationStartChange', LocationStartChange)
