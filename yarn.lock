@@ -4127,6 +4127,7 @@ __metadata:
     "@types/rimraf": ^3
     "@types/uuid": ^8
     apollo-schemas: "workspace:^"
+    bson: ^4.6.5
     mobx-state-tree: ^5.1.5
     mongoose: ^6.2.10
     regenerator-runtime: ^0.13.9
@@ -4902,7 +4903,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bson@npm:^4.6.2, bson@npm:^4.6.3":
+"bson@npm:^4.6.2, bson@npm:^4.6.3, bson@npm:^4.6.5":
   version: 4.6.5
   resolution: "bson@npm:4.6.5"
   dependencies:
