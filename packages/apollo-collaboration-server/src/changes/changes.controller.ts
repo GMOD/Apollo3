@@ -1,8 +1,17 @@
-import { Body, Controller, Logger, Post, UseGuards } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  Logger,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common'
 import { SerializedChange } from 'apollo-shared'
 
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { ChangesService } from './changes.service'
+import { FindChangeDto } from './dto/find-change.dto'
 
 @Controller('changes')
 export class ChangesController {
@@ -15,13 +24,20 @@ export class ChangesController {
    * @returns Return 'HttpStatus.OK' if featureId was found AND oldEndValue matched AND database update was successfull. Otherwise throw exception.
    */
   @UseGuards(JwtAuthGuard)
-  @Post('/submitChange')
-  async submitChange(@Body() serializedChange: SerializedChange) {
+  @Post()
+  async create(@Body() serializedChange: SerializedChange) {
     this.logger.debug(
       `Requested type: ${
         serializedChange.typeName
       }, the whole change: ${JSON.stringify(serializedChange)}`,
     )
-    return this.changesService.submitChange(serializedChange)
+    return this.changesService.create(serializedChange)
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  async findAll(@Query() changeFilter: FindChangeDto) {
+    this.logger.debug(`ChangeFilter: ${JSON.stringify(changeFilter)}`)
+    return this.changesService.findAll(changeFilter)
   }
 }

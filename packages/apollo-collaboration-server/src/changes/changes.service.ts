@@ -1,4 +1,8 @@
-import { Logger, UnprocessableEntityException } from '@nestjs/common'
+import {
+  Logger,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
   Assembly,
@@ -31,6 +35,7 @@ import { Model } from 'mongoose'
 
 import { FilesService } from '../files/files.service'
 import { CreateChangeDto } from './dto/create-change.dto'
+import { FindChangeDto } from './dto/find-change.dto'
 
 export class ChangesService {
   constructor(
@@ -71,7 +76,7 @@ export class ChangesService {
     new ParentChildValidation(),
   ])
 
-  async submitChange(serializedChange: SerializedChange) {
+  async create(serializedChange: SerializedChange) {
     const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
     const change = new ChangeType(serializedChange, { logger: this.logger })
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
@@ -87,7 +92,7 @@ export class ChangesService {
       )
     }
 
-    let changeDocId
+    let changeDoc: ChangeDocument | undefined
     await this.featureModel.db.transaction(async (session) => {
       try {
         await change.apply({
@@ -118,7 +123,7 @@ export class ChangesService {
         [changeEntry],
         { session },
       )
-      changeDocId = savedChangedLogDoc._id
+      changeDoc = savedChangedLogDoc
       const validationResult2 = await this.validations.backendPostValidate(
         change,
         { featureModel: this.featureModel, session },
@@ -133,7 +138,31 @@ export class ChangesService {
         )
       }
     })
-    this.logger.debug(`ChangeDocId: ${changeDocId}`)
-    return { change: changeDocId }
+    this.logger.debug(`ChangeDocId: ${changeDoc?._id}`)
+    return changeDoc
+  }
+
+  async findAll(changeFilter: FindChangeDto) {
+    const queryCond = {
+      ...changeFilter,
+      user: changeFilter.user && {
+        $regex: `${changeFilter.user}`,
+        $options: 'i',
+      },
+    }
+    this.logger.debug(`Search criteria: "${JSON.stringify(queryCond)}"`)
+
+    const change = await this.changeModel
+      .find(queryCond)
+      .sort({ createdAt: -1 })
+      .exec()
+
+    if (!change) {
+      const errMsg = `ERROR: The following change was not found in database....`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+
+    return change
   }
 }

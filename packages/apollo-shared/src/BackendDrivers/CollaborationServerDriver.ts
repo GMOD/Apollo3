@@ -118,7 +118,7 @@ export class CollaborationServerDriver extends BackendDriver {
 
   async submitChange(change: Change) {
     const { baseURL } = this
-    const url = new URL('changes/submitChange', baseURL).href
+    const url = new URL('changes', baseURL).href
     const response = await this.fetch(url, {
       method: 'POST',
       body: JSON.stringify(change.toJSON()),
