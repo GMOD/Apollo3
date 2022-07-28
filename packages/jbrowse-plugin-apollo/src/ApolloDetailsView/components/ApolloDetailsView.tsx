@@ -1,4 +1,5 @@
-import { Autocomplete, TextField } from '@mui/material'
+import CloseIcon from '@mui/icons-material/Close'
+import { Autocomplete, IconButton, TextField } from '@mui/material'
 import {
   DataGrid,
   GridColumns,
@@ -96,7 +97,12 @@ function AutocompleteInputCell(props: GridRenderEditCellParams) {
 
 export const ApolloDetailsView = observer(
   ({ model }: { model: ApolloDetailsViewModel }) => {
-    const { selectedFeature, getAssemblyId, changeManager } = model
+    const {
+      selectedFeature,
+      setSelectedFeature,
+      getAssemblyId,
+      changeManager,
+    } = model
     if (!selectedFeature) {
       return <div>click on a feature to see details</div>
     }
@@ -186,7 +192,16 @@ export const ApolloDetailsView = observer(
       return newRow
     }
     return (
-      <div style={{ width: '100%' }}>
+      <div style={{ width: '100%', position: 'relative' }}>
+        <IconButton
+          aria-label="close"
+          style={{ position: 'absolute', right: 0, zIndex: 1 }}
+          onClick={() => {
+            setSelectedFeature(undefined)
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
         <DataGrid
           autoHeight
           rows={selectedFeatureRows}
