@@ -8,18 +8,18 @@ import {
   DialogTitle,
   MenuItem,
   Select,
-} from '@material-ui/core'
+  SelectChangeEvent,
+} from '@mui/material'
 import { getRoot } from 'mobx-state-tree'
-import { model } from 'mobx-state-tree/dist/internal'
 import React, { useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 
-interface CopyFeaturesAndAnnotationsProps {
+interface CopyFeatureProps {
   session: AbstractSessionModel
   handleClose(): void
-  sourceFeatureId: any
-  sourceAssemblyId: any
+  sourceFeatureId: string
+  sourceAssemblyId: string
 }
 
 interface Collection {
@@ -27,12 +27,12 @@ interface Collection {
   name: string
 }
 
-export function CopyFeaturesAndAnnotations({
+export function CopyFeature({
   session,
   handleClose,
   sourceFeatureId,
   sourceAssemblyId,
-}: CopyFeaturesAndAnnotationsProps) {
+}: CopyFeatureProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const { notify } = session
   const apolloInternetAccount = internetAccounts.find(
@@ -47,12 +47,7 @@ export function CopyFeaturesAndAnnotations({
   const [assemblyId, setAssemblyId] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
 
-  function handleChangeAssembly(
-    e: React.ChangeEvent<{
-      name?: string | undefined
-      value: unknown
-    }>,
-  ) {
+  function handleChangeAssembly(e: SelectChangeEvent<string>) {
     setAssemblyId(e.target.value as string)
     setAssemblyName(
       collection.find((i) => i._id === e.target.value)?.name as string,
@@ -99,7 +94,6 @@ export function CopyFeaturesAndAnnotations({
         })
       }
     }
-    console.log(`Source assembly "${sourceAssemblyId}" and source feature "${sourceFeatureId}"`)
     getAssemblies()
     return () => {
       setCollection([{ _id: '', name: '' }])
@@ -112,7 +106,7 @@ export function CopyFeaturesAndAnnotations({
     let msg
 
     // Add features
-    const uri = new URL('/changes/submitChange', baseURL).href
+    const uri = new URL('changes', baseURL).href
     const apolloFetch = apolloInternetAccount?.getFetcher({
       locationType: 'UriLocation',
       uri,
@@ -122,14 +116,12 @@ export function CopyFeaturesAndAnnotations({
         method: 'POST',
         body: JSON.stringify({
           changedIds: ['1'],
-          typeName: 'CopyFeaturesAndAnnotationsChange',
+          typeName: 'CopyFeatureChange',
           assemblyId: sourceAssemblyId,
           featureId: sourceFeatureId,
           targetAssemblyId: assemblyId,
         }),
-        headers: new Headers({
-          'Content-Type': 'application/json',
-        }),
+        headers: new Headers({ 'Content-Type': 'application/json' }),
       })
       if (!res.ok) {
         try {
