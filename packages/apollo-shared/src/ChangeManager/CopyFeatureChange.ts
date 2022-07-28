@@ -9,53 +9,52 @@ import {
   SerializedChange,
   ServerDataStore,
 } from './Change'
-import { FeatureChange } from './FeatureChange'
+import {
+  FeatureChange,
+  GFF3FeatureLineWithFeatureIdAndOptionalRefs,
+} from './FeatureChange'
 import { generateObjectId } from '..'
 
-interface SerializedCopyFeaturesAndAnnotationsChangeBase
-  extends SerializedChange {
-  typeName: 'CopyFeaturesAndAnnotationsChange'
+interface SerializedCopyFeatureChangeBase extends SerializedChange {
+  typeName: 'CopyFeatureChange'
 }
 
-export interface CopyFeaturesAndAnnotationsChangeDetails {
+export interface CopyFeatureChangeDetails {
   featureId: string
   targetAssemblyId: string
 }
 
-interface SerializedCopyFeaturesAndAnnotationsChangeSingle
-  extends SerializedCopyFeaturesAndAnnotationsChangeBase,
-    CopyFeaturesAndAnnotationsChangeDetails {}
+interface SerializedCopyFeatureChangeSingle
+  extends SerializedCopyFeatureChangeBase,
+    CopyFeatureChangeDetails {}
 
-interface SerializedCopyFeaturesAndAnnotationsChangeMultiple
-  extends SerializedCopyFeaturesAndAnnotationsChangeBase {
-  changes: CopyFeaturesAndAnnotationsChangeDetails[]
+interface SerializedCopyFeatureChangeMultiple
+  extends SerializedCopyFeatureChangeBase {
+  changes: CopyFeatureChangeDetails[]
 }
 
-type SerializedCopyFeaturesAndAnnotationsChange =
-  | SerializedCopyFeaturesAndAnnotationsChangeSingle
-  | SerializedCopyFeaturesAndAnnotationsChangeMultiple
+type SerializedCopyFeatureChange =
+  | SerializedCopyFeatureChangeSingle
+  | SerializedCopyFeatureChangeMultiple
 
-export class CopyFeaturesAndAnnotationsChange extends FeatureChange {
-  typeName = 'CopyFeaturesAndAnnotationsChange' as const
-  changes: CopyFeaturesAndAnnotationsChangeDetails[]
+export class CopyFeatureChange extends FeatureChange {
+  typeName = 'CopyFeatureChange' as const
+  changes: CopyFeatureChangeDetails[]
 
-  constructor(
-    json: SerializedCopyFeaturesAndAnnotationsChange,
-    options?: ChangeOptions,
-  ) {
+  constructor(json: SerializedCopyFeatureChange, options?: ChangeOptions) {
     super(json, options)
     this.changes = 'changes' in json ? json.changes : [json]
   }
 
-  toJSON(): SerializedCopyFeaturesAndAnnotationsChange {
+  toJSON(): SerializedCopyFeatureChange {
     if (this.changes.length === 1) {
-      const [{ featureId, targetAssemblyId: TargetAssemblyId }] = this.changes
+      const [{ featureId, targetAssemblyId }] = this.changes
       return {
         typeName: this.typeName,
         changedIds: this.changedIds,
         assemblyId: this.assemblyId,
         featureId,
-        targetAssemblyId: TargetAssemblyId,
+        targetAssemblyId,
       }
     }
     return {
@@ -90,17 +89,28 @@ export class CopyFeaturesAndAnnotationsChange extends FeatureChange {
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
-      this.logger.debug?.(
-        `*** Feature found: ${JSON.stringify(topLevelFeature)}`,
+      // this.logger.debug?.(
+      //   `*** Feature found: ${JSON.stringify(topLevelFeature)}`,
+      // )
+
+      const topLevelFeatureObject =
+        topLevelFeature.toObject() as GFF3FeatureLineWithFeatureIdAndOptionalRefs
+      const newFeature = this.getObjectByFeatureId(
+        topLevelFeatureObject,
+        featureId,
       )
+      if (!newFeature) {
+        throw new Error(
+          `Feature ID "${featureId}" not found in parent feature "${topLevelFeature.featureId}"`,
+        )
+      }
 
       const newFeatureId = uuidv4() // Set new featureId in target assembly
       const featureIds = [newFeatureId]
-      topLevelFeature._id = generateObjectId() // Set new doc id
-      topLevelFeature.featureId = newFeatureId // Set new featureId in top level
+      newFeature.featureId = newFeatureId // Set new featureId in top level
 
       const refSeqDoc = await refSeqModel
-        .findOne({ assembly: targetAssemblyId, name: topLevelFeature.seq_id })
+        .findOne({ assembly: targetAssemblyId, name: newFeature.seq_id })
         .session(session)
         .exec()
       if (!refSeqDoc) {
@@ -108,22 +118,27 @@ export class CopyFeaturesAndAnnotationsChange extends FeatureChange {
           `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${topLevelFeature.seq_id}" not found`,
         )
       }
-      topLevelFeature.refSeq = refSeqDoc._id // Set new reference seq id from target assembly
 
       // Let's add featureId to each child recursively
       const newFeatureLine = this.setAndGetFeatureIdRecursively(
-        { ...topLevelFeature, featureId: newFeatureId },
+        newFeature,
         featureIds,
       )
       this.logger.verbose?.(`New featureIds: ${featureIds}`)
       this.logger.verbose?.(`New assemblyId: ${targetAssemblyId}`)
       this.logger.verbose?.(`New refSeqId: ${refSeqDoc._id}`)
       this.logger.verbose?.(`New featureId: ${newFeatureLine.featureId}`)
-      this.logger.verbose?.(`New feature: ${JSON.stringify(newFeatureLine)}`)
 
       // Add into Mongo
       const [newFeatureDoc] = await featureModel.create(
-        [{ ...newFeatureLine, featureIds }],
+        [
+          {
+            ...newFeatureLine,
+            _id: generateObjectId(),
+            refSeq: refSeqDoc._id,
+            featureIds,
+          },
+        ],
         { session },
       )
       this.logger.debug?.(`Added new feature, docId "${newFeatureDoc._id}"`)
@@ -159,7 +174,7 @@ export class CopyFeaturesAndAnnotationsChange extends FeatureChange {
         featureId: endChange.featureId,
         targetAssemblyId: endChange.targetAssemblyId,
       }))
-    return new CopyFeaturesAndAnnotationsChange(
+    return new CopyFeatureChange(
       {
         changedIds: inverseChangedIds,
         typeName: this.typeName,
@@ -171,11 +186,8 @@ export class CopyFeaturesAndAnnotationsChange extends FeatureChange {
   }
 }
 
-export function isCopyFeaturesAndAnnotationsChange(
+export function isCopyFeatureChange(
   change: unknown,
-): change is CopyFeaturesAndAnnotationsChange {
-  return (
-    (change as CopyFeaturesAndAnnotationsChange).typeName ===
-    'CopyFeaturesAndAnnotationsChange'
-  )
+): change is CopyFeatureChange {
+  return (change as CopyFeatureChange).typeName === 'CopyFeatureChange'
 }
