@@ -10,7 +10,6 @@
     "@gmod/gff": "^1.2.0",
     "@jbrowse/core": "^2.0.1",
     "apollo-schemas": "workspace:^",
-    "bson": "^4.6.5",
     "regenerator-runtime": "^0.13.9",
     "tslib": "^2.3.1",
     "uuid": "^8.3.2"

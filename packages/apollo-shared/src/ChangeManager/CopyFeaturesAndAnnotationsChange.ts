@@ -1,4 +1,3 @@
-import { ObjectID } from 'bson'
 import { resolveIdentifier } from 'mobx-state-tree'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -11,6 +10,7 @@ import {
   ServerDataStore,
 } from './Change'
 import { FeatureChange } from './FeatureChange'
+import { generateObjectId } from '..'
 
 interface SerializedCopyFeaturesAndAnnotationsChangeBase
   extends SerializedChange {
@@ -96,7 +96,7 @@ export class CopyFeaturesAndAnnotationsChange extends FeatureChange {
 
       const newFeatureId = uuidv4() // Set new featureId in target assembly
       const featureIds = [newFeatureId]
-      topLevelFeature._id = new ObjectID() // Set new doc id
+      topLevelFeature._id = generateObjectId() // Set new doc id
       topLevelFeature.featureId = newFeatureId // Set new featureId in top level
 
       const refSeqDoc = await refSeqModel
