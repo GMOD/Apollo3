@@ -124,7 +124,7 @@ export function stateModelFactory(pluginManager: PluginManager) {
       setDisplayName(displayName: string) {
         self.displayName = displayName
       },
-      setSelectedFeature(feature: AnnotationFeatureLocationI) {
+      setSelectedFeature(feature?: AnnotationFeatureLocationI) {
         self.selectedFeature = feature
       },
     }))

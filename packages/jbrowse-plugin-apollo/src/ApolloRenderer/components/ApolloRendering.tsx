@@ -1,4 +1,5 @@
-import { Region } from '@jbrowse/core/util'
+import { Region, getSession } from '@jbrowse/core/util'
+import { Menu, MenuItem } from '@mui/material'
 import {
   AnnotationFeatureLocationI,
   Change,
@@ -9,6 +10,7 @@ import { observer } from 'mobx-react'
 import { getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useRef, useState } from 'react'
 
+import { CopyFeature } from '../../components/CopyFeature'
 import { LinearApolloDisplay } from '../../LinearApolloDisplay/stateModel'
 
 interface ApolloRenderingProps {
@@ -19,7 +21,12 @@ interface ApolloRenderingProps {
   blockKey: string
 }
 
+type Coord = [number, number]
+
 function ApolloRendering(props: ApolloRenderingProps) {
+  const [contextCoord, setContextCoord] = useState<Coord>()
+  const [contextMenuFeatureId, setContextMenuFeatureId] = useState<string>()
+
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
   const [overEdge, setOverEdge] = useState<'start' | 'end'>()
@@ -33,6 +40,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const [movedDuringLastMouseDown, setMovedDuringLastMouseDown] =
     useState(false)
   const { regions, bpPerPx, displayModel } = props
+  const session = getSession(displayModel)
+
   const [region] = regions
   const totalWidth = (region.end - region.start) / bpPerPx
   const {
@@ -256,8 +265,49 @@ function ApolloRendering(props: ApolloRenderingProps) {
     setDragging(undefined)
     setMovedDuringLastMouseDown(false)
   }
+  function onContextMenu(event: React.MouseEvent) {
+    event.preventDefault()
+    setContextMenuFeatureId(apolloFeatureUnderMouse?.id)
+    setContextCoord([event.pageX, event.pageY])
+  }
+
   return (
     <div style={{ position: 'relative', width: totalWidth, height }}>
+      <Menu
+        open={Boolean(contextMenuFeatureId)}
+        anchorReference="anchorPosition"
+        anchorPosition={
+          contextCoord
+            ? { left: contextCoord[0], top: contextCoord[1] }
+            : undefined
+        }
+        data-testid="base_linear_display_context_menu"
+        onClose={() => {
+          setContextMenuFeatureId(undefined)
+        }}
+      >
+        <MenuItem
+          key={1}
+          value={2}
+          onClick={() => {
+            const currentAssemblyId = getAssemblyId(region.assemblyName)
+            session.queueDialog((doneCallback) => [
+              CopyFeature,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                sourceFeatureId: contextMenuFeatureId,
+                sourceAssemblyId: currentAssemblyId,
+              },
+            ])
+            setContextMenuFeatureId(undefined)
+          }}
+        >
+          {'Copy features and annotations'}
+        </MenuItem>
+      </Menu>
       <canvas
         ref={canvasRef}
         width={totalWidth}
@@ -272,6 +322,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
         onMouseLeave={onMouseLeave}
         onMouseDown={onMouseDown}
         onMouseUp={onMouseUp}
+        onContextMenu={onContextMenu}
         style={{
           position: 'absolute',
           left: 0,

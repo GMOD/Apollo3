@@ -33,7 +33,7 @@ export function stateModelFactory(pluginManager: PluginManager) {
       },
     }))
     .actions((self) => ({
-      setSelectedFeature(feature: AnnotationFeatureLocationI) {
+      setSelectedFeature(feature?: AnnotationFeatureLocationI) {
         getParent<ApolloViewModel>(self).setSelectedFeature(feature)
       },
     }))
