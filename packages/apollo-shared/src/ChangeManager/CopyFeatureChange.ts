@@ -1,8 +1,6 @@
 import ObjectID from 'bson-objectid'
-import { resolveIdentifier } from 'mobx-state-tree'
 import { v4 as uuidv4 } from 'uuid'
 
-import { AnnotationFeatureLocation } from '../BackendDrivers/AnnotationFeature'
 import {
   ChangeOptions,
   ClientDataStore,
@@ -154,11 +152,7 @@ export class CopyFeatureChange extends FeatureChange {
       throw new Error('No data store')
     }
     this.changedIds.forEach((changedId, idx) => {
-      const feature = resolveIdentifier(
-        AnnotationFeatureLocation,
-        dataStore.features,
-        changedId,
-      )
+      const feature = dataStore.getFeature(changedId)
       if (!feature) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }

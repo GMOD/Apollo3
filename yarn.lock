@@ -4098,6 +4098,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"apollo-mst@workspace:^, apollo-mst@workspace:packages/apollo-mst":
+  version: 0.0.0-use.local
+  resolution: "apollo-mst@workspace:packages/apollo-mst"
+  dependencies:
+    "@jbrowse/core": ^2.0.1
+    mobx: ^6.6.1
+    mobx-state-tree: ^5.1.5
+    rxjs: ^6.0.0
+    tslib: ^2.3.1
+    typescript: ^4.7.4
+  languageName: unknown
+  linkType: soft
+
 "apollo-schemas@workspace:^, apollo-schemas@workspace:packages/apollo-schemas":
   version: 0.0.0-use.local
   resolution: "apollo-schemas@workspace:packages/apollo-schemas"
@@ -4126,6 +4139,7 @@ __metadata:
     "@types/node": ^16.0.0
     "@types/rimraf": ^3
     "@types/uuid": ^8
+    apollo-mst: "workspace:^"
     apollo-schemas: "workspace:^"
     bson-objectid: ^2.0.3
     mobx-state-tree: ^5.1.5
@@ -8887,6 +8901,7 @@ __metadata:
     "@types/cypress": ^1.1.3
     "@types/node": ^16.11.6
     "@types/react": ^17.0.34
+    apollo-mst: "workspace:^"
     apollo-shared: "workspace:^"
     bson-objectid: ^2.0.3
     clsx: ^1.1.1
@@ -12444,7 +12459,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:6.6.7, rxjs@npm:^6.6.0":
+"rxjs@npm:6.6.7, rxjs@npm:^6.0.0, rxjs@npm:^6.6.0":
   version: 6.6.7
   resolution: "rxjs@npm:6.6.7"
   dependencies:

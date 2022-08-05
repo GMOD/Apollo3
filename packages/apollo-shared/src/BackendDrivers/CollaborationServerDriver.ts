@@ -1,13 +1,12 @@
 import { GFF3FeatureLine } from '@gmod/gff'
 import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
-import { AppRootModel, Region, getSession } from '@jbrowse/core/util'
-import { SnapshotIn, getRoot } from 'mobx-state-tree'
-
+import { Region, getSession } from '@jbrowse/core/util'
 import {
-  AnnotationFeature,
-  AnnotationFeatureLocation,
-} from '../BackendDrivers/AnnotationFeature'
+  AnnotationFeatureLocationSnapshot,
+  AnnotationFeatureSnapshot,
+} from 'apollo-mst'
+
 import { Change } from '../ChangeManager/Change'
 import { ValidationResultSet } from '../Validations/ValidationSet'
 import { BackendDriver, FeaturesForRefNameSnapshot } from './BackendDriver'
@@ -22,8 +21,7 @@ interface ApolloFeatureLine extends GFF3FeatureLine {
 
 export class CollaborationServerDriver extends BackendDriver {
   get internetAccount() {
-    const { internetAccountConfigId } = this.clientStore
-    const { internetAccounts } = getRoot(this.clientStore) as AppRootModel
+    const { internetAccountConfigId, internetAccounts } = this.clientStore
     const internetAccount = internetAccounts.find(
       (ia) => getConf(ia, 'internetAccountId') === internetAccountConfigId,
     )
@@ -166,7 +164,7 @@ function makeFeatures(
 function convertFeature(
   apolloFeature: ApolloFeatureLine,
   assemblyName: string,
-): SnapshotIn<typeof AnnotationFeatureLocation> {
+): AnnotationFeatureLocationSnapshot {
   if (!apolloFeature.seq_id) {
     throw new Error('Got GFF3 record without an ID')
   }
@@ -183,13 +181,10 @@ function convertFeature(
   if (!id) {
     throw new Error('Apollo feature without featureId encountered')
   }
-  const children: Record<string, SnapshotIn<typeof AnnotationFeature>> = {}
+  const children: Record<string, AnnotationFeatureSnapshot> = {}
   apolloFeature.child_features?.forEach((childFeature) => {
     let childFeatureId: string | undefined = undefined
-    const locations: Record<
-      string,
-      SnapshotIn<typeof AnnotationFeatureLocation>
-    > = {}
+    const locations: Record<string, AnnotationFeatureLocationSnapshot> = {}
     childFeature.forEach((childFeatureLine) => {
       childFeatureId = childFeatureLine?.attributes?.ID?.[0]
       const childFeat = convertFeature(childFeatureLine, assemblyName)
@@ -208,7 +203,7 @@ function convertFeature(
       locations,
     }
   })
-  const newFeature: SnapshotIn<typeof AnnotationFeatureLocation> = {
+  const newFeature: AnnotationFeatureLocationSnapshot = {
     id,
     type: 'AnnotationFeatureLocation',
     assemblyName,

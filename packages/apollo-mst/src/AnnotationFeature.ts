@@ -2,6 +2,7 @@ import { findParentThatIs } from '@jbrowse/core/util'
 import {
   IAnyType,
   Instance,
+  SnapshotIn,
   SnapshotOrInstance,
   cast,
   types,
@@ -465,9 +466,15 @@ export const AnnotationFeature = types
   }))
 
 export type AnnotationFeatureI = Instance<typeof AnnotationFeature>
+export type AnnotationFeatureSnapshot = SnapshotIn<typeof AnnotationFeature>
 export type AnnotationFeatureLocationI = Instance<
+  typeof AnnotationFeatureLocation
+>
+export type AnnotationFeatureLocationSnapshot = SnapshotIn<
   typeof AnnotationFeatureLocation
 >
 
 export const FeatureMap = types.map(AnnotationFeatureLocation)
 export const FeaturesForRefName = types.map(FeatureMap)
+export type FeaturesForRefNameI = Instance<typeof FeaturesForRefName>
+export type FeaturesForRefNameSnapshot = SnapshotIn<typeof FeaturesForRefName>

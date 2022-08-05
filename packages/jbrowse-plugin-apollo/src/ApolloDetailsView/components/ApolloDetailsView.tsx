@@ -8,8 +8,8 @@ import {
   MuiBaseEvent,
   useGridApiContext,
 } from '@mui/x-data-grid'
+import { AnnotationFeatureI } from 'apollo-mst'
 import {
-  AnnotationFeatureI,
   Change,
   ChangeManager,
   LocationEndChange,

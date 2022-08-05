@@ -6,13 +6,22 @@ import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import {
   AnnotationFeatureLocation,
   AnnotationFeatureLocationI,
+  FeaturesForRefName,
+} from 'apollo-mst'
+import {
   ChangeManager,
   CollaborationServerDriver,
   CoreValidation,
-  FeaturesForRefName,
   ValidationSet,
 } from 'apollo-shared'
-import { Instance, SnapshotIn, cast, getRoot, types } from 'mobx-state-tree'
+import {
+  Instance,
+  SnapshotIn,
+  cast,
+  getRoot,
+  resolveIdentifier,
+  types,
+} from 'mobx-state-tree'
 
 import { ApolloDetailsViewStateModel } from '../ApolloDetailsView/stateModel'
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
@@ -27,9 +36,21 @@ export const ClientDataStore = types
     internetAccountConfigId: types.maybe(types.string),
     assemblyId: types.string,
   })
+  .views((self) => ({
+    get internetAccounts() {
+      return (getRoot(self) as AppRootModel).internetAccounts
+    },
+  }))
   .actions((self) => ({
     load(features: SnapshotIn<typeof FeaturesForRefName>) {
       self.features = cast(features)
+    },
+    getFeature(featureId: string) {
+      return resolveIdentifier(
+        AnnotationFeatureLocation,
+        self.features,
+        featureId,
+      )
     },
   }))
   .volatile((self) => {
