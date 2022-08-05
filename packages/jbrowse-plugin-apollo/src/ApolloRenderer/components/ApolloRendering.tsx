@@ -1,11 +1,7 @@
 import { Region, getSession } from '@jbrowse/core/util'
 import { Menu, MenuItem } from '@mui/material'
-import {
-  AnnotationFeatureLocationI,
-  Change,
-  LocationEndChange,
-  LocationStartChange,
-} from 'apollo-shared'
+import { AnnotationFeatureLocationI } from 'apollo-mst'
+import { Change, LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import { getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useRef, useState } from 'react'

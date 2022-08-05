@@ -1,7 +1,8 @@
 import PluginManager from '@jbrowse/core/PluginManager'
 import { getContainingView, getSession } from '@jbrowse/core/util'
 import { ElementId } from '@jbrowse/core/util/types/mst'
-import { AnnotationFeatureLocationI, ChangeManager } from 'apollo-shared'
+import { AnnotationFeatureLocationI } from 'apollo-mst'
+import { ChangeManager } from 'apollo-shared'
 import { Instance, getParent, types } from 'mobx-state-tree'
 
 import { ApolloViewModel } from '../ApolloView/stateModel'

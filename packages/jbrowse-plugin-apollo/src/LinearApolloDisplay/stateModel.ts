@@ -4,7 +4,7 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import { getContainingView, getSession } from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { AnnotationFeatureLocationI } from 'apollo-shared'
+import { AnnotationFeatureLocationI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { Instance, addDisposer, types } from 'mobx-state-tree'
 
