@@ -23,7 +23,7 @@ export class ChangesController {
    * @param serializedChange - Information containing featureId, newEndValue, oldEndValue
    * @returns Return 'HttpStatus.OK' if featureId was found AND oldEndValue matched AND database update was successfull. Otherwise throw exception.
    */
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Post()
   async create(@Body() serializedChange: SerializedChange) {
     this.logger.debug(
