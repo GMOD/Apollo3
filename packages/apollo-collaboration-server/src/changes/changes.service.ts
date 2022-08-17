@@ -23,6 +23,7 @@ import {
   AddAssemblyFromFileChange,
   AddFeaturesFromFileChange,
   CopyFeatureChange,
+  DeleteFeatureChange,
   CoreValidation,
   LocationEndChange,
   LocationStartChange,
@@ -67,6 +68,7 @@ export class ChangesService {
       AddFeaturesFromFileChange,
     )
     changeRegistry.registerChange('CopyFeatureChange', CopyFeatureChange)
+    changeRegistry.registerChange('DeleteFeatureChange', DeleteFeatureChange)
     changeRegistry.registerChange('LocationEndChange', LocationEndChange)
     changeRegistry.registerChange('LocationStartChange', LocationStartChange)
     changeRegistry.registerChange('TypeChange', TypeChange)

@@ -34,7 +34,7 @@ export abstract class FeatureChange extends Change {
 
     if (feature._id.equals(featureId)) {
       this.logger.debug?.(
-        `Top level featureId matches in object ${JSON.stringify(feature)}`,
+        `Top level featureId matches in the object ${JSON.stringify(feature)}`,
       )
       return feature
     }
