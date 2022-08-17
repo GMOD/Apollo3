@@ -108,33 +108,16 @@ export class DeleteFeatureChange extends FeatureChange {
         `*** topLevelFeature: ${JSON.stringify(topLevelFeature)}`,
       )
 
-      // const test2 = await this.removeFromArrayOfObj ( topLevelFeature.child_features, featureId)
-      const test2 = await this.removeFromArrayOfObj(topLevelFeature, featureId)
-      this.logger.debug?.(`*** 22 WITHOUT featureId: ${JSON.stringify(test2)}`)
-
-      // const newFeatureId = uuidv4() // Set new featureId in target assembly
-      // const featureIds = [newFeatureId]
-      // newFeature.featureId = newFeatureId // Set new featureId in top level
-
-      // const refSeqDoc = await refSeqModel
-      //   .findOne({ assembly: targetAssemblyId, name: newFeature.seq_id })
-      //   .session(session)
-      //   .exec()
-      // if (!refSeqDoc) {
-      //   throw new Error(
-      //     `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${topLevelFeature.seq_id}" not found`,
-      //   )
+      const test2 = await this.removeFromArrayOfObj(
+        topLevelFeature,
+        topLevelFeature,
+        featureId,
+      )
+      // const index = topLevelFeature.featureIds.indexOf(featureId, 0)
+      // if (index > -1) {
+      //   topLevelFeature.featureIds.splice(index, 1)
       // }
-
-      // // Let's add featureId to each child recursively
-      // const newFeatureLine = this.setAndGetFeatureIdRecursively(
-      //   newFeature,
-      //   featureIds,
-      // )
-      // this.logger.verbose?.(`New featureIds: ${featureIds}`)
-      // this.logger.verbose?.(`New assemblyId: ${targetAssemblyId}`)
-      // this.logger.verbose?.(`New refSeqId: ${refSeqDoc._id}`)
-      // this.logger.verbose?.(`New featureId: ${newFeatureLine.featureId}`)
+      this.logger.debug?.(`*** FEATUREID DELETED: ${JSON.stringify(test2)}`)
 
       // // Add into Mongo
       // const [newFeatureDoc] = await featureModel.create(
@@ -156,107 +139,154 @@ export class DeleteFeatureChange extends FeatureChange {
     }
   }
 
-  //   async recursiveRemove ( list: any, id: string ) {
-  //     return list
-  //       .map((item: any) => {
-  //         return { ...item }
-  //       })
-  //       .filter((item: any) => {
-  //         if ( 'child_features' in item ) {
-  //           this.logger.debug?.(
-  //             `*** RECURSIVE: ${JSON.stringify(item.child_features)}`,
-  //           )
-  //             item.child_features = this.recursiveRemove ( item.child_features, id );
-  //         }
-  //         return item.featureId !== id;
-  //     });
-  // }
-
-  async removeFromArrayOfObj(array: any, idToRemove: string) {
-    // If there are child features
+  async removeFromArrayOfObj(
+    topLevelFeature: any,
+    array: any,
+    idToRemove: string,
+  ) {
+    // If feature has child features
     if (array.child_features) {
       for (const [i, e] of array.child_features.entries()) {
         for (const [i2, e2] of e.entries()) {
           // this.logger.debug?.(
-          //   `+++ removeFromArrayOfObj e: ${JSON.stringify(e2)}`,
+          //   `*** CHILD FEATURES SISEMPI i: "${i}", e.featureId: "${e2.featureId}"`,
           // )
-          this.logger.debug?.(
-            `*** removeFromArrayOfObj i2: "${i2}", e.featureId: "${e2.featureId}"`,
-          )
           if (e2.featureId === idToRemove) {
-            this.logger.debug?.('POISTETAAN!!!!')
-            e2.splice(i2, 1)
+            this.logger.debug?.(
+              '-----------------------------------------------POISTETAAN-----------------------------------',
+            )
+            // Let's delete also children's featureIds
+            const childrenFeatureIds: string[] = this.getChildrenFeatureIds(
+              e2,
+              [],
+            )
+            this.logger.debug?.(`Found ids: ${childrenFeatureIds.toString()}`)
+            this.logger.debug?.(
+              `Found ids: ${JSON.stringify(childrenFeatureIds)}`,
+            )
+
+            array.child_features.splice(i, 1)
+            const index = topLevelFeature.featureIds.indexOf(idToRemove, 0)
+            if (index > -1) {
+              topLevelFeature.featureIds.splice(index, 1)
+            }
+
+            // for (featureToDelete of childrenFeatureIds) {
+            //   const index = topLevelFeature.featureIds.indexOf(idToRemove, 0)
+            //   if (index > -1) {
+            //     topLevelFeature.featureIds.splice(index, 1)
+            //   }
+            // }
+
             continue
           }
           if (e2.child_features) {
             this.logger.debug?.(
-              `*** removeFromArrayOfObj RECURSIVE: ${JSON.stringify(
+              `*** CHILD FEATURES RECURSIVE: ${JSON.stringify(
                 e2.child_features,
               )}`,
             )
-            this.removeFromArrayOfObj(e2.child_features, idToRemove)
+            this.removeFromArrayOfObj(
+              topLevelFeature,
+              e2.child_features,
+              idToRemove,
+            )
           }
         }
       }
     } else {
-      let ind = 0
+      // if (Array.isArray(gff3Item)) {
+      // for (const childFeature of feature.child_features || []) {
+      //   for (const childFeatureLine of childFeature) {
+      // Feature is a leaf i.e. feature has no children
       for (const [i3, e3] of array.entries()) {
-        this.logger.debug?.(
-          `ULOMPI: i3: ${i3}, e3.featureId: "${e3.featureId}"`,
-        )
         for (const [i4, e4] of e3.entries()) {
-          // this.logger.debug?.(
-          //   `+++4444 removeFromArrayOfObj i4: "${i4}", e4: ${JSON.stringify(
-          //     e4,
-          //   )}`,
-          // )
           this.logger.debug?.(
-            `SISEMPI: index: ${ind}, i3: ${i3}, i4: ${i4}, e4.featureId: "${e4.featureId}"`,
+            `SISEMPI: i3: ${i3}, e4.featureId: "${e4.featureId}"`,
           )
           if (e4.featureId === idToRemove) {
             this.logger.debug?.(
               '****************************************** POISTETAAN **********************************',
             )
-            // e3.splice(i4, 1)
-            array.splice(ind, 1)
+            // Let's delete also children's featureIds
+            const childrenFeatureIds: string[] = this.getChildrenFeatureIds(
+              e4,
+              [],
+            )
+            this.logger.debug?.(`Found ids: ${childrenFeatureIds.toString()}`)
+            array.splice(i3, 1)
+            const index = topLevelFeature.featureIds.indexOf(idToRemove, 0)
+            if (index > -1) {
+              topLevelFeature.featureIds.splice(index, 1)
+            }
             continue
           }
           if (e4.child_features) {
             this.logger.debug?.(
               `*** RECURSIVE CALL: ${JSON.stringify(e4.child_features)}`,
             )
-            this.removeFromArrayOfObj(e4.child_features, idToRemove)
+            this.removeFromArrayOfObj(
+              topLevelFeature,
+              e4.child_features,
+              idToRemove,
+            )
           }
         }
-        ind++
       }
     }
-
-    // for (const [i, e] of array.entries()) {
-    //   this.logger.debug?.(
-    //     `+++ removeFromArrayOfObj i: "${i}", e: ${JSON.stringify(e)}`,
-    //   )
-    //   this.logger.debug?.(
-    //     `--- removeFromArrayOfObj idToRemove: "${idToRemove}",e.featureId: "${
-    //       e.featureId
-    //     }", e: ${JSON.stringify(e[0])}`,
-    //   )
-    //   // if (e.featureId === idToRemove) {
-    //   if (i === 4) {
-    //     this.logger.debug?.('POISTETAAN!!!!')
-    //     array.splice(i, 1)
-    //     continue
-    //   }
-    //   if (e.child_features) {
-    //     this.logger.debug?.(
-    //       `*** removeFromArrayOfObj RECURSIVE: ${JSON.stringify(
-    //         e.child_features,
-    //       )}`,
-    //     )
-    //     this.removeFromArrayOfObj(e.child_features, idToRemove)
-    //   }
-    // }
     return array
+  }
+
+  getChildrenFeatureIds(parentFeature: any, featureIds: string[]): string[] {
+    // if (parentFeature.child_features?.length === 0) {
+    //   this.logger.debug?.(
+    //     `*** 1 PUSH FEATUREID (no children): ${parentFeature.featureId}`,
+    //   )
+    //   featureIds.push(parentFeature.featureId)
+    //   return featureIds
+    // }
+    if (!parentFeature.child_features) {
+      this.logger.debug?.(
+        `*** 2 PUSH FEATUREID (no children): ${parentFeature.featureId}`,
+      )
+      featureIds.push(parentFeature.featureId)
+      return featureIds
+    }
+    // If there are child features
+    if (parentFeature.child_features) {
+      for (const childFeature of parentFeature.child_features || []) {
+        for (const childFeatureLine of childFeature) {
+          // featureIds.push(childFeatureLine.featureId)
+          // this.logger.debug?.(
+          //   `*** PUSH FEATUREID: ${childFeatureLine.featureId}`,
+          // )
+
+          this.getChildrenFeatureIds(childFeatureLine, featureIds)
+          // const subFeature = this.getChildrenFeatureIds(
+          //   childFeatureLine,
+          //   featureIds,
+          // )
+          // if (subFeature) {
+          //   return subFeature
+          // }
+        }
+      }
+
+      // parentFeature.child_features = parentFeature.child_features.map(
+      //   (childFeature) =>
+      //     childFeature.map((childFeatureLine) => {
+      //       const featureId = uuidv4()
+      //       featureIdArrAsParam.push(featureId)
+      //       const newChildFeature = { ...childFeatureLine, featureId }
+      //       this.setAndGetFeatureIdRecursively(
+      //         newChildFeature,
+      //         featureIdArrAsParam,
+      //       )
+      //       return newChildFeature
+      //     }),
+      // )
+    }
+    return featureIds
   }
 
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
