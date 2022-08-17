@@ -8,8 +8,14 @@ import { ValidationResultSet } from '../Validations/ValidationSet'
 import { BackendDriver } from './BackendDriver'
 
 export class CollaborationServerDriver extends BackendDriver {
-  get internetAccount() {
-    const { internetAccountConfigId, internetAccounts } = this.clientStore
+  getInternetAccount(assemblyName: string) {
+    const { assemblyManager } = getSession(this.clientStore)
+    const assembly = assemblyManager.get(assemblyName)
+    const { internetAccounts } = this.clientStore
+    const { internetAccountConfigId } = getConf(assembly, [
+      'sequence',
+      'metadata',
+    ]) as { internetAccountConfigId: string }
     const internetAccount = internetAccounts.find(
       (ia) => getConf(ia, 'internetAccountId') === internetAccountConfigId,
     )
@@ -18,17 +24,21 @@ export class CollaborationServerDriver extends BackendDriver {
         `No InternetAccount found with config id ${internetAccountConfigId}`,
       )
     }
-    return internetAccount as BaseInternetAccountModel & {
+    return internetAccount
+  }
+
+  getBaseURL(assemblyName: string) {
+    const internetAccount = this.getInternetAccount(assemblyName)
+
+    const { baseURL } = internetAccount as BaseInternetAccountModel & {
       baseURL: string
     }
+    return baseURL
   }
 
-  get baseURL() {
-    return this.internetAccount.baseURL
-  }
-
-  async fetch(info: RequestInfo, init?: RequestInit) {
-    const customFetch = this.internetAccount.getFetcher({
+  async fetch(assemblyName: string, info: RequestInfo, init?: RequestInit) {
+    const internetAccount = this.getInternetAccount(assemblyName)
+    const customFetch = internetAccount.getFetcher({
       locationType: 'UriLocation',
       uri: info.toString(),
     })
@@ -57,7 +67,7 @@ export class CollaborationServerDriver extends BackendDriver {
     if (!feature) {
       throw new Error(`Could not find refName "${refName}"`)
     }
-    const { baseURL } = this
+    const baseURL = this.getBaseURL(assemblyName)
     const url = new URL('features/getFeatures', baseURL)
     const searchParams = new URLSearchParams({
       refSeq: feature.uniqueId,
@@ -68,7 +78,7 @@ export class CollaborationServerDriver extends BackendDriver {
     const uri = url.toString()
     // console.log(`In CollaborationServerDriver: Query parameters: refName=${refName}, start=${start}, end=${end}`)
 
-    const response = await this.fetch(uri)
+    const response = await this.fetch(assemblyName, uri)
     if (!response.ok) {
       let errorMessage
       try {
@@ -106,9 +116,9 @@ export class CollaborationServerDriver extends BackendDriver {
   }
 
   async submitChange(change: Change) {
-    const { baseURL } = this
+    const baseURL = this.getBaseURL(change.assemblyId)
     const url = new URL('changes', baseURL).href
-    const response = await this.fetch(url, {
+    const response = await this.fetch(change.assemblyId, url, {
       method: 'POST',
       body: JSON.stringify(change.toJSON()),
       headers: { 'Content-Type': 'application/json' },

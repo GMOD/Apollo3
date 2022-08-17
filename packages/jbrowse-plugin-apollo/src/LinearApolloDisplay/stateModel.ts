@@ -1,14 +1,14 @@
 import { ConfigurationReference } from '@jbrowse/core/configuration'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { getContainingView, getSession } from '@jbrowse/core/util'
+import { getSession } from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { Instance, addDisposer, types } from 'mobx-state-tree'
 
-import { ApolloViewModel } from '../ApolloView/stateModel'
+import { ApolloSession } from '../session'
 
 export function stateModelFactory(
   pluginManager: PluginManager,
@@ -19,15 +19,11 @@ export function stateModelFactory(
   ) as import('@jbrowse/plugin-linear-genome-view').default
   const { BaseLinearDisplay } = LGVPlugin.exports
 
-  return types
-    .compose(
-      'LinearApolloDisplay',
-      BaseLinearDisplay,
-      types.model({
-        type: types.literal('LinearApolloDisplay'),
-        configuration: ConfigurationReference(configSchema),
-      }),
-    )
+  return BaseLinearDisplay.named('LinearApolloDisplay')
+    .props({
+      type: types.literal('LinearApolloDisplay'),
+      configuration: ConfigurationReference(configSchema),
+    })
     .volatile(() => ({
       apolloFeatureUnderMouse: undefined as AnnotationFeatureI | undefined,
       apolloRowUnderMouse: undefined as number | undefined,
@@ -45,9 +41,16 @@ export function stateModelFactory(
       }
     })
     .views((self) => ({
-      get apolloView() {
-        const lgv = getContainingView(self)
-        return getContainingView(lgv) as unknown as ApolloViewModel
+      get regions() {
+        const regions = self.blockDefinitions
+          .map(({ assemblyName, refName, start, end }) => ({
+            assemblyName,
+            refName,
+            start,
+            end,
+          }))
+          .filter((block) => block.assemblyName)
+        return regions
       },
     }))
     .actions((self) => ({
@@ -55,28 +58,8 @@ export function stateModelFactory(
         addDisposer(
           self,
           autorun(() => {
-            const lgv = getContainingView(self) as LinearGenomeViewModel
-            const { initialized } = lgv
-            if (!initialized) {
-              return
-            }
-            const { dataStore } = self.apolloView
-            if (!dataStore) {
-              return
-            }
-            const { backendDriver } = dataStore
-            if (!backendDriver) {
-              return
-            }
-            const regions = self.blockDefinitions
-              .map(({ assemblyName, refName, start, end }) => ({
-                assemblyName,
-                refName,
-                start,
-                end,
-              }))
-              .filter((block) => block.assemblyName)
-            dataStore.backendDriver.loadFeatures(regions)
+            const session = getSession(self) as ApolloSession
+            session.apolloDataStore.loadFeatures(self.regions)
           }),
         )
       },
@@ -92,11 +75,33 @@ export function stateModelFactory(
         return self.configuration.renderer.type
       },
       get changeManager() {
-        return self.apolloView.dataStore?.changeManager
+        const session = getSession(self) as ApolloSession
+        return session.apolloDataStore?.changeManager
       },
       get features() {
-        const { dataStore } = self.apolloView
-        return dataStore?.features
+        const { regions } = self
+        const session = getSession(self) as ApolloSession
+        const features = new Map<
+          string,
+          Map<string, AnnotationFeatureLocationI>
+        >()
+        for (const region of regions) {
+          const assembly = session.apolloDataStore.assemblies.get(
+            region.assemblyName,
+          )
+          const ref = assembly.get(region.refName)
+          let filteredRef = features.get(region.refName)
+          if (!filteredRef) {
+            filteredRef = new Map<string, AnnotationFeatureLocationI>()
+            features.set(region.refName, filteredRef)
+          }
+          for (const [featureId, feature] of ref.entries()) {
+            if (region.start < feature.end && region.end > feature.start) {
+              filteredRef.set(featureId, feature)
+            }
+          }
+        }
+        return features
       },
       get featuresMinMax() {
         const minMax: Record<string, [number, number]> = {}
@@ -204,7 +209,8 @@ export function stateModelFactory(
         return self.apolloView.selectedFeature
       },
       get setSelectedFeature() {
-        return self.apolloView.setSelectedFeature
+        const session = getSession(self) as ApolloSession
+        return session.apolloSetSelectedFeature
       },
     }))
 }
