@@ -3,10 +3,13 @@ import { alpha } from '@mui/material/styles'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'
 
+import { LinearApolloDisplay } from './LinearApolloDisplay/stateModel'
+
 const useStyles = makeStyles()((theme) => ({
-  root: {
+  shading: {
     background: alpha(theme.palette.primary.main, 0.2),
-    height: '100%',
+    overflowY: 'scroll',
+    overflowX: 'hidden',
   },
 }))
 
@@ -18,12 +21,22 @@ export function makeDisplayComponent(pluginManager: PluginManager) {
     throw new Error('LinearGenomeView plugin not found')
   }
   const { BaseLinearDisplayComponent } = LGVPlugin.exports
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function ApolloDisplayComponent(props: any) {
+  function ApolloDisplayComponent({
+    model,
+    ...other
+  }: {
+    model: LinearApolloDisplay
+  }) {
     const { classes } = useStyles()
+    const { height, featuresHeight } = model
+    const detailsHeight = Math.max(60, height - featuresHeight)
+    const featureAreaHeight = height - detailsHeight
     return (
-      <div className={classes.root}>
-        <BaseLinearDisplayComponent {...props} />
+      <div style={{ height: model.height }}>
+        <div className={classes.shading} style={{ height: featureAreaHeight }}>
+          <BaseLinearDisplayComponent model={model} {...other} />
+        </div>
+        <div style={{ height: detailsHeight }}>details here</div>
       </div>
     )
   }

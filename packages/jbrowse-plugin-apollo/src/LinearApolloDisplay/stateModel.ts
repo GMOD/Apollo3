@@ -23,6 +23,7 @@ export function stateModelFactory(
     .props({
       type: types.literal('LinearApolloDisplay'),
       configuration: ConfigurationReference(configSchema),
+      apolloRowHeight: 20,
     })
     .volatile(() => ({
       apolloFeatureUnderMouse: undefined as AnnotationFeatureI | undefined,
@@ -42,7 +43,13 @@ export function stateModelFactory(
     })
     .views((self) => ({
       get regions() {
-        const regions = self.blockDefinitions
+        let blockDefinitions
+        try {
+          ;({ blockDefinitions } = self)
+        } catch (error) {
+          return []
+        }
+        const regions = blockDefinitions
           .map(({ assemblyName, refName, start, end }) => ({
             assemblyName,
             refName,
@@ -211,6 +218,14 @@ export function stateModelFactory(
       get setSelectedFeature() {
         const session = getSession(self) as ApolloSession
         return session.apolloSetSelectedFeature
+      },
+    }))
+    .views((self) => ({
+      get highestRow() {
+        return Math.max(...self.featureLayout.keys())
+      },
+      get featuresHeight() {
+        return this.highestRow * self.apolloRowHeight
       },
     }))
 }

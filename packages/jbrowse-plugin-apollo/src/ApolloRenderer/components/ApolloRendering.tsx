@@ -54,12 +54,11 @@ function ApolloRendering(props: ApolloRenderingProps) {
     selectedFeature,
     setSelectedFeature,
     features,
+    featuresHeight: totalHeight,
+    apolloRowHeight: height,
   } = displayModel
-  const height = 20
-  const highestRow = Math.max(...featureLayout.keys())
-  const totalHeight = highestRow * height
   // use this to convince useEffect that the features really did change
-  const featureSnap = getSnapshot(features)
+  // const featureSnap = getSnapshot(features)
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) {
@@ -87,7 +86,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
     featureLayout,
     totalHeight,
     features,
-    featureSnap,
+    height,
+    // featureSnap,
   ])
   useEffect(() => {
     const canvas = overlayCanvasRef.current
@@ -128,6 +128,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     totalWidth,
     region.start,
     dragging,
+    height,
   ])
   function onMouseMove(event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
     const { clientX, clientY, buttons } = event
@@ -272,7 +273,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
   }
 
   return (
-    <div style={{ position: 'relative', width: totalWidth, height }}>
+    <div
+      style={{ position: 'relative', width: totalWidth, height: totalHeight }}
+    >
       <Menu
         open={Boolean(contextMenuFeature)}
         anchorReference="anchorPosition"
