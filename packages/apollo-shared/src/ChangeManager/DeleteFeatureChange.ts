@@ -1,7 +1,5 @@
-import { Feature } from '@jbrowse/core/util'
 import { FeatureDocument } from 'apollo-schemas'
 import { resolveIdentifier } from 'mobx-state-tree'
-import { v4 as uuidv4 } from 'uuid'
 
 import { AnnotationFeatureLocation } from '../BackendDrivers/AnnotationFeature'
 import {
@@ -11,11 +9,7 @@ import {
   SerializedChange,
   ServerDataStore,
 } from './Change'
-import {
-  FeatureChange,
-  GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-} from './FeatureChange'
-import { generateObjectId } from '..'
+import { FeatureChange } from './FeatureChange'
 
 interface SerializedDeleteFeatureChangeBase extends SerializedChange {
   typeName: 'DeleteFeatureChange'
@@ -72,7 +66,7 @@ export class DeleteFeatureChange extends FeatureChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { featureModel, session  } = backend
+    const { featureModel, session } = backend
     const { changes } = this
 
     // Loop the changes
@@ -99,12 +93,13 @@ export class DeleteFeatureChange extends FeatureChange {
         return
       }
 
-      const topFeatureAfterDeletion: FeatureDocument =
-        await this.removeFromArrayOfObj(featureDoc, featureDoc, featureId)
+      const documentAfterDeletion: FeatureDocument =
+        await this.deleteFeatureFromDocument(featureDoc, featureDoc, featureId)
 
+        // Save updated document in Mongo
       featureDoc.markModified('child_features') // Mark as modified. Without this save() -method is not updating data in database
       try {
-        await topFeatureAfterDeletion.save()
+        await documentAfterDeletion.save()
       } catch (error) {
         this.logger.debug?.(`*** FAILED: ${error}`)
         throw error
@@ -117,30 +112,30 @@ export class DeleteFeatureChange extends FeatureChange {
   }
 
   /**
-   * Delete feature and feature's subfeatures if any
-   * @param topLevelDocument - top level document
+   * Delete feature and feature's subfeatures if any. Also remove deleted featureIds from top level 'FeatureIds' -property
+   * @param topLevelDocument - Top level document
    * @param currentTopLevelFeature - Currently processed feature
-   * @param idToRemove - featureId that will be deleted
+   * @param featureIdToDelete - FeatureId that will be deleted
    * @returns
    */
-  async removeFromArrayOfObj(
+  async deleteFeatureFromDocument(
     topLevelDocument: FeatureDocument,
     currentTopLevelFeature: any,
-    idToRemove: string,
+    featureIdToDelete: string,
   ) {
     let ind = 0
     // If feature has child features
     if (currentTopLevelFeature.child_features) {
       for (const childFeature of currentTopLevelFeature.child_features || []) {
         for (const childFeatureLine of childFeature) {
-          if (childFeatureLine.featureId === idToRemove) {
+          if (childFeatureLine.featureId === featureIdToDelete) {
             this.logger.debug?.(
               `Found featureid "${childFeatureLine.featureId}", let's delete it`,
             )
             // Get children's featureIds
             const childrenFeatureIds: string[] = this.getChildrenFeatureIds(
               childFeatureLine,
-              [idToRemove],
+              [featureIdToDelete],
             )
             // Delete feature
             currentTopLevelFeature.child_features.splice(ind, 1)
@@ -154,10 +149,10 @@ export class DeleteFeatureChange extends FeatureChange {
             continue
           }
           if (childFeatureLine.child_features) {
-            this.removeFromArrayOfObj(
+            this.deleteFeatureFromDocument(
               topLevelDocument,
               childFeatureLine.child_features,
-              idToRemove,
+              featureIdToDelete,
             )
           }
         }
@@ -170,7 +165,7 @@ export class DeleteFeatureChange extends FeatureChange {
         topLevelEntry,
       ] of currentTopLevelFeature.entries()) {
         for (const [, currentFeature] of topLevelEntry.entries()) {
-          if (currentFeature.featureId === idToRemove) {
+          if (currentFeature.featureId === featureIdToDelete) {
             this.logger.debug?.(
               `Found featureid "${currentFeature.featureId}", let's delete it`,
             )
@@ -191,10 +186,10 @@ export class DeleteFeatureChange extends FeatureChange {
             continue
           }
           if (currentFeature.child_features) {
-            this.removeFromArrayOfObj(
+            this.deleteFeatureFromDocument(
               topLevelDocument,
               currentFeature.child_features,
-              idToRemove,
+              featureIdToDelete,
             )
           }
         }
