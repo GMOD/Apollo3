@@ -1,3 +1,5 @@
+import { Feature } from '@jbrowse/core/util'
+import { FeatureDocument } from 'apollo-schemas'
 import { resolveIdentifier } from 'mobx-state-tree'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -70,184 +72,147 @@ export class DeleteFeatureChange extends FeatureChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { featureModel, session, refSeqModel } = backend
-    const { changes, assemblyId } = this
+    const { featureModel, session  } = backend
+    const { changes } = this
 
     // Loop the changes
     for (const change of changes) {
       const { featureId } = change
 
       // Search feature
-      const topLevelFeature = await featureModel
+      const featureDoc = await featureModel
         .findOne({ featureIds: featureId })
         .session(session)
         .exec()
-      if (!topLevelFeature) {
+      if (!featureDoc) {
         const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
 
+      // Check if deleted feature is on top level, then simply delete the whole document
+      if (featureDoc.featureId === featureId) {
+        await featureModel.deleteOne({ _id: featureDoc._id })
+        this.logger.debug?.(
+          `Feature "${featureId}" deleted from document "${featureDoc._id}"`,
+        )
+        return
+      }
+
+      const topFeatureAfterDeletion: FeatureDocument =
+        await this.removeFromArrayOfObj(featureDoc, featureDoc, featureId)
+
+      featureDoc.markModified('child_features') // Mark as modified. Without this save() -method is not updating data in database
+      try {
+        await topFeatureAfterDeletion.save()
+      } catch (error) {
+        this.logger.debug?.(`*** FAILED: ${error}`)
+        throw error
+      }
+
       this.logger.debug?.(
-        `*** Top level featureId: ${JSON.stringify(topLevelFeature.featureId)}`,
-      )
-
-      // const topLevelFeatureObject =
-      //   topLevelFeature.toObject() as GFF3FeatureLineWithFeatureIdAndOptionalRefs
-      // const newFeature = this.getObjectByFeatureId(
-      //   topLevelFeatureObject,
-      //   featureId,
-      // )
-      // if (!newFeature) {
-      //   throw new Error(
-      //     `Feature ID "${featureId}" not found in parent feature "${topLevelFeature.featureId}"`,
-      //   )
-      // }
-
-      this.logger.debug?.(
-        `*** topLevelFeature: ${JSON.stringify(topLevelFeature)}`,
-      )
-
-      const test2 = await this.removeFromArrayOfObj(
-        topLevelFeature,
-        topLevelFeature,
-        featureId,
-      )
-      // const index = topLevelFeature.featureIds.indexOf(featureId, 0)
-      // if (index > -1) {
-      //   topLevelFeature.featureIds.splice(index, 1)
-      // }
-      this.logger.debug?.(`*** FEATUREID DELETED: ${JSON.stringify(test2)}`)
-
-      // // Add into Mongo
-      // const [newFeatureDoc] = await featureModel.create(
-      //   [
-      //     {
-      //       ...newFeatureLine,
-      //       _id: generateObjectId(),
-      //       refSeq: refSeqDoc._id,
-      //       featureIds,
-      //     },
-      //   ],
-      //   { session },
-      // )
-      this.logger.debug?.(
-        `Deleted feature "${featureId}" from top-level document "${
-          topLevelFeature._id
-        }", "${typeof topLevelFeature}"`,
+        `Feature "${featureId}" deleted from document "${featureDoc._id}"`,
       )
     }
   }
 
+  /**
+   * Delete feature and feature's subfeatures if any
+   * @param topLevelDocument - top level document
+   * @param currentTopLevelFeature - Currently processed feature
+   * @param idToRemove - featureId that will be deleted
+   * @returns
+   */
   async removeFromArrayOfObj(
-    topLevelFeature: any,
-    array: any,
+    topLevelDocument: FeatureDocument,
+    currentTopLevelFeature: any,
     idToRemove: string,
   ) {
+    let ind = 0
     // If feature has child features
-    if (array.child_features) {
-      for (const [i, e] of array.child_features.entries()) {
-        for (const [i2, e2] of e.entries()) {
-          // this.logger.debug?.(
-          //   `*** CHILD FEATURES SISEMPI i: "${i}", e.featureId: "${e2.featureId}"`,
-          // )
-          if (e2.featureId === idToRemove) {
+    if (currentTopLevelFeature.child_features) {
+      for (const childFeature of currentTopLevelFeature.child_features || []) {
+        for (const childFeatureLine of childFeature) {
+          if (childFeatureLine.featureId === idToRemove) {
             this.logger.debug?.(
-              '-----------------------------------------------POISTETAAN-----------------------------------',
+              `Found featureid "${childFeatureLine.featureId}", let's delete it`,
             )
-            // Let's delete also children's featureIds
+            // Get children's featureIds
             const childrenFeatureIds: string[] = this.getChildrenFeatureIds(
-              e2,
-              [],
+              childFeatureLine,
+              [idToRemove],
             )
-            this.logger.debug?.(`Found ids: ${childrenFeatureIds.toString()}`)
-            this.logger.debug?.(
-              `Found ids: ${JSON.stringify(childrenFeatureIds)}`,
-            )
-
-            array.child_features.splice(i, 1)
-            const index = topLevelFeature.featureIds.indexOf(idToRemove, 0)
-            if (index > -1) {
-              topLevelFeature.featureIds.splice(index, 1)
+            // Delete feature
+            currentTopLevelFeature.child_features.splice(ind, 1)
+            // Delete featureId and its children's featureIds from top level featureIds -array
+            for (const childId of childrenFeatureIds) {
+              const index = topLevelDocument.featureIds.indexOf(childId, 0)
+              if (index > -1) {
+                topLevelDocument.featureIds.splice(index, 1)
+              }
             }
-
-            // for (featureToDelete of childrenFeatureIds) {
-            //   const index = topLevelFeature.featureIds.indexOf(idToRemove, 0)
-            //   if (index > -1) {
-            //     topLevelFeature.featureIds.splice(index, 1)
-            //   }
-            // }
-
             continue
           }
-          if (e2.child_features) {
-            this.logger.debug?.(
-              `*** CHILD FEATURES RECURSIVE: ${JSON.stringify(
-                e2.child_features,
-              )}`,
-            )
+          if (childFeatureLine.child_features) {
             this.removeFromArrayOfObj(
-              topLevelFeature,
-              e2.child_features,
+              topLevelDocument,
+              childFeatureLine.child_features,
               idToRemove,
             )
           }
         }
+        ind++
       }
     } else {
-      // if (Array.isArray(gff3Item)) {
-      // for (const childFeature of feature.child_features || []) {
-      //   for (const childFeatureLine of childFeature) {
       // Feature is a leaf i.e. feature has no children
-      for (const [i3, e3] of array.entries()) {
-        for (const [i4, e4] of e3.entries()) {
-          this.logger.debug?.(
-            `SISEMPI: i3: ${i3}, e4.featureId: "${e4.featureId}"`,
-          )
-          if (e4.featureId === idToRemove) {
+      for (const [
+        entryIndex,
+        topLevelEntry,
+      ] of currentTopLevelFeature.entries()) {
+        for (const [, currentFeature] of topLevelEntry.entries()) {
+          if (currentFeature.featureId === idToRemove) {
             this.logger.debug?.(
-              '****************************************** POISTETAAN **********************************',
+              `Found featureid "${currentFeature.featureId}", let's delete it`,
             )
-            // Let's delete also children's featureIds
+            // Get children's featureIds
             const childrenFeatureIds: string[] = this.getChildrenFeatureIds(
-              e4,
+              currentFeature,
               [],
             )
-            this.logger.debug?.(`Found ids: ${childrenFeatureIds.toString()}`)
-            array.splice(i3, 1)
-            const index = topLevelFeature.featureIds.indexOf(idToRemove, 0)
-            if (index > -1) {
-              topLevelFeature.featureIds.splice(index, 1)
+            // Delete feature
+            currentTopLevelFeature.splice(entryIndex, 1)
+            // Delete featureId and its children's featureIds from top level featureIds -array
+            for (const childId of childrenFeatureIds) {
+              const index = topLevelDocument.featureIds.indexOf(childId, 0)
+              if (index > -1) {
+                topLevelDocument.featureIds.splice(index, 1)
+              }
             }
             continue
           }
-          if (e4.child_features) {
-            this.logger.debug?.(
-              `*** RECURSIVE CALL: ${JSON.stringify(e4.child_features)}`,
-            )
+          if (currentFeature.child_features) {
             this.removeFromArrayOfObj(
-              topLevelFeature,
-              e4.child_features,
+              topLevelDocument,
+              currentFeature.child_features,
               idToRemove,
             )
           }
         }
       }
     }
-    return array
+    return currentTopLevelFeature
   }
 
+  /**
+   * Get children feature ids
+   * @param parentFeature - parent feature
+   * @param featureIds
+   * @returns
+   */
   getChildrenFeatureIds(parentFeature: any, featureIds: string[]): string[] {
-    // if (parentFeature.child_features?.length === 0) {
-    //   this.logger.debug?.(
-    //     `*** 1 PUSH FEATUREID (no children): ${parentFeature.featureId}`,
-    //   )
-    //   featureIds.push(parentFeature.featureId)
-    //   return featureIds
-    // }
     if (!parentFeature.child_features) {
       this.logger.debug?.(
-        `*** 2 PUSH FEATUREID (no children): ${parentFeature.featureId}`,
+        `*** Id to be deleted from top level array: ${parentFeature.featureId}`,
       )
       featureIds.push(parentFeature.featureId)
       return featureIds
@@ -256,35 +221,9 @@ export class DeleteFeatureChange extends FeatureChange {
     if (parentFeature.child_features) {
       for (const childFeature of parentFeature.child_features || []) {
         for (const childFeatureLine of childFeature) {
-          // featureIds.push(childFeatureLine.featureId)
-          // this.logger.debug?.(
-          //   `*** PUSH FEATUREID: ${childFeatureLine.featureId}`,
-          // )
-
           this.getChildrenFeatureIds(childFeatureLine, featureIds)
-          // const subFeature = this.getChildrenFeatureIds(
-          //   childFeatureLine,
-          //   featureIds,
-          // )
-          // if (subFeature) {
-          //   return subFeature
-          // }
         }
       }
-
-      // parentFeature.child_features = parentFeature.child_features.map(
-      //   (childFeature) =>
-      //     childFeature.map((childFeatureLine) => {
-      //       const featureId = uuidv4()
-      //       featureIdArrAsParam.push(featureId)
-      //       const newChildFeature = { ...childFeatureLine, featureId }
-      //       this.setAndGetFeatureIdRecursively(
-      //         newChildFeature,
-      //         featureIdArrAsParam,
-      //       )
-      //       return newChildFeature
-      //     }),
-      // )
     }
     return featureIds
   }
