@@ -8,6 +8,7 @@ import {
   ServerDataStore,
 } from './Change'
 import { FeatureChange } from './FeatureChange'
+import { DeleteFeatureChange } from '..'
 
 interface SerializedCopyFeatureChangeBase extends SerializedChange {
   typeName: 'CopyFeatureChange'
@@ -152,12 +153,12 @@ export class CopyFeatureChange extends FeatureChange {
       .reverse()
       .map((endChange) => ({
         featureId: endChange.featureId,
-        targetAssemblyId: endChange.targetAssemblyId,
+        assemblyId: endChange.targetAssemblyId,
       }))
-    return new CopyFeatureChange(
+    return new DeleteFeatureChange(
       {
         changedIds: inverseChangedIds,
-        typeName: this.typeName,
+        typeName: 'DeleteFeatureChange',
         changes: inverseChanges,
         assemblyId: this.assemblyId,
       },
