@@ -84,11 +84,11 @@ export class DeleteFeatureChange extends FeatureChange {
         throw new Error(errMsg)
       }
 
-      // Check if deleted feature is on top level, then simply delete the whole document
+      // Check if feature is on top level, then simply delete the whole document (i.e. not just sub-feature inside document)
       if (featureDoc.featureId === featureId) {
         await featureModel.deleteOne({ _id: featureDoc._id })
         this.logger.debug?.(
-          `Feature "${featureId}" deleted from document "${featureDoc._id}"`,
+          `Feature "${featureId}" deleted from document "${featureDoc._id}". Whole document deleted.`,
         )
         return
       }
@@ -96,7 +96,7 @@ export class DeleteFeatureChange extends FeatureChange {
       const documentAfterDeletion: FeatureDocument =
         await this.deleteFeatureFromDocument(featureDoc, featureDoc, featureId)
 
-        // Save updated document in Mongo
+      // Save updated document in Mongo
       featureDoc.markModified('child_features') // Mark as modified. Without this save() -method is not updating data in database
       try {
         await documentAfterDeletion.save()
@@ -120,6 +120,7 @@ export class DeleteFeatureChange extends FeatureChange {
    */
   async deleteFeatureFromDocument(
     topLevelDocument: FeatureDocument,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     currentTopLevelFeature: any,
     featureIdToDelete: string,
   ) {
@@ -176,7 +177,7 @@ export class DeleteFeatureChange extends FeatureChange {
             )
             // Delete feature
             currentTopLevelFeature.splice(entryIndex, 1)
-            // Delete featureId and its children's featureIds from top level featureIds -array
+            // Delete featureId from top level featureIds -array
             for (const childId of childrenFeatureIds) {
               const index = topLevelDocument.featureIds.indexOf(childId, 0)
               if (index > -1) {
@@ -199,11 +200,12 @@ export class DeleteFeatureChange extends FeatureChange {
   }
 
   /**
-   * Get children feature ids
+   * Get children's feature ids
    * @param parentFeature - parent feature
-   * @param featureIds
+   * @param featureIds - list of children's featureIds
    * @returns
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getChildrenFeatureIds(parentFeature: any, featureIds: string[]): string[] {
     if (!parentFeature.child_features) {
       this.logger.debug?.(
