@@ -10,19 +10,15 @@ import {
   SerializedChange,
   ServerDataStore,
 } from './Change'
-import {
-  FeatureChange,
-  GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-} from './FeatureChange'
-import { DeleteFeatureChange, generateObjectId } from '..'
+import { FeatureChange } from './FeatureChange'
+import { DeleteFeatureChange } from '..'
 
 interface SerializedAddFeatureChangeBase extends SerializedChange {
   typeName: 'AddFeatureChange'
 }
 
 export interface AddFeatureChangeDetails {
-  featureId: string
-  targetAssemblyId: string
+  stringOfGFF3: string
 }
 
 interface SerializedAddFeatureChangeSingle
@@ -49,13 +45,12 @@ export class AddFeatureChange extends FeatureChange {
 
   toJSON(): SerializedAddFeatureChange {
     if (this.changes.length === 1) {
-      const [{ featureId, targetAssemblyId }] = this.changes
+      const [{ stringOfGFF3 }] = this.changes
       return {
         typeName: this.typeName,
         changedIds: this.changedIds,
         assemblyId: this.assemblyId,
-        featureId,
-        targetAssemblyId,
+        stringOfGFF3,
       }
     }
     return {
@@ -78,7 +73,7 @@ export class AddFeatureChange extends FeatureChange {
     let cnt = 0
     // Loop the changes
     for (const change of changes) {
-      this.logger.debug?.(`CHANGE: ${JSON.stringify(change)}`)
+      const { stringOfGFF3 } = change
       const assembly = await assemblyModel.findById(assemblyId).exec()
       if (!assembly) {
         const errMsg = `*** ERROR: Assembly with id "${assemblyId}" not found`
@@ -86,20 +81,13 @@ export class AddFeatureChange extends FeatureChange {
         throw new Error(errMsg)
       }
 
-      // const stringOfGFF3 = file.buffer.toString('utf-8')
-      const stringOfGFF3 =
-        '# Note: See http://song.sourceforge.net\n# multi-exon gene - several linked CDSs\n # single exon gene - one CDS only \n ##gff-version 3\nctgA	example	contig	1	50001	.	.	.	Name=ctgA;multivalue=val1,val2,val3\nctgA	example	BAC	1000	20022	.	.	.	ID=b101.2;Name=b101.2;Note=Fingerprinted BAC with end reads\nctgA	example	SNP	1000	1000	0.987	.	.	ID=FakeSNP1;Name=FakeSNP;Note=This is a fake SNP that should appear at 1000 with length 1'
-
       const gff3Items = gff.parseStringSync(stringOfGFF3, {
         parseSequences: false,
       })
       for (const gff3Item of gff3Items) {
-        this.logger.debug?.(`GFF3ITEM: ${JSON.stringify(gff3Item)}`)
         if (Array.isArray(gff3Item)) {
           // gff3Item is a GFF3Feature
-          this.logger.debug?.(
-            `ARRAY ENTRY GFF3ITEM: ${JSON.stringify(gff3Item)}`,
-          )
+          this.logger.debug?.(`GFF3ITEM: ${JSON.stringify(gff3Item)}`)
           // Add new feature into database
           await this.addFeatureIntoDb(gff3Item, backend)
           cnt++
@@ -135,8 +123,8 @@ export class AddFeatureChange extends FeatureChange {
       .slice()
       .reverse()
       .map((endChange) => ({
-        featureId: endChange.featureId,
-        assemblyId: endChange.targetAssemblyId,
+        featureId: endChange.stringOfGFF3,
+        assemblyId: endChange.stringOfGFF3,
       }))
     return new DeleteFeatureChange(
       {
