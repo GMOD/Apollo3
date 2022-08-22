@@ -201,6 +201,7 @@ export abstract class FeatureChange extends Change {
   async addFeatureIntoDb(gff3Feature: GFF3Feature, backend: ServerDataStore) {
     const { featureModel, refSeqModel, session } = backend
     const { assemblyId } = this
+    const createdDocIds: string[] = [] // Array of created Feature document ids
 
     for (const featureLine of gff3Feature) {
       const refName = featureLine.seq_id
@@ -231,7 +232,9 @@ export abstract class FeatureChange extends Change {
         { session },
       )
       this.logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
+      createdDocIds.push(newFeatureDoc._id)
     }
+    return createdDocIds
   }
 
   /**

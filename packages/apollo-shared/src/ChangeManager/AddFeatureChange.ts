@@ -19,6 +19,7 @@ interface SerializedAddFeatureChangeBase extends SerializedChange {
 
 export interface AddFeatureChangeDetails {
   stringOfGFF3: string
+  newFeatureIds: string[]
 }
 
 interface SerializedAddFeatureChangeSingle
@@ -45,12 +46,13 @@ export class AddFeatureChange extends FeatureChange {
 
   toJSON(): SerializedAddFeatureChange {
     if (this.changes.length === 1) {
-      const [{ stringOfGFF3 }] = this.changes
+      const [{ stringOfGFF3, newFeatureIds }] = this.changes
       return {
         typeName: this.typeName,
         changedIds: this.changedIds,
         assemblyId: this.assemblyId,
         stringOfGFF3,
+        newFeatureIds,
       }
     }
     return {
@@ -67,34 +69,45 @@ export class AddFeatureChange extends FeatureChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { assemblyModel } = backend
+    const { assemblyModel, session } = backend
     const { changes, assemblyId } = this
 
-    let cnt = 0
+    const assembly = await assemblyModel
+      .findById(assemblyId)
+      .session(session)
+      .exec()
+    if (!assembly) {
+      const errMsg = `*** ERROR: Assembly with id "${assemblyId}" not found`
+      this.logger.error(errMsg)
+      throw new Error(errMsg)
+    }
+
+    let featureCnt = 0
     // Loop the changes
     for (const change of changes) {
       const { stringOfGFF3 } = change
-      const assembly = await assemblyModel.findById(assemblyId).exec()
-      if (!assembly) {
-        const errMsg = `*** ERROR: Assembly with id "${assemblyId}" not found`
-        this.logger.error(errMsg)
-        throw new Error(errMsg)
-      }
-
       const gff3Items = gff.parseStringSync(stringOfGFF3, {
         parseSequences: false,
       })
+      // Loop features
       for (const gff3Item of gff3Items) {
         if (Array.isArray(gff3Item)) {
-          // gff3Item is a GFF3Feature
           this.logger.debug?.(`GFF3ITEM: ${JSON.stringify(gff3Item)}`)
           // Add new feature into database
-          await this.addFeatureIntoDb(gff3Item, backend)
-          cnt++
+          const newDocIdArray = await this.addFeatureIntoDb(gff3Item, backend)
+          this.logger.debug?.(
+            `** New added feature docId: "${newDocIdArray}" that contains the following featureIds: "${newDocIdArray}"`,
+          )
+          newDocIdArray.forEach((element) => {
+            change.newFeatureIds.push(element) // Add new feature id into change.newFeatureIds -array
+          })
+
+          featureCnt++
         }
       }
     }
-    this.logger.debug?.(`Added ${cnt} new feature(s) into database.`)
+    this.logger.debug?.(`Added ${featureCnt} new feature(s) into database.`)
+    this.getInverse()
   }
 
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
@@ -122,10 +135,11 @@ export class AddFeatureChange extends FeatureChange {
     const inverseChanges = this.changes
       .slice()
       .reverse()
-      .map((endChange) => ({
-        featureId: endChange.stringOfGFF3,
-        assemblyId: endChange.stringOfGFF3,
+      .map((addFeatChange) => ({
+        featureId: addFeatChange.stringOfGFF3,
+        // assemblyId: this.assemblyId,
       }))
+      this.logger.debug?.(`INVERSE: "${JSON.stringify(inverseChanges)}"`)
     return new DeleteFeatureChange(
       {
         changedIds: inverseChangedIds,

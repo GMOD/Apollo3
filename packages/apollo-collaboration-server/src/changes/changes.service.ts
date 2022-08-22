@@ -98,7 +98,6 @@ export class ChangesService {
         `Error in backend pre-validation: ${errorMessage}`,
       )
     }
-
     let changeDoc: ChangeDocument | undefined
     await this.featureModel.db.transaction(async (session) => {
       try {
