@@ -17,7 +17,6 @@ interface SerializedDeleteFeatureChangeBase extends SerializedChange {
 
 export interface DeleteFeatureChangeDetails {
   featureId: string
-  assemblyId: string
 }
 
 interface SerializedDeleteFeatureChangeSingle
@@ -252,7 +251,6 @@ export class DeleteFeatureChange extends FeatureChange {
       .reverse()
       .map((endChange) => ({
         featureId: endChange.featureId,
-        assemblyId: endChange.assemblyId,
       }))
     return new DeleteFeatureChange(
       {
