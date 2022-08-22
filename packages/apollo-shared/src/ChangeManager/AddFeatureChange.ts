@@ -135,11 +135,11 @@ export class AddFeatureChange extends FeatureChange {
     const inverseChanges = this.changes
       .slice()
       .reverse()
-      .map((addFeatChange) => ({
-        featureId: addFeatChange.stringOfGFF3,
-        // assemblyId: this.assemblyId,
+      .map((addFeatChange) =>
+       ({
+        featureId: addFeatChange.newFeatureIds.toString(),
       }))
-      this.logger.debug?.(`INVERSE: "${JSON.stringify(inverseChanges)}"`)
+    this.logger.debug?.(`INVERSE: "${JSON.stringify(inverseChanges)}"`)
     return new DeleteFeatureChange(
       {
         changedIds: inverseChangedIds,
