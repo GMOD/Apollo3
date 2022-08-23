@@ -1,6 +1,5 @@
-import gff, { GFF3Feature, GFF3FeatureLine } from '@gmod/gff'
+import gff from '@gmod/gff'
 import { resolveIdentifier } from 'mobx-state-tree'
-import { v4 as uuidv4 } from 'uuid'
 
 import { AnnotationFeatureLocation } from '../BackendDrivers/AnnotationFeature'
 import {
@@ -118,8 +117,8 @@ export class AddFeatureChange extends FeatureChange {
       }
     }
     this.logger.debug?.(`Added ${featureCnt} new feature(s) into database.`)
-    const delJSON = this.getInverse()
-    this.logger.debug?.(`delJSON : ${JSON.stringify(delJSON)}`)
+    // const delJSON = this.getInverse()
+    // this.logger.debug?.(`delJSON : ${JSON.stringify(delJSON)}`)
   }
 
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
