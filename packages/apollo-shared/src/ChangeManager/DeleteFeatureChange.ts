@@ -89,7 +89,7 @@ export class DeleteFeatureChange extends FeatureChange {
         this.logger.debug?.(
           `Feature "${featureId}" deleted from document "${featureDoc._id}". Whole document deleted.`,
         )
-        return
+        continue
       }
 
       const documentAfterDeletion: FeatureDocument =
