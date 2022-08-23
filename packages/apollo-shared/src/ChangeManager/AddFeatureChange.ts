@@ -69,7 +69,7 @@ export class AddFeatureChange extends FeatureChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { assemblyModel, session } = backend
+    const { assemblyModel, featureModel, session } = backend
     const { changes, assemblyId } = this
 
     const assembly = await assemblyModel
@@ -95,19 +95,31 @@ export class AddFeatureChange extends FeatureChange {
           this.logger.debug?.(`GFF3ITEM: ${JSON.stringify(gff3Item)}`)
           // Add new feature into database
           const newDocIdArray = await this.addFeatureIntoDb(gff3Item, backend)
-          this.logger.debug?.(
-            `** New added feature docId: "${newDocIdArray}" that contains the following featureIds: "${newDocIdArray}"`,
-          )
-          newDocIdArray.forEach((element) => {
-            change.newFeatureIds.push(element) // Add new feature id into change.newFeatureIds -array
-          })
-
+          for (let i = 0; i < newDocIdArray.length; i++) {
+            // Search feature
+            const featureDoc = await featureModel
+              .findById(newDocIdArray[i])
+              .session(session)
+              .exec()
+            if (!featureDoc) {
+              const errMsg = `*** ERROR: The following feature was not found in database, docId: '${newDocIdArray[i]}'`
+              this.logger.error(errMsg)
+              throw new Error(errMsg)
+            }
+            this.logger.debug?.(
+              `** New added feature docId: "${newDocIdArray[i]}" that contains the following featureIds: "${featureDoc.featureIds}"`,
+            )
+            featureDoc.featureIds.forEach((newFeaId) => {
+              change.newFeatureIds.push(newFeaId) // Add new feature id into change.newFeatureIds -array
+            })
+          }
           featureCnt++
         }
       }
     }
     this.logger.debug?.(`Added ${featureCnt} new feature(s) into database.`)
-    this.getInverse()
+    const delJSON = this.getInverse()
+    this.logger.debug?.(`delJSON : ${JSON.stringify(delJSON)}`)
   }
 
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
@@ -138,12 +150,25 @@ export class AddFeatureChange extends FeatureChange {
       .map((addFeatChange) => ({
         featureId: addFeatChange.newFeatureIds.toString(),
       }))
-    this.logger.debug?.(`INVERSE: "${JSON.stringify(inverseChanges)}"`)
-    inverseChanges.forEach((element) => {
-    this.logger.debug?.(`ELEMENT: "${JSON.stringify(element)}"`)
-    this.logger.debug?.(`ELEMENT: "${JSON.stringify(element.featureId)}"`)
-    // change.newFeatureIds.push(element) // Add new feature id into change.newFeatureIds -array
+    // this.logger.debug?.(
+    //   `BEGIN inverseChanges: "${JSON.stringify(inverseChanges)}"`,
+    // )
+    inverseChanges.forEach((element, index, object) => {
+      if (JSON.stringify(element.featureId).includes(',')) {
+        const str = JSON.stringify(element.featureId)
+        const strArray = str.split(',')
+        strArray.forEach((item) => {
+          const tmp1 = item.replace(/"/g, '') as string
+          const featureObj = { featureId: tmp1 }
+          inverseChanges.push(featureObj)
+        })
+        object.splice(index, 1)
+      }
     })
+    this.logger.debug?.(
+      `END inverseChanges: "${JSON.stringify(inverseChanges)}"`,
+    )
+
     return new DeleteFeatureChange(
       {
         changedIds: inverseChangedIds,
