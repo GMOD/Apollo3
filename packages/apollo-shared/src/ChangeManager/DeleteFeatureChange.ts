@@ -1,9 +1,9 @@
-
-
 import { AnnotationFeature } from 'apollo-mst'
 import { Feature } from 'apollo-schemas'
 import { resolveIdentifier } from 'mobx-state-tree'
 
+import { AnnotationFeatureLocation } from '../BackendDrivers/AnnotationFeature'
+import { AddFeatureChange } from './AddFeatureChange'
 import {
   ChangeOptions,
   ClientDataStore,
@@ -19,6 +19,8 @@ interface SerializedDeleteFeatureChangeBase extends SerializedChange {
 
 export interface DeleteFeatureChangeDetails {
   featureId: string
+  parentFeatureId: string // Parent feature from where feature was deleted.
+  featureString: string // Deleted feature as string
 }
 
 interface SerializedDeleteFeatureChangeSingle
@@ -45,12 +47,14 @@ export class DeleteFeatureChange extends FeatureChange {
 
   toJSON(): SerializedDeleteFeatureChange {
     if (this.changes.length === 1) {
-      const [{ featureId }] = this.changes
+      const [{ featureId, parentFeatureId, featureString }] = this.changes
       return {
         typeName: this.typeName,
         changedIds: this.changedIds,
         assemblyId: this.assemblyId,
         featureId,
+        parentFeatureId,
+        featureString,
       }
     }
     return {
@@ -86,8 +90,11 @@ export class DeleteFeatureChange extends FeatureChange {
       }
 
       // Check if feature is on top level, then simply delete the whole document (i.e. not just sub-feature inside document)
-      if (featureDoc._id.equals(featureId)) {
-        await featureModel.findByIdAndDelete(featureDoc._id)
+      if (featureDoc.featureId === featureId) {
+        // Update change
+        change.parentFeatureId = featureId
+        change.featureString = JSON.stringify(featureDoc)
+        await featureModel.deleteOne({ _id: featureDoc._id })
         this.logger.debug?.(
           `Feature "${featureId}" deleted from document "${featureDoc._id}". Whole document deleted.`,
         )
@@ -112,6 +119,10 @@ export class DeleteFeatureChange extends FeatureChange {
         `Feature "${featureId}" deleted from document "${featureDoc._id}"`,
       )
     }
+    const addJSON = this.getInverse()
+    this.logger.debug?.(
+      `DELETE FEATURE, GET INVERSE : ${JSON.stringify(addJSON)}`,
+    )
   }
 
   /**
@@ -185,8 +196,27 @@ export class DeleteFeatureChange extends FeatureChange {
     })
   }
 
-  getInverse(): DeleteFeatureChange {
-    throw new Error('Not implemented')
+  getInverse() {
+    const tmpArray: string[] = []
+    const inverseChangedIds = this.changedIds.slice().reverse()
+    const inverseChanges = this.changes
+      .slice()
+      .reverse()
+      .map((addFeatChange) => ({
+        stringOfGFF3: addFeatChange.featureString,
+        newFeatureIds: tmpArray,
+        parentFeatureId: addFeatChange.parentFeatureId,
+      }))
+    this.logger.debug?.(`INVERSE CHANGE '${JSON.stringify(inverseChanges)}'`)
+    return new AddFeatureChange(
+      {
+        changedIds: inverseChangedIds,
+        typeName: 'AddFeatureChange',
+        changes: inverseChanges,
+        assemblyId: this.assemblyId,
+      },
+      { logger: this.logger },
+    )
   }
 }
 
