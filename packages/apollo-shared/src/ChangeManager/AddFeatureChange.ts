@@ -18,7 +18,8 @@ interface SerializedAddFeatureChangeBase extends SerializedChange {
 
 export interface AddFeatureChangeDetails {
   stringOfGFF3: string
-  newFeatureIds: string[]
+  newFeatureIds: string[] // FeatureIds after features have been added into database
+  parentFeatureId: string // Parent feature to where feature will be added
 }
 
 interface SerializedAddFeatureChangeSingle
@@ -45,13 +46,14 @@ export class AddFeatureChange extends FeatureChange {
 
   toJSON(): SerializedAddFeatureChange {
     if (this.changes.length === 1) {
-      const [{ stringOfGFF3, newFeatureIds }] = this.changes
+      const [{ stringOfGFF3, newFeatureIds, parentFeatureId }] = this.changes
       return {
         typeName: this.typeName,
         changedIds: this.changedIds,
         assemblyId: this.assemblyId,
         stringOfGFF3,
         newFeatureIds,
+        parentFeatureId,
       }
     }
     return {
@@ -117,8 +119,8 @@ export class AddFeatureChange extends FeatureChange {
       }
     }
     this.logger.debug?.(`Added ${featureCnt} new feature(s) into database.`)
-    // const delJSON = this.getInverse()
-    // this.logger.debug?.(`delJSON : ${JSON.stringify(delJSON)}`)
+    const delJSON = this.getInverse()
+    this.logger.debug?.(`ADD FEATURE, GET INVERSE : ${JSON.stringify(delJSON)}`)
   }
 
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
@@ -148,6 +150,8 @@ export class AddFeatureChange extends FeatureChange {
       .reverse()
       .map((addFeatChange) => ({
         featureId: addFeatChange.newFeatureIds.toString(),
+        parentFeatureId: '',
+        featureString: '',
       }))
     // this.logger.debug?.(
     //   `BEGIN inverseChanges: "${JSON.stringify(inverseChanges)}"`,
@@ -158,15 +162,15 @@ export class AddFeatureChange extends FeatureChange {
         const strArray = str.split(',')
         strArray.forEach((item) => {
           const tmp1 = item.replace(/"/g, '') as string
-          const featureObj = { featureId: tmp1 }
+          const featureObj = { featureId: tmp1, parentFeatureId: '', featureString: '' }
           inverseChanges.push(featureObj)
         })
         object.splice(index, 1)
       }
     })
-    this.logger.debug?.(
-      `END inverseChanges: "${JSON.stringify(inverseChanges)}"`,
-    )
+    // this.logger.debug?.(
+    //   `END inverseChanges: "${JSON.stringify(inverseChanges)}"`,
+    // )
 
     return new DeleteFeatureChange(
       {

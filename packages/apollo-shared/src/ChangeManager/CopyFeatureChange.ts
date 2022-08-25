@@ -154,6 +154,8 @@ export class CopyFeatureChange extends FeatureChange {
       .map((endChange) => ({
         featureId: endChange.featureId,
         assemblyId: endChange.targetAssemblyId,
+        parentFeatureId: '',
+        featureString: '',
       }))
     return new DeleteFeatureChange(
       {
