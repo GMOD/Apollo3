@@ -2,7 +2,7 @@ import { ReadStream } from 'fs'
 
 import { AppRootModel } from '@jbrowse/core/util'
 import {
-  AnnotationFeatureLocationI,
+  AnnotationFeatureI,
   FeaturesForRefNameI,
   FeaturesForRefNameSnapshot,
 } from 'apollo-mst'
@@ -25,7 +25,7 @@ export interface ClientDataStore extends IAnyStateTreeNode {
   backendDriver?: BackendDriver
   internetAccountConfigId?: string
   internetAccounts: AppRootModel['internetAccounts']
-  getFeature(featureId: string): AnnotationFeatureLocationI | undefined
+  getFeature(featureId: string): AnnotationFeatureI | undefined
 }
 export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'

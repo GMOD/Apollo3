@@ -1,4 +1,5 @@
 import { FeatureDocument } from 'apollo-schemas'
+import { Feature } from 'apollo-schemas'
 
 import {
   ChangeOptions,
@@ -7,10 +8,7 @@ import {
   SerializedChange,
   ServerDataStore,
 } from './Change'
-import {
-  FeatureChange,
-  GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-} from './FeatureChange'
+import { FeatureChange } from './FeatureChange'
 
 interface SerializedTypeChangeBase extends SerializedChange {
   typeName: 'TypeChange'
@@ -72,7 +70,7 @@ export class TypeChange extends FeatureChange {
     const { featureModel, session } = backend
     const { changes } = this
     const featuresForChanges: {
-      feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs
+      feature: Feature
       topLevelFeature: FeatureDocument
     }[] = []
     // Let's first check that all features are found and those old values match with expected ones. We do this just to be sure that all changes can be done.
@@ -81,7 +79,7 @@ export class TypeChange extends FeatureChange {
 
       // Search correct feature
       const topLevelFeature = await featureModel
-        .findOne({ featureIds: featureId })
+        .findOne({ allIds: featureId })
         .session(session)
         .exec()
 
@@ -95,7 +93,7 @@ export class TypeChange extends FeatureChange {
         `*** Feature found: ${JSON.stringify(topLevelFeature)}`,
       )
 
-      const foundFeature = this.getObjectByFeatureId(topLevelFeature, featureId)
+      const foundFeature = this.getFeatureFromId(topLevelFeature, featureId)
       if (!foundFeature) {
         const errMsg = `ERROR when searching feature by featureId`
         this.logger.error(errMsg)
@@ -118,10 +116,10 @@ export class TypeChange extends FeatureChange {
       const { newType } = change
       const { feature, topLevelFeature } = featuresForChanges[idx]
       feature.type = newType
-      if (topLevelFeature.featureId === feature.featureId) {
+      if (topLevelFeature._id.equals(feature._id)) {
         topLevelFeature.markModified('type') // Mark as modified. Without this save() -method is not updating data in database
       } else {
-        topLevelFeature.markModified('child_features') // Mark as modified. Without this save() -method is not updating data in database
+        topLevelFeature.markModified('children') // Mark as modified. Without this save() -method is not updating data in database
       }
 
       try {
@@ -151,7 +149,7 @@ export class TypeChange extends FeatureChange {
       if (!feature) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
-      feature.setFeatureType(this.changes[idx].newType)
+      feature.setType(this.changes[idx].newType)
     })
   }
 

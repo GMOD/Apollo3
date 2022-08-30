@@ -1,6 +1,7 @@
-import { GFF3Feature, GFF3FeatureLine } from '@gmod/gff'
-import { FileDocument, RefSeqDocument } from 'apollo-schemas'
-import { v4 as uuidv4 } from 'uuid'
+import { GFF3Feature } from '@gmod/gff'
+import type { AnnotationFeatureSnapshot } from 'apollo-mst'
+import { Feature, FileDocument, RefSeqDocument } from 'apollo-schemas'
+import ObjectID from 'bson-objectid'
 
 import {
   Change,
@@ -8,18 +9,6 @@ import {
   SerializedChange,
   ServerDataStore,
 } from './Change'
-
-interface GFF3FeatureLineWithOptionalRefs extends GFF3FeatureLine {
-  // eslint-disable-next-line camelcase
-  child_features?: GFF3Feature[]
-  // eslint-disable-next-line camelcase
-  derived_features?: GFF3Feature[]
-}
-
-export interface GFF3FeatureLineWithFeatureIdAndOptionalRefs
-  extends GFF3FeatureLineWithOptionalRefs {
-  featureId: string
-}
 
 export abstract class FeatureChange extends Change {
   logger: import('@nestjs/common').LoggerService
@@ -36,18 +25,14 @@ export abstract class FeatureChange extends Change {
 
   /**
    * Get single feature by featureId
-   * @param featureObject -
+   * @param featureOrDocument -
    * @param featureId -
    * @returns
    */
-  getObjectByFeatureId(
-    feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-    featureId: string,
-  ): GFF3FeatureLineWithFeatureIdAndOptionalRefs | null {
-    this.logger.debug?.(`Entry=${JSON.stringify(feature)}`)
+  getFeatureFromId(feature: Feature, featureId: string): Feature | null {
+    this.logger.verbose?.(`Entry=${JSON.stringify(feature)}`)
 
-    this.logger.debug?.(`Top level featureId=${feature.featureId}`)
-    if (feature.featureId === featureId) {
+    if (feature._id.equals(featureId)) {
       this.logger.debug?.(
         `Top level featureId matches in object ${JSON.stringify(feature)}`,
       )
@@ -58,16 +43,10 @@ export abstract class FeatureChange extends Change {
     this.logger.debug?.(
       `FeatureId was not found on top level so lets make recursive call...`,
     )
-    for (const childFeature of feature.child_features || []) {
-      for (const childFeatureLine of childFeature) {
-        const subFeature: GFF3FeatureLineWithFeatureIdAndOptionalRefs | null =
-          this.getObjectByFeatureId(
-            childFeatureLine as GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-            featureId,
-          )
-        if (subFeature) {
-          return subFeature
-        }
+    for (const [, childFeature] of feature.children || new Map()) {
+      const subFeature = this.getFeatureFromId(childFeature, featureId)
+      if (subFeature) {
+        return subFeature
       }
     }
     return null
@@ -240,28 +219,15 @@ export abstract class FeatureChange extends Change {
         )
       }
       // Let's add featureId to parent feature
-      const featureId = uuidv4()
-      const featureIds = [featureId]
-      this.logger.verbose?.(
-        `Added new FeatureId: value=${JSON.stringify(featureLine)}`,
-      )
+      const featureIds: string[] = []
 
-      // Let's add featureId to each child recursively
-      const newFeatureLine = this.setAndGetFeatureIdRecursively(
-        { ...featureLine, featureId },
-        featureIds,
-      )
-      this.logger.verbose?.(`So far apollo ids are: ${featureIds.toString()}\n`)
+      const newFeature = createFeature(gff3Feature, refSeqDoc._id, featureIds)
+
+      this.logger.verbose?.(`So far feature ids are: ${featureIds.toString()}`)
 
       // Add into Mongo
       const [newFeatureDoc] = await featureModel.create(
-        [
-          {
-            refSeq: refSeqDoc._id,
-            featureIds,
-            ...newFeatureLine,
-          },
-        ],
+        [{ allIds: featureIds, ...newFeature }],
         { session },
       )
       this.logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
@@ -269,35 +235,140 @@ export abstract class FeatureChange extends Change {
   }
 
   /**
-   * Loop child features in parent feature and add featureId to each child's attribute
-   * @param parentFeature - Parent feature
+   * Recursively assign new IDs to a feature
+   * @param feature - Parent feature
+   * @param featureIds -
    */
-  setAndGetFeatureIdRecursively(
-    parentFeature: GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-    featureIdArrAsParam: string[],
-  ): GFF3FeatureLineWithFeatureIdAndOptionalRefs {
-    if (parentFeature.child_features?.length === 0) {
-      delete parentFeature.child_features
+  generateNewIds(
+    feature: Feature | AnnotationFeatureSnapshot,
+    featureIds: string[],
+  ): AnnotationFeatureSnapshot {
+    const newId = new ObjectID().toHexString()
+    featureIds.push(newId)
+
+    const children: Record<string, AnnotationFeatureSnapshot> = {}
+    if (feature.children) {
+      Object.values(feature.children).forEach((child) => {
+        const newChild = this.generateNewIds(child, featureIds)
+        children[newChild._id] = newChild
+      })
     }
-    if (parentFeature.derived_features?.length === 0) {
-      delete parentFeature.derived_features
-    }
-    // If there are child features
-    if (parentFeature.child_features) {
-      parentFeature.child_features = parentFeature.child_features.map(
-        (childFeature) =>
-          childFeature.map((childFeatureLine) => {
-            const featureId = uuidv4()
-            featureIdArrAsParam.push(featureId)
-            const newChildFeature = { ...childFeatureLine, featureId }
-            this.setAndGetFeatureIdRecursively(
-              newChildFeature,
-              featureIdArrAsParam,
-            )
-            return newChildFeature
-          }),
-      )
-    }
-    return parentFeature
+
+    return { ...feature, children: feature.children && children, _id: newId }
   }
+}
+
+interface FeatureWithRefSeq extends AnnotationFeatureSnapshot {
+  refSeq: string
+}
+
+function createFeature(
+  gff3Feature: GFF3Feature,
+  refSeq: string,
+  featureIds?: string[],
+): FeatureWithRefSeq {
+  const [firstFeature] = gff3Feature
+  const {
+    seq_id: refName,
+    type,
+    start,
+    end,
+    strand,
+    score,
+    phase,
+    child_features: childFeatures,
+    source,
+    attributes,
+  } = firstFeature
+  if (!refName) {
+    throw new Error(
+      `feature does not have seq_id: ${JSON.stringify(firstFeature)}`,
+    )
+  }
+  if (!type) {
+    throw new Error(
+      `feature does not have type: ${JSON.stringify(firstFeature)}`,
+    )
+  }
+  if (start === null) {
+    throw new Error(
+      `feature does not have start: ${JSON.stringify(firstFeature)}`,
+    )
+  }
+  if (end === null) {
+    throw new Error(
+      `feature does not have end: ${JSON.stringify(firstFeature)}`,
+    )
+  }
+  const feature: FeatureWithRefSeq = {
+    _id: new ObjectID().toHexString(),
+    refSeq,
+    refName,
+    type,
+    start,
+    end,
+  }
+  if (gff3Feature.length > 1) {
+    feature.discontinuousLocations = gff3Feature.map((f) => {
+      const { start: subStart, end: subEnd } = f
+      if (subStart === null || subEnd === null) {
+        throw new Error(
+          `feature does not have start and/or end: ${JSON.stringify(f)}`,
+        )
+      }
+      return { start: subStart, end: subEnd }
+    })
+  }
+  if (strand) {
+    if (strand === '+') {
+      feature.strand = 1
+    } else if (strand === '-') {
+      feature.strand = -1
+    } else {
+      throw new Error(`Unknown strand: "${strand}"`)
+    }
+  }
+  if (score !== null) {
+    feature.score = score
+  }
+  if (phase) {
+    if (phase === '0') {
+      feature.phase = 0
+    } else if (phase === '1') {
+      feature.phase = 1
+    } else if (phase === '2') {
+      feature.phase = 2
+    } else {
+      throw new Error(`Unknown phase: "${phase}"`)
+    }
+  }
+  if (featureIds) {
+    featureIds.push(feature._id)
+  }
+  if (childFeatures && childFeatures.length) {
+    const children: Record<string, AnnotationFeatureSnapshot> = {}
+    for (const childFeature of childFeatures) {
+      const child = createFeature(childFeature, refSeq, featureIds)
+      children[child._id] = child
+    }
+    feature.children = children
+  }
+  if (source || attributes) {
+    const attrs: Record<string, string[]> = {}
+    if (source) {
+      attrs.source = [source]
+    }
+    if (attributes) {
+      Object.entries(attributes).forEach(([key, val]) => {
+        if (val) {
+          const newKey = key.toLowerCase()
+          if (newKey !== 'parent') {
+            attrs[key.toLowerCase()] = val
+          }
+        }
+      })
+    }
+    feature.attributes = attrs
+  }
+  return feature
 }

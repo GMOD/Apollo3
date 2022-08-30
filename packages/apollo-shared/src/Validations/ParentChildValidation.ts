@@ -1,8 +1,7 @@
-import { FeatureDocument } from 'apollo-schemas'
+import { Feature, FeatureDocument } from 'apollo-schemas'
 import { ClientSession, Model } from 'mongoose'
 
 import { Change } from '../ChangeManager/Change'
-import { GFF3FeatureLineWithFeatureIdAndOptionalRefs } from '../ChangeManager/FeatureChange'
 import { Validation, ValidationResult } from './Validation'
 import {
   LocationEndChange,
@@ -43,7 +42,7 @@ export class ParentChildValidation extends Validation {
 
       // Search correct feature
       const topLevelFeature = await featureModel
-        .findOne({ featureIds: featureId })
+        .findOne({ allIds: featureId })
         .session(session)
         .exec()
 
@@ -57,9 +56,7 @@ export class ParentChildValidation extends Validation {
     }
     for (const topLevelFeature of topLevelFeatures) {
       try {
-        this.checkChildFeatureBoundaries(
-          topLevelFeature as GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-        )
+        this.checkChildFeatureBoundaries(topLevelFeature)
       } catch (error) {
         return { validationName: this.name, error: { message: String(error) } }
       }
@@ -67,33 +64,23 @@ export class ParentChildValidation extends Validation {
     return { validationName: this.name }
   }
 
-  checkChildFeatureBoundaries(
-    feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-  ) {
-    if (!feature.child_features) {
+  checkChildFeatureBoundaries(feature: Feature) {
+    if (!feature.children) {
       return
     }
-    feature.child_features.forEach((childFeature) => {
-      childFeature.forEach((featureLocation) => {
-        if (
-          feature.start !== null &&
-          feature.end !== null &&
-          featureLocation.start !== null &&
-          featureLocation.end !== null &&
-          (featureLocation.end > feature.end ||
-            featureLocation.start < feature.start)
-        ) {
-          throw new Error(
-            `Feature "${
-              (featureLocation as GFF3FeatureLineWithFeatureIdAndOptionalRefs)
-                .featureId
-            }" exceeds the bounds of its parent, "${feature.featureId}"`,
-          )
-        }
-        this.checkChildFeatureBoundaries(
-          featureLocation as GFF3FeatureLineWithFeatureIdAndOptionalRefs,
+    for (const [, childFeature] of feature.children || new Map()) {
+      if (
+        feature.start !== null &&
+        feature.end !== null &&
+        childFeature.start !== null &&
+        childFeature.end !== null &&
+        (childFeature.end > feature.end || childFeature.start < feature.start)
+      ) {
+        throw new Error(
+          `Feature "${childFeature._id}" exceeds the bounds of its parent, "${feature._id}"`,
         )
-      })
-    })
+      }
+      this.checkChildFeatureBoundaries(childFeature)
+    }
   }
 }

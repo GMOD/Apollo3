@@ -1,4 +1,5 @@
 import { FeatureDocument } from 'apollo-schemas'
+import { Feature } from 'apollo-schemas'
 
 import {
   ChangeOptions,
@@ -7,10 +8,7 @@ import {
   SerializedChange,
   ServerDataStore,
 } from './Change'
-import {
-  FeatureChange,
-  GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-} from './FeatureChange'
+import { FeatureChange } from './FeatureChange'
 
 interface SerializedLocationEndChangeBase extends SerializedChange {
   typeName: 'LocationEndChange'
@@ -73,7 +71,7 @@ export class LocationEndChange extends FeatureChange {
     const { featureModel, session } = backend
     const { changes } = this
     const featuresForChanges: {
-      feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs
+      feature: Feature
       topLevelFeature: FeatureDocument
     }[] = []
     // Let's first check that all features are found and those old values match with expected ones. We do this just to be sure that all changes can be done.
@@ -82,7 +80,7 @@ export class LocationEndChange extends FeatureChange {
 
       // Search correct feature
       const topLevelFeature = await featureModel
-        .findOne({ featureIds: featureId })
+        .findOne({ allIds: featureId })
         .session(session)
         .exec()
 
@@ -96,7 +94,7 @@ export class LocationEndChange extends FeatureChange {
         `*** Feature found: ${JSON.stringify(topLevelFeature)}`,
       )
 
-      const foundFeature = this.getObjectByFeatureId(topLevelFeature, featureId)
+      const foundFeature = this.getFeatureFromId(topLevelFeature, featureId)
       if (!foundFeature) {
         const errMsg = `ERROR when searching feature by featureId`
         this.logger.error(errMsg)
@@ -119,10 +117,10 @@ export class LocationEndChange extends FeatureChange {
       const { newEnd } = change
       const { feature, topLevelFeature } = featuresForChanges[idx]
       feature.end = newEnd
-      if (topLevelFeature.featureId === feature.featureId) {
+      if (topLevelFeature._id.equals(feature._id)) {
         topLevelFeature.markModified('end') // Mark as modified. Without this save() -method is not updating data in database
       } else {
-        topLevelFeature.markModified('child_features') // Mark as modified. Without this save() -method is not updating data in database
+        topLevelFeature.markModified('children') // Mark as modified. Without this save() -method is not updating data in database
       }
 
       try {

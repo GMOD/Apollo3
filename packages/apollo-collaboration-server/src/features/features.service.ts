@@ -1,4 +1,4 @@
-import gff, { GFF3Feature, GFF3FeatureLine } from '@gmod/gff'
+import gff, { GFF3Feature } from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
@@ -10,20 +10,61 @@ import {
   RefSeqDocument,
 } from 'apollo-schemas'
 import { Model } from 'mongoose'
-import { v4 as uuidv4 } from 'uuid'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 
-interface GFF3FeatureLineWithOptionalRefs extends GFF3FeatureLine {
-  // eslint-disable-next-line camelcase
-  child_features?: GFF3Feature[]
-  // eslint-disable-next-line camelcase
-  derived_features?: GFF3Feature[]
-}
-
-export interface GFF3FeatureLineWithFeatureIdAndOptionalRefs
-  extends GFF3FeatureLineWithOptionalRefs {
-  featureId: string
+function makeGFF3Feature(
+  featureDocument: Feature,
+  parentId?: string,
+): GFF3Feature {
+  const locations = featureDocument.discontinuousLocations?.length
+    ? featureDocument.discontinuousLocations
+    : [{ start: featureDocument.start, end: featureDocument.end }]
+  const attributes: Record<string, string[]> = {
+    ...(featureDocument.attributes || {}),
+  }
+  const source = featureDocument.attributes?.source?.[0] || null
+  delete attributes.source
+  if (parentId) {
+    attributes.Parent = [parentId]
+  }
+  if (attributes.id) {
+    attributes.ID = attributes.id
+    delete attributes.id
+  }
+  if (attributes.name) {
+    attributes.Name = attributes.name
+    delete attributes.name
+  }
+  if (attributes.note) {
+    attributes.Note = attributes.note
+    delete attributes.note
+  }
+  if (attributes.target) {
+    attributes.Target = attributes.target
+    delete attributes.target
+  }
+  return locations.map((location) => ({
+    start: location.start,
+    end: location.end,
+    seq_id: featureDocument.refName,
+    source,
+    type: featureDocument.type,
+    score: featureDocument.score || null,
+    strand: featureDocument.strand
+      ? featureDocument.strand === 1
+        ? '+'
+        : '-'
+      : null,
+    phase: featureDocument.phase ? String(featureDocument.phase) : null,
+    attributes: Object.keys(attributes).length ? attributes : null,
+    derived_features: [],
+    child_features: featureDocument.children
+      ? Object.values(featureDocument.children).map((child) =>
+          makeGFF3Feature(child, attributes.ID[0]),
+        )
+      : [],
+  }))
 }
 
 @Injectable()
@@ -48,25 +89,26 @@ export class FeaturesService {
     const refSeqs = await this.refSeqModel.find({ assembly }).exec()
     const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
     const query = { refSeq: { $in: refSeqIds } }
-    this.logger.log(query)
     return this.featureModel
       .find(query)
       .cursor({
-        transform: (chunk: FeatureDocument) =>
-          chunk.toObject({ flattenMaps: true }),
+        transform: (chunk: FeatureDocument): GFF3Feature => {
+          const flattened = chunk.toObject({ flattenMaps: true })
+          return makeGFF3Feature(flattened)
+        },
       })
       .pipe(gff.formatStream({ insertVersionDirective: true }))
   }
 
   /**
    * Get feature by featureId. When retrieving features by id, the features and any of its children are returned, but not any of its parent or sibling features.
-   * @param featureid - featureId
+   * @param featureId - featureId
    * @returns Return the feature(s) if search was successful. Otherwise throw exception
    */
   async findById(featureId: string) {
     // Search correct feature
     const topLevelFeature = await this.featureModel
-      .findOne({ featureIds: featureId })
+      .findOne({ allIds: featureId })
       .exec()
 
     if (!topLevelFeature) {
@@ -76,7 +118,7 @@ export class FeaturesService {
     }
 
     // Now we need to find correct top level feature or sub-feature inside the feature
-    const foundFeature = this.getObjectByFeatureId(topLevelFeature, featureId)
+    const foundFeature = this.getFeatureFromId(topLevelFeature, featureId)
     if (!foundFeature) {
       const errMsg = `ERROR when searching feature by featureId`
       this.logger.error(errMsg)
@@ -88,18 +130,14 @@ export class FeaturesService {
 
   /**
    * Get single feature by featureId
-   * @param featureObject -
+   * @param featureOrDocument -
    * @param featureId -
    * @returns
    */
-  getObjectByFeatureId(
-    feature: GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-    featureId: string,
-  ): GFF3FeatureLineWithFeatureIdAndOptionalRefs | null {
+  getFeatureFromId(feature: Feature, featureId: string): Feature | null {
     this.logger.verbose(`Entry=${JSON.stringify(feature)}`)
 
-    this.logger.debug(`Top level featureId=${feature.featureId}`)
-    if (feature.featureId === featureId) {
+    if (feature._id.equals(featureId)) {
       this.logger.debug(
         `Top level featureId matches in object ${JSON.stringify(feature)}`,
       )
@@ -110,55 +148,13 @@ export class FeaturesService {
     this.logger.debug(
       `FeatureId was not found on top level so lets make recursive call...`,
     )
-    for (const childFeature of feature.child_features || []) {
-      for (const childFeatureLine of childFeature) {
-        const subFeature: GFF3FeatureLineWithFeatureIdAndOptionalRefs | null =
-          this.getObjectByFeatureId(
-            childFeatureLine as GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-            featureId,
-          )
-        if (subFeature) {
-          return subFeature
-        }
+    for (const [, childFeature] of feature.children || new Map()) {
+      const subFeature = this.getFeatureFromId(childFeature, featureId)
+      if (subFeature) {
+        return subFeature
       }
     }
     return null
-  }
-
-  /**
-   * Loop child features in parent feature and add featureId to each child's attribute
-   * @param parentFeature - Parent feature
-   */
-  setAndGetFeatureIdRecursively(
-    parentFeature: GFF3FeatureLineWithOptionalRefs,
-    featureIdArrAsParam: string[],
-  ): string[] {
-    this.logger.verbose(
-      `Value in recursive method = ${JSON.stringify(parentFeature)}`,
-    )
-    if (parentFeature.child_features?.length === 0) {
-      delete parentFeature.child_features
-    }
-    if (parentFeature.derived_features?.length === 0) {
-      delete parentFeature.derived_features
-    }
-    // If there are child features
-    if (parentFeature.child_features) {
-      parentFeature.child_features = parentFeature.child_features.map(
-        (childFeature) =>
-          childFeature.map((childFeatureLine) => {
-            const featureId = uuidv4()
-            featureIdArrAsParam.push(featureId)
-            const newChildFeature = { ...childFeatureLine, featureId }
-            this.setAndGetFeatureIdRecursively(
-              newChildFeature,
-              featureIdArrAsParam,
-            )
-            return newChildFeature
-          }),
-      )
-    }
-    return featureIdArrAsParam
   }
 
   /**

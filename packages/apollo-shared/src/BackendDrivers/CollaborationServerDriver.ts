@@ -1,23 +1,11 @@
-import { GFF3FeatureLine } from '@gmod/gff'
 import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { Region, getSession } from '@jbrowse/core/util'
-import {
-  AnnotationFeatureLocationSnapshot,
-  AnnotationFeatureSnapshot,
-} from 'apollo-mst'
+import { AnnotationFeatureSnapshot } from 'apollo-mst'
 
 import { Change } from '../ChangeManager/Change'
 import { ValidationResultSet } from '../Validations/ValidationSet'
-import { BackendDriver, FeaturesForRefNameSnapshot } from './BackendDriver'
-
-interface ApolloFeatureLine extends GFF3FeatureLine {
-  // eslint-disable-next-line camelcase
-  child_features?: ApolloFeatureLine[][]
-  // eslint-disable-next-line camelcase
-  derived_features?: ApolloFeatureLine[][]
-  featureId: string
-}
+import { BackendDriver } from './BackendDriver'
 
 export class CollaborationServerDriver extends BackendDriver {
   get internetAccount() {
@@ -94,14 +82,17 @@ export class CollaborationServerDriver extends BackendDriver {
         }`,
       )
     }
-    const data = (await response.json()) as ApolloFeatureLine[]
+    const data = (await response.json()) as AnnotationFeatureSnapshot[]
     // const backendResult = JSON.stringify(data)
     // console.log(
     //   `In CollaborationServerDriver: Backend endpoint returned=${backendResult}`,
     // )
-    const allFeatures = makeFeatures(data, 'volvox')
+    const allFeatures: Record<string, AnnotationFeatureSnapshot> = {}
+    data.forEach((f) => {
+      allFeatures[f._id] = f
+    })
 
-    return { [refName]: allFeatures[refName] }
+    return { [refName]: allFeatures }
   }
 
   async getSequence(region: Region) {
@@ -141,79 +132,4 @@ export class CollaborationServerDriver extends BackendDriver {
     }
     return results
   }
-}
-
-function makeFeatures(
-  apolloFeatures: ApolloFeatureLine[],
-  assemblyName: string,
-) {
-  const featuresByRefName: FeaturesForRefNameSnapshot = {}
-  for (const apolloFeature of apolloFeatures) {
-    const convertedFeature = convertFeature(apolloFeature, assemblyName)
-    const { refName } = convertedFeature
-    let refRecord = featuresByRefName[refName]
-    if (!refRecord) {
-      refRecord = {}
-      featuresByRefName[refName] = refRecord
-    }
-    refRecord[convertedFeature.id] = convertedFeature
-  }
-  return featuresByRefName
-}
-
-function convertFeature(
-  apolloFeature: ApolloFeatureLine,
-  assemblyName: string,
-): AnnotationFeatureLocationSnapshot {
-  if (!apolloFeature.seq_id) {
-    throw new Error('Got GFF3 record without an ID')
-  }
-  if (!apolloFeature.type) {
-    throw new Error('Got GFF3 record without a type')
-  }
-  if (!apolloFeature.start) {
-    throw new Error('Got GFF3 record without a start')
-  }
-  if (!apolloFeature.end) {
-    throw new Error('Got GFF3 record without an end')
-  }
-  const id = apolloFeature.featureId
-  if (!id) {
-    throw new Error('Apollo feature without featureId encountered')
-  }
-  const children: Record<string, AnnotationFeatureSnapshot> = {}
-  apolloFeature.child_features?.forEach((childFeature) => {
-    let childFeatureId: string | undefined = undefined
-    const locations: Record<string, AnnotationFeatureLocationSnapshot> = {}
-    childFeature.forEach((childFeatureLine) => {
-      childFeatureId = childFeatureLine?.attributes?.ID?.[0]
-      const childFeat = convertFeature(childFeatureLine, assemblyName)
-      locations[childFeat.id] = childFeat
-    })
-    if (Object.keys(locations).length > 1) {
-      if (!childFeatureId) {
-        throw new Error('Feature location found without feature ID')
-      }
-    } else if (!childFeatureId) {
-      childFeatureId = `${Object.values(locations)[0].id}-feature`
-    }
-    children[childFeatureId] = {
-      id: childFeatureId,
-      type: 'AnnotationFeature',
-      locations,
-    }
-  })
-  const newFeature: AnnotationFeatureLocationSnapshot = {
-    id,
-    type: 'AnnotationFeatureLocation',
-    assemblyName,
-    refName: apolloFeature.seq_id,
-    start: apolloFeature.start,
-    end: apolloFeature.end,
-    featureType: apolloFeature.type,
-  }
-  if (Array.from(Object.entries(children)).length) {
-    newFeature.children = children
-  }
-  return newFeature
 }

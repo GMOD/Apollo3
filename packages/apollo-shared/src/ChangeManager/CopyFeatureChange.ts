@@ -1,5 +1,4 @@
 import ObjectID from 'bson-objectid'
-import { v4 as uuidv4 } from 'uuid'
 
 import {
   ChangeOptions,
@@ -8,10 +7,7 @@ import {
   SerializedChange,
   ServerDataStore,
 } from './Change'
-import {
-  FeatureChange,
-  GFF3FeatureLineWithFeatureIdAndOptionalRefs,
-} from './FeatureChange'
+import { FeatureChange } from './FeatureChange'
 
 interface SerializedCopyFeatureChangeBase extends SerializedChange {
   typeName: 'CopyFeatureChange'
@@ -78,7 +74,7 @@ export class CopyFeatureChange extends FeatureChange {
 
       // Search feature
       const topLevelFeature = await featureModel
-        .findOne({ featureIds: featureId })
+        .findOne({ allIds: featureId })
         .session(session)
         .exec()
 
@@ -91,41 +87,31 @@ export class CopyFeatureChange extends FeatureChange {
       //   `*** Feature found: ${JSON.stringify(topLevelFeature)}`,
       // )
 
-      const topLevelFeatureObject =
-        topLevelFeature.toObject() as GFF3FeatureLineWithFeatureIdAndOptionalRefs
-      const newFeature = this.getObjectByFeatureId(
-        topLevelFeatureObject,
-        featureId,
-      )
+      const newFeature = this.getFeatureFromId(topLevelFeature, featureId)
       if (!newFeature) {
         throw new Error(
-          `Feature ID "${featureId}" not found in parent feature "${topLevelFeature.featureId}"`,
+          `Feature ID "${featureId}" not found in parent feature "${topLevelFeature._id}"`,
         )
       }
 
-      const newFeatureId = uuidv4() // Set new featureId in target assembly
-      const featureIds = [newFeatureId]
-      newFeature.featureId = newFeatureId // Set new featureId in top level
+      const featureIds: string[] = []
 
       const refSeqDoc = await refSeqModel
-        .findOne({ assembly: targetAssemblyId, name: newFeature.seq_id })
+        .findOne({ assembly: targetAssemblyId, name: newFeature.refName })
         .session(session)
         .exec()
       if (!refSeqDoc) {
         throw new Error(
-          `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${topLevelFeature.seq_id}" not found`,
+          `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${topLevelFeature.refName}" not found`,
         )
       }
 
       // Let's add featureId to each child recursively
-      const newFeatureLine = this.setAndGetFeatureIdRecursively(
-        newFeature,
-        featureIds,
-      )
+      const newFeatureLine = this.generateNewIds(newFeature, featureIds)
       this.logger.verbose?.(`New featureIds: ${featureIds}`)
       this.logger.verbose?.(`New assemblyId: ${targetAssemblyId}`)
       this.logger.verbose?.(`New refSeqId: ${refSeqDoc._id}`)
-      this.logger.verbose?.(`New featureId: ${newFeatureLine.featureId}`)
+      this.logger.verbose?.(`New featureId: ${newFeatureLine._id}`)
 
       // Add into Mongo
       const [newFeatureDoc] = await featureModel.create(
@@ -134,7 +120,7 @@ export class CopyFeatureChange extends FeatureChange {
             ...newFeatureLine,
             _id: new ObjectID().toHexString(),
             refSeq: refSeqDoc._id,
-            featureIds,
+            allIds: featureIds,
           },
         ],
         { session },

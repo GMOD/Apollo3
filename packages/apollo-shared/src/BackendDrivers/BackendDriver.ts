@@ -1,5 +1,5 @@
 import { Region } from '@jbrowse/core/util'
-import { AnnotationFeatureLocationSnapshot } from 'apollo-mst'
+import { AnnotationFeatureSnapshot } from 'apollo-mst'
 
 import { Change, ClientDataStore } from '../ChangeManager/Change'
 import { ValidationResultSet } from '../Validations/ValidationSet'
@@ -8,7 +8,7 @@ import { ValidationResultSet } from '../Validations/ValidationSet'
 // resolves to `any`, so this offers better typechecking.
 export type FeaturesForRefNameSnapshot = Record<
   string,
-  Record<string, AnnotationFeatureLocationSnapshot | undefined> | undefined
+  Record<string, AnnotationFeatureSnapshot | undefined> | undefined
 >
 
 export abstract class BackendDriver {

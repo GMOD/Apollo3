@@ -1,13 +1,18 @@
-import { GFF3Feature, GFF3FeatureLineWithRefs } from '@gmod/gff'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { Document, Schema as MongooseSchema } from 'mongoose'
+import type { AnnotationFeatureSnapshot } from 'apollo-mst'
+import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose'
 
 import { RefSeq } from './refSeq.schema'
 
-export type FeatureDocument = Feature & Document
+export type FeatureDocument = HydratedDocument<Feature>
 
 @Schema()
-export class Feature implements GFF3FeatureLineWithRefs {
+export class Feature
+  implements Omit<AnnotationFeatureSnapshot, '_id' | 'children'>
+{
+  // Don't make this a @Prop since _id is already on a MongoDB document
+  _id: Types.ObjectId
+
   @Prop({
     required: true,
     index: true,
@@ -17,17 +22,10 @@ export class Feature implements GFF3FeatureLineWithRefs {
   refSeq: RefSeq
 
   @Prop({ type: [String], required: true, index: true })
-  featureIds: string[]
-
-  @Prop({ type: String, required: true, index: true })
-  featureId: string
+  allIds: string[]
 
   @Prop({ required: true })
-  // eslint-disable-next-line camelcase
-  seq_id: string
-
-  @Prop()
-  source: string
+  refName: string
 
   @Prop({ required: true })
   type: string
@@ -39,26 +37,27 @@ export class Feature implements GFF3FeatureLineWithRefs {
   end: number
 
   @Prop()
-  score: number
+  discontinuousLocations?: { start: number; end: number }[]
 
   @Prop()
-  strand: string
+  strand?: 1 | -1
 
   @Prop()
-  phase: string
+  score?: number
+
+  @Prop()
+  phase?: 0 | 1 | 2
 
   @Prop({ type: Map, of: [String] })
-  attributes: Record<string, string[]>
+  attributes?: Record<string, string[]>
 
-  @Prop({ type: JSON })
-  // eslint-disable-next-line camelcase
-  child_features: GFF3Feature[]
-
-  @Prop({ type: JSON })
-  // eslint-disable-next-line camelcase
-  derived_features: GFF3Feature[]
+  // This is not a @Prop because it needs to be a recursive reference to the
+  // schema, which is done with Schema.add below
+  children?: Map<string, Feature>
 }
 export const FeatureSchema = SchemaFactory.createForClass(Feature)
+
+FeatureSchema.add({ children: { type: Map, of: FeatureSchema } })
 
 FeatureSchema.index({ refSeq: 1, start: 1 })
 FeatureSchema.index({ refSeq: 1, end: 1 })

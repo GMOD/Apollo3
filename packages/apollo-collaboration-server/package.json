@@ -47,8 +47,7 @@
     "react-dom": "^17.0.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.4.0",
-    "tslib": "^2.3.1",
-    "uuid": "^8.3.2"
+    "tslib": "^2.3.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^8.1.2",
@@ -61,7 +60,7 @@
     "@types/passport-jwt": "^3.0.6",
     "@types/passport-local": "^1.0.34",
     "@types/supertest": "^2.0.11",
-    "@types/uuid": "^8",
+    "apollo-mst": "workspace:^",
     "jest": "^27.0.6",
     "prettier": "^2.3.2",
     "rimraf": "^3.0.2",
