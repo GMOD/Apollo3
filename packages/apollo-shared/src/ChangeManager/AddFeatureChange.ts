@@ -1,4 +1,5 @@
 import gff from '@gmod/gff'
+import { FeatureDocument } from 'apollo-schemas'
 import { resolveIdentifier } from 'mobx-state-tree'
 
 import { AnnotationFeatureLocation } from '../BackendDrivers/AnnotationFeature'
@@ -18,6 +19,7 @@ interface SerializedAddFeatureChangeBase extends SerializedChange {
 
 export interface AddFeatureChangeDetails {
   stringOfGFF3: string
+  stringType: number // 0: feature is plain text that can be parsed by gff.parseStringSync(). 1: feature is in 'Mongo-style' format
   newFeatureIds: string[] // FeatureIds after features have been added into database
   parentFeatureId: string // Parent feature to where feature will be added
 }
@@ -46,12 +48,14 @@ export class AddFeatureChange extends FeatureChange {
 
   toJSON(): SerializedAddFeatureChange {
     if (this.changes.length === 1) {
-      const [{ stringOfGFF3, newFeatureIds, parentFeatureId }] = this.changes
+      const [{ stringOfGFF3, newFeatureIds, parentFeatureId, stringType }] =
+        this.changes
       return {
         typeName: this.typeName,
         changedIds: this.changedIds,
         assemblyId: this.assemblyId,
         stringOfGFF3,
+        stringType,
         newFeatureIds,
         parentFeatureId,
       }
@@ -84,37 +88,50 @@ export class AddFeatureChange extends FeatureChange {
     }
 
     let featureCnt = 0
+    this.logger.debug?.(`changes: ${JSON.stringify(changes)}`)
+
     // Loop the changes
     for (const change of changes) {
-      const { stringOfGFF3 } = change
-      const gff3Items = gff.parseStringSync(stringOfGFF3, {
-        parseSequences: false,
-      })
-      // Loop features
-      for (const gff3Item of gff3Items) {
-        if (Array.isArray(gff3Item)) {
-          this.logger.debug?.(`GFF3ITEM: ${JSON.stringify(gff3Item)}`)
-          // Add new feature into database
-          const newDocIdArray = await this.addFeatureIntoDb(gff3Item, backend)
-          for (let i = 0; i < newDocIdArray.length; i++) {
-            // Search feature
-            const featureDoc = await featureModel
-              .findById(newDocIdArray[i])
-              .session(session)
-              .exec()
-            if (!featureDoc) {
-              const errMsg = `*** ERROR: The following feature was not found in database, docId: '${newDocIdArray[i]}'`
-              this.logger.error(errMsg)
-              throw new Error(errMsg)
+      this.logger.debug?.(`change: ${JSON.stringify(change)}`)
+      const { stringOfGFF3, stringType } = change
+
+      if (stringType === 1) {
+        this.logger.debug?.(`STR: ${stringOfGFF3}`)
+        const newDoc: FeatureDocument =
+          stringOfGFF3 as unknown as FeatureDocument
+        this.logger.debug?.(`DOC: ${JSON.stringify(newDoc)}`)
+      }
+
+      if (stringType === 0) {
+        const gff3Items = gff.parseStringSync(stringOfGFF3, {
+          parseSequences: false,
+        })
+        // Loop features
+        for (const gff3Item of gff3Items) {
+          if (Array.isArray(gff3Item)) {
+            this.logger.debug?.(`GFF3ITEM: ${JSON.stringify(gff3Item)}`)
+            // Add new feature into database
+            const newDocIdArray = await this.addFeatureIntoDb(gff3Item, backend)
+            for (let i = 0; i < newDocIdArray.length; i++) {
+              // Search feature
+              const featureDoc = await featureModel
+                .findById(newDocIdArray[i])
+                .session(session)
+                .exec()
+              if (!featureDoc) {
+                const errMsg = `*** ERROR: The following feature was not found in database, docId: '${newDocIdArray[i]}'`
+                this.logger.error(errMsg)
+                throw new Error(errMsg)
+              }
+              this.logger.debug?.(
+                `** New added feature docId: "${newDocIdArray[i]}" that contains the following featureIds: "${featureDoc.featureIds}"`,
+              )
+              featureDoc.featureIds.forEach((newFeaId) => {
+                change.newFeatureIds.push(newFeaId) // Add new feature id into change.newFeatureIds -array
+              })
             }
-            this.logger.debug?.(
-              `** New added feature docId: "${newDocIdArray[i]}" that contains the following featureIds: "${featureDoc.featureIds}"`,
-            )
-            featureDoc.featureIds.forEach((newFeaId) => {
-              change.newFeatureIds.push(newFeaId) // Add new feature id into change.newFeatureIds -array
-            })
+            featureCnt++
           }
-          featureCnt++
         }
       }
     }
@@ -162,7 +179,11 @@ export class AddFeatureChange extends FeatureChange {
         const strArray = str.split(',')
         strArray.forEach((item) => {
           const tmp1 = item.replace(/"/g, '') as string
-          const featureObj = { featureId: tmp1, parentFeatureId: '', featureString: '' }
+          const featureObj = {
+            featureId: tmp1,
+            parentFeatureId: '',
+            featureString: '',
+          }
           inverseChanges.push(featureObj)
         })
         object.splice(index, 1)
