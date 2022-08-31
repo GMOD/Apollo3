@@ -15,7 +15,7 @@ import {
   RadioGroup,
   TextField,
 } from '@mui/material'
-import { generateObjectId } from 'apollo-shared'
+import ObjectID from 'bson-objectid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
@@ -115,7 +115,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
         body: JSON.stringify({
           changedIds: ['1'],
           typeName,
-          assemblyId: generateObjectId(),
+          assemblyId: new ObjectID().toHexString(),
           fileId,
           assemblyName,
         }),

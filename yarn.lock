@@ -4127,6 +4127,7 @@ __metadata:
     "@types/rimraf": ^3
     "@types/uuid": ^8
     apollo-schemas: "workspace:^"
+    bson-objectid: ^2.0.3
     mobx-state-tree: ^5.1.5
     mongoose: ^6.2.10
     regenerator-runtime: ^0.13.9
@@ -4899,6 +4900,13 @@ __metadata:
   dependencies:
     node-int64: ^0.4.0
   checksum: 9ba4dc58ce86300c862bffc3ae91f00b2a03b01ee07f3564beeeaf82aa243b8b03ba53f123b0b842c190d4399b94697970c8e7cf7b1ea44b61aa28c3526a4449
+  languageName: node
+  linkType: hard
+
+"bson-objectid@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "bson-objectid@npm:2.0.3"
+  checksum: cb085cc57a3ad7b4ee77ead160b5889b3af3eabbf0de6ed32b0f284e8e1ae90171b392dfcfbd82bae876f16f5156f69d2312bc36f85a1e0dc11e0fcb6c6f2993
   languageName: node
   linkType: hard
 
@@ -8880,6 +8888,7 @@ __metadata:
     "@types/node": ^16.11.6
     "@types/react": ^17.0.34
     apollo-shared: "workspace:^"
+    bson-objectid: ^2.0.3
     clsx: ^1.1.1
     cypress: ^8.7.0
     jest: ^27.3.1

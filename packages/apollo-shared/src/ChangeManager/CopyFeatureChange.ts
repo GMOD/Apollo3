@@ -1,3 +1,4 @@
+import ObjectID from 'bson-objectid'
 import { resolveIdentifier } from 'mobx-state-tree'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -13,7 +14,6 @@ import {
   FeatureChange,
   GFF3FeatureLineWithFeatureIdAndOptionalRefs,
 } from './FeatureChange'
-import { generateObjectId } from '..'
 
 interface SerializedCopyFeatureChangeBase extends SerializedChange {
   typeName: 'CopyFeatureChange'
@@ -134,7 +134,7 @@ export class CopyFeatureChange extends FeatureChange {
         [
           {
             ...newFeatureLine,
-            _id: generateObjectId(),
+            _id: new ObjectID().toHexString(),
             refSeq: refSeqDoc._id,
             featureIds,
           },
