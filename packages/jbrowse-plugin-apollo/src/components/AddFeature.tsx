@@ -6,9 +6,6 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  // MenuItem,
-  // Select,
-  // SelectChangeEvent,
   TextField,
 } from '@mui/material'
 import { getRoot } from 'mobx-state-tree'
@@ -22,11 +19,6 @@ interface AddFeatureProps {
   sourceFeatureId: string
   sourceAssemblyId: string
 }
-
-// interface Collection {
-//   _id: string
-//   name: string
-// }
 
 export function AddFeature({
   session,
@@ -52,12 +44,35 @@ export function AddFeature({
     setErrorMessage('')
     let msg
 
-    // Add features
-    const uri = new URL('changes', baseURL).href
+      console.log(`FEAT: ${sourceFeatureId}`)
+      // Get feature's parent information
+    const uri = new URL(`features/${sourceFeatureId}`, baseURL).href
     const apolloFetch = apolloInternetAccount?.getFetcher({
       locationType: 'UriLocation',
       uri,
     })
+    if (apolloFetch) {
+      const res = await apolloFetch(uri, {
+        method: 'GET',
+      })
+      if (!res.ok) {
+        try {
+          msg = await res.text()
+        } catch (e) {
+          msg = ''
+        }
+        setErrorMessage(
+          `Error when adding feature — ${res.status} (${res.statusText})${
+            msg ? ` (${msg})` : ''
+          }`,
+        )
+        return
+      }
+      const data = await res.json()
+      console.log(`DATA: ${JSON.stringify(data)}`)
+      console.log(`SEQ_ID: ${data.seq_id}`)
+    }
+    // Add new feature - remember also update list of featureIds in parent level
     if (apolloFetch) {
       const res = await apolloFetch(uri, {
         method: 'POST',
@@ -104,7 +119,6 @@ export function AddFeature({
             onChange={(e) => setStart(e.target.value)}
           />
           <TextField
-            autoFocus
             margin="dense"
             id="end"
             label="End"
