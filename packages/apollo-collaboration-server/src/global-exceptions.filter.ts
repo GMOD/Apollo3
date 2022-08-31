@@ -19,7 +19,7 @@ export class GlobalExceptionsFilter extends BaseExceptionFilter {
     ) {
       newException = new UnprocessableEntityException(exception.message)
     }
-    this.logger.debug(newException)
+    this.logger.error(newException)
     super.catch(newException, host)
   }
 }
