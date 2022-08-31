@@ -6,7 +6,9 @@ import { observer } from 'mobx-react'
 import { getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useRef, useState } from 'react'
 
+import { AddFeature } from '../../components/AddFeature'
 import { CopyFeature } from '../../components/CopyFeature'
+import { DeleteFeature } from '../../components/DeleteFeature'
 import { LinearApolloDisplay } from '../../LinearApolloDisplay/stateModel'
 
 interface ApolloRenderingProps {
@@ -284,6 +286,27 @@ function ApolloRendering(props: ApolloRenderingProps) {
       >
         <MenuItem
           key={1}
+          value={1}
+          onClick={() => {
+            const currentAssemblyId = getAssemblyId(region.assemblyName)
+            session.queueDialog((doneCallback) => [
+              AddFeature,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                sourceFeatureId: contextMenuFeatureId,
+                sourceAssemblyId: currentAssemblyId,
+              },
+            ])
+            setContextMenuFeatureId(undefined)
+          }}
+        >
+          {'Add feature'}
+        </MenuItem>
+        <MenuItem
+          key={2}
           value={2}
           onClick={() => {
             const currentAssemblyId = getAssemblyId(region.assemblyName)
@@ -302,6 +325,27 @@ function ApolloRendering(props: ApolloRenderingProps) {
           }}
         >
           {'Copy features and annotations'}
+        </MenuItem>
+        <MenuItem
+          key={3}
+          value={3}
+          onClick={() => {
+            const currentAssemblyId = getAssemblyId(region.assemblyName)
+            session.queueDialog((doneCallback) => [
+              DeleteFeature,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                sourceFeatureId: contextMenuFeatureId,
+                sourceAssemblyId: currentAssemblyId,
+              },
+            ])
+            setContextMenuFeatureId(undefined)
+          }}
+        >
+          {'Delete feature'}
         </MenuItem>
       </Menu>
       <canvas

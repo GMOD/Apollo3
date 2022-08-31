@@ -204,6 +204,7 @@ export class DeleteFeatureChange extends FeatureChange {
       .reverse()
       .map((addFeatChange) => ({
         stringOfGFF3: addFeatChange.featureString,
+        stringType: 1,
         newFeatureIds: tmpArray,
         parentFeatureId: addFeatChange.parentFeatureId,
       }))
