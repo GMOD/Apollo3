@@ -20,7 +20,6 @@ interface SerializedDeleteFeatureChangeBase extends SerializedChange {
 export interface DeleteFeatureChangeDetails {
   featureId: string
   parentFeatureId: string // Parent feature from where feature was deleted.
-  featureString: string // Deleted feature as string
 }
 
 interface SerializedDeleteFeatureChangeSingle
@@ -47,14 +46,13 @@ export class DeleteFeatureChange extends FeatureChange {
 
   toJSON(): SerializedDeleteFeatureChange {
     if (this.changes.length === 1) {
-      const [{ featureId, parentFeatureId, featureString }] = this.changes
+      const [{ featureId, parentFeatureId }] = this.changes
       return {
         typeName: this.typeName,
         changedIds: this.changedIds,
         assemblyId: this.assemblyId,
         featureId,
         parentFeatureId,
-        featureString,
       }
     }
     return {
@@ -93,7 +91,6 @@ export class DeleteFeatureChange extends FeatureChange {
       if (featureDoc.featureId === featureId) {
         // Update change
         change.parentFeatureId = featureId
-        change.featureString = JSON.stringify(featureDoc)
         await featureModel.deleteOne({ _id: featureDoc._id })
         this.logger.debug?.(
           `Feature "${featureId}" deleted from document "${featureDoc._id}". Whole document deleted.`,
@@ -119,10 +116,6 @@ export class DeleteFeatureChange extends FeatureChange {
         `Feature "${featureId}" deleted from document "${featureDoc._id}"`,
       )
     }
-    const addJSON = this.getInverse()
-    this.logger.debug?.(
-      `DELETE FEATURE, GET INVERSE : ${JSON.stringify(addJSON)}`,
-    )
   }
 
   /**
@@ -193,19 +186,21 @@ export class DeleteFeatureChange extends FeatureChange {
       if (!feature) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
+      const clientStore = findParentThat(
+        feature,
+        (node) => node.typeName === 'Client',
+      )
+      clientStore.deleteFeature(feature)
     })
   }
 
   getInverse() {
-    const tmpArray: string[] = []
     const inverseChangedIds = this.changedIds.slice().reverse()
     const inverseChanges = this.changes
       .slice()
       .reverse()
       .map((addFeatChange) => ({
-        stringOfGFF3: addFeatChange.featureString,
-        stringType: 1,
-        newFeatureIds: tmpArray,
+        stringOfGFF3: '',
         parentFeatureId: addFeatChange.parentFeatureId,
       }))
     this.logger.debug?.(`INVERSE CHANGE '${JSON.stringify(inverseChanges)}'`)

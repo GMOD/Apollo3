@@ -16,6 +16,7 @@ export class ChangeManager {
   recentChanges: Change[] = []
 
   async submit(change: Change, submitToBackend = true, addToRecents = true) {
+    console.log(({change}))
     // pre-validate
     const session = getSession(this.dataStore)
     const result = await this.validations.frontendPreValidate(change)

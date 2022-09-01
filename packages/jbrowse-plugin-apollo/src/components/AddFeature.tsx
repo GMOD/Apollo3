@@ -8,6 +8,7 @@ import {
   DialogTitle,
   TextField,
 } from '@mui/material'
+import { AddFeatureChange, ChangeManager } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
@@ -18,6 +19,7 @@ interface AddFeatureProps {
   handleClose(): void
   sourceFeatureId: string
   sourceAssemblyId: string
+  changeManager: ChangeManager
 }
 
 export function AddFeature({
@@ -25,11 +27,13 @@ export function AddFeature({
   handleClose,
   sourceFeatureId,
   sourceAssemblyId,
+  changeManager,
 }: AddFeatureProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const { notify } = session
   const [end, setEnd] = useState('')
   const [start, setStart] = useState('')
+  const [type, setType] = useState('')
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel | undefined
@@ -44,8 +48,8 @@ export function AddFeature({
     setErrorMessage('')
     let msg
 
-      console.log(`FEAT: ${sourceFeatureId}`)
-      // Get feature's parent information
+    console.log(`FEAT: ${sourceFeatureId}`)
+    // Get feature's parent information
     const uri = new URL(`features/${sourceFeatureId}`, baseURL).href
     const apolloFetch = apolloInternetAccount?.getFetcher({
       locationType: 'UriLocation',
@@ -71,33 +75,48 @@ export function AddFeature({
       const data = await res.json()
       console.log(`DATA: ${JSON.stringify(data)}`)
       console.log(`SEQ_ID: ${data.seq_id}`)
+      console.log(`START: ${start}`)
+      console.log(`END: ${end}`)
+      console.log(`TYPE: ${type}`)
     }
+
+    const change = new AddFeatureChange({
+      changedIds: [sourceFeatureId],
+      typeName: 'AddFeatureChange',
+      assemblyId: sourceAssemblyId,
+      stringOfGFF3: 'diipadaapa',
+      parentFeatureId: '',
+      // stringType: 0,
+      newFeatureIds: []
+    })
+    changeManager.submit?.(change)
+
     // Add new feature - remember also update list of featureIds in parent level
-    if (apolloFetch) {
-      const res = await apolloFetch(uri, {
-        method: 'POST',
-        body: JSON.stringify({
-          changedIds: ['1'],
-          typeName: 'AddFeatureChange',
-          assemblyId: sourceAssemblyId,
-          featureId: sourceFeatureId,
-        }),
-        headers: new Headers({ 'Content-Type': 'application/json' }),
-      })
-      if (!res.ok) {
-        try {
-          msg = await res.text()
-        } catch (e) {
-          msg = ''
-        }
-        setErrorMessage(
-          `Error when adding feature — ${res.status} (${res.statusText})${
-            msg ? ` (${msg})` : ''
-          }`,
-        )
-        return
-      }
-    }
+    // if (apolloFetch) {
+    //   const res = await apolloFetch(uri, {
+    //     method: 'POST',
+    //     body: JSON.stringify({
+    //       changedIds: ['1'],
+    //       typeName: 'AddFeatureChange',
+    //       assemblyId: sourceAssemblyId,
+    //       featureId: sourceFeatureId,
+    //     }),
+    //     headers: new Headers({ 'Content-Type': 'application/json' }),
+    //   })
+    //   if (!res.ok) {
+    //     try {
+    //       msg = await res.text()
+    //     } catch (e) {
+    //       msg = ''
+    //     }
+    //     setErrorMessage(
+    //       `Error when adding feature — ${res.status} (${res.statusText})${
+    //         msg ? ` (${msg})` : ''
+    //       }`,
+    //     )
+    //     return
+    //   }
+    // }
     notify(`Feature added successfully`, 'success')
     handleClose()
     event.preventDefault()
@@ -126,6 +145,15 @@ export function AddFeature({
             fullWidth
             variant="outlined"
             onChange={(e) => setEnd(e.target.value)}
+          />
+          <TextField
+            margin="dense"
+            id="end"
+            label="Type"
+            type="text"
+            fullWidth
+            variant="outlined"
+            onChange={(e) => setType(e.target.value)}
           />
         </DialogContent>
 
