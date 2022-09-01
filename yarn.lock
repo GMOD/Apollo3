@@ -1801,9 +1801,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/development-tools@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@jbrowse/development-tools@npm:2.0.0"
+"@jbrowse/development-tools@npm:^2.1.1":
+  version: 2.1.1
+  resolution: "@jbrowse/development-tools@npm:2.1.1"
   dependencies:
     "@babel/core": ^7.16.0
     "@babel/plugin-proposal-class-properties": ^7.16.0
@@ -1832,7 +1832,7 @@ __metadata:
     rollup: ^2.0.0
     tslib: ^2.0.0
     typescript: ^4.0.0
-  checksum: d5ca0a11004076c58b80be472a9c5f4e75da9c0963e53806bff6c145a62ea487585571fe4d1c1d8f355fd7d95e76331475728275a7e7750ad396080abd2edf1e
+  checksum: 06032d58ff02cf28fe2794816c598183b677207b8f2c8fb501031d8317726bb672403b7a1dd6d6b752eceda9cc60e1f942506fa6506556d0fc02eab0ca2373d8
   languageName: node
   linkType: hard
 
@@ -8879,7 +8879,7 @@ __metadata:
     "@gmod/gff": ^1.2.0
     "@jbrowse/cli": ^2.0.1
     "@jbrowse/core": ^2.0.1
-    "@jbrowse/development-tools": ^2.0.0
+    "@jbrowse/development-tools": ^2.1.1
     "@jbrowse/plugin-linear-genome-view": ^2.0.1
     "@mui/icons-material": ^5.8.4
     "@mui/material": ^5.9.1
