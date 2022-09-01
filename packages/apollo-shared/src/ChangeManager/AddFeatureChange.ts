@@ -1,4 +1,5 @@
 import gff from '@gmod/gff'
+// import { findParentThat } from '@jbrowse/core/util'
 import { resolveIdentifier } from 'mobx-state-tree'
 
 import { AnnotationFeatureLocation } from '../BackendDrivers/AnnotationFeature'
@@ -137,6 +138,11 @@ export class AddFeatureChange extends FeatureChange {
       if (!feature) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
+      // const clientStore = findParentThat(
+      //   feature,
+      //   (node) => node.typeName === 'Client',
+      // )
+      // clientStore.addChildFeature(feature.start, feature.end, feature.type)
     })
   }
 
@@ -146,9 +152,8 @@ export class AddFeatureChange extends FeatureChange {
       .slice()
       .reverse()
       .map((addFeatChange) => ({
-        featureId: '', 
+        featureId: '',
         parentFeatureId: '',
-        featureString: '',
       }))
 
     return new DeleteFeatureChange(

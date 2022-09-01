@@ -10,6 +10,7 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material'
+import { ChangeManager } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
@@ -20,6 +21,7 @@ interface CopyFeatureProps {
   handleClose(): void
   sourceFeatureId: string
   sourceAssemblyId: string
+  changeManager: ChangeManager
 }
 
 interface Collection {
@@ -32,6 +34,7 @@ export function CopyFeature({
   handleClose,
   sourceFeatureId,
   sourceAssemblyId,
+  changeManager,
 }: CopyFeatureProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const { notify } = session

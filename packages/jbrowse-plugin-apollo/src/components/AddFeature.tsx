@@ -34,6 +34,8 @@ export function AddFeature({
   const [end, setEnd] = useState('')
   const [start, setStart] = useState('')
   const [type, setType] = useState('')
+  const [paramName, setName] = useState('')
+  const [paramId, setId] = useState('')
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel | undefined
@@ -47,8 +49,11 @@ export function AddFeature({
     event.preventDefault()
     setErrorMessage('')
     let msg
+    let seqId = ''
+    let parName = ''
+    let parId = ''
+    let parParentId = ''
 
-    console.log(`FEAT: ${sourceFeatureId}`)
     // Get feature's parent information
     const uri = new URL(`features/${sourceFeatureId}`, baseURL).href
     const apolloFetch = apolloInternetAccount?.getFetcher({
@@ -73,50 +78,30 @@ export function AddFeature({
         return
       }
       const data = await res.json()
-      console.log(`DATA: ${JSON.stringify(data)}`)
-      console.log(`SEQ_ID: ${data.seq_id}`)
-      console.log(`START: ${start}`)
-      console.log(`END: ${end}`)
-      console.log(`TYPE: ${type}`)
+      seqId = data.seq_id
+      // console.log(`DATA: ${JSON.stringify(data)}`)
+      if (data.attributes.ID) {
+        parParentId = `Parent=${data.attributes.ID}`
+      }
+    }
+
+    if (paramName) {
+      parName = `Name=${paramName}`
+    }
+    if (paramId) {
+      parId = `ID=${paramId}`
     }
 
     const change = new AddFeatureChange({
       changedIds: [sourceFeatureId],
       typeName: 'AddFeatureChange',
       assemblyId: sourceAssemblyId,
-      stringOfGFF3: 'diipadaapa',
+      // stringOfGFF3: `${seqId}\t\t${type}\t${start}\t${end}\t.\t.\t.\t${parParentId};${parName};${parId}`,
+      stringOfGFF3: `${seqId}\t\t${type}\t${start}\t${end}\t.\t.\t.\t${parName};`,
       parentFeatureId: '',
-      // stringType: 0,
-      newFeatureIds: []
     })
+    console.log('Change:', { change })
     changeManager.submit?.(change)
-
-    // Add new feature - remember also update list of featureIds in parent level
-    // if (apolloFetch) {
-    //   const res = await apolloFetch(uri, {
-    //     method: 'POST',
-    //     body: JSON.stringify({
-    //       changedIds: ['1'],
-    //       typeName: 'AddFeatureChange',
-    //       assemblyId: sourceAssemblyId,
-    //       featureId: sourceFeatureId,
-    //     }),
-    //     headers: new Headers({ 'Content-Type': 'application/json' }),
-    //   })
-    //   if (!res.ok) {
-    //     try {
-    //       msg = await res.text()
-    //     } catch (e) {
-    //       msg = ''
-    //     }
-    //     setErrorMessage(
-    //       `Error when adding feature — ${res.status} (${res.statusText})${
-    //         msg ? ` (${msg})` : ''
-    //       }`,
-    //     )
-    //     return
-    //   }
-    // }
     notify(`Feature added successfully`, 'success')
     handleClose()
     event.preventDefault()
@@ -148,13 +133,31 @@ export function AddFeature({
           />
           <TextField
             margin="dense"
-            id="end"
+            id="type"
             label="Type"
             type="text"
             fullWidth
             variant="outlined"
             onChange={(e) => setType(e.target.value)}
           />
+          <TextField
+            margin="dense"
+            id="paramName"
+            label="Attribute: Name"
+            type="text"
+            fullWidth
+            variant="outlined"
+            onChange={(e) => setName(e.target.value)}
+          />
+          {/* <TextField
+            margin="dense"
+            id="paramId"
+            label="Attribute: ID"
+            type="text"
+            fullWidth
+            variant="outlined"
+            onChange={(e) => setId(e.target.value)}
+          /> */}
         </DialogContent>
 
         <DialogActions>

@@ -296,6 +296,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
                 handleClose: () => {
                   doneCallback()
                 },
+                changeManager,
                 sourceFeatureId: contextMenuFeatureId,
                 sourceAssemblyId: currentAssemblyId,
               },
@@ -317,6 +318,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
                 handleClose: () => {
                   doneCallback()
                 },
+                changeManager,
                 sourceFeatureId: contextMenuFeatureId,
                 sourceAssemblyId: currentAssemblyId,
               },

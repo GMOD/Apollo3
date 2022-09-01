@@ -155,7 +155,6 @@ export class CopyFeatureChange extends FeatureChange {
         featureId: endChange.featureId,
         assemblyId: endChange.targetAssemblyId,
         parentFeatureId: '',
-        featureString: '',
       }))
     return new DeleteFeatureChange(
       {
