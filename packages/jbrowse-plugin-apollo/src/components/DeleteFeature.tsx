@@ -6,11 +6,10 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  // SelectChangeEvent,
 } from '@mui/material'
+import { ChangeManager, DeleteFeatureChange } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
-import { ChangeManager, DeleteFeatureChange  } from 'apollo-shared'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 
@@ -37,9 +36,7 @@ export function DeleteFeature({
   if (!apolloInternetAccount) {
     throw new Error('No Apollo internet account found')
   }
-  // const { baseURL } = apolloInternetAccount
   const [errorMessage, setErrorMessage] = useState('')
-
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -49,42 +46,11 @@ export function DeleteFeature({
     const change = new DeleteFeatureChange({
       changedIds: [sourceFeatureId],
       typeName: 'DeleteFeatureChange',
-      assemblyId: sourceAssemblyId,
       featureId: sourceFeatureId,
+      assemblyId: sourceAssemblyId,
       parentFeatureId: '',
-      // featureString: '',
     })
     changeManager.submit?.(change)
-    // const uri = new URL('changes', baseURL).href
-    // const apolloFetch = apolloInternetAccount?.getFetcher({
-    //   locationType: 'UriLocation',
-    //   uri,
-    // })
-    // if (apolloFetch) {
-    //   const res = await apolloFetch(uri, {
-    //     method: 'POST',
-    //     body: JSON.stringify({
-    //       changedIds: ['1'],
-    //       typeName: 'DeleteFeatureChange',
-    //       assemblyId: sourceAssemblyId,
-    //       featureId: sourceFeatureId,
-    //     }),
-    //     headers: new Headers({ 'Content-Type': 'application/json' }),
-    //   })
-    //   if (!res.ok) {
-    //     try {
-    //       msg = await res.text()
-    //     } catch (e) {
-    //       msg = ''
-    //     }
-    //     setErrorMessage(
-    //       `Error when deleting feature — ${res.status} (${res.statusText})${
-    //         msg ? ` (${msg})` : ''
-    //       }`,
-    //     )
-    //     return
-    //   }
-    // }
     notify(`Feature deleted successfully`, 'success')
     handleClose()
     event.preventDefault()
@@ -92,7 +58,9 @@ export function DeleteFeature({
 
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
-      <DialogTitle>Delete feature (undo has not been implemented yet)</DialogTitle>
+      <DialogTitle>
+        Delete feature (undo has not been implemented yet)
+      </DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText>

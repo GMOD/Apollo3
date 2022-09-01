@@ -53,7 +53,7 @@ export const ClientDataStore = types
     },
     deleteFeature(feature: AnnotationFeatureLocationI) {
       const ref = self.features.get(feature.refName)
-      console.log({ref,feature})
+      console.log({ ref, feature })
       ref?.delete(feature.id)
     },
     getFeature(featureId: string) {
