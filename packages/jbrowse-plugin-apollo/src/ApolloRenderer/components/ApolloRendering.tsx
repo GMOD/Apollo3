@@ -303,7 +303,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
             setContextMenuFeatureId(undefined)
           }}
         >
-          {'Add feature'}
+          {'Add child feature'}
         </MenuItem>
         <MenuItem
           key={2}
@@ -338,6 +338,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
                 handleClose: () => {
                   doneCallback()
                 },
+                changeManager,
                 sourceFeatureId: contextMenuFeatureId,
                 sourceAssemblyId: currentAssemblyId,
               },

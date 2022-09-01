@@ -159,6 +159,24 @@ export const AnnotationFeature = types
     setStrand(strand?: 1 | -1) {
       self.strand = strand
     },
+    addChildFeature(start: number, end: number, type: string) {
+      if (!self.children) {
+        self.children = cast({})
+      }
+      self.children?.put({
+        id: '1234',
+        type: 'AnnotationFeature',
+        locations: {
+          id: '4567',
+          type: 'AnnotationFeatureLocation',
+          assemblyName: self.assemblyName,
+          refName: self.refName,
+          start,
+          end,
+          featureType: type,
+        },
+      })
+    },
   }))
   .actions((self) => ({
     update({

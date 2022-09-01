@@ -51,6 +51,11 @@ export const ClientDataStore = types
     load(features: SnapshotIn<typeof FeaturesForRefName>) {
       self.features = cast(features)
     },
+    deleteFeature(feature: AnnotationFeatureLocationI) {
+      const ref = self.features.get(feature.refName)
+      console.log({ref,feature})
+      ref?.delete(feature.id)
+    },
     getFeature(featureId: string) {
       return resolveIdentifier(AnnotationFeature, self.features, featureId)
     },
