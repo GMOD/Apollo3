@@ -1,7 +1,7 @@
-import { FeatureDocument } from 'apollo-schemas'
+import { AnnotationFeature } from 'apollo-mst'
+import { Feature } from 'apollo-schemas'
 import { resolveIdentifier } from 'mobx-state-tree'
 
-import { AnnotationFeatureLocation } from '../BackendDrivers/AnnotationFeature'
 import {
   ChangeOptions,
   ClientDataStore,
@@ -74,7 +74,7 @@ export class DeleteFeatureChange extends FeatureChange {
 
       // Search feature
       const featureDoc = await featureModel
-        .findOne({ featureIds: featureId })
+        .findOne({ allIds: featureId })
         .session(session)
         .exec()
       if (!featureDoc) {
@@ -84,21 +84,23 @@ export class DeleteFeatureChange extends FeatureChange {
       }
 
       // Check if feature is on top level, then simply delete the whole document (i.e. not just sub-feature inside document)
-      if (featureDoc.featureId === featureId) {
-        await featureModel.deleteOne({ _id: featureDoc._id })
+      if (featureDoc._id.equals(featureId)) {
+        await featureModel.findByIdAndDelete(featureDoc._id)
         this.logger.debug?.(
           `Feature "${featureId}" deleted from document "${featureDoc._id}". Whole document deleted.`,
         )
         continue
       }
 
-      const documentAfterDeletion: FeatureDocument =
-        await this.deleteFeatureFromDocument(featureDoc, featureDoc, featureId)
+      const deletedIds = this.findAndDeleteChildFeature(featureDoc, featureId)
+      featureDoc.allIds = featureDoc.allIds.filter(
+        (id) => !deletedIds.includes(id),
+      )
 
       // Save updated document in Mongo
-      featureDoc.markModified('child_features') // Mark as modified. Without this save() -method is not updating data in database
+      featureDoc.markModified('children') // Mark as modified. Without this save() -method is not updating data in database
       try {
-        await documentAfterDeletion.save()
+        await featureDoc.save()
       } catch (error) {
         this.logger.debug?.(`*** FAILED: ${error}`)
         throw error
@@ -111,91 +113,37 @@ export class DeleteFeatureChange extends FeatureChange {
   }
 
   /**
-   * Delete feature and feature's subfeatures if any. Also remove deleted featureIds from top level 'FeatureIds' -property
-   * @param topLevelDocument - Top level document
-   * @param currentTopLevelFeature - Currently processed feature
-   * @param featureIdToDelete - FeatureId that will be deleted
-   * @returns
+   * Delete feature's subfeatures that match an ID and return the IDs of any
+   * sub-subfeatures that were deleted
+   * @param feature -
+   * @param featureIdToDelete -
+   * @returns - list of deleted feature IDs
    */
-  async deleteFeatureFromDocument(
-    topLevelDocument: FeatureDocument,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    currentTopLevelFeature: any,
+  findAndDeleteChildFeature(
+    feature: Feature,
     featureIdToDelete: string,
-  ) {
-    let ind = 0
-    // If feature has child features
-    if (currentTopLevelFeature.child_features) {
-      for (const childFeature of currentTopLevelFeature.child_features || []) {
-        for (const childFeatureLine of childFeature) {
-          if (childFeatureLine.featureId === featureIdToDelete) {
-            this.logger.debug?.(
-              `Found featureid "${childFeatureLine.featureId}", let's delete it`,
-            )
-            // Get children's featureIds
-            const childrenFeatureIds: string[] = this.getChildrenFeatureIds(
-              childFeatureLine,
-              [featureIdToDelete],
-            )
-            // Delete feature
-            currentTopLevelFeature.child_features.splice(ind, 1)
-            // Delete featureId and its children's featureIds from top level featureIds -array
-            for (const childId of childrenFeatureIds) {
-              const index = topLevelDocument.featureIds.indexOf(childId, 0)
-              if (index > -1) {
-                topLevelDocument.featureIds.splice(index, 1)
-              }
-            }
-            continue
-          }
-          if (childFeatureLine.child_features) {
-            this.deleteFeatureFromDocument(
-              topLevelDocument,
-              childFeatureLine.child_features,
-              featureIdToDelete,
-            )
-          }
-        }
-        ind++
-      }
-    } else {
-      // Feature is a leaf i.e. feature has no children
-      for (const [
-        entryIndex,
-        topLevelEntry,
-      ] of currentTopLevelFeature.entries()) {
-        for (const [, currentFeature] of topLevelEntry.entries()) {
-          if (currentFeature.featureId === featureIdToDelete) {
-            this.logger.debug?.(
-              `Found featureid "${currentFeature.featureId}", let's delete it`,
-            )
-            // Get children's featureIds
-            const childrenFeatureIds: string[] = this.getChildrenFeatureIds(
-              currentFeature,
-              [],
-            )
-            // Delete feature
-            currentTopLevelFeature.splice(entryIndex, 1)
-            // Delete featureId from top level featureIds -array
-            for (const childId of childrenFeatureIds) {
-              const index = topLevelDocument.featureIds.indexOf(childId, 0)
-              if (index > -1) {
-                topLevelDocument.featureIds.splice(index, 1)
-              }
-            }
-            continue
-          }
-          if (currentFeature.child_features) {
-            this.deleteFeatureFromDocument(
-              topLevelDocument,
-              currentFeature.child_features,
-              featureIdToDelete,
-            )
-          }
-        }
+  ): string[] {
+    if (!feature.children) {
+      throw new Error(`Feature ${feature._id} has no children`)
+    }
+    const { children } = feature
+    const child = children.get(featureIdToDelete)
+    if (child) {
+      const deletedIds = this.getChildFeatureIds(child)
+      children.delete(featureIdToDelete)
+      return deletedIds
+    }
+    for (const [, childFeature] of children) {
+      try {
+        return this.findAndDeleteChildFeature(childFeature, featureIdToDelete)
+      } catch (error) {
+        // pass
       }
     }
-    return currentTopLevelFeature
+
+    throw new Error(
+      `Feature "${featureIdToDelete}" not found in ${feature._id}`,
+    )
   }
 
   /**
@@ -204,22 +152,13 @@ export class DeleteFeatureChange extends FeatureChange {
    * @param featureIds - list of children's featureIds
    * @returns
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getChildrenFeatureIds(parentFeature: any, featureIds: string[]): string[] {
-    if (!parentFeature.child_features) {
-      this.logger.debug?.(
-        `*** Id to be deleted from top level array: ${parentFeature.featureId}`,
-      )
-      featureIds.push(parentFeature.featureId)
-      return featureIds
+  getChildFeatureIds(feature: Feature): string[] {
+    if (!feature.children) {
+      return []
     }
-    // If there are child features
-    if (parentFeature.child_features) {
-      for (const childFeature of parentFeature.child_features || []) {
-        for (const childFeatureLine of childFeature) {
-          this.getChildrenFeatureIds(childFeatureLine, featureIds)
-        }
-      }
+    const featureIds = []
+    for (const [, childFeature] of feature.children || []) {
+      featureIds.push(...this.getChildFeatureIds(childFeature))
     }
     return featureIds
   }
@@ -234,7 +173,7 @@ export class DeleteFeatureChange extends FeatureChange {
     }
     this.changedIds.forEach((changedId, idx) => {
       const feature = resolveIdentifier(
-        AnnotationFeatureLocation,
+        AnnotationFeature,
         dataStore.features,
         changedId,
       )
@@ -244,23 +183,8 @@ export class DeleteFeatureChange extends FeatureChange {
     })
   }
 
-  getInverse() {
-    const inverseChangedIds = this.changedIds.slice().reverse()
-    const inverseChanges = this.changes
-      .slice()
-      .reverse()
-      .map((endChange) => ({
-        featureId: endChange.featureId,
-      }))
-    return new DeleteFeatureChange(
-      {
-        changedIds: inverseChangedIds,
-        typeName: this.typeName,
-        changes: inverseChanges,
-        assemblyId: this.assemblyId,
-      },
-      { logger: this.logger },
-    )
+  getInverse(): DeleteFeatureChange {
+    throw new Error('Not implemented')
   }
 }
 
