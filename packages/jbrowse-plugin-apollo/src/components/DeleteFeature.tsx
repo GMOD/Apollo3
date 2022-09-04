@@ -7,8 +7,9 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material'
+import { AnnotationFeatureI } from 'apollo-mst'
 import { ChangeManager, DeleteFeatureChange } from 'apollo-shared'
-import { getRoot } from 'mobx-state-tree'
+import { getRoot, getSnapshot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
@@ -16,17 +17,21 @@ import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 interface DeleteFeatureProps {
   session: AbstractSessionModel
   handleClose(): void
-  sourceFeatureId: string
+  sourceFeature: AnnotationFeatureI
   sourceAssemblyId: string
   changeManager: ChangeManager
+  selectedFeature?: AnnotationFeatureI
+  setSelectedFeature(feature?: AnnotationFeatureI): void
 }
 
 export function DeleteFeature({
   session,
   handleClose,
-  sourceFeatureId,
+  sourceFeature,
   sourceAssemblyId,
   changeManager,
+  selectedFeature,
+  setSelectedFeature,
 }: DeleteFeatureProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const { notify } = session
@@ -41,14 +46,17 @@ export function DeleteFeature({
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
+    if (selectedFeature?._id === sourceFeature._id) {
+      setSelectedFeature()
+    }
 
     // Delete features
     const change = new DeleteFeatureChange({
-      changedIds: [sourceFeatureId],
+      changedIds: [sourceFeature._id],
       typeName: 'DeleteFeatureChange',
-      featureId: sourceFeatureId,
       assemblyId: sourceAssemblyId,
-      parentFeatureId: '',
+      deletedFeature: getSnapshot(sourceFeature),
+      parentFeatureId: sourceFeature.parentId,
     })
     changeManager.submit?.(change)
     notify(`Feature deleted successfully`, 'success')
@@ -58,9 +66,7 @@ export function DeleteFeature({
 
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
-      <DialogTitle>
-        Delete feature (undo has not been implemented yet)
-      </DialogTitle>
+      <DialogTitle>Delete feature</DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText>

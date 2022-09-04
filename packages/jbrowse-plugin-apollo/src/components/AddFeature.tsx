@@ -8,7 +8,9 @@ import {
   DialogTitle,
   TextField,
 } from '@mui/material'
+import { AnnotationFeatureI } from 'apollo-mst'
 import { AddFeatureChange, ChangeManager } from 'apollo-shared'
+import ObjectID from 'bson-objectid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
@@ -17,7 +19,7 @@ import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 interface AddFeatureProps {
   session: AbstractSessionModel
   handleClose(): void
-  sourceFeatureId: string
+  sourceFeature: AnnotationFeatureI
   sourceAssemblyId: string
   changeManager: ChangeManager
 }
@@ -25,88 +27,46 @@ interface AddFeatureProps {
 export function AddFeature({
   session,
   handleClose,
-  sourceFeatureId,
+  sourceFeature,
   sourceAssemblyId,
   changeManager,
 }: AddFeatureProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const { notify } = session
-  const [end, setEnd] = useState('')
-  const [start, setStart] = useState('')
+  const [end, setEnd] = useState(String(sourceFeature.end))
+  const [start, setStart] = useState(String(sourceFeature.start))
   const [type, setType] = useState('')
-  const [paramName, setName] = useState('')
-  const [paramId, setId] = useState('')
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel | undefined
   if (!apolloInternetAccount) {
     throw new Error('No Apollo internet account found')
   }
-  const { baseURL } = apolloInternetAccount
   const [errorMessage, setErrorMessage] = useState('')
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    let msg
-    let seqId = ''
-    let parName = ''
-    let parId = ''
-    let parParentId = ''
-
-    // Get feature's parent information
-    const uri = new URL(`features/${sourceFeatureId}`, baseURL).href
-    const apolloFetch = apolloInternetAccount?.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
-    if (apolloFetch) {
-      const res = await apolloFetch(uri, {
-        method: 'GET',
-      })
-      if (!res.ok) {
-        try {
-          msg = await res.text()
-        } catch (e) {
-          msg = ''
-        }
-        setErrorMessage(
-          `Error when adding feature — ${res.status} (${res.statusText})${
-            msg ? ` (${msg})` : ''
-          }`,
-        )
-        return
-      }
-      const data = await res.json()
-      seqId = data.seq_id
-      // console.log(`DATA: ${JSON.stringify(data)}`)
-      if (data.attributes.ID) {
-        parParentId = `Parent=${data.attributes.ID}`
-      }
-    }
-
-    if (paramName) {
-      parName = `Name=${paramName}`
-    }
-    if (paramId) {
-      parId = `ID=${paramId}`
-    }
-
     const change = new AddFeatureChange({
-      changedIds: [sourceFeatureId],
+      changedIds: [sourceFeature._id],
       typeName: 'AddFeatureChange',
       assemblyId: sourceAssemblyId,
-      // stringOfGFF3: `${seqId}\t\t${type}\t${start}\t${end}\t.\t.\t.\t${parParentId};${parName};${parId}`,
-      stringOfGFF3: `${seqId}\t\t${type}\t${start}\t${end}\t.\t.\t.\t${parName};`,
-      parentFeatureId: '',
+      addedFeature: {
+        _id: new ObjectID().toHexString(),
+        refName: sourceFeature.refName,
+        start: Number(start),
+        end: Number(end),
+        type,
+      },
+      parentFeatureId: sourceFeature._id,
     })
-    console.log('Change:', { change })
     changeManager.submit?.(change)
     notify(`Feature added successfully`, 'success')
     handleClose()
     event.preventDefault()
   }
 
+  const error = Number(end) <= Number(start)
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Add new feature</DialogTitle>
@@ -120,6 +80,7 @@ export function AddFeature({
             type="number"
             fullWidth
             variant="outlined"
+            value={start}
             onChange={(e) => setStart(e.target.value)}
           />
           <TextField
@@ -129,7 +90,10 @@ export function AddFeature({
             type="number"
             fullWidth
             variant="outlined"
+            value={end}
             onChange={(e) => setEnd(e.target.value)}
+            error={error}
+            helperText={error ? '"End" must be greater than "Start"' : null}
           />
           <TextField
             margin="dense"
@@ -138,30 +102,17 @@ export function AddFeature({
             type="text"
             fullWidth
             variant="outlined"
+            value={type}
             onChange={(e) => setType(e.target.value)}
           />
-          <TextField
-            margin="dense"
-            id="paramName"
-            label="Attribute: Name"
-            type="text"
-            fullWidth
-            variant="outlined"
-            onChange={(e) => setName(e.target.value)}
-          />
-          {/* <TextField
-            margin="dense"
-            id="paramId"
-            label="Attribute: ID"
-            type="text"
-            fullWidth
-            variant="outlined"
-            onChange={(e) => setId(e.target.value)}
-          /> */}
         </DialogContent>
 
         <DialogActions>
-          <Button variant="contained" type="submit">
+          <Button
+            variant="contained"
+            type="submit"
+            disabled={error || !(start && end && type)}
+          >
             Submit
           </Button>
           <Button

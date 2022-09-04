@@ -1,8 +1,5 @@
-import gff from '@gmod/gff'
-// import { findParentThat } from '@jbrowse/core/util'
-import { resolveIdentifier } from 'mobx-state-tree'
+import { AnnotationFeatureSnapshot } from 'apollo-mst'
 
-import { AnnotationFeatureLocation } from '../BackendDrivers/AnnotationFeature'
 import {
   ChangeOptions,
   ClientDataStore,
@@ -18,8 +15,8 @@ interface SerializedAddFeatureChangeBase extends SerializedChange {
 }
 
 export interface AddFeatureChangeDetails {
-  stringOfGFF3: string
-  parentFeatureId: string // Parent feature to where feature will be added
+  addedFeature: AnnotationFeatureSnapshot
+  parentFeatureId?: string // Parent feature to where feature will be added
 }
 
 interface SerializedAddFeatureChangeSingle
@@ -46,12 +43,12 @@ export class AddFeatureChange extends FeatureChange {
 
   toJSON(): SerializedAddFeatureChange {
     if (this.changes.length === 1) {
-      const [{ stringOfGFF3, parentFeatureId }] = this.changes
+      const [{ addedFeature, parentFeatureId }] = this.changes
       return {
         typeName: this.typeName,
         changedIds: this.changedIds,
         assemblyId: this.assemblyId,
-        stringOfGFF3,
+        addedFeature,
         parentFeatureId,
       }
     }
@@ -69,7 +66,7 @@ export class AddFeatureChange extends FeatureChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { assemblyModel, featureModel, session } = backend
+    const { assemblyModel, featureModel, refSeqModel, session } = backend
     const { changes, assemblyId } = this
 
     const assembly = await assemblyModel
@@ -88,35 +85,59 @@ export class AddFeatureChange extends FeatureChange {
     // Loop the changes
     for (const change of changes) {
       this.logger.debug?.(`change: ${JSON.stringify(change)}`)
-      const { stringOfGFF3 } = change
-
-      const gff3Items = gff.parseStringSync(stringOfGFF3, {
-        parseSequences: false,
-      })
-      // Loop features
-      for (const gff3Item of gff3Items) {
-        if (Array.isArray(gff3Item)) {
-          this.logger.debug?.(`GFF3ITEM: ${JSON.stringify(gff3Item)}`)
-          // Add new feature into database
-          const newDocIdArray = await this.addFeatureIntoDb(gff3Item, backend)
-          for (let i = 0; i < newDocIdArray.length; i++) {
-            // Search feature
-            const featureDoc = await featureModel
-              .findById(newDocIdArray[i])
-              .session(session)
-              .exec()
-            if (!featureDoc) {
-              const errMsg = `*** ERROR: The following feature was not found in database, docId: '${newDocIdArray[i]}'`
-              this.logger.error(errMsg)
-              throw new Error(errMsg)
-            }
-            this.logger.debug?.(
-              `** New added feature docId: "${newDocIdArray[i]}" that contains the following featureIds: "${featureDoc.featureIds}"`,
-            )
-          }
-          featureCnt++
-        }
+      const { addedFeature, parentFeatureId } = change
+      const { refName } = addedFeature
+      const refSeqDoc = await refSeqModel
+        .findOne({ assembly: assemblyId, name: refName })
+        .session(session)
+        .exec()
+      if (!refSeqDoc) {
+        throw new Error(
+          `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refName}" not found`,
+        )
       }
+      if (parentFeatureId) {
+        const topLevelFeature = await featureModel
+          .findOne({ allIds: parentFeatureId })
+          .session(session)
+          .exec()
+        if (!topLevelFeature) {
+          throw new Error(`Could not find feature with ID "${parentFeatureId}"`)
+        }
+        this.logger.log({ topLevelFeature })
+        const parentFeature = this.getFeatureFromId(
+          topLevelFeature,
+          parentFeatureId,
+        )
+        if (!parentFeature) {
+          throw new Error(
+            `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature._id}"`,
+          )
+        }
+        if (!parentFeature.children) {
+          parentFeature.children = new Map()
+        }
+        parentFeature.children.set(addedFeature._id, {
+          allIds: [],
+          refSeq: refSeqDoc._id,
+          ...addedFeature,
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          _id: addedFeature._id,
+        })
+        const childIds = this.getChildFeatureIds(addedFeature)
+        topLevelFeature.allIds.push(addedFeature._id, ...childIds)
+        topLevelFeature.save()
+      } else {
+        const childIds = this.getChildFeatureIds(addedFeature)
+        const allIds = [addedFeature._id, ...childIds]
+        const [newFeatureDoc] = await featureModel.create(
+          [{ allIds, refSeq: refSeqDoc._id, ...addedFeature }],
+          { session },
+        )
+        this.logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
+      }
+      featureCnt++
     }
     this.logger.debug?.(`Added ${featureCnt} new feature(s) into database.`)
   }
@@ -129,21 +150,18 @@ export class AddFeatureChange extends FeatureChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
-    this.changedIds.forEach((changedId, idx) => {
-      const feature = resolveIdentifier(
-        AnnotationFeatureLocation,
-        dataStore.features,
-        changedId,
-      )
-      if (!feature) {
-        throw new Error(`Could not find feature with identifier "${changedId}"`)
+    for (const change of this.changes) {
+      const { addedFeature, parentFeatureId } = change
+      if (parentFeatureId) {
+        const parentFeature = dataStore.getFeature(parentFeatureId)
+        if (!parentFeature) {
+          throw new Error(`Could not find parent feature "${parentFeatureId}"`)
+        }
+        parentFeature.addChild(addedFeature)
+      } else {
+        dataStore.addFeature(addedFeature)
       }
-      // const clientStore = findParentThat(
-      //   feature,
-      //   (node) => node.typeName === 'Client',
-      // )
-      // clientStore.addChildFeature(feature.start, feature.end, feature.type)
-    })
+    }
   }
 
   getInverse() {
@@ -151,9 +169,9 @@ export class AddFeatureChange extends FeatureChange {
     const inverseChanges = this.changes
       .slice()
       .reverse()
-      .map((addFeatChange) => ({
-        featureId: '',
-        parentFeatureId: '',
+      .map((addFeatureChange) => ({
+        deletedFeature: addFeatureChange.addedFeature,
+        parentFeatureId: addFeatureChange.parentFeatureId,
       }))
 
     return new DeleteFeatureChange(

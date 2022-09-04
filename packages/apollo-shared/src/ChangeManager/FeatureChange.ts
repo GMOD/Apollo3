@@ -25,7 +25,7 @@ export abstract class FeatureChange extends Change {
 
   /**
    * Get single feature by featureId
-   * @param featureOrDocument -
+   * @param feature -
    * @param featureId -
    * @returns
    */
@@ -201,7 +201,6 @@ export abstract class FeatureChange extends Change {
   async addFeatureIntoDb(gff3Feature: GFF3Feature, backend: ServerDataStore) {
     const { featureModel, refSeqModel, session } = backend
     const { assemblyId } = this
-    const createdDocIds: string[] = [] // Array of created Feature document ids
 
     for (const featureLine of gff3Feature) {
       const refName = featureLine.seq_id
@@ -232,9 +231,27 @@ export abstract class FeatureChange extends Change {
         { session },
       )
       this.logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
-      createdDocIds.push(newFeatureDoc._id)
     }
-    return createdDocIds
+  }
+
+  /**
+   * Get children's feature ids
+   * @param feature - parent feature
+   * @returns
+   */
+  getChildFeatureIds(feature: Feature | AnnotationFeatureSnapshot): string[] {
+    if (!feature.children) {
+      return []
+    }
+    const featureIds = []
+    const children =
+      feature.children instanceof Map
+        ? feature.children
+        : new Map(Object.entries(feature.children))
+    for (const [childFeatureId, childFeature] of children || new Map()) {
+      featureIds.push(childFeatureId, ...this.getChildFeatureIds(childFeature))
+    }
+    return featureIds
   }
 
   /**

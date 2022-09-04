@@ -23,7 +23,8 @@ type Coord = [number, number]
 
 function ApolloRendering(props: ApolloRenderingProps) {
   const [contextCoord, setContextCoord] = useState<Coord>()
-  const [contextMenuFeatureId, setContextMenuFeatureId] = useState<string>()
+  const [contextMenuFeature, setContextMenuFeature] =
+    useState<AnnotationFeatureI>()
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -50,6 +51,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     setApolloRowUnderMouse,
     changeManager,
     getAssemblyId,
+    selectedFeature,
     setSelectedFeature,
     features,
   } = displayModel
@@ -265,14 +267,14 @@ function ApolloRendering(props: ApolloRenderingProps) {
   }
   function onContextMenu(event: React.MouseEvent) {
     event.preventDefault()
-    setContextMenuFeatureId(apolloFeatureUnderMouse?._id)
+    setContextMenuFeature(apolloFeatureUnderMouse)
     setContextCoord([event.pageX, event.pageY])
   }
 
   return (
     <div style={{ position: 'relative', width: totalWidth, height }}>
       <Menu
-        open={Boolean(contextMenuFeatureId)}
+        open={Boolean(contextMenuFeature)}
         anchorReference="anchorPosition"
         anchorPosition={
           contextCoord
@@ -281,7 +283,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
         }
         data-testid="base_linear_display_context_menu"
         onClose={() => {
-          setContextMenuFeatureId(undefined)
+          setContextMenuFeature(undefined)
         }}
       >
         <MenuItem
@@ -297,11 +299,11 @@ function ApolloRendering(props: ApolloRenderingProps) {
                   doneCallback()
                 },
                 changeManager,
-                sourceFeatureId: contextMenuFeatureId,
+                sourceFeature: contextMenuFeature,
                 sourceAssemblyId: currentAssemblyId,
               },
             ])
-            setContextMenuFeatureId(undefined)
+            setContextMenuFeature(undefined)
           }}
         >
           {'Add child feature'}
@@ -319,11 +321,11 @@ function ApolloRendering(props: ApolloRenderingProps) {
                   doneCallback()
                 },
                 changeManager,
-                sourceFeatureId: contextMenuFeatureId,
+                sourceFeature: contextMenuFeature,
                 sourceAssemblyId: currentAssemblyId,
               },
             ])
-            setContextMenuFeatureId(undefined)
+            setContextMenuFeature(undefined)
           }}
         >
           {'Copy features and annotations'}
@@ -341,11 +343,13 @@ function ApolloRendering(props: ApolloRenderingProps) {
                   doneCallback()
                 },
                 changeManager,
-                sourceFeatureId: contextMenuFeatureId,
+                sourceFeature: contextMenuFeature,
                 sourceAssemblyId: currentAssemblyId,
+                selectedFeature,
+                setSelectedFeature,
               },
             ])
-            setContextMenuFeatureId(undefined)
+            setContextMenuFeature(undefined)
           }}
         >
           {'Delete feature'}

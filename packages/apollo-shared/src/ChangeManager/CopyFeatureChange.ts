@@ -160,6 +160,8 @@ export class CopyFeatureChange extends FeatureChange {
       {
         changedIds: inverseChangedIds,
         typeName: 'DeleteFeatureChange',
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         changes: inverseChanges,
         assemblyId: this.assemblyId,
       },
