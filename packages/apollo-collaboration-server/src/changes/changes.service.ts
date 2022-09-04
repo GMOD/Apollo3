@@ -21,10 +21,9 @@ import {
 import {
   AddAssemblyAndFeaturesFromFileChange,
   AddAssemblyFromFileChange,
-  AddFeaturesFromFileChange,
   AddFeatureChange,
+  AddFeaturesFromFileChange,
   CopyFeatureChange,
-  DeleteFeatureChange,
   CoreValidation,
   DeleteFeatureChange,
   LocationEndChange,

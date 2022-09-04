@@ -15,7 +15,7 @@ export function isAnnotationFeatureModel(
     typeof thing === 'object' &&
     thing !== null &&
     'type' in thing &&
-    (thing as AnnotationFeatureI).type === 'AnnotationFeatureLocation'
+    (thing as AnnotationFeatureI)._id !== undefined
   )
 }
 
@@ -159,23 +159,14 @@ export const AnnotationFeature = types
     setStrand(strand?: 1 | -1) {
       self.strand = strand
     },
-    addChildFeature(start: number, end: number, type: string) {
+    addChild(childFeature: AnnotationFeatureSnapshot) {
       if (!self.children) {
         self.children = cast({})
       }
-      self.children?.put({
-        id: '1234',
-        type: 'AnnotationFeature',
-        locations: {
-          id: '4567',
-          type: 'AnnotationFeatureLocation',
-          assemblyName: self.assemblyName,
-          refName: self.refName,
-          start,
-          end,
-          featureType: type,
-        },
-      })
+      self.children?.put(childFeature)
+    },
+    deleteChild(childFeatureId: string) {
+      self.children?.delete(childFeatureId)
     },
   }))
   .actions((self) => ({
@@ -199,9 +190,6 @@ export const AnnotationFeature = types
       if (children) {
         self.children = cast(children)
       }
-    },
-    addChild(childFeature: SnapshotOrInstance<typeof LateAnnotationFeature>) {
-      self.children?.set(childFeature.id, childFeature)
     },
     draw(
       ctx: CanvasRenderingContext2D,
@@ -440,7 +428,7 @@ export const AnnotationFeature = types
     // },
   }))
   .views((self) => ({
-    parentId() {
+    get parentId() {
       let parent: AnnotationFeatureI | undefined = undefined
       try {
         parent = findParentThatIs(self, isAnnotationFeatureModel)
