@@ -21,6 +21,7 @@ import {
 import {
   AddAssemblyAndFeaturesFromFileChange,
   AddAssemblyFromFileChange,
+  AddFeatureChange,
   AddFeaturesFromFileChange,
   CopyFeatureChange,
   CoreValidation,
@@ -67,6 +68,7 @@ export class ChangesService {
       'AddFeaturesFromFileChange',
       AddFeaturesFromFileChange,
     )
+    changeRegistry.registerChange('AddFeatureChange', AddFeatureChange)
     changeRegistry.registerChange('CopyFeatureChange', CopyFeatureChange)
     changeRegistry.registerChange('DeleteFeatureChange', DeleteFeatureChange)
     changeRegistry.registerChange('LocationEndChange', LocationEndChange)
@@ -95,7 +97,6 @@ export class ChangesService {
         `Error in backend pre-validation: ${errorMessage}`,
       )
     }
-
     let changeDoc: ChangeDocument | undefined
     await this.featureModel.db.transaction(async (session) => {
       try {

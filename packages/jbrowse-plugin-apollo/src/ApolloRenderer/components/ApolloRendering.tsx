@@ -6,7 +6,9 @@ import { observer } from 'mobx-react'
 import { getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useRef, useState } from 'react'
 
+import { AddFeature } from '../../components/AddFeature'
 import { CopyFeature } from '../../components/CopyFeature'
+import { DeleteFeature } from '../../components/DeleteFeature'
 import { LinearApolloDisplay } from '../../LinearApolloDisplay/stateModel'
 
 interface ApolloRenderingProps {
@@ -21,7 +23,8 @@ type Coord = [number, number]
 
 function ApolloRendering(props: ApolloRenderingProps) {
   const [contextCoord, setContextCoord] = useState<Coord>()
-  const [contextMenuFeatureId, setContextMenuFeatureId] = useState<string>()
+  const [contextMenuFeature, setContextMenuFeature] =
+    useState<AnnotationFeatureI>()
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -48,6 +51,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     setApolloRowUnderMouse,
     changeManager,
     getAssemblyId,
+    selectedFeature,
     setSelectedFeature,
     features,
   } = displayModel
@@ -263,14 +267,14 @@ function ApolloRendering(props: ApolloRenderingProps) {
   }
   function onContextMenu(event: React.MouseEvent) {
     event.preventDefault()
-    setContextMenuFeatureId(apolloFeatureUnderMouse?._id)
+    setContextMenuFeature(apolloFeatureUnderMouse)
     setContextCoord([event.pageX, event.pageY])
   }
 
   return (
     <div style={{ position: 'relative', width: totalWidth, height }}>
       <Menu
-        open={Boolean(contextMenuFeatureId)}
+        open={Boolean(contextMenuFeature)}
         anchorReference="anchorPosition"
         anchorPosition={
           contextCoord
@@ -279,11 +283,33 @@ function ApolloRendering(props: ApolloRenderingProps) {
         }
         data-testid="base_linear_display_context_menu"
         onClose={() => {
-          setContextMenuFeatureId(undefined)
+          setContextMenuFeature(undefined)
         }}
       >
         <MenuItem
           key={1}
+          value={1}
+          onClick={() => {
+            const currentAssemblyId = getAssemblyId(region.assemblyName)
+            session.queueDialog((doneCallback) => [
+              AddFeature,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                changeManager,
+                sourceFeature: contextMenuFeature,
+                sourceAssemblyId: currentAssemblyId,
+              },
+            ])
+            setContextMenuFeature(undefined)
+          }}
+        >
+          {'Add child feature'}
+        </MenuItem>
+        <MenuItem
+          key={2}
           value={2}
           onClick={() => {
             const currentAssemblyId = getAssemblyId(region.assemblyName)
@@ -294,14 +320,39 @@ function ApolloRendering(props: ApolloRenderingProps) {
                 handleClose: () => {
                   doneCallback()
                 },
-                sourceFeatureId: contextMenuFeatureId,
+                changeManager,
+                sourceFeature: contextMenuFeature,
                 sourceAssemblyId: currentAssemblyId,
               },
             ])
-            setContextMenuFeatureId(undefined)
+            setContextMenuFeature(undefined)
           }}
         >
           {'Copy features and annotations'}
+        </MenuItem>
+        <MenuItem
+          key={3}
+          value={3}
+          onClick={() => {
+            const currentAssemblyId = getAssemblyId(region.assemblyName)
+            session.queueDialog((doneCallback) => [
+              DeleteFeature,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                changeManager,
+                sourceFeature: contextMenuFeature,
+                sourceAssemblyId: currentAssemblyId,
+                selectedFeature,
+                setSelectedFeature,
+              },
+            ])
+            setContextMenuFeature(undefined)
+          }}
+        >
+          {'Delete feature'}
         </MenuItem>
       </Menu>
       <canvas

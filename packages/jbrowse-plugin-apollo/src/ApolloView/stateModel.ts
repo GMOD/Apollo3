@@ -6,6 +6,7 @@ import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import {
   AnnotationFeature,
   AnnotationFeatureI,
+  AnnotationFeatureSnapshot,
   FeaturesForRefName,
 } from 'apollo-mst'
 import {
@@ -50,6 +51,14 @@ export const ClientDataStore = types
   .actions((self) => ({
     load(features: SnapshotIn<typeof FeaturesForRefName>) {
       self.features = cast(features)
+    },
+    addFeature(feature: AnnotationFeatureSnapshot) {
+      const ref = self.features.get(feature.refName)
+      ref?.put(feature)
+    },
+    deleteFeature(refName: string, featureId: string) {
+      const ref = self.features.get(refName)
+      ref?.delete(featureId)
     },
     getFeature(featureId: string) {
       return resolveIdentifier(AnnotationFeature, self.features, featureId)

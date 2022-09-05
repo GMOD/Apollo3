@@ -15,7 +15,7 @@ export function isAnnotationFeatureModel(
     typeof thing === 'object' &&
     thing !== null &&
     'type' in thing &&
-    (thing as AnnotationFeatureI).type === 'AnnotationFeatureLocation'
+    (thing as AnnotationFeatureI)._id !== undefined
   )
 }
 
@@ -159,6 +159,15 @@ export const AnnotationFeature = types
     setStrand(strand?: 1 | -1) {
       self.strand = strand
     },
+    addChild(childFeature: AnnotationFeatureSnapshot) {
+      if (!self.children) {
+        self.children = cast({})
+      }
+      self.children?.put(childFeature)
+    },
+    deleteChild(childFeatureId: string) {
+      self.children?.delete(childFeatureId)
+    },
   }))
   .actions((self) => ({
     update({
@@ -181,9 +190,6 @@ export const AnnotationFeature = types
       if (children) {
         self.children = cast(children)
       }
-    },
-    addChild(childFeature: SnapshotOrInstance<typeof LateAnnotationFeature>) {
-      self.children?.set(childFeature.id, childFeature)
     },
     draw(
       ctx: CanvasRenderingContext2D,
@@ -422,7 +428,7 @@ export const AnnotationFeature = types
     // },
   }))
   .views((self) => ({
-    parentId() {
+    get parentId() {
       let parent: AnnotationFeatureI | undefined = undefined
       try {
         parent = findParentThatIs(self, isAnnotationFeatureModel)

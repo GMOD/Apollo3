@@ -1,7 +1,7 @@
-import { AnnotationFeature } from 'apollo-mst'
+import { AnnotationFeatureSnapshot } from 'apollo-mst'
 import { Feature } from 'apollo-schemas'
-import { resolveIdentifier } from 'mobx-state-tree'
 
+import { AddFeatureChange } from './AddFeatureChange'
 import {
   ChangeOptions,
   ClientDataStore,
@@ -16,7 +16,8 @@ interface SerializedDeleteFeatureChangeBase extends SerializedChange {
 }
 
 export interface DeleteFeatureChangeDetails {
-  featureId: string
+  deletedFeature: AnnotationFeatureSnapshot
+  parentFeatureId?: string // Parent feature from where feature was deleted.
 }
 
 interface SerializedDeleteFeatureChangeSingle
@@ -43,12 +44,13 @@ export class DeleteFeatureChange extends FeatureChange {
 
   toJSON(): SerializedDeleteFeatureChange {
     if (this.changes.length === 1) {
-      const [{ featureId }] = this.changes
+      const [{ deletedFeature, parentFeatureId }] = this.changes
       return {
         typeName: this.typeName,
         changedIds: this.changedIds,
         assemblyId: this.assemblyId,
-        featureId,
+        deletedFeature,
+        parentFeatureId,
       }
     }
     return {
@@ -70,29 +72,37 @@ export class DeleteFeatureChange extends FeatureChange {
 
     // Loop the changes
     for (const change of changes) {
-      const { featureId } = change
+      const { deletedFeature, parentFeatureId } = change
 
       // Search feature
       const featureDoc = await featureModel
-        .findOne({ allIds: featureId })
+        .findOne({ allIds: deletedFeature._id })
         .session(session)
         .exec()
       if (!featureDoc) {
-        const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
+        const errMsg = `*** ERROR: The following featureId was not found in database ='${deletedFeature._id}'`
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
 
       // Check if feature is on top level, then simply delete the whole document (i.e. not just sub-feature inside document)
-      if (featureDoc._id.equals(featureId)) {
+      if (featureDoc._id.equals(deletedFeature._id)) {
+        if (parentFeatureId) {
+          throw new Error(
+            `Feature "${deletedFeature._id}" is top-level, but received a parent feature ID`,
+          )
+        }
         await featureModel.findByIdAndDelete(featureDoc._id)
         this.logger.debug?.(
-          `Feature "${featureId}" deleted from document "${featureDoc._id}". Whole document deleted.`,
+          `Feature "${deletedFeature._id}" deleted from document "${featureDoc._id}". Whole document deleted.`,
         )
         continue
       }
 
-      const deletedIds = this.findAndDeleteChildFeature(featureDoc, featureId)
+      const deletedIds = this.findAndDeleteChildFeature(
+        featureDoc,
+        deletedFeature._id,
+      )
       featureDoc.allIds = featureDoc.allIds.filter(
         (id) => !deletedIds.includes(id),
       )
@@ -107,7 +117,7 @@ export class DeleteFeatureChange extends FeatureChange {
       }
 
       this.logger.debug?.(
-        `Feature "${featureId}" deleted from document "${featureDoc._id}"`,
+        `Feature "${deletedFeature._id}" deleted from document "${featureDoc._id}"`,
       )
     }
   }
@@ -146,23 +156,6 @@ export class DeleteFeatureChange extends FeatureChange {
     )
   }
 
-  /**
-   * Get children's feature ids
-   * @param parentFeature - parent feature
-   * @param featureIds - list of children's featureIds
-   * @returns
-   */
-  getChildFeatureIds(feature: Feature): string[] {
-    if (!feature.children) {
-      return []
-    }
-    const featureIds = []
-    for (const [, childFeature] of feature.children || []) {
-      featureIds.push(...this.getChildFeatureIds(childFeature))
-    }
-    return featureIds
-  }
-
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
     throw new Error('applyToLocalGFF3 not implemented')
   }
@@ -171,20 +164,39 @@ export class DeleteFeatureChange extends FeatureChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
-    this.changedIds.forEach((changedId, idx) => {
-      const feature = resolveIdentifier(
-        AnnotationFeature,
-        dataStore.features,
-        changedId,
-      )
-      if (!feature) {
-        throw new Error(`Could not find feature with identifier "${changedId}"`)
+    for (const change of this.changes) {
+      const { deletedFeature, parentFeatureId } = change
+      if (parentFeatureId) {
+        const parentFeature = dataStore.getFeature(parentFeatureId)
+        if (!parentFeature) {
+          throw new Error(`Could not find parent feature "${parentFeatureId}"`)
+        }
+        parentFeature.deleteChild(deletedFeature._id)
+      } else {
+        dataStore.deleteFeature(deletedFeature.refName, deletedFeature._id)
       }
-    })
+    }
   }
 
-  getInverse(): DeleteFeatureChange {
-    throw new Error('Not implemented')
+  getInverse() {
+    const inverseChangedIds = this.changedIds.slice().reverse()
+    const inverseChanges = this.changes
+      .slice()
+      .reverse()
+      .map((deleteFeatuerChange) => ({
+        addedFeature: deleteFeatuerChange.deletedFeature,
+        parentFeatureId: deleteFeatuerChange.parentFeatureId,
+      }))
+    this.logger.debug?.(`INVERSE CHANGE '${JSON.stringify(inverseChanges)}'`)
+    return new AddFeatureChange(
+      {
+        changedIds: inverseChangedIds,
+        typeName: 'AddFeatureChange',
+        changes: inverseChanges,
+        assemblyId: this.assemblyId,
+      },
+      { logger: this.logger },
+    )
   }
 }
 

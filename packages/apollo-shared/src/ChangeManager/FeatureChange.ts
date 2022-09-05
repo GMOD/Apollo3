@@ -25,7 +25,7 @@ export abstract class FeatureChange extends Change {
 
   /**
    * Get single feature by featureId
-   * @param featureOrDocument -
+   * @param feature -
    * @param featureId -
    * @returns
    */
@@ -232,6 +232,26 @@ export abstract class FeatureChange extends Change {
       )
       this.logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
     }
+  }
+
+  /**
+   * Get children's feature ids
+   * @param feature - parent feature
+   * @returns
+   */
+  getChildFeatureIds(feature: Feature | AnnotationFeatureSnapshot): string[] {
+    if (!feature.children) {
+      return []
+    }
+    const featureIds = []
+    const children =
+      feature.children instanceof Map
+        ? feature.children
+        : new Map(Object.entries(feature.children))
+    for (const [childFeatureId, childFeature] of children || new Map()) {
+      featureIds.push(childFeatureId, ...this.getChildFeatureIds(childFeature))
+    }
+    return featureIds
   }
 
   /**

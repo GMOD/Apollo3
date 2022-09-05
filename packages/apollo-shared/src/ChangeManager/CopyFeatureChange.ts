@@ -154,11 +154,14 @@ export class CopyFeatureChange extends FeatureChange {
       .map((endChange) => ({
         featureId: endChange.featureId,
         assemblyId: endChange.targetAssemblyId,
+        parentFeatureId: '',
       }))
     return new DeleteFeatureChange(
       {
         changedIds: inverseChangedIds,
         typeName: 'DeleteFeatureChange',
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         changes: inverseChanges,
         assemblyId: this.assemblyId,
       },
