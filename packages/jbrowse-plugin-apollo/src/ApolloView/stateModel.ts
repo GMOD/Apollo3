@@ -4,18 +4,33 @@ import { MenuItem } from '@jbrowse/core/ui'
 import { AppRootModel } from '@jbrowse/core/util'
 import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import {
-  AnnotationFeatureLocation,
-  AnnotationFeatureLocationI,
+  AnnotationFeature,
+  AnnotationFeatureI,
+  FeaturesForRefName,
+} from 'apollo-mst'
+import {
   ChangeManager,
   CollaborationServerDriver,
   CoreValidation,
-  FeaturesForRefName,
   ValidationSet,
 } from 'apollo-shared'
-import { Instance, SnapshotIn, cast, getRoot, types } from 'mobx-state-tree'
+import {
+  Instance,
+  SnapshotIn,
+  cast,
+  getRoot,
+  resolveIdentifier,
+  types,
+} from 'mobx-state-tree'
 
 import { ApolloDetailsViewStateModel } from '../ApolloDetailsView/stateModel'
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+
+export function isClientDataStore(
+  thing: unknown,
+): thing is Instance<typeof ClientDataStore> {
+  return (thing as Instance<typeof ClientDataStore>).typeName === 'Client'
+}
 
 export const ClientDataStore = types
   .model('ClientDataStore', {
@@ -27,9 +42,17 @@ export const ClientDataStore = types
     internetAccountConfigId: types.maybe(types.string),
     assemblyId: types.string,
   })
+  .views((self) => ({
+    get internetAccounts() {
+      return (getRoot(self) as AppRootModel).internetAccounts
+    },
+  }))
   .actions((self) => ({
     load(features: SnapshotIn<typeof FeaturesForRefName>) {
       self.features = cast(features)
+    },
+    getFeature(featureId: string) {
+      return resolveIdentifier(AnnotationFeature, self.features, featureId)
     },
   }))
   .volatile((self) => {
@@ -61,7 +84,7 @@ export function stateModelFactory(pluginManager: PluginManager) {
           .stateModel as ApolloDetailsViewStateModel,
         { type: 'ApolloDetailsView' },
       ),
-      selectedFeature: types.maybe(types.reference(AnnotationFeatureLocation)),
+      selectedFeature: types.maybe(types.reference(AnnotationFeature)),
       dataStore: types.maybe(ClientDataStore),
       displayName: 'Apollo',
     })
@@ -124,7 +147,7 @@ export function stateModelFactory(pluginManager: PluginManager) {
       setDisplayName(displayName: string) {
         self.displayName = displayName
       },
-      setSelectedFeature(feature?: AnnotationFeatureLocationI) {
+      setSelectedFeature(feature?: AnnotationFeatureI) {
         self.selectedFeature = feature
       },
     }))

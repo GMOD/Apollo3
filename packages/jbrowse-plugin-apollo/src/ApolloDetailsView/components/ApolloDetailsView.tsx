@@ -8,8 +8,8 @@ import {
   MuiBaseEvent,
   useGridApiContext,
 } from '@mui/x-data-grid'
+import { AnnotationFeatureI } from 'apollo-mst'
 import {
-  AnnotationFeatureI,
   Change,
   ChangeManager,
   LocationEndChange,
@@ -24,7 +24,7 @@ import { ApolloDetailsViewModel } from '../stateModel'
 const featureColums: GridColumns = [
   { field: 'id', headerName: 'ID', width: 250 },
   {
-    field: 'featureType',
+    field: 'type',
     headerName: 'Type',
     width: 250,
     editable: true,
@@ -107,28 +107,20 @@ export const ApolloDetailsView = observer(
       return <div>click on a feature to see details</div>
     }
     // const sequenceTypes = changeManager?.validations.getPossibleValues('type')
-    const { id, featureType, assemblyName, refName, start, end } =
-      selectedFeature
-    const selectedFeatureRows = [
-      { id, featureType, assemblyName, refName, start, end, model },
-    ]
+    const { _id: id, type, refName, start, end } = selectedFeature
+    const assemblyId = getAssemblyId(selectedFeature)
+    const selectedFeatureRows = [{ id, type, refName, start, end, model }]
     function addChildFeatures(f: typeof selectedFeature) {
       f?.children?.forEach((child: AnnotationFeatureI, childId: string) => {
-        child.locations.forEach((childLocation) => {
-          if (!childLocation) {
-            throw new Error(`No child with id ${childId}`)
-          }
-          selectedFeatureRows.push({
-            id: childLocation.id,
-            featureType: childLocation.featureType,
-            assemblyName: childLocation.assemblyName,
-            refName: childLocation.refName,
-            start: childLocation.start,
-            end: childLocation.end,
-            model,
-          })
-          addChildFeatures(childLocation)
+        selectedFeatureRows.push({
+          id: child._id,
+          type: child.type,
+          refName: child.refName,
+          start: child.start,
+          end: child.end,
+          model,
         })
+        addChildFeatures(child)
       })
     }
     addChildFeatures(selectedFeature)
@@ -138,13 +130,8 @@ export const ApolloDetailsView = observer(
     ) {
       let change: Change | undefined = undefined
       if (newRow.start !== oldRow.start) {
-        const {
-          start: oldStart,
-          id: featureId,
-          assemblyName: rowAssemblyName,
-        } = oldRow
+        const { start: oldStart, id: featureId } = oldRow
         const { start: newStart } = newRow
-        const assemblyId = getAssemblyId(rowAssemblyName)
         change = new LocationStartChange({
           typeName: 'LocationStartChange',
           changedIds: [featureId],
@@ -154,13 +141,8 @@ export const ApolloDetailsView = observer(
           assemblyId,
         })
       } else if (newRow.start !== oldRow.start) {
-        const {
-          end: oldEnd,
-          id: featureId,
-          assemblyName: rowAssemblyName,
-        } = oldRow
+        const { end: oldEnd, id: featureId } = oldRow
         const { end: newEnd } = newRow
-        const assemblyId = getAssemblyId(rowAssemblyName)
         change = new LocationEndChange({
           typeName: 'LocationEndChange',
           changedIds: [featureId],
@@ -169,14 +151,9 @@ export const ApolloDetailsView = observer(
           newEnd: Number(newEnd),
           assemblyId,
         })
-      } else if (newRow.featureType !== oldRow.featureType) {
-        const {
-          featureType: oldType,
-          id: featureId,
-          assemblyName: rowAssemblyName,
-        } = oldRow
-        const { featureType: newType } = newRow
-        const assemblyId = getAssemblyId(rowAssemblyName)
+      } else if (newRow.type !== oldRow.type) {
+        const { type: oldType, id: featureId } = oldRow
+        const { type: newType } = newRow
         change = new TypeChange({
           typeName: 'TypeChange',
           changedIds: [featureId],

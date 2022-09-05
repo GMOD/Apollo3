@@ -1,10 +1,11 @@
 import PluginManager from '@jbrowse/core/PluginManager'
-import { getContainingView, getSession } from '@jbrowse/core/util'
+import { findParentThatIs, getContainingView } from '@jbrowse/core/util'
 import { ElementId } from '@jbrowse/core/util/types/mst'
-import { AnnotationFeatureLocationI, ChangeManager } from 'apollo-shared'
+import { AnnotationFeatureI } from 'apollo-mst'
+import { ChangeManager } from 'apollo-shared'
 import { Instance, getParent, types } from 'mobx-state-tree'
 
-import { ApolloViewModel } from '../ApolloView/stateModel'
+import { ApolloViewModel, isClientDataStore } from '../ApolloView/stateModel'
 
 export function stateModelFactory(pluginManager: PluginManager) {
   return types
@@ -13,16 +14,11 @@ export function stateModelFactory(pluginManager: PluginManager) {
       type: types.literal('ApolloDetailsView'),
     })
     .views((self) => ({
-      get selectedFeature(): AnnotationFeatureLocationI | undefined {
+      get selectedFeature(): AnnotationFeatureI | undefined {
         return getParent<ApolloViewModel>(self).selectedFeature
       },
-      getAssemblyId(assemblyName: string) {
-        const { assemblyManager } = getSession(self)
-        const assembly = assemblyManager.get(assemblyName)
-        if (!assembly) {
-          throw new Error(`Could not find assembly named ${assemblyName}`)
-        }
-        return assembly.name
+      getAssemblyId(feature: AnnotationFeatureI) {
+        return findParentThatIs(feature, isClientDataStore).assemblyId
       },
       get changeManager() {
         const apolloView = getContainingView(self)
@@ -33,7 +29,7 @@ export function stateModelFactory(pluginManager: PluginManager) {
       },
     }))
     .actions((self) => ({
-      setSelectedFeature(feature?: AnnotationFeatureLocationI) {
+      setSelectedFeature(feature?: AnnotationFeatureI) {
         getParent<ApolloViewModel>(self).setSelectedFeature(feature)
       },
     }))

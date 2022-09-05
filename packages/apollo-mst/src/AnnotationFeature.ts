@@ -1,42 +1,66 @@
 import { findParentThatIs } from '@jbrowse/core/util'
 import {
-  IAnyType,
+  IAnyModelType,
   Instance,
+  SnapshotIn,
   SnapshotOrInstance,
   cast,
   types,
 } from 'mobx-state-tree'
 
-export function isAnnotationFeatureLocationModel(
+export function isAnnotationFeatureModel(
   thing: unknown,
-): thing is AnnotationFeatureLocationI {
+): thing is AnnotationFeatureI {
   return (
     typeof thing === 'object' &&
     thing !== null &&
     'type' in thing &&
-    (thing as AnnotationFeatureLocationI).type === 'AnnotationFeatureLocation'
+    (thing as AnnotationFeatureI).type === 'AnnotationFeatureLocation'
   )
 }
 
 export const LateAnnotationFeature = types.late(
-  (): IAnyType => AnnotationFeature,
+  (): IAnyModelType => AnnotationFeature,
 )
 
-export const AnnotationFeatureLocation = types
-  .model('AnnotationFeatureLocation', {
-    id: types.identifier,
-    type: types.optional(
-      types.literal('AnnotationFeatureLocation'),
-      'AnnotationFeatureLocation',
-    ),
-    assemblyName: types.string,
+export const AnnotationFeature = types
+  .model('AnnotationFeature', {
+    _id: types.identifier,
+    /** Reference sequence name */
     refName: types.string,
+    /** Feature type */
+    type: types.string,
+    /** Feature location start coordinate */
     start: types.number,
+    /** Feature location end coordinate */
     end: types.number,
-    strand: types.maybe(types.enumeration('Strand', ['+', '-'])),
-    children: types.maybe(types.map(LateAnnotationFeature)),
-    name: types.maybe(types.string),
-    featureType: types.maybe(types.string),
+    /**
+     * If the feature exists in multiple places, e.g. a CDS in a canonical SO
+     * gene, this gives the coordinates of the individual starts and ends. The
+     * start of the first location and the end of the last location should match
+     * the feature's start and end.
+     */
+    discontinuousLocations: types.maybe(
+      types.array(types.model({ start: types.number, end: types.number })),
+    ),
+    /** The strand on which the feature is located */
+    strand: types.maybe(types.union(types.literal(1), types.literal(-1))),
+    /** The feature's score */
+    score: types.maybe(types.number),
+    /**
+     * The feature's phase, which is required for certain features, e.g. CDS in a
+     * canonical SO gene
+     */
+    phase: types.maybe(
+      types.union(types.literal(0), types.literal(1), types.literal(2)),
+    ),
+    /** Child features of this feature */
+    children: types.maybe(types.map(types.maybe(LateAnnotationFeature))),
+    /**
+     * Additional attributes of the feature. This could include name, source,
+     * note, dbxref, etc.
+     */
+    attributes: types.map(types.array(types.string)),
   })
   .views((self) => ({
     get length() {
@@ -50,9 +74,7 @@ export const AnnotationFeatureLocation = types
     get min() {
       let min = self.start
       self.children?.forEach((child: AnnotationFeatureI) => {
-        child.locations.forEach((childLocation) => {
-          min = Math.min(min, childLocation.min)
-        })
+        min = Math.min(min, child.min)
       })
       return min
     },
@@ -64,16 +86,14 @@ export const AnnotationFeatureLocation = types
     get max() {
       let max = self.end
       self.children?.forEach((child: AnnotationFeatureI) => {
-        child.locations.forEach((childLocation) => {
-          max = Math.max(max, childLocation.max)
-        })
+        max = Math.max(max, child.max)
       })
       return max
     },
-    get featuresForRow() {
+    get featuresForRow(): typeof self[][] {
       const features = [[self]]
       if (self.children) {
-        self.children?.forEach((child) => {
+        self.children?.forEach((child: AnnotationFeatureI) => {
           features.push(...child.featuresForRow)
         })
       }
@@ -114,8 +134,8 @@ export const AnnotationFeatureLocation = types
     },
   }))
   .actions((self) => ({
-    setFeatureType(featureType: string) {
-      self.featureType = featureType
+    setType(type: string) {
+      self.type = type
     },
     setRefName(refName: string) {
       self.refName = refName
@@ -136,7 +156,7 @@ export const AnnotationFeatureLocation = types
         self.end = end
       }
     },
-    setStrand(strand?: '+' | '-') {
+    setStrand(strand?: 1 | -1) {
       self.strand = strand
     },
   }))
@@ -151,7 +171,7 @@ export const AnnotationFeatureLocation = types
       refName: string
       start: number
       end: number
-      strand?: '+' | '-'
+      strand?: 1 | -1
       children?: SnapshotOrInstance<typeof LateAnnotationFeature>
     }) {
       self.setRefName(refName)
@@ -164,9 +184,6 @@ export const AnnotationFeatureLocation = types
     },
     addChild(childFeature: SnapshotOrInstance<typeof LateAnnotationFeature>) {
       self.children?.set(childFeature.id, childFeature)
-    },
-    setFeatureType(featureType: string) {
-      self.featureType = featureType
     },
     draw(
       ctx: CanvasRenderingContext2D,
@@ -193,7 +210,7 @@ export const AnnotationFeatureLocation = types
         const width = feature.end - feature.start
         const startPx = (feature.start - self.start) / bpPerPx
         const widthPx = width / bpPerPx
-        const { rowCount } = feature as AnnotationFeatureLocationI
+        const { rowCount } = feature as AnnotationFeatureI
         if (rowCount > 1) {
           const featureHeight = rowCount * rowHeight
           ctx.fillStyle = 'rgba(255,0,0,0.25)'
@@ -216,9 +233,9 @@ export const AnnotationFeatureLocation = types
             rowHeight - 2,
           )
           ctx.fillStyle = 'black'
-          feature.featureType &&
+          feature.type &&
             ctx.fillText(
-              feature.featureType,
+              feature.type,
               xOffset + startPx + 1,
               yOffset + 11,
               widthPx - 2,
@@ -406,68 +423,25 @@ export const AnnotationFeatureLocation = types
   }))
   .views((self) => ({
     parentId() {
-      let parent: AnnotationFeatureLocationI | undefined = undefined
+      let parent: AnnotationFeatureI | undefined = undefined
       try {
-        parent = findParentThatIs(self, isAnnotationFeatureLocationModel)
+        parent = findParentThatIs(self, isAnnotationFeatureModel)
       } catch (error) {
         // pass
       }
-      return parent?.id
-    },
-  }))
-
-export const AnnotationFeature = types
-  .model('AnnotationFeature', {
-    id: types.identifier,
-    type: types.optional(
-      types.literal('AnnotationFeature'),
-      'AnnotationFeature',
-    ),
-    locations: types.map(AnnotationFeatureLocation),
-  })
-  .views((self) => ({
-    get min(): number {
-      let min: number | undefined = undefined
-      self.locations.forEach((location) => {
-        min = min === undefined ? location.min : Math.min(min, location.min)
-      })
-      if (min === undefined) {
-        throw new Error(
-          `AnnotationFeature does not have any locations: "${self.id}"`,
-        )
-      }
-      return min
-    },
-    get max(): number {
-      let max: number | undefined = undefined
-      self.locations.forEach((location) => {
-        max = max === undefined ? location.max : Math.max(max, location.max)
-      })
-      if (max === undefined) {
-        throw new Error(
-          `AnnotationFeature does not have any locations: "${self.id}"`,
-        )
-      }
-      return max
-    },
-    get featuresForRow() {
-      const features: AnnotationFeatureLocationI[][] = []
-      self.locations.forEach((location) => {
-        location.featuresForRow.forEach((row, idx) => {
-          if (idx > features.length - 1) {
-            features[idx] = []
-          }
-          features[idx].push(...(row as AnnotationFeatureLocationI[]))
-        })
-      })
-      return features
+      return parent?._id
     },
   }))
 
 export type AnnotationFeatureI = Instance<typeof AnnotationFeature>
-export type AnnotationFeatureLocationI = Instance<
-  typeof AnnotationFeatureLocation
->
+type AnnotationFeatureSnapshotRaw = SnapshotIn<typeof AnnotationFeature>
+export interface AnnotationFeatureSnapshot
+  extends AnnotationFeatureSnapshotRaw {
+  /** Child features of this feature */
+  children?: Record<string, AnnotationFeatureSnapshot>
+}
 
-export const FeatureMap = types.map(AnnotationFeatureLocation)
+export const FeatureMap = types.map(AnnotationFeature)
 export const FeaturesForRefName = types.map(FeatureMap)
+export type FeaturesForRefNameI = Instance<typeof FeaturesForRefName>
+export type FeaturesForRefNameSnapshot = SnapshotIn<typeof FeaturesForRefName>

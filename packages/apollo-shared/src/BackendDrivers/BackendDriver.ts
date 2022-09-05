@@ -1,16 +1,14 @@
 import { Region } from '@jbrowse/core/util'
-import { SnapshotIn } from 'mobx-state-tree'
+import { AnnotationFeatureSnapshot } from 'apollo-mst'
 
 import { Change, ClientDataStore } from '../ChangeManager/Change'
 import { ValidationResultSet } from '../Validations/ValidationSet'
-import { AnnotationFeatureLocation } from './AnnotationFeature'
 
 // Doing this because `SnapshotIn<typeof FeaturesForRefName>` for some reason
 // resolves to `any`, so this offers better typechecking.
 export type FeaturesForRefNameSnapshot = Record<
   string,
-  | Record<string, SnapshotIn<typeof AnnotationFeatureLocation> | undefined>
-  | undefined
+  Record<string, AnnotationFeatureSnapshot | undefined> | undefined
 >
 
 export abstract class BackendDriver {

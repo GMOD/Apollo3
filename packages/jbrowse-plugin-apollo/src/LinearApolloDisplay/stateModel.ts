@@ -4,7 +4,7 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import { getContainingView, getSession } from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { AnnotationFeatureLocationI } from 'apollo-shared'
+import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { Instance, addDisposer, types } from 'mobx-state-tree'
 
@@ -29,9 +29,7 @@ export function stateModelFactory(
       }),
     )
     .volatile(() => ({
-      apolloFeatureUnderMouse: undefined as
-        | AnnotationFeatureLocationI
-        | undefined,
+      apolloFeatureUnderMouse: undefined as AnnotationFeatureI | undefined,
       apolloRowUnderMouse: undefined as number | undefined,
     }))
     .views((self) => {
@@ -82,7 +80,7 @@ export function stateModelFactory(
           }),
         )
       },
-      setApolloFeatureUnderMouse(feature?: AnnotationFeatureLocationI) {
+      setApolloFeatureUnderMouse(feature?: AnnotationFeatureI) {
         self.apolloFeatureUnderMouse = feature
       },
       setApolloRowUnderMouse(row?: number) {
@@ -126,15 +124,19 @@ export function stateModelFactory(
         return minMax
       },
       get featureLayout() {
-        const featureLayout: Map<
-          number,
-          [number, AnnotationFeatureLocationI][]
-        > = new Map()
+        const featureLayout: Map<number, [number, AnnotationFeatureI][]> =
+          new Map()
         for (const [refName, featuresForRefName] of this.features || []) {
           if (!featuresForRefName) {
             continue
           }
-          const [min, max] = this.featuresMinMax[refName]
+          const [min, max] = this.featuresMinMax[refName] || [
+            undefined,
+            undefined,
+          ]
+          if (min === undefined || max === undefined) {
+            continue
+          }
           const rows: boolean[][] = []
           Array.from(featuresForRefName.values())
             .sort((f1, f2) => {
@@ -142,8 +144,8 @@ export function stateModelFactory(
               const { min: start2, max: end2 } = f2
               return start1 - start2 || end1 - end2
             })
-            .forEach((featureLocation) => {
-              const { rowCount } = featureLocation
+            .forEach((feature) => {
+              const { rowCount } = feature
               let startingRow = 0
               let placed = false
               while (!placed) {
@@ -166,10 +168,7 @@ export function stateModelFactory(
                   rowsForFeature
                     .map((rowForFeature) =>
                       rowForFeature
-                        .slice(
-                          featureLocation.min - min,
-                          featureLocation.max - min,
-                        )
+                        .slice(feature.min - min, feature.max - min)
                         .some(Boolean),
                     )
                     .some(Boolean)
@@ -183,13 +182,9 @@ export function stateModelFactory(
                   rowNum++
                 ) {
                   const row = rows[rowNum]
-                  row.fill(
-                    true,
-                    featureLocation.min - min,
-                    featureLocation.max - min,
-                  )
+                  row.fill(true, feature.min - min, feature.max - min)
                   const layoutRow = featureLayout.get(rowNum)
-                  layoutRow?.push([rowNum - startingRow, featureLocation])
+                  layoutRow?.push([rowNum - startingRow, feature])
                 }
                 placed = true
               }
@@ -205,7 +200,7 @@ export function stateModelFactory(
         }
         return assembly.name
       },
-      get selectedFeature(): AnnotationFeatureLocationI | undefined {
+      get selectedFeature(): AnnotationFeatureI | undefined {
         return self.apolloView.selectedFeature
       },
       get setSelectedFeature() {

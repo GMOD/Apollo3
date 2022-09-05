@@ -1,11 +1,7 @@
 import { Region, getSession } from '@jbrowse/core/util'
 import { Menu, MenuItem } from '@mui/material'
-import {
-  AnnotationFeatureLocationI,
-  Change,
-  LocationEndChange,
-  LocationStartChange,
-} from 'apollo-shared'
+import { AnnotationFeatureI } from 'apollo-mst'
+import { Change, LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import { getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useRef, useState } from 'react'
@@ -32,7 +28,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const [overEdge, setOverEdge] = useState<'start' | 'end'>()
   const [dragging, setDragging] = useState<{
     edge: 'start' | 'end'
-    feature: AnnotationFeatureLocationI
+    feature: AnnotationFeatureI
     row: number
     bp: number
     px: number
@@ -180,7 +176,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     const bp = region.start + bpPerPx * x
     const [featureRow, feat] =
       layoutRow.find((f) => bp >= f[1].min && bp <= f[1].max) || []
-    let feature: AnnotationFeatureLocationI | undefined = feat
+    let feature: AnnotationFeatureI | undefined = feat
     if (feature && featureRow) {
       const topRow = row - featureRow
       const startPx = (feature.start - region.start) / bpPerPx
@@ -190,7 +186,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
         y - topRow * height,
         bpPerPx,
         height,
-      ) as AnnotationFeatureLocationI
+      ) as AnnotationFeatureI
     }
     if (feature) {
       // TODO: check reversed
@@ -236,7 +232,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
       const { feature, bp, edge } = dragging
       let change: Change
       if (edge === 'end') {
-        const featureId = feature.id
+        const featureId = feature._id
         const oldEnd = feature.end
         const newEnd = Math.round(bp)
         change = new LocationEndChange({
@@ -248,7 +244,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
           assemblyId,
         })
       } else {
-        const featureId = feature.id
+        const featureId = feature._id
         const oldStart = feature.start
         const newStart = Math.round(bp)
         change = new LocationStartChange({
@@ -267,7 +263,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   }
   function onContextMenu(event: React.MouseEvent) {
     event.preventDefault()
-    setContextMenuFeatureId(apolloFeatureUnderMouse?.id)
+    setContextMenuFeatureId(apolloFeatureUnderMouse?._id)
     setContextCoord([event.pageX, event.pageY])
   }
 

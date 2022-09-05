@@ -50,9 +50,9 @@
   "dependencies": {
     "@emotion/react": "^11.9.3",
     "@emotion/styled": "^11.9.3",
-    "@gmod/gff": "^1.2.0",
     "@jbrowse/plugin-linear-genome-view": "^2.0.1",
     "@mui/icons-material": "^5.8.4",
+    "apollo-mst": "workspace:^",
     "apollo-shared": "workspace:^",
     "bson-objectid": "^2.0.3",
     "clsx": "^1.1.1",

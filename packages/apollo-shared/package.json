@@ -9,17 +9,16 @@
   "dependencies": {
     "@gmod/gff": "^1.2.0",
     "@jbrowse/core": "^2.0.1",
+    "apollo-mst": "workspace:^",
     "apollo-schemas": "workspace:^",
     "bson-objectid": "^2.0.3",
     "regenerator-runtime": "^0.13.9",
-    "tslib": "^2.3.1",
-    "uuid": "^8.3.2"
+    "tslib": "^2.3.1"
   },
   "devDependencies": {
     "@nestjs/common": "^9.0.4",
     "@types/node": "^16.0.0",
     "@types/rimraf": "^3",
-    "@types/uuid": "^8",
     "mobx-state-tree": "^5.1.5",
     "mongoose": "^6.2.10",
     "rimraf": "^3.0.2",
