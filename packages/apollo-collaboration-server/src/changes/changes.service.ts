@@ -24,6 +24,7 @@ import {
   AddFeaturesFromFileChange,
   CopyFeatureChange,
   CoreValidation,
+  DeleteFeatureChange,
   LocationEndChange,
   LocationStartChange,
   ParentChildValidation,
@@ -67,6 +68,7 @@ export class ChangesService {
       AddFeaturesFromFileChange,
     )
     changeRegistry.registerChange('CopyFeatureChange', CopyFeatureChange)
+    changeRegistry.registerChange('DeleteFeatureChange', DeleteFeatureChange)
     changeRegistry.registerChange('LocationEndChange', LocationEndChange)
     changeRegistry.registerChange('LocationStartChange', LocationStartChange)
     changeRegistry.registerChange('TypeChange', TypeChange)
