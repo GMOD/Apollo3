@@ -33,11 +33,33 @@
       "baseURL": "http://localhost:3999"
     }
   ],
+  "tracks": [
+    {
+      "type": "SyntenyTrack",
+      "trackId": "grape_peach_synteny_mcscan",
+      "name": "Grape peach synteny (MCScan, anchors)",
+      "assemblyNames": ["6317fedfba60611eaaefd645", "6317d5436061de774b43e9d6"],
+      "category": ["Annotation"],
+      "adapter": {
+        "type": "MCScanAnchorsAdapter",
+        "mcscanAnchorsLocation": {
+          "uri": "https://s3.amazonaws.com/jbrowse.org/genomes/synteny/grape.peach.anchors.gz"
+        },
+        "bed1Location": {
+          "uri": "https://s3.amazonaws.com/jbrowse.org/genomes/synteny/grape_vs_peach/grape.bed.gz"
+        },
+        "bed2Location": {
+          "uri": "https://s3.amazonaws.com/jbrowse.org/genomes/synteny/grape_vs_peach/peach.bed.gz"
+        },
+        "assemblyNames": ["6317d5436061de774b43e9d6", "6317fedfba60611eaaefd645"]
+      }
+    }
+  ],
   "defaultSession": {
     "name": "Apollo Demo",
     "views": [
       {
-        "type": "ApolloView"
+        "type": "LinearGenomeView"
       }
     ]
   }

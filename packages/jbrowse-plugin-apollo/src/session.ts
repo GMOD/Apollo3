@@ -2,8 +2,8 @@ import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import { AbstractSessionModel, AppRootModel, Region } from '@jbrowse/core/util'
 import {
-  AnnotationFeatureLocation,
-  AnnotationFeatureLocationI,
+  AnnotationFeature,
+  AnnotationFeatureI,
   FeaturesForRefName,
 } from 'apollo-mst'
 import {
@@ -12,14 +12,21 @@ import {
   CoreValidation,
   ValidationSet,
 } from 'apollo-shared'
-import { IAnyModelType, flow, getRoot, types } from 'mobx-state-tree'
+import {
+  IAnyModelType,
+  Instance,
+  flow,
+  getRoot,
+  resolveIdentifier,
+  types,
+} from 'mobx-state-tree'
 
 import { ApolloInternetAccountModel } from './ApolloInternetAccount/model'
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: any
-  apolloSelectedFeature?: AnnotationFeatureLocationI
-  apolloSetSelectedFeature(feature?: AnnotationFeatureLocationI): void
+  apolloSelectedFeature?: AnnotationFeatureI
+  apolloSetSelectedFeature(feature?: AnnotationFeatureI): void
 }
 
 interface ApolloAssembly {
@@ -48,6 +55,14 @@ const ClientDataStore = types
     ),
     internetAccountConfigId: types.maybe(types.string),
   })
+  .views((self) => ({
+    get internetAccounts() {
+      return (getRoot(self) as AppRootModel).internetAccounts
+    },
+    getFeature(featureId: string) {
+      return resolveIdentifier(AnnotationFeature, self.assemblies, featureId)
+    },
+  }))
   .volatile((self) => {
     if (self.backendDriverType !== 'CollaborationServerDriver') {
       throw new Error(`Unknown backend driver type "${self.backendDriverType}"`)
@@ -61,11 +76,6 @@ const ClientDataStore = types
       self,
       new ValidationSet([new CoreValidation()]),
     ),
-  }))
-  .views((self) => ({
-    get internetAccounts() {
-      return (getRoot(self) as AppRootModel).internetAccounts
-    },
   }))
   .actions((self) => ({
     loadFeatures: flow(function* loadFeatures(regions: Region[]) {
@@ -99,12 +109,10 @@ export function extendSession(sessionModel: IAnyModelType) {
   return sessionModel
     .props({
       apolloDataStore: types.optional(ClientDataStore, { typeName: 'Client' }),
-      apolloSelectedFeature: types.maybe(
-        types.reference(AnnotationFeatureLocation),
-      ),
+      apolloSelectedFeature: types.maybe(types.reference(AnnotationFeature)),
     })
     .actions((self) => ({
-      apolloSetSelectedFeature(feature?: AnnotationFeatureLocationI) {
+      apolloSetSelectedFeature(feature?: AnnotationFeatureI) {
         self.apolloSelectedFeature = feature
       },
       addApolloTrackConfig(assembly: AssemblyModel) {
@@ -145,7 +153,7 @@ export function extendSession(sessionModel: IAnyModelType) {
           } catch (e) {
             console.error(e)
             // setError(e instanceof Error ? e : new Error(String(e)))
-            return
+            continue
           }
           if (!response.ok) {
             let errorMessage
@@ -159,7 +167,7 @@ export function extendSession(sessionModel: IAnyModelType) {
                 response.statusText
               })${errorMessage ? ` (${errorMessage})` : ''}`,
             )
-            return
+            continue
           }
           let fetchedAssemblies
           try {
@@ -167,14 +175,14 @@ export function extendSession(sessionModel: IAnyModelType) {
               (yield response.json()) as unknown as ApolloAssembly[]
           } catch (e) {
             console.error(e)
-            return
+            continue
           }
           for (const assembly of fetchedAssemblies) {
             const { assemblyManager } = self
             const selectedAssembly = assemblyManager.get(assembly.name)
             if (selectedAssembly) {
               self.addApolloTrackConfig(selectedAssembly)
-              return
+              continue
             }
             const searchParams = new URLSearchParams({
               assembly: assembly._id,
@@ -233,3 +241,6 @@ export function extendSession(sessionModel: IAnyModelType) {
       },
     }))
 }
+
+export type ApolloSessionStateModel = ReturnType<typeof extendSession>
+export type ApolloSessionModel = Instance<ApolloSessionStateModel>

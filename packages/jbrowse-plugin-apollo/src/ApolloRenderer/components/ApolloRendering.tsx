@@ -58,7 +58,11 @@ function ApolloRendering(props: ApolloRenderingProps) {
     apolloRowHeight: height,
   } = displayModel
   // use this to convince useEffect that the features really did change
-  // const featureSnap = getSnapshot(features)
+  const featureSnap = Array.from(features.values()).map((a) =>
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    Array.from(a.values()).map((f) => getSnapshot(f)),
+  )
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) {
@@ -87,7 +91,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     totalHeight,
     features,
     height,
-    // featureSnap,
+    featureSnap,
   ])
   useEffect(() => {
     const canvas = overlayCanvasRef.current

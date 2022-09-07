@@ -19,22 +19,14 @@ import {
   RefSeqDocument,
 } from 'apollo-schemas'
 import {
-  AddAssemblyAndFeaturesFromFileChange,
-  AddAssemblyFromFileChange,
-  AddFeatureChange,
-  AddFeaturesFromFileChange,
-  CopyFeatureChange,
   CoreValidation,
-  DeleteFeatureChange,
-  LocationEndChange,
-  LocationStartChange,
   ParentChildValidation,
   SerializedChange,
-  TypeChange,
   ValidationSet,
   changeRegistry,
+  changes,
 } from 'apollo-shared'
-import { Model } from 'mongoose'
+import { FilterQuery, Model } from 'mongoose'
 
 import { FilesService } from '../files/files.service'
 import { CreateChangeDto } from './dto/create-change.dto'
@@ -56,24 +48,9 @@ export class ChangesService {
     private readonly changeModel: Model<ChangeDocument>,
     private readonly filesService: FilesService,
   ) {
-    changeRegistry.registerChange(
-      'AddAssemblyAndFeaturesFromFileChange',
-      AddAssemblyAndFeaturesFromFileChange,
-    )
-    changeRegistry.registerChange(
-      'AddAssemblyFromFileChange',
-      AddAssemblyFromFileChange,
-    )
-    changeRegistry.registerChange(
-      'AddFeaturesFromFileChange',
-      AddFeaturesFromFileChange,
-    )
-    changeRegistry.registerChange('AddFeatureChange', AddFeatureChange)
-    changeRegistry.registerChange('CopyFeatureChange', CopyFeatureChange)
-    changeRegistry.registerChange('DeleteFeatureChange', DeleteFeatureChange)
-    changeRegistry.registerChange('LocationEndChange', LocationEndChange)
-    changeRegistry.registerChange('LocationStartChange', LocationStartChange)
-    changeRegistry.registerChange('TypeChange', TypeChange)
+    Object.entries(changes).forEach(([changeName, change]) => {
+      changeRegistry.registerChange(changeName, change)
+    })
   }
 
   private readonly logger = new Logger(ChangesService.name)
@@ -148,12 +125,12 @@ export class ChangesService {
   }
 
   async findAll(changeFilter: FindChangeDto) {
-    const queryCond = {
-      ...changeFilter,
-      user: changeFilter.user && {
+    const queryCond: FilterQuery<ChangeDocument> = { ...changeFilter }
+    if (changeFilter.user) {
+      queryCond.user = {
         $regex: `${changeFilter.user}`,
         $options: 'i',
-      },
+      }
     }
     this.logger.debug(`Search criteria: "${JSON.stringify(queryCond)}"`)
 

@@ -20,12 +20,12 @@ import { changeRegistry } from './ChangeTypes'
 
 export interface ClientDataStore extends IAnyStateTreeNode {
   typeName: 'Client'
-  features: FeaturesForRefNameI
-  load(features: FeaturesForRefNameSnapshot): void
-  backendDriver?: BackendDriver
-  internetAccountConfigId?: string
+  // assemblies: FeaturesForRefNameI
+  // load(features: FeaturesForRefNameSnapshot): void
+  // backendDriver?: BackendDriver
+  // internetAccountConfigId?: string
   internetAccounts: AppRootModel['internetAccounts']
-  getFeature(featureId: string): AnnotationFeatureI | undefined
+  // getFeature(featureId: string): AnnotationFeatureI | undefined
 }
 export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'

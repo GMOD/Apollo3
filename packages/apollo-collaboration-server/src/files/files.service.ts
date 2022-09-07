@@ -115,13 +115,13 @@ export class FilesService {
         `Delete the file "${compressedFullFileName}" from server folder`,
       )
 
-      try {
-        await unlink(compressedFullFileName)
-      } catch (error) {
-        throw new InternalServerErrorException(
-          `File "${compressedFullFileName}" could not be deleted from server`,
-        )
-      }
+      // try {
+      //   await unlink(compressedFullFileName)
+      // } catch (error) {
+      //   throw new InternalServerErrorException(
+      //     `File "${compressedFullFileName}" could not be deleted from server`,
+      //   )
+      // }
     }
     return
   }

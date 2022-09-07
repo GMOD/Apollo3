@@ -1,8 +1,10 @@
 import PluginManager from '@jbrowse/core/PluginManager'
 import { alpha } from '@mui/material/styles'
+import { observer } from 'mobx-react'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'
 
+import { ApolloDetails } from './LinearApolloDisplay/components'
 import { LinearApolloDisplay } from './LinearApolloDisplay/stateModel'
 
 const useStyles = makeStyles()((theme) => ({
@@ -10,6 +12,9 @@ const useStyles = makeStyles()((theme) => ({
     background: alpha(theme.palette.primary.main, 0.2),
     overflowY: 'scroll',
     overflowX: 'hidden',
+  },
+  details: {
+    background: theme.palette.background.paper,
   },
 }))
 
@@ -28,17 +33,23 @@ export function makeDisplayComponent(pluginManager: PluginManager) {
     model: LinearApolloDisplay
   }) {
     const { classes } = useStyles()
-    const { height, featuresHeight } = model
-    const detailsHeight = Math.max(60, height - featuresHeight)
+    const { height, selectedFeature } = model
+    let { detailsHeight } = model
+    if (!selectedFeature) {
+      detailsHeight = 0
+    }
+    console.log({ detailsHeight })
     const featureAreaHeight = height - detailsHeight
     return (
       <div style={{ height: model.height }}>
         <div className={classes.shading} style={{ height: featureAreaHeight }}>
           <BaseLinearDisplayComponent model={model} {...other} />
         </div>
-        <div style={{ height: detailsHeight }}>details here</div>
+        <div className={classes.details} style={{ height: detailsHeight }}>
+          <ApolloDetails model={model} />
+        </div>
       </div>
     )
   }
-  return ApolloDisplayComponent
+  return observer(ApolloDisplayComponent)
 }

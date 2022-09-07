@@ -17,9 +17,10 @@ import {
   TypeChange,
 } from 'apollo-shared'
 import { observer } from 'mobx-react'
+import { getParent } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
-import { ApolloDetailsViewModel } from '../stateModel'
+import { LinearApolloDisplay } from '../stateModel'
 
 const featureColums: GridColumns = [
   { field: 'id', headerName: 'ID', width: 250 },
@@ -95,20 +96,22 @@ function AutocompleteInputCell(props: GridRenderEditCellParams) {
   )
 }
 
-export const ApolloDetailsView = observer(
-  ({ model }: { model: ApolloDetailsViewModel }) => {
+export const ApolloDetails = observer(
+  ({ model }: { model: LinearApolloDisplay }) => {
     const {
       selectedFeature,
       setSelectedFeature,
       getAssemblyId,
       changeManager,
+      detailsHeight,
     } = model
     if (!selectedFeature) {
       return <div>click on a feature to see details</div>
     }
     // const sequenceTypes = changeManager?.validations.getPossibleValues('type')
     const { _id: id, type, refName, start, end } = selectedFeature
-    const assemblyId = getAssemblyId(selectedFeature)
+    const assemblyId = ''
+    // const assemblyId = getAssemblyId(selectedFeature)
     const selectedFeatureRows = [{ id, type, refName, start, end, model }]
     function addChildFeatures(f: typeof selectedFeature) {
       f?.children?.forEach((child: AnnotationFeatureI, childId: string) => {
@@ -180,6 +183,7 @@ export const ApolloDetailsView = observer(
           <CloseIcon />
         </IconButton>
         <DataGrid
+          style={{ height: detailsHeight }}
           autoHeight
           rows={selectedFeatureRows}
           columns={featureColums}

@@ -18,6 +18,7 @@ import {
   GridRowsProp,
   GridToolbar,
 } from '@mui/x-data-grid'
+import { changeRegistry } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
@@ -48,6 +49,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
   >([])
   const [assemblyId, setAssemblyId] = useState<string>()
   const [displayGridData, setDisplayGridData] = useState<GridRowsProp[]>([])
+  console.log(Array.from(changeRegistry.changes.keys()))
 
   const gridColumns: GridColumns = [
     {
@@ -73,13 +75,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
       width: 200,
       type: 'singleSelect',
       // TODO: Get these from change manager once it's on the session
-      valueOptions: [
-        'AddAssemblyFromFileChange',
-        'AddFeaturesFromFileChange',
-        'LocationEndChange',
-        'LocationStartChange',
-        'TypeChange',
-      ],
+      valueOptions: Array.from(changeRegistry.changes.keys()),
     },
     {
       field: 'changes',
@@ -147,7 +143,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
 
       // Get changes
       const url = new URL('changes', baseURL)
-      const searchParams = new URLSearchParams({ assemblyId })
+      const searchParams = new URLSearchParams({ assembly: assemblyId })
       url.search = searchParams.toString()
       const uri = url.toString()
       const apolloFetch = apolloInternetAccount?.getFetcher({

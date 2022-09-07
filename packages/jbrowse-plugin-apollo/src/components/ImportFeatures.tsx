@@ -11,92 +11,42 @@ import {
   SelectChangeEvent,
 } from '@mui/material'
 import { getRoot } from 'mobx-state-tree'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
-import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { useAssemblies } from './'
 
 interface ImportFeaturesProps {
   session: AbstractSessionModel
   handleClose(): void
 }
 
-interface Collection {
-  _id: string
-  name: string
-}
-
 export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const { notify } = session
-  const apolloInternetAccount = internetAccounts.find(
-    (ia) => ia.type === 'ApolloInternetAccount',
-  ) as ApolloInternetAccountModel | undefined
-  if (!apolloInternetAccount) {
-    throw new Error('No Apollo internet account found')
-  }
-  const { baseURL } = apolloInternetAccount
+
   const [assemblyName, setAssemblyName] = useState('')
   const [file, setFile] = useState<File>()
-  const [collection, setCollection] = useState<Collection[]>([])
   const [assemblyId, setAssemblyId] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
+  const [submitted, setSubmitted] = useState(false)
 
   function handleChangeAssembly(e: SelectChangeEvent<string>) {
+    setSubmitted(false)
     setAssemblyId(e.target.value as string)
     setAssemblyName(
-      collection.find((i) => i._id === e.target.value)?.name as string,
+      assemblies.find((i) => i._id === e.target.value)?.name as string,
     )
   }
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
+    setSubmitted(false)
     if (!e.target.files) {
       return
     }
     setFile(e.target.files[0])
   }
 
-  useEffect(() => {
-    async function getAssemblies() {
-      const uri = new URL('/assemblies', baseURL).href
-      const apolloFetch = apolloInternetAccount?.getFetcher({
-        locationType: 'UriLocation',
-        uri,
-      })
-      if (apolloFetch) {
-        const response = await apolloFetch(uri, {
-          method: 'GET',
-        })
-        if (!response.ok) {
-          let msg
-          try {
-            msg = await response.text()
-          } catch (e) {
-            msg = ''
-          }
-          setErrorMessage(
-            `Error when inserting new features (while uploading file) — ${
-              response.status
-            } (${response.statusText})${msg ? ` (${msg})` : ''}`,
-          )
-          return
-        }
-        const data = await response.json()
-        data.forEach((item: Collection) => {
-          setCollection((result) => [
-            ...result,
-            {
-              _id: item._id,
-              name: item.name,
-            },
-          ])
-        })
-      }
-    }
-    getAssemblies()
-    return () => {
-      setCollection([{ _id: '', name: '' }])
-    }
-  }, [apolloInternetAccount, baseURL])
+  const assemblies = useAssemblies(internetAccounts, setErrorMessage)
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -108,6 +58,13 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
     if (!file) {
       throw new Error('must select a file')
     }
+
+    const assembly = assemblies.find((asm) => asm.name === assemblyName)
+    if (!assembly) {
+      throw new Error(`No assembly found with name ${assemblyName}`)
+    }
+    const { internetAccount: apolloInternetAccount } = assembly
+    const { baseURL } = apolloInternetAccount
 
     // First upload file
     const url = new URL('/files', baseURL).href
@@ -217,15 +174,20 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
             labelId="label"
             value={assemblyId}
             onChange={handleChangeAssembly}
+            disabled={submitted && !errorMessage}
           >
-            {collection.map((option) => (
+            {assemblies.map((option) => (
               <MenuItem key={option._id} value={option._id}>
                 {option.name}
               </MenuItem>
             ))}
           </Select>
           <DialogContentText>Upload GFF3 to load features</DialogContentText>
-          <input type="file" onChange={handleChangeFile} />
+          <input
+            type="file"
+            onChange={handleChangeFile}
+            disabled={submitted && !errorMessage}
+          />
         </DialogContent>
         <DialogActions>
           <Button
@@ -233,9 +195,10 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
             variant="contained"
             type="submit"
           >
-            Submit
+            {submitted ? 'Submitting...' : 'Submit'}
           </Button>
           <Button
+            disabled={!(assemblyName && file) || submitted}
             variant="outlined"
             type="submit"
             onClick={() => {

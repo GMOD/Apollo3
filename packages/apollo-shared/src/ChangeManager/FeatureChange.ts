@@ -3,26 +3,9 @@ import type { AnnotationFeatureSnapshot } from 'apollo-mst'
 import { Feature, FileDocument, RefSeqDocument } from 'apollo-schemas'
 import ObjectID from 'bson-objectid'
 
-import {
-  Change,
-  ChangeOptions,
-  SerializedChange,
-  ServerDataStore,
-} from './Change'
+import { Change, ServerDataStore } from './Change'
 
 export abstract class FeatureChange extends Change {
-  logger: import('@nestjs/common').LoggerService
-  abstract typeName: string
-
-  static assemblyId: string
-
-  constructor(json: SerializedChange, options?: ChangeOptions) {
-    super(json, options)
-    const { assemblyId } = json
-    this.assemblyId = assemblyId
-    this.logger = options?.logger || console
-  }
-
   /**
    * Get single feature by featureId
    * @param feature -
@@ -59,7 +42,7 @@ export abstract class FeatureChange extends Change {
   ) {
     const { refSeqModel, refSeqChunkModel, session, filesService } = backend
     const { CHUNK_SIZE } = process.env
-    const chunkSize = Number(CHUNK_SIZE)
+    const customChunkSize = CHUNK_SIZE && Number(CHUNK_SIZE)
     let chunkIndex = 0
     let refSeqLen = 0
     let refSeqDoc: RefSeqDocument | undefined = undefined
@@ -70,6 +53,8 @@ export abstract class FeatureChange extends Change {
     let sequenceBuffer = ''
     let incompleteLine = ''
     let lastLineIsIncomplete = true
+    let parsingStarted = false
+    this.logger.log('starting sequence stream')
     for await (const data of sequenceStream) {
       const chunk = data.toString()
       lastLineIsIncomplete = !chunk.endsWith('\n')
@@ -93,6 +78,7 @@ export abstract class FeatureChange extends Change {
         const refSeqInfoLine = /^>\s*(\S+)\s*(.*)/.exec(line)
         // Add new ref sequence infor if we are reference seq info line
         if (refSeqInfoLine) {
+          parsingStarted = true
           this.logger.debug?.(
             `Reference sequence information line "${refSeqInfoLine}"`,
           )
@@ -103,8 +89,11 @@ export abstract class FeatureChange extends Change {
               throw new Error('No refSeq document found')
             }
             refSeqLen += sequenceBuffer.length
+            // this.logger.debug?.(
+            //   `*** Add the last chunk of previous ref seq ("${refSeqDoc._id}", index ${chunkIndex} and total length for ref seq is ${refSeqLen})`,
+            // )
             this.logger.debug?.(
-              `*** Add the last chunk of previous ref seq ("${refSeqDoc._id}", index ${chunkIndex} and total length for ref seq is ${refSeqLen}): "${sequenceBuffer}"`,
+              `Creating refSeq chunk number ${chunkIndex} of "${refSeqDoc._id}"`,
             )
             await refSeqChunkModel.create(
               [
@@ -132,7 +121,7 @@ export abstract class FeatureChange extends Change {
                 description,
                 assembly: assemblyId,
                 length: 0,
-                ...(CHUNK_SIZE ? { chunkSize: Number(CHUNK_SIZE) } : null),
+                ...(customChunkSize ? { chunkSize: customChunkSize } : null),
               },
             ],
             { session },
@@ -145,13 +134,17 @@ export abstract class FeatureChange extends Change {
           if (!refSeqDoc) {
             throw new Error('No refSeq document found')
           }
+          const { chunkSize } = refSeqDoc
           sequenceBuffer += line.replace(/\s/g, '')
           // If sequence block > chunk size then save chunk into Mongo
           while (sequenceBuffer.length >= chunkSize) {
             const sequence = sequenceBuffer.slice(0, chunkSize)
             refSeqLen += sequence.length
+            // this.logger.debug?.(
+            //   `Add chunk (("${refSeqDoc._id}", index ${chunkIndex} and total length ${refSeqLen})): "${sequence}"`,
+            // )
             this.logger.debug?.(
-              `Add chunk (("${refSeqDoc._id}", index ${chunkIndex} and total length ${refSeqLen})): "${sequence}"`,
+              `Creating refSeq chunk number ${chunkIndex} of "${refSeqDoc._id}"`,
             )
             await refSeqChunkModel.create(
               [
@@ -171,6 +164,9 @@ export abstract class FeatureChange extends Change {
         }
       }
     }
+    if (!parsingStarted) {
+      throw new Error('No reference sequences found in file')
+    }
 
     if (sequenceBuffer || lastLineIsIncomplete) {
       if (!refSeqDoc) {
@@ -181,8 +177,11 @@ export abstract class FeatureChange extends Change {
         sequenceBuffer += incompleteLine
       }
       refSeqLen += sequenceBuffer.length
+      // this.logger.debug?.(
+      //   `*** Add the very last chunk to ref seq ("${refSeqDoc._id}", index ${chunkIndex} and total length for ref seq is ${refSeqLen}): "${sequenceBuffer}"`,
+      // )
       this.logger.debug?.(
-        `*** Add the very last chunk to ref seq ("${refSeqDoc._id}", index ${chunkIndex} and total length for ref seq is ${refSeqLen}): "${sequenceBuffer}"`,
+        `Creating refSeq chunk number ${chunkIndex} of "${refSeqDoc._id}"`,
       )
       await refSeqChunkModel.create(
         [

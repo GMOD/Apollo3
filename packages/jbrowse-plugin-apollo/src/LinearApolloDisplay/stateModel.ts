@@ -3,7 +3,6 @@ import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configur
 import PluginManager from '@jbrowse/core/PluginManager'
 import { getSession } from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
-import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { Instance, addDisposer, types } from 'mobx-state-tree'
@@ -24,6 +23,7 @@ export function stateModelFactory(
       type: types.literal('LinearApolloDisplay'),
       configuration: ConfigurationReference(configSchema),
       apolloRowHeight: 20,
+      detailsMinHeight: 200,
     })
     .volatile(() => ({
       apolloFeatureUnderMouse: undefined as AnnotationFeatureI | undefined,
@@ -88,10 +88,7 @@ export function stateModelFactory(
       get features() {
         const { regions } = self
         const session = getSession(self) as ApolloSession
-        const features = new Map<
-          string,
-          Map<string, AnnotationFeatureLocationI>
-        >()
+        const features = new Map<string, Map<string, AnnotationFeatureI>>()
         for (const region of regions) {
           const assembly = session.apolloDataStore.assemblies.get(
             region.assemblyName,
@@ -99,7 +96,7 @@ export function stateModelFactory(
           const ref = assembly.get(region.refName)
           let filteredRef = features.get(region.refName)
           if (!filteredRef) {
-            filteredRef = new Map<string, AnnotationFeatureLocationI>()
+            filteredRef = new Map<string, AnnotationFeatureI>()
             features.set(region.refName, filteredRef)
           }
           for (const [featureId, feature] of ref.entries()) {
@@ -142,13 +139,11 @@ export function stateModelFactory(
           if (!featuresForRefName) {
             continue
           }
-          const [min, max] = this.featuresMinMax[refName] || [
-            undefined,
-            undefined,
-          ]
-          if (min === undefined || max === undefined) {
+          const minMaxfeatures = this.featuresMinMax[refName]
+          if (!minMaxfeatures) {
             continue
           }
+          const [min, max] = minMaxfeatures
           const rows: boolean[][] = []
           Array.from(featuresForRefName.values())
             .sort((f1, f2) => {
@@ -213,19 +208,35 @@ export function stateModelFactory(
         return assembly.name
       },
       get selectedFeature(): AnnotationFeatureI | undefined {
-        return self.apolloView.selectedFeature
+        const session = getSession(self) as ApolloSession
+        return session.apolloSelectedFeature
       },
       get setSelectedFeature() {
         const session = getSession(self) as ApolloSession
         return session.apolloSetSelectedFeature
       },
     }))
+    .actions((self) => ({
+      setSelectedFeature(feature?: AnnotationFeatureI) {
+        const session = getSession(self) as ApolloSession
+        return session.apolloSetSelectedFeature(feature)
+      },
+    }))
     .views((self) => ({
       get highestRow() {
+        if (!self.featureLayout.size) {
+          return 0
+        }
         return Math.max(...self.featureLayout.keys())
       },
       get featuresHeight() {
         return this.highestRow * self.apolloRowHeight
+      },
+      get detailsHeight() {
+        return Math.max(
+          self.detailsMinHeight,
+          self.height - this.featuresHeight,
+        )
       },
     }))
 }
