@@ -19,7 +19,7 @@ import {
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 
-import { ApolloDetailsViewModel } from '../stateModel'
+import { LinearApolloDisplay } from '../stateModel'
 
 const featureColums: GridColumns = [
   { field: 'id', headerName: 'ID', width: 250 },
@@ -32,7 +32,7 @@ const featureColums: GridColumns = [
       <AutocompleteInputCell {...params} />
     ),
   },
-  { field: 'refName', headerName: 'Ref Seq', width: 150 },
+  { field: 'refSeq', headerName: 'Ref Seq', width: 150 },
   { field: 'start', headerName: 'Start', type: 'number', editable: true },
   { field: 'end', headerName: 'End', type: 'number', editable: true },
 ]
@@ -95,27 +95,27 @@ function AutocompleteInputCell(props: GridRenderEditCellParams) {
   )
 }
 
-export const ApolloDetailsView = observer(
-  ({ model }: { model: ApolloDetailsViewModel }) => {
+export const ApolloDetails = observer(
+  ({ model }: { model: LinearApolloDisplay }) => {
     const {
       selectedFeature,
       setSelectedFeature,
-      getAssemblyId,
       changeManager,
+      detailsHeight,
     } = model
     if (!selectedFeature) {
       return <div>click on a feature to see details</div>
     }
     // const sequenceTypes = changeManager?.validations.getPossibleValues('type')
-    const { _id: id, type, refName, start, end } = selectedFeature
-    const assemblyId = getAssemblyId(selectedFeature)
-    const selectedFeatureRows = [{ id, type, refName, start, end, model }]
+    const { _id: id, type, refSeq, start, end } = selectedFeature
+    const assemblyId = ''
+    const selectedFeatureRows = [{ id, type, refSeq, start, end, model }]
     function addChildFeatures(f: typeof selectedFeature) {
       f?.children?.forEach((child: AnnotationFeatureI, childId: string) => {
         selectedFeatureRows.push({
           id: child._id,
           type: child.type,
-          refName: child.refName,
+          refSeq: child.refSeq,
           start: child.start,
           end: child.end,
           model,
@@ -180,6 +180,7 @@ export const ApolloDetailsView = observer(
           <CloseIcon />
         </IconButton>
         <DataGrid
+          style={{ height: detailsHeight }}
           autoHeight
           rows={selectedFeatureRows}
           columns={featureColums}

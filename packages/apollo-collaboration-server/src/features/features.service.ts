@@ -15,6 +15,7 @@ import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 
 function makeGFF3Feature(
   featureDocument: Feature,
+  refSeqs: RefSeqDocument[],
   parentId?: string,
 ): GFF3Feature {
   const locations = featureDocument.discontinuousLocations?.length
@@ -44,10 +45,14 @@ function makeGFF3Feature(
     attributes.Target = attributes.target
     delete attributes.target
   }
+  const refSeq = refSeqs.find((rs) => rs._id.equals(featureDocument.refSeq))
+  if (!refSeq) {
+    throw new Error(`Could not find refSeq ${featureDocument.refSeq}`)
+  }
   return locations.map((location) => ({
     start: location.start,
     end: location.end,
-    seq_id: featureDocument.refName,
+    seq_id: refSeq.name,
     source,
     type: featureDocument.type,
     score: featureDocument.score || null,
@@ -61,7 +66,7 @@ function makeGFF3Feature(
     derived_features: [],
     child_features: featureDocument.children
       ? Object.values(featureDocument.children).map((child) =>
-          makeGFF3Feature(child, attributes.ID[0]),
+          makeGFF3Feature(child, refSeqs, attributes.ID[0]),
         )
       : [],
   }))
@@ -94,7 +99,7 @@ export class FeaturesService {
       .cursor({
         transform: (chunk: FeatureDocument): GFF3Feature => {
           const flattened = chunk.toObject({ flattenMaps: true })
-          return makeGFF3Feature(flattened)
+          return makeGFF3Feature(flattened, refSeqs)
         },
       })
       .pipe(gff.formatStream({ insertVersionDirective: true }))
@@ -159,7 +164,7 @@ export class FeaturesService {
 
   /**
    * Fetch features based on Reference seq, Start and End -values
-   * @param request - Contain search criteria i.e. refname, start and end -parameters
+   * @param request - Contain search criteria i.e. refSeq, start and end -parameters
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
    * or if search data was not found or in case of error throw exception
    */

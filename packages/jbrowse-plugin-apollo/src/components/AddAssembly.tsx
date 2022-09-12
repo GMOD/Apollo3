@@ -41,8 +41,10 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
   const [file, setFile] = useState<File>()
   const [fileType, setFileType] = useState('text/x-gff3')
   const [importFeatures, setImportFeatures] = useState(true)
+  const [submitted, setSubmitted] = useState(false)
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
+    setSubmitted(false)
     if (!e.target.files) {
       return
     }
@@ -50,6 +52,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
   }
 
   function handleChangeFileType(e: React.ChangeEvent<HTMLInputElement>) {
+    setSubmitted(false)
     setFileType(e.target.value)
     if (e.target.value !== 'text/x-gff3') {
       setImportFeatures(false)
@@ -59,6 +62,7 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
+    setSubmitted(true)
     // let fileChecksum = ''
     let fileId = ''
     let msg
@@ -178,7 +182,11 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
             type="TextField"
             fullWidth
             variant="outlined"
-            onChange={(e) => setAssemblyName(e.target.value)}
+            onChange={(e) => {
+              setSubmitted(false)
+              setAssemblyName(e.target.value)
+            }}
+            disabled={submitted && !errorMessage}
           />
           <FormControl>
             <FormLabel>Select GFF3 or FASTA file</FormLabel>
@@ -192,11 +200,13 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
                 value="text/x-gff3"
                 control={<Radio />}
                 label="GFF3"
+                disabled={submitted && !errorMessage}
               />
               <FormControlLabel
                 value="text/x-fasta"
                 control={<Radio />}
                 label="FASTA"
+                disabled={submitted && !errorMessage}
               />
             </RadioGroup>
           </FormControl>
@@ -207,7 +217,9 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
                 <Checkbox
                   checked={importFeatures}
                   onChange={() => setImportFeatures(!importFeatures)}
-                  disabled={fileType !== 'text/x-gff3'}
+                  disabled={
+                    fileType !== 'text/x-gff3' || (submitted && !errorMessage)
+                  }
                 />
               }
               label="Also load features from GFF3 file"
@@ -216,11 +228,11 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
         </DialogContent>
         <DialogActions>
           <Button
-            disabled={!(assemblyName && file)}
+            disabled={!(assemblyName && file) || submitted}
             variant="contained"
             type="submit"
           >
-            Submit
+            {submitted ? 'Submitting...' : 'Submit'}
           </Button>
           <Button
             variant="outlined"

@@ -56,7 +56,7 @@ export function DeleteFeature({
       typeName: 'DeleteFeatureChange',
       assemblyId: sourceAssemblyId,
       deletedFeature: getSnapshot(sourceFeature),
-      parentFeatureId: sourceFeature.parentId,
+      parentFeatureId: sourceFeature.parent?._id,
     })
     changeManager.submit?.(change)
     notify(`Feature deleted successfully`, 'success')

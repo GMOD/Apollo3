@@ -40,7 +40,7 @@ export class FeaturesController {
 
   /**
    * Fetch features based on Reference seq, Start and End -values
-   * @param request - Contain search criteria i.e. refname, start and end -parameters
+   * @param request - Contain search criteria i.e. refSeq, start and end -parameters
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
    * or if search data was not found or in case of error throw exception
    */

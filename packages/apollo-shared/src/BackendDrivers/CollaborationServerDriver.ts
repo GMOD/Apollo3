@@ -8,8 +8,14 @@ import { ValidationResultSet } from '../Validations/ValidationSet'
 import { BackendDriver } from './BackendDriver'
 
 export class CollaborationServerDriver extends BackendDriver {
-  get internetAccount() {
-    const { internetAccountConfigId, internetAccounts } = this.clientStore
+  getInternetAccount(assemblyName: string) {
+    const { assemblyManager } = getSession(this.clientStore)
+    const assembly = assemblyManager.get(assemblyName)
+    const { internetAccounts } = this.clientStore
+    const { internetAccountConfigId } = getConf(assembly, [
+      'sequence',
+      'metadata',
+    ]) as { internetAccountConfigId: string }
     const internetAccount = internetAccounts.find(
       (ia) => getConf(ia, 'internetAccountId') === internetAccountConfigId,
     )
@@ -18,17 +24,21 @@ export class CollaborationServerDriver extends BackendDriver {
         `No InternetAccount found with config id ${internetAccountConfigId}`,
       )
     }
-    return internetAccount as BaseInternetAccountModel & {
+    return internetAccount
+  }
+
+  getBaseURL(assemblyName: string) {
+    const internetAccount = this.getInternetAccount(assemblyName)
+
+    const { baseURL } = internetAccount as BaseInternetAccountModel & {
       baseURL: string
     }
+    return baseURL
   }
 
-  get baseURL() {
-    return this.internetAccount.baseURL
-  }
-
-  async fetch(info: RequestInfo, init?: RequestInit) {
-    const customFetch = this.internetAccount.getFetcher({
+  async fetch(assemblyName: string, info: RequestInfo, init?: RequestInit) {
+    const internetAccount = this.getInternetAccount(assemblyName)
+    const customFetch = internetAccount.getFetcher({
       locationType: 'UriLocation',
       uri: info.toString(),
     })
@@ -37,7 +47,7 @@ export class CollaborationServerDriver extends BackendDriver {
 
   /**
    * Call backend endpoint to get features by criteria
-   * @param region -  Searchable region containing refName, start and end
+   * @param region -  Searchable region containing refSeq, start and end
    * @returns
    */
   async getFeatures(region: Region) {
@@ -55,9 +65,9 @@ export class CollaborationServerDriver extends BackendDriver {
     }
     const feature = features.find((f) => f.refName === refName)
     if (!feature) {
-      throw new Error(`Could not find refName "${refName}"`)
+      throw new Error(`Could not find refSeq "${refName}"`)
     }
-    const { baseURL } = this
+    const baseURL = this.getBaseURL(assemblyName)
     const url = new URL('features/getFeatures', baseURL)
     const searchParams = new URLSearchParams({
       refSeq: feature.uniqueId,
@@ -66,9 +76,9 @@ export class CollaborationServerDriver extends BackendDriver {
     })
     url.search = searchParams.toString()
     const uri = url.toString()
-    // console.log(`In CollaborationServerDriver: Query parameters: refName=${refName}, start=${start}, end=${end}`)
+    // console.log(`In CollaborationServerDriver: Query parameters: refSeq=${refSeq}, start=${start}, end=${end}`)
 
-    const response = await this.fetch(uri)
+    const response = await this.fetch(assemblyName, uri)
     if (!response.ok) {
       let errorMessage
       try {
@@ -82,17 +92,7 @@ export class CollaborationServerDriver extends BackendDriver {
         }`,
       )
     }
-    const data = (await response.json()) as AnnotationFeatureSnapshot[]
-    // const backendResult = JSON.stringify(data)
-    // console.log(
-    //   `In CollaborationServerDriver: Backend endpoint returned=${backendResult}`,
-    // )
-    const allFeatures: Record<string, AnnotationFeatureSnapshot> = {}
-    data.forEach((f) => {
-      allFeatures[f._id] = f
-    })
-
-    return { [refName]: allFeatures }
+    return response.json() as Promise<AnnotationFeatureSnapshot[]>
   }
 
   async getSequence(region: Region) {
@@ -100,15 +100,15 @@ export class CollaborationServerDriver extends BackendDriver {
     return ''
   }
 
-  async getRefNames() {
-    throw new Error('getRefNames not yet implemented')
+  async getRefSeqs() {
+    throw new Error('getRefSeqs not yet implemented')
     return []
   }
 
   async submitChange(change: Change) {
-    const { baseURL } = this
+    const baseURL = this.getBaseURL(change.assemblyId)
     const url = new URL('changes', baseURL).href
-    const response = await this.fetch(url, {
+    const response = await this.fetch(change.assemblyId, url, {
       method: 'POST',
       body: JSON.stringify(change.toJSON()),
       headers: { 'Content-Type': 'application/json' },

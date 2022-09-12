@@ -86,14 +86,14 @@ export class AddFeatureChange extends FeatureChange {
     for (const change of changes) {
       this.logger.debug?.(`change: ${JSON.stringify(change)}`)
       const { addedFeature, parentFeatureId } = change
-      const { refName } = addedFeature
+      const { refSeq } = addedFeature
       const refSeqDoc = await refSeqModel
-        .findOne({ assembly: assemblyId, name: refName })
+        .findById(refSeq)
         .session(session)
         .exec()
       if (!refSeqDoc) {
         throw new Error(
-          `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refName}" not found`,
+          `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refSeq}" not found`,
         )
       }
       if (parentFeatureId) {
@@ -119,7 +119,6 @@ export class AddFeatureChange extends FeatureChange {
         }
         parentFeature.children.set(addedFeature._id, {
           allIds: [],
-          refSeq: refSeqDoc._id,
           ...addedFeature,
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
@@ -132,7 +131,7 @@ export class AddFeatureChange extends FeatureChange {
         const childIds = this.getChildFeatureIds(addedFeature)
         const allIds = [addedFeature._id, ...childIds]
         const [newFeatureDoc] = await featureModel.create(
-          [{ allIds, refSeq: refSeqDoc._id, ...addedFeature }],
+          [{ allIds, ...addedFeature }],
           { session },
         )
         this.logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
@@ -159,7 +158,7 @@ export class AddFeatureChange extends FeatureChange {
         }
         parentFeature.addChild(addedFeature)
       } else {
-        dataStore.addFeature(addedFeature)
+        dataStore.addFeature(this.assemblyId, addedFeature)
       }
     }
   }

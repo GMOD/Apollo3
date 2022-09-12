@@ -37,7 +37,7 @@
     "name": "Apollo Demo",
     "views": [
       {
-        "type": "ApolloView"
+        "type": "LinearGenomeView"
       }
     ]
   }

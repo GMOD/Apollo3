@@ -3,7 +3,6 @@ import {
   DisplayType,
   InternetAccountType,
   TrackType,
-  ViewType,
   createBaseTrackConfig,
   createBaseTrackModel,
 } from '@jbrowse/core/pluggableElementTypes'
@@ -14,10 +13,6 @@ import { changeRegistry, changes } from 'apollo-shared'
 
 import { version } from '../package.json'
 import {
-  ApolloDetailsView as ApolloDetailsViewReactComponent,
-  stateModelFactory as apolloDetailsViewStateModelFactory,
-} from './ApolloDetailsView'
-import {
   configSchema as apolloInternetAccountConfigSchema,
   modelFactory as apolloInternetAccountModelFactory,
 } from './ApolloInternetAccount'
@@ -26,16 +21,14 @@ import {
   ReactComponent as ApolloRendererReactComponent,
   configSchema as apolloRendererConfigSchema,
 } from './ApolloRenderer'
-import {
-  ApolloView as ApolloViewReactComponent,
-  stateModelFactory as apolloViewStateModelFactory,
-} from './ApolloView'
 import { AddAssembly, ImportFeatures, ViewChangeLog } from './components'
+import { DownloadGFF3 } from './components/DownloadGFF3'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
 } from './LinearApolloDisplay'
 import { makeDisplayComponent } from './makeDisplayComponent'
+import { ApolloSessionModel, extendSession } from './session'
 
 Object.entries(changes).forEach(([changeName, change]) => {
   changeRegistry.registerChange(changeName, change)
@@ -46,22 +39,6 @@ export default class ApolloPlugin extends Plugin {
   version = version
 
   install(pluginManager: PluginManager) {
-    pluginManager.addViewType(() => {
-      return new ViewType({
-        name: 'ApolloDetailsView',
-        stateModel: apolloDetailsViewStateModelFactory(pluginManager),
-        ReactComponent: ApolloDetailsViewReactComponent,
-      })
-    })
-
-    pluginManager.addViewType(() => {
-      return new ViewType({
-        name: 'ApolloView',
-        stateModel: apolloViewStateModelFactory(pluginManager),
-        ReactComponent: ApolloViewReactComponent,
-      })
-    })
-
     pluginManager.addTrackType(() => {
       const configSchema = ConfigurationSchema(
         'ApolloTrack',
@@ -117,17 +94,13 @@ export default class ApolloPlugin extends Plugin {
           pluginManager,
         }),
     )
+
+    pluginManager.addToExtensionPoint('Core-extendSession', extendSession)
   }
 
   configure(pluginManager: PluginManager) {
     if (isAbstractMenuManager(pluginManager.rootModel)) {
       pluginManager.rootModel.insertMenu('Apollo', -1)
-      pluginManager.rootModel.appendToMenu('Apollo', {
-        label: 'Add Apollo View',
-        onClick: (session: AbstractSessionModel) => {
-          session.addView('ApolloView', {})
-        },
-      })
       pluginManager.rootModel.appendToMenu('Apollo', {
         label: 'Add Assembly',
         onClick: (session: AbstractSessionModel) => {
@@ -157,6 +130,20 @@ export default class ApolloPlugin extends Plugin {
         },
       })
       pluginManager.rootModel.appendToMenu('Apollo', {
+        label: 'Download GFF3',
+        onClick: (session: AbstractSessionModel) => {
+          session.queueDialog((doneCallback) => [
+            DownloadGFF3,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+            },
+          ])
+        },
+      })
+      pluginManager.rootModel.appendToMenu('Apollo', {
         label: 'View Change Log',
         onClick: (session: AbstractSessionModel) => {
           session.queueDialog((doneCallback) => [
@@ -168,6 +155,17 @@ export default class ApolloPlugin extends Plugin {
               },
             },
           ])
+        },
+      })
+      pluginManager.rootModel.appendToMenu('Apollo', {
+        label: 'Undo',
+        onClick: (session: ApolloSessionModel) => {
+          const { apolloDataStore, notify } = session
+          if (apolloDataStore.changeManager.recentChanges.length) {
+            apolloDataStore.changeManager.revertLastChange()
+          } else {
+            notify('No changes to undo', 'info')
+          }
         },
       })
     }

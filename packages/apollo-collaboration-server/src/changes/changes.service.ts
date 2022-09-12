@@ -26,7 +26,7 @@ import {
   changeRegistry,
   changes,
 } from 'apollo-shared'
-import { Model } from 'mongoose'
+import { FilterQuery, Model } from 'mongoose'
 
 import { FilesService } from '../files/files.service'
 import { CreateChangeDto } from './dto/create-change.dto'
@@ -125,12 +125,12 @@ export class ChangesService {
   }
 
   async findAll(changeFilter: FindChangeDto) {
-    const queryCond = {
-      ...changeFilter,
-      user: changeFilter.user && {
+    const queryCond: FilterQuery<ChangeDocument> = { ...changeFilter }
+    if (changeFilter.user) {
+      queryCond.user = {
         $regex: `${changeFilter.user}`,
         $options: 'i',
-      },
+      }
     }
     this.logger.debug(`Search criteria: "${JSON.stringify(queryCond)}"`)
 

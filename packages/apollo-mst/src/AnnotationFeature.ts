@@ -1,23 +1,12 @@
-import { findParentThatIs } from '@jbrowse/core/util'
 import {
   IAnyModelType,
   Instance,
   SnapshotIn,
   SnapshotOrInstance,
   cast,
+  getParentOfType,
   types,
 } from 'mobx-state-tree'
-
-export function isAnnotationFeatureModel(
-  thing: unknown,
-): thing is AnnotationFeatureI {
-  return (
-    typeof thing === 'object' &&
-    thing !== null &&
-    'type' in thing &&
-    (thing as AnnotationFeatureI)._id !== undefined
-  )
-}
 
 export const LateAnnotationFeature = types.late(
   (): IAnyModelType => AnnotationFeature,
@@ -27,7 +16,7 @@ export const AnnotationFeature = types
   .model('AnnotationFeature', {
     _id: types.identifier,
     /** Reference sequence name */
-    refName: types.string,
+    refSeq: types.string,
     /** Feature type */
     type: types.string,
     /** Feature location start coordinate */
@@ -137,8 +126,8 @@ export const AnnotationFeature = types
     setType(type: string) {
       self.type = type
     },
-    setRefName(refName: string) {
-      self.refName = refName
+    setRefSeq(refSeq: string) {
+      self.refSeq = refSeq
     },
     setStart(start: number) {
       if (start > self.end) {
@@ -171,19 +160,19 @@ export const AnnotationFeature = types
   }))
   .actions((self) => ({
     update({
-      refName,
+      refSeq,
       start,
       end,
       strand,
       children,
     }: {
-      refName: string
+      refSeq: string
       start: number
       end: number
       strand?: 1 | -1
       children?: SnapshotOrInstance<typeof LateAnnotationFeature>
     }) {
-      self.setRefName(refName)
+      self.setRefSeq(refSeq)
       self.setStart(start)
       self.setEnd(end)
       self.setStrand(strand)
@@ -428,14 +417,14 @@ export const AnnotationFeature = types
     // },
   }))
   .views((self) => ({
-    get parentId() {
+    get parent() {
       let parent: AnnotationFeatureI | undefined = undefined
       try {
-        parent = findParentThatIs(self, isAnnotationFeatureModel)
+        parent = getParentOfType(self, AnnotationFeature)
       } catch (error) {
         // pass
       }
-      return parent?._id
+      return parent
     },
   }))
 
@@ -446,8 +435,3 @@ export interface AnnotationFeatureSnapshot
   /** Child features of this feature */
   children?: Record<string, AnnotationFeatureSnapshot>
 }
-
-export const FeatureMap = types.map(AnnotationFeature)
-export const FeaturesForRefName = types.map(FeatureMap)
-export type FeaturesForRefNameI = Instance<typeof FeaturesForRefName>
-export type FeaturesForRefNameSnapshot = SnapshotIn<typeof FeaturesForRefName>

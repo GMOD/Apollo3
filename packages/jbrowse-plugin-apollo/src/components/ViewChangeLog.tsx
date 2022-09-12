@@ -142,7 +142,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
 
       // Get changes
       const url = new URL('changes', baseURL)
-      const searchParams = new URLSearchParams({ assemblyId })
+      const searchParams = new URLSearchParams({ assembly: assemblyId })
       url.search = searchParams.toString()
       const uri = url.toString()
       const apolloFetch = apolloInternetAccount?.getFetcher({

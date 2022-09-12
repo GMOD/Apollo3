@@ -9,7 +9,6 @@
 		"63124b59f3968c7457745853"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "contig",
 	"start": 1,
 	"end": 50001,
@@ -40,7 +39,6 @@
 		"63124b59f3968c7457745854"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "remark",
 	"start": 1000,
 	"end": 2000,
@@ -69,7 +67,6 @@
 		"63124b59f3968c7457745855"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "protein_coding_primary_transcript",
 	"start": 1100,
 	"end": 2000,
@@ -99,7 +96,6 @@
 		"63124b59f3968c7457745856"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "polypeptide",
 	"start": 1200,
 	"end": 1900,
@@ -129,7 +125,6 @@
 		"63124b59f3968c7457745857"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "protein_coding_primary_transcript",
 	"start": 1600,
 	"end": 3000,
@@ -159,7 +154,6 @@
 		"63124b59f3968c7457745858"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "remark",
 	"start": 1659,
 	"end": 1984,
@@ -189,7 +183,6 @@
 		"63124b59f3968c7457745859"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "polypeptide",
 	"start": 1800,
 	"end": 2900,
@@ -219,7 +212,6 @@
 		"63124b59f3968c745774585a"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "remark",
 	"start": 3014,
 	"end": 6130,
@@ -249,7 +241,6 @@
 		"63124b59f3968c745774585b"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "remark",
 	"start": 4715,
 	"end": 5968,
@@ -279,7 +270,6 @@
 		"63124b59f3968c745774585c"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 5233,
 	"end": 5302,
@@ -306,7 +296,6 @@
 		"63124b59f3968c745774585d"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 5800,
 	"end": 6101,
@@ -333,7 +322,6 @@
 		"63124b59f3968c745774585e"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 6442,
 	"end": 6854,
@@ -360,7 +348,6 @@
 		"63124b59f3968c745774585f"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 6885,
 	"end": 7241,
@@ -387,7 +374,6 @@
 		"63124b59f3968c7457745860"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 7106,
 	"end": 7211,
@@ -414,7 +400,6 @@
 		"63124b59f3968c7457745861"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 7410,
 	"end": 7737,
@@ -441,7 +426,6 @@
 		"63124b59f3968c7457745862"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 7695,
 	"end": 8177,
@@ -468,7 +452,6 @@
 		"63124b59f3968c7457745863"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 8055,
 	"end": 8080,
@@ -495,7 +478,6 @@
 		"63124b59f3968c7457745864"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 8306,
 	"end": 8999,
@@ -522,7 +504,6 @@
 		"63124b59f3968c7457745865"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 8545,
 	"end": 8783,
@@ -549,7 +530,6 @@
 		"63124b59f3968c7457745866"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 8869,
 	"end": 8935,
@@ -576,7 +556,6 @@
 		"63124b59f3968c7457745867"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 9404,
 	"end": 9825,
@@ -603,7 +582,6 @@
 		"63124b59f3968c7457745868"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "CDS",
 	"start": 10000,
 	"end": 11500,
@@ -634,7 +612,6 @@
 		"63124b59f3968c7457745869"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "polypeptide_domain",
 	"start": 11911,
 	"end": 15561,
@@ -664,7 +641,6 @@
 		"63124b59f3968c745774586a"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 12531,
 	"end": 12895,
@@ -691,7 +667,6 @@
 		"63124b59f3968c745774586b"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 13122,
 	"end": 13449,
@@ -718,7 +693,6 @@
 		"63124b59f3968c745774586c"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "remark",
 	"start": 13280,
 	"end": 16394,
@@ -745,7 +719,6 @@
 		"63124b59f3968c745774586d"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 13452,
 	"end": 13745,
@@ -772,7 +745,6 @@
 		"63124b59f3968c745774586e"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "polypeptide_domain",
 	"start": 13801,
 	"end": 14007,
@@ -802,7 +774,6 @@
 		"63124b59f3968c745774586f"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 13908,
 	"end": 13965,
@@ -829,7 +800,6 @@
 		"63124b59f3968c7457745870"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 13998,
 	"end": 14488,
@@ -856,7 +826,6 @@
 		"63124b59f3968c7457745871"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 14564,
 	"end": 14899,
@@ -883,7 +852,6 @@
 		"63124b59f3968c7457745872"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "polypeptide_domain",
 	"start": 14731,
 	"end": 17239,
@@ -913,7 +881,6 @@
 		"63124b59f3968c7457745873"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 15185,
 	"end": 15276,
@@ -940,7 +907,6 @@
 		"63124b59f3968c7457745874"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "remark",
 	"start": 15329,
 	"end": 15533,
@@ -967,7 +933,6 @@
 		"63124b59f3968c7457745875"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "polypeptide_domain",
 	"start": 15396,
 	"end": 16159,
@@ -997,7 +962,6 @@
 		"63124b59f3968c7457745876"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 15639,
 	"end": 15736,
@@ -1024,7 +988,6 @@
 		"63124b59f3968c7457745877"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 15745,
 	"end": 15870,
@@ -1051,7 +1014,6 @@
 		"63124b59f3968c7457745878"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "polypeptide_domain",
 	"start": 17023,
 	"end": 17675,
@@ -1081,7 +1043,6 @@
 		"63124b59f3968c7457745879"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "polypeptide_domain",
 	"start": 17667,
 	"end": 17690,
@@ -1111,7 +1072,6 @@
 		"63124b59f3968c745774587a"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "polypeptide_domain",
 	"start": 18048,
 	"end": 18552,
@@ -1141,7 +1101,6 @@
 		"63124b59f3968c745774587b"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 18509,
 	"end": 18985,
@@ -1168,7 +1127,6 @@
 		"63124b59f3968c745774587c"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 18989,
 	"end": 19388,
@@ -1195,7 +1153,6 @@
 		"63124b59f3968c745774587d"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "remark",
 	"start": 19157,
 	"end": 22915,
@@ -1222,7 +1179,6 @@
 		"63124b59f3968c745774587e"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 19249,
 	"end": 19559,
@@ -1249,7 +1205,6 @@
 		"63124b59f3968c745774587f"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 19496,
 	"end": 19962,
@@ -1276,7 +1231,6 @@
 		"63124b59f3968c7457745880"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 19975,
 	"end": 20260,
@@ -1303,7 +1257,6 @@
 		"63124b59f3968c7457745881"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 20093,
 	"end": 20580,
@@ -1330,7 +1283,6 @@
 		"63124b59f3968c7457745882"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 20379,
 	"end": 20491,
@@ -1357,7 +1309,6 @@
 		"63124b59f3968c7457745883"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 20533,
 	"end": 21005,
@@ -1384,7 +1335,6 @@
 		"63124b59f3968c7457745884"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 20970,
 	"end": 21052,
@@ -1411,7 +1361,6 @@
 		"63124b59f3968c7457745885"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 21122,
 	"end": 21331,
@@ -1438,7 +1387,6 @@
 		"63124b59f3968c7457745886"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 21270,
 	"end": 21277,
@@ -1465,7 +1413,6 @@
 		"63124b59f3968c7457745887"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 21682,
 	"end": 22176,
@@ -1492,7 +1439,6 @@
 		"63124b59f3968c7457745888"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 21685,
 	"end": 22168,
@@ -1519,7 +1465,6 @@
 		"63124b59f3968c7457745889"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "polypeptide_domain",
 	"start": 21748,
 	"end": 25612,
@@ -1549,7 +1494,6 @@
 		"63124b59f3968c745774588a"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "remark",
 	"start": 22132,
 	"end": 24633,
@@ -1576,7 +1520,6 @@
 		"63124b59f3968c745774588b"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 22374,
 	"end": 22570,
@@ -1603,7 +1546,6 @@
 		"63124b59f3968c745774588c"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 22564,
 	"end": 22869,
@@ -1630,7 +1572,6 @@
 		"63124b59f3968c745774588d"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 22958,
 	"end": 23298,
@@ -1657,7 +1598,6 @@
 		"63124b59f3968c745774588e"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 23025,
 	"end": 23427,
@@ -1684,7 +1624,6 @@
 		"63124b59f3968c745774588f"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "remark",
 	"start": 23072,
 	"end": 23185,
@@ -1711,7 +1650,6 @@
 		"63124b59f3968c7457745890"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 23412,
 	"end": 23469,
@@ -1738,7 +1676,6 @@
 		"63124b59f3968c7457745891"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 23932,
 	"end": 23932,
@@ -1765,7 +1702,6 @@
 		"63124b59f3968c7457745892"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 24228,
 	"end": 24510,
@@ -1792,7 +1728,6 @@
 		"63124b59f3968c7457745893"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 24328,
 	"end": 24787,
@@ -1819,7 +1754,6 @@
 		"63124b59f3968c7457745894"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "remark",
 	"start": 24562,
 	"end": 28338,
@@ -1846,7 +1780,6 @@
 		"63124b59f3968c7457745895"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 24868,
 	"end": 25012,
@@ -1873,7 +1806,6 @@
 		"63124b59f3968c7457745896"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 25212,
 	"end": 25426,
@@ -1900,7 +1832,6 @@
 		"63124b59f3968c7457745897"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 25228,
 	"end": 25367,
@@ -1927,7 +1858,6 @@
 		"63124b59f3968c7457745898"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 25794,
 	"end": 25874,
@@ -1954,7 +1884,6 @@
 		"63124b59f3968c7457745899"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 26075,
 	"end": 26519,
@@ -1981,7 +1910,6 @@
 		"63124b59f3968c745774589a"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 26122,
 	"end": 26126,
@@ -2008,7 +1936,6 @@
 		"63124b59f3968c745774589b"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 26497,
 	"end": 26869,
@@ -2035,7 +1962,6 @@
 		"63124b59f3968c745774589c"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 26503,
 	"end": 26799,
@@ -2062,7 +1988,6 @@
 		"63124b59f3968c745774589d"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 26930,
 	"end": 26940,
@@ -2089,7 +2014,6 @@
 		"63124b59f3968c745774589e"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 26975,
 	"end": 27063,
@@ -2116,7 +2040,6 @@
 		"63124b59f3968c745774589f"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 27172,
 	"end": 27185,
@@ -2143,7 +2066,6 @@
 		"63124b59f3968c74577458a0"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 27201,
 	"end": 27325,
@@ -2170,7 +2092,6 @@
 		"63124b59f3968c74577458a1"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 27372,
 	"end": 27433,
@@ -2197,7 +2118,6 @@
 		"63124b59f3968c74577458a2"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 27415,
 	"end": 27799,
@@ -2224,7 +2144,6 @@
 		"63124b59f3968c74577458a3"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 27448,
 	"end": 27860,
@@ -2251,7 +2170,6 @@
 		"63124b59f3968c74577458a4"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 27565,
 	"end": 27565,
@@ -2278,7 +2196,6 @@
 		"63124b59f3968c74577458a5"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 27813,
 	"end": 28091,
@@ -2305,7 +2222,6 @@
 		"63124b59f3968c74577458a6"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 27880,
 	"end": 27943,
@@ -2332,7 +2248,6 @@
 		"63124b59f3968c74577458a7"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 27887,
 	"end": 28076,
@@ -2359,7 +2274,6 @@
 		"63124b59f3968c74577458a8"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 28093,
 	"end": 28201,
@@ -2386,7 +2300,6 @@
 		"63124b59f3968c74577458a9"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 28225,
 	"end": 28316,
@@ -2413,7 +2326,6 @@
 		"63124b59f3968c74577458aa"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 28225,
 	"end": 28346,
@@ -2440,7 +2352,6 @@
 		"63124b59f3968c74577458ab"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 28329,
 	"end": 28377,
@@ -2467,7 +2378,6 @@
 		"63124b59f3968c74577458ac"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "polypeptide_domain",
 	"start": 28332,
 	"end": 30033,
@@ -2497,7 +2407,6 @@
 		"63124b59f3968c74577458ad"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "polypeptide_domain",
 	"start": 28342,
 	"end": 28447,
@@ -2527,7 +2436,6 @@
 		"63124b59f3968c74577458ae"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 28375,
 	"end": 28570,
@@ -2554,7 +2462,6 @@
 		"63124b59f3968c74577458af"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 28758,
 	"end": 29041,
@@ -2581,7 +2488,6 @@
 		"63124b59f3968c74577458b0"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 28777,
 	"end": 29058,
@@ -2608,7 +2514,6 @@
 		"63124b59f3968c74577458b1"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 28829,
 	"end": 29194,
@@ -2635,7 +2540,6 @@
 		"63124b59f3968c74577458b2"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 29101,
 	"end": 29302,
@@ -2662,7 +2566,6 @@
 		"63124b59f3968c74577458b3"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 29513,
 	"end": 29647,
@@ -2689,7 +2592,6 @@
 		"63124b59f3968c74577458b4"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 29517,
 	"end": 29702,
@@ -2716,7 +2618,6 @@
 		"63124b59f3968c74577458b5"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 29604,
 	"end": 29702,
@@ -2743,7 +2644,6 @@
 		"63124b59f3968c74577458b6"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 29713,
 	"end": 30061,
@@ -2770,7 +2670,6 @@
 		"63124b59f3968c74577458b7"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 29771,
 	"end": 29942,
@@ -2797,7 +2696,6 @@
 		"63124b59f3968c74577458b8"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 29867,
 	"end": 29885,
@@ -2824,7 +2722,6 @@
 		"63124b59f3968c74577458b9"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 30042,
 	"end": 30340,
@@ -2851,7 +2748,6 @@
 		"63124b59f3968c74577458ba"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 30108,
 	"end": 30216,
@@ -2878,7 +2774,6 @@
 		"63124b59f3968c74577458bb"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 30241,
 	"end": 30246,
@@ -2905,7 +2800,6 @@
 		"63124b59f3968c74577458bc"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 30329,
 	"end": 30774,
@@ -2932,7 +2826,6 @@
 		"63124b59f3968c74577458bd"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 30465,
 	"end": 30798,
@@ -2959,7 +2852,6 @@
 		"63124b59f3968c74577458be"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 30575,
 	"end": 30738,
@@ -2986,7 +2878,6 @@
 		"63124b59f3968c74577458bf"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "polypeptide_domain",
 	"start": 30578,
 	"end": 31748,
@@ -3016,7 +2907,6 @@
 		"63124b59f3968c74577458c0"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 30808,
 	"end": 31306,
@@ -3043,7 +2933,6 @@
 		"63124b59f3968c74577458c1"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 30810,
 	"end": 31307,
@@ -3070,7 +2959,6 @@
 		"63124b59f3968c74577458c2"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 31232,
 	"end": 31236,
@@ -3097,7 +2985,6 @@
 		"63124b59f3968c74577458c3"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 31421,
 	"end": 31817,
@@ -3124,7 +3011,6 @@
 		"63124b59f3968c74577458c4"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 31516,
 	"end": 31729,
@@ -3151,7 +3037,6 @@
 		"63124b59f3968c74577458c5"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 31753,
 	"end": 32154,
@@ -3178,7 +3063,6 @@
 		"63124b59f3968c74577458c6"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 31761,
 	"end": 31984,
@@ -3205,7 +3089,6 @@
 		"63124b59f3968c74577458c7"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 32010,
 	"end": 32057,
@@ -3232,7 +3115,6 @@
 		"63124b59f3968c74577458c8"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 32208,
 	"end": 32680,
@@ -3259,7 +3141,6 @@
 		"63124b59f3968c74577458c9"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 32329,
 	"end": 32359,
@@ -3286,7 +3167,6 @@
 		"63124b59f3968c74577458ca"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 32374,
 	"end": 32937,
@@ -3313,7 +3193,6 @@
 		"63124b59f3968c74577458cb"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 32595,
 	"end": 32696,
@@ -3340,7 +3219,6 @@
 		"63124b59f3968c74577458cc"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 32892,
 	"end": 32901,
@@ -3367,7 +3245,6 @@
 		"63124b59f3968c74577458cd"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 33053,
 	"end": 33325,
@@ -3394,7 +3271,6 @@
 		"63124b59f3968c74577458ce"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 33127,
 	"end": 33388,
@@ -3421,7 +3297,6 @@
 		"63124b59f3968c74577458cf"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "polypeptide_domain",
 	"start": 33325,
 	"end": 35791,
@@ -3451,7 +3326,6 @@
 		"63124b59f3968c74577458d0"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 33438,
 	"end": 33868,
@@ -3478,7 +3352,6 @@
 		"63124b59f3968c74577458d1"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 33439,
 	"end": 33443,
@@ -3505,7 +3378,6 @@
 		"63124b59f3968c74577458d2"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 33759,
 	"end": 34209,
@@ -3532,7 +3404,6 @@
 		"63124b59f3968c74577458d3"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 34244,
 	"end": 34313,
@@ -3559,7 +3430,6 @@
 		"63124b59f3968c74577458d4"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 34401,
 	"end": 34466,
@@ -3586,7 +3456,6 @@
 		"63124b59f3968c74577458d5"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 34605,
 	"end": 34983,
@@ -3613,7 +3482,6 @@
 		"63124b59f3968c74577458d6"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 35333,
 	"end": 35507,
@@ -3640,7 +3508,6 @@
 		"63124b59f3968c74577458d7"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 35642,
 	"end": 35904,
@@ -3667,7 +3534,6 @@
 		"63124b59f3968c74577458d8"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "remark",
 	"start": 36034,
 	"end": 38167,
@@ -3694,7 +3560,6 @@
 		"63124b59f3968c74577458d9"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 36616,
 	"end": 37057,
@@ -3721,7 +3586,6 @@
 		"63124b59f3968c74577458da"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "remark",
 	"start": 36649,
 	"end": 40440,
@@ -3748,7 +3612,6 @@
 		"63124b59f3968c74577458db"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 37208,
 	"end": 37227,
@@ -3775,7 +3638,6 @@
 		"63124b59f3968c74577458dc"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "remark",
 	"start": 37242,
 	"end": 38653,
@@ -3802,7 +3664,6 @@
 		"63124b59f3968c74577458dd"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "polypeptide_domain",
 	"start": 37497,
 	"end": 40559,
@@ -3832,7 +3693,6 @@
 		"63124b59f3968c74577458de"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 39265,
 	"end": 39361,
@@ -3859,7 +3719,6 @@
 		"63124b59f3968c74577458df"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 39753,
 	"end": 40034,
@@ -3886,7 +3745,6 @@
 		"63124b59f3968c74577458e0"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 40515,
 	"end": 40954,
@@ -3913,7 +3771,6 @@
 		"63124b59f3968c74577458e1"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 41137,
 	"end": 41318,
@@ -3940,7 +3797,6 @@
 		"63124b59f3968c74577458e2"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 41252,
 	"end": 41365,
@@ -3967,7 +3823,6 @@
 		"63124b59f3968c74577458e3"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 41492,
 	"end": 41504,
@@ -3994,7 +3849,6 @@
 		"63124b59f3968c74577458e4"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 41754,
 	"end": 41948,
@@ -4021,7 +3875,6 @@
 		"63124b59f3968c74577458e5"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 41941,
 	"end": 42377,
@@ -4048,7 +3901,6 @@
 		"63124b59f3968c74577458e6"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 42057,
 	"end": 42474,
@@ -4075,7 +3927,6 @@
 		"63124b59f3968c74577458e7"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 42748,
 	"end": 42954,
@@ -4102,7 +3953,6 @@
 		"63124b59f3968c74577458e8"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 42890,
 	"end": 43270,
@@ -4129,7 +3979,6 @@
 		"63124b59f3968c74577458e9"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 43395,
 	"end": 43811,
@@ -4156,7 +4005,6 @@
 		"63124b59f3968c74577458ea"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 43401,
 	"end": 43897,
@@ -4183,7 +4031,6 @@
 		"63124b59f3968c74577458eb"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 44043,
 	"end": 44113,
@@ -4210,7 +4057,6 @@
 		"63124b59f3968c74577458ec"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 44065,
 	"end": 44556,
@@ -4237,7 +4083,6 @@
 		"63124b59f3968c74577458ed"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 44191,
 	"end": 44514,
@@ -4264,7 +4109,6 @@
 		"63124b59f3968c74577458ee"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 44399,
 	"end": 44888,
@@ -4291,7 +4135,6 @@
 		"63124b59f3968c74577458ef"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 44552,
 	"end": 45043,
@@ -4318,7 +4161,6 @@
 		"63124b59f3968c74577458f0"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "remark",
 	"start": 44705,
 	"end": 47713,
@@ -4345,7 +4187,6 @@
 		"63124b59f3968c74577458f1"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 44763,
 	"end": 45030,
@@ -4372,7 +4213,6 @@
 		"63124b59f3968c74577458f2"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 45231,
 	"end": 45488,
@@ -4399,7 +4239,6 @@
 		"63124b59f3968c74577458f3"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 45281,
 	"end": 45375,
@@ -4426,7 +4265,6 @@
 		"63124b59f3968c74577458f4"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 45373,
 	"end": 45600,
@@ -4453,7 +4291,6 @@
 		"63124b59f3968c74577458f5"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 45711,
 	"end": 46041,
@@ -4480,7 +4317,6 @@
 		"63124b59f3968c74577458f6"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 45790,
 	"end": 46022,
@@ -4507,7 +4343,6 @@
 		"63124b59f3968c74577458f7"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 45897,
 	"end": 46315,
@@ -4534,7 +4369,6 @@
 		"63124b59f3968c74577458f8"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "polypeptide_domain",
 	"start": 46012,
 	"end": 48851,
@@ -4564,7 +4398,6 @@
 		"63124b59f3968c74577458f9"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 46092,
 	"end": 46318,
@@ -4591,7 +4424,6 @@
 		"63124b59f3968c74577458fa"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 46425,
 	"end": 46564,
@@ -4618,7 +4450,6 @@
 		"63124b59f3968c74577458fb"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 46491,
 	"end": 46890,
@@ -4645,7 +4476,6 @@
 		"63124b59f3968c74577458fc"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 46738,
 	"end": 47087,
@@ -4672,7 +4502,6 @@
 		"63124b59f3968c74577458fd"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 46816,
 	"end": 46992,
@@ -4699,7 +4528,6 @@
 		"63124b59f3968c74577458fe"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "remark",
 	"start": 46990,
 	"end": 48410,
@@ -4726,7 +4554,6 @@
 		"63124b59f3968c74577458ff"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 47126,
 	"end": 47297,
@@ -4753,7 +4580,6 @@
 		"63124b59f3968c7457745900"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 47329,
 	"end": 47595,
@@ -4780,7 +4606,6 @@
 		"63124b59f3968c7457745901"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 47449,
 	"end": 47829,
@@ -4807,7 +4632,6 @@
 		"63124b59f3968c7457745902"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 47735,
 	"end": 47983,
@@ -4834,7 +4658,6 @@
 		"63124b59f3968c7457745903"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 47858,
 	"end": 47979,
@@ -4861,7 +4684,6 @@
 		"63124b59f3968c7457745904"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 48169,
 	"end": 48453,
@@ -4888,7 +4710,6 @@
 		"63124b59f3968c7457745905"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "polypeptide_domain",
 	"start": 48253,
 	"end": 48366,
@@ -4918,7 +4739,6 @@
 		"63124b59f3968c7457745906"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 48447,
 	"end": 48709,
@@ -4945,7 +4765,6 @@
 		"63124b59f3968c7457745907"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 48931,
 	"end": 49186,
@@ -4972,7 +4791,6 @@
 		"63124b59f3968c7457745908"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 49406,
 	"end": 49476,
@@ -4999,7 +4817,6 @@
 		"63124b59f3968c7457745909"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 49472,
 	"end": 49699,
@@ -5026,7 +4843,6 @@
 		"63124b59f3968c745774590a"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "remark",
 	"start": 49758,
 	"end": 50000,
@@ -5053,7 +4869,6 @@
 		"63124b59f3968c745774590b"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 49762,
 	"end": 50000,
@@ -5080,7 +4895,6 @@
 		"63124b59f3968c745774590c"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 49957,
 	"end": 50000,
@@ -5107,7 +4921,6 @@
 		"63124b59f3968c745774590d"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "match",
 	"start": 49957,
 	"end": 50000,
@@ -5134,7 +4947,6 @@
 		"63124b59f3968c745774590e"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgB",
 	"type": "contig",
 	"start": 1,
 	"end": 6079,
@@ -5160,7 +4972,6 @@
 		"63124b59f3968c745774590f"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgB",
 	"type": "remark",
 	"start": 1659,
 	"end": 1984,
@@ -5190,7 +5001,6 @@
 		"63124b59f3968c7457745910"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgB",
 	"type": "remark",
 	"start": 3014,
 	"end": 6130,
@@ -5220,7 +5030,6 @@
 		"63124b59f3968c7457745911"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgB",
 	"type": "remark",
 	"start": 4715,
 	"end": 5968,
@@ -5252,7 +5061,6 @@
 		"63124b59f3968c7457745914"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "BAC",
 	"start": 1000,
 	"end": 20000,
@@ -5278,7 +5086,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "clone_start",
 			"start": 1000,
 			"end": 1500,
@@ -5299,7 +5106,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "clone_end",
 			"start": 19500,
 			"end": 20000,
@@ -5328,7 +5134,6 @@
 		"63124b59f3968c7457745915"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "SNP",
 	"start": 1000,
 	"end": 1000,
@@ -5363,7 +5168,6 @@
 		"63124b59f3968c7457745918"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "EST_match",
 	"start": 1050,
 	"end": 3202,
@@ -5390,7 +5194,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "match_part",
 			"start": 1050,
 			"end": 1500,
@@ -5417,7 +5220,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "match_part",
 			"start": 3000,
 			"end": 3202,
@@ -5455,7 +5257,6 @@
 		"63124b59f3968c745774591c"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "EST_match",
 	"start": 1050,
 	"end": 7300,
@@ -5482,7 +5283,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "match_part",
 			"start": 1050,
 			"end": 1500,
@@ -5509,7 +5309,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "match_part",
 			"start": 5000,
 			"end": 5500,
@@ -5536,7 +5335,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "match_part",
 			"start": 7000,
 			"end": 7300,
@@ -5591,7 +5389,6 @@
 		"63124b59f3968c7457745931"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "gene",
 	"start": 1050,
 	"end": 9000,
@@ -5618,7 +5415,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "mRNA",
 			"start": 1050,
 			"end": 9000,
@@ -5651,7 +5447,6 @@
 					},
 					"allIds": [],
 					"assemblyName": "changeme",
-					"refName": "ctgA",
 					"type": "five_prime_UTR",
 					"start": 1050,
 					"end": 1200,
@@ -5672,7 +5467,6 @@
 					},
 					"allIds": [],
 					"assemblyName": "changeme",
-					"refName": "ctgA",
 					"type": "CDS",
 					"start": 1201,
 					"end": 1500,
@@ -5694,7 +5488,6 @@
 					},
 					"allIds": [],
 					"assemblyName": "changeme",
-					"refName": "ctgA",
 					"type": "CDS",
 					"start": 3000,
 					"end": 3902,
@@ -5716,7 +5509,6 @@
 					},
 					"allIds": [],
 					"assemblyName": "changeme",
-					"refName": "ctgA",
 					"type": "CDS",
 					"start": 5000,
 					"end": 5500,
@@ -5738,7 +5530,6 @@
 					},
 					"allIds": [],
 					"assemblyName": "changeme",
-					"refName": "ctgA",
 					"type": "CDS",
 					"start": 7000,
 					"end": 7608,
@@ -5760,7 +5551,6 @@
 					},
 					"allIds": [],
 					"assemblyName": "changeme",
-					"refName": "ctgA",
 					"type": "three_prime_UTR",
 					"start": 7609,
 					"end": 9000,
@@ -5783,7 +5573,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "mRNA",
 			"start": 1050,
 			"end": 9000,
@@ -5816,7 +5605,6 @@
 					},
 					"allIds": [],
 					"assemblyName": "changeme",
-					"refName": "ctgA",
 					"type": "five_prime_UTR",
 					"start": 1050,
 					"end": 1200,
@@ -5837,7 +5625,6 @@
 					},
 					"allIds": [],
 					"assemblyName": "changeme",
-					"refName": "ctgA",
 					"type": "CDS",
 					"start": 1201,
 					"end": 1500,
@@ -5859,7 +5646,6 @@
 					},
 					"allIds": [],
 					"assemblyName": "changeme",
-					"refName": "ctgA",
 					"type": "CDS",
 					"start": 5000,
 					"end": 5500,
@@ -5881,7 +5667,6 @@
 					},
 					"allIds": [],
 					"assemblyName": "changeme",
-					"refName": "ctgA",
 					"type": "CDS",
 					"start": 7000,
 					"end": 7608,
@@ -5903,7 +5688,6 @@
 					},
 					"allIds": [],
 					"assemblyName": "changeme",
-					"refName": "ctgA",
 					"type": "three_prime_UTR",
 					"start": 7609,
 					"end": 9000,
@@ -5926,7 +5710,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "mRNA",
 			"start": 1300,
 			"end": 9000,
@@ -5959,7 +5742,6 @@
 					},
 					"allIds": [],
 					"assemblyName": "changeme",
-					"refName": "ctgA",
 					"type": "five_prime_UTR",
 					"start": 1300,
 					"end": 1500,
@@ -5980,7 +5762,6 @@
 					},
 					"allIds": [],
 					"assemblyName": "changeme",
-					"refName": "ctgA",
 					"type": "five_prime_UTR",
 					"start": 3000,
 					"end": 3300,
@@ -6001,7 +5782,6 @@
 					},
 					"allIds": [],
 					"assemblyName": "changeme",
-					"refName": "ctgA",
 					"type": "CDS",
 					"start": 3301,
 					"end": 3902,
@@ -6023,7 +5803,6 @@
 					},
 					"allIds": [],
 					"assemblyName": "changeme",
-					"refName": "ctgA",
 					"type": "CDS",
 					"start": 5000,
 					"end": 5500,
@@ -6045,7 +5824,6 @@
 					},
 					"allIds": [],
 					"assemblyName": "changeme",
-					"refName": "ctgA",
 					"type": "CDS",
 					"start": 7000,
 					"end": 7600,
@@ -6067,7 +5845,6 @@
 					},
 					"allIds": [],
 					"assemblyName": "changeme",
-					"refName": "ctgA",
 					"type": "three_prime_UTR",
 					"start": 7601,
 					"end": 9000,
@@ -6101,7 +5878,6 @@
 		"63124b59f3968c7457745935"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "EST_match",
 	"start": 1150,
 	"end": 7200,
@@ -6128,7 +5904,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "match_part",
 			"start": 1150,
 			"end": 1500,
@@ -6155,7 +5930,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "match_part",
 			"start": 5000,
 			"end": 5500,
@@ -6182,7 +5956,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "match_part",
 			"start": 7000,
 			"end": 7200,
@@ -6219,7 +5992,6 @@
 		"63124b59f3968c7457745938"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "EST_match",
 	"start": 5410,
 	"end": 7503,
@@ -6246,7 +6018,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "match_part",
 			"start": 5410,
 			"end": 5500,
@@ -6273,7 +6044,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "match_part",
 			"start": 7000,
 			"end": 7503,
@@ -6308,7 +6078,6 @@
 		"63124b59f3968c7457745939"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "EST_match",
 	"start": 7500,
 	"end": 8000,
@@ -6341,7 +6110,6 @@
 		"63124b59f3968c745774593a"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "EST_match",
 	"start": 8000,
 	"end": 9000,
@@ -6377,7 +6145,6 @@
 		"63124b59f3968c745774593e"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "mRNA",
 	"start": 13000,
 	"end": 17200,
@@ -6405,7 +6172,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "CDS",
 			"start": 13500,
 			"end": 13800,
@@ -6427,7 +6193,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "CDS",
 			"start": 15000,
 			"end": 15500,
@@ -6449,7 +6214,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "CDS",
 			"start": 16500,
 			"end": 17000,
@@ -6484,7 +6248,6 @@
 		"63124b59f3968c7457745944"
 	],
 	"assemblyName": "changeme",
-	"refName": "ctgA",
 	"type": "mRNA",
 	"start": 17400,
 	"end": 23000,
@@ -6511,7 +6274,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "UTR",
 			"start": 17400,
 			"end": 17999,
@@ -6532,7 +6294,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "CDS",
 			"start": 18000,
 			"end": 18800,
@@ -6554,7 +6315,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "CDS",
 			"start": 19000,
 			"end": 19500,
@@ -6576,7 +6336,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "CDS",
 			"start": 21000,
 			"end": 21200,
@@ -6598,7 +6357,6 @@
 			},
 			"allIds": [],
 			"assemblyName": "changeme",
-			"refName": "ctgA",
 			"type": "UTR",
 			"start": 21201,
 			"end": 23000,
