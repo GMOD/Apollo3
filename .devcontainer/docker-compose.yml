@@ -31,7 +31,7 @@ services:
     restart: unless-stopped
     volumes:
       - mongodb-data:/data/db
-    command: --replSet rs0
+    command: --replSet rs0 --setParameter "transactionLifetimeLimitSeconds=300"
     # Uncomment to change startup options
     # environment:
     #  MONGO_INITDB_ROOT_USERNAME: root
