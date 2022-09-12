@@ -10,15 +10,7 @@ import {
 import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel, isAbstractMenuManager } from '@jbrowse/core/util'
-import {
-  AddAssemblyFromFileChange,
-  AddFeaturesFromFileChange,
-  CopyFeatureChange,
-  LocationEndChange,
-  LocationStartChange,
-  TypeChange,
-  changeRegistry,
-} from 'apollo-shared'
+import { changeRegistry, changes } from 'apollo-shared'
 
 import { version } from '../package.json'
 import {
@@ -45,18 +37,9 @@ import {
 } from './LinearApolloDisplay'
 import { makeDisplayComponent } from './makeDisplayComponent'
 
-changeRegistry.registerChange(
-  'AddAssemblyFromFileChange',
-  AddAssemblyFromFileChange,
-)
-changeRegistry.registerChange(
-  'AddFeaturesFromFileChange',
-  AddFeaturesFromFileChange,
-)
-changeRegistry.registerChange('CopyFeatureChange', CopyFeatureChange)
-changeRegistry.registerChange('LocationEndChange', LocationEndChange)
-changeRegistry.registerChange('LocationStartChange', LocationStartChange)
-changeRegistry.registerChange('TypeChange', TypeChange)
+Object.entries(changes).forEach(([changeName, change]) => {
+  changeRegistry.registerChange(changeName, change)
+})
 
 export default class ApolloPlugin extends Plugin {
   name = 'ApolloPlugin'

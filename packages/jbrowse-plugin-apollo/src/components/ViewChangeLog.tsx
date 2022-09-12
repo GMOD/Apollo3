@@ -18,6 +18,7 @@ import {
   GridRowsProp,
   GridToolbar,
 } from '@mui/x-data-grid'
+import { changeRegistry } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
@@ -73,13 +74,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
       width: 200,
       type: 'singleSelect',
       // TODO: Get these from change manager once it's on the session
-      valueOptions: [
-        'AddAssemblyFromFileChange',
-        'AddFeaturesFromFileChange',
-        'LocationEndChange',
-        'LocationStartChange',
-        'TypeChange',
-      ],
+      valueOptions: Array.from(changeRegistry.changes.keys()),
     },
     {
       field: 'changes',
