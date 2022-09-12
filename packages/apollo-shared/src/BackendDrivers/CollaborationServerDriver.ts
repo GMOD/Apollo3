@@ -47,7 +47,7 @@ export class CollaborationServerDriver extends BackendDriver {
 
   /**
    * Call backend endpoint to get features by criteria
-   * @param region -  Searchable region containing refName, start and end
+   * @param region -  Searchable region containing refSeq, start and end
    * @returns
    */
   async getFeatures(region: Region) {
@@ -65,7 +65,7 @@ export class CollaborationServerDriver extends BackendDriver {
     }
     const feature = features.find((f) => f.refName === refName)
     if (!feature) {
-      throw new Error(`Could not find refName "${refName}"`)
+      throw new Error(`Could not find refSeq "${refName}"`)
     }
     const baseURL = this.getBaseURL(assemblyName)
     const url = new URL('features/getFeatures', baseURL)
@@ -76,7 +76,7 @@ export class CollaborationServerDriver extends BackendDriver {
     })
     url.search = searchParams.toString()
     const uri = url.toString()
-    // console.log(`In CollaborationServerDriver: Query parameters: refName=${refName}, start=${start}, end=${end}`)
+    // console.log(`In CollaborationServerDriver: Query parameters: refSeq=${refSeq}, start=${start}, end=${end}`)
 
     const response = await this.fetch(assemblyName, uri)
     if (!response.ok) {
@@ -92,17 +92,7 @@ export class CollaborationServerDriver extends BackendDriver {
         }`,
       )
     }
-    const data = (await response.json()) as AnnotationFeatureSnapshot[]
-    // const backendResult = JSON.stringify(data)
-    // console.log(
-    //   `In CollaborationServerDriver: Backend endpoint returned=${backendResult}`,
-    // )
-    const allFeatures: Record<string, AnnotationFeatureSnapshot> = {}
-    data.forEach((f) => {
-      allFeatures[f._id] = f
-    })
-
-    return { [refName]: allFeatures }
+    return response.json() as Promise<AnnotationFeatureSnapshot[]>
   }
 
   async getSequence(region: Region) {
@@ -110,8 +100,8 @@ export class CollaborationServerDriver extends BackendDriver {
     return ''
   }
 
-  async getRefNames() {
-    throw new Error('getRefNames not yet implemented')
+  async getRefSeqs() {
+    throw new Error('getRefSeqs not yet implemented')
     return []
   }
 

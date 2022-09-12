@@ -53,7 +53,7 @@ export function AddFeature({
       assemblyId: sourceAssemblyId,
       addedFeature: {
         _id: new ObjectID().toHexString(),
-        refName: sourceFeature.refName,
+        refSeq: sourceFeature.refSeq,
         start: Number(start),
         end: Number(end),
         type,

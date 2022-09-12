@@ -98,12 +98,12 @@ export class CopyFeatureChange extends FeatureChange {
       const featureIds: string[] = []
 
       const refSeqDoc = await refSeqModel
-        .findOne({ assembly: targetAssemblyId, name: newFeature.refName })
+        .findById(newFeature.refSeq)
         .session(session)
         .exec()
       if (!refSeqDoc) {
         throw new Error(
-          `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${topLevelFeature.refName}" not found`,
+          `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${topLevelFeature.refSeq}" not found`,
         )
       }
 

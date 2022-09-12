@@ -4,10 +4,14 @@ import { AbstractSessionModel, AppRootModel, Region } from '@jbrowse/core/util'
 import {
   AnnotationFeature,
   AnnotationFeatureI,
-  FeaturesForRefName,
+  AnnotationFeatureSnapshot,
+  ApolloAssembly,
+  ApolloRefSeq,
 } from 'apollo-mst'
 import {
+  BackendDriver,
   ChangeManager,
+  ClientDataStore as ClientDataStoreType,
   CollaborationServerDriver,
   CoreValidation,
   ValidationSet,
@@ -16,6 +20,7 @@ import {
   IAnyModelType,
   Instance,
   flow,
+  getParentOfType,
   getRoot,
   resolveIdentifier,
   types,
@@ -24,12 +29,12 @@ import {
 import { ApolloInternetAccountModel } from './ApolloInternetAccount/model'
 
 export interface ApolloSession extends AbstractSessionModel {
-  apolloDataStore: any
+  apolloDataStore: ClientDataStoreType
   apolloSelectedFeature?: AnnotationFeatureI
   apolloSetSelectedFeature(feature?: AnnotationFeatureI): void
 }
 
-interface ApolloAssembly {
+interface ApolloAssemblyResponse {
   _id: string
   name: string
   displayName?: string
@@ -37,7 +42,7 @@ interface ApolloAssembly {
   aliases?: string[]
 }
 
-interface ApolloRefSeq {
+interface ApolloRefSeqResponse {
   _id: string
   name: string
   description?: string
@@ -48,7 +53,7 @@ interface ApolloRefSeq {
 const ClientDataStore = types
   .model('ClientDataStore', {
     typeName: types.optional(types.literal('Client'), 'Client'),
-    assemblies: types.map(FeaturesForRefName),
+    assemblies: types.map(ApolloAssembly),
     backendDriverType: types.optional(
       types.enumeration('backendDriverType', ['CollaborationServerDriver']),
       'CollaborationServerDriver',
@@ -63,6 +68,71 @@ const ClientDataStore = types
       return resolveIdentifier(AnnotationFeature, self.assemblies, featureId)
     },
   }))
+  .actions((self) => ({
+    loadFeatures: flow(function* loadFeatures(regions: Region[]) {
+      for (const region of regions) {
+        const features = (yield (
+          self as unknown as { backendDriver: BackendDriver }
+        ).backendDriver.getFeatures(region)) as AnnotationFeatureSnapshot[]
+        if (!features.length) {
+          return
+        }
+        const { assemblyName, refName } = region
+        let assembly = self.assemblies.get(assemblyName)
+        if (!assembly) {
+          assembly = self.assemblies.put({ _id: assemblyName, refSeqs: {} })
+        }
+        const [firstFeature] = features
+        let ref = assembly.refSeqs.get(firstFeature.refSeq)
+        if (!ref) {
+          ref = assembly.refSeqs.put({
+            _id: firstFeature.refSeq,
+            name: refName,
+            features: {},
+          })
+        }
+        const newFeatures: Record<string, AnnotationFeatureSnapshot> = {}
+        features.forEach((feature) => {
+          newFeatures[feature._id] = feature
+        })
+        ref.features.merge(newFeatures)
+      }
+    }),
+    addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot) {
+      const assembly = self.assemblies.get(assemblyId)
+      if (!assembly) {
+        throw new Error(
+          `Could not find assembly "${assemblyId}" to add feature "${feature._id}"`,
+        )
+      }
+      const ref = assembly.refSeqs.get(feature.refSeq)
+      if (!ref) {
+        throw new Error(
+          `Could not find refSeq "${feature.refSeq}" to add feature "${feature._id}"`,
+        )
+      }
+      ref.features.put(feature)
+    },
+    deleteFeature(featureId: string) {
+      const feature = self.getFeature(featureId)
+      if (!feature) {
+        throw new Error(`Could not find feature "${featureId}" to delete`)
+      }
+      const { parent } = feature
+      if (parent) {
+        parent.deleteChild(featureId)
+      } else {
+        const refSeq = getParentOfType(feature, ApolloRefSeq)
+        refSeq.deleteFeature(feature._id)
+      }
+    },
+  }))
+  .volatile((self) => ({
+    changeManager: new ChangeManager(
+      self as unknown as ClientDataStoreType,
+      new ValidationSet([new CoreValidation()]),
+    ),
+  }))
   .volatile((self) => {
     if (self.backendDriverType !== 'CollaborationServerDriver') {
       throw new Error(`Unknown backend driver type "${self.backendDriverType}"`)
@@ -71,37 +141,6 @@ const ClientDataStore = types
       backendDriver: new CollaborationServerDriver(self),
     }
   })
-  .volatile((self) => ({
-    changeManager: new ChangeManager(
-      self,
-      new ValidationSet([new CoreValidation()]),
-    ),
-  }))
-  .actions((self) => ({
-    loadFeatures: flow(function* loadFeatures(regions: Region[]) {
-      for (const region of regions) {
-        const { assemblyName, refName } = region
-        let assembly = self.assemblies.get(assemblyName)
-        if (!assembly) {
-          self.assemblies.set(assemblyName, {})
-          assembly = self.assemblies.get(assemblyName)
-          if (!assembly) {
-            throw new Error(`Adding assembly "${assemblyName}" failed`)
-          }
-        }
-        let ref = assembly.get(refName)
-        if (!ref) {
-          assembly.set(refName, {})
-          ref = assembly.get(refName)
-          if (!ref) {
-            throw new Error(`Adding assembly "${refName}" failed`)
-          }
-        }
-        const features = yield self.backendDriver.getFeatures(region)
-        ref.merge(features[refName])
-      }
-    }),
-  }))
 
 export function extendSession(sessionModel: IAnyModelType) {
   const aborter = new AbortController()
@@ -172,7 +211,7 @@ export function extendSession(sessionModel: IAnyModelType) {
           let fetchedAssemblies
           try {
             fetchedAssemblies =
-              (yield response.json()) as unknown as ApolloAssembly[]
+              (yield response.json()) as ApolloAssemblyResponse[]
           } catch (e) {
             console.error(e)
             continue
@@ -209,12 +248,17 @@ export function extendSession(sessionModel: IAnyModelType) {
                 })${errorMessage ? ` (${errorMessage})` : ''}`,
               )
             }
-            const f = (yield response2.json()) as unknown as ApolloRefSeq[]
+            const f = (yield response2.json()) as ApolloRefSeqResponse[]
             const features = f.map((contig) => ({
               refName: contig.name,
               uniqueId: contig._id,
               start: 0,
               end: contig.length,
+            }))
+            const refNameAliasesFeatures = f.map((contig) => ({
+              refName: contig.name,
+              aliases: [contig._id],
+              uniqueId: `alias-${contig._id}`,
             }))
             const assemblyConfig = {
               name: assembly._id,
@@ -227,6 +271,12 @@ export function extendSession(sessionModel: IAnyModelType) {
                 metadata: {
                   internetAccountConfigId:
                     internetAccount.configuration.internetAccountId,
+                },
+              },
+              refNameAliases: {
+                adapter: {
+                  type: 'FromConfigAdapter',
+                  features: refNameAliasesFeatures,
                 },
               },
             }

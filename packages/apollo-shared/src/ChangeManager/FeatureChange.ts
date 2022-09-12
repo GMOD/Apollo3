@@ -197,21 +197,30 @@ export abstract class FeatureChange extends Change {
     }
   }
 
+  private refSeqCache = new Map<string, RefSeqDocument>()
+
   async addFeatureIntoDb(gff3Feature: GFF3Feature, backend: ServerDataStore) {
     const { featureModel, refSeqModel, session } = backend
     const { assemblyId } = this
 
     for (const featureLine of gff3Feature) {
-      const refName = featureLine.seq_id
+      const { seq_id: refName } = featureLine
       if (!refName) {
         throw new Error(
           `Valid seq_id not found in feature ${JSON.stringify(featureLine)}`,
         )
       }
-      const refSeqDoc = await refSeqModel
-        .findOne({ assembly: assemblyId, name: refName })
-        .session(session)
-        .exec()
+      let refSeqDoc = this.refSeqCache.get(refName)
+      if (!refSeqDoc) {
+        refSeqDoc =
+          (await refSeqModel
+            .findOne({ assembly: assemblyId, name: refName })
+            .session(session)
+            .exec()) || undefined
+        if (refSeqDoc) {
+          this.refSeqCache.set(refName, refSeqDoc)
+        }
+      }
       if (!refSeqDoc) {
         throw new Error(
           `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refName}" not found`,
@@ -272,20 +281,27 @@ export abstract class FeatureChange extends Change {
         children[newChild._id] = newChild
       })
     }
+    const refSeq =
+      typeof feature.refSeq === 'string'
+        ? feature.refSeq
+        : (
+            feature.refSeq as unknown as import('mongoose').Types.ObjectId
+          ).toHexString()
 
-    return { ...feature, children: feature.children && children, _id: newId }
+    return {
+      ...feature,
+      refSeq,
+      children: feature.children && children,
+      _id: newId,
+    }
   }
-}
-
-interface FeatureWithRefSeq extends AnnotationFeatureSnapshot {
-  refSeq: string
 }
 
 function createFeature(
   gff3Feature: GFF3Feature,
   refSeq: string,
   featureIds?: string[],
-): FeatureWithRefSeq {
+): AnnotationFeatureSnapshot {
   const [firstFeature] = gff3Feature
   const {
     seq_id: refName,
@@ -319,10 +335,9 @@ function createFeature(
       `feature does not have end: ${JSON.stringify(firstFeature)}`,
     )
   }
-  const feature: FeatureWithRefSeq = {
+  const feature: AnnotationFeatureSnapshot = {
     _id: new ObjectID().toHexString(),
     refSeq,
-    refName,
     type,
     start,
     end,

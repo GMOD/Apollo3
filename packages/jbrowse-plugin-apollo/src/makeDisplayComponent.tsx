@@ -38,7 +38,6 @@ export function makeDisplayComponent(pluginManager: PluginManager) {
     if (!selectedFeature) {
       detailsHeight = 0
     }
-    console.log({ detailsHeight })
     const featureAreaHeight = height - detailsHeight
     return (
       <div style={{ height: model.height }}>

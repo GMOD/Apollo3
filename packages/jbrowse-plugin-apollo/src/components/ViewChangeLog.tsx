@@ -49,7 +49,6 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
   >([])
   const [assemblyId, setAssemblyId] = useState<string>()
   const [displayGridData, setDisplayGridData] = useState<GridRowsProp[]>([])
-  console.log(Array.from(changeRegistry.changes.keys()))
 
   const gridColumns: GridColumns = [
     {

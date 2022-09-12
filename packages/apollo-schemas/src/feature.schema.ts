@@ -8,7 +8,7 @@ export type FeatureDocument = HydratedDocument<Feature>
 
 @Schema()
 export class Feature
-  implements Omit<AnnotationFeatureSnapshot, '_id' | 'children'>
+  implements Omit<AnnotationFeatureSnapshot, '_id' | 'children' | 'refSeq'>
 {
   // Don't make this a @Prop since _id is already on a MongoDB document
   _id: Types.ObjectId
@@ -23,9 +23,6 @@ export class Feature
 
   @Prop({ type: [String], required: true, index: true })
   allIds: string[]
-
-  @Prop({ required: true })
-  refName: string
 
   @Prop({ required: true })
   type: string

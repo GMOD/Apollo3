@@ -1,15 +1,9 @@
 import { ReadStream, createReadStream } from 'fs'
-import { unlink } from 'fs/promises'
 import { join } from 'path'
 import { Gunzip, createGunzip } from 'zlib'
 
 import gff from '@gmod/gff'
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
   Assembly,

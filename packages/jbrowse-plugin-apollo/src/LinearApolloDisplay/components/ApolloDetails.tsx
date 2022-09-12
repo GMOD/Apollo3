@@ -17,7 +17,6 @@ import {
   TypeChange,
 } from 'apollo-shared'
 import { observer } from 'mobx-react'
-import { getParent } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
 import { LinearApolloDisplay } from '../stateModel'
@@ -33,7 +32,7 @@ const featureColums: GridColumns = [
       <AutocompleteInputCell {...params} />
     ),
   },
-  { field: 'refName', headerName: 'Ref Seq', width: 150 },
+  { field: 'refSeq', headerName: 'Ref Seq', width: 150 },
   { field: 'start', headerName: 'Start', type: 'number', editable: true },
   { field: 'end', headerName: 'End', type: 'number', editable: true },
 ]
@@ -101,7 +100,6 @@ export const ApolloDetails = observer(
     const {
       selectedFeature,
       setSelectedFeature,
-      getAssemblyId,
       changeManager,
       detailsHeight,
     } = model
@@ -109,16 +107,15 @@ export const ApolloDetails = observer(
       return <div>click on a feature to see details</div>
     }
     // const sequenceTypes = changeManager?.validations.getPossibleValues('type')
-    const { _id: id, type, refName, start, end } = selectedFeature
+    const { _id: id, type, refSeq, start, end } = selectedFeature
     const assemblyId = ''
-    // const assemblyId = getAssemblyId(selectedFeature)
-    const selectedFeatureRows = [{ id, type, refName, start, end, model }]
+    const selectedFeatureRows = [{ id, type, refSeq, start, end, model }]
     function addChildFeatures(f: typeof selectedFeature) {
       f?.children?.forEach((child: AnnotationFeatureI, childId: string) => {
         selectedFeatureRows.push({
           id: child._id,
           type: child.type,
-          refName: child.refName,
+          refSeq: child.refSeq,
           start: child.start,
           end: child.end,
           model,

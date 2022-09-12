@@ -101,12 +101,6 @@ export default class ApolloPlugin extends Plugin {
   configure(pluginManager: PluginManager) {
     if (isAbstractMenuManager(pluginManager.rootModel)) {
       pluginManager.rootModel.insertMenu('Apollo', -1)
-      // pluginManager.rootModel.appendToMenu('Apollo', {
-      //   label: 'Add Apollo View',
-      //   onClick: (session: AbstractSessionModel) => {
-      //     session.addView('ApolloView', {})
-      //   },
-      // })
       pluginManager.rootModel.appendToMenu('Apollo', {
         label: 'Add Assembly',
         onClick: (session: AbstractSessionModel) => {

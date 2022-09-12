@@ -1,10 +1,11 @@
 import { ReadStream } from 'fs'
 
+import { Region } from '@jbrowse/core/util'
 import { AppRootModel } from '@jbrowse/core/util'
 import {
   AnnotationFeatureI,
-  FeaturesForRefNameI,
-  FeaturesForRefNameSnapshot,
+  AnnotationFeatureSnapshot,
+  ApolloAssemblyI,
 } from 'apollo-mst'
 import {
   AssemblyDocument,
@@ -13,19 +14,19 @@ import {
   RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
-import { IAnyStateTreeNode } from 'mobx-state-tree'
 
-import { BackendDriver } from '../BackendDrivers/BackendDriver'
+import { ChangeManager } from './ChangeManager'
 import { changeRegistry } from './ChangeTypes'
 
-export interface ClientDataStore extends IAnyStateTreeNode {
+export interface ClientDataStore {
   typeName: 'Client'
-  // assemblies: FeaturesForRefNameI
-  // load(features: FeaturesForRefNameSnapshot): void
-  // backendDriver?: BackendDriver
-  // internetAccountConfigId?: string
+  assemblies: Map<string, ApolloAssemblyI>
+  changeManager: ChangeManager
   internetAccounts: AppRootModel['internetAccounts']
-  // getFeature(featureId: string): AnnotationFeatureI | undefined
+  loadFeatures(regions: Region[]): void
+  getFeature(featureId: string): AnnotationFeatureI | undefined
+  addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot): void
+  deleteFeature(featureId: string): void
 }
 export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'
