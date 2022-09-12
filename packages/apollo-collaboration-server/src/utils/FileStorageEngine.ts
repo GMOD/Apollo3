@@ -47,14 +47,16 @@ export class FileStorageEngine implements StorageEngine {
       hash.update(chunk, 'utf8')
     }
     gz.end()
-    this.logger.debug(`Compressed file: ${tempFullFileName}`)
-    const fileChecksum = hash.digest('hex')
-    this.logger.debug(`Uploaded file checksum: ${fileChecksum}`)
-    const finalFullFileName = join(FILE_UPLOAD_FOLDER, fileChecksum)
-    this.logger.debug(`FinalFullFileName: ${finalFullFileName}`)
-    await rename(tempFullFileName, finalFullFileName)
+    fileWriteStream.on('close', async () => {
+      this.logger.debug(`Compressed file: ${tempFullFileName}`)
+      const fileChecksum = hash.digest('hex')
+      this.logger.debug(`Uploaded file checksum: ${fileChecksum}`)
+      const finalFullFileName = join(FILE_UPLOAD_FOLDER, fileChecksum)
+      this.logger.debug(`FinalFullFileName: ${finalFullFileName}`)
+      await rename(tempFullFileName, finalFullFileName)
 
-    cb(null, { ...file, checksum: fileChecksum })
+      cb(null, { ...file, checksum: fileChecksum })
+    })
   }
 
   _removeFile(
