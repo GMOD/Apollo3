@@ -13,7 +13,8 @@
     "start:shared": "yarn workspace apollo-shared run start",
     "start:server": "yarn workspace apollo-collaboration-server run start",
     "start:plugin": "yarn workspace jbrowse-plugin-apollo run start",
-    "start": "npm-run-all --print-label --parallel start:shared start:server start:plugin"
+    "start": "npm-run-all --print-label --parallel start:shared start:server start:plugin",
+    "test": "yarn workspace jbrowse-plugin-apollo run test"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.14.7",

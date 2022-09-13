@@ -19,3 +19,5 @@ jobs:
           install-command: yarn --immutable
       - name: Lint codebase
         run: yarn eslint --report-unused-disable-directives --max-warnings 0 --ext .js,.ts,.jsx,.tsx .
+      - name: Test codebase
+        run: yarn test
