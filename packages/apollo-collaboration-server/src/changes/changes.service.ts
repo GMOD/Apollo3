@@ -29,6 +29,7 @@ import {
 import { FilterQuery, Model } from 'mongoose'
 
 import { FilesService } from '../files/files.service'
+import { MessagesGateway } from '../messages/messages.gateway'
 import { CreateChangeDto } from './dto/create-change.dto'
 import { FindChangeDto } from './dto/find-change.dto'
 
@@ -47,6 +48,7 @@ export class ChangesService {
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
     private readonly filesService: FilesService,
+    private readonly messagesGateway: MessagesGateway,
   ) {
     Object.entries(changes).forEach(([changeName, change]) => {
       changeRegistry.registerChange(changeName, change)
@@ -59,7 +61,7 @@ export class ChangesService {
     new ParentChildValidation(),
   ])
 
-  async create(serializedChange: SerializedChange) {
+  async create(serializedChange: SerializedChange, userName: string) {
     const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
     const change = new ChangeType(serializedChange, { logger: this.logger })
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
@@ -75,6 +77,7 @@ export class ChangesService {
       )
     }
     let changeDoc: ChangeDocument | undefined
+    let ses
     await this.featureModel.db.transaction(async (session) => {
       try {
         await change.apply({
@@ -90,7 +93,7 @@ export class ChangesService {
       } catch (e) {
         throw new UnprocessableEntityException(String(e))
       }
-
+      ses = session
       // Add change information to change -collection
       this.logger.debug(`ChangeIds: ${change.changedIds}`)
       this.logger.debug(`AssemblyId: ${change.assemblyId}`)
@@ -121,8 +124,48 @@ export class ChangesService {
       }
     })
     this.logger.debug(`ChangeDocId: ${changeDoc?._id}`)
+    // Broadcast
+    const broadcastChanges: Array<string> = [
+      'CopyFeatureChange',
+      'DeleteFeatureChange',
+      'LocationEndChange',
+      'LocationStartChange',
+    ]
+    if (broadcastChanges.includes(change.typeName as unknown as string)) {
+      // Get refName based on featureId
+      const tmpObject: any = {
+        ...serializedChange,
+      }
+      if (tmpObject.hasOwnProperty('featureId')) {
+        const { featureId } = tmpObject
+        this.logger.debug(`FeatureId: ${featureId}`)
+
+        // Search correct feature
+        const topLevelFeature = await this.featureModel
+          .findOne({ allIds: featureId })
+          .exec()
+        if (!topLevelFeature) {
+          const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
+          this.logger.error(errMsg)
+          throw new Error(errMsg)
+        }
+        this.logger.debug?.(`RefName: ${topLevelFeature.refSeq}`)
+        const msg = {
+          changeInfo: serializedChange,
+          refName: topLevelFeature.refSeq,
+          userName: userName
+        }
+        // const channel = change.assemblyId
+        const channel = change.assemblyId + '-' + topLevelFeature.refSeq
+        this.logger.debug(`Broadcasting to channel '${channel}'`)
+        await this.messagesGateway.create(channel, msg)
+        // await this.messagesGateway.create(change.assemblyId, msg)
+      }
+    }
+
     return changeDoc
   }
+
 
   async findAll(changeFilter: FindChangeDto) {
     const queryCond: FilterQuery<ChangeDocument> = { ...changeFilter }

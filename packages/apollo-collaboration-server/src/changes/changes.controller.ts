@@ -5,6 +5,7 @@ import {
   Logger,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common'
 import { SerializedChange } from 'apollo-shared'
@@ -25,13 +26,14 @@ export class ChangesController {
    */
   @UseGuards(JwtAuthGuard)
   @Post()
-  async create(@Body() serializedChange: SerializedChange) {
+  async create(@Req() req: any, @Body() serializedChange: SerializedChange) {
+    this.logger.debug(`Change done by '${req.user.username}'`)
     this.logger.debug(
       `Requested type: ${
         serializedChange.typeName
       }, the whole change: ${JSON.stringify(serializedChange)}`,
     )
-    return this.changesService.create(serializedChange)
+    return this.changesService.create(serializedChange, req.user.username)
   }
 
   @UseGuards(JwtAuthGuard)

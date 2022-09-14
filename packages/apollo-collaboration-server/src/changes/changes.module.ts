@@ -6,6 +6,7 @@ import idValidator from 'mongoose-id-validator'
 import { AssembliesModule } from '../assemblies/assemblies.module'
 import { FeaturesModule } from '../features/features.module'
 import { FilesModule } from '../files/files.module'
+import { MessagesModule } from '../messages/messages.module'
 import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
 import { ChangesController } from './changes.controller'
@@ -30,6 +31,7 @@ import { ChangesService } from './changes.service'
     RefSeqChunksModule,
     FeaturesModule,
     FilesModule,
+    MessagesModule,
   ],
 })
 export class ChangesModule {}

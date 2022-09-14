@@ -5,6 +5,7 @@ import { Change, LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import { getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useRef, useState } from 'react'
+import { io } from 'socket.io-client'
 
 import { AddFeature } from '../../components/AddFeature'
 import { CopyFeature } from '../../components/CopyFeature'
@@ -63,6 +64,38 @@ function ApolloRendering(props: ApolloRenderingProps) {
     // @ts-ignore
     Array.from(a.values()).map((f) => getSnapshot(f)),
   )
+  useEffect(() => {
+    const tokenParts = sessionStorage
+      .getItem('apolloInternetAccount-token')!
+      .split('.')
+    const encodedPayload = tokenParts[1]
+    const rawPayload = window.atob(encodedPayload)
+    const clientUser = JSON.parse(rawPayload)
+
+    const socket = io('http://localhost:3999')
+    const { notify } = session
+    const assName = region.assemblyName
+    if (assName) {
+      const [firstRef] = regions
+      const channel = `${assName}-${firstRef.refName}`
+      console.log(`User '${clientUser.username}' starts listening '${channel}'`)
+      socket.removeAllListeners()
+      socket.off()
+      socket.on(channel, (message) => {
+        console.log(`Change : ${JSON.stringify(message.changeInfo)}`)
+        if (message.userName !== clientUser.username) {
+          changeManager?.submitToClientOnly(message.changeInfo)
+          notify(
+            `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
+              message.changeInfo,
+            )}`,
+            'success',
+          )
+        }
+      })
+    }
+  }, [region.refName])
+
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) {

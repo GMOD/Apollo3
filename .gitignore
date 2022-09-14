@@ -116,4 +116,5 @@ dist
 .DS_Store
 
 test/data/uploaded
+test/uploaded
 test/data/downloaded

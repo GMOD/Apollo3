@@ -6,6 +6,8 @@ import {
   ValidationSet,
 } from '../Validations/ValidationSet'
 import { Change, ClientDataStore } from './Change'
+import { LocationEndChange } from './LocationEndChange'
+import { LocationStartChange } from './LocationStartChange'
 
 export class ChangeManager {
   constructor(
@@ -74,6 +76,45 @@ export class ChangeManager {
     }
   }
 
+  async submitToClientOnly(change: Change) {
+    let ch
+
+    const tmpObject: any = {
+      ...change,
+    }
+    const { featureId } = tmpObject
+
+    switch (change.typeName) {
+      case 'LocationEndChange':
+        const { oldEnd, newEnd } = tmpObject
+        ch = new LocationEndChange({
+          typeName: 'LocationEndChange',
+          changedIds: change.changedIds,
+          featureId,
+          oldEnd,
+          newEnd,
+          assemblyId: change.assemblyId,
+        })
+        break
+      case 'LocationStartChange':
+        const { oldStart, newStart } = tmpObject
+        ch = new LocationStartChange({
+          typeName: 'LocationStartChange',
+          changedIds: change.changedIds,
+          featureId,
+          oldStart,
+          newStart,
+          assemblyId: change.assemblyId,
+        })
+        break
+    }
+
+    // submit to client data store
+    await ch?.apply(this.dataStore)
+    // Push the change into array
+    this.recentChanges.push(change)
+  }
+  
   async revert(change: Change, submitToBackend = true) {
     const inverseChange = change.getInverse()
     return this.submit(inverseChange, submitToBackend, false)
