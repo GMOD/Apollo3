@@ -132,6 +132,7 @@ export class ChangesService {
       'LocationStartChange',
     ]
     if (broadcastChanges.includes(change.typeName as unknown as string)) {
+      let channel
       // Get refName based on featureId
       const tmpObject: any = {
         ...serializedChange,
@@ -153,19 +154,23 @@ export class ChangesService {
         const msg = {
           changeInfo: serializedChange,
           refName: topLevelFeature.refSeq,
-          userName: userName
+          userName,
         }
-        // const channel = change.assemblyId
-        const channel = change.assemblyId + '-' + topLevelFeature.refSeq
+
+        // In case of 'CopyFeatureChange' assemlblyId in channel is the target assemblyId
+        if (change.typeName === 'CopyFeatureChange') {
+          const { targetAssemblyId } = tmpObject
+          channel = `${targetAssemblyId}-${topLevelFeature.refSeq}`
+        } else {
+          channel = `${change.assemblyId}-${topLevelFeature.refSeq}`
+        }
         this.logger.debug(`Broadcasting to channel '${channel}'`)
         await this.messagesGateway.create(channel, msg)
-        // await this.messagesGateway.create(change.assemblyId, msg)
       }
     }
 
     return changeDoc
   }
-
 
   async findAll(changeFilter: FindChangeDto) {
     const queryCond: FilterQuery<ChangeDocument> = { ...changeFilter }

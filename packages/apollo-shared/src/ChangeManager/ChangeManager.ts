@@ -6,6 +6,8 @@ import {
   ValidationSet,
 } from '../Validations/ValidationSet'
 import { Change, ClientDataStore } from './Change'
+import { CopyFeatureChange } from './CopyFeatureChange'
+import { DeleteFeatureChange } from './DeleteFeatureChange'
 import { LocationEndChange } from './LocationEndChange'
 import { LocationStartChange } from './LocationStartChange'
 
@@ -107,6 +109,26 @@ export class ChangeManager {
           assemblyId: change.assemblyId,
         })
         break
+      case 'DeleteFeatureChange':
+        const { parentFeatureId } = tmpObject
+        ch = new DeleteFeatureChange({
+          typeName: 'DeleteFeatureChange',
+          changedIds: change.changedIds,
+          deletedFeature: featureId,
+          parentFeatureId,
+          assemblyId: change.assemblyId,
+        })
+        break
+      case 'CopyFeatureChange':
+        const { targetAssemblyId } = tmpObject
+        ch = new CopyFeatureChange({
+          typeName: 'CopyFeatureChange',
+          changedIds: change.changedIds,
+          targetAssemblyId,
+          featureId,
+          assemblyId: change.assemblyId,
+        })
+        break
     }
 
     // submit to client data store
@@ -114,7 +136,7 @@ export class ChangeManager {
     // Push the change into array
     this.recentChanges.push(change)
   }
-  
+
   async revert(change: Change, submitToBackend = true) {
     const inverseChange = change.getInverse()
     return this.submit(inverseChange, submitToBackend, false)
