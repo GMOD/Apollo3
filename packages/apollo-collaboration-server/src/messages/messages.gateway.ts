@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import {
-  ConnectedSocket,
-  MessageBody,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets'
-import { Server, Socket } from 'socket.io'
+import { Server } from 'socket.io'
 
 import { CreateMessageDto } from './dto/create-message.dto'
 import { MessagesService } from './messages.service'

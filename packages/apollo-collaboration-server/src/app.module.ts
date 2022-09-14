@@ -8,10 +8,10 @@ import { AuthenticationModule } from './authentication/authentication.module'
 import { ChangesModule } from './changes/changes.module'
 import { FeaturesModule } from './features/features.module'
 import { FilesModule } from './files/files.module'
+import { MessagesModule } from './messages/messages.module'
 import { RefSeqChunksModule } from './refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from './refSeqs/refSeqs.module'
 import { RolesGuard } from './utils/role/role.guards'
-import { MessagesModule } from './messages/messages.module';
 
 const nodeEnv = process.env.NODE_ENV || 'production'
 

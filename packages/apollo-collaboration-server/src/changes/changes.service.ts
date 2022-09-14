@@ -77,7 +77,6 @@ export class ChangesService {
       )
     }
     let changeDoc: ChangeDocument | undefined
-    let ses
     await this.featureModel.db.transaction(async (session) => {
       try {
         await change.apply({
@@ -93,7 +92,6 @@ export class ChangesService {
       } catch (e) {
         throw new UnprocessableEntityException(String(e))
       }
-      ses = session
       // Add change information to change -collection
       this.logger.debug(`ChangeIds: ${change.changedIds}`)
       this.logger.debug(`AssemblyId: ${change.assemblyId}`)
