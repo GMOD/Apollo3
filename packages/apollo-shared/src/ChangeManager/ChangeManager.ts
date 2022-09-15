@@ -5,6 +5,7 @@ import {
   ValidationResultSet,
   ValidationSet,
 } from '../Validations/ValidationSet'
+import { AddFeatureChange } from './AddFeatureChange'
 import { Change, ClientDataStore } from './Change'
 import { CopyFeatureChange } from './CopyFeatureChange'
 import { DeleteFeatureChange } from './DeleteFeatureChange'
@@ -87,6 +88,16 @@ export class ChangeManager {
     const { featureId } = tmpObject
 
     switch (change.typeName) {
+      case 'AddFeatureChange':
+        const { addedFeature } = tmpObject
+        console.log('Added: ', JSON.stringify(addedFeature))
+        ch = new AddFeatureChange({
+          typeName: 'AddFeatureChange',
+          changedIds: change.changedIds,
+          addedFeature,
+          assemblyId: change.assemblyId,
+        })
+        break
       case 'LocationEndChange':
         const { oldEnd, newEnd } = tmpObject
         ch = new LocationEndChange({
@@ -109,7 +120,7 @@ export class ChangeManager {
           assemblyId: change.assemblyId,
         })
         break
-      case 'DeleteFeatureChange':  // THIS DOES NOT WORK IF USER WHO DELETED FEATURE DOES UNDO!! i.e. data is not restored on other clients's UI
+      case 'DeleteFeatureChange':
         const { parentFeatureId, deletedFeature } = tmpObject
         console.log('Parent: ', JSON.stringify(parentFeatureId))
         console.log('Deleted: ', JSON.stringify(deletedFeature))

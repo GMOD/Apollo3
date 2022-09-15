@@ -79,7 +79,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
       const [firstRef] = regions
       const channel = `${assName}-${firstRef.refName}`
       console.log(`User '${clientUser.username}' starts listening '${channel}'`)
-      socket.removeAllListeners()
+      // socket.removeAllListeners('6321a58f9961527f65953135-ctgA')
+      // socket.off('6321a58f9961527f65953135-ctgA')
       socket.off()
       socket.on(channel, (message) => {
         console.log(`Change : ${JSON.stringify(message.changeInfo)}`)

@@ -130,10 +130,13 @@ export class ChangesService {
       }
       if (
         tmpObject.hasOwnProperty('featureId') ||
-        tmpObject.hasOwnProperty('deletedFeature')
+        tmpObject.hasOwnProperty('deletedFeature') ||
+        tmpObject.hasOwnProperty('addedFeature')
       ) {
         if (tmpObject.hasOwnProperty('deletedFeature')) {
           featureId = tmpObject.deletedFeature._id
+        } else if(tmpObject.hasOwnProperty('addedFeature')) {
+          featureId = tmpObject.addedFeature._id
         } else {
           featureId = tmpObject.featureId
         }
@@ -154,6 +157,7 @@ export class ChangesService {
 
     // Broadcast
     const broadcastChanges: Array<string> = [
+      'AddFeatureChange',
       'CopyFeatureChange',
       'DeleteFeatureChange',
       'LocationEndChange',
@@ -166,27 +170,7 @@ export class ChangesService {
       const tmpObject: any = {
         ...serializedChange,
       }
-      // if (
-      //   tmpObject.hasOwnProperty('featureId') ||
-      //   tmpObject.hasOwnProperty('deletedFeature')
-      // ) {
-      //   let featureId
-      //   if (tmpObject.hasOwnProperty('deletedFeature')) {
-      //     featureId = tmpObject.deletedFeature._id
-      //   } else {
-      //     featureId = tmpObject.featureId
-      //   }
       this.logger.debug(`FeatureId: ${featureId}`)
-
-      // // Search correct feature
-      // const topLevelFeature = await this.featureModel
-      //   .findOne({ allIds: featureId })
-      //   .exec()
-      // if (!topLevelFeature) {
-      //   const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
-      //   this.logger.error(errMsg)
-      //   throw new Error(errMsg)
-      // }
 
       // Get feature's refSeqName
       const refDoc = await this.refSeqModel.findById(refSeqId).exec()
