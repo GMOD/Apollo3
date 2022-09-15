@@ -109,12 +109,14 @@ export class ChangeManager {
           assemblyId: change.assemblyId,
         })
         break
-      case 'DeleteFeatureChange':
-        const { parentFeatureId } = tmpObject
+      case 'DeleteFeatureChange':  // THIS DOES NOT WORK IF USER WHO DELETED FEATURE DOES UNDO!! i.e. data is not restored on other clients's UI
+        const { parentFeatureId, deletedFeature } = tmpObject
+        console.log('Parent: ', JSON.stringify(parentFeatureId))
+        console.log('Deleted: ', JSON.stringify(deletedFeature))
         ch = new DeleteFeatureChange({
           typeName: 'DeleteFeatureChange',
           changedIds: change.changedIds,
-          deletedFeature: featureId,
+          deletedFeature,
           parentFeatureId,
           assemblyId: change.assemblyId,
         })

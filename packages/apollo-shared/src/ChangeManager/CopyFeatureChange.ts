@@ -72,6 +72,8 @@ export class CopyFeatureChange extends FeatureChange {
     // Loop the changes
     for (const change of changes) {
       const { featureId, targetAssemblyId } = change
+      this.logger.debug?.(`featureId: ${featureId}`)
+      this.logger.debug?.(`targetAss: ${targetAssemblyId}`)
 
       // Search feature
       const topLevelFeature = await featureModel
@@ -84,9 +86,9 @@ export class CopyFeatureChange extends FeatureChange {
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
-      // this.logger.debug?.(
-      //   `*** Feature found: ${JSON.stringify(topLevelFeature)}`,
-      // )
+      this.logger.debug?.(
+        `*** Feature found: ${JSON.stringify(topLevelFeature)}`,
+      )
 
       const newFeature = this.getFeatureFromId(topLevelFeature, featureId)
       if (!newFeature) {
@@ -94,6 +96,7 @@ export class CopyFeatureChange extends FeatureChange {
           `Feature ID "${featureId}" not found in parent feature "${topLevelFeature._id}"`,
         )
       }
+      this.logger.debug?.(`*** NEW Feature: ${JSON.stringify(newFeature)}`)
 
       const featureIds: string[] = []
 
@@ -109,10 +112,10 @@ export class CopyFeatureChange extends FeatureChange {
 
       // Let's add featureId to each child recursively
       const newFeatureLine = this.generateNewIds(newFeature, featureIds)
-      this.logger.verbose?.(`New featureIds: ${featureIds}`)
-      this.logger.verbose?.(`New assemblyId: ${targetAssemblyId}`)
-      this.logger.verbose?.(`New refSeqId: ${refSeqDoc._id}`)
-      this.logger.verbose?.(`New featureId: ${newFeatureLine._id}`)
+      this.logger.debug?.(`New featureIds: ${featureIds}`)
+      this.logger.debug?.(`New assemblyId: ${targetAssemblyId}`)
+      this.logger.debug?.(`New refSeqId: ${refSeqDoc._id}`)
+      this.logger.debug?.(`New featureId: ${newFeatureLine._id}`)
 
       // Add into Mongo
       const [newFeatureDoc] = await featureModel.create(

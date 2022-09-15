@@ -10,6 +10,7 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material'
+import { AnnotationFeatureI } from 'apollo-mst'
 import { ChangeManager } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
@@ -19,9 +20,11 @@ import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 interface CopyFeatureProps {
   session: AbstractSessionModel
   handleClose(): void
+  sourceFeature: AnnotationFeatureI
   sourceFeatureId: string
   sourceAssemblyId: string
   changeManager: ChangeManager
+  setSelectedFeature(feature?: AnnotationFeatureI): void
 }
 
 interface Collection {
@@ -32,9 +35,11 @@ interface Collection {
 export function CopyFeature({
   session,
   handleClose,
+  sourceFeature,
   sourceFeatureId,
   sourceAssemblyId,
   changeManager,
+  setSelectedFeature,
 }: CopyFeatureProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const { notify } = session
@@ -56,6 +61,7 @@ export function CopyFeature({
       collection.find((i) => i._id === e.target.value)?.name as string,
     )
   }
+
 
   useEffect(() => {
     async function getAssemblies() {
@@ -121,7 +127,7 @@ export function CopyFeature({
           changedIds: ['1'],
           typeName: 'CopyFeatureChange',
           assemblyId: sourceAssemblyId,
-          featureId: sourceFeatureId,
+          featureId: sourceFeature._id,
           targetAssemblyId: assemblyId,
         }),
         headers: new Headers({ 'Content-Type': 'application/json' }),

@@ -77,6 +77,9 @@ export class ChangesService {
       )
     }
     let changeDoc: ChangeDocument | undefined
+    let featureId
+    let refSeqId
+
     await this.featureModel.db.transaction(async (session) => {
       try {
         await change.apply({
@@ -120,8 +123,35 @@ export class ChangesService {
           `Error in backend post-validation: ${errorMessage}`,
         )
       }
+
+      // For broadcasting we need also refName
+      const tmpObject: any = {
+        ...serializedChange,
+      }
+      if (
+        tmpObject.hasOwnProperty('featureId') ||
+        tmpObject.hasOwnProperty('deletedFeature')
+      ) {
+        if (tmpObject.hasOwnProperty('deletedFeature')) {
+          featureId = tmpObject.deletedFeature._id
+        } else {
+          featureId = tmpObject.featureId
+        }
+        // Search correct feature
+        const topLevelFeature = await this.featureModel
+          .findOne({ allIds: featureId })
+          .session(session)
+          .exec()
+        if (!topLevelFeature) {
+          const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
+          this.logger.error(errMsg)
+          throw new Error(errMsg)
+        }
+        refSeqId = topLevelFeature.refSeq
+      }
     })
     this.logger.debug(`ChangeDocId: ${changeDoc?._id}`)
+
     // Broadcast
     const broadcastChanges: Array<string> = [
       'CopyFeatureChange',
@@ -129,42 +159,57 @@ export class ChangesService {
       'LocationEndChange',
       'LocationStartChange',
     ]
+    this.logger.debug(`TypeName: ${change.typeName}`)
     if (broadcastChanges.includes(change.typeName as unknown as string)) {
       let channel
       // Get refName based on featureId
       const tmpObject: any = {
         ...serializedChange,
       }
-      if (tmpObject.hasOwnProperty('featureId')) {
-        const { featureId } = tmpObject
-        this.logger.debug(`FeatureId: ${featureId}`)
+      // if (
+      //   tmpObject.hasOwnProperty('featureId') ||
+      //   tmpObject.hasOwnProperty('deletedFeature')
+      // ) {
+      //   let featureId
+      //   if (tmpObject.hasOwnProperty('deletedFeature')) {
+      //     featureId = tmpObject.deletedFeature._id
+      //   } else {
+      //     featureId = tmpObject.featureId
+      //   }
+      this.logger.debug(`FeatureId: ${featureId}`)
 
-        // Search correct feature
-        const topLevelFeature = await this.featureModel
-          .findOne({ allIds: featureId })
-          .exec()
-        if (!topLevelFeature) {
-          const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
-          this.logger.error(errMsg)
-          throw new Error(errMsg)
-        }
-        this.logger.debug?.(`RefName: ${topLevelFeature.refSeq}`)
-        const msg = {
-          changeInfo: serializedChange,
-          refName: topLevelFeature.refSeq,
-          userName,
-        }
+      // // Search correct feature
+      // const topLevelFeature = await this.featureModel
+      //   .findOne({ allIds: featureId })
+      //   .exec()
+      // if (!topLevelFeature) {
+      //   const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
+      //   this.logger.error(errMsg)
+      //   throw new Error(errMsg)
+      // }
 
-        // In case of 'CopyFeatureChange' assemlblyId in channel is the target assemblyId
-        if (change.typeName === 'CopyFeatureChange') {
-          const { targetAssemblyId } = tmpObject
-          channel = `${targetAssemblyId}-${topLevelFeature.refSeq}`
-        } else {
-          channel = `${change.assemblyId}-${topLevelFeature.refSeq}`
-        }
-        this.logger.debug(`Broadcasting to channel '${channel}'`)
-        await this.messagesGateway.create(channel, msg)
+      // Get feature's refSeqName
+      const refDoc = await this.refSeqModel.findById(refSeqId).exec()
+      if (!refDoc) {
+        const errMsg = `*** ERROR: The following refSeq was not found in database ='${refSeqId}'`
+        this.logger.error(errMsg)
+        throw new Error(errMsg)
       }
+      const msg = {
+        changeInfo: serializedChange,
+        userName,
+      }
+
+      // In case of 'CopyFeatureChange' assemlblyId in channel is the target assemblyId
+      if (change.typeName === 'CopyFeatureChange') {
+        const { targetAssemblyId } = tmpObject
+        channel = `${targetAssemblyId}-${refDoc.name}`
+      } else {
+        channel = `${change.assemblyId}-${refDoc.name}`
+      }
+      this.logger.debug(`Broadcasting to channel '${channel}'`)
+      await this.messagesGateway.create(channel, msg)
+      // }
     }
 
     return changeDoc
