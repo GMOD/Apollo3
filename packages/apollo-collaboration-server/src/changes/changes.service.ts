@@ -179,10 +179,6 @@ export class ChangesService {
         this.logger.error(errMsg)
         throw new Error(errMsg)
       }
-      const msg = {
-        changeInfo: serializedChange,
-        userName,
-      }
 
       // In case of 'CopyFeatureChange' assemlblyId in channel is the target assemblyId
       if (change.typeName === 'CopyFeatureChange') {
@@ -190,6 +186,11 @@ export class ChangesService {
         channel = `${targetAssemblyId}-${refDoc.name}`
       } else {
         channel = `${change.assemblyId}-${refDoc.name}`
+      }
+      const msg = {
+        changeInfo: serializedChange,
+        userName,
+        channel,
       }
       this.logger.debug(`Broadcasting to channel '${channel}'`)
       await this.messagesGateway.create(channel, msg)

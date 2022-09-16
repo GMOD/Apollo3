@@ -21,6 +21,7 @@ interface ApolloRenderingProps {
 }
 
 type Coord = [number, number]
+const socket = io('http://localhost:3999')
 
 function ApolloRendering(props: ApolloRenderingProps) {
   const [contextCoord, setContextCoord] = useState<Coord>()
@@ -64,6 +65,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     // @ts-ignore
     Array.from(a.values()).map((f) => getSnapshot(f)),
   )
+
   useEffect(() => {
     const tokenParts = sessionStorage
       .getItem('apolloInternetAccount-token')!
@@ -72,19 +74,19 @@ function ApolloRendering(props: ApolloRenderingProps) {
     const rawPayload = window.atob(encodedPayload)
     const clientUser = JSON.parse(rawPayload)
 
-    const socket = io('http://localhost:3999')
     const { notify } = session
     const assName = region.assemblyName
     if (assName) {
       const [firstRef] = regions
       const channel = `${assName}-${firstRef.refName}`
       console.log(`User '${clientUser.username}' starts listening '${channel}'`)
-      // socket.removeAllListeners('6321a58f9961527f65953135-ctgA')
-      // socket.off('6321a58f9961527f65953135-ctgA')
-      socket.off()
+      socket.removeListener() // Remove any old listener
+
       socket.on(channel, (message) => {
-        console.log(`Change : ${JSON.stringify(message.changeInfo)}`)
-        if (message.userName !== clientUser.username) {
+        if (
+          message.userName !== clientUser.username &&
+          message.channel === channel
+        ) {
           changeManager?.submitToClientOnly(message.changeInfo)
           notify(
             `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
@@ -96,6 +98,47 @@ function ApolloRendering(props: ApolloRenderingProps) {
       })
     }
   }, [region.refName])
+
+  // useEffect(() => {
+  //   const tokenParts = sessionStorage
+  //     .getItem('apolloInternetAccount-token')!
+  //     .split('.')
+  //   const encodedPayload = tokenParts[1]
+  //   const rawPayload = window.atob(encodedPayload)
+  //   const clientUser = JSON.parse(rawPayload)
+
+  //   const { notify } = session
+  //   const assName = region.assemblyName
+  //   if (assName) {
+  //     const [firstRef] = regions
+  //     const channel = `${assName}-${firstRef.refName}`
+  //     console.log(`User '${clientUser.username}' starts listening '${channel}'`)
+  //     const a = socket.listenersAny()
+  //     socket.off()
+  //     socket.removeAllListeners()
+  //     console.log(`'Kuunteleeko ${socket.hasListeners(channel)}`)
+  //     // const a = socket.listenersAny()
+  //     socket.on(channel, (message) => {
+  //       console.log(
+  //         `Change : ${JSON.stringify(message.changeInfo)}, mes cha: '${
+  //           message.channel
+  //         }', client cha: '${channel}', listeners: '${a}', listener '${socket.listenersAny()}'`,
+  //       )
+  //       if (
+  //         message.userName !== clientUser.username &&
+  //         message.channel === channel
+  //       ) {
+  //         changeManager?.submitToClientOnly(message.changeInfo)
+  //         notify(
+  //           `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
+  //             message.changeInfo,
+  //           )}`,
+  //           'success',
+  //         )
+  //       }
+  //     })
+  //   }
+  // }, [region.refName])
 
   useEffect(() => {
     const canvas = canvasRef.current
