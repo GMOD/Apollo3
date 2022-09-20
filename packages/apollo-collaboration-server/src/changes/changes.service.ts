@@ -135,7 +135,7 @@ export class ChangesService {
       ) {
         if (tmpObject.hasOwnProperty('deletedFeature')) {
           featureId = tmpObject.deletedFeature._id
-        } else if(tmpObject.hasOwnProperty('addedFeature')) {
+        } else if (tmpObject.hasOwnProperty('addedFeature')) {
           featureId = tmpObject.addedFeature._id
         } else {
           featureId = tmpObject.featureId
@@ -194,7 +194,6 @@ export class ChangesService {
       }
       this.logger.debug(`Broadcasting to channel '${channel}'`)
       await this.messagesGateway.create(channel, msg)
-      // }
     }
 
     return changeDoc

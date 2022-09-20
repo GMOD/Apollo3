@@ -1,4 +1,4 @@
-import { SerializedChange } from "apollo-shared"
+import { SerializedChange } from 'apollo-shared'
 
 export class Message {
   changeInfo: SerializedChange

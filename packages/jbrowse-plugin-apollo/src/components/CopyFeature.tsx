@@ -62,7 +62,6 @@ export function CopyFeature({
     )
   }
 
-
   useEffect(() => {
     async function getAssemblies() {
       const uri = new URL('/assemblies', baseURL).href
