@@ -15,7 +15,7 @@ import { AuthenticationService } from './authentication.service'
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '2400m' }, // Define token expiration time. TODO: Put value into property -file
+      signOptions: { expiresIn: jwtConstants.expiresIn },
     }),
   ],
   controllers: [AuthenticationController],

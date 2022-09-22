@@ -10,9 +10,13 @@ import {
 import { SerializedChange } from 'apollo-shared'
 
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
+import { Roles } from '../utils/role/role.decorator'
+import { Role } from '../utils/role/role.enum'
 import { ChangesService } from './changes.service'
 import { FindChangeDto } from './dto/find-change.dto'
 
+@UseGuards(JwtAuthGuard)
+@Roles(Role.ReadOnly)
 @Controller('changes')
 export class ChangesController {
   constructor(private readonly changesService: ChangesService) {}
@@ -23,8 +27,8 @@ export class ChangesController {
    * @param serializedChange - Information containing featureId, newEndValue, oldEndValue
    * @returns Return 'HttpStatus.OK' if featureId was found AND oldEndValue matched AND database update was successfull. Otherwise throw exception.
    */
-  @UseGuards(JwtAuthGuard)
   @Post()
+  @Roles(Role.User)
   async create(@Body() serializedChange: SerializedChange) {
     this.logger.debug(
       `Requested type: ${
@@ -34,7 +38,6 @@ export class ChangesController {
     return this.changesService.create(serializedChange)
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(@Query() changeFilter: FindChangeDto) {
     this.logger.debug(`ChangeFilter: ${JSON.stringify(changeFilter)}`)

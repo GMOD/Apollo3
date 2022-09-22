@@ -5,23 +5,23 @@ import {
   Logger,
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { JwtService } from '@nestjs/jwt'
 import { Request } from 'express'
 import jwtDecode from 'jwt-decode'
+import { TruthyTypesOf } from 'rxjs'
 
 import { PayloadObject } from '../payloadObject'
+import { ChangePermission, ChangeTypes } from './role.changePermissions'
 import { ROLES_KEY } from './role.decorator'
 import { Role } from './role.enum'
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  private readonly jwtService: JwtService
   private readonly logger = new Logger(RolesGuard.name)
 
   constructor(private reflector: Reflector) {}
 
   /**
-   * Check if user belongs to such group that user is allowed to execute endpoint
+   * Check if user has such role that user is allowed to execute endpoint
    * @param context -
    * @returns TRUE: user is allowed to execute endpoint
    *          FALSE: user is not allowed to execute endpoint
@@ -32,14 +32,19 @@ export class RolesGuard implements CanActivate {
       context.getClass(),
     ])
     try {
-      this.logger.verbose(`Required roles are =${requiredRoles}=`)
       // If no role was required in endpoint then return true
       if (!requiredRoles) {
         return true
       }
+      this.logger.debug(`Required roles are '${requiredRoles}'`)
 
-      // Get header and payload object containing username and userid
       const req = context.switchToHttp().getRequest<Request>()
+      const callingClass = context.getClass().name
+      const callingEndpoint = context.getHandler().name
+
+      this.logger.debug(`Calling class '${callingClass}'`)
+      this.logger.debug(`Calling endpoint '${callingEndpoint}'`)
+
       const authHeader = req.headers.authorization
       if (!authHeader) {
         throw new Error('No "authorization" header')
@@ -47,19 +52,37 @@ export class RolesGuard implements CanActivate {
       const token = authHeader.split(' ')
       const payloadObject = this.getDecodedAccessToken(token[1])
 
-      this.logger.verbose(
-        `Extracted from token, username =${payloadObject.username}=`,
+      this.logger.debug(
+        `Decoded from token: username '${payloadObject.username}', id '${payloadObject.sub}'`,
       )
-      // this.logger.debug('RolesGuard handler=' + context.getHandler());
 
-      // TODO: Check from database if user has required role
-      for (const point of requiredRoles) {
-        this.logger.verbose(`Role =${point}=`)
+      // In change controller's create() -method we have 2nd authorization check level
+      if (
+        callingClass === 'ChangesController' &&
+        callingEndpoint === 'create'
+      ) {
+        type ChangeTypeArray = typeof ChangeTypes
+        const typeName = req.body.typeName as ChangeTypeArray
+        this.logger.debug(`Request type name '${typeName}'`)
+        const additionalRequiredRole = ChangePermission[typeName]
+        this.logger.debug(
+          `Additional required role is '${additionalRequiredRole}'`,
+        )
       }
-      if (payloadObject.username === 'john') {
-        return true
-      } // TODO: Remove hard-coded check
+      // TODO: Check from database if user has required role
+      for (const role of requiredRoles) {
+        this.logger.debug(`Role '${role}' required`)
+        if (payloadObject.username === 'demo' && role === 'readOnly') {
+          this.logger.debug(`Role found!`)
+          return true
+        }
+        if (payloadObject.username === 'john') {
+          this.logger.debug(`Role found!`)
+          return true
+        }
+      }
 
+      this.logger.debug(`Role not found, no authorization!`)
       return false
     } catch (Exception) {
       this.logger.error(Exception)
