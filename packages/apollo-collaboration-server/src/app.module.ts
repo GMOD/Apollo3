@@ -10,6 +10,7 @@ import { FeaturesModule } from './features/features.module'
 import { FilesModule } from './files/files.module'
 import { RefSeqChunksModule } from './refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from './refSeqs/refSeqs.module'
+import { UsersModule } from './usersDemo/users.module'
 import { RolesGuard } from './utils/role/role.guards'
 
 const nodeEnv = process.env.NODE_ENV || 'production'
@@ -33,6 +34,7 @@ const nodeEnv = process.env.NODE_ENV || 'production'
     RefSeqsModule,
     FeaturesModule,
     FilesModule,
+    UsersModule,
   ],
   providers: [
     {

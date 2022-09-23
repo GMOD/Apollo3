@@ -1,7 +1,7 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 
-import { User, UsersService } from '../usersDemo/users.service'
+import { DemoUser, UsersService } from '../usersDemo/users.service'
 
 @Injectable()
 export class AuthenticationService {
@@ -33,7 +33,7 @@ export class AuthenticationService {
    * @param user - username
    * @returns Return either token with HttpResponse status 'HttpStatus.OK' OR null with 'HttpStatus.UNAUTHORIZED'
    */
-  async login(user?: Omit<User, 'password'>) {
+  async login(user?: Omit<DemoUser, 'password'>) {
     if (!user) {
       throw new UnauthorizedException('No user provided')
     }

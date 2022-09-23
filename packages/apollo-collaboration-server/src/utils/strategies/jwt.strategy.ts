@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 
-import { User } from '../../usersDemo/users.service'
+import { DemoUser } from '../../usersDemo/users.service'
 import { jwtConstants } from '../constants'
 import { PayloadObject } from '../payloadObject'
 
@@ -17,7 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     })
   }
 
-  async validate(payload: PayloadObject): Promise<Omit<User, 'password'>> {
+  async validate(payload: PayloadObject): Promise<Omit<DemoUser, 'password'>> {
     return { userId: payload.sub, username: payload.username }
   }
 }

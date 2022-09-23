@@ -13,12 +13,15 @@ import { PayloadObject } from '../payloadObject'
 import { ChangePermission, ChangeTypes } from './role.changePermissions'
 import { ROLES_KEY } from './role.decorator'
 import { Role } from './role.enum'
+import { UsersService } from '../../usersDemo/users.service'
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   private readonly logger = new Logger(RolesGuard.name)
 
-  constructor(private reflector: Reflector) {}
+  constructor(private reflector: Reflector,
+    private readonly usersService: UsersService,
+    ) {}
 
   /**
    * Check if user has such role that user is allowed to execute endpoint
@@ -26,7 +29,7 @@ export class RolesGuard implements CanActivate {
    * @returns TRUE: user is allowed to execute endpoint
    *          FALSE: user is not allowed to execute endpoint
    */
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -55,6 +58,9 @@ export class RolesGuard implements CanActivate {
       this.logger.debug(
         `Decoded from token: username '${payloadObject.username}', id '${payloadObject.sub}'`,
       )
+      // const user = await this.usersService.findOne('john')
+      const user = await this.usersService.findAll()
+      this.logger.debug(`User: ${JSON.stringify(user)}`)
 
       // In change controller's create() -method we have 2nd authorization check level
       if (
@@ -69,6 +75,7 @@ export class RolesGuard implements CanActivate {
           `Additional required role is '${additionalRequiredRole}'`,
         )
       }
+
       // TODO: Check from database if user has required role
       for (const role of requiredRoles) {
         this.logger.debug(`Role '${role}' required`)
