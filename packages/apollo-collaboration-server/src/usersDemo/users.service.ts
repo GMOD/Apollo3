@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common'
+import { InjectModel } from '@nestjs/mongoose'
+import { User, UserDocument } from 'apollo-schemas'
+import { Model } from 'mongoose'
+// import { userInfo } from 'os'
 
-export interface User {
+export interface DemoUser {
   userId: number
   username: string
   password: string
@@ -11,9 +15,12 @@ export interface User {
  */
 @Injectable()
 export class UsersService {
-  private readonly users: User[]
+  private readonly users: DemoUser[]
 
-  constructor() {
+  constructor(
+    @InjectModel(User.name)
+    private readonly userModel: Model<UserDocument>,
+  ) {
     this.users = [
       {
         userId: 1,
@@ -38,7 +45,11 @@ export class UsersService {
     ]
   }
 
-  async findOne(username: string): Promise<User | undefined> {
+  async findOne(username: string): Promise<DemoUser | undefined> {
     return this.users.find((user) => user.username === username)
+  }
+
+  findAll() {
+    return this.userModel.find().exec()
   }
 }
