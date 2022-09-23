@@ -9,19 +9,20 @@ import { Request } from 'express'
 import jwtDecode from 'jwt-decode'
 import { TruthyTypesOf } from 'rxjs'
 
+import { UsersService } from '../../usersDemo/users.service'
 import { PayloadObject } from '../payloadObject'
 import { ChangePermission, ChangeTypes } from './role.changePermissions'
 import { ROLES_KEY } from './role.decorator'
 import { Role } from './role.enum'
-import { UsersService } from '../../usersDemo/users.service'
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   private readonly logger = new Logger(RolesGuard.name)
 
-  constructor(private reflector: Reflector,
+  constructor(
+    private reflector: Reflector,
     private readonly usersService: UsersService,
-    ) {}
+  ) {}
 
   /**
    * Check if user has such role that user is allowed to execute endpoint
@@ -54,42 +55,49 @@ export class RolesGuard implements CanActivate {
       }
       const token = authHeader.split(' ')
       const payloadObject = this.getDecodedAccessToken(token[1])
+      const { username } = payloadObject
 
-      this.logger.debug(
-        `Decoded from token: username '${payloadObject.username}', id '${payloadObject.sub}'`,
-      )
-      // const user = await this.usersService.findOne('john')
-      const user = await this.usersService.findAll()
-      this.logger.debug(`User: ${JSON.stringify(user)}`)
+      const user = await this.usersService.findByUsername(username)
+      if (!user) {
+        this.logger.debug(
+          `User '${username}' not found in Mongo, no authorization!`,
+        )
+        return false
+      }
+      this.logger.debug(`*** Found user: ${JSON.stringify(user)}`)
 
       // In change controller's create() -method we have 2nd authorization check level
       if (
         callingClass === 'ChangesController' &&
-        callingEndpoint === 'create'
+        callingEndpoint === 'create' // i.e. "submit change"
       ) {
         type ChangeTypeArray = typeof ChangeTypes
         const typeName = req.body.typeName as ChangeTypeArray
         this.logger.debug(`Request type name '${typeName}'`)
-        const additionalRequiredRole = ChangePermission[typeName]
+        const additionalRequiredRole = ChangePermission[typeName] // Read from role.changePermissions.ts
         this.logger.debug(
           `Additional required role is '${additionalRequiredRole}'`,
         )
+        const tmpRole: any = additionalRequiredRole
+        if (!user.role.includes(tmpRole)) {
+          this.logger.debug(
+            `User '${username}' doesn't have additional role '${additionalRequiredRole}'!`,
+          )
+          return false
+        }
       }
 
-      // TODO: Check from database if user has required role
+      // Check if user has required role
       for (const role of requiredRoles) {
         this.logger.debug(`Role '${role}' required`)
-        if (payloadObject.username === 'demo' && role === 'readOnly') {
-          this.logger.debug(`Role found!`)
-          return true
-        }
-        if (payloadObject.username === 'john') {
-          this.logger.debug(`Role found!`)
+        const tmpRole1: any = role
+        if (user.role.includes(tmpRole1)) {
+          this.logger.debug(`User '${username}' has role '${tmpRole1}'!`)
           return true
         }
       }
 
-      this.logger.debug(`Role not found, no authorization!`)
+      this.logger.debug(`No authorized!`)
       return false
     } catch (Exception) {
       this.logger.error(Exception)

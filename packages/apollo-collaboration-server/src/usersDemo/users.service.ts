@@ -49,6 +49,14 @@ export class UsersService {
     return this.users.find((user) => user.username === username)
   }
 
+  async findById(id: number) {
+    return this.userModel.findOne({ id }).exec()
+  }
+
+  async findByUsername(username: string) {
+    return this.userModel.findOne({ username }).exec()
+  }
+
   findAll() {
     return this.userModel.find().exec()
   }
