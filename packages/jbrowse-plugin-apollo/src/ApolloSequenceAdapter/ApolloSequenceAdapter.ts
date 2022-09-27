@@ -31,7 +31,6 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
     const uri = new URL(`refSeqs?${searchParams.toString()}`, this.baseURL).href
     const fetch = getFetcher(
       { locationType: 'UriLocation', uri },
-      // @ts-ignore
       this.pluginManager,
     )
     const response = await fetch(uri, { signal })
@@ -95,7 +94,6 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
       ).href
       const fetch = getFetcher(
         { locationType: 'UriLocation', uri },
-        // @ts-ignore
         this.pluginManager,
       )
       const response = await fetch(uri, { signal: opts.signal })

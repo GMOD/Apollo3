@@ -5,7 +5,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@jbrowse/core": "^2.0.1",
+    "@jbrowse/core": "^2.1.4",
     "mobx": "^6.6.1",
     "mobx-state-tree": "^5.1.5",
     "rxjs": "^6.0.0",

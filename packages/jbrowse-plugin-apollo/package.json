@@ -55,7 +55,7 @@
     "tslib": "^2.0.3"
   },
   "peerDependencies": {
-    "@jbrowse/core": "^2.0.1",
+    "@jbrowse/core": "^2.1.4",
     "@mui/material": "^5.9.1",
     "mobx": "^6.6.1",
     "mobx-react": "^7.2.1",
@@ -68,7 +68,7 @@
   },
   "devDependencies": {
     "@jbrowse/cli": "^2.0.1",
-    "@jbrowse/core": "^2.0.1",
+    "@jbrowse/core": "^2.1.4",
     "@jbrowse/development-tools": "^2.1.1",
     "@jest/globals": "^29.0.3",
     "@mui/material": "^5.9.1",
