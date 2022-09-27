@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "target": "ES6",
     "rootDir": "./src",
     "noEmit": true,
     "noEmitOnError": false,

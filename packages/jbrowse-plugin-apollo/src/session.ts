@@ -235,26 +235,20 @@ export function extendSession(sessionModel: IAnyModelType) {
             const response2 = (yield fetch2(uri2, {
               signal,
             })) as unknown as Response
-            if (!response.ok) {
+            if (!response2.ok) {
               let errorMessage
               try {
-                errorMessage = yield response.text()
+                errorMessage = yield response2.text()
               } catch (e) {
                 errorMessage = ''
               }
               throw new Error(
-                `Failed to fetch fasta info — ${response.status} (${
-                  response.statusText
+                `Failed to fetch fasta info — ${response2.status} (${
+                  response2.statusText
                 })${errorMessage ? ` (${errorMessage})` : ''}`,
               )
             }
             const f = (yield response2.json()) as ApolloRefSeqResponse[]
-            const features = f.map((contig) => ({
-              refName: contig.name,
-              uniqueId: contig._id,
-              start: 0,
-              end: contig.length,
-            }))
             const refNameAliasesFeatures = f.map((contig) => ({
               refName: contig.name,
               aliases: [contig._id],
@@ -267,7 +261,11 @@ export function extendSession(sessionModel: IAnyModelType) {
               sequence: {
                 trackId: `sequenceConfigId-${assembly.name}`,
                 type: 'ReferenceSequenceTrack',
-                adapter: { type: 'FromConfigRegionsAdapter', features },
+                adapter: {
+                  type: 'ApolloSequenceAdapter',
+                  assemblyId: assembly._id,
+                  baseURL,
+                },
                 metadata: {
                   internetAccountConfigId:
                     internetAccount.configuration.internetAccountId,

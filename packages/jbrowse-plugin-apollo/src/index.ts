@@ -21,6 +21,7 @@ import {
   ReactComponent as ApolloRendererReactComponent,
   configSchema as apolloRendererConfigSchema,
 } from './ApolloRenderer'
+import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
 import { AddAssembly, ImportFeatures, ViewChangeLog } from './components'
 import { DownloadGFF3 } from './components/DownloadGFF3'
 import {
@@ -39,6 +40,7 @@ export default class ApolloPlugin extends Plugin {
   version = version
 
   install(pluginManager: PluginManager) {
+    installApolloSequenceAdapter(pluginManager)
     pluginManager.addTrackType(() => {
       const configSchema = ConfigurationSchema(
         'ApolloTrack',
