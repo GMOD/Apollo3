@@ -6,15 +6,11 @@ import { ApolloLoginForm } from './components/ApolloLoginForm'
 import { ApolloInternetAccountConfigModel } from './configSchema'
 
 const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
-  return types
-    .compose(
-      'ApolloInternetAccount',
-      InternetAccount,
-      types.model({
-        type: types.literal('ApolloInternetAccount'),
-        configuration: ConfigurationReference(configSchema),
-      }),
-    )
+  return InternetAccount.named('ApolloInternetAccount')
+    .props({
+      type: types.literal('ApolloInternetAccount'),
+      configuration: ConfigurationReference(configSchema),
+    })
     .views((self) => ({
       get internetAccountType() {
         return 'ApolloInternetAccount'

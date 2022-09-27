@@ -111,6 +111,8 @@ export default class ApolloPlugin extends Plugin {
               handleClose: () => {
                 doneCallback()
               },
+              changeManager: (session as ApolloSessionModel).apolloDataStore
+                .changeManager,
             },
           ])
         },
@@ -125,6 +127,8 @@ export default class ApolloPlugin extends Plugin {
               handleClose: () => {
                 doneCallback()
               },
+              changeManager: (session as ApolloSessionModel).apolloDataStore
+                .changeManager,
             },
           ])
         },

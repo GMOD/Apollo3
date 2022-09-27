@@ -11,10 +11,18 @@ import {
   FormControlLabel,
   FormGroup,
   FormLabel,
+  MenuItem,
   Radio,
   RadioGroup,
+  Select,
+  SelectChangeEvent,
   TextField,
 } from '@mui/material'
+import {
+  AddAssemblyAndFeaturesFromFileChange,
+  AddAssemblyFromFileChange,
+  ChangeManager,
+} from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
@@ -24,24 +32,44 @@ import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 interface AddAssemblyProps {
   session: AbstractSessionModel
   handleClose(): void
+  changeManager: ChangeManager
 }
 
-export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
+export function AddAssembly({
+  session,
+  handleClose,
+  changeManager,
+}: AddAssemblyProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const { notify } = session
-  const apolloInternetAccount = internetAccounts.find(
+  const apolloInternetAccounts = internetAccounts.filter(
     (ia) => ia.type === 'ApolloInternetAccount',
-  ) as ApolloInternetAccountModel | undefined
-  if (!apolloInternetAccount) {
+  ) as ApolloInternetAccountModel[]
+  if (!apolloInternetAccounts.length) {
     throw new Error('No Apollo internet account found')
   }
-  const { baseURL } = apolloInternetAccount
   const [assemblyName, setAssemblyName] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [file, setFile] = useState<File>()
   const [fileType, setFileType] = useState('text/x-gff3')
   const [importFeatures, setImportFeatures] = useState(true)
   const [submitted, setSubmitted] = useState(false)
+  const [selectedInternetAcount, setSelectedInternetAcount] = useState(
+    apolloInternetAccounts[0],
+  )
+
+  function handleChangeInternetAccount(e: SelectChangeEvent<string>) {
+    setSubmitted(false)
+    const newlySelectedInternetAccount = apolloInternetAccounts.find(
+      (ia) => ia.internetAccountId === e.target.value,
+    )
+    if (!newlySelectedInternetAccount) {
+      throw new Error(
+        `Could not find internetAccount with ID "${e.target.value}"`,
+      )
+    }
+    setSelectedInternetAcount(newlySelectedInternetAccount)
+  }
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
     setSubmitted(false)
@@ -71,12 +99,13 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
     }
 
     // First upload file
+    const { baseURL, getFetcher } = selectedInternetAcount
     const url = new URL('/files', baseURL).href
     const formData = new FormData()
     formData.append('file', file)
     formData.append('fileName', file.name)
     formData.append('type', fileType)
-    const apolloFetchFile = apolloInternetAccount?.getFetcher({
+    const apolloFetchFile = getFetcher({
       locationType: 'UriLocation',
       uri: url,
     })
@@ -102,69 +131,27 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
       fileId = result._id
     }
 
-    let typeName = 'AddAssemblyFromFileChange'
-    if (fileType === 'text/x-gff3' && importFeatures) {
-      typeName = 'AddAssemblyAndFeaturesFromFileChange'
+    const changeBase = {
+      changedIds: ['1'],
+      assemblyId: new ObjectID().toHexString(),
+      assemblyName,
+      fileId,
     }
-
-    // Add assembly and refSeqs
-    const uri = new URL('changes', baseURL).href
-    const apolloFetch = apolloInternetAccount?.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
-    if (apolloFetch) {
-      const res = await apolloFetch(uri, {
-        method: 'POST',
-        body: JSON.stringify({
-          changedIds: ['1'],
-          typeName,
-          assemblyId: new ObjectID().toHexString(),
-          fileId,
-          assemblyName,
-        }),
-        headers: new Headers({
-          'Content-Type': 'application/json',
-        }),
-      })
-      if (!res.ok) {
-        try {
-          msg = await res.text()
-        } catch (e) {
-          msg = ''
-        }
-        setErrorMessage(
-          `Error when inserting new assembly — ${res.status} (${
-            res.statusText
-          })${msg ? ` (${msg})` : ''}`,
-        )
-        // Let's delete the uploaded file
-        const deleteFileUri = new URL(`/files/${fileId}`, baseURL).href
-        const apolloDeleteFile = apolloInternetAccount?.getFetcher({
-          locationType: 'UriLocation',
-          uri: deleteFileUri,
-        })
-        if (apolloDeleteFile) {
-          const resDeleteFile = await apolloDeleteFile(deleteFileUri, {
-            method: 'DELETE',
+    const change =
+      fileType === 'text/x-gff3' && importFeatures
+        ? new AddAssemblyAndFeaturesFromFileChange({
+            typeName: 'AddAssemblyAndFeaturesFromFileChange',
+            ...changeBase,
           })
-          if (!resDeleteFile.ok) {
-            try {
-              msg = await resDeleteFile.text()
-            } catch (e) {
-              msg = ''
-            }
-            setErrorMessage(
-              `Error when deleting uploaded file after unsuccessfully inserting assembly — ${
-                resDeleteFile.status
-              } (${resDeleteFile.statusText})${msg ? ` (${msg})` : ''}`,
-            )
-          }
-        }
-        return
-      }
-    }
-    notify(`Assembly "${assemblyName}" added successfully`, 'success')
+        : new AddAssemblyFromFileChange({
+            typeName: 'AddAssemblyFromFileChange',
+            ...changeBase,
+          })
+
+    changeManager.submit(change, {
+      internetAccountId: selectedInternetAcount.internetAccountId,
+    })
+    notify(`Assembly "${assemblyName}" is being added`, 'info')
     handleClose()
     event.preventDefault()
   }
@@ -174,6 +161,22 @@ export function AddAssembly({ session, handleClose }: AddAssemblyProps) {
       <DialogTitle>Add new assembly</DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
+          {apolloInternetAccounts.length > 1 ? (
+            <>
+              <DialogContentText>Select account</DialogContentText>
+              <Select
+                value={selectedInternetAcount.internetAccountId}
+                onChange={handleChangeInternetAccount}
+                disabled={submitted && !errorMessage}
+              >
+                {internetAccounts.map((option) => (
+                  <MenuItem key={option.id} value={option.internetAccountId}>
+                    {option.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </>
+          ) : null}
           <TextField
             autoFocus
             margin="dense"

@@ -10,6 +10,7 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material'
+import { AddFeaturesFromFileChange, ChangeManager } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
@@ -18,9 +19,14 @@ import { useAssemblies } from './'
 interface ImportFeaturesProps {
   session: AbstractSessionModel
   handleClose(): void
+  changeManager: ChangeManager
 }
 
-export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
+export function ImportFeatures({
+  session,
+  handleClose,
+  changeManager,
+}: ImportFeaturesProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const { notify } = session
 
@@ -100,66 +106,14 @@ export function ImportFeatures({ session, handleClose }: ImportFeaturesProps) {
     }
 
     // Add features
-    const uri = new URL('changes', baseURL).href
-    const apolloFetch = apolloInternetAccount?.getFetcher({
-      locationType: 'UriLocation',
-      uri,
+    const change = new AddFeaturesFromFileChange({
+      changedIds: ['1'],
+      typeName: 'AddFeaturesFromFileChange',
+      assemblyId,
+      fileId,
     })
-    if (apolloFetch) {
-      const res = await apolloFetch(uri, {
-        method: 'POST',
-        body: JSON.stringify({
-          changedIds: ['1'],
-          typeName: 'AddFeaturesFromFileChange',
-          assemblyId,
-          fileId,
-          assemblyName,
-        }),
-        headers: new Headers({
-          'Content-Type': 'application/json',
-        }),
-      })
-      if (!res.ok) {
-        try {
-          msg = await res.text()
-        } catch (e) {
-          msg = ''
-        }
-        setErrorMessage(
-          `Error when inserting new features — ${res.status} (${
-            res.statusText
-          })${msg ? ` (${msg})` : ''}`,
-        )
-        // Let's delete the uploaded file
-        const deleteFileUri = new URL(`/files/${fileId}`, baseURL).href
-        const apolloDeleteFile = apolloInternetAccount?.getFetcher({
-          locationType: 'UriLocation',
-          uri: deleteFileUri,
-        })
-        if (apolloDeleteFile) {
-          const resDeleteFile = await apolloDeleteFile(deleteFileUri, {
-            method: 'DELETE',
-          })
-          if (!resDeleteFile.ok) {
-            try {
-              msg = await resDeleteFile.text()
-            } catch (e) {
-              msg = ''
-            }
-            setErrorMessage(
-              `Error when deleting uploaded file after unsuccessfully inserting features — ${
-                resDeleteFile.status
-              } (${resDeleteFile.statusText})${msg ? ` (${msg})` : ''}`,
-            )
-          }
-        }
-        return
-      }
-    }
-    notify(
-      `Features added to assembly "${assemblyName}" successfully`,
-      'success',
-    )
+    changeManager.submit(change)
+    notify(`Features are being added to "${assemblyName}"`, 'info')
     handleClose()
     event.preventDefault()
   }

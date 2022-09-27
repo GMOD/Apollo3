@@ -7,6 +7,15 @@ import {
 } from '../Validations/ValidationSet'
 import { Change, ClientDataStore } from './Change'
 
+export interface SubmitOpts {
+  /** defaults to true */
+  submitToBackend?: boolean
+  /** defaults to true */
+  addToRecents?: boolean
+  /** defaults to undefined */
+  internetAccountId?: string
+}
+
 export class ChangeManager {
   constructor(
     private dataStore: ClientDataStore & IAnyStateTreeNode,
@@ -15,7 +24,8 @@ export class ChangeManager {
 
   recentChanges: Change[] = []
 
-  async submit(change: Change, submitToBackend = true, addToRecents = true) {
+  async submit(change: Change, opts: SubmitOpts = {}) {
+    const { submitToBackend = true, addToRecents = true } = opts
     // pre-validate
     const session = getSession(this.dataStore)
     const result = await this.validations.frontendPreValidate(change)
@@ -53,6 +63,7 @@ export class ChangeManager {
       try {
         backendResult = await backendDriver.submitChange(change)
       } catch (error) {
+        console.error(error)
         session.notify(String(error), 'error')
         this.revert(change, false)
         return
@@ -66,6 +77,10 @@ export class ChangeManager {
           'error',
         )
         this.revert(change, false)
+        return
+      }
+      if (change.notification) {
+        session.notify(change.notification, 'success')
       }
     }
     if (addToRecents) {
@@ -76,7 +91,7 @@ export class ChangeManager {
 
   async revert(change: Change, submitToBackend = true) {
     const inverseChange = change.getInverse()
-    return this.submit(inverseChange, submitToBackend, false)
+    return this.submit(inverseChange, { submitToBackend, addToRecents: false })
   }
 
   /**
