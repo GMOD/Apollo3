@@ -78,14 +78,25 @@ function ApolloRendering(props: ApolloRenderingProps) {
         if (featureRow > 0) {
           continue
         }
-        const start = feature.start - region.start - 1
+        const start = region.reversed
+          ? region.end - feature.end
+          : feature.start - region.start - 1
         const startPx = start / bpPerPx
-        feature.draw(ctx, startPx, row * height, bpPerPx, height)
+        feature.draw(
+          ctx,
+          startPx,
+          row * height,
+          bpPerPx,
+          height,
+          region.reversed,
+        )
       }
     }
   }, [
     bpPerPx,
     region.start,
+    region.end,
+    region.reversed,
     totalWidth,
     featureLayout,
     totalHeight,
@@ -105,7 +116,10 @@ function ApolloRendering(props: ApolloRenderingProps) {
     ctx.clearRect(0, 0, totalWidth, totalHeight)
     if (dragging) {
       const { feature, row, edge, px } = dragging
-      const featureEdgePx = (feature[edge] - region.start) / bpPerPx
+      const featureEdge = region.reversed
+        ? region.end - feature[edge]
+        : feature[edge] - region.start
+      const featureEdgePx = featureEdge / bpPerPx
       const startPx = Math.min(px, featureEdgePx)
       const widthPx = Math.abs(px - featureEdgePx)
       ctx.strokeStyle = 'red'
@@ -117,7 +131,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
     const feature = dragging?.feature || apolloFeatureUnderMouse
     const row = dragging?.row || apolloRowUnderMouse
     if (feature && row !== undefined) {
-      const start = feature.start - region.start - 1
+      const start = region.reversed
+        ? region.end - feature.end
+        : feature.start - region.start - 1
       const width = feature.length
       const startPx = start / bpPerPx
       const widthPx = width / bpPerPx
@@ -131,6 +147,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
     totalHeight,
     totalWidth,
     region.start,
+    region.end,
+    region.reversed,
     dragging,
     height,
   ])
@@ -145,20 +163,19 @@ function ApolloRendering(props: ApolloRenderingProps) {
     }
     // get pixel coordinates within the whole canvas
     let x = clientX - left
-    // adjust for region reversal
     x = region.reversed ? totalWidth - x : x
     const y = clientY - top
 
     if (dragging) {
       const { edge, feature, row } = dragging
-      let px = x
+      let px = region.reversed ? totalWidth - x : x
       let bp = region.start + x * bpPerPx
       if (edge === 'start' && bp > feature.end - 1) {
         bp = feature.end - 1
-        px = (bp - region.start) / bpPerPx
+        px = (region.reversed ? region.end - bp : bp - region.start) / bpPerPx
       } else if (edge === 'end' && bp < feature.start + 1) {
         bp = feature.start + 1
-        px = (bp - region.start) / bpPerPx
+        px = (region.reversed ? region.end - bp : bp - region.start) / bpPerPx
       }
       setDragging({
         edge,
@@ -221,12 +238,18 @@ function ApolloRendering(props: ApolloRenderingProps) {
   }
   function onMouseDown(event: React.MouseEvent) {
     if (apolloFeatureUnderMouse && overEdge) {
+      const { clientX } = event
+      const { left } = canvasRef.current?.getBoundingClientRect() || {
+        left: 0,
+        top: 0,
+      }
+      const px = clientX - left
       event.stopPropagation()
       setDragging({
         edge: overEdge,
         feature: apolloFeatureUnderMouse,
         row: apolloRowUnderMouse || 0,
-        px: (apolloFeatureUnderMouse[overEdge] - region.start) / bpPerPx,
+        px,
         bp: apolloFeatureUnderMouse[overEdge],
       })
     }
