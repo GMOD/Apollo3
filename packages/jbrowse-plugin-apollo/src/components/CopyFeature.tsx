@@ -11,6 +11,7 @@ import {
   SelectChangeEvent,
 } from '@mui/material'
 import { ChangeManager, CopyFeatureChange } from 'apollo-shared'
+import ObjectID from 'bson-objectid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
@@ -101,16 +102,17 @@ export function CopyFeature({
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
+    const newFeatureId = new ObjectID().toHexString()
     const change = new CopyFeatureChange({
-      changedIds: ['1'],
+      changedIds: [newFeatureId],
       typeName: 'CopyFeatureChange',
       assemblyId: sourceAssemblyId,
       featureId: sourceFeatureId,
+      newFeatureId,
       targetAssemblyId: assemblyId,
     })
-    await changeManager.submit(change)
+    changeManager.submit(change)
     handleClose()
-    event.preventDefault()
   }
 
   return (

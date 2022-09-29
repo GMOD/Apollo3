@@ -40,8 +40,14 @@ export class ChangeManager {
       return
     }
 
-    // submit to client data store
-    await change.apply(this.dataStore)
+    try {
+      // submit to client data store
+      await change.apply(this.dataStore)
+    } catch (error) {
+      console.error(error)
+      session.notify(String(error), 'error')
+      return
+    }
 
     // post-validate
     const results2 = await this.validations.frontendPostValidate(
@@ -61,7 +67,7 @@ export class ChangeManager {
       }
       let backendResult: ValidationResultSet
       try {
-        backendResult = await backendDriver.submitChange(change)
+        backendResult = await backendDriver.submitChange(change, opts)
       } catch (error) {
         console.error(error)
         session.notify(String(error), 'error')

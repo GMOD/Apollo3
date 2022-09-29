@@ -152,7 +152,7 @@ export function ImportFeatures({
             {submitted ? 'Submitting...' : 'Submit'}
           </Button>
           <Button
-            disabled={!(assemblyName && file) || submitted}
+            disabled={submitted}
             variant="outlined"
             type="submit"
             onClick={() => {
