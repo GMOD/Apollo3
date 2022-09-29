@@ -1,7 +1,11 @@
-import { Role } from './role.enum'
+import { Role } from '../role/role.enum'
 
 // Define change types
-export const ChangeTypes = 'LocationEndChange' || 'LocationStartChange' || 'DeleteFeatureChange' || 'AddAssemblyFromFileChange'
+export const ChangeTypes =
+  'LocationEndChange' ||
+  'LocationStartChange' ||
+  'DeleteFeatureChange' ||
+  'AddAssemblyFromFileChange'
 
 // Define the lowest role to execute change
 export const ChangePermission = {

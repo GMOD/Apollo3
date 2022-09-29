@@ -12,13 +12,13 @@ import { Response as ExpressResponse } from 'express'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
-import { Roles } from '../utils/role/role.decorator'
 import { Role } from '../utils/role/role.enum'
+import { Validations } from '../utils/validation/validatation.decorator'
 import { FeaturesService } from './features.service'
 
 @UseGuards(JwtAuthGuard)
 @Controller('features')
-@Roles(Role.ReadOnly)
+@Validations(Role.ReadOnly)
 export class FeaturesController {
   constructor(private readonly featuresService: FeaturesService) {}
   private readonly logger = new Logger(FeaturesController.name)

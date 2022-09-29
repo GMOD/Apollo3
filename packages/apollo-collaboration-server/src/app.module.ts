@@ -39,7 +39,7 @@ const nodeEnv = process.env.NODE_ENV || 'production'
   providers: [
     {
       provide: APP_GUARD,
-      useClass: RolesGuard,
+      useClass: ValidationGuard,
     },
   ],
 })
