@@ -7,17 +7,16 @@ import {
 import { Reflector } from '@nestjs/core'
 import { Request } from 'express'
 import jwtDecode from 'jwt-decode'
-import { TruthyTypesOf } from 'rxjs'
 
 import { UsersService } from '../../usersDemo/users.service'
 import { PayloadObject } from '../payloadObject'
-import { ChangePermission, ChangeTypes } from './role.changePermissions'
-import { ROLES_KEY } from './role.decorator'
-import { Role } from './role.enum'
+import { Role } from '../role/role.enum'
+import { ChangePermission, ChangeTypes } from './validatation.changePermissions'
+import { ROLES_KEY } from './validatation.decorator'
 
 @Injectable()
-export class RolesGuard implements CanActivate {
-  private readonly logger = new Logger(RolesGuard.name)
+export class ValidationGuard implements CanActivate {
+  private readonly logger = new Logger(ValidationGuard.name)
 
   constructor(
     private reflector: Reflector,
