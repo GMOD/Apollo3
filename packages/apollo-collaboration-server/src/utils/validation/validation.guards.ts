@@ -7,11 +7,15 @@ import {
 import { Reflector } from '@nestjs/core'
 import { Request } from 'express'
 import jwtDecode from 'jwt-decode'
+import { of } from 'rxjs'
 
 import { UsersService } from '../../usersDemo/users.service'
 import { PayloadObject } from '../payloadObject'
-import { Role } from '../role/role.enum'
-import { ChangePermission, ChangeTypes } from './validatation.changePermissions'
+import { Role, RoleInheritance, RoleNames } from '../role/role.enum'
+import {
+  ChangeTypePermission,
+  ChangeTypes,
+} from './validatation.changeTypePermissions'
 import { ROLES_KEY } from './validatation.decorator'
 
 @Injectable()
@@ -45,8 +49,9 @@ export class ValidationGuard implements CanActivate {
       const callingClass = context.getClass().name
       const callingEndpoint = context.getHandler().name
 
-      this.logger.debug(`Calling class '${callingClass}'`)
-      this.logger.debug(`Calling endpoint '${callingEndpoint}'`)
+      this.logger.debug(
+        `Calling class '${callingClass}' and endpoint '${callingEndpoint}'`,
+      )
 
       const authHeader = req.headers.authorization
       if (!authHeader) {
@@ -63,9 +68,19 @@ export class ValidationGuard implements CanActivate {
         )
         return false
       }
-      this.logger.debug(`*** Found user: ${JSON.stringify(user)}`)
+      this.logger.debug(`*** Found user from Mongo: ${JSON.stringify(user)}`)
 
-      // In change controller's create() -method we have 2nd authorization check level
+      type RoleNameArray = typeof RoleNames
+      const userRolesArray: Array<Role> = []
+      // Loop user's role(s) and add each role + inherited ones to userRolesArray
+      for (const userRole of user.role) {
+        const roleName = userRole as unknown as RoleNameArray
+        const roles = RoleInheritance[roleName] // Read from role.enum.ts
+        userRolesArray.push(...roles)
+      }
+
+      // In change controller's create() -method we have 2nd authorization check level.
+      // Each change type has own permissions as defined in validation.changeTypePermissions.ts
       if (
         callingClass === 'ChangesController' &&
         callingEndpoint === 'create' // i.e. "submit change"
@@ -73,12 +88,12 @@ export class ValidationGuard implements CanActivate {
         type ChangeTypeArray = typeof ChangeTypes
         const typeName = req.body.typeName as ChangeTypeArray
         this.logger.debug(`Request type name '${typeName}'`)
-        const additionalRequiredRole = ChangePermission[typeName] // Read from role.changePermissions.ts
+        const additionalRequiredRole = ChangeTypePermission[typeName] // Read from validation.changeTypePermissions.ts
         this.logger.debug(
           `Additional required role is '${additionalRequiredRole}'`,
         )
         const tmpRole: any = additionalRequiredRole
-        if (!user.role.includes(tmpRole)) {
+        if (!userRolesArray.includes(tmpRole)) {
           this.logger.debug(
             `User '${username}' doesn't have additional role '${additionalRequiredRole}'!`,
           )
@@ -88,9 +103,9 @@ export class ValidationGuard implements CanActivate {
 
       // Check if user has required role
       for (const role of requiredRoles) {
-        this.logger.debug(`Role '${role}' required`)
         const tmpRole1: any = role
-        if (user.role.includes(tmpRole1)) {
+        if (userRolesArray.includes(tmpRole1)) {
+          // if (user.role.includes(tmpRole1)) {
           this.logger.debug(`User '${username}' has role '${tmpRole1}'!`)
           return true
         }
