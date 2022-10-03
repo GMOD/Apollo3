@@ -8,7 +8,7 @@ export const ChangeTypes =
   'AddAssemblyFromFileChange'
 
 // Define the lowest role to execute change
-export const ChangePermission = {
+export const ChangeTypePermission = {
   LocationEndChange: Role.User,
   LocationStartChange: Role.User,
   DeleteFeatureChange: Role.Admin,
