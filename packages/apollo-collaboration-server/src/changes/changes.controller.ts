@@ -8,14 +8,14 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common'
-import { SerializedChange } from 'apollo-shared'
+import { Change } from 'apollo-shared'
 
+import { ChangeInterceptor } from '../utils/change.interceptor'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
-import { Validations } from '../utils/validation/validatation.decorator'
 import { Role } from '../utils/role/role.enum'
+import { Validations } from '../utils/validation/validatation.decorator'
 import { ChangesService } from './changes.service'
 import { FindChangeDto } from './dto/find-change.dto'
-import { ChangeInterceptor } from '../utils/change.interceptor'
 
 @UseGuards(JwtAuthGuard)
 @Validations(Role.ReadOnly)
@@ -32,10 +32,14 @@ export class ChangesController {
   @Post()
   @UseInterceptors(ChangeInterceptor)
   @Validations(Role.User)
-  async create(@Body() serializedChange: SerializedChange) {
-    this.logger.debug(`Change type is '${serializedChange.constructor.name}', change object: ${JSON.stringify(serializedChange)}`)
-    return this.changesService.create(serializedChange)
-}
+  async create(@Body() change: Change) {
+    this.logger.debug(
+      `Change type is '${
+        change.constructor.name
+      }', change object: ${JSON.stringify(change)}`,
+    )
+    return this.changesService.create(change)
+  }
   // async create(@Body() serializedChange: SerializedChange) {
   //   this.logger.debug(
   //     `Requested type: ${
@@ -43,12 +47,6 @@ export class ChangesController {
   //     }, the whole change: ${JSON.stringify(serializedChange)}`,
   //   )
   //   return this.changesService.create(serializedChange)
-  // }
-
-  // @UseInterceptors(UpdateFlowInterceptor)
-  // @Get('flows')
-  // public updateFlow(@Body() flow: SerializedChange) {
-  //   return '';
   // }
 
   @Get()

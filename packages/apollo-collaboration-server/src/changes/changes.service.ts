@@ -18,11 +18,7 @@ import {
   RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
-import {
-  SerializedChange,
-  changeRegistry,
-  validationRegistry,
-} from 'apollo-shared'
+import { validationRegistry } from 'apollo-shared'
 import { FilterQuery, Model } from 'mongoose'
 
 import { FilesService } from '../files/files.service'
@@ -48,9 +44,10 @@ export class ChangesService {
 
   private readonly logger = new Logger(ChangesService.name)
 
-  async create(serializedChange: SerializedChange) {
-    const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
-    const change = new ChangeType(serializedChange, { logger: this.logger })
+  // async create(serializedChange: SerializedChange) {
+  // const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
+  // const change = new ChangeType(serializedChange, { logger: this.logger })
+  async create(change: any) {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
 
     const validationResult = await validationRegistry.backendPreValidate(change)
