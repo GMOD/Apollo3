@@ -2,9 +2,9 @@
  * Possible pre-defined user roles
  */
 export enum Role {
-  Admin = <any>'admin',
-  ReadOnly = <any>'readOnly',
-  User = <any>'user',
+  Admin = 'admin',
+  ReadOnly = 'readOnly',
+  User = 'user',
 }
 
 export const RoleNames = 'admin' || 'readOnly' || 'user'

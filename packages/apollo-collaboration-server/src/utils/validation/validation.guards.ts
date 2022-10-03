@@ -34,16 +34,16 @@ export class ValidationGuard implements CanActivate {
    *          FALSE: user is not allowed to execute endpoint
    */
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
+    const requiredRole = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
     ])
     try {
       // If no role was required in endpoint then return true
-      if (!requiredRoles) {
+      if (!requiredRole) {
         return true
       }
-      this.logger.debug(`Required roles are '${requiredRoles}'`)
+      this.logger.debug(`Required role is '${requiredRole}'`)
 
       const req = context.switchToHttp().getRequest<Request>()
       const callingClass = context.getClass().name
@@ -87,10 +87,9 @@ export class ValidationGuard implements CanActivate {
       ) {
         type ChangeTypeArray = typeof ChangeTypes
         const typeName = req.body.typeName as ChangeTypeArray
-        this.logger.debug(`Request type name '${typeName}'`)
         const additionalRequiredRole = ChangeTypePermission[typeName] // Read from validation.changeTypePermissions.ts
         this.logger.debug(
-          `Additional required role is '${additionalRequiredRole}'`,
+          `Change type is '${typeName}' and an additional required role is '${additionalRequiredRole}'`,
         )
         const tmpRole: any = additionalRequiredRole
         if (!userRolesArray.includes(tmpRole)) {
@@ -102,11 +101,11 @@ export class ValidationGuard implements CanActivate {
       }
 
       // Check if user has required role
-      for (const role of requiredRoles) {
+      for (const role of requiredRole) {
         const tmpRole1: any = role
         if (userRolesArray.includes(tmpRole1)) {
           // if (user.role.includes(tmpRole1)) {
-          this.logger.debug(`User '${username}' has role '${tmpRole1}'!`)
+          this.logger.debug(`User '${username}' has role '${tmpRole1}'`)
           return true
         }
       }
