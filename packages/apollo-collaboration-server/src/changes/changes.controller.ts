@@ -6,6 +6,7 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common'
 import { SerializedChange } from 'apollo-shared'
 
@@ -14,6 +15,7 @@ import { Validations } from '../utils/validation/validatation.decorator'
 import { Role } from '../utils/role/role.enum'
 import { ChangesService } from './changes.service'
 import { FindChangeDto } from './dto/find-change.dto'
+import { ChangeInterceptor } from '../utils/change.interceptor'
 
 @UseGuards(JwtAuthGuard)
 @Validations(Role.ReadOnly)
@@ -28,15 +30,26 @@ export class ChangesController {
    * @returns Return 'HttpStatus.OK' if featureId was found AND oldEndValue matched AND database update was successfull. Otherwise throw exception.
    */
   @Post()
+  @UseInterceptors(ChangeInterceptor)
   @Validations(Role.User)
   async create(@Body() serializedChange: SerializedChange) {
-    this.logger.debug(
-      `Requested type: ${
-        serializedChange.typeName
-      }, the whole change: ${JSON.stringify(serializedChange)}`,
-    )
+    this.logger.debug(`Change type is '${serializedChange.constructor.name}', change object: ${JSON.stringify(serializedChange)}`)
     return this.changesService.create(serializedChange)
-  }
+}
+  // async create(@Body() serializedChange: SerializedChange) {
+  //   this.logger.debug(
+  //     `Requested type: ${
+  //       serializedChange.typeName
+  //     }, the whole change: ${JSON.stringify(serializedChange)}`,
+  //   )
+  //   return this.changesService.create(serializedChange)
+  // }
+
+  // @UseInterceptors(UpdateFlowInterceptor)
+  // @Get('flows')
+  // public updateFlow(@Body() flow: SerializedChange) {
+  //   return '';
+  // }
 
   @Get()
   async findAll(@Query() changeFilter: FindChangeDto) {
