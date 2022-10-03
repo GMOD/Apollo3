@@ -21,7 +21,6 @@ import {
 import {
   CoreValidation,
   ParentChildValidation,
-  SerializedChange,
   ValidationSet,
   changeRegistry,
   changes,
@@ -59,9 +58,10 @@ export class ChangesService {
     new ParentChildValidation(),
   ])
 
-  async create(serializedChange: SerializedChange) {
-    const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
-    const change = new ChangeType(serializedChange, { logger: this.logger })
+  // async create(serializedChange: SerializedChange) {
+  // const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
+  // const change = new ChangeType(serializedChange, { logger: this.logger })
+  async create(change: any) {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
 
     const validationResult = await this.validations.backendPreValidate(change)
