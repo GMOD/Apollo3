@@ -11,10 +11,10 @@ import {
 import { AnnotationFeatureI } from 'apollo-mst'
 import {
   Change,
-  ChangeManager,
   LocationEndChange,
   LocationStartChange,
   TypeChange,
+  validationRegistry,
 } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
@@ -38,29 +38,21 @@ const featureColums: GridColumns = [
 ]
 
 function AutocompleteInputCell(props: GridRenderEditCellParams) {
-  const {
-    id,
-    value,
-    field,
-    row: { model },
-  } = props
-  const { changeManager } = model as { changeManager?: ChangeManager }
+  const { id, value, field } = props
   const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>([])
   const apiRef = useGridApiContext()
 
   useEffect(() => {
     async function getSOSequenceTerms() {
-      if (!changeManager) {
-        return
-      }
-      const { validations } = changeManager
-      const soTerms = (await validations.possibleValues('type')) as string[]
+      const soTerms = (await validationRegistry.possibleValues(
+        'type',
+      )) as string[]
       if (soTerms) {
         setSOSequenceTerms(soTerms)
       }
     }
     getSOSequenceTerms()
-  }, [changeManager])
+  }, [])
 
   const handleChange = async (
     event: MuiBaseEvent,

@@ -13,8 +13,6 @@ import {
   ChangeManager,
   ClientDataStore as ClientDataStoreType,
   CollaborationServerDriver,
-  CoreValidation,
-  ValidationSet,
 } from 'apollo-shared'
 import {
   IAnyModelType,
@@ -127,10 +125,7 @@ const ClientDataStore = types
     },
   }))
   .volatile((self) => ({
-    changeManager: new ChangeManager(
-      self as unknown as ClientDataStoreType,
-      new ValidationSet([new CoreValidation()]),
-    ),
+    changeManager: new ChangeManager(self as unknown as ClientDataStoreType),
   }))
   .volatile((self) => {
     if (self.backendDriverType !== 'CollaborationServerDriver') {

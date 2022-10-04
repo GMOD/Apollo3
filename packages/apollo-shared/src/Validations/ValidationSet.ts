@@ -16,10 +16,10 @@ export class ValidationResultSet {
 }
 
 export class ValidationSet {
-  validations: Set<Validation>
+  validations: Set<Validation> = new Set()
 
-  constructor(v: Validation[]) {
-    this.validations = new Set(v)
+  registerValidation(validation: Validation): void {
+    this.validations.add(validation)
   }
 
   async frontendPreValidate(change: Change): Promise<ValidationResultSet> {
@@ -92,3 +92,6 @@ export class ValidationSet {
     return undefined
   }
 }
+
+/** global singleton of all known types of changes */
+export const validationRegistry = new ValidationSet()
