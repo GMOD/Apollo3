@@ -21,7 +21,6 @@ import {
 import {
   SerializedChange,
   changeRegistry,
-  changes,
   validationRegistry,
 } from 'apollo-shared'
 import { FilterQuery, Model } from 'mongoose'
@@ -45,11 +44,7 @@ export class ChangesService {
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
     private readonly filesService: FilesService,
-  ) {
-    Object.entries(changes).forEach(([changeName, change]) => {
-      changeRegistry.registerChange(changeName, change)
-    })
-  }
+  ) {}
 
   private readonly logger = new Logger(ChangesService.name)
 
