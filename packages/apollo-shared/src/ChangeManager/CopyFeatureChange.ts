@@ -1,5 +1,3 @@
-import ObjectID from 'bson-objectid'
-
 import {
   ChangeOptions,
   ClientDataStore,
@@ -16,6 +14,7 @@ interface SerializedCopyFeatureChangeBase extends SerializedChange {
 
 export interface CopyFeatureChangeDetails {
   featureId: string
+  newFeatureId: string
   targetAssemblyId: string
 }
 
@@ -43,12 +42,13 @@ export class CopyFeatureChange extends FeatureChange {
 
   toJSON(): SerializedCopyFeatureChange {
     if (this.changes.length === 1) {
-      const [{ featureId, targetAssemblyId }] = this.changes
+      const [{ featureId, targetAssemblyId, newFeatureId }] = this.changes
       return {
         typeName: this.typeName,
         changedIds: this.changedIds,
         assemblyId: this.assemblyId,
         featureId,
+        newFeatureId,
         targetAssemblyId,
       }
     }
@@ -71,7 +71,7 @@ export class CopyFeatureChange extends FeatureChange {
 
     // Loop the changes
     for (const change of changes) {
-      const { featureId, targetAssemblyId } = change
+      const { featureId, targetAssemblyId, newFeatureId } = change
 
       // Search feature
       const topLevelFeature = await featureModel
@@ -119,7 +119,7 @@ export class CopyFeatureChange extends FeatureChange {
         [
           {
             ...newFeatureLine,
-            _id: new ObjectID().toHexString(),
+            _id: newFeatureId,
             refSeq: refSeqDoc._id,
             allIds: featureIds,
           },
@@ -138,10 +138,11 @@ export class CopyFeatureChange extends FeatureChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
-    this.changedIds.forEach((changedId, idx) => {
-      const feature = dataStore.getFeature(changedId)
+    this.changes.forEach((change) => {
+      const { featureId } = change
+      const feature = dataStore.getFeature(featureId)
       if (!feature) {
-        throw new Error(`Could not find feature with identifier "${changedId}"`)
+        throw new Error(`Could not find feature with identifier "${featureId}"`)
       }
     })
   }

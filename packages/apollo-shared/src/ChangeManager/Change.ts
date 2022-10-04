@@ -73,6 +73,14 @@ export abstract class Change implements SerializedChange {
     this.logger = options?.logger || console
   }
 
+  /**
+   * If a non-empty string, a snackbar will display in JBrowse with this message
+   * when a successful response is received from the server.
+   */
+  get notification() {
+    return ''
+  }
+
   static fromJSON(json: SerializedChange, options?: ChangeOptions): Change {
     const ChangeType = changeRegistry.getChangeType(json.typeName)
     return new ChangeType(json, options?.logger && { logger: options.logger })

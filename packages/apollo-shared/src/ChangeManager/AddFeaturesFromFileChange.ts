@@ -43,6 +43,10 @@ export class AddFeaturesFromFileChange extends FeatureChange {
     this.changes = 'changes' in json ? json.changes : [json]
   }
 
+  get notification(): string {
+    return `Features have been added. To see them, please refresh the page.`
+  }
+
   toJSON(): SerializedAddFeaturesFromFileChange {
     if (this.changes.length === 1) {
       const [{ fileId }] = this.changes

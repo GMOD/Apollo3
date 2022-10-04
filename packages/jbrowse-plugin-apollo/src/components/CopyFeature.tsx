@@ -10,7 +10,8 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material'
-import { ChangeManager } from 'apollo-shared'
+import { ChangeManager, CopyFeatureChange } from 'apollo-shared'
+import ObjectID from 'bson-objectid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
@@ -37,7 +38,6 @@ export function CopyFeature({
   changeManager,
 }: CopyFeatureProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
-  const { notify } = session
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel | undefined
@@ -45,16 +45,12 @@ export function CopyFeature({
     throw new Error('No Apollo internet account found')
   }
   const { baseURL } = apolloInternetAccount
-  const [assemblyName, setAssemblyName] = useState('')
   const [collection, setCollection] = useState<Collection[]>([])
   const [assemblyId, setAssemblyId] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
 
   function handleChangeAssembly(e: SelectChangeEvent<string>) {
     setAssemblyId(e.target.value as string)
-    setAssemblyName(
-      collection.find((i) => i._id === e.target.value)?.name as string,
-    )
   }
 
   useEffect(() => {
@@ -106,46 +102,17 @@ export function CopyFeature({
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    let msg
-
-    // Add features
-    const uri = new URL('changes', baseURL).href
-    const apolloFetch = apolloInternetAccount?.getFetcher({
-      locationType: 'UriLocation',
-      uri,
+    const newFeatureId = new ObjectID().toHexString()
+    const change = new CopyFeatureChange({
+      changedIds: [newFeatureId],
+      typeName: 'CopyFeatureChange',
+      assemblyId: sourceAssemblyId,
+      featureId: sourceFeatureId,
+      newFeatureId,
+      targetAssemblyId: assemblyId,
     })
-    if (apolloFetch) {
-      const res = await apolloFetch(uri, {
-        method: 'POST',
-        body: JSON.stringify({
-          changedIds: ['1'],
-          typeName: 'CopyFeatureChange',
-          assemblyId: sourceAssemblyId,
-          featureId: sourceFeatureId,
-          targetAssemblyId: assemblyId,
-        }),
-        headers: new Headers({ 'Content-Type': 'application/json' }),
-      })
-      if (!res.ok) {
-        try {
-          msg = await res.text()
-        } catch (e) {
-          msg = ''
-        }
-        setErrorMessage(
-          `Error when copying features — ${res.status} (${res.statusText})${
-            msg ? ` (${msg})` : ''
-          }`,
-        )
-        return
-      }
-    }
-    notify(
-      `Features copied to assembly "${assemblyName}" successfully`,
-      'success',
-    )
+    changeManager.submit(change)
     handleClose()
-    event.preventDefault()
   }
 
   return (

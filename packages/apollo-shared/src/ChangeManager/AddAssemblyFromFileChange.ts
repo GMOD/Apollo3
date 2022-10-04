@@ -42,13 +42,18 @@ export class AddAssemblyFromFileChange extends FeatureChange {
     this.changes = 'changes' in json ? json.changes : [json]
   }
 
-  toJSON() {
+  get notification(): string {
+    return `Assembly "${this.changes[0].assemblyName}" added successfully. To use it, please refresh the page.`
+  }
+
+  toJSON(): SerializedAddAssemblyFromFileChange {
     if (this.changes.length === 1) {
-      const [{ fileId }] = this.changes
+      const [{ fileId, assemblyName }] = this.changes
       return {
         typeName: this.typeName,
         changedIds: this.changedIds,
         assemblyId: this.assemblyId,
+        assemblyName,
         fileId,
       }
     }

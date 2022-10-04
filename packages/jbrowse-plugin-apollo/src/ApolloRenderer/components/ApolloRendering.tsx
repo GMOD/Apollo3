@@ -304,16 +304,16 @@ function ApolloRendering(props: ApolloRenderingProps) {
                 session,
                 handleClose: () => {
                   doneCallback()
+                  setContextMenuFeature(undefined)
                 },
                 changeManager,
                 sourceFeature: contextMenuFeature,
                 sourceAssemblyId: currentAssemblyId,
               },
             ])
-            setContextMenuFeature(undefined)
           }}
         >
-          {'Add child feature'}
+          Add child feature
         </MenuItem>
         <MenuItem
           key={2}
@@ -326,16 +326,16 @@ function ApolloRendering(props: ApolloRenderingProps) {
                 session,
                 handleClose: () => {
                   doneCallback()
+                  setContextMenuFeature(undefined)
                 },
                 changeManager,
-                sourceFeature: contextMenuFeature,
+                sourceFeatureId: contextMenuFeature?._id,
                 sourceAssemblyId: currentAssemblyId,
               },
             ])
-            setContextMenuFeature(undefined)
           }}
         >
-          {'Copy features and annotations'}
+          Copy features and annotations
         </MenuItem>
         <MenuItem
           key={3}
@@ -348,6 +348,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
                 session,
                 handleClose: () => {
                   doneCallback()
+                  setContextMenuFeature(undefined)
                 },
                 changeManager,
                 sourceFeature: contextMenuFeature,
@@ -356,10 +357,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
                 setSelectedFeature,
               },
             ])
-            setContextMenuFeature(undefined)
           }}
         >
-          {'Delete feature'}
+          Delete feature
         </MenuItem>
       </Menu>
       <canvas

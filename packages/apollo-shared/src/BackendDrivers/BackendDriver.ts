@@ -1,6 +1,7 @@
 import { Region } from '@jbrowse/core/util'
 import { AnnotationFeatureSnapshot } from 'apollo-mst'
 
+import { SubmitOpts } from '../ChangeManager'
 import { Change, ClientDataStore } from '../ChangeManager/Change'
 import { ValidationResultSet } from '../Validations/ValidationSet'
 
@@ -13,5 +14,8 @@ export abstract class BackendDriver {
 
   abstract getRefSeqs(): Promise<string[]>
 
-  abstract submitChange(change: Change): Promise<ValidationResultSet>
+  abstract submitChange(
+    change: Change,
+    opts: SubmitOpts,
+  ): Promise<ValidationResultSet>
 }
