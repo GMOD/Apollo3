@@ -25,9 +25,9 @@ export class ChangesController {
   private readonly logger = new Logger(ChangesController.name)
 
   /**
-   * Updates end position of given feature. Before update, current end -position value is checked (against given old-value)
-   * @param serializedChange - Information containing featureId, newEndValue, oldEndValue
-   * @returns Return 'HttpStatus.OK' if featureId was found AND oldEndValue matched AND database update was successfull. Otherwise throw exception.
+   * ...
+   * @param serializedChange - Information containing ...
+   * @returns Return 'HttpStatus.OK' if .... Otherwise throw exception.
    */
   @Post()
   @UseInterceptors(ChangeInterceptor)
@@ -40,14 +40,6 @@ export class ChangesController {
     )
     return this.changesService.create(change)
   }
-  // async create(@Body() serializedChange: SerializedChange) {
-  //   this.logger.debug(
-  //     `Requested type: ${
-  //       serializedChange.typeName
-  //     }, the whole change: ${JSON.stringify(serializedChange)}`,
-  //   )
-  //   return this.changesService.create(serializedChange)
-  // }
 
   @Get()
   async findAll(@Query() changeFilter: FindChangeDto) {

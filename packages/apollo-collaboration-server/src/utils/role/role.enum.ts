@@ -1,13 +1,13 @@
 /**
  * Possible pre-defined user roles
  */
+export const RoleNames = 'admin' || 'readOnly' || 'user'
+
 export enum Role {
   Admin = 'admin',
   ReadOnly = 'readOnly',
   User = 'user',
 }
-
-export const RoleNames = 'admin' || 'readOnly' || 'user'
 
 // Define role inheritance
 export const RoleInheritance = {

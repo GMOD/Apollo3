@@ -104,7 +104,6 @@ export class ValidationGuard implements CanActivate {
       for (const role of requiredRole) {
         const tmpRole1: any = role
         if (userRolesArray.includes(tmpRole1)) {
-          // if (user.role.includes(tmpRole1)) {
           this.logger.debug(`User '${username}' has role '${tmpRole1}'`)
           return true
         }
