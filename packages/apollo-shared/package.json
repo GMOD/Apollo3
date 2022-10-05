@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@nestjs/common": "^9.0.4",
+    "@nestjs/core": "^9.0.4",
     "@types/node": "^16.0.0",
     "@types/rimraf": "^3",
     "mobx-state-tree": "^5.1.5",

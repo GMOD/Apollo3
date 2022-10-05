@@ -3,6 +3,11 @@ import { ClientSession, Model } from 'mongoose'
 
 import { Change, ClientDataStore } from '../ChangeManager/Change'
 
+export interface Context {
+  context: import('@nestjs/common').ExecutionContext
+  reflector: import('@nestjs/core').Reflector
+}
+
 export interface ValidationResult {
   validationName: string
   error?: {
@@ -23,7 +28,9 @@ export abstract class Validation {
     return { validationName: this.name }
   }
 
-  async backendPreValidate(_change: Change): Promise<ValidationResult> {
+  async backendPreValidate(
+    _changeOrContext: Change | Context,
+  ): Promise<ValidationResult> {
     return { validationName: this.name }
   }
 
