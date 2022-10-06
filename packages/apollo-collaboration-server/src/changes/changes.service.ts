@@ -24,6 +24,7 @@ import {
   ValidationSet,
   changeRegistry,
   changes,
+  validationRegistry,
 } from 'apollo-shared'
 import { FilterQuery, Model } from 'mongoose'
 
@@ -47,24 +48,17 @@ export class ChangesService {
     private readonly changeModel: Model<ChangeDocument>,
     private readonly filesService: FilesService,
   ) {
-    Object.entries(changes).forEach(([changeName, change]) => {
-      changeRegistry.registerChange(changeName, change)
-    })
+    // Object.entries(changes).forEach(([changeName, change]) => {
+    //   changeRegistry.registerChange(changeName, change)
+    // })
   }
 
   private readonly logger = new Logger(ChangesService.name)
-  private readonly validations = new ValidationSet([
-    new CoreValidation(),
-    new ParentChildValidation(),
-  ])
 
-  // async create(serializedChange: SerializedChange) {
-  // const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
-  // const change = new ChangeType(serializedChange, { logger: this.logger })
   async create(change: any) {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
 
-    const validationResult = await this.validations.backendPreValidate(change)
+    const validationResult = await validationRegistry.backendPreValidate(change)
     if (!validationResult.ok) {
       const errorMessage = validationResult.results
         .map((r) => r.error?.message)
@@ -106,7 +100,7 @@ export class ChangesService {
         { session },
       )
       changeDoc = savedChangedLogDoc
-      const validationResult2 = await this.validations.backendPostValidate(
+      const validationResult2 = await validationRegistry.backendPostValidate(
         change,
         { featureModel: this.featureModel, session },
       )

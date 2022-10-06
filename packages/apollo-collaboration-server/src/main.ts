@@ -1,4 +1,11 @@
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
+import {
+  CoreValidation,
+  ParentChildValidation,
+  changeRegistry,
+  changes,
+  validationRegistry,
+} from 'apollo-shared'
 
 import { AppModule } from './app.module'
 import { GlobalExceptionsFilter } from './global-exceptions.filter'
@@ -14,6 +21,14 @@ async function bootstrap() {
   if (!APPLICATION_PORT) {
     throw new Error('No APPLICATION_PORT found in .env file')
   }
+
+  Object.entries(changes).forEach(([changeName, change]) => {
+    changeRegistry.registerChange(changeName, change)
+  })
+
+  validationRegistry.registerValidation(new CoreValidation())
+  validationRegistry.registerValidation(new ParentChildValidation())
+
   const cors = convertToBoolean(CORS)
   const loggerOpions = JSON.parse(LOGGER_OPTIONS)
   const app = await NestFactory.create(AppModule, {
