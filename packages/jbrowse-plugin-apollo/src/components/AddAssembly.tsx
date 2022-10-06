@@ -50,7 +50,7 @@ export function AddAssembly({
   }
   const [assemblyName, setAssemblyName] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
-  const [file, setFile] = useState<File>()
+  const [file, setFile] = useState<File | null>(null)
   const [fileType, setFileType] = useState('text/x-gff3')
   const [importFeatures, setImportFeatures] = useState(true)
   const [submitted, setSubmitted] = useState(false)
@@ -76,7 +76,16 @@ export function AddAssembly({
     if (!e.target.files) {
       return
     }
-    setFile(e.target.files[0])
+    const selectedFile = e.target.files.item(0)
+    setFile(selectedFile)
+    if (
+      selectedFile?.name.endsWith('.fasta') ||
+      selectedFile?.name.endsWith('.fa')
+    ) {
+      setFileType('text/x-fasta')
+    } else {
+      setFileType('text/x-gff3')
+    }
   }
 
   function handleChangeFileType(e: React.ChangeEvent<HTMLInputElement>) {
@@ -201,13 +210,13 @@ export function AddAssembly({
             >
               <FormControlLabel
                 value="text/x-gff3"
-                control={<Radio />}
+                control={<Radio checked={fileType === 'text/x-gff3'} />}
                 label="GFF3"
                 disabled={submitted && !errorMessage}
               />
               <FormControlLabel
                 value="text/x-fasta"
-                control={<Radio />}
+                control={<Radio checked={fileType === 'text/x-fasta'} />}
                 label="FASTA"
                 disabled={submitted && !errorMessage}
               />
