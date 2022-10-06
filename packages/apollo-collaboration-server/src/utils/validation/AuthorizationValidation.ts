@@ -1,10 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common'
-import { Change } from 'apollo-shared/src'
-import { TypeChange } from 'apollo-shared/src/ChangeManager/TypeChange'
-import soSequenceTypes from 'apollo-shared/src/Validations/soSequenceTypes'
+import { Logger } from '@nestjs/common'
 import {
   Context,
-  Validation,
   ValidationResult,
 } from 'apollo-shared/src/Validations/Validation'
 
