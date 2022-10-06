@@ -28,7 +28,7 @@ import {
   configSchema as apolloRendererConfigSchema,
 } from './ApolloRenderer'
 import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
-import { ViewChangeLog } from './components'
+import { ManageUsers, ViewChangeLog } from './components'
 import { DownloadGFF3 } from './components/DownloadGFF3'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
@@ -132,6 +132,20 @@ export default class ApolloPlugin extends Plugin {
         onClick: (session: AbstractSessionModel) => {
           session.queueDialog((doneCallback) => [
             ViewChangeLog,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+            },
+          ])
+        },
+      })
+      pluginManager.rootModel.appendToMenu('Apollo', {
+        label: 'Manage Users',
+        onClick: (session: AbstractSessionModel) => {
+          session.queueDialog((doneCallback) => [
+            ManageUsers,
             {
               session,
               handleClose: () => {
