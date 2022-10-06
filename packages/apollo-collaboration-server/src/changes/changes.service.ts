@@ -18,14 +18,7 @@ import {
   RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
-import {
-  CoreValidation,
-  ParentChildValidation,
-  ValidationSet,
-  changeRegistry,
-  changes,
-  validationRegistry,
-} from 'apollo-shared'
+import { validationRegistry } from 'apollo-shared'
 import { FilterQuery, Model } from 'mongoose'
 
 import { FilesService } from '../files/files.service'
