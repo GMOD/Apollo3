@@ -1,6 +1,10 @@
 import fs from 'fs'
 import { join } from 'path'
 
+import jwtDecode from 'jwt-decode'
+
+import { PayloadObject } from './payloadObject'
+
 // import { fileSearchFolderConfig, GFF3 } from './fileConfig'
 
 /**
@@ -82,4 +86,13 @@ export function writeIntoGff3ChangeLog(
       `ORIGINAL LINE : ${originalLine}\n` +
       `UPDATED VALUE : ${updatedLine}\n`,
   )
+}
+
+/**
+ * Decode access token
+ * @param token -
+ * @returns Decoded token
+ */
+export function getDecodedAccessToken(token: string): PayloadObject {
+  return jwtDecode(token)
 }

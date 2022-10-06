@@ -2,7 +2,7 @@ import { FeatureDocument } from 'apollo-schemas'
 import { ClientSession, Model } from 'mongoose'
 
 import { Change, ClientDataStore } from '../ChangeManager/Change'
-import { Validation, ValidationResult } from './Validation'
+import { Context, Validation, ValidationResult } from './Validation'
 
 export class ValidationResultSet {
   results: ValidationResult[] = []
@@ -49,7 +49,9 @@ export class ValidationSet {
     return results
   }
 
-  async backendPreValidate(change: Change): Promise<ValidationResultSet> {
+  async backendPreValidate(
+    change: Change | Context,
+  ): Promise<ValidationResultSet> {
     const results = new ValidationResultSet()
     for (const v of this.validations) {
       const result = await v.backendPreValidate(change)
