@@ -1,5 +1,7 @@
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
+import { PayloadObject } from 'apollo-shared/src/Common/payloadObject'
+import jwtDecode from 'jwt-decode'
 import { Instance, getRoot, types } from 'mobx-state-tree'
 
 import { ApolloLoginForm } from './components/ApolloLoginForm'
@@ -10,6 +12,10 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
     .props({
       type: types.literal('ApolloInternetAccount'),
       configuration: ConfigurationReference(configSchema),
+      role: types.array(
+        types.maybe(types.enumeration('Role', ['admin', 'user', 'readOnly'])),
+      ),
+      // role: types.maybe(types.enumeration('Role', ['admin', 'user', 'readOnly'])),
     })
     .views((self) => ({
       get internetAccountType() {
@@ -20,6 +26,9 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       },
     }))
     .actions((self) => ({
+      setRole<E extends Record<keyof E, string>>(roles: any) {
+        self.role = roles
+      },
       getTokenFromUser(
         resolve: (token: string) => void,
         reject: (error: Error) => void,
@@ -36,6 +45,10 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
               } else if (token instanceof Error) {
                 reject(token)
               } else {
+                const dec = jwtDecode(token) as PayloadObject
+                // decode role from token here and call setRole()
+                console.log(`Set the following roles for user: ${dec.roles}`)
+                this.setRole(dec.roles)
                 resolve(token)
               }
               doneCallback()

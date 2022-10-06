@@ -1,9 +1,8 @@
 import fs from 'fs'
 import { join } from 'path'
 
+import { PayloadObject } from 'apollo-shared/src/Common/payloadObject'
 import jwtDecode from 'jwt-decode'
-
-import { PayloadObject } from './payloadObject'
 
 // import { fileSearchFolderConfig, GFF3 } from './fileConfig'
 

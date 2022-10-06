@@ -1,11 +1,12 @@
-import { Region, getSession } from '@jbrowse/core/util'
+import { AppRootModel, Region, getSession } from '@jbrowse/core/util'
 import { Menu, MenuItem } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { Change, LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { observer } from 'mobx-react'
-import { getSnapshot } from 'mobx-state-tree'
+import { getRoot, getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useRef, useState } from 'react'
 
+import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { AddFeature } from '../../components/AddFeature'
 import { CopyFeature } from '../../components/CopyFeature'
 import { DeleteFeature } from '../../components/DeleteFeature'
@@ -28,6 +29,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
+  const [isAdmin, setIsAdmin] = useState<boolean>(false)
   const [overEdge, setOverEdge] = useState<'start' | 'end'>()
   const [dragging, setDragging] = useState<{
     edge: 'start' | 'end'
@@ -63,6 +65,22 @@ function ApolloRendering(props: ApolloRenderingProps) {
     // @ts-ignore
     Array.from(a.values()).map((f) => getSnapshot(f)),
   )
+
+  // useEffect(() => {
+  //   const { internetAccounts } = getRoot(session) as AppRootModel
+  //   const apolloInternetAccount = internetAccounts.find(
+  //     (ia) => ia.type === 'ApolloInternetAccount',
+  //   ) as ApolloInternetAccountModel | undefined
+  //   if (!apolloInternetAccount) {
+  //     throw new Error('No Apollo internet account found')
+  //   }
+  //   console.log(`User has the following roles: ${JSON.stringify(apolloInternetAccount.role)}`)
+  //   if (apolloInternetAccount.role.includes('admin')) {
+  //     setIsAdmin(true)
+  //     console.log('User is ADMIN')
+  //   } 
+  // }, [])
+
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) {
@@ -361,6 +379,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
           Copy features and annotations
         </MenuItem>
         <MenuItem
+          disabled={!isAdmin}
           key={3}
           value={3}
           onClick={() => {

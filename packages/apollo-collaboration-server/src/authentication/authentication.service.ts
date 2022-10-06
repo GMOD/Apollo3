@@ -2,6 +2,7 @@ import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 
 import { User, UsersService } from '../users/users.service'
+import { Role, RoleInheritance } from '../utils/role/role.enum'
 
 @Injectable()
 export class AuthenticationService {
@@ -37,7 +38,34 @@ export class AuthenticationService {
     if (!user) {
       throw new UnauthorizedException('No user provided')
     }
-    const payload = { username: user.username, sub: user.userId }
+    // Find user from Mongo
+    const userFound = await this.usersService.findByUsername(user.username)
+    if (!userFound) {
+      const errMsg = `User '${user.username}' not found in Mongo, no authorization!`
+      this.logger.debug(errMsg)
+      return {
+        validationName: 'AuthorizationValidation',
+        error: {
+          message: errMsg,
+        },
+      }
+    }
+    this.logger.debug(`*** Found user from Mongo: ${JSON.stringify(userFound)}`)
+
+    const userRoles = new Set<Role>()
+    // Loop user's role(s) and add each role + inherited ones to userRolesArray
+    for (const userRole of userFound.role) {
+      const roles = RoleInheritance[userRole] // Read from role.enum.ts
+      roles.forEach((role) => {
+        userRoles.add(role)
+      })
+    }
+
+    const payload = {
+      username: user.username,
+      sub: user.userId,
+      roles: Array.from(userRoles),
+    }
     // Return token with SUCCESS status
     const returnToken = this.jwtService.sign(payload)
     this.logger.debug(

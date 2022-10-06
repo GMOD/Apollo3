@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
+import { PayloadObject } from 'apollo-shared/src/Common/payloadObject'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 
 import { User } from '../../users/users.service'
 import { jwtConstants } from '../constants'
-import { PayloadObject } from '../payloadObject'
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
