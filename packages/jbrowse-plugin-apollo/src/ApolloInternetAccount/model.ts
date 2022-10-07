@@ -2,6 +2,7 @@ import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { UriLocation } from '@jbrowse/core/util'
+import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
 import { JWTPayload } from 'apollo-shared'
 import jwtDecode from 'jwt-decode'
 import { Instance, getRoot, types } from 'mobx-state-tree'
@@ -16,10 +17,10 @@ const stateModelFactory = (
   pluginManager: PluginManager,
 ) => {
   const AuthPlugin = pluginManager.getPlugin('AuthenticationPlugin') as
-    | import('@jbrowse/plugin-authentication').default
+    | AuthenticationPlugin
     | undefined
   if (!AuthPlugin) {
-    throw new Error('LinearGenomeView plugin not found')
+    throw new Error('Authentication plugin not found')
   }
   const { OAuthConfigSchema, OAuthInternetAccountModelFactory } =
     AuthPlugin.exports

@@ -1,7 +1,9 @@
-import { ReadStream } from 'fs'
+import type { ReadStream } from 'fs'
+import type { FileHandle } from 'fs/promises'
 
 import { Region } from '@jbrowse/core/util'
 import { AppRootModel } from '@jbrowse/core/util'
+import type { LoggerService } from '@nestjs/common'
 import {
   AnnotationFeatureI,
   AnnotationFeatureSnapshot,
@@ -14,6 +16,7 @@ import {
   RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
+import type { ClientSession, Model } from 'mongoose'
 
 import { ChangeManager } from './ChangeManager'
 import { changeRegistry } from './ChangeTypes'
@@ -30,18 +33,18 @@ export interface ClientDataStore {
 }
 export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'
-  gff3Handle: import('fs').promises.FileHandle
+  gff3Handle: FileHandle
 }
 export interface ServerDataStore {
   typeName: 'Server'
-  featureModel: import('mongoose').Model<FeatureDocument>
-  assemblyModel: import('mongoose').Model<AssemblyDocument>
-  refSeqModel: import('mongoose').Model<RefSeqDocument>
-  refSeqChunkModel: import('mongoose').Model<RefSeqChunkDocument>
-  fileModel: import('mongoose').Model<FileDocument>
-  session: import('mongoose').ClientSession
+  featureModel: Model<FeatureDocument>
+  assemblyModel: Model<AssemblyDocument>
+  refSeqModel: Model<RefSeqDocument>
+  refSeqChunkModel: Model<RefSeqChunkDocument>
+  fileModel: Model<FileDocument>
+  session: ClientSession
   filesService: {
-    getFileStream(file: FileDocument): import('fs').ReadStream
+    getFileStream(file: FileDocument): ReadStream
     parseGFF3(stream: ReadStream): ReadStream
   }
 }
@@ -56,11 +59,11 @@ export interface SerializedChange {
 export type DataStore = ServerDataStore | LocalGFF3DataStore | ClientDataStore
 
 export interface ChangeOptions {
-  logger: import('@nestjs/common').LoggerService
+  logger: LoggerService
 }
 
 export abstract class Change implements SerializedChange {
-  protected logger: import('@nestjs/common').LoggerService
+  protected logger: LoggerService
   abstract typeName: string
 
   assemblyId: string

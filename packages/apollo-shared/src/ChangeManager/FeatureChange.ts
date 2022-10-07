@@ -2,6 +2,7 @@ import { GFF3Feature } from '@gmod/gff'
 import type { AnnotationFeatureSnapshot } from 'apollo-mst'
 import { Feature, FileDocument, RefSeqDocument } from 'apollo-schemas'
 import ObjectID from 'bson-objectid'
+import type { Types } from 'mongoose'
 
 import { Change, ServerDataStore } from './Change'
 
@@ -284,9 +285,7 @@ export abstract class FeatureChange extends Change {
     const refSeq =
       typeof feature.refSeq === 'string'
         ? feature.refSeq
-        : (
-            feature.refSeq as unknown as import('mongoose').Types.ObjectId
-          ).toHexString()
+        : (feature.refSeq as unknown as Types.ObjectId).toHexString()
 
     return {
       ...feature,

@@ -1,11 +1,13 @@
+import type { ExecutionContext } from '@nestjs/common'
+import type { Reflector } from '@nestjs/core'
 import { FeatureDocument, UserDocument } from 'apollo-schemas'
 import { ClientSession, Model } from 'mongoose'
 
 import { Change, ClientDataStore } from '../ChangeManager/Change'
 
 export interface Context {
-  context: import('@nestjs/common').ExecutionContext
-  reflector: import('@nestjs/core').Reflector
+  context: ExecutionContext
+  reflector: Reflector
 }
 
 export function isContext(thing: Change | Context): thing is Context {
