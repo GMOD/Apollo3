@@ -2,6 +2,7 @@ import { GFF3Feature } from '@gmod/gff'
 import type { AnnotationFeatureSnapshot } from 'apollo-mst'
 import { FileDocument, RefSeqDocument } from 'apollo-schemas'
 import ObjectID from 'bson-objectid'
+import type { Types } from 'mongoose'
 
 import {
   Change,

@@ -1,6 +1,7 @@
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
+<<<<<<< HEAD
 import { MenuItem } from '@jbrowse/core/ui'
 import {
   AbstractSessionModel,
@@ -9,6 +10,10 @@ import {
 } from '@jbrowse/core/util'
 import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
 import Undo from '@mui/icons-material/Undo'
+=======
+import { UriLocation } from '@jbrowse/core/util'
+import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
+>>>>>>> Use "import type" instead of inline type imports
 import { JWTPayload } from 'apollo-shared'
 import jwtDecode from 'jwt-decode'
 import { autorun } from 'mobx'
