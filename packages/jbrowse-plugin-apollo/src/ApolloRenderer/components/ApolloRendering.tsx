@@ -66,20 +66,20 @@ function ApolloRendering(props: ApolloRenderingProps) {
     Array.from(a.values()).map((f) => getSnapshot(f)),
   )
 
-  // useEffect(() => {
-  //   const { internetAccounts } = getRoot(session) as AppRootModel
-  //   const apolloInternetAccount = internetAccounts.find(
-  //     (ia) => ia.type === 'ApolloInternetAccount',
-  //   ) as ApolloInternetAccountModel | undefined
-  //   if (!apolloInternetAccount) {
-  //     throw new Error('No Apollo internet account found')
-  //   }
-  //   console.log(`User has the following roles: ${JSON.stringify(apolloInternetAccount.role)}`)
-  //   if (apolloInternetAccount.role.includes('admin')) {
-  //     setIsAdmin(true)
-  //     console.log('User is ADMIN')
-  //   } 
-  // }, [])
+  useEffect(() => {
+    const { internetAccounts } = getRoot(session) as AppRootModel
+    const apolloInternetAccount = internetAccounts.find(
+      (ia) => ia.type === 'ApolloInternetAccount',
+    ) as ApolloInternetAccountModel | undefined
+    if (!apolloInternetAccount) {
+      throw new Error('No Apollo internet account found')
+    }
+    console.log(`User has the following roles: ${JSON.stringify(apolloInternetAccount.role)}`)
+    if (apolloInternetAccount.role.includes('admin')) {
+      setIsAdmin(true)
+      console.log('User is ADMIN')
+    } 
+  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -379,7 +379,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
           Copy features and annotations
         </MenuItem>
         <MenuItem
-          // disabled={!isAdmin}
+          disabled={!isAdmin}
           key={3}
           value={3}
           onClick={() => {
