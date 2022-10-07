@@ -379,7 +379,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
           Copy features and annotations
         </MenuItem>
         <MenuItem
-          disabled={!isAdmin}
+          // disabled={!isAdmin}
           key={3}
           value={3}
           onClick={() => {
