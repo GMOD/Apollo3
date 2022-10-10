@@ -43,19 +43,19 @@ export class CopyFeatureChange extends FeatureChange {
   }
 
   toJSON(): SerializedCopyFeatureChange {
-    const { changes, changedIds, typeName, assemblyId } = this
+    const { changes, changedIds, typeName, assembly } = this
     if (changes.length === 1) {
       const [{ featureId, targetAssemblyId, newFeatureId }] = changes
       return {
         typeName,
         changedIds,
-        assemblyId,
+        assembly,
         featureId,
         newFeatureId,
         targetAssemblyId,
       }
     }
-    return { typeName, changedIds, assemblyId, changes }
+    return { typeName, changedIds, assembly, changes }
   }
 
   /**
@@ -65,7 +65,7 @@ export class CopyFeatureChange extends FeatureChange {
    */
   async applyToServer(backend: ServerDataStore) {
     const { featureModel, session, refSeqModel } = backend
-    const { changes, assemblyId, logger } = this
+    const { changes, assembly, logger } = this
 
     // Loop the changes
     for (const change of changes) {
@@ -101,14 +101,14 @@ export class CopyFeatureChange extends FeatureChange {
         .exec()
       if (!refSeqDoc) {
         throw new Error(
-          `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${topLevelFeature.refSeq}" not found`,
+          `RefSeq was not found by assembly "${assembly}" and seq_id "${topLevelFeature.refSeq}" not found`,
         )
       }
 
       // Let's add featureId to each child recursively
       const newFeatureLine = this.generateNewIds(newFeature, featureIds)
       logger.verbose?.(`New featureIds: ${featureIds}`)
-      logger.verbose?.(`New assemblyId: ${targetAssemblyId}`)
+      logger.verbose?.(`New assembly: ${targetAssemblyId}`)
       logger.verbose?.(`New refSeqId: ${refSeqDoc._id}`)
       logger.verbose?.(`New featureId: ${newFeatureLine._id}`)
 
@@ -146,14 +146,14 @@ export class CopyFeatureChange extends FeatureChange {
   }
 
   getInverse() {
-    const { changes, changedIds, assemblyId, logger } = this
+    const { changes, changedIds, assembly, logger } = this
     const inverseChangedIds = changedIds.slice().reverse()
     const inverseChanges = changes
       .slice()
       .reverse()
       .map((endChange) => ({
         featureId: endChange.featureId,
-        assemblyId: endChange.targetAssemblyId,
+        assembly: endChange.targetAssemblyId,
         parentFeatureId: '',
       }))
     return new DeleteFeatureChange(
@@ -163,7 +163,7 @@ export class CopyFeatureChange extends FeatureChange {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         changes: inverseChanges,
-        assemblyId,
+        assembly,
       },
       { logger },
     )

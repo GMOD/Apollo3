@@ -289,7 +289,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
         setSelectedFeature(apolloFeatureUnderMouse)
       }
     } else if (dragging) {
-      const assemblyId = getAssemblyId(region.assemblyName)
+      const assembly = getAssemblyId(region.assemblyName)
       const { feature, bp, edge } = dragging
       let change: LocationEndChange | LocationStartChange
       if (edge === 'end') {
@@ -302,7 +302,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
           featureId,
           oldEnd,
           newEnd,
-          assemblyId,
+          assembly,
         })
       } else {
         const featureId = feature._id
@@ -314,7 +314,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
           featureId,
           oldStart,
           newStart,
-          assemblyId,
+          assembly,
         })
       }
       changeManager?.submit(change)

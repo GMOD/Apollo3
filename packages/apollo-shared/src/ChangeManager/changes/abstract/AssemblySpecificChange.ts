@@ -11,20 +11,20 @@ import {
 } from './Change'
 
 export interface SerializedAssemblySpecificChange extends SerializedChange {
-  assemblyId: string
+  assembly: string
 }
 
 export abstract class AssemblySpecificChange extends Change {
-  assemblyId: string
+  assembly: string
 
   constructor(json: SerializedAssemblySpecificChange, options?: ChangeOptions) {
     super(json, options)
-    this.assemblyId = json.assemblyId
+    this.assembly = json.assembly
   }
 
   async addRefSeqIntoDb(
     fileDoc: FileDocument,
-    assemblyId: string,
+    assembly: string,
     backend: ServerDataStore,
   ) {
     const { logger } = this
@@ -107,7 +107,7 @@ export abstract class AssemblySpecificChange extends Change {
               {
                 name,
                 description,
-                assembly: assemblyId,
+                assembly,
                 length: 0,
                 ...(customChunkSize ? { chunkSize: customChunkSize } : null),
               },
@@ -177,7 +177,7 @@ export abstract class AssemblySpecificChange extends Change {
 
   async addFeatureIntoDb(gff3Feature: GFF3Feature, backend: ServerDataStore) {
     const { featureModel, refSeqModel, session } = backend
-    const { assemblyId, logger, refSeqCache } = this
+    const { assembly, logger, refSeqCache } = this
 
     for (const featureLine of gff3Feature) {
       const { seq_id: refName } = featureLine
@@ -190,7 +190,7 @@ export abstract class AssemblySpecificChange extends Change {
       if (!refSeqDoc) {
         refSeqDoc =
           (await refSeqModel
-            .findOne({ assembly: assemblyId, name: refName })
+            .findOne({ assembly, name: refName })
             .session(session)
             .exec()) || undefined
         if (refSeqDoc) {
@@ -199,7 +199,7 @@ export abstract class AssemblySpecificChange extends Change {
       }
       if (!refSeqDoc) {
         throw new Error(
-          `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refName}" not found`,
+          `RefSeq was not found by assembly "${assembly}" and seq_id "${refName}" not found`,
         )
       }
       // Let's add featureId to parent feature

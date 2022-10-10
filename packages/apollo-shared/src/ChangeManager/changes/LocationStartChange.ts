@@ -45,12 +45,12 @@ export class LocationStartChange extends FeatureChange {
   }
 
   toJSON(): SerializedLocationStartChange {
-    const { changes, changedIds, typeName, assemblyId } = this
+    const { changes, changedIds, typeName, assembly } = this
     if (changes.length === 1) {
       const [{ featureId, oldStart, newStart }] = changes
-      return { typeName, changedIds, assemblyId, featureId, oldStart, newStart }
+      return { typeName, changedIds, assembly, featureId, oldStart, newStart }
     }
-    return { typeName, changedIds, assemblyId, changes }
+    return { typeName, changedIds, assembly, changes }
   }
 
   /**
@@ -141,7 +141,7 @@ export class LocationStartChange extends FeatureChange {
   }
 
   getInverse() {
-    const { changes, changedIds, typeName, assemblyId, logger } = this
+    const { changes, changedIds, typeName, assembly, logger } = this
     const inverseChangedIds = changedIds.slice().reverse()
     const inverseChanges = changes
       .slice()
@@ -156,7 +156,7 @@ export class LocationStartChange extends FeatureChange {
         changedIds: inverseChangedIds,
         typeName,
         changes: inverseChanges,
-        assemblyId,
+        assembly,
       },
       { logger },
     )

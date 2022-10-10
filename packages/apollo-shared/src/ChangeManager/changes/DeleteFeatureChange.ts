@@ -45,18 +45,18 @@ export class DeleteFeatureChange extends FeatureChange {
   }
 
   toJSON(): SerializedDeleteFeatureChange {
-    const { changes, changedIds, typeName, assemblyId } = this
+    const { changes, changedIds, typeName, assembly } = this
     if (changes.length === 1) {
       const [{ deletedFeature, parentFeatureId }] = changes
       return {
         typeName,
         changedIds,
-        assemblyId,
+        assembly,
         deletedFeature,
         parentFeatureId,
       }
     }
-    return { typeName, changedIds, assemblyId, changes }
+    return { typeName, changedIds, assembly, changes }
   }
 
   /**
@@ -177,7 +177,7 @@ export class DeleteFeatureChange extends FeatureChange {
   }
 
   getInverse() {
-    const { changes, changedIds, assemblyId, logger } = this
+    const { changes, changedIds, assembly, logger } = this
     const inverseChangedIds = changedIds.slice().reverse()
     const inverseChanges = changes
       .slice()
@@ -192,7 +192,7 @@ export class DeleteFeatureChange extends FeatureChange {
         changedIds: inverseChangedIds,
         typeName: 'AddFeatureChange',
         changes: inverseChanges,
-        assemblyId,
+        assembly,
       },
       { logger },
     )

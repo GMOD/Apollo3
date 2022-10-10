@@ -98,8 +98,14 @@ export const ApolloDetails = observer(
       return <div>click on a feature to see details</div>
     }
     // const sequenceTypes = changeManager?.validations.getPossibleValues('type')
-    const { _id: id, type, refSeq, start, end } = selectedFeature
-    const assemblyId = ''
+    const {
+      _id: id,
+      type,
+      refSeq,
+      start,
+      end,
+      assemblyId: assembly,
+    } = selectedFeature
     const selectedFeatureRows = [{ id, type, refSeq, start, end, model }]
     function addChildFeatures(f: typeof selectedFeature) {
       f?.children?.forEach((child: AnnotationFeatureI, childId: string) => {
@@ -133,7 +139,7 @@ export const ApolloDetails = observer(
           featureId,
           oldStart,
           newStart: Number(newStart),
-          assemblyId,
+          assembly,
         })
       } else if (newRow.start !== oldRow.start) {
         const { end: oldEnd, id: featureId } = oldRow
@@ -144,7 +150,7 @@ export const ApolloDetails = observer(
           featureId,
           oldEnd,
           newEnd: Number(newEnd),
-          assemblyId,
+          assembly,
         })
       } else if (newRow.type !== oldRow.type) {
         const { type: oldType, id: featureId } = oldRow
@@ -155,7 +161,7 @@ export const ApolloDetails = observer(
           featureId,
           oldType: String(oldType),
           newType: String(newType),
-          assemblyId,
+          assembly,
         })
       }
       if (change) {

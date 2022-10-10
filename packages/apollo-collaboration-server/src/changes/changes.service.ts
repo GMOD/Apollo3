@@ -79,9 +79,6 @@ export class ChangesService {
 
       // Add entry to change collection
       const changeEntry: CreateChangeDto = {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        assembly: change.assemblyId,
         ...change,
         user: 'demo user id',
       }

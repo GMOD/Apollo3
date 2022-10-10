@@ -50,12 +50,12 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
   }
 
   toJSON(): SerializedAddFeaturesFromFileChange {
-    const { changes, typeName, assemblyId } = this
+    const { changes, typeName, assembly } = this
     if (changes.length === 1) {
       const [{ fileId }] = changes
-      return { typeName, assemblyId, fileId }
+      return { typeName, assembly, fileId }
     }
-    return { typeName, assemblyId, changes }
+    return { typeName, assembly, changes }
   }
 
   /**
@@ -104,9 +104,9 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
   async applyToClient(dataStore: ClientDataStore) {}
 
   getInverse() {
-    const { typeName, changes, assemblyId, logger } = this
+    const { typeName, changes, assembly, logger } = this
     return new AddFeaturesFromFileChange(
-      { typeName, changes, assemblyId },
+      { typeName, changes, assembly },
       { logger },
     )
   }

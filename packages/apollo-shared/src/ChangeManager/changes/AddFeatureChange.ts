@@ -44,12 +44,12 @@ export class AddFeatureChange extends FeatureChange {
   }
 
   toJSON(): SerializedAddFeatureChange {
-    const { changes, changedIds, typeName, assemblyId } = this
+    const { changes, changedIds, typeName, assembly } = this
     if (changes.length === 1) {
       const [{ addedFeature, parentFeatureId }] = changes
-      return { typeName, changedIds, assemblyId, addedFeature, parentFeatureId }
+      return { typeName, changedIds, assembly, addedFeature, parentFeatureId }
     }
-    return { typeName, changedIds, assemblyId, changes }
+    return { typeName, changedIds, assembly, changes }
   }
 
   /**
@@ -59,14 +59,14 @@ export class AddFeatureChange extends FeatureChange {
    */
   async applyToServer(backend: ServerDataStore) {
     const { assemblyModel, featureModel, refSeqModel, session } = backend
-    const { changes, assemblyId, logger } = this
+    const { changes, assembly, logger } = this
 
     const assemblyDoc = await assemblyModel
-      .findById(assemblyId)
+      .findById(assembly)
       .session(session)
       .exec()
     if (!assemblyDoc) {
-      const errMsg = `*** ERROR: Assembly with id "${assemblyId}" not found`
+      const errMsg = `*** ERROR: Assembly with id "${assembly}" not found`
       logger.error(errMsg)
       throw new Error(errMsg)
     }
@@ -85,7 +85,7 @@ export class AddFeatureChange extends FeatureChange {
         .exec()
       if (!refSeqDoc) {
         throw new Error(
-          `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refSeq}" not found`,
+          `RefSeq was not found by assembly "${assembly}" and seq_id "${refSeq}" not found`,
         )
       }
       if (parentFeatureId) {
@@ -141,7 +141,7 @@ export class AddFeatureChange extends FeatureChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
-    const { changes, assemblyId } = this
+    const { changes, assembly } = this
     for (const change of changes) {
       const { addedFeature, parentFeatureId } = change
       if (parentFeatureId) {
@@ -151,13 +151,13 @@ export class AddFeatureChange extends FeatureChange {
         }
         parentFeature.addChild(addedFeature)
       } else {
-        dataStore.addFeature(assemblyId, addedFeature)
+        dataStore.addFeature(assembly, addedFeature)
       }
     }
   }
 
   getInverse() {
-    const { changes, changedIds, assemblyId, logger } = this
+    const { changes, changedIds, assembly, logger } = this
     const inverseChangedIds = changedIds.slice().reverse()
     const inverseChanges = changes
       .slice()
@@ -172,7 +172,7 @@ export class AddFeatureChange extends FeatureChange {
         changedIds: inverseChangedIds,
         typeName: 'DeleteFeatureChange',
         changes: inverseChanges,
-        assemblyId,
+        assembly,
       },
       { logger },
     )

@@ -8,6 +8,8 @@ import {
   types,
 } from 'mobx-state-tree'
 
+import { ApolloAssembly } from '.'
+
 export const LateAnnotationFeature = types.late(
   (): IAnyModelType => AnnotationFeature,
 )
@@ -430,6 +432,9 @@ export const AnnotationFeature = types
         // pass
       }
       return parent
+    },
+    get assemblyId(): string {
+      return getParentOfType(self, ApolloAssembly)._id
     },
   }))
 

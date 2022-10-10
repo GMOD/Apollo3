@@ -108,7 +108,7 @@ export function ImportFeatures({
     // Add features
     const change = new AddFeaturesFromFileChange({
       typeName: 'AddFeaturesFromFileChange',
-      assemblyId,
+      assembly: assemblyId,
       fileId,
     })
     changeManager.submit(change)

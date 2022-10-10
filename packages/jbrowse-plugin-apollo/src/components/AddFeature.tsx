@@ -50,7 +50,7 @@ export function AddFeature({
     const change = new AddFeatureChange({
       changedIds: [sourceFeature._id],
       typeName: 'AddFeatureChange',
-      assemblyId: sourceAssemblyId,
+      assembly: sourceAssemblyId,
       addedFeature: {
         _id: new ObjectID().toHexString(),
         refSeq: sourceFeature.refSeq,

@@ -118,7 +118,7 @@ export class CollaborationServerDriver extends BackendDriver {
   ) {
     const { internetAccountId = undefined } = opts
     const internetAccount = this.getInternetAccount(
-      'assemblyId' in change ? change.assemblyId : undefined,
+      'assembly' in change ? change.assembly : undefined,
       internetAccountId,
     )
     const { baseURL } = internetAccount
