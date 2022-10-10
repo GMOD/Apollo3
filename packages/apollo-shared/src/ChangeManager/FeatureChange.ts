@@ -14,17 +14,18 @@ export abstract class FeatureChange extends Change {
    * @returns
    */
   getFeatureFromId(feature: Feature, featureId: string): Feature | null {
-    this.logger.verbose?.(`Entry=${JSON.stringify(feature)}`)
+    const { logger } = this
+    logger.verbose?.(`Entry=${JSON.stringify(feature)}`)
 
     if (feature._id.equals(featureId)) {
-      this.logger.debug?.(
+      logger.debug?.(
         `Top level featureId matches in the object ${JSON.stringify(feature)}`,
       )
       return feature
     }
     // Check if there is also childFeatures in parent feature and it's not empty
     // Let's get featureId from recursive method
-    this.logger.debug?.(
+    logger.debug?.(
       `FeatureId was not found on top level so lets make recursive call...`,
     )
     for (const [, childFeature] of feature.children || new Map()) {
@@ -41,6 +42,7 @@ export abstract class FeatureChange extends Change {
     assemblyId: string,
     backend: ServerDataStore,
   ) {
+    const { logger } = this
     const { refSeqModel, refSeqChunkModel, session, filesService } = backend
     const { CHUNK_SIZE } = process.env
     const customChunkSize = CHUNK_SIZE && Number(CHUNK_SIZE)
@@ -55,7 +57,7 @@ export abstract class FeatureChange extends Change {
     let incompleteLine = ''
     let lastLineIsIncomplete = true
     let parsingStarted = false
-    this.logger.log('starting sequence stream')
+    logger.log('starting sequence stream')
     for await (const data of sequenceStream) {
       const chunk = data.toString()
       lastLineIsIncomplete = !chunk.endsWith('\n')
@@ -80,7 +82,7 @@ export abstract class FeatureChange extends Change {
         // Add new ref sequence infor if we are reference seq info line
         if (refSeqInfoLine) {
           parsingStarted = true
-          this.logger.debug?.(
+          logger.debug?.(
             `Reference sequence information line "${refSeqInfoLine}"`,
           )
 
@@ -90,10 +92,10 @@ export abstract class FeatureChange extends Change {
               throw new Error('No refSeq document found')
             }
             refSeqLen += sequenceBuffer.length
-            // this.logger.debug?.(
+            // logger.debug?.(
             //   `*** Add the last chunk of previous ref seq ("${refSeqDoc._id}", index ${chunkIndex} and total length for ref seq is ${refSeqLen})`,
             // )
-            this.logger.debug?.(
+            logger.debug?.(
               `Creating refSeq chunk number ${chunkIndex} of "${refSeqDoc._id}"`,
             )
             await refSeqChunkModel.create(
@@ -127,7 +129,7 @@ export abstract class FeatureChange extends Change {
             ],
             { session },
           )
-          this.logger.debug?.(
+          logger.debug?.(
             `Added new refSeq "${name}", desc "${description}", docId "${newRefSeqDoc._id}"`,
           )
           refSeqDoc = newRefSeqDoc
@@ -141,26 +143,20 @@ export abstract class FeatureChange extends Change {
           while (sequenceBuffer.length >= chunkSize) {
             const sequence = sequenceBuffer.slice(0, chunkSize)
             refSeqLen += sequence.length
-            // this.logger.debug?.(
+            // logger.debug?.(
             //   `Add chunk (("${refSeqDoc._id}", index ${chunkIndex} and total length ${refSeqLen})): "${sequence}"`,
             // )
-            this.logger.debug?.(
+            logger.debug?.(
               `Creating refSeq chunk number ${chunkIndex} of "${refSeqDoc._id}"`,
             )
             await refSeqChunkModel.create(
-              [
-                {
-                  refSeq: refSeqDoc._id,
-                  n: chunkIndex,
-                  sequence,
-                },
-              ],
+              [{ refSeq: refSeqDoc._id, n: chunkIndex, sequence }],
               { session },
             )
             chunkIndex++
             // Set remaining sequence
             sequenceBuffer = sequenceBuffer.slice(chunkSize)
-            this.logger.debug?.(`Remaining sequence: "${sequenceBuffer}"`)
+            logger.debug?.(`Remaining sequence: "${sequenceBuffer}"`)
           }
         }
       }
@@ -178,20 +174,14 @@ export abstract class FeatureChange extends Change {
         sequenceBuffer += incompleteLine
       }
       refSeqLen += sequenceBuffer.length
-      // this.logger.debug?.(
+      // logger.debug?.(
       //   `*** Add the very last chunk to ref seq ("${refSeqDoc._id}", index ${chunkIndex} and total length for ref seq is ${refSeqLen}): "${sequenceBuffer}"`,
       // )
-      this.logger.debug?.(
+      logger.debug?.(
         `Creating refSeq chunk number ${chunkIndex} of "${refSeqDoc._id}"`,
       )
       await refSeqChunkModel.create(
-        [
-          {
-            refSeq: refSeqDoc._id,
-            n: chunkIndex,
-            sequence: sequenceBuffer,
-          },
-        ],
+        [{ refSeq: refSeqDoc._id, n: chunkIndex, sequence: sequenceBuffer }],
         { session },
       )
       await refSeqDoc.updateOne({ length: refSeqLen }, { session })
@@ -202,7 +192,7 @@ export abstract class FeatureChange extends Change {
 
   async addFeatureIntoDb(gff3Feature: GFF3Feature, backend: ServerDataStore) {
     const { featureModel, refSeqModel, session } = backend
-    const { assemblyId } = this
+    const { assemblyId, logger } = this
 
     for (const featureLine of gff3Feature) {
       const { seq_id: refName } = featureLine
@@ -232,14 +222,14 @@ export abstract class FeatureChange extends Change {
 
       const newFeature = createFeature(gff3Feature, refSeqDoc._id, featureIds)
 
-      this.logger.verbose?.(`So far feature ids are: ${featureIds.toString()}`)
+      logger.verbose?.(`So far feature ids are: ${featureIds.toString()}`)
 
       // Add into Mongo
       const [newFeatureDoc] = await featureModel.create(
         [{ allIds: featureIds, ...newFeature }],
         { session },
       )
-      this.logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
+      logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
     }
   }
 

@@ -43,22 +43,18 @@ export class DeleteFeatureChange extends FeatureChange {
   }
 
   toJSON(): SerializedDeleteFeatureChange {
-    if (this.changes.length === 1) {
-      const [{ deletedFeature, parentFeatureId }] = this.changes
+    const { changes, changedIds, typeName, assemblyId } = this
+    if (changes.length === 1) {
+      const [{ deletedFeature, parentFeatureId }] = changes
       return {
-        typeName: this.typeName,
-        changedIds: this.changedIds,
-        assemblyId: this.assemblyId,
+        typeName,
+        changedIds,
+        assemblyId,
         deletedFeature,
         parentFeatureId,
       }
     }
-    return {
-      typeName: this.typeName,
-      changedIds: this.changedIds,
-      assemblyId: this.assemblyId,
-      changes: this.changes,
-    }
+    return { typeName, changedIds, assemblyId, changes }
   }
 
   /**
@@ -68,7 +64,7 @@ export class DeleteFeatureChange extends FeatureChange {
    */
   async applyToServer(backend: ServerDataStore) {
     const { featureModel, session } = backend
-    const { changes } = this
+    const { changes, logger } = this
 
     // Loop the changes
     for (const change of changes) {
@@ -81,7 +77,7 @@ export class DeleteFeatureChange extends FeatureChange {
         .exec()
       if (!featureDoc) {
         const errMsg = `*** ERROR: The following featureId was not found in database ='${deletedFeature._id}'`
-        this.logger.error(errMsg)
+        logger.error(errMsg)
         throw new Error(errMsg)
       }
 
@@ -93,7 +89,7 @@ export class DeleteFeatureChange extends FeatureChange {
           )
         }
         await featureModel.findByIdAndDelete(featureDoc._id)
-        this.logger.debug?.(
+        logger.debug?.(
           `Feature "${deletedFeature._id}" deleted from document "${featureDoc._id}". Whole document deleted.`,
         )
         continue
@@ -112,11 +108,11 @@ export class DeleteFeatureChange extends FeatureChange {
       try {
         await featureDoc.save()
       } catch (error) {
-        this.logger.debug?.(`*** FAILED: ${error}`)
+        logger.debug?.(`*** FAILED: ${error}`)
         throw error
       }
 
-      this.logger.debug?.(
+      logger.debug?.(
         `Feature "${deletedFeature._id}" deleted from document "${featureDoc._id}"`,
       )
     }
@@ -179,23 +175,24 @@ export class DeleteFeatureChange extends FeatureChange {
   }
 
   getInverse() {
-    const inverseChangedIds = this.changedIds.slice().reverse()
-    const inverseChanges = this.changes
+    const { changes, changedIds, assemblyId, logger } = this
+    const inverseChangedIds = changedIds.slice().reverse()
+    const inverseChanges = changes
       .slice()
       .reverse()
       .map((deleteFeatuerChange) => ({
         addedFeature: deleteFeatuerChange.deletedFeature,
         parentFeatureId: deleteFeatuerChange.parentFeatureId,
       }))
-    this.logger.debug?.(`INVERSE CHANGE '${JSON.stringify(inverseChanges)}'`)
+    logger.debug?.(`INVERSE CHANGE '${JSON.stringify(inverseChanges)}'`)
     return new AddFeatureChange(
       {
         changedIds: inverseChangedIds,
         typeName: 'AddFeatureChange',
         changes: inverseChanges,
-        assemblyId: this.assemblyId,
+        assemblyId,
       },
-      { logger: this.logger },
+      { logger },
     )
   }
 }

@@ -49,22 +49,12 @@ export class AddAssemblyAndFeaturesFromFileChange extends FeatureChange {
   }
 
   toJSON(): SerializedAddAssemblyAndFeaturesFromFileChange {
-    if (this.changes.length === 1) {
-      const [{ fileId, assemblyName }] = this.changes
-      return {
-        typeName: this.typeName,
-        changedIds: this.changedIds,
-        assemblyId: this.assemblyId,
-        assemblyName,
-        fileId,
-      }
+    const { changes, changedIds, typeName, assemblyId } = this
+    if (changes.length === 1) {
+      const [{ fileId, assemblyName }] = changes
+      return { typeName, changedIds, assemblyId, assemblyName, fileId }
     }
-    return {
-      typeName: this.typeName,
-      changedIds: this.changedIds,
-      assemblyId: this.assemblyId,
-      changes: this.changes,
-    }
+    return { typeName, changedIds, assemblyId, changes }
   }
 
   /**
@@ -74,7 +64,7 @@ export class AddAssemblyAndFeaturesFromFileChange extends FeatureChange {
    */
   async applyToServer(backend: ServerDataStore) {
     const { assemblyModel, fileModel, filesService, session } = backend
-    const { changes, assemblyId } = this
+    const { changes, assemblyId, logger } = this
     for (const change of changes) {
       const { fileId, assemblyName } = change
 
@@ -87,7 +77,7 @@ export class AddAssemblyAndFeaturesFromFileChange extends FeatureChange {
       if (!fileDoc) {
         throw new Error(`File "${fileId}" not found in Mongo`)
       }
-      this.logger.debug?.(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
+      logger.debug?.(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
 
       // Check and add new assembly
       const assemblyDoc = await assemblyModel
@@ -102,10 +92,10 @@ export class AddAssemblyAndFeaturesFromFileChange extends FeatureChange {
         [{ _id: assemblyId, name: assemblyName }],
         { session },
       )
-      this.logger.debug?.(
+      logger.debug?.(
         `Added new assembly "${assemblyName}", docId "${newAssemblyDoc._id}"`,
       )
-      this.logger.debug?.(`File type: "${fileDoc.type}"`)
+      logger.debug?.(`File type: "${fileDoc.type}"`)
 
       // Add refSeqs
       await this.addRefSeqIntoDb(fileDoc, newAssemblyDoc._id, backend)
@@ -116,7 +106,7 @@ export class AddAssemblyAndFeaturesFromFileChange extends FeatureChange {
       )
       for await (const f of featureStream) {
         const gff3Feature = f as GFF3Feature
-        this.logger.verbose?.(`ENTRY=${JSON.stringify(gff3Feature)}`)
+        logger.verbose?.(`ENTRY=${JSON.stringify(gff3Feature)}`)
         // Add new feature into database
         await this.addFeatureIntoDb(gff3Feature, backend)
       }
@@ -131,10 +121,10 @@ export class AddAssemblyAndFeaturesFromFileChange extends FeatureChange {
   async applyToClient(dataStore: ClientDataStore) {}
 
   getInverse() {
-    const { changedIds, typeName, changes, assemblyId } = this
+    const { changedIds, typeName, changes, assemblyId, logger } = this
     return new AddAssemblyAndFeaturesFromFileChange(
       { changedIds, typeName, changes, assemblyId },
-      { logger: this.logger },
+      { logger },
     )
   }
 }

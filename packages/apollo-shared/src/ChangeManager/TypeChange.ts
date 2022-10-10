@@ -42,23 +42,12 @@ export class TypeChange extends FeatureChange {
   }
 
   toJSON(): SerializedTypeChange {
-    if (this.changes.length === 1) {
-      const [{ featureId, oldType, newType }] = this.changes
-      return {
-        typeName: this.typeName,
-        changedIds: this.changedIds,
-        assemblyId: this.assemblyId,
-        featureId,
-        oldType,
-        newType,
-      }
+    const { changes, changedIds, typeName, assemblyId } = this
+    if (changes.length === 1) {
+      const [{ featureId, oldType, newType }] = changes
+      return { typeName, changedIds, assemblyId, featureId, oldType, newType }
     }
-    return {
-      typeName: this.typeName,
-      changedIds: this.changedIds,
-      assemblyId: this.assemblyId,
-      changes: this.changes,
-    }
+    return { typeName, changedIds, assemblyId, changes }
   }
 
   /**
@@ -68,7 +57,7 @@ export class TypeChange extends FeatureChange {
    */
   async applyToServer(backend: ServerDataStore) {
     const { featureModel, session } = backend
-    const { changes } = this
+    const { changes, logger } = this
     const featuresForChanges: {
       feature: Feature
       topLevelFeature: FeatureDocument
@@ -85,30 +74,25 @@ export class TypeChange extends FeatureChange {
 
       if (!topLevelFeature) {
         const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
-        this.logger.error(errMsg)
+        logger.error(errMsg)
         throw new Error(errMsg)
         // throw new NotFoundException(errMsg)  -- This is causing runtime error because Exception comes from @nestjs/common!!!
       }
-      this.logger.debug?.(
-        `*** Feature found: ${JSON.stringify(topLevelFeature)}`,
-      )
+      logger.debug?.(`*** Feature found: ${JSON.stringify(topLevelFeature)}`)
 
       const foundFeature = this.getFeatureFromId(topLevelFeature, featureId)
       if (!foundFeature) {
         const errMsg = `ERROR when searching feature by featureId`
-        this.logger.error(errMsg)
+        logger.error(errMsg)
         throw new Error(errMsg)
       }
-      this.logger.debug?.(`*** Found feature: ${JSON.stringify(foundFeature)}`)
+      logger.debug?.(`*** Found feature: ${JSON.stringify(foundFeature)}`)
       if (foundFeature.type !== oldType) {
         const errMsg = `*** ERROR: Feature's current type "${topLevelFeature.type}" doesn't match with expected value "${oldType}"`
-        this.logger.error(errMsg)
+        logger.error(errMsg)
         throw new Error(errMsg)
       }
-      featuresForChanges.push({
-        feature: foundFeature,
-        topLevelFeature,
-      })
+      featuresForChanges.push({ feature: foundFeature, topLevelFeature })
     }
 
     // Let's update objects.
@@ -125,10 +109,10 @@ export class TypeChange extends FeatureChange {
       try {
         await topLevelFeature.save()
       } catch (error) {
-        this.logger.debug?.(`*** FAILED: ${error}`)
+        logger.debug?.(`*** FAILED: ${error}`)
         throw error
       }
-      this.logger.debug?.(
+      logger.debug?.(
         `*** Object updated in Mongo. New object: ${JSON.stringify(
           topLevelFeature,
         )}`,
@@ -154,8 +138,9 @@ export class TypeChange extends FeatureChange {
   }
 
   getInverse() {
-    const inverseChangedIds = this.changedIds.slice().reverse()
-    const inverseChanges = this.changes
+    const { changes, changedIds, typeName, assemblyId, logger } = this
+    const inverseChangedIds = changedIds.slice().reverse()
+    const inverseChanges = changes
       .slice()
       .reverse()
       .map((endChange) => ({
@@ -166,11 +151,11 @@ export class TypeChange extends FeatureChange {
     return new TypeChange(
       {
         changedIds: inverseChangedIds,
-        typeName: this.typeName,
+        typeName,
         changes: inverseChanges,
-        assemblyId: this.assemblyId,
+        assemblyId,
       },
-      { logger: this.logger },
+      { logger },
     )
   }
 }

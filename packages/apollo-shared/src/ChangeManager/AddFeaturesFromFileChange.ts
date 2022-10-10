@@ -48,21 +48,12 @@ export class AddFeaturesFromFileChange extends FeatureChange {
   }
 
   toJSON(): SerializedAddFeaturesFromFileChange {
-    if (this.changes.length === 1) {
-      const [{ fileId }] = this.changes
-      return {
-        typeName: this.typeName,
-        changedIds: this.changedIds,
-        assemblyId: this.assemblyId,
-        fileId,
-      }
+    const { changes, changedIds, typeName, assemblyId } = this
+    if (changes.length === 1) {
+      const [{ fileId }] = changes
+      return { typeName, changedIds, assemblyId, fileId }
     }
-    return {
-      typeName: this.typeName,
-      changedIds: this.changedIds,
-      assemblyId: this.assemblyId,
-      changes: this.changes,
-    }
+    return { typeName, changedIds, assemblyId, changes }
   }
 
   /**
@@ -72,7 +63,7 @@ export class AddFeaturesFromFileChange extends FeatureChange {
    */
   async applyToServer(backend: ServerDataStore) {
     const { filesService, fileModel, session } = backend
-    const { changes } = this
+    const { changes, logger } = this
 
     for (const change of changes) {
       const { fileId } = change
@@ -86,7 +77,7 @@ export class AddFeaturesFromFileChange extends FeatureChange {
       if (!fileDoc) {
         throw new Error(`File "${fileId}" not found in Mongo`)
       }
-      this.logger.debug?.(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
+      logger.debug?.(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
 
       // Read data from compressed file and parse the content
       const featureStream = filesService.parseGFF3(
@@ -94,13 +85,13 @@ export class AddFeaturesFromFileChange extends FeatureChange {
       )
       for await (const f of featureStream) {
         const gff3Feature = f as GFF3Feature
-        this.logger.verbose?.(`ENTRY=${JSON.stringify(gff3Feature)}`)
+        logger.verbose?.(`ENTRY=${JSON.stringify(gff3Feature)}`)
 
         // Add new feature into database
         await this.addFeatureIntoDb(gff3Feature, backend)
       }
     }
-    this.logger.debug?.(`New features added into database!`)
+    logger.debug?.(`New features added into database!`)
   }
 
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
@@ -111,10 +102,10 @@ export class AddFeaturesFromFileChange extends FeatureChange {
   async applyToClient(dataStore: ClientDataStore) {}
 
   getInverse() {
-    const { changedIds, typeName, changes, assemblyId } = this
+    const { changedIds, typeName, changes, assemblyId, logger } = this
     return new AddFeaturesFromFileChange(
       { changedIds, typeName, changes, assemblyId },
-      { logger: this.logger },
+      { logger },
     )
   }
 }

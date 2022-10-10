@@ -41,23 +41,19 @@ export class CopyFeatureChange extends FeatureChange {
   }
 
   toJSON(): SerializedCopyFeatureChange {
-    if (this.changes.length === 1) {
-      const [{ featureId, targetAssemblyId, newFeatureId }] = this.changes
+    const { changes, changedIds, typeName, assemblyId } = this
+    if (changes.length === 1) {
+      const [{ featureId, targetAssemblyId, newFeatureId }] = changes
       return {
-        typeName: this.typeName,
-        changedIds: this.changedIds,
-        assemblyId: this.assemblyId,
+        typeName,
+        changedIds,
+        assemblyId,
         featureId,
         newFeatureId,
         targetAssemblyId,
       }
     }
-    return {
-      typeName: this.typeName,
-      changedIds: this.changedIds,
-      assemblyId: this.assemblyId,
-      changes: this.changes,
-    }
+    return { typeName, changedIds, assemblyId, changes }
   }
 
   /**
@@ -67,7 +63,7 @@ export class CopyFeatureChange extends FeatureChange {
    */
   async applyToServer(backend: ServerDataStore) {
     const { featureModel, session, refSeqModel } = backend
-    const { changes, assemblyId } = this
+    const { changes, assemblyId, logger } = this
 
     // Loop the changes
     for (const change of changes) {
@@ -81,10 +77,10 @@ export class CopyFeatureChange extends FeatureChange {
 
       if (!topLevelFeature) {
         const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
-        this.logger.error(errMsg)
+        logger.error(errMsg)
         throw new Error(errMsg)
       }
-      // this.logger.debug?.(
+      // logger.debug?.(
       //   `*** Feature found: ${JSON.stringify(topLevelFeature)}`,
       // )
 
@@ -109,10 +105,10 @@ export class CopyFeatureChange extends FeatureChange {
 
       // Let's add featureId to each child recursively
       const newFeatureLine = this.generateNewIds(newFeature, featureIds)
-      this.logger.verbose?.(`New featureIds: ${featureIds}`)
-      this.logger.verbose?.(`New assemblyId: ${targetAssemblyId}`)
-      this.logger.verbose?.(`New refSeqId: ${refSeqDoc._id}`)
-      this.logger.verbose?.(`New featureId: ${newFeatureLine._id}`)
+      logger.verbose?.(`New featureIds: ${featureIds}`)
+      logger.verbose?.(`New assemblyId: ${targetAssemblyId}`)
+      logger.verbose?.(`New refSeqId: ${refSeqDoc._id}`)
+      logger.verbose?.(`New featureId: ${newFeatureLine._id}`)
 
       // Add into Mongo
       const [newFeatureDoc] = await featureModel.create(
@@ -126,7 +122,7 @@ export class CopyFeatureChange extends FeatureChange {
         ],
         { session },
       )
-      this.logger.debug?.(`Added new feature, docId "${newFeatureDoc._id}"`)
+      logger.debug?.(`Added new feature, docId "${newFeatureDoc._id}"`)
     }
   }
 
@@ -148,8 +144,9 @@ export class CopyFeatureChange extends FeatureChange {
   }
 
   getInverse() {
-    const inverseChangedIds = this.changedIds.slice().reverse()
-    const inverseChanges = this.changes
+    const { changes, changedIds, assemblyId, logger } = this
+    const inverseChangedIds = changedIds.slice().reverse()
+    const inverseChanges = changes
       .slice()
       .reverse()
       .map((endChange) => ({
@@ -164,9 +161,9 @@ export class CopyFeatureChange extends FeatureChange {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         changes: inverseChanges,
-        assemblyId: this.assemblyId,
+        assemblyId,
       },
-      { logger: this.logger },
+      { logger },
     )
   }
 }
