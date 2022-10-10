@@ -141,7 +141,6 @@ export function AddAssembly({
     }
 
     const changeBase = {
-      changedIds: ['1'],
       assemblyId: new ObjectID().toHexString(),
       assemblyName,
       fileId,

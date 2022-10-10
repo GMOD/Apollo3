@@ -1,7 +1,7 @@
-import { TypeChange } from '../ChangeManager/TypeChange'
+import { Change } from '../ChangeManager/changes/abstract/Change'
+import { TypeChange } from '../ChangeManager/changes/TypeChange'
 import soSequenceTypes from './soSequenceTypes'
 import { Validation } from './Validation'
-import { Change } from '..'
 
 export function isTypeChange(thing: Change): thing is TypeChange {
   return 'oldType' in thing && 'newType' in thing

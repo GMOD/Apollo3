@@ -18,8 +18,8 @@ import {
 } from 'apollo-schemas'
 import type { ClientSession, Model } from 'mongoose'
 
-import { ChangeManager } from './ChangeManager'
-import { changeRegistry } from './ChangeTypes'
+import { ChangeManager } from '../../ChangeManager'
+import { changeRegistry } from '../../ChangeTypes'
 
 export interface ClientDataStore {
   typeName: 'Client'
@@ -31,10 +31,20 @@ export interface ClientDataStore {
   addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot): void
   deleteFeature(featureId: string): void
 }
+
 export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'
   gff3Handle: FileHandle
 }
+
+interface CreateFileDto {
+  readonly _id: string
+  readonly basename: string
+  readonly checksum: string
+  readonly type: 'text/x-gff3' | 'text/x-fasta'
+  readonly user: string
+}
+
 export interface ServerDataStore {
   typeName: 'Server'
   featureModel: Model<FeatureDocument>
@@ -46,14 +56,13 @@ export interface ServerDataStore {
   filesService: {
     getFileStream(file: FileDocument): ReadStream
     parseGFF3(stream: ReadStream): ReadStream
+    create(createFileDto: CreateFileDto): void
+    remove(id: string): void
   }
 }
 
 export interface SerializedChange {
-  /** The IDs of genes, etc. that were changed in this operation */
-  changedIds: string[]
   typeName: string
-  assemblyId: string
 }
 
 export type DataStore = ServerDataStore | LocalGFF3DataStore | ClientDataStore
@@ -66,13 +75,7 @@ export abstract class Change implements SerializedChange {
   protected logger: LoggerService
   abstract typeName: string
 
-  assemblyId: string
-  changedIds: string[]
-
   constructor(json: SerializedChange, options?: ChangeOptions) {
-    const { assemblyId, changedIds } = json
-    this.assemblyId = assemblyId
-    this.changedIds = changedIds
     this.logger = options?.logger || console
   }
 

@@ -10,7 +10,6 @@ import {
 } from '@mui/x-data-grid'
 import { AnnotationFeatureI } from 'apollo-mst'
 import {
-  Change,
   LocationEndChange,
   LocationStartChange,
   TypeChange,
@@ -120,7 +119,11 @@ export const ApolloDetails = observer(
       newRow: GridRowModel<typeof selectedFeatureRows[0]>,
       oldRow: GridRowModel<typeof selectedFeatureRows[0]>,
     ) {
-      let change: Change | undefined = undefined
+      let change:
+        | LocationStartChange
+        | LocationEndChange
+        | TypeChange
+        | undefined = undefined
       if (newRow.start !== oldRow.start) {
         const { start: oldStart, id: featureId } = oldRow
         const { start: newStart } = newRow

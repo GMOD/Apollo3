@@ -5,12 +5,14 @@ import {
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
-  SerializedChange,
   ServerDataStore,
-} from './Change'
-import { FeatureChange } from './FeatureChange'
+} from './abstract/Change'
+import {
+  FeatureChange,
+  SerializedFeatureChange,
+} from './abstract/FeatureChange'
 
-interface SerializedLocationStartChangeBase extends SerializedChange {
+interface SerializedLocationStartChangeBase extends SerializedFeatureChange {
   typeName: 'LocationStartChange'
 }
 

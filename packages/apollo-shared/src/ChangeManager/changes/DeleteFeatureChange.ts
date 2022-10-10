@@ -1,17 +1,19 @@
 import { AnnotationFeatureSnapshot } from 'apollo-mst'
 import { Feature } from 'apollo-schemas'
 
-import { AddFeatureChange } from './AddFeatureChange'
 import {
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
-  SerializedChange,
   ServerDataStore,
-} from './Change'
-import { FeatureChange } from './FeatureChange'
+} from './abstract/Change'
+import {
+  FeatureChange,
+  SerializedFeatureChange,
+} from './abstract/FeatureChange'
+import { AddFeatureChange } from './AddFeatureChange'
 
-interface SerializedDeleteFeatureChangeBase extends SerializedChange {
+interface SerializedDeleteFeatureChangeBase extends SerializedFeatureChange {
   typeName: 'DeleteFeatureChange'
 }
 

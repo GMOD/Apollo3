@@ -5,7 +5,7 @@ import {
   ValidationResultSet,
   validationRegistry,
 } from '../Validations/ValidationSet'
-import { Change, ClientDataStore } from './Change'
+import { Change, ClientDataStore } from './changes/abstract/Change'
 
 export interface SubmitOpts {
   /** defaults to true */

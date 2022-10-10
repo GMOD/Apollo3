@@ -1,41 +1,45 @@
+import { GFF3Feature } from '@gmod/gff'
+
+import {
+  AssemblySpecificChange,
+  SerializedAssemblySpecificChange,
+} from './abstract/AssemblySpecificChange'
 import {
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
-  SerializedChange,
   ServerDataStore,
-} from './Change'
-import { FeatureChange } from './FeatureChange'
+} from './abstract/Change'
 
-export interface SerializedAddAssemblyFromFileChangeBase
-  extends SerializedChange {
-  typeName: 'AddAssemblyFromFileChange'
+export interface SerializedAddAssemblyAndFeaturesFromFileChangeBase
+  extends SerializedAssemblySpecificChange {
+  typeName: 'AddAssemblyAndFeaturesFromFileChange'
 }
 
-export interface AddAssemblyFromFileChangeDetails {
+export interface AddAssemblyAndFeaturesFromFileChangeDetails {
   assemblyName: string
   fileId: string
 }
 
-export interface SerializedAddAssemblyFromFileChangeSingle
-  extends SerializedAddAssemblyFromFileChangeBase,
-    AddAssemblyFromFileChangeDetails {}
+export interface SerializedAddAssemblyAndFeaturesFromFileChangeSingle
+  extends SerializedAddAssemblyAndFeaturesFromFileChangeBase,
+    AddAssemblyAndFeaturesFromFileChangeDetails {}
 
-export interface SerializedAddAssemblyFromFileChangeMultiple
-  extends SerializedAddAssemblyFromFileChangeBase {
-  changes: AddAssemblyFromFileChangeDetails[]
+export interface SerializedAddAssemblyAndFeaturesFromFileChangeMultiple
+  extends SerializedAddAssemblyAndFeaturesFromFileChangeBase {
+  changes: AddAssemblyAndFeaturesFromFileChangeDetails[]
 }
 
-export type SerializedAddAssemblyFromFileChange =
-  | SerializedAddAssemblyFromFileChangeSingle
-  | SerializedAddAssemblyFromFileChangeMultiple
+export type SerializedAddAssemblyAndFeaturesFromFileChange =
+  | SerializedAddAssemblyAndFeaturesFromFileChangeSingle
+  | SerializedAddAssemblyAndFeaturesFromFileChangeMultiple
 
-export class AddAssemblyFromFileChange extends FeatureChange {
-  typeName = 'AddAssemblyFromFileChange' as const
-  changes: AddAssemblyFromFileChangeDetails[]
+export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange {
+  typeName = 'AddAssemblyAndFeaturesFromFileChange' as const
+  changes: AddAssemblyAndFeaturesFromFileChangeDetails[]
 
   constructor(
-    json: SerializedAddAssemblyFromFileChange,
+    json: SerializedAddAssemblyAndFeaturesFromFileChange,
     options?: ChangeOptions,
   ) {
     super(json, options)
@@ -46,13 +50,13 @@ export class AddAssemblyFromFileChange extends FeatureChange {
     return `Assembly "${this.changes[0].assemblyName}" added successfully. To use it, please refresh the page.`
   }
 
-  toJSON(): SerializedAddAssemblyFromFileChange {
-    const { changes, changedIds, typeName, assemblyId } = this
+  toJSON(): SerializedAddAssemblyAndFeaturesFromFileChange {
+    const { changes, typeName, assemblyId } = this
     if (changes.length === 1) {
       const [{ fileId, assemblyName }] = changes
-      return { typeName, changedIds, assemblyId, assemblyName, fileId }
+      return { typeName, assemblyId, assemblyName, fileId }
     }
-    return { typeName, changedIds, assemblyId, changes }
+    return { typeName, assemblyId, changes }
   }
 
   /**
@@ -61,9 +65,8 @@ export class AddAssemblyFromFileChange extends FeatureChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { assemblyModel, fileModel, session } = backend
+    const { assemblyModel, fileModel, filesService, session } = backend
     const { changes, assemblyId, logger } = this
-
     for (const change of changes) {
       const { fileId, assemblyName } = change
 
@@ -98,6 +101,17 @@ export class AddAssemblyFromFileChange extends FeatureChange {
 
       // Add refSeqs
       await this.addRefSeqIntoDb(fileDoc, newAssemblyDoc._id, backend)
+
+      // Loop all features
+      const featureStream = filesService.parseGFF3(
+        filesService.getFileStream(fileDoc),
+      )
+      for await (const f of featureStream) {
+        const gff3Feature = f as GFF3Feature
+        logger.verbose?.(`ENTRY=${JSON.stringify(gff3Feature)}`)
+        // Add new feature into database
+        await this.addFeatureIntoDb(gff3Feature, backend)
+      }
     }
   }
 
@@ -109,9 +123,9 @@ export class AddAssemblyFromFileChange extends FeatureChange {
   async applyToClient(dataStore: ClientDataStore) {}
 
   getInverse() {
-    const { changedIds, typeName, changes, assemblyId, logger } = this
-    return new AddAssemblyFromFileChange(
-      { changedIds, typeName, changes, assemblyId },
+    const { typeName, changes, assemblyId, logger } = this
+    return new AddAssemblyAndFeaturesFromFileChange(
+      { typeName, changes, assemblyId },
       { logger },
     )
   }

@@ -2,13 +2,15 @@ import {
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
-  SerializedChange,
   ServerDataStore,
-} from './Change'
-import { FeatureChange } from './FeatureChange'
-import { DeleteFeatureChange } from '..'
+} from './abstract/Change'
+import {
+  FeatureChange,
+  SerializedFeatureChange,
+} from './abstract/FeatureChange'
+import { DeleteFeatureChange } from './DeleteFeatureChange'
 
-interface SerializedCopyFeatureChangeBase extends SerializedChange {
+interface SerializedCopyFeatureChangeBase extends SerializedFeatureChange {
   typeName: 'CopyFeatureChange'
 }
 

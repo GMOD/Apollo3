@@ -4,13 +4,15 @@ import {
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
-  SerializedChange,
   ServerDataStore,
-} from './Change'
-import { FeatureChange } from './FeatureChange'
-import { DeleteFeatureChange } from '..'
+} from './abstract/Change'
+import {
+  FeatureChange,
+  SerializedFeatureChange,
+} from './abstract/FeatureChange'
+import { DeleteFeatureChange } from './DeleteFeatureChange'
 
-interface SerializedAddFeatureChangeBase extends SerializedChange {
+interface SerializedAddFeatureChangeBase extends SerializedFeatureChange {
   typeName: 'AddFeatureChange'
 }
 
@@ -59,11 +61,11 @@ export class AddFeatureChange extends FeatureChange {
     const { assemblyModel, featureModel, refSeqModel, session } = backend
     const { changes, assemblyId, logger } = this
 
-    const assembly = await assemblyModel
+    const assemblyDoc = await assemblyModel
       .findById(assemblyId)
       .session(session)
       .exec()
-    if (!assembly) {
+    if (!assemblyDoc) {
       const errMsg = `*** ERROR: Assembly with id "${assemblyId}" not found`
       logger.error(errMsg)
       throw new Error(errMsg)
@@ -139,7 +141,8 @@ export class AddFeatureChange extends FeatureChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
-    for (const change of this.changes) {
+    const { changes, assemblyId } = this
+    for (const change of changes) {
       const { addedFeature, parentFeatureId } = change
       if (parentFeatureId) {
         const parentFeature = dataStore.getFeature(parentFeatureId)
@@ -148,7 +151,7 @@ export class AddFeatureChange extends FeatureChange {
         }
         parentFeature.addChild(addedFeature)
       } else {
-        dataStore.addFeature(this.assemblyId, addedFeature)
+        dataStore.addFeature(assemblyId, addedFeature)
       }
     }
   }

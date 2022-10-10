@@ -1,16 +1,18 @@
 import { GFF3Feature } from '@gmod/gff'
 
 import {
+  AssemblySpecificChange,
+  SerializedAssemblySpecificChange,
+} from './abstract/AssemblySpecificChange'
+import {
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
-  SerializedChange,
   ServerDataStore,
-} from './Change'
-import { FeatureChange } from './FeatureChange'
+} from './abstract/Change'
 
 export interface SerializedAddFeaturesFromFileChangeBase
-  extends SerializedChange {
+  extends SerializedAssemblySpecificChange {
   typeName: 'AddFeaturesFromFileChange'
 }
 
@@ -31,7 +33,7 @@ export type SerializedAddFeaturesFromFileChange =
   | SerializedAddFeaturesFromFileChangeSingle
   | SerializedAddFeaturesFromFileChangeMultiple
 
-export class AddFeaturesFromFileChange extends FeatureChange {
+export class AddFeaturesFromFileChange extends AssemblySpecificChange {
   typeName = 'AddFeaturesFromFileChange' as const
   changes: AddFeaturesFromFileChangeDetails[]
 
@@ -48,12 +50,12 @@ export class AddFeaturesFromFileChange extends FeatureChange {
   }
 
   toJSON(): SerializedAddFeaturesFromFileChange {
-    const { changes, changedIds, typeName, assemblyId } = this
+    const { changes, typeName, assemblyId } = this
     if (changes.length === 1) {
       const [{ fileId }] = changes
-      return { typeName, changedIds, assemblyId, fileId }
+      return { typeName, assemblyId, fileId }
     }
-    return { typeName, changedIds, assemblyId, changes }
+    return { typeName, assemblyId, changes }
   }
 
   /**
@@ -102,9 +104,9 @@ export class AddFeaturesFromFileChange extends FeatureChange {
   async applyToClient(dataStore: ClientDataStore) {}
 
   getInverse() {
-    const { changedIds, typeName, changes, assemblyId, logger } = this
+    const { typeName, changes, assemblyId, logger } = this
     return new AddFeaturesFromFileChange(
-      { changedIds, typeName, changes, assemblyId },
+      { typeName, changes, assemblyId },
       { logger },
     )
   }
