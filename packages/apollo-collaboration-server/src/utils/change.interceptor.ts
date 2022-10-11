@@ -13,10 +13,10 @@ import { map } from 'rxjs/operators'
 export class ChangeInterceptor implements NestInterceptor {
   private readonly logger = new Logger(ChangeInterceptor.name)
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const serializedChange: SerializedChange = context
       .switchToHttp()
-      .getRequest<Request>().body as any
+      .getRequest<Request>().body as unknown as SerializedChange
     // const callingClass = context.getClass().name
     // const callingEndpoint = context.getHandler().name
 

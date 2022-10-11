@@ -37,8 +37,8 @@ export async function backendPreValidateAuthorize(
     `Calling class '${callingClass}' and endpoint '${callingEndpoint}'`,
   )
 
-  // const authHeader = req.headers.authorization
-  const { authorization } = req.headers as any
+  const authorization = req.headers.get('authorization')
+  // const { authorization } = req.headers.get('authorization') as string
   if (!authorization) {
     throw new Error('No "authorization" header')
   }
@@ -81,7 +81,7 @@ export async function backendPreValidateAuthorize(
     logger.debug(
       `Change type is '${typeNameArray}' and an additional required role is '${additionalRequiredRole}'`,
     )
-    const tmpRole: any = additionalRequiredRole
+    const tmpRole: Role = additionalRequiredRole
     if (!userRolesArray.includes(tmpRole)) {
       const errMsg = `User '${username}' doesn't have additional role '${additionalRequiredRole}'!`
       logger.debug(errMsg)
@@ -96,7 +96,7 @@ export async function backendPreValidateAuthorize(
 
   // Check if user has required role
   for (const role of requiredRole) {
-    const tmpRole1: any = role
+    const tmpRole1: Role = role
     if (userRolesArray.includes(tmpRole1)) {
       logger.debug(`User '${username}' has role '${tmpRole1}'`)
       return { validationName: 'AuthorizationValidation' }
