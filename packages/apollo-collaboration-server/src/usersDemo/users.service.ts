@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { User, UserDocument } from 'apollo-schemas'
 import { Model } from 'mongoose'
-// import { userInfo } from 'os'
 
 export interface DemoUser {
   userId: number
