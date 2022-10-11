@@ -207,16 +207,17 @@ export function AddAssembly({
               defaultValue="text/x-gff3"
               name="radio-buttons-group"
               onChange={handleChangeFileType}
+              value={fileType}
             >
               <FormControlLabel
                 value="text/x-gff3"
-                control={<Radio checked={fileType === 'text/x-gff3'} />}
+                control={<Radio />}
                 label="GFF3"
                 disabled={submitted && !errorMessage}
               />
               <FormControlLabel
                 value="text/x-fasta"
-                control={<Radio checked={fileType === 'text/x-fasta'} />}
+                control={<Radio />}
                 label="FASTA"
                 disabled={submitted && !errorMessage}
               />
