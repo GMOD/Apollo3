@@ -4,7 +4,7 @@ import {
   ValidationResult,
 } from 'apollo-shared/src/Validations/Validation'
 
-import { UsersService } from '../../usersDemo/users.service'
+import { UsersService } from '../../users/users.service'
 import { getDecodedAccessToken } from '../commonUtilities'
 import { Role, RoleInheritance, RoleNames } from '../role/role.enum'
 import {

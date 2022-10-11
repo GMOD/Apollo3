@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 
-import { UsersService } from '../../usersDemo/users.service'
+import { UsersService } from '../../users/users.service'
 import { backendPreValidateAuthorize } from './AuthorizationValidation'
 
 @Injectable()
