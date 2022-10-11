@@ -228,7 +228,7 @@ export function AddAssembly({
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={importFeatures}
+                  checked={fileType === 'text/x-gff3' && importFeatures}
                   onChange={() => setImportFeatures(!importFeatures)}
                   disabled={
                     fileType !== 'text/x-gff3' || (submitted && !errorMessage)
