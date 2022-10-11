@@ -34,9 +34,9 @@ export class ChangesController {
   @Validations(Role.User)
   async create(@Body() change: Change) {
     this.logger.debug(
-      `Change type is '${
-        change.constructor.name
-      }', change object: ${JSON.stringify(change)}`,
+      `Change type is '${change.typeName}', change object: ${JSON.stringify(
+        change,
+      )}`,
     )
     return this.changesService.create(change)
   }
