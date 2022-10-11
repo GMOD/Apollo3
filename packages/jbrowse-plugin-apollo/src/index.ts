@@ -9,7 +9,13 @@ import {
 import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel, isAbstractMenuManager } from '@jbrowse/core/util'
-import { changeRegistry, changes } from 'apollo-shared'
+import {
+  CoreValidation,
+  ParentChildValidation,
+  changeRegistry,
+  changes,
+  validationRegistry,
+} from 'apollo-shared'
 
 import { version } from '../package.json'
 import {
@@ -34,6 +40,9 @@ import { ApolloSessionModel, extendSession } from './session'
 Object.entries(changes).forEach(([changeName, change]) => {
   changeRegistry.registerChange(changeName, change)
 })
+
+validationRegistry.registerValidation(new CoreValidation())
+validationRegistry.registerValidation(new ParentChildValidation())
 
 export default class ApolloPlugin extends Plugin {
   name = 'ApolloPlugin'

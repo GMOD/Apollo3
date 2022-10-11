@@ -3,7 +3,7 @@ import { IAnyStateTreeNode } from 'mobx-state-tree'
 
 import {
   ValidationResultSet,
-  ValidationSet,
+  validationRegistry,
 } from '../Validations/ValidationSet'
 import { Change, ClientDataStore } from './Change'
 
@@ -17,10 +17,7 @@ export interface SubmitOpts {
 }
 
 export class ChangeManager {
-  constructor(
-    private dataStore: ClientDataStore & IAnyStateTreeNode,
-    public validations: ValidationSet,
-  ) {}
+  constructor(private dataStore: ClientDataStore & IAnyStateTreeNode) {}
 
   recentChanges: Change[] = []
 
@@ -28,7 +25,7 @@ export class ChangeManager {
     const { submitToBackend = true, addToRecents = true } = opts
     // pre-validate
     const session = getSession(this.dataStore)
-    const result = await this.validations.frontendPreValidate(change)
+    const result = await validationRegistry.frontendPreValidate(change)
     if (!result.ok) {
       session.notify(
         `Pre-validation failed: "${result.results
@@ -50,7 +47,7 @@ export class ChangeManager {
     }
 
     // post-validate
-    const results2 = await this.validations.frontendPostValidate(
+    const results2 = await validationRegistry.frontendPostValidate(
       change,
       this.dataStore,
     )
