@@ -186,9 +186,10 @@ export const AnnotationFeature = types
       y: number,
       bpPerPx: number,
       rowHeight: number,
+      reversed?: boolean,
     ) {
       for (let i = 0; i < self.rowCount; i++) {
-        this.drawRow(i, ctx, x, y + i * rowHeight, bpPerPx, rowHeight)
+        this.drawRow(i, ctx, x, y + i * rowHeight, bpPerPx, rowHeight, reversed)
       }
     },
     drawRow(
@@ -198,13 +199,17 @@ export const AnnotationFeature = types
       yOffset: number,
       bpPerPx: number,
       rowHeight: number,
+      reversed?: boolean,
     ) {
       const features = self.featuresForRow[rowNumber]
 
       features.forEach((feature) => {
         const width = feature.end - feature.start
-        const startPx = (feature.start - self.start) / bpPerPx
         const widthPx = width / bpPerPx
+        const startBp = reversed
+          ? self.end - feature.end
+          : feature.start - self.start
+        const startPx = startBp / bpPerPx
         const { rowCount } = feature as AnnotationFeatureI
         if (rowCount > 1) {
           const featureHeight = rowCount * rowHeight
