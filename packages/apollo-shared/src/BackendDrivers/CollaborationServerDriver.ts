@@ -65,21 +65,18 @@ export class CollaborationServerDriver extends BackendDriver {
     if (!assembly) {
       throw new Error(`Could not find assembly with name "${assemblyName}"`)
     }
-    const { features } = getConf(assembly, ['sequence', 'adapter']) as {
-      features: {
-        refName: string
-        uniqueId: string
-      }[]
+    const { ids } = getConf(assembly, ['sequence', 'metadata']) as {
+      ids: Record<string, string>
     }
-    const feature = features.find((f) => f.refName === refName)
-    if (!feature) {
+    const refSeq = ids[refName]
+    if (!refSeq) {
       throw new Error(`Could not find refSeq "${refName}"`)
     }
     const internetAccount = this.getInternetAccount(assemblyName)
     const { baseURL } = internetAccount
     const url = new URL('features/getFeatures', baseURL)
     const searchParams = new URLSearchParams({
-      refSeq: feature.uniqueId,
+      refSeq,
       start: String(start),
       end: String(end),
     })

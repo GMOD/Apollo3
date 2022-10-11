@@ -248,11 +248,15 @@ export function extendSession(sessionModel: IAnyModelType) {
               )
             }
             const f = (yield response2.json()) as ApolloRefSeqResponse[]
-            const refNameAliasesFeatures = f.map((contig) => ({
-              refName: contig.name,
-              aliases: [contig._id],
-              uniqueId: `alias-${contig._id}`,
-            }))
+            const ids: Record<string, string> = {}
+            const refNameAliasesFeatures = f.map((contig) => {
+              ids[contig.name] = contig._id
+              return {
+                refName: contig.name,
+                aliases: [contig._id],
+                uniqueId: `alias-${contig._id}`,
+              }
+            })
             const assemblyConfig = {
               name: assembly._id,
               aliases: [assembly.name, ...(assembly.aliases || [])],
@@ -268,6 +272,7 @@ export function extendSession(sessionModel: IAnyModelType) {
                 metadata: {
                   internetAccountConfigId:
                     internetAccount.configuration.internetAccountId,
+                  ids,
                 },
               },
               refNameAliases: {
