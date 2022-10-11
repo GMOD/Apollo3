@@ -37,8 +37,7 @@ export async function backendPreValidateAuthorize(
     `Calling class '${callingClass}' and endpoint '${callingEndpoint}'`,
   )
 
-  const authorization = req.headers.get('authorization')
-  // const { authorization } = req.headers.get('authorization') as string
+  const { authorization } = context.context.switchToHttp().getRequest().headers
   if (!authorization) {
     throw new Error('No "authorization" header')
   }
@@ -75,6 +74,7 @@ export async function backendPreValidateAuthorize(
     callingEndpoint === 'create' // i.e. "submit change"
   ) {
     type ChangeTypeArray = typeof ChangeTypes
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { typeName } = req.body as any
     const typeNameArray = typeName as ChangeTypeArray
     const additionalRequiredRole = ChangeTypePermission[typeNameArray] // Read from validation.changeTypePermissions.ts
