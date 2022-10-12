@@ -1,6 +1,5 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-import { UserDocument } from 'apollo-schemas'
 import { Profile } from 'passport-google-oauth20'
 
 import { CreateUserDto } from '../users/dto/create-user.dto'
@@ -85,17 +84,16 @@ export class AuthenticationService {
   async googleLogin(profile: Profile) {
     type RoleNameArray = typeof RoleNames
     const userRolesArray: Array<Role> = []
-    this.logger.debug(`1 googleLogin: '${profile._json.email}'`)
 
     if (!profile._json.email) {
       throw new UnauthorizedException('No email provided')
     }
-    this.logger.debug(`2 googleLogin: '${profile._json.email}'`)
     // Find user from Mongo
     const userFound = await this.usersService.findByEmail(profile._json.email)
-    this.logger.debug(`3 googleLogin: '${profile._json.email}'`)
     if (!userFound) {
-      this.logger.debug(`*** User '${profile._json.email}' not found`)
+      this.logger.debug(
+        `User '${profile._json.email}' not found in Mongo, let's add it now.`,
+      )
 
       const newUser: CreateUserDto = {
         id: 4,
@@ -119,7 +117,7 @@ export class AuthenticationService {
       )
       return addedUser
     }
-    this.logger.debug(`Found user from Mongo: ${JSON.stringify(userFound)}`)
+    this.logger.debug(`User found in Mongo: ${JSON.stringify(userFound)}`)
 
     // Loop user's role(s) and add each role + inherited ones to userRolesArray
     for (const userRole of userFound.role) {
@@ -138,7 +136,6 @@ export class AuthenticationService {
     this.logger.debug(
       `Login successful. Issued token: ${JSON.stringify(returnToken)}`,
     )
-    return userFound
-    // return { token: returnToken }
+    return { token: returnToken }
   }
 }

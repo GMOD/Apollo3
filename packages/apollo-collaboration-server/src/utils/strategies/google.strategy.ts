@@ -1,9 +1,8 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
 import { Profile, Strategy } from 'passport-google-oauth20'
 
 import { AuthenticationService } from '../../authentication/authentication.service'
-import { User } from '../../users/users.service'
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy) {
@@ -19,15 +18,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(accessToken: string, refreshToken: string, profile: Profile) {
-    console.log(accessToken)
-    // console.log(refreshToken)
-    // console.log(profile)
+    this.logger.debug(`Token: ${accessToken}`)
     const user = await this.authService.googleLogin(profile)
-    console.log('Validate')
-    console.log(user)
-    const tmp = { id: user.id, username : user.username}
-    console.log(tmp)
-    // return tmp || null
-    return null
+    this.logger.debug(`User: ${JSON.stringify(user)}`)
+    return user
   }
 }
