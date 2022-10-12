@@ -3,6 +3,8 @@ import { InjectModel } from '@nestjs/mongoose'
 import { UserDocument, User as UserSchema } from 'apollo-schemas'
 import { Model } from 'mongoose'
 
+import { CreateUserDto } from './dto/create-user.dto'
+
 export interface User {
   userId: number
   username: string
@@ -53,7 +55,15 @@ export class UsersService {
     return this.userModel.findOne({ username }).exec()
   }
 
-  findAll() {
+  async findByEmail(email: string) {
+    return this.userModel.findOne({ email }).exec()
+  }
+
+  async findAll() {
     return this.userModel.find().exec()
+  }
+
+  async addNew(user: CreateUserDto) {
+    return this.userModel.create(user)
   }
 }
