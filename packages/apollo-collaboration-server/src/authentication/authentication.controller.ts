@@ -1,8 +1,8 @@
-import { Controller, Get, Logger, Post, Req, UseGuards } from '@nestjs/common'
+import { BadRequestException, Controller, Get, Logger, Post, Req, UseGuards } from '@nestjs/common'
 import { Request } from 'express'
 
 import { User } from '../users/users.service'
-import { GooleAuthGuard } from '../utils/google.guard'
+import { GoogleAuthGuard } from '../utils/google.guard'
 import { LocalAuthGuard } from '../utils/local-auth.guard'
 import { AuthenticationService } from './authentication.service'
 
@@ -28,16 +28,15 @@ export class AuthenticationController {
   }
 
   @Get('google/login')
-  @UseGuards(GooleAuthGuard)
-  handleLogin() {
-    this.logger.debug('********** LOGIN ALKAA **************')
-    return { mesg: 'Google authentication...'}
-  }
+  @UseGuards(GoogleAuthGuard)
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  handleLogin() {}
 
   @Get('google/redirect')
-  @UseGuards(GooleAuthGuard)
-  handleRedirect() {
-    this.logger.debug('********** REDIRECT ALKAA **************')
-    // return this.authService.googleLogin()
+  @UseGuards(GoogleAuthGuard)
+  async handleRedirect(@Req() req: Request) {
+    if (!req.user) throw new BadRequestException();
+    this.logger.debug(`Return value: ${JSON.stringify(req.user)}`)
+    return req.user
   }
 }
