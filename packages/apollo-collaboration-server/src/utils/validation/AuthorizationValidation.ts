@@ -1,11 +1,7 @@
 import { ExecutionContext, Logger } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { UserDocument } from 'apollo-schemas'
-import {
-  Context,
-  Validation,
-  ValidationResult,
-} from 'apollo-shared/src/Validations/Validation'
+import { Context, Validation, ValidationResult } from 'apollo-shared'
 
 import { getDecodedAccessToken } from '../commonUtilities'
 import { Role, RoleInheritance, RoleNames } from '../role/role.enum'
