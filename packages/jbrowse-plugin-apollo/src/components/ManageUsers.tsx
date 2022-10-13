@@ -1,10 +1,11 @@
-import { AbstractSessionModel } from '@jbrowse/core/util'
+import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Button,
   Dialog,
   DialogActions,
   DialogContent,
+  DialogContentText,
   DialogTitle,
 } from '@mui/material'
 import {
@@ -15,22 +16,28 @@ import {
   GridRowParams,
   GridToolbar,
 } from '@mui/x-data-grid'
+import { getRoot } from 'mobx-state-tree'
 import React, { useCallback, useMemo, useState } from 'react'
 
-const users = [
-  { id: 'user0123', email: '0123@demo.com', role: 'read-only' },
-  { id: 'user4567', email: '4567@demo.com', role: 'user' },
-  { id: 'user8910', email: '8910@demo.com', role: 'admin' },
-]
+import { useUsers } from './'
+
+// const users = [
+//   { id: 'user0123', email: '0123@demo.com', role: 'read-only' },
+//   { id: 'user4567', email: '4567@demo.com', role: 'user' },
+//   { id: 'user8910', email: '8910@demo.com', role: 'admin' },
+// ]
 
 interface ManageUsersProps {
   session: AbstractSessionModel
   handleClose(): void
 }
 
-type Row = typeof users[number]
-
 export function ManageUsers({ session, handleClose }: ManageUsersProps) {
+  const { internetAccounts } = getRoot(session) as AppRootModel
+  const [errorMessage, setErrorMessage] = useState('')
+
+  const users = useUsers(internetAccounts, setErrorMessage)
+  type Row = typeof users[number]
   const [rows, setRows] = useState<Row[]>(users)
 
   const deleteUser = useCallback(
@@ -51,7 +58,7 @@ export function ManageUsers({ session, handleClose }: ManageUsersProps) {
         headerName: 'Role',
         width: 140,
         type: 'singleSelect',
-        valueOptions: ['read-only', 'user', 'admin'],
+        valueOptions: ['readOnly', 'user', 'admin'],
         editable: true,
       },
       {
@@ -98,6 +105,11 @@ export function ManageUsers({ session, handleClose }: ManageUsersProps) {
           Close
         </Button>
       </DialogActions>
+      {errorMessage ? (
+        <DialogContent>
+          <DialogContentText color="error">{errorMessage}</DialogContentText>
+        </DialogContent>
+      ) : null}
     </Dialog>
   )
 }
