@@ -6,7 +6,10 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
+import { InjectModel } from '@nestjs/mongoose'
+import { User, UserDocument } from 'apollo-schemas'
 import { validationRegistry } from 'apollo-shared'
+import { Model } from 'mongoose'
 
 import { UsersService } from '../../users/users.service'
 
@@ -17,6 +20,8 @@ export class ValidationGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private readonly usersService: UsersService,
+    @InjectModel(User.name)
+    private readonly userModel: Model<UserDocument>,
   ) {}
 
   /**
@@ -32,11 +37,11 @@ export class ValidationGuard implements CanActivate {
           context,
           reflector: this.reflector,
         },
-        this.usersService,
+        this.userModel,
       )
-      if (validationResult.error) {
+      if (!validationResult.ok) {
         throw new UnprocessableEntityException(
-          `Error in backend authorization pre-validation: ${validationResult.error.message}`,
+          `Error in backend authorization pre-validation: ${validationResult.results}`,
         )
       }
       return true

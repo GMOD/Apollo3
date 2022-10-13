@@ -50,8 +50,10 @@ export class ChangesService {
 
   async create(change: Change) {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
-
-    const validationResult = await validationRegistry.backendPreValidate(change, userModel: this.userModel)
+    const validationResult = await validationRegistry.backendPreValidate(
+      change,
+      this.userModel,
+    )
     if (!validationResult.ok) {
       const errorMessage = validationResult.results
         .map((r) => r.error?.message)

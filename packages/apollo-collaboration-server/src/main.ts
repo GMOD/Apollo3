@@ -27,8 +27,8 @@ async function bootstrap() {
     changeRegistry.registerChange(changeName, change)
   })
 
-  validationRegistry.registerValidation(new AuthorizationValidation())
   validationRegistry.registerValidation(new CoreValidation())
+  validationRegistry.registerValidation(new AuthorizationValidation())
   validationRegistry.registerValidation(new ParentChildValidation())
 
   const cors = convertToBoolean(CORS)
