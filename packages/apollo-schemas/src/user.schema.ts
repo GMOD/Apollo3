@@ -8,9 +8,6 @@ export type Role = 'readOnly' | 'admin' | 'user'
 @Schema({ timestamps: true })
 export class User {
   @Prop({ required: true, unique: true })
-  id: number
-
-  @Prop({ required: true, unique: true })
   username: string
 
   @Prop({ required: true, unique: true })
