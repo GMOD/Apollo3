@@ -66,4 +66,8 @@ export class UsersService {
   async addNew(user: CreateUserDto) {
     return this.userModel.create(user)
   }
+
+  async getCount() {
+    return this.userModel.count().exec()
+  }
 }
