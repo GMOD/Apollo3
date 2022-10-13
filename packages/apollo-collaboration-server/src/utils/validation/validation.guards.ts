@@ -6,9 +6,9 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
+import { validationRegistry } from 'apollo-shared'
 
 import { UsersService } from '../../users/users.service'
-import { backendPreValidateAuthorize } from './AuthorizationValidation'
 
 @Injectable()
 export class ValidationGuard implements CanActivate {
@@ -27,7 +27,7 @@ export class ValidationGuard implements CanActivate {
    */
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
-      const validationResult = await backendPreValidateAuthorize(
+      const validationResult = await validationRegistry.backendPreValidate(
         {
           context,
           reflector: this.reflector,

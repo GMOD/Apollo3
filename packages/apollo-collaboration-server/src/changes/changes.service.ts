@@ -17,6 +17,8 @@ import {
   RefSeqChunk,
   RefSeqChunkDocument,
   RefSeqDocument,
+  User,
+  UserDocument,
 } from 'apollo-schemas'
 import { Change, validationRegistry } from 'apollo-shared'
 import { FilterQuery, Model } from 'mongoose'
@@ -37,6 +39,8 @@ export class ChangesService {
     private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
     @InjectModel(File.name)
     private readonly fileModel: Model<FileDocument>,
+    @InjectModel(User.name)
+    private readonly userModel: Model<UserDocument>,
     @InjectModel(ChangeSchema.name)
     private readonly changeModel: Model<ChangeDocument>,
     private readonly filesService: FilesService,
@@ -47,7 +51,7 @@ export class ChangesService {
   async create(change: Change) {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
 
-    const validationResult = await validationRegistry.backendPreValidate(change)
+    const validationResult = await validationRegistry.backendPreValidate(change, userModel: this.userModel)
     if (!validationResult.ok) {
       const errorMessage = validationResult.results
         .map((r) => r.error?.message)

@@ -1,7 +1,11 @@
-import { FeatureDocument } from 'apollo-schemas'
+import { FeatureDocument, UserDocument } from 'apollo-schemas'
 import { ClientSession, Model } from 'mongoose'
 
-import { Change, ClientDataStore } from '../ChangeManager/Change'
+import {
+  Change,
+  ClientDataStore,
+  ServerDataStore,
+} from '../ChangeManager/Change'
 
 export interface Context {
   context: import('@nestjs/common').ExecutionContext
@@ -30,6 +34,7 @@ export abstract class Validation {
 
   async backendPreValidate(
     _changeOrContext: Change | Context,
+    userModel: import('mongoose').Model<UserDocument>,
   ): Promise<ValidationResult> {
     return { validationName: this.name }
   }

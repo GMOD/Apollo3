@@ -9,6 +9,7 @@ import {
 
 import { AppModule } from './app.module'
 import { GlobalExceptionsFilter } from './global-exceptions.filter'
+import { AuthorizationValidation } from './utils/validation/AuthorizationValidation'
 
 async function bootstrap() {
   const { CORS, LOGGER_OPTIONS, APPLICATION_PORT } = process.env
@@ -26,6 +27,7 @@ async function bootstrap() {
     changeRegistry.registerChange(changeName, change)
   })
 
+  validationRegistry.registerValidation(new AuthorizationValidation())
   validationRegistry.registerValidation(new CoreValidation())
   validationRegistry.registerValidation(new ParentChildValidation())
 
