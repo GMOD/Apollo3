@@ -26,6 +26,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       },
     }))
     .actions((self) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setRole<E extends Record<keyof E, string>>(roles: any) {
         self.role = roles
       },
