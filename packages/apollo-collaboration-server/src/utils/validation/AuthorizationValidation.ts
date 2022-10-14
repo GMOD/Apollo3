@@ -1,5 +1,4 @@
-import { ExecutionContext, Logger } from '@nestjs/common'
-import { Reflector } from '@nestjs/core'
+import { Logger } from '@nestjs/common'
 import { UserDocument } from 'apollo-schemas'
 import { Context, Validation, ValidationResult } from 'apollo-shared'
 
@@ -17,7 +16,6 @@ export class AuthorizationValidation extends Validation {
     context: Context,
     userModel: import('mongoose').Model<UserDocument>,
   ): Promise<ValidationResult> {
-
     const logger = new Logger(AuthorizationValidation.name)
     const requiredRole = context.reflector.getAllAndOverride<Role[]>(
       ROLES_KEY,
@@ -48,7 +46,7 @@ export class AuthorizationValidation extends Validation {
     const payloadObject = getDecodedAccessToken(token[1])
     const { username } = payloadObject
 
-    const user = await userModel.findOne({username})
+    const user = await userModel.findOne({ username })
     if (!user) {
       const errMsg = `User '${username}' not found in Mongo, no authorization!`
       logger.debug(errMsg)
