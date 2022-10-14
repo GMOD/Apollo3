@@ -56,6 +56,26 @@ export const ApolloLoginForm = ({
     }
     event.preventDefault()
   }
+
+  async function onSubmitGoogle(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const res = await fetch(new URL('/auth/google/login', baseURL).href, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    })
+    const data = await res.json()
+    // If authentication was successfull then there is key 'token'
+    if ('token' in data) {
+      const responseToken = data.token
+      handleClose(responseToken)
+    } else {
+      handleClose(new Error('Authentication failed — no token in response'))
+    }
+
+    event.preventDefault()
+  }
   return (
     <>
       <Dialog open maxWidth="xl" data-testid="login-apollo">
@@ -97,6 +117,13 @@ export const ApolloLoginForm = ({
               }}
             >
               Cancel
+            </Button>
+          </DialogActions>
+        </form>
+        <form onSubmit={onSubmitGoogle}>
+          <DialogActions>
+            <Button variant="contained" type="submit">
+              Use Google Authentication
             </Button>
           </DialogActions>
         </form>

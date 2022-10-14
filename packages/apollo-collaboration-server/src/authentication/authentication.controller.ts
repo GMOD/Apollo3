@@ -1,4 +1,12 @@
-import { BadRequestException, Controller, Get, Logger, Post, Req, UseGuards } from '@nestjs/common'
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Logger,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common'
 import { Request } from 'express'
 
 import { User } from '../users/users.service'
@@ -24,7 +32,20 @@ export class AuthenticationController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Req() req: RequestWithValidatedUser) {
-    return this.authService.login(req.user)
+    // return this.authService.login(req.user)
+    const ret = this.authService.login(req.user)
+    // const response = {
+    //   // statusCode: 200,
+    //   ok: true,
+    //   status: 200,
+    //   headers: {
+    //     'Access-Control-Allow-Headers': 'Content-Type',
+    //     'Access-Control-Allow-Origin':'https://accounts.google.com',
+    //     // 'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+    //   },
+    //   body: ret,
+    // }
+    return ret
   }
 
   @Get('google/login')
@@ -35,8 +56,24 @@ export class AuthenticationController {
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
   async handleRedirect(@Req() req: Request) {
-    if (!req.user) throw new BadRequestException();
+    if (!req.user) {
+      throw new BadRequestException()
+    }
+
     this.logger.debug(`Return value: ${JSON.stringify(req.user)}`)
-    return req.user
+
+    const response = {
+      // statusCode: 200,
+      ok: true,
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Origin':'*',
+        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+      },
+      body: req.user,
+    }
+    return response
+    // return req.user
   }
 }

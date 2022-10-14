@@ -18,6 +18,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JWTPayload): Promise<Omit<User, 'password'>> {
-    return { userId: payload.sub, username: payload.username }
+    return { email: payload.email, username: payload.username }
   }
 }

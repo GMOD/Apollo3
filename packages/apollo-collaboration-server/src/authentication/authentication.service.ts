@@ -66,6 +66,7 @@ export class AuthenticationService {
     const payload = {
       username: user.username,
       sub: user.userId,
+      email: user.email,
       roles: Array.from(userRoles),
     }
     // Return token with SUCCESS status
