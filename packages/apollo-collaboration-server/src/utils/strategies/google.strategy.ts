@@ -32,6 +32,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       clientSecret: GOOGLE_CLIENT_SECRET,
       callbackURL: GOOGLE_CALLBACK_URL,
       scope: GOOGLE_SCOPE?.split(','),
+      proxy: true,
     })
   }
 

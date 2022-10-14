@@ -6,7 +6,7 @@ import { Model } from 'mongoose'
 import { CreateUserDto } from './dto/create-user.dto'
 
 export interface User {
-  userId: number
+  email: string
   username: string
   password: string
 }
@@ -21,24 +21,9 @@ export class UsersService {
   ) {
     this.users = [
       {
-        userId: 1,
+        email: 'kyosti@ebi.ac.uk',
         username: 'john',
         password: 'changeme',
-      },
-      {
-        userId: 2,
-        username: 'chris',
-        password: 'secret',
-      },
-      {
-        userId: 3,
-        username: 'maria',
-        password: 'guess',
-      },
-      {
-        userId: 4,
-        username: 'demo',
-        password: 'demo',
       },
     ]
   }

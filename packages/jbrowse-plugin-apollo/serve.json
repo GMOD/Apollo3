@@ -9,11 +9,15 @@
         },
         {
           "key" : "Access-Control-Allow-Headers",
-          "value" : "range, Cache-control, If-None-Match, Content-Type"
+          "value" : "range, Cache-control, If-None-Match, Origin, X-Requested-With, Content-Type, Accept"
         },
         {
           "key" : "Access-Control-Expose-Headers",
           "value" : "Content-Length, Content-Range, Content-Type"
+        },
+        {
+          "key" : "Access-Control-Allow-Origin",
+          "value" : "*"
         }
       ]
     }
