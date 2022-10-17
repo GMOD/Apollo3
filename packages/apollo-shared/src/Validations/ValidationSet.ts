@@ -51,11 +51,11 @@ export class ValidationSet {
 
   async backendPreValidate(
     change: Change | Context,
-    userModel: import('mongoose').Model<UserDocument>,
+    { userModel }: { userModel: Model<UserDocument> },
   ): Promise<ValidationResultSet> {
     const results = new ValidationResultSet()
     for (const v of this.validations) {
-      const result = await v.backendPreValidate(change, userModel)
+      const result = await v.backendPreValidate(change, { userModel })
       results.add(result)
       if (result.error) {
         break

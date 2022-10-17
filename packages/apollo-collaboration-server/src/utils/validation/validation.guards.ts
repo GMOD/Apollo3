@@ -37,7 +37,7 @@ export class ValidationGuard implements CanActivate {
           context,
           reflector: this.reflector,
         },
-        this.userModel,
+        { userModel: this.userModel },
       )
       if (!validationResult.ok) {
         throw new UnprocessableEntityException(

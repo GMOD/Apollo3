@@ -30,7 +30,7 @@ export abstract class Validation {
 
   async backendPreValidate(
     _changeOrContext: Change | Context,
-    userModel: import('mongoose').Model<UserDocument>,
+    { userModel }: { userModel: Model<UserDocument> },
   ): Promise<ValidationResult> {
     return { validationName: this.name }
   }

@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common'
 import { UserDocument } from 'apollo-schemas'
 import { Context, Validation, ValidationResult } from 'apollo-shared'
+import type { Model } from 'mongoose'
 
 import { getDecodedAccessToken } from '../commonUtilities'
 import { Role, RoleInheritance, RoleNames } from '../role/role.enum'
@@ -14,7 +15,7 @@ export class AuthorizationValidation extends Validation {
   name = 'Authorization' as const
   async backendPreValidate(
     context: Context,
-    userModel: import('mongoose').Model<UserDocument>,
+    { userModel }: { userModel: Model<UserDocument> },
   ): Promise<ValidationResult> {
     const logger = new Logger(AuthorizationValidation.name)
     const requiredRole = context.reflector.getAllAndOverride<Role[]>(

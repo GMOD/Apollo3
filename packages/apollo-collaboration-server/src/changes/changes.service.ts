@@ -52,7 +52,7 @@ export class ChangesService {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
     const validationResult = await validationRegistry.backendPreValidate(
       change,
-      this.userModel,
+      { userModel: this.userModel },
     )
     if (!validationResult.ok) {
       const errorMessage = validationResult.results
