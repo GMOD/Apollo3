@@ -32,18 +32,10 @@ async function bootstrap() {
   validationRegistry.registerValidation(new ParentChildValidation())
 
   const cors = convertToBoolean(CORS)
-  const corsOptions = {
-    origin: '*',
-    credentials: true,
-    preflightContinue: true,
-    optionSuccessStatus: 200,
-    // methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS'
-  }
 
   const loggerOpions = JSON.parse(LOGGER_OPTIONS)
   const app = await NestFactory.create(AppModule, {
     logger: loggerOpions,
-    // cors: corsOptions,
     cors,
   })
 

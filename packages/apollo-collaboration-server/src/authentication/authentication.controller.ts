@@ -32,20 +32,7 @@ export class AuthenticationController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Req() req: RequestWithValidatedUser) {
-    // return this.authService.login(req.user)
-    const ret = this.authService.login(req.user)
-    // const response = {
-    //   // statusCode: 200,
-    //   ok: true,
-    //   status: 200,
-    //   headers: {
-    //     'Access-Control-Allow-Headers': 'Content-Type',
-    //     'Access-Control-Allow-Origin':'https://accounts.google.com',
-    //     // 'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
-    //   },
-    //   body: ret,
-    // }
-    return ret
+    return this.authService.login(req.user)
   }
 
   @Get('google/login')
@@ -62,18 +49,18 @@ export class AuthenticationController {
 
     this.logger.debug(`Return value: ${JSON.stringify(req.user)}`)
 
-    const response = {
-      // statusCode: 200,
-      ok: true,
-      status: 200,
-      headers: {
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Origin':'*',
-        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
-      },
-      body: req.user,
-    }
-    return response
-    // return req.user
+    // const response = {
+    //   // statusCode: 200,
+    //   ok: true,
+    //   status: 200,
+    //   headers: {
+    //     'Access-Control-Allow-Headers': 'Content-Type',
+    //     'Access-Control-Allow-Origin':'*',
+    //     'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+    //   },
+    //   body: req.user,
+    // }
+    // return response
+    return req.user
   }
 }
