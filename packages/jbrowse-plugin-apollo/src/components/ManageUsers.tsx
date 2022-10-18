@@ -19,7 +19,7 @@ import {
 import { getRoot } from 'mobx-state-tree'
 import React, { useCallback, useMemo, useState } from 'react'
 
-import { useUsers } from './'
+import { UserData, useUsers } from './'
 
 // const users = [
 //   { id: 'user0123', email: '0123@demo.com', role: 'read-only' },
@@ -37,8 +37,7 @@ export function ManageUsers({ session, handleClose }: ManageUsersProps) {
   const [errorMessage, setErrorMessage] = useState('')
 
   const users = useUsers(internetAccounts, setErrorMessage)
-  type Row = typeof users[number]
-  const [rows, setRows] = useState<Row[]>(users)
+  const [rows, setRows] = useState<UserData[]>(users)
 
   const deleteUser = useCallback(
     (id: GridRowId) => () => {
@@ -49,7 +48,7 @@ export function ManageUsers({ session, handleClose }: ManageUsersProps) {
     [],
   )
 
-  const gridColumns = useMemo<GridColumns<Row>>(
+  const gridColumns = useMemo<GridColumns>(
     () => [
       { field: 'id', headerName: 'User', width: 140 },
       { field: 'email', headerName: 'Email', width: 160 },
@@ -85,7 +84,7 @@ export function ManageUsers({ session, handleClose }: ManageUsersProps) {
           <DataGrid
             autoPageSize
             pagination
-            rows={rows}
+            rows={users}
             columns={gridColumns}
             getRowId={(row) => row.id}
             components={{ Toolbar: GridToolbar }}
