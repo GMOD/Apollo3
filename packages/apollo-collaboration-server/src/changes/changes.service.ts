@@ -17,12 +17,10 @@ import {
   RefSeqChunk,
   RefSeqChunkDocument,
   RefSeqDocument,
+  User,
+  UserDocument,
 } from 'apollo-schemas'
-import {
-  SerializedChange,
-  changeRegistry,
-  validationRegistry,
-} from 'apollo-shared'
+import { Change as BaseChange, validationRegistry } from 'apollo-shared'
 import { FilterQuery, Model } from 'mongoose'
 
 import { FilesService } from '../files/files.service'
@@ -41,6 +39,8 @@ export class ChangesService {
     private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
     @InjectModel(File.name)
     private readonly fileModel: Model<FileDocument>,
+    @InjectModel(User.name)
+    private readonly userModel: Model<UserDocument>,
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
     private readonly filesService: FilesService,
@@ -48,17 +48,14 @@ export class ChangesService {
 
   private readonly logger = new Logger(ChangesService.name)
 
-  async create(serializedChange: SerializedChange) {
-    const ChangeType = changeRegistry.getChangeType(serializedChange.typeName)
-    const change = new ChangeType(serializedChange, { logger: this.logger })
+  async create(change: BaseChange) {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
-
-    const validationResult = await validationRegistry.backendPreValidate(change)
+    const validationResult = await validationRegistry.backendPreValidate(
+      change,
+      { userModel: this.userModel },
+    )
     if (!validationResult.ok) {
-      const errorMessage = validationResult.results
-        .map((r) => r.error?.message)
-        .filter(Boolean)
-        .join(', ')
+      const errorMessage = validationResult.resultsMessages
       throw new UnprocessableEntityException(
         `Error in backend pre-validation: ${errorMessage}`,
       )
@@ -100,10 +97,7 @@ export class ChangesService {
         { featureModel: this.featureModel, session },
       )
       if (!validationResult2.ok) {
-        const errorMessage = validationResult2.results
-          .map((r) => r.error?.message)
-          .filter(Boolean)
-          .join(', ')
+        const errorMessage = validationResult2.resultsMessages
         throw new UnprocessableEntityException(
           `Error in backend post-validation: ${errorMessage}`,
         )

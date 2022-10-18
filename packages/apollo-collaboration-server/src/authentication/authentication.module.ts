@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common'
 import { JwtModule } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 
-import { UsersModule } from '../usersDemo/users.module'
+import { UsersModule } from '../users/users.module'
 import { jwtConstants } from '../utils/constants'
 import { JwtStrategy } from '../utils/strategies/jwt.strategy'
 import { LocalStrategy } from '../utils/strategies/local.strategy'
@@ -15,7 +15,7 @@ import { AuthenticationService } from './authentication.service'
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '2400m' }, // Define token expiration time. TODO: Put value into property -file
+      signOptions: { expiresIn: jwtConstants.expiresIn },
     }),
   ],
   controllers: [AuthenticationController],

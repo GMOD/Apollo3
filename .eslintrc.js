@@ -16,6 +16,7 @@ module.exports = {
     project: 'tsconfig.json',
   },
   rules: {
+    '@typescript-eslint/array-type': 'warn',
     '@typescript-eslint/dot-notation': ['warn', { allowKeywords: true }],
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/lines-between-class-members': [

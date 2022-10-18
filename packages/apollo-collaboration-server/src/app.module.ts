@@ -11,7 +11,7 @@ import { FilesModule } from './files/files.module'
 import { RefSeqChunksModule } from './refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from './refSeqs/refSeqs.module'
 import { UsersModule } from './users/users.module'
-import { RolesGuard } from './utils/role/role.guards'
+import { ValidationGuard } from './utils/validation/validation.guards'
 
 const nodeEnv = process.env.NODE_ENV || 'production'
 
@@ -39,7 +39,7 @@ const nodeEnv = process.env.NODE_ENV || 'production'
   providers: [
     {
       provide: APP_GUARD,
-      useClass: RolesGuard,
+      useClass: ValidationGuard,
     },
   ],
 })

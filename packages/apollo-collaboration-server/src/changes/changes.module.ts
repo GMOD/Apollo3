@@ -8,6 +8,7 @@ import { FeaturesModule } from '../features/features.module'
 import { FilesModule } from '../files/files.module'
 import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
+import { UsersModule } from '../users/users.module'
 import { ChangesController } from './changes.controller'
 import { ChangesService } from './changes.service'
 
@@ -30,6 +31,7 @@ import { ChangesService } from './changes.service'
     RefSeqChunksModule,
     FeaturesModule,
     FilesModule,
+    UsersModule,
   ],
 })
 export class ChangesModule {}

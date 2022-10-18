@@ -1,7 +1,19 @@
-import { FeatureDocument } from 'apollo-schemas'
+import { FeatureDocument, UserDocument } from 'apollo-schemas'
 import { ClientSession, Model } from 'mongoose'
 
 import { Change, ClientDataStore } from '../ChangeManager/Change'
+
+export interface Context {
+  context: import('@nestjs/common').ExecutionContext
+  reflector: import('@nestjs/core').Reflector
+}
+
+export function isContext(thing: Change | Context): thing is Context {
+  return (
+    (thing as Context).context !== undefined &&
+    (thing as Context).reflector !== undefined
+  )
+}
 
 export interface ValidationResult {
   validationName: string
@@ -23,7 +35,10 @@ export abstract class Validation {
     return { validationName: this.name }
   }
 
-  async backendPreValidate(_change: Change): Promise<ValidationResult> {
+  async backendPreValidate(
+    _changeOrContext: Change | Context,
+    { userModel }: { userModel: Model<UserDocument> },
+  ): Promise<ValidationResult> {
     return { validationName: this.name }
   }
 

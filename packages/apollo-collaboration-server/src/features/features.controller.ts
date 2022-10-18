@@ -6,13 +6,19 @@ import {
   Query,
   Response,
   StreamableFile,
+  UseGuards,
 } from '@nestjs/common'
 import { Response as ExpressResponse } from 'express'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
+import { JwtAuthGuard } from '../utils/jwt-auth.guard'
+import { Role } from '../utils/role/role.enum'
+import { Validations } from '../utils/validation/validatation.decorator'
 import { FeaturesService } from './features.service'
 
+@UseGuards(JwtAuthGuard)
 @Controller('features')
+@Validations(Role.ReadOnly)
 export class FeaturesController {
   constructor(private readonly featuresService: FeaturesService) {}
   private readonly logger = new Logger(FeaturesController.name)
@@ -44,11 +50,10 @@ export class FeaturesController {
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
    * or if search data was not found or in case of error throw exception
    */
-  //    @UseGuards(JwtAuthGuard)
   @Get('getFeatures')
   getFeatures(@Query() request: FeatureRangeSearchDto) {
     this.logger.debug(
-      `getFeaturesByCriteria -method: refSeq: ${request.refSeq}, start: ${request.start}, end: ${request.end}=`,
+      `getFeaturesByCriteria -method: refSeq: ${request.refSeq}, start: ${request.start}, end: ${request.end}`,
     )
 
     return this.featuresService.findByRange(request)
@@ -60,7 +65,6 @@ export class FeaturesController {
    * @returns Return 'HttpStatus.OK' and the feature(s) if search was successful
    * or if search data was not found or in case of error throw exception
    */
-  //  @UseGuards(JwtAuthGuard)
   @Get(':featureid')
   getFeature(@Param('featureid') featureid: string) {
     this.logger.debug(`Get feature by featureId: ${featureid}`)

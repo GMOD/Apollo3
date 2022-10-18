@@ -6,35 +6,41 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common'
-import { SerializedChange } from 'apollo-shared'
+import { Change } from 'apollo-shared'
 
+import { ChangeInterceptor } from '../utils/change.interceptor'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
+import { Role } from '../utils/role/role.enum'
+import { Validations } from '../utils/validation/validatation.decorator'
 import { ChangesService } from './changes.service'
 import { FindChangeDto } from './dto/find-change.dto'
 
+@UseGuards(JwtAuthGuard)
+@Validations(Role.ReadOnly)
 @Controller('changes')
 export class ChangesController {
   constructor(private readonly changesService: ChangesService) {}
   private readonly logger = new Logger(ChangesController.name)
 
   /**
-   * Updates end position of given feature. Before update, current end -position value is checked (against given old-value)
-   * @param serializedChange - Information containing featureId, newEndValue, oldEndValue
-   * @returns Return 'HttpStatus.OK' if featureId was found AND oldEndValue matched AND database update was successfull. Otherwise throw exception.
+   * ...
+   * @param serializedChange - Information containing ...
+   * @returns Return 'HttpStatus.OK' if .... Otherwise throw exception.
    */
-  @UseGuards(JwtAuthGuard)
   @Post()
-  async create(@Body() serializedChange: SerializedChange) {
+  @UseInterceptors(ChangeInterceptor)
+  @Validations(Role.User)
+  async create(@Body() change: Change) {
     this.logger.debug(
-      `Requested type: ${
-        serializedChange.typeName
-      }, the whole change: ${JSON.stringify(serializedChange)}`,
+      `Change type is '${change.typeName}', change object: ${JSON.stringify(
+        change,
+      )}`,
     )
-    return this.changesService.create(serializedChange)
+    return this.changesService.create(change)
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(@Query() changeFilter: FindChangeDto) {
     this.logger.debug(`ChangeFilter: ${JSON.stringify(changeFilter)}`)

@@ -3,6 +3,8 @@ import { Document } from 'mongoose'
 
 export type UserDocument = User & Document
 
+export type Role = 'readOnly' | 'admin' | 'user'
+
 @Schema({ timestamps: true })
 export class User {
   @Prop({ required: true, unique: true })
@@ -15,7 +17,7 @@ export class User {
   email: string
 
   @Prop({ required: true, type: [String], enum: ['readOnly', 'admin', 'user'] })
-  role: [{ type: string }]
+  role: Role[]
 }
 
 export const UserSchema = SchemaFactory.createForClass(User)
