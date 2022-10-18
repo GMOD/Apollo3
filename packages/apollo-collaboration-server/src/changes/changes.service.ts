@@ -7,8 +7,8 @@ import { InjectModel } from '@nestjs/mongoose'
 import {
   Assembly,
   AssemblyDocument,
+  Change,
   ChangeDocument,
-  Change as ChangeSchema,
   Feature,
   FeatureDocument,
   File,
@@ -20,7 +20,7 @@ import {
   User,
   UserDocument,
 } from 'apollo-schemas'
-import { Change, validationRegistry } from 'apollo-shared'
+import { Change as BaseChange, validationRegistry } from 'apollo-shared'
 import { FilterQuery, Model } from 'mongoose'
 
 import { FilesService } from '../files/files.service'
@@ -41,14 +41,14 @@ export class ChangesService {
     private readonly fileModel: Model<FileDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
-    @InjectModel(ChangeSchema.name)
+    @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
     private readonly filesService: FilesService,
   ) {}
 
   private readonly logger = new Logger(ChangesService.name)
 
-  async create(change: Change) {
+  async create(change: BaseChange) {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
     const validationResult = await validationRegistry.backendPreValidate(
       change,

@@ -8,6 +8,13 @@ export interface Context {
   reflector: import('@nestjs/core').Reflector
 }
 
+export function isContext(thing: Change | Context): thing is Context {
+  return (
+    (thing as Context).context !== undefined &&
+    (thing as Context).reflector !== undefined
+  )
+}
+
 export interface ValidationResult {
   validationName: string
   error?: {

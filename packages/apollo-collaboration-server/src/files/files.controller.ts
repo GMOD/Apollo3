@@ -22,8 +22,12 @@ import {
   UploadedFile as UploadedApolloFile,
 } from '../utils/FileStorageEngine'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
+import { Role } from '../utils/role/role.enum'
+import { Validations } from '../utils/validation/validatation.decorator'
 import { FilesService } from './files.service'
 
+@UseGuards(JwtAuthGuard)
+@Validations(Role.ReadOnly)
 @Controller('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
@@ -35,7 +39,7 @@ export class FilesController {
    * @returns Return ....  if save was successful
    * or in case of error return throw exception
    */
-  @UseGuards(JwtAuthGuard)
+  @Validations(Role.Admin)
   @Post()
   @UseInterceptors(
     FileInterceptor('file', { storage: new FileStorageEngine() }),
@@ -63,7 +67,6 @@ export class FilesController {
    * @param id -
    * @returns
    */
-  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async downloadFile(
     @Param('id') id: string,
@@ -101,7 +104,6 @@ export class FilesController {
    * @param id - fileId to be deleted
    * @returns
    */
-  //  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async remove(@Param('id') id: string) {
     this.logger.debug(`Delete fileId "${id}" from Mongo`)

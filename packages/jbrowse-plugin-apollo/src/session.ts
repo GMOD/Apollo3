@@ -56,7 +56,6 @@ const ClientDataStore = types
       types.enumeration('backendDriverType', ['CollaborationServerDriver']),
       'CollaborationServerDriver',
     ),
-    internetAccountConfigId: types.maybe(types.string),
   })
   .views((self) => ({
     get internetAccounts() {
