@@ -1,6 +1,6 @@
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
-import { PayloadObject } from 'apollo-shared/src/Common/payloadObject'
+import { PayloadObject } from 'apollo-shared'
 import jwtDecode from 'jwt-decode'
 import { Instance, getRoot, types } from 'mobx-state-tree'
 

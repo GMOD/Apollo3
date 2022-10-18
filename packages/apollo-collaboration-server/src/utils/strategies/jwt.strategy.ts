@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
-import { PayloadObject } from 'apollo-shared/src/Common/payloadObject'
+import { PayloadObject } from 'apollo-shared'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 
 import { User } from '../../users/users.service'
