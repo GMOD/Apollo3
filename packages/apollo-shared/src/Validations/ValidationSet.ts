@@ -6,6 +6,13 @@ import { Context, Validation, ValidationResult } from './Validation'
 
 export class ValidationResultSet {
   results: ValidationResult[] = []
+  get resultsMessages() {
+    return this.results
+      .map((r) => r.error?.message)
+      .filter(Boolean)
+      .join(', ')
+  }
+
   ok = true
   add(result: ValidationResult) {
     this.results.push(result)

@@ -41,7 +41,7 @@ export class ValidationGuard implements CanActivate {
       )
       if (!validationResult.ok) {
         throw new UnprocessableEntityException(
-          `Error in backend authorization pre-validation: ${validationResult.results}`,
+          `Error in backend authorization pre-validation: ${validationResult.resultsMessages}`,
         )
       }
       return true

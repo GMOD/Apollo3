@@ -55,10 +55,7 @@ export class ChangesService {
       { userModel: this.userModel },
     )
     if (!validationResult.ok) {
-      const errorMessage = validationResult.results
-        .map((r) => r.error?.message)
-        .filter(Boolean)
-        .join(', ')
+      const errorMessage = validationResult.resultsMessages
       throw new UnprocessableEntityException(
         `Error in backend pre-validation: ${errorMessage}`,
       )
@@ -100,10 +97,7 @@ export class ChangesService {
         { featureModel: this.featureModel, session },
       )
       if (!validationResult2.ok) {
-        const errorMessage = validationResult2.results
-          .map((r) => r.error?.message)
-          .filter(Boolean)
-          .join(', ')
+        const errorMessage = validationResult2.resultsMessages
         throw new UnprocessableEntityException(
           `Error in backend post-validation: ${errorMessage}`,
         )

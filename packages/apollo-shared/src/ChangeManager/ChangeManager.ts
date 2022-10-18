@@ -28,10 +28,7 @@ export class ChangeManager {
     const result = await validationRegistry.frontendPreValidate(change)
     if (!result.ok) {
       session.notify(
-        `Pre-validation failed: "${result.results
-          .map((r) => r.error?.message)
-          .filter(Boolean)
-          .join(', ')}"`,
+        `Pre-validation failed: "${result.resultsMessages}"`,
         'error',
       )
       return
@@ -73,10 +70,7 @@ export class ChangeManager {
       }
       if (!backendResult.ok) {
         session.notify(
-          `Post-validation failed: "${result.results
-            .map((r) => r.error?.message)
-            .filter(Boolean)
-            .join(', ')}"`,
+          `Post-validation failed: "${result.resultsMessages}"`,
           'error',
         )
         this.revert(change, false)
