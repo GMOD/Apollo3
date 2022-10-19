@@ -9,6 +9,7 @@ import {
   LocationEndChange,
   LocationStartChange,
   TypeChange,
+  UserChange,
 } from './changes'
 
 export const changes = {
@@ -22,6 +23,7 @@ export const changes = {
   LocationEndChange,
   LocationStartChange,
   TypeChange,
+  UserChange,
 }
 
 export * from './changes'
