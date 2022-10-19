@@ -40,6 +40,11 @@ export class AuthenticationController {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   handleLogin() {}
 
+  @Get('google/auth')
+  @UseGuards(GoogleAuthGuard)
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  authLogin() {}
+
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
   async handleRedirect(@Req() req: Request) {
@@ -48,19 +53,6 @@ export class AuthenticationController {
     }
 
     this.logger.debug(`Return value: ${JSON.stringify(req.user)}`)
-
-    // const response = {
-    //   // statusCode: 200,
-    //   ok: true,
-    //   status: 200,
-    //   headers: {
-    //     'Access-Control-Allow-Headers': 'Content-Type',
-    //     'Access-Control-Allow-Origin':'*',
-    //     'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
-    //   },
-    //   body: req.user,
-    // }
-    // return response
     return req.user
   }
 }

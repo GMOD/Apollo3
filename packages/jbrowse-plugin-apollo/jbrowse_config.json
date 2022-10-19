@@ -25,12 +25,14 @@
   ],
   "internetAccounts": [
     {
-      "type": "ApolloInternetAccount",
-      "internetAccountId": "apolloInternetAccount",
-      "name": "Demo Server",
-      "description": "A server hosting a small fictional organism to demonstrate Apollo capabilities",
+      "type": "GoogleDriveOAuthInternetAccount",
+      "internetAccountId": "googleOAuth",
+      "name": "Google Drive",
+      "description": "Account to access Google Drive files",
+      "clientId": "1054515969695-3hpfg1gd0ld3sgj135kfgikolu86vv30.apps.googleusercontent.com",
       "domains": ["localhost:3999"],
-      "baseURL": "http://localhost:3999"
+      "baseURL": "http://localhost:3999",
+      "authEndpoint": "http://localhost:3999/google/auth" 
     }
   ],
   "defaultSession": {
