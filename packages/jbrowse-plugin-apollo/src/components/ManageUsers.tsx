@@ -11,15 +11,19 @@ import {
 import {
   DataGrid,
   GridActionsCellItem,
+  GridCallbackDetails,
+  GridCellEditCommitParams,
   GridColumns,
   GridRowId,
   GridRowParams,
   GridToolbar,
+  MuiEvent,
 } from '@mui/x-data-grid'
+import { ChangeManager, UserChange } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useCallback, useMemo, useState } from 'react'
 
-import { UserData, useUsers } from './'
+import { useUsers } from './'
 
 // const users = [
 //   { id: 'user0123', email: '0123@demo.com', role: 'read-only' },
@@ -30,20 +34,25 @@ import { UserData, useUsers } from './'
 interface ManageUsersProps {
   session: AbstractSessionModel
   handleClose(): void
+  changeManager: ChangeManager
 }
 
-export function ManageUsers({ session, handleClose }: ManageUsersProps) {
+export function ManageUsers({
+  session,
+  handleClose,
+  changeManager,
+}: ManageUsersProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const [errorMessage, setErrorMessage] = useState('')
 
   const users = useUsers(internetAccounts, setErrorMessage)
-  const [rows, setRows] = useState<UserData[]>(users)
+  // const [rows, setRows] = useState<UserData[]>(users)
 
   const deleteUser = useCallback(
     (id: GridRowId) => () => {
-      setTimeout(() => {
-        setRows((prevRows) => prevRows.filter((row) => row.id !== id))
-      })
+      // setTimeout(() => {
+      //   setRows((prevRows) => prevRows.filter((row) => row.id !== id))
+      // })
     },
     [],
   )
@@ -75,6 +84,10 @@ export function ManageUsers({ session, handleClose }: ManageUsersProps) {
     [deleteUser],
   )
 
+  async function onChangeTableCell(change: UserChange, event: MuiEvent) {
+    changeManager.submit(change)
+  }
+
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo" fullScreen>
       <DialogTitle>Manage users</DialogTitle>
@@ -89,7 +102,23 @@ export function ManageUsers({ session, handleClose }: ManageUsersProps) {
             getRowId={(row) => row.id}
             components={{ Toolbar: GridToolbar }}
             getRowHeight={() => 'auto'}
-            experimentalFeatures={{ newEditingApi: true }}
+            // experimentalFeatures={{ newEditingApi: true }}
+            onCellEditCommit={(
+              params: GridCellEditCommitParams,
+              event: MuiEvent,
+              details: GridCallbackDetails,
+            ) => {
+              if (params.field === 'role') {
+                const change = new UserChange({
+                  changedIds: ['1'],
+                  typeName: 'UserChange',
+                  role: params.value,
+                  userId: 2,
+                  assemblyId: 'XXXXXXX',
+                })
+                onChangeTableCell(change, event)
+              }
+            }}
           />
         </div>
       </DialogContent>
