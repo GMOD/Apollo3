@@ -63,18 +63,18 @@ export class UserChange extends Change {
     const { userModel, session } = backend
     const { changes, userId } = this
 
-    const user = await userModel.findById(userId).session(session).exec()
-    if (!user) {
-      const errMsg = `*** ERROR: User with id "${userId}" not found`
-      this.logger.error(errMsg)
-      throw new Error(errMsg)
-    }
-
     for (const change of changes) {
       this.logger.debug?.(`change: ${JSON.stringify(changes)}`)
       const { role } = change
-      user.role = role
-      await user.save()
+      const user = await userModel
+        .findOneAndUpdate({ id: userId }, { role })
+        .session(session)
+        .exec()
+      if (!user) {
+        const errMsg = `*** ERROR: User with id "${userId}" not found`
+        this.logger.error(errMsg)
+        throw new Error(errMsg)
+      }
     }
   }
 
