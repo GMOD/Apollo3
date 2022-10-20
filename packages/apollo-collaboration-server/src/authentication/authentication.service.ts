@@ -65,7 +65,6 @@ export class AuthenticationService {
 
     const payload = {
       username: user.username,
-      sub: user.userId,
       email: user.email,
       roles: Array.from(userRoles),
     }
@@ -83,8 +82,7 @@ export class AuthenticationService {
    * @returns Return either token with HttpResponse status 'HttpStatus.OK' OR null with 'HttpStatus.UNAUTHORIZED'
    */
   async googleLogin(profile: Profile) {
-    type RoleNameArray = typeof RoleNames
-    const userRolesArray: Array<Role> = []
+    const userRoles = new Set<Role>()
     const { DEFAULT_NEW_USER_ROLE } = process.env
     if (!DEFAULT_NEW_USER_ROLE) {
       throw new Error('No DEFAULT_NEW_USER_ROLE found in .env file')
@@ -109,7 +107,7 @@ export class AuthenticationService {
       const payload = {
         username: newUser.username,
         email: newUser,
-        roles: userRolesArray,
+        roles: Array.from(userRoles),
       }
       // Return token with SUCCESS status
       const returnToken = this.jwtService.sign(payload)
@@ -124,15 +122,16 @@ export class AuthenticationService {
 
     // Loop user's role(s) and add each role + inherited ones to userRolesArray
     for (const userRole of userFound.role) {
-      const roleName = userRole as unknown as RoleNameArray
-      const roles = RoleInheritance[roleName] // Read from role.enum.ts
-      userRolesArray.push(...roles)
+      const roles = RoleInheritance[userRole] // Read from role.enum.ts
+      roles.forEach((role) => {
+        userRoles.add(role)
+      })
     }
 
     const payload = {
       username: userFound.username,
       email: userFound.email,
-      roles: userRolesArray,
+      roles: Array.from(userRoles),
     }
     // Return token with SUCCESS status
     const returnToken = this.jwtService.sign(payload)
