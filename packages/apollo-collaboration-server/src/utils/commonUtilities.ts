@@ -1,7 +1,7 @@
 import fs from 'fs'
 import { join } from 'path'
 
-import { PayloadObject } from 'apollo-shared'
+import { JWTPayload } from 'apollo-shared'
 import jwtDecode from 'jwt-decode'
 
 // import { fileSearchFolderConfig, GFF3 } from './fileConfig'
@@ -92,6 +92,6 @@ export function writeIntoGff3ChangeLog(
  * @param token -
  * @returns Decoded token
  */
-export function getDecodedAccessToken(token: string): PayloadObject {
+export function getDecodedAccessToken(token: string): JWTPayload {
   return jwtDecode(token)
 }

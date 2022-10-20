@@ -52,8 +52,8 @@ export class AuthorizationValidation extends Validation {
       throw new Error('No "authorization" header')
     }
     const [, token] = authorization.split(' ')
-    const payloadObject = getDecodedAccessToken(token)
-    const { username } = payloadObject
+    const jwtPayload = getDecodedAccessToken(token)
+    const { username } = jwtPayload
 
     const user = await userModel.findOne({ username })
     if (!user) {

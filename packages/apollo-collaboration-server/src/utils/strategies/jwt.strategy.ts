@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
-import { PayloadObject } from 'apollo-shared'
+import { JWTPayload } from 'apollo-shared'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 
 import { User } from '../../users/users.service'
@@ -17,7 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     })
   }
 
-  async validate(payload: PayloadObject): Promise<Omit<User, 'password'>> {
+  async validate(payload: JWTPayload): Promise<Omit<User, 'password'>> {
     return { userId: payload.sub, username: payload.username }
   }
 }

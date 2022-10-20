@@ -1,1 +1,1 @@
-export * from './payloadObject'
+export * from './jwtPayload'

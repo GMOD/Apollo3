@@ -1,6 +1,6 @@
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
-import { PayloadObject } from 'apollo-shared'
+import { JWTPayload } from 'apollo-shared'
 import jwtDecode from 'jwt-decode'
 import { Instance, getRoot, types } from 'mobx-state-tree'
 
@@ -46,7 +46,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
               } else if (token instanceof Error) {
                 reject(token)
               } else {
-                const dec = jwtDecode(token) as PayloadObject
+                const dec = jwtDecode(token) as JWTPayload
                 // decode role from token here and call setRole()
                 console.log(`Set the following roles for user: ${dec.roles}`)
                 this.setRole(dec.roles)
