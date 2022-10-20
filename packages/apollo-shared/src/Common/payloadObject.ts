@@ -1,5 +1,5 @@
 export interface PayloadObject {
   username: string
   sub: number
-  roles: string[]
+  roles: ('admin' | 'user' | 'readOnly')[]
 }
