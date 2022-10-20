@@ -4,6 +4,7 @@ import {
   Get,
   Logger,
   Post,
+  Redirect,
   Req,
   UseGuards,
 } from '@nestjs/common'
@@ -46,13 +47,14 @@ export class AuthenticationController {
   authLogin() {}
 
   @Get('google/redirect')
+  @Redirect()
   @UseGuards(GoogleAuthGuard)
-  async handleRedirect(@Req() req: Request) {
+  async handleRedirect(@Req() req: { user: { token: string } }) {
     if (!req.user) {
       throw new BadRequestException()
     }
 
     this.logger.debug(`Return value: ${JSON.stringify(req.user)}`)
-    return req.user
+    return { url: `http://localhost:3000/?access_token=${req.user.token}` }
   }
 }

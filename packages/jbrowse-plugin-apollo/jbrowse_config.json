@@ -31,7 +31,8 @@
       "description": "Account to access Apollo with Google login",
       "clientId": "1054515969695-3hpfg1gd0ld3sgj135kfgikolu86vv30.apps.googleusercontent.com",
       "domains": ["localhost:3999"],
-      "authEndpoint": "http://localhost:3999/auth/google/auth" 
+      "authEndpoint": "http://localhost:3999/auth/google/auth" ,
+      "scopes": "profile,email"
     }
   ],
   "defaultSession": {
