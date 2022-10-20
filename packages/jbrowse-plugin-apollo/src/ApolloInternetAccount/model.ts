@@ -12,10 +12,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
     .props({
       type: types.literal('ApolloInternetAccount'),
       configuration: ConfigurationReference(configSchema),
-      role: types.array(
-        types.maybe(types.enumeration('Role', ['admin', 'user', 'readOnly'])),
-      ),
-      // role: types.maybe(types.enumeration('Role', ['admin', 'user', 'readOnly'])),
     })
     .views((self) => ({
       get internetAccountType() {
@@ -24,12 +20,16 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       get baseURL(): string {
         return getConf(self, 'baseURL')
       },
+      get role() {
+        const token = self.retrieveToken()
+        if (!token) {
+          return undefined
+        }
+        const dec = jwtDecode(token) as JWTPayload
+        return dec.roles
+      },
     }))
     .actions((self) => ({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setRole<E extends Record<keyof E, string>>(roles: any) {
-        self.role = roles
-      },
       getTokenFromUser(
         resolve: (token: string) => void,
         reject: (error: Error) => void,
@@ -46,10 +46,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
               } else if (token instanceof Error) {
                 reject(token)
               } else {
-                const dec = jwtDecode(token) as JWTPayload
-                // decode role from token here and call setRole()
-                console.log(`Set the following roles for user: ${dec.roles}`)
-                this.setRole(dec.roles)
                 resolve(token)
               }
               doneCallback()
