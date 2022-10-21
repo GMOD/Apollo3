@@ -8,7 +8,11 @@ import {
 } from '@jbrowse/core/pluggableElementTypes'
 import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { AbstractSessionModel, isAbstractMenuManager } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  AppRootModel,
+  isAbstractMenuManager,
+} from '@jbrowse/core/util'
 import {
   CoreValidation,
   ParentChildValidation,
@@ -16,12 +20,14 @@ import {
   changes,
   validationRegistry,
 } from 'apollo-shared'
+import { getRoot } from 'mobx-state-tree'
 
 import { version } from '../package.json'
 import {
   configSchema as apolloInternetAccountConfigSchema,
   modelFactory as apolloInternetAccountModelFactory,
 } from './ApolloInternetAccount'
+import { ApolloInternetAccountModel } from './ApolloInternetAccount/model'
 import {
   ApolloRenderer,
   ReactComponent as ApolloRendererReactComponent,
@@ -113,9 +119,22 @@ export default class ApolloPlugin extends Plugin {
   configure(pluginManager: PluginManager) {
     if (isAbstractMenuManager(pluginManager.rootModel)) {
       pluginManager.rootModel.insertMenu('Apollo', -1)
+      console.log('Create menu item "Add Assembly"')
       pluginManager.rootModel.appendToMenu('Apollo', {
         label: 'Add Assembly',
         onClick: (session: AbstractSessionModel) => {
+          const { internetAccounts } = getRoot(session) as AppRootModel
+          const apolloInternetAccount = internetAccounts.find(
+            (ia) => ia.type === 'ApolloInternetAccount',
+          ) as ApolloInternetAccountModel | undefined
+          if (!apolloInternetAccount) {
+            throw new Error('No Apollo internet account found')
+          }
+          if (!apolloInternetAccount.role.includes('admin')) {
+            const { notify } = session
+            notify(`No rights to add new assembly`, 'error')
+            return
+          }
           session.queueDialog((doneCallback) => [
             AddAssembly,
             {
@@ -129,6 +148,22 @@ export default class ApolloPlugin extends Plugin {
           ])
         },
       })
+      // pluginManager.rootModel.appendToMenu('Apollo', {
+      //   label: 'Add Assembly',
+      //   onClick: (session: AbstractSessionModel) => {
+      //     session.queueDialog((doneCallback) => [
+      //       AddAssembly,
+      //       {
+      //         session,
+      //         handleClose: () => {
+      //           doneCallback()
+      //         },
+      //         changeManager: (session as ApolloSessionModel).apolloDataStore
+      //           .changeManager,
+      //       },
+      //     ])
+      //   },
+      // })
       pluginManager.rootModel.appendToMenu('Apollo', {
         label: 'Import Features',
         onClick: (session: AbstractSessionModel) => {
