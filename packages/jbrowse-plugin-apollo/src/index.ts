@@ -119,38 +119,21 @@ export default class ApolloPlugin extends Plugin {
   configure(pluginManager: PluginManager) {
     if (isAbstractMenuManager(pluginManager.rootModel)) {
       pluginManager.rootModel.insertMenu('Apollo', -1)
-      console.log('Create menu item "Add Assembly"')
-      pluginManager.rootModel.appendToMenu('Apollo', {
-        label: 'Add Assembly',
-        onClick: (session: AbstractSessionModel) => {
-          const { internetAccounts } = getRoot(session) as AppRootModel
-          const apolloInternetAccount = internetAccounts.find(
-            (ia) => ia.type === 'ApolloInternetAccount',
-          ) as ApolloInternetAccountModel | undefined
-          if (!apolloInternetAccount) {
-            throw new Error('No Apollo internet account found')
-          }
-          if (!apolloInternetAccount.role.includes('admin')) {
-            const { notify } = session
-            notify(`No rights to add new assembly`, 'error')
-            return
-          }
-          session.queueDialog((doneCallback) => [
-            AddAssembly,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager: (session as ApolloSessionModel).apolloDataStore
-                .changeManager,
-            },
-          ])
-        },
-      })
       // pluginManager.rootModel.appendToMenu('Apollo', {
       //   label: 'Add Assembly',
       //   onClick: (session: AbstractSessionModel) => {
+      //     const { internetAccounts } = getRoot(session) as AppRootModel
+      //     const apolloInternetAccount = internetAccounts.find(
+      //       (ia) => ia.type === 'ApolloInternetAccount',
+      //     ) as ApolloInternetAccountModel | undefined
+      //     if (!apolloInternetAccount) {
+      //       throw new Error('No Apollo internet account found')
+      //     }
+      //     if (!apolloInternetAccount.role.includes('admin')) {
+      //       const { notify } = session
+      //       notify(`No rights to add new assembly`, 'error')
+      //       return
+      //     }
       //     session.queueDialog((doneCallback) => [
       //       AddAssembly,
       //       {
@@ -164,22 +147,22 @@ export default class ApolloPlugin extends Plugin {
       //     ])
       //   },
       // })
-      pluginManager.rootModel.appendToMenu('Apollo', {
-        label: 'Import Features',
-        onClick: (session: AbstractSessionModel) => {
-          session.queueDialog((doneCallback) => [
-            ImportFeatures,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager: (session as ApolloSessionModel).apolloDataStore
-                .changeManager,
-            },
-          ])
-        },
-      })
+      // pluginManager.rootModel.appendToMenu('Apollo', {
+      //   label: 'Import Features',
+      //   onClick: (session: AbstractSessionModel) => {
+      //     session.queueDialog((doneCallback) => [
+      //       ImportFeatures,
+      //       {
+      //         session,
+      //         handleClose: () => {
+      //           doneCallback()
+      //         },
+      //         changeManager: (session as ApolloSessionModel).apolloDataStore
+      //           .changeManager,
+      //       },
+      //     ])
+      //   },
+      // })
       pluginManager.rootModel.appendToMenu('Apollo', {
         label: 'Download GFF3',
         onClick: (session: AbstractSessionModel) => {
@@ -208,17 +191,17 @@ export default class ApolloPlugin extends Plugin {
           ])
         },
       })
-      pluginManager.rootModel.appendToMenu('Apollo', {
-        label: 'Undo',
-        onClick: (session: ApolloSessionModel) => {
-          const { apolloDataStore, notify } = session
-          if (apolloDataStore.changeManager.recentChanges.length) {
-            apolloDataStore.changeManager.revertLastChange()
-          } else {
-            notify('No changes to undo', 'info')
-          }
-        },
-      })
+      // pluginManager.rootModel.appendToMenu('Apollo', {
+      //   label: 'Undo',
+      //   onClick: (session: ApolloSessionModel) => {
+      //     const { apolloDataStore, notify } = session
+      //     if (apolloDataStore.changeManager.recentChanges.length) {
+      //       apolloDataStore.changeManager.revertLastChange()
+      //     } else {
+      //       notify('No changes to undo', 'info')
+      //     }
+      //   },
+      // })
     }
   }
 }

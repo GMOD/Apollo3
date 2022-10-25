@@ -11,6 +11,7 @@ import { ApolloInternetAccountConfigModel } from './configSchema'
 
 type AuthType = 'google' | 'microsoft'
 
+// const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
 const stateModelFactory = (
   configSchema: ApolloInternetAccountConfigModel,
   pluginManager: PluginManager,
