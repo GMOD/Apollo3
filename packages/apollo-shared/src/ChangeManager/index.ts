@@ -20,6 +20,7 @@ export const changes = {
   CopyFeatureChange,
   DeleteAssemblyChange,
   DeleteFeatureChange,
+  DeleteUserChange,
   LocationEndChange,
   LocationStartChange,
   TypeChange,
