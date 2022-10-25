@@ -175,7 +175,6 @@ export function extendSession(sessionModel: IAnyModelType) {
         const { internetAccounts } = getRoot(self) as AppRootModel
         for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
           const { baseURL } = internetAccount
-          console.log(`BASEURL ${baseURL}`)
           const uri = new URL('assemblies', baseURL).href
           const fetch = internetAccount.getFetcher({
             locationType: 'UriLocation',

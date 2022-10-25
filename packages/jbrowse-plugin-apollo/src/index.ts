@@ -8,11 +8,7 @@ import {
 } from '@jbrowse/core/pluggableElementTypes'
 import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
-import {
-  AbstractSessionModel,
-  AppRootModel,
-  isAbstractMenuManager,
-} from '@jbrowse/core/util'
+import { AbstractSessionModel, isAbstractMenuManager } from '@jbrowse/core/util'
 import {
   CoreValidation,
   ParentChildValidation,
@@ -20,7 +16,6 @@ import {
   changes,
   validationRegistry,
 } from 'apollo-shared'
-import { getRoot } from 'mobx-state-tree'
 
 import { version } from '../package.json'
 import {
@@ -81,6 +76,7 @@ export default class ApolloPlugin extends Plugin {
         configSchema: apolloInternetAccountConfigSchema,
         stateModel: apolloInternetAccountModelFactory(
           apolloInternetAccountConfigSchema,
+          pluginManager,
         ),
       })
     })
@@ -117,19 +113,6 @@ export default class ApolloPlugin extends Plugin {
   configure(pluginManager: PluginManager) {
     if (isAbstractMenuManager(pluginManager.rootModel)) {
       pluginManager.rootModel.insertMenu('Apollo', -1)
-      pluginManager.rootModel.appendToMenu('Apollo', {
-        label: 'Log in',
-        onClick: async (session: AbstractSessionModel) => {
-          const { internetAccounts } = getRoot(session) as AppRootModel
-          const [internetAccount] = internetAccounts
-          const fetch = internetAccount.getFetcher({
-            uri: 'http://localhost:3999/assemblies',
-            locationType: 'UriLocation',
-          })
-          const response = await fetch('http://localhost:3999/assemblies')
-          console.log(await response.json())
-        },
-      })
       pluginManager.rootModel.appendToMenu('Apollo', {
         label: 'Add Assembly',
         onClick: (session: AbstractSessionModel) => {
