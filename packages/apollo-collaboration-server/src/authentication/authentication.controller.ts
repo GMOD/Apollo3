@@ -36,12 +36,7 @@ export class AuthenticationController {
     return this.authService.login(req.user)
   }
 
-  @Get('google/login')
-  @UseGuards(GoogleAuthGuard)
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  handleLogin() {}
-
-  @Get('google/auth')
+  @Get('google')
   @UseGuards(GoogleAuthGuard)
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   authLogin() {}
