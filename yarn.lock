@@ -9976,6 +9976,7 @@ __metadata:
     prop-types: ^15.8.1
     react: ^18.2.0
     react-dom: ^18.2.0
+    react-google-button: ^0.7.2
     regenerator-runtime: ^0.13.9
     rimraf: ^3.0.2
     rollup: ^2.59.0
@@ -13496,6 +13497,17 @@ __metadata:
   version: 3.2.0
   resolution: "react-fast-compare@npm:3.2.0"
   checksum: 8ef272c825ae329f61633ce4ce7f15aa5b84e5214d88bc0823880236e03e985a13195befa2c7a4eda7db3b017dc7985729152d88445823f652403cf36c2b86aa
+  languageName: node
+  linkType: hard
+
+"react-google-button@npm:^0.7.2":
+  version: 0.7.2
+  resolution: "react-google-button@npm:0.7.2"
+  dependencies:
+    prop-types: ^15.7.2
+  peerDependencies:
+    react: "*"
+  checksum: 7d55d4cc7c6f00ed1a6847d9d8b37ded602309e827170e22dfa0045f2a511c802f64105fb924936b12c0dc8375eb202f6f846a0997ebba15130057e101f23aa7
   languageName: node
   linkType: hard
 

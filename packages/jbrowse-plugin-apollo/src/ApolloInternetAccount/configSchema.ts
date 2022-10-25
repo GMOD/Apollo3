@@ -15,6 +15,28 @@ const ApolloConfigSchema = ConfigurationSchema(
       type: 'string',
       defaultValue: 'Bearer',
     },
+    google: ConfigurationSchema('ApolloGoogleInternetAccount', {
+      authEndpoint: {
+        description: 'the authorization code endpoint of the internet account',
+        type: 'string',
+        defaultValue: '',
+      },
+      clientId: {
+        description: 'id for the OAuth application',
+        type: 'string',
+        defaultValue: '',
+      },
+      scopes: {
+        description: 'optional scopes for the authorization call',
+        type: 'string',
+        defaultValue: '',
+      },
+    }),
+    googleClientId: {
+      description: 'id for the Google application',
+      type: 'string',
+      defaultValue: '',
+    },
   },
   {
     baseConfiguration: BaseInternetAccountConfig,
