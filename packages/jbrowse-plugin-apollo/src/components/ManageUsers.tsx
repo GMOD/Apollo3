@@ -22,12 +22,18 @@ import {
   GridToolbar,
   MuiEvent,
 } from '@mui/x-data-grid'
-import { ChangeManager, UserChange } from 'apollo-shared'
+import { ChangeManager, DeleteUserChange, UserChange } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { useUsers } from './'
+
+interface UserResponse {
+  id: number
+  username: string
+  email: string
+  role: string[]
+}
 
 interface ManageUsersProps {
   session: AbstractSessionModel
@@ -47,52 +53,83 @@ export function ManageUsers({
   if (!apolloInternetAccounts.length) {
     throw new Error('No Apollo internet account found')
   }
-  // const { internetAccounts } = getRoot(session) as AppRootModel
   const [errorMessage, setErrorMessage] = useState('')
   const [selectedInternetAcount, setSelectedInternetAcount] = useState(
     apolloInternetAccounts[0],
   )
-  const users = useUsers(internetAccounts, setErrorMessage)
-  // const [rows, setRows] = useState<UserData[]>(users)
+  const [users, setUsers] = useState<UserResponse[]>([])
 
-  const deleteUser = useCallback(
-    (id: GridRowId) => () => {
-      // setTimeout(() => {
-      //   setRows((prevRows) => prevRows.filter((row) => row.id !== id))
-      // })
+  const getUsers = useCallback(async () => {
+    const { baseURL } = selectedInternetAcount
+    const uri = new URL('/users', baseURL).href
+    const apolloFetch = selectedInternetAcount?.getFetcher({
+      locationType: 'UriLocation',
+      uri,
+    })
+    if (apolloFetch) {
+      const response = await apolloFetch(uri, {
+        method: 'GET',
+      })
+      if (!response.ok) {
+        let msg
+        try {
+          msg = await response.text()
+        } catch (e) {
+          msg = ''
+        }
+        setErrorMessage(
+          `Error when getting user data from db — ${response.status} 
+          (${response.statusText})${msg ? ` (${msg})` : ''}`,
+        )
+        return
+      }
+      const data = (await response.json()) as UserResponse[]
+      setUsers(data)
+    }
+  }, [selectedInternetAcount])
+
+  useEffect(() => {
+    getUsers()
+  }, [getUsers])
+
+  async function deleteUser(id: GridRowId) {
+    const change = new DeleteUserChange({
+      changedIds: ['1'],
+      typeName: 'DeleteUserChange',
+      userId: Number(id),
+      assemblyId: '635112a914e49e7215bcc4ff',
+    })
+    await changeManager.submit(change, {
+      internetAccountId: selectedInternetAcount.internetAccountId,
+    })
+    setUsers((prevUsers) => prevUsers.filter((row) => row.id !== id))
+  }
+
+  const gridColumns: GridColumns = [
+    { field: 'id', headerName: 'User', width: 140 },
+    { field: 'email', headerName: 'Email', width: 160 },
+    {
+      field: 'role',
+      headerName: 'Role',
+      width: 140,
+      type: 'singleSelect',
+      valueOptions: ['readOnly', 'user', 'admin'],
+      editable: true,
     },
-    [],
-  )
-
-  const gridColumns = useMemo<GridColumns>(
-    () => [
-      { field: 'id', headerName: 'User', width: 140 },
-      { field: 'email', headerName: 'Email', width: 160 },
-      {
-        field: 'role',
-        headerName: 'Role',
-        width: 140,
-        type: 'singleSelect',
-        valueOptions: ['readOnly', 'user', 'admin'],
-        editable: true,
-      },
-      {
-        field: 'actions',
-        type: 'actions',
-        getActions: (params: GridRowParams) => [
-          <GridActionsCellItem
-            icon={<DeleteIcon />}
-            onClick={deleteUser(params.id)}
-            label="Delete"
-          />,
-        ],
-      },
-    ],
-    [deleteUser],
-  )
+    {
+      field: 'actions',
+      type: 'actions',
+      getActions: (params: GridRowParams) => [
+        <GridActionsCellItem
+          icon={<DeleteIcon />}
+          onClick={() => deleteUser(params.id)}
+          label="Delete"
+        />,
+      ],
+    },
+  ]
 
   function handleChangeInternetAccount(e: SelectChangeEvent<string>) {
-    // setSubmitted(false)
     const newlySelectedInternetAccount = apolloInternetAccounts.find(
       (ia) => ia.internetAccountId === e.target.value,
     )
@@ -140,7 +177,6 @@ export function ManageUsers({
             getRowId={(row) => row.id}
             components={{ Toolbar: GridToolbar }}
             getRowHeight={() => 'auto'}
-            // experimentalFeatures={{ newEditingApi: true }}
             onCellEditCommit={(
               params: GridCellEditCommitParams,
               event: MuiEvent,
