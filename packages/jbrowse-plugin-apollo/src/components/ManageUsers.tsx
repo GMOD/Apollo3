@@ -122,7 +122,11 @@ export function ManageUsers({
       getActions: (params: GridRowParams) => [
         <GridActionsCellItem
           icon={<DeleteIcon />}
-          onClick={() => deleteUser(params.id)}
+          onClick={() => {
+            if (window.confirm('Delete this user?')) {
+              deleteUser(params.id)
+            }
+          }}
           label="Delete"
         />,
       ],
