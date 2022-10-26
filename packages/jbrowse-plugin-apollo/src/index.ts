@@ -8,11 +8,7 @@ import {
 } from '@jbrowse/core/pluggableElementTypes'
 import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
-import {
-  AbstractSessionModel,
-  AppRootModel,
-  isAbstractMenuManager,
-} from '@jbrowse/core/util'
+import { AbstractSessionModel, isAbstractMenuManager } from '@jbrowse/core/util'
 import {
   CoreValidation,
   ParentChildValidation,
@@ -20,28 +16,26 @@ import {
   changes,
   validationRegistry,
 } from 'apollo-shared'
-import { getRoot } from 'mobx-state-tree'
 
 import { version } from '../package.json'
 import {
   configSchema as apolloInternetAccountConfigSchema,
   modelFactory as apolloInternetAccountModelFactory,
 } from './ApolloInternetAccount'
-import { ApolloInternetAccountModel } from './ApolloInternetAccount/model'
 import {
   ApolloRenderer,
   ReactComponent as ApolloRendererReactComponent,
   configSchema as apolloRendererConfigSchema,
 } from './ApolloRenderer'
 import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
-import { AddAssembly, ImportFeatures, ViewChangeLog } from './components'
+import { ViewChangeLog } from './components'
 import { DownloadGFF3 } from './components/DownloadGFF3'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
 } from './LinearApolloDisplay'
 import { makeDisplayComponent } from './makeDisplayComponent'
-import { ApolloSessionModel, extendSession } from './session'
+import { extendSession } from './session'
 
 Object.entries(changes).forEach(([changeName, change]) => {
   changeRegistry.registerChange(changeName, change)
@@ -147,22 +141,6 @@ export default class ApolloPlugin extends Plugin {
       //     ])
       //   },
       // })
-      // pluginManager.rootModel.appendToMenu('Apollo', {
-      //   label: 'Import Features',
-      //   onClick: (session: AbstractSessionModel) => {
-      //     session.queueDialog((doneCallback) => [
-      //       ImportFeatures,
-      //       {
-      //         session,
-      //         handleClose: () => {
-      //           doneCallback()
-      //         },
-      //         changeManager: (session as ApolloSessionModel).apolloDataStore
-      //           .changeManager,
-      //       },
-      //     ])
-      //   },
-      // })
       pluginManager.rootModel.appendToMenu('Apollo', {
         label: 'Download GFF3',
         onClick: (session: AbstractSessionModel) => {
@@ -191,17 +169,6 @@ export default class ApolloPlugin extends Plugin {
           ])
         },
       })
-      // pluginManager.rootModel.appendToMenu('Apollo', {
-      //   label: 'Undo',
-      //   onClick: (session: ApolloSessionModel) => {
-      //     const { apolloDataStore, notify } = session
-      //     if (apolloDataStore.changeManager.recentChanges.length) {
-      //       apolloDataStore.changeManager.revertLastChange()
-      //     } else {
-      //       notify('No changes to undo', 'info')
-      //     }
-      //   },
-      // })
     }
   }
 }

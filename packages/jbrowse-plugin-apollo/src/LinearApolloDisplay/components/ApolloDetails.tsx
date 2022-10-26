@@ -1,8 +1,8 @@
+import { AppRootModel, getSession } from '@jbrowse/core/util'
 import CloseIcon from '@mui/icons-material/Close'
 import { Autocomplete, IconButton, TextField } from '@mui/material'
 import {
   DataGrid,
-  GridColumns,
   GridRenderEditCellParams,
   GridRowModel,
   MuiBaseEvent,
@@ -17,25 +17,29 @@ import {
   validationRegistry,
 } from 'apollo-shared'
 import { observer } from 'mobx-react'
+import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
+import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { LinearApolloDisplay } from '../stateModel'
 
-const featureColums: GridColumns = [
-  { field: 'id', headerName: 'ID', width: 250 },
-  {
-    field: 'type',
-    headerName: 'Type',
-    width: 250,
-    editable: true,
-    renderEditCell: (params: GridRenderEditCellParams) => (
-      <AutocompleteInputCell {...params} />
-    ),
-  },
-  { field: 'refSeq', headerName: 'Ref Seq', width: 150 },
-  { field: 'start', headerName: 'Start', type: 'number', editable: true },
-  { field: 'end', headerName: 'End', type: 'number', editable: true },
-]
+function getFeatureColumns(editable: boolean) {
+  return [
+    { field: 'id', headerName: 'ID', width: 250 },
+    {
+      field: 'type',
+      headerName: 'Type',
+      width: 250,
+      editable,
+      renderEditCell: (params: GridRenderEditCellParams) => (
+        <AutocompleteInputCell {...params} />
+      ),
+    },
+    { field: 'refSeq', headerName: 'Ref Seq', width: 150 },
+    { field: 'start', headerName: 'Start', type: 'number', editable },
+    { field: 'end', headerName: 'End', type: 'number', editable },
+  ]
+}
 
 function AutocompleteInputCell(props: GridRenderEditCellParams) {
   const { id, value, field } = props
@@ -89,6 +93,21 @@ function AutocompleteInputCell(props: GridRenderEditCellParams) {
 
 export const ApolloDetails = observer(
   ({ model }: { model: LinearApolloDisplay }) => {
+    const [allowEditing, setAllowEditing] = useState<boolean>(false)
+    const session = getSession(model)
+    useEffect(() => {
+      const { internetAccounts } = getRoot(session) as AppRootModel
+      const apolloInternetAccount = internetAccounts.find(
+        (ia) => ia.type === 'ApolloInternetAccount',
+      ) as ApolloInternetAccountModel | undefined
+      if (!apolloInternetAccount) {
+        throw new Error('No Apollo internet account found')
+      }
+      if (apolloInternetAccount.role.includes('user')) {
+        setAllowEditing(true)
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
     const {
       selectedFeature,
       setSelectedFeature,
@@ -175,7 +194,7 @@ export const ApolloDetails = observer(
           style={{ height: detailsHeight }}
           autoHeight
           rows={selectedFeatureRows}
-          columns={featureColums}
+          columns={getFeatureColumns(allowEditing)}
           experimentalFeatures={{ newEditingApi: true }}
           processRowUpdate={processRowUpdate}
           onProcessRowUpdateError={console.error}

@@ -144,13 +144,13 @@ const stateModelFactory = (
                     {
                       baseURL: self.baseURL,
                       name: self.name,
-                      handleClose: (token?: AuthType | Error) => {
-                        if (!token) {
+                      handleClose: (newAuthType?: AuthType | Error) => {
+                        if (!newAuthType) {
                           reject(new Error('user cancelled entry'))
-                        } else if (token instanceof Error) {
-                          reject(token)
+                        } else if (newAuthType instanceof Error) {
+                          reject(newAuthType)
                         } else {
-                          resolve(token)
+                          resolve(newAuthType)
                         }
                         doneCallback()
                       },
