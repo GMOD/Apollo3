@@ -6,6 +6,7 @@ import {
   changes,
   validationRegistry,
 } from 'apollo-shared'
+import session from 'express-session'
 
 import { AppModule } from './app.module'
 import { GlobalExceptionsFilter } from './global-exceptions.filter'
@@ -41,6 +42,14 @@ async function bootstrap() {
 
   const { httpAdapter } = app.get(HttpAdapterHost)
   app.useGlobalFilters(new GlobalExceptionsFilter(httpAdapter))
+
+  app.use(
+    session({
+      secret: 'my-secret',
+      resave: false,
+      saveUninitialized: false,
+    }),
+  )
 
   await app.listen(APPLICATION_PORT)
   // eslint-disable-next-line no-console
