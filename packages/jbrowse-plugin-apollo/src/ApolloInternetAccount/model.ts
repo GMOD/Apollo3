@@ -16,7 +16,7 @@ const stateModelFactory = (
   pluginManager: PluginManager,
 ) => {
   const AuthPlugin = pluginManager.getPlugin('AuthenticationPlugin') as
-    | any
+    | any // eslint-disable-line @typescript-eslint/no-explicit-any
     | undefined
   if (!AuthPlugin) {
     throw new Error('LinearGenomeView plugin not found')
@@ -39,25 +39,6 @@ const stateModelFactory = (
       get googleScopes(): string {
         return getConf(self, ['google', 'scopes'])
       },
-    }))
-    .volatile((self) => ({
-      googleAuthInternetAccount: OAuthInternetAccountModelFactory(
-        OAuthConfigSchema,
-      ).create({
-        type: 'OAuthInternetAccount',
-        configuration: {
-          type: 'OAuthInternetAccount',
-          internetAccountId: `${self.internetAccountId}-apolloGoogle`,
-          name: `${self.name}-apolloGoogle`,
-          description: `${self.description}-apolloGoogle`,
-          domains: self.domains,
-          authEndpoint: self.googleAuthEndpoint,
-          clientId: self.googleClientId,
-          scopes: self.googleScopes,
-        },
-      }),
-    }))
-    .views((self) => ({
       get internetAccountType() {
         return 'ApolloInternetAccount'
       },
@@ -72,6 +53,29 @@ const stateModelFactory = (
         const dec = jwtDecode(token) as JWTPayload
         return dec.roles
       },
+    }))
+    .volatile((self) => ({
+      googleAuthInternetAccount: OAuthInternetAccountModelFactory(
+        OAuthConfigSchema,
+      )
+        .views(() => ({
+          state() {
+            return window.location.origin
+          },
+        }))
+        .create({
+          type: 'OAuthInternetAccount',
+          configuration: {
+            type: 'OAuthInternetAccount',
+            internetAccountId: `${self.internetAccountId}-apolloGoogle`,
+            name: `${self.name}-apolloGoogle`,
+            description: `${self.description}-apolloGoogle`,
+            domains: self.domains,
+            authEndpoint: self.googleAuthEndpoint,
+            clientId: self.googleClientId,
+            scopes: self.googleScopes,
+          },
+        }),
     }))
     .actions((self) => ({
       setAuthType(authType: AuthType) {
