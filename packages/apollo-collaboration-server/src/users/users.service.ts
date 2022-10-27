@@ -18,19 +18,7 @@ export class UsersService {
   constructor(
     @InjectModel(UserSchema.name)
     private readonly userModel: Model<UserDocument>,
-  ) {
-    this.users = [
-      {
-        email: 'kyosti@ebi.ac.uk',
-        username: 'john',
-        password: 'changeme',
-      },
-    ]
-  }
-
-  async findOne(username: string): Promise<User | undefined> {
-    return this.users.find((user) => user.username === username)
-  }
+  ) {}
 
   async findById(id: string) {
     return this.userModel.findById(id).exec()
