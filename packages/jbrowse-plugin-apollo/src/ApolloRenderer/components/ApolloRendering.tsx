@@ -1,3 +1,4 @@
+import { getConf } from '@jbrowse/core/configuration'
 import { AppRootModel, Region, getSession } from '@jbrowse/core/util'
 import { Menu, MenuItem } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
@@ -68,18 +69,28 @@ function ApolloRendering(props: ApolloRenderingProps) {
 
   useEffect(() => {
     const { internetAccounts } = getRoot(session) as AppRootModel
+    const { assemblyName } = region
+    const { assemblyManager } = getSession(displayModel)
+    const assembly = assemblyManager.get(assemblyName)
+    if (!assembly) {
+      throw new Error(`No assembly found with name ${assemblyName}`)
+    }
+    const { internetAccountConfigId } = getConf(assembly, [
+      'sequence',
+      'metadata',
+    ]) as { internetAccountConfigId: string }
     const apolloInternetAccount = internetAccounts.find(
-      (ia) => ia.type === 'ApolloInternetAccount',
+      (ia) => getConf(ia, 'internetAccountId') === internetAccountConfigId,
     ) as ApolloInternetAccountModel | undefined
     if (!apolloInternetAccount) {
-      throw new Error('No Apollo internet account found')
+      throw new Error(
+        `No InternetAccount found with config id ${internetAccountConfigId}`,
+      )
     }
-    console.log(`User has the following roles: ${JSON.stringify(apolloInternetAccount.role)}`)
-    if (apolloInternetAccount.role.includes('admin')) {
+    if (apolloInternetAccount.role?.includes('admin')) {
       setIsAdmin(true)
-      console.log('User is ADMIN')
-    } 
-  }, [])
+    }
+  }, [session, displayModel, region])
 
   useEffect(() => {
     const canvas = canvasRef.current
