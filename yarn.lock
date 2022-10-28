@@ -9865,6 +9865,7 @@ __metadata:
     cypress: ^8.7.0
     jest: ^29.0.3
     jest-fetch-mock: ^3.0.3
+    jwt-decode: ^3.1.2
     mobx: ^6.6.1
     mobx-react: ^7.2.1
     mobx-state-tree: ^5.1.5

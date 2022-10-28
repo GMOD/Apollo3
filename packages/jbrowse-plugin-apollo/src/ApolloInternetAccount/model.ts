@@ -1,5 +1,7 @@
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
+import { JWTPayload } from 'apollo-shared'
+import jwtDecode from 'jwt-decode'
 import { Instance, getRoot, types } from 'mobx-state-tree'
 
 import { ApolloLoginForm } from './components/ApolloLoginForm'
@@ -17,6 +19,14 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       },
       get baseURL(): string {
         return getConf(self, 'baseURL')
+      },
+      get role() {
+        const token = self.retrieveToken()
+        if (!token) {
+          return undefined
+        }
+        const dec = jwtDecode(token) as JWTPayload
+        return dec.roles
       },
     }))
     .actions((self) => ({
