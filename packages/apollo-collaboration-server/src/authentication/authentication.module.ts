@@ -4,6 +4,7 @@ import { PassportModule } from '@nestjs/passport'
 
 import { UsersModule } from '../users/users.module'
 import { jwtConstants } from '../utils/constants'
+import { AzureADStrategy } from '../utils/strategies/azure-ad.strategy'
 import { GoogleStrategy } from '../utils/strategies/google.strategy'
 import { JwtStrategy } from '../utils/strategies/jwt.strategy'
 import { LocalStrategy } from '../utils/strategies/local.strategy'
@@ -25,6 +26,7 @@ import { AuthenticationService } from './authentication.service'
     LocalStrategy,
     JwtStrategy,
     GoogleStrategy,
+    AzureADStrategy,
   ],
   exports: [AuthenticationService],
 })

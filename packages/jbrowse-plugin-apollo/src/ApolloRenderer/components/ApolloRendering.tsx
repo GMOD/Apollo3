@@ -74,6 +74,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
     if (!apolloInternetAccount) {
       throw new Error('No Apollo internet account found')
     }
+    if (!apolloInternetAccount.role) {
+      throw new Error('No role defined for user')
+    }
     console.log(`User has the following roles: ${JSON.stringify(apolloInternetAccount.role)}`)
     if (apolloInternetAccount.role.includes('admin')) {
       setIsAdmin(true)

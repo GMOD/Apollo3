@@ -10,6 +10,7 @@ import {
 import { Request } from 'express'
 
 import { User } from '../users/users.service'
+import { AzureADGuard } from '../utils/azure-ad.guard'
 import { GoogleAuthGuard } from '../utils/google.guard'
 import { LocalAuthGuard } from '../utils/local-auth.guard'
 import { AuthenticationService } from './authentication.service'
@@ -48,6 +49,33 @@ export class AuthenticationController {
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
   async handleRedirect(@Req() req: Request) {
+    if (!req.user) {
+      throw new BadRequestException()
+    }
+
+    this.logger.debug(`Return value: ${JSON.stringify(req.user)}`)
+    return req.user
+  }
+
+  @Get('azure-ad/login')
+  @UseGuards(AzureADGuard)
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  azureADLogin() {
+    console.log('********** azureADLogin ************')
+  }
+
+  @Get('azure-ad/auth')
+  @UseGuards(AzureADGuard)
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  azureADAuthLogin() {
+    console.log('********** azureADAuthLogin ************')
+  }
+
+  @Get('azure-ad/redirect')
+  @UseGuards(AzureADGuard)
+  async azureADHandleRedirect(@Req() req: Request) {
+    console.log('********** azureADHandleRedirect ************')
+
     if (!req.user) {
       throw new BadRequestException()
     }
