@@ -117,5 +117,5 @@ dist
 
 test/data/uploaded
 test/data/downloaded
-sessions/*.json
+sessions
 
