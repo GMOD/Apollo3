@@ -15,10 +15,14 @@ export const AuthTypeSelector = ({
 }: {
   baseURL: string
   name: string
-  handleClose: (token?: string | Error) => void
+  handleClose: (type?: 'google' | 'microsoft' | Error) => void
 }) => {
-  function handleClick() {
-    handleClose('google')
+  function handleClick(authType: 'google' | 'microsoft') {
+    if (authType === 'google') {
+      handleClose('google')
+    } else {
+      handleClose('microsoft')
+    }
   }
   return (
     <>
@@ -29,7 +33,8 @@ export const AuthTypeSelector = ({
         >
           {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
           {/* @ts-ignore */}
-          <GoogleButton type="light" onClick={handleClick} />
+          <GoogleButton type="light" onClick={() => handleClick('google')} />
+          <Button onClick={() => handleClick('microsoft')}>Microsoft</Button>
         </DialogContent>
         <DialogActions>
           <Button

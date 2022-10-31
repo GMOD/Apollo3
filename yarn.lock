@@ -3970,6 +3970,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/passport-microsoft@npm:^0.0.0":
+  version: 0.0.0
+  resolution: "@types/passport-microsoft@npm:0.0.0"
+  dependencies:
+    "@types/passport-oauth2": "*"
+  checksum: fee27b238975ba86982616d713247bd9f8ab4e325270dd42841c140710ece3f32655b2536fcbffe0166f25b51e1b25316006718f037b5a88018406c64351ae27
+  languageName: node
+  linkType: hard
+
 "@types/passport-oauth2@npm:*":
   version: 1.4.11
   resolution: "@types/passport-oauth2@npm:1.4.11"
@@ -4855,6 +4864,7 @@ __metadata:
     "@types/passport-google-oauth20": ^2.0.11
     "@types/passport-jwt": ^3.0.6
     "@types/passport-local": ^1.0.34
+    "@types/passport-microsoft": ^0.0.0
     "@types/supertest": ^2.0.11
     apollo-mst: "workspace:^"
     apollo-schemas: "workspace:^"
@@ -4871,6 +4881,7 @@ __metadata:
     passport-google-oauth20: ^2.0.0
     passport-jwt: ^4.0.0
     passport-local: ^1.0.0
+    passport-microsoft: ^1.0.0
     prettier: ^2.3.2
     prop-types: ^15.0.0
     react-dom: ^17.0.0
@@ -12886,7 +12897,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"passport-oauth2@npm:1.x.x":
+"passport-microsoft@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "passport-microsoft@npm:1.0.0"
+  dependencies:
+    passport-oauth2: 1.6.1
+    pkginfo: 0.4.x
+  checksum: 9f66b857364a1653a2becc255be098f895bdfd53425ad3ba95eb0a99820c5f38a0f03935d70122fad2608a6506d9de49fc9696e60df3d60fa7619585ab5dbd5d
+  languageName: node
+  linkType: hard
+
+"passport-oauth2@npm:1.6.1, passport-oauth2@npm:1.x.x":
   version: 1.6.1
   resolution: "passport-oauth2@npm:1.6.1"
   dependencies:
@@ -13095,6 +13116,13 @@ __metadata:
   dependencies:
     find-up: ^4.0.0
   checksum: 9863e3f35132bf99ae1636d31ff1e1e3501251d480336edb1c211133c8d58906bed80f154a1d723652df1fda91e01c7442c2eeaf9dc83157c7ae89087e43c8d6
+  languageName: node
+  linkType: hard
+
+"pkginfo@npm:0.4.x":
+  version: 0.4.1
+  resolution: "pkginfo@npm:0.4.1"
+  checksum: 0f13694f3682345647b7cb887fb6fe258df51b635f252324cd75eeb8181b4381cb8b9d91dc2d869849e857192b403bea65038d2f7c05b524eeae69ece5048209
   languageName: node
   linkType: hard
 

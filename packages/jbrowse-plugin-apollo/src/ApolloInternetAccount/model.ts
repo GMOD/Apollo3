@@ -9,7 +9,7 @@ import { Instance, getRoot, types } from 'mobx-state-tree'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { ApolloInternetAccountConfigModel } from './configSchema'
 
-type AuthType = 'google'
+type AuthType = 'google' | 'microsoft'
 
 const stateModelFactory = (
   configSchema: ApolloInternetAccountConfigModel,
@@ -27,7 +27,7 @@ const stateModelFactory = (
     .props({
       type: types.literal('ApolloInternetAccount'),
       configuration: ConfigurationReference(configSchema),
-      authType: types.maybe(types.enumeration(['google'])),
+      authType: types.maybe(types.enumeration(['google', 'microsoft'])),
     })
     .views((self) => ({
       get googleClientId(): string {
@@ -74,6 +74,27 @@ const stateModelFactory = (
             authEndpoint: self.googleAuthEndpoint,
             clientId: self.googleClientId,
             scopes: self.googleScopes,
+          },
+        }),
+      microsoftAuthInternetAccount: OAuthInternetAccountModelFactory(
+        OAuthConfigSchema,
+      )
+        .views(() => ({
+          state() {
+            return window.location.origin
+          },
+        }))
+        .create({
+          type: 'OAuthInternetAccount',
+          configuration: {
+            type: 'OAuthInternetAccount',
+            internetAccountId: `${self.internetAccountId}-apolloMicrosoft`,
+            name: `${self.name}-apolloMicrosoft`,
+            description: `${self.description}-apolloMicrosoft`,
+            domains: self.domains,
+            authEndpoint: 'http://localhost:3999/auth/microsoft',
+            clientId: 'Vfq8Q~ZX.QdH4yNBQFCWDPJ1Cs7-~m4QpULytbke',
+            scopes: 'user.read',
           },
         }),
     }))
@@ -129,6 +150,12 @@ const stateModelFactory = (
             }
             if (authType === 'google') {
               return self.googleAuthInternetAccount.getFetcher(location)(
+                input,
+                init,
+              )
+            }
+            if (authType === 'microsoft') {
+              return self.microsoftAuthInternetAccount.getFetcher(location)(
                 input,
                 init,
               )
