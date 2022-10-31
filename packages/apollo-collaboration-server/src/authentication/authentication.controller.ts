@@ -2,12 +2,15 @@ import {
   BadRequestException,
   Controller,
   Get,
+  Injectable,
   Logger,
   Post,
   Req,
   UseGuards,
 } from '@nestjs/common'
+import { AuthGuard, PassportStrategy } from '@nestjs/passport'
 import { Request } from 'express'
+import { BearerStrategy } from 'passport-azure-ad'
 
 import { User } from '../users/users.service'
 import { AzureADGuard } from '../utils/azure-ad.guard'
@@ -39,12 +42,16 @@ export class AuthenticationController {
   @Get('google/login')
   @UseGuards(GoogleAuthGuard)
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  handleLogin() {}
+  handleLogin() {
+    console.log('********** Google Login ************')
+  }
 
   @Get('google/auth')
   @UseGuards(GoogleAuthGuard)
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  authLogin() {}
+  authLogin() {
+    console.log('********** Google authLogin ************')
+  }
 
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
@@ -64,23 +71,16 @@ export class AuthenticationController {
     console.log('********** azureADLogin ************')
   }
 
-  @Get('azure-ad/auth')
+  @Post('azure-ad/redirect')
   @UseGuards(AzureADGuard)
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  azureADAuthLogin() {
-    console.log('********** azureADAuthLogin ************')
-  }
-
-  @Get('azure-ad/redirect')
-  @UseGuards(AzureADGuard)
-  async azureADHandleRedirect(@Req() req: Request) {
-    console.log('********** azureADHandleRedirect ************')
-
+  async azureADHandleRedirectPost(@Req() req: Request) {
+    console.log('********** azure-ad redirect end-point ************')
     if (!req.user) {
       throw new BadRequestException()
     }
-
-    this.logger.debug(`Return value: ${JSON.stringify(req.user)}`)
+    const tmpObj:any  = req.user
+    this.logger.debug(`Return TOKEN: ${JSON.stringify(req.body.id_token)}`)
+    this.logger.debug(`Return NAME: ${JSON.stringify(tmpObj._json.name)}`)
+    this.logger.debug(`Return USERNAME: ${JSON.stringify(tmpObj._json.preferred_username)}`)
     return req.user
-  }
-}
+  }}

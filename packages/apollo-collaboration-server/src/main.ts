@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import {
   CoreValidation,
@@ -41,6 +42,16 @@ async function bootstrap() {
 
   const { httpAdapter } = app.get(HttpAdapterHost)
   app.useGlobalFilters(new GlobalExceptionsFilter(httpAdapter))
+
+  const session = require('express-session')
+  const FileStore = require('session-file-store')(session)
+  const fileStoreOptions = {}
+  app.use(
+    session({
+      store: new FileStore(fileStoreOptions),
+      secret: 'keyboard cat',
+    }),
+  )
 
   await app.listen(APPLICATION_PORT)
   // eslint-disable-next-line no-console
