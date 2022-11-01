@@ -105,7 +105,7 @@ export class AuthenticationService {
       const newUser: CreateUserDto = {
         email: email.value,
         role: [defaultRole],
-        username: profile.displayName,
+        username: profile.displayName ? profile.displayName : 'na',
       }
       await this.usersService.addNew(newUser)
 

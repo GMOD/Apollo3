@@ -9,29 +9,29 @@ export class MicrosoftStrategy extends PassportStrategy(Strategy) {
   private readonly logger = new Logger(MicrosoftStrategy.name)
 
   constructor(private readonly authService: AuthenticationService) {
-    // const {
-    //   GOOGLE_CLIENT_ID,
-    //   GOOGLE_CLIENT_SECRET,
-    //   GOOGLE_CALLBACK_URL,
-    //   GOOGLE_SCOPE,
-    // } = process.env
-    // if (!GOOGLE_CLIENT_ID) {
-    //   throw new Error('No GOOGLE_CLIENT_ID found in .env file')
-    // }
-    // if (!GOOGLE_CLIENT_SECRET) {
-    //   throw new Error('No GOOGLE_CLIENT_SECRET found in .env file')
-    // }
-    // if (!GOOGLE_CALLBACK_URL) {
-    //   throw new Error('No GOOGLE_CALLBACK_URL found in .env file')
-    // }
-    // if (!GOOGLE_SCOPE) {
-    //   throw new Error('No GOOGLE_SCOPE found in .env file')
-    // }
+    const {
+      MICROSOFT_CLIENT_ID,
+      MICROSOFT_CLIENT_SECRET,
+      MICROSOFT_CALLBACK_URL,
+      MICROSOFT_SCOPE,
+    } = process.env
+    if (!MICROSOFT_CLIENT_ID) {
+      throw new Error('No MICROSOFT_CLIENT_ID found in .env file')
+    }
+    if (!MICROSOFT_CLIENT_SECRET) {
+      throw new Error('No MICROSOFT_CLIENT_SECRET found in .env file')
+    }
+    if (!MICROSOFT_CALLBACK_URL) {
+      throw new Error('No MICROSOFT_CALLBACK_URL found in .env file')
+    }
+    if (!MICROSOFT_SCOPE) {
+      throw new Error('No MICROSOFT_SCOPE found in .env file')
+    }
     super({
-      clientID: '565a1a36-005f-4e54-83a0-5ac96128b06f',
-      clientSecret: 'Vfq8Q~ZX.QdH4yNBQFCWDPJ1Cs7-~m4QpULytbke',
-      callbackURL: 'http://localhost:3999/auth/microsoft/redirect',
-      scope: ['user.read'],
+      clientID: MICROSOFT_CLIENT_ID,
+      clientSecret: MICROSOFT_CLIENT_SECRET,
+      callbackURL: MICROSOFT_CALLBACK_URL,
+      scope: MICROSOFT_SCOPE?.split(','),
       store: true,
     })
   }
