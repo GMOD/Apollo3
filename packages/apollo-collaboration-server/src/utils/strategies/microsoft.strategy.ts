@@ -4,6 +4,20 @@ import { Strategy } from 'passport-microsoft'
 
 import { AuthenticationService } from '../../authentication/authentication.service'
 
+export interface Profile {
+  provider: 'microsoft'
+  name: {
+    familyName: string
+    givenName: string
+  }
+  id: string
+  displayName: string
+  emails: {
+    type: string
+    value: string
+  }[]
+}
+
 @Injectable()
 export class MicrosoftStrategy extends PassportStrategy(Strategy) {
   private readonly logger = new Logger(MicrosoftStrategy.name)
@@ -36,7 +50,7 @@ export class MicrosoftStrategy extends PassportStrategy(Strategy) {
     })
   }
 
-  async validate(accessToken: string, refreshToken: string, profile: any) {
+  async validate(accessToken: string, refreshToken: string, profile: Profile) {
     // this.logger.debug(`Microsoft token: ${accessToken}`)
     const user = await this.authService.microsoftLogin(profile)
     return user

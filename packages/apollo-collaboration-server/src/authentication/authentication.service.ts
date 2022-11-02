@@ -1,10 +1,11 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-import { Profile } from 'passport-google-oauth20'
+import { Profile as GoogleProfile } from 'passport-google-oauth20'
 
 import { CreateUserDto } from '../users/dto/create-user.dto'
 import { UsersService } from '../users/users.service'
 import { Role, RoleInheritance } from '../utils/role/role.enum'
+import { Profile as MicrosoftProfile } from '../utils/strategies/microsoft.strategy'
 
 @Injectable()
 export class AuthenticationService {
@@ -20,7 +21,7 @@ export class AuthenticationService {
    * @param profile - profile
    * @returns Return either token with HttpResponse status 'HttpStatus.OK' OR null with 'HttpStatus.UNAUTHORIZED'
    */
-  async googleLogin(profile: Profile) {
+  async googleLogin(profile: GoogleProfile) {
     const userRoles = new Set<Role>()
     const { DEFAULT_NEW_USER_ROLE } = process.env
     if (!DEFAULT_NEW_USER_ROLE) {
@@ -85,7 +86,7 @@ export class AuthenticationService {
    * @param profile - profile
    * @returns Return either token with HttpResponse status 'HttpStatus.OK' OR null with 'HttpStatus.UNAUTHORIZED'
    */
-  async microsoftLogin(profile: any) {
+  async microsoftLogin(profile: MicrosoftProfile) {
     const userRoles = new Set<Role>()
     const { DEFAULT_NEW_USER_ROLE } = process.env
     if (!DEFAULT_NEW_USER_ROLE) {
