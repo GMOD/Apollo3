@@ -35,6 +35,11 @@
         "authEndpoint": "http://localhost:3999/auth/google" ,
         "clientId": "1054515969695-3hpfg1gd0ld3sgj135kfgikolu86vv30.apps.googleusercontent.com",
         "scopes": "profile,email"
+      },
+      "microsoft": {
+        "authEndpoint": "http://localhost:3999/auth/microsoft" ,
+        "clientId": "fabdd045-163c-4712-9d40-dbbb043b3090",
+        "scopes": "user.read"
       }
     }
   ],

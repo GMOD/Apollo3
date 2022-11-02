@@ -6,7 +6,8 @@ import {
   DialogTitle,
 } from '@mui/material'
 import React from 'react'
-import GoogleButton from 'react-google-button'
+
+import { GoogleButton, MicrosoftButton } from './LoginButtons'
 
 export const AuthTypeSelector = ({
   baseURL,
@@ -15,11 +16,16 @@ export const AuthTypeSelector = ({
 }: {
   baseURL: string
   name: string
-  handleClose: (token?: string | Error) => void
+  handleClose: (type?: 'google' | 'microsoft' | Error) => void
 }) => {
-  function handleClick() {
-    handleClose('google')
+  function handleClick(authType: 'google' | 'microsoft') {
+    if (authType === 'google') {
+      handleClose('google')
+    } else {
+      handleClose('microsoft')
+    }
   }
+  // convert component to string useable in data-uri
   return (
     <>
       <Dialog open maxWidth="xl" data-testid="login-apollo">
@@ -27,9 +33,8 @@ export const AuthTypeSelector = ({
         <DialogContent
           style={{ display: 'flex', flexDirection: 'column', paddingTop: 8 }}
         >
-          {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-          {/* @ts-ignore */}
-          <GoogleButton type="light" onClick={handleClick} />
+          <GoogleButton onClick={() => handleClick('google')} />
+          <MicrosoftButton onClick={() => handleClick('microsoft')} />
         </DialogContent>
         <DialogActions>
           <Button

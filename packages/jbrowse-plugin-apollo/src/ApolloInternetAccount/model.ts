@@ -9,7 +9,7 @@ import { Instance, getRoot, types } from 'mobx-state-tree'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { ApolloInternetAccountConfigModel } from './configSchema'
 
-type AuthType = 'google'
+type AuthType = 'google' | 'microsoft'
 
 const stateModelFactory = (
   configSchema: ApolloInternetAccountConfigModel,
@@ -27,7 +27,7 @@ const stateModelFactory = (
     .props({
       type: types.literal('ApolloInternetAccount'),
       configuration: ConfigurationReference(configSchema),
-      authType: types.maybe(types.enumeration(['google'])),
+      authType: types.maybe(types.enumeration(['google', 'microsoft'])),
     })
     .views((self) => ({
       get googleClientId(): string {
@@ -38,6 +38,15 @@ const stateModelFactory = (
       },
       get googleScopes(): string {
         return getConf(self, ['google', 'scopes'])
+      },
+      get microsoftClientId(): string {
+        return getConf(self, ['microsoft', 'clientId'])
+      },
+      get microsoftAuthEndpoint(): string {
+        return getConf(self, ['microsoft', 'authEndpoint'])
+      },
+      get microsoftScopes(): string {
+        return getConf(self, ['microsoft', 'scopes'])
       },
       get internetAccountType() {
         return 'ApolloInternetAccount'
@@ -76,6 +85,27 @@ const stateModelFactory = (
             scopes: self.googleScopes,
           },
         }),
+      microsoftAuthInternetAccount: OAuthInternetAccountModelFactory(
+        OAuthConfigSchema,
+      )
+        .views(() => ({
+          state() {
+            return window.location.origin
+          },
+        }))
+        .create({
+          type: 'OAuthInternetAccount',
+          configuration: {
+            type: 'OAuthInternetAccount',
+            internetAccountId: `${self.internetAccountId}-apolloMicrosoft`,
+            name: `${self.name}-apolloMicrosoft`,
+            description: `${self.description}-apolloMicrosoft`,
+            domains: self.domains,
+            authEndpoint: self.microsoftAuthEndpoint,
+            clientId: 'fabdd045-163c-4712-9d40-dbbb043b3090',
+            scopes: self.microsoftScopes,
+          },
+        }),
     }))
     .actions((self) => ({
       setAuthType(authType: AuthType) {
@@ -83,6 +113,9 @@ const stateModelFactory = (
       },
       retrieveToken() {
         if (self.authType === 'google') {
+          return self.googleAuthInternetAccount.retrieveToken()
+        }
+        if (self.authType === 'microsoft') {
           return self.googleAuthInternetAccount.retrieveToken()
         }
         throw new Error(`Unknown authType "${self.authType}"`)
@@ -129,6 +162,12 @@ const stateModelFactory = (
             }
             if (authType === 'google') {
               return self.googleAuthInternetAccount.getFetcher(location)(
+                input,
+                init,
+              )
+            }
+            if (authType === 'microsoft') {
+              return self.microsoftAuthInternetAccount.getFetcher(location)(
                 input,
                 init,
               )

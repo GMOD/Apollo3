@@ -32,8 +32,30 @@ const ApolloConfigSchema = ConfigurationSchema(
         defaultValue: '',
       },
     }),
+    microsoft: ConfigurationSchema('ApolloMicrosoftInternetAccount', {
+      authEndpoint: {
+        description: 'the authorization code endpoint of the internet account',
+        type: 'string',
+        defaultValue: '',
+      },
+      clientId: {
+        description: 'id for the OAuth application',
+        type: 'string',
+        defaultValue: '',
+      },
+      scopes: {
+        description: 'optional scopes for the authorization call',
+        type: 'string',
+        defaultValue: '',
+      },
+    }),
     googleClientId: {
       description: 'id for the Google application',
+      type: 'string',
+      defaultValue: '',
+    },
+    microsoftClientId: {
+      description: 'id for the Microsoft application',
       type: 'string',
       defaultValue: '',
     },

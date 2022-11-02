@@ -6,6 +6,7 @@ import { UsersModule } from '../users/users.module'
 import { jwtConstants } from '../utils/constants'
 import { GoogleStrategy } from '../utils/strategies/google.strategy'
 import { JwtStrategy } from '../utils/strategies/jwt.strategy'
+import { MicrosoftStrategy } from '../utils/strategies/microsoft.strategy'
 import { AuthenticationController } from './authentication.controller'
 import { AuthenticationService } from './authentication.service'
 
@@ -19,7 +20,12 @@ import { AuthenticationService } from './authentication.service'
     }),
   ],
   controllers: [AuthenticationController],
-  providers: [AuthenticationService, JwtStrategy, GoogleStrategy],
+  providers: [
+    AuthenticationService,
+    JwtStrategy,
+    GoogleStrategy,
+    MicrosoftStrategy,
+  ],
   exports: [AuthenticationService],
 })
 export class AuthenticationModule {}

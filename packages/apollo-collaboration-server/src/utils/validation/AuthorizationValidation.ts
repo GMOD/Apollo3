@@ -93,7 +93,6 @@ export class AuthorizationValidation extends Validation {
     // Check if user has required role
     for (const role of requiredRole) {
       if (userRoles.has(role)) {
-        logger.debug(`User '${username}' has role '${role}'`)
         return { validationName: this.name }
       }
     }
