@@ -39,6 +39,15 @@ const stateModelFactory = (
       get googleScopes(): string {
         return getConf(self, ['google', 'scopes'])
       },
+      get microsoftClientId(): string {
+        return getConf(self, ['microsoft', 'clientId'])
+      },
+      get microsoftAuthEndpoint(): string {
+        return getConf(self, ['microsoft', 'authEndpoint'])
+      },
+      get microsoftScopes(): string {
+        return getConf(self, ['microsoft', 'scopes'])
+      },
       get internetAccountType() {
         return 'ApolloInternetAccount'
       },
@@ -92,9 +101,9 @@ const stateModelFactory = (
             name: `${self.name}-apolloMicrosoft`,
             description: `${self.description}-apolloMicrosoft`,
             domains: self.domains,
-            authEndpoint: 'http://localhost:3999/auth/microsoft',
-            clientId: 'Vfq8Q~ZX.QdH4yNBQFCWDPJ1Cs7-~m4QpULytbke',
-            scopes: 'user.read',
+            authEndpoint: self.microsoftAuthEndpoint,
+            clientId: 'fabdd045-163c-4712-9d40-dbbb043b3090',
+            scopes: self.microsoftScopes,
           },
         }),
     }))
@@ -104,6 +113,9 @@ const stateModelFactory = (
       },
       retrieveToken() {
         if (self.authType === 'google') {
+          return self.googleAuthInternetAccount.retrieveToken()
+        }
+        if (self.authType === 'microsoft') {
           return self.googleAuthInternetAccount.retrieveToken()
         }
         throw new Error(`Unknown authType "${self.authType}"`)

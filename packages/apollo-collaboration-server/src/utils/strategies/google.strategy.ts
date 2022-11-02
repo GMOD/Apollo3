@@ -37,7 +37,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(accessToken: string, refreshToken: string, profile: Profile) {
-    this.logger.debug(`Google token: ${accessToken}`)
+    // this.logger.debug(`Google token: ${accessToken}`)
     const user = await this.authService.googleLogin(profile)
     return user
   }

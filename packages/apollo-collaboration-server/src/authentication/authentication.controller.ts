@@ -37,7 +37,6 @@ export class AuthenticationController {
     }
 
     const { appURL } = (req.authInfo as { state: { appURL: string } }).state
-    this.logger.debug(`Return value: ${JSON.stringify(req.user)}`)
     return { url: `${appURL}/?access_token=${req.user.token}` }
   }
 
@@ -55,7 +54,6 @@ export class AuthenticationController {
     }
 
     const { appURL } = (req.authInfo as { state: { appURL: string } }).state
-    this.logger.debug(`Return value: ${JSON.stringify(req.user)}`)
     return { url: `${appURL}/?access_token=${req.user.token}` }
   }
 }
