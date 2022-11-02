@@ -23,6 +23,7 @@ import {
 import { Change as BaseChange, validationRegistry } from 'apollo-shared'
 import { FilterQuery, Model } from 'mongoose'
 
+import { CountersService } from '../counters/counters.service'
 import { FilesService } from '../files/files.service'
 import { FindChangeDto } from './dto/find-change.dto'
 
@@ -43,6 +44,7 @@ export class ChangesService {
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
     private readonly filesService: FilesService,
+    private readonly countersService: CountersService,
   ) {}
 
   private readonly logger = new Logger(ChangesService.name)
@@ -72,14 +74,24 @@ export class ChangesService {
           userModel: this.userModel,
           session,
           filesService: this.filesService,
+          counterService: this.countersService,
         })
       } catch (e) {
         throw new UnprocessableEntityException(String(e))
       }
 
       // Add entry to change collection
+
       const [savedChangedLogDoc] = await this.changeModel.create(
-        [{ ...change, user }],
+        [
+          {
+            ...change,
+            user,
+            sequence: await this.countersService.getNextSequenceValue(
+              'changeCounter',
+            ),
+          },
+        ],
         { session },
       )
       changeDoc = savedChangedLogDoc

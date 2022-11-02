@@ -4,6 +4,7 @@ import { Change, ChangeSchema } from 'apollo-schemas'
 import idValidator from 'mongoose-id-validator'
 
 import { AssembliesModule } from '../assemblies/assemblies.module'
+import { CountersModule } from '../counters/counters.module'
 import { FeaturesModule } from '../features/features.module'
 import { FilesModule } from '../files/files.module'
 import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module'
@@ -32,6 +33,7 @@ import { ChangesService } from './changes.service'
     FeaturesModule,
     FilesModule,
     UsersModule,
+    CountersModule,
   ],
 })
 export class ChangesModule {}

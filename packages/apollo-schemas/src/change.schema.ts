@@ -31,6 +31,9 @@ export class Change {
 
   @Prop({ required: true, index: true })
   user: string
+
+  @Prop()
+  sequence: number
 }
 
 export const ChangeSchema = SchemaFactory.createForClass(Change)
