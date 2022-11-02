@@ -6,6 +6,7 @@ import {
   changes,
   validationRegistry,
 } from 'apollo-shared'
+import session from 'express-session'
 
 import { AppModule } from './app.module'
 import { GlobalExceptionsFilter } from './global-exceptions.filter'
@@ -32,13 +33,24 @@ async function bootstrap() {
   validationRegistry.registerValidation(new ParentChildValidation())
 
   const cors = convertToBoolean(CORS)
+
   const loggerOpions = JSON.parse(LOGGER_OPTIONS)
   const app = await NestFactory.create(AppModule, {
     logger: loggerOpions,
     cors,
   })
+
   const { httpAdapter } = app.get(HttpAdapterHost)
   app.useGlobalFilters(new GlobalExceptionsFilter(httpAdapter))
+
+  app.use(
+    session({
+      secret: 'my-secret',
+      resave: false,
+      saveUninitialized: false,
+    }),
+  )
+
   await app.listen(APPLICATION_PORT)
   // eslint-disable-next-line no-console
   console.log(

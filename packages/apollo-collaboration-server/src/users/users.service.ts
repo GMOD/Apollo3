@@ -3,8 +3,10 @@ import { InjectModel } from '@nestjs/mongoose'
 import { UserDocument, User as UserSchema } from 'apollo-schemas'
 import { Model } from 'mongoose'
 
+import { CreateUserDto } from './dto/create-user.dto'
+
 export interface User {
-  userId: number
+  email: string
   username: string
   password: string
 }
@@ -16,34 +18,7 @@ export class UsersService {
   constructor(
     @InjectModel(UserSchema.name)
     private readonly userModel: Model<UserDocument>,
-  ) {
-    this.users = [
-      {
-        userId: 1,
-        username: 'john',
-        password: 'changeme',
-      },
-      {
-        userId: 2,
-        username: 'chris',
-        password: 'secret',
-      },
-      {
-        userId: 3,
-        username: 'maria',
-        password: 'guess',
-      },
-      {
-        userId: 4,
-        username: 'demo',
-        password: 'demo',
-      },
-    ]
-  }
-
-  async findOne(username: string): Promise<User | undefined> {
-    return this.users.find((user) => user.username === username)
-  }
+  ) {}
 
   async findById(id: string) {
     return this.userModel.findById(id).exec()
@@ -53,7 +28,19 @@ export class UsersService {
     return this.userModel.findOne({ username }).exec()
   }
 
-  findAll() {
+  async findByEmail(email: string) {
+    return this.userModel.findOne({ email }).exec()
+  }
+
+  async findAll() {
     return this.userModel.find().exec()
+  }
+
+  async addNew(user: CreateUserDto) {
+    return this.userModel.create(user)
+  }
+
+  async getCount() {
+    return this.userModel.count().exec()
   }
 }

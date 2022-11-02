@@ -76,6 +76,7 @@ export default class ApolloPlugin extends Plugin {
         configSchema: apolloInternetAccountConfigSchema,
         stateModel: apolloInternetAccountModelFactory(
           apolloInternetAccountConfigSchema,
+          pluginManager,
         ),
       })
     })

@@ -1,5 +1,5 @@
 export interface JWTPayload {
   username: string
-  sub: number
+  email: string
   roles: ('admin' | 'user' | 'readOnly')[]
 }
