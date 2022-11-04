@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 
 export * from './AddAssembly'
+export * from './DeleteAssembly'
 export * from './ImportFeatures'
 export * from './ViewChangeLog'
 

@@ -1,0 +1,134 @@
+import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+} from '@mui/material'
+import { ChangeManager, DeleteAssemblyChange } from 'apollo-shared'
+import { getRoot  } from 'mobx-state-tree'
+import React, { useState } from 'react'
+
+import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { AssemblyData, useAssemblies } from './'
+
+interface DeleteAssemblyProps {
+  session: AbstractSessionModel
+  handleClose(): void
+  changeManager: ChangeManager
+}
+
+export function DeleteAssembly({
+  session,
+  handleClose,
+  changeManager,
+}: DeleteAssemblyProps) {
+  const { notify } = session
+  const { internetAccounts } = getRoot(session) as AppRootModel
+  const [selectedAssembly, setSelectedAssembly] = useState<AssemblyData>()
+  const [errorMessage, setErrorMessage] = useState('')
+  const apolloInternetAccounts = internetAccounts.filter(
+    (ia) => ia.type === 'ApolloInternetAccount',
+  ) as ApolloInternetAccountModel[]
+  if (!apolloInternetAccounts.length) {
+    throw new Error('No Apollo internet account found')
+  }
+  const [selectedInternetAcount, setSelectedInternetAcount] = useState(
+    apolloInternetAccounts[0],
+  )
+  const assemblies = useAssemblies(internetAccounts, setErrorMessage)
+
+  function handleChangeInternetAccount(e: SelectChangeEvent<string>) {
+    const newlySelectedInternetAccount = apolloInternetAccounts.find(
+      (ia) => ia.internetAccountId === e.target.value,
+    )
+    if (!newlySelectedInternetAccount) {
+      throw new Error(
+        `Could not find internetAccount with ID "${e.target.value}"`,
+      )
+    }
+    setSelectedInternetAcount(newlySelectedInternetAccount)
+  }
+
+  function handleChangeAssembly(e: SelectChangeEvent<string>) {
+    const newAssembly = assemblies.find((asm) => asm._id === e.target.value)
+    setSelectedAssembly(newAssembly)
+  }
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setErrorMessage('')
+    if (!selectedAssembly) {
+      setErrorMessage('Must select assembly to delete')
+      return
+    }
+    const change = new DeleteAssemblyChange({
+      changes: {},
+      changedIds: ['1'],
+      typeName: 'DeleteAssemblyChange',
+      assemblyId: selectedAssembly._id,
+    })
+    changeManager.submit?.(change, {
+      internetAccountId: selectedInternetAcount.internetAccountId,
+    })
+    handleClose()
+    event.preventDefault()
+  }
+
+  return (
+    <Dialog open maxWidth="xl" data-testid="login-apollo">
+      <DialogTitle>Delete Assembly</DialogTitle>
+      <form onSubmit={onSubmit}>
+        <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
+          <DialogContentText>Select assembly</DialogContentText>
+          <Select
+            labelId="label"
+            value={selectedAssembly?._id || ''}
+            onChange={handleChangeAssembly}
+            disabled={!assemblies.length}
+          >
+            {assemblies.map((option) => (
+              <MenuItem key={option._id} value={option._id}>
+                {option.name}
+              </MenuItem>
+            ))}
+          </Select>
+          <DialogContentText>
+            <strong style={{ color: 'red' }}>
+              NOTE: All assembly data will be deleted and this operation cannot
+              be undone!
+            </strong>
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            // disabled={!selectedAssembly}
+            variant="contained"
+            type="submit"
+          >
+            Delete
+          </Button>
+          <Button
+            variant="outlined"
+            type="submit"
+            onClick={() => {
+              handleClose()
+            }}
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </form>
+      {errorMessage ? (
+        <DialogContent>
+          <DialogContentText color="error">{errorMessage}</DialogContentText>
+        </DialogContent>
+      ) : null}
+    </Dialog>
+  )
+}
