@@ -6,6 +6,9 @@ import {
   SerializedChange,
   ServerDataStore,
 } from './abstract/Change'
+import { DeleteFeatureChangeDetails } from './DeleteFeatureChange'
+import { FeatureChange } from './FeatureChange'
+import { DeleteFeatureChange } from '..'
 
 interface SerializedDeleteAssemblyBase extends SerializedChange {
   changes: DeleteAssemblyDetails
@@ -50,10 +53,14 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { assembly, logger } = this
-    logger.debug?.(`***************** ASSEMBLY ******************`)
-    const { assemblyModel, featureModel, refSeqModel, session } = backend
-    logger.debug?.(`***************** ASSEMBLY: ${assembly}`)
+    const {
+      assemblyModel,
+      featureModel,
+      refSeqModel,
+      refSeqChunkModel,
+      session,
+    } = backend
+    const { assembly } = this
 
     const assembly = await assemblyModel
       .findById(assembly)
@@ -65,66 +72,28 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
       throw new Error(errMsg)
     }
 
-    // let featureCnt = 0
-    // this.logger.debug?.(`changes: ${JSON.stringify(changes)}`)
+    // Get RefSeqs
+    const refSeqs = await refSeqModel.find({ assembly: assemblyId }).exec()
+    const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
+    // this.logger.debug?.(`REF SEQ IDs: ${refSeqIds}`)
 
-    // // Loop the changes
-    // for (const change of changes) {
-    //   this.logger.debug?.(`change: ${JSON.stringify(change)}`)
-    //   const { addedFeature, parentFeatureId } = change
-    //   const { refSeq } = addedFeature
-    //   const refSeqDoc = await refSeqModel
-    //     .findById(refSeq)
-    //     .session(session)
-    //     .exec()
-    //   if (!refSeqDoc) {
-    //     throw new Error(
-    //       `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refSeq}" not found`,
-    //     )
-    //   }
-    //   if (parentFeatureId) {
-    //     const topLevelFeature = await featureModel
-    //       .findOne({ allIds: parentFeatureId })
-    //       .session(session)
-    //       .exec()
-    //     if (!topLevelFeature) {
-    //       throw new Error(`Could not find feature with ID "${parentFeatureId}"`)
-    //     }
-    //     this.logger.log({ topLevelFeature })
-    //     const parentFeature = this.getFeatureFromId(
-    //       topLevelFeature,
-    //       parentFeatureId,
-    //     )
-    //     if (!parentFeature) {
-    //       throw new Error(
-    //         `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature._id}"`,
-    //       )
-    //     }
-    //     if (!parentFeature.children) {
-    //       parentFeature.children = new Map()
-    //     }
-    //     parentFeature.children.set(addedFeature._id, {
-    //       allIds: [],
-    //       ...addedFeature,
-    //       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //       // @ts-ignore
-    //       _id: addedFeature._id,
-    //     })
-    //     const childIds = this.getChildFeatureIds(addedFeature)
-    //     topLevelFeature.allIds.push(addedFeature._id, ...childIds)
-    //     topLevelFeature.save()
-    //   } else {
-    //     const childIds = this.getChildFeatureIds(addedFeature)
-    //     const allIds = [addedFeature._id, ...childIds]
-    //     const [newFeatureDoc] = await featureModel.create(
-    //       [{ allIds, ...addedFeature }],
-    //       { session },
-    //     )
-    //     this.logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
-    //   }
-    //   featureCnt++
-    // }
-    // this.logger.debug?.(`Added ${featureCnt} new feature(s) into database.`)
+    // Get and delete RefSeqChunks
+    // const refSeqChunks = await refSeqChunkModel.find({ refSeq: refSeqIds }).exec()
+    // const refSeqChunkIds = refSeqChunks.map((refSeq) => refSeq._id)
+    // this.logger.debug?.(`REF SEQ CHUNK IDs: ${refSeqChunkIds}`)
+    await refSeqChunkModel.deleteMany({ refSeq: refSeqIds }).exec()
+
+    // Get and delete Features
+    // const features = await featureModel.find({ refSeq: refSeqIds }).exec()
+    // const featureIds = features.map((refSeq) => refSeq._id)
+    // this.logger.debug?.(`FEATURE IDs: ${featureIds}`)
+    await featureModel.deleteMany({ refSeq: refSeqIds }).exec()
+
+    // Delete RefSeqs and Assembly
+    await refSeqModel.deleteMany({ assembly: assemblyId }).exec()
+    await assemblyModel.deleteOne({ _id: assemblyId }).exec()
+
+    this.logger.debug?.(`Assembly "${assemblyId}" deleted from database.`)
   }
 
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
@@ -135,6 +104,10 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
+    const entries = dataStore.assemblies.entries() //.delete(this.assemblyId)
+    this.logger.debug?.(`ENTRIES: "${entries}"`)
+
+    // ******** HOW TO APPLY ASSEMBLY DELETION INTO LOCAL STORE ????????????
     // for (const change of this.changes) {
     //   const { addedFeature, parentFeatureId } = change
     //   if (parentFeatureId) {

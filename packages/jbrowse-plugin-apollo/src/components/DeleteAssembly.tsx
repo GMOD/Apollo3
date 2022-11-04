@@ -1,17 +1,21 @@
 import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
 import {
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControlLabel,
+  FormGroup,
   MenuItem,
   Select,
   SelectChangeEvent,
+  TextField,
 } from '@mui/material'
 import { ChangeManager, DeleteAssemblyChange } from 'apollo-shared'
-import { getRoot  } from 'mobx-state-tree'
+import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
@@ -32,6 +36,7 @@ export function DeleteAssembly({
   const { internetAccounts } = getRoot(session) as AppRootModel
   const [selectedAssembly, setSelectedAssembly] = useState<AssemblyData>()
   const [errorMessage, setErrorMessage] = useState('')
+  const [confirmDelete, setconfirmDelete] = useState(false)
   const apolloInternetAccounts = internetAccounts.filter(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel[]
@@ -64,7 +69,7 @@ export function DeleteAssembly({
     event.preventDefault()
     setErrorMessage('')
     if (!selectedAssembly) {
-      setErrorMessage('Must select assembly to delete')
+      setErrorMessage('Must select assembly!')
       return
     }
     const change = new DeleteAssemblyChange({
@@ -104,10 +109,22 @@ export function DeleteAssembly({
               be undone!
             </strong>
           </DialogContentText>
+          <FormGroup>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={confirmDelete}
+                  onChange={() => setconfirmDelete(!confirmDelete)}
+                />
+              }
+              label="I understand that all assembly data will be deleted"
+            />
+          </FormGroup>
         </DialogContent>
+
         <DialogActions>
           <Button
-            // disabled={!selectedAssembly}
+            disabled={!selectedAssembly || !confirmDelete}
             variant="contained"
             type="submit"
           >
