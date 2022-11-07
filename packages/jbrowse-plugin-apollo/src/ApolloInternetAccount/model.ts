@@ -16,7 +16,7 @@ const stateModelFactory = (
   pluginManager: PluginManager,
 ) => {
   const AuthPlugin = pluginManager.getPlugin('AuthenticationPlugin') as
-    | any // eslint-disable-line @typescript-eslint/no-explicit-any
+    | import('@jbrowse/plugin-authentication').default
     | undefined
   if (!AuthPlugin) {
     throw new Error('LinearGenomeView plugin not found')
