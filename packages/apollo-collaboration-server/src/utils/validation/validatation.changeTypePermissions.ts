@@ -7,6 +7,8 @@ export function getRequiredRoleForChange(changeName: string) {
       'AddAssemblyAndFeaturesFromFileChange',
       'AddFeaturesFromFileChange',
       'DeleteAssemblyChange',
+      'UserChange',
+      'DeleteUserChange',
     ].includes(changeName)
   ) {
     return Role.Admin

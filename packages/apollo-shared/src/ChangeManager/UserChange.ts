@@ -5,11 +5,11 @@ import {
   LocalGFF3DataStore,
   SerializedChange,
   ServerDataStore,
-} from './Change'
+} from './abstract/Change'
 
 export interface SerializedUserChangeBase extends SerializedChange {
   typeName: 'UserChange'
-  userId: number
+  userId: string
 }
 
 export interface UserChangeDetails {
@@ -31,7 +31,7 @@ export type SerializedUserChange =
 export class UserChange extends Change {
   typeName = 'UserChange' as const
   changes: UserChangeDetails[]
-  userId: number
+  userId: string
 
   constructor(json: SerializedUserChange, options?: ChangeOptions) {
     super(json, options)
@@ -40,39 +40,28 @@ export class UserChange extends Change {
   }
 
   toJSON(): SerializedUserChange {
-    if (this.changes.length === 1) {
-      const [{ role }] = this.changes
-      return {
-        typeName: this.typeName,
-        changedIds: this.changedIds,
-        assemblyId: this.assemblyId,
-        userId: this.userId,
-        role,
-      }
+    const { changes, typeName, userId } = this
+    if (changes.length === 1) {
+      const [{ role }] = changes
+      return { typeName, userId, role }
     }
-    return {
-      typeName: this.typeName,
-      changedIds: this.changedIds,
-      assemblyId: this.assemblyId,
-      userId: this.userId,
-      changes: this.changes,
-    }
+    return { typeName, userId, changes }
   }
 
   async applyToServer(backend: ServerDataStore) {
     const { userModel, session } = backend
-    const { changes, userId } = this
+    const { changes, userId, logger } = this
 
     for (const change of changes) {
-      this.logger.debug?.(`change: ${JSON.stringify(changes)}`)
+      logger.debug?.(`change: ${JSON.stringify(changes)}`)
       const { role } = change
       const user = await userModel
-        .findOneAndUpdate({ id: userId }, { role })
+        .findByIdAndUpdate(userId, { role })
         .session(session)
         .exec()
       if (!user) {
         const errMsg = `*** ERROR: User with id "${userId}" not found`
-        this.logger.error(errMsg)
+        logger.error(errMsg)
         throw new Error(errMsg)
       }
     }
@@ -86,10 +75,7 @@ export class UserChange extends Change {
   async applyToClient(dataStore: ClientDataStore) {}
 
   getInverse() {
-    const { changedIds, typeName, changes, assemblyId, userId } = this
-    return new UserChange(
-      { changedIds, typeName, changes, assemblyId, userId },
-      { logger: this.logger },
-    )
+    const { typeName, changes, userId, logger } = this
+    return new UserChange({ typeName, changes, userId }, { logger })
   }
 }

@@ -5,11 +5,11 @@ import {
   LocalGFF3DataStore,
   SerializedChange,
   ServerDataStore,
-} from './Change'
+} from './abstract/Change'
 
 export interface SerializedDeleteUserChangeBase extends SerializedChange {
   typeName: 'DeleteUserChange'
-  userId: number
+  userId: string
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -31,7 +31,7 @@ export type SerializedDeleteUserChange =
 export class DeleteUserChange extends Change {
   typeName = 'DeleteUserChange' as const
   changes: DeleteUserChangeDetails[]
-  userId: number
+  userId: string
 
   constructor(json: SerializedDeleteUserChange, options?: ChangeOptions) {
     super(json, options)
@@ -40,24 +40,20 @@ export class DeleteUserChange extends Change {
   }
 
   toJSON(): SerializedDeleteUserChange {
-    return {
-      typeName: this.typeName,
-      changedIds: this.changedIds,
-      assemblyId: this.assemblyId,
-      userId: this.userId,
-    }
+    const { typeName, userId } = this
+    return { typeName, userId }
   }
 
   async applyToServer(backend: ServerDataStore) {
     const { userModel, session } = backend
-    const { userId } = this
+    const { userId, logger } = this
     const user = await userModel
       .findOneAndDelete({ id: userId })
       .session(session)
       .exec()
     if (!user) {
       const errMsg = `*** ERROR: User with id "${userId}" not found`
-      this.logger.error(errMsg)
+      logger.error(errMsg)
       throw new Error(errMsg)
     }
   }
@@ -71,11 +67,8 @@ export class DeleteUserChange extends Change {
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   getInverse() {
-    const { changedIds, typeName, assemblyId, userId } = this
-    return new DeleteUserChange(
-      { changedIds, typeName, assemblyId, userId },
-      { logger: this.logger },
-    )
+    const { typeName, userId, logger } = this
+    return new DeleteUserChange({ typeName, userId }, { logger })
     //   const inverseChangedIds = this.changedIds.slice().reverse()
     //   const inverseChanges = this.changes
     //     .slice()

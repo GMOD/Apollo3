@@ -94,10 +94,8 @@ export function ManageUsers({
 
   async function deleteUser(id: GridRowId) {
     const change = new DeleteUserChange({
-      changedIds: ['1'],
       typeName: 'DeleteUserChange',
-      userId: Number(id),
-      assemblyId: '635112a914e49e7215bcc4ff',
+      userId: id as string,
     })
     await changeManager.submit(change, {
       internetAccountId: selectedInternetAcount.internetAccountId,
@@ -106,7 +104,7 @@ export function ManageUsers({
   }
 
   const gridColumns: GridColumns = [
-    { field: 'id', headerName: 'User', width: 140 },
+    { field: 'username', headerName: 'User', width: 140 },
     { field: 'email', headerName: 'Email', width: 160 },
     {
       field: 'role',
@@ -178,7 +176,7 @@ export function ManageUsers({
             pagination
             rows={users}
             columns={gridColumns}
-            getRowId={(row) => row.id}
+            getRowId={(row) => row._id}
             components={{ Toolbar: GridToolbar }}
             getRowHeight={() => 'auto'}
             onCellEditCommit={(
@@ -188,11 +186,9 @@ export function ManageUsers({
             ) => {
               if (params.field === 'role') {
                 const change = new UserChange({
-                  changedIds: ['1'],
                   typeName: 'UserChange',
                   role: params.value,
-                  userId: Number(params.id),
-                  assemblyId: '635112a914e49e7215bcc4ff',
+                  userId: params.id as string,
                 })
                 onChangeTableCell(change, event)
               }
