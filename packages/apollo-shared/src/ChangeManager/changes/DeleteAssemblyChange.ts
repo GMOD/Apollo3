@@ -1,3 +1,5 @@
+import { getSession } from '@jbrowse/core/util'
+
 import { AssemblySpecificChange } from './abstract/AssemblySpecificChange'
 import {
   ChangeOptions,
@@ -8,7 +10,6 @@ import {
 } from './abstract/Change'
 import { DeleteFeatureChangeDetails } from './DeleteFeatureChange'
 import { FeatureChange } from './FeatureChange'
-import { DeleteFeatureChange } from '..'
 
 interface SerializedDeleteAssemblyBase extends SerializedChange {
   changes: DeleteAssemblyDetails
@@ -19,27 +20,13 @@ export interface DeleteAssemblyDetails {
   parentFeatureId?: string // Parent feature to where feature will be added
 }
 
-// interface SerializedDeleteAssemblySingle
-//   extends SerializedDeleteAssemblyBase,
-//     DeleteAssemblyDetails {}
-
-// interface SerializedDeleteAssemblyMultiple
-//   extends SerializedDeleteAssemblyBase {
-//   changes: DeleteAssemblyDetails[]
-// }
-
-// type SerializedDeleteAssembly =
-//   | SerializedDeleteAssemblySingle
-//   | SerializedDeleteAssemblyMultiple
-
 export class DeleteAssemblyChange extends AssemblySpecificChange {
   typeName = 'DeleteAssemblyChange' as const
   changes: DeleteAssemblyDetails
 
   constructor(json: SerializedDeleteAssemblyBase, options?: ChangeOptions) {
     super(json, options)
-    this.changes = json.changes // : [json]
-    // this.changes = 'changes' in json ? json.changes : [json]
+    this.changes = json.changes
   }
 
   toJSON(): SerializedDeleteAssemblyBase {
@@ -104,22 +91,18 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
-    const entries = dataStore.assemblies.entries() //.delete(this.assemblyId)
-    this.logger.debug?.(`ENTRIES: "${entries}"`)
-
-    // ******** HOW TO APPLY ASSEMBLY DELETION INTO LOCAL STORE ????????????
-    // for (const change of this.changes) {
-    //   const { addedFeature, parentFeatureId } = change
-    //   if (parentFeatureId) {
-    //     const parentFeature = dataStore.getFeature(parentFeatureId)
-    //     if (!parentFeature) {
-    //       throw new Error(`Could not find parent feature "${parentFeatureId}"`)
-    //     }
-    //     parentFeature.addChild(addedFeature)
-    //   } else {
-    //     dataStore.addFeature(this.assemblyId, addedFeature)
-    //   }
-    // }
+    const session = getSession(dataStore)
+    // If assemblyId is not present in client data store
+    if (!dataStore.assemblies.has(this.assemblyId)) {
+      await session.removeAssembly?.(this.assemblyId)
+      // eslint-disable-next-line no-console
+      console.log('Assembly has been deleted from session!')
+      return
+    }
+    dataStore.deleteAssembly(this.assemblyId)
+    await session.removeAssembly?.(this.assemblyId)
+    // eslint-disable-next-line no-console
+    console.log('Assembly has been deleted from session and client data store')
   }
 
   getInverse() {

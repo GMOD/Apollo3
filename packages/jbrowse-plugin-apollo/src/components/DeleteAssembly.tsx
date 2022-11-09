@@ -12,7 +12,6 @@ import {
   MenuItem,
   Select,
   SelectChangeEvent,
-  TextField,
 } from '@mui/material'
 import { ChangeManager, DeleteAssemblyChange } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
@@ -37,6 +36,7 @@ export function DeleteAssembly({
   const [selectedAssembly, setSelectedAssembly] = useState<AssemblyData>()
   const [errorMessage, setErrorMessage] = useState('')
   const [confirmDelete, setconfirmDelete] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
   const apolloInternetAccounts = internetAccounts.filter(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel[]
@@ -49,6 +49,7 @@ export function DeleteAssembly({
   const assemblies = useAssemblies(internetAccounts, setErrorMessage)
 
   function handleChangeInternetAccount(e: SelectChangeEvent<string>) {
+    setSubmitted(false)
     const newlySelectedInternetAccount = apolloInternetAccounts.find(
       (ia) => ia.internetAccountId === e.target.value,
     )
@@ -67,6 +68,7 @@ export function DeleteAssembly({
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setSubmitted(true)
     setErrorMessage('')
     if (!selectedAssembly) {
       setErrorMessage('Must select assembly!')
@@ -90,6 +92,22 @@ export function DeleteAssembly({
       <DialogTitle>Delete Assembly</DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
+          {apolloInternetAccounts.length > 1 ? (
+            <>
+              <DialogContentText>Select account</DialogContentText>
+              <Select
+                value={selectedInternetAcount.internetAccountId}
+                onChange={handleChangeInternetAccount}
+                disabled={submitted && !errorMessage}
+              >
+                {internetAccounts.map((option) => (
+                  <MenuItem key={option.id} value={option.internetAccountId}>
+                    {option.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </>
+          ) : null}
           <DialogContentText>Select assembly</DialogContentText>
           <Select
             labelId="label"
