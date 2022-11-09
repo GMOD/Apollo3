@@ -137,26 +137,32 @@ const stateModelFactory = (
               if (authTypePromise) {
                 authType = await authTypePromise
               } else {
-                authTypePromise = new Promise((resolve, reject) => {
-                  const { session } = getRoot(self)
-                  session.queueDialog((doneCallback: () => void) => [
-                    AuthTypeSelector,
-                    {
-                      baseURL: self.baseURL,
-                      name: self.name,
-                      handleClose: (token?: AuthType | Error) => {
-                        if (!token) {
-                          reject(new Error('user cancelled entry'))
-                        } else if (token instanceof Error) {
-                          reject(token)
-                        } else {
-                          resolve(token)
-                        }
-                        doneCallback()
+                if (self.googleAuthInternetAccount.retrieveToken()) {
+                  authTypePromise = Promise.resolve('google')
+                } else if (self.googleAuthInternetAccount.retrieveToken()) {
+                  authTypePromise = Promise.resolve('microsoft')
+                } else {
+                  authTypePromise = new Promise((resolve, reject) => {
+                    const { session } = getRoot(self)
+                    session.queueDialog((doneCallback: () => void) => [
+                      AuthTypeSelector,
+                      {
+                        baseURL: self.baseURL,
+                        name: self.name,
+                        handleClose: (token?: AuthType | Error) => {
+                          if (!token) {
+                            reject(new Error('user cancelled entry'))
+                          } else if (token instanceof Error) {
+                            reject(token)
+                          } else {
+                            resolve(token)
+                          }
+                          doneCallback()
+                        },
                       },
-                    },
-                  ])
-                })
+                    ])
+                  })
+                }
                 authType = await authTypePromise
               }
               self.setAuthType(authType)
