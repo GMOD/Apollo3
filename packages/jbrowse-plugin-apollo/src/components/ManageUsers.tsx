@@ -1,4 +1,4 @@
-import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import { AbstractRootModel, AbstractSessionModel } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Button,
@@ -41,15 +41,19 @@ interface ManageUsersProps {
   changeManager: ChangeManager
 }
 
+interface ApolloRootModel extends AbstractRootModel {
+  internetAccounts: ApolloInternetAccountModel[]
+}
+
 export function ManageUsers({
   session,
   handleClose,
   changeManager,
 }: ManageUsersProps) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
+  const { internetAccounts } = getRoot(session) as ApolloRootModel
   const apolloInternetAccounts = internetAccounts.filter(
-    (ia) => ia.type === 'ApolloInternetAccount',
-  ) as ApolloInternetAccountModel[]
+    (ia) => ia.type === 'ApolloInternetAccount' && ia.role?.includes('admin'),
+  )
   if (!apolloInternetAccounts.length) {
     throw new Error('No Apollo internet account found')
   }
