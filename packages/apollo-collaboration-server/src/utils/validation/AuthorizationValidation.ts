@@ -53,9 +53,9 @@ export class AuthorizationValidation extends Validation {
     }
     const [, token] = authorization.split(' ')
     const jwtPayload = getDecodedAccessToken(token)
-    const { username } = jwtPayload
+    const { username, email } = jwtPayload
 
-    const user = await userModel.findOne({ username })
+    const user = await userModel.findOne({ email })
     if (!user) {
       const errMsg = `User '${username}' not found in Mongo, no authorization!`
       logger.debug(errMsg)
