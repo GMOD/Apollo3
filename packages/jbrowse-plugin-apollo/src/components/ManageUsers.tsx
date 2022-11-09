@@ -29,7 +29,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 
 interface UserResponse {
-  id: number
+  _id: string
   username: string
   email: string
   role: string[]
@@ -100,7 +100,7 @@ export function ManageUsers({
     await changeManager.submit(change, {
       internetAccountId: selectedInternetAcount.internetAccountId,
     })
-    setUsers((prevUsers) => prevUsers.filter((row) => row.id !== id))
+    setUsers((prevUsers) => prevUsers.filter((row) => row._id !== id))
   }
 
   const gridColumns: GridColumns = [

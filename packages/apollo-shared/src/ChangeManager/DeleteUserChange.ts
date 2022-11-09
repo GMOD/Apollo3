@@ -48,7 +48,7 @@ export class DeleteUserChange extends Change {
     const { userModel, session } = backend
     const { userId, logger } = this
     const user = await userModel
-      .findOneAndDelete({ id: userId })
+      .findOneAndDelete({ _id: userId })
       .session(session)
       .exec()
     if (!user) {
