@@ -8,6 +8,7 @@ import {
 import { SerializedChange, changeRegistry } from 'apollo-shared'
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
+import { getDecodedAccessToken } from './commonUtilities'
 
 @Injectable()
 export class ChangeInterceptor implements NestInterceptor {

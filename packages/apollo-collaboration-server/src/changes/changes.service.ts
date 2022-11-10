@@ -80,12 +80,12 @@ export class ChangesService {
       // Add change information to change -collection
       this.logger.debug(`ChangeIds: ${change.changedIds}`)
       this.logger.debug(`AssemblyId: ${change.assemblyId}`)
+      this.logger.debug(`User: ${change.user}`)
 
       // Add entry to change collection
       const changeEntry: CreateChangeDto = {
         assembly: change.assemblyId,
         ...change,
-        user: 'demo user id',
       }
       const [savedChangedLogDoc] = await this.changeModel.create(
         [changeEntry],

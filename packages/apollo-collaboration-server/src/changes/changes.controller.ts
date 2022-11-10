@@ -5,12 +5,15 @@ import {
   Logger,
   Post,
   Query,
+  Req,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common'
 import { Change } from 'apollo-shared'
+import { Request } from 'express'
 
 import { ChangeInterceptor } from '../utils/change.interceptor'
+import { getDecodedAccessToken } from '../utils/commonUtilities'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
@@ -32,7 +35,18 @@ export class ChangesController {
   @Post()
   @UseInterceptors(ChangeInterceptor)
   @Validations(Role.User)
-  async create(@Body() change: Change) {
+  async create(@Body() change: Change, @Req() req: Request) {
+    // Add user's email to Change -object if it's not filled yet
+    if (!change.user) {
+      const { authorization } = req.headers
+      if (!authorization) {
+        throw new Error('No "authorization" header')
+      }
+      const [, token] = authorization.split(' ')
+      const jwtPayload = getDecodedAccessToken(token)
+      const { email } = jwtPayload
+      change.user = email
+    }
     this.logger.debug(
       `Change type is '${change.typeName}', change object: ${JSON.stringify(
         change,
