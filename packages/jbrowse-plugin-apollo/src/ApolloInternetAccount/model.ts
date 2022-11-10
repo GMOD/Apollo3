@@ -126,6 +126,26 @@ const stateModelFactory = (
           pluginManager.rootModel.insertInMenu(
             'Apollo',
             {
+              label: 'Delete Assembly',
+              onClick: (session: AbstractSessionModel) => {
+                session.queueDialog((doneCallback) => [
+                  DeleteAssembly,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                    },
+                    changeManager: (session as ApolloSessionModel)
+                      .apolloDataStore.changeManager,
+                  },
+                ])
+              },
+            },
+            1,
+          )
+          pluginManager.rootModel.insertInMenu(
+            'Apollo',
+            {
               label: 'Import Features',
               onClick: (session: AbstractSessionModel) => {
                 session.queueDialog((doneCallback) => [
