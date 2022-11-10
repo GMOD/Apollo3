@@ -6,6 +6,7 @@ import {
   UriLocation,
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
+import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
 import Undo from '@mui/icons-material/Undo'
 import { JWTPayload } from 'apollo-shared'
 import jwtDecode from 'jwt-decode'
@@ -22,10 +23,10 @@ const stateModelFactory = (
   pluginManager: PluginManager,
 ) => {
   const AuthPlugin = pluginManager.getPlugin('AuthenticationPlugin') as
-    | any // eslint-disable-line @typescript-eslint/no-explicit-any
+    | AuthenticationPlugin
     | undefined
   if (!AuthPlugin) {
-    throw new Error('LinearGenomeView plugin not found')
+    throw new Error('Authentication plugin not found')
   }
   const { OAuthConfigSchema, OAuthInternetAccountModelFactory } =
     AuthPlugin.exports
@@ -142,26 +143,32 @@ const stateModelFactory = (
               if (authTypePromise) {
                 authType = await authTypePromise
               } else {
-                authTypePromise = new Promise((resolve, reject) => {
-                  const { session } = getRoot(self)
-                  session.queueDialog((doneCallback: () => void) => [
-                    AuthTypeSelector,
-                    {
-                      baseURL: self.baseURL,
-                      name: self.name,
-                      handleClose: (newAuthType?: AuthType | Error) => {
-                        if (!newAuthType) {
-                          reject(new Error('user cancelled entry'))
-                        } else if (newAuthType instanceof Error) {
-                          reject(newAuthType)
-                        } else {
-                          resolve(newAuthType)
-                        }
-                        doneCallback()
+                if (self.googleAuthInternetAccount.retrieveToken()) {
+                  authTypePromise = Promise.resolve('google')
+                } else if (self.googleAuthInternetAccount.retrieveToken()) {
+                  authTypePromise = Promise.resolve('microsoft')
+                } else {
+                  authTypePromise = new Promise((resolve, reject) => {
+                    const { session } = getRoot(self)
+                    session.queueDialog((doneCallback: () => void) => [
+                      AuthTypeSelector,
+                      {
+                        baseURL: self.baseURL,
+                        name: self.name,
+                        handleClose: (newAuthType?: AuthType | Error) => {
+                          if (!newAuthType) {
+                            reject(new Error('user cancelled entry'))
+                          } else if (newAuthType instanceof Error) {
+                            reject(newAuthType)
+                          } else {
+                            resolve(newAuthType)
+                          }
+                          doneCallback()
+                        },
                       },
-                    },
-                  ])
-                })
+                    ])
+                  })
+                }
                 authType = await authTypePromise
               }
               self.setAuthType(authType)

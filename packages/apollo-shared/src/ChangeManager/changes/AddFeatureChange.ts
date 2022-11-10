@@ -4,13 +4,15 @@ import {
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
-  SerializedChange,
   ServerDataStore,
-} from './Change'
-import { FeatureChange } from './FeatureChange'
-import { DeleteFeatureChange } from '..'
+} from './abstract/Change'
+import {
+  FeatureChange,
+  SerializedFeatureChange,
+} from './abstract/FeatureChange'
+import { DeleteFeatureChange } from './DeleteFeatureChange'
 
-interface SerializedAddFeatureChangeBase extends SerializedChange {
+interface SerializedAddFeatureChangeBase extends SerializedFeatureChange {
   typeName: 'AddFeatureChange'
 }
 
@@ -42,22 +44,12 @@ export class AddFeatureChange extends FeatureChange {
   }
 
   toJSON(): SerializedAddFeatureChange {
-    if (this.changes.length === 1) {
-      const [{ addedFeature, parentFeatureId }] = this.changes
-      return {
-        typeName: this.typeName,
-        changedIds: this.changedIds,
-        assemblyId: this.assemblyId,
-        addedFeature,
-        parentFeatureId,
-      }
+    const { changes, changedIds, typeName, assembly } = this
+    if (changes.length === 1) {
+      const [{ addedFeature, parentFeatureId }] = changes
+      return { typeName, changedIds, assembly, addedFeature, parentFeatureId }
     }
-    return {
-      typeName: this.typeName,
-      changedIds: this.changedIds,
-      assemblyId: this.assemblyId,
-      changes: this.changes,
-    }
+    return { typeName, changedIds, assembly, changes }
   }
 
   /**
@@ -67,24 +59,24 @@ export class AddFeatureChange extends FeatureChange {
    */
   async applyToServer(backend: ServerDataStore) {
     const { assemblyModel, featureModel, refSeqModel, session } = backend
-    const { changes, assemblyId } = this
+    const { changes, assembly, logger } = this
 
-    const assembly = await assemblyModel
-      .findById(assemblyId)
+    const assemblyDoc = await assemblyModel
+      .findById(assembly)
       .session(session)
       .exec()
-    if (!assembly) {
-      const errMsg = `*** ERROR: Assembly with id "${assemblyId}" not found`
-      this.logger.error(errMsg)
+    if (!assemblyDoc) {
+      const errMsg = `*** ERROR: Assembly with id "${assembly}" not found`
+      logger.error(errMsg)
       throw new Error(errMsg)
     }
 
     let featureCnt = 0
-    this.logger.debug?.(`changes: ${JSON.stringify(changes)}`)
+    logger.debug?.(`changes: ${JSON.stringify(changes)}`)
 
     // Loop the changes
     for (const change of changes) {
-      this.logger.debug?.(`change: ${JSON.stringify(change)}`)
+      logger.debug?.(`change: ${JSON.stringify(change)}`)
       const { addedFeature, parentFeatureId } = change
       const { refSeq } = addedFeature
       const refSeqDoc = await refSeqModel
@@ -93,7 +85,7 @@ export class AddFeatureChange extends FeatureChange {
         .exec()
       if (!refSeqDoc) {
         throw new Error(
-          `RefSeq was not found by assemblyId "${assemblyId}" and seq_id "${refSeq}" not found`,
+          `RefSeq was not found by assembly "${assembly}" and seq_id "${refSeq}" not found`,
         )
       }
       if (parentFeatureId) {
@@ -104,7 +96,7 @@ export class AddFeatureChange extends FeatureChange {
         if (!topLevelFeature) {
           throw new Error(`Could not find feature with ID "${parentFeatureId}"`)
         }
-        this.logger.log({ topLevelFeature })
+        logger.log({ topLevelFeature })
         const parentFeature = this.getFeatureFromId(
           topLevelFeature,
           parentFeatureId,
@@ -134,11 +126,11 @@ export class AddFeatureChange extends FeatureChange {
           [{ allIds, ...addedFeature }],
           { session },
         )
-        this.logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
+        logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
       }
       featureCnt++
     }
-    this.logger.debug?.(`Added ${featureCnt} new feature(s) into database.`)
+    logger.debug?.(`Added ${featureCnt} new feature(s) into database.`)
   }
 
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
@@ -149,7 +141,8 @@ export class AddFeatureChange extends FeatureChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
-    for (const change of this.changes) {
+    const { changes, assembly } = this
+    for (const change of changes) {
       const { addedFeature, parentFeatureId } = change
       if (parentFeatureId) {
         const parentFeature = dataStore.getFeature(parentFeatureId)
@@ -158,14 +151,15 @@ export class AddFeatureChange extends FeatureChange {
         }
         parentFeature.addChild(addedFeature)
       } else {
-        dataStore.addFeature(this.assemblyId, addedFeature)
+        dataStore.addFeature(assembly, addedFeature)
       }
     }
   }
 
   getInverse() {
-    const inverseChangedIds = this.changedIds.slice().reverse()
-    const inverseChanges = this.changes
+    const { changes, changedIds, assembly, logger } = this
+    const inverseChangedIds = changedIds.slice().reverse()
+    const inverseChanges = changes
       .slice()
       .reverse()
       .map((addFeatureChange) => ({
@@ -178,9 +172,9 @@ export class AddFeatureChange extends FeatureChange {
         changedIds: inverseChangedIds,
         typeName: 'DeleteFeatureChange',
         changes: inverseChanges,
-        assemblyId: this.assemblyId,
+        assembly,
       },
-      { logger: this.logger },
+      { logger },
     )
   }
 }

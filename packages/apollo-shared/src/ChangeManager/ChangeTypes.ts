@@ -1,4 +1,4 @@
-import { Change } from './Change'
+import { Change } from './changes/abstract/Change'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ChangeType = new (...args: any[]) => Change

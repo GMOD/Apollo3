@@ -106,7 +106,7 @@ export function CopyFeature({
     const change = new CopyFeatureChange({
       changedIds: [newFeatureId],
       typeName: 'CopyFeatureChange',
-      assemblyId: sourceAssemblyId,
+      assembly: sourceAssemblyId,
       featureId: sourceFeatureId,
       newFeatureId,
       targetAssemblyId: assemblyId,

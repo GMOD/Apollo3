@@ -2,7 +2,7 @@ import { getConf } from '@jbrowse/core/configuration'
 import { AppRootModel, Region, getSession } from '@jbrowse/core/util'
 import { Menu, MenuItem } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
-import { Change, LocationEndChange, LocationStartChange } from 'apollo-shared'
+import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import { getRoot, getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useRef, useState } from 'react'
@@ -289,9 +289,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
         setSelectedFeature(apolloFeatureUnderMouse)
       }
     } else if (dragging) {
-      const assemblyId = getAssemblyId(region.assemblyName)
+      const assembly = getAssemblyId(region.assemblyName)
       const { feature, bp, edge } = dragging
-      let change: Change
+      let change: LocationEndChange | LocationStartChange
       if (edge === 'end') {
         const featureId = feature._id
         const oldEnd = feature.end
@@ -302,7 +302,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
           featureId,
           oldEnd,
           newEnd,
-          assemblyId,
+          assembly,
         })
       } else {
         const featureId = feature._id
@@ -314,7 +314,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
           featureId,
           oldStart,
           newStart,
-          assemblyId,
+          assembly,
         })
       }
       changeManager?.submit(change)
