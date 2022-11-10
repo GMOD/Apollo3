@@ -14,7 +14,8 @@ import jwtDecode from 'jwt-decode'
 import { autorun } from 'mobx'
 import { Instance, getRoot, types } from 'mobx-state-tree'
 
-import { AddAssembly, ImportFeatures } from '../components'
+import { AddAssembly, DeleteAssembly, ImportFeatures } from '../components'
+import { ApolloSessionModel } from '../session'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { ApolloInternetAccountConfigModel } from './configSchema'
 
