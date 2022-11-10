@@ -24,7 +24,6 @@ import { Change as BaseChange, validationRegistry } from 'apollo-shared'
 import { FilterQuery, Model } from 'mongoose'
 
 import { FilesService } from '../files/files.service'
-import { CreateChangeDto } from './dto/create-change.dto'
 import { FindChangeDto } from './dto/find-change.dto'
 
 export class ChangesService {
@@ -48,7 +47,7 @@ export class ChangesService {
 
   private readonly logger = new Logger(ChangesService.name)
 
-  async create(change: BaseChange) {
+  async create(change: BaseChange, user: string) {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
     const validationResult = await validationRegistry.backendPreValidate(
       change,
@@ -78,12 +77,8 @@ export class ChangesService {
       }
 
       // Add entry to change collection
-      const changeEntry: CreateChangeDto = {
-        ...change,
-        user: 'demo user id',
-      }
       const [savedChangedLogDoc] = await this.changeModel.create(
-        [changeEntry],
+        [{ ...change, user }],
         { session },
       )
       changeDoc = savedChangedLogDoc
