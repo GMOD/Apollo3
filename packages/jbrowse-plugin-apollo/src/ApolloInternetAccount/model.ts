@@ -1,17 +1,22 @@
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { UriLocation } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  UriLocation,
+  isAbstractMenuManager,
+} from '@jbrowse/core/util'
+import Undo from '@mui/icons-material/Undo'
 import { JWTPayload } from 'apollo-shared'
 import jwtDecode from 'jwt-decode'
 import { Instance, getRoot, types } from 'mobx-state-tree'
 
+import { AddAssembly, ImportFeatures } from '../components'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { ApolloInternetAccountConfigModel } from './configSchema'
 
 type AuthType = 'google' | 'microsoft'
 
-// const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
 const stateModelFactory = (
   configSchema: ApolloInternetAccountConfigModel,
   pluginManager: PluginManager,
@@ -117,7 +122,7 @@ const stateModelFactory = (
           return self.googleAuthInternetAccount.retrieveToken()
         }
         if (self.authType === 'microsoft') {
-          return self.googleAuthInternetAccount.retrieveToken()
+          return self.microsoftAuthInternetAccount.retrieveToken()
         }
         throw new Error(`Unknown authType "${self.authType}"`)
       },
@@ -161,6 +166,10 @@ const stateModelFactory = (
               }
               self.setAuthType(authType)
             }
+            const token = self.retrieveToken()
+            if (token) {
+              self.storeToken(token)
+            }
             if (authType === 'google') {
               return self.googleAuthInternetAccount.getFetcher(location)(
                 input,
@@ -176,6 +185,91 @@ const stateModelFactory = (
             throw new Error(`Unknown authType "${authType}"`)
           }
         },
+      }
+    })
+    .actions((self) => {
+      // const { storeToken: superStoreToken } = self
+      return {
+        storeToken(token: string) {
+          // set menu stuff here
+          if (isAbstractMenuManager(pluginManager.rootModel)) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const tmpObj: any = pluginManager.rootModel
+            const { menus } = tmpObj
+            // Find 'Apollo' menu and its items
+            const apolloMenu = menus.find((obj: { label: string }) => {
+              return obj.label === 'Apollo'
+            })
+
+            if (
+              !JSON.stringify(apolloMenu).includes('Add Assembly') &&
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              self.role!.includes('admin')
+            ) {
+              pluginManager.rootModel.insertInMenu(
+                'Apollo',
+                {
+                  label: 'Add Assembly',
+                  onClick: (session: AbstractSessionModel) => {
+                    session.queueDialog((doneCallback) => [
+                      AddAssembly,
+                      {
+                        session,
+                        handleClose: () => {
+                          doneCallback()
+                        },
+                      },
+                    ])
+                  },
+                },
+                0,
+              )
+              pluginManager.rootModel.insertInMenu(
+                'Apollo',
+                {
+                  label: 'Import Features',
+                  onClick: (session: AbstractSessionModel) => {
+                    session.queueDialog((doneCallback) => [
+                      ImportFeatures,
+                      {
+                        session,
+                        handleClose: () => {
+                          doneCallback()
+                        },
+                      },
+                    ])
+                  },
+                },
+                2,
+              )
+              pluginManager.rootModel.insertInMenu(
+                'Apollo',
+                {
+                  label: 'Undo',
+                  onClick: (session: AbstractSessionModel) => {
+                    session.queueDialog((doneCallback) => [
+                      Undo,
+                      {
+                        session,
+                        handleClose: () => {
+                          doneCallback()
+                        },
+                      },
+                    ])
+                  },
+                },
+                10,
+              )
+            }
+          }
+        },
+        // KS 10.11.2022: Do we need to add menu items here?
+        // afterAttach() {
+        //   // see if token already exists, if so add menu stuff
+        //   if (self.retrieveToken()) {
+        //     console.log('TOKEN EXISTS - WE SHOULD SET MENUS')
+        //   }
+        // },
       }
     })
 }
