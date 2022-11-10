@@ -1,4 +1,5 @@
 import PluginManager from '@jbrowse/core/PluginManager'
+import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material/styles'
 import { observer } from 'mobx-react'
 import React from 'react'
@@ -20,7 +21,7 @@ const useStyles = makeStyles()((theme) => ({
 
 export function makeDisplayComponent(pluginManager: PluginManager) {
   const LGVPlugin = pluginManager.getPlugin('LinearGenomeViewPlugin') as
-    | import('@jbrowse/plugin-linear-genome-view').default
+    | LinearGenomeViewPlugin
     | undefined
   if (!LGVPlugin) {
     throw new Error('LinearGenomeView plugin not found')

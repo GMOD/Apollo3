@@ -1,7 +1,10 @@
 import { FeatureDocument, UserDocument } from 'apollo-schemas'
 import { ClientSession, Model } from 'mongoose'
 
-import { Change, ClientDataStore } from '../ChangeManager/Change'
+import {
+  Change,
+  ClientDataStore,
+} from '../ChangeManager/changes/abstract/Change'
 import { Context, Validation, ValidationResult } from './Validation'
 
 export class ValidationResultSet {

@@ -76,14 +76,9 @@ export class ChangesService {
         throw new UnprocessableEntityException(String(e))
       }
 
-      // Add change information to change -collection
-      this.logger.debug(`ChangeIds: ${change.changedIds}`)
-      this.logger.debug(`AssemblyId: ${change.assemblyId}`)
-      this.logger.debug(`User: ${user}`)
-
       // Add entry to change collection
       const [savedChangedLogDoc] = await this.changeModel.create(
-        [{ assembly: change.assemblyId, ...change, user }],
+        [{ ...change, user }],
         { session },
       )
       changeDoc = savedChangedLogDoc

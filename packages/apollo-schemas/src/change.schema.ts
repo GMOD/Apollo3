@@ -10,7 +10,6 @@ export class Change {
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     ref: 'Assembly',
-    required: true,
     index: true,
   })
   assembly: Assembly

@@ -1,14 +1,14 @@
 import { Feature, FeatureDocument } from 'apollo-schemas'
 import { ClientSession, Model } from 'mongoose'
 
-import { Change } from '../ChangeManager/Change'
-import { Validation, ValidationResult } from './Validation'
 import {
   LocationEndChange,
   LocationStartChange,
   isLocationEndChange,
   isLocationStartChange,
-} from '..'
+} from '../ChangeManager'
+import { Change } from '../ChangeManager/changes/abstract/Change'
+import { Validation, ValidationResult } from './Validation'
 
 export class ParentChildValidation extends Validation {
   name = 'ParentChildValidation' as const

@@ -2295,6 +2295,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@jbrowse/plugin-authentication@npm:^2.0.1":
+  version: 2.2.0
+  resolution: "@jbrowse/plugin-authentication@npm:2.2.0"
+  dependencies:
+    jwt-decode: ^3.1.2
+  peerDependencies:
+    "@jbrowse/core": ^2.0.0
+    "@mui/material": ^5.0.0
+    crypto-js: ^3.0.0
+    electron: ^15.0.0
+    generic-filehandle: ^3.0.0
+    mobx: ^6.0.0
+    mobx-react: ^7.0.0
+    mobx-state-tree: ^5.0.0
+    prop-types: ^15.0.0
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+    rxjs: ^6.0.0
+  checksum: 88500571e4d308c5c4a335c889142dc43ecba0dabe9365f840f1f8554b70946012d87d552ed5495b2902ae3b74b90a15e36b7dd019380c238154330529b0bf13
+  languageName: node
+  linkType: hard
+
 "@jbrowse/plugin-linear-genome-view@npm:^2.0.1":
   version: 2.0.1
   resolution: "@jbrowse/plugin-linear-genome-view@npm:2.0.1"
@@ -9995,6 +10017,7 @@ __metadata:
     "@jbrowse/cli": ^2.0.1
     "@jbrowse/core": ^2.1.4
     "@jbrowse/development-tools": ^2.1.1
+    "@jbrowse/plugin-authentication": ^2.0.1
     "@jbrowse/plugin-linear-genome-view": ^2.0.1
     "@jest/globals": ^29.0.3
     "@mui/icons-material": ^5.8.4

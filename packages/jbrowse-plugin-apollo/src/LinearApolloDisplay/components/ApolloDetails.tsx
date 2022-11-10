@@ -10,7 +10,6 @@ import {
 } from '@mui/x-data-grid'
 import { AnnotationFeatureI } from 'apollo-mst'
 import {
-  Change,
   LocationEndChange,
   LocationStartChange,
   TypeChange,
@@ -99,8 +98,14 @@ export const ApolloDetails = observer(
       return <div>click on a feature to see details</div>
     }
     // const sequenceTypes = changeManager?.validations.getPossibleValues('type')
-    const { _id: id, type, refSeq, start, end } = selectedFeature
-    const assemblyId = ''
+    const {
+      _id: id,
+      type,
+      refSeq,
+      start,
+      end,
+      assemblyId: assembly,
+    } = selectedFeature
     const selectedFeatureRows = [{ id, type, refSeq, start, end, model }]
     function addChildFeatures(f: typeof selectedFeature) {
       f?.children?.forEach((child: AnnotationFeatureI, childId: string) => {
@@ -120,7 +125,11 @@ export const ApolloDetails = observer(
       newRow: GridRowModel<typeof selectedFeatureRows[0]>,
       oldRow: GridRowModel<typeof selectedFeatureRows[0]>,
     ) {
-      let change: Change | undefined = undefined
+      let change:
+        | LocationStartChange
+        | LocationEndChange
+        | TypeChange
+        | undefined = undefined
       if (newRow.start !== oldRow.start) {
         const { start: oldStart, id: featureId } = oldRow
         const { start: newStart } = newRow
@@ -130,7 +139,7 @@ export const ApolloDetails = observer(
           featureId,
           oldStart,
           newStart: Number(newStart),
-          assemblyId,
+          assembly,
         })
       } else if (newRow.start !== oldRow.start) {
         const { end: oldEnd, id: featureId } = oldRow
@@ -141,7 +150,7 @@ export const ApolloDetails = observer(
           featureId,
           oldEnd,
           newEnd: Number(newEnd),
-          assemblyId,
+          assembly,
         })
       } else if (newRow.type !== oldRow.type) {
         const { type: oldType, id: featureId } = oldRow
@@ -152,7 +161,7 @@ export const ApolloDetails = observer(
           featureId,
           oldType: String(oldType),
           newType: String(newType),
-          assemblyId,
+          assembly,
         })
       }
       if (change) {
