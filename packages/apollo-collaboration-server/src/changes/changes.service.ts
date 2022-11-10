@@ -77,13 +77,8 @@ export class ChangesService {
         throw new UnprocessableEntityException(String(e))
       }
 
-      // Add change information to change -collection
-      this.logger.debug(`ChangeIds: ${change.changedIds}`)
-      this.logger.debug(`AssemblyId: ${change.assemblyId}`)
-
       // Add entry to change collection
       const changeEntry: CreateChangeDto = {
-        assembly: change.assemblyId,
         ...change,
         user: 'demo user id',
       }

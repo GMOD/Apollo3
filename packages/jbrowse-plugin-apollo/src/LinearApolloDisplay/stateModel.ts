@@ -4,6 +4,8 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import { getContainingView, getSession } from '@jbrowse/core/util'
 import { BaseBlock } from '@jbrowse/core/util/blockTypes'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
+import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { Instance, addDisposer, types } from 'mobx-state-tree'
@@ -16,7 +18,7 @@ export function stateModelFactory(
 ) {
   const LGVPlugin = pluginManager.getPlugin(
     'LinearGenomeViewPlugin',
-  ) as import('@jbrowse/plugin-linear-genome-view').default
+  ) as LinearGenomeViewPlugin
   const { BaseLinearDisplay } = LGVPlugin.exports
 
   return BaseLinearDisplay.named('LinearApolloDisplay')
@@ -69,9 +71,7 @@ export function stateModelFactory(
             self,
             autorun(() => {
               const session = getSession(self) as ApolloSession
-              const view = getContainingView(
-                self,
-              ) as import('@jbrowse/plugin-linear-genome-view').LinearGenomeViewModel
+              const view = getContainingView(self) as LinearGenomeViewModel
               if (view.initialized) {
                 const blockKeys: string[] = []
                 const newBlocks: BaseBlock[] = []

@@ -2,6 +2,7 @@ import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { UriLocation } from '@jbrowse/core/util'
+import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
 import { JWTPayload } from 'apollo-shared'
 import jwtDecode from 'jwt-decode'
 import { Instance, getRoot, types } from 'mobx-state-tree'
@@ -16,10 +17,10 @@ const stateModelFactory = (
   pluginManager: PluginManager,
 ) => {
   const AuthPlugin = pluginManager.getPlugin('AuthenticationPlugin') as
-    | import('@jbrowse/plugin-authentication').default
+    | AuthenticationPlugin
     | undefined
   if (!AuthPlugin) {
-    throw new Error('LinearGenomeView plugin not found')
+    throw new Error('Authentication plugin not found')
   }
   const { OAuthConfigSchema, OAuthInternetAccountModelFactory } =
     AuthPlugin.exports
@@ -136,26 +137,32 @@ const stateModelFactory = (
               if (authTypePromise) {
                 authType = await authTypePromise
               } else {
-                authTypePromise = new Promise((resolve, reject) => {
-                  const { session } = getRoot(self)
-                  session.queueDialog((doneCallback: () => void) => [
-                    AuthTypeSelector,
-                    {
-                      baseURL: self.baseURL,
-                      name: self.name,
-                      handleClose: (token?: AuthType | Error) => {
-                        if (!token) {
-                          reject(new Error('user cancelled entry'))
-                        } else if (token instanceof Error) {
-                          reject(token)
-                        } else {
-                          resolve(token)
-                        }
-                        doneCallback()
+                if (self.googleAuthInternetAccount.retrieveToken()) {
+                  authTypePromise = Promise.resolve('google')
+                } else if (self.googleAuthInternetAccount.retrieveToken()) {
+                  authTypePromise = Promise.resolve('microsoft')
+                } else {
+                  authTypePromise = new Promise((resolve, reject) => {
+                    const { session } = getRoot(self)
+                    session.queueDialog((doneCallback: () => void) => [
+                      AuthTypeSelector,
+                      {
+                        baseURL: self.baseURL,
+                        name: self.name,
+                        handleClose: (token?: AuthType | Error) => {
+                          if (!token) {
+                            reject(new Error('user cancelled entry'))
+                          } else if (token instanceof Error) {
+                            reject(token)
+                          } else {
+                            resolve(token)
+                          }
+                          doneCallback()
+                        },
                       },
-                    },
-                  ])
-                })
+                    ])
+                  })
+                }
                 authType = await authTypePromise
               }
               self.setAuthType(authType)

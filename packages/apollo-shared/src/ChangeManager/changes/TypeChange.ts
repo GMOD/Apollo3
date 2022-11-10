@@ -5,61 +5,51 @@ import {
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
-  SerializedChange,
   ServerDataStore,
-} from './Change'
-import { FeatureChange } from './FeatureChange'
+} from './abstract/Change'
+import {
+  FeatureChange,
+  SerializedFeatureChange,
+} from './abstract/FeatureChange'
 
-interface SerializedLocationEndChangeBase extends SerializedChange {
-  typeName: 'LocationEndChange'
+interface SerializedTypeChangeBase extends SerializedFeatureChange {
+  typeName: 'TypeChange'
 }
 
-export interface LocationEndChangeDetails {
+interface TypeChangeDetails {
   featureId: string
-  oldEnd: number
-  newEnd: number
+  oldType: string
+  newType: string
 }
 
-interface SerializedLocationEndChangeSingle
-  extends SerializedLocationEndChangeBase,
-    LocationEndChangeDetails {}
+interface SerializedTypeChangeSingle
+  extends SerializedTypeChangeBase,
+    TypeChangeDetails {}
 
-interface SerializedLocationEndChangeMultiple
-  extends SerializedLocationEndChangeBase {
-  changes: LocationEndChangeDetails[]
+interface SerializedTypeChangeMultiple extends SerializedTypeChangeBase {
+  changes: TypeChangeDetails[]
 }
 
-type SerializedLocationEndChange =
-  | SerializedLocationEndChangeSingle
-  | SerializedLocationEndChangeMultiple
+type SerializedTypeChange =
+  | SerializedTypeChangeSingle
+  | SerializedTypeChangeMultiple
 
-export class LocationEndChange extends FeatureChange {
-  typeName = 'LocationEndChange' as const
-  changes: LocationEndChangeDetails[]
+export class TypeChange extends FeatureChange {
+  typeName = 'TypeChange' as const
+  changes: TypeChangeDetails[]
 
-  constructor(json: SerializedLocationEndChange, options?: ChangeOptions) {
+  constructor(json: SerializedTypeChange, options?: ChangeOptions) {
     super(json, options)
     this.changes = 'changes' in json ? json.changes : [json]
   }
 
-  toJSON(): SerializedLocationEndChange {
-    if (this.changes.length === 1) {
-      const [{ featureId, oldEnd, newEnd }] = this.changes
-      return {
-        typeName: this.typeName,
-        changedIds: this.changedIds,
-        assemblyId: this.assemblyId,
-        featureId,
-        oldEnd,
-        newEnd,
-      }
+  toJSON(): SerializedTypeChange {
+    const { changes, changedIds, typeName, assembly } = this
+    if (changes.length === 1) {
+      const [{ featureId, oldType, newType }] = changes
+      return { typeName, changedIds, assembly, featureId, oldType, newType }
     }
-    return {
-      typeName: this.typeName,
-      changedIds: this.changedIds,
-      assemblyId: this.assemblyId,
-      changes: this.changes,
-    }
+    return { typeName, changedIds, assembly, changes }
   }
 
   /**
@@ -69,14 +59,14 @@ export class LocationEndChange extends FeatureChange {
    */
   async applyToServer(backend: ServerDataStore) {
     const { featureModel, session } = backend
-    const { changes } = this
+    const { changes, logger } = this
     const featuresForChanges: {
       feature: Feature
       topLevelFeature: FeatureDocument
     }[] = []
     // Let's first check that all features are found and those old values match with expected ones. We do this just to be sure that all changes can be done.
-    for (const change of changes) {
-      const { featureId, oldEnd } = change
+    for (const entry of changes) {
+      const { featureId, oldType } = entry
 
       // Search correct feature
       const topLevelFeature = await featureModel
@@ -86,39 +76,34 @@ export class LocationEndChange extends FeatureChange {
 
       if (!topLevelFeature) {
         const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
-        this.logger.error(errMsg)
+        logger.error(errMsg)
         throw new Error(errMsg)
         // throw new NotFoundException(errMsg)  -- This is causing runtime error because Exception comes from @nestjs/common!!!
       }
-      this.logger.debug?.(
-        `*** Feature found: ${JSON.stringify(topLevelFeature)}`,
-      )
+      logger.debug?.(`*** Feature found: ${JSON.stringify(topLevelFeature)}`)
 
       const foundFeature = this.getFeatureFromId(topLevelFeature, featureId)
       if (!foundFeature) {
         const errMsg = `ERROR when searching feature by featureId`
-        this.logger.error(errMsg)
+        logger.error(errMsg)
         throw new Error(errMsg)
       }
-      this.logger.debug?.(`*** Found feature: ${JSON.stringify(foundFeature)}`)
-      if (foundFeature.end !== oldEnd) {
-        const errMsg = `*** ERROR: Feature's current end value ${foundFeature.end} doesn't match with expected value ${oldEnd}`
-        this.logger.error(errMsg)
+      logger.debug?.(`*** Found feature: ${JSON.stringify(foundFeature)}`)
+      if (foundFeature.type !== oldType) {
+        const errMsg = `*** ERROR: Feature's current type "${topLevelFeature.type}" doesn't match with expected value "${oldType}"`
+        logger.error(errMsg)
         throw new Error(errMsg)
       }
-      featuresForChanges.push({
-        feature: foundFeature,
-        topLevelFeature,
-      })
+      featuresForChanges.push({ feature: foundFeature, topLevelFeature })
     }
 
     // Let's update objects.
     for (const [idx, change] of changes.entries()) {
-      const { newEnd } = change
+      const { newType } = change
       const { feature, topLevelFeature } = featuresForChanges[idx]
-      feature.end = newEnd
+      feature.type = newType
       if (topLevelFeature._id.equals(feature._id)) {
-        topLevelFeature.markModified('end') // Mark as modified. Without this save() -method is not updating data in database
+        topLevelFeature.markModified('type') // Mark as modified. Without this save() -method is not updating data in database
       } else {
         topLevelFeature.markModified('children') // Mark as modified. Without this save() -method is not updating data in database
       }
@@ -126,10 +111,10 @@ export class LocationEndChange extends FeatureChange {
       try {
         await topLevelFeature.save()
       } catch (error) {
-        this.logger.debug?.(`*** FAILED: ${error}`)
+        logger.debug?.(`*** FAILED: ${error}`)
         throw error
       }
-      this.logger.debug?.(
+      logger.debug?.(
         `*** Object updated in Mongo. New object: ${JSON.stringify(
           topLevelFeature,
         )}`,
@@ -150,34 +135,29 @@ export class LocationEndChange extends FeatureChange {
       if (!feature) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
-      feature.setEnd(this.changes[idx].newEnd)
+      feature.setType(this.changes[idx].newType)
     })
   }
 
   getInverse() {
-    const inverseChangedIds = this.changedIds.slice().reverse()
-    const inverseChanges = this.changes
+    const { changes, changedIds, typeName, assembly, logger } = this
+    const inverseChangedIds = changedIds.slice().reverse()
+    const inverseChanges = changes
       .slice()
       .reverse()
       .map((endChange) => ({
         featureId: endChange.featureId,
-        oldEnd: endChange.newEnd,
-        newEnd: endChange.oldEnd,
+        oldType: endChange.newType,
+        newType: endChange.oldType,
       }))
-    return new LocationEndChange(
+    return new TypeChange(
       {
         changedIds: inverseChangedIds,
-        typeName: this.typeName,
+        typeName,
         changes: inverseChanges,
-        assemblyId: this.assemblyId,
+        assembly,
       },
-      { logger: this.logger },
+      { logger },
     )
   }
-}
-
-export function isLocationEndChange(
-  change: unknown,
-): change is LocationEndChange {
-  return (change as LocationEndChange).typeName === 'LocationEndChange'
 }

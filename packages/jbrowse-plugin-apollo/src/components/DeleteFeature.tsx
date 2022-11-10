@@ -54,7 +54,7 @@ export function DeleteFeature({
     const change = new DeleteFeatureChange({
       changedIds: [sourceFeature._id],
       typeName: 'DeleteFeatureChange',
-      assemblyId: sourceAssemblyId,
+      assembly: sourceAssemblyId,
       deletedFeature: getSnapshot(sourceFeature),
       parentFeatureId: sourceFeature.parent?._id,
     })

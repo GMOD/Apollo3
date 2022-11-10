@@ -3,8 +3,9 @@ import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { Region, getSession } from '@jbrowse/core/util'
 import { AnnotationFeatureSnapshot } from 'apollo-mst'
 
-import { SubmitOpts } from '../ChangeManager'
-import { Change } from '../ChangeManager/Change'
+import { SubmitOpts } from '../ChangeManager/ChangeManager'
+import { AssemblySpecificChange } from '../ChangeManager/changes/abstract/AssemblySpecificChange'
+import { Change } from '../ChangeManager/changes/abstract/Change'
 import { ValidationResultSet } from '../Validations/ValidationSet'
 import { BackendDriver } from './BackendDriver'
 
@@ -111,10 +112,13 @@ export class CollaborationServerDriver extends BackendDriver {
     return []
   }
 
-  async submitChange(change: Change, opts: SubmitOpts = {}) {
+  async submitChange(
+    change: Change | AssemblySpecificChange,
+    opts: SubmitOpts = {},
+  ) {
     const { internetAccountId = undefined } = opts
     const internetAccount = this.getInternetAccount(
-      change.assemblyId,
+      'assembly' in change ? change.assembly : undefined,
       internetAccountId,
     )
     const { baseURL } = internetAccount

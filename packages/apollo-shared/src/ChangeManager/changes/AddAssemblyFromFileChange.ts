@@ -1,14 +1,16 @@
 import {
+  AssemblySpecificChange,
+  SerializedAssemblySpecificChange,
+} from './abstract/AssemblySpecificChange'
+import {
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
-  SerializedChange,
   ServerDataStore,
-} from './Change'
-import { FeatureChange } from './FeatureChange'
+} from './abstract/Change'
 
 export interface SerializedAddAssemblyFromFileChangeBase
-  extends SerializedChange {
+  extends SerializedAssemblySpecificChange {
   typeName: 'AddAssemblyFromFileChange'
 }
 
@@ -30,7 +32,7 @@ export type SerializedAddAssemblyFromFileChange =
   | SerializedAddAssemblyFromFileChangeSingle
   | SerializedAddAssemblyFromFileChangeMultiple
 
-export class AddAssemblyFromFileChange extends FeatureChange {
+export class AddAssemblyFromFileChange extends AssemblySpecificChange {
   typeName = 'AddAssemblyFromFileChange' as const
   changes: AddAssemblyFromFileChangeDetails[]
 
@@ -47,22 +49,12 @@ export class AddAssemblyFromFileChange extends FeatureChange {
   }
 
   toJSON(): SerializedAddAssemblyFromFileChange {
-    if (this.changes.length === 1) {
-      const [{ fileId, assemblyName }] = this.changes
-      return {
-        typeName: this.typeName,
-        changedIds: this.changedIds,
-        assemblyId: this.assemblyId,
-        assemblyName,
-        fileId,
-      }
+    const { changes, typeName, assembly } = this
+    if (changes.length === 1) {
+      const [{ fileId, assemblyName }] = changes
+      return { typeName, assembly, assemblyName, fileId }
     }
-    return {
-      typeName: this.typeName,
-      changedIds: this.changedIds,
-      assemblyId: this.assemblyId,
-      changes: this.changes,
-    }
+    return { typeName, assembly, changes }
   }
 
   /**
@@ -72,7 +64,7 @@ export class AddAssemblyFromFileChange extends FeatureChange {
    */
   async applyToServer(backend: ServerDataStore) {
     const { assemblyModel, fileModel, session } = backend
-    const { changes, assemblyId } = this
+    const { changes, assembly, logger } = this
 
     for (const change of changes) {
       const { fileId, assemblyName } = change
@@ -86,7 +78,7 @@ export class AddAssemblyFromFileChange extends FeatureChange {
       if (!fileDoc) {
         throw new Error(`File "${fileId}" not found in Mongo`)
       }
-      this.logger.debug?.(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
+      logger.debug?.(`FileId "${fileId}", checksum "${fileDoc.checksum}"`)
 
       // Check and add new assembly
       const assemblyDoc = await assemblyModel
@@ -98,13 +90,13 @@ export class AddAssemblyFromFileChange extends FeatureChange {
       }
       // Add assembly
       const [newAssemblyDoc] = await assemblyModel.create(
-        [{ _id: assemblyId, name: assemblyName }],
+        [{ _id: assembly, name: assemblyName }],
         { session },
       )
-      this.logger.debug?.(
+      logger.debug?.(
         `Added new assembly "${assemblyName}", docId "${newAssemblyDoc._id}"`,
       )
-      this.logger.debug?.(`File type: "${fileDoc.type}"`)
+      logger.debug?.(`File type: "${fileDoc.type}"`)
 
       // Add refSeqs
       await this.addRefSeqIntoDb(fileDoc, newAssemblyDoc._id, backend)
@@ -119,10 +111,10 @@ export class AddAssemblyFromFileChange extends FeatureChange {
   async applyToClient(dataStore: ClientDataStore) {}
 
   getInverse() {
-    const { changedIds, typeName, changes, assemblyId } = this
+    const { typeName, changes, assembly, logger } = this
     return new AddAssemblyFromFileChange(
-      { changedIds, typeName, changes, assemblyId },
-      { logger: this.logger },
+      { typeName, changes, assembly },
+      { logger },
     )
   }
 }

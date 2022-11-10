@@ -5,12 +5,14 @@ import {
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
-  SerializedChange,
   ServerDataStore,
-} from './Change'
-import { FeatureChange } from './FeatureChange'
+} from './abstract/Change'
+import {
+  FeatureChange,
+  SerializedFeatureChange,
+} from './abstract/FeatureChange'
 
-interface SerializedLocationStartChangeBase extends SerializedChange {
+interface SerializedLocationStartChangeBase extends SerializedFeatureChange {
   typeName: 'LocationStartChange'
 }
 
@@ -43,23 +45,12 @@ export class LocationStartChange extends FeatureChange {
   }
 
   toJSON(): SerializedLocationStartChange {
-    if (this.changes.length === 1) {
-      const [{ featureId, oldStart, newStart }] = this.changes
-      return {
-        typeName: this.typeName,
-        changedIds: this.changedIds,
-        assemblyId: this.assemblyId,
-        featureId,
-        oldStart,
-        newStart,
-      }
+    const { changes, changedIds, typeName, assembly } = this
+    if (changes.length === 1) {
+      const [{ featureId, oldStart, newStart }] = changes
+      return { typeName, changedIds, assembly, featureId, oldStart, newStart }
     }
-    return {
-      typeName: this.typeName,
-      changedIds: this.changedIds,
-      assemblyId: this.assemblyId,
-      changes: this.changes,
-    }
+    return { typeName, changedIds, assembly, changes }
   }
 
   /**
@@ -69,7 +60,7 @@ export class LocationStartChange extends FeatureChange {
    */
   async applyToServer(backend: ServerDataStore) {
     const { featureModel, session } = backend
-    const { changes } = this
+    const { changes, logger } = this
     const featuresForChanges: {
       feature: Feature
       topLevelFeature: FeatureDocument
@@ -86,30 +77,25 @@ export class LocationStartChange extends FeatureChange {
 
       if (!topLevelFeature) {
         const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
-        this.logger.error(errMsg)
+        logger.error(errMsg)
         throw new Error(errMsg)
         // throw new NotFoundException(errMsg)  -- This is causing runtime error because Exception comes from @nestjs/common!!!
       }
-      this.logger.debug?.(
-        `*** Feature found: ${JSON.stringify(topLevelFeature)}`,
-      )
+      logger.debug?.(`*** Feature found: ${JSON.stringify(topLevelFeature)}`)
 
       const foundFeature = this.getFeatureFromId(topLevelFeature, featureId)
       if (!foundFeature) {
         const errMsg = `ERROR when searching feature by featureId`
-        this.logger.error(errMsg)
+        logger.error(errMsg)
         throw new Error(errMsg)
       }
-      this.logger.debug?.(`*** Found feature: ${JSON.stringify(foundFeature)}`)
+      logger.debug?.(`*** Found feature: ${JSON.stringify(foundFeature)}`)
       if (foundFeature.start !== oldStart) {
         const errMsg = `*** ERROR: Feature's current start value ${topLevelFeature.start} doesn't match with expected value ${oldStart}`
-        this.logger.error(errMsg)
+        logger.error(errMsg)
         throw new Error(errMsg)
       }
-      featuresForChanges.push({
-        feature: foundFeature,
-        topLevelFeature,
-      })
+      featuresForChanges.push({ feature: foundFeature, topLevelFeature })
     }
 
     // Let's update objects.
@@ -126,10 +112,10 @@ export class LocationStartChange extends FeatureChange {
       try {
         await topLevelFeature.save()
       } catch (error) {
-        this.logger.debug?.(`*** FAILED: ${error}`)
+        logger.debug?.(`*** FAILED: ${error}`)
         throw error
       }
-      this.logger.debug?.(
+      logger.debug?.(
         `*** Object updated in Mongo. New object: ${JSON.stringify(
           topLevelFeature,
         )}`,
@@ -155,8 +141,9 @@ export class LocationStartChange extends FeatureChange {
   }
 
   getInverse() {
-    const inverseChangedIds = this.changedIds.slice().reverse()
-    const inverseChanges = this.changes
+    const { changes, changedIds, typeName, assembly, logger } = this
+    const inverseChangedIds = changedIds.slice().reverse()
+    const inverseChanges = changes
       .slice()
       .reverse()
       .map((startChange) => ({
@@ -167,11 +154,11 @@ export class LocationStartChange extends FeatureChange {
     return new LocationStartChange(
       {
         changedIds: inverseChangedIds,
-        typeName: this.typeName,
+        typeName,
         changes: inverseChanges,
-        assemblyId: this.assemblyId,
+        assembly,
       },
-      { logger: this.logger },
+      { logger },
     )
   }
 }
