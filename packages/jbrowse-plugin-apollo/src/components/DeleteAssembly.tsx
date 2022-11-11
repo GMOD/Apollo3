@@ -75,10 +75,8 @@ export function DeleteAssembly({
       return
     }
     const change = new DeleteAssemblyChange({
-      changes: {},
-      changedIds: ['1'],
       typeName: 'DeleteAssemblyChange',
-      assemblyId: selectedAssembly._id,
+      assembly: selectedAssembly._id,
     })
     changeManager.submit?.(change, {
       internetAccountId: selectedInternetAcount.internetAccountId,

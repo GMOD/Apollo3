@@ -1,37 +1,29 @@
 import { getSession } from '@jbrowse/core/util'
 
-import { AssemblySpecificChange } from './abstract/AssemblySpecificChange'
 import {
-  ChangeOptions,
+  AssemblySpecificChange,
+  SerializedAssemblySpecificChange,
+} from './abstract/AssemblySpecificChange'
+import {
   ClientDataStore,
   LocalGFF3DataStore,
-  SerializedChange,
   ServerDataStore,
 } from './abstract/Change'
-import { DeleteFeatureChangeDetails } from './DeleteFeatureChange'
-import { FeatureChange } from './FeatureChange'
 
-interface SerializedDeleteAssemblyBase extends SerializedChange {
-  changes: DeleteAssemblyDetails
+interface SerializedDeleteAssemblyChange
+  extends SerializedAssemblySpecificChange {
   typeName: 'DeleteAssemblyChange'
 }
-
-export interface DeleteAssemblyDetails {
-  parentFeatureId?: string // Parent feature to where feature will be added
-}
-
 export class DeleteAssemblyChange extends AssemblySpecificChange {
   typeName = 'DeleteAssemblyChange' as const
-  changes: DeleteAssemblyDetails
 
-  constructor(json: SerializedDeleteAssemblyBase, options?: ChangeOptions) {
-    super(json, options)
-    this.changes = json.changes
+  get notification(): string {
+    return `Assembly "${this.assembly}" deleted successfully.`
   }
 
-  toJSON(): SerializedDeleteAssemblyBase {
-    const { changes, typeName, assembly } = this
-    return { changes, typeName, assembly }
+  toJSON(): SerializedDeleteAssemblyChange {
+    const { typeName, assembly } = this
+    return { typeName, assembly }
   }
 
   /**
@@ -47,20 +39,20 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
       refSeqChunkModel,
       session,
     } = backend
-    const { assembly } = this
+    const { assembly, logger } = this
 
-    const assembly = await assemblyModel
+    const assemblyDoc = await assemblyModel
       .findById(assembly)
       .session(session)
       .exec()
-    if (!assembly) {
+    if (!assemblyDoc) {
       const errMsg = `*** ERROR: Assembly with id "${assembly}" not found`
       logger.error(errMsg)
       throw new Error(errMsg)
     }
 
     // Get RefSeqs
-    const refSeqs = await refSeqModel.find({ assembly: assemblyId }).exec()
+    const refSeqs = await refSeqModel.find({ assembly }).exec()
     const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
     // this.logger.debug?.(`REF SEQ IDs: ${refSeqIds}`)
 
@@ -77,10 +69,10 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
     await featureModel.deleteMany({ refSeq: refSeqIds }).exec()
 
     // Delete RefSeqs and Assembly
-    await refSeqModel.deleteMany({ assembly: assemblyId }).exec()
-    await assemblyModel.deleteOne({ _id: assemblyId }).exec()
+    await refSeqModel.deleteMany({ assembly }).exec()
+    await assemblyModel.findByIdAndDelete(assembly).exec()
 
-    this.logger.debug?.(`Assembly "${assemblyId}" deleted from database.`)
+    this.logger.debug?.(`Assembly "${assembly}" deleted from database.`)
   }
 
   async applyToLocalGFF3(backend: LocalGFF3DataStore) {
@@ -88,34 +80,29 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
   }
 
   async applyToClient(dataStore: ClientDataStore) {
+    const { assembly } = this
     if (!dataStore) {
       throw new Error('No data store')
     }
     const session = getSession(dataStore)
     // If assemblyId is not present in client data store
-    if (!dataStore.assemblies.has(this.assemblyId)) {
-      await session.removeAssembly?.(this.assemblyId)
+    if (!dataStore.assemblies.has(assembly)) {
+      await session.removeAssembly?.(assembly)
       // eslint-disable-next-line no-console
       console.log('Assembly has been deleted from session!')
       return
     }
-    dataStore.deleteAssembly(this.assemblyId)
-    await session.removeAssembly?.(this.assemblyId)
+    dataStore.deleteAssembly(assembly)
+    await session.removeAssembly?.(assembly)
     // eslint-disable-next-line no-console
     console.log('Assembly has been deleted from session and client data store')
   }
 
   getInverse() {
-    return new DeleteAssemblyChange({
-      typeName: 'DeleteAssemblyChange',
-      assembly: '123',
-      changes: {},
-    })
+    const { assembly, logger } = this
+    return new DeleteAssemblyChange(
+      { typeName: 'DeleteAssemblyChange', assembly },
+      { logger },
+    )
   }
-}
-
-export function isDeleteAssembly(
-  change: unknown,
-): change is DeleteAssemblyChange {
-  return (change as DeleteAssemblyChange).typeName === 'DeleteAssemblyChange'
 }
