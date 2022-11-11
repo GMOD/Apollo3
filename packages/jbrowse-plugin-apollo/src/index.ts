@@ -28,14 +28,14 @@ import {
   configSchema as apolloRendererConfigSchema,
 } from './ApolloRenderer'
 import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
-import { AddAssembly, ImportFeatures, ViewChangeLog } from './components'
+import { ViewChangeLog } from './components'
 import { DownloadGFF3 } from './components/DownloadGFF3'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
 } from './LinearApolloDisplay'
 import { makeDisplayComponent } from './makeDisplayComponent'
-import { ApolloSessionModel, extendSession } from './session'
+import { extendSession } from './session'
 
 Object.entries(changes).forEach(([changeName, change]) => {
   changeRegistry.registerChange(changeName, change)
@@ -114,38 +114,6 @@ export default class ApolloPlugin extends Plugin {
     if (isAbstractMenuManager(pluginManager.rootModel)) {
       pluginManager.rootModel.insertMenu('Apollo', -1)
       pluginManager.rootModel.appendToMenu('Apollo', {
-        label: 'Add Assembly',
-        onClick: (session: AbstractSessionModel) => {
-          session.queueDialog((doneCallback) => [
-            AddAssembly,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager: (session as ApolloSessionModel).apolloDataStore
-                .changeManager,
-            },
-          ])
-        },
-      })
-      pluginManager.rootModel.appendToMenu('Apollo', {
-        label: 'Import Features',
-        onClick: (session: AbstractSessionModel) => {
-          session.queueDialog((doneCallback) => [
-            ImportFeatures,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager: (session as ApolloSessionModel).apolloDataStore
-                .changeManager,
-            },
-          ])
-        },
-      })
-      pluginManager.rootModel.appendToMenu('Apollo', {
         label: 'Download GFF3',
         onClick: (session: AbstractSessionModel) => {
           session.queueDialog((doneCallback) => [
@@ -171,17 +139,6 @@ export default class ApolloPlugin extends Plugin {
               },
             },
           ])
-        },
-      })
-      pluginManager.rootModel.appendToMenu('Apollo', {
-        label: 'Undo',
-        onClick: (session: ApolloSessionModel) => {
-          const { apolloDataStore, notify } = session
-          if (apolloDataStore.changeManager.recentChanges.length) {
-            apolloDataStore.changeManager.revertLastChange()
-          } else {
-            notify('No changes to undo', 'info')
-          }
         },
       })
     }

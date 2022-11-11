@@ -1,14 +1,27 @@
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { UriLocation } from '@jbrowse/core/util'
+import { MenuItem } from '@jbrowse/core/ui'
+import {
+  AbstractSessionModel,
+  UriLocation,
+  isAbstractMenuManager,
+} from '@jbrowse/core/util'
 import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
+import Undo from '@mui/icons-material/Undo'
 import { JWTPayload } from 'apollo-shared'
 import jwtDecode from 'jwt-decode'
+import { autorun } from 'mobx'
 import { Instance, getRoot, types } from 'mobx-state-tree'
 
+import { AddAssembly, ImportFeatures } from '../components'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { ApolloInternetAccountConfigModel } from './configSchema'
+
+interface Menu {
+  label: string
+  menuItems: MenuItem[]
+}
 
 type AuthType = 'google' | 'microsoft'
 
@@ -28,7 +41,6 @@ const stateModelFactory = (
     .props({
       type: types.literal('ApolloInternetAccount'),
       configuration: ConfigurationReference(configSchema),
-      authType: types.maybe(types.enumeration(['google', 'microsoft'])),
     })
     .views((self) => ({
       get googleClientId(): string {
@@ -55,13 +67,116 @@ const stateModelFactory = (
       get baseURL(): string {
         return getConf(self, 'baseURL')
       },
-      get role() {
+      getRole() {
         const token = self.retrieveToken()
         if (!token) {
           return undefined
         }
         const dec = jwtDecode(token) as JWTPayload
         return dec.roles
+      },
+    }))
+    .volatile(() => ({
+      authType: undefined as AuthType | undefined,
+    }))
+    .actions((self) => ({
+      addMenuItems(role: ('admin' | 'user' | 'readOnly')[]) {
+        if (
+          !(
+            role.includes('admin') &&
+            isAbstractMenuManager(pluginManager.rootModel)
+          )
+        ) {
+          return
+        }
+        const { rootModel } = pluginManager
+        const { menus } = rootModel as unknown as { menus: Menu[] }
+        // Find 'Apollo' menu and its items
+        const apolloMenu = menus.find((menu) => {
+          return menu.label === 'Apollo'
+        })
+        if (!apolloMenu) {
+          return
+        }
+        const { menuItems } = apolloMenu
+        if (
+          !menuItems.find(
+            (menuItem) =>
+              'label' in menuItem && menuItem.label === 'Add Assembly',
+          )
+        ) {
+          pluginManager.rootModel.insertInMenu(
+            'Apollo',
+            {
+              label: 'Add Assembly',
+              onClick: (session: AbstractSessionModel) => {
+                session.queueDialog((doneCallback) => [
+                  AddAssembly,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                    },
+                  },
+                ])
+              },
+            },
+            0,
+          )
+          pluginManager.rootModel.insertInMenu(
+            'Apollo',
+            {
+              label: 'Import Features',
+              onClick: (session: AbstractSessionModel) => {
+                session.queueDialog((doneCallback) => [
+                  ImportFeatures,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                    },
+                  },
+                ])
+              },
+            },
+            2,
+          )
+          pluginManager.rootModel.insertInMenu(
+            'Apollo',
+            {
+              label: 'Undo',
+              onClick: (session: AbstractSessionModel) => {
+                session.queueDialog((doneCallback) => [
+                  Undo,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                    },
+                  },
+                ])
+              },
+            },
+            10,
+          )
+        }
+      },
+      afterAttach() {
+        autorun(async (reaction) => {
+          try {
+            const { getRole, authType } = self
+            if (!authType) {
+              return
+            }
+            const role = getRole()
+            if (role?.includes('admin')) {
+              this.addMenuItems(role)
+              reaction.dispose()
+            }
+          } catch (error) {
+            // pass
+          }
+        })
       },
     }))
     .volatile((self) => ({
@@ -73,6 +188,18 @@ const stateModelFactory = (
             return window.location.origin
           },
         }))
+        .actions((s) => {
+          const superStoreToken = s.storeToken
+          return {
+            storeToken(token: string) {
+              superStoreToken(token)
+              const payload = jwtDecode(token) as JWTPayload
+              if (payload.roles.includes('admin')) {
+                self.addMenuItems(payload.roles)
+              }
+            },
+          }
+        })
         .create({
           type: 'OAuthInternetAccount',
           configuration: {
@@ -94,6 +221,18 @@ const stateModelFactory = (
             return window.location.origin
           },
         }))
+        .actions((s) => {
+          const superStoreToken = s.storeToken
+          return {
+            storeToken(token: string) {
+              superStoreToken(token)
+              const payload = jwtDecode(token) as JWTPayload
+              if (payload.roles.includes('admin')) {
+                self.addMenuItems(payload.roles)
+              }
+            },
+          }
+        })
         .create({
           type: 'OAuthInternetAccount',
           configuration: {
@@ -117,7 +256,7 @@ const stateModelFactory = (
           return self.googleAuthInternetAccount.retrieveToken()
         }
         if (self.authType === 'microsoft') {
-          return self.googleAuthInternetAccount.retrieveToken()
+          return self.microsoftAuthInternetAccount.retrieveToken()
         }
         throw new Error(`Unknown authType "${self.authType}"`)
       },
@@ -149,13 +288,13 @@ const stateModelFactory = (
                       {
                         baseURL: self.baseURL,
                         name: self.name,
-                        handleClose: (token?: AuthType | Error) => {
-                          if (!token) {
+                        handleClose: (newAuthType?: AuthType | Error) => {
+                          if (!newAuthType) {
                             reject(new Error('user cancelled entry'))
-                          } else if (token instanceof Error) {
-                            reject(token)
+                          } else if (newAuthType instanceof Error) {
+                            reject(newAuthType)
                           } else {
-                            resolve(token)
+                            resolve(newAuthType)
                           }
                           doneCallback()
                         },
@@ -165,8 +304,8 @@ const stateModelFactory = (
                 }
                 authType = await authTypePromise
               }
-              self.setAuthType(authType)
             }
+            self.setAuthType(authType)
             if (authType === 'google') {
               return self.googleAuthInternetAccount.getFetcher(location)(
                 input,

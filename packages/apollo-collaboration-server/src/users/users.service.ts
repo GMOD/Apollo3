@@ -32,6 +32,10 @@ export class UsersService {
     return this.userModel.findOne({ email }).exec()
   }
 
+  async findByRole(role: 'admin' | 'user' | 'readOnly') {
+    return this.userModel.findOne({ role }).sort('createdAt').exec()
+  }
+
   async findAll() {
     return this.userModel.find().exec()
   }
