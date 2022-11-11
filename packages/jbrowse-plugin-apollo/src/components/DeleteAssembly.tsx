@@ -31,7 +31,6 @@ export function DeleteAssembly({
   handleClose,
   changeManager,
 }: DeleteAssemblyProps) {
-  const { notify } = session
   const { internetAccounts } = getRoot(session) as AppRootModel
   const [selectedAssembly, setSelectedAssembly] = useState<AssemblyData>()
   const [errorMessage, setErrorMessage] = useState('')
