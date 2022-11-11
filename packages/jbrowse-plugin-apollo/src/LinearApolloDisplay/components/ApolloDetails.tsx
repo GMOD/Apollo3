@@ -3,6 +3,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import { Autocomplete, IconButton, TextField } from '@mui/material'
 import {
   DataGrid,
+  GridColumns,
   GridRenderEditCellParams,
   GridRowModel,
   MuiBaseEvent,
@@ -17,12 +18,12 @@ import {
 } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import { getRoot } from 'mobx-state-tree'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { LinearApolloDisplay } from '../stateModel'
 
-function getFeatureColumns(editable: boolean) {
+function getFeatureColumns(editable: boolean): GridColumns {
   return [
     { field: 'id', headerName: 'ID', width: 250 },
     {
@@ -92,9 +93,8 @@ function AutocompleteInputCell(props: GridRenderEditCellParams) {
 
 export const ApolloDetails = observer(
   ({ model }: { model: LinearApolloDisplay }) => {
-    const [allowEditing, setAllowEditing] = useState<boolean>(false)
     const session = getSession(model)
-    useEffect(() => {
+    const editable = useMemo(() => {
       const { internetAccounts } = getRoot(session) as AppRootModel
       const apolloInternetAccount = internetAccounts.find(
         (ia) => ia.type === 'ApolloInternetAccount',
@@ -102,11 +102,8 @@ export const ApolloDetails = observer(
       if (!apolloInternetAccount) {
         throw new Error('No Apollo internet account found')
       }
-      if (apolloInternetAccount.role.includes('user')) {
-        setAllowEditing(true)
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+      return Boolean(apolloInternetAccount.getRole()?.includes('user'))
+    }, [session])
     const {
       selectedFeature,
       setSelectedFeature,
@@ -203,7 +200,7 @@ export const ApolloDetails = observer(
           style={{ height: detailsHeight }}
           autoHeight
           rows={selectedFeatureRows}
-          columns={getFeatureColumns(allowEditing)}
+          columns={getFeatureColumns(editable)}
           experimentalFeatures={{ newEditingApi: true }}
           processRowUpdate={processRowUpdate}
           onProcessRowUpdateError={console.error}

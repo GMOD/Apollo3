@@ -32,11 +32,11 @@ export class UsersService {
     return this.userModel.findOne({ email }).exec()
   }
 
-  async findOneAdmin() {
-    return this.userModel.findOne({ role: 'admin' }).sort('createdAt').exec()
+  async findByRole(role: 'admin' | 'user' | 'readOnly') {
+    return this.userModel.findOne({ role }).sort('createdAt').exec()
   }
 
-  findAll() {
+  async findAll() {
     return this.userModel.find().exec()
   }
 

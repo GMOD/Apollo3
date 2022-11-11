@@ -1,6 +1,7 @@
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
+import { MenuItem } from '@jbrowse/core/ui'
 import {
   AbstractSessionModel,
   UriLocation,
@@ -10,11 +11,17 @@ import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
 import Undo from '@mui/icons-material/Undo'
 import { JWTPayload } from 'apollo-shared'
 import jwtDecode from 'jwt-decode'
+import { autorun } from 'mobx'
 import { Instance, getRoot, types } from 'mobx-state-tree'
 
 import { AddAssembly, ImportFeatures } from '../components'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { ApolloInternetAccountConfigModel } from './configSchema'
+
+interface Menu {
+  label: string
+  menuItems: MenuItem[]
+}
 
 type AuthType = 'google' | 'microsoft'
 
@@ -34,7 +41,6 @@ const stateModelFactory = (
     .props({
       type: types.literal('ApolloInternetAccount'),
       configuration: ConfigurationReference(configSchema),
-      authType: types.maybe(types.enumeration(['google', 'microsoft'])),
     })
     .views((self) => ({
       get googleClientId(): string {
@@ -61,13 +67,117 @@ const stateModelFactory = (
       get baseURL(): string {
         return getConf(self, 'baseURL')
       },
-      get role() {
+      getRole() {
         const token = self.retrieveToken()
         if (!token) {
           return undefined
         }
         const dec = jwtDecode(token) as JWTPayload
         return dec.roles
+      },
+    }))
+    .volatile(() => ({
+      authType: undefined as AuthType | undefined,
+    }))
+    .actions((self) => ({
+      addMenuItems(role: ('admin' | 'user' | 'readOnly')[]) {
+        if (
+          !(
+            role.includes('admin') &&
+            isAbstractMenuManager(pluginManager.rootModel)
+          )
+        ) {
+          return
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { rootModel } = pluginManager
+        const { menus } = rootModel as unknown as { menus: Menu[] }
+        // Find 'Apollo' menu and its items
+        const apolloMenu = menus.find((menu) => {
+          return menu.label === 'Apollo'
+        })
+        if (!apolloMenu) {
+          return
+        }
+        const { menuItems } = apolloMenu
+        if (
+          !menuItems.find(
+            (menuItem) =>
+              'label' in menuItem && menuItem.label === 'Add Assembly',
+          )
+        ) {
+          pluginManager.rootModel.insertInMenu(
+            'Apollo',
+            {
+              label: 'Add Assembly',
+              onClick: (session: AbstractSessionModel) => {
+                session.queueDialog((doneCallback) => [
+                  AddAssembly,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                    },
+                  },
+                ])
+              },
+            },
+            0,
+          )
+          pluginManager.rootModel.insertInMenu(
+            'Apollo',
+            {
+              label: 'Import Features',
+              onClick: (session: AbstractSessionModel) => {
+                session.queueDialog((doneCallback) => [
+                  ImportFeatures,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                    },
+                  },
+                ])
+              },
+            },
+            2,
+          )
+          pluginManager.rootModel.insertInMenu(
+            'Apollo',
+            {
+              label: 'Undo',
+              onClick: (session: AbstractSessionModel) => {
+                session.queueDialog((doneCallback) => [
+                  Undo,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                    },
+                  },
+                ])
+              },
+            },
+            10,
+          )
+        }
+      },
+      afterAttach() {
+        autorun(async (reaction) => {
+          try {
+            const { getRole, authType } = self
+            if (!authType) {
+              return
+            }
+            const role = getRole()
+            if (role?.includes('admin')) {
+              this.addMenuItems(role)
+              reaction.dispose()
+            }
+          } catch (error) {
+            // pass
+          }
+        })
       },
     }))
     .volatile((self) => ({
@@ -79,6 +189,18 @@ const stateModelFactory = (
             return window.location.origin
           },
         }))
+        .actions((s) => {
+          const superStoreToken = s.storeToken
+          return {
+            storeToken(token: string) {
+              superStoreToken(token)
+              const payload = jwtDecode(token) as JWTPayload
+              if (payload.roles.includes('admin')) {
+                self.addMenuItems(payload.roles)
+              }
+            },
+          }
+        })
         .create({
           type: 'OAuthInternetAccount',
           configuration: {
@@ -100,6 +222,18 @@ const stateModelFactory = (
             return window.location.origin
           },
         }))
+        .actions((s) => {
+          const superStoreToken = s.storeToken
+          return {
+            storeToken(token: string) {
+              superStoreToken(token)
+              const payload = jwtDecode(token) as JWTPayload
+              if (payload.roles.includes('admin')) {
+                self.addMenuItems(payload.roles)
+              }
+            },
+          }
+        })
         .create({
           type: 'OAuthInternetAccount',
           configuration: {
@@ -171,12 +305,8 @@ const stateModelFactory = (
                 }
                 authType = await authTypePromise
               }
-              self.setAuthType(authType)
             }
-            const token = self.retrieveToken()
-            if (token) {
-              self.storeToken(token)
-            }
+            self.setAuthType(authType)
             if (authType === 'google') {
               return self.googleAuthInternetAccount.getFetcher(location)(
                 input,
@@ -192,91 +322,6 @@ const stateModelFactory = (
             throw new Error(`Unknown authType "${authType}"`)
           }
         },
-      }
-    })
-    .actions((self) => {
-      // const { storeToken: superStoreToken } = self
-      return {
-        storeToken(token: string) {
-          // set menu stuff here
-          if (isAbstractMenuManager(pluginManager.rootModel)) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const tmpObj: any = pluginManager.rootModel
-            const { menus } = tmpObj
-            // Find 'Apollo' menu and its items
-            const apolloMenu = menus.find((obj: { label: string }) => {
-              return obj.label === 'Apollo'
-            })
-
-            if (
-              !JSON.stringify(apolloMenu).includes('Add Assembly') &&
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              self.role!.includes('admin')
-            ) {
-              pluginManager.rootModel.insertInMenu(
-                'Apollo',
-                {
-                  label: 'Add Assembly',
-                  onClick: (session: AbstractSessionModel) => {
-                    session.queueDialog((doneCallback) => [
-                      AddAssembly,
-                      {
-                        session,
-                        handleClose: () => {
-                          doneCallback()
-                        },
-                      },
-                    ])
-                  },
-                },
-                0,
-              )
-              pluginManager.rootModel.insertInMenu(
-                'Apollo',
-                {
-                  label: 'Import Features',
-                  onClick: (session: AbstractSessionModel) => {
-                    session.queueDialog((doneCallback) => [
-                      ImportFeatures,
-                      {
-                        session,
-                        handleClose: () => {
-                          doneCallback()
-                        },
-                      },
-                    ])
-                  },
-                },
-                2,
-              )
-              pluginManager.rootModel.insertInMenu(
-                'Apollo',
-                {
-                  label: 'Undo',
-                  onClick: (session: AbstractSessionModel) => {
-                    session.queueDialog((doneCallback) => [
-                      Undo,
-                      {
-                        session,
-                        handleClose: () => {
-                          doneCallback()
-                        },
-                      },
-                    ])
-                  },
-                },
-                10,
-              )
-            }
-          }
-        },
-        // KS 10.11.2022: Do we need to add menu items here?
-        // afterAttach() {
-        //   // see if token already exists, if so add menu stuff
-        //   if (self.retrieveToken()) {
-        //     console.log('TOKEN EXISTS - WE SHOULD SET MENUS')
-        //   }
-        // },
       }
     })
 }

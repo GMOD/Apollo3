@@ -113,34 +113,6 @@ export default class ApolloPlugin extends Plugin {
   configure(pluginManager: PluginManager) {
     if (isAbstractMenuManager(pluginManager.rootModel)) {
       pluginManager.rootModel.insertMenu('Apollo', -1)
-      // pluginManager.rootModel.appendToMenu('Apollo', {
-      //   label: 'Add Assembly',
-      //   onClick: (session: AbstractSessionModel) => {
-      //     const { internetAccounts } = getRoot(session) as AppRootModel
-      //     const apolloInternetAccount = internetAccounts.find(
-      //       (ia) => ia.type === 'ApolloInternetAccount',
-      //     ) as ApolloInternetAccountModel | undefined
-      //     if (!apolloInternetAccount) {
-      //       throw new Error('No Apollo internet account found')
-      //     }
-      //     if (!apolloInternetAccount.role.includes('admin')) {
-      //       const { notify } = session
-      //       notify(`No rights to add new assembly`, 'error')
-      //       return
-      //     }
-      //     session.queueDialog((doneCallback) => [
-      //       AddAssembly,
-      //       {
-      //         session,
-      //         handleClose: () => {
-      //           doneCallback()
-      //         },
-      //         changeManager: (session as ApolloSessionModel).apolloDataStore
-      //           .changeManager,
-      //       },
-      //     ])
-      //   },
-      // })
       pluginManager.rootModel.appendToMenu('Apollo', {
         label: 'Download GFF3',
         onClick: (session: AbstractSessionModel) => {

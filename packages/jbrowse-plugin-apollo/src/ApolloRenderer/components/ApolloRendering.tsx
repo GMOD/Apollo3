@@ -87,7 +87,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
         `No InternetAccount found with config id ${internetAccountConfigId}`,
       )
     }
-    if (apolloInternetAccount.role?.includes('admin')) {
+    if (apolloInternetAccount.getRole()?.includes('admin')) {
       setIsAdmin(true)
     }
   }, [session, displayModel, region])

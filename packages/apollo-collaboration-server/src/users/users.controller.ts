@@ -6,12 +6,12 @@ import { Validations } from '../utils/validation/validatation.decorator'
 import { UsersService } from './users.service'
 
 @UseGuards(JwtAuthGuard)
+@Validations(Role.ReadOnly)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Validations(Role.ReadOnly)
-  @Get('findAll')
+  @Get()
   findAll() {
     return this.usersService.findAll()
   }
@@ -21,12 +21,11 @@ export class UsersController {
    * User who is calling this endpoint does not have any role yet and therefore there can not be 'Role' -validation
    * @returns The oldest (in terms of creation date) admin email address.
    */
-  @Get('findOneAdmin')
-  findOneAdmin() {
-    return this.usersService.findOneAdmin()
+  @Get('admin')
+  findAdmin() {
+    return this.usersService.findByRole('admin')
   }
 
-  @Validations(Role.ReadOnly)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findById(id)
