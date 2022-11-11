@@ -89,7 +89,6 @@ const stateModelFactory = (
         ) {
           return
         }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { rootModel } = pluginManager
         const { menus } = rootModel as unknown as { menus: Menu[] }
         // Find 'Apollo' menu and its items
