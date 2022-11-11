@@ -14,7 +14,8 @@ import jwtDecode from 'jwt-decode'
 import { autorun } from 'mobx'
 import { Instance, getRoot, types } from 'mobx-state-tree'
 
-import { AddAssembly, ImportFeatures } from '../components'
+import { AddAssembly, DeleteAssembly, ImportFeatures } from '../components'
+import { ApolloSessionModel } from '../session'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { ApolloInternetAccountConfigModel } from './configSchema'
 
@@ -122,6 +123,26 @@ const stateModelFactory = (
               },
             },
             0,
+          )
+          pluginManager.rootModel.insertInMenu(
+            'Apollo',
+            {
+              label: 'Delete Assembly',
+              onClick: (session: AbstractSessionModel) => {
+                session.queueDialog((doneCallback) => [
+                  DeleteAssembly,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                    },
+                    changeManager: (session as ApolloSessionModel)
+                      .apolloDataStore.changeManager,
+                  },
+                ])
+              },
+            },
+            1,
           )
           pluginManager.rootModel.insertInMenu(
             'Apollo',

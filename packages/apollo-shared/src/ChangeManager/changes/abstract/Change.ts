@@ -30,6 +30,7 @@ export interface ClientDataStore {
   getFeature(featureId: string): AnnotationFeatureI | undefined
   addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot): void
   deleteFeature(featureId: string): void
+  deleteAssembly(assemblyId: string): void
 }
 
 export interface LocalGFF3DataStore {

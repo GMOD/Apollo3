@@ -123,6 +123,9 @@ const ClientDataStore = types
         refSeq.deleteFeature(feature._id)
       }
     },
+    deleteAssembly(assemblyId: string) {
+      self.assemblies.delete(assemblyId)
+    },
   }))
   .volatile((self) => ({
     changeManager: new ChangeManager(self as unknown as ClientDataStoreType),

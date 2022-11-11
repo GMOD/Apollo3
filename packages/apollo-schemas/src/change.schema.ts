@@ -20,7 +20,7 @@ export class Change {
   @Prop({ required: true, index: true })
   changedIds: string[] // featureIds
 
-  @Prop({ type: JSON, required: true })
+  @Prop({ type: JSON })
   changes: unknown // serialized change
 
   @Prop({
