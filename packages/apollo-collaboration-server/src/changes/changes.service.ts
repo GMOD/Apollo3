@@ -66,6 +66,7 @@ export class ChangesService {
     let changeDoc: ChangeDocument | undefined
     let featureId
     let refSeqId
+    let tmpObject: any
 
     await this.featureModel.db.transaction(async (session) => {
       try {
@@ -100,6 +101,7 @@ export class ChangesService {
         { session },
       )
       changeDoc = savedChangedLogDoc
+
       const validationResult2 = await validationRegistry.backendPostValidate(
         change,
         { featureModel: this.featureModel, session },
@@ -111,42 +113,53 @@ export class ChangesService {
         )
       }
 
-      // For broadcasting we need also refName
-      const tmpObject1: any = {
-        ...change,
-      }
-      const tmpObject: any = {
-        ...tmpObject1.changes[0],
-      }
-    this.logger.debug(`tmpObject: ${JSON.stringify(tmpObject)}`)
+      this.logger.debug(`TypeName: ${change.typeName}`)
+      // There is no broadcast for 'DeleteAssemblyChange' yet
+      if (change.typeName !== 'DeleteAssemblyChange') {
+        // For broadcasting we need also refName
+        const tmpObject1: any = {
+          ...change,
+        }
+        tmpObject = {
+          ...tmpObject1.changes[0],
+        }
+        // this.logger.debug(`******** TMP OBJECT: ${JSON.stringify(tmpObject)}`)
 
-      if (
-        tmpObject.hasOwnProperty('featureId') ||
-        tmpObject.hasOwnProperty('deletedFeature') ||
-        tmpObject.hasOwnProperty('addedFeature')
-      ) {
-        if (tmpObject.hasOwnProperty('deletedFeature')) {
-          featureId = tmpObject.deletedFeature._id
-        } else if (tmpObject.hasOwnProperty('addedFeature')) {
-          featureId = tmpObject.addedFeature._id
-        } else {
-          featureId = tmpObject.featureId
+        if (
+          tmpObject.hasOwnProperty('featureId') ||
+          tmpObject.hasOwnProperty('deletedFeature') ||
+          tmpObject.hasOwnProperty('newFeatureId') ||
+          tmpObject.hasOwnProperty('addedFeature')
+        ) {
+          if (tmpObject.hasOwnProperty('deletedFeature')) {
+            featureId = tmpObject.deletedFeature._id
+          } else if (tmpObject.hasOwnProperty('addedFeature')) {
+            featureId = tmpObject.addedFeature._id
+          } else if (tmpObject.hasOwnProperty('newFeatureId')) {
+            featureId = tmpObject.newFeatureId
+          } else {
+            featureId = tmpObject.featureId
+          }
+          // Search correct feature
+          const topLevelFeature = await this.featureModel
+            .findOne({ allIds: featureId })
+            .session(session)
+            .exec()
+          if (!topLevelFeature) {
+            const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
+            this.logger.error(errMsg)
+            throw new Error(errMsg)
+          }
+          refSeqId = topLevelFeature.refSeq
         }
-        // Search correct feature
-        const topLevelFeature = await this.featureModel
-          .findOne({ allIds: featureId })
-          .session(session)
-          .exec()
-        if (!topLevelFeature) {
-          const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
-          this.logger.error(errMsg)
-          throw new Error(errMsg)
-        }
-        refSeqId = topLevelFeature.refSeq
       }
     })
     this.logger.debug(`ChangeDocId: ${changeDoc?._id}`)
 
+    // There is no broadcast for 'DeleteAssemblyChange' yet
+    if (change.typeName === 'DeleteAssemblyChange') {
+      return
+    }
     // Broadcast
     const broadcastChanges: string[] = [
       'AddFeatureChange',
@@ -155,14 +168,8 @@ export class ChangesService {
       'LocationEndChange',
       'LocationStartChange',
     ]
-    this.logger.debug(`TypeName: ${change.typeName}`)
     if (broadcastChanges.includes(change.typeName as unknown as string)) {
       let channel
-      // Get refName based on featureId
-      const tmpObject: any = {
-        ...change,
-      }
-
       // Get feature's refSeqName
       const refDoc = await this.refSeqModel.findById(refSeqId).exec()
       if (!refDoc) {

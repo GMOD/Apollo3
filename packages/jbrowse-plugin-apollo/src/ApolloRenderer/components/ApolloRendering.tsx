@@ -2,11 +2,17 @@ import { getConf } from '@jbrowse/core/configuration'
 import { AppRootModel, Region, getSession } from '@jbrowse/core/util'
 import { Menu, MenuItem } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
-import { LocationEndChange, LocationStartChange } from 'apollo-shared'
+import {
+  JWTPayload,
+  LocationEndChange,
+  LocationStartChange,
+} from 'apollo-shared'
+import jwtDecode from 'jwt-decode'
 import { autorun, toJS } from 'mobx'
 import { observer } from 'mobx-react'
 import { getRoot, getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useRef, useState } from 'react'
+import { io } from 'socket.io-client'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { AddFeature } from '../../components/AddFeature'
@@ -24,6 +30,7 @@ interface ApolloRenderingProps {
 }
 
 type Coord = [number, number]
+const socket = io('http://localhost:3999')
 
 function ApolloRendering(props: ApolloRenderingProps) {
   const [contextCoord, setContextCoord] = useState<Coord>()
@@ -96,11 +103,61 @@ function ApolloRendering(props: ApolloRenderingProps) {
         `No InternetAccount found with config id ${internetAccountConfigId}`,
       )
     }
+    const token = apolloInternetAccount.retrieveToken()
+    if (!token) {
+      throw new Error(
+        `No Token found with config id ${internetAccountConfigId}`,
+      )
+    }
+    const decodedToken = jwtDecode(token) as JWTPayload
+    const clientUser = decodedToken.email
+
+    const { notify } = session
+    const assName = region.assemblyName
+    if (assName) {
+      const [firstRef] = regions
+      const channel = `${assName}-${firstRef.refName}`
+      console.log(`User '${clientUser}' starts listening '${channel}'`)
+      socket.removeListener() // Remove any old listener
+
+      socket.on(channel, (message) => {
+        if (message.userName !== clientUser && message.channel === channel) {
+          changeManager?.submitToClientOnly(message.changeInfo)
+          notify(
+            `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
+              message.changeInfo,
+            )}`,
+            'success',
+          )
+        }
+      })
+    }
+  }, [region.refName])
+
+  useEffect(() => {
+    const { internetAccounts } = getRoot(session) as AppRootModel
+    const { assemblyName } = region
+    const { assemblyManager } = getSession(displayModel)
+    const assembly = assemblyManager.get(assemblyName)
+    if (!assembly) {
+      throw new Error(`No assembly found with name ${assemblyName}`)
+    }
+    const { internetAccountConfigId } = getConf(assembly, [
+      'sequence',
+      'metadata',
+    ]) as { internetAccountConfigId: string }
+    const apolloInternetAccount = internetAccounts.find(
+      (ia) => getConf(ia, 'internetAccountId') === internetAccountConfigId,
+    ) as ApolloInternetAccountModel | undefined
+    if (!apolloInternetAccount) {
+      throw new Error(
+        `No InternetAccount found with config id ${internetAccountConfigId}`,
+      )
+    }
     if (apolloInternetAccount.getRole()?.includes('admin')) {
       setIsAdmin(true)
     }
   }, [session, displayModel, region])
-
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) {

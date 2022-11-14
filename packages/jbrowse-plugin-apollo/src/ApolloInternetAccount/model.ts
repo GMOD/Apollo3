@@ -211,6 +211,8 @@ const stateModelFactory = (
                     handleClose: () => {
                       doneCallback()
                     },
+                    changeManager: (session as ApolloSessionModel)
+                    .apolloDataStore.changeManager,
                   },
                 ])
               },

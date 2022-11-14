@@ -5,6 +5,13 @@ import {
   ValidationResultSet,
   validationRegistry,
 } from '../Validations/ValidationSet'
+import {
+  AddFeatureChange,
+  CopyFeatureChange,
+  DeleteFeatureChange,
+  LocationEndChange,
+  LocationStartChange,
+} from './changes'
 import { Change, ClientDataStore } from './changes/abstract/Change'
 
 export interface SubmitOpts {
@@ -86,9 +93,92 @@ export class ChangeManager {
     }
   }
 
+  async submitToClientOnly(change: Change) {
+    let ch
+
+    const tmpObject: any = {
+      ...change,
+    }
+    const { featureId, changedIds, assembly } = tmpObject
+
+    console.log(`OBJECTI: ${JSON.stringify(tmpObject)}`)
+    switch (change.typeName) {
+      case 'AddFeatureChange':
+        const { addedFeature } = tmpObject
+        console.log('Added: ', JSON.stringify(addedFeature))
+        ch = new AddFeatureChange({
+          typeName: 'AddFeatureChange',
+          changedIds,
+          addedFeature,
+          assembly,
+        })
+        break
+      case 'LocationEndChange':
+        const { oldEnd, newEnd } = tmpObject
+        ch = new LocationEndChange({
+          typeName: 'LocationEndChange',
+          changedIds,
+          featureId,
+          oldEnd,
+          newEnd,
+          assembly,
+        })
+        break
+      case 'LocationStartChange':
+        const { oldStart, newStart } = tmpObject
+        ch = new LocationStartChange({
+          typeName: 'LocationStartChange',
+          changedIds,
+          featureId,
+          oldStart,
+          newStart,
+          assembly,
+        })
+        break
+      case 'DeleteFeatureChange':
+        const { parentFeatureId, deletedFeature } = tmpObject
+        // console.log('Parent: ', JSON.stringify(parentFeatureId))
+        // console.log('Deleted: ', JSON.stringify(deletedFeature))
+        ch = new DeleteFeatureChange({
+          typeName: 'DeleteFeatureChange',
+          changedIds,
+          deletedFeature,
+          parentFeatureId,
+          assembly,
+        })
+        break
+      case 'CopyFeatureChange':
+        const { targetAssemblyId, newFeatureId } = tmpObject
+        console.log(
+          `TARGET ASSEMBLYID: "${targetAssemblyId}", NEW FEATUREID: "${newFeatureId}", FEATUREID: "${featureId}"`,
+        )
+        // const { addedFeature } = tmpObject
+        console.log('Added: ', JSON.stringify(addedFeature))
+        ch = new AddFeatureChange({
+          typeName: 'AddFeatureChange',
+          changedIds,
+          addedFeature,
+          assembly: targetAssemblyId,
+        })
+        // ch = new CopyFeatureChange({
+        //   typeName: 'CopyFeatureChange',
+        //   changedIds,
+        //   targetAssemblyId,
+        //   featureId: newFeatureId,
+        //   newFeatureId,
+        //   assembly: targetAssemblyId,
+        // })
+        break
+    }
+
+    // submit to client data store
+    await ch?.apply(this.dataStore)
+    // Push the change into array
+    this.recentChanges.push(change)
+  }
+
   async revert(change: Change, submitToBackend = true) {
     const inverseChange = change.getInverse()
-    return this.submit(inverseChange, { submitToBackend, addToRecents: false })
   }
 
   /**

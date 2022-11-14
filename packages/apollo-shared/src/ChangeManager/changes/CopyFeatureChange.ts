@@ -82,9 +82,6 @@ export class CopyFeatureChange extends FeatureChange {
         logger.error(errMsg)
         throw new Error(errMsg)
       }
-      // logger.debug?.(
-      //   `*** Feature found: ${JSON.stringify(topLevelFeature)}`,
-      // )
 
       const newFeature = this.getFeatureFromId(topLevelFeature, featureId)
       if (!newFeature) {
@@ -92,25 +89,37 @@ export class CopyFeatureChange extends FeatureChange {
           `Feature ID "${featureId}" not found in parent feature "${topLevelFeature._id}"`,
         )
       }
-
       const featureIds: string[] = []
 
-      const refSeqDoc = await refSeqModel
+      // Find refSeq from current assembly
+      const currentRefSeqDoc = await refSeqModel
         .findById(newFeature.refSeq)
         .session(session)
         .exec()
-      if (!refSeqDoc) {
+      if (!currentRefSeqDoc) {
         throw new Error(
           `RefSeq was not found by assembly "${assembly}" and seq_id "${topLevelFeature.refSeq}" not found`,
         )
       }
-
+      // We need to find such refSeq in target assembly that has same name than current assembly
+      const targetRefSeqDoc = await refSeqModel
+        .find({ assembly: targetAssemblyId, name: currentRefSeqDoc.name })
+        .session(session)
+        .exec()
+      if (!targetRefSeqDoc) {
+        throw new Error(
+          `Target assembly does not contain RefSeq "${currentRefSeqDoc.name}"`,
+        )
+      }
       // Let's add featureId to each child recursively
       const newFeatureLine = this.generateNewIds(newFeature, featureIds)
-      logger.verbose?.(`New featureIds: ${featureIds}`)
-      logger.verbose?.(`New assembly: ${targetAssemblyId}`)
-      logger.verbose?.(`New refSeqId: ${refSeqDoc._id}`)
-      logger.verbose?.(`New featureId: ${newFeatureLine._id}`)
+      logger.debug?.(`New allIds: ${featureIds}`)
+      logger.debug?.(`New featureId: ${newFeatureLine._id}`)
+      logger.debug?.(`New assembly: ${targetAssemblyId}`)
+      logger.debug?.(`Target refSeq: ${JSON.stringify(targetRefSeqDoc[0])}`)
+      logger.debug?.(`New featureLine: ${JSON.stringify(newFeature)}`)
+
+      if (!featureIds.includes(newFeatureId)) featureIds.push(newFeatureId)
 
       // Add into Mongo
       const [newFeatureDoc] = await featureModel.create(
@@ -118,8 +127,11 @@ export class CopyFeatureChange extends FeatureChange {
           {
             ...newFeatureLine,
             _id: newFeatureId,
-            refSeq: refSeqDoc._id,
+            refSeq: targetRefSeqDoc[0]._id,
             allIds: featureIds,
+            start: newFeature.start,
+            end: newFeature.end,
+            type: newFeature.type,
           },
         ],
         { session },
@@ -146,16 +158,18 @@ export class CopyFeatureChange extends FeatureChange {
   }
 
   getInverse() {
+    console.log(`1 GET INVERSE`)
     const { changes, changedIds, assembly, logger } = this
     const inverseChangedIds = changedIds.slice().reverse()
     const inverseChanges = changes
       .slice()
       .reverse()
       .map((endChange) => ({
-        featureId: endChange.featureId,
+        featureId: endChange.newFeatureId,
         assembly: endChange.targetAssemblyId,
         parentFeatureId: '',
       }))
+    console.log(`2 GET INVERSE DONE`)
     return new DeleteFeatureChange(
       {
         changedIds: inverseChangedIds,
