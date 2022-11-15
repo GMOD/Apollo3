@@ -21,13 +21,13 @@ import {
 import {
   AddAssemblyAndFeaturesFromFileChange,
   AddAssemblyFromFileChange,
-  ChangeManager,
 } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { ChangeManager } from '../ChangeManager'
 import { createFetchErrorMessage } from '../util'
 
 interface AddAssemblyProps {

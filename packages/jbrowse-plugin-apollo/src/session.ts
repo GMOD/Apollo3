@@ -10,10 +10,7 @@ import {
   ApolloAssembly,
   ApolloRefSeq,
 } from 'apollo-mst'
-import {
-  ChangeManager,
-  ClientDataStore as ClientDataStoreType,
-} from 'apollo-shared'
+import { ClientDataStore as ClientDataStoreType } from 'apollo-shared'
 import { autorun, observable } from 'mobx'
 import {
   IAnyModelType,
@@ -30,10 +27,11 @@ import {
   UserLocation,
 } from './ApolloInternetAccount/model'
 import { BackendDriver, CollaborationServerDriver } from './BackendDrivers'
+import { ChangeManager } from './ChangeManager'
 import { createFetchErrorMessage } from './util'
 
 export interface ApolloSession extends AbstractSessionModel {
-  apolloDataStore: ClientDataStoreType
+  apolloDataStore: ClientDataStoreType & { changeManager: ChangeManager }
   apolloSelectedFeature?: AnnotationFeatureI
   apolloSetSelectedFeature(feature?: AnnotationFeatureI): void
 }

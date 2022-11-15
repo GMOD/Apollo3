@@ -10,10 +10,11 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material'
-import { AddFeaturesFromFileChange, ChangeManager } from 'apollo-shared'
+import { AddFeaturesFromFileChange } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
+import { ChangeManager } from '../ChangeManager'
 import { createFetchErrorMessage } from '../util'
 import { useAssemblies } from './'
 

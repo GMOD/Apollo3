@@ -23,11 +23,12 @@ import {
   GridToolbar,
   MuiEvent,
 } from '@mui/x-data-grid'
-import { ChangeManager, DeleteUserChange, UserChange } from 'apollo-shared'
+import { DeleteUserChange, UserChange } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useCallback, useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { ChangeManager } from '../ChangeManager'
 import { createFetchErrorMessage } from '../util'
 
 interface UserResponse {

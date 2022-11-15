@@ -1,11 +1,11 @@
 import { getSession } from '@jbrowse/core/util'
-import { IAnyStateTreeNode } from 'mobx-state-tree'
-
 import {
+  Change,
+  ClientDataStore,
   ValidationResultSet,
   validationRegistry,
-} from '../Validations/ValidationSet'
-import { Change, ClientDataStore } from './changes/abstract'
+} from 'apollo-shared'
+import { IAnyStateTreeNode } from 'mobx-state-tree'
 
 export interface SubmitOpts {
   /** defaults to true */

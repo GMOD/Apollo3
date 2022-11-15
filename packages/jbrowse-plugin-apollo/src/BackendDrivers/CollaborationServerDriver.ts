@@ -5,13 +5,12 @@ import { AnnotationFeatureSnapshot } from 'apollo-mst'
 import {
   AssemblySpecificChange,
   Change,
-  ChangeManager,
   SerializedChange,
-  SubmitOpts,
   ValidationResultSet,
 } from 'apollo-shared'
 import { Socket } from 'socket.io-client'
 
+import { ChangeManager, SubmitOpts } from '../ChangeManager'
 import { createFetchErrorMessage } from '../util'
 import { BackendDriver } from './BackendDriver'
 
