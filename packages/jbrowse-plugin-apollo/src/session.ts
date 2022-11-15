@@ -11,10 +11,8 @@ import {
   ApolloRefSeq,
 } from 'apollo-mst'
 import {
-  BackendDriver,
   ChangeManager,
   ClientDataStore as ClientDataStoreType,
-  CollaborationServerDriver,
 } from 'apollo-shared'
 import { autorun, observable } from 'mobx'
 import {
@@ -31,6 +29,7 @@ import {
   ApolloInternetAccountModel,
   UserLocation,
 } from './ApolloInternetAccount/model'
+import { BackendDriver, CollaborationServerDriver } from './BackendDrivers'
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreType
@@ -343,14 +342,13 @@ export function extendSession(sessionModel: IAnyModelType) {
             let errorMessage
             try {
               errorMessage = yield response.text()
-            } catch (e) {
+            } catch (error) {
               errorMessage = ''
             }
-            console.error(
-              `Failed to fetch assemblies — ${response.status} (${
-                response.statusText
-              })${errorMessage ? ` (${errorMessage})` : ''}`,
-            )
+            const responseMessage = `Failed to fetch assemblies — ${
+              response.status
+            } ${response.statusText}${errorMessage ? ` (${errorMessage})` : ''}`
+            console.error(responseMessage)
             continue
           }
           let fetchedAssemblies
