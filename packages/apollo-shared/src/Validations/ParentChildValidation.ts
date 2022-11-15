@@ -6,8 +6,8 @@ import {
   LocationStartChange,
   isLocationEndChange,
   isLocationStartChange,
-} from '../ChangeManager'
-import { Change } from '../ChangeManager/changes/abstract'
+} from '../Changes'
+import { Change } from '../Changes/abstract'
 import { Validation, ValidationResult } from './Validation'
 
 export class ParentChildValidation extends Validation {

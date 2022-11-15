@@ -19,7 +19,7 @@ import {
 } from 'apollo-schemas'
 import type { ClientSession, Model } from 'mongoose'
 
-import { changeRegistry } from '../../ChangeTypes'
+import { changeRegistry } from '../'
 
 export interface ClientDataStore {
   typeName: 'Client'

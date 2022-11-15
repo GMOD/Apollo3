@@ -3,7 +3,7 @@ import type { Reflector } from '@nestjs/core'
 import { FeatureDocument, UserDocument } from 'apollo-schemas'
 import { ClientSession, Model } from 'mongoose'
 
-import { Change, ClientDataStore } from '../ChangeManager/changes/abstract'
+import { Change, ClientDataStore } from '../Changes/abstract'
 
 export interface Context {
   context: ExecutionContext
