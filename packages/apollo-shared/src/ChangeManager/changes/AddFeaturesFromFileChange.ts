@@ -2,14 +2,12 @@ import { GFF3Feature } from '@gmod/gff'
 
 import {
   AssemblySpecificChange,
-  SerializedAssemblySpecificChange,
-} from './abstract/AssemblySpecificChange'
-import {
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
+  SerializedAssemblySpecificChange,
   ServerDataStore,
-} from './abstract/Change'
+} from './abstract'
 
 export interface SerializedAddFeaturesFromFileChangeBase
   extends SerializedAssemblySpecificChange {

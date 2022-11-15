@@ -2,13 +2,11 @@ import { getSession } from '@jbrowse/core/util'
 
 import {
   AssemblySpecificChange,
-  SerializedAssemblySpecificChange,
-} from './abstract/AssemblySpecificChange'
-import {
   ClientDataStore,
   LocalGFF3DataStore,
+  SerializedAssemblySpecificChange,
   ServerDataStore,
-} from './abstract/Change'
+} from './abstract'
 
 interface SerializedDeleteAssemblyChange
   extends SerializedAssemblySpecificChange {

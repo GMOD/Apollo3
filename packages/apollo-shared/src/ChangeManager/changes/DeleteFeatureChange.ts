@@ -4,13 +4,11 @@ import { Feature } from 'apollo-schemas'
 import {
   ChangeOptions,
   ClientDataStore,
-  LocalGFF3DataStore,
-  ServerDataStore,
-} from './abstract/Change'
-import {
   FeatureChange,
+  LocalGFF3DataStore,
   SerializedFeatureChange,
-} from './abstract/FeatureChange'
+  ServerDataStore,
+} from './abstract'
 import { AddFeatureChange } from './AddFeatureChange'
 
 interface SerializedDeleteFeatureChangeBase extends SerializedFeatureChange {

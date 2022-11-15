@@ -34,11 +34,4 @@ export * from './changes'
 export * from './ChangeManager'
 export * from './ChangeTypes'
 
-export {
-  SerializedChange,
-  ClientDataStore,
-  Change,
-} from './changes/abstract/Change'
-
-export * from './changes/abstract/AssemblySpecificChange'
-export * from './changes/abstract/FeatureChange'
+export * from './changes/abstract'

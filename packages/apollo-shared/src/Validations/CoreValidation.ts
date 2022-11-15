@@ -1,4 +1,4 @@
-import { Change } from '../ChangeManager/changes/abstract/Change'
+import { Change } from '../ChangeManager/changes/abstract'
 import { TypeChange } from '../ChangeManager/changes/TypeChange'
 import soSequenceTypes from './soSequenceTypes'
 import { Validation } from './Validation'
