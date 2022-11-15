@@ -13,6 +13,7 @@ import {
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
+import { createFetchErrorMessage } from '../util'
 import { AssemblyData, useAssemblies } from './'
 
 interface DownloadGFF3Props {
@@ -51,16 +52,11 @@ export function DownloadGFF3({ session, handleClose }: DownloadGFF3Props) {
     })
     const response = await apolloFetch(uri, { method: 'GET' })
     if (!response.ok) {
-      let msg
-      try {
-        msg = await response.text()
-      } catch (e) {
-        msg = ''
-      }
-      setErrorMessage(
-        `Error when export ID — ${response.status} 
-        (${response.statusText})${msg ? ` (${msg})` : ''}`,
+      const newErrorMessage = await createFetchErrorMessage(
+        response,
+        'Error when exporting ID',
       )
+      setErrorMessage(newErrorMessage)
       return
     }
     const { exportID } = (await response.json()) as { exportID: string }

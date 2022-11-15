@@ -16,6 +16,7 @@ import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { createFetchErrorMessage } from '../util'
 
 interface CopyFeatureProps {
   session: AbstractSessionModel
@@ -65,17 +66,11 @@ export function CopyFeature({
           method: 'GET',
         })
         if (!response.ok) {
-          let msg
-          try {
-            msg = await response.text()
-          } catch (e) {
-            msg = ''
-          }
-          setErrorMessage(
-            `Error when copying features — ${response.status} (${
-              response.statusText
-            })${msg ? ` (${msg})` : ''}`,
+          const newErrorMessage = await createFetchErrorMessage(
+            response,
+            'Error when copying features',
           )
+          setErrorMessage(newErrorMessage)
           return
         }
         const data = await response.json()

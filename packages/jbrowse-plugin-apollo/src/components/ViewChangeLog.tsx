@@ -23,6 +23,7 @@ import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { createFetchErrorMessage } from '../util'
 
 interface ViewChangeLogProps {
   session: AbstractSessionModel
@@ -108,17 +109,11 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
           method: 'GET',
         })
         if (!response.ok) {
-          let msg
-          try {
-            msg = await response.text()
-          } catch (e) {
-            msg = ''
-          }
-          setErrorMessage(
-            `Error when retrieving assemblies from server — ${
-              response.status
-            } (${response.statusText})${msg ? ` (${msg})` : ''}`,
+          const newErrorMessage = await createFetchErrorMessage(
+            response,
+            'Error when retrieving assemblies from server',
           )
+          setErrorMessage(newErrorMessage)
           return
         }
         const data = (await response.json()) as AssemblyDocument[]
@@ -139,7 +134,6 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
       if (!assemblyId) {
         return
       }
-      let msg
 
       // Get changes
       const url = new URL('changes', baseURL)
@@ -151,23 +145,18 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
         uri,
       })
       if (apolloFetch) {
-        const res = await apolloFetch(uri, {
+        const response = await apolloFetch(uri, {
           headers: new Headers({ 'Content-Type': 'application/json' }),
         })
-        if (!res.ok) {
-          try {
-            msg = await res.text()
-          } catch (e) {
-            msg = ''
-          }
-          setErrorMessage(
-            `Error when retrieving changes — ${res.status} (${res.statusText})${
-              msg ? ` (${msg})` : ''
-            }`,
+        if (!response.ok) {
+          const newErrorMessage = await createFetchErrorMessage(
+            response,
+            'Error when retrieving changes',
           )
+          setErrorMessage(newErrorMessage)
           return
         }
-        const data = await res.json()
+        const data = await response.json()
         setDisplayGridData(data)
       }
     }

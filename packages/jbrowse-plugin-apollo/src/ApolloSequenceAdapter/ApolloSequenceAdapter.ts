@@ -8,6 +8,8 @@ import { ObservableCreate } from '@jbrowse/core/util/rxjs'
 import SimpleFeature, { Feature } from '@jbrowse/core/util/simpleFeature'
 import { NoAssemblyRegion } from '@jbrowse/core/util/types'
 
+import { createFetchErrorMessage } from '../util'
+
 export interface RefSeq {
   _id: string
   name: string
@@ -37,17 +39,11 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
     )
     const response = await fetch(uri, { signal })
     if (!response.ok) {
-      let errorMessage
-      try {
-        errorMessage = await response.text()
-      } catch (e) {
-        errorMessage = ''
-      }
-      throw new Error(
-        `Failed to fetch refSeqs — ${response.status} (${response.statusText})${
-          errorMessage ? ` (${errorMessage})` : ''
-        }`,
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'Failed to fetch refSeqs',
       )
+      throw new Error(errorMessage)
     }
     const refSeqs = (await response.json()) as RefSeq[]
     this.refSeqs = Promise.resolve(refSeqs)
@@ -99,17 +95,11 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
       )
       const response = await fetch(uri, { signal: opts.signal })
       if (!response.ok) {
-        let errorMessage
-        try {
-          errorMessage = await response.text()
-        } catch (e) {
-          errorMessage = ''
-        }
-        throw new Error(
-          `Failed to fetch refSeqs — ${response.status} (${
-            response.statusText
-          })${errorMessage ? ` (${errorMessage})` : ''}`,
+        const errorMessage = await createFetchErrorMessage(
+          response,
+          'Failed to fetch refSeqs',
         )
+        throw new Error(errorMessage)
       }
       const seq = (await response.text()) as string
       if (seq) {
