@@ -14,7 +14,12 @@ import jwtDecode from 'jwt-decode'
 import { autorun } from 'mobx'
 import { Instance, getRoot, types } from 'mobx-state-tree'
 
-import { AddAssembly, DeleteAssembly, ImportFeatures } from '../components'
+import {
+  AddAssembly,
+  DeleteAssembly,
+  ImportFeatures,
+  ManageUsers,
+} from '../components'
 import { ApolloSessionModel } from '../session'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { ApolloInternetAccountConfigModel } from './configSchema'
@@ -75,6 +80,14 @@ const stateModelFactory = (
         }
         const dec = jwtDecode(token) as JWTPayload
         return dec.roles
+      },
+      getUserId() {
+        const token = self.retrieveToken()
+        if (!token) {
+          return undefined
+        }
+        const dec = jwtDecode(token) as JWTPayload
+        return dec.id
       },
     }))
     .volatile(() => ({
@@ -161,6 +174,26 @@ const stateModelFactory = (
               },
             },
             2,
+          )
+          pluginManager.rootModel.insertInMenu(
+            'Apollo',
+            {
+              label: 'Manage Users',
+              onClick: (session: AbstractSessionModel) => {
+                session.queueDialog((doneCallback) => [
+                  ManageUsers,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                    },
+                    changeManager: (session as ApolloSessionModel)
+                      .apolloDataStore.changeManager,
+                  },
+                ])
+              },
+            },
+            9,
           )
           pluginManager.rootModel.insertInMenu(
             'Apollo',

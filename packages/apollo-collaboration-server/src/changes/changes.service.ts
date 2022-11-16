@@ -69,6 +69,7 @@ export class ChangesService {
           refSeqModel: this.refSeqModel,
           refSeqChunkModel: this.refSeqChunkModel,
           fileModel: this.fileModel,
+          userModel: this.userModel,
           session,
           filesService: this.filesService,
         })

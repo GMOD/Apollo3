@@ -7,6 +7,7 @@ export * from './AddAssembly'
 export * from './DeleteAssembly'
 export * from './ImportFeatures'
 export * from './ViewChangeLog'
+export * from './ManageUsers'
 
 interface AssemblyResponse {
   _id: string
