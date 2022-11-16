@@ -16,6 +16,7 @@ import {
   GridActionsCellItem,
   GridCallbackDetails,
   GridCellEditCommitParams,
+  GridCellParams,
   GridColumns,
   GridRowId,
   GridRowParams,
@@ -107,6 +108,13 @@ export function ManageUsers({
     setUsers((prevUsers) => prevUsers.filter((row) => row._id !== id))
   }
 
+  function isCurrentUser(id: GridRowId) {
+    if (id === selectedInternetAcount.userId) {
+      return true
+    }
+    return false
+  }
+
   const gridColumns: GridColumns = [
     { field: 'username', headerName: 'User', width: 140 },
     { field: 'email', headerName: 'Email', width: 160 },
@@ -129,6 +137,7 @@ export function ManageUsers({
               deleteUser(params.id)
             }
           }}
+          disabled={isCurrentUser(params.id)}
           label="Delete"
         />,
       ],
@@ -183,6 +192,9 @@ export function ManageUsers({
             getRowId={(row) => row._id}
             components={{ Toolbar: GridToolbar }}
             getRowHeight={() => 'auto'}
+            isCellEditable={(params: GridCellParams) =>
+              !isCurrentUser(params.id)
+            }
             onCellEditCommit={(
               params: GridCellEditCommitParams,
               event: MuiEvent,

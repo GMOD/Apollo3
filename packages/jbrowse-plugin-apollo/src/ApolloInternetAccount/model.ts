@@ -81,6 +81,14 @@ const stateModelFactory = (
         const dec = jwtDecode(token) as JWTPayload
         return dec.roles
       },
+      get userId() {
+        const token = self.retrieveToken()
+        if (!token) {
+          return undefined
+        }
+        const dec = jwtDecode(token) as JWTPayload
+        return dec.id
+      },
     }))
     .volatile(() => ({
       authType: undefined as AuthType | undefined,
