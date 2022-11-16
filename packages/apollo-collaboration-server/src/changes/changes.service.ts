@@ -4,6 +4,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
+import { AnnotationFeatureSnapshot } from 'apollo-mst'
 import {
   Assembly,
   AssemblyDocument,
@@ -112,8 +113,8 @@ export class ChangesService {
           `Error in backend post-validation: ${errorMessage}`,
         )
       }
-
       this.logger.debug(`TypeName: ${change.typeName}`)
+
       // There is no broadcast for 'DeleteAssemblyChange' yet
       if (change.typeName !== 'DeleteAssemblyChange') {
         // For broadcasting we need also refName
@@ -123,7 +124,9 @@ export class ChangesService {
         tmpObject = {
           ...tmpObject1.changes[0],
         }
-        // this.logger.debug(`******** TMP OBJECT: ${JSON.stringify(tmpObject)}`)
+        this.logger.debug(
+          `Individual change object: ${JSON.stringify(tmpObject)}`,
+        )
 
         if (
           tmpObject.hasOwnProperty('featureId') ||
@@ -135,8 +138,6 @@ export class ChangesService {
             featureId = tmpObject.deletedFeature._id
           } else if (tmpObject.hasOwnProperty('addedFeature')) {
             featureId = tmpObject.addedFeature._id
-          } else if (tmpObject.hasOwnProperty('newFeatureId')) {
-            featureId = tmpObject.newFeatureId
           } else {
             featureId = tmpObject.featureId
           }
@@ -178,22 +179,65 @@ export class ChangesService {
         throw new Error(errMsg)
       }
 
-      // In case of 'CopyFeatureChange' assemlblyId in channel is the target assemblyId
+      let msg
+      // In case of 'CopyFeatureChange', we need to create 'AddFeatureChange' to all connected clients
       if (change.typeName === 'CopyFeatureChange') {
         const { targetAssemblyId } = tmpObject
+        // Get origin top level feature
+        const topLevelFeature = await this.featureModel
+          .findOne({ allIds: tmpObject.newFeatureId })
+          .exec()
+        if (!topLevelFeature) {
+          const errMsg = `*** ERROR: The following featureId was not found in database ='${tmpObject.newFeatureId}'`
+          this.logger.error?.(errMsg)
+          throw new Error(errMsg)
+        }
+        tmpObject.typeName = 'AddFeatureChange'
+        tmpObject.assembly = targetAssemblyId
+        tmpObject.addedFeature = topLevelFeature
         channel = `${targetAssemblyId}-${refDoc.name}`
+        msg = {
+          changeInfo: tmpObject,
+          userName: user,
+          channel,
+        }
       } else {
         channel = `${tmpObject.assembly}-${refDoc.name}`
+        msg = {
+          changeInfo: change,
+          userName: user,
+          channel,
+        }
       }
-      const msg = {
-        changeInfo: change,
-        userName: user,
-        channel,
-      }
-      this.logger.debug(`Broadcasting to channel '${channel}'`)
+
+      this.logger.debug(
+        `Broadcasting to channel '${channel}', changeObject: "${JSON.stringify(
+          tmpObject,
+        )}"`,
+      )
       await this.messagesGateway.create(channel, msg)
     }
     return changeDoc
+  }
+
+  /**
+   * Get children's feature ids
+   * @param feature - parent feature
+   * @returns
+   */
+  getChildFeatureIds(feature: Feature | AnnotationFeatureSnapshot): string[] {
+    if (!feature.children) {
+      return []
+    }
+    const featureIds = []
+    const children =
+      feature.children instanceof Map
+        ? feature.children
+        : new Map(Object.entries(feature.children))
+    for (const [childFeatureId, childFeature] of children || new Map()) {
+      featureIds.push(childFeatureId, ...this.getChildFeatureIds(childFeature))
+    }
+    return featureIds
   }
 
   async findAll(changeFilter: FindChangeDto) {

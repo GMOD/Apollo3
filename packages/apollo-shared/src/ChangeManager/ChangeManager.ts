@@ -7,7 +7,6 @@ import {
 } from '../Validations/ValidationSet'
 import {
   AddFeatureChange,
-  CopyFeatureChange,
   DeleteFeatureChange,
   LocationEndChange,
   LocationStartChange,
@@ -146,28 +145,6 @@ export class ChangeManager {
           parentFeatureId,
           assembly,
         })
-        break
-      case 'CopyFeatureChange':
-        const { targetAssemblyId, newFeatureId } = tmpObject
-        console.log(
-          `TARGET ASSEMBLYID: "${targetAssemblyId}", NEW FEATUREID: "${newFeatureId}", FEATUREID: "${featureId}"`,
-        )
-        // const { addedFeature } = tmpObject
-        console.log('Added: ', JSON.stringify(addedFeature))
-        ch = new AddFeatureChange({
-          typeName: 'AddFeatureChange',
-          changedIds,
-          addedFeature,
-          assembly: targetAssemblyId,
-        })
-        // ch = new CopyFeatureChange({
-        //   typeName: 'CopyFeatureChange',
-        //   changedIds,
-        //   targetAssemblyId,
-        //   featureId: newFeatureId,
-        //   newFeatureId,
-        //   assembly: targetAssemblyId,
-        // })
         break
     }
 

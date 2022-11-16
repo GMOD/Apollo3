@@ -69,6 +69,7 @@ export class CopyFeatureChange extends FeatureChange {
 
     // Loop the changes
     for (const change of changes) {
+      // console.log(`CHANGE IN COPYFEATUTECHANGE: "${JSON.stringify(change)}"`)
       const { featureId, targetAssemblyId, newFeatureId } = change
 
       // Search feature
@@ -101,6 +102,7 @@ export class CopyFeatureChange extends FeatureChange {
           `RefSeq was not found by assembly "${assembly}" and seq_id "${topLevelFeature.refSeq}" not found`,
         )
       }
+
       // We need to find such refSeq in target assembly that has same name than current assembly
       const targetRefSeqDoc = await refSeqModel
         .find({ assembly: targetAssemblyId, name: currentRefSeqDoc.name })
@@ -111,21 +113,22 @@ export class CopyFeatureChange extends FeatureChange {
           `Target assembly does not contain RefSeq "${currentRefSeqDoc.name}"`,
         )
       }
+      console.log(4)
       // Let's add featureId to each child recursively
-      const newFeatureLine = this.generateNewIds(newFeature, featureIds)
-      logger.debug?.(`New allIds: ${featureIds}`)
-      logger.debug?.(`New featureId: ${newFeatureLine._id}`)
-      logger.debug?.(`New assembly: ${targetAssemblyId}`)
-      logger.debug?.(`Target refSeq: ${JSON.stringify(targetRefSeqDoc[0])}`)
-      logger.debug?.(`New featureLine: ${JSON.stringify(newFeature)}`)
-
-      if (!featureIds.includes(newFeatureId)) featureIds.push(newFeatureId)
+      const newFeatureIds = this.generateNewIds(newFeature, featureIds)
+      console.log(5)
+      // Remove "new generated featureId" from "allIds" -array because newFeatureId was already provided. Then add correct newFeatureId into it
+      const index = featureIds.indexOf(newFeatureIds._id, 0)
+      if (index > -1) {
+        featureIds.splice(index, 1)
+      }
+      featureIds.push(newFeatureId)
 
       // Add into Mongo
       const [newFeatureDoc] = await featureModel.create(
         [
           {
-            ...newFeatureLine,
+            ...newFeatureIds,
             _id: newFeatureId,
             refSeq: targetRefSeqDoc[0]._id,
             allIds: featureIds,
@@ -158,7 +161,6 @@ export class CopyFeatureChange extends FeatureChange {
   }
 
   getInverse() {
-    console.log(`1 GET INVERSE`)
     const { changes, changedIds, assembly, logger } = this
     const inverseChangedIds = changedIds.slice().reverse()
     const inverseChanges = changes
@@ -169,7 +171,6 @@ export class CopyFeatureChange extends FeatureChange {
         assembly: endChange.targetAssemblyId,
         parentFeatureId: '',
       }))
-    console.log(`2 GET INVERSE DONE`)
     return new DeleteFeatureChange(
       {
         changedIds: inverseChangedIds,

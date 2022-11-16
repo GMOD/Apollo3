@@ -212,7 +212,7 @@ const stateModelFactory = (
                       doneCallback()
                     },
                     changeManager: (session as ApolloSessionModel)
-                    .apolloDataStore.changeManager,
+                      .apolloDataStore.changeManager,
                   },
                 ])
               },
