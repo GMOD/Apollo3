@@ -42,12 +42,13 @@ export class AuthenticationService {
         role: [defaultRole],
         username: profile._json.name ? profile._json.name : 'na',
       }
-      await this.usersService.addNew(newUser)
+      const createdUser = await this.usersService.addNew(newUser)
 
       const payload = {
         username: newUser.username,
         email: newUser.email,
         roles: Array.from(userRoles),
+        id: createdUser.id,
       }
       // Return token with SUCCESS status
       const returnToken = this.jwtService.sign(payload)
@@ -72,6 +73,7 @@ export class AuthenticationService {
       username: userFound.username,
       email: userFound.email,
       roles: Array.from(userRoles),
+      id: userFound.id,
     }
     // Return token with SUCCESS status
     const returnToken = this.jwtService.sign(payload)
@@ -108,12 +110,13 @@ export class AuthenticationService {
         role: [defaultRole],
         username: profile.displayName ? profile.displayName : 'na',
       }
-      await this.usersService.addNew(newUser)
+      const createdUser = await this.usersService.addNew(newUser)
 
       const payload = {
         username: newUser.username,
         email: newUser,
         roles: Array.from(userRoles),
+        id: createdUser.id,
       }
       // Return token with SUCCESS status
       const returnToken = this.jwtService.sign(payload)
@@ -138,6 +141,7 @@ export class AuthenticationService {
       username: userFound.username,
       email: userFound.email,
       roles: Array.from(userRoles),
+      id: userFound.id,
     }
     // Return token with SUCCESS status
     const returnToken = this.jwtService.sign(payload)
