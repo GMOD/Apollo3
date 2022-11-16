@@ -65,7 +65,6 @@ export class DeleteUserChange extends Change {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   async applyToClient(dataStore: ClientDataStore) {}
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   getInverse() {
     const { typeName, userId, logger } = this
     return new DeleteUserChange({ typeName, userId }, { logger })
