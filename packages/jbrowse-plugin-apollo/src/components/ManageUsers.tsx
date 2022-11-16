@@ -53,7 +53,8 @@ export function ManageUsers({
 }: ManageUsersProps) {
   const { internetAccounts } = getRoot(session) as ApolloRootModel
   const apolloInternetAccounts = internetAccounts.filter(
-    (ia) => ia.type === 'ApolloInternetAccount' && ia.role?.includes('admin'),
+    (ia) =>
+      ia.type === 'ApolloInternetAccount' && ia.getRole()?.includes('admin'),
   )
   if (!apolloInternetAccounts.length) {
     throw new Error('No Apollo internet account found')
@@ -109,7 +110,7 @@ export function ManageUsers({
   }
 
   function isCurrentUser(id: GridRowId) {
-    if (id === selectedInternetAcount.userId) {
+    if (id === selectedInternetAcount.getUserId()) {
       return true
     }
     return false

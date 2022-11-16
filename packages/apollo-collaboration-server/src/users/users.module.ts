@@ -11,10 +11,6 @@ import { UsersService } from './users.service'
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
-<<<<<<< HEAD
   exports: [UsersService, MongooseModule],
-=======
-  exports: [MongooseModule],
->>>>>>> UserChange class to propagate role change to mongoose
 })
 export class UsersModule {}

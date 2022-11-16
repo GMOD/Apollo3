@@ -6,6 +6,7 @@ import {
   CopyFeatureChange,
   DeleteAssemblyChange,
   DeleteFeatureChange,
+  DeleteUserChange,
   LocationEndChange,
   LocationStartChange,
   TypeChange,
