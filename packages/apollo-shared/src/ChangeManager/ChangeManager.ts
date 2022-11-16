@@ -7,6 +7,7 @@ import {
 } from '../Validations/ValidationSet'
 import {
   AddFeatureChange,
+  DeleteAssemblyChange,
   DeleteFeatureChange,
   LocationEndChange,
   LocationStartChange,
@@ -104,11 +105,30 @@ export class ChangeManager {
     switch (change.typeName) {
       case 'AddFeatureChange':
         const { addedFeature } = tmpObject
-        console.log('Added: ', JSON.stringify(addedFeature))
+        console.log(
+          `AddFeatureChange: Add feature ${JSON.stringify(addedFeature)}`,
+        )
         ch = new AddFeatureChange({
           typeName: 'AddFeatureChange',
           changedIds,
           addedFeature,
+          assembly,
+        })
+        break
+      // case 'DeleteAssemblyChange':
+      //   console.log(`DeleteAssemblyChange: Delete assembly ${JSON.stringify(assembly)}`)
+      //   ch = new DeleteAssemblyChange({
+      //     typeName: 'DeleteAssemblyChange',
+      //     assembly,
+      //   })
+      //   break
+      case 'DeleteFeatureChange':
+        const { parentFeatureId, deletedFeature } = tmpObject
+        ch = new DeleteFeatureChange({
+          typeName: 'DeleteFeatureChange',
+          changedIds,
+          deletedFeature,
+          parentFeatureId,
           assembly,
         })
         break
@@ -131,18 +151,6 @@ export class ChangeManager {
           featureId,
           oldStart,
           newStart,
-          assembly,
-        })
-        break
-      case 'DeleteFeatureChange':
-        const { parentFeatureId, deletedFeature } = tmpObject
-        // console.log('Parent: ', JSON.stringify(parentFeatureId))
-        // console.log('Deleted: ', JSON.stringify(deletedFeature))
-        ch = new DeleteFeatureChange({
-          typeName: 'DeleteFeatureChange',
-          changedIds,
-          deletedFeature,
-          parentFeatureId,
           assembly,
         })
         break

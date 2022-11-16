@@ -122,7 +122,7 @@ export class ChangesService {
           ...change,
         }
         tmpObject = {
-          ...tmpObject1.changes[0],
+          ...tmpObject1.changes[0],  // Should we loop all changes or is there just one change?
         }
         this.logger.debug(
           `Individual change object: ${JSON.stringify(tmpObject)}`,

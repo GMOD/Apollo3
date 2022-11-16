@@ -69,7 +69,6 @@ export class CopyFeatureChange extends FeatureChange {
 
     // Loop the changes
     for (const change of changes) {
-      // console.log(`CHANGE IN COPYFEATUTECHANGE: "${JSON.stringify(change)}"`)
       const { featureId, targetAssemblyId, newFeatureId } = change
 
       // Search feature
@@ -135,6 +134,9 @@ export class CopyFeatureChange extends FeatureChange {
             start: newFeature.start,
             end: newFeature.end,
             type: newFeature.type,
+            strand: newFeature.strand,
+            attributes: newFeature.attributes,
+            discontinuousLocations: newFeature.discontinuousLocations,
           },
         ],
         { session },
