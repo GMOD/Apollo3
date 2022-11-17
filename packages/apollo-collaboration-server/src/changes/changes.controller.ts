@@ -32,13 +32,13 @@ export class ChangesController {
   @Post()
   @UseInterceptors(ChangeInterceptor)
   @Validations(Role.User)
-  async create(@Body() { change, user }: { change: Change; user: string }) {
+  async create(@Body() { change, user, userToken }: { change: Change; user: string; userToken: string }) {
     this.logger.debug(
       `Change type is '${change.typeName}', change object: ${JSON.stringify(
         change,
       )}`,
     )
-    return this.changesService.create(change, user)
+    return this.changesService.create(change, user, userToken)
   }
 
   @Get()

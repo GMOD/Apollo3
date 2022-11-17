@@ -1,6 +1,11 @@
 import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
-import { AbstractSessionModel, AppRootModel, Region } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  AppRootModel,
+  Region,
+  getSession,
+} from '@jbrowse/core/util'
 import {
   AnnotationFeature,
   AnnotationFeatureI,
@@ -24,6 +29,7 @@ import {
   resolveIdentifier,
   types,
 } from 'mobx-state-tree'
+import { io } from 'socket.io-client'
 
 import { ApolloInternetAccountModel } from './ApolloInternetAccount/model'
 
@@ -48,6 +54,7 @@ interface ApolloRefSeqResponse {
   length: string
   assembly: string
 }
+const socket = io('http://localhost:3999')
 
 export interface CollaboratorLocation {
   assembly: string
@@ -90,6 +97,51 @@ const ClientDataStore = types
         }
         const { assemblyName, refName } = region
         let assembly = self.assemblies.get(assemblyName)
+        //* ******* */
+        console.log(`NYT ASSEMBLYSSA "${assembly}"`)
+        const session = getSession(self) as ApolloSession
+
+        const token = self.internetAccounts[0].retrieveToken()
+        console.log(`TOKEN "${token}"`)
+        if (!token) {
+          throw new Error(`No Token found`)
+        }
+
+        const { notify } = session
+        const [firstRef] = regions
+        const channel = `${assembly?._id}-${firstRef.refName}`
+        const changeManager = new ChangeManager(
+          self as unknown as ClientDataStoreType,
+        )
+        console.log(`User starts listening '${channel}' and 'COMMON'`)
+        socket.removeListener() // Remove any old listener
+        socket.on('COMMON', (message) => {
+          console.log(`COMMON MESSAGE: '${JSON.stringify(message)}'`)
+
+          if (message.channel === 'COMMON' && message.userToken !== token) {
+            changeManager?.submitToClientOnly(message.changeInfo)
+            notify(
+              `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
+                message.changeInfo,
+              )}`,
+              'success',
+            )
+          }
+        })
+
+        socket.on(channel, (message) => {
+          console.log(`OTHER MESSAGE: '${JSON.stringify(message)}'`)
+          if (message.userToken !== token && message.channel === channel) {
+            changeManager?.submitToClientOnly(message.changeInfo)
+            notify(
+              `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
+                message.changeInfo,
+              )}`,
+              'success',
+            )
+          }
+        })
+        //* ******* */
         if (!assembly) {
           assembly = self.assemblies.put({ _id: assemblyName, refSeqs: {} })
         }

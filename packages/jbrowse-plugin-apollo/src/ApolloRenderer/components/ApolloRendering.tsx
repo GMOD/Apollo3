@@ -114,24 +114,24 @@ function ApolloRendering(props: ApolloRenderingProps) {
 
     const { notify } = session
     const assName = region.assemblyName
-    if (assName) {
-      const [firstRef] = regions
-      const channel = `${assName}-${firstRef.refName}`
-      console.log(`User '${clientUser}' starts listening '${channel}'`)
-      socket.removeListener() // Remove any old listener
+    // if (assName) {
+    //   const [firstRef] = regions
+    //   const channel = `${assName}-${firstRef.refName}`
+    //   console.log(`User '${clientUser}' starts listening '${channel}'`)
+    //   socket.removeListener() // Remove any old listener
 
-      socket.on(channel, (message) => {
-        if (message.userName !== clientUser && message.channel === channel) {
-          changeManager?.submitToClientOnly(message.changeInfo)
-          notify(
-            `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
-              message.changeInfo,
-            )}`,
-            'success',
-          )
-        }
-      })
-    }
+    //   socket.on(channel, (message) => {
+    //     if (message.userToken !== clientUser && message.channel === channel) {
+    //       changeManager?.submitToClientOnly(message.changeInfo)
+    //       notify(
+    //         `${JSON.stringify(message.userToken)} changed : ${JSON.stringify(
+    //           message.changeInfo,
+    //         )}`,
+    //         'success',
+    //       )
+    //     }
+    //   })
+    // }
   }, [region.refName])
 
   useEffect(() => {

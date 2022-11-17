@@ -26,6 +26,7 @@ import { FilterQuery, Model } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service'
 import { FilesService } from '../files/files.service'
+import { Message } from '../messages/entities/message.entity'
 import { MessagesGateway } from '../messages/messages.gateway'
 import { FindChangeDto } from './dto/find-change.dto'
 
@@ -52,7 +53,7 @@ export class ChangesService {
 
   private readonly logger = new Logger(ChangesService.name)
 
-  async create(change: BaseChange, user: string) {
+  async create(change: BaseChange, user: string, userToken: string) {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
     const validationResult = await validationRegistry.backendPreValidate(
       change,
@@ -115,14 +116,18 @@ export class ChangesService {
       }
       this.logger.debug(`TypeName: ${change.typeName}`)
 
-      // There is no broadcast for 'DeleteAssemblyChange' yet
-      if (change.typeName !== 'DeleteAssemblyChange') {
+      // Assembly related changes are broadcasted to 'COMMON' -channel
+      if (
+        change.typeName !== 'AddAssemblyAndFeaturesFromFileChange' &&
+        change.typeName !== 'AddAssemblyFromFileChange' &&
+        change.typeName !== 'DeleteAssemblyChange'
+      ) {
         // For broadcasting we need also refName
         const tmpObject1: any = {
           ...change,
         }
         tmpObject = {
-          ...tmpObject1.changes[0],  // Should we loop all changes or is there just one change?
+          ...tmpObject1.changes[0], // Should we loop all changes or is there just one change?
         }
         this.logger.debug(
           `Individual change object: ${JSON.stringify(tmpObject)}`,
@@ -157,29 +162,36 @@ export class ChangesService {
     })
     this.logger.debug(`ChangeDocId: ${changeDoc?._id}`)
 
-    // There is no broadcast for 'DeleteAssemblyChange' yet
-    if (change.typeName === 'DeleteAssemblyChange') {
-      return
-    }
     // Broadcast
     const broadcastChanges: string[] = [
+      'AddAssemblyFromFileChange',
+      'AddAssemblyAndFeaturesFromFileChange',
       'AddFeatureChange',
       'CopyFeatureChange',
+      'DeleteAssemblyChange',
       'DeleteFeatureChange',
       'LocationEndChange',
       'LocationStartChange',
     ]
     if (broadcastChanges.includes(change.typeName as unknown as string)) {
       let channel
-      // Get feature's refSeqName
-      const refDoc = await this.refSeqModel.findById(refSeqId).exec()
-      if (!refDoc) {
-        const errMsg = `*** ERROR: The following refSeq was not found in database ='${refSeqId}'`
-        this.logger.error(errMsg)
-        throw new Error(errMsg)
+      let refDoc
+      if (
+        change.typeName !== 'AddAssemblyAndFeaturesFromFileChange' &&
+        change.typeName !== 'AddAssemblyFromFileChange' &&
+        change.typeName !== 'DeleteAssemblyChange'
+      ) {
+        // Get feature's refSeqName
+        refDoc = await this.refSeqModel.findById(refSeqId).exec()
+        if (!refDoc) {
+          const errMsg = `*** ERROR: The following refSeq was not found in database ='${refSeqId}'`
+          this.logger.error(errMsg)
+          throw new Error(errMsg)
+        }
       }
 
-      let msg
+      let msg: Message
+
       // In case of 'CopyFeatureChange', we need to create 'AddFeatureChange' to all connected clients
       if (change.typeName === 'CopyFeatureChange') {
         const { targetAssemblyId } = tmpObject
@@ -195,24 +207,40 @@ export class ChangesService {
         tmpObject.typeName = 'AddFeatureChange'
         tmpObject.assembly = targetAssemblyId
         tmpObject.addedFeature = topLevelFeature
-        channel = `${targetAssemblyId}-${refDoc.name}`
+        channel = `${targetAssemblyId}-${refDoc?.name}`
         msg = {
           changeInfo: tmpObject,
           userName: user,
+          userToken,
           channel,
         }
-      } else {
-        channel = `${tmpObject.assembly}-${refDoc.name}`
+        // In case of 'AddAssemblyAndFeaturesFromFileChange' or  'AddAssemblyAndFeaturesFromFileChange' or 'DeleteAssemblyChange', we use 'COMMON' channel to broadcast to all connected clients
+      } else if (
+        change.typeName === 'AddAssemblyFromFileChange' ||
+        change.typeName === 'AddAssemblyAndFeaturesFromFileChange' ||
+        change.typeName === 'DeleteAssemblyChange'
+      ) {
+        console.log(`CHANGE: ${JSON.stringify(change)}`)
+        channel = 'COMMON'
         msg = {
           changeInfo: change,
           userName: user,
+          userToken,
+          channel,
+        }
+      } else {
+        channel = `${tmpObject.assembly}-${refDoc?.name}`
+        msg = {
+          changeInfo: change,
+          userName: user,
+          userToken,
           channel,
         }
       }
 
       this.logger.debug(
         `Broadcasting to channel '${channel}', changeObject: "${JSON.stringify(
-          tmpObject,
+          msg,
         )}"`,
       )
       await this.messagesGateway.create(channel, msg)

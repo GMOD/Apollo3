@@ -6,6 +6,7 @@ import {
   validationRegistry,
 } from '../Validations/ValidationSet'
 import {
+  AddAssemblyFromFileChange,
   AddFeatureChange,
   DeleteAssemblyChange,
   DeleteFeatureChange,
@@ -101,8 +102,18 @@ export class ChangeManager {
     }
     const { featureId, changedIds, assembly } = tmpObject
 
-    console.log(`OBJECTI: ${JSON.stringify(tmpObject)}`)
+    console.log(`CHANGE MANAGER: OBJECTI: ${JSON.stringify(tmpObject)}`)
     switch (change.typeName) {
+      case 'AddAssemblyFromFileChange':
+        console.log(
+          `CHANGE MANAGER: AddAssemblyFromFileChange: Adding assembly ${JSON.stringify(assembly)}`,
+        )
+        ch = new AddAssemblyFromFileChange({
+          typeName: 'AddAssemblyFromFileChange',
+          assembly: tmpObject.assemblyName,
+          changes: tmpObject,
+        })
+        break
       case 'AddFeatureChange':
         const { addedFeature } = tmpObject
         console.log(
@@ -115,13 +126,13 @@ export class ChangeManager {
           assembly,
         })
         break
-      // case 'DeleteAssemblyChange':
-      //   console.log(`DeleteAssemblyChange: Delete assembly ${JSON.stringify(assembly)}`)
-      //   ch = new DeleteAssemblyChange({
-      //     typeName: 'DeleteAssemblyChange',
-      //     assembly,
-      //   })
-      //   break
+      case 'DeleteAssemblyChange':
+        console.log(`CHANGE MANAGER: DeleteAssemblyChange: Delete assembly ${JSON.stringify(assembly)}`)
+        ch = new DeleteAssemblyChange({
+          typeName: 'DeleteAssemblyChange',
+          assembly,
+        })
+        break
       case 'DeleteFeatureChange':
         const { parentFeatureId, deletedFeature } = tmpObject
         ch = new DeleteFeatureChange({
