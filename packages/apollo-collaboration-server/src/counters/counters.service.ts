@@ -14,11 +14,11 @@ export class CountersService {
 
   async getNextSequenceValue(sequenceName: string): Promise<number> {
     const sequenceDocument = await this.counterModel
-      .findOneAndUpdate({
-        filter: { _id: sequenceName },
-        update: { $inc: { sequenceValue: 1 } },
-        returnNewDocument: true,
-      })
+      .findOneAndUpdate(
+        { id: sequenceName },
+        { $inc: { sequenceValue: 1 } },
+        { new: true },
+      )
       .exec()
     if (!sequenceDocument) {
       const errMsg = `ERROR when getting next sequence value`
