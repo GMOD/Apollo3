@@ -29,7 +29,7 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
    * @param backend - parameters from backend
    * @returns
    */
-  async applyToServer(backend: ServerDataStore) {
+  async executeOnServer(backend: ServerDataStore) {
     const {
       assemblyModel,
       featureModel,
@@ -68,11 +68,11 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
     this.logger.debug?.(`Assembly "${assembly}" deleted from database.`)
   }
 
-  async applyToLocalGFF3(backend: LocalGFF3DataStore) {
-    throw new Error('applyToLocalGFF3 not implemented')
+  async executeOnLocalGFF3(backend: LocalGFF3DataStore) {
+    throw new Error('executeOnLocalGFF3 not implemented')
   }
 
-  async applyToClient(dataStore: ClientDataStore) {
+  async executeOnClient(dataStore: ClientDataStore) {
     const { assembly } = this
     if (!dataStore) {
       throw new Error('No data store')

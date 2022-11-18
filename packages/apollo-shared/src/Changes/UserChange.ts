@@ -48,7 +48,7 @@ export class UserChange extends Change {
     return { typeName, userId, changes }
   }
 
-  async applyToServer(backend: ServerDataStore) {
+  async executeOnServer(backend: ServerDataStore) {
     const { userModel, session } = backend
     const { changes, userId, logger } = this
 
@@ -67,12 +67,12 @@ export class UserChange extends Change {
     }
   }
 
-  async applyToLocalGFF3(backend: LocalGFF3DataStore) {
-    throw new Error('applyToLocalGFF3 not implemented')
+  async executeOnLocalGFF3(backend: LocalGFF3DataStore) {
+    throw new Error('executeOnLocalGFF3 not implemented')
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  async applyToClient(dataStore: ClientDataStore) {}
+  async executeOnClient(dataStore: ClientDataStore) {}
 
   getInverse() {
     const { typeName, changes, userId, logger } = this

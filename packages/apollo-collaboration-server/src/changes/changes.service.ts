@@ -100,7 +100,7 @@ export class ChangesService {
     let changeDoc: ChangeDocument | undefined
     await this.featureModel.db.transaction(async (session) => {
       try {
-        await change.apply({
+        await change.execute({
           typeName: 'Server',
           featureModel: this.featureModel,
           assemblyModel: this.assemblyModel,
