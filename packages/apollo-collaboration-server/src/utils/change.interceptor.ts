@@ -32,7 +32,7 @@ export class ChangeInterceptor implements NestInterceptor {
     const jwtPayload = getDecodedAccessToken(token)
     const { email: user } = jwtPayload
 
-    request.body = { change, user, token }
+    request.body = { change, user, userToken: token }
     this.logger.debug(`Interceptor body '${JSON.stringify(request.body)}'`)
     return next.handle().pipe(map((retData) => retData))
   }

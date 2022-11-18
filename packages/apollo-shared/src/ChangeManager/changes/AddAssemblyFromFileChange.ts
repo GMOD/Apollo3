@@ -1,4 +1,5 @@
 import { getSession } from '@jbrowse/core/util'
+
 import {
   AssemblySpecificChange,
   SerializedAssemblySpecificChange,
@@ -108,25 +109,25 @@ export class AddAssemblyFromFileChange extends AssemblySpecificChange {
     throw new Error('applyToLocalGFF3 not implemented')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   async applyToClient(dataStore: ClientDataStore) {
-    console.log('ADD ASSEMBLY FROM FILE CHANGE')
-    // const { assembly } = this
+    // console.log('ADD ASSEMBLY FROM FILE CHANGE')
+    // const session = getSession(dataStore)
+    // const { assembly, changes } = this
+    // console.log(`CHANGE 0: ${JSON.stringify(changes)}`)
+    // const tmpObject: any = changes
+    // const assName = tmpObject.assemblyName
+    // console.log(`ASS-NAME: ${JSON.stringify(assName)}`)
+    // console.log(`ASSEMBLY: ${JSON.stringify(assembly)}`)
     // if (!dataStore) {
     //   throw new Error('No data store')
     // }
-    // const session = getSession(dataStore)
+    // const ass = session.apolloDataStore.assemblies.get(assembly)
+    // console.log(`ASS: ${JSON.stringify(ass)}`)
     // // If assemblyId is not present in client data store
     // if (!dataStore.assemblies.has(assembly)) {
-    //   // await session.assemblies.push({ _id: assemblyName, refSeqs: {} })
-    //   // // eslint-disable-next-line no-console
-    //   // console.log('Assembly has been deleted from session!')
-    //   // return
+    //   await session.addAssembly?.(assembly)
+    //   dataStore.addAssembly(assembly, '')
     // }
-    // dataStore.assemblies.entries.deleteAssembly(assembly)
-    // await session.removeAssembly?.(assembly)
-    // // eslint-disable-next-line no-console
-    // console.log('Assembly has been deleted from session and client data store')
   }
 
   getInverse() {

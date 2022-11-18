@@ -114,26 +114,128 @@ function ApolloRendering(props: ApolloRenderingProps) {
 
     const { notify } = session
     const assName = region.assemblyName
-    // if (assName) {
-    //   const [firstRef] = regions
-    //   const channel = `${assName}-${firstRef.refName}`
-    //   console.log(`User '${clientUser}' starts listening '${channel}'`)
-    //   socket.removeListener() // Remove any old listener
+    if (assName) {
+      const [firstRef] = regions
+      const channel = `${assName}-${firstRef.refName}`
+      console.log(`User '${clientUser}' starts listening '${channel}'`)
+      socket.removeListener() // Remove any old listener
 
-    //   socket.on(channel, (message) => {
-    //     if (message.userToken !== clientUser && message.channel === channel) {
-    //       changeManager?.submitToClientOnly(message.changeInfo)
-    //       notify(
-    //         `${JSON.stringify(message.userToken)} changed : ${JSON.stringify(
-    //           message.changeInfo,
-    //         )}`,
-    //         'success',
-    //       )
-    //     }
-    //   })
-    // }
+      socket.on(channel, (message) => {
+        if (message.userToken !== clientUser && message.channel === channel) {
+          changeManager?.submitToClientOnly(message.changeInfo)
+          notify(
+            `${JSON.stringify(message.userToken)} changed : ${JSON.stringify(
+              message.changeInfo,
+            )}`,
+            'success',
+          )
+        }
+      })
+      // eslint-disable-next-line no-loop-func
+      socket.on('connect', function () {
+        console.log('Connected to Apollo Rendering')
+        notify(
+          `You are re-connected to Apollo server. Let's fetch the last changes from server...`,
+          'success',
+        )
+        // const { internetAccounts } = getRoot(self) as AppRootModel
+        // console.log('0Haetaan uutta dataa...')
+        // foo(internetAccounts)
+        // console.log('Done!')
+        // let msg
+        // for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
+        //   foo(3)
+        // const { baseURL } = apolloInternetAccount
+        // const url = new URL('changes/getUpdate', baseURL)
+        // const searchParams = new URLSearchParams({
+        //   timestamp: 'timestamp',
+        //   clientId: 'clientId',
+        // })
+        // url.search = searchParams.toString()
+        // const uri = url.toString()
+        getAssemblies(apolloInternetAccount)
+        // // const uri = new URL('changes', baseURL).href
+        // const apolloFetch = apolloInternetAccount.getFetcher({
+        //   locationType: 'UriLocation',
+        //   uri,
+        // })
+        // // if (apolloFetch) {
+        //   const response = await apolloFetch(uri, {
+        //     method: 'GET',
+        //   })
+        //   if (!response.ok) {
+        //     let msg
+        //     try {
+        //       msg = await response.text()
+        //     } catch (e) {
+        //       msg = ''
+        //     }
+        //     setErrorMessage(
+        //       `Error when copying features — ${response.status} (${
+        //         response.statusText
+        //       })${msg ? ` (${msg})` : ''}`,
+        //     )
+        //     return
+        //   }
+        //   const data = await response.json()
+        // data.forEach((item: Collection) => {
+        //   // Do not show source assembly in the list of target assemblies
+        //   if (item._id !== sourceAssemblyId) {
+        //     setCollection((result) => [
+        //       ...result,
+        //       {
+        //         _id: item._id,
+        //         name: item.name,
+        //       },
+        //     ])
+        //   }
+        // })
+        // }
+      })
+      socket.on('disconnect', function () {
+        console.log('Disconnected from Apollo Rendering')
+        notify(`You are disconnected from Apollo server!`, 'error')
+      })
+    }
   }, [region.refName])
 
+  async function getAssemblies(apolloInternetAccount: any) {
+    const { baseURL } = apolloInternetAccount
+    const url = new URL('changes/getUpdate', baseURL)
+    const searchParams = new URLSearchParams({
+      timestamp: 'timestampX',
+      clientId: 'clientIdX',
+    })
+    url.search = searchParams.toString()
+    const uri = url.toString()
+    // const uri = new URL('changes', baseURL).href
+    const apolloFetch = apolloInternetAccount.getFetcher({
+      locationType: 'UriLocation',
+      uri,
+    })
+
+    if (apolloFetch) {
+      const response = await apolloFetch(uri, {
+        method: 'GET',
+      })
+      if (!response.ok) {
+        let msg
+        try {
+          msg = await response.text()
+        } catch (e) {
+          msg = ''
+        }
+        console.log(
+          `Error when copying features — ${response.status} (${
+            response.statusText
+          })${msg ? ` (${msg})` : ''}`,
+        )
+        return
+      }
+      const data = await response.json()
+      console.log(`PALAUTUI: "${JSON.stringify(data)}"`)
+    }
+  }
   useEffect(() => {
     const { internetAccounts } = getRoot(session) as AppRootModel
     const { assemblyName } = region

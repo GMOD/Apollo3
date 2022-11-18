@@ -55,6 +55,8 @@ export class ChangesService {
 
   async create(change: BaseChange, user: string, userToken: string) {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
+    this.logger.debug(`USER: ${user}`)
+    this.logger.debug(`TOKEN: ${userToken}`)
     const validationResult = await validationRegistry.backendPreValidate(
       change,
       { userModel: this.userModel },
@@ -191,6 +193,7 @@ export class ChangesService {
       }
 
       let msg: Message
+      const timestamp = new Date().getTime()
 
       // In case of 'CopyFeatureChange', we need to create 'AddFeatureChange' to all connected clients
       if (change.typeName === 'CopyFeatureChange') {
@@ -213,6 +216,7 @@ export class ChangesService {
           userName: user,
           userToken,
           channel,
+          timestamp,
         }
         // In case of 'AddAssemblyAndFeaturesFromFileChange' or  'AddAssemblyAndFeaturesFromFileChange' or 'DeleteAssemblyChange', we use 'COMMON' channel to broadcast to all connected clients
       } else if (
@@ -220,13 +224,13 @@ export class ChangesService {
         change.typeName === 'AddAssemblyAndFeaturesFromFileChange' ||
         change.typeName === 'DeleteAssemblyChange'
       ) {
-        console.log(`CHANGE: ${JSON.stringify(change)}`)
         channel = 'COMMON'
         msg = {
           changeInfo: change,
           userName: user,
           userToken,
           channel,
+          timestamp,
         }
       } else {
         channel = `${tmpObject.assembly}-${refDoc?.name}`
@@ -235,6 +239,7 @@ export class ChangesService {
           userName: user,
           userToken,
           channel,
+          timestamp,
         }
       }
 

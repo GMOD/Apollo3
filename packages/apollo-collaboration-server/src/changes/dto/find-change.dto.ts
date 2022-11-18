@@ -5,3 +5,8 @@ export class FindChangeDto {
   readonly user?: string
   readonly typeName?: string
 }
+
+export class FindChangeByTimeDto {
+  readonly timestamp: string
+  readonly userId: string
+}

@@ -1,5 +1,6 @@
 import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
+import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import {
   AbstractSessionModel,
   AppRootModel,
@@ -97,16 +98,12 @@ const ClientDataStore = types
         }
         const { assemblyName, refName } = region
         let assembly = self.assemblies.get(assemblyName)
-        //* ******* */
-        console.log(`NYT ASSEMBLYSSA "${assembly}"`)
+        //* **** SOCKET CHANGE BEGINS *** */
         const session = getSession(self) as ApolloSession
-
         const token = self.internetAccounts[0].retrieveToken()
-        console.log(`TOKEN "${token}"`)
         if (!token) {
           throw new Error(`No Token found`)
         }
-
         const { notify } = session
         const [firstRef] = regions
         const channel = `${assembly?._id}-${firstRef.refName}`
@@ -116,8 +113,9 @@ const ClientDataStore = types
         console.log(`User starts listening '${channel}' and 'COMMON'`)
         socket.removeListener() // Remove any old listener
         socket.on('COMMON', (message) => {
+          // Save the last server timestamp
+          sessionStorage.setItem('LastSocketTimestamp', message.timestamp)
           console.log(`COMMON MESSAGE: '${JSON.stringify(message)}'`)
-
           if (message.channel === 'COMMON' && message.userToken !== token) {
             changeManager?.submitToClientOnly(message.changeInfo)
             notify(
@@ -127,10 +125,17 @@ const ClientDataStore = types
               'success',
             )
           }
+          console.log(
+            `Last timestamp: '${sessionStorage.getItem(
+              'LastSocketTimestamp',
+            )}'`,
+          )
         })
 
         socket.on(channel, (message) => {
           console.log(`OTHER MESSAGE: '${JSON.stringify(message)}'`)
+          // Save the last server timestamp
+          sessionStorage.setItem('LastSocketTimestamp', message.timestamp)
           if (message.userToken !== token && message.channel === channel) {
             changeManager?.submitToClientOnly(message.changeInfo)
             notify(
@@ -140,8 +145,70 @@ const ClientDataStore = types
               'success',
             )
           }
+          console.log(
+            `Last timestamp: '${sessionStorage.getItem(
+              'LastSocketTimestamp',
+            )}'`,
+          )
         })
-        //* ******* */
+
+        // eslint-disable-next-line no-loop-func
+        socket.on('connect', function () {
+          console.log('Connected')
+          notify(
+            `You are re-connected to Apollo server. Let's fetch the last changes from server...`,
+            'success',
+          )
+          const { internetAccounts } = getRoot(self) as AppRootModel
+          console.log('0Haetaan uutta dataa...')
+          foo(internetAccounts)
+          console.log('Done!')
+          // let msg
+          // for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
+          //   foo(3)
+          //   // const { baseURL } = internetAccount
+          //   // const url = new URL('changes/getUpdate', baseURL)
+          //   // const searchParams = new URLSearchParams({
+          //   //   timestamp: 'timestamp',
+          //   //   clientId: 'clientId',
+          //   // })
+          //   // url.search = searchParams.toString()
+          //   // const uri = url.toString()
+
+          //   // // const uri = new URL('changes', baseURL).href
+          //   // const apolloFetch = internetAccount.getFetcher({
+          //   //   locationType: 'UriLocation',
+          //   //   uri,
+          //   // })
+          //   // let response: Response
+          //   // try {
+          //   //   response = yield apolloFetch(uri, {headers: new Headers({ 'Content-Type': 'application/json' })})
+          //   // } catch (e) {
+          //   //   console.error(`ERROR: ${e}`)
+          //   //   // setError(e instanceof Error ? e : new Error(String(e)))
+          //   //   continue
+          //   // }
+          //   // if (!response.ok) {
+          //   //   let errorMessage
+          //   //   try {
+          //   //     errorMessage = yield response.text()
+          //   //   } catch (e) {
+          //   //     errorMessage = ''
+          //   //   }
+          //   //   console.error(
+          //   //     `Failed to fetch assemblies — ${response.status} (${
+          //   //       response.statusText
+          //   //     })${errorMessage ? ` (${errorMessage})` : ''}`,
+          //   //   )
+          //   //   continue
+          //   // }
+          // }
+        })
+        socket.on('disconnect', function () {
+          console.log('Disconnected')
+          notify(`You are disconnected from Apollo server!`, 'error')
+        })
+        //* **** SOCKET CHANGE ENDS *** */
         if (!assembly) {
           assembly = self.assemblies.put({ _id: assemblyName, refSeqs: {} })
         }
@@ -175,6 +242,13 @@ const ClientDataStore = types
         )
       }
       ref.features.put(feature)
+    },
+    addAssembly(assemblyId: string, assemblyName: string) {
+      self.assemblies.put({ _id: assemblyId, refSeqs: {} })
+      const assembly = self.assemblies.get(assemblyId)
+      const assembly2 = self.assemblies.get('6376374dce5603619b0534ab')
+      console.log(`ASSEMBLY: ${JSON.stringify(assembly)}`)
+      console.log(`ASSEMBLY2: ${JSON.stringify(assembly2)}`)
     },
     deleteFeature(featureId: string) {
       const feature = self.getFeature(featureId)
@@ -383,3 +457,51 @@ export function extendSession(sessionModel: IAnyModelType) {
 
 export type ApolloSessionStateModel = ReturnType<typeof extendSession>
 export type ApolloSessionModel = Instance<ApolloSessionStateModel>
+function* foo(internetAccounts: BaseInternetAccountModel[]) {
+  // const { internetAccounts } = getRoot(self) as AppRootModel
+  let msg
+  console.log('alkaa-----')
+  for (const internetAccount of internetAccounts as unknown as ApolloInternetAccountModel[]) {
+  console.log('+++ alkaa-----')
+  const { baseURL } = internetAccount
+    const url = new URL('changes/getUpdate', baseURL)
+    const searchParams = new URLSearchParams({
+      timestamp: 'timestamp',
+      clientId: 'clientId',
+    })
+    url.search = searchParams.toString()
+    const uri = url.toString()
+
+    // const uri = new URL('changes', baseURL).href
+    const apolloFetch = internetAccount.getFetcher({
+      locationType: 'UriLocation',
+      uri,
+    })
+    let response: Response
+    try {
+      response = yield apolloFetch(uri, {headers: new Headers({ 'Content-Type': 'application/json' })})
+    } catch (e) {
+      console.error(`ERROR: ${e}`)
+      // setError(e instanceof Error ? e : new Error(String(e)))
+      continue
+    }
+    if (!response.ok) {
+      let errorMessage
+      // try {
+      //   errorMessage = yield response.text()
+      // } catch (e) {
+      //   errorMessage = ''
+      // }
+      console.error(
+        `Failed to fetch assemblies — ${response.status} (${
+          response.statusText
+        })${errorMessage ? ` (${errorMessage})` : ''}`,
+      )
+      continue
+    }
+  }
+  // while (index < 2) {
+  //   yield index;
+  //   index++;
+  // }
+}

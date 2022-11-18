@@ -106,11 +106,14 @@ export class ChangeManager {
     switch (change.typeName) {
       case 'AddAssemblyFromFileChange':
         console.log(
-          `CHANGE MANAGER: AddAssemblyFromFileChange: Adding assembly ${JSON.stringify(assembly)}`,
+          `CHANGE MANAGER: AddAssemblyFromFileChange: Adding assembly ${JSON.stringify(
+            assembly,
+          )}`,
         )
         ch = new AddAssemblyFromFileChange({
           typeName: 'AddAssemblyFromFileChange',
-          assembly: tmpObject.assemblyName,
+          assembly: tmpObject.assembly,
+          assemblyName: tmpObject.assemblyName,
           changes: tmpObject,
         })
         break
@@ -127,7 +130,11 @@ export class ChangeManager {
         })
         break
       case 'DeleteAssemblyChange':
-        console.log(`CHANGE MANAGER: DeleteAssemblyChange: Delete assembly ${JSON.stringify(assembly)}`)
+        console.log(
+          `CHANGE MANAGER: DeleteAssemblyChange: Delete assembly ${JSON.stringify(
+            assembly,
+          )}`,
+        )
         ch = new DeleteAssemblyChange({
           typeName: 'DeleteAssemblyChange',
           assembly,

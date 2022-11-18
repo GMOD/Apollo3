@@ -13,6 +13,7 @@ import { JWTPayload } from 'apollo-shared'
 import jwtDecode from 'jwt-decode'
 import { autorun } from 'mobx'
 import { Instance, getRoot, types } from 'mobx-state-tree'
+import { io } from 'socket.io-client'
 
 import {
   AddAssembly,
@@ -252,6 +253,36 @@ const stateModelFactory = (
           const superStoreToken = s.storeToken
           return {
             storeToken(token: string) {
+              console.log(`User starts listening 'COMMON'`)
+              const socket = io('http://localhost:3999')
+              const { session } = getRoot(self)
+              const { notify } = session
+
+              const { changeManager } = (session as ApolloSessionModel)
+                .apolloDataStore
+              socket.removeListener() // Remove any old listener
+              socket.on('COMMON', (message) => {
+                // Save the last server timestamp
+                sessionStorage.setItem('LastSocketTimestamp', message.timestamp)
+                console.log(`COMMON MESSAGE: '${JSON.stringify(message)}'`)
+                if (
+                  message.channel === 'COMMON' &&
+                  message.userToken !== token
+                ) {
+                  changeManager?.submitToClientOnly(message.changeInfo)
+                  notify(
+                    `${JSON.stringify(
+                      message.userName,
+                    )} changed : ${JSON.stringify(message.changeInfo)}`,
+                    'success',
+                  )
+                }
+                console.log(
+                  `Last timestamp: '${sessionStorage.getItem(
+                    'LastSocketTimestamp',
+                  )}'`,
+                )
+              })
               superStoreToken(token)
               const payload = jwtDecode(token) as JWTPayload
               if (payload.roles.includes('admin')) {

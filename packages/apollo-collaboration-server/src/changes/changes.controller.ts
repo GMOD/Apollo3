@@ -15,7 +15,7 @@ import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { ChangesService } from './changes.service'
-import { FindChangeDto } from './dto/find-change.dto'
+import { FindChangeByTimeDto, FindChangeDto } from './dto/find-change.dto'
 
 @UseGuards(JwtAuthGuard)
 @Validations(Role.ReadOnly)
@@ -32,7 +32,18 @@ export class ChangesController {
   @Post()
   @UseInterceptors(ChangeInterceptor)
   @Validations(Role.User)
-  async create(@Body() { change, user, userToken }: { change: Change; user: string; userToken: string }) {
+  async create(
+    @Body()
+    {
+      change,
+      user,
+      userToken,
+    }: {
+      change: Change
+      user: string
+      userToken: string
+    },
+  ) {
     this.logger.debug(
       `Change type is '${change.typeName}', change object: ${JSON.stringify(
         change,
@@ -45,5 +56,11 @@ export class ChangesController {
   async findAll(@Query() changeFilter: FindChangeDto) {
     this.logger.debug(`ChangeFilter: ${JSON.stringify(changeFilter)}`)
     return this.changesService.findAll(changeFilter)
+  }
+
+  @Get('getUpdate')
+  async getUpdate(@Query() changeFilter: FindChangeByTimeDto) {
+    this.logger.debug(`getUpdate: ${JSON.stringify(changeFilter)}`)
+    return {vastaus: 'KAIKKI KUNNOSSA'} //this.changesService.findAll(changeFilter)
   }
 }
