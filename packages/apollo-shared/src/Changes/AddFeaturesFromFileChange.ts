@@ -61,7 +61,7 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
    * @param backend - parameters from backend
    * @returns
    */
-  async applyToServer(backend: ServerDataStore) {
+  async executeOnServer(backend: ServerDataStore) {
     const { filesService, fileModel } = backend
     const { changes, logger } = this
 
@@ -95,12 +95,12 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
     logger.debug?.(`New features added into database!`)
   }
 
-  async applyToLocalGFF3(backend: LocalGFF3DataStore) {
-    throw new Error('applyToLocalGFF3 not implemented')
+  async executeOnLocalGFF3(backend: LocalGFF3DataStore) {
+    throw new Error('executeOnLocalGFF3 not implemented')
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  async applyToClient(dataStore: ClientDataStore) {}
+  async executeOnClient(dataStore: ClientDataStore) {}
 
   getInverse() {
     const { typeName, changes, assembly, logger } = this
