@@ -68,6 +68,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
         />,
       ],
     },
+    { field: 'sequence', hide: true },
     {
       field: 'typeName',
       headerName: 'Change type',
@@ -205,6 +206,11 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
             getRowId={(row) => row._id}
             components={{ Toolbar: GridToolbar }}
             getRowHeight={() => 'auto'}
+            initialState={{
+              sorting: {
+                sortModel: [{ field: 'sequence', sort: 'desc' }],
+              },
+            }}
           />
         </div>
       </DialogContent>

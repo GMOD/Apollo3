@@ -62,6 +62,9 @@ export interface ServerDataStore {
     create(createFileDto: CreateFileDto): void
     remove(id: string): void
   }
+  counterService: {
+    getNextSequenceValue(sequenceName: string): Promise<number>
+  }
 }
 
 export interface SerializedChange {

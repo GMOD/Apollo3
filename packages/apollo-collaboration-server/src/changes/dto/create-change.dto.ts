@@ -4,4 +4,5 @@ export class CreateChangeDto {
   readonly reverts?: string
   readonly user: string
   readonly typeName: string
+  readonly sequence: number
 }
