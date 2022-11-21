@@ -7,6 +7,6 @@ export class FindChangeDto {
 }
 
 export class FindChangeByTimeDto {
-  readonly timestamp: string
-  readonly userId: string
+  readonly timestamp: number
+  readonly clientId: string
 }

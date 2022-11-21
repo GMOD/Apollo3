@@ -155,58 +155,14 @@ const ClientDataStore = types
         // eslint-disable-next-line no-loop-func
         socket.on('connect', function () {
           console.log('Connected')
-          notify(
-            `You are re-connected to Apollo server. Let's fetch the last changes from server...`,
-            'success',
-          )
-          const { internetAccounts } = getRoot(self) as AppRootModel
-          console.log('0Haetaan uutta dataa...')
-          foo(internetAccounts)
-          console.log('Done!')
-          // let msg
-          // for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
-          //   foo(3)
-          //   // const { baseURL } = internetAccount
-          //   // const url = new URL('changes/getUpdate', baseURL)
-          //   // const searchParams = new URLSearchParams({
-          //   //   timestamp: 'timestamp',
-          //   //   clientId: 'clientId',
-          //   // })
-          //   // url.search = searchParams.toString()
-          //   // const uri = url.toString()
-
-          //   // // const uri = new URL('changes', baseURL).href
-          //   // const apolloFetch = internetAccount.getFetcher({
-          //   //   locationType: 'UriLocation',
-          //   //   uri,
-          //   // })
-          //   // let response: Response
-          //   // try {
-          //   //   response = yield apolloFetch(uri, {headers: new Headers({ 'Content-Type': 'application/json' })})
-          //   // } catch (e) {
-          //   //   console.error(`ERROR: ${e}`)
-          //   //   // setError(e instanceof Error ? e : new Error(String(e)))
-          //   //   continue
-          //   // }
-          //   // if (!response.ok) {
-          //   //   let errorMessage
-          //   //   try {
-          //   //     errorMessage = yield response.text()
-          //   //   } catch (e) {
-          //   //     errorMessage = ''
-          //   //   }
-          //   //   console.error(
-          //   //     `Failed to fetch assemblies — ${response.status} (${
-          //   //       response.statusText
-          //   //     })${errorMessage ? ` (${errorMessage})` : ''}`,
-          //   //   )
-          //   //   continue
-          //   // }
-          // }
+          notify(`You are re-connected to Apollo server.`, 'success')
         })
         socket.on('disconnect', function () {
           console.log('Disconnected')
-          notify(`You are disconnected from Apollo server!`, 'error')
+          notify(
+            `You are disconnected from Apollo server! Please, close this message`,
+            'error',
+          )
         })
         //* **** SOCKET CHANGE ENDS *** */
         if (!assembly) {
@@ -245,10 +201,6 @@ const ClientDataStore = types
     },
     addAssembly(assemblyId: string, assemblyName: string) {
       self.assemblies.put({ _id: assemblyId, refSeqs: {} })
-      const assembly = self.assemblies.get(assemblyId)
-      const assembly2 = self.assemblies.get('6376374dce5603619b0534ab')
-      console.log(`ASSEMBLY: ${JSON.stringify(assembly)}`)
-      console.log(`ASSEMBLY2: ${JSON.stringify(assembly2)}`)
     },
     deleteFeature(featureId: string) {
       const feature = self.getFeature(featureId)
@@ -457,51 +409,3 @@ export function extendSession(sessionModel: IAnyModelType) {
 
 export type ApolloSessionStateModel = ReturnType<typeof extendSession>
 export type ApolloSessionModel = Instance<ApolloSessionStateModel>
-function* foo(internetAccounts: BaseInternetAccountModel[]) {
-  // const { internetAccounts } = getRoot(self) as AppRootModel
-  let msg
-  console.log('alkaa-----')
-  for (const internetAccount of internetAccounts as unknown as ApolloInternetAccountModel[]) {
-  console.log('+++ alkaa-----')
-  const { baseURL } = internetAccount
-    const url = new URL('changes/getUpdate', baseURL)
-    const searchParams = new URLSearchParams({
-      timestamp: 'timestamp',
-      clientId: 'clientId',
-    })
-    url.search = searchParams.toString()
-    const uri = url.toString()
-
-    // const uri = new URL('changes', baseURL).href
-    const apolloFetch = internetAccount.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
-    let response: Response
-    try {
-      response = yield apolloFetch(uri, {headers: new Headers({ 'Content-Type': 'application/json' })})
-    } catch (e) {
-      console.error(`ERROR: ${e}`)
-      // setError(e instanceof Error ? e : new Error(String(e)))
-      continue
-    }
-    if (!response.ok) {
-      let errorMessage
-      // try {
-      //   errorMessage = yield response.text()
-      // } catch (e) {
-      //   errorMessage = ''
-      // }
-      console.error(
-        `Failed to fetch assemblies — ${response.status} (${
-          response.statusText
-        })${errorMessage ? ` (${errorMessage})` : ''}`,
-      )
-      continue
-    }
-  }
-  // while (index < 2) {
-  //   yield index;
-  //   index++;
-  // }
-}

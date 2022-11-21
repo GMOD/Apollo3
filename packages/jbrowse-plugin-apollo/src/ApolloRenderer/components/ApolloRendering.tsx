@@ -135,80 +135,55 @@ function ApolloRendering(props: ApolloRenderingProps) {
       socket.on('connect', function () {
         console.log('Connected to Apollo Rendering')
         notify(
-          `You are re-connected to Apollo server. Let's fetch the last changes from server...`,
+          `You are re-connected to Apollo server. Let's fetch the last changes from server.`,
           'success',
         )
-        // const { internetAccounts } = getRoot(self) as AppRootModel
-        // console.log('0Haetaan uutta dataa...')
-        // foo(internetAccounts)
-        // console.log('Done!')
-        // let msg
-        // for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
-        //   foo(3)
-        // const { baseURL } = apolloInternetAccount
-        // const url = new URL('changes/getUpdate', baseURL)
-        // const searchParams = new URLSearchParams({
-        //   timestamp: 'timestamp',
-        //   clientId: 'clientId',
-        // })
-        // url.search = searchParams.toString()
-        // const uri = url.toString()
-        getAssemblies(apolloInternetAccount)
-        // // const uri = new URL('changes', baseURL).href
-        // const apolloFetch = apolloInternetAccount.getFetcher({
-        //   locationType: 'UriLocation',
-        //   uri,
-        // })
-        // // if (apolloFetch) {
-        //   const response = await apolloFetch(uri, {
-        //     method: 'GET',
-        //   })
-        //   if (!response.ok) {
-        //     let msg
-        //     try {
-        //       msg = await response.text()
-        //     } catch (e) {
-        //       msg = ''
-        //     }
-        //     setErrorMessage(
-        //       `Error when copying features — ${response.status} (${
-        //         response.statusText
-        //       })${msg ? ` (${msg})` : ''}`,
-        //     )
-        //     return
-        //   }
-        //   const data = await response.json()
-        // data.forEach((item: Collection) => {
-        //   // Do not show source assembly in the list of target assemblies
-        //   if (item._id !== sourceAssemblyId) {
-        //     setCollection((result) => [
-        //       ...result,
-        //       {
-        //         _id: item._id,
-        //         name: item.name,
-        //       },
-        //     ])
-        //   }
-        // })
-        // }
+        getLastUpdates(apolloInternetAccount)
       })
       socket.on('disconnect', function () {
         console.log('Disconnected from Apollo Rendering')
-        notify(`You are disconnected from Apollo server!`, 'error')
+        notify(
+          `You are disconnected from Apollo server! Please, close this message`,
+          'error',
+        )
       })
     }
   }, [region.refName])
 
-  async function getAssemblies(apolloInternetAccount: any) {
+  /**
+   * Start to listen temporary channel, fetch the last changes from server and finally apply those changes to client data store
+   * @param apolloInternetAccount 
+   * @returns 
+   */
+  async function getLastUpdates(apolloInternetAccount: any) {
+    const lastSuccTimestamp = sessionStorage.getItem('LastSocketTimestamp')
+    if (!lastSuccTimestamp) {
+      throw new Error(
+        `No last succesfull timestamp stored in session. Please, refresh you browser to get last updates from server`,
+      )
+    }
+    const { notify } = session
+    const channel = `tmp_${Math.floor(
+      Math.random() * (10000 - 1000 + 1) + 1000,
+    )}`
+    // Let's start to listen temporary channel where server will send the last updates
+    socket.on(channel, (message) => {
+      changeManager?.submitToClientOnly(message.changeInfo[0])
+      notify(
+        `Get the last updates from server: ${JSON.stringify(
+          message.changeInfo,
+        )}`,
+        'success',
+      )
+    })
     const { baseURL } = apolloInternetAccount
-    const url = new URL('changes/getUpdate', baseURL)
+    const url = new URL('changes/getLastUpdateByTime', baseURL)
     const searchParams = new URLSearchParams({
-      timestamp: 'timestampX',
-      clientId: 'clientIdX',
+      timestamp: lastSuccTimestamp,
+      clientId: channel,
     })
     url.search = searchParams.toString()
     const uri = url.toString()
-    // const uri = new URL('changes', baseURL).href
     const apolloFetch = apolloInternetAccount.getFetcher({
       locationType: 'UriLocation',
       uri,
@@ -219,21 +194,11 @@ function ApolloRendering(props: ApolloRenderingProps) {
         method: 'GET',
       })
       if (!response.ok) {
-        let msg
-        try {
-          msg = await response.text()
-        } catch (e) {
-          msg = ''
-        }
         console.log(
-          `Error when copying features — ${response.status} (${
-            response.statusText
-          })${msg ? ` (${msg})` : ''}`,
+          `Error when fetching the last updates to recover socket connection — ${response.status}`,
         )
         return
       }
-      const data = await response.json()
-      console.log(`PALAUTUI: "${JSON.stringify(data)}"`)
     }
   }
   useEffect(() => {

@@ -58,9 +58,10 @@ export class ChangesController {
     return this.changesService.findAll(changeFilter)
   }
 
-  @Get('getUpdate')
-  async getUpdate(@Query() changeFilter: FindChangeByTimeDto) {
-    this.logger.debug(`getUpdate: ${JSON.stringify(changeFilter)}`)
-    return {vastaus: 'KAIKKI KUNNOSSA'} //this.changesService.findAll(changeFilter)
+  @Get('getLastUpdateByTime')
+  async getLastUpdateByTime(@Query() changeFilter: FindChangeByTimeDto) {
+    this.logger.debug(`getLastUpdateByTime: ${JSON.stringify(changeFilter)}`)
+    this.changesService.reSendChanges(changeFilter)
+    return {status: 'The last updates resent'}
   }
 }

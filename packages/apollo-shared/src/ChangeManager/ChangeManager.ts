@@ -102,14 +102,15 @@ export class ChangeManager {
     }
     const { featureId, changedIds, assembly } = tmpObject
 
-    console.log(`CHANGE MANAGER: OBJECTI: ${JSON.stringify(tmpObject)}`)
+    // console.log(`CHANGE MANAGER: OBJECTI: ${JSON.stringify(tmpObject)}`)
+    // console.log(`CHANGE MANAGER: TYPE: ${JSON.stringify(change.typeName)}`)
     switch (change.typeName) {
       case 'AddAssemblyFromFileChange':
-        console.log(
-          `CHANGE MANAGER: AddAssemblyFromFileChange: Adding assembly ${JSON.stringify(
-            assembly,
-          )}`,
-        )
+        // console.log(
+        //   `CHANGE MANAGER: AddAssemblyFromFileChange: Adding assembly ${JSON.stringify(
+        //     assembly,
+        //   )}`,
+        // )
         ch = new AddAssemblyFromFileChange({
           typeName: 'AddAssemblyFromFileChange',
           assembly: tmpObject.assembly,
@@ -119,9 +120,9 @@ export class ChangeManager {
         break
       case 'AddFeatureChange':
         const { addedFeature } = tmpObject
-        console.log(
-          `AddFeatureChange: Add feature ${JSON.stringify(addedFeature)}`,
-        )
+        // console.log(
+        //   `AddFeatureChange: Add feature ${JSON.stringify(addedFeature)}`,
+        // )
         ch = new AddFeatureChange({
           typeName: 'AddFeatureChange',
           changedIds,
@@ -130,11 +131,11 @@ export class ChangeManager {
         })
         break
       case 'DeleteAssemblyChange':
-        console.log(
-          `CHANGE MANAGER: DeleteAssemblyChange: Delete assembly ${JSON.stringify(
-            assembly,
-          )}`,
-        )
+        // console.log(
+        //   `CHANGE MANAGER: DeleteAssemblyChange: Delete assembly ${JSON.stringify(
+        //     assembly,
+        //   )}`,
+        // )
         ch = new DeleteAssemblyChange({
           typeName: 'DeleteAssemblyChange',
           assembly,
@@ -160,6 +161,7 @@ export class ChangeManager {
           newEnd,
           assembly,
         })
+        // console.log(`CHANGE MANAGER: LocationEndChange: ${JSON.stringify(ch)}`)
         break
       case 'LocationStartChange':
         const { oldStart, newStart } = tmpObject

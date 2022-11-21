@@ -28,7 +28,7 @@ import { CountersService } from '../counters/counters.service'
 import { FilesService } from '../files/files.service'
 import { Message } from '../messages/entities/message.entity'
 import { MessagesGateway } from '../messages/messages.gateway'
-import { FindChangeDto } from './dto/find-change.dto'
+import { FindChangeByTimeDto, FindChangeDto } from './dto/find-change.dto'
 
 export class ChangesService {
   constructor(
@@ -55,8 +55,6 @@ export class ChangesService {
 
   async create(change: BaseChange, user: string, userToken: string) {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
-    this.logger.debug(`USER: ${user}`)
-    this.logger.debug(`TOKEN: ${userToken}`)
     const validationResult = await validationRegistry.backendPreValidate(
       change,
       { userModel: this.userModel },
@@ -295,5 +293,44 @@ export class ChangesService {
     }
 
     return change
+  }
+
+  /**
+   * Resend to last changes to specific client onlyt
+   * @param changeFilter
+   */
+  async reSendChanges(changeFilter: FindChangeByTimeDto) {
+    this.logger.debug(
+      `Search criteria: Change object createdAt timestamp >= "${changeFilter.timestamp}"`,
+    )
+
+    const oldTime = Number(changeFilter.timestamp)
+    const change = await this.changeModel
+      .find({ createdAt: { $gte: new Date(oldTime) } })
+      .sort({ createdAt: 1 })
+      .exec()
+
+    if (!change) {
+      const errMsg = `ERROR: The following change was not found in database....`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+    // this.logger.debug(`ALL CHANGES: ${JSON.stringify(change)}`)
+    change.forEach(async (element) => {
+      const channel = changeFilter.clientId
+      const msg = {
+        changeInfo: element.changes,
+        userName: '',
+        userToken: '',
+        channel,
+        timestamp: '',
+      }
+      this.logger.debug(
+        `Resending to channel '${channel}', changeObject: "${JSON.stringify(
+          msg,
+        )}"`,
+      )
+      await this.messagesGateway.create(channel, msg)
+    })
   }
 }
