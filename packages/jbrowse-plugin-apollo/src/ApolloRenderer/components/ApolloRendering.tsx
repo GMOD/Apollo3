@@ -131,6 +131,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
             )}`,
             'success',
           )
+          sessionStorage.setItem('LastSocketTimestamp', message.timestamp)
         }
       })
 
