@@ -62,6 +62,15 @@ export class ChangesController {
   async getLastUpdateByTime(@Query() changeFilter: FindChangeByTimeDto) {
     this.logger.debug(`getLastUpdateByTime: ${JSON.stringify(changeFilter)}`)
     this.changesService.reSendChanges(changeFilter)
-    return {status: 'The last updates resent'}
+    return { status: 'The last updates resent' }
+  }
+
+  /**
+   * Clients neeed server timestamp when starting to listen socket
+   * @returns Server timestamp as number
+   */
+  @Get('getTimestamp')
+  async getTimestamp() {
+    return new Date().getTime()
   }
 }

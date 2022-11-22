@@ -1,12 +1,6 @@
 import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
-import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
-import {
-  AbstractSessionModel,
-  AppRootModel,
-  Region,
-  getSession,
-} from '@jbrowse/core/util'
+import { AbstractSessionModel, AppRootModel, Region } from '@jbrowse/core/util'
 import {
   AnnotationFeature,
   AnnotationFeatureI,
@@ -30,7 +24,6 @@ import {
   resolveIdentifier,
   types,
 } from 'mobx-state-tree'
-import { io } from 'socket.io-client'
 
 import { ApolloInternetAccountModel } from './ApolloInternetAccount/model'
 
@@ -55,7 +48,7 @@ interface ApolloRefSeqResponse {
   length: string
   assembly: string
 }
-const socket = io('http://localhost:3999')
+// const socket = io('http://localhost:3999')
 
 export interface CollaboratorLocation {
   assembly: string
@@ -99,6 +92,7 @@ const ClientDataStore = types
         const { assemblyName, refName } = region
         let assembly = self.assemblies.get(assemblyName)
         //* **** SOCKET CHANGE BEGINS *** */
+        /*
         const session = getSession(self) as ApolloSession
         const token = self.internetAccounts[0].retrieveToken()
         if (!token) {
@@ -164,6 +158,7 @@ const ClientDataStore = types
             'error',
           )
         })
+        */
         //* **** SOCKET CHANGE ENDS *** */
         if (!assembly) {
           assembly = self.assemblies.put({ _id: assemblyName, refSeqs: {} })

@@ -1,5 +1,4 @@
 import { SerializedChange } from 'apollo-shared'
-import { Timestamp } from 'rxjs'
 
 export class Message {
   changeInfo: SerializedChange

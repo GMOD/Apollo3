@@ -1,5 +1,4 @@
-import { getSession } from '@jbrowse/core/util'
-
+// import { getSession } from '@jbrowse/core/util'
 import {
   AssemblySpecificChange,
   SerializedAssemblySpecificChange,

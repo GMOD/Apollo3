@@ -109,6 +109,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
         `No Token found with config id ${internetAccountConfigId}`,
       )
     }
+    getServerTime(apolloInternetAccount)
+
     const decodedToken = jwtDecode(token) as JWTPayload
     const clientUser = decodedToken.email
 
@@ -131,7 +133,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
           )
         }
       })
-      // eslint-disable-next-line no-loop-func
+
       socket.on('connect', function () {
         console.log('Connected to Apollo Rendering')
         notify(
@@ -148,12 +150,45 @@ function ApolloRendering(props: ApolloRenderingProps) {
         )
       })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [region.refName])
 
   /**
+   * Get server timestamp and save it into session storage
+   * @param apolloInternetAccount - apollo internet account
+   * @returns
+   */
+  async function getServerTime(apolloInternetAccount: any) {
+    const lastSuccTimestamp = sessionStorage.getItem('LastSocketTimestamp')
+    if (lastSuccTimestamp) {
+      return
+      // throw new Error(`Server timestamp already exists`)
+    }
+    const { baseURL } = apolloInternetAccount
+    const uri = new URL('changes/getTimestamp', baseURL)
+    const apolloFetch = apolloInternetAccount.getFetcher({
+      locationType: 'UriLocation',
+      uri,
+    })
+
+    if (apolloFetch) {
+      const response = await apolloFetch(uri, {
+        method: 'GET',
+      })
+      if (!response.ok) {
+        throw new Error(
+          `Error when fetching server timestamp — ${response.status}`,
+        )
+      } else {
+        sessionStorage.setItem('LastSocketTimestamp', await response.text())
+      }
+    }
+  }
+
+  /**
    * Start to listen temporary channel, fetch the last changes from server and finally apply those changes to client data store
-   * @param apolloInternetAccount 
-   * @returns 
+   * @param apolloInternetAccount - apollo internet account
+   * @returns
    */
   async function getLastUpdates(apolloInternetAccount: any) {
     const lastSuccTimestamp = sessionStorage.getItem('LastSocketTimestamp')

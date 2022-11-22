@@ -144,6 +144,7 @@ export class ChangesService {
           } else if (tmpObject.hasOwnProperty('addedFeature')) {
             featureId = tmpObject.addedFeature._id
           } else {
+            // eslint-disable-next-line prefer-destructuring
             featureId = tmpObject.featureId
           }
           // Search correct feature
@@ -296,8 +297,8 @@ export class ChangesService {
   }
 
   /**
-   * Resend to last changes to specific client onlyt
-   * @param changeFilter
+   * Resend to last changes to specific client only
+   * @param changeFilter - timestamp and clientId parameters
    */
   async reSendChanges(changeFilter: FindChangeByTimeDto) {
     this.logger.debug(

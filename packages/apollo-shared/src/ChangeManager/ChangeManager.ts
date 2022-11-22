@@ -183,7 +183,7 @@ export class ChangeManager {
   }
 
   async revert(change: Change, submitToBackend = true) {
-    const inverseChange = change.getInverse()
+    change.getInverse()
   }
 
   /**
