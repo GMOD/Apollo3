@@ -157,7 +157,7 @@ const ClientDataStore = types
               )}'`,
             )
           })
-          // eslint-disable-next-line no-loop-func
+
           socket.on('connect', function () {
             console.log('Connected')
             notify(`You are re-connected to Apollo server.`, 'success')

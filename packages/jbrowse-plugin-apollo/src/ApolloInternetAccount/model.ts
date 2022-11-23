@@ -6,7 +6,6 @@ import {
   AbstractSessionModel,
   AppRootModel,
   UriLocation,
-  getSession,
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
 import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
@@ -460,7 +459,7 @@ function openSocket(session: ApolloSession) {
         )
       }
     })
-    // eslint-disable-next-line no-loop-func
+
     socket.on('connect', function () {
       console.log('Connected')
       notify(`You are re-connected to Apollo server.`, 'success')
