@@ -2,17 +2,11 @@ import { getConf } from '@jbrowse/core/configuration'
 import { AppRootModel, Region, getSession } from '@jbrowse/core/util'
 import { Menu, MenuItem } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
-import {
-  JWTPayload,
-  LocationEndChange,
-  LocationStartChange,
-} from 'apollo-shared'
-import jwtDecode from 'jwt-decode'
+import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { autorun, toJS } from 'mobx'
 import { observer } from 'mobx-react'
 import { getRoot, getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useRef, useState } from 'react'
-import { io } from 'socket.io-client'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { AddFeature } from '../../components/AddFeature'
@@ -30,7 +24,6 @@ interface ApolloRenderingProps {
 }
 
 type Coord = [number, number]
-const socket = io('http://localhost:3999')
 
 function ApolloRendering(props: ApolloRenderingProps) {
   const [contextCoord, setContextCoord] = useState<Coord>()
@@ -83,160 +76,6 @@ function ApolloRendering(props: ApolloRenderingProps) {
     Array.from(a.values()).map((f) => getSnapshot(f)),
   )
 
-  useEffect(() => {
-    const { internetAccounts } = getRoot(session) as AppRootModel
-    const { assemblyName } = region
-    const { assemblyManager } = getSession(displayModel)
-    const assembly = assemblyManager.get(assemblyName)
-    if (!assembly) {
-      throw new Error(`No assembly found with name ${assemblyName}`)
-    }
-    const { internetAccountConfigId } = getConf(assembly, [
-      'sequence',
-      'metadata',
-    ]) as { internetAccountConfigId: string }
-    const apolloInternetAccount = internetAccounts.find(
-      (ia) => getConf(ia, 'internetAccountId') === internetAccountConfigId,
-    ) as ApolloInternetAccountModel | undefined
-    if (!apolloInternetAccount) {
-      throw new Error(
-        `No InternetAccount found with config id ${internetAccountConfigId}`,
-      )
-    }
-    const token = apolloInternetAccount.retrieveToken()
-    if (!token) {
-      throw new Error(
-        `No Token found with config id ${internetAccountConfigId}`,
-      )
-    }
-    getServerTime(apolloInternetAccount)
-
-    const decodedToken = jwtDecode(token) as JWTPayload
-    const clientUser = decodedToken.email
-
-    const { notify } = session
-    const assName = region.assemblyName
-    if (assName) {
-      const [firstRef] = regions
-      const channel = `${assName}-${firstRef.refName}`
-      console.log(`User '${clientUser}' starts listening '${channel}'`)
-      socket.removeListener() // Remove any old listener
-
-      socket.on(channel, (message) => {
-        if (message.userToken !== clientUser && message.channel === channel) {
-          changeManager?.submitToClientOnly(message.changeInfo)
-          notify(
-            `${JSON.stringify(message.userToken)} changed : ${JSON.stringify(
-              message.changeInfo,
-            )}`,
-            'success',
-          )
-          sessionStorage.setItem('LastSocketTimestamp', message.timestamp)
-        }
-      })
-
-      socket.on('connect', function () {
-        console.log('Connected to Apollo Rendering')
-        notify(
-          `You are re-connected to Apollo server. Let's fetch the last changes from server.`,
-          'success',
-        )
-        getLastUpdates(apolloInternetAccount)
-      })
-      socket.on('disconnect', function () {
-        console.log('Disconnected from Apollo Rendering')
-        notify(
-          `You are disconnected from Apollo server! Please, close this message`,
-          'error',
-        )
-      })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [region.refName])
-
-  /**
-   * Get server timestamp and save it into session storage
-   * @param apolloInternetAccount - apollo internet account
-   * @returns
-   */
-  async function getServerTime(apolloInternetAccount: any) {
-    const lastSuccTimestamp = sessionStorage.getItem('LastSocketTimestamp')
-    if (lastSuccTimestamp) {
-      return
-      // throw new Error(`Server timestamp already exists`)
-    }
-    const { baseURL } = apolloInternetAccount
-    const uri = new URL('changes/getTimestamp', baseURL)
-    const apolloFetch = apolloInternetAccount.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
-
-    if (apolloFetch) {
-      const response = await apolloFetch(uri, {
-        method: 'GET',
-      })
-      if (!response.ok) {
-        throw new Error(
-          `Error when fetching server timestamp — ${response.status}`,
-        )
-      } else {
-        sessionStorage.setItem('LastSocketTimestamp', await response.text())
-      }
-    }
-  }
-
-  /**
-   * Start to listen temporary channel, fetch the last changes from server and finally apply those changes to client data store
-   * @param apolloInternetAccount - apollo internet account
-   * @returns
-   */
-  async function getLastUpdates(apolloInternetAccount: any) {
-    const lastSuccTimestamp = sessionStorage.getItem('LastSocketTimestamp')
-    if (!lastSuccTimestamp) {
-      throw new Error(
-        `No last succesfull timestamp stored in session. Please, refresh you browser to get last updates from server`,
-      )
-    }
-    const { notify } = session
-    const channel = `tmp_${Math.floor(
-      Math.random() * (10000 - 1000 + 1) + 1000,
-    )}`
-    // Let's start to listen temporary channel where server will send the last updates
-    socket.on(channel, (message) => {
-      changeManager?.submitToClientOnly(message.changeInfo[0])
-      notify(
-        `Get the last updates from server: ${JSON.stringify(
-          message.changeInfo,
-        )}`,
-        'success',
-      )
-    })
-    const { baseURL } = apolloInternetAccount
-    const url = new URL('changes/getLastUpdateByTime', baseURL)
-    const searchParams = new URLSearchParams({
-      timestamp: lastSuccTimestamp,
-      clientId: channel,
-    })
-    url.search = searchParams.toString()
-    const uri = url.toString()
-    const apolloFetch = apolloInternetAccount.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
-
-    if (apolloFetch) {
-      const response = await apolloFetch(uri, {
-        method: 'GET',
-      })
-      if (!response.ok) {
-        console.log(
-          `Error when fetching the last updates to recover socket connection — ${response.status}`,
-        )
-        return
-      }
-    }
-  }
   useEffect(() => {
     const { internetAccounts } = getRoot(session) as AppRootModel
     const { assemblyName } = region

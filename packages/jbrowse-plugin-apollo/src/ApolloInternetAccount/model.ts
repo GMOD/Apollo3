@@ -4,7 +4,9 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import { MenuItem } from '@jbrowse/core/ui'
 import {
   AbstractSessionModel,
+  AppRootModel,
   UriLocation,
+  getSession,
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
 import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
@@ -21,7 +23,7 @@ import {
   ImportFeatures,
   ManageUsers,
 } from '../components'
-import { ApolloSessionModel } from '../session'
+import { ApolloSession, ApolloSessionModel } from '../session'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { ApolloInternetAccountConfigModel } from './configSchema'
 
@@ -31,6 +33,7 @@ interface Menu {
 }
 
 type AuthType = 'google' | 'microsoft'
+const socket = io('http://localhost:3999')
 
 const stateModelFactory = (
   configSchema: ApolloInternetAccountConfigModel,
@@ -252,42 +255,17 @@ const stateModelFactory = (
         .actions((s) => {
           const superStoreToken = s.storeToken
           return {
-            storeToken(token: string) {
-              console.log(`User starts listening 'COMMON'`)
-              const socket = io('http://localhost:3999')
-              const { session } = getRoot(self)
-              const { notify } = session
-
-              const { changeManager } = (session as ApolloSessionModel)
-                .apolloDataStore
-              socket.removeListener() // Remove any old listener
-              socket.on('COMMON', (message) => {
-                // Save the last server timestamp
-                sessionStorage.setItem('LastSocketTimestamp', message.timestamp)
-                console.log(`COMMON MESSAGE: '${JSON.stringify(message)}'`)
-                if (
-                  message.channel === 'COMMON' &&
-                  message.userToken !== token
-                ) {
-                  changeManager?.submitToClientOnly(message.changeInfo)
-                  notify(
-                    `${JSON.stringify(
-                      message.userName,
-                    )} changed : ${JSON.stringify(message.changeInfo)}`,
-                    'success',
-                  )
-                }
-                console.log(
-                  `Last timestamp: '${sessionStorage.getItem(
-                    'LastSocketTimestamp',
-                  )}'`,
-                )
-              })
+            async storeToken(token: string) {
               superStoreToken(token)
               const payload = jwtDecode(token) as JWTPayload
               if (payload.roles.includes('admin')) {
                 self.addMenuItems(payload.roles)
               }
+              const { session } = getRoot(self)
+              // Get and set server timestamp
+              await getAndSetServerTime(session)
+              // Open 'COMMON' socket listener
+              openSocket(session)
             },
           }
         })
@@ -315,12 +293,17 @@ const stateModelFactory = (
         .actions((s) => {
           const superStoreToken = s.storeToken
           return {
-            storeToken(token: string) {
+            async storeToken(token: string) {
               superStoreToken(token)
               const payload = jwtDecode(token) as JWTPayload
               if (payload.roles.includes('admin')) {
                 self.addMenuItems(payload.roles)
               }
+              const { session } = getRoot(self)
+              // Get and set server timestamp
+              await getAndSetServerTime(session)
+              // Open 'COMMON' socket listener
+              openSocket(session)
             },
           }
         })
@@ -422,3 +405,127 @@ export type ApolloInternetAccountStateModel = ReturnType<
 >
 export type ApolloInternetAccountModel =
   Instance<ApolloInternetAccountStateModel>
+
+/**
+ * Get server timestamp and save it into session storage
+ * @param apolloInternetAccount - apollo internet account
+ * @returns
+ */
+async function getAndSetServerTime(session: ApolloSession) {
+  const { internetAccounts } = getRoot(session) as AppRootModel
+  const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
+  const { baseURL } = internetAccount
+  const uri = new URL('changes/getTimestamp', baseURL).toString()
+  const apolloFetch = internetAccount.getFetcher({
+    locationType: 'UriLocation',
+    uri,
+  })
+
+  if (apolloFetch) {
+    const response = await apolloFetch(uri, {
+      method: 'GET',
+    })
+    if (!response.ok) {
+      throw new Error(
+        `Error when fetching server timestamp — ${response.status}`,
+      )
+    } else {
+      sessionStorage.setItem('LastSocketTimestamp', await response.text())
+    }
+  }
+}
+
+function openSocket(session: ApolloSession) {
+  if (!socket.hasListeners('COMMON')) {
+    const { internetAccounts } = getRoot(session) as AppRootModel
+    const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
+    const { baseURL } = internetAccount
+    console.log(`User starts to listen "COMMON" at ${baseURL}`)
+    const { notify } = session
+    const token = internetAccount.retrieveToken()
+    if (!token) {
+      throw new Error(`No Token found`)
+    }
+    const { changeManager } = (session as ApolloSessionModel).apolloDataStore
+    socket.on('COMMON', (message) => {
+      // Save the last server timestamp
+      sessionStorage.setItem('LastSocketTimestamp', message.timestamp)
+      if (message.channel === 'COMMON' && message.userToken !== token) {
+        changeManager?.submitToClientOnly(message.changeInfo)
+        notify(
+          `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
+            message.changeInfo,
+          )}`,
+          'success',
+        )
+      }
+    })
+    // eslint-disable-next-line no-loop-func
+    socket.on('connect', function () {
+      console.log('Connected')
+      notify(`You are re-connected to Apollo server.`, 'success')
+      getLastUpdates(session)
+    })
+    socket.on('disconnect', function () {
+      console.log('Disconnected')
+      notify(
+        `You are disconnected from Apollo server! Please, close this message`,
+        'error',
+      )
+    })
+    console.log(
+      `Last timestamp: '${sessionStorage.getItem('LastSocketTimestamp')}'`,
+    )
+  }
+}
+
+/**
+ * Start to listen temporary channel, fetch the last changes from server and finally apply those changes to client data store
+ * @param apolloInternetAccount - apollo internet account
+ * @returns
+ */
+async function getLastUpdates(session: ApolloSession) {
+  const lastSuccTimestamp = sessionStorage.getItem('LastSocketTimestamp')
+  if (!lastSuccTimestamp) {
+    throw new Error(
+      `No last succesfull timestamp stored in session. Please, refresh you browser to get last updates from server`,
+    )
+  }
+  const { notify } = session
+  const channel = `tmp_${Math.floor(Math.random() * (10000 - 1000 + 1) + 1000)}`
+  // Let's start to listen temporary channel where server will send the last updates
+  socket.on(channel, (message) => {
+    const { changeManager } = (session as ApolloSessionModel).apolloDataStore
+    changeManager?.submitToClientOnly(message.changeInfo[0])
+    notify(
+      `Get the last updates from server: ${JSON.stringify(message.changeInfo)}`,
+      'success',
+    )
+  })
+  const { internetAccounts } = getRoot(session) as AppRootModel
+  const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
+  const { baseURL } = internetAccount
+  const url = new URL('changes/getLastUpdateByTime', baseURL)
+  const searchParams = new URLSearchParams({
+    timestamp: lastSuccTimestamp,
+    clientId: channel,
+  })
+  url.search = searchParams.toString()
+  const uri = url.toString()
+  const apolloFetch = internetAccount.getFetcher({
+    locationType: 'UriLocation',
+    uri,
+  })
+
+  if (apolloFetch) {
+    const response = await apolloFetch(uri, {
+      method: 'GET',
+    })
+    if (!response.ok) {
+      console.log(
+        `Error when fetching the last updates to recover socket connection — ${response.status}`,
+      )
+      return
+    }
+  }
+}
