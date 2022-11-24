@@ -119,7 +119,9 @@ const ClientDataStore = types
             sessionStorage.setItem('LastSocketTimestamp', message.timestamp)
             console.log(`COMMON MESSAGE: '${JSON.stringify(message)}'`)
             if (message.channel === 'COMMON' && message.userToken !== token) {
-              changeManager?.submitToClientOnly(message.changeInfo)
+              changeManager?.submit(message.changeInfo, {
+                submitToBackend: false,
+              })
               notify(
                 `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
                   message.changeInfo,
@@ -143,7 +145,9 @@ const ClientDataStore = types
             // Save the last server timestamp
             sessionStorage.setItem('LastSocketTimestamp', message.timestamp)
             if (message.userToken !== token && message.channel === channel) {
-              changeManager?.submitToClientOnly(message.changeInfo)
+              changeManager?.submit(message.changeInfo, {
+                submitToBackend: false,
+              })
               notify(
                 `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
                   message.changeInfo,
@@ -460,7 +464,7 @@ async function getLastUpdates(session: ApolloSession) {
   // Let's start to listen temporary channel where server will send the last updates
   socket.on(channel, (message) => {
     const { changeManager } = (session as ApolloSessionModel).apolloDataStore
-    changeManager?.submitToClientOnly(message.changeInfo[0])
+    changeManager?.submit(message.changeInfo[0], { submitToBackend: false })
     notify(
       `Get the last updates from server: ${JSON.stringify(message.changeInfo)}`,
       'success',

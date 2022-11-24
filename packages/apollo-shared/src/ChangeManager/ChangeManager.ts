@@ -43,8 +43,13 @@ export class ChangeManager {
     }
 
     try {
-      // submit to client data store
-      await change.apply(this.dataStore)
+      if (submitToBackend) {
+        // submit directly to client data store
+        await change.apply(this.dataStore)
+      } else {
+        // Change through sockets
+        await this.changeThroughSocket(change)
+      }
     } catch (error) {
       console.error(error)
       session.notify(String(error), 'error')
@@ -94,23 +99,18 @@ export class ChangeManager {
     }
   }
 
-  async submitToClientOnly(change: Change) {
+  async changeThroughSocket(change: Change) {
     let ch
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tmpObject: any = {
       ...change,
     }
     const { featureId, changedIds, assembly } = tmpObject
 
-    // console.log(`CHANGE MANAGER: OBJECTI: ${JSON.stringify(tmpObject)}`)
-    // console.log(`CHANGE MANAGER: TYPE: ${JSON.stringify(change.typeName)}`)
+    console.log(`CHANGE MANAGER: OBJECT: ${JSON.stringify(tmpObject)}`)
     switch (change.typeName) {
       case 'AddAssemblyFromFileChange':
-        // console.log(
-        //   `CHANGE MANAGER: AddAssemblyFromFileChange: Adding assembly ${JSON.stringify(
-        //     assembly,
-        //   )}`,
-        // )
         ch = new AddAssemblyFromFileChange({
           typeName: 'AddAssemblyFromFileChange',
           assembly: tmpObject.assembly,
@@ -120,22 +120,15 @@ export class ChangeManager {
         break
       case 'AddFeatureChange':
         const { addedFeature } = tmpObject
-        // console.log(
-        //   `AddFeatureChange: Add feature ${JSON.stringify(addedFeature)}`,
-        // )
         ch = new AddFeatureChange({
           typeName: 'AddFeatureChange',
           changedIds,
           addedFeature,
           assembly,
+          parentFeatureId: tmpObject.parentFeatureId,
         })
         break
       case 'DeleteAssemblyChange':
-        // console.log(
-        //   `CHANGE MANAGER: DeleteAssemblyChange: Delete assembly ${JSON.stringify(
-        //     assembly,
-        //   )}`,
-        // )
         ch = new DeleteAssemblyChange({
           typeName: 'DeleteAssemblyChange',
           assembly,
@@ -161,7 +154,6 @@ export class ChangeManager {
           newEnd,
           assembly,
         })
-        // console.log(`CHANGE MANAGER: LocationEndChange: ${JSON.stringify(ch)}`)
         break
       case 'LocationStartChange':
         const { oldStart, newStart } = tmpObject
@@ -178,8 +170,6 @@ export class ChangeManager {
 
     // submit to client data store
     await ch?.apply(this.dataStore)
-    // Push the change into array
-    this.recentChanges.push(change)
   }
 
   async revert(change: Change, submitToBackend = true) {

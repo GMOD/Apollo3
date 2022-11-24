@@ -68,7 +68,15 @@ export class ChangesService {
     let changeDoc: ChangeDocument | undefined
     let featureId
     let refSeqId
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let tmpObject: any
+
+    const assemblySpecificChange =
+      change.typeName === 'AddAssemblyFromFileChange' ||
+      change.typeName === 'AddAssemblyAndFeaturesFromFileChange' ||
+      change.typeName === 'DeleteAssemblyChange'
+        ? true
+        : false
 
     await this.featureModel.db.transaction(async (session) => {
       try {
@@ -116,13 +124,10 @@ export class ChangesService {
       }
       this.logger.debug(`TypeName: ${change.typeName}`)
 
-      // Assembly related changes are broadcasted to 'COMMON' -channel
-      if (
-        change.typeName !== 'AddAssemblyAndFeaturesFromFileChange' &&
-        change.typeName !== 'AddAssemblyFromFileChange' &&
-        change.typeName !== 'DeleteAssemblyChange'
-      ) {
+      // Broadcast feature specific changes
+      if (!assemblySpecificChange) {
         // For broadcasting we need also refName
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tmpObject1: any = {
           ...change,
         }
@@ -177,11 +182,7 @@ export class ChangesService {
     if (broadcastChanges.includes(change.typeName as unknown as string)) {
       let channel
       let refDoc
-      if (
-        change.typeName !== 'AddAssemblyAndFeaturesFromFileChange' &&
-        change.typeName !== 'AddAssemblyFromFileChange' &&
-        change.typeName !== 'DeleteAssemblyChange'
-      ) {
+      if (!assemblySpecificChange) {
         // Get feature's refSeqName
         refDoc = await this.refSeqModel.findById(refSeqId).exec()
         if (!refDoc) {
@@ -217,12 +218,8 @@ export class ChangesService {
           channel,
           timestamp,
         }
-        // In case of 'AddAssemblyAndFeaturesFromFileChange' or  'AddAssemblyAndFeaturesFromFileChange' or 'DeleteAssemblyChange', we use 'COMMON' channel to broadcast to all connected clients
-      } else if (
-        change.typeName === 'AddAssemblyFromFileChange' ||
-        change.typeName === 'AddAssemblyAndFeaturesFromFileChange' ||
-        change.typeName === 'DeleteAssemblyChange'
-      ) {
+        // In case of AssemblySpecificChange we use 'COMMON' channel to broadcast to all connected clients
+      } else if (assemblySpecificChange) {
         channel = 'COMMON'
         msg = {
           changeInfo: change,
