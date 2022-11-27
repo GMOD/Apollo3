@@ -435,17 +435,17 @@ async function getAndSetServerTime(session: ApolloSession) {
 }
 
 function openSocket(session: ApolloSession) {
+  const { internetAccounts } = getRoot(session) as AppRootModel
+  const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
+  const { baseURL } = internetAccount
+  const { notify } = session
+  const token = internetAccount.retrieveToken()
+  if (!token) {
+    throw new Error(`No Token found`)
+  }
+  const { changeManager } = (session as ApolloSessionModel).apolloDataStore
   if (!socket.hasListeners('COMMON')) {
-    const { internetAccounts } = getRoot(session) as AppRootModel
-    const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
-    const { baseURL } = internetAccount
     console.log(`User starts to listen "COMMON" at ${baseURL}`)
-    const { notify } = session
-    const token = internetAccount.retrieveToken()
-    if (!token) {
-      throw new Error(`No Token found`)
-    }
-    const { changeManager } = (session as ApolloSessionModel).apolloDataStore
     socket.on('COMMON', (message) => {
       // Save the last server timestamp
       sessionStorage.setItem('LastSocketTimestamp', message.timestamp)
@@ -475,6 +475,18 @@ function openSocket(session: ApolloSession) {
     console.log(
       `Last timestamp: '${sessionStorage.getItem('LastSocketTimestamp')}'`,
     )
+  }
+  if (!socket.hasListeners('USER_LOCATION')) {
+    console.log(`User starts to listen "USER_LOCATION" at ${baseURL}`)
+    socket.on('USER_LOCATION', (message) => {
+      if (message.channel === 'USER_LOCATION' && message.userToken !== token) {
+        console.log(
+          `User's ${JSON.stringify(
+            message.userName,
+          )} location info ${JSON.stringify(message)}`,
+        )
+      }
+    })
   }
 }
 

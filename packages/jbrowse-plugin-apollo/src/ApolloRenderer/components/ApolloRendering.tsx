@@ -13,7 +13,7 @@ import { AddFeature } from '../../components/AddFeature'
 import { CopyFeature } from '../../components/CopyFeature'
 import { DeleteFeature } from '../../components/DeleteFeature'
 import { LinearApolloDisplay } from '../../LinearApolloDisplay/stateModel'
-import { Collaborator } from '../../session'
+import { ApolloSession, Collaborator } from '../../session'
 
 interface ApolloRenderingProps {
   assemblyName: string
@@ -99,6 +99,31 @@ function ApolloRendering(props: ApolloRenderingProps) {
     if (apolloInternetAccount.getRole()?.includes('admin')) {
       setIsAdmin(true)
     }
+    //* ********** */
+    // console.log('get locations...')
+    const ses = getSession(displayModel) as ApolloSession
+    // ses.apolloDataStore.getLocations()
+    const { baseURL } = apolloInternetAccount
+    const url = new URL('users/userLocation', baseURL).href
+    const userLocation = new URLSearchParams({
+      assemblyId: 'aa',
+      refSeq: 'refSeq1',
+      featureId: 'feature',
+      start: '123',
+      end: '456',
+    })
+
+    const apolloFetchFile = apolloInternetAccount?.getFetcher({
+      locationType: 'UriLocation',
+      uri: url,
+    })
+    if (apolloFetchFile) {
+      apolloFetchFile(url, {
+        method: 'POST',
+        body: userLocation,
+      })
+    }
+    //* ********** END  */
   }, [session, displayModel, region])
   useEffect(() => {
     const canvas = canvasRef.current

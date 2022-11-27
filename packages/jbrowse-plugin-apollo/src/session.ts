@@ -6,6 +6,7 @@ import {
   Region,
   getSession,
 } from '@jbrowse/core/util'
+import { getDialogActionsUtilityClass } from '@mui/material'
 import {
   AnnotationFeature,
   AnnotationFeatureI,
@@ -88,6 +89,8 @@ const ClientDataStore = types
   }))
   .actions((self) => ({
     loadFeatures: flow(function* loadFeatures(regions: Region[]) {
+      console.log(`***** loadFeatures ******* ${JSON.stringify(regions)}`)
+
       for (const region of regions) {
         const features = (yield (
           self as unknown as { backendDriver: BackendDriver }
@@ -175,6 +178,25 @@ const ClientDataStore = types
             )
           })
         }
+        if (!socket.hasListeners('USER_LOCATION')) {
+          const { internetAccounts } = getRoot(session) as AppRootModel
+          const internetAccount =
+            internetAccounts[0] as ApolloInternetAccountModel
+          const { baseURL } = internetAccount
+          console.log(`User starts to listen "USER_LOCATION" at ${baseURL}`)
+          socket.on('USER_LOCATION', (message) => {
+            if (
+              message.channel === 'USER_LOCATION' &&
+              message.userToken !== token
+            ) {
+              console.log(
+                `User's ${JSON.stringify(
+                  message.userName,
+                )} location info ${JSON.stringify(message)}`,
+              )
+            }
+          })
+        }
         //* **** SOCKET CHANGE ENDS *** */
         if (!assembly) {
           assembly = self.assemblies.put({ _id: assemblyName, refSeqs: {} })
@@ -228,6 +250,23 @@ const ClientDataStore = types
     },
     deleteAssembly(assemblyId: string) {
       self.assemblies.delete(assemblyId)
+    },
+    getLocations() {
+      // console.log('1 GET LOCATIONS...')
+      // console.log(`0 VIEWS: ${JSON.stringify(self)}`)
+      // console.log(`1 VIEWS: ${JSON.stringify((self as unknown as AbstractSessionModel))}`)
+      // console.log(`2 VIEWS: ${JSON.stringify((self as unknown as AbstractSessionModel).views)}`)
+      // console.log('2 GET LOCATIONS...')
+      const locations = []
+      // for (const view of (self as unknown as AbstractSessionModel).views) {
+      //   if (view.type === 'LinearGenomeView') {
+      //     console.log(`VIEW: ${JSON.stringify(view)}`)
+      //     // const {dynamicBlocks} = view
+      //     // // view and get location
+      //     // console.log(`BLOCKS: ${JSON.stringify(dynamicBlocks)}`)
+      //     // // run in https://developer.mozilla.org/en-US/docs/Web/API/setInterval
+      //   }
+      // }
     },
   }))
   .volatile((self) => ({

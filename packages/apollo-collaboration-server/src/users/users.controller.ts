@@ -1,8 +1,18 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common'
+import { Request } from 'express'
 
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
+import { UserLocationDto } from './dto/create-user.dto'
 import { UsersService } from './users.service'
 
 @UseGuards(JwtAuthGuard)
@@ -29,5 +39,20 @@ export class UsersController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findById(id)
+  }
+
+  /**
+   * Receives user location and broadcast information using web sockets
+   * @param userLocation - user's location information
+   * @returns
+   */
+  @Post('userLocation')
+  userLocation(@Body() userLocation: UserLocationDto, @Req() req: Request) {
+    const { authorization } = req.headers
+    if (!authorization) {
+      throw new Error('No "authorization" header')
+    }
+    const [, token] = authorization.split(' ')
+    return this.usersService.broadcastLocation(userLocation, token)
   }
 }
