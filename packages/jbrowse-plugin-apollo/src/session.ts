@@ -88,8 +88,7 @@ const ClientDataStore = types
   }))
   .actions((self) => ({
     loadFeatures: flow(function* loadFeatures(regions: Region[]) {
-      console.log(`***** loadFeatures ******* ${JSON.stringify(regions)}`)
-
+      console.log(`*** loadFeatures -method. Regions: ${JSON.stringify(regions)}`)
       for (const region of regions) {
         const features = (yield (
           self as unknown as { backendDriver: BackendDriver }
@@ -190,7 +189,11 @@ const ClientDataStore = types
               console.log(
                 `User's ${JSON.stringify(
                   message.userName,
-                )} location info ${JSON.stringify(message)}`,
+                )} location. AssemblyId: "${message.assemblyId}", refSeq: "${
+                  message.refSeq
+                }", featureId: "${message.featureId}", start: "${
+                  message.start
+                }" and end: "${message.end}"`,
               )
             }
           })
@@ -250,7 +253,9 @@ const ClientDataStore = types
     },
     getLocations() {
       // console.log(`0 VIEWS: ${JSON.stringify(self)}`)
-      // console.log(`1 VIEWS: ${JSON.stringify((self as unknown as AbstractSessionModel))}`)
+      console.log(
+        `1 VIEWS: ${JSON.stringify(self as unknown as AbstractSessionModel)}`,
+      )
       // console.log(`2 VIEWS: ${JSON.stringify((self as unknown as AbstractSessionModel).views)}`)
       // const locations = []
       // for (const view of (self as unknown as AbstractSessionModel).views) {

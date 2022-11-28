@@ -21,7 +21,6 @@ import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
-// import { ApolloSession } from '../../session'
 import { LinearApolloDisplay } from '../stateModel'
 
 function getFeatureColumns(editable: boolean): GridColumns {
@@ -115,18 +114,6 @@ export const ApolloDetails = observer(
     if (!selectedFeature) {
       return <div>click on a feature to see details</div>
     }
-
-    // const userLocation = {
-    //   assemblyId: selectedFeature.assemblyId,
-    //   refSeq: selectedFeature.refSeq,
-    //   featureId: selectedFeature._id,
-    //   start: selectedFeature.start,
-    //   end: selectedFeature.end,
-    // }
-    // apolloInternetAccount.postUserLocation(
-    //   session as ApolloSession,
-    //   userLocation,
-    // )
 
     // const sequenceTypes = changeManager?.validations.getPossibleValues('type')
     const {

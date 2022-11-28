@@ -494,18 +494,6 @@ function openSocket(session: ApolloSession) {
       `Last timestamp: '${sessionStorage.getItem('LastSocketTimestamp')}'`,
     )
   }
-  if (!socket.hasListeners('USER_LOCATION')) {
-    console.log(`User starts to listen "USER_LOCATION" at ${baseURL}`)
-    socket.on('USER_LOCATION', (message) => {
-      if (message.channel === 'USER_LOCATION' && message.userToken !== token) {
-        console.log(
-          `User's ${JSON.stringify(
-            message.userName,
-          )} location info ${JSON.stringify(message)}`,
-        )
-      }
-    })
-  }
 }
 
 /**

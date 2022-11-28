@@ -1,6 +1,6 @@
 import { getConf } from '@jbrowse/core/configuration'
 import { AppRootModel, Region, getSession } from '@jbrowse/core/util'
-import { Menu, MenuItem } from '@mui/material'
+import { getDialogActionsUtilityClass, Menu, MenuItem } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { autorun, toJS } from 'mobx'
