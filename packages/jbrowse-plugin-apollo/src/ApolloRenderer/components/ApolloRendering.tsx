@@ -44,6 +44,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const [movedDuringLastMouseDown, setMovedDuringLastMouseDown] =
     useState(false)
   const [collaborators, setCollaborators] = useState<Collaborator[]>([])
+  const [internetAccount, setInternetAccount] =
+    useState<ApolloInternetAccountModel>()
 
   const { regions, bpPerPx, displayModel } = props
   const session = getSession(displayModel)
@@ -99,30 +101,16 @@ function ApolloRendering(props: ApolloRenderingProps) {
     if (apolloInternetAccount.getRole()?.includes('admin')) {
       setIsAdmin(true)
     }
+    setInternetAccount(apolloInternetAccount)
     //* ********** */
-    // console.log('get locations...')
-    const ses = getSession(displayModel) as ApolloSession
-    // ses.apolloDataStore.getLocations()
-    const { baseURL } = apolloInternetAccount
-    const url = new URL('users/userLocation', baseURL).href
-    const userLocation = new URLSearchParams({
-      assemblyId: 'aa',
-      refSeq: 'refSeq1',
-      featureId: 'feature',
-      start: '123',
-      end: '456',
-    })
-
-    const apolloFetchFile = apolloInternetAccount?.getFetcher({
-      locationType: 'UriLocation',
-      uri: url,
-    })
-    if (apolloFetchFile) {
-      apolloFetchFile(url, {
-        method: 'POST',
-        body: userLocation,
-      })
-    }
+    // const userLocation = {
+    //   assemblyId: 'BB',
+    //   refSeq: 'refSeq34',
+    //   featureId: 'feature',
+    //   start: '123',
+    //   end: '456',
+    // }
+    // apolloInternetAccount.postUserLocation(session as ApolloSession, userLocation)
     //* ********** END  */
   }, [session, displayModel, region])
   useEffect(() => {
@@ -339,6 +327,16 @@ function ApolloRendering(props: ApolloRenderingProps) {
         px,
         bp: apolloFeatureUnderMouse[overEdge],
       })
+    }
+    if (apolloFeatureUnderMouse && internetAccount) {
+      const userLocation = {
+        assemblyId: apolloFeatureUnderMouse.assemblyId,
+        refSeq: apolloFeatureUnderMouse.refSeq,
+        featureId: apolloFeatureUnderMouse._id,
+        start: apolloFeatureUnderMouse.start,
+        end: apolloFeatureUnderMouse.end,
+      }
+      internetAccount.postUserLocation(session as ApolloSession, userLocation)
     }
   }
   function onMouseUp() {

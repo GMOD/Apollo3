@@ -6,7 +6,6 @@ import {
   Region,
   getSession,
 } from '@jbrowse/core/util'
-import { getDialogActionsUtilityClass } from '@mui/material'
 import {
   AnnotationFeature,
   AnnotationFeatureI,
@@ -100,7 +99,6 @@ const ClientDataStore = types
         }
         const { assemblyName, refName } = region
         let assembly = self.assemblies.get(assemblyName)
-        // //* **** SOCKET CHANGE BEGINS *** */
         const session = getSession(self) as ApolloSession
         const token = self.internetAccounts[0].retrieveToken()
         if (!token) {
@@ -197,7 +195,6 @@ const ClientDataStore = types
             }
           })
         }
-        //* **** SOCKET CHANGE ENDS *** */
         if (!assembly) {
           assembly = self.assemblies.put({ _id: assemblyName, refSeqs: {} })
         }
@@ -252,12 +249,10 @@ const ClientDataStore = types
       self.assemblies.delete(assemblyId)
     },
     getLocations() {
-      // console.log('1 GET LOCATIONS...')
       // console.log(`0 VIEWS: ${JSON.stringify(self)}`)
       // console.log(`1 VIEWS: ${JSON.stringify((self as unknown as AbstractSessionModel))}`)
       // console.log(`2 VIEWS: ${JSON.stringify((self as unknown as AbstractSessionModel).views)}`)
-      // console.log('2 GET LOCATIONS...')
-      const locations = []
+      // const locations = []
       // for (const view of (self as unknown as AbstractSessionModel).views) {
       //   if (view.type === 'LinearGenomeView') {
       //     console.log(`VIEW: ${JSON.stringify(view)}`)

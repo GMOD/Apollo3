@@ -21,6 +21,7 @@ import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
+// import { ApolloSession } from '../../session'
 import { LinearApolloDisplay } from '../stateModel'
 
 function getFeatureColumns(editable: boolean): GridColumns {
@@ -94,15 +95,16 @@ function AutocompleteInputCell(props: GridRenderEditCellParams) {
 export const ApolloDetails = observer(
   ({ model }: { model: LinearApolloDisplay }) => {
     const session = getSession(model)
+    const { internetAccounts } = getRoot(session) as AppRootModel
+    const apolloInternetAccount = internetAccounts.find(
+      (ia) => ia.type === 'ApolloInternetAccount',
+    ) as ApolloInternetAccountModel | undefined
+    if (!apolloInternetAccount) {
+      throw new Error('No Apollo internet account found')
+    }
     const editable = useMemo(() => {
-      const { internetAccounts } = getRoot(session) as AppRootModel
-      const apolloInternetAccount = internetAccounts.find(
-        (ia) => ia.type === 'ApolloInternetAccount',
-      ) as ApolloInternetAccountModel | undefined
-      if (!apolloInternetAccount) {
-        throw new Error('No Apollo internet account found')
-      }
       return Boolean(apolloInternetAccount.getRole()?.includes('user'))
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session])
     const {
       selectedFeature,
@@ -113,6 +115,18 @@ export const ApolloDetails = observer(
     if (!selectedFeature) {
       return <div>click on a feature to see details</div>
     }
+
+    // const userLocation = {
+    //   assemblyId: selectedFeature.assemblyId,
+    //   refSeq: selectedFeature.refSeq,
+    //   featureId: selectedFeature._id,
+    //   start: selectedFeature.start,
+    //   end: selectedFeature.end,
+    // }
+    // apolloInternetAccount.postUserLocation(
+    //   session as ApolloSession,
+    //   userLocation,
+    // )
 
     // const sequenceTypes = changeManager?.validations.getPossibleValues('type')
     const {

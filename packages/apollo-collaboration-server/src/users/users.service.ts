@@ -76,22 +76,11 @@ export class UsersService {
         userName: user,
         userToken: token,
       }
-
-      // const msg: UserLocationMessage = {
-      //   channel,
-      //   assemblyId: userLocation.assemblyId,
-      //   refSeq: userLocation.refSeq,
-      //   featureId: userLocation.featureId,
-      //   start: userLocation.start,
-      //   end: userLocation.end,
-      //   userName: user,
-      //   userToken: token,
-      // }
       this.logger.debug(
         `Broadcasting user ${JSON.stringify(
           user,
-        )} location to channel '${channel}', changeObject: "${JSON.stringify(
-          UserLocationMessage,
+        )} location to channel "${channel}", the message is "${JSON.stringify(
+          msg,
         )}"`,
       )
       this.messagesGateway.create(channel, msg)

@@ -333,6 +333,24 @@ const stateModelFactory = (
         }
         throw new Error(`Unknown authType "${self.authType}"`)
       },
+      postUserLocation(session: ApolloSession, userLoc: any) {
+        const { internetAccounts } = getRoot(session) as AppRootModel
+        const internetAccount =
+          internetAccounts[0] as ApolloInternetAccountModel
+        const { baseURL } = internetAccount
+        const url = new URL('users/userLocation', baseURL).href
+        const userLocation = new URLSearchParams(userLoc)
+        const apolloFetchFile = internetAccount?.getFetcher({
+          locationType: 'UriLocation',
+          uri: url,
+        })
+        if (apolloFetchFile) {
+          apolloFetchFile(url, {
+            method: 'POST',
+            body: userLocation,
+          })
+        }
+      },
     }))
     .actions((self) => {
       let authTypePromise: Promise<AuthType> | undefined = undefined
