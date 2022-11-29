@@ -6,6 +6,7 @@ import {
   Region,
   getSession,
 } from '@jbrowse/core/util'
+import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import {
   AnnotationFeature,
   AnnotationFeatureI,
@@ -88,7 +89,9 @@ const ClientDataStore = types
   }))
   .actions((self) => ({
     loadFeatures: flow(function* loadFeatures(regions: Region[]) {
-      console.log(`*** loadFeatures -method. Regions: ${JSON.stringify(regions)}`)
+      console.log(
+        `*** loadFeatures -method. Regions: ${JSON.stringify(regions)}`,
+      )
       for (const region of regions) {
         const features = (yield (
           self as unknown as { backendDriver: BackendDriver }
@@ -104,7 +107,7 @@ const ClientDataStore = types
           throw new Error(`No Token found`)
         }
         // Get and set server timestamp into session storage
-        getAndSetServerTime(session)
+        getAndSetLastChangeSeq(session)
 
         const { notify } = session
         const [firstRef] = regions
@@ -130,8 +133,8 @@ const ClientDataStore = types
               )
             }
             console.log(
-              `Last timestamp: '${sessionStorage.getItem(
-                'LastSocketTimestamp',
+              `LastChangeSequence: '${sessionStorage.getItem(
+                'LastChangeSequence',
               )}'`,
             )
           })
@@ -142,8 +145,8 @@ const ClientDataStore = types
             console.log(
               `Channel "${channel}" message: "${JSON.stringify(message)}"`,
             )
-            // Save the last server timestamp
-            sessionStorage.setItem('LastSocketTimestamp', message.timestamp)
+            // Save server last change sequnece into session storage
+            sessionStorage.setItem('LastChangeSequence', message.changeSequence)
             if (message.userToken !== token && message.channel === channel) {
               changeManager?.submit(message.changeInfo, {
                 submitToBackend: false,
@@ -156,8 +159,8 @@ const ClientDataStore = types
               )
             }
             console.log(
-              `Last timestamp: '${sessionStorage.getItem(
-                'LastSocketTimestamp',
+              `LastChangeSequence: '${sessionStorage.getItem(
+                'LastChangeSequence',
               )}'`,
             )
           })
@@ -191,9 +194,7 @@ const ClientDataStore = types
                   message.userName,
                 )} location. AssemblyId: "${message.assemblyId}", refSeq: "${
                   message.refSeq
-                }", featureId: "${message.featureId}", start: "${
-                  message.start
-                }" and end: "${message.end}"`,
+                }", start: "${message.start}" and end: "${message.end}"`,
               )
             }
           })
@@ -252,21 +253,19 @@ const ClientDataStore = types
       self.assemblies.delete(assemblyId)
     },
     getLocations() {
-      // console.log(`0 VIEWS: ${JSON.stringify(self)}`)
-      console.log(
-        `1 VIEWS: ${JSON.stringify(self as unknown as AbstractSessionModel)}`,
-      )
-      // console.log(`2 VIEWS: ${JSON.stringify((self as unknown as AbstractSessionModel).views)}`)
-      // const locations = []
-      // for (const view of (self as unknown as AbstractSessionModel).views) {
+      const locations: any = []
+      // for (const view of self.views) {
       //   if (view.type === 'LinearGenomeView') {
-      //     console.log(`VIEW: ${JSON.stringify(view)}`)
-      //     // const {dynamicBlocks} = view
-      //     // // view and get location
-      //     // console.log(`BLOCKS: ${JSON.stringify(dynamicBlocks)}`)
-      //     // // run in https://developer.mozilla.org/en-US/docs/Web/API/setInterval
+      //     const { dynamicBlocks } = view as LinearGenomeViewModel
+      //     dynamicBlocks.forEach((block) => {
+      //       if (block.regionNumber !== undefined) {
+      //         const { assemblyName, refName, start, end } = block
+      //         locations.push({ assemblyName, refName, start, end })
+      //       }
+      //     })
       //   }
       // }
+      return locations
     },
   }))
   .volatile((self) => ({
@@ -458,15 +457,20 @@ export function extendSession(sessionModel: IAnyModelType) {
 }
 
 /**
- * Get server timestamp and save it into session storage
+ *  Get and set server last change sequence into session storage
  * @param apolloInternetAccount - apollo internet account
  * @returns
  */
-async function getAndSetServerTime(session: ApolloSession) {
+async function getAndSetLastChangeSeq(session: ApolloSession) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
   const { baseURL } = internetAccount
-  const uri = new URL('changes/getTimestamp', baseURL).toString()
+  const url = new URL('changes/getLastChangeSequence', baseURL)
+  const searchParams = new URLSearchParams({
+    id: 'changeCounter',
+  })
+  url.search = searchParams.toString()
+  const uri = url.toString()
   const apolloFetch = internetAccount.getFetcher({
     locationType: 'UriLocation',
     uri,
@@ -478,10 +482,10 @@ async function getAndSetServerTime(session: ApolloSession) {
     })
     if (!response.ok) {
       throw new Error(
-        `Error when fetching server timestamp — ${response.status}`,
+        `Error when fetching server LastChangeSequence — ${response.status}`,
       )
     } else {
-      sessionStorage.setItem('LastSocketTimestamp', await response.text())
+      sessionStorage.setItem('LastChangeSequence', await response.text())
     }
   }
 }
@@ -492,10 +496,10 @@ async function getAndSetServerTime(session: ApolloSession) {
  * @returns
  */
 async function getLastUpdates(session: ApolloSession) {
-  const lastSuccTimestamp = sessionStorage.getItem('LastSocketTimestamp')
-  if (!lastSuccTimestamp) {
+  const lastChangeSequence = sessionStorage.getItem('LastChangeSequence')
+  if (!lastChangeSequence) {
     throw new Error(
-      `No last succesfull timestamp stored in session. Please, refresh you browser to get last updates from server`,
+      `No LastChangeSequence stored in session. Please, refresh you browser to get last updates from server`,
     )
   }
   const { notify } = session
@@ -512,9 +516,9 @@ async function getLastUpdates(session: ApolloSession) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
   const { baseURL } = internetAccount
-  const url = new URL('changes/getLastUpdateByTime', baseURL)
+  const url = new URL('changes/getLastChangesBySequence', baseURL)
   const searchParams = new URLSearchParams({
-    timestamp: lastSuccTimestamp,
+    sequenceNumber: lastChangeSequence,
     clientId: channel,
   })
   url.search = searchParams.toString()

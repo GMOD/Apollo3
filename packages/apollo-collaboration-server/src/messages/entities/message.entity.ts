@@ -5,14 +5,13 @@ export class Message {
   channel: string
   userName: string
   userToken: string // Contains token of user who made the change in UI
-  timestamp: number
+  changeSequence: number
 }
 
 export class UserLocationMessage {
   channel: string
   assemblyId: string
   refSeq: string
-  featureId: string
   start: string
   end: string
   userName: string

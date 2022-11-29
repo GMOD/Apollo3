@@ -6,7 +6,11 @@ export class FindChangeDto {
   readonly typeName?: string
 }
 
-export class FindChangeByTimeDto {
-  readonly timestamp: number
+export class FindChangeBySequenceDto {
+  readonly sequenceNumber: number
   readonly clientId: string
+}
+
+export class GetLastSequenceDto {
+  readonly id: string
 }

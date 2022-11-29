@@ -101,14 +101,15 @@ export class ChangeManager {
 
   async changeThroughSocket(change: Change) {
     let ch
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tmpObject: any = {
       ...change,
     }
     const { featureId, changedIds, assembly } = tmpObject
 
-    console.log(`CHANGE MANAGER: OBJECT: ${JSON.stringify(tmpObject)}`)
+    console.log(
+      `CHANGE MANAGER: changeThroughSocket "${JSON.stringify(tmpObject)}"`,
+    )
     switch (change.typeName) {
       case 'AddAssemblyFromFileChange':
         ch = new AddAssemblyFromFileChange({
@@ -136,6 +137,8 @@ export class ChangeManager {
         break
       case 'DeleteFeatureChange':
         const { parentFeatureId, deletedFeature } = tmpObject
+        // console.log(`DELETE FEATURE, OBJECT "${JSON.stringify(tmpObject)}"`)
+        // console.log(`DELETE FEATURE, CHANGE "${JSON.stringify(change)}"`)
         ch = new DeleteFeatureChange({
           typeName: 'DeleteFeatureChange',
           changedIds,
@@ -173,7 +176,8 @@ export class ChangeManager {
   }
 
   async revert(change: Change, submitToBackend = true) {
-    change.getInverse()
+    const inverseChange = change.getInverse()
+    return this.submit(inverseChange, { submitToBackend, addToRecents: false })
   }
 
   /**

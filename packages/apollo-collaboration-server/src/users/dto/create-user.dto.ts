@@ -7,7 +7,6 @@ export class CreateUserDto {
 export class UserLocationDto {
   readonly assemblyId: string
   readonly refSeq: string
-  readonly featureId: string
   readonly start: string
   readonly end: string
 }

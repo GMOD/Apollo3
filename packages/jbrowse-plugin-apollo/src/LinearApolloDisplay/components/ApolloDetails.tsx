@@ -94,16 +94,15 @@ function AutocompleteInputCell(props: GridRenderEditCellParams) {
 export const ApolloDetails = observer(
   ({ model }: { model: LinearApolloDisplay }) => {
     const session = getSession(model)
-    const { internetAccounts } = getRoot(session) as AppRootModel
-    const apolloInternetAccount = internetAccounts.find(
-      (ia) => ia.type === 'ApolloInternetAccount',
-    ) as ApolloInternetAccountModel | undefined
-    if (!apolloInternetAccount) {
-      throw new Error('No Apollo internet account found')
-    }
     const editable = useMemo(() => {
+      const { internetAccounts } = getRoot(session) as AppRootModel
+      const apolloInternetAccount = internetAccounts.find(
+        (ia) => ia.type === 'ApolloInternetAccount',
+      ) as ApolloInternetAccountModel | undefined
+      if (!apolloInternetAccount) {
+        throw new Error('No Apollo internet account found')
+      }
       return Boolean(apolloInternetAccount.getRole()?.includes('user'))
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session])
     const {
       selectedFeature,

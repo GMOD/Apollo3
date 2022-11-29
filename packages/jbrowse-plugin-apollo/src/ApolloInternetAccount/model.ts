@@ -261,8 +261,8 @@ const stateModelFactory = (
                 self.addMenuItems(payload.roles)
               }
               const { session } = getRoot(self)
-              // Get and set server timestamp
-              await getAndSetServerTime(session)
+              // Get and set server last change sequnece into session storage
+              await getAndSetLastChangeSeq(session)
               // Open 'COMMON' socket listener
               openSocket(session)
             },
@@ -299,8 +299,8 @@ const stateModelFactory = (
                 self.addMenuItems(payload.roles)
               }
               const { session } = getRoot(self)
-              // Get and set server timestamp
-              await getAndSetServerTime(session)
+              // Get and set server last change sequnece into session storage
+              await getAndSetLastChangeSeq(session)
               // Open 'COMMON' socket listener
               openSocket(session)
             },
@@ -424,15 +424,20 @@ export type ApolloInternetAccountModel =
   Instance<ApolloInternetAccountStateModel>
 
 /**
- * Get server timestamp and save it into session storage
+ *  Get and set server last change sequnece into session storage
  * @param apolloInternetAccount - apollo internet account
  * @returns
  */
-async function getAndSetServerTime(session: ApolloSession) {
+async function getAndSetLastChangeSeq(session: ApolloSession) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
   const { baseURL } = internetAccount
-  const uri = new URL('changes/getTimestamp', baseURL).toString()
+  const url = new URL('changes/getLastChangeSequence', baseURL)
+  const searchParams = new URLSearchParams({
+    id: 'changeCounter',
+  })
+  url.search = searchParams.toString()
+  const uri = url.toString()
   const apolloFetch = internetAccount.getFetcher({
     locationType: 'UriLocation',
     uri,
@@ -444,12 +449,13 @@ async function getAndSetServerTime(session: ApolloSession) {
     })
     if (!response.ok) {
       throw new Error(
-        `Error when fetching server timestamp — ${response.status}`,
+        `Error when fetching server LastChangeSequence — ${response.status}`,
       )
     } else {
-      sessionStorage.setItem('LastSocketTimestamp', await response.text())
+      sessionStorage.setItem('LastChangeSequence', await response.text())
     }
   }
+
 }
 
 function openSocket(session: ApolloSession) {
@@ -465,8 +471,8 @@ function openSocket(session: ApolloSession) {
   if (!socket.hasListeners('COMMON')) {
     console.log(`User starts to listen "COMMON" at ${baseURL}`)
     socket.on('COMMON', (message) => {
-      // Save the last server timestamp
-      sessionStorage.setItem('LastSocketTimestamp', message.timestamp)
+      // Save server last change sequnece into session storage
+      sessionStorage.setItem('LastChangeSequence', message.changeSequence)
       if (message.channel === 'COMMON' && message.userToken !== token) {
         changeManager?.submit(message.changeInfo, { submitToBackend: false })
         notify(
@@ -491,7 +497,7 @@ function openSocket(session: ApolloSession) {
       )
     })
     console.log(
-      `Last timestamp: '${sessionStorage.getItem('LastSocketTimestamp')}'`,
+      `LastChangeSequence: '${sessionStorage.getItem('LastChangeSequence')}'`,
     )
   }
 }
@@ -502,10 +508,10 @@ function openSocket(session: ApolloSession) {
  * @returns
  */
 async function getLastUpdates(session: ApolloSession) {
-  const lastSuccTimestamp = sessionStorage.getItem('LastSocketTimestamp')
-  if (!lastSuccTimestamp) {
+  const lastChangeSequence = sessionStorage.getItem('LastChangeSequence')
+  if (!lastChangeSequence) {
     throw new Error(
-      `No last succesfull timestamp stored in session. Please, refresh you browser to get last updates from server`,
+      `No LastChangeSequence stored in session. Please, refresh you browser to get last updates from server`,
     )
   }
   const { notify } = session
@@ -522,9 +528,9 @@ async function getLastUpdates(session: ApolloSession) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
   const { baseURL } = internetAccount
-  const url = new URL('changes/getLastUpdateByTime', baseURL)
+  const url = new URL('changes/getLastChangesBySequence', baseURL)
   const searchParams = new URLSearchParams({
-    timestamp: lastSuccTimestamp,
+    sequenceNumber: lastChangeSequence,
     clientId: channel,
   })
   url.search = searchParams.toString()

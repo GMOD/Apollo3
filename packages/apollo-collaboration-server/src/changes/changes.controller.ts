@@ -10,18 +10,27 @@ import {
 } from '@nestjs/common'
 import { Change } from 'apollo-shared'
 
+import { CountersService } from '../counters/counters.service'
 import { ChangeInterceptor } from '../utils/change.interceptor'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { ChangesService } from './changes.service'
-import { FindChangeByTimeDto, FindChangeDto } from './dto/find-change.dto'
+import {
+  FindChangeBySequenceDto,
+  FindChangeDto,
+  GetLastSequenceDto,
+} from './dto/find-change.dto'
 
 @UseGuards(JwtAuthGuard)
 @Validations(Role.ReadOnly)
 @Controller('changes')
 export class ChangesController {
-  constructor(private readonly changesService: ChangesService) {}
+  constructor(
+    private readonly changesService: ChangesService,
+    private readonly countersService: CountersService,
+  ) {}
+
   private readonly logger = new Logger(ChangesController.name)
 
   /**
@@ -58,19 +67,22 @@ export class ChangesController {
     return this.changesService.findAll(changeFilter)
   }
 
-  @Get('getLastUpdateByTime')
-  async getLastUpdateByTime(@Query() changeFilter: FindChangeByTimeDto) {
-    this.logger.debug(`getLastUpdateByTime: ${JSON.stringify(changeFilter)}`)
+  @Get('getLastChangesBySequence')
+  async getLastChangesBySequence(
+    @Query() changeFilter: FindChangeBySequenceDto,
+  ) {
+    this.logger.debug(
+      `getLastChangesBySequence: ${JSON.stringify(changeFilter)}`,
+    )
     this.changesService.reSendChanges(changeFilter)
     return { status: 'The last updates resent' }
   }
 
-  /**
-   * Clients neeed server timestamp when starting to listen socket
-   * @returns Server timestamp as number
-   */
-  @Get('getTimestamp')
-  async getTimestamp() {
-    return new Date().getTime()
+  @Get('getLastChangeSequence')
+  async getLastChangeSequence(@Query() request: GetLastSequenceDto) {
+    this.logger.debug(
+      `Get current counter value for ${JSON.stringify(request.id)}`,
+    )
+    return this.countersService.getCurrentValue(request.id)
   }
 }

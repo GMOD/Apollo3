@@ -28,7 +28,7 @@ import { CountersService } from '../counters/counters.service'
 import { FilesService } from '../files/files.service'
 import { Message } from '../messages/entities/message.entity'
 import { MessagesGateway } from '../messages/messages.gateway'
-import { FindChangeByTimeDto, FindChangeDto } from './dto/find-change.dto'
+import { FindChangeBySequenceDto, FindChangeDto } from './dto/find-change.dto'
 
 export class ChangesService {
   constructor(
@@ -193,7 +193,8 @@ export class ChangesService {
       }
 
       let msg: Message
-      const timestamp = new Date().getTime()
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const changeSequence = changeDoc!.sequence
 
       // In case of 'CopyFeatureChange', we need to create 'AddFeatureChange' to all connected clients
       if (change.typeName === 'CopyFeatureChange') {
@@ -216,7 +217,7 @@ export class ChangesService {
           userName: user,
           userToken,
           channel,
-          timestamp,
+          changeSequence,
         }
         // In case of AssemblySpecificChange we use 'COMMON' channel to broadcast to all connected clients
       } else if (assemblySpecificChange) {
@@ -226,7 +227,7 @@ export class ChangesService {
           userName: user,
           userToken,
           channel,
-          timestamp,
+          changeSequence,
         }
       } else {
         channel = `${tmpObject.assembly}-${refDoc?.name}`
@@ -235,7 +236,7 @@ export class ChangesService {
           userName: user,
           userToken,
           channel,
-          timestamp,
+          changeSequence,
         }
       }
 
@@ -295,16 +296,16 @@ export class ChangesService {
 
   /**
    * Resend to last changes to specific client only
-   * @param changeFilter - timestamp and clientId parameters
+   * @param changeFilter - sequenceNumber and clientId parameters
    */
-  async reSendChanges(changeFilter: FindChangeByTimeDto) {
+  async reSendChanges(changeFilter: FindChangeBySequenceDto) {
     this.logger.debug(
-      `Search criteria: Change object createdAt timestamp >= "${changeFilter.timestamp}"`,
+      `Search criteria: Change objects where "sequence" > "${changeFilter.sequenceNumber}"`,
     )
 
-    const oldTime = Number(changeFilter.timestamp)
+    const oldSequenceNumber = Number(changeFilter.sequenceNumber)
     const change = await this.changeModel
-      .find({ createdAt: { $gte: new Date(oldTime) } })
+      .find({ sequence: { $gt: oldSequenceNumber } })
       .sort({ createdAt: 1 })
       .exec()
 
@@ -313,7 +314,6 @@ export class ChangesService {
       this.logger.error(errMsg)
       throw new NotFoundException(errMsg)
     }
-    // this.logger.debug(`ALL CHANGES: ${JSON.stringify(change)}`)
     change.forEach(async (element) => {
       const channel = changeFilter.clientId
       const msg = {
@@ -321,7 +321,7 @@ export class ChangesService {
         userName: '',
         userToken: '',
         channel,
-        timestamp: '',
+        sequenceNumber: 0,
       }
       this.logger.debug(
         `Resending to channel '${channel}', changeObject: "${JSON.stringify(

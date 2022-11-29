@@ -332,7 +332,6 @@ function ApolloRendering(props: ApolloRenderingProps) {
       const userLocation = {
         assemblyId: apolloFeatureUnderMouse.assemblyId,
         refSeq: apolloFeatureUnderMouse.refSeq,
-        featureId: apolloFeatureUnderMouse._id,
         start: apolloFeatureUnderMouse.start,
         end: apolloFeatureUnderMouse.end,
       }

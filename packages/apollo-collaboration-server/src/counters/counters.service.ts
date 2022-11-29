@@ -27,4 +27,16 @@ export class CountersService {
     }
     return sequenceDocument.sequenceValue
   }
+
+  async getCurrentValue(sequenceName: string): Promise<number> {
+    const sequenceDocument = await this.counterModel
+      .findOne({ id: sequenceName })
+      .exec()
+    if (!sequenceDocument) {
+      const errMsg = `ERROR when getting current sequence value`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+    return sequenceDocument.sequenceValue
+  }
 }
