@@ -16,6 +16,7 @@ import {
 } from 'apollo-mst'
 import {
   BackendDriver,
+  Change,
   ChangeManager,
   ClientDataStore as ClientDataStoreType,
   CollaborationServerDriver,
@@ -122,7 +123,8 @@ const ClientDataStore = types
             sessionStorage.setItem('LastSocketTimestamp', message.timestamp)
             console.log(`COMMON MESSAGE: '${JSON.stringify(message)}'`)
             if (message.channel === 'COMMON' && message.userToken !== token) {
-              changeManager?.submit(message.changeInfo, {
+              const change = Change.fromJSON(message.changeInfo)
+              changeManager?.submit(change, {
                 submitToBackend: false,
               })
               notify(
@@ -148,7 +150,8 @@ const ClientDataStore = types
             // Save server last change sequnece into session storage
             sessionStorage.setItem('LastChangeSequence', message.changeSequence)
             if (message.userToken !== token && message.channel === channel) {
-              changeManager?.submit(message.changeInfo, {
+              const change = Change.fromJSON(message.changeInfo)
+              changeManager?.submit(change, {
                 submitToBackend: false,
               })
               notify(
@@ -252,21 +255,6 @@ const ClientDataStore = types
     deleteAssembly(assemblyId: string) {
       self.assemblies.delete(assemblyId)
     },
-    getLocations() {
-      const locations: any = []
-      // for (const view of self.views) {
-      //   if (view.type === 'LinearGenomeView') {
-      //     const { dynamicBlocks } = view as LinearGenomeViewModel
-      //     dynamicBlocks.forEach((block) => {
-      //       if (block.regionNumber !== undefined) {
-      //         const { assemblyName, refName, start, end } = block
-      //         locations.push({ assemblyName, refName, start, end })
-      //       }
-      //     })
-      //   }
-      // }
-      return locations
-    },
   }))
   .volatile((self) => ({
     changeManager: new ChangeManager(self as unknown as ClientDataStoreType),
@@ -314,6 +302,22 @@ export function extendSession(sessionModel: IAnyModelType) {
     .actions((self) => ({
       apolloSetSelectedFeature(feature?: AnnotationFeatureI) {
         self.apolloSelectedFeature = feature
+      },
+      getLocations() {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const locations: any = []
+        for (const view of self.views) {
+          if (view.type === 'LinearGenomeView') {
+            const { dynamicBlocks } = view as LinearGenomeViewModel
+            dynamicBlocks.forEach((block) => {
+              if (block.regionNumber !== undefined) {
+                const { assemblyName, refName, start, end } = block
+                locations.push({ assemblyName, refName, start, end })
+              }
+            })
+          }
+        }
+        return locations
       },
       addApolloTrackConfig(assembly: AssemblyModel) {
         const trackId = `apollo_track_${assembly.name}`
@@ -507,7 +511,10 @@ async function getLastUpdates(session: ApolloSession) {
   // Let's start to listen temporary channel where server will send the last updates
   socket.on(channel, (message) => {
     const { changeManager } = (session as ApolloSessionModel).apolloDataStore
-    changeManager?.submit(message.changeInfo[0], { submitToBackend: false })
+    const change = Change.fromJSON(message.changeInfo[0])
+    changeManager?.submit(change, {
+      submitToBackend: false,
+    })
     notify(
       `Get the last updates from server: ${JSON.stringify(message.changeInfo)}`,
       'success',

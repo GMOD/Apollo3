@@ -5,14 +5,6 @@ import {
   ValidationResultSet,
   validationRegistry,
 } from '../Validations/ValidationSet'
-import {
-  AddAssemblyFromFileChange,
-  AddFeatureChange,
-  DeleteAssemblyChange,
-  DeleteFeatureChange,
-  LocationEndChange,
-  LocationStartChange,
-} from './changes'
 import { Change, ClientDataStore } from './changes/abstract/Change'
 
 export interface SubmitOpts {
@@ -43,13 +35,7 @@ export class ChangeManager {
     }
 
     try {
-      if (submitToBackend) {
-        // submit directly to client data store
-        await change.apply(this.dataStore)
-      } else {
-        // Change through sockets
-        await this.changeThroughSocket(change)
-      }
+      await change.apply(this.dataStore)
     } catch (error) {
       console.error(error)
       session.notify(String(error), 'error')
@@ -97,82 +83,6 @@ export class ChangeManager {
       // Push the change into array
       this.recentChanges.push(change)
     }
-  }
-
-  async changeThroughSocket(change: Change) {
-    let ch
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tmpObject: any = {
-      ...change,
-    }
-    const { featureId, changedIds, assembly } = tmpObject
-
-    console.log(
-      `CHANGE MANAGER: changeThroughSocket "${JSON.stringify(tmpObject)}"`,
-    )
-    switch (change.typeName) {
-      case 'AddAssemblyFromFileChange':
-        ch = new AddAssemblyFromFileChange({
-          typeName: 'AddAssemblyFromFileChange',
-          assembly: tmpObject.assembly,
-          assemblyName: tmpObject.assemblyName,
-          changes: tmpObject,
-        })
-        break
-      case 'AddFeatureChange':
-        const { addedFeature } = tmpObject
-        ch = new AddFeatureChange({
-          typeName: 'AddFeatureChange',
-          changedIds,
-          addedFeature,
-          assembly,
-          parentFeatureId: tmpObject.parentFeatureId,
-        })
-        break
-      case 'DeleteAssemblyChange':
-        ch = new DeleteAssemblyChange({
-          typeName: 'DeleteAssemblyChange',
-          assembly,
-        })
-        break
-      case 'DeleteFeatureChange':
-        const { parentFeatureId, deletedFeature } = tmpObject
-        // console.log(`DELETE FEATURE, OBJECT "${JSON.stringify(tmpObject)}"`)
-        // console.log(`DELETE FEATURE, CHANGE "${JSON.stringify(change)}"`)
-        ch = new DeleteFeatureChange({
-          typeName: 'DeleteFeatureChange',
-          changedIds,
-          deletedFeature,
-          parentFeatureId,
-          assembly,
-        })
-        break
-      case 'LocationEndChange':
-        const { oldEnd, newEnd } = tmpObject
-        ch = new LocationEndChange({
-          typeName: 'LocationEndChange',
-          changedIds,
-          featureId,
-          oldEnd,
-          newEnd,
-          assembly,
-        })
-        break
-      case 'LocationStartChange':
-        const { oldStart, newStart } = tmpObject
-        ch = new LocationStartChange({
-          typeName: 'LocationStartChange',
-          changedIds,
-          featureId,
-          oldStart,
-          newStart,
-          assembly,
-        })
-        break
-    }
-
-    // submit to client data store
-    await ch?.apply(this.dataStore)
   }
 
   async revert(change: Change, submitToBackend = true) {

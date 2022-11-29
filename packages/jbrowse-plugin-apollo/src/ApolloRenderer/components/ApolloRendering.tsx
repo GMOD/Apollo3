@@ -1,6 +1,6 @@
 import { getConf } from '@jbrowse/core/configuration'
 import { AppRootModel, Region, getSession } from '@jbrowse/core/util'
-import { getDialogActionsUtilityClass, Menu, MenuItem } from '@mui/material'
+import { Menu, MenuItem } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { autorun, toJS } from 'mobx'
@@ -102,16 +102,6 @@ function ApolloRendering(props: ApolloRenderingProps) {
       setIsAdmin(true)
     }
     setInternetAccount(apolloInternetAccount)
-    //* ********** */
-    // const userLocation = {
-    //   assemblyId: 'BB',
-    //   refSeq: 'refSeq34',
-    //   featureId: 'feature',
-    //   start: '123',
-    //   end: '456',
-    // }
-    // apolloInternetAccount.postUserLocation(session as ApolloSession, userLocation)
-    //* ********** END  */
   }, [session, displayModel, region])
   useEffect(() => {
     const canvas = canvasRef.current

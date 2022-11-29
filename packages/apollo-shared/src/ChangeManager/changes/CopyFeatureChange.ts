@@ -112,10 +112,8 @@ export class CopyFeatureChange extends FeatureChange {
           `Target assembly does not contain RefSeq "${currentRefSeqDoc.name}"`,
         )
       }
-      console.log(4)
       // Let's add featureId to each child recursively
       const newFeatureIds = this.generateNewIds(newFeature, featureIds)
-      console.log(5)
       // Remove "new generated featureId" from "allIds" -array because newFeatureId was already provided. Then add correct newFeatureId into it
       const index = featureIds.indexOf(newFeatureIds._id, 0)
       if (index > -1) {

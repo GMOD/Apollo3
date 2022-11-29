@@ -10,7 +10,7 @@ import {
 } from '@jbrowse/core/util'
 import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
 import Undo from '@mui/icons-material/Undo'
-import { JWTPayload } from 'apollo-shared'
+import { Change, JWTPayload } from 'apollo-shared'
 import jwtDecode from 'jwt-decode'
 import { autorun } from 'mobx'
 import { Instance, getRoot, types } from 'mobx-state-tree'
@@ -333,6 +333,7 @@ const stateModelFactory = (
         }
         throw new Error(`Unknown authType "${self.authType}"`)
       },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       postUserLocation(session: ApolloSession, userLoc: any) {
         const { internetAccounts } = getRoot(session) as AppRootModel
         const internetAccount =
@@ -455,7 +456,6 @@ async function getAndSetLastChangeSeq(session: ApolloSession) {
       sessionStorage.setItem('LastChangeSequence', await response.text())
     }
   }
-
 }
 
 function openSocket(session: ApolloSession) {
@@ -474,7 +474,10 @@ function openSocket(session: ApolloSession) {
       // Save server last change sequnece into session storage
       sessionStorage.setItem('LastChangeSequence', message.changeSequence)
       if (message.channel === 'COMMON' && message.userToken !== token) {
-        changeManager?.submit(message.changeInfo, { submitToBackend: false })
+        const change = Change.fromJSON(message.changeInfo)
+        changeManager?.submit(change, {
+          submitToBackend: false,
+        })
         notify(
           `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
             message.changeInfo,
@@ -519,7 +522,10 @@ async function getLastUpdates(session: ApolloSession) {
   // Let's start to listen temporary channel where server will send the last updates
   socket.on(channel, (message) => {
     const { changeManager } = (session as ApolloSessionModel).apolloDataStore
-    changeManager?.submit(message.changeInfo[0], { submitToBackend: false })
+    const change = Change.fromJSON(message.changeInfo[0])
+    changeManager?.submit(change, {
+      submitToBackend: false,
+    })
     notify(
       `Get the last updates from server: ${JSON.stringify(message.changeInfo)}`,
       'success',
