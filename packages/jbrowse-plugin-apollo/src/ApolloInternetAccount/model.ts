@@ -14,7 +14,7 @@ import { Change, JWTPayload, SerializedChange } from 'apollo-shared'
 import jwtDecode from 'jwt-decode'
 import { autorun } from 'mobx'
 import { Instance, getRoot, types } from 'mobx-state-tree'
-import { io } from 'socket.io-client'
+import { Socket, io } from 'socket.io-client'
 
 import {
   AddAssembly,
@@ -32,7 +32,6 @@ interface Menu {
 }
 
 type AuthType = 'google' | 'microsoft'
-const socket = io('http://localhost:3999')
 
 const stateModelFactory = (
   configSchema: ApolloInternetAccountConfigModel,
@@ -93,8 +92,9 @@ const stateModelFactory = (
         return dec.id
       },
     }))
-    .volatile(() => ({
+    .volatile((self) => ({
       authType: undefined as AuthType | undefined,
+      socket: io(self.baseURL),
     }))
     .actions((self) => ({
       addMenuItems(role: ('admin' | 'user' | 'readOnly')[]) {
@@ -264,7 +264,7 @@ const stateModelFactory = (
               // Get and set server last change sequnece into session storage
               await getAndSetLastChangeSeq(session)
               // Open 'COMMON' socket listener
-              openSocket(session)
+              openSocket(session, self.socket)
             },
           }
         })
@@ -302,7 +302,7 @@ const stateModelFactory = (
               // Get and set server last change sequnece into session storage
               await getAndSetLastChangeSeq(session)
               // Open 'COMMON' socket listener
-              openSocket(session)
+              openSocket(session, self.socket)
             },
           }
         })
@@ -456,7 +456,7 @@ async function getAndSetLastChangeSeq(session: ApolloSession) {
   sessionStorage.setItem('LastChangeSequence', change.sequence)
 }
 
-function openSocket(session: ApolloSession) {
+function openSocket(session: ApolloSession, socket: Socket) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
   const { baseURL } = internetAccount
@@ -488,7 +488,7 @@ function openSocket(session: ApolloSession) {
     socket.on('connect', function () {
       console.log('Connected')
       notify(`You are re-connected to Apollo server.`, 'success')
-      getLastUpdates(session)
+      getLastUpdates(session, socket)
     })
     socket.on('disconnect', function () {
       console.log('Disconnected')
@@ -508,7 +508,7 @@ function openSocket(session: ApolloSession) {
  * @param apolloInternetAccount - apollo internet account
  * @returns
  */
-async function getLastUpdates(session: ApolloSession) {
+async function getLastUpdates(session: ApolloSession, socket: Socket) {
   const lastChangeSequence = sessionStorage.getItem('LastChangeSequence')
   if (!lastChangeSequence) {
     throw new Error(
