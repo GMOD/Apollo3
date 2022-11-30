@@ -48,6 +48,19 @@ interface ApolloRefSeqResponse {
   assembly: string
 }
 
+export interface CollaboratorLocation {
+  assembly: string
+  refName: string
+  start: number
+  end: number
+}
+
+export interface Collaborator {
+  name: string
+  id: string
+  locations: CollaboratorLocation[]
+}
+
 const ClientDataStore = types
   .model('ClientDataStore', {
     typeName: types.optional(types.literal('Client'), 'Client'),
@@ -147,6 +160,28 @@ export function extendSession(sessionModel: IAnyModelType) {
       apolloDataStore: types.optional(ClientDataStore, { typeName: 'Client' }),
       apolloSelectedFeature: types.maybe(types.reference(AnnotationFeature)),
     })
+    .volatile(() => ({
+      collaborators: [] as Collaborator[],
+    }))
+    .actions((self) => ({
+      addOrUpdateCollaborator(collaboratorLocation: CollaboratorLocation) {
+        const { internetAccounts } = getRoot(self) as AppRootModel
+        const userId = internetAccounts[0].getUserId()
+        let collaborator: Collaborator = self.collaborators.find(
+          (obj: Collaborator) => obj.id === userId,
+        )
+        if (!collaborator) {
+          collaborator = {
+            id: userId,
+            name: '',
+            locations: [collaboratorLocation],
+          }
+          self.collaborators.push(collaborator)
+        } else {
+          collaborator.locations = [collaboratorLocation]
+        }
+      },
+    }))
     .actions((self) => ({
       apolloSetSelectedFeature(feature?: AnnotationFeatureI) {
         self.apolloSelectedFeature = feature

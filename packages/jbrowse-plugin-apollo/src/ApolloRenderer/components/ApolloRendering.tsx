@@ -12,6 +12,7 @@ import { AddFeature } from '../../components/AddFeature'
 import { CopyFeature } from '../../components/CopyFeature'
 import { DeleteFeature } from '../../components/DeleteFeature'
 import { LinearApolloDisplay } from '../../LinearApolloDisplay/stateModel'
+import { CollaboratorLocation } from '../../session'
 
 interface ApolloRenderingProps {
   assemblyName: string
@@ -181,8 +182,36 @@ function ApolloRendering(props: ApolloRenderingProps) {
     dragging,
     height,
   ])
+
+  useEffect(() => {
+    const canvas = overlayCanvasRef.current
+    if (!canvas) {
+      return
+    }
+    const ctx = canvas.getContext('2d')
+    if (!ctx) {
+      return
+    }
+    ctx.clearRect(0, 0, totalWidth, totalHeight)
+    for (const collaborator of session.collaborators) {
+      const { locations } = collaborator
+      const { start, end }  = locations[0]
+      ctx.fillStyle = 'rgba(0,255,0,.2)'
+      ctx.fillRect(start, 1, end, 100)
+    }
+  }, [apolloFeatureUnderMouse, session.collaborators, totalWidth, totalHeight])
+
   function onMouseMove(event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
     const { clientX, clientY, buttons } = event
+    if (apolloFeatureUnderMouse) {
+      const loc: CollaboratorLocation = {
+        assembly: region.assemblyName,
+        refName: '',
+        start: apolloFeatureUnderMouse.start,
+        end: apolloFeatureUnderMouse.end,
+      }
+      session.addOrUpdateCollaborator(loc)
+    }
     if (!movedDuringLastMouseDown && buttons === 1) {
       setMovedDuringLastMouseDown(true)
     }
