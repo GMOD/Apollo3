@@ -103,6 +103,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     }
     setInternetAccount(apolloInternetAccount)
   }, [session, displayModel, region])
+
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) {

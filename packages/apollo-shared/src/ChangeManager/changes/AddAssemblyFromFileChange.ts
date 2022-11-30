@@ -1,4 +1,3 @@
-// import { getSession } from '@jbrowse/core/util'
 import {
   AssemblySpecificChange,
   SerializedAssemblySpecificChange,
@@ -108,26 +107,8 @@ export class AddAssemblyFromFileChange extends AssemblySpecificChange {
     throw new Error('applyToLocalGFF3 not implemented')
   }
 
-  async applyToClient(dataStore: ClientDataStore) {
-    // console.log('ADD ASSEMBLY FROM FILE CHANGE')
-    // const session = getSession(dataStore)
-    // const { assembly, changes } = this
-    // console.log(`CHANGE 0: ${JSON.stringify(changes)}`)
-    // const tmpObject: any = changes
-    // const assName = tmpObject.assemblyName
-    // console.log(`ASS-NAME: ${JSON.stringify(assName)}`)
-    // console.log(`ASSEMBLY: ${JSON.stringify(assembly)}`)
-    // if (!dataStore) {
-    //   throw new Error('No data store')
-    // }
-    // const ass = session.apolloDataStore.assemblies.get(assembly)
-    // console.log(`ASS: ${JSON.stringify(ass)}`)
-    // // If assemblyId is not present in client data store
-    // if (!dataStore.assemblies.has(assembly)) {
-    //   await session.addAssembly?.(assembly)
-    //   dataStore.addAssembly(assembly, '')
-    // }
-  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  async applyToClient(dataStore: ClientDataStore) {}
 
   getInverse() {
     const { typeName, changes, assembly, logger } = this

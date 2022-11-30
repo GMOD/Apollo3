@@ -88,7 +88,6 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
     // If assemblyId is not present in client data store
     if (!dataStore.assemblies.has(assembly)) {
       await session.removeAssembly?.(assembly)
-
       return
     }
     dataStore.deleteAssembly(assembly)

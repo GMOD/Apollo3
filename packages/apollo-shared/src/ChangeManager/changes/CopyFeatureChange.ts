@@ -89,6 +89,7 @@ export class CopyFeatureChange extends FeatureChange {
           `Feature ID "${featureId}" not found in parent feature "${topLevelFeature._id}"`,
         )
       }
+
       const featureIds: string[] = []
 
       // Find refSeq from current assembly
@@ -104,7 +105,7 @@ export class CopyFeatureChange extends FeatureChange {
 
       // We need to find such refSeq in target assembly that has same name than current assembly
       const targetRefSeqDoc = await refSeqModel
-        .find({ assembly: targetAssemblyId, name: currentRefSeqDoc.name })
+        .findOne({ assembly: targetAssemblyId, name: currentRefSeqDoc.name })
         .session(session)
         .exec()
       if (!targetRefSeqDoc) {
@@ -113,9 +114,9 @@ export class CopyFeatureChange extends FeatureChange {
         )
       }
       // Let's add featureId to each child recursively
-      const newFeatureIds = this.generateNewIds(newFeature, featureIds)
+      const newFeatureLine = this.generateNewIds(newFeature, featureIds)
       // Remove "new generated featureId" from "allIds" -array because newFeatureId was already provided. Then add correct newFeatureId into it
-      const index = featureIds.indexOf(newFeatureIds._id, 0)
+      const index = featureIds.indexOf(newFeatureLine._id, 0)
       if (index > -1) {
         featureIds.splice(index, 1)
       }
@@ -125,16 +126,10 @@ export class CopyFeatureChange extends FeatureChange {
       const [newFeatureDoc] = await featureModel.create(
         [
           {
-            ...newFeatureIds,
+            ...newFeatureLine,
             _id: newFeatureId,
-            refSeq: targetRefSeqDoc[0]._id,
+            refSeq: targetRefSeqDoc._id,
             allIds: featureIds,
-            start: newFeature.start,
-            end: newFeature.end,
-            type: newFeature.type,
-            strand: newFeature.strand,
-            attributes: newFeature.attributes,
-            discontinuousLocations: newFeature.discontinuousLocations,
           },
         ],
         { session },

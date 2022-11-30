@@ -35,6 +35,7 @@ export class ChangeManager {
     }
 
     try {
+      // submit to client data store
       await change.apply(this.dataStore)
     } catch (error) {
       console.error(error)

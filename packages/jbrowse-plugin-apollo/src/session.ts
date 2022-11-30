@@ -91,9 +91,6 @@ const ClientDataStore = types
   }))
   .actions((self) => ({
     loadFeatures: flow(function* loadFeatures(regions: Region[]) {
-      console.log(
-        `*** loadFeatures -method. Regions: ${JSON.stringify(regions)}`,
-      )
       for (const region of regions) {
         const features = (yield (
           self as unknown as { backendDriver: BackendDriver }
@@ -114,9 +111,7 @@ const ClientDataStore = types
         const { notify } = session
         const [firstRef] = regions
         const channel = `${assembly?._id}-${firstRef.refName}`
-        const changeManager = new ChangeManager(
-          self as unknown as ClientDataStoreType,
-        )
+        const { changeManager } = self
         if (!socket.hasListeners('COMMON')) {
           console.log(`User starts to listen "COMMON" -channel`)
           socket.on('COMMON', (message) => {

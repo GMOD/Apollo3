@@ -4,7 +4,6 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
 import {
   Assembly,
   AssemblyDocument,
@@ -21,7 +20,14 @@ import {
   User,
   UserDocument,
 } from 'apollo-schemas'
-import { Change as BaseChange, validationRegistry } from 'apollo-shared'
+import {
+  AddFeatureChange,
+  AssemblySpecificChange,
+  Change as BaseChange,
+  CopyFeatureChange,
+  FeatureChange,
+  validationRegistry,
+} from 'apollo-shared'
 import { FilterQuery, Model } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service'
@@ -66,18 +72,6 @@ export class ChangesService {
       )
     }
     let changeDoc: ChangeDocument | undefined
-    let featureId
-    let refSeqId
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let tmpObject: any
-
-    const assemblySpecificChange =
-      change.typeName === 'AddAssemblyFromFileChange' ||
-      change.typeName === 'AddAssemblyAndFeaturesFromFileChange' ||
-      change.typeName === 'DeleteAssemblyChange'
-        ? true
-        : false
-
     await this.featureModel.db.transaction(async (session) => {
       try {
         await change.apply({
@@ -111,7 +105,6 @@ export class ChangesService {
         { session },
       )
       changeDoc = savedChangedLogDoc
-
       const validationResult2 = await validationRegistry.backendPostValidate(
         change,
         { featureModel: this.featureModel, session },
@@ -122,152 +115,97 @@ export class ChangesService {
           `Error in backend post-validation: ${errorMessage}`,
         )
       }
-      this.logger.debug(`TypeName: ${change.typeName}`)
+    })
+    if (!changeDoc) {
+      throw new UnprocessableEntityException('could not create change')
+    }
+    this.logger.debug(`TypeName: ${change.typeName}`)
 
-      // Broadcast feature specific changes
-      if (!assemblySpecificChange) {
-        // For broadcasting we need also refName
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const tmpObject1: any = {
-          ...change,
-        }
-        tmpObject = {
-          ...tmpObject1.changes[0], // Should we loop all changes or is there just one change?
-        }
-        this.logger.debug(
-          `Individual change object: ${JSON.stringify(tmpObject)}`,
-        )
+    if (!(change instanceof AssemblySpecificChange)) {
+      return
+    }
 
-        if (
-          tmpObject.hasOwnProperty('featureId') ||
-          tmpObject.hasOwnProperty('deletedFeature') ||
-          tmpObject.hasOwnProperty('newFeatureId') ||
-          tmpObject.hasOwnProperty('addedFeature')
-        ) {
-          if (tmpObject.hasOwnProperty('deletedFeature')) {
-            featureId = tmpObject.deletedFeature._id
-          } else if (tmpObject.hasOwnProperty('addedFeature')) {
-            featureId = tmpObject.addedFeature._id
-          } else {
-            // eslint-disable-next-line prefer-destructuring
-            featureId = tmpObject.featureId
-          }
-          // Search correct feature
-          const topLevelFeature = await this.featureModel
-            .findOne({ allIds: featureId })
-            .session(session)
+    // Broadcast feature specific changes
+    const refNames: string[] = []
+    if (change instanceof FeatureChange) {
+      // For broadcasting we need also refName
+      const { changedIds } = change
+      for (const changedId of changedIds) {
+        const featureDoc = await this.featureModel
+          .findOne({ allIds: changedId })
+          .exec()
+        if (featureDoc) {
+          const refSeqDoc = await this.refSeqModel
+            .findById(featureDoc.refSeq)
             .exec()
-          if (!topLevelFeature) {
-            const errMsg = `*** ERROR: The following featureId was not found in database ='${featureId}'`
-            this.logger.error(errMsg)
-            throw new Error(errMsg)
+          if (refSeqDoc) {
+            refNames.push(refSeqDoc.name)
           }
-          refSeqId = topLevelFeature.refSeq
         }
       }
-    })
-    this.logger.debug(`ChangeDocId: ${changeDoc?._id}`)
+    }
 
     // Broadcast
-    const broadcastChanges: string[] = [
-      'AddAssemblyFromFileChange',
-      'AddAssemblyAndFeaturesFromFileChange',
-      'AddFeatureChange',
-      'CopyFeatureChange',
-      'DeleteAssemblyChange',
-      'DeleteFeatureChange',
-      'LocationEndChange',
-      'LocationStartChange',
-    ]
-    if (broadcastChanges.includes(change.typeName as unknown as string)) {
-      let channel
-      let refDoc
-      if (!assemblySpecificChange) {
-        // Get feature's refSeqName
-        refDoc = await this.refSeqModel.findById(refSeqId).exec()
-        if (!refDoc) {
-          const errMsg = `*** ERROR: The following refSeq was not found in database ='${refSeqId}'`
-          this.logger.error(errMsg)
-          throw new Error(errMsg)
-        }
+    const messages: Message[] = []
+
+    // In case of 'CopyFeatureChange', we need to create 'AddFeatureChange' to all connected clients
+    if (change instanceof CopyFeatureChange) {
+      const [{ targetAssemblyId, newFeatureId }] = change.changes
+      // Get origin top level feature
+      const topLevelFeature = await this.featureModel
+        .findOne({ allIds: newFeatureId })
+        .exec()
+      if (!topLevelFeature) {
+        const errMsg = `*** ERROR: The following featureId was not found in database ='${newFeatureId}'`
+        this.logger.error?.(errMsg)
+        throw new Error(errMsg)
       }
-
-      let msg: Message
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const changeSequence = changeDoc!.sequence
-
-      // In case of 'CopyFeatureChange', we need to create 'AddFeatureChange' to all connected clients
-      if (change.typeName === 'CopyFeatureChange') {
-        const { targetAssemblyId } = tmpObject
-        // Get origin top level feature
-        const topLevelFeature = await this.featureModel
-          .findOne({ allIds: tmpObject.newFeatureId })
-          .exec()
-        if (!topLevelFeature) {
-          const errMsg = `*** ERROR: The following featureId was not found in database ='${tmpObject.newFeatureId}'`
-          this.logger.error?.(errMsg)
-          throw new Error(errMsg)
-        }
-        tmpObject.typeName = 'AddFeatureChange'
-        tmpObject.assembly = targetAssemblyId
-        tmpObject.addedFeature = topLevelFeature
-        channel = `${targetAssemblyId}-${refDoc?.name}`
-        msg = {
-          changeInfo: tmpObject,
+      const newChange = new AddFeatureChange({
+        typeName: 'AddFeatureChange',
+        assembly: targetAssemblyId,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        addedFeature: topLevelFeature,
+      })
+      for (const refName of refNames) {
+        messages.push({
+          changeInfo: newChange.toJSON(),
           userName: user,
           userToken,
-          channel,
-          changeSequence,
-        }
-        // In case of AssemblySpecificChange we use 'COMMON' channel to broadcast to all connected clients
-      } else if (assemblySpecificChange) {
-        channel = 'COMMON'
-        msg = {
-          changeInfo: change,
-          userName: user,
-          userToken,
-          channel,
-          changeSequence,
-        }
-      } else {
-        channel = `${tmpObject.assembly}-${refDoc?.name}`
-        msg = {
-          changeInfo: change,
-          userName: user,
-          userToken,
-          channel,
-          changeSequence,
-        }
+          channel: `${targetAssemblyId}-${refName}`,
+          changeSequence: changeDoc.sequence,
+        })
       }
+    } else if (change instanceof FeatureChange) {
+      for (const refName of refNames) {
+        messages.push({
+          changeInfo: change.toJSON(),
+          userName: user,
+          userToken,
+          channel: `${change.assembly}-${refName}`,
+          changeSequence: changeDoc.sequence,
+        })
+      }
+    } else {
+      messages.push({
+        changeInfo: change.toJSON(),
+        userName: user,
+        userToken,
+        channel: 'COMMON',
+        changeSequence: changeDoc.sequence,
+      })
+    }
 
+    for (const message of messages) {
       this.logger.debug(
-        `Broadcasting to channel '${channel}', changeObject: "${JSON.stringify(
-          msg,
-        )}"`,
+        `Broadcasting to channels '${
+          message.channel
+        }', changeObject: "${JSON.stringify(message)}"`,
       )
-      await this.messagesGateway.create(channel, msg)
+      this.messagesGateway.create(message.channel, message)
     }
+    this.logger.debug(`ChangeDocId: ${changeDoc?._id}`)
     return changeDoc
-  }
-
-  /**
-   * Get children's feature ids
-   * @param feature - parent feature
-   * @returns
-   */
-  getChildFeatureIds(feature: Feature | AnnotationFeatureSnapshot): string[] {
-    if (!feature.children) {
-      return []
-    }
-    const featureIds = []
-    const children =
-      feature.children instanceof Map
-        ? feature.children
-        : new Map(Object.entries(feature.children))
-    for (const [childFeatureId, childFeature] of children || new Map()) {
-      featureIds.push(childFeatureId, ...this.getChildFeatureIds(childFeature))
-    }
-    return featureIds
   }
 
   async findAll(changeFilter: FindChangeDto) {

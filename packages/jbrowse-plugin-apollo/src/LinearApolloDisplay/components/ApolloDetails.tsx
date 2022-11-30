@@ -113,7 +113,6 @@ export const ApolloDetails = observer(
     if (!selectedFeature) {
       return <div>click on a feature to see details</div>
     }
-
     // const sequenceTypes = changeManager?.validations.getPossibleValues('type')
     const {
       _id: id,
