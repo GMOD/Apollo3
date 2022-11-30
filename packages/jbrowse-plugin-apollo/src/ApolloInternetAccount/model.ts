@@ -470,7 +470,7 @@ function openSocket(session: ApolloSession, socket: Socket) {
     console.log(`User starts to listen "COMMON" at ${baseURL}`)
     socket.on('COMMON', (message) => {
       // Save server last change sequnece into session storage
-      sessionStorage.setItem('LastChangeSequence', message.changeSequence)
+    sessionStorage.setItem('LastChangeSequence', message.changeSequence)
       if (message.channel === 'COMMON' && message.userToken !== token) {
         const change = Change.fromJSON(message.changeInfo)
         changeManager?.submit(change, {
@@ -484,7 +484,6 @@ function openSocket(session: ApolloSession, socket: Socket) {
         )
       }
     })
-
     socket.on('connect', function () {
       console.log('Connected')
       notify(`You are re-connected to Apollo server.`, 'success')
@@ -500,6 +499,20 @@ function openSocket(session: ApolloSession, socket: Socket) {
     console.log(
       `LastChangeSequence: '${sessionStorage.getItem('LastChangeSequence')}'`,
     )
+  }
+  if (!socket.hasListeners('USER_LOCATION')) {
+    console.log(`User starts to listen "USER_LOCATION" at ${baseURL}`)
+    socket.on('USER_LOCATION', (message) => {
+      if (message.channel === 'USER_LOCATION' && message.userToken !== token) {
+        console.log(
+          `User's ${JSON.stringify(message.userName)} location. AssemblyId: "${
+            message.assemblyId
+          }", refSeq: "${message.refSeq}", start: "${
+            message.start
+          }" and end: "${message.end}"`,
+        )
+      }
+    })
   }
 }
 

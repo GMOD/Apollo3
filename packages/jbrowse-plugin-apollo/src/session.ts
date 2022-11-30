@@ -108,96 +108,96 @@ const ClientDataStore = types
         // Get and set server timestamp into session storage
         getAndSetLastChangeSeq(session)
 
-        const { notify } = session
-        const [firstRef] = regions
-        const channel = `${assembly?._id}-${firstRef.refName}`
-        const { changeManager } = self
-        if (!socket.hasListeners('COMMON')) {
-          console.log(`User starts to listen "COMMON" -channel`)
-          socket.on('COMMON', (message) => {
-            // Save the last server timestamp
-            sessionStorage.setItem('LastSocketTimestamp', message.timestamp)
-            console.log(`COMMON MESSAGE: '${JSON.stringify(message)}'`)
-            if (message.channel === 'COMMON' && message.userToken !== token) {
-              const change = Change.fromJSON(message.changeInfo)
-              changeManager?.submit(change, {
-                submitToBackend: false,
-              })
-              notify(
-                `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
-                  message.changeInfo,
-                )}`,
-                'success',
-              )
-            }
-            console.log(
-              `LastChangeSequence: '${sessionStorage.getItem(
-                'LastChangeSequence',
-              )}'`,
-            )
-          })
-        }
-        if (!socket.hasListeners(channel)) {
-          console.log(`User starts to listen "${channel}" -channel`)
-          socket.on(channel, (message) => {
-            console.log(
-              `Channel "${channel}" message: "${JSON.stringify(message)}"`,
-            )
-            // Save server last change sequnece into session storage
-            sessionStorage.setItem('LastChangeSequence', message.changeSequence)
-            if (message.userToken !== token && message.channel === channel) {
-              const change = Change.fromJSON(message.changeInfo)
-              changeManager?.submit(change, {
-                submitToBackend: false,
-              })
-              notify(
-                `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
-                  message.changeInfo,
-                )}`,
-                'success',
-              )
-            }
-            console.log(
-              `LastChangeSequence: '${sessionStorage.getItem(
-                'LastChangeSequence',
-              )}'`,
-            )
-          })
+        // const { notify } = session
+        // const [firstRef] = regions
+        // const channel = `${assembly?._id}-${firstRef.refName}`
+        // const { changeManager } = self
+        // if (!socket.hasListeners('COMMON')) {
+        //   console.log(`User starts to listen "COMMON" -channel`)
+        //   socket.on('COMMON', (message) => {
+        //     // Save the last server timestamp
+        //     sessionStorage.setItem('LastSocketTimestamp', message.timestamp)
+        //     console.log(`COMMON MESSAGE: '${JSON.stringify(message)}'`)
+        //     if (message.channel === 'COMMON' && message.userToken !== token) {
+        //       const change = Change.fromJSON(message.changeInfo)
+        //       changeManager?.submit(change, {
+        //         submitToBackend: false,
+        //       })
+        //       notify(
+        //         `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
+        //           message.changeInfo,
+        //         )}`,
+        //         'success',
+        //       )
+        //     }
+        //     console.log(
+        //       `LastChangeSequence: '${sessionStorage.getItem(
+        //         'LastChangeSequence',
+        //       )}'`,
+        //     )
+        //   })
+        // }
+        // if (!socket.hasListeners(channel)) {
+        //   console.log(`User starts to listen "${channel}" -channel`)
+        //   socket.on(channel, (message) => {
+        //     console.log(
+        //       `Channel "${channel}" message: "${JSON.stringify(message)}"`,
+        //     )
+        //     // Save server last change sequnece into session storage
+        //     sessionStorage.setItem('LastChangeSequence', message.changeSequence)
+        //     if (message.userToken !== token && message.channel === channel) {
+        //       const change = Change.fromJSON(message.changeInfo)
+        //       changeManager?.submit(change, {
+        //         submitToBackend: false,
+        //       })
+        //       notify(
+        //         `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
+        //           message.changeInfo,
+        //         )}`,
+        //         'success',
+        //       )
+        //     }
+        //     console.log(
+        //       `LastChangeSequence: '${sessionStorage.getItem(
+        //         'LastChangeSequence',
+        //       )}'`,
+        //     )
+        //   })
 
-          socket.on('connect', function () {
-            console.log('Connected')
-            notify(`You are re-connected to Apollo server.`, 'success')
-            getLastUpdates(session)
-          })
-          socket.on('disconnect', function () {
-            console.log('Disconnected')
-            notify(
-              `You are disconnected from Apollo server! Please, close this message`,
-              'error',
-            )
-          })
-        }
-        if (!socket.hasListeners('USER_LOCATION')) {
-          const { internetAccounts } = getRoot(session) as AppRootModel
-          const internetAccount =
-            internetAccounts[0] as ApolloInternetAccountModel
-          const { baseURL } = internetAccount
-          console.log(`User starts to listen "USER_LOCATION" at ${baseURL}`)
-          socket.on('USER_LOCATION', (message) => {
-            if (
-              message.channel === 'USER_LOCATION' &&
-              message.userToken !== token
-            ) {
-              console.log(
-                `User's ${JSON.stringify(
-                  message.userName,
-                )} location. AssemblyId: "${message.assemblyId}", refSeq: "${
-                  message.refSeq
-                }", start: "${message.start}" and end: "${message.end}"`,
-              )
-            }
-          })
-        }
+        //   socket.on('connect', function () {
+        //     console.log('Connected')
+        //     notify(`You are re-connected to Apollo server.`, 'success')
+        //     getLastUpdates(session)
+        //   })
+        //   socket.on('disconnect', function () {
+        //     console.log('Disconnected')
+        //     notify(
+        //       `You are disconnected from Apollo server! Please, close this message`,
+        //       'error',
+        //     )
+        //   })
+        // }
+        // if (!socket.hasListeners('USER_LOCATION')) {
+        //   const { internetAccounts } = getRoot(session) as AppRootModel
+        //   const internetAccount =
+        //     internetAccounts[0] as ApolloInternetAccountModel
+        //   const { baseURL } = internetAccount
+        //   console.log(`User starts to listen "USER_LOCATION" at ${baseURL}`)
+        //   socket.on('USER_LOCATION', (message) => {
+        //     if (
+        //       message.channel === 'USER_LOCATION' &&
+        //       message.userToken !== token
+        //     ) {
+        //       console.log(
+        //         `User's ${JSON.stringify(
+        //           message.userName,
+        //         )} location. AssemblyId: "${message.assemblyId}", refSeq: "${
+        //           message.refSeq
+        //         }", start: "${message.start}" and end: "${message.end}"`,
+        //       )
+        //     }
+        //   })
+        // }
         if (!assembly) {
           assembly = self.assemblies.put({ _id: assemblyName, refSeqs: {} })
         }
