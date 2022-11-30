@@ -79,11 +79,6 @@ export class CollaborationServerDriver extends BackendDriver {
     const internetAccount = this.getInternetAccount(assemblyName)
     const { baseURL } = internetAccount
 
-    //* **** START */
-    let tmpObject: any = null
-    tmpObject = internetAccount
-    //* **** END */
-
     const url = new URL('features/getFeatures', baseURL)
     const searchParams = new URLSearchParams({
       refSeq,
@@ -92,7 +87,6 @@ export class CollaborationServerDriver extends BackendDriver {
     })
     url.search = searchParams.toString()
     const uri = url.toString()
-    // console.log(`In CollaborationServerDriver: Query parameters: refSeq=${refSeq}, start=${start}, end=${end}`)
 
     const response = await this.fetch(internetAccount, uri)
     if (!response.ok) {
@@ -108,13 +102,15 @@ export class CollaborationServerDriver extends BackendDriver {
         }`,
       )
     }
-    this.checkSocket(assemblyName, refName, tmpObject)
+    this.checkSocket(assemblyName, refName, internetAccount)
     return response.json() as Promise<AnnotationFeatureSnapshot[]>
   }
 
   /**
-   * Checks if there is refSeq specific socket. If not, it opens one
-   * @param refSeq - refSeq that socket is listening
+   * Checks if there is assembly-refSeq specific socket. If not, it opens one
+   * @param assembly - assemblyId
+   * @param refSeq - refSeqName
+   * @param internetAccount - internet account
    */
   async checkSocket(assembly: string, refSeq: string, internetAccount: any) {
     const { socket, baseURL } = internetAccount
@@ -159,11 +155,10 @@ export class CollaborationServerDriver extends BackendDriver {
           )
         },
       )
-
-      socket.on('connect', function () {
+      socket.on('connect', () => {
         console.log('Connected')
         notify(`You are re-connected to Apollo server.`, 'success')
-        // getLastUpdates(session)
+        this.getLastUpdates(session)
       })
       socket.on('disconnect', function () {
         console.log('Disconnected')
@@ -171,66 +166,6 @@ export class CollaborationServerDriver extends BackendDriver {
           `You are disconnected from Apollo server! Please, close this message`,
           'error',
         )
-      })
-    }
-    if (!socket.hasListeners('COMMON')) {
-      console.log(`User starts to listen "COMMON" at ${baseURL}`)
-      socket.on(
-        'COMMON',
-        (message: {
-          changeSequence: string
-          channel: string
-          userToken: string
-          changeInfo: SerializedChange
-          userName: string
-        }) => {
-          // Save server last change sequnece into session storage
-          sessionStorage.setItem('LastChangeSequence', message.changeSequence)
-          if (message.channel === 'COMMON' && message.userToken !== token) {
-            const change = Change.fromJSON(message.changeInfo)
-            changeManager?.submit(change, {
-              submitToBackend: false,
-            })
-            notify(
-              `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
-                message.changeInfo,
-              )}`,
-              'success',
-            )
-          }
-        },
-      )
-      socket.on('connect',  () => {
-        console.log('Connected')
-        notify(`You are re-connected to Apollo server.`, 'success')
-        this.getLastUpdates(internetAccount)
-      })
-      socket.on('disconnect', function () {
-        console.log('Disconnected')
-        notify(
-          `You are disconnected from Apollo server! Please, close this message`,
-          'error',
-        )
-      })
-      console.log(
-        `LastChangeSequence: '${sessionStorage.getItem('LastChangeSequence')}'`,
-      )
-    }
-    if (!socket.hasListeners('USER_LOCATION')) {
-      console.log(`User starts to listen "USER_LOCATION" at ${baseURL}`)
-      socket.on('USER_LOCATION', (message: any) => {
-        if (
-          message.channel === 'USER_LOCATION' &&
-          message.userToken !== token
-        ) {
-          console.log(
-            `User's ${JSON.stringify(
-              message.userName,
-            )} location. AssemblyId: "${message.assemblyId}", refSeq: "${
-              message.refSeq
-            }", start: "${message.start}" and end: "${message.end}"`,
-          )
-        }
       })
     }
   }
@@ -251,14 +186,13 @@ export class CollaborationServerDriver extends BackendDriver {
     const changeManager = new ChangeManager(this.clientStore)
     const session = getSession(this.clientStore)
     const { notify } = session
-    // const { changeManager } = (session as ApolloSessionModel).apolloDataStore
     const channel = `tmp_${Math.floor(
       Math.random() * (10000 - 1000 + 1) + 1000,
     )}`
     // Let's start to listen temporary channel where server will send the last updates
     socket.on(channel, (message: any) => {
       const change = Change.fromJSON(message.changeInfo[0])
-      changeManager?.submit(change, { submitToBackend: false })
+      changeManager.submit(change, { submitToBackend: false })
       notify(
         `Get the last updates from server: ${JSON.stringify(
           message.changeInfo,
@@ -275,21 +209,19 @@ export class CollaborationServerDriver extends BackendDriver {
     })
     url.search = searchParams.toString()
     const uri = url.toString()
-    const apolloFetch = internetAccount.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
-
-    // TODO apply these changes
-    const response = await apolloFetch(uri, {
+    console.log('Error appears...')
+    console.log(`${JSON.stringify(internetAccount)}`)
+    const response = await this.fetch(internetAccount, uri, {
       method: 'GET',
     })
+    console.log('Error appeared')
     if (!response.ok) {
       console.log(
         `Error when fetching the last updates to recover socket connection — ${response.status}`,
       )
       return
     }
+
     const serializedChanges = await response.json()
     serializedChanges.forEach((serializedChange: SerializedChange) => {
       const change = Change.fromJSON(serializedChange)

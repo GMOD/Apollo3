@@ -231,6 +231,8 @@ const stateModelFactory = (
             if (!authType) {
               return
             }
+            const { session } = getRoot(self)
+            openSocket(session, self.socket)
             const role = getRole()
             if (role?.includes('admin')) {
               this.addMenuItems(role)
@@ -263,7 +265,7 @@ const stateModelFactory = (
               const { session } = getRoot(self)
               // Get and set server last change sequnece into session storage
               await getAndSetLastChangeSeq(session)
-              // Open 'COMMON' socket listener
+              // Open socket listeners
               openSocket(session, self.socket)
             },
           }
@@ -301,7 +303,7 @@ const stateModelFactory = (
               const { session } = getRoot(self)
               // Get and set server last change sequnece into session storage
               await getAndSetLastChangeSeq(session)
-              // Open 'COMMON' socket listener
+              // Open socket listeners
               openSocket(session, self.socket)
             },
           }
@@ -435,7 +437,7 @@ async function getAndSetLastChangeSeq(session: ApolloSession) {
   const { baseURL } = internetAccount
   const url = new URL('changes', baseURL)
   const searchParams = new URLSearchParams({
-    id: 'changeCounter',
+    limit: '1',
   })
   url.search = searchParams.toString()
   const uri = url.toString()
@@ -453,7 +455,7 @@ async function getAndSetLastChangeSeq(session: ApolloSession) {
     )
   }
   const change = await response.json()
-  sessionStorage.setItem('LastChangeSequence', change.sequence)
+  sessionStorage.setItem('LastChangeSequence', change[0].sequence)
 }
 
 function openSocket(session: ApolloSession, socket: Socket) {
@@ -470,7 +472,7 @@ function openSocket(session: ApolloSession, socket: Socket) {
     console.log(`User starts to listen "COMMON" at ${baseURL}`)
     socket.on('COMMON', (message) => {
       // Save server last change sequnece into session storage
-    sessionStorage.setItem('LastChangeSequence', message.changeSequence)
+      sessionStorage.setItem('LastChangeSequence', message.changeSequence)
       if (message.channel === 'COMMON' && message.userToken !== token) {
         const change = Change.fromJSON(message.changeInfo)
         changeManager?.submit(change, {

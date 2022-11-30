@@ -16,11 +16,9 @@ import {
 } from 'apollo-mst'
 import {
   BackendDriver,
-  Change,
   ChangeManager,
   ClientDataStore as ClientDataStoreType,
   CollaborationServerDriver,
-  SerializedChange,
 } from 'apollo-shared'
 import { observable } from 'mobx'
 import {
@@ -32,7 +30,6 @@ import {
   resolveIdentifier,
   types,
 } from 'mobx-state-tree'
-import { io } from 'socket.io-client'
 
 import { ApolloInternetAccountModel } from './ApolloInternetAccount/model'
 
@@ -57,7 +54,6 @@ interface ApolloRefSeqResponse {
   length: string
   assembly: string
 }
-const socket = io('http://localhost:3999')
 
 export interface CollaboratorLocation {
   assembly: string
@@ -108,96 +104,6 @@ const ClientDataStore = types
         // Get and set server timestamp into session storage
         getAndSetLastChangeSeq(session)
 
-        // const { notify } = session
-        // const [firstRef] = regions
-        // const channel = `${assembly?._id}-${firstRef.refName}`
-        // const { changeManager } = self
-        // if (!socket.hasListeners('COMMON')) {
-        //   console.log(`User starts to listen "COMMON" -channel`)
-        //   socket.on('COMMON', (message) => {
-        //     // Save the last server timestamp
-        //     sessionStorage.setItem('LastSocketTimestamp', message.timestamp)
-        //     console.log(`COMMON MESSAGE: '${JSON.stringify(message)}'`)
-        //     if (message.channel === 'COMMON' && message.userToken !== token) {
-        //       const change = Change.fromJSON(message.changeInfo)
-        //       changeManager?.submit(change, {
-        //         submitToBackend: false,
-        //       })
-        //       notify(
-        //         `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
-        //           message.changeInfo,
-        //         )}`,
-        //         'success',
-        //       )
-        //     }
-        //     console.log(
-        //       `LastChangeSequence: '${sessionStorage.getItem(
-        //         'LastChangeSequence',
-        //       )}'`,
-        //     )
-        //   })
-        // }
-        // if (!socket.hasListeners(channel)) {
-        //   console.log(`User starts to listen "${channel}" -channel`)
-        //   socket.on(channel, (message) => {
-        //     console.log(
-        //       `Channel "${channel}" message: "${JSON.stringify(message)}"`,
-        //     )
-        //     // Save server last change sequnece into session storage
-        //     sessionStorage.setItem('LastChangeSequence', message.changeSequence)
-        //     if (message.userToken !== token && message.channel === channel) {
-        //       const change = Change.fromJSON(message.changeInfo)
-        //       changeManager?.submit(change, {
-        //         submitToBackend: false,
-        //       })
-        //       notify(
-        //         `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
-        //           message.changeInfo,
-        //         )}`,
-        //         'success',
-        //       )
-        //     }
-        //     console.log(
-        //       `LastChangeSequence: '${sessionStorage.getItem(
-        //         'LastChangeSequence',
-        //       )}'`,
-        //     )
-        //   })
-
-        //   socket.on('connect', function () {
-        //     console.log('Connected')
-        //     notify(`You are re-connected to Apollo server.`, 'success')
-        //     getLastUpdates(session)
-        //   })
-        //   socket.on('disconnect', function () {
-        //     console.log('Disconnected')
-        //     notify(
-        //       `You are disconnected from Apollo server! Please, close this message`,
-        //       'error',
-        //     )
-        //   })
-        // }
-        // if (!socket.hasListeners('USER_LOCATION')) {
-        //   const { internetAccounts } = getRoot(session) as AppRootModel
-        //   const internetAccount =
-        //     internetAccounts[0] as ApolloInternetAccountModel
-        //   const { baseURL } = internetAccount
-        //   console.log(`User starts to listen "USER_LOCATION" at ${baseURL}`)
-        //   socket.on('USER_LOCATION', (message) => {
-        //     if (
-        //       message.channel === 'USER_LOCATION' &&
-        //       message.userToken !== token
-        //     ) {
-        //       console.log(
-        //         `User's ${JSON.stringify(
-        //           message.userName,
-        //         )} location. AssemblyId: "${message.assemblyId}", refSeq: "${
-        //           message.refSeq
-        //         }", start: "${message.start}" and end: "${message.end}"`,
-        //       )
-        //     }
-        //   })
-        // }
         if (!assembly) {
           assembly = self.assemblies.put({ _id: assemblyName, refSeqs: {} })
         }
@@ -486,62 +392,5 @@ async function getAndSetLastChangeSeq(session: ApolloSession) {
   sessionStorage.setItem('LastChangeSequence', change.sequence)
 }
 
-/**
- * Start to listen temporary channel, fetch the last changes from server and finally apply those changes to client data store
- * @param apolloInternetAccount - apollo internet account
- * @returns
- */
-async function getLastUpdates(session: ApolloSession) {
-  const lastChangeSequence = sessionStorage.getItem('LastChangeSequence')
-  if (!lastChangeSequence) {
-    throw new Error(
-      `No LastChangeSequence stored in session. Please, refresh you browser to get last updates from server`,
-    )
-  }
-  const { notify } = session
-  const channel = `tmp_${Math.floor(Math.random() * (10000 - 1000 + 1) + 1000)}`
-  const { changeManager } = (session as ApolloSessionModel).apolloDataStore
-  // Let's start to listen temporary channel where server will send the last updates
-  socket.on(channel, (message) => {
-    const change = Change.fromJSON(message.changeInfo[0])
-    changeManager?.submit(change, {
-      submitToBackend: false,
-    })
-    notify(
-      `Get the last updates from server: ${JSON.stringify(message.changeInfo)}`,
-      'success',
-    )
-  })
-  const { internetAccounts } = getRoot(session) as AppRootModel
-  const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
-  const { baseURL } = internetAccount
-  const url = new URL('changes', baseURL)
-  const searchParams = new URLSearchParams({
-    sequenceNumber: lastChangeSequence,
-    clientId: channel,
-  })
-  url.search = searchParams.toString()
-  const uri = url.toString()
-  const apolloFetch = internetAccount.getFetcher({
-    locationType: 'UriLocation',
-    uri,
-  })
-
-  // TODO apply these changes
-  const response = await apolloFetch(uri, {
-    method: 'GET',
-  })
-  if (!response.ok) {
-    console.log(
-      `Error when fetching the last updates to recover socket connection — ${response.status}`,
-    )
-    return
-  }
-  const serializedChanges = await response.json()
-  serializedChanges.forEach((serializedChange: SerializedChange) => {
-    const change = Change.fromJSON(serializedChange)
-    changeManager?.submit(change, { submitToBackend: false })
-  })
-}
 export type ApolloSessionStateModel = ReturnType<typeof extendSession>
 export type ApolloSessionModel = Instance<ApolloSessionStateModel>

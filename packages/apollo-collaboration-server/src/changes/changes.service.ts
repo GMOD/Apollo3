@@ -218,6 +218,7 @@ export class ChangesService {
     }
     if (changeFilter.since) {
       queryCond.sequence = { $gt: Number(changeFilter.since) }
+      delete queryCond.since
     }
     this.logger.debug(`Search criteria: "${JSON.stringify(queryCond)}"`)
 
