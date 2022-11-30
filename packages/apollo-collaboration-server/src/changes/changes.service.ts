@@ -28,7 +28,7 @@ import { CountersService } from '../counters/counters.service'
 import { FilesService } from '../files/files.service'
 import { Message } from '../messages/entities/message.entity'
 import { MessagesGateway } from '../messages/messages.gateway'
-import { FindChangeBySequenceDto, FindChangeDto } from './dto/find-change.dto'
+import { FindChangeDto } from './dto/find-change.dto'
 
 export class ChangesService {
   constructor(
@@ -278,12 +278,25 @@ export class ChangesService {
         $options: 'i',
       }
     }
+    if (changeFilter.since) {
+      queryCond.sequence = { $gt: Number(changeFilter.since) }
+    }
     this.logger.debug(`Search criteria: "${JSON.stringify(queryCond)}"`)
 
-    const change = await this.changeModel
+    let sortOrder: 1 | -1 = -1
+    if (changeFilter.sort) {
+      if (changeFilter.sort === '1') {
+        sortOrder = 1
+      }
+    }
+    let changeCursor = this.changeModel
       .find(queryCond)
-      .sort({ createdAt: -1 })
-      .exec()
+      .sort({ sequence: sortOrder })
+
+    if (changeFilter.limit) {
+      changeCursor = changeCursor.limit(Number(changeFilter.limit))
+    }
+    const change = await changeCursor.exec()
 
     if (!change) {
       const errMsg = `ERROR: The following change was not found in database....`
@@ -292,43 +305,5 @@ export class ChangesService {
     }
 
     return change
-  }
-
-  /**
-   * Resend to last changes to specific client only
-   * @param changeFilter - sequenceNumber and clientId parameters
-   */
-  async reSendChanges(changeFilter: FindChangeBySequenceDto) {
-    this.logger.debug(
-      `Search criteria: Change objects where "sequence" > "${changeFilter.sequenceNumber}"`,
-    )
-
-    const oldSequenceNumber = Number(changeFilter.sequenceNumber)
-    const change = await this.changeModel
-      .find({ sequence: { $gt: oldSequenceNumber } })
-      .sort({ createdAt: 1 })
-      .exec()
-
-    if (!change) {
-      const errMsg = `ERROR: The following change was not found in database....`
-      this.logger.error(errMsg)
-      throw new NotFoundException(errMsg)
-    }
-    change.forEach(async (element) => {
-      const channel = changeFilter.clientId
-      const msg = {
-        changeInfo: element.changes,
-        userName: '',
-        userToken: '',
-        channel,
-        sequenceNumber: 0,
-      }
-      this.logger.debug(
-        `Resending to channel '${channel}', changeObject: "${JSON.stringify(
-          msg,
-        )}"`,
-      )
-      await this.messagesGateway.create(channel, msg)
-    })
   }
 }

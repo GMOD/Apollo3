@@ -10,7 +10,7 @@ import {
 } from '@jbrowse/core/util'
 import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
 import Undo from '@mui/icons-material/Undo'
-import { Change, JWTPayload } from 'apollo-shared'
+import { Change, JWTPayload, SerializedChange } from 'apollo-shared'
 import jwtDecode from 'jwt-decode'
 import { autorun } from 'mobx'
 import { Instance, getRoot, types } from 'mobx-state-tree'
@@ -433,7 +433,7 @@ async function getAndSetLastChangeSeq(session: ApolloSession) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
   const { baseURL } = internetAccount
-  const url = new URL('changes/getLastChangeSequence', baseURL)
+  const url = new URL('changes', baseURL)
   const searchParams = new URLSearchParams({
     id: 'changeCounter',
   })
@@ -444,18 +444,16 @@ async function getAndSetLastChangeSeq(session: ApolloSession) {
     uri,
   })
 
-  if (apolloFetch) {
-    const response = await apolloFetch(uri, {
-      method: 'GET',
-    })
-    if (!response.ok) {
-      throw new Error(
-        `Error when fetching server LastChangeSequence — ${response.status}`,
-      )
-    } else {
-      sessionStorage.setItem('LastChangeSequence', await response.text())
-    }
+  const response = await apolloFetch(uri, {
+    method: 'GET',
+  })
+  if (!response.ok) {
+    throw new Error(
+      `Error when fetching server LastChangeSequence — ${response.status}`,
+    )
   }
+  const change = await response.json()
+  sessionStorage.setItem('LastChangeSequence', change.sequence)
 }
 
 function openSocket(session: ApolloSession) {
@@ -518,14 +516,12 @@ async function getLastUpdates(session: ApolloSession) {
     )
   }
   const { notify } = session
+  const { changeManager } = (session as ApolloSessionModel).apolloDataStore
   const channel = `tmp_${Math.floor(Math.random() * (10000 - 1000 + 1) + 1000)}`
   // Let's start to listen temporary channel where server will send the last updates
   socket.on(channel, (message) => {
-    const { changeManager } = (session as ApolloSessionModel).apolloDataStore
     const change = Change.fromJSON(message.changeInfo[0])
-    changeManager?.submit(change, {
-      submitToBackend: false,
-    })
+    changeManager?.submit(change, { submitToBackend: false })
     notify(
       `Get the last updates from server: ${JSON.stringify(message.changeInfo)}`,
       'success',
@@ -534,10 +530,11 @@ async function getLastUpdates(session: ApolloSession) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
   const { baseURL } = internetAccount
-  const url = new URL('changes/getLastChangesBySequence', baseURL)
+
+  const url = new URL('changes', baseURL)
   const searchParams = new URLSearchParams({
-    sequenceNumber: lastChangeSequence,
-    clientId: channel,
+    since: lastChangeSequence,
+    sort: '1',
   })
   url.search = searchParams.toString()
   const uri = url.toString()
@@ -546,15 +543,19 @@ async function getLastUpdates(session: ApolloSession) {
     uri,
   })
 
-  if (apolloFetch) {
-    const response = await apolloFetch(uri, {
-      method: 'GET',
-    })
-    if (!response.ok) {
-      console.log(
-        `Error when fetching the last updates to recover socket connection — ${response.status}`,
-      )
-      return
-    }
+  // TODO apply these changes
+  const response = await apolloFetch(uri, {
+    method: 'GET',
+  })
+  if (!response.ok) {
+    console.log(
+      `Error when fetching the last updates to recover socket connection — ${response.status}`,
+    )
+    return
   }
+  const serializedChanges = await response.json()
+  serializedChanges.forEach((serializedChange: SerializedChange) => {
+    const change = Change.fromJSON(serializedChange)
+    changeManager?.submit(change, { submitToBackend: false })
+  })
 }
