@@ -2,8 +2,6 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import type { AnnotationFeatureSnapshot } from 'apollo-mst'
 import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose'
 
-import { RefSeq } from './refSeq.schema'
-
 export type FeatureDocument = HydratedDocument<Feature>
 
 @Schema()
@@ -19,7 +17,7 @@ export class Feature
     type: MongooseSchema.Types.ObjectId,
     ref: 'RefSeq',
   })
-  refSeq: RefSeq
+  refSeq: Types.ObjectId
 
   @Prop({ type: [String], required: true, index: true })
   allIds: string[]

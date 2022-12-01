@@ -82,9 +82,6 @@ export class CopyFeatureChange extends FeatureChange {
         logger.error(errMsg)
         throw new Error(errMsg)
       }
-      // logger.debug?.(
-      //   `*** Feature found: ${JSON.stringify(topLevelFeature)}`,
-      // )
 
       const newFeature = this.getFeatureFromId(topLevelFeature, featureId)
       if (!newFeature) {
@@ -95,22 +92,35 @@ export class CopyFeatureChange extends FeatureChange {
 
       const featureIds: string[] = []
 
-      const refSeqDoc = await refSeqModel
+      // Find refSeq from current assembly
+      const currentRefSeqDoc = await refSeqModel
         .findById(newFeature.refSeq)
         .session(session)
         .exec()
-      if (!refSeqDoc) {
+      if (!currentRefSeqDoc) {
         throw new Error(
           `RefSeq was not found by assembly "${assembly}" and seq_id "${topLevelFeature.refSeq}" not found`,
         )
       }
 
+      // We need to find such refSeq in target assembly that has same name than current assembly
+      const targetRefSeqDoc = await refSeqModel
+        .findOne({ assembly: targetAssemblyId, name: currentRefSeqDoc.name })
+        .session(session)
+        .exec()
+      if (!targetRefSeqDoc) {
+        throw new Error(
+          `Target assembly does not contain RefSeq "${currentRefSeqDoc.name}"`,
+        )
+      }
       // Let's add featureId to each child recursively
       const newFeatureLine = this.generateNewIds(newFeature, featureIds)
-      logger.verbose?.(`New featureIds: ${featureIds}`)
-      logger.verbose?.(`New assembly: ${targetAssemblyId}`)
-      logger.verbose?.(`New refSeqId: ${refSeqDoc._id}`)
-      logger.verbose?.(`New featureId: ${newFeatureLine._id}`)
+      // Remove "new generated featureId" from "allIds" -array because newFeatureId was already provided. Then add correct newFeatureId into it
+      const index = featureIds.indexOf(newFeatureLine._id, 0)
+      if (index > -1) {
+        featureIds.splice(index, 1)
+      }
+      featureIds.push(newFeatureId)
 
       // Add into Mongo
       const [newFeatureDoc] = await featureModel.create(
@@ -118,7 +128,7 @@ export class CopyFeatureChange extends FeatureChange {
           {
             ...newFeatureLine,
             _id: newFeatureId,
-            refSeq: refSeqDoc._id,
+            refSeq: targetRefSeqDoc._id,
             allIds: featureIds,
           },
         ],
@@ -152,7 +162,7 @@ export class CopyFeatureChange extends FeatureChange {
       .slice()
       .reverse()
       .map((endChange) => ({
-        featureId: endChange.featureId,
+        featureId: endChange.newFeatureId,
         assembly: endChange.targetAssemblyId,
         parentFeatureId: '',
       }))

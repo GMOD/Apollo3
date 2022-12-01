@@ -383,6 +383,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
           key={1}
           value={1}
           onClick={() => {
+            if (!contextMenuFeature) {
+              return
+            }
             const currentAssemblyId = getAssemblyId(region.assemblyName)
             session.queueDialog((doneCallback) => [
               AddFeature,
@@ -405,6 +408,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
           key={2}
           value={2}
           onClick={() => {
+            if (!contextMenuFeature) {
+              return
+            }
             const currentAssemblyId = getAssemblyId(region.assemblyName)
             session.queueDialog((doneCallback) => [
               CopyFeature,
@@ -428,6 +434,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
           key={3}
           value={3}
           onClick={() => {
+            if (!contextMenuFeature) {
+              return
+            }
             const currentAssemblyId = getAssemblyId(region.assemblyName)
             session.queueDialog((doneCallback) => [
               DeleteFeature,

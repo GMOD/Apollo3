@@ -88,14 +88,10 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
     // If assemblyId is not present in client data store
     if (!dataStore.assemblies.has(assembly)) {
       await session.removeAssembly?.(assembly)
-      // eslint-disable-next-line no-console
-      console.log('Assembly has been deleted from session!')
       return
     }
     dataStore.deleteAssembly(assembly)
     await session.removeAssembly?.(assembly)
-    // eslint-disable-next-line no-console
-    console.log('Assembly has been deleted from session and client data store')
   }
 
   getInverse() {

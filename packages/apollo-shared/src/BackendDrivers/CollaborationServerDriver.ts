@@ -2,15 +2,22 @@ import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { Region, getSession } from '@jbrowse/core/util'
 import { AnnotationFeatureSnapshot } from 'apollo-mst'
+import { Socket } from 'socket.io-client'
 
-import { SubmitOpts } from '../ChangeManager/ChangeManager'
+import { ChangeManager, SubmitOpts } from '../ChangeManager/ChangeManager'
 import { AssemblySpecificChange } from '../ChangeManager/changes/abstract/AssemblySpecificChange'
-import { Change } from '../ChangeManager/changes/abstract/Change'
+import {
+  Change,
+  SerializedChange,
+} from '../ChangeManager/changes/abstract/Change'
 import { ValidationResultSet } from '../Validations/ValidationSet'
 import { BackendDriver } from './BackendDriver'
 
-interface ApolloInternetAccount extends BaseInternetAccountModel {
+export interface ApolloInternetAccount extends BaseInternetAccountModel {
   baseURL: string
+  socket: Socket
+  setLastChangeSequenceNumber(sequenceNumber: number): void
+  getMissingChanges(): void
 }
 
 export class CollaborationServerDriver extends BackendDriver {
@@ -75,6 +82,7 @@ export class CollaborationServerDriver extends BackendDriver {
     }
     const internetAccount = this.getInternetAccount(assemblyName)
     const { baseURL } = internetAccount
+
     const url = new URL('features/getFeatures', baseURL)
     const searchParams = new URLSearchParams({
       refSeq,
@@ -83,7 +91,6 @@ export class CollaborationServerDriver extends BackendDriver {
     })
     url.search = searchParams.toString()
     const uri = url.toString()
-    // console.log(`In CollaborationServerDriver: Query parameters: refSeq=${refSeq}, start=${start}, end=${end}`)
 
     const response = await this.fetch(internetAccount, uri)
     if (!response.ok) {
@@ -99,7 +106,59 @@ export class CollaborationServerDriver extends BackendDriver {
         }`,
       )
     }
+    this.checkSocket(assemblyName, refName, internetAccount)
     return response.json() as Promise<AnnotationFeatureSnapshot[]>
+  }
+
+  /**
+   * Checks if there is assembly-refSeq specific socket. If not, it opens one
+   * @param assembly - assemblyId
+   * @param refSeq - refSeqName
+   * @param internetAccount - internet account
+   */
+  async checkSocket(
+    assembly: string,
+    refSeq: string,
+    internetAccount: ApolloInternetAccount,
+  ) {
+    const { socket } = internetAccount
+    const token = internetAccount.retrieveToken()
+    const channel = `${assembly}-${refSeq}`
+    const changeManager = new ChangeManager(this.clientStore)
+    const session = getSession(this.clientStore)
+    const { notify } = session
+
+    if (!socket.hasListeners(channel)) {
+      socket.on(
+        channel,
+        (message: {
+          changeSequence: string
+          userToken: string
+          channel: string
+          changeInfo: SerializedChange
+          userName: string
+        }) => {
+          // Save server last change sequnece into session storage
+          internetAccount.setLastChangeSequenceNumber(
+            Number(message.changeSequence),
+          )
+          if (message.userToken !== token && message.channel === channel) {
+            const change = Change.fromJSON(message.changeInfo)
+            changeManager.submit(change, { submitToBackend: false })
+          }
+        },
+      )
+      socket.on('connect', () => {
+        notify(`You are re-connected to Apollo server.`, 'success')
+        internetAccount.getMissingChanges()
+      })
+      socket.on('disconnect', () => {
+        notify(
+          `You are disconnected from Apollo server! Please, close this message`,
+          'error',
+        )
+      })
+    }
   }
 
   async getSequence(region: Region) {

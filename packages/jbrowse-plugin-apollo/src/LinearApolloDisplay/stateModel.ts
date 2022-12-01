@@ -71,7 +71,9 @@ export function stateModelFactory(
             self,
             autorun(() => {
               const session = getSession(self) as ApolloSession
-              const view = getContainingView(self) as LinearGenomeViewModel
+              const view = getContainingView(
+                self,
+              ) as unknown as LinearGenomeViewModel
               if (view.initialized) {
                 const blockKeys: string[] = []
                 const newBlocks: BaseBlock[] = []

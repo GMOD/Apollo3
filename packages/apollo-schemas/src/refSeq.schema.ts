@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { Document, Schema as MongooseSchema } from 'mongoose'
+import { Document, Schema as MongooseSchema, Types } from 'mongoose'
 
 import { Assembly } from './assembly.schema'
 
@@ -7,6 +7,9 @@ export type RefSeqDocument = RefSeq & Document
 
 @Schema()
 export class RefSeq {
+  // Don't make this a @Prop since _id is already on a MongoDB document
+  _id: Types.ObjectId
+
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     ref: 'Assembly',

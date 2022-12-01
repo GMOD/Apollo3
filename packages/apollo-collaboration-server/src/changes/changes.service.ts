@@ -20,11 +20,20 @@ import {
   User,
   UserDocument,
 } from 'apollo-schemas'
-import { Change as BaseChange, validationRegistry } from 'apollo-shared'
+import {
+  AddFeatureChange,
+  AssemblySpecificChange,
+  Change as BaseChange,
+  CopyFeatureChange,
+  FeatureChange,
+  validationRegistry,
+} from 'apollo-shared'
 import { FilterQuery, Model } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service'
 import { FilesService } from '../files/files.service'
+import { Message } from '../messages/entities/message.entity'
+import { MessagesGateway } from '../messages/messages.gateway'
 import { FindChangeDto } from './dto/find-change.dto'
 
 export class ChangesService {
@@ -45,11 +54,12 @@ export class ChangesService {
     private readonly changeModel: Model<ChangeDocument>,
     private readonly filesService: FilesService,
     private readonly countersService: CountersService,
+    private readonly messagesGateway: MessagesGateway,
   ) {}
 
   private readonly logger = new Logger(ChangesService.name)
 
-  async create(change: BaseChange, user: string) {
+  async create(change: BaseChange, user: string, userToken: string) {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
     const validationResult = await validationRegistry.backendPreValidate(
       change,
@@ -106,6 +116,94 @@ export class ChangesService {
         )
       }
     })
+    if (!changeDoc) {
+      throw new UnprocessableEntityException('could not create change')
+    }
+    this.logger.debug(`TypeName: ${change.typeName}`)
+
+    if (!(change instanceof AssemblySpecificChange)) {
+      return
+    }
+
+    // Broadcast feature specific changes
+    const refNames: string[] = []
+    if (change instanceof FeatureChange) {
+      // For broadcasting we need also refName
+      const { changedIds } = change
+      for (const changedId of changedIds) {
+        const featureDoc = await this.featureModel
+          .findOne({ allIds: changedId })
+          .exec()
+        if (featureDoc) {
+          const refSeqDoc = await this.refSeqModel
+            .findById(featureDoc.refSeq)
+            .exec()
+          if (refSeqDoc) {
+            refNames.push(refSeqDoc.name)
+          }
+        }
+      }
+    }
+
+    // Broadcast
+    const messages: Message[] = []
+
+    // In case of 'CopyFeatureChange', we need to create 'AddFeatureChange' to all connected clients
+    if (change instanceof CopyFeatureChange) {
+      const [{ targetAssemblyId, newFeatureId }] = change.changes
+      // Get origin top level feature
+      const topLevelFeature = await this.featureModel
+        .findOne({ allIds: newFeatureId })
+        .exec()
+      if (!topLevelFeature) {
+        const errMsg = `*** ERROR: The following featureId was not found in database ='${newFeatureId}'`
+        this.logger.error?.(errMsg)
+        throw new Error(errMsg)
+      }
+      const newChange = new AddFeatureChange({
+        typeName: 'AddFeatureChange',
+        assembly: targetAssemblyId,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        addedFeature: topLevelFeature,
+      })
+      for (const refName of refNames) {
+        messages.push({
+          changeInfo: newChange.toJSON(),
+          userName: user,
+          userToken,
+          channel: `${targetAssemblyId}-${refName}`,
+          changeSequence: changeDoc.sequence,
+        })
+      }
+    } else if (change instanceof FeatureChange) {
+      for (const refName of refNames) {
+        messages.push({
+          changeInfo: change.toJSON(),
+          userName: user,
+          userToken,
+          channel: `${change.assembly}-${refName}`,
+          changeSequence: changeDoc.sequence,
+        })
+      }
+    } else {
+      messages.push({
+        changeInfo: change.toJSON(),
+        userName: user,
+        userToken,
+        channel: 'COMMON',
+        changeSequence: changeDoc.sequence,
+      })
+    }
+
+    for (const message of messages) {
+      this.logger.debug(
+        `Broadcasting to channels '${
+          message.channel
+        }', changeObject: "${JSON.stringify(message)}"`,
+      )
+      this.messagesGateway.create(message.channel, message)
+    }
     this.logger.debug(`ChangeDocId: ${changeDoc?._id}`)
     return changeDoc
   }
@@ -118,12 +216,26 @@ export class ChangesService {
         $options: 'i',
       }
     }
+    if (changeFilter.since) {
+      queryCond.sequence = { $gt: Number(changeFilter.since) }
+      delete queryCond.since
+    }
     this.logger.debug(`Search criteria: "${JSON.stringify(queryCond)}"`)
 
-    const change = await this.changeModel
+    let sortOrder: 1 | -1 = -1
+    if (changeFilter.sort) {
+      if (changeFilter.sort === '1') {
+        sortOrder = 1
+      }
+    }
+    let changeCursor = this.changeModel
       .find(queryCond)
-      .sort({ createdAt: -1 })
-      .exec()
+      .sort({ sequence: sortOrder })
+
+    if (changeFilter.limit) {
+      changeCursor = changeCursor.limit(Number(changeFilter.limit))
+    }
+    const change = await changeCursor.exec()
 
     if (!change) {
       const errMsg = `ERROR: The following change was not found in database....`

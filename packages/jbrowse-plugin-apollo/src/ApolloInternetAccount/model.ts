@@ -5,14 +5,15 @@ import { MenuItem } from '@jbrowse/core/ui'
 import {
   AbstractSessionModel,
   UriLocation,
+  getSession,
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
 import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
-import Undo from '@mui/icons-material/Undo'
-import { JWTPayload } from 'apollo-shared'
+import { Change, JWTPayload, SerializedChange } from 'apollo-shared'
 import jwtDecode from 'jwt-decode'
 import { autorun } from 'mobx'
-import { Instance, getRoot, types } from 'mobx-state-tree'
+import { Instance, flow, types } from 'mobx-state-tree'
+import { io } from 'socket.io-client'
 
 import {
   AddAssembly,
@@ -20,7 +21,7 @@ import {
   ImportFeatures,
   ManageUsers,
 } from '../components'
-import { ApolloSessionModel } from '../session'
+import { ApolloSessionModel, Collaborator } from '../session'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { ApolloInternetAccountConfigModel } from './configSchema'
 
@@ -30,6 +31,8 @@ interface Menu {
 }
 
 type AuthType = 'google' | 'microsoft'
+
+type Role = ('admin' | 'user' | 'readOnly')[]
 
 const stateModelFactory = (
   configSchema: ApolloInternetAccountConfigModel,
@@ -90,11 +93,133 @@ const stateModelFactory = (
         return dec.id
       },
     }))
-    .volatile(() => ({
+    .volatile((self) => ({
       authType: undefined as AuthType | undefined,
+      socket: io(self.baseURL),
+      lastChangeSequenceNumber: undefined as number | undefined,
     }))
     .actions((self) => ({
-      addMenuItems(role: ('admin' | 'user' | 'readOnly')[]) {
+      setLastChangeSequenceNumber(sequenceNumber: number) {
+        self.lastChangeSequenceNumber = sequenceNumber
+      },
+    }))
+    .actions((self) => ({
+      addSocketListeners() {
+        const session = getSession(self) as ApolloSessionModel
+        const { notify } = session
+        const token = self.retrieveToken()
+        if (!token) {
+          throw new Error(`No Token found`)
+        }
+        const { socket } = self
+        const { changeManager } = (session as ApolloSessionModel)
+          .apolloDataStore
+        socket.on('COMMON', (message) => {
+          // Save server last change sequnece into session storage
+          sessionStorage.setItem('LastChangeSequence', message.changeSequence)
+          if (message.userToken === token) {
+            return // we did this change, no need to apply it again
+          }
+          const change = Change.fromJSON(message.changeInfo)
+          changeManager?.submit(change, { submitToBackend: false })
+        })
+        socket.on('connect', () => {
+          notify(`You are re-connected to Apollo server.`, 'success')
+          this.getMissingChanges()
+        })
+        socket.on('disconnect', () => {
+          notify(
+            `You are disconnected from Apollo server! Please, close this message`,
+            'error',
+          )
+        })
+        socket.on('USER_LOCATION', (message) => {
+          const {
+            channel,
+            userName,
+            userToken,
+            assemblyId,
+            refSeq,
+            start,
+            end,
+          } = message
+          if (channel === 'USER_LOCATION' && userToken !== token) {
+            const collaborator: Collaborator = {
+              name: userName,
+              id: userToken,
+              locations: [
+                { assembly: assemblyId, refName: refSeq, start, end },
+              ],
+            }
+            session.addOrUpdateCollaborator(collaborator)
+          }
+        })
+      },
+      updateLastChangeSequenceNumber: flow(
+        function* updateLastChangeSequenceNumber() {
+          const { baseURL } = self
+          const url = new URL('changes', baseURL)
+          const searchParams = new URLSearchParams({ limit: '1' })
+          url.search = searchParams.toString()
+          const uri = url.toString()
+          const apolloFetch = self.getFetcher({
+            locationType: 'UriLocation',
+            uri,
+          })
+
+          const response = yield apolloFetch(uri, {
+            method: 'GET',
+          })
+          if (!response.ok) {
+            throw new Error(
+              `Error when fetching server LastChangeSequence — ${response.status}`,
+            )
+          }
+          const changes = yield response.json()
+          self.setLastChangeSequenceNumber(changes[0].sequence)
+        },
+      ),
+      getMissingChanges: flow(function* getMissingChanges() {
+        const session = getSession(self) as ApolloSessionModel
+        const { changeManager } = (session as ApolloSessionModel)
+          .apolloDataStore
+        if (!self.lastChangeSequenceNumber) {
+          throw new Error(
+            `No LastChangeSequence stored in session. Please, refresh you browser to get last updates from server`,
+          )
+        }
+        const { baseURL } = self
+
+        const url = new URL('changes', baseURL)
+        const searchParams = new URLSearchParams({
+          since: String(self.lastChangeSequenceNumber),
+          sort: '1',
+        })
+        url.search = searchParams.toString()
+        const uri = url.toString()
+        const apolloFetch = self.getFetcher({
+          locationType: 'UriLocation',
+          uri,
+        })
+
+        const response = yield apolloFetch(uri, {
+          method: 'GET',
+        })
+        if (!response.ok) {
+          console.error(
+            `Error when fetching the last updates to recover socket connection — ${response.status}`,
+          )
+          return
+        }
+        const serializedChanges = yield response.json()
+        serializedChanges.forEach((serializedChange: SerializedChange) => {
+          const change = Change.fromJSON(serializedChange)
+          changeManager?.submit(change, { submitToBackend: false })
+        })
+      }),
+    }))
+    .actions((self) => ({
+      addMenuItems(role: Role) {
         if (
           !(
             role.includes('admin') &&
@@ -203,16 +328,13 @@ const stateModelFactory = (
             'Apollo',
             {
               label: 'Undo',
-              onClick: (session: AbstractSessionModel) => {
-                session.queueDialog((doneCallback) => [
-                  Undo,
-                  {
-                    session,
-                    handleClose: () => {
-                      doneCallback()
-                    },
-                  },
-                ])
+              onClick: (session: ApolloSessionModel) => {
+                const { apolloDataStore, notify } = session
+                if (apolloDataStore.changeManager.recentChanges.length) {
+                  apolloDataStore.changeManager.revertLastChange()
+                } else {
+                  notify('No changes to undo', 'info')
+                }
               },
             },
             10,
@@ -227,14 +349,27 @@ const stateModelFactory = (
               return
             }
             const role = getRole()
-            if (role?.includes('admin')) {
-              this.addMenuItems(role)
-              reaction.dispose()
+            if (role) {
+              this.initialize(role)
             }
+            reaction.dispose()
           } catch (error) {
             // pass
           }
         })
+      },
+      initializeFromToken(token: string) {
+        const payload = jwtDecode(token) as JWTPayload
+        this.initialize(payload.roles)
+      },
+      initialize(role: Role) {
+        if (role.includes('admin')) {
+          this.addMenuItems(role)
+        }
+        // Get and set server last change sequnece into session storage
+        self.updateLastChangeSequenceNumber()
+        // Open socket listeners
+        self.addSocketListeners()
       },
     }))
     .volatile((self) => ({
@@ -251,10 +386,7 @@ const stateModelFactory = (
           return {
             storeToken(token: string) {
               superStoreToken(token)
-              const payload = jwtDecode(token) as JWTPayload
-              if (payload.roles.includes('admin')) {
-                self.addMenuItems(payload.roles)
-              }
+              self.initializeFromToken(token)
             },
           }
         })
@@ -284,10 +416,7 @@ const stateModelFactory = (
           return {
             storeToken(token: string) {
               superStoreToken(token)
-              const payload = jwtDecode(token) as JWTPayload
-              if (payload.roles.includes('admin')) {
-                self.addMenuItems(payload.roles)
-              }
+              self.initializeFromToken(token)
             },
           }
         })
@@ -318,6 +447,36 @@ const stateModelFactory = (
         }
         throw new Error(`Unknown authType "${self.authType}"`)
       },
+      async postUserLocation(userLoc: {
+        assemblyId: string
+        refSeq: string
+        start: number
+        end: number
+      }) {
+        const { baseURL } = self
+        const url = new URL('users/userLocation', baseURL).href
+        const userLocForParams = {
+          ...userLoc,
+          start: String(userLoc.start),
+          end: String(userLoc.end),
+        }
+        const userLocation = new URLSearchParams(userLocForParams)
+        const apolloFetch = self.getFetcher({
+          locationType: 'UriLocation',
+          uri: url,
+        })
+        try {
+          const response = await apolloFetch(url, {
+            method: 'POST',
+            body: userLocation,
+          })
+          if (!response.ok) {
+            throw new Error() // no message here, will get caught by "catch"
+          }
+        } catch (error) {
+          console.error('Broadcasting user location failed')
+        }
+      },
     }))
     .actions((self) => {
       let authTypePromise: Promise<AuthType> | undefined = undefined
@@ -340,7 +499,7 @@ const stateModelFactory = (
                   authTypePromise = Promise.resolve('microsoft')
                 } else {
                   authTypePromise = new Promise((resolve, reject) => {
-                    const { session } = getRoot(self)
+                    const session = getSession(self) as ApolloSessionModel
                     session.queueDialog((doneCallback: () => void) => [
                       AuthTypeSelector,
                       {
