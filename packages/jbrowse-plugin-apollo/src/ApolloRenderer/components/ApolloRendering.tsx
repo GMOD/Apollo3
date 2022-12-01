@@ -13,7 +13,7 @@ import { AddFeature } from '../../components/AddFeature'
 import { CopyFeature } from '../../components/CopyFeature'
 import { DeleteFeature } from '../../components/DeleteFeature'
 import { LinearApolloDisplay } from '../../LinearApolloDisplay/stateModel'
-import { ApolloSession, Collaborator } from '../../session'
+import { Collaborator } from '../../session'
 
 interface ApolloRenderingProps {
   assemblyName: string
@@ -326,7 +326,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
         start: apolloFeatureUnderMouse.start,
         end: apolloFeatureUnderMouse.end,
       }
-      internetAccount.postUserLocation(session as ApolloSession, userLocation)
+      internetAccount.postUserLocation(userLocation)
     }
   }
   function onMouseUp() {

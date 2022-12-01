@@ -1,11 +1,6 @@
 import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
-import {
-  AbstractSessionModel,
-  AppRootModel,
-  Region,
-  getSession,
-} from '@jbrowse/core/util'
+import { AbstractSessionModel, AppRootModel, Region } from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import {
   AnnotationFeature,
@@ -96,14 +91,6 @@ const ClientDataStore = types
         }
         const { assemblyName, refName } = region
         let assembly = self.assemblies.get(assemblyName)
-        const session = getSession(self) as ApolloSession
-        const token = self.internetAccounts[0].retrieveToken()
-        if (!token) {
-          throw new Error(`No Token found`)
-        }
-        // Get and set server timestamp into session storage
-        getAndSetLastChangeSeq(session)
-
         if (!assembly) {
           assembly = self.assemblies.put({ _id: assemblyName, refSeqs: {} })
         }
@@ -206,8 +193,12 @@ export function extendSession(sessionModel: IAnyModelType) {
         self.apolloSelectedFeature = feature
       },
       getLocations() {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const locations: any = []
+        const locations: {
+          assemblyName: string
+          refName: string
+          start: number
+          end: number
+        }[] = []
         for (const view of self.views) {
           if (view.type === 'LinearGenomeView') {
             const { dynamicBlocks } = view as LinearGenomeViewModel
@@ -360,36 +351,6 @@ export function extendSession(sessionModel: IAnyModelType) {
         aborter.abort()
       },
     }))
-}
-
-/**
- *  Get and set server last change sequence into session storage
- * @param apolloInternetAccount - apollo internet account
- * @returns
- */
-async function getAndSetLastChangeSeq(session: ApolloSession) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
-  const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
-  const { baseURL } = internetAccount
-  const url = new URL('changes', baseURL)
-  const searchParams = new URLSearchParams({ limit: '1' })
-  url.search = searchParams.toString()
-  const uri = url.toString()
-  const apolloFetch = internetAccount.getFetcher({
-    locationType: 'UriLocation',
-    uri,
-  })
-
-  const response = await apolloFetch(uri, {
-    method: 'GET',
-  })
-  if (!response.ok) {
-    throw new Error(
-      `Error when fetching server LastChangeSequence — ${response.status}`,
-    )
-  }
-  const change = await response.json()
-  sessionStorage.setItem('LastChangeSequence', change.sequence)
 }
 
 export type ApolloSessionStateModel = ReturnType<typeof extendSession>

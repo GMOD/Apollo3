@@ -4,17 +4,16 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import { MenuItem } from '@jbrowse/core/ui'
 import {
   AbstractSessionModel,
-  AppRootModel,
   UriLocation,
+  getSession,
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
 import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
-import Undo from '@mui/icons-material/Undo'
 import { Change, JWTPayload, SerializedChange } from 'apollo-shared'
 import jwtDecode from 'jwt-decode'
 import { autorun } from 'mobx'
-import { Instance, getRoot, types } from 'mobx-state-tree'
-import { Socket, io } from 'socket.io-client'
+import { Instance, flow, types } from 'mobx-state-tree'
+import { io } from 'socket.io-client'
 
 import {
   AddAssembly,
@@ -32,6 +31,8 @@ interface Menu {
 }
 
 type AuthType = 'google' | 'microsoft'
+
+type Role = ('admin' | 'user' | 'readOnly')[]
 
 const stateModelFactory = (
   configSchema: ApolloInternetAccountConfigModel,
@@ -95,9 +96,124 @@ const stateModelFactory = (
     .volatile((self) => ({
       authType: undefined as AuthType | undefined,
       socket: io(self.baseURL),
+      lastChangeSequenceNumber: undefined as number | undefined,
     }))
     .actions((self) => ({
-      addMenuItems(role: ('admin' | 'user' | 'readOnly')[]) {
+      setLastChangeSequenceNumber(sequenceNumber: number) {
+        self.lastChangeSequenceNumber = sequenceNumber
+      },
+    }))
+    .actions((self) => ({
+      addSocketListeners() {
+        const session = getSession(self) as ApolloSession
+        const { notify } = session
+        const token = self.retrieveToken()
+        if (!token) {
+          throw new Error(`No Token found`)
+        }
+        const { socket } = self
+        const { changeManager } = (session as ApolloSessionModel)
+          .apolloDataStore
+        socket.on('COMMON', (message) => {
+          // Save server last change sequnece into session storage
+          sessionStorage.setItem('LastChangeSequence', message.changeSequence)
+          if (message.userToken === token) {
+            return // we did this change, no need to apply it again
+          }
+          const change = Change.fromJSON(message.changeInfo)
+          changeManager?.submit(change, { submitToBackend: false })
+        })
+        socket.on('connect', () => {
+          notify(`You are re-connected to Apollo server.`, 'success')
+          this.getMissingChanges()
+        })
+        socket.on('disconnect', () => {
+          notify(
+            `You are disconnected from Apollo server! Please, close this message`,
+            'error',
+          )
+        })
+        socket.on('USER_LOCATION', (message) => {
+          if (
+            message.channel === 'USER_LOCATION' &&
+            message.userToken !== token
+          ) {
+            // eslint-disable-next-line no-console
+            console.log(
+              `User's ${JSON.stringify(
+                message.userName,
+              )} location. AssemblyId: "${message.assemblyId}", refSeq: "${
+                message.refSeq
+              }", start: "${message.start}" and end: "${message.end}"`,
+            )
+          }
+        })
+      },
+      updateLastChangeSequenceNumber: flow(
+        function* updateLastChangeSequenceNumber() {
+          const { baseURL } = self
+          const url = new URL('changes', baseURL)
+          const searchParams = new URLSearchParams({ limit: '1' })
+          url.search = searchParams.toString()
+          const uri = url.toString()
+          const apolloFetch = self.getFetcher({
+            locationType: 'UriLocation',
+            uri,
+          })
+
+          const response = yield apolloFetch(uri, {
+            method: 'GET',
+          })
+          if (!response.ok) {
+            throw new Error(
+              `Error when fetching server LastChangeSequence — ${response.status}`,
+            )
+          }
+          const changes = yield response.json()
+          self.setLastChangeSequenceNumber(changes[0].sequence)
+        },
+      ),
+      getMissingChanges: flow(function* getMissingChanges() {
+        const session = getSession(self) as ApolloSession
+        const { changeManager } = (session as ApolloSessionModel)
+          .apolloDataStore
+        if (!self.lastChangeSequenceNumber) {
+          throw new Error(
+            `No LastChangeSequence stored in session. Please, refresh you browser to get last updates from server`,
+          )
+        }
+        const { baseURL } = self
+
+        const url = new URL('changes', baseURL)
+        const searchParams = new URLSearchParams({
+          since: String(self.lastChangeSequenceNumber),
+          sort: '1',
+        })
+        url.search = searchParams.toString()
+        const uri = url.toString()
+        const apolloFetch = self.getFetcher({
+          locationType: 'UriLocation',
+          uri,
+        })
+
+        const response = yield apolloFetch(uri, {
+          method: 'GET',
+        })
+        if (!response.ok) {
+          console.error(
+            `Error when fetching the last updates to recover socket connection — ${response.status}`,
+          )
+          return
+        }
+        const serializedChanges = yield response.json()
+        serializedChanges.forEach((serializedChange: SerializedChange) => {
+          const change = Change.fromJSON(serializedChange)
+          changeManager?.submit(change, { submitToBackend: false })
+        })
+      }),
+    }))
+    .actions((self) => ({
+      addMenuItems(role: Role) {
         if (
           !(
             role.includes('admin') &&
@@ -206,18 +322,13 @@ const stateModelFactory = (
             'Apollo',
             {
               label: 'Undo',
-              onClick: (session: AbstractSessionModel) => {
-                session.queueDialog((doneCallback) => [
-                  Undo,
-                  {
-                    session,
-                    handleClose: () => {
-                      doneCallback()
-                    },
-                    changeManager: (session as ApolloSessionModel)
-                      .apolloDataStore.changeManager,
-                  },
-                ])
+              onClick: (session: ApolloSessionModel) => {
+                const { apolloDataStore, notify } = session
+                if (apolloDataStore.changeManager.recentChanges.length) {
+                  apolloDataStore.changeManager.revertLastChange()
+                } else {
+                  notify('No changes to undo', 'info')
+                }
               },
             },
             10,
@@ -231,17 +342,28 @@ const stateModelFactory = (
             if (!authType) {
               return
             }
-            const { session } = getRoot(self)
-            openSocket(session, self.socket)
             const role = getRole()
-            if (role?.includes('admin')) {
-              this.addMenuItems(role)
-              reaction.dispose()
+            if (role) {
+              this.initialize(role)
             }
+            reaction.dispose()
           } catch (error) {
             // pass
           }
         })
+      },
+      initializeFromToken(token: string) {
+        const payload = jwtDecode(token) as JWTPayload
+        this.initialize(payload.roles)
+      },
+      initialize(role: Role) {
+        if (role.includes('admin')) {
+          this.addMenuItems(role)
+        }
+        // Get and set server last change sequnece into session storage
+        self.updateLastChangeSequenceNumber()
+        // Open socket listeners
+        self.addSocketListeners()
       },
     }))
     .volatile((self) => ({
@@ -256,17 +378,9 @@ const stateModelFactory = (
         .actions((s) => {
           const superStoreToken = s.storeToken
           return {
-            async storeToken(token: string) {
+            storeToken(token: string) {
               superStoreToken(token)
-              const payload = jwtDecode(token) as JWTPayload
-              if (payload.roles.includes('admin')) {
-                self.addMenuItems(payload.roles)
-              }
-              const { session } = getRoot(self)
-              // Get and set server last change sequnece into session storage
-              await getAndSetLastChangeSeq(session)
-              // Open socket listeners
-              openSocket(session, self.socket)
+              self.initializeFromToken(token)
             },
           }
         })
@@ -294,17 +408,9 @@ const stateModelFactory = (
         .actions((s) => {
           const superStoreToken = s.storeToken
           return {
-            async storeToken(token: string) {
+            storeToken(token: string) {
               superStoreToken(token)
-              const payload = jwtDecode(token) as JWTPayload
-              if (payload.roles.includes('admin')) {
-                self.addMenuItems(payload.roles)
-              }
-              const { session } = getRoot(self)
-              // Get and set server last change sequnece into session storage
-              await getAndSetLastChangeSeq(session)
-              // Open socket listeners
-              openSocket(session, self.socket)
+              self.initializeFromToken(token)
             },
           }
         })
@@ -335,23 +441,34 @@ const stateModelFactory = (
         }
         throw new Error(`Unknown authType "${self.authType}"`)
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      postUserLocation(session: ApolloSession, userLoc: any) {
-        const { internetAccounts } = getRoot(session) as AppRootModel
-        const internetAccount =
-          internetAccounts[0] as ApolloInternetAccountModel
-        const { baseURL } = internetAccount
+      async postUserLocation(userLoc: {
+        assemblyId: string
+        refSeq: string
+        start: number
+        end: number
+      }) {
+        const { baseURL } = self
         const url = new URL('users/userLocation', baseURL).href
-        const userLocation = new URLSearchParams(userLoc)
-        const apolloFetchFile = internetAccount?.getFetcher({
+        const userLocForParams = {
+          ...userLoc,
+          start: String(userLoc.start),
+          end: String(userLoc.end),
+        }
+        const userLocation = new URLSearchParams(userLocForParams)
+        const apolloFetch = self.getFetcher({
           locationType: 'UriLocation',
           uri: url,
         })
-        if (apolloFetchFile) {
-          apolloFetchFile(url, {
+        try {
+          const response = await apolloFetch(url, {
             method: 'POST',
             body: userLocation,
           })
+          if (!response.ok) {
+            throw new Error() // no message here, will get caught by "catch"
+          }
+        } catch (error) {
+          console.error('Broadcasting user location failed')
         }
       },
     }))
@@ -376,7 +493,7 @@ const stateModelFactory = (
                   authTypePromise = Promise.resolve('microsoft')
                 } else {
                   authTypePromise = new Promise((resolve, reject) => {
-                    const { session } = getRoot(self)
+                    const session = getSession(self) as ApolloSession
                     session.queueDialog((doneCallback: () => void) => [
                       AuthTypeSelector,
                       {
@@ -425,152 +542,3 @@ export type ApolloInternetAccountStateModel = ReturnType<
 >
 export type ApolloInternetAccountModel =
   Instance<ApolloInternetAccountStateModel>
-
-/**
- *  Get and set server last change sequnece into session storage
- * @param apolloInternetAccount - apollo internet account
- * @returns
- */
-async function getAndSetLastChangeSeq(session: ApolloSession) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
-  const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
-  const { baseURL } = internetAccount
-  const url = new URL('changes', baseURL)
-  const searchParams = new URLSearchParams({
-    limit: '1',
-  })
-  url.search = searchParams.toString()
-  const uri = url.toString()
-  const apolloFetch = internetAccount.getFetcher({
-    locationType: 'UriLocation',
-    uri,
-  })
-
-  const response = await apolloFetch(uri, {
-    method: 'GET',
-  })
-  if (!response.ok) {
-    throw new Error(
-      `Error when fetching server LastChangeSequence — ${response.status}`,
-    )
-  }
-  const change = await response.json()
-  sessionStorage.setItem('LastChangeSequence', change[0].sequence)
-}
-
-function openSocket(session: ApolloSession, socket: Socket) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
-  const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
-  const { baseURL } = internetAccount
-  const { notify } = session
-  const token = internetAccount.retrieveToken()
-  if (!token) {
-    throw new Error(`No Token found`)
-  }
-  const { changeManager } = (session as ApolloSessionModel).apolloDataStore
-  if (!socket.hasListeners('COMMON')) {
-    console.log(`User starts to listen "COMMON" at ${baseURL}`)
-    socket.on('COMMON', (message) => {
-      // Save server last change sequnece into session storage
-      sessionStorage.setItem('LastChangeSequence', message.changeSequence)
-      if (message.channel === 'COMMON' && message.userToken !== token) {
-        const change = Change.fromJSON(message.changeInfo)
-        changeManager?.submit(change, {
-          submitToBackend: false,
-        })
-        notify(
-          `${JSON.stringify(message.userName)} changed : ${JSON.stringify(
-            message.changeInfo,
-          )}`,
-          'success',
-        )
-      }
-    })
-    socket.on('connect', function () {
-      console.log('Connected')
-      notify(`You are re-connected to Apollo server.`, 'success')
-      getLastUpdates(session, socket)
-    })
-    socket.on('disconnect', function () {
-      console.log('Disconnected')
-      notify(
-        `You are disconnected from Apollo server! Please, close this message`,
-        'error',
-      )
-    })
-    console.log(
-      `LastChangeSequence: '${sessionStorage.getItem('LastChangeSequence')}'`,
-    )
-  }
-  if (!socket.hasListeners('USER_LOCATION')) {
-    console.log(`User starts to listen "USER_LOCATION" at ${baseURL}`)
-    socket.on('USER_LOCATION', (message) => {
-      if (message.channel === 'USER_LOCATION' && message.userToken !== token) {
-        console.log(
-          `User's ${JSON.stringify(message.userName)} location. AssemblyId: "${
-            message.assemblyId
-          }", refSeq: "${message.refSeq}", start: "${
-            message.start
-          }" and end: "${message.end}"`,
-        )
-      }
-    })
-  }
-}
-
-/**
- * Start to listen temporary channel, fetch the last changes from server and finally apply those changes to client data store
- * @param apolloInternetAccount - apollo internet account
- * @returns
- */
-async function getLastUpdates(session: ApolloSession, socket: Socket) {
-  const lastChangeSequence = sessionStorage.getItem('LastChangeSequence')
-  if (!lastChangeSequence) {
-    throw new Error(
-      `No LastChangeSequence stored in session. Please, refresh you browser to get last updates from server`,
-    )
-  }
-  const { notify } = session
-  const { changeManager } = (session as ApolloSessionModel).apolloDataStore
-  const channel = `tmp_${Math.floor(Math.random() * (10000 - 1000 + 1) + 1000)}`
-  // Let's start to listen temporary channel where server will send the last updates
-  socket.on(channel, (message) => {
-    const change = Change.fromJSON(message.changeInfo[0])
-    changeManager?.submit(change, { submitToBackend: false })
-    notify(
-      `Get the last updates from server: ${JSON.stringify(message.changeInfo)}`,
-      'success',
-    )
-  })
-  const { internetAccounts } = getRoot(session) as AppRootModel
-  const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
-  const { baseURL } = internetAccount
-
-  const url = new URL('changes', baseURL)
-  const searchParams = new URLSearchParams({
-    since: lastChangeSequence,
-    sort: '1',
-  })
-  url.search = searchParams.toString()
-  const uri = url.toString()
-  const apolloFetch = internetAccount.getFetcher({
-    locationType: 'UriLocation',
-    uri,
-  })
-
-  // TODO apply these changes
-  const response = await apolloFetch(uri, {
-    method: 'GET',
-  })
-  if (!response.ok) {
-    console.log(
-      `Error when fetching the last updates to recover socket connection — ${response.status}`,
-    )
-    return
-  }
-  const serializedChanges = await response.json()
-  serializedChanges.forEach((serializedChange: SerializedChange) => {
-    const change = Change.fromJSON(serializedChange)
-    changeManager?.submit(change, { submitToBackend: false })
-  })
-}
