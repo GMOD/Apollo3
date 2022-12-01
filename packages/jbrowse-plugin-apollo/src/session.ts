@@ -14,6 +14,7 @@ import {
   ClientDataStore as ClientDataStoreType,
   CollaborationServerDriver,
 } from 'apollo-shared'
+import { observable } from 'mobx'
 import {
   IAnyModelType,
   Instance,
@@ -46,6 +47,19 @@ interface ApolloRefSeqResponse {
   description?: string
   length: string
   assembly: string
+}
+
+export interface CollaboratorLocation {
+  assembly: string
+  refName: string
+  start: number
+  end: number
+}
+
+export interface Collaborator {
+  name: string
+  id: string
+  locations: CollaboratorLocation[]
 }
 
 const ClientDataStore = types
@@ -146,6 +160,29 @@ export function extendSession(sessionModel: IAnyModelType) {
     .props({
       apolloDataStore: types.optional(ClientDataStore, { typeName: 'Client' }),
       apolloSelectedFeature: types.maybe(types.reference(AnnotationFeature)),
+    })
+    .extend((self) => {
+      const collabs = observable.array<Collaborator>([])
+
+      return {
+        views: {
+          get collaborators() {
+            return collabs
+          },
+        },
+        actions: {
+          addOrUpdateCollaborator(collaborator: Collaborator) {
+            const existingCollaborator = collabs.find(
+              (obj: Collaborator) => obj.id === collaborator.id,
+            )
+            if (!existingCollaborator) {
+              collabs.push(collaborator)
+            } else {
+              existingCollaborator.locations = collaborator.locations
+            }
+          },
+        },
+      }
     })
     .actions((self) => ({
       apolloSetSelectedFeature(feature?: AnnotationFeatureI) {
