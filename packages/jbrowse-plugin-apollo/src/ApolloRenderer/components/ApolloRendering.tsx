@@ -3,6 +3,7 @@ import { AppRootModel, Region, getSession } from '@jbrowse/core/util'
 import { Menu, MenuItem } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
+import { autorun, toJS } from 'mobx'
 import { observer } from 'mobx-react'
 import { getRoot, getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useRef, useState } from 'react'
@@ -12,7 +13,7 @@ import { AddFeature } from '../../components/AddFeature'
 import { CopyFeature } from '../../components/CopyFeature'
 import { DeleteFeature } from '../../components/DeleteFeature'
 import { LinearApolloDisplay } from '../../LinearApolloDisplay/stateModel'
-import { CollaboratorLocation } from '../../session'
+import { Collaborator } from '../../session'
 
 interface ApolloRenderingProps {
   assemblyName: string
@@ -42,8 +43,15 @@ function ApolloRendering(props: ApolloRenderingProps) {
   }>()
   const [movedDuringLastMouseDown, setMovedDuringLastMouseDown] =
     useState(false)
+  const [collaborators, setCollaborators] = useState<Collaborator[]>([])
+
   const { regions, bpPerPx, displayModel } = props
   const session = getSession(displayModel)
+  const { collaborators: collabs } = session
+
+  // bridging mobx observability and React useEffect observability
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => autorun(() => setCollaborators(toJS(collabs))), [])
 
   const [region] = regions
   const totalWidth = (region.end - region.start) / bpPerPx
@@ -170,6 +178,29 @@ function ApolloRendering(props: ApolloRenderingProps) {
       ctx.fillStyle = 'rgba(0,0,0,0.2)'
       ctx.fillRect(startPx, row * height, widthPx, height * feature.rowCount)
     }
+    for (const collaborator of collaborators) {
+      const { locations } = collaborator
+      if (!locations.length) {
+        return
+      }
+      for (const location of locations) {
+        const { start, end } = location
+        const locationStart = region.reversed
+          ? region.end - start
+          : start - region.start
+        const locationStartPx = locationStart / bpPerPx
+        const locationWidthPx = (end - start) / bpPerPx
+        ctx.fillStyle = 'rgba(0,255,0,.2)'
+        ctx.fillRect(locationStartPx, 1, locationWidthPx, 100)
+        ctx.fillStyle = 'black'
+        ctx.fillText(
+          collaborator.name,
+          locationStartPx + 1,
+          11,
+          locationWidthPx - 2,
+        )
+      }
+    }
   }, [
     apolloFeatureUnderMouse,
     apolloRowUnderMouse,
@@ -181,37 +212,11 @@ function ApolloRendering(props: ApolloRenderingProps) {
     region.reversed,
     dragging,
     height,
+    collaborators,
   ])
-
-  useEffect(() => {
-    const canvas = overlayCanvasRef.current
-    if (!canvas) {
-      return
-    }
-    const ctx = canvas.getContext('2d')
-    if (!ctx) {
-      return
-    }
-    ctx.clearRect(0, 0, totalWidth, totalHeight)
-    for (const collaborator of session.collaborators) {
-      const { locations } = collaborator
-      const { start, end }  = locations[0]
-      ctx.fillStyle = 'rgba(0,255,0,.2)'
-      ctx.fillRect(start, 1, end, 100)
-    }
-  }, [apolloFeatureUnderMouse, session.collaborators, totalWidth, totalHeight])
 
   function onMouseMove(event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
     const { clientX, clientY, buttons } = event
-    if (apolloFeatureUnderMouse) {
-      const loc: CollaboratorLocation = {
-        assembly: region.assemblyName,
-        refName: '',
-        start: apolloFeatureUnderMouse.start,
-        end: apolloFeatureUnderMouse.end,
-      }
-      session.addOrUpdateCollaborator(loc)
-    }
     if (!movedDuringLastMouseDown && buttons === 1) {
       setMovedDuringLastMouseDown(true)
     }

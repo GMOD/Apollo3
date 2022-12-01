@@ -14,6 +14,7 @@ import {
   ClientDataStore as ClientDataStoreType,
   CollaborationServerDriver,
 } from 'apollo-shared'
+import { observable } from 'mobx'
 import {
   IAnyModelType,
   Instance,
@@ -160,28 +161,29 @@ export function extendSession(sessionModel: IAnyModelType) {
       apolloDataStore: types.optional(ClientDataStore, { typeName: 'Client' }),
       apolloSelectedFeature: types.maybe(types.reference(AnnotationFeature)),
     })
-    .volatile(() => ({
-      collaborators: [] as Collaborator[],
-    }))
-    .actions((self) => ({
-      addOrUpdateCollaborator(collaboratorLocation: CollaboratorLocation) {
-        const { internetAccounts } = getRoot(self) as AppRootModel
-        const userId = internetAccounts[0].getUserId()
-        let collaborator: Collaborator = self.collaborators.find(
-          (obj: Collaborator) => obj.id === userId,
-        )
-        if (!collaborator) {
-          collaborator = {
-            id: userId,
-            name: '',
-            locations: [collaboratorLocation],
-          }
-          self.collaborators.push(collaborator)
-        } else {
-          collaborator.locations = [collaboratorLocation]
-        }
-      },
-    }))
+    .extend((self) => {
+      const collabs = observable.array<Collaborator>([])
+
+      return {
+        views: {
+          get collaborators() {
+            return collabs
+          },
+        },
+        actions: {
+          addOrUpdateCollaborator(collaborator: Collaborator) {
+            const existingCollaborator = collabs.find(
+              (obj: Collaborator) => obj.id === collaborator.id,
+            )
+            if (!existingCollaborator) {
+              collabs.push(collaborator)
+            } else {
+              existingCollaborator.locations = collaborator.locations
+            }
+          },
+        },
+      }
+    })
     .actions((self) => ({
       apolloSetSelectedFeature(feature?: AnnotationFeatureI) {
         self.apolloSelectedFeature = feature
