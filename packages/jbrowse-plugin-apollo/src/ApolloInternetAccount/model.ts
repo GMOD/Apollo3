@@ -21,7 +21,7 @@ import {
   ImportFeatures,
   ManageUsers,
 } from '../components'
-import { ApolloSession, ApolloSessionModel } from '../session'
+import { ApolloSessionModel, Collaborator } from '../session'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { ApolloInternetAccountConfigModel } from './configSchema'
 
@@ -105,7 +105,7 @@ const stateModelFactory = (
     }))
     .actions((self) => ({
       addSocketListeners() {
-        const session = getSession(self) as ApolloSession
+        const session = getSession(self) as ApolloSessionModel
         const { notify } = session
         const token = self.retrieveToken()
         if (!token) {
@@ -134,18 +134,24 @@ const stateModelFactory = (
           )
         })
         socket.on('USER_LOCATION', (message) => {
-          if (
-            message.channel === 'USER_LOCATION' &&
-            message.userToken !== token
-          ) {
-            // eslint-disable-next-line no-console
-            console.log(
-              `User's ${JSON.stringify(
-                message.userName,
-              )} location. AssemblyId: "${message.assemblyId}", refSeq: "${
-                message.refSeq
-              }", start: "${message.start}" and end: "${message.end}"`,
-            )
+          const {
+            channel,
+            userName,
+            userToken,
+            assemblyId,
+            refSeq,
+            start,
+            end,
+          } = message
+          if (channel === 'USER_LOCATION' && userToken !== token) {
+            const collaborator: Collaborator = {
+              name: userName,
+              id: userToken,
+              locations: [
+                { assembly: assemblyId, refName: refSeq, start, end },
+              ],
+            }
+            session.addOrUpdateCollaborator(collaborator)
           }
         })
       },
@@ -174,7 +180,7 @@ const stateModelFactory = (
         },
       ),
       getMissingChanges: flow(function* getMissingChanges() {
-        const session = getSession(self) as ApolloSession
+        const session = getSession(self) as ApolloSessionModel
         const { changeManager } = (session as ApolloSessionModel)
           .apolloDataStore
         if (!self.lastChangeSequenceNumber) {
@@ -493,7 +499,7 @@ const stateModelFactory = (
                   authTypePromise = Promise.resolve('microsoft')
                 } else {
                   authTypePromise = new Promise((resolve, reject) => {
-                    const session = getSession(self) as ApolloSession
+                    const session = getSession(self) as ApolloSessionModel
                     session.queueDialog((doneCallback: () => void) => [
                       AuthTypeSelector,
                       {

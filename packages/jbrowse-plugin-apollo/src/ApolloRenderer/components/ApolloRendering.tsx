@@ -44,8 +44,6 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const [movedDuringLastMouseDown, setMovedDuringLastMouseDown] =
     useState(false)
   const [collaborators, setCollaborators] = useState<Collaborator[]>([])
-  const [internetAccount, setInternetAccount] =
-    useState<ApolloInternetAccountModel>()
 
   const { regions, bpPerPx, displayModel } = props
   const session = getSession(displayModel)
@@ -101,7 +99,6 @@ function ApolloRendering(props: ApolloRenderingProps) {
     if (apolloInternetAccount.getRole()?.includes('admin')) {
       setIsAdmin(true)
     }
-    setInternetAccount(apolloInternetAccount)
   }, [session, displayModel, region])
 
   useEffect(() => {
@@ -318,15 +315,6 @@ function ApolloRendering(props: ApolloRenderingProps) {
         px,
         bp: apolloFeatureUnderMouse[overEdge],
       })
-    }
-    if (apolloFeatureUnderMouse && internetAccount) {
-      const userLocation = {
-        assemblyId: apolloFeatureUnderMouse.assemblyId,
-        refSeq: apolloFeatureUnderMouse.refSeq,
-        start: apolloFeatureUnderMouse.start,
-        end: apolloFeatureUnderMouse.end,
-      }
-      internetAccount.postUserLocation(userLocation)
     }
   }
   function onMouseUp() {

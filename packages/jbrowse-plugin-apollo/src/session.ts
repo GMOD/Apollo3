@@ -1,5 +1,6 @@
 import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
+import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { AbstractSessionModel, AppRootModel, Region } from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import {
@@ -15,7 +16,7 @@ import {
   ClientDataStore as ClientDataStoreType,
   CollaborationServerDriver,
 } from 'apollo-shared'
-import { observable } from 'mobx'
+import { autorun, observable } from 'mobx'
 import {
   IAnyModelType,
   Instance,
@@ -192,26 +193,6 @@ export function extendSession(sessionModel: IAnyModelType) {
       apolloSetSelectedFeature(feature?: AnnotationFeatureI) {
         self.apolloSelectedFeature = feature
       },
-      getLocations() {
-        const locations: {
-          assemblyName: string
-          refName: string
-          start: number
-          end: number
-        }[] = []
-        for (const view of self.views) {
-          if (view.type === 'LinearGenomeView') {
-            const { dynamicBlocks } = view as LinearGenomeViewModel
-            dynamicBlocks.forEach((block) => {
-              if (block.regionNumber !== undefined) {
-                const { assemblyName, refName, start, end } = block
-                locations.push({ assemblyName, refName, start, end })
-              }
-            })
-          }
-        }
-        return locations
-      },
       addApolloTrackConfig(assembly: AssemblyModel) {
         const trackId = `apollo_track_${assembly.name}`
         const hasTrack = Boolean(
@@ -237,6 +218,48 @@ export function extendSession(sessionModel: IAnyModelType) {
       },
       afterCreate: flow(function* afterCreate() {
         const { internetAccounts } = getRoot(self) as AppRootModel
+        autorun(() => {
+          const locations: {
+            assemblyName: string
+            refName: string
+            start: number
+            end: number
+          }[] = []
+          for (const view of self.views) {
+            if (view.type === 'LinearGenomeView') {
+              const { dynamicBlocks } = view as LinearGenomeViewModel
+              dynamicBlocks.forEach((block) => {
+                if (block.regionNumber !== undefined) {
+                  const { assemblyName, refName, start, end } = block
+                  locations.push({ assemblyName, refName, start, end })
+                }
+              })
+            }
+          }
+          if (!locations.length) {
+            return
+          }
+          for (const internetAccount of internetAccounts as (
+            | BaseInternetAccountModel
+            | ApolloInternetAccountModel
+          )[]) {
+            if ('baseURL' in internetAccount) {
+              const [location] = locations
+              const {
+                assemblyName: assemblyId,
+                refName: refSeq,
+                start,
+                end,
+              } = location
+              internetAccount.postUserLocation({
+                assemblyId,
+                refSeq,
+                start: Math.round(start),
+                end: Math.round(end),
+              })
+            }
+          }
+        })
         for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
           const { baseURL } = internetAccount
           const uri = new URL('assemblies', baseURL).href
