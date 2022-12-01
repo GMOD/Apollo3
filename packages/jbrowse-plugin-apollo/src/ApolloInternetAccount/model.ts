@@ -12,7 +12,7 @@ import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
 import { Change, JWTPayload, SerializedChange } from 'apollo-shared'
 import jwtDecode from 'jwt-decode'
 import { autorun } from 'mobx'
-import { Instance, flow, types } from 'mobx-state-tree'
+import { Instance, flow, getRoot, types } from 'mobx-state-tree'
 import { io } from 'socket.io-client'
 
 import {
@@ -499,7 +499,7 @@ const stateModelFactory = (
                   authTypePromise = Promise.resolve('microsoft')
                 } else {
                   authTypePromise = new Promise((resolve, reject) => {
-                    const session = getSession(self) as ApolloSessionModel
+                    const { session } = getRoot(self)
                     session.queueDialog((doneCallback: () => void) => [
                       AuthTypeSelector,
                       {
