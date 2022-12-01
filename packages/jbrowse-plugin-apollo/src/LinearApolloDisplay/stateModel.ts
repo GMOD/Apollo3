@@ -69,31 +69,34 @@ export function stateModelFactory(
         afterAttach() {
           addDisposer(
             self,
-            autorun(() => {
-              const session = getSession(self) as ApolloSession
-              const view = getContainingView(
-                self,
-              ) as unknown as LinearGenomeViewModel
-              if (view.initialized) {
-                const blockKeys: string[] = []
-                const newBlocks: BaseBlock[] = []
-                self.blockDefinitions.contentBlocks.forEach((block) => {
-                  blockKeys.push(block.key)
-                  if (!previousBlockKeys.includes(block.key)) {
-                    newBlocks.push(block)
-                  }
-                })
-                session.apolloDataStore.loadFeatures(
-                  newBlocks.map(({ assemblyName, refName, start, end }) => ({
-                    assemblyName,
-                    refName,
-                    start,
-                    end,
-                  })),
-                )
-                previousBlockKeys = blockKeys
-              }
-            }),
+            autorun(
+              () => {
+                const session = getSession(self) as ApolloSession
+                const view = getContainingView(
+                  self,
+                ) as unknown as LinearGenomeViewModel
+                if (view.initialized) {
+                  const blockKeys: string[] = []
+                  const newBlocks: BaseBlock[] = []
+                  self.blockDefinitions.contentBlocks.forEach((block) => {
+                    blockKeys.push(block.key)
+                    if (!previousBlockKeys.includes(block.key)) {
+                      newBlocks.push(block)
+                    }
+                  })
+                  session.apolloDataStore.loadFeatures(
+                    newBlocks.map(({ assemblyName, refName, start, end }) => ({
+                      assemblyName,
+                      refName,
+                      start,
+                      end,
+                    })),
+                  )
+                  previousBlockKeys = blockKeys
+                }
+              },
+              { name: 'LinearApolloDisplay' },
+            ),
           )
         },
       }

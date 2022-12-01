@@ -5,7 +5,6 @@ import { MenuItem } from '@jbrowse/core/ui'
 import {
   AbstractSessionModel,
   UriLocation,
-  getSession,
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
 import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
@@ -105,7 +104,7 @@ const stateModelFactory = (
     }))
     .actions((self) => ({
       addSocketListeners() {
-        const session = getSession(self) as ApolloSessionModel
+        const { session } = getRoot(self)
         const { notify } = session
         const token = self.retrieveToken()
         if (!token) {
@@ -180,7 +179,7 @@ const stateModelFactory = (
         },
       ),
       getMissingChanges: flow(function* getMissingChanges() {
-        const session = getSession(self) as ApolloSessionModel
+        const { session } = getRoot(self)
         const { changeManager } = (session as ApolloSessionModel)
           .apolloDataStore
         if (!self.lastChangeSequenceNumber) {
@@ -342,21 +341,24 @@ const stateModelFactory = (
         }
       },
       afterAttach() {
-        autorun(async (reaction) => {
-          try {
-            const { getRole, authType } = self
-            if (!authType) {
-              return
+        autorun(
+          async (reaction) => {
+            try {
+              const { getRole, authType } = self
+              if (!authType) {
+                return
+              }
+              const role = getRole()
+              if (role) {
+                this.initialize(role)
+              }
+              reaction.dispose()
+            } catch (error) {
+              // pass
             }
-            const role = getRole()
-            if (role) {
-              this.initialize(role)
-            }
-            reaction.dispose()
-          } catch (error) {
-            // pass
-          }
-        })
+          },
+          { name: 'ApolloInternetAccount' },
+        )
       },
       initializeFromToken(token: string) {
         const payload = jwtDecode(token) as JWTPayload

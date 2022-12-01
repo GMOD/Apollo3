@@ -71,6 +71,26 @@ export class ChangesService {
         `Error in backend pre-validation: ${errorMessage}`,
       )
     }
+    // Get some info for later broadcasting, before any features are potentially
+    // deleted
+    const refNames: string[] = []
+    if (change instanceof FeatureChange) {
+      // For broadcasting we need also refName
+      const { changedIds } = change
+      for (const changedId of changedIds) {
+        const featureDoc = await this.featureModel
+          .findOne({ allIds: changedId })
+          .exec()
+        if (featureDoc) {
+          const refSeqDoc = await this.refSeqModel
+            .findById(featureDoc.refSeq)
+            .exec()
+          if (refSeqDoc) {
+            refNames.push(refSeqDoc.name)
+          }
+        }
+      }
+    }
     let changeDoc: ChangeDocument | undefined
     await this.featureModel.db.transaction(async (session) => {
       try {
@@ -123,26 +143,6 @@ export class ChangesService {
 
     if (!(change instanceof AssemblySpecificChange)) {
       return
-    }
-
-    // Broadcast feature specific changes
-    const refNames: string[] = []
-    if (change instanceof FeatureChange) {
-      // For broadcasting we need also refName
-      const { changedIds } = change
-      for (const changedId of changedIds) {
-        const featureDoc = await this.featureModel
-          .findOne({ allIds: changedId })
-          .exec()
-        if (featureDoc) {
-          const refSeqDoc = await this.refSeqModel
-            .findById(featureDoc.refSeq)
-            .exec()
-          if (refSeqDoc) {
-            refNames.push(refSeqDoc.name)
-          }
-        }
-      }
     }
 
     // Broadcast

@@ -69,11 +69,11 @@ export class UsersService {
     const broadcast: boolean = JSON.parse(BROADCAST_USER_LOCATION)
     if (broadcast) {
       const jwtPayload = getDecodedAccessToken(token)
-      const { email: user } = jwtPayload
+      const { email: user, username: userName } = jwtPayload
       const msg: UserLocationMessage = {
         ...userLocation,
         channel,
-        userName: user,
+        userName,
         userToken: token,
       }
       this.logger.debug(

@@ -218,48 +218,51 @@ export function extendSession(sessionModel: IAnyModelType) {
       },
       afterCreate: flow(function* afterCreate() {
         const { internetAccounts } = getRoot(self) as AppRootModel
-        autorun(() => {
-          const locations: {
-            assemblyName: string
-            refName: string
-            start: number
-            end: number
-          }[] = []
-          for (const view of self.views) {
-            if (view.type === 'LinearGenomeView') {
-              const { dynamicBlocks } = view as LinearGenomeViewModel
-              dynamicBlocks.forEach((block) => {
-                if (block.regionNumber !== undefined) {
-                  const { assemblyName, refName, start, end } = block
-                  locations.push({ assemblyName, refName, start, end })
-                }
-              })
+        autorun(
+          () => {
+            const locations: {
+              assemblyName: string
+              refName: string
+              start: number
+              end: number
+            }[] = []
+            for (const view of self.views) {
+              if (view.type === 'LinearGenomeView' && view.initialized) {
+                const { dynamicBlocks } = view as LinearGenomeViewModel
+                dynamicBlocks.forEach((block) => {
+                  if (block.regionNumber !== undefined) {
+                    const { assemblyName, refName, start, end } = block
+                    locations.push({ assemblyName, refName, start, end })
+                  }
+                })
+              }
             }
-          }
-          if (!locations.length) {
-            return
-          }
-          for (const internetAccount of internetAccounts as (
-            | BaseInternetAccountModel
-            | ApolloInternetAccountModel
-          )[]) {
-            if ('baseURL' in internetAccount) {
-              const [location] = locations
-              const {
-                assemblyName: assemblyId,
-                refName: refSeq,
-                start,
-                end,
-              } = location
-              internetAccount.postUserLocation({
-                assemblyId,
-                refSeq,
-                start: Math.round(start),
-                end: Math.round(end),
-              })
+            if (!locations.length) {
+              return
             }
-          }
-        })
+            for (const internetAccount of internetAccounts as (
+              | BaseInternetAccountModel
+              | ApolloInternetAccountModel
+            )[]) {
+              if ('baseURL' in internetAccount) {
+                const [location] = locations
+                const {
+                  assemblyName: assemblyId,
+                  refName: refSeq,
+                  start,
+                  end,
+                } = location
+                internetAccount.postUserLocation({
+                  assemblyId,
+                  refSeq,
+                  start: Math.round(start),
+                  end: Math.round(end),
+                })
+              }
+            }
+          },
+          { name: 'ApolloSession' },
+        )
         for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
           const { baseURL } = internetAccount
           const uri = new URL('assemblies', baseURL).href
