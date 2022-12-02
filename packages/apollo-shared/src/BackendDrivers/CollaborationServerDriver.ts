@@ -69,7 +69,6 @@ export class CollaborationServerDriver extends BackendDriver {
   async getFeatures(region: Region) {
     const { assemblyName, refName, start, end } = region
     const { assemblyManager } = getSession(this.clientStore)
-    console.log('0')
     const assembly = assemblyManager.get(assemblyName)
     if (!assembly) {
       throw new Error(`Could not find assembly with name "${assemblyName}"`)
@@ -77,16 +76,13 @@ export class CollaborationServerDriver extends BackendDriver {
     const { ids } = getConf(assembly, ['sequence', 'metadata']) as {
       ids: Record<string, string>
     }
-    console.log('1')
     const refSeq = ids[refName]
-    console.log('2')
     if (!refSeq) {
       throw new Error(`Could not find refSeq "${refName}"`)
     }
     const internetAccount = this.getInternetAccount(assemblyName)
     const { baseURL } = internetAccount
 
-    console.log('3')
     const url = new URL('features/getFeatures', baseURL)
     const searchParams = new URLSearchParams({
       refSeq,
