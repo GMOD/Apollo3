@@ -122,15 +122,12 @@ const stateModelFactory = (
           const change = Change.fromJSON(message.changeInfo)
           changeManager?.submit(change, { submitToBackend: false })
         })
-        socket.on('connect', () => {
-          notify(`You are re-connected to Apollo server.`, 'success')
+        socket.on('reconnect', () => {
+          notify('You are re-connected to the Apollo server.', 'success')
           this.getMissingChanges()
         })
         socket.on('disconnect', () => {
-          notify(
-            `You are disconnected from Apollo server! Please, close this message`,
-            'error',
-          )
+          notify('You are disconnected from the Apollo server.', 'error')
         })
         socket.on('USER_LOCATION', (message) => {
           const {
@@ -380,7 +377,9 @@ const stateModelFactory = (
       )
         .views(() => ({
           state() {
-            return window.location.origin
+            return (
+              window.location.origin + window.location.pathname.slice(0, -1)
+            )
           },
         }))
         .actions((s) => {

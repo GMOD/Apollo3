@@ -69,6 +69,7 @@ export class CollaborationServerDriver extends BackendDriver {
   async getFeatures(region: Region) {
     const { assemblyName, refName, start, end } = region
     const { assemblyManager } = getSession(this.clientStore)
+    console.log('0')
     const assembly = assemblyManager.get(assemblyName)
     if (!assembly) {
       throw new Error(`Could not find assembly with name "${assemblyName}"`)
@@ -76,13 +77,16 @@ export class CollaborationServerDriver extends BackendDriver {
     const { ids } = getConf(assembly, ['sequence', 'metadata']) as {
       ids: Record<string, string>
     }
+    console.log('1')
     const refSeq = ids[refName]
+    console.log('2')
     if (!refSeq) {
       throw new Error(`Could not find refSeq "${refName}"`)
     }
     const internetAccount = this.getInternetAccount(assemblyName)
     const { baseURL } = internetAccount
 
+    console.log('3')
     const url = new URL('features/getFeatures', baseURL)
     const searchParams = new URLSearchParams({
       refSeq,
@@ -148,15 +152,12 @@ export class CollaborationServerDriver extends BackendDriver {
           }
         },
       )
-      socket.on('connect', () => {
-        notify(`You are re-connected to Apollo server.`, 'success')
+      socket.on('reconnect', () => {
+        notify('You are re-connected to the Apollo server.', 'success')
         internetAccount.getMissingChanges()
       })
       socket.on('disconnect', () => {
-        notify(
-          `You are disconnected from Apollo server! Please, close this message`,
-          'error',
-        )
+        notify('You are disconnected from the Apollo server.', 'error')
       })
     }
   }
