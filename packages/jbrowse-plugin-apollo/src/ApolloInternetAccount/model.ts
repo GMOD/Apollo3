@@ -410,7 +410,9 @@ const stateModelFactory = (
       )
         .views(() => ({
           state() {
-            return window.location.origin
+            return (
+              window.location.origin + window.location.pathname.slice(0, -1)
+            )
           },
         }))
         .actions((s) => {
