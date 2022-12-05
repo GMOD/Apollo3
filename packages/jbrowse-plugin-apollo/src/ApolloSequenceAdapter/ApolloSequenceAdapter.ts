@@ -27,8 +27,10 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
       return this.refSeqs
     }
     const assemblyId = readConfObject(this.config, 'assemblyId')
+    const url = new URL('refSeqs', this.baseURL)
     const searchParams = new URLSearchParams({ assembly: assemblyId })
-    const uri = new URL(`refSeqs?${searchParams.toString()}`, this.baseURL).href
+    url.search = searchParams.toString()
+    const uri = url.toString()
     const fetch = getFetcher(
       { locationType: 'UriLocation', uri },
       this.pluginManager,
@@ -83,15 +85,14 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
           `Could not find refSeq that matched refName "${refName}"`,
         )
       }
+      const url = new URL('refSeqs/getSequence', this.baseURL)
       const searchParams = new URLSearchParams({
         refSeq: refSeq._id,
         start: String(start),
         end: String(end),
       })
-      const uri = new URL(
-        `refSeqs/getSequence?${searchParams.toString()}`,
-        this.baseURL,
-      ).href
+      url.search = searchParams.toString()
+      const uri = url.toString()
       const fetch = getFetcher(
         { locationType: 'UriLocation', uri },
         this.pluginManager,

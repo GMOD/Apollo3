@@ -172,7 +172,8 @@ const stateModelFactory = (
             )
           }
           const changes = yield response.json()
-          self.setLastChangeSequenceNumber(changes[0].sequence)
+          const sequence = changes.length ? changes[0].sequence : 0
+          self.setLastChangeSequenceNumber(sequence)
         },
       ),
       getMissingChanges: flow(function* getMissingChanges() {

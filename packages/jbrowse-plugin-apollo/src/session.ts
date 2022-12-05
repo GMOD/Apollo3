@@ -307,11 +307,10 @@ export function extendSession(sessionModel: IAnyModelType) {
               self.addApolloTrackConfig(selectedAssembly)
               continue
             }
-            const searchParams = new URLSearchParams({
-              assembly: assembly._id,
-            })
-            const uri2 = new URL(`refSeqs?${searchParams.toString()}`, baseURL)
-              .href
+            const url = new URL('refSeqs', baseURL)
+            const searchParams = new URLSearchParams({ assembly: assembly._id })
+            url.search = searchParams.toString()
+            const uri2 = url.toString()
             const fetch2 = internetAccount.getFetcher({
               locationType: 'UriLocation',
               uri: uri2,

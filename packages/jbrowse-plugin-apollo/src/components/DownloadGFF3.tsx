@@ -41,13 +41,10 @@ export function DownloadGFF3({ session, handleClose }: DownloadGFF3Props) {
     }
 
     const { internetAccount } = selectedAssembly
-    const searchParams = new URLSearchParams({
-      assembly: selectedAssembly._id,
-    })
-    const uri = new URL(
-      `features/exportGFF3?${searchParams.toString()}`,
-      internetAccount.baseURL,
-    ).href
+    const url = new URL('refSeqs', internetAccount.baseURL)
+    const searchParams = new URLSearchParams({ assembly: selectedAssembly._id })
+    url.search = searchParams.toString()
+    const uri = url.toString()
     window.open(uri, '_blank')
 
     handleClose()
