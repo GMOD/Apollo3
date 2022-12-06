@@ -33,6 +33,13 @@ type AuthType = 'google' | 'microsoft'
 
 type Role = ('admin' | 'user' | 'readOnly')[]
 
+interface UserLocation {
+  assemblyId: string
+  refSeq: string
+  start: number
+  end: number
+}
+
 const stateModelFactory = (
   configSchema: ApolloInternetAccountConfigModel,
   pluginManager: PluginManager,
@@ -451,12 +458,9 @@ const stateModelFactory = (
         }
         throw new Error(`Unknown authType "${self.authType}"`)
       },
-      async postUserLocation(userLoc: {
-        assemblyId: string
-        refSeq: string
-        start: number
-        end: number
-      }) {
+    }))
+    .actions((self) => {
+      async function postUserLocation(userLoc: UserLocation) {
         const { baseURL } = self
         const url = new URL('users/userLocation', baseURL).href
         const userLocForParams = {
@@ -480,8 +484,21 @@ const stateModelFactory = (
         } catch (error) {
           console.error('Broadcasting user location failed')
         }
-      },
-    }))
+      }
+      const debounceTimeout = 300
+      const debouncePostUserLocation = (
+        fn: (userLocation: UserLocation) => void,
+      ) => {
+        let timeoutId: ReturnType<typeof setTimeout>
+        return (userLocation: UserLocation) => {
+          clearTimeout(timeoutId)
+          timeoutId = setTimeout(() => fn(userLocation), debounceTimeout)
+        }
+      }
+      return {
+        postUserLocation: debouncePostUserLocation(postUserLocation),
+      }
+    })
     .actions((self) => {
       let authTypePromise: Promise<AuthType> | undefined = undefined
       return {
