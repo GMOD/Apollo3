@@ -6,7 +6,7 @@ import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { autorun, toJS } from 'mobx'
 import { observer } from 'mobx-react'
 import { getRoot, getSnapshot, isAlive } from 'mobx-state-tree'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { AddFeature } from '../../components/AddFeature'
@@ -76,10 +76,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     Array.from(a.values()).map((f) => getSnapshot(f)),
   )
 
-  useEffect(() => {
-    if (!isAlive(region)) {
-      return
-    }
+  const apolloInternetAccount = useMemo(() => {
     const { internetAccounts } = getRoot(session) as AppRootModel
     const { assemblyName } = region
     const { assemblyManager } = getSession(displayModel)
@@ -91,18 +88,27 @@ function ApolloRendering(props: ApolloRenderingProps) {
       'sequence',
       'metadata',
     ]) as { internetAccountConfigId: string }
-    const apolloInternetAccount = internetAccounts.find(
+    const matchingAccount = internetAccounts.find(
       (ia) => getConf(ia, 'internetAccountId') === internetAccountConfigId,
     ) as ApolloInternetAccountModel | undefined
-    if (!apolloInternetAccount) {
+    if (!matchingAccount) {
       throw new Error(
         `No InternetAccount found with config id ${internetAccountConfigId}`,
       )
     }
-    if (apolloInternetAccount.getRole()?.includes('admin')) {
+    return matchingAccount
+  }, [displayModel, region, session])
+
+  const { authType, getRole } = apolloInternetAccount
+
+  useEffect(() => {
+    if (!authType) {
+      return
+    }
+    if (getRole()?.includes('admin')) {
       setIsAdmin(true)
     }
-  }, [session, displayModel, region])
+  }, [authType, getRole])
 
   useEffect(() => {
     if (!isAlive(region)) {
