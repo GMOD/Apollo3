@@ -13,6 +13,7 @@ import {
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
+import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { AssemblyData, useAssemblies } from './'
 
 interface DownloadGFF3Props {
@@ -40,13 +41,48 @@ export function DownloadGFF3({ session, handleClose }: DownloadGFF3Props) {
       return
     }
 
-    const { internetAccount } = selectedAssembly
-    const url = new URL('refSeqs', internetAccount.baseURL)
-    const searchParams = new URLSearchParams({ assembly: selectedAssembly._id })
+    // *** ORIGINAL ***
+    // const { internetAccount } = selectedAssembly
+    // const url = new URL('refSeqs', internetAccount.baseURL)
+    // const searchParams = new URLSearchParams({ assembly: selectedAssembly._id })
+    // url.search = searchParams.toString()
+    // const uri = url.toString()
+
+    // *** WORKS WHEN GUARD AND VALIDATIONS ARE COMMENTED IN CONTROLLER i.e. no authorization header is needed
+    // const { internetAccount } = selectedAssembly
+    // const url = new URL('features/exportGFF3', internetAccount.baseURL)
+    // const searchParams = new URLSearchParams({ assembly: selectedAssembly._id })
+    // url.search = searchParams.toString()
+    // const uri = url.toString()
+
+    const apolloInternetAccount = internetAccounts.find(
+      (ia) => ia.type === 'ApolloInternetAccount',
+    ) as ApolloInternetAccountModel | undefined
+    if (!apolloInternetAccount) {
+      throw new Error('No Apollo internet account found')
+    }
+    const searchParams = new URLSearchParams({
+      assembly: selectedAssembly._id,
+    })
+    const { baseURL } = apolloInternetAccount
+    const url = new URL('features/exportGFF3', baseURL)
     url.search = searchParams.toString()
     const uri = url.toString()
-    window.open(uri, '_blank')
 
+    fetch(uri, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/text',
+        Authorization: `Bearer ${apolloInternetAccount.retrieveToken()}`,
+      },
+    })
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url2 = window.URL.createObjectURL(blob)
+        window.open(url2, '_blank')
+      })
+
+    // window.open(uri, '_blank') // ** ORIGINAL line
     handleClose()
   }
 

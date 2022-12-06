@@ -49,6 +49,9 @@ function makeGFF3Feature(
   if (!refSeq) {
     throw new Error(`Could not find refSeq ${featureDocument.refSeq}`)
   }
+  if (featureDocument.children) {
+    console.log(`**** CHILDREN: ${JSON.stringify(featureDocument.children)}`)
+  }
   return locations.map((location) => ({
     start: location.start,
     end: location.end,
@@ -65,8 +68,8 @@ function makeGFF3Feature(
     attributes: Object.keys(attributes).length ? attributes : null,
     derived_features: [],
     child_features: featureDocument.children
-      ? Object.values(featureDocument.children).map((child) =>
-          makeGFF3Feature(child, refSeqs, attributes.ID[0]),
+      ? Object.values(featureDocument.children).map(
+          (child) => makeGFF3Feature(child, refSeqs, attributes.ID[0]), // KS 6.12.2022 comment: when feature has children features --> "TypeError: Cannot read properties of undefined (reading '0')"
         )
       : [],
   }))
@@ -99,6 +102,7 @@ export class FeaturesService {
       .cursor({
         transform: (chunk: FeatureDocument): GFF3Feature => {
           const flattened = chunk.toObject({ flattenMaps: true })
+          console.log(`flattened: ${JSON.stringify(flattened)}`)
           return makeGFF3Feature(flattened, refSeqs)
         },
       })
