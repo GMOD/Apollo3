@@ -62,6 +62,13 @@ export function stateModelFactory(
         )
         return regions
       },
+      regionCannotBeRendered(/* region */) {
+        const view = getContainingView(self)
+        if (view && view.bpPerPx >= 200) {
+          return 'Zoom in to see annotations'
+        }
+        return undefined
+      },
     }))
     .actions((self) => {
       let previousBlockKeys: string[] = []
@@ -76,6 +83,9 @@ export function stateModelFactory(
                   self,
                 ) as unknown as LinearGenomeViewModel
                 if (view.initialized) {
+                  if (self.regionCannotBeRendered()) {
+                    return
+                  }
                   const blockKeys: string[] = []
                   const newBlocks: BaseBlock[] = []
                   self.blockDefinitions.contentBlocks.forEach((block) => {

@@ -102,6 +102,9 @@ export const ApolloDetails = observer(
       if (!apolloInternetAccount) {
         throw new Error('No Apollo internet account found')
       }
+      if (!apolloInternetAccount.authType) {
+        return false
+      }
       return Boolean(apolloInternetAccount.getRole()?.includes('user'))
     }, [session])
     const {
