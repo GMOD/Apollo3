@@ -37,8 +37,6 @@ export class FeaturesController {
     const [stream, assembly] = await this.featuresService.exportGFF3(
       request.exportID,
     )
-    this.logger.debug('assembly')
-    this.logger.debug(assembly)
     res.set({
       'Content-Type': 'application/text',
       'Content-Disposition': `attachment; filename="${assembly}_apollo.gff3"`,
