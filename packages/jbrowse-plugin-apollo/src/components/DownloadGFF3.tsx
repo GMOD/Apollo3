@@ -41,48 +41,37 @@ export function DownloadGFF3({ session, handleClose }: DownloadGFF3Props) {
       return
     }
 
-    // *** ORIGINAL ***
-    // const { internetAccount } = selectedAssembly
-    // const url = new URL('refSeqs', internetAccount.baseURL)
-    // const searchParams = new URLSearchParams({ assembly: selectedAssembly._id })
-    // url.search = searchParams.toString()
-    // const uri = url.toString()
-
-    // *** WORKS WHEN GUARD AND VALIDATIONS ARE COMMENTED IN CONTROLLER i.e. no authorization header is needed
-    // const { internetAccount } = selectedAssembly
-    // const url = new URL('features/exportGFF3', internetAccount.baseURL)
-    // const searchParams = new URLSearchParams({ assembly: selectedAssembly._id })
-    // url.search = searchParams.toString()
-    // const uri = url.toString()
-
-    const apolloInternetAccount = internetAccounts.find(
-      (ia) => ia.type === 'ApolloInternetAccount',
-    ) as ApolloInternetAccountModel | undefined
-    if (!apolloInternetAccount) {
-      throw new Error('No Apollo internet account found')
-    }
-    const searchParams = new URLSearchParams({
-      assembly: selectedAssembly._id,
-    })
-    const { baseURL } = apolloInternetAccount
-    const url = new URL('features/exportGFF3', baseURL)
+    const { internetAccount } = selectedAssembly
+    const url = new URL('features/getExportID', internetAccount.baseURL)
+    const searchParams = new URLSearchParams({ assembly: selectedAssembly._id })
     url.search = searchParams.toString()
     const uri = url.toString()
-
-    fetch(uri, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/text',
-        Authorization: `Bearer ${apolloInternetAccount.retrieveToken()}`,
-      },
+    const apolloFetch = internetAccount.getFetcher({
+      locationType: 'UriLocation',
+      uri,
     })
-      .then((response) => response.blob())
-      .then((blob) => {
-        const url2 = window.URL.createObjectURL(blob)
-        window.open(url2, '_blank')
-      })
+    const response = await apolloFetch(uri, { method: 'GET' })
+    if (!response.ok) {
+      let msg
+      try {
+        msg = await response.text()
+      } catch (e) {
+        msg = ''
+      }
+      setErrorMessage(
+        `Error when export ID — ${response.status} 
+        (${response.statusText})${msg ? ` (${msg})` : ''}`,
+      )
+      return
+    }
+    const { exportID } = (await response.json()) as { exportID: string }
 
-    // window.open(uri, '_blank') // ** ORIGINAL line
+    const exportURL = new URL('features/exportGFF3', internetAccount.baseURL)
+    const exportSearchParams = new URLSearchParams({ exportID })
+    exportURL.search = exportSearchParams.toString()
+    const exportUri = exportURL.toString()
+
+    window.open(exportUri, '_blank')
     handleClose()
   }
 

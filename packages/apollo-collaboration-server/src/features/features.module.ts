@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
-import { Feature, FeatureSchema } from 'apollo-schemas'
+import { Export, ExportSchema, Feature, FeatureSchema } from 'apollo-schemas'
 import idValidator from 'mongoose-id-validator'
 
 import { AssembliesModule } from '../assemblies/assemblies.module'
@@ -24,6 +24,7 @@ import { FeaturesService } from './features.service'
         inject: [getConnectionToken()],
       },
     ]),
+    MongooseModule.forFeature([{ name: Export.name, schema: ExportSchema }]),
   ],
   exports: [MongooseModule],
 })

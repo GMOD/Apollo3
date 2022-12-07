@@ -4,6 +4,8 @@ import { InjectModel } from '@nestjs/mongoose'
 import {
   Assembly,
   AssemblyDocument,
+  Export,
+  ExportDocument,
   Feature,
   FeatureDocument,
   RefSeq,
@@ -84,6 +86,8 @@ export class FeaturesService {
     private readonly assemblyModel: Model<AssemblyDocument>,
     @InjectModel(RefSeq.name)
     private readonly refSeqModel: Model<RefSeqDocument>,
+    @InjectModel(Export.name)
+    private readonly exportModel: Model<ExportDocument>,
   ) {}
 
   private readonly logger = new Logger(FeaturesService.name)
@@ -92,21 +96,33 @@ export class FeaturesService {
     return this.featureModel.find().exec()
   }
 
+  async getExportID(assembly: string) {
+    return this.exportModel.create({ assembly })
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async exportGFF3(assembly: string): Promise<any> {
+  async exportGFF3(exportID: string): Promise<any> {
+    const exportDoc = await this.exportModel.findById(exportID)
+    if (!exportDoc) {
+      throw new NotFoundException()
+    }
+    const { assembly } = exportDoc
     const refSeqs = await this.refSeqModel.find({ assembly }).exec()
     const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
     const query = { refSeq: { $in: refSeqIds } }
-    return this.featureModel
-      .find(query)
-      .cursor({
-        transform: (chunk: FeatureDocument): GFF3Feature => {
-          const flattened = chunk.toObject({ flattenMaps: true })
-          console.log(`flattened: ${JSON.stringify(flattened)}`)
-          return makeGFF3Feature(flattened, refSeqs)
-        },
-      })
-      .pipe(gff.formatStream({ insertVersionDirective: true }))
+    return [
+      this.featureModel
+        .find(query)
+        .cursor({
+          transform: (chunk: FeatureDocument): GFF3Feature => {
+            const flattened = chunk.toObject({ flattenMaps: true })
+            console.log(`flattened: ${JSON.stringify(flattened)}`)
+            return makeGFF3Feature(flattened, refSeqs)
+          },
+        })
+        .pipe(gff.formatStream({ insertVersionDirective: true })),
+      assembly,
+    ]
   }
 
   /**
