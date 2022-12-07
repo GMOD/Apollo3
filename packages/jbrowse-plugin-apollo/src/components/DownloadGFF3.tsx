@@ -13,6 +13,7 @@ import {
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
+import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { AssemblyData, useAssemblies } from './'
 
 interface DownloadGFF3Props {
@@ -41,12 +42,36 @@ export function DownloadGFF3({ session, handleClose }: DownloadGFF3Props) {
     }
 
     const { internetAccount } = selectedAssembly
-    const url = new URL('refSeqs', internetAccount.baseURL)
+    const url = new URL('features/getExportID', internetAccount.baseURL)
     const searchParams = new URLSearchParams({ assembly: selectedAssembly._id })
     url.search = searchParams.toString()
     const uri = url.toString()
-    window.open(uri, '_blank')
+    const apolloFetch = internetAccount.getFetcher({
+      locationType: 'UriLocation',
+      uri,
+    })
+    const response = await apolloFetch(uri, { method: 'GET' })
+    if (!response.ok) {
+      let msg
+      try {
+        msg = await response.text()
+      } catch (e) {
+        msg = ''
+      }
+      setErrorMessage(
+        `Error when export ID — ${response.status} 
+        (${response.statusText})${msg ? ` (${msg})` : ''}`,
+      )
+      return
+    }
+    const { exportID } = (await response.json()) as { exportID: string }
 
+    const exportURL = new URL('features/exportGFF3', internetAccount.baseURL)
+    const exportSearchParams = new URLSearchParams({ exportID })
+    exportURL.search = exportSearchParams.toString()
+    const exportUri = exportURL.toString()
+
+    window.open(exportUri, '_blank')
     handleClose()
   }
 

@@ -33,6 +33,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
   const [isAdmin, setIsAdmin] = useState<boolean>(false)
+  const [isReadOnly, setIsReadOnly] = useState<boolean>(true)
   const [overEdge, setOverEdge] = useState<'start' | 'end'>()
   const [dragging, setDragging] = useState<{
     edge: 'start' | 'end'
@@ -107,6 +108,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
     }
     if (getRole()?.includes('admin')) {
       setIsAdmin(true)
+    }
+    if (!getRole()?.includes('readOnly')) {
+      setIsReadOnly(false)
     }
   }, [authType, getRole])
 
@@ -400,6 +404,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
         }}
       >
         <MenuItem
+          disabled={isReadOnly}
           key={1}
           value={1}
           onClick={() => {
@@ -425,6 +430,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
           Add child feature
         </MenuItem>
         <MenuItem
+          disabled={isReadOnly}
           key={2}
           value={2}
           onClick={() => {

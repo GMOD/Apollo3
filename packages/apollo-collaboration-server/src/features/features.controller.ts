@@ -16,16 +16,14 @@ import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { FeaturesService } from './features.service'
 
-@UseGuards(JwtAuthGuard)
 @Controller('features')
-@Validations(Role.ReadOnly)
 export class FeaturesController {
   constructor(private readonly featuresService: FeaturesService) {}
   private readonly logger = new Logger(FeaturesController.name)
 
   /**
    * Export GFF3 from database.
-   * e.g: curl http://localhost:3999/features/exportGFF3?assembly=624a7e97d45d7745c2532b01
+   * e.g: curl http://localhost:3999/features/exportGFF3?exportID=624a7e97d45d7745c2532b01
    *
    * @param request -
    * @param res -
@@ -33,15 +31,32 @@ export class FeaturesController {
    */
   @Get('exportGFF3')
   async exportGFF3(
-    @Query() request: { assembly: string },
+    @Query() request: { exportID: string },
     @Response({ passthrough: true }) res: ExpressResponse,
   ) {
+    const [stream, assembly] = await this.featuresService.exportGFF3(
+      request.exportID,
+    )
+    this.logger.debug('assembly')
+    this.logger.debug(assembly)
     res.set({
       'Content-Type': 'application/text',
-      'Content-Disposition': `attachment; filename="${request.assembly}_apollo.gff3"`,
+      'Content-Disposition': `attachment; filename="${assembly}_apollo.gff3"`,
     })
-    const stream = await this.featuresService.exportGFF3(request.assembly)
     return new StreamableFile(stream)
+  }
+
+  /**
+   * Get and ID to be used with exportGFF3. ID will be valid for 5 minutes.
+   * @param request -
+   * @returns The ID of an export that will be valid for 5 minutes
+   */
+  @UseGuards(JwtAuthGuard)
+  @Validations(Role.ReadOnly)
+  @Get('getExportID')
+  async getExportID(@Query() request: { assembly: string }) {
+    const exportDoc = await this.featuresService.getExportID(request.assembly)
+    return { exportID: exportDoc._id }
   }
 
   /**
@@ -50,6 +65,8 @@ export class FeaturesController {
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
    * or if search data was not found or in case of error throw exception
    */
+  @UseGuards(JwtAuthGuard)
+  @Validations(Role.ReadOnly)
   @Get('getFeatures')
   getFeatures(@Query() request: FeatureRangeSearchDto) {
     this.logger.debug(
@@ -65,6 +82,8 @@ export class FeaturesController {
    * @returns Return 'HttpStatus.OK' and the feature(s) if search was successful
    * or if search data was not found or in case of error throw exception
    */
+  @UseGuards(JwtAuthGuard)
+  @Validations(Role.ReadOnly)
   @Get(':featureid')
   getFeature(@Param('featureid') featureid: string) {
     this.logger.debug(`Get feature by featureId: ${featureid}`)
@@ -76,6 +95,8 @@ export class FeaturesController {
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
    * or if search data was not found or in case of error throw exception
    */
+  @UseGuards(JwtAuthGuard)
+  @Validations(Role.ReadOnly)
   @Get()
   getAll() {
     this.logger.debug(`Get all features`)
