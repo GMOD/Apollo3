@@ -1,3 +1,5 @@
+import { Transform, pipeline } from 'stream'
+
 import gff, { GFF3Feature } from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
@@ -108,15 +110,32 @@ export class FeaturesService {
     const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
     const query = { refSeq: { $in: refSeqIds } }
     return [
-      this.featureModel
-        .find(query)
-        .cursor({
-          transform: (chunk: FeatureDocument): GFF3Feature => {
-            const flattened = chunk.toObject({ flattenMaps: true })
-            return makeGFF3Feature(flattened, refSeqs)
+      pipeline(
+        this.featureModel.find(query).cursor(),
+        new Transform({
+          writableObjectMode: true,
+          readableObjectMode: true,
+          transform: (chunk, encoding, callback) => {
+            try {
+              const flattened = chunk.toObject({ flattenMaps: true })
+              const gff3Feature = makeGFF3Feature(flattened, refSeqs)
+              callback(null, gff3Feature)
+            } catch (error) {
+              this.logger.debug('caught')
+              callback(
+                error instanceof Error ? error : new Error(String(error)),
+              )
+            }
           },
-        })
-        .pipe(gff.formatStream({ insertVersionDirective: true })),
+        }),
+        gff.formatStream({ insertVersionDirective: true }),
+        (error) => {
+          if (error) {
+            this.logger.error('GFF3 export failed')
+            this.logger.error(error)
+          }
+        },
+      ),
       assembly,
     ]
   }

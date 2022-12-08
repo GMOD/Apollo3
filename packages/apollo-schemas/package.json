@@ -5,9 +5,9 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@nestjs/common": "^9.0.4",
-    "@nestjs/core": "^9.0.4",
-    "@nestjs/mongoose": "^9.0.2",
+    "@nestjs/common": "^9.2.1",
+    "@nestjs/core": "^9.2.1",
+    "@nestjs/mongoose": "^9.2.1",
     "apollo-mst": "workspace:^",
     "mongoose": "^6.2.6",
     "reflect-metadata": "^0.1.13",

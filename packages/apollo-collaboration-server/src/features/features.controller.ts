@@ -41,7 +41,26 @@ export class FeaturesController {
       'Content-Type': 'application/text',
       'Content-Disposition': `attachment; filename="${assembly}_apollo.gff3"`,
     })
-    return new StreamableFile(stream)
+    // TODO: remove ts-ignores below after a resolution for this issue is
+    // released: https://github.com/nestjs/nest/issues/10681
+    return new StreamableFile(stream).setErrorHandler((error, response) => {
+      if (response.destroyed) {
+        return
+      }
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      if (response.headersSent) {
+        // TODO: maybe broadcast message to user that they shouldn't trust the
+        // exported GFF3? From the client side there's no way to tell this
+        // stream terminated early.
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        response.end()
+        return
+      }
+      response.statusCode = 400
+      response.send(error.message)
+    })
   }
 
   /**
