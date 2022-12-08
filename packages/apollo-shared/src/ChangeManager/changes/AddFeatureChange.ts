@@ -108,6 +108,17 @@ export class AddFeatureChange extends FeatureChange {
         if (!parentFeature.children) {
           parentFeature.children = new Map()
         }
+        if (!parentFeature.attributes?.id) {
+          let { attributes } = parentFeature
+          if (!attributes) {
+            attributes = {}
+          }
+          attributes = {
+            id: [parentFeature._id.toString()],
+            ...JSON.parse(JSON.stringify(attributes)),
+          }
+          parentFeature.attributes = attributes
+        }
         parentFeature.children.set(addedFeature._id, {
           allIds: [],
           ...addedFeature,

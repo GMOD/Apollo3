@@ -49,6 +49,10 @@ function makeGFF3Feature(
     attributes.Target = attributes.target
     delete attributes.target
   }
+  if (attributes.alias) {
+    attributes.Alias = attributes.alias
+    delete attributes.alias
+  }
   const refSeq = refSeqs.find((rs) => rs._id.equals(featureDocument.refSeq))
   if (!refSeq) {
     throw new Error(`Could not find refSeq ${featureDocument.refSeq}`)
@@ -121,7 +125,6 @@ export class FeaturesService {
               const gff3Feature = makeGFF3Feature(flattened, refSeqs)
               callback(null, gff3Feature)
             } catch (error) {
-              this.logger.debug('caught')
               callback(
                 error instanceof Error ? error : new Error(String(error)),
               )
