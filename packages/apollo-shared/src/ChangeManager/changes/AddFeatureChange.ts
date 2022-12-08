@@ -96,7 +96,6 @@ export class AddFeatureChange extends FeatureChange {
         if (!topLevelFeature) {
           throw new Error(`Could not find feature with ID "${parentFeatureId}"`)
         }
-        logger.log({ topLevelFeature })
         const parentFeature = this.getFeatureFromId(
           topLevelFeature,
           parentFeatureId,
