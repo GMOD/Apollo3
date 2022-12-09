@@ -37,7 +37,7 @@ export function CopyFeature({
   sourceAssemblyId,
   changeManager,
 }: CopyFeatureProps) {
-  const { internetAccounts } = getRoot(session)
+  const { internetAccounts } = getRoot<AppRootModel>(session)
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel | undefined

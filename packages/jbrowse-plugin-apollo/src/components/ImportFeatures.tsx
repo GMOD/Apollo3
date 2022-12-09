@@ -27,7 +27,7 @@ export function ImportFeatures({
   handleClose,
   changeManager,
 }: ImportFeaturesProps) {
-  const { internetAccounts } = getRoot(session)
+  const { internetAccounts } = getRoot<AppRootModel>(session)
   const { notify } = session
 
   const [assemblyName, setAssemblyName] = useState('')

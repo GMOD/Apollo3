@@ -31,7 +31,7 @@ export function AddFeature({
   sourceAssemblyId,
   changeManager,
 }: AddFeatureProps) {
-  const { internetAccounts } = getRoot(session)
+  const { internetAccounts } = getRoot<AppRootModel>(session)
   const { notify } = session
   const [end, setEnd] = useState(String(sourceFeature.end))
   const [start, setStart] = useState(String(sourceFeature.start))

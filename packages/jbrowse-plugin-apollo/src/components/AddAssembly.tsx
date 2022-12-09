@@ -40,7 +40,7 @@ export function AddAssembly({
   handleClose,
   changeManager,
 }: AddAssemblyProps) {
-  const { internetAccounts } = getRoot(session)
+  const { internetAccounts } = getRoot<AppRootModel>(session)
   const { notify } = session
   const apolloInternetAccounts = internetAccounts.filter(
     (ia) => ia.type === 'ApolloInternetAccount',

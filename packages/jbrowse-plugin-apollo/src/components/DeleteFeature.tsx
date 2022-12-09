@@ -33,7 +33,7 @@ export function DeleteFeature({
   selectedFeature,
   setSelectedFeature,
 }: DeleteFeatureProps) {
-  const { internetAccounts } = getRoot(session)
+  const { internetAccounts } = getRoot<AppRootModel>(session)
   const { notify } = session
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',

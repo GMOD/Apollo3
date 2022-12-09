@@ -77,7 +77,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   )
 
   const apolloInternetAccount = useMemo(() => {
-    const { internetAccounts } = getRoot(session)
+    const { internetAccounts } = getRoot<AppRootModel>(session)
     const { assemblyName } = region
     const { assemblyManager } = getSession(displayModel)
     const assembly = assemblyManager.get(assemblyName)
