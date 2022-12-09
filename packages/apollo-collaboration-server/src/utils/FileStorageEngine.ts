@@ -63,6 +63,5 @@ export class FileStorageEngine implements StorageEngine {
     req: Express.Request,
     file: Express.Multer.File,
     cb: (error: Error | null) => void,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
   ) {}
 }

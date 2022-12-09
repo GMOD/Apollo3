@@ -21,7 +21,7 @@ interface DownloadGFF3Props {
 }
 
 export function DownloadGFF3({ session, handleClose }: DownloadGFF3Props) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
+  const { internetAccounts } = getRoot(session)
   const [selectedAssembly, setSelectedAssembly] = useState<AssemblyData>()
   const [errorMessage, setErrorMessage] = useState('')
 

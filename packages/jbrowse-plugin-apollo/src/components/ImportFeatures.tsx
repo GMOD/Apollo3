@@ -27,7 +27,7 @@ export function ImportFeatures({
   handleClose,
   changeManager,
 }: ImportFeaturesProps) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
+  const { internetAccounts } = getRoot(session)
   const { notify } = session
 
   const [assemblyName, setAssemblyName] = useState('')
@@ -38,7 +38,7 @@ export function ImportFeatures({
 
   function handleChangeAssembly(e: SelectChangeEvent<string>) {
     setSubmitted(false)
-    setAssemblyId(e.target.value as string)
+    setAssemblyId(e.target.value)
     setAssemblyName(
       assemblies.find((i) => i._id === e.target.value)?.name as string,
     )

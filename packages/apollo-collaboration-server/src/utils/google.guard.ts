@@ -5,7 +5,6 @@ import { AuthGuard, IAuthModuleOptions } from '@nestjs/passport'
 export class GoogleAuthGuard extends AuthGuard('google') {
   getAuthenticateOptions(
     context: ExecutionContext,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): IAuthModuleOptions<any> | undefined {
     const [req] = context.getArgs()
     const urlSearchParams = new URLSearchParams(req.originalUrl)

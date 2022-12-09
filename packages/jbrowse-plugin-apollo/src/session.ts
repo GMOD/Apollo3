@@ -75,7 +75,7 @@ const ClientDataStore = types
   })
   .views((self) => ({
     get internetAccounts() {
-      return (getRoot(self) as AppRootModel).internetAccounts
+      return getRoot(self).internetAccounts
     },
     getFeature(featureId: string) {
       return resolveIdentifier(AnnotationFeature, self.assemblies, featureId)
@@ -196,7 +196,6 @@ export function extendSession(sessionModel: IAnyModelType) {
       addApolloTrackConfig(assembly: AssemblyModel) {
         const trackId = `apollo_track_${assembly.name}`
         const hasTrack = Boolean(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           self.tracks.find((track: any) => track.trackId === trackId),
         )
         if (!hasTrack) {
@@ -217,7 +216,7 @@ export function extendSession(sessionModel: IAnyModelType) {
         }
       },
       afterCreate: flow(function* afterCreate() {
-        const { internetAccounts } = getRoot(self) as AppRootModel
+        const { internetAccounts } = getRoot(self)
         autorun(
           () => {
             const locations: {

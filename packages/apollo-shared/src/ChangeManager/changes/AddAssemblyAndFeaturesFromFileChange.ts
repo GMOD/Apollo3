@@ -119,7 +119,6 @@ export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange
     throw new Error('applyToLocalGFF3 not implemented')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   async applyToClient(dataStore: ClientDataStore) {}
 
   getInverse() {

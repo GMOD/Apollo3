@@ -87,7 +87,7 @@ const stateModelFactory = (
         if (!token) {
           return undefined
         }
-        const dec = jwtDecode(token) as JWTPayload
+        const dec = jwtDecode(token)
         return dec.roles
       },
       getUserId() {
@@ -95,7 +95,7 @@ const stateModelFactory = (
         if (!token) {
           return undefined
         }
-        const dec = jwtDecode(token) as JWTPayload
+        const dec = jwtDecode(token)
         return dec.id
       },
     }))
@@ -118,8 +118,7 @@ const stateModelFactory = (
           throw new Error(`No Token found`)
         }
         const { socket } = self
-        const { changeManager } = (session as ApolloSessionModel)
-          .apolloDataStore
+        const { changeManager } = session.apolloDataStore
         socket.on('COMMON', (message) => {
           // Save server last change sequnece into session storage
           sessionStorage.setItem('LastChangeSequence', message.changeSequence)
@@ -185,8 +184,7 @@ const stateModelFactory = (
       ),
       getMissingChanges: flow(function* getMissingChanges() {
         const { session } = getRoot(self)
-        const { changeManager } = (session as ApolloSessionModel)
-          .apolloDataStore
+        const { changeManager } = session.apolloDataStore
         if (!self.lastChangeSequenceNumber) {
           throw new Error(
             `No LastChangeSequence stored in session. Please, refresh you browser to get last updates from server`,
@@ -366,7 +364,7 @@ const stateModelFactory = (
         )
       },
       initializeFromToken(token: string) {
-        const payload = jwtDecode(token) as JWTPayload
+        const payload = jwtDecode(token)
         this.initialize(payload.roles)
       },
       initialize(role: Role) {

@@ -5,7 +5,6 @@ import { AuthGuard, IAuthModuleOptions } from '@nestjs/passport'
 export class MicrosoftAuthGuard extends AuthGuard('microsoft') {
   getAuthenticateOptions(
     context: ExecutionContext,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): IAuthModuleOptions<any> | undefined {
     const [req] = context.getArgs()
     const urlSearchParams = new URLSearchParams(req.originalUrl)

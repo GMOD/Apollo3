@@ -35,7 +35,7 @@ interface AssemblyDocument {
 }
 
 export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
+  const { internetAccounts } = getRoot(session)
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel | undefined
@@ -175,7 +175,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
   }, [assemblyId, apolloInternetAccount, baseURL])
 
   async function handleChangeAssembly(e: SelectChangeEvent<string>) {
-    setAssemblyId(e.target.value as string)
+    setAssemblyId(e.target.value)
   }
 
   return (

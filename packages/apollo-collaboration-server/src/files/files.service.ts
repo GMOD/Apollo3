@@ -77,7 +77,6 @@ export class FilesService {
     return fileStream.pipe(gunzip)
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parseGFF3(stream: ReadStream): any {
     return stream.pipe(
       gff.parseStream({

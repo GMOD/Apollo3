@@ -122,7 +122,7 @@ export class AddFeatureChange extends FeatureChange {
         parentFeature.children.set(addedFeature._id, {
           allIds: [],
           ...addedFeature,
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
           // @ts-ignore
           _id: addedFeature._id,
         })

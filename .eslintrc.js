@@ -3,7 +3,7 @@ module.exports = {
     'react-app',
     'react-app/jest',
     'plugin:cypress/recommended',
-    'plugin:@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/recommended-requiring-type-checking',
     'plugin:prettier/recommended',
   ],
   plugins: ['eslint-plugin-tsdoc'],

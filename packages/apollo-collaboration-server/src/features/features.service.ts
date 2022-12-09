@@ -103,7 +103,6 @@ export class FeaturesService {
     return this.exportModel.create({ assembly })
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async exportGFF3(exportID: string): Promise<any> {
     const exportDoc = await this.exportModel.findById(exportID)
     if (!exportDoc) {

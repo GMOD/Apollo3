@@ -95,7 +95,7 @@ export const ApolloDetails = observer(
   ({ model }: { model: LinearApolloDisplay }) => {
     const session = getSession(model)
     const editable = useMemo(() => {
-      const { internetAccounts } = getRoot(session) as AppRootModel
+      const { internetAccounts } = getRoot(session)
       const apolloInternetAccount = internetAccounts.find(
         (ia) => ia.type === 'ApolloInternetAccount',
       ) as ApolloInternetAccountModel | undefined

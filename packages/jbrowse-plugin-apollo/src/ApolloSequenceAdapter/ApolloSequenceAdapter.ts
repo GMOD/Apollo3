@@ -111,7 +111,7 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
           })${errorMessage ? ` (${errorMessage})` : ''}`,
         )
       }
-      const seq = (await response.text()) as string
+      const seq = await response.text()
       if (seq) {
         observer.next(
           new SimpleFeature({
@@ -129,6 +129,6 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
    * will not be needed for the forseeable future and can be purged
    * from caches, etc
    */
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+
   public freeResources(/* { region } */): void {}
 }

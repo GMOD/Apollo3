@@ -51,7 +51,7 @@ export function ManageUsers({
   handleClose,
   changeManager,
 }: ManageUsersProps) {
-  const { internetAccounts } = getRoot(session) as ApolloRootModel
+  const { internetAccounts } = getRoot(session)
   const apolloInternetAccounts = internetAccounts.filter(
     (ia) =>
       ia.type === 'ApolloInternetAccount' && ia.getRole()?.includes('admin'),

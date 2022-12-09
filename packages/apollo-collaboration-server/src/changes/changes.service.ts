@@ -163,7 +163,7 @@ export class ChangesService {
       const newChange = new AddFeatureChange({
         typeName: 'AddFeatureChange',
         assembly: targetAssemblyId,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
         // @ts-ignore
         addedFeature: topLevelFeature,
       })

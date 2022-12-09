@@ -12,7 +12,6 @@ export interface SerializedDeleteUserChangeBase extends SerializedChange {
   userId: string
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface DeleteUserChangeDetails {}
 
 interface SerializedDeleteUserChangeSingle
@@ -62,7 +61,6 @@ export class DeleteUserChange extends Change {
     throw new Error('applyToLocalGFF3 not implemented')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   async applyToClient(dataStore: ClientDataStore) {}
 
   getInverse() {

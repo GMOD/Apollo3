@@ -25,7 +25,6 @@ export class AuthenticationController {
 
   @Get('google')
   @UseGuards(GoogleAuthGuard)
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   authLogin() {}
 
   @Get('google/redirect')
@@ -42,7 +41,6 @@ export class AuthenticationController {
 
   @Get('microsoft')
   @UseGuards(MicrosoftAuthGuard)
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   microsoftAuthLogin() {}
 
   @Get('microsoft/redirect')

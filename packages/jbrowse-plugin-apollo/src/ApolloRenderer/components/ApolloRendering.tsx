@@ -72,13 +72,12 @@ function ApolloRendering(props: ApolloRenderingProps) {
   } = displayModel
   // use this to convince useEffect that the features really did change
   const featureSnap = Array.from(features.values()).map((a) =>
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     Array.from(a.values()).map((f) => getSnapshot(f)),
   )
 
   const apolloInternetAccount = useMemo(() => {
-    const { internetAccounts } = getRoot(session) as AppRootModel
+    const { internetAccounts } = getRoot(session)
     const { assemblyName } = region
     const { assemblyManager } = getSession(displayModel)
     const assembly = assemblyManager.get(assemblyName)
