@@ -30,7 +30,7 @@ export class AuthenticationController {
   @Get('google/redirect')
   @Redirect()
   @UseGuards(GoogleAuthGuard)
-  async handleRedirect(@Req() req: RequestWithUserToken) {
+  handleRedirect(@Req() req: RequestWithUserToken) {
     if (!req.user) {
       throw new BadRequestException()
     }
@@ -46,7 +46,7 @@ export class AuthenticationController {
   @Get('microsoft/redirect')
   @Redirect()
   @UseGuards(MicrosoftAuthGuard)
-  async microsoftHandleRedirect(@Req() req: RequestWithUserToken) {
+  microsoftHandleRedirect(@Req() req: RequestWithUserToken) {
     if (!req.user) {
       throw new BadRequestException()
     }

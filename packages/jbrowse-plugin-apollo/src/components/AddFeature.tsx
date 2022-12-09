@@ -44,7 +44,7 @@ export function AddFeature({
   }
   const [errorMessage, setErrorMessage] = useState('')
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
     const change = new AddFeatureChange({

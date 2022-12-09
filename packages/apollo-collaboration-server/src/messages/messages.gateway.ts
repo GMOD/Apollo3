@@ -22,7 +22,7 @@ export class MessagesGateway {
   constructor(private readonly messagesService: MessagesService) {}
 
   @SubscribeMessage('createMessage')
-  async create(eventName: string, createMessageDto: CreateMessageDto) {
+  create(eventName: string, createMessageDto: CreateMessageDto) {
     this.server.emit(eventName, createMessageDto)
   }
 }

@@ -43,7 +43,7 @@ export function DeleteFeature({
   }
   const [errorMessage, setErrorMessage] = useState('')
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
     if (selectedFeature?._id === sourceFeature._id) {

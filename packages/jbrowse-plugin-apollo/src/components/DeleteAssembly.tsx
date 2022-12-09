@@ -65,7 +65,7 @@ export function DeleteAssembly({
     setSelectedAssembly(newAssembly)
   }
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitted(true)
     setErrorMessage('')

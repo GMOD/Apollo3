@@ -17,7 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     })
   }
 
-  async validate(payload: JWTPayload): Promise<Omit<User, 'password'>> {
+  validate(payload: JWTPayload): Omit<User, 'password'> {
     return { email: payload.email, username: payload.username }
   }
 }

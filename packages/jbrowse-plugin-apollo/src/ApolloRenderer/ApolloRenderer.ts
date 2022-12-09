@@ -6,7 +6,7 @@ export default class ApolloRenderer extends RendererType {
     return this.render(args)
   }
 
-  async freeResourcesInClient(_rpcManager: RpcManager, _args: RenderProps) {
+  freeResourcesInClient(_rpcManager: RpcManager, _args: RenderProps) {
     return 0
   }
 }

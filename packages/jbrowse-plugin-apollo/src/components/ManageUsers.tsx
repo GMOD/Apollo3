@@ -151,7 +151,7 @@ export function ManageUsers({
     setSelectedInternetAcount(newlySelectedInternetAccount)
   }
 
-  async function onChangeTableCell(change: UserChange, event: MuiEvent) {
+  function onChangeTableCell(change: UserChange, event: MuiEvent) {
     changeManager.submit(change, {
       internetAccountId: selectedInternetAcount.internetAccountId,
     })

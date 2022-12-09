@@ -99,7 +99,7 @@ export function CopyFeature({
     }
   }, [apolloInternetAccount, baseURL, sourceAssemblyId, sourceFeatureId])
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
     const newFeatureId = new ObjectID().toHexString()
