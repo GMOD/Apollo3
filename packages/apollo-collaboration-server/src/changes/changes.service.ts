@@ -61,7 +61,6 @@ export class ChangesService {
 
   async create(change: BaseChange, user: string, userToken: string) {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
-    this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
     const validationResult = await validationRegistry.backendPreValidate(
       change,
       { userModel: this.userModel },
@@ -112,7 +111,6 @@ export class ChangesService {
       }
 
       // Add entry to change collection
-
       const [savedChangedLogDoc] = await this.changeModel.create(
         [
           {
@@ -123,7 +121,7 @@ export class ChangesService {
             ),
           },
         ],
-        { session },
+        // { session },
       )
       changeDoc = savedChangedLogDoc
       const validationResult2 = await validationRegistry.backendPostValidate(
@@ -137,6 +135,36 @@ export class ChangesService {
         )
       }
     })
+    // Set "temporary document" -status --> "valid" -status in transaction
+    await this.featureModel.db.transaction(async (session) => {
+      this.logger.debug(`UPDATE STATUSES STARTS...`)
+      try {
+        await this.assemblyModel.updateMany(
+          { status: -1 },
+          { $set: { status: 0 } },
+          { session },
+        )
+        await this.featureModel.updateMany(
+          { status: -1 },
+          { $set: { status: 0 } },
+          { session },
+        )
+        await this.refSeqModel.updateMany(
+          { status: -1 },
+          { $set: { status: 0 } },
+          { session },
+        )
+        await this.refSeqChunkModel.updateMany(
+          { status: -1 },
+          { $set: { status: 0 } },
+          { session },
+        )
+        this.logger.debug(`UPDATE STATUSES ENDED`)
+      } catch (e) {
+        throw new UnprocessableEntityException(String(e))
+      }
+    })
+
     if (!changeDoc) {
       throw new UnprocessableEntityException('could not create change')
     }

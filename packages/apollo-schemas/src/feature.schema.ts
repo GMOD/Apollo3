@@ -49,6 +49,12 @@ export class Feature
   // This is not a @Prop because it needs to be a recursive reference to the
   // schema, which is done with Schema.add below
   children?: Map<string, Feature>
+
+  @Prop()
+  status: number
+
+  @Prop()
+  user: string
 }
 export const FeatureSchema = SchemaFactory.createForClass(Feature)
 

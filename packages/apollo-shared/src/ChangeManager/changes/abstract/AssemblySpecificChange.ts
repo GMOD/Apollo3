@@ -28,7 +28,8 @@ export abstract class AssemblySpecificChange extends Change {
     backend: ServerDataStore,
   ) {
     const { logger } = this
-    const { refSeqModel, refSeqChunkModel, session, filesService } = backend
+    const { refSeqModel, refSeqChunkModel, filesService } = backend
+    // const { refSeqModel, refSeqChunkModel, session, filesService } = backend
     const { CHUNK_SIZE } = process.env
     const customChunkSize = CHUNK_SIZE && Number(CHUNK_SIZE)
     let chunkIndex = 0
@@ -89,13 +90,17 @@ export abstract class AssemblySpecificChange extends Change {
                   refSeq: refSeqDoc._id,
                   n: chunkIndex,
                   sequence: sequenceBuffer,
+                  user: 'kyosti', status: -1,
                 },
               ],
-              { session },
+              // { session },
             )
             sequenceBuffer = ''
           }
-          await refSeqDoc?.updateOne({ length: refSeqLen }, { session })
+          this.logger.debug?.(1)
+          await refSeqDoc?.updateOne({ length: refSeqLen })
+          // await refSeqDoc?.updateOne({ length: refSeqLen }, { session })
+          this.logger.debug?.(`ASS: ${assembly}`)
           refSeqLen = 0
           chunkIndex = 0
 
@@ -110,9 +115,10 @@ export abstract class AssemblySpecificChange extends Change {
                 assembly,
                 length: 0,
                 ...(customChunkSize ? { chunkSize: customChunkSize } : null),
+                user: 'kyosti', status: -1,
               },
             ],
-            { session },
+            // { session },
           )
           logger.debug?.(
             `Added new refSeq "${name}", desc "${description}", docId "${newRefSeqDoc._id}"`,
@@ -135,8 +141,8 @@ export abstract class AssemblySpecificChange extends Change {
               `Creating refSeq chunk number ${chunkIndex} of "${refSeqDoc._id}"`,
             )
             await refSeqChunkModel.create(
-              [{ refSeq: refSeqDoc._id, n: chunkIndex, sequence }],
-              { session },
+              [{ refSeq: refSeqDoc._id, n: chunkIndex, sequence, user: 'kyosti', status: -1 }],
+              // { session },
             )
             chunkIndex++
             // Set remaining sequence
@@ -159,24 +165,26 @@ export abstract class AssemblySpecificChange extends Change {
         sequenceBuffer += incompleteLine
       }
       refSeqLen += sequenceBuffer.length
-      // logger.debug?.(
-      //   `*** Add the very last chunk to ref seq ("${refSeqDoc._id}", index ${chunkIndex} and total length for ref seq is ${refSeqLen}): "${sequenceBuffer}"`,
-      // )
+      logger.verbose?.(
+        `*** Add the very last chunk to ref seq ("${refSeqDoc._id}", index ${chunkIndex} and total length for ref seq is ${refSeqLen}): "${sequenceBuffer}"`,
+      )
       logger.debug?.(
         `Creating refSeq chunk number ${chunkIndex} of "${refSeqDoc._id}"`,
       )
       await refSeqChunkModel.create(
-        [{ refSeq: refSeqDoc._id, n: chunkIndex, sequence: sequenceBuffer }],
-        { session },
+        [{ refSeq: refSeqDoc._id, n: chunkIndex, sequence: sequenceBuffer, user: 'kyosti', status: -1 }],
+        // { session },
       )
-      await refSeqDoc.updateOne({ length: refSeqLen }, { session })
+      // await refSeqDoc.updateOne({ length: refSeqLen }, { session })
+      await refSeqDoc.updateOne({ length: refSeqLen })
     }
   }
 
   private refSeqCache = new Map<string, RefSeqDocument>()
 
   async addFeatureIntoDb(gff3Feature: GFF3Feature, backend: ServerDataStore) {
-    const { featureModel, refSeqModel, session } = backend
+    const { featureModel, refSeqModel } = backend
+    // const { featureModel, refSeqModel, session } = backend
     const { assembly, logger, refSeqCache } = this
 
     for (const featureLine of gff3Feature) {
@@ -191,7 +199,7 @@ export abstract class AssemblySpecificChange extends Change {
         refSeqDoc =
           (await refSeqModel
             .findOne({ assembly, name: refName })
-            .session(session)
+            // .session(session)
             .exec()) || undefined
         if (refSeqDoc) {
           refSeqCache.set(refName, refSeqDoc)
@@ -211,8 +219,8 @@ export abstract class AssemblySpecificChange extends Change {
 
       // Add into Mongo
       const [newFeatureDoc] = await featureModel.create(
-        [{ allIds: featureIds, ...newFeature }],
-        { session },
+        [{ allIds: featureIds, ...newFeature, user: 'kyosti', status: -1 }],
+        // { session },
       )
       logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
     }

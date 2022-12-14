@@ -83,23 +83,23 @@ export class AddAssemblyFromFileChange extends AssemblySpecificChange {
       // Check and add new assembly
       const assemblyDoc = await assemblyModel
         .findOne({ name: assemblyName })
-        .session(session)
+        // .session(session)
         .exec()
       if (assemblyDoc) {
         throw new Error(`Assembly "${assemblyName}" already exists`)
       }
       // Add assembly
       const [newAssemblyDoc] = await assemblyModel.create(
-        [{ _id: assembly, name: assemblyName }],
-        { session },
+        [{ _id: assembly, name: assemblyName, user: 'kyosti', status: -1 }],
+        // { session },
       )
       logger.debug?.(
         `Added new assembly "${assemblyName}", docId "${newAssemblyDoc._id}"`,
       )
-      logger.debug?.(`File type: "${fileDoc.type}"`)
+      logger.debug?.(`File type: "${fileDoc.type}", assemblyId: "${newAssemblyDoc._id}"`)
 
       // Add refSeqs
-      await this.addRefSeqIntoDb(fileDoc, newAssemblyDoc._id, backend)
+      await this.addRefSeqIntoDb(fileDoc, newAssemblyDoc._id, backend) 
     }
   }
 

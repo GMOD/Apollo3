@@ -16,6 +16,12 @@ export class Assembly {
 
   @Prop()
   description: string
+
+  @Prop()
+  status: number
+
+  @Prop()
+  user: string
 }
 
 export const AssemblySchema = SchemaFactory.createForClass(Assembly)
