@@ -36,6 +36,10 @@ import {
 } from './LinearApolloDisplay'
 import { makeDisplayComponent } from './makeDisplayComponent'
 import { extendSession } from './session'
+import {
+  stateModelFactory as SixFrameFeatureDisplayStateModelFactory,
+  configSchemaFactory as sixFrameFeatureDisplayConfigSchemaFactory,
+} from './SixFrameFeatureDisplay'
 
 Object.entries(changes).forEach(([changeName, change]) => {
   changeRegistry.registerChange(changeName, change)
@@ -88,6 +92,23 @@ export default class ApolloPlugin extends Plugin {
         name: 'LinearApolloDisplay',
         configSchema,
         stateModel: LinearApolloDisplayStateModelFactory(
+          pluginManager,
+          configSchema,
+        ),
+        trackType: 'ApolloTrack',
+        viewType: 'LinearGenomeView',
+        ReactComponent: DisplayComponent,
+      })
+    })
+
+    pluginManager.addDisplayType(() => {
+      const configSchema =
+        sixFrameFeatureDisplayConfigSchemaFactory(pluginManager)
+      const DisplayComponent = makeDisplayComponent(pluginManager)
+      return new DisplayType({
+        name: 'SixFrameFeatureDisplay',
+        configSchema,
+        stateModel: SixFrameFeatureDisplayStateModelFactory(
           pluginManager,
           configSchema,
         ),
