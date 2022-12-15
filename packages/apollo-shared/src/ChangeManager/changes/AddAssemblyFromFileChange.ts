@@ -63,7 +63,7 @@ export class AddAssemblyFromFileChange extends AssemblySpecificChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { assemblyModel, fileModel, session } = backend
+    const { assemblyModel, fileModel, session, user } = backend
     const { changes, assembly, logger } = this
 
     for (const change of changes) {
@@ -90,16 +90,18 @@ export class AddAssemblyFromFileChange extends AssemblySpecificChange {
       }
       // Add assembly
       const [newAssemblyDoc] = await assemblyModel.create(
-        [{ _id: assembly, name: assemblyName, user: 'kyosti', status: -1 }],
+        [{ _id: assembly, name: assemblyName, user, status: -1 }],
         // { session },
       )
       logger.debug?.(
         `Added new assembly "${assemblyName}", docId "${newAssemblyDoc._id}"`,
       )
-      logger.debug?.(`File type: "${fileDoc.type}", assemblyId: "${newAssemblyDoc._id}"`)
+      logger.debug?.(
+        `File type: "${fileDoc.type}", assemblyId: "${newAssemblyDoc._id}"`,
+      )
 
       // Add refSeqs
-      await this.addRefSeqIntoDb(fileDoc, newAssemblyDoc._id, backend) 
+      await this.addRefSeqIntoDb(fileDoc, newAssemblyDoc._id, backend)
     }
   }
 

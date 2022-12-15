@@ -61,6 +61,15 @@ export class ChangesService {
 
   async create(change: BaseChange, user: string, userToken: string) {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
+    // Clean up possible old "temporary document" -documents
+    this.logger.debug(
+      `*** Start to clean up old possible temporary documents...`,
+    )
+    await this.assemblyModel.deleteMany({ status: -1, user })
+    await this.featureModel.deleteMany({ status: -1, user })
+    await this.refSeqModel.deleteMany({ status: -1, user })
+    await this.refSeqChunkModel.deleteMany({ status: -1, user })
+
     const validationResult = await validationRegistry.backendPreValidate(
       change,
       { userModel: this.userModel },
@@ -91,6 +100,7 @@ export class ChangesService {
         }
       }
     }
+
     let changeDoc: ChangeDocument | undefined
     await this.featureModel.db.transaction(async (session) => {
       try {
@@ -105,6 +115,7 @@ export class ChangesService {
           session,
           filesService: this.filesService,
           counterService: this.countersService,
+          user,
         })
       } catch (e) {
         throw new UnprocessableEntityException(String(e))
@@ -137,29 +148,30 @@ export class ChangesService {
     })
     // Set "temporary document" -status --> "valid" -status in transaction
     await this.featureModel.db.transaction(async (session) => {
-      this.logger.debug(`UPDATE STATUSES STARTS...`)
+      this.logger.debug(
+        `Updates "temporary document" -status --> "valid" -status`,
+      )
       try {
         await this.assemblyModel.updateMany(
-          { status: -1 },
+          { status: -1, user },
           { $set: { status: 0 } },
           { session },
         )
         await this.featureModel.updateMany(
-          { status: -1 },
+          { status: -1, user },
           { $set: { status: 0 } },
           { session },
         )
         await this.refSeqModel.updateMany(
-          { status: -1 },
+          { status: -1, user },
           { $set: { status: 0 } },
           { session },
         )
         await this.refSeqChunkModel.updateMany(
-          { status: -1 },
+          { status: -1, user },
           { $set: { status: 0 } },
           { session },
         )
-        this.logger.debug(`UPDATE STATUSES ENDED`)
       } catch (e) {
         throw new UnprocessableEntityException(String(e))
       }

@@ -65,7 +65,7 @@ export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { assemblyModel, fileModel, filesService } = backend
+    const { assemblyModel, fileModel, filesService, user } = backend
     // const { assemblyModel, fileModel, filesService, session } = backend
     const { changes, assembly, logger } = this
     for (const change of changes) {
@@ -93,7 +93,7 @@ export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange
       }
       // Add assembly
       const [newAssemblyDoc] = await assemblyModel.create(
-        [{ _id: assembly, name: assemblyName, user: 'kyosti', status: -1 }],
+        [{ _id: assembly, name: assemblyName, user, status: -1 }],
         // { session },
       )
       logger.debug?.(
