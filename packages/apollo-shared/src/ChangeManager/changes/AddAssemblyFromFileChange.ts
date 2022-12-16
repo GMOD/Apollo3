@@ -63,7 +63,8 @@ export class AddAssemblyFromFileChange extends AssemblySpecificChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { assemblyModel, fileModel, session, user } = backend
+    const { assemblyModel, fileModel, user } = backend
+    // const { assemblyModel, fileModel, session, user } = backend
     const { changes, assembly, logger } = this
 
     for (const change of changes) {
@@ -74,7 +75,8 @@ export class AddAssemblyFromFileChange extends AssemblySpecificChange {
         throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
       }
       // Get file checksum
-      const fileDoc = await fileModel.findById(fileId).session(session).exec()
+      const fileDoc = await fileModel.findById(fileId).exec()
+      // const fileDoc = await fileModel.findById(fileId).session(session).exec()
       if (!fileDoc) {
         throw new Error(`File "${fileId}" not found in Mongo`)
       }

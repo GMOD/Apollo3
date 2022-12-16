@@ -61,14 +61,11 @@ export class ChangesService {
 
   async create(change: BaseChange, user: string, userToken: string) {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
-    // Clean up possible old "temporary document" -documents
-    this.logger.debug(
-      `*** Start to clean up old possible temporary documents...`,
+
+    const sequence = await this.countersService.getNextSequenceValue(
+      'changeCounter',
     )
-    await this.assemblyModel.deleteMany({ status: -1, user })
-    await this.featureModel.deleteMany({ status: -1, user })
-    await this.refSeqModel.deleteMany({ status: -1, user })
-    await this.refSeqChunkModel.deleteMany({ status: -1, user })
+    const uniqUserId = `${user}-${sequence}` // Same user can upload data from more than one client
 
     const validationResult = await validationRegistry.backendPreValidate(
       change,
@@ -115,30 +112,47 @@ export class ChangesService {
           session,
           filesService: this.filesService,
           counterService: this.countersService,
-          user,
+          user: uniqUserId,
         })
       } catch (e) {
+        this.logger.debug?.('*** INSERT DATA EXCEPTION ***')
+        // Clean up old "temporary document" -documents
+        this.logger.debug(`*** Start to clean up old temporary documents...`)
+        await this.assemblyModel.deleteMany({
+          $and: [{ status: -1, user: uniqUserId }],
+        })
+        await this.featureModel.deleteMany({
+          $and: [{ status: -1, user: uniqUserId }],
+        })
+        await this.refSeqModel.deleteMany({
+          $and: [{ status: -1, user: uniqUserId }],
+        })
+        await this.refSeqChunkModel.deleteMany({
+          $and: [{ status: -1, user: uniqUserId }],
+        })
         throw new UnprocessableEntityException(String(e))
       }
 
+      this.logger.debug?.('*** ADDING CHANGE LOG ENTRY ***')
       // Add entry to change collection
       const [savedChangedLogDoc] = await this.changeModel.create(
         [
           {
             ...change,
             user,
-            sequence: await this.countersService.getNextSequenceValue(
-              'changeCounter',
-            ),
+            sequence,
           },
         ],
         // { session },
       )
+
       changeDoc = savedChangedLogDoc
       const validationResult2 = await validationRegistry.backendPostValidate(
         change,
         { featureModel: this.featureModel, session },
       )
+      this.logger.debug?.('*** BACKEND POST ENTRY VALIDATION DONE ***')
+
       if (!validationResult2.ok) {
         const errorMessage = validationResult2.resultsMessages
         throw new UnprocessableEntityException(
@@ -146,37 +160,57 @@ export class ChangesService {
         )
       }
     })
+    this.logger.debug?.('*** TEMPORARY DATA INSERTTED ***')
     // Set "temporary document" -status --> "valid" -status in transaction
     await this.featureModel.db.transaction(async (session) => {
       this.logger.debug(
         `Updates "temporary document" -status --> "valid" -status`,
       )
       try {
-        await this.assemblyModel.updateMany(
-          { status: -1, user },
+        // This cannot be done in transaction session because Mongo aborts transaction if there are too many records to be updated in one transaction
+        // It's important that we first (try) update refseqChunk and feature -collections because those contain the most documents
+        // "In general, the number of documents that can be updated in a single update operation is limited only by the amount of available memory on the server."
+        await this.refSeqChunkModel.updateMany(
+          { $and: [{ status: -1, user: uniqUserId }] },
           { $set: { status: 0 } },
-          { session },
+          // { session, w: 0, j: true }, // https://www.mongodb.com/docs/manual/reference/write-concern/
         )
         await this.featureModel.updateMany(
-          { status: -1, user },
+          { $and: [{ status: -1, user: uniqUserId }] },
           { $set: { status: 0 } },
-          { session },
+          // { session },
+        )
+        await this.assemblyModel.updateMany(
+          { $and: [{ status: -1, user: uniqUserId }] },
+          { $set: { status: 0 } },
+          // { session },
         )
         await this.refSeqModel.updateMany(
-          { status: -1, user },
+          { $and: [{ status: -1, user: uniqUserId }] },
           { $set: { status: 0 } },
-          { session },
-        )
-        await this.refSeqChunkModel.updateMany(
-          { status: -1, user },
-          { $set: { status: 0 } },
-          { session },
+          // { session },
         )
       } catch (e) {
+        this.logger.debug?.('*** UPDATE STATUS EXCEPTION ***')
+        // Clean up old "temporary document" -documents
+        this.logger.debug(`*** Start to clean up old temporary documents...`)
+        await this.assemblyModel.deleteMany({
+          $and: [{ status: -1, user: uniqUserId }],
+        })
+        await this.featureModel.deleteMany({
+          $and: [{ status: -1, user: uniqUserId }],
+        })
+        await this.refSeqModel.deleteMany({
+          $and: [{ status: -1, user: uniqUserId }],
+        })
+        await this.refSeqChunkModel.deleteMany({
+          $and: [{ status: -1, user: uniqUserId }],
+        })
         throw new UnprocessableEntityException(String(e))
       }
     })
 
+    this.logger.debug?.(`CHANGE DOC: ${JSON.stringify(changeDoc)}`)
     if (!changeDoc) {
       throw new UnprocessableEntityException('could not create change')
     }
