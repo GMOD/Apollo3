@@ -1,6 +1,6 @@
 import type { ExecutionContext } from '@nestjs/common'
 import type { Reflector } from '@nestjs/core'
-import { FeatureDocument, UserDocument } from 'apollo-schemas'
+import { FeatureDocument } from 'apollo-schemas'
 import { ClientSession, Model } from 'mongoose'
 
 import { Change, ClientDataStore } from '../Changes/abstract'
@@ -39,7 +39,6 @@ export abstract class Validation {
 
   async backendPreValidate(
     _changeOrContext: Change | Context,
-    { userModel }: { userModel: Model<UserDocument> },
   ): Promise<ValidationResult> {
     return { validationName: this.name }
   }

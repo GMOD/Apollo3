@@ -11,7 +11,6 @@ import {
   StreamableFile,
   UnprocessableEntityException,
   UploadedFile,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
@@ -21,12 +20,10 @@ import {
   FileStorageEngine,
   UploadedFile as UploadedApolloFile,
 } from '../utils/FileStorageEngine'
-import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { FilesService } from './files.service'
 
-@UseGuards(JwtAuthGuard)
 @Validations(Role.ReadOnly)
 @Controller('files')
 export class FilesController {

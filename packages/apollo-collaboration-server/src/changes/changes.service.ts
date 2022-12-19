@@ -67,10 +67,7 @@ export class ChangesService {
     )
     const uniqUserId = `${user}-${sequence}` // Same user can upload data from more than one client
 
-    const validationResult = await validationRegistry.backendPreValidate(
-      change,
-      { userModel: this.userModel },
-    )
+    const validationResult = await validationRegistry.backendPreValidate(change)
     if (!validationResult.ok) {
       const errorMessage = validationResult.resultsMessages
       throw new UnprocessableEntityException(

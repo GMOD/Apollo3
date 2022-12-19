@@ -1,5 +1,4 @@
 import { Logger } from '@nestjs/common'
-import { UserDocument } from 'apollo-schemas'
 import {
   Change,
   Context,
@@ -8,7 +7,6 @@ import {
   ValidationResult,
   isContext,
 } from 'apollo-shared'
-import type { Model } from 'mongoose'
 
 import { getDecodedAccessToken } from '../commonUtilities'
 import { Role, RoleInheritance } from '../role/role.enum'
@@ -19,7 +17,6 @@ export class AuthorizationValidation extends Validation {
   name = 'Authorization' as const
   async backendPreValidate(
     changeOrContext: Change | Context,
-    { userModel }: { userModel: Model<UserDocument> },
   ): Promise<ValidationResult> {
     if (!isContext(changeOrContext)) {
       return { validationName: this.name }
@@ -32,7 +29,7 @@ export class AuthorizationValidation extends Validation {
     )
 
     // If no role was required in endpoint then return true
-    if (!requiredRole) {
+    if (!requiredRole?.[0]) {
       return { validationName: this.name }
     }
     logger.debug(`Required role is '${requiredRole}'`)
@@ -53,21 +50,13 @@ export class AuthorizationValidation extends Validation {
     }
     const [, token] = authorization.split(' ')
     const jwtPayload = getDecodedAccessToken(token)
-    const { username, email } = jwtPayload
-
-    const user = await userModel.findOne({ email })
-    if (!user) {
-      const errMsg = `User '${username}' not found in Mongo, no authorization!`
-      logger.debug(errMsg)
-      return { validationName: this.name, error: { message: errMsg } }
-    }
-    logger.debug(`*** Found user from Mongo: ${JSON.stringify(user)}`)
+    const { username, roles } = jwtPayload
 
     const userRoles = new Set<Role>()
     // Loop user's role(s) and add each role + inherited ones to userRolesArray
-    for (const userRole of user.role) {
-      const roles = RoleInheritance[userRole] // Read from role.enum.ts
-      roles.forEach((role) => {
+    for (const userRole of roles) {
+      const r = RoleInheritance[userRole] // Read from role.enum.ts
+      r.forEach((role) => {
         userRoles.add(role)
       })
     }

@@ -6,12 +6,11 @@ import {
   Query,
   Response,
   StreamableFile,
-  UseGuards,
 } from '@nestjs/common'
 import { Response as ExpressResponse } from 'express'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
-import { JwtAuthGuard } from '../utils/jwt-auth.guard'
+import { Public } from '../utils/jwt-auth.guard'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { FeaturesService } from './features.service'
@@ -29,6 +28,7 @@ export class FeaturesController {
    * @param res -
    * @returns A StreamableFile of the GFF3
    */
+  @Public()
   @Get('exportGFF3')
   async exportGFF3(
     @Query() request: { exportID: string },
@@ -68,7 +68,6 @@ export class FeaturesController {
    * @param request -
    * @returns The ID of an export that will be valid for 5 minutes
    */
-  @UseGuards(JwtAuthGuard)
   @Validations(Role.ReadOnly)
   @Get('getExportID')
   async getExportID(@Query() request: { assembly: string }) {
@@ -82,7 +81,6 @@ export class FeaturesController {
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
    * or if search data was not found or in case of error throw exception
    */
-  @UseGuards(JwtAuthGuard)
   @Validations(Role.ReadOnly)
   @Get('getFeatures')
   getFeatures(@Query() request: FeatureRangeSearchDto) {
@@ -99,7 +97,6 @@ export class FeaturesController {
    * @returns Return 'HttpStatus.OK' and the feature(s) if search was successful
    * or if search data was not found or in case of error throw exception
    */
-  @UseGuards(JwtAuthGuard)
   @Validations(Role.ReadOnly)
   @Get(':featureid')
   getFeature(@Param('featureid') featureid: string) {
@@ -112,7 +109,6 @@ export class FeaturesController {
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
    * or if search data was not found or in case of error throw exception
    */
-  @UseGuards(JwtAuthGuard)
   @Validations(Role.ReadOnly)
   @Get()
   getAll() {

@@ -51,8 +51,6 @@ export class MicrosoftStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(accessToken: string, refreshToken: string, profile: Profile) {
-    // this.logger.debug(`Microsoft token: ${accessToken}`)
-    const user = await this.authService.microsoftLogin(profile)
-    return user
+    return this.authService.microsoftLogin(profile)
   }
 }

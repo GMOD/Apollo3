@@ -10,6 +10,7 @@ import {
 import { Request } from 'express'
 
 import { GoogleAuthGuard } from '../utils/google.guard'
+import { Public } from '../utils/jwt-auth.guard'
 import { MicrosoftAuthGuard } from '../utils/microsoft.guard'
 import { AuthenticationService } from './authentication.service'
 
@@ -17,6 +18,7 @@ interface RequestWithUserToken extends Request {
   user: { token: string }
 }
 
+@Public()
 @Controller('auth')
 export class AuthenticationController {
   private readonly logger = new Logger(AuthenticationController.name)

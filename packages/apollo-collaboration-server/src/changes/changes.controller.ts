@@ -5,19 +5,16 @@ import {
   Logger,
   Post,
   Query,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common'
 import { Change } from 'apollo-shared'
 
 import { ChangeInterceptor } from '../utils/change.interceptor'
-import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { ChangesService } from './changes.service'
 import { FindChangeDto } from './dto/find-change.dto'
 
-@UseGuards(JwtAuthGuard)
 @Validations(Role.ReadOnly)
 @Controller('changes')
 export class ChangesController {

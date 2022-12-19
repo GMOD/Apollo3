@@ -1,22 +1,11 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Logger,
-  Param,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common'
+import { Body, Controller, Get, Logger, Param, Post, Req } from '@nestjs/common'
 import { Request } from 'express'
 
-import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { UserLocationDto } from './dto/create-user.dto'
 import { UsersService } from './users.service'
 
-@UseGuards(JwtAuthGuard)
 @Validations(Role.ReadOnly)
 @Controller('users')
 export class UsersController {
