@@ -252,7 +252,6 @@ export function extendSession(sessionModel: IAnyModelType) {
                   start,
                   end,
                 } = location
-                console.log('POST USER LOCATION')
                 internetAccount.postUserLocation({
                   assemblyId,
                   refSeq,

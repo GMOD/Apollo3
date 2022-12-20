@@ -144,7 +144,6 @@ export class ChangesService {
         ],
         // { session },
       )
-
       changeDoc = savedChangedLogDoc
       const validationResult2 = await validationRegistry.backendPostValidate(
         change,
