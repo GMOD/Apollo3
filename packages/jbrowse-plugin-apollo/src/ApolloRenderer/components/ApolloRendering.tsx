@@ -112,6 +112,19 @@ function ApolloRendering(props: ApolloRenderingProps) {
     if (getRole()?.includes('admin') || getRole()?.includes('user')) {
       setIsReadOnly(false)
     }
+    //* * */
+    const { baseURL } = apolloInternetAccount
+    const uri = new URL('/users/locations', baseURL).href
+    const apolloFetch = apolloInternetAccount?.getFetcher({
+      locationType: 'UriLocation',
+      uri,
+    })
+    if (apolloFetch) {
+      apolloFetch(uri, {
+        method: 'GET',
+      })
+    }
+    //* * */
   }, [authType, getRole])
 
   useEffect(() => {

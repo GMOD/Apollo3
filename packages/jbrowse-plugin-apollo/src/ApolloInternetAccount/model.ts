@@ -157,6 +157,17 @@ const stateModelFactory = (
             session.addOrUpdateCollaborator(collaborator)
           }
         })
+        socket.on('REQUEST_INFORMATION', (message) => {
+          const { channel, userToken, reqType } = message
+          if (channel === 'REQUEST_INFORMATION' && userToken !== token) {
+            switch (reqType) {
+              case 'CURRENT_LOCATION':
+                console.log('REQUEST RESEND CURRENT LOCATION')
+                // TODO: send current locations
+                break
+            }
+          }
+        })
       },
       updateLastChangeSequenceNumber: flow(
         function* updateLastChangeSequenceNumber() {

@@ -23,6 +23,7 @@ export class UsersController {
 
   @Get()
   findAll() {
+    console.log('FIND ALL')
     return this.usersService.findAll()
   }
 
@@ -33,7 +34,23 @@ export class UsersController {
    */
   @Get('admin')
   findAdmin() {
+    console.log('FIND ADMIN')
     return this.usersService.findByRole('admin')
+  }
+
+  /**
+   * Receives user location by broadcasting 'user location' -request using web sockets
+   * @param userLocation - user's location information
+   * @returns
+   */
+  @Get('locations')
+  usesrLocations(@Req() req: Request) {
+    const { authorization } = req.headers
+    if (!authorization) {
+      throw new Error('No "authorization" header')
+    }
+    const [, token] = authorization.split(' ')
+    return this.usersService.requestUsersLocations(token)
   }
 
   @Get(':id')

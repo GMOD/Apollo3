@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { UserDocument, User as UserSchema } from 'apollo-schemas'
 import { Model } from 'mongoose'
+import { RequestUserInformationDto } from '../messages/dto/create-message.dto'
 
 import { UserLocationMessage } from '../messages/entities/message.entity'
 import { MessagesGateway } from '../messages/messages.gateway'
@@ -85,5 +86,24 @@ export class UsersService {
       )
       this.messagesGateway.create(channel, msg)
     }
+  }
+
+  /**
+   * Request other users's current location after user has successfully logged in
+   * @param token - user's token
+   */
+  requestUsersLocations(token: string) {
+    const channel = 'REQUEST_INFORMATION'
+    const msg: RequestUserInformationDto = {
+      channel,
+      userToken: token,
+      reqType: 'CURRENT_LOCATION',
+    }
+    this.logger.debug(
+      `*** Broadcasting request to resend users's current locations. Channel "${channel}", the message is "${JSON.stringify(
+        msg,
+      )}"`,
+    )
+    this.messagesGateway.create(channel, msg)
   }
 }
