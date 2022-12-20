@@ -133,7 +133,6 @@ export class ChangesService {
         throw new UnprocessableEntityException(String(e))
       }
 
-      this.logger.debug?.('*** ADDING CHANGE LOG ENTRY ***')
       // Add entry to change collection
       const [savedChangedLogDoc] = await this.changeModel.create(
         [
@@ -151,8 +150,6 @@ export class ChangesService {
         change,
         { featureModel: this.featureModel, session },
       )
-      this.logger.debug?.('*** BACKEND POST ENTRY VALIDATION DONE ***')
-
       if (!validationResult2.ok) {
         const errorMessage = validationResult2.resultsMessages
         throw new UnprocessableEntityException(

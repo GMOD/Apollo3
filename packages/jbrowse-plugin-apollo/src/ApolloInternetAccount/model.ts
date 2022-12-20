@@ -154,6 +154,7 @@ const stateModelFactory = (
                 { assembly: assemblyId, refName: refSeq, start, end },
               ],
             }
+            console.log(`collaborator: ${JSON.stringify(collaborator)}`)
             session.addOrUpdateCollaborator(collaborator)
           }
         })

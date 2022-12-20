@@ -76,6 +76,7 @@ export class UsersService {
         userName,
         userToken: token,
       }
+      console.log(`USER: ${JSON.stringify(userLocation)}`)
       this.logger.debug(
         `Broadcasting user ${JSON.stringify(
           user,
