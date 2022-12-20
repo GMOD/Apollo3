@@ -1,15 +1,9 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Logger,
-  Post,
-  Query,
-  UseInterceptors,
-} from '@nestjs/common'
+import { Body, Controller, Get, Logger, Post, Query, Req } from '@nestjs/common'
 import { Change } from 'apollo-shared'
+import { Request } from 'express'
+import { getDecodedAccessToken } from 'src/utils/commonUtilities'
 
-import { ChangeInterceptor } from '../utils/change.interceptor'
+import { ParseChangePipe } from '../utils/parse-change.pipe'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { ChangesService } from './changes.service'
@@ -27,26 +21,22 @@ export class ChangesController {
    * @returns Return 'HttpStatus.OK' if .... Otherwise throw exception.
    */
   @Post()
-  @UseInterceptors(ChangeInterceptor)
   @Validations(Role.User)
-  async create(
-    @Body()
-    {
-      change,
-      user,
-      userToken,
-    }: {
-      change: Change
-      user: string
-      userToken: string
-    },
-  ) {
+  async create(@Body(ParseChangePipe) change: Change, @Req() request: Request) {
+    // Add user's email to Change -object if it's not filled yet
+    const { authorization } = request.headers
+    if (!authorization) {
+      throw new Error('No "authorization" header')
+    }
+    const [, token] = authorization.split(' ')
+    const jwtPayload = getDecodedAccessToken(token)
+    const { email: user } = jwtPayload
     this.logger.debug(
       `Change type is '${change.typeName}', change object: ${JSON.stringify(
         change,
       )}`,
     )
-    return this.changesService.create(change, user, userToken)
+    return this.changesService.create(change, user, token)
   }
 
   @Get()
