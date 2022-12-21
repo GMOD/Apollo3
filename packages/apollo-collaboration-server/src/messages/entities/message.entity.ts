@@ -1,23 +1,27 @@
 import { SerializedChange } from 'apollo-shared'
 
-export class Message {
-  changeInfo: SerializedChange
+interface BaseMessage {
   channel: string
   userName: string
-  userToken: string // Contains token of user who made the change in UI
+  userSessionId: string
+}
+
+export interface ChangeMessage extends BaseMessage {
+  changeInfo: SerializedChange
   changeSequence: number
 }
 
-export class UserLocationMessage {
-  channel: string
-  locations: UserLocation[]
-  userName: string
-  userToken: string // Contains token of user who made the change in UI
-}
-
-export class UserLocation {
+export interface UserLocation {
   assemblyId: string
   refSeq: string
   start: string
   end: string
+}
+
+export interface UserLocationMessage extends BaseMessage {
+  locations: UserLocation[]
+}
+
+export interface RequestUserInformationMessage extends BaseMessage {
+  readonly reqType: 'CURRENT_LOCATION'
 }

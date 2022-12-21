@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
-import { JWTPayload } from 'apollo-shared'
+import { DecodedJWT } from 'apollo-shared'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 
 import { jwtConstants } from '../constants'
@@ -16,7 +16,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     })
   }
 
-  validate(payload: JWTPayload): JWTPayload {
+  validate(payload: DecodedJWT): DecodedJWT {
     return payload
   }
 }

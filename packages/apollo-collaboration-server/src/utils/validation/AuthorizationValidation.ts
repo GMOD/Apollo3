@@ -2,13 +2,14 @@ import { Logger } from '@nestjs/common'
 import {
   Change,
   Context,
+  JWTPayload,
   SerializedChange,
   Validation,
   ValidationResult,
   isContext,
 } from 'apollo-shared'
+import { Request } from 'express'
 
-import { getDecodedAccessToken } from '../commonUtilities'
 import { Role, RoleInheritance } from '../role/role.enum'
 import { getRequiredRoleForChange } from './validatation.changeTypePermissions'
 import { ROLES_KEY } from './validatation.decorator'
@@ -42,15 +43,12 @@ export class AuthorizationValidation extends Validation {
       `Calling class '${callingClass}' and endpoint '${callingEndpoint}'`,
     )
 
-    const { authorization } = context.context
-      .switchToHttp()
-      .getRequest().headers
-    if (!authorization) {
-      throw new Error('No "authorization" header')
+    const request = context.context.switchToHttp().getRequest()
+    const { user } = request as { user: JWTPayload }
+    if (!user) {
+      throw new Error('No user attached to request')
     }
-    const [, token] = authorization.split(' ')
-    const jwtPayload = getDecodedAccessToken(token)
-    const { username, roles } = jwtPayload
+    const { username, roles } = user
 
     const userRoles = new Set<Role>()
     // Loop user's role(s) and add each role + inherited ones to userRolesArray
