@@ -20,11 +20,11 @@ export class AssembliesService {
   }
 
   findAll() {
-    return this.assemblyModel.find({status: 0}).exec()
+    return this.assemblyModel.find({ status: 0 }).exec()
   }
 
   async findOne(id: string) {
-    const assembly = await this.assemblyModel.findById({id, status: 0}).exec()
+    const assembly = await this.assemblyModel.findById({ id, status: 0 }).exec()
     if (!assembly) {
       throw new NotFoundException(`Assembly with id "${id}" not found`)
     }
@@ -33,7 +33,9 @@ export class AssembliesService {
 
   update(id: string, updateAssemblyDto: UpdateAssemblyDto) {
     return this.assemblyModel
-      .findByIdAndUpdate({id, status: 0}, updateAssemblyDto, { runValidators: true })
+      .findByIdAndUpdate({ id, status: 0 }, updateAssemblyDto, {
+        runValidators: true,
+      })
       .exec()
   }
 

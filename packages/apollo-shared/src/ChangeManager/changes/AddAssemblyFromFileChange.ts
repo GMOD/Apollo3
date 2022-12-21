@@ -64,7 +64,6 @@ export class AddAssemblyFromFileChange extends AssemblySpecificChange {
    */
   async applyToServer(backend: ServerDataStore) {
     const { assemblyModel, fileModel, user } = backend
-    // const { assemblyModel, fileModel, session, user } = backend
     const { changes, assembly, logger } = this
 
     for (const change of changes) {
@@ -76,7 +75,6 @@ export class AddAssemblyFromFileChange extends AssemblySpecificChange {
       }
       // Get file checksum
       const fileDoc = await fileModel.findById(fileId).exec()
-      // const fileDoc = await fileModel.findById(fileId).session(session).exec()
       if (!fileDoc) {
         throw new Error(`File "${fileId}" not found in Mongo`)
       }
@@ -85,16 +83,14 @@ export class AddAssemblyFromFileChange extends AssemblySpecificChange {
       // Check and add new assembly
       const assemblyDoc = await assemblyModel
         .findOne({ name: assemblyName })
-        // .session(session)
         .exec()
       if (assemblyDoc) {
         throw new Error(`Assembly "${assemblyName}" already exists`)
       }
       // Add assembly
-      const [newAssemblyDoc] = await assemblyModel.create(
-        [{ _id: assembly, name: assemblyName, user, status: -1 }],
-        // { session },
-      )
+      const [newAssemblyDoc] = await assemblyModel.create([
+        { _id: assembly, name: assemblyName, user, status: -1 },
+      ])
       logger.debug?.(
         `Added new assembly "${assemblyName}", docId "${newAssemblyDoc._id}"`,
       )
@@ -103,6 +99,7 @@ export class AddAssemblyFromFileChange extends AssemblySpecificChange {
       )
 
       // Add refSeqs
+      // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
       await this.addRefSeqIntoDb(fileDoc, newAssemblyDoc._id, backend)
     }
   }

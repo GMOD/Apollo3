@@ -65,7 +65,6 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
    */
   async applyToServer(backend: ServerDataStore) {
     const { filesService, fileModel } = backend
-    // const { filesService, fileModel, session } = backend
     const { changes, logger } = this
 
     for (const change of changes) {
@@ -77,7 +76,6 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
       }
       // Get file checksum
       const fileDoc = await fileModel.findById(fileId).exec()
-      // const fileDoc = await fileModel.findById(fileId).session(session).exec()
       if (!fileDoc) {
         throw new Error(`File "${fileId}" not found in Mongo`)
       }
@@ -92,6 +90,7 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
         logger.verbose?.(`ENTRY=${JSON.stringify(gff3Feature)}`)
 
         // Add new feature into database
+        // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
         await this.addFeatureIntoDb(gff3Feature, backend)
       }
     }

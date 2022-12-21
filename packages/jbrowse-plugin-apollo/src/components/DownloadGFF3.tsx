@@ -13,7 +13,6 @@ import {
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
-import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { AssemblyData, useAssemblies } from './'
 
 interface DownloadGFF3Props {

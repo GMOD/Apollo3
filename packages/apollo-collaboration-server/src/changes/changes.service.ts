@@ -115,9 +115,11 @@ export class ChangesService {
           user: uniqUserId,
         })
       } catch (e) {
-        this.logger.debug?.('*** INSERT DATA EXCEPTION ***')
         // Clean up old "temporary document" -documents
-        this.logger.debug(`*** Start to clean up old temporary documents...`)
+        // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
+        this.logger.debug(
+          `*** INSERT DATA EXCEPTION - Start to clean up old temporary documents...`,
+        )
         await this.assemblyModel.deleteMany({
           $and: [{ status: -1, user: uniqUserId }],
         })
@@ -134,16 +136,13 @@ export class ChangesService {
       }
 
       // Add entry to change collection
-      const [savedChangedLogDoc] = await this.changeModel.create(
-        [
-          {
-            ...change,
-            user,
-            sequence,
-          },
-        ],
-        // { session },
-      )
+      const [savedChangedLogDoc] = await this.changeModel.create([
+        {
+          ...change,
+          user,
+          sequence,
+        },
+      ])
       changeDoc = savedChangedLogDoc
       const validationResult2 = await validationRegistry.backendPostValidate(
         change,
@@ -157,39 +156,35 @@ export class ChangesService {
       }
     })
     this.logger.debug?.('*** TEMPORARY DATA INSERTTED ***')
-    // Set "temporary document" -status --> "valid" -status in transaction
+    // Set "temporary document" -status --> "valid" -status i.e. (-1 --> 0)
     await this.featureModel.db.transaction(async (session) => {
       this.logger.debug(
         `Updates "temporary document" -status --> "valid" -status`,
       )
       try {
-        // This cannot be done in transaction session because Mongo aborts transaction if there are too many records to be updated in one transaction
-        // It's important that we first (try) update refseqChunk and feature -collections because those contain the most documents
-        // "In general, the number of documents that can be updated in a single update operation is limited only by the amount of available memory on the server."
+        // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
         await this.refSeqChunkModel.updateMany(
           { $and: [{ status: -1, user: uniqUserId }] },
           { $set: { status: 0 } },
-          // { session, w: 0, j: true }, // https://www.mongodb.com/docs/manual/reference/write-concern/
         )
         await this.featureModel.updateMany(
           { $and: [{ status: -1, user: uniqUserId }] },
           { $set: { status: 0 } },
-          // { session },
         )
         await this.assemblyModel.updateMany(
           { $and: [{ status: -1, user: uniqUserId }] },
           { $set: { status: 0 } },
-          // { session },
         )
         await this.refSeqModel.updateMany(
           { $and: [{ status: -1, user: uniqUserId }] },
           { $set: { status: 0 } },
-          // { session },
         )
       } catch (e) {
-        this.logger.debug?.('*** UPDATE STATUS EXCEPTION ***')
         // Clean up old "temporary document" -documents
-        this.logger.debug(`*** Start to clean up old temporary documents...`)
+        this.logger.debug(
+          `*** UPDATE STATUS EXCEPTION - Start to clean up old temporary documents...`,
+        )
+        // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
         await this.assemblyModel.deleteMany({
           $and: [{ status: -1, user: uniqUserId }],
         })
