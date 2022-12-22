@@ -20,11 +20,7 @@ import {
   ImportFeatures,
   ManageUsers,
 } from '../components'
-import {
-  ApolloSessionModel,
-  Collaborator,
-  CollaboratorLocation,
-} from '../session'
+import { ApolloSessionModel, Collaborator } from '../session'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { ApolloInternetAccountConfigModel } from './configSchema'
 
@@ -37,12 +33,12 @@ type AuthType = 'google' | 'microsoft'
 
 type Role = ('admin' | 'user' | 'readOnly')[]
 
-// interface UserLocation {
-//   assemblyId: string
-//   refSeq: string
-//   start: number
-//   end: number
-// }
+export interface UserLocation {
+  assemblyId: string
+  refSeq: string
+  start: number
+  end: number
+}
 
 const stateModelFactory = (
   configSchema: ApolloInternetAccountConfigModel,
@@ -141,21 +137,33 @@ const stateModelFactory = (
           notify('You are disconnected from the Apollo server.', 'error')
         })
         socket.on('USER_LOCATION', (message) => {
-          const {
-            channel,
-            userName,
-            userToken,
-            assemblyId,
-            refSeq,
-            start,
-            end,
-          } = message
+          // const {
+          //   channel,
+          //   userName,
+          //   userToken,
+          //   assemblyId,
+          //   refSeq,
+          //   start,
+          //   end,
+          // } = message
+          // if (channel === 'USER_LOCATION' && userToken !== token) {
+          //   const collaborator: Collaborator = {
+          //     name: userName,
+          //     id: userToken,
+          //     locations: [
+          //       { assembly: assemblyId, refName: refSeq, start, end },
+          //     ],
+          //   }
+          //   session.addOrUpdateCollaborator(collaborator)
+          // }
+          const { channel, userName, userToken, locations } = message
           if (channel === 'USER_LOCATION' && userToken !== token) {
             const collaborator: Collaborator = {
               name: userName,
               id: userToken,
-              locations: [{ assemblyId, refName: refSeq, start, end }],
+              locations,
             }
+            console.log(`Collab: ${JSON.stringify(collaborator)}`)
             session.addOrUpdateCollaborator(collaborator)
           }
         })
@@ -207,6 +215,7 @@ const stateModelFactory = (
           )
         }
         const { baseURL } = self
+
         const url = new URL('changes', baseURL)
         const searchParams = new URLSearchParams({
           since: String(self.lastChangeSequenceNumber),
@@ -235,76 +244,6 @@ const stateModelFactory = (
         })
       }),
     }))
-    .actions((self) => {
-      async function postUserLocation(userLoc: CollaboratorLocation[]) {
-        // async function postUserLocation(userLoc: UserLocation) {
-        const { baseURL } = self
-        const url = new URL('users/userLocation', baseURL).href
-        // for (const oneUserLoc of userLoc) {
-
-        // }
-        // const userLocForParams = {
-        //   ...userLoc,
-        //   // start: String(userLoc.start),
-        //   // end: String(userLoc.end),
-        // }
-        const userLocForParams = {
-          // ...userLoc,
-          assemblyId: 'assembly123',
-          refSeq: 'refName',
-          start: '100',
-          end: '200',
-        }
-        const formData = new FormData()
-        formData.append('assemblyId', 'file')
-        formData.append('refSeq', 'file.name')
-        formData.append('type', 'text/x-gff3')
-        formData.append('end', 'text/x-gff3')
-
-        const userLocation = new URLSearchParams(userLocForParams.toString())
-        const apolloFetch = self.getFetcher({
-          locationType: 'UriLocation',
-          uri: url,
-        })
-        console.log(`userLocForParams ON: ${JSON.stringify(userLocForParams)}`)
-        userLoc[0].start=100
-        userLoc[0].end=200
-        console.log(`SIJANTII: ${JSON.stringify(userLoc[0])}`)
-        const eka: string = JSON.stringify(userLoc[0])
-        // for (const a of userLoc) {
-        //   console.log(`USER LOCATIONS ARE1: ${JSON.stringify(a)}`)
-        // }
-
-        try {
-          const response = await apolloFetch(url, {
-            method: 'POST',
-            body: eka,
-          })
-                      // body: JSON.stringify(userLocForParams),
-            // body: 'userLoc[0].toString()',
-            // body: JSON.parse(userLoc.toString()),
-            // body: userLocation,
-          if (!response.ok) {
-            throw new Error() // no message here, will get caught by "catch"
-          }
-        } catch (error) {
-          console.error('Broadcasting user location failed')
-        }
-      }
-      const debounceTimeout = 300
-      const debouncePostUserLocation = (
-        fn: (userLocation: CollaboratorLocation[]) => void,
-      ) => {
-        let timeoutId: ReturnType<typeof setTimeout>
-        return (userLocation: CollaboratorLocation[]) => {
-          clearTimeout(timeoutId)
-          timeoutId = setTimeout(() => fn(userLocation), debounceTimeout)
-        }
-      }
-      return {
-        postUserLocation: debouncePostUserLocation(postUserLocation),
-      }
-    })
     .actions((self) => ({
       addMenuItems(role: Role) {
         if (
@@ -460,22 +399,6 @@ const stateModelFactory = (
         self.updateLastChangeSequenceNumber()
         // Open socket listeners
         self.addSocketListeners()
-        // request user locations
-        const { baseURL } = self
-        const uri = new URL('/users/locations', baseURL).href
-        const apolloFetch = self.getFetcher({
-          locationType: 'UriLocation',
-          uri,
-        })
-        if (apolloFetch) {
-          console.log('Call endpoint to broadcast resend locations')
-          apolloFetch(uri, {
-            method: 'GET',
-          })
-        }
-        window.addEventListener('beforeunload', () => {
-          // self.postUserLocation([])
-        })
       },
     }))
     .volatile((self) => ({
@@ -558,6 +481,46 @@ const stateModelFactory = (
         throw new Error(`Unknown authType "${self.authType}"`)
       },
     }))
+    .actions((self) => {
+      async function postUserLocation(userLoc: UserLocation) {
+        const { baseURL } = self
+        const url = new URL('users/userLocation', baseURL).href
+        const userLocForParams = {
+          ...userLoc,
+          start: String(userLoc.start),
+          end: String(userLoc.end),
+        }
+        const userLocation = new URLSearchParams(userLocForParams)
+        const apolloFetch = self.getFetcher({
+          locationType: 'UriLocation',
+          uri: url,
+        })
+        try {
+          const response = await apolloFetch(url, {
+            method: 'POST',
+            body: userLocation,
+          })
+          if (!response.ok) {
+            throw new Error() // no message here, will get caught by "catch"
+          }
+        } catch (error) {
+          console.error('Broadcasting user location failed')
+        }
+      }
+      const debounceTimeout = 300
+      const debouncePostUserLocation = (
+        fn: (userLocation: UserLocation) => void,
+      ) => {
+        let timeoutId: ReturnType<typeof setTimeout>
+        return (userLocation: UserLocation) => {
+          clearTimeout(timeoutId)
+          timeoutId = setTimeout(() => fn(userLocation), debounceTimeout)
+        }
+      }
+      return {
+        postUserLocation: debouncePostUserLocation(postUserLocation),
+      }
+    })
     .actions((self) => {
       let authTypePromise: Promise<AuthType> | undefined = undefined
       return {

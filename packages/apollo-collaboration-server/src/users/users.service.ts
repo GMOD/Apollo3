@@ -60,7 +60,7 @@ export class UsersService {
    * @param userLocation - user's location information
    * @param token - user's token, email will be decoded from the token
    */
-  broadcastLocation(userLocation: UserLocationDto, token: string) {
+  broadcastLocation(userLocation: UserLocationDto[], token: string) {
     const { BROADCAST_USER_LOCATION } = process.env
     const channel = 'USER_LOCATION'
 
@@ -72,7 +72,7 @@ export class UsersService {
       const jwtPayload = getDecodedAccessToken(token)
       const { email: user, username: userName } = jwtPayload
       const msg: UserLocationMessage = {
-        ...userLocation,
+        locations: userLocation,
         channel,
         userName,
         userToken: token,

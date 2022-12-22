@@ -112,19 +112,6 @@ function ApolloRendering(props: ApolloRenderingProps) {
     if (getRole()?.includes('admin') || getRole()?.includes('user')) {
       setIsReadOnly(false)
     }
-    //* * */
-    const { baseURL } = apolloInternetAccount
-    const uri = new URL('/users/locations', baseURL).href
-    const apolloFetch = apolloInternetAccount?.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
-    if (apolloFetch) {
-      apolloFetch(uri, {
-        method: 'GET',
-      })
-    }
-    //* * */
   }, [authType, getRole])
 
   useEffect(() => {
@@ -207,10 +194,15 @@ function ApolloRendering(props: ApolloRenderingProps) {
     }
     for (const collaborator of collaborators) {
       const { locations } = collaborator
+      console.log('000')
+      console.log(JSON.stringify(locations))
+      console.log(locations.length)
       if (!locations.length) {
+        console.log('111')
         return
       }
       for (const location of locations) {
+        console.log('AAA')
         const { start, end } = location
         const locationStart = region.reversed
           ? region.end - start

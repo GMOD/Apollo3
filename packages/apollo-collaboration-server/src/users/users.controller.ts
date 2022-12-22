@@ -9,8 +9,8 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { Request } from 'express'
-import { UserLocationMessage } from '../messages/entities/message.entity'
 
+import { UserLocationMessage } from '../messages/entities/message.entity'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
@@ -67,35 +67,15 @@ export class UsersController {
    * @returns
    */
   @Post('userLocation')
-      userLocation(@Body() userLocation: UserLocationDtoV1, @Req() req: Request) {
-  // userLocation(@Body() userLocation: any, @Req() req: Request) {
-    // userLocation(@Body() userLocation: JSON, @Req() req: Request) {
-    // userLocation(@Body() userLocation: UserLocationDto[], @Req() req: Request) {
-
-    console.log(`*** RECEIVED LOCATION INFO: ${userLocation}`)
+  userLocation(@Body() userLocation: UserLocationDto[], @Req() req: Request) {
     console.log(`*** RECEIVED LOCATION INFO: ${JSON.stringify(userLocation)}`)
-    this.logger.debug(`********* ${JSON.stringify(userLocation)}`)
-    const msg: UserLocationMessage = {
-      ...userLocation,
-      refSeq: 'r',
-      channel: 'a',
-      userName: 'a',
-      userToken: 'token',
-    }
-    this.logger.debug(
-      `Broadcasting message is "${JSON.stringify(
-        msg,
-      )}"`,
-    )
+
     const { authorization } = req.headers
     if (!authorization) {
       throw new Error('No "authorization" header')
     }
     const [, token] = authorization.split(' ')
-    // userLocation.forEach(projet=>console.log(projet.start));
-    // for (const a of userLocation) {
-    //   console.log(`USER LOCATIONS ARE1: ${JSON.stringify(a)}`)
-    // }
-    // return this.usersService.broadcastLocation(userLocation, token)
+
+    return this.usersService.broadcastLocation(userLocation, token)
   }
 }
