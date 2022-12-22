@@ -194,16 +194,14 @@ function ApolloRendering(props: ApolloRenderingProps) {
     }
     for (const collaborator of collaborators) {
       const { locations } = collaborator
-      console.log('000')
-      console.log(JSON.stringify(locations))
-      console.log(locations.length)
+      console.log(`RENDERING: ${JSON.stringify(collaborator)}`)
       if (!locations.length) {
-        console.log('111')
+        console.log('LOCATIONS LENGTH IS EMPTY!')
         return
       }
       for (const location of locations) {
-        console.log('AAA')
         const { start, end } = location
+        console.log(`Location start: ${start}, end: ${end}`)
         const locationStart = region.reversed
           ? region.end - start
           : start - region.start

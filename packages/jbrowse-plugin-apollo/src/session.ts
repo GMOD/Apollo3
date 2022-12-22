@@ -266,17 +266,18 @@ export function extendSession(sessionModel: IAnyModelType) {
               const tmpLoc: UserLocation = { assemblyId ,refSeq: location.refName, start: location.start, end: location.end}
               console.log(`tmpLoc: ${JSON.stringify(tmpLoc)}`)
 
-              allLocations.push()
+              // allLocations.push()
               // allLocations.push(tmpLoc)
               // internetAccount.postUserLocation(allLocations)
-              internetAccount.postUserLocation(tmpLoc)
-              internetAccount.postUserLocation({
-                assemblyId,
-                refSeq,
-                start: Math.round(start),
-                end: Math.round(end),
-              })
+              // internetAccount.postUserLocation(tmpLoc)
+              // internetAccount.postUserLocation({
+              //   assemblyId,
+              //   refSeq,
+              //   start: Math.round(start),
+              //   end: Math.round(end),
+              // })
             }
+            
           }
         }
       },
@@ -311,7 +312,8 @@ export function extendSession(sessionModel: IAnyModelType) {
             }
             console.log('broadcast location 5A')
 
-            const allLocations: CollaboratorLocation[] = []
+            // const allLocations: CollaboratorLocation[] = []
+            const allLocations: UserLocation[] = []
             for (const internetAccount of internetAccounts as (
               | BaseInternetAccountModel
               | ApolloInternetAccountModel
@@ -327,17 +329,18 @@ export function extendSession(sessionModel: IAnyModelType) {
                   const tmpLoc: UserLocation = { assemblyId ,refSeq: location.refName, start: location.start, end: location.end}
                   console.log(`tmpLoc: ${JSON.stringify(tmpLoc)}`)
     
-                  allLocations.push()
+                  // allLocations.push()
                   // allLocations.push(tmpLoc)
-                  // internetAccount.postUserLocation(allLocations)
-                  internetAccount.postUserLocation(tmpLoc)
-                  internetAccount.postUserLocation({
-                    assemblyId,
-                    refSeq,
-                    start: Math.round(start),
-                    end: Math.round(end),
-                  })
+                  // internetAccount.postUserLocation(tmpLoc)
+                internetAccount.postUserLocation(allLocations)
+                  // internetAccount.postUserLocation({
+                  //   assemblyId,
+                  //   refSeq,
+                  //   start: Math.round(start),
+                  //   end: Math.round(end),
+                  // })
                 }
+                // internetAccount.postUserLocation(allLocations)
               }
             }
           },

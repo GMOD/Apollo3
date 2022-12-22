@@ -51,6 +51,7 @@ export class UsersController {
       throw new Error('No "authorization" header')
     }
     const [, token] = authorization.split(' ')
+    console.log(`*** REQUEST OTHER USERS LOCATION`)
     return this.usersService.requestUsersLocations(token)
   }
 
