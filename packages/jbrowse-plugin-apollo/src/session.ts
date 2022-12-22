@@ -52,7 +52,7 @@ interface ApolloRefSeqResponse {
 }
 
 export interface CollaboratorLocation {
-  assembly: string
+  assemblyId: string
   refName: string
   start: number
   end: number
@@ -216,10 +216,55 @@ export function extendSession(sessionModel: IAnyModelType) {
           })
         }
       },
-      afterCreate: flow(function* afterCreate() {
+      broadcastLocations() {
         const { internetAccounts } = getRoot(self) as AppRootModel
+        const locations: {
+          assemblyName: string
+          refName: string
+          start: number
+          end: number
+        }[] = []
+        for (const view of self.views) {
+          if (view.type === 'LinearGenomeView' && view.initialized) {
+            const { dynamicBlocks } = view as LinearGenomeViewModel
+            dynamicBlocks.forEach((block) => {
+              if (block.regionNumber !== undefined) {
+                const { assemblyName, refName, start, end } = block
+                locations.push({ assemblyName, refName, start, end })
+              }
+            })
+          }
+        }
+        if (!locations.length) {
+          return
+        }
+        console.log('broadcast location 5 at ', new Date())
+
+        for (const internetAccount of internetAccounts as (
+          | BaseInternetAccountModel
+          | ApolloInternetAccountModel
+        )[]) {
+          if ('baseURL' in internetAccount) {
+            const [location] = locations
+            const {
+              assemblyName: assemblyId,
+              refName: refSeq,
+              start,
+              end,
+            } = location
+            // internetAccount.postUserLocation({
+            //   assemblyId,
+            //   refSeq,
+            //   start: Math.round(start),
+            //   end: Math.round(end),
+            // })
+          }
+        }
+      },
+      afterCreate: flow(function* afterCreate() {
         autorun(
           () => {
+            const { internetAccounts } = getRoot(self) as AppRootModel
             const locations: {
               assemblyName: string
               refName: string
@@ -238,31 +283,42 @@ export function extendSession(sessionModel: IAnyModelType) {
               }
             }
             if (!locations.length) {
+              console.log('TYHJA LOCATIONS')
+              // internetAccount.postUserLocation([])
               return
             }
+            console.log('broadcast location 5A at ', new Date())
+
+            const allLocations: CollaboratorLocation[] = []
             for (const internetAccount of internetAccounts as (
               | BaseInternetAccountModel
               | ApolloInternetAccountModel
             )[]) {
               if ('baseURL' in internetAccount) {
-                const [location] = locations
-                const {
-                  assemblyName: assemblyId,
-                  refName: refSeq,
-                  start,
-                  end,
-                } = location
-                internetAccount.postUserLocation({
-                  assemblyId,
-                  refSeq,
-                  start: Math.round(start),
-                  end: Math.round(end),
-                })
+                for (const location of locations) {
+                  const tmpLoc: CollaboratorLocation = { assemblyId: location.assemblyName, refName: location.refName, start: location.start, end: location.end}
+                  // const tmpLoc =  {
+                  //   assemblyName: assemblyId,
+                  //   refName: refSeq,
+                  //   start,
+                  //   end,
+                  // } = location
+                  allLocations.push(tmpLoc)
+                  internetAccount.postUserLocation(allLocations)
+                  // internetAccount.postUserLocation({
+                  //   assemblyId,
+                  //   refSeq,
+                  //   start: Math.round(start),
+                  //   end: Math.round(end),
+                  // })  
+                }
               }
             }
+            // self.broadcastLocations()
           },
           { name: 'ApolloSession' },
         )
+        const { internetAccounts } = getRoot(self) as AppRootModel
         for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
           const { baseURL } = internetAccount
           const uri = new URL('assemblies', baseURL).href

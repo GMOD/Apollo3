@@ -10,3 +10,10 @@ export class UserLocationDto {
   readonly start: string
   readonly end: string
 }
+
+export class UserLocationDtoV1 {
+  readonly assemblyId: string
+  readonly refName: string
+  readonly start: string
+  readonly end: string
+}
