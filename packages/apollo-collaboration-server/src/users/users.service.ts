@@ -71,8 +71,10 @@ export class UsersService {
     if (broadcast) {
       const jwtPayload = getDecodedAccessToken(token)
       const { email: user, username: userName } = jwtPayload
+      const dummy: UserLocationDto[] = [{assemblyId: '63a2dca3fa2f1bdce7478adc', refSeq: 'ctgA', start: '100', end: '25000'}, {assemblyId: '63a2dca3fa2f1bdce7478adc', refSeq: 'ctgA', start: '15000', end: '45000'}]
       const msg: UserLocationMessage = {
-        locations: userLocation,
+        locations: dummy,
+        // locations: userLocation,
         channel,
         userName,
         userToken: token,

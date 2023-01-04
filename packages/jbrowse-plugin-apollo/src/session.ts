@@ -27,7 +27,10 @@ import {
   types,
 } from 'mobx-state-tree'
 
-import { ApolloInternetAccountModel, UserLocation } from './ApolloInternetAccount/model'
+import {
+  ApolloInternetAccountModel,
+  UserLocation,
+} from './ApolloInternetAccount/model'
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreType
@@ -183,9 +186,22 @@ export function extendSession(sessionModel: IAnyModelType) {
             if (!existingCollaborator) {
               collabs.push(collaborator)
             } else {
-              console.log(`OLD Existing collaborator: ${JSON.stringify(existingCollaborator.locations)}`)
-              console.log(`NEW Existing collaborator: ${JSON.stringify(collaborator.locations)}`)
+              // console.log(
+              //   `OLD Existing collaborator: ${JSON.stringify(
+              //     existingCollaborator.locations,
+              //   )}`,
+              // )
+              // console.log(
+              //   `NEW Existing collaborator: ${JSON.stringify(
+              //     collaborator.locations,
+              //   )}`,
+              // )
               existingCollaborator.locations = collaborator.locations
+              console.log(
+                `Collaborators's locations are: ${JSON.stringify(
+                  existingCollaborator.locations,
+                )}`,
+              )
             }
           },
         },
@@ -219,6 +235,7 @@ export function extendSession(sessionModel: IAnyModelType) {
         }
       },
       broadcastLocations() {
+        console.log('broadcast location')
         const { internetAccounts } = getRoot(self) as AppRootModel
         const locations: {
           assemblyName: string
@@ -237,47 +254,35 @@ export function extendSession(sessionModel: IAnyModelType) {
             })
           }
         }
-        // if (!locations.length) {
-        //   return
-        // }
         if (!locations.length) {
-          console.log('TYHJA LOCATIONS')
-          // internetAccount.postUserLocation([])
+          console.log('NO LOCATIONS - SEND EMPTY LOCATION ARRAY')
+          for (const internetAccount of internetAccounts as (
+            | BaseInternetAccountModel
+            | ApolloInternetAccountModel
+          )[]) {
+            if ('baseURL' in internetAccount) {
+              internetAccount.postUserLocation([])
+            }
+          }
           return
         }
-        console.log('broadcast location 5')
 
-        const allLocations: CollaboratorLocation[] = []
-        // const allLocations: [] = []
-        console.log('broadcast location 5')
-
+        const allLocations: UserLocation[] = []
         for (const internetAccount of internetAccounts as (
           | BaseInternetAccountModel
           | ApolloInternetAccountModel
         )[]) {
           if ('baseURL' in internetAccount) {
             for (const location of locations) {
-              const {
-                assemblyName: assemblyId,
-                refName: refSeq,
-                start,
-                end,
-              } = location
-              const tmpLoc: UserLocation = { assemblyId ,refSeq: location.refName, start: location.start, end: location.end}
-              console.log(`tmpLoc: ${JSON.stringify(tmpLoc)}`)
-
-              // allLocations.push()
-              // allLocations.push(tmpLoc)
-              // internetAccount.postUserLocation(allLocations)
-              // internetAccount.postUserLocation(tmpLoc)
-              // internetAccount.postUserLocation({
-              //   assemblyId,
-              //   refSeq,
-              //   start: Math.round(start),
-              //   end: Math.round(end),
-              // })
+              const tmpLoc: UserLocation = {
+                assemblyId: location.assemblyName,
+                refSeq: location.refName,
+                start: location.start,
+                end: location.end,
+              }
+              allLocations.push(tmpLoc)
             }
-            
+            internetAccount.postUserLocation(allLocations)
           }
         }
       },
@@ -285,6 +290,7 @@ export function extendSession(sessionModel: IAnyModelType) {
         const { internetAccounts } = getRoot(self) as AppRootModel
         autorun(
           () => {
+            // self.broadcastLocations()  // *** THIS IS NOT WORKING SO THE CODE BELOW IS REQUIRED ***
             const locations: {
               assemblyName: string
               refName: string
@@ -302,17 +308,18 @@ export function extendSession(sessionModel: IAnyModelType) {
                 })
               }
             }
-            // if (!locations.length) {
-            //   return
-            // }
             if (!locations.length) {
-              console.log('TYHJA LOCATIONS')
-              // internetAccount.postUserLocation([])
+              for (const internetAccount of internetAccounts as (
+                | BaseInternetAccountModel
+                | ApolloInternetAccountModel
+              )[]) {
+                if ('baseURL' in internetAccount) {
+                  internetAccount.postUserLocation([])
+                }
+              }
               return
             }
-            console.log('broadcast location 5A')
 
-            // const allLocations: CollaboratorLocation[] = []
             const allLocations: UserLocation[] = []
             for (const internetAccount of internetAccounts as (
               | BaseInternetAccountModel
@@ -320,27 +327,15 @@ export function extendSession(sessionModel: IAnyModelType) {
             )[]) {
               if ('baseURL' in internetAccount) {
                 for (const location of locations) {
-                  const {
-                    assemblyName: assemblyId,
-                    refName: refSeq,
-                    start,
-                    end,
-                  } = location
-                  const tmpLoc: UserLocation = { assemblyId ,refSeq: location.refName, start: location.start, end: location.end}
-                  console.log(`tmpLoc: ${JSON.stringify(tmpLoc)}`)
-    
-                  // allLocations.push()
-                  // allLocations.push(tmpLoc)
-                  // internetAccount.postUserLocation(tmpLoc)
-                internetAccount.postUserLocation(allLocations)
-                  // internetAccount.postUserLocation({
-                  //   assemblyId,
-                  //   refSeq,
-                  //   start: Math.round(start),
-                  //   end: Math.round(end),
-                  // })
+                  const tmpLoc: UserLocation = {
+                    assemblyId: location.assemblyName,
+                    refSeq: location.refName,
+                    start: location.start,
+                    end: location.end,
+                  }
+                  allLocations.push(tmpLoc)
                 }
-                // internetAccount.postUserLocation(allLocations)
+                internetAccount.postUserLocation(allLocations)
               }
             }
           },

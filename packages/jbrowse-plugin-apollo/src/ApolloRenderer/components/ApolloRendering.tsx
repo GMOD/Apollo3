@@ -192,11 +192,13 @@ function ApolloRendering(props: ApolloRenderingProps) {
       ctx.fillStyle = 'rgba(0,0,0,0.2)'
       ctx.fillRect(startPx, row * height, widthPx, height * feature.rowCount)
     }
+    console.log('Loop collaborators: ', collaborators.length)
     for (const collaborator of collaborators) {
       const { locations } = collaborator
-      console.log(`RENDERING: ${JSON.stringify(collaborator)}`)
-      if (!locations.length) {
-        console.log('LOCATIONS LENGTH IS EMPTY!')
+        console.log(`locations: ${locations}`)
+        console.log(`Locations: ${JSON.stringify(locations)}`)
+        console.log(`Collaborator: ${JSON.stringify(collaborator)}`)
+        if (!locations.length) {
         return
       }
       for (const location of locations) {

@@ -10,11 +10,10 @@ import {
 } from '@nestjs/common'
 import { Request } from 'express'
 
-import { UserLocationMessage } from '../messages/entities/message.entity'
 import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
-import { UserLocationDto, UserLocationDtoV1 } from './dto/create-user.dto'
+import { UserLocationDto } from './dto/create-user.dto'
 import { UsersService } from './users.service'
 
 @UseGuards(JwtAuthGuard)
@@ -51,7 +50,7 @@ export class UsersController {
       throw new Error('No "authorization" header')
     }
     const [, token] = authorization.split(' ')
-    console.log(`*** REQUEST OTHER USERS LOCATION`)
+    console.log(`*** REQUEST OTHER USERS's LOCATION`)
     return this.usersService.requestUsersLocations(token)
   }
 
@@ -68,8 +67,16 @@ export class UsersController {
    * @returns
    */
   @Post('userLocation')
-  userLocation(@Body() userLocation: UserLocationDto[], @Req() req: Request) {
-    console.log(`*** RECEIVED LOCATION INFO: ${JSON.stringify(userLocation)}`)
+  userLoc(@Body() userLocation: Array<UserLocationDto>, @Req() req: Request) {
+    console.log(`One user's location info: ${JSON.stringify(userLocation)}`)
+    const keys = Object.keys(userLocation)
+
+    // const a: UserLocationDto[] = JSON.parse(JSON.stringify(userLocation))
+    // console.log(`A: ${JSON.stringify(a)}`)
+    const b: UserLocationDto[] = JSON.parse(`[${keys.toString()}]`)
+    // const b: UserLocationDto[] = JSON.parse(`[{"assemblyId":"63a2dca3fa2f1bdce7478adc","refSeq":"ctgA","start":2869.1935605863114,"end":35426.79890109365},{"assemblyId":"63a2dca3fa2f1bdce7478adc","refSeq":"ctgA","start":11431.551484015054,"end":50001}]`)
+    console.log(`B: ${JSON.stringify(b)}`)
+    console.log(`LEN B: ${b.length}`)
 
     const { authorization } = req.headers
     if (!authorization) {
@@ -77,6 +84,7 @@ export class UsersController {
     }
     const [, token] = authorization.split(' ')
 
-    return this.usersService.broadcastLocation(userLocation, token)
+    return this.usersService.broadcastLocation(b, token)
+    // return this.usersService.broadcastLocation(userLocation, token)
   }
 }
