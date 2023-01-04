@@ -144,7 +144,11 @@ const stateModelFactory = (
               id: userToken,
               locations,
             }
-            console.log(`Received collaborator's location info: ${JSON.stringify(collaborator)}`)
+            console.log(
+              `Received collaborator's location info: ${JSON.stringify(
+                collaborator,
+              )}`,
+            )
             session.addOrUpdateCollaborator(collaborator)
           }
         })
@@ -154,7 +158,6 @@ const stateModelFactory = (
             switch (reqType) {
               case 'CURRENT_LOCATION':
                 console.log('REQUEST RESEND CURRENT LOCATION')
-                // TODO: send current locations
                 session.broadcastLocations()
                 break
             }
@@ -225,6 +228,43 @@ const stateModelFactory = (
         })
       }),
     }))
+    .actions((self) => {
+      async function postUserLocation(userLoc: UserLocation[]) {
+        console.log(`Post my all locations: ${JSON.stringify(userLoc)}`)
+        const { baseURL } = self
+        const url = new URL('users/userLocation', baseURL).href
+        const userLocation = new URLSearchParams(JSON.stringify(userLoc))
+
+        const apolloFetch = self.getFetcher({
+          locationType: 'UriLocation',
+          uri: url,
+        })
+        try {
+          const response = await apolloFetch(url, {
+            method: 'POST',
+            body: userLocation,
+          })
+          if (!response.ok) {
+            throw new Error() // no message here, will get caught by "catch"
+          }
+        } catch (error) {
+          console.error('Broadcasting user location failed')
+        }
+      }
+      const debounceTimeout = 300
+      const debouncePostUserLocation = (
+        fn: (userLocation: UserLocation[]) => void,
+      ) => {
+        let timeoutId: ReturnType<typeof setTimeout>
+        return (userLocation: UserLocation[]) => {
+          clearTimeout(timeoutId)
+          timeoutId = setTimeout(() => fn(userLocation), debounceTimeout)
+        }
+      }
+      return {
+        postUserLocation: debouncePostUserLocation(postUserLocation),
+      }
+    })
     .actions((self) => ({
       addMenuItems(role: Role) {
         if (
@@ -393,7 +433,20 @@ const stateModelFactory = (
           })
         }
         window.addEventListener('beforeunload', () => {
-          // self.postUserLocation([])
+          self.postUserLocation([])
+        })
+        document.addEventListener('visibilitychange', () => {
+          // fires when user switches tabs, apps, goes to homescreen, etc.
+          if (document.visibilityState === 'hidden') {
+            console.log('*** HIDDEN ***')
+            self.postUserLocation([])
+          }
+          // fires when app transitions from prerender, user returns to the app / tab.
+          if (document.visibilityState === 'visible') {
+            console.log('*** VISIBLE ***')
+            const { session } = getRoot(self)
+            session.broadcastLocations()
+          }
         })
       },
     }))
@@ -477,47 +530,6 @@ const stateModelFactory = (
         throw new Error(`Unknown authType "${self.authType}"`)
       },
     }))
-    .actions((self) => {
-      async function postUserLocation(userLoc: UserLocation[]) {
-        console.log(`Post my all locations: ${JSON.stringify(userLoc)}`)
-
-        if (userLoc.length < 1) {
-          return
-        }
-        const { baseURL } = self
-        const url = new URL('users/userLocation', baseURL).href
-        const userLocation = new URLSearchParams(JSON.stringify(userLoc))
-
-        const apolloFetch = self.getFetcher({
-          locationType: 'UriLocation',
-          uri: url,
-        })
-        try {
-          const response = await apolloFetch(url, {
-            method: 'POST',
-            body: userLocation,
-          })
-          if (!response.ok) {
-            throw new Error() // no message here, will get caught by "catch"
-          }
-        } catch (error) {
-          console.error('Broadcasting user location failed')
-        }
-      }
-      const debounceTimeout = 300
-      const debouncePostUserLocation = (
-        fn: (userLocation: UserLocation[]) => void,
-      ) => {
-        let timeoutId: ReturnType<typeof setTimeout>
-        return (userLocation: UserLocation[]) => {
-          clearTimeout(timeoutId)
-          timeoutId = setTimeout(() => fn(userLocation), debounceTimeout)
-        }
-      }
-      return {
-        postUserLocation: debouncePostUserLocation(postUserLocation),
-      }
-    })
     .actions((self) => {
       let authTypePromise: Promise<AuthType> | undefined = undefined
       return {

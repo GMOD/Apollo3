@@ -235,7 +235,6 @@ export function extendSession(sessionModel: IAnyModelType) {
         }
       },
       broadcastLocations() {
-        console.log('broadcast location')
         const { internetAccounts } = getRoot(self) as AppRootModel
         const locations: {
           assemblyName: string
@@ -290,7 +289,8 @@ export function extendSession(sessionModel: IAnyModelType) {
         const { internetAccounts } = getRoot(self) as AppRootModel
         autorun(
           () => {
-            // self.broadcastLocations()  // *** THIS IS NOT WORKING SO THE CODE BELOW IS REQUIRED ***
+            // broadcastLocations() // **** This is not working ***
+            // We need to duplicate broadcastLocations() -method code here because autorun() does not observe changes otherwise
             const locations: {
               assemblyName: string
               refName: string

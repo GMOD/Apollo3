@@ -3,7 +3,6 @@ import { JwtService } from '@nestjs/jwt'
 import { JWTPayload } from 'apollo-shared'
 import { Profile as GoogleProfile } from 'passport-google-oauth20'
 
-import { RequestUserInformationDto } from '../messages/dto/create-message.dto'
 import { CreateUserDto } from '../users/dto/create-user.dto'
 import { UsersService } from '../users/users.service'
 import { Role, RoleInheritance } from '../utils/role/role.enum'

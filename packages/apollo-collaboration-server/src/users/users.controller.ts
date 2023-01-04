@@ -63,20 +63,18 @@ export class UsersController {
 
   /**
    * Receives user location and broadcast information using web sockets
-   * @param userLocation - user's location information
+   * @param userLocDto - user's location information
    * @returns
    */
   @Post('userLocation')
-  userLoc(@Body() userLocation: Array<UserLocationDto>, @Req() req: Request) {
-    console.log(`One user's location info: ${JSON.stringify(userLocation)}`)
-    const keys = Object.keys(userLocation)
-
-    // const a: UserLocationDto[] = JSON.parse(JSON.stringify(userLocation))
-    // console.log(`A: ${JSON.stringify(a)}`)
-    const b: UserLocationDto[] = JSON.parse(`[${keys.toString()}]`)
-    // const b: UserLocationDto[] = JSON.parse(`[{"assemblyId":"63a2dca3fa2f1bdce7478adc","refSeq":"ctgA","start":2869.1935605863114,"end":35426.79890109365},{"assemblyId":"63a2dca3fa2f1bdce7478adc","refSeq":"ctgA","start":11431.551484015054,"end":50001}]`)
-    console.log(`B: ${JSON.stringify(b)}`)
-    console.log(`LEN B: ${b.length}`)
+  userLoc(@Body() userLocDto: UserLocationDto[], @Req() req: Request) {
+    const keys = Object.keys(userLocDto)
+    const userLocationArray: UserLocationDto[] = JSON.parse(
+      `[${keys.toString()}]`,
+    )
+    console.log(
+      `One user's location info: ${JSON.stringify(userLocationArray)}`,
+    )
 
     const { authorization } = req.headers
     if (!authorization) {
@@ -84,7 +82,6 @@ export class UsersController {
     }
     const [, token] = authorization.split(' ')
 
-    return this.usersService.broadcastLocation(b, token)
-    // return this.usersService.broadcastLocation(userLocation, token)
+    return this.usersService.broadcastLocation(userLocationArray, token)
   }
 }
