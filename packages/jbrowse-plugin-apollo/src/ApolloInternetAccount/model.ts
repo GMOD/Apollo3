@@ -157,7 +157,7 @@ const stateModelFactory = (
           if (channel === 'REQUEST_INFORMATION' && userToken !== token) {
             switch (reqType) {
               case 'CURRENT_LOCATION':
-                console.log('REQUEST RESEND CURRENT LOCATION')
+                console.log('Request to resend other users current locations')
                 session.broadcastLocations()
                 break
             }
@@ -438,12 +438,10 @@ const stateModelFactory = (
         document.addEventListener('visibilitychange', () => {
           // fires when user switches tabs, apps, goes to homescreen, etc.
           if (document.visibilityState === 'hidden') {
-            console.log('*** HIDDEN ***')
             self.postUserLocation([])
           }
           // fires when app transitions from prerender, user returns to the app / tab.
           if (document.visibilityState === 'visible') {
-            console.log('*** VISIBLE ***')
             const { session } = getRoot(self)
             session.broadcastLocations()
           }

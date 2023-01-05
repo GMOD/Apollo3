@@ -186,16 +186,6 @@ export function extendSession(sessionModel: IAnyModelType) {
             if (!existingCollaborator) {
               collabs.push(collaborator)
             } else {
-              // console.log(
-              //   `OLD Existing collaborator: ${JSON.stringify(
-              //     existingCollaborator.locations,
-              //   )}`,
-              // )
-              // console.log(
-              //   `NEW Existing collaborator: ${JSON.stringify(
-              //     collaborator.locations,
-              //   )}`,
-              // )
               existingCollaborator.locations = collaborator.locations
               console.log(
                 `Collaborators's locations are: ${JSON.stringify(
@@ -289,8 +279,7 @@ export function extendSession(sessionModel: IAnyModelType) {
         const { internetAccounts } = getRoot(self) as AppRootModel
         autorun(
           () => {
-            // broadcastLocations() // **** This is not working ***
-            // We need to duplicate broadcastLocations() -method code here because autorun() does not observe changes otherwise
+            // broadcastLocations() // **** This is not working and therefore we need to duplicate broadcastLocations() -method code here because autorun() does not observe changes otherwise
             const locations: {
               assemblyName: string
               refName: string

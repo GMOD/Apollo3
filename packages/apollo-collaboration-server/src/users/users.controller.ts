@@ -50,7 +50,7 @@ export class UsersController {
       throw new Error('No "authorization" header')
     }
     const [, token] = authorization.split(' ')
-    console.log(`*** REQUEST OTHER USERS's LOCATION`)
+    this.logger.debug('Requesting other users locations')
     return this.usersService.requestUsersLocations(token)
   }
 
@@ -72,7 +72,7 @@ export class UsersController {
     const userLocationArray: UserLocationDto[] = JSON.parse(
       `[${keys.toString()}]`,
     )
-    console.log(
+    this.logger.debug(
       `One user's location info: ${JSON.stringify(userLocationArray)}`,
     )
 
