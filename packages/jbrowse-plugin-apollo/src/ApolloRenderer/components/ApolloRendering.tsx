@@ -12,6 +12,7 @@ import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { AddFeature } from '../../components/AddFeature'
 import { CopyFeature } from '../../components/CopyFeature'
 import { DeleteFeature } from '../../components/DeleteFeature'
+import { ModifyFeatureAttribute } from '../../components/ModifyFeatureAttribute'
 import { LinearApolloDisplay } from '../../LinearApolloDisplay/stateModel'
 import { Collaborator } from '../../session'
 
@@ -394,6 +395,32 @@ function ApolloRendering(props: ApolloRenderingProps) {
           setContextMenuFeature(undefined)
         }}
       >
+        <MenuItem
+          disabled={isReadOnly}
+          key={1}
+          value={1}
+          onClick={() => {
+            if (!contextMenuFeature) {
+              return
+            }
+            const currentAssemblyId = getAssemblyId(region.assemblyName)
+            session.queueDialog((doneCallback) => [
+              ModifyFeatureAttribute,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                  setContextMenuFeature(undefined)
+                },
+                changeManager,
+                sourceFeature: contextMenuFeature,
+                sourceAssemblyId: currentAssemblyId,
+              },
+            ])
+          }}
+        >
+          Add annotation attribute
+        </MenuItem>        
         <MenuItem
           disabled={isReadOnly}
           key={1}

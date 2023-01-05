@@ -146,9 +146,10 @@ export class FeaturesService {
   /**
    * Get feature by featureId. When retrieving features by id, the features and any of its children are returned, but not any of its parent or sibling features.
    * @param featureId - featureId
+   * @param option - 1 : return whole feature, 2: return feature's attributes only
    * @returns Return the feature(s) if search was successful. Otherwise throw exception
    */
-  async findById(featureId: string) {
+  async findById(featureId: string, option: number) {
     // Search correct feature
     const topLevelFeature = await this.featureModel
       .findOne({ allIds: featureId })
@@ -168,6 +169,12 @@ export class FeaturesService {
       throw new NotFoundException(errMsg)
     }
     this.logger.debug(`Feature found: ${JSON.stringify(foundFeature)}`)
+    switch (option) {
+      case 1:
+        return foundFeature
+      case 2:
+        return foundFeature.attributes
+    }
     return foundFeature
   }
 
