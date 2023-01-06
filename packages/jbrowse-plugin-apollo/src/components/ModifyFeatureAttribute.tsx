@@ -28,8 +28,8 @@ interface ModifyFeatureAttributeProps {
 }
 
 interface Collection {
-  _id: string
-  name: string
+  key: string
+  value: string
 }
 
 export function ModifyFeatureAttribute({
@@ -41,9 +41,9 @@ export function ModifyFeatureAttribute({
 }: ModifyFeatureAttributeProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const { notify } = session
-  const [end, setEnd] = useState(String(sourceFeature.end))
-  const [start, setStart] = useState(String(sourceFeature.start))
-  const [type, setType] = useState('')
+  // const [end, setEnd] = useState(String(sourceFeature.end))
+  // const [start, setStart] = useState(String(sourceFeature.start))
+  // const [type, setType] = useState('')
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel | undefined
@@ -56,8 +56,9 @@ export function ModifyFeatureAttribute({
   const [assemblyId, setAssemblyId] = useState('')
 
   useEffect(() => {
-    async function getAssemblies() {  // KIRJOITA TASTA FUNKTIO JOKA PALAUTTAA YHDEN FEATUREN ATTRIBUUTIT JA LATAA NE DROP-DOWN LISTAAN
-      const uri = new URL('/assemblies', baseURL).href
+    async function getFeatureAttributes() {
+      const tmpUrl = `/features/getAttributes/${sourceFeature._id}`
+      const uri = new URL(tmpUrl, baseURL).href
       const apolloFetch = apolloInternetAccount?.getFetcher({
         locationType: 'UriLocation',
         uri,
@@ -74,41 +75,45 @@ export function ModifyFeatureAttribute({
             msg = ''
           }
           setErrorMessage(
-            `Error when copying features — ${response.status} (${
+            `Error when retrieving feature attributes — ${response.status} (${
               response.statusText
             })${msg ? ` (${msg})` : ''}`,
           )
           return
         }
         const data = await response.json()
-        data.forEach((item: Collection) => {
-          // Do not show source assembly in the list of target assemblies
-          if (item._id !== sourceAssemblyId) {
-            setCollection((result) => [
-              ...result,
-              {
-                _id: item._id,
-                name: item.name,
-              },
-            ])
-          }
+        console.log(`ATTRIBUTES: ${JSON.stringify(data)}`)
+        Object.keys(data).forEach(function (key) {
+          console.log(`Key : ${key}, Value : ${data[key]}`)
+          setCollection((result) => [
+            ...result,
+            {
+              key,
+              value: data[key],
+            },
+          ])
         })
       }
     }
-    getAssemblies()
+    getFeatureAttributes()
     return () => {
-      setCollection([{ _id: '', name: '' }])
+      setCollection([{ key: '', value: '' }])
     }
   }, [apolloInternetAccount, baseURL, sourceAssemblyId, sourceFeature])
 
   function handleChangeAssembly(e: SelectChangeEvent<string>) {
     setAssemblyId(e.target.value as string)
+    // *** TODO *** : SHOW ATTRIBUTE VALUE IN EDITABLE GRID WHERE USER CAN ADD/EDIT/MODIFY ****
+    // THERE MUST BE ALSO POSSIBILITY TO ADD NEW KEY-VALUE
   }
-  
+
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    const dummy: Record<string, string[]> = {a: ["hey"], b: ["you"]}
+    // *** TODO *** : HERE WE MUST LOOP EDITABLE GRID KEY-VALUES AND SAVE THEM INTO RECORD WHICH WILL BE POSTED TO BACKEND 
+    // CURRENTLY IT SAVES DUMMY (SEE BELOW) ATTRIBUTES
+    const dummy: Record<string, string[]> = { a: ['hey'], b: ['you'] }
+    // const dummy: Record<string, string[]> = { }
     const change = new FeatureAttributeChange({
       changedIds: [sourceFeature._id],
       typeName: 'FeatureAttributeChange',
@@ -122,25 +127,25 @@ export function ModifyFeatureAttribute({
     event.preventDefault()
   }
 
-  const error = Number(end) <= Number(start)
+  // const error = Number(end) <= Number(start)
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Feature attributes</DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-        <DialogContentText>Target assembly</DialogContentText>
+          <DialogContentText>Select attribute</DialogContentText>
           <Select
             labelId="label"
             value={assemblyId}
             onChange={handleChangeAssembly}
           >
             {collection.map((option) => (
-              <MenuItem key={option._id} value={option._id}>
-                {option.name}
+              <MenuItem key={option.key} value={option.key}>
+                {option.key} : {option.value}
               </MenuItem>
             ))}
           </Select>
-          <TextField
+          {/* <TextField
             autoFocus
             margin="dense"
             id="start"
@@ -172,14 +177,14 @@ export function ModifyFeatureAttribute({
             variant="outlined"
             value={type}
             onChange={(e) => setType(e.target.value)}
-          />
+          /> */}
         </DialogContent>
 
         <DialogActions>
           <Button
             variant="contained"
             type="submit"
-            disabled={error || !(start && end && type)}
+            // disabled={error || !(start && end && type)}
           >
             Submit
           </Button>

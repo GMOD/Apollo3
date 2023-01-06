@@ -420,11 +420,11 @@ function ApolloRendering(props: ApolloRenderingProps) {
           }}
         >
           Add annotation attribute
-        </MenuItem>        
+        </MenuItem>
         <MenuItem
           disabled={isReadOnly}
-          key={1}
-          value={1}
+          key={2}
+          value={2}
           onClick={() => {
             if (!contextMenuFeature) {
               return
@@ -449,8 +449,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
         </MenuItem>
         <MenuItem
           disabled={isReadOnly}
-          key={2}
-          value={2}
+          key={3}
+          value={3}
           onClick={() => {
             if (!contextMenuFeature) {
               return
@@ -475,8 +475,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
         </MenuItem>
         <MenuItem
           disabled={!isAdmin}
-          key={3}
-          value={3}
+          key={4}
+          value={4}
           onClick={() => {
             if (!contextMenuFeature) {
               return
