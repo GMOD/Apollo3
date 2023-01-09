@@ -118,8 +118,6 @@ export class FeaturesController {
   @Get('getAttributes/:featureid')
   async getFeatureAttributes(@Param('featureid') featureid: string) {
     this.logger.debug(`Get feature attributes by featureId: ${featureid}`)
-    const a = await this.featuresService.findById(featureid, 2)
-    this.logger.debug(JSON.stringify(a))
     return this.featuresService.findById(featureid, 2)
   }
 

@@ -13,7 +13,6 @@ import {
 } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { ChangeManager, FeatureAttributeChange } from 'apollo-shared'
-import ObjectID from 'bson-objectid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
@@ -29,7 +28,7 @@ interface ModifyFeatureAttributeProps {
 
 interface Collection {
   key: string
-  value: string
+  value: string[]
 }
 
 export function ModifyFeatureAttribute({
@@ -41,9 +40,6 @@ export function ModifyFeatureAttribute({
 }: ModifyFeatureAttributeProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const { notify } = session
-  // const [end, setEnd] = useState(String(sourceFeature.end))
-  // const [start, setStart] = useState(String(sourceFeature.start))
-  // const [type, setType] = useState('')
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel | undefined
@@ -53,7 +49,10 @@ export function ModifyFeatureAttribute({
   const { baseURL } = apolloInternetAccount
   const [errorMessage, setErrorMessage] = useState('')
   const [collection, setCollection] = useState<Collection[]>([])
-  const [assemblyId, setAssemblyId] = useState('')
+  const [attributeLine, setAttribureLine] = useState('')
+  // const [attributeValue, setAttributeValue] = useState<string[]>([])
+  const [attributeNewValue, setAttributeNewValue] = useState('')
+  const [attributeKey, setAttributeKey] = useState('')
 
   useEffect(() => {
     async function getFeatureAttributes() {
@@ -82,9 +81,9 @@ export function ModifyFeatureAttribute({
           return
         }
         const data = await response.json()
-        console.log(`ATTRIBUTES: ${JSON.stringify(data)}`)
+        console.log(`Backend response: ${JSON.stringify(data)}`)
         Object.keys(data).forEach(function (key) {
-          console.log(`Key : ${key}, Value : ${data[key]}`)
+          console.log(`Key : "${key}", value : "${data[key]}"`)
           setCollection((result) => [
             ...result,
             {
@@ -97,29 +96,48 @@ export function ModifyFeatureAttribute({
     }
     getFeatureAttributes()
     return () => {
-      setCollection([{ key: '', value: '' }])
+      setCollection([{ key: '', value: [''] }])
     }
   }, [apolloInternetAccount, baseURL, sourceAssemblyId, sourceFeature])
 
-  function handleChangeAssembly(e: SelectChangeEvent<string>) {
-    setAssemblyId(e.target.value as string)
-    // *** TODO *** : SHOW ATTRIBUTE VALUE IN EDITABLE GRID WHERE USER CAN ADD/EDIT/MODIFY ****
-    // THERE MUST BE ALSO POSSIBILITY TO ADD NEW KEY-VALUE
+  function handleChangeAttribute(e: SelectChangeEvent<string>) {
+    const valArray = e.target.value.split('=')
+    setAttributeKey(valArray[0].trim())
+    setAttributeNewValue(valArray[1].trim())
+  }
+
+  function handleChangeAttributeValue(value: string): void {
+    setAttributeNewValue(value)
+    let ind = 0
+    collection.forEach((item) => {
+      // Find correct element and update its value (or delete if value has been removed)
+      if (item.key === attributeKey) {
+        if (value.trim().length === 0) {
+          collection.splice(ind, 1)
+          ind++
+        } else {
+          item.value = [value]
+        }
+      }
+    })
   }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    // *** TODO *** : HERE WE MUST LOOP EDITABLE GRID KEY-VALUES AND SAVE THEM INTO RECORD WHICH WILL BE POSTED TO BACKEND 
-    // CURRENTLY IT SAVES DUMMY (SEE BELOW) ATTRIBUTES
-    const dummy: Record<string, string[]> = { a: ['hey'], b: ['you'] }
-    // const dummy: Record<string, string[]> = { }
+    const attributes: Record<string, string[]> = {}
+
+    collection.forEach((item) => {
+      console.log(`Collection "${item.key}" value is "${item.value}"`)
+      attributes[item.key] = item.value
+    })
+
     const change = new FeatureAttributeChange({
       changedIds: [sourceFeature._id],
       typeName: 'FeatureAttributeChange',
       assembly: sourceAssemblyId,
       featureId: sourceFeature._id,
-      attributes: dummy,
+      attributes,
     })
     changeManager.submit?.(change)
     notify(`Feature attributes added/edited/deleted successfully`, 'success')
@@ -127,7 +145,6 @@ export function ModifyFeatureAttribute({
     event.preventDefault()
   }
 
-  // const error = Number(end) <= Number(start)
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Feature attributes</DialogTitle>
@@ -136,56 +153,33 @@ export function ModifyFeatureAttribute({
           <DialogContentText>Select attribute</DialogContentText>
           <Select
             labelId="label"
-            value={assemblyId}
-            onChange={handleChangeAssembly}
+            value={attributeLine}
+            onChange={handleChangeAttribute}
           >
             {collection.map((option) => (
-              <MenuItem key={option.key} value={option.key}>
+              <MenuItem
+                id={option.key}
+                key={option.key}
+                value={`${option.key} = ${option.value}`}
+              >
                 {option.key} : {option.value}
               </MenuItem>
             ))}
           </Select>
-          {/* <TextField
-            autoFocus
-            margin="dense"
-            id="start"
-            label="Start"
-            type="number"
-            fullWidth
-            variant="outlined"
-            value={start}
-            onChange={(e) => setStart(e.target.value)}
-          />
+          <DialogContentText>Key : {attributeKey}</DialogContentText>
           <TextField
             margin="dense"
-            id="end"
-            label="End"
-            type="number"
-            fullWidth
-            variant="outlined"
-            value={end}
-            onChange={(e) => setEnd(e.target.value)}
-            error={error}
-            helperText={error ? '"End" must be greater than "Start"' : null}
-          />
-          <TextField
-            margin="dense"
-            id="type"
-            label="Type"
+            id="newvalue"
             type="text"
             fullWidth
             variant="outlined"
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-          /> */}
+            value={attributeNewValue}
+            onChange={(e) => handleChangeAttributeValue(e.target.value)}
+          />
         </DialogContent>
 
         <DialogActions>
-          <Button
-            variant="contained"
-            type="submit"
-            // disabled={error || !(start && end && type)}
-          >
+          <Button variant="contained" type="submit">
             Submit
           </Button>
           <Button
