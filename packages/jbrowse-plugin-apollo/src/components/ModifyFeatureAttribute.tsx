@@ -1,4 +1,5 @@
 import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Button,
   Dialog,
@@ -6,9 +7,8 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
+  Grid,
+  IconButton,
   TextField,
 } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
@@ -49,13 +49,28 @@ export function ModifyFeatureAttribute({
   const { baseURL } = apolloInternetAccount
   const [errorMessage, setErrorMessage] = useState('')
   const [collection, setCollection] = useState<Collection[]>([])
-  const [attributeLine, setAttribureLine] = useState('')
-  // const [attributeValue, setAttributeValue] = useState<string[]>([])
+  const [addNew, setAddNew] = useState(false)
   const [attributeNewValue, setAttributeNewValue] = useState('')
-  const [attributeKey, setAttributeKey] = useState('')
+  const [newAttributeKey, setNewAttributeKey] = useState('')
+  const [newAttributeValue, setNewAttributeValue] = useState('')
 
   useEffect(() => {
     async function getFeatureAttributes() {
+      console.log(
+        `Attributes client : "${JSON.stringify(sourceFeature.attributes)}"`,
+      )
+      // sourceFeature.attributes.forEach((value: string[], key: string) => {
+      //   // console.log(`Key : "${key}", value : "${value}"`)
+      //   setCollection((result) => [
+      //     ...result,
+      //     {
+      //       key,
+      //       value,
+      //     },
+      //   ])
+      // })
+
+      // If we fetch feature attributes directly from Mongo then we use code below
       const tmpUrl = `/features/getAttributes/${sourceFeature._id}`
       const uri = new URL(tmpUrl, baseURL).href
       const apolloFetch = apolloInternetAccount?.getFetcher({
@@ -81,6 +96,8 @@ export function ModifyFeatureAttribute({
           return
         }
         const data = await response.json()
+        console.log(`Data type : "${typeof data}"`)
+
         console.log(`Backend response: ${JSON.stringify(data)}`)
         Object.keys(data).forEach(function (key) {
           console.log(`Key : "${key}", value : "${data[key]}"`)
@@ -99,28 +116,6 @@ export function ModifyFeatureAttribute({
       setCollection([{ key: '', value: [''] }])
     }
   }, [apolloInternetAccount, baseURL, sourceAssemblyId, sourceFeature])
-
-  function handleChangeAttribute(e: SelectChangeEvent<string>) {
-    const valArray = e.target.value.split('=')
-    setAttributeKey(valArray[0].trim())
-    setAttributeNewValue(valArray[1].trim())
-  }
-
-  function handleChangeAttributeValue(value: string): void {
-    setAttributeNewValue(value)
-    let ind = 0
-    collection.forEach((item) => {
-      // Find correct element and update its value (or delete if value has been removed)
-      if (item.key === attributeKey) {
-        if (value.trim().length === 0) {
-          collection.splice(ind, 1)
-          ind++
-        } else {
-          item.value = [value]
-        }
-      }
-    })
-  }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -145,46 +140,160 @@ export function ModifyFeatureAttribute({
     event.preventDefault()
   }
 
+  function handleChangeAtt(value: string, id: string): void {
+    setAttributeNewValue(value)
+    console.log(`UUSI ARVO: ${value}`)
+    collection.forEach((item) => {
+      if (item.key === id) {
+        item.value = [value]
+      }
+    })
+  }
+
+  function handleChangeAddNewAttribute() {
+    setErrorMessage('')
+    let ok = true
+    collection.forEach((item) => {
+      // Find correct element and delete it
+      if (item.key === newAttributeKey) {
+        setErrorMessage(`Key "${newAttributeKey}" already exists!`)
+        ok = false
+      }
+    })
+    if (ok) {
+      setCollection((result) => [
+        ...result,
+        {
+          key: newAttributeKey,
+          value: [newAttributeValue],
+        },
+      ])
+      setAddNew(false)
+    }
+  }
+  function deleteAttribute(key: string) {
+    setErrorMessage('')
+    let ind = 0
+    collection.forEach((item) => {
+      // Find correct element and delete it
+      if (item.key === key) {
+        collection.splice(ind, 1)
+      }
+      ind++
+    })
+    setCollection((result) => [...result])
+  }
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Feature attributes</DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-          <DialogContentText>Select attribute</DialogContentText>
-          <Select
-            labelId="label"
-            value={attributeLine}
-            onChange={handleChangeAttribute}
-          >
-            {collection.map((option) => (
-              <MenuItem
-                id={option.key}
-                key={option.key}
-                value={`${option.key} = ${option.value}`}
+          {collection.map((attribute) => {
+            return (
+              <>
+                <Grid container spacing={1}>
+                  <Grid item>
+                    <TextField
+                      id={attribute.key}
+                      key={attribute.key}
+                      label={attribute.key}
+                      type="text"
+                      value={attribute.value}
+                      onChange={(e) =>
+                        handleChangeAtt(e.target.value, e.target.id)
+                      }
+                    />
+                  </Grid>
+                  <Grid item>
+                    <IconButton
+                      aria-label="delete"
+                      size="medium"
+                      key={attribute.key}
+                      onClick={() => {
+                        deleteAttribute(attribute.key)
+                      }}
+                    >
+                      <DeleteIcon fontSize="medium" key={attribute.key} />
+                    </IconButton>
+                  </Grid>
+                </Grid>
+              </>
+            )
+          })}
+
+          {addNew ? (
+            <DialogContent>
+              <TextField
+                autoFocus
+                margin="dense"
+                id="attName"
+                key="attName"
+                label="Attribute key"
+                type="text"
+                fullWidth
+                variant="outlined"
+                onChange={(e) => {
+                  setNewAttributeKey(e.target.value)
+                }}
+              />
+              <TextField
+                margin="dense"
+                id="attValue"
+                key="attValue"
+                label="Attribute value"
+                type="text"
+                fullWidth
+                variant="outlined"
+                onChange={(e) => {
+                  setNewAttributeValue(e.target.value)
+                }}
+              />
+            </DialogContent>
+          ) : null}
+          {addNew ? (
+            <DialogActions>
+              <Button
+                color="primary"
+                variant="contained"
+                style={{ margin: 2 }}
+                onClick={() => {
+                  setAddNew(true)
+                  handleChangeAddNewAttribute()
+                }}
               >
-                {option.key} : {option.value}
-              </MenuItem>
-            ))}
-          </Select>
-          <DialogContentText>Key : {attributeKey}</DialogContentText>
-          <TextField
-            margin="dense"
-            id="newvalue"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={attributeNewValue}
-            onChange={(e) => handleChangeAttributeValue(e.target.value)}
-          />
+                Add
+              </Button>
+              <Button
+                variant="outlined"
+                type="submit"
+                onClick={() => {
+                  setAddNew(false)
+                }}
+              >
+                Cancel
+              </Button>
+            </DialogActions>
+          ) : null}
         </DialogContent>
 
         <DialogActions>
-          <Button variant="contained" type="submit">
-            Submit
+          <Button
+            color="primary"
+            variant="contained"
+            disabled={addNew}
+            onClick={() => {
+              setAddNew(true)
+            }}
+          >
+            Add new attribute
+          </Button>
+          <Button variant="contained" type="submit" disabled={addNew}>
+            Submit changes
           </Button>
           <Button
             variant="outlined"
             type="submit"
+            disabled={addNew}
             onClick={() => {
               handleClose()
             }}
