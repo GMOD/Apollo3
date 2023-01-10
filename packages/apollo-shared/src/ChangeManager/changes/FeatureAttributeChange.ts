@@ -1,3 +1,4 @@
+import { FeatureRendererType } from '@jbrowse/core/pluggableElementTypes'
 import { Feature, FeatureDocument } from 'apollo-schemas'
 
 import {
@@ -131,12 +132,12 @@ export class FeatureAttributeChange extends FeatureChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
-    this.changes.forEach((change) => {
-      const { featureId } = change
-      const feature = dataStore.getFeature(featureId)
+    this.changedIds.forEach((changedId, idx) => {
+      const feature = dataStore.getFeature(changedId)
       if (!feature) {
-        throw new Error(`Could not find feature with identifier "${featureId}"`)
+        throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
+      feature.setAttributes(this.changes[idx].attributes)
     })
   }
 

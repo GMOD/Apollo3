@@ -125,6 +125,9 @@ export const AnnotationFeature = types
     },
   }))
   .actions((self) => ({
+    setAttributes(attributes: any) {
+      self.attributes = attributes
+    },
     setType(type: string) {
       self.type = type
     },

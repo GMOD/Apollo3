@@ -59,57 +59,53 @@ export function ModifyFeatureAttribute({
       console.log(
         `Attributes client : "${JSON.stringify(sourceFeature.attributes)}"`,
       )
-      // sourceFeature.attributes.forEach((value: string[], key: string) => {
-      //   // console.log(`Key : "${key}", value : "${value}"`)
-      //   setCollection((result) => [
-      //     ...result,
-      //     {
-      //       key,
-      //       value,
-      //     },
-      //   ])
-      // })
-
-      // If we fetch feature attributes directly from Mongo then we use code below
-      const tmpUrl = `/features/getAttributes/${sourceFeature._id}`
-      const uri = new URL(tmpUrl, baseURL).href
-      const apolloFetch = apolloInternetAccount?.getFetcher({
-        locationType: 'UriLocation',
-        uri,
+      // If we fetch feature attributes from local data store then we use code below
+      sourceFeature.attributes.forEach((value: string[], key: string) => {
+        setCollection((result) => [
+          ...result,
+          {
+            key,
+            value,
+          },
+        ])
       })
-      if (apolloFetch) {
-        const response = await apolloFetch(uri, {
-          method: 'GET',
-        })
-        if (!response.ok) {
-          let msg
-          try {
-            msg = await response.text()
-          } catch (e) {
-            msg = ''
-          }
-          setErrorMessage(
-            `Error when retrieving feature attributes — ${response.status} (${
-              response.statusText
-            })${msg ? ` (${msg})` : ''}`,
-          )
-          return
-        }
-        const data = await response.json()
-        console.log(`Data type : "${typeof data}"`)
-
-        console.log(`Backend response: ${JSON.stringify(data)}`)
-        Object.keys(data).forEach(function (key) {
-          console.log(`Key : "${key}", value : "${data[key]}"`)
-          setCollection((result) => [
-            ...result,
-            {
-              key,
-              value: data[key],
-            },
-          ])
-        })
-      }
+      // // If we fetch feature attributes directly from Mongo then we use code below
+      // const tmpUrl = `/features/getAttributes/${sourceFeature._id}`
+      // const uri = new URL(tmpUrl, baseURL).href
+      // const apolloFetch = apolloInternetAccount?.getFetcher({
+      //   locationType: 'UriLocation',
+      //   uri,
+      // })
+      // if (apolloFetch) {
+      //   const response = await apolloFetch(uri, {
+      //     method: 'GET',
+      //   })
+      //   if (!response.ok) {
+      //     let msg
+      //     try {
+      //       msg = await response.text()
+      //     } catch (e) {
+      //       msg = ''
+      //     }
+      //     setErrorMessage(
+      //       `Error when retrieving feature attributes — ${response.status} (${
+      //         response.statusText
+      //       })${msg ? ` (${msg})` : ''}`,
+      //     )
+      //     return
+      //   }
+      //   const data = await response.json()
+      //   Object.keys(data).forEach(function (key) {
+      //     console.log(`Key : "${key}", value : "${data[key]}"`)
+      //     setCollection((result) => [
+      //       ...result,
+      //       {
+      //         key,
+      //         value: data[key],
+      //       },
+      //     ])
+      //   })
+      // }
     }
     getFeatureAttributes()
     return () => {
@@ -123,7 +119,7 @@ export function ModifyFeatureAttribute({
     const attributes: Record<string, string[]> = {}
 
     collection.forEach((item) => {
-      console.log(`Collection "${item.key}" value is "${item.value}"`)
+      // console.log(`Collection "${item.key}" value is "${item.value}"`)
       attributes[item.key] = item.value
     })
 
@@ -135,14 +131,13 @@ export function ModifyFeatureAttribute({
       attributes,
     })
     changeManager.submit?.(change)
-    notify(`Feature attributes added/edited/deleted successfully`, 'success')
+    notify(`Feature attributes modified successfully`, 'success')
     handleClose()
     event.preventDefault()
   }
 
   function handleChangeAtt(value: string, id: string): void {
     setAttributeNewValue(value)
-    console.log(`UUSI ARVO: ${value}`)
     collection.forEach((item) => {
       if (item.key === id) {
         item.value = [value]
@@ -156,7 +151,7 @@ export function ModifyFeatureAttribute({
     collection.forEach((item) => {
       // Find correct element and delete it
       if (item.key === newAttributeKey) {
-        setErrorMessage(`Key "${newAttributeKey}" already exists!`)
+        setErrorMessage(`Attribute key "${newAttributeKey}" already exists!`)
         ok = false
       }
     })
@@ -191,14 +186,15 @@ export function ModifyFeatureAttribute({
           {collection.map((attribute) => {
             return (
               <>
-                <Grid container spacing={1}>
-                  <Grid item>
+                <Grid container spacing={1} alignItems="flex-end">
+                  <Grid item style={{ width: 500 }}>
                     <TextField
                       id={attribute.key}
                       key={attribute.key}
                       label={attribute.key}
                       type="text"
                       value={attribute.value}
+                      style={{ width: 500 }}
                       onChange={(e) =>
                         handleChangeAtt(e.target.value, e.target.id)
                       }
@@ -226,8 +222,6 @@ export function ModifyFeatureAttribute({
               <TextField
                 autoFocus
                 margin="dense"
-                id="attName"
-                key="attName"
                 label="Attribute key"
                 type="text"
                 fullWidth
@@ -238,8 +232,6 @@ export function ModifyFeatureAttribute({
               />
               <TextField
                 margin="dense"
-                id="attValue"
-                key="attValue"
                 label="Attribute value"
                 type="text"
                 fullWidth
@@ -253,6 +245,7 @@ export function ModifyFeatureAttribute({
           {addNew ? (
             <DialogActions>
               <Button
+                key="addButton"
                 color="primary"
                 variant="contained"
                 style={{ margin: 2 }}
@@ -264,10 +257,12 @@ export function ModifyFeatureAttribute({
                 Add
               </Button>
               <Button
+                key="cancelAddButton"
                 variant="outlined"
                 type="submit"
                 onClick={() => {
                   setAddNew(false)
+                  setErrorMessage('')
                 }}
               >
                 Cancel
@@ -285,8 +280,9 @@ export function ModifyFeatureAttribute({
               setAddNew(true)
             }}
           >
-            Add new attribute
+            Add new
           </Button>
+          <div style={{ flex: '1 0 0' }} />
           <Button variant="contained" type="submit" disabled={addNew}>
             Submit changes
           </Button>

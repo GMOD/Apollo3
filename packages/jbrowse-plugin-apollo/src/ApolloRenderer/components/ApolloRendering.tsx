@@ -405,32 +405,6 @@ function ApolloRendering(props: ApolloRenderingProps) {
             }
             const currentAssemblyId = getAssemblyId(region.assemblyName)
             session.queueDialog((doneCallback) => [
-              ModifyFeatureAttribute,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                  setContextMenuFeature(undefined)
-                },
-                changeManager,
-                sourceFeature: contextMenuFeature,
-                sourceAssemblyId: currentAssemblyId,
-              },
-            ])
-          }}
-        >
-          Add annotation attribute
-        </MenuItem>
-        <MenuItem
-          disabled={isReadOnly}
-          key={2}
-          value={2}
-          onClick={() => {
-            if (!contextMenuFeature) {
-              return
-            }
-            const currentAssemblyId = getAssemblyId(region.assemblyName)
-            session.queueDialog((doneCallback) => [
               AddFeature,
               {
                 session,
@@ -449,8 +423,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
         </MenuItem>
         <MenuItem
           disabled={isReadOnly}
-          key={3}
-          value={3}
+          key={2}
+          value={2}
           onClick={() => {
             if (!contextMenuFeature) {
               return
@@ -475,8 +449,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
         </MenuItem>
         <MenuItem
           disabled={!isAdmin}
-          key={4}
-          value={4}
+          key={3}
+          value={3}
           onClick={() => {
             if (!contextMenuFeature) {
               return
@@ -500,6 +474,32 @@ function ApolloRendering(props: ApolloRenderingProps) {
           }}
         >
           Delete feature
+        </MenuItem>
+        <MenuItem
+          disabled={isReadOnly}
+          key={4}
+          value={4}
+          onClick={() => {
+            if (!contextMenuFeature) {
+              return
+            }
+            const currentAssemblyId = getAssemblyId(region.assemblyName)
+            session.queueDialog((doneCallback) => [
+              ModifyFeatureAttribute,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                  setContextMenuFeature(undefined)
+                },
+                changeManager,
+                sourceFeature: contextMenuFeature,
+                sourceAssemblyId: currentAssemblyId,
+              },
+            ])
+          }}
+        >
+          Modify feature attribute
         </MenuItem>
       </Menu>
       <canvas
