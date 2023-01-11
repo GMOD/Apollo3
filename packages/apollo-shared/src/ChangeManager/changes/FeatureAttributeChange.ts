@@ -1,4 +1,3 @@
-import { FeatureRendererType } from '@jbrowse/core/pluggableElementTypes'
 import { Feature, FeatureDocument } from 'apollo-schemas'
 
 import {

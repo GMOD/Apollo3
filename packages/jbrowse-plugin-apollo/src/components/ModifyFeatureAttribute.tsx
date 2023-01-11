@@ -50,12 +50,14 @@ export function ModifyFeatureAttribute({
   const [errorMessage, setErrorMessage] = useState('')
   const [collection, setCollection] = useState<Collection[]>([])
   const [addNew, setAddNew] = useState(false)
-  const [attributeNewValue, setAttributeNewValue] = useState('')
+  const [attributeNewValue, setAttributeNewValue] = useState([''])
   const [newAttributeKey, setNewAttributeKey] = useState('')
   const [newAttributeValue, setNewAttributeValue] = useState('')
+  const [hasInitAttribute, setHasInitAttribute] = useState(false)
 
   useEffect(() => {
     async function getFeatureAttributes() {
+      setHasInitAttribute(false)
       console.log(
         `Attributes client : "${JSON.stringify(sourceFeature.attributes)}"`,
       )
@@ -68,7 +70,9 @@ export function ModifyFeatureAttribute({
             value,
           },
         ])
+        setHasInitAttribute(true)
       })
+
       // // If we fetch feature attributes directly from Mongo then we use code below
       // const tmpUrl = `/features/getAttributes/${sourceFeature._id}`
       // const uri = new URL(tmpUrl, baseURL).href
@@ -137,10 +141,10 @@ export function ModifyFeatureAttribute({
   }
 
   function handleChangeAtt(value: string, id: string): void {
-    setAttributeNewValue(value)
+    setAttributeNewValue(value.split(','))
     collection.forEach((item) => {
       if (item.key === id) {
-        item.value = [value]
+        item.value = value.split(',')
       }
     })
   }
@@ -160,10 +164,11 @@ export function ModifyFeatureAttribute({
         ...result,
         {
           key: newAttributeKey,
-          value: [newAttributeValue],
+          value: newAttributeValue.split(','),
         },
       ])
       setAddNew(false)
+      setHasInitAttribute(true)
     }
   }
   function deleteAttribute(key: string) {
@@ -177,6 +182,7 @@ export function ModifyFeatureAttribute({
       ind++
     })
     setCollection((result) => [...result])
+    setHasInitAttribute(true)
   }
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
@@ -187,14 +193,14 @@ export function ModifyFeatureAttribute({
             return (
               <>
                 <Grid container spacing={1} alignItems="flex-end">
-                  <Grid item style={{ width: 500 }}>
+                  <Grid item style={{ minWidth: 550 }}>
                     <TextField
                       id={attribute.key}
                       key={attribute.key}
                       label={attribute.key}
                       type="text"
                       value={attribute.value}
-                      style={{ width: 500 }}
+                      style={{ minWidth: 500 }}
                       onChange={(e) =>
                         handleChangeAtt(e.target.value, e.target.id)
                       }
@@ -283,7 +289,11 @@ export function ModifyFeatureAttribute({
             Add new
           </Button>
           <div style={{ flex: '1 0 0' }} />
-          <Button variant="contained" type="submit" disabled={addNew}>
+          <Button
+            variant="contained"
+            type="submit"
+            disabled={!hasInitAttribute || addNew}
+          >
             Submit changes
           </Button>
           <Button
@@ -297,6 +307,10 @@ export function ModifyFeatureAttribute({
             Cancel
           </Button>
         </DialogActions>
+        <span style={{ fontWeight: 'bold' }}>
+          Note: Multiple attributes of the same type are indicated by separating
+          the values with the comma
+        </span>
       </form>
       {errorMessage ? (
         <DialogContent>
