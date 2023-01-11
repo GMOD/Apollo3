@@ -224,7 +224,7 @@ export function ModifyFeatureAttribute({
           })}
 
           {addNew ? (
-            <DialogContent>
+            <DialogContent style={{ border: '5px solid rgba(0, 0, 0, 0.05)' }}>
               <TextField
                 autoFocus
                 margin="dense"
