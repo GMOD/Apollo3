@@ -36,6 +36,7 @@
     "@nestjs/websockets": "^9.2.1",
     "apollo-schemas": "workspace:^",
     "apollo-shared": "workspace:^",
+    "bionode-obo": "^0.1.1",
     "express-session": "^1.17.3",
     "mobx": "^6.6.1",
     "mobx-react": "^7.2.1",
