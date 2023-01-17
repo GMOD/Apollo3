@@ -6,13 +6,16 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
   TextField,
 } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { AddFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import { getRoot } from 'mobx-state-tree'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
@@ -23,6 +26,10 @@ interface AddFeatureProps {
   sourceFeature: AnnotationFeatureI
   sourceAssemblyId: string
   changeManager: ChangeManager
+}
+
+interface TypeDocument {
+  lbl: string
 }
 
 export function AddFeature({
@@ -36,14 +43,55 @@ export function AddFeature({
   const { notify } = session
   const [end, setEnd] = useState(String(sourceFeature.end))
   const [start, setStart] = useState(String(sourceFeature.start))
-  const [type, setType] = useState('')
+  const [sourceType, setSourceType] = useState(String(sourceFeature.type))
+  // const [type, setType] = useState('')
+  const [typeId, setTypeId] = useState('')
+
+  const [typeCollection, setTypeCollection] = useState<TypeDocument[]>([])
+
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel | undefined
   if (!apolloInternetAccount) {
     throw new Error('No Apollo internet account found')
   }
+  const { baseURL } = apolloInternetAccount
   const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    async function getTypes() {
+      const url = `/ontologies/${sourceType}`
+      console.log(`URL: ${url}`)
+      const uri = new URL(url, baseURL).href
+      const apolloFetch = apolloInternetAccount?.getFetcher({
+        locationType: 'UriLocation',
+        uri,
+      })
+      if (apolloFetch) {
+        const response = await apolloFetch(uri, {
+          method: 'GET',
+        })
+        if (!response.ok) {
+          let msg
+          try {
+            msg = await response.text()
+          } catch (e) {
+            msg = ''
+          }
+          setErrorMessage(
+            `Error when retrieving assemblies from server — ${
+              response.status
+            } (${response.statusText})${msg ? ` (${msg})` : ''}`,
+          )
+          return
+        }
+        const data = (await response.json()) as TypeDocument[]
+        console.log(`DATA: ${JSON.stringify(data)}`)
+        setTypeCollection(data)
+      }
+    }
+    getTypes()
+  }, [apolloInternetAccount, baseURL])
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -57,7 +105,7 @@ export function AddFeature({
         refSeq: sourceFeature.refSeq,
         start: Number(start),
         end: Number(end),
-        type,
+        type: typeId,
       },
       parentFeatureId: sourceFeature._id,
     })
@@ -66,7 +114,9 @@ export function AddFeature({
     handleClose()
     event.preventDefault()
   }
-
+  async function handleChangeType(e: SelectChangeEvent<string>) {
+    setTypeId(e.target.value as string)
+  }
   const error = Number(end) <= Number(start)
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
@@ -96,7 +146,7 @@ export function AddFeature({
             error={error}
             helperText={error ? '"End" must be greater than "Start"' : null}
           />
-          <TextField
+          {/* <TextField
             margin="dense"
             id="type"
             label="Type"
@@ -105,14 +155,21 @@ export function AddFeature({
             variant="outlined"
             value={type}
             onChange={(e) => setType(e.target.value)}
-          />
+          /> */}
+          <Select value={typeId} onChange={handleChangeType}>
+            {typeCollection.map((option) => (
+              <MenuItem key={option.lbl} value={option.lbl}>
+                {option.lbl}
+              </MenuItem>
+            ))}
+          </Select>
         </DialogContent>
 
         <DialogActions>
           <Button
             variant="contained"
             type="submit"
-            disabled={error || !(start && end && type)}
+            disabled={error || !(start && end && typeId)}
           >
             Submit
           </Button>
