@@ -41,6 +41,7 @@
     "jwt-decode": "^3.1.2",
     "mobx": "^6.6.1",
     "mobx-react": "^7.2.1",
+    "mongodb": "^4.13.0",
     "mongoose": "^6.2.6",
     "mongoose-id-validator": "^0.6.0",
     "multer": "^1.4.4",
