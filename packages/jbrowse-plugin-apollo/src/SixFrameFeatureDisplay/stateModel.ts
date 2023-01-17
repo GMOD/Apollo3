@@ -24,6 +24,8 @@ export function stateModelFactory(
       configuration: ConfigurationReference(configSchema),
       apolloRowHeight: 20,
       detailsMinHeight: 200,
+      showStartCodons: true,
+      showStopCodons: true,
     })
     .volatile(() => ({
       apolloFeatureUnderMouse: undefined as AnnotationFeatureI | undefined,
@@ -209,6 +211,39 @@ export function stateModelFactory(
       },
       setApolloRowUnderMouse(row?: number) {
         self.apolloRowUnderMouse = row
+      },
+      toggleShowStartCodons() {
+        self.showStartCodons = !self.showStartCodons
+      },
+      toggleShowStopCodons() {
+        self.showStopCodons = !self.showStopCodons
+      },
+    }))
+    .views((self) => ({
+      get highestRow() {
+        if (!self.featureLayout.size) {
+          return 0
+        }
+        return Math.max(...self.featureLayout.keys())
+      },
+      get featuresHeight() {
+        return this.highestRow * self.apolloRowHeight
+      },
+      trackMenuItems() {
+        return [
+          {
+            label: 'Show start codons',
+            type: 'checkbox',
+            checked: self.showStartCodons,
+            onClick: () => self.toggleShowStartCodons(),
+          },
+          {
+            label: 'Show stop codons',
+            type: 'checkbox',
+            checked: self.showStopCodons,
+            onClick: () => self.toggleShowStopCodons(),
+          },
+        ]
       },
     }))
 }
