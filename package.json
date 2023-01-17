@@ -44,5 +44,8 @@
   "resolutions": {
     "typescript": "^4.7.4"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "bionode-obo": "^0.1.1"
+  }
 }

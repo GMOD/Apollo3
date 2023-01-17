@@ -90,3 +90,4 @@ declare module 'connect-mongodb-session' {
 
   export default connectMongoDBSession
 }
+declare module 'bionode-obo'

@@ -42,6 +42,7 @@
     "apollo-common": "workspace:^",
     "apollo-schemas": "workspace:^",
     "apollo-shared": "workspace:^",
+    "bionode-obo": "^0.1.1",
     "connect-mongodb-session": "^3.1.1",
     "express-session": "^1.17.3",
     "joi": "^17.7.0",
