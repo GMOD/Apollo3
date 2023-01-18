@@ -61,7 +61,6 @@ export function AddFeature({
   useEffect(() => {
     async function getTypes() {
       const url = `/ontologies/${sourceType}`
-      console.log(`URL: ${url}`)
       const uri = new URL(url, baseURL).href
       const apolloFetch = apolloInternetAccount?.getFetcher({
         locationType: 'UriLocation',
@@ -79,14 +78,19 @@ export function AddFeature({
             msg = ''
           }
           setErrorMessage(
-            `Error when retrieving assemblies from server — ${
+            `Error when retrieving ontologies from server — ${
               response.status
             } (${response.statusText})${msg ? ` (${msg})` : ''}`,
           )
           return
         }
         const data = (await response.json()) as TypeDocument[]
-        console.log(`DATA: ${JSON.stringify(data)}`)
+        // console.log(`DATA: ${JSON.stringify(data)}`)
+        if (data.length < 1) {
+          setErrorMessage(
+            `Feature type "${sourceType}" cannot have child feature!`,
+          )
+        }
         setTypeCollection(data)
       }
     }
