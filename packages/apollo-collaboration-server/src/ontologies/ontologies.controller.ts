@@ -11,6 +11,7 @@ import {
   Post,
   UnprocessableEntityException,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express/multer'
@@ -19,6 +20,9 @@ import {
   FileStorageEngine,
   UploadedFile as UploadedApolloFile,
 } from '../utils/FileStorageEngine'
+import { JwtAuthGuard } from '../utils/jwt-auth.guard'
+import { Role } from '../utils/role/role.enum'
+import { Validations } from '../utils/validation/validatation.decorator'
 import { OntologiesService } from './ontologies.service'
 
 // import { parse, stanzaParse } from 'bionode-obo'
@@ -40,9 +44,25 @@ export class OntologiesController {
   @Get(':parentType')
   getChildrenTypes(@Param('parentType') parentType: string) {
     this.logger.debug(
-      `Get allowed children's feature types by parent type: ${parentType}`,
+      `Get allowed children's feature types by parent type: "${parentType}"`,
     )
     return this.ontologiesService.findChildrenTypesByParentType(parentType)
+  }
+
+  /**
+   * Get all possible feature types for given feature. 
+   * @param parentType - string
+   * @returns Return 'HttpStatus.OK' and the allowed feature types if search was successful
+   * or if search data was not found or in case of error throw exception
+   */
+  // @UseGuards(JwtAuthGuard)
+  // @Validations(Role.ReadOnly)
+  @Get('/possibleTypes/:featureId')
+  getPossibleTypes(@Param('featureId') featureId: string) {
+    this.logger.debug(
+      `Get possible feature types for featureId: "${featureId}"`,
+    )
+    return this.ontologiesService.getPossibleFeatureTypes(featureId)
   }
 
   @Post()
