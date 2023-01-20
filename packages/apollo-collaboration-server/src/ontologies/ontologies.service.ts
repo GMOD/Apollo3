@@ -3,7 +3,6 @@ import { InjectModel } from '@nestjs/mongoose'
 import { Feature, FeatureDocument, Node, NodeDocument } from 'apollo-schemas'
 import { MongoClient } from 'mongodb'
 import { Model } from 'mongoose'
-// import { FeaturesService } from './../features/features.service'
 
 @Injectable()
 export class OntologiesService {
@@ -224,11 +223,11 @@ export class OntologiesService {
   async getPossibleFeatureTypes(featureId: string) {
     let resultArray: string[] = [] // Final result
     const parentChildArray: string[] = [] // This array contains types that we have got when retrieved all possible children types for feature's parent
-    const childParentArray: string[] = [] // This array contains types that we have got when retrieved feature's each child's parent types
-    // *** TODO : PITAA TARKASTAA ETTA KAIKKIEN LASTEN MAHDOLLISET VANHEMMAT OVAT KESKENAAN MAHDOLLISIA
+    const childParentArray: string[] = [] // This array contains types that we have got when retrieved feature's each child's possible parent types
     const topLevelFeature = await this.featureModel.findById(featureId) // Check if given feature is top level feature
-    let childrenTypes
-    let featureChildParentTypes
+    let childrenTypes: any[] = []
+    let featureChildParentTypes: any[] = []
+
     if (topLevelFeature) {
       this.logger.debug(
         `Feature has no parent, feature type: "${topLevelFeature.type}"`,
@@ -245,9 +244,12 @@ export class OntologiesService {
     }
 
     const feature = await this.findById(featureId, 2) // Flag "2" indicates that we return feature itself (not top level feature)
+    // Loop over all children
+    // First we get all possible parent types of the first child. For the following children we check that their possible parents's type overlaps with the first child's possible parent types
+    // because feature's new type must match with feature's all children's parent type
+    let firstChild = true
     if (feature.children) {
-      // Loop over all children
-      feature.allIds.forEach(async (element) => {
+      for (const element of feature.allIds) {
         if (element !== featureId) {
           const childFeature = await this.findById(element, 2)
           this.logger.debug(
@@ -256,11 +258,40 @@ export class OntologiesService {
           featureChildParentTypes = await this.findParentTypesByChildType(
             childFeature.type,
           )
-          if (featureChildParentTypes) {
-            featureChildParentTypes.forEach((item) => {
+          if (firstChild) {
+            for (const item of featureChildParentTypes) {
+              // featureChildParentTypes.forEach((item) => {
               childParentArray.indexOf(item.lbl) === -1
                 ? childParentArray.push(item.lbl)
                 : this.logger.verbose(`Array has already item "${item.lbl}"`)
+            }
+            firstChild = false
+          } else {
+            // If child's possible parent type is not found in "childParentArray" (that contais originally the possible parent types of the 1st child) then remove the type from "childParentArray" array
+            console.log(
+              `So far childParenArray has value: ${JSON.stringify(
+                childParentArray,
+              )}`,
+            )
+            console.log(
+              `featureChildParentTypes has value: ${JSON.stringify(
+                featureChildParentTypes,
+              )}`,
+            )
+            childParentArray.forEach((itm) => {
+              let childTypeFound = false
+              featureChildParentTypes.forEach((tmpElement) => {
+                if (tmpElement.lbl === itm) {
+                  childTypeFound = true
+                }
+              })
+              if (!childTypeFound) {
+                this.logger.debug(
+                  `Possible feature's "${childFeature._id}" type "${itm}" is not compatible with its child type "${childFeature.type}"`,
+                )
+                const index = childParentArray.indexOf(itm)
+                childParentArray.splice(index, 1)
+              }
             })
           }
           this.logger.debug(
@@ -269,15 +300,13 @@ export class OntologiesService {
             )}`,
           )
         }
-      })
-    } else {
-      if (childrenTypes) {
-        childrenTypes.forEach((element) => {
-          parentChildArray.indexOf(element.lbl) === -1
-            ? parentChildArray.push(element.lbl)
-            : this.logger.verbose(`Array has already item "${element.lbl}"`)
-        })
       }
+    } else {
+      childrenTypes.forEach((element) => {
+        parentChildArray.indexOf(element.lbl) === -1
+          ? parentChildArray.push(element.lbl)
+          : this.logger.verbose(`Array has already item "${element.lbl}"`)
+      })
       this.logger.debug(
         `Feature has no children so feature's possible types are: ${JSON.stringify(
           parentChildArray,
@@ -304,9 +333,9 @@ export class OntologiesService {
 
   async findById(featureId: string, flag: number) {
     // Search correct feature
-    const topLevelFeature = await this.featureModel
-      .findOne({ allIds: featureId })
-      .exec()
+    const topLevelFeature = await this.featureModel.findOne({
+      allIds: featureId,
+    })
 
     if (!topLevelFeature) {
       const errMsg = `ERROR: The following featureId was not found in database ='${featureId}'`
@@ -315,7 +344,7 @@ export class OntologiesService {
     }
 
     // Now we need to find correct top level feature or sub-feature inside the feature
-    const foundFeature = this.getFeatureFromId(topLevelFeature, featureId)
+    const foundFeature = await this.getFeatureFromId(topLevelFeature, featureId)
     if (!foundFeature) {
       const errMsg = `ERROR when searching feature by featureId`
       this.logger.error(errMsg)
@@ -333,7 +362,10 @@ export class OntologiesService {
    * @param featureId -
    * @returns
    */
-  getFeatureFromId(feature: Feature, featureId: string): Feature | null {
+  async getFeatureFromId(
+    feature: Feature,
+    featureId: string,
+  ): Promise<Feature | null> {
     this.logger.verbose(`Entry=${JSON.stringify(feature)}`)
 
     if (feature._id.equals(featureId)) {
@@ -348,7 +380,7 @@ export class OntologiesService {
     //   `FeatureId was not found on top level so lets make recursive call...`,
     // )
     for (const [, childFeature] of feature.children || new Map()) {
-      const subFeature = this.getFeatureFromId(childFeature, featureId)
+      const subFeature = await this.getFeatureFromId(childFeature, featureId)
       if (subFeature) {
         return subFeature
       }
