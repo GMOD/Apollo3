@@ -58,11 +58,12 @@ export class OntologiesController {
   // @UseGuards(JwtAuthGuard)
   // @Validations(Role.ReadOnly)
   @Get('/possibleTypes/:featureId')
-  getPossibleTypes(@Param('featureId') featureId: string) {
+  async getPossibleTypes(@Param('featureId') featureId: string) {
     this.logger.debug(
       `Get possible feature types for featureId: "${featureId}"`,
     )
-    return this.ontologiesService.getPossibleFeatureTypes(featureId)
+    const eka = await this.ontologiesService.getPossibleFeatureTypes(featureId)
+    return eka
   }
 
   @Post()
