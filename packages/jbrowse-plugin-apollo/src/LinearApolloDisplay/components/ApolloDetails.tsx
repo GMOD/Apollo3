@@ -23,7 +23,15 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { LinearApolloDisplay } from '../stateModel'
 
-function getFeatureColumns(editable: boolean): GridColumns {
+interface ApolloDetailsProps {
+  params: GridRenderEditCellParams
+  displayModel: LinearApolloDisplay
+}
+
+function getFeatureColumns(editable: boolean, displayModel: LinearApolloDisplay): GridColumns {
+eka(displayModel)
+// const juu: ApolloDetailsProps = { displayModel}
+  // const props: ApolloDetailsProps = { displayModel, params: d }
   return [
     { field: 'id', headerName: 'ID', width: 250 },
     {
@@ -33,6 +41,7 @@ function getFeatureColumns(editable: boolean): GridColumns {
       editable,
       renderEditCell: (params: GridRenderEditCellParams) => (
         <AutocompleteInputCell {...params} />
+        // <AutocompleteInputCell {...props} />
       ),
     },
     { field: 'refSeq', headerName: 'Ref Seq', width: 150 },
@@ -41,17 +50,24 @@ function getFeatureColumns(editable: boolean): GridColumns {
   ]
 }
 
+function eka (displayModel: LinearApolloDisplay) {
+  console.log(`DISPLAY: ${JSON.stringify(displayModel)}`)
+  // const session = getSession(displayModel)
+
+}
 function AutocompleteInputCell(props: GridRenderEditCellParams) {
-  const { id, value, field } = props
+  const { id, value, field } = props.params
   const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>([])
   const apiRef = useGridApiContext()
 
   useEffect(() => {
     async function getSOSequenceTerms() {
+      console.log('SET TYPES')
       const soTerms = (await validationRegistry.possibleValues(
         'type',
       )) as string[]
       if (soTerms) {
+        console.log(`TYPES ARE : ${JSON.stringify(soTerms)}`)
         setSOSequenceTerms(soTerms)
       }
     }
@@ -62,6 +78,8 @@ function AutocompleteInputCell(props: GridRenderEditCellParams) {
     event: MuiBaseEvent,
     newValue?: string | null,
   ) => {
+    console.log('handleChange')
+
     const isValid = await apiRef.current.setEditCellValue({
       id,
       field,
@@ -73,6 +91,7 @@ function AutocompleteInputCell(props: GridRenderEditCellParams) {
   }
 
   if (!soSequenceTerms.length) {
+    console.log('!soSequenceTerms.length - return NULL')
     return null
   }
 
@@ -90,6 +109,60 @@ function AutocompleteInputCell(props: GridRenderEditCellParams) {
     />
   )
 }
+// function AutocompleteInputCell(props: GridRenderEditCellParams, displayModel: LinearApolloDisplay) {
+//   const { id, value, field } = props
+//   const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>([])
+//   const apiRef = useGridApiContext()
+
+//   useEffect(() => {
+//     async function getSOSequenceTerms() {
+//       console.log('SET TYPES')
+//       const soTerms = (await validationRegistry.possibleValues(
+//         'type',
+//       )) as string[]
+//       if (soTerms) {
+//         console.log(`TYPES ARE : ${JSON.stringify(soTerms)}`)
+//         setSOSequenceTerms(soTerms)
+//       }
+//     }
+//     getSOSequenceTerms()
+//   }, [])
+
+//   const handleChange = async (
+//     event: MuiBaseEvent,
+//     newValue?: string | null,
+//   ) => {
+//     console.log('handleChange')
+
+//     const isValid = await apiRef.current.setEditCellValue({
+//       id,
+//       field,
+//       value: newValue,
+//     })
+//     if (isValid) {
+//       apiRef.current.stopCellEditMode({ id, field })
+//     }
+//   }
+
+//   if (!soSequenceTerms.length) {
+//     console.log('!soSequenceTerms.length - return NULL')
+//     return null
+//   }
+
+//   return (
+//     <Autocomplete
+//       options={soSequenceTerms}
+//       style={{ width: 245 }}
+//       renderInput={(params) => <TextField {...params} variant="outlined" />}
+//       value={String(value)}
+//       onChange={handleChange}
+//       disablePortal
+//       disableClearable
+//       selectOnFocus
+//       handleHomeEndKeys
+//     />
+//   )
+// }
 
 export const ApolloDetails = observer(
   ({ model }: { model: LinearApolloDisplay }) => {
@@ -112,11 +185,17 @@ export const ApolloDetails = observer(
       setSelectedFeature,
       changeManager,
       detailsHeight,
-    } = model
+    } = model    
+    console.log('changeManager?.validations.getPossibleValues - type')
+    // console.log(typeof(selectedFeature))
+    console.log(`1 feature is ${JSON.stringify(selectedFeature?.type)}`)
     if (!selectedFeature) {
       return <div>click on a feature to see details</div>
     }
+    console.log(`2 feature is ${JSON.stringify(selectedFeature?.type)}`)
+
     // const sequenceTypes = changeManager?.validations.getPossibleValues('type')
+
     const {
       _id: id,
       type,
@@ -144,6 +223,8 @@ export const ApolloDetails = observer(
       newRow: GridRowModel<typeof selectedFeatureRows[0]>,
       oldRow: GridRowModel<typeof selectedFeatureRows[0]>,
     ) {
+      console.log('addChildFeatures')
+
       let change:
         | LocationStartChange
         | LocationEndChange
@@ -203,7 +284,7 @@ export const ApolloDetails = observer(
           style={{ height: detailsHeight }}
           autoHeight
           rows={selectedFeatureRows}
-          columns={getFeatureColumns(editable)}
+          columns={getFeatureColumns(editable, model)}
           experimentalFeatures={{ newEditingApi: true }}
           processRowUpdate={processRowUpdate}
           onProcessRowUpdateError={console.error}
