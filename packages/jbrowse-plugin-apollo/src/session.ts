@@ -131,12 +131,11 @@ const ClientDataStore = types
             sequence: [],
           })
         }
-        const newSequence = Sequence.create({
+        ref.addSequence({
           start: region.start,
           stop: region.end,
           sequence: seq,
         })
-        ref.sequence.push(newSequence)
       }
     }),
 

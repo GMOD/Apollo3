@@ -132,28 +132,15 @@ export function stateModelFactory(
       get sequence() {
         const { regions } = self
         const session = getSession(self) as ApolloSession
-        const sequence = new Map<string, unknown>()
+        const seq = new Map<string, unknown>()
         for (const region of regions) {
           const assembly = session.apolloDataStore.assemblies.get(
             region.assemblyName,
           )
           const ref = assembly?.getByRefName(region.refName)
-          let filteredRef = sequence.get(region.refName)
-          if (!filteredRef) {
-            filteredRef = Sequence.create({start: region.start, stop: region.end, sequence: })
-            sequence.set(region.refName, filteredRef)
-          }
-          for (const [seq] of ref?.sequence.entries() || new Map()) {
-            if (region.start < seq.end && region.end > seq.start) {
-              filteredRef = {
-                start: seq.start,
-                stop: seq.stop,
-                sequence: seq.sequence,
-              }
-            }
-          }
+          seq.set(region.refName, ref?.getSequence(region.start, region.end))
         }
-        return sequence
+        return seq
       },
       get features() {
         const { regions } = self
