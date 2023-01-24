@@ -2,11 +2,18 @@ import { Instance, SnapshotIn, types } from 'mobx-state-tree'
 
 import { AnnotationFeature } from './AnnotationFeature'
 
+export const Sequence = types.model({
+  start: types.number,
+  stop: types.number,
+  sequence: types.string,
+})
+
 export const ApolloRefSeq = types
   .model('ApolloRefSeq', {
     _id: types.identifier,
     name: types.string,
     features: types.map(AnnotationFeature),
+    sequence: types.array(Sequence),
   })
   .actions((self) => ({
     deleteFeature(featureId: string) {

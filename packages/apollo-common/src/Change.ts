@@ -19,6 +19,7 @@ export interface ClientDataStore {
   assemblies: Map<string, ApolloAssemblyI>
   internetAccounts: AppRootModel['internetAccounts']
   loadFeatures(regions: Region[]): void
+  loadRefSeq(regions: Region[]): void
   getFeature(featureId: string): AnnotationFeatureI | undefined
   addAssembly(_id: string, assemblyName: string): void
   addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot): void

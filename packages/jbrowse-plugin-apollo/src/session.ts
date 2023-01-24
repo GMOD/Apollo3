@@ -10,6 +10,7 @@ import {
   AnnotationFeatureSnapshot,
   ApolloAssembly,
   ApolloRefSeq,
+  Sequence,
 } from 'apollo-mst'
 import { autorun, observable } from 'mobx'
 import {
@@ -112,6 +113,33 @@ const ClientDataStore = types
         ref.features.merge(newFeatures)
       }
     }),
+    loadRefSeq: flow(function* loadRefSeq(regions: Region[]) {
+      for (const region of regions) {
+        const { seq, refSeq } = yield (
+          self as unknown as { backendDriver: BackendDriver }
+        ).backendDriver.getSequence(region)
+        const { assemblyName, refName } = region
+        let assembly = self.assemblies.get(assemblyName)
+        if (!assembly) {
+          assembly = self.assemblies.put({ _id: assemblyName, refSeqs: {} })
+        }
+        let ref = assembly.refSeqs.get(refSeq)
+        if (!ref) {
+          ref = assembly.refSeqs.put({
+            _id: refSeq,
+            name: refName,
+            sequence: [],
+          })
+        }
+        const newSequence = Sequence.create({
+          start: region.start,
+          stop: region.end,
+          sequence: seq,
+        })
+        ref.sequence.push(newSequence)
+      }
+    }),
+
     addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot) {
       const assembly = self.assemblies.get(assemblyId)
       if (!assembly) {

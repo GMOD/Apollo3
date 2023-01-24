@@ -10,7 +10,7 @@ export abstract class BackendDriver {
 
   abstract getFeatures(region: Region): Promise<AnnotationFeatureSnapshot[]>
 
-  abstract getSequence(region: Region): Promise<string>
+  abstract getSequence(region: Region): Promise<{ seq: string; refSeq: string }>
 
   abstract getRefSeqs(): Promise<string[]>
 

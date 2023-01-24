@@ -28,6 +28,11 @@ import {
   configSchema as apolloRendererConfigSchema,
 } from './ApolloRenderer'
 import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
+import {
+  ApolloSixFrameRenderer,
+  ReactComponent as ApolloSixFrameRendererReactComponent,
+  configSchema as apolloSixFrameRendererConfigSchema,
+} from './ApolloSixFrameRenderer'
 import { ViewChangeLog } from './components'
 import { DownloadGFF3 } from './components/DownloadGFF3'
 import {
@@ -124,6 +129,16 @@ export default class ApolloPlugin extends Plugin {
           name: 'ApolloRenderer',
           ReactComponent: ApolloRendererReactComponent,
           configSchema: apolloRendererConfigSchema,
+          pluginManager,
+        }),
+    )
+
+    pluginManager.addRendererType(
+      () =>
+        new ApolloSixFrameRenderer({
+          name: 'ApolloSixFrameRenderer',
+          ReactComponent: ApolloSixFrameRendererReactComponent,
+          configSchema: apolloSixFrameRendererConfigSchema,
           pluginManager,
         }),
     )
