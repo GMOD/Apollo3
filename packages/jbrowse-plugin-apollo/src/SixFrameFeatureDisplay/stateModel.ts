@@ -2,12 +2,23 @@ import { ConfigurationReference } from '@jbrowse/core/configuration'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { getContainingView, getSession } from '@jbrowse/core/util'
+import { BaseBlock } from '@jbrowse/core/util/blockTypes'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
-import { AnnotationFeatureI } from 'apollo-mst'
-import { Instance, types } from 'mobx-state-tree'
+import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import { AnnotationFeatureI, Sequence } from 'apollo-mst'
+import { autorun } from 'mobx'
+import { Instance, addDisposer, types } from 'mobx-state-tree'
 
 import { ApolloSession } from '../session'
+
+import {
+  AppRootModel,
+  Region,
+  defaultStops,
+  defaultCodonTable,
+  generateCodonTable,
+} from '@jbrowse/core/util'
 
 export function stateModelFactory(
   pluginManager: PluginManager,
@@ -69,6 +80,47 @@ export function stateModelFactory(
         return undefined
       },
     }))
+    .actions((self) => {
+      let previousBlockKeys: string[] = []
+      return {
+        afterAttach() {
+          addDisposer(
+            self,
+            autorun(
+              () => {
+                const session = getSession(self) as ApolloSession
+                const view = getContainingView(
+                  self,
+                ) as unknown as LinearGenomeViewModel
+                if (view.initialized) {
+                  if (self.regionCannotBeRendered()) {
+                    return
+                  }
+                  const blockKeys: string[] = []
+                  const newBlocks: BaseBlock[] = []
+                  self.blockDefinitions.contentBlocks.forEach((block) => {
+                    blockKeys.push(block.key)
+                    if (!previousBlockKeys.includes(block.key)) {
+                      newBlocks.push(block)
+                    }
+                  })
+                  session.apolloDataStore.loadRefSeq(
+                    newBlocks.map(({ assemblyName, refName, start, end }) => ({
+                      assemblyName,
+                      refName,
+                      start,
+                      end,
+                    })),
+                  )
+                  previousBlockKeys = blockKeys
+                }
+              },
+              { name: 'SixFrameFeatureDisplay' },
+            ),
+          )
+        },
+      }
+    })
     .views((self) => ({
       get rendererTypeName() {
         return self.configuration.renderer.type
@@ -76,6 +128,32 @@ export function stateModelFactory(
       get changeManager() {
         const session = getSession(self) as ApolloSession
         return session.apolloDataStore?.changeManager
+      },
+      get sequence() {
+        const { regions } = self
+        const session = getSession(self) as ApolloSession
+        const sequence = new Map<string, unknown>()
+        for (const region of regions) {
+          const assembly = session.apolloDataStore.assemblies.get(
+            region.assemblyName,
+          )
+          const ref = assembly?.getByRefName(region.refName)
+          let filteredRef = sequence.get(region.refName)
+          if (!filteredRef) {
+            filteredRef = Sequence.create({start: region.start, stop: region.end, sequence: })
+            sequence.set(region.refName, filteredRef)
+          }
+          for (const [seq] of ref?.sequence.entries() || new Map()) {
+            if (region.start < seq.end && region.end > seq.start) {
+              filteredRef = {
+                start: seq.start,
+                stop: seq.stop,
+                sequence: seq.sequence,
+              }
+            }
+          }
+        }
+        return sequence
       },
       get features() {
         const { regions } = self
@@ -125,6 +203,13 @@ export function stateModelFactory(
         }
         return minMax
       },
+      // get codonLayout() {
+      //   const codonLayout: Map<number, number> =
+      //     new Map()
+      //   for (const [seq, refSeq] of this.sequence || []) {
+      //         ...
+      //   }
+      // },
       get featureLayout() {
         const forwardPhaseMap: Record<number, number> = {
           0: 2,
@@ -133,6 +218,9 @@ export function stateModelFactory(
         }
         const featureLayout: Map<number, [number, AnnotationFeatureI][]> =
           new Map()
+        for (const [refSeq, seq] of this.sequence || []) {
+          console.log("blah")
+        }
         for (const [refSeq, featuresForRefSeq] of this.features || []) {
           if (!featuresForRefSeq) {
             continue
