@@ -1,4 +1,7 @@
+import fs from 'fs'
+
 import { Injectable, Logger } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'
 import { Strategy } from 'passport-microsoft'
 
@@ -18,34 +21,63 @@ export interface Profile {
   }[]
 }
 
+interface ConfigValues {
+  MICROSOFT_CLIENT_ID?: string
+  MICROSOFT_CLIENT_ID_FILE?: string
+  MICROSOFT_CLIENT_SECRET?: string
+  MICROSOFT_CLIENT_SECRET_FILE?: string
+  URL: string
+  PORT: number
+}
+
 @Injectable()
 export class MicrosoftStrategy extends PassportStrategy(Strategy) {
   private readonly logger = new Logger(MicrosoftStrategy.name)
 
-  constructor(private readonly authService: AuthenticationService) {
-    const {
-      MICROSOFT_CLIENT_ID,
-      MICROSOFT_CLIENT_SECRET,
-      MICROSOFT_CALLBACK_URL,
-      MICROSOFT_SCOPE,
-    } = process.env
-    if (!MICROSOFT_CLIENT_ID) {
-      throw new Error('No MICROSOFT_CLIENT_ID found in .env file')
+  constructor(
+    private readonly authService: AuthenticationService,
+    configService: ConfigService<ConfigValues, true>,
+  ) {
+    let clientID = configService.get('MICROSOFT_CLIENT_ID', { infer: true })
+    if (!clientID) {
+      const clientIDFile = configService.get('MICROSOFT_CLIENT_ID_FILE', {
+        infer: true,
+      })
+      clientID = clientIDFile && fs.readFileSync(clientIDFile, 'utf-8').trim()
     }
-    if (!MICROSOFT_CLIENT_SECRET) {
-      throw new Error('No MICROSOFT_CLIENT_SECRET found in .env file')
+    const configured = Boolean(clientID)
+    if (!configured) {
+      clientID = 'none'
     }
-    if (!MICROSOFT_CALLBACK_URL) {
-      throw new Error('No MICROSOFT_CALLBACK_URL found in .env file')
-    }
-    if (!MICROSOFT_SCOPE) {
-      throw new Error('No MICROSOFT_SCOPE found in .env file')
+    let clientSecret = 'none'
+    let callbackURL
+    if (configured) {
+      clientSecret = configService.get('MICROSOFT_CLIENT_SECRET', {
+        infer: true,
+      })
+      if (!clientSecret) {
+        // We can use non-null assertion since joi already checks this for us
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const clientSecretFile = configService.get(
+          'MICROSOFT_CLIENT_SECRET_FILE',
+          { infer: true },
+        )!
+        clientSecret = fs.readFileSync(clientSecretFile, 'utf-8').trim()
+      }
+      const urlString = configService.get('URL', { infer: true })
+      const callbackURI = new URL(urlString)
+      const port = configService.get('PORT', { infer: true })
+      callbackURI.port = String(port)
+      callbackURI.pathname = `${callbackURI.pathname}${
+        callbackURI.pathname.endsWith('/') ? '' : '/'
+      }auth/microsoft/redirect`
+      callbackURL = callbackURI.href
     }
     super({
-      clientID: MICROSOFT_CLIENT_ID,
-      clientSecret: MICROSOFT_CLIENT_SECRET,
-      callbackURL: MICROSOFT_CALLBACK_URL,
-      scope: MICROSOFT_SCOPE?.split(','),
+      clientID,
+      clientSecret,
+      callbackURL,
+      scope: ['user.read'],
       store: true,
     })
   }

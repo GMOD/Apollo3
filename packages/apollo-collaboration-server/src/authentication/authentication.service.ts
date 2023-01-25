@@ -1,4 +1,5 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import { JWTPayload } from 'apollo-shared'
 import { Profile as GoogleProfile } from 'passport-google-oauth20'
@@ -11,11 +12,20 @@ import { Profile as MicrosoftProfile } from '../utils/strategies/microsoft.strat
 @Injectable()
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name)
+  private defaultNewUserRole: 'admin' | 'user' | 'readOnly'
 
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-  ) {}
+    configService: ConfigService<
+      { DEFAULT_NEW_USER_ROLE: 'admin' | 'user' | 'readOnly' },
+      true
+    >,
+  ) {
+    this.defaultNewUserRole = configService.get('DEFAULT_NEW_USER_ROLE', {
+      infer: true,
+    })
+  }
 
   /**
    * Log in with google
@@ -24,11 +34,7 @@ export class AuthenticationService {
    */
   async googleLogin(profile: GoogleProfile) {
     const userRoles = new Set<Role>()
-    const { DEFAULT_NEW_USER_ROLE } = process.env
-    if (!DEFAULT_NEW_USER_ROLE) {
-      throw new Error('No DEFAULT_NEW_USER_ROLE found in .env file')
-    }
-    let defaultRole = DEFAULT_NEW_USER_ROLE
+    let defaultRole = this.defaultNewUserRole
     if (!profile._json.email) {
       throw new UnauthorizedException('No email provided')
     }
@@ -98,11 +104,7 @@ export class AuthenticationService {
    */
   async microsoftLogin(profile: MicrosoftProfile) {
     const userRoles = new Set<Role>()
-    const { DEFAULT_NEW_USER_ROLE } = process.env
-    if (!DEFAULT_NEW_USER_ROLE) {
-      throw new Error('No DEFAULT_NEW_USER_ROLE found in .env file')
-    }
-    let defaultRole = DEFAULT_NEW_USER_ROLE
+    let defaultRole = this.defaultNewUserRole
     const [email] = profile.emails
     if (!email) {
       throw new UnauthorizedException('No email provided')

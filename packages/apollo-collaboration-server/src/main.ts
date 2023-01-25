@@ -1,3 +1,4 @@
+import { LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import {
   CoreValidation,
@@ -13,15 +14,17 @@ import { GlobalExceptionsFilter } from './global-exceptions.filter'
 import { AuthorizationValidation } from './utils/validation/AuthorizationValidation'
 
 async function bootstrap() {
-  const { CORS, LOGGER_OPTIONS, APPLICATION_PORT } = process.env
+  // Can't use config service here since app doesn't exist yet, but stringified
+  // configs are available in process.env
+  const { CORS, LOG_LEVELS, PORT } = process.env
   if (!CORS) {
     throw new Error('No CORS found in .env file')
   }
-  if (!LOGGER_OPTIONS) {
-    throw new Error('No LOGGER_OPTIONS found in .env file')
+  if (!LOG_LEVELS) {
+    throw new Error('No LOG_LEVELS found in .env file')
   }
-  if (!APPLICATION_PORT) {
-    throw new Error('No APPLICATION_PORT found in .env file')
+  if (!PORT) {
+    throw new Error('No PORT found in .env file')
   }
 
   Object.entries(changes).forEach(([changeName, change]) => {
@@ -34,9 +37,10 @@ async function bootstrap() {
 
   const cors = convertToBoolean(CORS)
 
-  const loggerOpions = JSON.parse(LOGGER_OPTIONS)
+  const logLevels = LOG_LEVELS.split(',') as LogLevel[]
+
   const app = await NestFactory.create(AppModule, {
-    logger: loggerOpions,
+    logger: logLevels,
     cors,
   })
 
@@ -51,7 +55,7 @@ async function bootstrap() {
     }),
   )
 
-  await app.listen(APPLICATION_PORT)
+  await app.listen(PORT)
   // eslint-disable-next-line no-console
   console.log(
     `Application is running on: ${await app.getUrl()}, CORS = ${cors}`,

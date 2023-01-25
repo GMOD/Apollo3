@@ -10,6 +10,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
 import {
   Assembly,
@@ -40,6 +41,10 @@ export class FilesService {
     private readonly refSeqModel: Model<RefSeqDocument>,
     @InjectModel(RefSeqChunk.name)
     private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
+    private readonly configService: ConfigService<
+      { FILE_UPLOAD_FOLDER: string },
+      true
+    >,
   ) {}
 
   private readonly logger = new Logger(FilesService.name)
@@ -65,11 +70,10 @@ export class FilesService {
   ): T extends true ? Gunzip : ReadStream
   getFileStream(file: FileDocument): ReadStream
   getFileStream(file: FileDocument, compressed = false) {
-    const { FILE_UPLOAD_FOLDER } = process.env
-    if (!FILE_UPLOAD_FOLDER) {
-      throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
-    }
-    const fileStream = createReadStream(join(FILE_UPLOAD_FOLDER, file.checksum))
+    const fileUploadFolder = this.configService.get('FILE_UPLOAD_FOLDER', {
+      infer: true,
+    })
+    const fileStream = createReadStream(join(fileUploadFolder, file.checksum))
     if (compressed) {
       return fileStream
     }
@@ -106,11 +110,10 @@ export class FilesService {
       .findOne({ checksum: file.checksum })
       .exec()
     if (!otherFiles) {
-      const { FILE_UPLOAD_FOLDER } = process.env
-      if (!FILE_UPLOAD_FOLDER) {
-        throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
-      }
-      const compressedFullFileName = join(FILE_UPLOAD_FOLDER, file.checksum)
+      const fileUploadFolder = this.configService.get('FILE_UPLOAD_FOLDER', {
+        infer: true,
+      })
+      const compressedFullFileName = join(fileUploadFolder, file.checksum)
       this.logger.debug(
         `Delete the file "${compressedFullFileName}" from server folder`,
       )

@@ -37,6 +37,7 @@
     "apollo-schemas": "workspace:^",
     "apollo-shared": "workspace:^",
     "express-session": "^1.17.3",
+    "joi": "^17.7.0",
     "mobx": "^6.6.1",
     "mobx-react": "^7.2.1",
     "mongoose": "^6.2.6",

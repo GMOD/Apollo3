@@ -71,10 +71,6 @@ export class FilesController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<StreamableFile> {
     const file = await this.filesService.findOne(id)
-    const { FILE_UPLOAD_FOLDER } = process.env
-    if (!FILE_UPLOAD_FOLDER) {
-      throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
-    }
     this.logger.debug(
       `Streaming file '${file.basename}' from server to client'`,
     )

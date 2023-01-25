@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
 import { UserDocument, User as UserSchema } from 'apollo-schemas'
 import { DecodedJWT, makeUserSessionId } from 'apollo-shared'
@@ -25,6 +26,10 @@ export class UsersService {
     @InjectModel(UserSchema.name)
     private readonly userModel: Model<UserDocument>,
     private readonly messagesGateway: MessagesGateway,
+    private readonly configService: ConfigService<
+      { BROADCAST_USER_LOCATION: boolean },
+      true
+    >,
   ) {}
 
   private readonly logger = new Logger(UsersService.name)
@@ -63,13 +68,11 @@ export class UsersService {
    * @param token - user's token, email will be decoded from the token
    */
   broadcastLocation(userLocation: UserLocationDto[], user: DecodedJWT) {
-    const { BROADCAST_USER_LOCATION } = process.env
+    const broadcast = this.configService.get('BROADCAST_USER_LOCATION', {
+      infer: true,
+    })
     const channel = 'USER_LOCATION'
 
-    if (!BROADCAST_USER_LOCATION) {
-      throw new Error('No BROADCAST_USER_LOCATION found in .env file')
-    }
-    const broadcast: boolean = JSON.parse(BROADCAST_USER_LOCATION)
     if (broadcast) {
       const { email, username: userName } = user
       const userSessionId = makeUserSessionId(user)
