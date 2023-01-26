@@ -4,7 +4,6 @@ import { Autocomplete, IconButton, TextField } from '@mui/material'
 import {
   DataGrid,
   GridColumns,
-  GridEventListener,
   GridRenderEditCellParams,
   GridRowModel,
   MuiBaseEvent,
@@ -42,25 +41,17 @@ function getFeatureColumns(editable: boolean): GridColumns {
   ]
 }
 
-
-function AutocompleteInputCell(
-  props: GridRenderEditCellParams,
-  displayModel: LinearApolloDisplay,
-) {
+function AutocompleteInputCell(props: GridRenderEditCellParams) {
   const { id, value, field } = props
   const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>([])
   const apiRef = useGridApiContext()
 
-  console.log(`ID=${id}`)
   useEffect(() => {
     async function getSOSequenceTerms() {
-      console.log('SET TYPES')
-      // *** HOW TO ACCESS selected feature here
       const soTerms = (await validationRegistry.possibleValues(
         'type',
       )) as string[]
       if (soTerms) {
-        console.log(`TYPES ARE : ${JSON.stringify(soTerms)}`)
         setSOSequenceTerms(soTerms)
       }
     }
@@ -71,8 +62,6 @@ function AutocompleteInputCell(
     event: MuiBaseEvent,
     newValue?: string | null,
   ) => {
-    console.log('handleChange')
-
     const isValid = await apiRef.current.setEditCellValue({
       id,
       field,
@@ -84,7 +73,6 @@ function AutocompleteInputCell(
   }
 
   if (!soSequenceTerms.length) {
-    console.log('!soSequenceTerms.length - return NULL')
     return null
   }
 
@@ -125,23 +113,10 @@ export const ApolloDetails = observer(
       changeManager,
       detailsHeight,
     } = model
-    console.log('changeManager?.validations.getPossibleValues - type')
-    // console.log(typeof(selectedFeature))
-    console.log(`1 feature is ${JSON.stringify(selectedFeature?.type)}`)
     if (!selectedFeature) {
       return <div>click on a feature to see details</div>
     }
-    console.log(`2 feature is ${JSON.stringify(selectedFeature?.type)}`)
-
     // const sequenceTypes = changeManager?.validations.getPossibleValues('type')
-    const handleEventRowClick: GridEventListener<'rowClick'> = (
-      params, 
-      // event, // MuiEvent<React.MouseEvent<HTMLElement>>
-      // details, // GridCallbackDetails
-    ) => {
-      console.log(`Row "${JSON.stringify(params.row)}" selected`)
-    }
-    
     const {
       _id: id,
       type,
@@ -169,8 +144,6 @@ export const ApolloDetails = observer(
       newRow: GridRowModel<typeof selectedFeatureRows[0]>,
       oldRow: GridRowModel<typeof selectedFeatureRows[0]>,
     ) {
-      console.log('addChildFeatures')
-
       let change:
         | LocationStartChange
         | LocationEndChange
@@ -234,7 +207,6 @@ export const ApolloDetails = observer(
           experimentalFeatures={{ newEditingApi: true }}
           processRowUpdate={processRowUpdate}
           onProcessRowUpdateError={console.error}
-          onRowClick={handleEventRowClick}
         />
       </div>
     )
