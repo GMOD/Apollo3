@@ -51,7 +51,7 @@ export class OntologiesController {
   }
 
   /**
-   * Get all possible feature types for given feature. 
+   * Get all possible feature types for given feature.
    * @param parentType - string
    * @returns Return 'HttpStatus.OK' and the allowed feature types if search was successful
    * or if search data was not found or in case of error throw exception
