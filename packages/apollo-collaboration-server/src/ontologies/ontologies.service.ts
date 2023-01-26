@@ -145,6 +145,73 @@ export class OntologiesService {
     return childrenTypes
   }
 
+  // /**
+  //  * Get feature's allowed types by its child type. This is needed to check when the feature is updating its current type
+  //  * @param childType - string
+  //  * @returns Return 'HttpStatus.OK' and the allowed feature's types if search was successful
+  //  * or if search data was not found or in case of error throw exception
+  //  */
+  // async findParentTypesByChildType(childType: string) {
+  //   // Get edges by parentType
+  //   const nodes = await this.nodeModel
+  //     .aggregate([
+  //       {
+  //         $match: {
+  //           lbl: childType,
+  //           type: 'CLASS',
+  //         },
+  //       },
+  //       {
+  //         $lookup: {
+  //           from: 'edges',
+  //           as: 'id',
+  //           let: { id: '$id' },
+  //           pipeline: [
+  //             {
+  //               $match: {
+  //                 $expr: { $eq: ['$$id', '$sub'] },
+  //                 pred: 'http://purl.obolibrary.org/obo/so#part_of',
+  //               },
+  //             },
+  //           ],
+  //         },
+  //       },
+  //     ])
+  //     .exec()
+
+  //   const subIds: string[] = []
+  //   for (const edge of nodes[0].id) {
+  //     this.logger.verbose(
+  //       `The following feature(s) matched  = ${JSON.stringify(edge)}`,
+  //     )
+  //     subIds.push(edge.obj)
+  //   }
+
+  //   // Get parent's types
+  //   const parentTypes = await this.nodeModel
+  //     .aggregate([
+  //       {
+  //         $match: {
+  //           id: { $in: subIds },
+  //         },
+  //       },
+  //       {
+  //         $project: {
+  //           lbl: 1,
+  //           _id: 0,
+  //         },
+  //       },
+  //     ])
+  //     .sort({ lbl: 1 })
+  //   this.logger.debug(
+  //     `For "${childType}" the allowed parent's types are: ${JSON.stringify(
+  //       parentTypes,
+  //     )}`,
+  //   )
+
+  //   return parentTypes
+  // }
+
   /**
    * Get feature's allowed types by its child type. This is needed to check when the feature is updating its current type
    * @param childType - string
@@ -152,42 +219,79 @@ export class OntologiesService {
    * or if search data was not found or in case of error throw exception
    */
   async findParentTypesByChildType(childType: string) {
-    // Get edges by parentType
-    const nodes = await this.nodeModel
+    // Go up and find all nodes where relation is 'is_a'
+    const isaNodes = await this.nodeModel
       .aggregate([
         {
-          $match: {
-            lbl: childType,
-            type: 'CLASS',
-          },
+          $match: { lbl: childType, type: 'CLASS' },
         },
         {
-          $lookup: {
+          $graphLookup: {
             from: 'edges',
-            as: 'id',
-            let: { id: '$id' },
-            pipeline: [
-              {
-                $match: {
-                  $expr: { $eq: ['$$id', '$sub'] },
-                  pred: 'is_a',
-                  // pred: 'http://purl.obolibrary.org/obo/so#part_of',
-                },
-              },
-            ],
+            startWith: '$id',
+            connectFromField: 'obj',
+            connectToField: 'sub',
+            maxDepth: 10,
+            as: 'subcategories',
+            restrictSearchWithMatch: { pred: 'is_a' },
           },
         },
       ])
       .exec()
 
-    const subIds: string[] = []
-    for (const edge of nodes[0].id) {
-      this.logger.verbose(
-        `The following feature(s) matched  = ${JSON.stringify(edge)}`,
-      )
-      subIds.push(edge.obj)
+    const { subcategories } = isaNodes[0] as any
+    const isAIds: string[] = []
+    for (const edge of subcategories) {
+      isAIds.indexOf(edge.obj) === -1
+        ? isAIds.push(edge.obj)
+        : this.logger.verbose(`Array has already item "${edge.obj}"`)
+      isAIds.indexOf(edge.sub) === -1
+        ? isAIds.push(edge.sub)
+        : this.logger.verbose(`Array has already item "${edge.sub}"`)
     }
 
+    this.logger.debug(`IS_A nodes are: ${JSON.stringify(isAIds)}`)
+
+    // Get parent's terms. The matched terms are saved in "id" attribute of parentNodes
+    const parentNodes = await this.nodeModel.aggregate([
+      {
+        $match: {
+          id: { $in: isAIds },
+        },
+      },
+      {
+        $lookup: {
+          from: 'edges',
+          as: 'id',
+          let: { id: '$id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$$id', '$sub'] },
+                pred: {
+                  $in: [
+                    'http://purl.obolibrary.org/obo/so#part_of',
+                    'http://purl.obolibrary.org/obo/so#member_of',
+                  ],
+                },
+              },
+            },
+          ],
+        },
+      },
+    ])
+
+    const subIds: string[] = []
+    for (const edge of parentNodes) {
+      for (const innerEdge of edge.id) {
+        this.logger.debug(
+          `+++ The following parent is possible: ${JSON.stringify(
+            innerEdge.obj,
+          )}`,
+        )
+        subIds.push(innerEdge.obj)
+      }
+    }
     // Get parent's types
     const parentTypes = await this.nodeModel
       .aggregate([
@@ -209,14 +313,13 @@ export class OntologiesService {
         parentTypes,
       )}`,
     )
-
     return parentTypes
   }
 
   /**
    * Find possible feature types for given featureId.
-   * First, we check if the feature has a parent and if there is one, then we check possible child feature types for the parent
-   * Secondly, we check if the feature has children and if there are, then we check possible parent feature types for each child
+   * First, we check if the feature has a parent and if there is one, then we check possible child feature types of the parent
+   * Secondly, we check if the feature has children and if there are, then we check possible parent feature types of each child
    * Last, we make intersect of array that we produced in steps #1 and #2
    * @param featureId - featureId
    */
@@ -268,16 +371,16 @@ export class OntologiesService {
             firstChild = false
           } else {
             // If child's possible parent type is not found in "childParentArray" (that contais originally the possible parent types of the 1st child) then remove the type from "childParentArray" array
-            console.log(
-              `So far childParenArray has value: ${JSON.stringify(
-                childParentArray,
-              )}`,
-            )
-            console.log(
-              `featureChildParentTypes has value: ${JSON.stringify(
-                featureChildParentTypes,
-              )}`,
-            )
+            // console.log(
+            //   `So far childParenArray has value: ${JSON.stringify(
+            //     childParentArray,
+            //   )}`,
+            // )
+            // console.log(
+            //   `featureChildParentTypes has value: ${JSON.stringify(
+            //     featureChildParentTypes,
+            //   )}`,
+            // )
             childParentArray.forEach((itm) => {
               let childTypeFound = false
               featureChildParentTypes.forEach((tmpElement) => {
@@ -316,16 +419,23 @@ export class OntologiesService {
 
     // If feature's has children and parent then possible types are intersection of "parentChildArray" and "childParentArray"
     // If one of them is filled then return it
-    if (parentChildArray && childParentArray) {
+    if (parentChildArray.length > 0 && childParentArray.length > 0) {
       resultArray = parentChildArray.filter((value) =>
         childParentArray.includes(value),
       )
-    }
-    if (parentChildArray) {
+      this.logger.debug(
+        `Feature has parent and children. Those array intersection is : "${resultArray}"`,
+      )
+    } else if (parentChildArray.length > 0) {
       resultArray = [...parentChildArray]
-    }
-    if (childParentArray) {
+      this.logger.debug(
+        `Feature has parent but no any child. Parent array is : "${resultArray}"`,
+      )
+    } else if (childParentArray.length > 0) {
       resultArray = [...childParentArray]
+      this.logger.debug(
+        `Feature has children but no any parent. Children array is : "${resultArray}"`,
+      )
     }
     this.logger.debug(`FINAL RESULT: ${JSON.stringify(resultArray)}`)
     return resultArray
