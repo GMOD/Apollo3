@@ -46,7 +46,8 @@ export class OntologiesController {
     this.logger.debug(
       `Get allowed children's feature types by parent type: "${parentType}"`,
     )
-    return this.ontologiesService.findChildrenTypesByParentType(parentType)
+    return this.ontologiesService.findParentTypesByChildType(parentType)
+    // return this.ontologiesService.findChildrenTypesByParentType(parentType)
   }
 
   /**
