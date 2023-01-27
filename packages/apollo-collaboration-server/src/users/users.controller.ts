@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Logger,
   Param,
   Post,
   Req,
@@ -20,6 +21,7 @@ import { UsersService } from './users.service'
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+  private readonly logger = new Logger(UsersController.name)
 
   @Get()
   findAll() {
@@ -36,23 +38,50 @@ export class UsersController {
     return this.usersService.findByRole('admin')
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findById(id)
-  }
-
   /**
-   * Receives user location and broadcast information using web sockets
+   * Receives user location by broadcasting 'user location' -request using web sockets
    * @param userLocation - user's location information
    * @returns
    */
-  @Post('userLocation')
-  userLocation(@Body() userLocation: UserLocationDto, @Req() req: Request) {
+  @Get('locations')
+  usersLocations(@Req() req: Request) {
     const { authorization } = req.headers
     if (!authorization) {
       throw new Error('No "authorization" header')
     }
     const [, token] = authorization.split(' ')
-    return this.usersService.broadcastLocation(userLocation, token)
+    this.logger.debug('Requesting other users locations')
+    return this.usersService.requestUsersLocations(token)
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.usersService.findById(id)
+  }
+
+  // NOTE: It's important that all GET endpoints are before POST endpoint, otherwise GET endpoint that is after POST may not be called properly!!
+
+  /**
+   * Receives user location and broadcast information using web sockets
+   * @param userLocDto - user's location information
+   * @returns
+   */
+  @Post('userLocation')
+  userLoc(@Body() userLocDto: UserLocationDto[], @Req() req: Request) {
+    const keys = Object.keys(userLocDto)
+    const userLocationArray: UserLocationDto[] = JSON.parse(
+      `[${keys.toString()}]`,
+    )
+    this.logger.debug(
+      `One user's location info: ${JSON.stringify(userLocationArray)}`,
+    )
+
+    const { authorization } = req.headers
+    if (!authorization) {
+      throw new Error('No "authorization" header')
+    }
+    const [, token] = authorization.split(' ')
+
+    return this.usersService.broadcastLocation(userLocationArray, token)
   }
 }

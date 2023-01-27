@@ -33,7 +33,7 @@ type AuthType = 'google' | 'microsoft'
 
 type Role = ('admin' | 'user' | 'readOnly')[]
 
-interface UserLocation {
+export interface UserLocation {
   assemblyId: string
   refSeq: string
   start: number
@@ -137,24 +137,24 @@ const stateModelFactory = (
           notify('You are disconnected from the Apollo server.', 'error')
         })
         socket.on('USER_LOCATION', (message) => {
-          const {
-            channel,
-            userName,
-            userToken,
-            assemblyId,
-            refSeq,
-            start,
-            end,
-          } = message
+          const { channel, userName, userToken, locations } = message
           if (channel === 'USER_LOCATION' && userToken !== token) {
             const collaborator: Collaborator = {
               name: userName,
               id: userToken,
-              locations: [
-                { assembly: assemblyId, refName: refSeq, start, end },
-              ],
+              locations,
             }
             session.addOrUpdateCollaborator(collaborator)
+          }
+        })
+        socket.on('REQUEST_INFORMATION', (message) => {
+          const { channel, userToken, reqType } = message
+          if (channel === 'REQUEST_INFORMATION' && userToken !== token) {
+            switch (reqType) {
+              case 'CURRENT_LOCATION':
+                session.broadcastLocations()
+                break
+            }
           }
         })
       },
@@ -222,6 +222,42 @@ const stateModelFactory = (
         })
       }),
     }))
+    .actions((self) => {
+      async function postUserLocation(userLoc: UserLocation[]) {
+        const { baseURL } = self
+        const url = new URL('users/userLocation', baseURL).href
+        const userLocation = new URLSearchParams(JSON.stringify(userLoc))
+
+        const apolloFetch = self.getFetcher({
+          locationType: 'UriLocation',
+          uri: url,
+        })
+        try {
+          const response = await apolloFetch(url, {
+            method: 'POST',
+            body: userLocation,
+          })
+          if (!response.ok) {
+            throw new Error() // no message here, will get caught by "catch"
+          }
+        } catch (error) {
+          console.error('Broadcasting user location failed')
+        }
+      }
+      const debounceTimeout = 300
+      const debouncePostUserLocation = (
+        fn: (userLocation: UserLocation[]) => void,
+      ) => {
+        let timeoutId: ReturnType<typeof setTimeout>
+        return (userLocation: UserLocation[]) => {
+          clearTimeout(timeoutId)
+          timeoutId = setTimeout(() => fn(userLocation), debounceTimeout)
+        }
+      }
+      return {
+        postUserLocation: debouncePostUserLocation(postUserLocation),
+      }
+    })
     .actions((self) => ({
       addMenuItems(role: Role) {
         if (
@@ -377,6 +413,32 @@ const stateModelFactory = (
         self.updateLastChangeSequenceNumber()
         // Open socket listeners
         self.addSocketListeners()
+        // request user locations
+        const { baseURL } = self
+        const uri = new URL('/users/locations', baseURL).href
+        const apolloFetch = self.getFetcher({
+          locationType: 'UriLocation',
+          uri,
+        })
+        if (apolloFetch) {
+          apolloFetch(uri, {
+            method: 'GET',
+          })
+        }
+        window.addEventListener('beforeunload', () => {
+          self.postUserLocation([])
+        })
+        document.addEventListener('visibilitychange', () => {
+          // fires when user switches tabs, apps, goes to homescreen, etc.
+          if (document.visibilityState === 'hidden') {
+            self.postUserLocation([])
+          }
+          // fires when app transitions from prerender, user returns to the app / tab.
+          if (document.visibilityState === 'visible') {
+            const { session } = getRoot(self)
+            session.broadcastLocations()
+          }
+        })
       },
     }))
     .volatile((self) => ({
@@ -459,46 +521,6 @@ const stateModelFactory = (
         throw new Error(`Unknown authType "${self.authType}"`)
       },
     }))
-    .actions((self) => {
-      async function postUserLocation(userLoc: UserLocation) {
-        const { baseURL } = self
-        const url = new URL('users/userLocation', baseURL).href
-        const userLocForParams = {
-          ...userLoc,
-          start: String(userLoc.start),
-          end: String(userLoc.end),
-        }
-        const userLocation = new URLSearchParams(userLocForParams)
-        const apolloFetch = self.getFetcher({
-          locationType: 'UriLocation',
-          uri: url,
-        })
-        try {
-          const response = await apolloFetch(url, {
-            method: 'POST',
-            body: userLocation,
-          })
-          if (!response.ok) {
-            throw new Error() // no message here, will get caught by "catch"
-          }
-        } catch (error) {
-          console.error('Broadcasting user location failed')
-        }
-      }
-      const debounceTimeout = 300
-      const debouncePostUserLocation = (
-        fn: (userLocation: UserLocation) => void,
-      ) => {
-        let timeoutId: ReturnType<typeof setTimeout>
-        return (userLocation: UserLocation) => {
-          clearTimeout(timeoutId)
-          timeoutId = setTimeout(() => fn(userLocation), debounceTimeout)
-        }
-      }
-      return {
-        postUserLocation: debouncePostUserLocation(postUserLocation),
-      }
-    })
     .actions((self) => {
       let authTypePromise: Promise<AuthType> | undefined = undefined
       return {

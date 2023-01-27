@@ -27,7 +27,10 @@ import {
   types,
 } from 'mobx-state-tree'
 
-import { ApolloInternetAccountModel } from './ApolloInternetAccount/model'
+import {
+  ApolloInternetAccountModel,
+  UserLocation,
+} from './ApolloInternetAccount/model'
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreType
@@ -216,10 +219,61 @@ export function extendSession(sessionModel: IAnyModelType) {
           })
         }
       },
+      broadcastLocations() {
+        const { internetAccounts } = getRoot(self) as AppRootModel
+        const locations: {
+          assemblyName: string
+          refName: string
+          start: number
+          end: number
+        }[] = []
+        for (const view of self.views) {
+          if (view.type === 'LinearGenomeView' && view.initialized) {
+            const { dynamicBlocks } = view as LinearGenomeViewModel
+            dynamicBlocks.forEach((block) => {
+              if (block.regionNumber !== undefined) {
+                const { assemblyName, refName, start, end } = block
+                locations.push({ assemblyName, refName, start, end })
+              }
+            })
+          }
+        }
+        if (!locations.length) {
+          for (const internetAccount of internetAccounts as (
+            | BaseInternetAccountModel
+            | ApolloInternetAccountModel
+          )[]) {
+            if ('baseURL' in internetAccount) {
+              internetAccount.postUserLocation([])
+            }
+          }
+          return
+        }
+
+        const allLocations: UserLocation[] = []
+        for (const internetAccount of internetAccounts as (
+          | BaseInternetAccountModel
+          | ApolloInternetAccountModel
+        )[]) {
+          if ('baseURL' in internetAccount) {
+            for (const location of locations) {
+              const tmpLoc: UserLocation = {
+                assemblyId: location.assemblyName,
+                refSeq: location.refName,
+                start: location.start,
+                end: location.end,
+              }
+              allLocations.push(tmpLoc)
+            }
+            internetAccount.postUserLocation(allLocations)
+          }
+        }
+      },
       afterCreate: flow(function* afterCreate() {
         const { internetAccounts } = getRoot(self) as AppRootModel
         autorun(
           () => {
+            // broadcastLocations() // **** This is not working and therefore we need to duplicate broadcastLocations() -method code here because autorun() does not observe changes otherwise
             const locations: {
               assemblyName: string
               refName: string
@@ -238,26 +292,33 @@ export function extendSession(sessionModel: IAnyModelType) {
               }
             }
             if (!locations.length) {
+              for (const internetAccount of internetAccounts as (
+                | BaseInternetAccountModel
+                | ApolloInternetAccountModel
+              )[]) {
+                if ('baseURL' in internetAccount) {
+                  internetAccount.postUserLocation([])
+                }
+              }
               return
             }
+
+            const allLocations: UserLocation[] = []
             for (const internetAccount of internetAccounts as (
               | BaseInternetAccountModel
               | ApolloInternetAccountModel
             )[]) {
               if ('baseURL' in internetAccount) {
-                const [location] = locations
-                const {
-                  assemblyName: assemblyId,
-                  refName: refSeq,
-                  start,
-                  end,
-                } = location
-                internetAccount.postUserLocation({
-                  assemblyId,
-                  refSeq,
-                  start: Math.round(start),
-                  end: Math.round(end),
-                })
+                for (const location of locations) {
+                  const tmpLoc: UserLocation = {
+                    assemblyId: location.assemblyName,
+                    refSeq: location.refName,
+                    start: location.start,
+                    end: location.end,
+                  }
+                  allLocations.push(tmpLoc)
+                }
+                internetAccount.postUserLocation(allLocations)
               }
             }
           },
