@@ -1,5 +1,6 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
+import { JWTPayload } from 'apollo-shared'
 import { Profile as GoogleProfile } from 'passport-google-oauth20'
 
 import { CreateUserDto } from '../users/dto/create-user.dto'
@@ -44,7 +45,7 @@ export class AuthenticationService {
       }
       const createdUser = await this.usersService.addNew(newUser)
 
-      const payload = {
+      const payload: JWTPayload = {
         username: newUser.username,
         email: newUser.email,
         roles: Array.from(userRoles),
@@ -69,7 +70,7 @@ export class AuthenticationService {
       })
     }
 
-    const payload = {
+    const payload: JWTPayload = {
       username: userFound.username,
       email: userFound.email,
       roles: Array.from(userRoles),
@@ -112,9 +113,9 @@ export class AuthenticationService {
       }
       const createdUser = await this.usersService.addNew(newUser)
 
-      const payload = {
+      const payload: JWTPayload = {
         username: newUser.username,
-        email: newUser,
+        email: newUser.email,
         roles: Array.from(userRoles),
         id: createdUser.id,
       }
@@ -137,7 +138,7 @@ export class AuthenticationService {
       })
     }
 
-    const payload = {
+    const payload: JWTPayload = {
       username: userFound.username,
       email: userFound.email,
       roles: Array.from(userRoles),
