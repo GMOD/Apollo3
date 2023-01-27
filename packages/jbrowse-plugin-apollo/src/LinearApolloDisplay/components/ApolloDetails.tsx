@@ -1,6 +1,14 @@
-import { AppRootModel, getSession } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  AppRootModel,
+  getSession,
+} from '@jbrowse/core/util'
 import CloseIcon from '@mui/icons-material/Close'
-import { Autocomplete, IconButton, TextField } from '@mui/material'
+import {
+  Autocomplete,
+  IconButton,
+  TextField,
+} from '@mui/material'
 import {
   DataGrid,
   GridColumns,
@@ -14,7 +22,6 @@ import {
   LocationEndChange,
   LocationStartChange,
   TypeChange,
-  validationRegistry,
 } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import { getRoot } from 'mobx-state-tree'
@@ -23,7 +30,10 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { LinearApolloDisplay } from '../stateModel'
 
-function getFeatureColumns(editable: boolean): GridColumns {
+function getFeatureColumns(
+  editable: boolean,
+  session: AbstractSessionModel,
+): GridColumns {
   return [
     { field: 'id', headerName: 'ID', width: 250 },
     {
@@ -32,7 +42,7 @@ function getFeatureColumns(editable: boolean): GridColumns {
       width: 250,
       editable,
       renderEditCell: (params: GridRenderEditCellParams) => (
-        <AutocompleteInputCell {...params} />
+        <AutocompleteInputCell {...params} session={session} />
       ),
     },
     { field: 'refSeq', headerName: 'Ref Seq', width: 150 },
@@ -41,18 +51,54 @@ function getFeatureColumns(editable: boolean): GridColumns {
   ]
 }
 
-function AutocompleteInputCell(props: GridRenderEditCellParams) {
+function AutocompleteInputCell(props: any) {
   const { id, value, field } = props
   const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>([])
   const apiRef = useGridApiContext()
 
+  const { internetAccounts } = getRoot(props.session) as AppRootModel
+  const apolloInternetAccount = internetAccounts.find(
+    (ia) => ia.type === 'ApolloInternetAccount',
+  ) as ApolloInternetAccountModel | undefined
+  if (!apolloInternetAccount) {
+    throw new Error('No Apollo internet account found')
+  }
+  const { baseURL } = apolloInternetAccount
+  // const [errorMessage, setErrorMessage] = useState('')
+
   useEffect(() => {
     async function getSOSequenceTerms() {
-      const soTerms = (await validationRegistry.possibleValues(
-        'type',
-      )) as string[]
-      if (soTerms) {
-        setSOSequenceTerms(soTerms)
+      const url = `/ontologies/possibleTypes/${id}`
+      const uri = new URL(url, baseURL).href
+      const apolloFetch = apolloInternetAccount?.getFetcher({
+        locationType: 'UriLocation',
+        uri,
+      })
+      if (apolloFetch) {
+        const response = await apolloFetch(uri, {
+          method: 'GET',
+        })
+        if (!response.ok) {
+          let msg
+          try {
+            msg = await response.text()
+          } catch (e) {
+            msg = e
+          }
+          // setErrorMessage(
+          //   `Error when retrieving ontologies from server — ${
+          //     response.status
+          //   } (${response.statusText})${msg ? ` (${msg})` : ''}`,
+          // )
+          return
+        }
+        const data = (await response.json()) as string[]
+        // if (data.length < 1) {
+        //   setErrorMessage(
+        //     `Feature's "${id}" only type is "${value}" and it cannot be changed!`,
+        //   )
+        // }
+        setSOSequenceTerms(data)
       }
     }
     getSOSequenceTerms()
@@ -75,11 +121,12 @@ function AutocompleteInputCell(props: GridRenderEditCellParams) {
   if (!soSequenceTerms.length) {
     return null
   }
+  console.log(`Allowed SO types: ${JSON.stringify(soSequenceTerms)}`)
 
   return (
     <Autocomplete
       options={soSequenceTerms}
-      style={{ width: 245 }}
+      style={{ width: 245, maxHeight: 150 }}
       renderInput={(params) => <TextField {...params} variant="outlined" />}
       value={String(value)}
       onChange={handleChange}
@@ -203,7 +250,7 @@ export const ApolloDetails = observer(
           style={{ height: detailsHeight }}
           autoHeight
           rows={selectedFeatureRows}
-          columns={getFeatureColumns(editable)}
+          columns={getFeatureColumns(editable, session)}
           experimentalFeatures={{ newEditingApi: true }}
           processRowUpdate={processRowUpdate}
           onProcessRowUpdateError={console.error}

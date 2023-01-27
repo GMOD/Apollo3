@@ -39,7 +39,7 @@ export class OntologiesService {
             done
     * 3. I executed command: ./robot.sh convert --input so-simple.obo --output obo-converted.json --format json
     * 4. I ran "loadOntology()" -method        
-   * @param tempFullFileName
+   * @param tempFullFileName - filename
    */
   loadOntology(tempFullFileName: string) {
     const client = new MongoClient('mongodb://localhost:27017/')
@@ -48,8 +48,6 @@ export class OntologiesService {
       await client.connect()
 
       // Read the JSON file
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      //   const data = require(tempFullFileName)
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const data = require('../../test/uploaded/obo-converted.json')
 
@@ -85,41 +83,79 @@ export class OntologiesService {
    * or if search data was not found or in case of error throw exception
    */
   async findChildrenTypesByParentType(parentType: string) {
-    // Get edges by parentType
-    const nodes = await this.nodeModel
+    // Go down and find all nodes where relation is 'is_a'
+    const isaNodes = await this.nodeModel
       .aggregate([
         {
-          $match: {
-            lbl: parentType,
-            type: 'CLASS',
-          },
+          $match: { lbl: parentType, type: 'CLASS' },
         },
         {
-          $lookup: {
+          $graphLookup: {
             from: 'edges',
-            as: 'id',
-            let: { id: '$id' },
-            pipeline: [
-              {
-                $match: {
-                  $expr: { $eq: ['$$id', '$obj'] },
-                  pred: 'http://purl.obolibrary.org/obo/so#part_of',
-                },
-              },
-            ],
+            startWith: '$id',
+            connectFromField: 'sub',
+            connectToField: 'obj',
+            maxDepth: 10,
+            as: 'subcategories',
+            restrictSearchWithMatch: { pred: 'is_a' },
           },
         },
       ])
       .exec()
 
-    const subIds: string[] = []
-    for (const edge of nodes[0].id) {
-      // this.logger.debug(
-      //   `The following feature(s) matched  = ${JSON.stringify(edge)}`,
-      // )
-      subIds.push(edge.sub)
+    const { subcategories } = isaNodes[0] as any
+    const isAIds: string[] = []
+    for (const edge of subcategories) {
+      isAIds.indexOf(edge.obj) === -1
+        ? isAIds.push(edge.obj)
+        : this.logger.verbose(`Array has already item "${edge.obj}"`)
+      isAIds.indexOf(edge.sub) === -1
+        ? isAIds.push(edge.sub)
+        : this.logger.verbose(`Array has already item "${edge.sub}"`)
     }
 
+    this.logger.verbose(`IS_A nodes are: ${JSON.stringify(isAIds)}`)
+
+    // Get chilren's terms. The matched terms are saved in "id" attribute of childrenNodes
+    const childrenNodes = await this.nodeModel.aggregate([
+      {
+        $match: {
+          id: { $in: isAIds },
+        },
+      },
+      {
+        $lookup: {
+          from: 'edges',
+          as: 'id',
+          let: { id: '$id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$$id', '$obj'] },
+                pred: {
+                  $in: [
+                    'http://purl.obolibrary.org/obo/so#part_of',
+                    'http://purl.obolibrary.org/obo/so#member_of',
+                  ],
+                },
+              },
+            },
+          ],
+        },
+      },
+    ])
+
+    const subIds: string[] = []
+    for (const edge of childrenNodes) {
+      for (const innerEdge of edge.id) {
+        this.logger.verbose(
+          `+++ The following child is possible: ${JSON.stringify(
+            innerEdge.sub,
+          )}`,
+        )
+        subIds.push(innerEdge.sub)
+      }
+    }
     // Get children's types
     const childrenTypes = await this.nodeModel
       .aggregate([
@@ -141,7 +177,6 @@ export class OntologiesService {
         childrenTypes,
       )}`,
     )
-
     return childrenTypes
   }
 
@@ -183,7 +218,7 @@ export class OntologiesService {
         : this.logger.verbose(`Array has already item "${edge.sub}"`)
     }
 
-    this.logger.debug(`IS_A nodes are: ${JSON.stringify(isAIds)}`)
+    this.logger.verbose(`IS_A nodes are: ${JSON.stringify(isAIds)}`)
 
     // Get parent's terms. The matched terms are saved in "id" attribute of parentNodes
     const parentNodes = await this.nodeModel.aggregate([
@@ -217,7 +252,7 @@ export class OntologiesService {
     const subIds: string[] = []
     for (const edge of parentNodes) {
       for (const innerEdge of edge.id) {
-        this.logger.debug(
+        this.logger.verbose(
           `+++ The following parent is possible: ${JSON.stringify(
             innerEdge.obj,
           )}`,
@@ -303,17 +338,6 @@ export class OntologiesService {
             }
             firstChild = false
           } else {
-            // If child's possible parent type is not found in "childParentArray" (that contais originally the possible parent types of the 1st child) then remove the type from "childParentArray" array
-            // console.log(
-            //   `So far childParenArray has value: ${JSON.stringify(
-            //     childParentArray,
-            //   )}`,
-            // )
-            // console.log(
-            //   `featureChildParentTypes has value: ${JSON.stringify(
-            //     featureChildParentTypes,
-            //   )}`,
-            // )
             childParentArray.forEach((itm) => {
               let childTypeFound = false
               featureChildParentTypes.forEach((tmpElement) => {
@@ -330,7 +354,7 @@ export class OntologiesService {
               }
             })
           }
-          this.logger.debug(
+          this.logger.verbose(
             `Feature has children and their possible parent types are: ${JSON.stringify(
               childParentArray,
             )}`,
@@ -412,16 +436,9 @@ export class OntologiesService {
     this.logger.verbose(`Entry=${JSON.stringify(feature)}`)
 
     if (feature._id.equals(featureId)) {
-      // this.logger.debug(
-      //   `Top level featureId matches in object ${JSON.stringify(feature)}`,
-      // )
       return feature
     }
     // Check if there is also childFeatures in parent feature and it's not empty
-    // Let's get featureId from recursive method
-    // this.logger.debug(
-    //   `FeatureId was not found on top level so lets make recursive call...`,
-    // )
     for (const [, childFeature] of feature.children || new Map()) {
       const subFeature = await this.getFeatureFromId(childFeature, featureId)
       if (subFeature) {
