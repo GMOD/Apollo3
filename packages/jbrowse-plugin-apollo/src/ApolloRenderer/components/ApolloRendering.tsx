@@ -5,7 +5,7 @@ import { AnnotationFeatureI } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { autorun, toJS } from 'mobx'
 import { observer } from 'mobx-react'
-import { getRoot, getSnapshot, isAlive } from 'mobx-state-tree'
+import { getRoot, getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
@@ -115,9 +115,6 @@ function ApolloRendering(props: ApolloRenderingProps) {
   }, [authType, getRole])
 
   useEffect(() => {
-    if (!isAlive(region)) {
-      return
-    }
     const canvas = canvasRef.current
     if (!canvas) {
       return
@@ -160,9 +157,6 @@ function ApolloRendering(props: ApolloRenderingProps) {
     featureSnap,
   ])
   useEffect(() => {
-    if (!isAlive(region)) {
-      return
-    }
     const canvas = overlayCanvasRef.current
     if (!canvas) {
       return
@@ -237,9 +231,6 @@ function ApolloRendering(props: ApolloRenderingProps) {
   ])
 
   function onMouseMove(event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
-    if (!isAlive(region)) {
-      return
-    }
     const { clientX, clientY, buttons } = event
     if (!movedDuringLastMouseDown && buttons === 1) {
       setMovedDuringLastMouseDown(true)
