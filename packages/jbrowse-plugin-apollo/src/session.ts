@@ -187,11 +187,6 @@ export function extendSession(sessionModel: IAnyModelType) {
               collabs.push(collaborator)
             } else {
               existingCollaborator.locations = collaborator.locations
-              console.log(
-                `Collaborators's locations are: ${JSON.stringify(
-                  existingCollaborator.locations,
-                )}`,
-              )
             }
           },
         },
@@ -244,7 +239,6 @@ export function extendSession(sessionModel: IAnyModelType) {
           }
         }
         if (!locations.length) {
-          console.log('NO LOCATIONS - SEND EMPTY LOCATION ARRAY')
           for (const internetAccount of internetAccounts as (
             | BaseInternetAccountModel
             | ApolloInternetAccountModel

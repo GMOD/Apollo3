@@ -144,11 +144,6 @@ const stateModelFactory = (
               id: userToken,
               locations,
             }
-            console.log(
-              `Received collaborator's location info: ${JSON.stringify(
-                collaborator,
-              )}`,
-            )
             session.addOrUpdateCollaborator(collaborator)
           }
         })
@@ -157,7 +152,6 @@ const stateModelFactory = (
           if (channel === 'REQUEST_INFORMATION' && userToken !== token) {
             switch (reqType) {
               case 'CURRENT_LOCATION':
-                console.log('Request to resend other users current locations')
                 session.broadcastLocations()
                 break
             }
@@ -230,7 +224,6 @@ const stateModelFactory = (
     }))
     .actions((self) => {
       async function postUserLocation(userLoc: UserLocation[]) {
-        console.log(`Post my all locations: ${JSON.stringify(userLoc)}`)
         const { baseURL } = self
         const url = new URL('users/userLocation', baseURL).href
         const userLocation = new URLSearchParams(JSON.stringify(userLoc))
