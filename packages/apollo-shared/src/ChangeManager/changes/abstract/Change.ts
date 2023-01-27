@@ -66,6 +66,7 @@ export interface ServerDataStore {
   counterService: {
     getNextSequenceValue(sequenceName: string): Promise<number>
   }
+  user: string
 }
 
 export interface SerializedChange {

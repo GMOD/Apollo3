@@ -51,21 +51,16 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
       throw new Error(errMsg)
     }
 
+    // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
+
     // Get RefSeqs
     const refSeqs = await refSeqModel.find({ assembly }).exec()
     const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
-    // this.logger.debug?.(`REF SEQ IDs: ${refSeqIds}`)
 
     // Get and delete RefSeqChunks
-    // const refSeqChunks = await refSeqChunkModel.find({ refSeq: refSeqIds }).exec()
-    // const refSeqChunkIds = refSeqChunks.map((refSeq) => refSeq._id)
-    // this.logger.debug?.(`REF SEQ CHUNK IDs: ${refSeqChunkIds}`)
     await refSeqChunkModel.deleteMany({ refSeq: refSeqIds }).exec()
 
     // Get and delete Features
-    // const features = await featureModel.find({ refSeq: refSeqIds }).exec()
-    // const featureIds = features.map((refSeq) => refSeq._id)
-    // this.logger.debug?.(`FEATURE IDs: ${featureIds}`)
     await featureModel.deleteMany({ refSeq: refSeqIds }).exec()
 
     // Delete RefSeqs and Assembly

@@ -1,18 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { Document, Schema as MongooseSchema } from 'mongoose'
 
-import { Assembly } from './assembly.schema'
-
 export type ChangeDocument = Change & Document
 
 @Schema({ timestamps: true })
 export class Change {
-  @Prop({
-    type: MongooseSchema.Types.ObjectId,
-    ref: 'Assembly',
-    index: true,
-  })
-  assembly: Assembly
+  @Prop({ type: MongooseSchema.Types.ObjectId }) // We cannot use FK anymore because assembly is deleted outside of transaction concept
+  assembly: MongooseSchema.Types.ObjectId
 
   @Prop({ required: true })
   typeName: string

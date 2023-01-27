@@ -20,6 +20,12 @@ export class RefSeqChunk {
 
   @Prop({ required: true })
   sequence: string
+
+  @Prop()
+  status: number
+
+  @Prop()
+  user: string
 }
 
 export const RefSeqChunkSchema = SchemaFactory.createForClass(RefSeqChunk)

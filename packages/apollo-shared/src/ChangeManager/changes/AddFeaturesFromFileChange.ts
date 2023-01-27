@@ -64,7 +64,7 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { filesService, fileModel, session } = backend
+    const { filesService, fileModel } = backend
     const { changes, logger } = this
 
     for (const change of changes) {
@@ -75,7 +75,7 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
         throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
       }
       // Get file checksum
-      const fileDoc = await fileModel.findById(fileId).session(session).exec()
+      const fileDoc = await fileModel.findById(fileId).exec()
       if (!fileDoc) {
         throw new Error(`File "${fileId}" not found in Mongo`)
       }
@@ -90,6 +90,7 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
         logger.verbose?.(`ENTRY=${JSON.stringify(gff3Feature)}`)
 
         // Add new feature into database
+        // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
         await this.addFeatureIntoDb(gff3Feature, backend)
       }
     }

@@ -65,7 +65,7 @@ export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange
    * @returns
    */
   async applyToServer(backend: ServerDataStore) {
-    const { assemblyModel, fileModel, filesService, session } = backend
+    const { assemblyModel, fileModel, filesService, user } = backend
     const { changes, assembly, logger } = this
     for (const change of changes) {
       const { fileId, assemblyName } = change
@@ -75,7 +75,7 @@ export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange
         throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
       }
       // Get file checksum
-      const fileDoc = await fileModel.findById(fileId).session(session).exec()
+      const fileDoc = await fileModel.findById(fileId).exec()
       if (!fileDoc) {
         throw new Error(`File "${fileId}" not found in Mongo`)
       }
@@ -84,22 +84,21 @@ export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange
       // Check and add new assembly
       const assemblyDoc = await assemblyModel
         .findOne({ name: assemblyName })
-        .session(session)
         .exec()
       if (assemblyDoc) {
         throw new Error(`Assembly "${assemblyName}" already exists`)
       }
       // Add assembly
-      const [newAssemblyDoc] = await assemblyModel.create(
-        [{ _id: assembly, name: assemblyName }],
-        { session },
-      )
+      const [newAssemblyDoc] = await assemblyModel.create([
+        { _id: assembly, name: assemblyName, user, status: -1 },
+      ])
       logger.debug?.(
         `Added new assembly "${assemblyName}", docId "${newAssemblyDoc._id}"`,
       )
       logger.debug?.(`File type: "${fileDoc.type}"`)
 
       // Add refSeqs
+      // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
       await this.addRefSeqIntoDb(fileDoc, newAssemblyDoc._id, backend)
 
       // Loop all features
