@@ -13,8 +13,8 @@ import {
 } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { ChangeManager, FeatureAttributeChange } from 'apollo-shared'
-import { getRoot } from 'mobx-state-tree'
-import React, { useEffect, useState } from 'react'
+import { getRoot, getSnapshot } from 'mobx-state-tree'
+import React, { useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 
@@ -24,11 +24,6 @@ interface ModifyFeatureAttributeProps {
   sourceFeature: AnnotationFeatureI
   sourceAssemblyId: string
   changeManager: ChangeManager
-}
-
-interface Collection {
-  key: string
-  value: string[]
 }
 
 export function ModifyFeatureAttribute({
@@ -46,86 +41,22 @@ export function ModifyFeatureAttribute({
   if (!apolloInternetAccount) {
     throw new Error('No Apollo internet account found')
   }
-  const { baseURL } = apolloInternetAccount
   const [errorMessage, setErrorMessage] = useState('')
-  const [collection, setCollection] = useState<Collection[]>([])
-  const [addNew, setAddNew] = useState(false)
-  const [attributeNewValue, setAttributeNewValue] = useState([''])
+  const [attributes, setAttributes] = useState<Record<string, string[]>>(
+    Object.fromEntries(
+      Array.from(sourceFeature.attributes.entries()).map(([key, value]) => [
+        key,
+        getSnapshot(value),
+      ]),
+    ),
+  )
+  const [showAddNewForm, setShowAddNewForm] = useState(false)
   const [newAttributeKey, setNewAttributeKey] = useState('')
   const [newAttributeValue, setNewAttributeValue] = useState('')
-  const [hasInitAttribute, setHasInitAttribute] = useState(false)
-
-  useEffect(() => {
-    async function getFeatureAttributes() {
-      setHasInitAttribute(false)
-      console.log(
-        `Attributes client : "${JSON.stringify(sourceFeature.attributes)}"`,
-      )
-      // If we fetch feature attributes from local data store then we use code below
-      sourceFeature.attributes.forEach((value: string[], key: string) => {
-        setCollection((result) => [
-          ...result,
-          {
-            key,
-            value,
-          },
-        ])
-        setHasInitAttribute(true)
-      })
-
-      // // If we fetch feature attributes directly from Mongo then we use code below
-      // const tmpUrl = `/features/getAttributes/${sourceFeature._id}`
-      // const uri = new URL(tmpUrl, baseURL).href
-      // const apolloFetch = apolloInternetAccount?.getFetcher({
-      //   locationType: 'UriLocation',
-      //   uri,
-      // })
-      // if (apolloFetch) {
-      //   const response = await apolloFetch(uri, {
-      //     method: 'GET',
-      //   })
-      //   if (!response.ok) {
-      //     let msg
-      //     try {
-      //       msg = await response.text()
-      //     } catch (e) {
-      //       msg = ''
-      //     }
-      //     setErrorMessage(
-      //       `Error when retrieving feature attributes — ${response.status} (${
-      //         response.statusText
-      //       })${msg ? ` (${msg})` : ''}`,
-      //     )
-      //     return
-      //   }
-      //   const data = await response.json()
-      //   Object.keys(data).forEach(function (key) {
-      //     console.log(`Key : "${key}", value : "${data[key]}"`)
-      //     setCollection((result) => [
-      //       ...result,
-      //       {
-      //         key,
-      //         value: data[key],
-      //       },
-      //     ])
-      //   })
-      // }
-    }
-    getFeatureAttributes()
-    return () => {
-      setCollection([{ key: '', value: [''] }])
-    }
-  }, [apolloInternetAccount, baseURL, sourceAssemblyId, sourceFeature])
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    const attributes: Record<string, string[]> = {}
-
-    collection.forEach((item) => {
-      // console.log(`Collection "${item.key}" value is "${item.value}"`)
-      attributes[item.key] = item.value
-    })
 
     const change = new FeatureAttributeChange({
       changedIds: [sourceFeature._id],
@@ -140,90 +71,65 @@ export function ModifyFeatureAttribute({
     event.preventDefault()
   }
 
-  function handleChangeAtt(value: string, id: string): void {
-    setAttributeNewValue(value.split(','))
-    collection.forEach((item) => {
-      if (item.key === id) {
-        item.value = value.split(',')
-      }
-    })
+  function handleChangeAttribute(
+    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+  ): void {
+    const { id, value } = event.target
+    setAttributes({ ...attributes, [id]: value.split(',') })
   }
 
-  function handleChangeAddNewAttribute() {
-    setErrorMessage('')
-    let ok = true
-    collection.forEach((item) => {
-      // Find correct element and delete it
-      if (item.key === newAttributeKey) {
-        setErrorMessage(`Attribute key "${newAttributeKey}" already exists!`)
-        ok = false
-      }
-    })
-    if (ok) {
-      setCollection((result) => [
-        ...result,
-        {
-          key: newAttributeKey,
-          value: newAttributeValue.split(','),
-        },
-      ])
-      setAddNew(false)
-      setHasInitAttribute(true)
+  function handleAddNewAttributeChange() {
+    if (newAttributeKey in attributes) {
+      setErrorMessage(`Attribute "${newAttributeKey}" already exists`)
+    } else {
+      setErrorMessage('')
+      setAttributes({
+        ...attributes,
+        [newAttributeKey]: newAttributeValue.split(','),
+      })
+      setShowAddNewForm(false)
     }
   }
   function deleteAttribute(key: string) {
     setErrorMessage('')
-    let ind = 0
-    collection.forEach((item) => {
-      // Find correct element and delete it
-      if (item.key === key) {
-        collection.splice(ind, 1)
-      }
-      ind++
-    })
-    setCollection((result) => [...result])
-    setHasInitAttribute(true)
+    const { [key]: remove, ...rest } = attributes
+    setAttributes(rest)
   }
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Feature attributes</DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-          {collection.map((attribute) => {
+          {Object.entries(attributes).map(([key, value]) => {
             return (
-              <>
-                <Grid container spacing={1} alignItems="flex-end">
-                  <Grid item style={{ minWidth: 550 }}>
-                    <TextField
-                      id={attribute.key}
-                      key={attribute.key}
-                      label={attribute.key}
-                      type="text"
-                      value={attribute.value}
-                      style={{ minWidth: 500 }}
-                      onChange={(e) =>
-                        handleChangeAtt(e.target.value, e.target.id)
-                      }
-                    />
-                  </Grid>
-                  <Grid item>
-                    <IconButton
-                      aria-label="delete"
-                      size="medium"
-                      key={attribute.key}
-                      onClick={() => {
-                        deleteAttribute(attribute.key)
-                      }}
-                    >
-                      <DeleteIcon fontSize="medium" key={attribute.key} />
-                    </IconButton>
-                  </Grid>
+              <Grid container spacing={1} alignItems="flex-end" key={key}>
+                <Grid item style={{ minWidth: 550 }}>
+                  <TextField
+                    id={key}
+                    key={key}
+                    label={key}
+                    type="text"
+                    value={value.join(',')}
+                    style={{ minWidth: 500 }}
+                    onChange={handleChangeAttribute}
+                  />
                 </Grid>
-              </>
+                <Grid item>
+                  <IconButton
+                    aria-label="delete"
+                    size="medium"
+                    onClick={() => {
+                      deleteAttribute(key)
+                    }}
+                  >
+                    <DeleteIcon fontSize="medium" key={key} />
+                  </IconButton>
+                </Grid>
+              </Grid>
             )
           })}
 
-          {addNew ? (
+          {showAddNewForm ? (
             <DialogContent style={{ border: '5px solid rgba(0, 0, 0, 0.05)' }}>
               <TextField
                 autoFocus
@@ -248,17 +154,14 @@ export function ModifyFeatureAttribute({
               />
             </DialogContent>
           ) : null}
-          {addNew ? (
+          {showAddNewForm ? (
             <DialogActions>
               <Button
                 key="addButton"
                 color="primary"
                 variant="contained"
                 style={{ margin: 2 }}
-                onClick={() => {
-                  setAddNew(true)
-                  handleChangeAddNewAttribute()
-                }}
+                onClick={handleAddNewAttributeChange}
               >
                 Add
               </Button>
@@ -267,7 +170,7 @@ export function ModifyFeatureAttribute({
                 variant="outlined"
                 type="submit"
                 onClick={() => {
-                  setAddNew(false)
+                  setShowAddNewForm(false)
                   setErrorMessage('')
                 }}
               >
@@ -281,25 +184,21 @@ export function ModifyFeatureAttribute({
           <Button
             color="primary"
             variant="contained"
-            disabled={addNew}
+            disabled={showAddNewForm}
             onClick={() => {
-              setAddNew(true)
+              setShowAddNewForm(true)
             }}
           >
             Add new
           </Button>
           <div style={{ flex: '1 0 0' }} />
-          <Button
-            variant="contained"
-            type="submit"
-            disabled={!hasInitAttribute || addNew}
-          >
+          <Button variant="contained" type="submit" disabled={showAddNewForm}>
             Submit changes
           </Button>
           <Button
             variant="outlined"
             type="submit"
-            disabled={addNew}
+            disabled={showAddNewForm}
             onClick={() => {
               handleClose()
             }}
@@ -307,16 +206,15 @@ export function ModifyFeatureAttribute({
             Cancel
           </Button>
         </DialogActions>
-        <span style={{ fontWeight: 'bold' }}>
-          Note: Multiple attributes of the same type are indicated by separating
-          the values with the comma
-        </span>
       </form>
-      {errorMessage ? (
-        <DialogContent>
+      <DialogContent>
+        <DialogContentText>
+          Separate multiple value for the attribute with a comma
+        </DialogContentText>
+        {errorMessage ? (
           <DialogContentText color="error">{errorMessage}</DialogContentText>
-        </DialogContent>
-      ) : null}
+        ) : null}
+      </DialogContent>
     </Dialog>
   )
 }

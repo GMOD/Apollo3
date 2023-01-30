@@ -104,21 +104,7 @@ export class FeaturesController {
   @Get(':featureid')
   getFeature(@Param('featureid') featureid: string) {
     this.logger.debug(`Get feature by featureId: ${featureid}`)
-    return this.featuresService.findById(featureid, 1)
-  }
-
-  /**
-   * Get feature attributes by featureId.
-   * @param featureid - featureId
-   * @returns Return 'HttpStatus.OK' and the feature and its attributes if search was successful
-   * or if search data was not found or in case of error throw exception
-   */
-  @UseGuards(JwtAuthGuard)
-  @Validations(Role.ReadOnly)
-  @Get('getAttributes/:featureid')
-  async getFeatureAttributes(@Param('featureid') featureid: string) {
-    this.logger.debug(`Get feature attributes by featureId: ${featureid}`)
-    return this.featuresService.findById(featureid, 2)
+    return this.featuresService.findById(featureid)
   }
 
   /**

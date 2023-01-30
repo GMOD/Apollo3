@@ -136,7 +136,9 @@ export class FeatureAttributeChange extends FeatureChange {
       if (!feature) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
-      feature.setAttributes(this.changes[idx].attributes)
+      feature.setAttributes(
+        new Map(Object.entries(this.changes[idx].attributes)),
+      )
     })
   }
 
