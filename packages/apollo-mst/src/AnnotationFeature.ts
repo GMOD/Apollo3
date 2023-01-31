@@ -125,6 +125,12 @@ export const AnnotationFeature = types
     },
   }))
   .actions((self) => ({
+    setAttributes(attributes: Map<string, string[]>) {
+      self.attributes.clear()
+      Array.from(attributes.entries()).forEach(([key, value]) =>
+        self.attributes.set(key, value),
+      )
+    },
     setType(type: string) {
       self.type = type
     },
