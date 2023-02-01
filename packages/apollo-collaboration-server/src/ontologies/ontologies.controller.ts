@@ -29,8 +29,8 @@ export class OntologiesController {
    * @returns Return 'HttpStatus.OK' and the allowed children feature types if search was successful
    * or if search data was not found or in case of error throw exception
    */
-  @UseGuards(JwtAuthGuard)
-  @Validations(Role.ReadOnly)
+  // @UseGuards(JwtAuthGuard)
+  // @Validations(Role.ReadOnly)
   @Get(':parentType')
   getChildrenTypes(@Param('parentType') parentType: string) {
     this.logger.debug(
@@ -54,6 +54,20 @@ export class OntologiesController {
     )
     const eka = await this.ontologiesService.getPossibleFeatureTypes(featureId)
     return eka
+  }
+
+  /**
+   * Get children's allowed feature types by parent type.
+   * @param parentType - string
+   * @returns Return 'HttpStatus.OK' and the allowed children feature types if search was successful
+   * or if search data was not found or in case of error throw exception
+   */
+  // @UseGuards(JwtAuthGuard)
+  // @Validations(Role.ReadOnly)
+  @Get('/json/:parentType')
+  getTypesFromJson(@Param('parentType') parentType: string) {
+    this.logger.debug(`Get possible children types (from OBO-JSON) by parent type: "${parentType}"`)
+    return this.ontologiesService.featureTypeFromJson(parentType)
   }
 
   @Post()
