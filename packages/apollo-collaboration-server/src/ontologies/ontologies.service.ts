@@ -447,4 +447,88 @@ export class OntologiesService {
     }
     return null
   }
+
+  async featureTypeFromJson(parentType: string) {
+    let parentId = ''
+    const possibleChildTypes = []
+    // Read the JSON file
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const data = require('../../test/uploaded/obo-converted.json')
+
+    // Iterate over the nodes and edges in the JSON file
+    for (const node of data.graphs[0].nodes) {
+      if (node.lbl === parentType) {
+        this.logger.debug(
+          `Given parent type "${parentType}", id in "Node" array: "${node.id}"`,
+        )
+        parentId = node.id
+      }
+    }
+    const objArray: string[] = [parentId]
+    const isResultArray = this.getTypesFeatureFromId(
+      data.graphs[0].edges,
+      parentId,
+      objArray,
+    )
+
+    for (const edge of data.graphs[0].edges) {
+      if (
+        isResultArray.indexOf(edge.obj) !== -1 &&
+        (edge.pred === 'http://purl.obolibrary.org/obo/so#part_of' ||
+          edge.pred === 'http://purl.obolibrary.org/obo/so#member_of')
+      ) {
+        for (const node of data.graphs[0].nodes) {
+          if (node.id === edge.sub) {
+            this.logger.verbose(`Possible child type: "${node.lbl}"`)
+            possibleChildTypes.indexOf(edge.obj) === -1
+              ? possibleChildTypes.push(node.lbl)
+              : console.log()
+          }
+        }
+      }
+    }
+    const sortedResult = possibleChildTypes.sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base' }),
+    )
+    this.logger.debug(
+      `Possible children types are: ${JSON.stringify(sortedResult)}`,
+    )
+    return sortedResult
+  }
+
+  getTypesFeatureFromId(
+    edges: any,
+    parentId: string,
+    objArray: string[],
+  ): any | null {
+    // const objArray: string[] = []
+    for (const edge of edges) {
+      if (edge.obj === parentId && edge.pred === 'is_a') {
+        objArray.indexOf(edge.sub) === -1
+          ? objArray.push(edge.sub)
+          : this.logger.verbose(`Array has already item "${edge.obj}"`)
+        // objArray.push(edge.sub)
+        this.getTypesFeatureFromId(edges, edge.sub, objArray)
+      }
+    }
+    return objArray
+    // // if (edges.sub === parentId) {
+    // //   this.logger.debug(
+    // //     `Top level featureId matches in object ${JSON.stringify(edges)}`,
+    // //   )
+    // //   return edges
+    // // }
+    // // Check if there is also childFeatures in parent feature and it's not empty
+    // // Let's get featureId from recursive method
+    // this.logger.debug(
+    //   `FeatureId was not found on top level so lets make recursive call...`,
+    // )
+    // for (const [, childFeature] of edges.children || new Map()) {
+    //   const subFeature = this.getFeatureFromId(childFeature, parentId)
+    //   if (subFeature) {
+    //     return subFeature
+    //   }
+    // }
+    // return null
+  }
 }
