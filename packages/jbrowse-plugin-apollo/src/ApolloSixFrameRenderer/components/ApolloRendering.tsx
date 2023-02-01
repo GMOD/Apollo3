@@ -39,6 +39,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
+  const codonCanvasRef = useRef<HTMLCanvasElement>(null)
   const [isAdmin, setIsAdmin] = useState<boolean>(false)
   const [isReadOnly, setIsReadOnly] = useState<boolean>(true)
   const [overEdge, setOverEdge] = useState<'start' | 'end'>()
@@ -65,6 +66,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const totalWidth = (region.end - region.start) / bpPerPx
   const {
     featureLayout,
+    codonLayout,
     apolloFeatureUnderMouse,
     setApolloFeatureUnderMouse,
     apolloRowUnderMouse,
@@ -76,8 +78,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
     features,
     featuresHeight: totalHeight,
     apolloRowHeight: height,
-    showStartCodons,
-    showStopCodons,
+    showStartCodons: showStarts,
+    showStopCodons: showStops,
   } = displayModel
   // use this to convince useEffect that the features really did change
   const featureSnap = Array.from(features.values()).map((a) =>
@@ -124,9 +126,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
   }, [authType, getRole])
 
   useEffect(() => {
-    if (!isAlive(region)) {
-      return
-    }
+    // if (!isAlive(region)) {
+    //   return
+    // }
     const canvas = canvasRef.current
     if (!canvas) {
       return
@@ -169,18 +171,65 @@ function ApolloRendering(props: ApolloRenderingProps) {
     featureSnap,
   ])
   useEffect(() => {
-    if (!isAlive(region)) {
+    // if (!isAlive(region)) {
+    //   return
+    // }
+    const canvas = codonCanvasRef.current
+    if (!canvas) {
       return
     }
+    const ctx = canvas.getContext('2d')
+    if (!ctx) {
+      return
+    }
+    const frame = 0
+    const scale = bpPerPx
+
+    // the tilt variable normalizes the frame to where we are starting from,
+    // which increases consistency across blocks
+    const tilt = 3 - (region.start % 3)
+
+    // the effectiveFrame incorporates tilt and the frame to say what the
+    // effective frame that is plotted. The +3 is for when frame is -2 and this
+    // can otherwise result in effectiveFrame -1
+    const effectiveFrame = (frame + tilt + 3) % 3
+
+    ctx.clearRect(0, 0, totalWidth, totalHeight)
+    for (const [row, codon] of codonLayout) {
+      for (const start of codon.starts) {
+        const startPx = start / bpPerPx
+        ctx.fillStyle = 'rgba(255,0,255,1)'
+        if (showStarts) {
+          ctx.fillRect(startPx, row * height + row * height, 1, height)
+        } else {
+          ctx.clearRect(startPx, row * height + row * height, 1, height)
+        }
+      }
+      for (const stop of codon.stops) {
+        const stopPx = stop / bpPerPx
+        ctx.fillStyle = 'black'
+        if (showStops) {
+          ctx.fillRect(stopPx, row * height + row * height, 1, height)
+        } else {
+          ctx.clearRect(stopPx, row * height + row * height, 1, height)
+        }
+      }
+    }
   }, [
-    showStartCodons,
-    showStopCodons,
+    showStarts,
+    showStops,
+    codonLayout,
+    totalWidth,
+    totalHeight,
+    bpPerPx,
+    height,
+    region.start,
   ])
 
   useEffect(() => {
-    if (!isAlive(region)) {
-      return
-    }
+    // if (!isAlive(region)) {
+    //   return
+    // }
     const canvas = overlayCanvasRef.current
     if (!canvas) {
       return
@@ -255,9 +304,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
   ])
 
   function onMouseMove(event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
-    if (!isAlive(region)) {
-      return
-    }
+    // if (!isAlive(region)) {
+    //   return
+    // }
     const { clientX, clientY, buttons } = event
     if (!movedDuringLastMouseDown && buttons === 1) {
       setMovedDuringLastMouseDown(true)
@@ -526,6 +575,12 @@ function ApolloRendering(props: ApolloRenderingProps) {
               ? 'col-resize'
               : 'default',
         }}
+      />
+      <canvas
+        ref={codonCanvasRef}
+        width={totalWidth}
+        height={totalHeight}
+        style={{ position: 'absolute', left: 0, top: 0 }}
       />
     </div>
   )

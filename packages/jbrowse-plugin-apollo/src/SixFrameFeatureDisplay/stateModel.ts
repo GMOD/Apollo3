@@ -15,9 +15,9 @@ import { ApolloSession } from '../session'
 import {
   AppRootModel,
   Region,
-  defaultStops,
   defaultCodonTable,
   generateCodonTable,
+  revcom,
 } from '@jbrowse/core/util'
 
 export function stateModelFactory(
@@ -132,13 +132,16 @@ export function stateModelFactory(
       get sequence() {
         const { regions } = self
         const session = getSession(self) as ApolloSession
-        const seq = new Map<string, unknown>()
+        const seq = new Map<string, string>()
         for (const region of regions) {
           const assembly = session.apolloDataStore.assemblies.get(
             region.assemblyName,
           )
           const ref = assembly?.getByRefName(region.refName)
-          seq.set(region.refName, ref?.getSequence(region.start, region.end))
+          const refSeq = ref?.getSequence(region.start, region.end)
+          if (refSeq) {
+            seq.set(region.refName, refSeq)
+          }
         }
         return seq
       },
@@ -190,13 +193,56 @@ export function stateModelFactory(
         }
         return minMax
       },
-      // get codonLayout() {
-      //   const codonLayout: Map<number, number> =
-      //     new Map()
-      //   for (const [seq, refSeq] of this.sequence || []) {
-      //         ...
-      //   }
-      // },
+      get codonLayout() {
+        const defaultStarts = ['ATG']
+        const defaultStops = ['TAA', 'TAG', 'TGA']
+        const codonLayout: Map<number, Record<string, number[]>> = new Map()
+        for (const [refSeq, seq] of this.sequence || []) {
+          const codonTable = generateCodonTable(defaultCodonTable)
+          if (!seq) {
+            continue
+          }
+          const effectiveFrame = 1
+          const seqSliced = seq.slice(effectiveFrame)
+          const starts = []
+          const stops = []
+          const translated: { letter: string; codon: string }[] = []
+          for (let i = 0; i < seqSliced.length; i += 3) {
+            const codon = seqSliced.slice(i, i + 3)
+            const normalizedCodon = codon //reverse ? revcom(codon) : codon
+            const aminoAcid = codonTable[normalizedCodon] || ''
+            translated.push({
+              letter: aminoAcid,
+              codon: normalizedCodon.toUpperCase(),
+            })
+            if (defaultStarts.includes(codon.toUpperCase())) {
+              starts.push(i * 3)
+            } else if (defaultStops.includes(codon.toUpperCase())) {
+              stops.push(i * 3)
+            }
+          }
+
+          const minMaxfeatures = this.featuresMinMax[refSeq]
+          if (!minMaxfeatures) {
+            continue
+          }
+          const [min, max] = minMaxfeatures
+          const rows: boolean[][] = []
+          const rowCount = 6
+          for (let i = 0; i < rowCount; i++) {
+            const newRowNumber = rows.length
+            rows[newRowNumber] = new Array(max - min)
+            // const myRecord: Record<string, number[]> = {}
+            // codonLayout.set(newRowNumber, (myRecord.starts = starts))
+            const x: Record<string, number[]> = {}
+            x.starts = starts
+            x.stops = stops
+            codonLayout.set(newRowNumber, x)
+            // codonLayout.get(newRowNumber).start = starts
+          }
+        }
+        return codonLayout
+      },
       get featureLayout() {
         const forwardPhaseMap: Record<number, number> = {
           0: 2,
@@ -205,9 +251,6 @@ export function stateModelFactory(
         }
         const featureLayout: Map<number, [number, AnnotationFeatureI][]> =
           new Map()
-        for (const [refSeq, seq] of this.sequence || []) {
-          console.log("blah")
-        }
         for (const [refSeq, featuresForRefSeq] of this.features || []) {
           if (!featuresForRefSeq) {
             continue
