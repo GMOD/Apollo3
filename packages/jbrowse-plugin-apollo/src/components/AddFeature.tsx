@@ -9,12 +9,13 @@ import {
   TextField,
 } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
-import { AddFeatureChange, ChangeManager } from 'apollo-shared'
+import { AddFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { ChangeManager } from '../ChangeManager'
 
 interface AddFeatureProps {
   session: AbstractSessionModel

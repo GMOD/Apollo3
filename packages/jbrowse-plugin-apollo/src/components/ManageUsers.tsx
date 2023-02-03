@@ -23,11 +23,13 @@ import {
   GridToolbar,
   MuiEvent,
 } from '@mui/x-data-grid'
-import { ChangeManager, DeleteUserChange, UserChange } from 'apollo-shared'
+import { DeleteUserChange, UserChange } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useCallback, useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { ChangeManager } from '../ChangeManager'
+import { createFetchErrorMessage } from '../util'
 
 interface UserResponse {
   _id: string
@@ -77,16 +79,11 @@ export function ManageUsers({
         method: 'GET',
       })
       if (!response.ok) {
-        let msg
-        try {
-          msg = await response.text()
-        } catch (e) {
-          msg = ''
-        }
-        setErrorMessage(
-          `Error when getting user data from db — ${response.status} 
-          (${response.statusText})${msg ? ` (${msg})` : ''}`,
+        const newErrorMessage = await createFetchErrorMessage(
+          response,
+          'Error when getting user data from db',
         )
+        setErrorMessage(newErrorMessage)
         return
       }
       const data = (await response.json()) as UserResponse[]

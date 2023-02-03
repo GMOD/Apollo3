@@ -1,12 +1,8 @@
 import { Region } from '@jbrowse/core/util'
 import { AnnotationFeatureSnapshot } from 'apollo-mst'
+import { Change, ClientDataStore, ValidationResultSet } from 'apollo-shared'
 
-import { SubmitOpts } from '../ChangeManager/ChangeManager'
-import {
-  Change,
-  ClientDataStore,
-} from '../ChangeManager/changes/abstract/Change'
-import { ValidationResultSet } from '../Validations/ValidationSet'
+import { SubmitOpts } from '../ChangeManager'
 
 export abstract class BackendDriver {
   constructor(protected clientStore: ClientDataStore) {}

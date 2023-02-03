@@ -6,23 +6,13 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { InjectModel } from '@nestjs/mongoose'
-import { User, UserDocument } from 'apollo-schemas'
 import { validationRegistry } from 'apollo-shared'
-import { Model } from 'mongoose'
-
-import { UsersService } from '../../users/users.service'
 
 @Injectable()
 export class ValidationGuard implements CanActivate {
   private readonly logger = new Logger(ValidationGuard.name)
 
-  constructor(
-    private reflector: Reflector,
-    private readonly usersService: UsersService,
-    @InjectModel(User.name)
-    private readonly userModel: Model<UserDocument>,
-  ) {}
+  constructor(private reflector: Reflector) {}
 
   /**
    * Check if user has such role that user is allowed to execute endpoint
@@ -32,10 +22,10 @@ export class ValidationGuard implements CanActivate {
    */
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
-      const validationResult = await validationRegistry.backendPreValidate(
-        { context, reflector: this.reflector },
-        { userModel: this.userModel },
-      )
+      const validationResult = await validationRegistry.backendPreValidate({
+        context,
+        reflector: this.reflector,
+      })
       if (!validationResult.ok) {
         throw new UnprocessableEntityException(
           `Error in backend authorization pre-validation: ${validationResult.resultsMessages}`,

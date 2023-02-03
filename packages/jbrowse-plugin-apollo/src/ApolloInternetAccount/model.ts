@@ -8,8 +8,12 @@ import {
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
 import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
-import { Change, JWTPayload, SerializedChange } from 'apollo-shared'
-import jwtDecode from 'jwt-decode'
+import {
+  Change,
+  SerializedChange,
+  getDecodedToken,
+  makeUserSessionId,
+} from 'apollo-shared'
 import { autorun } from 'mobx'
 import { Instance, flow, getRoot, types } from 'mobx-state-tree'
 import { io } from 'socket.io-client'
@@ -87,7 +91,7 @@ const stateModelFactory = (
         if (!token) {
           return undefined
         }
-        const dec = jwtDecode(token) as JWTPayload
+        const dec = getDecodedToken(token)
         return dec.roles
       },
       getUserId() {
@@ -95,7 +99,7 @@ const stateModelFactory = (
         if (!token) {
           return undefined
         }
-        const dec = jwtDecode(token) as JWTPayload
+        const dec = getDecodedToken(token)
         return dec.id
       },
     }))
@@ -137,11 +141,13 @@ const stateModelFactory = (
           notify('You are disconnected from the Apollo server.', 'error')
         })
         socket.on('USER_LOCATION', (message) => {
-          const { channel, userName, userToken, locations } = message
-          if (channel === 'USER_LOCATION' && userToken !== token) {
+          const { channel, userName, userSessionId, locations } = message
+          const user = getDecodedToken(token)
+          const localSessionId = makeUserSessionId(user)
+          if (channel === 'USER_LOCATION' && userSessionId !== localSessionId) {
             const collaborator: Collaborator = {
               name: userName,
-              id: userToken,
+              id: userSessionId,
               locations,
             }
             session.addOrUpdateCollaborator(collaborator)
@@ -402,7 +408,7 @@ const stateModelFactory = (
         )
       },
       initializeFromToken(token: string) {
-        const payload = jwtDecode(token) as JWTPayload
+        const payload = getDecodedToken(token)
         this.initialize(payload.roles)
       },
       initialize(role: Role) {

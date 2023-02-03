@@ -1,12 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { UserDocument, User as UserSchema } from 'apollo-schemas'
+import { DecodedJWT, makeUserSessionId } from 'apollo-shared'
 import { Model } from 'mongoose'
 
-import { RequestUserInformationDto } from '../messages/dto/create-message.dto'
-import { UserLocationMessage } from '../messages/entities/message.entity'
+import {
+  RequestUserInformationMessage,
+  UserLocationMessage,
+} from '../messages/entities/message.entity'
 import { MessagesGateway } from '../messages/messages.gateway'
-import { getDecodedAccessToken } from '../utils/commonUtilities'
 import { CreateUserDto, UserLocationDto } from './dto/create-user.dto'
 
 export interface User {
@@ -60,7 +62,7 @@ export class UsersService {
    * @param userLocation - user's location information
    * @param token - user's token, email will be decoded from the token
    */
-  broadcastLocation(userLocation: UserLocationDto[], token: string) {
+  broadcastLocation(userLocation: UserLocationDto[], user: DecodedJWT) {
     const { BROADCAST_USER_LOCATION } = process.env
     const channel = 'USER_LOCATION'
 
@@ -69,17 +71,17 @@ export class UsersService {
     }
     const broadcast: boolean = JSON.parse(BROADCAST_USER_LOCATION)
     if (broadcast) {
-      const jwtPayload = getDecodedAccessToken(token)
-      const { email: user, username: userName } = jwtPayload
+      const { email, username: userName } = user
+      const userSessionId = makeUserSessionId(user)
       const msg: UserLocationMessage = {
         locations: userLocation,
         channel,
         userName,
-        userToken: token,
+        userSessionId,
       }
       this.logger.debug(
         `Broadcasting user ${JSON.stringify(
-          user,
+          email,
         )} location to channel "${channel}", the message is "${JSON.stringify(
           msg,
         )}"`,
@@ -92,11 +94,14 @@ export class UsersService {
    * Request other users's current location after user has successfully logged in
    * @param token - user's token
    */
-  requestUsersLocations(token: string) {
+  requestUsersLocations(user: DecodedJWT) {
     const channel = 'REQUEST_INFORMATION'
-    const msg: RequestUserInformationDto = {
+    const userSessionId = makeUserSessionId(user)
+    const { username: userName } = user
+    const msg: RequestUserInformationMessage = {
       channel,
-      userToken: token,
+      userName,
+      userSessionId,
       reqType: 'CURRENT_LOCATION',
     }
     this.logger.debug(

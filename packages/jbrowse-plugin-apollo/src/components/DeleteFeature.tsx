@@ -8,11 +8,12 @@ import {
   DialogTitle,
 } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
-import { ChangeManager, DeleteFeatureChange } from 'apollo-shared'
+import { DeleteFeatureChange } from 'apollo-shared'
 import { getRoot, getSnapshot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { ChangeManager } from '../ChangeManager'
 
 interface DeleteFeatureProps {
   session: AbstractSessionModel

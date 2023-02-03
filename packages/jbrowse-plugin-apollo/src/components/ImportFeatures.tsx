@@ -10,10 +10,12 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material'
-import { AddFeaturesFromFileChange, ChangeManager } from 'apollo-shared'
+import { AddFeaturesFromFileChange } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
+import { ChangeManager } from '../ChangeManager'
+import { createFetchErrorMessage } from '../util'
 import { useAssemblies } from './'
 
 interface ImportFeaturesProps {
@@ -59,7 +61,6 @@ export function ImportFeatures({
     setErrorMessage('')
     // let fileChecksum = ''
     let fileId = ''
-    let msg
 
     if (!file) {
       throw new Error('must select a file')
@@ -83,24 +84,19 @@ export function ImportFeatures({
       uri: url,
     })
     if (apolloFetchFile) {
-      const res = await apolloFetchFile(url, {
+      const response = await apolloFetchFile(url, {
         method: 'POST',
         body: formData,
       })
-      if (!res.ok) {
-        try {
-          msg = await res.text()
-        } catch (e) {
-          msg = ''
-        }
-        setErrorMessage(
-          `Error when inserting new features (while uploading file) — ${
-            res.status
-          } (${res.statusText})${msg ? ` (${msg})` : ''}`,
+      if (!response.ok) {
+        const newErrorMessage = await createFetchErrorMessage(
+          response,
+          'Error when inserting new features (while uploading file)',
         )
+        setErrorMessage(newErrorMessage)
         return
       }
-      const result = await res.json()
+      const result = await response.json()
       // fileChecksum = result.checksum
       fileId = result._id
     }

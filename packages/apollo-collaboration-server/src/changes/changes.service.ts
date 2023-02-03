@@ -25,14 +25,16 @@ import {
   AssemblySpecificChange,
   Change as BaseChange,
   CopyFeatureChange,
+  DecodedJWT,
   FeatureChange,
+  makeUserSessionId,
   validationRegistry,
 } from 'apollo-shared'
 import { FilterQuery, Model } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service'
 import { FilesService } from '../files/files.service'
-import { Message } from '../messages/entities/message.entity'
+import { ChangeMessage } from '../messages/entities/message.entity'
 import { MessagesGateway } from '../messages/messages.gateway'
 import { FindChangeDto } from './dto/find-change.dto'
 
@@ -59,7 +61,7 @@ export class ChangesService {
 
   private readonly logger = new Logger(ChangesService.name)
 
-  async create(change: BaseChange, user: string, userToken: string) {
+  async create(change: BaseChange, user: DecodedJWT) {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
 
     const sequence = await this.countersService.getNextSequenceValue(
@@ -67,10 +69,7 @@ export class ChangesService {
     )
     const uniqUserId = `${user}-${sequence}` // Same user can upload data from more than one client
 
-    const validationResult = await validationRegistry.backendPreValidate(
-      change,
-      { userModel: this.userModel },
-    )
+    const validationResult = await validationRegistry.backendPreValidate(change)
     if (!validationResult.ok) {
       const errorMessage = validationResult.resultsMessages
       throw new UnprocessableEntityException(
@@ -139,7 +138,7 @@ export class ChangesService {
       const [savedChangedLogDoc] = await this.changeModel.create([
         {
           ...change,
-          user,
+          user: user.email,
           sequence,
         },
       ])
@@ -212,8 +211,9 @@ export class ChangesService {
     }
 
     // Broadcast
-    const messages: Message[] = []
+    const messages: ChangeMessage[] = []
 
+    const userSessionId = makeUserSessionId(user)
     // In case of 'CopyFeatureChange', we need to create 'AddFeatureChange' to all connected clients
     if (change instanceof CopyFeatureChange) {
       const [{ targetAssemblyId, newFeatureId }] = change.changes
@@ -236,8 +236,8 @@ export class ChangesService {
       for (const refName of refNames) {
         messages.push({
           changeInfo: newChange.toJSON(),
-          userName: user,
-          userToken,
+          userName: user.username,
+          userSessionId,
           channel: `${targetAssemblyId}-${refName}`,
           changeSequence: changeDoc.sequence,
         })
@@ -246,8 +246,8 @@ export class ChangesService {
       for (const refName of refNames) {
         messages.push({
           changeInfo: change.toJSON(),
-          userName: user,
-          userToken,
+          userName: user.username,
+          userSessionId,
           channel: `${change.assembly}-${refName}`,
           changeSequence: changeDoc.sequence,
         })
@@ -255,8 +255,8 @@ export class ChangesService {
     } else {
       messages.push({
         changeInfo: change.toJSON(),
-        userName: user,
-        userToken,
+        userName: user.username,
+        userSessionId,
         channel: 'COMMON',
         changeSequence: changeDoc.sequence,
       })

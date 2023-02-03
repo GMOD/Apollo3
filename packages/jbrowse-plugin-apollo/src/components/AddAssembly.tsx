@@ -21,13 +21,14 @@ import {
 import {
   AddAssemblyAndFeaturesFromFileChange,
   AddAssemblyFromFileChange,
-  ChangeManager,
 } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { ChangeManager } from '../ChangeManager'
+import { createFetchErrorMessage } from '../util'
 
 interface AddAssemblyProps {
   session: AbstractSessionModel
@@ -102,7 +103,6 @@ export function AddAssembly({
     setSubmitted(true)
     // let fileChecksum = ''
     let fileId = ''
-    let msg
     if (!file) {
       throw new Error('must select a file')
     }
@@ -119,24 +119,19 @@ export function AddAssembly({
       uri: url,
     })
     if (apolloFetchFile) {
-      const res = await apolloFetchFile(url, {
+      const response = await apolloFetchFile(url, {
         method: 'POST',
         body: formData,
       })
-      if (!res.ok) {
-        try {
-          msg = await res.text()
-        } catch (e) {
-          msg = ''
-        }
-        setErrorMessage(
-          `Error when inserting new assembly (while uploading file) — ${
-            res.status
-          } (${res.statusText})${msg ? ` (${msg})` : ''}`,
+      if (!response.ok) {
+        const newErrorMessage = await createFetchErrorMessage(
+          response,
+          'Error when inserting new assembly (while uploading file)',
         )
+        setErrorMessage(newErrorMessage)
         return
       }
-      const result = await res.json()
+      const result = await response.json()
       fileId = result._id
     }
 

@@ -1,22 +1,12 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Logger,
-  Param,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common'
+import { Body, Controller, Get, Logger, Param, Post, Req } from '@nestjs/common'
+import { DecodedJWT } from 'apollo-shared'
 import { Request } from 'express'
 
-import { JwtAuthGuard } from '../utils/jwt-auth.guard'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { UserLocationDto } from './dto/create-user.dto'
 import { UsersService } from './users.service'
 
-@UseGuards(JwtAuthGuard)
 @Validations(Role.ReadOnly)
 @Controller('users')
 export class UsersController {
@@ -45,13 +35,12 @@ export class UsersController {
    */
   @Get('locations')
   usersLocations(@Req() req: Request) {
-    const { authorization } = req.headers
-    if (!authorization) {
-      throw new Error('No "authorization" header')
+    const { user } = req as unknown as { user: DecodedJWT }
+    if (!user) {
+      throw new Error('No user attached to request')
     }
-    const [, token] = authorization.split(' ')
     this.logger.debug('Requesting other users locations')
-    return this.usersService.requestUsersLocations(token)
+    return this.usersService.requestUsersLocations(user)
   }
 
   @Get(':id')
@@ -76,12 +65,10 @@ export class UsersController {
       `One user's location info: ${JSON.stringify(userLocationArray)}`,
     )
 
-    const { authorization } = req.headers
-    if (!authorization) {
-      throw new Error('No "authorization" header')
+    const { user } = req as unknown as { user: DecodedJWT }
+    if (!user) {
+      throw new Error('No user attached to request')
     }
-    const [, token] = authorization.split(' ')
-
-    return this.usersService.broadcastLocation(userLocationArray, token)
+    return this.usersService.broadcastLocation(userLocationArray, user)
   }
 }

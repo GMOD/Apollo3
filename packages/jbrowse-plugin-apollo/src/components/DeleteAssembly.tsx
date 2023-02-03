@@ -13,11 +13,12 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material'
-import { ChangeManager, DeleteAssemblyChange } from 'apollo-shared'
+import { DeleteAssemblyChange } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { ChangeManager } from '../ChangeManager'
 import { AssemblyData, useAssemblies } from './'
 
 interface DeleteAssemblyProps {

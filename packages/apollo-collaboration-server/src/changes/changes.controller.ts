@@ -1,23 +1,13 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Logger,
-  Post,
-  Query,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common'
-import { Change } from 'apollo-shared'
+import { Body, Controller, Get, Logger, Post, Query, Req } from '@nestjs/common'
+import { Change, DecodedJWT } from 'apollo-shared'
+import { Request } from 'express'
 
-import { ChangeInterceptor } from '../utils/change.interceptor'
-import { JwtAuthGuard } from '../utils/jwt-auth.guard'
+import { ParseChangePipe } from '../utils/parse-change.pipe'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { ChangesService } from './changes.service'
 import { FindChangeDto } from './dto/find-change.dto'
 
-@UseGuards(JwtAuthGuard)
 @Validations(Role.ReadOnly)
 @Controller('changes')
 export class ChangesController {
@@ -30,26 +20,18 @@ export class ChangesController {
    * @returns Return 'HttpStatus.OK' if .... Otherwise throw exception.
    */
   @Post()
-  @UseInterceptors(ChangeInterceptor)
   @Validations(Role.User)
-  async create(
-    @Body()
-    {
-      change,
-      user,
-      userToken,
-    }: {
-      change: Change
-      user: string
-      userToken: string
-    },
-  ) {
+  async create(@Body(ParseChangePipe) change: Change, @Req() request: Request) {
+    const { user } = request as unknown as { user: DecodedJWT }
+    if (!user) {
+      throw new Error('No user attached to request')
+    }
     this.logger.debug(
       `Change type is '${change.typeName}', change object: ${JSON.stringify(
         change,
       )}`,
     )
-    return this.changesService.create(change, user, userToken)
+    return this.changesService.create(change, user)
   }
 
   @Get()

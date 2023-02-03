@@ -10,12 +10,7 @@ import {
   ApolloAssembly,
   ApolloRefSeq,
 } from 'apollo-mst'
-import {
-  BackendDriver,
-  ChangeManager,
-  ClientDataStore as ClientDataStoreType,
-  CollaborationServerDriver,
-} from 'apollo-shared'
+import { ClientDataStore as ClientDataStoreType } from 'apollo-shared'
 import { autorun, observable } from 'mobx'
 import {
   IAnyModelType,
@@ -31,9 +26,12 @@ import {
   ApolloInternetAccountModel,
   UserLocation,
 } from './ApolloInternetAccount/model'
+import { BackendDriver, CollaborationServerDriver } from './BackendDrivers'
+import { ChangeManager } from './ChangeManager'
+import { createFetchErrorMessage } from './util'
 
 export interface ApolloSession extends AbstractSessionModel {
-  apolloDataStore: ClientDataStoreType
+  apolloDataStore: ClientDataStoreType & { changeManager: ChangeManager }
   apolloSelectedFeature?: AnnotationFeatureI
   apolloSetSelectedFeature(feature?: AnnotationFeatureI): void
 }
@@ -340,17 +338,11 @@ export function extendSession(sessionModel: IAnyModelType) {
             continue
           }
           if (!response.ok) {
-            let errorMessage
-            try {
-              errorMessage = yield response.text()
-            } catch (e) {
-              errorMessage = ''
-            }
-            console.error(
-              `Failed to fetch assemblies — ${response.status} (${
-                response.statusText
-              })${errorMessage ? ` (${errorMessage})` : ''}`,
+            const errorMessage = yield createFetchErrorMessage(
+              response,
+              'Failed to fetch assemblies',
             )
+            console.error(errorMessage)
             continue
           }
           let fetchedAssemblies

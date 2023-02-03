@@ -2,6 +2,7 @@ import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { createFetchErrorMessage } from '../util'
 
 export * from './AddAssembly'
 export * from './DeleteAssembly'
@@ -44,17 +45,11 @@ export function useAssemblies(
             method: 'GET',
           })
           if (!response.ok) {
-            let msg
-            try {
-              msg = await response.text()
-            } catch (e) {
-              msg = ''
-            }
-            setErrorMessage(
-              `Error when inserting new features (while uploading file) — ${
-                response.status
-              } (${response.statusText})${msg ? ` (${msg})` : ''}`,
+            const errorMessage = await createFetchErrorMessage(
+              response,
+              'Error when inserting new features (while uploading file)',
             )
+            setErrorMessage(errorMessage)
             return
           }
           const data = (await response.json()) as AssemblyResponse[]

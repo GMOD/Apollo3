@@ -1,16 +1,15 @@
 import { Logger } from '@nestjs/common'
-import { UserDocument } from 'apollo-schemas'
 import {
   Change,
   Context,
+  JWTPayload,
   SerializedChange,
   Validation,
   ValidationResult,
   isContext,
 } from 'apollo-shared'
-import type { Model } from 'mongoose'
+import { Request } from 'express'
 
-import { getDecodedAccessToken } from '../commonUtilities'
 import { Role, RoleInheritance } from '../role/role.enum'
 import { getRequiredRoleForChange } from './validatation.changeTypePermissions'
 import { ROLES_KEY } from './validatation.decorator'
@@ -19,7 +18,6 @@ export class AuthorizationValidation extends Validation {
   name = 'Authorization' as const
   async backendPreValidate(
     changeOrContext: Change | Context,
-    { userModel }: { userModel: Model<UserDocument> },
   ): Promise<ValidationResult> {
     if (!isContext(changeOrContext)) {
       return { validationName: this.name }
@@ -32,7 +30,7 @@ export class AuthorizationValidation extends Validation {
     )
 
     // If no role was required in endpoint then return true
-    if (!requiredRole) {
+    if (!requiredRole?.[0]) {
       return { validationName: this.name }
     }
     logger.debug(`Required role is '${requiredRole}'`)
@@ -45,29 +43,18 @@ export class AuthorizationValidation extends Validation {
       `Calling class '${callingClass}' and endpoint '${callingEndpoint}'`,
     )
 
-    const { authorization } = context.context
-      .switchToHttp()
-      .getRequest().headers
-    if (!authorization) {
-      throw new Error('No "authorization" header')
-    }
-    const [, token] = authorization.split(' ')
-    const jwtPayload = getDecodedAccessToken(token)
-    const { username, email } = jwtPayload
-
-    const user = await userModel.findOne({ email })
+    const request = context.context.switchToHttp().getRequest()
+    const { user } = request as { user: JWTPayload }
     if (!user) {
-      const errMsg = `User '${username}' not found in Mongo, no authorization!`
-      logger.debug(errMsg)
-      return { validationName: this.name, error: { message: errMsg } }
+      throw new Error('No user attached to request')
     }
-    logger.debug(`*** Found user from Mongo: ${JSON.stringify(user)}`)
+    const { username, roles } = user
 
     const userRoles = new Set<Role>()
     // Loop user's role(s) and add each role + inherited ones to userRolesArray
-    for (const userRole of user.role) {
-      const roles = RoleInheritance[userRole] // Read from role.enum.ts
-      roles.forEach((role) => {
+    for (const userRole of roles) {
+      const r = RoleInheritance[userRole] // Read from role.enum.ts
+      r.forEach((role) => {
         userRoles.add(role)
       })
     }

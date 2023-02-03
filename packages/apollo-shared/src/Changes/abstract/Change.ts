@@ -19,13 +19,11 @@ import {
 } from 'apollo-schemas'
 import type { ClientSession, Model } from 'mongoose'
 
-import { ChangeManager } from '../../ChangeManager'
-import { changeRegistry } from '../../ChangeTypes'
+import { changeRegistry } from '../'
 
 export interface ClientDataStore {
   typeName: 'Client'
   assemblies: Map<string, ApolloAssemblyI>
-  changeManager: ChangeManager
   internetAccounts: AppRootModel['internetAccounts']
   loadFeatures(regions: Region[]): void
   getFeature(featureId: string): AnnotationFeatureI | undefined

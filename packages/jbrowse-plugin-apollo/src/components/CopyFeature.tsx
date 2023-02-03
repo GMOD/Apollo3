@@ -10,12 +10,14 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material'
-import { ChangeManager, CopyFeatureChange } from 'apollo-shared'
+import { CopyFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { ChangeManager } from '../ChangeManager'
+import { createFetchErrorMessage } from '../util'
 
 interface CopyFeatureProps {
   session: AbstractSessionModel
@@ -65,17 +67,11 @@ export function CopyFeature({
           method: 'GET',
         })
         if (!response.ok) {
-          let msg
-          try {
-            msg = await response.text()
-          } catch (e) {
-            msg = ''
-          }
-          setErrorMessage(
-            `Error when copying features — ${response.status} (${
-              response.statusText
-            })${msg ? ` (${msg})` : ''}`,
+          const newErrorMessage = await createFetchErrorMessage(
+            response,
+            'Error when copying features',
           )
+          setErrorMessage(newErrorMessage)
           return
         }
         const data = await response.json()

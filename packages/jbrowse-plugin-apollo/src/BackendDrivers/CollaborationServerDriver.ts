@@ -2,15 +2,16 @@ import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { Region, getSession } from '@jbrowse/core/util'
 import { AnnotationFeatureSnapshot } from 'apollo-mst'
-import { Socket } from 'socket.io-client'
-
-import { ChangeManager, SubmitOpts } from '../ChangeManager/ChangeManager'
-import { AssemblySpecificChange } from '../ChangeManager/changes/abstract/AssemblySpecificChange'
 import {
+  AssemblySpecificChange,
   Change,
   SerializedChange,
-} from '../ChangeManager/changes/abstract/Change'
-import { ValidationResultSet } from '../Validations/ValidationSet'
+  ValidationResultSet,
+} from 'apollo-shared'
+import { Socket } from 'socket.io-client'
+
+import { ChangeManager, SubmitOpts } from '../ChangeManager'
+import { createFetchErrorMessage } from '../util'
 import { BackendDriver } from './BackendDriver'
 
 export interface ApolloInternetAccount extends BaseInternetAccountModel {
@@ -21,7 +22,10 @@ export interface ApolloInternetAccount extends BaseInternetAccountModel {
 }
 
 export class CollaborationServerDriver extends BackendDriver {
-  getInternetAccount(assemblyName?: string, internetAccountId?: string) {
+  private getInternetAccount(
+    assemblyName?: string,
+    internetAccountId?: string,
+  ) {
     if (!(assemblyName || internetAccountId)) {
       throw new Error('Must provide either assemblyName or internetAccountId')
     }
@@ -49,7 +53,7 @@ export class CollaborationServerDriver extends BackendDriver {
     return internetAccount
   }
 
-  async fetch(
+  private async fetch(
     internetAccount: ApolloInternetAccount,
     info: RequestInfo,
     init?: RequestInit,
@@ -94,17 +98,11 @@ export class CollaborationServerDriver extends BackendDriver {
 
     const response = await this.fetch(internetAccount, uri)
     if (!response.ok) {
-      let errorMessage
-      try {
-        errorMessage = await response.text()
-      } catch (error) {
-        errorMessage = ''
-      }
-      throw new Error(
-        `getFeatures failed: ${response.status} (${response.statusText})${
-          errorMessage ? ` (${errorMessage})` : ''
-        }`,
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'getFeatures failed',
       )
+      throw new Error(errorMessage)
     }
     this.checkSocket(assemblyName, refName, internetAccount)
     return response.json() as Promise<AnnotationFeatureSnapshot[]>
@@ -185,17 +183,11 @@ export class CollaborationServerDriver extends BackendDriver {
       headers: { 'Content-Type': 'application/json' },
     })
     if (!response.ok) {
-      let errorMessage
-      try {
-        errorMessage = await response.text()
-      } catch (error) {
-        errorMessage = ''
-      }
-      throw new Error(
-        `submitChange failed: ${response.status} (${response.statusText})${
-          errorMessage ? ` (${errorMessage})` : ''
-        }`,
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'submitChange failed',
       )
+      throw new Error(errorMessage)
     }
     const results = new ValidationResultSet()
     if (!response.ok) {

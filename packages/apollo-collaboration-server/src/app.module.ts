@@ -12,6 +12,7 @@ import { MessagesModule } from './messages/messages.module'
 import { RefSeqChunksModule } from './refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from './refSeqs/refSeqs.module'
 import { UsersModule } from './users/users.module'
+import { JwtAuthGuard } from './utils/jwt-auth.guard'
 import { ValidationGuard } from './utils/validation/validation.guards'
 
 const nodeEnv = process.env.NODE_ENV || 'production'
@@ -39,10 +40,8 @@ const nodeEnv = process.env.NODE_ENV || 'production'
     MessagesModule,
   ],
   providers: [
-    {
-      provide: APP_GUARD,
-      useClass: ValidationGuard,
-    },
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: ValidationGuard },
   ],
 })
 export class AppModule {}
