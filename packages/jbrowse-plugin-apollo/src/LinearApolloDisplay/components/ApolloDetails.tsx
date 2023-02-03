@@ -4,11 +4,7 @@ import {
   getSession,
 } from '@jbrowse/core/util'
 import CloseIcon from '@mui/icons-material/Close'
-import {
-  Autocomplete,
-  IconButton,
-  TextField,
-} from '@mui/material'
+import { Autocomplete, IconButton, TextField } from '@mui/material'
 import {
   DataGrid,
   GridColumns,
@@ -22,6 +18,7 @@ import {
   LocationEndChange,
   LocationStartChange,
   TypeChange,
+  validationRegistry,
 } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import { getRoot } from 'mobx-state-tree'
@@ -56,53 +53,64 @@ function AutocompleteInputCell(props: any) {
   const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>([])
   const apiRef = useGridApiContext()
 
-  const { internetAccounts } = getRoot(props.session) as AppRootModel
-  const apolloInternetAccount = internetAccounts.find(
-    (ia) => ia.type === 'ApolloInternetAccount',
-  ) as ApolloInternetAccountModel | undefined
-  if (!apolloInternetAccount) {
-    throw new Error('No Apollo internet account found')
-  }
-  const { baseURL } = apolloInternetAccount
-  // const [errorMessage, setErrorMessage] = useState('')
-
   useEffect(() => {
     async function getSOSequenceTerms() {
-      const url = `/ontologies/possibleTypes/${id}`
-      const uri = new URL(url, baseURL).href
-      const apolloFetch = apolloInternetAccount?.getFetcher({
-        locationType: 'UriLocation',
-        uri,
-      })
-      if (apolloFetch) {
-        const response = await apolloFetch(uri, {
-          method: 'GET',
-        })
-        if (!response.ok) {
-          let msg
-          try {
-            msg = await response.text()
-          } catch (e) {
-            msg = e
-          }
-          // setErrorMessage(
-          //   `Error when retrieving ontologies from server — ${
-          //     response.status
-          //   } (${response.statusText})${msg ? ` (${msg})` : ''}`,
-          // )
-          return
-        }
-        const data = (await response.json()) as string[]
-        // if (data.length < 1) {
-        //   setErrorMessage(
-        //     `Feature's "${id}" only type is "${value}" and it cannot be changed!`,
-        //   )
-        // }
-        setSOSequenceTerms(data)
+      const soTerms = (await validationRegistry.possibleValues(
+        'type',
+      )) as string[]
+      if (soTerms) {
+        setSOSequenceTerms(soTerms)
       }
     }
     getSOSequenceTerms()
   }, [])
+
+  // const { internetAccounts } = getRoot(props.session) as AppRootModel
+  // const apolloInternetAccount = internetAccounts.find(
+  //   (ia) => ia.type === 'ApolloInternetAccount',
+  // ) as ApolloInternetAccountModel | undefined
+  // if (!apolloInternetAccount) {
+  //   throw new Error('No Apollo internet account found')
+  // }
+  // const { baseURL } = apolloInternetAccount
+
+  // useEffect(() => {
+  //   async function getSOSequenceTerms() {
+  //     const url = `/ontologies/possibleTypes/${id}`
+  //     const uri = new URL(url, baseURL).href
+  //     const apolloFetch = apolloInternetAccount?.getFetcher({
+  //       locationType: 'UriLocation',
+  //       uri,
+  //     })
+  //     if (apolloFetch) {
+  //       const response = await apolloFetch(uri, {
+  //         method: 'GET',
+  //       })
+  //       if (!response.ok) {
+  //         let msg
+  //         try {
+  //           msg = await response.text()
+  //         } catch (e) {
+  //           msg = e
+  //         }
+  //         // setErrorMessage(
+  //         //   `Error when retrieving ontologies from server — ${
+  //         //     response.status
+  //         //   } (${response.statusText})${msg ? ` (${msg})` : ''}`,
+  //         // )
+  //         return
+  //       }
+  //       const data = (await response.json()) as string[]
+  //       // if (data.length < 1) {
+  //       //   setErrorMessage(
+  //       //     `Feature's "${id}" only type is "${value}" and it cannot be changed!`,
+  //       //   )
+  //       // }
+  //       setSOSequenceTerms(data)
+  //     }
+  //   }
+  //   getSOSequenceTerms()
+  // }, [])
 
   const handleChange = async (
     event: MuiBaseEvent,
@@ -121,7 +129,6 @@ function AutocompleteInputCell(props: any) {
   if (!soSequenceTerms.length) {
     return null
   }
-  console.log(`Allowed SO types: ${JSON.stringify(soSequenceTerms)}`)
 
   return (
     <Autocomplete
