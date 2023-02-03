@@ -33,5 +33,3 @@ declare module 'mongoose-id-validator' {
     options?: MongooseIdValidatorOptions,
   ): void
 }
-
-declare module 'bionode-obo'
