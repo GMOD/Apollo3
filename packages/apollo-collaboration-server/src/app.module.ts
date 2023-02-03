@@ -158,6 +158,5 @@ async function mongoDBURIFactory(
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: ValidationGuard },
   ],
-  controllers: [],
 })
 export class AppModule {}

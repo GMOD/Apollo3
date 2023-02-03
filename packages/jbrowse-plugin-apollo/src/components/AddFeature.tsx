@@ -1,4 +1,4 @@
-import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
   Dialog,
@@ -6,6 +6,8 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControl,
+  InputLabel,
   MenuItem,
   Select,
   SelectChangeEvent,
@@ -14,11 +16,11 @@ import {
 import { AnnotationFeatureI } from 'apollo-mst'
 import { AddFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
-import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
+import { createFetchErrorMessage } from '../util'
 
 interface AddFeatureProps {
   session: AbstractSessionModel
@@ -26,10 +28,7 @@ interface AddFeatureProps {
   sourceFeature: AnnotationFeatureI
   sourceAssemblyId: string
   changeManager: ChangeManager
-}
-
-interface TypeDocument {
-  lbl: string
+  internetAccount: ApolloInternetAccountModel
 }
 
 export function AddFeature({
@@ -38,63 +37,48 @@ export function AddFeature({
   sourceFeature,
   sourceAssemblyId,
   changeManager,
+  internetAccount,
 }: AddFeatureProps) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
   const { notify } = session
   const [end, setEnd] = useState(String(sourceFeature.end))
   const [start, setStart] = useState(String(sourceFeature.start))
-  const [sourceType, setSourceType] = useState(String(sourceFeature.type))
-  const [typeId, setTypeId] = useState('')
+  const [type, setType] = useState('')
 
-  const [typeCollection, setTypeCollection] = useState<TypeDocument[]>([])
+  const [possibleChildTypes, setPossibleChildTypes] = useState<string[]>()
 
-  const apolloInternetAccount = internetAccounts.find(
-    (ia) => ia.type === 'ApolloInternetAccount',
-  ) as ApolloInternetAccountModel | undefined
-  if (!apolloInternetAccount) {
-    throw new Error('No Apollo internet account found')
-  }
-  const { baseURL } = apolloInternetAccount
+  const { baseURL } = internetAccount
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     async function getTypes() {
-      const url = `/ontologies/json/${sourceType}`
+      const parentType = sourceFeature.type
+      const url = `/ontologies/json/${parentType}`
       const uri = new URL(url, baseURL).href
-      const apolloFetch = apolloInternetAccount?.getFetcher({
+      const apolloFetch = internetAccount?.getFetcher({
         locationType: 'UriLocation',
         uri,
       })
-      if (apolloFetch) {
-        const response = await apolloFetch(uri, {
-          method: 'GET',
-        })
-        if (!response.ok) {
-          let msg
-          try {
-            msg = await response.text()
-          } catch (e) {
-            msg = ''
-          }
-          setErrorMessage(
-            `Error when retrieving ontologies from server — ${
-              response.status
-            } (${response.statusText})${msg ? ` (${msg})` : ''}`,
-          )
-          return
-        }
-        const data = (await response.json()) as TypeDocument[]
-        // console.log(`DATA: ${JSON.stringify(data)}`)
-        if (data.length < 1) {
-          setErrorMessage(
-            `Feature type "${sourceType}" cannot have child feature!`,
-          )
-        }
-        setTypeCollection(data)
+      const response = await apolloFetch(uri, {
+        method: 'GET',
+      })
+      if (!response.ok) {
+        const newErrorMessage = await createFetchErrorMessage(
+          response,
+          'Error when retrieving ontologies from server',
+        )
+        setErrorMessage(newErrorMessage)
+        return
       }
+      const data = (await response.json()) as string[]
+      if (data.length < 1) {
+        setErrorMessage(
+          `Feature type "${parentType}" cannot have a child feature`,
+        )
+      }
+      setPossibleChildTypes(data)
     }
     getTypes()
-  }, [apolloInternetAccount, baseURL])
+  }, [baseURL, internetAccount, sourceFeature.type])
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -108,7 +92,7 @@ export function AddFeature({
         refSeq: sourceFeature.refSeq,
         start: Number(start),
         end: Number(end),
-        type: typeId,
+        type,
       },
       parentFeatureId: sourceFeature._id,
     })
@@ -118,7 +102,7 @@ export function AddFeature({
     event.preventDefault()
   }
   async function handleChangeType(e: SelectChangeEvent<string>) {
-    setTypeId(e.target.value as string)
+    setType(e.target.value)
   }
   const error = Number(end) <= Number(start)
   return (
@@ -149,30 +133,23 @@ export function AddFeature({
             error={error}
             helperText={error ? '"End" must be greater than "Start"' : null}
           />
-          {/* <TextField
-            margin="dense"
-            id="type"
-            label="Type"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-          /> */}
-          <Select value={typeId} onChange={handleChangeType}>
-            {typeCollection.map((option) => (
-              <MenuItem key={option.lbl} value={option.lbl}>
-                {option.lbl}
-              </MenuItem>
-            ))}
-          </Select>
+          <FormControl>
+            <InputLabel>Type</InputLabel>
+            <Select value={type} onChange={handleChangeType} label="Type">
+              {(possibleChildTypes || []).map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </DialogContent>
 
         <DialogActions>
           <Button
             variant="contained"
             type="submit"
-            disabled={error || !(start && end && typeId)}
+            disabled={error || !(start && end && type)}
           >
             Submit
           </Button>
