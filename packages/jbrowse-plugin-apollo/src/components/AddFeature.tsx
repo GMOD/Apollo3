@@ -44,7 +44,6 @@ export function AddFeature({
   const [end, setEnd] = useState(String(sourceFeature.end))
   const [start, setStart] = useState(String(sourceFeature.start))
   const [sourceType, setSourceType] = useState(String(sourceFeature.type))
-  // const [type, setType] = useState('')
   const [typeId, setTypeId] = useState('')
 
   const [typeCollection, setTypeCollection] = useState<TypeDocument[]>([])
@@ -60,7 +59,7 @@ export function AddFeature({
 
   useEffect(() => {
     async function getTypes() {
-      const url = `/ontologies/${sourceType}`
+      const url = `/ontologies/json/${sourceType}`
       const uri = new URL(url, baseURL).href
       const apolloFetch = apolloInternetAccount?.getFetcher({
         locationType: 'UriLocation',
