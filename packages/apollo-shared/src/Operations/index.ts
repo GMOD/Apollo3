@@ -1,8 +1,11 @@
 import { Operation } from './abstract/Operation'
 import { GetAssembliesOperation } from './GetAssembliesOperation'
+// import { GetOntologyTermsOperation } from './GetOntologyTermsOperation'
 
+// export const operations = { GetAssembliesOperation, GetOntologyTermsOperation }
 export const operations = { GetAssembliesOperation }
 export * from './GetAssembliesOperation'
+// export * from './GetOntologyTermsOperation'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type OperationType = new (...args: any[]) => Operation

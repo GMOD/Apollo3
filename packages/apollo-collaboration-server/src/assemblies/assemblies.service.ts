@@ -22,7 +22,7 @@ export class AssembliesService {
     return this.assemblyModel.create(createAssemblyDto)
   }
 
-  findAll() {
+  async findAll() {
     return this.operationsService.executeOperation<GetAssembliesOperation>({
       typeName: 'GetAssembliesOperation',
     })

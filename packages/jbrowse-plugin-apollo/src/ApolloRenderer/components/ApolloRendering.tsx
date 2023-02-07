@@ -2,7 +2,11 @@ import { getConf } from '@jbrowse/core/configuration'
 import { AppRootModel, Region, getSession } from '@jbrowse/core/util'
 import { Menu, MenuItem } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
-import { LocationEndChange, LocationStartChange } from 'apollo-shared'
+import {
+  GetAssembliesOperation,
+  LocationEndChange,
+  LocationStartChange,
+} from 'apollo-shared'
 import { autorun, toJS } from 'mobx'
 import { observer } from 'mobx-react'
 import { getRoot, getSnapshot } from 'mobx-state-tree'
@@ -378,6 +382,15 @@ function ApolloRendering(props: ApolloRenderingProps) {
     setContextCoord([event.pageX, event.pageY])
   }
 
+  function demo() {
+    console.log('DEMO LOG1')
+    const juu = new GetAssembliesOperation({
+      typeName: 'GetAssembliesOperation',
+    })
+    console.log(`JUU: ${JSON.stringify(juu)}`)
+    const jaa = juu.executeOnServer()
+    console.log(`JAA: ${JSON.stringify(jaa)}`)
+  }
   return (
     <div
       style={{ position: 'relative', width: totalWidth, height: totalHeight }}
@@ -500,6 +513,34 @@ function ApolloRendering(props: ApolloRenderingProps) {
           }}
         >
           Modify feature attribute
+        </MenuItem>
+        <MenuItem
+          disabled={isReadOnly}
+          key={5}
+          value={5}
+          onClick={() => {
+            if (!contextMenuFeature) {
+              return
+            }
+            const currentAssemblyId = getAssemblyId(region.assemblyName)
+            demo()
+            console.log(`Current assembly: ${currentAssemblyId}`)
+            session.queueDialog((doneCallback) => [
+              ModifyFeatureAttribute,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                  setContextMenuFeature(undefined)
+                },
+                changeManager,
+                sourceFeature: contextMenuFeature,
+                sourceAssemblyId: currentAssemblyId,
+              },
+            ])
+          }}
+        >
+          Testiversio
         </MenuItem>
       </Menu>
       <canvas
