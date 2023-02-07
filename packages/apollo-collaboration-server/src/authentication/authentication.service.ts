@@ -45,6 +45,13 @@ export class AuthenticationService {
       }
       const createdUser = await this.usersService.addNew(newUser)
 
+      // Loop the first user's default role(s) and add each role + inherited ones to userRolesArray
+      for (const userRole of [defaultRole]) {
+        const roles = RoleInheritance[userRole as Role] // Read from role.enum.ts
+        roles.forEach((role) => {
+          userRoles.add(role)
+        })
+      }
       const payload: JWTPayload = {
         username: newUser.username,
         email: newUser.email,
@@ -113,6 +120,13 @@ export class AuthenticationService {
       }
       const createdUser = await this.usersService.addNew(newUser)
 
+      // Loop the first user's default role(s) and add each role + inherited ones to userRolesArray
+      for (const userRole of [defaultRole]) {
+        const roles = RoleInheritance[userRole as Role] // Read from role.enum.ts
+        roles.forEach((role) => {
+          userRoles.add(role)
+        })
+      }
       const payload: JWTPayload = {
         username: newUser.username,
         email: newUser.email,
