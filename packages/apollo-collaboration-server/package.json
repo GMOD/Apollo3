@@ -10,7 +10,7 @@
   "scripts": {
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "build": "yarn build:shared && rimraf dist && nest build",
-    "start": "yarn build:shared && yarn start:nest --watch",
+    "start": "yarn start:nest --watch",
     "start:nest": "NODE_ENV=development nest start",
     "start:no-watch": "yarn build:shared && yarn start:nest",
     "start:debug": "yarn build:shared && yarn start:nest --debug --watch",

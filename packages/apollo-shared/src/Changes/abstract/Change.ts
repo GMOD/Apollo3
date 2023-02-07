@@ -7,12 +7,13 @@ import {
 } from 'apollo-mst'
 
 import {
+  BackendDataStore,
   LocalGFF3DataStore,
   Operation,
   OperationOptions,
   SerializedOperation,
   ServerDataStore,
-} from '../../Operations'
+} from '../../Operations/abstract'
 import { changeRegistry } from '..'
 
 export interface ClientDataStore {
@@ -32,7 +33,7 @@ export { ServerDataStore, LocalGFF3DataStore }
 export type SerializedChange = SerializedOperation
 export type ChangeOptions = OperationOptions
 
-export type DataStore = ServerDataStore | LocalGFF3DataStore | ClientDataStore
+export type DataStore = BackendDataStore | ClientDataStore
 
 export abstract class Change extends Operation {
   /**
