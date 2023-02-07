@@ -12,6 +12,7 @@ import { FilesModule } from './files/files.module'
 import { MessagesModule } from './messages/messages.module'
 import { OperationsModule } from './operations/operations.module'
 import { OperationsService } from './operations/operations.service'
+import { OntologiesModule } from './ontologies/ontologies.module'
 import { RefSeqChunksModule } from './refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from './refSeqs/refSeqs.module'
 import { UsersModule } from './users/users.module'
@@ -43,6 +44,7 @@ const nodeEnv = process.env.NODE_ENV || 'production'
     MessagesModule,
     OperationsModule,
     CountersModule,
+    OntologiesModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
