@@ -18,7 +18,7 @@ export class GetOntologyTermsOperation extends Operation {
   }
 
   executeOnServer(backend: ServerDataStore) {
-    return backend.assemblyModel.find({ status: 0 }).exec()
+    return backend.ontologyService.getPossibleChildTypes('mRNA')
   }
 
   async executeOnLocalGFF3(backend: LocalGFF3DataStore) {

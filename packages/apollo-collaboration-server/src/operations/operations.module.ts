@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 
 import { AssembliesModule } from '../assemblies/assemblies.module'
 import { CountersModule } from '../counters/counters.module'
@@ -13,8 +13,7 @@ import { OperationsService } from './operations.service'
 
 @Module({
   imports: [
-    AssembliesModule,
-    OntologiesModule,
+    forwardRef(() => AssembliesModule),
     RefSeqsModule,
     RefSeqChunksModule,
     FeaturesModule,
@@ -22,7 +21,9 @@ import { OperationsService } from './operations.service'
     UsersModule,
     CountersModule,
     MessagesModule,
+    forwardRef(() => OntologiesModule),
   ],
   providers: [OperationsService],
+  exports:[OperationsService],
 })
 export class OperationsModule {}

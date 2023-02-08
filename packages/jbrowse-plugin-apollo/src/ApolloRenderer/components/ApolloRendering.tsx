@@ -387,9 +387,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
     const juu = new GetAssembliesOperation({
       typeName: 'GetAssembliesOperation',
     })
-    console.log(`JUU: ${JSON.stringify(juu)}`)
-    const jaa = juu.executeOnServer()
-    console.log(`JAA: ${JSON.stringify(jaa)}`)
+    // console.log(`JUU: ${JSON.stringify(juu)}`)
+    // const jaa = juu.executeOnServer()
+    // console.log(`JAA: ${JSON.stringify(jaa)}`)
   }
   return (
     <div

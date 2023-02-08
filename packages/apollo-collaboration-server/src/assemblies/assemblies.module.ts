@@ -8,6 +8,7 @@ import { OperationsService } from 'src/operations/operations.service'
 import { RefSeqChunksModule } from 'src/refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from 'src/refSeqs/refSeqs.module'
 import { UsersModule } from 'src/users/users.module'
+import { OntologiesModule } from '../ontologies/ontologies.module'
 
 import { AssembliesController } from './assemblies.controller'
 import { AssembliesService } from './assemblies.service'
@@ -25,6 +26,7 @@ import { AssembliesService } from './assemblies.service'
     RefSeqChunksModule,
     UsersModule,
     CountersModule,
+    forwardRef(() => OntologiesModule),
   ],
   exports: [MongooseModule],
 })
