@@ -23,6 +23,7 @@ import { Model, startSession } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service'
 import { FilesService } from '../files/files.service'
+import { OntologiesService } from '../ontologies/ontologies.service'
 
 @Injectable()
 export class OperationsService {
@@ -41,6 +42,7 @@ export class OperationsService {
     private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
     private readonly filesService: FilesService,
     private readonly countersService: CountersService,
+    private readonly ontologiesService: OntologiesService,
   ) {}
 
   private readonly logger = new Logger(OperationsService.name)
@@ -52,6 +54,7 @@ export class OperationsService {
       serializedOperation.typeName,
     )
     const operation = new OperationType(serializedOperation)
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     return operation.execute({
       typeName: 'Server',
@@ -64,6 +67,7 @@ export class OperationsService {
       // session: await startSession(),
       filesService: this.filesService,
       counterService: this.countersService,
+      ontologyService: this.ontologiesService,
       user: '',
     })
   }

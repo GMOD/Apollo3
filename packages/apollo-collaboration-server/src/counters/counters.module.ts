@@ -5,7 +5,6 @@ import { Counter, CounterSchema } from 'apollo-schemas'
 import { CountersService } from './counters.service'
 
 @Module({
-  // controllers: [CountersController],
   providers: [CountersService],
   imports: [
     MongooseModule.forFeature([{ name: Counter.name, schema: CounterSchema }]),

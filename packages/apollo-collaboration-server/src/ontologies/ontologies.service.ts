@@ -3,6 +3,8 @@ import path from 'path'
 
 import { Injectable, Logger } from '@nestjs/common'
 
+// import { OperationsService } from '../operations/operations.service'
+
 interface OboJsonNode {
   id: string
   meta: {
@@ -47,6 +49,7 @@ interface OboJson {
 export class OntologiesService {
   protected ontology: OboJson
   constructor() {
+    // constructor(private readonly operationsService: OperationsService) {
     const { ONTOLOGY_FILENAME } = process.env
     if (!ONTOLOGY_FILENAME) {
       throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
