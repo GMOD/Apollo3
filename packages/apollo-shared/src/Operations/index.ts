@@ -1,8 +1,6 @@
-import { Operation } from './abstract'
+import { Operation } from './abstract/Operation'
 
 export const operations = {}
-
-export * from './abstract'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type OperationType = new (...args: any[]) => Operation

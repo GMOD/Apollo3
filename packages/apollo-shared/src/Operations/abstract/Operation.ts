@@ -12,8 +12,6 @@ import {
 } from 'apollo-schemas'
 import type { ClientSession, Model } from 'mongoose'
 
-import { operationRegistry } from '..'
-
 export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'
   gff3Handle: FileHandle
@@ -66,20 +64,9 @@ export abstract class Operation implements SerializedOperation {
     this.logger = options?.logger || console
   }
 
-  static fromJSON(
-    json: SerializedOperation,
-    options?: OperationOptions,
-  ): Operation {
-    const OperationType = operationRegistry.getOperationType(json.typeName)
-    return new OperationType(
-      json,
-      options?.logger && { logger: options.logger },
-    )
-  }
-
   abstract toJSON(): SerializedOperation
 
-  async execute(backend: BackendDataStore): Promise<void> {
+  async execute(backend: BackendDataStore): Promise<unknown> {
     const backendType = backend.typeName
     if (backendType === 'Server') {
       return this.executeOnServer(backend)
@@ -92,6 +79,6 @@ export abstract class Operation implements SerializedOperation {
     )
   }
 
-  abstract executeOnServer(backend: ServerDataStore): Promise<void>
-  abstract executeOnLocalGFF3(backend: LocalGFF3DataStore): Promise<void>
+  abstract executeOnServer(backend: ServerDataStore): Promise<unknown>
+  abstract executeOnLocalGFF3(backend: LocalGFF3DataStore): Promise<unknown>
 }

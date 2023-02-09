@@ -4,6 +4,8 @@ import {
   ParentChildValidation,
   changeRegistry,
   changes,
+  operationRegistry,
+  operations,
   validationRegistry,
 } from 'apollo-shared'
 import session from 'express-session'
@@ -26,6 +28,10 @@ async function bootstrap() {
 
   Object.entries(changes).forEach(([changeName, change]) => {
     changeRegistry.registerChange(changeName, change)
+  })
+
+  Object.entries(operations).forEach(([operationName, operation]) => {
+    operationRegistry.registerOperation(operationName, operation)
   })
 
   validationRegistry.registerValidation(new CoreValidation())
