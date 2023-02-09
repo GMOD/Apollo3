@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 import { File, FileSchema } from 'apollo-schemas'
 
@@ -15,7 +15,7 @@ import { FilesService } from './files.service'
   imports: [
     MongooseModule.forFeature([{ name: File.name, schema: FileSchema }]),
     FeaturesModule,
-    AssembliesModule,
+    forwardRef(() => AssembliesModule),
     RefSeqsModule,
     RefSeqChunksModule,
   ],
