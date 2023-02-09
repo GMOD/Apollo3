@@ -114,6 +114,7 @@ export class ChangesService {
           filesService: this.filesService,
           counterService: this.countersService,
           ontologyService: this.ontologiesService,
+          parentType: '',
           user: uniqUserId,
         })
       } catch (e) {

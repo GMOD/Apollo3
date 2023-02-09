@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
   Assembly,
@@ -16,7 +16,7 @@ import {
 } from 'apollo-schemas'
 import {
   Operation,
-  SerializedOperation,
+  SerializedOperationParentType,
   operationRegistry,
 } from 'apollo-shared'
 import { Model } from 'mongoose'
@@ -42,13 +42,14 @@ export class OperationsService {
     private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
     private readonly filesService: FilesService,
     private readonly countersService: CountersService,
-    // private readonly ontologiesService: OntologiesService,
+    @Inject(forwardRef(() => OntologiesService))
+    private readonly ontologiesService: OntologiesService,
   ) {}
 
   private readonly logger = new Logger(OperationsService.name)
 
   async executeOperation<T extends Operation>(
-    serializedOperation: SerializedOperation,
+    serializedOperation: SerializedOperationParentType,
   ): Promise<ReturnType<T['executeOnServer']>> {
     const OperationType = operationRegistry.getOperationType(
       serializedOperation.typeName,
@@ -67,7 +68,8 @@ export class OperationsService {
       // session: await startSession(),
       filesService: this.filesService,
       counterService: this.countersService,
-      // ontologyService: this.ontologiesService,
+      ontologyService: this.ontologiesService,
+      parentType: serializedOperation.parentType,
       user: '',
     })
   }

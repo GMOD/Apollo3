@@ -52,8 +52,7 @@ export function AddFeature({
   useEffect(() => {
     async function getTypes() {
       const parentType = sourceFeature.type
-      const url = `/ontologies/dummy/${parentType}`
-      // const url = `/ontologies/json/${parentType}`
+      const url = `/ontologies/json/${parentType}`
       const uri = new URL(url, baseURL).href
       const apolloFetch = internetAccount?.getFetcher({
         locationType: 'UriLocation',

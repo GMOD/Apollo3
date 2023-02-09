@@ -18,7 +18,6 @@ export class GetAssembliesOperation extends Operation {
   }
 
   executeOnServer(backend: ServerDataStore) {
-    console.log(`ASSEMBLIES: ${JSON.stringify(backend)}`)
     return backend.assemblyModel.find({ status: 0 }).exec()
   }
 
