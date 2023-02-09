@@ -1,6 +1,8 @@
 import { Operation } from './abstract/Operation'
+import { GetAssembliesOperation } from './GetAssembliesOperation'
 
-export const operations = {}
+export const operations = { GetAssembliesOperation }
+export * from './GetAssembliesOperation'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type OperationType = new (...args: any[]) => Operation
