@@ -2,6 +2,9 @@ import fs from 'fs'
 import path from 'path'
 
 import { Injectable, Logger } from '@nestjs/common'
+import { GetOntologyTermsOperation } from 'apollo-shared'
+
+import { OperationsService } from '../operations/operations.service'
 
 interface OboJsonNode {
   id: string
@@ -46,7 +49,7 @@ interface OboJson {
 @Injectable()
 export class OntologiesService {
   protected ontology: OboJson
-  constructor() {
+  constructor(private readonly operationsService: OperationsService) {
     const { ONTOLOGY_FILENAME } = process.env
     if (!ONTOLOGY_FILENAME) {
       throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
@@ -64,12 +67,19 @@ export class OntologiesService {
 
   private readonly logger = new Logger(OntologiesService.name)
 
+  findAll() {
+    return this.operationsService.executeOperation<GetOntologyTermsOperation>({
+      typeName: 'GetOntologyTermsOperation',
+    })
+  }
+
   /**
    * Get all possible feature types for given parent type. Data is retrieved from OBO JSON file
    * @param parentType - parent feature type
    * @returns String array of possible children types
    */
-  async getPossibleChildTypes(parentType: string) {
+  async getPossibleChildTypes(parentType: string): Promise<string[]> {
+    console.log('****************** getPossibleChildTypes ******************')
     const { ontology } = this
     let parentId: string | undefined = undefined
 

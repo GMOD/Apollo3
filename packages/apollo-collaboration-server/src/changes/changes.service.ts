@@ -32,6 +32,7 @@ import {
 } from 'apollo-shared'
 import { FilterQuery, Model } from 'mongoose'
 
+import {  OntologiesService } from '../ontologies/ontologies.service'
 import { CountersService } from '../counters/counters.service'
 import { FilesService } from '../files/files.service'
 import { ChangeMessage } from '../messages/entities/message.entity'
@@ -57,6 +58,7 @@ export class ChangesService {
     private readonly filesService: FilesService,
     private readonly countersService: CountersService,
     private readonly messagesGateway: MessagesGateway,
+    private readonly ontologiesService: OntologiesService,
   ) {}
 
   private readonly logger = new Logger(ChangesService.name)
@@ -111,6 +113,7 @@ export class ChangesService {
           session,
           filesService: this.filesService,
           counterService: this.countersService,
+          ontologyService: this.ontologiesService,
           user: uniqUserId,
         })
       } catch (e) {
