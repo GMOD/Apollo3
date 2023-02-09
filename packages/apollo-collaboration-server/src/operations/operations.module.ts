@@ -14,6 +14,7 @@ import { OperationsService } from './operations.service'
 @Module({
   imports: [
     forwardRef(() => AssembliesModule),
+    forwardRef(() => OntologiesModule),
     RefSeqsModule,
     RefSeqChunksModule,
     FeaturesModule,
@@ -21,7 +22,6 @@ import { OperationsService } from './operations.service'
     UsersModule,
     CountersModule,
     MessagesModule,
-    // OntologiesModule,
   ],
   providers: [OperationsService],
   exports: [OperationsService],

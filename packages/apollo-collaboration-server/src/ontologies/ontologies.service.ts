@@ -73,9 +73,10 @@ export class OntologiesService {
 
   private readonly logger = new Logger(OntologiesService.name)
 
-  findAll() {
+  getTypesUsingOperation(parentType: string) {
     return this.operationsService.executeOperation<GetOntologyTermsOperation>({
       typeName: 'GetOntologyTermsOperation',
+      parentType,
     })
   }
 
@@ -85,7 +86,6 @@ export class OntologiesService {
    * @returns String array of possible children types
    */
   async getPossibleChildTypes(parentType: string): Promise<string[]> {
-    console.log('****************** getPossibleChildTypes ******************')
     const { ontology } = this
     let parentId: string | undefined = undefined
 

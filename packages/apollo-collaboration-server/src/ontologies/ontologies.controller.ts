@@ -21,15 +21,7 @@ export class OntologiesController {
     this.logger.debug(
       `Get possible children types (from OBO-JSON) by parent type: "${parentType}"`,
     )
-    return this.ontologiesService.getPossibleChildTypes(parentType)
-  }
-
-  @Get('/dummy/:parentType')
-  getDummyFromJson(@Param('parentType') parentType: string) {
-    this.logger.debug(
-      `*** DUMMY *** Get possible children types (from OBO-JSON) by parent type: "${parentType}"`,
-    )
-    return this.ontologiesService.findAll()
+    return this.ontologiesService.getTypesUsingOperation(parentType)
     // return this.ontologiesService.getPossibleChildTypes(parentType)
   }
 }

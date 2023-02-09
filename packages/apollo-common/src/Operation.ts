@@ -53,11 +53,16 @@ export interface ServerDataStore {
   ontologyService: {
     getPossibleChildTypes(parentType: string): Promise<string[]>
   }
+  parentType: string
   user: string
 }
 
 export interface SerializedOperation {
   typeName: string
+}
+
+export interface SerializedOperationParentType extends SerializedOperation {
+  parentType: string
 }
 
 export type BackendDataStore = ServerDataStore | LocalGFF3DataStore
@@ -85,6 +90,36 @@ export abstract class Operation implements SerializedOperation {
         initialResult,
         { operation: this, backend },
       )
+    }
+    if (backendType === 'LocalGFF3') {
+      return this.executeOnLocalGFF3(backend)
+    }
+    throw new Error(
+      `no operation implementation for backend type '${backendType}'`,
+    )
+  }
+
+  abstract executeOnServer(backend: ServerDataStore): Promise<unknown>
+  abstract executeOnLocalGFF3(backend: LocalGFF3DataStore): Promise<unknown>
+}
+
+export abstract class OperationParentType
+  implements SerializedOperationParentType
+{
+  protected logger: LoggerService
+  abstract typeName: string
+  abstract parentType: string
+
+  constructor(json: SerializedOperationParentType, options?: OperationOptions) {
+    this.logger = options?.logger || console
+  }
+
+  abstract toJSON(): SerializedOperationParentType
+
+  async execute(backend: BackendDataStore): Promise<unknown> {
+    const backendType = backend.typeName
+    if (backendType === 'Server') {
+      return this.executeOnServer(backend)
     }
     if (backendType === 'LocalGFF3') {
       return this.executeOnLocalGFF3(backend)

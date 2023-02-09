@@ -25,6 +25,7 @@ export class AssembliesService {
   findAll() {
     return this.operationsService.executeOperation<GetAssembliesOperation>({
       typeName: 'GetAssembliesOperation',
+      parentType: '',
     })
   }
 

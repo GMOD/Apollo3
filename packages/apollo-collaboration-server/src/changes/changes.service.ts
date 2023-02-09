@@ -119,6 +119,7 @@ export class ChangesService {
           counterService: this.countersService,
           pluginsService: this.pluginsService,
           ontologyService: this.ontologiesService,
+          parentType: '',
           user: uniqUserId,
         })
       } catch (e) {
