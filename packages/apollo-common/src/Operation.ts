@@ -50,6 +50,9 @@ export interface ServerDataStore {
   counterService: {
     getNextSequenceValue(sequenceName: string): Promise<number>
   }
+  ontologyService: {
+    getPossibleChildTypes(parentType: string): Promise<string[]>
+  }
   user: string
 }
 
