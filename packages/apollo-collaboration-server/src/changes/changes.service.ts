@@ -32,11 +32,11 @@ import {
 } from 'apollo-shared'
 import { FilterQuery, Model } from 'mongoose'
 
-import {  OntologiesService } from '../ontologies/ontologies.service'
 import { CountersService } from '../counters/counters.service'
 import { FilesService } from '../files/files.service'
 import { ChangeMessage } from '../messages/entities/message.entity'
 import { MessagesGateway } from '../messages/messages.gateway'
+import { OntologiesService } from '../ontologies/ontologies.service'
 import { FindChangeDto } from './dto/find-change.dto'
 
 export class ChangesService {
