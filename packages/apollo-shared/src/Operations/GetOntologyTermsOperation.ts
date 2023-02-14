@@ -37,13 +37,13 @@ export class GetOntologyTermsOperation extends Operation {
     ontology: OboJson,
   ): Promise<string[]> {
     let parentId: string | undefined = undefined
+    const { logger } = this
 
     // Iterate over the nodes and edges in the JSON file
     for (const node of ontology.graphs[0].nodes) {
       if (node.lbl === parentType) {
-        // this.logger.debug(
-        console.log(
-          `Parent type is "${parentType}" and ID in "Node" array is "${node.id}"`,
+        logger.debug?.(
+          `Parent type is "${parentType}", OboJson node is "${node.id}"`,
         )
         parentId = node.id
         break

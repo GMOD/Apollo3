@@ -28,16 +28,14 @@ import {
   DecodedJWT,
   FeatureChange,
   makeUserSessionId,
-  validationRegistry,OboJson  
+  validationRegistry,
 } from 'apollo-shared'
-import { ObservableObjectAdministration } from 'mobx/dist/internal'
 import { FilterQuery, Model } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service'
 import { FilesService } from '../files/files.service'
 import { ChangeMessage } from '../messages/entities/message.entity'
 import { MessagesGateway } from '../messages/messages.gateway'
-import { OntologiesService } from '../ontologies/ontologies.service'
 import { FindChangeDto } from './dto/find-change.dto'
 
 export class ChangesService {
@@ -59,8 +57,6 @@ export class ChangesService {
     private readonly filesService: FilesService,
     private readonly countersService: CountersService,
     private readonly messagesGateway: MessagesGateway,
-    // private readonly ontology: OboJson,
-    // private readonly ontologiesService: OntologiesService,
   ) {}
 
   private readonly logger = new Logger(ChangesService.name)
@@ -160,7 +156,6 @@ export class ChangesService {
         )
       }
     })
-    this.logger.debug?.('*** TEMPORARY DATA INSERTTED ***')
     // Set "temporary document" -status --> "valid" -status i.e. (-1 --> 0)
     await this.featureModel.db.transaction(async (session) => {
       this.logger.debug(
