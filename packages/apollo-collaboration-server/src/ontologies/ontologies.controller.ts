@@ -22,6 +22,5 @@ export class OntologiesController {
       `Get possible children types (from OBO-JSON) by parent type: "${parentType}"`,
     )
     return this.ontologiesService.getTypesUsingOperation(parentType)
-    // return this.ontologiesService.getPossibleChildTypes(parentType)
   }
 }

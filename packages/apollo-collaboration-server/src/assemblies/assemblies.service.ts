@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Assembly, AssemblyDocument } from 'apollo-schemas'
-import { GetAssembliesOperation } from 'apollo-shared'
+import { GetAssembliesOperation, OboJson } from 'apollo-shared'
 import { Model } from 'mongoose'
 
 import { OperationsService } from '../operations/operations.service'
@@ -26,6 +26,7 @@ export class AssembliesService {
     return this.operationsService.executeOperation<GetAssembliesOperation>({
       typeName: 'GetAssembliesOperation',
       parentType: '',
+      ontology: undefined,
     })
   }
 

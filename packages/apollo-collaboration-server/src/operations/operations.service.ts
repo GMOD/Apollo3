@@ -54,6 +54,7 @@ export class OperationsService {
     const OperationType = operationRegistry.getOperationType(
       serializedOperation.typeName,
     )
+
     const operation = new OperationType(serializedOperation)
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -68,8 +69,8 @@ export class OperationsService {
       // session: await startSession(),
       filesService: this.filesService,
       counterService: this.countersService,
-      ontologyService: this.ontologiesService,
       parentType: serializedOperation.parentType,
+      ontology: serializedOperation.ontology,
       user: '',
     })
   }
