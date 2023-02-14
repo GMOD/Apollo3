@@ -72,8 +72,8 @@ export class OperationsService {
       filesService: this.filesService,
       counterService: this.countersService,
       pluginsService: this.pluginsService,
-      ontologyService: this.ontologiesService,
       parentType: serializedOperation.parentType,
+      ontology: serializedOperation.ontology,
       user: '',
     })
     session.endSession()

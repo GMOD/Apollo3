@@ -30,8 +30,9 @@ import {
   CopyFeatureChange,
   DecodedJWT,
   makeUserSessionId,
-  validationRegistry,
+  validationRegistry,OboJson
 } from 'apollo-shared'
+import { ObservableObjectAdministration } from 'mobx/dist/internal'
 import { FilterQuery, Model } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service'
@@ -62,7 +63,8 @@ export class ChangesService {
     private readonly countersService: CountersService,
     private readonly pluginsService: PluginsService,
     private readonly messagesGateway: MessagesGateway,
-    private readonly ontologiesService: OntologiesService,
+    // private readonly ontology: OboJson,
+    // private readonly ontologiesService: OntologiesService,
   ) {}
 
   private readonly logger = new Logger(ChangesService.name)
@@ -118,7 +120,7 @@ export class ChangesService {
           filesService: this.filesService,
           counterService: this.countersService,
           pluginsService: this.pluginsService,
-          ontologyService: this.ontologiesService,
+          ontology: undefined,
           parentType: '',
           user: uniqUserId,
         })
