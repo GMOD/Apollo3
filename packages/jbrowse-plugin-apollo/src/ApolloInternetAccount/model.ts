@@ -564,6 +564,8 @@ const stateModelFactory = (
                           }
                           doneCallback()
                         },
+                        google: Boolean(self.googleClientId),
+                        microsoft: Boolean(self.microsoftClientId),
                       },
                     ])
                   })

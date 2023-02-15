@@ -18,11 +18,12 @@ const useStyles = makeStyles()((theme) => ({
 
 export function GoogleButton(props: ButtonProps) {
   const { classes } = useStyles()
+  const { disabled } = props
   return (
     <Button
       className={classes.loginButton}
       variant="outlined"
-      startIcon={<Google />}
+      startIcon={<Google color={disabled ? 'disabled' : undefined} />}
       {...props}
     >
       Sign in with Google
@@ -32,11 +33,12 @@ export function GoogleButton(props: ButtonProps) {
 
 export function MicrosoftButton(props: ButtonProps) {
   const { classes } = useStyles()
+  const { disabled } = props
   return (
     <Button
       className={classes.loginButton}
       variant="outlined"
-      startIcon={<Microsoft />}
+      startIcon={<Microsoft color={disabled ? 'disabled' : undefined} />}
       {...props}
     >
       Sign in with Microsoft
