@@ -608,22 +608,31 @@ const stateModelFactory = (
               }
             }
             self.setAuthType(authType)
+            let fetchToUse: (
+              input: RequestInfo,
+              init?: RequestInit,
+            ) => Promise<Response>
             if (authType === 'google') {
-              return self.googleAuthInternetAccount.getFetcher(location)(
-                input,
-                init,
-              )
+              fetchToUse = self.googleAuthInternetAccount.getFetcher(location)
+            } else if (authType === 'microsoft') {
+              fetchToUse =
+                self.microsoftAuthInternetAccount.getFetcher(location)
+            } else if (authType === 'guest') {
+              fetchToUse = superGetFetcher(location)
+            } else {
+              throw new Error(`Unknown authType "${authType}"`)
             }
-            if (authType === 'microsoft') {
-              return self.microsoftAuthInternetAccount.getFetcher(location)(
-                input,
-                init,
-              )
+            const response = await fetchToUse(input, init)
+            if (response.status === 401) {
+              if (authType === 'google') {
+                self.googleAuthInternetAccount.removeToken()
+              } else if (authType === 'microsoft') {
+                self.microsoftAuthInternetAccount.removeToken()
+              } else {
+                self.removeToken()
+              }
             }
-            if (authType === 'guest') {
-              return superGetFetcher(location)(input, init)
-            }
-            throw new Error(`Unknown authType "${authType}"`)
+            return response
           }
         },
       }

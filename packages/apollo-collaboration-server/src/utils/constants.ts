@@ -1,6 +1,6 @@
 export const jwtConstants = {
   secret: 'secretKey', // For JWT signing
-  expiresIn: '60m', // Expiration time
+  expiresIn: '1d', // Expiration time
 }
 
 export const GUEST_USER_NAME = 'Guest'
