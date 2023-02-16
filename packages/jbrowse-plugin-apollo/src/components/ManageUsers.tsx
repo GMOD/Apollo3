@@ -35,7 +35,7 @@ interface UserResponse {
   _id: string
   username: string
   email: string
-  role: string[]
+  role: 'admin' | 'user' | 'readOnly'
 }
 
 interface ManageUsersProps {

@@ -36,7 +36,7 @@ interface Menu {
 
 type AuthType = 'google' | 'microsoft' | 'guest'
 
-type Role = ('admin' | 'user' | 'readOnly')[]
+type Role = 'admin' | 'user' | 'readOnly'
 
 export interface UserLocation {
   assemblyId: string
@@ -96,7 +96,7 @@ const stateModelFactory = (
           return undefined
         }
         const dec = getDecodedToken(token)
-        return dec.roles
+        return dec.role
       },
       getUserId() {
         const token = self.retrieveToken()
@@ -290,10 +290,7 @@ const stateModelFactory = (
     .actions((self) => ({
       addMenuItems(role: Role) {
         if (
-          !(
-            role.includes('admin') &&
-            isAbstractMenuManager(pluginManager.rootModel)
-          )
+          !(role === 'admin' && isAbstractMenuManager(pluginManager.rootModel))
         ) {
           return
         }
@@ -432,10 +429,10 @@ const stateModelFactory = (
       },
       initializeFromToken(token: string) {
         const payload = getDecodedToken(token)
-        this.initialize(payload.roles)
+        this.initialize(payload.role)
       },
       initialize(role: Role) {
-        if (role.includes('admin')) {
+        if (role === 'admin') {
           this.addMenuItems(role)
         }
         // Get and set server last change sequnece into session storage

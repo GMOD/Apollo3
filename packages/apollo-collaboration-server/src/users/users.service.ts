@@ -11,6 +11,7 @@ import {
   UserLocationMessage,
 } from '../messages/entities/message.entity'
 import { MessagesGateway } from '../messages/messages.gateway'
+import { Role } from '../utils/role/role.enum'
 import { CreateUserDto, UserLocationDto } from './dto/create-user.dto'
 
 export interface User {
@@ -31,7 +32,7 @@ export class UsersService {
       {
         BROADCAST_USER_LOCATION: boolean
         ALLOW_GUEST_USER: boolean
-        GUEST_USER_ROLE: 'admin' | 'user' | 'readOnly'
+        GUEST_USER_ROLE: Role
       },
       true
     >,
@@ -51,8 +52,12 @@ export class UsersService {
     return this.userModel.findOne({ email }).exec()
   }
 
-  async findByRole(role: 'admin' | 'user' | 'readOnly') {
+  async findByRole(role: Role) {
     return this.userModel.findOne({ role }).sort('createdAt').exec()
+  }
+
+  async findGuest() {
+    return this.findByEmail(GUEST_USER_EMAIL)
   }
 
   async findAll() {
@@ -82,7 +87,7 @@ export class UsersService {
       return this.addNew({
         email: GUEST_USER_EMAIL,
         username: GUEST_USER_NAME,
-        role: [guestUserRole],
+        role: guestUserRole,
       })
     }
     if (!guestUser) {

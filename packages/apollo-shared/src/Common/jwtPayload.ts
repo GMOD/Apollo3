@@ -3,7 +3,7 @@ import jwtDecode from 'jwt-decode'
 export interface JWTPayload {
   username: string
   email: string
-  roles: ('admin' | 'user' | 'readOnly')[]
+  role: 'admin' | 'user' | 'readOnly'
   id: string
 }
 

@@ -12,7 +12,7 @@ import { Request } from 'express'
 
 import { Role, RoleInheritance } from '../role/role.enum'
 import { getRequiredRoleForChange } from './validatation.changeTypePermissions'
-import { ROLES_KEY } from './validatation.decorator'
+import { ROLE_KEY } from './validatation.decorator'
 
 export class AuthorizationValidation extends Validation {
   name = 'Authorization' as const
@@ -24,13 +24,13 @@ export class AuthorizationValidation extends Validation {
     }
     const context = changeOrContext
     const logger = new Logger(AuthorizationValidation.name)
-    const requiredRole = context.reflector.getAllAndOverride<Role[]>(
-      ROLES_KEY,
-      [context.context.getHandler(), context.context.getClass()],
-    )
+    const requiredRole = context.reflector.getAllAndOverride<Role>(ROLE_KEY, [
+      context.context.getHandler(),
+      context.context.getClass(),
+    ])
 
     // If no role was required in endpoint then return true
-    if (!requiredRole?.[0]) {
+    if (!requiredRole) {
       return { validationName: this.name }
     }
     logger.debug(`Required role is '${requiredRole}'`)
@@ -48,16 +48,7 @@ export class AuthorizationValidation extends Validation {
     if (!user) {
       throw new Error('No user attached to request')
     }
-    const { username, roles } = user
-
-    const userRoles = new Set<Role>()
-    // Loop user's role(s) and add each role + inherited ones to userRolesArray
-    for (const userRole of roles) {
-      const r = RoleInheritance[userRole] // Read from role.enum.ts
-      r.forEach((role) => {
-        userRoles.add(role)
-      })
-    }
+    const { username, role } = user
 
     // In change controller's create() -method we have 2nd authorization check level.
     // Each change type has own permissions as defined in validation.changeTypePermissions.ts
@@ -70,7 +61,7 @@ export class AuthorizationValidation extends Validation {
       logger.debug(
         `Change type is '${typeName}' and an additional required role is '${requiredRoleForChange}'`,
       )
-      if (!userRoles.has(requiredRoleForChange)) {
+      if (!RoleInheritance[role].includes(requiredRoleForChange)) {
         const errMsg = `User '${username}' doesn't have additional role '${requiredRoleForChange}'!`
         logger.debug(errMsg)
         return { validationName: this.name, error: { message: errMsg } }
@@ -78,10 +69,8 @@ export class AuthorizationValidation extends Validation {
     }
 
     // Check if user has required role
-    for (const role of requiredRole) {
-      if (userRoles.has(role)) {
-        return { validationName: this.name }
-      }
+    if (RoleInheritance[role].includes(requiredRole)) {
+      return { validationName: this.name }
     }
 
     const errMsg = `Not authorized!`

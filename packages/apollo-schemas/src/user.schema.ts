@@ -13,8 +13,8 @@ export class User {
   @Prop({ required: true, unique: true })
   email: string
 
-  @Prop({ required: true, type: [String], enum: ['readOnly', 'admin', 'user'] })
-  role: Role[]
+  @Prop({ required: true, type: String, enum: ['readOnly', 'admin', 'user'] })
+  role: Role
 }
 
 export const UserSchema = SchemaFactory.createForClass(User)

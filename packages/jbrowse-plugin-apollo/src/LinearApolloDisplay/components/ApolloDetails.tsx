@@ -105,7 +105,7 @@ export const ApolloDetails = observer(
       if (!apolloInternetAccount.authType) {
         return false
       }
-      return Boolean(apolloInternetAccount.getRole()?.includes('user'))
+      return Boolean(apolloInternetAccount.getRole() === 'user')
     }, [session])
     const {
       selectedFeature,

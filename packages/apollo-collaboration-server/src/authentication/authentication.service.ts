@@ -7,20 +7,20 @@ import { GUEST_USER_EMAIL, GUEST_USER_NAME } from 'src/utils/constants'
 
 import { CreateUserDto } from '../users/dto/create-user.dto'
 import { UsersService } from '../users/users.service'
-import { Role, RoleInheritance } from '../utils/role/role.enum'
+import { Role } from '../utils/role/role.enum'
 import { Profile as MicrosoftProfile } from '../utils/strategies/microsoft.strategy'
 
 @Injectable()
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name)
-  private defaultNewUserRole: 'admin' | 'user' | 'readOnly'
+  private defaultNewUserRole: Role
 
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService<
       {
-        DEFAULT_NEW_USER_ROLE: 'admin' | 'user' | 'readOnly'
+        DEFAULT_NEW_USER_ROLE: Role
         ALLOW_GUEST_USER: boolean
       },
       true
@@ -79,63 +79,35 @@ export class AuthenticationService {
    * @returns Return token with HttpResponse status 'HttpStatus.OK'
    */
   async logIn(name: string, email: string) {
-    const userRoles = new Set<Role>()
-    let defaultRole = this.defaultNewUserRole
     // Find user from Mongo
-    const userFound = await this.usersService.findByEmail(email)
-    if (!userFound) {
-      if ((await this.usersService.getCount()) === 0) {
-        defaultRole = Role.Admin // If there is no any user yet, the 1st user role will be admin
-      }
+    let user = await this.usersService.findByEmail(email)
+    if (!user) {
+      const userCount = await this.usersService.getCount()
+      const guestUser = await this.usersService.findGuest()
+      const hasAdmin = userCount > 1 || (userCount === 1 && guestUser)
+      // If there is not a non-guest user yet, the 1st user role will be admin
+      const newUserRole = hasAdmin ? this.defaultNewUserRole : Role.Admin
       const newUser: CreateUserDto = {
         email,
-        role: [defaultRole],
+        role: newUserRole,
         username: name,
       }
-      const createdUser = await this.usersService.addNew(newUser)
-
-      // Loop the first user's default role(s) and add each role + inherited ones to userRolesArray
-      for (const userRole of [defaultRole]) {
-        const roles = RoleInheritance[userRole as Role] // Read from role.enum.ts
-        roles.forEach((role) => {
-          userRoles.add(role)
-        })
-      }
-      const payload: JWTPayload = {
-        username: newUser.username,
-        email: newUser.email,
-        roles: Array.from(userRoles),
-        id: createdUser.id,
-      }
-      // Return token with SUCCESS status
-      const returnToken = this.jwtService.sign(payload)
-      this.logger.debug(
-        `First time login successful. Apollo token: ${JSON.stringify(
-          returnToken,
-        )}`,
-      )
-      return { token: returnToken }
+      user = await this.usersService.addNew(newUser)
     }
-    this.logger.debug(`User found in Mongo: ${JSON.stringify(userFound)}`)
-
-    // Loop user's role(s) and add each role + inherited ones to userRolesArray
-    for (const userRole of userFound.role) {
-      const roles = RoleInheritance[userRole] // Read from role.enum.ts
-      roles.forEach((role) => {
-        userRoles.add(role)
-      })
-    }
+    this.logger.debug(`User found in Mongo: ${JSON.stringify(user)}`)
 
     const payload: JWTPayload = {
-      username: userFound.username,
-      email: userFound.email,
-      roles: Array.from(userRoles),
-      id: userFound.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      id: user.id,
     }
     // Return token with SUCCESS status
     const returnToken = this.jwtService.sign(payload)
     this.logger.debug(
-      `Login successful. Apollo token: ${JSON.stringify(returnToken)}`,
+      `First time login successful. Apollo token: ${JSON.stringify(
+        returnToken,
+      )}`,
     )
     return { token: returnToken }
   }

@@ -107,10 +107,10 @@ function ApolloRendering(props: ApolloRenderingProps) {
     if (!authType) {
       return
     }
-    if (getRole()?.includes('admin')) {
+    if (getRole() === 'admin') {
       setIsAdmin(true)
     }
-    if (getRole()?.includes('admin') || getRole()?.includes('user')) {
+    if (getRole() === 'admin' || getRole() === 'user') {
       setIsReadOnly(false)
     }
   }, [authType, getRole])

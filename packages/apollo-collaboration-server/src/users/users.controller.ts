@@ -25,7 +25,7 @@ export class UsersController {
    */
   @Get('admin')
   findAdmin() {
-    return this.usersService.findByRole('admin')
+    return this.usersService.findByRole(Role.Admin)
   }
 
   /**
