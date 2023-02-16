@@ -12,6 +12,7 @@ services:
       - google-client-secret
       - microsoft-client-id
       - microsoft-client-secret
+      - jwt-secret
     depends_on:
       mongodb-init:
         condition: service_completed_successfully
@@ -56,3 +57,5 @@ secrets:
     file: ./docker/microsoft-client-id
   microsoft-client-secret:
     file: ./docker/microsoft-client-secret
+  jwt-secret:
+    file: ./docker/jwt-secret

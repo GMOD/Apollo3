@@ -39,6 +39,8 @@ const validationSchema = Joi.object({
   MICROSOFT_CLIENT_ID_FILE: Joi.string(),
   MICROSOFT_CLIENT_SECRET: Joi.string(),
   MICROSOFT_CLIENT_SECRET_FILE: Joi.string(),
+  JWT_SECRET: Joi.string(),
+  JWT_SECRET_FILE: Joi.string(),
   // Optional
   PORT: Joi.number().default(3999),
   CORS: Joi.boolean().default(true),
@@ -74,6 +76,7 @@ const validationSchema = Joi.object({
   .oxor('GOOGLE_CLIENT_SECRET', 'GOOGLE_CLIENT_SECRET_FILE')
   .oxor('MICROSOFT_CLIENT_ID', 'MICROSOFT_CLIENT_ID_FILE')
   .oxor('MICROSOFT_CLIENT_SECRET', 'MICROSOFT_CLIENT_SECRET_FILE')
+  .xor('JWT_SECRET', 'JWT_SECRET_FILE')
 
 async function mongoDBURIFactory(
   configService: ConfigService<MongoDBURIConfig, true>,
