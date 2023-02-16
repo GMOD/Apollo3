@@ -64,12 +64,31 @@ const validationSchema = Joi.object({
     .valid('admin', 'user', 'readOnly')
     .default('readOnly'),
   BROADCAST_USER_LOCATION: Joi.boolean().default(true),
+  ALLOW_GUEST_USER: Joi.boolean().default(false),
+  GUEST_USER_ROLE: Joi.string()
+    .valid('admin', 'user', 'readOnly')
+    .default('readOnly'),
 })
   .xor('MONGODB_URI', 'MONGODB_URI_FILE')
   .oxor('GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_ID_FILE')
   .oxor('GOOGLE_CLIENT_SECRET', 'GOOGLE_CLIENT_SECRET_FILE')
   .oxor('MICROSOFT_CLIENT_ID', 'MICROSOFT_CLIENT_ID_FILE')
   .oxor('MICROSOFT_CLIENT_SECRET', 'MICROSOFT_CLIENT_SECRET_FILE')
+
+async function mongoDBURIFactory(
+  configService: ConfigService<MongoDBURIConfig, true>,
+) {
+  let uri = configService.get('MONGODB_URI', { infer: true })
+  if (!uri) {
+    // We can use non-null assertion since joi already checks this for us
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const uriFile = configService.get('MONGODB_URI_FILE', {
+      infer: true,
+    })!
+    uri = (await fs.readFile(uriFile, 'utf-8')).trim()
+  }
+  return { uri }
+}
 
 @Module({
   imports: [
@@ -82,20 +101,7 @@ const validationSchema = Joi.object({
     ChangesModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (
-        configService: ConfigService<MongoDBURIConfig, true>,
-      ) => {
-        let uri = configService.get('MONGODB_URI', { infer: true })
-        if (!uri) {
-          // We can use non-null assertion since joi already checks this for us
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const uriFile = configService.get('MONGODB_URI_FILE', {
-            infer: true,
-          })!
-          uri = (await fs.readFile(uriFile, 'utf-8')).trim()
-        }
-        return { uri }
-      },
+      useFactory: mongoDBURIFactory,
       inject: [ConfigService],
     }),
     AssembliesModule,

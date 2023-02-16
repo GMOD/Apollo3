@@ -4,29 +4,43 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
 } from '@mui/material'
 import React from 'react'
+import { makeStyles } from 'tss-react/mui'
 
-import { GoogleButton, MicrosoftButton } from './LoginButtons'
+import { GoogleButton, GuestButton, MicrosoftButton } from './LoginButtons'
+
+const useStyles = makeStyles()((theme) => ({
+  divider: {
+    marginTop: theme.spacing(4),
+    marginBottom: theme.spacing(5),
+  },
+}))
 
 export const AuthTypeSelector = ({
   baseURL,
   name,
   handleClose,
-  google = true,
-  microsoft = true,
+  google,
+  microsoft,
+  allowGuestUser,
 }: {
   baseURL: string
   name: string
-  handleClose: (type?: 'google' | 'microsoft' | Error) => void
+  handleClose: (type?: 'google' | 'microsoft' | 'guest' | Error) => void
   google: boolean
   microsoft: boolean
+  allowGuestUser: boolean
 }) => {
-  function handleClick(authType: 'google' | 'microsoft') {
+  const { classes } = useStyles()
+  function handleClick(authType: 'google' | 'microsoft' | 'guest') {
     if (authType === 'google') {
       handleClose('google')
-    } else {
+    } else if (authType === 'microsoft') {
       handleClose('microsoft')
+    } else {
+      handleClose('guest')
     }
   }
   // convert component to string useable in data-uri
@@ -44,6 +58,12 @@ export const AuthTypeSelector = ({
           disabled={!microsoft}
           onClick={() => handleClick('microsoft')}
         />
+        {allowGuestUser ? (
+          <>
+            <Divider className={classes.divider} />
+            <GuestButton onClick={() => handleClick('guest')} />
+          </>
+        ) : null}
       </DialogContent>
       <DialogActions>
         <Button

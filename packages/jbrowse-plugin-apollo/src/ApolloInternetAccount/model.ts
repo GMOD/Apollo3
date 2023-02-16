@@ -25,6 +25,7 @@ import {
   ManageUsers,
 } from '../components'
 import { ApolloSessionModel, Collaborator } from '../session'
+import { createFetchErrorMessage } from '../util'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { ApolloInternetAccountConfigModel } from './configSchema'
 
@@ -33,7 +34,7 @@ interface Menu {
   menuItems: MenuItem[]
 }
 
-type AuthType = 'google' | 'microsoft'
+type AuthType = 'google' | 'microsoft' | 'guest'
 
 type Role = ('admin' | 'user' | 'readOnly')[]
 
@@ -86,6 +87,9 @@ const stateModelFactory = (
       get baseURL(): string {
         return getConf(self, 'baseURL')
       },
+      get allowGuestUser(): boolean {
+        return getConf(self, 'allowGuestUser')
+      },
       getRole() {
         const token = self.retrieveToken()
         if (!token) {
@@ -114,6 +118,23 @@ const stateModelFactory = (
       },
     }))
     .actions((self) => ({
+      async getTokenFromUser(
+        resolve: (token: string) => void,
+        reject: (error: Error) => void,
+      ): Promise<void> {
+        const { baseURL } = self
+        const url = new URL('auth/guest', baseURL)
+        const response = await fetch(url)
+        if (!response.ok) {
+          const errorMessage = await createFetchErrorMessage(
+            response,
+            'Error when logging in as guest',
+          )
+          return reject(new Error(errorMessage))
+        }
+        const { token } = await response.json()
+        resolve(token)
+      },
       addSocketListeners() {
         const { session } = getRoot(self)
         const { notify } = session
@@ -180,9 +201,11 @@ const stateModelFactory = (
             method: 'GET',
           })
           if (!response.ok) {
-            throw new Error(
-              `Error when fetching server LastChangeSequence — ${response.status}`,
+            const errorMessage = yield createFetchErrorMessage(
+              response,
+              'Error when fetching server LastChangeSequence',
             )
+            throw new Error(errorMessage)
           }
           const changes = yield response.json()
           const sequence = changes.length ? changes[0].sequence : 0
@@ -508,7 +531,7 @@ const stateModelFactory = (
             description: `${self.description}-apolloMicrosoft`,
             domains: self.domains,
             authEndpoint: self.microsoftAuthEndpoint,
-            clientId: 'fabdd045-163c-4712-9d40-dbbb043b3090',
+            clientId: self.microsoftClientId,
             scopes: self.microsoftScopes,
           },
         }),
@@ -517,17 +540,26 @@ const stateModelFactory = (
       setAuthType(authType: AuthType) {
         self.authType = authType
       },
-      retrieveToken() {
-        if (self.authType === 'google') {
-          return self.googleAuthInternetAccount.retrieveToken()
-        }
-        if (self.authType === 'microsoft') {
-          return self.microsoftAuthInternetAccount.retrieveToken()
-        }
-        throw new Error(`Unknown authType "${self.authType}"`)
-      },
     }))
     .actions((self) => {
+      const { retrieveToken: superRetrieveToken } = self
+      return {
+        retrieveToken() {
+          if (self.authType === 'google') {
+            return self.googleAuthInternetAccount.retrieveToken()
+          }
+          if (self.authType === 'microsoft') {
+            return self.microsoftAuthInternetAccount.retrieveToken()
+          }
+          if (self.authType === 'guest') {
+            return superRetrieveToken()
+          }
+          throw new Error(`Unknown authType "${self.authType}"`)
+        },
+      }
+    })
+    .actions((self) => {
+      const { getFetcher: superGetFetcher } = self
       let authTypePromise: Promise<AuthType> | undefined = undefined
       return {
         getFetcher(
@@ -549,11 +581,12 @@ const stateModelFactory = (
                 } else {
                   authTypePromise = new Promise((resolve, reject) => {
                     const { session } = getRoot(self)
+                    const { baseURL, name, allowGuestUser } = self
                     session.queueDialog((doneCallback: () => void) => [
                       AuthTypeSelector,
                       {
-                        baseURL: self.baseURL,
-                        name: self.name,
+                        baseURL,
+                        name,
                         handleClose: (newAuthType?: AuthType | Error) => {
                           if (!newAuthType) {
                             reject(new Error('user cancelled entry'))
@@ -566,6 +599,7 @@ const stateModelFactory = (
                         },
                         google: Boolean(self.googleClientId),
                         microsoft: Boolean(self.microsoftClientId),
+                        allowGuestUser,
                       },
                     ])
                   })
@@ -585,6 +619,9 @@ const stateModelFactory = (
                 input,
                 init,
               )
+            }
+            if (authType === 'guest') {
+              return superGetFetcher(location)(input, init)
             }
             throw new Error(`Unknown authType "${authType}"`)
           }

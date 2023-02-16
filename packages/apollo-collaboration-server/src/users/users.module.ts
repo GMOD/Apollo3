@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, OnApplicationBootstrap } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 import { User, UserSchema } from 'apollo-schemas'
 
@@ -15,4 +15,9 @@ import { UsersService } from './users.service'
   ],
   exports: [UsersService, MongooseModule],
 })
-export class UsersModule {}
+export class UsersModule implements OnApplicationBootstrap {
+  constructor(private usersService: UsersService) {}
+  onApplicationBootstrap() {
+    return this.usersService.bootstrapDB()
+  }
+}

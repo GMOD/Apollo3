@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose'
 import { UserDocument, User as UserSchema } from 'apollo-schemas'
 import { DecodedJWT, makeUserSessionId } from 'apollo-shared'
 import { Model } from 'mongoose'
+import { GUEST_USER_EMAIL, GUEST_USER_NAME } from 'src/utils/constants'
 
 import {
   RequestUserInformationMessage,
@@ -27,7 +28,11 @@ export class UsersService {
     private readonly userModel: Model<UserDocument>,
     private readonly messagesGateway: MessagesGateway,
     private readonly configService: ConfigService<
-      { BROADCAST_USER_LOCATION: boolean },
+      {
+        BROADCAST_USER_LOCATION: boolean
+        ALLOW_GUEST_USER: boolean
+        GUEST_USER_ROLE: 'admin' | 'user' | 'readOnly'
+      },
       true
     >,
   ) {}
@@ -60,6 +65,30 @@ export class UsersService {
 
   async getCount() {
     return this.userModel.count().exec()
+  }
+
+  async bootstrapDB() {
+    const allowGuestUser = this.configService.get('ALLOW_GUEST_USER', {
+      infer: true,
+    })
+    const guestUserRole = this.configService.get('GUEST_USER_ROLE', {
+      infer: true,
+    })
+    const guestUser = await this.findByEmail(GUEST_USER_EMAIL)
+    if (allowGuestUser) {
+      if (guestUser) {
+        return
+      }
+      return this.addNew({
+        email: GUEST_USER_EMAIL,
+        username: GUEST_USER_NAME,
+        role: [guestUserRole],
+      })
+    }
+    if (!guestUser) {
+      return
+    }
+    return this.userModel.findOneAndDelete({ email: GUEST_USER_EMAIL }).exec()
   }
 
   /**

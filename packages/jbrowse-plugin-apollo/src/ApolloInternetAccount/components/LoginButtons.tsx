@@ -1,3 +1,4 @@
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import { Button, ButtonProps } from '@mui/material'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'
@@ -42,6 +43,20 @@ export function MicrosoftButton(props: ButtonProps) {
       {...props}
     >
       Sign in with Microsoft
+    </Button>
+  )
+}
+
+export function GuestButton(props: ButtonProps) {
+  const { classes } = useStyles()
+  return (
+    <Button
+      className={classes.loginButton}
+      variant="outlined"
+      startIcon={<AccountCircleIcon fontSize="small" />}
+      {...props}
+    >
+      Continue as Guest
     </Button>
   )
 }

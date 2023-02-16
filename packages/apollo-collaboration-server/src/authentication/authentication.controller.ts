@@ -58,4 +58,9 @@ export class AuthenticationController {
     const { appURL } = (req.authInfo as { state: { appURL: string } }).state
     return { url: `${appURL}/?access_token=${req.user.token}` }
   }
+
+  @Get('guest')
+  guestLogin() {
+    return this.authService.guestLogin()
+  }
 }
