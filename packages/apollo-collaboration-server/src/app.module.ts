@@ -63,8 +63,8 @@ const validationSchema = Joi.object({
   // default for this is set in the refSeq mongoose schema
   CHUNK_SIZE: Joi.number(),
   DEFAULT_NEW_USER_ROLE: Joi.string()
-    .valid('admin', 'user', 'readOnly')
-    .default('readOnly'),
+    .valid('admin', 'user', 'readOnly', 'none')
+    .default('none'),
   BROADCAST_USER_LOCATION: Joi.boolean().default(true),
   ALLOW_GUEST_USER: Joi.boolean().default(false),
   GUEST_USER_ROLE: Joi.string()

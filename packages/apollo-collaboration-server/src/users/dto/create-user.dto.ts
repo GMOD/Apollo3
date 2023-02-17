@@ -3,7 +3,7 @@ import { Role } from '../../utils/role/role.enum'
 export class CreateUserDto {
   readonly email: string
   readonly username: string
-  readonly role?: Role
+  role?: Role
 }
 
 export class UserLocationDto {

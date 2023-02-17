@@ -61,7 +61,10 @@ export class AuthorizationValidation extends Validation {
       logger.debug(
         `Change type is '${typeName}' and an additional required role is '${requiredRoleForChange}'`,
       )
-      if (!RoleInheritance[role].includes(requiredRoleForChange)) {
+      if (
+        !role ||
+        (role && !RoleInheritance[role].includes(requiredRoleForChange))
+      ) {
         const errMsg = `User '${username}' doesn't have additional role '${requiredRoleForChange}'!`
         logger.debug(errMsg)
         return { validationName: this.name, error: { message: errMsg } }
@@ -69,7 +72,7 @@ export class AuthorizationValidation extends Validation {
     }
 
     // Check if user has required role
-    if (RoleInheritance[role].includes(requiredRole)) {
+    if (role && RoleInheritance[role].includes(requiredRole)) {
       return { validationName: this.name }
     }
 

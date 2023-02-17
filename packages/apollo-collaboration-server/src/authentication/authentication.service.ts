@@ -13,14 +13,14 @@ import { Profile as MicrosoftProfile } from '../utils/strategies/microsoft.strat
 @Injectable()
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name)
-  private defaultNewUserRole: Role
+  private defaultNewUserRole: Role | 'none'
 
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService<
       {
-        DEFAULT_NEW_USER_ROLE: Role
+        DEFAULT_NEW_USER_ROLE: Role | 'none'
         ALLOW_GUEST_USER: boolean
       },
       true
@@ -89,8 +89,10 @@ export class AuthenticationService {
       const newUserRole = hasAdmin ? this.defaultNewUserRole : Role.Admin
       const newUser: CreateUserDto = {
         email,
-        role: newUserRole,
         username: name,
+      }
+      if (newUserRole !== 'none') {
+        newUser.role = newUserRole
       }
       user = await this.usersService.addNew(newUser)
     }

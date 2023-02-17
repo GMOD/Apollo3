@@ -90,14 +90,6 @@ const stateModelFactory = (
       get allowGuestUser(): boolean {
         return getConf(self, 'allowGuestUser')
       },
-      getRole() {
-        const token = self.retrieveToken()
-        if (!token) {
-          return undefined
-        }
-        const dec = getDecodedToken(token)
-        return dec.role
-      },
       getUserId() {
         const token = self.retrieveToken()
         if (!token) {
@@ -107,6 +99,29 @@ const stateModelFactory = (
         return dec.id
       },
     }))
+    .actions((self) => {
+      let roleNotificationSent = false
+      return {
+        getRole() {
+          const token = self.retrieveToken()
+          if (!token) {
+            return undefined
+          }
+          const dec = getDecodedToken(token)
+          const { role } = dec
+          if (!role && !roleNotificationSent) {
+            const { session } = getRoot(self)
+            session.notify(
+              'You have registered as a user but have not been given access. Ask your administrator to enable access for your account.',
+              'warning',
+            )
+            // notify
+            roleNotificationSent = true
+          }
+          return role
+        },
+      }
+    })
     .volatile((self) => ({
       authType: undefined as AuthType | undefined,
       socket: io(self.baseURL),
@@ -431,7 +446,10 @@ const stateModelFactory = (
         const payload = getDecodedToken(token)
         this.initialize(payload.role)
       },
-      initialize(role: Role) {
+      initialize(role?: Role) {
+        if (!role) {
+          return
+        }
         if (role === 'admin') {
           this.addMenuItems(role)
         }
@@ -539,7 +557,9 @@ const stateModelFactory = (
       },
     }))
     .actions((self) => {
-      const { retrieveToken: superRetrieveToken } = self
+      const { retrieveToken: superRetrieveToken, getFetcher: superGetFetcher } =
+        self
+      let authTypePromise: Promise<AuthType> | undefined = undefined
       return {
         retrieveToken() {
           if (self.authType === 'google') {
@@ -553,12 +573,6 @@ const stateModelFactory = (
           }
           throw new Error(`Unknown authType "${self.authType}"`)
         },
-      }
-    })
-    .actions((self) => {
-      const { getFetcher: superGetFetcher } = self
-      let authTypePromise: Promise<AuthType> | undefined = undefined
-      return {
         getFetcher(
           location?: UriLocation,
         ): (input: RequestInfo, init?: RequestInit) => Promise<Response> {
@@ -575,6 +589,8 @@ const stateModelFactory = (
                   authTypePromise = Promise.resolve('google')
                 } else if (self.googleAuthInternetAccount.retrieveToken()) {
                   authTypePromise = Promise.resolve('microsoft')
+                } else if (superRetrieveToken()) {
+                  authTypePromise = Promise.resolve('guest')
                 } else {
                   authTypePromise = new Promise((resolve, reject) => {
                     const { session } = getRoot(self)
