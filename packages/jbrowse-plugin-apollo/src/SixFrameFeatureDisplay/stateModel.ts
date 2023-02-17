@@ -18,6 +18,7 @@ import {
   defaultCodonTable,
   generateCodonTable,
   revcom,
+  reverse,
 } from '@jbrowse/core/util'
 
 export function stateModelFactory(
@@ -132,16 +133,29 @@ export function stateModelFactory(
       get sequence() {
         const { regions } = self
         const session = getSession(self) as ApolloSession
-        const seq = new Map<string, string>()
+        const seq = new Map<number, string>()
         for (const region of regions) {
           const assembly = session.apolloDataStore.assemblies.get(
             region.assemblyName,
           )
           const ref = assembly?.getByRefName(region.refName)
-          const refSeq = ref?.getSequence(region.start, region.end)
-          if (refSeq) {
-            seq.set(region.refName, refSeq)
-          }
+          const refSeq: string | undefined = ref?.getSequence(region.start, region.end)
+
+          // let filteredRef = seq.get(region.start)
+          // if (!filteredRef) {
+          //   filteredRef = ''
+          //   seq.set(region.start, filteredRef)
+          // }
+          seq.set(region.start, refSeq || '')
+
+          // if (refSeq) {
+          //   for (const [featureId, feature] of ref?.features.entries() || new Map()) {
+          //     if (region.start < feature.end && region.end > feature.start) {
+          //       filteredRef = [refSeq, region.start]
+          //     }
+          //     seq.set(region.refName, [refSeq, region.start])
+          //   }
+          // }
         }
         return seq
       },
@@ -194,52 +208,131 @@ export function stateModelFactory(
         return minMax
       },
       get codonLayout() {
-        const defaultStarts = ['ATG']
-        const defaultStops = ['TAA', 'TAG', 'TGA']
-        const codonLayout: Map<number, Record<string, number[]>> = new Map()
-        for (const [refSeq, seq] of this.sequence || []) {
-          const codonTable = generateCodonTable(defaultCodonTable)
+        const forwardPhaseMap: Record<number, number> = {
+          0: 2,
+          1: 1,
+          2: 0,
+        }
+        const reversePhaseMap: Record<number, number> = {
+          // 3: -2,
+          3: 0,
+          4: -2,
+          5: -1,
+        }
+        // const defaultStarts = ['ATG']
+        // const defaultStops = ['TAA', 'TAG', 'TGA']
+        const codonTable = generateCodonTable(defaultCodonTable)
+        const codonLayout: Map<
+          number,
+          {
+            letter: string
+            codon: string
+            // effectiveFrame: number
+            reversed: boolean
+            start: number
+          }[]
+        > = new Map()
+        let fullSeq = ''
+        let fullStart = 0
+        for (const [regionStart, seq] of this.sequence || []) {
           if (!seq) {
             continue
           }
-          const effectiveFrame = 1
-          const seqSliced = seq.slice(effectiveFrame)
-          const starts = []
-          const stops = []
-          const translated: { letter: string; codon: string }[] = []
-          for (let i = 0; i < seqSliced.length; i += 3) {
-            const codon = seqSliced.slice(i, i + 3)
-            const normalizedCodon = codon //reverse ? revcom(codon) : codon
+          if (!fullSeq) {
+            fullStart = regionStart
+          }
+          fullSeq += seq
+        }
+        const rowCount = 6
+        for (let i = 0; i < rowCount; i++) {
+          const translated: {
+            letter: string
+            codon: string
+            // effectiveFrame: number
+            reversed: boolean
+            start: number
+          }[] = []
+          // let leftOver
+        // for (const [regionStart, seq] of this.sequence || []) {
+          // if (!seq) {
+          //   continue
+          // }
+          const reversed = i in reversePhaseMap
+        // for (let i = 0; i < rowCount; i++) {
+          // the tilt variable normalizes the frame to where we are starting from,
+          // which increases consistency across blocks
+          const tilt = 3 - (fullStart % 3)
+
+          // the effectiveFrame incorporates tilt and the frame to say what the
+          // effective frame that is plotted. The +3 is for when frame is -2 and this
+          // can otherwise result in effectiveFrame -1
+          // const effectiveFrame = (frame + tilt + 3) % 3
+
+          // if (leftOver) {
+          //   const codon = leftOver + seq.slice(0, 3 - leftOver.length)
+          //   const normalizedCodon = reversed ? revcom(codon) : codon
+          //   const aminoAcid = codonTable[normalizedCodon] || ''
+          //   translated.push({
+          //     letter: aminoAcid,
+          //     codon: normalizedCodon.toUpperCase(),
+          //     effectiveFrame: 0,
+          //     reversed,
+          //     start: regionStart - leftOver.length,
+          //   })
+          // }
+
+          let seqSliced
+          let effectiveFrame
+          if (!reversed) {
+            effectiveFrame = (forwardPhaseMap[i] + tilt + 3) % 3
+            seqSliced = fullSeq.slice(effectiveFrame)
+          } else {
+            effectiveFrame = (reversePhaseMap[i] + tilt + 3) % 3
+            seqSliced = reverse(fullSeq).slice(effectiveFrame)
+          }
+          // const starts = []
+          // const stops = []
+          for (let j = 0; j < seqSliced.length; j += 3) {
+            const codon = seqSliced.slice(j, j + 3)
+            // if (codon.length < 3) {
+            //   leftOver = codon
+            // } else {
+            const normalizedCodon = reversed ? revcom(codon) : codon
             const aminoAcid = codonTable[normalizedCodon] || ''
             translated.push({
               letter: aminoAcid,
               codon: normalizedCodon.toUpperCase(),
+              // effectiveFrame,
+              reversed,
+              start: reversed
+                ? seqSliced.length - (3 + j)
+                : fullStart + j + effectiveFrame,
             })
-            if (defaultStarts.includes(codon.toUpperCase())) {
-              starts.push(i * 3)
-            } else if (defaultStops.includes(codon.toUpperCase())) {
-              stops.push(i * 3)
-            }
+            // }
+            // if (defaultStarts.includes(codon.toUpperCase())) {
+            //   starts.push(j * 3)
+            // } else if (defaultStops.includes(codon.toUpperCase())) {
+            //   stops.push(j * 3)
+            // }
           }
-
-          const minMaxfeatures = this.featuresMinMax[refSeq]
-          if (!minMaxfeatures) {
-            continue
-          }
-          const [min, max] = minMaxfeatures
-          const rows: boolean[][] = []
-          const rowCount = 6
-          for (let i = 0; i < rowCount; i++) {
-            const newRowNumber = rows.length
-            rows[newRowNumber] = new Array(max - min)
-            // const myRecord: Record<string, number[]> = {}
-            // codonLayout.set(newRowNumber, (myRecord.starts = starts))
-            const x: Record<string, number[]> = {}
-            x.starts = starts
-            x.stops = stops
-            codonLayout.set(newRowNumber, x)
-            // codonLayout.get(newRowNumber).start = starts
-          }
+          // const minMaxfeatures = this.featuresMinMax[refSeq]
+          // if (!minMaxfeatures) {
+          //   continue
+          // }
+          // const [min, max] = minMaxfeatures
+          // const rows: boolean[][] = []
+          // const rowCount = 6
+          // for (let i = 0; i < rowCount; i++) {
+          // const newRowNumber = rows.length
+          // rows[newRowNumber] = new Array(max - min)
+          // const myRecord: Record<string, number[]> = {}
+          // codonLayout.set(newRowNumber, (myRecord.starts = starts))
+          // const x: Record<string, number[]> = {}
+          // x.starts = starts
+          // x.stops = stops
+          // codonLayout.set(i, x)
+          codonLayout.set(i, translated)
+          // codonLayout.get(newRowNumber).start = starts
         }
         return codonLayout
       },
@@ -345,7 +438,7 @@ export function stateModelFactory(
         return Math.max(...self.featureLayout.keys())
       },
       get featuresHeight() {
-        return this.highestRow * self.apolloRowHeight
+        return (this.highestRow + 1) * self.apolloRowHeight
       },
       trackMenuItems() {
         return [

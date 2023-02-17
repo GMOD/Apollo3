@@ -2,11 +2,13 @@ import { getConf } from '@jbrowse/core/configuration'
 import {
   AppRootModel,
   Region,
-  defaultStops,
+  // defaultStops,
   defaultCodonTable,
   generateCodonTable,
   getSession,
+  reverse
 } from '@jbrowse/core/util'
+import { xdescribe } from '@jest/globals'
 import { Menu, MenuItem } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
@@ -182,38 +184,118 @@ function ApolloRendering(props: ApolloRenderingProps) {
     if (!ctx) {
       return
     }
-    const frame = 0
-    const scale = bpPerPx
-
-    // the tilt variable normalizes the frame to where we are starting from,
-    // which increases consistency across blocks
-    const tilt = 3 - (region.start % 3)
-
-    // the effectiveFrame incorporates tilt and the frame to say what the
-    // effective frame that is plotted. The +3 is for when frame is -2 and this
-    // can otherwise result in effectiveFrame -1
-    const effectiveFrame = (frame + tilt + 3) % 3
 
     ctx.clearRect(0, 0, totalWidth, totalHeight)
-    for (const [row, codon] of codonLayout) {
-      for (const start of codon.starts) {
-        const startPx = start / bpPerPx
-        ctx.fillStyle = 'rgba(255,0,255,1)'
-        if (showStarts) {
-          ctx.fillRect(startPx, row * height + row * height, 1, height)
-        } else {
-          ctx.clearRect(startPx, row * height + row * height, 1, height)
+    for (const [row, translated] of codonLayout) {
+      // for (const start of codon.starts) {
+      //   const startPx = start / bpPerPx
+      //   ctx.fillStyle = 'rgba(255,0,255,1)'
+      //   if (showStarts) {
+      //     ctx.fillRect(startPx, row * height, 1, height)
+      //   } else {
+      //     ctx.clearRect(startPx, row * height, 1, height)
+      //   }
+      // }
+      // for (const stop of codon.stops) {
+      //   const stopPx = stop / bpPerPx
+      //   ctx.fillStyle = 'black'
+      //   if (showStops) {
+      //     ctx.fillRect(stopPx, row * height, 1, height)
+      //   } else {
+      //     ctx.clearRect(stopPx, row * height, 1, height)
+      //   }
+      // }
+      const defaultStarts = ['ATG']
+      const defaultStops = ['TAA', 'TAG', 'TGA']
+      const scale = bpPerPx
+      // const w = (1 / scale) * 3
+      // const drop = region.start === 0 ? 0 : w
+      // const render = 1 / bpPerPx >= 12
+      // const width = (region.end - region.start) / bpPerPx
+
+      for (const element of translated) {
+        const { letter, codon, reversed, start } = element
+        // const x = reversed
+        //   ? width - (w * (start + 1) + effectiveFrame / scale - drop)
+        //   : w * start + effectiveFrame / scale - drop
+        const x = reversed
+          // ? width - (w * (start + 1) + effectiveFrame / scale - drop)
+          // ? width - start * (1 / scale)
+          ? region.end / scale - start * (1 / scale)
+          : start * (1 / scale)
+        if (region.start / scale <= x && x <= region.end / scale) {
+          const normalizedCodon = reversed ? reverse(codon) : codon
+          if (defaultStarts.includes(normalizedCodon.toUpperCase())) {
+            ctx.fillStyle = 'rgba(255,0,255,1)'
+            if (showStarts) {
+              ctx.fillRect(
+                reversed
+                  ? region.end / scale - (x - 0.5 - region.start / scale)
+                  : x - 0.5 - region.start / scale,
+                row * height,
+                1,
+                height,
+              )
+              // ctx.fillRect(x + 2, row * height, 2, height)
+            } else {
+              ctx.clearRect(
+                reversed
+                  ? region.end / scale - (x - 0.5 - region.start / scale)
+                  : x - 0.5 - region.start / scale,
+                row * height,
+                1,
+                height,
+              )
+              // ctx.clearRect(x + 2, row * height, 2, height)
+            }
+          } else if (defaultStops.includes(normalizedCodon.toUpperCase())) {
+            ctx.fillStyle = 'black'
+            if (showStops) {
+              ctx.fillRect(
+                reversed
+                  ? region.end / scale - (x - 0.5 - region.start / scale)
+                  : x - 0.5 - region.start / scale,
+                row * height,
+                1,
+                height,
+              )
+              // ctx.fillRect(x + 2, row * height, 2, height)
+            } else {
+              ctx.clearRect(
+                reversed
+                  ? region.end / scale - (x - 0.5 - region.start / scale)
+                  : x - 0.5 - region.start / scale,
+                row * height,
+                1,
+                height,
+              )
+              // ctx.clearRect(x + 2, row * height, 2, height)
+            }
+          }
         }
       }
-      for (const stop of codon.stops) {
-        const stopPx = stop / bpPerPx
-        ctx.fillStyle = 'black'
-        if (showStops) {
-          ctx.fillRect(stopPx, row * height + row * height, 1, height)
-        } else {
-          ctx.clearRect(stopPx, row * height + row * height, 1, height)
-        }
-      }
+      // translated.map((element) => {
+      //   const { letter, codon, effectiveFrame, reversed, start } = element
+      //   const x = reversed
+      //     ? width - (w * (start + 1) + effectiveFrame / scale - drop)
+      //     : w * start + effectiveFrame / scale - drop
+      //   const normalizedCodon = reversed ? reverse(codon) : codon
+      //   if (defaultStarts.includes(normalizedCodon.toUpperCase())) {
+      //     ctx.fillStyle = 'rgba(255,0,255,1)'
+      //     if (showStarts) {
+      //       ctx.fillRect(x, row * height, 1, height)
+      //     } else {
+      //       ctx.clearRect(x, row * height, 1, height)
+      //     }
+      //   } else if (defaultStops.includes(normalizedCodon.toUpperCase())) {
+      //     ctx.fillStyle = 'black'
+      //     if (showStops) {
+      //       ctx.fillRect(x, row * height, 1, height)
+      //     } else {
+      //       ctx.clearRect(x, row * height, 1, height)
+      //     }
+      //   }
+      // })
     }
   }, [
     showStarts,
@@ -223,7 +305,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
     totalHeight,
     bpPerPx,
     height,
+    region,
     region.start,
+    region.end,
   ])
 
   useEffect(() => {
@@ -579,7 +663,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
       <canvas
         ref={codonCanvasRef}
         width={totalWidth}
-        height={totalHeight}
+        height={height * 6}
         style={{ position: 'absolute', left: 0, top: 0 }}
       />
     </div>

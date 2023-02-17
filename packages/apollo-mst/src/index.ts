@@ -37,11 +37,14 @@ export const ApolloRefSeq = types
             // adjacent/overlapping to existing sequence - modify
             const newStart = Math.min(start, seq.start)
             const newStop = Math.max(stop, seq.stop)
-            let newSeq = seq.sequence
+            // let newSeq = seq.sequence
+            let newSeq = sequence
             if (seq.start < start) {
-              newSeq = newSeq.slice(0, start - seq.start).concat(sequence)
+              // newSeq = newSeq.slice(0, start - seq.start).concat(sequence)
+              newSeq = seq.sequence.slice(0, start - seq.start).concat(newSeq)
             }
             if (seq.stop > stop) {
+              // newSeq = sequence.concat(newSeq.slice(stop - seq.start))
               newSeq = newSeq.concat(seq.sequence.slice(stop - seq.start))
             }
             self.sequence.splice(i, 1, {
