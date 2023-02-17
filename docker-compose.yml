@@ -3,6 +3,8 @@ version: '3.8'
 services:
   apollo-collaboration-server:
     image: public.ecr.aws/p1r0y7k4/apollo-collaboration-server-alpha
+    volumes:
+      - uploaded-files-volume:/data/uploads
     ports:
       - 3999:3999
     env_file: ./docker/.development.env
@@ -45,6 +47,7 @@ services:
 
 volumes:
   mongodb-volume: null
+  uploaded-files-volume: null
 
 secrets:
   mongodb-uri:
