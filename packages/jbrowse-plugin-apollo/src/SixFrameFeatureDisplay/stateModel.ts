@@ -1,25 +1,23 @@
 import { ConfigurationReference } from '@jbrowse/core/configuration'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { getContainingView, getSession } from '@jbrowse/core/util'
+import {
+  defaultCodonTable,
+  generateCodonTable,
+  getContainingView,
+  getSession,
+  revcom,
+  reverse,
+} from '@jbrowse/core/util'
 import { BaseBlock } from '@jbrowse/core/util/blockTypes'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { AnnotationFeatureI, Sequence } from 'apollo-mst'
+import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { Instance, addDisposer, types } from 'mobx-state-tree'
 
 import { ApolloSession } from '../session'
-
-import {
-  AppRootModel,
-  Region,
-  defaultCodonTable,
-  generateCodonTable,
-  revcom,
-  reverse,
-} from '@jbrowse/core/util'
 
 export function stateModelFactory(
   pluginManager: PluginManager,
@@ -139,7 +137,10 @@ export function stateModelFactory(
             region.assemblyName,
           )
           const ref = assembly?.getByRefName(region.refName)
-          const refSeq: string | undefined = ref?.getSequence(region.start, region.end)
+          const refSeq: string | undefined = ref?.getSequence(
+            region.start,
+            region.end,
+          )
 
           // let filteredRef = seq.get(region.start)
           // if (!filteredRef) {
@@ -214,20 +215,16 @@ export function stateModelFactory(
           2: 0,
         }
         const reversePhaseMap: Record<number, number> = {
-          // 3: -2,
           3: 0,
-          4: -2,
-          5: -1,
+          4: 1,
+          5: 2,
         }
-        // const defaultStarts = ['ATG']
-        // const defaultStops = ['TAA', 'TAG', 'TGA']
         const codonTable = generateCodonTable(defaultCodonTable)
         const codonLayout: Map<
           number,
           {
             letter: string
             codon: string
-            // effectiveFrame: number
             reversed: boolean
             start: number
           }[]
@@ -248,91 +245,41 @@ export function stateModelFactory(
           const translated: {
             letter: string
             codon: string
-            // effectiveFrame: number
             reversed: boolean
             start: number
           }[] = []
-          // let leftOver
-        // for (const [regionStart, seq] of this.sequence || []) {
-          // if (!seq) {
-          //   continue
-          // }
           const reversed = i in reversePhaseMap
-        // for (let i = 0; i < rowCount; i++) {
           // the tilt variable normalizes the frame to where we are starting from,
           // which increases consistency across blocks
-          const tilt = 3 - (fullStart % 3)
-
+          let tilt
           // the effectiveFrame incorporates tilt and the frame to say what the
           // effective frame that is plotted. The +3 is for when frame is -2 and this
           // can otherwise result in effectiveFrame -1
-          // const effectiveFrame = (frame + tilt + 3) % 3
-
-          // if (leftOver) {
-          //   const codon = leftOver + seq.slice(0, 3 - leftOver.length)
-          //   const normalizedCodon = reversed ? revcom(codon) : codon
-          //   const aminoAcid = codonTable[normalizedCodon] || ''
-          //   translated.push({
-          //     letter: aminoAcid,
-          //     codon: normalizedCodon.toUpperCase(),
-          //     effectiveFrame: 0,
-          //     reversed,
-          //     start: regionStart - leftOver.length,
-          //   })
-          // }
-
-          let seqSliced
           let effectiveFrame
+          let seqSliced
           if (!reversed) {
+            tilt = 3 - (fullStart % 3)
             effectiveFrame = (forwardPhaseMap[i] + tilt + 3) % 3
             seqSliced = fullSeq.slice(effectiveFrame)
           } else {
+            tilt = (fullSeq.length + fullStart) % 3
             effectiveFrame = (reversePhaseMap[i] + tilt + 3) % 3
             seqSliced = reverse(fullSeq).slice(effectiveFrame)
           }
-          // const starts = []
-          // const stops = []
           for (let j = 0; j < seqSliced.length; j += 3) {
             const codon = seqSliced.slice(j, j + 3)
-            // if (codon.length < 3) {
-            //   leftOver = codon
-            // } else {
             const normalizedCodon = reversed ? revcom(codon) : codon
             const aminoAcid = codonTable[normalizedCodon] || ''
             translated.push({
               letter: aminoAcid,
               codon: normalizedCodon.toUpperCase(),
-              // effectiveFrame,
               reversed,
               start: reversed
-                ? seqSliced.length - (3 + j)
+                ? fullStart + seqSliced.length - (3 + j)
                 : fullStart + j + effectiveFrame,
             })
-            // }
-            // if (defaultStarts.includes(codon.toUpperCase())) {
-            //   starts.push(j * 3)
-            // } else if (defaultStops.includes(codon.toUpperCase())) {
-            //   stops.push(j * 3)
-            // }
           }
-          // const minMaxfeatures = this.featuresMinMax[refSeq]
-          // if (!minMaxfeatures) {
-          //   continue
-          // }
-          // const [min, max] = minMaxfeatures
-          // const rows: boolean[][] = []
-          // const rowCount = 6
-          // for (let i = 0; i < rowCount; i++) {
-          // const newRowNumber = rows.length
-          // rows[newRowNumber] = new Array(max - min)
-          // const myRecord: Record<string, number[]> = {}
-          // codonLayout.set(newRowNumber, (myRecord.starts = starts))
-          // const x: Record<string, number[]> = {}
-          // x.starts = starts
-          // x.stops = stops
-          // codonLayout.set(i, x)
           codonLayout.set(i, translated)
-          // codonLayout.get(newRowNumber).start = starts
         }
         return codonLayout
       },
