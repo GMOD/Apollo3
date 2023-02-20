@@ -31,11 +31,6 @@ const ApolloConfigSchema = ConfigurationSchema(
         type: 'string',
         defaultValue: '',
       },
-      scopes: {
-        description: 'optional scopes for the authorization call',
-        type: 'string',
-        defaultValue: '',
-      },
     }),
     microsoft: ConfigurationSchema('ApolloMicrosoftInternetAccount', {
       authEndpoint: {
@@ -45,11 +40,6 @@ const ApolloConfigSchema = ConfigurationSchema(
       },
       clientId: {
         description: 'id for the OAuth application',
-        type: 'string',
-        defaultValue: '',
-      },
-      scopes: {
-        description: 'optional scopes for the authorization call',
         type: 'string',
         defaultValue: '',
       },

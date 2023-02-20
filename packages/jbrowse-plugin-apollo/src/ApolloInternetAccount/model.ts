@@ -69,17 +69,11 @@ const stateModelFactory = (
       get googleAuthEndpoint(): string {
         return getConf(self, ['google', 'authEndpoint'])
       },
-      get googleScopes(): string {
-        return getConf(self, ['google', 'scopes'])
-      },
       get microsoftClientId(): string {
         return getConf(self, ['microsoft', 'clientId'])
       },
       get microsoftAuthEndpoint(): string {
         return getConf(self, ['microsoft', 'authEndpoint'])
-      },
-      get microsoftScopes(): string {
-        return getConf(self, ['microsoft', 'scopes'])
       },
       get internetAccountType() {
         return 'ApolloInternetAccount'
@@ -515,7 +509,6 @@ const stateModelFactory = (
             domains: self.domains,
             authEndpoint: self.googleAuthEndpoint,
             clientId: self.googleClientId,
-            scopes: self.googleScopes,
           },
         }),
       microsoftAuthInternetAccount: OAuthInternetAccountModelFactory(
@@ -547,7 +540,6 @@ const stateModelFactory = (
             domains: self.domains,
             authEndpoint: self.microsoftAuthEndpoint,
             clientId: self.microsoftClientId,
-            scopes: self.microsoftScopes,
           },
         }),
     }))
