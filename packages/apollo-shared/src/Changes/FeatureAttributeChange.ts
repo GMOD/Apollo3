@@ -62,7 +62,7 @@ export class FeatureAttributeChange extends FeatureChange {
    * @param backend - parameters from backend
    * @returns
    */
-  async applyToServer(backend: ServerDataStore) {
+  async executeOnServer(backend: ServerDataStore) {
     const { featureModel, session } = backend
     const { changes, logger } = this
 
@@ -123,11 +123,11 @@ export class FeatureAttributeChange extends FeatureChange {
     }
   }
 
-  async applyToLocalGFF3(backend: LocalGFF3DataStore) {
+  async executeOnLocalGFF3(backend: LocalGFF3DataStore) {
     throw new Error('applyToLocalGFF3 not implemented')
   }
 
-  async applyToClient(dataStore: ClientDataStore) {
+  async executeOnClient(dataStore: ClientDataStore) {
     if (!dataStore) {
       throw new Error('No data store')
     }
