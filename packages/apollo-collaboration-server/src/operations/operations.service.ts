@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { InjectModel } from '@nestjs/mongoose'
+import { InjectConnection, InjectModel } from '@nestjs/mongoose'
 import {
   Assembly,
   AssemblyDocument,
@@ -19,7 +19,7 @@ import {
   SerializedOperation,
   operationRegistry,
 } from 'apollo-shared'
-import { Model } from 'mongoose'
+import { Connection, Model } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service'
 import { FilesService } from '../files/files.service'
@@ -41,6 +41,7 @@ export class OperationsService {
     private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
     private readonly filesService: FilesService,
     private readonly countersService: CountersService,
+    @InjectConnection() private connection: Connection,
   ) {}
 
   private readonly logger = new Logger(OperationsService.name)
@@ -52,8 +53,8 @@ export class OperationsService {
       serializedOperation.typeName,
     )
     const operation = new OperationType(serializedOperation)
-    // @ts-ignore
-    return operation.execute({
+    const session = await this.connection.startSession()
+    const result = await operation.execute({
       typeName: 'Server',
       featureModel: this.featureModel,
       assemblyModel: this.assemblyModel,
@@ -61,10 +62,12 @@ export class OperationsService {
       refSeqChunkModel: this.refSeqChunkModel,
       fileModel: this.fileModel,
       userModel: this.userModel,
-      // session: await startSession(),
+      session,
       filesService: this.filesService,
       counterService: this.countersService,
       user: '',
     })
+    session.endSession()
+    return result
   }
 }
