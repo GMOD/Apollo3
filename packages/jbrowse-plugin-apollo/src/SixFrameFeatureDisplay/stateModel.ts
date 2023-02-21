@@ -387,6 +387,12 @@ export function stateModelFactory(
       get featuresHeight() {
         return (this.highestRow + 1) * self.apolloRowHeight
       },
+      get detailsHeight() {
+        return Math.max(
+          self.detailsMinHeight,
+          self.height - this.featuresHeight,
+        )
+      },
       trackMenuItems() {
         return [
           {

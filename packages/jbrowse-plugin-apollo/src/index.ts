@@ -39,7 +39,10 @@ import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
 } from './LinearApolloDisplay'
-import { makeDisplayComponent } from './makeDisplayComponent'
+import {
+  makeDisplayComponent,
+  makeSixFrameDisplayComponent,
+} from './makeDisplayComponent'
 import { extendSession } from './session'
 import {
   stateModelFactory as SixFrameFeatureDisplayStateModelFactory,
@@ -109,7 +112,7 @@ export default class ApolloPlugin extends Plugin {
     pluginManager.addDisplayType(() => {
       const configSchema =
         sixFrameFeatureDisplayConfigSchemaFactory(pluginManager)
-      const DisplayComponent = makeDisplayComponent(pluginManager)
+      const DisplayComponent = makeSixFrameDisplayComponent(pluginManager)
       return new DisplayType({
         name: 'SixFrameFeatureDisplay',
         configSchema,
