@@ -12,7 +12,13 @@ export function configSchemaFactory(pluginManager: PluginManager) {
 
   return ConfigurationSchema(
     'SixFrameFeatureDisplay',
-    { renderer: apolloRendererConfigSchema },
+    {
+      renderer: apolloRendererConfigSchema,
+      height: {
+        type: 'number',
+        defaultValue: 120,
+      },
+    },
     { baseConfiguration: baseLinearDisplayConfigSchema, explicitlyTyped: true },
   )
 }
