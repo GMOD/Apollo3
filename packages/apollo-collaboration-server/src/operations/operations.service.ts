@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common'
 import { InjectConnection, InjectModel } from '@nestjs/mongoose'
 import {
   Assembly,
@@ -16,13 +16,14 @@ import {
 } from 'apollo-schemas'
 import {
   Operation,
-  SerializedOperation,
+  SerializedOperationParentType,
   operationRegistry,
 } from 'apollo-shared'
 import { Connection, Model } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service'
 import { FilesService } from '../files/files.service'
+import { OntologiesService } from '../ontologies/ontologies.service'
 
 @Injectable()
 export class OperationsService {
@@ -42,19 +43,23 @@ export class OperationsService {
     private readonly filesService: FilesService,
     private readonly countersService: CountersService,
     @InjectConnection() private connection: Connection,
+    @Inject(forwardRef(() => OntologiesService))
+    private readonly ontologiesService: OntologiesService,
   ) {}
 
   private readonly logger = new Logger(OperationsService.name)
 
   async executeOperation<T extends Operation>(
-    serializedOperation: SerializedOperation,
+    serializedOperation: SerializedOperationParentType,
   ): Promise<ReturnType<T['executeOnServer']>> {
     const OperationType = operationRegistry.getOperationType(
       serializedOperation.typeName,
     )
+
     const operation = new OperationType(serializedOperation)
-    const session = await this.connection.startSession()
-    const result = await operation.execute({
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    return operation.execute({
       typeName: 'Server',
       featureModel: this.featureModel,
       assemblyModel: this.assemblyModel,
@@ -62,12 +67,12 @@ export class OperationsService {
       refSeqChunkModel: this.refSeqChunkModel,
       fileModel: this.fileModel,
       userModel: this.userModel,
-      session,
+      // session: await startSession(),
       filesService: this.filesService,
       counterService: this.countersService,
+      parentType: serializedOperation.parentType,
+      ontology: serializedOperation.ontology,
       user: '',
     })
-    session.endSession()
-    return result
   }
 }

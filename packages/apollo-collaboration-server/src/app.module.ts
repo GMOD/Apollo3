@@ -13,6 +13,7 @@ import { CountersModule } from './counters/counters.module'
 import { FeaturesModule } from './features/features.module'
 import { FilesModule } from './files/files.module'
 import { MessagesModule } from './messages/messages.module'
+import { OntologiesModule } from './ontologies/ontologies.module'
 import { OperationsModule } from './operations/operations.module'
 import { RefSeqChunksModule } from './refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from './refSeqs/refSeqs.module'
@@ -118,6 +119,7 @@ async function mongoDBURIFactory(
     MessagesModule,
     OperationsModule,
     CountersModule,
+    OntologiesModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

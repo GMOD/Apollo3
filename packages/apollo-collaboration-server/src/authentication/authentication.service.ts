@@ -81,10 +81,17 @@ export class AuthenticationService {
   async logIn(name: string, email: string) {
     // Find user from Mongo
     let user = await this.usersService.findByEmail(email)
+
     if (!user) {
       const userCount = await this.usersService.getCount()
       const guestUser = await this.usersService.findGuest()
-      const hasAdmin = userCount > 1 || (userCount === 1 && guestUser)
+      let hasAdmin = (userCount > 1) as boolean
+      if (userCount === 1 && guestUser) {
+        hasAdmin = false
+      }
+      // const hasAdminOld = userCount > 1 || (userCount === 1 && guestUser)
+      // this.logger.debug(`*** OLD hasAdmin : ${JSON.stringify(hasAdminOld)} `)
+
       // If there is not a non-guest user yet, the 1st user role will be admin
       const newUserRole = hasAdmin ? this.defaultNewUserRole : Role.Admin
       const newUser: CreateUserDto = {
@@ -96,7 +103,6 @@ export class AuthenticationService {
       }
       user = await this.usersService.addNew(newUser)
     }
-    this.logger.debug(`User found in Mongo: ${JSON.stringify(user)}`)
 
     const payload: JWTPayload = {
       username: user.username,

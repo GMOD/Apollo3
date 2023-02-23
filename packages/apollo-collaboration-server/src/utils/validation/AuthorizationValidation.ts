@@ -49,7 +49,9 @@ export class AuthorizationValidation extends Validation {
       throw new Error('No user attached to request')
     }
     const { username, role } = user
-
+    logger.debug(
+      `User ${username}, has role '${role}'. ${JSON.stringify(user)}`,
+    )
     // In change controller's create() -method we have 2nd authorization check level.
     // Each change type has own permissions as defined in validation.changeTypePermissions.ts
     if (
