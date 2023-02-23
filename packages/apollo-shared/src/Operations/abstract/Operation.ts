@@ -83,6 +83,7 @@ export interface ServerDataStore {
   counterService: {
     getNextSequenceValue(sequenceName: string): Promise<number>
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ontology: OboJson | any
   parentType: string
   user: string

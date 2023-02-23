@@ -48,6 +48,7 @@ function getFeatureColumns(
   ]
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function AutocompleteInputCell(props: any) {
   const { id, value, field } = props
   const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>([])
