@@ -137,16 +137,19 @@ function ApolloRendering(props: ApolloRenderingProps) {
     if (!ctx) {
       return
     }
+    const transcript: Record<string, [number, number]> = {}
     ctx.clearRect(0, 0, totalWidth, totalHeight)
     for (const [row, featureInfos] of featureLayout) {
-      for (const [featureRow, feature] of featureInfos) {
-        if (featureRow > 0) {
-          continue
-        }
+      for (const [parentID, feature] of featureInfos) {
+        // if (featureRow > 0) {
+        //   continue
+        // }
         const start = region.reversed
           ? region.end - feature.end
           : feature.start - region.start - 1
+        const end = feature.end - region.start
         const startPx = start / bpPerPx
+        const endPx = end / bpPerPx
         feature.draw(
           ctx,
           startPx,
@@ -155,6 +158,15 @@ function ApolloRendering(props: ApolloRenderingProps) {
           height,
           region.reversed,
         )
+        // TODO Make sure to get the "intron hat" / kink thing working
+        // Perhaps divide line in 2 and add gradients to each side
+        if (transcript[parentID]) {
+          ctx.beginPath()
+          ctx.moveTo(...transcript[parentID])
+          ctx.lineTo(startPx, row * height + height / 2)
+          ctx.stroke()
+        }
+        transcript[parentID] = [endPx, row * height + height / 2]
       }
     }
   }, [
@@ -370,11 +382,11 @@ function ApolloRendering(props: ApolloRenderingProps) {
       return
     }
     const bp = region.start + bpPerPx * x
-    const [featureRow, feat] =
+    const [parentID, feat] =
       layoutRow.find((f) => bp >= f[1].min && bp <= f[1].max) || []
     let feature: AnnotationFeatureI | undefined = feat
-    if (feature && featureRow) {
-      const topRow = row - featureRow
+    if (feature) {
+      const topRow = row
       const startPx = (feature.start - region.start) / bpPerPx
       const thisX = x - startPx
       feature = feature.getFeatureFromLayout(

@@ -285,7 +285,7 @@ export function stateModelFactory(
         return codonLayout
       },
       get featureLayout() {
-        const featureLayout: Map<number, [number, AnnotationFeatureI][]> =
+        const featureLayout: Map<number, [string, AnnotationFeatureI][]> =
           new Map()
         for (const [refSeq, featuresForRefSeq] of this.features || []) {
           if (!featuresForRefSeq) {
@@ -314,13 +314,30 @@ export function stateModelFactory(
                 if (childFeature.type === 'mRNA') {
                   for (const [, grandChildFeature] of childFeature.children ||
                     new Map()) {
-                    let startingRow = 0
-                    if (grandChildFeature.phase !== undefined) {
-                      startingRow = grandChildFeature.phase
+                    // let startingRow = 0
+                    // if (grandChildFeature.phase !== undefined) {
+                    //   startingRow = grandChildFeature.phase
+                    //   if (feature.strand === -1) {
+                    //     startingRow += 3
+                    //   } else {
+                    //     startingRow = forwardPhaseMap[grandChildFeature.phase]
+                    //   }
+                    //   const row = rows[startingRow]
+                    //   row.fill(
+                    //     true,
+                    //     grandChildFeature.min - min,
+                    //     grandChildFeature.max - min,
+                    //   )
+                    //   const layoutRow = featureLayout.get(startingRow)
+                    //   layoutRow?.push([0, grandChildFeature])
+                    // }
+                    let startingRow
+                    if (grandChildFeature.type === 'CDS') {
                       if (feature.strand === -1) {
-                        startingRow += 3
+                        startingRow = reversePhaseMap[grandChildFeature.min % 3]
                       } else {
-                        startingRow = forwardPhaseMap[grandChildFeature.phase]
+                        startingRow =
+                          forwardPhaseMap[(grandChildFeature.min - 1) % 3]
                       }
                       const row = rows[startingRow]
                       row.fill(
@@ -329,7 +346,7 @@ export function stateModelFactory(
                         grandChildFeature.max - min,
                       )
                       const layoutRow = featureLayout.get(startingRow)
-                      layoutRow?.push([0, grandChildFeature])
+                      layoutRow?.push([childFeature.testId, grandChildFeature])
                     }
                   }
                 }
