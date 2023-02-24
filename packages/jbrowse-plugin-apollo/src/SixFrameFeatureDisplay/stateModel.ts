@@ -19,6 +19,17 @@ import { Instance, addDisposer, types } from 'mobx-state-tree'
 
 import { ApolloSession } from '../session'
 
+const forwardPhaseMap: Record<number, number> = {
+  0: 2,
+  1: 1,
+  2: 0,
+}
+const reversePhaseMap: Record<number, number> = {
+  3: 0,
+  4: 1,
+  5: 2,
+}
+
 export function stateModelFactory(
   pluginManager: PluginManager,
   configSchema: AnyConfigurationSchemaType,
@@ -209,16 +220,6 @@ export function stateModelFactory(
         return minMax
       },
       get codonLayout() {
-        const forwardPhaseMap: Record<number, number> = {
-          0: 2,
-          1: 1,
-          2: 0,
-        }
-        const reversePhaseMap: Record<number, number> = {
-          3: 0,
-          4: 1,
-          5: 2,
-        }
         const codonTable = generateCodonTable(defaultCodonTable)
         const codonLayout: Map<
           number,
@@ -284,11 +285,6 @@ export function stateModelFactory(
         return codonLayout
       },
       get featureLayout() {
-        const forwardPhaseMap: Record<number, number> = {
-          0: 2,
-          1: 1,
-          2: 0,
-        }
         const featureLayout: Map<number, [number, AnnotationFeatureI][]> =
           new Map()
         for (const [refSeq, featuresForRefSeq] of this.features || []) {
