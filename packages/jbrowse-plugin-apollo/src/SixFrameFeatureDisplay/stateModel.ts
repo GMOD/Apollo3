@@ -45,8 +45,9 @@ export function stateModelFactory(
       configuration: ConfigurationReference(configSchema),
       apolloRowHeight: 20,
       detailsMinHeight: 200,
-      showStartCodons: true,
+      showStartCodons: false,
       showStopCodons: true,
+      showIntronLines: true,
     })
     .volatile(() => ({
       apolloFeatureUnderMouse: undefined as AnnotationFeatureI | undefined,
@@ -389,6 +390,9 @@ export function stateModelFactory(
       toggleShowStopCodons() {
         self.showStopCodons = !self.showStopCodons
       },
+      toggleShowIntronLines() {
+        self.showIntronLines = !self.showIntronLines
+      },
     }))
     .views((self) => ({
       get highestRow() {
@@ -419,6 +423,12 @@ export function stateModelFactory(
             type: 'checkbox',
             checked: self.showStopCodons,
             onClick: () => self.toggleShowStopCodons(),
+          },
+          {
+            label: 'Show intron lines',
+            type: 'checkbox',
+            checked: self.showIntronLines,
+            onClick: () => self.toggleShowIntronLines(),
           },
         ]
       },

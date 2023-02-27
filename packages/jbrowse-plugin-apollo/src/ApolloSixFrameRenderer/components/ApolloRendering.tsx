@@ -32,6 +32,18 @@ interface ApolloRenderingProps {
 
 type Coord = [number, number]
 
+/**
+ * Use the golden ratio to generate distinct colors for a given integer
+ * See https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
+ * @param number -
+ * @returns HSL string
+ */
+function selectColor(number: number) {
+  const goldenAngle = 180 * (3 - Math.sqrt(5))
+  const hue = number * goldenAngle + 60
+  return `hsl(${hue},100%,50%)`
+}
+
 function ApolloRendering(props: ApolloRenderingProps) {
   const [contextCoord, setContextCoord] = useState<Coord>()
   const [contextMenuFeature, setContextMenuFeature] =
@@ -80,6 +92,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     apolloRowHeight: height,
     showStartCodons: showStarts,
     showStopCodons: showStops,
+    showIntronLines: showLines,
   } = displayModel
   // use this to convince useEffect that the features really did change
   const featureSnap = Array.from(features.values()).map((a) =>
@@ -137,17 +150,14 @@ function ApolloRendering(props: ApolloRenderingProps) {
     if (!ctx) {
       return
     }
-    const transcript: Record<string, [number, number]> = {}
+    const transcript: Record<string, [number, number][]> = {}
     ctx.clearRect(0, 0, totalWidth, totalHeight)
     for (const [row, featureInfos] of featureLayout) {
       for (const [parentID, feature] of featureInfos) {
-        // if (featureRow > 0) {
-        //   continue
-        // }
         const start = region.reversed
           ? region.end - feature.end
           : feature.start - region.start - 1
-        const end = feature.end - region.start
+        const end = feature.end - region.start - 1
         const startPx = start / bpPerPx
         const endPx = end / bpPerPx
         feature.draw(
@@ -158,18 +168,65 @@ function ApolloRendering(props: ApolloRenderingProps) {
           height,
           region.reversed,
         )
-        // TODO Make sure to get the "intron hat" / kink thing working
-        // Perhaps divide line in 2 and add gradients to each side
-        if (transcript[parentID]) {
-          ctx.beginPath()
-          ctx.moveTo(...transcript[parentID])
-          ctx.lineTo(startPx, row * height + height / 2)
-          ctx.stroke()
+        const lineY = row * height + height / 2
+        if (!transcript[parentID]) {
+          transcript[parentID] = []
         }
-        transcript[parentID] = [endPx, row * height + height / 2]
+        if (
+          !transcript[parentID].find(
+            (el) => el[0] === startPx && el[1] === lineY,
+          )
+        ) {
+          transcript[parentID].push([startPx, lineY])
+        }
+        if (
+          !transcript[parentID].find((el) => el[0] === endPx && el[1] === lineY)
+        ) {
+          transcript[parentID].push([endPx, lineY])
+        }
+      }
+    }
+    if (showLines) {
+      let offset = -Math.floor(Object.keys(transcript).length / 2)
+      for (const pid in transcript) {
+        ctx.strokeStyle = selectColor(offset)
+        let prevCoords: [number, number]
+        transcript[pid]
+          .sort(function (a, b) {
+            return a[0] - b[0]
+          })
+          // eslint-disable-next-line no-loop-func
+          .forEach((coords, index) => {
+            if (index === 0) {
+              prevCoords = coords
+            } else {
+              if (index % 2 === 0) {
+                /** Mid-point for intron line "hat" */
+                const midPoint: [number, number] = [
+                  (coords[0] - prevCoords[0]) / 2 + prevCoords[0],
+                  Math.max(
+                    1, // Avoid render ceiling
+                    Math.min(prevCoords[1], coords[1]) -
+                      height / 2 +
+                      offset * 2,
+                  ),
+                ]
+                ctx.beginPath()
+                ctx.moveTo(prevCoords[0], prevCoords[1] + offset * 2)
+                ctx.lineTo(...midPoint)
+                ctx.stroke()
+                ctx.moveTo(...midPoint)
+                ctx.lineTo(coords[0], coords[1] + offset * 2)
+                ctx.stroke()
+              }
+              prevCoords = coords
+            }
+          })
+        offset += 1
       }
     }
   }, [
+    showLines,
     region,
     bpPerPx,
     region.start,
