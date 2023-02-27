@@ -1,8 +1,12 @@
 {
-  "version": "0.0.1",
+  "version": "1.0.0-alpha.0",
   "name": "jbrowse-plugin-apollo",
   "description": "Apollo plugin for JBrowse 2",
-  "repository": "https://github.com/github:GMOD/jbrowse-plugin-apollo",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GMOD/Apollo3.git",
+    "directory": "packages/jbrowse-plugin-apollo"
+  },
   "author": "JBrowse Team",
   "license": "Apache-2.0",
   "keywords": [
@@ -103,5 +107,6 @@
     "typescript": "^4.7.4"
   },
   "packageManager": "yarn@3.2.2",
-  "private": true
+  "private": true,
+  "stableVersion": "0.0.0"
 }
