@@ -15,6 +15,7 @@ services:
       - microsoft-client-id
       - microsoft-client-secret
       - jwt-secret
+      - session-secret
     depends_on:
       mongodb-init:
         condition: service_completed_successfully
@@ -62,3 +63,5 @@ secrets:
     file: ./docker/microsoft-client-secret
   jwt-secret:
     file: ./docker/jwt-secret
+  session-secret:
+    file: ./docker/session-secret
