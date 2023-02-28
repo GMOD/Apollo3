@@ -14,6 +14,7 @@ import { FeaturesModule } from './features/features.module'
 import { FilesModule } from './files/files.module'
 import { MessagesModule } from './messages/messages.module'
 import { OperationsModule } from './operations/operations.module'
+import { PluginsModule } from './plugins/plugins.module'
 import { RefSeqChunksModule } from './refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from './refSeqs/refSeqs.module'
 import { UsersModule } from './users/users.module'
@@ -72,6 +73,25 @@ const validationSchema = Joi.object({
   GUEST_USER_ROLE: Joi.string()
     .valid('admin', 'user', 'readOnly')
     .default('readOnly'),
+  PLUGIN_URLS: Joi.string()
+    .custom((value) => {
+      const errorMessage =
+        'PLUGIN_URLS must be a comma-separated list of plugin URLs'
+      if (typeof value !== 'string') {
+        throw new Error(errorMessage)
+      }
+      const urls = value.split(',')
+      for (const url of urls) {
+        try {
+          new URL(url)
+        } catch {
+          throw new Error(errorMessage)
+        }
+      }
+      return value
+    })
+    .default(''),
+  PLUGIN_URLS_FILE: Joi.string(),
 })
   .xor('MONGODB_URI', 'MONGODB_URI_FILE')
   .oxor('GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_ID_FILE')
@@ -79,6 +99,7 @@ const validationSchema = Joi.object({
   .oxor('MICROSOFT_CLIENT_ID', 'MICROSOFT_CLIENT_ID_FILE')
   .oxor('MICROSOFT_CLIENT_SECRET', 'MICROSOFT_CLIENT_SECRET_FILE')
   .xor('JWT_SECRET', 'JWT_SECRET_FILE')
+  .xor('PLUGIN_URLS', 'PLUGIN_URLS_FILE')
 
 async function mongoDBURIFactory(
   configService: ConfigService<MongoDBURIConfig, true>,
@@ -118,6 +139,7 @@ async function mongoDBURIFactory(
     MessagesModule,
     OperationsModule,
     CountersModule,
+    PluginsModule.registerAsync(),
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

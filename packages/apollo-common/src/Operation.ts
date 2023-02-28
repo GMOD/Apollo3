@@ -40,6 +40,13 @@ export interface ServerDataStore {
     create(createFileDto: CreateFileDto): void
     remove(id: string): void
   }
+  pluginsService: {
+    evaluateExtensionPoint(
+      extensionPointName: string,
+      extendee: unknown,
+      props?: Record<string, unknown>,
+    ): void
+  }
   counterService: {
     getNextSequenceValue(sequenceName: string): Promise<number>
   }
@@ -69,7 +76,12 @@ export abstract class Operation implements SerializedOperation {
   async execute(backend: BackendDataStore): Promise<unknown> {
     const backendType = backend.typeName
     if (backendType === 'Server') {
-      return this.executeOnServer(backend)
+      const initialResult = this.executeOnServer(backend)
+      return backend.pluginsService.evaluateExtensionPoint(
+        `${this.typeName}-transformResults`,
+        initialResult,
+        { operation: this, backend },
+      )
     }
     if (backendType === 'LocalGFF3') {
       return this.executeOnLocalGFF3(backend)
