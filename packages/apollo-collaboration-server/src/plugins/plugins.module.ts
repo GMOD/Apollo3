@@ -15,8 +15,19 @@ export class PluginsModule {
   private readonly logger = new Logger(PluginsModule.name)
 
   static async registerAsync(): Promise<DynamicModule> {
-    const { PLUGIN_URLS } = process.env
-    const pluginURLs = PLUGIN_URLS ? PLUGIN_URLS.split(',') : []
+    const { PLUGIN_URLS, PLUGIN_URLS_FILE } = process.env
+    let pluginURLs = PLUGIN_URLS ? PLUGIN_URLS.split(',') : []
+    if (!pluginURLs.length) {
+      if (PLUGIN_URLS_FILE) {
+        const pluginURLsFileText = await fsPromises.readFile(
+          PLUGIN_URLS_FILE,
+          'utf-8',
+        )
+        pluginURLs = pluginURLsFileText
+          .split(/\n|\r\n|\r/)
+          .map((line) => line.trim())
+      }
+    }
 
     const pluginsProvider: Provider = {
       provide: APOLLO_PLUGINS,

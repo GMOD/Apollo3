@@ -91,6 +91,7 @@ const validationSchema = Joi.object({
       return value
     })
     .default(''),
+  PLUGIN_URLS_FILE: Joi.string(),
 })
   .xor('MONGODB_URI', 'MONGODB_URI_FILE')
   .oxor('GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_ID_FILE')
@@ -98,6 +99,7 @@ const validationSchema = Joi.object({
   .oxor('MICROSOFT_CLIENT_ID', 'MICROSOFT_CLIENT_ID_FILE')
   .oxor('MICROSOFT_CLIENT_SECRET', 'MICROSOFT_CLIENT_SECRET_FILE')
   .xor('JWT_SECRET', 'JWT_SECRET_FILE')
+  .xor('PLUGIN_URLS', 'PLUGIN_URLS_FILE')
 
 async function mongoDBURIFactory(
   configService: ConfigService<MongoDBURIConfig, true>,
