@@ -1,3 +1,4 @@
+export * from './ApolloPlugin'
 export * from './AssemblySpecificChange'
 export * from './Change'
 export * from './ChangeTypeRegistry'

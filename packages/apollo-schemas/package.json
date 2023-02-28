@@ -9,7 +9,6 @@
     "@nestjs/common": "^9.2.1",
     "@nestjs/core": "^9.2.1",
     "@nestjs/mongoose": "^9.2.1",
-    "apollo-mst": "workspace:^",
     "mongoose": "^6.2.6",
     "reflect-metadata": "^0.1.13",
     "regenerator-runtime": "^0.13.9",
@@ -18,6 +17,7 @@
   },
   "devDependencies": {
     "@types/node": "^16.0.0",
+    "apollo-mst": "workspace:^",
     "typescript": "^4.7.4"
   },
   "packageManager": "yarn@3.2.2",
