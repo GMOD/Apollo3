@@ -23,6 +23,7 @@ import { Connection, Model } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service'
 import { FilesService } from '../files/files.service'
+import { PluginsService } from '../plugins/plugins.service'
 
 @Injectable()
 export class OperationsService {
@@ -41,6 +42,7 @@ export class OperationsService {
     private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
     private readonly filesService: FilesService,
     private readonly countersService: CountersService,
+    private readonly pluginsService: PluginsService,
     @InjectConnection() private connection: Connection,
   ) {}
 
@@ -49,10 +51,11 @@ export class OperationsService {
   async executeOperation<T extends Operation>(
     serializedOperation: SerializedOperation,
   ): Promise<ReturnType<T['executeOnServer']>> {
+    const { logger } = this
     const OperationType = operationRegistry.getOperationType(
       serializedOperation.typeName,
     )
-    const operation = new OperationType(serializedOperation)
+    const operation = new OperationType(serializedOperation, { logger })
     const session = await this.connection.startSession()
     const result = await operation.execute({
       typeName: 'Server',
@@ -65,6 +68,7 @@ export class OperationsService {
       session,
       filesService: this.filesService,
       counterService: this.countersService,
+      pluginsService: this.pluginsService,
       user: '',
     })
     session.endSession()
