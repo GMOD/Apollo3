@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Logger, Post, Query, Req } from '@nestjs/common'
-import { Change, DecodedJWT } from 'apollo-shared'
+import { Change } from 'apollo-common'
+import { DecodedJWT } from 'apollo-shared'
 import { Request } from 'express'
 
 import { ParseChangePipe } from '../utils/parse-change.pipe'

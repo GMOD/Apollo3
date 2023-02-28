@@ -1,6 +1,3 @@
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
-import { Feature } from 'apollo-schemas'
-
 import {
   ChangeOptions,
   ClientDataStore,
@@ -8,7 +5,10 @@ import {
   LocalGFF3DataStore,
   SerializedFeatureChange,
   ServerDataStore,
-} from './abstract'
+} from 'apollo-common'
+import { AnnotationFeatureSnapshot } from 'apollo-mst'
+import { Feature } from 'apollo-schemas'
+
 import { AddFeatureChange } from './AddFeatureChange'
 
 interface SerializedDeleteFeatureChangeBase extends SerializedFeatureChange {

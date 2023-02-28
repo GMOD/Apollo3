@@ -1,12 +1,12 @@
 {
   "name": "apollo-mst",
-  "version": "0.0.1",
+  "version": "1.0.0-alpha.0",
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc"
   },
   "dependencies": {
-    "@jbrowse/core": "^2.2.1",
+    "@jbrowse/core": "^2.3.4",
     "mobx": "^6.6.1",
     "mobx-state-tree": "^5.1.5",
     "rxjs": "^6.0.0",

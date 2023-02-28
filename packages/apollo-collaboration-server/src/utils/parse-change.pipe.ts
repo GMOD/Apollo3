@@ -4,7 +4,7 @@ import {
   Injectable,
   PipeTransform,
 } from '@nestjs/common'
-import { Change, SerializedChange } from 'apollo-shared'
+import { Change, SerializedChange } from 'apollo-common'
 
 @Injectable()
 export class ParseChangePipe

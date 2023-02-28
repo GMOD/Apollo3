@@ -1,8 +1,6 @@
 {
   "name": "apollo3",
   "description": "Monorepo containing Apollo front and back end code",
-  "version": "0.0.1",
-  "repository": "git@github.com:GMOD/jbrowse-plugin-apollo.git",
   "packageManager": "yarn@3.2.2",
   "workspaces": [
     "packages/*"

@@ -5,15 +5,16 @@
     "incremental": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "target": "ES2020",
-    "lib": ["ES2020", "DOM"],
+    "target": "ES2019",
+    "lib": ["ES2019", "DOM"],
     "module": "CommonJS",
     "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": false,
   },
   "include": ["./src"],
   "references": [
-    { "path": "../apollo-mst"},
     { "path": "../apollo-schemas"},
-    { "path": "../apollo-common"},
   ]
 }

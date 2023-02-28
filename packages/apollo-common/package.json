@@ -1,0 +1,42 @@
+{
+  "name": "apollo-common",
+  "version": "1.0.0-alpha.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GMOD/Apollo3.git",
+    "directory": "packages/apollo-common"
+  },
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@gmod/gff": "^1.3.0",
+    "@jbrowse/core": "^2.3.4",
+    "apollo-schemas": "workspace:^",
+    "bson-objectid": "^2.0.4",
+    "tslib": "^2.3.1"
+  },
+  "peerDependencies": {
+    "@mui/material": "^5.0.0",
+    "@mui/x-data-grid": "^5.0.0",
+    "mobx": "^6.0.0",
+    "mobx-react": "^7.0.0",
+    "mobx-state-tree": "^5.0.0",
+    "prop-types": "^15.0.0",
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0",
+    "rxjs": "^7.0.0",
+    "tss-react": "^4.0.0"
+  },
+  "devDependencies": {
+    "@nestjs/common": "^9.3.9",
+    "@nestjs/core": "^9.3.9",
+    "@types/node": "^18.14.2",
+    "apollo-mst": "workspace:^",
+    "mongoose": "^7.0.0",
+    "typescript": "^4.7.4"
+  },
+  "packageManager": "yarn@3.2.2.",
+  "private": true
+}

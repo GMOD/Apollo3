@@ -3,12 +3,8 @@ import type { AnnotationFeatureSnapshot } from 'apollo-mst'
 import { FileDocument, RefSeqDocument } from 'apollo-schemas'
 import ObjectID from 'bson-objectid'
 
-import {
-  Change,
-  ChangeOptions,
-  SerializedChange,
-  ServerDataStore,
-} from './Change'
+import { Change, ChangeOptions, SerializedChange } from './Change'
+import { ServerDataStore } from './Operation'
 
 export interface SerializedAssemblySpecificChange extends SerializedChange {
   assembly: string

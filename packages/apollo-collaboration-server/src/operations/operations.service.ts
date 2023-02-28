@@ -1,6 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectConnection, InjectModel } from '@nestjs/mongoose'
 import {
+  Operation,
+  SerializedOperation,
+  operationRegistry,
+} from 'apollo-common'
+import {
   Assembly,
   AssemblyDocument,
   Feature,
@@ -14,11 +19,6 @@ import {
   User,
   UserDocument,
 } from 'apollo-schemas'
-import {
-  Operation,
-  SerializedOperation,
-  operationRegistry,
-} from 'apollo-shared'
 import { Connection, Model } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service'

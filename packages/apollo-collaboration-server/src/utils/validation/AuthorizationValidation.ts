@@ -1,9 +1,8 @@
 import { Logger } from '@nestjs/common'
+import { Change, SerializedChange } from 'apollo-common'
 import {
-  Change,
   Context,
   JWTPayload,
-  SerializedChange,
   Validation,
   ValidationResult,
   isContext,

@@ -1,6 +1,6 @@
 {
   "name": "apollo-shared",
-  "version": "0.0.1",
+  "version": "1.0.0-alpha.0",
   "main": "./dist/index.js",
   "scripts": {
     "start": "tsc --build --watch",
@@ -9,7 +9,8 @@
   },
   "dependencies": {
     "@gmod/gff": "^1.2.0",
-    "@jbrowse/core": "^2.2.1",
+    "@jbrowse/core": "^2.3.4",
+    "apollo-common": "workspace:^",
     "apollo-mst": "workspace:^",
     "apollo-schemas": "workspace:^",
     "bson-objectid": "^2.0.3",

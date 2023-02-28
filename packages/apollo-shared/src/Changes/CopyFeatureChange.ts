@@ -5,7 +5,8 @@ import {
   LocalGFF3DataStore,
   SerializedFeatureChange,
   ServerDataStore,
-} from './abstract'
+} from 'apollo-common'
+
 import { DeleteFeatureChange } from './DeleteFeatureChange'
 
 interface SerializedCopyFeatureChangeBase extends SerializedFeatureChange {
