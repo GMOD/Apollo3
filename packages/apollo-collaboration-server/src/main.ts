@@ -1,3 +1,5 @@
+import fs from 'fs'
+
 import { LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import { changeRegistry, operationRegistry } from 'apollo-common'
@@ -8,16 +10,27 @@ import {
   operations,
   validationRegistry,
 } from 'apollo-shared'
+import connectMongoDBSession from 'connect-mongodb-session'
 import session from 'express-session'
 
 import { AppModule } from './app.module'
 import { GlobalExceptionsFilter } from './global-exceptions.filter'
 import { AuthorizationValidation } from './utils/validation/AuthorizationValidation'
 
+const MongoDBStore = connectMongoDBSession(session)
+
 async function bootstrap() {
   // Can't use config service here since app doesn't exist yet, but stringified
   // configs are available in process.env
-  const { CORS, LOG_LEVELS, PORT } = process.env
+  const {
+    CORS,
+    LOG_LEVELS,
+    PORT,
+    MONGODB_URI,
+    MONGODB_URI_FILE,
+    SESSION_SECRET,
+    SESSION_SECRET_FILE,
+  } = process.env
   if (!CORS) {
     throw new Error('No CORS found in .env file')
   }
@@ -26,6 +39,23 @@ async function bootstrap() {
   }
   if (!PORT) {
     throw new Error('No PORT found in .env file')
+  }
+  let mongodbURI = MONGODB_URI
+  if (!mongodbURI) {
+    if (!MONGODB_URI_FILE) {
+      throw new Error('No MONGODB_URI or MONGODB_URI_FILE found in .env file')
+    }
+    mongodbURI = fs.readFileSync(MONGODB_URI_FILE, 'utf-8').trim()
+  }
+
+  let sessionSecret = SESSION_SECRET
+  if (!sessionSecret) {
+    if (!SESSION_SECRET_FILE) {
+      throw new Error(
+        'No SESSION_SECRET or SESSION_SECRET_FILE found in .env file',
+      )
+    }
+    sessionSecret = fs.readFileSync(SESSION_SECRET_FILE, 'utf-8').trim()
   }
 
   Object.entries(changes).forEach(([changeName, change]) => {
@@ -54,9 +84,13 @@ async function bootstrap() {
 
   app.use(
     session({
-      secret: 'my-secret',
+      secret: sessionSecret,
       resave: false,
       saveUninitialized: false,
+      store: new MongoDBStore({
+        uri: mongodbURI,
+        collection: 'expressSessions',
+      }),
     }),
   )
 

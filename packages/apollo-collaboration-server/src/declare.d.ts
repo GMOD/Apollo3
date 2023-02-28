@@ -33,3 +33,60 @@ declare module 'mongoose-id-validator' {
     options?: MongooseIdValidatorOptions,
   ): void
 }
+
+// Pulled in from DefinitelyTyped because the published version there is not up
+// to date with connect-mongodb-session v3.
+// https://github.com/DefinitelyTyped/DefinitelyTyped/blob/34aaceacc735148d775a4c09db89afeb1cff6536/types/connect-mongodb-session/index.d.ts
+
+declare module 'connect-mongodb-session' {
+  import session = require('express-session')
+  import { MongoClient, MongoClientOptions } from 'mongodb'
+
+  declare function connectMongoDBSession(
+    fn: typeof session,
+  ): typeof ConnectMongoDBSession.MongoDBStore
+
+  declare namespace ConnectMongoDBSession {
+    class MongoDBStore extends session.Store {
+      constructor(
+        connection?: MongoDBSessionOptions,
+        callback?: (error: Error) => void,
+      )
+      client: MongoClient
+
+      get(
+        sid: string,
+        callback: (err: unknown, session?: session.SessionData | null) => void,
+      ): void
+      set(
+        sid: string,
+        session: session.SessionData,
+        callback?: (err?: unknown) => void,
+      ): void
+      destroy(sid: string, callback?: (err?: unknown) => void): void
+      all(
+        callback: (
+          err: unknown,
+          obj?:
+            | session.SessionData[]
+            | { [sid: string]: session.SessionData }
+            | null,
+        ) => void,
+      ): void
+      clear(callback?: (err?: unknown) => void): void
+    }
+
+    interface MongoDBSessionOptions {
+      uri: string
+      collection: string
+      expires?: number | undefined
+      databaseName?: string | undefined
+      connectionOptions?: MongoClientOptions | undefined
+      idField?: string | undefined
+      expiresKey?: string | undefined
+      expiresAfterSeconds?: number | undefined
+    }
+  }
+
+  export default connectMongoDBSession
+}
