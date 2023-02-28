@@ -1,4 +1,4 @@
-import { SerializedChange } from 'apollo-shared'
+import { SerializedChange } from 'apollo-common'
 
 interface BaseMessage {
   channel: string

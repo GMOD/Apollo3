@@ -6,15 +6,13 @@ import {
   ApolloAssemblyI,
 } from 'apollo-mst'
 
+import { changeRegistry } from './ChangeTypeRegistry'
 import {
   BackendDataStore,
-  LocalGFF3DataStore,
   Operation,
   OperationOptions,
   SerializedOperation,
-  ServerDataStore,
-} from '../../Operations/abstract'
-import { changeRegistry } from '..'
+} from './Operation'
 
 export interface ClientDataStore {
   typeName: 'Client'
@@ -27,8 +25,6 @@ export interface ClientDataStore {
   deleteFeature(featureId: string): void
   deleteAssembly(assemblyId: string): void
 }
-
-export { ServerDataStore, LocalGFF3DataStore }
 
 export type SerializedChange = SerializedOperation
 export type ChangeOptions = OperationOptions

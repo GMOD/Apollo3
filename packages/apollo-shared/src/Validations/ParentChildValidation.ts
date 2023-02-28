@@ -1,3 +1,4 @@
+import { Change } from 'apollo-common'
 import { Feature, FeatureDocument } from 'apollo-schemas'
 import { ClientSession, Model } from 'mongoose'
 
@@ -7,7 +8,6 @@ import {
   isLocationEndChange,
   isLocationStartChange,
 } from '../Changes'
-import { Change } from '../Changes/abstract'
 import { Validation, ValidationResult } from './Validation'
 
 export class ParentChildValidation extends Validation {

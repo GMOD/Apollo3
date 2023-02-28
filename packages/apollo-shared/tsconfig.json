@@ -14,5 +14,6 @@
   "references": [
     { "path": "../apollo-mst"},
     { "path": "../apollo-schemas"},
+    { "path": "../apollo-common"},
   ]
 }

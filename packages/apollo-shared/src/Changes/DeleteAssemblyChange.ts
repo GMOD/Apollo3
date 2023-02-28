@@ -1,12 +1,11 @@
 import { getSession } from '@jbrowse/core/util'
-
 import {
   AssemblySpecificChange,
   ClientDataStore,
   LocalGFF3DataStore,
   SerializedAssemblySpecificChange,
   ServerDataStore,
-} from './abstract'
+} from 'apollo-common'
 
 interface SerializedDeleteAssemblyChange
   extends SerializedAssemblySpecificChange {

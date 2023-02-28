@@ -10,6 +10,7 @@
   "dependencies": {
     "@gmod/gff": "^1.2.0",
     "@jbrowse/core": "^2.3.4",
+    "apollo-common": "workspace:^",
     "apollo-mst": "workspace:^",
     "apollo-schemas": "workspace:^",
     "bson-objectid": "^2.0.3",

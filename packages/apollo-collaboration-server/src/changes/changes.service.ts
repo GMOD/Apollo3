@@ -5,6 +5,11 @@ import {
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
+  AssemblySpecificChange,
+  Change as BaseChange,
+  FeatureChange,
+} from 'apollo-common'
+import {
   Assembly,
   AssemblyDocument,
   Change,
@@ -22,11 +27,8 @@ import {
 } from 'apollo-schemas'
 import {
   AddFeatureChange,
-  AssemblySpecificChange,
-  Change as BaseChange,
   CopyFeatureChange,
   DecodedJWT,
-  FeatureChange,
   makeUserSessionId,
   validationRegistry,
 } from 'apollo-shared'

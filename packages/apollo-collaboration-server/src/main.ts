@@ -1,11 +1,10 @@
 import { LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
+import { changeRegistry, operationRegistry } from 'apollo-common'
 import {
   CoreValidation,
   ParentChildValidation,
-  changeRegistry,
   changes,
-  operationRegistry,
   operations,
   validationRegistry,
 } from 'apollo-shared'

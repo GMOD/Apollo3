@@ -1,5 +1,6 @@
+import { Change } from 'apollo-common'
+
 import { TypeChange } from '../Changes'
-import { Change } from '../Changes/abstract'
 import soSequenceTypes from './soSequenceTypes'
 import { Validation } from './Validation'
 

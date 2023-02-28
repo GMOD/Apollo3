@@ -34,6 +34,7 @@
     "@nestjs/platform-express": "^9.2.1",
     "@nestjs/platform-socket.io": "^9.2.1",
     "@nestjs/websockets": "^9.2.1",
+    "apollo-common": "workspace:^",
     "apollo-schemas": "workspace:^",
     "apollo-shared": "workspace:^",
     "express-session": "^1.17.3",

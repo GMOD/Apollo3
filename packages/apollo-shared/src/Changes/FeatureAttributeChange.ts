@@ -1,15 +1,11 @@
-import { Feature, FeatureDocument } from 'apollo-schemas'
-
 import {
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
   ServerDataStore,
-} from './abstract/Change'
-import {
-  FeatureChange,
-  SerializedFeatureChange,
-} from './abstract/FeatureChange'
+} from 'apollo-common'
+import { FeatureChange, SerializedFeatureChange } from 'apollo-common'
+import { Feature, FeatureDocument } from 'apollo-schemas'
 
 interface SerializedFeatureAttributeChangeBase extends SerializedFeatureChange {
   typeName: 'FeatureAttributeChange'
