@@ -18,7 +18,7 @@ import {
   GridRowsProp,
   GridToolbar,
 } from '@mui/x-data-grid'
-import { changeRegistry } from 'apollo-shared'
+import { changeRegistry } from 'apollo-common'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 

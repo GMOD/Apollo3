@@ -9,10 +9,10 @@ import {
 import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel, isAbstractMenuManager } from '@jbrowse/core/util'
+import { changeRegistry } from 'apollo-common'
 import {
   CoreValidation,
   ParentChildValidation,
-  changeRegistry,
   changes,
   validationRegistry,
 } from 'apollo-shared'

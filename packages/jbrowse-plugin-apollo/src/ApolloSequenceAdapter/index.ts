@@ -11,10 +11,9 @@ export function installApolloSequenceAdapter(pluginManager: PluginManager) {
         name: 'ApolloSequenceAdapter',
         configSchema,
         adapterMetadata: {
-          category: null,
+          category: undefined,
           hiddenFromGUI: true,
-          displayName: null,
-          description: null,
+          description: undefined,
         },
         AdapterClass: ApolloSequenceAdapter,
       }),

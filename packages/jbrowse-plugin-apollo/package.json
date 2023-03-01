@@ -52,6 +52,7 @@
     "@jbrowse/plugin-authentication": "^2.0.1",
     "@jbrowse/plugin-linear-genome-view": "^2.0.1",
     "@mui/icons-material": "^5.8.4",
+    "apollo-common": "workspace:^",
     "apollo-mst": "workspace:^",
     "apollo-shared": "workspace:^",
     "bson-objectid": "^2.0.3",

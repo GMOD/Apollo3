@@ -1,6 +1,7 @@
 import { Region } from '@jbrowse/core/util'
+import { Change, ClientDataStore } from 'apollo-common'
 import { AnnotationFeatureSnapshot } from 'apollo-mst'
-import { Change, ClientDataStore, ValidationResultSet } from 'apollo-shared'
+import { ValidationResultSet } from 'apollo-shared'
 
 import { SubmitOpts } from '../ChangeManager'
 

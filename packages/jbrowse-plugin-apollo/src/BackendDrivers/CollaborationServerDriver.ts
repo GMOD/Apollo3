@@ -1,13 +1,9 @@
 import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { Region, getSession } from '@jbrowse/core/util'
+import { AssemblySpecificChange, Change, SerializedChange } from 'apollo-common'
 import { AnnotationFeatureSnapshot } from 'apollo-mst'
-import {
-  AssemblySpecificChange,
-  Change,
-  SerializedChange,
-  ValidationResultSet,
-} from 'apollo-shared'
+import { ValidationResultSet } from 'apollo-shared'
 import { Socket } from 'socket.io-client'
 
 import { ChangeManager, SubmitOpts } from '../ChangeManager'

@@ -11616,6 +11616,7 @@ __metadata:
     "@types/prop-types": ^15
     "@types/react": ^17.0.34
     "@types/react-dom": ^18
+    apollo-common: "workspace:^"
     apollo-mst: "workspace:^"
     apollo-shared: "workspace:^"
     bson-objectid: ^2.0.3

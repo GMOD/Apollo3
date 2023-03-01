@@ -3,6 +3,7 @@ import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { AbstractSessionModel, AppRootModel, Region } from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
 import {
   AnnotationFeature,
   AnnotationFeatureI,
@@ -10,7 +11,6 @@ import {
   ApolloAssembly,
   ApolloRefSeq,
 } from 'apollo-mst'
-import { ClientDataStore as ClientDataStoreType } from 'apollo-shared'
 import { autorun, observable } from 'mobx'
 import {
   IAnyModelType,

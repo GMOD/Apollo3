@@ -8,12 +8,8 @@ import {
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
 import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
-import {
-  Change,
-  SerializedChange,
-  getDecodedToken,
-  makeUserSessionId,
-} from 'apollo-shared'
+import { Change, SerializedChange } from 'apollo-common'
+import { getDecodedToken, makeUserSessionId } from 'apollo-shared'
 import { autorun } from 'mobx'
 import { Instance, flow, getRoot, types } from 'mobx-state-tree'
 import { io } from 'socket.io-client'
