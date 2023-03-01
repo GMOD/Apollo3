@@ -45,17 +45,17 @@ export abstract class Change extends Operation {
     return new ChangeType(json, options?.logger && { logger: options.logger })
   }
 
-  async execute(backend: DataStore): Promise<void> {
+  async execute(backend: DataStore): Promise<unknown> {
     const backendType = backend.typeName
     if (backendType === 'LocalGFF3' || backendType === 'Server') {
-      super.execute(backend)
-    } else if (backendType === 'Client') {
-      return this.executeOnClient(backend)
-    } else {
-      throw new Error(
-        `no change implementation for backend type '${backendType}'`,
-      )
+      return super.execute(backend)
     }
+    if (backendType === 'Client') {
+      return this.executeOnClient(backend)
+    }
+    throw new Error(
+      `no change implementation for backend type '${backendType}'`,
+    )
   }
 
   abstract executeOnClient(backend: ClientDataStore): Promise<void>
