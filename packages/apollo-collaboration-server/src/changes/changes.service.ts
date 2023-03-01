@@ -71,7 +71,7 @@ export class ChangesService {
     const sequence = await this.countersService.getNextSequenceValue(
       'changeCounter',
     )
-    const uniqUserId = `${user}-${sequence}` // Same user can upload data from more than one client
+    const uniqUserId = `${user.email}-${sequence}` // Same user can upload data from more than one client
 
     const validationResult = await validationRegistry.backendPreValidate(change)
     if (!validationResult.ok) {
