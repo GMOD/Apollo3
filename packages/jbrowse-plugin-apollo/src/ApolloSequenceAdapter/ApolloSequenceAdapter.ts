@@ -6,7 +6,7 @@ import {
 import { getFetcher } from '@jbrowse/core/util/io'
 import { ObservableCreate } from '@jbrowse/core/util/rxjs'
 import SimpleFeature, { Feature } from '@jbrowse/core/util/simpleFeature'
-import { NoAssemblyRegion } from '@jbrowse/core/util/types'
+import { NoAssemblyRegion, UriLocation } from '@jbrowse/core/util/types'
 
 import { createFetchErrorMessage } from '../util'
 
@@ -20,8 +20,15 @@ export interface RefSeq {
 export class ApolloSequenceAdapter extends BaseSequenceAdapter {
   private refSeqs: Promise<RefSeq[]> | undefined
 
-  get baseURL() {
+  get baseURL(): string {
+    return readConfObject(this.config, 'baseURL').uri
+  }
+
+  get internetAccountPreAuthorization():
+    | { authInfo: { token: string }; internetAccountType: string }
+    | undefined {
     return readConfObject(this.config, 'baseURL')
+      .internetAccountPreAuthorization
   }
 
   protected async getRefSeqs({ signal }: BaseOptions) {
@@ -33,10 +40,12 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
     const searchParams = new URLSearchParams({ assembly: assemblyId })
     url.search = searchParams.toString()
     const uri = url.toString()
-    const fetch = getFetcher(
-      { locationType: 'UriLocation', uri },
-      this.pluginManager,
-    )
+    const location: UriLocation = { locationType: 'UriLocation', uri }
+    if (this.internetAccountPreAuthorization) {
+      location.internetAccountPreAuthorization =
+        this.internetAccountPreAuthorization
+    }
+    const fetch = getFetcher(location, this.pluginManager)
     const response = await fetch(uri, { signal })
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(
@@ -89,10 +98,12 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
       })
       url.search = searchParams.toString()
       const uri = url.toString()
-      const fetch = getFetcher(
-        { locationType: 'UriLocation', uri },
-        this.pluginManager,
-      )
+      const location: UriLocation = { locationType: 'UriLocation', uri }
+      if (this.internetAccountPreAuthorization) {
+        location.internetAccountPreAuthorization =
+          this.internetAccountPreAuthorization
+      }
+      const fetch = getFetcher(location, this.pluginManager)
       const response = await fetch(uri, { signal: opts.signal })
       if (!response.ok) {
         const errorMessage = await createFetchErrorMessage(

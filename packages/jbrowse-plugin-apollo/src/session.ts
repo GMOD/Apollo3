@@ -404,7 +404,7 @@ export function extendSession(sessionModel: IAnyModelType) {
                 adapter: {
                   type: 'ApolloSequenceAdapter',
                   assemblyId: assembly._id,
-                  baseURL,
+                  baseURL: { uri: baseURL, locationType: 'UriLocation' },
                 },
                 metadata: {
                   internetAccountConfigId:

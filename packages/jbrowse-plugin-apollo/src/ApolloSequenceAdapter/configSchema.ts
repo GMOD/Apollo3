@@ -8,8 +8,11 @@ export default ConfigurationSchema(
       defaultValue: '',
     },
     baseURL: {
-      type: 'string',
-      defaultValue: '',
+      type: 'fileLocation',
+      defaultValue: {
+        uri: '',
+        locationType: 'UriLocation',
+      },
     },
   },
   { explicitlyTyped: true },
