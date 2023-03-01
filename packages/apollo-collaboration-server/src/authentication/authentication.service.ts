@@ -84,7 +84,7 @@ export class AuthenticationService {
     if (!user) {
       const userCount = await this.usersService.getCount()
       const guestUser = await this.usersService.findGuest()
-      const hasAdmin = userCount > 1 || (userCount === 1 && guestUser)
+      const hasAdmin = userCount > 1 || (userCount === 1 && !guestUser)
       // If there is not a non-guest user yet, the 1st user role will be admin
       const newUserRole = hasAdmin ? this.defaultNewUserRole : Role.Admin
       const newUser: CreateUserDto = {
