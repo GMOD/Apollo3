@@ -3,8 +3,9 @@ import fs from 'fs/promises'
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
-import { MongooseModule } from '@nestjs/mongoose'
+import { MongooseModule, MongooseModuleFactoryOptions } from '@nestjs/mongoose'
 import Joi from 'joi'
+import { Connection } from 'mongoose'
 
 import { AssembliesModule } from './assemblies/assemblies.module'
 import { AuthenticationModule } from './authentication/authentication.module'
@@ -106,7 +107,7 @@ const validationSchema = Joi.object({
 
 async function mongoDBURIFactory(
   configService: ConfigService<MongoDBURIConfig, true>,
-) {
+): Promise<MongooseModuleFactoryOptions> {
   let uri = configService.get('MONGODB_URI', { infer: true })
   if (!uri) {
     // We can use non-null assertion since joi already checks this for us
@@ -116,7 +117,13 @@ async function mongoDBURIFactory(
     })!
     uri = (await fs.readFile(uriFile, 'utf-8')).trim()
   }
-  return { uri }
+  return {
+    uri,
+    connectionFactory: (connection: Connection) => {
+      connection.set('maxTimeMS', 7200000)
+      return connection
+    },
+  }
 }
 
 @Module({
