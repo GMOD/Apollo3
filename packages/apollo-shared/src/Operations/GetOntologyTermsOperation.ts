@@ -4,7 +4,7 @@ import {
   Operation,
   SerializedOperation,
   ServerDataStore,
-} from './abstract'
+} from 'apollo-common'
 
 interface SerializedGetOntologyTermsOperation extends SerializedOperation {
   typeName: 'GetOntologyTermsOperation'

@@ -90,7 +90,7 @@ export interface ServerDataStore {
   counterService: {
     getNextSequenceValue(sequenceName: string): Promise<number>
   }
-  ontology: OboJson | any
+  ontology: OboJson
   parentType: string
   user: string
 }
@@ -102,7 +102,6 @@ export interface SerializedOperation {
 
 export interface SerializedOperationParentType extends SerializedOperation {
   parentType: string
-  ontology: OboJson | undefined
 }
 
 export type BackendDataStore = ServerDataStore | LocalGFF3DataStore

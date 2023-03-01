@@ -29,7 +29,6 @@ import {
   AddFeatureChange,
   CopyFeatureChange,
   DecodedJWT,
-  OboJson,
   makeUserSessionId,
   validationRegistry,
 } from 'apollo-shared'
@@ -62,6 +61,7 @@ export class ChangesService {
     private readonly filesService: FilesService,
     private readonly countersService: CountersService,
     private readonly pluginsService: PluginsService,
+    private readonly ontologiesService: OntologiesService,
     private readonly messagesGateway: MessagesGateway,
   ) {}
 
@@ -118,7 +118,7 @@ export class ChangesService {
           filesService: this.filesService,
           counterService: this.countersService,
           pluginsService: this.pluginsService,
-          ontology: undefined,
+          ontology: this.ontologiesService.ontology,
           parentType: '',
           user: uniqUserId,
         })

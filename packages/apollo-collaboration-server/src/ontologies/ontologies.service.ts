@@ -3,13 +3,14 @@ import path from 'path'
 
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { GetOntologyTermsOperation, OboJson } from 'apollo-shared'
+import { OboJson } from 'apollo-common'
+import { GetOntologyTermsOperation } from 'apollo-shared'
 
 import { OperationsService } from '../operations/operations.service'
 
 @Injectable()
 export class OntologiesService {
-  protected ontology: OboJson
+  public ontology: OboJson
   constructor(
     private readonly operationsService: OperationsService,
     private readonly configService: ConfigService<
@@ -37,7 +38,6 @@ export class OntologiesService {
     return this.operationsService.executeOperation<GetOntologyTermsOperation>({
       typeName: 'GetOntologyTermsOperation',
       parentType,
-      ontology: this.ontology,
     })
   }
 }

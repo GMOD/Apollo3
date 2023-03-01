@@ -73,7 +73,7 @@ export class OperationsService {
       counterService: this.countersService,
       pluginsService: this.pluginsService,
       parentType: serializedOperation.parentType,
-      ontology: serializedOperation.ontology,
+      ontology: this.ontologiesService.ontology,
       user: '',
     })
     session.endSession()

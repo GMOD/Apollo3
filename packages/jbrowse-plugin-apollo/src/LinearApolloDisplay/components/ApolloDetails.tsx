@@ -48,7 +48,7 @@ function getFeatureColumns(
   ]
 }
 
-function AutocompleteInputCell(props: any) {
+function AutocompleteInputCell(props: GridRenderEditCellParams) {
   const { id, value, field } = props
   const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>([])
   const apiRef = useGridApiContext()

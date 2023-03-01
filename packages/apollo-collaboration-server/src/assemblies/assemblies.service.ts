@@ -26,7 +26,6 @@ export class AssembliesService {
     return this.operationsService.executeOperation<GetAssembliesOperation>({
       typeName: 'GetAssembliesOperation',
       parentType: '',
-      ontology: undefined,
     })
   }
 

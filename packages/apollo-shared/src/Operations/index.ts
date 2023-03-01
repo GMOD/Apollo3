@@ -3,3 +3,4 @@ import { GetOntologyTermsOperation } from './GetOntologyTermsOperation'
 
 export const operations = { GetAssembliesOperation, GetOntologyTermsOperation }
 export * from './GetAssembliesOperation'
+export * from './GetOntologyTermsOperation'
