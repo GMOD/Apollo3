@@ -119,7 +119,6 @@ export class ChangesService {
           counterService: this.countersService,
           pluginsService: this.pluginsService,
           ontology: this.ontologiesService.ontology,
-          parentType: '',
           user: uniqUserId,
         })
       } catch (e) {
@@ -163,6 +162,7 @@ export class ChangesService {
         )
       }
     })
+    this.logger.debug?.('*** TEMPORARY DATA INSERTTED ***')
     // Set "temporary document" -status --> "valid" -status i.e. (-1 --> 0)
     await this.featureModel.db.transaction(async (session) => {
       this.logger.debug(

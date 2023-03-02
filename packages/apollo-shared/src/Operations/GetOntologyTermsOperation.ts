@@ -2,24 +2,36 @@ import {
   LocalGFF3DataStore,
   OboJson,
   Operation,
+  OperationOptions,
   SerializedOperation,
   ServerDataStore,
 } from 'apollo-common'
 
 interface SerializedGetOntologyTermsOperation extends SerializedOperation {
   typeName: 'GetOntologyTermsOperation'
+  parentType: string
 }
 
 export class GetOntologyTermsOperation extends Operation {
   typeName = 'GetOntologyTermsOperation' as const
+  parentType: string
+
+  constructor(
+    json: SerializedGetOntologyTermsOperation,
+    options?: OperationOptions,
+  ) {
+    super(json, options)
+    this.parentType = json.parentType
+  }
 
   toJSON(): SerializedGetOntologyTermsOperation {
-    const { typeName } = this
-    return { typeName }
+    const { typeName, parentType } = this
+    return { typeName, parentType }
   }
 
   async executeOnServer(backend: ServerDataStore) {
-    const { parentType, ontology } = backend
+    const { parentType } = this
+    const { ontology } = backend
     return this.getPossibleChildTypes(parentType, ontology)
   }
 

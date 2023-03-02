@@ -1,10 +1,6 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common'
 import { InjectConnection, InjectModel } from '@nestjs/mongoose'
-import {
-  Operation,
-  SerializedOperationParentType,
-  operationRegistry,
-} from 'apollo-common'
+import { Operation, operationRegistry } from 'apollo-common'
 import {
   Assembly,
   AssemblyDocument,
@@ -52,7 +48,7 @@ export class OperationsService {
   private readonly logger = new Logger(OperationsService.name)
 
   async executeOperation<T extends Operation>(
-    serializedOperation: SerializedOperationParentType,
+    serializedOperation: ReturnType<T['toJSON']>,
   ): Promise<ReturnType<T['executeOnServer']>> {
     const { logger } = this
     const OperationType = operationRegistry.getOperationType(
@@ -72,7 +68,6 @@ export class OperationsService {
       filesService: this.filesService,
       counterService: this.countersService,
       pluginsService: this.pluginsService,
-      parentType: serializedOperation.parentType,
       ontology: this.ontologiesService.ontology,
       user: '',
     })
