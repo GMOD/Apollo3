@@ -31,6 +31,11 @@ export type ChangeOptions = OperationOptions
 
 export type DataStore = BackendDataStore | ClientDataStore
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function isChange(thing: any): thing is Change {
+  return (thing as Change).executeOnClient !== undefined
+}
+
 export abstract class Change extends Operation {
   /**
    * If a non-empty string, a snackbar will display in JBrowse with this message

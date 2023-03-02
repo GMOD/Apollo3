@@ -5,9 +5,9 @@ import {
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
-  AssemblySpecificChange,
   Change as BaseChange,
-  FeatureChange,
+  isAssemblySpecificChange,
+  isFeatureChange,
 } from 'apollo-common'
 import {
   Assembly,
@@ -27,8 +27,8 @@ import {
 } from 'apollo-schemas'
 import {
   AddFeatureChange,
-  CopyFeatureChange,
   DecodedJWT,
+  isCopyFeatureChange,
   makeUserSessionId,
   validationRegistry,
 } from 'apollo-shared'
@@ -85,7 +85,7 @@ export class ChangesService {
     // Get some info for later broadcasting, before any features are potentially
     // deleted
     const refNames: string[] = []
-    if (change instanceof FeatureChange) {
+    if (isFeatureChange(change)) {
       // For broadcasting we need also refName
       const { changedIds } = change
       for (const changedId of changedIds) {
@@ -214,7 +214,7 @@ export class ChangesService {
     }
     this.logger.debug(`TypeName: ${change.typeName}`)
 
-    if (!(change instanceof AssemblySpecificChange)) {
+    if (!isAssemblySpecificChange(change)) {
       return
     }
 
@@ -223,7 +223,7 @@ export class ChangesService {
 
     const userSessionId = makeUserSessionId(user)
     // In case of 'CopyFeatureChange', we need to create 'AddFeatureChange' to all connected clients
-    if (change instanceof CopyFeatureChange) {
+    if (isCopyFeatureChange(change)) {
       const [{ targetAssemblyId, newFeatureId }] = change.changes
       // Get origin top level feature
       const topLevelFeature = await this.featureModel
@@ -250,7 +250,7 @@ export class ChangesService {
           changeSequence: changeDoc.sequence,
         })
       }
-    } else if (change instanceof FeatureChange) {
+    } else if (isFeatureChange(change)) {
       for (const refName of refNames) {
         messages.push({
           changeInfo: change.toJSON(),

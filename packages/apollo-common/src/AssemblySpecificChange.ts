@@ -3,11 +3,20 @@ import type { AnnotationFeatureSnapshot } from 'apollo-mst'
 import { FileDocument, RefSeqDocument } from 'apollo-schemas'
 import ObjectID from 'bson-objectid'
 
-import { Change, ChangeOptions, SerializedChange } from './Change'
+import { Change, ChangeOptions, SerializedChange, isChange } from './Change'
 import { ServerDataStore } from './Operation'
 
 export interface SerializedAssemblySpecificChange extends SerializedChange {
   assembly: string
+}
+
+export function isAssemblySpecificChange(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  thing: any,
+): thing is AssemblySpecificChange {
+  return (
+    isChange(thing) && (thing as AssemblySpecificChange).assembly !== undefined
+  )
 }
 
 export abstract class AssemblySpecificChange extends Change {
