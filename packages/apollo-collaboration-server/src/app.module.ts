@@ -14,6 +14,7 @@ import { CountersModule } from './counters/counters.module'
 import { FeaturesModule } from './features/features.module'
 import { FilesModule } from './files/files.module'
 import { MessagesModule } from './messages/messages.module'
+import { OntologiesModule } from './ontologies/ontologies.module'
 import { OperationsModule } from './operations/operations.module'
 import { PluginsModule } from './plugins/plugins.module'
 import { RefSeqChunksModule } from './refSeqChunks/refSeqChunks.module'
@@ -47,6 +48,7 @@ const validationSchema = Joi.object({
   JWT_SECRET_FILE: Joi.string(),
   SESSION_SECRET: Joi.string(),
   SESSION_SECRET_FILE: Joi.string(),
+  ONTOLOGY_FILE: Joi.string(),
   // Optional
   PORT: Joi.number().default(3999),
   CORS: Joi.boolean().default(true),
@@ -150,6 +152,7 @@ async function mongoDBURIFactory(
     OperationsModule,
     CountersModule,
     PluginsModule.registerAsync(),
+    OntologiesModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

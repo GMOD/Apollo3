@@ -14,16 +14,19 @@ import {
   LocationEndChange,
   LocationStartChange,
   TypeChange,
-  validationRegistry,
 } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
+import { createFetchErrorMessage } from '../../util'
 import { LinearApolloDisplay } from '../stateModel'
 
-function getFeatureColumns(editable: boolean): GridColumns {
+function getFeatureColumns(
+  editable: boolean,
+  internetAccount: ApolloInternetAccountModel,
+): GridColumns {
   return [
     { field: 'id', headerName: 'ID', width: 250 },
     {
@@ -32,7 +35,7 @@ function getFeatureColumns(editable: boolean): GridColumns {
       width: 250,
       editable,
       renderEditCell: (params: GridRenderEditCellParams) => (
-        <AutocompleteInputCell {...params} />
+        <AutocompleteInputCell {...params} internetAccount={internetAccount} />
       ),
     },
     { field: 'refSeq', headerName: 'Ref Seq', width: 150 },
@@ -41,22 +44,36 @@ function getFeatureColumns(editable: boolean): GridColumns {
   ]
 }
 
-function AutocompleteInputCell(props: GridRenderEditCellParams) {
-  const { id, value, field } = props
+interface AutocompleteInputCellProps extends GridRenderEditCellParams {
+  internetAccount: ApolloInternetAccountModel
+}
+
+function AutocompleteInputCell(props: AutocompleteInputCellProps) {
+  const { id, value, field, row, internetAccount } = props
   const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>([])
   const apiRef = useGridApiContext()
 
   useEffect(() => {
     async function getSOSequenceTerms() {
-      const soTerms = (await validationRegistry.possibleValues(
-        'type',
-      )) as string[]
+      const { parentType } = row
+      const { baseURL, getFetcher } = internetAccount
+      const uri = new URL(`/ontologies/descendants/${parentType}`, baseURL).href
+      const apolloFetch = getFetcher({ locationType: 'UriLocation', uri })
+      const response = await apolloFetch(uri, { method: 'GET' })
+      if (!response.ok) {
+        const newErrorMessage = await createFetchErrorMessage(
+          response,
+          'Error when retrieving ontologies from server',
+        )
+        throw new Error(newErrorMessage)
+      }
+      const soTerms = (await response.json()) as string[] | undefined
       if (soTerms) {
         setSOSequenceTerms(soTerms)
       }
     }
     getSOSequenceTerms()
-  }, [])
+  }, [internetAccount, row])
 
   const handleChange = async (
     event: MuiBaseEvent,
@@ -83,7 +100,6 @@ function AutocompleteInputCell(props: GridRenderEditCellParams) {
       renderInput={(params) => <TextField {...params} variant="outlined" />}
       value={String(value)}
       onChange={handleChange}
-      disablePortal
       disableClearable
       selectOnFocus
       handleHomeEndKeys
@@ -94,19 +110,19 @@ function AutocompleteInputCell(props: GridRenderEditCellParams) {
 export const ApolloDetails = observer(
   ({ model }: { model: LinearApolloDisplay }) => {
     const session = getSession(model)
-    const editable = useMemo(() => {
-      const { internetAccounts } = getRoot(session) as AppRootModel
+    const { internetAccounts } = getRoot(session) as AppRootModel
+    const internetAccount = useMemo(() => {
       const apolloInternetAccount = internetAccounts.find(
         (ia) => ia.type === 'ApolloInternetAccount',
       ) as ApolloInternetAccountModel | undefined
       if (!apolloInternetAccount) {
         throw new Error('No Apollo internet account found')
       }
-      if (!apolloInternetAccount.authType) {
-        return false
-      }
-      return Boolean(apolloInternetAccount.getRole() === 'user')
-    }, [session])
+      return apolloInternetAccount
+    }, [internetAccounts])
+    const editable =
+      Boolean(internetAccount.authType) &&
+      ['admin', 'user'].includes(internetAccount.getRole() || '')
     const {
       selectedFeature,
       setSelectedFeature,
@@ -120,17 +136,22 @@ export const ApolloDetails = observer(
     const {
       _id: id,
       type,
+      parent,
       refSeq,
       start,
       end,
       assemblyId: assembly,
     } = selectedFeature
-    const selectedFeatureRows = [{ id, type, refSeq, start, end, model }]
+    const { type: parentType } = parent
+    const selectedFeatureRows = [
+      { id, type, parentType, refSeq, start, end, model },
+    ]
     function addChildFeatures(f: typeof selectedFeature) {
       f?.children?.forEach((child: AnnotationFeatureI, childId: string) => {
         selectedFeatureRows.push({
           id: child._id,
           type: child.type,
+          parentType: child.parent.type,
           refSeq: child.refSeq,
           start: child.start,
           end: child.end,
@@ -201,9 +222,8 @@ export const ApolloDetails = observer(
         </IconButton>
         <DataGrid
           style={{ height: detailsHeight }}
-          autoHeight
           rows={selectedFeatureRows}
-          columns={getFeatureColumns(editable)}
+          columns={getFeatureColumns(editable, internetAccount)}
           experimentalFeatures={{ newEditingApi: true }}
           processRowUpdate={processRowUpdate}
           onProcessRowUpdateError={console.error}
