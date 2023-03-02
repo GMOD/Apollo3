@@ -26,7 +26,7 @@ describe('ApolloSequenceAdapter', () => {
     adapter = new ApolloSequenceAdapter(
       configSchema.create({
         assemblyId: '6317d5436061de774b43e9d6',
-        baseURL: 'http://fake.url',
+        baseURL: { uri: 'http://fake.url', locationType: 'UriLocation' },
       }),
     )
     // populate refSeqs cache before the tests are run
