@@ -16,11 +16,11 @@ export class OntologiesController {
    * or if search data was not found or in case of error throw exception
    */
   @Validations(Role.ReadOnly)
-  @Get('/json/:parentType')
-  getTypesFromJson(@Param('parentType') parentType: string) {
+  @Get('/descendants/:featureType')
+  getTypesFromJson(@Param('featureType') featureType: string) {
     this.logger.debug(
-      `Get possible children types (from OBO-JSON) by parent type: "${parentType}"`,
+      `Get possible children types (from OBO-JSON) by parent type: "${featureType}"`,
     )
-    return this.ontologiesService.getTypesUsingOperation(parentType)
+    return this.ontologiesService.getDescendants(featureType)
   }
 }

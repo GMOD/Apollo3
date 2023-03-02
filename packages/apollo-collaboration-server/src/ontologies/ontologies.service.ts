@@ -14,13 +14,16 @@ export class OntologiesService {
   constructor(
     private readonly operationsService: OperationsService,
     private readonly configService: ConfigService<
-      { ONTOLOGY_FILE: string },
+      { ONTOLOGY_FILE?: string },
       true
     >,
   ) {
-    const ontologyFile = this.configService.get('ONTOLOGY_FILE', {
+    let ontologyFile = this.configService.get('ONTOLOGY_FILE', {
       infer: true,
     })
+    if (!ontologyFile) {
+      ontologyFile = path.join('..', '..', 'data', 'so.json')
+    }
     try {
       const ontologyLocation = path.resolve(__dirname, ontologyFile)
       const ontologyText = fs.readFileSync(ontologyLocation, 'utf8')
@@ -34,7 +37,7 @@ export class OntologiesService {
 
   private readonly logger = new Logger(OntologiesService.name)
 
-  getTypesUsingOperation(parentType: string) {
+  getDescendants(parentType: string) {
     return this.operationsService.executeOperation<GetOntologyTermsOperation>({
       typeName: 'GetOntologyTermsOperation',
       parentType,

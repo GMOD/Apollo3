@@ -48,7 +48,7 @@ const validationSchema = Joi.object({
   JWT_SECRET_FILE: Joi.string(),
   SESSION_SECRET: Joi.string(),
   SESSION_SECRET_FILE: Joi.string(),
-  ONTOLOGY_FILE: Joi.string().required(),
+  ONTOLOGY_FILE: Joi.string(),
   // Optional
   PORT: Joi.number().default(3999),
   CORS: Joi.boolean().default(true),
