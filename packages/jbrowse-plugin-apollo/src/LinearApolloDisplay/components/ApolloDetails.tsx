@@ -142,7 +142,8 @@ export const ApolloDetails = observer(
       end,
       assemblyId: assembly,
     } = selectedFeature
-    const { type: parentType } = parent
+    // TODO: make this more generic
+    const { type: parentType } = parent || { type: 'sequence_feature' }
     const selectedFeatureRows = [
       { id, type, parentType, refSeq, start, end, model },
     ]
