@@ -10,7 +10,6 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { AddFeature } from '../../components/AddFeature'
-import { CopyFeature } from '../../components/CopyFeature'
 import { DeleteFeature } from '../../components/DeleteFeature'
 import { ModifyFeatureAttribute } from '../../components/ModifyFeatureAttribute'
 import { LinearApolloDisplay } from '../../LinearApolloDisplay/stateModel'
@@ -422,7 +421,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
         >
           Add child feature
         </MenuItem>
-        <MenuItem
+        {/* <MenuItem
           disabled={isReadOnly}
           key={2}
           value={2}
@@ -447,7 +446,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
           }}
         >
           Copy features and annotations
-        </MenuItem>
+        </MenuItem> */}
         <MenuItem
           disabled={!isAdmin}
           key={3}
