@@ -89,7 +89,7 @@ const ClientDataStore = types
           self as unknown as { backendDriver: BackendDriver }
         ).backendDriver.getFeatures(region)) as AnnotationFeatureSnapshot[]
         if (!features.length) {
-          return
+          continue
         }
         const { assemblyName, refName } = region
         let assembly = self.assemblies.get(assemblyName)
