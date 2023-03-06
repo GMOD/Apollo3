@@ -119,3 +119,4 @@ test/data/uploaded
 test/data/downloaded
 test/uploaded
 test/downloaded
+packages/apollo-collaboration-server/test/uploaded

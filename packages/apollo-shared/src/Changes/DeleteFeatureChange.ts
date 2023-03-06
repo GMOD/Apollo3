@@ -156,6 +156,7 @@ export class DeleteFeatureChange extends FeatureChange {
     throw new Error('executeOnLocalGFF3 not implemented')
   }
 
+
   async executeOnClient(dataStore: ClientDataStore) {
     if (!dataStore) {
       throw new Error('No data store')
@@ -169,7 +170,9 @@ export class DeleteFeatureChange extends FeatureChange {
         }
         parentFeature.deleteChild(deletedFeature._id)
       } else {
-        dataStore.deleteFeature(deletedFeature._id)
+        if (dataStore.getFeature(deletedFeature._id)) {
+          dataStore.deleteFeature(deletedFeature._id)
+        }
       }
     }
   }
