@@ -13,9 +13,11 @@ import {
   RefSeq,
   RefSeqDocument,
 } from 'apollo-schemas'
+import { GetFeaturesOperation } from 'apollo-shared'
 import { Model } from 'mongoose'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
+import { OperationsService } from '../operations/operations.service'
 
 function makeGFF3Feature(
   featureDocument: Feature,
@@ -83,6 +85,7 @@ function makeGFF3Feature(
 @Injectable()
 export class FeaturesService {
   constructor(
+    private readonly operationsService: OperationsService,
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
     @InjectModel(Assembly.name)
@@ -200,28 +203,12 @@ export class FeaturesService {
     return null
   }
 
-  /**
-   * Fetch features based on Reference seq, Start and End -values
-   * @param request - Contain search criteria i.e. refSeq, start and end -parameters
-   * @returns Return 'HttpStatus.OK' and array of features if search was successful
-   * or if search data was not found or in case of error throw exception
-   */
   async findByRange(searchDto: FeatureRangeSearchDto) {
-    // Search feature
-    const features = await this.featureModel
-      .find({
-        refSeq: searchDto.refSeq,
-        start: { $lte: searchDto.end },
-        end: { $gte: searchDto.start },
-      })
-      .exec()
-    this.logger.debug(
-      `Searching features for refSeq: ${searchDto.refSeq}, start: ${searchDto.start}, end: ${searchDto.end}`,
-    )
-
-    this.logger.verbose(
-      `The following feature(s) matched  = ${JSON.stringify(features)}`,
-    )
-    return features
+    return this.operationsService.executeOperation<GetFeaturesOperation>({
+      typeName: 'GetFeaturesOperation',
+      refSeq: searchDto.refSeq,
+      start: searchDto.end,
+      end: searchDto.start,
+    })
   }
 }

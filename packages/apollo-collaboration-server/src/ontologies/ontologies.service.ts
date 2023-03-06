@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { OboJson } from 'apollo-common'
 import { GetOntologyTermsOperation } from 'apollo-shared'
@@ -12,6 +12,7 @@ import { OperationsService } from '../operations/operations.service'
 export class OntologiesService {
   public ontology: OboJson
   constructor(
+    @Inject(forwardRef(() => OperationsService))
     private readonly operationsService: OperationsService,
     private readonly configService: ConfigService<
       { ONTOLOGY_FILE?: string },

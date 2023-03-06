@@ -4,6 +4,7 @@ import { Export, ExportSchema, Feature, FeatureSchema } from 'apollo-schemas'
 import idValidator from 'mongoose-id-validator'
 
 import { AssembliesModule } from '../assemblies/assemblies.module'
+import { OperationsModule } from '../operations/operations.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
 import { FeaturesController } from './features.controller'
 import { FeaturesService } from './features.service'
@@ -13,6 +14,7 @@ import { FeaturesService } from './features.service'
   providers: [FeaturesService],
   imports: [
     forwardRef(() => AssembliesModule),
+    forwardRef(() => OperationsModule),
     RefSeqsModule,
     MongooseModule.forFeatureAsync([
       {
