@@ -87,6 +87,7 @@ export class AddFeatureChange extends FeatureChange {
         )
       }
       if (parentFeatureId) {
+        console.log(`PARENT ON: ${parentFeatureId}`)
         const topLevelFeature = await featureModel
           .findOne({ allIds: parentFeatureId })
           .session(session)
@@ -98,6 +99,7 @@ export class AddFeatureChange extends FeatureChange {
           topLevelFeature,
           parentFeatureId,
         )
+        console.log(`PARENT: ${JSON.stringify(parentFeature)}`)
         if (!parentFeature) {
           throw new Error(
             `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature._id}"`,

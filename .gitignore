@@ -115,7 +115,6 @@ dist
 # Mac
 .DS_Store
 
-test/data/uploaded
-test/data/downloaded
+packages/apollo-collaboration-server/test/uploaded
 test/uploaded
 test/downloaded
