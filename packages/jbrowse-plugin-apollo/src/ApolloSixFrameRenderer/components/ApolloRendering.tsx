@@ -1,12 +1,5 @@
 import { getConf } from '@jbrowse/core/configuration'
-import {
-  AppRootModel,
-  Region,
-  defaultStarts,
-  defaultStops,
-  getSession,
-  reverse,
-} from '@jbrowse/core/util'
+import { AppRootModel, Region, getSession } from '@jbrowse/core/util'
 import { Menu, MenuItem } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
@@ -28,6 +21,31 @@ interface ApolloRenderingProps {
   bpPerPx: number
   displayModel: SixFrameFeatureDisplay
   blockKey: string
+}
+
+function draw(
+  ctx: CanvasRenderingContext2D,
+  xOffset: number,
+  yOffset: number,
+  width: number,
+  bpPerPx: number,
+  rowHeight: number,
+) {
+  const widthPx = width / bpPerPx
+  ctx.fillStyle = 'black'
+  ctx.fillRect(xOffset, yOffset, widthPx, rowHeight)
+  if (widthPx > 2) {
+    ctx.clearRect(xOffset + 1, yOffset + 1, widthPx - 2, rowHeight - 2)
+    ctx.fillStyle = 'rgba(255,255,255,0.75)'
+    ctx.fillRect(xOffset + 1, yOffset + 1, widthPx - 2, rowHeight - 2)
+    // ctx.fillStyle = 'black'
+    // ctx.fillText(
+    //     'CDS',
+    //     xOffset + startPx + 1,
+    //     yOffset + 11,
+    //     widthPx - 2,
+    //   )
+  }
 }
 
 type Coord = [number, number]
@@ -160,14 +178,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
         const end = feature.end - region.start - 1
         const startPx = start / bpPerPx
         const endPx = end / bpPerPx
-        feature.draw(
-          ctx,
-          startPx,
-          row * height,
-          bpPerPx,
-          height,
-          region.reversed,
-        )
+        const width = end - start
+        draw(ctx, startPx, row * height, width, bpPerPx, height)
         const lineY = row * height + height / 2
         if (!transcript[parentID]) {
           transcript[parentID] = []
@@ -253,47 +265,47 @@ function ApolloRendering(props: ApolloRenderingProps) {
     }
 
     ctx.clearRect(0, 0, totalWidth, totalHeight)
-    for (const [row, translated] of codonLayout) {
+    for (const [row, { starts, stops }] of codonLayout) {
       const scale = bpPerPx
-      for (const element of translated) {
-        const { codon, reversed, start } = element
+      for (const start of starts) {
         const x = start / scale
         if (region.start / scale <= x && x <= region.end / scale) {
-          const normalizedCodon = reversed ? reverse(codon) : codon
-          if (defaultStarts.includes(normalizedCodon.toUpperCase())) {
-            ctx.fillStyle = 'rgba(255,0,255,1)'
-            if (showStarts) {
-              ctx.fillRect(
-                Math.round(x - 0.5 - region.start / scale),
-                row * height,
-                1,
-                height,
-              )
-            } else {
-              ctx.clearRect(
-                Math.round(x - 0.5 - region.start / scale),
-                row * height,
-                1,
-                height,
-              )
-            }
-          } else if (defaultStops.includes(normalizedCodon.toUpperCase())) {
-            ctx.fillStyle = 'black'
-            if (showStops) {
-              ctx.fillRect(
-                Math.round(x - 0.5 - region.start / scale),
-                row * height,
-                1,
-                height,
-              )
-            } else {
-              ctx.clearRect(
-                Math.round(x - 0.5 - region.start / scale),
-                row * height,
-                1,
-                height,
-              )
-            }
+          ctx.fillStyle = 'rgba(255,0,255,1)'
+          if (showStarts) {
+            ctx.fillRect(
+              Math.round(x - 0.5 - region.start / scale),
+              row * height,
+              1,
+              height,
+            )
+          } else {
+            ctx.clearRect(
+              Math.round(x - 0.5 - region.start / scale),
+              row * height,
+              1,
+              height,
+            )
+          }
+        }
+      }
+      for (const start of stops) {
+        const x = start / scale
+        if (region.start / scale <= x && x <= region.end / scale) {
+          ctx.fillStyle = 'black'
+          if (showStops) {
+            ctx.fillRect(
+              Math.round(x - 0.5 - region.start / scale),
+              row * height,
+              1,
+              height,
+            )
+          } else {
+            ctx.clearRect(
+              Math.round(x - 0.5 - region.start / scale),
+              row * height,
+              1,
+              height,
+            )
           }
         }
       }
@@ -439,6 +451,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
       return
     }
     const bp = region.start + bpPerPx * x
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [parentID, feat] =
       layoutRow.find((f) => bp >= f[1].min && bp <= f[1].max) || []
     let feature: AnnotationFeatureI | undefined = feat

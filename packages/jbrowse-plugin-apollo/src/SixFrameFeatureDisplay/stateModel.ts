@@ -2,8 +2,8 @@ import { ConfigurationReference } from '@jbrowse/core/configuration'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
 import {
-  defaultCodonTable,
-  generateCodonTable,
+  defaultStarts,
+  defaultStops,
   getContainingView,
   getSession,
   revcom,
@@ -153,22 +153,7 @@ export function stateModelFactory(
             region.start,
             region.end,
           )
-
-          // let filteredRef = seq.get(region.start)
-          // if (!filteredRef) {
-          //   filteredRef = ''
-          //   seq.set(region.start, filteredRef)
-          // }
           seq.set(region.start, refSeq || '')
-
-          // if (refSeq) {
-          //   for (const [featureId, feature] of ref?.features.entries() || new Map()) {
-          //     if (region.start < feature.end && region.end > feature.start) {
-          //       filteredRef = [refSeq, region.start]
-          //     }
-          //     seq.set(region.refName, [refSeq, region.start])
-          //   }
-          // }
         }
         return seq
       },
@@ -221,15 +206,12 @@ export function stateModelFactory(
         return minMax
       },
       get codonLayout() {
-        const codonTable = generateCodonTable(defaultCodonTable)
         const codonLayout: Map<
           number,
           {
-            letter: string
-            codon: string
-            reversed: boolean
-            start: number
-          }[]
+            starts: number[]
+            stops: number[]
+          }
         > = new Map()
         let fullSeq = ''
         let fullStart = 0
@@ -244,12 +226,8 @@ export function stateModelFactory(
         }
         const rowCount = 6
         for (let i = 0; i < rowCount; i++) {
-          const translated: {
-            letter: string
-            codon: string
-            reversed: boolean
-            start: number
-          }[] = []
+          const starts: number[] = []
+          const stops: number[] = []
           const reversed = i in reversePhaseMap
           // the tilt variable normalizes the frame to where we are starting from,
           // which increases consistency across blocks
@@ -270,18 +248,17 @@ export function stateModelFactory(
           }
           for (let j = 0; j < seqSliced.length; j += 3) {
             const codon = seqSliced.slice(j, j + 3)
-            const normalizedCodon = reversed ? revcom(codon) : codon
-            const aminoAcid = codonTable[normalizedCodon] || ''
-            translated.push({
-              letter: aminoAcid,
-              codon: normalizedCodon.toUpperCase(),
-              reversed,
-              start: reversed
-                ? fullStart + seqSliced.length - (3 + j)
-                : fullStart + j + effectiveFrame,
-            })
+            const normalizedCodon = reversed ? reverse(revcom(codon)) : codon
+            const start = reversed
+              ? fullStart + seqSliced.length - (3 + j)
+              : fullStart + j + effectiveFrame
+            if (defaultStarts.includes(normalizedCodon.toUpperCase())) {
+              starts.push(start)
+            } else if (defaultStops.includes(normalizedCodon.toUpperCase())) {
+              stops.push(start)
+            }
           }
-          codonLayout.set(i, translated)
+          codonLayout.set(i, { starts, stops })
         }
         return codonLayout
       },
@@ -315,39 +292,40 @@ export function stateModelFactory(
                 if (childFeature.type === 'mRNA') {
                   for (const [, grandChildFeature] of childFeature.children ||
                     new Map()) {
-                    // let startingRow = 0
-                    // if (grandChildFeature.phase !== undefined) {
-                    //   startingRow = grandChildFeature.phase
-                    //   if (feature.strand === -1) {
-                    //     startingRow += 3
-                    //   } else {
-                    //     startingRow = forwardPhaseMap[grandChildFeature.phase]
-                    //   }
-                    //   const row = rows[startingRow]
-                    //   row.fill(
-                    //     true,
-                    //     grandChildFeature.min - min,
-                    //     grandChildFeature.max - min,
-                    //   )
-                    //   const layoutRow = featureLayout.get(startingRow)
-                    //   layoutRow?.push([0, grandChildFeature])
-                    // }
                     let startingRow
                     if (grandChildFeature.type === 'CDS') {
-                      if (feature.strand === -1) {
-                        startingRow = reversePhaseMap[grandChildFeature.min % 3]
+                      let discontinuousLocations
+                      if (grandChildFeature.discontinuousLocations.length > 0) {
+                        // eslint-disable-next-line prefer-destructuring
+                        discontinuousLocations =
+                          grandChildFeature.discontinuousLocations
                       } else {
-                        startingRow =
-                          forwardPhaseMap[(grandChildFeature.min - 1) % 3]
+                        discontinuousLocations = [grandChildFeature]
                       }
-                      const row = rows[startingRow]
-                      row.fill(
-                        true,
-                        grandChildFeature.min - min,
-                        grandChildFeature.max - min,
-                      )
-                      const layoutRow = featureLayout.get(startingRow)
-                      layoutRow?.push([childFeature.testId, grandChildFeature])
+                      for (const cds of discontinuousLocations) {
+                        // Remove codons either end of feature when considering intersect.
+                        const featureRange: number[] = Array(
+                          cds.end - cds.start - 6,
+                        )
+                          .fill(undefined)
+                          .map((_, idx) => cds.start + 3 + idx)
+                        for (const [row, { stops }] of this.codonLayout) {
+                          if (
+                            (row < 3 && feature.strand === 1) ||
+                            (row >= 3 && feature.strand === -1)
+                          ) {
+                            const filteredArray = stops.filter((value) =>
+                              featureRange.includes(value),
+                            )
+                            if (filteredArray.length === 0) {
+                              startingRow = row
+                              const layoutRow = featureLayout.get(startingRow)
+                              layoutRow?.push([childFeature.featureId, cds])
+                              break
+                            }
+                          }
+                        }
+                      }
                     }
                   }
                 }

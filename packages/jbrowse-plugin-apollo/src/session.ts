@@ -10,7 +10,6 @@ import {
   AnnotationFeatureSnapshot,
   ApolloAssembly,
   ApolloRefSeq,
-  Sequence,
 } from 'apollo-mst'
 import { autorun, observable } from 'mobx'
 import {

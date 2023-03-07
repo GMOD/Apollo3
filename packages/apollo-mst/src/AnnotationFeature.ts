@@ -57,7 +57,7 @@ export const AnnotationFeature = types
     get length() {
       return self.end - self.start
     },
-    get testId() {
+    get featureId() {
       return self.attributes.get('id')
     },
     /**
