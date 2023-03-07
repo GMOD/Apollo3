@@ -182,7 +182,7 @@ export const ApolloDetails = observer(
           newStart: Number(newStart),
           assembly,
         })
-      } else if (newRow.start !== oldRow.start) {
+      } else if (newRow.end !== oldRow.end) {
         const { end: oldEnd, id: featureId } = oldRow
         const { end: newEnd } = newRow
         change = new LocationEndChange({
