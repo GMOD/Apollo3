@@ -47,7 +47,7 @@ export abstract class AssemblySpecificChange extends Change {
     let incompleteLine = ''
     let lastLineIsIncomplete = true
     let parsingStarted = false
-    logger.log('starting sequence stream')
+    logger.debug?.('starting sequence stream')
     for await (const data of sequenceStream) {
       const chunk = data.toString()
       lastLineIsIncomplete = !chunk.endsWith('\n')
