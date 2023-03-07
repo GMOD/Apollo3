@@ -7,6 +7,8 @@ import {
   ServerDataStore,
 } from 'apollo-common'
 import { AnnotationFeatureSnapshot } from 'apollo-mst'
+import ObjectID from 'bson-objectid'
+import { ObjectId, Types } from 'mongoose'
 
 import { DeleteFeatureChange } from './DeleteFeatureChange'
 
@@ -17,6 +19,8 @@ interface SerializedAddFeatureChangeBase extends SerializedFeatureChange {
 export interface AddFeatureChangeDetails {
   addedFeature: AnnotationFeatureSnapshot
   parentFeatureId?: string // Parent feature to where feature will be added
+  originalFeatureId?: string // Original featureId in case of copying feature from one assembly to another
+  copyFeature?: boolean // Are we copying or adding a new child feature
 }
 
 interface SerializedAddFeatureChangeSingle
@@ -44,8 +48,18 @@ export class AddFeatureChange extends FeatureChange {
   toJSON(): SerializedAddFeatureChange {
     const { changes, changedIds, typeName, assembly } = this
     if (changes.length === 1) {
-      const [{ addedFeature, parentFeatureId }] = changes
-      return { typeName, changedIds, assembly, addedFeature, parentFeatureId }
+      const [
+        { addedFeature, parentFeatureId, originalFeatureId, copyFeature },
+      ] = changes
+      return {
+        typeName,
+        changedIds,
+        assembly,
+        addedFeature,
+        parentFeatureId,
+        originalFeatureId,
+        copyFeature,
+      }
     }
     return { typeName, changedIds, assembly, changes }
   }
@@ -75,7 +89,8 @@ export class AddFeatureChange extends FeatureChange {
     // Loop the changes
     for (const change of changes) {
       logger.debug?.(`change: ${JSON.stringify(change)}`)
-      const { addedFeature, parentFeatureId } = change
+      const { addedFeature, parentFeatureId, copyFeature, originalFeatureId } =
+        change
       const { refSeq } = addedFeature
       const refSeqDoc = await refSeqModel
         .findById(refSeq)
@@ -86,59 +101,105 @@ export class AddFeatureChange extends FeatureChange {
           `RefSeq was not found by assembly "${assembly}" and seq_id "${refSeq}" not found`,
         )
       }
-      if (parentFeatureId) {
-        console.log(`PARENT ON: ${parentFeatureId}`)
+
+      console.log(`*** COPY FEATURE ON: ${copyFeature}`)
+      console.log(`*** ORIGINAL FEATUREID ON: ${originalFeatureId}`)
+      // CopyFeature is called from CopyFeature.tsx
+      if (copyFeature) {
         const topLevelFeature = await featureModel
-          .findOne({ allIds: parentFeatureId })
+          .findOne({ allIds: originalFeatureId })
           .session(session)
           .exec()
         if (!topLevelFeature) {
           throw new Error(`Could not find feature with ID "${parentFeatureId}"`)
         }
-        const parentFeature = this.getFeatureFromId(
-          topLevelFeature,
-          parentFeatureId,
+        logger.debug?.(
+          `*** topLevelFeature: "${JSON.stringify(topLevelFeature)}"`,
         )
-        console.log(`PARENT: ${JSON.stringify(parentFeature)}`)
-        if (!parentFeature) {
-          throw new Error(
-            `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature._id}"`,
-          )
-        }
-        if (!parentFeature.children) {
-          parentFeature.children = new Map()
-        }
-        if (!parentFeature.attributes?.id) {
-          let { attributes } = parentFeature
-          if (!attributes) {
-            attributes = {}
-          }
-          attributes = {
-            id: [parentFeature._id.toString()],
-            ...JSON.parse(JSON.stringify(attributes)),
-          }
-          parentFeature.attributes = attributes
-        }
-        parentFeature.children.set(addedFeature._id, {
-          allIds: [],
-          ...addedFeature,
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          _id: addedFeature._id,
+        const copiedObject = JSON.parse(JSON.stringify(topLevelFeature))
+
+        copiedObject._id = addedFeature._id as unknown as Types.ObjectId // We need to set new featureId value here
+        copiedObject.refSeq = addedFeature.refSeq as unknown as Types.ObjectId // We need to set target assembly refSeq value here
+
+        logger.debug?.(`*** UUSI: "${JSON.stringify(copiedObject)}"`)
+        const featureIds: string[] = []
+        // Let's add featureId to each child recursively
+        const newFeatureLine = this.generateNewIds(copiedObject, featureIds)
+        // // Remove "new generated featureId" from "allIds" -array because newFeatureId was already provided. Then add correct newFeatureId into it
+        // const index = featureIds.indexOf(newFeatureLine._id, 0)
+        // if (index > -1) {
+        //   featureIds.splice(index, 1)
+        // }
+        // featureIds.push(newFeatureId)
+        logger.debug?.(`*** UUDET FEATUREID:T: "${JSON.stringify(featureIds)}"`)
+        // newFeatureLine.allIds = featureIds // **** TODO : **** HERE WE HAVE TO RE-GENERATE VALUE AGAIN
+        // copiedObject.allIds = [addedFeature._id] // **** TODO : **** HERE WE HAVE TO RE-GENERATE VALUE AGAIN
+
+        logger.debug?.(`*** UUSIN: "${JSON.stringify(newFeatureLine)}"`)
+        // // Add into Mongo
+        const [newFeatureDoc] = await featureModel.create([{...newFeatureLine, allIds: featureIds}], {
+          session,
         })
-        const childIds = this.getChildFeatureIds(addedFeature)
-        topLevelFeature.allIds.push(addedFeature._id, ...childIds)
-        topLevelFeature.save()
+        logger.debug?.(`Added new feature "${JSON.stringify(newFeatureDoc)}"`)
+        logger.debug?.(`Added new feature, docId "${newFeatureDoc._id}"`)
+        featureCnt++
       } else {
-        const childIds = this.getChildFeatureIds(addedFeature)
-        const allIds = [addedFeature._id, ...childIds]
-        const [newFeatureDoc] = await featureModel.create(
-          [{ allIds, ...addedFeature }],
-          { session },
-        )
-        logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
+        // Adding new child feature
+        if (parentFeatureId) {
+          const topLevelFeature = await featureModel
+            .findOne({ allIds: parentFeatureId })
+            .session(session)
+            .exec()
+          if (!topLevelFeature) {
+            throw new Error(
+              `Could not find feature with ID "${parentFeatureId}"`,
+            )
+          }
+          const parentFeature = this.getFeatureFromId(
+            topLevelFeature,
+            parentFeatureId,
+          )
+          if (!parentFeature) {
+            throw new Error(
+              `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature._id}"`,
+            )
+          }
+          if (!parentFeature.children) {
+            parentFeature.children = new Map()
+          }
+          if (!parentFeature.attributes?.id) {
+            let { attributes } = parentFeature
+            if (!attributes) {
+              attributes = {}
+            }
+            attributes = {
+              id: [parentFeature._id.toString()],
+              ...JSON.parse(JSON.stringify(attributes)),
+            }
+            parentFeature.attributes = attributes
+          }
+          parentFeature.children.set(addedFeature._id, {
+            allIds: [],
+            ...addedFeature,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            _id: addedFeature._id,
+          })
+          const childIds = this.getChildFeatureIds(addedFeature)
+          topLevelFeature.allIds.push(addedFeature._id, ...childIds)
+          topLevelFeature.save()
+          logger.debug?.(`Added docId "${topLevelFeature._id}"`)
+        } else {
+          const childIds = this.getChildFeatureIds(addedFeature)
+          const allIds = [addedFeature._id, ...childIds]
+          const [newFeatureDoc] = await featureModel.create(
+            [{ allIds, ...addedFeature }],
+            { session },
+          )
+          logger.debug?.(`Added docId "${newFeatureDoc._id}"`)
+        }
+        featureCnt++
       }
-      featureCnt++
     }
     logger.debug?.(`Added ${featureCnt} new feature(s) into database.`)
   }

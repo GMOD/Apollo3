@@ -120,6 +120,7 @@ export function CopyFeature({
     setErrorMessage('')
     // Get target refSeqId from target assembly
     const targetRefSeqId = await getRefSeqId(assemblyId, sourceFeature.refSeq)
+    console.log(`Source refSeqId: ${sourceFeature.refSeq}`)
     console.log(`Target refSeqId: ${targetRefSeqId}`)
     console.log(`Source ID: ${sourceFeature._id}`)
     if (!targetRefSeqId) {
@@ -128,44 +129,22 @@ export function CopyFeature({
     }
 
     const newFeatureId = new ObjectID().toHexString()
-    // if (sourceFeature.children) {
-    //   const change1 = new AddFeatureChange({
-    //     changedIds: [newFeatureId],
-    //     typeName: 'AddFeatureChange',
-    //     assembly: assemblyId,
-    //     addedFeature: {
-    //       _id: new ObjectID().toHexString(),
-    //       refSeq: targetRefSeqId,
-    //       start: Number(sourceFeature.start),
-    //       end: Number(sourceFeature.end),
-    //       type: sourceFeature.type,
-    //       children: sourceFeature.children!,
-    //       attributes: sourceFeature.attributes,
-    //     },
-    //     parentFeatureId: sourceFeature._id,
-    //   })
-    // }
-    //********* JATKA TÄSTÄ : MITEN SAA KOPIOITAVAN FEATUREN MYÖS LAPSET KOPIOITUA TARGET ASSEMBLYYN
-    // PITÄÄ MYÖS GENEROIDA UUDET TUNNISTEET allIds -kenttään
+    const change = new AddFeatureChange({
+      changedIds: [newFeatureId],
+      typeName: 'AddFeatureChange',
+      assembly: assemblyId,
+      addedFeature: {
+        _id: new ObjectID().toHexString(),
+        refSeq: targetRefSeqId,
+        start: Number(sourceFeature.start),
+        end: Number(sourceFeature.end),
+        type: sourceFeature.type,
+      },
+      originalFeatureId: sourceFeature._id,
+      copyFeature: true,
+    })
+    changeManager.submit?.(change)
 
-    if (sourceFeature.children && sourceFeature.attributes) {
-      const change = new AddFeatureChange({
-        changedIds: [newFeatureId],
-        typeName: 'AddFeatureChange',
-        assembly: assemblyId,
-        addedFeature: {
-          _id: new ObjectID().toHexString(),
-          refSeq: targetRefSeqId,
-          start: Number(sourceFeature.start),
-          end: Number(sourceFeature.end),
-          type: sourceFeature.type,
-          children: sourceFeature.children!,
-          attributes: sourceFeature.attributes!,
-        },
-        parentFeatureId: sourceFeature._id,
-      })
-      changeManager.submit?.(change)  
-    }
     notify(`Feature copied successfully`, 'success')
     handleClose()
     event.preventDefault()
