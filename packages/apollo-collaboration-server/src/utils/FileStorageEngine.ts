@@ -1,7 +1,8 @@
 import { createHash } from 'crypto'
 import { createWriteStream } from 'fs'
-import { mkdir, rename } from 'fs/promises'
+import { mkdir, mkdtemp, rename, rmdir } from 'fs/promises'
 import { join } from 'path'
+import { pipeline } from 'stream/promises'
 import { createGzip } from 'zlib'
 
 import {
@@ -33,30 +34,30 @@ export class FileStorageEngine implements StorageEngine {
       )
     }
     await mkdir(FILE_UPLOAD_FOLDER, { recursive: true })
+    const tmpDir = await mkdtemp(join(FILE_UPLOAD_FOLDER, 'upload-tmp-'))
     // First we need to write new file using temp name. After writing has completed then we rename the file to match with file checksum
-    const tempFullFileName = join(FILE_UPLOAD_FOLDER, `${file.originalname}.gz`)
+    const tempFullFileName = join(tmpDir, `${file.originalname}.gz`)
     this.logger.debug(`User uploaded file: ${file.originalname}`)
 
-    // Check md5 checksum of saved file
     const hash = createHash('md5')
+    file.stream.on('data', (chunk) => {
+      hash.update(chunk, 'utf8')
+      return chunk
+    })
+
+    // Check md5 checksum of saved file
     const fileWriteStream = createWriteStream(tempFullFileName)
     const gz = createGzip()
-    gz.pipe(fileWriteStream)
-    for await (const chunk of file.stream) {
-      gz.write(chunk)
-      hash.update(chunk, 'utf8')
-    }
-    gz.end()
-    fileWriteStream.on('close', async () => {
-      this.logger.debug(`Compressed file: ${tempFullFileName}`)
-      const fileChecksum = hash.digest('hex')
-      this.logger.debug(`Uploaded file checksum: ${fileChecksum}`)
-      const finalFullFileName = join(FILE_UPLOAD_FOLDER, fileChecksum)
-      this.logger.debug(`FinalFullFileName: ${finalFullFileName}`)
-      await rename(tempFullFileName, finalFullFileName)
+    await pipeline(file.stream, gz, fileWriteStream)
+    this.logger.debug(`Compressed file: ${tempFullFileName}`)
+    const fileChecksum = hash.digest('hex')
+    this.logger.debug(`Uploaded file checksum: ${fileChecksum}`)
+    const finalFullFileName = join(FILE_UPLOAD_FOLDER, fileChecksum)
+    this.logger.debug(`FinalFullFileName: ${finalFullFileName}`)
+    await rename(tempFullFileName, finalFullFileName)
+    await rmdir(tmpDir)
 
-      cb(null, { ...file, checksum: fileChecksum })
-    })
+    cb(null, { ...file, checksum: fileChecksum })
   }
 
   _removeFile(
