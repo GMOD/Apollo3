@@ -10,10 +10,12 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
-import { AddFeatureChange, CopyFeatureChange } from 'apollo-shared'
+import { AnnotationFeatureI, AnnotationFeatureSnapshot } from 'apollo-mst'
+import { Feature } from 'apollo-schemas'
+import { AddFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
-import { getRoot } from 'mobx-state-tree'
+import { IKeyValueMap } from 'mobx'
+import { getRoot, getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
@@ -51,12 +53,34 @@ export function CopyFeature({
   }
   const { baseURL } = apolloInternetAccount
   const [collection, setCollection] = useState<Collection[]>([])
+  const [refNameCollection, setRefNameCollection] = useState<Collection[]>([])
   const [assemblyId, setAssemblyId] = useState('')
+  const [refSeqId, setRefSeqId] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const { notify } = session
 
-  function handleChangeAssembly(e: SelectChangeEvent<string>) {
-    setAssemblyId(e.target.value as string)
+  async function handleChangeAssembly(e: SelectChangeEvent<string>) {
+    const assId = e.target.value as string
+    setAssemblyId(assId)
+    const { assemblyManager } = getRoot(session)
+    if (assemblyManager.get(assId).refNames) {
+      setRefNameCollection([{ _id: '', name: '' }])
+
+      // Using allRefNames -property we get all reference sequence ids and names. However, all ids are listed first and then the names
+      const allRefNames: string[] = await assemblyManager.get(assId).allRefNames
+      // console.log(`ALL REF NAMES: ${JSON.stringify(allRefNames)}, cnt=${allRefNames.length}`)
+      const halfCount = allRefNames.length / 2
+      for (let i = 0; i < halfCount; i++) {
+        // console.log(`Id: "${allRefNames[i]}", name: "${allRefNames[i+halfCount]}"`)
+        setRefNameCollection((result) => [
+          ...result,
+          {
+            _id: allRefNames[i],
+            name: allRefNames[i + halfCount],
+          },
+        ])
+      }
+    }
   }
 
   useEffect(() => {
@@ -99,49 +123,47 @@ export function CopyFeature({
     }
   }, [apolloInternetAccount, baseURL, sourceAssemblyId, sourceFeatureId])
 
-  // async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-  //   event.preventDefault()
-  //   setErrorMessage('')
-  //   const newFeatureId = new ObjectID().toHexString()
-  //   const change = new CopyFeatureChange({
-  //     changedIds: [newFeatureId],
-  //     typeName: 'CopyFeatureChange',
-  //     assembly: sourceAssemblyId,
-  //     featureId: sourceFeatureId,
-  //     newFeatureId,
-  //     targetAssemblyId: assemblyId,
-  //   })
-  //   changeManager.submit(change)
-  //   handleClose()
-  // }
-
+  // POISTA VALITUN FEATUREN ATTRIBUUTEISTA PARENTID -ARVO
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
     // Get target refSeqId from target assembly
-    const targetRefSeqId = await getRefSeqId(assemblyId, sourceFeature.refSeq)
-    console.log(`Source refSeqId: ${sourceFeature.refSeq}`)
-    console.log(`Target refSeqId: ${targetRefSeqId}`)
-    console.log(`Source ID: ${sourceFeature._id}`)
-    if (!targetRefSeqId) {
-      setErrorMessage(`Target assembly does not have same reference sequence!`)
-      return
-    }
+    console.log(`Source feature: "${JSON.stringify(sourceFeature)}"`)
 
-    const newFeatureId = new ObjectID().toHexString()
+    const featureIds: string[] = []
+    // Let's add featureId to each child recursively
+    const newFeatureLine = generateNewIds(
+      getSnapshot(sourceFeature) as unknown as AnnotationFeatureSnapshot,
+      featureIds,
+    )
+    // TODO *** Clear possible parentId -attribute ***
+
+    console.log(`NEW FEATURE: ${JSON.stringify(newFeatureLine)}`)
+
     const change = new AddFeatureChange({
-      changedIds: [newFeatureId],
+      changedIds: [newFeatureLine._id],
       typeName: 'AddFeatureChange',
       assembly: assemblyId,
       addedFeature: {
-        _id: new ObjectID().toHexString(),
-        refSeq: targetRefSeqId,
-        start: Number(sourceFeature.start),
-        end: Number(sourceFeature.end),
-        type: sourceFeature.type,
+        _id: newFeatureLine._id,
+        refSeq: refSeqId,
+        start: Number(newFeatureLine.start),
+        end: Number(newFeatureLine.end),
+        type: newFeatureLine.type,
+        children: newFeatureLine.children as unknown as Record<
+          string,
+          AnnotationFeatureSnapshot
+        >,
+        attributes: newFeatureLine.attributes as unknown as IKeyValueMap<
+          string[]
+        >,
+        discontinuousLocations: newFeatureLine.discontinuousLocations,
+        strand: newFeatureLine.strand,
+        score: newFeatureLine.score,
+        phase: newFeatureLine.phase,
       },
-      originalFeatureId: sourceFeature._id,
       copyFeature: true,
+      allIds: featureIds,
     })
     changeManager.submit?.(change)
 
@@ -150,66 +172,39 @@ export function CopyFeature({
     event.preventDefault()
   }
 
-  async function getRefSeqId(targetAssemblyId: string, sourceRefSeq: string) {
-    let sourceRefSeqName = ''
-    let targetRefSeqId
-    const url = `/refSeqs/${sourceRefSeq}`
-    let uri = new URL(url, baseURL).href
+  /**
+   * Recursively assign new IDs to a feature
+   * @param feature - Parent feature
+   * @param featureIds -
+   */
+  function generateNewIds(
+    // feature: AnnotationFeatureSnapshot,
+    feature: Feature | AnnotationFeatureSnapshot,
+    featureIds: string[],
+  ): AnnotationFeatureSnapshot {
+    const newId = new ObjectID().toHexString()
+    featureIds.push(newId)
 
-    let apolloFetch = apolloInternetAccount?.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
-    if (apolloFetch) {
-      const response = await apolloFetch(uri, {
-        method: 'GET',
-      })
-      if (!response.ok) {
-        const newErrorMessage = await createFetchErrorMessage(
-          response,
-          'Error when copying features',
-        )
-        setErrorMessage(newErrorMessage)
-        return
-      }
-      const data = await response.json()
-      if (data) {
-        sourceRefSeqName = data.name
-      }
-      console.log(`sourceRefSeqName: ${sourceRefSeqName}`)
-    }
-
-    const url2 = new URL('refSeqs', baseURL)
-    const searchParams = new URLSearchParams({ assembly: targetAssemblyId })
-    url2.search = searchParams.toString()
-    uri = url2.toString()
-
-    apolloFetch = apolloInternetAccount?.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
-    if (apolloFetch) {
-      const response = await apolloFetch(uri, {
-        method: 'GET',
-      })
-      if (!response.ok) {
-        const newErrorMessage = await createFetchErrorMessage(
-          response,
-          'Error when retrieving refSeq data from server',
-        )
-        setErrorMessage(newErrorMessage)
-        return
-      }
-      const data = await response.json()
-      console.log(`DATA: ${JSON.stringify(data)}`)
-      data.forEach((item: Collection) => {
-        if (item.name === sourceRefSeqName) {
-          targetRefSeqId = item._id
-        }
+    const children: Record<string, AnnotationFeatureSnapshot> = {}
+    if (feature.children) {
+      Object.values(feature.children).forEach((child) => {
+        const newChild = generateNewIds(child, featureIds)
+        children[newChild._id] = newChild
       })
     }
-    return targetRefSeqId
+    const refSeq =
+      typeof feature.refSeq === 'string'
+        ? feature.refSeq
+        : (feature.refSeq as unknown as ObjectID).toHexString()
+
+    return {
+      ...feature,
+      refSeq,
+      children: feature.children && children,
+      _id: newId,
+    }
   }
+
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Copy features and annotations</DialogTitle>
@@ -227,9 +222,27 @@ export function CopyFeature({
               </MenuItem>
             ))}
           </Select>
+          <DialogContentText>Target reference sequence</DialogContentText>
+          <Select
+            labelId="label"
+            value={refSeqId}
+            onChange={(e) => {
+              setRefSeqId(e.target.value)
+            }}
+          >
+            {refNameCollection.map((option) => (
+              <MenuItem key={option._id} value={option._id}>
+                {option.name}
+              </MenuItem>
+            ))}
+          </Select>
         </DialogContent>
         <DialogActions>
-          <Button disabled={!assemblyId} variant="contained" type="submit">
+          <Button
+            disabled={!assemblyId || !refSeqId}
+            variant="contained"
+            type="submit"
+          >
             Submit
           </Button>
           <Button

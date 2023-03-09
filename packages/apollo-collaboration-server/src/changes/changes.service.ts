@@ -26,9 +26,7 @@ import {
   UserDocument,
 } from 'apollo-schemas'
 import {
-  AddFeatureChange,
   DecodedJWT,
-  isCopyFeatureChange,
   makeUserSessionId,
   validationRegistry,
 } from 'apollo-shared'
@@ -82,10 +80,9 @@ export class ChangesService {
         `Error in backend pre-validation: ${errorMessage}`,
       )
     }
-    // Get some info for later broadcasting, before any features are potentially
-    // deleted
+    // Get some info for later broadcasting, before any features are potentially deleted
     const refNames: string[] = []
-    if (isFeatureChange(change)) {
+    if (isFeatureChange(change) && change.typeName === 'DeleteFeatureChange') {
       // For broadcasting we need also refName
       const { changedIds } = change
       for (const changedId of changedIds) {
@@ -218,39 +215,28 @@ export class ChangesService {
       return
     }
 
+    if (isFeatureChange(change) && change.typeName !== 'DeleteFeatureChange') {
+      // For broadcasting we need also refName
+      const { changedIds } = change
+      for (const changedId of changedIds) {
+        const featureDoc = await this.featureModel
+          .findOne({ allIds: changedId })
+          .exec()
+        if (featureDoc) {
+          const refSeqDoc = await this.refSeqModel
+            .findById(featureDoc.refSeq)
+            .exec()
+          if (refSeqDoc) {
+            refNames.push(refSeqDoc.name)
+          }
+        }
+      }
+    }
     // Broadcast
     const messages: ChangeMessage[] = []
 
     const userSessionId = makeUserSessionId(user)
-    // In case of 'CopyFeatureChange', we need to create 'AddFeatureChange' to all connected clients
-    if (isCopyFeatureChange(change)) {
-      const [{ targetAssemblyId, newFeatureId }] = change.changes
-      // Get origin top level feature
-      const topLevelFeature = await this.featureModel
-        .findOne({ allIds: newFeatureId })
-        .exec()
-      if (!topLevelFeature) {
-        const errMsg = `*** ERROR: The following featureId was not found in database ='${newFeatureId}'`
-        this.logger.error?.(errMsg)
-        throw new Error(errMsg)
-      }
-      const newChange = new AddFeatureChange({
-        typeName: 'AddFeatureChange',
-        assembly: targetAssemblyId,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        addedFeature: topLevelFeature,
-      })
-      for (const refName of refNames) {
-        messages.push({
-          changeInfo: newChange.toJSON(),
-          userName: user.username,
-          userSessionId,
-          channel: `${targetAssemblyId}-${refName}`,
-          changeSequence: changeDoc.sequence,
-        })
-      }
-    } else if (isFeatureChange(change)) {
+    if (isFeatureChange(change)) {
       for (const refName of refNames) {
         messages.push({
           changeInfo: change.toJSON(),

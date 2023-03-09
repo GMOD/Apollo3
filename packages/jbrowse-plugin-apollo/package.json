@@ -54,6 +54,7 @@
     "@mui/icons-material": "^5.8.4",
     "apollo-common": "workspace:^",
     "apollo-mst": "workspace:^",
+    "apollo-schemas": "workspace:^",
     "apollo-shared": "workspace:^",
     "bson-objectid": "^2.0.3",
     "clsx": "^1.1.1",

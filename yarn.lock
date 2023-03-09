@@ -11618,6 +11618,7 @@ __metadata:
     "@types/react-dom": ^18
     apollo-common: "workspace:^"
     apollo-mst: "workspace:^"
+    apollo-schemas: "workspace:^"
     apollo-shared: "workspace:^"
     bson-objectid: ^2.0.3
     clsx: ^1.1.1
