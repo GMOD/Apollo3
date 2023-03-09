@@ -2,7 +2,6 @@ import { AddAssemblyAndFeaturesFromFileChange } from './AddAssemblyAndFeaturesFr
 import { AddAssemblyFromFileChange } from './AddAssemblyFromFileChange'
 import { AddFeatureChange } from './AddFeatureChange'
 import { AddFeaturesFromFileChange } from './AddFeaturesFromFileChange'
-import { CopyFeatureChange } from './CopyFeatureChange'
 import { DeleteAssemblyChange } from './DeleteAssemblyChange'
 import { DeleteFeatureChange } from './DeleteFeatureChange'
 import { DeleteUserChange } from './DeleteUserChange'
@@ -17,7 +16,6 @@ export const changes = {
   AddAssemblyFromFileChange,
   AddFeatureChange,
   AddFeaturesFromFileChange,
-  CopyFeatureChange,
   DeleteAssemblyChange,
   DeleteFeatureChange,
   FeatureAttributeChange,
@@ -32,7 +30,6 @@ export * from './AddAssemblyAndFeaturesFromFileChange'
 export * from './AddAssemblyFromFileChange'
 export * from './AddFeatureChange'
 export * from './AddFeaturesFromFileChange'
-export * from './CopyFeatureChange'
 export * from './DeleteAssemblyChange'
 export * from './DeleteFeatureChange'
 export * from './DeleteUserChange'

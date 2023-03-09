@@ -63,7 +63,7 @@ export function CopyFeature({
     const assId = e.target.value as string
     setAssemblyId(assId)
     const { assemblyManager } = getRoot(session)
-    if (assemblyManager.get(assId).refNames) {
+    if (assemblyManager.get(e.target.value as string).refNames) {
       setRefNameCollection([{ _id: '', name: '' }])
 
       // Using allRefNames -property we get all reference sequence ids and names. However, all ids are listed first and then the names
@@ -123,11 +123,9 @@ export function CopyFeature({
     }
   }, [apolloInternetAccount, baseURL, sourceAssemblyId, sourceFeatureId])
 
-  // POISTA VALITUN FEATUREN ATTRIBUUTEISTA PARENTID -ARVO
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    // Get target refSeqId from target assembly
     console.log(`Source feature: "${JSON.stringify(sourceFeature)}"`)
 
     const featureIds: string[] = []
@@ -136,9 +134,13 @@ export function CopyFeature({
       getSnapshot(sourceFeature) as unknown as AnnotationFeatureSnapshot,
       featureIds,
     )
-    // TODO *** Clear possible parentId -attribute ***
-
-    console.log(`NEW FEATURE: ${JSON.stringify(newFeatureLine)}`)
+    // Clear possible parentId -attribute
+    const attributeMap: IKeyValueMap<string[]> = {
+      ...(newFeatureLine.attributes as unknown as IKeyValueMap<string[]>),
+    }
+    if ('Parent' in attributeMap) {
+      delete attributeMap.Parent
+    }
 
     const change = new AddFeatureChange({
       changedIds: [newFeatureLine._id],
@@ -154,9 +156,7 @@ export function CopyFeature({
           string,
           AnnotationFeatureSnapshot
         >,
-        attributes: newFeatureLine.attributes as unknown as IKeyValueMap<
-          string[]
-        >,
+        attributes: attributeMap,
         discontinuousLocations: newFeatureLine.discontinuousLocations,
         strand: newFeatureLine.strand,
         score: newFeatureLine.score,
