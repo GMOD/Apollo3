@@ -28,7 +28,11 @@ import {
   ApolloInternetAccountModel,
   UserLocation,
 } from './ApolloInternetAccount/model'
-import { BackendDriver, CollaborationServerDriver } from './BackendDrivers'
+import {
+  BackendDriver,
+  CollaborationServerDriver,
+  LocalFileDriver,
+} from './BackendDrivers'
 import { ChangeManager } from './ChangeManager'
 import {
   Stores,
@@ -99,6 +103,69 @@ function clientDataStoreFactory(
       },
     }))
     .actions((self) => ({
+      addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot) {
+        const assembly = self.assemblies.get(assemblyId)
+        if (!assembly) {
+          throw new Error(
+            `Could not find assembly "${assemblyId}" to add feature "${feature._id}"`,
+          )
+        }
+        const ref = assembly.refSeqs.get(feature.refSeq)
+        if (!ref) {
+          throw new Error(
+            `Could not find refSeq "${feature.refSeq}" to add feature "${feature._id}"`,
+          )
+        }
+        ref.features.put(feature)
+      },
+      addAssembly(assemblyId: string, assemblyName: string) {
+        self.assemblies.put({ _id: assemblyId, refSeqs: {} })
+      },
+      deleteFeature(featureId: string) {
+        const feature = self.getFeature(featureId)
+        if (!feature) {
+          throw new Error(`Could not find feature "${featureId}" to delete`)
+        }
+        const { parent } = feature
+        if (parent) {
+          parent.deleteChild(featureId)
+        } else {
+          const refSeq = getParentOfType(feature, ApolloRefSeq)
+          refSeq.deleteFeature(feature._id)
+        }
+      },
+      deleteAssembly(assemblyId: string) {
+        self.assemblies.delete(assemblyId)
+      },
+    }))
+    .volatile((self) => ({
+      changeManager: new ChangeManager(self as unknown as ClientDataStoreType),
+      collaborationServerDriver: new CollaborationServerDriver(
+        self as unknown as ClientDataStoreType,
+      ),
+      localFileDriver: new LocalFileDriver(
+        self as unknown as ClientDataStoreType,
+      ),
+    }))
+    .views((self) => ({
+      getBackendDriver(assemblyId: string) {
+        const assembly = self.assemblies.get(assemblyId)
+        if (!assembly) {
+          return self.collaborationServerDriver
+        }
+        const { backendDriverType } = assembly as unknown as {
+          backendDriverType: 'CollaborationServerDriver' | 'LocalFileDriver'
+        }
+        if (backendDriverType === 'CollaborationServerDriver') {
+          return self.collaborationServerDriver
+        }
+        if (backendDriverType === 'LocalFileDriver') {
+          return self.localFileDriver
+        }
+        throw new Error(`Unknown backend driver type "${backendDriverType}"`)
+      },
+    }))
+    .actions((self) => ({
       loadFeatures: flow(function* loadFeatures(regions: Region[]) {
         for (const region of regions) {
           const features = (yield (
@@ -153,55 +220,7 @@ function clientDataStoreFactory(
           })
         }
       }),
-
-      addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot) {
-        const assembly = self.assemblies.get(assemblyId)
-        if (!assembly) {
-          throw new Error(
-            `Could not find assembly "${assemblyId}" to add feature "${feature._id}"`,
-          )
-        }
-        const ref = assembly.refSeqs.get(feature.refSeq)
-        if (!ref) {
-          throw new Error(
-            `Could not find refSeq "${feature.refSeq}" to add feature "${feature._id}"`,
-          )
-        }
-        ref.features.put(feature)
-      },
-      addAssembly(assemblyId: string) {
-        self.assemblies.put({ _id: assemblyId, refSeqs: {} })
-      },
-      deleteFeature(featureId: string) {
-        const feature = self.getFeature(featureId)
-        if (!feature) {
-          throw new Error(`Could not find feature "${featureId}" to delete`)
-        }
-        const { parent } = feature
-        if (parent) {
-          parent.deleteChild(featureId)
-        } else {
-          const refSeq = getParentOfType(feature, ApolloRefSeq)
-          refSeq.deleteFeature(feature._id)
-        }
-      },
-      deleteAssembly(assemblyId: string) {
-        self.assemblies.delete(assemblyId)
-      },
     }))
-    .volatile((self) => ({
-      changeManager: new ChangeManager(self as unknown as ClientDataStoreType),
-    }))
-    .volatile((self) => {
-      if (self.backendDriverType !== 'CollaborationServerDriver') {
-        throw new Error(
-          `Unknown backend driver type "${self.backendDriverType}"`,
-        )
-      }
-      return {
-        backendDriver: new CollaborationServerDriver(self),
-      }
-    })
 }
 
 export function extendSession(

@@ -98,6 +98,13 @@ export const ApolloAssembly = types
   .model('ApolloAssembly', {
     _id: types.identifier,
     refSeqs: types.map(ApolloRefSeq),
+    backendDriverType: types.optional(
+      types.enumeration('backendDriverType', [
+        'CollaborationServerDriver',
+        'LocalFileDriver',
+      ]),
+      'CollaborationServerDriver',
+    ),
   })
   .views((self) => ({
     getByRefName(refName: string) {
