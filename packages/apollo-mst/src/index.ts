@@ -13,6 +13,12 @@ export const Sequence = types.model({
   sequence: types.string,
 })
 
+interface SequenceSnapshot {
+  start: number
+  stop: number
+  sequence: string
+}
+
 export const ApolloRefSeq = types
   .model('ApolloRefSeq', {
     _id: types.identifier,
@@ -27,39 +33,49 @@ export const ApolloRefSeq = types
     addSequence(seq: SnapshotOrInstance<typeof Sequence>) {
       if (self.sequence.length === 0) {
         self.sequence.push(seq)
-      } else {
-        let found = false
-        for (const [i, { start, stop, sequence }] of self.sequence.entries()) {
-          if (seq.stop < stop && seq.start > start) {
-            // already there - do nothing
-            found = true
-          } else if (seq.start < start || seq.stop > stop) {
-            // adjacent/overlapping to existing sequence - modify
-            const newStart = Math.min(start, seq.start)
-            const newStop = Math.max(stop, seq.stop)
-            // let newSeq = seq.sequence
-            let newSeq = sequence
-            if (seq.start < start) {
-              // newSeq = newSeq.slice(0, start - seq.start).concat(sequence)
-              newSeq = seq.sequence.slice(0, start - seq.start).concat(newSeq)
-            }
-            if (seq.stop > stop) {
-              // newSeq = sequence.concat(newSeq.slice(stop - seq.start))
-              newSeq = newSeq.concat(seq.sequence.slice(stop - seq.start))
-            }
-            self.sequence.splice(i, 1, {
-              start: newStart,
-              stop: newStop,
-              sequence: newSeq,
-            })
-            found = true
-          }
-        }
-        if (!found) {
-          // not adjacent - add new item to array
-          self.sequence.push(seq)
-        }
+        return
       }
+      const newSequences: SequenceSnapshot[] = self.sequence.map((s) => ({
+        start: s.start,
+        stop: s.stop,
+        sequence: s.sequence,
+      }))
+      newSequences.push({
+        start: seq.start,
+        stop: seq.stop,
+        sequence: seq.sequence,
+      })
+      newSequences.sort((s1, s2) => s1.start - s2.start)
+      const consolidatedSequences = newSequences.reduce((result, current) => {
+        if (result.length === 0) {
+          return [current]
+        }
+        const lastRange = result[result.length - 1]
+        if (lastRange.stop >= current.start) {
+          if (current.stop > lastRange.stop) {
+            lastRange.stop = current.stop
+            lastRange.sequence += current.sequence.slice(
+              current.stop - lastRange.stop,
+            )
+          }
+        } else {
+          result.push(current)
+        }
+        return result
+      }, [] as SequenceSnapshot[])
+      if (
+        self.sequence.length === consolidatedSequences.length &&
+        self.sequence.every(
+          (s, idx) =>
+            s.start === consolidatedSequences[idx].start &&
+            s.stop === consolidatedSequences[idx].stop,
+        )
+      ) {
+        // sequences was unchanged
+        return
+      }
+      self.sequence.clear()
+      self.sequence.push(...consolidatedSequences)
     },
   }))
   .views((self) => ({
@@ -70,13 +86,11 @@ export const ApolloRefSeq = types
         sequence,
       } of self.sequence) {
         // adjacent to existing sequence - modify
-        if (start < seqStop && stop > seqStart) {
+        if (start <= seqStop && stop >= seqStart) {
           return sequence.slice(start - seqStart, stop - seqStart)
         }
       }
-      throw new Error(
-        `No sequence detected for ${start}, ${stop} of region ${self.name}`,
-      )
+      return ''
     },
   }))
 
