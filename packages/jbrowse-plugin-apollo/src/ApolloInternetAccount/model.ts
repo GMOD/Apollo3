@@ -20,6 +20,7 @@ import {
   ImportFeatures,
   ManageUsers,
 } from '../components'
+import { OpenLocalFile } from '../components/OpenLocalFile'
 import { ApolloSessionModel, Collaborator } from '../session'
 import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
@@ -377,6 +378,27 @@ const stateModelFactory = (
               },
             },
             2,
+          )
+          pluginManager.rootModel.insertInMenu(
+            'Apollo',
+            {
+              label: 'Open local GFF3 file',
+              onClick: (session: AbstractSessionModel) => {
+                session.queueDialog((doneCallback) => [
+                  OpenLocalFile,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                    },
+                    changeManager: (session as ApolloSessionModel)
+                      .apolloDataStore.changeManager,
+                    localFileDriver: (session as ApolloSessionModel).apolloDataStore.localFileDriver,
+                  },
+                ])
+              },
+            },
+            8,
           )
           pluginManager.rootModel.insertInMenu(
             'Apollo',
