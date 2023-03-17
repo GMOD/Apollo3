@@ -156,7 +156,6 @@ export class DeleteFeatureChange extends FeatureChange {
     throw new Error('executeOnLocalGFF3 not implemented')
   }
 
-
   async executeOnClient(dataStore: ClientDataStore) {
     if (!dataStore) {
       throw new Error('No data store')

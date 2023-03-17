@@ -152,9 +152,55 @@ export class CollaborationServerDriver extends BackendDriver {
     }
   }
 
-  async getSequence(region: Region) {
-    throw new Error('getSequence not yet implemented')
-    return ''
+  /**
+   * Call backend endpoint to get sequence by criteria
+   * @param region -  Searchable region containing refSeq, start and end
+   * @returns
+   */
+  async getSequence(region: Region): Promise<{ seq: string; refSeq: string }> {
+    const { assemblyName, refName, start, end } = region
+    const { assemblyManager } = getSession(this.clientStore)
+    const assembly = assemblyManager.get(assemblyName)
+    if (!assembly) {
+      throw new Error(`Could not find assembly with name "${assemblyName}"`)
+    }
+    const { ids } = getConf(assembly, ['sequence', 'metadata']) as {
+      ids: Record<string, string>
+    }
+    const refSeq = ids[refName]
+    if (!refSeq) {
+      throw new Error(`Could not find refSeq "${refName}"`)
+    }
+    const internetAccount = this.getInternetAccount(assemblyName)
+    const { baseURL } = internetAccount
+
+    const url = new URL('refSeqs/getSequence', baseURL)
+    const searchParams = new URLSearchParams({
+      refSeq,
+      start: String(start),
+      end: String(end),
+    })
+    url.search = searchParams.toString()
+    const uri = url.toString()
+
+    const response = await this.fetch(internetAccount, uri)
+    if (!response.ok) {
+      let errorMessage
+      try {
+        errorMessage = await response.text()
+      } catch (error) {
+        errorMessage = ''
+      }
+      throw new Error(
+        `getSequence failed: ${response.status} (${response.statusText})${
+          errorMessage ? ` (${errorMessage})` : ''
+        }`,
+      )
+    }
+    this.checkSocket(assemblyName, refName, internetAccount)
+    // const seq = (await response.text()) as string
+    // return seq as string
+    return { seq: await response.text(), refSeq }
   }
 
   async getRefSeqs() {

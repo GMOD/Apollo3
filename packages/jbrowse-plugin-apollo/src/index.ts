@@ -28,14 +28,26 @@ import {
   configSchema as apolloRendererConfigSchema,
 } from './ApolloRenderer'
 import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
+import {
+  ApolloSixFrameRenderer,
+  ReactComponent as ApolloSixFrameRendererReactComponent,
+  configSchema as apolloSixFrameRendererConfigSchema,
+} from './ApolloSixFrameRenderer'
 import { ViewChangeLog } from './components'
 import { DownloadGFF3 } from './components/DownloadGFF3'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
 } from './LinearApolloDisplay'
-import { makeDisplayComponent } from './makeDisplayComponent'
+import {
+  makeDisplayComponent,
+  makeSixFrameDisplayComponent,
+} from './makeDisplayComponent'
 import { extendSession } from './session'
+import {
+  stateModelFactory as SixFrameFeatureDisplayStateModelFactory,
+  configSchemaFactory as sixFrameFeatureDisplayConfigSchemaFactory,
+} from './SixFrameFeatureDisplay'
 
 Object.entries(changes).forEach(([changeName, change]) => {
   changeRegistry.registerChange(changeName, change)
@@ -97,12 +109,39 @@ export default class ApolloPlugin extends Plugin {
       })
     })
 
+    pluginManager.addDisplayType(() => {
+      const configSchema =
+        sixFrameFeatureDisplayConfigSchemaFactory(pluginManager)
+      const DisplayComponent = makeSixFrameDisplayComponent(pluginManager)
+      return new DisplayType({
+        name: 'SixFrameFeatureDisplay',
+        configSchema,
+        stateModel: SixFrameFeatureDisplayStateModelFactory(
+          pluginManager,
+          configSchema,
+        ),
+        trackType: 'ApolloTrack',
+        viewType: 'LinearGenomeView',
+        ReactComponent: DisplayComponent,
+      })
+    })
+
     pluginManager.addRendererType(
       () =>
         new ApolloRenderer({
           name: 'ApolloRenderer',
           ReactComponent: ApolloRendererReactComponent,
           configSchema: apolloRendererConfigSchema,
+          pluginManager,
+        }),
+    )
+
+    pluginManager.addRendererType(
+      () =>
+        new ApolloSixFrameRenderer({
+          name: 'ApolloSixFrameRenderer',
+          ReactComponent: ApolloSixFrameRendererReactComponent,
+          configSchema: apolloSixFrameRendererConfigSchema,
           pluginManager,
         }),
     )

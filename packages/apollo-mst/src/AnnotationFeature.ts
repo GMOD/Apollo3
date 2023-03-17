@@ -57,6 +57,9 @@ export const AnnotationFeature = types
     get length() {
       return self.end - self.start
     },
+    get featureId() {
+      return self.attributes.get('id')
+    },
     /**
      * Possibly different from `start` because "The GFF3 format does not enforce
      * a rule in which features must be wholly contained within the location of
