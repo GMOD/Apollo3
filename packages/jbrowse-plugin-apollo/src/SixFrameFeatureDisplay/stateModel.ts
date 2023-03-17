@@ -115,6 +115,14 @@ export function stateModelFactory(
                       newBlocks.push(block)
                     }
                   })
+                  session.apolloDataStore.loadFeatures(
+                    newBlocks.map(({ assemblyName, refName, start, end }) => ({
+                      assemblyName,
+                      refName,
+                      start,
+                      end,
+                    })),
+                  )
                   session.apolloDataStore.loadRefSeq(
                     newBlocks.map(({ assemblyName, refName, start, end }) => ({
                       assemblyName,

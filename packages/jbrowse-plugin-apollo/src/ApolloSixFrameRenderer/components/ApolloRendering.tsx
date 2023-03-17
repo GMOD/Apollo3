@@ -588,6 +588,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
                 changeManager,
                 sourceFeature: contextMenuFeature,
                 sourceAssemblyId: currentAssemblyId,
+                internetAccount: apolloInternetAccount,
               },
             ])
           }}
