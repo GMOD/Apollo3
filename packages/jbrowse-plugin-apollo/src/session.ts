@@ -57,7 +57,7 @@ interface ApolloAssemblyResponse {
   aliases?: string[]
 }
 
-interface ApolloRefSeqResponse {
+export interface ApolloRefSeqResponse {
   _id: string
   name: string
   description?: string

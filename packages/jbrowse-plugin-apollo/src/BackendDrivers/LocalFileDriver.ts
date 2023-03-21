@@ -1,17 +1,25 @@
 import { GFF3Feature } from '@gmod/gff'
-import { Region, getSession } from '@jbrowse/core/util'
+import { AppRootModel, Region } from '@jbrowse/core/util'
 import { AssemblySpecificChange, Change } from 'apollo-common'
+import { AnnotationFeatureI, AnnotationFeatureSnapshot } from 'apollo-mst'
 import { ValidationResultSet } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
+import { getRoot } from 'mobx-state-tree'
 
+import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { SubmitOpts } from '../ChangeManager'
+import { RefSeqInterface } from '../components/OpenLocalFile'
 import { ApolloSessionModel } from '../session'
 import { BackendDriver } from './BackendDriver'
 
+const featureHash: Record<string, AnnotationFeatureI[]> = {}
+
 export class LocalFileDriver extends BackendDriver {
   async getFeatures(region: Region) {
-    throw new Error('To be implemented')
-    return []
+    // throw new Error('To be implemented')
+    const getFeat = featureHash[region.assemblyName]
+    console.log(`**** FEATURES: ${JSON.stringify(getFeat)}`)
+    return getFeat as unknown as AnnotationFeatureSnapshot[]
   }
 
   async getSequence(region: Region) {
@@ -36,15 +44,19 @@ export class LocalFileDriver extends BackendDriver {
     features: GFF3Feature[],
     assembly: string,
     session: ApolloSessionModel,
+    refsArray: RefSeqInterface[],
   ) {
     const assemblyId = new ObjectID().toHexString()
+    console.log(`*** NEW ASSEMBLY ID: ${assemblyId}`)
 
-    const { apolloDataStore } = session
-    // const { assemblyManager } = getSession(this.clientStore)
-    // console.log(`assemblyManager: ${JSON.stringify(assemblyManager)}`)
-
+    const { internetAccounts } = getRoot(session) as AppRootModel
+    const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
+    const ids: Record<string, string> = {}
+    refsArray.forEach((element) => {
+      ids[element.refName] = element.aliases![0]
+    })
     const assemblyConfig = {
-      name: assembly,
+      name: assemblyId,
       aliases: [assembly],
       displayName: assembly,
       backendDriverType: 'LocalFileDriver',
@@ -54,33 +66,45 @@ export class LocalFileDriver extends BackendDriver {
         adapter: {
           type: 'ApolloSequenceAdapter',
           assemblyId,
-          baseURL: { uri: 'baseURL', locationType: 'UriLocation' },
+          baseURL: {
+            locationType: 'UriLocation',
+            uri: 'http://localhost:3999',
+          },
         },
-        // metadata: {
-        //   internetAccountConfigId:
-        //     internetAccount.configuration.internetAccountId,
-        //   ids,
-        // },
+        metadata: {
+          internetAccountConfigId:
+            internetAccount.configuration.internetAccountId,
+          ids,
+        },
       },
-      // refNameAliases: {
-      //   adapter: {
-      //     type: 'FromConfigAdapter',
-      //     features: refNameAliasesFeatures,
-      //   },
-      // },
+      refNameAliases: {
+        adapter: {
+          type: 'FromConfigAdapter',
+          features: refsArray,
+        },
+      },
     }
-    // await assemblyManager.addAssembly(assemblyConfig)
+    console.log(
+      `*** LOCALFILEDRIVER.TS: refNameAliasesFeatures: ${JSON.stringify(
+        refsArray,
+      )}`,
+    )
 
+    // Save assembly into session
     await session.addAssembly(assemblyConfig)
-    console.log(`SESSION: ${JSON.stringify(session.assemblies)}`)
+    console.log(`SESSION: ${JSON.stringify(session)}`)
+    console.log(`ASSEMBLIES IN SESSION: ${JSON.stringify(session.assemblies)}`)
 
-    // await apolloDataStore.addAssembly(assemblyConfig)
-    // console.log(`ASSEMBLIES: ${JSON.stringify(apolloDataStore.assemblies)}`)
+    const featuresWithId: AnnotationFeatureI[] = []
+    for (const f3 of features) {
+      const annotationFeature = f3 as unknown as AnnotationFeatureI
+      featuresWithId.push({
+        ...annotationFeature,
+        _id: new ObjectID().toHexString(),
+      })
+    }
 
-    // for (const f of features) {
-    //   const gff3Feature = f as GFF3Feature
-    //   console.log(`FEATURE=${JSON.stringify(gff3Feature)}`)
-    //   await session.addFeature(f)
-    // }
+    // Save features into local hash with _id
+    featureHash[assembly] = featuresWithId
   }
 }
