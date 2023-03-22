@@ -4,27 +4,28 @@ import { AssemblySpecificChange, Change } from 'apollo-common'
 import { AnnotationFeatureI, AnnotationFeatureSnapshot } from 'apollo-mst'
 import { ValidationResultSet } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
-import { getRoot } from 'mobx-state-tree'
+import { getRoot, getSnapshot } from 'mobx-state-tree'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { SubmitOpts } from '../ChangeManager'
-import { RefSeqInterface } from '../components/OpenLocalFile'
+import {
+  RefSeqInterface,
+  SequenceAdapterFeatureInterface,
+} from '../components/OpenLocalFile'
 import { ApolloSessionModel } from '../session'
 import { BackendDriver } from './BackendDriver'
 
 const featureHash: Record<string, AnnotationFeatureI[]> = {}
 
 export class LocalFileDriver extends BackendDriver {
-  async getFeatures(region: Region) {
-    // throw new Error('To be implemented')
+  async getFeatures(region: Region): Promise<AnnotationFeatureSnapshot[]> {
     const getFeat = featureHash[region.assemblyName]
-    console.log(`**** FEATURES: ${JSON.stringify(getFeat)}`)
-    return getFeat as unknown as AnnotationFeatureSnapshot[]
+    return getFeat.map((f) => getSnapshot(f) as AnnotationFeatureSnapshot)
   }
 
   async getSequence(region: Region) {
     throw new Error('To be implemented')
-    return ''
+    return { seq: '', refSeq: '' }
   }
 
   async getRefSeqs() {
@@ -45,16 +46,16 @@ export class LocalFileDriver extends BackendDriver {
     assembly: string,
     session: ApolloSessionModel,
     refsArray: RefSeqInterface[],
+    adapterFeatures: SequenceAdapterFeatureInterface[],
   ) {
     const assemblyId = new ObjectID().toHexString()
-    console.log(`*** NEW ASSEMBLY ID: ${assemblyId}`)
-
     const { internetAccounts } = getRoot(session) as AppRootModel
     const internetAccount = internetAccounts[0] as ApolloInternetAccountModel
     const ids: Record<string, string> = {}
     refsArray.forEach((element) => {
-      ids[element.refName] = element.aliases![0]
+      ;[ids[element.refName]] = element.aliases || []
     })
+
     const assemblyConfig = {
       name: assemblyId,
       aliases: [assembly],
@@ -64,12 +65,9 @@ export class LocalFileDriver extends BackendDriver {
         trackId: `sequenceConfigId-${assembly}`,
         type: 'ReferenceSequenceTrack',
         adapter: {
-          type: 'ApolloSequenceAdapter',
+          type: 'FromConfigSequenceAdapter',
           assemblyId,
-          baseURL: {
-            locationType: 'UriLocation',
-            uri: 'http://localhost:3999',
-          },
+          features: adapterFeatures,
         },
         metadata: {
           internetAccountConfigId:
@@ -84,16 +82,11 @@ export class LocalFileDriver extends BackendDriver {
         },
       },
     }
-    console.log(
-      `*** LOCALFILEDRIVER.TS: refNameAliasesFeatures: ${JSON.stringify(
-        refsArray,
-      )}`,
-    )
 
     // Save assembly into session
     await session.addAssembly(assemblyConfig)
-    console.log(`SESSION: ${JSON.stringify(session)}`)
-    console.log(`ASSEMBLIES IN SESSION: ${JSON.stringify(session.assemblies)}`)
+    const a = await session.assemblyManager.waitForAssembly(assemblyConfig.name)
+    session.addApolloTrackConfig(a)
 
     const featuresWithId: AnnotationFeatureI[] = []
     for (const f3 of features) {

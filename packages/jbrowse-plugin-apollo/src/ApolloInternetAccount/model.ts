@@ -393,7 +393,8 @@ const stateModelFactory = (
                     },
                     changeManager: (session as ApolloSessionModel)
                       .apolloDataStore.changeManager,
-                    localFileDriver: (session as ApolloSessionModel).apolloDataStore.localFileDriver,
+                    localFileDriver: (session as ApolloSessionModel)
+                      .apolloDataStore.localFileDriver,
                   },
                 ])
               },
