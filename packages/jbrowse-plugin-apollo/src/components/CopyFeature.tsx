@@ -9,6 +9,7 @@ import {
   MenuItem,
   Select,
   SelectChangeEvent,
+  TextField,
 } from '@mui/material'
 import { AnnotationFeatureI, AnnotationFeatureSnapshot } from 'apollo-mst'
 import { Feature } from 'apollo-schemas'
@@ -16,6 +17,7 @@ import { AddFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import { IKeyValueMap } from 'mobx'
 import { getRoot, getSnapshot } from 'mobx-state-tree'
+import { number } from 'prop-types'
 import React, { useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
@@ -56,6 +58,9 @@ export function CopyFeature({
   const [refNameCollection, setRefNameCollection] = useState<Collection[]>([])
   const [assemblyId, setAssemblyId] = useState('')
   const [refSeqId, setRefSeqId] = useState('')
+  const [start, setStart] = useState('')
+  const [targetMin, setTargetMin] = useState()
+  const [targetMax, setTargetMax] = useState()
   const [errorMessage, setErrorMessage] = useState('')
   const { notify } = session
 
@@ -68,7 +73,11 @@ export function CopyFeature({
 
       // Using allRefNames -property we get all reference sequence ids and names. However, all ids are listed first and then the names
       const allRefNames: string[] = await assemblyManager.get(assId).allRefNames
-      // console.log(`ALL REF NAMES: ${JSON.stringify(allRefNames)}, cnt=${allRefNames.length}`)
+      console.log(
+        `ALL REF NAMES: ${JSON.stringify(allRefNames)}, cnt=${
+          allRefNames.length
+        }, ${JSON.stringify(assemblyManager.get(assId))}`,
+      )
       const halfCount = allRefNames.length / 2
       for (let i = 0; i < halfCount; i++) {
         // console.log(`Id: "${allRefNames[i]}", name: "${allRefNames[i+halfCount]}"`)
@@ -80,6 +89,38 @@ export function CopyFeature({
           },
         ])
       }
+    }
+  }
+
+  async function handleChangeRefSeq(e: SelectChangeEvent<string>) {
+    const refSeq = e.target.value as string
+    setRefSeqId(refSeq)
+
+    const url = new URL('/features/getStartAndEnd', baseURL)
+    const searchParams = new URLSearchParams({
+      refSeq,
+    })
+    url.search = searchParams.toString()
+    const uri = url.toString()
+    const apolloFetch = apolloInternetAccount?.getFetcher({
+      locationType: 'UriLocation',
+      uri,
+    })
+    if (apolloFetch) {
+      const response = await apolloFetch(uri, {
+        method: 'GET',
+      })
+      if (!response.ok) {
+        const newErrorMessage = await createFetchErrorMessage(
+          response,
+          'Error when copying features',
+        )
+        setErrorMessage(newErrorMessage)
+        return
+      }
+      const data = await response.json()
+      setTargetMin(data.minStart)
+      setTargetMax(data.maxEnd)
     }
   }
 
@@ -126,7 +167,27 @@ export function CopyFeature({
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    console.log(`Source feature: "${JSON.stringify(sourceFeature)}"`)
+    console.log(`Min start: "${targetMin}"`)
+    console.log(`Max end: "${targetMax}"`)
+    console.log(`Given start: "${start}"`)
+    const featureLength =
+      Number(sourceFeature.end) - Number(sourceFeature.start)
+    console.log(`Feature lenght: ${featureLength}`)
+
+    if (Number(featureLength) + Number(start) > Number(targetMax!)) {
+      setErrorMessage(
+        `The selected feature length is ${featureLength} and then maximum start position in the selected target reference sequence is ${
+          targetMax! - featureLength
+        }.`,
+      )
+      return
+    }
+    if (Number(start) < Number(targetMin!)) {
+      setErrorMessage(
+        `The selected target reference sequence starts at ${targetMin!}`,
+      )
+      return
+    }
 
     const featureIds: string[] = []
     // Let's add featureId to each child recursively
@@ -142,6 +203,13 @@ export function CopyFeature({
       delete attributeMap.Parent
     }
 
+    const locationMove = Number(start) - newFeatureLine.start
+    console.log(`Location move: ${locationMove}`)
+    newFeatureLine.start = Number(start)
+    newFeatureLine.end = Number(start) + featureLength
+    // Updates children start and end positions accordingly
+    const updatedChildren = updateStartAndEnd(newFeatureLine, locationMove)
+
     const change = new AddFeatureChange({
       changedIds: [newFeatureLine._id],
       typeName: 'AddFeatureChange',
@@ -149,10 +217,10 @@ export function CopyFeature({
       addedFeature: {
         _id: newFeatureLine._id,
         refSeq: refSeqId,
-        start: Number(newFeatureLine.start),
-        end: Number(newFeatureLine.end),
+        start: newFeatureLine.start,
+        end: newFeatureLine.end,
         type: newFeatureLine.type,
-        children: newFeatureLine.children as unknown as Record<
+        children: updatedChildren.children as unknown as Record<
           string,
           AnnotationFeatureSnapshot
         >,
@@ -172,6 +240,42 @@ export function CopyFeature({
     event.preventDefault()
   }
 
+  /**
+   * Recursively loop children and update start and end positions
+   * @param feature - parent feature
+   * @param locationMove - how much location has been moved from original
+   * @returns
+   */
+  function updateStartAndEnd(
+    feature: Feature | AnnotationFeatureSnapshot,
+    locationMove: number,
+  ): AnnotationFeatureSnapshot {
+    const children: Record<string, AnnotationFeatureSnapshot> = {}
+    if (feature.children) {
+      Object.values(feature.children).forEach((child) => {
+        const newChild = updateStartAndEnd(child, locationMove)
+        newChild.start = newChild.start + locationMove
+        newChild.end = newChild.end + locationMove
+        children[newChild._id] = newChild
+      })
+    }
+    const refSeq =
+      typeof feature.refSeq === 'string'
+        ? feature.refSeq
+        : (feature.refSeq as unknown as ObjectID).toHexString()
+
+    const id =
+      typeof feature._id === 'string'
+        ? feature._id
+        : (feature._id as unknown as ObjectID).toHexString()
+
+    return {
+      ...feature,
+      refSeq,
+      children: feature.children && children,
+      _id: id,
+    }
+  }
   /**
    * Recursively assign new IDs to a feature
    * @param feature - Parent feature
@@ -212,6 +316,7 @@ export function CopyFeature({
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText>Target assembly</DialogContentText>
           <Select
+            autoFocus
             labelId="label"
             value={assemblyId}
             onChange={handleChangeAssembly}
@@ -226,9 +331,7 @@ export function CopyFeature({
           <Select
             labelId="label"
             value={refSeqId}
-            onChange={(e) => {
-              setRefSeqId(e.target.value)
-            }}
+            onChange={handleChangeRefSeq}
           >
             {refNameCollection.map((option) => (
               <MenuItem key={option._id} value={option._id}>
@@ -236,10 +339,26 @@ export function CopyFeature({
               </MenuItem>
             ))}
           </Select>
+          <DialogContentText>
+            Start position in target reference sequence
+          </DialogContentText>
+          <TextField
+            margin="dense"
+            id="name"
+            // label="Start position"
+            type="number"
+            fullWidth
+            variant="outlined"
+            onChange={(e) => {
+              // setSubmitted(false)
+              setStart(e.target.value)
+            }}
+            // disabled={submitted && !errorMessage}
+          />
         </DialogContent>
         <DialogActions>
           <Button
-            disabled={!assemblyId || !refSeqId}
+            disabled={!assemblyId || !refSeqId || !start}
             variant="contained"
             type="submit"
           >
