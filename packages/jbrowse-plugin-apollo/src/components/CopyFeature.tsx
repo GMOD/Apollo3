@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
 import {
   Button,
@@ -17,7 +18,6 @@ import { AddFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import { IKeyValueMap } from 'mobx'
 import { getRoot, getSnapshot } from 'mobx-state-tree'
-import { number } from 'prop-types'
 import React, { useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
@@ -73,11 +73,11 @@ export function CopyFeature({
 
       // Using allRefNames -property we get all reference sequence ids and names. However, all ids are listed first and then the names
       const allRefNames: string[] = await assemblyManager.get(assId).allRefNames
-      console.log(
-        `ALL REF NAMES: ${JSON.stringify(allRefNames)}, cnt=${
-          allRefNames.length
-        }, ${JSON.stringify(assemblyManager.get(assId))}`,
-      )
+      // console.log(
+      //   `ALL REF NAMES: ${JSON.stringify(allRefNames)}, cnt=${
+      //     allRefNames.length
+      //   }, ${JSON.stringify(assemblyManager.get(assId))}`,
+      // )
       const halfCount = allRefNames.length / 2
       for (let i = 0; i < halfCount; i++) {
         // console.log(`Id: "${allRefNames[i]}", name: "${allRefNames[i+halfCount]}"`)
@@ -167,12 +167,12 @@ export function CopyFeature({
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    console.log(`Min start: "${targetMin}"`)
-    console.log(`Max end: "${targetMax}"`)
-    console.log(`Given start: "${start}"`)
+    // console.log(`Min start: "${targetMin}"`)
+    // console.log(`Max end: "${targetMax}"`)
+    // console.log(`Given start: "${start}"`)
     const featureLength =
       Number(sourceFeature.end) - Number(sourceFeature.start)
-    console.log(`Feature lenght: ${featureLength}`)
+    // console.log(`Feature lenght: ${featureLength}`)
 
     if (Number(featureLength) + Number(start) > Number(targetMax!)) {
       setErrorMessage(
@@ -204,7 +204,7 @@ export function CopyFeature({
     }
 
     const locationMove = Number(start) - newFeatureLine.start
-    console.log(`Location move: ${locationMove}`)
+    // console.log(`Location move: ${locationMove}`)
     newFeatureLine.start = Number(start)
     newFeatureLine.end = Number(start) + featureLength
     // Updates children start and end positions accordingly
