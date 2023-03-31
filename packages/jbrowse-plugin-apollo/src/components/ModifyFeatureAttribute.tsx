@@ -1,23 +1,31 @@
-import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import { AbstractSessionModel, useDebounce } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
+  Autocomplete,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
   Grid,
   IconButton,
+  Paper,
+  Radio,
+  RadioGroup,
   TextField,
 } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { FeatureAttributeChange } from 'apollo-shared'
-import { getRoot, getSnapshot } from 'mobx-state-tree'
-import React, { useState } from 'react'
+import { getSnapshot } from 'mobx-state-tree'
+import React, { useEffect, useState } from 'react'
+import { makeStyles } from 'tss-react/mui'
 
-import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
+import { Stores, getDataByID } from './db'
 
 interface ModifyFeatureAttributeProps {
   session: AbstractSessionModel
@@ -27,6 +35,19 @@ interface ModifyFeatureAttributeProps {
   changeManager: ChangeManager
 }
 
+const useStyles = makeStyles()((theme) => ({
+  attributeInput: {
+    maxWidth: 600,
+  },
+  newAttributePaper: {
+    padding: theme.spacing(2),
+  },
+}))
+
+export interface GOTerm {
+  id: string
+  label: string
+}
 export function ModifyFeatureAttribute({
   session,
   handleClose,
@@ -34,15 +55,11 @@ export function ModifyFeatureAttribute({
   sourceAssemblyId,
   changeManager,
 }: ModifyFeatureAttributeProps) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
   const { notify } = session
-  const apolloInternetAccount = internetAccounts.find(
-    (ia) => ia.type === 'ApolloInternetAccount',
-  ) as ApolloInternetAccountModel | undefined
-  if (!apolloInternetAccount) {
-    throw new Error('No Apollo internet account found')
-  }
+  const [goTerms, setGOTerms] = useState<GOTerm[]>([])
+  const [goAttribute, setGoAttribute] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [showKey, setShowKey] = useState(true)
   const [attributes, setAttributes] = useState<Record<string, string[]>>(
     Object.fromEntries(
       Array.from(sourceFeature.attributes.entries()).map(([key, value]) => [
@@ -54,6 +71,7 @@ export function ModifyFeatureAttribute({
   const [showAddNewForm, setShowAddNewForm] = useState(false)
   const [newAttributeKey, setNewAttributeKey] = useState('')
   const [newAttributeValue, setNewAttributeValue] = useState('')
+  const { classes } = useStyles()
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -80,22 +98,72 @@ export function ModifyFeatureAttribute({
   }
 
   function handleAddNewAttributeChange() {
+    setErrorMessage('')
+    if (newAttributeKey.trim().length < 1) {
+      setErrorMessage(`Attribute key is mandatory`)
+      return
+    }
     if (newAttributeKey in attributes) {
       setErrorMessage(`Attribute "${newAttributeKey}" already exists`)
     } else {
-      setErrorMessage('')
       setAttributes({
         ...attributes,
         [newAttributeKey]: newAttributeValue.split(','),
       })
       setShowAddNewForm(false)
+      setGoAttribute(false)
+      setShowKey(true)
     }
   }
+
   function deleteAttribute(key: string) {
     setErrorMessage('')
     const { [key]: remove, ...rest } = attributes
     setAttributes(rest)
   }
+
+  const [goInput, setGoInput] = useState('')
+  function handleGOInputChange(_event: unknown, value: string) {
+    setGoInput(value)
+  }
+  const handleGOValueChange = (_event: unknown, newValue: GOTerm[]) => {
+    if (newValue.length) {
+      setNewAttributeValue(newValue.map((gt) => gt.id).join(','))
+    } else {
+      setNewAttributeValue('')
+    }
+  }
+  const debouncedGoInput = useDebounce(goInput, 300)
+  useEffect(() => {
+    async function fetchGoTerms() {
+      const gt = await getDataByID(Stores.GOTerms, debouncedGoInput)
+      setGOTerms(gt)
+    }
+    fetchGoTerms()
+  }, [debouncedGoInput])
+
+  function handleRadioButtonChange(
+    event: React.ChangeEvent<HTMLInputElement>,
+    value: string,
+  ) {
+    switch (value) {
+      case 'custom':
+        setShowKey(true)
+        if (newAttributeKey === 'GO') {
+          setNewAttributeKey('')
+        }
+        setGoAttribute(false)
+        break
+      case 'GO':
+        setShowKey(false)
+        setNewAttributeKey('GO')
+        setGoAttribute(true)
+        break
+      default:
+        setErrorMessage('Unknown attribute source')
+    }
+  }
+
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Feature attributes</DialogTitle>
@@ -129,31 +197,104 @@ export function ModifyFeatureAttribute({
               </Grid>
             )
           })}
-
           {showAddNewForm ? (
-            <DialogContent style={{ border: '5px solid rgba(0, 0, 0, 0.05)' }}>
-              <TextField
-                autoFocus
-                margin="dense"
-                label="Attribute key"
-                type="text"
-                fullWidth
-                variant="outlined"
-                onChange={(e) => {
-                  setNewAttributeKey(e.target.value)
-                }}
-              />
-              <TextField
-                margin="dense"
-                label="Attribute value"
-                type="text"
-                fullWidth
-                variant="outlined"
-                onChange={(e) => {
-                  setNewAttributeValue(e.target.value)
-                }}
-              />
-            </DialogContent>
+            <Paper elevation={8} className={classes.newAttributePaper}>
+              <Grid container direction="column">
+                <Grid container>
+                  <Grid item>
+                    <FormControl>
+                      <FormLabel id="attribute-radio-button-group">
+                        Attribute source
+                      </FormLabel>
+                      <RadioGroup
+                        aria-labelledby="demo-radio-buttons-group-label"
+                        defaultValue="custom"
+                        name="radio-buttons-group"
+                        onChange={handleRadioButtonChange}
+                      >
+                        <FormControlLabel
+                          value="custom"
+                          control={<Radio />}
+                          label="Custom"
+                        />
+                        <FormControlLabel
+                          value="GO"
+                          control={<Radio />}
+                          label="Gene Ontology"
+                        />
+                        <FormControlLabel
+                          value="SO"
+                          disabled
+                          control={<Radio />}
+                          label="Sequence Ontology"
+                        />
+                      </RadioGroup>
+                    </FormControl>
+                  </Grid>
+                </Grid>
+                <Grid item>
+                  {showKey ? (
+                    <TextField
+                      autoFocus
+                      margin="dense"
+                      label="Attribute key"
+                      type="text"
+                      fullWidth
+                      variant="outlined"
+                      onChange={(e) => {
+                        setNewAttributeKey(e.target.value)
+                      }}
+                      className={classes.attributeInput}
+                    />
+                  ) : null}
+                </Grid>
+                <Grid item>
+                  {goAttribute ? (
+                    <Autocomplete
+                      id="combo-box-demo"
+                      filterSelectedOptions
+                      options={goTerms}
+                      getOptionLabel={(option) => option.id}
+                      renderOption={(props, option: GOTerm) => (
+                        <li {...props}>
+                          {option.id}&nbsp;&nbsp;&nbsp;{option.label}
+                        </li>
+                      )}
+                      onInputChange={handleGOInputChange}
+                      multiple
+                      isOptionEqualToValue={(option: GOTerm, value: GOTerm) => {
+                        return option.id === value.id
+                      }}
+                      filterOptions={(x) => x}
+                      onChange={handleGOValueChange}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          margin="dense"
+                          type="text"
+                          variant="outlined"
+                          label="GO term"
+                          placeholder="Enter search string"
+                          className={classes.attributeInput}
+                        />
+                      )}
+                    />
+                  ) : (
+                    <TextField
+                      margin="dense"
+                      label="Attribute value"
+                      type="text"
+                      fullWidth
+                      variant="outlined"
+                      onChange={(e) => {
+                        setNewAttributeValue(e.target.value)
+                      }}
+                      className={classes.attributeInput}
+                    />
+                  )}
+                </Grid>
+              </Grid>
+            </Paper>
           ) : null}
           {showAddNewForm ? (
             <DialogActions>
@@ -163,6 +304,7 @@ export function ModifyFeatureAttribute({
                 variant="contained"
                 style={{ margin: 2 }}
                 onClick={handleAddNewAttributeChange}
+                disabled={!(newAttributeKey && newAttributeValue)}
               >
                 Add
               </Button>
@@ -180,7 +322,6 @@ export function ModifyFeatureAttribute({
             </DialogActions>
           ) : null}
         </DialogContent>
-
         <DialogActions>
           <Button
             color="primary"
@@ -188,6 +329,8 @@ export function ModifyFeatureAttribute({
             disabled={showAddNewForm}
             onClick={() => {
               setShowAddNewForm(true)
+              setGoAttribute(false)
+              setShowKey(true)
             }}
           >
             Add new
@@ -209,12 +352,12 @@ export function ModifyFeatureAttribute({
         </DialogActions>
       </form>
       <DialogContent>
-        <DialogContentText>
-          Separate multiple value for the attribute with a comma
-        </DialogContentText>
         {errorMessage ? (
           <DialogContentText color="error">{errorMessage}</DialogContentText>
         ) : null}
+        <DialogContentText>
+          Separate multiple value for the attribute with a comma
+        </DialogContentText>
       </DialogContent>
     </Dialog>
   )
