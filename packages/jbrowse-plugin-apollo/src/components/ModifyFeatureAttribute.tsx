@@ -12,6 +12,7 @@ import {
   FormControlLabel,
   Grid,
   IconButton,
+  SelectChangeEvent,
   TextField,
 } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
@@ -59,7 +60,7 @@ export function ModifyFeatureAttribute({
   const [goTerm, setGOTerms] = useState<GOTerm[]>([])
   const [goAttribute, setGoAttribute] = useState(false)
   const [freeKeyAttribute, setFreeKeyAttribute] = useState(true)
-  const [selectedGoValue, setSelectedGoValue] = useState('')
+  // const [selectedGoValue, setSelectedGoValue] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [attributes, setAttributes] = useState<Record<string, string[]>>(
     Object.fromEntries(
@@ -130,6 +131,10 @@ export function ModifyFeatureAttribute({
   }
 
   function handleAddNewAttributeChange() {
+    if (newAttributeKey.trim().length < 1) {
+      setErrorMessage(`Attribute key is mandatory`)
+      return
+    }
     if (newAttributeKey in attributes) {
       setErrorMessage(`Attribute "${newAttributeKey}" already exists`)
     } else {
@@ -140,17 +145,24 @@ export function ModifyFeatureAttribute({
       })
       setShowAddNewForm(false)
     }
+    console.log(`FREE-KEY: "${freeKeyAttribute}"`)
     console.log(`KEY: "${newAttributeKey}"`)
-    console.log(`GO-ARVO: "${selectedGoValue}"`)
+    // console.log(`GO-ARVO: "${selectedGoValue}"`)
     console.log(`MUU-ARVO: "${newAttributeValue}"`)
+
+    if (!freeKeyAttribute && !goAttribute) {
+      console.log('**** PITAA TARKASTAA ID JA DB *******')
+    }
   }
   function deleteAttribute(key: string) {
     setErrorMessage('')
     const { [key]: remove, ...rest } = attributes
     setAttributes(rest)
   }
-  // function handleChangeAttributeType(e: SelectChangeEvent<string>) {
-  //   setAssemblyId(e.target.value as string)
+  // function setNewValue(value: string) {
+  //   // (event, value) => setNewAttributeValue(value!.toString())
+  //   console.log(`NEW VALUE: ${value}`)
+  //   // setAssemblyId(e.target.value as string)
   // }
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
@@ -191,7 +203,10 @@ export function ModifyFeatureAttribute({
                 control={
                   <Checkbox
                     checked={goAttribute}
-                    onChange={() => setGoAttribute(!goAttribute)}
+                    onChange={() => {
+                      setGoAttribute(!goAttribute)
+                      setNewAttributeValue('')
+                    }}
                   />
                 }
                 label="Add new gene ontology attribute"
@@ -200,7 +215,10 @@ export function ModifyFeatureAttribute({
                 control={
                   <Checkbox
                     checked={freeKeyAttribute}
-                    onChange={() => setFreeKeyAttribute(!freeKeyAttribute)}
+                    onChange={() => {
+                      setFreeKeyAttribute(!freeKeyAttribute)
+                      setNewAttributeKey('')
+                    }}
                   />
                 }
                 label="Attribute key is free text"
@@ -245,9 +263,10 @@ export function ModifyFeatureAttribute({
                 <Autocomplete
                   id="free-solo-demo"
                   multiple={true}
-                  // freeSolo
                   options={goTerm.map((option) => option.id)}
-                  // onChange={(event, value) => setNewAttributeValue(value!)}
+                  onChange={(event, value) =>
+                    setNewAttributeValue(value!.toString())
+                  }
                   renderInput={(params) => (
                     <TextField {...params} label="Select GO term" />
                   )}
@@ -263,6 +282,7 @@ export function ModifyFeatureAttribute({
                 variant="contained"
                 style={{ margin: 2 }}
                 onClick={handleAddNewAttributeChange}
+                disabled={!(newAttributeKey && newAttributeValue)}
               >
                 Add
               </Button>
