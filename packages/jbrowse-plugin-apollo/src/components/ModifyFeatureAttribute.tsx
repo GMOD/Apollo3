@@ -1,12 +1,15 @@
 import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
+  Autocomplete,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControlLabel,
   Grid,
   IconButton,
   TextField,
@@ -14,7 +17,7 @@ import {
 import { AnnotationFeatureI } from 'apollo-mst'
 import { FeatureAttributeChange } from 'apollo-shared'
 import { getRoot, getSnapshot } from 'mobx-state-tree'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
@@ -27,6 +30,16 @@ interface ModifyFeatureAttributeProps {
   changeManager: ChangeManager
 }
 
+// Reserved attribute keys
+const reservedKeys = [
+  { key: 'Ontology_term', id: 1 },
+  { key: 'Dbxref', id: 2 },
+]
+
+interface GOTerm {
+  id: string
+  label: string
+}
 export function ModifyFeatureAttribute({
   session,
   handleClose,
@@ -42,6 +55,11 @@ export function ModifyFeatureAttribute({
   if (!apolloInternetAccount) {
     throw new Error('No Apollo internet account found')
   }
+  const { baseURL } = apolloInternetAccount
+  const [goTerm, setGOTerms] = useState<GOTerm[]>([])
+  const [goAttribute, setGoAttribute] = useState(false)
+  const [freeKeyAttribute, setFreeKeyAttribute] = useState(true)
+  const [selectedGoValue, setSelectedGoValue] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [attributes, setAttributes] = useState<Record<string, string[]>>(
     Object.fromEntries(
@@ -54,6 +72,38 @@ export function ModifyFeatureAttribute({
   const [showAddNewForm, setShowAddNewForm] = useState(false)
   const [newAttributeKey, setNewAttributeKey] = useState('')
   const [newAttributeValue, setNewAttributeValue] = useState('')
+  useEffect(() => {
+    async function getGOTerms() {
+      const uri = new URL('/ontologies/go/findall', baseURL).href
+      const apolloFetch = apolloInternetAccount?.getFetcher({
+        locationType: 'UriLocation',
+        uri,
+      })
+      if (apolloFetch) {
+        const response = await apolloFetch(uri, {
+          method: 'GET',
+        })
+        if (!response.ok) {
+          setErrorMessage('Error when fetching GO terms from server')
+          return
+        }
+        const data = await response.json()
+        data.forEach((item: GOTerm) => {
+          setGOTerms((result) => [
+            ...result,
+            {
+              id: item.id,
+              label: item.label,
+            },
+          ])
+        })
+      }
+    }
+    getGOTerms()
+    return () => {
+      setGOTerms([{ id: '', label: '' }])
+    }
+  }, [])
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -90,12 +140,18 @@ export function ModifyFeatureAttribute({
       })
       setShowAddNewForm(false)
     }
+    console.log(`KEY: "${newAttributeKey}"`)
+    console.log(`GO-ARVO: "${selectedGoValue}"`)
+    console.log(`MUU-ARVO: "${newAttributeValue}"`)
   }
   function deleteAttribute(key: string) {
     setErrorMessage('')
     const { [key]: remove, ...rest } = attributes
     setAttributes(rest)
   }
+  // function handleChangeAttributeType(e: SelectChangeEvent<string>) {
+  //   setAssemblyId(e.target.value as string)
+  // }
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Feature attributes</DialogTitle>
@@ -129,30 +185,74 @@ export function ModifyFeatureAttribute({
               </Grid>
             )
           })}
-
           {showAddNewForm ? (
             <DialogContent style={{ border: '5px solid rgba(0, 0, 0, 0.05)' }}>
-              <TextField
-                autoFocus
-                margin="dense"
-                label="Attribute key"
-                type="text"
-                fullWidth
-                variant="outlined"
-                onChange={(e) => {
-                  setNewAttributeKey(e.target.value)
-                }}
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={goAttribute}
+                    onChange={() => setGoAttribute(!goAttribute)}
+                  />
+                }
+                label="Add new gene ontology attribute"
               />
-              <TextField
-                margin="dense"
-                label="Attribute value"
-                type="text"
-                fullWidth
-                variant="outlined"
-                onChange={(e) => {
-                  setNewAttributeValue(e.target.value)
-                }}
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={freeKeyAttribute}
+                    onChange={() => setFreeKeyAttribute(!freeKeyAttribute)}
+                  />
+                }
+                label="Attribute key is free text"
               />
+              {!freeKeyAttribute ? (
+                <Autocomplete
+                  id="free-solo-demo2"
+                  // freeSolo
+                  options={reservedKeys.map((option) => option.key)}
+                  onChange={(event, value) => setNewAttributeKey(value!)}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Select key" />
+                  )}
+                />
+              ) : null}
+              {freeKeyAttribute ? (
+                <TextField
+                  autoFocus
+                  margin="dense"
+                  label="Attribute key"
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  onChange={(e) => {
+                    setNewAttributeKey(e.target.value)
+                  }}
+                />
+              ) : null}
+              {!goAttribute ? (
+                <TextField
+                  margin="dense"
+                  label="Attribute value"
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  onChange={(e) => {
+                    setNewAttributeValue(e.target.value)
+                  }}
+                />
+              ) : null}
+              {goAttribute ? (
+                <Autocomplete
+                  id="free-solo-demo"
+                  multiple={true}
+                  // freeSolo
+                  options={goTerm.map((option) => option.id)}
+                  // onChange={(event, value) => setNewAttributeValue(value!)}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Select GO term" />
+                  )}
+                />
+              ) : null}
             </DialogContent>
           ) : null}
           {showAddNewForm ? (
