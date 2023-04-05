@@ -38,10 +38,22 @@ export class OntologiesController {
    */
   @Get('/go/findAll')
   goFindAll() {
-    this.logger.debug(`Get all possible GO terms`)
+    this.logger.debug(`**** Get all possible GO terms`)
 
     return this.ontologiesService.goFindAll()
-    // return this.ontologiesService.getDescendants(featureType)
+  }
+
+  /**
+   * Get children's allowed feature types by parent type. Data is retrieved from OBO JSON file
+   * @param parentType - feature's parent type
+   * @returns Return 'HttpStatus.OK' and the allowed children feature types if search was successful
+   * or if search data was not found or in case of error throw exception
+   */
+  @Get('/go/findByStr/:str')
+  goFindByStr(@Param('str') str: string) {
+    this.logger.debug(`Get all possible GO terms for "${str}"`)
+
+    return this.ontologiesService.goFindByStr(str.toUpperCase())
   }
 
   /**

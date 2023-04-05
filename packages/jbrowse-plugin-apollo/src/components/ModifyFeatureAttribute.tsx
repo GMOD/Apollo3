@@ -4,6 +4,7 @@ import {
   Autocomplete,
   Button,
   Checkbox,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -12,16 +13,18 @@ import {
   FormControlLabel,
   Grid,
   IconButton,
-  SelectChangeEvent,
   TextField,
 } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { FeatureAttributeChange } from 'apollo-shared'
 import { getRoot, getSnapshot } from 'mobx-state-tree'
-import React, { useEffect, useState } from 'react'
+import { any } from 'prop-types'
+import React, { useEffect, useRef, useState } from 'react'
+import { never } from 'rxjs'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
+import { Stores, addData, addDataV2, addDataV3 } from './db'
 
 interface ModifyFeatureAttributeProps {
   session: AbstractSessionModel
@@ -37,7 +40,7 @@ const reservedKeys = [
   { key: 'Dbxref', id: 2 },
 ]
 
-interface GOTerm {
+export interface GOTerm {
   id: string
   label: string
 }
@@ -88,24 +91,55 @@ export function ModifyFeatureAttribute({
           setErrorMessage('Error when fetching GO terms from server')
           return
         }
+        // OBOE json parser
         const data = await response.json()
-        data.forEach((item: GOTerm) => {
-          setGOTerms((result) => [
-            ...result,
-            {
-              id: item.id,
-              label: item.label,
-            },
-          ])
-        })
+        // const tmpData: GOTerm[] = []
+        // data.forEach(async (item: GOTerm) => {
+        //   // console.log(`ID: ${item.id}`)
+        //   // setGOTerms((result) => [
+        //   //   ...result,
+        //   //   {
+        //   //     id: item.id,
+        //   //     label: item.label,
+        //   //   },
+        //   // ])
+        //   // tmpData.push({ id: item.id, label: item.label })
+        // })
+        const tmpData = data.map((goTermItm: GOTerm) => ({id: goTermItm.id, label: goTermItm.label}))
+        console.log(`len : ${tmpData.length}`)
+        addDataV2(Stores.GOTerms, tmpData)
       }
     }
     getGOTerms()
     return () => {
       setGOTerms([{ id: '', label: '' }])
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  async function addDataToIndexedDb(goId: string, description: string) {
+    // const goId = target.name.value
+    // const description = target.email.value
+    // we must pass an Id since it's our primary key declared in our createObjectStoreMethod  { keyPath: 'id' }
+    const id = Date.now()
+
+    // if (name.trim() === '' || email.trim() === '') {
+    //   alert('Please enter a valid name and email')
+    //   return
+    // }
+
+    try {
+      const res = await addData(Stores.Users, { goId, description, id })
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        //   setError(err.message)
+        console.log(`ERROR: ${err.message}`)
+      } else {
+        console.log(`ERROR: Something went wrong`)
+        // setError('Something went wrong')
+      }
+    }
+  }
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
@@ -131,27 +165,30 @@ export function ModifyFeatureAttribute({
   }
 
   function handleAddNewAttributeChange() {
+    setErrorMessage('')
     if (newAttributeKey.trim().length < 1) {
       setErrorMessage(`Attribute key is mandatory`)
       return
     }
+    if (!freeKeyAttribute && !goAttribute) {
+      // Check that value contains "DBTAG:ID"
+      if (!newAttributeValue.includes(':')) {
+        console.log('*** SHOW ERROR MESSAGE ***')
+        setErrorMessage(
+          `If GO key is "Ontology_term" or "Dbxref" then attribute value must have "DBTAG:ID" -format!`,
+        )
+        return
+      }
+    }
+
     if (newAttributeKey in attributes) {
       setErrorMessage(`Attribute "${newAttributeKey}" already exists`)
     } else {
-      setErrorMessage('')
       setAttributes({
         ...attributes,
         [newAttributeKey]: newAttributeValue.split(','),
       })
       setShowAddNewForm(false)
-    }
-    console.log(`FREE-KEY: "${freeKeyAttribute}"`)
-    console.log(`KEY: "${newAttributeKey}"`)
-    // console.log(`GO-ARVO: "${selectedGoValue}"`)
-    console.log(`MUU-ARVO: "${newAttributeValue}"`)
-
-    if (!freeKeyAttribute && !goAttribute) {
-      console.log('**** PITAA TARKASTAA ID JA DB *******')
     }
   }
   function deleteAttribute(key: string) {
@@ -159,11 +196,42 @@ export function ModifyFeatureAttribute({
     const { [key]: remove, ...rest } = attributes
     setAttributes(rest)
   }
-  // function setNewValue(value: string) {
-  //   // (event, value) => setNewAttributeValue(value!.toString())
-  //   console.log(`NEW VALUE: ${value}`)
-  //   // setAssemblyId(e.target.value as string)
-  // }
+
+  //* ****** ALKAA TASTA */
+  const onInputChange = async (event: any, value: any, reason: any) => {
+    if (value.length > 2) {
+      setGOTerms([{ id: '', label: '' }])
+      await fetchGOcodes(value)
+    }
+  }
+
+  const fetchGOcodes = async (value: string) => {
+    const uri = new URL(`/ontologies/go/findByStr/${value}`, baseURL).href
+    const apolloFetch = apolloInternetAccount?.getFetcher({
+      locationType: 'UriLocation',
+      uri,
+    })
+    if (apolloFetch) {
+      const response = await apolloFetch(uri, {
+        method: 'GET',
+      })
+      if (!response.ok) {
+        setErrorMessage('Error when fetching GO terms from server')
+        return
+      }
+      const data = await response.json()
+      data.forEach((item: GOTerm) => {
+        setGOTerms((result) => [
+          ...result,
+          {
+            id: item.id,
+            label: item.label,
+          },
+        ])
+      })
+    }
+  }
+
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Feature attributes</DialogTitle>
@@ -223,11 +291,27 @@ export function ModifyFeatureAttribute({
                 }
                 label="Attribute key is free text"
               />
+              <Autocomplete
+                id="combo-box-demo"
+                options={goTerm.map(
+                  (option) => `${option.id} - ${option.label}`,
+                )}
+                onInputChange={onInputChange}
+                multiple={true}
+                isOptionEqualToValue={(option, value) => option === value}
+                // getOptionLabel={(option) => option.id}
+                // getOptionLabel={(option) => option}
+                // getOptionLabel={(goTerm) => goTerm.label}
+                style={{ width: 300 }}
+                renderInput={(params) => (
+                  <TextField {...params} label="Combo box" variant="outlined" />
+                )}
+              />
               {!freeKeyAttribute ? (
                 <Autocomplete
                   id="free-solo-demo2"
-                  // freeSolo
                   options={reservedKeys.map((option) => option.key)}
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                   onChange={(event, value) => setNewAttributeKey(value!)}
                   renderInput={(params) => (
                     <TextField {...params} label="Select key" />
@@ -265,6 +349,7 @@ export function ModifyFeatureAttribute({
                   multiple={true}
                   options={goTerm.map((option) => option.id)}
                   onChange={(event, value) =>
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     setNewAttributeValue(value!.toString())
                   }
                   renderInput={(params) => (

@@ -5,8 +5,6 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { OboJson } from 'apollo-common'
 import { GetOntologyTermsOperation } from 'apollo-shared'
-import { string } from 'joi'
-import { startWith } from 'rxjs'
 
 import { OperationsService } from '../operations/operations.service'
 
@@ -46,7 +44,7 @@ export class OntologiesService {
     })
   }
 
-  goFindAll() {
+  goFindByStr(str: string) {
     const ontologyFile = path.join('..', '..', 'data', 'go.json')
     // const goTerms: Record<string, string> = {}
     const goTermsArray: { id: string; label: string }[] = []
@@ -55,8 +53,44 @@ export class OntologiesService {
       const ontologyText = fs.readFileSync(ontologyLocation, 'utf8')
       const ontologyJson = JSON.parse(ontologyText) as OboJson
       const ontology: OboJson = ontologyJson
-      // *********** TODO: NOW WE GET ONLY THE FIRST 200 TERMS
-      let dummyCount=0
+      // *********** TODO: NOW WE GET ONLY THE FIRST 50 TERMS
+      let dummyCount = 0
+      // Iterate over the nodes and edges in the JSON file
+      for (const node of ontology.graphs[0].nodes) {
+        if (node.id.startsWith('http://purl.obolibrary.org/obo/GO_')) {
+          const lab = node.lbl || 'na'
+          const idCode = (node.id as string).toUpperCase()
+          if (idCode.indexOf(str) >= 0 || lab.toUpperCase().indexOf(str) >= 0) {
+            goTermsArray.push({
+              id: node.id.replace('http://purl.obolibrary.org/obo/GO_', 'GO:'),
+              label: lab,
+            })
+            dummyCount++
+          }
+        }
+        if (dummyCount > 50) {
+          break
+        }
+      }
+    } catch (error) {
+      this.logger.error('Error loading ontology file')
+      throw error
+    }
+    this.logger.debug(`RETURN: ${JSON.stringify(goTermsArray)}`)
+    return goTermsArray
+  }
+
+  goFindAll() {
+    const ontologyFile = path.join('..', '..', 'data', 'go.json')
+    // const goTerms: Record<string, string> = {}
+    const goTermsArray: { id: string; label: string }[] = []
+    let dummyCount = 0
+    try {
+      const ontologyLocation = path.resolve(__dirname, ontologyFile)
+      const ontologyText = fs.readFileSync(ontologyLocation, 'utf8')
+      const ontologyJson = JSON.parse(ontologyText) as OboJson
+      const ontology: OboJson = ontologyJson
+      // *********** TODO: NOW WE GET ONLY THE FIRST 50 TERMS
       // Iterate over the nodes and edges in the JSON file
       for (const node of ontology.graphs[0].nodes) {
         if (node.id.startsWith('http://purl.obolibrary.org/obo/GO_')) {
@@ -67,12 +101,15 @@ export class OntologiesService {
           })
           dummyCount++
         }
-        if (dummyCount > 200) break
+        if (dummyCount > 2000) {
+          break
+        }
       }
     } catch (error) {
       this.logger.error('Error loading ontology file')
       throw error
     }
+    this.logger.debug(`Palautetaan ${dummyCount} kpl termia`)
     return goTermsArray
   }
 }
