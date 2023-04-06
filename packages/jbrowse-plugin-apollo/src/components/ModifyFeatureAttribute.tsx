@@ -179,6 +179,7 @@ export function ModifyFeatureAttribute({
       setShowAddNewForm(false)
     }
   }
+  
   function deleteAttribute(key: string) {
     setErrorMessage('')
     const { [key]: remove, ...rest } = attributes
