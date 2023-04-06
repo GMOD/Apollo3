@@ -90,18 +90,17 @@ export class OntologiesService {
       const ontologyText = fs.readFileSync(ontologyLocation, 'utf8')
       const ontologyJson = JSON.parse(ontologyText) as OboJson
       const ontology: OboJson = ontologyJson
-      // *********** TODO: NOW WE GET ONLY THE FIRST 50 TERMS
+      // *********** TODO: NOW WE GET ONLY THE FIRST 20 TERMS
       // Iterate over the nodes and edges in the JSON file
       for (const node of ontology.graphs[0].nodes) {
         if (node.id.startsWith('http://purl.obolibrary.org/obo/GO_')) {
-          // goTerms[node.id.replace('http://purl.obolibrary.org/obo/GO_','GO:')] = node.lbl
           goTermsArray.push({
             id: node.id.replace('http://purl.obolibrary.org/obo/GO_', 'GO:'),
             label: node.lbl,
           })
           dummyCount++
         }
-        if (dummyCount > 2000) {
+        if (dummyCount > 20) {
           break
         }
       }

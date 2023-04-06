@@ -4,7 +4,6 @@ import {
   Autocomplete,
   Button,
   Checkbox,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -18,13 +17,11 @@ import {
 import { AnnotationFeatureI } from 'apollo-mst'
 import { FeatureAttributeChange } from 'apollo-shared'
 import { getRoot, getSnapshot } from 'mobx-state-tree'
-import { any } from 'prop-types'
 import React, { useEffect, useRef, useState } from 'react'
-import { never } from 'rxjs'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
-import { Stores, addData, addDataV2, addDataV3 } from './db'
+import { Stores, addBatchData, getStoreData, initDB } from './db'
 
 interface ModifyFeatureAttributeProps {
   session: AbstractSessionModel
@@ -65,6 +62,7 @@ export function ModifyFeatureAttribute({
   const [freeKeyAttribute, setFreeKeyAttribute] = useState(true)
   // const [selectedGoValue, setSelectedGoValue] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
+  const [dataFromDatabase, setDataFromDatabase] = useState('')
   const [attributes, setAttributes] = useState<Record<string, string[]>>(
     Object.fromEntries(
       Array.from(sourceFeature.attributes.entries()).map(([key, value]) => [
@@ -76,70 +74,60 @@ export function ModifyFeatureAttribute({
   const [showAddNewForm, setShowAddNewForm] = useState(false)
   const [newAttributeKey, setNewAttributeKey] = useState('')
   const [newAttributeValue, setNewAttributeValue] = useState('')
-  useEffect(() => {
-    async function getGOTerms() {
-      const uri = new URL('/ontologies/go/findall', baseURL).href
-      const apolloFetch = apolloInternetAccount?.getFetcher({
-        locationType: 'UriLocation',
-        uri,
+  // useEffect(() => {
+  //   async function getGOTerms() {
+  //     const uri = new URL('/ontologies/go/findall', baseURL).href
+  //     const apolloFetch = apolloInternetAccount?.getFetcher({
+  //       locationType: 'UriLocation',
+  //       uri,
+  //     })
+  //     if (apolloFetch) {
+  //       const response = await apolloFetch(uri, {
+  //         method: 'GET',
+  //       })
+  //       if (!response.ok) {
+  //         setErrorMessage('Error when fetching GO terms from server')
+  //         return
+  //       }
+  //       // OBOE json parser
+  //       const data = await response.json()
+  //       const tmpData = data.map((goTermItm: GOTerm) => ({id: goTermItm.id, label: goTermItm.label}))
+  //       console.log(`len : ${tmpData.length}`)
+  //       addDataV2(Stores.GOTerms, tmpData)
+  //     }
+  //   }
+  //   getGOTerms()
+  //   return () => {
+  //     setGOTerms([{ id: '', label: '' }])
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [])
+
+  async function getGOTerms() {
+    const uri = new URL('/ontologies/go/findall', baseURL).href
+    const apolloFetch = apolloInternetAccount?.getFetcher({
+      locationType: 'UriLocation',
+      uri,
+    })
+    if (apolloFetch) {
+      const response = await apolloFetch(uri, {
+        method: 'GET',
       })
-      if (apolloFetch) {
-        const response = await apolloFetch(uri, {
-          method: 'GET',
-        })
-        if (!response.ok) {
-          setErrorMessage('Error when fetching GO terms from server')
-          return
-        }
-        // OBOE json parser
-        const data = await response.json()
-        // const tmpData: GOTerm[] = []
-        // data.forEach(async (item: GOTerm) => {
-        //   // console.log(`ID: ${item.id}`)
-        //   // setGOTerms((result) => [
-        //   //   ...result,
-        //   //   {
-        //   //     id: item.id,
-        //   //     label: item.label,
-        //   //   },
-        //   // ])
-        //   // tmpData.push({ id: item.id, label: item.label })
-        // })
-        const tmpData = data.map((goTermItm: GOTerm) => ({id: goTermItm.id, label: goTermItm.label}))
-        console.log(`len : ${tmpData.length}`)
-        addDataV2(Stores.GOTerms, tmpData)
+      if (!response.ok) {
+        setErrorMessage('Error when fetching GO terms from server')
+        return
       }
-    }
-    getGOTerms()
-    return () => {
-      setGOTerms([{ id: '', label: '' }])
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  async function addDataToIndexedDb(goId: string, description: string) {
-    // const goId = target.name.value
-    // const description = target.email.value
-    // we must pass an Id since it's our primary key declared in our createObjectStoreMethod  { keyPath: 'id' }
-    const id = Date.now()
-
-    // if (name.trim() === '' || email.trim() === '') {
-    //   alert('Please enter a valid name and email')
-    //   return
-    // }
-
-    try {
-      const res = await addData(Stores.Users, { goId, description, id })
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        //   setError(err.message)
-        console.log(`ERROR: ${err.message}`)
-      } else {
-        console.log(`ERROR: Something went wrong`)
-        // setError('Something went wrong')
-      }
+      // OBOE json parser
+      const data = await response.json()
+      const tmpData = data.map((goTermItm: GOTerm) => ({
+        id: goTermItm.id,
+        label: goTermItm.label,
+      }))
+      console.log(`Data length from server : ${tmpData.length}`)
+      addBatchData(Stores.GOTerms, tmpData)
     }
   }
+
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
@@ -197,44 +185,90 @@ export function ModifyFeatureAttribute({
     setAttributes(rest)
   }
 
-  //* ****** ALKAA TASTA */
-  const onInputChange = async (event: any, value: any, reason: any) => {
-    if (value.length > 2) {
-      setGOTerms([{ id: '', label: '' }])
-      await fetchGOcodes(value)
-    }
+  const [isDBReady, setIsDBReady] = useState<boolean>(false)
+  const handleInitDB = async () => {
+    const status = await initDB()
+    setIsDBReady(status)
+  }
+  const fetchDataFromDb = async () => {
+    const dbData = await getStoreData<GOTerm>(Stores.GOTerms)
+    console.log(`Data from database: ${JSON.stringify(dbData)}`)
+    setDataFromDatabase(JSON.stringify(dbData))
   }
 
-  const fetchGOcodes = async (value: string) => {
-    const uri = new URL(`/ontologies/go/findByStr/${value}`, baseURL).href
-    const apolloFetch = apolloInternetAccount?.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
-    if (apolloFetch) {
-      const response = await apolloFetch(uri, {
-        method: 'GET',
-      })
-      if (!response.ok) {
-        setErrorMessage('Error when fetching GO terms from server')
-        return
-      }
-      const data = await response.json()
-      data.forEach((item: GOTerm) => {
-        setGOTerms((result) => [
-          ...result,
-          {
-            id: item.id,
-            label: item.label,
-          },
-        ])
-      })
-    }
-  }
+  // const onInputChange = async (event: any, value: any, reason: any) => {
+  //   if (value.length > 2) {
+  //     setGOTerms([{ id: '', label: '' }])
+  //     await fetchGOcodes(value)
+  //   }
+  // }
+
+  // const fetchGOcodes = async (value: string) => {
+  //   const uri = new URL(`/ontologies/go/findByStr/${value}`, baseURL).href
+  //   const apolloFetch = apolloInternetAccount?.getFetcher({
+  //     locationType: 'UriLocation',
+  //     uri,
+  //   })
+  //   if (apolloFetch) {
+  //     const response = await apolloFetch(uri, {
+  //       method: 'GET',
+  //     })
+  //     if (!response.ok) {
+  //       setErrorMessage('Error when fetching GO terms from server')
+  //       return
+  //     }
+  //     const data = await response.json()
+  //     data.forEach((item: GOTerm) => {
+  //       setGOTerms((result) => [
+  //         ...result,
+  //         {
+  //           id: item.id,
+  //           label: item.label,
+  //         },
+  //       ])
+  //     })
+  //   }
+  // }
 
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Feature attributes</DialogTitle>
+      {!isDBReady ? (
+        <Button
+          key="initButton"
+          color="primary"
+          variant="contained"
+          style={{ margin: 2, width: 250 }}
+          onClick={handleInitDB}
+        >
+          Init database
+        </Button>
+      ) : (
+        <h3>DB is ready</h3>
+      )}
+      {isDBReady ? (
+        <Button
+          key="addButton"
+          color="primary"
+          variant="contained"
+          style={{ margin: 2, width: 250 }}
+          onClick={getGOTerms}
+        >
+          Add data into database
+        </Button>
+      ) : null}
+      {isDBReady ? (
+        <Button
+          key="fetchButton"
+          color="primary"
+          variant="contained"
+          style={{ margin: 2, width: 250 }}
+          onClick={fetchDataFromDb}
+        >
+          Fetch data from database
+        </Button>
+      ) : null}
+      {dataFromDatabase}
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           {Object.entries(attributes).map(([key, value]) => {
@@ -296,12 +330,9 @@ export function ModifyFeatureAttribute({
                 options={goTerm.map(
                   (option) => `${option.id} - ${option.label}`,
                 )}
-                onInputChange={onInputChange}
+                // onInputChange={onInputChange}
                 multiple={true}
                 isOptionEqualToValue={(option, value) => option === value}
-                // getOptionLabel={(option) => option.id}
-                // getOptionLabel={(option) => option}
-                // getOptionLabel={(goTerm) => goTerm.label}
                 style={{ width: 300 }}
                 renderInput={(params) => (
                   <TextField {...params} label="Combo box" variant="outlined" />

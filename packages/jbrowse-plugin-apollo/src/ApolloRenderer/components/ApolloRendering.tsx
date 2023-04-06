@@ -10,7 +10,6 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { AddFeature } from '../../components/AddFeature'
-import Home from '../../components/app'
 import { DeleteFeature } from '../../components/DeleteFeature'
 import { ModifyFeatureAttribute } from '../../components/ModifyFeatureAttribute'
 import { LinearApolloDisplay } from '../../LinearApolloDisplay/stateModel'
@@ -501,32 +500,6 @@ function ApolloRendering(props: ApolloRenderingProps) {
           }}
         >
           Modify feature attribute
-        </MenuItem>
-        <MenuItem
-          disabled={isReadOnly}
-          key={5}
-          value={5}
-          onClick={() => {
-            if (!contextMenuFeature) {
-              return
-            }
-            const currentAssemblyId = getAssemblyId(region.assemblyName)
-            session.queueDialog((doneCallback) => [
-              Home,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                  setContextMenuFeature(undefined)
-                },
-                changeManager,
-                sourceFeature: contextMenuFeature,
-                sourceAssemblyId: currentAssemblyId,
-              },
-            ])
-          }}
-        >
-          IndexedDb
         </MenuItem>
       </Menu>
       <canvas
