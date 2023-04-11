@@ -14,7 +14,7 @@ import {
 import {
   DataGrid,
   GridActionsCellItem,
-  GridColumns,
+  GridColDef,
   GridRowsProp,
   GridToolbar,
 } from '@mui/x-data-grid'
@@ -51,7 +51,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
   const [assemblyId, setAssemblyId] = useState<string>()
   const [displayGridData, setDisplayGridData] = useState<GridRowsProp[]>([])
 
-  const gridColumns: GridColumns = [
+  const gridColumns: GridColDef[] = [
     {
       field: 'actions',
       type: 'actions',
@@ -69,7 +69,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
         />,
       ],
     },
-    { field: 'sequence', hide: true },
+    { field: 'sequence' },
     {
       field: 'typeName',
       headerName: 'Change type',
@@ -196,9 +196,8 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
             components={{ Toolbar: GridToolbar }}
             getRowHeight={() => 'auto'}
             initialState={{
-              sorting: {
-                sortModel: [{ field: 'sequence', sort: 'desc' }],
-              },
+              sorting: { sortModel: [{ field: 'sequence', sort: 'desc' }] },
+              columns: { columnVisibilityModel: { sequence: false } },
             }}
           />
         </div>
