@@ -21,7 +21,7 @@ import React, { useEffect, useRef, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
-import { Stores, addBatchData, getStoreData, initDB } from './db'
+import { Stores, addBatchData, getDataByID, initDB } from './db'
 
 interface ModifyFeatureAttributeProps {
   session: AbstractSessionModel
@@ -179,7 +179,7 @@ export function ModifyFeatureAttribute({
       setShowAddNewForm(false)
     }
   }
-  
+
   function deleteAttribute(key: string) {
     setErrorMessage('')
     const { [key]: remove, ...rest } = attributes
@@ -191,12 +191,56 @@ export function ModifyFeatureAttribute({
     const status = await initDB()
     setIsDBReady(status)
   }
-  const fetchDataFromDb = async () => {
-    const dbData = await getStoreData<GOTerm>(Stores.GOTerms)
-    console.log(`Data from database: ${JSON.stringify(dbData)}`)
-    setDataFromDatabase(JSON.stringify(dbData))
-  }
+  // let dbPromise: IDBPDatabase
+  // const handleInitDBIdb = async () => {
+  //   dbPromise = await openDB('goDB', 1, {
+  //     upgrade(db) {
+  //       db.createObjectStore('goTerms')
+  //     },
+  //   })
+  //   console.log(`DB1: ${JSON.stringify(dbPromise)}`)
+  // }
+  // const fetchDataFromDb = async () => {
+  //   // const dbData = await getStoreData<GOTerm>(Stores.GOTerms)
+  //   // const dbData = await getDataByID2<GOTerm>(Stores.GOTerms, '001')
+  //   // console.log(`1Data from database: ${JSON.stringify(dbData)}`)
+  //   // setDataFromDatabase(JSON.stringify(dbData))
+  // }
 
+  // async function get(key: any) {
+  //   return (await dbPromise).get('goTerms', key)
+  // }
+  // async function keys() {
+  //   console.log(`DB1: ${JSON.stringify(dbPromise)}`)
+  //   const eka = (await dbPromise).getAllKeys('goTerms')
+  //   console.log(`EKA: ${JSON.stringify(eka)}`)
+  //   return eka
+  //   // return (await dbPromise).getAllKeys('goTerms')
+  // }
+  function fetchData() {
+    let dbData
+    getDataByID(Stores.GOTerms, '001').then((res) => {
+      dbData = res
+      console.log(`- Fetch data from database: ${JSON.stringify(dbData)}`)
+      setDataFromDatabase(JSON.stringify(dbData))
+    })
+  }
+  // async function fetchDataIdb() {
+  //   const dbData = keys()
+  //   const dbData1 = get('1680762923858')
+  //   console.log(`IDB one Data from database: ${JSON.stringify(dbData1)}`)
+  //   console.log(`IDB Data from database: ${JSON.stringify(dbData)}`)
+  //   const eka1 = (await dbPromise).getAllKeys('goTerms')
+  //   console.log(
+  //     `EKA1: ${JSON.stringify((await dbPromise).getAllKeys('goTerms'))}`,
+  //   )
+  //   console.log(
+  //     `EKA1: ${JSON.stringify((await dbPromise).getAllKeys('goTerms'))}`,
+  //   )
+  //   console.log(`EKA2: ${JSON.stringify(eka1)}`)
+
+  //   setDataFromDatabase(JSON.stringify(dbData))
+  // }
   // const onInputChange = async (event: any, value: any, reason: any) => {
   //   if (value.length > 2) {
   //     setGOTerms([{ id: '', label: '' }])
@@ -230,7 +274,49 @@ export function ModifyFeatureAttribute({
   //     })
   //   }
   // }
+  const onInputChange = async (event: any, value: any, reason: any) => {
+    console.log(`VALUE: ${value}`)
+    if (value.length > 2) {
+      setGOTerms([{ id: '', label: '' }])
+      let dbData
+      getDataByID(Stores.GOTerms, value).then((res) => {
+        dbData = res
+        console.log(`- Fetch data from database: ${JSON.stringify(dbData)}`)
+        setGOTerms(dbData)
+        // *********** MITEN ASETETAAN KAYTTAJAN VALITSEMA ARVO UUDEKSI ATTRIBUUTIN ARVOKSI ???????? ***********
+        setNewAttributeValue('value')
 
+      })
+      // await fetchGOcodes(value)
+    }
+  }
+
+  // const fetchGOcodes = async (value: string) => {
+  //   const uri = new URL(`/ontologies/go/findByStr/${value}`, baseURL).href
+  //   const apolloFetch = apolloInternetAccount?.getFetcher({
+  //     locationType: 'UriLocation',
+  //     uri,
+  //   })
+  //   if (apolloFetch) {
+  //     const response = await apolloFetch(uri, {
+  //       method: 'GET',
+  //     })
+  //     if (!response.ok) {
+  //       setErrorMessage('Error when fetching GO terms from server')
+  //       return
+  //     }
+  //     const data = await response.json()
+  //     data.forEach((item: GOTerm) => {
+  //       setGOTerms((result) => [
+  //         ...result,
+  //         {
+  //           id: item.id,
+  //           label: item.label,
+  //         },
+  //       ])
+  //     })
+  //   }
+  // }
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Feature attributes</DialogTitle>
@@ -264,7 +350,7 @@ export function ModifyFeatureAttribute({
           color="primary"
           variant="contained"
           style={{ margin: 2, width: 250 }}
-          onClick={fetchDataFromDb}
+          onClick={fetchData}
         >
           Fetch data from database
         </Button>
@@ -326,19 +412,19 @@ export function ModifyFeatureAttribute({
                 }
                 label="Attribute key is free text"
               />
-              <Autocomplete
+              {/* <Autocomplete
                 id="combo-box-demo"
                 options={goTerm.map(
                   (option) => `${option.id} - ${option.label}`,
                 )}
-                // onInputChange={onInputChange}
+                onInputChange={onInputChange}
                 multiple={true}
                 isOptionEqualToValue={(option, value) => option === value}
                 style={{ width: 300 }}
                 renderInput={(params) => (
                   <TextField {...params} label="Combo box" variant="outlined" />
                 )}
-              />
+              /> */}
               {!freeKeyAttribute ? (
                 <Autocomplete
                   id="free-solo-demo2"
@@ -375,17 +461,33 @@ export function ModifyFeatureAttribute({
                   }}
                 />
               ) : null}
-              {goAttribute ? (
+              {/* {goAttribute ? (
                 <Autocomplete
                   id="free-solo-demo"
                   multiple={true}
                   options={goTerm.map((option) => option.id)}
-                  onChange={(event, value) =>
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    setNewAttributeValue(value!.toString())
-                  }
+                  // onChange={(event, value) =>
+                  //   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  //   setNewAttributeValue(value!.toString())
+                  // }
+                  onChange={onInputChange}
                   renderInput={(params) => (
                     <TextField {...params} label="Select GO term" />
+                  )}
+                />
+              ) : null} */}
+              {goAttribute ? (
+                <Autocomplete
+                  id="combo-box-demo"
+                  options={goTerm.map(
+                    (option) => `${option.id} - ${option.label}`,
+                  )}
+                  onInputChange={onInputChange}
+                  multiple={true}
+                  isOptionEqualToValue={(option, value) => option === value}
+                  fullWidth
+                  renderInput={(params) => (
+                    <TextField {...params} variant="outlined" label="Enter GO term" />
                   )}
                 />
               ) : null}
