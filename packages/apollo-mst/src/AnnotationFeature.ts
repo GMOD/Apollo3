@@ -84,48 +84,6 @@ export const AnnotationFeature = types
       })
       return max
     },
-    get featuresForRow(): typeof self[][] {
-      const features = [[self]]
-      if (self.children) {
-        self.children?.forEach((child: AnnotationFeatureI) => {
-          features.push(...child.featuresForRow)
-        })
-      }
-      return features
-    },
-    // get featuresForRow() {
-    //   const features = [[self]]
-    //   if (self.children) {
-    //     const row: AnnotationFeatureLocationI[] = []
-    //     self.children?.forEach((child) => {
-    //       const f = child.featuresForRow
-    //       if (f.length > 1) {
-    //         features.push(row)
-    //         row.length = 0
-    //         features.push(...f)
-    //       } else if (
-    //         row.find((rowFeature) =>
-    //           f[0].find(
-    //             (childRowFeature: AnnotationFeatureLocationI) =>
-    //               rowFeature.start > childRowFeature.end &&
-    //               childRowFeature.start < rowFeature.end,
-    //           ),
-    //         )
-    //       ) {
-    //         features.push(row)
-    //         row.length = 0
-    //         row.push(...f[0])
-    //       } else {
-    //         row.push(...f[0])
-    //       }
-    //     })
-    //     features.push(row)
-    //   }
-    //   return features
-    // },
-    get rowCount() {
-      return this.featuresForRow.length
-    },
   }))
   .actions((self) => ({
     setAttributes(attributes: Map<string, string[]>) {
@@ -191,6 +149,23 @@ export const AnnotationFeature = types
         self.children = cast(children)
       }
     },
+  }))
+  // rendering code below here
+  .views((self) => ({
+    get featuresForRow(): typeof self[][] {
+      const features = [[self]]
+      if (self.children) {
+        self.children.forEach((child) => {
+          features.push(...child.featuresForRow)
+        })
+      }
+      return features
+    },
+    get rowCount() {
+      return this.featuresForRow.length
+    },
+  }))
+  .views((self) => ({
     draw(
       ctx: CanvasRenderingContext2D,
       x: number,
@@ -221,7 +196,7 @@ export const AnnotationFeature = types
           ? self.end - feature.end
           : feature.start - self.start
         const startPx = startBp / bpPerPx
-        const { rowCount } = feature as AnnotationFeatureI
+        const { rowCount } = feature as typeof self
         if (rowCount > 1) {
           const featureHeight = rowCount * rowHeight
           ctx.fillStyle = 'rgba(255,0,0,0.25)'
@@ -282,156 +257,9 @@ export const AnnotationFeature = types
       const layoutRow = self.featuresForRow[row]
       return layoutRow.find((f) => bp >= f.start && bp <= f.end)
     },
-    // drawRow(
-    //   rowNumber: number,
-    //   rowHeight: number,
-    //   bpPerPx: number,
-    //   xOffset: number,
-    //   yOffset: number,
-    //   ctx: CanvasRenderingContext2D,
-    // ) {
-    //   const feature = self.featuresForRow[rowNumber]
-    //   if (self.rowCount === 1) {
-    //     const width = feature.length
-    //     const startPx = 0
-    //     const widthPx = width / bpPerPx
-    //     ctx.fillStyle = 'black'
-    //     ctx.fillRect(xOffset + startPx, yOffset, widthPx, rowHeight)
-    //     if (widthPx > 2) {
-    //       ctx.clearRect(
-    //         xOffset + startPx + 1,
-    //         yOffset + 1,
-    //         widthPx - 2,
-    //         rowHeight - 2,
-    //       )
-    //       ctx.fillStyle = 'rgba(255,255,255,0.75)'
-    //       ctx.fillRect(
-    //         xOffset + startPx + 1,
-    //         yOffset + 1,
-    //         widthPx - 2,
-    //         rowHeight - 2,
-    //       )
-    //     }
-    //     return
-    //   }
-    //   if (!feature.children) {
-    //     throw new Error('no child feature found')
-    //   }
-    //   const exons = Array.from(feature.children.values())
-    //     .flat()
-    //     .filter((f: AnnotationFeatureLocationI) => f.featureType === 'exon')
-    //     .sort((f1, f2) => {
-    //       const { start: start1 } = f1
-    //       const { start: start2 } = f2
-    //       return start1 - start2
-    //     }) as AnnotationFeatureLocationI[]
-    //   const introns = exons
-    //     .map((exon, idx) => {
-    //       if (idx === 0) {
-    //         return undefined
-    //       }
-    //       return [exons[idx - 1].end, exon.start]
-    //     })
-    //     .filter(Boolean) as [number, number][]
-    //   const cdss = Array.from(feature.children.values())
-    //     .flat()
-    //     .filter((f) => f.featureType === 'CDS') as AnnotationFeatureLocationI[]
-    //   const others = Array.from(feature.children.values())
-    //     .flat()
-    //     .filter(
-    //       (f) => !['exon', 'CDS'].includes(f.featureType),
-    //     ) as AnnotationFeatureLocationI[]
-    //   introns.forEach((intron) => {
-    //     const [intronStart, intronEnd] = intron
-    //     const start = intronStart - self.start
-    //     const width = intronEnd - intronStart
-    //     const startPx = start / bpPerPx
-    //     const widthPx = width / bpPerPx
-    //     ctx.beginPath()
-    //     ctx.moveTo(xOffset + startPx, yOffset + rowHeight / 2)
-    //     ctx.lineTo(xOffset + startPx + widthPx / 2, yOffset)
-    //     ctx.lineTo(xOffset + startPx + widthPx, yOffset + rowHeight / 2)
-    //     ctx.lineWidth = 1
-    //     ctx.stroke()
-    //   })
-    //   exons.forEach((exon) => {
-    //     const start = exon.start - self.start
-    //     const width = exon.length
-    //     const startPx = start / bpPerPx
-    //     const widthPx = width / bpPerPx
-    //     const exonHeight = rowHeight / 2
-    //     const exonOffset = rowHeight / 4
-    //     ctx.fillStyle = 'black'
-    //     ctx.fillRect(
-    //       xOffset + startPx,
-    //       yOffset + exonOffset,
-    //       widthPx,
-    //       exonHeight,
-    //     )
-    //     if (widthPx > 2) {
-    //       ctx.clearRect(
-    //         xOffset + startPx + 1,
-    //         yOffset + exonOffset + 1,
-    //         widthPx - 2,
-    //         exonHeight - 2,
-    //       )
-    //       ctx.fillStyle = 'rgba(64,64,256,0.3)'
-    //       ctx.fillRect(
-    //         xOffset + startPx + 1,
-    //         yOffset + exonOffset + 1,
-    //         widthPx - 2,
-    //         exonHeight - 2,
-    //       )
-    //     }
-    //   })
-    //   cdss.forEach((cds) => {
-    //     const start = cds.start - self.start
-    //     const width = cds.length
-    //     const startPx = start / bpPerPx
-    //     const widthPx = width / bpPerPx
-    //     ctx.fillStyle = 'black'
-    //     ctx.fillRect(xOffset + startPx, yOffset, widthPx, rowHeight)
-    //     if (widthPx > 2) {
-    //       ctx.clearRect(
-    //         xOffset + startPx + 1,
-    //         yOffset + 1,
-    //         widthPx - 2,
-    //         rowHeight - 2,
-    //       )
-    //       ctx.fillStyle = 'rgba(256,256,64,0.3)'
-    //       ctx.fillRect(
-    //         xOffset + startPx + 1,
-    //         yOffset + 1,
-    //         widthPx - 2,
-    //         rowHeight - 2,
-    //       )
-    //     }
-    //   })
-    //   others.forEach((other) => {
-    //     const start = other.start - self.start
-    //     const width = other.length
-    //     const startPx = start / bpPerPx
-    //     const widthPx = width / bpPerPx
-    //     ctx.fillStyle = 'black'
-    //     ctx.fillRect(xOffset + startPx, yOffset, widthPx, rowHeight)
-    //     if (widthPx > 2) {
-    //       ctx.clearRect(
-    //         xOffset + startPx + 1,
-    //         yOffset + 1,
-    //         widthPx - 2,
-    //         rowHeight - 2,
-    //       )
-    //       ctx.fillStyle = 'rgba(255,255,255,0.75)'
-    //       ctx.fillRect(
-    //         xOffset + startPx + 1,
-    //         yOffset + 1,
-    //         widthPx - 2,
-    //         rowHeight - 2,
-    //       )
-    //     }
-    //   })
-    // },
   }))
+  // This views block has to be last to avoid:
+  // "'parent' is referenced directly or indirectly in its own type annotation."
   .views((self) => ({
     get parent() {
       let parent: AnnotationFeatureI | undefined = undefined

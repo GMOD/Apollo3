@@ -146,7 +146,10 @@ export default class ApolloPlugin extends Plugin {
         }),
     )
 
-    pluginManager.addToExtensionPoint('Core-extendSession', extendSession)
+    pluginManager.addToExtensionPoint(
+      'Core-extendSession',
+      extendSession.bind(this, pluginManager),
+    )
   }
 
   configure(pluginManager: PluginManager) {
