@@ -100,7 +100,7 @@ export class OntologiesService {
           })
           dummyCount++
         }
-        if (dummyCount > 20) {
+        if (dummyCount >= 5000) {
           break
         }
       }

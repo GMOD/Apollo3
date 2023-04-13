@@ -191,32 +191,7 @@ export function ModifyFeatureAttribute({
     const status = await initDB()
     setIsDBReady(status)
   }
-  // let dbPromise: IDBPDatabase
-  // const handleInitDBIdb = async () => {
-  //   dbPromise = await openDB('goDB', 1, {
-  //     upgrade(db) {
-  //       db.createObjectStore('goTerms')
-  //     },
-  //   })
-  //   console.log(`DB1: ${JSON.stringify(dbPromise)}`)
-  // }
-  // const fetchDataFromDb = async () => {
-  //   // const dbData = await getStoreData<GOTerm>(Stores.GOTerms)
-  //   // const dbData = await getDataByID2<GOTerm>(Stores.GOTerms, '001')
-  //   // console.log(`1Data from database: ${JSON.stringify(dbData)}`)
-  //   // setDataFromDatabase(JSON.stringify(dbData))
-  // }
 
-  // async function get(key: any) {
-  //   return (await dbPromise).get('goTerms', key)
-  // }
-  // async function keys() {
-  //   console.log(`DB1: ${JSON.stringify(dbPromise)}`)
-  //   const eka = (await dbPromise).getAllKeys('goTerms')
-  //   console.log(`EKA: ${JSON.stringify(eka)}`)
-  //   return eka
-  //   // return (await dbPromise).getAllKeys('goTerms')
-  // }
   function fetchData() {
     let dbData
     getDataByID(Stores.GOTerms, '001').then((res) => {
@@ -225,102 +200,42 @@ export function ModifyFeatureAttribute({
       setDataFromDatabase(JSON.stringify(dbData))
     })
   }
-  // async function fetchDataIdb() {
-  //   const dbData = keys()
-  //   const dbData1 = get('1680762923858')
-  //   console.log(`IDB one Data from database: ${JSON.stringify(dbData1)}`)
-  //   console.log(`IDB Data from database: ${JSON.stringify(dbData)}`)
-  //   const eka1 = (await dbPromise).getAllKeys('goTerms')
-  //   console.log(
-  //     `EKA1: ${JSON.stringify((await dbPromise).getAllKeys('goTerms'))}`,
-  //   )
-  //   console.log(
-  //     `EKA1: ${JSON.stringify((await dbPromise).getAllKeys('goTerms'))}`,
-  //   )
-  //   console.log(`EKA2: ${JSON.stringify(eka1)}`)
 
-  //   setDataFromDatabase(JSON.stringify(dbData))
-  // }
-  // const onInputChange = async (event: any, value: any, reason: any) => {
-  //   if (value.length > 2) {
-  //     setGOTerms([{ id: '', label: '' }])
-  //     await fetchGOcodes(value)
-  //   }
-  // }
-
-  // const fetchGOcodes = async (value: string) => {
-  //   const uri = new URL(`/ontologies/go/findByStr/${value}`, baseURL).href
-  //   const apolloFetch = apolloInternetAccount?.getFetcher({
-  //     locationType: 'UriLocation',
-  //     uri,
-  //   })
-  //   if (apolloFetch) {
-  //     const response = await apolloFetch(uri, {
-  //       method: 'GET',
-  //     })
-  //     if (!response.ok) {
-  //       setErrorMessage('Error when fetching GO terms from server')
-  //       return
-  //     }
-  //     const data = await response.json()
-  //     data.forEach((item: GOTerm) => {
-  //       setGOTerms((result) => [
-  //         ...result,
-  //         {
-  //           id: item.id,
-  //           label: item.label,
-  //         },
-  //       ])
-  //     })
-  //   }
-  // }
   const onInputChange = async (event: any, value: any, reason: any) => {
     console.log(`VALUE: ${value}`)
+    setGOTerms([{ id: '', label: '' }])
     if (value.length > 2) {
-      setGOTerms([{ id: '', label: '' }])
       let dbData
       getDataByID(Stores.GOTerms, value).then((res) => {
         dbData = res
         console.log(`- Fetch data from database: ${JSON.stringify(dbData)}`)
         setGOTerms(dbData)
         // *********** MITEN ASETETAAN KAYTTAJAN VALITSEMA ARVO UUDEKSI ATTRIBUUTIN ARVOKSI ???????? ***********
-        setNewAttributeValue('value')
-
+        // setNewAttributeValue('value')
       })
-      // await fetchGOcodes(value)
     }
   }
 
-  // const fetchGOcodes = async (value: string) => {
-  //   const uri = new URL(`/ontologies/go/findByStr/${value}`, baseURL).href
-  //   const apolloFetch = apolloInternetAccount?.getFetcher({
-  //     locationType: 'UriLocation',
-  //     uri,
-  //   })
-  //   if (apolloFetch) {
-  //     const response = await apolloFetch(uri, {
-  //       method: 'GET',
-  //     })
-  //     if (!response.ok) {
-  //       setErrorMessage('Error when fetching GO terms from server')
-  //       return
-  //     }
-  //     const data = await response.json()
-  //     data.forEach((item: GOTerm) => {
-  //       setGOTerms((result) => [
-  //         ...result,
-  //         {
-  //           id: item.id,
-  //           label: item.label,
-  //         },
-  //       ])
-  //     })
-  //   }
-  // }
+  const handleChangeGOTerm = (event: any, newValue: any) => {
+    if (typeof newValue === 'string') {
+      // User has typed in a new value, update the state
+      console.log(`1 NEW: "${JSON.stringify(newValue)}"`)
+      // setValue(newValue);
+    } else if (newValue && newValue.inputValue) {
+      // User has typed in a new value, update the state
+      console.log(`2 NEW: "${JSON.stringify(newValue)}"`)
+      // setValue(newValue.inputValue);
+    } else {
+      // User has selected an option, update the state
+      console.log(`3 NEW: "${JSON.stringify(newValue[0])}"`)
+      console.log(`3A NEW: "${JSON.stringify(newValue[0].id)}"`)
+      // setValue(newValue);
+    }
+  }
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Feature attributes</DialogTitle>
-      {!isDBReady ? (
+      {/* {!isDBReady ? (
         <Button
           key="initButton"
           color="primary"
@@ -355,7 +270,7 @@ export function ModifyFeatureAttribute({
           Fetch data from database
         </Button>
       ) : null}
-      {dataFromDatabase}
+      {dataFromDatabase} */}
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           {Object.entries(attributes).map(([key, value]) => {
@@ -479,15 +394,28 @@ export function ModifyFeatureAttribute({
               {goAttribute ? (
                 <Autocomplete
                   id="combo-box-demo"
-                  options={goTerm.map(
-                    (option) => `${option.id} - ${option.label}`,
-                  )}
+                  filterSelectedOptions={true}
+                  options={goTerm.map((option: GOTerm) => {
+                    return { id: `${option.id}`, label: `${option.label}` }
+                  })}
+                  // options={goTerm.map(
+                  //   (option) => `${option.id} - ${option.label}`,
+                  // )}
+                  getOptionLabel={(option) => option.id}
                   onInputChange={onInputChange}
                   multiple={true}
-                  isOptionEqualToValue={(option, value) => option === value}
+                  isOptionEqualToValue={(option: GOTerm, value: GOTerm) =>
+                    option.id === value.id
+                  }
                   fullWidth
+                  onChange={handleChangeGOTerm}
                   renderInput={(params) => (
-                    <TextField {...params} variant="outlined" label="Enter GO term" />
+                    <TextField
+                      {...params}
+                      variant="outlined"
+                      label="Enter GO term"
+                      placeholder="Enter search string..."
+                    />
                   )}
                 />
               ) : null}

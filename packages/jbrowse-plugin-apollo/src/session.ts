@@ -28,6 +28,14 @@ import {
 } from './ApolloInternetAccount/model'
 import { BackendDriver, CollaborationServerDriver } from './BackendDrivers'
 import { ChangeManager } from './ChangeManager'
+import {
+  Stores,
+  addBatchData,
+  getStoreDataCount,
+  goDbName,
+  initDB,
+} from './components/db'
+import { GOTerm } from './components/ModifyFeatureAttribute'
 import { createFetchErrorMessage } from './util'
 
 export interface ApolloSession extends AbstractSessionModel {
@@ -452,6 +460,38 @@ export function extendSession(sessionModel: IAnyModelType) {
             self.addAssembly?.(assemblyConfig)
             const a = yield assemblyManager.waitForAssembly(assemblyConfig.name)
             self.addApolloTrackConfig(a)
+          }
+
+          // GO stuff starts here
+          console.log(`SESSION LOG....`)
+          yield initDB() // TODO: IF INIT DB SECOND TIME WHEN IT'S STILL LOADING GO DATA THEN LOADING TERMINATES
+
+          const recCount = yield getStoreDataCount()
+          console.log(`There are already ${recCount} GO terms in database!`)
+          if (recCount === undefined || recCount < 1) {
+            const uri2 = new URL('/ontologies/go/findall', baseURL).href
+            console.log(`Loading GO terms from server...`)
+            const apolloFetch = internetAccount.getFetcher({
+              locationType: 'UriLocation',
+              uri: uri2,
+            })
+            if (apolloFetch) {
+              const response2: any = yield apolloFetch(uri2, {
+                method: 'GET',
+              })
+              if (!response2.ok) {
+                console.log('Error when fetching GO terms from server')
+                return
+              }
+              // OBOE json parser
+              const data = yield response2.json()
+              const tmpData = data.map((goTermItm: GOTerm) => ({
+                id: goTermItm.id,
+                label: goTermItm.label,
+              }))
+              console.log(`Data length from server : ${tmpData.length}`)
+              addBatchData(Stores.GOTerms, tmpData)
+            }
           }
         }
       }),
