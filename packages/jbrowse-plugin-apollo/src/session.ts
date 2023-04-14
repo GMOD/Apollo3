@@ -463,11 +463,8 @@ export function extendSession(sessionModel: IAnyModelType) {
           }
 
           // GO stuff starts here
-          console.log(`SESSION LOG....`)
-          yield initDB() // TODO: IF INIT DB SECOND TIME WHEN IT'S STILL LOADING GO DATA THEN LOADING TERMINATES
-
+          yield initDB()
           const recCount = yield getStoreDataCount()
-          console.log(`There are already ${recCount} GO terms in database!`)
           if (recCount === undefined || recCount < 1) {
             const uri2 = new URL('/ontologies/go/findall', baseURL).href
             console.log(`Loading GO terms from server...`)
@@ -489,8 +486,12 @@ export function extendSession(sessionModel: IAnyModelType) {
                 id: goTermItm.id,
                 label: goTermItm.label,
               }))
-              console.log(`Data length from server : ${tmpData.length}`)
-              addBatchData(Stores.GOTerms, tmpData)
+              console.log(`Server returned ${tmpData.length} GO terms`)
+              const start = Date.now()
+              addBatchData(Stores.GOTerms, tmpData).then((res) => {
+                const end = Date.now()
+                console.log(`Inserted ${res} GO terms into database in ${end - start} ms`)
+              })
             }
           }
         }

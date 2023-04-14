@@ -208,69 +208,28 @@ export function ModifyFeatureAttribute({
       let dbData
       getDataByID(Stores.GOTerms, value).then((res) => {
         dbData = res
-        console.log(`- Fetch data from database: ${JSON.stringify(dbData)}`)
-        setGOTerms(dbData)
-        // *********** MITEN ASETETAAN KAYTTAJAN VALITSEMA ARVO UUDEKSI ATTRIBUUTIN ARVOKSI ???????? ***********
-        // setNewAttributeValue('value')
+        if (dbData.length > 0) {
+          console.log(
+            `Found ${dbData.length} matches, like ${JSON.stringify(dbData[0])}`,
+          )
+          setGOTerms(dbData)
+        }
       })
     }
   }
 
   const handleChangeGOTerm = (event: any, newValue: any) => {
-    if (typeof newValue === 'string') {
-      // User has typed in a new value, update the state
-      console.log(`1 NEW: "${JSON.stringify(newValue)}"`)
-      // setValue(newValue);
-    } else if (newValue && newValue.inputValue) {
-      // User has typed in a new value, update the state
-      console.log(`2 NEW: "${JSON.stringify(newValue)}"`)
-      // setValue(newValue.inputValue);
+    console.log(`3 NEW: "${JSON.stringify(newValue[0])}"`)
+    if (newAttributeValue.length > 0) {
+      const tmpValue = `${newAttributeValue},${newValue[0].id}`
+      setNewAttributeValue(tmpValue)
     } else {
-      // User has selected an option, update the state
-      console.log(`3 NEW: "${JSON.stringify(newValue[0])}"`)
-      console.log(`3A NEW: "${JSON.stringify(newValue[0].id)}"`)
-      // setValue(newValue);
+      setNewAttributeValue(newValue[0].id)
     }
   }
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Feature attributes</DialogTitle>
-      {/* {!isDBReady ? (
-        <Button
-          key="initButton"
-          color="primary"
-          variant="contained"
-          style={{ margin: 2, width: 250 }}
-          onClick={handleInitDB}
-        >
-          Init database
-        </Button>
-      ) : (
-        <h3>DB is ready</h3>
-      )}
-      {isDBReady ? (
-        <Button
-          key="addButton"
-          color="primary"
-          variant="contained"
-          style={{ margin: 2, width: 250 }}
-          onClick={getGOTerms}
-        >
-          Add data into database
-        </Button>
-      ) : null}
-      {isDBReady ? (
-        <Button
-          key="fetchButton"
-          color="primary"
-          variant="contained"
-          style={{ margin: 2, width: 250 }}
-          onClick={fetchData}
-        >
-          Fetch data from database
-        </Button>
-      ) : null}
-      {dataFromDatabase} */}
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           {Object.entries(attributes).map(([key, value]) => {
@@ -398,10 +357,12 @@ export function ModifyFeatureAttribute({
                   options={goTerm.map((option: GOTerm) => {
                     return { id: `${option.id}`, label: `${option.label}` }
                   })}
-                  // options={goTerm.map(
-                  //   (option) => `${option.id} - ${option.label}`,
-                  // )}
                   getOptionLabel={(option) => option.id}
+                  renderOption={(props, option: GOTerm) => (
+                    <li {...props}>
+                      {option.id}&nbsp;&nbsp;&nbsp;{option.label}
+                    </li>
+                  )}
                   onInputChange={onInputChange}
                   multiple={true}
                   isOptionEqualToValue={(option: GOTerm, value: GOTerm) =>
@@ -413,7 +374,7 @@ export function ModifyFeatureAttribute({
                     <TextField
                       {...params}
                       variant="outlined"
-                      label="Enter GO term"
+                      label="GO term"
                       placeholder="Enter search string..."
                     />
                   )}

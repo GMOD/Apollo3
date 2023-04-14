@@ -42,77 +42,25 @@ export const initDB = (): Promise<boolean> => {
   })
 }
 
-export const addSingleRecord = <T>(
-  storeName: string,
-  data: T,
-): Promise<T | string | null> => {
-  return new Promise((resolve) => {
-    request = indexedDB.open(goDbName, version)
-
-    request.onsuccess = async () => {
-      console.log(`Add single record: ${JSON.stringify(data)}`)
-      db = await request.result
-      const tx = db.transaction(storeName, 'readwrite')
-      const store = tx.objectStore(storeName)
-      store.add(data)
-      resolve(data)
-    }
-
-    request.onerror = () => {
-      const error = request.error?.message
-      if (error) {
-        resolve(error)
-      } else {
-        resolve('Unknown error')
-      }
-    }
-  })
-}
-
-// export function addBatchData(storeName: string, data: GOTerm[]) {
-//   request = indexedDB.open(dbName, version)
-//   const start = Date.now()
-//   console.log('Adding batch data...')
-//   request.onsuccess = async () => {
-//     db = request.result
-//     let id = Date.now()
-//     data.forEach((item) => {
-//       const tx = db.transaction(storeName, 'readwrite')
-//       const store = tx.objectStore(storeName)
-//       store.add({ id, goId: item.id, description: item.label })
-//       id++
-//     })
-//   }
-//   request.onerror = () => {
-//     const error = request.error?.message
-//     if (error) {
-//       console.log(`ERROR: ${error}`)
-//     }
-//   }
-//   const end = Date.now()
-//   console.log(`Execution time: ${end - start} ms`)
-// }
-
 export const addBatchData = <T>(
   storeName: string,
   data: GOTerm[],
 ): Promise<number> => {
   return new Promise((resolve) => {
     request = indexedDB.open(goDbName, version)
-    const start = Date.now()
-    console.log('Adding batch data...')
+    console.log('Adding GO terms...')
     request.onsuccess = () => {
       db = request.result
       let id = Date.now()
+      let cnt = 0
+      const tx = db.transaction(storeName, 'readwrite')
+      const store = tx.objectStore(storeName)
       data.forEach((item) => {
-        const tx = db.transaction(storeName, 'readwrite')
-        const store = tx.objectStore(storeName)
         store.add({ id, goId: item.id, description: item.label })
         id++
+        cnt++
       })
-      const end = Date.now()
-      console.log(`Execution time: ${end - start} ms`)
-      resolve(100)
+      resolve(cnt)
     }
     request.onerror = () => {
       const error = request.error?.message
@@ -122,28 +70,11 @@ export const addBatchData = <T>(
     }
   })
 }
-export const getStoreData = <T>(storeName: Stores): Promise<T[]> => {
-  return new Promise((resolve) => {
-    request = indexedDB.open(goDbName)
-
-    request.onsuccess = () => {
-      console.log('Get all data')
-      db = request.result
-      const tx = db.transaction(storeName, 'readonly')
-      const store = tx.objectStore(storeName)
-      const res = store.getAll()
-      res.onsuccess = () => {
-        resolve(res.result)
-      }
-    }
-  })
-}
 
 export const getStoreDataCount = <T>(): Promise<number> => {
   return new Promise((resolve) => {
     request = indexedDB.open(goDbName)
     request.onsuccess = () => {
-      console.log('Get data count')
       db = request.result
       const objectStore = db
         .transaction(Stores.GOTerms, 'readonly')
@@ -169,7 +100,6 @@ export const getDataByID = <T>(
     request = indexedDB.open(goDbName)
 
     request.onsuccess = () => {
-      console.log('getDataByID')
       db = request.result
       const tx = db.transaction(storeName, 'readonly')
       const store = tx.objectStore(storeName)
@@ -200,30 +130,3 @@ export const getDataByID = <T>(
     }
   })
 }
-
-// export async function getDataByID2(storeName: Stores, searchStr: string) {
-//   request = indexedDB.open(dbName)
-
-//   request.onsuccess = () => {
-//     console.log('getDataByID')
-//     db = request.result
-//     const tx = db.transaction(storeName, 'readonly')
-//     const store = tx.objectStore(storeName)
-//     const matchingRecords: any[] = []
-//     store.openCursor().onsuccess = (event: Event) => {
-//       const cursor = (event.target as unknown as IDBRequest).result
-
-//       if (cursor) {
-//         const record = cursor.value
-//         const idVal: string = record.goId
-//         if ((record.goId as string).includes(searchStr)) {
-//           console.log(`LOYTYI : ${JSON.stringify(record.goId)}`)
-//           matchingRecords.push(record)
-//         }
-//         cursor.continue()
-//       }
-//     }
-//     return matchingRecords
-//   }
-//   // })
-// }

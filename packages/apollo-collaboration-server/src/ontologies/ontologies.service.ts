@@ -90,7 +90,6 @@ export class OntologiesService {
       const ontologyText = fs.readFileSync(ontologyLocation, 'utf8')
       const ontologyJson = JSON.parse(ontologyText) as OboJson
       const ontology: OboJson = ontologyJson
-      // *********** TODO: NOW WE GET ONLY THE FIRST 20 TERMS
       // Iterate over the nodes and edges in the JSON file
       for (const node of ontology.graphs[0].nodes) {
         if (node.id.startsWith('http://purl.obolibrary.org/obo/GO_')) {
@@ -100,15 +99,12 @@ export class OntologiesService {
           })
           dummyCount++
         }
-        if (dummyCount >= 5000) {
-          break
-        }
       }
     } catch (error) {
       this.logger.error('Error loading ontology file')
       throw error
     }
-    this.logger.debug(`Palautetaan ${dummyCount} kpl termia`)
+    this.logger.debug(`Fetched ${dummyCount} GO terms`)
     return goTermsArray
   }
 }
