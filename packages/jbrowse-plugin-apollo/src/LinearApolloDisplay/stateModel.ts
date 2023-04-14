@@ -10,6 +10,7 @@ import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { Instance, addDisposer, types } from 'mobx-state-tree'
 
+import { getFeatureRowCount } from '../ApolloRenderer/components/featureDrawing'
 import { ApolloSession } from '../session'
 
 export function stateModelFactory(
@@ -190,7 +191,7 @@ export function stateModelFactory(
               return start1 - start2 || end1 - end2
             })
             .forEach((feature) => {
-              const { rowCount } = feature
+              const rowCount = getFeatureRowCount(feature)
               let startingRow = 0
               let placed = false
               while (!placed) {

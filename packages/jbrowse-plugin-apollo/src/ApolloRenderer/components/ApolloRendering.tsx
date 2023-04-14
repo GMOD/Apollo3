@@ -14,6 +14,11 @@ import { DeleteFeature } from '../../components/DeleteFeature'
 import { ModifyFeatureAttribute } from '../../components/ModifyFeatureAttribute'
 import { LinearApolloDisplay } from '../../LinearApolloDisplay/stateModel'
 import { Collaborator } from '../../session'
+import {
+  draw,
+  getFeatureFromLayout,
+  getFeatureRowCount,
+} from './featureDrawing'
 
 interface ApolloRenderingProps {
   assemblyName: string
@@ -133,7 +138,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
           ? region.end - feature.end
           : feature.start - region.start - 1
         const startPx = start / bpPerPx
-        feature.draw(
+        draw(
+          feature,
           ctx,
           startPx,
           row * height,
@@ -168,6 +174,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     ctx.clearRect(0, 0, totalWidth, totalHeight)
     if (dragging) {
       const { feature, row, edge, px } = dragging
+      const rowCount = getFeatureRowCount(feature)
       const featureEdge = region.reversed
         ? region.end - feature[edge]
         : feature[edge] - region.start
@@ -176,13 +183,14 @@ function ApolloRendering(props: ApolloRenderingProps) {
       const widthPx = Math.abs(px - featureEdgePx)
       ctx.strokeStyle = 'red'
       ctx.setLineDash([6])
-      ctx.strokeRect(startPx, row * height, widthPx, height * feature.rowCount)
+      ctx.strokeRect(startPx, row * height, widthPx, height * rowCount)
       ctx.fillStyle = 'rgba(255,0,0,.2)'
-      ctx.fillRect(startPx, row * height, widthPx, height * feature.rowCount)
+      ctx.fillRect(startPx, row * height, widthPx, height * rowCount)
     }
     const feature = dragging?.feature || apolloFeatureUnderMouse
     const row = dragging?.row || apolloRowUnderMouse
     if (feature && row !== undefined) {
+      const rowCount = getFeatureRowCount(feature)
       const start = region.reversed
         ? region.end - feature.end
         : feature.start - region.start - 1
@@ -190,7 +198,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
       const startPx = start / bpPerPx
       const widthPx = width / bpPerPx
       ctx.fillStyle = 'rgba(0,0,0,0.2)'
-      ctx.fillRect(startPx, row * height, widthPx, height * feature.rowCount)
+      ctx.fillRect(startPx, row * height, widthPx, height * rowCount)
     }
     for (const collaborator of collaborators) {
       const { locations } = collaborator
@@ -285,12 +293,13 @@ function ApolloRendering(props: ApolloRenderingProps) {
       const topRow = row - featureRow
       const startPx = (feature.start - region.start) / bpPerPx
       const thisX = x - startPx
-      feature = feature.getFeatureFromLayout(
+      feature = getFeatureFromLayout(
+        feature,
         thisX,
         y - topRow * height,
         bpPerPx,
         height,
-      ) as AnnotationFeatureI
+      )
     }
     if (feature) {
       // TODO: check reversed
