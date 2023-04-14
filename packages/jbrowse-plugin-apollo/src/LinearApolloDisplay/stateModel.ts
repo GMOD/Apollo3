@@ -45,6 +45,9 @@ export function stateModelFactory(
       }
     })
     .views((self) => ({
+      get blockType(): 'staticBlocks' | 'dynamicBlocks' {
+        return 'dynamicBlocks'
+      },
       get regions() {
         let blockDefinitions
         try {
