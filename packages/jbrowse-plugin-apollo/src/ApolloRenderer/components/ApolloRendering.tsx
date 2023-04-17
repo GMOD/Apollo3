@@ -1,17 +1,11 @@
-import { getConf } from '@jbrowse/core/configuration'
-import { AppRootModel, Region, getSession } from '@jbrowse/core/util'
-import { Menu, MenuItem } from '@mui/material'
+import { Region, getSession } from '@jbrowse/core/util'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { autorun, toJS } from 'mobx'
 import { observer } from 'mobx-react'
-import { getRoot, getSnapshot } from 'mobx-state-tree'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { getSnapshot } from 'mobx-state-tree'
+import React, { useEffect, useRef, useState } from 'react'
 
-import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
-import { AddFeature } from '../../components/AddFeature'
-import { DeleteFeature } from '../../components/DeleteFeature'
-import { ModifyFeatureAttribute } from '../../components/ModifyFeatureAttribute'
 import { LinearApolloDisplay } from '../../LinearApolloDisplay/stateModel'
 import { Collaborator } from '../../session'
 import {
@@ -28,17 +22,9 @@ interface ApolloRenderingProps {
   blockKey: string
 }
 
-type Coord = [number, number]
-
 function ApolloRendering(props: ApolloRenderingProps) {
-  const [contextCoord, setContextCoord] = useState<Coord>()
-  const [contextMenuFeature, setContextMenuFeature] =
-    useState<AnnotationFeatureI>()
-
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
-  const [isAdmin, setIsAdmin] = useState<boolean>(false)
-  const [isReadOnly, setIsReadOnly] = useState<boolean>(true)
   const [overEdge, setOverEdge] = useState<'start' | 'end'>()
   const [dragging, setDragging] = useState<{
     edge: 'start' | 'end'
@@ -67,9 +53,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
     setApolloFeatureUnderMouse,
     apolloRowUnderMouse,
     setApolloRowUnderMouse,
+    setApolloContextMenuFeature,
     changeManager,
     getAssemblyId,
-    selectedFeature,
     setSelectedFeature,
     features,
     featuresHeight: totalHeight,
@@ -81,43 +67,6 @@ function ApolloRendering(props: ApolloRenderingProps) {
     // @ts-ignore
     Array.from(a.values()).map((f) => getSnapshot(f)),
   )
-
-  const apolloInternetAccount = useMemo(() => {
-    const { internetAccounts } = getRoot(session) as AppRootModel
-    const { assemblyName } = region
-    const { assemblyManager } = getSession(displayModel)
-    const assembly = assemblyManager.get(assemblyName)
-    if (!assembly) {
-      throw new Error(`No assembly found with name ${assemblyName}`)
-    }
-    const { internetAccountConfigId } = getConf(assembly, [
-      'sequence',
-      'metadata',
-    ]) as { internetAccountConfigId: string }
-    const matchingAccount = internetAccounts.find(
-      (ia) => getConf(ia, 'internetAccountId') === internetAccountConfigId,
-    ) as ApolloInternetAccountModel | undefined
-    if (!matchingAccount) {
-      throw new Error(
-        `No InternetAccount found with config id ${internetAccountConfigId}`,
-      )
-    }
-    return matchingAccount
-  }, [displayModel, region, session])
-
-  const { authType, getRole } = apolloInternetAccount
-
-  useEffect(() => {
-    if (!authType) {
-      return
-    }
-    if (getRole() === 'admin') {
-      setIsAdmin(true)
-    }
-    if (getRole() === 'admin' || getRole() === 'user') {
-      setIsReadOnly(false)
-    }
-  }, [authType, getRole])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -382,135 +331,13 @@ function ApolloRendering(props: ApolloRenderingProps) {
   }
   function onContextMenu(event: React.MouseEvent) {
     event.preventDefault()
-    setContextMenuFeature(apolloFeatureUnderMouse)
-    setContextCoord([event.pageX, event.pageY])
+    setApolloContextMenuFeature(apolloFeatureUnderMouse)
   }
 
   return (
     <div
       style={{ position: 'relative', width: totalWidth, height: totalHeight }}
     >
-      <Menu
-        open={Boolean(contextMenuFeature)}
-        anchorReference="anchorPosition"
-        anchorPosition={
-          contextCoord
-            ? { left: contextCoord[0], top: contextCoord[1] }
-            : undefined
-        }
-        data-testid="base_linear_display_context_menu"
-        onClose={() => {
-          setContextMenuFeature(undefined)
-        }}
-      >
-        <MenuItem
-          disabled={isReadOnly}
-          key={1}
-          value={1}
-          onClick={() => {
-            if (!contextMenuFeature) {
-              return
-            }
-            const currentAssemblyId = getAssemblyId(region.assemblyName)
-            session.queueDialog((doneCallback) => [
-              AddFeature,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                  setContextMenuFeature(undefined)
-                },
-                changeManager,
-                sourceFeature: contextMenuFeature,
-                sourceAssemblyId: currentAssemblyId,
-                internetAccount: apolloInternetAccount,
-              },
-            ])
-          }}
-        >
-          Add child feature
-        </MenuItem>
-        {/* <MenuItem
-          disabled={isReadOnly}
-          key={2}
-          value={2}
-          onClick={() => {
-            if (!contextMenuFeature) {
-              return
-            }
-            const currentAssemblyId = getAssemblyId(region.assemblyName)
-            session.queueDialog((doneCallback) => [
-              CopyFeature,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                  setContextMenuFeature(undefined)
-                },
-                changeManager,
-                sourceFeatureId: contextMenuFeature?._id,
-                sourceAssemblyId: currentAssemblyId,
-              },
-            ])
-          }}
-        >
-          Copy features and annotations
-        </MenuItem> */}
-        <MenuItem
-          disabled={!isAdmin}
-          key={3}
-          value={3}
-          onClick={() => {
-            if (!contextMenuFeature) {
-              return
-            }
-            const currentAssemblyId = getAssemblyId(region.assemblyName)
-            session.queueDialog((doneCallback) => [
-              DeleteFeature,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                  setContextMenuFeature(undefined)
-                },
-                changeManager,
-                sourceFeature: contextMenuFeature,
-                sourceAssemblyId: currentAssemblyId,
-                selectedFeature,
-                setSelectedFeature,
-              },
-            ])
-          }}
-        >
-          Delete feature
-        </MenuItem>
-        <MenuItem
-          disabled={isReadOnly}
-          key={4}
-          value={4}
-          onClick={() => {
-            if (!contextMenuFeature) {
-              return
-            }
-            const currentAssemblyId = getAssemblyId(region.assemblyName)
-            session.queueDialog((doneCallback) => [
-              ModifyFeatureAttribute,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                  setContextMenuFeature(undefined)
-                },
-                changeManager,
-                sourceFeature: contextMenuFeature,
-                sourceAssemblyId: currentAssemblyId,
-              },
-            ])
-          }}
-        >
-          Modify feature attribute
-        </MenuItem>
-      </Menu>
       <canvas
         ref={canvasRef}
         width={totalWidth}

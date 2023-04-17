@@ -1,16 +1,23 @@
-import { ConfigurationReference } from '@jbrowse/core/configuration'
+import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { getContainingView, getSession } from '@jbrowse/core/util'
+import { MenuItem } from '@jbrowse/core/ui'
+import { AppRootModel, getContainingView, getSession } from '@jbrowse/core/util'
 import { BaseBlock } from '@jbrowse/core/util/blockTypes'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
-import { Instance, addDisposer, types } from 'mobx-state-tree'
+import { Instance, addDisposer, getRoot, types } from 'mobx-state-tree'
 
+import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { getFeatureRowCount } from '../ApolloRenderer/components/featureDrawing'
+import {
+  AddFeature,
+  DeleteFeature,
+  ModifyFeatureAttribute,
+} from '../components'
 import { ApolloSession } from '../session'
 
 export function stateModelFactory(
@@ -45,6 +52,11 @@ export function stateModelFactory(
         },
       }
     })
+    .views((self) => ({
+      get session() {
+        return getSession(self) as ApolloSession
+      },
+    }))
     .views((self) => ({
       get blockType(): 'staticBlocks' | 'dynamicBlocks' {
         return 'dynamicBlocks'
@@ -82,7 +94,6 @@ export function stateModelFactory(
             self,
             autorun(
               () => {
-                const session = getSession(self) as ApolloSession
                 const view = getContainingView(
                   self,
                 ) as unknown as LinearGenomeViewModel
@@ -98,7 +109,7 @@ export function stateModelFactory(
                       newBlocks.push(block)
                     }
                   })
-                  session.apolloDataStore.loadFeatures(
+                  self.session.apolloDataStore.loadFeatures(
                     newBlocks.map(({ assemblyName, refName, start, end }) => ({
                       assemblyName,
                       refName,
@@ -120,15 +131,13 @@ export function stateModelFactory(
         return self.configuration.renderer.type
       },
       get changeManager() {
-        const session = getSession(self) as ApolloSession
-        return session.apolloDataStore?.changeManager
+        return self.session.apolloDataStore?.changeManager
       },
       get features() {
         const { regions } = self
-        const session = getSession(self) as ApolloSession
         const features = new Map<string, Map<string, AnnotationFeatureI>>()
         for (const region of regions) {
-          const assembly = session.apolloDataStore.assemblies.get(
+          const assembly = self.session.apolloDataStore.assemblies.get(
             region.assemblyName,
           )
           const ref = assembly?.getByRefName(region.refName)
@@ -239,7 +248,7 @@ export function stateModelFactory(
         return featureLayout
       },
       getAssemblyId(assemblyName: string) {
-        const { assemblyManager } = getSession(self)
+        const { assemblyManager } = self.session
         const assembly = assemblyManager.get(assemblyName)
         if (!assembly) {
           throw new Error(`Could not find assembly named ${assemblyName}`)
@@ -247,18 +256,12 @@ export function stateModelFactory(
         return assembly.name
       },
       get selectedFeature(): AnnotationFeatureI | undefined {
-        const session = getSession(self) as ApolloSession
-        return session.apolloSelectedFeature
-      },
-      get setSelectedFeature() {
-        const session = getSession(self) as ApolloSession
-        return session.apolloSetSelectedFeature
+        return self.session.apolloSelectedFeature
       },
     }))
     .actions((self) => ({
       setSelectedFeature(feature?: AnnotationFeatureI) {
-        const session = getSession(self) as ApolloSession
-        return session.apolloSetSelectedFeature(feature)
+        return self.session.apolloSetSelectedFeature(feature)
       },
       setApolloFeatureUnderMouse(feature?: AnnotationFeatureI) {
         self.apolloFeatureUnderMouse = feature
@@ -282,6 +285,144 @@ export function stateModelFactory(
           self.detailsMinHeight,
           self.height - this.featuresHeight,
         )
+      },
+    }))
+    .views((self) => ({
+      get apolloInternetAccount() {
+        const [region] = self.regions
+        const { internetAccounts } = getRoot(self) as AppRootModel
+        const { assemblyName } = region
+        const { assemblyManager } = self.session
+        const assembly = assemblyManager.get(assemblyName)
+        if (!assembly) {
+          throw new Error(`No assembly found with name ${assemblyName}`)
+        }
+        const { internetAccountConfigId } = getConf(assembly, [
+          'sequence',
+          'metadata',
+        ]) as { internetAccountConfigId: string }
+        const matchingAccount = internetAccounts.find(
+          (ia) => getConf(ia, 'internetAccountId') === internetAccountConfigId,
+        ) as ApolloInternetAccountModel | undefined
+        if (!matchingAccount) {
+          throw new Error(
+            `No InternetAccount found with config id ${internetAccountConfigId}`,
+          )
+        }
+        return matchingAccount
+      },
+    }))
+    .volatile(() => ({
+      apolloContextMenuFeature: undefined as AnnotationFeatureI | undefined,
+    }))
+    .actions((self) => ({
+      setApolloContextMenuFeature(feature?: AnnotationFeatureI) {
+        self.apolloContextMenuFeature = feature
+      },
+    }))
+    .views((self) => ({
+      contextMenuItems(): MenuItem[] {
+        const { getRole } = self.apolloInternetAccount
+        const role = getRole()
+        const admin = role === 'admin'
+        const readOnly = !Boolean(role && ['admin', 'user'].includes(role))
+        const menuItems: MenuItem[] = []
+        const {
+          apolloContextMenuFeature: sourceFeature,
+          apolloInternetAccount: internetAccount,
+          changeManager,
+          getAssemblyId,
+          session,
+          regions,
+        } = self
+        if (sourceFeature) {
+          const [region] = regions
+          const sourceAssemblyId = getAssemblyId(region.assemblyName)
+          const currentAssemblyId = getAssemblyId(region.assemblyName)
+          menuItems.push(
+            {
+              label: 'Add child feature',
+              disabled: readOnly,
+              onClick: () => {
+                session.queueDialog((doneCallback) => [
+                  AddFeature,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                      self.setApolloContextMenuFeature(undefined)
+                    },
+                    changeManager,
+                    sourceFeature,
+                    sourceAssemblyId,
+                    internetAccount,
+                  },
+                ])
+              },
+            },
+            // {
+            //   label: 'Copy features and annotations',
+            //   disabled: isReadOnly,
+            //   onClick: () => {
+            //     const currentAssemblyId = getAssemblyId(region.assemblyName)
+            //     session.queueDialog((doneCallback) => [
+            //       CopyFeature,
+            //       {
+            //         session,
+            //         handleClose: () => {
+            //           doneCallback()
+            //           setContextMenuFeature(undefined)
+            //         },
+            //         changeManager,
+            //         sourceFeatureId: contextMenuFeature?._id,
+            //         sourceAssemblyId: currentAssemblyId,
+            //       },
+            //     ])
+            //   },
+            // },
+            {
+              label: 'Delete feature',
+              disabled: !admin,
+              onClick: () => {
+                session.queueDialog((doneCallback) => [
+                  DeleteFeature,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                      self.setApolloContextMenuFeature(undefined)
+                    },
+                    changeManager,
+                    sourceFeature,
+                    sourceAssemblyId: currentAssemblyId,
+                    selectedFeature: self.selectedFeature,
+                    setSelectedFeature: self.setSelectedFeature,
+                  },
+                ])
+              },
+            },
+            {
+              label: 'Modify feature attribute',
+              disabled: readOnly,
+              onClick: () => {
+                session.queueDialog((doneCallback) => [
+                  ModifyFeatureAttribute,
+                  {
+                    session,
+                    handleClose: () => {
+                      doneCallback()
+                      self.setApolloContextMenuFeature(undefined)
+                    },
+                    changeManager,
+                    sourceFeature,
+                    sourceAssemblyId: currentAssemblyId,
+                  },
+                ])
+              },
+            },
+          )
+        }
+        return menuItems
       },
     }))
 }
