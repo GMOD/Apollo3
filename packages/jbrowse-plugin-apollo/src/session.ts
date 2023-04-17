@@ -204,7 +204,7 @@ export function extendSession(
   const { signal } = aborter
   const AnnotationFeatureExtended = pluginManager.evaluateExtensionPoint(
     'Apollo-extendAnnotationFeature',
-    sessionModel,
+    AnnotationFeature,
   ) as typeof AnnotationFeature
   const ClientDataStore = clientDataStoreFactory(AnnotationFeatureExtended)
   return sessionModel
