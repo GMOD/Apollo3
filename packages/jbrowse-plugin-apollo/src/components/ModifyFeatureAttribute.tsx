@@ -202,9 +202,9 @@ export function ModifyFeatureAttribute({
   }
 
   const onInputChange = async (event: any, value: any, reason: any) => {
-    console.log(`VALUE: ${value}`)
+    console.log(`User entered: ${value}`)
     setGOTerms([{ id: '', label: '' }])
-    if (value.length > 2) {
+    if (value.length > 3) {
       let dbData
       getDataByID(Stores.GOTerms, value).then((res) => {
         dbData = res
@@ -219,7 +219,7 @@ export function ModifyFeatureAttribute({
   }
 
   const handleChangeGOTerm = (event: any, newValue: any) => {
-    console.log(`3 NEW: "${JSON.stringify(newValue[0])}"`)
+    console.log(`handleChangeGOTerm: "${JSON.stringify(newValue[0])}"`)
     if (newAttributeValue.length > 0) {
       const tmpValue = `${newAttributeValue},${newValue[0].id}`
       setNewAttributeValue(tmpValue)
@@ -286,19 +286,6 @@ export function ModifyFeatureAttribute({
                 }
                 label="Attribute key is free text"
               />
-              {/* <Autocomplete
-                id="combo-box-demo"
-                options={goTerm.map(
-                  (option) => `${option.id} - ${option.label}`,
-                )}
-                onInputChange={onInputChange}
-                multiple={true}
-                isOptionEqualToValue={(option, value) => option === value}
-                style={{ width: 300 }}
-                renderInput={(params) => (
-                  <TextField {...params} label="Combo box" variant="outlined" />
-                )}
-              /> */}
               {!freeKeyAttribute ? (
                 <Autocomplete
                   id="free-solo-demo2"
@@ -335,25 +322,13 @@ export function ModifyFeatureAttribute({
                   }}
                 />
               ) : null}
-              {/* {goAttribute ? (
-                <Autocomplete
-                  id="free-solo-demo"
-                  multiple={true}
-                  options={goTerm.map((option) => option.id)}
-                  // onChange={(event, value) =>
-                  //   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                  //   setNewAttributeValue(value!.toString())
-                  // }
-                  onChange={onInputChange}
-                  renderInput={(params) => (
-                    <TextField {...params} label="Select GO term" />
-                  )}
-                />
-              ) : null} */}
               {goAttribute ? (
                 <Autocomplete
                   id="combo-box-demo"
                   filterSelectedOptions={true}
+                  // options={goTerm.map((option: GOTerm) => {
+                  //   return { id: `${option.id}`, label: `${option.label}` }
+                  // })}
                   options={goTerm.map((option: GOTerm) => {
                     return { id: `${option.id}`, label: `${option.label}` }
                   })}
@@ -373,9 +348,12 @@ export function ModifyFeatureAttribute({
                   renderInput={(params) => (
                     <TextField
                       {...params}
+                      margin="dense"
+                      type="text"
+                      fullWidth
                       variant="outlined"
                       label="GO term"
-                      placeholder="Enter search string..."
+                      placeholder="Enter search string (min 4 chars)..."
                     />
                   )}
                 />
@@ -388,7 +366,7 @@ export function ModifyFeatureAttribute({
                 key="addButton"
                 color="primary"
                 variant="contained"
-                style={{ margin: 2 }}
+                // style={{ margin: 2 }}
                 onClick={handleAddNewAttributeChange}
                 disabled={!(newAttributeKey && newAttributeValue)}
               >
