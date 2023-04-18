@@ -1,4 +1,8 @@
-import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  AppRootModel,
+  useDebounce,
+} from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Autocomplete,
@@ -12,12 +16,14 @@ import {
   FormControlLabel,
   Grid,
   IconButton,
+  Paper,
   TextField,
 } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { FeatureAttributeChange } from 'apollo-shared'
 import { getRoot, getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useRef, useState } from 'react'
+import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
@@ -30,6 +36,15 @@ interface ModifyFeatureAttributeProps {
   sourceAssemblyId: string
   changeManager: ChangeManager
 }
+
+const useStyles = makeStyles()((theme) => ({
+  attributeInput: {
+    maxWidth: 600,
+  },
+  newAttributePaper: {
+    padding: theme.spacing(2),
+  },
+}))
 
 // Reserved attribute keys
 const reservedKeys = [
@@ -57,7 +72,7 @@ export function ModifyFeatureAttribute({
     throw new Error('No Apollo internet account found')
   }
   const { baseURL } = apolloInternetAccount
-  const [goTerm, setGOTerms] = useState<GOTerm[]>([])
+  const [goTerms, setGOTerms] = useState<GOTerm[]>([])
   const [goAttribute, setGoAttribute] = useState(false)
   const [freeKeyAttribute, setFreeKeyAttribute] = useState(true)
   // const [selectedGoValue, setSelectedGoValue] = useState('')
@@ -74,6 +89,7 @@ export function ModifyFeatureAttribute({
   const [showAddNewForm, setShowAddNewForm] = useState(false)
   const [newAttributeKey, setNewAttributeKey] = useState('')
   const [newAttributeValue, setNewAttributeValue] = useState('')
+  const { classes } = useStyles()
   // useEffect(() => {
   //   async function getGOTerms() {
   //     const uri = new URL('/ontologies/go/findall', baseURL).href
@@ -218,15 +234,26 @@ export function ModifyFeatureAttribute({
     }
   }
 
-  const handleChangeGOTerm = (event: any, newValue: any) => {
-    console.log(`handleChangeGOTerm: "${JSON.stringify(newValue[0])}"`)
-    if (newAttributeValue.length > 0) {
-      const tmpValue = `${newAttributeValue},${newValue[0].id}`
-      setNewAttributeValue(tmpValue)
+  const [goInput, setGoInput] = useState('')
+  function handleGOInputChange(_event: unknown, value: string) {
+    setGoInput(value)
+  }
+  const handleGOValueChange = (_event: unknown, newValue: GOTerm[]) => {
+    if (newValue.length) {
+      setNewAttributeValue(newValue.map((gt) => gt.id).join(','))
     } else {
-      setNewAttributeValue(newValue[0].id)
+      setNewAttributeValue('')
     }
   }
+  const debouncedGoInput = useDebounce(goInput, 300)
+  useEffect(() => {
+    async function fetchGoTerms() {
+      const gt = await getDataByID(Stores.GOTerms, debouncedGoInput)
+      setGOTerms(gt)
+    }
+    fetchGoTerms()
+  }, [debouncedGoInput])
+
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Feature attributes</DialogTitle>
@@ -261,104 +288,111 @@ export function ModifyFeatureAttribute({
             )
           })}
           {showAddNewForm ? (
-            <DialogContent style={{ border: '5px solid rgba(0, 0, 0, 0.05)' }}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={goAttribute}
-                    onChange={() => {
-                      setGoAttribute(!goAttribute)
-                      setNewAttributeValue('')
-                    }}
-                  />
-                }
-                label="Add new gene ontology attribute"
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={freeKeyAttribute}
-                    onChange={() => {
-                      setFreeKeyAttribute(!freeKeyAttribute)
-                      setNewAttributeKey('')
-                    }}
-                  />
-                }
-                label="Attribute key is free text"
-              />
-              {!freeKeyAttribute ? (
-                <Autocomplete
-                  id="free-solo-demo2"
-                  options={reservedKeys.map((option) => option.key)}
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                  onChange={(event, value) => setNewAttributeKey(value!)}
-                  renderInput={(params) => (
-                    <TextField {...params} label="Select key" />
-                  )}
-                />
-              ) : null}
-              {freeKeyAttribute ? (
-                <TextField
-                  autoFocus
-                  margin="dense"
-                  label="Attribute key"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  onChange={(e) => {
-                    setNewAttributeKey(e.target.value)
-                  }}
-                />
-              ) : null}
-              {!goAttribute ? (
-                <TextField
-                  margin="dense"
-                  label="Attribute value"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  onChange={(e) => {
-                    setNewAttributeValue(e.target.value)
-                  }}
-                />
-              ) : null}
-              {goAttribute ? (
-                <Autocomplete
-                  id="combo-box-demo"
-                  filterSelectedOptions={true}
-                  // options={goTerm.map((option: GOTerm) => {
-                  //   return { id: `${option.id}`, label: `${option.label}` }
-                  // })}
-                  options={goTerm.map((option: GOTerm) => {
-                    return { id: `${option.id}`, label: `${option.label}` }
-                  })}
-                  getOptionLabel={(option) => option.id}
-                  renderOption={(props, option: GOTerm) => (
-                    <li {...props}>
-                      {option.id}&nbsp;&nbsp;&nbsp;{option.label}
-                    </li>
-                  )}
-                  onInputChange={onInputChange}
-                  multiple={true}
-                  isOptionEqualToValue={(option: GOTerm, value: GOTerm) =>
-                    option.id === value.id
-                  }
-                  fullWidth
-                  onChange={handleChangeGOTerm}
-                  renderInput={(params) => (
+            <Paper elevation={8} className={classes.newAttributePaper}>
+              <Grid container direction="column">
+                <Grid container>
+                  <Grid item>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={goAttribute}
+                          onChange={() => {
+                            setGoAttribute(!goAttribute)
+                            setNewAttributeValue('')
+                          }}
+                        />
+                      }
+                      label="Add new gene ontology attribute"
+                    />
+                  </Grid>
+                  <Grid item>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={freeKeyAttribute}
+                          onChange={() => {
+                            setFreeKeyAttribute(!freeKeyAttribute)
+                            setNewAttributeKey('')
+                          }}
+                        />
+                      }
+                      label="Attribute key is free text"
+                    />
+                  </Grid>
+                </Grid>
+                <Grid item>
+                  {freeKeyAttribute ? (
                     <TextField
-                      {...params}
+                      autoFocus
                       margin="dense"
+                      label="Attribute key"
                       type="text"
                       fullWidth
                       variant="outlined"
-                      label="GO term"
-                      placeholder="Enter search string (min 4 chars)..."
+                      onChange={(e) => {
+                        setNewAttributeKey(e.target.value)
+                      }}
+                      className={classes.attributeInput}
+                    />
+                  ) : (
+                    <Autocomplete
+                      id="free-solo-demo2"
+                      options={reservedKeys.map((option) => option.key)}
+                      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                      onChange={(event, value) => setNewAttributeKey(value!)}
+                      renderInput={(params) => (
+                        <TextField {...params} label="Select key" />
+                      )}
                     />
                   )}
-                />
-              ) : null}
-            </DialogContent>
+                </Grid>
+                <Grid item>
+                  {goAttribute ? (
+                    <Autocomplete
+                      id="combo-box-demo"
+                      filterSelectedOptions
+                      options={goTerms}
+                      getOptionLabel={(option) => option.id}
+                      renderOption={(props, option: GOTerm) => (
+                        <li {...props}>
+                          {option.id}&nbsp;&nbsp;&nbsp;{option.label}
+                        </li>
+                      )}
+                      onInputChange={handleGOInputChange}
+                      multiple
+                      isOptionEqualToValue={(option: GOTerm, value: GOTerm) => {
+                        return option.id === value.id
+                      }}
+                      filterOptions={(x) => x}
+                      onChange={handleGOValueChange}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          margin="dense"
+                          type="text"
+                          variant="outlined"
+                          label="GO term"
+                          placeholder="Enter search string"
+                          className={classes.attributeInput}
+                        />
+                      )}
+                    />
+                  ) : (
+                    <TextField
+                      margin="dense"
+                      label="Attribute value"
+                      type="text"
+                      fullWidth
+                      variant="outlined"
+                      onChange={(e) => {
+                        setNewAttributeValue(e.target.value)
+                      }}
+                      className={classes.attributeInput}
+                    />
+                  )}
+                </Grid>
+              </Grid>
+            </Paper>
           ) : null}
           {showAddNewForm ? (
             <DialogActions>

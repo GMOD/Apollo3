@@ -95,6 +95,7 @@ export const getStoreDataCount = <T>(): Promise<number> => {
 export const getDataByID = <T>(
   storeName: Stores,
   searchStr: string,
+  limit = 40,
 ): Promise<GOTerm[]> => {
   return new Promise((resolve) => {
     request = indexedDB.open(goDbName)
@@ -122,7 +123,11 @@ export const getDataByID = <T>(
               matchingRecords.push(newObject)
             }
           }
-          cursor.continue()
+          if (matchingRecords.length >= limit) {
+            resolve(matchingRecords)
+          } else {
+            cursor.continue()
+          }
         } else {
           resolve(matchingRecords)
         }
