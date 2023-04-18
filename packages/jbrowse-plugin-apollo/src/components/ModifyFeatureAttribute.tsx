@@ -366,7 +366,7 @@ export function ModifyFeatureAttribute({
                 key="addButton"
                 color="primary"
                 variant="contained"
-                // style={{ margin: 2 }}
+                style={{ margin: 2 }}
                 onClick={handleAddNewAttributeChange}
                 disabled={!(newAttributeKey && newAttributeValue)}
               >
