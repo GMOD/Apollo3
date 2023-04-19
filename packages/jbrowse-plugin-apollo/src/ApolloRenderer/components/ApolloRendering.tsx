@@ -5,6 +5,7 @@ import { autorun, toJS } from 'mobx'
 import { observer } from 'mobx-react'
 import { getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useRef, useState } from 'react'
+import { makeStyles } from 'tss-react/mui'
 
 import { LinearApolloDisplay } from '../../LinearApolloDisplay/stateModel'
 import { Collaborator } from '../../session'
@@ -22,6 +23,17 @@ interface ApolloRenderingProps {
   blockKey: string
 }
 
+const useStyles = makeStyles()((theme) => ({
+  canvas: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+  },
+  canvasContainer: {
+    position: 'relative',
+  },
+}))
+
 function ApolloRendering(props: ApolloRenderingProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -36,6 +48,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const [movedDuringLastMouseDown, setMovedDuringLastMouseDown] =
     useState(false)
   const [collaborators, setCollaborators] = useState<Collaborator[]>([])
+  const { classes } = useStyles()
 
   const { regions, bpPerPx, displayModel } = props
   const session = getSession(displayModel)
@@ -67,7 +80,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     // @ts-ignore
     Array.from(a.values()).map((f) => getSnapshot(f)),
   )
-
+  // this useEffect draws the features
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) {
@@ -111,6 +124,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     height,
     featureSnap,
   ])
+  // this useEffect draws the dragging indicators
   useEffect(() => {
     const canvas = overlayCanvasRef.current
     if (!canvas) {
@@ -149,6 +163,28 @@ function ApolloRendering(props: ApolloRenderingProps) {
       ctx.fillStyle = 'rgba(0,0,0,0.2)'
       ctx.fillRect(startPx, row * height, widthPx, height * rowCount)
     }
+  }, [
+    apolloFeatureUnderMouse,
+    apolloRowUnderMouse,
+    bpPerPx,
+    totalHeight,
+    totalWidth,
+    region.start,
+    region.end,
+    region.reversed,
+    dragging,
+    height,
+  ])
+  // this useEffect draws the collaborator positions
+  useEffect(() => {
+    const canvas = overlayCanvasRef.current
+    if (!canvas) {
+      return
+    }
+    const ctx = canvas.getContext('2d')
+    if (!ctx) {
+      return
+    }
     for (const collaborator of collaborators) {
       const { locations } = collaborator
       if (!locations.length) {
@@ -172,20 +208,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
         )
       }
     }
-  }, [
-    apolloFeatureUnderMouse,
-    apolloRowUnderMouse,
-    bpPerPx,
-    totalHeight,
-    totalWidth,
-    region,
-    region.start,
-    region.end,
-    region.reversed,
-    dragging,
-    height,
-    collaborators,
-  ])
+  }, [bpPerPx, collaborators, region.end, region.start, region.reversed])
 
   function onMouseMove(event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
     const { clientX, clientY, buttons } = event
@@ -336,13 +359,14 @@ function ApolloRendering(props: ApolloRenderingProps) {
 
   return (
     <div
-      style={{ position: 'relative', width: totalWidth, height: totalHeight }}
+      className={classes.canvasContainer}
+      style={{ width: totalWidth, height: totalHeight }}
     >
       <canvas
         ref={canvasRef}
         width={totalWidth}
         height={totalHeight}
-        style={{ position: 'absolute', left: 0, top: 0 }}
+        className={classes.canvas}
       />
       <canvas
         ref={overlayCanvasRef}
@@ -353,10 +377,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
         onMouseDown={onMouseDown}
         onMouseUp={onMouseUp}
         onContextMenu={onContextMenu}
+        className={classes.canvas}
         style={{
-          position: 'absolute',
-          left: 0,
-          top: 0,
           cursor:
             dragging || (apolloFeatureUnderMouse && overEdge)
               ? 'col-resize'
