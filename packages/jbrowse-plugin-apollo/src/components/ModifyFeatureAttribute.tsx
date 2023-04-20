@@ -9,10 +9,14 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControl,
   FormControlLabel,
+  FormLabel,
   Grid,
   IconButton,
   Paper,
+  Radio,
+  RadioGroup,
   TextField,
 } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
@@ -41,12 +45,6 @@ const useStyles = makeStyles()((theme) => ({
   },
 }))
 
-// Reserved attribute keys
-const reservedKeys = [
-  { key: 'Ontology_term', id: 1 },
-  { key: 'Dbxref', id: 2 },
-]
-
 export interface GOTerm {
   id: string
   label: string
@@ -61,8 +59,9 @@ export function ModifyFeatureAttribute({
   const { notify } = session
   const [goTerms, setGOTerms] = useState<GOTerm[]>([])
   const [goAttribute, setGoAttribute] = useState(false)
-  const [freeKeyAttribute, setFreeKeyAttribute] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
+  const [showKey, setShowKey] = useState(true)
+  const [showGoCheckbox, setShowGoCheckbox] = useState(true)
   const [attributes, setAttributes] = useState<Record<string, string[]>>(
     Object.fromEntries(
       Array.from(sourceFeature.attributes.entries()).map(([key, value]) => [
@@ -106,16 +105,6 @@ export function ModifyFeatureAttribute({
       setErrorMessage(`Attribute key is mandatory`)
       return
     }
-    if (!freeKeyAttribute && !goAttribute) {
-      // Check that value contains "DBTAG:ID"
-      if (!newAttributeValue.includes(':')) {
-        setErrorMessage(
-          `If GO key is "Ontology_term" or "Dbxref" then attribute value must have "DBTAG:ID" -format!`,
-        )
-        return
-      }
-    }
-
     if (newAttributeKey in attributes) {
       setErrorMessage(`Attribute "${newAttributeKey}" already exists`)
     } else {
@@ -152,6 +141,29 @@ export function ModifyFeatureAttribute({
     }
     fetchGoTerms()
   }, [debouncedGoInput])
+
+  function handleRadioButtonChange(
+    event: React.ChangeEvent<HTMLInputElement>,
+    value: string,
+  ) {
+    switch (value) {
+      case 'custom':
+        setShowKey(true)
+        if (newAttributeKey === 'GO') {
+          setNewAttributeKey('')
+        }
+        setShowGoCheckbox(true)
+        break
+      case 'GO':
+        setShowKey(false)
+        setNewAttributeKey('GO')
+        setGoAttribute(true)
+        setShowGoCheckbox(false)
+        break
+      default:
+        setErrorMessage('Unknown attribute source')
+    }
+  }
 
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
@@ -191,36 +203,39 @@ export function ModifyFeatureAttribute({
               <Grid container direction="column">
                 <Grid container>
                   <Grid item>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={goAttribute}
-                          onChange={() => {
-                            setGoAttribute(!goAttribute)
-                            setNewAttributeValue('')
-                          }}
+                    <FormControl>
+                      <FormLabel id="attribute-radio-button-group">
+                        Attribute source
+                      </FormLabel>
+                      <RadioGroup
+                        aria-labelledby="demo-radio-buttons-group-label"
+                        defaultValue="custom"
+                        name="radio-buttons-group"
+                        onChange={handleRadioButtonChange}
+                        row
+                      >
+                        <FormControlLabel
+                          value="custom"
+                          control={<Radio />}
+                          label="Custom"
                         />
-                      }
-                      label="Add new gene ontology attribute"
-                    />
-                  </Grid>
-                  <Grid item>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={freeKeyAttribute}
-                          onChange={() => {
-                            setFreeKeyAttribute(!freeKeyAttribute)
-                            setNewAttributeKey('')
-                          }}
+                        <FormControlLabel
+                          value="GO"
+                          control={<Radio />}
+                          label="Gene Ontology"
                         />
-                      }
-                      label="Attribute key is free text"
-                    />
+                        <FormControlLabel
+                          value="SO"
+                          disabled
+                          control={<Radio />}
+                          label="Sequence Ontology"
+                        />
+                      </RadioGroup>
+                    </FormControl>
                   </Grid>
                 </Grid>
                 <Grid item>
-                  {freeKeyAttribute ? (
+                  {showKey ? (
                     <TextField
                       autoFocus
                       margin="dense"
@@ -233,17 +248,7 @@ export function ModifyFeatureAttribute({
                       }}
                       className={classes.attributeInput}
                     />
-                  ) : (
-                    <Autocomplete
-                      id="free-solo-demo2"
-                      options={reservedKeys.map((option) => option.key)}
-                      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                      onChange={(event, value) => setNewAttributeKey(value!)}
-                      renderInput={(params) => (
-                        <TextField {...params} label="Select key" />
-                      )}
-                    />
-                  )}
+                  ) : null}
                 </Grid>
                 <Grid item>
                   {goAttribute ? (
@@ -289,6 +294,20 @@ export function ModifyFeatureAttribute({
                       className={classes.attributeInput}
                     />
                   )}
+                  {showGoCheckbox ? (
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={goAttribute}
+                          onChange={() => {
+                            setGoAttribute(!goAttribute)
+                            setNewAttributeValue('')
+                          }}
+                        />
+                      }
+                      label="Choose gene ontology term(s)"
+                    />
+                  ) : null}
                 </Grid>
               </Grid>
             </Paper>
