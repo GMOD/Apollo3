@@ -1,8 +1,4 @@
-import {
-  AbstractSessionModel,
-  AppRootModel,
-  useDebounce,
-} from '@jbrowse/core/util'
+import { AbstractSessionModel, useDebounce } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Autocomplete,
@@ -21,13 +17,12 @@ import {
 } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { FeatureAttributeChange } from 'apollo-shared'
-import { getRoot, getSnapshot } from 'mobx-state-tree'
-import React, { useEffect, useRef, useState } from 'react'
+import { getSnapshot } from 'mobx-state-tree'
+import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
-import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
-import { Stores, addBatchData, getDataByID, initDB } from './db'
+import { Stores, getDataByID } from './db'
 
 interface ModifyFeatureAttributeProps {
   session: AbstractSessionModel
@@ -63,21 +58,11 @@ export function ModifyFeatureAttribute({
   sourceAssemblyId,
   changeManager,
 }: ModifyFeatureAttributeProps) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
   const { notify } = session
-  const apolloInternetAccount = internetAccounts.find(
-    (ia) => ia.type === 'ApolloInternetAccount',
-  ) as ApolloInternetAccountModel | undefined
-  if (!apolloInternetAccount) {
-    throw new Error('No Apollo internet account found')
-  }
-  const { baseURL } = apolloInternetAccount
   const [goTerms, setGOTerms] = useState<GOTerm[]>([])
   const [goAttribute, setGoAttribute] = useState(false)
   const [freeKeyAttribute, setFreeKeyAttribute] = useState(true)
-  // const [selectedGoValue, setSelectedGoValue] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
-  const [dataFromDatabase, setDataFromDatabase] = useState('')
   const [attributes, setAttributes] = useState<Record<string, string[]>>(
     Object.fromEntries(
       Array.from(sourceFeature.attributes.entries()).map(([key, value]) => [
@@ -90,59 +75,6 @@ export function ModifyFeatureAttribute({
   const [newAttributeKey, setNewAttributeKey] = useState('')
   const [newAttributeValue, setNewAttributeValue] = useState('')
   const { classes } = useStyles()
-  // useEffect(() => {
-  //   async function getGOTerms() {
-  //     const uri = new URL('/ontologies/go/findall', baseURL).href
-  //     const apolloFetch = apolloInternetAccount?.getFetcher({
-  //       locationType: 'UriLocation',
-  //       uri,
-  //     })
-  //     if (apolloFetch) {
-  //       const response = await apolloFetch(uri, {
-  //         method: 'GET',
-  //       })
-  //       if (!response.ok) {
-  //         setErrorMessage('Error when fetching GO terms from server')
-  //         return
-  //       }
-  //       // OBOE json parser
-  //       const data = await response.json()
-  //       const tmpData = data.map((goTermItm: GOTerm) => ({id: goTermItm.id, label: goTermItm.label}))
-  //       console.log(`len : ${tmpData.length}`)
-  //       addDataV2(Stores.GOTerms, tmpData)
-  //     }
-  //   }
-  //   getGOTerms()
-  //   return () => {
-  //     setGOTerms([{ id: '', label: '' }])
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [])
-
-  async function getGOTerms() {
-    const uri = new URL('/ontologies/go/findall', baseURL).href
-    const apolloFetch = apolloInternetAccount?.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
-    if (apolloFetch) {
-      const response = await apolloFetch(uri, {
-        method: 'GET',
-      })
-      if (!response.ok) {
-        setErrorMessage('Error when fetching GO terms from server')
-        return
-      }
-      // OBOE json parser
-      const data = await response.json()
-      const tmpData = data.map((goTermItm: GOTerm) => ({
-        id: goTermItm.id,
-        label: goTermItm.label,
-      }))
-      console.log(`Data length from server : ${tmpData.length}`)
-      addBatchData(Stores.GOTerms, tmpData)
-    }
-  }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -177,7 +109,6 @@ export function ModifyFeatureAttribute({
     if (!freeKeyAttribute && !goAttribute) {
       // Check that value contains "DBTAG:ID"
       if (!newAttributeValue.includes(':')) {
-        console.log('*** SHOW ERROR MESSAGE ***')
         setErrorMessage(
           `If GO key is "Ontology_term" or "Dbxref" then attribute value must have "DBTAG:ID" -format!`,
         )
@@ -200,38 +131,6 @@ export function ModifyFeatureAttribute({
     setErrorMessage('')
     const { [key]: remove, ...rest } = attributes
     setAttributes(rest)
-  }
-
-  const [isDBReady, setIsDBReady] = useState<boolean>(false)
-  const handleInitDB = async () => {
-    const status = await initDB()
-    setIsDBReady(status)
-  }
-
-  function fetchData() {
-    let dbData
-    getDataByID(Stores.GOTerms, '001').then((res) => {
-      dbData = res
-      console.log(`- Fetch data from database: ${JSON.stringify(dbData)}`)
-      setDataFromDatabase(JSON.stringify(dbData))
-    })
-  }
-
-  const onInputChange = async (event: any, value: any, reason: any) => {
-    console.log(`User entered: ${value}`)
-    setGOTerms([{ id: '', label: '' }])
-    if (value.length > 3) {
-      let dbData
-      getDataByID(Stores.GOTerms, value).then((res) => {
-        dbData = res
-        if (dbData.length > 0) {
-          console.log(
-            `Found ${dbData.length} matches, like ${JSON.stringify(dbData[0])}`,
-          )
-          setGOTerms(dbData)
-        }
-      })
-    }
   }
 
   const [goInput, setGoInput] = useState('')
@@ -420,7 +319,6 @@ export function ModifyFeatureAttribute({
             </DialogActions>
           ) : null}
         </DialogContent>
-
         <DialogActions>
           <Button
             color="primary"
@@ -449,12 +347,12 @@ export function ModifyFeatureAttribute({
         </DialogActions>
       </form>
       <DialogContent>
-        <DialogContentText>
-          Separate multiple value for the attribute with a comma
-        </DialogContentText>
         {errorMessage ? (
           <DialogContentText color="error">{errorMessage}</DialogContentText>
         ) : null}
+        <DialogContentText>
+          Separate multiple value for the attribute with a comma
+        </DialogContentText>
       </DialogContent>
     </Dialog>
   )

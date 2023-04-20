@@ -1,8 +1,9 @@
+/* eslint-disable no-console */
 import { GOTerm } from './ModifyFeatureAttribute'
 
 let request: IDBOpenDBRequest
 let db: IDBDatabase
-let version = 1
+let dbVersion = 1
 
 export interface GOTermDb {
   id: string
@@ -17,7 +18,6 @@ export const goDbName = 'goDB'
 
 export const initDB = (): Promise<boolean> => {
   return new Promise((resolve) => {
-    // open the connection
     request = indexedDB.open(goDbName)
 
     request.onupgradeneeded = () => {
@@ -31,7 +31,7 @@ export const initDB = (): Promise<boolean> => {
 
     request.onsuccess = () => {
       db = request.result
-      version = db.version
+      dbVersion = db.version
       console.log('Database is now initialized')
       resolve(true)
     }
@@ -42,13 +42,13 @@ export const initDB = (): Promise<boolean> => {
   })
 }
 
-export const addBatchData = <T>(
+export const addBatchData = (
   storeName: string,
   data: GOTerm[],
 ): Promise<number> => {
   return new Promise((resolve) => {
-    request = indexedDB.open(goDbName, version)
-    console.log('Adding GO terms...')
+    request = indexedDB.open(goDbName, dbVersion)
+    console.log('Adding GO terms into database...')
     request.onsuccess = () => {
       db = request.result
       let id = Date.now()
@@ -65,13 +65,13 @@ export const addBatchData = <T>(
     request.onerror = () => {
       const error = request.error?.message
       if (error) {
-        console.log(`ERROR: ${error}`)
+        console.log(`ERROR when adding GO terms into database: ${error}`)
       }
     }
   })
 }
 
-export const getStoreDataCount = <T>(): Promise<number> => {
+export const getStoreDataCount = (): Promise<number> => {
   return new Promise((resolve) => {
     request = indexedDB.open(goDbName)
     request.onsuccess = () => {
@@ -92,7 +92,7 @@ export const getStoreDataCount = <T>(): Promise<number> => {
   })
 }
 
-export const getDataByID = <T>(
+export const getDataByID = (
   storeName: Stores,
   searchStr: string,
   limit = 40,

@@ -53,8 +53,6 @@ export class OntologiesService {
       const ontologyText = fs.readFileSync(ontologyLocation, 'utf8')
       const ontologyJson = JSON.parse(ontologyText) as OboJson
       const ontology: OboJson = ontologyJson
-      // *********** TODO: NOW WE GET ONLY THE FIRST 50 TERMS
-      let dummyCount = 0
       // Iterate over the nodes and edges in the JSON file
       for (const node of ontology.graphs[0].nodes) {
         if (node.id.startsWith('http://purl.obolibrary.org/obo/GO_')) {
@@ -65,11 +63,7 @@ export class OntologiesService {
               id: node.id.replace('http://purl.obolibrary.org/obo/GO_', 'GO:'),
               label: lab,
             })
-            dummyCount++
           }
-        }
-        if (dummyCount > 50) {
-          break
         }
       }
     } catch (error) {
@@ -90,12 +84,21 @@ export class OntologiesService {
       const ontologyText = fs.readFileSync(ontologyLocation, 'utf8')
       const ontologyJson = JSON.parse(ontologyText) as OboJson
       const ontology: OboJson = ontologyJson
+      let labelText = ''
       // Iterate over the nodes and edges in the JSON file
       for (const node of ontology.graphs[0].nodes) {
         if (node.id.startsWith('http://purl.obolibrary.org/obo/GO_')) {
+          const { meta } = node
+          labelText = node.lbl
+          if (meta.hasOwnProperty('deprecated')) {
+            const tmpObj = JSON.parse(JSON.stringify(meta))
+            if (tmpObj.deprecated === true) {
+              labelText = '*** This term is deprecated ***'
+            }
+          }
           goTermsArray.push({
             id: node.id.replace('http://purl.obolibrary.org/obo/GO_', 'GO:'),
-            label: node.lbl,
+            label: labelText,
           })
           dummyCount++
         }

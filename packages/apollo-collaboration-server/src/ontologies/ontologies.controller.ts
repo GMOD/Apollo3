@@ -38,8 +38,6 @@ export class OntologiesController {
    */
   @Get('/go/findAll')
   goFindAll() {
-    this.logger.debug(`**** Get all possible GO terms`)
-
     return this.ontologiesService.goFindAll()
   }
 
@@ -51,8 +49,6 @@ export class OntologiesController {
    */
   @Get('/go/findByStr/:str')
   goFindByStr(@Param('str') str: string) {
-    this.logger.debug(`Get all possible GO terms for "${str}"`)
-
     return this.ontologiesService.goFindByStr(str.toUpperCase())
   }
 

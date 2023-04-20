@@ -32,7 +32,6 @@ import {
   Stores,
   addBatchData,
   getStoreDataCount,
-  goDbName,
   initDB,
 } from './components/db'
 import { GOTerm } from './components/ModifyFeatureAttribute'
@@ -467,29 +466,27 @@ export function extendSession(sessionModel: IAnyModelType) {
           const recCount = yield getStoreDataCount()
           if (recCount === undefined || recCount < 1) {
             const uri2 = new URL('/ontologies/go/findall', baseURL).href
-            console.log(`Loading GO terms from server...`)
             const apolloFetch = internetAccount.getFetcher({
               locationType: 'UriLocation',
               uri: uri2,
             })
             if (apolloFetch) {
-              const response2: any = yield apolloFetch(uri2, {
+              const response2 = yield apolloFetch(uri2, {
                 method: 'GET',
               })
               if (!response2.ok) {
-                console.log('Error when fetching GO terms from server')
+                throw new Error('Error when fetching GO terms from server')
                 return
               }
-              // OBOE json parser
               const data = yield response2.json()
               const tmpData = data.map((goTermItm: GOTerm) => ({
                 id: goTermItm.id,
                 label: goTermItm.label,
               }))
-              console.log(`Server returned ${tmpData.length} GO terms`)
               const start = Date.now()
               addBatchData(Stores.GOTerms, tmpData).then((res) => {
                 const end = Date.now()
+                // eslint-disable-next-line prettier/prettier, no-console
                 console.log(`Inserted ${res} GO terms into database in ${end - start} ms`)
               })
             }
