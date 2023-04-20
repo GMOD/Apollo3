@@ -112,7 +112,6 @@ function ApolloRendering(props: ApolloRenderingProps) {
       }
     }
   }, [
-    region,
     bpPerPx,
     region.start,
     region.end,
@@ -120,7 +119,6 @@ function ApolloRendering(props: ApolloRenderingProps) {
     totalWidth,
     featureLayout,
     totalHeight,
-    features,
     height,
     featureSnap,
   ])
