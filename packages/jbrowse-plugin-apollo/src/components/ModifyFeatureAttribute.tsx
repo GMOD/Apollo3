@@ -3,7 +3,6 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Autocomplete,
   Button,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
@@ -61,7 +60,6 @@ export function ModifyFeatureAttribute({
   const [goAttribute, setGoAttribute] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [showKey, setShowKey] = useState(true)
-  const [showGoCheckbox, setShowGoCheckbox] = useState(true)
   const [attributes, setAttributes] = useState<Record<string, string[]>>(
     Object.fromEntries(
       Array.from(sourceFeature.attributes.entries()).map(([key, value]) => [
@@ -113,6 +111,8 @@ export function ModifyFeatureAttribute({
         [newAttributeKey]: newAttributeValue.split(','),
       })
       setShowAddNewForm(false)
+      setGoAttribute(false)
+      setShowKey(true)
     }
   }
 
@@ -152,13 +152,12 @@ export function ModifyFeatureAttribute({
         if (newAttributeKey === 'GO') {
           setNewAttributeKey('')
         }
-        setShowGoCheckbox(true)
+        setGoAttribute(false)
         break
       case 'GO':
         setShowKey(false)
         setNewAttributeKey('GO')
         setGoAttribute(true)
-        setShowGoCheckbox(false)
         break
       default:
         setErrorMessage('Unknown attribute source')
@@ -212,7 +211,6 @@ export function ModifyFeatureAttribute({
                         defaultValue="custom"
                         name="radio-buttons-group"
                         onChange={handleRadioButtonChange}
-                        row
                       >
                         <FormControlLabel
                           value="custom"
@@ -294,20 +292,6 @@ export function ModifyFeatureAttribute({
                       className={classes.attributeInput}
                     />
                   )}
-                  {showGoCheckbox ? (
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={goAttribute}
-                          onChange={() => {
-                            setGoAttribute(!goAttribute)
-                            setNewAttributeValue('')
-                          }}
-                        />
-                      }
-                      label="Choose gene ontology term(s)"
-                    />
-                  ) : null}
                 </Grid>
               </Grid>
             </Paper>
@@ -345,6 +329,8 @@ export function ModifyFeatureAttribute({
             disabled={showAddNewForm}
             onClick={() => {
               setShowAddNewForm(true)
+              setGoAttribute(false)
+              setShowKey(true)
             }}
           >
             Add new
