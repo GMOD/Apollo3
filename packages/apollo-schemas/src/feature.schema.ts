@@ -32,7 +32,7 @@ export class Feature
   end: number
 
   @Prop()
-  discontinuousLocations?: { start: number; end: number }[]
+  discontinuousLocations?: { start: number; end: number; phase?: 0 | 1 | 2 }[]
 
   @Prop()
   strand?: 1 | -1

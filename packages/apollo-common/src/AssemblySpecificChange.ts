@@ -275,23 +275,25 @@ function createFeature(
   }
   if (gff3Feature.length > 1) {
     feature.discontinuousLocations = gff3Feature.map((f) => {
-      const {
-        start: subStart,
-        end: subEnd,
-        attributes: GFF3Attributes,
-        phase: subPhase,
-      } = f
+      const { start: subStart, end: subEnd, phase: locationPhase } = f
       if (subStart === null || subEnd === null) {
         throw new Error(
           `feature does not have start and/or end: ${JSON.stringify(f)}`,
         )
       }
-      return {
-        start: subStart,
-        end: subEnd,
-        attributes: GFF3Attributes,
-        phase: subPhase,
+      let parsedPhase: number | undefined = undefined
+      if (locationPhase) {
+        if (locationPhase === '0') {
+          parsedPhase = 0
+        } else if (locationPhase === '1') {
+          parsedPhase = 1
+        } else if (locationPhase === '2') {
+          parsedPhase = 2
+        } else {
+          throw new Error(`Unknown phase: "${locationPhase}"`)
+        }
       }
+      return { start: subStart, end: subEnd, phase: parsedPhase }
     })
   }
   if (strand) {
