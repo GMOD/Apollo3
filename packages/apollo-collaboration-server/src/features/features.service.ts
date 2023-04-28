@@ -29,7 +29,6 @@ function makeGFF3Feature(
           start: featureDocument.start,
           end: featureDocument.end,
           phase: featureDocument.phase,
-          attributes: featureDocument.attributes,
         },
       ]
   const attributes: Record<string, string[]> = {
@@ -96,20 +95,14 @@ function makeGFF3Feature(
         : '-'
       : null,
     phase:
-      location.phase?.toString() === '0'
+      location.phase === 0
         ? '0'
-        : location.phase?.toString() === '1'
+        : location.phase === 1
         ? '1'
-        : location.phase?.toString() === '2'
+        : location.phase === 2
         ? '2'
         : null,
-    // Garrett: check the lines below
-    // attributes: Object.keys(attributes).length ? attributes : null,   // This produces correct attributes for everything else than discountinousLocations
-    attributes: location.attributes // This produces correct attributes for discontinousLocations but for other features
-      ? location.attributes
-      : Object.keys(attributes).length
-      ? attributes
-      : null,
+    attributes: Object.keys(attributes).length ? attributes : null,
     derived_features: [],
     child_features: featureDocument.children
       ? Object.values(featureDocument.children).map((child) =>
