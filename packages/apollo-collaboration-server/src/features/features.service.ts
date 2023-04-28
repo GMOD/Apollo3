@@ -24,10 +24,19 @@ function makeGFF3Feature(
 ): GFF3Feature {
   const locations = featureDocument.discontinuousLocations?.length
     ? featureDocument.discontinuousLocations
-    : [{ start: featureDocument.start, end: featureDocument.end }]
+    : [
+        {
+          start: featureDocument.start,
+          end: featureDocument.end,
+          phase: featureDocument.phase,
+          attributes: featureDocument.attributes,
+        },
+      ]
   const attributes: Record<string, string[]> = {
     ...(featureDocument.attributes || {}),
   }
+  let ontologyFound = false
+  let ontologyTerms = ''
   const source = featureDocument.attributes?.source?.[0] || null
   delete attributes.source
   if (parentId) {
@@ -53,6 +62,23 @@ function makeGFF3Feature(
     attributes.Alias = attributes.alias
     delete attributes.alias
   }
+  if (attributes.GO) {
+    ontologyFound = true
+    ontologyTerms = attributes.GO.toString()
+    delete attributes.GO
+  }
+  if (attributes.SO) {
+    if (ontologyFound) {
+      ontologyTerms += `, ${attributes.SO}`
+    } else {
+      ontologyTerms = attributes.SO.toString()
+    }
+    delete attributes.SO
+    ontologyFound = true
+  }
+  if (ontologyFound) {
+    attributes.Ontology_term = [ontologyTerms]
+  }
   const refSeq = refSeqs.find((rs) => rs._id.equals(featureDocument.refSeq))
   if (!refSeq) {
     throw new Error(`Could not find refSeq ${featureDocument.refSeq}`)
@@ -69,8 +95,21 @@ function makeGFF3Feature(
         ? '+'
         : '-'
       : null,
-    phase: featureDocument.phase ? String(featureDocument.phase) : null,
-    attributes: Object.keys(attributes).length ? attributes : null,
+    phase:
+      location.phase?.toString() === '0'
+        ? '0'
+        : location.phase?.toString() === '1'
+        ? '1'
+        : location.phase?.toString() === '2'
+        ? '2'
+        : null,
+    // Garrett: check the lines below
+    // attributes: Object.keys(attributes).length ? attributes : null,   // This produces correct attributes for everything else than discountinousLocations
+    attributes: location.attributes // This produces correct attributes for discontinousLocations but for other features
+      ? location.attributes
+      : Object.keys(attributes).length
+      ? attributes
+      : null,
     derived_features: [],
     child_features: featureDocument.children
       ? Object.values(featureDocument.children).map((child) =>

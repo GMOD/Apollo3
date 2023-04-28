@@ -216,7 +216,7 @@ export abstract class AssemblySpecificChange extends Change {
       const featureIds: string[] = []
 
       const newFeature = createFeature(gff3Feature, refSeqDoc._id, featureIds)
-      logger.verbose?.(`So far feature ids are: ${featureIds.toString()}`)
+      logger.debug?.(`So far feature ids are: ${featureIds.toString()}`)
 
       // Add into Mongo
       // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
@@ -275,13 +275,23 @@ function createFeature(
   }
   if (gff3Feature.length > 1) {
     feature.discontinuousLocations = gff3Feature.map((f) => {
-      const { start: subStart, end: subEnd } = f
+      const {
+        start: subStart,
+        end: subEnd,
+        attributes: GFF3Attributes,
+        phase: subPhase,
+      } = f
       if (subStart === null || subEnd === null) {
         throw new Error(
           `feature does not have start and/or end: ${JSON.stringify(f)}`,
         )
       }
-      return { start: subStart, end: subEnd }
+      return {
+        start: subStart,
+        end: subEnd,
+        attributes: GFF3Attributes,
+        phase: subPhase,
+      }
     })
   }
   if (strand) {
