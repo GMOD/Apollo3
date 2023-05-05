@@ -2,12 +2,17 @@ import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { MenuItem } from '@jbrowse/core/ui'
-import { AppRootModel, getContainingView, getSession } from '@jbrowse/core/util'
+import {
+  AppRootModel,
+  doesIntersect2,
+  getContainingView,
+  getSession,
+} from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { AnnotationFeatureI } from 'apollo-mst'
-import { autorun } from 'mobx'
+import { autorun, observable } from 'mobx'
 import { Instance, addDisposer, getRoot, types } from 'mobx-state-tree'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
@@ -38,6 +43,12 @@ export function stateModelFactory(
     .volatile(() => ({
       apolloFeatureUnderMouse: undefined as AnnotationFeatureI | undefined,
       apolloRowUnderMouse: undefined as number | undefined,
+      seenFeatures: observable.map<string, AnnotationFeatureI>(),
+    }))
+    .actions((self) => ({
+      addSeenFeature(feature: AnnotationFeatureI) {
+        self.seenFeatures.set(feature._id, feature)
+      },
     }))
     .views((self) => {
       const { renderProps: superRenderProps } = self
@@ -94,14 +105,45 @@ export function stateModelFactory(
               const view = getContainingView(
                 self,
               ) as unknown as LinearGenomeViewModel
-              if (view.initialized) {
-                if (self.regionCannotBeRendered()) {
-                  return
-                }
-                self.session.apolloDataStore.loadFeatures(self.regions)
+              if (!view.initialized || self.regionCannotBeRendered()) {
+                return
+              }
+              self.session.apolloDataStore.loadFeatures(self.regions)
+            },
+            { name: 'LinearApolloDisplayLoadFeatures', delay: 1000 },
+          ),
+        )
+        addDisposer(
+          self,
+          autorun(
+            () => {
+              const view = getContainingView(
+                self,
+              ) as unknown as LinearGenomeViewModel
+              if (!view.initialized || self.regionCannotBeRendered()) {
+                return
+              }
+              for (const region of self.regions) {
+                const assembly = self.session.apolloDataStore.assemblies.get(
+                  region.assemblyName,
+                )
+                const ref = assembly?.getByRefName(region.refName)
+                ref?.features.forEach((feature) => {
+                  if (
+                    doesIntersect2(
+                      region.start,
+                      region.end,
+                      feature.start,
+                      feature.end,
+                    ) &&
+                    !self.seenFeatures.has(feature._id)
+                  ) {
+                    self.addSeenFeature(feature)
+                  }
+                })
               }
             },
-            { name: 'LinearApolloDisplay', delay: 1000 },
+            { name: 'LinearApolloDisplaySetSeenFeatures', delay: 1000 },
           ),
         )
       },
