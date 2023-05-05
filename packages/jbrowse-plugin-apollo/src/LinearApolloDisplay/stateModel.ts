@@ -3,7 +3,6 @@ import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configur
 import PluginManager from '@jbrowse/core/PluginManager'
 import { MenuItem } from '@jbrowse/core/ui'
 import { AppRootModel, getContainingView, getSession } from '@jbrowse/core/util'
-import { BaseBlock } from '@jbrowse/core/util/blockTypes'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
@@ -86,46 +85,27 @@ export function stateModelFactory(
         return undefined
       },
     }))
-    .actions((self) => {
-      let previousBlockKeys: string[] = []
-      return {
-        afterAttach() {
-          addDisposer(
-            self,
-            autorun(
-              () => {
-                const view = getContainingView(
-                  self,
-                ) as unknown as LinearGenomeViewModel
-                if (view.initialized) {
-                  if (self.regionCannotBeRendered()) {
-                    return
-                  }
-                  const blockKeys: string[] = []
-                  const newBlocks: BaseBlock[] = []
-                  self.blockDefinitions.contentBlocks.forEach((block) => {
-                    blockKeys.push(block.key)
-                    if (!previousBlockKeys.includes(block.key)) {
-                      newBlocks.push(block)
-                    }
-                  })
-                  self.session.apolloDataStore.loadFeatures(
-                    newBlocks.map(({ assemblyName, refName, start, end }) => ({
-                      assemblyName,
-                      refName,
-                      start,
-                      end,
-                    })),
-                  )
-                  previousBlockKeys = blockKeys
+    .actions((self) => ({
+      afterAttach() {
+        addDisposer(
+          self,
+          autorun(
+            () => {
+              const view = getContainingView(
+                self,
+              ) as unknown as LinearGenomeViewModel
+              if (view.initialized) {
+                if (self.regionCannotBeRendered()) {
+                  return
                 }
-              },
-              { name: 'LinearApolloDisplay' },
-            ),
-          )
-        },
-      }
-    })
+                self.session.apolloDataStore.loadFeatures(self.regions)
+              }
+            },
+            { name: 'LinearApolloDisplay', delay: 1000 },
+          ),
+        )
+      },
+    }))
     .views((self) => ({
       get rendererTypeName() {
         return self.configuration.renderer.type

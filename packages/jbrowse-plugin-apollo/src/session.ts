@@ -113,11 +113,11 @@ function clientDataStoreFactory(
               features: {},
             })
           }
-          const newFeatures: Record<string, AnnotationFeatureSnapshot> = {}
-          features.forEach((feature) => {
-            newFeatures[feature._id] = feature
-          })
-          ref.features.merge(newFeatures)
+          for (const feature of features) {
+            if (!ref.features.has(feature._id)) {
+              ref.features.put(feature)
+            }
+          }
         }
       }),
       loadRefSeq: flow(function* loadRefSeq(regions: Region[]) {
