@@ -1,10 +1,10 @@
-import { Region, getSession } from '@jbrowse/core/util'
+import { Region, getSession, isContainedWithin } from '@jbrowse/core/util'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { autorun, toJS } from 'mobx'
 import { observer } from 'mobx-react'
 import { getSnapshot } from 'mobx-state-tree'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { LinearApolloDisplay } from '../../LinearApolloDisplay/stateModel'
@@ -61,7 +61,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const [region] = regions
   const totalWidth = (region.end - region.start) / bpPerPx
   const {
-    featureLayout,
+    featureLayouts,
+    displayedRegions,
     apolloFeatureUnderMouse,
     setApolloFeatureUnderMouse,
     apolloRowUnderMouse,
@@ -80,6 +81,28 @@ function ApolloRendering(props: ApolloRenderingProps) {
     // @ts-ignore
     Array.from(a.values()).map((f) => getSnapshot(f)),
   )
+
+  const featureLayout = useMemo(() => {
+    const featureLayoutIndex = displayedRegions.findIndex(
+      (displayedRegion) =>
+        region.refName === displayedRegion.refName &&
+        isContainedWithin(
+          region.start,
+          region.end,
+          displayedRegion.start,
+          displayedRegion.end,
+        ),
+    )
+    return featureLayoutIndex === -1
+      ? featureLayouts[0]
+      : featureLayouts[featureLayoutIndex]
+  }, [
+    displayedRegions,
+    featureLayouts,
+    region.end,
+    region.start,
+    region.refName,
+  ])
   // this useEffect draws the features
   useEffect(() => {
     const canvas = canvasRef.current

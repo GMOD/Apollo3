@@ -95,6 +95,10 @@ export function stateModelFactory(
         }
         return undefined
       },
+      get displayedRegions() {
+        const view = getContainingView(self) as unknown as LinearGenomeViewModel
+        return view.displayedRegions
+      },
     }))
     .actions((self) => ({
       afterAttach() {
@@ -155,119 +159,102 @@ export function stateModelFactory(
       get changeManager() {
         return self.session.apolloDataStore?.changeManager
       },
-      get features() {
-        const { regions } = self
-        const features = new Map<string, Map<string, AnnotationFeatureI>>()
-        for (const region of regions) {
-          const assembly = self.session.apolloDataStore.assemblies.get(
-            region.assemblyName,
-          )
-          const ref = assembly?.getByRefName(region.refName)
-          let filteredRef = features.get(region.refName)
-          if (!filteredRef) {
-            filteredRef = new Map<string, AnnotationFeatureI>()
-            features.set(region.refName, filteredRef)
-          }
-          for (const [featureId, feature] of ref?.features.entries() ||
-            new Map()) {
-            if (region.start < feature.end && region.end > feature.start) {
-              filteredRef.set(featureId, feature)
-            }
-          }
-        }
-        return features
-      },
       get featuresMinMax() {
-        const minMax: Record<string, [number, number]> = {}
-        for (const [refSeq, featuresForRefSeq] of this.features || []) {
+        const { assemblyManager } = self.session
+        return self.displayedRegions.map((region) => {
+          const assembly = assemblyManager.get(region.assemblyName)
           let min: number | undefined = undefined
           let max: number | undefined = undefined
-          for (const [, featureLocation] of featuresForRefSeq) {
+          const { refName, start, end } = region
+          for (const [, feature] of self.seenFeatures) {
+            if (
+              refName !== assembly?.getCanonicalRefName(feature.refSeq) ||
+              !doesIntersect2(start, end, feature.min, feature.max)
+            ) {
+              continue
+            }
             if (min === undefined) {
-              ;({ min } = featureLocation)
+              ;({ min } = feature)
             }
             if (max === undefined) {
-              ;({ max } = featureLocation)
+              ;({ max } = feature)
             }
-            if (featureLocation.min < min) {
-              ;({ min } = featureLocation)
+            if (feature.min < min) {
+              ;({ min } = feature)
             }
-            if (featureLocation.end > max) {
-              ;({ max } = featureLocation)
+            if (feature.end > max) {
+              ;({ max } = feature)
             }
           }
           if (min !== undefined && max !== undefined) {
-            minMax[refSeq] = [min, max]
+            return [min, max]
           }
-        }
-        return minMax
+          return undefined
+        })
       },
-      get featureLayout() {
-        const featureLayout: Map<number, [number, AnnotationFeatureI][]> =
-          new Map()
-        for (const [refSeq, featuresForRefSeq] of this.features || []) {
-          if (!featuresForRefSeq) {
-            continue
+      get featureLayouts() {
+        const { assemblyManager } = self.session
+        return self.displayedRegions.map((region, idx) => {
+          const assembly = assemblyManager.get(region.assemblyName)
+          const featureLayout: Map<number, [number, AnnotationFeatureI][]> =
+            new Map()
+          const minMax = this.featuresMinMax[idx]
+          if (!minMax) {
+            return featureLayout
           }
-          const minMaxfeatures = this.featuresMinMax[refSeq]
-          if (!minMaxfeatures) {
-            continue
-          }
-          const [min, max] = minMaxfeatures
+          const [min, max] = minMax
           const rows: boolean[][] = []
-          Array.from(featuresForRefSeq.values())
-            .sort((f1, f2) => {
-              const { min: start1, max: end1 } = f1
-              const { min: start2, max: end2 } = f2
-              return start1 - start2 || end1 - end2
-            })
-            .forEach((feature) => {
-              const rowCount = getFeatureRowCount(feature)
-              let startingRow = 0
-              let placed = false
-              while (!placed) {
-                let rowsForFeature = rows.slice(
-                  startingRow,
-                  startingRow + rowCount,
-                )
-                if (rowsForFeature.length < rowCount) {
-                  for (let i = 0; i < rowCount - rowsForFeature.length; i++) {
-                    const newRowNumber = rows.length
-                    rows[newRowNumber] = new Array(max - min)
-                    featureLayout.set(newRowNumber, [])
-                  }
-                  rowsForFeature = rows.slice(
-                    startingRow,
-                    startingRow + rowCount,
-                  )
+          const { refName, start, end } = region
+          self.seenFeatures.forEach((feature) => {
+            if (
+              refName !== assembly?.getCanonicalRefName(feature.refSeq) ||
+              !doesIntersect2(start, end, feature.min, feature.max)
+            ) {
+              return
+            }
+            const rowCount = getFeatureRowCount(feature)
+            let startingRow = 0
+            let placed = false
+            while (!placed) {
+              let rowsForFeature = rows.slice(
+                startingRow,
+                startingRow + rowCount,
+              )
+              if (rowsForFeature.length < rowCount) {
+                for (let i = 0; i < rowCount - rowsForFeature.length; i++) {
+                  const newRowNumber = rows.length
+                  rows[newRowNumber] = new Array(max - min)
+                  featureLayout.set(newRowNumber, [])
                 }
-                if (
-                  rowsForFeature
-                    .map((rowForFeature) =>
-                      rowForFeature
-                        .slice(feature.min - min, feature.max - min)
-                        .some(Boolean),
-                    )
-                    .some(Boolean)
-                ) {
-                  startingRow += 1
-                  continue
-                }
-                for (
-                  let rowNum = startingRow;
-                  rowNum < startingRow + rowCount;
-                  rowNum++
-                ) {
-                  const row = rows[rowNum]
-                  row.fill(true, feature.min - min, feature.max - min)
-                  const layoutRow = featureLayout.get(rowNum)
-                  layoutRow?.push([rowNum - startingRow, feature])
-                }
-                placed = true
+                rowsForFeature = rows.slice(startingRow, startingRow + rowCount)
               }
-            })
-        }
-        return featureLayout
+              if (
+                rowsForFeature
+                  .map((rowForFeature) =>
+                    rowForFeature
+                      .slice(feature.min - min, feature.max - min)
+                      .some(Boolean),
+                  )
+                  .some(Boolean)
+              ) {
+                startingRow += 1
+                continue
+              }
+              for (
+                let rowNum = startingRow;
+                rowNum < startingRow + rowCount;
+                rowNum++
+              ) {
+                const row = rows[rowNum]
+                row.fill(true, feature.min - min, feature.max - min)
+                const layoutRow = featureLayout.get(rowNum)
+                layoutRow?.push([rowNum - startingRow, feature])
+              }
+              placed = true
+            }
+          })
+          return featureLayout
+        })
       },
       getAssemblyId(assemblyName: string) {
         const { assemblyManager } = self.session
@@ -294,10 +281,10 @@ export function stateModelFactory(
     }))
     .views((self) => ({
       get highestRow() {
-        if (!self.featureLayout.size) {
-          return 0
-        }
-        return Math.max(...self.featureLayout.keys())
+        return Math.max(
+          0,
+          ...self.featureLayouts.map((layout) => Math.max(...layout.keys())),
+        )
       },
       get featuresHeight() {
         return this.highestRow * self.apolloRowHeight
