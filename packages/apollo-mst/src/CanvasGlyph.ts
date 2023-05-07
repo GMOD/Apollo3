@@ -1,26 +1,20 @@
+import { getContainingDisplay } from '@jbrowse/core/util'
 import { autorun } from 'mobx'
-import { addDisposer, getParent, types } from 'mobx-state-tree'
+import { Instance, SnapshotIn, addDisposer, types } from 'mobx-state-tree'
 
-import SceneGraphNode from './SceneGraphNode'
-import { LateAnnotationFeature } from '.'
+import { AnnotationFeature } from './AnnotationFeature'
+import { SceneGraphNode } from './SceneGraphNode'
 
-const CanvasGlyph = SceneGraphNode.named('CanvasGlyph')
+export const CanvasGlyph = SceneGraphNode.named('CanvasGlyph')
   .props({
-    feature: types.reference(LateAnnotationFeature),
+    feature: types.reference(AnnotationFeature),
   })
   .views((self) => ({
     getDisplay() {
-      const root = self.sceneGraphRoot
-      let parent = getParent(root)
-      while (
-        !(
-          'type' in parent &&
-          (parent as { type: string }).type === 'LinearApolloDisplay'
-        )
-      ) {
-        parent = getParent(parent)
-      }
-      return parent
+      return getContainingDisplay(self)
+    },
+    get rowCount() {
+      return 1
     },
   }))
   .actions((self) => ({
@@ -40,4 +34,5 @@ const CanvasGlyph = SceneGraphNode.named('CanvasGlyph')
     },
   }))
 
-export default CanvasGlyph
+export type CanvasGlyphI = Instance<typeof CanvasGlyph>
+export type CanvasGlyphSnapshotIn = SnapshotIn<typeof CanvasGlyph>

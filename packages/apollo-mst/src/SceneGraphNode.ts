@@ -1,6 +1,7 @@
 import {
   IAnyModelType,
   Instance,
+  SnapshotIn,
   SnapshotOrInstance,
   getParentOfType,
   types,
@@ -10,10 +11,10 @@ export const LateSceneGraphNode = types.late(
   (): IAnyModelType => SceneGraphNode,
 )
 
-const SceneGraphNode = types
+export const SceneGraphNode = types
   .model({
-    relX: 0,
-    relY: 0,
+    relX: types.number,
+    relY: types.number,
     children: types.array(LateSceneGraphNode),
   })
   .views((self) => ({
@@ -33,8 +34,6 @@ const SceneGraphNode = types
       }
       return parent
     },
-  }))
-  .views((self) => ({
     get x() {
       const { parent } = self
       if (parent) {
@@ -56,4 +55,5 @@ const SceneGraphNode = types
     },
   }))
 
-export default SceneGraphNode
+export type SceneGraphNodeI = Instance<typeof SceneGraphNode>
+export type SceneGraphNodeSnapshotIn = SnapshotIn<typeof SceneGraphNode>

@@ -11,9 +11,20 @@ import {
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { AnnotationFeatureI } from 'apollo-mst'
+import {
+  AnnotationFeatureI,
+  CanvasGlyphSnapshotIn,
+  SceneGraphRootNode,
+  SceneGraphRootNodeSnapshotIn,
+} from 'apollo-mst'
 import { autorun, observable } from 'mobx'
-import { Instance, addDisposer, getRoot, types } from 'mobx-state-tree'
+import {
+  Instance,
+  addDisposer,
+  applySnapshot,
+  getRoot,
+  types,
+} from 'mobx-state-tree'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { getFeatureRowCount } from '../ApolloRenderer/components/featureDrawing'
@@ -39,7 +50,13 @@ export function stateModelFactory(
       configuration: ConfigurationReference(configSchema),
       apolloRowHeight: 20,
       detailsMinHeight: 200,
+      sceneGraphs: types.array(SceneGraphRootNode),
     })
+    .actions((self) => ({
+      updateSceneGraphs(sceneGraphsSnapshot: SceneGraphRootNodeSnapshotIn[]) {
+        applySnapshot(self.sceneGraphs, sceneGraphsSnapshot)
+      },
+    }))
     .volatile(() => ({
       apolloFeatureUnderMouse: undefined as AnnotationFeatureI | undefined,
       apolloRowUnderMouse: undefined as number | undefined,
@@ -98,58 +115,6 @@ export function stateModelFactory(
       get displayedRegions() {
         const view = getContainingView(self) as unknown as LinearGenomeViewModel
         return view.displayedRegions
-      },
-    }))
-    .actions((self) => ({
-      afterAttach() {
-        addDisposer(
-          self,
-          autorun(
-            () => {
-              const view = getContainingView(
-                self,
-              ) as unknown as LinearGenomeViewModel
-              if (!view.initialized || self.regionCannotBeRendered()) {
-                return
-              }
-              self.session.apolloDataStore.loadFeatures(self.regions)
-            },
-            { name: 'LinearApolloDisplayLoadFeatures', delay: 1000 },
-          ),
-        )
-        addDisposer(
-          self,
-          autorun(
-            () => {
-              const view = getContainingView(
-                self,
-              ) as unknown as LinearGenomeViewModel
-              if (!view.initialized || self.regionCannotBeRendered()) {
-                return
-              }
-              for (const region of self.regions) {
-                const assembly = self.session.apolloDataStore.assemblies.get(
-                  region.assemblyName,
-                )
-                const ref = assembly?.getByRefName(region.refName)
-                ref?.features.forEach((feature) => {
-                  if (
-                    doesIntersect2(
-                      region.start,
-                      region.end,
-                      feature.start,
-                      feature.end,
-                    ) &&
-                    !self.seenFeatures.has(feature._id)
-                  ) {
-                    self.addSeenFeature(feature)
-                  }
-                })
-              }
-            },
-            { name: 'LinearApolloDisplaySetSeenFeatures', delay: 1000 },
-          ),
-        )
       },
     }))
     .views((self) => ({
@@ -432,6 +397,91 @@ export function stateModelFactory(
           )
         }
         return menuItems
+      },
+    }))
+    .actions((self) => ({
+      afterAttach() {
+        addDisposer(
+          self,
+          autorun(
+            () => {
+              const view = getContainingView(
+                self,
+              ) as unknown as LinearGenomeViewModel
+              if (!view.initialized || self.regionCannotBeRendered()) {
+                return
+              }
+              self.session.apolloDataStore.loadFeatures(self.regions)
+            },
+            { name: 'LinearApolloDisplayLoadFeatures', delay: 1000 },
+          ),
+        )
+        addDisposer(
+          self,
+          autorun(
+            () => {
+              const view = getContainingView(
+                self,
+              ) as unknown as LinearGenomeViewModel
+              if (!view.initialized || self.regionCannotBeRendered()) {
+                return
+              }
+              for (const region of self.regions) {
+                const assembly = self.session.apolloDataStore.assemblies.get(
+                  region.assemblyName,
+                )
+                const ref = assembly?.getByRefName(region.refName)
+                ref?.features.forEach((feature) => {
+                  if (
+                    doesIntersect2(
+                      region.start,
+                      region.end,
+                      feature.start,
+                      feature.end,
+                    ) &&
+                    !self.seenFeatures.has(feature._id)
+                  ) {
+                    self.addSeenFeature(feature)
+                  }
+                })
+              }
+            },
+            { name: 'LinearApolloDisplaySetSeenFeatures', delay: 1000 },
+          ),
+        )
+        addDisposer(
+          self,
+          autorun(
+            () => {
+              const view = getContainingView(
+                self,
+              ) as unknown as LinearGenomeViewModel
+              if (!view.initialized || self.regionCannotBeRendered()) {
+                return
+              }
+              const sceneGraphsSnapshot = self.featureLayouts.map(
+                (featureLayout) => {
+                  const glyphSnapshots: CanvasGlyphSnapshotIn[] = []
+                  featureLayout.forEach((featureLayoutRow, row) => {
+                    featureLayoutRow.forEach(([featureRow, feature]) => {
+                      if (featureRow > 0) {
+                        return
+                      }
+                      glyphSnapshots.push({
+                        relX: feature.min,
+                        relY: row,
+                        feature: feature._id,
+                      })
+                    })
+                  })
+                  return { relX: 0, relY: 0, children: glyphSnapshots }
+                },
+              )
+              self.updateSceneGraphs(sceneGraphsSnapshot)
+            },
+            { name: 'LinearApolloDisplayUpdateSceneGraph', delay: 1000 },
+          ),
+        )
       },
     }))
 }
