@@ -157,6 +157,18 @@ export class AddFeatureChange extends FeatureChange {
         if (!parentFeature) {
           throw new Error(`Could not find parent feature "${parentFeatureId}"`)
         }
+        // ONKOHAN AO. ROBIN TEKEMA MUUTOS????
+        // // create an ID for the parent feature if it does not have one
+        // if (!parentFeature.attributes.get('_id')) {
+        //   parentFeature.setAttribute('_id', [parentFeature._id])
+        // }
+        // TARVITAANKO TATA TAALLA????
+        // Add value to gffId
+        // parentFeature.attributes.get('_id')
+        //   ? (parentFeature.gffId = parentFeature.attributes.get(
+        //       '_id',
+        //     ) as unknown as string)
+        //   : (parentFeature.gffId = parentFeature._id)
         parentFeature.addChild(addedFeature)
       } else {
         dataStore.addFeature(assembly, addedFeature)
