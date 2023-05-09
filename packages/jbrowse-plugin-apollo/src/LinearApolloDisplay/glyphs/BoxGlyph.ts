@@ -3,7 +3,10 @@ import { AnnotationFeatureI } from 'apollo-mst'
 import { Glyph } from './Glyph'
 
 export class BoxGlyph extends Glyph {
-  rowCount = 1
+  getRowCount() {
+    return 1
+  }
+
   draw(
     feature: AnnotationFeatureI,
     ctx: CanvasRenderingContext2D,

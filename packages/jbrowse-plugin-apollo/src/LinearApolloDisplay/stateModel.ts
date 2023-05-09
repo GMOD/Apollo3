@@ -164,7 +164,7 @@ export function stateModelFactory(
             ) {
               return
             }
-            const { rowCount } = boxGlyph
+            const rowCount = boxGlyph.getRowCount()
             let startingRow = 0
             let placed = false
             while (!placed) {
@@ -693,7 +693,7 @@ export function stateModelFactory(
                 const { feature, edge, x, y, regionIndex } = self.dragging
                 const row = Math.floor(y / self.apolloRowHeight)
                 const region = self.displayedRegions[regionIndex]
-                const { rowCount } = boxGlyph
+                const rowCount = boxGlyph.getRowCount()
                 const featureEdge = region.reversed
                   ? region.end - feature[edge]
                   : feature[edge] - region.start

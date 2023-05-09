@@ -1,7 +1,7 @@
 import { AnnotationFeatureI } from 'apollo-mst'
 
 export abstract class Glyph {
-  abstract rowCount: number
+  abstract getRowCount(feature: AnnotationFeatureI, bpPerPx: number): number
   abstract draw(
     feature: AnnotationFeatureI,
     ctx: CanvasRenderingContext2D,
