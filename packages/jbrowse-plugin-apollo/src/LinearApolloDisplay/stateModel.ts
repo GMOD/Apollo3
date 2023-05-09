@@ -18,16 +18,14 @@ import { Instance, addDisposer, getRoot, types } from 'mobx-state-tree'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import {
-  draw,
-  getFeatureFromLayout,
-  getFeatureRowCount,
-} from '../ApolloRenderer/components/featureDrawing'
-import {
   AddFeature,
   DeleteFeature,
   ModifyFeatureAttribute,
 } from '../components'
 import { Collaborator } from '../session'
+import { BoxGlyph } from './glyphs/BoxGlyph'
+
+const boxGlyph = new BoxGlyph()
 
 export function stateModelFactory(
   pluginManager: PluginManager,
@@ -166,7 +164,7 @@ export function stateModelFactory(
             ) {
               return
             }
-            const rowCount = getFeatureRowCount(feature)
+            const { rowCount } = boxGlyph
             let startingRow = 0
             let placed = false
             while (!placed) {
@@ -463,7 +461,7 @@ export function stateModelFactory(
         let feature: AnnotationFeatureI | undefined = feat
         if (feature && featureRow) {
           const topRow = row - featureRow
-          feature = getFeatureFromLayout(feature, coord, topRow)
+          feature = boxGlyph.getFeatureFromLayout(feature, coord, topRow)
         }
         if (feature) {
           // TODO: check reversed
@@ -658,7 +656,7 @@ export function stateModelFactory(
                     ) {
                       return
                     }
-                    draw(
+                    boxGlyph.draw(
                       feature,
                       ctx,
                       x,
@@ -695,7 +693,7 @@ export function stateModelFactory(
                 const { feature, edge, x, y, regionIndex } = self.dragging
                 const row = Math.floor(y / self.apolloRowHeight)
                 const region = self.displayedRegions[regionIndex]
-                const rowCount = getFeatureRowCount(feature)
+                const { rowCount } = boxGlyph
                 const featureEdge = region.reversed
                   ? region.end - feature[edge]
                   : feature[edge] - region.start
@@ -739,7 +737,7 @@ export function stateModelFactory(
                         coord: feature.min,
                         regionNumber: idx,
                       })?.offsetPx || 0) - self.lgv.offsetPx
-                    draw(
+                    boxGlyph.draw(
                       feature,
                       ctx,
                       x,
