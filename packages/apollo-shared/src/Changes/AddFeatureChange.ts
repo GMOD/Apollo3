@@ -86,6 +86,7 @@ export class AddFeatureChange extends FeatureChange {
           `RefSeq was not found by assembly "${assembly}" and seq_id "${refSeq}" not found`,
         )
       }
+      addedFeature.gffId = addedFeature._id // User added manually new feature so then gffId = _id
       if (parentFeatureId) {
         const topLevelFeature = await featureModel
           .findOne({ allIds: parentFeatureId })
@@ -106,13 +107,14 @@ export class AddFeatureChange extends FeatureChange {
         if (!parentFeature.children) {
           parentFeature.children = new Map()
         }
-        if (!parentFeature.attributes?.id) {
+        if (!parentFeature.attributes?._id) {
+          // KS pitaako olla .id vai ._id ???
           let { attributes } = parentFeature
           if (!attributes) {
             attributes = {}
           }
           attributes = {
-            id: [parentFeature._id.toString()],
+            _id: [parentFeature._id.toString()], // KS pitaako olla .id vai ._id ???
             ...JSON.parse(JSON.stringify(attributes)),
           }
           parentFeature.attributes = attributes
@@ -158,17 +160,10 @@ export class AddFeatureChange extends FeatureChange {
           throw new Error(`Could not find parent feature "${parentFeatureId}"`)
         }
         // ONKOHAN AO. ROBIN TEKEMA MUUTOS????
-        // // create an ID for the parent feature if it does not have one
-        // if (!parentFeature.attributes.get('_id')) {
-        //   parentFeature.setAttribute('_id', [parentFeature._id])
-        // }
-        // TARVITAANKO TATA TAALLA????
-        // Add value to gffId
-        // parentFeature.attributes.get('_id')
-        //   ? (parentFeature.gffId = parentFeature.attributes.get(
-        //       '_id',
-        //     ) as unknown as string)
-        //   : (parentFeature.gffId = parentFeature._id)
+        // create an ID for the parent feature if it does not have one
+        if (!parentFeature.attributes.get('_id')) {
+          parentFeature.setAttribute('_id', [parentFeature._id])
+        }
         parentFeature.addChild(addedFeature)
       } else {
         dataStore.addFeature(assembly, addedFeature)
