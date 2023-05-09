@@ -17,6 +17,7 @@ export const LateAnnotationFeature = types.late(
 export const AnnotationFeature = types
   .model('AnnotationFeature', {
     _id: types.identifier,
+    gffId: types.maybe(types.string), // ID from attributes if exists, otherwise gffId = _id
     /** Reference sequence name */
     refSeq: types.string,
     /** Feature type */

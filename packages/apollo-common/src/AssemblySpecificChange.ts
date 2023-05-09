@@ -217,6 +217,19 @@ export abstract class AssemblySpecificChange extends Change {
 
       const newFeature = createFeature(gff3Feature, refSeqDoc._id, featureIds)
       logger.debug?.(`So far feature ids are: ${featureIds.toString()}`)
+      if (newFeature.end === 17200) {
+        logger.debug?.(`1 : ${JSON.stringify(newFeature)}`)
+        logger.debug?.(`ATTR : ${JSON.stringify(newFeature.attributes)}`)
+        logger.debug?.(`ID : ${JSON.stringify(newFeature.attributes?.id)}`)
+      }
+      // Add value to gffId
+      newFeature.attributes?.id
+        ? (newFeature.gffId = newFeature.attributes?.id.toString())
+        : (newFeature.gffId = newFeature._id)
+      if (newFeature.end === 17200) {
+        logger.debug?.(`2 : ${JSON.stringify(newFeature)}`)
+        logger.debug?.(`GFFID : ${JSON.stringify(newFeature.gffId)}`)
+      }
 
       // Add into Mongo
       // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
@@ -268,6 +281,7 @@ function createFeature(
   }
   const feature: AnnotationFeatureSnapshot = {
     _id: new ObjectID().toHexString(),
+    // gffId: '',
     refSeq,
     type,
     start,
@@ -322,6 +336,11 @@ function createFeature(
   if (featureIds) {
     featureIds.push(feature._id)
   }
+  // Add value to gffId
+  feature.attributes?.id
+    ? (feature.gffId = feature.attributes?.id.toString())
+    : (feature.gffId = feature._id)
+
   if (childFeatures && childFeatures.length) {
     const children: Record<string, AnnotationFeatureSnapshot> = {}
     for (const childFeature of childFeatures) {
