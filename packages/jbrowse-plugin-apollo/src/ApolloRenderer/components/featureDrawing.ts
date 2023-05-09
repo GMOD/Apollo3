@@ -105,13 +105,9 @@ function drawRow(
 
 export function getFeatureFromLayout(
   feature: AnnotationFeatureI,
-  x: number,
-  y: number,
-  bpPerPx: number,
-  rowHeight: number,
+  bp: number,
+  row: number,
 ) {
-  const bp = bpPerPx * x + feature.start
-  const row = Math.floor(y / rowHeight)
   const layoutRow = getFeaturesForRow(feature)[row]
   return layoutRow.find((f) => bp >= f.start && bp <= f.end)
 }

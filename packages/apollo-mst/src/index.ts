@@ -113,6 +113,3 @@ export type ApolloAssemblyI = Instance<typeof ApolloAssembly>
 export type ApolloAssemblySnapshot = SnapshotIn<typeof ApolloAssembly>
 
 export * from './AnnotationFeature'
-export * from './CanvasGlyph'
-export * from './SceneGraphNode'
-export * from './SceneGraphRootNode'
