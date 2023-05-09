@@ -217,19 +217,18 @@ export abstract class AssemblySpecificChange extends Change {
 
       const newFeature = createFeature(gff3Feature, refSeqDoc._id, featureIds)
       logger.debug?.(`So far feature ids are: ${featureIds.toString()}`)
-      if (newFeature.end === 17200) {
-        logger.debug?.(`1 : ${JSON.stringify(newFeature)}`)
-        logger.debug?.(`ATTR : ${JSON.stringify(newFeature.attributes)}`)
-        logger.debug?.(`ID : ${JSON.stringify(newFeature.attributes?.id)}`)
-      }
       // Add value to gffId
-      newFeature.attributes?.id
-        ? (newFeature.gffId = newFeature.attributes?.id.toString())
+      newFeature.attributes?._id
+        ? (newFeature.gffId = newFeature.attributes?._id.toString())
         : (newFeature.gffId = newFeature._id)
       if (newFeature.end === 17200) {
         logger.debug?.(`2 : ${JSON.stringify(newFeature)}`)
         logger.debug?.(`GFFID : ${JSON.stringify(newFeature.gffId)}`)
       }
+
+      logger.debug?.(
+        `********************* Assembly specific change create ${JSON.stringify(newFeature)}`,
+      )
 
       // Add into Mongo
       // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
@@ -281,7 +280,7 @@ function createFeature(
   }
   const feature: AnnotationFeatureSnapshot = {
     _id: new ObjectID().toHexString(),
-    // gffId: '',
+    gffId: '',
     refSeq,
     type,
     start,
@@ -336,16 +335,16 @@ function createFeature(
   if (featureIds) {
     featureIds.push(feature._id)
   }
-  // Add value to gffId
-  feature.attributes?.id
-    ? (feature.gffId = feature.attributes?.id.toString())
-    : (feature.gffId = feature._id)
 
   if (childFeatures && childFeatures.length) {
     const children: Record<string, AnnotationFeatureSnapshot> = {}
     for (const childFeature of childFeatures) {
       const child = createFeature(childFeature, refSeq, featureIds)
       children[child._id] = child
+      // Add value to gffId
+      child.attributes?._id
+        ? (child.gffId = child.attributes?._id.toString())
+        : (child.gffId = child._id)
     }
     feature.children = children
   }
@@ -359,7 +358,41 @@ function createFeature(
         if (val) {
           const newKey = key.toLowerCase()
           if (newKey !== 'parent') {
-            attrs[key.toLowerCase()] = val
+            // attrs[key.toLowerCase()] = val
+            switch (key) {
+              case 'ID':
+                attrs._id = val
+                break
+              case 'Name':
+                attrs.gff_name = val
+                break
+              case 'Alias':
+                attrs.gff_alias = val
+                break
+              case 'Target':
+                attrs.gff_targe = val
+                break
+              case 'Gap':
+                attrs.gff_gap = val
+                break
+              case 'Derives_from':
+                attrs.gff_derives_from = val
+                break
+              case 'Note':
+                attrs.gff_note = val
+                break
+              case 'Dbxref':
+                attrs.gff_dbxref = val
+                break
+              case 'Ontology_term':
+                attrs.gff_ontology_term = val
+                break
+              case 'Is_circular':
+                attrs.gff_is_circular = val
+                break
+              default:
+                attrs[key.toLowerCase()] = val
+            }
           }
         }
       })

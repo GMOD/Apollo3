@@ -41,25 +41,78 @@ function makeGFF3Feature(
   if (parentId) {
     attributes.Parent = [parentId]
   }
-  if (attributes.id) {
-    attributes.ID = attributes.id
-    delete attributes.id
+  // if (attributes.id) {
+  //   attributes.ID = attributes.id
+  //   delete attributes.id
+  // }
+  // if (attributes.name) {
+  //   attributes.Name = attributes.name
+  //   delete attributes.name
+  // }
+  // if (attributes.note) {
+  //   attributes.Note = attributes.note
+  //   delete attributes.note
+  // }
+  // if (attributes.target) {
+  //   attributes.Target = attributes.target
+  //   delete attributes.target
+  // }
+  // if (attributes.alias) {
+  //   attributes.Alias = attributes.alias
+  //   delete attributes.alias
+  // }
+  // if (attributes.GO) {
+  //   ontologyFound = true
+  //   ontologyTerms = attributes.GO.toString()
+  //   delete attributes.GO
+  // }
+  // if (attributes.SO) {
+  //   if (ontologyFound) {
+  //     ontologyTerms += `, ${attributes.SO}`
+  //   } else {
+  //     ontologyTerms = attributes.SO.toString()
+  //   }
+  //   delete attributes.SO
+  //   ontologyFound = true
+  // }
+  // if (ontologyFound) {
+  //   attributes.Ontology_term = [ontologyTerms]
+  // }
+  if (attributes._id) {
+    attributes.ID = attributes._id
+    delete attributes._id
   }
-  if (attributes.name) {
-    attributes.Name = attributes.name
-    delete attributes.name
+  if (attributes.gff_name) {
+    attributes.Name = attributes.gff_name
+    delete attributes.gff_name
   }
-  if (attributes.note) {
-    attributes.Note = attributes.note
-    delete attributes.note
+  if (attributes.gff_alias) {
+    attributes.Alias = attributes.gff_alias
+    delete attributes.gff_alias
   }
-  if (attributes.target) {
-    attributes.Target = attributes.target
-    delete attributes.target
+  if (attributes.gff_target) {
+    attributes.Target = attributes.gff_target
+    delete attributes.gff_target
   }
-  if (attributes.alias) {
-    attributes.Alias = attributes.alias
-    delete attributes.alias
+  if (attributes.gff_gap) {
+    attributes.Gap = attributes.gff_gap
+    delete attributes.gff_gap
+  }
+  if (attributes.gff_derives_from) {
+    attributes.Derives_from = attributes.gff_derives_from
+    delete attributes.gff_derives_from
+  }
+  if (attributes.gff_note) {
+    attributes.Note = attributes.gff_note
+    delete attributes.gff_note
+  }
+  if (attributes.gff_dbxref) {
+    attributes.Dbxref = attributes.gff_dbxref
+    delete attributes.gff_dbxref
+  }
+  if (attributes.gff_is_circular) {
+    attributes.Is_circular = attributes.gff_is_circular
+    delete attributes.gff_is_circular
   }
   if (attributes.GO) {
     ontologyFound = true
@@ -78,6 +131,7 @@ function makeGFF3Feature(
   if (ontologyFound) {
     attributes.Ontology_term = [ontologyTerms]
   }
+
   const refSeq = refSeqs.find((rs) => rs._id.equals(featureDocument.refSeq))
   if (!refSeq) {
     throw new Error(`Could not find refSeq ${featureDocument.refSeq}`)

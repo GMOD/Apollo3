@@ -135,6 +135,9 @@ export const AnnotationFeature = types
         self.attributes.set(key, value),
       )
     },
+    setAttribute(key: string, value: string[]) {
+      self.attributes.merge({ [key]: value })
+    },
     setType(type: string) {
       self.type = type
     },

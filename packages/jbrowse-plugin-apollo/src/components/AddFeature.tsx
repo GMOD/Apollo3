@@ -31,6 +31,12 @@ interface AddFeatureProps {
   internetAccount: ApolloInternetAccountModel
 }
 
+enum PhaseEnum {
+  zero = 0,
+  one = 1,
+  two = 2,
+}
+
 export function AddFeature({
   session,
   handleClose,
@@ -43,7 +49,9 @@ export function AddFeature({
   const [end, setEnd] = useState(String(sourceFeature.end))
   const [start, setStart] = useState(String(sourceFeature.start))
   const [type, setType] = useState('')
-
+  const [phase, setPhase] = useState('')
+  const [phaseAsNumber, setPhaseAsNumber] = useState<PhaseEnum>()
+  const [showPhase, setShowPhase] = useState<boolean>(false)
   const [possibleChildTypes, setPossibleChildTypes] = useState<string[]>()
 
   const { baseURL } = internetAccount
@@ -83,16 +91,22 @@ export function AddFeature({
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
+    if (showPhase && phase === '') {
+      setErrorMessage('The phase is REQUIRED for all CDS features.')
+      return
+    }
     const change = new AddFeatureChange({
       changedIds: [sourceFeature._id],
       typeName: 'AddFeatureChange',
       assembly: sourceAssemblyId,
       addedFeature: {
         _id: new ObjectID().toHexString(),
+        gffId: '',
         refSeq: sourceFeature.refSeq,
         start: Number(start),
         end: Number(end),
         type,
+        phase: phaseAsNumber,
       },
       parentFeatureId: sourceFeature._id,
     })
@@ -102,7 +116,32 @@ export function AddFeature({
     event.preventDefault()
   }
   async function handleChangeType(e: SelectChangeEvent<string>) {
+    setErrorMessage('')
     setType(e.target.value)
+    if (e.target.value.startsWith('CDS')) {
+      setShowPhase(true)
+      setPhase('')
+    } else {
+      setShowPhase(false)
+    }
+  }
+  async function handleChangePhase(e: SelectChangeEvent<string>) {
+    setErrorMessage('')
+    setPhase(e.target.value)
+
+    switch (Number(e.target.value)) {
+      case 0:
+        setPhaseAsNumber(PhaseEnum.zero)
+        break
+      case 1:
+        setPhaseAsNumber(PhaseEnum.one)
+        break
+      case 2:
+        setPhaseAsNumber(PhaseEnum.two)
+        break
+      default:
+        setPhaseAsNumber(undefined)
+    }
   }
   const error = Number(end) <= Number(start)
   return (
@@ -143,6 +182,16 @@ export function AddFeature({
               ))}
             </Select>
           </FormControl>
+          {showPhase ? (
+            <FormControl>
+              <InputLabel>Phase</InputLabel>
+              <Select value={phase} onChange={handleChangePhase}>
+                <MenuItem value={0}>0</MenuItem>
+                <MenuItem value={1}>1</MenuItem>
+                <MenuItem value={2}>2</MenuItem>
+              </Select>
+            </FormControl>
+          ) : null}
         </DialogContent>
 
         <DialogActions>
