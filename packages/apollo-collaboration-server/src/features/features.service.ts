@@ -13,6 +13,7 @@ import {
   RefSeq,
   RefSeqDocument,
 } from 'apollo-schemas'
+import ObjectID from 'bson-objectid'
 import { Model } from 'mongoose'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
@@ -41,43 +42,6 @@ function makeGFF3Feature(
   if (parentId) {
     attributes.Parent = [parentId]
   }
-  // if (attributes.id) {
-  //   attributes.ID = attributes.id
-  //   delete attributes.id
-  // }
-  // if (attributes.name) {
-  //   attributes.Name = attributes.name
-  //   delete attributes.name
-  // }
-  // if (attributes.note) {
-  //   attributes.Note = attributes.note
-  //   delete attributes.note
-  // }
-  // if (attributes.target) {
-  //   attributes.Target = attributes.target
-  //   delete attributes.target
-  // }
-  // if (attributes.alias) {
-  //   attributes.Alias = attributes.alias
-  //   delete attributes.alias
-  // }
-  // if (attributes.GO) {
-  //   ontologyFound = true
-  //   ontologyTerms = attributes.GO.toString()
-  //   delete attributes.GO
-  // }
-  // if (attributes.SO) {
-  //   if (ontologyFound) {
-  //     ontologyTerms += `, ${attributes.SO}`
-  //   } else {
-  //     ontologyTerms = attributes.SO.toString()
-  //   }
-  //   delete attributes.SO
-  //   ontologyFound = true
-  // }
-  // if (ontologyFound) {
-  //   attributes.Ontology_term = [ontologyTerms]
-  // }
   if (attributes._id) {
     attributes.ID = attributes._id
     delete attributes._id
@@ -131,7 +95,13 @@ function makeGFF3Feature(
   if (ontologyFound) {
     attributes.Ontology_term = [ontologyTerms]
   }
-
+  // Do not export internal ID (=Mongo ObjectId) if feature does not have children
+  if (
+    !featureDocument.children?.values &&
+    ObjectID.isValid(attributes.ID?.toString())
+  ) {
+    delete attributes.ID
+  }
   const refSeq = refSeqs.find((rs) => rs._id.equals(featureDocument.refSeq))
   if (!refSeq) {
     throw new Error(`Could not find refSeq ${featureDocument.refSeq}`)
