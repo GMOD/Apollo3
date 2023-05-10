@@ -12,7 +12,6 @@ import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { AnnotationFeatureI } from 'apollo-mst'
-import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { autorun, observable } from 'mobx'
 import { Instance, addDisposer, getRoot, types } from 'mobx-state-tree'
 
@@ -24,8 +23,7 @@ import {
 } from '../components'
 import { Collaborator } from '../session'
 import { BoxGlyph } from './glyphs/BoxGlyph'
-
-const boxGlyph = new BoxGlyph()
+import mouseEvents from './stateModel/mouse-events'
 
 export function stateModelFactory(
   pluginManager: PluginManager,
@@ -36,7 +34,8 @@ export function stateModelFactory(
   ) as LinearGenomeViewPlugin
   const { BaseLinearDisplay } = LGVPlugin.exports
 
-  return BaseLinearDisplay.named('LinearApolloDisplay')
+  return types
+    .compose('LinearApolloDisplay', BaseLinearDisplay, mouseEvents)
     .props({
       type: types.literal('LinearApolloDisplay'),
       configuration: ConfigurationReference(configSchema),
@@ -74,6 +73,12 @@ export function stateModelFactory(
       },
     }))
     .views((self) => ({
+      /** get the appropriate glyph for the given top-level feature */
+      getGlyph(feature: AnnotationFeatureI) {
+        // could consider eventually caching glyph instances if needed
+        // for performance
+        return new BoxGlyph()
+      },
       get blockType(): 'staticBlocks' | 'dynamicBlocks' {
         return 'dynamicBlocks'
       },
@@ -164,7 +169,7 @@ export function stateModelFactory(
             ) {
               return
             }
-            const rowCount = boxGlyph.getRowCount()
+            const rowCount = self.getGlyph(feature).getRowCount()
             let startingRow = 0
             let placed = false
             while (!placed) {
@@ -265,14 +270,6 @@ export function stateModelFactory(
           )
         }
         return matchingAccount
-      },
-    }))
-    .volatile(() => ({
-      apolloContextMenuFeature: undefined as AnnotationFeatureI | undefined,
-    }))
-    .actions((self) => ({
-      setApolloContextMenuFeature(feature?: AnnotationFeatureI) {
-        self.apolloContextMenuFeature = feature
       },
     }))
     .views((self) => ({
@@ -382,192 +379,10 @@ export function stateModelFactory(
     }))
     .volatile(() => ({
       overlayCanvas: null as HTMLCanvasElement | null,
-      apolloFeatureUnderMouse: undefined as AnnotationFeatureI | undefined,
-      movedDuringLastMouseDown: false,
-      overEdge: null as 'start' | 'end' | null,
-      dragging: null as {
-        edge: 'start' | 'end'
-        feature: AnnotationFeatureI
-        x: number
-        y: number
-        regionIndex: number
-      } | null,
     }))
     .actions((self) => ({
       setOverlayCanvas(canvas: HTMLCanvasElement | null) {
         self.overlayCanvas = canvas
-      },
-      setMovedDuringLastMouseDown(moved: boolean) {
-        self.movedDuringLastMouseDown = moved
-      },
-      setApolloFeatureUnderMouse(feature?: AnnotationFeatureI) {
-        self.apolloFeatureUnderMouse = feature
-      },
-      setOverEdge(edge?: 'start' | 'end') {
-        self.overEdge = edge || null
-      },
-      setDragging(dragInfo?: {
-        edge: 'start' | 'end'
-        feature: AnnotationFeatureI
-        x: number
-        y: number
-        regionIndex: number
-      }) {
-        self.dragging = dragInfo || null
-      },
-      onMouseMove(event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
-        if (!self.overlayCanvas) {
-          return
-        }
-        const { clientX, clientY, buttons } = event
-        if (!self.movedDuringLastMouseDown && buttons === 1) {
-          this.setMovedDuringLastMouseDown(true)
-        }
-        const { left, top } = self.overlayCanvas.getBoundingClientRect() || {
-          left: 0,
-          top: 0,
-        }
-        const x = clientX - left
-        const bpInfo = self.lgv.pxToBp(x)
-        const { refName, coord, index: regionNumber } = bpInfo
-
-        const y = clientY - top
-
-        if (self.dragging) {
-          const { edge, feature } = self.dragging
-          this.setDragging({
-            edge,
-            feature,
-            x,
-            y: self.dragging.y,
-            regionIndex: regionNumber,
-          })
-          return
-        }
-
-        const row = Math.floor(y / self.apolloRowHeight)
-        if (row === undefined) {
-          this.setApolloFeatureUnderMouse(undefined)
-          return
-        }
-        const featureLayout = self.featureLayouts[bpInfo.index]
-        const layoutRow = featureLayout.get(row)
-        if (!layoutRow) {
-          this.setApolloFeatureUnderMouse(undefined)
-          return
-        }
-        const [featureRow, feat] =
-          layoutRow.find((f) => coord >= f[1].min && coord <= f[1].max) || []
-        let feature: AnnotationFeatureI | undefined = feat
-        if (feature && featureRow) {
-          const topRow = row - featureRow
-          feature = boxGlyph.getFeatureFromLayout(feature, coord, topRow)
-        }
-        if (feature) {
-          // TODO: check reversed
-          // TODO: ensure feature is in interbase
-          const startPxInfo = self.lgv.bpToPx({
-            refName,
-            coord: feature.start,
-            regionNumber,
-          })
-          const endPxInfo = self.lgv.bpToPx({
-            refName,
-            coord: feature.end,
-            regionNumber,
-          })
-          if (startPxInfo !== undefined && endPxInfo !== undefined) {
-            const startPx = startPxInfo.offsetPx - self.lgv.offsetPx
-            const endPx = endPxInfo.offsetPx - self.lgv.offsetPx
-            if (endPx - startPx < 8) {
-              this.setOverEdge(undefined)
-            } else if (Math.abs(startPx - x) < 4) {
-              this.setOverEdge('start')
-            } else if (Math.abs(endPx - x) < 4) {
-              this.setOverEdge('end')
-            } else {
-              this.setOverEdge(undefined)
-            }
-          } else {
-            this.setOverEdge(undefined)
-          }
-        }
-        this.setApolloFeatureUnderMouse(feature)
-      },
-      onMouseLeave() {
-        this.setApolloFeatureUnderMouse(undefined)
-      },
-      onMouseDown(event: React.MouseEvent) {
-        if (!self.overlayCanvas) {
-          return
-        }
-        if (!(self.apolloFeatureUnderMouse && self.overEdge)) {
-          return
-        }
-        event.stopPropagation()
-        const { left, top } = self.overlayCanvas.getBoundingClientRect() || {
-          left: 0,
-          top: 0,
-        }
-        const { clientX, clientY } = event
-
-        const x = clientX - left
-        const y = clientY - top
-        const bpInfo = self.lgv.pxToBp(x)
-        const { index } = bpInfo
-
-        this.setDragging({
-          edge: self.overEdge,
-          feature: self.apolloFeatureUnderMouse,
-          x,
-          y,
-          regionIndex: index,
-        })
-      },
-      onMouseUp() {
-        if (!self.movedDuringLastMouseDown) {
-          if (self.apolloFeatureUnderMouse) {
-            self.setSelectedFeature(self.apolloFeatureUnderMouse)
-          }
-        } else if (self.dragging) {
-          const { feature, edge, regionIndex } = self.dragging
-          const bp = feature[edge]
-          const region = self.displayedRegions[regionIndex]
-          const assembly = self.getAssemblyId(region.assemblyName)
-          let change: LocationEndChange | LocationStartChange
-          if (edge === 'end') {
-            const featureId = feature._id
-            const oldEnd = feature.end
-            const newEnd = Math.round(bp)
-            change = new LocationEndChange({
-              typeName: 'LocationEndChange',
-              changedIds: [featureId],
-              featureId,
-              oldEnd,
-              newEnd,
-              assembly,
-            })
-          } else {
-            const featureId = feature._id
-            const oldStart = feature.start
-            const newStart = Math.round(bp)
-            change = new LocationStartChange({
-              typeName: 'LocationStartChange',
-              changedIds: [featureId],
-              featureId,
-              oldStart,
-              newStart,
-              assembly,
-            })
-          }
-          self.changeManager?.submit(change)
-        }
-        this.setDragging(undefined)
-        this.setMovedDuringLastMouseDown(false)
-      },
-      onContextMenu(event: React.MouseEvent) {
-        event.preventDefault()
-        self.setApolloContextMenuFeature(self.apolloFeatureUnderMouse)
       },
     }))
     .actions((self) => ({
@@ -656,15 +471,17 @@ export function stateModelFactory(
                     ) {
                       return
                     }
-                    boxGlyph.draw(
-                      feature,
-                      ctx,
-                      x,
-                      row * self.apolloRowHeight,
-                      self.lgv.bpPerPx,
-                      self.apolloRowHeight,
-                      displayedRegion.reversed,
-                    )
+                    self
+                      .getGlyph(feature)
+                      .draw(
+                        feature,
+                        ctx,
+                        x,
+                        row * self.apolloRowHeight,
+                        self.lgv.bpPerPx,
+                        self.apolloRowHeight,
+                        displayedRegion.reversed,
+                      )
                   })
                 })
               })
@@ -693,7 +510,7 @@ export function stateModelFactory(
                 const { feature, edge, x, y, regionIndex } = self.dragging
                 const row = Math.floor(y / self.apolloRowHeight)
                 const region = self.displayedRegions[regionIndex]
-                const rowCount = boxGlyph.getRowCount()
+                const rowCount = self.getGlyph(feature).getRowCount()
                 const featureEdge = region.reversed
                   ? region.end - feature[edge]
                   : feature[edge] - region.start
@@ -737,15 +554,17 @@ export function stateModelFactory(
                         coord: feature.min,
                         regionNumber: idx,
                       })?.offsetPx || 0) - self.lgv.offsetPx
-                    boxGlyph.draw(
-                      feature,
-                      ctx,
-                      x,
-                      row * self.apolloRowHeight,
-                      self.lgv.bpPerPx,
-                      self.apolloRowHeight,
-                      displayedRegion.reversed,
-                    )
+                    self
+                      .getGlyph(feature)
+                      .draw(
+                        feature,
+                        ctx,
+                        x,
+                        row * self.apolloRowHeight,
+                        self.lgv.bpPerPx,
+                        self.apolloRowHeight,
+                        displayedRegion.reversed,
+                      )
                   })
                 })
               })
