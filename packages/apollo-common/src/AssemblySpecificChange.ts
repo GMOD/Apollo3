@@ -227,7 +227,9 @@ export abstract class AssemblySpecificChange extends Change {
       }
 
       logger.debug?.(
-        `********************* Assembly specific change create ${JSON.stringify(newFeature)}`,
+        `********************* Assembly specific change create ${JSON.stringify(
+          newFeature,
+        )}`,
       )
 
       // Add into Mongo
