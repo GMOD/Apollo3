@@ -15,5 +15,8 @@
     { "path": "../apollo-mst"},
     { "path": "../apollo-schemas"},
     { "path": "../apollo-common"},
-  ]
+  ],
+  "watchOptions": {
+    "excludeFiles": ["**/*.test.*"],
+  }
 }
