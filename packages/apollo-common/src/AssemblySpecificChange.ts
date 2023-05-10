@@ -221,11 +221,6 @@ export abstract class AssemblySpecificChange extends Change {
       newFeature.attributes?._id
         ? (newFeature.gffId = newFeature.attributes?._id.toString())
         : (newFeature.gffId = newFeature._id)
-      if (newFeature.end === 17200) {
-        logger.debug?.(`2 : ${JSON.stringify(newFeature)}`)
-        logger.debug?.(`GFFID : ${JSON.stringify(newFeature.gffId)}`)
-      }
-
       logger.debug?.(
         `********************* Assembly specific change create ${JSON.stringify(
           newFeature,

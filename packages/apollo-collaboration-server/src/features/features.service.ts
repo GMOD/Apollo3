@@ -97,13 +97,14 @@ function makeGFF3Feature(
   if (ontologyFound) {
     attributes.Ontology_term = [ontologyTerms]
   }
-  // Do not export internal ID (=Mongo ObjectId) if feature does not have children
-  if (
-    !featureDocument.children?.values &&
-    ObjectID.isValid(attributes.ID?.toString())
-  ) {
-    delete attributes.ID
-  }
+  // // Do not export internal ID (=Mongo ObjectId) if feature does not have any child
+  // if (
+  //   !featureDocument.children?.values &&
+  //   ObjectID.isValid(attributes.ID?.toString())
+  // ) {
+  //   console.log(`***************** Poistetaan ID: ${attributes.ID}`)
+  //   // delete attributes.ID
+  // }
   const refSeq = refSeqs.find((rs) => rs._id.equals(featureDocument.refSeq))
   if (!refSeq) {
     throw new Error(`Could not find refSeq ${featureDocument.refSeq}`)
@@ -200,6 +201,38 @@ export class FeaturesService {
       ),
       assembly,
     ]
+  }
+
+  // KS CopyFeature, lisatty uusi methodi findStartAndEnd
+   /**
+   * Fetch min start and max end position for given refSeq
+   * @param request - Contain search criteria i.e. refSeq
+   * @returns Return 'HttpStatus.OK' and min start and max end -values of given refSeq if search was successful
+   * or if search data was not found or in case of error throw exception
+   */
+   async findStartAndEnd(searchDto: FeatureRangeSearchDto) {
+    const minMaxValues = await this.featureModel
+      .aggregate([
+        { $match: { refSeq: ObjectID(searchDto.refSeq), status: 0 } },
+        {
+          $group: {
+            _id: null,
+            minStart: { $min: '$start' },
+            maxEnd: { $max: '$end' },
+          },
+        },
+      ])
+      .exec()
+
+    this.logger.debug(
+      `MinStart and maxEnd for refSeq: "${
+        searchDto.refSeq
+      }" are ${JSON.stringify(minMaxValues[0])}`,
+    )
+    return {
+      minStart: minMaxValues[0].minStart,
+      maxEnd: minMaxValues[0].maxEnd,
+    }
   }
 
   /**
