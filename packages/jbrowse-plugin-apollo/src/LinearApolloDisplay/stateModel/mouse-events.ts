@@ -3,16 +3,20 @@ import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { Change } from 'apollo-common'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
-import { types } from 'mobx-state-tree'
+import { autorun } from 'mobx'
+import { addDisposer, types } from 'mobx-state-tree'
 
 import { Glyph } from '../glyphs/Glyph'
 
 /**
  * @deprecated
  * temporary interface showing what's in the rest of the state model.
- * delete this when the state model is fully refactored to split into multiple files
+ * delete this when the state model is fully refactored to split into multiple files.
+ *
+ * If this doesn't match the full state model, this is probably the one that
+ * needs to change.
  */
-interface RestOfLinearApolloDisplayStateModelTemporaryDeleteMeAsap {
+export interface RestOfLinearApolloDisplayStateModelTemporaryDeleteMeAsap {
   overlayCanvas: HTMLCanvasElement | null
   apolloRowHeight: number
   featureLayouts: Map<number, [number, AnnotationFeatureI][]>[]
@@ -20,6 +24,8 @@ interface RestOfLinearApolloDisplayStateModelTemporaryDeleteMeAsap {
   setSelectedFeature(f: AnnotationFeatureI): void
   getAssemblyId(assemblyName: string): string
   changeManager?: { submit(change: Change): void }
+  featuresHeight: number
+  regionCannotBeRendered(): string | undefined
 }
 
 export default types
@@ -226,6 +232,93 @@ export default types
       onContextMenu(event: React.MouseEvent) {
         event.preventDefault()
         this.setApolloContextMenuFeature(self.apolloFeatureUnderMouse)
+      },
+      afterAttach() {
+        addDisposer(
+          self,
+          autorun(
+            () => {
+              if (!self.lgv.initialized || self.regionCannotBeRendered()) {
+                return
+              }
+              const ctx = self.overlayCanvas?.getContext('2d')
+              if (!ctx) {
+                return
+              }
+              ctx.clearRect(
+                0,
+                0,
+                self.lgv.dynamicBlocks.totalWidthPx,
+                self.featuresHeight,
+              )
+              if (self.dragging) {
+                const { feature, edge, x, y, regionIndex } = self.dragging
+                const row = Math.floor(y / self.apolloRowHeight)
+                const region = self.displayedRegions[regionIndex]
+                const rowCount = self
+                  .getGlyph(feature)
+                  .getRowCount(feature, self.lgv.bpPerPx)
+                const featureEdge = region.reversed
+                  ? region.end - feature[edge]
+                  : feature[edge] - region.start
+                const featureEdgePx =
+                  featureEdge / self.lgv.bpPerPx - self.lgv.offsetPx
+                const startPx = Math.min(x, featureEdgePx)
+                const widthPx = Math.abs(x - featureEdgePx)
+                ctx.strokeStyle = 'red'
+                ctx.setLineDash([6])
+                ctx.strokeRect(
+                  startPx,
+                  row * self.apolloRowHeight,
+                  widthPx,
+                  self.apolloRowHeight * rowCount,
+                )
+                ctx.fillStyle = 'rgba(255,0,0,.2)'
+                ctx.fillRect(
+                  startPx,
+                  row * self.apolloRowHeight,
+                  widthPx,
+                  self.apolloRowHeight * rowCount,
+                )
+              }
+              const { apolloFeatureUnderMouse } = self
+              if (!apolloFeatureUnderMouse) {
+                return
+              }
+              self.featureLayouts.forEach((featureLayout, idx) => {
+                const displayedRegion = self.displayedRegions[idx]
+                featureLayout.forEach((featureLayoutRow, row) => {
+                  featureLayoutRow.forEach(([featureRow, feature]) => {
+                    if (featureRow > 0) {
+                      return
+                    }
+                    if (feature._id !== apolloFeatureUnderMouse._id) {
+                      return
+                    }
+                    const x =
+                      (self.lgv.bpToPx({
+                        refName: displayedRegion.refName,
+                        coord: feature.min,
+                        regionNumber: idx,
+                      })?.offsetPx || 0) - self.lgv.offsetPx
+                    self
+                      .getGlyph(feature)
+                      .draw(
+                        feature,
+                        ctx,
+                        x,
+                        row * self.apolloRowHeight,
+                        self.lgv.bpPerPx,
+                        self.apolloRowHeight,
+                        displayedRegion.reversed,
+                      )
+                  })
+                })
+              })
+            },
+            { name: 'LinearApolloDisplayRenderMouseoverAndDrag' },
+          ),
+        )
       },
     }
   })

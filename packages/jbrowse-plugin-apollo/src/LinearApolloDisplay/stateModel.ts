@@ -23,7 +23,9 @@ import {
 } from '../components'
 import { Collaborator } from '../session'
 import { BoxGlyph } from './glyphs/BoxGlyph'
-import mouseEvents from './stateModel/mouse-events'
+import mouseEvents, {
+  RestOfLinearApolloDisplayStateModelTemporaryDeleteMeAsap,
+} from './stateModel/mouse-events'
 
 export function stateModelFactory(
   pluginManager: PluginManager,
@@ -500,90 +502,6 @@ export function stateModelFactory(
               if (!ctx) {
                 return
               }
-              ctx.clearRect(
-                0,
-                0,
-                self.lgv.dynamicBlocks.totalWidthPx,
-                self.featuresHeight,
-              )
-              if (self.dragging) {
-                const { feature, edge, x, y, regionIndex } = self.dragging
-                const row = Math.floor(y / self.apolloRowHeight)
-                const region = self.displayedRegions[regionIndex]
-                const rowCount = self.getGlyph(feature).getRowCount()
-                const featureEdge = region.reversed
-                  ? region.end - feature[edge]
-                  : feature[edge] - region.start
-                const featureEdgePx =
-                  featureEdge / self.lgv.bpPerPx - self.lgv.offsetPx
-                const startPx = Math.min(x, featureEdgePx)
-                const widthPx = Math.abs(x - featureEdgePx)
-                ctx.strokeStyle = 'red'
-                ctx.setLineDash([6])
-                ctx.strokeRect(
-                  startPx,
-                  row * self.apolloRowHeight,
-                  widthPx,
-                  self.apolloRowHeight * rowCount,
-                )
-                ctx.fillStyle = 'rgba(255,0,0,.2)'
-                ctx.fillRect(
-                  startPx,
-                  row * self.apolloRowHeight,
-                  widthPx,
-                  self.apolloRowHeight * rowCount,
-                )
-              }
-              const { apolloFeatureUnderMouse } = self
-              if (!apolloFeatureUnderMouse) {
-                return
-              }
-              self.featureLayouts.forEach((featureLayout, idx) => {
-                const displayedRegion = self.displayedRegions[idx]
-                featureLayout.forEach((featureLayoutRow, row) => {
-                  featureLayoutRow.forEach(([featureRow, feature]) => {
-                    if (featureRow > 0) {
-                      return
-                    }
-                    if (feature._id !== apolloFeatureUnderMouse._id) {
-                      return
-                    }
-                    const x =
-                      (self.lgv.bpToPx({
-                        refName: displayedRegion.refName,
-                        coord: feature.min,
-                        regionNumber: idx,
-                      })?.offsetPx || 0) - self.lgv.offsetPx
-                    self
-                      .getGlyph(feature)
-                      .draw(
-                        feature,
-                        ctx,
-                        x,
-                        row * self.apolloRowHeight,
-                        self.lgv.bpPerPx,
-                        self.apolloRowHeight,
-                        displayedRegion.reversed,
-                      )
-                  })
-                })
-              })
-            },
-            { name: 'LinearApolloDisplayRenderMouseoverAndDrag' },
-          ),
-        )
-
-        addDisposer(
-          self,
-          autorun(
-            () => {
-              if (!self.lgv.initialized || self.regionCannotBeRendered()) {
-                return
-              }
-              const ctx = self.overlayCanvas?.getContext('2d')
-              if (!ctx) {
-                return
-              }
               for (const collaborator of self.session
                 .collaborators as Collaborator[]) {
                 const { locations } = collaborator
@@ -623,3 +541,13 @@ export function stateModelFactory(
 
 export type LinearApolloDisplayStateModel = ReturnType<typeof stateModelFactory>
 export type LinearApolloDisplay = Instance<LinearApolloDisplayStateModel>
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function x(
+  m: LinearApolloDisplay,
+): RestOfLinearApolloDisplayStateModelTemporaryDeleteMeAsap {
+  // this function just checks that LinearApolloDisplay satisfies the
+  // temporary interface for the mouse events.
+  // should remove this when removing that hack interface
+  return m
+}
