@@ -66,6 +66,7 @@
     "rxjs": "^7.4.0",
     "sanitize-filename": "^1.6.3",
     "socket.io": "^4.5.3",
+    "stream-concat": "^1.0.0",
     "tslib": "^2.3.1",
     "tss-react": "^4.6.1"
   },
@@ -73,6 +74,7 @@
     "@nestjs/cli": "^8.1.2",
     "@nestjs/schematics": "^8.0.0",
     "@nestjs/testing": "^8.0.0",
+    "@types/concat-stream": "^2",
     "@types/express": "^4.17.13",
     "@types/express-session": "^1",
     "@types/jest": "^27.0.1",

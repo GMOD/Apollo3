@@ -90,3 +90,5 @@ declare module 'connect-mongodb-session' {
 
   export default connectMongoDBSession
 }
+
+declare module 'stream-concat'

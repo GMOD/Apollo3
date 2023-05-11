@@ -291,7 +291,7 @@ function createFeature(
           `feature does not have start and/or end: ${JSON.stringify(f)}`,
         )
       }
-      let parsedPhase: number | undefined = undefined
+      let parsedPhase: 0 | 1 | 2 | undefined = undefined
       if (locationPhase) {
         if (locationPhase === '0') {
           parsedPhase = 0

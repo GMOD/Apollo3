@@ -91,7 +91,6 @@ export class FeaturesController {
     return this.featuresService.findByRange(request)
   }
 
-  // KS CopyFeature lisatty uusi methodi getStartAndEnd
   /**
    * Fetch min start and max end position for given refSeq
    * @param request - Contain search criteria i.e. refSeq
@@ -101,9 +100,7 @@ export class FeaturesController {
   @Validations(Role.ReadOnly)
   @Get('getStartAndEnd')
   getStartAndEnd(@Query() request: FeatureRangeSearchDto) {
-    this.logger.debug(`getStartAndEnd -method: refSeq: "${request.refSeq}"`)
-    this.logger.debug(`getStartAndEnd -method: DTO "${JSON.stringify(request)}"`)
-
+    this.logger.debug(`getStartAndEnd -method: "${request}"`)
     return this.featuresService.findStartAndEnd(request)
   }
 

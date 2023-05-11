@@ -73,14 +73,16 @@ export function CopyFeature({
 
       // Using allRefNames -property we get all reference sequence ids and names. However, all ids are listed first and then the names
       const allRefNames: string[] = await assemblyManager.get(assId).allRefNames
-      console.log(
-        `ALL REF NAMES: ${JSON.stringify(allRefNames)}, cnt=${
-          allRefNames.length
-        }, ${JSON.stringify(assemblyManager.get(assId))}`,
-      )
+      // console.log(
+      //   `ALL REF NAMES: ${JSON.stringify(allRefNames)}, cnt=${
+      //     allRefNames.length
+      //   }, ${JSON.stringify(assemblyManager.get(assId))}`,
+      // )
       const halfCount = allRefNames.length / 2
       for (let i = 0; i < halfCount; i++) {
-        console.log(`Id: "${allRefNames[i + halfCount]}", name: "${allRefNames[i]}"`)
+        // console.log(
+        //   `Id: "${allRefNames[i + halfCount]}", name: "${allRefNames[i]}"`,
+        // )
         setRefNameCollection((result) => [
           ...result,
           {
@@ -194,7 +196,7 @@ export function CopyFeature({
       getSnapshot(sourceFeature) as unknown as AnnotationFeatureSnapshot,
       featureIds,
     )
-    // Clear possible parentId -attribute. KS TODO **** pitaako poistaa
+    // Clear possible parentId -attribute.
     const attributeMap: IKeyValueMap<string[]> = {
       ...(newFeatureLine.attributes as unknown as IKeyValueMap<string[]>),
     }
@@ -210,10 +212,11 @@ export function CopyFeature({
     const locationMove = Number(start) - newFeatureLine.start
     newFeatureLine.start = Number(start)
     newFeatureLine.end = Number(start) + featureLength
-    console.log(`ORIG: ${JSON.stringify(sourceFeature)}`)
-    console.log(`NEW: ${JSON.stringify(newFeatureLine)}`)
     // Updates children start, end and gffId values
-    const updatedChildren = updateRefSeqStartEndAndGffId(newFeatureLine, locationMove)
+    const updatedChildren = updateRefSeqStartEndAndGffId(
+      newFeatureLine,
+      locationMove,
+    )
 
     const change = new AddFeatureChange({
       changedIds: [newFeatureLine._id],

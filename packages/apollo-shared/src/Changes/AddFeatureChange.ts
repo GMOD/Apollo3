@@ -17,7 +17,6 @@ interface SerializedAddFeatureChangeBase extends SerializedFeatureChange {
 export interface AddFeatureChangeDetails {
   addedFeature: AnnotationFeatureSnapshot
   parentFeatureId?: string // Parent feature to where feature will be added
-  // KS CopyFeature, lisatty 2 rivia alle
   copyFeature?: boolean // Are we copying or adding a new child feature
   allIds?: string[]
 }
@@ -47,9 +46,6 @@ export class AddFeatureChange extends FeatureChange {
   toJSON(): SerializedAddFeatureChange {
     const { changes, changedIds, typeName, assembly } = this
     if (changes.length === 1) {
-      // const [{ addedFeature, parentFeatureId }] = changes
-      // return { typeName, changedIds, assembly, addedFeature, parentFeatureId }
-      // KS CopyFeature korvattu yo. rivit ao. riveilla
       const [{ addedFeature, parentFeatureId, copyFeature, allIds }] = changes
       return {
         typeName,
@@ -70,8 +66,6 @@ export class AddFeatureChange extends FeatureChange {
    * @returns
    */
   async executeOnServer(backend: ServerDataStore) {
-    // const { assemblyModel, featureModel, refSeqModel, session } = backend
-    // KS CopyFeature korvattu yo. rivi ao. rivilla
     const { assemblyModel, featureModel, refSeqModel, session, user } = backend
     const { changes, assembly, logger } = this
 
@@ -91,8 +85,6 @@ export class AddFeatureChange extends FeatureChange {
     // Loop the changes
     for (const change of changes) {
       logger.debug?.(`change: ${JSON.stringify(change)}`)
-      // const { addedFeature, parentFeatureId } = change
-      // KS CopyFeature korvattu yo. rivi ao. rivilla
       const { addedFeature, parentFeatureId, copyFeature, allIds } = change
       const { refSeq } = addedFeature
       const refSeqDoc = await refSeqModel
@@ -104,59 +96,6 @@ export class AddFeatureChange extends FeatureChange {
           `RefSeq was not found by assembly "${assembly}" and seq_id "${refSeq}" not found`,
         )
       }
-
-      // KS CopyFeature, ao. on alkuperainen koodi ennen muutosta
-      // if (parentFeatureId) {
-      //   const topLevelFeature = await featureModel
-      //     .findOne({ allIds: parentFeatureId })
-      //     .session(session)
-      //     .exec()
-      //   if (!topLevelFeature) {
-      //     throw new Error(`Could not find feature with ID "${parentFeatureId}"`)
-      //   }
-      //   const parentFeature = this.getFeatureFromId(
-      //     topLevelFeature,
-      //     parentFeatureId,
-      //   )
-      //   if (!parentFeature) {
-      //     throw new Error(
-      //       `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature._id}"`,
-      //     )
-      //   }
-      //   if (!parentFeature.children) {
-      //     parentFeature.children = new Map()
-      //   }
-      //   if (!parentFeature.attributes?._id) {
-      //     // KS pitaako olla .id vai ._id ???
-      //     let { attributes } = parentFeature
-      //     if (!attributes) {
-      //       attributes = {}
-      //     }
-      //     attributes = {
-      //       _id: [parentFeature._id.toString()], // KS pitaako olla .id vai ._id ???
-      //       ...JSON.parse(JSON.stringify(attributes)),
-      //     }
-      //     parentFeature.attributes = attributes
-      //   }
-      //   parentFeature.children.set(addedFeature._id, {
-      //     allIds: [],
-      //     ...addedFeature,
-      //     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //     // @ts-ignore
-      //     _id: addedFeature._id,
-      //   })
-      //   const childIds = this.getChildFeatureIds(addedFeature)
-      //   topLevelFeature.allIds.push(addedFeature._id, ...childIds)
-      //   topLevelFeature.save()
-      // } else {
-      //   const childIds = this.getChildFeatureIds(addedFeature)
-      //   const allIds = [addedFeature._id, ...childIds]
-      //   const [newFeatureDoc] = await featureModel.create(
-      //     [{ allIds, ...addedFeature }],
-      //     { session },
-      //   )
-      //   logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
-      // }
 
       // CopyFeature is called from CopyFeature.tsx
       if (copyFeature) {
@@ -197,13 +136,12 @@ export class AddFeatureChange extends FeatureChange {
             parentFeature.children = new Map()
           }
           if (!parentFeature.attributes?._id) {
-            // KS pitaako olla .id vai ._id ???
             let { attributes } = parentFeature
             if (!attributes) {
               attributes = {}
             }
             attributes = {
-              _id: [parentFeature._id.toString()], // KS pitaako olla .id vai ._id ???
+              _id: [parentFeature._id.toString()],
               ...JSON.parse(JSON.stringify(attributes)),
             }
             parentFeature.attributes = attributes

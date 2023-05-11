@@ -5050,6 +5050,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/concat-stream@npm:^2":
+  version: 2.0.0
+  resolution: "@types/concat-stream@npm:2.0.0"
+  dependencies:
+    "@types/node": "*"
+  checksum: d82ace5cb92f9fc91660ae1a101fa0a6b6159da59b0351c28627b24c317670267bc527f24ef4fa2c08d00404b49882ca66bf5c75d47d2b5f48d2fd85f9c2ea4d
+  languageName: node
+  linkType: hard
+
 "@types/connect@npm:*":
   version: 3.4.35
   resolution: "@types/connect@npm:3.4.35"
@@ -6258,6 +6267,7 @@ __metadata:
     "@nestjs/schematics": ^8.0.0
     "@nestjs/testing": ^8.0.0
     "@nestjs/websockets": ^9.2.1
+    "@types/concat-stream": ^2
     "@types/express": ^4.17.13
     "@types/express-session": ^1
     "@types/jest": ^27.0.1
@@ -6302,6 +6312,7 @@ __metadata:
     sanitize-filename: ^1.6.3
     socket.io: ^4.5.3
     source-map-support: ^0.5.20
+    stream-concat: ^1.0.0
     supertest: ^6.1.3
     ts-jest: ^27.0.3
     ts-loader: ^9.2.3
@@ -16694,6 +16705,13 @@ __metadata:
   dependencies:
     duplexer: ~0.1.1
   checksum: 844b622cfe8b9de45a6007404f613b60aaf85200ab9862299066204242f89a7c8033b1c356c998aa6cfc630f6cd9eba119ec1c6dc1f93e245982be4a847aee7d
+  languageName: node
+  linkType: hard
+
+"stream-concat@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "stream-concat@npm:1.0.0"
+  checksum: aa2b8e86454f40ca3ea329619c64256669cebef6a8b114676066e38604a09bbe16c37b0ddfae7b6109ff183b664291623f1787a9e511c872e708cdfff35b0aa0
   languageName: node
   linkType: hard
 

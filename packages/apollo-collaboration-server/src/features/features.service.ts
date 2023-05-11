@@ -1,4 +1,4 @@
-import { Transform, pipeline } from 'stream'
+import { Readable, Transform, pipeline } from 'stream'
 
 import gff, { GFF3Feature } from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
@@ -16,6 +16,7 @@ import {
 import { GetFeaturesOperation } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import { Model } from 'mongoose'
+import StreamConcat from 'stream-concat'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { OperationsService } from '../operations/operations.service'
@@ -97,14 +98,6 @@ function makeGFF3Feature(
   if (ontologyFound) {
     attributes.Ontology_term = [ontologyTerms]
   }
-  // // Do not export internal ID (=Mongo ObjectId) if feature does not have any child
-  // if (
-  //   !featureDocument.children?.values &&
-  //   ObjectID.isValid(attributes.ID?.toString())
-  // ) {
-  //   console.log(`***************** Poistetaan ID: ${attributes.ID}`)
-  //   // delete attributes.ID
-  // }
   const refSeq = refSeqs.find((rs) => rs._id.equals(featureDocument.refSeq))
   if (!refSeq) {
     throw new Error(`Could not find refSeq ${featureDocument.refSeq}`)
@@ -169,48 +162,56 @@ export class FeaturesService {
     if (!exportDoc) {
       throw new NotFoundException()
     }
+
     const { assembly } = exportDoc
     const refSeqs = await this.refSeqModel.find({ assembly }).exec()
+
+    const headerStream = new Readable({ objectMode: true })
+    headerStream.push('##gff-version 3\n')
+    refSeqs.forEach((refSeqDoc: RefSeqDocument) => {
+      headerStream.push(
+        `##sequence-region ${refSeqDoc.name} 1 ${refSeqDoc.length}\n`,
+      )
+    })
+    headerStream.push(null)
+
     const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
     const query = { refSeq: { $in: refSeqIds } }
-    return [
-      pipeline(
-        this.featureModel.find(query).cursor(),
-        new Transform({
-          writableObjectMode: true,
-          readableObjectMode: true,
-          transform: (chunk, encoding, callback) => {
-            try {
-              const flattened = chunk.toObject({ flattenMaps: true })
-              const gff3Feature = makeGFF3Feature(flattened, refSeqs)
-              callback(null, gff3Feature)
-            } catch (error) {
-              callback(
-                error instanceof Error ? error : new Error(String(error)),
-              )
-            }
-          },
-        }),
-        gff.formatStream({ insertVersionDirective: true }),
-        (error) => {
-          if (error) {
-            this.logger.error('GFF3 export failed')
-            this.logger.error(error)
+
+    const featureStream = pipeline(
+      this.featureModel.find(query).cursor(),
+      new Transform({
+        writableObjectMode: true,
+        readableObjectMode: true,
+        transform: (chunk, encoding, callback) => {
+          try {
+            const flattened = chunk.toObject({ flattenMaps: true })
+            const gff3Feature = makeGFF3Feature(flattened, refSeqs)
+            callback(null, gff3Feature)
+          } catch (error) {
+            callback(error instanceof Error ? error : new Error(String(error)))
           }
         },
-      ),
-      assembly,
-    ]
+      }),
+      gff.formatStream({ insertVersionDirective: true }),
+      (error) => {
+        if (error) {
+          this.logger.error('GFF3 export failed')
+          this.logger.error(error)
+        }
+      },
+    )
+    const combinedStream = new StreamConcat([headerStream, featureStream])
+    return [combinedStream, assembly]
   }
 
-  // KS CopyFeature, lisatty uusi methodi findStartAndEnd
-   /**
+  /**
    * Fetch min start and max end position for given refSeq
    * @param request - Contain search criteria i.e. refSeq
    * @returns Return 'HttpStatus.OK' and min start and max end -values of given refSeq if search was successful
    * or if search data was not found or in case of error throw exception
    */
-   async findStartAndEnd(searchDto: FeatureRangeSearchDto) {
+  async findStartAndEnd(searchDto: FeatureRangeSearchDto) {
     const minMaxValues = await this.featureModel
       .aggregate([
         { $match: { refSeq: ObjectID(searchDto.refSeq), status: 0 } },
