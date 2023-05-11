@@ -24,8 +24,10 @@ import {
 } from '../components'
 import { Collaborator } from '../session'
 import { BoxGlyph } from './glyphs/BoxGlyph'
+import { GeneGlyph } from './glyphs/GeneGlyph'
 
 const boxGlyph = new BoxGlyph()
+const geneGlyph = new GeneGlyph()
 
 export function stateModelFactory(
   pluginManager: PluginManager,
@@ -164,7 +166,12 @@ export function stateModelFactory(
             ) {
               return
             }
-            const rowCount = boxGlyph.getRowCount()
+            let rowCount: number
+            if (feature.type === 'gene') {
+              rowCount = geneGlyph.getRowCount(feature, self.lgv.bpPerPx)
+            } else {
+              rowCount = boxGlyph.getRowCount()
+            }
             let startingRow = 0
             let placed = false
             while (!placed) {
@@ -233,7 +240,7 @@ export function stateModelFactory(
         )
       },
       get featuresHeight() {
-        return this.highestRow * self.apolloRowHeight
+        return (this.highestRow + 1) * self.apolloRowHeight
       },
       get detailsHeight() {
         return Math.max(
@@ -656,15 +663,27 @@ export function stateModelFactory(
                     ) {
                       return
                     }
-                    boxGlyph.draw(
-                      feature,
-                      ctx,
-                      x,
-                      row * self.apolloRowHeight,
-                      self.lgv.bpPerPx,
-                      self.apolloRowHeight,
-                      displayedRegion.reversed,
-                    )
+                    if (feature.type === 'gene') {
+                      geneGlyph.draw(
+                        feature,
+                        ctx,
+                        x,
+                        row * self.apolloRowHeight,
+                        self.lgv.bpPerPx,
+                        self.apolloRowHeight,
+                        displayedRegion.reversed,
+                      )
+                    } else {
+                      boxGlyph.draw(
+                        feature,
+                        ctx,
+                        x,
+                        row * self.apolloRowHeight,
+                        self.lgv.bpPerPx,
+                        self.apolloRowHeight,
+                        displayedRegion.reversed,
+                      )
+                    }
                   })
                 })
               })
@@ -693,7 +712,12 @@ export function stateModelFactory(
                 const { feature, edge, x, y, regionIndex } = self.dragging
                 const row = Math.floor(y / self.apolloRowHeight)
                 const region = self.displayedRegions[regionIndex]
-                const rowCount = boxGlyph.getRowCount()
+                let rowCount: number
+                if (feature.type === 'gene') {
+                  rowCount = geneGlyph.getRowCount(feature, self.lgv.bpPerPx)
+                } else {
+                  rowCount = boxGlyph.getRowCount()
+                }
                 const featureEdge = region.reversed
                   ? region.end - feature[edge]
                   : feature[edge] - region.start
