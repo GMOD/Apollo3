@@ -23,9 +23,14 @@ import {
 } from '../components'
 import { Collaborator } from '../session'
 import { BoxGlyph } from './glyphs/BoxGlyph'
+import { GeneGlyph } from './glyphs/GeneGlyph'
+import { Glyph } from './glyphs/Glyph'
 import mouseEvents, {
   RestOfLinearApolloDisplayStateModelTemporaryDeleteMeAsap,
 } from './stateModel/mouse-events'
+
+const boxGlyph = new BoxGlyph()
+const geneGlyph = new GeneGlyph()
 
 export function stateModelFactory(
   pluginManager: PluginManager,
@@ -76,10 +81,13 @@ export function stateModelFactory(
     }))
     .views((self) => ({
       /** get the appropriate glyph for the given top-level feature */
-      getGlyph(feature: AnnotationFeatureI, bpPerPx: number) {
+      getGlyph(feature: AnnotationFeatureI, bpPerPx: number): Glyph {
         // could consider eventually caching glyph instances if needed
         // for performance
-        return new BoxGlyph()
+        if (feature.type === 'gene') {
+          return geneGlyph
+        }
+        return boxGlyph
       },
       get blockType(): 'staticBlocks' | 'dynamicBlocks' {
         return 'dynamicBlocks'
@@ -173,7 +181,7 @@ export function stateModelFactory(
             }
             const rowCount = self
               .getGlyph(feature, self.lgv.bpPerPx)
-              .getRowCount()
+              .getRowCount(feature, self.lgv.bpPerPx)
             let startingRow = 0
             let placed = false
             while (!placed) {
@@ -242,7 +250,7 @@ export function stateModelFactory(
         )
       },
       get featuresHeight() {
-        return this.highestRow * self.apolloRowHeight
+        return (this.highestRow + 1) * self.apolloRowHeight
       },
       get detailsHeight() {
         return Math.max(
@@ -493,6 +501,93 @@ export function stateModelFactory(
             { name: 'LinearApolloDisplayRenderFeatures' },
           ),
         )
+        addDisposer(
+          self,
+          autorun(
+            () => {
+              if (!self.lgv.initialized || self.regionCannotBeRendered()) {
+                return
+              }
+              const ctx = self.overlayCanvas?.getContext('2d')
+              if (!ctx) {
+                return
+              }
+              ctx.clearRect(
+                0,
+                0,
+                self.lgv.dynamicBlocks.totalWidthPx,
+                self.featuresHeight,
+              )
+              if (self.dragging) {
+                const { feature, edge, x, y, regionIndex } = self.dragging
+                const row = Math.floor(y / self.apolloRowHeight)
+                const region = self.displayedRegions[regionIndex]
+                let rowCount: number
+                if (feature.type === 'gene') {
+                  rowCount = geneGlyph.getRowCount(feature, self.lgv.bpPerPx)
+                } else {
+                  rowCount = boxGlyph.getRowCount()
+                }
+                const featureEdge = region.reversed
+                  ? region.end - feature[edge]
+                  : feature[edge] - region.start
+                const featureEdgePx =
+                  featureEdge / self.lgv.bpPerPx - self.lgv.offsetPx
+                const startPx = Math.min(x, featureEdgePx)
+                const widthPx = Math.abs(x - featureEdgePx)
+                ctx.strokeStyle = 'red'
+                ctx.setLineDash([6])
+                ctx.strokeRect(
+                  startPx,
+                  row * self.apolloRowHeight,
+                  widthPx,
+                  self.apolloRowHeight * rowCount,
+                )
+                ctx.fillStyle = 'rgba(255,0,0,.2)'
+                ctx.fillRect(
+                  startPx,
+                  row * self.apolloRowHeight,
+                  widthPx,
+                  self.apolloRowHeight * rowCount,
+                )
+              }
+              const { apolloFeatureUnderMouse } = self
+              if (!apolloFeatureUnderMouse) {
+                return
+              }
+              self.featureLayouts.forEach((featureLayout, idx) => {
+                const displayedRegion = self.displayedRegions[idx]
+                featureLayout.forEach((featureLayoutRow, row) => {
+                  featureLayoutRow.forEach(([featureRow, feature]) => {
+                    if (featureRow > 0) {
+                      return
+                    }
+                    if (feature._id !== apolloFeatureUnderMouse._id) {
+                      return
+                    }
+                    const x =
+                      (self.lgv.bpToPx({
+                        refName: displayedRegion.refName,
+                        coord: feature.min,
+                        regionNumber: idx,
+                      })?.offsetPx || 0) - self.lgv.offsetPx
+                    boxGlyph.draw(
+                      feature,
+                      ctx,
+                      x,
+                      row * self.apolloRowHeight,
+                      self.lgv.bpPerPx,
+                      self.apolloRowHeight,
+                      displayedRegion.reversed,
+                    )
+                  })
+                })
+              })
+            },
+            { name: 'LinearApolloDisplayRenderMouseoverAndDrag' },
+          ),
+        )
+
         addDisposer(
           self,
           autorun(
