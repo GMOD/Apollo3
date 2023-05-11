@@ -20,7 +20,7 @@ export interface RestOfLinearApolloDisplayStateModelTemporaryDeleteMeAsap {
   overlayCanvas: HTMLCanvasElement | null
   apolloRowHeight: number
   featureLayouts: Map<number, [number, AnnotationFeatureI][]>[]
-  getGlyph(f: AnnotationFeatureI): Glyph
+  getGlyph(f: AnnotationFeatureI, bpPerPx: number): Glyph
   setSelectedFeature(f: AnnotationFeatureI): void
   getAssemblyId(assemblyName: string): string
   changeManager?: { submit(change: Change): void }
@@ -119,7 +119,7 @@ export default types
         if (feature && featureRow) {
           const topRow = row - featureRow
           feature = self
-            .getGlyph(feature)
+            .getGlyph(feature, self.lgv.bpPerPx)
             .getFeatureFromLayout(feature, coord, topRow)
         }
 
@@ -184,44 +184,53 @@ export default types
           regionIndex: index,
         })
       },
+      submitDraggingFeatureEndChange() {
+        if (!self.dragging) {
+          return
+        }
+        const { feature, edge, regionIndex } = self.dragging
+        const bp = feature[edge]
+        const region = self.displayedRegions[regionIndex]
+
+        const assembly = self.getAssemblyId(region.assemblyName)
+        let change: LocationEndChange | LocationStartChange
+        if (edge === 'end') {
+          const featureId = feature._id
+          const oldEnd = feature.end
+          const newEnd = Math.round(bp)
+          change = new LocationEndChange({
+            typeName: 'LocationEndChange',
+            changedIds: [featureId],
+            featureId,
+            oldEnd,
+            newEnd,
+            assembly,
+          })
+        } else {
+          const featureId = feature._id
+          const oldStart = feature.start
+          const newStart = Math.round(bp)
+          change = new LocationStartChange({
+            typeName: 'LocationStartChange',
+            changedIds: [featureId],
+            featureId,
+            oldStart,
+            newStart,
+            assembly,
+          })
+        }
+        if (!self.changeManager) {
+          throw new Error('no change manager')
+        }
+        self.changeManager.submit(change)
+      },
       onMouseUp() {
         if (!self.movedDuringLastMouseDown) {
           if (self.apolloFeatureUnderMouse) {
             self.setSelectedFeature(self.apolloFeatureUnderMouse)
           }
         } else if (self.dragging) {
-          const { feature, edge, regionIndex } = self.dragging
-          const bp = feature[edge]
-          const region = self.displayedRegions[regionIndex]
-
-          const assembly = self.getAssemblyId(region.assemblyName)
-          let change: LocationEndChange | LocationStartChange
-          if (edge === 'end') {
-            const featureId = feature._id
-            const oldEnd = feature.end
-            const newEnd = Math.round(bp)
-            change = new LocationEndChange({
-              typeName: 'LocationEndChange',
-              changedIds: [featureId],
-              featureId,
-              oldEnd,
-              newEnd,
-              assembly,
-            })
-          } else {
-            const featureId = feature._id
-            const oldStart = feature.start
-            const newStart = Math.round(bp)
-            change = new LocationStartChange({
-              typeName: 'LocationStartChange',
-              changedIds: [featureId],
-              featureId,
-              oldStart,
-              newStart,
-              assembly,
-            })
-          }
-          self.changeManager?.submit(change)
+          this.submitDraggingFeatureEndChange()
         }
         this.setDragging(undefined)
         this.setMovedDuringLastMouseDown(false)
@@ -256,7 +265,7 @@ export default types
                 const row = Math.floor(y / self.apolloRowHeight)
                 const region = self.displayedRegions[regionIndex]
                 const rowCount = self
-                  .getGlyph(feature)
+                  .getGlyph(feature, self.lgv.bpPerPx)
                   .getRowCount(feature, self.lgv.bpPerPx)
                 const featureEdge = region.reversed
                   ? region.end - feature[edge]
@@ -302,7 +311,7 @@ export default types
                         regionNumber: idx,
                       })?.offsetPx || 0) - self.lgv.offsetPx
                     self
-                      .getGlyph(feature)
+                      .getGlyph(feature, self.lgv.bpPerPx)
                       .draw(
                         feature,
                         ctx,

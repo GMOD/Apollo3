@@ -76,7 +76,7 @@ export function stateModelFactory(
     }))
     .views((self) => ({
       /** get the appropriate glyph for the given top-level feature */
-      getGlyph(feature: AnnotationFeatureI) {
+      getGlyph(feature: AnnotationFeatureI, bpPerPx: number) {
         // could consider eventually caching glyph instances if needed
         // for performance
         return new BoxGlyph()
@@ -171,7 +171,9 @@ export function stateModelFactory(
             ) {
               return
             }
-            const rowCount = self.getGlyph(feature).getRowCount()
+            const rowCount = self
+              .getGlyph(feature, self.lgv.bpPerPx)
+              .getRowCount()
             let startingRow = 0
             let placed = false
             while (!placed) {
@@ -474,7 +476,7 @@ export function stateModelFactory(
                       return
                     }
                     self
-                      .getGlyph(feature)
+                      .getGlyph(feature, self.lgv.bpPerPx)
                       .draw(
                         feature,
                         ctx,
@@ -543,7 +545,7 @@ export type LinearApolloDisplayStateModel = ReturnType<typeof stateModelFactory>
 export type LinearApolloDisplay = Instance<LinearApolloDisplayStateModel>
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function x(
+function checkInterface(
   m: LinearApolloDisplay,
 ): RestOfLinearApolloDisplayStateModelTemporaryDeleteMeAsap {
   // this function just checks that LinearApolloDisplay satisfies the
