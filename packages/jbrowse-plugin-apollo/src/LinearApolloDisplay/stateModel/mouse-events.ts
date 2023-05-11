@@ -6,6 +6,7 @@ import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { autorun } from 'mobx'
 import { addDisposer, types } from 'mobx-state-tree'
 
+import { BoxGlyph } from '../glyphs/BoxGlyph'
 import { Glyph } from '../glyphs/Glyph'
 
 /**
@@ -310,17 +311,15 @@ export default types
                         coord: feature.min,
                         regionNumber: idx,
                       })?.offsetPx || 0) - self.lgv.offsetPx
-                    self
-                      .getGlyph(feature, self.lgv.bpPerPx)
-                      .draw(
-                        feature,
-                        ctx,
-                        x,
-                        row * self.apolloRowHeight,
-                        self.lgv.bpPerPx,
-                        self.apolloRowHeight,
-                        displayedRegion.reversed,
-                      )
+                    new BoxGlyph().draw(
+                      feature,
+                      ctx,
+                      x,
+                      row * self.apolloRowHeight,
+                      self.lgv.bpPerPx,
+                      self.apolloRowHeight,
+                      displayedRegion.reversed,
+                    )
                   })
                 })
               })
