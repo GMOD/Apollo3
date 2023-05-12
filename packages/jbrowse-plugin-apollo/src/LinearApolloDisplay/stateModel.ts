@@ -558,6 +558,6 @@ function checkInterface(
 ): RestOfLinearApolloDisplayStateModelTemporaryDeleteMeAsap {
   // this function just checks that LinearApolloDisplay satisfies the
   // temporary interface for the mouse events.
-  // should remove this when removing that hack interface
+  // remove this when removing that hack interface
   return m
 }

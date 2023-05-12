@@ -1,4 +1,5 @@
 import { AnnotationFeatureI } from 'apollo-mst'
+import { types } from 'mobx-state-tree'
 
 import { Glyph } from './Glyph'
 
@@ -36,7 +37,11 @@ if ('document' in window) {
   })
 }
 
+const stateModel = types.model({})
+
 export class GeneGlyph extends Glyph {
+  stateModelType = stateModel
+
   getRowCount(feature: AnnotationFeatureI, _bpPerPx: number): number {
     let cdsCount = 0
     feature.children?.forEach((child: AnnotationFeatureI) => {
