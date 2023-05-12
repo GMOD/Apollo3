@@ -79,15 +79,26 @@ export function CopyFeature({
       //   }, ${JSON.stringify(assemblyManager.get(assId))}`,
       // )
       const halfCount = allRefNames.length / 2
+      let refId = ''
+      let refName = ''
       for (let i = 0; i < halfCount; i++) {
         // console.log(
         //   `Id: "${allRefNames[i + halfCount]}", name: "${allRefNames[i]}"`,
         // )
+        // Order of ref id and names varies so lets check if id is in the beginning
+        if (ObjectID.isValid(allRefNames[i])) {
+          refId = allRefNames[i]
+          refName = allRefNames[i + halfCount]
+        } else {
+          refId = allRefNames[i + halfCount]
+          refName = allRefNames[i]
+        }
+        // eslint-disable-next-line no-loop-func
         setRefNameCollection((result) => [
           ...result,
           {
-            _id: allRefNames[i + halfCount],
-            name: allRefNames[i],
+            _id: refId,
+            name: refName,
           },
         ])
       }
@@ -205,7 +216,10 @@ export function CopyFeature({
     }
 
     // Update gffId value if it's ObjectId
-    if (ObjectID.isValid(newFeatureLine.gffId!.toString())) {
+    if (
+      newFeatureLine.gffId &&
+      ObjectID.isValid(newFeatureLine.gffId.toString())
+    ) {
       newFeatureLine.gffId = newFeatureLine._id
     }
     newFeatureLine.refSeq = refSeqId
