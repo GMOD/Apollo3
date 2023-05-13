@@ -23,14 +23,13 @@ import {
 } from '../components'
 import { Collaborator } from '../session'
 import { BoxGlyph } from './glyphs/BoxGlyph'
-import { GeneGlyph } from './glyphs/GeneGlyph'
 import { Glyph } from './glyphs/Glyph'
 import mouseEvents, {
   RestOfLinearApolloDisplayStateModelTemporaryDeleteMeAsap,
 } from './stateModel/mouse-events'
 
 const boxGlyph = new BoxGlyph()
-const geneGlyph = new GeneGlyph()
+// const geneGlyph = new GeneGlyph()
 
 export function stateModelFactory(
   pluginManager: PluginManager,
