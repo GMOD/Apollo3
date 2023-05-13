@@ -1,4 +1,5 @@
 import { AnnotationFeatureI } from 'apollo-mst'
+import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 
 import { LinearApolloDisplay } from '../stateModel'
 import { MousePosition } from '../stateModel/mouse-events'
@@ -78,11 +79,52 @@ export class BoxGlyph extends Glyph {
     return undefined
   }
 
+  drawHover(stateModel: LinearApolloDisplay, ctx: CanvasRenderingContext2D) {
+    const hover = stateModel.apolloHover
+    if (!hover) {
+      return
+    }
+    const { feature, mousePosition } = hover
+    if (!feature) {
+      return
+    }
+    const { bpPerPx } = stateModel.lgv
+    const rowHeight = stateModel.apolloRowHeight
+    const displayedRegion =
+      stateModel.displayedRegions[mousePosition.regionNumber]
+
+    const x =
+      (stateModel.lgv.bpToPx({
+        refName: displayedRegion.refName,
+        coord: feature.min,
+        regionNumber: mousePosition.regionNumber,
+      })?.offsetPx || 0) - stateModel.lgv.offsetPx
+    const row = Math.floor(mousePosition.y / rowHeight)
+    const y = row * rowHeight
+
+    const width = feature.end - feature.start
+    const widthPx = width / bpPerPx
+    const startBp = displayedRegion.reversed
+      ? feature.max - feature.end
+      : feature.start - feature.min
+    const startPx = startBp / bpPerPx
+    ctx.fillStyle = 'black'
+    ctx.fillRect(x + startPx, y, widthPx, rowHeight)
+    if (widthPx > 2) {
+      ctx.clearRect(x + startPx + 1, y + 1, widthPx - 2, rowHeight - 2)
+      ctx.fillStyle = 'rgba(255,255,255,0.75)'
+      ctx.fillRect(x + startPx + 1, y + 1, widthPx - 2, rowHeight - 2)
+      ctx.fillStyle = 'black'
+      feature.type &&
+        ctx.fillText(feature.type, x + startPx + 1, y + 11, widthPx - 2)
+    }
+  }
+
   drawDragPreview(
     stateModel: LinearApolloDisplay,
     overlayCtx: CanvasRenderingContext2D,
   ) {
-    const { dragging } = stateModel
+    const { apolloDragging: dragging } = stateModel
     if (!dragging) {
       return
     }
@@ -107,68 +149,97 @@ export class BoxGlyph extends Glyph {
       return
     }
 
-    const { x, y, regionNumber } = currentMousePosition
-    const row = Math.floor(y / stateModel.apolloRowHeight)
-    const region = stateModel.displayedRegions[regionNumber]
+    const row = Math.floor(startingMousePosition.y / stateModel.apolloRowHeight)
+    const region =
+      stateModel.displayedRegions[startingMousePosition.regionNumber]
     const rowCount = this.getRowCount(feature, stateModel.lgv.bpPerPx)
-    const featureEdge = region.reversed
+
+    const featureEdgeBp = region.reversed
       ? region.end - feature[edge]
       : feature[edge] - region.start
     const featureEdgePx =
-      featureEdge / stateModel.lgv.bpPerPx - stateModel.lgv.offsetPx
-    const startPx = Math.min(x, featureEdgePx)
-    const widthPx = Math.abs(x - featureEdgePx)
+      featureEdgeBp / stateModel.lgv.bpPerPx - stateModel.lgv.offsetPx
+
+    const rectX = Math.min(currentMousePosition.x, featureEdgePx)
+    const rectY = row * stateModel.apolloRowHeight
+    const rectWidth = Math.abs(currentMousePosition.x - featureEdgePx)
+    const rectHeight = stateModel.apolloRowHeight * rowCount
+
     overlayCtx.strokeStyle = 'red'
     overlayCtx.setLineDash([6])
-    overlayCtx.strokeRect(
-      startPx,
-      row * stateModel.apolloRowHeight,
-      widthPx,
-      stateModel.apolloRowHeight * rowCount,
-    )
+    overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
     overlayCtx.fillStyle = 'rgba(255,0,0,.2)'
-    overlayCtx.fillRect(
-      startPx,
-      row * stateModel.apolloRowHeight,
-      widthPx,
-      stateModel.apolloRowHeight * rowCount,
-    )
+    overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
   }
 
-  submitDraggingFeatureEndChange() {
-    // const { feature, edge, regionIndex } = self.dragging
-    // const bp = feature[edge]
-    // const region = self.displayedRegions[regionIndex]
-    // const assembly = self.getAssemblyId(region.assemblyName)
-    // let change: LocationEndChange | LocationStartChange
-    // if (edge === 'end') {
-    //   const featureId = feature._id
-    //   const oldEnd = feature.end
-    //   const newEnd = Math.round(bp)
-    //   change = new LocationEndChange({
-    //     typeName: 'LocationEndChange',
-    //     changedIds: [featureId],
-    //     featureId,
-    //     oldEnd,
-    //     newEnd,
-    //     assembly,
-    //   })
-    // } else {
-    //   const featureId = feature._id
-    //   const oldStart = feature.start
-    //   const newStart = Math.round(bp)
-    //   change = new LocationStartChange({
-    //     typeName: 'LocationStartChange',
-    //     changedIds: [featureId],
-    //     featureId,
-    //     oldStart,
-    //     newStart,
-    //     assembly,
-    //   })
-    // }
-    // if (!self.changeManager) {
-    //   throw new Error('no change manager')
-    // }
-    // self.changeManager.submit(change)
+  executeDrag(stateModel: LinearApolloDisplay) {
+    const { apolloDragging: dragging } = stateModel
+    if (!dragging) {
+      return
+    }
+    const {
+      feature,
+      glyph,
+      mousePosition: startingMousePosition,
+    } = dragging.start
+    if (!feature) {
+      throw new Error('no feature for drag preview??')
+    }
+    if (glyph !== this) {
+      throw new Error('drawDragPreview() called on wrong glyph?')
+    }
+    const { mousePosition: currentMousePosition } = dragging.current
+    const edge = this.isMouseOnFeatureEdge(
+      startingMousePosition,
+      feature,
+      stateModel,
+    )
+    if (!edge) {
+      return
+    }
+
+    const region =
+      stateModel.displayedRegions[startingMousePosition.regionNumber]
+    const featureEdgeBp = region.reversed
+      ? region.end - feature[edge]
+      : feature[edge] - region.start
+    const featureEdgePx =
+      featureEdgeBp / stateModel.lgv.bpPerPx - stateModel.lgv.offsetPx
+
+    const newBp = Math.round(
+      featureEdgeBp +
+        (currentMousePosition.x - featureEdgePx) * stateModel.lgv.bpPerPx,
+    )
+    const assembly = stateModel.getAssemblyId(region.assemblyName)
+    let change: LocationEndChange | LocationStartChange
+    if (edge === 'end') {
+      const featureId = feature._id
+      const oldEnd = feature.end
+      const newEnd = newBp
+      change = new LocationEndChange({
+        typeName: 'LocationEndChange',
+        changedIds: [featureId],
+        featureId,
+        oldEnd,
+        newEnd,
+        assembly,
+      })
+    } else {
+      const featureId = feature._id
+      const oldStart = feature.start
+      const newStart = newBp
+      change = new LocationStartChange({
+        typeName: 'LocationStartChange',
+        changedIds: [featureId],
+        featureId,
+        oldStart,
+        newStart,
+        assembly,
+      })
+    }
+    if (!stateModel.changeManager) {
+      throw new Error('no change manager')
+    }
+    stateModel.changeManager.submit(change)
   }
 }

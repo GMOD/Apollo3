@@ -33,7 +33,7 @@ export const LinearApolloDisplay = observer(
       onMouseDown,
       onMouseUp,
       onContextMenu,
-      dragging,
+      apolloDragging: dragging,
       apolloFeatureUnderMouse,
       overEdge,
     } = model

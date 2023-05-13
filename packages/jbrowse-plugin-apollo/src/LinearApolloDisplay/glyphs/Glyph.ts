@@ -35,6 +35,13 @@ export abstract class Glyph {
     row: number,
   ): AnnotationFeatureI | undefined
 
+  drawHover(
+    stateModel: LinearApolloDisplay,
+    overlayCtx: CanvasRenderingContext2D,
+  ) {
+    return
+  }
+
   drawDragPreview(
     displayState: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,

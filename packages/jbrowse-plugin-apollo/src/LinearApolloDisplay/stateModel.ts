@@ -82,11 +82,9 @@ export function stateModelFactory(
     .views((self) => ({
       /** get the appropriate glyph for the given top-level feature */
       getGlyph(feature: AnnotationFeatureI, bpPerPx: number): Glyph {
-        // could consider eventually caching glyph instances if needed
-        // for performance
-        if (feature.type === 'gene') {
-          return geneGlyph
-        }
+        // if (feature.type === 'gene') {
+        //   return geneGlyph
+        // }
         return boxGlyph
       },
       get blockType(): 'staticBlocks' | 'dynamicBlocks' {
