@@ -97,9 +97,9 @@ export default types
     }
   })
   .volatile((self) => ({
-    apolloHover: undefined as
-      | ReturnType<typeof self['getFeatureAndGlyphUnderMouse']>
-      | undefined,
+    apolloHover: null as ReturnType<
+      typeof self['getFeatureAndGlyphUnderMouse']
+    > | null,
     apolloContextMenuFeature: undefined as AnnotationFeatureI | undefined,
   }))
   .actions((s) => {
@@ -114,19 +114,32 @@ export default types
         self.apolloDragging = dragInfo || null
       },
       onMouseDown(event: CanvasMouseEvent) {
-        const { glyph } = self.getFeatureAndGlyphUnderMouse(event)
-        if (glyph) {
-          event.stopPropagation()
+        const { glyph, feature, topLevelFeature } =
+          self.getFeatureAndGlyphUnderMouse(event)
+        if (glyph && feature && topLevelFeature) {
+          glyph.onMouseDown(
+            // @ts-expect-error we do not currently have a good type for the full state model available in this file
+            self,
+            event,
+          )
         }
       },
       startDrag(event: CanvasMouseEvent) {
         const { feature, topLevelFeature, glyph, mousePosition } =
           self.getFeatureAndGlyphUnderMouse(event)
         if (feature && topLevelFeature && glyph) {
-          event.stopPropagation() // only swallow this event if we are over a feature
           self.apolloDragging = {
             start: { glyph, feature, topLevelFeature, mousePosition },
             current: { glyph, feature, topLevelFeature, mousePosition },
+          }
+          if (
+            !glyph.startDrag(
+              // @ts-expect-error we do not currently have a good type for the full state model available in this file
+              self,
+              event,
+            )
+          ) {
+            self.apolloDragging = null
           }
         }
       },
@@ -157,6 +170,15 @@ export default types
       },
       onMouseMove(event: CanvasMouseEvent) {
         const { buttons } = event
+        const hover = self.getFeatureAndGlyphUnderMouse(event)
+        const { glyph } = hover
+        if (glyph) {
+          glyph.onMouseMove(
+            // @ts-expect-error we do not currently have a good type for the full state model available in this file
+            self,
+            event,
+          )
+        }
 
         if (buttons) {
           // if button 1 is being held down while moving, we must be dragging
@@ -171,19 +193,36 @@ export default types
           }
         } else {
           // if no buttons, update mouseover hover
-          const hover = self.getFeatureAndGlyphUnderMouse(event)
-          const { feature, topLevelFeature, glyph } = hover
+          const { feature, topLevelFeature } = hover
           if (feature && glyph && topLevelFeature) {
             this.setApolloHover(hover)
           } else {
-            this.setApolloHover(undefined)
+            this.setApolloHover(null)
           }
         }
       },
       onMouseLeave(event: CanvasMouseEvent) {
         this.setDragging(undefined)
+
+        const { glyph } = self.getFeatureAndGlyphUnderMouse(event)
+        if (glyph) {
+          glyph.onMouseLeave(
+            // @ts-expect-error we do not currently have a good type for the full state model available in this file
+            self,
+            event,
+          )
+        }
       },
       onMouseUp(event: CanvasMouseEvent) {
+        const { glyph } = self.getFeatureAndGlyphUnderMouse(event)
+        if (glyph) {
+          glyph.onMouseUp(
+            // @ts-expect-error we do not currently have a good type for the full state model available in this file
+            self,
+            event,
+          )
+        }
+
         if (self.apolloDragging) {
           this.endDrag(event)
         }
@@ -220,6 +259,13 @@ export default types
                 self.featuresHeight,
               )
 
+              // draw mouseover hovers
+              self.apolloHover?.glyph?.drawHover(
+                // @ts-expect-error we do not currently have a good type for the full state model available in this file
+                self,
+                ctx,
+              )
+
               // dragging previews
               if (self.apolloDragging) {
                 // NOTE: the glyph where the drag started is responsible for drawing the preview.
@@ -231,12 +277,6 @@ export default types
                   ctx,
                 )
               }
-
-              self.apolloHover?.glyph?.drawHover(
-                // @ts-expect-error we do not currently have a good type for the full state model available in this file
-                self,
-                ctx,
-              )
             },
             { name: 'LinearApolloDisplayRenderMouseoverAndDrag' },
           ),

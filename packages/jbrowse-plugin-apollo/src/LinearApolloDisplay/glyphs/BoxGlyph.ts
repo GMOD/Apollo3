@@ -3,6 +3,7 @@ import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 
 import { LinearApolloDisplay } from '../stateModel'
 import { MousePosition } from '../stateModel/mouse-events'
+import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 
 export class BoxGlyph extends Glyph {
@@ -170,6 +171,30 @@ export class BoxGlyph extends Glyph {
     overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
     overlayCtx.fillStyle = 'rgba(255,0,0,.2)'
     overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
+  }
+
+  onMouseDown(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
+    // swallow the mouseDown if we are on the edge of the feature
+    const { feature, mousePosition } =
+      stateModel.getFeatureAndGlyphUnderMouse(event)
+    if (feature && mousePosition) {
+      const edge = this.isMouseOnFeatureEdge(mousePosition, feature, stateModel)
+      if (edge) {
+        event.stopPropagation()
+      }
+    }
+  }
+
+  startDrag(stateModel: LinearApolloDisplay, event: CanvasMouseEvent): boolean {
+    // only accept the drag if we are on the edge of the feature
+    const { mousePosition, feature } = stateModel.apolloDragging?.start || {}
+    if (feature && mousePosition) {
+      const edge = this.isMouseOnFeatureEdge(mousePosition, feature, stateModel)
+      if (edge) {
+        return true
+      }
+    }
+    return false
   }
 
   executeDrag(stateModel: LinearApolloDisplay) {

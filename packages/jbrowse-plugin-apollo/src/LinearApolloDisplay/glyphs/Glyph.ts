@@ -49,27 +49,47 @@ export abstract class Glyph {
     return
   }
 
-  executeDrag(displayState: LinearApolloDisplay, event: CanvasMouseEvent) {
+  /** @returns true if the current drag that is starting is valid */
+  startDrag(
+    displayState: LinearApolloDisplay,
+    event: CanvasMouseEvent,
+  ): boolean {
+    return false
+  }
+
+  executeDrag(
+    displayState: LinearApolloDisplay,
+    event: CanvasMouseEvent,
+  ): void {
     return
   }
 
-  onMouseMove(event: CanvasMouseEvent, displayState: DisplayState): void {
+  onMouseDown(
+    displayState: LinearApolloDisplay,
+    event: CanvasMouseEvent,
+  ): void {
     return
   }
 
-  onMouseLeave(event: CanvasMouseEvent, displayState: DisplayState): void {
+  onMouseMove(
+    displayState: LinearApolloDisplay,
+    event: CanvasMouseEvent,
+  ): void {
     return
   }
 
-  onMouseDown(event: CanvasMouseEvent, displayState: DisplayState): void {
+  onMouseLeave(
+    displayState: LinearApolloDisplay,
+    event: CanvasMouseEvent,
+  ): void {
     return
   }
 
-  onMouseUp(event: CanvasMouseEvent, displayState: DisplayState): void {
+  onMouseUp(displayState: LinearApolloDisplay, event: CanvasMouseEvent): void {
     return
   }
 
-  onContextMenu(event: CanvasMouseEvent, displayState: DisplayState) {
+  onContextMenu(event: CanvasMouseEvent, displayState: DisplayState): void {
     event.preventDefault()
   }
 }
