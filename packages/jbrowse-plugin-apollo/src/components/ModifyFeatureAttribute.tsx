@@ -66,6 +66,23 @@ export interface AttributeValueEditorProps {
   onChange(newValue: string[]): void
 }
 
+const reservedTerms = [
+  'ID',
+  'Name',
+  'Alias',
+  'Target',
+  'Gap',
+  'Derives_from',
+  'Note',
+  'Dbxref',
+  'Ontology',
+  'Is_Circular',
+]
+export interface GOTerm {
+  id: string
+  label: string
+}
+
 function CustomAttributeValueEditor(props: AttributeValueEditorProps) {
   const { value, onChange } = props
   return (
@@ -125,15 +142,47 @@ export function ModifyFeatureAttribute({
       setErrorMessage(`Attribute key is mandatory`)
       return
     }
+    if (newAttributeKey === 'Parent') {
+      setErrorMessage(
+        `"Parent" -key is handled internally and it cannot be modified manually`,
+      )
+      return
+    }
     if (newAttributeKey in attributes) {
       setErrorMessage(`Attribute "${newAttributeKey}" already exists`)
-    } else {
-      setAttributes({
-        ...attributes,
-        [newAttributeKey]: [],
-      })
-      setShowAddNewForm(false)
+      return
     }
+    // Internally reserved keys are saved as gff_. We must remove gff_ and make 1st letter uppercase
+    const attributesWithoutGFFprefix: string[] = []
+    for (const key in attributes) {
+      attributesWithoutGFFprefix.push(
+        key.replace(/^gff_/, '').replace(/^\w/, (match) => match.toUpperCase()),
+      )
+    }
+    if ('_id' in attributes) {
+      attributesWithoutGFFprefix.push('ID')
+    }
+    if (attributesWithoutGFFprefix.includes(newAttributeKey)) {
+      setErrorMessage(`Attribute "${newAttributeKey}" already exists`)
+      return
+    }
+    if (
+      /^[A-Z]/.test(newAttributeKey) &&
+      !reservedTerms.includes(newAttributeKey) &&
+      newAttributeKey !== 'GO'
+    ) {
+      setErrorMessage(
+        `Key cannot starts with uppercase letter unless key is one of these: ${reservedTerms.join(
+          ', ',
+        )}`,
+      )
+      return
+    }
+    setAttributes({
+      ...attributes,
+      [newAttributeKey]: [],
+    })
+    setShowAddNewForm(false)
   }
 
   function deleteAttribute(key: string) {
