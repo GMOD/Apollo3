@@ -35,9 +35,7 @@ export const LinearApolloDisplay = observer(
       onMouseDown,
       onMouseUp,
       onContextMenu,
-      apolloDragging: dragging,
-      apolloFeatureUnderMouse,
-      overEdge,
+      cursor,
       setTheme,
     } = model
     const { classes } = useStyles()
@@ -73,12 +71,7 @@ export const LinearApolloDisplay = observer(
           onMouseUp={onMouseUp}
           onContextMenu={onContextMenu}
           className={classes.canvas}
-          style={{
-            cursor:
-              dragging || (apolloFeatureUnderMouse && overEdge)
-                ? 'col-resize'
-                : 'default',
-          }}
+          style={{ cursor: cursor || 'default' }}
         />
       </div>
     )

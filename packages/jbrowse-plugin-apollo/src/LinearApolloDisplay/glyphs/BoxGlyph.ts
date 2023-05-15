@@ -171,6 +171,23 @@ export class BoxGlyph extends Glyph {
     overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
   }
 
+  onMouseMove(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
+    const { feature, mousePosition } =
+      stateModel.getFeatureAndGlyphUnderMouse(event)
+    if (stateModel.apolloDragging) {
+      stateModel.setCursor('col-resize')
+      return
+    }
+    if (feature && mousePosition) {
+      const edge = this.isMouseOnFeatureEdge(mousePosition, feature, stateModel)
+      if (edge) {
+        stateModel.setCursor('col-resize')
+      } else {
+        stateModel.setCursor(undefined)
+      }
+    }
+  }
+
   onMouseDown(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
     // swallow the mouseDown if we are on the edge of the feature
     const { feature, mousePosition } =
@@ -264,5 +281,6 @@ export class BoxGlyph extends Glyph {
       throw new Error('no change manager')
     }
     stateModel.changeManager.submit(change)
+    stateModel.setCursor(undefined)
   }
 }

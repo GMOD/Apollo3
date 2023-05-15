@@ -5,6 +5,7 @@ import { Change } from 'apollo-common'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { addDisposer, types } from 'mobx-state-tree'
+import type { CSSProperties } from 'react'
 
 import { Glyph } from '../glyphs/Glyph'
 import { CanvasMouseEvent } from '../types'
@@ -27,6 +28,7 @@ export interface RestOfLinearApolloDisplayStateModelTemporaryDeleteMeAsap {
   changeManager?: { submit(change: Change): void }
   featuresHeight: number
   regionCannotBeRendered(): string | undefined
+  setCursor(cursor?: CSSProperties['cursor']): void
   theme?: Theme
 }
 
@@ -63,6 +65,7 @@ export default types
         mousePosition: MousePosition
       }
     } | null,
+    cursor: undefined as CSSProperties['cursor'] | undefined,
   }))
   .views((s) => {
     const self = s as typeof s &
@@ -114,6 +117,11 @@ export default types
       },
       setDragging(dragInfo?: typeof self.apolloDragging) {
         self.apolloDragging = dragInfo || null
+      },
+      setCursor(cursor?: CSSProperties['cursor']) {
+        if (self.cursor !== cursor) {
+          self.cursor = cursor
+        }
       },
       onMouseDown(event: CanvasMouseEvent) {
         const { glyph, feature, topLevelFeature } =
@@ -200,6 +208,7 @@ export default types
             this.setApolloHover(hover)
           } else {
             this.setApolloHover(null)
+            self.setCursor(undefined)
           }
         }
       },
