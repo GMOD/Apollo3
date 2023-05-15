@@ -1,5 +1,6 @@
 import { getContainingView } from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import { Theme } from '@mui/material'
 import { Change } from 'apollo-common'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
@@ -26,6 +27,7 @@ export interface RestOfLinearApolloDisplayStateModelTemporaryDeleteMeAsap {
   changeManager?: { submit(change: Change): void }
   featuresHeight: number
   regionCannotBeRendered(): string | undefined
+  theme?: Theme
 }
 
 function getMousePosition(event: CanvasMouseEvent, lgv: LinearGenomeViewModel) {

@@ -19,13 +19,12 @@ export abstract class Glyph {
 
   /** draw the feature's primary rendering on the canvas */
   abstract draw(
-    feature: AnnotationFeatureI,
+    stateModel: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
+    feature: AnnotationFeatureI,
     x: number,
     y: number,
-    bpPerPx: number,
-    rowHeight: number,
-    reversed?: boolean,
+    reversed: boolean,
   ): void
 
   /** @returns the feature or subfeature at the given bp and row number in this glyph's layout */

@@ -11,6 +11,7 @@ import {
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import { Theme } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun, observable } from 'mobx'
 import { Instance, addDisposer, getRoot, types } from 'mobx-state-tree'
@@ -52,6 +53,7 @@ export function stateModelFactory(
       seenFeatures: observable.map<string, AnnotationFeatureI>(),
       lgv: getContainingView(self) as unknown as LinearGenomeViewModel,
       canvas: null as HTMLCanvasElement | null,
+      theme: undefined as Theme | undefined,
     }))
     .actions((self) => ({
       addSeenFeature(feature: AnnotationFeatureI) {
@@ -59,6 +61,9 @@ export function stateModelFactory(
       },
       setCanvas(canvas: HTMLCanvasElement | null) {
         self.canvas = canvas
+      },
+      setTheme(theme: Theme) {
+        self.theme = theme
       },
     }))
     .views((self) => {
@@ -483,12 +488,11 @@ export function stateModelFactory(
                     self
                       .getGlyph(feature, self.lgv.bpPerPx)
                       .draw(
-                        feature,
+                        self,
                         ctx,
+                        feature,
                         x,
                         row * self.apolloRowHeight,
-                        self.lgv.bpPerPx,
-                        self.apolloRowHeight,
                         displayedRegion.reversed,
                       )
                   })

@@ -1,3 +1,4 @@
+import { alpha } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 
@@ -12,27 +13,28 @@ export class BoxGlyph extends Glyph {
   }
 
   draw(
-    feature: AnnotationFeatureI,
+    stateModel: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
+    feature: AnnotationFeatureI,
     x: number,
     y: number,
-    bpPerPx: number,
-    rowHeight: number,
-    reversed?: boolean,
+    reversed: boolean,
   ) {
     const width = feature.end - feature.start
+    const { bpPerPx } = stateModel.lgv
     const widthPx = width / bpPerPx
     const startBp = reversed
       ? feature.max - feature.end
       : feature.start - feature.min
     const startPx = startBp / bpPerPx
-    ctx.fillStyle = 'black'
+    const rowHeight = stateModel.apolloRowHeight
+    ctx.fillStyle = stateModel.theme?.palette.text.primary || 'black'
     ctx.fillRect(x + startPx, y, widthPx, rowHeight)
     if (widthPx > 2) {
       ctx.clearRect(x + startPx + 1, y + 1, widthPx - 2, rowHeight - 2)
-      ctx.fillStyle = 'rgba(255,255,255,0.75)'
+      ctx.fillStyle = stateModel.theme?.palette.background.default || 'white'
       ctx.fillRect(x + startPx + 1, y + 1, widthPx - 2, rowHeight - 2)
-      ctx.fillStyle = 'black'
+      ctx.fillStyle = stateModel.theme?.palette.text.primary || 'black'
       feature.type &&
         ctx.fillText(feature.type, x + startPx + 1, y + 11, widthPx - 2)
     }
@@ -109,16 +111,8 @@ export class BoxGlyph extends Glyph {
       ? feature.max - feature.end
       : feature.start - feature.min
     const startPx = startBp / bpPerPx
-    ctx.fillStyle = 'black'
+    ctx.fillStyle = stateModel.theme?.palette.action.focus || 'rgba(0,0,0,0.04)'
     ctx.fillRect(x + startPx, y, widthPx, rowHeight)
-    if (widthPx > 2) {
-      ctx.clearRect(x + startPx + 1, y + 1, widthPx - 2, rowHeight - 2)
-      ctx.fillStyle = 'rgba(255,255,255,0.75)'
-      ctx.fillRect(x + startPx + 1, y + 1, widthPx - 2, rowHeight - 2)
-      ctx.fillStyle = 'black'
-      feature.type &&
-        ctx.fillText(feature.type, x + startPx + 1, y + 11, widthPx - 2)
-    }
   }
 
   drawDragPreview(
@@ -166,10 +160,14 @@ export class BoxGlyph extends Glyph {
     const rectWidth = Math.abs(currentMousePosition.x - featureEdgePx)
     const rectHeight = stateModel.apolloRowHeight * rowCount
 
-    overlayCtx.strokeStyle = 'red'
+    overlayCtx.strokeStyle =
+      stateModel.theme?.palette.info.main || 'rgb(255,0,0)'
     overlayCtx.setLineDash([6])
     overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
-    overlayCtx.fillStyle = 'rgba(255,0,0,.2)'
+    overlayCtx.fillStyle = alpha(
+      stateModel.theme?.palette.info.main || 'rgb(255,0,0)',
+      0.2,
+    )
     overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
   }
 

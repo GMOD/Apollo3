@@ -1,7 +1,8 @@
 import { getContainingView } from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import { useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
@@ -10,7 +11,7 @@ interface LinearApolloDisplayProps {
   model: LinearApolloDisplayI
 }
 
-const useStyles = makeStyles()((theme) => ({
+const useStyles = makeStyles()({
   canvasContainer: {
     position: 'relative',
     left: 0,
@@ -19,10 +20,11 @@ const useStyles = makeStyles()((theme) => ({
     position: 'absolute',
     left: 0,
   },
-}))
+})
 
 export const LinearApolloDisplay = observer(
   (props: LinearApolloDisplayProps) => {
+    const theme = useTheme()
     const { model } = props
     const {
       featuresHeight,
@@ -36,30 +38,32 @@ export const LinearApolloDisplay = observer(
       apolloDragging: dragging,
       apolloFeatureUnderMouse,
       overEdge,
+      setTheme,
     } = model
     const { classes } = useStyles()
     const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
+
+    useEffect(() => setTheme(theme), [theme, setTheme])
 
     return (
       <div
         className={classes.canvasContainer}
         style={{
-          left: 0,
           width: lgv.dynamicBlocks.totalWidthPx,
           height: featuresHeight,
         }}
       >
         <canvas
-          ref={(ref) => {
-            setCanvas(ref)
+          ref={(node) => {
+            setCanvas(node)
           }}
           width={lgv.dynamicBlocks.totalWidthPx}
           height={featuresHeight}
           className={classes.canvas}
         />
         <canvas
-          ref={(ref) => {
-            setOverlayCanvas(ref)
+          ref={(node) => {
+            setOverlayCanvas(node)
           }}
           width={lgv.dynamicBlocks.totalWidthPx}
           height={featuresHeight}
