@@ -37,7 +37,7 @@ if ('document' in window) {
   })
 }
 
-export class GeneGlyph extends Glyph {
+export class CanonicalGeneGlyph extends Glyph {
   getRowCount(feature: AnnotationFeatureI, _bpPerPx: number): number {
     let cdsCount = 0
     feature.children?.forEach((child: AnnotationFeatureI) => {
@@ -63,6 +63,7 @@ export class GeneGlyph extends Glyph {
     const rowHeight = stateModel.apolloRowHeight
     const utrHeight = Math.round(0.6 * rowHeight)
     const cdsHeight = Math.round(0.9 * rowHeight)
+    const { strand } = feature
     let currentCDS = 0
     feature.children?.forEach((mrna: AnnotationFeatureI) => {
       if (mrna.type !== 'mRNA') {
@@ -73,7 +74,8 @@ export class GeneGlyph extends Glyph {
           return
         }
         const startX = (mrna.start - feature.min) / bpPerPx + x
-        const height = Math.round((currentCDS + 1) * rowHeight - rowHeight / 2)
+        const height =
+          Math.round((currentCDS + 1) * rowHeight - rowHeight / 2) + y
         ctx.strokeStyle = theme?.palette.text.primary || 'black'
         ctx.beginPath()
         ctx.moveTo(startX, height)
@@ -117,15 +119,19 @@ export class GeneGlyph extends Glyph {
               widthPx - 2,
               utrHeight - 2,
             )
-            if (forwardFill && backwardFill) {
-              ctx.fillStyle = forwardFill
+            if (forwardFill && backwardFill && strand) {
+              const [topFill, bottomFill] =
+                strand === 1
+                  ? [forwardFill, backwardFill]
+                  : [backwardFill, forwardFill]
+              ctx.fillStyle = topFill
               ctx.fillRect(
                 x + startPx + 1,
                 y + yOffset + 1,
                 widthPx - 2,
                 (utrHeight - 2) / 2,
               )
-              ctx.fillStyle = backwardFill
+              ctx.fillStyle = bottomFill
               ctx.fillRect(
                 x + startPx + 1,
                 y + yOffset + 1 + (utrHeight - 2) / 2,
@@ -171,15 +177,19 @@ export class GeneGlyph extends Glyph {
               widthPx - 2,
               cdsHeight - 2,
             )
-            if (forwardFill && backwardFill) {
-              ctx.fillStyle = forwardFill
+            if (forwardFill && backwardFill && strand) {
+              const [topFill, bottomFill] =
+                strand === 1
+                  ? [forwardFill, backwardFill]
+                  : [backwardFill, forwardFill]
+              ctx.fillStyle = topFill
               ctx.fillRect(
                 x + startPx + 1,
                 y + yOffset + 1,
                 widthPx - 2,
                 (cdsHeight - 2) / 2,
               )
-              ctx.fillStyle = backwardFill
+              ctx.fillStyle = bottomFill
               ctx.fillRect(
                 x + startPx + 1,
                 y + yOffset + 1 + (cdsHeight - 2) / 2,

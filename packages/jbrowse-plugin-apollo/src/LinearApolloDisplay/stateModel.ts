@@ -23,14 +23,15 @@ import {
   ModifyFeatureAttribute,
 } from '../components'
 import { Collaborator } from '../session'
-import { BoxGlyph } from './glyphs/BoxGlyph'
+import { BoxGlyph, CanonicalGeneGlyph, ImplicitExonGeneGlyph } from './glyphs'
 import { Glyph } from './glyphs/Glyph'
 import mouseEvents, {
   RestOfLinearApolloDisplayStateModelTemporaryDeleteMeAsap,
 } from './stateModel/mouse-events'
 
 const boxGlyph = new BoxGlyph()
-// const geneGlyph = new GeneGlyph()
+const canonicalGeneGlyph = new CanonicalGeneGlyph()
+const implicitExonGeneGlyph = new ImplicitExonGeneGlyph()
 
 export function stateModelFactory(
   pluginManager: PluginManager,
@@ -86,9 +87,23 @@ export function stateModelFactory(
     .views((self) => ({
       /** get the appropriate glyph for the given top-level feature */
       getGlyph(feature: AnnotationFeatureI, bpPerPx: number): Glyph {
-        // if (feature.type === 'gene') {
-        //   return geneGlyph
-        // }
+        if (feature.type === 'gene') {
+          let hasExon = false
+          feature.children?.forEach((mrna: AnnotationFeatureI) => {
+            if (mrna.type !== 'mRNA') {
+              return
+            }
+            mrna.children?.forEach((possibleExon: AnnotationFeatureI) => {
+              if (possibleExon.type === 'exon') {
+                hasExon = true
+              }
+            })
+          })
+          if (hasExon) {
+            return canonicalGeneGlyph
+          }
+          return implicitExonGeneGlyph
+        }
         return boxGlyph
       },
       get blockType(): 'staticBlocks' | 'dynamicBlocks' {
@@ -201,11 +216,16 @@ export function stateModelFactory(
               }
               if (
                 rowsForFeature
-                  .map((rowForFeature) =>
-                    rowForFeature
-                      .slice(feature.min - min, feature.max - min)
-                      .some(Boolean),
-                  )
+                  .map((rowForFeature) => {
+                    // zero-length features are allowed in the spec
+                    const featureMax =
+                      feature.max - feature.min === 0
+                        ? feature.min + 1
+                        : feature.max
+                    return rowForFeature
+                      .slice(feature.min - min, featureMax - min)
+                      .some(Boolean)
+                  })
                   .some(Boolean)
               ) {
                 startingRow += 1
