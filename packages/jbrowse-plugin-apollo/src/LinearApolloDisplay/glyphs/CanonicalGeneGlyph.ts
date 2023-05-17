@@ -204,11 +204,54 @@ export class CanonicalGeneGlyph extends Glyph {
     })
   }
 
+  drawHover(stateModel: LinearApolloDisplay, ctx: CanvasRenderingContext2D) {
+    const hover = stateModel.apolloHover
+    if (!hover) {
+      return
+    }
+    const { topLevelFeature, mousePosition } = hover
+    if (!topLevelFeature) {
+      return
+    }
+    const rowHeight = stateModel.apolloRowHeight
+    const rowNumber = Math.floor(mousePosition.y / rowHeight)
+    const { featureLayouts } = stateModel
+    const layout = featureLayouts[mousePosition.regionNumber]
+    const row = layout.get(rowNumber)
+    const featureRowEntry = row?.find(
+      ([, feature]) => feature._id === topLevelFeature._id,
+    )
+    if (!featureRowEntry) {
+      return
+    }
+    const displayedRegion =
+      stateModel.displayedRegions[mousePosition.regionNumber]
+    const x =
+      (stateModel.lgv.bpToPx({
+        refName: displayedRegion.refName,
+        coord: topLevelFeature.min,
+        regionNumber: mousePosition.regionNumber,
+      })?.offsetPx || 0) - stateModel.lgv.offsetPx
+    const [featureRowNumber] = featureRowEntry
+    const topRowNumber = rowNumber - featureRowNumber
+    const y = topRowNumber * rowHeight
+    const { bpPerPx } = stateModel.lgv
+    const width = topLevelFeature.end - topLevelFeature.start
+    const widthPx = width / bpPerPx
+    const startBp = displayedRegion.reversed
+      ? topLevelFeature.max - topLevelFeature.end
+      : topLevelFeature.start - topLevelFeature.min
+    const startPx = startBp / bpPerPx
+    ctx.fillStyle = stateModel.theme?.palette.action.focus || 'rgba(0,0,0,0.04)'
+    const height = this.getRowCount(topLevelFeature, bpPerPx) * rowHeight
+    ctx.fillRect(x + startPx, y, widthPx, height)
+  }
+
   getFeatureFromLayout(
     feature: AnnotationFeatureI,
     bp: number,
     row: number,
   ): AnnotationFeatureI | undefined {
-    return undefined
+    return feature
   }
 }
