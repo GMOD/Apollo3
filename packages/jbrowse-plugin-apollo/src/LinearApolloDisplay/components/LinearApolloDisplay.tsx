@@ -88,7 +88,10 @@ export const LinearApolloDisplay = observer(
           style={{ cursor: cursor || 'default' }}
         />
         <Menu
-          open={Boolean(contextCoord) && Boolean(contextMenuItems().length)}
+          open={
+            Boolean(contextCoord) &&
+            Boolean(contextMenuItems(contextCoord).length)
+          }
           onMenuItemClick={(_, callback) => {
             callback()
             setContextCoord(undefined)
