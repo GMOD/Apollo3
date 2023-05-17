@@ -17,12 +17,8 @@ import { autorun, observable } from 'mobx'
 import { Instance, addDisposer, getRoot, types } from 'mobx-state-tree'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import {
-  AddFeature,
-  DeleteFeature,
-  ModifyFeatureAttribute,
-} from '../components'
 import { Collaborator } from '../session'
+import { Coord } from './components'
 import { BoxGlyph, CanonicalGeneGlyph, ImplicitExonGeneGlyph } from './glyphs'
 import { Glyph } from './glyphs/Glyph'
 import mouseEvents, {
@@ -306,117 +302,22 @@ export function stateModelFactory(
         return matchingAccount
       },
     }))
-    .views((self) => ({
-      contextMenuItems(): MenuItem[] {
-        const { getRole } = self.apolloInternetAccount
-        const role = getRole()
-        const admin = role === 'admin'
-        const readOnly = !Boolean(role && ['admin', 'user'].includes(role))
-        const menuItems: MenuItem[] = []
-        const {
-          apolloContextMenuFeature: sourceFeature,
-          apolloInternetAccount: internetAccount,
-          changeManager,
-          getAssemblyId,
-          session,
-          regions,
-        } = self
-        if (sourceFeature) {
-          const [region] = regions
-          const sourceAssemblyId = getAssemblyId(region.assemblyName)
-          const currentAssemblyId = getAssemblyId(region.assemblyName)
-          menuItems.push(
-            {
-              label: 'Add child feature',
-              disabled: readOnly,
-              onClick: () => {
-                session.queueDialog((doneCallback) => [
-                  AddFeature,
-                  {
-                    session,
-                    handleClose: () => {
-                      doneCallback()
-                      self.setApolloContextMenuFeature(undefined)
-                    },
-                    changeManager,
-                    sourceFeature,
-                    sourceAssemblyId,
-                    internetAccount,
-                  },
-                ])
-              },
-            },
-            // {
-            //   label: 'Copy features and annotations',
-            //   disabled: isReadOnly,
-            //   onClick: () => {
-            //     const currentAssemblyId = getAssemblyId(region.assemblyName)
-            //     session.queueDialog((doneCallback) => [
-            //       CopyFeature,
-            //       {
-            //         session,
-            //         handleClose: () => {
-            //           doneCallback()
-            //           setContextMenuFeature(undefined)
-            //         },
-            //         changeManager,
-            //         sourceFeatureId: contextMenuFeature?._id,
-            //         sourceAssemblyId: currentAssemblyId,
-            //       },
-            //     ])
-            //   },
-            // },
-            {
-              label: 'Delete feature',
-              disabled: !admin,
-              onClick: () => {
-                session.queueDialog((doneCallback) => [
-                  DeleteFeature,
-                  {
-                    session,
-                    handleClose: () => {
-                      doneCallback()
-                      self.setApolloContextMenuFeature(undefined)
-                    },
-                    changeManager,
-                    sourceFeature,
-                    sourceAssemblyId: currentAssemblyId,
-                    selectedFeature: self.selectedFeature,
-                    setSelectedFeature: self.setSelectedFeature,
-                  },
-                ])
-              },
-            },
-            {
-              label: 'Modify feature attribute',
-              disabled: readOnly,
-              onClick: () => {
-                session.queueDialog((doneCallback) => [
-                  ModifyFeatureAttribute,
-                  {
-                    session,
-                    handleClose: () => {
-                      doneCallback()
-                      self.setApolloContextMenuFeature(undefined)
-                    },
-                    changeManager,
-                    sourceFeature,
-                    sourceAssemblyId: currentAssemblyId,
-                  },
-                ])
-              },
-            },
-          )
-        }
-        return menuItems
-      },
-    }))
     .volatile(() => ({
       overlayCanvas: null as HTMLCanvasElement | null,
     }))
     .actions((self) => ({
       setOverlayCanvas(canvas: HTMLCanvasElement | null) {
         self.overlayCanvas = canvas
+      },
+    }))
+    .views((self) => ({
+      contextMenuItems(contextCoord?: Coord): MenuItem[] {
+        const { apolloContextMenuFeature } = self
+        if (!(apolloContextMenuFeature && contextCoord)) {
+          return []
+        }
+        const glyph = self.getGlyph(apolloContextMenuFeature, self.lgv.bpPerPx)
+        return glyph.getContextMenuItems(self, contextCoord)
       },
     }))
     .actions((self) => ({

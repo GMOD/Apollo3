@@ -1,17 +1,9 @@
+import { MenuItem } from '@jbrowse/core/ui'
 import { AnnotationFeatureI } from 'apollo-mst'
 
+import { Coord } from '../components'
 import { LinearApolloDisplay } from '../stateModel'
 import { CanvasMouseEvent } from '../types'
-
-export interface DisplayState {
-  setDragging(dragInfo?: {
-    edge: 'start' | 'end'
-    feature: AnnotationFeatureI
-    x: number
-    y: number
-    regionIndex: number
-  }): void
-}
 
 export abstract class Glyph {
   /** @returns number of layout rows used by this glyph with this feature and zoom level */
@@ -88,7 +80,17 @@ export abstract class Glyph {
     return
   }
 
-  onContextMenu(event: CanvasMouseEvent, displayState: DisplayState): void {
-    event.preventDefault()
+  onContextMenu(
+    displayState: LinearApolloDisplay,
+    event: CanvasMouseEvent,
+  ): void {
+    return
+  }
+
+  getContextMenuItems(
+    stateModel: LinearApolloDisplay,
+    contextCoord: Coord,
+  ): MenuItem[] {
+    return []
   }
 }
