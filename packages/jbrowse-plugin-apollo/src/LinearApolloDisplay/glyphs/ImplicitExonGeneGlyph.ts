@@ -1,6 +1,7 @@
 import { AnnotationFeatureI } from 'apollo-mst'
 
 import { LinearApolloDisplay } from '../stateModel'
+import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 
 let forwardFill: CanvasPattern | null = null
@@ -183,6 +184,16 @@ export class ImplicitExonGeneGlyph extends Glyph {
     ctx.fillStyle = stateModel.theme?.palette.action.focus || 'rgba(0,0,0,0.04)'
     const height = this.getRowCount(topLevelFeature, bpPerPx) * rowHeight
     ctx.fillRect(x + startPx, y, widthPx, height)
+  }
+
+  onMouseUp(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
+    if (stateModel.apolloDragging) {
+      return
+    }
+    const { feature } = stateModel.getFeatureAndGlyphUnderMouse(event)
+    if (feature) {
+      stateModel.setSelectedFeature(feature)
+    }
   }
 
   getFeatureFromLayout(

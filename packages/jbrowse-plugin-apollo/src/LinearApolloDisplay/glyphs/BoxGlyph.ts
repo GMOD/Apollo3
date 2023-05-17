@@ -206,6 +206,16 @@ export class BoxGlyph extends Glyph {
     }
   }
 
+  onMouseUp(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
+    if (stateModel.apolloDragging) {
+      return
+    }
+    const { feature } = stateModel.getFeatureAndGlyphUnderMouse(event)
+    if (feature) {
+      stateModel.setSelectedFeature(feature)
+    }
+  }
+
   startDrag(stateModel: LinearApolloDisplay, event: CanvasMouseEvent): boolean {
     // only accept the drag if we are on the edge of the feature
     const { mousePosition, feature } = stateModel.apolloDragging?.start || {}
