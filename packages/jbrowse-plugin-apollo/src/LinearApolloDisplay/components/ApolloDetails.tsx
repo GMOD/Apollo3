@@ -3,7 +3,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import { Autocomplete, IconButton, TextField } from '@mui/material'
 import {
   DataGrid,
-  GridColumns,
+  GridColDef,
   GridRenderEditCellParams,
   GridRowModel,
   MuiBaseEvent,
@@ -26,7 +26,7 @@ import { LinearApolloDisplay } from '../stateModel'
 function getFeatureColumns(
   editable: boolean,
   internetAccount: ApolloInternetAccountModel,
-): GridColumns {
+): GridColDef[] {
   return [
     { field: 'id', headerName: 'ID', width: 250 },
     {
@@ -225,7 +225,6 @@ export const ApolloDetails = observer(
           style={{ height: detailsHeight }}
           rows={selectedFeatureRows}
           columns={getFeatureColumns(editable, internetAccount)}
-          experimentalFeatures={{ newEditingApi: true }}
           processRowUpdate={processRowUpdate}
           onProcessRowUpdateError={console.error}
         />

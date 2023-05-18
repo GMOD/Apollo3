@@ -14,14 +14,11 @@ import {
 import {
   DataGrid,
   GridActionsCellItem,
-  GridCallbackDetails,
-  GridCellEditCommitParams,
   GridCellParams,
-  GridColumns,
+  GridColDef,
   GridRowId,
   GridRowParams,
   GridToolbar,
-  MuiEvent,
 } from '@mui/x-data-grid'
 import { DeleteUserChange, UserChange } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
@@ -113,7 +110,7 @@ export function ManageUsers({
     return false
   }
 
-  const gridColumns: GridColumns = [
+  const gridColumns: GridColDef[] = [
     { field: 'username', headerName: 'User', width: 140 },
     { field: 'email', headerName: 'Email', width: 160 },
     {
@@ -154,7 +151,7 @@ export function ManageUsers({
     setSelectedInternetAcount(newlySelectedInternetAccount)
   }
 
-  async function onChangeTableCell(change: UserChange, event: MuiEvent) {
+  async function onChangeTableCell(change: UserChange) {
     changeManager.submit(change, {
       internetAccountId: selectedInternetAcount.internetAccountId,
     })
@@ -193,18 +190,14 @@ export function ManageUsers({
             isCellEditable={(params: GridCellParams) =>
               !isCurrentUser(params.id)
             }
-            onCellEditCommit={(
-              params: GridCellEditCommitParams,
-              event: MuiEvent,
-              details: GridCallbackDetails,
-            ) => {
+            onCellEditStop={(params) => {
               if (params.field === 'role') {
                 const change = new UserChange({
                   typeName: 'UserChange',
                   role: params.value,
                   userId: params.id as string,
                 })
-                onChangeTableCell(change, event)
+                onChangeTableCell(change)
               }
             }}
           />
