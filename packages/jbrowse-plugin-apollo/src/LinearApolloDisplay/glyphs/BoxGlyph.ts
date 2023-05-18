@@ -9,7 +9,7 @@ import {
   ModifyFeatureAttribute,
 } from '../../components'
 import { LinearApolloDisplay } from '../stateModel'
-import { MousePosition } from '../stateModel/mouse-events'
+import { MousePosition } from '../stateModel/mouseEvents'
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 

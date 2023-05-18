@@ -2,7 +2,8 @@ import { MenuItem } from '@jbrowse/core/ui'
 import { AnnotationFeatureI } from 'apollo-mst'
 
 import { Coord } from '../components'
-import { LinearApolloDisplay } from '../stateModel'
+import { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
+import { LinearApolloDisplayRendering } from '../stateModel/rendering'
 import { CanvasMouseEvent } from '../types'
 
 export abstract class Glyph {
@@ -11,7 +12,7 @@ export abstract class Glyph {
 
   /** draw the feature's primary rendering on the canvas */
   abstract draw(
-    stateModel: LinearApolloDisplay,
+    display: LinearApolloDisplayRendering,
     ctx: CanvasRenderingContext2D,
     feature: AnnotationFeatureI,
     x: number,
@@ -27,14 +28,14 @@ export abstract class Glyph {
   ): AnnotationFeatureI | undefined
 
   drawHover(
-    stateModel: LinearApolloDisplay,
+    display: LinearApolloDisplayMouseEvents,
     overlayCtx: CanvasRenderingContext2D,
   ) {
     return
   }
 
   drawDragPreview(
-    displayState: LinearApolloDisplay,
+    display: LinearApolloDisplayMouseEvents,
     ctx: CanvasRenderingContext2D,
   ) {
     return
@@ -42,53 +43,56 @@ export abstract class Glyph {
 
   /** @returns true if the current drag that is starting is valid */
   startDrag(
-    displayState: LinearApolloDisplay,
+    display: LinearApolloDisplayMouseEvents,
     event: CanvasMouseEvent,
   ): boolean {
     return false
   }
 
   executeDrag(
-    displayState: LinearApolloDisplay,
+    display: LinearApolloDisplayMouseEvents,
     event: CanvasMouseEvent,
   ): void {
     return
   }
 
   onMouseDown(
-    displayState: LinearApolloDisplay,
+    display: LinearApolloDisplayMouseEvents,
     event: CanvasMouseEvent,
   ): void {
     return
   }
 
   onMouseMove(
-    displayState: LinearApolloDisplay,
+    display: LinearApolloDisplayMouseEvents,
     event: CanvasMouseEvent,
   ): void {
     return
   }
 
   onMouseLeave(
-    displayState: LinearApolloDisplay,
+    display: LinearApolloDisplayMouseEvents,
     event: CanvasMouseEvent,
   ): void {
     return
   }
 
-  onMouseUp(displayState: LinearApolloDisplay, event: CanvasMouseEvent): void {
+  onMouseUp(
+    display: LinearApolloDisplayMouseEvents,
+    event: CanvasMouseEvent,
+  ): void {
     return
   }
 
   onContextMenu(
-    displayState: LinearApolloDisplay,
+    display: LinearApolloDisplayMouseEvents,
     event: CanvasMouseEvent,
   ): void {
     return
   }
 
   getContextMenuItems(
-    stateModel: LinearApolloDisplay,
+    display: LinearApolloDisplayMouseEvents,
     contextCoord: Coord,
   ): MenuItem[] {
     return []
