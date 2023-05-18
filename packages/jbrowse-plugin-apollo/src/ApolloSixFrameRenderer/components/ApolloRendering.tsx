@@ -72,7 +72,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const codonCanvasRef = useRef<HTMLCanvasElement>(null)
   const [isAdmin, setIsAdmin] = useState<boolean>(false)
   const [isReadOnly, setIsReadOnly] = useState<boolean>(true)
-  const [overEdge, setOverEdge] = useState<'start' | 'end'>()
+  // const [overEdge, setOverEdge] = useState<'start' | 'end'>()
   const [dragging, setDragging] = useState<{
     edge: 'start' | 'end'
     feature: AnnotationFeatureI
@@ -336,32 +336,32 @@ function ApolloRendering(props: ApolloRenderingProps) {
       return
     }
     ctx.clearRect(0, 0, totalWidth, totalHeight)
-    if (dragging) {
-      const { feature, row, edge, px } = dragging
-      const featureEdge = region.reversed
-        ? region.end - feature[edge]
-        : feature[edge] - region.start
-      const featureEdgePx = featureEdge / bpPerPx
-      const startPx = Math.min(px, featureEdgePx)
-      const widthPx = Math.abs(px - featureEdgePx)
-      ctx.strokeStyle = 'red'
-      ctx.setLineDash([6])
-      ctx.strokeRect(startPx, row * height, widthPx, height * feature.rowCount)
-      ctx.fillStyle = 'rgba(255,0,0,.2)'
-      ctx.fillRect(startPx, row * height, widthPx, height * feature.rowCount)
-    }
-    const feature = dragging?.feature || apolloFeatureUnderMouse
-    const row = dragging?.row || apolloRowUnderMouse
-    if (feature && row !== undefined) {
-      const start = region.reversed
-        ? region.end - feature.end
-        : feature.start - region.start - 1
-      const width = feature.length
-      const startPx = start / bpPerPx
-      const widthPx = width / bpPerPx
-      ctx.fillStyle = 'rgba(0,0,0,0.2)'
-      ctx.fillRect(startPx, row * height, widthPx, height * feature.rowCount)
-    }
+    // if (dragging) {
+    //   const { feature, row, edge, px } = dragging
+    //   const featureEdge = region.reversed
+    //     ? region.end - feature[edge]
+    //     : feature[edge] - region.start
+    //   const featureEdgePx = featureEdge / bpPerPx
+    //   const startPx = Math.min(px, featureEdgePx)
+    //   const widthPx = Math.abs(px - featureEdgePx)
+    //   ctx.strokeStyle = 'red'
+    //   ctx.setLineDash([6])
+    //   ctx.strokeRect(startPx, row * height, widthPx, height * feature.rowCount)
+    //   ctx.fillStyle = 'rgba(255,0,0,.2)'
+    //   ctx.fillRect(startPx, row * height, widthPx, height * feature.rowCount)
+    // }
+    // const feature = dragging?.feature || apolloFeatureUnderMouse
+    // const row = dragging?.row || apolloRowUnderMouse
+    // if (feature && row !== undefined) {
+    //   const start = region.reversed
+    //     ? region.end - feature.end
+    //     : feature.start - region.start - 1
+    //   const width = feature.length
+    //   const startPx = start / bpPerPx
+    //   const widthPx = width / bpPerPx
+    //   ctx.fillStyle = 'rgba(0,0,0,0.2)'
+    //   ctx.fillRect(startPx, row * height, widthPx, height * feature.rowCount)
+    // }
     for (const collaborator of collaborators) {
       const { locations } = collaborator
       if (!locations.length) {
@@ -400,112 +400,112 @@ function ApolloRendering(props: ApolloRenderingProps) {
     collaborators,
   ])
 
-  function onMouseMove(event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
-    // if (!isAlive(region)) {
-    //   return
-    // }
-    const { clientX, clientY, buttons } = event
-    if (!movedDuringLastMouseDown && buttons === 1) {
-      setMovedDuringLastMouseDown(true)
-    }
-    const { left, top } = canvasRef.current?.getBoundingClientRect() || {
-      left: 0,
-      top: 0,
-    }
-    // get pixel coordinates within the whole canvas
-    let x = clientX - left
-    x = region.reversed ? totalWidth - x : x
-    const y = clientY - top
+  // function onMouseMove(event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
+  //   // if (!isAlive(region)) {
+  //   //   return
+  //   // }
+  //   const { clientX, clientY, buttons } = event
+  //   if (!movedDuringLastMouseDown && buttons === 1) {
+  //     setMovedDuringLastMouseDown(true)
+  //   }
+  //   const { left, top } = canvasRef.current?.getBoundingClientRect() || {
+  //     left: 0,
+  //     top: 0,
+  //   }
+  //   // get pixel coordinates within the whole canvas
+  //   let x = clientX - left
+  //   x = region.reversed ? totalWidth - x : x
+  //   const y = clientY - top
 
-    if (dragging) {
-      const { edge, feature, row } = dragging
-      let px = region.reversed ? totalWidth - x : x
-      let bp = region.start + x * bpPerPx
-      if (edge === 'start' && bp > feature.end - 1) {
-        bp = feature.end - 1
-        px = (region.reversed ? region.end - bp : bp - region.start) / bpPerPx
-      } else if (edge === 'end' && bp < feature.start + 1) {
-        bp = feature.start + 1
-        px = (region.reversed ? region.end - bp : bp - region.start) / bpPerPx
-      }
-      setDragging({
-        edge,
-        feature,
-        row,
-        px,
-        bp,
-      })
-      return
-    }
+  //   if (dragging) {
+  //     const { edge, feature, row } = dragging
+  //     let px = region.reversed ? totalWidth - x : x
+  //     let bp = region.start + x * bpPerPx
+  //     if (edge === 'start' && bp > feature.end - 1) {
+  //       bp = feature.end - 1
+  //       px = (region.reversed ? region.end - bp : bp - region.start) / bpPerPx
+  //     } else if (edge === 'end' && bp < feature.start + 1) {
+  //       bp = feature.start + 1
+  //       px = (region.reversed ? region.end - bp : bp - region.start) / bpPerPx
+  //     }
+  //     setDragging({
+  //       edge,
+  //       feature,
+  //       row,
+  //       px,
+  //       bp,
+  //     })
+  //     return
+  //   }
 
-    const row = Math.floor(y / height)
-    if (row === undefined) {
-      setApolloFeatureUnderMouse(undefined)
-      setApolloRowUnderMouse(undefined)
-      return
-    }
-    const layoutRow = featureLayout.get(row)
-    if (!layoutRow) {
-      setApolloFeatureUnderMouse(undefined)
-      setApolloRowUnderMouse(undefined)
-      return
-    }
-    const bp = region.start + bpPerPx * x
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [parentID, feat] =
-      layoutRow.find((f) => bp >= f[1].min && bp <= f[1].max) || []
-    let feature: AnnotationFeatureI | undefined = feat
-    if (feature) {
-      const topRow = row
-      const startPx = (feature.start - region.start) / bpPerPx
-      const thisX = x - startPx
-      feature = feature.getFeatureFromLayout(
-        thisX,
-        y - topRow * height,
-        bpPerPx,
-        height,
-      ) as AnnotationFeatureI
-    }
-    if (feature) {
-      // TODO: check reversed
-      // TODO: ensure feature is in interbase
-      const startPx = (feature.start - region.start) / bpPerPx
-      const endPx = (feature.end - region.start) / bpPerPx
-      if (endPx - startPx < 8) {
-        setOverEdge(undefined)
-      } else if (Math.abs(startPx - x) < 4) {
-        setOverEdge('start')
-      } else if (Math.abs(endPx - x) < 4) {
-        setOverEdge('end')
-      } else {
-        setOverEdge(undefined)
-      }
-    }
-    setApolloFeatureUnderMouse(feature)
-    setApolloRowUnderMouse(row)
-  }
+  //   const row = Math.floor(y / height)
+  //   if (row === undefined) {
+  //     setApolloFeatureUnderMouse(undefined)
+  //     setApolloRowUnderMouse(undefined)
+  //     return
+  //   }
+  //   const layoutRow = featureLayout.get(row)
+  //   if (!layoutRow) {
+  //     setApolloFeatureUnderMouse(undefined)
+  //     setApolloRowUnderMouse(undefined)
+  //     return
+  //   }
+  //   const bp = region.start + bpPerPx * x
+  //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  //   const [parentID, feat] =
+  //     layoutRow.find((f) => bp >= f[1].min && bp <= f[1].max) || []
+  //   let feature: AnnotationFeatureI | undefined = feat
+  //   if (feature) {
+  //     const topRow = row
+  //     const startPx = (feature.start - region.start) / bpPerPx
+  //     const thisX = x - startPx
+  //     feature = feature.getFeatureFromLayout(
+  //       thisX,
+  //       y - topRow * height,
+  //       bpPerPx,
+  //       height,
+  //     ) as AnnotationFeatureI
+  //   }
+  //   if (feature) {
+  //     // TODO: check reversed
+  //     // TODO: ensure feature is in interbase
+  //     const startPx = (feature.start - region.start) / bpPerPx
+  //     const endPx = (feature.end - region.start) / bpPerPx
+  //     if (endPx - startPx < 8) {
+  //       setOverEdge(undefined)
+  //     } else if (Math.abs(startPx - x) < 4) {
+  //       setOverEdge('start')
+  //     } else if (Math.abs(endPx - x) < 4) {
+  //       setOverEdge('end')
+  //     } else {
+  //       setOverEdge(undefined)
+  //     }
+  //   }
+  //   setApolloFeatureUnderMouse(feature)
+  //   setApolloRowUnderMouse(row)
+  // }
   function onMouseLeave() {
     setApolloFeatureUnderMouse(undefined)
     setApolloRowUnderMouse(undefined)
   }
-  function onMouseDown(event: React.MouseEvent) {
-    if (apolloFeatureUnderMouse && overEdge) {
-      const { clientX } = event
-      const { left } = canvasRef.current?.getBoundingClientRect() || {
-        left: 0,
-        top: 0,
-      }
-      const px = clientX - left
-      event.stopPropagation()
-      setDragging({
-        edge: overEdge,
-        feature: apolloFeatureUnderMouse,
-        row: apolloRowUnderMouse || 0,
-        px,
-        bp: apolloFeatureUnderMouse[overEdge],
-      })
-    }
-  }
+  // function onMouseDown(event: React.MouseEvent) {
+  //   if (apolloFeatureUnderMouse && overEdge) {
+  //     const { clientX } = event
+  //     const { left } = canvasRef.current?.getBoundingClientRect() || {
+  //       left: 0,
+  //       top: 0,
+  //     }
+  //     const px = clientX - left
+  //     event.stopPropagation()
+  //     setDragging({
+  //       edge: overEdge,
+  //       feature: apolloFeatureUnderMouse,
+  //       row: apolloRowUnderMouse || 0,
+  //       px,
+  //       bp: apolloFeatureUnderMouse[overEdge],
+  //     })
+  //   }
+  // }
   function onMouseUp() {
     if (!movedDuringLastMouseDown) {
       if (apolloFeatureUnderMouse) {
@@ -660,19 +660,19 @@ function ApolloRendering(props: ApolloRenderingProps) {
         ref={overlayCanvasRef}
         width={totalWidth}
         height={totalHeight}
-        onMouseMove={onMouseMove}
+        // onMouseMove={onMouseMove}
         onMouseLeave={onMouseLeave}
-        onMouseDown={onMouseDown}
+        // onMouseDown={onMouseDown}
         onMouseUp={onMouseUp}
         onContextMenu={onContextMenu}
         style={{
           position: 'absolute',
           left: 0,
           top: 0,
-          cursor:
-            dragging || (apolloFeatureUnderMouse && overEdge)
-              ? 'col-resize'
-              : 'default',
+          // cursor:
+          //   dragging || (apolloFeatureUnderMouse && overEdge)
+          //     ? 'col-resize'
+          //     : 'default',
         }}
       />
       <canvas

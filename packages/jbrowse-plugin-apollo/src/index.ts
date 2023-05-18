@@ -22,11 +22,6 @@ import {
   configSchema as apolloInternetAccountConfigSchema,
   modelFactory as apolloInternetAccountModelFactory,
 } from './ApolloInternetAccount'
-import {
-  ApolloRenderer,
-  ReactComponent as ApolloRendererReactComponent,
-  configSchema as apolloRendererConfigSchema,
-} from './ApolloRenderer'
 import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
 import {
   ApolloSixFrameRenderer,
@@ -40,7 +35,7 @@ import {
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
 } from './LinearApolloDisplay'
 import {
-  makeDisplayComponent,
+  DisplayComponent,
   makeSixFrameDisplayComponent,
 } from './makeDisplayComponent'
 import { extendSession } from './session'
@@ -95,7 +90,6 @@ export default class ApolloPlugin extends Plugin {
 
     pluginManager.addDisplayType(() => {
       const configSchema = linearApolloDisplayConfigSchemaFactory(pluginManager)
-      const DisplayComponent = makeDisplayComponent(pluginManager)
       return new DisplayType({
         name: 'LinearApolloDisplay',
         configSchema,
@@ -112,7 +106,8 @@ export default class ApolloPlugin extends Plugin {
     pluginManager.addDisplayType(() => {
       const configSchema =
         sixFrameFeatureDisplayConfigSchemaFactory(pluginManager)
-      const DisplayComponent = makeSixFrameDisplayComponent(pluginManager)
+      const SixFrameDisplayComponent =
+        makeSixFrameDisplayComponent(pluginManager)
       return new DisplayType({
         name: 'SixFrameFeatureDisplay',
         configSchema,
@@ -122,19 +117,9 @@ export default class ApolloPlugin extends Plugin {
         ),
         trackType: 'ApolloTrack',
         viewType: 'LinearGenomeView',
-        ReactComponent: DisplayComponent,
+        ReactComponent: SixFrameDisplayComponent,
       })
     })
-
-    pluginManager.addRendererType(
-      () =>
-        new ApolloRenderer({
-          name: 'ApolloRenderer',
-          ReactComponent: ApolloRendererReactComponent,
-          configSchema: apolloRendererConfigSchema,
-          pluginManager,
-        }),
-    )
 
     pluginManager.addRendererType(
       () =>
@@ -146,7 +131,10 @@ export default class ApolloPlugin extends Plugin {
         }),
     )
 
-    pluginManager.addToExtensionPoint('Core-extendSession', extendSession)
+    pluginManager.addToExtensionPoint(
+      'Core-extendSession',
+      extendSession.bind(this, pluginManager),
+    )
   }
 
   configure(pluginManager: PluginManager) {

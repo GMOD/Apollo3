@@ -5,10 +5,13 @@ import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { createFetchErrorMessage } from '../util'
 
 export * from './AddAssembly'
+export * from './AddFeature'
 export * from './DeleteAssembly'
+export * from './DeleteFeature'
 export * from './ImportFeatures'
 export * from './ViewChangeLog'
 export * from './ManageUsers'
+export * from './ModifyFeatureAttribute'
 
 interface AssemblyResponse {
   _id: string
