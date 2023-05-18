@@ -1,26 +1,32 @@
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
+import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AppRootModel, getContainingView, getSession } from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
-import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
+// import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { addDisposer, getRoot, types } from 'mobx-state-tree'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
+import { TrackHeightMixin } from './trackHeightMixin'
 
 export function baseModelFactory(
-  pluginManager: PluginManager,
+  _pluginManager: PluginManager,
   configSchema: AnyConfigurationSchemaType,
 ) {
-  const LGVPlugin = pluginManager.getPlugin(
-    'LinearGenomeViewPlugin',
-  ) as LinearGenomeViewPlugin
-  const { BaseLinearDisplay } = LGVPlugin.exports
+  // TODO: Restore this when TRackHeightMixin is in LGV runtime exports
 
-  return BaseLinearDisplay.named('BaseLinearApolloDisplay')
+  // const LGVPlugin = pluginManager.getPlugin(
+  //   'LinearGenomeViewPlugin',
+  // ) as LinearGenomeViewPlugin
+  // const { TrackHeightMixin } = LGVPlugin.exports
+
+  return types
+    .compose(BaseDisplay, TrackHeightMixin)
+    .named('BaseLinearApolloDisplay')
     .props({
       type: types.literal('LinearApolloDisplay'),
       configuration: ConfigurationReference(configSchema),
@@ -44,20 +50,11 @@ export function baseModelFactory(
       get rendererTypeName() {
         return self.configuration.renderer.type
       },
-      get blockType(): 'staticBlocks' | 'dynamicBlocks' {
-        return 'dynamicBlocks'
-      },
       get session() {
         return getSession(self)
       },
       get regions() {
-        let blockDefinitions
-        try {
-          ;({ blockDefinitions } = self)
-        } catch (error) {
-          return []
-        }
-        const regions = blockDefinitions.contentBlocks.map(
+        const regions = self.lgv.dynamicBlocks.contentBlocks.map(
           ({ assemblyName, refName, start, end }) => ({
             assemblyName,
             refName,

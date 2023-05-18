@@ -350,7 +350,7 @@ export class BoxGlyph extends Glyph {
         //         session,
         //         handleClose: () => {
         //           doneCallback()
-        //           setContextMenuFeature(undefined)
+        //           setApolloContextMenuFeature(undefined)
         //         },
         //         changeManager,
         //         sourceFeatureId: contextMenuFeature?._id,

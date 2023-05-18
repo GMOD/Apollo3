@@ -40,7 +40,7 @@ export const LinearApolloDisplay = observer(
       cursor,
       setTheme,
       contextMenuItems,
-      setContextMenuFeature,
+      setApolloContextMenuFeature,
     } = model
     const { classes } = useStyles()
     const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
@@ -98,12 +98,12 @@ export const LinearApolloDisplay = observer(
           }}
           onClose={() => {
             setContextCoord(undefined)
-            setContextMenuFeature(undefined)
+            setApolloContextMenuFeature(undefined)
           }}
           TransitionProps={{
             onExit: () => {
               setContextCoord(undefined)
-              setContextMenuFeature(undefined)
+              setApolloContextMenuFeature(undefined)
             },
           }}
           anchorReference="anchorPosition"
