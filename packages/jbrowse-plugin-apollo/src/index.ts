@@ -22,11 +22,6 @@ import {
   configSchema as apolloInternetAccountConfigSchema,
   modelFactory as apolloInternetAccountModelFactory,
 } from './ApolloInternetAccount'
-import {
-  ApolloRenderer,
-  ReactComponent as ApolloRendererReactComponent,
-  configSchema as apolloRendererConfigSchema,
-} from './ApolloRenderer'
 import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
 import {
   ApolloSixFrameRenderer,
@@ -125,16 +120,6 @@ export default class ApolloPlugin extends Plugin {
         ReactComponent: SixFrameDisplayComponent,
       })
     })
-
-    pluginManager.addRendererType(
-      () =>
-        new ApolloRenderer({
-          name: 'ApolloRenderer',
-          ReactComponent: ApolloRendererReactComponent,
-          configSchema: apolloRendererConfigSchema,
-          pluginManager,
-        }),
-    )
 
     pluginManager.addRendererType(
       () =>
