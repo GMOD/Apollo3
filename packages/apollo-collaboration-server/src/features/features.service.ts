@@ -207,8 +207,8 @@ export class FeaturesService {
     return this.operationsService.executeOperation<GetFeaturesOperation>({
       typeName: 'GetFeaturesOperation',
       refSeq: searchDto.refSeq,
-      start: searchDto.end,
-      end: searchDto.start,
+      start: searchDto.start,
+      end: searchDto.end,
     })
   }
 }
