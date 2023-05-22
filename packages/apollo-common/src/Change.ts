@@ -21,7 +21,6 @@ export interface ClientDataStore {
   loadFeatures(regions: Region[]): void
   loadRefSeq(regions: Region[]): void
   getFeature(featureId: string): AnnotationFeatureI | undefined
-  addAssembly(_id: string, assemblyName: string): void
   addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot): void
   deleteFeature(featureId: string): void
   deleteAssembly(assemblyId: string): void

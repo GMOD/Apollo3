@@ -470,7 +470,7 @@ export function extendSession(
                 },
               },
             }
-            self.addAssembly?.(assemblyConfig)
+            self.addSessionAssembly(assemblyConfig)
             const a = yield assemblyManager.waitForAssembly(assemblyConfig.name)
             self.addApolloTrackConfig(a)
           }
