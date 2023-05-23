@@ -3,7 +3,7 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import { doesIntersect2 } from '@jbrowse/core/util'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun, observable } from 'mobx'
-import { addDisposer } from 'mobx-state-tree'
+import { addDisposer, isAlive } from 'mobx-state-tree'
 
 import { baseModelFactory } from './base'
 import { getGlyph } from './getGlyph'
@@ -53,6 +53,14 @@ export function layoutsModelFactory(
         })
       },
     }))
+    .actions((self) => ({
+      addSeenFeature(feature: AnnotationFeatureI) {
+        self.seenFeatures.set(feature._id, feature)
+      },
+      deleteSeenFeature(featureId: string) {
+        self.seenFeatures.delete(featureId)
+      },
+    }))
     .views((self) => ({
       get featureLayouts() {
         const { assemblyManager } = self.session
@@ -67,7 +75,11 @@ export function layoutsModelFactory(
           const [min, max] = minMax
           const rows: boolean[][] = []
           const { refName, start, end } = region
-          self.seenFeatures.forEach((feature) => {
+          self.seenFeatures.forEach((feature, id) => {
+            if (!isAlive(feature)) {
+              self.deleteSeenFeature(id)
+              return
+            }
             if (
               refName !== assembly?.getCanonicalRefName(feature.refSeq) ||
               !doesIntersect2(start, end, feature.min, feature.max)
@@ -133,11 +145,6 @@ export function layoutsModelFactory(
           0,
           ...self.featureLayouts.map((layout) => Math.max(...layout.keys())),
         )
-      },
-    }))
-    .actions((self) => ({
-      addSeenFeature(feature: AnnotationFeatureI) {
-        self.seenFeatures.set(feature._id, feature)
       },
     }))
     .actions((self) => ({
