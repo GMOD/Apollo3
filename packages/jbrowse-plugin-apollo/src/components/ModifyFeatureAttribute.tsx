@@ -1,7 +1,6 @@
-import { AbstractSessionModel, useDebounce } from '@jbrowse/core/util'
+import { AbstractSessionModel } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
-  Autocomplete,
   Button,
   Dialog,
   DialogActions,
@@ -17,15 +16,16 @@ import {
   Radio,
   RadioGroup,
   TextField,
+  Typography,
 } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { FeatureAttributeChange } from 'apollo-shared'
 import { getSnapshot } from 'mobx-state-tree'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { ChangeManager } from '../ChangeManager'
-import { Stores, getDataByID } from './db'
+import { GoAutocomplete } from './GoAutocomplete'
 
 interface ModifyFeatureAttributeProps {
   session: AbstractSessionModel
@@ -35,6 +35,18 @@ interface ModifyFeatureAttributeProps {
   changeManager: ChangeManager
 }
 
+function SoAutocompleteUnimplemented() {
+  return <></>
+}
+
+const reservedKeys: Map<
+  string,
+  React.FunctionComponent<AttributeValueEditorProps>
+> = new Map([
+  ['Gene Ontology', GoAutocomplete],
+  ['Sequence Ontology', SoAutocompleteUnimplemented],
+])
+
 const useStyles = makeStyles()((theme) => ({
   attributeInput: {
     maxWidth: 600,
@@ -42,12 +54,33 @@ const useStyles = makeStyles()((theme) => ({
   newAttributePaper: {
     padding: theme.spacing(2),
   },
+  attributeName: {
+    background: theme.palette.secondary.main,
+    color: theme.palette.secondary.contrastText,
+    padding: theme.spacing(1),
+  },
 }))
 
-export interface GOTerm {
-  id: string
-  label: string
+export interface AttributeValueEditorProps {
+  value: string[]
+  onChange(newValue: string[]): void
 }
+
+function CustomAttributeValueEditor(props: AttributeValueEditorProps) {
+  const { value, onChange } = props
+  return (
+    <TextField
+      type="text"
+      value={value}
+      onChange={(event) => {
+        onChange(event.target.value.split(','))
+      }}
+      variant="outlined"
+      fullWidth
+    />
+  )
+}
+
 export function ModifyFeatureAttribute({
   session,
   handleClose,
@@ -56,10 +89,7 @@ export function ModifyFeatureAttribute({
   changeManager,
 }: ModifyFeatureAttributeProps) {
   const { notify } = session
-  const [goTerms, setGOTerms] = useState<GOTerm[]>([])
-  const [goAttribute, setGoAttribute] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-  const [showKey, setShowKey] = useState(true)
   const [attributes, setAttributes] = useState<Record<string, string[]>>(
     Object.fromEntries(
       Array.from(sourceFeature.attributes.entries()).map(([key, value]) => [
@@ -70,7 +100,6 @@ export function ModifyFeatureAttribute({
   )
   const [showAddNewForm, setShowAddNewForm] = useState(false)
   const [newAttributeKey, setNewAttributeKey] = useState('')
-  const [newAttributeValue, setNewAttributeValue] = useState('')
   const { classes } = useStyles()
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -90,13 +119,6 @@ export function ModifyFeatureAttribute({
     event.preventDefault()
   }
 
-  function handleChangeAttribute(
-    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
-  ): void {
-    const { id, value } = event.target
-    setAttributes({ ...attributes, [id]: value.split(',') })
-  }
-
   function handleAddNewAttributeChange() {
     setErrorMessage('')
     if (newAttributeKey.trim().length < 1) {
@@ -108,11 +130,9 @@ export function ModifyFeatureAttribute({
     } else {
       setAttributes({
         ...attributes,
-        [newAttributeKey]: newAttributeValue.split(','),
+        [newAttributeKey]: [],
       })
       setShowAddNewForm(false)
-      setGoAttribute(false)
-      setShowKey(true)
     }
   }
 
@@ -122,45 +142,22 @@ export function ModifyFeatureAttribute({
     setAttributes(rest)
   }
 
-  const [goInput, setGoInput] = useState('')
-  function handleGOInputChange(_event: unknown, value: string) {
-    setGoInput(value)
-  }
-  const handleGOValueChange = (_event: unknown, newValue: GOTerm[]) => {
-    if (newValue.length) {
-      setNewAttributeValue(newValue.map((gt) => gt.id).join(','))
-    } else {
-      setNewAttributeValue('')
+  function makeOnChange(id: string) {
+    return (newValue: string[]) => {
+      setAttributes({ ...attributes, [id]: newValue })
     }
   }
-  const debouncedGoInput = useDebounce(goInput, 300)
-  useEffect(() => {
-    async function fetchGoTerms() {
-      const gt = await getDataByID(Stores.GOTerms, debouncedGoInput)
-      setGOTerms(gt)
-    }
-    fetchGoTerms()
-  }, [debouncedGoInput])
 
   function handleRadioButtonChange(
     event: React.ChangeEvent<HTMLInputElement>,
     value: string,
   ) {
-    switch (value) {
-      case 'custom':
-        setShowKey(true)
-        if (newAttributeKey === 'GO') {
-          setNewAttributeKey('')
-        }
-        setGoAttribute(false)
-        break
-      case 'GO':
-        setShowKey(false)
-        setNewAttributeKey('GO')
-        setGoAttribute(true)
-        break
-      default:
-        setErrorMessage('Unknown attribute source')
+    if (value === 'custom') {
+      setNewAttributeKey('')
+    } else if (reservedKeys.has(value)) {
+      setNewAttributeKey(value)
+    } else {
+      setErrorMessage('Unknown attribute type')
     }
   }
 
@@ -168,174 +165,137 @@ export function ModifyFeatureAttribute({
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Feature attributes</DialogTitle>
       <form onSubmit={onSubmit}>
-        <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
-          {Object.entries(attributes).map(([key, value]) => {
-            return (
-              <Grid container spacing={1} alignItems="flex-end" key={key}>
-                <Grid item style={{ minWidth: 550 }}>
-                  <TextField
-                    id={key}
-                    key={key}
-                    label={key}
-                    type="text"
-                    value={value.join(',')}
-                    style={{ minWidth: 500 }}
-                    onChange={handleChangeAttribute}
-                  />
-                </Grid>
-                <Grid item>
-                  <IconButton
-                    aria-label="delete"
-                    size="medium"
-                    onClick={() => {
-                      deleteAttribute(key)
-                    }}
-                  >
-                    <DeleteIcon fontSize="medium" key={key} />
-                  </IconButton>
-                </Grid>
-              </Grid>
-            )
-          })}
-          {showAddNewForm ? (
-            <Paper elevation={8} className={classes.newAttributePaper}>
-              <Grid container direction="column">
-                <Grid container>
-                  <Grid item>
-                    <FormControl>
-                      <FormLabel id="attribute-radio-button-group">
-                        Attribute source
-                      </FormLabel>
-                      <RadioGroup
-                        aria-labelledby="demo-radio-buttons-group-label"
-                        defaultValue="custom"
-                        name="radio-buttons-group"
-                        onChange={handleRadioButtonChange}
-                      >
-                        <FormControlLabel
-                          value="custom"
-                          control={<Radio />}
-                          label="Custom"
-                        />
-                        <FormControlLabel
-                          value="GO"
-                          control={<Radio />}
-                          label="Gene Ontology"
-                        />
-                        <FormControlLabel
-                          value="SO"
-                          disabled
-                          control={<Radio />}
-                          label="Sequence Ontology"
-                        />
-                      </RadioGroup>
-                    </FormControl>
+        <DialogContent>
+          <Grid container direction="column" spacing={1}>
+            {Object.entries(attributes).map(([key, value]) => {
+              const EditorComponent =
+                reservedKeys.get(key) || CustomAttributeValueEditor
+              return (
+                <Grid container item spacing={3} alignItems="center" key={key}>
+                  <Grid item xs="auto">
+                    <Paper variant="outlined" className={classes.attributeName}>
+                      <Typography>{key}</Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item flexGrow={1}>
+                    <EditorComponent
+                      value={value}
+                      onChange={makeOnChange(key)}
+                    />
+                  </Grid>
+                  <Grid item xs={1}>
+                    <IconButton
+                      aria-label="delete"
+                      size="medium"
+                      onClick={() => {
+                        deleteAttribute(key)
+                      }}
+                    >
+                      <DeleteIcon fontSize="medium" key={key} />
+                    </IconButton>
                   </Grid>
                 </Grid>
-                <Grid item>
-                  {showKey ? (
-                    <TextField
-                      autoFocus
-                      margin="dense"
-                      label="Attribute key"
-                      type="text"
-                      fullWidth
-                      variant="outlined"
-                      onChange={(e) => {
-                        setNewAttributeKey(e.target.value)
-                      }}
-                      className={classes.attributeInput}
-                    />
-                  ) : null}
-                </Grid>
-                <Grid item>
-                  {goAttribute ? (
-                    <Autocomplete
-                      id="combo-box-demo"
-                      filterSelectedOptions
-                      options={goTerms}
-                      getOptionLabel={(option) => option.id}
-                      renderOption={(props, option: GOTerm) => (
-                        <li {...props}>
-                          {option.id}&nbsp;&nbsp;&nbsp;{option.label}
-                        </li>
-                      )}
-                      onInputChange={handleGOInputChange}
-                      multiple
-                      isOptionEqualToValue={(option: GOTerm, value: GOTerm) => {
-                        return option.id === value.id
-                      }}
-                      filterOptions={(x) => x}
-                      onChange={handleGOValueChange}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          margin="dense"
-                          type="text"
-                          variant="outlined"
-                          label="GO term"
-                          placeholder="Enter search string"
-                          className={classes.attributeInput}
-                        />
-                      )}
-                    />
-                  ) : (
-                    <TextField
-                      margin="dense"
-                      label="Attribute value"
-                      type="text"
-                      fullWidth
-                      variant="outlined"
-                      onChange={(e) => {
-                        setNewAttributeValue(e.target.value)
-                      }}
-                      className={classes.attributeInput}
-                    />
-                  )}
-                </Grid>
-              </Grid>
-            </Paper>
-          ) : null}
-          {showAddNewForm ? (
-            <DialogActions>
+              )
+            })}
+            <Grid item>
               <Button
-                key="addButton"
                 color="primary"
                 variant="contained"
-                style={{ margin: 2 }}
-                onClick={handleAddNewAttributeChange}
-                disabled={!(newAttributeKey && newAttributeValue)}
-              >
-                Add
-              </Button>
-              <Button
-                key="cancelAddButton"
-                variant="outlined"
-                type="submit"
+                disabled={showAddNewForm}
                 onClick={() => {
-                  setShowAddNewForm(false)
-                  setErrorMessage('')
+                  setShowAddNewForm(true)
                 }}
               >
-                Cancel
+                Add new
               </Button>
-            </DialogActions>
-          ) : null}
+            </Grid>
+            {showAddNewForm ? (
+              <Grid item>
+                <Paper elevation={8} className={classes.newAttributePaper}>
+                  <Grid container direction="column">
+                    <Grid item>
+                      <FormControl>
+                        <FormLabel id="attribute-radio-button-group">
+                          Attribute type
+                        </FormLabel>
+                        <RadioGroup
+                          aria-labelledby="demo-radio-buttons-group-label"
+                          defaultValue="custom"
+                          name="radio-buttons-group"
+                          onChange={handleRadioButtonChange}
+                        >
+                          <FormControlLabel
+                            value="custom"
+                            control={<Radio />}
+                            disableTypography
+                            label={
+                              <Grid container spacing={1} alignItems="center">
+                                <Grid item>
+                                  <Typography>Custom</Typography>
+                                </Grid>
+                                <Grid item>
+                                  <TextField
+                                    label="Custom attribute key"
+                                    variant="outlined"
+                                    value={
+                                      reservedKeys.has(newAttributeKey)
+                                        ? ''
+                                        : newAttributeKey
+                                    }
+                                    disabled={reservedKeys.has(newAttributeKey)}
+                                    onChange={(event) => {
+                                      setNewAttributeKey(event.target.value)
+                                    }}
+                                  />
+                                </Grid>
+                              </Grid>
+                            }
+                          />
+                          {Array.from(reservedKeys.keys()).map((key) => (
+                            <FormControlLabel
+                              key={key}
+                              value={key}
+                              control={<Radio />}
+                              label={key}
+                              // TODO: disable this when SO editor is implemented
+                              disabled={key === 'Sequence Ontology'}
+                            />
+                          ))}
+                        </RadioGroup>
+                      </FormControl>
+                    </Grid>
+                    <Grid item>
+                      <DialogActions>
+                        <Button
+                          key="addButton"
+                          color="primary"
+                          variant="contained"
+                          style={{ margin: 2 }}
+                          onClick={handleAddNewAttributeChange}
+                          disabled={!newAttributeKey}
+                        >
+                          Add
+                        </Button>
+                        <Button
+                          key="cancelAddButton"
+                          variant="outlined"
+                          type="submit"
+                          onClick={() => {
+                            setShowAddNewForm(false)
+                            setErrorMessage('')
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </DialogActions>
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+            ) : null}
+          </Grid>
         </DialogContent>
         <DialogActions>
-          <Button
-            color="primary"
-            variant="contained"
-            disabled={showAddNewForm}
-            onClick={() => {
-              setShowAddNewForm(true)
-              setGoAttribute(false)
-              setShowKey(true)
-            }}
-          >
-            Add new
-          </Button>
-          <div style={{ flex: '1 0 0' }} />
           <Button variant="contained" type="submit" disabled={showAddNewForm}>
             Submit changes
           </Button>
@@ -356,7 +316,7 @@ export function ModifyFeatureAttribute({
           <DialogContentText color="error">{errorMessage}</DialogContentText>
         ) : null}
         <DialogContentText>
-          Separate multiple value for the attribute with a comma
+          Separate multiple values for an attribute with a comma
         </DialogContentText>
       </DialogContent>
     </Dialog>

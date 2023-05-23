@@ -29,13 +29,6 @@ import {
 } from './ApolloInternetAccount/model'
 import { BackendDriver, CollaborationServerDriver } from './BackendDrivers'
 import { ChangeManager } from './ChangeManager'
-import {
-  Stores,
-  addBatchData,
-  getStoreDataCount,
-  initDB,
-} from './components/db'
-import { GOTerm } from './components/ModifyFeatureAttribute'
 import { createFetchErrorMessage } from './util'
 
 export interface ApolloSession extends AbstractSessionModel {
@@ -480,37 +473,6 @@ export function extendSession(
             self.addSessionAssembly(assemblyConfig)
             const a = yield assemblyManager.waitForAssembly(assemblyConfig.name)
             self.addApolloTrackConfig(a)
-          }
-
-          // GO stuff starts here
-          yield initDB()
-          const recCount = yield getStoreDataCount()
-          if (recCount === undefined || recCount < 1) {
-            const uri2 = new URL('/ontologies/go/findall', baseURL).href
-            const apolloFetch = internetAccount.getFetcher({
-              locationType: 'UriLocation',
-              uri: uri2,
-            })
-            if (apolloFetch) {
-              const response2 = yield apolloFetch(uri2, {
-                method: 'GET',
-              })
-              if (!response2.ok) {
-                throw new Error('Error when fetching GO terms from server')
-                return
-              }
-              const data = yield response2.json()
-              const tmpData = data.map((goTermItm: GOTerm) => ({
-                id: goTermItm.id,
-                label: goTermItm.label,
-              }))
-              const start = Date.now()
-              addBatchData(Stores.GOTerms, tmpData).then((res) => {
-                const end = Date.now()
-                // eslint-disable-next-line prettier/prettier, no-console
-                console.log(`Inserted ${res} GO terms into database in ${end - start} ms`)
-              })
-            }
           }
         }
       }),

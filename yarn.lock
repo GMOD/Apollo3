@@ -10921,13 +10921,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"idb@npm:^7.1.1":
-  version: 7.1.1
-  resolution: "idb@npm:7.1.1"
-  checksum: 1973c28d53c784b177bdef9f527ec89ec239ec7cf5fcbd987dae75a16c03f5b7dfcc8c6d3285716fd0309dd57739805390bd9f98ce23b1b7d8849a3b52de8d56
-  languageName: node
-  linkType: hard
-
 "ieee754@npm:^1.1.13":
   version: 1.2.1
   resolution: "ieee754@npm:1.2.1"
@@ -11645,7 +11638,6 @@ __metadata:
     clsx: ^1.1.1
     cypress: ^8.7.0
     http-proxy-middleware: ^2.0.6
-    idb: ^7.1.1
     jest: ^29.0.3
     jest-fetch-mock: ^3.0.3
     mobx: ^6.6.1
