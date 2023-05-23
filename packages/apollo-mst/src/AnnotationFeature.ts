@@ -14,9 +14,13 @@ export const LateAnnotationFeature = types.late(
   (): IAnyModelType => AnnotationFeature,
 )
 
+const Phase = types.maybe(
+  types.union(types.literal(0), types.literal(1), types.literal(2)),
+)
 export const AnnotationFeature = types
   .model('AnnotationFeature', {
     _id: types.identifier,
+    gffId: types.maybe(types.string), // ID from attributes if exists, otherwise gffId = _id
     /** Reference sequence name */
     refSeq: types.string,
     /** Feature type */
@@ -32,7 +36,9 @@ export const AnnotationFeature = types
      * the feature's start and end.
      */
     discontinuousLocations: types.maybe(
-      types.array(types.model({ start: types.number, end: types.number })),
+      types.array(
+        types.model({ start: types.number, end: types.number, phase: Phase }),
+      ),
     ),
     /** The strand on which the feature is located */
     strand: types.maybe(types.union(types.literal(1), types.literal(-1))),
@@ -42,9 +48,7 @@ export const AnnotationFeature = types
      * The feature's phase, which is required for certain features, e.g. CDS in a
      * canonical SO gene
      */
-    phase: types.maybe(
-      types.union(types.literal(0), types.literal(1), types.literal(2)),
-    ),
+    phase: Phase,
     /** Child features of this feature */
     children: types.maybe(types.map(types.maybe(LateAnnotationFeature))),
     /**
@@ -91,6 +95,9 @@ export const AnnotationFeature = types
       Array.from(attributes.entries()).forEach(([key, value]) =>
         self.attributes.set(key, value),
       )
+    },
+    setAttribute(key: string, value: string[]) {
+      self.attributes.merge({ [key]: value })
     },
     setType(type: string) {
       self.type = type

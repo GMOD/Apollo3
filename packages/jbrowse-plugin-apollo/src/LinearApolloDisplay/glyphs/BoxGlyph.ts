@@ -5,6 +5,7 @@ import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 
 import {
   AddFeature,
+  CopyFeature,
   DeleteFeature,
   ModifyFeatureAttribute,
 } from '../../components'
@@ -339,26 +340,25 @@ export class BoxGlyph extends Glyph {
             ])
           },
         },
-        // {
-        //   label: 'Copy features and annotations',
-        //   disabled: isReadOnly,
-        //   onClick: () => {
-        //     const currentAssemblyId = getAssemblyId(region.assemblyName)
-        //     session.queueDialog((doneCallback) => [
-        //       CopyFeature,
-        //       {
-        //         session,
-        //         handleClose: () => {
-        //           doneCallback()
-        //           setApolloContextMenuFeature(undefined)
-        //         },
-        //         changeManager,
-        //         sourceFeatureId: contextMenuFeature?._id,
-        //         sourceAssemblyId: currentAssemblyId,
-        //       },
-        //     ])
-        //   },
-        // },
+        {
+          label: 'Copy features and annotations',
+          disabled: readOnly,
+          onClick: () => {
+            session.queueDialog((doneCallback) => [
+              CopyFeature,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                  stateModel.setApolloContextMenuFeature(undefined)
+                },
+                changeManager,
+                sourceFeature,
+                sourceAssemblyId: currentAssemblyId,
+              },
+            ])
+          },
+        },
         {
           label: 'Delete feature',
           disabled: !admin,

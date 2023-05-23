@@ -216,7 +216,16 @@ export abstract class AssemblySpecificChange extends Change {
       const featureIds: string[] = []
 
       const newFeature = createFeature(gff3Feature, refSeqDoc._id, featureIds)
-      logger.verbose?.(`So far feature ids are: ${featureIds.toString()}`)
+      logger.debug?.(`So far feature ids are: ${featureIds.toString()}`)
+      // Add value to gffId
+      newFeature.attributes?._id
+        ? (newFeature.gffId = newFeature.attributes?._id.toString())
+        : (newFeature.gffId = newFeature._id)
+      logger.debug?.(
+        `********************* Assembly specific change create ${JSON.stringify(
+          newFeature,
+        )}`,
+      )
 
       // Add into Mongo
       // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
@@ -268,6 +277,7 @@ function createFeature(
   }
   const feature: AnnotationFeatureSnapshot = {
     _id: new ObjectID().toHexString(),
+    gffId: '',
     refSeq,
     type,
     start,
@@ -275,13 +285,25 @@ function createFeature(
   }
   if (gff3Feature.length > 1) {
     feature.discontinuousLocations = gff3Feature.map((f) => {
-      const { start: subStart, end: subEnd } = f
+      const { start: subStart, end: subEnd, phase: locationPhase } = f
       if (subStart === null || subEnd === null) {
         throw new Error(
           `feature does not have start and/or end: ${JSON.stringify(f)}`,
         )
       }
-      return { start: subStart, end: subEnd }
+      let parsedPhase: 0 | 1 | 2 | undefined = undefined
+      if (locationPhase) {
+        if (locationPhase === '0') {
+          parsedPhase = 0
+        } else if (locationPhase === '1') {
+          parsedPhase = 1
+        } else if (locationPhase === '2') {
+          parsedPhase = 2
+        } else {
+          throw new Error(`Unknown phase: "${locationPhase}"`)
+        }
+      }
+      return { start: subStart, end: subEnd, phase: parsedPhase }
     })
   }
   if (strand) {
@@ -310,11 +332,16 @@ function createFeature(
   if (featureIds) {
     featureIds.push(feature._id)
   }
+
   if (childFeatures && childFeatures.length) {
     const children: Record<string, AnnotationFeatureSnapshot> = {}
     for (const childFeature of childFeatures) {
       const child = createFeature(childFeature, refSeq, featureIds)
       children[child._id] = child
+      // Add value to gffId
+      child.attributes?._id
+        ? (child.gffId = child.attributes?._id.toString())
+        : (child.gffId = child._id)
     }
     feature.children = children
   }
@@ -328,7 +355,41 @@ function createFeature(
         if (val) {
           const newKey = key.toLowerCase()
           if (newKey !== 'parent') {
-            attrs[key.toLowerCase()] = val
+            // attrs[key.toLowerCase()] = val
+            switch (key) {
+              case 'ID':
+                attrs._id = val
+                break
+              case 'Name':
+                attrs.gff_name = val
+                break
+              case 'Alias':
+                attrs.gff_alias = val
+                break
+              case 'Target':
+                attrs.gff_target = val
+                break
+              case 'Gap':
+                attrs.gff_gap = val
+                break
+              case 'Derives_from':
+                attrs.gff_derives_from = val
+                break
+              case 'Note':
+                attrs.gff_note = val
+                break
+              case 'Dbxref':
+                attrs.gff_dbxref = val
+                break
+              case 'Ontology_term':
+                attrs.gff_ontology_term = val
+                break
+              case 'Is_circular':
+                attrs.gff_is_circular = val
+                break
+              default:
+                attrs[key.toLowerCase()] = val
+            }
           }
         }
       })

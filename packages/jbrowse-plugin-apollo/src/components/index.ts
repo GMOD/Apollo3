@@ -6,6 +6,7 @@ import { createFetchErrorMessage } from '../util'
 
 export * from './AddAssembly'
 export * from './AddFeature'
+export * from './CopyFeature'
 export * from './DeleteAssembly'
 export * from './DeleteFeature'
 export * from './ImportFeatures'

@@ -65,6 +65,7 @@
     "rxjs": "^7.4.0",
     "sanitize-filename": "^1.6.3",
     "socket.io": "^4.5.3",
+    "stream-concat": "^1.0.0",
     "tslib": "^2.3.1",
     "tss-react": "^4.6.1"
   },

@@ -1,4 +1,4 @@
-import { Transform, pipeline } from 'stream'
+import { Readable, Transform, pipeline } from 'stream'
 
 import gff, { GFF3Feature } from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
@@ -15,6 +15,7 @@ import {
 } from 'apollo-schemas'
 import { GetFeaturesOperation } from 'apollo-shared'
 import { Model } from 'mongoose'
+import StreamConcat from 'stream-concat'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { OperationsService } from '../operations/operations.service'
@@ -26,34 +27,75 @@ function makeGFF3Feature(
 ): GFF3Feature {
   const locations = featureDocument.discontinuousLocations?.length
     ? featureDocument.discontinuousLocations
-    : [{ start: featureDocument.start, end: featureDocument.end }]
+    : [
+        {
+          start: featureDocument.start,
+          end: featureDocument.end,
+          phase: featureDocument.phase,
+        },
+      ]
   const attributes: Record<string, string[]> = {
     ...(featureDocument.attributes || {}),
   }
+  let ontologyFound = false
+  let ontologyTerms = ''
   const source = featureDocument.attributes?.source?.[0] || null
   delete attributes.source
   if (parentId) {
     attributes.Parent = [parentId]
   }
-  if (attributes.id) {
-    attributes.ID = attributes.id
-    delete attributes.id
+  if (attributes._id) {
+    attributes.ID = attributes._id
+    delete attributes._id
   }
-  if (attributes.name) {
-    attributes.Name = attributes.name
-    delete attributes.name
+  if (attributes.gff_name) {
+    attributes.Name = attributes.gff_name
+    delete attributes.gff_name
   }
-  if (attributes.note) {
-    attributes.Note = attributes.note
-    delete attributes.note
+  if (attributes.gff_alias) {
+    attributes.Alias = attributes.gff_alias
+    delete attributes.gff_alias
   }
-  if (attributes.target) {
-    attributes.Target = attributes.target
-    delete attributes.target
+  if (attributes.gff_target) {
+    attributes.Target = attributes.gff_target
+    delete attributes.gff_target
   }
-  if (attributes.alias) {
-    attributes.Alias = attributes.alias
-    delete attributes.alias
+  if (attributes.gff_gap) {
+    attributes.Gap = attributes.gff_gap
+    delete attributes.gff_gap
+  }
+  if (attributes.gff_derives_from) {
+    attributes.Derives_from = attributes.gff_derives_from
+    delete attributes.gff_derives_from
+  }
+  if (attributes.gff_note) {
+    attributes.Note = attributes.gff_note
+    delete attributes.gff_note
+  }
+  if (attributes.gff_dbxref) {
+    attributes.Dbxref = attributes.gff_dbxref
+    delete attributes.gff_dbxref
+  }
+  if (attributes.gff_is_circular) {
+    attributes.Is_circular = attributes.gff_is_circular
+    delete attributes.gff_is_circular
+  }
+  if (attributes.GO) {
+    ontologyFound = true
+    ontologyTerms = attributes.GO.toString()
+    delete attributes.GO
+  }
+  if (attributes.SO) {
+    if (ontologyFound) {
+      ontologyTerms += `, ${attributes.SO}`
+    } else {
+      ontologyTerms = attributes.SO.toString()
+    }
+    delete attributes.SO
+    ontologyFound = true
+  }
+  if (ontologyFound) {
+    attributes.Ontology_term = [ontologyTerms]
   }
   const refSeq = refSeqs.find((rs) => rs._id.equals(featureDocument.refSeq))
   if (!refSeq) {
@@ -71,7 +113,14 @@ function makeGFF3Feature(
         ? '+'
         : '-'
       : null,
-    phase: featureDocument.phase ? String(featureDocument.phase) : null,
+    phase:
+      location.phase === 0
+        ? '0'
+        : location.phase === 1
+        ? '1'
+        : location.phase === 2
+        ? '2'
+        : null,
     attributes: Object.keys(attributes).length ? attributes : null,
     derived_features: [],
     child_features: featureDocument.children
@@ -112,38 +161,47 @@ export class FeaturesService {
     if (!exportDoc) {
       throw new NotFoundException()
     }
+
     const { assembly } = exportDoc
     const refSeqs = await this.refSeqModel.find({ assembly }).exec()
+
+    const headerStream = new Readable({ objectMode: true })
+    headerStream.push('##gff-version 3\n')
+    refSeqs.forEach((refSeqDoc: RefSeqDocument) => {
+      headerStream.push(
+        `##sequence-region ${refSeqDoc.name} 1 ${refSeqDoc.length}\n`,
+      )
+    })
+    headerStream.push(null)
+
     const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
     const query = { refSeq: { $in: refSeqIds } }
-    return [
-      pipeline(
-        this.featureModel.find(query).cursor(),
-        new Transform({
-          writableObjectMode: true,
-          readableObjectMode: true,
-          transform: (chunk, encoding, callback) => {
-            try {
-              const flattened = chunk.toObject({ flattenMaps: true })
-              const gff3Feature = makeGFF3Feature(flattened, refSeqs)
-              callback(null, gff3Feature)
-            } catch (error) {
-              callback(
-                error instanceof Error ? error : new Error(String(error)),
-              )
-            }
-          },
-        }),
-        gff.formatStream({ insertVersionDirective: true }),
-        (error) => {
-          if (error) {
-            this.logger.error('GFF3 export failed')
-            this.logger.error(error)
+
+    const featureStream = pipeline(
+      this.featureModel.find(query).cursor(),
+      new Transform({
+        writableObjectMode: true,
+        readableObjectMode: true,
+        transform: (chunk, encoding, callback) => {
+          try {
+            const flattened = chunk.toObject({ flattenMaps: true })
+            const gff3Feature = makeGFF3Feature(flattened, refSeqs)
+            callback(null, gff3Feature)
+          } catch (error) {
+            callback(error instanceof Error ? error : new Error(String(error)))
           }
         },
-      ),
-      assembly,
-    ]
+      }),
+      gff.formatStream({ insertVersionDirective: true }),
+      (error) => {
+        if (error) {
+          this.logger.error('GFF3 export failed')
+          this.logger.error(error)
+        }
+      },
+    )
+    const combinedStream = new StreamConcat([headerStream, featureStream])
+    return [combinedStream, assembly]
   }
 
   /**

@@ -613,7 +613,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
                   setContextMenuFeature(undefined)
                 },
                 changeManager,
-                sourceFeatureId: contextMenuFeature?._id,
+                sourceFeature: contextMenuFeature,
                 sourceAssemblyId: currentAssemblyId,
               },
             ])

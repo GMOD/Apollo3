@@ -17,6 +17,8 @@ interface SerializedAddFeatureChangeBase extends SerializedFeatureChange {
 export interface AddFeatureChangeDetails {
   addedFeature: AnnotationFeatureSnapshot
   parentFeatureId?: string // Parent feature to where feature will be added
+  copyFeature?: boolean // Are we copying or adding a new child feature
+  allIds?: string[]
 }
 
 interface SerializedAddFeatureChangeSingle
@@ -44,8 +46,16 @@ export class AddFeatureChange extends FeatureChange {
   toJSON(): SerializedAddFeatureChange {
     const { changes, changedIds, typeName, assembly } = this
     if (changes.length === 1) {
-      const [{ addedFeature, parentFeatureId }] = changes
-      return { typeName, changedIds, assembly, addedFeature, parentFeatureId }
+      const [{ addedFeature, parentFeatureId, copyFeature, allIds }] = changes
+      return {
+        typeName,
+        changedIds,
+        assembly,
+        addedFeature,
+        parentFeatureId,
+        copyFeature,
+        allIds,
+      }
     }
     return { typeName, changedIds, assembly, changes }
   }
@@ -56,7 +66,7 @@ export class AddFeatureChange extends FeatureChange {
    * @returns
    */
   async executeOnServer(backend: ServerDataStore) {
-    const { assemblyModel, featureModel, refSeqModel, session } = backend
+    const { assemblyModel, featureModel, refSeqModel, session, user } = backend
     const { changes, assembly, logger } = this
 
     const assemblyDoc = await assemblyModel
@@ -75,7 +85,7 @@ export class AddFeatureChange extends FeatureChange {
     // Loop the changes
     for (const change of changes) {
       logger.debug?.(`change: ${JSON.stringify(change)}`)
-      const { addedFeature, parentFeatureId } = change
+      const { addedFeature, parentFeatureId, copyFeature, allIds } = change
       const { refSeq } = addedFeature
       const refSeqDoc = await refSeqModel
         .findById(refSeq)
@@ -86,55 +96,75 @@ export class AddFeatureChange extends FeatureChange {
           `RefSeq was not found by assembly "${assembly}" and seq_id "${refSeq}" not found`,
         )
       }
-      if (parentFeatureId) {
-        const topLevelFeature = await featureModel
-          .findOne({ allIds: parentFeatureId })
-          .session(session)
-          .exec()
-        if (!topLevelFeature) {
-          throw new Error(`Could not find feature with ID "${parentFeatureId}"`)
-        }
-        const parentFeature = this.getFeatureFromId(
-          topLevelFeature,
-          parentFeatureId,
-        )
-        if (!parentFeature) {
-          throw new Error(
-            `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature._id}"`,
-          )
-        }
-        if (!parentFeature.children) {
-          parentFeature.children = new Map()
-        }
-        if (!parentFeature.attributes?.id) {
-          let { attributes } = parentFeature
-          if (!attributes) {
-            attributes = {}
-          }
-          attributes = {
-            id: [parentFeature._id.toString()],
-            ...JSON.parse(JSON.stringify(attributes)),
-          }
-          parentFeature.attributes = attributes
-        }
-        parentFeature.children.set(addedFeature._id, {
-          allIds: [],
-          ...addedFeature,
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          _id: addedFeature._id,
-        })
-        const childIds = this.getChildFeatureIds(addedFeature)
-        topLevelFeature.allIds.push(addedFeature._id, ...childIds)
-        topLevelFeature.save()
-      } else {
-        const childIds = this.getChildFeatureIds(addedFeature)
-        const allIds = [addedFeature._id, ...childIds]
+
+      // CopyFeature is called from CopyFeature.tsx
+      if (copyFeature) {
+        // Add into Mongo
         const [newFeatureDoc] = await featureModel.create(
-          [{ allIds, ...addedFeature }],
-          { session },
+          [{ ...addedFeature, allIds, status: -1, user }],
+          {
+            session,
+          },
         )
-        logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
+        logger.debug?.(
+          `Copied feature, docId "${newFeatureDoc._id}" to assembly "${assembly}"`,
+        )
+        featureCnt++
+      } else {
+        addedFeature.gffId = addedFeature._id // User added manually new feature so then gffId = _id
+        // Adding new child feature
+        if (parentFeatureId) {
+          const topLevelFeature = await featureModel
+            .findOne({ allIds: parentFeatureId })
+            .session(session)
+            .exec()
+          if (!topLevelFeature) {
+            throw new Error(
+              `Could not find feature with ID "${parentFeatureId}"`,
+            )
+          }
+          const parentFeature = this.getFeatureFromId(
+            topLevelFeature,
+            parentFeatureId,
+          )
+          if (!parentFeature) {
+            throw new Error(
+              `Could not find feature with ID "${parentFeatureId}" in feature "${topLevelFeature._id}"`,
+            )
+          }
+          if (!parentFeature.children) {
+            parentFeature.children = new Map()
+          }
+          if (!parentFeature.attributes?._id) {
+            let { attributes } = parentFeature
+            if (!attributes) {
+              attributes = {}
+            }
+            attributes = {
+              _id: [parentFeature._id.toString()],
+              ...JSON.parse(JSON.stringify(attributes)),
+            }
+            parentFeature.attributes = attributes
+          }
+          parentFeature.children.set(addedFeature._id, {
+            allIds: [],
+            ...addedFeature,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            _id: addedFeature._id,
+          })
+          const childIds = this.getChildFeatureIds(addedFeature)
+          topLevelFeature.allIds.push(addedFeature._id, ...childIds)
+          topLevelFeature.save()
+        } else {
+          const childIds = this.getChildFeatureIds(addedFeature)
+          const allIdsV2 = [addedFeature._id, ...childIds]
+          const [newFeatureDoc] = await featureModel.create(
+            [{ allIds: allIdsV2, ...addedFeature }],
+            { session },
+          )
+          logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
+        }
       }
       featureCnt++
     }
@@ -156,6 +186,10 @@ export class AddFeatureChange extends FeatureChange {
         const parentFeature = dataStore.getFeature(parentFeatureId)
         if (!parentFeature) {
           throw new Error(`Could not find parent feature "${parentFeatureId}"`)
+        }
+        // create an ID for the parent feature if it does not have one
+        if (!parentFeature.attributes.get('_id')) {
+          parentFeature.setAttribute('_id', [parentFeature._id])
         }
         parentFeature.addChild(addedFeature)
       } else {

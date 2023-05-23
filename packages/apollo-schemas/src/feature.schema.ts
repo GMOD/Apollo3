@@ -11,6 +11,10 @@ export class Feature
   // Don't make this a @Prop since _id is already on a MongoDB document
   _id: Types.ObjectId
 
+  // Here we store feature ID if it's given in attributes, otherwise gffId = _id as string
+  @Prop()
+  gffId: string
+
   @Prop({
     required: true,
     index: true,
@@ -32,7 +36,7 @@ export class Feature
   end: number
 
   @Prop()
-  discontinuousLocations?: { start: number; end: number }[]
+  discontinuousLocations?: { start: number; end: number; phase?: 0 | 1 | 2 }[]
 
   @Prop()
   strand?: 1 | -1

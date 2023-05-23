@@ -6301,6 +6301,7 @@ __metadata:
     sanitize-filename: ^1.6.3
     socket.io: ^4.5.3
     source-map-support: ^0.5.20
+    stream-concat: ^1.0.0
     supertest: ^6.1.3
     ts-jest: ^27.0.3
     ts-loader: ^9.2.3
@@ -16693,6 +16694,13 @@ __metadata:
   dependencies:
     duplexer: ~0.1.1
   checksum: 844b622cfe8b9de45a6007404f613b60aaf85200ab9862299066204242f89a7c8033b1c356c998aa6cfc630f6cd9eba119ec1c6dc1f93e245982be4a847aee7d
+  languageName: node
+  linkType: hard
+
+"stream-concat@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "stream-concat@npm:1.0.0"
+  checksum: aa2b8e86454f40ca3ea329619c64256669cebef6a8b114676066e38604a09bbe16c37b0ddfae7b6109ff183b664291623f1787a9e511c872e708cdfff35b0aa0
   languageName: node
   linkType: hard
 

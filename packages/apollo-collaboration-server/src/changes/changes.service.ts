@@ -26,9 +26,7 @@ import {
   UserDocument,
 } from 'apollo-schemas'
 import {
-  AddFeatureChange,
   DecodedJWT,
-  isCopyFeatureChange,
   makeUserSessionId,
   validationRegistry,
 } from 'apollo-shared'
@@ -222,53 +220,13 @@ export class ChangesService {
     const messages: ChangeMessage[] = []
 
     const userSessionId = makeUserSessionId(user)
-    // In case of 'CopyFeatureChange', we need to create 'AddFeatureChange' to all connected clients
-    if (isCopyFeatureChange(change)) {
-      const [{ targetAssemblyId, newFeatureId }] = change.changes
-      // Get origin top level feature
-      const topLevelFeature = await this.featureModel
-        .findOne({ allIds: newFeatureId })
-        .exec()
-      if (!topLevelFeature) {
-        const errMsg = `*** ERROR: The following featureId was not found in database ='${newFeatureId}'`
-        this.logger.error?.(errMsg)
-        throw new Error(errMsg)
-      }
-      const newChange = new AddFeatureChange({
-        typeName: 'AddFeatureChange',
-        assembly: targetAssemblyId,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        addedFeature: topLevelFeature,
-      })
-      for (const refName of refNames) {
-        messages.push({
-          changeInfo: newChange.toJSON(),
-          userName: user.username,
-          userSessionId,
-          channel: `${targetAssemblyId}-${refName}`,
-          changeSequence: changeDoc.sequence,
-        })
-      }
-    } else if (isFeatureChange(change)) {
-      for (const refName of refNames) {
-        messages.push({
-          changeInfo: change.toJSON(),
-          userName: user.username,
-          userSessionId,
-          channel: `${change.assembly}-${refName}`,
-          changeSequence: changeDoc.sequence,
-        })
-      }
-    } else {
-      messages.push({
-        changeInfo: change.toJSON(),
-        userName: user.username,
-        userSessionId,
-        channel: 'COMMON',
-        changeSequence: changeDoc.sequence,
-      })
-    }
+    messages.push({
+      changeInfo: change.toJSON(),
+      userName: user.username,
+      userSessionId,
+      channel: 'COMMON',
+      changeSequence: changeDoc.sequence,
+    })
 
     for (const message of messages) {
       this.logger.debug(
