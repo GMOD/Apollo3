@@ -83,7 +83,7 @@ export class ChangesService {
     // Get some info for later broadcasting, before any features are potentially
     // deleted
     const refNames: string[] = []
-    if (isFeatureChange(change) && change.typeName === 'DeleteFeatureChange') {
+    if (isFeatureChange(change)) {
       // For broadcasting we need also refName
       const { changedIds } = change
       for (const changedId of changedIds) {
@@ -214,24 +214,6 @@ export class ChangesService {
 
     if (!isAssemblySpecificChange(change)) {
       return
-    }
-
-    if (isFeatureChange(change) && change.typeName !== 'DeleteFeatureChange') {
-      // For broadcasting we need also refName
-      const { changedIds } = change
-      for (const changedId of changedIds) {
-        const featureDoc = await this.featureModel
-          .findOne({ allIds: changedId })
-          .exec()
-        if (featureDoc) {
-          const refSeqDoc = await this.refSeqModel
-            .findById(featureDoc.refSeq)
-            .exec()
-          if (refSeqDoc) {
-            refNames.push(refSeqDoc.name)
-          }
-        }
-      }
     }
 
     // Broadcast

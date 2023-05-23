@@ -78,10 +78,6 @@ const reservedTerms = [
   'Ontology',
   'Is_Circular',
 ]
-export interface GOTerm {
-  id: string
-  label: string
-}
 
 function CustomAttributeValueEditor(props: AttributeValueEditorProps) {
   const { value, onChange } = props
@@ -183,6 +179,7 @@ export function ModifyFeatureAttribute({
       [newAttributeKey]: [],
     })
     setShowAddNewForm(false)
+    setNewAttributeKey('')
   }
 
   function deleteAttribute(key: string) {
@@ -331,6 +328,7 @@ export function ModifyFeatureAttribute({
                           type="submit"
                           onClick={() => {
                             setShowAddNewForm(false)
+                            setNewAttributeKey('')
                             setErrorMessage('')
                           }}
                         >

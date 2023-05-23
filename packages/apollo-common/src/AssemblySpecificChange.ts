@@ -367,7 +367,7 @@ function createFeature(
                 attrs.gff_alias = val
                 break
               case 'Target':
-                attrs.gff_targe = val
+                attrs.gff_target = val
                 break
               case 'Gap':
                 attrs.gff_gap = val
