@@ -94,8 +94,11 @@ export function mouseEventsModelIntermediateFactory(
         }
         const [featureRow, topLevelFeature] = foundFeature
         const glyph = getGlyph(topLevelFeature, self.lgv.bpPerPx)
-        const topRow = row - featureRow
-        const feature = glyph.getFeatureFromLayout(topLevelFeature, bp, topRow)
+        const feature = glyph.getFeatureFromLayout(
+          topLevelFeature,
+          bp,
+          featureRow,
+        )
         return { feature, topLevelFeature, glyph, mousePosition }
       },
     }))
