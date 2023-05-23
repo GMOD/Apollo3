@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import { readConfObject } from '@jbrowse/core/configuration'
+import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
   Dialog,
@@ -13,22 +13,18 @@ import {
   TextField,
 } from '@mui/material'
 import { AnnotationFeatureI, AnnotationFeatureSnapshot } from 'apollo-mst'
-import { Feature } from 'apollo-schemas'
 import { AddFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import { IKeyValueMap } from 'mobx'
-import { getRoot, getSnapshot } from 'mobx-state-tree'
+import { getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
-import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
-import { createFetchErrorMessage } from '../util'
 
 interface CopyFeatureProps {
   session: AbstractSessionModel
   handleClose(): void
   sourceFeature: AnnotationFeatureI
-  sourceFeatureId: string
   sourceAssemblyId: string
   changeManager: ChangeManager
 }
@@ -41,162 +37,78 @@ interface Collection {
 export function CopyFeature({
   session,
   handleClose,
-  sourceFeatureId,
   sourceAssemblyId,
   changeManager,
   sourceFeature,
 }: CopyFeatureProps) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
-  const apolloInternetAccount = internetAccounts.find(
-    (ia) => ia.type === 'ApolloInternetAccount',
-  ) as ApolloInternetAccountModel | undefined
-  if (!apolloInternetAccount) {
-    throw new Error('No Apollo internet account found')
-  }
-  const { baseURL } = apolloInternetAccount
-  const [collection, setCollection] = useState<Collection[]>([])
-  const [refNameCollection, setRefNameCollection] = useState<Collection[]>([])
-  const [assemblyId, setAssemblyId] = useState('')
-  const [refSeqId, setRefSeqId] = useState('')
-  const [start, setStart] = useState('')
-  const [targetMin, setTargetMin] = useState()
-  const [targetMax, setTargetMax] = useState()
+  const { assemblyManager } = session
+  const assemblies = assemblyManager.assemblyList
+
+  const [selectedAssemblyId, setSelectedAssemblyId] =
+    useState<string>(
+      assemblies.find((a) => a.name !== sourceAssemblyId)?.name,
+    ) || ''
+  const [refNames, setRefNames] = useState<Collection[]>([])
+  const [selectedRefSeqId, setSelectedRefSeqId] = useState('')
+  const [start, setStart] = useState(sourceFeature.start)
   const [errorMessage, setErrorMessage] = useState('')
   const { notify } = session
 
   async function handleChangeAssembly(e: SelectChangeEvent<string>) {
-    const assId = e.target.value as string
-    setAssemblyId(assId)
-    const { assemblyManager } = getRoot(session)
-    if (assemblyManager.get(e.target.value as string).refNames) {
-      setRefNameCollection([{ _id: '', name: '' }])
-
-      // Using allRefNames -property we get all reference sequence ids and names. However, all ids are listed first and then the names
-      const allRefNames: string[] = await assemblyManager.get(assId).allRefNames
-      // console.log(
-      //   `ALL REF NAMES: ${JSON.stringify(allRefNames)}, cnt=${
-      //     allRefNames.length
-      //   }, ${JSON.stringify(assemblyManager.get(assId))}`,
-      // )
-      const halfCount = allRefNames.length / 2
-      let refId = ''
-      let refName = ''
-      for (let i = 0; i < halfCount; i++) {
-        // console.log(
-        //   `Id: "${allRefNames[i + halfCount]}", name: "${allRefNames[i]}"`,
-        // )
-        // Order of ref id and names varies so lets check if id is in the beginning
-        if (ObjectID.isValid(allRefNames[i])) {
-          refId = allRefNames[i]
-          refName = allRefNames[i + halfCount]
-        } else {
-          refId = allRefNames[i + halfCount]
-          refName = allRefNames[i]
-        }
-        // eslint-disable-next-line no-loop-func
-        setRefNameCollection((result) => [
-          ...result,
-          {
-            _id: refId,
-            name: refName,
-          },
-        ])
-      }
-    }
-  }
-
-  async function handleChangeRefSeq(e: SelectChangeEvent<string>) {
-    const refSeq = e.target.value as string
-    setRefSeqId(refSeq)
-    const url = new URL('/features/getStartAndEnd', baseURL)
-    const searchParams = new URLSearchParams({
-      refSeq,
-    })
-    url.search = searchParams.toString()
-    const uri = url.toString()
-    const apolloFetch = apolloInternetAccount?.getFetcher({
-      locationType: 'UriLocation',
-      uri,
-    })
-    if (apolloFetch) {
-      const response = await apolloFetch(uri, {
-        method: 'GET',
-      })
-      if (!response.ok) {
-        const newErrorMessage = await createFetchErrorMessage(
-          response,
-          'Error when copying features',
-        )
-        setErrorMessage(newErrorMessage)
-        return
-      }
-      const data = await response.json()
-      setTargetMin(data.minStart)
-      setTargetMax(data.maxEnd)
-    }
+    setSelectedAssemblyId(e.target.value)
   }
 
   useEffect(() => {
-    async function getAssemblies() {
-      const uri = new URL('/assemblies', baseURL).href
-      const apolloFetch = apolloInternetAccount?.getFetcher({
-        locationType: 'UriLocation',
-        uri,
-      })
-      if (apolloFetch) {
-        const response = await apolloFetch(uri, {
-          method: 'GET',
-        })
-        if (!response.ok) {
-          const newErrorMessage = await createFetchErrorMessage(
-            response,
-            'Error when copying features',
-          )
-          setErrorMessage(newErrorMessage)
-          return
-        }
-        const data = await response.json()
-        data.forEach((item: Collection) => {
-          // Do not show source assembly in the list of target assemblies
-          if (item._id !== sourceAssemblyId) {
-            setCollection((result) => [
-              ...result,
-              {
-                _id: item._id,
-                name: item.name,
-              },
-            ])
-          }
-        })
+    setSelectedRefSeqId('')
+    async function getRefNames() {
+      const assembly = await assemblyManager.waitForAssembly(selectedAssemblyId)
+      if (!assembly) {
+        return
       }
+      const { refNameAliases } = assembly
+      if (!refNameAliases) {
+        return
+      }
+      const newRefNames = Array.from(Object.entries(refNameAliases))
+        .filter(([id, refName]) => id !== refName)
+        .map(([id, refName]) => ({ _id: id, name: refName }))
+      setRefNames(newRefNames)
+      setSelectedRefSeqId(newRefNames[0]?._id || '')
     }
-    getAssemblies()
-    return () => {
-      setCollection([{ _id: '', name: '' }])
-    }
-  }, [apolloInternetAccount, baseURL, sourceAssemblyId, sourceFeatureId])
+    getRefNames()
+  }, [selectedAssemblyId, assemblyManager])
+
+  async function handleChangeRefSeq(e: SelectChangeEvent<string>) {
+    const refSeq = e.target.value as string
+    setSelectedRefSeqId(refSeq)
+  }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    // console.log(`Min start: "${targetMin}"`)
-    // console.log(`Max end: "${targetMax}"`)
-    // console.log(`Given start: "${start}"`)
-    const featureLength =
-      Number(sourceFeature.end) - Number(sourceFeature.start)
-    // console.log(`Feature lenght: ${featureLength}`)
+    const featureLength = sourceFeature.length
+    const assembly = await assemblyManager.waitForAssembly(selectedAssemblyId)
+    if (!assembly) {
+      setErrorMessage(`Assembly not found: ${selectedAssemblyId}.`)
+      return
+    }
+    const canonicalRefName = assembly?.getCanonicalRefName(selectedRefSeqId)
+    const region = assembly.regions?.find((r) => r.refName === canonicalRefName)
+    if (!region) {
+      setErrorMessage(`RefSeq not found: ${selectedRefSeqId}.`)
+      return
+    }
 
-    if (Number(featureLength) + Number(start) > Number(targetMax!)) {
+    const newEnd = start + featureLength
+    if (newEnd > region.end) {
       setErrorMessage(
-        `The selected feature length is ${featureLength} and then maximum start position in the selected target reference sequence is ${
-          targetMax! - featureLength
-        }.`,
+        `Feature would extend beyond the bounds of the selected reference sequence. (Feature would end at ${newEnd}, but reference sequence ends at ${region.end})`,
       )
       return
     }
-    if (Number(start) < Number(targetMin!)) {
+    if (start < region.start) {
       setErrorMessage(
-        `The selected target reference sequence starts at ${targetMin!}`,
+        `Reference sequence starts at ${region.start}, feature cannot start before that.`,
       )
       return
     }
@@ -222,10 +134,10 @@ export function CopyFeature({
     ) {
       newFeatureLine.gffId = newFeatureLine._id
     }
-    newFeatureLine.refSeq = refSeqId
-    const locationMove = Number(start) - newFeatureLine.start
-    newFeatureLine.start = Number(start)
-    newFeatureLine.end = Number(start) + featureLength
+    newFeatureLine.refSeq = selectedRefSeqId
+    const locationMove = start - newFeatureLine.start
+    newFeatureLine.start = start
+    newFeatureLine.end = start + featureLength
     // Updates children start, end and gffId values
     const updatedChildren = updateRefSeqStartEndAndGffId(
       newFeatureLine,
@@ -235,7 +147,7 @@ export function CopyFeature({
     const change = new AddFeatureChange({
       changedIds: [newFeatureLine._id],
       typeName: 'AddFeatureChange',
-      assembly: assemblyId,
+      assembly: selectedAssemblyId,
       addedFeature: {
         _id: newFeatureLine._id,
         refSeq: newFeatureLine.refSeq,
@@ -269,7 +181,7 @@ export function CopyFeature({
    * @returns
    */
   function updateRefSeqStartEndAndGffId(
-    feature: Feature | AnnotationFeatureSnapshot,
+    feature: AnnotationFeatureSnapshot,
     locationMove: number,
   ): AnnotationFeatureSnapshot {
     const children: Record<string, AnnotationFeatureSnapshot> = {}
@@ -277,10 +189,11 @@ export function CopyFeature({
       Object.values(feature.children).forEach((child) => {
         const newChild = updateRefSeqStartEndAndGffId(child, locationMove)
         // Update gffId value if it's ObjectId
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         if (ObjectID.isValid(newChild.gffId!.toString())) {
           newChild.gffId = newChild._id
         }
-        newChild.refSeq = refSeqId
+        newChild.refSeq = selectedRefSeqId
         newChild.start = newChild.start + locationMove
         newChild.end = newChild.end + locationMove
         children[newChild._id] = newChild
@@ -310,7 +223,7 @@ export function CopyFeature({
    */
   function generateNewIds(
     // feature: AnnotationFeatureSnapshot,
-    feature: Feature | AnnotationFeatureSnapshot,
+    feature: AnnotationFeatureSnapshot,
     featureIds: string[],
   ): AnnotationFeatureSnapshot {
     const newId = new ObjectID().toHexString()
@@ -345,22 +258,24 @@ export function CopyFeature({
           <Select
             autoFocus
             labelId="label"
-            value={assemblyId}
+            value={selectedAssemblyId}
             onChange={handleChangeAssembly}
           >
-            {collection.map((option) => (
-              <MenuItem key={option._id} value={option._id}>
-                {option.name}
-              </MenuItem>
-            ))}
+            {assemblies
+              .filter((option) => option.name !== sourceAssemblyId)
+              .map((option) => (
+                <MenuItem key={option.name} value={option.name}>
+                  {readConfObject(option, 'displayName')}
+                </MenuItem>
+              ))}
           </Select>
           <DialogContentText>Target reference sequence</DialogContentText>
           <Select
             labelId="label"
-            value={refSeqId}
+            value={selectedRefSeqId}
             onChange={handleChangeRefSeq}
           >
-            {refNameCollection.map((option) => (
+            {refNames.map((option) => (
               <MenuItem key={option._id} value={option._id}>
                 {option.name}
               </MenuItem>
@@ -371,21 +286,18 @@ export function CopyFeature({
           </DialogContentText>
           <TextField
             margin="dense"
-            id="name"
-            // label="Start position"
             type="number"
             fullWidth
             variant="outlined"
+            value={start}
             onChange={(e) => {
-              // setSubmitted(false)
-              setStart(e.target.value)
+              setStart(Number(e.target.value))
             }}
-            // disabled={submitted && !errorMessage}
           />
         </DialogContent>
         <DialogActions>
           <Button
-            disabled={!assemblyId || !refSeqId || !start}
+            disabled={!selectedAssemblyId || !selectedRefSeqId || !start}
             variant="contained"
             type="submit"
           >

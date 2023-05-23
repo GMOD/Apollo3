@@ -92,19 +92,6 @@ export class FeaturesController {
   }
 
   /**
-   * Fetch min start and max end position for given refSeq
-   * @param request - Contain search criteria i.e. refSeq
-   * @returns Return 'HttpStatus.OK' and min start and max end -values of given refSeq if search was successful
-   * or if search data was not found or in case of error throw exception
-   */
-  @Validations(Role.ReadOnly)
-  @Get('getStartAndEnd')
-  getStartAndEnd(@Query() request: FeatureRangeSearchDto) {
-    this.logger.debug(`getStartAndEnd -method: "${request}"`)
-    return this.featuresService.findStartAndEnd(request)
-  }
-
-  /**
    * Get feature by featureId. When retrieving features by id, the features and any of its children are returned, but not any of its parent or sibling features.
    * @param featureid - featureId
    * @returns Return 'HttpStatus.OK' and the feature(s) if search was successful

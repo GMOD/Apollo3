@@ -14,7 +14,6 @@ import {
   RefSeqDocument,
 } from 'apollo-schemas'
 import { GetFeaturesOperation } from 'apollo-shared'
-import ObjectID from 'bson-objectid'
 import { Model } from 'mongoose'
 import StreamConcat from 'stream-concat'
 
@@ -203,37 +202,6 @@ export class FeaturesService {
     )
     const combinedStream = new StreamConcat([headerStream, featureStream])
     return [combinedStream, assembly]
-  }
-
-  /**
-   * Fetch min start and max end position for given refSeq
-   * @param request - Contain search criteria i.e. refSeq
-   * @returns Return 'HttpStatus.OK' and min start and max end -values of given refSeq if search was successful
-   * or if search data was not found or in case of error throw exception
-   */
-  async findStartAndEnd(searchDto: FeatureRangeSearchDto) {
-    const minMaxValues = await this.featureModel
-      .aggregate([
-        { $match: { refSeq: ObjectID(searchDto.refSeq), status: 0 } },
-        {
-          $group: {
-            _id: null,
-            minStart: { $min: '$start' },
-            maxEnd: { $max: '$end' },
-          },
-        },
-      ])
-      .exec()
-
-    this.logger.debug(
-      `MinStart and maxEnd for refSeq: "${
-        searchDto.refSeq
-      }" are ${JSON.stringify(minMaxValues[0])}`,
-    )
-    return {
-      minStart: minMaxValues[0].minStart,
-      maxEnd: minMaxValues[0].maxEnd,
-    }
   }
 
   /**
