@@ -27,7 +27,6 @@ import {
 } from 'apollo-schemas'
 import {
   DecodedJWT,
-  isCopyFeatureChange,
   makeUserSessionId,
   validationRegistry,
 } from 'apollo-shared'
@@ -239,25 +238,13 @@ export class ChangesService {
     const messages: ChangeMessage[] = []
 
     const userSessionId = makeUserSessionId(user)
-    if (isCopyFeatureChange(change)) {
-      for (const refName of refNames) {
-        messages.push({
-          changeInfo: change.toJSON(),
-          userName: user.username,
-          userSessionId,
-          channel: `${change.assembly}-${refName}`,
-          changeSequence: changeDoc.sequence,
-        })
-      }
-    } else {
-      messages.push({
-        changeInfo: change.toJSON(),
-        userName: user.username,
-        userSessionId,
-        channel: 'COMMON',
-        changeSequence: changeDoc.sequence,
-      })
-    }
+    messages.push({
+      changeInfo: change.toJSON(),
+      userName: user.username,
+      userSessionId,
+      channel: 'COMMON',
+      changeSequence: changeDoc.sequence,
+    })
 
     for (const message of messages) {
       this.logger.debug(
