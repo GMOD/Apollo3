@@ -165,7 +165,7 @@ export function ModifyFeatureAttribute({
     if (
       /^[A-Z]/.test(newAttributeKey) &&
       !reservedTerms.includes(newAttributeKey) &&
-      newAttributeKey !== 'GO'
+      !Array.from(reservedKeys.keys()).includes(newAttributeKey)
     ) {
       setErrorMessage(
         `Key cannot starts with uppercase letter unless key is one of these: ${reservedTerms.join(
