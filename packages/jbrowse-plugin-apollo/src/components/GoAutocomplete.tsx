@@ -44,7 +44,7 @@ export function GoAutocomplete({
           callback: (results: GOResult[]) => void,
         ) => {
           const response = await fetch(
-            `http://api.geneontology.org/api/search/entity/autocomplete/${request.input}?prefix=GO`,
+            `https://api.geneontology.org/api/search/entity/autocomplete/${request.input}?prefix=GO`,
           )
           const responseJson: GOResponse = await response.json()
           callback(responseJson.docs)
