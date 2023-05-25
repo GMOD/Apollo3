@@ -23,27 +23,26 @@ export class BoxGlyph extends Glyph {
     stateModel: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
     feature: AnnotationFeatureI,
-    x: number,
-    y: number,
+    xOffset: number,
+    row: number,
     reversed: boolean,
   ) {
-    const width = feature.end - feature.start
-    const { bpPerPx } = stateModel.lgv
-    const widthPx = width / bpPerPx
-    const startBp = reversed
-      ? feature.max - feature.end
-      : feature.start - feature.min
-    const startPx = startBp / bpPerPx
-    const rowHeight = stateModel.apolloRowHeight
-    ctx.fillStyle = stateModel.theme?.palette.text.primary || 'black'
-    ctx.fillRect(x + startPx, y, widthPx, rowHeight)
+    const { lgv, theme, apolloRowHeight: rowHeight } = stateModel
+    const { bpPerPx } = lgv
+    const offsetPx = (feature.start - feature.min) / bpPerPx
+    const widthPx = feature.length / bpPerPx
+    const startPx = reversed ? xOffset - offsetPx - widthPx : xOffset + offsetPx
+    const top = row * rowHeight
+    ctx.fillStyle = theme?.palette.text.primary || 'black'
+    ctx.fillRect(startPx, top, widthPx, rowHeight)
     if (widthPx > 2) {
-      ctx.clearRect(x + startPx + 1, y + 1, widthPx - 2, rowHeight - 2)
-      ctx.fillStyle = stateModel.theme?.palette.background.default || 'white'
-      ctx.fillRect(x + startPx + 1, y + 1, widthPx - 2, rowHeight - 2)
-      ctx.fillStyle = stateModel.theme?.palette.text.primary || 'black'
-      feature.type &&
-        ctx.fillText(feature.type, x + startPx + 1, y + 11, widthPx - 2)
+      ctx.clearRect(startPx + 1, top + 1, widthPx - 2, rowHeight - 2)
+      ctx.fillStyle = theme?.palette.background.default || 'white'
+      ctx.fillRect(startPx + 1, top + 1, widthPx - 2, rowHeight - 2)
+      ctx.fillStyle = theme?.palette.text.primary || 'black'
+      const textStart = Math.max(startPx + 1, 0)
+      const textWidth = startPx - 1 + widthPx - textStart
+      feature.type && ctx.fillText(feature.type, textStart, top + 11, textWidth)
     }
   }
 
@@ -61,22 +60,22 @@ export class BoxGlyph extends Glyph {
       return
     }
     const { x, regionNumber, refName } = mousePosition
-    // TODO: check reversed
-    // TODO: ensure feature is in interbase
-    const startPxInfo = stateModel.lgv.bpToPx({
+    const { lgv } = stateModel
+    const { offsetPx, bpToPx } = lgv
+    const startPxInfo = bpToPx({
       refName,
       coord: feature.start,
       regionNumber,
     })
-    const endPxInfo = stateModel.lgv.bpToPx({
+    const endPxInfo = bpToPx({
       refName,
       coord: feature.end,
       regionNumber,
     })
     if (startPxInfo !== undefined && endPxInfo !== undefined) {
-      const startPx = startPxInfo.offsetPx - stateModel.lgv.offsetPx
-      const endPx = endPxInfo.offsetPx - stateModel.lgv.offsetPx
-      if (endPx - startPx < 8) {
+      const startPx = startPxInfo.offsetPx - offsetPx
+      const endPx = endPxInfo.offsetPx - offsetPx
+      if (Math.abs(endPx - startPx) < 8) {
         return
       }
       if (Math.abs(startPx - x) < 4) {
@@ -90,58 +89,52 @@ export class BoxGlyph extends Glyph {
   }
 
   drawHover(stateModel: LinearApolloDisplay, ctx: CanvasRenderingContext2D) {
-    const hover = stateModel.apolloHover
-    if (!hover) {
+    const { apolloHover, lgv, apolloRowHeight, displayedRegions, theme } =
+      stateModel
+    if (!apolloHover) {
       return
     }
-    const { feature, mousePosition } = hover
+    const { feature, mousePosition } = apolloHover
     if (!feature) {
       return
     }
-    const { bpPerPx } = stateModel.lgv
-    const rowHeight = stateModel.apolloRowHeight
-    const displayedRegion =
-      stateModel.displayedRegions[mousePosition.regionNumber]
-
-    const x =
-      (stateModel.lgv.bpToPx({
-        refName: displayedRegion.refName,
-        coord: feature.min,
-        regionNumber: mousePosition.regionNumber,
-      })?.offsetPx || 0) - stateModel.lgv.offsetPx
-    const row = Math.floor(mousePosition.y / rowHeight)
-    const y = row * rowHeight
-
-    const width = feature.end - feature.start
-    const widthPx = width / bpPerPx
-    const startBp = displayedRegion.reversed
-      ? feature.max - feature.end
-      : feature.start - feature.min
-    const startPx = startBp / bpPerPx
-    ctx.fillStyle = stateModel.theme?.palette.action.focus || 'rgba(0,0,0,0.04)'
-    ctx.fillRect(x + startPx, y, widthPx, rowHeight)
+    const { bpPerPx, bpToPx, offsetPx } = lgv
+    const displayedRegion = displayedRegions[mousePosition.regionNumber]
+    const { refName, reversed } = displayedRegion
+    const { start, end, length } = feature
+    const { regionNumber, y } = mousePosition
+    const startPx =
+      (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
+        ?.offsetPx || 0) - offsetPx
+    const row = Math.floor(y / apolloRowHeight)
+    const top = row * apolloRowHeight
+    const widthPx = length / bpPerPx
+    ctx.fillStyle = theme?.palette.action.focus || 'rgba(0,0,0,0.04)'
+    ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
   }
 
   drawDragPreview(
     stateModel: LinearApolloDisplay,
     overlayCtx: CanvasRenderingContext2D,
   ) {
-    const { apolloDragging: dragging } = stateModel
-    if (!dragging) {
+    const { apolloDragging, lgv, apolloRowHeight, displayedRegions, theme } =
+      stateModel
+    const { bpPerPx, offsetPx } = lgv
+    if (!apolloDragging) {
       return
     }
     const {
       feature,
       glyph,
       mousePosition: startingMousePosition,
-    } = dragging.start
+    } = apolloDragging.start
     if (!feature) {
       throw new Error('no feature for drag preview??')
     }
     if (glyph !== this) {
       throw new Error('drawDragPreview() called on wrong glyph?')
     }
-    const { mousePosition: currentMousePosition } = dragging.current
+    const { mousePosition: currentMousePosition } = apolloDragging.current
     const edge = this.isMouseOnFeatureEdge(
       startingMousePosition,
       feature,
@@ -151,28 +144,25 @@ export class BoxGlyph extends Glyph {
       return
     }
 
-    const row = Math.floor(startingMousePosition.y / stateModel.apolloRowHeight)
-    const region =
-      stateModel.displayedRegions[startingMousePosition.regionNumber]
-    const rowCount = this.getRowCount(feature, stateModel.lgv.bpPerPx)
+    const row = Math.floor(startingMousePosition.y / apolloRowHeight)
+    const region = displayedRegions[startingMousePosition.regionNumber]
+    const rowCount = this.getRowCount(feature, bpPerPx)
 
     const featureEdgeBp = region.reversed
       ? region.end - feature[edge]
       : feature[edge] - region.start
-    const featureEdgePx =
-      featureEdgeBp / stateModel.lgv.bpPerPx - stateModel.lgv.offsetPx
+    const featureEdgePx = featureEdgeBp / bpPerPx - offsetPx
 
     const rectX = Math.min(currentMousePosition.x, featureEdgePx)
-    const rectY = row * stateModel.apolloRowHeight
+    const rectY = row * apolloRowHeight
     const rectWidth = Math.abs(currentMousePosition.x - featureEdgePx)
-    const rectHeight = stateModel.apolloRowHeight * rowCount
+    const rectHeight = apolloRowHeight * rowCount
 
-    overlayCtx.strokeStyle =
-      stateModel.theme?.palette.info.main || 'rgb(255,0,0)'
+    overlayCtx.strokeStyle = theme?.palette.info.main || 'rgb(255,0,0)'
     overlayCtx.setLineDash([6])
     overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
     overlayCtx.fillStyle = alpha(
-      stateModel.theme?.palette.info.main || 'rgb(255,0,0)',
+      theme?.palette.info.main || 'rgb(255,0,0)',
       0.2,
     )
     overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
@@ -230,22 +220,27 @@ export class BoxGlyph extends Glyph {
   }
 
   executeDrag(stateModel: LinearApolloDisplay) {
-    const { apolloDragging: dragging } = stateModel
-    if (!dragging) {
+    const {
+      apolloDragging,
+      displayedRegions,
+      getAssemblyId,
+      changeManager,
+      setCursor,
+    } = stateModel
+    if (!apolloDragging) {
       return
     }
     const {
       feature,
       glyph,
       mousePosition: startingMousePosition,
-    } = dragging.start
+    } = apolloDragging.start
     if (!feature) {
       throw new Error('no feature for drag preview??')
     }
     if (glyph !== this) {
       throw new Error('drawDragPreview() called on wrong glyph?')
     }
-    const { mousePosition: currentMousePosition } = dragging.current
     const edge = this.isMouseOnFeatureEdge(
       startingMousePosition,
       feature,
@@ -255,19 +250,10 @@ export class BoxGlyph extends Glyph {
       return
     }
 
-    const region =
-      stateModel.displayedRegions[startingMousePosition.regionNumber]
-    const featureEdgeBp = region.reversed
-      ? region.end - feature[edge]
-      : feature[edge] - region.start
-    const featureEdgePx =
-      featureEdgeBp / stateModel.lgv.bpPerPx - stateModel.lgv.offsetPx
-
-    const newBp = Math.round(
-      featureEdgeBp +
-        (currentMousePosition.x - featureEdgePx) * stateModel.lgv.bpPerPx,
-    )
-    const assembly = stateModel.getAssemblyId(region.assemblyName)
+    const { mousePosition: currentMousePosition } = apolloDragging.current
+    const region = displayedRegions[startingMousePosition.regionNumber]
+    const newBp = currentMousePosition.bp
+    const assembly = getAssemblyId(region.assemblyName)
     let change: LocationEndChange | LocationStartChange
     if (edge === 'end') {
       const featureId = feature._id
@@ -294,19 +280,14 @@ export class BoxGlyph extends Glyph {
         assembly,
       })
     }
-    if (!stateModel.changeManager) {
+    if (!changeManager) {
       throw new Error('no change manager')
     }
-    stateModel.changeManager.submit(change)
-    stateModel.setCursor(undefined)
+    changeManager.submit(change)
+    setCursor(undefined)
   }
 
   getContextMenuItems(stateModel: LinearApolloDisplay): MenuItem[] {
-    const { getRole } = stateModel.apolloInternetAccount
-    const role = getRole()
-    const admin = role === 'admin'
-    const readOnly = !Boolean(role && ['admin', 'user'].includes(role))
-    const menuItems: MenuItem[] = []
     const {
       apolloContextMenuFeature: sourceFeature,
       apolloInternetAccount: internetAccount,
@@ -315,6 +296,11 @@ export class BoxGlyph extends Glyph {
       session,
       regions,
     } = stateModel
+    const { getRole } = internetAccount
+    const role = getRole()
+    const admin = role === 'admin'
+    const readOnly = !Boolean(role && ['admin', 'user'].includes(role))
+    const menuItems: MenuItem[] = []
     if (sourceFeature) {
       const [region] = regions
       const sourceAssemblyId = getAssemblyId(region.assemblyName)

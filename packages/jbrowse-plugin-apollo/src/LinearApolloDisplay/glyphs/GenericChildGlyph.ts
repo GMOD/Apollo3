@@ -22,74 +22,52 @@ export class GenericChildGlyph extends Glyph {
     stateModel: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
     feature: AnnotationFeatureI,
-    x: number,
-    y: number,
+    xOffset: number,
+    row: number,
     reversed: boolean,
   ) {
-    const rowHeight = stateModel.apolloRowHeight
-    const { lgv } = stateModel
-    const { bpPerPx } = lgv
     for (let i = 0; i < this.getRowCount(feature); i++) {
-      this.drawRow(
-        i,
-        ctx,
-        x,
-        y + i * rowHeight,
-        bpPerPx,
-        rowHeight,
-        feature,
-        reversed,
-      )
+      this.drawRow(stateModel, ctx, feature, xOffset, row + i, row, reversed)
     }
   }
 
   drawRow(
-    rowNumber: number,
+    stateModel: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
+    topLevelFeature: AnnotationFeatureI,
     xOffset: number,
-    yOffset: number,
-    bpPerPx: number,
-    rowHeight: number,
-    f: AnnotationFeatureI,
-    reversed?: boolean,
+    row: number,
+    topRow: number,
+    reversed: boolean,
   ) {
-    const features = this.featuresForRow(f)[rowNumber]
+    const features = this.featuresForRow(topLevelFeature)[row - topRow]
+    const { lgv, apolloRowHeight } = stateModel
+    const { bpPerPx } = lgv
+    const top = row * apolloRowHeight
 
     features.forEach((feature) => {
-      const width = feature.end - feature.start
-      const widthPx = width / bpPerPx
-      const startBp = reversed ? f.end - feature.end : feature.start - f.start
-      const startPx = startBp / bpPerPx
+      const offsetPx = (feature.start - topLevelFeature.min) / bpPerPx
+      const widthPx = feature.length / bpPerPx
+      const startPx = reversed
+        ? xOffset - offsetPx - widthPx
+        : xOffset + offsetPx
       const rowCount = this.getRowCount(feature)
       if (rowCount > 1) {
-        const featureHeight = rowCount * rowHeight
+        const featureHeight = rowCount * apolloRowHeight
         ctx.fillStyle = 'rgba(255,0,0,0.25)'
-        ctx.fillRect(xOffset + startPx, yOffset, widthPx, featureHeight)
+        ctx.fillRect(startPx, top, widthPx, featureHeight)
       }
       ctx.fillStyle = 'black'
-      ctx.fillRect(xOffset + startPx, yOffset, widthPx, rowHeight)
+      ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
       if (widthPx > 2) {
-        ctx.clearRect(
-          xOffset + startPx + 1,
-          yOffset + 1,
-          widthPx - 2,
-          rowHeight - 2,
-        )
+        ctx.clearRect(startPx + 1, top + 1, widthPx - 2, apolloRowHeight - 2)
         ctx.fillStyle = 'rgba(255,255,255,0.75)'
-        ctx.fillRect(
-          xOffset + startPx + 1,
-          yOffset + 1,
-          widthPx - 2,
-          rowHeight - 2,
-        )
+        ctx.fillRect(startPx + 1, top + 1, widthPx - 2, apolloRowHeight - 2)
         ctx.fillStyle = 'black'
+        const textStart = Math.max(startPx + 1, 0)
+        const textWidth = startPx - 1 + widthPx - textStart
         feature.type &&
-          ctx.fillText(
-            feature.type,
-            xOffset + startPx + 1,
-            yOffset + 11,
-            widthPx - 2,
-          )
+          ctx.fillText(feature.type, textStart, top + 11, textWidth)
       }
     })
     if (features.length > 1) {
@@ -99,49 +77,40 @@ export class GenericChildGlyph extends Glyph {
         end = Math.max(end, feature.end)
       })
       const width = end - start
-      const startPx = (start - f.start) / bpPerPx
+      const startPx = (start - topLevelFeature.start) / bpPerPx
       const widthPx = width / bpPerPx
       ctx.fillStyle = 'rgba(0,255,255,0.2)'
-      ctx.fillRect(
-        xOffset + startPx + 1,
-        yOffset + 1,
-        widthPx - 2,
-        rowHeight - 2,
-      )
+      ctx.fillRect(startPx + 1, top + 1, widthPx - 2, apolloRowHeight - 2)
     }
   }
 
   drawHover(stateModel: LinearApolloDisplay, ctx: CanvasRenderingContext2D) {
-    const { apolloHover, apolloRowHeight, lgv } = stateModel
+    const { apolloHover, lgv, apolloRowHeight, displayedRegions } = stateModel
     if (!apolloHover) {
       return
     }
-    const { bpPerPx } = lgv
     const { feature, mousePosition } = apolloHover
-    const rowNumber = Math.floor(mousePosition.y / apolloRowHeight)
-    const { regionNumber } = mousePosition
-    const displayedRegion = stateModel.displayedRegions[regionNumber]
-    if (feature && rowNumber !== undefined) {
-      // const start = displayedRegion.reversed
-      //   ? displayedRegion.end - feature.end
-      //   : feature.start - displayedRegion.start - 1
-      const width = feature.length
-      // const startPx = start / bpPerPx
-      const widthPx = width / bpPerPx
-      ctx.fillStyle = 'rgba(0,0,0,0.2)'
-      const x =
-        (stateModel.lgv.bpToPx({
-          refName: displayedRegion.refName,
-          coord: feature.min,
-          regionNumber,
-        })?.offsetPx || 0) - stateModel.lgv.offsetPx
-      ctx.fillRect(
-        x,
-        rowNumber * apolloRowHeight,
-        widthPx,
-        apolloRowHeight * this.getRowCount(feature),
-      )
+    if (!feature) {
+      return
     }
+    const { regionNumber, y } = mousePosition
+    const displayedRegion = displayedRegions[regionNumber]
+    const { refName, reversed } = displayedRegion
+    const { bpPerPx, bpToPx, offsetPx } = lgv
+    const { start, end, length } = feature
+    const startPx =
+      (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
+        ?.offsetPx || 0) - offsetPx
+    const row = Math.floor(y / apolloRowHeight)
+    const top = row * apolloRowHeight
+    const widthPx = length / bpPerPx
+    ctx.fillStyle = 'rgba(0,0,0,0.2)'
+    ctx.fillRect(
+      startPx,
+      top,
+      widthPx,
+      apolloRowHeight * this.getRowCount(feature),
+    )
   }
 
   getFeatureFromLayout(feature: AnnotationFeatureI, bp: number, row: number) {

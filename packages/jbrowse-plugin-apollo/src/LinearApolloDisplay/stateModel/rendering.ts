@@ -135,30 +135,28 @@ export function renderingModelFactory(
                   if (featureRow > 0) {
                     return
                   }
+                  if (
+                    !doesIntersect2(
+                      displayedRegion.start,
+                      displayedRegion.end,
+                      feature.min,
+                      feature.max,
+                    )
+                  ) {
+                    return
+                  }
                   const x =
                     (self.lgv.bpToPx({
                       refName: displayedRegion.refName,
                       coord: feature.min,
                       regionNumber: idx,
                     })?.offsetPx || 0) - self.lgv.offsetPx
-                  const widthPx = (feature.max - feature.min) / self.lgv.bpPerPx
-                  if (
-                    !doesIntersect2(
-                      0,
-                      self.lgv.dynamicBlocks.totalWidthPx,
-                      x,
-                      x + widthPx,
-                    )
-                  ) {
-                    return
-                  }
-
                   getGlyph(feature, self.lgv.bpPerPx).draw(
                     self,
                     ctx,
                     feature,
                     x,
-                    row * self.apolloRowHeight,
+                    row,
                     displayedRegion.reversed,
                   )
                 })

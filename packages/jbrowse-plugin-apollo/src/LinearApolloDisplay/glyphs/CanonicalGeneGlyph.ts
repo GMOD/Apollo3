@@ -55,9 +55,9 @@ export class CanonicalGeneGlyph extends Glyph {
     stateModel: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
     feature: AnnotationFeatureI,
-    x: number,
-    y: number,
-    reversed?: boolean,
+    xOffset: number,
+    row: number,
+    reversed: boolean,
   ): void {
     const { theme, lgv } = stateModel
     const { bpPerPx } = lgv
@@ -74,13 +74,17 @@ export class CanonicalGeneGlyph extends Glyph {
         if (cds.type !== 'CDS') {
           return
         }
-        const startX = (mrna.start - feature.min) / bpPerPx + x
+        const offsetPx = (mrna.start - feature.min) / bpPerPx
+        const widthPx = mrna.length / bpPerPx
+        const startPx = reversed
+          ? xOffset - offsetPx - widthPx
+          : xOffset + offsetPx
         const height =
-          Math.round((currentCDS + 1) * rowHeight - rowHeight / 2) + y
+          Math.round((currentCDS + 1 / 2) * rowHeight) + row * rowHeight
         ctx.strokeStyle = theme?.palette.text.primary || 'black'
         ctx.beginPath()
-        ctx.moveTo(startX, height)
-        ctx.lineTo(startX + mrna.length / bpPerPx, height)
+        ctx.moveTo(startPx, height)
+        ctx.lineTo(startPx + widthPx, height)
         ctx.stroke()
         currentCDS += 1
       })
@@ -98,44 +102,36 @@ export class CanonicalGeneGlyph extends Glyph {
           if (exon.type !== 'exon') {
             return
           }
+          const offsetPx = (exon.start - feature.min) / bpPerPx
           const widthPx = exon.length / bpPerPx
-          const startBp = reversed
-            ? feature.max - exon.end
-            : exon.start - feature.min
-          const startPx = startBp / bpPerPx
+          const startPx = reversed
+            ? xOffset - offsetPx - widthPx
+            : xOffset + offsetPx
+          const top = (row + currentCDS) * rowHeight
+          const utrTop = top + (rowHeight - utrHeight) / 2
           ctx.fillStyle = theme?.palette.text.primary || 'black'
-          const yOffset = currentCDS * rowHeight + (rowHeight - utrHeight) / 2
-          ctx.fillRect(x + startPx, y + yOffset, widthPx, utrHeight)
+          ctx.fillRect(startPx, utrTop, widthPx, utrHeight)
           if (widthPx > 2) {
-            ctx.clearRect(
-              x + startPx + 1,
-              y + yOffset + 1,
-              widthPx - 2,
-              utrHeight - 2,
-            )
+            ctx.clearRect(startPx + 1, utrTop + 1, widthPx - 2, utrHeight - 2)
             ctx.fillStyle = 'rgb(211,211,211)'
-            ctx.fillRect(
-              x + startPx + 1,
-              y + yOffset + 1,
-              widthPx - 2,
-              utrHeight - 2,
-            )
+            ctx.fillRect(startPx + 1, utrTop + 1, widthPx - 2, utrHeight - 2)
             if (forwardFill && backwardFill && strand) {
+              const reversal = reversed ? -1 : 1
               const [topFill, bottomFill] =
-                strand === 1
+                strand * reversal === 1
                   ? [forwardFill, backwardFill]
                   : [backwardFill, forwardFill]
               ctx.fillStyle = topFill
               ctx.fillRect(
-                x + startPx + 1,
-                y + yOffset + 1,
+                startPx + 1,
+                utrTop + 1,
                 widthPx - 2,
                 (utrHeight - 2) / 2,
               )
               ctx.fillStyle = bottomFill
               ctx.fillRect(
-                x + startPx + 1,
-                y + yOffset + 1 + (utrHeight - 2) / 2,
+                startPx + 1,
+                utrTop + 1 + (utrHeight - 2) / 2,
                 widthPx - 2,
                 (utrHeight - 2) / 2,
               )
@@ -155,45 +151,36 @@ export class CanonicalGeneGlyph extends Glyph {
           return
         }
         cds.discontinuousLocations?.forEach((cdsLocation) => {
+          const offsetPx = (cdsLocation.start - feature.min) / bpPerPx
           const widthPx = (cdsLocation.end - cdsLocation.start) / bpPerPx
-          const startBp = reversed
-            ? feature.max - cdsLocation.end
-            : cdsLocation.start - feature.min
-          const startPx = startBp / bpPerPx
+          const startPx = reversed
+            ? xOffset - offsetPx - widthPx
+            : xOffset + offsetPx
           ctx.fillStyle = theme?.palette.text.primary || 'black'
-          const yOffset = currentCDS * rowHeight + (rowHeight - cdsHeight) / 2
-          ctx.fillRect(x + startPx, y + yOffset, widthPx, cdsHeight)
+          const top = (row + currentCDS) * rowHeight
+          const cdsTop = top + (rowHeight - cdsHeight) / 2
+          ctx.fillRect(startPx, cdsTop, widthPx, cdsHeight)
           if (widthPx > 2) {
-            ctx.clearRect(
-              x + startPx + 1,
-              y + yOffset + 1,
-              widthPx - 2,
-              cdsHeight - 2,
-            )
-
+            ctx.clearRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
             ctx.fillStyle = 'rgb(255,165,0)'
-            ctx.fillRect(
-              x + startPx + 1,
-              y + yOffset + 1,
-              widthPx - 2,
-              cdsHeight - 2,
-            )
+            ctx.fillRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
             if (forwardFill && backwardFill && strand) {
+              const reversal = reversed ? -1 : 1
               const [topFill, bottomFill] =
-                strand === 1
+                strand * reversal === 1
                   ? [forwardFill, backwardFill]
                   : [backwardFill, forwardFill]
               ctx.fillStyle = topFill
               ctx.fillRect(
-                x + startPx + 1,
-                y + yOffset + 1,
+                startPx + 1,
+                cdsTop + 1,
                 widthPx - 2,
                 (cdsHeight - 2) / 2,
               )
               ctx.fillStyle = bottomFill
               ctx.fillRect(
-                x + startPx + 1,
-                y + yOffset + 1 + (cdsHeight - 2) / 2,
+                startPx + 1,
+                cdsTop + (cdsHeight - 2) / 2,
                 widthPx - 2,
                 (cdsHeight - 2) / 2,
               )

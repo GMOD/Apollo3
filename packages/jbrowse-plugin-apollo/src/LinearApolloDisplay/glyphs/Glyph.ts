@@ -15,8 +15,8 @@ export abstract class Glyph {
     display: LinearApolloDisplayRendering,
     ctx: CanvasRenderingContext2D,
     feature: AnnotationFeatureI,
-    x: number,
-    y: number,
+    xOffset: number,
+    row: number,
     reversed: boolean,
   ): void
 

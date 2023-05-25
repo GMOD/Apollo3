@@ -53,8 +53,8 @@ export class ImplicitExonGeneGlyph extends Glyph {
     stateModel: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
     feature: AnnotationFeatureI,
-    x: number,
-    y: number,
+    xOffset: number,
+    row: number,
     reversed?: boolean,
   ): void {
     const { theme, lgv } = stateModel
@@ -68,13 +68,17 @@ export class ImplicitExonGeneGlyph extends Glyph {
       if (mrna.type !== 'mRNA') {
         return
       }
-      const startX = (mrna.start - feature.min) / bpPerPx + x
+      const offsetPx = (mrna.start - feature.min) / bpPerPx
+      const widthPx = mrna.length / bpPerPx
+      const startPx = reversed
+        ? xOffset - offsetPx - widthPx
+        : xOffset + offsetPx
       const height =
-        Math.round((currentMRNA + 1) * rowHeight - rowHeight / 2) + y
+        Math.round((currentMRNA + 1 / 2) * rowHeight) + row * rowHeight
       ctx.strokeStyle = theme?.palette.text.primary || 'black'
       ctx.beginPath()
-      ctx.moveTo(startX, height)
-      ctx.lineTo(startX + mrna.length / bpPerPx, height)
+      ctx.moveTo(startPx, height)
+      ctx.lineTo(startPx + widthPx, height)
       ctx.stroke()
       currentMRNA += 1
     })
@@ -93,45 +97,37 @@ export class ImplicitExonGeneGlyph extends Glyph {
           if (!(isCDS || isUTR)) {
             return
           }
+          const offsetPx = (cdsOrUTR.start - feature.min) / bpPerPx
           const widthPx = cdsOrUTR.length / bpPerPx
-          const startBp = reversed
-            ? feature.max - cdsOrUTR.end
-            : cdsOrUTR.start - feature.min
-          const startPx = startBp / bpPerPx
+          const startPx = reversed
+            ? xOffset - offsetPx - widthPx
+            : xOffset + offsetPx
           ctx.fillStyle = theme?.palette.text.primary || 'black'
+          const top = (row + currentMRNA) * rowHeight
           const height = isCDS ? cdsHeight : utrHeight
-          const yOffset = currentMRNA * rowHeight + (rowHeight - height) / 2
-          ctx.fillRect(x + startPx, y + yOffset, widthPx, height)
+          const cdsOrUTRTop = top + (rowHeight - height) / 2
+          ctx.fillRect(startPx, cdsOrUTRTop, widthPx, height)
           if (widthPx > 2) {
-            ctx.clearRect(
-              x + startPx + 1,
-              y + yOffset + 1,
-              widthPx - 2,
-              height - 2,
-            )
+            ctx.clearRect(startPx + 1, cdsOrUTRTop + 1, widthPx - 2, height - 2)
             ctx.fillStyle = isCDS ? 'rgb(255,165,0)' : 'rgb(211,211,211)'
-            ctx.fillRect(
-              x + startPx + 1,
-              y + yOffset + 1,
-              widthPx - 2,
-              height - 2,
-            )
+            ctx.fillRect(startPx + 1, cdsOrUTRTop + 1, widthPx - 2, height - 2)
             if (forwardFill && backwardFill && strand) {
+              const reversal = reversed ? -1 : 1
               const [topFill, bottomFill] =
-                strand === 1
+                strand * reversal === 1
                   ? [forwardFill, backwardFill]
                   : [backwardFill, forwardFill]
               ctx.fillStyle = topFill
               ctx.fillRect(
-                x + startPx + 1,
-                y + yOffset + 1,
+                startPx + 1,
+                cdsOrUTRTop + 1,
                 widthPx - 2,
                 (height - 2) / 2,
               )
               ctx.fillStyle = bottomFill
               ctx.fillRect(
-                x + startPx + 1,
-                y + yOffset + 1 + (height - 2) / 2,
+                startPx + 1,
+                cdsOrUTRTop + 1 + (height - 2) / 2,
                 widthPx - 2,
                 (height - 2) / 2,
               )
@@ -144,46 +140,45 @@ export class ImplicitExonGeneGlyph extends Glyph {
   }
 
   drawHover(stateModel: LinearApolloDisplay, ctx: CanvasRenderingContext2D) {
-    const hover = stateModel.apolloHover
-    if (!hover) {
+    const {
+      apolloHover,
+      apolloRowHeight,
+      featureLayouts,
+      lgv,
+      displayedRegions,
+      theme,
+    } = stateModel
+    if (!apolloHover) {
       return
     }
-    const { topLevelFeature, mousePosition } = hover
+    const { topLevelFeature, mousePosition } = apolloHover
     if (!topLevelFeature) {
       return
     }
-    const rowHeight = stateModel.apolloRowHeight
-    const rowNumber = Math.floor(mousePosition.y / rowHeight)
-    const { featureLayouts } = stateModel
-    const layout = featureLayouts[mousePosition.regionNumber]
+    const { regionNumber, y } = mousePosition
+    const { bpPerPx, bpToPx, offsetPx } = lgv
+    const rowHeight = apolloRowHeight
+    const rowNumber = Math.floor(y / rowHeight)
+    const layout = featureLayouts[regionNumber]
     const row = layout.get(rowNumber)
-    const featureRowEntry = row?.find(
-      ([, feature]) => feature._id === topLevelFeature._id,
-    )
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const { _id, start, end, length } = topLevelFeature
+    const featureRowEntry = row?.find(([, feature]) => feature._id === _id)
     if (!featureRowEntry) {
       return
     }
-    const displayedRegion =
-      stateModel.displayedRegions[mousePosition.regionNumber]
-    const x =
-      (stateModel.lgv.bpToPx({
-        refName: displayedRegion.refName,
-        coord: topLevelFeature.min,
-        regionNumber: mousePosition.regionNumber,
-      })?.offsetPx || 0) - stateModel.lgv.offsetPx
+    const displayedRegion = displayedRegions[regionNumber]
+    const { refName, reversed } = displayedRegion
+    const startPx =
+      (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
+        ?.offsetPx || 0) - offsetPx
     const [featureRowNumber] = featureRowEntry
     const topRowNumber = rowNumber - featureRowNumber
-    const y = topRowNumber * rowHeight
-    const { bpPerPx } = stateModel.lgv
-    const width = topLevelFeature.end - topLevelFeature.start
-    const widthPx = width / bpPerPx
-    const startBp = displayedRegion.reversed
-      ? topLevelFeature.max - topLevelFeature.end
-      : topLevelFeature.start - topLevelFeature.min
-    const startPx = startBp / bpPerPx
-    ctx.fillStyle = stateModel.theme?.palette.action.focus || 'rgba(0,0,0,0.04)'
+    const top = topRowNumber * rowHeight
+    const widthPx = length / bpPerPx
+    ctx.fillStyle = theme?.palette.action.focus || 'rgba(0,0,0,0.04)'
     const height = this.getRowCount(topLevelFeature, bpPerPx) * rowHeight
-    ctx.fillRect(x + startPx, y, widthPx, height)
+    ctx.fillRect(startPx, top, widthPx, height)
   }
 
   onMouseUp(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
