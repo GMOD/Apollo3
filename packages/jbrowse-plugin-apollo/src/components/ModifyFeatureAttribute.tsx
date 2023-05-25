@@ -207,6 +207,10 @@ export function ModifyFeatureAttribute({
     }
   }
 
+  const hasEmptyAttributes = Object.values(attributes).some(
+    (value) => value.length === 0 || value.some((v) => v === ''),
+  )
+
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Feature attributes</DialogTitle>
@@ -343,7 +347,11 @@ export function ModifyFeatureAttribute({
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button variant="contained" type="submit" disabled={showAddNewForm}>
+          <Button
+            variant="contained"
+            type="submit"
+            disabled={showAddNewForm || hasEmptyAttributes}
+          >
             Submit changes
           </Button>
           <Button
