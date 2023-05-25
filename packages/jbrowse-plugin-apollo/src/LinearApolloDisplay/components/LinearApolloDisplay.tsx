@@ -1,7 +1,7 @@
 import { Menu, MenuItem } from '@jbrowse/core/ui'
 import { getContainingView } from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { useTheme } from '@mui/material'
+import { Alert, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
@@ -22,6 +22,10 @@ const useStyles = makeStyles()({
     position: 'absolute',
     left: 0,
   },
+  ellipses: {
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+  },
 })
 
 export const LinearApolloDisplay = observer(
@@ -39,6 +43,7 @@ export const LinearApolloDisplay = observer(
       cursor,
       setTheme,
       contextMenuItems: getContextMenuItems,
+      regionCannotBeRendered,
     } = model
     const { classes } = useStyles()
     const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
@@ -46,6 +51,7 @@ export const LinearApolloDisplay = observer(
     useEffect(() => setTheme(theme), [theme, setTheme])
     const [contextCoord, setContextCoord] = useState<Coord>()
     const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
+    const message = regionCannotBeRendered()
 
     return (
       <div
@@ -66,50 +72,60 @@ export const LinearApolloDisplay = observer(
           }
         }}
       >
-        <canvas
-          ref={(node) => {
-            setCanvas(node)
-          }}
-          width={lgv.dynamicBlocks.totalWidthPx}
-          height={featuresHeight}
-          className={classes.canvas}
-        />
-        <canvas
-          ref={(node) => {
-            setOverlayCanvas(node)
-          }}
-          width={lgv.dynamicBlocks.totalWidthPx}
-          height={featuresHeight}
-          onMouseMove={onMouseMove}
-          onMouseLeave={onMouseLeave}
-          onMouseDown={onMouseDown}
-          onMouseUp={onMouseUp}
-          className={classes.canvas}
-          style={{ cursor: cursor || 'default' }}
-        />
-        <Menu
-          open={Boolean(contextMenuItems.length)}
-          onMenuItemClick={(_, callback) => {
-            callback()
-            setContextMenuItems([])
-          }}
-          onClose={() => {
-            setContextMenuItems([])
-          }}
-          TransitionProps={{
-            onExit: () => {
-              setContextMenuItems([])
-            },
-          }}
-          anchorReference="anchorPosition"
-          anchorPosition={
-            contextCoord
-              ? { top: contextCoord[1], left: contextCoord[0] }
-              : undefined
-          }
-          style={{ zIndex: theme.zIndex.tooltip }}
-          menuItems={contextMenuItems}
-        />
+        {message ? (
+          <Alert severity="warning" classes={{ message: classes.ellipses }}>
+            <Tooltip title={message}>
+              <div>{message}</div>
+            </Tooltip>
+          </Alert>
+        ) : (
+          <>
+            <canvas
+              ref={(node) => {
+                setCanvas(node)
+              }}
+              width={lgv.dynamicBlocks.totalWidthPx}
+              height={featuresHeight}
+              className={classes.canvas}
+            />
+            <canvas
+              ref={(node) => {
+                setOverlayCanvas(node)
+              }}
+              width={lgv.dynamicBlocks.totalWidthPx}
+              height={featuresHeight}
+              onMouseMove={onMouseMove}
+              onMouseLeave={onMouseLeave}
+              onMouseDown={onMouseDown}
+              onMouseUp={onMouseUp}
+              className={classes.canvas}
+              style={{ cursor: cursor || 'default' }}
+            />
+            <Menu
+              open={Boolean(contextMenuItems.length)}
+              onMenuItemClick={(_, callback) => {
+                callback()
+                setContextMenuItems([])
+              }}
+              onClose={() => {
+                setContextMenuItems([])
+              }}
+              TransitionProps={{
+                onExit: () => {
+                  setContextMenuItems([])
+                },
+              }}
+              anchorReference="anchorPosition"
+              anchorPosition={
+                contextCoord
+                  ? { top: contextCoord[1], left: contextCoord[0] }
+                  : undefined
+              }
+              style={{ zIndex: theme.zIndex.tooltip }}
+              menuItems={contextMenuItems}
+            />
+          </>
+        )}
       </div>
     )
   },
