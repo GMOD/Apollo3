@@ -26,6 +26,7 @@ export function renderingModelIntermediateFactory(
     .volatile(() => ({
       canvas: null as HTMLCanvasElement | null,
       overlayCanvas: null as HTMLCanvasElement | null,
+      collaboratorCanvas: null as HTMLCanvasElement | null,
       theme: undefined as Theme | undefined,
     }))
     .views((self) => ({
@@ -48,6 +49,9 @@ export function renderingModelIntermediateFactory(
       setOverlayCanvas(canvas: HTMLCanvasElement | null) {
         self.overlayCanvas = canvas
       },
+      setCollaboratorCanvas(canvas: HTMLCanvasElement | null) {
+        self.collaboratorCanvas = canvas
+      },
       setTheme(theme: Theme) {
         self.theme = theme
       },
@@ -59,37 +63,51 @@ export function renderingModelIntermediateFactory(
               if (!self.lgv.initialized || self.regionCannotBeRendered()) {
                 return
               }
-              const ctx = self.overlayCanvas?.getContext('2d')
+              const ctx = self.collaboratorCanvas?.getContext('2d')
               if (!ctx) {
                 return
               }
+              ctx.clearRect(
+                0,
+                0,
+                self.lgv.dynamicBlocks.totalWidthPx,
+                self.featuresHeight,
+              )
               for (const collaborator of self.session
                 .collaborators as Collaborator[]) {
                 const { locations } = collaborator
                 if (!locations.length) {
                   continue
                 }
-                for (const location of locations) {
-                  const { start, end, refName } = location
-                  const locationStartPxInfo = self.lgv.bpToPx({
-                    refName,
-                    coord: start,
-                  })
-                  if (!locationStartPxInfo) {
-                    continue
+                let idx = 0
+                for (const displayedRegion of self.lgv.displayedRegions) {
+                  for (const location of locations) {
+                    if (location.refSeq !== displayedRegion.refName) {
+                      continue
+                    }
+                    const { start, end, refSeq } = location
+                    const locationStartPxInfo = self.lgv.bpToPx({
+                      refName: refSeq,
+                      coord: start,
+                      regionNumber: idx,
+                    })
+                    if (!locationStartPxInfo) {
+                      continue
+                    }
+                    const locationStartPx =
+                      locationStartPxInfo.offsetPx - self.lgv.offsetPx
+                    const locationWidthPx = (end - start) / self.lgv.bpPerPx
+                    ctx.fillStyle = 'rgba(0,255,0,.2)'
+                    ctx.fillRect(locationStartPx, 1, locationWidthPx, 100)
+                    ctx.fillStyle = 'black'
+                    ctx.fillText(
+                      collaborator.name,
+                      locationStartPx + 1,
+                      11,
+                      locationWidthPx - 2,
+                    )
                   }
-                  const locationStartPx =
-                    locationStartPxInfo.offsetPx - self.lgv.offsetPx
-                  const locationWidthPx = (end - start) / self.lgv.bpPerPx
-                  ctx.fillStyle = 'rgba(0,255,0,.2)'
-                  ctx.fillRect(locationStartPx, 1, locationWidthPx, 100)
-                  ctx.fillStyle = 'black'
-                  ctx.fillText(
-                    collaborator.name,
-                    locationStartPx + 1,
-                    11,
-                    locationWidthPx - 2,
-                  )
+                  idx++
                 }
               }
             },

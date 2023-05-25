@@ -36,6 +36,7 @@ export const LinearApolloDisplay = observer(
       featuresHeight,
       setCanvas,
       setOverlayCanvas,
+      setCollaboratorCanvas,
       onMouseMove,
       onMouseLeave,
       onMouseDown,
@@ -80,6 +81,14 @@ export const LinearApolloDisplay = observer(
           </Alert>
         ) : (
           <>
+            <canvas
+              ref={(node) => {
+                setCollaboratorCanvas(node)
+              }}
+              width={lgv.dynamicBlocks.totalWidthPx}
+              height={featuresHeight}
+              className={classes.canvas}
+            />
             <canvas
               ref={(node) => {
                 setCanvas(node)

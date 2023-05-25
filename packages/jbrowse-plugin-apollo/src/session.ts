@@ -54,8 +54,8 @@ interface ApolloRefSeqResponse {
 }
 
 export interface CollaboratorLocation {
-  assembly: string
-  refName: string
+  assemblyId: string
+  refSeq: string
   start: number
   end: number
 }
