@@ -72,7 +72,6 @@ export function mouseEventsModelIntermediateFactory(
       } | null,
       cursor: undefined as CSSProperties['cursor'] | undefined,
       apolloHover: null as FeatureAndGlyphInfo | null,
-      apolloContextMenuFeature: undefined as AnnotationFeatureI | undefined,
     }))
     .views((self) => ({
       getFeatureAndGlyphUnderMouse(
@@ -135,20 +134,10 @@ export function mouseEventsModelIntermediateFactory(
           self.cursor = cursor
         }
       },
-      setApolloContextMenuFeature(feature?: AnnotationFeatureI) {
-        self.apolloContextMenuFeature = feature
-      },
     }))
     .actions((self) => ({
       onClick(event: CanvasMouseEvent) {
         // TODO: set the selected feature
-      },
-      onContextMenu(event: CanvasMouseEvent) {
-        event.preventDefault()
-        const { feature } = self.getFeatureAndGlyphUnderMouse(event)
-        if (feature) {
-          self.setApolloContextMenuFeature(feature)
-        }
       },
     }))
 }
@@ -164,12 +153,13 @@ export function mouseEventsModelFactory(
 
   return LinearApolloDisplayMouseEvents.views((self) => ({
     contextMenuItems(contextCoord?: Coord): MenuItem[] {
-      const { apolloContextMenuFeature } = self
-      if (!(apolloContextMenuFeature && contextCoord)) {
+      const { apolloHover } = self
+      const { topLevelFeature } = apolloHover || {}
+      if (!(topLevelFeature && contextCoord)) {
         return []
       }
-      const glyph = getGlyph(apolloContextMenuFeature, self.lgv.bpPerPx)
-      return glyph.getContextMenuItems(self, contextCoord)
+      const glyph = getGlyph(topLevelFeature, self.lgv.bpPerPx)
+      return glyph.getContextMenuItems(self)
     },
   }))
     .actions((self) => ({

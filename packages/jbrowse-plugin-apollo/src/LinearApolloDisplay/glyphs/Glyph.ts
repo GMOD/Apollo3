@@ -1,7 +1,12 @@
 import { MenuItem } from '@jbrowse/core/ui'
 import { AnnotationFeatureI } from 'apollo-mst'
 
-import { Coord } from '../components'
+import {
+  AddFeature,
+  CopyFeature,
+  DeleteFeature,
+  ModifyFeatureAttribute,
+} from '../../components'
 import { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
 import { LinearApolloDisplayRendering } from '../stateModel/rendering'
 import { CanvasMouseEvent } from '../types'
@@ -91,10 +96,103 @@ export abstract class Glyph {
     return
   }
 
-  getContextMenuItems(
-    display: LinearApolloDisplayMouseEvents,
-    contextCoord: Coord,
-  ): MenuItem[] {
-    return []
+  getContextMenuItems(display: LinearApolloDisplayMouseEvents): MenuItem[] {
+    const {
+      apolloHover,
+      apolloInternetAccount: internetAccount,
+      changeManager,
+      getAssemblyId,
+      session,
+      regions,
+    } = display
+    const { feature: sourceFeature } = apolloHover || {}
+    const { getRole } = internetAccount
+    const role = getRole()
+    const admin = role === 'admin'
+    const readOnly = !Boolean(role && ['admin', 'user'].includes(role))
+    const menuItems: MenuItem[] = []
+    if (sourceFeature) {
+      const [region] = regions
+      const sourceAssemblyId = getAssemblyId(region.assemblyName)
+      const currentAssemblyId = getAssemblyId(region.assemblyName)
+      menuItems.push(
+        {
+          label: 'Add child feature',
+          disabled: readOnly,
+          onClick: () => {
+            session.queueDialog((doneCallback) => [
+              AddFeature,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                changeManager,
+                sourceFeature,
+                sourceAssemblyId,
+                internetAccount,
+              },
+            ])
+          },
+        },
+        {
+          label: 'Copy features and annotations',
+          disabled: readOnly,
+          onClick: () => {
+            session.queueDialog((doneCallback) => [
+              CopyFeature,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                changeManager,
+                sourceFeature,
+                sourceAssemblyId: currentAssemblyId,
+              },
+            ])
+          },
+        },
+        {
+          label: 'Delete feature',
+          disabled: !admin,
+          onClick: () => {
+            session.queueDialog((doneCallback) => [
+              DeleteFeature,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                changeManager,
+                sourceFeature,
+                sourceAssemblyId: currentAssemblyId,
+                selectedFeature: display.selectedFeature,
+                setSelectedFeature: display.setSelectedFeature,
+              },
+            ])
+          },
+        },
+        {
+          label: 'Modify feature attribute',
+          disabled: readOnly,
+          onClick: () => {
+            session.queueDialog((doneCallback) => [
+              ModifyFeatureAttribute,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                changeManager,
+                sourceFeature,
+                sourceAssemblyId: currentAssemblyId,
+              },
+            ])
+          },
+        },
+      )
+    }
+    return menuItems
   }
 }

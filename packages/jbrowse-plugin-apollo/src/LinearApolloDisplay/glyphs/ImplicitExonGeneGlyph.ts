@@ -182,7 +182,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
   }
 
   onMouseUp(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
-    if (stateModel.apolloDragging) {
+    if (stateModel.apolloDragging || event.button !== 0) {
       return
     }
     const { feature } = stateModel.getFeatureAndGlyphUnderMouse(event)

@@ -1,14 +1,7 @@
-import { MenuItem } from '@jbrowse/core/ui'
 import { alpha } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 
-import {
-  AddFeature,
-  CopyFeature,
-  DeleteFeature,
-  ModifyFeatureAttribute,
-} from '../../components'
 import { LinearApolloDisplay } from '../stateModel'
 import { MousePosition } from '../stateModel/mouseEvents'
 import { CanvasMouseEvent } from '../types'
@@ -198,7 +191,7 @@ export class BoxGlyph extends Glyph {
   }
 
   onMouseUp(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
-    if (stateModel.apolloDragging) {
+    if (stateModel.apolloDragging || event.button !== 0) {
       return
     }
     const { feature } = stateModel.getFeatureAndGlyphUnderMouse(event)
@@ -285,108 +278,5 @@ export class BoxGlyph extends Glyph {
     }
     changeManager.submit(change)
     setCursor(undefined)
-  }
-
-  getContextMenuItems(stateModel: LinearApolloDisplay): MenuItem[] {
-    const {
-      apolloContextMenuFeature: sourceFeature,
-      apolloInternetAccount: internetAccount,
-      changeManager,
-      getAssemblyId,
-      session,
-      regions,
-    } = stateModel
-    const { getRole } = internetAccount
-    const role = getRole()
-    const admin = role === 'admin'
-    const readOnly = !Boolean(role && ['admin', 'user'].includes(role))
-    const menuItems: MenuItem[] = []
-    if (sourceFeature) {
-      const [region] = regions
-      const sourceAssemblyId = getAssemblyId(region.assemblyName)
-      const currentAssemblyId = getAssemblyId(region.assemblyName)
-      menuItems.push(
-        {
-          label: 'Add child feature',
-          disabled: readOnly,
-          onClick: () => {
-            session.queueDialog((doneCallback) => [
-              AddFeature,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                  stateModel.setApolloContextMenuFeature(undefined)
-                },
-                changeManager,
-                sourceFeature,
-                sourceAssemblyId,
-                internetAccount,
-              },
-            ])
-          },
-        },
-        {
-          label: 'Copy features and annotations',
-          disabled: readOnly,
-          onClick: () => {
-            session.queueDialog((doneCallback) => [
-              CopyFeature,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                  stateModel.setApolloContextMenuFeature(undefined)
-                },
-                changeManager,
-                sourceFeature,
-                sourceAssemblyId: currentAssemblyId,
-              },
-            ])
-          },
-        },
-        {
-          label: 'Delete feature',
-          disabled: !admin,
-          onClick: () => {
-            session.queueDialog((doneCallback) => [
-              DeleteFeature,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                  stateModel.setApolloContextMenuFeature(undefined)
-                },
-                changeManager,
-                sourceFeature,
-                sourceAssemblyId: currentAssemblyId,
-                selectedFeature: stateModel.selectedFeature,
-                setSelectedFeature: stateModel.setSelectedFeature,
-              },
-            ])
-          },
-        },
-        {
-          label: 'Modify feature attribute',
-          disabled: readOnly,
-          onClick: () => {
-            session.queueDialog((doneCallback) => [
-              ModifyFeatureAttribute,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                  stateModel.setApolloContextMenuFeature(undefined)
-                },
-                changeManager,
-                sourceFeature,
-                sourceAssemblyId: currentAssemblyId,
-              },
-            ])
-          },
-        },
-      )
-    }
-    return menuItems
   }
 }

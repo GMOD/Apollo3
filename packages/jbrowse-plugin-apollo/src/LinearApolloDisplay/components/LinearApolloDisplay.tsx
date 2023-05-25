@@ -1,4 +1,4 @@
-import { Menu } from '@jbrowse/core/ui'
+import { Menu, MenuItem } from '@jbrowse/core/ui'
 import { getContainingView } from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { useTheme } from '@mui/material'
@@ -36,17 +36,16 @@ export const LinearApolloDisplay = observer(
       onMouseLeave,
       onMouseDown,
       onMouseUp,
-      onContextMenu,
       cursor,
       setTheme,
-      contextMenuItems,
-      setApolloContextMenuFeature,
+      contextMenuItems: getContextMenuItems,
     } = model
     const { classes } = useStyles()
     const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
 
     useEffect(() => setTheme(theme), [theme, setTheme])
     const [contextCoord, setContextCoord] = useState<Coord>()
+    const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
 
     return (
       <div
@@ -57,11 +56,13 @@ export const LinearApolloDisplay = observer(
         }}
         onContextMenu={(event) => {
           event.preventDefault()
-          if (contextCoord) {
+          if (contextMenuItems.length) {
             // There's already a context menu open, so close it
-            setContextCoord(undefined)
+            setContextMenuItems([])
           } else {
-            setContextCoord([event.clientX, event.clientY])
+            const coord: [number, number] = [event.clientX, event.clientY]
+            setContextCoord(coord)
+            setContextMenuItems(getContextMenuItems(coord))
           }
         }}
       >
@@ -83,27 +84,21 @@ export const LinearApolloDisplay = observer(
           onMouseLeave={onMouseLeave}
           onMouseDown={onMouseDown}
           onMouseUp={onMouseUp}
-          onContextMenu={onContextMenu}
           className={classes.canvas}
           style={{ cursor: cursor || 'default' }}
         />
         <Menu
-          open={
-            Boolean(contextCoord) &&
-            Boolean(contextMenuItems(contextCoord).length)
-          }
+          open={Boolean(contextMenuItems.length)}
           onMenuItemClick={(_, callback) => {
             callback()
-            setContextCoord(undefined)
+            setContextMenuItems([])
           }}
           onClose={() => {
-            setContextCoord(undefined)
-            setApolloContextMenuFeature(undefined)
+            setContextMenuItems([])
           }}
           TransitionProps={{
             onExit: () => {
-              setContextCoord(undefined)
-              setApolloContextMenuFeature(undefined)
+              setContextMenuItems([])
             },
           }}
           anchorReference="anchorPosition"
@@ -113,7 +108,7 @@ export const LinearApolloDisplay = observer(
               : undefined
           }
           style={{ zIndex: theme.zIndex.tooltip }}
-          menuItems={contextMenuItems(contextCoord)}
+          menuItems={contextMenuItems}
         />
       </div>
     )
