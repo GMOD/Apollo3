@@ -99,10 +99,10 @@ export class DeleteFeatureChange extends FeatureChange {
         featureDoc,
         deletedFeature._id,
       )
+      deletedIds.push(deletedFeature._id)
       featureDoc.allIds = featureDoc.allIds.filter(
         (id) => !deletedIds.includes(id),
       )
-
       // Save updated document in Mongo
       featureDoc.markModified('children') // Mark as modified. Without this save() -method is not updating data in database
       try {

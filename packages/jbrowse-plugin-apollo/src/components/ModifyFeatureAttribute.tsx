@@ -105,12 +105,21 @@ export function ModifyFeatureAttribute({
   const [errorMessage, setErrorMessage] = useState('')
   const [attributes, setAttributes] = useState<Record<string, string[]>>(
     Object.fromEntries(
-      Array.from(sourceFeature.attributes.entries()).map(([key, value]) => [
-        key,
-        getSnapshot(value),
-      ]),
+      Array.from(sourceFeature.attributes.entries()).map(([key, value]) => {
+        if (key.startsWith('gff_')) {
+          const newKey = key.substring(4)
+          const capitalizedKey =
+            newKey.charAt(0).toUpperCase() + newKey.slice(1)
+          return [capitalizedKey, getSnapshot(value)]
+        }
+        if (key === '_id') {
+          return ['ID', getSnapshot(value)]
+        }
+        return [key, getSnapshot(value)]
+      }),
     ),
   )
+
   const [showAddNewForm, setShowAddNewForm] = useState(false)
   const [newAttributeKey, setNewAttributeKey] = useState('')
   const { classes } = useStyles()
@@ -119,12 +128,57 @@ export function ModifyFeatureAttribute({
     event.preventDefault()
     setErrorMessage('')
 
+    const attrs: Record<string, string[]> = {}
+    if (attributes) {
+      Object.entries(attributes).forEach(([key, val]) => {
+        if (val) {
+          const newKey = key.toLowerCase()
+          if (newKey !== 'parent') {
+            switch (key) {
+              case 'ID':
+                attrs._id = val
+                break
+              case 'Name':
+                attrs.gff_name = val
+                break
+              case 'Alias':
+                attrs.gff_alias = val
+                break
+              case 'Target':
+                attrs.gff_target = val
+                break
+              case 'Gap':
+                attrs.gff_gap = val
+                break
+              case 'Derives_from':
+                attrs.gff_derives_from = val
+                break
+              case 'Note':
+                attrs.gff_note = val
+                break
+              case 'Dbxref':
+                attrs.gff_dbxref = val
+                break
+              case 'Ontology_term':
+                attrs.gff_ontology_term = val
+                break
+              case 'Is_circular':
+                attrs.gff_is_circular = val
+                break
+              default:
+                attrs[key.toLowerCase()] = val
+            }
+          }
+        }
+      })
+    }
+
     const change = new FeatureAttributeChange({
       changedIds: [sourceFeature._id],
       typeName: 'FeatureAttributeChange',
       assembly: sourceAssemblyId,
       featureId: sourceFeature._id,
-      attributes,
+      attributes: attrs,
     })
     changeManager.submit?.(change)
     notify(`Feature attributes modified successfully`, 'success')
@@ -145,20 +199,6 @@ export function ModifyFeatureAttribute({
       return
     }
     if (newAttributeKey in attributes) {
-      setErrorMessage(`Attribute "${newAttributeKey}" already exists`)
-      return
-    }
-    // Internally reserved keys are saved as gff_. We must remove gff_ and make 1st letter uppercase
-    const attributesWithoutGFFprefix: string[] = []
-    for (const key in attributes) {
-      attributesWithoutGFFprefix.push(
-        key.replace(/^gff_/, '').replace(/^\w/, (match) => match.toUpperCase()),
-      )
-    }
-    if ('_id' in attributes) {
-      attributesWithoutGFFprefix.push('ID')
-    }
-    if (attributesWithoutGFFprefix.includes(newAttributeKey)) {
       setErrorMessage(`Attribute "${newAttributeKey}" already exists`)
       return
     }
