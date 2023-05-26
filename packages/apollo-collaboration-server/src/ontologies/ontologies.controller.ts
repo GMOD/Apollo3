@@ -23,4 +23,13 @@ export class OntologiesController {
     )
     return this.ontologiesService.getDescendants(featureType)
   }
+
+  @Validations(Role.ReadOnly)
+  @Get('/equivalents/:featureType')
+  getEquivalents(@Param('featureType') featureType: string) {
+    this.logger.debug(
+      `Get possible equivalent types (from OBO-JSON) from type: "${featureType}"`,
+    )
+    return this.ontologiesService.getEquivalents(featureType)
+  }
 }

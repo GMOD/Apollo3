@@ -38,10 +38,19 @@ export class OntologiesService {
 
   private readonly logger = new Logger(OntologiesService.name)
 
-  getDescendants(parentType: string) {
+  getDescendants(label: string) {
     return this.operationsService.executeOperation<GetOntologyTermsOperation>({
       typeName: 'GetOntologyTermsOperation',
-      parentType,
+      label,
+      target: 'children',
+    })
+  }
+
+  getEquivalents(label: string) {
+    return this.operationsService.executeOperation<GetOntologyTermsOperation>({
+      typeName: 'GetOntologyTermsOperation',
+      label,
+      target: 'equivalents',
     })
   }
 }

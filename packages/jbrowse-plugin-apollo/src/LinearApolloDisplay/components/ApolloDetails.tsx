@@ -55,9 +55,16 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
 
   useEffect(() => {
     async function getSOSequenceTerms() {
-      const { parentType } = row
+      const { feature } = row as { feature: AnnotationFeatureI }
+      const { type, parent, children } = feature
+      let endpoint = `/ontologies/descendants/sequence_feature`
+      if (parent) {
+        endpoint = `/ontologies/descendants/${parent.type}`
+      } else if (children?.size) {
+        endpoint = `/ontologies/equivalents/${type}`
+      }
       const { baseURL, getFetcher } = internetAccount
-      const uri = new URL(`/ontologies/descendants/${parentType}`, baseURL).href
+      const uri = new URL(endpoint, baseURL).href
       const apolloFetch = getFetcher({ locationType: 'UriLocation', uri })
       const response = await apolloFetch(uri, { method: 'GET' })
       if (!response.ok) {
@@ -136,26 +143,24 @@ export const ApolloDetails = observer(
     const {
       _id: id,
       type,
-      parent,
       refSeq,
       start,
       end,
       assemblyId: assembly,
     } = selectedFeature
     // TODO: make this more generic
-    const { type: parentType } = parent || { type: 'sequence_feature' }
     const selectedFeatureRows = [
-      { id, type, parentType, refSeq, start, end, model },
+      { id, type, refSeq, start, end, feature: selectedFeature, model },
     ]
     function addChildFeatures(f: typeof selectedFeature) {
       f?.children?.forEach((child: AnnotationFeatureI, childId: string) => {
         selectedFeatureRows.push({
           id: child._id,
           type: child.type,
-          parentType: child.parent.type,
           refSeq: child.refSeq,
           start: child.start,
           end: child.end,
+          feature: child,
           model,
         })
         addChildFeatures(child)

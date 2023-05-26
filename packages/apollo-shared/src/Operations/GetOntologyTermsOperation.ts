@@ -9,62 +9,78 @@ import {
 
 interface SerializedGetOntologyTermsOperation extends SerializedOperation {
   typeName: 'GetOntologyTermsOperation'
-  parentType: string
+  label: string
+  target: 'equivalents' | 'children'
 }
 
 export class GetOntologyTermsOperation extends Operation {
   typeName = 'GetOntologyTermsOperation' as const
-  parentType: string
+  label: string
+  target: 'equivalents' | 'children'
 
   constructor(
     json: SerializedGetOntologyTermsOperation,
     options?: OperationOptions,
   ) {
     super(json, options)
-    this.parentType = json.parentType
+    this.label = json.label
+    this.target = json.target
   }
 
   toJSON(): SerializedGetOntologyTermsOperation {
-    const { typeName, parentType } = this
-    return { typeName, parentType }
+    const { typeName, label, target } = this
+    return { typeName, label, target }
   }
 
   async executeOnServer(backend: ServerDataStore) {
-    const { parentType } = this
+    const { label, target } = this
     const { ontology } = backend
-    return this.getPossibleChildTypes(parentType, ontology)
+    if (target === 'children') {
+      return this.getPossibleChildTypes(label, ontology)
+    }
+    const id = this.getId(label, ontology)
+    const equivalentIds = this.getEquivalentTypes(id, ontology)
+    return this.getLabels(equivalentIds, ontology)
   }
 
   async executeOnLocalGFF3(backend: LocalGFF3DataStore) {
     throw new Error('executeOnLocalGFF3 not implemented')
   }
 
-  /**
-   * Get all possible feature types for given parent type. Data is retrieved from OBO JSON file
-   * @param parentType - parent feature type
-   * @returns String array of possible children types
-   */
-  async getPossibleChildTypes(
-    parentType: string,
-    ontology: OboJson,
-  ): Promise<string[]> {
-    let parentId: string | undefined = undefined
+  getId(label: string, ontology: OboJson) {
+    let id: string | undefined = undefined
     const { logger } = this
 
     // Iterate over the nodes and edges in the JSON file
     for (const node of ontology.graphs[0].nodes) {
-      if (node.lbl === parentType) {
+      if (node.lbl === label) {
         logger.debug?.(
-          `Parent type is "${parentType}", OboJson node is "${node.id}"`,
+          `Parent type is "${label}", OboJson node is "${node.id}"`,
         )
-        parentId = node.id
+        ;({ id } = node)
         break
       }
     }
-    if (!parentId) {
-      throw new Error(`Term "${parentType}" not found in ontology`)
+    if (!id) {
+      throw new Error(`Term "${label}" not found in ontology`)
     }
+    return id
+  }
 
+  getLabels(ids: Set<string>, ontology: OboJson) {
+    return ontology.graphs[0].nodes
+      .filter((node) => ids.has(node.id))
+      .map((node) => node.lbl)
+      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+  }
+
+  /**
+   * Get all possible feature types for given parent type. Data is retrieved from OBO JSON file
+   * @param label - parent feature type
+   * @returns String array of possible children types
+   */
+  getPossibleChildTypes(label: string, ontology: OboJson): string[] {
+    const parentId = this.getId(label, ontology)
     // Get all (recursively) those nodes that have "is_a" relation from parentNode
     const parentAndEquivalents = this.getEquivalentTypes(parentId, ontology)
 
@@ -91,10 +107,7 @@ export class GetOntologyTermsOperation extends Operation {
       this.getEquivalentTypes(child, ontology, childrenAndEquivalents)
     }
 
-    return ontology.graphs[0].nodes
-      .filter((node) => childrenAndEquivalents.has(node.id))
-      .map((node) => node.lbl)
-      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+    return this.getLabels(childrenAndEquivalents, ontology)
   }
 
   /**
