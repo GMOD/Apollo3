@@ -382,7 +382,21 @@ function createFeature(
                 attrs.gff_dbxref = val
                 break
               case 'Ontology_term':
-                attrs.gff_ontology_term = val
+                const goTerms: string[] = []
+                const otherTerms: string[] = []
+                val.forEach((v) => {
+                  if (v.startsWith('GO:')) {
+                    goTerms.push(v)
+                  } else {
+                    otherTerms.push(v)
+                  }
+                })
+                if (goTerms.length) {
+                  attrs['Gene Ontology'] = goTerms
+                }
+                if (otherTerms.length) {
+                  attrs.gff_ontology_term = otherTerms
+                }
                 break
               case 'Is_circular':
                 attrs.gff_is_circular = val

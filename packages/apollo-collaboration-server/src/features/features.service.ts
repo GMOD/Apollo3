@@ -37,8 +37,7 @@ function makeGFF3Feature(
   const attributes: Record<string, string[]> = {
     ...(featureDocument.attributes || {}),
   }
-  let ontologyFound = false
-  let ontologyTerms = ''
+  const ontologyTerms: string[] = []
   const source = featureDocument.attributes?.source?.[0] || null
   delete attributes.source
   if (parentId) {
@@ -80,22 +79,20 @@ function makeGFF3Feature(
     attributes.Is_circular = attributes.gff_is_circular
     delete attributes.gff_is_circular
   }
-  if (attributes.GO) {
-    ontologyFound = true
-    ontologyTerms = attributes.GO.toString()
-    delete attributes.GO
+  if (attributes.gff_ontology_term) {
+    ontologyTerms.push(...attributes.gff_ontology_term)
+    delete attributes.gff_ontology_term
   }
-  if (attributes.SO) {
-    if (ontologyFound) {
-      ontologyTerms += `, ${attributes.SO}`
-    } else {
-      ontologyTerms = attributes.SO.toString()
-    }
-    delete attributes.SO
-    ontologyFound = true
+  if (attributes['Gene Ontology']) {
+    ontologyTerms.push(...attributes['Gene Ontology'])
+    delete attributes['Gene Ontology']
   }
-  if (ontologyFound) {
-    attributes.Ontology_term = [ontologyTerms]
+  if (attributes['Sequence Ontology']) {
+    ontologyTerms.push(...attributes['Sequence Ontology'])
+    delete attributes['Sequence Ontology']
+  }
+  if (ontologyTerms.length) {
+    attributes.Ontology_term = ontologyTerms
   }
   const refSeq = refSeqs.find((rs) => rs._id.equals(featureDocument.refSeq))
   if (!refSeq) {
