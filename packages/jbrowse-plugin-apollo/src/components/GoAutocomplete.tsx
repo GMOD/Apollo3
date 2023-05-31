@@ -1,4 +1,12 @@
-import { Autocomplete, Grid, TextField, Typography } from '@mui/material'
+import {
+  Autocomplete,
+  AutocompleteRenderGetTagProps,
+  Chip,
+  Grid,
+  TextField,
+  Tooltip,
+  Typography,
+} from '@mui/material'
 import { debounce } from '@mui/material/utils'
 import * as React from 'react'
 
@@ -23,6 +31,57 @@ interface GOResponse {
 }
 
 const hiliteRegex = /(?<=<em class="hilite">)(.*?)(?=<\/em>)/g
+
+function GoTagWithTooltip({
+  goId,
+  index,
+  getTagProps,
+}: {
+  goId: string
+  index: number
+  getTagProps: AutocompleteRenderGetTagProps
+}) {
+  const [description, setDescription] = React.useState('')
+
+  React.useEffect(() => {
+    const controller = new AbortController()
+    const { signal } = controller
+    async function fetchDescription() {
+      try {
+        const response = await fetch(
+          `https://api.geneontology.org/api/ontology/term/${goId}`,
+          { signal },
+        )
+        if (!response.ok) {
+          const err = await response.text()
+          throw new Error(
+            `Failed to fetch plugin data: ${response.status} ${response.statusText} ${err}`,
+          )
+        }
+        const goTerm = await response.json()
+        const { label } = goTerm
+        if (label && !signal.aborted) {
+          setDescription(label)
+        }
+      } catch (e) {
+        console.error(e)
+      }
+    }
+    fetchDescription()
+
+    return () => {
+      controller.abort()
+    }
+  }, [goId])
+
+  return (
+    <Tooltip title={description}>
+      <div>
+        <Chip label={goId} size="small" {...getTagProps({ index })} />
+      </div>
+    </Tooltip>
+  )
+}
 
 export function GoAutocomplete({
   value: initialValue,
@@ -149,6 +208,16 @@ export function GoAutocomplete({
           </li>
         )
       }}
+      renderTags={(v, getTagProps) =>
+        v.map((option, index) => (
+          <GoTagWithTooltip
+            goId={option.id}
+            index={index}
+            getTagProps={getTagProps}
+            key={option.id}
+          />
+        ))
+      }
     />
   )
 }
