@@ -131,44 +131,50 @@ export function ModifyFeatureAttribute({
     const attrs: Record<string, string[]> = {}
     if (attributes) {
       Object.entries(attributes).forEach(([key, val]) => {
-        if (val) {
-          const newKey = key.toLowerCase()
-          if (newKey !== 'parent') {
-            switch (key) {
-              case 'ID':
-                attrs._id = val
-                break
-              case 'Name':
-                attrs.gff_name = val
-                break
-              case 'Alias':
-                attrs.gff_alias = val
-                break
-              case 'Target':
-                attrs.gff_target = val
-                break
-              case 'Gap':
-                attrs.gff_gap = val
-                break
-              case 'Derives_from':
-                attrs.gff_derives_from = val
-                break
-              case 'Note':
-                attrs.gff_note = val
-                break
-              case 'Dbxref':
-                attrs.gff_dbxref = val
-                break
-              case 'Ontology_term':
-                attrs.gff_ontology_term = val
-                break
-              case 'Is_circular':
-                attrs.gff_is_circular = val
-                break
-              default:
-                attrs[key.toLowerCase()] = val
-            }
-          }
+        if (!val) {
+          return
+        }
+        const newKey = key.toLowerCase()
+        if (newKey === 'parent') {
+          return
+        }
+        if (Array.from(reservedKeys.keys()).includes(key)) {
+          attrs[key] = val
+          return
+        }
+        switch (key) {
+          case 'ID':
+            attrs._id = val
+            break
+          case 'Name':
+            attrs.gff_name = val
+            break
+          case 'Alias':
+            attrs.gff_alias = val
+            break
+          case 'Target':
+            attrs.gff_target = val
+            break
+          case 'Gap':
+            attrs.gff_gap = val
+            break
+          case 'Derives_from':
+            attrs.gff_derives_from = val
+            break
+          case 'Note':
+            attrs.gff_note = val
+            break
+          case 'Dbxref':
+            attrs.gff_dbxref = val
+            break
+          case 'Ontology_term':
+            attrs.gff_ontology_term = val
+            break
+          case 'Is_circular':
+            attrs.gff_is_circular = val
+            break
+          default:
+            attrs[key.toLowerCase()] = val
         }
       })
     }
