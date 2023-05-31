@@ -90,6 +90,7 @@ function CustomAttributeValueEditor(props: AttributeValueEditorProps) {
       }}
       variant="outlined"
       fullWidth
+      helperText="Separate multiple values for the attribute with commas"
     />
   )
 }
@@ -391,6 +392,9 @@ export function ModifyFeatureAttribute({
               </Grid>
             ) : null}
           </Grid>
+          {errorMessage ? (
+            <DialogContentText color="error">{errorMessage}</DialogContentText>
+          ) : null}
         </DialogContent>
         <DialogActions>
           <Button
@@ -412,14 +416,10 @@ export function ModifyFeatureAttribute({
           </Button>
         </DialogActions>
       </form>
-      <DialogContent>
-        {errorMessage ? (
-          <DialogContentText color="error">{errorMessage}</DialogContentText>
-        ) : null}
-        <DialogContentText>
+
+      {/* <DialogContentText>
           Separate multiple values for an attribute with a comma
-        </DialogContentText>
-      </DialogContent>
+        </DialogContentText> */}
     </Dialog>
   )
 }
