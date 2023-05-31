@@ -35,6 +35,7 @@ export function GoAutocomplete({
   const [options, setOptions] = React.useState<readonly (GOValue | GOResult)[]>(
     [],
   )
+  const [loading, setLoading] = React.useState(false)
 
   const goFetch = React.useMemo(
     () =>
@@ -75,6 +76,7 @@ export function GoAutocomplete({
         }
 
         setOptions(newOptions)
+        setLoading(false)
       }
     })
 
@@ -92,14 +94,19 @@ export function GoAutocomplete({
       includeInputInList
       filterSelectedOptions
       value={value}
+      loading={loading}
       isOptionEqualToValue={(option, v) => option.id === v.id}
-      noOptionsText="No matches"
+      noOptionsText={inputValue ? 'No matches' : 'Start typing to search'}
       onChange={(_, newValue) => {
         setOptions(newValue ? [...newValue, ...options] : options)
         onChange(newValue.map((v) => v.id))
         setValue(newValue)
       }}
       onInputChange={(event, newInputValue) => {
+        if (newInputValue) {
+          setLoading(true)
+        }
+        setOptions([])
         setInputValue(newInputValue)
       }}
       multiple
