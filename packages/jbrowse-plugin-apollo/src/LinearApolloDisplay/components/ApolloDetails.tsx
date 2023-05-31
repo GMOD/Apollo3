@@ -1,6 +1,6 @@
 import { AppRootModel, getSession } from '@jbrowse/core/util'
 import CloseIcon from '@mui/icons-material/Close'
-import { Autocomplete, IconButton, TextField } from '@mui/material'
+import { Autocomplete, Button, IconButton, TextField } from '@mui/material'
 import {
   DataGrid,
   GridColDef,
@@ -16,7 +16,7 @@ import {
   TypeChange,
 } from 'apollo-shared'
 import { observer } from 'mobx-react'
-import { getRoot } from 'mobx-state-tree'
+import { getRoot, getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
@@ -28,20 +28,40 @@ function getFeatureColumns(
   internetAccount: ApolloInternetAccountModel,
 ): GridColDef[] {
   return [
-    { field: 'id', headerName: 'ID', width: 250 },
+    { field: 'id', headerName: 'ID', width: 50 },
     {
       field: 'type',
       headerName: 'Type',
-      width: 250,
+      width: 200,
       editable,
       renderEditCell: (params: GridRenderEditCellParams) => (
         <AutocompleteInputCell {...params} internetAccount={internetAccount} />
       ),
     },
-    { field: 'refSeq', headerName: 'Ref Seq', width: 150 },
+    { field: 'refSeq', headerName: 'Ref Name', width: 70 },
     { field: 'start', headerName: 'Start', type: 'number', editable },
     { field: 'end', headerName: 'End', type: 'number', editable },
+    { field: 'attributes', headerName: 'Attributes', width: 700 },
+    {
+      field: 'AttributeButton',
+      headerName: 'Link to Attributes',
+      width: 150,
+      renderCell: (params) => (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => handleButtonClick(params.row.id)}
+        >
+          Link to attributes
+        </Button>
+      ),
+    },
   ]
+}
+
+const handleButtonClick = (idPressed: string) => {
+  console.log(`Feature clicked: ${idPressed}`)
+  // HOW TO OPEN MODIFY ATTRIBUTES FROM HERE
 }
 
 interface AutocompleteInputCellProps extends GridRenderEditCellParams {
@@ -117,6 +137,7 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
 export const ApolloDetails = observer(
   ({ model }: { model: LinearApolloDisplay }) => {
     const session = getSession(model)
+    // const session = getSession(model)
     const { internetAccounts } = getRoot(session) as AppRootModel
     const internetAccount = useMemo(() => {
       const apolloInternetAccount = internetAccounts.find(
@@ -139,7 +160,6 @@ export const ApolloDetails = observer(
     if (!selectedFeature) {
       return <div>click on a feature to see details</div>
     }
-    // const sequenceTypes = changeManager?.validations.getPossibleValues('type')
     const {
       _id: id,
       type,
@@ -148,20 +168,77 @@ export const ApolloDetails = observer(
       end,
       assemblyId: assembly,
     } = selectedFeature
-    // TODO: make this more generic
+    let refName = refSeq
+    const { assemblyManager } = session
+
+    if (assemblyManager.get(assembly)?.refNameAliases) {
+      const refNames = assemblyManager.get(assembly)!.refNameAliases!
+      Object.keys(refNames).forEach((key) => {
+        if (key === refSeq) {
+          refName = refNames[key]
+        }
+      })
+    }
+
+    let tmp = Object.fromEntries(
+      Array.from(selectedFeature.attributes.entries()).map(([key, value]) => {
+        if (key.startsWith('gff_')) {
+          const newKey = key.substring(4)
+          const capitalizedKey =
+            newKey.charAt(0).toUpperCase() + newKey.slice(1)
+          return [capitalizedKey, getSnapshot(value)]
+        }
+        if (key === '_id') {
+          return ['ID', getSnapshot(value)]
+        }
+        return [key, getSnapshot(value)]
+      }),
+    )
+    let attributes = Object.entries(tmp)
+      .map(([key, values]) => `${key}=${values.join(', ')}`)
+      .join(', ')
+
     const selectedFeatureRows = [
-      { id, type, refSeq, start, end, feature: selectedFeature, model },
+      {
+        id,
+        type,
+        refSeq: refName,
+        start,
+        end,
+        feature: selectedFeature,
+        model,
+        attributes,
+      },
     ]
     function addChildFeatures(f: typeof selectedFeature) {
       f?.children?.forEach((child: AnnotationFeatureI, childId: string) => {
+        tmp = Object.fromEntries(
+          Array.from(child.attributes.entries()).map(([key, value]) => {
+            if (key.startsWith('gff_')) {
+              const newKey = key.substring(4)
+              const capitalizedKey =
+                newKey.charAt(0).toUpperCase() + newKey.slice(1)
+              return [capitalizedKey, getSnapshot(value)]
+            }
+            if (key === '_id') {
+              return ['ID', getSnapshot(value)]
+            }
+            return [key, getSnapshot(value)]
+          }),
+        )
+        attributes = Object.entries(tmp)
+          .map(([key, values]) => `${key}=${values.join(', ')}`)
+          .toString()
+
         selectedFeatureRows.push({
           id: child._id,
           type: child.type,
-          refSeq: child.refSeq,
+          refSeq: refName,
           start: child.start,
           end: child.end,
           feature: child,
           model,
+          attributes,
         })
         addChildFeatures(child)
       })
@@ -230,6 +307,9 @@ export const ApolloDetails = observer(
           style={{ height: detailsHeight }}
           rows={selectedFeatureRows}
           columns={getFeatureColumns(editable, internetAccount)}
+          columnVisibilityModel={{
+            id: false,
+          }}
           processRowUpdate={processRowUpdate}
           onProcessRowUpdateError={console.error}
         />
