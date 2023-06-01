@@ -20,12 +20,14 @@ import { getRoot, getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
+import { ModifyFeatureAttribute } from '../../components/ModifyFeatureAttribute'
 import { createFetchErrorMessage } from '../../util'
 import { LinearApolloDisplay } from '../stateModel'
 
 function getFeatureColumns(
   editable: boolean,
   internetAccount: ApolloInternetAccountModel,
+  model: LinearApolloDisplay,
 ): GridColDef[] {
   return [
     { field: 'id', headerName: 'ID', width: 50 },
@@ -38,7 +40,7 @@ function getFeatureColumns(
         <AutocompleteInputCell {...params} internetAccount={internetAccount} />
       ),
     },
-    { field: 'refSeq', headerName: 'Ref Name', width: 70 },
+    { field: 'refSeq', headerName: 'Ref Name', width: 100 },
     { field: 'start', headerName: 'Start', type: 'number', editable },
     { field: 'end', headerName: 'End', type: 'number', editable },
     { field: 'attributes', headerName: 'Attributes', width: 700 },
@@ -50,18 +52,34 @@ function getFeatureColumns(
         <Button
           variant="contained"
           color="primary"
-          onClick={() => handleButtonClick(params.row.id)}
+          onClick={() => handleButtonClick(model, params)}
         >
-          Link to attributes
+          Open attributes
         </Button>
       ),
     },
   ]
 }
 
-const handleButtonClick = (idPressed: string) => {
-  console.log(`Feature clicked: ${idPressed}`)
-  // HOW TO OPEN MODIFY ATTRIBUTES FROM HERE
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const handleButtonClick = (model: LinearApolloDisplay, params: any) => {
+  const session = getSession(model)
+  const { changeManager, selectedFeature } = model
+  if (selectedFeature) {
+    const { assemblyId } = selectedFeature
+    session.queueDialog((doneCallback) => [
+      ModifyFeatureAttribute,
+      {
+        session,
+        handleClose: () => {
+          doneCallback()
+        },
+        changeManager,
+        sourceFeature: params.row.feature,
+        sourceAssemblyId: assemblyId,
+      },
+    ])
+  }
 }
 
 interface AutocompleteInputCellProps extends GridRenderEditCellParams {
@@ -137,7 +155,6 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
 export const ApolloDetails = observer(
   ({ model }: { model: LinearApolloDisplay }) => {
     const session = getSession(model)
-    // const session = getSession(model)
     const { internetAccounts } = getRoot(session) as AppRootModel
     const internetAccount = useMemo(() => {
       const apolloInternetAccount = internetAccounts.find(
@@ -172,6 +189,7 @@ export const ApolloDetails = observer(
     const { assemblyManager } = session
 
     if (assemblyManager.get(assembly)?.refNameAliases) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const refNames = assemblyManager.get(assembly)!.refNameAliases!
       Object.keys(refNames).forEach((key) => {
         if (key === refSeq) {
@@ -306,7 +324,7 @@ export const ApolloDetails = observer(
         <DataGrid
           style={{ height: detailsHeight }}
           rows={selectedFeatureRows}
-          columns={getFeatureColumns(editable, internetAccount)}
+          columns={getFeatureColumns(editable, internetAccount, model)}
           columnVisibilityModel={{
             id: false,
           }}
