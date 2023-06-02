@@ -1,4 +1,4 @@
-import { AbstractSessionModel } from '@jbrowse/core/util'
+import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Button,
@@ -20,10 +20,11 @@ import {
 } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { FeatureAttributeChange } from 'apollo-shared'
-import { getSnapshot } from 'mobx-state-tree'
-import React, { useState } from 'react'
+import { getRoot, getSnapshot } from 'mobx-state-tree'
+import React, { useMemo, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
+import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
 import { GoAutocomplete } from './GoAutocomplete'
 
@@ -103,6 +104,21 @@ export function ModifyFeatureAttribute({
   changeManager,
 }: ModifyFeatureAttributeProps) {
   const { notify } = session
+
+  const { internetAccounts } = getRoot(session) as AppRootModel
+  const internetAccount = useMemo(() => {
+    const apolloInternetAccount = internetAccounts.find(
+      (ia) => ia.type === 'ApolloInternetAccount',
+    ) as ApolloInternetAccountModel | undefined
+    if (!apolloInternetAccount) {
+      throw new Error('No Apollo internet account found')
+    }
+    return apolloInternetAccount
+  }, [internetAccounts])
+  const editable =
+    Boolean(internetAccount.authType) &&
+    ['admin', 'user'].includes(internetAccount.getRole() || '')
+
   const [errorMessage, setErrorMessage] = useState('')
   const [attributes, setAttributes] = useState<Record<string, string[]>>(
     Object.fromEntries(
@@ -120,7 +136,6 @@ export function ModifyFeatureAttribute({
       }),
     ),
   )
-
   const [showAddNewForm, setShowAddNewForm] = useState(false)
   const [newAttributeKey, setNewAttributeKey] = useState('')
   const { classes } = useStyles()
@@ -284,6 +299,7 @@ export function ModifyFeatureAttribute({
                     <IconButton
                       aria-label="delete"
                       size="medium"
+                      disabled={!editable}
                       onClick={() => {
                         deleteAttribute(key)
                       }}
@@ -298,7 +314,7 @@ export function ModifyFeatureAttribute({
               <Button
                 color="primary"
                 variant="contained"
-                disabled={showAddNewForm}
+                disabled={showAddNewForm || !editable}
                 onClick={() => {
                   setShowAddNewForm(true)
                 }}
@@ -400,7 +416,7 @@ export function ModifyFeatureAttribute({
           <Button
             variant="contained"
             type="submit"
-            disabled={showAddNewForm || hasEmptyAttributes}
+            disabled={showAddNewForm || hasEmptyAttributes || !editable}
           >
             Submit changes
           </Button>

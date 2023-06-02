@@ -3,11 +3,13 @@ import CloseIcon from '@mui/icons-material/Close'
 import { Autocomplete, IconButton, TextField } from '@mui/material'
 import {
   DataGrid,
+  GridCellEditStartParams,
   GridColDef,
   GridRenderEditCellParams,
   GridRowModel,
   MuiBaseEvent,
   useGridApiContext,
+  useGridApiRef,
 } from '@mui/x-data-grid'
 import { AnnotationFeatureI } from 'apollo-mst'
 import {
@@ -16,31 +18,61 @@ import {
   TypeChange,
 } from 'apollo-shared'
 import { observer } from 'mobx-react'
-import { getRoot } from 'mobx-state-tree'
+import { getRoot, getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
+import { ModifyFeatureAttribute } from '../../components/ModifyFeatureAttribute'
 import { createFetchErrorMessage } from '../../util'
 import { LinearApolloDisplay } from '../stateModel'
+
+interface GridRow {
+  id: string
+  type: string
+  refSeq: string
+  start: number
+  end: number
+  feature: AnnotationFeatureI
+  model: LinearApolloDisplay
+  attributes: unknown
+}
 
 function getFeatureColumns(
   editable: boolean,
   internetAccount: ApolloInternetAccountModel,
-): GridColDef[] {
+  model: LinearApolloDisplay,
+): GridColDef<GridRow>[] {
   return [
-    { field: 'id', headerName: 'ID', width: 250 },
     {
       field: 'type',
       headerName: 'Type',
-      width: 250,
+      width: 80,
       editable,
       renderEditCell: (params: GridRenderEditCellParams) => (
         <AutocompleteInputCell {...params} internetAccount={internetAccount} />
       ),
     },
-    { field: 'refSeq', headerName: 'Ref Seq', width: 150 },
-    { field: 'start', headerName: 'Start', type: 'number', editable },
-    { field: 'end', headerName: 'End', type: 'number', editable },
+    { field: 'refSeq', headerName: 'Ref Name', width: 80 },
+    {
+      field: 'start',
+      headerName: 'Start',
+      type: 'number',
+      width: 80,
+      editable,
+    },
+    {
+      field: 'end',
+      headerName: 'End',
+      type: 'number',
+      width: 80,
+      editable,
+    },
+    {
+      field: 'attributes',
+      headerName: 'Attributes',
+      width: 300,
+      editable,
+    },
   ]
 }
 
@@ -55,7 +87,7 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
 
   useEffect(() => {
     async function getSOSequenceTerms() {
-      const { feature } = row as { feature: AnnotationFeatureI }
+      const { feature } = row
       const { type, parent, children } = feature
       let endpoint = `/ontologies/descendants/sequence_feature`
       if (parent) {
@@ -117,6 +149,7 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
 export const ApolloDetails = observer(
   ({ model }: { model: LinearApolloDisplay }) => {
     const session = getSession(model)
+    const apiRef = useGridApiRef()
     const { internetAccounts } = getRoot(session) as AppRootModel
     const internetAccount = useMemo(() => {
       const apolloInternetAccount = internetAccounts.find(
@@ -139,7 +172,6 @@ export const ApolloDetails = observer(
     if (!selectedFeature) {
       return <div>click on a feature to see details</div>
     }
-    // const sequenceTypes = changeManager?.validations.getPossibleValues('type')
     const {
       _id: id,
       type,
@@ -148,20 +180,69 @@ export const ApolloDetails = observer(
       end,
       assemblyId: assembly,
     } = selectedFeature
-    // TODO: make this more generic
-    const selectedFeatureRows = [
-      { id, type, refSeq, start, end, feature: selectedFeature, model },
+    const { assemblyManager } = session
+    const refName =
+      assemblyManager.get(assembly)?.getCanonicalRefName(refSeq) || refSeq
+
+    let tmp = Object.fromEntries(
+      Array.from(selectedFeature.attributes.entries()).map(([key, value]) => {
+        if (key.startsWith('gff_')) {
+          const newKey = key.substring(4)
+          const capitalizedKey =
+            newKey.charAt(0).toUpperCase() + newKey.slice(1)
+          return [capitalizedKey, getSnapshot(value)]
+        }
+        if (key === '_id') {
+          return ['ID', getSnapshot(value)]
+        }
+        return [key, getSnapshot(value)]
+      }),
+    )
+    let attributes = Object.entries(tmp)
+      .map(([key, values]) => `${key}=${values.join(', ')}`)
+      .join(', ')
+
+    const selectedFeatureRows: GridRow[] = [
+      {
+        id,
+        type,
+        refSeq: refName,
+        start,
+        end,
+        feature: selectedFeature,
+        model,
+        attributes,
+      },
     ]
     function addChildFeatures(f: typeof selectedFeature) {
       f?.children?.forEach((child: AnnotationFeatureI, childId: string) => {
+        tmp = Object.fromEntries(
+          Array.from(child.attributes.entries()).map(([key, value]) => {
+            if (key.startsWith('gff_')) {
+              const newKey = key.substring(4)
+              const capitalizedKey =
+                newKey.charAt(0).toUpperCase() + newKey.slice(1)
+              return [capitalizedKey, getSnapshot(value)]
+            }
+            if (key === '_id') {
+              return ['ID', getSnapshot(value)]
+            }
+            return [key, getSnapshot(value)]
+          }),
+        )
+        attributes = Object.entries(tmp)
+          .map(([key, values]) => `${key}=${values.join(', ')}`)
+          .toString()
+
         selectedFeatureRows.push({
           id: child._id,
           type: child.type,
-          refSeq: child.refSeq,
+          refSeq: refName,
           start: child.start,
           end: child.end,
           feature: child,
           model,
+          attributes,
         })
         addChildFeatures(child)
       })
@@ -176,6 +257,7 @@ export const ApolloDetails = observer(
         | LocationEndChange
         | TypeChange
         | undefined = undefined
+
       if (newRow.start !== oldRow.start) {
         const { start: oldStart, id: featureId } = oldRow
         const { start: newStart } = newRow
@@ -227,11 +309,34 @@ export const ApolloDetails = observer(
           <CloseIcon />
         </IconButton>
         <DataGrid
+          apiRef={apiRef}
           style={{ height: detailsHeight }}
           rows={selectedFeatureRows}
-          columns={getFeatureColumns(editable, internetAccount)}
+          columns={getFeatureColumns(editable, internetAccount, model)}
           processRowUpdate={processRowUpdate}
           onProcessRowUpdateError={console.error}
+          onCellEditStart={async (params: GridCellEditStartParams<GridRow>) => {
+            if (params.colDef.field !== 'attributes' || !selectedFeature) {
+              return
+            }
+            const { assemblyId } = selectedFeature
+            session.queueDialog((doneCallback) => [
+              ModifyFeatureAttribute,
+              {
+                session,
+                handleClose: doneCallback,
+                changeManager,
+                sourceFeature: params.row.feature,
+                sourceAssemblyId: assemblyId,
+              },
+            ])
+            // Without this, `stopCellEditMode` doesn't work because the cell
+            // is still in view mode. Probably an MUI bug, but since we're
+            // likely going to replace DataGrid, it's not worth fixing now.
+            await new Promise((resolve) => setTimeout(resolve, 0))
+            const { id: cellId, field } = params
+            apiRef.current.stopCellEditMode({ id: cellId, field })
+          }}
         />
       </div>
     )
