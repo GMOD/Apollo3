@@ -1,6 +1,6 @@
 import { AppRootModel, getSession } from '@jbrowse/core/util'
 import CloseIcon from '@mui/icons-material/Close'
-import { Autocomplete, Button, IconButton, TextField } from '@mui/material'
+import { Autocomplete, IconButton, TextField } from '@mui/material'
 import {
   DataGrid,
   GridColDef,
@@ -30,7 +30,6 @@ function getFeatureColumns(
   model: LinearApolloDisplay,
 ): GridColDef[] {
   return [
-    { field: 'id', headerName: 'ID', width: 50 },
     {
       field: 'type',
       headerName: 'Type',
@@ -43,43 +42,13 @@ function getFeatureColumns(
     { field: 'refSeq', headerName: 'Ref Name', width: 100 },
     { field: 'start', headerName: 'Start', type: 'number', editable },
     { field: 'end', headerName: 'End', type: 'number', editable },
-    { field: 'attributes', headerName: 'Attributes', width: 700 },
     {
-      field: 'AttributeButton',
-      headerName: 'Link to Attributes',
-      width: 150,
-      renderCell: (params) => (
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => handleButtonClick(model, params)}
-        >
-          Open attributes
-        </Button>
-      ),
+      field: 'attributes',
+      headerName: 'Attributes',
+      width: 900,
+      editable,
     },
   ]
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const handleButtonClick = (model: LinearApolloDisplay, params: any) => {
-  const session = getSession(model)
-  const { changeManager, selectedFeature } = model
-  if (selectedFeature) {
-    const { assemblyId } = selectedFeature
-    session.queueDialog((doneCallback) => [
-      ModifyFeatureAttribute,
-      {
-        session,
-        handleClose: () => {
-          doneCallback()
-        },
-        changeManager,
-        sourceFeature: params.row.feature,
-        sourceAssemblyId: assemblyId,
-      },
-    ])
-  }
 }
 
 interface AutocompleteInputCellProps extends GridRenderEditCellParams {
@@ -185,18 +154,9 @@ export const ApolloDetails = observer(
       end,
       assemblyId: assembly,
     } = selectedFeature
-    let refName = refSeq
     const { assemblyManager } = session
-
-    if (assemblyManager.get(assembly)?.refNameAliases) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const refNames = assemblyManager.get(assembly)!.refNameAliases!
-      Object.keys(refNames).forEach((key) => {
-        if (key === refSeq) {
-          refName = refNames[key]
-        }
-      })
-    }
+    const refName =
+      assemblyManager.get(assembly)?.getCanonicalRefName(refSeq) || refSeq
 
     let tmp = Object.fromEntries(
       Array.from(selectedFeature.attributes.entries()).map(([key, value]) => {
@@ -271,6 +231,7 @@ export const ApolloDetails = observer(
         | LocationEndChange
         | TypeChange
         | undefined = undefined
+
       if (newRow.start !== oldRow.start) {
         const { start: oldStart, id: featureId } = oldRow
         const { start: newStart } = newRow
@@ -310,6 +271,26 @@ export const ApolloDetails = observer(
       }
       return newRow
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleOnCellClick = (params: any) => {
+      if (params.colDef.field === 'attributes') {
+        if (selectedFeature) {
+          const { assemblyId } = selectedFeature
+          session.queueDialog((doneCallback) => [
+            ModifyFeatureAttribute,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              changeManager,
+              sourceFeature: params.row.feature,
+              sourceAssemblyId: assemblyId,
+            },
+          ])
+        }
+      }
+    }
     return (
       <div style={{ width: '100%', position: 'relative' }}>
         <IconButton
@@ -325,11 +306,9 @@ export const ApolloDetails = observer(
           style={{ height: detailsHeight }}
           rows={selectedFeatureRows}
           columns={getFeatureColumns(editable, internetAccount, model)}
-          columnVisibilityModel={{
-            id: false,
-          }}
           processRowUpdate={processRowUpdate}
           onProcessRowUpdateError={console.error}
+          onCellClick={handleOnCellClick}
         />
       </div>
     )
