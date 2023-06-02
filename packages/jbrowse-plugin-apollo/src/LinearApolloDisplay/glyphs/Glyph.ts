@@ -2,6 +2,7 @@ import { MenuItem } from '@jbrowse/core/ui'
 import { AnnotationFeatureI } from 'apollo-mst'
 
 import {
+  AddFeature,
   CopyFeature,
   DeleteFeature,
   ModifyFeatureAttribute,
@@ -112,28 +113,28 @@ export abstract class Glyph {
     const menuItems: MenuItem[] = []
     if (sourceFeature) {
       const [region] = regions
-      // const sourceAssemblyId = getAssemblyId(region.assemblyName)
+      const sourceAssemblyId = getAssemblyId(region.assemblyName)
       const currentAssemblyId = getAssemblyId(region.assemblyName)
       menuItems.push(
-        // {
-        //   label: 'Add child feature',
-        //   disabled: readOnly,
-        //   onClick: () => {
-        //     session.queueDialog((doneCallback) => [
-        //       AddFeature,
-        //       {
-        //         session,
-        //         handleClose: () => {
-        //           doneCallback()
-        //         },
-        //         changeManager,
-        //         sourceFeature,
-        //         sourceAssemblyId,
-        //         internetAccount,
-        //       },
-        //     ])
-        //   },
-        // },
+        {
+          label: 'Add child feature',
+          disabled: readOnly,
+          onClick: () => {
+            session.queueDialog((doneCallback) => [
+              AddFeature,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                changeManager,
+                sourceFeature,
+                sourceAssemblyId,
+                internetAccount,
+              },
+            ])
+          },
+        },
         {
           label: 'Copy features and annotations',
           disabled: readOnly,

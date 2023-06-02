@@ -155,7 +155,13 @@ export class AddFeatureChange extends FeatureChange {
           })
           const childIds = this.getChildFeatureIds(addedFeature)
           topLevelFeature.allIds.push(addedFeature._id, ...childIds)
-          topLevelFeature.save()
+          topLevelFeature.markModified('allIds')
+          try {
+            await topLevelFeature.save()
+          } catch (error) {
+            logger.debug?.(`*** FAILED: ${error}`)
+            throw error
+          }
         } else {
           const childIds = this.getChildFeatureIds(addedFeature)
           const allIdsV2 = [addedFeature._id, ...childIds]

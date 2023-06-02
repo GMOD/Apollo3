@@ -102,6 +102,7 @@ export class ChangesService {
     }
 
     let changeDoc: ChangeDocument | undefined
+
     await this.featureModel.db.transaction(async (session) => {
       try {
         await change.execute({
@@ -205,7 +206,6 @@ export class ChangesService {
         throw new UnprocessableEntityException(String(e))
       }
     })
-
     this.logger.debug?.(`CHANGE DOC: ${JSON.stringify(changeDoc)}`)
     if (!changeDoc) {
       throw new UnprocessableEntityException('could not create change')
