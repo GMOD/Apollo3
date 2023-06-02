@@ -3,11 +3,13 @@ import CloseIcon from '@mui/icons-material/Close'
 import { Autocomplete, IconButton, TextField } from '@mui/material'
 import {
   DataGrid,
+  GridCellEditStartParams,
   GridColDef,
   GridRenderEditCellParams,
   GridRowModel,
   MuiBaseEvent,
   useGridApiContext,
+  useGridApiRef,
 } from '@mui/x-data-grid'
 import { AnnotationFeatureI } from 'apollo-mst'
 import {
@@ -24,28 +26,51 @@ import { ModifyFeatureAttribute } from '../../components/ModifyFeatureAttribute'
 import { createFetchErrorMessage } from '../../util'
 import { LinearApolloDisplay } from '../stateModel'
 
+interface GridRow {
+  id: string
+  type: string
+  refSeq: string
+  start: number
+  end: number
+  feature: AnnotationFeatureI
+  model: LinearApolloDisplay
+  attributes: unknown
+}
+
 function getFeatureColumns(
   editable: boolean,
   internetAccount: ApolloInternetAccountModel,
   model: LinearApolloDisplay,
-): GridColDef[] {
+): GridColDef<GridRow>[] {
   return [
     {
       field: 'type',
       headerName: 'Type',
-      width: 200,
+      width: 80,
       editable,
       renderEditCell: (params: GridRenderEditCellParams) => (
         <AutocompleteInputCell {...params} internetAccount={internetAccount} />
       ),
     },
-    { field: 'refSeq', headerName: 'Ref Name', width: 100 },
-    { field: 'start', headerName: 'Start', type: 'number', editable },
-    { field: 'end', headerName: 'End', type: 'number', editable },
+    { field: 'refSeq', headerName: 'Ref Name', width: 80 },
+    {
+      field: 'start',
+      headerName: 'Start',
+      type: 'number',
+      width: 80,
+      editable,
+    },
+    {
+      field: 'end',
+      headerName: 'End',
+      type: 'number',
+      width: 80,
+      editable,
+    },
     {
       field: 'attributes',
       headerName: 'Attributes',
-      width: 900,
+      width: 300,
       editable,
     },
   ]
@@ -62,7 +87,7 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
 
   useEffect(() => {
     async function getSOSequenceTerms() {
-      const { feature } = row as { feature: AnnotationFeatureI }
+      const { feature } = row
       const { type, parent, children } = feature
       let endpoint = `/ontologies/descendants/sequence_feature`
       if (parent) {
@@ -124,6 +149,7 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
 export const ApolloDetails = observer(
   ({ model }: { model: LinearApolloDisplay }) => {
     const session = getSession(model)
+    const apiRef = useGridApiRef()
     const { internetAccounts } = getRoot(session) as AppRootModel
     const internetAccount = useMemo(() => {
       const apolloInternetAccount = internetAccounts.find(
@@ -176,7 +202,7 @@ export const ApolloDetails = observer(
       .map(([key, values]) => `${key}=${values.join(', ')}`)
       .join(', ')
 
-    const selectedFeatureRows = [
+    const selectedFeatureRows: GridRow[] = [
       {
         id,
         type,
@@ -271,26 +297,6 @@ export const ApolloDetails = observer(
       }
       return newRow
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handleOnCellClick = (params: any) => {
-      if (params.colDef.field === 'attributes') {
-        if (selectedFeature) {
-          const { assemblyId } = selectedFeature
-          session.queueDialog((doneCallback) => [
-            ModifyFeatureAttribute,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
-              },
-              changeManager,
-              sourceFeature: params.row.feature,
-              sourceAssemblyId: assemblyId,
-            },
-          ])
-        }
-      }
-    }
     return (
       <div style={{ width: '100%', position: 'relative' }}>
         <IconButton
@@ -303,12 +309,34 @@ export const ApolloDetails = observer(
           <CloseIcon />
         </IconButton>
         <DataGrid
+          apiRef={apiRef}
           style={{ height: detailsHeight }}
           rows={selectedFeatureRows}
           columns={getFeatureColumns(editable, internetAccount, model)}
           processRowUpdate={processRowUpdate}
           onProcessRowUpdateError={console.error}
-          onCellClick={handleOnCellClick}
+          onCellEditStart={async (params: GridCellEditStartParams<GridRow>) => {
+            if (params.colDef.field !== 'attributes' || !selectedFeature) {
+              return
+            }
+            const { assemblyId } = selectedFeature
+            session.queueDialog((doneCallback) => [
+              ModifyFeatureAttribute,
+              {
+                session,
+                handleClose: doneCallback,
+                changeManager,
+                sourceFeature: params.row.feature,
+                sourceAssemblyId: assemblyId,
+              },
+            ])
+            // Without this, `stopCellEditMode` doesn't work because the cell
+            // is still in view mode. Probably an MUI bug, but since we're
+            // likely going to replace DataGrid, it's not worth fixing now.
+            await new Promise((resolve) => setTimeout(resolve, 0))
+            const { id: cellId, field } = params
+            apiRef.current.stopCellEditMode({ id: cellId, field })
+          }}
         />
       </div>
     )
