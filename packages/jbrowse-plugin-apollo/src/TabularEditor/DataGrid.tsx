@@ -21,10 +21,10 @@ import { observer } from 'mobx-react'
 import { getRoot, getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useMemo, useState } from 'react'
 
-import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
-import { ModifyFeatureAttribute } from '../../components/ModifyFeatureAttribute'
-import { createFetchErrorMessage } from '../../util'
-import { LinearApolloDisplay } from '../stateModel'
+import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { ModifyFeatureAttribute } from '../components/ModifyFeatureAttribute'
+import { LinearApolloDisplay } from '../LinearApolloDisplay/stateModel'
+import { createFetchErrorMessage } from '../util'
 
 interface GridRow {
   id: string
@@ -166,169 +166,171 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
   )
 }
 
-export const ApolloDetails = observer(
-  ({ model }: { model: LinearApolloDisplay }) => {
-    const session = getSession(model)
-    const apiRef = useGridApiRef()
-    const { internetAccounts } = getRoot(session) as AppRootModel
-    const internetAccount = useMemo(() => {
-      const apolloInternetAccount = internetAccounts.find(
-        (ia) => ia.type === 'ApolloInternetAccount',
-      ) as ApolloInternetAccountModel | undefined
-      if (!apolloInternetAccount) {
-        throw new Error('No Apollo internet account found')
-      }
-      return apolloInternetAccount
-    }, [internetAccounts])
-    const editable =
-      Boolean(internetAccount.authType) &&
-      ['admin', 'user'].includes(internetAccount.getRole() || '')
-    const {
-      selectedFeature,
-      setSelectedFeature,
-      changeManager,
-      detailsHeight,
-    } = model
-    if (!selectedFeature) {
-      return null
+export default observer(({ model }: { model: LinearApolloDisplay }) => {
+  const session = getSession(model)
+  const apiRef = useGridApiRef()
+  const { internetAccounts } = getRoot(session) as AppRootModel
+  const internetAccount = useMemo(() => {
+    const apolloInternetAccount = internetAccounts.find(
+      (ia) => ia.type === 'ApolloInternetAccount',
+    ) as ApolloInternetAccountModel | undefined
+    if (!apolloInternetAccount) {
+      throw new Error('No Apollo internet account found')
     }
-    const {
-      _id: id,
+    return apolloInternetAccount
+  }, [internetAccounts])
+  const editable =
+    Boolean(internetAccount.authType) &&
+    ['admin', 'user'].includes(internetAccount.getRole() || '')
+  const { selectedFeature, setSelectedFeature, changeManager, detailsHeight } =
+    model
+  if (!selectedFeature) {
+    return null
+  }
+  const {
+    _id: id,
+    type,
+    refSeq,
+    start,
+    end,
+    assemblyId: assembly,
+  } = selectedFeature
+  const { assemblyManager } = session
+  const refName =
+    assemblyManager.get(assembly)?.getCanonicalRefName(refSeq) || refSeq
+
+  let tmp = Object.fromEntries(
+    Array.from(selectedFeature.attributes.entries()).map(([key, value]) => {
+      if (key.startsWith('gff_')) {
+        const newKey = key.substring(4)
+        const capitalizedKey = newKey.charAt(0).toUpperCase() + newKey.slice(1)
+        return [capitalizedKey, getSnapshot(value)]
+      }
+      if (key === '_id') {
+        return ['ID', getSnapshot(value)]
+      }
+      return [key, getSnapshot(value)]
+    }),
+  )
+  let attributes = Object.entries(tmp)
+    .map(([key, values]) => `${key}=${values.join(', ')}`)
+    .join(', ')
+
+  const selectedFeatureRows: GridRow[] = [
+    {
+      id,
       type,
-      refSeq,
+      refSeq: refName,
       start,
       end,
-      assemblyId: assembly,
-    } = selectedFeature
-    const { assemblyManager } = session
-    const refName =
-      assemblyManager.get(assembly)?.getCanonicalRefName(refSeq) || refSeq
+      feature: selectedFeature,
+      model,
+      attributes,
+    },
+  ]
+  function addChildFeatures(f: typeof selectedFeature) {
+    f?.children?.forEach((child: AnnotationFeatureI, childId: string) => {
+      tmp = Object.fromEntries(
+        Array.from(child.attributes.entries()).map(([key, value]) => {
+          if (key.startsWith('gff_')) {
+            const newKey = key.substring(4)
+            const capitalizedKey =
+              newKey.charAt(0).toUpperCase() + newKey.slice(1)
+            return [capitalizedKey, getSnapshot(value)]
+          }
+          if (key === '_id') {
+            return ['ID', getSnapshot(value)]
+          }
+          return [key, getSnapshot(value)]
+        }),
+      )
+      attributes = Object.entries(tmp)
+        .map(([key, values]) => `${key}=${values.join(', ')}`)
+        .toString()
 
-    let tmp = Object.fromEntries(
-      Array.from(selectedFeature.attributes.entries()).map(([key, value]) => {
-        if (key.startsWith('gff_')) {
-          const newKey = key.substring(4)
-          const capitalizedKey =
-            newKey.charAt(0).toUpperCase() + newKey.slice(1)
-          return [capitalizedKey, getSnapshot(value)]
-        }
-        if (key === '_id') {
-          return ['ID', getSnapshot(value)]
-        }
-        return [key, getSnapshot(value)]
-      }),
-    )
-    let attributes = Object.entries(tmp)
-      .map(([key, values]) => `${key}=${values.join(', ')}`)
-      .join(', ')
-
-    const selectedFeatureRows: GridRow[] = [
-      {
-        id,
-        type,
+      selectedFeatureRows.push({
+        id: child._id,
+        type: child.type,
         refSeq: refName,
-        start,
-        end,
-        feature: selectedFeature,
+        start: child.start,
+        end: child.end,
+        feature: child,
         model,
         attributes,
-      },
-    ]
-    function addChildFeatures(f: typeof selectedFeature) {
-      f?.children?.forEach((child: AnnotationFeatureI, childId: string) => {
-        tmp = Object.fromEntries(
-          Array.from(child.attributes.entries()).map(([key, value]) => {
-            if (key.startsWith('gff_')) {
-              const newKey = key.substring(4)
-              const capitalizedKey =
-                newKey.charAt(0).toUpperCase() + newKey.slice(1)
-              return [capitalizedKey, getSnapshot(value)]
-            }
-            if (key === '_id') {
-              return ['ID', getSnapshot(value)]
-            }
-            return [key, getSnapshot(value)]
-          }),
-        )
-        attributes = Object.entries(tmp)
-          .map(([key, values]) => `${key}=${values.join(', ')}`)
-          .toString()
+      })
+      addChildFeatures(child)
+    })
+  }
+  addChildFeatures(selectedFeature)
+  function processRowUpdate(
+    newRow: GridRowModel<typeof selectedFeatureRows[0]>,
+    oldRow: GridRowModel<typeof selectedFeatureRows[0]>,
+  ) {
+    let change:
+      | LocationStartChange
+      | LocationEndChange
+      | TypeChange
+      | undefined = undefined
 
-        selectedFeatureRows.push({
-          id: child._id,
-          type: child.type,
-          refSeq: refName,
-          start: child.start,
-          end: child.end,
-          feature: child,
-          model,
-          attributes,
-        })
-        addChildFeatures(child)
+    if (newRow.start !== oldRow.start) {
+      const { start: oldStart, id: featureId } = oldRow
+      const { start: newStart } = newRow
+      change = new LocationStartChange({
+        typeName: 'LocationStartChange',
+        changedIds: [featureId],
+        featureId,
+        oldStart,
+        newStart: Number(newStart),
+        assembly,
+      })
+    } else if (newRow.end !== oldRow.end) {
+      const { end: oldEnd, id: featureId } = oldRow
+      const { end: newEnd } = newRow
+      change = new LocationEndChange({
+        typeName: 'LocationEndChange',
+        changedIds: [featureId],
+        featureId,
+        oldEnd,
+        newEnd: Number(newEnd),
+        assembly,
+      })
+    } else if (newRow.type !== oldRow.type) {
+      const { type: oldType, id: featureId } = oldRow
+      const { type: newType } = newRow
+      change = new TypeChange({
+        typeName: 'TypeChange',
+        changedIds: [featureId],
+        featureId,
+        oldType: String(oldType),
+        newType: String(newType),
+        assembly,
       })
     }
-    addChildFeatures(selectedFeature)
-    function processRowUpdate(
-      newRow: GridRowModel<typeof selectedFeatureRows[0]>,
-      oldRow: GridRowModel<typeof selectedFeatureRows[0]>,
-    ) {
-      let change:
-        | LocationStartChange
-        | LocationEndChange
-        | TypeChange
-        | undefined = undefined
-
-      if (newRow.start !== oldRow.start) {
-        const { start: oldStart, id: featureId } = oldRow
-        const { start: newStart } = newRow
-        change = new LocationStartChange({
-          typeName: 'LocationStartChange',
-          changedIds: [featureId],
-          featureId,
-          oldStart,
-          newStart: Number(newStart),
-          assembly,
-        })
-      } else if (newRow.end !== oldRow.end) {
-        const { end: oldEnd, id: featureId } = oldRow
-        const { end: newEnd } = newRow
-        change = new LocationEndChange({
-          typeName: 'LocationEndChange',
-          changedIds: [featureId],
-          featureId,
-          oldEnd,
-          newEnd: Number(newEnd),
-          assembly,
-        })
-      } else if (newRow.type !== oldRow.type) {
-        const { type: oldType, id: featureId } = oldRow
-        const { type: newType } = newRow
-        change = new TypeChange({
-          typeName: 'TypeChange',
-          changedIds: [featureId],
-          featureId,
-          oldType: String(oldType),
-          newType: String(newType),
-          assembly,
-        })
-      }
-      if (change) {
-        changeManager?.submit(change)
-      }
-      return newRow
+    if (change) {
+      changeManager?.submit(change)
     }
-    return (
-      <div style={{ width: '100%', position: 'relative' }}>
-        <IconButton
-          aria-label="close"
-          style={{ position: 'absolute', right: 0, zIndex: 1 }}
-          onClick={() => {
-            setSelectedFeature(undefined)
-          }}
-        >
-          <CloseIcon />
-        </IconButton>
-        <DataGrid
+    return newRow
+  }
+  return (
+    <div style={{ width: '100%', position: 'relative' }}>
+      <div
+        style={{
+          width: '100%',
+          height: '4px',
+          position: 'absolute',
+          cursor: 'row-resize',
+        }}
+      />
+      <IconButton
+        aria-label="close"
+        style={{ position: 'absolute', right: 0, zIndex: 1 }}
+        onClick={() => {
+          setSelectedFeature(undefined)
+        }}
+      >
+        <CloseIcon />
+      </IconButton>
+      {/* <DataGrid
           apiRef={apiRef}
           style={{ height: detailsHeight }}
           rows={selectedFeatureRows}
@@ -357,8 +359,7 @@ export const ApolloDetails = observer(
             const { id: cellId, field } = params
             apiRef.current.stopCellEditMode({ id: cellId, field })
           }}
-        />
-      </div>
-    )
-  },
-)
+        /> */}
+    </div>
+  )
+})

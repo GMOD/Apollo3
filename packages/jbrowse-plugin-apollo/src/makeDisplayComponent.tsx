@@ -5,13 +5,11 @@ import { observer } from 'mobx-react'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'
 
-import {
-  ApolloDetails,
-  LinearApolloDisplay,
-} from './LinearApolloDisplay/components'
+import { LinearApolloDisplay } from './LinearApolloDisplay/components'
 import { LinearApolloDisplay as LinearApolloDisplayI } from './LinearApolloDisplay/stateModel'
 import { TrackLines } from './SixFrameFeatureDisplay/components'
 import { SixFrameFeatureDisplay } from './SixFrameFeatureDisplay/stateModel'
+import TabularEditorPane from './TabularEditor'
 
 const useStyles = makeStyles()((theme) => ({
   shading: {
@@ -39,7 +37,7 @@ export const DisplayComponent = observer(
           <LinearApolloDisplay model={model} {...other} />
         </div>
         <div className={classes.details} style={{ height: detailsHeight }}>
-          <ApolloDetails model={model} />
+          <TabularEditorPane model={model} height={detailsHeight} />
         </div>
       </div>
     )
