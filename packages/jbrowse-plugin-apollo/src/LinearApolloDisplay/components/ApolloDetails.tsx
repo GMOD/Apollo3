@@ -46,7 +46,7 @@ function getFeatureColumns(
     {
       field: 'type',
       headerName: 'Type',
-      width: 80,
+      width: 200,
       editable,
       renderEditCell: (params: GridRenderEditCellParams) => (
         <AutocompleteInputCell {...params} internetAccount={internetAccount} />
@@ -92,7 +92,7 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
     async function getSOSequenceTerms() {
       const { feature } = row
       const { type, parent, children } = feature
-      let endpoint = `/ontologies/descendants/sequence_feature`
+      let endpoint = `/ontologies/equivalents/sequence_feature`
       if (parent) {
         endpoint = `/ontologies/descendants/${parent.type}`
       } else if (children?.size) {
