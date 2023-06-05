@@ -155,7 +155,7 @@ export function AddAssembly({
             ...changeBase,
           })
 
-    changeManager.submit(change, {
+    await changeManager.submit(change, {
       internetAccountId: selectedInternetAcount.internetAccountId,
     })
     notify(`Assembly "${assemblyName}" is being added`, 'info')

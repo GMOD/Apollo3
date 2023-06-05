@@ -78,7 +78,7 @@ export function DeleteAssembly({
       typeName: 'DeleteAssemblyChange',
       assembly: selectedAssembly._id,
     })
-    changeManager.submit?.(change, {
+    await changeManager.submit?.(change, {
       internetAccountId: selectedInternetAcount.internetAccountId,
     })
     handleClose()

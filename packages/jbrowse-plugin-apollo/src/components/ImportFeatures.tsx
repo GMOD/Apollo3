@@ -107,7 +107,7 @@ export function ImportFeatures({
       assembly: assemblyId,
       fileId,
     })
-    changeManager.submit(change)
+    await changeManager.submit(change)
     notify(`Features are being added to "${assemblyName}"`, 'info')
     handleClose()
     event.preventDefault()

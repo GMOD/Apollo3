@@ -75,7 +75,7 @@ export function CopyFeature({
       setRefNames(newRefNames)
       setSelectedRefSeqId(newRefNames[0]?._id || '')
     }
-    getRefNames()
+    getRefNames().catch((e) => setErrorMessage(String(e)))
   }, [selectedAssemblyId, assemblyManager])
 
   async function handleChangeRefSeq(e: SelectChangeEvent<string>) {
@@ -167,7 +167,7 @@ export function CopyFeature({
       copyFeature: true,
       allIds: featureIds,
     })
-    changeManager.submit?.(change)
+    await changeManager.submit?.(change)
 
     notify(`Feature copied successfully`, 'success')
     handleClose()

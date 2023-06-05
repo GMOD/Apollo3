@@ -59,7 +59,7 @@ export function DeleteFeature({
       deletedFeature: getSnapshot(sourceFeature),
       parentFeatureId: sourceFeature.parent?._id,
     })
-    changeManager.submit?.(change)
+    await changeManager.submit?.(change)
     notify(`Feature deleted successfully`, 'success')
     handleClose()
     event.preventDefault()

@@ -70,7 +70,7 @@ export function useAssemblies(
         }
       }
     }
-    getAssemblies()
+    getAssemblies().catch((e) => setErrorMessage(String(e)))
     return () => {
       setAssemblies([])
     }

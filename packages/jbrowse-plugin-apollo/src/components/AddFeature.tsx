@@ -85,7 +85,7 @@ export function AddFeature({
       }
       setPossibleChildTypes(data)
     }
-    getTypes()
+    getTypes().catch((e) => setErrorMessage(String(e)))
   }, [baseURL, internetAccount, sourceFeature.type])
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {

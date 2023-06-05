@@ -100,7 +100,7 @@ async function bootstrap() {
     `Application is running on: ${await app.getUrl()}, CORS = ${cors}`,
   )
 }
-bootstrap()
+void bootstrap()
 
 function convertToBoolean(input: string): boolean | undefined {
   try {

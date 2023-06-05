@@ -71,7 +71,7 @@ export class OperationsService {
       ontology: this.ontologiesService.ontology,
       user: '',
     })
-    session.endSession()
+    await session.endSession()
     return result
   }
 }

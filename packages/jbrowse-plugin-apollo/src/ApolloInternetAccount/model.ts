@@ -161,9 +161,9 @@ const stateModelFactory = (
           const change = Change.fromJSON(message.changeInfo)
           changeManager?.submit(change, { submitToBackend: false })
         })
-        socket.on('reconnect', () => {
+        socket.on('reconnect', async () => {
           notify('You are re-connected to the Apollo server.', 'success')
-          this.getMissingChanges()
+          await this.getMissingChanges()
         })
         socket.on('disconnect', () => {
           notify('You are disconnected from the Apollo server.', 'error')
@@ -414,42 +414,17 @@ const stateModelFactory = (
           )
         }
       },
-      afterAttach() {
-        autorun(
-          async (reaction) => {
-            if (inWebWorker) {
-              return
-            }
-            try {
-              const { getRole, authType } = self
-              if (!authType) {
-                return
-              }
-              const role = getRole()
-              if (role) {
-                this.initialize(role)
-              }
-              reaction.dispose()
-            } catch (error) {
-              // pass
-            }
-          },
-          { name: 'ApolloInternetAccount' },
-        )
-      },
-      initializeFromToken(token: string) {
-        const payload = getDecodedToken(token)
-        this.initialize(payload.role)
-      },
-      initialize(role?: Role) {
+    }))
+    .actions((self) => ({
+      initialize: flow(function* intitialize(role?: Role) {
         if (!role) {
           return
         }
         if (role === 'admin') {
-          this.addMenuItems(role)
+          self.addMenuItems(role)
         }
         // Get and set server last change sequnece into session storage
-        self.updateLastChangeSequenceNumber()
+        yield self.updateLastChangeSequenceNumber()
         // Open socket listeners
         self.addSocketListeners()
         // request user locations
@@ -459,11 +434,9 @@ const stateModelFactory = (
           locationType: 'UriLocation',
           uri,
         })
-        if (apolloFetch) {
-          apolloFetch(uri, {
-            method: 'GET',
-          })
-        }
+        yield apolloFetch(uri, {
+          method: 'GET',
+        })
         window.addEventListener('beforeunload', () => {
           self.postUserLocation([])
         })
@@ -478,7 +451,36 @@ const stateModelFactory = (
             session.broadcastLocations()
           }
         })
+      }),
+    }))
+    .actions((self) => ({
+      afterAttach() {
+        autorun(
+          async (reaction) => {
+            if (inWebWorker) {
+              return
+            }
+            try {
+              const { getRole, authType } = self
+              if (!authType) {
+                return
+              }
+              const role = getRole()
+              if (role) {
+                await self.initialize(role)
+              }
+              reaction.dispose()
+            } catch (error) {
+              // pass
+            }
+          },
+          { name: 'ApolloInternetAccount' },
+        )
       },
+      initializeFromToken: flow(function* initializeFromToken(token: string) {
+        const payload = getDecodedToken(token)
+        yield self.initialize(payload.role)
+      }),
     }))
     .volatile((self) => ({
       googleAuthInternetAccount: OAuthInternetAccountModelFactory(
@@ -494,10 +496,10 @@ const stateModelFactory = (
         .actions((s) => {
           const superStoreToken = s.storeToken
           return {
-            storeToken(token: string) {
+            storeToken: flow(function* storeToken(token: string) {
               superStoreToken(token)
-              self.initializeFromToken(token)
-            },
+              yield self.initializeFromToken(token)
+            }),
           }
         })
         .create({
@@ -525,10 +527,10 @@ const stateModelFactory = (
         .actions((s) => {
           const superStoreToken = s.storeToken
           return {
-            storeToken(token: string) {
+            storeToken: flow(function* storeToken(token: string) {
               superStoreToken(token)
-              self.initializeFromToken(token)
-            },
+              yield self.initializeFromToken(token)
+            }),
           }
         })
         .create({
