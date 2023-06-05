@@ -190,7 +190,7 @@ export const ApolloDetails = observer(
       detailsHeight,
     } = model
     if (!selectedFeature) {
-      return <div>click on a feature to see details</div>
+      return null
     }
     const {
       _id: id,
