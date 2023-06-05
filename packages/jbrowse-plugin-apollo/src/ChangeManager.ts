@@ -46,7 +46,7 @@ export class ChangeManager {
     )
     if (!results2.ok) {
       // notify of invalid change and revert
-      this.revert(change)
+      await this.revert(change)
     }
 
     if (submitToBackend) {
@@ -61,7 +61,7 @@ export class ChangeManager {
       } catch (error) {
         console.error(error)
         session.notify(String(error), 'error')
-        this.revert(change, false)
+        await this.revert(change, false)
         return
       }
       if (!backendResult.ok) {
@@ -69,7 +69,7 @@ export class ChangeManager {
           `Post-validation failed: "${result.resultsMessages}"`,
           'error',
         )
-        this.revert(change, false)
+        await this.revert(change, false)
         return
       }
       if (change.notification) {

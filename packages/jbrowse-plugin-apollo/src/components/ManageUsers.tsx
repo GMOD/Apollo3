@@ -89,7 +89,7 @@ export function ManageUsers({
   }, [selectedInternetAcount])
 
   useEffect(() => {
-    getUsers()
+    getUsers().catch((e) => setErrorMessage(String(e)))
   }, [getUsers])
 
   async function deleteUser(id: GridRowId) {
@@ -127,9 +127,9 @@ export function ManageUsers({
       getActions: (params: GridRowParams) => [
         <GridActionsCellItem
           icon={<DeleteIcon />}
-          onClick={() => {
+          onClick={async () => {
             if (window.confirm('Delete this user?')) {
-              deleteUser(params.id)
+              await deleteUser(params.id)
             }
           }}
           disabled={isCurrentUser(params.id)}
@@ -152,7 +152,7 @@ export function ManageUsers({
   }
 
   async function onChangeTableCell(change: UserChange) {
-    changeManager.submit(change, {
+    await changeManager.submit(change, {
       internetAccountId: selectedInternetAcount.internetAccountId,
     })
   }
@@ -190,14 +190,14 @@ export function ManageUsers({
             isCellEditable={(params: GridCellParams) =>
               !isCurrentUser(params.id)
             }
-            onCellEditStop={(params) => {
+            onCellEditStop={async (params) => {
               if (params.field === 'role') {
                 const change = new UserChange({
                   typeName: 'UserChange',
                   role: params.value,
                   userId: params.id as string,
                 })
-                onChangeTableCell(change)
+                await onChangeTableCell(change)
               }
             }}
           />

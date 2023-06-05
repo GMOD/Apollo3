@@ -85,7 +85,7 @@ export function AddFeature({
       }
       setPossibleChildTypes(data)
     }
-    getTypes()
+    getTypes().catch((e) => setErrorMessage(String(e)))
   }, [baseURL, internetAccount, sourceFeature.type])
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -110,7 +110,7 @@ export function AddFeature({
       },
       parentFeatureId: sourceFeature._id,
     })
-    changeManager.submit?.(change)
+    await changeManager.submit?.(change)
     notify(`Feature added successfully`, 'success')
     handleClose()
     event.preventDefault()

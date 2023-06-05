@@ -100,7 +100,7 @@ export class CollaborationServerDriver extends BackendDriver {
       )
       throw new Error(errorMessage)
     }
-    this.checkSocket(assemblyName, refName, internetAccount)
+    await this.checkSocket(assemblyName, refName, internetAccount)
     return response.json() as Promise<AnnotationFeatureSnapshot[]>
   }
 
@@ -125,7 +125,7 @@ export class CollaborationServerDriver extends BackendDriver {
     if (!socket.hasListeners(channel)) {
       socket.on(
         channel,
-        (message: {
+        async (message: {
           changeSequence: string
           userToken: string
           channel: string
@@ -138,7 +138,7 @@ export class CollaborationServerDriver extends BackendDriver {
           )
           if (message.userToken !== token && message.channel === channel) {
             const change = Change.fromJSON(message.changeInfo)
-            changeManager.submit(change, { submitToBackend: false })
+            await changeManager.submit(change, { submitToBackend: false })
           }
         },
       )
@@ -197,7 +197,7 @@ export class CollaborationServerDriver extends BackendDriver {
         }`,
       )
     }
-    this.checkSocket(assemblyName, refName, internetAccount)
+    await this.checkSocket(assemblyName, refName, internetAccount)
     // const seq = (await response.text()) as string
     // return seq as string
     return { seq: await response.text(), refSeq }

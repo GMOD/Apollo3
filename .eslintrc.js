@@ -33,6 +33,7 @@ module.exports = {
       { selector: 'function', format: ['camelCase', 'PascalCase'] },
       { selector: 'typeLike', format: ['PascalCase'] },
     ],
+    '@typescript-eslint/no-floating-promises': 'error',
     '@typescript-eslint/no-shadow': 'error',
     curly: 'warn',
     camelcase: ['error', { properties: 'never', ignoreDestructuring: false }],

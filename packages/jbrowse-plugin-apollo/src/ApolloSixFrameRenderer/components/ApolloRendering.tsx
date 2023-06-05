@@ -506,7 +506,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   //     })
   //   }
   // }
-  function onMouseUp() {
+  async function onMouseUp() {
     if (!movedDuringLastMouseDown) {
       if (apolloFeatureUnderMouse) {
         setSelectedFeature(apolloFeatureUnderMouse)
@@ -540,7 +540,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
           assembly,
         })
       }
-      changeManager?.submit(change)
+      await changeManager?.submit(change)
     }
     setDragging(undefined)
     setMovedDuringLastMouseDown(false)

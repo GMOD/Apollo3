@@ -234,7 +234,7 @@ export class ChangesService {
           message.channel
         }', changeObject: "${JSON.stringify(message)}"`,
       )
-      this.messagesGateway.create(message.channel, message)
+      await this.messagesGateway.create(message.channel, message)
     }
     this.logger.debug(`ChangeDocId: ${changeDoc?._id}`)
     return changeDoc

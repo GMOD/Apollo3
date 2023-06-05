@@ -42,6 +42,7 @@ function GoTagWithTooltip({
   getTagProps: AutocompleteRenderGetTagProps
 }) {
   const [description, setDescription] = React.useState('')
+  const [errorMessage, setErrorMessage] = React.useState('')
 
   React.useEffect(() => {
     const controller = new AbortController()
@@ -67,7 +68,7 @@ function GoTagWithTooltip({
         console.error(e)
       }
     }
-    fetchDescription()
+    fetchDescription().catch((e) => setErrorMessage(String(e)))
 
     return () => {
       controller.abort()
@@ -77,7 +78,12 @@ function GoTagWithTooltip({
   return (
     <Tooltip title={description}>
       <div>
-        <Chip label={goId} size="small" {...getTagProps({ index })} />
+        <Chip
+          label={errorMessage || goId}
+          color={errorMessage ? 'error' : 'default'}
+          size="small"
+          {...getTagProps({ index })}
+        />
       </div>
     </Tooltip>
   )
@@ -95,6 +101,7 @@ export function GoAutocomplete({
     [],
   )
   const [loading, setLoading] = React.useState(false)
+  const [errorMessage, setErrorMessage] = React.useState('')
 
   const goFetch = React.useMemo(
     () =>
@@ -137,12 +144,18 @@ export function GoAutocomplete({
         setOptions(newOptions)
         setLoading(false)
       }
-    })
+    }).catch((e) => setErrorMessage(String(e)))
 
     return () => {
       active = false
     }
   }, [value, inputValue, goFetch])
+
+  const extraTextFieldParams: { error?: boolean; helperText?: string } = {}
+  if (errorMessage) {
+    extraTextFieldParams.error = true
+    extraTextFieldParams.helperText = errorMessage
+  }
 
   return (
     <Autocomplete
@@ -170,7 +183,12 @@ export function GoAutocomplete({
       }}
       multiple
       renderInput={(params) => (
-        <TextField {...params} variant="outlined" fullWidth />
+        <TextField
+          {...params}
+          {...extraTextFieldParams}
+          variant="outlined"
+          fullWidth
+        />
       )}
       renderOption={(props, option) => {
         let parts =

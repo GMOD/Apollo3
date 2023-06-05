@@ -46,7 +46,7 @@ function getFeatureColumns(
     {
       field: 'type',
       headerName: 'Type',
-      width: 80,
+      width: 200,
       editable,
       renderEditCell: (params: GridRenderEditCellParams) => (
         <AutocompleteInputCell {...params} internetAccount={internetAccount} />
@@ -83,13 +83,16 @@ interface AutocompleteInputCellProps extends GridRenderEditCellParams {
 function AutocompleteInputCell(props: AutocompleteInputCellProps) {
   const { id, value, field, row, internetAccount } = props
   const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>([])
+  const [errorMessage, setErrorMessage] = useState('')
   const apiRef = useGridApiContext()
 
   useEffect(() => {
+    const controller = new AbortController()
+    const { signal } = controller
     async function getSOSequenceTerms() {
       const { feature } = row
       const { type, parent, children } = feature
-      let endpoint = `/ontologies/descendants/sequence_feature`
+      let endpoint = `/ontologies/equivalents/sequence_feature`
       if (parent) {
         endpoint = `/ontologies/descendants/${parent.type}`
       } else if (children?.size) {
@@ -98,7 +101,7 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
       const { baseURL, getFetcher } = internetAccount
       const uri = new URL(endpoint, baseURL).href
       const apolloFetch = getFetcher({ locationType: 'UriLocation', uri })
-      const response = await apolloFetch(uri, { method: 'GET' })
+      const response = await apolloFetch(uri, { method: 'GET', signal })
       if (!response.ok) {
         const newErrorMessage = await createFetchErrorMessage(
           response,
@@ -107,11 +110,18 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
         throw new Error(newErrorMessage)
       }
       const soTerms = (await response.json()) as string[] | undefined
-      if (soTerms) {
+      if (soTerms && !signal.aborted) {
         setSOSequenceTerms(soTerms)
       }
     }
-    getSOSequenceTerms()
+    getSOSequenceTerms().catch((e) => {
+      if (!signal.aborted) {
+        setErrorMessage(String(e))
+      }
+    })
+    return () => {
+      controller.abort()
+    }
   }, [internetAccount, row])
 
   const handleChange = async (
@@ -132,11 +142,21 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
     return null
   }
 
+  const extraTextFieldParams: { error?: boolean; helperText?: string } = {}
+  if (errorMessage) {
+    extraTextFieldParams.error = true
+    extraTextFieldParams.helperText = errorMessage
+  }
+
   return (
     <Autocomplete
       options={soSequenceTerms}
       style={{ width: 245 }}
-      renderInput={(params) => <TextField {...params} variant="outlined" />}
+      renderInput={(params) => {
+        return (
+          <TextField {...params} {...extraTextFieldParams} variant="outlined" />
+        )
+      }}
       value={String(value)}
       onChange={handleChange}
       disableClearable

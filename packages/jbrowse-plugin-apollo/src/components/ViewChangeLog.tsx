@@ -120,7 +120,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
         setAssemblyCollection(data)
       }
     }
-    getAssemblies()
+    getAssemblies().catch((e) => setErrorMessage(String(e)))
   }, [apolloInternetAccount, baseURL])
 
   useEffect(() => {
@@ -160,7 +160,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
         setDisplayGridData(data)
       }
     }
-    getGridData()
+    getGridData().catch((e) => setErrorMessage(String(e)))
   }, [assemblyId, apolloInternetAccount, baseURL])
 
   async function handleChangeAssembly(e: SelectChangeEvent<string>) {

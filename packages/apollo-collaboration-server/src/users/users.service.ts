@@ -107,24 +107,25 @@ export class UsersService {
     })
     const channel = 'USER_LOCATION'
 
-    if (broadcast) {
-      const { email, username: userName } = user
-      const userSessionId = makeUserSessionId(user)
-      const msg: UserLocationMessage = {
-        locations: userLocation,
-        channel,
-        userName,
-        userSessionId,
-      }
-      this.logger.debug(
-        `Broadcasting user ${JSON.stringify(
-          email,
-        )} location to channel "${channel}", the message is "${JSON.stringify(
-          msg,
-        )}"`,
-      )
-      this.messagesGateway.create(channel, msg)
+    if (!broadcast) {
+      return
     }
+    const { email, username: userName } = user
+    const userSessionId = makeUserSessionId(user)
+    const msg: UserLocationMessage = {
+      locations: userLocation,
+      channel,
+      userName,
+      userSessionId,
+    }
+    this.logger.debug(
+      `Broadcasting user ${JSON.stringify(
+        email,
+      )} location to channel "${channel}", the message is "${JSON.stringify(
+        msg,
+      )}"`,
+    )
+    return this.messagesGateway.create(channel, msg)
   }
 
   /**
@@ -146,6 +147,6 @@ export class UsersService {
         msg,
       )}"`,
     )
-    this.messagesGateway.create(channel, msg)
+    return this.messagesGateway.create(channel, msg)
   }
 }
