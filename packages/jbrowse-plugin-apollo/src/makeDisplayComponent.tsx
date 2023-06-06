@@ -2,7 +2,7 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material/styles'
 import { observer } from 'mobx-react'
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { LinearApolloDisplay } from './LinearApolloDisplay/components'
@@ -22,6 +22,20 @@ const useStyles = makeStyles()((theme) => ({
   },
 }))
 
+function scrollSelectedFeatureIntoView(
+  model: LinearApolloDisplayI,
+  scrollContainerRef: React.RefObject<HTMLDivElement>,
+) {
+  const { selectedFeature } = model
+  if (scrollContainerRef.current && selectedFeature) {
+    const position = model.getFeatureLayoutPosition(selectedFeature)
+    if (position) {
+      const scrollPosition = position.layoutRow * model.apolloRowHeight
+      scrollContainerRef.current.scrollTop = scrollPosition
+    }
+  }
+}
+
 export const DisplayComponent = observer(
   ({ model, ...other }: { model: LinearApolloDisplayI }) => {
     const { classes } = useStyles()
@@ -31,13 +45,23 @@ export const DisplayComponent = observer(
       detailsHeight = 0
     }
     const featureAreaHeight = height - detailsHeight
+
+    const canvasScrollContainerRef = useRef<HTMLDivElement>(null)
+    useEffect(
+      () => scrollSelectedFeatureIntoView(model, canvasScrollContainerRef),
+      [model, selectedFeature],
+    )
     return (
       <div style={{ height: model.height }}>
-        <div className={classes.shading} style={{ height: featureAreaHeight }}>
+        <div
+          className={classes.shading}
+          ref={canvasScrollContainerRef}
+          style={{ height: featureAreaHeight }}
+        >
           <LinearApolloDisplay model={model} {...other} />
         </div>
         <div className={classes.details} style={{ height: detailsHeight }}>
-          <TabularEditorPane model={model} height={detailsHeight} />
+          <TabularEditorPane model={model} />
         </div>
       </div>
     )
