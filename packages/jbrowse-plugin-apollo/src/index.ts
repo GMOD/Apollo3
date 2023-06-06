@@ -54,6 +54,16 @@ validationRegistry.registerValidation(new ParentChildValidation())
 export default class ApolloPlugin extends Plugin {
   name = 'ApolloPlugin'
   version = version
+  //
+  configurationSchema = ConfigurationSchema('ApolloPlugin', {
+    goLocation: {
+      type: 'fileLocation',
+      defaultValue: {
+        uri: '/Users/kyosti/src/Apollo/Assembly_files/go.json',
+        // uri: 'file:///Users/kyosti/src/Apollo/Assembly_files/go.json',
+      },
+    },
+  })
 
   install(pluginManager: PluginManager) {
     installApolloSequenceAdapter(pluginManager)

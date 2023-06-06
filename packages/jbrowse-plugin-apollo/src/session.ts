@@ -1,10 +1,10 @@
 import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
-import { getConf } from '@jbrowse/core/configuration'
+import { getConf, readConfObject } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel, AppRootModel, Region } from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
+import { ClientDataStore as ClientDataStoreType, OboJson } from 'apollo-common'
 import {
   AnnotationFeature,
   AnnotationFeatureI,
@@ -29,6 +29,14 @@ import {
 } from './ApolloInternetAccount/model'
 import { BackendDriver, CollaborationServerDriver } from './BackendDrivers'
 import { ChangeManager } from './ChangeManager'
+import {
+  Stores,
+  addBatchData,
+  getStoreDataCount,
+  initDB,
+  readFileSync,
+} from './components/db'
+import { GOTerm } from './components/ModifyFeatureAttribute'
 import { createFetchErrorMessage } from './util'
 
 export interface ApolloSession extends AbstractSessionModel {
@@ -473,6 +481,100 @@ export function extendSession(
             self.addSessionAssembly(assemblyConfig)
             const a = yield assemblyManager.waitForAssembly(assemblyConfig.name)
             self.addApolloTrackConfig(a)
+          }
+
+          // GO stuff starts here
+          yield initDB()
+          const recCount = yield getStoreDataCount()
+          if (recCount === undefined || recCount < 1) {
+            const { jbrowse } = getRoot(self)
+            const { configuration } = jbrowse
+            console.log(`LOCATION: ${JSON.stringify(configuration)}`)
+            const location = readConfObject(configuration, [
+              'ApolloPlugin',
+              'goLocation',
+            ])
+            console.log(`LOCATION: ${JSON.stringify(location.uri)}`)
+
+            // const ontologyFile = location.uri
+            // const goTerms: Record<string, string> = {}
+            const goTermsArray: { id: string; label: string }[] = []
+            let dummyCount = 0
+            try {
+              // const ontologyLocation = path.resolve(__dirname, ontologyFile)
+              // const ontologyText = fs.readFileSync(location.uri, 'utf8')
+              // const ontologyText = await readFileAsync(location.uri)
+              readFileSync(location.uri).then((ontologyText) => {
+                console.log(ontologyText)
+                const ontologyJson = JSON.parse(ontologyText) as OboJson
+                const ontology: OboJson = ontologyJson
+                let labelText = ''
+                // Iterate over the nodes and edges in the JSON file
+                for (const node of ontology.graphs[0].nodes) {
+                  if (node.id.startsWith('http://purl.obolibrary.org/obo/GO_')) {
+                    const { meta } = node
+                    labelText = node.lbl
+                    if (meta.hasOwnProperty('deprecated')) {
+                      const tmpObj = JSON.parse(JSON.stringify(meta))
+                      if (tmpObj.deprecated === true) {
+                        labelText = '*** This term is deprecated ***'
+                      }
+                    }
+                    goTermsArray.push({
+                      id: node.id.replace(
+                        'http://purl.obolibrary.org/obo/GO_',
+                        'GO:',
+                      ),
+                      label: labelText,
+                    })
+                    dummyCount++
+                  }
+                }  
+              }
+              )
+              // console.log(ontologyText)
+              // const ontologyJson = JSON.parse(ontologyText) as OboJson
+              // const ontology: OboJson = ontologyJson
+              // let labelText = ''
+              // // Iterate over the nodes and edges in the JSON file
+              // for (const node of ontology.graphs[0].nodes) {
+              //   if (node.id.startsWith('http://purl.obolibrary.org/obo/GO_')) {
+              //     const { meta } = node
+              //     labelText = node.lbl
+              //     if (meta.hasOwnProperty('deprecated')) {
+              //       const tmpObj = JSON.parse(JSON.stringify(meta))
+              //       if (tmpObj.deprecated === true) {
+              //         labelText = '*** This term is deprecated ***'
+              //       }
+              //     }
+              //     goTermsArray.push({
+              //       id: node.id.replace(
+              //         'http://purl.obolibrary.org/obo/GO_',
+              //         'GO:',
+              //       ),
+              //       label: labelText,
+              //     })
+              //     dummyCount++
+              //   }
+              // }
+            } catch (error) {
+              console.error(`Error loading ontology file: ${error}`)
+              throw error
+            }
+            console.debug(`Fetched ${dummyCount} GO terms`)
+            const data = goTermsArray
+            // const data = yield response2.json()
+            const tmpData = data.map((goTermItm: GOTerm) => ({
+              id: goTermItm.id,
+              label: goTermItm.label,
+            }))
+            const start = Date.now()
+            //   // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            //   addBatchData(Stores.GOTerms, tmpData).then((res) => {
+            //     const end = Date.now()
+            //     // eslint-disable-next-line prettier/prettier, no-console
+            //     console.log(`Inserted ${res} GO terms into database in ${end - start} ms`)
+            //   })
           }
         }
       }),

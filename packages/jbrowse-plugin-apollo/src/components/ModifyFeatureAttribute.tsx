@@ -96,6 +96,11 @@ function CustomAttributeValueEditor(props: AttributeValueEditorProps) {
   )
 }
 
+export interface GOTerm {
+  id: string
+  label: string
+}
+
 export function ModifyFeatureAttribute({
   session,
   handleClose,
