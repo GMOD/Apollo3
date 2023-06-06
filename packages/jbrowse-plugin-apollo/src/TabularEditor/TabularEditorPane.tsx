@@ -1,9 +1,10 @@
 import CloseIcon from '@mui/icons-material/Close'
-import { Autocomplete, IconButton, TextField } from '@mui/material'
+import { IconButton } from '@mui/material'
 import { observer } from 'mobx-react'
-import React, { useEffect, useMemo, useState } from 'react'
+import React from 'react'
 
 import { LinearApolloDisplay } from '../LinearApolloDisplay/stateModel'
+import DataGrid from './DataGrid'
 
 const ResizeHandle = () => {
   return (
@@ -20,12 +21,10 @@ const ResizeHandle = () => {
 
 const TabularEditorPane = observer(
   ({ model }: { model: LinearApolloDisplay }) => {
-    const {
-      selectedFeature,
-      setSelectedFeature,
-      changeManager,
-      detailsHeight,
-    } = model
+    const { selectedFeature, setSelectedFeature } = model
+    if (!selectedFeature) {
+      return null
+    }
     return (
       <div style={{ width: '100%', position: 'relative' }}>
         <ResizeHandle />
@@ -38,6 +37,7 @@ const TabularEditorPane = observer(
         >
           <CloseIcon />
         </IconButton>
+        <DataGrid model={model} />
       </div>
     )
   },

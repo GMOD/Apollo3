@@ -1,6 +1,5 @@
 import { AppRootModel, getSession } from '@jbrowse/core/util'
-import CloseIcon from '@mui/icons-material/Close'
-import { Autocomplete, IconButton, TextField } from '@mui/material'
+import { Autocomplete, TextField } from '@mui/material'
 import {
   DataGrid,
   GridCellEditStartParams,
@@ -182,8 +181,7 @@ export default observer(({ model }: { model: LinearApolloDisplay }) => {
   const editable =
     Boolean(internetAccount.authType) &&
     ['admin', 'user'].includes(internetAccount.getRole() || '')
-  const { selectedFeature, setSelectedFeature, changeManager, detailsHeight } =
-    model
+  const { selectedFeature, changeManager, detailsHeight } = model
   if (!selectedFeature) {
     return null
   }
@@ -312,54 +310,35 @@ export default observer(({ model }: { model: LinearApolloDisplay }) => {
     return newRow
   }
   return (
-    <div style={{ width: '100%', position: 'relative' }}>
-      <div
-        style={{
-          width: '100%',
-          height: '4px',
-          position: 'absolute',
-          cursor: 'row-resize',
-        }}
-      />
-      <IconButton
-        aria-label="close"
-        style={{ position: 'absolute', right: 0, zIndex: 1 }}
-        onClick={() => {
-          setSelectedFeature(undefined)
-        }}
-      >
-        <CloseIcon />
-      </IconButton>
-      {/* <DataGrid
-          apiRef={apiRef}
-          style={{ height: detailsHeight }}
-          rows={selectedFeatureRows}
-          columns={getFeatureColumns(editable, internetAccount, model)}
-          processRowUpdate={processRowUpdate}
-          onProcessRowUpdateError={console.error}
-          onCellEditStart={async (params: GridCellEditStartParams<GridRow>) => {
-            if (params.colDef.field !== 'attributes' || !selectedFeature) {
-              return
-            }
-            const { assemblyId } = selectedFeature
-            session.queueDialog((doneCallback) => [
-              ModifyFeatureAttribute,
-              {
-                session,
-                handleClose: doneCallback,
-                changeManager,
-                sourceFeature: params.row.feature,
-                sourceAssemblyId: assemblyId,
-              },
-            ])
-            // Without this, `stopCellEditMode` doesn't work because the cell
-            // is still in view mode. Probably an MUI bug, but since we're
-            // likely going to replace DataGrid, it's not worth fixing now.
-            await new Promise((resolve) => setTimeout(resolve, 0))
-            const { id: cellId, field } = params
-            apiRef.current.stopCellEditMode({ id: cellId, field })
-          }}
-        /> */}
-    </div>
+    <DataGrid
+      apiRef={apiRef}
+      style={{ height: detailsHeight }}
+      rows={selectedFeatureRows}
+      columns={getFeatureColumns(editable, internetAccount, model)}
+      processRowUpdate={processRowUpdate}
+      onProcessRowUpdateError={console.error}
+      onCellEditStart={async (params: GridCellEditStartParams<GridRow>) => {
+        if (params.colDef.field !== 'attributes' || !selectedFeature) {
+          return
+        }
+        const { assemblyId } = selectedFeature
+        session.queueDialog((doneCallback) => [
+          ModifyFeatureAttribute,
+          {
+            session,
+            handleClose: doneCallback,
+            changeManager,
+            sourceFeature: params.row.feature,
+            sourceAssemblyId: assemblyId,
+          },
+        ])
+        // Without this, `stopCellEditMode` doesn't work because the cell
+        // is still in view mode. Probably an MUI bug, but since we're
+        // likely going to replace DataGrid, it's not worth fixing now.
+        await new Promise((resolve) => setTimeout(resolve, 0))
+        const { id: cellId, field } = params
+        apiRef.current.stopCellEditMode({ id: cellId, field })
+      }}
+    />
   )
 })
