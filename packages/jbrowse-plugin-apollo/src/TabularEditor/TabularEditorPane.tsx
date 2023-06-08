@@ -6,18 +6,18 @@ import React from 'react'
 import { LinearApolloDisplay } from '../LinearApolloDisplay/stateModel'
 import DataGrid from './DataGrid'
 
-const ResizeHandle = () => {
-  return (
-    <div
-      style={{
-        width: '100%',
-        height: '4px',
-        position: 'absolute',
-        cursor: 'row-resize',
-      }}
-    />
-  )
-}
+// const ResizeHandle = () => {
+//   return (
+//     <div
+//       style={{
+//         width: '100%',
+//         height: '4px',
+//         position: 'absolute',
+//         cursor: 'row-resize',
+//       }}
+//     />
+//   )
+// }
 
 const TabularEditorPane = observer(
   ({ model }: { model: LinearApolloDisplay }) => {
