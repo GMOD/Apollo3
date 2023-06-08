@@ -138,6 +138,19 @@ export function layoutsModelFactory(
           return featureLayout
         })
       },
+      getFeatureLayoutPosition(feature: AnnotationFeatureI) {
+        const { featureLayouts } = this
+        for (const layout of featureLayouts) {
+          for (const [layoutRowNum, layoutRow] of layout) {
+            for (const [featureRowNum, layoutFeature] of layoutRow) {
+              if (feature._id === layoutFeature._id) {
+                return { layoutRow: layoutRowNum, featureRow: featureRowNum }
+              }
+            }
+          }
+        }
+        return undefined
+      },
     }))
     .views((self) => ({
       get highestRow() {

@@ -2,16 +2,14 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import { alpha } from '@mui/material/styles'
 import { observer } from 'mobx-react'
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
-import {
-  ApolloDetails,
-  LinearApolloDisplay,
-} from './LinearApolloDisplay/components'
+import { LinearApolloDisplay } from './LinearApolloDisplay/components'
 import { LinearApolloDisplay as LinearApolloDisplayI } from './LinearApolloDisplay/stateModel'
 import { TrackLines } from './SixFrameFeatureDisplay/components'
 import { SixFrameFeatureDisplay } from './SixFrameFeatureDisplay/stateModel'
+import TabularEditorPane from './TabularEditor'
 
 const useStyles = makeStyles()((theme) => ({
   shading: {
@@ -24,6 +22,24 @@ const useStyles = makeStyles()((theme) => ({
   },
 }))
 
+function scrollSelectedFeatureIntoView(
+  model: LinearApolloDisplayI,
+  scrollContainerRef: React.RefObject<HTMLDivElement>,
+) {
+  const { selectedFeature } = model
+  if (scrollContainerRef.current && selectedFeature) {
+    const position = model.getFeatureLayoutPosition(selectedFeature)
+    if (position) {
+      const scrollPosition = position.layoutRow * model.apolloRowHeight
+      const oldScrollPosition = scrollContainerRef.current.scrollTop
+      scrollContainerRef.current.scroll({
+        top: scrollPosition - oldScrollPosition,
+        behavior: 'smooth',
+      })
+    }
+  }
+}
+
 export const DisplayComponent = observer(
   ({ model, ...other }: { model: LinearApolloDisplayI }) => {
     const { classes } = useStyles()
@@ -33,13 +49,23 @@ export const DisplayComponent = observer(
       detailsHeight = 0
     }
     const featureAreaHeight = height - detailsHeight
+
+    const canvasScrollContainerRef = useRef<HTMLDivElement>(null)
+    useEffect(
+      () => scrollSelectedFeatureIntoView(model, canvasScrollContainerRef),
+      [model, selectedFeature],
+    )
     return (
       <div style={{ height: model.height }}>
-        <div className={classes.shading} style={{ height: featureAreaHeight }}>
+        <div
+          className={classes.shading}
+          ref={canvasScrollContainerRef}
+          style={{ height: featureAreaHeight }}
+        >
           <LinearApolloDisplay model={model} {...other} />
         </div>
         <div className={classes.details} style={{ height: detailsHeight }}>
-          <ApolloDetails model={model} />
+          <TabularEditorPane model={model} />
         </div>
       </div>
     )

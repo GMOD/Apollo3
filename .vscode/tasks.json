@@ -2,12 +2,20 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "yarn",
+      "type": "shell",
+      "command": "yarn",
+      "detail": "yarn",
+      "problemMatcher": []
+    },
+    {
       "label": "start shared",
       "type": "npm",
       "script": "start",
       "path": "packages/apollo-shared",
       "problemMatcher": [],
       "detail": "tsc --build --watch",
+      "dependsOn": ["yarn"],
       "isBackground": true
     },
     {
@@ -17,6 +25,7 @@
       "path": "packages/apollo-collaboration-server",
       "problemMatcher": [],
       "detail": "yarn build:shared && yarn start:nest --watch",
+      "dependsOn": ["yarn"],
       "isBackground": true
     },
     {
@@ -28,6 +37,7 @@
       "problemMatcher": [],
       "detail": "JB_NPM=false NODE_ENV=development rollup --config --watch",
       "isBackground": true,
+      "dependsOn": ["yarn"],
       "presentation": {
         "group": "plugin-terminal"
       }
@@ -39,6 +49,7 @@
       "path": "packages/jbrowse-plugin-apollo",
       "problemMatcher": [],
       "detail": "serve --cors --listen 9000 .",
+      "dependsOn": ["yarn"],
       "isBackground": true,
       "presentation": {
         "group": "plugin-terminal"
@@ -46,12 +57,19 @@
     },
     {
       "label": "start plugin",
-      "dependsOn": ["start plugin watch", "start plugin server"],
+      "dependsOn": [
+        "start plugin watch",
+        "start plugin server"
+      ],
       "problemMatcher": []
     },
     {
       "label": "Start",
-      "dependsOn": ["start shared", "start server", "start plugin"],
+      "dependsOn": [
+        "start shared",
+        "start server",
+        "start plugin"
+      ],
       "problemMatcher": []
     }
   ]
