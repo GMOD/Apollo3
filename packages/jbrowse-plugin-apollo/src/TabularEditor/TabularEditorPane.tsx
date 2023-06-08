@@ -27,7 +27,7 @@ const TabularEditorPane = observer(
     }
     return (
       <div style={{ width: '100%', position: 'relative' }}>
-        <ResizeHandle />
+        {/* <ResizeHandle /> */}
         <IconButton
           aria-label="close"
           style={{ position: 'absolute', right: 0, zIndex: 1 }}
