@@ -1,6 +1,3 @@
-/* eslint-disable no-console */
-import { UriLocation } from '@jbrowse/core/util'
-
 import { GOTerm } from './ModifyFeatureAttribute'
 
 let request: IDBOpenDBRequest
@@ -24,9 +21,8 @@ export const initDB = (): Promise<boolean> => {
 
     request.onupgradeneeded = () => {
       db = request.result
-      // if the data object store doesn't exist, create it
       if (!db.objectStoreNames.contains(Stores.GOTerms)) {
-        console.log('Creating GOTerms store')
+        // console.log('Creating GOTerms store')
         db.createObjectStore(Stores.GOTerms, { keyPath: 'id' })
       }
     }
@@ -34,7 +30,7 @@ export const initDB = (): Promise<boolean> => {
     request.onsuccess = () => {
       db = request.result
       dbVersion = db.version
-      console.log('Database is now initialized')
+      // console.log('Database is now initialized')
       resolve(true)
     }
 
@@ -50,7 +46,7 @@ export const addBatchData = (
 ): Promise<number> => {
   return new Promise((resolve) => {
     request = indexedDB.open(goDbName, dbVersion)
-    console.log('Adding GO terms into database...')
+    console.debug('Adding GO terms into database...')
     request.onsuccess = () => {
       db = request.result
       let id = Date.now()
@@ -67,51 +63,22 @@ export const addBatchData = (
     request.onerror = () => {
       const error = request.error?.message
       if (error) {
-        console.log(`ERROR when adding GO terms into database: ${error}`)
+        console.error(`ERROR when adding GO terms into database: ${error}`)
       }
     }
   })
 }
 
-export const readFileAsync = (file: File) => {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader()
-
-    reader.onload = (event) => {
-      const fileContent = event.target?.result as string
-      resolve(fileContent)
-    }
-
-    reader.onerror = (event) => {
-      reader.abort()
-      reject(new Error('Error reading file.'))
-    }
-
-    reader.readAsText(file)
-  })
-}
-
 export const readFileSync = async (fileLocation: URL) => {
+  let fileContent = ''
   try {
     const response = await fetch(fileLocation)
-    const fileContent = await response.text()
-    console.log(fileContent)
-    return fileContent
+    fileContent = await response.text()
   } catch (error) {
     console.error('Error fetching file:', error)
   }
+  return fileContent
 }
-// export const readFileSync = (file: File) => {
-// const reader = new FileReader()
-// reader.readAsText(file)
-// while (reader.readyState !== FileReader.DONE) {
-//   // Wait until the file is completely read
-// }
-// if (reader.result !== null) {
-//   return reader.result.toString()
-// }
-// throw new Error('Error reading file.')
-// }
 
 export const getStoreDataCount = (): Promise<number> => {
   return new Promise((resolve) => {
@@ -124,7 +91,7 @@ export const getStoreDataCount = (): Promise<number> => {
       const countRequest = objectStore.count()
       countRequest.onsuccess = (event) => {
         const count = countRequest.result
-        console.log(`There are ${count} records in the database.`)
+        // console.log(`There are ${count} records in the database.`)
         resolve(count)
       }
       countRequest.onerror = (event) => {
@@ -133,8 +100,7 @@ export const getStoreDataCount = (): Promise<number> => {
     }
   })
 }
-
-export const getDataByID = (
+export const getDataByIdOrDesc = (
   storeName: Stores,
   searchStr: string,
   limit = 40,
@@ -157,7 +123,10 @@ export const getDataByID = (
           if (!descVal) {
             descVal = ''
           }
-          if (idVal.includes(searchStr) || descVal.includes(searchStr)) {
+          if (
+            idVal.toLowerCase().includes(searchStr.toLowerCase()) ||
+            descVal.toLowerCase().includes(searchStr.toLowerCase())
+          ) {
             const newObject: GOTerm = { id: idVal, label: descVal }
             const alreadyAdded =
               matchingRecords.find((a) => a.id === newObject.id) !== undefined

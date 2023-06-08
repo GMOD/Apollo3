@@ -59,8 +59,8 @@ export default class ApolloPlugin extends Plugin {
     goLocation: {
       type: 'fileLocation',
       defaultValue: {
-        uri: '/Users/kyosti/src/Apollo/Assembly_files/go.json',
-        // uri: 'file:///Users/kyosti/src/Apollo/Assembly_files/go.json',
+        uri: 'http://localhost:3001/go.json',
+        // uri: 'https://1drv.ms/u/s!AhCrm4-CWVxch4QJ7vUZlxossBxisg?e=0RM1B6',
       },
     },
   })

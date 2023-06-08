@@ -10,7 +10,8 @@ import {
 import { debounce } from '@mui/material/utils'
 import * as React from 'react'
 
-import { AttributeValueEditorProps } from './ModifyFeatureAttribute'
+import { Stores, getDataByIdOrDesc, getStoreDataCount } from './db'
+import { AttributeValueEditorProps, GOTerm } from './ModifyFeatureAttribute'
 
 interface GOValue {
   id: string
@@ -29,7 +30,6 @@ interface GOResult extends GOValue {
 interface GOResponse {
   docs: GOResult[]
 }
-
 const hiliteRegex = /(?<=<em class="hilite">)(.*?)(?=<\/em>)/g
 
 function GoTagWithTooltip({
@@ -45,24 +45,48 @@ function GoTagWithTooltip({
   const [errorMessage, setErrorMessage] = React.useState('')
 
   React.useEffect(() => {
+    console.log(`goID: ${goId}`)
     const controller = new AbortController()
     const { signal } = controller
     async function fetchDescription() {
       try {
-        const response = await fetch(
-          `https://api.geneontology.org/api/ontology/term/${goId}`,
-          { signal },
-        )
-        if (!response.ok) {
-          const err = await response.text()
-          throw new Error(
-            `Failed to fetch plugin data: ${response.status} ${response.statusText} ${err}`,
+        let recCount = 0
+        await getStoreDataCount().then((result) => {
+          recCount = result
+        })
+
+        // Check if we use API or IndexedDb
+        if (recCount === undefined || recCount < 1) {
+          const response = await fetch(
+            `https://api.geneontology.org/api/ontology/term/${goId}`,
+            { signal },
           )
-        }
-        const goTerm = await response.json()
-        const { label } = goTerm
-        if (label && !signal.aborted) {
-          setDescription(label)
+          if (!response.ok) {
+            const err = await response.text()
+            throw new Error(
+              `Failed to fetch plugin data: ${response.status} ${response.statusText} ${err}`,
+            )
+          }
+          const goTerm = await response.json()
+          const { label } = goTerm
+          if (label && !signal.aborted) {
+            setDescription(label)
+          }
+        } else {
+          let goTerm: GOTerm[] = []
+          await getDataByIdOrDesc(Stores.GOTerms, goId)
+            .then((result) => {
+              goTerm = result
+            })
+            .catch((error) => {
+              console.error(error)
+            })
+          if (goTerm[0]) {
+            const { label } = goTerm[0]
+            if (label && !signal.aborted) {
+              setDescription(label)
+            }
+          }
         }
       } catch (e) {
         console.error(e)
@@ -97,9 +121,9 @@ export function GoAutocomplete({
     initialValue.map((v) => ({ id: v })),
   )
   const [inputValue, setInputValue] = React.useState('')
-  const [options, setOptions] = React.useState<readonly (GOValue | GOResult)[]>(
-    [],
-  )
+  const [options, setOptions] = React.useState<
+    readonly (GOValue | GOResult | GOTerm)[]
+  >([])
   const [loading, setLoading] = React.useState(false)
   const [errorMessage, setErrorMessage] = React.useState('')
 
@@ -110,11 +134,27 @@ export function GoAutocomplete({
           request: { input: string },
           callback: (results: GOResult[]) => void,
         ) => {
-          const response = await fetch(
-            `https://api.geneontology.org/api/search/entity/autocomplete/${request.input}?prefix=GO`,
-          )
-          const responseJson: GOResponse = await response.json()
-          callback(responseJson.docs)
+          let recCount = 0
+          await getStoreDataCount().then((result) => {
+            recCount = result
+          })
+          // Check if we use API or IndexedDb
+          if (recCount === undefined || recCount < 1) {
+            const response = await fetch(
+              `https://api.geneontology.org/api/search/entity/autocomplete/${request.input}?prefix=GO`,
+            )
+            const responseJson: GOResponse = await response.json()
+            callback(responseJson.docs)
+          } else {
+            const goTerm = await getDataByIdOrDesc(
+              Stores.GOTerms,
+              request.input,
+            )
+            goTerm.forEach((term) => {
+              term.match = term.label
+            })
+            callback(goTerm as unknown as GOResult[])
+          }
         },
         400,
       ),
@@ -129,22 +169,20 @@ export function GoAutocomplete({
       return undefined
     }
 
-    goFetch({ input: inputValue }, (results) => {
+    void goFetch({ input: inputValue }, (results) => {
       if (active) {
-        let newOptions: readonly (GOValue | GOResult)[] = []
-
+        let newOptions: readonly (GOValue | GOResult | GOTerm)[] = []
         if (value.length) {
           newOptions = value
         }
-
         if (results) {
           newOptions = [...newOptions, ...results]
         }
-
         setOptions(newOptions)
         setLoading(false)
       }
-    }).catch((e) => setErrorMessage(String(e)))
+      // }).catch((e) => setErrorMessage(String(e)))
+    })
 
     return () => {
       active = false

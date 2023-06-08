@@ -489,29 +489,23 @@ export function extendSession(
           if (recCount === undefined || recCount < 1) {
             const { jbrowse } = getRoot(self)
             const { configuration } = jbrowse
-            console.log(`LOCATION: ${JSON.stringify(configuration)}`)
             const location = readConfObject(configuration, [
               'ApolloPlugin',
               'goLocation',
             ])
-            console.log(`LOCATION: ${JSON.stringify(location.uri)}`)
-
-            // const ontologyFile = location.uri
-            // const goTerms: Record<string, string> = {}
             const goTermsArray: { id: string; label: string }[] = []
             let dummyCount = 0
             try {
-              // const ontologyLocation = path.resolve(__dirname, ontologyFile)
-              // const ontologyText = fs.readFileSync(location.uri, 'utf8')
-              // const ontologyText = await readFileAsync(location.uri)
-              readFileSync(location.uri).then((ontologyText) => {
-                console.log(ontologyText)
+              const ontologyText = yield readFileSync(location.uri)
+              if (ontologyText) {
                 const ontologyJson = JSON.parse(ontologyText) as OboJson
                 const ontology: OboJson = ontologyJson
                 let labelText = ''
                 // Iterate over the nodes and edges in the JSON file
                 for (const node of ontology.graphs[0].nodes) {
-                  if (node.id.startsWith('http://purl.obolibrary.org/obo/GO_')) {
+                  if (
+                    node.id.startsWith('http://purl.obolibrary.org/obo/GO_')
+                  ) {
                     const { meta } = node
                     labelText = node.lbl
                     if (meta.hasOwnProperty('deprecated')) {
@@ -529,34 +523,8 @@ export function extendSession(
                     })
                     dummyCount++
                   }
-                }  
+                }
               }
-              )
-              // console.log(ontologyText)
-              // const ontologyJson = JSON.parse(ontologyText) as OboJson
-              // const ontology: OboJson = ontologyJson
-              // let labelText = ''
-              // // Iterate over the nodes and edges in the JSON file
-              // for (const node of ontology.graphs[0].nodes) {
-              //   if (node.id.startsWith('http://purl.obolibrary.org/obo/GO_')) {
-              //     const { meta } = node
-              //     labelText = node.lbl
-              //     if (meta.hasOwnProperty('deprecated')) {
-              //       const tmpObj = JSON.parse(JSON.stringify(meta))
-              //       if (tmpObj.deprecated === true) {
-              //         labelText = '*** This term is deprecated ***'
-              //       }
-              //     }
-              //     goTermsArray.push({
-              //       id: node.id.replace(
-              //         'http://purl.obolibrary.org/obo/GO_',
-              //         'GO:',
-              //       ),
-              //       label: labelText,
-              //     })
-              //     dummyCount++
-              //   }
-              // }
             } catch (error) {
               console.error(`Error loading ontology file: ${error}`)
               throw error
@@ -569,12 +537,12 @@ export function extendSession(
               label: goTermItm.label,
             }))
             const start = Date.now()
-            //   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            //   addBatchData(Stores.GOTerms, tmpData).then((res) => {
-            //     const end = Date.now()
-            //     // eslint-disable-next-line prettier/prettier, no-console
-            //     console.log(`Inserted ${res} GO terms into database in ${end - start} ms`)
-            //   })
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            addBatchData(Stores.GOTerms, tmpData).then((res) => {
+              const end = Date.now()
+              // eslint-disable-next-line prettier/prettier, no-console
+            console.log(`Inserted ${res} GO terms into database in ${end - start} ms`)
+            })
           }
         }
       }),
