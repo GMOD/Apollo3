@@ -3,6 +3,7 @@ import { getConf, readConfObject } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel, AppRootModel, Region } from '@jbrowse/core/util'
+import { openLocation } from '@jbrowse/core/util/io'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { ClientDataStore as ClientDataStoreType, OboJson } from 'apollo-common'
 import {
@@ -34,9 +35,7 @@ import {
   addBatchData,
   getStoreDataCount,
   initDB,
-  readFileSync,
 } from './components/db'
-import { GOTerm } from './components/ModifyFeatureAttribute'
 import { createFetchErrorMessage } from './util'
 
 export interface ApolloSession extends AbstractSessionModel {
@@ -494,20 +493,18 @@ export function extendSession(
               'goLocation',
             ])
             const goTermsArray: { id: string; label: string }[] = []
-            let dummyCount = 0
             try {
-              const ontologyText = yield readFileSync(location.uri)
+              const ontologyText = yield openLocation(location).readFile('utf8')
               if (ontologyText) {
                 const ontologyJson = JSON.parse(ontologyText) as OboJson
                 const ontology: OboJson = ontologyJson
-                let labelText = ''
                 // Iterate over the nodes and edges in the JSON file
                 for (const node of ontology.graphs[0].nodes) {
                   if (
                     node.id.startsWith('http://purl.obolibrary.org/obo/GO_')
                   ) {
                     const { meta } = node
-                    labelText = node.lbl
+                    let labelText = node.lbl
                     if (meta.hasOwnProperty('deprecated')) {
                       const tmpObj = JSON.parse(JSON.stringify(meta))
                       if (tmpObj.deprecated === true) {
@@ -521,7 +518,6 @@ export function extendSession(
                       ),
                       label: labelText,
                     })
-                    dummyCount++
                   }
                 }
               }
@@ -529,20 +525,13 @@ export function extendSession(
               console.error(`Error loading ontology file: ${error}`)
               throw error
             }
-            console.debug(`Fetched ${dummyCount} GO terms`)
-            const data = goTermsArray
-            // const data = yield response2.json()
-            const tmpData = data.map((goTermItm: GOTerm) => ({
-              id: goTermItm.id,
-              label: goTermItm.label,
-            }))
+            console.debug(`Fetched ${goTermsArray.length} GO terms`)
             const start = Date.now()
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            addBatchData(Stores.GOTerms, tmpData).then((res) => {
-              const end = Date.now()
-              // eslint-disable-next-line prettier/prettier, no-console
-            console.log(`Inserted ${res} GO terms into database in ${end - start} ms`)
-            })
+            const res = yield addBatchData(Stores.GOTerms, goTermsArray)
+            const end = Date.now()
+            console.log(
+              `Inserted ${res} GO terms into database in ${end - start} ms`,
+            )
           }
         }
       }),

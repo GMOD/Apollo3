@@ -45,15 +45,11 @@ function GoTagWithTooltip({
   const [errorMessage, setErrorMessage] = React.useState('')
 
   React.useEffect(() => {
-    console.log(`goID: ${goId}`)
     const controller = new AbortController()
     const { signal } = controller
     async function fetchDescription() {
       try {
-        let recCount = 0
-        await getStoreDataCount().then((result) => {
-          recCount = result
-        })
+        const recCount = await getStoreDataCount()
 
         // Check if we use API or IndexedDb
         if (recCount === undefined || recCount < 1) {
@@ -73,16 +69,9 @@ function GoTagWithTooltip({
             setDescription(label)
           }
         } else {
-          let goTerm: GOTerm[] = []
-          await getDataByIdOrDesc(Stores.GOTerms, goId)
-            .then((result) => {
-              goTerm = result
-            })
-            .catch((error) => {
-              console.error(error)
-            })
+          const goTerm: GOTerm[] = await getDataByIdOrDesc(Stores.GOTerms, goId)
           if (goTerm[0]) {
-            const { label } = goTerm[0]
+            const [{ label }] = goTerm
             if (label && !signal.aborted) {
               setDescription(label)
             }
@@ -134,26 +123,27 @@ export function GoAutocomplete({
           request: { input: string },
           callback: (results: GOResult[]) => void,
         ) => {
-          let recCount = 0
-          await getStoreDataCount().then((result) => {
-            recCount = result
-          })
-          // Check if we use API or IndexedDb
-          if (recCount === undefined || recCount < 1) {
-            const response = await fetch(
-              `https://api.geneontology.org/api/search/entity/autocomplete/${request.input}?prefix=GO`,
-            )
-            const responseJson: GOResponse = await response.json()
-            callback(responseJson.docs)
-          } else {
-            const goTerm = await getDataByIdOrDesc(
-              Stores.GOTerms,
-              request.input,
-            )
-            goTerm.forEach((term) => {
-              term.match = term.label
-            })
-            callback(goTerm as unknown as GOResult[])
+          try {
+            const recCount = await getStoreDataCount()
+            // Check if we use API or IndexedDb
+            if (recCount === undefined || recCount < 1) {
+              const response = await fetch(
+                `https://api.geneontology.org/api/search/entity/autocomplete/${request.input}?prefix=GO`,
+              )
+              const responseJson: GOResponse = await response.json()
+              callback(responseJson.docs)
+            } else {
+              const goTerm = await getDataByIdOrDesc(
+                Stores.GOTerms,
+                request.input,
+              )
+              goTerm.forEach((term) => {
+                term.match = term.label
+              })
+              callback(goTerm as unknown as GOResult[])
+            }
+          } catch (error) {
+            setErrorMessage(String(error))
           }
         },
         400,
@@ -169,6 +159,7 @@ export function GoAutocomplete({
       return undefined
     }
 
+    // `void`ed because types are wrong, this doesn't actually return a promise
     void goFetch({ input: inputValue }, (results) => {
       if (active) {
         let newOptions: readonly (GOValue | GOResult | GOTerm)[] = []
@@ -181,7 +172,6 @@ export function GoAutocomplete({
         setOptions(newOptions)
         setLoading(false)
       }
-      // }).catch((e) => setErrorMessage(String(e)))
     })
 
     return () => {
