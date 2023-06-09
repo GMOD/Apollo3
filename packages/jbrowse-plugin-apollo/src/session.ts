@@ -492,46 +492,52 @@ export function extendSession(
               'ApolloPlugin',
               'goLocation',
             ])
-            const goTermsArray: { id: string; label: string }[] = []
-            try {
-              const ontologyText = yield openLocation(location).readFile('utf8')
-              if (ontologyText) {
-                const ontologyJson = JSON.parse(ontologyText) as OboJson
-                const ontology: OboJson = ontologyJson
-                // Iterate over the nodes and edges in the JSON file
-                for (const node of ontology.graphs[0].nodes) {
-                  if (
-                    node.id.startsWith('http://purl.obolibrary.org/obo/GO_')
-                  ) {
-                    const { meta } = node
-                    let labelText = node.lbl
-                    if (meta.hasOwnProperty('deprecated')) {
-                      const tmpObj = JSON.parse(JSON.stringify(meta))
-                      if (tmpObj.deprecated === true) {
-                        labelText = '*** This term is deprecated ***'
+            if (location) {
+              const goTermsArray: { id: string; label: string }[] = []
+              try {
+                const ontologyText = yield openLocation(location).readFile(
+                  'utf8',
+                )
+                if (ontologyText) {
+                  const ontologyJson = JSON.parse(ontologyText) as OboJson
+                  const ontology: OboJson = ontologyJson
+                  // Iterate over the nodes and edges in the JSON file
+                  for (const node of ontology.graphs[0].nodes) {
+                    if (
+                      node.id.startsWith('http://purl.obolibrary.org/obo/GO_')
+                    ) {
+                      const { meta } = node
+                      let labelText = node.lbl
+                      if (meta.hasOwnProperty('deprecated')) {
+                        const tmpObj = JSON.parse(JSON.stringify(meta))
+                        if (tmpObj.deprecated === true) {
+                          labelText = '*** This term is deprecated ***'
+                        }
                       }
+                      goTermsArray.push({
+                        id: node.id.replace(
+                          'http://purl.obolibrary.org/obo/GO_',
+                          'GO:',
+                        ),
+                        label: labelText,
+                      })
                     }
-                    goTermsArray.push({
-                      id: node.id.replace(
-                        'http://purl.obolibrary.org/obo/GO_',
-                        'GO:',
-                      ),
-                      label: labelText,
-                    })
                   }
                 }
+              } catch (error) {
+                console.error(`Error loading ontology file: ${error}`)
+                throw error
               }
-            } catch (error) {
-              console.error(`Error loading ontology file: ${error}`)
-              throw error
+              if (goTermsArray.length > 0) {
+                console.debug(`Fetched ${goTermsArray.length} GO terms`)
+                const start = Date.now()
+                const res = yield addBatchData(Stores.GOTerms, goTermsArray)
+                const end = Date.now()
+                console.log(
+                  `Inserted ${res} GO terms into database in ${end - start} ms`,
+                )
+              }
             }
-            console.debug(`Fetched ${goTermsArray.length} GO terms`)
-            const start = Date.now()
-            const res = yield addBatchData(Stores.GOTerms, goTermsArray)
-            const end = Date.now()
-            console.log(
-              `Inserted ${res} GO terms into database in ${end - start} ms`,
-            )
           }
         }
       }),

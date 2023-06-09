@@ -106,7 +106,7 @@ export function GoAutocomplete({
   value: initialValue,
   onChange,
 }: AttributeValueEditorProps) {
-  const [value, setValue] = React.useState<(GOValue | GOResult)[]>(
+  const [value, setValue] = React.useState<(GOValue | GOResult | GOTerm)[]>(
     initialValue.map((v) => ({ id: v })),
   )
   const [inputValue, setInputValue] = React.useState('')
@@ -139,6 +139,8 @@ export function GoAutocomplete({
               )
               goTerm.forEach((term) => {
                 term.match = term.label
+                term.has_highlight = true
+                term.highlight = term.label
               })
               callback(goTerm as unknown as GOResult[])
             }
@@ -221,12 +223,17 @@ export function GoAutocomplete({
       renderOption={(props, option) => {
         let parts =
           'match' in option ? [{ text: option.match, highlight: false }] : []
+        console.log(`PARTS: ${JSON.stringify(parts)}`)
+        console.log(`option: ${JSON.stringify(option)}`)
         if ('has_highlight' in option && option.has_highlight) {
-          const highlightedText = option.highlight.match(hiliteRegex)
-          if (highlightedText) {
+          console.log(`highlight: ${JSON.stringify(option.highlight)}`)
+          console.log(`hiliteRegex: ${JSON.stringify(hiliteRegex)}`)
+          const highlightedText = option.highlight!.match(hiliteRegex)
+          console.log(`highlightedText: "${highlightedText}"`)
+          if (highlightedText && option.highlight) {
             parts = option.highlight
               .split(/<em class="hilite">|<\/em>/)
-              .map((part) => ({
+              .map((part: any) => ({
                 text: part,
                 highlight: highlightedText.includes(part),
               }))

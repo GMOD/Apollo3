@@ -100,6 +100,8 @@ export interface GOTerm {
   id: string
   label: string
   match?: string
+  highlight?: string
+  has_highlight?: boolean
 }
 
 export function ModifyFeatureAttribute({
