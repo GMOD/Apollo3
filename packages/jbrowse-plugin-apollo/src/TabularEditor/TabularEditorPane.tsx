@@ -13,6 +13,8 @@ const ResizeHandle = ({
 }) => {
   const mouseMove = useCallback(
     (event: MouseEvent) => {
+      event.stopPropagation()
+      event.preventDefault()
       onResize(event.movementY)
     },
     [onResize],
@@ -25,6 +27,7 @@ const ResizeHandle = ({
   return (
     <div
       onMouseDown={(event: React.MouseEvent) => {
+        event.stopPropagation()
         window.addEventListener('mousemove', mouseMove)
         window.addEventListener('mouseup', cancelDrag)
         window.addEventListener('mouseleave', cancelDrag)
