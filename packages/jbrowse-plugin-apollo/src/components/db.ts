@@ -1,7 +1,5 @@
 import { GOTerm } from './ModifyFeatureAttribute'
 
-let request: IDBOpenDBRequest
-let db: IDBDatabase
 let dbVersion = 1
 
 export interface GOTermDb {
@@ -17,10 +15,10 @@ export const goDbName = 'goDB'
 
 export const initDB = (): Promise<boolean> => {
   return new Promise((resolve) => {
-    request = indexedDB.open(goDbName)
+    const request = indexedDB.open(goDbName)
 
     request.onupgradeneeded = () => {
-      db = request.result
+      const db = request.result
       if (!db.objectStoreNames.contains(Stores.GOTerms)) {
         // console.log('Creating GOTerms store')
         db.createObjectStore(Stores.GOTerms, { keyPath: 'id' })
@@ -28,7 +26,7 @@ export const initDB = (): Promise<boolean> => {
     }
 
     request.onsuccess = () => {
-      db = request.result
+      const db = request.result
       dbVersion = db.version
       // console.log('Database is now initialized')
       resolve(true)
@@ -45,10 +43,10 @@ export const addBatchData = (
   data: GOTerm[],
 ): Promise<number> => {
   return new Promise((resolve) => {
-    request = indexedDB.open(goDbName, dbVersion)
+    const request = indexedDB.open(goDbName, dbVersion)
     console.debug('Adding GO terms into database...')
     request.onsuccess = () => {
-      db = request.result
+      const db = request.result
       let id = Date.now()
       let cnt = 0
       const tx = db.transaction(storeName, 'readwrite')
@@ -82,9 +80,9 @@ export const readFileSync = async (fileLocation: URL) => {
 
 export const getStoreDataCount = (): Promise<number> => {
   return new Promise((resolve) => {
-    request = indexedDB.open(goDbName)
+    const request = indexedDB.open(goDbName)
     request.onsuccess = () => {
-      db = request.result
+      const db = request.result
       const objectStore = db
         .transaction(Stores.GOTerms, 'readonly')
         .objectStore(Stores.GOTerms)
@@ -106,10 +104,10 @@ export const getDataByIdOrDesc = (
   limit = 40,
 ): Promise<GOTerm[]> => {
   return new Promise((resolve) => {
-    request = indexedDB.open(goDbName)
+    const request = indexedDB.open(goDbName)
 
     request.onsuccess = () => {
-      db = request.result
+      const db = request.result
       const tx = db.transaction(storeName, 'readonly')
       const store = tx.objectStore(storeName)
       const matchingRecords: GOTerm[] = []
