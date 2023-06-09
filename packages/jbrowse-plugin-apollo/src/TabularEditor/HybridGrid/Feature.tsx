@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { DisplayStateModel } from '../types'
+import { FeatureAttributes } from './FeatureAttributes'
 
 const useStyles = makeStyles()((theme) => ({
   levelIndicator: {
@@ -66,11 +67,15 @@ export const Feature = observer(
                 ❯
               </div>
             ) : null}
-            <div className={classes.typeContent}>{feature.type}</div>
+            <div contentEditable="true" className={classes.typeContent}>
+              {feature.type}
+            </div>
           </td>
-          <td>{feature.start}</td>
-          <td>{feature.end}</td>
-          <td>{JSON.stringify(feature.attributes)}</td>
+          <td contentEditable="true">{feature.start}</td>
+          <td contentEditable="true">{feature.end}</td>
+          <td>
+            <FeatureAttributes feature={feature} />
+          </td>
         </tr>
         {!(expanded && feature.children)
           ? null
