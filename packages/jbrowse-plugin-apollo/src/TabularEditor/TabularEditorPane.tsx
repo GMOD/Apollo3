@@ -1,10 +1,10 @@
 import CloseIcon from '@mui/icons-material/Close'
 import { IconButton } from '@mui/material'
 import { observer } from 'mobx-react'
-import React, { useCallback, useRef, useState } from 'react'
+import React, { useCallback } from 'react'
 
-import { LinearApolloDisplay } from '../LinearApolloDisplay/stateModel'
-import DataGrid from './DataGrid'
+import HybridGrid from './HybridGrid'
+import { DisplayStateModel } from './types'
 
 const ResizeHandle = ({
   onResize,
@@ -48,26 +48,43 @@ const TabularEditorPane = observer(
     model,
     onResize,
   }: {
-    model: LinearApolloDisplay
+    model: DisplayStateModel
     onResize: (sizeDelta: number) => void
   }) => {
     const { selectedFeature, setSelectedFeature } = model
     if (!selectedFeature) {
       return null
     }
+    const stopPropagation = (e: React.MouseEvent) => e.stopPropagation()
     return (
-      <div style={{ width: '100%', position: 'relative' }}>
+      <div
+        onMouseDown={stopPropagation}
+        onClick={stopPropagation}
+        style={{
+          width: '100%',
+          height: '100%',
+          position: 'relative',
+        }}
+      >
         <ResizeHandle onResize={onResize} />
         <IconButton
           aria-label="close"
-          style={{ position: 'absolute', right: 0, zIndex: 1 }}
+          style={{ position: 'absolute', top: 0, right: 15, zIndex: 5 }}
           onClick={() => {
             setSelectedFeature(undefined)
           }}
         >
           <CloseIcon />
         </IconButton>
-        <DataGrid model={model} />
+        <div
+          style={{
+            width: '100%',
+            overflowY: 'auto',
+            height: '100%',
+          }}
+        >
+          <HybridGrid model={model} />
+        </div>
       </div>
     )
   },
