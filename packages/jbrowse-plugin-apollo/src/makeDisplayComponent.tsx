@@ -64,16 +64,13 @@ export const DisplayComponent = observer(
         >
           <LinearApolloDisplay model={model} {...other} />
         </div>
-        <div
-          className={classes.details}
-          style={{ height: detailsHeight }}
-          onClick={(event) => {
-            if (event.detail === 2) {
-              event.stopPropagation()
-            }
-          }}
-        >
-          <TabularEditorPane model={model} />
+        <div className={classes.details} style={{ height: detailsHeight }}>
+          <TabularEditorPane
+            model={model}
+            onResize={(delta) => {
+              model.setDetailsHeight(model.detailsHeight - delta)
+            }}
+          />
         </div>
       </div>
     )

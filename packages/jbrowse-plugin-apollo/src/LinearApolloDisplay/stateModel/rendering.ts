@@ -22,6 +22,7 @@ export function renderingModelIntermediateFactory(
     .props({
       apolloRowHeight: 20,
       detailsMinHeight: 200,
+      detailsHeight: 200,
     })
     .volatile(() => ({
       canvas: null as HTMLCanvasElement | null,
@@ -34,15 +35,14 @@ export function renderingModelIntermediateFactory(
         return (self.highestRow + 1) * self.apolloRowHeight
       },
     }))
-    .views((self) => ({
-      get detailsHeight() {
-        return Math.max(
-          self.detailsMinHeight,
-          self.height - self.featuresHeight,
-        )
-      },
-    }))
     .actions((self) => ({
+      setDetailsHeight(newHeight: number) {
+        if (newHeight < self.detailsMinHeight) {
+          self.detailsHeight = self.detailsMinHeight
+        } else {
+          self.detailsHeight = newHeight
+        }
+      },
       setCanvas(canvas: HTMLCanvasElement | null) {
         self.canvas = canvas
       },
