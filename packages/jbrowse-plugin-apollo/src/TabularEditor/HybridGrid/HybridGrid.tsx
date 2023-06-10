@@ -28,21 +28,28 @@ const useStyles = makeStyles()((theme) => ({
 
 const HybridGrid = observer(({ model }: { model: DisplayStateModel }) => {
   const { seenFeatures, selectedFeature } = model
-  const seenFeaturesArray = Array.from(seenFeatures.entries())
   const { classes } = useStyles()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
-  // scrolls to selected feature if one is selected
+  // scrolls to selected feature if one is selected and it's not already visible
   useEffect(() => {
-    if (scrollContainerRef.current && selectedFeature) {
-      const selectedRow = scrollContainerRef.current.querySelector(
+    const scrollContainer = scrollContainerRef.current
+    if (scrollContainer && selectedFeature) {
+      const selectedRow = scrollContainer.querySelector(
         `.${classes.selectedFeature}`,
       ) as HTMLElement | null
       if (selectedRow) {
-        scrollContainerRef.current.scroll({
-          top: selectedRow.offsetTop - 40,
-          behavior: 'smooth',
-        })
+        const currScroll = scrollContainer.scrollTop
+        const newScrollTop = selectedRow.offsetTop - 25
+        const isVisible =
+          newScrollTop > currScroll &&
+          newScrollTop < currScroll + scrollContainer.offsetHeight
+        if (!isVisible) {
+          scrollContainer.scroll({
+            top: newScrollTop - 20,
+            behavior: 'smooth',
+          })
+        }
       }
     }
   }, [selectedFeature, seenFeatures, classes.selectedFeature])
@@ -66,7 +73,7 @@ const HybridGrid = observer(({ model }: { model: DisplayStateModel }) => {
           </tr>
         </thead>
         <tbody>
-          {seenFeaturesArray
+          {Array.from(seenFeatures.entries())
             .sort((a, b) => {
               return a[1].start - b[1].start
             })

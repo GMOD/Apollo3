@@ -59,6 +59,9 @@ export const Feature = observer(
           className={
             classes.feature + (isSelected ? ` ${selectedFeatureClass}` : '')
           }
+          onClick={(e) => {
+            model.setSelectedFeature(feature)
+          }}
         >
           <td
             style={{
