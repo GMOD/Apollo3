@@ -51,7 +51,10 @@ export const Feature = observer(
   }) => {
     const { classes } = useStyles()
     const [expanded, setExpanded] = useState(true)
-    const toggleExpanded = () => setExpanded(!expanded)
+    const toggleExpanded = (e: React.MouseEvent) => {
+      e.stopPropagation()
+      setExpanded(!expanded)
+    }
     const isSelected = selectedFeature?._id === feature._id
     return (
       <>
@@ -60,6 +63,7 @@ export const Feature = observer(
             classes.feature + (isSelected ? ` ${selectedFeatureClass}` : '')
           }
           onClick={(e) => {
+            e.stopPropagation()
             model.setSelectedFeature(feature)
           }}
         >
