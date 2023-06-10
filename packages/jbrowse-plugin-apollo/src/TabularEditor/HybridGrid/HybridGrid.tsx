@@ -20,9 +20,6 @@ const useStyles = makeStyles()((theme) => ({
   },
   selectedFeature: {
     backgroundColor: theme.palette.secondary.light,
-    td: {
-      borderColor: theme.palette.secondary.light,
-    },
   },
 }))
 
@@ -78,10 +75,13 @@ const HybridGrid = observer(({ model }: { model: DisplayStateModel }) => {
               return a[1].start - b[1].start
             })
             .map(([featureId, feature]) => {
+              const isSelected = selectedFeature?._id === featureId
+              const isHovered = model.apolloHover?.feature?._id === featureId
               return (
                 <Feature
                   key={featureId}
-                  selectedFeature={selectedFeature}
+                  isSelected={isSelected}
+                  isHovered={isHovered}
                   selectedFeatureClass={classes.selectedFeature}
                   feature={feature}
                   model={model}

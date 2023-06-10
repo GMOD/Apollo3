@@ -33,6 +33,9 @@ const useStyles = makeStyles()((theme) => ({
   arrowExpanded: {
     transform: 'rotate(90deg)',
   },
+  hoveredFeature: {
+    backgroundColor: theme.palette.grey[300],
+  },
 }))
 
 export const Feature = observer(
@@ -40,13 +43,15 @@ export const Feature = observer(
     feature,
     model,
     depth,
-    selectedFeature,
+    isHovered,
+    isSelected,
     selectedFeatureClass,
   }: {
     model: DisplayStateModel
     feature: AnnotationFeatureI
     depth: number
-    selectedFeature: AnnotationFeatureI | undefined
+    isHovered: boolean
+    isSelected: boolean
     selectedFeatureClass: string
   }) => {
     const { classes } = useStyles()
@@ -55,12 +60,16 @@ export const Feature = observer(
       e.stopPropagation()
       setExpanded(!expanded)
     }
-    const isSelected = selectedFeature?._id === feature._id
     return (
       <>
         <tr
           className={
-            classes.feature + (isSelected ? ` ${selectedFeatureClass}` : '')
+            classes.feature +
+            (isSelected
+              ? ` ${selectedFeatureClass}`
+              : isHovered
+              ? ` ${classes.hoveredFeature}`
+              : '')
           }
           onClick={(e) => {
             e.stopPropagation()
@@ -97,9 +106,14 @@ export const Feature = observer(
           ? null
           : Array.from(feature.children.entries()).map(
               ([featureId, childFeature]) => {
+                const childHovered =
+                  model.apolloHover?.feature?._id === childFeature._id
+                const childSelected =
+                  model.selectedFeature?._id === childFeature._id
                 return (
                   <Feature
-                    selectedFeature={selectedFeature}
+                    isHovered={childHovered}
+                    isSelected={childSelected}
                     selectedFeatureClass={selectedFeatureClass}
                     key={featureId}
                     depth={(depth || 0) + 1}
