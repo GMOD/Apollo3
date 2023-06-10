@@ -2,8 +2,8 @@ import CloseIcon from '@mui/icons-material/Close'
 import { IconButton } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useCallback } from 'react'
-import DataGrid from './DataGrid'
 
+import DataGrid from './DataGrid'
 import HybridGrid from './HybridGrid'
 import { DisplayStateModel } from './types'
 
@@ -77,16 +77,8 @@ const TabularEditorPane = observer(
         >
           <CloseIcon />
         </IconButton>
-        <div
-          style={{
-            width: '100%',
-            overflowY: 'auto',
-            height: '100%',
-          }}
-        >
-          <HybridGrid model={model} />
-          {/* <DataGrid model={model} /> */}
-        </div>
+        <HybridGrid model={model} />
+        {/* <DataGrid model={model} /> */}
       </div>
     )
   },

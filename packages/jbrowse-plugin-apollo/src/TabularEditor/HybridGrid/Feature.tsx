@@ -40,17 +40,26 @@ export const Feature = observer(
     feature,
     model,
     depth,
+    selectedFeature,
+    selectedFeatureClass,
   }: {
     model: DisplayStateModel
     feature: AnnotationFeatureI
     depth: number
+    selectedFeature: AnnotationFeatureI | undefined
+    selectedFeatureClass: string
   }) => {
     const { classes } = useStyles()
     const [expanded, setExpanded] = useState(true)
     const toggleExpanded = () => setExpanded(!expanded)
+    const isSelected = selectedFeature?._id === feature._id
     return (
       <>
-        <tr className={classes.feature}>
+        <tr
+          className={
+            classes.feature + (isSelected ? ` ${selectedFeatureClass}` : '')
+          }
+        >
           <td
             style={{
               whiteSpace: 'nowrap',
@@ -83,6 +92,8 @@ export const Feature = observer(
               ([featureId, childFeature]) => {
                 return (
                   <Feature
+                    selectedFeature={selectedFeature}
+                    selectedFeatureClass={selectedFeatureClass}
                     key={featureId}
                     depth={(depth || 0) + 1}
                     feature={childFeature}
