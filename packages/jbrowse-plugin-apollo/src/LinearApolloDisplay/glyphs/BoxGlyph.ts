@@ -20,8 +20,9 @@ export class BoxGlyph extends Glyph {
     row: number,
     reversed: boolean,
   ) {
-    const { lgv, theme, apolloRowHeight: rowHeight } = stateModel
+    const { lgv, theme, apolloRowHeight: rowHeight, session } = stateModel
     const { bpPerPx } = lgv
+    const { apolloSelectedFeature } = session
     const offsetPx = (feature.start - feature.min) / bpPerPx
     const widthPx = feature.length / bpPerPx
     const startPx = reversed ? xOffset - offsetPx - widthPx : xOffset + offsetPx
@@ -29,10 +30,18 @@ export class BoxGlyph extends Glyph {
     ctx.fillStyle = theme?.palette.text.primary || 'black'
     ctx.fillRect(startPx, top, widthPx, rowHeight)
     if (widthPx > 2) {
+      const backgroundColor =
+        apolloSelectedFeature && feature._id === apolloSelectedFeature._id
+          ? theme?.palette.text.primary || 'black'
+          : theme?.palette.background.default || 'white'
+      const textColor =
+        apolloSelectedFeature && feature._id === apolloSelectedFeature._id
+          ? theme?.palette.getContrastText(backgroundColor) || 'white'
+          : theme?.palette.text.primary || 'black'
       ctx.clearRect(startPx + 1, top + 1, widthPx - 2, rowHeight - 2)
-      ctx.fillStyle = theme?.palette.background.default || 'white'
+      ctx.fillStyle = backgroundColor
       ctx.fillRect(startPx + 1, top + 1, widthPx - 2, rowHeight - 2)
-      ctx.fillStyle = theme?.palette.text.primary || 'black'
+      ctx.fillStyle = textColor
       const textStart = Math.max(startPx + 1, 0)
       const textWidth = startPx - 1 + widthPx - textStart
       feature.type && ctx.fillText(feature.type, textStart, top + 11, textWidth)

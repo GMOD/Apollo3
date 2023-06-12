@@ -59,7 +59,7 @@ export class CanonicalGeneGlyph extends Glyph {
     row: number,
     reversed: boolean,
   ): void {
-    const { theme, lgv } = stateModel
+    const { theme, lgv, session } = stateModel
     const { bpPerPx } = lgv
     const rowHeight = stateModel.apolloRowHeight
     const utrHeight = Math.round(0.6 * rowHeight)
@@ -190,6 +190,15 @@ export class CanonicalGeneGlyph extends Glyph {
         currentCDS += 1
       })
     })
+    const { apolloSelectedFeature } = session
+    if (apolloSelectedFeature && feature._id === apolloSelectedFeature._id) {
+      const widthPx = feature.max - feature.min
+      const startPx = reversed ? xOffset - widthPx : xOffset
+      const top = row * rowHeight
+      const height = this.getRowCount(feature, bpPerPx) * rowHeight
+      ctx.fillStyle = theme?.palette.action.selected || 'rgba(0,0,0,0.08)'
+      ctx.fillRect(startPx, top, widthPx, height)
+    }
   }
 
   drawHover(stateModel: LinearApolloDisplay, ctx: CanvasRenderingContext2D) {
