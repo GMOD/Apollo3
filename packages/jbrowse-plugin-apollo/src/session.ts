@@ -533,7 +533,7 @@ export function extendSession(
             const start = Date.now()
             const res = yield addBatchData(Stores.GOTerms, goTermsArray)
             const end = Date.now()
-            console.log(
+            console.debug(
               `Inserted ${res} GO terms into database in ${end - start} ms`,
             )
           }
