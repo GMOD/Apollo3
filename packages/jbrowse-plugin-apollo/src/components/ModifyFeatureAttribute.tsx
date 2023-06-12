@@ -96,6 +96,11 @@ function CustomAttributeValueEditor(props: AttributeValueEditorProps) {
   )
 }
 
+export interface GOTerm {
+  id: string
+  label: string
+}
+
 export function ModifyFeatureAttribute({
   session,
   handleClose,
@@ -139,7 +144,6 @@ export function ModifyFeatureAttribute({
   const [showAddNewForm, setShowAddNewForm] = useState(false)
   const [newAttributeKey, setNewAttributeKey] = useState('')
   const { classes } = useStyles()
-
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')

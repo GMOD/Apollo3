@@ -54,6 +54,14 @@ validationRegistry.registerValidation(new ParentChildValidation())
 export default class ApolloPlugin extends Plugin {
   name = 'ApolloPlugin'
   version = version
+  configurationSchema = ConfigurationSchema('ApolloPlugin', {
+    goLocation: {
+      type: 'fileLocation',
+      defaultValue: {
+        uri: '',
+      },
+    },
+  })
 
   install(pluginManager: PluginManager) {
     installApolloSequenceAdapter(pluginManager)
