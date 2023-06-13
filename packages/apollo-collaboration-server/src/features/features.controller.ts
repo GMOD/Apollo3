@@ -112,7 +112,7 @@ export class FeaturesController {
   @Validations(Role.ReadOnly)
   @Get()
   getAll() {
-    this.logger.debug(`Get all features`)
+    this.logger.debug('Get all features')
     return this.featuresService.findAll()
   }
 }

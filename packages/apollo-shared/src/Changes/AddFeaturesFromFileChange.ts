@@ -43,7 +43,7 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
   }
 
   get notification(): string {
-    return `Features have been added. To see them, please refresh the page.`
+    return 'Features have been added. To see them, please refresh the page.'
   }
 
   toJSON(): SerializedAddFeaturesFromFileChange {
@@ -91,7 +91,7 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
         await this.addFeatureIntoDb(gff3Feature, backend)
       }
     }
-    logger.debug?.(`New features added into database!`)
+    logger.debug?.('New features added into database!')
   }
 
   async executeOnLocalGFF3(backend: LocalGFF3DataStore) {

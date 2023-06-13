@@ -82,7 +82,7 @@ export class LocationEndChange extends FeatureChange {
 
       const foundFeature = this.getFeatureFromId(topLevelFeature, featureId)
       if (!foundFeature) {
-        const errMsg = `ERROR when searching feature by featureId`
+        const errMsg = 'ERROR when searching feature by featureId'
         logger.error(errMsg)
         throw new Error(errMsg)
       }

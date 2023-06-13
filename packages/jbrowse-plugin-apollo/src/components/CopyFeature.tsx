@@ -169,7 +169,7 @@ export function CopyFeature({
     })
     await changeManager.submit?.(change)
 
-    notify(`Feature copied successfully`, 'success')
+    notify('Feature copied successfully', 'success')
     handleClose()
     event.preventDefault()
   }

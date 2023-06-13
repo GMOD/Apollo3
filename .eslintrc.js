@@ -57,6 +57,7 @@ module.exports = {
     'prefer-destructuring': 'warn',
     'prefer-template': 'warn',
     'prettier/prettier': 'warn',
+    quotes: ['warn', 'single', { avoidEscape: true }],
     radix: 'error',
     'spaced-comment': [
       'warn',

@@ -209,7 +209,7 @@ export function ModifyFeatureAttribute({
       attributes: attrs,
     })
     await changeManager.submit?.(change)
-    notify(`Feature attributes modified successfully`, 'success')
+    notify('Feature attributes modified successfully', 'success')
     handleClose()
     event.preventDefault()
   }
@@ -217,12 +217,12 @@ export function ModifyFeatureAttribute({
   function handleAddNewAttributeChange() {
     setErrorMessage('')
     if (newAttributeKey.trim().length < 1) {
-      setErrorMessage(`Attribute key is mandatory`)
+      setErrorMessage('Attribute key is mandatory')
       return
     }
     if (newAttributeKey === 'Parent') {
       setErrorMessage(
-        `"Parent" -key is handled internally and it cannot be modified manually`,
+        '"Parent" -key is handled internally and it cannot be modified manually',
       )
       return
     }

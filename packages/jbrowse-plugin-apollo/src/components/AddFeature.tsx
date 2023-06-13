@@ -111,7 +111,7 @@ export function AddFeature({
       parentFeatureId: sourceFeature._id,
     })
     await changeManager.submit?.(change)
-    notify(`Feature added successfully`, 'success')
+    notify('Feature added successfully', 'success')
     handleClose()
     event.preventDefault()
   }
