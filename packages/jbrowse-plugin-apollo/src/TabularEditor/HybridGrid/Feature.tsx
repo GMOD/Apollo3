@@ -1,3 +1,4 @@
+import { getSession } from '@jbrowse/core/util'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
@@ -5,6 +6,11 @@ import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { DisplayStateModel } from '../types'
+import {
+  handleFeatureStartChange,
+  handleFeatureEndChange,
+  handleFeatureTypeChange,
+} from './ChangeHandling'
 import { FeatureAttributes } from './FeatureAttributes'
 import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
 
@@ -71,6 +77,10 @@ export const Feature = observer(
       setExpanded(!expanded)
     }
 
+    // pop up a snackbar in the session notifying user of an error
+    const notifyError = (e: Error) =>
+      getSession(model).notify(e.message, 'error')
+
     return (
       <>
         <tr
@@ -110,13 +120,50 @@ export const Feature = observer(
                 value={feature.type}
                 internetAccount={internetAccount}
                 onChange={(oldValue, newValue) => {
-                  return
+                  if (newValue) {
+                    handleFeatureTypeChange(
+                      model.changeManager,
+                      feature,
+                      oldValue,
+                      newValue,
+                    ).catch(notifyError)
+                  }
                 }}
               />
             </div>
           </td>
-          <td contentEditable="true">{feature.start}</td>
-          <td contentEditable="true">{feature.end}</td>
+          <td
+            contentEditable={true}
+            onBlur={(e) => {
+              const newValue = Number(e.target.textContent)
+              if (!Number.isNaN(newValue) && newValue !== feature.start) {
+                handleFeatureStartChange(
+                  model.changeManager,
+                  feature,
+                  feature.start,
+                  newValue,
+                ).catch(notifyError)
+              }
+            }}
+          >
+            {feature.start}
+          </td>
+          <td
+            contentEditable={true}
+            onBlur={(e) => {
+              const newValue = Number(e.target.textContent)
+              if (!Number.isNaN(newValue) && newValue !== feature.end) {
+                handleFeatureEndChange(
+                  model.changeManager,
+                  feature,
+                  feature.end,
+                  newValue,
+                ).catch(notifyError)
+              }
+            }}
+          >
+            {feature.end}
+          </td>
           <td>
             <FeatureAttributes feature={feature} />
           </td>

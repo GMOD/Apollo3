@@ -18,9 +18,9 @@ export function OntologyTermAutocomplete(props: {
   value: string
   feature: AnnotationFeatureI
   style?: React.CSSProperties
-  onChange: (oldValue: string, newValue: string) => void
+  onChange: (oldValue: string, newValue: string | null | undefined) => void
 }) {
-  const { value, style, feature, internetAccount } = props
+  const { value, style, feature, internetAccount, onChange } = props
   const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>([])
   const [errorMessage, setErrorMessage] = useState('')
   const { classes } = useStyles()
@@ -66,14 +66,9 @@ export function OntologyTermAutocomplete(props: {
     event: React.SyntheticEvent<Element, Event>,
     newValue?: string | null,
   ) => {
-    // const isValid = await apiRef.current.setEditCellValue({
-    //   id,
-    //   field,
-    //   value: newValue,
-    // })
-    // if (isValid) {
-    //   apiRef.current.stopCellEditMode({ id, field })
-    // }
+    if (newValue !== value) {
+      onChange(value, newValue)
+    }
   }
 
   if (!soSequenceTerms.length) {
@@ -90,6 +85,7 @@ export function OntologyTermAutocomplete(props: {
     <Autocomplete
       options={soSequenceTerms}
       style={style}
+      freeSolo={true}
       renderInput={(params) => {
         return (
           <div ref={params.InputProps.ref}>
