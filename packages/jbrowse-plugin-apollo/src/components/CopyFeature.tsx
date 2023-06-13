@@ -54,7 +54,7 @@ export function CopyFeature({
   const [errorMessage, setErrorMessage] = useState('')
   const { notify } = session
 
-  async function handleChangeAssembly(e: SelectChangeEvent<string>) {
+  function handleChangeAssembly(e: SelectChangeEvent<string>) {
     setSelectedAssemblyId(e.target.value)
   }
 
@@ -78,7 +78,7 @@ export function CopyFeature({
     getRefNames().catch((e) => setErrorMessage(String(e)))
   }, [selectedAssemblyId, assemblyManager])
 
-  async function handleChangeRefSeq(e: SelectChangeEvent<string>) {
+  function handleChangeRefSeq(e: SelectChangeEvent<string>) {
     const refSeq = e.target.value as string
     setSelectedRefSeqId(refSeq)
   }
@@ -252,7 +252,7 @@ export function CopyFeature({
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Copy features and annotations</DialogTitle>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={void onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText>Target assembly</DialogContentText>
           <Select

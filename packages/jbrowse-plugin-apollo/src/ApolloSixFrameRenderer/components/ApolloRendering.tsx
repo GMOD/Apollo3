@@ -663,7 +663,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
         // onMouseMove={onMouseMove}
         onMouseLeave={onMouseLeave}
         // onMouseDown={onMouseDown}
-        onMouseUp={onMouseUp}
+        onMouseUp={void onMouseUp}
         onContextMenu={onContextMenu}
         style={{
           position: 'absolute',

@@ -116,7 +116,7 @@ export function ImportFeatures({
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Import Features from GFF3 file</DialogTitle>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={void onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText>Select assembly</DialogContentText>
           <Select

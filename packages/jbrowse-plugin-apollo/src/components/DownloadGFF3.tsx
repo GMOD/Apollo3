@@ -73,7 +73,7 @@ export function DownloadGFF3({ session, handleClose }: DownloadGFF3Props) {
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Export GFF3</DialogTitle>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={void onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText>Select assembly</DialogContentText>
           <Select

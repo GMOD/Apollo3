@@ -68,7 +68,7 @@ export function DeleteFeature({
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Delete feature</DialogTitle>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={void onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText>
             Are you sure you want to delete the selected feature?

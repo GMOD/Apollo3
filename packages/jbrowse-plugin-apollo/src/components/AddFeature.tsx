@@ -115,7 +115,7 @@ export function AddFeature({
     handleClose()
     event.preventDefault()
   }
-  async function handleChangeType(e: SelectChangeEvent<string>) {
+  function handleChangeType(e: SelectChangeEvent<string>) {
     setErrorMessage('')
     setType(e.target.value)
     if (e.target.value.startsWith('CDS')) {
@@ -125,7 +125,7 @@ export function AddFeature({
       setShowPhase(false)
     }
   }
-  async function handleChangePhase(e: SelectChangeEvent<string>) {
+  function handleChangePhase(e: SelectChangeEvent<string>) {
     setErrorMessage('')
     setPhase(e.target.value)
 
@@ -147,7 +147,7 @@ export function AddFeature({
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Add new feature</DialogTitle>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={void onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <TextField
             autoFocus

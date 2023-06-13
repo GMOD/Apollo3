@@ -157,7 +157,7 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
         )
       }}
       value={String(value)}
-      onChange={handleChange}
+      onChange={void handleChange}
       disableClearable
       selectOnFocus
       handleHomeEndKeys
@@ -309,6 +309,28 @@ export default observer(({ model }: { model: LinearApolloDisplay }) => {
     }
     return newRow
   }
+  async function onCellEditStart(params: GridCellEditStartParams<GridRow>) {
+    if (params.colDef.field !== 'attributes' || !selectedFeature) {
+      return
+    }
+    const { assemblyId } = selectedFeature
+    session.queueDialog((doneCallback) => [
+      ModifyFeatureAttribute,
+      {
+        session,
+        handleClose: doneCallback,
+        changeManager,
+        sourceFeature: params.row.feature,
+        sourceAssemblyId: assemblyId,
+      },
+    ])
+    // Without this, `stopCellEditMode` doesn't work because the cell
+    // is still in view mode. Probably an MUI bug, but since we're
+    // likely going to replace DataGrid, it's not worth fixing now.
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    const { id: cellId, field } = params
+    apiRef.current.stopCellEditMode({ id: cellId, field })
+  }
   return (
     <DataGrid
       apiRef={apiRef}
@@ -317,28 +339,7 @@ export default observer(({ model }: { model: LinearApolloDisplay }) => {
       columns={getFeatureColumns(editable, internetAccount, model)}
       processRowUpdate={processRowUpdate}
       onProcessRowUpdateError={console.error}
-      onCellEditStart={async (params: GridCellEditStartParams<GridRow>) => {
-        if (params.colDef.field !== 'attributes' || !selectedFeature) {
-          return
-        }
-        const { assemblyId } = selectedFeature
-        session.queueDialog((doneCallback) => [
-          ModifyFeatureAttribute,
-          {
-            session,
-            handleClose: doneCallback,
-            changeManager,
-            sourceFeature: params.row.feature,
-            sourceAssemblyId: assemblyId,
-          },
-        ])
-        // Without this, `stopCellEditMode` doesn't work because the cell
-        // is still in view mode. Probably an MUI bug, but since we're
-        // likely going to replace DataGrid, it's not worth fixing now.
-        await new Promise((resolve) => setTimeout(resolve, 0))
-        const { id: cellId, field } = params
-        apiRef.current.stopCellEditMode({ id: cellId, field })
-      }}
+      onCellEditStart={void onCellEditStart}
     />
   )
 })

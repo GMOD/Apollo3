@@ -88,7 +88,7 @@ export function DeleteAssembly({
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Delete Assembly</DialogTitle>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={void onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           {apolloInternetAccounts.length > 1 ? (
             <>

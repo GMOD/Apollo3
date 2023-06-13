@@ -14,6 +14,7 @@ import {
 import {
   DataGrid,
   GridActionsCellItem,
+  GridCellEditStopParams,
   GridCellParams,
   GridColDef,
   GridRowId,
@@ -92,15 +93,20 @@ export function ManageUsers({
     getUsers().catch((e) => setErrorMessage(String(e)))
   }, [getUsers])
 
-  async function deleteUser(id: GridRowId) {
-    const change = new DeleteUserChange({
-      typeName: 'DeleteUserChange',
-      userId: id as string,
-    })
-    await changeManager.submit(change, {
-      internetAccountId: selectedInternetAcount.internetAccountId,
-    })
-    setUsers((prevUsers) => prevUsers.filter((row) => row._id !== id))
+  function onClickUserDelete(id: GridRowId) {
+    return async () => {
+      if (!window.confirm('Delete this user?')) {
+        return
+      }
+      const change = new DeleteUserChange({
+        typeName: 'DeleteUserChange',
+        userId: String(id),
+      })
+      await changeManager.submit(change, {
+        internetAccountId: selectedInternetAcount.internetAccountId,
+      })
+      setUsers((prevUsers) => prevUsers.filter((row) => row._id !== id))
+    }
   }
 
   function isCurrentUser(id: GridRowId) {
@@ -127,11 +133,7 @@ export function ManageUsers({
       getActions: (params: GridRowParams) => [
         <GridActionsCellItem
           icon={<DeleteIcon />}
-          onClick={async () => {
-            if (window.confirm('Delete this user?')) {
-              await deleteUser(params.id)
-            }
-          }}
+          onClick={void onClickUserDelete(params.id)}
           disabled={isCurrentUser(params.id)}
           label="Delete"
         />,
@@ -151,10 +153,17 @@ export function ManageUsers({
     setSelectedInternetAcount(newlySelectedInternetAccount)
   }
 
-  async function onChangeTableCell(change: UserChange) {
-    await changeManager.submit(change, {
-      internetAccountId: selectedInternetAcount.internetAccountId,
-    })
+  async function onCellEditStop(params: GridCellEditStopParams) {
+    if (params.field === 'role') {
+      const change = new UserChange({
+        typeName: 'UserChange',
+        role: params.value,
+        userId: params.id as string,
+      })
+      await changeManager.submit(change, {
+        internetAccountId: selectedInternetAcount.internetAccountId,
+      })
+    }
   }
 
   return (
@@ -190,16 +199,7 @@ export function ManageUsers({
             isCellEditable={(params: GridCellParams) =>
               !isCurrentUser(params.id)
             }
-            onCellEditStop={async (params) => {
-              if (params.field === 'role') {
-                const change = new UserChange({
-                  typeName: 'UserChange',
-                  role: params.value,
-                  userId: params.id as string,
-                })
-                await onChangeTableCell(change)
-              }
-            }}
+            onCellEditStop={void onCellEditStop}
           />
         </div>
       </DialogContent>

@@ -282,12 +282,12 @@ const stateModelFactory = (
       }
       const debounceTimeout = 300
       const debouncePostUserLocation = (
-        fn: (userLocation: UserLocation[]) => void,
+        fn: (userLocation: UserLocation[]) => Promise<void>,
       ) => {
         let timeoutId: ReturnType<typeof setTimeout>
         return (userLocation: UserLocation[]) => {
           clearTimeout(timeoutId)
-          timeoutId = setTimeout(() => fn(userLocation), debounceTimeout)
+          timeoutId = setTimeout(() => void fn(userLocation), debounceTimeout)
         }
       }
       return {

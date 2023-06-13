@@ -280,7 +280,7 @@ export function ModifyFeatureAttribute({
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
       <DialogTitle>Feature attributes</DialogTitle>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={void onSubmit}>
         <DialogContent>
           <Grid container direction="column" spacing={1}>
             {Object.entries(attributes).map(([key, value]) => {

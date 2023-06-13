@@ -163,7 +163,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
     getGridData().catch((e) => setErrorMessage(String(e)))
   }, [assemblyId, apolloInternetAccount, baseURL])
 
-  async function handleChangeAssembly(e: SelectChangeEvent<string>) {
+  function handleChangeAssembly(e: SelectChangeEvent<string>) {
     setAssemblyId(e.target.value as string)
   }
 
