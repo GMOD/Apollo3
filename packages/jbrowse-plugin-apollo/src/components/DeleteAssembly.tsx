@@ -53,7 +53,7 @@ export function DeleteAssembly({
   )
 
   useEffect(() => {
-    if(assemblies.length > 0) {
+    if (assemblies.length > 0) {
       setSelectedAssembly(assemblies[0])
     }
   }, [assemblies])
