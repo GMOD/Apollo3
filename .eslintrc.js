@@ -82,7 +82,7 @@ module.exports = {
     // '@typescript-eslint/no-unsafe-return': 'error',
     // 'require-await': 'off',
     // '@typescript-eslint/require-await': 'error',
-    // '@typescript-eslint/restrict-plus-operands': 'error',
+    '@typescript-eslint/restrict-plus-operands': 'error',
     // '@typescript-eslint/restrict-template-expressions': 'error',
     // '@typescript-eslint/unbound-method': 'error',
   },

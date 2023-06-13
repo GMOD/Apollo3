@@ -316,7 +316,7 @@ export function stateModelFactory(
                           cds.end - cds.start - 6,
                         )
                           .fill(undefined)
-                          .map((_, idx) => cds.start + 3 + idx)
+                          .map((_, idx) => Number(cds.start) + 3 + idx)
                         for (const [row, { stops }] of this.codonLayout) {
                           if (
                             (row < 3 && feature.strand === 1) ||
