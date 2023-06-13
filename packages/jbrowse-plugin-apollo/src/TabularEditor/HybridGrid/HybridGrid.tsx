@@ -1,7 +1,9 @@
+import { getSession } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
+import { getApolloInternetAccount } from '../../util'
 import { DisplayStateModel } from '../types'
 import { Feature } from './Feature'
 
@@ -27,6 +29,10 @@ const HybridGrid = observer(({ model }: { model: DisplayStateModel }) => {
   const { seenFeatures, selectedFeature } = model
   const { classes } = useStyles()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+  const internetAccount = useMemo(() => {
+    return getApolloInternetAccount(getSession(model))
+  }, [model])
 
   // scrolls to selected feature if one is selected and it's not already visible
   useEffect(() => {
@@ -80,6 +86,7 @@ const HybridGrid = observer(({ model }: { model: DisplayStateModel }) => {
               return (
                 <Feature
                   key={featureId}
+                  internetAccount={internetAccount}
                   isSelected={isSelected}
                   isHovered={isHovered}
                   selectedFeatureClass={classes.selectedFeature}

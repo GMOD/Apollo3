@@ -3,8 +3,10 @@ import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
+import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { DisplayStateModel } from '../types'
 import { FeatureAttributes } from './FeatureAttributes'
+import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
 
 const useStyles = makeStyles()((theme) => ({
   levelIndicator: {
@@ -16,7 +18,12 @@ const useStyles = makeStyles()((theme) => ({
     verticalAlign: 'top',
     background: 'blue',
   },
-  typeContent: { display: 'inline-block' },
+  typeContent: {
+    display: 'inline-block',
+    width: '174px',
+    height: '100%',
+    cursor: 'text',
+  },
   feature: {
     td: {
       position: 'relative',
@@ -46,6 +53,7 @@ export const Feature = observer(
     isHovered,
     isSelected,
     selectedFeatureClass,
+    internetAccount,
   }: {
     model: DisplayStateModel
     feature: AnnotationFeatureI
@@ -53,13 +61,16 @@ export const Feature = observer(
     isHovered: boolean
     isSelected: boolean
     selectedFeatureClass: string
+    internetAccount: ApolloInternetAccountModel
   }) => {
     const { classes } = useStyles()
+
     const [expanded, setExpanded] = useState(true)
     const toggleExpanded = (e: React.MouseEvent) => {
       e.stopPropagation()
       setExpanded(!expanded)
     }
+
     return (
       <>
         <tr
@@ -92,8 +103,16 @@ export const Feature = observer(
                 ❯
               </div>
             ) : null}
-            <div contentEditable="true" className={classes.typeContent}>
-              {feature.type}
+            <div className={classes.typeContent}>
+              <OntologyTermAutocomplete
+                feature={feature}
+                style={{ width: 170 }}
+                value={feature.type}
+                internetAccount={internetAccount}
+                onChange={(oldValue, newValue) => {
+                  return
+                }}
+              />
             </div>
           </td>
           <td contentEditable="true">{feature.start}</td>
@@ -116,6 +135,7 @@ export const Feature = observer(
                     isSelected={childSelected}
                     selectedFeatureClass={selectedFeatureClass}
                     key={featureId}
+                    internetAccount={internetAccount}
                     depth={(depth || 0) + 1}
                     feature={childFeature}
                     model={model}
