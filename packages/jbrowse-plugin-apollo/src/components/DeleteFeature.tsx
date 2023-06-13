@@ -34,11 +34,13 @@ export function DeleteFeature({
   selectedFeature,
   setSelectedFeature,
 }: DeleteFeatureProps) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
+  const { internetAccounts } = getRoot<AppRootModel>(session)
   const { notify } = session
-  const apolloInternetAccount = internetAccounts.find(
-    (ia) => ia.type === 'ApolloInternetAccount',
-  ) as ApolloInternetAccountModel | undefined
+  const apolloInternetAccount =
+    internetAccounts.find<ApolloInternetAccountModel>(
+      (ia): ia is ApolloInternetAccountModel =>
+        ia.type === 'ApolloInternetAccount',
+    )
   if (!apolloInternetAccount) {
     throw new Error('No Apollo internet account found')
   }

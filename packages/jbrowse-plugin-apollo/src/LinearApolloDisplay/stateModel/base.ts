@@ -77,7 +77,7 @@ export function baseModelFactory(
     .views((self) => ({
       get apolloInternetAccount() {
         const [region] = self.regions
-        const { internetAccounts } = getRoot(self) as AppRootModel
+        const { internetAccounts } = getRoot<AppRootModel>(self)
         const { assemblyName } = region
         const { assemblyManager } = self.session
         const assembly = assemblyManager.get(assemblyName)
@@ -88,9 +88,11 @@ export function baseModelFactory(
           'sequence',
           'metadata',
         ]) as { internetAccountConfigId: string }
-        const matchingAccount = internetAccounts.find(
-          (ia) => getConf(ia, 'internetAccountId') === internetAccountConfigId,
-        ) as ApolloInternetAccountModel | undefined
+        const matchingAccount =
+          internetAccounts.find<ApolloInternetAccountModel>(
+            (ia): ia is ApolloInternetAccountModel =>
+              getConf(ia, 'internetAccountId') === internetAccountConfigId,
+          )
         if (!matchingAccount) {
           throw new Error(
             `No InternetAccount found with config id ${internetAccountConfigId}`,

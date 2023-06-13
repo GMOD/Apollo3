@@ -79,7 +79,7 @@ export function CopyFeature({
   }, [selectedAssemblyId, assemblyManager])
 
   function handleChangeRefSeq(e: SelectChangeEvent<string>) {
-    const refSeq = e.target.value as string
+    const refSeq = e.target.value
     setSelectedRefSeqId(refSeq)
   }
 
@@ -116,7 +116,7 @@ export function CopyFeature({
     const featureIds: string[] = []
     // Let's add featureId to each child recursively
     const newFeatureLine = generateNewIds(
-      getSnapshot(sourceFeature) as unknown as AnnotationFeatureSnapshot,
+      getSnapshot(sourceFeature),
       featureIds,
     )
     // Clear possible parentId -attribute.

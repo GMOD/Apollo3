@@ -36,10 +36,12 @@ interface AssemblyDocument {
 }
 
 export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
-  const apolloInternetAccount = internetAccounts.find(
-    (ia) => ia.type === 'ApolloInternetAccount',
-  ) as ApolloInternetAccountModel | undefined
+  const { internetAccounts } = getRoot<AppRootModel>(session)
+  const apolloInternetAccount =
+    internetAccounts.find<ApolloInternetAccountModel>(
+      (ia): ia is ApolloInternetAccountModel =>
+        ia.type === 'ApolloInternetAccount',
+    )
   if (!apolloInternetAccount) {
     throw new Error('No Apollo internet account found')
   }
@@ -164,7 +166,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
   }, [assemblyId, apolloInternetAccount, baseURL])
 
   function handleChangeAssembly(e: SelectChangeEvent<string>) {
-    setAssemblyId(e.target.value as string)
+    setAssemblyId(e.target.value)
   }
 
   return (

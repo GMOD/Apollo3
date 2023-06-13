@@ -150,8 +150,7 @@ const stateModelFactory = (
           throw new Error(`No Token found`)
         }
         const { socket } = self
-        const { changeManager } = (session as ApolloSessionModel)
-          .apolloDataStore
+        const { changeManager } = session.apolloDataStore
         socket.on('COMMON', (message) => {
           // Save server last change sequnece into session storage
           sessionStorage.setItem('LastChangeSequence', message.changeSequence)
@@ -221,8 +220,7 @@ const stateModelFactory = (
       ),
       getMissingChanges: flow(function* getMissingChanges() {
         const { session } = getRoot(self)
-        const { changeManager } = (session as ApolloSessionModel)
-          .apolloDataStore
+        const { changeManager } = session.apolloDataStore
         if (!self.lastChangeSequenceNumber) {
           throw new Error(
             `No LastChangeSequence stored in session. Please, refresh you browser to get last updates from server`,

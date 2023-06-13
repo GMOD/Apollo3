@@ -168,11 +168,13 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
 export default observer(({ model }: { model: LinearApolloDisplay }) => {
   const session = getSession(model)
   const apiRef = useGridApiRef()
-  const { internetAccounts } = getRoot(session) as AppRootModel
+  const { internetAccounts } = getRoot<AppRootModel>(session)
   const internetAccount = useMemo(() => {
-    const apolloInternetAccount = internetAccounts.find(
-      (ia) => ia.type === 'ApolloInternetAccount',
-    ) as ApolloInternetAccountModel | undefined
+    const apolloInternetAccount =
+      internetAccounts.find<ApolloInternetAccountModel>(
+        (ia): ia is ApolloInternetAccountModel =>
+          ia.type === 'ApolloInternetAccount',
+      )
     if (!apolloInternetAccount) {
       throw new Error('No Apollo internet account found')
     }

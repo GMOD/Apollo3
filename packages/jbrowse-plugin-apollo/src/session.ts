@@ -87,7 +87,7 @@ function clientDataStoreFactory(
     })
     .views((self) => ({
       get internetAccounts() {
-        return (getRoot(self) as AppRootModel).internetAccounts
+        return getRoot<AppRootModel>(self).internetAccounts
       },
       getFeature(featureId: string) {
         return resolveIdentifier(
@@ -276,7 +276,7 @@ export function extendSession(
         }
       },
       broadcastLocations() {
-        const { internetAccounts } = getRoot(self) as AppRootModel
+        const { internetAccounts } = getRoot<AppRootModel>(self)
         const locations: {
           assemblyName: string
           refName: string
@@ -326,7 +326,7 @@ export function extendSession(
         }
       },
       afterCreate: flow(function* afterCreate() {
-        const { internetAccounts } = getRoot(self) as AppRootModel
+        const { internetAccounts } = getRoot<AppRootModel>(self)
         autorun(
           () => {
             // broadcastLocations() // **** This is not working and therefore we need to duplicate broadcastLocations() -method code here because autorun() does not observe changes otherwise

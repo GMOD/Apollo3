@@ -112,7 +112,7 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
         )
         throw new Error(errorMessage)
       }
-      const seq = (await response.text()) as string
+      const seq = await response.text()
       if (seq) {
         observer.next(
           new SimpleFeature({

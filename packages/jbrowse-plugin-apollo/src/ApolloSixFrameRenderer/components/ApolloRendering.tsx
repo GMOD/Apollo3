@@ -120,7 +120,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   )
 
   const apolloInternetAccount = useMemo(() => {
-    const { internetAccounts } = getRoot(session) as AppRootModel
+    const { internetAccounts } = getRoot<AppRootModel>(session)
     const { assemblyName } = region
     const { assemblyManager } = getSession(displayModel)
     const assembly = assemblyManager.get(assemblyName)
@@ -131,9 +131,10 @@ function ApolloRendering(props: ApolloRenderingProps) {
       'sequence',
       'metadata',
     ]) as { internetAccountConfigId: string }
-    const matchingAccount = internetAccounts.find(
-      (ia) => getConf(ia, 'internetAccountId') === internetAccountConfigId,
-    ) as ApolloInternetAccountModel | undefined
+    const matchingAccount = internetAccounts.find<ApolloInternetAccountModel>(
+      (ia): ia is ApolloInternetAccountModel =>
+        getConf(ia, 'internetAccountId') === internetAccountConfigId,
+    )
     if (!matchingAccount) {
       throw new Error(
         `No InternetAccount found with config id ${internetAccountConfigId}`,
