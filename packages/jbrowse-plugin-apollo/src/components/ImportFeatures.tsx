@@ -25,9 +25,9 @@ interface ImportFeaturesProps {
 }
 
 export function ImportFeatures({
-  session,
-  handleClose,
   changeManager,
+  handleClose,
+  session,
 }: ImportFeaturesProps) {
   const { internetAccounts } = getRoot<AppRootModel>(session)
   const { notify } = session

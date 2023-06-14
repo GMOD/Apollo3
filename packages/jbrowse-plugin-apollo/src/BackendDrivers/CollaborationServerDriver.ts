@@ -67,7 +67,7 @@ export class CollaborationServerDriver extends BackendDriver {
    * @returns
    */
   async getFeatures(region: Region) {
-    const { assemblyName, refName, start, end } = region
+    const { assemblyName, end, refName, start } = region
     const { assemblyManager } = getSession(this.clientStore)
     const assembly = assemblyManager.get(assemblyName)
     if (!assembly) {
@@ -158,7 +158,7 @@ export class CollaborationServerDriver extends BackendDriver {
    * @returns
    */
   async getSequence(region: Region): Promise<{ seq: string; refSeq: string }> {
-    const { assemblyName, refName, start, end } = region
+    const { assemblyName, end, refName, start } = region
     const { assemblyManager } = getSession(this.clientStore)
     const assembly = assemblyManager.get(assemblyName)
     if (!assembly) {

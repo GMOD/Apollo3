@@ -85,7 +85,7 @@ export function renderingModelIntermediateFactory(
                     if (location.refSeq !== displayedRegion.refName) {
                       continue
                     }
-                    const { start, end, refSeq } = location
+                    const { end, refSeq, start } = location
                     const locationStartPxInfo = self.lgv.bpToPx({
                       refName: refSeq,
                       coord: start,

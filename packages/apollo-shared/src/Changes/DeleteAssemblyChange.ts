@@ -19,7 +19,7 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
   }
 
   toJSON(): SerializedDeleteAssemblyChange {
-    const { typeName, assembly } = this
+    const { assembly, typeName } = this
     return { typeName, assembly }
   }
 
@@ -32,8 +32,8 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
     const {
       assemblyModel,
       featureModel,
-      refSeqModel,
       refSeqChunkModel,
+      refSeqModel,
       session,
     } = backend
     const { assembly, logger } = this

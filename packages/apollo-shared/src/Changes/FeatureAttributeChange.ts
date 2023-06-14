@@ -39,9 +39,9 @@ export class FeatureAttributeChange extends FeatureChange {
   }
 
   toJSON(): SerializedFeatureAttributeChange {
-    const { changes, changedIds, typeName, assembly } = this
+    const { assembly, changedIds, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ featureId, attributes }] = changes
+      const [{ attributes, featureId }] = changes
       return {
         typeName,
         changedIds,
@@ -139,7 +139,7 @@ export class FeatureAttributeChange extends FeatureChange {
   }
 
   getInverse() {
-    const { changes, changedIds, assembly, logger } = this
+    const { assembly, changedIds, changes, logger } = this
     const inverseChangedIds = changedIds.slice().reverse()
     const inverseChanges = changes
       .slice()

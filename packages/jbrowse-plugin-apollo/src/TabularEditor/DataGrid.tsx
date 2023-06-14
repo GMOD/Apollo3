@@ -80,7 +80,7 @@ interface AutocompleteInputCellProps extends GridRenderEditCellParams {
 }
 
 function AutocompleteInputCell(props: AutocompleteInputCellProps) {
-  const { id, value, field, row, internetAccount } = props
+  const { field, id, internetAccount, row, value } = props
   const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>([])
   const [errorMessage, setErrorMessage] = useState('')
   const apiRef = useGridApiContext()
@@ -90,7 +90,7 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
     const { signal } = controller
     async function getSOSequenceTerms() {
       const { feature } = row
-      const { type, parent, children } = feature
+      const { children, parent, type } = feature
       let endpoint = '/ontologies/equivalents/sequence_feature'
       if (parent) {
         endpoint = `/ontologies/descendants/${parent.type}`
@@ -183,17 +183,17 @@ export default observer(({ model }: { model: LinearApolloDisplay }) => {
   const editable =
     Boolean(internetAccount.authType) &&
     ['admin', 'user'].includes(internetAccount.getRole() || '')
-  const { selectedFeature, changeManager, detailsHeight } = model
+  const { changeManager, detailsHeight, selectedFeature } = model
   if (!selectedFeature) {
     return null
   }
   const {
     _id: id,
-    type,
+    assemblyId: assembly,
+    end,
     refSeq,
     start,
-    end,
-    assemblyId: assembly,
+    type,
   } = selectedFeature
   const { assemblyManager } = session
   const refName =
@@ -273,7 +273,7 @@ export default observer(({ model }: { model: LinearApolloDisplay }) => {
       | undefined = undefined
 
     if (newRow.start !== oldRow.start) {
-      const { start: oldStart, id: featureId } = oldRow
+      const { id: featureId, start: oldStart } = oldRow
       const { start: newStart } = newRow
       change = new LocationStartChange({
         typeName: 'LocationStartChange',
@@ -295,7 +295,7 @@ export default observer(({ model }: { model: LinearApolloDisplay }) => {
         assembly,
       })
     } else if (newRow.type !== oldRow.type) {
-      const { type: oldType, id: featureId } = oldRow
+      const { id: featureId, type: oldType } = oldRow
       const { type: newType } = newRow
       change = new TypeChange({
         typeName: 'TypeChange',
@@ -330,7 +330,7 @@ export default observer(({ model }: { model: LinearApolloDisplay }) => {
     // is still in view mode. Probably an MUI bug, but since we're
     // likely going to replace DataGrid, it's not worth fixing now.
     await new Promise((resolve) => setTimeout(resolve, 0))
-    const { id: cellId, field } = params
+    const { field, id: cellId } = params
     apiRef.current.stopCellEditMode({ id: cellId, field })
   }
   return (

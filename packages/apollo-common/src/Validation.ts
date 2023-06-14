@@ -46,8 +46,8 @@ export abstract class Validation {
   async backendPostValidate(
     change: Change,
     {
-      session,
       featureModel,
+      session,
     }: { session: ClientSession; featureModel: Model<FeatureDocument> },
   ): Promise<ValidationResult> {
     return { validationName: this.name }

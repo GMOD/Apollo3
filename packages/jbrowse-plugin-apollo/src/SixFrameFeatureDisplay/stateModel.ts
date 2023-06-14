@@ -74,7 +74,7 @@ export function stateModelFactory(
           return []
         }
         const regions = blockDefinitions.contentBlocks.map(
-          ({ assemblyName, refName, start, end }) => ({
+          ({ assemblyName, end, refName, start }) => ({
             assemblyName,
             refName,
             start,
@@ -116,7 +116,7 @@ export function stateModelFactory(
                     }
                   })
                   session.apolloDataStore.loadFeatures(
-                    newBlocks.map(({ assemblyName, refName, start, end }) => ({
+                    newBlocks.map(({ assemblyName, end, refName, start }) => ({
                       assemblyName,
                       refName,
                       start,
@@ -124,7 +124,7 @@ export function stateModelFactory(
                     })),
                   )
                   session.apolloDataStore.loadRefSeq(
-                    newBlocks.map(({ assemblyName, refName, start, end }) => ({
+                    newBlocks.map(({ assemblyName, end, refName, start }) => ({
                       assemblyName,
                       refName,
                       start,
@@ -291,8 +291,8 @@ export function stateModelFactory(
           }
           Array.from(featuresForRefSeq.values())
             .sort((f1, f2) => {
-              const { min: start1, max: end1 } = f1
-              const { min: start2, max: end2 } = f2
+              const { max: end1, min: start1 } = f1
+              const { max: end2, min: start2 } = f2
               return start1 - start2 || end1 - end2
             })
             .forEach((feature) => {

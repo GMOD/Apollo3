@@ -44,9 +44,9 @@ export class AddFeatureChange extends FeatureChange {
   }
 
   toJSON(): SerializedAddFeatureChange {
-    const { changes, changedIds, typeName, assembly } = this
+    const { assembly, changedIds, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ addedFeature, parentFeatureId, copyFeature, allIds }] = changes
+      const [{ addedFeature, allIds, copyFeature, parentFeatureId }] = changes
       return {
         typeName,
         changedIds,
@@ -67,7 +67,7 @@ export class AddFeatureChange extends FeatureChange {
    */
   async executeOnServer(backend: ServerDataStore) {
     const { assemblyModel, featureModel, refSeqModel, session, user } = backend
-    const { changes, assembly, logger } = this
+    const { assembly, changes, logger } = this
 
     const assemblyDoc = await assemblyModel
       .findById(assembly)
@@ -85,7 +85,7 @@ export class AddFeatureChange extends FeatureChange {
     // Loop the changes
     for (const change of changes) {
       logger.debug?.(`change: ${JSON.stringify(change)}`)
-      const { addedFeature, parentFeatureId, copyFeature, allIds } = change
+      const { addedFeature, allIds, copyFeature, parentFeatureId } = change
       const { refSeq } = addedFeature
       const refSeqDoc = await refSeqModel
         .findById(refSeq)
@@ -179,7 +179,7 @@ export class AddFeatureChange extends FeatureChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
-    const { changes, assembly } = this
+    const { assembly, changes } = this
     for (const change of changes) {
       const { addedFeature, parentFeatureId } = change
       if (parentFeatureId) {
@@ -199,7 +199,7 @@ export class AddFeatureChange extends FeatureChange {
   }
 
   getInverse() {
-    const { changes, changedIds, assembly, logger } = this
+    const { assembly, changedIds, changes, logger } = this
     const inverseChangedIds = changedIds.slice().reverse()
     const inverseChanges = changes
       .slice()

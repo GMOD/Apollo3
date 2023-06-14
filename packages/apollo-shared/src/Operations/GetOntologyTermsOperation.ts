@@ -28,7 +28,7 @@ export class GetOntologyTermsOperation extends Operation {
   }
 
   toJSON(): SerializedGetOntologyTermsOperation {
-    const { typeName, label, target } = this
+    const { label, target, typeName } = this
     return { typeName, label, target }
   }
 

@@ -40,7 +40,7 @@ export class AuthenticationService {
     if (!profile._json.email) {
       throw new UnauthorizedException('No email provided')
     }
-    const { name, email } = profile._json
+    const { email, name } = profile._json
     return this.logIn(name || 'N/A', email)
   }
 

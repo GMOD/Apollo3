@@ -16,8 +16,8 @@ export class ParentChildValidation extends Validation {
   async backendPostValidate(
     change: Change,
     {
-      session,
       featureModel,
+      session,
     }: { session: ClientSession; featureModel: Model<FeatureDocument> },
   ): Promise<ValidationResult> {
     if (isLocationEndChange(change) || isLocationStartChange(change)) {
@@ -32,8 +32,8 @@ export class ParentChildValidation extends Validation {
   async validateParentChildRelationships(
     change: LocationEndChange | LocationStartChange,
     {
-      session,
       featureModel,
+      session,
     }: { session: ClientSession; featureModel: Model<FeatureDocument> },
   ): Promise<ValidationResult> {
     const topLevelFeatures: FeatureDocument[] = []

@@ -48,9 +48,9 @@ export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange
   }
 
   toJSON(): SerializedAddAssemblyAndFeaturesFromFileChange {
-    const { changes, typeName, assembly } = this
+    const { assembly, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ fileId, assemblyName }] = changes
+      const [{ assemblyName, fileId }] = changes
       return { typeName, assembly, assemblyName, fileId }
     }
     return { typeName, assembly, changes }
@@ -63,9 +63,9 @@ export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange
    */
   async executeOnServer(backend: ServerDataStore) {
     const { assemblyModel, fileModel, filesService, user } = backend
-    const { changes, assembly, logger } = this
+    const { assembly, changes, logger } = this
     for (const change of changes) {
-      const { fileId, assemblyName } = change
+      const { assemblyName, fileId } = change
 
       const { FILE_UPLOAD_FOLDER } = process.env
       if (!FILE_UPLOAD_FOLDER) {
@@ -119,7 +119,7 @@ export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange
   async executeOnClient(dataStore: ClientDataStore) {}
 
   getInverse() {
-    const { typeName, changes, assembly, logger } = this
+    const { assembly, changes, logger, typeName } = this
     return new AddAssemblyAndFeaturesFromFileChange(
       { typeName, changes, assembly },
       { logger },

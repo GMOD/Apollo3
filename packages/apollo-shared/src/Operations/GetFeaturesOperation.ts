@@ -30,7 +30,7 @@ export class GetFeaturesOperation extends Operation {
   }
 
   toJSON(): SerializedGetFeaturesOperation {
-    const { typeName, refSeq, start, end } = this
+    const { end, refSeq, start, typeName } = this
     return { typeName, refSeq, start, end }
   }
 

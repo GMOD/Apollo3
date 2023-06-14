@@ -129,7 +129,7 @@ function clientDataStoreFactory(
       }),
       loadRefSeq: flow(function* loadRefSeq(regions: Region[]) {
         for (const region of regions) {
-          const { seq, refSeq } = yield (
+          const { refSeq, seq } = yield (
             self as unknown as { backendDriver: BackendDriver }
           ).backendDriver.getSequence(region)
           const { assemblyName, refName } = region
@@ -288,7 +288,7 @@ export function extendSession(
             const { dynamicBlocks } = view as LinearGenomeViewModel
             dynamicBlocks.forEach((block) => {
               if (block.regionNumber !== undefined) {
-                const { assemblyName, refName, start, end } = block
+                const { assemblyName, end, refName, start } = block
                 locations.push({ assemblyName, refName, start, end })
               }
             })
@@ -341,7 +341,7 @@ export function extendSession(
                 const { dynamicBlocks } = view as LinearGenomeViewModel
                 dynamicBlocks.forEach((block) => {
                   if (block.regionNumber !== undefined) {
-                    const { assemblyName, refName, start, end } = block
+                    const { assemblyName, end, refName, start } = block
                     locations.push({ assemblyName, refName, start, end })
                   }
                 })

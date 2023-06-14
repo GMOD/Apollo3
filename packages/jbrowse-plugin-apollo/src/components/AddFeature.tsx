@@ -38,12 +38,12 @@ enum PhaseEnum {
 }
 
 export function AddFeature({
-  session,
-  handleClose,
-  sourceFeature,
-  sourceAssemblyId,
   changeManager,
+  handleClose,
   internetAccount,
+  session,
+  sourceAssemblyId,
+  sourceFeature,
 }: AddFeatureProps) {
   const { notify } = session
   const [end, setEnd] = useState(String(sourceFeature.end))

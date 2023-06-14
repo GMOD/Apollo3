@@ -55,7 +55,7 @@ export function baseModelFactory(
       },
       get regions() {
         const regions = self.lgv.dynamicBlocks.contentBlocks.map(
-          ({ assemblyName, refName, start, end }) => ({
+          ({ assemblyName, end, refName, start }) => ({
             assemblyName,
             refName,
             start,

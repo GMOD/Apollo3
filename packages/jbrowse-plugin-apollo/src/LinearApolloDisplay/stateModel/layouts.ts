@@ -25,7 +25,7 @@ export function layoutsModelFactory(
           const assembly = assemblyManager.get(region.assemblyName)
           let min: number | undefined = undefined
           let max: number | undefined = undefined
-          const { refName, start, end } = region
+          const { end, refName, start } = region
           for (const [, feature] of self.seenFeatures) {
             if (
               refName !== assembly?.getCanonicalRefName(feature.refSeq) ||
@@ -74,7 +74,7 @@ export function layoutsModelFactory(
           }
           const [min, max] = minMax
           const rows: boolean[][] = []
-          const { refName, start, end } = region
+          const { end, refName, start } = region
           self.seenFeatures.forEach((feature, id) => {
             if (!isAlive(feature)) {
               self.deleteSeenFeature(id)

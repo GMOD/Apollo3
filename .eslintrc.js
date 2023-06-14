@@ -6,7 +6,7 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
   ],
-  plugins: ['eslint-plugin-tsdoc'],
+  plugins: ['eslint-plugin-tsdoc', 'sort-destructure-keys'],
   settings: {
     react: {
       version: 'detect',
@@ -59,6 +59,7 @@ module.exports = {
     'prettier/prettier': 'warn',
     quotes: ['warn', 'single', { avoidEscape: true }],
     radix: 'error',
+    'sort-destructure-keys/sort-destructure-keys': 'warn',
     'spaced-comment': [
       'warn',
       'always',

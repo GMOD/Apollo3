@@ -136,11 +136,11 @@ export const AnnotationFeature = types
   }))
   .actions((self) => ({
     update({
+      children,
+      end,
       refSeq,
       start,
-      end,
       strand,
-      children,
     }: {
       refSeq: string
       start: number

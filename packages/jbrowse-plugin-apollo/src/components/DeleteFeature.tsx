@@ -26,13 +26,13 @@ interface DeleteFeatureProps {
 }
 
 export function DeleteFeature({
-  session,
-  handleClose,
-  sourceFeature,
-  sourceAssemblyId,
   changeManager,
+  handleClose,
   selectedFeature,
+  session,
   setSelectedFeature,
+  sourceAssemblyId,
+  sourceFeature,
 }: DeleteFeatureProps) {
   const { internetAccounts } = getRoot<AppRootModel>(session)
   const { notify } = session

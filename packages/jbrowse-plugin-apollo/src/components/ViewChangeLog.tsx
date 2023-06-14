@@ -35,7 +35,7 @@ interface AssemblyDocument {
   name: string
 }
 
-export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
+export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
   const { internetAccounts } = getRoot<AppRootModel>(session)
   const apolloInternetAccount =
     internetAccounts.find<ApolloInternetAccountModel>(

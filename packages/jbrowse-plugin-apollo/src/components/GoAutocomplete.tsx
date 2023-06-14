@@ -51,9 +51,9 @@ interface GOLookupResult {
 const hiliteRegex = /(?<=<em class="hilite">)(.*?)(?=<\/em>)/g
 
 function GoTagWithTooltip({
+  getTagProps,
   goId,
   index,
-  getTagProps,
 }: {
   goId: string
   index: number
@@ -126,8 +126,8 @@ function GoTagWithTooltip({
 }
 
 export function GoAutocomplete({
-  value: initialValue,
   onChange,
+  value: initialValue,
 }: AttributeValueEditorProps) {
   const [value, setValue] = React.useState<
     (GOValue | GOAutocompleteResult | GODBResult)[]

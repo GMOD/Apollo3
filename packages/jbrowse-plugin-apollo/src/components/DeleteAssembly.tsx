@@ -28,9 +28,9 @@ interface DeleteAssemblyProps {
 }
 
 export function DeleteAssembly({
-  session,
-  handleClose,
   changeManager,
+  handleClose,
+  session,
 }: DeleteAssemblyProps) {
   const { internetAccounts } = getRoot<AppRootModel>(session)
   const [selectedAssembly, setSelectedAssembly] = useState<AssemblyData>()
