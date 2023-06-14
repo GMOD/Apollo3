@@ -8,15 +8,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out
-        uses: actions/checkout@v2
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v2
+        uses: actions/checkout@v3
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v3
         with:
-          node-version: '14'
-      - name: Install deps (with cache)
-        uses: bahmutov/npm-install@v1.8.15
-        with:
-          install-command: yarn --immutable
+          node-version: 16
+          cache: yarn
+      - name: Install
+        run: yarn --immutable
       - name: Lint codebase
         run: yarn eslint --report-unused-disable-directives --max-warnings 0 --ext .js,.ts,.jsx,.tsx .
       - name: Test codebase
