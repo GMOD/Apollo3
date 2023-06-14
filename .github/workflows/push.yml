@@ -16,11 +16,13 @@ jobs:
           cache: yarn
       - name: Install
         run: yarn --immutable
-      - name: Lint codebase
-        run: yarn eslint --ext .js,.ts,.jsx,.tsx .
+        # Have to build shared before linting so type-based lint rules can
+        # run correctly
       - name: Build shared
         run: yarn build
         working-directory: packages/apollo-shared
+      - name: Lint codebase
+        run: yarn eslint --ext .js,.ts,.jsx,.tsx .
       - name: Build collaboration server
         run: yarn build
         working-directory: packages/apollo-collaboration-server
