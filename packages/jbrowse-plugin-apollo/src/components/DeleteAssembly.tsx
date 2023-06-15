@@ -53,10 +53,10 @@ export function DeleteAssembly({
   )
 
   useEffect(() => {
-    if (assemblies.length > 0) {
+    if (assemblies.length > 0 && selectedAssembly === undefined) {
       setSelectedAssembly(assemblies[0])
     }
-  }, [assemblies])
+  }, [assemblies, selectedAssembly])
 
   function handleChangeInternetAccount(e: SelectChangeEvent<string>) {
     setSubmitted(false)
