@@ -17,6 +17,7 @@ import {
   GridCellParams,
   GridColDef,
   GridRowId,
+  GridRowModel,
   GridRowParams,
   GridToolbar,
 } from '@mui/x-data-grid'
@@ -32,7 +33,7 @@ interface UserResponse {
   _id: string
   username: string
   email: string
-  role: 'admin' | 'user' | 'readOnly'
+  role?: '' | 'admin' | 'user' | 'readOnly'
 }
 
 interface ManageUsersProps {
@@ -84,7 +85,7 @@ export function ManageUsers({
         return
       }
       const data = (await response.json()) as UserResponse[]
-      setUsers(data)
+      setUsers(data.map((u) => (u.role === undefined ? { ...u, role: '' } : u)))
     }
   }, [selectedInternetAcount])
 
@@ -118,7 +119,7 @@ export function ManageUsers({
       headerName: 'Role',
       width: 140,
       type: 'singleSelect',
-      valueOptions: ['readOnly', 'user', 'admin'],
+      valueOptions: ['', 'readOnly', 'user', 'admin'],
       editable: true,
     },
     {
@@ -151,10 +152,16 @@ export function ManageUsers({
     setSelectedInternetAcount(newlySelectedInternetAccount)
   }
 
-  async function onChangeTableCell(change: UserChange) {
+  async function processRowUpdate(newRow: GridRowModel) {
+    const change = new UserChange({
+      typeName: 'UserChange',
+      role: newRow.role,
+      userId: newRow._id,
+    })
     await changeManager.submit(change, {
       internetAccountId: selectedInternetAcount.internetAccountId,
     })
+    return newRow
   }
 
   return (
@@ -190,16 +197,8 @@ export function ManageUsers({
             isCellEditable={(params: GridCellParams) =>
               !isCurrentUser(params.id)
             }
-            onCellEditStop={async (params) => {
-              if (params.field === 'role') {
-                const change = new UserChange({
-                  typeName: 'UserChange',
-                  role: params.value,
-                  userId: params.id as string,
-                })
-                await onChangeTableCell(change)
-              }
-            }}
+            processRowUpdate={processRowUpdate}
+            onProcessRowUpdateError={(error) => setErrorMessage(String(error))}
           />
         </div>
       </DialogContent>
