@@ -117,24 +117,14 @@ export class FeaturesController {
   }
 
   /**
-   * Fetch feature by its name from featureNameIndex
-   * @param featureName 
+   * Find feature using id/attribute (extendible to other attrs) from db index
+   * @param attrType attribute type in db document or db index type
+   * @param query query to fetch the feature from db index
    * @returns a feature object
    */
-  @Get('name/:name')
-  getFeatureByName(@Param('name') featureName: string) {
-    this.logger.debug(`Get feature by featurename: ${featureName}`)
-    return this.featuresService.findByName(featureName)
-  }
-
-  /**
-   * Fetch feature by its id attribute from featureIdIndex
-   * @param id 
-   * @returns a feature object
-   */
-  @Get('id/:id')
-  getFeatureById(@Param('id') id: string) {
-    this.logger.debug(`Get feature by id: ${id}`)
-    return this.featuresService.findByAttrId(id)
+  @Get(':attrtype/:query')
+  getFeatureByAttr(@Param('attrtype') attrType: string, @Param('query') query: string) {
+    this.logger.debug(`Get feature by attrtype and query: ${attrType}, ${query}`)
+    return this.featuresService.getFeatureByAttr(attrType, query)
   }
 }

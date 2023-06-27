@@ -230,36 +230,19 @@ export class FeaturesService {
   }
 
   /**
-   * Get feature by its name from featureNameIndex (attributes.name)
-   * @param featureName 
+   * Get feature by its name/id from feature db index
+   * @param attrType attribute type or db index type
+   * @param query query string to fetch the feature
+   * @returns feature object
    */
-  async findByName(featureName: string) {
+  async getFeatureByAttr(attrType: string, query: string) {
     const feature = await this.featureModel
-      .find({ "attributes.name": featureName })
-      .populate("refSeq")
+      .find({ [`attributes.${attrType}`] : query })
+      .populate('refSeq')
       .exec()
 
     if (!feature) {
-      const errMsg = `ERROR: The following featureName was not found in database index ='${featureName}'`
-      this.logger.error(errMsg)
-      throw new NotFoundException(errMsg)
-    }
-
-    return feature
-  }
-
-  /**
-   * Get feature by its id attribute from featureIdIndex (attributes.id)
-   * @param id 
-   */
-  async findByAttrId(id: string) {
-    const feature = await this.featureModel
-      .find({ "attributes.id": id })
-      .populate("refSeq")
-      .exec()
-
-    if (!feature) {
-      const errMsg = `ERROR: The following id was not found in database index ='${id}'`
+      const errMsg = `ERROR: The following query ${query} was not found in database index ${attrType}`
       this.logger.error(errMsg)
       throw new NotFoundException(errMsg)
     }
