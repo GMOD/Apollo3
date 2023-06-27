@@ -28,12 +28,12 @@ function makeGFF3Feature(
   const locations = featureDocument.discontinuousLocations?.length
     ? featureDocument.discontinuousLocations
     : [
-        {
-          start: featureDocument.start,
-          end: featureDocument.end,
-          phase: featureDocument.phase,
-        },
-      ]
+      {
+        start: featureDocument.start,
+        end: featureDocument.end,
+        phase: featureDocument.phase,
+      },
+    ]
   const attributes: Record<string, string[]> = {
     ...(featureDocument.attributes || {}),
   }
@@ -114,16 +114,16 @@ function makeGFF3Feature(
       location.phase === 0
         ? '0'
         : location.phase === 1
-        ? '1'
-        : location.phase === 2
-        ? '2'
-        : null,
+          ? '1'
+          : location.phase === 2
+            ? '2'
+            : null,
     attributes: Object.keys(attributes).length ? attributes : null,
     derived_features: [],
     child_features: featureDocument.children
       ? Object.values(featureDocument.children).map((child) =>
-          makeGFF3Feature(child, refSeqs, attributes.ID[0]),
-        )
+        makeGFF3Feature(child, refSeqs, attributes.ID[0]),
+      )
       : [],
   }))
 }
@@ -140,7 +140,7 @@ export class FeaturesService {
     private readonly refSeqModel: Model<RefSeqDocument>,
     @InjectModel(Export.name)
     private readonly exportModel: Model<ExportDocument>,
-  ) {}
+  ) { }
 
   private readonly logger = new Logger(FeaturesService.name)
 
@@ -227,6 +227,44 @@ export class FeaturesService {
     }
     this.logger.debug(`Feature found: ${JSON.stringify(foundFeature)}`)
     return foundFeature
+  }
+
+  /**
+   * Get feature by its name from featureNameIndex (attributes.name)
+   * @param featureName 
+   */
+  async findByName(featureName: string) {
+    const feature = await this.featureModel
+      .find({ "attributes.name": featureName })
+      .populate("refSeq")
+      .exec()
+
+    if (!feature) {
+      const errMsg = `ERROR: The following featureName was not found in database index ='${featureName}'`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+
+    return feature
+  }
+
+  /**
+   * Get feature by its id attribute from featureIdIndex (attributes.id)
+   * @param id 
+   */
+  async findByAttrId(id: string) {
+    const feature = await this.featureModel
+      .find({ "attributes.id": id })
+      .populate("refSeq")
+      .exec()
+
+    if (!feature) {
+      const errMsg = `ERROR: The following id was not found in database index ='${id}'`
+      this.logger.error(errMsg)
+      throw new NotFoundException(errMsg)
+    }
+
+    return feature
   }
 
   /**

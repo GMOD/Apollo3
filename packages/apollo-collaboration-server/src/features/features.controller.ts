@@ -115,4 +115,26 @@ export class FeaturesController {
     this.logger.debug(`Get all features`)
     return this.featuresService.findAll()
   }
+
+  /**
+   * Fetch feature by its name from featureNameIndex
+   * @param featureName 
+   * @returns a feature object
+   */
+  @Get('name/:name')
+  getFeatureByName(@Param('name') featureName: string) {
+    this.logger.debug(`Get feature by featurename: ${featureName}`)
+    return this.featuresService.findByName(featureName)
+  }
+
+  /**
+   * Fetch feature by its id attribute from featureIdIndex
+   * @param id 
+   * @returns a feature object
+   */
+  @Get('id/:id')
+  getFeatureById(@Param('id') id: string) {
+    this.logger.debug(`Get feature by id: ${id}`)
+    return this.featuresService.findByAttrId(id)
+  }
 }

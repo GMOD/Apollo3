@@ -248,7 +248,7 @@ export function extendSession(
       apolloSetSelectedFeature(feature?: AnnotationFeatureI) {
         self.apolloSelectedFeature = feature
       },
-      addApolloTrackConfig(assembly: AssemblyModel) {
+      addApolloTrackConfig(assembly: AssemblyModel, baseURL: any) {
         const trackId = `apollo_track_${assembly.name}`
         const hasTrack = Boolean(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -262,6 +262,15 @@ export function extendSession(
               getConf(assembly, 'displayName') || assembly.name
             })`,
             assemblyNames: [assembly.name],
+            textSearching: {
+              textSearchAdapter: {
+                type: 'ApolloTextSearchAdapter',
+                baseURL: { uri: baseURL, locationType: 'UriLocation' },
+                trackId: trackId,
+                assemblyNames: [assembly.name],
+                textSearchAdapterId: 'apollo-search',
+              }
+            },
             displays: [
               {
                 type: 'LinearApolloDisplay',
@@ -415,7 +424,7 @@ export function extendSession(
             const { assemblyManager } = self
             const selectedAssembly = assemblyManager.get(assembly.name)
             if (selectedAssembly) {
-              self.addApolloTrackConfig(selectedAssembly)
+              self.addApolloTrackConfig(selectedAssembly, baseURL)
               continue
             }
             const url = new URL('refSeqs', baseURL)
@@ -479,7 +488,7 @@ export function extendSession(
             }
             ;(self.addSessionAssembly || self.addAssembly)(assemblyConfig)
             const a = yield assemblyManager.waitForAssembly(assemblyConfig.name)
-            self.addApolloTrackConfig(a)
+            self.addApolloTrackConfig(a, baseURL)
           }
 
           // GO stuff starts here

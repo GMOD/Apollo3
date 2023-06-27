@@ -15,12 +15,20 @@
           "main": "#6b4e2b"
         }
       }
+    },
+    "formatDetails": {
+      "feature": "jexl: {xrefs:apolloxreflink({interpro: 'https://www.ebi.ac.uk/interpro/entry/InterPro/',pfam: 'https://www.ebi.ac.uk/interpro/entry/pfam/',db_xref: {COG: 'https://www.ncbi.nlm.nih.gov/research/cog/cog/'}}, feature)}",
+      "subfeatures": "jexl: {xrefs:apolloxreflink({interpro: 'https://www.ebi.ac.uk/interpro/entry/InterPro/',pfam: 'https://www.ebi.ac.uk/interpro/entry/pfam/',db_xref: {COG: 'https://www.ncbi.nlm.nih.gov/research/cog/cog/'}}, feature)}"
     }
   },
   "plugins": [
     {
       "name": "Apollo",
       "url": "http://localhost:9000/dist/jbrowse-plugin-apollo.umd.development.js"
+    },
+    {
+      "name": "ApolloXrefLinkPlugin",
+      "url": "https://unpkg.com/apollo-xreflink-plugin@0.0.7/dist/apollo-xreflink-plugin.umd.production.min.js"
     }
   ],
   "internetAccounts": [

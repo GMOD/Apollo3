@@ -1,0 +1,74 @@
+import { AnyConfigurationModel, readConfObject } from "@jbrowse/core/configuration";
+import { BaseAdapter, BaseArgs, BaseTextSearchAdapter } from "@jbrowse/core/data_adapters/BaseAdapter";
+import { getSubAdapterType } from "@jbrowse/core/data_adapters/dataAdapterCache";
+import PluginManager from "@jbrowse/core/PluginManager";
+import BaseResult from "@jbrowse/core/TextSearch/BaseResults";
+import { UriLocation } from "@jbrowse/core/util";
+import { getFetcher } from "@jbrowse/core/util/io";
+
+export class ApolloTextSearchAdapter extends BaseAdapter implements BaseTextSearchAdapter {
+    constructor(
+        config: AnyConfigurationModel,
+        getSubAdapter?: getSubAdapterType,
+        pluginManager?: PluginManager,
+    ) {
+        super(config, getSubAdapter, pluginManager)
+    }
+
+    get baseURL(): string {
+        return readConfObject(this.config, 'baseURL').uri
+    }
+
+    get trackId(): string {
+        return readConfObject(this.config, 'trackId').uri
+    }
+
+    get internetAccountPreAuthorization():
+        | { authInfo: { token: string }; internetAccountType: string }
+        | undefined {
+        return readConfObject(this.config, 'baseURL')
+            .internetAccountPreAuthorization
+    }
+
+    async fetchFeatureByAttr(attr_type: string, attr: string) {
+        const url = new URL(`features/${attr_type}/${attr}`, this.baseURL)
+        const uri = url.toString()
+        const location: UriLocation = { locationType: 'UriLocation', uri }
+        if (this.internetAccountPreAuthorization) {
+            location.internetAccountPreAuthorization =
+                this.internetAccountPreAuthorization
+        }
+        const fetch = getFetcher(location, this.pluginManager)
+        return fetch(uri)
+            .then(res => res.json())
+            .catch(err => err)
+    }
+
+    mapBaseResult(features: { refSeq: any; start: any; end: any; }[], query: string) {
+        return features.map((feature) => new BaseResult({
+            label: query,
+            displayString: query,
+            trackId: this.trackId,
+            locString: `${feature.refSeq?.name}:${feature.start}..${feature.end}`,
+        }))
+    }
+
+    searchIndex(args: BaseArgs): Promise<BaseResult[]> {
+        const query = args.queryString
+        const isId = query.startsWith('id:')
+        // portion of query after first occurance of ':' 
+        const id = isId ? query.slice(query.indexOf(':') + 1) : null;
+
+        if (isId && id) {
+            return this.fetchFeatureByAttr('id', id)
+                .then(features => this.mapBaseResult(features, query))
+                .catch(err => err)
+        }
+
+        return this.fetchFeatureByAttr('name', query)
+            .then(features => this.mapBaseResult(features, query))
+            .catch(err => err)
+    }
+
+    freeResources() { }
+}
