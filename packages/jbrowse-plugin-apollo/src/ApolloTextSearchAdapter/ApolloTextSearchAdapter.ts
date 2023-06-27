@@ -30,8 +30,8 @@ export class ApolloTextSearchAdapter extends BaseAdapter implements BaseTextSear
             .internetAccountPreAuthorization
     }
 
-    async fetchFeatureByAttr(attr_type: string, attr: string) {
-        const url = new URL(`features/${attr_type}/${attr}`, this.baseURL)
+    async fetchFeatureByAttr(attrType: string, attr: string) {
+        const url = new URL(`features/${attrType}/${attr}`, this.baseURL)
         const uri = url.toString()
         const location: UriLocation = { locationType: 'UriLocation', uri }
         if (this.internetAccountPreAuthorization) {
@@ -70,5 +70,6 @@ export class ApolloTextSearchAdapter extends BaseAdapter implements BaseTextSear
             .catch(err => err)
     }
 
-    freeResources() { }
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    freeResources() {}
 }
