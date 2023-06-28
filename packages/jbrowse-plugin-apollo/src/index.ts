@@ -67,7 +67,7 @@ export default class ApolloPlugin extends Plugin {
   install(pluginManager: PluginManager) {
     installApolloSequenceAdapter(pluginManager)
     installApolloTextSearchAdapter(pluginManager)
-    
+
     pluginManager.addTrackType(() => {
       const configSchema = ConfigurationSchema(
         'ApolloTrack',

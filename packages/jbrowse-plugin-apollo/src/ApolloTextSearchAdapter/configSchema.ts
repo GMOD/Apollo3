@@ -22,6 +22,6 @@ export default ConfigurationSchema(
   },
   {
     explicitlyTyped: true,
-    explicitIdentifier: 'textSearchAdapterId'
+    explicitIdentifier: 'textSearchAdapterId',
   },
 )

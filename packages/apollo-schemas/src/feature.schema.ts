@@ -66,5 +66,11 @@ FeatureSchema.add({ children: { type: Map, of: FeatureSchema } })
 
 FeatureSchema.index({ refSeq: 1, start: 1 })
 FeatureSchema.index({ refSeq: 1, end: 1 })
-FeatureSchema.index({'attributes.name': 1}, {background: true, name: 'featureNameIndex'})
-FeatureSchema.index({'attributes.id': 1}, {background: true, name: 'featureIdIndex'})
+FeatureSchema.index(
+  { 'attributes.name': 1 },
+  { background: true, name: 'featureNameIndex' },
+)
+FeatureSchema.index(
+  { 'attributes.id': 1 },
+  { background: true, name: 'featureIdIndex' },
+)

@@ -231,13 +231,13 @@ export class FeaturesService {
 
   /**
    * Get feature by its name/id from feature db index
-   * @param attrType attribute type or db index type
-   * @param query query string to fetch the feature
+   * @param attrType - attribute type or db index type
+   * @param query - query string to fetch the feature
    * @returns feature object
    */
   async getFeatureByAttr(attrType: string, query: string) {
     const feature = await this.featureModel
-      .find({ [`attributes.${attrType}`] : query })
+      .find({ [`attributes.${attrType}`]: new RegExp(`^${query}$`, 'i') })
       .populate('refSeq')
       .exec()
 

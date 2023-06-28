@@ -248,7 +248,7 @@ export function extendSession(
       apolloSetSelectedFeature(feature?: AnnotationFeatureI) {
         self.apolloSelectedFeature = feature
       },
-      addApolloTrackConfig(assembly: AssemblyModel, baseURL: any) {
+      addApolloTrackConfig(assembly: AssemblyModel, baseURL: string) {
         const trackId = `apollo_track_${assembly.name}`
         const hasTrack = Boolean(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -266,10 +266,10 @@ export function extendSession(
               textSearchAdapter: {
                 type: 'ApolloTextSearchAdapter',
                 baseURL: { uri: baseURL, locationType: 'UriLocation' },
-                trackId: trackId,
+                trackId,
                 assemblyNames: [assembly.name],
                 textSearchAdapterId: 'apollo-search',
-              }
+              },
             },
             displays: [
               {

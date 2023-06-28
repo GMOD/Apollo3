@@ -7,12 +7,12 @@ import configSchema from './configSchema'
 export function installApolloTextSearchAdapter(pluginManager: PluginManager) {
   pluginManager.addTextSearchAdapterType(
     () =>
-    new TextSearchAdapterType({
-      name: 'ApolloTextSearchAdapter',
-      displayName: 'Apollo text search adapter',
-      configSchema: configSchema,
-      AdapterClass: ApolloTextSearchAdapter,
-      description: 'Apollo Text Search adapter',
-    }),
+      new TextSearchAdapterType({
+        name: 'ApolloTextSearchAdapter',
+        displayName: 'Apollo text search adapter',
+        configSchema,
+        AdapterClass: ApolloTextSearchAdapter,
+        description: 'Apollo Text Search adapter',
+      }),
   )
 }
