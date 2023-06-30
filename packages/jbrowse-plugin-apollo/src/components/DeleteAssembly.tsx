@@ -15,7 +15,7 @@ import {
 } from '@mui/material'
 import { DeleteAssemblyChange } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
@@ -46,7 +46,17 @@ export function DeleteAssembly({
   const [selectedInternetAcount, setSelectedInternetAcount] = useState(
     apolloInternetAccounts[0],
   )
-  const assemblies = useAssemblies(internetAccounts, setErrorMessage)
+
+  const assemblies: AssemblyData[] = useAssemblies(
+    internetAccounts,
+    setErrorMessage,
+  )
+
+  useEffect(() => {
+    if (assemblies.length > 0 && selectedAssembly === undefined) {
+      setSelectedAssembly(assemblies[0])
+    }
+  }, [assemblies, selectedAssembly])
 
   function handleChangeInternetAccount(e: SelectChangeEvent<string>) {
     setSubmitted(false)
