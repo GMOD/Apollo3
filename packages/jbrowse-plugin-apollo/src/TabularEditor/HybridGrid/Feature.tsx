@@ -7,11 +7,13 @@ import { makeStyles } from 'tss-react/mui'
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { DisplayStateModel } from '../types'
 import {
-  handleFeatureStartChange,
   handleFeatureEndChange,
+  handleFeatureStartChange,
   handleFeatureTypeChange,
 } from './ChangeHandling'
 import { FeatureAttributes } from './FeatureAttributes'
+import { featureContextMenuItems } from './featureContextMenuItems'
+import type { ContextMenuState } from './HybridGrid'
 import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
 
 const useStyles = makeStyles()((theme) => ({
@@ -51,6 +53,22 @@ const useStyles = makeStyles()((theme) => ({
   },
 }))
 
+function makeContextMenuItems(
+  display: DisplayStateModel,
+  feature: AnnotationFeatureI,
+) {
+  const { changeManager, getAssemblyId, session, regions } = display
+  return featureContextMenuItems(
+    feature,
+    regions[0],
+    getAssemblyId,
+    display.selectedFeature,
+    display.setSelectedFeature,
+    session,
+    changeManager,
+  )
+}
+
 export const Feature = observer(
   ({
     feature,
@@ -60,6 +78,7 @@ export const Feature = observer(
     isSelected,
     selectedFeatureClass,
     internetAccount,
+    setContextMenu,
   }: {
     model: DisplayStateModel
     feature: AnnotationFeatureI
@@ -68,6 +87,7 @@ export const Feature = observer(
     isSelected: boolean
     selectedFeatureClass: string
     internetAccount: ApolloInternetAccountModel
+    setContextMenu: (menu: ContextMenuState) => void
   }) => {
     const { classes } = useStyles()
 
@@ -95,6 +115,14 @@ export const Feature = observer(
           onClick={(e) => {
             e.stopPropagation()
             model.setSelectedFeature(feature)
+          }}
+          onContextMenu={(e) => {
+            e.preventDefault()
+            setContextMenu({
+              position: { left: e.clientX + 2, top: e.clientY - 6 },
+              items: makeContextMenuItems(model, feature),
+            })
+            return false
           }}
         >
           <td
@@ -186,6 +214,7 @@ export const Feature = observer(
                     depth={(depth || 0) + 1}
                     feature={childFeature}
                     model={model}
+                    setContextMenu={setContextMenu}
                   />
                 )
               },

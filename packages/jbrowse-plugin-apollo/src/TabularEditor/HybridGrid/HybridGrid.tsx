@@ -1,6 +1,8 @@
+import { Menu, MenuItem } from '@jbrowse/core/ui'
 import { getSession } from '@jbrowse/core/util'
+import { Alert, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
-import React, { useEffect, useMemo, useRef } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { getApolloInternetAccount } from '../../util'
@@ -25,10 +27,17 @@ const useStyles = makeStyles()((theme) => ({
   },
 }))
 
+export type ContextMenuState = null | {
+  position: { top: number; left: number }
+  items: MenuItem[]
+}
+
 const HybridGrid = observer(({ model }: { model: DisplayStateModel }) => {
   const { seenFeatures, selectedFeature } = model
+  const theme = useTheme()
   const { classes } = useStyles()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [contextMenu, setContextMenu] = useState<ContextMenuState>(null)
 
   const internetAccount = useMemo(() => {
     return getApolloInternetAccount(getSession(model))
@@ -93,11 +102,31 @@ const HybridGrid = observer(({ model }: { model: DisplayStateModel }) => {
                   feature={feature}
                   model={model}
                   depth={0}
+                  setContextMenu={setContextMenu}
                 />
               )
             })}
         </tbody>
       </table>
+      <Menu
+        open={Boolean(contextMenu)}
+        onMenuItemClick={(_, callback) => {
+          callback()
+          setContextMenu(null)
+        }}
+        onClose={() => {
+          setContextMenu(null)
+        }}
+        TransitionProps={{
+          onExit: () => {
+            setContextMenu(null)
+          },
+        }}
+        style={{ zIndex: theme.zIndex.tooltip }}
+        menuItems={contextMenu?.items || []}
+        anchorReference="anchorPosition"
+        anchorPosition={contextMenu?.position}
+      />
     </div>
   )
 })
