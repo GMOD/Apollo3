@@ -1,0 +1,49 @@
+/** Return true if the GFF document contains the query. Here is where you
+ * decide what and how to search.
+ * NB: It doesn't search inside children of the GFF (see `searchGffDocument` for
+ * that)
+ */
+function hasMatch(gffDoc, query) {
+  const values = Object.values(gffDoc.attributes).flat()
+  if (query instanceof RegExp) {
+    return values.some((e) => query.test(e))
+  }
+  return values.includes(query)
+}
+
+/** Search the gff document and recursively its subdocuments for a match to
+ * query. Return an array of documents containing the match.
+ */
+function searchGffDocument(gffDoc, query) {
+  function traverseGffDocument(gffDoc, query) {
+    if (typeof gffDoc.children !== 'object') {
+      if (hasMatch(gffDoc, query)) {
+        collect.push(gffDoc)
+      }
+      return
+    }
+    if (hasMatch(gffDoc, query)) {
+      // If a parent feature matches the query, return without searching the
+      // children as these are automatically included.
+      collect.push(gffDoc)
+      return
+    }
+    const children = Object.keys(gffDoc.children)
+    for (let k of children) {
+      const child = gffDoc.children[k]
+      traverseGffDocument(child, query)
+    }
+  }
+  const collect = []
+  traverseGffDocument(gffDoc, query)
+  return collect
+}
+
+/* Example usage with mongosh */
+
+use apolloDb
+const query = "exonerate"
+const keep = []
+db.features.find().forEach(function(gffDoc) {
+  keep = keep.concat(searchGffDocument(gffDoc, query))
+})
