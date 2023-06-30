@@ -42,8 +42,9 @@ export class GenericChildGlyph extends Glyph {
     reversed: boolean,
   ) {
     const features = this.featuresForRow(topLevelFeature)[row - topRow]
-    const { lgv, apolloRowHeight } = stateModel
+    const { lgv, theme, apolloRowHeight, session } = stateModel
     const { bpPerPx } = lgv
+    const { apolloSelectedFeature } = session
     const top = row * apolloRowHeight
 
     features.forEach((feature) => {
@@ -55,16 +56,27 @@ export class GenericChildGlyph extends Glyph {
       const rowCount = this.getRowCount(feature)
       if (rowCount > 1) {
         const featureHeight = rowCount * apolloRowHeight
-        ctx.fillStyle = 'rgba(255,0,0,0.25)'
+        ctx.fillStyle =
+          apolloSelectedFeature && feature._id === apolloSelectedFeature._id
+            ? 'rgba(130,0,0,0.45)'
+            : 'rgba(255,0,0,0.25)'
         ctx.fillRect(startPx, top, widthPx, featureHeight)
       }
-      ctx.fillStyle = 'black'
+      ctx.fillStyle = theme?.palette.text.primary || 'black'
       ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
       if (widthPx > 2) {
+        const backgroundColor =
+          apolloSelectedFeature && feature._id === apolloSelectedFeature._id
+            ? theme?.palette.text.primary || 'black'
+            : theme?.palette.background.default || 'white'
+        const textColor =
+          apolloSelectedFeature && feature._id === apolloSelectedFeature._id
+            ? theme?.palette.getContrastText(backgroundColor) || 'white'
+            : theme?.palette.text.primary || 'black'
         ctx.clearRect(startPx + 1, top + 1, widthPx - 2, apolloRowHeight - 2)
-        ctx.fillStyle = 'rgba(255,255,255,0.75)'
+        ctx.fillStyle = backgroundColor
         ctx.fillRect(startPx + 1, top + 1, widthPx - 2, apolloRowHeight - 2)
-        ctx.fillStyle = 'black'
+        ctx.fillStyle = textColor
         const textStart = Math.max(startPx + 1, 0)
         const textWidth = startPx - 1 + widthPx - textStart
         feature.type &&
