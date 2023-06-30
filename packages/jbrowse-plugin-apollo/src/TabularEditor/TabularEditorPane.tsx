@@ -3,7 +3,6 @@ import { IconButton } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useCallback } from 'react'
 
-import DataGrid from './DataGrid'
 import HybridGrid from './HybridGrid'
 import { DisplayStateModel } from './types'
 

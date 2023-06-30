@@ -1,6 +1,6 @@
 import { Menu, MenuItem } from '@jbrowse/core/ui'
 import { getSession } from '@jbrowse/core/util'
-import { Alert, Tooltip, useTheme } from '@mui/material'
+import { useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
