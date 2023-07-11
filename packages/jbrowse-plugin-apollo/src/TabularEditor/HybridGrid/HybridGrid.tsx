@@ -19,6 +19,7 @@ const useStyles = makeStyles()((theme) => ({
       zIndex: 2,
       textAlign: 'left',
       background: 'white',
+      paddingTop: '3.2em',
     },
     td: { whiteSpace: 'normal' },
   },
@@ -39,6 +40,8 @@ const HybridGrid = observer(({ model }: { model: DisplayStateModel }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(null)
 
+  const { filterText } = model.tabularEditor
+
   const internetAccount = useMemo(() => {
     return getApolloInternetAccount(getSession(model))
   }, [model])
@@ -58,7 +61,7 @@ const HybridGrid = observer(({ model }: { model: DisplayStateModel }) => {
           newScrollTop < currScroll + scrollContainer.offsetHeight
         if (!isVisible) {
           scrollContainer.scroll({
-            top: newScrollTop - 20,
+            top: newScrollTop - 40,
             behavior: 'smooth',
           })
         }
@@ -86,6 +89,15 @@ const HybridGrid = observer(({ model }: { model: DisplayStateModel }) => {
         </thead>
         <tbody>
           {Array.from(seenFeatures.entries())
+            .filter((entry) => {
+              if (!filterText) {
+                return true
+              }
+              const [, feature] = entry
+              // search feature and its subfeatures for the text
+              const text = JSON.stringify(feature)
+              return text.includes(filterText)
+            })
             .sort((a, b) => {
               return a[1].start - b[1].start
             })

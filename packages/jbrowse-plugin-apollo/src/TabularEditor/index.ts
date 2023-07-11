@@ -1,2 +1,3 @@
-import TabularEditorPane from './TabularEditorPane'
-export default TabularEditorPane
+export { TabularEditorPane } from './TabularEditorPane'
+
+export { TabularEditorStateModelType } from './model'

@@ -1,7 +1,7 @@
 import { getSession } from '@jbrowse/core/util'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { observer } from 'mobx-react'
-import React, { useState } from 'react'
+import React from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
@@ -69,10 +69,18 @@ function makeContextMenuItems(
   )
 }
 
+function getTopLevelFeature(feature: AnnotationFeatureI): AnnotationFeatureI {
+  let cur = feature
+  while (cur.parent) {
+    cur = cur.parent
+  }
+  return cur
+}
+
 export const Feature = observer(
   ({
     feature,
-    model,
+    model: displayState,
     depth,
     isHovered,
     isSelected,
@@ -90,20 +98,27 @@ export const Feature = observer(
     setContextMenu: (menu: ContextMenuState) => void
   }) => {
     const { classes } = useStyles()
-
-    const [expanded, setExpanded] = useState(true)
+    const { tabularEditor: tabularEditorState } = displayState
+    const { filterText } = tabularEditorState
+    const expanded = !tabularEditorState.featureCollapsed.get(feature._id)
     const toggleExpanded = (e: React.MouseEvent) => {
       e.stopPropagation()
-      setExpanded(!expanded)
+      tabularEditorState.setFeatureCollapsed(feature._id, expanded)
     }
 
     // pop up a snackbar in the session notifying user of an error
     const notifyError = (e: Error) =>
-      getSession(model).notify(e.message, 'error')
+      getSession(displayState).notify(e.message, 'error')
 
     return (
       <>
         <tr
+          onMouseEnter={(e) => {
+            displayState.setApolloHover({
+              feature,
+              topLevelFeature: getTopLevelFeature(feature),
+            })
+          }}
           className={
             classes.feature +
             (isSelected
@@ -114,13 +129,13 @@ export const Feature = observer(
           }
           onClick={(e) => {
             e.stopPropagation()
-            model.setSelectedFeature(feature)
+            displayState.setSelectedFeature(feature)
           }}
           onContextMenu={(e) => {
             e.preventDefault()
             setContextMenu({
               position: { left: e.clientX + 2, top: e.clientY - 6 },
-              items: makeContextMenuItems(model, feature),
+              items: makeContextMenuItems(displayState, feature),
             })
             return false
           }}
@@ -150,7 +165,7 @@ export const Feature = observer(
                 onChange={(oldValue, newValue) => {
                   if (newValue) {
                     handleFeatureTypeChange(
-                      model.changeManager,
+                      displayState.changeManager,
                       feature,
                       oldValue,
                       newValue,
@@ -166,7 +181,7 @@ export const Feature = observer(
               const newValue = Number(e.target.textContent)
               if (!Number.isNaN(newValue) && newValue !== feature.start) {
                 handleFeatureStartChange(
-                  model.changeManager,
+                  displayState.changeManager,
                   feature,
                   feature.start,
                   newValue,
@@ -182,7 +197,7 @@ export const Feature = observer(
               const newValue = Number(e.target.textContent)
               if (!Number.isNaN(newValue) && newValue !== feature.end) {
                 handleFeatureEndChange(
-                  model.changeManager,
+                  displayState.changeManager,
                   feature,
                   feature.end,
                   newValue,
@@ -193,17 +208,26 @@ export const Feature = observer(
             {feature.end}
           </td>
           <td>
-            <FeatureAttributes feature={feature} />
+            <FeatureAttributes filterText={filterText} feature={feature} />
           </td>
         </tr>
         {!(expanded && feature.children)
           ? null
-          : Array.from(feature.children.entries()).map(
-              ([featureId, childFeature]) => {
+          : Array.from(feature.children.entries())
+              .filter((entry) => {
+                if (!filterText) {
+                  return true
+                }
+                const [, childFeature] = entry
+                // search feature and its subfeatures for the text
+                const text = JSON.stringify(childFeature)
+                return text.includes(filterText)
+              })
+              .map(([featureId, childFeature]) => {
                 const childHovered =
-                  model.apolloHover?.feature?._id === childFeature._id
+                  displayState.apolloHover?.feature?._id === childFeature._id
                 const childSelected =
-                  model.selectedFeature?._id === childFeature._id
+                  displayState.selectedFeature?._id === childFeature._id
                 return (
                   <Feature
                     isHovered={childHovered}
@@ -213,12 +237,11 @@ export const Feature = observer(
                     internetAccount={internetAccount}
                     depth={(depth || 0) + 1}
                     feature={childFeature}
-                    model={model}
+                    model={displayState}
                     setContextMenu={setContextMenu}
                   />
                 )
-              },
-            )}
+              })}
       </>
     )
   },

@@ -23,6 +23,7 @@ export function renderingModelIntermediateFactory(
       apolloRowHeight: 20,
       detailsMinHeight: 200,
       detailsHeight: 200,
+      isShown: true,
     })
     .volatile(() => ({
       canvas: null as HTMLCanvasElement | null,
@@ -36,9 +37,15 @@ export function renderingModelIntermediateFactory(
       },
     }))
     .actions((self) => ({
+      toggleShown() {
+        self.isShown = !self.isShown
+      },
       setDetailsHeight(newHeight: number) {
-        if (newHeight < self.detailsMinHeight) {
-          self.detailsHeight = self.detailsMinHeight
+        if (self.isShown) {
+          self.detailsHeight = Math.max(
+            Math.min(newHeight, self.height - 100),
+            Math.min(self.height, self.detailsMinHeight),
+          )
         } else {
           self.detailsHeight = newHeight
         }

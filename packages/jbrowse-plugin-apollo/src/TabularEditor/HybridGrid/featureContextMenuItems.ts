@@ -93,7 +93,7 @@ export function featureContextMenuItems(
         },
       },
       {
-        label: 'Modify feature attribute',
+        label: 'Edit attributes',
         disabled: readOnly,
         onClick: () => {
           session.queueDialog((doneCallback) => [
