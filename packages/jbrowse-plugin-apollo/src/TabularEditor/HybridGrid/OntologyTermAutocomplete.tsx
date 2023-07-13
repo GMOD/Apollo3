@@ -29,25 +29,11 @@ export function OntologyTermAutocomplete(props: {
     const controller = new AbortController()
     const { signal } = controller
     async function getSOSequenceTerms() {
-      const { type, parent, children } = feature
-      let endpoint = `/ontologies/equivalents/sequence_feature`
-      if (parent) {
-        endpoint = `/ontologies/descendants/${parent.type}`
-      } else if (children?.size) {
-        endpoint = `/ontologies/equivalents/${type}`
-      }
-      const { baseURL, getFetcher } = internetAccount
-      const uri = new URL(endpoint, baseURL).href
-      const apolloFetch = getFetcher({ locationType: 'UriLocation', uri })
-      const response = await apolloFetch(uri, { method: 'GET', signal })
-      if (!response.ok) {
-        const newErrorMessage = await createFetchErrorMessage(
-          response,
-          'Error when retrieving ontologies from server',
-        )
-        throw new Error(newErrorMessage)
-      }
-      const soTerms = (await response.json()) as string[] | undefined
+      const soTerms = await getValidTermsForFeature(
+        feature,
+        internetAccount,
+        signal,
+      )
       if (soTerms && !signal.aborted) {
         setSOSequenceTerms(soTerms)
       }
@@ -105,4 +91,48 @@ export function OntologyTermAutocomplete(props: {
       handleHomeEndKeys
     />
   )
+}
+
+/** a stupid, temporary cache layer until we have a proper ontology store */
+const responseCache = new Map<string, Promise<string[] | undefined>>()
+async function getValidTermsForFeature(
+  feature: AnnotationFeatureI,
+  internetAccount: ApolloInternetAccountModel,
+  signal: AbortSignal,
+) {
+  const { type, parent, children } = feature
+  let endpoint = `/ontologies/equivalents/sequence_feature`
+  if (parent) {
+    endpoint = `/ontologies/descendants/${parent.type}`
+  } else if (children?.size) {
+    endpoint = `/ontologies/equivalents/${type}`
+  }
+  let responseP: Promise<string[] | undefined> | undefined
+  if (responseCache.has(endpoint)) {
+    responseP = responseCache.get(endpoint)
+  } else {
+    responseP = fetchValidTermsForFeature(endpoint, internetAccount, signal)
+    responseCache.set(endpoint, responseP)
+  }
+  const response = await responseP
+  return response
+}
+async function fetchValidTermsForFeature(
+  endpoint: string,
+  internetAccount: ApolloInternetAccountModel,
+  signal: AbortSignal,
+) {
+  const { baseURL, getFetcher } = internetAccount
+  const uri = new URL(endpoint, baseURL).href
+  const apolloFetch = getFetcher({ locationType: 'UriLocation', uri })
+  const response = await apolloFetch(uri, { method: 'GET', signal })
+  if (!response.ok) {
+    const newErrorMessage = await createFetchErrorMessage(
+      response,
+      'Error when retrieving ontologies from server',
+    )
+    throw new Error(newErrorMessage)
+  }
+  const soTerms = (await response.json()) as string[] | undefined
+  return soTerms
 }
