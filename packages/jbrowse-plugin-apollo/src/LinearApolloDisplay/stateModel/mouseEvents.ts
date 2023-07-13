@@ -26,7 +26,7 @@ export interface FeatureAndGlyphInfo {
   feature?: AnnotationFeatureI
   topLevelFeature?: AnnotationFeatureI
   glyph?: Glyph
-  mousePosition: MousePosition
+  mousePosition?: MousePosition
 }
 
 function getMousePosition(
@@ -111,6 +111,9 @@ export function mouseEventsModelIntermediateFactory(
         event.stopPropagation()
         const { feature, topLevelFeature, glyph, mousePosition } =
           self.getFeatureAndGlyphUnderMouse(event)
+        if (!mousePosition) {
+          return
+        }
         self.apolloDragging = {
           ...self.apolloDragging,
           current: {
@@ -166,7 +169,7 @@ export function mouseEventsModelFactory(
       startDrag(event: CanvasMouseEvent) {
         const { feature, topLevelFeature, glyph, mousePosition } =
           self.getFeatureAndGlyphUnderMouse(event)
-        if (feature && topLevelFeature && glyph) {
+        if (feature && topLevelFeature && glyph && mousePosition) {
           self.apolloDragging = {
             start: { glyph, feature, topLevelFeature, mousePosition },
             current: { glyph, feature, topLevelFeature, mousePosition },

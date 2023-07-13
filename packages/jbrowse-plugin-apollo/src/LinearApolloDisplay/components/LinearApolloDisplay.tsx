@@ -53,7 +53,9 @@ export const LinearApolloDisplay = observer(
     const [contextCoord, setContextCoord] = useState<Coord>()
     const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
     const message = regionCannotBeRendered()
-
+    if (!model.isShown) {
+      return null
+    }
     return (
       <div
         className={classes.canvasContainer}

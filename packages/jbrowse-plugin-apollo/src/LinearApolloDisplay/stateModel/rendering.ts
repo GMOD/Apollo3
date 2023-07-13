@@ -22,6 +22,8 @@ export function renderingModelIntermediateFactory(
     .props({
       apolloRowHeight: 20,
       detailsMinHeight: 200,
+      detailsHeight: 200,
+      isShown: true,
     })
     .volatile(() => ({
       canvas: null as HTMLCanvasElement | null,
@@ -34,15 +36,20 @@ export function renderingModelIntermediateFactory(
         return (self.highestRow + 1) * self.apolloRowHeight
       },
     }))
-    .views((self) => ({
-      get detailsHeight() {
-        return Math.max(
-          self.detailsMinHeight,
-          self.height - self.featuresHeight,
-        )
-      },
-    }))
     .actions((self) => ({
+      toggleShown() {
+        self.isShown = !self.isShown
+      },
+      setDetailsHeight(newHeight: number) {
+        if (self.isShown) {
+          self.detailsHeight = Math.max(
+            Math.min(newHeight, self.height - 100),
+            Math.min(self.height, self.detailsMinHeight),
+          )
+        } else {
+          self.detailsHeight = newHeight
+        }
+      },
       setCanvas(canvas: HTMLCanvasElement | null) {
         self.canvas = canvas
       },
