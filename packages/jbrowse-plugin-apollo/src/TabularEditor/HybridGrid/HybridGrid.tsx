@@ -18,7 +18,7 @@ const useStyles = makeStyles()((theme) => ({
       top: 0,
       zIndex: 2,
       textAlign: 'left',
-      background: 'white',
+      background: theme.palette.background.paper,
       paddingTop: '3.2em',
     },
     td: { whiteSpace: 'normal' },

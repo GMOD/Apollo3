@@ -28,10 +28,12 @@ const useStyles = makeStyles()((theme) => ({
   accordionControl: {
     height: accordionControlHeight,
     width: '100%',
-    background: theme.palette.background.paper,
     '&:hover': {
-      background: darken(theme.palette.background.paper, 0.1),
+      background: theme.palette.action.hover,
     },
+  },
+  accordionRoot: {
+    background: theme.palette.background.paper,
   },
 }))
 
@@ -113,22 +115,24 @@ const AccordionControl = observer(
   }) => {
     const { classes } = useStyles()
     return (
-      <div className={classes.accordionControl} onClick={onClick}>
-        {open && onResize ? <ResizeHandle onResize={onResize} /> : null}
-        {open ? (
-          <ExpandLessIcon sx={{ position: 'relative', top: -4 }} />
-        ) : (
-          <ExpandMoreIcon sx={{ position: 'relative', top: -4 }} />
-        )}
-        {title ? (
-          <Typography
-            sx={{ position: 'relative', top: -11, userSelect: 'none' }}
-            variant="caption"
-            component="span"
-          >
-            {title}
-          </Typography>
-        ) : null}
+      <div className={classes.accordionRoot}>
+        <div className={classes.accordionControl} onClick={onClick}>
+          {open && onResize ? <ResizeHandle onResize={onResize} /> : null}
+          {open ? (
+            <ExpandLessIcon sx={{ position: 'relative', top: -4 }} />
+          ) : (
+            <ExpandMoreIcon sx={{ position: 'relative', top: -4 }} />
+          )}
+          {title ? (
+            <Typography
+              sx={{ position: 'relative', top: -11, userSelect: 'none' }}
+              variant="caption"
+              component="span"
+            >
+              {title}
+            </Typography>
+          ) : null}
+        </div>
       </div>
     )
   },
