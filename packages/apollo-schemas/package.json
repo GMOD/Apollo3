@@ -18,7 +18,7 @@
   "devDependencies": {
     "@types/node": "^16.0.0",
     "apollo-mst": "workspace:^",
-    "typescript": "^4.7.4"
+    "typescript": "^4.9.5"
   },
   "packageManager": "yarn@3.2.2",
   "private": true

@@ -6360,7 +6360,7 @@ __metadata:
     tsconfig-paths: ^3.11.0
     tslib: ^2.3.1
     tss-react: ^4.6.1
-    typescript: ^4.7.4
+    typescript: ^4.9.5
   languageName: unknown
   linkType: soft
 
@@ -6378,7 +6378,7 @@ __metadata:
     bson-objectid: ^2.0.4
     mongoose: ^7.0.0
     tslib: ^2.3.1
-    typescript: ^4.7.4
+    typescript: ^4.9.5
   peerDependencies:
     "@mui/material": ^5.0.0
     "@mui/x-data-grid": ^5.0.0
@@ -6402,7 +6402,7 @@ __metadata:
     mobx-state-tree: ^5.1.5
     rxjs: ^6.0.0
     tslib: ^2.3.1
-    typescript: ^4.7.4
+    typescript: ^4.9.5
   languageName: unknown
   linkType: soft
 
@@ -6420,7 +6420,7 @@ __metadata:
     regenerator-runtime: ^0.13.9
     rxjs: ^7.4.0
     tslib: ^2.3.1
-    typescript: ^4.7.4
+    typescript: ^4.9.5
   languageName: unknown
   linkType: soft
 
@@ -6446,7 +6446,7 @@ __metadata:
     rimraf: ^3.0.2
     socket.io-client: ^4.5.4
     tslib: ^2.3.1
-    typescript: ^4.7.4
+    typescript: ^4.9.5
   peerDependencies:
     "@mui/material": ^5.9.1
     "@mui/x-data-grid": ^4.0.0
@@ -6487,7 +6487,7 @@ __metadata:
     prettier: ^2.8.8
     prettier-plugin-import-sort: ^0.0.7
     react: ^17.0.2
-    typescript: ^4.7.4
+    typescript: ^4.9.5
   languageName: unknown
   linkType: soft
 
@@ -10706,7 +10706,7 @@ __metadata:
 
 "fsevents@patch:fsevents@^2.3.2#~builtin<compat/fsevents>, fsevents@patch:fsevents@~2.3.2#~builtin<compat/fsevents>":
   version: 2.3.2
-  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=18f3a7"
+  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=df0bf1"
   dependencies:
     node-gyp: latest
   conditions: os=darwin
@@ -12111,7 +12111,7 @@ __metadata:
     ts-node: ^10.3.0
     tslib: ^2.0.3
     tss-react: ^3.7.1
-    typescript: ^4.7.4
+    typescript: ^4.9.5
   peerDependencies:
     "@jbrowse/core": ^2.3.4
     "@mui/material": ^5.9.1
@@ -16305,7 +16305,7 @@ __metadata:
 
 "resolve@patch:resolve@^1.0.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.1.6#~builtin<compat/resolve>, resolve@patch:resolve@^1.10.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.12.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.14.2#~builtin<compat/resolve>, resolve@patch:resolve@^1.17.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.19.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.20.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.22.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.8.1#~builtin<compat/resolve>":
   version: 1.22.1
-  resolution: "resolve@patch:resolve@npm%3A1.22.1#~builtin<compat/resolve>::version=1.22.1&hash=07638b"
+  resolution: "resolve@patch:resolve@npm%3A1.22.1#~builtin<compat/resolve>::version=1.22.1&hash=c3c19d"
   dependencies:
     is-core-module: ^2.9.0
     path-parse: ^1.0.7
@@ -16318,7 +16318,7 @@ __metadata:
 
 "resolve@patch:resolve@^1.22.1#~builtin<compat/resolve>":
   version: 1.22.3
-  resolution: "resolve@patch:resolve@npm%3A1.22.3#~builtin<compat/resolve>::version=1.22.3&hash=07638b"
+  resolution: "resolve@patch:resolve@npm%3A1.22.3#~builtin<compat/resolve>::version=1.22.3&hash=c3c19d"
   dependencies:
     is-core-module: ^2.12.0
     path-parse: ^1.0.7
@@ -16331,7 +16331,7 @@ __metadata:
 
 "resolve@patch:resolve@^2.0.0-next.3#~builtin<compat/resolve>, resolve@patch:resolve@^2.0.0-next.4#~builtin<compat/resolve>":
   version: 2.0.0-next.4
-  resolution: "resolve@patch:resolve@npm%3A2.0.0-next.4#~builtin<compat/resolve>::version=2.0.0-next.4&hash=07638b"
+  resolution: "resolve@patch:resolve@npm%3A2.0.0-next.4#~builtin<compat/resolve>::version=2.0.0-next.4&hash=c3c19d"
   dependencies:
     is-core-module: ^2.9.0
     path-parse: ^1.0.7
@@ -16344,7 +16344,7 @@ __metadata:
 
 "resolve@patch:resolve@~1.19.0#~builtin<compat/resolve>":
   version: 1.19.0
-  resolution: "resolve@patch:resolve@npm%3A1.19.0#~builtin<compat/resolve>::version=1.19.0&hash=07638b"
+  resolution: "resolve@patch:resolve@npm%3A1.19.0#~builtin<compat/resolve>::version=1.19.0&hash=c3c19d"
   dependencies:
     is-core-module: ^2.1.0
     path-parse: ^1.0.6
@@ -18309,23 +18309,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.7.4":
-  version: 4.7.4
-  resolution: "typescript@npm:4.7.4"
+"typescript@npm:^4.9.5":
+  version: 4.9.5
+  resolution: "typescript@npm:4.9.5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 5750181b1cd7e6482c4195825547e70f944114fb47e58e4aa7553e62f11b3f3173766aef9c281783edfd881f7b8299cf35e3ca8caebe73d8464528c907a164df
+  checksum: ee000bc26848147ad423b581bd250075662a354d84f0e06eb76d3b892328d8d4440b7487b5a83e851b12b255f55d71835b008a66cbf8f255a11e4400159237db
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^4.7.4#~builtin<compat/typescript>":
-  version: 4.7.4
-  resolution: "typescript@patch:typescript@npm%3A4.7.4#~builtin<compat/typescript>::version=4.7.4&hash=f456af"
+"typescript@patch:typescript@npm%3A^4.9.5#~builtin<compat/typescript>":
+  version: 4.9.5
+  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=289587"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 9096d8f6c16cb80ef3bf96fcbbd055bf1c4a43bd14f3b7be45a9fbe7ada46ec977f604d5feed3263b4f2aa7d4c7477ce5f9cd87de0d6feedec69a983f3a4f93e
+  checksum: 1f8f3b6aaea19f0f67cba79057674ba580438a7db55057eb89cc06950483c5d632115c14077f6663ea76fd09fce3c190e6414bb98582ec80aa5a4eaf345d5b68
   languageName: node
   linkType: hard
 
