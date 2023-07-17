@@ -6360,7 +6360,7 @@ __metadata:
     tsconfig-paths: ^3.11.0
     tslib: ^2.3.1
     tss-react: ^4.6.1
-    typescript: ^4.9.5
+    typescript: ^5.1.6
   languageName: unknown
   linkType: soft
 
@@ -6378,7 +6378,7 @@ __metadata:
     bson-objectid: ^2.0.4
     mongoose: ^7.0.0
     tslib: ^2.3.1
-    typescript: ^4.9.5
+    typescript: ^5.1.6
   peerDependencies:
     "@mui/material": ^5.0.0
     "@mui/x-data-grid": ^5.0.0
@@ -6402,7 +6402,7 @@ __metadata:
     mobx-state-tree: ^5.1.5
     rxjs: ^6.0.0
     tslib: ^2.3.1
-    typescript: ^4.9.5
+    typescript: ^5.1.6
   languageName: unknown
   linkType: soft
 
@@ -6420,7 +6420,7 @@ __metadata:
     regenerator-runtime: ^0.13.9
     rxjs: ^7.4.0
     tslib: ^2.3.1
-    typescript: ^4.9.5
+    typescript: ^5.1.6
   languageName: unknown
   linkType: soft
 
@@ -6446,7 +6446,7 @@ __metadata:
     rimraf: ^3.0.2
     socket.io-client: ^4.5.4
     tslib: ^2.3.1
-    typescript: ^4.9.5
+    typescript: ^5.1.6
   peerDependencies:
     "@mui/material": ^5.9.1
     "@mui/x-data-grid": ^4.0.0
@@ -6487,7 +6487,7 @@ __metadata:
     prettier: ^2.8.8
     prettier-plugin-import-sort: ^0.0.7
     react: ^17.0.2
-    typescript: ^4.9.5
+    typescript: ^5.1.6
   languageName: unknown
   linkType: soft
 
@@ -12111,7 +12111,7 @@ __metadata:
     ts-node: ^10.3.0
     tslib: ^2.0.3
     tss-react: ^3.7.1
-    typescript: ^4.9.5
+    typescript: ^5.1.6
   peerDependencies:
     "@jbrowse/core": ^2.3.4
     "@mui/material": ^5.9.1
@@ -18309,23 +18309,63 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.9.5":
-  version: 4.9.5
-  resolution: "typescript@npm:4.9.5"
+"typescript@npm:4.7.4":
+  version: 4.7.4
+  resolution: "typescript@npm:4.7.4"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: ee000bc26848147ad423b581bd250075662a354d84f0e06eb76d3b892328d8d4440b7487b5a83e851b12b255f55d71835b008a66cbf8f255a11e4400159237db
+  checksum: 5750181b1cd7e6482c4195825547e70f944114fb47e58e4aa7553e62f11b3f3173766aef9c281783edfd881f7b8299cf35e3ca8caebe73d8464528c907a164df
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^4.9.5#~builtin<compat/typescript>":
-  version: 4.9.5
-  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=289587"
+"typescript@npm:^3.2.4":
+  version: 3.9.10
+  resolution: "typescript@npm:3.9.10"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 1f8f3b6aaea19f0f67cba79057674ba580438a7db55057eb89cc06950483c5d632115c14077f6663ea76fd09fce3c190e6414bb98582ec80aa5a4eaf345d5b68
+  checksum: 46c842e2cd4797b88b66ef06c9c41dd21da48b95787072ccf39d5f2aa3124361bc4c966aa1c7f709fae0509614d76751455b5231b12dbb72eb97a31369e1ff92
+  languageName: node
+  linkType: hard
+
+"typescript@npm:^5.1.6":
+  version: 5.1.6
+  resolution: "typescript@npm:5.1.6"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: b2f2c35096035fe1f5facd1e38922ccb8558996331405eb00a5111cc948b2e733163cc22fab5db46992aba7dd520fff637f2c1df4996ff0e134e77d3249a7350
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@4.7.4#~builtin<compat/typescript>":
+  version: 4.7.4
+  resolution: "typescript@patch:typescript@npm%3A4.7.4#~builtin<compat/typescript>::version=4.7.4&hash=65a307"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 9096d8f6c16cb80ef3bf96fcbbd055bf1c4a43bd14f3b7be45a9fbe7ada46ec977f604d5feed3263b4f2aa7d4c7477ce5f9cd87de0d6feedec69a983f3a4f93e
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@^3.2.4#~builtin<compat/typescript>":
+  version: 3.9.10
+  resolution: "typescript@patch:typescript@npm%3A3.9.10#~builtin<compat/typescript>::version=3.9.10&hash=3bd3d3"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: dc7141ab555b23a8650a6787f98845fc11692063d02b75ff49433091b3af2fe3d773650dea18389d7c21f47d620fb3b110ea363dab4ab039417a6ccbbaf96fc2
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@^5.1.6#~builtin<compat/typescript>":
+  version: 5.1.6
+  resolution: "typescript@patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: f53bfe97f7c8b2b6d23cf572750d4e7d1e0c5fff1c36d859d0ec84556a827b8785077bc27676bf7e71fae538e517c3ecc0f37e7f593be913d884805d931bc8be
   languageName: node
   linkType: hard
 
