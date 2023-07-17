@@ -129,7 +129,7 @@ export function mouseEventsModelIntermediateFactory(
       },
     }))
     .actions((self) => ({
-      setApolloHover(n: typeof self['apolloHover']) {
+      setApolloHover(n: (typeof self)['apolloHover']) {
         self.apolloHover = n
       },
       setCursor(cursor?: CSSProperties['cursor']) {

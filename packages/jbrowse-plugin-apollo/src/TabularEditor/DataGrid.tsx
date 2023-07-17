@@ -261,8 +261,8 @@ export default observer(({ model }: { model: LinearApolloDisplay }) => {
   }
   addChildFeatures(selectedFeature)
   function processRowUpdate(
-    newRow: GridRowModel<typeof selectedFeatureRows[0]>,
-    oldRow: GridRowModel<typeof selectedFeatureRows[0]>,
+    newRow: GridRowModel<(typeof selectedFeatureRows)[0]>,
+    oldRow: GridRowModel<(typeof selectedFeatureRows)[0]>,
   ) {
     let change:
       | LocationStartChange
