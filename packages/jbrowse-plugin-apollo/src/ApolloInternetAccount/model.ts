@@ -276,7 +276,7 @@ const stateModelFactory = (
             body: userLocation,
           })
           if (!response.ok) {
-            throw new Error() // no message here, will get caught by "catch"
+            throw new Error('ignore') // ignore message, will get caught by "catch"
           }
         } catch {
           console.error('Broadcasting user location failed')

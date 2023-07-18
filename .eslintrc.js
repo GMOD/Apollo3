@@ -78,11 +78,9 @@ module.exports = {
     // eslint-plugin-unicorn rules (override recommended)
     'unicorn/consistent-destructuring': 'off',
     'unicorn/consistent-function-scoping': 'off',
-    'unicorn/error-message': 'off',
     'unicorn/filename-case': 'off',
     'unicorn/no-array-callback-reference': 'off',
     'unicorn/no-array-for-each': 'off',
-    'unicorn/no-array-reduce': 'off',
     'unicorn/no-await-expression-member': 'off',
     'unicorn/no-empty-file': 'off',
     'unicorn/no-new-array': 'off',

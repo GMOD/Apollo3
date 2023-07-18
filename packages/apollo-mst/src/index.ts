@@ -52,6 +52,7 @@ export const ApolloRefSeq = types
         sequence: seq.sequence,
       })
       newSequences.sort((s1, s2) => s1.start - s2.start)
+      // eslint-disable-next-line unicorn/no-array-reduce
       const consolidatedSequences = newSequences.reduce((result, current) => {
         const lastRange = result.at(-1)
         if (lastRange === undefined) {
