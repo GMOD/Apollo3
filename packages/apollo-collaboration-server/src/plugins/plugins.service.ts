@@ -6,7 +6,7 @@ import { APOLLO_PLUGINS } from './plugins.constants'
 @Injectable()
 export class PluginsService {
   // eslint-disable-next-line @typescript-eslint/ban-types
-  extensionPoints: Map<string, Function[]> = new Map()
+  extensionPoints = new Map<string, Function[]>()
 
   constructor(@Inject(APOLLO_PLUGINS) private plugins: ApolloPlugin[]) {
     for (const plugin of plugins) {

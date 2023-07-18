@@ -127,6 +127,7 @@ export function ManageUsers({
       type: 'actions',
       getActions: (params: GridRowParams) => [
         <GridActionsCellItem
+          key={`delete-${params.id}`}
           icon={<DeleteIcon />}
           onClick={async () => {
             if (window.confirm('Delete this user?')) {

@@ -1,10 +1,11 @@
 import {
   ChangeOptions,
   ClientDataStore,
+  FeatureChange,
   LocalGFF3DataStore,
+  SerializedFeatureChange,
   ServerDataStore,
 } from 'apollo-common'
-import { FeatureChange, SerializedFeatureChange } from 'apollo-common'
 import { Feature, FeatureDocument } from 'apollo-schemas'
 
 interface SerializedFeatureAttributeChangeBase extends SerializedFeatureChange {
@@ -119,7 +120,7 @@ export class FeatureAttributeChange extends FeatureChange {
     }
   }
 
-  async executeOnLocalGFF3(backend: LocalGFF3DataStore) {
+  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
     throw new Error('applyToLocalGFF3 not implemented')
   }
 
@@ -153,7 +154,7 @@ export class FeatureAttributeChange extends FeatureChange {
         changedIds: inverseChangedIds,
         typeName: 'FeatureAttributeChange',
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         changes: inverseChanges,
         assembly,
       },

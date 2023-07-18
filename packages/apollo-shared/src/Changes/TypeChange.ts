@@ -6,8 +6,7 @@ import {
   SerializedFeatureChange,
   ServerDataStore,
 } from 'apollo-common'
-import { FeatureDocument } from 'apollo-schemas'
-import { Feature } from 'apollo-schemas'
+import { Feature, FeatureDocument } from 'apollo-schemas'
 
 interface SerializedTypeChangeBase extends SerializedFeatureChange {
   typeName: 'TypeChange'
@@ -119,7 +118,7 @@ export class TypeChange extends FeatureChange {
     }
   }
 
-  async executeOnLocalGFF3(backend: LocalGFF3DataStore) {
+  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
     throw new Error('executeOnLocalGFF3 not implemented')
   }
 

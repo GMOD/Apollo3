@@ -6,12 +6,12 @@ import { makeStyles } from 'tss-react/mui'
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { createFetchErrorMessage } from '../../util'
 
-const useStyles = makeStyles()((theme) => ({
+const useStyles = makeStyles()({
   inputElement: {
     border: 'none',
     background: 'none',
   },
-}))
+})
 
 export function OntologyTermAutocomplete(props: {
   internetAccount: ApolloInternetAccountModel

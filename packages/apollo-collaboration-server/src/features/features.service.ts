@@ -35,10 +35,10 @@ function makeGFF3Feature(
         },
       ]
   const attributes: Record<string, string[]> = {
-    ...(featureDocument.attributes || {}),
+    ...(featureDocument.attributes ?? {}),
   }
   const ontologyTerms: string[] = []
-  const source = featureDocument.attributes?.source?.[0] || null
+  const source = featureDocument.attributes?.source?.[0] ?? null
   delete attributes.source
   if (parentId) {
     attributes.Parent = [parentId]
@@ -104,7 +104,7 @@ function makeGFF3Feature(
     seq_id: refSeq.name,
     source,
     type: featureDocument.type,
-    score: featureDocument.score || null,
+    score: featureDocument.score ?? null,
     strand: featureDocument.strand
       ? featureDocument.strand === 1
         ? '+'
@@ -249,7 +249,7 @@ export class FeaturesService {
     this.logger.debug(
       `FeatureId was not found on top level so lets make recursive call...`,
     )
-    for (const [, childFeature] of feature.children || new Map()) {
+    for (const [, childFeature] of feature.children ?? new Map()) {
       const subFeature = this.getFeatureFromId(childFeature, featureId)
       if (subFeature) {
         return subFeature

@@ -125,7 +125,7 @@ export function mouseEventsModelIntermediateFactory(
         }
       },
       setDragging(dragInfo?: typeof self.apolloDragging) {
-        self.apolloDragging = dragInfo || null
+        self.apolloDragging = dragInfo ?? null
       },
     }))
     .actions((self) => ({
@@ -138,8 +138,9 @@ export function mouseEventsModelIntermediateFactory(
         }
       },
     }))
-    .actions((self) => ({
-      onClick(event: CanvasMouseEvent) {
+    .actions(() => ({
+      // onClick(event: CanvasMouseEvent) {
+      onClick() {
         // TODO: set the selected feature
       },
     }))
@@ -157,7 +158,7 @@ export function mouseEventsModelFactory(
   return LinearApolloDisplayMouseEvents.views((self) => ({
     contextMenuItems(contextCoord?: Coord): MenuItem[] {
       const { apolloHover } = self
-      const { topLevelFeature } = apolloHover || {}
+      const { topLevelFeature } = apolloHover ?? {}
       if (!(topLevelFeature && contextCoord)) {
         return []
       }

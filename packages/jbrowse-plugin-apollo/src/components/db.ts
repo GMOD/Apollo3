@@ -87,12 +87,12 @@ export const getStoreDataCount = (): Promise<number> => {
         .transaction(Stores.GOTerms, 'readonly')
         .objectStore(Stores.GOTerms)
       const countRequest = objectStore.count()
-      countRequest.onsuccess = (event) => {
+      countRequest.onsuccess = () => {
         const count = countRequest.result
         // console.log(`There are ${count} records in the database.`)
         resolve(count)
       }
-      countRequest.onerror = (event) => {
+      countRequest.onerror = () => {
         console.error('Error counting records:', countRequest.error)
       }
     }

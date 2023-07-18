@@ -28,116 +28,116 @@ const useStyles = makeStyles()({
   },
 })
 
-export const LinearApolloDisplay = observer(
-  (props: LinearApolloDisplayProps) => {
-    const theme = useTheme()
-    const { model } = props
-    const {
-      featuresHeight,
-      setCanvas,
-      setOverlayCanvas,
-      setCollaboratorCanvas,
-      onMouseMove,
-      onMouseLeave,
-      onMouseDown,
-      onMouseUp,
-      cursor,
-      setTheme,
-      contextMenuItems: getContextMenuItems,
-      regionCannotBeRendered,
-    } = model
-    const { classes } = useStyles()
-    const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
+export const LinearApolloDisplay = observer(function LinearApolloDisplay(
+  props: LinearApolloDisplayProps,
+) {
+  const theme = useTheme()
+  const { model } = props
+  const {
+    featuresHeight,
+    setCanvas,
+    setOverlayCanvas,
+    setCollaboratorCanvas,
+    onMouseMove,
+    onMouseLeave,
+    onMouseDown,
+    onMouseUp,
+    cursor,
+    setTheme,
+    contextMenuItems: getContextMenuItems,
+    regionCannotBeRendered,
+  } = model
+  const { classes } = useStyles()
+  const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
 
-    useEffect(() => setTheme(theme), [theme, setTheme])
-    const [contextCoord, setContextCoord] = useState<Coord>()
-    const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
-    const message = regionCannotBeRendered()
-    if (!model.isShown) {
-      return null
-    }
-    return (
-      <div
-        className={classes.canvasContainer}
-        style={{
-          width: lgv.dynamicBlocks.totalWidthPx,
-          height: featuresHeight,
-        }}
-        onContextMenu={(event) => {
-          event.preventDefault()
-          if (contextMenuItems.length) {
-            // There's already a context menu open, so close it
-            setContextMenuItems([])
-          } else {
-            const coord: [number, number] = [event.clientX, event.clientY]
-            setContextCoord(coord)
-            setContextMenuItems(getContextMenuItems(coord))
-          }
-        }}
-      >
-        {message ? (
-          <Alert severity="warning" classes={{ message: classes.ellipses }}>
-            <Tooltip title={message}>
-              <div>{message}</div>
-            </Tooltip>
-          </Alert>
-        ) : (
-          <>
-            <canvas
-              ref={(node) => {
-                setCollaboratorCanvas(node)
-              }}
-              width={lgv.dynamicBlocks.totalWidthPx}
-              height={featuresHeight}
-              className={classes.canvas}
-            />
-            <canvas
-              ref={(node) => {
-                setCanvas(node)
-              }}
-              width={lgv.dynamicBlocks.totalWidthPx}
-              height={featuresHeight}
-              className={classes.canvas}
-            />
-            <canvas
-              ref={(node) => {
-                setOverlayCanvas(node)
-              }}
-              width={lgv.dynamicBlocks.totalWidthPx}
-              height={featuresHeight}
-              onMouseMove={onMouseMove}
-              onMouseLeave={onMouseLeave}
-              onMouseDown={onMouseDown}
-              onMouseUp={onMouseUp}
-              className={classes.canvas}
-              style={{ cursor: cursor || 'default' }}
-            />
-            <Menu
-              open={Boolean(contextMenuItems.length)}
-              onMenuItemClick={(_, callback) => {
-                callback()
+  useEffect(() => setTheme(theme), [theme, setTheme])
+  const [contextCoord, setContextCoord] = useState<Coord>()
+  const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
+  const message = regionCannotBeRendered()
+  if (!model.isShown) {
+    return null
+  }
+  return (
+    <div
+      className={classes.canvasContainer}
+      style={{
+        width: lgv.dynamicBlocks.totalWidthPx,
+        height: featuresHeight,
+      }}
+      onContextMenu={(event) => {
+        event.preventDefault()
+        if (contextMenuItems.length) {
+          // There's already a context menu open, so close it
+          setContextMenuItems([])
+        } else {
+          const coord: [number, number] = [event.clientX, event.clientY]
+          setContextCoord(coord)
+          setContextMenuItems(getContextMenuItems(coord))
+        }
+      }}
+    >
+      {message ? (
+        <Alert severity="warning" classes={{ message: classes.ellipses }}>
+          <Tooltip title={message}>
+            <div>{message}</div>
+          </Tooltip>
+        </Alert>
+      ) : (
+        <>
+          <canvas
+            ref={(node) => {
+              setCollaboratorCanvas(node)
+            }}
+            width={lgv.dynamicBlocks.totalWidthPx}
+            height={featuresHeight}
+            className={classes.canvas}
+          />
+          <canvas
+            ref={(node) => {
+              setCanvas(node)
+            }}
+            width={lgv.dynamicBlocks.totalWidthPx}
+            height={featuresHeight}
+            className={classes.canvas}
+          />
+          <canvas
+            ref={(node) => {
+              setOverlayCanvas(node)
+            }}
+            width={lgv.dynamicBlocks.totalWidthPx}
+            height={featuresHeight}
+            onMouseMove={onMouseMove}
+            onMouseLeave={onMouseLeave}
+            onMouseDown={onMouseDown}
+            onMouseUp={onMouseUp}
+            className={classes.canvas}
+            style={{ cursor: cursor ?? 'default' }}
+          />
+          <Menu
+            open={Boolean(contextMenuItems.length)}
+            onMenuItemClick={(_, callback) => {
+              callback()
+              setContextMenuItems([])
+            }}
+            onClose={() => {
+              setContextMenuItems([])
+            }}
+            TransitionProps={{
+              onExit: () => {
                 setContextMenuItems([])
-              }}
-              onClose={() => {
-                setContextMenuItems([])
-              }}
-              TransitionProps={{
-                onExit: () => {
-                  setContextMenuItems([])
-                },
-              }}
-              anchorReference="anchorPosition"
-              anchorPosition={
-                contextCoord
-                  ? { top: contextCoord[1], left: contextCoord[0] }
-                  : undefined
-              }
-              style={{ zIndex: theme.zIndex.tooltip }}
-              menuItems={contextMenuItems}
-            />
-          </>
-        )}
-      </div>
-    )
-  },
-)
+              },
+            }}
+            anchorReference="anchorPosition"
+            anchorPosition={
+              contextCoord
+                ? { top: contextCoord[1], left: contextCoord[0] }
+                : undefined
+            }
+            style={{ zIndex: theme.zIndex.tooltip }}
+            menuItems={contextMenuItems}
+          />
+        </>
+      )}
+    </div>
+  )
+})

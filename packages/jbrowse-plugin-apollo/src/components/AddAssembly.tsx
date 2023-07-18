@@ -80,13 +80,13 @@ export function AddAssembly({
     const selectedFile = e.target.files.item(0)
     setFile(selectedFile)
     if (
-      selectedFile?.name.toLowerCase().endsWith('.fasta') ||
-      selectedFile?.name.toLowerCase().endsWith('.fna') ||
+      selectedFile?.name.toLowerCase().endsWith('.fasta') ??
+      selectedFile?.name.toLowerCase().endsWith('.fna') ??
       selectedFile?.name.toLowerCase().endsWith('.fa')
     ) {
       setFileType('text/x-fasta')
     } else if (
-      selectedFile?.name.toLowerCase().endsWith('.gff3') ||
+      selectedFile?.name.toLowerCase().endsWith('.gff3') ??
       selectedFile?.name.toLowerCase().endsWith('.gff')
     ) {
       setFileType('text/x-gff3')
@@ -185,7 +185,6 @@ export function AddAssembly({
             </>
           ) : null}
           <TextField
-            autoFocus
             margin="dense"
             id="name"
             label="Assembly name"

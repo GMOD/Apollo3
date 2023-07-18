@@ -162,7 +162,7 @@ export class ChangesService {
     })
     this.logger.debug?.('*** TEMPORARY DATA INSERTTED ***')
     // Set "temporary document" -status --> "valid" -status i.e. (-1 --> 0)
-    await this.featureModel.db.transaction(async (session) => {
+    await this.featureModel.db.transaction(async () => {
       this.logger.debug(
         `Updates "temporary document" -status --> "valid" -status`,
       )

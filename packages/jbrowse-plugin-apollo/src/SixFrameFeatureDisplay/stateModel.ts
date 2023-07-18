@@ -161,7 +161,7 @@ export function stateModelFactory(
             region.start,
             region.end,
           )
-          seq.set(region.start, refSeq || '')
+          seq.set(region.start, refSeq ?? '')
         }
         return seq
       },
@@ -179,7 +179,7 @@ export function stateModelFactory(
             filteredRef = new Map<string, AnnotationFeatureI>()
             features.set(region.refName, filteredRef)
           }
-          for (const [featureId, feature] of ref?.features.entries() ||
+          for (const [featureId, feature] of ref?.features.entries() ??
             new Map()) {
             if (region.start < feature.end && region.end > feature.start) {
               filteredRef.set(featureId, feature)
@@ -214,13 +214,13 @@ export function stateModelFactory(
         return minMax
       },
       get codonLayout() {
-        const codonLayout: Map<
+        const codonLayout = new Map<
           number,
           {
             starts: number[]
             stops: number[]
           }
-        > = new Map()
+        >()
         let fullSeq = ''
         let fullStart = 0
         for (const [regionStart, seq] of this.sequence || []) {
@@ -271,8 +271,7 @@ export function stateModelFactory(
         return codonLayout
       },
       get featureLayout() {
-        const featureLayout: Map<number, [string, AnnotationFeatureI][]> =
-          new Map()
+        const featureLayout = new Map<number, [string, AnnotationFeatureI][]>()
         for (const [refSeq, featuresForRefSeq] of this.features || []) {
           if (!featuresForRefSeq) {
             continue
@@ -296,7 +295,7 @@ export function stateModelFactory(
               return start1 - start2 || end1 - end2
             })
             .forEach((feature) => {
-              for (const [, childFeature] of feature.children || new Map()) {
+              for (const [, childFeature] of feature.children ?? new Map()) {
                 if (childFeature.type === 'mRNA') {
                   for (const [, grandChildFeature] of childFeature.children ||
                     new Map()) {
@@ -304,9 +303,7 @@ export function stateModelFactory(
                     if (grandChildFeature.type === 'CDS') {
                       let discontinuousLocations
                       if (grandChildFeature.discontinuousLocations.length > 0) {
-                        // eslint-disable-next-line prefer-destructuring
-                        discontinuousLocations =
-                          grandChildFeature.discontinuousLocations
+                        ;({ discontinuousLocations } = grandChildFeature)
                       } else {
                         discontinuousLocations = [grandChildFeature]
                       }

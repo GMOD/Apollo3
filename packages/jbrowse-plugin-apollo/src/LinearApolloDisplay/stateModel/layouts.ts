@@ -66,8 +66,10 @@ export function layoutsModelFactory(
         const { assemblyManager } = self.session
         return self.displayedRegions.map((region, idx) => {
           const assembly = assemblyManager.get(region.assemblyName)
-          const featureLayout: Map<number, [number, AnnotationFeatureI][]> =
-            new Map()
+          const featureLayout = new Map<
+            number,
+            [number, AnnotationFeatureI][]
+          >()
           const minMax = self.featuresMinMax[idx]
           if (!minMax) {
             return featureLayout

@@ -23,7 +23,7 @@ export class ValidationResultSet {
 }
 
 export class ValidationSet {
-  validations: Set<Validation> = new Set()
+  validations = new Set<Validation>()
 
   registerValidation(validation: Validation): void {
     this.validations.add(validation)

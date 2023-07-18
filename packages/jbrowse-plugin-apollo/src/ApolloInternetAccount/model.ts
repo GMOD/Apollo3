@@ -21,6 +21,7 @@ import {
   ManageUsers,
 } from '../components'
 import { ApolloSessionModel, Collaborator } from '../session'
+import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { ApolloInternetAccountConfigModel } from './configSchema'
@@ -102,7 +103,7 @@ const stateModelFactory = (
           const dec = getDecodedToken(token)
           const { role } = dec
           if (!role && !roleNotificationSent) {
-            const { session } = getRoot(self)
+            const { session } = getRoot<ApolloRootModel>(self)
             session.notify(
               'You have registered as a user but have not been given access. Ask your administrator to enable access for your account.',
               'warning',
@@ -143,7 +144,7 @@ const stateModelFactory = (
         resolve(token)
       },
       addSocketListeners() {
-        const { session } = getRoot(self)
+        const { session } = getRoot<ApolloRootModel>(self)
         const { notify } = session
         const token = self.retrieveToken()
         if (!token) {
@@ -220,7 +221,7 @@ const stateModelFactory = (
         },
       ),
       getMissingChanges: flow(function* getMissingChanges() {
-        const { session } = getRoot(self)
+        const { session } = getRoot<ApolloRootModel>(self)
         const { changeManager } = (session as ApolloSessionModel)
           .apolloDataStore
         if (!self.lastChangeSequenceNumber) {
@@ -294,7 +295,7 @@ const stateModelFactory = (
         postUserLocation: debouncePostUserLocation(postUserLocation),
       }
     })
-    .actions((self) => ({
+    .actions(() => ({
       addMenuItems(role: Role) {
         if (
           !(role === 'admin' && isAbstractMenuManager(pluginManager.rootModel))
@@ -447,7 +448,7 @@ const stateModelFactory = (
           }
           // fires when app transitions from prerender, user returns to the app / tab.
           if (document.visibilityState === 'visible') {
-            const { session } = getRoot(self)
+            const { session } = getRoot<ApolloRootModel>(self)
             session.broadcastLocations()
           }
         })
@@ -599,13 +600,13 @@ const stateModelFactory = (
                   )
                 } else if (self.googleAuthInternetAccount.retrieveToken()) {
                   authTypePromise = Promise.resolve('google')
-                } else if (self.googleAuthInternetAccount.retrieveToken()) {
+                } else if (self.microsoftAuthInternetAccount.retrieveToken()) {
                   authTypePromise = Promise.resolve('microsoft')
                 } else if (superRetrieveToken()) {
                   authTypePromise = Promise.resolve('guest')
                 } else {
                   authTypePromise = new Promise((resolve, reject) => {
-                    const { session } = getRoot(self)
+                    const { session } = getRoot<ApolloRootModel>(self)
                     const { baseURL, name, allowGuestUser } = self
                     session.queueDialog((doneCallback: () => void) => [
                       AuthTypeSelector,

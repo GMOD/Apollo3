@@ -256,7 +256,6 @@ export function CopyFeature({
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText>Target assembly</DialogContentText>
           <Select
-            autoFocus
             labelId="label"
             value={selectedAssemblyId}
             onChange={handleChangeAssembly}

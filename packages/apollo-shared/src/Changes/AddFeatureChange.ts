@@ -150,7 +150,7 @@ export class AddFeatureChange extends FeatureChange {
             allIds: [],
             ...addedFeature,
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
+            // @ts-expect-error
             _id: addedFeature._id,
           })
           const childIds = this.getChildFeatureIds(addedFeature)
@@ -171,7 +171,7 @@ export class AddFeatureChange extends FeatureChange {
     logger.debug?.(`Added ${featureCnt} new feature(s) into database.`)
   }
 
-  async executeOnLocalGFF3(backend: LocalGFF3DataStore) {
+  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
     throw new Error('executeOnLocalGFF3 not implemented')
   }
 

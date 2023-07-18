@@ -53,7 +53,7 @@ export abstract class FeatureChange extends AssemblySpecificChange {
     logger.debug?.(
       `FeatureId was not found on top level so lets make recursive call...`,
     )
-    for (const [, childFeature] of feature.children || new Map()) {
+    for (const [, childFeature] of feature.children ?? new Map()) {
       const subFeature = this.getFeatureFromId(childFeature, featureId)
       if (subFeature) {
         return subFeature

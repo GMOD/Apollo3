@@ -81,7 +81,7 @@ export class CanonicalGeneGlyph extends Glyph {
           : xOffset + offsetPx
         const height =
           Math.round((currentCDS + 1 / 2) * rowHeight) + row * rowHeight
-        ctx.strokeStyle = theme?.palette.text.primary || 'black'
+        ctx.strokeStyle = theme?.palette.text.primary ?? 'black'
         ctx.beginPath()
         ctx.moveTo(startPx, height)
         ctx.lineTo(startPx + widthPx, height)
@@ -94,7 +94,7 @@ export class CanonicalGeneGlyph extends Glyph {
       if (mrna.type !== 'mRNA') {
         return
       }
-      const cdsCount = Array.from(mrna.children || []).filter(
+      const cdsCount = Array.from(mrna.children ?? []).filter(
         ([, exonOrCDS]) => exonOrCDS.type === 'CDS',
       ).length
       new Array(cdsCount).fill(undefined).forEach(() => {
@@ -109,7 +109,7 @@ export class CanonicalGeneGlyph extends Glyph {
             : xOffset + offsetPx
           const top = (row + currentCDS) * rowHeight
           const utrTop = top + (rowHeight - utrHeight) / 2
-          ctx.fillStyle = theme?.palette.text.primary || 'black'
+          ctx.fillStyle = theme?.palette.text.primary ?? 'black'
           ctx.fillRect(startPx, utrTop, widthPx, utrHeight)
           if (widthPx > 2) {
             ctx.clearRect(startPx + 1, utrTop + 1, widthPx - 2, utrHeight - 2)
@@ -156,7 +156,7 @@ export class CanonicalGeneGlyph extends Glyph {
           const startPx = reversed
             ? xOffset - offsetPx - widthPx
             : xOffset + offsetPx
-          ctx.fillStyle = theme?.palette.text.primary || 'black'
+          ctx.fillStyle = theme?.palette.text.primary ?? 'black'
           const top = (row + currentCDS) * rowHeight
           const cdsTop = top + (rowHeight - cdsHeight) / 2
           ctx.fillRect(startPx, cdsTop, widthPx, cdsHeight)
@@ -196,7 +196,7 @@ export class CanonicalGeneGlyph extends Glyph {
       const startPx = reversed ? xOffset - widthPx : xOffset
       const top = row * rowHeight
       const height = this.getRowCount(feature, bpPerPx) * rowHeight
-      ctx.fillStyle = theme?.palette.action.selected || 'rgba(0,0,0,0.08)'
+      ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,0.08)'
       ctx.fillRect(startPx, top, widthPx, height)
     }
   }
@@ -207,7 +207,7 @@ export class CanonicalGeneGlyph extends Glyph {
       return
     }
     const { topLevelFeature, mousePosition } = hover
-    if (!topLevelFeature) {
+    if (!(topLevelFeature && mousePosition)) {
       return
     }
     const rowHeight = stateModel.apolloRowHeight
@@ -228,7 +228,7 @@ export class CanonicalGeneGlyph extends Glyph {
         refName: displayedRegion.refName,
         coord: topLevelFeature.min,
         regionNumber: mousePosition.regionNumber,
-      })?.offsetPx || 0) - stateModel.lgv.offsetPx
+      })?.offsetPx ?? 0) - stateModel.lgv.offsetPx
     const [featureRowNumber] = featureRowEntry
     const topRowNumber = rowNumber - featureRowNumber
     const y = topRowNumber * rowHeight
@@ -239,13 +239,13 @@ export class CanonicalGeneGlyph extends Glyph {
       ? topLevelFeature.max - topLevelFeature.end
       : topLevelFeature.start - topLevelFeature.min
     const startPx = startBp / bpPerPx
-    ctx.fillStyle = stateModel.theme?.palette.action.focus || 'rgba(0,0,0,0.04)'
+    ctx.fillStyle = stateModel.theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
     const height = this.getRowCount(topLevelFeature, bpPerPx) * rowHeight
     ctx.fillRect(x + startPx, y, widthPx, height)
   }
 
   onMouseUp(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
-    if (stateModel.apolloDragging || event.button !== 0) {
+    if (stateModel.apolloDragging ?? event.button !== 0) {
       return
     }
     const { feature } = stateModel.getFeatureAndGlyphUnderMouse(event)
@@ -256,8 +256,6 @@ export class CanonicalGeneGlyph extends Glyph {
 
   getFeatureFromLayout(
     feature: AnnotationFeatureI,
-    bp: number,
-    row: number,
   ): AnnotationFeatureI | undefined {
     return feature
   }

@@ -39,7 +39,7 @@ if ('document' in window) {
 }
 
 export class ImplicitExonGeneGlyph extends Glyph {
-  getRowCount(feature: AnnotationFeatureI, _bpPerPx: number): number {
+  getRowCount(feature: AnnotationFeatureI): number {
     let mrnaCount = 0
     feature.children?.forEach((child: AnnotationFeatureI) => {
       if (child.type === 'mRNA') {
@@ -75,7 +75,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
         : xOffset + offsetPx
       const height =
         Math.round((currentMRNA + 1 / 2) * rowHeight) + row * rowHeight
-      ctx.strokeStyle = theme?.palette.text.primary || 'black'
+      ctx.strokeStyle = theme?.palette.text.primary ?? 'black'
       ctx.beginPath()
       ctx.moveTo(startPx, height)
       ctx.lineTo(startPx + widthPx, height)
@@ -87,7 +87,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
       if (mrna.type !== 'mRNA') {
         return
       }
-      const cdsCount = Array.from(mrna.children || []).filter(
+      const cdsCount = Array.from(mrna.children ?? []).filter(
         ([, exonOrCDS]) => exonOrCDS.type === 'CDS',
       ).length
       new Array(cdsCount).fill(undefined).forEach(() => {
@@ -102,7 +102,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
           const startPx = reversed
             ? xOffset - offsetPx - widthPx
             : xOffset + offsetPx
-          ctx.fillStyle = theme?.palette.text.primary || 'black'
+          ctx.fillStyle = theme?.palette.text.primary ?? 'black'
           const top = (row + currentMRNA) * rowHeight
           const height = isCDS ? cdsHeight : utrHeight
           const cdsOrUTRTop = top + (rowHeight - height) / 2
@@ -142,8 +142,8 @@ export class ImplicitExonGeneGlyph extends Glyph {
       const widthPx = feature.max - feature.min
       const startPx = reversed ? xOffset - widthPx : xOffset
       const top = row * rowHeight
-      const height = this.getRowCount(feature, bpPerPx) * rowHeight
-      ctx.fillStyle = theme?.palette.action.selected || 'rgba(0,0,0,0.08)'
+      const height = this.getRowCount(feature) * rowHeight
+      ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,0.08)'
       ctx.fillRect(startPx, top, widthPx, height)
     }
   }
@@ -161,7 +161,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
       return
     }
     const { topLevelFeature, mousePosition } = apolloHover
-    if (!topLevelFeature) {
+    if (!(topLevelFeature && mousePosition)) {
       return
     }
     const { regionNumber, y } = mousePosition
@@ -170,7 +170,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
     const rowNumber = Math.floor(y / rowHeight)
     const layout = featureLayouts[regionNumber]
     const row = layout.get(rowNumber)
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+
     const { _id, start, end, length } = topLevelFeature
     const featureRowEntry = row?.find(([, feature]) => feature._id === _id)
     if (!featureRowEntry) {
@@ -180,18 +180,18 @@ export class ImplicitExonGeneGlyph extends Glyph {
     const { refName, reversed } = displayedRegion
     const startPx =
       (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
-        ?.offsetPx || 0) - offsetPx
+        ?.offsetPx ?? 0) - offsetPx
     const [featureRowNumber] = featureRowEntry
     const topRowNumber = rowNumber - featureRowNumber
     const top = topRowNumber * rowHeight
     const widthPx = length / bpPerPx
-    ctx.fillStyle = theme?.palette.action.focus || 'rgba(0,0,0,0.04)'
-    const height = this.getRowCount(topLevelFeature, bpPerPx) * rowHeight
+    ctx.fillStyle = theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
+    const height = this.getRowCount(topLevelFeature) * rowHeight
     ctx.fillRect(startPx, top, widthPx, height)
   }
 
   onMouseUp(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
-    if (stateModel.apolloDragging || event.button !== 0) {
+    if (stateModel.apolloDragging ?? event.button !== 0) {
       return
     }
     const { feature } = stateModel.getFeatureAndGlyphUnderMouse(event)
@@ -202,8 +202,6 @@ export class ImplicitExonGeneGlyph extends Glyph {
 
   getFeatureFromLayout(
     feature: AnnotationFeatureI,
-    bp: number,
-    row: number,
   ): AnnotationFeatureI | undefined {
     return feature
   }

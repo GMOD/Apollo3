@@ -67,7 +67,7 @@ declare module 'connect-mongodb-session' {
       all(
         callback: (
           err: unknown,
-          obj?: SessionData[] | { [sid: string]: SessionData } | null,
+          obj?: SessionData[] | Record<string, SessionData> | null,
         ) => void,
       ): void
       clear(callback?: (err?: unknown) => void): void

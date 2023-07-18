@@ -40,10 +40,10 @@ function SoAutocompleteUnimplemented() {
   return <></>
 }
 
-const reservedKeys: Map<
+const reservedKeys = new Map<
   string,
   React.FunctionComponent<AttributeValueEditorProps>
-> = new Map([
+>([
   ['Gene Ontology', GoAutocomplete],
   ['Sequence Ontology', SoAutocompleteUnimplemented],
 ])
@@ -122,7 +122,7 @@ export function ModifyFeatureAttribute({
   }, [internetAccounts])
   const editable =
     Boolean(internetAccount.authType) &&
-    ['admin', 'user'].includes(internetAccount.getRole() || '')
+    ['admin', 'user'].includes(internetAccount.getRole() ?? '')
 
   const [errorMessage, setErrorMessage] = useState('')
   const [attributes, setAttributes] = useState<Record<string, string[]>>(
@@ -285,7 +285,7 @@ export function ModifyFeatureAttribute({
           <Grid container direction="column" spacing={1}>
             {Object.entries(attributes).map(([key, value]) => {
               const EditorComponent =
-                reservedKeys.get(key) || CustomAttributeValueEditor
+                reservedKeys.get(key) ?? CustomAttributeValueEditor
               return (
                 <Grid container item spacing={3} alignItems="center" key={key}>
                   <Grid item xs="auto">

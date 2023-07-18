@@ -8,7 +8,7 @@ import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 
 export class BoxGlyph extends Glyph {
-  getRowCount(feature: AnnotationFeatureI, bpPerPx: number) {
+  getRowCount() {
     return 1
   }
 
@@ -27,17 +27,17 @@ export class BoxGlyph extends Glyph {
     const widthPx = feature.length / bpPerPx
     const startPx = reversed ? xOffset - offsetPx - widthPx : xOffset + offsetPx
     const top = row * rowHeight
-    ctx.fillStyle = theme?.palette.text.primary || 'black'
+    ctx.fillStyle = theme?.palette.text.primary ?? 'black'
     ctx.fillRect(startPx, top, widthPx, rowHeight)
     if (widthPx > 2) {
       const backgroundColor =
         apolloSelectedFeature && feature._id === apolloSelectedFeature._id
-          ? theme?.palette.text.primary || 'black'
-          : theme?.palette.background.default || 'white'
+          ? theme?.palette.text.primary ?? 'black'
+          : theme?.palette.background.default ?? 'white'
       const textColor =
         apolloSelectedFeature && feature._id === apolloSelectedFeature._id
-          ? theme?.palette.getContrastText(backgroundColor) || 'white'
-          : theme?.palette.text.primary || 'black'
+          ? theme?.palette.getContrastText(backgroundColor) ?? 'white'
+          : theme?.palette.text.primary ?? 'black'
       ctx.clearRect(startPx + 1, top + 1, widthPx - 2, rowHeight - 2)
       ctx.fillStyle = backgroundColor
       ctx.fillRect(startPx + 1, top + 1, widthPx - 2, rowHeight - 2)
@@ -48,7 +48,7 @@ export class BoxGlyph extends Glyph {
     }
   }
 
-  getFeatureFromLayout(feature: AnnotationFeatureI, _bp: number, _row: number) {
+  getFeatureFromLayout(feature: AnnotationFeatureI) {
     return feature
   }
 
@@ -97,7 +97,7 @@ export class BoxGlyph extends Glyph {
       return
     }
     const { feature, mousePosition } = apolloHover
-    if (!feature) {
+    if (!(feature && mousePosition)) {
       return
     }
     const { bpPerPx, bpToPx, offsetPx } = lgv
@@ -107,11 +107,11 @@ export class BoxGlyph extends Glyph {
     const { regionNumber, y } = mousePosition
     const startPx =
       (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
-        ?.offsetPx || 0) - offsetPx
+        ?.offsetPx ?? 0) - offsetPx
     const row = Math.floor(y / apolloRowHeight)
     const top = row * apolloRowHeight
     const widthPx = length / bpPerPx
-    ctx.fillStyle = theme?.palette.action.focus || 'rgba(0,0,0,0.04)'
+    ctx.fillStyle = theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
     ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
   }
 
@@ -148,7 +148,7 @@ export class BoxGlyph extends Glyph {
 
     const row = Math.floor(startingMousePosition.y / apolloRowHeight)
     const region = displayedRegions[startingMousePosition.regionNumber]
-    const rowCount = this.getRowCount(feature, bpPerPx)
+    const rowCount = this.getRowCount()
 
     const featureEdgeBp = region.reversed
       ? region.end - feature[edge]
@@ -160,11 +160,11 @@ export class BoxGlyph extends Glyph {
     const rectWidth = Math.abs(currentMousePosition.x - featureEdgePx)
     const rectHeight = apolloRowHeight * rowCount
 
-    overlayCtx.strokeStyle = theme?.palette.info.main || 'rgb(255,0,0)'
+    overlayCtx.strokeStyle = theme?.palette.info.main ?? 'rgb(255,0,0)'
     overlayCtx.setLineDash([6])
     overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
     overlayCtx.fillStyle = alpha(
-      theme?.palette.info.main || 'rgb(255,0,0)',
+      theme?.palette.info.main ?? 'rgb(255,0,0)',
       0.2,
     )
     overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
@@ -200,7 +200,7 @@ export class BoxGlyph extends Glyph {
   }
 
   onMouseUp(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
-    if (stateModel.apolloDragging || event.button !== 0) {
+    if (stateModel.apolloDragging ?? event.button !== 0) {
       return
     }
     const { feature } = stateModel.getFeatureAndGlyphUnderMouse(event)
@@ -209,9 +209,9 @@ export class BoxGlyph extends Glyph {
     }
   }
 
-  startDrag(stateModel: LinearApolloDisplay, event: CanvasMouseEvent): boolean {
+  startDrag(stateModel: LinearApolloDisplay): boolean {
     // only accept the drag if we are on the edge of the feature
-    const { mousePosition, feature } = stateModel.apolloDragging?.start || {}
+    const { mousePosition, feature } = stateModel.apolloDragging?.start ?? {}
     if (feature && mousePosition) {
       const edge = this.isMouseOnFeatureEdge(mousePosition, feature, stateModel)
       if (edge) {

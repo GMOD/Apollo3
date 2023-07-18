@@ -175,7 +175,7 @@ export function renderingModelFactory(
                       refName: displayedRegion.refName,
                       coord: feature.min,
                       regionNumber: idx,
-                    })?.offsetPx || 0) - self.lgv.offsetPx
+                    })?.offsetPx ?? 0) - self.lgv.offsetPx
                   getGlyph(feature, self.lgv.bpPerPx).draw(
                     self,
                     ctx,
