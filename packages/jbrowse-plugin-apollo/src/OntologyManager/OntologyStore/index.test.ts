@@ -83,7 +83,9 @@ describe('OntologyStore', () => {
       await so.getTermsWithLabelOrSynonym('match', {
         includeSubclasses: false,
       })
-    ).filter(isOntologyClass)
+    )
+      // eslint-disable-next-line unicorn/no-array-callback-reference
+      .filter(isOntologyClass)
     expect(parentTypeTerms).toMatchSnapshot()
     const subpartTerms = await so.getClassesThat('part_of', parentTypeTerms)
     expect(subpartTerms.length).toBeGreaterThan(0)
@@ -94,7 +96,9 @@ describe('OntologyStore', () => {
       await so.getTermsWithLabelOrSynonym('BAC_cloned_genomic_insert', {
         includeSubclasses: false,
       })
-    ).filter(isOntologyClass)
+    )
+      // eslint-disable-next-line unicorn/no-array-callback-reference
+      .filter(isOntologyClass)
     expect(bcgi.length).toBe(1)
     expect(bcgi[0].lbl).toBe('BAC_cloned_genomic_insert')
     const subpartTerms = await so.getClassesThat('part_of', bcgi)

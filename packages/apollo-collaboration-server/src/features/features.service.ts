@@ -212,6 +212,8 @@ export class FeaturesService {
     const query = { refSeq: { $in: refSeqIds } }
 
     const featureStream = pipeline(
+      // unicorn thinks this is an Array.prototype.find, so we ignore it
+      // eslint-disable-next-line unicorn/no-array-callback-reference
       this.featureModel.find(query).cursor(),
       new Transform({
         writableObjectMode: true,

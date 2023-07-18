@@ -34,6 +34,39 @@ interface Collection {
   name: string
 }
 
+/**
+ * Recursively assign new IDs to a feature
+ * @param feature - Parent feature
+ * @param featureIds -
+ */
+function generateNewIds(
+  // feature: AnnotationFeatureSnapshot,
+  feature: AnnotationFeatureSnapshot,
+  featureIds: string[],
+): AnnotationFeatureSnapshot {
+  const newId = new ObjectID().toHexString()
+  featureIds.push(newId)
+
+  const children: Record<string, AnnotationFeatureSnapshot> = {}
+  if (feature.children) {
+    for (const child of Object.values(feature.children)) {
+      const newChild = generateNewIds(child, featureIds)
+      children[newChild._id] = newChild
+    }
+  }
+  const referenceSeq =
+    typeof feature.refSeq === 'string'
+      ? feature.refSeq
+      : (feature.refSeq as unknown as ObjectID).toHexString()
+
+  return {
+    ...feature,
+    refSeq: referenceSeq,
+    children: feature.children && children,
+    _id: newId,
+  }
+}
+
 export function CopyFeature({
   changeManager,
   handleClose,
@@ -214,38 +247,6 @@ export function CopyFeature({
       refSeq,
       children: feature.children && children,
       _id: id,
-    }
-  }
-  /**
-   * Recursively assign new IDs to a feature
-   * @param feature - Parent feature
-   * @param featureIds -
-   */
-  function generateNewIds(
-    // feature: AnnotationFeatureSnapshot,
-    feature: AnnotationFeatureSnapshot,
-    featureIds: string[],
-  ): AnnotationFeatureSnapshot {
-    const newId = new ObjectID().toHexString()
-    featureIds.push(newId)
-
-    const children: Record<string, AnnotationFeatureSnapshot> = {}
-    if (feature.children) {
-      for (const child of Object.values(feature.children)) {
-        const newChild = generateNewIds(child, featureIds)
-        children[newChild._id] = newChild
-      }
-    }
-    const refSeq =
-      typeof feature.refSeq === 'string'
-        ? feature.refSeq
-        : (feature.refSeq as unknown as ObjectID).toHexString()
-
-    return {
-      ...feature,
-      refSeq,
-      children: feature.children && children,
-      _id: newId,
     }
   }
 

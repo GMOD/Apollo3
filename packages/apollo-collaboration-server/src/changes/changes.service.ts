@@ -256,6 +256,8 @@ export class ChangesService {
       sortOrder = 1
     }
     let changeCursor = this.changeModel
+      // unicorn thinks this is an Array.prototype.find, so we ignore it
+      // eslint-disable-next-line unicorn/no-array-callback-reference
       .find(queryCond)
       .sort({ sequence: sortOrder })
 

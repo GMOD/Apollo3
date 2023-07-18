@@ -49,7 +49,9 @@ async function fetchValidDescendantTerms(
       await ontologyStore.getTermsWithLabelOrSynonym(parentFeature.type, {
         includeSubclasses: false,
       })
-    ).filter(isOntologyClass)
+    )
+      // eslint-disable-next-line unicorn/no-array-callback-reference
+      .filter(isOntologyClass)
     if (parentTypeTerms.length > 0) {
       const subpartTerms = await ontologyStore.getClassesThat(
         'part_of',

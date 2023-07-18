@@ -304,7 +304,7 @@ export default class OntologyStore {
               .index(queryIndex)
               .getAll(queryId)) as OntologyDBEdge[]
           )
-            .filter(filterEdge)
+            .filter((element) => filterEdge(element))
             .map((edge) => edge[resultProp])
 
           if (theseResults.length > 0) {

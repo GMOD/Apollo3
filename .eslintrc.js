@@ -77,9 +77,7 @@ module.exports = {
     'tsdoc/syntax': 'warn',
     // eslint-plugin-unicorn rules (override recommended)
     'unicorn/consistent-destructuring': 'off',
-    'unicorn/consistent-function-scoping': 'off',
     'unicorn/filename-case': 'off',
-    'unicorn/no-array-callback-reference': 'off',
     'unicorn/no-array-for-each': 'off',
     'unicorn/no-await-expression-member': 'off',
     'unicorn/no-empty-file': 'off',
