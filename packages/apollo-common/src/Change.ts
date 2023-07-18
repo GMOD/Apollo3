@@ -40,7 +40,10 @@ export abstract class Change extends Operation {
    * If a non-empty string, a snackbar will display in JBrowse with this message
    * when a successful response is received from the server.
    */
-  readonly notification: string = ''
+  // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+  get notification(): string {
+    return ''
+  }
 
   static fromJSON(json: SerializedOperation, options?: ChangeOptions): Change {
     const ChangeType = changeRegistry.getChangeType(json.typeName)

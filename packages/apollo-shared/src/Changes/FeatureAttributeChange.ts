@@ -153,8 +153,6 @@ export class FeatureAttributeChange extends FeatureChange {
       {
         changedIds: inverseChangedIds,
         typeName: 'FeatureAttributeChange',
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
         changes: inverseChanges,
         assembly,
       },

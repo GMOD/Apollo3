@@ -42,7 +42,10 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
     this.changes = 'changes' in json ? json.changes : [json]
   }
 
-  readonly notification = `Features have been added. To see them, please refresh the page.`
+  // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+  get notification(): string {
+    return 'Features have been added. To see them, please refresh the page.'
+  }
 
   toJSON(): SerializedAddFeaturesFromFileChange {
     const { changes, typeName, assembly } = this
