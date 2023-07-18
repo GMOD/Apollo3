@@ -24,10 +24,11 @@ async function jwtConfigFactory(
   if (!jwtSecret) {
     // We can use non-null assertion since joi already checks this for us
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const uriFile = configService.get('JWT_SECRET_FILE', {
+    const jwtFile = configService.get('JWT_SECRET_FILE', {
       infer: true,
     })!
-    jwtSecret = (await fs.readFile(uriFile, 'utf8')).trim()
+    const jwtFileText = await fs.readFile(jwtFile, 'utf8')
+    jwtSecret = jwtFileText.trim()
   }
   return { secret: jwtSecret, signOptions: { expiresIn: '1d' } }
 }

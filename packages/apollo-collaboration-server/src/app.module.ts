@@ -119,7 +119,8 @@ async function mongoDBURIFactory(
     const uriFile = configService.get('MONGODB_URI_FILE', {
       infer: true,
     })!
-    uri = (await fs.readFile(uriFile, 'utf8')).trim()
+    const uriFileText = await fs.readFile(uriFile, 'utf8')
+    uri = uriFileText.trim()
   }
   return {
     uri,

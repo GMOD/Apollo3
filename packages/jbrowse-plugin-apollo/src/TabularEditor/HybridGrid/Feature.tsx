@@ -282,17 +282,16 @@ async function fetchValidTypeTerms(
   if (parentFeature) {
     // if this is a child of an existing feature, restrict the autocomplete choices to valid
     // parts of that feature
-    const parentTypeTerms = (
-      await ontologyStore.getTermsWithLabelOrSynonym(parentFeature.type, {
-        includeSubclasses: false,
-      })
+    const parentTypeTerms = await ontologyStore.getTermsWithLabelOrSynonym(
+      parentFeature.type,
+      { includeSubclasses: false },
     )
-      // eslint-disable-next-line unicorn/no-array-callback-reference
-      .filter(isOntologyClass)
-    if (parentTypeTerms.length > 0) {
+    // eslint-disable-next-line unicorn/no-array-callback-reference
+    const parentTypeClassTerms = parentTypeTerms.filter(isOntologyClass)
+    if (parentTypeClassTerms.length > 0) {
       const subpartTerms = await ontologyStore.getClassesThat(
         'part_of',
-        parentTypeTerms,
+        parentTypeClassTerms,
       )
       return subpartTerms
     }

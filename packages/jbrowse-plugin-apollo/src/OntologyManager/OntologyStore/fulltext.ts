@@ -95,7 +95,8 @@ export async function textSearch(
   tx?: Transaction<['nodes']>,
   signal?: AbortSignal,
 ) {
-  const myTx = tx ?? (await this.db).transaction(['nodes'])
+  const db = await this.db
+  const myTx = tx ?? db.transaction(['nodes'])
 
   checkAbortSignal(signal)
 

@@ -79,29 +79,29 @@ describe('OntologyStore', () => {
     expect(ex).toEqual(['http://purl.obolibrary.org/obo/SO_0000039'])
   })
   it('can query valid part_of for match', async () => {
-    const parentTypeTerms = (
-      await so.getTermsWithLabelOrSynonym('match', {
-        includeSubclasses: false,
-      })
+    const parentTypeTerms = await so.getTermsWithLabelOrSynonym('match', {
+      includeSubclasses: false,
+    })
+    // eslint-disable-next-line unicorn/no-array-callback-reference
+    const parentTypeClassTerms = parentTypeTerms.filter(isOntologyClass)
+    expect(parentTypeClassTerms).toMatchSnapshot()
+    const subpartTerms = await so.getClassesThat(
+      'part_of',
+      parentTypeClassTerms,
     )
-      // eslint-disable-next-line unicorn/no-array-callback-reference
-      .filter(isOntologyClass)
-    expect(parentTypeTerms).toMatchSnapshot()
-    const subpartTerms = await so.getClassesThat('part_of', parentTypeTerms)
     expect(subpartTerms.length).toBeGreaterThan(0)
   })
 
   it('SO clone_insert_end is among valid subparts of BAC_cloned_genomic_insert', async () => {
-    const bcgi = (
-      await so.getTermsWithLabelOrSynonym('BAC_cloned_genomic_insert', {
-        includeSubclasses: false,
-      })
+    const bcgi = await so.getTermsWithLabelOrSynonym(
+      'BAC_cloned_genomic_insert',
+      { includeSubclasses: false },
     )
-      // eslint-disable-next-line unicorn/no-array-callback-reference
-      .filter(isOntologyClass)
-    expect(bcgi.length).toBe(1)
-    expect(bcgi[0].lbl).toBe('BAC_cloned_genomic_insert')
-    const subpartTerms = await so.getClassesThat('part_of', bcgi)
+    // eslint-disable-next-line unicorn/no-array-callback-reference
+    const bcgiClas = bcgi.filter(isOntologyClass)
+    expect(bcgiClas.length).toBe(1)
+    expect(bcgiClas[0].lbl).toBe('BAC_cloned_genomic_insert')
+    const subpartTerms = await so.getClassesThat('part_of', bcgiClas)
     expect(subpartTerms.length).toBeGreaterThan(0)
     expect(subpartTerms.find((t) => t.lbl === 'clone_insert_end')).toBeTruthy()
     expect(subpartTerms).toMatchSnapshot()
