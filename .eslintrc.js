@@ -10,7 +10,7 @@ module.exports = {
     'plugin:@typescript-eslint/stylistic-type-checked',
     'plugin:prettier/recommended',
   ],
-  plugins: ['tsdoc'],
+  plugins: ['tsdoc', 'sort-destructure-keys'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: true,
@@ -70,6 +70,8 @@ module.exports = {
     'import/no-extraneous-dependencies': 'error',
     // eslint-plugin-prettier rules (override recommended)
     'prettier/prettier': 'warn',
+    // eslint-plugin-sort-destructure-keys rules
+    'sort-destructure-keys/sort-destructure-keys': 'warn',
     // eslint-plugin-tsdoc rules
     'tsdoc/syntax': 'warn',
     // Special case @typescript-eslint/eslint-plugin rule

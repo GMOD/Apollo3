@@ -34,16 +34,16 @@ interface OntologyTermAutocompleteProps {
 }
 
 export function OntologyTermAutocomplete({
-  value: valueString,
-  style,
-  session,
-  ontologyName,
-  ontologyVersion,
   fetchValidTerms,
   filterTerms: filterTermsProp,
-  onChange,
-  renderInput,
   includeDeprecated,
+  onChange,
+  ontologyName,
+  ontologyVersion,
+  renderInput,
+  session,
+  style,
+  value: valueString,
 }: OntologyTermAutocompleteProps) {
   const [open, setOpen] = useState(false)
   const [termChoices, setTermChoices] = useState<OntologyTerm[] | undefined>()

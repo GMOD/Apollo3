@@ -65,7 +65,7 @@ function makeContextMenuItems(
   display: DisplayStateModel,
   feature: AnnotationFeatureI,
 ) {
-  const { changeManager, getAssemblyId, session, regions } = display
+  const { changeManager, getAssemblyId, regions, session } = display
   return featureContextMenuItems(
     feature,
     regions[0],
@@ -86,13 +86,13 @@ function getTopLevelFeature(feature: AnnotationFeatureI): AnnotationFeatureI {
 }
 
 export const Feature = observer(function Feature({
-  feature,
-  model: displayState,
   depth,
+  feature,
+  internetAccount,
   isHovered,
   isSelected,
+  model: displayState,
   selectedFeatureClass,
-  internetAccount,
   setContextMenu,
 }: {
   model: DisplayStateModel

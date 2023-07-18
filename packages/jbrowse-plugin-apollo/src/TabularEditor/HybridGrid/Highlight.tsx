@@ -8,8 +8,8 @@ const useStyles = makeStyles()({
 })
 
 const Highlight = ({
-  text,
   highlight,
+  text,
 }: {
   text: string
   highlight: string

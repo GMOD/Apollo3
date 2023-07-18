@@ -102,8 +102,8 @@ export abstract class Glyph {
       apolloInternetAccount: internetAccount,
       changeManager,
       getAssemblyId,
-      session,
       regions,
+      session,
     } = display
     const { feature: sourceFeature } = apolloHover ?? {}
     const { getRole } = internetAccount

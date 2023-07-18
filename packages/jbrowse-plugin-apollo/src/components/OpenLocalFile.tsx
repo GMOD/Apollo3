@@ -38,13 +38,13 @@ export interface SequenceAdapterFeatureInterface {
   seq: string
 }
 
-export function OpenLocalFile({ session, handleClose }: OpenLocalFileProps) {
+export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
   const {
-    notify,
-    addSessionAssembly,
-    addAssembly,
-    assemblyManager,
     addApolloTrackConfig,
+    addAssembly,
+    addSessionAssembly,
+    assemblyManager,
+    notify,
   } = session as ApolloSessionModel
 
   const [file, setFile] = useState<File | null>(null)
@@ -229,16 +229,16 @@ export function OpenLocalFile({ session, handleClose }: OpenLocalFileProps) {
 function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
   const [firstFeature] = gff3Feature
   const {
-    seq_id: refName,
-    type,
-    start,
-    end,
-    strand,
-    score,
-    phase,
-    child_features: childFeatures,
-    source,
     attributes,
+    child_features: childFeatures,
+    end,
+    phase,
+    score,
+    seq_id: refName,
+    source,
+    start,
+    strand,
+    type,
   } = firstFeature
   if (!refName) {
     throw new Error(
@@ -270,7 +270,7 @@ function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
   }
   if (gff3Feature.length > 1) {
     feature.discontinuousLocations = gff3Feature.map((f) => {
-      const { start: subStart, end: subEnd, phase: locationPhase } = f
+      const { end: subEnd, phase: locationPhase, start: subStart } = f
       if (subStart === null || subEnd === null) {
         throw new Error(
           `feature does not have start and/or end: ${JSON.stringify(f)}`,

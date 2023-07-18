@@ -62,11 +62,11 @@ async function fetchValidDescendantTerms(
 }
 
 export function AddFeature({
-  session,
-  handleClose,
-  sourceFeature,
-  sourceAssemblyId,
   changeManager,
+  handleClose,
+  session,
+  sourceAssemblyId,
+  sourceFeature,
 }: AddFeatureProps) {
   const { notify } = session
   const [end, setEnd] = useState(String(sourceFeature.end))

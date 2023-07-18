@@ -59,7 +59,7 @@ export class CanonicalGeneGlyph extends Glyph {
     row: number,
     reversed: boolean,
   ): void {
-    const { theme, lgv, session } = stateModel
+    const { lgv, session, theme } = stateModel
     const { bpPerPx } = lgv
     const rowHeight = stateModel.apolloRowHeight
     const utrHeight = Math.round(0.6 * rowHeight)
@@ -206,7 +206,7 @@ export class CanonicalGeneGlyph extends Glyph {
     if (!hover) {
       return
     }
-    const { topLevelFeature, mousePosition } = hover
+    const { mousePosition, topLevelFeature } = hover
     if (!(topLevelFeature && mousePosition)) {
       return
     }

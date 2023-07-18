@@ -41,7 +41,7 @@ function getMousePosition(
   }
   const x = clientX - left
   const y = clientY - top
-  const { refName, coord: bp, index: regionNumber } = lgv.pxToBp(x)
+  const { coord: bp, index: regionNumber, refName } = lgv.pxToBp(x)
   return { x, y, refName, bp, regionNumber }
 }
 
@@ -78,7 +78,7 @@ export function mouseEventsModelIntermediateFactory(
         event: CanvasMouseEvent,
       ): FeatureAndGlyphInfo {
         const mousePosition = getMousePosition(event, self.lgv)
-        const { y, bp, regionNumber } = mousePosition
+        const { bp, regionNumber, y } = mousePosition
         const row = Math.floor(y / self.apolloRowHeight)
         const featureLayout = self.featureLayouts[regionNumber]
         const layoutRow = featureLayout.get(row)
@@ -109,7 +109,7 @@ export function mouseEventsModelIntermediateFactory(
           )
         }
         event.stopPropagation()
-        const { feature, topLevelFeature, glyph, mousePosition } =
+        const { feature, glyph, mousePosition, topLevelFeature } =
           self.getFeatureAndGlyphUnderMouse(event)
         if (!mousePosition) {
           return
@@ -168,7 +168,7 @@ export function mouseEventsModelFactory(
   }))
     .actions((self) => ({
       startDrag(event: CanvasMouseEvent) {
-        const { feature, topLevelFeature, glyph, mousePosition } =
+        const { feature, glyph, mousePosition, topLevelFeature } =
           self.getFeatureAndGlyphUnderMouse(event)
         if (feature && topLevelFeature && glyph && mousePosition) {
           self.apolloDragging = {
@@ -188,7 +188,7 @@ export function mouseEventsModelFactory(
     }))
     .actions((self) => ({
       onMouseDown(event: CanvasMouseEvent) {
-        const { glyph, feature, topLevelFeature } =
+        const { feature, glyph, topLevelFeature } =
           self.getFeatureAndGlyphUnderMouse(event)
         if (glyph && feature && topLevelFeature) {
           glyph.onMouseDown(self, event)

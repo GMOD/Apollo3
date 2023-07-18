@@ -87,9 +87,9 @@ export const ApolloRefSeq = types
   .views((self) => ({
     getSequence(start: number, stop: number): string {
       for (const {
+        sequence,
         start: seqStart,
         stop: seqStop,
-        sequence,
       } of self.sequence) {
         // adjacent to existing sequence - modify
         if (start <= seqStop && stop >= seqStart) {

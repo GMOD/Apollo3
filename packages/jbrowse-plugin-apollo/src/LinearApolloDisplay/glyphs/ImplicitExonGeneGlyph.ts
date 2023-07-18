@@ -57,7 +57,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
     row: number,
     reversed?: boolean,
   ): void {
-    const { theme, lgv, session } = stateModel
+    const { lgv, session, theme } = stateModel
     const { bpPerPx } = lgv
     const rowHeight = stateModel.apolloRowHeight
     const utrHeight = Math.round(0.6 * rowHeight)
@@ -152,15 +152,15 @@ export class ImplicitExonGeneGlyph extends Glyph {
     const {
       apolloHover,
       apolloRowHeight,
+      displayedRegions,
       featureLayouts,
       lgv,
-      displayedRegions,
       theme,
     } = stateModel
     if (!apolloHover) {
       return
     }
-    const { topLevelFeature, mousePosition } = apolloHover
+    const { mousePosition, topLevelFeature } = apolloHover
     if (!(topLevelFeature && mousePosition)) {
       return
     }
@@ -171,7 +171,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
     const layout = featureLayouts[regionNumber]
     const row = layout.get(rowNumber)
 
-    const { _id, start, end, length } = topLevelFeature
+    const { _id, end, length, start } = topLevelFeature
     const featureRowEntry = row?.find(([, feature]) => feature._id === _id)
     if (!featureRowEntry) {
       return

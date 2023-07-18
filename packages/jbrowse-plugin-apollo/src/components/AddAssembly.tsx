@@ -37,9 +37,9 @@ interface AddAssemblyProps {
 }
 
 export function AddAssembly({
-  session,
-  handleClose,
   changeManager,
+  handleClose,
+  session,
 }: AddAssemblyProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const { notify } = session

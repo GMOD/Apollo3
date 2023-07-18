@@ -34,18 +34,18 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const theme = useTheme()
   const { model } = props
   const {
-    featuresHeight,
-    setCanvas,
-    setOverlayCanvas,
-    setCollaboratorCanvas,
-    onMouseMove,
-    onMouseLeave,
-    onMouseDown,
-    onMouseUp,
-    cursor,
-    setTheme,
     contextMenuItems: getContextMenuItems,
+    cursor,
+    featuresHeight,
+    onMouseDown,
+    onMouseLeave,
+    onMouseMove,
+    onMouseUp,
     regionCannotBeRendered,
+    setCanvas,
+    setCollaboratorCanvas,
+    setOverlayCanvas,
+    setTheme,
   } = model
   const { classes } = useStyles()
   const lgv = getContainingView(model) as unknown as LinearGenomeViewModel

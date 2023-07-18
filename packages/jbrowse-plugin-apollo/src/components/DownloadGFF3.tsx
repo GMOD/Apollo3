@@ -137,11 +137,11 @@ function makeGFF3Feature(
   })
 }
 
-export function DownloadGFF3({ session, handleClose }: DownloadGFF3Props) {
+export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
   const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
   const [errorMessage, setErrorMessage] = useState('')
 
-  const { collaborationServerDriver, inMemoryFileDriver, getInternetAccount } =
+  const { collaborationServerDriver, getInternetAccount, inMemoryFileDriver } =
     session.apolloDataStore as {
       collaborationServerDriver: CollaborationServerDriver
       inMemoryFileDriver: InMemoryFileDriver
@@ -240,7 +240,7 @@ export function DownloadGFF3({ session, handleClose }: DownloadGFF3Props) {
       'features',
     ]) as { refName: string; start: number; end: number; seq: string }[]
     for (const sequenceFeature of sequenceFeatures) {
-      const { refName, start, end } = sequenceFeature
+      const { end, refName, start } = sequenceFeature
       gff3Items.push({
         directive: 'sequence-region',
         value: `${refName} ${start + 1} ${end}`,

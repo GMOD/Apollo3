@@ -45,10 +45,10 @@ interface TermValue {
 // const hiliteRegex = /(?<=<em class="hilite">)(.*?)(?=<\/em>)/g
 
 function TermTagWithTooltip({
-  termId,
-  index,
   getTagProps,
+  index,
   ontology,
+  termId,
 }: {
   termId: string
   index: number
@@ -104,12 +104,12 @@ function TermTagWithTooltip({
 }
 
 export function OntologyTermMultiSelect({
-  value: initialValue,
-  session,
+  includeDeprecated,
   onChange,
   ontologyName,
   ontologyVersion,
-  includeDeprecated,
+  session,
+  value: initialValue,
 }: {
   session: ReturnType<typeof getSession>
   value: string[]
@@ -283,7 +283,7 @@ export function OntologyTermMultiSelect({
 }
 
 function HighlightedText(props: { str: string; search: string }) {
-  const { str, search } = props
+  const { search, str } = props
 
   const highlights = highlightMatch(str, search, {
     insideWords: true,
@@ -311,7 +311,7 @@ function Option(props: {
   inputValue: string
   option: TermValue
 }) {
-  const { option, inputValue, ontologyManager, ...other } = props
+  const { inputValue, ontologyManager, option, ...other } = props
   const matches = option.matches ?? []
   const fields = matches
     .filter((match) => match.field.jsonPath !== '$.lbl')

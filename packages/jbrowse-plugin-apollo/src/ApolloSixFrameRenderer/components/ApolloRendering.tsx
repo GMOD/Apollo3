@@ -84,7 +84,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     useState(false)
   const [collaborators, setCollaborators] = useState<Collaborator[]>([])
 
-  const { regions, bpPerPx, displayModel } = props
+  const { bpPerPx, displayModel, regions } = props
   const session = getSession(displayModel)
   const { collaborators: collabs } = session
 
@@ -95,22 +95,22 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const [region] = regions
   const totalWidth = (region.end - region.start) / bpPerPx
   const {
-    featureLayout,
-    codonLayout,
     apolloFeatureUnderMouse,
-    setApolloFeatureUnderMouse,
+    apolloRowHeight: height,
     apolloRowUnderMouse,
-    setApolloRowUnderMouse,
     changeManager,
-    getAssemblyId,
-    selectedFeature,
-    setSelectedFeature,
+    codonLayout,
+    featureLayout,
     features,
     featuresHeight: totalHeight,
-    apolloRowHeight: height,
+    getAssemblyId,
+    selectedFeature,
+    setApolloFeatureUnderMouse,
+    setApolloRowUnderMouse,
+    setSelectedFeature,
+    showIntronLines: showLines,
     showStartCodons: showStarts,
     showStopCodons: showStops,
-    showIntronLines: showLines,
   } = displayModel
   // use this to convince useEffect that the features really did change
   const featureSnap = Array.from(features.values()).map((a) =>
@@ -368,7 +368,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
         return
       }
       for (const location of locations) {
-        const { start, end } = location
+        const { end, start } = location
         const locationStart = region.reversed
           ? region.end - start
           : start - region.start
@@ -513,7 +513,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
       }
     } else if (dragging) {
       const assembly = getAssemblyId(region.assemblyName)
-      const { feature, bp, edge } = dragging
+      const { bp, edge, feature } = dragging
       let change: LocationEndChange | LocationStartChange
       if (edge === 'end') {
         const featureId = feature._id

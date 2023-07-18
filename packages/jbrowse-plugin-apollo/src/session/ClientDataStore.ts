@@ -222,7 +222,7 @@ export function clientDataStoreFactory(
       }),
       loadRefSeq: flow(function* loadRefSeq(regions: Region[]) {
         for (const region of regions) {
-          const { seq, refSeq } = yield (
+          const { refSeq, seq } = yield (
             self as unknown as { backendDriver: BackendDriver }
           ).backendDriver.getSequence(region)
           const { assemblyName, refName } = region

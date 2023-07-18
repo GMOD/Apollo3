@@ -47,9 +47,9 @@ interface ApolloRootModel extends AbstractRootModel {
 }
 
 export function ManageUsers({
-  session,
-  handleClose,
   changeManager,
+  handleClose,
+  session,
 }: ManageUsersProps) {
   const { internetAccounts } = getRoot(session) as ApolloRootModel
   const apolloInternetAccounts = internetAccounts.filter(

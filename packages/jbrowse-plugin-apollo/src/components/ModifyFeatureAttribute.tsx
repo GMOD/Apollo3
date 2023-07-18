@@ -91,7 +91,7 @@ const reservedTerms = [
 ]
 
 function CustomAttributeValueEditor(props: AttributeValueEditorProps) {
-  const { value, onChange } = props
+  const { onChange, value } = props
   return (
     <TextField
       type="text"
@@ -112,11 +112,11 @@ export interface GOTerm {
 }
 
 export function ModifyFeatureAttribute({
-  session,
-  handleClose,
-  sourceFeature,
-  sourceAssemblyId,
   changeManager,
+  handleClose,
+  session,
+  sourceAssemblyId,
+  sourceFeature,
 }: ModifyFeatureAttributeProps) {
   const { notify } = session
 

@@ -104,9 +104,9 @@ const ResizeHandle = ({
 }
 
 const AccordionControl = observer(function AccordionControl({
-  open,
   onClick,
   onResize,
+  open,
   title,
 }: {
   open: boolean

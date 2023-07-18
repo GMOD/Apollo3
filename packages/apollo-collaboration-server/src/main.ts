@@ -25,9 +25,9 @@ async function bootstrap() {
   const {
     CORS,
     LOG_LEVELS,
-    PORT,
     MONGODB_URI,
     MONGODB_URI_FILE,
+    PORT,
     SESSION_SECRET,
     SESSION_SECRET_FILE,
   } = process.env

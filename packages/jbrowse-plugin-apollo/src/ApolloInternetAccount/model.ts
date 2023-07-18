@@ -170,7 +170,7 @@ const stateModelFactory = (
           notify('You are disconnected from the Apollo server.', 'error')
         })
         socket.on('USER_LOCATION', (message) => {
-          const { channel, userName, userSessionId, locations } = message
+          const { channel, locations, userName, userSessionId } = message
           const user = getDecodedToken(token)
           const localSessionId = makeUserSessionId(user)
           if (channel === 'USER_LOCATION' && userSessionId !== localSessionId) {
@@ -183,7 +183,7 @@ const stateModelFactory = (
           }
         })
         socket.on('REQUEST_INFORMATION', (message) => {
-          const { channel, userToken, reqType } = message
+          const { channel, reqType, userToken } = message
           if (channel === 'REQUEST_INFORMATION' && userToken !== token) {
             switch (reqType) {
               case 'CURRENT_LOCATION':
@@ -462,7 +462,7 @@ const stateModelFactory = (
               return
             }
             try {
-              const { getRole, authType } = self
+              const { authType, getRole } = self
               if (!authType) {
                 return
               }
@@ -554,9 +554,9 @@ const stateModelFactory = (
     }))
     .actions((self) => {
       const {
-        retrieveToken: superRetrieveToken,
         getFetcher: superGetFetcher,
         getPreAuthorizationInformation: superGetPreAuthorizationInformation,
+        retrieveToken: superRetrieveToken,
       } = self
       let authTypePromise: Promise<AuthType> | undefined = undefined
       return {
@@ -607,7 +607,7 @@ const stateModelFactory = (
                 } else {
                   authTypePromise = new Promise((resolve, reject) => {
                     const { session } = getRoot<ApolloRootModel>(self)
-                    const { baseURL, name, allowGuestUser } = self
+                    const { allowGuestUser, baseURL, name } = self
                     session.queueDialog((doneCallback: () => void) => [
                       AuthTypeSelector,
                       {

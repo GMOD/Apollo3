@@ -40,9 +40,9 @@ export class TypeChange extends FeatureChange {
   }
 
   toJSON(): SerializedTypeChange {
-    const { changes, changedIds, typeName, assembly } = this
+    const { assembly, changedIds, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ featureId, oldType, newType }] = changes
+      const [{ featureId, newType, oldType }] = changes
       return { typeName, changedIds, assembly, featureId, oldType, newType }
     }
     return { typeName, changedIds, assembly, changes }
@@ -136,7 +136,7 @@ export class TypeChange extends FeatureChange {
   }
 
   getInverse() {
-    const { changes, changedIds, typeName, assembly, logger } = this
+    const { assembly, changedIds, changes, logger, typeName } = this
     const inverseChangedIds = changedIds.slice().reverse()
     const inverseChanges = changes
       .slice()

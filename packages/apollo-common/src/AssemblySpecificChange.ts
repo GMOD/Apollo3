@@ -33,7 +33,7 @@ export abstract class AssemblySpecificChange extends Change {
     backend: ServerDataStore,
   ) {
     const { logger } = this
-    const { refSeqModel, refSeqChunkModel, filesService, user } = backend
+    const { filesService, refSeqChunkModel, refSeqModel, user } = backend
     const { CHUNK_SIZE } = process.env
     const customChunkSize = CHUNK_SIZE && Number(CHUNK_SIZE)
     let chunkIndex = 0
@@ -258,16 +258,16 @@ function createFeature(
 ): AnnotationFeatureSnapshot {
   const [firstFeature] = gff3Feature
   const {
-    seq_id: refName,
-    type,
-    start,
-    end,
-    strand,
-    score,
-    phase,
-    child_features: childFeatures,
-    source,
     attributes,
+    child_features: childFeatures,
+    end,
+    phase,
+    score,
+    seq_id: refName,
+    source,
+    start,
+    strand,
+    type,
   } = firstFeature
   if (!refName) {
     throw new Error(
@@ -299,7 +299,7 @@ function createFeature(
   }
   if (gff3Feature.length > 1) {
     feature.discontinuousLocations = gff3Feature.map((f) => {
-      const { start: subStart, end: subEnd, phase: locationPhase } = f
+      const { end: subEnd, phase: locationPhase, start: subStart } = f
       if (subStart === null || subEnd === null) {
         throw new Error(
           `feature does not have start and/or end: ${JSON.stringify(f)}`,

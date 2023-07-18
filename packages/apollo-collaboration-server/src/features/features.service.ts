@@ -151,7 +151,7 @@ export class FeaturesService {
 
   async getFeatureCount(featureCountRequest: FeatureCountRequest) {
     let count = 0
-    const { assemblyId, refSeqId, start, end } = featureCountRequest
+    const { assemblyId, end, refSeqId, start } = featureCountRequest
     const filter: Record<
       string,
       number | string | { $lte: number } | { $gte: number }
@@ -305,7 +305,7 @@ export class FeaturesService {
   }
 
   async searchFeatures(searchDto: { term: string; assemblies: string }) {
-    const { term, assemblies } = searchDto
+    const { assemblies, term } = searchDto
     const assemblyIds = assemblies.split(',')
     const refSeqs = await this.refSeqModel
       .find({ assembly: assemblyIds })

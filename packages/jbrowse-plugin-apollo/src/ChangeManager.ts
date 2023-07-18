@@ -22,7 +22,7 @@ export class ChangeManager {
   recentChanges: Change[] = []
 
   async submit(change: Change, opts: SubmitOpts = {}) {
-    const { submitToBackend = true, addToRecents = true } = opts
+    const { addToRecents = true, submitToBackend = true } = opts
     // pre-validate
     const session = getSession(this.dataStore)
     const result = await validationRegistry.frontendPreValidate(change)
@@ -55,7 +55,7 @@ export class ChangeManager {
 
     if (submitToBackend) {
       // submit to driver
-      const { getBackendDriver, collaborationServerDriver } = this.dataStore
+      const { collaborationServerDriver, getBackendDriver } = this.dataStore
       const backendDriver = isAssemblySpecificChange(change)
         ? getBackendDriver(change.assembly)
         : collaborationServerDriver

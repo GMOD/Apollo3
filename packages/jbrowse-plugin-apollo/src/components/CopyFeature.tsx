@@ -35,10 +35,10 @@ interface Collection {
 }
 
 export function CopyFeature({
-  session,
-  handleClose,
-  sourceAssemblyId,
   changeManager,
+  handleClose,
+  session,
+  sourceAssemblyId,
   sourceFeature,
 }: CopyFeatureProps) {
   const { assemblyManager } = session

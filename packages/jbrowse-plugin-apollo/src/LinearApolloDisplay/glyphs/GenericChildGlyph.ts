@@ -42,7 +42,7 @@ export class GenericChildGlyph extends Glyph {
     reversed: boolean,
   ) {
     const features = this.featuresForRow(topLevelFeature)[row - topRow]
-    const { lgv, theme, apolloRowHeight, session } = stateModel
+    const { apolloRowHeight, lgv, session, theme } = stateModel
     const { bpPerPx } = lgv
     const { apolloSelectedFeature } = session
     const top = row * apolloRowHeight
@@ -84,7 +84,7 @@ export class GenericChildGlyph extends Glyph {
       }
     })
     if (features.length > 1) {
-      let [{ start, end }] = features
+      let [{ end, start }] = features
       features.forEach((feature) => {
         start = Math.min(start, feature.start)
         end = Math.max(end, feature.end)
@@ -98,7 +98,7 @@ export class GenericChildGlyph extends Glyph {
   }
 
   drawHover(stateModel: LinearApolloDisplay, ctx: CanvasRenderingContext2D) {
-    const { apolloHover, lgv, apolloRowHeight, displayedRegions } = stateModel
+    const { apolloHover, apolloRowHeight, displayedRegions, lgv } = stateModel
     if (!apolloHover) {
       return
     }
@@ -110,7 +110,7 @@ export class GenericChildGlyph extends Glyph {
     const displayedRegion = displayedRegions[regionNumber]
     const { refName, reversed } = displayedRegion
     const { bpPerPx, bpToPx, offsetPx } = lgv
-    const { start, end, length } = feature
+    const { end, length, start } = feature
     const startPx =
       (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
         ?.offsetPx ?? 0) - offsetPx
