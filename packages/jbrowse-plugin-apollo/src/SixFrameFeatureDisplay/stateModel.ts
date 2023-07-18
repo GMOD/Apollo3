@@ -285,7 +285,7 @@ export function stateModelFactory(
           const rowCount = 6
           for (let i = 0; i < rowCount; i++) {
             const newRowNumber = rows.length
-            rows[newRowNumber] = new Array(max - min)
+            rows[newRowNumber] = Array.from({ length: max - min })
             featureLayout.set(newRowNumber, [])
           }
           for (const feature of [...featuresForRefSeq.values()].sort(

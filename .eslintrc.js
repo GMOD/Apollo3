@@ -79,8 +79,7 @@ module.exports = {
     'unicorn/consistent-destructuring': 'off',
     'unicorn/filename-case': 'off',
     'unicorn/no-array-for-each': 'off',
-    'unicorn/no-empty-file': 'off',
-    'unicorn/no-new-array': 'off',
+    'unicorn/no-empty-file': 'off', // False positives
     'unicorn/no-null': 'off',
     'unicorn/prefer-array-some': 'off',
     'unicorn/prefer-module': 'off',

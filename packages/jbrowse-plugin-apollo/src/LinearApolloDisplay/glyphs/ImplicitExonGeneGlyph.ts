@@ -90,52 +90,64 @@ export class ImplicitExonGeneGlyph extends Glyph {
       const cdsCount = [...(mrna.children ?? [])].filter(
         ([, exonOrCDS]) => exonOrCDS.type === 'CDS',
       ).length
-      // eslint-disable-next-line unicorn/no-useless-undefined
-      new Array(cdsCount).fill(undefined).forEach(() => {
-        mrna.children?.forEach((cdsOrUTR: AnnotationFeatureI) => {
-          const isCDS = cdsOrUTR.type === 'CDS'
-          const isUTR = cdsOrUTR.type.endsWith('UTR')
-          if (!(isCDS || isUTR)) {
-            return
-          }
-          const offsetPx = (cdsOrUTR.start - feature.min) / bpPerPx
-          const widthPx = cdsOrUTR.length / bpPerPx
-          const startPx = reversed
-            ? xOffset - offsetPx - widthPx
-            : xOffset + offsetPx
-          ctx.fillStyle = theme?.palette.text.primary ?? 'black'
-          const top = (row + currentMRNA) * rowHeight
-          const height = isCDS ? cdsHeight : utrHeight
-          const cdsOrUTRTop = top + (rowHeight - height) / 2
-          ctx.fillRect(startPx, cdsOrUTRTop, widthPx, height)
-          if (widthPx > 2) {
-            ctx.clearRect(startPx + 1, cdsOrUTRTop + 1, widthPx - 2, height - 2)
-            ctx.fillStyle = isCDS ? 'rgb(255,165,0)' : 'rgb(211,211,211)'
-            ctx.fillRect(startPx + 1, cdsOrUTRTop + 1, widthPx - 2, height - 2)
-            if (forwardFill && backwardFill && strand) {
-              const reversal = reversed ? -1 : 1
-              const [topFill, bottomFill] =
-                strand * reversal === 1
-                  ? [forwardFill, backwardFill]
-                  : [backwardFill, forwardFill]
-              ctx.fillStyle = topFill
+      Array.from({ length: cdsCount })
+        // eslint-disable-next-line unicorn/no-useless-undefined
+        .fill(undefined)
+        .forEach(() => {
+          mrna.children?.forEach((cdsOrUTR: AnnotationFeatureI) => {
+            const isCDS = cdsOrUTR.type === 'CDS'
+            const isUTR = cdsOrUTR.type.endsWith('UTR')
+            if (!(isCDS || isUTR)) {
+              return
+            }
+            const offsetPx = (cdsOrUTR.start - feature.min) / bpPerPx
+            const widthPx = cdsOrUTR.length / bpPerPx
+            const startPx = reversed
+              ? xOffset - offsetPx - widthPx
+              : xOffset + offsetPx
+            ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+            const top = (row + currentMRNA) * rowHeight
+            const height = isCDS ? cdsHeight : utrHeight
+            const cdsOrUTRTop = top + (rowHeight - height) / 2
+            ctx.fillRect(startPx, cdsOrUTRTop, widthPx, height)
+            if (widthPx > 2) {
+              ctx.clearRect(
+                startPx + 1,
+                cdsOrUTRTop + 1,
+                widthPx - 2,
+                height - 2,
+              )
+              ctx.fillStyle = isCDS ? 'rgb(255,165,0)' : 'rgb(211,211,211)'
               ctx.fillRect(
                 startPx + 1,
                 cdsOrUTRTop + 1,
                 widthPx - 2,
-                (height - 2) / 2,
+                height - 2,
               )
-              ctx.fillStyle = bottomFill
-              ctx.fillRect(
-                startPx + 1,
-                cdsOrUTRTop + 1 + (height - 2) / 2,
-                widthPx - 2,
-                (height - 2) / 2,
-              )
+              if (forwardFill && backwardFill && strand) {
+                const reversal = reversed ? -1 : 1
+                const [topFill, bottomFill] =
+                  strand * reversal === 1
+                    ? [forwardFill, backwardFill]
+                    : [backwardFill, forwardFill]
+                ctx.fillStyle = topFill
+                ctx.fillRect(
+                  startPx + 1,
+                  cdsOrUTRTop + 1,
+                  widthPx - 2,
+                  (height - 2) / 2,
+                )
+                ctx.fillStyle = bottomFill
+                ctx.fillRect(
+                  startPx + 1,
+                  cdsOrUTRTop + 1 + (height - 2) / 2,
+                  widthPx - 2,
+                  (height - 2) / 2,
+                )
+              }
             }
-          }
+          })
         })
-      })
       currentMRNA += 1
     })
     const { apolloSelectedFeature } = session

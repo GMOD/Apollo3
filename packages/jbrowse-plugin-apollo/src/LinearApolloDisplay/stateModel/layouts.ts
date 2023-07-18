@@ -102,7 +102,7 @@ export function layoutsModelFactory(
               if (rowsForFeature.length < rowCount) {
                 for (let i = 0; i < rowCount - rowsForFeature.length; i++) {
                   const newRowNumber = rows.length
-                  rows[newRowNumber] = new Array(max - min)
+                  rows[newRowNumber] = Array.from({ length: max - min })
                   featureLayout.set(newRowNumber, [])
                 }
                 rowsForFeature = rows.slice(startingRow, startingRow + rowCount)

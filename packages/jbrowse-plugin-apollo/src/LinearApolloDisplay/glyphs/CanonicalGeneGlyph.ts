@@ -97,50 +97,52 @@ export class CanonicalGeneGlyph extends Glyph {
       const cdsCount = [...(mrna.children ?? [])].filter(
         ([, exonOrCDS]) => exonOrCDS.type === 'CDS',
       ).length
-      // eslint-disable-next-line unicorn/no-useless-undefined
-      new Array(cdsCount).fill(undefined).forEach(() => {
-        mrna.children?.forEach((exon: AnnotationFeatureI) => {
-          if (exon.type !== 'exon') {
-            return
-          }
-          const offsetPx = (exon.start - feature.min) / bpPerPx
-          const widthPx = exon.length / bpPerPx
-          const startPx = reversed
-            ? xOffset - offsetPx - widthPx
-            : xOffset + offsetPx
-          const top = (row + currentCDS) * rowHeight
-          const utrTop = top + (rowHeight - utrHeight) / 2
-          ctx.fillStyle = theme?.palette.text.primary ?? 'black'
-          ctx.fillRect(startPx, utrTop, widthPx, utrHeight)
-          if (widthPx > 2) {
-            ctx.clearRect(startPx + 1, utrTop + 1, widthPx - 2, utrHeight - 2)
-            ctx.fillStyle = 'rgb(211,211,211)'
-            ctx.fillRect(startPx + 1, utrTop + 1, widthPx - 2, utrHeight - 2)
-            if (forwardFill && backwardFill && strand) {
-              const reversal = reversed ? -1 : 1
-              const [topFill, bottomFill] =
-                strand * reversal === 1
-                  ? [forwardFill, backwardFill]
-                  : [backwardFill, forwardFill]
-              ctx.fillStyle = topFill
-              ctx.fillRect(
-                startPx + 1,
-                utrTop + 1,
-                widthPx - 2,
-                (utrHeight - 2) / 2,
-              )
-              ctx.fillStyle = bottomFill
-              ctx.fillRect(
-                startPx + 1,
-                utrTop + 1 + (utrHeight - 2) / 2,
-                widthPx - 2,
-                (utrHeight - 2) / 2,
-              )
+      Array.from({ length: cdsCount })
+        // eslint-disable-next-line unicorn/no-useless-undefined
+        .fill(undefined)
+        .forEach(() => {
+          mrna.children?.forEach((exon: AnnotationFeatureI) => {
+            if (exon.type !== 'exon') {
+              return
             }
-          }
+            const offsetPx = (exon.start - feature.min) / bpPerPx
+            const widthPx = exon.length / bpPerPx
+            const startPx = reversed
+              ? xOffset - offsetPx - widthPx
+              : xOffset + offsetPx
+            const top = (row + currentCDS) * rowHeight
+            const utrTop = top + (rowHeight - utrHeight) / 2
+            ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+            ctx.fillRect(startPx, utrTop, widthPx, utrHeight)
+            if (widthPx > 2) {
+              ctx.clearRect(startPx + 1, utrTop + 1, widthPx - 2, utrHeight - 2)
+              ctx.fillStyle = 'rgb(211,211,211)'
+              ctx.fillRect(startPx + 1, utrTop + 1, widthPx - 2, utrHeight - 2)
+              if (forwardFill && backwardFill && strand) {
+                const reversal = reversed ? -1 : 1
+                const [topFill, bottomFill] =
+                  strand * reversal === 1
+                    ? [forwardFill, backwardFill]
+                    : [backwardFill, forwardFill]
+                ctx.fillStyle = topFill
+                ctx.fillRect(
+                  startPx + 1,
+                  utrTop + 1,
+                  widthPx - 2,
+                  (utrHeight - 2) / 2,
+                )
+                ctx.fillStyle = bottomFill
+                ctx.fillRect(
+                  startPx + 1,
+                  utrTop + 1 + (utrHeight - 2) / 2,
+                  widthPx - 2,
+                  (utrHeight - 2) / 2,
+                )
+              }
+            }
+          })
+          currentCDS += 1
         })
-        currentCDS += 1
-      })
     })
     currentCDS = 0
     feature.children?.forEach((mrna: AnnotationFeatureI) => {
