@@ -88,8 +88,6 @@ module.exports = {
     'unicorn/prefer-add-event-listener': 'off',
     'unicorn/prefer-array-some': 'off',
     'unicorn/prefer-module': 'off',
-    'unicorn/prefer-set-has': 'off',
-    'unicorn/prefer-top-level-await': 'off',
     'unicorn/prevent-abbreviations': 'off',
     // Special case @typescript-eslint/eslint-plugin rule
     // Will be part of "plugin:@typescript-eslint/recommended-type-checked" when

@@ -400,7 +400,7 @@ export default class OntologyStore {
       { includeSubProperties: true },
       myTx,
     )
-    const relatingPropertyIds = relatingProperties.map((p) => p.id)
+    const relatingPropertyIds = new Set(relatingProperties.map((p) => p.id))
 
     // expand to search all the superclasses of the target terms
     const targetTermsWithSuperClasses = await arrayFromAsync(
@@ -415,7 +415,7 @@ export default class OntologyStore {
     const termIds = await this.recurseEdges(
       'by-object',
       targetTermsWithSuperClasses,
-      (edge) => relatingPropertyIds.includes(edge.pred),
+      (edge) => relatingPropertyIds.has(edge.pred),
       'sub',
       myTx as unknown as Transaction<['edges']>,
     )

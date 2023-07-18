@@ -308,20 +308,16 @@ export function stateModelFactory(
                       discontinuousLocations = [grandChildFeature]
                     }
                     for (const cds of discontinuousLocations) {
+                      const min = cds.start + 3
+                      const max = cds.end - 3
                       // Remove codons either end of feature when considering intersect.
-                      const featureRange: number[] = Array.from({
-                        length: cds.end - cds.start - 6,
-                      })
-                        // eslint-disable-next-line unicorn/no-useless-undefined
-                        .fill(undefined)
-                        .map((_, idx) => cds.start + 3 + idx)
                       for (const [row, { stops }] of this.codonLayout) {
                         if (
                           (row < 3 && feature.strand === 1) ||
                           (row >= 3 && feature.strand === -1)
                         ) {
-                          const filteredArray = stops.filter((value) =>
-                            featureRange.includes(value),
+                          const filteredArray = stops.filter(
+                            (value) => value >= min && value <= max,
                           )
                           if (filteredArray.length === 0) {
                             startingRow = row

@@ -100,6 +100,7 @@ async function bootstrap() {
     `Application is running on: ${await app.getUrl()}, CORS = ${cors}`,
   )
 }
+// eslint-disable-next-line unicorn/prefer-top-level-await
 void bootstrap()
 
 function convertToBoolean(input: string): boolean | undefined {
