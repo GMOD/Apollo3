@@ -23,22 +23,8 @@ module.exports = {
     },
   },
   rules: {
-    '@typescript-eslint/lines-between-class-members': [
-      'warn',
-      'always',
-      { exceptAfterSingleLine: true },
-    ],
-    '@typescript-eslint/no-extraneous-class': [
-      'error',
-      { allowWithDecorator: true },
-    ],
-    '@typescript-eslint/no-unused-vars': [
-      'error',
-      { argsIgnorePattern: '^_', ignoreRestSiblings: true },
-    ],
-    '@typescript-eslint/return-await': 'error',
+    // eslint built-in rules (override recommended)
     curly: 'warn',
-    'import/no-extraneous-dependencies': 'error',
     'new-cap': [
       'error',
       {
@@ -57,7 +43,7 @@ module.exports = {
     'object-shorthand': 'warn',
     'prefer-destructuring': 'warn',
     'prefer-template': 'warn',
-    'prettier/prettier': 'warn',
+    quotes: ['error', 'single', { avoidEscape: true }],
     radix: 'error',
     'spaced-comment': [
       'warn',
@@ -65,11 +51,34 @@ module.exports = {
       // allow TS /// directives
       { line: { markers: ['/'] } },
     ],
+    // @typescript-eslint/eslint-plugin rules (override recommended)
+    '@typescript-eslint/lines-between-class-members': [
+      'warn',
+      'always',
+      { exceptAfterSingleLine: true },
+    ],
+    '@typescript-eslint/no-extraneous-class': [
+      'error',
+      { allowWithDecorator: true },
+    ],
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      { argsIgnorePattern: '^_', ignoreRestSiblings: true },
+    ],
+    '@typescript-eslint/return-await': 'error',
+    // eslint-plugin-import rules (override recommended)
+    'import/no-extraneous-dependencies': 'error',
+    // eslint-plugin-prettier rules (override recommended)
+    'prettier/prettier': 'warn',
+    // eslint-plugin-tsdoc rules
     'tsdoc/syntax': 'warn',
-    // will be part of "plugin:@typescript-eslint/recommended-type-checked" when enabled
+    // Special case @typescript-eslint/eslint-plugin rule
+    // Will be part of "plugin:@typescript-eslint/recommended-type-checked" when
+    // that extension is enabled. Remove from here at that time.
     '@typescript-eslint/no-floating-promises': 'error',
   },
   overrides: [
+    // Only use React-specific lint rules in jbrowse-plugin-apollo
     {
       files: ['./packages/jbrowse-plugin-apollo/**/*.{ts,tsx}'],
       env: { browser: true },
@@ -81,23 +90,11 @@ module.exports = {
       settings: {
         // These settings are from eslint-plugin-react
         react: {
-          createClass: 'createReactClass', // Regex for Component Factory to use,
-          // default to "createReactClass"
-          pragma: 'React', // Pragma to use, default to "React"
-          fragment: 'Fragment', // Fragment to use (may be a property of <pragma>), default to "Fragment"
-          version: 'detect', // React version. "detect" automatically picks the version you have installed.
+          // React version. "detect" automatically picks the version you have installed.
           // You can also use `16.0`, `16.3`, etc, if you want to override the detected value.
           // It will default to "latest" and warn if missing, and to "detect" in the future
-          flowVersion: '0.53', // Flow version
+          version: 'detect',
         },
-        propWrapperFunctions: [
-          // The names of any function used to wrap propTypes, e.g. `forbidExtraProps`. If this isn't set, any propTypes wrapped in a function will be skipped.
-          'forbidExtraProps',
-          { property: 'freeze', object: 'Object' },
-          { property: 'myFavoriteWrapper' },
-          // for rules that check exact prop wrappers
-          { property: 'forbidExtraProps', exact: true },
-        ],
         componentWrapperFunctions: [
           // The name of any function used to wrap components, e.g. Mobx `observer` function. If this isn't set, components wrapped by these functions will be skipped.
           'observer', // `property`
@@ -105,18 +102,9 @@ module.exports = {
           { property: 'observer', object: 'Mobx' },
           { property: 'observer', object: '<pragma>' }, // sets `object` to whatever value `settings.react.pragma` is set to
         ],
-        formComponents: [
-          // Components used as alternatives to <form> for forms, eg. <Form endpoint={ url } />
-          'CustomForm',
-          { name: 'Form', formAttribute: 'endpoint' },
-        ],
-        linkComponents: [
-          // Components used as alternatives to <a> for linking, eg. <Link to={ url } />
-          'Hyperlink',
-          { name: 'Link', linkAttribute: 'to' },
-        ],
       },
     },
+    // Lint non-src files (e.g. jest.config.js) using a separate tsconfig
     {
       files: ['./packages/jbrowse-plugin-apollo/*.js'],
       parserOptions: {
@@ -124,14 +112,17 @@ module.exports = {
       },
       env: { node: true },
     },
+    // Specify Node env for cypress testing files
     {
       files: ['./packages/jbrowse-plugin-apollo/cypress/**/*.js'],
       env: { node: true },
     },
+    // Specify Node env for apollo-collaboration-server/
     {
       files: ['./packages/apollo-collaboration-server/**/*.ts'],
       env: { node: true },
     },
+    // Don't enforce tsdoc syntax in JS files
     {
       files: ['**/*.js'],
       rules: {
@@ -139,4 +130,4 @@ module.exports = {
       },
     },
   ],
-}
+};
