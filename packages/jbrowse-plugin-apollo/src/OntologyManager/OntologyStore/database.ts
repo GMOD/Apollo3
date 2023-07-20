@@ -30,13 +30,13 @@ export async function openDatabase(dbName: string) {
         )
       }
       if (!database.objectStoreNames.contains('meta')) {
-        database.createObjectStore('meta', { keyPath: 'graphId' })
+        database.createObjectStore('meta', { keyPath: 'id' })
       }
       if (!database.objectStoreNames.contains('nodes')) {
         database.createObjectStore('nodes', { keyPath: 'id' })
       }
       if (!database.objectStoreNames.contains('edges')) {
-        database.createObjectStore('edges', { keyPath: 'subj' })
+        database.createObjectStore('edges', { keyPath: 'sub' })
       }
     },
   })
@@ -55,7 +55,7 @@ export async function loadOboGraphJson(store: OntologyStore, db: Database) {
 
   const parseTime = Date.now()
 
-  const [graph, additionalGraphs] = oboGraph.graphs || []
+  const [graph, ...additionalGraphs] = oboGraph.graphs || []
   if (!graph) {
     return
   }

@@ -11,7 +11,7 @@ import {
   openDatabase,
 } from './database'
 
-type SourceLocation = UriLocation | LocalPathLocation | BlobLocation
+export type SourceLocation = UriLocation | LocalPathLocation | BlobLocation
 
 type SourceType = 'obo-graph-json' | 'obo' | 'owl'
 
@@ -47,6 +47,36 @@ export default class OntologyStore {
     this.db = this.prepareDatabase()
   }
 
+  /**
+   * check that the configuration of this ontology appears valid. Does not
+   * try to do any fetches, however.
+   */
+  validate() {
+    const errors = []
+
+    // validate the source's file type
+    const { sourceType } = this
+    if (!sourceType) {
+      errors.push(
+        new Error(
+          `unable to determine format of ontology source file ${JSON.stringify(
+            this.sourceLocation,
+          )}, file name must end with ".json", ".obo", or ".owl"`,
+        ),
+      )
+    } else if (sourceType !== 'obo-graph-json') {
+      errors.push(
+        new Error(
+          `ontology source file ${JSON.stringify(
+            this.sourceLocation,
+          )} has type ${sourceType}, which is not yet supported`,
+        ),
+      )
+    }
+
+    return errors
+  }
+
   get sourceType(): SourceType | undefined {
     if (isUriLocation(this.sourceLocation)) {
       if (this.sourceLocation.uri.endsWith('.json')) {
@@ -66,7 +96,11 @@ export default class OntologyStore {
   }
 
   async prepareDatabase() {
-    // check for our database being completely loaded
+    const errors = this.validate()
+    if (errors.length) {
+      throw errors
+    }
+
     const db = await openDatabase(this.dbName)
 
     // if database is already completely loaded, just return it
@@ -75,13 +109,6 @@ export default class OntologyStore {
     }
 
     const { sourceType } = this
-    if (!sourceType) {
-      throw new Error(
-        `unable to determine format of ontology source file ${JSON.stringify(
-          this.sourceLocation,
-        )}`,
-      )
-    }
     if (sourceType === 'obo-graph-json') {
       await loadOboGraphJson(this, db)
     } else {
@@ -93,5 +120,10 @@ export default class OntologyStore {
     }
 
     return db
+  }
+
+  async nodeCount() {
+    const tx = (await this.db).transaction('nodes')
+    return tx.objectStore('nodes').count()
   }
 }

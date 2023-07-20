@@ -5,5 +5,5 @@ module.exports = {
   testEnvironment: 'node',
   testPathIgnorePatterns: ['<rootDir>/cypress/'],
   automock: false,
-  setupFiles: ['./jestSetup.js'],
+  setupFiles: ['./jestSetup.js', 'fake-indexeddb/auto'],
 }
