@@ -61,8 +61,8 @@
     "clsx": "^1.1.1",
     "file-saver": "^2.0.5",
     "http-proxy-middleware": "^2.0.6",
-    "nanoid": "^4.0.2",
     "idb": "^7.1.1",
+    "nanoid": "^4.0.2",
     "regenerator-runtime": "^0.13.9",
     "socket.io-client": "^4.5.3",
     "tslib": "^2.0.3"
