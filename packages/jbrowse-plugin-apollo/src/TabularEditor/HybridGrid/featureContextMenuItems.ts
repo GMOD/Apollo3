@@ -11,7 +11,7 @@ import {
 } from '../../components'
 import { getApolloInternetAccount } from '../../util'
 
-export function FeatureContextMenuItems(
+export function featureContextMenuItems(
   feature: AnnotationFeatureI | undefined,
   region: {
     assemblyName: string
