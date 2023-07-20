@@ -11,6 +11,7 @@ import { autorun } from 'mobx'
 import { addDisposer, getRoot, types } from 'mobx-state-tree'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
+import { ApolloRootModel } from '../../types'
 import { TrackHeightMixin } from './trackHeightMixin'
 
 export function baseModelFactory(

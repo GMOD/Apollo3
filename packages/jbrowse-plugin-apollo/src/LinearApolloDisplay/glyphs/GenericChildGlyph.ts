@@ -103,7 +103,7 @@ export class GenericChildGlyph extends Glyph {
       return
     }
     const { feature, mousePosition } = apolloHover
-    if (!feature) {
+    if (!(feature && mousePosition)) {
       return
     }
     const { regionNumber, y } = mousePosition

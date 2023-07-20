@@ -14,7 +14,7 @@ const genericChildGlyph = new GenericChildGlyph()
 const implicitExonGeneGlyph = new ImplicitExonGeneGlyph()
 
 /** get the appropriate glyph for the given top-level feature */
-export function getGlyph(feature: AnnotationFeatureI): Glyph {
+export function getGlyph(feature: AnnotationFeatureI, _bpPerPx: number): Glyph {
   if (feature.type === 'gene') {
     let hasExon = false
     feature.children?.forEach((mrna: AnnotationFeatureI) => {

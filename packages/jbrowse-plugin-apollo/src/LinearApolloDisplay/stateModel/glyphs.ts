@@ -33,7 +33,7 @@ export default function Glyphs() {
           if (glyphForFeature) {
             return glyphForFeature
           }
-          const newGlyph = this.createGlyph(feature, bpPerPx)
+          const newGlyph = this.createGlyph()
           glyphsForZoomLevel.set(feature._id, newGlyph)
           return newGlyph
         },

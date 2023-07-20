@@ -56,7 +56,7 @@ export class OperationsService {
     )
     const operation = new OperationType(serializedOperation, { logger })
     const session = await this.connection.startSession()
-    const result = await operation.execute({
+    const result = (await operation.execute({
       typeName: 'Server',
       featureModel: this.featureModel,
       assemblyModel: this.assemblyModel,
@@ -70,7 +70,7 @@ export class OperationsService {
       pluginsService: this.pluginsService,
       ontology: this.ontologiesService.ontology,
       user: '',
-    })
+    })) as ReturnType<T['executeOnServer']>
     await session.endSession()
     return result
   }
