@@ -30,7 +30,7 @@ export async function openDatabase(dbName: string) {
         )
       }
       if (!database.objectStoreNames.contains('meta')) {
-        database.createObjectStore('meta', { keyPath: 'id' })
+        database.createObjectStore('meta')
       }
       if (!database.objectStoreNames.contains('nodes')) {
         database.createObjectStore('nodes', { keyPath: 'id' })
@@ -66,9 +66,9 @@ export async function loadOboGraphJson(store: OntologyStore, db: Database) {
   debugger
 
   const tx = db.transaction(['meta', 'nodes', 'edges'], 'readwrite')
-
-  // NOTE: all these .add promises are ignored because the transaction is
-  // monitoring them and the tx.done promise will reject if they fail
+  await tx.objectStore('meta').clear()
+  await tx.objectStore('nodes').clear()
+  await tx.objectStore('edges').clear()
 
   // load nodes
   const nodeStore = tx.objectStore('nodes')
@@ -81,33 +81,27 @@ export async function loadOboGraphJson(store: OntologyStore, db: Database) {
     await edgeStore.add(edge)
   }
 
-  // load graph meta data
-  if (graph.meta) {
-    const metaStore = tx.objectStore('meta')
-    // graph metadata
-    await metaStore.add({
-      id: graph.id || 'graph',
-      objectType: 'graph',
-      data: graph.meta,
-    })
-  }
-
   await tx.done
 
-  // record some metadata about this load operation
+  // record some metadata about this ontology and load operation
   const tx2 = db.transaction('meta', 'readwrite')
-  void tx2.objectStore('meta').add({
-    id: 'load',
-    objectType: 'database',
-    data: {
+  void tx2.objectStore('meta').add(
+    {
+      ontologyRecord: {
+        name: store.ontologyName,
+        version: store.ontologyVersion,
+        sourceLocation: store.sourceLocation,
+      },
+      graphMeta: graph.meta,
       timestamp: String(new Date()),
       schemaVersion,
       timings: {
-        fetchAndParse: parseTime - startTime,
-        loading: Date.now() - parseTime,
+        overall: Date.now() - startTime,
+        load: Date.now() - parseTime,
       },
     },
-  })
+    'meta',
+  )
 
   await tx2.done
   return
@@ -116,7 +110,6 @@ export async function loadOboGraphJson(store: OntologyStore, db: Database) {
 export async function isDatabaseCompletelyLoaded(db: Database) {
   // since metadata is loaded last, we use it as a signal that all the other data
   // was loaded
-  const tx = db.transaction('meta')
-  const count = await tx.objectStore('meta').count()
-  return count !== 0
+  const [meta] = await db.transaction('meta').objectStore('meta').getAll()
+  return !!meta
 }
