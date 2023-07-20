@@ -36,7 +36,7 @@ export async function openDatabase(dbName: string) {
         database.createObjectStore('nodes', { keyPath: 'id' })
       }
       if (!database.objectStoreNames.contains('edges')) {
-        database.createObjectStore('edges', { keyPath: 'sub' })
+        database.createObjectStore('edges', { autoIncrement: true })
       }
     },
   })
@@ -63,6 +63,8 @@ export async function loadOboGraphJson(store: OntologyStore, db: Database) {
     throw new Error('multiple graphs not supported')
   }
 
+  debugger
+
   const tx = db.transaction(['meta', 'nodes', 'edges'], 'readwrite')
 
   // NOTE: all these .add promises are ignored because the transaction is
@@ -71,19 +73,19 @@ export async function loadOboGraphJson(store: OntologyStore, db: Database) {
   // load nodes
   const nodeStore = tx.objectStore('nodes')
   for (const node of graph.nodes || []) {
-    void nodeStore.add(node)
+    await nodeStore.add(node)
   }
   // load edges
   const edgeStore = tx.objectStore('edges')
   for (const edge of graph.edges || []) {
-    void edgeStore.add(edge)
+    await edgeStore.add(edge)
   }
 
   // load graph meta data
   if (graph.meta) {
     const metaStore = tx.objectStore('meta')
     // graph metadata
-    void metaStore.add({
+    await metaStore.add({
       id: graph.id || 'graph',
       objectType: 'graph',
       data: graph.meta,
@@ -107,7 +109,8 @@ export async function loadOboGraphJson(store: OntologyStore, db: Database) {
     },
   })
 
-  return tx2.done
+  await tx2.done
+  return
 }
 
 export async function isDatabaseCompletelyLoaded(db: Database) {

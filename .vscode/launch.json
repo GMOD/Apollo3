@@ -12,6 +12,35 @@
       "runtimeExecutable": "yarn",
       "skipFiles": ["<node_internals>/**"],
       "type": "node"
-    }
+    },
+    {
+        "name": "All Jest Tests",
+        "type": "node",
+        "request": "launch",
+        "runtimeExecutable": "yarn",
+      "runtimeArgs": [
+          "run",
+          "--inspect-brk",
+          "test",
+          "--runInBand",
+        ],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen"
+      },
+      {
+        "name": "Current Jest Test",
+        "type": "node",
+        "request": "launch",
+        "runtimeExecutable": "yarn",
+      "runtimeArgs": [
+          "run",
+          "--inspect-brk",
+          "test",
+          "--runInBand",
+          "${relativeFile}"
+        ],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen"
+      }
   ]
 }
