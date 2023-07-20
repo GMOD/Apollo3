@@ -221,7 +221,7 @@ export class FeaturesService {
     // Now we need to find correct top level feature or sub-feature inside the feature
     const foundFeature = this.getFeatureFromId(topLevelFeature, featureId)
     if (!foundFeature) {
-      const errMsg = `ERROR when searching feature by featureId`
+      const errMsg = 'ERROR when searching feature by featureId'
       this.logger.error(errMsg)
       throw new NotFoundException(errMsg)
     }
@@ -247,7 +247,7 @@ export class FeaturesService {
     // Check if there is also childFeatures in parent feature and it's not empty
     // Let's get featureId from recursive method
     this.logger.debug(
-      `FeatureId was not found on top level so lets make recursive call...`,
+      'FeatureId was not found on top level so lets make recursive call...',
     )
     for (const [, childFeature] of feature.children ?? new Map()) {
       const subFeature = this.getFeatureFromId(childFeature, featureId)

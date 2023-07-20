@@ -51,7 +51,7 @@ export abstract class FeatureChange extends AssemblySpecificChange {
     // Check if there is also childFeatures in parent feature and it's not empty
     // Let's get featureId from recursive method
     logger.debug?.(
-      `FeatureId was not found on top level so lets make recursive call...`,
+      'FeatureId was not found on top level so lets make recursive call...',
     )
     for (const [, childFeature] of feature.children ?? new Map()) {
       const subFeature = this.getFeatureFromId(childFeature, featureId)

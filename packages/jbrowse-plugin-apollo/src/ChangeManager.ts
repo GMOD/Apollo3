@@ -53,7 +53,7 @@ export class ChangeManager {
       // submit to driver
       const { backendDriver } = this.dataStore
       if (!backendDriver) {
-        throw new Error(`No backendDriver set`)
+        throw new Error('No backendDriver set')
       }
       let backendResult: ValidationResultSet
       try {

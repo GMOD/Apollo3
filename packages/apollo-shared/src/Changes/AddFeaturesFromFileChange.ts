@@ -92,7 +92,7 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
         await this.addFeatureIntoDb(gff3Feature, backend)
       }
     }
-    logger.debug?.(`New features added into database!`)
+    logger.debug?.('New features added into database!')
   }
 
   async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {

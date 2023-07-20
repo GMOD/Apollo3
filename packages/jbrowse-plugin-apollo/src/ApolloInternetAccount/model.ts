@@ -148,7 +148,7 @@ const stateModelFactory = (
         const { notify } = session
         const token = self.retrieveToken()
         if (!token) {
-          throw new Error(`No Token found`)
+          throw new Error('No Token found')
         }
         const { socket } = self
         const { changeManager } = (session as ApolloSessionModel)
@@ -226,7 +226,7 @@ const stateModelFactory = (
           .apolloDataStore
         if (!self.lastChangeSequenceNumber) {
           throw new Error(
-            `No LastChangeSequence stored in session. Please, refresh you browser to get last updates from server`,
+            'No LastChangeSequence stored in session. Please, refresh you browser to get last updates from server',
           )
         }
         const { baseURL } = self

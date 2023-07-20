@@ -75,7 +75,7 @@ export class AuthorizationValidation extends Validation {
       return { validationName: this.name }
     }
 
-    const errMsg = `Not authorized!`
+    const errMsg = 'Not authorized!'
     logger.debug(errMsg)
     return { validationName: this.name, error: { message: errMsg } }
   }

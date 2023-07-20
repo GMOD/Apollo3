@@ -123,7 +123,7 @@ export class ChangesService {
         // Clean up old "temporary document" -documents
         // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
         this.logger.debug(
-          `*** INSERT DATA EXCEPTION - Start to clean up old temporary documents...`,
+          '*** INSERT DATA EXCEPTION - Start to clean up old temporary documents...',
         )
         await this.assemblyModel.deleteMany({
           $and: [{ status: -1, user: uniqUserId }],
@@ -164,7 +164,7 @@ export class ChangesService {
     // Set "temporary document" -status --> "valid" -status i.e. (-1 --> 0)
     await this.featureModel.db.transaction(async () => {
       this.logger.debug(
-        `Updates "temporary document" -status --> "valid" -status`,
+        'Updates "temporary document" -status --> "valid" -status',
       )
       try {
         // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
@@ -187,7 +187,7 @@ export class ChangesService {
       } catch (e) {
         // Clean up old "temporary document" -documents
         this.logger.debug(
-          `*** UPDATE STATUS EXCEPTION - Start to clean up old temporary documents...`,
+          '*** UPDATE STATUS EXCEPTION - Start to clean up old temporary documents...',
         )
         // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
         await this.assemblyModel.deleteMany({
@@ -270,7 +270,7 @@ export class ChangesService {
     const change = await changeCursor.exec()
 
     if (!change) {
-      const errMsg = `ERROR: The following change was not found in database....`
+      const errMsg = 'ERROR: The following change was not found in database....'
       this.logger.error(errMsg)
       throw new NotFoundException(errMsg)
     }
