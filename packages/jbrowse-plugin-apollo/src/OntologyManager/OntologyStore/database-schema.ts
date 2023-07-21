@@ -8,10 +8,12 @@ import {
 } from './obo-graph-json-schema'
 import { SourceLocation } from '.'
 
+/** metadata about this IndexedDB ontology database */
 export interface Meta {
   /** original OntologyManager record this was loaded from */
   ontologyRecord: {
     name: string
+    prefix: string
     version: string
     sourceLocation: SourceLocation
   }

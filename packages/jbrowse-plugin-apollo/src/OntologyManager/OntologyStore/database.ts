@@ -63,8 +63,6 @@ export async function loadOboGraphJson(store: OntologyStore, db: Database) {
     throw new Error('multiple graphs not supported')
   }
 
-  debugger
-
   const tx = db.transaction(['meta', 'nodes', 'edges'], 'readwrite')
   await tx.objectStore('meta').clear()
   await tx.objectStore('nodes').clear()
@@ -85,9 +83,10 @@ export async function loadOboGraphJson(store: OntologyStore, db: Database) {
 
   // record some metadata about this ontology and load operation
   const tx2 = db.transaction('meta', 'readwrite')
-  void tx2.objectStore('meta').add(
+  await tx2.objectStore('meta').add(
     {
       ontologyRecord: {
+        prefix: store.ontologyPrefix,
         name: store.ontologyName,
         version: store.ontologyVersion,
         sourceLocation: store.sourceLocation,

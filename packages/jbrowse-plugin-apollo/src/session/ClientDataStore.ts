@@ -1,4 +1,4 @@
-import { getConf } from '@jbrowse/core/configuration'
+import { getConf, readConfObject } from '@jbrowse/core/configuration'
 import { AppRootModel, Region, getSession } from '@jbrowse/core/util'
 import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
 import {
@@ -8,6 +8,7 @@ import {
   ApolloRefSeq,
 } from 'apollo-mst'
 import {
+  Instance,
   flow,
   getParentOfType,
   getRoot,
@@ -22,6 +23,8 @@ import {
   InMemoryFileDriver,
 } from '../BackendDrivers'
 import { ChangeManager } from '../ChangeManager'
+import ApolloPluginConfigurationSchema from '../config'
+import { OntologyManagerType } from '../OntologyManager'
 import { ApolloRootModel } from '../types'
 
 export function clientDataStoreFactory(
@@ -35,6 +38,10 @@ export function clientDataStoreFactory(
     .views((self) => ({
       get internetAccounts() {
         return (getRoot<ApolloRootModel>(self) as AppRootModel).internetAccounts
+      },
+      get pluginConfiguration() {
+        return (getRoot(self) as AppRootModel).jbrowse.configuration
+          .ApolloPlugin as Instance<typeof ApolloPluginConfigurationSchema>
       },
       getFeature(featureId: string) {
         return resolveIdentifier(
@@ -88,6 +95,25 @@ export function clientDataStoreFactory(
       inMemoryFileDriver: new InMemoryFileDriver(
         self as unknown as ClientDataStoreType,
       ),
+      ontologyManager: OntologyManagerType.create(),
+    }))
+    .actions((self) => ({
+      afterCreate() {
+        // if no ontologies are configured in the session snapshot, add the ontologies
+        // from our plugin configuration
+        const { ontologyManager } = self
+        if (!ontologyManager.ontologies.length) {
+          const configuredOntologies = self.pluginConfiguration.ontologies
+          for (const ont of configuredOntologies || []) {
+            ontologyManager.addOntology(
+              readConfObject(ont, 'name'),
+              readConfObject(ont, 'prefix'),
+              readConfObject(ont, 'version'),
+              readConfObject(ont, 'source'),
+            )
+          }
+        }
+      },
     }))
     .views((self) => ({
       getBackendDriver(assemblyId: string) {

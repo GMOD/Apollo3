@@ -35,12 +35,19 @@ function isBlobLocation(location: unknown): location is BlobLocation {
 
 /** query interface for a specific ontology */
 export default class OntologyStore {
+  ontologyPrefix: string
   ontologyName: string
   ontologyVersion: string
   sourceLocation: SourceLocation
   db: ReturnType<OntologyStore['prepareDatabase']>
 
-  constructor(name: string, version: string, source: SourceLocation) {
+  constructor(
+    name: string,
+    prefix: string,
+    version: string,
+    source: SourceLocation,
+  ) {
+    this.ontologyPrefix = prefix
     this.ontologyName = name
     this.ontologyVersion = version
     this.sourceLocation = source
@@ -92,7 +99,7 @@ export default class OntologyStore {
 
   /** base name of the IndexedDB database for this ontology */
   get dbName() {
-    return `Apollo Ontology "${this.ontologyName}" version "${this.ontologyVersion}"`
+    return `Apollo Ontology - ${this.ontologyName} ${this.ontologyVersion}`
   }
 
   async prepareDatabase() {

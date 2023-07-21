@@ -15,7 +15,20 @@
           "main": "#6b4e2b"
         }
       }
-    }
+    },
+    "ApolloPlugin": {
+        "ontologies": [
+            {
+                "name": "Gene Ontology",
+                "prefix": "GO",
+                "version": "goslim-generic",
+                "source": {
+                    "uri": "test_data/goslim_generic.json",
+                    "locationType": "UriLocation"
+                }
+            }
+        ]
+      }
   },
   "plugins": [
     {
@@ -23,6 +36,7 @@
       "url": "http://localhost:9000/dist/jbrowse-plugin-apollo.umd.development.js"
     }
   ],
+
   "internetAccounts": [
     {
       "type": "ApolloInternetAccount",

@@ -1,11 +1,10 @@
 import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
-import { getConf, readConfObject } from '@jbrowse/core/configuration'
+import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
-import { openLocation } from '@jbrowse/core/util/io'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { ClientDataStore as ClientDataStoreType, OboJson } from 'apollo-common'
+import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
 import { AnnotationFeature, AnnotationFeatureI } from 'apollo-mst'
 import { autorun, observable } from 'mobx'
 import { IAnyModelType, Instance, flow, getRoot, types } from 'mobx-state-tree'
@@ -15,12 +14,6 @@ import {
   UserLocation,
 } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
-import {
-  Stores,
-  addBatchData,
-  getStoreDataCount,
-  initDB,
-} from '../components/db'
 import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 import { clientDataStoreFactory } from './ClientDataStore'
@@ -241,7 +234,14 @@ export function extendSession(
           },
           { name: 'ApolloSession' },
         )
+        // END AUTORUN
+
+        // fetch and initialize assemblies for each of our Apollo internet accounts
         for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
+          if (internetAccount.type !== 'ApolloInternetAccount') {
+            continue
+          }
+
           const { baseURL } = internetAccount
           const uri = new URL('assemblies', baseURL).href
           const fetch = internetAccount.getFetcher({
@@ -343,7 +343,6 @@ export function extendSession(
             const a = yield assemblyManager.waitForAssembly(assemblyConfig.name)
             self.addApolloTrackConfig(a)
           }
-
         }
       }),
       beforeDestroy() {

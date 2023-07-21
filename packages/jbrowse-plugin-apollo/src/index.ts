@@ -29,6 +29,7 @@ import {
   configSchema as apolloSixFrameRendererConfigSchema,
 } from './ApolloSixFrameRenderer'
 import { DownloadGFF3, OpenLocalFile, ViewChangeLog } from './components'
+import ApolloPluginConfigurationSchema from './config'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
@@ -53,14 +54,7 @@ validationRegistry.registerValidation(new ParentChildValidation())
 export default class ApolloPlugin extends Plugin {
   name = 'ApolloPlugin'
   version = version
-  configurationSchema = ConfigurationSchema('ApolloPlugin', {
-    goLocation: {
-      type: 'fileLocation',
-      defaultValue: {
-        uri: '',
-      },
-    },
-  })
+  configurationSchema = ApolloPluginConfigurationSchema
 
   install(pluginManager: PluginManager) {
     installApolloSequenceAdapter(pluginManager)
