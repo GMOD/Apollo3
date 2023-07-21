@@ -20,13 +20,21 @@
         "ontologies": [
             {
                 "name": "Gene Ontology",
-                "prefix": "GO",
                 "version": "goslim-generic",
                 "source": {
                     "uri": "test_data/goslim_generic.json",
                     "locationType": "UriLocation"
                 }
-            }
+            },
+            {
+              "name": "Sequence Ontology",
+              "version": "3.1",
+              "source": {
+                  "uri": "test_data/so-v3.1.json",
+                  "locationType": "UriLocation"
+              }
+          }
+
         ]
       }
   },

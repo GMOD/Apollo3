@@ -1,5 +1,5 @@
 /** TS types for OBO Graph JSON (https://github.com/geneontology/obographs) */
-// started point generated with the help of https://transform.tools/json-schema-to-typescript
+// first generated with https://transform.tools/json-schema-to-typescript, then edited for conciseness
 export interface GraphDocument {
   '@context'?: unknown
   meta?: Meta

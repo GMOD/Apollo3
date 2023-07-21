@@ -107,7 +107,6 @@ export function clientDataStoreFactory(
           for (const ont of configuredOntologies || []) {
             ontologyManager.addOntology(
               readConfObject(ont, 'name'),
-              readConfObject(ont, 'prefix'),
               readConfObject(ont, 'version'),
               readConfObject(ont, 'source'),
             )

@@ -1,7 +1,7 @@
 import { openLocation } from '@jbrowse/core/util/io'
 import { IDBPDatabase, IDBPTransaction, openDB } from 'idb'
 
-import { OntologyDB } from './database-schema'
+import { OntologyDB } from './indexeddb-schema'
 import GraphDocument from './obo-graph-json-schema'
 import OntologyStore from '.'
 
@@ -63,46 +63,50 @@ export async function loadOboGraphJson(store: OntologyStore, db: Database) {
     throw new Error('multiple graphs not supported')
   }
 
-  const tx = db.transaction(['meta', 'nodes', 'edges'], 'readwrite')
-  await tx.objectStore('meta').clear()
-  await tx.objectStore('nodes').clear()
-  await tx.objectStore('edges').clear()
+  try {
+    const tx = db.transaction(['meta', 'nodes', 'edges'], 'readwrite')
+    await tx.objectStore('meta').clear()
+    await tx.objectStore('nodes').clear()
+    await tx.objectStore('edges').clear()
 
-  // load nodes
-  const nodeStore = tx.objectStore('nodes')
-  for (const node of graph.nodes || []) {
-    await nodeStore.add(node)
-  }
-  // load edges
-  const edgeStore = tx.objectStore('edges')
-  for (const edge of graph.edges || []) {
-    await edgeStore.add(edge)
-  }
+    // load nodes
+    const nodeStore = tx.objectStore('nodes')
+    for (const node of graph.nodes || []) {
+      await nodeStore.add(node)
+    }
+    // load edges
+    const edgeStore = tx.objectStore('edges')
+    for (const edge of graph.edges || []) {
+      await edgeStore.add(edge)
+    }
 
-  await tx.done
+    await tx.done
 
-  // record some metadata about this ontology and load operation
-  const tx2 = db.transaction('meta', 'readwrite')
-  await tx2.objectStore('meta').add(
-    {
-      ontologyRecord: {
-        prefix: store.ontologyPrefix,
-        name: store.ontologyName,
-        version: store.ontologyVersion,
-        sourceLocation: store.sourceLocation,
+    // record some metadata about this ontology and load operation
+    const tx2 = db.transaction('meta', 'readwrite')
+    await tx2.objectStore('meta').add(
+      {
+        ontologyRecord: {
+          name: store.ontologyName,
+          version: store.ontologyVersion,
+          sourceLocation: store.sourceLocation,
+        },
+        graphMeta: graph.meta,
+        timestamp: String(new Date()),
+        schemaVersion,
+        timings: {
+          overall: Date.now() - startTime,
+          load: Date.now() - parseTime,
+        },
       },
-      graphMeta: graph.meta,
-      timestamp: String(new Date()),
-      schemaVersion,
-      timings: {
-        overall: Date.now() - startTime,
-        load: Date.now() - parseTime,
-      },
-    },
-    'meta',
-  )
+      'meta',
+    )
 
-  await tx2.done
+    await tx2.done
+  } catch (e) {
+    await db.transaction('meta', 'readwrite').objectStore('meta').clear()
+    throw e
+  }
   return
 }
 

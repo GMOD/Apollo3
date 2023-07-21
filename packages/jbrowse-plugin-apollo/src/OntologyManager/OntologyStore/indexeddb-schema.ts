@@ -13,7 +13,6 @@ export interface Meta {
   /** original OntologyManager record this was loaded from */
   ontologyRecord: {
     name: string
-    prefix: string
     version: string
     sourceLocation: SourceLocation
   }
@@ -46,7 +45,7 @@ export interface OntologyDB extends DBSchema {
     value: OboGraphNode
   }
   edges: {
-    key: string
+    key: number
     value: OboGraphEdge
   }
 }

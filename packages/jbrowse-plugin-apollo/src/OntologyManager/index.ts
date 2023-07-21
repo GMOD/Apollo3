@@ -4,24 +4,37 @@ import {
   LocalPathLocation,
   UriLocation,
 } from '@jbrowse/core/util/types/mst'
-import { Instance, getSnapshot, types } from 'mobx-state-tree'
+import { autorun } from 'mobx'
+import { Instance, addDisposer, getSnapshot, types } from 'mobx-state-tree'
 
 import OntologyStore from './OntologyStore'
 
 export const OntologyRecordType = types
   .model('OntologyRecord', {
     name: types.string,
-    prefix: types.string,
     version: 'unversioned',
     source: types.union(LocalPathLocation, UriLocation, BlobLocation),
   })
-  .views((self) => ({
-    get dataStore() {
-      return new OntologyStore(
+  .volatile((self) => ({
+    dataStore: undefined as undefined | OntologyStore,
+  }))
+  .actions((self) => ({
+    ping() {
+      return // does nothing, just forces access
+    },
+    initDataStore() {
+      self.dataStore = new OntologyStore(
         self.name,
-        self.prefix,
         self.version,
         getSnapshot(self.source),
+      )
+    },
+    afterCreate() {
+      addDisposer(
+        self,
+        autorun(() => {
+          this.initDataStore()
+        }),
       )
     },
   }))
@@ -30,6 +43,7 @@ export const OntologyManagerType = types
   .model('OntologyManager', {
     // create, update, and delete ontologies
     ontologies: types.array(OntologyRecordType),
+    prefixes: types.map(types.string),
   })
   .views((self) => ({
     openOntology(name: string, version?: string) {
@@ -45,11 +59,13 @@ export const OntologyManagerType = types
   .actions((self) => ({
     addOntology(
       name: string,
-      prefix: string,
       version: string,
       source: Instance<typeof LocalPathLocation> | Instance<typeof UriLocation>,
     ) {
-      self.ontologies.push({ name, prefix, version, source })
+      const newlen = self.ontologies.push({ name, version, source })
+      // access it immediately to fire its lifecycle hooks
+      // (see https://github.com/mobxjs/mobx-state-tree/issues/1665)
+      self.ontologies[newlen - 1].ping()
     },
   }))
 
