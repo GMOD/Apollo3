@@ -8,6 +8,7 @@ import { autorun } from 'mobx'
 import { Instance, addDisposer, getSnapshot, types } from 'mobx-state-tree'
 
 import OntologyStore from './OntologyStore'
+import { Node } from './OntologyStore/obo-graph-json-schema'
 
 export const OntologyRecordType = types
   .model('OntologyRecord', {
@@ -46,14 +47,42 @@ export const OntologyManagerType = types
     prefixes: types.map(types.string),
   })
   .views((self) => ({
-    openOntology(name: string, version?: string) {
-      const ont = self.ontologies.find((record) => {
+    /**
+     * gets the OntologyRecord for the ontology we should be
+     * using for feature types (e.g. SO or maybe biotypes)
+     **/
+    get featureTypeOntology() {
+      // TODO: change this to read some configuration for which feature type ontology
+      // we should be using. currently hardcoded to use SO.
+      return this.findOntology('Sequence Ontology')
+    },
+
+    findOntology(name: string, version?: string) {
+      return self.ontologies.find((record) => {
         return (
           record.name === name &&
           (version === undefined || record.version === version)
         )
       })
-      return ont?.dataStore
+    },
+    openOntology(name: string, version?: string) {
+      return this.findOntology(name, version)?.dataStore
+    },
+    /**
+     * compact the given URI using the currently configured
+     * prefixes
+     */
+    applyPrefixes(uri: string) {
+      // TODO: compact the URI using our configured prefixes
+      return uri
+    },
+    /**
+     * expand the given compacted URI using the currently
+     * configured prefixes
+     */
+    expandPrefixes(uri: string) {
+      // TODO: expand the prefixes in the given URI
+      return uri
     },
   }))
   .actions((self) => ({
@@ -99,3 +128,5 @@ export const OntologyRecordConfiguration = ConfigurationSchema(
     },
   },
 )
+
+export type OntologyTerm = Node

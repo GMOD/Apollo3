@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`OntologyStore can load SO 1`] = `2629`;
+
+exports[`OntologyStore can load goslim aspergillus 1`] = `187`;
+
+exports[`OntologyStore can load goslim generic 1`] = `248`;

@@ -1,5 +1,5 @@
 import { openLocation } from '@jbrowse/core/util/io'
-import { IDBPDatabase, IDBPTransaction, openDB } from 'idb'
+import { IDBPDatabase, IDBPTransaction, deleteDB, openDB } from 'idb'
 
 import { OntologyDB } from './indexeddb-schema'
 import GraphDocument from './obo-graph-json-schema'
@@ -12,6 +12,7 @@ export type Database = IDBPDatabase<OntologyDB>
 
 /** open the IndexedDB and create the DB schema if necessary */
 export async function openDatabase(dbName: string) {
+  await deleteDB(dbName) // TODO: delete this
   return openDB<OntologyDB>(dbName, schemaVersion, {
     upgrade(
       database: IDBPDatabase<OntologyDB>,
@@ -34,9 +35,17 @@ export async function openDatabase(dbName: string) {
       }
       if (!database.objectStoreNames.contains('nodes')) {
         database.createObjectStore('nodes', { keyPath: 'id' })
+        const nodes = transaction.objectStore('nodes')
+        nodes.createIndex('by-label', 'lbl')
+        nodes.createIndex('by-type', 'type')
+        nodes.createIndex('by-synonym', ['meta', 'synonyms', 'val'])
       }
       if (!database.objectStoreNames.contains('edges')) {
         database.createObjectStore('edges', { autoIncrement: true })
+        const edges = transaction.objectStore('edges')
+        edges.createIndex('by-subject', 'sub')
+        edges.createIndex('by-object', 'obj')
+        edges.createIndex('by-predicate', 'pred')
       }
     },
   })
@@ -74,6 +83,7 @@ export async function loadOboGraphJson(store: OntologyStore, db: Database) {
     for (const node of graph.nodes || []) {
       await nodeStore.add(node)
     }
+
     // load edges
     const edgeStore = tx.objectStore('edges')
     for (const edge of graph.edges || []) {

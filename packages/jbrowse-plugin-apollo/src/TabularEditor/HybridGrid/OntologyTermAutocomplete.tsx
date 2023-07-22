@@ -1,10 +1,14 @@
+import { getSession } from '@jbrowse/core/util'
 import { Autocomplete } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
-import React, { useEffect, useState } from 'react'
+import { Instance } from 'mobx-state-tree'
+import React, { useEffect, useRef, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
-import { createFetchErrorMessage } from '../../util'
+import type OntologyManager from '../../OntologyManager'
+import { OntologyTerm } from '../../OntologyManager'
+import { DisplayStateModel } from '../types'
 
 const useStyles = makeStyles()({
   inputElement: {
@@ -14,13 +18,15 @@ const useStyles = makeStyles()({
 })
 
 export function OntologyTermAutocomplete(props: {
+  displayState: DisplayStateModel
   internetAccount: ApolloInternetAccountModel
   value: string
   feature: AnnotationFeatureI
   style?: React.CSSProperties
   onChange: (oldValue: string, newValue: string | null | undefined) => void
 }) {
-  const { value, style, feature, internetAccount, onChange } = props
+  const { value, style, feature, internetAccount, displayState, onChange } =
+    props
   const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>([])
   const [errorMessage, setErrorMessage] = useState('')
   const { classes } = useStyles()
@@ -30,8 +36,8 @@ export function OntologyTermAutocomplete(props: {
     const { signal } = controller
     async function getSOSequenceTerms() {
       const soTerms = await getValidTermsForFeature(
+        displayState,
         feature,
-        internetAccount,
         signal,
       )
       if (soTerms && !signal.aborted) {
@@ -46,7 +52,7 @@ export function OntologyTermAutocomplete(props: {
     return () => {
       controller.abort()
     }
-  }, [internetAccount, feature])
+  }, [displayState, feature])
 
   const handleChange = async (
     event: React.SyntheticEvent<Element, Event>,
@@ -93,46 +99,76 @@ export function OntologyTermAutocomplete(props: {
   )
 }
 
-/** a stupid, temporary cache layer until we have a proper ontology store */
-const responseCache = new Map<string, Promise<string[] | undefined>>()
+// async function oldValidTermsForFeature(
+//   displayState: DisplayStateModel,
+//   feature: AnnotationFeatureI,
+//   signal: AbortSignal,
+// ) {
+//   const { type, parent, children } = feature
+//   let endpoint = `/ontologies/equivalents/sequence_feature`
+//   if (parent) {
+//     endpoint = `/ontologies/descendants/${parent.type}`
+//   } else if (children?.size) {
+//     endpoint = `/ontologies/equivalents/${type}`
+//   }
+//   let responseP: Promise<string[] | undefined> | undefined
+//   if (responseCache.has(endpoint)) {
+//     responseP = responseCache.get(endpoint)
+//   } else {
+//     responseP = fetchValidTermsForFeature(endpoint, internetAccount, signal)
+//     responseCache.set(endpoint, responseP)
+//   }
+//   const response = await responseP
+//   return response
+// }
+
 async function getValidTermsForFeature(
+  displayState: DisplayStateModel,
   feature: AnnotationFeatureI,
-  internetAccount: ApolloInternetAccountModel,
   signal: AbortSignal,
-) {
+): Promise<string[] | undefined> {
+  const session = getSession(displayState)
+  const ontologyManager = session.apolloDataStore.ontologyManager as Instance<
+    typeof OntologyManager
+  >
+  const featureTypeOntology = ontologyManager.featureTypeOntology?.dataStore
+  if (!featureTypeOntology) {
+    return []
+  }
   const { type, parent, children } = feature
-  let endpoint = '/ontologies/equivalents/sequence_feature'
+
+  // const resultTerms = await featureTypeOntology.getAllTerms()
+  let resultTerms: OntologyTerm[] | undefined
   if (parent) {
-    endpoint = `/ontologies/descendants/${parent.type}`
-  } else if (children?.size) {
-    endpoint = `/ontologies/equivalents/${type}`
-  }
-  let responseP: Promise<string[] | undefined> | undefined
-  if (responseCache.has(endpoint)) {
-    responseP = responseCache.get(endpoint)
+    const [parentTypeTerm] =
+      await featureTypeOntology.getTermsWithLabelOrSynonym(parent.type)
+    if (parentTypeTerm) {
+      // find all the terms that are part_of the parent term
+      const [partOf] = await (
+        await featureTypeOntology.getTermsWithLabelOrSynonym('part_of')
+      ).filter((t) => t.type === 'PROPERTY')
+
+      
+    }
   } else {
-    responseP = fetchValidTermsForFeature(endpoint, internetAccount, signal)
-    responseCache.set(endpoint, responseP)
   }
-  const response = await responseP
-  return response
-}
-async function fetchValidTermsForFeature(
-  endpoint: string,
-  internetAccount: ApolloInternetAccountModel,
-  signal: AbortSignal,
-) {
-  const { baseURL, getFetcher } = internetAccount
-  const uri = new URL(endpoint, baseURL).href
-  const apolloFetch = getFetcher({ locationType: 'UriLocation', uri })
-  const response = await apolloFetch(uri, { method: 'GET', signal })
-  if (!response.ok) {
-    const newErrorMessage = await createFetchErrorMessage(
-      response,
-      'Error when retrieving ontologies from server',
-    )
-    throw new Error(newErrorMessage)
+  // const terms = parent
+  //   ? featureTypeOntology.getValidPartsOf(parent.type)
+  //   : featureTypeOntology.getStandaloneTerms()
+
+  if (!resultTerms) {
+    resultTerms = await featureTypeOntology.getAllTerms()
   }
-  const soTerms = (await response.json()) as string[] | undefined
-  return soTerms
+
+  return !resultTerms
+    ? []
+    : resultTerms
+        .map((t) => t.lbl || '(no label)')
+        // .map((term) => {
+        //   // make the term display name
+        //   return `${term.lbl || '(no label)'} ${ontologyManager.applyPrefixes(
+        //     term.id || '(no id)',
+        //   )}`
+        // })
+        .sort()
 }

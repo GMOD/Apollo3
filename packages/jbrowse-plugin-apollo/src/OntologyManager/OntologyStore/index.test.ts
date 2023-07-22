@@ -10,7 +10,7 @@ describe('OntologyStore', () => {
       localPath: `test_data/goslim_aspergillus.json`,
     })
 
-    expect(await o.nodeCount()).toBeGreaterThan(0)
+    expect(await o.nodeCount()).toMatchSnapshot()
   })
   it('can load goslim generic', async () => {
     const o = new OntologyStore('Gene Ontology', 'automated testing', {
@@ -18,6 +18,15 @@ describe('OntologyStore', () => {
       localPath: `test_data/goslim_generic.json`,
     })
 
-    expect(await o.nodeCount()).toBeGreaterThan(0)
+    expect(await o.nodeCount()).toMatchSnapshot()
+  })
+
+  it('can load SO', async () => {
+    const o = new OntologyStore('Sequence Ontology', 'automated testing', {
+      locationType: 'LocalPathLocation',
+      localPath: `test_data/so-v3.1.json`,
+    })
+
+    expect(await o.nodeCount()).toMatchSnapshot()
   })
 })

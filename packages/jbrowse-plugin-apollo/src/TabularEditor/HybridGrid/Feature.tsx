@@ -145,36 +145,44 @@ export const Feature = observer(function Feature({
             borderLeft: `${depth * 2}em solid transparent`,
           }}
         >
-          {feature.children?.size ? (
+          <td
+            style={{
+              whiteSpace: 'nowrap',
+              borderLeft: `${depth * 2}em solid transparent`,
+            }}
+          >
+            {feature.children?.size ? (
             // TODO: a11y
             // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
             <div
-              onClick={toggleExpanded}
-              className={
-                classes.arrow + (expanded ? ` ${classes.arrowExpanded}` : '')
-              }
-            >
-              ❯
-            </div>
-          ) : null}
-          <div className={classes.typeContent}>
-            <OntologyTermAutocomplete
-              feature={feature}
-              style={{ width: 170 }}
-              value={feature.type}
-              internetAccount={internetAccount}
-              onChange={(oldValue, newValue) => {
-                if (newValue) {
-                  handleFeatureTypeChange(
-                    displayState.changeManager,
-                    feature,
-                    oldValue,
-                    newValue,
-                  ).catch(notifyError)
+                onClick={toggleExpanded}
+                className={
+                  classes.arrow + (expanded ? ` ${classes.arrowExpanded}` : '')
                 }
-              }}
-            />
-          </div>
+              >
+                ❯
+              </div>
+            ) : null}
+            <div className={classes.typeContent}>
+              <OntologyTermAutocomplete
+                displayState={displayState}
+                feature={feature}
+                style={{ width: 170 }}
+                value={feature.type}
+                internetAccount={internetAccount}
+                onChange={(oldValue, newValue) => {
+                  if (newValue) {
+                    handleFeatureTypeChange(
+                      displayState.changeManager,
+                      feature,
+                      oldValue,
+                      newValue,
+                    ).catch(notifyError)
+                  }
+                }}
+              />
+            </div>
+          </td>
         </td>
         <td
           contentEditable={true}

@@ -43,9 +43,19 @@ export interface OntologyDB extends DBSchema {
   nodes: {
     key: string
     value: OboGraphNode
+    indexes: {
+      'by-label': string
+      'by-type': string
+      'by-synonym': string
+    }
   }
   edges: {
     key: number
     value: OboGraphEdge
+    indexes: {
+      'by-subject': string
+      'by-object': string
+      'by-predicate': string
+    }
   }
 }
