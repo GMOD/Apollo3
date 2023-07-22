@@ -13,7 +13,6 @@ import {
 import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import LinearProgress from '@mui/material/LinearProgress'
-
 import { AddFeaturesFromFileChange } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
