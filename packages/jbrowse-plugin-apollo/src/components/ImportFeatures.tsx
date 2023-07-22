@@ -10,10 +10,15 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material'
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import LinearProgress from '@mui/material/LinearProgress';
+
 import { AddFeaturesFromFileChange } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
+import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
 import { createFetchErrorMessage } from '../util'
 import { useAssemblies } from './'
@@ -37,6 +42,10 @@ export function ImportFeatures({
   const [assemblyId, setAssemblyId] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  // default is -1, submit button should be disabled until count is set
+  const [featuresCount, setFeaturesCount] = useState(-1)
+  const [deleteFeatures, setDeleteFeatures] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   function handleChangeAssembly(e: SelectChangeEvent<string>) {
     setSubmitted(false)
@@ -44,6 +53,63 @@ export function ImportFeatures({
     setAssemblyName(
       assemblies.find((i) => i._id === e.target.value)?.name as string,
     )
+  }
+
+  function handleDeleteFeatures(e: React.ChangeEvent<HTMLInputElement>) {
+    setDeleteFeatures(e.target.checked)
+  }
+
+  // fetch and set features count for selected assembly
+  useEffect(() => {
+    if (assemblyId) {
+      updateFeaturesCount()
+    }
+  }, [assemblyId])
+
+  function internetAccount() {
+    const apolloInternetAccounts = internetAccounts.filter(
+      (ia: { type: string }) => ia.type === 'ApolloInternetAccount',
+    ) as ApolloInternetAccountModel[]
+
+    if (apolloInternetAccounts && apolloInternetAccounts.length) {
+      return apolloInternetAccounts[0]
+    }
+  }
+
+  function updateFeaturesCount() {
+    const apolloInternetAccount = internetAccount()
+    if (!apolloInternetAccount) {
+      throw new Error('No Apollo internet account found')
+    }
+
+    const { baseURL } = apolloInternetAccount
+    const uri = new URL('/features/count', baseURL)
+    const searchParams = new URLSearchParams({
+      assemblyId,
+    })
+    uri.search = searchParams.toString()
+    const fetch = apolloInternetAccount?.getFetcher({
+      locationType: 'UriLocation',
+      uri: uri.toString(),
+    })
+
+    if (fetch) {
+      // sumbit might get enabled when we change assembly before loading features count
+      setFeaturesCount(-1)
+      setLoading(true)
+      fetch(uri, {
+        method: 'GET',
+      })
+        .then((res) => res.json())
+        .then((countObj: { count: number }) => {
+          setFeaturesCount(countObj.count)
+          setLoading(false)
+        })
+        .catch((err) => {
+          setFeaturesCount(0)
+          setLoading(false)
+        })
+    }
   }
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -59,6 +125,9 @@ export function ImportFeatures({
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
+    setLoading(true)
+    setSubmitted(true)
+
     // let fileChecksum = ''
     let fileId = ''
 
@@ -106,6 +175,7 @@ export function ImportFeatures({
       typeName: 'AddFeaturesFromFileChange',
       assembly: assemblyId,
       fileId,
+      deleteExistingFeatures: deleteFeatures,
     })
     await changeManager.submit(change)
     notify(`Features are being added to "${assemblyName}"`, 'info')
@@ -114,8 +184,10 @@ export function ImportFeatures({
   }
 
   return (
-    <Dialog open maxWidth="xl" data-testid="login-apollo">
+    <Dialog open maxWidth="xs" data-testid="login-apollo" fullWidth={true}>
       <DialogTitle>Import Features from GFF3 file</DialogTitle>
+      {loading ? <LinearProgress /> : null}
+
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText>Select assembly</DialogContentText>
@@ -131,6 +203,8 @@ export function ImportFeatures({
               </MenuItem>
             ))}
           </Select>
+        </DialogContent>
+        <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText>Upload GFF3 to load features</DialogContentText>
           <input
             type="file"
@@ -138,9 +212,37 @@ export function ImportFeatures({
             disabled={submitted && !errorMessage}
           />
         </DialogContent>
+
+        {featuresCount > 0 ? (
+          <DialogContent>
+            <DialogContentText>
+              This assembly already has {featuresCount} features, would you like
+              to delete the existing features before importing new ones?
+            </DialogContentText>
+            <FormControlLabel
+              label={
+                deleteFeatures
+                  ? 'Yes, delete existing features'
+                  : 'No, import without deleting existing features'
+              }
+              disabled={submitted && !errorMessage}
+              control={
+                <Checkbox
+                  checked={deleteFeatures}
+                  onChange={handleDeleteFeatures}
+                  inputProps={{ 'aria-label': 'controlled' }}
+                  color="warning"
+                />
+              }
+            />
+          </DialogContent>
+        ) : null}
+
         <DialogActions>
           <Button
-            disabled={!(assemblyId && file)}
+            disabled={
+              !(assemblyId && file && featuresCount !== -1) || submitted
+            }
             variant="contained"
             type="submit"
           >

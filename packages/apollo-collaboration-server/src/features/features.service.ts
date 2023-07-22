@@ -19,6 +19,7 @@ import StreamConcat from 'stream-concat'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { OperationsService } from '../operations/operations.service'
+import { FeatureCountRequest } from './dto/feature.dto'
 
 function makeGFF3Feature(
   featureDocument: Feature,
@@ -146,6 +147,41 @@ export class FeaturesService {
 
   findAll() {
     return this.featureModel.find().exec()
+  }
+
+  async getFeatureCount(featureCountRequest: FeatureCountRequest) {
+    let count = 0
+    const { assemblyId, refSeqId, start, end } = featureCountRequest
+    const filter: {
+      [key: string]: number | string | { $lte: number } | { $gte: number }
+    } = { status: 0 }
+
+    if (end) {
+      filter.start = { $lte: end }
+    }
+    if (start) {
+      filter.end = { $gte: start }
+    }
+
+    if (refSeqId) {
+      filter.refSeq = refSeqId
+      count = await this.featureModel.countDocuments(filter)
+    } else if (assemblyId) {
+      const refSeqs: RefSeqDocument[] = await this.refSeqModel
+        .find({ assembly: assemblyId })
+        .exec()
+
+      for (let i = 0; i < refSeqs.length; i++) {
+        filter.refSeq = refSeqs[i]._id
+        count += await this.featureModel.countDocuments(filter)
+      }
+    } else {
+      // returns count of all documents or in the range (start, end)
+      count = await this.featureModel.countDocuments(filter)
+    }
+
+    this.logger.debug(`Number of features is ${count}`)
+    return count
   }
 
   async getExportID(assembly: string) {

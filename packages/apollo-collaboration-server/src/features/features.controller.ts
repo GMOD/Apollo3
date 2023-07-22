@@ -13,6 +13,7 @@ import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { Public } from '../utils/jwt-auth.guard'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
+import { FeatureCountRequest, FeatureCountResponse } from './dto/feature.dto'
 import { FeaturesService } from './features.service'
 
 @Controller('features')
@@ -89,6 +90,18 @@ export class FeaturesController {
     )
 
     return this.featuresService.findByRange(request)
+  }
+
+  @Validations(Role.ReadOnly)
+  @Get('count')
+  async getFeatureCount(@Query() featureCountRequest: FeatureCountRequest) {
+    this.logger.debug(
+      `Get features count by ${JSON.stringify(featureCountRequest)}`,
+    )
+    const count = await this.featuresService.getFeatureCount(
+      featureCountRequest,
+    )
+    return { count }
   }
 
   /**
