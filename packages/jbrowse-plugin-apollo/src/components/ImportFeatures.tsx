@@ -10,9 +10,9 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material'
-import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import LinearProgress from '@mui/material/LinearProgress';
+import Checkbox from '@mui/material/Checkbox'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import LinearProgress from '@mui/material/LinearProgress'
 
 import { AddFeaturesFromFileChange } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
@@ -64,6 +64,7 @@ export function ImportFeatures({
     if (assemblyId) {
       updateFeaturesCount()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assemblyId])
 
   function internetAccount() {

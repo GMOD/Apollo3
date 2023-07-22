@@ -13,7 +13,7 @@ import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { Public } from '../utils/jwt-auth.guard'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
-import { FeatureCountRequest, FeatureCountResponse } from './dto/feature.dto'
+import { FeatureCountRequest } from './dto/feature.dto'
 import { FeaturesService } from './features.service'
 
 @Controller('features')
