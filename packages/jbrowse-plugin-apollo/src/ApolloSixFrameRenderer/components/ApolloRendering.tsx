@@ -185,14 +185,14 @@ function ApolloRendering(props: ApolloRenderingProps) {
           transcript[parentID] = []
         }
         if (
-          !transcript[parentID].find(
+          !transcript[parentID].some(
             (el) => el[0] === startPx && el[1] === lineY,
           )
         ) {
           transcript[parentID].push([startPx, lineY])
         }
         if (
-          !transcript[parentID].find((el) => el[0] === endPx && el[1] === lineY)
+          !transcript[parentID].some((el) => el[0] === endPx && el[1] === lineY)
         ) {
           transcript[parentID].push([endPx, lineY])
         }

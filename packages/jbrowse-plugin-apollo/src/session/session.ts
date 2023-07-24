@@ -100,10 +100,9 @@ export function extendSession(
       },
       addApolloTrackConfig(assembly: AssemblyModel, baseURL?: string) {
         const trackId = `apollo_track_${assembly.name}`
-        const hasTrack = Boolean(
+        const hasTrack =
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          self.tracks.find((track: any) => track.trackId === trackId),
-        )
+          self.tracks.some((track: any) => track.trackId === trackId)
         if (!hasTrack) {
           self.addTrackConf({
             type: 'ApolloTrack',

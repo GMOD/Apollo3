@@ -50,7 +50,7 @@ export class ParentChildValidation extends Validation {
         const errMsg = `ERROR: The following featureId was not found in database ='${featureId}'`
         throw new Error(errMsg)
       }
-      if (!topLevelFeatures.find((f) => f._id === topLevelFeature._id)) {
+      if (!topLevelFeatures.some((f) => f._id === topLevelFeature._id)) {
         topLevelFeatures.push(topLevelFeature)
       }
     }

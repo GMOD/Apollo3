@@ -81,8 +81,7 @@ module.exports = {
     'unicorn/no-array-for-each': 'off',
     'unicorn/no-empty-file': 'off', // False positives
     'unicorn/no-null': 'off',
-    'unicorn/prefer-array-some': 'off',
-    'unicorn/prefer-module': 'off',
+    'unicorn/prefer-module': 'off', // Cypress and apollo-collaboration-server need this
     'unicorn/prevent-abbreviations': 'off',
     // Special case @typescript-eslint/eslint-plugin rule
     // Will be part of "plugin:@typescript-eslint/recommended-type-checked" when

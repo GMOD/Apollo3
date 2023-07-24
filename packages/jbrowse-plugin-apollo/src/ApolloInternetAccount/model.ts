@@ -314,7 +314,7 @@ const stateModelFactory = (
         }
         const { menuItems } = apolloMenu
         if (
-          !menuItems.find(
+          !menuItems.some(
             (menuItem) =>
               'label' in menuItem && menuItem.label === 'Add Assembly',
           )
