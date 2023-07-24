@@ -34,6 +34,33 @@ export interface Meta {
   }
 }
 
+// a Node that goes in the DB must have id and type, so make a new type that specifies this
+export type OntologyDBNode = OboGraphNode & {
+  id: string
+  type: 'CLASS' | 'INDIVIDUAL' | 'PROPERTY'
+}
+export function isOntologyDBNode(node: OboGraphNode): node is OntologyDBNode {
+  return typeof node.id === 'string'
+}
+
+// an Edge that goes in our DB must have sub, pred, and obj, so make a new type and guard that specifies this
+export type OntologyDBEdge = OboGraphEdge & {
+  sub: string
+  pred: string
+  obj: string
+}
+export function isOntologyDBEdge(edge: OboGraphEdge): edge is OntologyDBEdge {
+  return (
+    typeof edge.sub === 'string' &&
+    typeof edge.pred === 'string' &&
+    typeof edge.obj === 'string'
+  )
+}
+
+export function isDeprecated(thing: OntologyDBNode | OntologyDBEdge) {
+  return Boolean(thing.meta?.deprecated)
+}
+
 /** schema types used to strongly-type using the `idb` type system */
 export interface OntologyDB extends DBSchema {
   meta: {
@@ -42,7 +69,7 @@ export interface OntologyDB extends DBSchema {
   }
   nodes: {
     key: string
-    value: OboGraphNode
+    value: OntologyDBNode
     indexes: {
       'by-label': string
       'by-type': string
@@ -51,7 +78,7 @@ export interface OntologyDB extends DBSchema {
   }
   edges: {
     key: number
-    value: OboGraphEdge
+    value: OntologyDBEdge
     indexes: {
       'by-subject': string
       'by-object': string

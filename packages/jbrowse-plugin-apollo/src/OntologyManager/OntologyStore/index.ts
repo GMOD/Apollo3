@@ -4,17 +4,32 @@ import {
   UriLocation,
   isUriLocation,
 } from '@jbrowse/core/util'
-import { IDBPTransaction } from 'idb'
+import { IDBPTransaction, IndexNames, StoreNames } from 'idb'
 
-import { OntologyDB } from './indexeddb-schema'
+import { isDeprecated, OntologyDB, OntologyDBEdge, OntologyDBNode } from './indexeddb-schema'
 import {
   isDatabaseCompletelyLoaded,
   loadOboGraphJson,
   openDatabase,
 } from './indexeddb-storage'
+import {
+  OntologyProperty,
+  OntologyTerm,
+  isOntologyProperty,
+  isOntologyTerm,
+} from '..'
 
 export type SourceLocation = UriLocation | LocalPathLocation | BlobLocation
 
+/** type alias for a Transaction on this particular DB schema */
+type Transaction<
+  TxStores extends ArrayLike<StoreNames<OntologyDB>> = ArrayLike<
+    StoreNames<OntologyDB>
+  >,
+  Mode extends IDBTransactionMode = 'readonly',
+> = IDBPTransaction<OntologyDB, TxStores, Mode>
+
+/** the format of the loading data source */
 type SourceType = 'obo-graph-json' | 'obo' | 'owl'
 
 /**
@@ -124,65 +139,254 @@ export default class OntologyStore {
     return db
   }
 
-  async nodeStore(tx?: IDBPTransaction<OntologyDB, ['nodes']>) {
-    return (tx || (await this.db).transaction('nodes')).objectStore('nodes')
+  async nodeCount(tx?: Transaction<['nodes']>) {
+    const myTx = tx || (await this.db).transaction('nodes')
+    return myTx.objectStore('nodes').count()
   }
 
-  async nodeCount(tx?: IDBPTransaction<OntologyDB, ['nodes']>) {
-    const nodes = await this.nodeStore(tx)
-    return nodes.count()
+  private async unique<ITEM extends { id: string }>(nodes: ITEM[]) {
+    const seen = new Map<string, boolean>()
+    const result: ITEM[] = []
+    for (const node of nodes) {
+      if (!seen.has(node.id)) {
+        seen.set(node.id, true)
+        result.push(node)
+      }
+    }
+    return result
   }
 
-  async getTermsWithLabelOrSynonym(
+  async getNodesWithLabelOrSynonym(
     termLabelOrSynonym: string,
-    tx?: IDBPTransaction<OntologyDB, ['nodes']>,
-  ) {
-    const nodes = await this.nodeStore(tx)
-    const labeled = nodes.index('by-label').getAll(termLabelOrSynonym)
-    const synonymed = await nodes.index('by-synonym').getAll(termLabelOrSynonym)
-    return (await labeled).concat(synonymed)
+    tx?: Transaction<['nodes', 'edges']>,
+  ): Promise<OntologyDBNode[]> {
+    const myTx = tx || (await this.db).transaction(['nodes', 'edges'])
+    const nodes = myTx.objectStore('nodes')
+    const resultNodes = (
+      await nodes.index('by-label').getAll(termLabelOrSynonym)
+    ).concat(await nodes.index('by-synonym').getAll(termLabelOrSynonym))
+
+    // now recursively traverse is_a relations to gather nodes that are subclasses any of these
+    const subclassIds = await this.recurseEdges(
+      'by-object',
+      resultNodes.map((n) => n.id),
+      (edge) => edge.pred === 'is_a',
+      'sub',
+      myTx as unknown as Transaction<['edges']>,
+    )
+    for (const nodeId of subclassIds) {
+      const node = await nodes.get(nodeId)
+      if (node) {
+        resultNodes.push(node)
+      }
+    }
+
+    return resultNodes
   }
 
   async getValidPartsOf(termId: string) {
     return
   }
 
-  async getPropertyAndSubPropertiesByLabel(propertyLabel: string) {
-    const tx = (await this.db).transaction(['nodes', 'edges'])
-    const edges = tx.objectStore('edges')
-    const nodes = tx.objectStore('nodes')
-    const mainProperties = (
-      await this.getTermsWithLabelOrSynonym(
-        propertyLabel,
-        tx as unknown as IDBPTransaction<OntologyDB, ['nodes']>,
-      )
-    ).filter((t) => t.type === 'PROPERTY')
-    const allProperties = (
-      await Promise.all(
-        mainProperties.map(async (propertyNode) => {
-          const subPropertyIds = (
-            await edges.index('by-object').getAll(propertyNode.id)
-          )
-            .filter((p) => p.pred === 'subPropertyOf')
-            .map((p) => p.sub)
-            .filter((id) => !!id) as string[]
-          const subPropertyTerms = await Promise.all(
-            subPropertyIds.map((id) => nodes.get(id)),
-          )
-          return subPropertyTerms
-        }),
-      )
-    )
-      .flat()
-      .filter((n) => !!n)
+  /**
+   * Get the ontology term for the property with the given label,
+   * plus all the terms for the properties that are "subPropertyOf"
+   * that property.
+   *
+   * If there is more than one property with that label, treats it as
+   * equivalent and just returns all the properties and their subproperties.
+   */
+  async getPropertyAndSubPropertiesByLabel(
+    propertyLabel: string,
+    tx?: Transaction<['nodes', 'edges']>,
+  ): Promise<OntologyProperty[]> {
+    const myTx = tx || (await this.db).transaction(['nodes', 'edges'])
+    // const edges = myTx.objectStore('edges')
+    const nodes = myTx.objectStore('nodes')
+    const result = (
+      await this.getNodesWithLabelOrSynonym(propertyLabel, myTx)
+    ).filter((p): p is OntologyProperty => isOntologyProperty(p))
 
-    return allProperties as unknown as Node[]
+    const subpropertyIds = await this.recurseEdges(
+      'by-object',
+      result.map((p) => p.id),
+      (edge) => edge.pred === 'subPropertyOf',
+      'sub',
+      myTx as unknown as Transaction<['edges']>,
+    )
+
+    for (const subpropertyId of subpropertyIds) {
+      const property = await nodes.get(subpropertyId)
+      if (property && isOntologyProperty(property)) {
+        result.push(property)
+      }
+    }
+
+    return result
   }
 
-  async getAllTerms() {
-    const all = await (await this.nodeStore()).index('by-type').getAll('CLASS')
-    return all.filter((term) => {
-      return !term.meta?.deprecated
-    })
+  /** private helper for traversing the edges of the ontology graph. Does a breadth-first search of the graph */
+  private async recurseEdges(
+    queryIndex: IndexNames<OntologyDB, 'edges'>,
+    inputQueryIds: Iterable<string>,
+    filterEdge: (edge: OntologyDBEdge) => boolean,
+    resultProp: 'sub' | 'obj',
+    myTx: Transaction<['edges']>,
+  ) {
+    const resultIds = new Set<string>()
+
+    async function recur(queryIds: Iterable<string>) {
+      await Promise.all(
+        Array.from(queryIds).map(async (queryId) => {
+          const theseResults = (
+            (await myTx
+              .objectStore('edges')
+              .index(queryIndex)
+              .getAll(queryId)) as OntologyDBEdge[]
+          )
+            .filter(filterEdge)
+            .map((edge) => edge[resultProp])
+
+          if (theseResults.length) {
+            // report these subjects as results
+            for (const resultId of theseResults) {
+              resultIds.add(resultId)
+            }
+
+            // and now recurse further through the edges
+            await recur(theseResults)
+          }
+        }),
+      )
+    }
+
+    await recur(inputQueryIds)
+    return resultIds.values()
+  }
+
+  // /**
+  //  * recursively query for subject ids
+  //  */
+  // private async getEdgeSubjects(
+  //   objectIds: string[],
+  //   predicateIds: string[],
+  //   myTx: Transaction<['edges']>,
+  //   subjectIds: string[],
+  // ) {
+  //   await this.recurseEdges(
+  //     'by-object',
+  //     objectIds,
+  //     (edge) => predicateIds.includes(edge.pred),
+  //     'sub',
+  //     myTx,
+  //     subjectIds,
+  //   )
+  // }
+
+  /**
+   * given an array of node IDs, augment it with all of their subclasses or
+   * superclasses, and return the augmented array
+   **/
+  private async *expandNodeSet(
+    startingNodeIds: Iterable<string>,
+    subclassRelation = 'is_a',
+    direction: 'superclasses' | 'subclasses',
+    tx?: Transaction<['edges']>,
+  ) {
+    const myTx = tx || (await this.db).transaction(['edges'])
+    const subclassIds = await this.recurseEdges(
+      direction === 'subclasses' ? 'by-object' : 'by-subject',
+      startingNodeIds,
+      (edge) => edge.pred === subclassRelation,
+      direction === 'subclasses' ? 'sub' : 'obj',
+      myTx as unknown as Transaction<['edges']>,
+    )
+    for (const n of startingNodeIds) {
+      yield n
+    }
+    for (const id of subclassIds) {
+      yield id
+    }
+  }
+
+  /**
+   * given an iterator of node IDs, return a new iterator of those nodes plus all of their subclasses
+   */
+  expandSubclasses(
+    startingNodeIds: Iterable<string>,
+    subclassRelation = 'is_a',
+    tx?: Transaction<['edges']>,
+  ) {
+    return this.expandNodeSet(
+      startingNodeIds,
+      subclassRelation,
+      'subclasses',
+      tx,
+    )
+  }
+
+  /**
+   * given an iterator of node IDs, return a new iterator of those nodes plus all of their superclasses
+   */
+  expandSuperclasses(
+    startingNodeIds: Iterable<string>,
+    subclassRelation = 'is_a',
+    tx?: Transaction<['edges']>,
+  ) {
+    return this.expandNodeSet(
+      startingNodeIds,
+      subclassRelation,
+      'superclasses',
+      tx,
+    )
+  }
+
+  async getTermsThat(
+    propertyLabel: string,
+    targetTerms: OntologyTerm[],
+    tx?: Transaction<['nodes', 'edges']>,
+  ) {
+    const myTx = tx || (await this.db).transaction(['nodes', 'edges'])
+
+    // find all the terms for the properties we are using
+    const relatingProperties = await this.getPropertyAndSubPropertiesByLabel(
+      propertyLabel,
+      myTx,
+    )
+    const relatingPropertyIds = relatingProperties.map((p) => p.id)
+
+    // these are all the terms that are related to the targets by the given properties
+    const termIds = await this.recurseEdges(
+      'by-object',
+      targetTerms.map((t) => t.id),
+      (edge) => relatingPropertyIds.includes(edge.pred),
+      'sub',
+      myTx as unknown as Transaction<['edges']>,
+    )
+
+    const expanded = this.expandSubclasses(
+      termIds,
+      'is_a',
+      myTx as unknown as Transaction<['edges']>,
+    )
+
+    const terms: OntologyTerm[] = []
+    for await (const termId of expanded) {
+      const node = await myTx.objectStore('nodes').get(termId)
+      if (node && isOntologyTerm(node) && !isDeprecated(node)) {
+        terms.push(node)
+      }
+    }
+
+    return terms
+  }
+
+  async getAllTerms(tx?: Transaction<['nodes']>): Promise<OntologyTerm[]> {
+    const myTx = tx || (await this.db).transaction(['nodes'])
+    const all = (await myTx
+      .objectStore('nodes')
+      .index('by-type')
+      .getAll('CLASS')) as OntologyTerm[]
+    return all.filter((term) => !isDeprecated(term))
   }
 }

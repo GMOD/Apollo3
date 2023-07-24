@@ -1,7 +1,11 @@
 import { openLocation } from '@jbrowse/core/util/io'
 import { IDBPDatabase, IDBPTransaction, deleteDB, openDB } from 'idb'
 
-import { OntologyDB } from './indexeddb-schema'
+import {
+  OntologyDB,
+  isOntologyDBEdge,
+  isOntologyDBNode,
+} from './indexeddb-schema'
 import GraphDocument from './obo-graph-json-schema'
 import OntologyStore from '.'
 
@@ -81,13 +85,17 @@ export async function loadOboGraphJson(store: OntologyStore, db: Database) {
     // load nodes
     const nodeStore = tx.objectStore('nodes')
     for (const node of graph.nodes || []) {
-      await nodeStore.add(node)
+      if (isOntologyDBNode(node)) {
+        await nodeStore.add(node)
+      }
     }
 
     // load edges
     const edgeStore = tx.objectStore('edges')
     for (const edge of graph.edges || []) {
-      await edgeStore.add(edge)
+      if (isOntologyDBEdge(edge)) {
+        await edgeStore.add(edge)
+      }
     }
 
     await tx.done

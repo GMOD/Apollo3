@@ -8,7 +8,9 @@ import { autorun } from 'mobx'
 import { Instance, addDisposer, getSnapshot, types } from 'mobx-state-tree'
 
 import OntologyStore from './OntologyStore'
-import { Node } from './OntologyStore/obo-graph-json-schema'
+import { OntologyDBNode } from './OntologyStore/indexeddb-schema'
+
+export { isDeprecated } from './OntologyStore/indexeddb-schema'
 
 export const OntologyRecordType = types
   .model('OntologyRecord', {
@@ -129,4 +131,13 @@ export const OntologyRecordConfiguration = ConfigurationSchema(
   },
 )
 
-export type OntologyTerm = Node
+export type OntologyTerm = OntologyDBNode & { type: 'CLASS' }
+export function isOntologyTerm(node: OntologyDBNode): node is OntologyTerm {
+  return node.type === 'CLASS'
+}
+export type OntologyProperty = OntologyDBNode & { type: 'PROPERTY' }
+export function isOntologyProperty(
+  node: OntologyDBNode,
+): node is OntologyProperty {
+  return node.type === 'PROPERTY'
+}

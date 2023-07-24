@@ -7,7 +7,7 @@ import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import type OntologyManager from '../../OntologyManager'
-import { OntologyTerm } from '../../OntologyManager'
+import { OntologyTerm, isOntologyTerm } from '../../OntologyManager'
 import { DisplayStateModel } from '../types'
 
 const useStyles = makeStyles()({
@@ -99,29 +99,6 @@ export function OntologyTermAutocomplete(props: {
   )
 }
 
-// async function oldValidTermsForFeature(
-//   displayState: DisplayStateModel,
-//   feature: AnnotationFeatureI,
-//   signal: AbortSignal,
-// ) {
-//   const { type, parent, children } = feature
-//   let endpoint = `/ontologies/equivalents/sequence_feature`
-//   if (parent) {
-//     endpoint = `/ontologies/descendants/${parent.type}`
-//   } else if (children?.size) {
-//     endpoint = `/ontologies/equivalents/${type}`
-//   }
-//   let responseP: Promise<string[] | undefined> | undefined
-//   if (responseCache.has(endpoint)) {
-//     responseP = responseCache.get(endpoint)
-//   } else {
-//     responseP = fetchValidTermsForFeature(endpoint, internetAccount, signal)
-//     responseCache.set(endpoint, responseP)
-//   }
-//   const response = await responseP
-//   return response
-// }
-
 async function getValidTermsForFeature(
   displayState: DisplayStateModel,
   feature: AnnotationFeatureI,
@@ -140,21 +117,17 @@ async function getValidTermsForFeature(
   // const resultTerms = await featureTypeOntology.getAllTerms()
   let resultTerms: OntologyTerm[] | undefined
   if (parent) {
-    const [parentTypeTerm] =
-      await featureTypeOntology.getTermsWithLabelOrSynonym(parent.type)
+    const [parentTypeTerm] = (
+      await featureTypeOntology.getNodesWithLabelOrSynonym(parent.type)
+    ).filter(isOntologyTerm)
     if (parentTypeTerm) {
-      // find all the terms that are part_of the parent term
-      const [partOf] = await (
-        await featureTypeOntology.getTermsWithLabelOrSynonym('part_of')
-      ).filter((t) => t.type === 'PROPERTY')
-
-      
+      const subpartTerms = await featureTypeOntology.getTermsThat('part_of', [
+        parentTypeTerm,
+      ])
+      resultTerms = subpartTerms
     }
   } else {
   }
-  // const terms = parent
-  //   ? featureTypeOntology.getValidPartsOf(parent.type)
-  //   : featureTypeOntology.getStandaloneTerms()
 
   if (!resultTerms) {
     resultTerms = await featureTypeOntology.getAllTerms()
@@ -163,12 +136,12 @@ async function getValidTermsForFeature(
   return !resultTerms
     ? []
     : resultTerms
-        .map((t) => t.lbl || '(no label)')
-        // .map((term) => {
-        //   // make the term display name
-        //   return `${term.lbl || '(no label)'} ${ontologyManager.applyPrefixes(
-        //     term.id || '(no id)',
-        //   )}`
-        // })
+        // .map((t) => t.lbl || '(no label)')
+        .map((term) => {
+          // make the term display name
+          return `${term.lbl || '(no label)'} (${ontologyManager.applyPrefixes(
+            term.id || 'no id',
+          )})`
+        })
         .sort()
 }
