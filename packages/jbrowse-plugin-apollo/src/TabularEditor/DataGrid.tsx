@@ -226,7 +226,7 @@ function DataGrid({ model }: { model: LinearApolloDisplay }) {
     },
   ]
   function addChildFeatures(f: typeof selectedFeature) {
-    f?.children?.forEach((child: AnnotationFeatureI) => {
+    for (const [, child] of f?.children ?? new Map()) {
       tmp = Object.fromEntries(
         [...child.attributes.entries()].map(([key, value]) => {
           if (key.startsWith('gff_')) {
@@ -256,7 +256,7 @@ function DataGrid({ model }: { model: LinearApolloDisplay }) {
         attributes,
       })
       addChildFeatures(child)
-    })
+    }
   }
   addChildFeatures(selectedFeature)
   function processRowUpdate(

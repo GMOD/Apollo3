@@ -355,7 +355,7 @@ function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
       attrs.source = [source]
     }
     if (attributes) {
-      Object.entries(attributes).forEach(([key, val]) => {
+      for (const [key, val] of Object.entries(attributes)) {
         if (val) {
           const newKey = key.toLowerCase()
           if (newKey !== 'parent') {
@@ -396,13 +396,13 @@ function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
               case 'Ontology_term': {
                 const goTerms: string[] = []
                 const otherTerms: string[] = []
-                val.forEach((v) => {
+                for (const v of val) {
                   if (v.startsWith('GO:')) {
                     goTerms.push(v)
                   } else {
                     otherTerms.push(v)
                   }
-                })
+                }
                 if (goTerms.length > 0) {
                   attrs['Gene Ontology'] = goTerms
                 }
@@ -421,7 +421,7 @@ function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
             }
           }
         }
-      })
+      }
     }
     feature.attributes = attrs
   }

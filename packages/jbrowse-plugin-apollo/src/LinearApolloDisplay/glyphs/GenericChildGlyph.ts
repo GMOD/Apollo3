@@ -8,9 +8,9 @@ export class GenericChildGlyph extends Glyph {
   featuresForRow(feature: AnnotationFeatureI): AnnotationFeatureI[][] {
     const features = [[feature]]
     if (feature.children) {
-      feature.children?.forEach((child: AnnotationFeatureI) => {
+      for (const [, child] of feature.children ?? new Map()) {
         features.push(...this.featuresForRow(child))
-      })
+      }
     }
     return features
   }

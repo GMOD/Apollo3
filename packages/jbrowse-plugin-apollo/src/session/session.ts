@@ -149,6 +149,7 @@ export function extendSession(
         for (const view of self.views) {
           if (view.type === 'LinearGenomeView' && view.initialized) {
             const { dynamicBlocks } = view as LinearGenomeViewModel
+            // eslint-disable-next-line unicorn/no-array-for-each
             dynamicBlocks.forEach((block) => {
               if (block.regionNumber !== undefined) {
                 const { assemblyName, end, refName, start } = block
@@ -204,6 +205,7 @@ export function extendSession(
             for (const view of self.views) {
               if (view.type === 'LinearGenomeView' && view.initialized) {
                 const { dynamicBlocks } = view as LinearGenomeViewModel
+                // eslint-disable-next-line unicorn/no-array-for-each
                 dynamicBlocks.forEach((block) => {
                   if (block.regionNumber !== undefined) {
                     const { assemblyName, end, refName, start } = block

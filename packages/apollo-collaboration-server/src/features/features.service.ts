@@ -201,11 +201,11 @@ export class FeaturesService {
 
     const headerStream = new Readable({ objectMode: true })
     headerStream.push('##gff-version 3\n')
-    refSeqs.forEach((refSeqDoc: RefSeqDocument) => {
+    for (const refSeqDoc of refSeqs) {
       headerStream.push(
         `##sequence-region ${refSeqDoc.name} 1 ${refSeqDoc.length}\n`,
       )
-    })
+    }
     headerStream.push(null)
 
     const refSeqIds = refSeqs.map((refSeq) => refSeq._id)

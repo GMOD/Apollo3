@@ -71,9 +71,9 @@ export const AnnotationFeature = types
      */
     get min() {
       let min = self.start
-      self.children?.forEach((child: AnnotationFeatureI) => {
+      for (const [, child] of self.children ?? []) {
         min = Math.min(min, child.min)
-      })
+      }
       return min
     },
     /**
@@ -83,9 +83,9 @@ export const AnnotationFeature = types
      */
     get max() {
       let max = self.end
-      self.children?.forEach((child: AnnotationFeatureI) => {
+      for (const [, child] of self.children ?? []) {
         max = Math.max(max, child.max)
-      })
+      }
       return max
     },
   }))

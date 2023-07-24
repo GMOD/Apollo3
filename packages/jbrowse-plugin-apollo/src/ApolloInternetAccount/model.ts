@@ -8,7 +8,7 @@ import {
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
 import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
-import { Change, SerializedChange } from 'apollo-common'
+import { Change } from 'apollo-common'
 import { getDecodedToken, makeUserSessionId } from 'apollo-shared'
 import { autorun } from 'mobx'
 import { Instance, flow, getRoot, types } from 'mobx-state-tree'
@@ -254,10 +254,10 @@ const stateModelFactory = (
           return
         }
         const serializedChanges = yield response.json()
-        serializedChanges.forEach((serializedChange: SerializedChange) => {
+        for (const serializedChange of serializedChanges) {
           const change = Change.fromJSON(serializedChange)
           changeManager?.submit(change, { submitToBackend: false })
-        })
+        }
       }),
     }))
     .actions((self) => {

@@ -78,7 +78,6 @@ module.exports = {
     // eslint-plugin-unicorn rules (override recommended)
     'unicorn/consistent-destructuring': 'off',
     'unicorn/filename-case': 'off',
-    'unicorn/no-array-for-each': 'off',
     'unicorn/no-empty-file': 'off', // False positives
     'unicorn/no-null': 'off',
     'unicorn/prefer-module': 'off', // Cypress and apollo-collaboration-server need this

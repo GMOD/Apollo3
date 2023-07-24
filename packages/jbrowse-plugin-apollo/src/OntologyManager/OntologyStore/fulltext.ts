@@ -190,7 +190,7 @@ export function elaborateMatch(
   }
   let matches: (Match & { wordMatches: WordMatch[] })[] = []
   let maxScore = 0
-  textIndexPaths.forEach((field, fieldIdx) => {
+  for (const [fieldIdx, field] of textIndexPaths.entries()) {
     const wordsMatched = new Set<number>()
     const fieldPriorityBonus = textIndexPaths.length - fieldIdx - 1
     const termStrings = [
@@ -200,7 +200,7 @@ export function elaborateMatch(
     for (const str of termStrings) {
       let score = 0
       const wordMatches: WordMatch[] = []
-      queryWordRegexps.forEach((re, wordIndex) => {
+      for (const [wordIndex, re] of queryWordRegexps.entries()) {
         for (const match of str.matchAll(re)) {
           score += 1 + fieldPriorityBonus * FIELD_PRIORITY_WEIGHT
           wordsMatched.add(wordIndex)
@@ -213,7 +213,7 @@ export function elaborateMatch(
             wordMatches.push({ wordIndex, position })
           }
         }
-      })
+      }
 
       // apply the words-matched bonus
       score += wordsMatched.size * WORD_BONUS
@@ -227,7 +227,7 @@ export function elaborateMatch(
         matches.push({ term, field, str, score, wordMatches })
       }
     }
-  })
+  }
 
   // Keep only the highest-scored matches. Usually 1, but there
   // could be multiple if there is a tie for first place.

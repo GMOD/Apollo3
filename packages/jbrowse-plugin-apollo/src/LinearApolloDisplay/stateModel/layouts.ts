@@ -176,7 +176,7 @@ export function layoutsModelFactory(
                   region.assemblyName,
                 )
                 const ref = assembly?.getByRefName(region.refName)
-                ref?.features.forEach((feature: AnnotationFeatureI) => {
+                for (const [, feature] of ref?.features ?? new Map()) {
                   if (
                     doesIntersect2(
                       region.start,
@@ -188,7 +188,7 @@ export function layoutsModelFactory(
                   ) {
                     self.addSeenFeature(feature)
                   }
-                })
+                }
               }
             },
             { name: 'LinearApolloDisplaySetSeenFeatures', delay: 1000 },
