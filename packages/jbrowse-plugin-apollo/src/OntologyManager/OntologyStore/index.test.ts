@@ -110,4 +110,18 @@ describe('OntologyStore', () => {
     const subpartTerms = await so.getTermsThat('part_of', parentTypeTerms)
     expect(subpartTerms.length).toBeGreaterThan(0)
   })
+
+  it('SO clone_insert_end is among valid subparts of BAC_cloned_genomic_insert', async () => {
+    const bcgi = (
+      await so.getNodesWithLabelOrSynonym('BAC_cloned_genomic_insert', {
+        includeSubclasses: false,
+      })
+    ).filter(isOntologyClass)
+    expect(bcgi.length).toBe(1)
+    expect(bcgi[0].lbl).toBe('BAC_cloned_genomic_insert')
+    const subpartTerms = await so.getTermsThat('part_of', bcgi)
+    expect(subpartTerms.length).toBeGreaterThan(0)
+    expect(subpartTerms.find((t) => t.lbl === 'clone_insert_end')).toBeTruthy()
+    expect(subpartTerms).toMatchSnapshot()
+  })
 })

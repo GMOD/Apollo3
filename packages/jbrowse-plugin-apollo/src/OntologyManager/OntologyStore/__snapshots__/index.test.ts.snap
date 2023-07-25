@@ -1,5 +1,92 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`OntologyStore SO clone_insert_end is among valid subparts of BAC_cloned_genomic_insert 1`] = `
+[
+  {
+    "id": "http://purl.obolibrary.org/obo/SO_0000103",
+    "lbl": "clone_insert_end",
+    "meta": {
+      "basicPropertyValues": [
+        {
+          "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+          "val": "sequence",
+        },
+      ],
+      "definition": {
+        "val": "The end of the clone insert.",
+        "xrefs": [
+          "SO:ke",
+        ],
+      },
+      "subsets": [
+        "http://purl.obolibrary.org/obo/so#SOFA",
+      ],
+      "synonyms": [
+        {
+          "pred": "hasExactSynonym",
+          "val": "clone insert end",
+        },
+      ],
+    },
+    "type": "CLASS",
+  },
+  {
+    "id": "http://purl.obolibrary.org/obo/SO_0000179",
+    "lbl": "clone_insert_start",
+    "meta": {
+      "basicPropertyValues": [
+        {
+          "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+          "val": "sequence",
+        },
+      ],
+      "definition": {
+        "val": "The start of the clone insert.",
+        "xrefs": [
+          "SO:ke",
+        ],
+      },
+      "subsets": [
+        "http://purl.obolibrary.org/obo/so#SOFA",
+      ],
+      "synonyms": [
+        {
+          "pred": "hasExactSynonym",
+          "val": "clone insert start",
+        },
+      ],
+    },
+    "type": "CLASS",
+  },
+  {
+    "id": "http://purl.obolibrary.org/obo/SO_0000785",
+    "lbl": "cloned_region",
+    "meta": {
+      "basicPropertyValues": [
+        {
+          "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+          "val": "sequence",
+        },
+      ],
+      "comments": [
+        "Added in response to Lynn Crosby. A clone insert may be composed of many cloned regions.",
+      ],
+      "synonyms": [
+        {
+          "pred": "hasExactSynonym",
+          "val": "cloned region",
+        },
+        {
+          "pred": "hasExactSynonym",
+          "val": "cloned segment",
+        },
+      ],
+    },
+    "type": "CLASS",
+  },
+]
+`;
+
 exports[`OntologyStore can load goslim aspergillus 1`] = `187`;
 
 exports[`OntologyStore can load goslim generic 1`] = `248`;

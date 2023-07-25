@@ -46,6 +46,14 @@ function isLocalPathLocation(location: unknown): location is LocalPathLocation {
   )
 }
 
+async function arrayFromAsync<T>(iter: AsyncIterable<T>) {
+  const a = []
+  for await (const i of iter) {
+    a.push(i)
+  }
+  return a
+}
+
 // /**
 //  * @deprecated use the one from jbrowse core when it is published
 //  */
@@ -377,10 +385,19 @@ export default class OntologyStore {
     )
     const relatingPropertyIds = relatingProperties.map((p) => p.id)
 
+    // expand to search all the superclasses of the target terms
+    const targetTermsWithSuperClasses = await arrayFromAsync(
+      this.expandSuperclasses(
+        targetTerms.map((t) => t.id),
+        'is_a',
+        myTx as unknown as Transaction<['edges']>,
+      ),
+    )
+
     // these are all the terms that are related to the targets by the given properties
     const termIds = await this.recurseEdges(
       'by-object',
-      targetTerms.map((t) => t.id),
+      targetTermsWithSuperClasses,
       (edge) => relatingPropertyIds.includes(edge.pred),
       'sub',
       myTx as unknown as Transaction<['edges']>,
@@ -392,6 +409,7 @@ export default class OntologyStore {
       'is_a',
       myTx as unknown as Transaction<['edges']>,
     )
+
     // fetch the full nodes and filter out deprecated ones
     const terms: OntologyClass[] = []
     for await (const termId of expanded) {
