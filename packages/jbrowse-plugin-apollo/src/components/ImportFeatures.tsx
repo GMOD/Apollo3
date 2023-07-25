@@ -43,8 +43,10 @@ export function ImportFeatures({
   const [submitted, setSubmitted] = useState(false)
   // default is -1, submit button should be disabled until count is set
   const [featuresCount, setFeaturesCount] = useState(-1)
-  const [deleteFeatures, setDeleteFeatures] = useState(true)
+  const [deleteFeatures, setDeleteFeatures] = useState(false)
   const [loading, setLoading] = useState(false)
+
+  const assemblies = useAssemblies(internetAccounts, setErrorMessage)
 
   function handleChangeAssembly(e: SelectChangeEvent<string>) {
     setSubmitted(false)
@@ -60,57 +62,50 @@ export function ImportFeatures({
 
   // fetch and set features count for selected assembly
   useEffect(() => {
-    if (assemblyId) {
-      updateFeaturesCount()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assemblyId])
+    const updateFeaturesCount = async () => {
+      const assembly = assemblies.find((asm) => asm._id === assemblyId)
+      if (!assembly) {
+        throw new Error(`No assembly found with id ${assemblyId}`)
+      }
+      const { internetAccount: apolloInternetAccount } = assembly
+      if (!apolloInternetAccount) {
+        throw new Error('No Apollo internet account found')
+      }
 
-  function internetAccount() {
-    const apolloInternetAccounts = internetAccounts.filter(
-      (ia: { type: string }) => ia.type === 'ApolloInternetAccount',
-    ) as ApolloInternetAccountModel[]
-
-    if (apolloInternetAccounts && apolloInternetAccounts.length) {
-      return apolloInternetAccounts[0]
-    }
-  }
-
-  function updateFeaturesCount() {
-    const apolloInternetAccount = internetAccount()
-    if (!apolloInternetAccount) {
-      throw new Error('No Apollo internet account found')
-    }
-
-    const { baseURL } = apolloInternetAccount
-    const uri = new URL('/features/count', baseURL)
-    const searchParams = new URLSearchParams({
-      assemblyId,
-    })
-    uri.search = searchParams.toString()
-    const fetch = apolloInternetAccount?.getFetcher({
-      locationType: 'UriLocation',
-      uri: uri.toString(),
-    })
-
-    if (fetch) {
-      // sumbit might get enabled when we change assembly before loading features count
-      setFeaturesCount(-1)
-      setLoading(true)
-      fetch(uri, {
-        method: 'GET',
+      const { baseURL } = apolloInternetAccount
+      const uri = new URL('/features/count', baseURL)
+      const searchParams = new URLSearchParams({
+        assemblyId,
       })
-        .then((res) => res.json())
-        .then((countObj: { count: number }) => {
-          setFeaturesCount(countObj.count)
-          setLoading(false)
+      uri.search = searchParams.toString()
+      const fetch = apolloInternetAccount?.getFetcher({
+        locationType: 'UriLocation',
+        uri: uri.toString(),
+      })
+
+      if (fetch) {
+        // sumbit might get enabled when we change assembly before loading features count
+        setFeaturesCount(-1)
+        setLoading(true)
+        const response = await fetch(uri, {
+          method: 'GET',
         })
-        .catch((err) => {
+
+        if (!response.ok) {
           setFeaturesCount(0)
-          setLoading(false)
-        })
+        } else {
+          const countObj = (await response.json()) as { count: number }
+          setFeaturesCount(countObj.count)
+        }
+
+        setLoading(false)
+      }
     }
-  }
+
+    if (assemblyId) {
+      updateFeaturesCount().catch((err) => err)
+    }
+  }, [assemblies, assemblyId])
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
     setSubmitted(false)
@@ -119,8 +114,6 @@ export function ImportFeatures({
     }
     setFile(e.target.files[0])
   }
-
-  const assemblies = useAssemblies(internetAccounts, setErrorMessage)
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -220,11 +213,7 @@ export function ImportFeatures({
               to delete the existing features before importing new ones?
             </DialogContentText>
             <FormControlLabel
-              label={
-                deleteFeatures
-                  ? 'Yes, delete existing features'
-                  : 'No, import without deleting existing features'
-              }
+              label="Yes, delete existing features"
               disabled={submitted && !errorMessage}
               control={
                 <Checkbox

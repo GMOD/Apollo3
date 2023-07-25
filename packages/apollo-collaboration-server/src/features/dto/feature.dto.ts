@@ -4,7 +4,3 @@ export interface FeatureCountRequest {
   start?: number
   end?: number
 }
-
-export interface FeatureCountResponse {
-  count: number
-}
