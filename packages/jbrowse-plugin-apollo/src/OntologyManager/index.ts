@@ -131,10 +131,11 @@ export const OntologyRecordConfiguration = ConfigurationSchema(
   },
 )
 
-export type OntologyTerm = OntologyDBNode & { type: 'CLASS' }
-export function isOntologyTerm(node: OntologyDBNode): node is OntologyTerm {
+export type OntologyClass = OntologyDBNode & { type: 'CLASS' }
+export function isOntologyClass(node: OntologyDBNode): node is OntologyClass {
   return node.type === 'CLASS'
 }
+
 export type OntologyProperty = OntologyDBNode & { type: 'PROPERTY' }
 export function isOntologyProperty(
   node: OntologyDBNode,

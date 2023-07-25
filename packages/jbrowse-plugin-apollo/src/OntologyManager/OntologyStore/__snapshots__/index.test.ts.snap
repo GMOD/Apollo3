@@ -1,8 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`OntologyStore can load and query SO 1`] = `2629`;
+exports[`OntologyStore can load goslim aspergillus 1`] = `187`;
 
-exports[`OntologyStore can load and query SO 2`] = `
+exports[`OntologyStore can load goslim generic 1`] = `248`;
+
+exports[`OntologyStore can query SO 1`] = `2629`;
+
+exports[`OntologyStore can query SO features not part of something else 1`] = `1147`;
+
+exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
 [
   {
     "id": "http://purl.obolibrary.org/obo/SO_0000704",
@@ -3006,7 +3012,7 @@ exports[`OntologyStore can load and query SO 2`] = `
 ]
 `;
 
-exports[`OntologyStore can load and query SO 3`] = `
+exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
 [
   {
     "id": "http://purl.obolibrary.org/obo/SO_0000673",
@@ -12082,7 +12088,3 @@ Requested by Thomas Desvignes, Jan 2015.",
   },
 ]
 `;
-
-exports[`OntologyStore can load goslim aspergillus 1`] = `187`;
-
-exports[`OntologyStore can load goslim generic 1`] = `248`;

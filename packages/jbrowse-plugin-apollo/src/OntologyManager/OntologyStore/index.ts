@@ -4,19 +4,24 @@ import {
   UriLocation,
   isUriLocation,
 } from '@jbrowse/core/util'
-import { IDBPTransaction, IndexNames, StoreNames } from 'idb'
+import { IDBPTransaction, IndexNames, StoreNames } from 'idb/with-async-ittr'
 
-import { isDeprecated, OntologyDB, OntologyDBEdge, OntologyDBNode } from './indexeddb-schema'
+import {
+  OntologyDB,
+  OntologyDBEdge,
+  OntologyDBNode,
+  isDeprecated,
+} from './indexeddb-schema'
 import {
   isDatabaseCompletelyLoaded,
   loadOboGraphJson,
   openDatabase,
 } from './indexeddb-storage'
 import {
+  OntologyClass,
   OntologyProperty,
-  OntologyTerm,
   isOntologyProperty,
-  isOntologyTerm,
+  isOntologyClass,
 } from '..'
 
 export type SourceLocation = UriLocation | LocalPathLocation | BlobLocation
@@ -184,10 +189,6 @@ export default class OntologyStore {
     return resultNodes
   }
 
-  async getValidPartsOf(termId: string) {
-    return
-  }
-
   /**
    * Get the ontology term for the property with the given label,
    * plus all the terms for the properties that are "subPropertyOf"
@@ -341,9 +342,12 @@ export default class OntologyStore {
     )
   }
 
+  /**
+   * example: store.getTermsThat('part_of', [geneTerm]) would return all terms that are 'part_of' a gene
+   */
   async getTermsThat(
     propertyLabel: string,
-    targetTerms: OntologyTerm[],
+    targetTerms: OntologyClass[],
     tx?: Transaction<['nodes', 'edges']>,
   ) {
     const myTx = tx || (await this.db).transaction(['nodes', 'edges'])
@@ -364,16 +368,18 @@ export default class OntologyStore {
       myTx as unknown as Transaction<['edges']>,
     )
 
+    // expand to include all the subclasses of those terms
     const expanded = this.expandSubclasses(
       termIds,
       'is_a',
       myTx as unknown as Transaction<['edges']>,
     )
 
-    const terms: OntologyTerm[] = []
+    // fetch the full nodes and filter out deprecated ones
+    const terms: OntologyClass[] = []
     for await (const termId of expanded) {
       const node = await myTx.objectStore('nodes').get(termId)
-      if (node && isOntologyTerm(node) && !isDeprecated(node)) {
+      if (node && isOntologyClass(node) && !isDeprecated(node)) {
         terms.push(node)
       }
     }
@@ -381,12 +387,71 @@ export default class OntologyStore {
     return terms
   }
 
-  async getAllTerms(tx?: Transaction<['nodes']>): Promise<OntologyTerm[]> {
+  async getTermsWithoutPropertyLabeled(
+    propertyLabel: string,
+    tx?: Transaction<['nodes', 'edges']>,
+  ) {
+    const myTx = tx || (await this.db).transaction(['nodes', 'edges'])
+    const nodeStore = myTx.objectStore('nodes')
+    const edgeStore = myTx.objectStore('edges')
+
+    // find all the terms (synonyms, subterms, etc) for the properties we are using
+    const relatingProperties = await this.getPropertyAndSubPropertiesByLabel(
+      propertyLabel,
+      myTx,
+    )
+    const relatingPropertyIds = relatingProperties.map((p) => p.id)
+
+    // make a blacklist of all the term IDs that have those properties, plus their subclasses
+    const termIdsWithProperties = await (async () => {
+      const ids = new Set<string>()
+      for (const propertyId of relatingPropertyIds) {
+        for await (const cursor of edgeStore
+          .index('by-predicate')
+          .iterate(propertyId)) {
+          ids.add(cursor.value.sub)
+        }
+      }
+      // expand their subclasses
+      const expanded = new Set<string>()
+      for await (const id of this.expandSubclasses(
+        ids,
+        'is_a',
+        myTx as unknown as Transaction<['edges']>,
+      )) {
+        expanded.add(id)
+      }
+      return expanded
+    })()
+
+    // iterate through all terms in the store, find ones that are CLASS
+    // and are not in the blacklist
+    const termIds: string[] = []
+    for await (const cursor of nodeStore) {
+      const node = cursor.value
+      if (isOntologyClass(node) && !termIdsWithProperties.has(node.id)) {
+        termIds.push(node.id)
+      }
+    }
+
+    // fetch the full nodes and filter out deprecated ones
+    const terms: OntologyClass[] = []
+    for await (const termId of termIds) {
+      const node = await myTx.objectStore('nodes').get(termId)
+      if (node && isOntologyClass(node) && !isDeprecated(node)) {
+        terms.push(node)
+      }
+    }
+
+    return terms
+  }
+
+  async getAllTerms(tx?: Transaction<['nodes']>): Promise<OntologyClass[]> {
     const myTx = tx || (await this.db).transaction(['nodes'])
     const all = (await myTx
       .objectStore('nodes')
       .index('by-type')
-      .getAll('CLASS')) as OntologyTerm[]
+      .getAll('CLASS')) as OntologyClass[]
     return all.filter((term) => !isDeprecated(term))
   }
 }

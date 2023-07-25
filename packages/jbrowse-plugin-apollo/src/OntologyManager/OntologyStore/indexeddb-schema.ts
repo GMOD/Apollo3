@@ -1,5 +1,5 @@
 /** schema types used to strongly-type using the `idb` type system */
-import { DBSchema } from 'idb'
+import { DBSchema } from 'idb/with-async-ittr'
 
 import {
   Edge as OboGraphEdge,

@@ -2,18 +2,21 @@ import { getSession } from '@jbrowse/core/util'
 import { Autocomplete } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { Instance } from 'mobx-state-tree'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import type OntologyManager from '../../OntologyManager'
-import { OntologyTerm, isOntologyTerm } from '../../OntologyManager'
+import { OntologyClass, isOntologyClass } from '../../OntologyManager'
 import { DisplayStateModel } from '../types'
 
 const useStyles = makeStyles()({
   inputElement: {
     border: 'none',
     background: 'none',
+  },
+  errorMessage: {
+    color: 'red',
   },
 })
 
@@ -25,15 +28,55 @@ export function OntologyTermAutocomplete(props: {
   style?: React.CSSProperties
   onChange: (oldValue: string, newValue: string | null | undefined) => void
 }) {
-  const { value, style, feature, internetAccount, displayState, onChange } =
-    props
-  const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>([])
-  const [errorMessage, setErrorMessage] = useState('')
+  const { value: valueString, style, feature, displayState, onChange } = props
   const { classes } = useStyles()
 
+  const [open, setOpen] = useState(false)
+  const [soSequenceTerms, setSOSequenceTerms] = useState<OntologyClass[]>([])
+  const [currentOntologyTermInvalid, setCurrentOntologyTermInvalid] =
+    useState('')
+  const [currentOntologyTerm, setCurrentOntologyTerm] = useState<
+    OntologyClass | undefined
+  >()
+
+  const needToLoadTermChoices = open && soSequenceTerms.length === 0
+  const needToLoadCurrentTerm = !currentOntologyTerm
+
+  // effect for clearing choices when not open
+  useEffect(() => {
+    if (!open) {
+      setSOSequenceTerms([])
+    }
+  }, [open])
+
+  // effect for matching the current value with an ontology term
   useEffect(() => {
     const controller = new AbortController()
     const { signal } = controller
+    if (needToLoadCurrentTerm) {
+      getCurrentTerm(displayState, valueString, signal).then(
+        setCurrentOntologyTerm,
+        (err) => {
+          if (!signal.aborted) {
+            setCurrentOntologyTermInvalid(String(err))
+          }
+        },
+      )
+    }
+    return () => {
+      controller.abort()
+    }
+  }, [displayState, valueString, needToLoadCurrentTerm])
+
+  // effect for loading term autocompletions
+  useEffect(() => {
+    const controller = new AbortController()
+    const { signal } = controller
+
+    if (!needToLoadTermChoices) {
+      return undefined
+    }
+
     async function getSOSequenceTerms() {
       const soTerms = await getValidTermsForFeature(
         displayState,
@@ -46,38 +89,35 @@ export function OntologyTermAutocomplete(props: {
     }
     getSOSequenceTerms().catch((e) => {
       if (!signal.aborted) {
-        setErrorMessage(String(e))
+        getSession(displayState).notify(e.message, 'error')
       }
     })
     return () => {
       controller.abort()
     }
-  }, [displayState, feature])
+  }, [needToLoadTermChoices, displayState, feature])
 
   const handleChange = async (
     event: React.SyntheticEvent<Element, Event>,
-    newValue?: string | null,
+    newValue?: OntologyClass | null,
   ) => {
-    if (newValue !== value) {
-      onChange(value, newValue)
+    if (newValue && newValue.lbl !== valueString) {
+      setCurrentOntologyTerm(newValue)
+      onChange(valueString, newValue.lbl)
     }
-  }
-
-  if (!soSequenceTerms.length) {
-    return null
-  }
-
-  const extraTextFieldParams: { error?: boolean; helperText?: string } = {}
-  if (errorMessage) {
-    extraTextFieldParams.error = true
-    extraTextFieldParams.helperText = errorMessage
   }
 
   return (
     <Autocomplete
       options={soSequenceTerms}
       style={style}
-      freeSolo={true}
+      onOpen={() => {
+        setOpen(true)
+      }}
+      onClose={() => {
+        setOpen(false)
+      }}
+      loading={needToLoadTermChoices}
       renderInput={(params) => {
         return (
           <div ref={params.InputProps.ref}>
@@ -87,10 +127,23 @@ export function OntologyTermAutocomplete(props: {
               className={classes.inputElement}
               style={{ width: 170 }}
             />
+            {currentOntologyTermInvalid ? (
+              <div className={classes.errorMessage}>
+                {currentOntologyTermInvalid}
+              </div>
+            ) : null}
           </div>
         )
       }}
-      value={String(value)}
+      getOptionLabel={(option) => option.lbl || '(no label)'}
+      isOptionEqualToValue={(option, val) => option.lbl === val.lbl}
+      value={
+        currentOntologyTerm || {
+          lbl: valueString,
+          id: 'LOADING',
+          type: 'CLASS',
+        }
+      }
       onChange={handleChange}
       disableClearable
       selectOnFocus
@@ -99,27 +152,54 @@ export function OntologyTermAutocomplete(props: {
   )
 }
 
-async function getValidTermsForFeature(
+async function getCurrentTerm(
   displayState: DisplayStateModel,
-  feature: AnnotationFeatureI,
+  currentTermLabel: string,
   signal: AbortSignal,
-): Promise<string[] | undefined> {
+) {
   const session = getSession(displayState)
   const ontologyManager = session.apolloDataStore.ontologyManager as Instance<
     typeof OntologyManager
   >
   const featureTypeOntology = ontologyManager.featureTypeOntology?.dataStore
   if (!featureTypeOntology) {
-    return []
+    throw new Error('no feature type ontology set in ontology manager')
   }
-  const { type, parent, children } = feature
 
-  // const resultTerms = await featureTypeOntology.getAllTerms()
-  let resultTerms: OntologyTerm[] | undefined
-  if (parent) {
+  // TODO: search by prefixed ID
+  const terms = await featureTypeOntology.getNodesWithLabelOrSynonym(
+    currentTermLabel,
+  )
+  const term = terms.find(isOntologyClass)
+  if (!term) {
+    throw new Error(`not a valid ${featureTypeOntology.ontologyName} term`)
+  }
+
+  return term
+}
+
+async function getValidTermsForFeature(
+  displayState: DisplayStateModel,
+  feature: AnnotationFeatureI,
+  signal: AbortSignal,
+) {
+  const session = getSession(displayState)
+  const ontologyManager = session.apolloDataStore.ontologyManager as Instance<
+    typeof OntologyManager
+  >
+  const featureTypeOntology = ontologyManager.featureTypeOntology?.dataStore
+  if (!featureTypeOntology) {
+    throw new Error('no feature type ontology set in ontology manager')
+  }
+  const { parent: parentFeature } = feature
+
+  let resultTerms: OntologyClass[] | undefined
+  if (parentFeature) {
+    // if this is a child of an existing feature, restrict the autocomplete choices to valid
+    // parts of that feature
     const [parentTypeTerm] = (
-      await featureTypeOntology.getNodesWithLabelOrSynonym(parent.type)
-    ).filter(isOntologyTerm)
+      await featureTypeOntology.getNodesWithLabelOrSynonym(parentFeature.type)
+    ).filter(isOntologyClass)
     if (parentTypeTerm) {
       const subpartTerms = await featureTypeOntology.getTermsThat('part_of', [
         parentTypeTerm,
@@ -127,21 +207,17 @@ async function getValidTermsForFeature(
       resultTerms = subpartTerms
     }
   } else {
+    // if this is a top-level feature, restrict the autocomplete choices to valid top-level features that
+    // are not part of something else
+    resultTerms = await featureTypeOntology.getTermsWithoutPropertyLabeled(
+      'part_of',
+    )
   }
 
+  // if we could not figure out any restrictions, just autocomplete with all the SO terms
   if (!resultTerms) {
     resultTerms = await featureTypeOntology.getAllTerms()
   }
 
-  return !resultTerms
-    ? []
-    : resultTerms
-        // .map((t) => t.lbl || '(no label)')
-        .map((term) => {
-          // make the term display name
-          return `${term.lbl || '(no label)'} (${ontologyManager.applyPrefixes(
-            term.id || 'no id',
-          )})`
-        })
-        .sort()
+  return resultTerms || []
 }
