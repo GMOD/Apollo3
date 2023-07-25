@@ -54,13 +54,13 @@ export function stateModelFactory(
       apolloRowUnderMouse: undefined as number | undefined,
     }))
     .views((self) => {
-      const { renderProps: superRenderProps } = self
+      const { configuration, renderProps: superRenderProps } = self
       return {
         renderProps() {
           return {
             ...superRenderProps(),
             ...getParentRenderProps(self),
-            config: self.configuration.renderer,
+            config: configuration.renderer,
           }
         },
       }

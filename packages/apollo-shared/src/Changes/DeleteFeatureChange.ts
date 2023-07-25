@@ -132,7 +132,7 @@ export class DeleteFeatureChange extends FeatureChange {
     if (!feature.children) {
       throw new Error(`Feature ${feature._id} has no children`)
     }
-    const { children } = feature
+    const { _id, children } = feature
     const child = children.get(featureIdToDelete)
     if (child) {
       const deletedIds = this.getChildFeatureIds(child)
@@ -147,9 +147,7 @@ export class DeleteFeatureChange extends FeatureChange {
       }
     }
 
-    throw new Error(
-      `Feature "${featureIdToDelete}" not found in ${feature._id}`,
-    )
+    throw new Error(`Feature "${featureIdToDelete}" not found in ${_id}`)
   }
 
   async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {

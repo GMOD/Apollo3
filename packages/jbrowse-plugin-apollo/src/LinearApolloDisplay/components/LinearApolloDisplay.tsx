@@ -37,6 +37,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
     contextMenuItems: getContextMenuItems,
     cursor,
     featuresHeight,
+    isShown,
     onMouseDown,
     onMouseLeave,
     onMouseMove,
@@ -54,7 +55,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const [contextCoord, setContextCoord] = useState<Coord>()
   const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
   const message = regionCannotBeRendered()
-  if (!model.isShown) {
+  if (!isShown) {
     return null
   }
   return (

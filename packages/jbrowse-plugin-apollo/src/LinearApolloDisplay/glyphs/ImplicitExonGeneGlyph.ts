@@ -57,18 +57,18 @@ export class ImplicitExonGeneGlyph extends Glyph {
     row: number,
     reversed?: boolean,
   ): void {
-    const { lgv, session, theme } = stateModel
+    const { apolloRowHeight, lgv, session, theme } = stateModel
     const { bpPerPx } = lgv
-    const rowHeight = stateModel.apolloRowHeight
+    const rowHeight = apolloRowHeight
     const utrHeight = Math.round(0.6 * rowHeight)
     const cdsHeight = Math.round(0.9 * rowHeight)
-    const { strand } = feature
+    const { _id, children, max, min, strand } = feature
     let currentMRNA = 0
-    for (const [, mrna] of feature.children ?? new Map()) {
+    for (const [, mrna] of children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
         return
       }
-      const offsetPx = (mrna.start - feature.min) / bpPerPx
+      const offsetPx = (mrna.start - min) / bpPerPx
       const widthPx = mrna.length / bpPerPx
       const startPx = reversed
         ? xOffset - offsetPx - widthPx
@@ -83,7 +83,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
       currentMRNA += 1
     }
     currentMRNA = 0
-    for (const [, mrna] of feature.children ?? new Map()) {
+    for (const [, mrna] of children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
         return
       }
@@ -97,7 +97,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
           if (!(isCDS || isUTR)) {
             return
           }
-          const offsetPx = (cdsOrUTR.start - feature.min) / bpPerPx
+          const offsetPx = (cdsOrUTR.start - min) / bpPerPx
           const widthPx = cdsOrUTR.length / bpPerPx
           const startPx = reversed
             ? xOffset - offsetPx - widthPx
@@ -138,8 +138,8 @@ export class ImplicitExonGeneGlyph extends Glyph {
       currentMRNA += 1
     }
     const { apolloSelectedFeature } = session
-    if (apolloSelectedFeature && feature._id === apolloSelectedFeature._id) {
-      const widthPx = feature.max - feature.min
+    if (apolloSelectedFeature && _id === apolloSelectedFeature._id) {
+      const widthPx = max - min
       const startPx = reversed ? xOffset - widthPx : xOffset
       const top = row * rowHeight
       const height = this.getRowCount(feature) * rowHeight

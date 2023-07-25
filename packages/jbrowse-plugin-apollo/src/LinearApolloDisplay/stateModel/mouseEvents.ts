@@ -157,12 +157,12 @@ export function mouseEventsModelFactory(
 
   return LinearApolloDisplayMouseEvents.views((self) => ({
     contextMenuItems(contextCoord?: Coord): MenuItem[] {
-      const { apolloHover } = self
+      const { apolloHover, lgv } = self
       const { topLevelFeature } = apolloHover ?? {}
       if (!(topLevelFeature && contextCoord)) {
         return []
       }
-      const glyph = getGlyph(topLevelFeature, self.lgv.bpPerPx)
+      const glyph = getGlyph(topLevelFeature, lgv.bpPerPx)
       return glyph.getContextMenuItems(self)
     },
   }))

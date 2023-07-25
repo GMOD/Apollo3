@@ -125,19 +125,19 @@ export abstract class AssemblySpecificChange extends Change {
           if (!refSeqDoc) {
             throw new Error('No refSeq document found')
           }
-          const { chunkSize } = refSeqDoc
+          const { _id, chunkSize } = refSeqDoc
           sequenceBuffer += line.replaceAll(/\s/g, '')
           // If sequence block > chunk size then save chunk into Mongo
           while (sequenceBuffer.length >= chunkSize) {
             const sequence = sequenceBuffer.slice(0, chunkSize)
             refSeqLen += sequence.length
             logger.debug?.(
-              `Creating refSeq chunk number ${chunkIndex} of "${refSeqDoc._id}"`,
+              `Creating refSeq chunk number ${chunkIndex} of "${_id}"`,
             )
             // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
             await refSeqChunkModel.create([
               {
-                refSeq: refSeqDoc._id,
+                refSeq: _id,
                 n: chunkIndex,
                 sequence,
                 user,

@@ -119,12 +119,12 @@ export default class OntologyStore {
     const errors = []
 
     // validate the source's file type
-    const { sourceType } = this
+    const { sourceLocation, sourceType } = this
     if (!sourceType) {
       errors.push(
         new Error(
           `unable to determine format of ontology source file ${JSON.stringify(
-            this.sourceLocation,
+            sourceLocation,
           )}, file name must end with ".json", ".obo", or ".owl"`,
         ),
       )
@@ -132,7 +132,7 @@ export default class OntologyStore {
       errors.push(
         new Error(
           `ontology source file ${JSON.stringify(
-            this.sourceLocation,
+            sourceLocation,
           )} has type ${sourceType}, which is not yet supported`,
         ),
       )
@@ -173,13 +173,13 @@ export default class OntologyStore {
       return db
     }
 
-    const { sourceType } = this
+    const { sourceLocation, sourceType } = this
     if (sourceType === 'obo-graph-json') {
       await this.loadOboGraphJson(db)
     } else {
       throw new Error(
         `ontology source file ${JSON.stringify(
-          this.sourceLocation,
+          sourceLocation,
         )} has type ${sourceType}, which is not yet supported`,
       )
     }

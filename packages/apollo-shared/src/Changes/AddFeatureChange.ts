@@ -86,7 +86,7 @@ export class AddFeatureChange extends FeatureChange {
     for (const change of changes) {
       logger.debug?.(`change: ${JSON.stringify(change)}`)
       const { addedFeature, allIds, copyFeature, parentFeatureId } = change
-      const { refSeq } = addedFeature
+      const { _id, refSeq } = addedFeature
       const refSeqDoc = await refSeqModel
         .findById(refSeq)
         .session(session)
@@ -111,7 +111,7 @@ export class AddFeatureChange extends FeatureChange {
         )
         featureCnt++
       } else {
-        addedFeature.gffId = addedFeature._id // User added manually new feature so then gffId = _id
+        addedFeature.gffId = _id // User added manually new feature so then gffId = _id
         // Adding new child feature
         if (parentFeatureId) {
           const topLevelFeature = await featureModel
@@ -146,19 +146,19 @@ export class AddFeatureChange extends FeatureChange {
             }
             parentFeature.attributes = attributes
           }
-          parentFeature.children.set(addedFeature._id, {
+          parentFeature.children.set(_id, {
             allIds: [],
             ...addedFeature,
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
-            _id: addedFeature._id,
+            _id,
           })
           const childIds = this.getChildFeatureIds(addedFeature)
-          topLevelFeature.allIds.push(addedFeature._id, ...childIds)
+          topLevelFeature.allIds.push(_id, ...childIds)
           await topLevelFeature.save()
         } else {
           const childIds = this.getChildFeatureIds(addedFeature)
-          const allIdsV2 = [addedFeature._id, ...childIds]
+          const allIdsV2 = [_id, ...childIds]
           const [newFeatureDoc] = await featureModel.create(
             [{ allIds: allIdsV2, ...addedFeature }],
             { session },

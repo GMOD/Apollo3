@@ -36,7 +36,7 @@ export function ImportFeatures({
   handleClose,
   session,
 }: ImportFeaturesProps) {
-  const { notify } = session
+  const { apolloDataStore, notify } = session
 
   const [file, setFile] = useState<File>()
   const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
@@ -47,14 +47,13 @@ export function ImportFeatures({
   const [deleteFeatures, setDeleteFeatures] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const { collaborationServerDriver, getInternetAccount } =
-    session.apolloDataStore as {
-      collaborationServerDriver: CollaborationServerDriver
-      getInternetAccount(
-        assemblyName?: string,
-        internetAccountId?: string,
-      ): ApolloInternetAccount
-    }
+  const { collaborationServerDriver, getInternetAccount } = apolloDataStore as {
+    collaborationServerDriver: CollaborationServerDriver
+    getInternetAccount(
+      assemblyName?: string,
+      internetAccountId?: string,
+    ): ApolloInternetAccount
+  }
   const assemblies = collaborationServerDriver.getAssemblies()
 
   function handleChangeAssembly(e: SelectChangeEvent<string>) {

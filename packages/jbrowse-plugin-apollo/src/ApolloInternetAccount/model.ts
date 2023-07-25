@@ -230,11 +230,11 @@ const stateModelFactory = (
             'No LastChangeSequence stored in session. Please, refresh you browser to get last updates from server',
           )
         }
-        const { baseURL } = self
+        const { baseURL, lastChangeSequenceNumber } = self
 
         const url = new URL('changes', baseURL)
         const searchParams = new URLSearchParams({
-          since: String(self.lastChangeSequenceNumber),
+          since: String(lastChangeSequenceNumber),
           sort: '1',
         })
         url.search = searchParams.toString()
@@ -319,7 +319,7 @@ const stateModelFactory = (
               'label' in menuItem && menuItem.label === 'Add Assembly',
           )
         ) {
-          pluginManager.rootModel.insertInMenu(
+          rootModel.insertInMenu(
             'Apollo',
             {
               label: 'Add Assembly',
@@ -339,7 +339,7 @@ const stateModelFactory = (
             },
             0,
           )
-          pluginManager.rootModel.insertInMenu(
+          rootModel.insertInMenu(
             'Apollo',
             {
               label: 'Delete Assembly',
@@ -359,7 +359,7 @@ const stateModelFactory = (
             },
             1,
           )
-          pluginManager.rootModel.insertInMenu(
+          rootModel.insertInMenu(
             'Apollo',
             {
               label: 'Import Features',
@@ -379,7 +379,7 @@ const stateModelFactory = (
             },
             2,
           )
-          pluginManager.rootModel.insertInMenu(
+          rootModel.insertInMenu(
             'Apollo',
             {
               label: 'Manage Users',
@@ -399,7 +399,7 @@ const stateModelFactory = (
             },
             9,
           )
-          pluginManager.rootModel.insertInMenu(
+          rootModel.insertInMenu(
             'Apollo',
             {
               label: 'Undo',
@@ -574,16 +574,21 @@ const stateModelFactory = (
           }
         },
         retrieveToken() {
-          if (self.authType === 'google') {
-            return self.googleAuthInternetAccount.retrieveToken()
+          const {
+            authType,
+            googleAuthInternetAccount,
+            microsoftAuthInternetAccount,
+          } = self
+          if (authType === 'google') {
+            return googleAuthInternetAccount.retrieveToken()
           }
-          if (self.authType === 'microsoft') {
-            return self.microsoftAuthInternetAccount.retrieveToken()
+          if (authType === 'microsoft') {
+            return microsoftAuthInternetAccount.retrieveToken()
           }
-          if (self.authType === 'guest') {
+          if (authType === 'guest') {
             return superRetrieveToken()
           }
-          throw new Error(`Unknown authType "${self.authType}"`)
+          throw new Error(`Unknown authType "${authType}"`)
         },
         getFetcher(
           location?: UriLocation,
@@ -593,15 +598,21 @@ const stateModelFactory = (
             init?: RequestInit,
           ): Promise<Response> => {
             let { authType } = self
+            const {
+              googleAuthInternetAccount,
+              googleClientId,
+              microsoftAuthInternetAccount,
+              microsoftClientId,
+            } = self
             if (!authType) {
               if (!authTypePromise) {
                 if (location?.internetAccountPreAuthorization) {
                   authTypePromise = Promise.resolve(
                     location.internetAccountPreAuthorization.authInfo.authType,
                   )
-                } else if (self.googleAuthInternetAccount.retrieveToken()) {
+                } else if (googleAuthInternetAccount.retrieveToken()) {
                   authTypePromise = Promise.resolve('google')
-                } else if (self.microsoftAuthInternetAccount.retrieveToken()) {
+                } else if (microsoftAuthInternetAccount.retrieveToken()) {
                   authTypePromise = Promise.resolve('microsoft')
                 } else if (superRetrieveToken()) {
                   authTypePromise = Promise.resolve('guest')
@@ -624,8 +635,8 @@ const stateModelFactory = (
                           }
                           doneCallback()
                         },
-                        google: Boolean(self.googleClientId),
-                        microsoft: Boolean(self.microsoftClientId),
+                        google: Boolean(googleClientId),
+                        microsoft: Boolean(microsoftClientId),
                         allowGuestUser,
                       },
                     ])

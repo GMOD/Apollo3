@@ -41,11 +41,11 @@ function scrollSelectedFeatureIntoView(
   model: LinearApolloDisplayI,
   scrollContainerRef: React.RefObject<HTMLDivElement>,
 ) {
-  const { selectedFeature } = model
+  const { apolloRowHeight, selectedFeature } = model
   if (scrollContainerRef.current && selectedFeature) {
     const position = model.getFeatureLayoutPosition(selectedFeature)
     if (position) {
-      const scrollPosition = position.layoutRow * model.apolloRowHeight
+      const scrollPosition = position.layoutRow * apolloRowHeight
       const oldScrollPosition = scrollContainerRef.current.scrollTop
       scrollContainerRef.current.scroll({
         top: scrollPosition - oldScrollPosition,
@@ -148,9 +148,15 @@ export const DisplayComponent = observer(function DisplayComponent({
 }) {
   const { classes } = useStyles()
 
-  const { height: overallHeight, selectedFeature } = model
-  const detailsHeight = model.tabularEditor.isShown ? model.detailsHeight : 0
-  const featureAreaHeight = model.isShown
+  const {
+    height: overallHeight,
+    isShown,
+    selectedFeature,
+    tabularEditor,
+    toggleShown,
+  } = model
+  const detailsHeight = tabularEditor.isShown ? model.detailsHeight : 0
+  const featureAreaHeight = isShown
     ? overallHeight - detailsHeight - accordionControlHeight * 2
     : 0
 
@@ -166,9 +172,9 @@ export const DisplayComponent = observer(function DisplayComponent({
   return (
     <div style={{ height: overallHeight }}>
       <AccordionControl
-        open={model.isShown}
+        open={isShown}
         title="Graphical"
-        onClick={model.toggleShown}
+        onClick={toggleShown}
       />
       <div
         className={classes.shading}
@@ -179,8 +185,8 @@ export const DisplayComponent = observer(function DisplayComponent({
       </div>
       <AccordionControl
         title="Table"
-        open={model.tabularEditor.isShown}
-        onClick={model.tabularEditor.togglePane}
+        open={tabularEditor.isShown}
+        onClick={tabularEditor.togglePane}
         onResize={onDetailsResize}
       />
       <div className={classes.details} style={{ height: detailsHeight }}>

@@ -38,13 +38,13 @@ const HybridGrid = observer(function HybridGrid({
 }: {
   model: DisplayStateModel
 }) {
-  const { seenFeatures, selectedFeature } = model
+  const { apolloHover, seenFeatures, selectedFeature, tabularEditor } = model
   const theme = useTheme()
   const { classes } = useStyles()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(null)
 
-  const { filterText } = model.tabularEditor
+  const { filterText } = tabularEditor
 
   const internetAccount = useMemo(() => {
     return getApolloInternetAccount(getSession(model))
@@ -107,7 +107,7 @@ const HybridGrid = observer(function HybridGrid({
             })
             .map(([featureId, feature]) => {
               const isSelected = selectedFeature?._id === featureId
-              const isHovered = model.apolloHover?.feature?._id === featureId
+              const isHovered = apolloHover?.feature?._id === featureId
               return (
                 <Feature
                   key={featureId}

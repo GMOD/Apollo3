@@ -65,13 +65,20 @@ function makeContextMenuItems(
   display: DisplayStateModel,
   feature: AnnotationFeatureI,
 ) {
-  const { changeManager, getAssemblyId, regions, session } = display
+  const {
+    changeManager,
+    getAssemblyId,
+    regions,
+    selectedFeature,
+    session,
+    setSelectedFeature,
+  } = display
   return featureContextMenuItems(
     feature,
     regions[0],
     getAssemblyId,
-    display.selectedFeature,
-    display.setSelectedFeature,
+    selectedFeature,
+    setSelectedFeature,
     session,
     changeManager,
   )
@@ -105,17 +112,22 @@ export const Feature = observer(function Feature({
   setContextMenu: (menu: ContextMenuState) => void
 }) {
   const { classes } = useStyles()
-  const { tabularEditor: tabularEditorState } = displayState
-  const { filterText } = tabularEditorState
-  const expanded = !tabularEditorState.featureCollapsed.get(feature._id)
+  const {
+    apolloHover,
+    changeManager,
+    selectedFeature,
+    session,
+    tabularEditor: tabularEditorState,
+  } = displayState
+  const { featureCollapsed, filterText } = tabularEditorState
+  const expanded = !featureCollapsed.get(feature._id)
   const toggleExpanded = (e: React.MouseEvent) => {
     e.stopPropagation()
     tabularEditorState.setFeatureCollapsed(feature._id, expanded)
   }
 
   // pop up a snackbar in the session notifying user of an error
-  const notifyError = (e: Error) =>
-    displayState.session.notify(e.message, 'error')
+  const notifyError = (e: Error) => session.notify(e.message, 'error')
 
   return (
     <>
@@ -167,7 +179,7 @@ export const Feature = observer(function Feature({
           ) : null}
           <div className={classes.typeContent}>
             <OntologyTermAutocomplete
-              session={displayState.session}
+              session={session}
               ontologyName="Sequence Ontology"
               style={{ width: 170 }}
               value={feature.type}
@@ -193,7 +205,7 @@ export const Feature = observer(function Feature({
               onChange={(oldValue, newValue) => {
                 if (newValue) {
                   handleFeatureTypeChange(
-                    displayState.changeManager,
+                    changeManager,
                     feature,
                     oldValue,
                     newValue,
@@ -209,7 +221,7 @@ export const Feature = observer(function Feature({
             const newValue = Number(e.target.textContent)
             if (!Number.isNaN(newValue) && newValue !== feature.start) {
               handleFeatureStartChange(
-                displayState.changeManager,
+                changeManager,
                 feature,
                 feature.start,
                 newValue,
@@ -225,7 +237,7 @@ export const Feature = observer(function Feature({
             const newValue = Number(e.target.textContent)
             if (!Number.isNaN(newValue) && newValue !== feature.end) {
               handleFeatureEndChange(
-                displayState.changeManager,
+                changeManager,
                 feature,
                 feature.end,
                 newValue,
@@ -252,9 +264,8 @@ export const Feature = observer(function Feature({
             })
             .map(([featureId, childFeature]) => {
               const childHovered =
-                displayState.apolloHover?.feature?._id === childFeature._id
-              const childSelected =
-                displayState.selectedFeature?._id === childFeature._id
+                apolloHover?.feature?._id === childFeature._id
+              const childSelected = selectedFeature?._id === childFeature._id
               return (
                 <Feature
                   isHovered={childHovered}

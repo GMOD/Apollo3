@@ -76,12 +76,11 @@ module.exports = {
     // eslint-plugin-tsdoc rules
     'tsdoc/syntax': 'warn',
     // eslint-plugin-unicorn rules (override recommended)
-    'unicorn/consistent-destructuring': 'off',
-    'unicorn/filename-case': 'off',
+    'unicorn/filename-case': 'off', // Doesn't match our file naming, maybe can be configured later
     'unicorn/no-empty-file': 'off', // False positives
-    'unicorn/no-null': 'off',
+    'unicorn/no-null': 'off', // A lot of null in React and other libraries
     'unicorn/prefer-module': 'off', // Cypress and apollo-collaboration-server need this
-    'unicorn/prevent-abbreviations': 'off',
+    'unicorn/prevent-abbreviations': 'off', // Doesn't guess a lot of abbreviations correctly
     // Special case @typescript-eslint/eslint-plugin rule
     // Will be part of "plugin:@typescript-eslint/recommended-type-checked" when
     // that extension is enabled. Remove from here at that time.

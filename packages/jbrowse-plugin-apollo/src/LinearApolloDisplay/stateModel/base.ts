@@ -36,13 +36,13 @@ export function baseModelFactory(
       lgv: getContainingView(self) as unknown as LinearGenomeViewModel,
     }))
     .views((self) => {
-      const { renderProps: superRenderProps } = self
+      const { configuration, renderProps: superRenderProps } = self
       return {
         renderProps() {
           return {
             ...superRenderProps(),
             ...getParentRenderProps(self),
-            config: self.configuration.renderer,
+            config: configuration.renderer,
           }
         },
       }

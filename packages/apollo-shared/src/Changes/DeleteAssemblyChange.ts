@@ -64,7 +64,7 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
     await refSeqModel.deleteMany({ assembly }).exec()
     await assemblyModel.findByIdAndDelete(assembly).exec()
 
-    this.logger.debug?.(`Assembly "${assembly}" deleted from database.`)
+    logger.debug?.(`Assembly "${assembly}" deleted from database.`)
   }
 
   async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {

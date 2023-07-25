@@ -255,7 +255,7 @@ export function extendSession(
             continue
           }
 
-          const { baseURL } = internetAccount
+          const { baseURL, configuration } = internetAccount
           const uri = new URL('assemblies', baseURL).href
           const fetch = internetAccount.getFetcher({
             locationType: 'UriLocation',
@@ -286,7 +286,7 @@ export function extendSession(
             continue
           }
           for (const assembly of fetchedAssemblies) {
-            const { assemblyManager } = self
+            const { addAssembly, addSessionAssembly, assemblyManager } = self
             const selectedAssembly = assemblyManager.get(assembly.name)
             if (selectedAssembly) {
               self.addApolloTrackConfig(selectedAssembly, baseURL)
@@ -340,8 +340,7 @@ export function extendSession(
                 },
                 metadata: {
                   apollo: true,
-                  internetAccountConfigId:
-                    internetAccount.configuration.internetAccountId,
+                  internetAccountConfigId: configuration.internetAccountId,
                   ids,
                 },
               },
@@ -352,7 +351,7 @@ export function extendSession(
                 },
               },
             }
-            ;(self.addSessionAssembly || self.addAssembly)(assemblyConfig)
+            ;(addSessionAssembly || addAssembly)(assemblyConfig)
             const a = yield assemblyManager.waitForAssembly(assemblyConfig.name)
             self.addApolloTrackConfig(a, baseURL)
           }

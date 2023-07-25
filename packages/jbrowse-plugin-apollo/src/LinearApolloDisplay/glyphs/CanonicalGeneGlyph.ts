@@ -59,14 +59,14 @@ export class CanonicalGeneGlyph extends Glyph {
     row: number,
     reversed: boolean,
   ): void {
-    const { lgv, session, theme } = stateModel
+    const { apolloRowHeight, lgv, session, theme } = stateModel
     const { bpPerPx } = lgv
-    const rowHeight = stateModel.apolloRowHeight
+    const rowHeight = apolloRowHeight
     const utrHeight = Math.round(0.6 * rowHeight)
     const cdsHeight = Math.round(0.9 * rowHeight)
-    const { strand } = feature
+    const { _id, children, max, min, strand } = feature
     let currentCDS = 0
-    for (const [, mrna] of feature.children ?? new Map()) {
+    for (const [, mrna] of children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
         return
       }
@@ -74,7 +74,7 @@ export class CanonicalGeneGlyph extends Glyph {
         if (cds.type !== 'CDS') {
           return
         }
-        const offsetPx = (mrna.start - feature.min) / bpPerPx
+        const offsetPx = (mrna.start - min) / bpPerPx
         const widthPx = mrna.length / bpPerPx
         const startPx = reversed
           ? xOffset - offsetPx - widthPx
@@ -90,7 +90,7 @@ export class CanonicalGeneGlyph extends Glyph {
       }
     }
     currentCDS = 0
-    for (const [, mrna] of feature.children ?? new Map()) {
+    for (const [, mrna] of children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
         return
       }
@@ -102,7 +102,7 @@ export class CanonicalGeneGlyph extends Glyph {
           if (exon.type !== 'exon') {
             return
           }
-          const offsetPx = (exon.start - feature.min) / bpPerPx
+          const offsetPx = (exon.start - min) / bpPerPx
           const widthPx = exon.length / bpPerPx
           const startPx = reversed
             ? xOffset - offsetPx - widthPx
@@ -142,7 +142,7 @@ export class CanonicalGeneGlyph extends Glyph {
       }
     }
     currentCDS = 0
-    for (const [, mrna] of feature.children ?? new Map()) {
+    for (const [, mrna] of children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
         return
       }
@@ -152,7 +152,7 @@ export class CanonicalGeneGlyph extends Glyph {
         }
         if (cds.discontinuousLocations) {
           for (const cdsLocation of cds.discontinuousLocations) {
-            const offsetPx = (cdsLocation.start - feature.min) / bpPerPx
+            const offsetPx = (cdsLocation.start - min) / bpPerPx
             const widthPx = (cdsLocation.end - cdsLocation.start) / bpPerPx
             const startPx = reversed
               ? xOffset - offsetPx - widthPx
@@ -193,8 +193,8 @@ export class CanonicalGeneGlyph extends Glyph {
       }
     }
     const { apolloSelectedFeature } = session
-    if (apolloSelectedFeature && feature._id === apolloSelectedFeature._id) {
-      const widthPx = feature.max - feature.min
+    if (apolloSelectedFeature && _id === apolloSelectedFeature._id) {
+      const widthPx = max - min
       const startPx = reversed ? xOffset - widthPx : xOffset
       const top = row * rowHeight
       const height = this.getRowCount(feature, bpPerPx) * rowHeight
@@ -214,7 +214,7 @@ export class CanonicalGeneGlyph extends Glyph {
     }
     const rowHeight = stateModel.apolloRowHeight
     const rowNumber = Math.floor(mousePosition.y / rowHeight)
-    const { featureLayouts } = stateModel
+    const { displayedRegions, featureLayouts, lgv, theme } = stateModel
     const layout = featureLayouts[mousePosition.regionNumber]
     const row = layout.get(rowNumber)
     const featureRowEntry = row?.find(
@@ -223,25 +223,24 @@ export class CanonicalGeneGlyph extends Glyph {
     if (!featureRowEntry) {
       return
     }
-    const displayedRegion =
-      stateModel.displayedRegions[mousePosition.regionNumber]
+    const displayedRegion = displayedRegions[mousePosition.regionNumber]
     const x =
-      (stateModel.lgv.bpToPx({
+      (lgv.bpToPx({
         refName: displayedRegion.refName,
         coord: topLevelFeature.min,
         regionNumber: mousePosition.regionNumber,
-      })?.offsetPx ?? 0) - stateModel.lgv.offsetPx
+      })?.offsetPx ?? 0) - lgv.offsetPx
     const [featureRowNumber] = featureRowEntry
     const topRowNumber = rowNumber - featureRowNumber
     const y = topRowNumber * rowHeight
-    const { bpPerPx } = stateModel.lgv
+    const { bpPerPx } = lgv
     const width = topLevelFeature.end - topLevelFeature.start
     const widthPx = width / bpPerPx
     const startBp = displayedRegion.reversed
       ? topLevelFeature.max - topLevelFeature.end
       : topLevelFeature.start - topLevelFeature.min
     const startPx = startBp / bpPerPx
-    ctx.fillStyle = stateModel.theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
+    ctx.fillStyle = theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
     const height = this.getRowCount(topLevelFeature, bpPerPx) * rowHeight
     ctx.fillRect(x + startPx, y, widthPx, height)
   }
