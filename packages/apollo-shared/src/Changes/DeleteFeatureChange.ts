@@ -142,7 +142,7 @@ export class DeleteFeatureChange extends FeatureChange {
     for (const [, childFeature] of children) {
       try {
         return this.findAndDeleteChildFeature(childFeature, featureIdToDelete)
-      } catch (error) {
+      } catch {
         // pass
       }
     }
@@ -178,9 +178,8 @@ export class DeleteFeatureChange extends FeatureChange {
 
   getInverse() {
     const { assembly, changedIds, changes, logger } = this
-    const inverseChangedIds = changedIds.slice().reverse()
-    const inverseChanges = changes
-      .slice()
+    const inverseChangedIds = [...changedIds].reverse()
+    const inverseChanges = [...changes]
       .reverse()
       .map((deleteFeatuerChange) => ({
         addedFeature: deleteFeatuerChange.deletedFeature,

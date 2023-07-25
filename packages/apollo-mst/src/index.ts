@@ -53,10 +53,10 @@ export const ApolloRefSeq = types
       })
       newSequences.sort((s1, s2) => s1.start - s2.start)
       const consolidatedSequences = newSequences.reduce((result, current) => {
-        if (result.length === 0) {
+        const lastRange = result.at(-1)
+        if (lastRange === undefined) {
           return [current]
         }
-        const lastRange = result[result.length - 1]
         if (lastRange.stop >= current.start) {
           if (current.stop > lastRange.stop) {
             lastRange.stop = current.stop
@@ -114,9 +114,7 @@ export const ApolloAssembly = types
   })
   .views((self) => ({
     getByRefName(refName: string) {
-      return Array.from(self.refSeqs.values()).find(
-        (val) => val.name === refName,
-      )
+      return [...self.refSeqs.values()].find((val) => val.name === refName)
     },
   }))
   .actions((self) => ({

@@ -105,7 +105,7 @@ export const OntologyManagerType = types
         source,
         options: {
           prefixes: new Map(self.prefixes.entries()),
-          ...(options ?? {}),
+          ...options,
         },
       })
       // access it immediately to fire its lifecycle hooks

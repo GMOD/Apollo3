@@ -70,7 +70,7 @@ export function stateModelFactory(
         let blockDefinitions
         try {
           ;({ blockDefinitions } = self)
-        } catch (error) {
+        } catch {
           return []
         }
         const regions = blockDefinitions.contentBlocks.map(
@@ -88,7 +88,7 @@ export function stateModelFactory(
         if (view && view.bpPerPx >= 200) {
           return 'Zoom in to see annotations'
         }
-        return undefined
+        return
       },
     }))
     .actions((self) => {
@@ -109,12 +109,12 @@ export function stateModelFactory(
                   }
                   const blockKeys: string[] = []
                   const newBlocks: BaseBlock[] = []
-                  self.blockDefinitions.contentBlocks.forEach((block) => {
+                  for (const block of self.blockDefinitions.contentBlocks) {
                     blockKeys.push(block.key)
                     if (!previousBlockKeys.includes(block.key)) {
                       newBlocks.push(block)
                     }
-                  })
+                  }
                   session.apolloDataStore.loadFeatures(
                     newBlocks.map(({ assemblyName, end, refName, start }) => ({
                       assemblyName,
@@ -191,8 +191,8 @@ export function stateModelFactory(
       get featuresMinMax() {
         const minMax: Record<string, [number, number]> = {}
         for (const [refSeq, featuresForRefSeq] of this.features || []) {
-          let min: number | undefined = undefined
-          let max: number | undefined = undefined
+          let min: number | undefined
+          let max: number | undefined
           for (const [, featureLocation] of featuresForRefSeq) {
             if (min === undefined) {
               ;({ min } = featureLocation)
@@ -245,14 +245,14 @@ export function stateModelFactory(
           // can otherwise result in effectiveFrame -1
           let effectiveFrame
           let seqSliced
-          if (!reversed) {
-            tilt = 3 - (fullStart % 3)
-            effectiveFrame = (forwardPhaseMap[i] + tilt + 3) % 3
-            seqSliced = fullSeq.slice(effectiveFrame)
-          } else {
+          if (reversed) {
             tilt = (fullSeq.length + fullStart) % 3
             effectiveFrame = (reversePhaseMap[i] + tilt + 3) % 3
             seqSliced = reverse(fullSeq).slice(effectiveFrame)
+          } else {
+            tilt = 3 - (fullStart % 3)
+            effectiveFrame = (forwardPhaseMap[i] + tilt + 3) % 3
+            seqSliced = fullSeq.slice(effectiveFrame)
           }
           for (let j = 0; j < seqSliced.length; j += 3) {
             const codon = seqSliced.slice(j, j + 3)
@@ -288,46 +288,46 @@ export function stateModelFactory(
             rows[newRowNumber] = new Array(max - min)
             featureLayout.set(newRowNumber, [])
           }
-          Array.from(featuresForRefSeq.values())
-            .sort((f1, f2) => {
+          for (const feature of [...featuresForRefSeq.values()].sort(
+            (f1, f2) => {
               const { max: end1, min: start1 } = f1
               const { max: end2, min: start2 } = f2
               return start1 - start2 || end1 - end2
-            })
-            .forEach((feature) => {
-              for (const [, childFeature] of feature.children ?? new Map()) {
-                if (childFeature.type === 'mRNA') {
-                  for (const [, grandChildFeature] of childFeature.children ||
-                    new Map()) {
-                    let startingRow
-                    if (grandChildFeature.type === 'CDS') {
-                      let discontinuousLocations
-                      if (grandChildFeature.discontinuousLocations.length > 0) {
-                        ;({ discontinuousLocations } = grandChildFeature)
-                      } else {
-                        discontinuousLocations = [grandChildFeature]
-                      }
-                      for (const cds of discontinuousLocations) {
-                        // Remove codons either end of feature when considering intersect.
-                        const featureRange: number[] = Array(
-                          cds.end - cds.start - 6,
-                        )
-                          .fill(undefined)
-                          .map((_, idx) => cds.start + 3 + idx)
-                        for (const [row, { stops }] of this.codonLayout) {
-                          if (
-                            (row < 3 && feature.strand === 1) ||
-                            (row >= 3 && feature.strand === -1)
-                          ) {
-                            const filteredArray = stops.filter((value) =>
-                              featureRange.includes(value),
-                            )
-                            if (filteredArray.length === 0) {
-                              startingRow = row
-                              const layoutRow = featureLayout.get(startingRow)
-                              layoutRow?.push([childFeature.featureId, cds])
-                              break
-                            }
+            },
+          )) {
+            for (const [, childFeature] of feature.children ?? new Map()) {
+              if (childFeature.type === 'mRNA') {
+                for (const [, grandChildFeature] of childFeature.children ||
+                  new Map()) {
+                  let startingRow
+                  if (grandChildFeature.type === 'CDS') {
+                    let discontinuousLocations
+                    if (grandChildFeature.discontinuousLocations.length > 0) {
+                      ;({ discontinuousLocations } = grandChildFeature)
+                    } else {
+                      discontinuousLocations = [grandChildFeature]
+                    }
+                    for (const cds of discontinuousLocations) {
+                      // Remove codons either end of feature when considering intersect.
+                      const featureRange: number[] = Array.from({
+                        length: cds.end - cds.start - 6,
+                      })
+                        // eslint-disable-next-line unicorn/no-useless-undefined
+                        .fill(undefined)
+                        .map((_, idx) => cds.start + 3 + idx)
+                      for (const [row, { stops }] of this.codonLayout) {
+                        if (
+                          (row < 3 && feature.strand === 1) ||
+                          (row >= 3 && feature.strand === -1)
+                        ) {
+                          const filteredArray = stops.filter((value) =>
+                            featureRange.includes(value),
+                          )
+                          if (filteredArray.length === 0) {
+                            startingRow = row
+                            const layoutRow = featureLayout.get(startingRow)
+                            layoutRow?.push([childFeature.featureId, cds])
+                            break
                           }
                         }
                       }
@@ -335,7 +335,8 @@ export function stateModelFactory(
                   }
                 }
               }
-            })
+            }
+          }
         }
         return featureLayout
       },
@@ -379,7 +380,7 @@ export function stateModelFactory(
     }))
     .views((self) => ({
       get highestRow() {
-        if (!self.featureLayout.size) {
+        if (self.featureLayout.size === 0) {
           return 0
         }
         return Math.max(...self.featureLayout.keys())

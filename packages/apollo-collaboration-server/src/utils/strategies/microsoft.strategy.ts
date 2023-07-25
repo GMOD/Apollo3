@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'node:fs'
 
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
@@ -43,7 +43,7 @@ export class MicrosoftStrategy extends PassportStrategy(Strategy) {
       const clientIDFile = configService.get('MICROSOFT_CLIENT_ID_FILE', {
         infer: true,
       })
-      clientID = clientIDFile && fs.readFileSync(clientIDFile, 'utf-8').trim()
+      clientID = clientIDFile && fs.readFileSync(clientIDFile, 'utf8').trim()
     }
     const configured = Boolean(clientID)
     if (!configured) {
@@ -62,7 +62,7 @@ export class MicrosoftStrategy extends PassportStrategy(Strategy) {
           'MICROSOFT_CLIENT_SECRET_FILE',
           { infer: true },
         )!
-        clientSecret = fs.readFileSync(clientSecretFile, 'utf-8').trim()
+        clientSecret = fs.readFileSync(clientSecretFile, 'utf8').trim()
       }
       const urlString = configService.get('URL', { infer: true })
       const callbackURI = new URL(urlString)

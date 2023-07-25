@@ -72,7 +72,7 @@ export function baseModelFactory(
         if (self.lgv && self.lgv.bpPerPx >= 200) {
           return 'Zoom in to see annotations'
         }
-        return undefined
+        return
       },
     }))
     .views((self) => ({

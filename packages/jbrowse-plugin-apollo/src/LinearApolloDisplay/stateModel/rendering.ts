@@ -41,14 +41,12 @@ export function renderingModelIntermediateFactory(
         self.isShown = !self.isShown
       },
       setDetailsHeight(newHeight: number) {
-        if (self.isShown) {
-          self.detailsHeight = Math.max(
-            Math.min(newHeight, self.height - 100),
-            Math.min(self.height, self.detailsMinHeight),
-          )
-        } else {
-          self.detailsHeight = newHeight
-        }
+        self.detailsHeight = self.isShown
+          ? Math.max(
+              Math.min(newHeight, self.height - 100),
+              Math.min(self.height, self.detailsMinHeight),
+            )
+          : newHeight
       },
       setCanvas(canvas: HTMLCanvasElement | null) {
         self.canvas = canvas
@@ -83,7 +81,7 @@ export function renderingModelIntermediateFactory(
               for (const collaborator of self.session
                 .collaborators as Collaborator[]) {
                 const { locations } = collaborator
-                if (!locations.length) {
+                if (locations.length === 0) {
                   continue
                 }
                 let idx = 0
@@ -153,12 +151,12 @@ export function renderingModelFactory(
               self.lgv.dynamicBlocks.totalWidthPx,
               self.featuresHeight,
             )
-            self.featureLayouts.forEach((featureLayout, idx) => {
+            for (const [idx, featureLayout] of self.featureLayouts.entries()) {
               const displayedRegion = self.displayedRegions[idx]
-              featureLayout.forEach((featureLayoutRow, row) => {
-                featureLayoutRow.forEach(([featureRow, feature]) => {
+              for (const [row, featureLayoutRow] of featureLayout.entries()) {
+                for (const [featureRow, feature] of featureLayoutRow) {
                   if (featureRow > 0) {
-                    return
+                    continue
                   }
                   if (
                     !doesIntersect2(
@@ -168,7 +166,7 @@ export function renderingModelFactory(
                       feature.max,
                     )
                   ) {
-                    return
+                    continue
                   }
                   const x =
                     (self.lgv.bpToPx({
@@ -184,9 +182,9 @@ export function renderingModelFactory(
                     row,
                     displayedRegion.reversed,
                   )
-                })
-              })
-            })
+                }
+              }
+            }
           },
           { name: 'LinearApolloDisplayRenderFeatures' },
         ),

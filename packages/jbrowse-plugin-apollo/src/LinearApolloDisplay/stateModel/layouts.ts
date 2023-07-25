@@ -23,8 +23,8 @@ export function layoutsModelFactory(
         const { assemblyManager } = self.session
         return self.displayedRegions.map((region) => {
           const assembly = assemblyManager.get(region.assemblyName)
-          let min: number | undefined = undefined
-          let max: number | undefined = undefined
+          let min: number | undefined
+          let max: number | undefined
           const { end, refName, start } = region
           for (const [, feature] of self.seenFeatures) {
             if (
@@ -49,7 +49,7 @@ export function layoutsModelFactory(
           if (min !== undefined && max !== undefined) {
             return [min, max]
           }
-          return undefined
+          return
         })
       },
     }))
@@ -77,16 +77,16 @@ export function layoutsModelFactory(
           const [min, max] = minMax
           const rows: boolean[][] = []
           const { end, refName, start } = region
-          self.seenFeatures.forEach((feature, id) => {
+          for (const [id, feature] of self.seenFeatures.entries()) {
             if (!isAlive(feature)) {
               self.deleteSeenFeature(id)
-              return
+              continue
             }
             if (
               refName !== assembly?.getCanonicalRefName(feature.refSeq) ||
               !doesIntersect2(start, end, feature.min, feature.max)
             ) {
-              return
+              continue
             }
             const rowCount = getGlyph(feature, self.lgv.bpPerPx).getRowCount(
               feature,
@@ -136,7 +136,7 @@ export function layoutsModelFactory(
               }
               placed = true
             }
-          })
+          }
           return featureLayout
         })
       },
@@ -151,7 +151,7 @@ export function layoutsModelFactory(
             }
           }
         }
-        return undefined
+        return
       },
     }))
     .views((self) => ({

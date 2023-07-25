@@ -21,9 +21,9 @@ export const TabularEditorStateModelType = types
     collapseAllFeatures() {
       // iterate over all seen features and set them to collapsed
       const display = getParent<DisplayStateModel>(self)
-      display.seenFeatures.forEach((feature, featureId) => {
+      for (const [featureId] of display.seenFeatures.entries()) {
         self.featureCollapsed.set(featureId, true)
-      })
+      }
     },
     togglePane() {
       self.isShown = !self.isShown

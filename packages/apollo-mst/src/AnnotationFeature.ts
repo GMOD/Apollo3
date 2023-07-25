@@ -92,9 +92,9 @@ export const AnnotationFeature = types
   .actions((self) => ({
     setAttributes(attributes: Map<string, string[]>) {
       self.attributes.clear()
-      Array.from(attributes.entries()).forEach(([key, value]) =>
-        self.attributes.set(key, value),
-      )
+      for (const [key, value] of attributes.entries()) {
+        self.attributes.set(key, value)
+      }
     },
     setAttribute(key: string, value: string[]) {
       self.attributes.merge({ [key]: value })
@@ -161,10 +161,10 @@ export const AnnotationFeature = types
   // "'parent' is referenced directly or indirectly in its own type annotation."
   .views((self) => ({
     get parent() {
-      let parent: AnnotationFeatureI | undefined = undefined
+      let parent: AnnotationFeatureI | undefined
       try {
         parent = getParentOfType(self, AnnotationFeature)
-      } catch (error) {
+      } catch {
         // pass
       }
       return parent

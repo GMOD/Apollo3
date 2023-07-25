@@ -32,8 +32,8 @@ export class ValidationGuard implements CanActivate {
         )
       }
       return true
-    } catch (Exception) {
-      this.logger.error(Exception)
+    } catch (error) {
+      this.logger.error(error)
       return false
     }
   }

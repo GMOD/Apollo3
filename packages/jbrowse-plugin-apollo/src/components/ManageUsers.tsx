@@ -56,7 +56,7 @@ export function ManageUsers({
     (ia) =>
       ia.type === 'ApolloInternetAccount' && ia.getRole()?.includes('admin'),
   )
-  if (!apolloInternetAccounts.length) {
+  if (apolloInternetAccounts.length === 0) {
     throw new Error('No Apollo internet account found')
   }
   const [errorMessage, setErrorMessage] = useState('')
@@ -90,7 +90,7 @@ export function ManageUsers({
   }, [selectedInternetAcount])
 
   useEffect(() => {
-    getUsers().catch((e) => setErrorMessage(String(e)))
+    getUsers().catch((error) => setErrorMessage(String(error)))
   }, [getUsers])
 
   async function deleteUser(id: GridRowId) {

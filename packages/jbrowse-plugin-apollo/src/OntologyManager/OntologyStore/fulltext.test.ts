@@ -40,18 +40,11 @@ const prefixes = new Map<string, string>([
 describe('extractWords', () => {
   it('can words from the members of objects', () => {
     const result = extractWords(['bar baz', 'noggin'])
-    expect(Array.from(result)).toEqual(['bar', 'baz', 'noggin'])
+    expect([...result]).toEqual(['bar', 'baz', 'noggin'])
   })
   it('can get the words from mix of stuff', () => {
     const set = extractWords(['zoz-zoo', 'bar baz', 'noggin', 'twenty'])
-    expect(Array.from(set)).toEqual([
-      'zoz',
-      'zoo',
-      'bar',
-      'baz',
-      'noggin',
-      'twenty',
-    ])
+    expect([...set]).toEqual(['zoz', 'zoo', 'bar', 'baz', 'noggin', 'twenty'])
   })
 })
 

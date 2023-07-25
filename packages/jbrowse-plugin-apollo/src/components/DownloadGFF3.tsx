@@ -101,7 +101,7 @@ function makeGFF3Feature(
     ontologyTerms.push(...attributes['Sequence Ontology'])
     delete attributes['Sequence Ontology']
   }
-  if (ontologyTerms.length) {
+  if (ontologyTerms.length > 0) {
     attributes.Ontology_term = ontologyTerms
   }
   return locations.map((location) => {
@@ -121,7 +121,7 @@ function makeGFF3Feature(
           : location.phase === 2
           ? '2'
           : null,
-      attributes: Object.keys(attributes).length ? attributes : null,
+      attributes: Object.keys(attributes).length > 0 ? attributes : null,
       derived_features: [],
       child_features: [],
     }
@@ -281,7 +281,7 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
             labelId="label"
             value={selectedAssembly?.name ?? ''}
             onChange={handleChangeAssembly}
-            disabled={!assemblies.length}
+            disabled={assemblies.length === 0}
           >
             {assemblies.map((option) => (
               <MenuItem key={option.name} value={option.name}>

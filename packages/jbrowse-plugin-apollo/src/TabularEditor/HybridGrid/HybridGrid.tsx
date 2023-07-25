@@ -92,7 +92,7 @@ const HybridGrid = observer(function HybridGrid({
           </tr>
         </thead>
         <tbody>
-          {Array.from(seenFeatures.entries())
+          {[...seenFeatures.entries()]
             .filter((entry) => {
               if (!filterText) {
                 return true

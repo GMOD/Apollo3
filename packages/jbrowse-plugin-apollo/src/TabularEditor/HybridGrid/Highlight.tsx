@@ -24,13 +24,15 @@ const Highlight = ({
   }
   const highlighted: React.ReactNode[] = []
   for (let i = 0; i < split.length - 1; i++) {
-    highlighted.push(split[i])
-    highlighted.push(<span className={classes.highlighted}>{highlight}</span>)
+    highlighted.push(
+      split[i],
+      <span className={classes.highlighted}>{highlight}</span>,
+    )
   }
   return (
     <>
       {highlighted}
-      {split[split.length - 1]}
+      {split.at(-1)}
     </>
   )
 }

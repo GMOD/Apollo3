@@ -7,7 +7,7 @@ import { Glyph } from './Glyph'
 let forwardFill: CanvasPattern | null = null
 let backwardFill: CanvasPattern | null = null
 if ('document' in window) {
-  ;['forward', 'backward'].forEach((direction) => {
+  for (const direction of ['forward', 'backward']) {
     const canvas = document.createElement('canvas')
     const canvasSize = 10
     canvas.width = canvas.height = canvasSize
@@ -35,7 +35,7 @@ if ('document' in window) {
         backwardFill = ctx.createPattern(canvas, 'repeat')
       }
     }
-  })
+  }
 }
 
 export class ImplicitExonGeneGlyph extends Glyph {
@@ -87,9 +87,10 @@ export class ImplicitExonGeneGlyph extends Glyph {
       if (mrna.type !== 'mRNA') {
         return
       }
-      const cdsCount = Array.from(mrna.children ?? []).filter(
+      const cdsCount = [...(mrna.children ?? [])].filter(
         ([, exonOrCDS]) => exonOrCDS.type === 'CDS',
       ).length
+      // eslint-disable-next-line unicorn/no-useless-undefined
       new Array(cdsCount).fill(undefined).forEach(() => {
         mrna.children?.forEach((cdsOrUTR: AnnotationFeatureI) => {
           const isCDS = cdsOrUTR.type === 'CDS'

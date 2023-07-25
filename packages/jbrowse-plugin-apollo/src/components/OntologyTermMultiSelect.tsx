@@ -78,9 +78,9 @@ function TermTagWithTooltip({
         setDescription(term.lbl || 'no label')
       }
     }
-    fetchDescription().catch((e) => {
+    fetchDescription().catch((error) => {
       if (!signal.aborted) {
-        setErrorMessage(String(e))
+        setErrorMessage(String(error))
       }
     })
 
@@ -139,11 +139,11 @@ export function OntologyTermMultiSelect({
           callback: (results: TermValue[]) => void,
         ) => {
           if (!ontology) {
-            return undefined
+            return
           }
           const { dataStore } = ontology
           if (!dataStore) {
-            return undefined
+            return
           }
           const { input, signal } = request
           try {
@@ -191,14 +191,14 @@ export function OntologyTermMultiSelect({
 
     if (inputValue === '') {
       setOptions([])
-      return undefined
+      return
     }
 
     setLoading(true)
 
     void getOntologyTerms({ input: inputValue, signal }, (results) => {
       let newOptions: readonly TermValue[] = []
-      if (value.length) {
+      if (value.length > 0) {
         newOptions = value
       }
       if (results) {

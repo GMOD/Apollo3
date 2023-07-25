@@ -74,6 +74,7 @@ export function OntologyTermAutocomplete({
   // effect for clearing choices when not open
   useEffect(() => {
     if (!open) {
+      // eslint-disable-next-line unicorn/no-useless-undefined
       setTermChoices(undefined)
     }
   }, [open])
@@ -90,9 +91,9 @@ export function OntologyTermAutocomplete({
             setCurrentOntologyTerm(term)
           }
         },
-        (err) => {
-          if (!signal.aborted && !isAbortException(err)) {
-            setCurrentOntologyTermInvalid(String(err))
+        (error) => {
+          if (!signal.aborted && !isAbortException(error)) {
+            setCurrentOntologyTermInvalid(String(error))
           }
         },
       )
@@ -139,6 +140,7 @@ export function OntologyTermAutocomplete({
       return
     }
     if (typeof newValue === 'string') {
+      // eslint-disable-next-line unicorn/no-useless-undefined
       setCurrentOntologyTerm(undefined)
       onChange(valueString, newValue)
     } else if (newValue.lbl !== valueString) {

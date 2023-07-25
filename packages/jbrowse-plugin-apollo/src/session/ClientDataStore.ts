@@ -196,7 +196,7 @@ export function clientDataStoreFactory(
           const features = (yield backendDriver.getFeatures(
             region,
           )) as AnnotationFeatureSnapshot[]
-          if (!features.length) {
+          if (features.length === 0) {
             continue
           }
           const { assemblyName, refName } = region

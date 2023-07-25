@@ -113,10 +113,10 @@ function ApolloRendering(props: ApolloRenderingProps) {
     showStopCodons: showStops,
   } = displayModel
   // use this to convince useEffect that the features really did change
-  const featureSnap = Array.from(features.values()).map((a) =>
+  const featureSnap = [...features.values()].map((a) =>
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
-    Array.from(a.values()).map((f) => getSnapshot(f)),
+    [...a.values()].map((f) => getSnapshot(f)),
   )
 
   const apolloInternetAccount = useMemo(() => {
@@ -359,7 +359,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     // }
     for (const collaborator of collaborators) {
       const { locations } = collaborator
-      if (!locations.length) {
+      if (locations.length === 0) {
         return
       }
       for (const location of locations) {
@@ -480,8 +480,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
   //   setApolloRowUnderMouse(row)
   // }
   function onMouseLeave() {
-    setApolloFeatureUnderMouse(undefined)
-    setApolloRowUnderMouse(undefined)
+    setApolloFeatureUnderMouse()
+    setApolloRowUnderMouse()
   }
   // function onMouseDown(event: React.MouseEvent) {
   //   if (apolloFeatureUnderMouse && overEdge) {
@@ -537,6 +537,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
       }
       await changeManager?.submit(change)
     }
+    // eslint-disable-next-line unicorn/no-useless-undefined
     setDragging(undefined)
     setMovedDuringLastMouseDown(false)
   }
@@ -560,6 +561,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
         }
         data-testid="base_linear_display_context_menu"
         onClose={() => {
+          // eslint-disable-next-line unicorn/no-useless-undefined
           setContextMenuFeature(undefined)
         }}
       >
@@ -578,6 +580,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
                 session,
                 handleClose: () => {
                   doneCallback()
+                  // eslint-disable-next-line unicorn/no-useless-undefined
                   setContextMenuFeature(undefined)
                 },
                 changeManager,
@@ -605,6 +608,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
                 session,
                 handleClose: () => {
                   doneCallback()
+                  // eslint-disable-next-line unicorn/no-useless-undefined
                   setContextMenuFeature(undefined)
                 },
                 changeManager,
@@ -631,6 +635,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
                 session,
                 handleClose: () => {
                   doneCallback()
+                  // eslint-disable-next-line unicorn/no-useless-undefined
                   setContextMenuFeature(undefined)
                 },
                 changeManager,

@@ -69,13 +69,13 @@ export function CopyFeature({
       if (!refNameAliases) {
         return
       }
-      const newRefNames = Array.from(Object.entries(refNameAliases))
+      const newRefNames = [...Object.entries(refNameAliases)]
         .filter(([id, refName]) => id !== refName)
         .map(([id, refName]) => ({ _id: id, name: refName ?? '' }))
       setRefNames(newRefNames)
       setSelectedRefSeqId(newRefNames[0]?._id || '')
     }
-    getRefNames().catch((e) => setErrorMessage(String(e)))
+    getRefNames().catch((error) => setErrorMessage(String(error)))
   }, [selectedAssemblyId, assemblyManager])
 
   async function handleChangeRefSeq(e: SelectChangeEvent<string>) {
@@ -186,7 +186,7 @@ export function CopyFeature({
   ): AnnotationFeatureSnapshot {
     const children: Record<string, AnnotationFeatureSnapshot> = {}
     if (feature.children) {
-      Object.values(feature.children).forEach((child) => {
+      for (const child of Object.values(feature.children)) {
         const newChild = updateRefSeqStartEndAndGffId(child, locationMove)
         // Update gffId value if it's ObjectId
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -197,7 +197,7 @@ export function CopyFeature({
         newChild.start = newChild.start + locationMove
         newChild.end = newChild.end + locationMove
         children[newChild._id] = newChild
-      })
+      }
     }
     const refSeq =
       typeof feature.refSeq === 'string'
@@ -231,10 +231,10 @@ export function CopyFeature({
 
     const children: Record<string, AnnotationFeatureSnapshot> = {}
     if (feature.children) {
-      Object.values(feature.children).forEach((child) => {
+      for (const child of Object.values(feature.children)) {
         const newChild = generateNewIds(child, featureIds)
         children[newChild._id] = newChild
-      })
+      }
     }
     const refSeq =
       typeof feature.refSeq === 'string'

@@ -1,4 +1,4 @@
-import { Readable, Transform, pipeline } from 'stream'
+import { Readable, Transform, pipeline } from 'node:stream'
 
 import gff, { GFF3Feature } from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
@@ -36,7 +36,7 @@ function makeGFF3Feature(
         },
       ]
   const attributes: Record<string, string[]> = {
-    ...(featureDocument.attributes ?? {}),
+    ...featureDocument.attributes,
   }
   const ontologyTerms: string[] = []
   const source = featureDocument.attributes?.source?.[0] ?? null
@@ -92,7 +92,7 @@ function makeGFF3Feature(
     ontologyTerms.push(...attributes['Sequence Ontology'])
     delete attributes['Sequence Ontology']
   }
-  if (ontologyTerms.length) {
+  if (ontologyTerms.length > 0) {
     attributes.Ontology_term = ontologyTerms
   }
   const refSeq = refSeqs.find((rs) => rs._id.equals(featureDocument.refSeq))
@@ -119,7 +119,7 @@ function makeGFF3Feature(
         : location.phase === 2
         ? '2'
         : null,
-    attributes: Object.keys(attributes).length ? attributes : null,
+    attributes: Object.keys(attributes).length > 0 ? attributes : null,
     derived_features: [],
     child_features: featureDocument.children
       ? Object.values(featureDocument.children).map((child) =>

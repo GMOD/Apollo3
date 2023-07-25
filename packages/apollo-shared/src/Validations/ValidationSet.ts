@@ -98,7 +98,7 @@ export class ValidationSet {
         return vals
       }
     }
-    return undefined
+    return
   }
 }
 

@@ -239,9 +239,8 @@ export const Feature = observer(function Feature({
           <FeatureAttributes filterText={filterText} feature={feature} />
         </td>
       </tr>
-      {!(expanded && feature.children)
-        ? null
-        : Array.from(feature.children.entries())
+      {expanded && feature.children
+        ? [...feature.children.entries()]
             .filter((entry) => {
               if (!filterText) {
                 return true
@@ -269,7 +268,8 @@ export const Feature = observer(function Feature({
                   setContextMenu={setContextMenu}
                 />
               )
-            })}
+            })
+        : null}
     </>
   )
 })
@@ -287,7 +287,7 @@ async function fetchValidTypeTerms(
         includeSubclasses: false,
       })
     ).filter(isOntologyClass)
-    if (parentTypeTerms.length) {
+    if (parentTypeTerms.length > 0) {
       const subpartTerms = await ontologyStore.getClassesThat(
         'part_of',
         parentTypeTerms,
@@ -295,5 +295,5 @@ async function fetchValidTypeTerms(
       return subpartTerms
     }
   }
-  return undefined
+  return
 }

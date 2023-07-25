@@ -3,6 +3,7 @@
 module.exports = {
   extends: [
     'eslint:recommended',
+    'plugin:unicorn/recommended',
     'plugin:cypress/recommended',
     'plugin:import/recommended',
     'plugin:import/typescript',
@@ -74,6 +75,24 @@ module.exports = {
     'sort-destructure-keys/sort-destructure-keys': 'warn',
     // eslint-plugin-tsdoc rules
     'tsdoc/syntax': 'warn',
+    // eslint-plugin-unicorn rules (override recommended)
+    'unicorn/consistent-destructuring': 'off',
+    'unicorn/consistent-function-scoping': 'off',
+    'unicorn/error-message': 'off',
+    'unicorn/filename-case': 'off',
+    'unicorn/no-array-callback-reference': 'off',
+    'unicorn/no-array-for-each': 'off',
+    'unicorn/no-array-reduce': 'off',
+    'unicorn/no-await-expression-member': 'off',
+    'unicorn/no-empty-file': 'off',
+    'unicorn/no-new-array': 'off',
+    'unicorn/no-null': 'off',
+    'unicorn/prefer-add-event-listener': 'off',
+    'unicorn/prefer-array-some': 'off',
+    'unicorn/prefer-module': 'off',
+    'unicorn/prefer-set-has': 'off',
+    'unicorn/prefer-top-level-await': 'off',
+    'unicorn/prevent-abbreviations': 'off',
     // Special case @typescript-eslint/eslint-plugin rule
     // Will be part of "plugin:@typescript-eslint/recommended-type-checked" when
     // that extension is enabled. Remove from here at that time.

@@ -3,7 +3,7 @@ import { describe, expect, it, jest } from '@jest/globals'
 import OntologyStore from '.'
 import { OntologyClass, isOntologyClass } from '..'
 
-jest.setTimeout(1000000000)
+jest.setTimeout(1_000_000_000)
 
 const prefixes = new Map([
   ['SO:', 'http://purl.obolibrary.org/obo/SO_'],

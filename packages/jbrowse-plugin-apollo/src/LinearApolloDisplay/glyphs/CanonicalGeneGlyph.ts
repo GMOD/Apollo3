@@ -7,7 +7,7 @@ import { Glyph } from './Glyph'
 let forwardFill: CanvasPattern | null = null
 let backwardFill: CanvasPattern | null = null
 if ('document' in window) {
-  ;['forward', 'backward'].forEach((direction) => {
+  for (const direction of ['forward', 'backward']) {
     const canvas = document.createElement('canvas')
     const canvasSize = 10
     canvas.width = canvas.height = canvasSize
@@ -35,7 +35,7 @@ if ('document' in window) {
         backwardFill = ctx.createPattern(canvas, 'repeat')
       }
     }
-  })
+  }
 }
 
 export class CanonicalGeneGlyph extends Glyph {
@@ -94,9 +94,10 @@ export class CanonicalGeneGlyph extends Glyph {
       if (mrna.type !== 'mRNA') {
         return
       }
-      const cdsCount = Array.from(mrna.children ?? []).filter(
+      const cdsCount = [...(mrna.children ?? [])].filter(
         ([, exonOrCDS]) => exonOrCDS.type === 'CDS',
       ).length
+      // eslint-disable-next-line unicorn/no-useless-undefined
       new Array(cdsCount).fill(undefined).forEach(() => {
         mrna.children?.forEach((exon: AnnotationFeatureI) => {
           if (exon.type !== 'exon') {
@@ -150,43 +151,45 @@ export class CanonicalGeneGlyph extends Glyph {
         if (cds.type !== 'CDS') {
           return
         }
-        cds.discontinuousLocations?.forEach((cdsLocation) => {
-          const offsetPx = (cdsLocation.start - feature.min) / bpPerPx
-          const widthPx = (cdsLocation.end - cdsLocation.start) / bpPerPx
-          const startPx = reversed
-            ? xOffset - offsetPx - widthPx
-            : xOffset + offsetPx
-          ctx.fillStyle = theme?.palette.text.primary ?? 'black'
-          const top = (row + currentCDS) * rowHeight
-          const cdsTop = top + (rowHeight - cdsHeight) / 2
-          ctx.fillRect(startPx, cdsTop, widthPx, cdsHeight)
-          if (widthPx > 2) {
-            ctx.clearRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
-            ctx.fillStyle = 'rgb(255,165,0)'
-            ctx.fillRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
-            if (forwardFill && backwardFill && strand) {
-              const reversal = reversed ? -1 : 1
-              const [topFill, bottomFill] =
-                strand * reversal === 1
-                  ? [forwardFill, backwardFill]
-                  : [backwardFill, forwardFill]
-              ctx.fillStyle = topFill
-              ctx.fillRect(
-                startPx + 1,
-                cdsTop + 1,
-                widthPx - 2,
-                (cdsHeight - 2) / 2,
-              )
-              ctx.fillStyle = bottomFill
-              ctx.fillRect(
-                startPx + 1,
-                cdsTop + (cdsHeight - 2) / 2,
-                widthPx - 2,
-                (cdsHeight - 2) / 2,
-              )
+        if (cds.discontinuousLocations) {
+          for (const cdsLocation of cds.discontinuousLocations) {
+            const offsetPx = (cdsLocation.start - feature.min) / bpPerPx
+            const widthPx = (cdsLocation.end - cdsLocation.start) / bpPerPx
+            const startPx = reversed
+              ? xOffset - offsetPx - widthPx
+              : xOffset + offsetPx
+            ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+            const top = (row + currentCDS) * rowHeight
+            const cdsTop = top + (rowHeight - cdsHeight) / 2
+            ctx.fillRect(startPx, cdsTop, widthPx, cdsHeight)
+            if (widthPx > 2) {
+              ctx.clearRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
+              ctx.fillStyle = 'rgb(255,165,0)'
+              ctx.fillRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
+              if (forwardFill && backwardFill && strand) {
+                const reversal = reversed ? -1 : 1
+                const [topFill, bottomFill] =
+                  strand * reversal === 1
+                    ? [forwardFill, backwardFill]
+                    : [backwardFill, forwardFill]
+                ctx.fillStyle = topFill
+                ctx.fillRect(
+                  startPx + 1,
+                  cdsTop + 1,
+                  widthPx - 2,
+                  (cdsHeight - 2) / 2,
+                )
+                ctx.fillStyle = bottomFill
+                ctx.fillRect(
+                  startPx + 1,
+                  cdsTop + (cdsHeight - 2) / 2,
+                  widthPx - 2,
+                  (cdsHeight - 2) / 2,
+                )
+              }
             }
           }
-        })
+        }
         currentCDS += 1
       })
     })

@@ -10,13 +10,13 @@ const mockRefSeqs: RefSeq[] = [
     _id: '6317dac51a89f156b2e21a70',
     name: 'ctgA',
     description: 'the first contig',
-    length: 10000,
+    length: 10_000,
   },
   {
     _id: '6317dac51a89f156b2e21b7c',
     name: 'ctgB',
     description: 'the second contig',
-    length: 10000,
+    length: 10_000,
   },
 ]
 

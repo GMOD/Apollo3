@@ -200,14 +200,11 @@ export class AddFeatureChange extends FeatureChange {
 
   getInverse() {
     const { assembly, changedIds, changes, logger } = this
-    const inverseChangedIds = changedIds.slice().reverse()
-    const inverseChanges = changes
-      .slice()
-      .reverse()
-      .map((addFeatureChange) => ({
-        deletedFeature: addFeatureChange.addedFeature,
-        parentFeatureId: addFeatureChange.parentFeatureId,
-      }))
+    const inverseChangedIds = [...changedIds].reverse()
+    const inverseChanges = [...changes].reverse().map((addFeatureChange) => ({
+      deletedFeature: addFeatureChange.addedFeature,
+      parentFeatureId: addFeatureChange.parentFeatureId,
+    }))
 
     return new DeleteFeatureChange(
       {

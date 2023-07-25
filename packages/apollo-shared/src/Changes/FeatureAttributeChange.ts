@@ -128,7 +128,7 @@ export class FeatureAttributeChange extends FeatureChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
-    this.changedIds.forEach((changedId, idx) => {
+    for (const [idx, changedId] of this.changedIds.entries()) {
       const feature = dataStore.getFeature(changedId)
       if (!feature) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
@@ -136,19 +136,16 @@ export class FeatureAttributeChange extends FeatureChange {
       feature.setAttributes(
         new Map(Object.entries(this.changes[idx].attributes)),
       )
-    })
+    }
   }
 
   getInverse() {
     const { assembly, changedIds, changes, logger } = this
-    const inverseChangedIds = changedIds.slice().reverse()
-    const inverseChanges = changes
-      .slice()
-      .reverse()
-      .map((oneChange) => ({
-        featureId: oneChange.featureId,
-        attributes: oneChange.attributes,
-      }))
+    const inverseChangedIds = [...changedIds].reverse()
+    const inverseChanges = [...changes].reverse().map((oneChange) => ({
+      featureId: oneChange.featureId,
+      attributes: oneChange.attributes,
+    }))
     return new FeatureAttributeChange(
       {
         changedIds: inverseChangedIds,

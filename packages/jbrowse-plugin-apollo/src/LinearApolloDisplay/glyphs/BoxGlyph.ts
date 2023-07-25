@@ -87,7 +87,7 @@ export class BoxGlyph extends Glyph {
         return 'end'
       }
     }
-    return undefined
+    return
   }
 
   drawHover(stateModel: LinearApolloDisplay, ctx: CanvasRenderingContext2D) {
@@ -182,7 +182,7 @@ export class BoxGlyph extends Glyph {
       if (edge) {
         stateModel.setCursor('col-resize')
       } else {
-        stateModel.setCursor(undefined)
+        stateModel.setCursor()
       }
     }
   }
@@ -286,6 +286,6 @@ export class BoxGlyph extends Glyph {
       throw new Error('no change manager')
     }
     changeManager.submit(change)
-    setCursor(undefined)
+    setCursor()
   }
 }

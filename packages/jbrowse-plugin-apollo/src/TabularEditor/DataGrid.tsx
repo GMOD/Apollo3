@@ -112,9 +112,9 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
         setSOSequenceTerms(soTerms)
       }
     }
-    getSOSequenceTerms().catch((e) => {
+    getSOSequenceTerms().catch((error) => {
       if (!signal.aborted) {
-        setErrorMessage(String(e))
+        setErrorMessage(String(error))
       }
     })
     return () => {
@@ -136,7 +136,7 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
     }
   }
 
-  if (!soSequenceTerms.length) {
+  if (soSequenceTerms.length === 0) {
     return null
   }
 
@@ -197,9 +197,9 @@ function DataGrid({ model }: { model: LinearApolloDisplay }) {
     assemblyManager.get(assembly)?.getCanonicalRefName(refSeq) ?? refSeq
 
   let tmp = Object.fromEntries(
-    Array.from(selectedFeature.attributes.entries()).map(([key, value]) => {
+    [...selectedFeature.attributes.entries()].map(([key, value]) => {
       if (key.startsWith('gff_')) {
-        const newKey = key.substring(4)
+        const newKey = key.slice(4)
         const capitalizedKey = newKey.charAt(0).toUpperCase() + newKey.slice(1)
         return [capitalizedKey, getSnapshot(value)]
       }
@@ -228,9 +228,9 @@ function DataGrid({ model }: { model: LinearApolloDisplay }) {
   function addChildFeatures(f: typeof selectedFeature) {
     f?.children?.forEach((child: AnnotationFeatureI) => {
       tmp = Object.fromEntries(
-        Array.from(child.attributes.entries()).map(([key, value]) => {
+        [...child.attributes.entries()].map(([key, value]) => {
           if (key.startsWith('gff_')) {
-            const newKey = key.substring(4)
+            const newKey = key.slice(4)
             const capitalizedKey =
               newKey.charAt(0).toUpperCase() + newKey.slice(1)
             return [capitalizedKey, getSnapshot(value)]
@@ -263,11 +263,7 @@ function DataGrid({ model }: { model: LinearApolloDisplay }) {
     newRow: GridRowModel<(typeof selectedFeatureRows)[0]>,
     oldRow: GridRowModel<(typeof selectedFeatureRows)[0]>,
   ) {
-    let change:
-      | LocationStartChange
-      | LocationEndChange
-      | TypeChange
-      | undefined = undefined
+    let change: LocationStartChange | LocationEndChange | TypeChange | undefined
 
     if (newRow.start !== oldRow.start) {
       const { id: featureId, start: oldStart } = oldRow

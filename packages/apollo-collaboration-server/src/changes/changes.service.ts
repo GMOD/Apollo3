@@ -116,7 +116,7 @@ export class ChangesService {
           pluginsService: this.pluginsService,
           user: uniqUserId,
         })
-      } catch (e) {
+      } catch (error) {
         // Clean up old "temporary document" -documents
         // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
         this.logger.debug(
@@ -134,7 +134,7 @@ export class ChangesService {
         await this.refSeqChunkModel.deleteMany({
           $and: [{ status: -1, user: uniqUserId }],
         })
-        throw new UnprocessableEntityException(String(e))
+        throw new UnprocessableEntityException(String(error))
       }
 
       // Add entry to change collection
@@ -181,7 +181,7 @@ export class ChangesService {
           { $and: [{ status: -1, user: uniqUserId }] },
           { $set: { status: 0 } },
         )
-      } catch (e) {
+      } catch (error) {
         // Clean up old "temporary document" -documents
         this.logger.debug(
           '*** UPDATE STATUS EXCEPTION - Start to clean up old temporary documents...',
@@ -199,7 +199,7 @@ export class ChangesService {
         await this.refSeqChunkModel.deleteMany({
           $and: [{ status: -1, user: uniqUserId }],
         })
-        throw new UnprocessableEntityException(String(e))
+        throw new UnprocessableEntityException(String(error))
       }
     })
 
@@ -252,10 +252,8 @@ export class ChangesService {
     this.logger.debug(`Search criteria: "${JSON.stringify(queryCond)}"`)
 
     let sortOrder: 1 | -1 = -1
-    if (changeFilter.sort) {
-      if (changeFilter.sort === '1') {
-        sortOrder = 1
-      }
+    if (changeFilter.sort && changeFilter.sort === '1') {
+      sortOrder = 1
     }
     let changeCursor = this.changeModel
       .find(queryCond)

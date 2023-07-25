@@ -46,7 +46,7 @@ export function AddAssembly({
   const apolloInternetAccounts = internetAccounts.filter(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel[]
-  if (!apolloInternetAccounts.length) {
+  if (apolloInternetAccounts.length === 0) {
     throw new Error('No Apollo internet account found')
   }
   const [assemblyName, setAssemblyName] = useState('')

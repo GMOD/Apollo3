@@ -276,16 +276,27 @@ function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
           `feature does not have start and/or end: ${JSON.stringify(f)}`,
         )
       }
-      let parsedPhase: 0 | 1 | 2 | undefined = undefined
+      let parsedPhase: 0 | 1 | 2 | undefined
       if (locationPhase) {
-        if (locationPhase === '0') {
-          parsedPhase = 0
-        } else if (locationPhase === '1') {
-          parsedPhase = 1
-        } else if (locationPhase === '2') {
-          parsedPhase = 2
-        } else {
-          throw new Error(`Unknown phase: "${locationPhase}"`)
+        switch (locationPhase) {
+          case '0': {
+            parsedPhase = 0
+
+            break
+          }
+          case '1': {
+            parsedPhase = 1
+
+            break
+          }
+          case '2': {
+            parsedPhase = 2
+
+            break
+          }
+          default: {
+            throw new Error(`Unknown phase: "${locationPhase}"`)
+          }
         }
       }
       return { start: subStart, end: subEnd, phase: parsedPhase }
@@ -304,14 +315,25 @@ function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
     feature.score = score
   }
   if (phase) {
-    if (phase === '0') {
-      feature.phase = 0
-    } else if (phase === '1') {
-      feature.phase = 1
-    } else if (phase === '2') {
-      feature.phase = 2
-    } else {
-      throw new Error(`Unknown phase: "${phase}"`)
+    switch (phase) {
+      case '0': {
+        feature.phase = 0
+
+        break
+      }
+      case '1': {
+        feature.phase = 1
+
+        break
+      }
+      case '2': {
+        feature.phase = 2
+
+        break
+      }
+      default: {
+        throw new Error(`Unknown phase: "${phase}"`)
+      }
     }
   }
 
@@ -339,30 +361,38 @@ function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
           if (newKey !== 'parent') {
             // attrs[key.toLowerCase()] = val
             switch (key) {
-              case 'ID':
+              case 'ID': {
                 attrs._id = val
                 break
-              case 'Name':
+              }
+              case 'Name': {
                 attrs.gff_name = val
                 break
-              case 'Alias':
+              }
+              case 'Alias': {
                 attrs.gff_alias = val
                 break
-              case 'Target':
+              }
+              case 'Target': {
                 attrs.gff_target = val
                 break
-              case 'Gap':
+              }
+              case 'Gap': {
                 attrs.gff_gap = val
                 break
-              case 'Derives_from':
+              }
+              case 'Derives_from': {
                 attrs.gff_derives_from = val
                 break
-              case 'Note':
+              }
+              case 'Note': {
                 attrs.gff_note = val
                 break
-              case 'Dbxref':
+              }
+              case 'Dbxref': {
                 attrs.gff_dbxref = val
                 break
+              }
               case 'Ontology_term': {
                 const goTerms: string[] = []
                 const otherTerms: string[] = []
@@ -373,19 +403,21 @@ function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
                     otherTerms.push(v)
                   }
                 })
-                if (goTerms.length) {
+                if (goTerms.length > 0) {
                   attrs['Gene Ontology'] = goTerms
                 }
-                if (otherTerms.length) {
+                if (otherTerms.length > 0) {
                   attrs.gff_ontology_term = otherTerms
                 }
                 break
               }
-              case 'Is_circular':
+              case 'Is_circular': {
                 attrs.gff_is_circular = val
                 break
-              default:
+              }
+              default: {
                 attrs[key.toLowerCase()] = val
+              }
             }
           }
         }

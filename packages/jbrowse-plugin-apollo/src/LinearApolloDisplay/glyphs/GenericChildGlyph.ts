@@ -47,7 +47,7 @@ export class GenericChildGlyph extends Glyph {
     const { apolloSelectedFeature } = session
     const top = row * apolloRowHeight
 
-    features.forEach((feature) => {
+    for (const feature of features) {
       const offsetPx = (feature.start - topLevelFeature.min) / bpPerPx
       const widthPx = feature.length / bpPerPx
       const startPx = reversed
@@ -82,13 +82,13 @@ export class GenericChildGlyph extends Glyph {
         feature.type &&
           ctx.fillText(feature.type, textStart, top + 11, textWidth)
       }
-    })
+    }
     if (features.length > 1) {
       let [{ end, start }] = features
-      features.forEach((feature) => {
+      for (const feature of features) {
         start = Math.min(start, feature.start)
         end = Math.max(end, feature.end)
-      })
+      }
       const width = end - start
       const startPx = (start - topLevelFeature.start) / bpPerPx
       const widthPx = width / bpPerPx

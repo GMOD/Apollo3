@@ -127,26 +127,23 @@ export class LocationStartChange extends FeatureChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
-    this.changedIds.forEach((changedId, idx) => {
+    for (const [idx, changedId] of this.changedIds.entries()) {
       const feature = dataStore.getFeature(changedId)
       if (!feature) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
       feature.setStart(this.changes[idx].newStart)
-    })
+    }
   }
 
   getInverse() {
     const { assembly, changedIds, changes, logger, typeName } = this
-    const inverseChangedIds = changedIds.slice().reverse()
-    const inverseChanges = changes
-      .slice()
-      .reverse()
-      .map((startChange) => ({
-        featureId: startChange.featureId,
-        oldStart: startChange.newStart,
-        newStart: startChange.oldStart,
-      }))
+    const inverseChangedIds = [...changedIds].reverse()
+    const inverseChanges = [...changes].reverse().map((startChange) => ({
+      featureId: startChange.featureId,
+      oldStart: startChange.newStart,
+      newStart: startChange.oldStart,
+    }))
     return new LocationStartChange(
       {
         changedIds: inverseChangedIds,

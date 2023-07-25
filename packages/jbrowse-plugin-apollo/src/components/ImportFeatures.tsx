@@ -100,19 +100,19 @@ export function ImportFeatures({
       setLoading(true)
       const response = await fetch(uri.toString(), { method: 'GET' })
 
-      if (!response.ok) {
-        throw new Error(await createFetchErrorMessage(response))
-      } else {
+      if (response.ok) {
         const countObj = (await response.json()) as { count: number }
         setFeaturesCount(countObj.count)
+      } else {
+        throw new Error(await createFetchErrorMessage(response))
       }
 
       setLoading(false)
     }
 
-    updateFeaturesCount().catch((err) => {
-      console.error(err)
-      setErrorMessage(err.message ?? err)
+    updateFeaturesCount().catch((error) => {
+      console.error(error)
+      setErrorMessage(error.message ?? error)
     })
   }, [getInternetAccount, session, selectedAssembly])
 

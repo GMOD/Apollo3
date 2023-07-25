@@ -66,7 +66,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
       }}
       onContextMenu={(event) => {
         event.preventDefault()
-        if (contextMenuItems.length) {
+        if (contextMenuItems.length > 0) {
           // There's already a context menu open, so close it
           setContextMenuItems([])
         } else {
@@ -114,7 +114,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             style={{ cursor: cursor ?? 'default' }}
           />
           <Menu
-            open={Boolean(contextMenuItems.length)}
+            open={contextMenuItems.length > 0}
             onMenuItemClick={(_, callback) => {
               callback()
               setContextMenuItems([])

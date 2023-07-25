@@ -86,7 +86,7 @@ const stateModelFactory = (
       getUserId() {
         const token = self.retrieveToken()
         if (!token) {
-          return undefined
+          return
         }
         const dec = getDecodedToken(token)
         return dec.id
@@ -98,7 +98,7 @@ const stateModelFactory = (
         getRole() {
           const token = self.retrieveToken()
           if (!token) {
-            return undefined
+            return
           }
           const dec = getDecodedToken(token)
           const { role } = dec
@@ -186,9 +186,10 @@ const stateModelFactory = (
           const { channel, reqType, userToken } = message
           if (channel === 'REQUEST_INFORMATION' && userToken !== token) {
             switch (reqType) {
-              case 'CURRENT_LOCATION':
+              case 'CURRENT_LOCATION': {
                 session.broadcastLocations()
                 break
+              }
             }
           }
         })
@@ -216,7 +217,7 @@ const stateModelFactory = (
             throw new Error(errorMessage)
           }
           const changes = yield response.json()
-          const sequence = changes.length ? changes[0].sequence : 0
+          const sequence = changes.length > 0 ? changes[0].sequence : 0
           self.setLastChangeSequenceNumber(sequence)
         },
       ),
@@ -277,7 +278,7 @@ const stateModelFactory = (
           if (!response.ok) {
             throw new Error() // no message here, will get caught by "catch"
           }
-        } catch (error) {
+        } catch {
           console.error('Broadcasting user location failed')
         }
       }
@@ -404,7 +405,7 @@ const stateModelFactory = (
               label: 'Undo',
               onClick: (session: ApolloSessionModel) => {
                 const { apolloDataStore, notify } = session
-                if (apolloDataStore.changeManager.recentChanges.length) {
+                if (apolloDataStore.changeManager.recentChanges.length > 0) {
                   apolloDataStore.changeManager.revertLastChange()
                 } else {
                   notify('No changes to undo', 'info')
@@ -471,7 +472,7 @@ const stateModelFactory = (
                 await self.initialize(role)
               }
               reaction.dispose()
-            } catch (error) {
+            } catch {
               // pass
             }
           },
@@ -558,7 +559,7 @@ const stateModelFactory = (
         getPreAuthorizationInformation: superGetPreAuthorizationInformation,
         retrieveToken: superRetrieveToken,
       } = self
-      let authTypePromise: Promise<AuthType> | undefined = undefined
+      let authTypePromise: Promise<AuthType> | undefined
       return {
         async getPreAuthorizationInformation(location: UriLocation) {
           const preAuthInfo = await superGetPreAuthorizationInformation(
@@ -638,15 +639,26 @@ const stateModelFactory = (
               input: RequestInfo,
               init?: RequestInit,
             ) => Promise<Response>
-            if (authType === 'google') {
-              fetchToUse = self.googleAuthInternetAccount.getFetcher(location)
-            } else if (authType === 'microsoft') {
-              fetchToUse =
-                self.microsoftAuthInternetAccount.getFetcher(location)
-            } else if (authType === 'guest') {
-              fetchToUse = superGetFetcher(location)
-            } else {
-              throw new Error(`Unknown authType "${authType}"`)
+            switch (authType) {
+              case 'google': {
+                fetchToUse = self.googleAuthInternetAccount.getFetcher(location)
+
+                break
+              }
+              case 'microsoft': {
+                fetchToUse =
+                  self.microsoftAuthInternetAccount.getFetcher(location)
+
+                break
+              }
+              case 'guest': {
+                fetchToUse = superGetFetcher(location)
+
+                break
+              }
+              default: {
+                throw new Error(`Unknown authType "${authType}"`)
+              }
             }
             const response = await fetchToUse(input, init)
             if (response.status === 401) {

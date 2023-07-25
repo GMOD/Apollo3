@@ -28,7 +28,7 @@ function jsonPathQuery(
 function wordsInString(str: string) {
   return str
     .toLowerCase()
-    .split(/[^A-Za-z0-9:]+/)
+    .split(/[^\d:A-Za-z]+/)
     .filter((word) => word && !stopwords.has(word))
 }
 
@@ -65,7 +65,7 @@ export function* getWords(
 ): Generator<[string, string], void, undefined> {
   for (const path of jsonPaths) {
     const queryResult = jsonPathQuery(node, path, prefixes) as unknown[]
-    if (queryResult.length) {
+    if (queryResult.length > 0) {
       for (const word of extractWords(extractStrings(queryResult))) {
         yield [path, word]
       }
@@ -99,7 +99,7 @@ export async function textSearch(
 
   checkAbortSignal(signal)
 
-  const queryWords = Array.from(wordsInString(text))
+  const queryWords = [...wordsInString(text)]
 
   const queries: Promise<void>[] = []
 
@@ -115,7 +115,7 @@ export async function textSearch(
       checkAbortSignal(signal)
       const idx = myTx.objectStore('nodes').index('full-text-words')
       for await (const cursor of idx.iterate(
-        IDBKeyRange.bound(queryWord, `${queryWord}\uffff`, false, false),
+        IDBKeyRange.bound(queryWord, `${queryWord}\uFFFF`, false, false),
       )) {
         checkAbortSignal(signal)
         const term = cursor.value
@@ -165,11 +165,11 @@ export function elaborateMatch(
   queryWords: string[],
   prefixes: Map<string, string>,
 ): Match[] {
-  const sortedWordIndexes = Array.from(queryWordIndexes).sort()
+  const sortedWordIndexes = [...queryWordIndexes].sort()
   const matchedQueryWords = sortedWordIndexes.map((i) => queryWords[i])
   const queryWordRegexps = matchedQueryWords.map((queryWord) => {
-    const escaped = queryWord.replace(/[/\-\\^$*+?.()|[\]{}]/g, '\\$&')
-    return RegExp(`\\b${escaped}`, 'gi')
+    const escaped = queryWord.replaceAll(/[$()*+./?[\\\]^{|}-]/g, '\\$&')
+    return new RegExp(`\\b${escaped}`, 'gi')
   })
   // const needle = matchedQueryWords.join(' ')
 
@@ -192,9 +192,9 @@ export function elaborateMatch(
   textIndexPaths.forEach((field, fieldIdx) => {
     const wordsMatched = new Set<number>()
     const fieldPriorityBonus = textIndexPaths.length - fieldIdx - 1
-    const termStrings = Array.from(
-      extractStrings(jsonPathQuery(term, field.jsonPath, prefixes)),
-    )
+    const termStrings = [
+      ...extractStrings(jsonPathQuery(term, field.jsonPath, prefixes)),
+    ]
     // find occurrences of each of the words in the strings
     for (const str of termStrings) {
       let score = 0
@@ -222,7 +222,7 @@ export function elaborateMatch(
       }
       // sort the word matches by position in the target string ascending
       wordMatches.sort((a, b) => a.position - b.position)
-      if (wordMatches.length) {
+      if (wordMatches.length > 0) {
         matches.push({ term, field, str, score, wordMatches })
       }
     }

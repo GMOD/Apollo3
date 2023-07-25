@@ -50,7 +50,7 @@ async function fetchValidDescendantTerms(
         includeSubclasses: false,
       })
     ).filter(isOntologyClass)
-    if (parentTypeTerms.length) {
+    if (parentTypeTerms.length > 0) {
       const subpartTerms = await ontologyStore.getClassesThat(
         'part_of',
         parentTypeTerms,
@@ -58,7 +58,7 @@ async function fetchValidDescendantTerms(
       return subpartTerms
     }
   }
-  return undefined
+  return
 }
 
 export function AddFeature({
@@ -120,17 +120,22 @@ export function AddFeature({
     setPhase(e.target.value)
 
     switch (Number(e.target.value)) {
-      case 0:
+      case 0: {
         setPhaseAsNumber(PhaseEnum.zero)
         break
-      case 1:
+      }
+      case 1: {
         setPhaseAsNumber(PhaseEnum.one)
         break
-      case 2:
+      }
+      case 2: {
         setPhaseAsNumber(PhaseEnum.two)
         break
-      default:
+      }
+      default: {
+        // eslint-disable-next-line unicorn/no-useless-undefined
         setPhaseAsNumber(undefined)
+      }
     }
   }
   const error = Number(end) <= Number(start)

@@ -85,10 +85,10 @@ export function extendSession(
             const existingCollaborator = collabs.find(
               (obj: Collaborator) => obj.id === collaborator.id,
             )
-            if (!existingCollaborator) {
-              collabs.push(collaborator)
-            } else {
+            if (existingCollaborator) {
               existingCollaborator.locations = collaborator.locations
+            } else {
+              collabs.push(collaborator)
             }
           },
         },
@@ -158,7 +158,7 @@ export function extendSession(
             })
           }
         }
-        if (!locations.length) {
+        if (locations.length === 0) {
           for (const internetAccount of internetAccounts as (
             | BaseInternetAccountModel
             | ApolloInternetAccountModel
@@ -213,7 +213,7 @@ export function extendSession(
                 })
               }
             }
-            if (!locations.length) {
+            if (locations.length === 0) {
               for (const internetAccount of internetAccounts as (
                 | BaseInternetAccountModel
                 | ApolloInternetAccountModel
@@ -263,8 +263,8 @@ export function extendSession(
           let response: Response
           try {
             response = yield fetch(uri, { signal })
-          } catch (e) {
-            console.error(e)
+          } catch (error) {
+            console.error(error)
             // setError(e instanceof Error ? e : new Error(String(e)))
             continue
           }
@@ -280,8 +280,8 @@ export function extendSession(
           try {
             fetchedAssemblies =
               (yield response.json()) as ApolloAssemblyResponse[]
-          } catch (e) {
-            console.error(e)
+          } catch (error) {
+            console.error(error)
             continue
           }
           for (const assembly of fetchedAssemblies) {
@@ -306,7 +306,7 @@ export function extendSession(
               let errorMessage
               try {
                 errorMessage = yield response2.text()
-              } catch (e) {
+              } catch {
                 errorMessage = ''
               }
               throw new Error(

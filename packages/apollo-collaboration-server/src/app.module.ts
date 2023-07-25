@@ -1,5 +1,5 @@
-import fs from 'fs/promises'
-import path from 'path'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
@@ -59,7 +59,7 @@ const validationSchema = Joi.object({
       const errorMessage =
         'LOG_LEVELS must be a comma-separated list of log levels to output, where the possible values are: error, warn, log, debug, verbose'
       if (typeof value !== 'string') {
-        throw new Error(errorMessage)
+        throw new TypeError(errorMessage)
       }
       const levels = value.split(',')
       for (const level of levels) {
@@ -85,7 +85,7 @@ const validationSchema = Joi.object({
       const errorMessage =
         'PLUGIN_URLS must be a comma-separated list of plugin URLs'
       if (typeof value !== 'string') {
-        throw new Error(errorMessage)
+        throw new TypeError(errorMessage)
       }
       const urls = value.split(',')
       for (const url of urls) {
@@ -119,12 +119,12 @@ async function mongoDBURIFactory(
     const uriFile = configService.get('MONGODB_URI_FILE', {
       infer: true,
     })!
-    uri = (await fs.readFile(uriFile, 'utf-8')).trim()
+    uri = (await fs.readFile(uriFile, 'utf8')).trim()
   }
   return {
     uri,
     connectionFactory: (connection: Connection) => {
-      connection.set('maxTimeMS', 7200000)
+      connection.set('maxTimeMS', 7_200_000)
       return connection
     },
   }

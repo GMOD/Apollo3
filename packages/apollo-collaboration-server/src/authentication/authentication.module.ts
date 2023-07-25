@@ -1,4 +1,4 @@
-import fs from 'fs/promises'
+import fs from 'node:fs/promises'
 
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
@@ -27,7 +27,7 @@ async function jwtConfigFactory(
     const uriFile = configService.get('JWT_SECRET_FILE', {
       infer: true,
     })!
-    jwtSecret = (await fs.readFile(uriFile, 'utf-8')).trim()
+    jwtSecret = (await fs.readFile(uriFile, 'utf8')).trim()
   }
   return { secret: jwtSecret, signOptions: { expiresIn: '1d' } }
 }

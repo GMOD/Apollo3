@@ -186,7 +186,7 @@ export class CollaborationServerDriver extends BackendDriver {
       let errorMessage
       try {
         errorMessage = await response.text()
-      } catch (error) {
+      } catch {
         errorMessage = ''
       }
       throw new Error(
@@ -230,7 +230,7 @@ export class CollaborationServerDriver extends BackendDriver {
     change: Change | AssemblySpecificChange,
     opts: SubmitOpts = {},
   ) {
-    const { internetAccountId = undefined } = opts
+    const { internetAccountId } = opts
     const internetAccount = this.clientStore.getInternetAccount(
       'assembly' in change ? change.assembly : undefined,
       internetAccountId,

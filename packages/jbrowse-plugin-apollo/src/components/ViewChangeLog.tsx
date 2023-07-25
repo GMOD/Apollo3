@@ -57,7 +57,7 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
       width: 200,
       type: 'singleSelect',
       // TODO: Get these from change manager once it's on the session
-      valueOptions: Array.from(changeRegistry.changes.keys()),
+      valueOptions: [...changeRegistry.changes.keys()],
     },
     {
       field: 'changes',
@@ -101,11 +101,11 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
         setAssemblyCollection(data)
       }
     }
-    getAssemblies().catch((e) => setErrorMessage(String(e)))
+    getAssemblies().catch((error) => setErrorMessage(String(error)))
   }, [apolloInternetAccount, baseURL])
 
   useEffect(() => {
-    if (!assemblyId && assemblyCollection.length) {
+    if (!assemblyId && assemblyCollection.length > 0) {
       setAssemblyId(assemblyCollection[0]._id)
     }
   }, [assemblyId, assemblyCollection])
@@ -141,7 +141,7 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
         setDisplayGridData(data)
       }
     }
-    getGridData().catch((e) => setErrorMessage(String(e)))
+    getGridData().catch((error) => setErrorMessage(String(error)))
   }, [assemblyId, apolloInternetAccount, baseURL])
 
   async function handleChangeAssembly(e: SelectChangeEvent<string>) {

@@ -183,7 +183,7 @@ export function mouseEventsModelFactory(
       endDrag(event: CanvasMouseEvent) {
         self.continueDrag(event)
         self.apolloDragging?.start.glyph?.executeDrag(self, event)
-        self.setDragging(undefined)
+        self.setDragging()
       },
     }))
     .actions((self) => ({
@@ -205,12 +205,12 @@ export function mouseEventsModelFactory(
         if (buttons) {
           // if button 1 is being held down while moving, we must be dragging
           if (buttons === 1) {
-            if (!self.apolloDragging) {
-              // start drag if not already dragging
-              self.startDrag(event)
-            } else {
+            if (self.apolloDragging) {
               // otherwise update the drag state
               self.continueDrag(event)
+            } else {
+              // start drag if not already dragging
+              self.startDrag(event)
             }
           }
         } else {
@@ -220,12 +220,12 @@ export function mouseEventsModelFactory(
             self.setApolloHover(hover)
           } else {
             self.setApolloHover(null)
-            self.setCursor(undefined)
+            self.setCursor()
           }
         }
       },
       onMouseLeave(event: CanvasMouseEvent) {
-        self.setDragging(undefined)
+        self.setDragging()
 
         const { glyph } = self.getFeatureAndGlyphUnderMouse(event)
         if (glyph) {

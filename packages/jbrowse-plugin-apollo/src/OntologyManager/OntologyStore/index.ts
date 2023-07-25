@@ -70,6 +70,11 @@ export interface OntologyStoreOptions {
   maxSearchResults?: number
 }
 
+export interface PropertiesOptions {
+  /** default true */
+  includeSubProperties: boolean
+}
+
 /** query interface for a specific ontology */
 export default class OntologyStore {
   ontologyName: string
@@ -141,10 +146,11 @@ export default class OntologyStore {
       if (this.sourceLocation.uri.endsWith('.json')) {
         return 'obo-graph-json'
       }
-    } else if (isLocalPathLocation(this.sourceLocation)) {
-      if (this.sourceLocation.localPath.endsWith('.json')) {
-        return 'obo-graph-json'
-      }
+    } else if (
+      isLocalPathLocation(this.sourceLocation) &&
+      this.sourceLocation.localPath.endsWith('.json')
+    ) {
+      return 'obo-graph-json'
     }
     return undefined
   }
@@ -156,7 +162,7 @@ export default class OntologyStore {
 
   async prepareDatabase() {
     const errors = this.validate()
-    if (errors.length) {
+    if (errors.length > 0) {
       throw errors
     }
 
@@ -206,9 +212,10 @@ export default class OntologyStore {
     const includeSubclasses = options?.includeSubclasses ?? true
     const myTx = tx ?? (await this.db).transaction(['nodes', 'edges'])
     const nodes = myTx.objectStore('nodes')
-    const resultNodes = (
-      await nodes.index('by-label').getAll(termLabelOrSynonym)
-    ).concat(await nodes.index('by-synonym').getAll(termLabelOrSynonym))
+    const resultNodes = [
+      ...(await nodes.index('by-label').getAll(termLabelOrSynonym)),
+      ...(await nodes.index('by-synonym').getAll(termLabelOrSynonym)),
+    ]
 
     if (includeSubclasses) {
       // now recursively traverse is_a relations to gather nodes that are subclasses any of these
@@ -242,7 +249,7 @@ export default class OntologyStore {
    */
   async getPropertiesByLabel(
     propertyLabel: string,
-    options?: { includeSubProperties?: boolean },
+    options?: PropertiesOptions,
     tx?: Transaction<['nodes', 'edges']>,
   ): Promise<OntologyProperty[]> {
     const includeSubProperties = options?.includeSubProperties ?? true
@@ -290,7 +297,7 @@ export default class OntologyStore {
 
     async function recur(queryIds: Iterable<string>) {
       await Promise.all(
-        Array.from(queryIds).map(async (queryId) => {
+        [...queryIds].map(async (queryId) => {
           const theseResults = (
             (await myTx
               .objectStore('edges')
@@ -300,7 +307,7 @@ export default class OntologyStore {
             .filter(filterEdge)
             .map((edge) => edge[resultProp])
 
-          if (theseResults.length) {
+          if (theseResults.length > 0) {
             // report these subjects as results
             for (const resultId of theseResults) {
               resultIds.add(resultId)
@@ -328,7 +335,7 @@ export default class OntologyStore {
     tx?: Transaction<['edges']>,
   ) {
     const myTx = tx ?? (await this.db).transaction(['edges'])
-    const startingNodes = Array.from(startingNodeIds)
+    const startingNodes = [...startingNodeIds]
     const subclassIds = await this.recurseEdges(
       direction === 'subclasses' ? 'by-object' : 'by-subject',
       startingNodes,
@@ -434,7 +441,7 @@ export default class OntologyStore {
 
   async getClassesWithoutPropertyLabeled(
     propertyLabel: string,
-    options = { includeSubProperties: false },
+    options: PropertiesOptions,
     tx?: Transaction<['nodes', 'edges']>,
   ) {
     const myTx = tx ?? (await this.db).transaction(['nodes', 'edges'])

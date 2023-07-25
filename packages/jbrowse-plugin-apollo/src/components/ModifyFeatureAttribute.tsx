@@ -137,9 +137,9 @@ export function ModifyFeatureAttribute({
   const [errorMessage, setErrorMessage] = useState('')
   const [attributes, setAttributes] = useState<Record<string, string[]>>(
     Object.fromEntries(
-      Array.from(sourceFeature.attributes.entries()).map(([key, value]) => {
+      [...sourceFeature.attributes.entries()].map(([key, value]) => {
         if (key.startsWith('gff_')) {
-          const newKey = key.substring(4)
+          const newKey = key.slice(4)
           const capitalizedKey =
             newKey.charAt(0).toUpperCase() + newKey.slice(1)
           return [capitalizedKey, getSnapshot(value)]
@@ -160,53 +160,64 @@ export function ModifyFeatureAttribute({
 
     const attrs: Record<string, string[]> = {}
     if (attributes) {
-      Object.entries(attributes).forEach(([key, val]) => {
+      for (const [key, val] of Object.entries(attributes)) {
         if (!val) {
-          return
+          continue
         }
         const newKey = key.toLowerCase()
         if (newKey === 'parent') {
-          return
+          continue
         }
-        if (Array.from(reservedKeys.keys()).includes(key)) {
+        if ([...reservedKeys.keys()].includes(key)) {
           attrs[key] = val
-          return
+          continue
         }
         switch (key) {
-          case 'ID':
+          case 'ID': {
             attrs._id = val
             break
-          case 'Name':
+          }
+          case 'Name': {
             attrs.gff_name = val
             break
-          case 'Alias':
+          }
+          case 'Alias': {
             attrs.gff_alias = val
             break
-          case 'Target':
+          }
+          case 'Target': {
             attrs.gff_target = val
             break
-          case 'Gap':
+          }
+          case 'Gap': {
             attrs.gff_gap = val
             break
-          case 'Derives_from':
+          }
+          case 'Derives_from': {
             attrs.gff_derives_from = val
             break
-          case 'Note':
+          }
+          case 'Note': {
             attrs.gff_note = val
             break
-          case 'Dbxref':
+          }
+          case 'Dbxref': {
             attrs.gff_dbxref = val
             break
-          case 'Ontology_term':
+          }
+          case 'Ontology_term': {
             attrs.gff_ontology_term = val
             break
-          case 'Is_circular':
+          }
+          case 'Is_circular': {
             attrs.gff_is_circular = val
             break
-          default:
+          }
+          default: {
             attrs[key.toLowerCase()] = val
+          }
         }
-      })
+      }
     }
 
     const change = new FeatureAttributeChange({
@@ -224,7 +235,7 @@ export function ModifyFeatureAttribute({
 
   function handleAddNewAttributeChange() {
     setErrorMessage('')
-    if (newAttributeKey.trim().length < 1) {
+    if (newAttributeKey.trim().length === 0) {
       setErrorMessage('Attribute key is mandatory')
       return
     }
@@ -241,7 +252,7 @@ export function ModifyFeatureAttribute({
     if (
       /^[A-Z]/.test(newAttributeKey) &&
       !reservedTerms.includes(newAttributeKey) &&
-      !Array.from(reservedKeys.keys()).includes(newAttributeKey)
+      ![...reservedKeys.keys()].includes(newAttributeKey)
     ) {
       setErrorMessage(
         `Key cannot starts with uppercase letter unless key is one of these: ${reservedTerms.join(
@@ -284,7 +295,7 @@ export function ModifyFeatureAttribute({
   }
 
   const hasEmptyAttributes = Object.values(attributes).some(
-    (value) => value.length === 0 || value.some((v) => v === ''),
+    (value) => value.length === 0 || value.includes(''),
   )
 
   return (
@@ -379,7 +390,7 @@ export function ModifyFeatureAttribute({
                               </Grid>
                             }
                           />
-                          {Array.from(reservedKeys.keys()).map((key) => (
+                          {[...reservedKeys.keys()].map((key) => (
                             <FormControlLabel
                               key={key}
                               value={key}
