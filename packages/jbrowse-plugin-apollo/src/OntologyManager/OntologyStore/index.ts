@@ -20,8 +20,8 @@ import {
 import {
   OntologyClass,
   OntologyProperty,
-  isOntologyProperty,
   isOntologyClass,
+  isOntologyProperty,
 } from '..'
 
 export type SourceLocation = UriLocation | LocalPathLocation | BlobLocation
@@ -46,14 +46,14 @@ function isLocalPathLocation(location: unknown): location is LocalPathLocation {
   )
 }
 
-/**
- * @deprecated use the one from jbrowse core when it is published
- */
-function isBlobLocation(location: unknown): location is BlobLocation {
-  return (
-    typeof location === 'object' && location !== null && 'blobId' in location
-  )
-}
+// /**
+//  * @deprecated use the one from jbrowse core when it is published
+//  */
+// function isBlobLocation(location: unknown): location is BlobLocation {
+//   return (
+//     typeof location === 'object' && location !== null && 'blobId' in location
+//   )
+// }
 
 /** query interface for a specific ontology */
 export default class OntologyStore {
@@ -163,26 +163,30 @@ export default class OntologyStore {
 
   async getNodesWithLabelOrSynonym(
     termLabelOrSynonym: string,
+    options?: { includeSubclasses?: boolean },
     tx?: Transaction<['nodes', 'edges']>,
   ): Promise<OntologyDBNode[]> {
+    const includeSubclasses = options?.includeSubclasses ?? true
     const myTx = tx || (await this.db).transaction(['nodes', 'edges'])
     const nodes = myTx.objectStore('nodes')
     const resultNodes = (
       await nodes.index('by-label').getAll(termLabelOrSynonym)
     ).concat(await nodes.index('by-synonym').getAll(termLabelOrSynonym))
 
-    // now recursively traverse is_a relations to gather nodes that are subclasses any of these
-    const subclassIds = await this.recurseEdges(
-      'by-object',
-      resultNodes.map((n) => n.id),
-      (edge) => edge.pred === 'is_a',
-      'sub',
-      myTx as unknown as Transaction<['edges']>,
-    )
-    for (const nodeId of subclassIds) {
-      const node = await nodes.get(nodeId)
-      if (node) {
-        resultNodes.push(node)
+    if (includeSubclasses) {
+      // now recursively traverse is_a relations to gather nodes that are subclasses any of these
+      const subclassIds = await this.recurseEdges(
+        'by-object',
+        resultNodes.map((n) => n.id),
+        (edge) => edge.pred === 'is_a',
+        'sub',
+        myTx as unknown as Transaction<['edges']>,
+      )
+      for (const nodeId of subclassIds) {
+        const node = await nodes.get(nodeId)
+        if (node) {
+          resultNodes.push(node)
+        }
       }
     }
 
@@ -196,34 +200,45 @@ export default class OntologyStore {
    *
    * If there is more than one property with that label, treats it as
    * equivalent and just returns all the properties and their subproperties.
+   *
+   * options.includeSubProperties default is true
    */
-  async getPropertyAndSubPropertiesByLabel(
+  async getPropertiesByLabel(
     propertyLabel: string,
+    options?: { includeSubProperties?: boolean },
     tx?: Transaction<['nodes', 'edges']>,
   ): Promise<OntologyProperty[]> {
+    const includeSubProperties = options?.includeSubProperties ?? true
+
     const myTx = tx || (await this.db).transaction(['nodes', 'edges'])
-    // const edges = myTx.objectStore('edges')
-    const nodes = myTx.objectStore('nodes')
-    const result = (
-      await this.getNodesWithLabelOrSynonym(propertyLabel, myTx)
+
+    const properties = (
+      await this.getNodesWithLabelOrSynonym(
+        propertyLabel,
+        { includeSubclasses: false },
+        myTx,
+      )
     ).filter((p): p is OntologyProperty => isOntologyProperty(p))
 
-    const subpropertyIds = await this.recurseEdges(
-      'by-object',
-      result.map((p) => p.id),
-      (edge) => edge.pred === 'subPropertyOf',
-      'sub',
-      myTx as unknown as Transaction<['edges']>,
-    )
+    if (includeSubProperties) {
+      const subPropertyIds = await this.recurseEdges(
+        'by-object',
+        properties.map((p) => p.id),
+        (edge) => edge.pred === 'subPropertyOf',
+        'sub',
+        myTx as unknown as Transaction<['edges']>,
+      )
 
-    for (const subpropertyId of subpropertyIds) {
-      const property = await nodes.get(subpropertyId)
-      if (property && isOntologyProperty(property)) {
-        result.push(property)
+      const nodes = myTx.objectStore('nodes')
+      for (const subPropertyId of subPropertyIds) {
+        const property = await nodes.get(subPropertyId)
+        if (property && isOntologyProperty(property)) {
+          properties.push(property)
+        }
       }
     }
 
-    return result
+    return properties
   }
 
   /** private helper for traversing the edges of the ontology graph. Does a breadth-first search of the graph */
@@ -295,14 +310,15 @@ export default class OntologyStore {
     tx?: Transaction<['edges']>,
   ) {
     const myTx = tx || (await this.db).transaction(['edges'])
+    const startingNodes = Array.from(startingNodeIds)
     const subclassIds = await this.recurseEdges(
       direction === 'subclasses' ? 'by-object' : 'by-subject',
-      startingNodeIds,
+      startingNodes,
       (edge) => edge.pred === subclassRelation,
       direction === 'subclasses' ? 'sub' : 'obj',
       myTx as unknown as Transaction<['edges']>,
     )
-    for (const n of startingNodeIds) {
+    for (const n of startingNodes) {
       yield n
     }
     for (const id of subclassIds) {
@@ -343,7 +359,8 @@ export default class OntologyStore {
   }
 
   /**
-   * example: store.getTermsThat('part_of', [geneTerm]) would return all terms that are 'part_of' a gene
+   * example: for the Sequence Ontology, store.getTermsThat('part_of', [geneTerm])
+   * would return all terms that are part_of, member_of, or integral_part_of a gene
    */
   async getTermsThat(
     propertyLabel: string,
@@ -353,8 +370,9 @@ export default class OntologyStore {
     const myTx = tx || (await this.db).transaction(['nodes', 'edges'])
 
     // find all the terms for the properties we are using
-    const relatingProperties = await this.getPropertyAndSubPropertiesByLabel(
+    const relatingProperties = await this.getPropertiesByLabel(
       propertyLabel,
+      { includeSubProperties: true },
       myTx,
     )
     const relatingPropertyIds = relatingProperties.map((p) => p.id)
@@ -374,7 +392,6 @@ export default class OntologyStore {
       'is_a',
       myTx as unknown as Transaction<['edges']>,
     )
-
     // fetch the full nodes and filter out deprecated ones
     const terms: OntologyClass[] = []
     for await (const termId of expanded) {
@@ -389,6 +406,7 @@ export default class OntologyStore {
 
   async getTermsWithoutPropertyLabeled(
     propertyLabel: string,
+    options = { includeSubProperties: false },
     tx?: Transaction<['nodes', 'edges']>,
   ) {
     const myTx = tx || (await this.db).transaction(['nodes', 'edges'])
@@ -396,8 +414,9 @@ export default class OntologyStore {
     const edgeStore = myTx.objectStore('edges')
 
     // find all the terms (synonyms, subterms, etc) for the properties we are using
-    const relatingProperties = await this.getPropertyAndSubPropertiesByLabel(
+    const relatingProperties = await this.getPropertiesByLabel(
       propertyLabel,
+      options,
       myTx,
     )
     const relatingPropertyIds = relatingProperties.map((p) => p.id)

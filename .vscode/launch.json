@@ -14,33 +14,41 @@
       "type": "node"
     },
     {
-        "name": "All Jest Tests",
-        "type": "node",
-        "request": "launch",
-        "runtimeExecutable": "yarn",
+      "name": "All Jest Tests",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "yarn",
       "runtimeArgs": [
-          "run",
-          "--inspect-brk",
-          "test",
-          "--runInBand",
-        ],
-        "console": "integratedTerminal",
-        "internalConsoleOptions": "neverOpen"
-      },
-      {
-        "name": "Current Jest Test",
-        "type": "node",
-        "request": "launch",
-        "runtimeExecutable": "yarn",
+        "run",
+        "--inspect-brk",
+        "test",
+        "--runInBand",
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**",
+        ".yarn/cache/**"
+      ]
+    },
+    {
+      "name": "Current Jest Test",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "yarn",
       "runtimeArgs": [
-          "run",
-          "--inspect-brk",
-          "test",
-          "--runInBand",
-          "${relativeFile}"
-        ],
-        "console": "integratedTerminal",
-        "internalConsoleOptions": "neverOpen"
-      }
+        "run",
+        "--inspect-brk",
+        "test",
+        "--runInBand",
+        "${relativeFile}"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/.yarn/cache/**"
+      ]
+    }
   ]
 }

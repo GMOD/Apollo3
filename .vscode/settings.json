@@ -7,5 +7,5 @@
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "eslint.nodePath": ".yarn/sdks",
   "jest.jestCommandLine": "yarn test",
-  "jest.autoRun": {}
+  "jest.autoRun": {},
 }

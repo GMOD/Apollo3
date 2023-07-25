@@ -3015,6 +3015,59 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
 exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
 [
   {
+    "id": "http://purl.obolibrary.org/obo/SO_0000831",
+    "lbl": "gene_member_region",
+    "meta": {
+      "basicPropertyValues": [
+        {
+          "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+          "val": "sequence",
+        },
+      ],
+      "comments": [
+        "A manufactured term used to allow the parts of a gene to have an is_a path to the root.",
+      ],
+      "definition": {
+        "val": "A region of a gene.",
+        "xrefs": [
+          "SO:ke",
+        ],
+      },
+      "subsets": [
+        "http://purl.obolibrary.org/obo/so#SOFA",
+      ],
+      "synonyms": [
+        {
+          "pred": "hasExactSynonym",
+          "val": "gene member region",
+        },
+      ],
+    },
+    "type": "CLASS",
+  },
+  {
+    "id": "http://purl.obolibrary.org/obo/SO_0000842",
+    "lbl": "gene_component_region",
+    "meta": {
+      "basicPropertyValues": [
+        {
+          "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+          "val": "sequence",
+        },
+      ],
+      "subsets": [
+        "http://purl.obolibrary.org/obo/so#SOFA",
+      ],
+      "synonyms": [
+        {
+          "pred": "hasExactSynonym",
+          "val": "gene component region",
+        },
+      ],
+    },
+    "type": "CLASS",
+  },
+  {
     "id": "http://purl.obolibrary.org/obo/SO_0000673",
     "lbl": "transcript",
     "meta": {

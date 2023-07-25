@@ -32,20 +32,22 @@ export function OntologyTermAutocomplete(props: {
   const { classes } = useStyles()
 
   const [open, setOpen] = useState(false)
-  const [soSequenceTerms, setSOSequenceTerms] = useState<OntologyClass[]>([])
+  const [soSequenceTerms, setSOSequenceTerms] = useState<
+    OntologyClass[] | undefined
+  >()
   const [currentOntologyTermInvalid, setCurrentOntologyTermInvalid] =
     useState('')
   const [currentOntologyTerm, setCurrentOntologyTerm] = useState<
     OntologyClass | undefined
   >()
 
-  const needToLoadTermChoices = open && soSequenceTerms.length === 0
+  const needToLoadTermChoices = open && !soSequenceTerms
   const needToLoadCurrentTerm = !currentOntologyTerm
 
   // effect for clearing choices when not open
   useEffect(() => {
     if (!open) {
-      setSOSequenceTerms([])
+      setSOSequenceTerms(undefined)
     }
   }, [open])
 
@@ -77,21 +79,18 @@ export function OntologyTermAutocomplete(props: {
       return undefined
     }
 
-    async function getSOSequenceTerms() {
-      const soTerms = await getValidTermsForFeature(
-        displayState,
-        feature,
-        signal,
-      )
-      if (soTerms && !signal.aborted) {
-        setSOSequenceTerms(soTerms)
-      }
-    }
-    getSOSequenceTerms().catch((e) => {
-      if (!signal.aborted) {
-        getSession(displayState).notify(e.message, 'error')
-      }
-    })
+    getValidTermsForFeature(displayState, feature, signal).then(
+      (soTerms) => {
+        if (soTerms && !signal.aborted) {
+          setSOSequenceTerms(soTerms)
+        }
+      },
+      (error) => {
+        if (!signal.aborted) {
+          getSession(displayState).notify(error.message, 'error')
+        }
+      },
+    )
     return () => {
       controller.abort()
     }
@@ -109,7 +108,7 @@ export function OntologyTermAutocomplete(props: {
 
   return (
     <Autocomplete
-      options={soSequenceTerms}
+      options={soSequenceTerms || []}
       style={style}
       onOpen={() => {
         setOpen(true)
@@ -197,21 +196,18 @@ async function getValidTermsForFeature(
   if (parentFeature) {
     // if this is a child of an existing feature, restrict the autocomplete choices to valid
     // parts of that feature
-    const [parentTypeTerm] = (
-      await featureTypeOntology.getNodesWithLabelOrSynonym(parentFeature.type)
+    const parentTypeTerms = (
+      await featureTypeOntology.getNodesWithLabelOrSynonym(parentFeature.type, {
+        includeSubclasses: false,
+      })
     ).filter(isOntologyClass)
-    if (parentTypeTerm) {
-      const subpartTerms = await featureTypeOntology.getTermsThat('part_of', [
-        parentTypeTerm,
-      ])
+    if (parentTypeTerms.length) {
+      const subpartTerms = await featureTypeOntology.getTermsThat(
+        'part_of',
+        parentTypeTerms,
+      )
       resultTerms = subpartTerms
     }
-  } else {
-    // if this is a top-level feature, restrict the autocomplete choices to valid top-level features that
-    // are not part of something else
-    resultTerms = await featureTypeOntology.getTermsWithoutPropertyLabeled(
-      'part_of',
-    )
   }
 
   // if we could not figure out any restrictions, just autocomplete with all the SO terms
