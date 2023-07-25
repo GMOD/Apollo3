@@ -202,38 +202,33 @@ function ApolloRendering(props: ApolloRenderingProps) {
       let offset = -Math.floor(Object.keys(transcript).length / 2)
       for (const pid in transcript) {
         ctx.strokeStyle = selectColor(offset)
-        let prevCoords: [number, number]
-        transcript[pid]
-          .sort(function (a, b) {
-            return a[0] - b[0]
-          })
-
-          .forEach((coords, index) => {
-            if (index === 0) {
-              prevCoords = coords
-            } else {
-              if (index % 2 === 0) {
-                /** Mid-point for intron line "hat" */
-                const midPoint: [number, number] = [
-                  (coords[0] - prevCoords[0]) / 2 + prevCoords[0],
-                  Math.max(
-                    1, // Avoid render ceiling
-                    Math.min(prevCoords[1], coords[1]) -
-                      height / 2 +
-                      offset * 2,
-                  ),
-                ]
-                ctx.beginPath()
-                ctx.moveTo(prevCoords[0], prevCoords[1] + offset * 2)
-                ctx.lineTo(...midPoint)
-                ctx.stroke()
-                ctx.moveTo(...midPoint)
-                ctx.lineTo(coords[0], coords[1] + offset * 2)
-                ctx.stroke()
-              }
-              prevCoords = coords
-            }
-          })
+        const sortedCoords = transcript[pid].sort((a, b) => {
+          return a[0] - b[0]
+        })
+        let [prevCoords] = sortedCoords
+        for (const [index, coords] of sortedCoords.entries()) {
+          if (index === 0) {
+            continue
+          }
+          if (index % 2 === 0) {
+            /** Mid-point for intron line "hat" */
+            const midPoint: [number, number] = [
+              (coords[0] - prevCoords[0]) / 2 + prevCoords[0],
+              Math.max(
+                1, // Avoid render ceiling
+                Math.min(prevCoords[1], coords[1]) - height / 2 + offset * 2,
+              ),
+            ]
+            ctx.beginPath()
+            ctx.moveTo(prevCoords[0], prevCoords[1] + offset * 2)
+            ctx.lineTo(...midPoint)
+            ctx.stroke()
+            ctx.moveTo(...midPoint)
+            ctx.lineTo(coords[0], coords[1] + offset * 2)
+            ctx.stroke()
+          }
+          prevCoords = coords
+        }
         offset += 1
       }
     }
