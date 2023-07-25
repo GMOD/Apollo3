@@ -90,7 +90,6 @@ export interface ServerDataStore {
   counterService: {
     getNextSequenceValue(sequenceName: string): Promise<number>
   }
-  ontology: OboJson
   user: string
 }
 export type OboJsonShared = OboJson

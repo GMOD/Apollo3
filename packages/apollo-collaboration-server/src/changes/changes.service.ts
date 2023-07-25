@@ -36,7 +36,6 @@ import { CountersService } from '../counters/counters.service'
 import { FilesService } from '../files/files.service'
 import { ChangeMessage } from '../messages/entities/message.entity'
 import { MessagesGateway } from '../messages/messages.gateway'
-import { OntologiesService } from '../ontologies/ontologies.service'
 import { PluginsService } from '../plugins/plugins.service'
 import { FindChangeDto } from './dto/find-change.dto'
 
@@ -59,7 +58,6 @@ export class ChangesService {
     private readonly filesService: FilesService,
     private readonly countersService: CountersService,
     private readonly pluginsService: PluginsService,
-    private readonly ontologiesService: OntologiesService,
     private readonly messagesGateway: MessagesGateway,
   ) {}
 
@@ -116,7 +114,6 @@ export class ChangesService {
           filesService: this.filesService,
           counterService: this.countersService,
           pluginsService: this.pluginsService,
-          ontology: this.ontologiesService.ontology,
           user: uniqUserId,
         })
       } catch (e) {

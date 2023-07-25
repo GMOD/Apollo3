@@ -1,10 +1,5 @@
 import { openLocation } from '@jbrowse/core/util/io'
-import {
-  IDBPDatabase,
-  IDBPTransaction,
-  deleteDB,
-  openDB,
-} from 'idb/with-async-ittr'
+import { IDBPDatabase, IDBPTransaction, openDB } from 'idb/with-async-ittr'
 
 import {
   OntologyDB,
