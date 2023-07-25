@@ -165,7 +165,7 @@ async function getCurrentTerm(
     throw new Error('no feature type ontology set in ontology manager')
   }
 
-  // TODO: search by prefixed ID
+  // TODO: support prefixed IDs as ontology terms here (e.g. SO:001234)
   const terms = await featureTypeOntology.getNodesWithLabelOrSynonym(
     currentTermLabel,
   )
