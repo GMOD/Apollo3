@@ -1,57 +1,51 @@
 {
-  "assemblies": [
-    {
-      "name": "volvox",
-      "aliases": [
-        "vvx"
-      ],
-      "sequence": {
-        "type": "ReferenceSequenceTrack",
-        "trackId": "volvox_refseq",
-        "adapter": {
-          "type": "TwoBitAdapter",
-          "twoBitLocation": {
-            "uri": "test_data/volvox/volvox.2bit"
-          }
-        }
-      },
-      "refNameAliases": {
-        "adapter": {
-          "type": "FromConfigAdapter",
-          "features": [
-            {
-              "refName": "ctgA",
-              "uniqueId": "alias1",
-              "aliases": [
-                "A",
-                "contigA"
-              ]
-            },
-            {
-              "refName": "ctgB",
-              "uniqueId": "alias2",
-              "aliases": [
-                "B",
-                "contigB"
-              ]
-            }
-          ]
+  "configuration": {
+    "theme": {
+      "palette": {
+        "primary": {
+          "main": "#24264a"
+        },
+        "secondary": {
+          "main": "#6f8fa2"
+        },
+        "tertiary": {
+          "main": "#1e4b34"
+        },
+        "quaternary": {
+          "main": "#6b4e2b"
         }
       }
     }
-  ],
+  },
   "plugins": [
     {
       "name": "Apollo",
       "url": "http://localhost:9000/dist/jbrowse-plugin-apollo.umd.development.js"
     }
   ],
+  "internetAccounts": [
+    {
+      "type": "ApolloInternetAccount",
+      "internetAccountId": "apolloInternetAccount",
+      "name": "Demo Server",
+      "description": "A server hosting a small fictional organism to demonstrate Apollo capabilities",
+      "domains": ["localhost:3999"],
+      "baseURL": "http://localhost:3999",
+      "google": {
+        "authEndpoint": "http://localhost:3999/auth/google" ,
+        "clientId": "1054515969695-3hpfg1gd0ld3sgj135kfgikolu86vv30.apps.googleusercontent.com"
+      },
+      "microsoft": {
+        "authEndpoint": "http://localhost:3999/auth/microsoft" ,
+        "clientId": "fabdd045-163c-4712-9d40-dbbb043b3090"
+      }
+    }
+  ],
   "defaultSession": {
-    "name": "New session",
+    "name": "Apollo Demo",
     "views": [
       {
-        "type": "ApolloView",
-        "linearGenomeView": { "type": "LinearGenomeView" }
+        "type": "LinearGenomeView"
       }
     ]
   }

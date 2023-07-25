@@ -4,8 +4,6 @@
     "lib": ["es5", "dom"],
     "types": ["cypress", "node"],
     "strict": true,
-    "allowJs": true,
-    "noEmit": true
   },
-  "include": ["**/*.ts", "**/*.js"],
+  "include": ["**/*.ts"]
 }
