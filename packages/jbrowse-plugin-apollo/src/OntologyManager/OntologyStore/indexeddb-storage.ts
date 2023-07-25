@@ -21,6 +21,7 @@ export type Database = IDBPDatabase<OntologyDB>
 
 /** open the IndexedDB and create the DB schema if necessary */
 export async function openDatabase(dbName: string) {
+  // await deleteDB(dbName) // uncomment this to reload every time during development
   return openDB<OntologyDB>(dbName, schemaVersion, {
     upgrade(
       database: IDBPDatabase<OntologyDB>,
