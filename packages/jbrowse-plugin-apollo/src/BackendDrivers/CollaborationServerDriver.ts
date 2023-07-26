@@ -22,7 +22,7 @@ export class CollaborationServerDriver extends BackendDriver {
     assemblyName?: string,
     internetAccountId?: string,
   ) {
-    if (!(assemblyName || internetAccountId)) {
+    if (!(assemblyName ?? internetAccountId)) {
       throw new Error('Must provide either assemblyName or internetAccountId')
     }
     let configId = internetAccountId

@@ -44,16 +44,13 @@ export abstract class Validation {
   }
 
   async backendPostValidate(
-    change: Change,
-    {
-      session,
-      featureModel,
-    }: { session: ClientSession; featureModel: Model<FeatureDocument> },
+    _change: Change,
+    _context: { session: ClientSession; featureModel: Model<FeatureDocument> },
   ): Promise<ValidationResult> {
     return { validationName: this.name }
   }
 
-  async possibleValues(key: string): Promise<unknown[] | undefined> {
+  async possibleValues(_key: string): Promise<unknown[] | undefined> {
     return undefined
   }
 }

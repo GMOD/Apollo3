@@ -4,7 +4,7 @@ import { Change } from './Change'
 type ChangeType = new (...args: any[]) => Change
 
 class ChangeTypeRegistry {
-  changes: Map<string, ChangeType> = new Map()
+  changes = new Map<string, ChangeType>()
 
   registerChange(name: string, changeType: ChangeType): void {
     if (this.changes.has(name)) {

@@ -196,8 +196,8 @@ export abstract class AssemblySpecificChange extends Change {
       .find({ assembly })
       .exec()
 
-    for (let i = 0; i < refSeqs.length; i++) {
-      await featureModel.deleteMany({ refSeq: refSeqs[i]._id })
+    for (const refSeq of refSeqs) {
+      await featureModel.deleteMany({ refSeq: refSeq._id })
     }
   }
 
@@ -215,7 +215,7 @@ export abstract class AssemblySpecificChange extends Change {
       let refSeqDoc = refSeqCache.get(refName)
       if (!refSeqDoc) {
         refSeqDoc =
-          (await refSeqModel.findOne({ assembly, name: refName }).exec()) ||
+          (await refSeqModel.findOne({ assembly, name: refName }).exec()) ??
           undefined
         if (refSeqDoc) {
           refSeqCache.set(refName, refSeqDoc)
@@ -347,7 +347,7 @@ function createFeature(
     featureIds.push(feature._id)
   }
 
-  if (childFeatures && childFeatures.length) {
+  if (childFeatures?.length) {
     const children: Record<string, AnnotationFeatureSnapshot> = {}
     for (const childFeature of childFeatures) {
       const child = createFeature(childFeature, refSeq, featureIds)
@@ -359,7 +359,7 @@ function createFeature(
     }
     feature.children = children
   }
-  if (source || attributes) {
+  if (source ?? attributes) {
     const attrs: Record<string, string[]> = {}
     if (source) {
       attrs.source = [source]
@@ -395,7 +395,7 @@ function createFeature(
               case 'Dbxref':
                 attrs.gff_dbxref = val
                 break
-              case 'Ontology_term':
+              case 'Ontology_term': {
                 const goTerms: string[] = []
                 const otherTerms: string[] = []
                 val.forEach((v) => {
@@ -412,6 +412,7 @@ function createFeature(
                   attrs.gff_ontology_term = otherTerms
                 }
                 break
+              }
               case 'Is_circular':
                 attrs.gff_is_circular = val
                 break

@@ -111,7 +111,7 @@ export function AddFeature({
       parentFeatureId: sourceFeature._id,
     })
     await changeManager.submit?.(change)
-    notify(`Feature added successfully`, 'success')
+    notify('Feature added successfully', 'success')
     handleClose()
     event.preventDefault()
   }
@@ -150,7 +150,6 @@ export function AddFeature({
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <TextField
-            autoFocus
             margin="dense"
             id="start"
             label="Start"
@@ -175,7 +174,7 @@ export function AddFeature({
           <FormControl>
             <InputLabel>Type</InputLabel>
             <Select value={type} onChange={handleChangeType} label="Type">
-              {(possibleChildTypes || []).map((option) => (
+              {(possibleChildTypes ?? []).map((option) => (
                 <MenuItem key={option} value={option}>
                   {option}
                 </MenuItem>

@@ -33,7 +33,11 @@ export type ContextMenuState = null | {
   items: MenuItem[]
 }
 
-const HybridGrid = observer(({ model }: { model: DisplayStateModel }) => {
+const HybridGrid = observer(function HybridGrid({
+  model,
+}: {
+  model: DisplayStateModel
+}) {
   const { seenFeatures, selectedFeature } = model
   const theme = useTheme()
   const { classes } = useStyles()
@@ -135,7 +139,7 @@ const HybridGrid = observer(({ model }: { model: DisplayStateModel }) => {
           },
         }}
         style={{ zIndex: theme.zIndex.tooltip }}
-        menuItems={contextMenu?.items || []}
+        menuItems={contextMenu?.items ?? []}
         anchorReference="anchorPosition"
         anchorPosition={contextMenu?.position}
       />

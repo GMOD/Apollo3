@@ -21,7 +21,7 @@ export class RefSeqsService {
   }
 
   findAll(filter?: FindRefSeqDto) {
-    return this.refSeqModel.find(filter || {}).exec()
+    return this.refSeqModel.find(filter ?? {}).exec()
   }
 
   async findOne(id: string) {

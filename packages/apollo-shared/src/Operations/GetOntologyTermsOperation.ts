@@ -43,7 +43,7 @@ export class GetOntologyTermsOperation extends Operation {
     return this.getLabels(equivalentIds, ontology)
   }
 
-  async executeOnLocalGFF3(backend: LocalGFF3DataStore) {
+  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
     throw new Error('executeOnLocalGFF3 not implemented')
   }
 
@@ -91,7 +91,7 @@ export class GetOntologyTermsOperation extends Operation {
       'subPropertyOf',
     )
 
-    const children: Set<string> = new Set()
+    const children = new Set<string>()
     // Loop edges and save those nodes that have either "part_of" or "member_of" relation from any previously fetched "is_A" -nodes
     for (const edge of ontology.graphs[0].edges) {
       if (
@@ -102,7 +102,7 @@ export class GetOntologyTermsOperation extends Operation {
       }
     }
 
-    const childrenAndEquivalents: Set<string> = new Set()
+    const childrenAndEquivalents = new Set<string>()
     for (const child of children) {
       this.getEquivalentTypes(child, ontology, childrenAndEquivalents)
     }
@@ -121,7 +121,7 @@ export class GetOntologyTermsOperation extends Operation {
     existingTypes?: Set<string>,
     equivalencePredicate = 'is_a',
   ): Set<string> {
-    const equivalentTypes: Set<string> = existingTypes || new Set()
+    const equivalentTypes: Set<string> = existingTypes ?? new Set()
     equivalentTypes.add(featureTypeId)
     for (const edge of ontology.graphs[0].edges) {
       if (edge.obj === featureTypeId && edge.pred === equivalencePredicate) {

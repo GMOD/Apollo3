@@ -33,65 +33,65 @@ export abstract class Glyph {
   ): AnnotationFeatureI | undefined
 
   drawHover(
-    display: LinearApolloDisplayMouseEvents,
-    overlayCtx: CanvasRenderingContext2D,
+    _display: LinearApolloDisplayMouseEvents,
+    _overlayCtx: CanvasRenderingContext2D,
   ) {
     return
   }
 
   drawDragPreview(
-    display: LinearApolloDisplayMouseEvents,
-    ctx: CanvasRenderingContext2D,
+    _display: LinearApolloDisplayMouseEvents,
+    _ctx: CanvasRenderingContext2D,
   ) {
     return
   }
 
   /** @returns true if the current drag that is starting is valid */
   startDrag(
-    display: LinearApolloDisplayMouseEvents,
-    event: CanvasMouseEvent,
+    _display: LinearApolloDisplayMouseEvents,
+    _event: CanvasMouseEvent,
   ): boolean {
     return false
   }
 
   executeDrag(
-    display: LinearApolloDisplayMouseEvents,
-    event: CanvasMouseEvent,
+    _display: LinearApolloDisplayMouseEvents,
+    _event: CanvasMouseEvent,
   ): void {
     return
   }
 
   onMouseDown(
-    display: LinearApolloDisplayMouseEvents,
-    event: CanvasMouseEvent,
+    _display: LinearApolloDisplayMouseEvents,
+    _event: CanvasMouseEvent,
   ): void {
     return
   }
 
   onMouseMove(
-    display: LinearApolloDisplayMouseEvents,
-    event: CanvasMouseEvent,
+    _display: LinearApolloDisplayMouseEvents,
+    _event: CanvasMouseEvent,
   ): void {
     return
   }
 
   onMouseLeave(
-    display: LinearApolloDisplayMouseEvents,
-    event: CanvasMouseEvent,
+    _display: LinearApolloDisplayMouseEvents,
+    _event: CanvasMouseEvent,
   ): void {
     return
   }
 
   onMouseUp(
-    display: LinearApolloDisplayMouseEvents,
-    event: CanvasMouseEvent,
+    _display: LinearApolloDisplayMouseEvents,
+    _event: CanvasMouseEvent,
   ): void {
     return
   }
 
   onContextMenu(
-    display: LinearApolloDisplayMouseEvents,
-    event: CanvasMouseEvent,
+    _display: LinearApolloDisplayMouseEvents,
+    _event: CanvasMouseEvent,
   ): void {
     return
   }
@@ -105,11 +105,11 @@ export abstract class Glyph {
       session,
       regions,
     } = display
-    const { feature: sourceFeature } = apolloHover || {}
+    const { feature: sourceFeature } = apolloHover ?? {}
     const { getRole } = internetAccount
     const role = getRole()
     const admin = role === 'admin'
-    const readOnly = !Boolean(role && ['admin', 'user'].includes(role))
+    const readOnly = !(role && ['admin', 'user'].includes(role))
     const menuItems: MenuItem[] = []
     if (sourceFeature) {
       const [region] = regions

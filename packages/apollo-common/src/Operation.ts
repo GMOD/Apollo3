@@ -110,7 +110,7 @@ export abstract class Operation implements SerializedOperation {
   abstract typeName: string
 
   constructor(json: SerializedOperation, options?: OperationOptions) {
-    this.logger = options?.logger || console
+    this.logger = options?.logger ?? console
   }
 
   abstract toJSON(): SerializedOperation

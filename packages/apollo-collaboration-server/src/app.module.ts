@@ -28,7 +28,7 @@ interface MongoDBURIConfig {
   MONGODB_URI_FILE?: string
 }
 
-const nodeEnv = process.env.NODE_ENV || 'production'
+const nodeEnv = process.env.NODE_ENV ?? 'production'
 
 const validationSchema = Joi.object({
   // Required

@@ -48,11 +48,14 @@ export function ImportFeatures({
   const assemblies = useAssemblies(internetAccounts, setErrorMessage)
 
   function handleChangeAssembly(e: SelectChangeEvent<string>) {
+    const assemblyId = e.target.value
+    const newAssemblyName = assemblies.find((i) => i._id === assemblyId)?.name
+    if (!newAssemblyName) {
+      setErrorMessage(`Could not find assembly name for id "${assemblyId}"`)
+    }
     setSubmitted(false)
-    setAssemblyId(e.target.value as string)
-    setAssemblyName(
-      assemblies.find((i) => i._id === e.target.value)?.name as string,
-    )
+    setAssemblyId(assemblyId)
+    setAssemblyName(assemblyName)
   }
 
   function handleDeleteFeatures(e: React.ChangeEvent<HTMLInputElement>) {
@@ -86,9 +89,7 @@ export function ImportFeatures({
         // sumbit might get enabled when we change assembly before loading features count
         setFeaturesCount(-1)
         setLoading(true)
-        const response = await fetch(uri, {
-          method: 'GET',
-        })
+        const response = await fetch(uri.toString(), { method: 'GET' })
 
         if (!response.ok) {
           setFeaturesCount(0)

@@ -41,12 +41,13 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
     options?: ChangeOptions,
   ) {
     super(json, options)
-    this.deleteExistingFeatures = json.deleteExistingFeatures || false
+    this.deleteExistingFeatures = json.deleteExistingFeatures ?? false
     this.changes = 'changes' in json ? json.changes : [json]
   }
 
+  // eslint-disable-next-line @typescript-eslint/class-literal-property-style
   get notification(): string {
-    return `Features have been added. To see them, please refresh the page.`
+    return 'Features have been added. To see them, please refresh the page.'
   }
 
   toJSON(): SerializedAddFeaturesFromFileChange {
@@ -98,15 +99,15 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
         await this.addFeatureIntoDb(gff3Feature, backend)
       }
     }
-    logger.debug?.(`New features added into database!`)
+    logger.debug?.('New features added into database!')
   }
 
-  async executeOnLocalGFF3(backend: LocalGFF3DataStore) {
+  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
     throw new Error('executeOnLocalGFF3 not implemented')
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  async executeOnClient(dataStore: ClientDataStore) {}
+  async executeOnClient(_dataStore: ClientDataStore) {}
 
   getInverse() {
     const { typeName, changes, assembly, logger } = this
