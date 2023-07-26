@@ -187,6 +187,20 @@ export abstract class AssemblySpecificChange extends Change {
 
   private refSeqCache = new Map<string, RefSeqDocument>()
 
+  async removeExistingFeatures(backend: ServerDataStore) {
+    const { featureModel, refSeqModel } = backend
+    const { assembly, logger } = this
+    logger.debug?.(`Removing existing features for assembly = ${assembly}`)
+
+    const refSeqs: RefSeqDocument[] = await refSeqModel
+      .find({ assembly })
+      .exec()
+
+    for (const refSeq of refSeqs) {
+      await featureModel.deleteMany({ refSeq: refSeq._id })
+    }
+  }
+
   async addFeatureIntoDb(gff3Feature: GFF3Feature, backend: ServerDataStore) {
     const { featureModel, refSeqModel, user } = backend
     const { assembly, logger, refSeqCache } = this

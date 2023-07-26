@@ -11,6 +11,7 @@ import {
 export interface SerializedAddFeaturesFromFileChangeBase
   extends SerializedAssemblySpecificChange {
   typeName: 'AddFeaturesFromFileChange'
+  deleteExistingFeatures?: boolean
 }
 
 export interface AddFeaturesFromFileChangeDetails {
@@ -33,12 +34,14 @@ export type SerializedAddFeaturesFromFileChange =
 export class AddFeaturesFromFileChange extends AssemblySpecificChange {
   typeName = 'AddFeaturesFromFileChange' as const
   changes: AddFeaturesFromFileChangeDetails[]
+  deleteExistingFeatures = false
 
   constructor(
     json: SerializedAddFeaturesFromFileChange,
     options?: ChangeOptions,
   ) {
     super(json, options)
+    this.deleteExistingFeatures = json.deleteExistingFeatures ?? false
     this.changes = 'changes' in json ? json.changes : [json]
   }
 
@@ -48,12 +51,12 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
   }
 
   toJSON(): SerializedAddFeaturesFromFileChange {
-    const { changes, typeName, assembly } = this
+    const { changes, typeName, assembly, deleteExistingFeatures } = this
     if (changes.length === 1) {
       const [{ fileId }] = changes
-      return { typeName, assembly, fileId }
+      return { typeName, assembly, fileId, deleteExistingFeatures }
     }
-    return { typeName, assembly, changes }
+    return { typeName, assembly, changes, deleteExistingFeatures }
   }
 
   /**
@@ -63,7 +66,11 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
    */
   async executeOnServer(backend: ServerDataStore) {
     const { filesService, fileModel } = backend
-    const { changes, logger } = this
+    const { changes, logger, deleteExistingFeatures } = this
+
+    if (deleteExistingFeatures) {
+      await this.removeExistingFeatures(backend)
+    }
 
     for (const change of changes) {
       const { fileId } = change
