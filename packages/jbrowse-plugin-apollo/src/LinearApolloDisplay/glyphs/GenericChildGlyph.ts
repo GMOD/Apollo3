@@ -62,17 +62,17 @@ export class GenericChildGlyph extends Glyph {
             : 'rgba(255,0,0,0.25)'
         ctx.fillRect(startPx, top, widthPx, featureHeight)
       }
-      ctx.fillStyle = theme?.palette.text.primary || 'black'
+      ctx.fillStyle = theme?.palette.text.primary ?? 'black'
       ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
       if (widthPx > 2) {
         const backgroundColor =
           apolloSelectedFeature && feature._id === apolloSelectedFeature._id
-            ? theme?.palette.text.primary || 'black'
-            : theme?.palette.background.default || 'white'
+            ? theme?.palette.text.primary ?? 'black'
+            : theme?.palette.background.default ?? 'white'
         const textColor =
           apolloSelectedFeature && feature._id === apolloSelectedFeature._id
-            ? theme?.palette.getContrastText(backgroundColor) || 'white'
-            : theme?.palette.text.primary || 'black'
+            ? theme?.palette.getContrastText(backgroundColor) ?? 'white'
+            : theme?.palette.text.primary ?? 'black'
         ctx.clearRect(startPx + 1, top + 1, widthPx - 2, apolloRowHeight - 2)
         ctx.fillStyle = backgroundColor
         ctx.fillRect(startPx + 1, top + 1, widthPx - 2, apolloRowHeight - 2)
@@ -103,7 +103,7 @@ export class GenericChildGlyph extends Glyph {
       return
     }
     const { feature, mousePosition } = apolloHover
-    if (!feature) {
+    if (!(feature && mousePosition)) {
       return
     }
     const { regionNumber, y } = mousePosition
@@ -113,7 +113,7 @@ export class GenericChildGlyph extends Glyph {
     const { start, end, length } = feature
     const startPx =
       (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
-        ?.offsetPx || 0) - offsetPx
+        ?.offsetPx ?? 0) - offsetPx
     const row = Math.floor(y / apolloRowHeight)
     const top = row * apolloRowHeight
     const widthPx = length / bpPerPx
@@ -127,7 +127,7 @@ export class GenericChildGlyph extends Glyph {
   }
 
   onMouseUp(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
-    if (stateModel.apolloDragging || event.button !== 0) {
+    if (stateModel.apolloDragging ?? event.button !== 0) {
       return
     }
     const { feature } = stateModel.getFeatureAndGlyphUnderMouse(event)

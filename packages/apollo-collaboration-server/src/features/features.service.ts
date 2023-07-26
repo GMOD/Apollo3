@@ -35,10 +35,10 @@ function makeGFF3Feature(
         },
       ]
   const attributes: Record<string, string[]> = {
-    ...(featureDocument.attributes || {}),
+    ...(featureDocument.attributes ?? {}),
   }
   const ontologyTerms: string[] = []
-  const source = featureDocument.attributes?.source?.[0] || null
+  const source = featureDocument.attributes?.source?.[0] ?? null
   delete attributes.source
   if (parentId) {
     attributes.Parent = [parentId]
@@ -104,7 +104,7 @@ function makeGFF3Feature(
     seq_id: refSeq.name,
     source,
     type: featureDocument.type,
-    score: featureDocument.score || null,
+    score: featureDocument.score ?? null,
     strand: featureDocument.strand
       ? featureDocument.strand === 1
         ? '+'
@@ -221,7 +221,7 @@ export class FeaturesService {
     // Now we need to find correct top level feature or sub-feature inside the feature
     const foundFeature = this.getFeatureFromId(topLevelFeature, featureId)
     if (!foundFeature) {
-      const errMsg = `ERROR when searching feature by featureId`
+      const errMsg = 'ERROR when searching feature by featureId'
       this.logger.error(errMsg)
       throw new NotFoundException(errMsg)
     }
@@ -247,9 +247,9 @@ export class FeaturesService {
     // Check if there is also childFeatures in parent feature and it's not empty
     // Let's get featureId from recursive method
     this.logger.debug(
-      `FeatureId was not found on top level so lets make recursive call...`,
+      'FeatureId was not found on top level so lets make recursive call...',
     )
-    for (const [, childFeature] of feature.children || new Map()) {
+    for (const [, childFeature] of feature.children ?? new Map()) {
       const subFeature = this.getFeatureFromId(childFeature, featureId)
       if (subFeature) {
         return subFeature

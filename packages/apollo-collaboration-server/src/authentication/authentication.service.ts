@@ -3,10 +3,10 @@ import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import { JWTPayload } from 'apollo-shared'
 import { Profile as GoogleProfile } from 'passport-google-oauth20'
-import { GUEST_USER_EMAIL, GUEST_USER_NAME } from 'src/utils/constants'
 
 import { CreateUserDto } from '../users/dto/create-user.dto'
 import { UsersService } from '../users/users.service'
+import { GUEST_USER_EMAIL, GUEST_USER_NAME } from '../utils/constants'
 import { Role } from '../utils/role/role.enum'
 import { Profile as MicrosoftProfile } from '../utils/strategies/microsoft.strategy'
 
@@ -41,7 +41,7 @@ export class AuthenticationService {
       throw new UnauthorizedException('No email provided')
     }
     const { name, email } = profile._json
-    return this.logIn(name || 'N/A', email)
+    return this.logIn(name ?? 'N/A', email)
   }
 
   /**

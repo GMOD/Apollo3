@@ -4,13 +4,13 @@ import { InjectModel } from '@nestjs/mongoose'
 import { UserDocument, User as UserSchema } from 'apollo-schemas'
 import { DecodedJWT, makeUserSessionId } from 'apollo-shared'
 import { Model } from 'mongoose'
-import { GUEST_USER_EMAIL, GUEST_USER_NAME } from 'src/utils/constants'
 
 import {
   RequestUserInformationMessage,
   UserLocationMessage,
 } from '../messages/entities/message.entity'
 import { MessagesGateway } from '../messages/messages.gateway'
+import { GUEST_USER_EMAIL, GUEST_USER_NAME } from '../utils/constants'
 import { Role } from '../utils/role/role.enum'
 import { CreateUserDto, UserLocationDto } from './dto/create-user.dto'
 

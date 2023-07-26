@@ -1,12 +1,12 @@
 import { AppRootModel, getSession } from '@jbrowse/core/util'
 import { Autocomplete, TextField } from '@mui/material'
 import {
-  DataGrid,
   GridCellEditStartParams,
   GridColDef,
   GridRenderEditCellParams,
   GridRowModel,
   MuiBaseEvent,
+  DataGrid as MuiDataGrid,
   useGridApiContext,
   useGridApiRef,
 } from '@mui/x-data-grid'
@@ -39,7 +39,6 @@ interface GridRow {
 function getFeatureColumns(
   editable: boolean,
   internetAccount: ApolloInternetAccountModel,
-  model: LinearApolloDisplay,
 ): GridColDef<GridRow>[] {
   return [
     {
@@ -91,7 +90,7 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
     async function getSOSequenceTerms() {
       const { feature } = row
       const { type, parent, children } = feature
-      let endpoint = `/ontologies/equivalents/sequence_feature`
+      let endpoint = '/ontologies/equivalents/sequence_feature'
       if (parent) {
         endpoint = `/ontologies/descendants/${parent.type}`
       } else if (children?.size) {
@@ -165,7 +164,7 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
   )
 }
 
-export default observer(({ model }: { model: LinearApolloDisplay }) => {
+function DataGrid({ model }: { model: LinearApolloDisplay }) {
   const session = getSession(model)
   const apiRef = useGridApiRef()
   const { internetAccounts } = getRoot(session) as AppRootModel
@@ -180,7 +179,7 @@ export default observer(({ model }: { model: LinearApolloDisplay }) => {
   }, [internetAccounts])
   const editable =
     Boolean(internetAccount.authType) &&
-    ['admin', 'user'].includes(internetAccount.getRole() || '')
+    ['admin', 'user'].includes(internetAccount.getRole() ?? '')
   const { selectedFeature, changeManager, detailsHeight } = model
   if (!selectedFeature) {
     return null
@@ -195,7 +194,7 @@ export default observer(({ model }: { model: LinearApolloDisplay }) => {
   } = selectedFeature
   const { assemblyManager } = session
   const refName =
-    assemblyManager.get(assembly)?.getCanonicalRefName(refSeq) || refSeq
+    assemblyManager.get(assembly)?.getCanonicalRefName(refSeq) ?? refSeq
 
   let tmp = Object.fromEntries(
     Array.from(selectedFeature.attributes.entries()).map(([key, value]) => {
@@ -227,7 +226,7 @@ export default observer(({ model }: { model: LinearApolloDisplay }) => {
     },
   ]
   function addChildFeatures(f: typeof selectedFeature) {
-    f?.children?.forEach((child: AnnotationFeatureI, childId: string) => {
+    f?.children?.forEach((child: AnnotationFeatureI) => {
       tmp = Object.fromEntries(
         Array.from(child.attributes.entries()).map(([key, value]) => {
           if (key.startsWith('gff_')) {
@@ -261,8 +260,8 @@ export default observer(({ model }: { model: LinearApolloDisplay }) => {
   }
   addChildFeatures(selectedFeature)
   function processRowUpdate(
-    newRow: GridRowModel<typeof selectedFeatureRows[0]>,
-    oldRow: GridRowModel<typeof selectedFeatureRows[0]>,
+    newRow: GridRowModel<(typeof selectedFeatureRows)[0]>,
+    oldRow: GridRowModel<(typeof selectedFeatureRows)[0]>,
   ) {
     let change:
       | LocationStartChange
@@ -310,11 +309,11 @@ export default observer(({ model }: { model: LinearApolloDisplay }) => {
     return newRow
   }
   return (
-    <DataGrid
+    <MuiDataGrid
       apiRef={apiRef}
       style={{ height: detailsHeight }}
       rows={selectedFeatureRows}
-      columns={getFeatureColumns(editable, internetAccount, model)}
+      columns={getFeatureColumns(editable, internetAccount)}
       processRowUpdate={processRowUpdate}
       onProcessRowUpdateError={console.error}
       onCellEditStart={async (params: GridCellEditStartParams<GridRow>) => {
@@ -341,4 +340,5 @@ export default observer(({ model }: { model: LinearApolloDisplay }) => {
       }}
     />
   )
-})
+}
+export default observer(DataGrid)

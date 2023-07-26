@@ -115,7 +115,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   // use this to convince useEffect that the features really did change
   const featureSnap = Array.from(features.values()).map((a) =>
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error
     Array.from(a.values()).map((f) => getSnapshot(f)),
   )
 
@@ -151,7 +151,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     if (getRole()?.includes('admin')) {
       setIsAdmin(true)
     }
-    if (getRole()?.includes('admin') || getRole()?.includes('user')) {
+    if (getRole()?.includes('admin') ?? getRole()?.includes('user')) {
       setIsReadOnly(false)
     }
   }, [authType, getRole])
@@ -207,7 +207,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
           .sort(function (a, b) {
             return a[0] - b[0]
           })
-          // eslint-disable-next-line no-loop-func
+
           .forEach((coords, index) => {
             if (index === 0) {
               prevCoords = coords

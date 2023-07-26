@@ -61,9 +61,9 @@ export class FileStorageEngine implements StorageEngine {
   }
 
   _removeFile(
-    req: Express.Request,
-    file: Express.Multer.File,
-    cb: (error: Error | null) => void,
+    _req: Express.Request,
+    _file: Express.Multer.File,
+    _cb: (error: Error | null) => void,
     // eslint-disable-next-line @typescript-eslint/no-empty-function
   ) {}
 }

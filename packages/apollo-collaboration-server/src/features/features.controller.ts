@@ -47,14 +47,10 @@ export class FeaturesController {
       if (response.destroyed) {
         return
       }
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       if (response.headersSent) {
         // TODO: maybe broadcast message to user that they shouldn't trust the
         // exported GFF3? From the client side there's no way to tell this
         // stream terminated early.
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         response.end()
         return
       }
@@ -112,7 +108,7 @@ export class FeaturesController {
   @Validations(Role.ReadOnly)
   @Get()
   getAll() {
-    this.logger.debug(`Get all features`)
+    this.logger.debug('Get all features')
     return this.featuresService.findAll()
   }
 }

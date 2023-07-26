@@ -29,7 +29,7 @@ export function featureContextMenuItems(
   const { getRole } = internetAccount
   const role = getRole()
   const admin = role === 'admin'
-  const readOnly = !Boolean(role && ['admin', 'user'].includes(role))
+  const readOnly = !(role && ['admin', 'user'].includes(role))
   const menuItems: MenuItem[] = []
   if (feature) {
     const sourceAssemblyId = getAssemblyId(region.assemblyName)

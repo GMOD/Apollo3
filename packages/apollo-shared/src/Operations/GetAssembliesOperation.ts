@@ -21,7 +21,7 @@ export class GetAssembliesOperation extends Operation {
     return backend.assemblyModel.find({ status: 0 }).exec()
   }
 
-  async executeOnLocalGFF3(backend: LocalGFF3DataStore) {
+  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
     throw new Error('executeOnLocalGFF3 not implemented')
   }
 }

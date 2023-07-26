@@ -11,6 +11,7 @@ import { autorun } from 'mobx'
 import { addDisposer, getRoot, types } from 'mobx-state-tree'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
+import { ApolloRootModel } from '../../types'
 import { TrackHeightMixin } from './trackHeightMixin'
 
 export function baseModelFactory(
@@ -77,7 +78,9 @@ export function baseModelFactory(
     .views((self) => ({
       get apolloInternetAccount() {
         const [region] = self.regions
-        const { internetAccounts } = getRoot(self) as AppRootModel
+        const { internetAccounts } = getRoot<ApolloRootModel>(
+          self,
+        ) as AppRootModel
         const { assemblyName } = region
         const { assemblyManager } = self.session
         const assembly = assemblyManager.get(assemblyName)

@@ -6,8 +6,7 @@ import {
   SerializedFeatureChange,
   ServerDataStore,
 } from 'apollo-common'
-import { FeatureDocument } from 'apollo-schemas'
-import { Feature } from 'apollo-schemas'
+import { Feature, FeatureDocument } from 'apollo-schemas'
 
 interface SerializedLocationEndChangeBase extends SerializedFeatureChange {
   typeName: 'LocationEndChange'
@@ -82,7 +81,7 @@ export class LocationEndChange extends FeatureChange {
 
       const foundFeature = this.getFeatureFromId(topLevelFeature, featureId)
       if (!foundFeature) {
-        const errMsg = `ERROR when searching feature by featureId`
+        const errMsg = 'ERROR when searching feature by featureId'
         logger.error(errMsg)
         throw new Error(errMsg)
       }
@@ -120,7 +119,7 @@ export class LocationEndChange extends FeatureChange {
     }
   }
 
-  async executeOnLocalGFF3(backend: LocalGFF3DataStore) {
+  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
     throw new Error('executeOnLocalGFF3 not implemented')
   }
 

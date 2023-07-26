@@ -6,12 +6,12 @@ import { makeStyles } from 'tss-react/mui'
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { createFetchErrorMessage } from '../../util'
 
-const useStyles = makeStyles()((theme) => ({
+const useStyles = makeStyles()({
   inputElement: {
     border: 'none',
     background: 'none',
   },
-}))
+})
 
 export function OntologyTermAutocomplete(props: {
   internetAccount: ApolloInternetAccountModel
@@ -101,7 +101,7 @@ async function getValidTermsForFeature(
   signal: AbortSignal,
 ) {
   const { type, parent, children } = feature
-  let endpoint = `/ontologies/equivalents/sequence_feature`
+  let endpoint = '/ontologies/equivalents/sequence_feature'
   if (parent) {
     endpoint = `/ontologies/descendants/${parent.type}`
   } else if (children?.size) {

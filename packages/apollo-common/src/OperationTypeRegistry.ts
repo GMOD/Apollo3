@@ -4,7 +4,7 @@ import { Operation } from './Operation'
 type OperationType = new (...args: any[]) => Operation
 
 class OperationTypeRegistry {
-  operations: Map<string, OperationType> = new Map()
+  operations = new Map<string, OperationType>()
 
   registerOperation(name: string, operationType: OperationType): void {
     if (this.operations.has(name)) {

@@ -39,7 +39,7 @@ declare module 'mongoose-id-validator' {
 // https://github.com/DefinitelyTyped/DefinitelyTyped/blob/34aaceacc735148d775a4c09db89afeb1cff6536/types/connect-mongodb-session/index.d.ts
 
 declare module 'connect-mongodb-session' {
-  import session = require('express-session')
+  import { SessionData, Store } from 'express-session'
   import { MongoClient, MongoClientOptions } from 'mongodb'
 
   declare function connectMongoDBSession(
@@ -47,7 +47,7 @@ declare module 'connect-mongodb-session' {
   ): typeof ConnectMongoDBSession.MongoDBStore
 
   declare namespace ConnectMongoDBSession {
-    class MongoDBStore extends session.Store {
+    class MongoDBStore extends Store {
       constructor(
         connection?: MongoDBSessionOptions,
         callback?: (error: Error) => void,
@@ -56,21 +56,18 @@ declare module 'connect-mongodb-session' {
 
       get(
         sid: string,
-        callback: (err: unknown, session?: session.SessionData | null) => void,
+        callback: (err: unknown, session?: SessionData | null) => void,
       ): void
       set(
         sid: string,
-        session: session.SessionData,
+        session: SessionData,
         callback?: (err?: unknown) => void,
       ): void
       destroy(sid: string, callback?: (err?: unknown) => void): void
       all(
         callback: (
           err: unknown,
-          obj?:
-            | session.SessionData[]
-            | { [sid: string]: session.SessionData }
-            | null,
+          obj?: SessionData[] | Record<string, SessionData> | null,
         ) => void,
       ): void
       clear(callback?: (err?: unknown) => void): void

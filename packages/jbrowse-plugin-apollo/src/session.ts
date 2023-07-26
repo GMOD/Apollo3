@@ -36,6 +36,7 @@ import {
   getStoreDataCount,
   initDB,
 } from './components/db'
+import { ApolloRootModel } from './types'
 import { createFetchErrorMessage } from './util'
 
 export interface ApolloSession extends AbstractSessionModel {
@@ -87,7 +88,7 @@ function clientDataStoreFactory(
     })
     .views((self) => ({
       get internetAccounts() {
-        return (getRoot(self) as AppRootModel).internetAccounts
+        return (getRoot<ApolloRootModel>(self) as AppRootModel).internetAccounts
       },
       getFeature(featureId: string) {
         return resolveIdentifier(
@@ -168,7 +169,7 @@ function clientDataStoreFactory(
         }
         ref.features.put(feature)
       },
-      addAssembly(assemblyId: string, assemblyName: string) {
+      addAssembly(assemblyId: string) {
         self.assemblies.put({ _id: assemblyId, refSeqs: {} })
       },
       deleteFeature(featureId: string) {
@@ -221,7 +222,7 @@ export function extendSession(
         types.reference(AnnotationFeatureExtended),
       ),
     })
-    .extend((self) => {
+    .extend(() => {
       const collabs = observable.array<Collaborator>([])
 
       return {
@@ -276,7 +277,9 @@ export function extendSession(
         }
       },
       broadcastLocations() {
-        const { internetAccounts } = getRoot(self) as AppRootModel
+        const { internetAccounts } = getRoot<ApolloRootModel>(
+          self,
+        ) as AppRootModel
         const locations: {
           assemblyName: string
           refName: string
@@ -326,7 +329,9 @@ export function extendSession(
         }
       },
       afterCreate: flow(function* afterCreate() {
-        const { internetAccounts } = getRoot(self) as AppRootModel
+        const { internetAccounts } = getRoot<ApolloRootModel>(
+          self,
+        ) as AppRootModel
         autorun(
           () => {
             // broadcastLocations() // **** This is not working and therefore we need to duplicate broadcastLocations() -method code here because autorun() does not observe changes otherwise
@@ -454,8 +459,8 @@ export function extendSession(
             })
             const assemblyConfig = {
               name: assembly._id,
-              aliases: [assembly.name, ...(assembly.aliases || [])],
-              displayName: assembly.displayName || assembly.name,
+              aliases: [assembly.name, ...(assembly.aliases ?? [])],
+              displayName: assembly.displayName ?? assembly.name,
               sequence: {
                 trackId: `sequenceConfigId-${assembly.name}`,
                 type: 'ReferenceSequenceTrack',
@@ -488,7 +493,7 @@ export function extendSession(
           if (recCount) {
             return
           }
-          const { jbrowse } = getRoot(self)
+          const { jbrowse } = getRoot<ApolloRootModel>(self)
           const { configuration } = jbrowse
           const location = readConfObject(configuration, [
             'ApolloPlugin',
@@ -508,7 +513,7 @@ export function extendSession(
                 if (node.id.startsWith('http://purl.obolibrary.org/obo/GO_')) {
                   const { meta } = node
                   let labelText = node.lbl
-                  if (meta.hasOwnProperty('deprecated')) {
+                  if ('deprecated' in meta) {
                     const tmpObj = JSON.parse(JSON.stringify(meta))
                     if (tmpObj.deprecated === true) {
                       labelText = '*** This term is deprecated ***'

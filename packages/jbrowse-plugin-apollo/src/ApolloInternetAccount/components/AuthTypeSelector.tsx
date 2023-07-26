@@ -19,7 +19,6 @@ const useStyles = makeStyles()((theme) => ({
 }))
 
 export const AuthTypeSelector = ({
-  baseURL,
   name,
   handleClose,
   google,

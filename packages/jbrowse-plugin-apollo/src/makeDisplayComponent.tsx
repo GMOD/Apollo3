@@ -79,6 +79,8 @@ const ResizeHandle = ({
     [mouseMove],
   )
   return (
+    // TODO: a11y
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
       onMouseDown={(event: React.MouseEvent) => {
         event.stopPropagation()
@@ -101,89 +103,92 @@ const ResizeHandle = ({
   )
 }
 
-const AccordionControl = observer(
-  ({
-    open,
-    onClick,
-    onResize,
-    title,
-  }: {
-    open: boolean
-    onClick: (e: React.MouseEvent) => void
-    onResize?: (sizeDelta: number) => void
-    title?: string
-  }) => {
-    const { classes } = useStyles()
-    return (
-      <div className={classes.accordionRoot}>
-        <div className={classes.accordionControl} onClick={onClick}>
-          {open && onResize ? <ResizeHandle onResize={onResize} /> : null}
-          {open ? (
-            <ExpandLessIcon sx={{ position: 'relative', top: -4 }} />
-          ) : (
-            <ExpandMoreIcon sx={{ position: 'relative', top: -4 }} />
-          )}
-          {title ? (
-            <Typography
-              sx={{ position: 'relative', top: -11, userSelect: 'none' }}
-              variant="caption"
-              component="span"
-            >
-              {title}
-            </Typography>
-          ) : null}
-        </div>
+const AccordionControl = observer(function AccordionControl({
+  open,
+  onClick,
+  onResize,
+  title,
+}: {
+  open: boolean
+  onClick: (e: React.MouseEvent) => void
+  onResize?: (sizeDelta: number) => void
+  title?: string
+}) {
+  const { classes } = useStyles()
+  return (
+    <div className={classes.accordionRoot}>
+      {/* TODO: a11y */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
+      <div className={classes.accordionControl} onClick={onClick}>
+        {open && onResize ? <ResizeHandle onResize={onResize} /> : null}
+        {open ? (
+          <ExpandLessIcon sx={{ position: 'relative', top: -4 }} />
+        ) : (
+          <ExpandMoreIcon sx={{ position: 'relative', top: -4 }} />
+        )}
+        {title ? (
+          <Typography
+            sx={{ position: 'relative', top: -11, userSelect: 'none' }}
+            variant="caption"
+            component="span"
+          >
+            {title}
+          </Typography>
+        ) : null}
       </div>
-    )
-  },
-)
+    </div>
+  )
+})
 
-export const DisplayComponent = observer(
-  ({ model, ...other }: { model: LinearApolloDisplayI }) => {
-    const { classes } = useStyles()
+export const DisplayComponent = observer(function DisplayComponent({
+  model,
+  ...other
+}: {
+  model: LinearApolloDisplayI
+}) {
+  const { classes } = useStyles()
 
-    const { height: overallHeight, selectedFeature } = model
-    const detailsHeight = model.tabularEditor.isShown ? model.detailsHeight : 0
-    const featureAreaHeight = model.isShown
-      ? overallHeight - detailsHeight - accordionControlHeight * 2
-      : 0
+  const { height: overallHeight, selectedFeature } = model
+  const detailsHeight = model.tabularEditor.isShown ? model.detailsHeight : 0
+  const featureAreaHeight = model.isShown
+    ? overallHeight - detailsHeight - accordionControlHeight * 2
+    : 0
 
-    const onDetailsResize = (delta: number) => {
-      model.setDetailsHeight(model.detailsHeight - delta)
-    }
+  const onDetailsResize = (delta: number) => {
+    model.setDetailsHeight(model.detailsHeight - delta)
+  }
 
-    const canvasScrollContainerRef = useRef<HTMLDivElement>(null)
-    useEffect(
-      () => scrollSelectedFeatureIntoView(model, canvasScrollContainerRef),
-      [model, selectedFeature],
-    )
-    return (
-      <div style={{ height: overallHeight }}>
-        <AccordionControl
-          open={model.isShown}
-          title="Graphical"
-          onClick={model.toggleShown}
-        />
-        <div
-          className={classes.shading}
-          ref={canvasScrollContainerRef}
-          style={{ height: featureAreaHeight }}
-        >
-          <LinearApolloDisplay model={model} {...other} />
-        </div>
-        <AccordionControl
-          title="Table"
-          open={model.tabularEditor.isShown}
-          onClick={model.tabularEditor.togglePane}
-          onResize={onDetailsResize}
-        />
-        <div className={classes.details} style={{ height: detailsHeight }}>
-          <TabularEditorPane model={model} />
-        </div>
+  const canvasScrollContainerRef = useRef<HTMLDivElement>(null)
+  useEffect(
+    () => scrollSelectedFeatureIntoView(model, canvasScrollContainerRef),
+    [model, selectedFeature],
+  )
+  return (
+    <div style={{ height: overallHeight }}>
+      <AccordionControl
+        open={model.isShown}
+        title="Graphical"
+        onClick={model.toggleShown}
+      />
+      <div
+        className={classes.shading}
+        ref={canvasScrollContainerRef}
+        style={{ height: featureAreaHeight }}
+      >
+        <LinearApolloDisplay model={model} {...other} />
       </div>
-    )
-  },
-)
+      <AccordionControl
+        title="Table"
+        open={model.tabularEditor.isShown}
+        onClick={model.tabularEditor.togglePane}
+        onResize={onDetailsResize}
+      />
+      <div className={classes.details} style={{ height: detailsHeight }}>
+        <TabularEditorPane model={model} />
+      </div>
+    </div>
+  )
+})
 
 export function makeSixFrameDisplayComponent(pluginManager: PluginManager) {
   const LGVPlugin = pluginManager.getPlugin('LinearGenomeViewPlugin') as

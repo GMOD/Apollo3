@@ -152,7 +152,7 @@ export class DeleteFeatureChange extends FeatureChange {
     )
   }
 
-  async executeOnLocalGFF3(backend: LocalGFF3DataStore) {
+  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
     throw new Error('executeOnLocalGFF3 not implemented')
   }
 

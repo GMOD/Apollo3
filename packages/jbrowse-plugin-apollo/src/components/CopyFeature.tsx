@@ -169,7 +169,7 @@ export function CopyFeature({
     })
     await changeManager.submit?.(change)
 
-    notify(`Feature copied successfully`, 'success')
+    notify('Feature copied successfully', 'success')
     handleClose()
     event.preventDefault()
   }
@@ -256,7 +256,6 @@ export function CopyFeature({
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText>Target assembly</DialogContentText>
           <Select
-            autoFocus
             labelId="label"
             value={selectedAssemblyId}
             onChange={handleChangeAssembly}

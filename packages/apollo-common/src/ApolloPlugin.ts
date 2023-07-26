@@ -9,5 +9,5 @@ export interface ApolloPluginManager {
 
 export abstract class ApolloPlugin extends Plugin {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  apolloInstall(pluginManager: ApolloPluginManager): void {}
+  apolloInstall(_pluginManager: ApolloPluginManager): void {}
 }

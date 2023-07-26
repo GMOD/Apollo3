@@ -67,7 +67,7 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
     this.logger.debug?.(`Assembly "${assembly}" deleted from database.`)
   }
 
-  async executeOnLocalGFF3(backend: LocalGFF3DataStore) {
+  async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
     throw new Error('executeOnLocalGFF3 not implemented')
   }
 

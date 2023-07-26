@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "types": ["@types/node"],
+    "noEmit": true,
+    "allowJs": true
+  },
+  "include": ["cypress.config.js", "jest.config.js", "jestSetup.js", "rollup.config.js"],
+}

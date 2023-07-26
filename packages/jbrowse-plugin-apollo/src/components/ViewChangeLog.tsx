@@ -1,5 +1,4 @@
 import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
-import UndoIcon from '@mui/icons-material/Undo'
 import {
   Button,
   Dialog,
@@ -13,7 +12,6 @@ import {
 } from '@mui/material'
 import {
   DataGrid,
-  GridActionsCellItem,
   GridColDef,
   GridRowsProp,
   GridToolbar,
@@ -52,23 +50,6 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
   const [displayGridData, setDisplayGridData] = useState<GridRowsProp[]>([])
 
   const gridColumns: GridColDef[] = [
-    {
-      field: 'actions',
-      type: 'actions',
-      width: 40,
-      getActions: (/* params */) => [
-        <GridActionsCellItem
-          icon={<UndoIcon />}
-          label="Undo"
-          onClick={() => {
-            // eslint-disable-next-line no-console
-            console.log('click')
-          }}
-          disabled
-          showInMenu
-        />,
-      ],
-    },
     { field: 'sequence' },
     {
       field: 'typeName',

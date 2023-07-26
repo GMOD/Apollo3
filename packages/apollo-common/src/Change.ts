@@ -1,5 +1,4 @@
-import { Region } from '@jbrowse/core/util'
-import { AppRootModel } from '@jbrowse/core/util'
+import { AppRootModel, Region } from '@jbrowse/core/util'
 import {
   AnnotationFeatureI,
   AnnotationFeatureSnapshot,
@@ -41,7 +40,8 @@ export abstract class Change extends Operation {
    * If a non-empty string, a snackbar will display in JBrowse with this message
    * when a successful response is received from the server.
    */
-  get notification() {
+  // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+  get notification(): string {
     return ''
   }
 

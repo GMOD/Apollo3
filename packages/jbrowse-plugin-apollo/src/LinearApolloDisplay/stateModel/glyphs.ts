@@ -1,4 +1,3 @@
-import PluginManager from '@jbrowse/core/PluginManager'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { ObservableMap, observable } from 'mobx'
 import { types } from 'mobx-state-tree'
@@ -6,10 +5,10 @@ import { types } from 'mobx-state-tree'
 import { BoxGlyph } from '../glyphs/BoxGlyph'
 import { Glyph } from '../glyphs/Glyph'
 
-export default function Glyphs(pluginManager: PluginManager) {
+export default function Glyphs() {
   return types
     .model({})
-    .volatile((self) => ({
+    .volatile(() => ({
       glyphs: observable.map<number, ObservableMap<string, Glyph>>(),
     }))
     .actions((s) => {
@@ -24,7 +23,7 @@ export default function Glyphs(pluginManager: PluginManager) {
           self.glyphs.set(bpPerPx, newZoomLevel)
           return newZoomLevel
         },
-        createGlyph(feature: AnnotationFeatureI, bpPerPx: number) {
+        createGlyph() {
           return new BoxGlyph()
         },
         /** get the appropriate glyph for the given top-level feature */
@@ -34,7 +33,7 @@ export default function Glyphs(pluginManager: PluginManager) {
           if (glyphForFeature) {
             return glyphForFeature
           }
-          const newGlyph = this.createGlyph(feature, bpPerPx)
+          const newGlyph = this.createGlyph()
           glyphsForZoomLevel.set(feature._id, newGlyph)
           return newGlyph
         },

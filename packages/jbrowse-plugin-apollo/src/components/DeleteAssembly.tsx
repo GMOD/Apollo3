@@ -119,7 +119,7 @@ export function DeleteAssembly({
           <DialogContentText>Select assembly</DialogContentText>
           <Select
             labelId="label"
-            value={selectedAssembly?._id || ''}
+            value={selectedAssembly?._id ?? ''}
             onChange={handleChangeAssembly}
             disabled={!assemblies.length}
           >
