@@ -11,6 +11,7 @@ import {
 } from 'apollo-mst'
 import {
   Instance,
+  SnapshotIn,
   flow,
   getParentOfType,
   getRoot,
@@ -35,7 +36,7 @@ import { ApolloRootModel } from '../types'
 export function clientDataStoreFactory(
   AnnotationFeatureExtended: typeof AnnotationFeature,
 ) {
-  return types
+  const clientStoreType = types
     .model('ClientDataStore', {
       typeName: types.optional(types.literal('Client'), 'Client'),
       assemblies: types.map(ApolloAssembly),
@@ -236,4 +237,12 @@ export function clientDataStoreFactory(
         }
       }),
     }))
+
+  // assembly and feature data isn't actually reloaded on reload unless we delete it from the snap
+  return types.snapshotProcessor(clientStoreType, {
+    preProcessor(snap: SnapshotIn<typeof clientStoreType>) {
+      delete snap.assemblies
+      return snap
+    },
+  })
 }
