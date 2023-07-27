@@ -20,6 +20,7 @@ import {
 import {
   OntologyClass,
   OntologyProperty,
+  OntologyTerm,
   isOntologyClass,
   isOntologyProperty,
 } from '..'
@@ -152,7 +153,7 @@ export default class OntologyStore {
     return db
   }
 
-  async nodeCount(tx?: Transaction<['nodes']>) {
+  async termCount(tx?: Transaction<['nodes']>) {
     const myTx = tx || (await this.db).transaction('nodes')
     return myTx.objectStore('nodes').count()
   }
@@ -169,11 +170,11 @@ export default class OntologyStore {
     return result
   }
 
-  async getNodesWithLabelOrSynonym(
+  async getTermsWithLabelOrSynonym(
     termLabelOrSynonym: string,
     options?: { includeSubclasses?: boolean },
     tx?: Transaction<['nodes', 'edges']>,
-  ): Promise<OntologyDBNode[]> {
+  ): Promise<OntologyTerm[]> {
     const includeSubclasses = options?.includeSubclasses ?? true
     const myTx = tx || (await this.db).transaction(['nodes', 'edges'])
     const nodes = myTx.objectStore('nodes')
@@ -221,7 +222,7 @@ export default class OntologyStore {
     const myTx = tx || (await this.db).transaction(['nodes', 'edges'])
 
     const properties = (
-      await this.getNodesWithLabelOrSynonym(
+      await this.getTermsWithLabelOrSynonym(
         propertyLabel,
         { includeSubclasses: false },
         myTx,
@@ -288,25 +289,6 @@ export default class OntologyStore {
     return resultIds.values()
   }
 
-  // /**
-  //  * recursively query for subject ids
-  //  */
-  // private async getEdgeSubjects(
-  //   objectIds: string[],
-  //   predicateIds: string[],
-  //   myTx: Transaction<['edges']>,
-  //   subjectIds: string[],
-  // ) {
-  //   await this.recurseEdges(
-  //     'by-object',
-  //     objectIds,
-  //     (edge) => predicateIds.includes(edge.pred),
-  //     'sub',
-  //     myTx,
-  //     subjectIds,
-  //   )
-  // }
-
   /**
    * given an array of node IDs, augment it with all of their subclasses or
    * superclasses, and return the augmented array
@@ -370,7 +352,7 @@ export default class OntologyStore {
    * example: for the Sequence Ontology, store.getTermsThat('part_of', [geneTerm])
    * would return all terms that are part_of, member_of, or integral_part_of a gene
    */
-  async getTermsThat(
+  async getClassesThat(
     propertyLabel: string,
     targetTerms: OntologyClass[],
     tx?: Transaction<['nodes', 'edges']>,
@@ -422,7 +404,7 @@ export default class OntologyStore {
     return terms
   }
 
-  async getTermsWithoutPropertyLabeled(
+  async getClassesWithoutPropertyLabeled(
     propertyLabel: string,
     options = { includeSubProperties: false },
     tx?: Transaction<['nodes', 'edges']>,
@@ -483,12 +465,18 @@ export default class OntologyStore {
     return terms
   }
 
-  async getAllTerms(tx?: Transaction<['nodes']>): Promise<OntologyClass[]> {
+  async getAllClasses(tx?: Transaction<['nodes']>): Promise<OntologyClass[]> {
     const myTx = tx || (await this.db).transaction(['nodes'])
     const all = (await myTx
       .objectStore('nodes')
       .index('by-type')
       .getAll('CLASS')) as OntologyClass[]
+    return all.filter((term) => !isDeprecated(term))
+  }
+
+  async getAllTerms(tx?: Transaction<['nodes']>): Promise<OntologyTerm[]> {
+    const myTx = tx || (await this.db).transaction(['nodes'])
+    const all = await myTx.objectStore('nodes').getAll()
     return all.filter((term) => !isDeprecated(term))
   }
 }

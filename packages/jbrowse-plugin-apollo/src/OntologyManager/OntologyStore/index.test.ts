@@ -20,7 +20,7 @@ describe('OntologyStore', () => {
       },
     )
 
-    expect(await goslimAspergillus.nodeCount()).toMatchSnapshot()
+    expect(await goslimAspergillus.termCount()).toMatchSnapshot()
   })
   it('can load goslim generic', async () => {
     const goslimGeneric = new OntologyStore(
@@ -32,24 +32,24 @@ describe('OntologyStore', () => {
       },
     )
 
-    expect(await goslimGeneric.nodeCount()).toMatchSnapshot()
+    expect(await goslimGeneric.termCount()).toMatchSnapshot()
   })
 
   it('can query SO', async () => {
-    expect(await so.nodeCount()).toMatchSnapshot()
+    expect(await so.termCount()).toMatchSnapshot()
   })
   it('can query SO gene terms and parts of genes', async () => {
-    const geneTerms = await so.getNodesWithLabelOrSynonym('gene')
+    const geneTerms = await so.getTermsWithLabelOrSynonym('gene')
     expect(geneTerms).toMatchSnapshot()
     expect(isOntologyClass(geneTerms[0])).toBe(true)
-    const geneParts = await so.getTermsThat(
+    const geneParts = await so.getClassesThat(
       'part_of',
       geneTerms as OntologyClass[],
     )
     expect(geneParts).toMatchSnapshot()
   })
   it('can query SO features not part of something else', async () => {
-    const topLevelClasses = await so.getTermsWithoutPropertyLabeled('part_of', {
+    const topLevelClasses = await so.getClassesWithoutPropertyLabeled('part_of', {
       includeSubProperties: true,
     })
     expect(topLevelClasses.length).toMatchSnapshot()
@@ -77,7 +77,7 @@ describe('OntologyStore', () => {
   })
   it('can query valid part_of for match', async () => {
     const parentTypeTerms = (
-      await so.getNodesWithLabelOrSynonym('match', {
+      await so.getTermsWithLabelOrSynonym('match', {
         includeSubclasses: false,
       })
     ).filter(isOntologyClass)
@@ -107,19 +107,19 @@ describe('OntologyStore', () => {
         },
       ]
     `)
-    const subpartTerms = await so.getTermsThat('part_of', parentTypeTerms)
+    const subpartTerms = await so.getClassesThat('part_of', parentTypeTerms)
     expect(subpartTerms.length).toBeGreaterThan(0)
   })
 
   it('SO clone_insert_end is among valid subparts of BAC_cloned_genomic_insert', async () => {
     const bcgi = (
-      await so.getNodesWithLabelOrSynonym('BAC_cloned_genomic_insert', {
+      await so.getTermsWithLabelOrSynonym('BAC_cloned_genomic_insert', {
         includeSubclasses: false,
       })
     ).filter(isOntologyClass)
     expect(bcgi.length).toBe(1)
     expect(bcgi[0].lbl).toBe('BAC_cloned_genomic_insert')
-    const subpartTerms = await so.getTermsThat('part_of', bcgi)
+    const subpartTerms = await so.getClassesThat('part_of', bcgi)
     expect(subpartTerms.length).toBeGreaterThan(0)
     expect(subpartTerms.find((t) => t.lbl === 'clone_insert_end')).toBeTruthy()
     expect(subpartTerms).toMatchSnapshot()

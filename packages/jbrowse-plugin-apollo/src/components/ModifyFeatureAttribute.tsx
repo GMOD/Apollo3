@@ -1,4 +1,8 @@
-import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  AppRootModel,
+  getSession,
+} from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Button,
@@ -26,7 +30,8 @@ import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
-import { GoAutocomplete } from './GoAutocomplete'
+import { isOntologyClass } from '../OntologyManager'
+import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
 
 interface ModifyFeatureAttributeProps {
   session: AbstractSessionModel
@@ -35,18 +40,6 @@ interface ModifyFeatureAttributeProps {
   sourceAssemblyId: string
   changeManager: ChangeManager
 }
-
-function SoAutocompleteUnimplemented() {
-  return <></>
-}
-
-const reservedKeys = new Map<
-  string,
-  React.FunctionComponent<AttributeValueEditorProps>
->([
-  ['Gene Ontology', GoAutocomplete],
-  ['Sequence Ontology', SoAutocompleteUnimplemented],
-])
 
 const useStyles = makeStyles()((theme) => ({
   attributeInput: {
@@ -63,6 +56,7 @@ const useStyles = makeStyles()((theme) => ({
 }))
 
 export interface AttributeValueEditorProps {
+  session: ReturnType<typeof getSession>
   value: string[]
   onChange(newValue: string[]): void
 }
@@ -96,10 +90,58 @@ function CustomAttributeValueEditor(props: AttributeValueEditorProps) {
   )
 }
 
-export interface GOTerm {
-  id: string
-  label: string
+function OntologyEditor({
+  session,
+  value,
+  onChange,
+  ontologyName,
+  ontologyVersion,
+  filterTerms,
+}: AttributeValueEditorProps & {
+  ontologyName: string
+  ontologyVersion?: string
+  filterTerms: Parameters<typeof OntologyTermAutocomplete>[0]['filterTerms']
+}) {
+  return (
+    <OntologyTermAutocomplete
+      session={session}
+      ontologyName={ontologyName}
+      ontologyVersion={ontologyVersion}
+      filterTerms={filterTerms}
+      style={{ width: 170 }}
+      value={value[0]}
+      onChange={(oldValue, newValue) => {
+        onChange([newValue || ''])
+      }}
+    />
+  )
 }
+
+const reservedKeys: Map<
+  string,
+  React.FunctionComponent<AttributeValueEditorProps>
+> = new Map([
+  [
+    'Gene Ontology',
+    (props: AttributeValueEditorProps) => (
+      <OntologyEditor
+        {...props}
+        ontologyName="Gene Ontology"
+        filterTerms={isOntologyClass}
+      />
+    ),
+  ],
+  [
+    'Sequence Ontology',
+    (props: AttributeValueEditorProps) => (
+      <OntologyEditor
+        {...props}
+        ontologyName="Sequence Ontology"
+        filterTerms={isOntologyClass}
+      />
+    ),
+  ],
+])
 
 export function ModifyFeatureAttribute({
   session,
@@ -295,6 +337,7 @@ export function ModifyFeatureAttribute({
                   </Grid>
                   <Grid item flexGrow={1}>
                     <EditorComponent
+                      session={session}
                       value={value}
                       onChange={makeOnChange(key)}
                     />
@@ -333,7 +376,7 @@ export function ModifyFeatureAttribute({
                     <Grid item>
                       <FormControl>
                         <FormLabel id="attribute-radio-button-group">
-                          Attribute type
+                          Select attribute type
                         </FormLabel>
                         <RadioGroup
                           aria-labelledby="demo-radio-buttons-group-label"
@@ -374,8 +417,6 @@ export function ModifyFeatureAttribute({
                               value={key}
                               control={<Radio />}
                               label={key}
-                              // TODO: disable this when SO editor is implemented
-                              disabled={key === 'Sequence Ontology'}
                             />
                           ))}
                         </RadioGroup>
