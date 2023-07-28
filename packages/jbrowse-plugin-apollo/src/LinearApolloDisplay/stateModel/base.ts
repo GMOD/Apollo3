@@ -59,8 +59,8 @@ export function baseModelFactory(
           ({ assemblyName, refName, start, end }) => ({
             assemblyName,
             refName,
-            start,
-            end,
+            start: Math.round(start),
+            end: Math.round(end),
           }),
         )
         return regions

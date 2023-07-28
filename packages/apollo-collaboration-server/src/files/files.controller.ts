@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Head,
   Logger,
   Param,
   Post,
@@ -29,6 +30,12 @@ import { FilesService } from './files.service'
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
   private readonly logger = new Logger(FilesController.name)
+
+  @Validations(Role.Admin)
+  @Head()
+  filesHead() {
+    return ''
+  }
 
   /**
    * Stream file to server and check checksum
