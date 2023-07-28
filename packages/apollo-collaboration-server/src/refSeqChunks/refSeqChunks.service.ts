@@ -1,3 +1,4 @@
+import { IndexedFasta } from '@gmod/indexedfasta'
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
@@ -6,7 +7,9 @@ import {
   RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
+import { RemoteFile } from 'generic-filehandle'
 import { Model } from 'mongoose'
+import { AssembliesService } from 'src/assemblies/assemblies.service'
 
 import { CreateRefSeqChunkDto } from './dto/create-refSeqChunk.dto'
 import { GetSequenceDto } from './dto/get-sequence.dto'
@@ -18,6 +21,7 @@ export class RefSeqChunksService {
     private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
     @InjectModel(RefSeq.name)
     private readonly refSeqModel: Model<RefSeqDocument>,
+    private readonly assembliesService: AssembliesService,
   ) {}
 
   private readonly logger = new Logger(RefSeqChunksService.name)
@@ -31,7 +35,24 @@ export class RefSeqChunksService {
     if (!refSeq) {
       throw new Error(`RefSeq "${refSeqId}" not found`)
     }
-    const { chunkSize } = refSeq
+
+    const { chunkSize, assembly, name } = refSeq
+    const assemblyDoc = await this.assembliesService.findOne(
+      assembly.toString(),
+    )
+
+    if (assemblyDoc?.externalLocation) {
+      const { fa, fai } = assemblyDoc.externalLocation
+      this.logger.debug(`Fasta file URL = ${fa}, Fasta index file URL = ${fai}`)
+
+      const indexedFasta = new IndexedFasta({
+        fasta: new RemoteFile(fa, { fetch }),
+        fai: new RemoteFile(fai, { fetch }),
+      })
+      const sequence = await indexedFasta.getSequence(name, start, end)
+      return sequence
+    }
+
     const startChunk = Math.floor(start / chunkSize)
     const endChunk = Math.floor(end / chunkSize)
     const seq: string[] = []

@@ -3,6 +3,7 @@ import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import { RefSeqChunk, RefSeqChunkSchema } from 'apollo-schemas'
 import idValidator from 'mongoose-id-validator'
 
+import { AssembliesModule } from '../assemblies/assemblies.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
 import { RefSeqChunksController } from './refSeqChunks.controller'
 import { RefSeqChunksService } from './refSeqChunks.service'
@@ -22,6 +23,7 @@ import { RefSeqChunksService } from './refSeqChunks.service'
       },
     ]),
     forwardRef(() => RefSeqsModule),
+    forwardRef(() => AssembliesModule),
   ],
   exports: [MongooseModule, RefSeqChunksService],
 })

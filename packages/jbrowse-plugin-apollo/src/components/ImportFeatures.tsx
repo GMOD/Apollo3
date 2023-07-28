@@ -50,12 +50,13 @@ export function ImportFeatures({
   function handleChangeAssembly(e: SelectChangeEvent<string>) {
     const assemblyId = e.target.value
     const newAssemblyName = assemblies.find((i) => i._id === assemblyId)?.name
-    if (!newAssemblyName) {
-      setErrorMessage(`Could not find assembly name for id "${assemblyId}"`)
-    }
     setSubmitted(false)
     setAssemblyId(assemblyId)
-    setAssemblyName(assemblyName)
+    if (!newAssemblyName) {
+      setErrorMessage(`Could not find assembly name for id "${assemblyId}"`)
+    } else {
+      setAssemblyName(newAssemblyName)
+    }
   }
 
   function handleDeleteFeatures(e: React.ChangeEvent<HTMLInputElement>) {
@@ -238,14 +239,13 @@ export function ImportFeatures({
             {submitted ? 'Submitting...' : 'Submit'}
           </Button>
           <Button
-            disabled={submitted}
             variant="outlined"
             type="submit"
             onClick={() => {
               handleClose()
             }}
           >
-            Cancel
+            Close
           </Button>
         </DialogActions>
       </form>

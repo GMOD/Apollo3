@@ -15,6 +15,6 @@ import { AssembliesService } from './assemblies.service'
     ]),
     forwardRef(() => OperationsModule),
   ],
-  exports: [MongooseModule],
+  exports: [MongooseModule, AssembliesService],
 })
 export class AssembliesModule {}

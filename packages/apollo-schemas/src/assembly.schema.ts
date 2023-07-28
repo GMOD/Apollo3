@@ -22,6 +22,9 @@ export class Assembly {
 
   @Prop()
   user: string
+
+  @Prop({ type: { fa: String, fai: String } })
+  externalLocation: { fa: string; fai: string }
 }
 
 export const AssemblySchema = SchemaFactory.createForClass(Assembly)
