@@ -5,7 +5,10 @@ import {
   types,
 } from 'mobx-state-tree'
 
-import { AnnotationFeature } from './AnnotationFeature'
+import {
+  AnnotationFeature,
+  AnnotationFeatureSnapshot,
+} from './AnnotationFeature'
 
 export const Sequence = types.model({
   start: types.number,
@@ -27,6 +30,9 @@ export const ApolloRefSeq = types
     sequence: types.array(Sequence),
   })
   .actions((self) => ({
+    addFeature(feature: AnnotationFeatureSnapshot) {
+      self.features.put(feature)
+    },
     deleteFeature(featureId: string) {
       return self.features.delete(featureId)
     },
@@ -101,7 +107,7 @@ export const ApolloAssembly = types
     backendDriverType: types.optional(
       types.enumeration('backendDriverType', [
         'CollaborationServerDriver',
-        'LocalFileDriver',
+        'InMemoryFileDriver',
       ]),
       'CollaborationServerDriver',
     ),
@@ -111,6 +117,11 @@ export const ApolloAssembly = types
       return Array.from(self.refSeqs.values()).find(
         (val) => val.name === refName,
       )
+    },
+  }))
+  .actions((self) => ({
+    addRefSeq(id: string, name: string) {
+      return self.refSeqs.put({ _id: id, name })
     },
   }))
 

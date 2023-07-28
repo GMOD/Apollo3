@@ -1,3 +1,3 @@
 export * from './BackendDriver'
 export * from './CollaborationServerDriver'
-export * from './LocalFileDriver'
+export * from './InMemoryFileDriver'

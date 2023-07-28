@@ -2,46 +2,28 @@ import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf, readConfObject } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { AbstractSessionModel, AppRootModel, Region } from '@jbrowse/core/util'
+import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
 import { openLocation } from '@jbrowse/core/util/io'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { ClientDataStore as ClientDataStoreType, OboJson } from 'apollo-common'
-import {
-  AnnotationFeature,
-  AnnotationFeatureI,
-  AnnotationFeatureSnapshot,
-  ApolloAssembly,
-  ApolloRefSeq,
-} from 'apollo-mst'
+import { AnnotationFeature, AnnotationFeatureI } from 'apollo-mst'
 import { autorun, observable } from 'mobx'
-import {
-  IAnyModelType,
-  Instance,
-  flow,
-  getParentOfType,
-  getRoot,
-  resolveIdentifier,
-  types,
-} from 'mobx-state-tree'
+import { IAnyModelType, Instance, flow, getRoot, types } from 'mobx-state-tree'
 
 import {
   ApolloInternetAccountModel,
   UserLocation,
-} from './ApolloInternetAccount/model'
-import {
-  BackendDriver,
-  CollaborationServerDriver,
-  LocalFileDriver,
-} from './BackendDrivers'
-import { ChangeManager } from './ChangeManager'
+} from '../ApolloInternetAccount/model'
+import { ChangeManager } from '../ChangeManager'
 import {
   Stores,
   addBatchData,
   getStoreDataCount,
   initDB,
-} from './components/db'
-import { ApolloRootModel } from './types'
-import { createFetchErrorMessage } from './util'
+} from '../components/db'
+import { ApolloRootModel } from '../types'
+import { createFetchErrorMessage } from '../util'
+import { clientDataStoreFactory } from './ClientDataStore'
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreType & { changeManager: ChangeManager }
@@ -76,151 +58,6 @@ export interface Collaborator {
   name: string
   id: string
   locations: CollaboratorLocation[]
-}
-
-function clientDataStoreFactory(
-  AnnotationFeatureExtended: typeof AnnotationFeature,
-) {
-  return types
-    .model('ClientDataStore', {
-      typeName: types.optional(types.literal('Client'), 'Client'),
-      assemblies: types.map(ApolloAssembly),
-      backendDriverType: types.optional(
-        types.enumeration('backendDriverType', ['CollaborationServerDriver']),
-        'CollaborationServerDriver',
-      ),
-    })
-    .views((self) => ({
-      get internetAccounts() {
-        return (getRoot<ApolloRootModel>(self) as AppRootModel).internetAccounts
-      },
-      getFeature(featureId: string) {
-        return resolveIdentifier(
-          AnnotationFeatureExtended,
-          self.assemblies,
-          featureId,
-        )
-      },
-    }))
-    .actions((self) => ({
-      addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot) {
-        const assembly = self.assemblies.get(assemblyId)
-        if (!assembly) {
-          throw new Error(
-            `Could not find assembly "${assemblyId}" to add feature "${feature._id}"`,
-          )
-        }
-        const ref = assembly.refSeqs.get(feature.refSeq)
-        if (!ref) {
-          throw new Error(
-            `Could not find refSeq "${feature.refSeq}" to add feature "${feature._id}"`,
-          )
-        }
-        ref.features.put(feature)
-      },
-      addAssembly(assemblyId: string, assemblyName: string) {
-        self.assemblies.put({ _id: assemblyId, refSeqs: {} })
-      },
-      deleteFeature(featureId: string) {
-        const feature = self.getFeature(featureId)
-        if (!feature) {
-          throw new Error(`Could not find feature "${featureId}" to delete`)
-        }
-        const { parent } = feature
-        if (parent) {
-          parent.deleteChild(featureId)
-        } else {
-          const refSeq = getParentOfType(feature, ApolloRefSeq)
-          refSeq.deleteFeature(feature._id)
-        }
-      },
-      deleteAssembly(assemblyId: string) {
-        self.assemblies.delete(assemblyId)
-      },
-    }))
-    .volatile((self) => ({
-      changeManager: new ChangeManager(self as unknown as ClientDataStoreType),
-      collaborationServerDriver: new CollaborationServerDriver(
-        self as unknown as ClientDataStoreType,
-      ),
-      localFileDriver: new LocalFileDriver(
-        self as unknown as ClientDataStoreType,
-      ),
-    }))
-    .views((self) => ({
-      getBackendDriver(assemblyId: string) {
-        const assembly = self.assemblies.get(assemblyId)
-        if (!assembly) {
-          return self.collaborationServerDriver
-        }
-        const { backendDriverType } = assembly as unknown as {
-          backendDriverType: 'CollaborationServerDriver' | 'LocalFileDriver'
-        }
-        if (backendDriverType === 'CollaborationServerDriver') {
-          return self.collaborationServerDriver
-        }
-        if (backendDriverType === 'LocalFileDriver') {
-          return self.localFileDriver
-        }
-        throw new Error(`Unknown backend driver type "${backendDriverType}"`)
-      },
-    }))
-    .actions((self) => ({
-      loadFeatures: flow(function* loadFeatures(regions: Region[]) {
-        for (const region of regions) {
-          const features = (yield (
-            self as unknown as { backendDriver: BackendDriver }
-          ).backendDriver.getFeatures(region)) as AnnotationFeatureSnapshot[]
-          if (!features.length) {
-            continue
-          }
-          const { assemblyName, refName } = region
-          let assembly = self.assemblies.get(assemblyName)
-          if (!assembly) {
-            assembly = self.assemblies.put({ _id: assemblyName, refSeqs: {} })
-          }
-          const [firstFeature] = features
-          let ref = assembly.refSeqs.get(firstFeature.refSeq)
-          if (!ref) {
-            ref = assembly.refSeqs.put({
-              _id: firstFeature.refSeq,
-              name: refName,
-              features: {},
-            })
-          }
-          for (const feature of features) {
-            if (!ref.features.has(feature._id)) {
-              ref.features.put(feature)
-            }
-          }
-        }
-      }),
-      loadRefSeq: flow(function* loadRefSeq(regions: Region[]) {
-        for (const region of regions) {
-          const { seq, refSeq } = yield (
-            self as unknown as { backendDriver: BackendDriver }
-          ).backendDriver.getSequence(region)
-          const { assemblyName, refName } = region
-          let assembly = self.assemblies.get(assemblyName)
-          if (!assembly) {
-            assembly = self.assemblies.put({ _id: assemblyName, refSeqs: {} })
-          }
-          let ref = assembly.refSeqs.get(refSeq)
-          if (!ref) {
-            ref = assembly.refSeqs.put({
-              _id: refSeq,
-              name: refName,
-              sequence: [],
-            })
-          }
-          ref.addSequence({
-            start: region.start,
-            stop: region.end,
-            sequence: seq,
-          })
-        }
-      }),
-    }))
 }
 
 export function extendSession(

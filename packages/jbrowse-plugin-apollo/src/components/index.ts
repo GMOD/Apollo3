@@ -9,10 +9,13 @@ export * from './AddFeature'
 export * from './CopyFeature'
 export * from './DeleteAssembly'
 export * from './DeleteFeature'
+export * from './DownloadGFF3'
+export * from './GoAutocomplete'
 export * from './ImportFeatures'
-export * from './ViewChangeLog'
 export * from './ManageUsers'
 export * from './ModifyFeatureAttribute'
+export * from './OpenLocalFile'
+export * from './ViewChangeLog'
 
 interface AssemblyResponse {
   _id: string
