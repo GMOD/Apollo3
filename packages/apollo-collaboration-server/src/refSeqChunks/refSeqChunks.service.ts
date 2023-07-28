@@ -9,8 +9,8 @@ import {
 } from 'apollo-schemas'
 import { RemoteFile } from 'generic-filehandle'
 import { Model } from 'mongoose'
-import { AssembliesService } from 'src/assemblies/assemblies.service'
 
+import { AssembliesService } from '../assemblies/assemblies.service'
 import { CreateRefSeqChunkDto } from './dto/create-refSeqChunk.dto'
 import { GetSequenceDto } from './dto/get-sequence.dto'
 

@@ -42,10 +42,25 @@ interface AddAssemblyProps {
   changeManager: ChangeManager
 }
 
+interface FileUploadChangeBase {
+  assembly: string
+  assemblyName: string
+  fileId: string
+}
+
+interface ExternalAssemblyChangeBase {
+  assembly: string
+  assemblyName: string
+  externalLocation: {
+    fa: string
+    fai: string
+  }
+}
+
 enum FileType {
-  GFF3 = "text/x-gff3",
-  FASTA = "text/x-fasta",
-  EXTERNAL = "text/x-external"
+  GFF3 = 'text/x-gff3',
+  FASTA = 'text/x-fasta',
+  EXTERNAL = 'text/x-external',
 }
 
 export function AddAssembly({
@@ -110,12 +125,12 @@ export function AddAssembly({
     }
   }
 
-  function updateFastaFile(url: any) {
+  function updateFastaFile(url: string) {
     setValidFastaFile(r.test(url))
     setFastaFile(url)
   }
 
-  function updateFastaIndexFile(url: any) {
+  function updateFastaIndexFile(url: string) {
     setValidFastaIndexFile(r.test(url))
     setFastaIndexFile(url)
   }
@@ -166,32 +181,38 @@ export function AddAssembly({
       }
     }
 
-    const changeBase: any = {
-      assembly: new ObjectID().toHexString(),
-      assemblyName,
-    }
-
-    let change: any
+    let change:
+      | AddAssemblyFromExternalChange
+      | AddAssemblyAndFeaturesFromFileChange
+      | AddAssemblyFromFileChange
     if (fileType == FileType.EXTERNAL) {
-      changeBase.externalLocation = {
-        fa: fastaFile,
-        fai: fastaIndexFile,
+      const externalAssemblyChangeBase: ExternalAssemblyChangeBase = {
+        assembly: new ObjectID().toHexString(),
+        assemblyName,
+        externalLocation: {
+          fa: fastaFile,
+          fai: fastaIndexFile,
+        },
       }
       change = new AddAssemblyFromExternalChange({
         typeName: 'AddAssemblyFromExternalChange',
-        ...changeBase,
+        ...externalAssemblyChangeBase,
       })
     } else {
-      changeBase.fileId = fileId
+      const fileUploadChangeBase: FileUploadChangeBase = {
+        assembly: new ObjectID().toHexString(),
+        assemblyName,
+        fileId,
+      }
       if (fileType === FileType.GFF3 && importFeatures) {
         change = new AddAssemblyAndFeaturesFromFileChange({
           typeName: 'AddAssemblyAndFeaturesFromFileChange',
-          ...changeBase,
+          ...fileUploadChangeBase,
         })
       } else {
         change = new AddAssemblyFromFileChange({
           typeName: 'AddAssemblyFromFileChange',
-          ...changeBase,
+          ...fileUploadChangeBase,
         })
       }
     }

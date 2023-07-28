@@ -16,7 +16,7 @@ export interface SerializedAddAssemblyFromExternalChangeBase
 
 export interface AddAssemblyFromExternalChangeDetails {
   assemblyName: string
-  externalLocation?: { fa: string; fai: string }
+  externalLocation: { fa: string; fai: string }
 }
 
 export interface SerializedAddAssemblyFromExternalChangeSingle
@@ -70,8 +70,7 @@ export class AddAssemblyFromExternalChange extends AssemblySpecificChange {
 
     for (const change of changes) {
       const { assemblyName, externalLocation } = change
-      const fa = externalLocation?.fa ?? ''
-      const fai = externalLocation?.fai ?? ''
+      const { fa, fai } = externalLocation
 
       const allSequenceSizes = await new IndexedFasta({
         fasta: new RemoteFile(fa, { fetch }),
