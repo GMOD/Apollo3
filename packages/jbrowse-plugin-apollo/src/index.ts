@@ -28,6 +28,7 @@ import {
   ReactComponent as ApolloSixFrameRendererReactComponent,
   configSchema as apolloSixFrameRendererConfigSchema,
 } from './ApolloSixFrameRenderer'
+import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
 import { DownloadGFF3, OpenLocalFile, ViewChangeLog } from './components'
 import ApolloPluginConfigurationSchema from './config'
 import {
@@ -58,6 +59,7 @@ export default class ApolloPlugin extends Plugin {
 
   install(pluginManager: PluginManager) {
     installApolloSequenceAdapter(pluginManager)
+    installApolloTextSearchAdapter(pluginManager)
     pluginManager.addTrackType(() => {
       const configSchema = ConfigurationSchema(
         'ApolloTrack',

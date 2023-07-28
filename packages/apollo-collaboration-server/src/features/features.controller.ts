@@ -61,6 +61,17 @@ export class FeaturesController {
   }
 
   /**
+   * Search database for queries
+   * For testing try to go to:
+   * http://localhost:3999/features/searchFeatures?term=exonerate
+   */
+  @Public()
+  @Get('searchFeatures')
+  async searchFeatures(@Query() request: { term: string }) {
+    return this.featuresService.searchFeatures(request)
+  }
+
+  /**
    * Get and ID to be used with exportGFF3. ID will be valid for 5 minutes.
    * @param request -
    * @returns The ID of an export that will be valid for 5 minutes
