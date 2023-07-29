@@ -149,7 +149,7 @@ export default class OntologyStore {
   }
 
   async termCount(tx?: Transaction<['nodes']>) {
-    const myTx = tx || (await this.db).transaction('nodes')
+    const myTx = tx ?? (await this.db).transaction('nodes')
     return myTx.objectStore('nodes').count()
   }
 
@@ -171,7 +171,7 @@ export default class OntologyStore {
     tx?: Transaction<['nodes', 'edges']>,
   ): Promise<OntologyTerm[]> {
     const includeSubclasses = options?.includeSubclasses ?? true
-    const myTx = tx || (await this.db).transaction(['nodes', 'edges'])
+    const myTx = tx ?? (await this.db).transaction(['nodes', 'edges'])
     const nodes = myTx.objectStore('nodes')
     const resultNodes = (
       await nodes.index('by-label').getAll(termLabelOrSynonym)
@@ -214,7 +214,7 @@ export default class OntologyStore {
   ): Promise<OntologyProperty[]> {
     const includeSubProperties = options?.includeSubProperties ?? true
 
-    const myTx = tx || (await this.db).transaction(['nodes', 'edges'])
+    const myTx = tx ?? (await this.db).transaction(['nodes', 'edges'])
 
     const properties = (
       await this.getTermsWithLabelOrSynonym(
@@ -294,7 +294,7 @@ export default class OntologyStore {
     direction: 'superclasses' | 'subclasses',
     tx?: Transaction<['edges']>,
   ) {
-    const myTx = tx || (await this.db).transaction(['edges'])
+    const myTx = tx ?? (await this.db).transaction(['edges'])
     const startingNodes = Array.from(startingNodeIds)
     const subclassIds = await this.recurseEdges(
       direction === 'subclasses' ? 'by-object' : 'by-subject',
@@ -352,7 +352,7 @@ export default class OntologyStore {
     targetTerms: OntologyClass[],
     tx?: Transaction<['nodes', 'edges']>,
   ) {
-    const myTx = tx || (await this.db).transaction(['nodes', 'edges'])
+    const myTx = tx ?? (await this.db).transaction(['nodes', 'edges'])
 
     // find all the terms for the properties we are using
     const relatingProperties = await this.getPropertiesByLabel(
@@ -404,7 +404,7 @@ export default class OntologyStore {
     options = { includeSubProperties: false },
     tx?: Transaction<['nodes', 'edges']>,
   ) {
-    const myTx = tx || (await this.db).transaction(['nodes', 'edges'])
+    const myTx = tx ?? (await this.db).transaction(['nodes', 'edges'])
     const nodeStore = myTx.objectStore('nodes')
     const edgeStore = myTx.objectStore('edges')
 
@@ -461,7 +461,7 @@ export default class OntologyStore {
   }
 
   async getAllClasses(tx?: Transaction<['nodes']>): Promise<OntologyClass[]> {
-    const myTx = tx || (await this.db).transaction(['nodes'])
+    const myTx = tx ?? (await this.db).transaction(['nodes'])
     const all = (await myTx
       .objectStore('nodes')
       .index('by-type')
@@ -470,7 +470,7 @@ export default class OntologyStore {
   }
 
   async getAllTerms(tx?: Transaction<['nodes']>): Promise<OntologyTerm[]> {
-    const myTx = tx || (await this.db).transaction(['nodes'])
+    const myTx = tx ?? (await this.db).transaction(['nodes'])
     const all = await myTx.objectStore('nodes').getAll()
     return all.filter((term) => !isDeprecated(term))
   }

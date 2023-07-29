@@ -7,8 +7,6 @@ export interface GraphDocument {
   [k: string]: unknown
 }
 
-export default GraphDocument
-
 export interface Meta {
   definition?: MetaDefinitionPropertyValue
   comments?: string[]

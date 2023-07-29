@@ -1,14 +1,13 @@
 import { getSession, isAbortException } from '@jbrowse/core/util'
 import { Autocomplete } from '@mui/material'
-import { Instance } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
-import type OntologyManager from '../OntologyManager'
+import type { OntologyManager } from '../OntologyManager'
 import { OntologyTerm } from '../OntologyManager'
 import OntologyStore from '../OntologyManager/OntologyStore'
 
-const useStyles = makeStyles()((theme) => ({
+const useStyles = makeStyles()((_theme) => ({
   inputElement: {
     border: 'none',
     background: 'none',
@@ -18,7 +17,7 @@ const useStyles = makeStyles()((theme) => ({
   },
 }))
 
-type OntologyTermAutocompleteProps = {
+interface OntologyTermAutocompleteProps {
   session: ReturnType<typeof getSession>
   ontologyName: string
   ontologyVersion?: string
@@ -52,9 +51,8 @@ export function OntologyTermAutocomplete({
     OntologyTerm | undefined
   >()
 
-  const ontologyManager = session.apolloDataStore.ontologyManager as Instance<
-    typeof OntologyManager
-  >
+  const ontologyManager = session.apolloDataStore
+    .ontologyManager as OntologyManager
   const ontologyStore = ontologyManager.findOntology(
     ontologyName,
     ontologyVersion,
@@ -142,7 +140,7 @@ export function OntologyTermAutocomplete({
 
   return (
     <Autocomplete
-      options={termChoices || []}
+      options={termChoices ?? []}
       style={style}
       onOpen={() => {
         setOpen(true)
@@ -173,7 +171,7 @@ export function OntologyTermAutocomplete({
         if (typeof option === 'string') {
           return option
         }
-        return option.lbl || ''
+        return option.lbl ?? ''
       }}
       isOptionEqualToValue={(option, val) => option.lbl === val.lbl}
       value={valueString}
@@ -189,7 +187,7 @@ async function getCurrentTerm(
   ontologyStore: OntologyStore,
   currentTermLabel: string,
   filterTerms: OntologyTermAutocompleteProps['filterTerms'],
-  signal: AbortSignal,
+  _signal: AbortSignal,
 ) {
   if (!currentTermLabel) {
     return
@@ -200,7 +198,7 @@ async function getCurrentTerm(
     currentTermLabel,
     { includeSubclasses: false },
   )
-  const term = terms.find(filterTerms || (() => true))
+  const term = terms.find(filterTerms ?? (() => true))
   if (!term) {
     throw new Error(`not a valid ${ontologyStore.ontologyName} term`)
   }

@@ -18,7 +18,7 @@ export const OntologyRecordType = types
     version: 'unversioned',
     source: types.union(LocalPathLocation, UriLocation, BlobLocation),
   })
-  .volatile((self) => ({
+  .volatile((_self) => ({
     dataStore: undefined as undefined | OntologyStore,
   }))
   .actions((self) => ({

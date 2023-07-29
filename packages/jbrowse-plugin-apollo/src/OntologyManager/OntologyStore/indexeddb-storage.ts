@@ -6,7 +6,7 @@ import {
   isOntologyDBEdge,
   isOntologyDBNode,
 } from './indexeddb-schema'
-import GraphDocument from './obo-graph-json-schema'
+import { GraphDocument } from './obo-graph-json-schema'
 import OntologyStore from '.'
 
 /** schema version we are currently on, used for the IndexedDB schema open call */
@@ -27,7 +27,7 @@ export async function openDatabase(dbName: string) {
         ArrayLike<'nodes' | 'edges'>,
         'versionchange'
       >,
-      event: IDBVersionChangeEvent,
+      _event: IDBVersionChangeEvent,
     ): void {
       if (schemaVersion !== 1) {
         throw new Error(
@@ -68,7 +68,7 @@ export async function loadOboGraphJson(store: OntologyStore, db: Database) {
 
   const parseTime = Date.now()
 
-  const [graph, ...additionalGraphs] = oboGraph.graphs || []
+  const [graph, ...additionalGraphs] = oboGraph.graphs ?? []
   if (!graph) {
     return
   }
@@ -84,7 +84,7 @@ export async function loadOboGraphJson(store: OntologyStore, db: Database) {
 
     // load nodes
     const nodeStore = tx.objectStore('nodes')
-    for (const node of graph.nodes || []) {
+    for (const node of graph.nodes ?? []) {
       if (isOntologyDBNode(node)) {
         await nodeStore.add(node)
       }
@@ -92,7 +92,7 @@ export async function loadOboGraphJson(store: OntologyStore, db: Database) {
 
     // load edges
     const edgeStore = tx.objectStore('edges')
-    for (const edge of graph.edges || []) {
+    for (const edge of graph.edges ?? []) {
       if (isOntologyDBEdge(edge)) {
         await edgeStore.add(edge)
       }

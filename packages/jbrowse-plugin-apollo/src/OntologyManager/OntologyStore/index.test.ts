@@ -6,7 +6,7 @@ import { OntologyClass, isOntologyClass } from '..'
 jest.setTimeout(1000000000)
 const so = new OntologyStore('Sequence Ontology', 'automated testing', {
   locationType: 'LocalPathLocation',
-  localPath: `test_data/so-v3.1.json`,
+  localPath: 'test_data/so-v3.1.json',
 })
 
 describe('OntologyStore', () => {
@@ -16,7 +16,7 @@ describe('OntologyStore', () => {
       'automated testing',
       {
         locationType: 'LocalPathLocation',
-        localPath: `test_data/goslim_aspergillus.json`,
+        localPath: 'test_data/goslim_aspergillus.json',
       },
     )
 
@@ -28,7 +28,7 @@ describe('OntologyStore', () => {
       'automated testing',
       {
         locationType: 'LocalPathLocation',
-        localPath: `test_data/goslim_generic.json`,
+        localPath: 'test_data/goslim_generic.json',
       },
     )
 

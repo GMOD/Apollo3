@@ -149,7 +149,7 @@ export function OntologyTermMultiSelect({
           return
         }
         const node = cursor.value
-        if ((node.lbl || '').toLowerCase().includes(inputValue.toLowerCase())) {
+        if ((node.lbl ?? '').toLowerCase().includes(inputValue.toLowerCase())) {
           matches.push(node)
         }
       }
@@ -209,7 +209,7 @@ export function OntologyTermMultiSelect({
       )}
       renderOption={(props, option) => {
         let parts: { text: string; highlight: boolean }[] = []
-        const label = option.lbl || '(no label)'
+        const label = option.lbl ?? '(no label)'
         const matches = highlightMatch(label, inputValue, {
           insideWords: true,
         })

@@ -40,10 +40,7 @@ interface ModifyFeatureAttributeProps {
   changeManager: ChangeManager
 }
 
-const reservedKeys: Map<
-  string,
-  React.FunctionComponent<AttributeValueEditorProps>
-> = new Map([
+const reservedKeys = new Map([
   [
     'Gene Ontology',
     (props: AttributeValueEditorProps) => {
