@@ -6,12 +6,7 @@ import {
 } from '@jbrowse/core/util'
 import { IDBPTransaction, IndexNames, StoreNames } from 'idb/with-async-ittr'
 
-import {
-  OntologyDB,
-  OntologyDBEdge,
-  OntologyDBNode,
-  isDeprecated,
-} from './indexeddb-schema'
+import { OntologyDB, OntologyDBEdge, isDeprecated } from './indexeddb-schema'
 import {
   isDatabaseCompletelyLoaded,
   loadOboGraphJson,

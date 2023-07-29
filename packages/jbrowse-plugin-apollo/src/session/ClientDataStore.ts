@@ -169,7 +169,7 @@ export function clientDataStoreFactory(
         }
         const { internetAccounts } = self
         const internetAccount = internetAccounts.find(
-          (ia) => getConf(ia, 'internetAccountId') === configId,
+          (ia) => ia.internetAccountId === configId,
         ) as ApolloInternetAccount | undefined
         if (!internetAccount) {
           throw new Error(

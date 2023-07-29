@@ -49,9 +49,12 @@ describe('OntologyStore', () => {
     expect(geneParts).toMatchSnapshot()
   })
   it('can query SO features not part of something else', async () => {
-    const topLevelClasses = await so.getClassesWithoutPropertyLabeled('part_of', {
-      includeSubProperties: true,
-    })
+    const topLevelClasses = await so.getClassesWithoutPropertyLabeled(
+      'part_of',
+      {
+        includeSubProperties: true,
+      },
+    )
     expect(topLevelClasses.length).toMatchSnapshot()
     expect(topLevelClasses.find((term) => term.lbl === 'mRNA')).toBeUndefined()
     // gene is member_of gene_group, so also doesn't appear here. There doesn't seem to be
