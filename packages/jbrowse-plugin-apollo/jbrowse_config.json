@@ -22,7 +22,7 @@
                 "name": "Gene Ontology",
                 "version": "full",
                 "source": {
-                    "uri": "test_data/go.json",
+                    "uri": "http://release.geneontology.org/2023-06-11/ontology/go.json",
                     "locationType": "UriLocation"
                 }
             },
