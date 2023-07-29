@@ -8,33 +8,35 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import { debounce } from '@mui/material/utils'
-import match from 'autosuggest-highlight/match'
-import parse from 'autosuggest-highlight/parse'
+import highlightMatch from 'autosuggest-highlight/match'
+import highlightParse from 'autosuggest-highlight/parse'
 import { getParent } from 'mobx-state-tree'
 import * as React from 'react'
 
-import { OntologyManager, OntologyRecord } from '../OntologyManager'
+import {
+  OntologyManager,
+  OntologyRecord,
+  OntologyTerm,
+  isOntologyClass,
+} from '../OntologyManager'
 
-interface TermValue {
-  id: string
-}
+type TermValue = OntologyTerm
 
-interface TermAutocompleteResult extends TermValue {
-  label: string[]
-  match: string
-  category: string[]
-  taxon: string
-  taxon_label: string
-  highlight: string
-  has_highlight: boolean
-}
+// interface TermAutocompleteResult extends TermValue {
+//   label: string[]
+//   match: string
+//   category: string[]
+//   taxon: string
+//   taxon_label: string
+//   highlight: string
+//   has_highlight: boolean
+// }
 
-interface TermAutocompleteResponse {
-  docs: TermAutocompleteResult[]
-}
+// interface TermAutocompleteResponse {
+//   docs: TermAutocompleteResult[]
+// }
 
-const hiliteRegex = /(?<=<em class="hilite">)(.*?)(?=<\/em>)/g
+// const hiliteRegex = /(?<=<em class="hilite">)(.*?)(?=<\/em>)/g
 
 function TermTagWithTooltip({
   termId,
@@ -85,7 +87,7 @@ function TermTagWithTooltip({
     <Tooltip title={description}>
       <div>
         <Chip
-          label={errorMessage || termId}
+          label={errorMessage || manager.applyPrefixes(termId)}
           color={errorMessage ? 'error' : 'default'}
           size="small"
           {...getTagProps({ index })}
@@ -112,65 +114,55 @@ export function OntologyTermMultiSelect({
     .ontologyManager as OntologyManager
   const ontology = ontologyManager.findOntology(ontologyName, ontologyVersion)
 
-  const [value, setValue] = React.useState<
-    (TermValue | TermAutocompleteResult)[]
-  >(initialValue.map((v) => ({ id: v })))
+  const [value, setValue] = React.useState<OntologyTerm[]>(
+    initialValue.map((id) => ({ id, type: 'CLASS' })),
+  )
   const [inputValue, setInputValue] = React.useState('')
-  const [options, setOptions] = React.useState<
-    readonly (TermValue | TermAutocompleteResult)[]
-  >([])
+  const [options, setOptions] = React.useState<readonly TermValue[]>([])
   const [loading, setLoading] = React.useState(false)
   const [errorMessage, setErrorMessage] = React.useState('')
 
-  const goFetch = React.useMemo(
-    () =>
-      debounce(
-        async (
-          request: { input: string },
-          callback: (results: TermAutocompleteResult[]) => void,
-        ) => {
-          try {
-            const response = await fetch(
-              `https://api.geneontology.org/api/search/entity/autocomplete/${request.input}?prefix=GO`,
-            )
-            const responseJson: TermAutocompleteResponse = await response.json()
-            callback(responseJson.docs)
-          } catch (error) {
-            setErrorMessage(String(error))
-          }
-        },
-        400,
-      ),
-    [],
-  )
-
   React.useEffect(() => {
-    let active = true
+    const aborter = new AbortController()
+    const { signal } = aborter
 
     if (inputValue === '') {
-      setOptions(value.length ? value : [])
+      setOptions([])
       return undefined
     }
 
-    // `void`ed because types are wrong, this doesn't actually return a promise
-    void goFetch({ input: inputValue }, (results) => {
-      if (active) {
-        let newOptions: readonly (TermValue | TermAutocompleteResult)[] = []
-        if (value.length) {
-          newOptions = value
+    setLoading(true)
+
+    if (!ontology) {
+      return undefined
+    }
+    const { dataStore } = ontology
+    if (!dataStore) {
+      return undefined
+    }
+
+    ;(async () => {
+      const matches: OntologyTerm[] = []
+      const tx = (await dataStore.db).transaction('nodes')
+      for await (const cursor of tx.objectStore('nodes')) {
+        if (signal.aborted) {
+          return
         }
-        if (results) {
-          newOptions = [...newOptions, ...results]
+        const node = cursor.value
+        if ((node.lbl || '').toLowerCase().includes(inputValue.toLowerCase())) {
+          matches.push(node)
         }
-        setOptions(newOptions)
-        setLoading(false)
       }
+      setOptions(matches)
+      setLoading(false)
+    })().catch((error) => {
+      setErrorMessage(String(error))
     })
 
     return () => {
-      active = false
+      aborter.abort()
     }
-  }, [value, inputValue, goFetch])
+  }, [value, inputValue, ontology])
 
   if (!ontology) {
     return null
@@ -185,7 +177,7 @@ export function OntologyTermMultiSelect({
   return (
     <Autocomplete
       getOptionLabel={(option) => option.id}
-      filterOptions={(x) => x}
+      filterOptions={(terms) => terms.filter(isOntologyClass)}
       options={options}
       autoComplete
       includeInputInList
@@ -196,7 +188,7 @@ export function OntologyTermMultiSelect({
       noOptionsText={inputValue ? 'No matches' : 'Start typing to search'}
       onChange={(_, newValue) => {
         setOptions(newValue ? [...newValue, ...options] : options)
-        onChange(newValue.map((v) => v.id))
+        onChange(newValue.map((v) => ontologyManager.applyPrefixes(v.id)))
         setValue(newValue)
       }}
       onInputChange={(event, newInputValue) => {
@@ -217,30 +209,18 @@ export function OntologyTermMultiSelect({
       )}
       renderOption={(props, option) => {
         let parts: { text: string; highlight: boolean }[] = []
-        if ('has_highlight' in option) {
-          if (option.has_highlight) {
-            const highlightedText = option.highlight.match(hiliteRegex)
-            if (highlightedText) {
-              parts = option.highlight
-                .split(/<em class="hilite">|<\/em>/)
-                .map((part) => ({
-                  text: part,
-                  highlight: highlightedText.includes(part),
-                }))
-            } else {
-              parts = [{ text: option.match, highlight: false }]
-            }
-          }
-        }
-        // } else if ('label' in option) {
-        //   const matches = match(option.label, inputValue, { insideWords: true })
-        //   parts = parse(option.label, matches)
-        // }
+        const label = option.lbl || '(no label)'
+        const matches = highlightMatch(label, inputValue, {
+          insideWords: true,
+        })
+        parts = highlightParse(label, matches)
         return (
           <li {...props}>
             <Grid container>
               <Grid item>
-                <Typography>{option.id}</Typography>
+                <Typography>
+                  {ontologyManager.applyPrefixes(option.id)}
+                </Typography>
                 {parts.map((part, index) => (
                   <Typography
                     key={index}

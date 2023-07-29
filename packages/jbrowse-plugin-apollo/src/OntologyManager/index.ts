@@ -5,13 +5,7 @@ import {
   UriLocation,
 } from '@jbrowse/core/util/types/mst'
 import { autorun } from 'mobx'
-import {
-  Instance,
-  addDisposer,
-  getParent,
-  getSnapshot,
-  types,
-} from 'mobx-state-tree'
+import { Instance, addDisposer, getSnapshot, types } from 'mobx-state-tree'
 
 import OntologyStore from './OntologyStore'
 import { OntologyDBNode } from './OntologyStore/indexeddb-schema'
