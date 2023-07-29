@@ -3050,6 +3050,54 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@jbrowse/core@npm:^2.6.2":
+  version: 2.6.2
+  resolution: "@jbrowse/core@npm:2.6.2"
+  dependencies:
+    "@babel/runtime": ^7.17.9
+    "@gmod/bgzf-filehandle": ^1.4.3
+    "@mui/icons-material": ^5.0.1
+    "@types/clone": ^2.0.0
+    abortable-promise-cache: ^1.5.0
+    canvas-sequencer: ^3.1.0
+    canvas2svg: ^1.0.16
+    clone: ^2.1.2
+    clsx: ^1.0.4
+    color: ^3.1.3
+    copy-to-clipboard: ^3.3.1
+    deepmerge: ^4.2.2
+    detect-node: ^2.1.0
+    dompurify: ^3.0.0
+    escape-html: ^1.0.3
+    fast-deep-equal: ^3.1.3
+    generic-filehandle: ^3.0.0
+    http-range-fetcher: ^2.0.0
+    is-object: ^1.0.1
+    jexl: ^2.3.0
+    json-stable-stringify: ^1.0.1
+    librpc-web-mod: ^1.1.5
+    load-script: ^2.0.0
+    material-ui-popup-state: ^5.0.0
+    rbush: ^3.0.1
+    react-error-boundary: ^4.0.3
+    serialize-error: ^8.0.0
+    shortid: ^2.2.13
+    svg-path-generator: ^1.1.0
+  peerDependencies:
+    "@mui/material": ^5.0.0
+    "@mui/x-data-grid": ^6.0.1
+    mobx: ^6.0.0
+    mobx-react: ^7.0.0
+    mobx-state-tree: ^5.0.0
+    prop-types: ^15.0.0
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+    rxjs: ^7.0.0
+    tss-react: ^4.0.0
+  checksum: 19bb6d890af4dbcb98704477042fe685edf62781528384d6fd28915e8d788d8e06a5b24e6a09f061012e7c3c1ea5ee3c62ca2e968033eba06119725d7a84597e
+  languageName: node
+  linkType: hard
+
 "@jbrowse/development-tools@npm:^2.1.1":
   version: 2.1.1
   resolution: "@jbrowse/development-tools@npm:2.1.1"
@@ -11469,6 +11517,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"http-range-fetcher@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "http-range-fetcher@npm:2.0.0"
+  dependencies:
+    abortcontroller-polyfill: ^1.2.9
+    quick-lru: ^4.0.0
+  checksum: 2f64b96688a7d23196e481aa7fb45f7aae76d892bb3abcecb0c02ae0bcfaf88ae30a18e91fa3cb036efdbd0f25ab18f0cfdf2abdfa4ff170057210eb8ec8ada3
+  languageName: node
+  linkType: hard
+
 "http-signature@npm:~1.3.6":
   version: 1.3.6
   resolution: "http-signature@npm:1.3.6"
@@ -12375,7 +12433,7 @@ __metadata:
     "@emotion/styled": ^11.9.3
     "@gmod/gff": ^1.2.0
     "@jbrowse/cli": ^2.6.2
-    "@jbrowse/core": ^2.3.4
+    "@jbrowse/core": ^2.6.2
     "@jbrowse/development-tools": ^2.1.1
     "@jbrowse/plugin-authentication": ^2.0.1
     "@jbrowse/plugin-linear-genome-view": ^2.0.1
@@ -12425,7 +12483,7 @@ __metadata:
     tss-react: ^3.7.1
     typescript: ^5.1.6
   peerDependencies:
-    "@jbrowse/core": ^2.3.4
+    "@jbrowse/core": ^2.6.2
     "@mui/material": ^5.9.1
     mobx: ^6.6.1
     mobx-react: ^7.2.1
@@ -14387,6 +14445,13 @@ __metadata:
   version: 2.0.6
   resolution: "load-script2@npm:2.0.6"
   checksum: a9c54f07eacb1af147c742a922fedc1dc2e7923999e5857a4be363a76b60ae625d4a94cbab371c67dad5f1a98b5c9387e57db4e83fbcf1d25fa9c8404de5df41
+  languageName: node
+  linkType: hard
+
+"load-script@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "load-script@npm:2.0.0"
+  checksum: fdf2df0e6adafc4d853d9a8daea8996948909ba0bca697e28ca59ce069bb05e3ace388f7f5cf9692d2972221c900154b09b041c76bc2ef6a30f1df540d84f638
   languageName: node
   linkType: hard
 
@@ -16570,6 +16635,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"quick-lru@npm:^4.0.0":
+  version: 4.0.1
+  resolution: "quick-lru@npm:4.0.1"
+  checksum: bea46e1abfaa07023e047d3cf1716a06172c4947886c053ede5c50321893711577cb6119360f810cc3ffcd70c4d7db4069c3cee876b358ceff8596e062bd1154
+  languageName: node
+  linkType: hard
+
 "quickselect@npm:^2.0.0":
   version: 2.0.0
   resolution: "quickselect@npm:2.0.0"
@@ -16684,6 +16756,17 @@ __metadata:
   peerDependencies:
     react: ">=16.13.1"
   checksum: f36270a5d775a25c8920f854c0d91649ceea417b15b5bc51e270a959b0476647bb79abb4da3be7dd9a4597b029214e8fe43ea914a7f16fa7543c91f784977f1b
+  languageName: node
+  linkType: hard
+
+"react-error-boundary@npm:^4.0.3":
+  version: 4.0.10
+  resolution: "react-error-boundary@npm:4.0.10"
+  dependencies:
+    "@babel/runtime": ^7.12.5
+  peerDependencies:
+    react: ">=16.13.1"
+  checksum: 4ad4864d2a5fc2264a24d03e83176e6a70d7adbe3c1edbdc5b0bd452a695104bc59456e23b5aea1b9729220672fe46614221daa8b3bd59327968d4aa7eb8bc71
   languageName: node
   linkType: hard
 

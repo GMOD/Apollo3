@@ -30,8 +30,7 @@ import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
-import { isOntologyClass } from '../OntologyManager'
-import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
+import { OntologyTermMultiSelect } from './OntologyTermMultiSelect'
 
 interface ModifyFeatureAttributeProps {
   session: AbstractSessionModel
@@ -40,6 +39,26 @@ interface ModifyFeatureAttributeProps {
   sourceAssemblyId: string
   changeManager: ChangeManager
 }
+
+const reservedKeys: Map<
+  string,
+  React.FunctionComponent<AttributeValueEditorProps>
+> = new Map([
+  [
+    'Gene Ontology',
+    (props: AttributeValueEditorProps) => {
+      return <OntologyTermMultiSelect {...props} ontologyName="Gene Ontology" />
+    },
+  ],
+  [
+    'Sequence Ontology',
+    (props: AttributeValueEditorProps) => {
+      return (
+        <OntologyTermMultiSelect {...props} ontologyName="Sequence Ontology" />
+      )
+    },
+  ],
+])
 
 const useStyles = makeStyles()((theme) => ({
   attributeInput: {
@@ -90,58 +109,10 @@ function CustomAttributeValueEditor(props: AttributeValueEditorProps) {
   )
 }
 
-function OntologyEditor({
-  session,
-  value,
-  onChange,
-  ontologyName,
-  ontologyVersion,
-  filterTerms,
-}: AttributeValueEditorProps & {
-  ontologyName: string
-  ontologyVersion?: string
-  filterTerms: Parameters<typeof OntologyTermAutocomplete>[0]['filterTerms']
-}) {
-  return (
-    <OntologyTermAutocomplete
-      session={session}
-      ontologyName={ontologyName}
-      ontologyVersion={ontologyVersion}
-      filterTerms={filterTerms}
-      style={{ width: 170 }}
-      value={value[0]}
-      onChange={(oldValue, newValue) => {
-        onChange([newValue || ''])
-      }}
-    />
-  )
+export interface GOTerm {
+  id: string
+  label: string
 }
-
-const reservedKeys: Map<
-  string,
-  React.FunctionComponent<AttributeValueEditorProps>
-> = new Map([
-  [
-    'Gene Ontology',
-    (props: AttributeValueEditorProps) => (
-      <OntologyEditor
-        {...props}
-        ontologyName="Gene Ontology"
-        filterTerms={isOntologyClass}
-      />
-    ),
-  ],
-  [
-    'Sequence Ontology',
-    (props: AttributeValueEditorProps) => (
-      <OntologyEditor
-        {...props}
-        ontologyName="Sequence Ontology"
-        filterTerms={isOntologyClass}
-      />
-    ),
-  ],
-])
 
 export function ModifyFeatureAttribute({
   session,

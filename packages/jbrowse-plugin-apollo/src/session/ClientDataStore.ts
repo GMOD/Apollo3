@@ -1,5 +1,7 @@
 import { getConf, readConfObject } from '@jbrowse/core/configuration'
+import { ConfigurationModel } from '@jbrowse/core/configuration/types'
 import { AppRootModel, Region, getSession } from '@jbrowse/core/util'
+import { LocalPathLocation, UriLocation } from '@jbrowse/core/util/types/mst'
 import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
 import {
   AnnotationFeature,
@@ -24,7 +26,10 @@ import {
 } from '../BackendDrivers'
 import { ChangeManager } from '../ChangeManager'
 import ApolloPluginConfigurationSchema from '../config'
-import { OntologyManagerType } from '../OntologyManager'
+import {
+  OntologyManagerType,
+  OntologyRecordConfiguration,
+} from '../OntologyManager'
 import { ApolloRootModel } from '../types'
 
 export function clientDataStoreFactory(
@@ -99,19 +104,29 @@ export function clientDataStoreFactory(
     }))
     .actions((self) => ({
       afterCreate() {
-        // if no ontologies are configured in the session snapshot, add the ontologies
-        // from our plugin configuration
+        // Merge in the ontologies from our plugin configuration.
+        // Ontologies of a given name that are already in the session
+        // take precedence over the ontologies in the configuration.
         const { ontologyManager } = self
-        if (!ontologyManager.ontologies.length) {
-          const configuredOntologies = self.pluginConfiguration.ontologies
-          for (const ont of configuredOntologies || []) {
-            ontologyManager.addOntology(
-              readConfObject(ont, 'name'),
-              readConfObject(ont, 'version'),
-              readConfObject(ont, 'source'),
-            )
+        const configuredOntologies = self.pluginConfiguration
+          .ontologies as ConfigurationModel<
+          typeof OntologyRecordConfiguration
+        >[]
+
+        for (const ont of configuredOntologies || []) {
+          const [name, version, source] = [
+            readConfObject(ont, 'name') as string,
+            readConfObject(ont, 'version') as string,
+            readConfObject(ont, 'source') as
+              | Instance<typeof LocalPathLocation>
+              | Instance<typeof UriLocation>,
+          ]
+          if (!ontologyManager.findOntology(name)) {
+            ontologyManager.addOntology(name, version, source)
           }
         }
+        // TODO: add in any configured ontology prefixes that we don't already
+        // have in the session (or hardcoded in the model)
       },
     }))
     .views((self) => ({

@@ -5,7 +5,13 @@ import {
   UriLocation,
 } from '@jbrowse/core/util/types/mst'
 import { autorun } from 'mobx'
-import { Instance, addDisposer, getSnapshot, types } from 'mobx-state-tree'
+import {
+  Instance,
+  addDisposer,
+  getParent,
+  getSnapshot,
+  types,
+} from 'mobx-state-tree'
 
 import OntologyStore from './OntologyStore'
 import { OntologyDBNode } from './OntologyStore/indexeddb-schema'
@@ -22,8 +28,9 @@ export const OntologyRecordType = types
     dataStore: undefined as undefined | OntologyStore,
   }))
   .actions((self) => ({
+    /** does nothing, just used to access the model to force its lifecycle hooks to run */
     ping() {
-      return // does nothing, just forces access
+      return
     },
     initDataStore() {
       self.dataStore = new OntologyStore(
@@ -46,7 +53,10 @@ export const OntologyManagerType = types
   .model('OntologyManager', {
     // create, update, and delete ontologies
     ontologies: types.array(OntologyRecordType),
-    prefixes: types.map(types.string),
+    prefixes: types.optional(types.map(types.string), {
+      'GO:': 'http://purl.obolibrary.org/obo/GO_',
+      'SO:': 'http://purl.obolibrary.org/obo/SO_',
+    }),
   })
   .views((self) => ({
     /**
@@ -75,7 +85,11 @@ export const OntologyManagerType = types
      * prefixes
      */
     applyPrefixes(uri: string) {
-      // TODO: compact the URI using our configured prefixes
+      for (const [prefix, uriBase] of self.prefixes.entries()) {
+        if (uri.startsWith(uriBase)) {
+          return uri.replace(uriBase, prefix)
+        }
+      }
       return uri
     },
     /**
@@ -83,7 +97,11 @@ export const OntologyManagerType = types
      * configured prefixes
      */
     expandPrefixes(uri: string) {
-      // TODO: expand the prefixes in the given URI
+      for (const [prefix, uriBase] of self.prefixes.entries()) {
+        if (uri.startsWith(prefix)) {
+          return uri.replace(prefix, uriBase)
+        }
+      }
       return uri
     },
   }))
@@ -130,6 +148,9 @@ export const OntologyRecordConfiguration = ConfigurationSchema(
     },
   },
 )
+
+export type OntologyManager = Instance<typeof OntologyManagerType>
+export type OntologyRecord = Instance<typeof OntologyRecordType>
 
 export type OntologyTerm = OntologyDBNode
 

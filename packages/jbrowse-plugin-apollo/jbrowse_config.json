@@ -20,9 +20,9 @@
         "ontologies": [
             {
                 "name": "Gene Ontology",
-                "version": "goslim-generic",
+                "version": "full",
                 "source": {
-                    "uri": "test_data/goslim_generic.json",
+                    "uri": "test_data/go.json",
                     "locationType": "UriLocation"
                 }
             },

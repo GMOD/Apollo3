@@ -109,6 +109,7 @@ export function extendSession(
             type: 'ApolloTrack',
             trackId,
             name: `Annotations (${
+              // @ts-expect-error getConf types don't quite work here for some reason
               getConf(assembly, 'displayName') || assembly.name
             })`,
             assemblyNames: [assembly.name],
