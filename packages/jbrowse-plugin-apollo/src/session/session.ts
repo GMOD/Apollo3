@@ -326,6 +326,7 @@ export function extendSession(
                   baseURL: { uri: baseURL, locationType: 'UriLocation' },
                 },
                 metadata: {
+                  apollo: true,
                   internetAccountConfigId:
                     internetAccount.configuration.internetAccountId,
                   ids,

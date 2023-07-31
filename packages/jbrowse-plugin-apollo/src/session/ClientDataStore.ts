@@ -16,6 +16,7 @@ import {
 } from 'mobx-state-tree'
 
 import {
+  ApolloInternetAccount,
   BackendDriver,
   CollaborationServerDriver,
   InMemoryFileDriver,
@@ -107,6 +108,35 @@ export function clientDataStoreFactory(
           return self.collaborationServerDriver
         }
         return self.inMemoryFileDriver
+      },
+      getInternetAccount(assemblyName?: string, internetAccountId?: string) {
+        if (!(assemblyName ?? internetAccountId)) {
+          throw new Error(
+            'Must provide either assemblyName or internetAccountId',
+          )
+        }
+        let configId = internetAccountId
+        if (assemblyName && !configId) {
+          const { assemblyManager } = getSession(self)
+          const assembly = assemblyManager.get(assemblyName)
+          if (!assembly) {
+            throw new Error(`No assembly found with name ${assemblyName}`)
+          }
+          ;({ internetAccountConfigId: configId } = getConf(assembly, [
+            'sequence',
+            'metadata',
+          ]) as { internetAccountConfigId: string })
+        }
+        const { internetAccounts } = self
+        const internetAccount = internetAccounts.find(
+          (ia) => getConf(ia, 'internetAccountId') === configId,
+        ) as ApolloInternetAccount | undefined
+        if (!internetAccount) {
+          throw new Error(
+            `No InternetAccount found with config id ${internetAccountId}`,
+          )
+        }
+        return internetAccount
       },
     }))
     .actions((self) => ({

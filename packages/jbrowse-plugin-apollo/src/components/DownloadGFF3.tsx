@@ -1,4 +1,5 @@
-import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import { getConf } from '@jbrowse/core/configuration'
 import {
   Button,
   Dialog,
@@ -10,26 +11,36 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material'
-import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
+import {
+  ApolloInternetAccount,
+  CollaborationServerDriver,
+} from '../BackendDrivers'
+import { ApolloSessionModel } from '../session'
 import { createFetchErrorMessage } from '../util'
-import { AssemblyData, useAssemblies } from './'
 
 interface DownloadGFF3Props {
-  session: AbstractSessionModel
+  session: ApolloSessionModel
   handleClose(): void
 }
 
 export function DownloadGFF3({ session, handleClose }: DownloadGFF3Props) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
-  const [selectedAssembly, setSelectedAssembly] = useState<AssemblyData>()
+  const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
   const [errorMessage, setErrorMessage] = useState('')
 
-  const assemblies = useAssemblies(internetAccounts, setErrorMessage)
+  const { collaborationServerDriver, getInternetAccount } =
+    session.apolloDataStore as {
+      collaborationServerDriver: CollaborationServerDriver
+      getInternetAccount(
+        assemblyName?: string,
+        internetAccountId?: string,
+      ): ApolloInternetAccount
+    }
+  const assemblies = collaborationServerDriver.getAssemblies()
 
   function handleChangeAssembly(e: SelectChangeEvent<string>) {
-    const newAssembly = assemblies.find((asm) => asm._id === e.target.value)
+    const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
     setSelectedAssembly(newAssembly)
   }
 
@@ -41,9 +52,15 @@ export function DownloadGFF3({ session, handleClose }: DownloadGFF3Props) {
       return
     }
 
-    const { internetAccount } = selectedAssembly
+    const { internetAccountConfigId } = getConf(selectedAssembly, [
+      'sequence',
+      'metadata',
+    ]) as { internetAccountConfigId?: string }
+    const internetAccount = getInternetAccount(internetAccountConfigId)
     const url = new URL('features/getExportID', internetAccount.baseURL)
-    const searchParams = new URLSearchParams({ assembly: selectedAssembly._id })
+    const searchParams = new URLSearchParams({
+      assembly: selectedAssembly.name,
+    })
     url.search = searchParams.toString()
     const uri = url.toString()
     const apolloFetch = internetAccount.getFetcher({
@@ -67,7 +84,6 @@ export function DownloadGFF3({ session, handleClose }: DownloadGFF3Props) {
     const exportUri = exportURL.toString()
 
     window.open(exportUri, '_blank')
-    handleClose()
   }
 
   return (
@@ -78,13 +94,13 @@ export function DownloadGFF3({ session, handleClose }: DownloadGFF3Props) {
           <DialogContentText>Select assembly</DialogContentText>
           <Select
             labelId="label"
-            value={selectedAssembly?._id ?? ''}
+            value={selectedAssembly?.name ?? ''}
             onChange={handleChangeAssembly}
             disabled={!assemblies.length}
           >
             {assemblies.map((option) => (
-              <MenuItem key={option._id} value={option._id}>
-                {option.name}
+              <MenuItem key={option.name} value={option.name}>
+                {option.displayName ?? option.name}
               </MenuItem>
             ))}
           </Select>

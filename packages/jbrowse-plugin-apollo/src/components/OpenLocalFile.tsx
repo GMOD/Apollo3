@@ -138,7 +138,6 @@ export function OpenLocalFile({ session, handleClose }: OpenLocalFileProps) {
       name: assemblyId,
       aliases: [assemblyName],
       displayName: assemblyName,
-      backendDriverType: 'InMemoryFileDriver',
       sequence: {
         trackId: `sequenceConfigId-${assemblyName}`,
         type: 'ReferenceSequenceTrack',
@@ -147,6 +146,7 @@ export function OpenLocalFile({ session, handleClose }: OpenLocalFileProps) {
           assemblyId,
           features: sequenceAdapterFeatures,
         },
+        metadata: { apollo: true },
       },
     }
 
