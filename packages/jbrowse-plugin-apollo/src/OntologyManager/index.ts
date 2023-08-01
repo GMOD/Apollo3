@@ -7,7 +7,7 @@ import {
 import { autorun } from 'mobx'
 import { Instance, addDisposer, getSnapshot, types } from 'mobx-state-tree'
 
-import OntologyStore from './OntologyStore'
+import OntologyStore, { OntologyStoreOptions } from './OntologyStore'
 import { OntologyDBNode } from './OntologyStore/indexeddb-schema'
 
 export { isDeprecated } from './OntologyStore/indexeddb-schema'
@@ -17,6 +17,7 @@ export const OntologyRecordType = types
     name: types.string,
     version: 'unversioned',
     source: types.union(LocalPathLocation, UriLocation, BlobLocation),
+    options: types.frozen<OntologyStoreOptions>(),
   })
   .volatile((_self) => ({
     dataStore: undefined as undefined | OntologyStore,
@@ -31,6 +32,7 @@ export const OntologyRecordType = types
         self.name,
         self.version,
         getSnapshot(self.source),
+        self.options,
       )
     },
     afterCreate() {
@@ -104,8 +106,14 @@ export const OntologyManagerType = types
       name: string,
       version: string,
       source: Instance<typeof LocalPathLocation> | Instance<typeof UriLocation>,
+      options?: OntologyStoreOptions,
     ) {
-      const newlen = self.ontologies.push({ name, version, source })
+      const newlen = self.ontologies.push({
+        name,
+        version,
+        source,
+        options: options ?? {},
+      })
       // access it immediately to fire its lifecycle hooks
       // (see https://github.com/mobxjs/mobx-state-tree/issues/1665)
       self.ontologies[newlen - 1].ping()
@@ -139,6 +147,12 @@ export const OntologyRecordConfiguration = ConfigurationSchema(
         locationType: 'UriLocation',
         uri: 'http://example.com/myontology.json',
       },
+    },
+    textIndexingPaths: {
+      type: 'frozen',
+      description:
+        'JSON paths for text fields that will be indexed for text searching',
+      defaultValue: ['lbl', 'meta/definition/val'],
     },
   },
 )

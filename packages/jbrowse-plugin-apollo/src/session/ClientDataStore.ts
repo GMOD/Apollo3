@@ -114,17 +114,21 @@ export function clientDataStoreFactory(
         >[]
 
         for (const ont of configuredOntologies || []) {
-          const [name, version, source] = [
+          const [name, version, source, indexPaths] = [
             readConfObject(ont, 'name') as string,
             readConfObject(ont, 'version') as string,
             readConfObject(ont, 'source') as
               | Instance<typeof LocalPathLocation>
               | Instance<typeof UriLocation>,
+            readConfObject(ont, 'textIndexingPaths') as string[],
           ]
           if (!ontologyManager.findOntology(name)) {
-            ontologyManager.addOntology(name, version, source)
+            ontologyManager.addOntology(name, version, source, {
+              textIndexing: { indexPaths },
+            })
           }
         }
+
         // TODO: add in any configured ontology prefixes that we don't already
         // have in the session (or hardcoded in the model)
       },

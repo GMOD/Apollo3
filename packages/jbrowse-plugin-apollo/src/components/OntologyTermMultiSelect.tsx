@@ -249,6 +249,7 @@ export function OntologyTermMultiSelect({
         const label = option.lbl ?? '(no label)'
         const matches = highlightMatch(label, inputValue, {
           insideWords: true,
+          findAllOccurrences: true,
         })
         parts = highlightParse(label, matches)
         return (

@@ -8,7 +8,11 @@ import { OntologyTerm } from '..'
 function getStringAt(obj: Record<string, unknown>, path: string[]) {
   let thing = obj
   for (const key of path) {
-    thing = thing[key] as Record<string, unknown>
+    if (key in thing) {
+      thing = thing[key] as Record<string, unknown>
+    } else {
+      return
+    }
   }
   return String(thing)
 }
@@ -29,9 +33,11 @@ export function getWords(node: OntologyDBNode, paths: string[][]) {
   const wordSet = new Set<string>()
   for (const path of paths) {
     const text = getStringAt(node, path)
-    stringToWords(text).forEach((word) => {
-      wordSet.add(word)
-    })
+    if (text) {
+      stringToWords(text).forEach((word) => {
+        wordSet.add(word)
+      })
+    }
   }
   return wordSet
 }

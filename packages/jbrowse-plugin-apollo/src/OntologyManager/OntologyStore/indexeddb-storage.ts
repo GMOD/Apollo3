@@ -96,7 +96,7 @@ export async function loadOboGraphJson(this: OntologyStore, db: Database) {
     const nodeStore = tx.objectStore('nodes')
     const fullTextIndexPaths = this.options.textIndexing?.indexPaths
       ? this.options.textIndexing?.indexPaths.map((p) => p.split('/'))
-      : [['lbl']]
+      : [['lbl'], ['meta', 'definition', 'val']]
     for (const node of graph.nodes ?? []) {
       if (isOntologyDBNode(node)) {
         await nodeStore.add({
