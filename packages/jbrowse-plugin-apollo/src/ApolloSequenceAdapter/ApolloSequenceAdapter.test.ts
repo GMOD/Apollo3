@@ -51,16 +51,6 @@ describe('ApolloSequenceAdapter', () => {
       {},
     )
     const featuresArray = await features.pipe(toArray()).toPromise()
-    expect(featuresArray).toMatchInlineSnapshot(`
-      [
-        {
-          "end": 30,
-          "refName": "ctgA",
-          "seq": "GCGTGCAACAGACTTTCCATGATGCGAGCT",
-          "start": 0,
-          "uniqueId": "ctgA 0-30",
-        },
-      ]
-    `)
+    expect(featuresArray).toMatchSnapshot()
   })
 })
