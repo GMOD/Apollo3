@@ -1,4 +1,4 @@
-import { getSession } from '@jbrowse/core/util'
+import { getSession, isAbortException } from '@jbrowse/core/util'
 import {
   Autocomplete,
   AutocompleteRenderGetTagProps,
@@ -174,16 +174,26 @@ export function OntologyTermMultiSelect({
 
     setLoading(true)
 
-    void getOntologyTerms({ input: inputValue, signal }, (results) => {
-      let newOptions: readonly OntologyTerm[] = []
-      if (value.length) {
-        newOptions = value
-      }
-      if (results) {
-        newOptions = [...newOptions, ...results]
-      }
-      setOptions(newOptions)
+    if (!ontology) {
+      return undefined
+    }
+    const { dataStore } = ontology
+    if (!dataStore) {
+      return undefined
+    }
+
+    ;(async () => {
+      const matches = await dataStore.getTermsByFulltext(
+        inputValue,
+        undefined,
+        signal,
+      )
+      setOptions(matches.map((m) => m[1]).filter(isOntologyClass))
       setLoading(false)
+    })().catch((error) => {
+      if (!isAbortException(error)) {
+        setErrorMessage(String(error))
+      }
     })
 
     return () => {

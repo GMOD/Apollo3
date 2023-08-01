@@ -128,3 +128,9 @@ export const genericEnglishStopwords = new Set([
   'should',
   'now',
 ])
+
+/**
+ * The set of stopwords we use for fulltext indexing. Currently
+ * just generic English stopwords, but will likely be expanded over time.
+ */
+export const stopwords = genericEnglishStopwords

@@ -2,11 +2,14 @@ import {
   BlobLocation,
   LocalPathLocation,
   UriLocation,
+  checkAbortSignal,
   isUriLocation,
 } from '@jbrowse/core/util'
 import { IDBPTransaction, IndexNames, StoreNames } from 'idb/with-async-ittr'
+import { string } from 'prop-types'
 
 import { stringToWords } from './fulltext-indexing'
+import { stopwords } from './fulltext-stopwords'
 import { OntologyDB, OntologyDBEdge, isDeprecated } from './indexeddb-schema'
 import {
   isDatabaseCompletelyLoaded,
@@ -493,31 +496,78 @@ export default class OntologyStore {
   }
 
   /**
-   * @returns array of terms and a count of how many words they matched, as
-   * `[count, OntologyTerm][]`, sorted by count descending
+   * @returns array of terms and a match score, as
+   * `[score, OntologyTerm][]`, sorted by score descending
    **/
-  async getTermsByFulltext(text: string, tx?: Transaction<['nodes']>) {
+  async getTermsByFulltext(
+    text: string,
+    tx?: Transaction<['nodes']>,
+    signal?: AbortSignal,
+  ) {
     const myTx = tx ?? (await this.db).transaction(['nodes'])
-    const words = stringToWords(text)
-    const termsAndCounts = new Map<string, [number, OntologyTerm]>()
-    await Promise.all(
-      words.map(async (word) => {
+    const queryWords = stringToWords(text)
+      .map((w) => w.toLowerCase())
+      .filter((w) => !stopwords.has(w))
+
+    const termsAndScores = new (class ScoreSheet extends Map<
+      string,
+      [number, OntologyTerm]
+    > {
+      incrementScore(term: OntologyTerm, amount: number) {
+        const curr = this.get(term.id)
+        if (curr) {
+          curr[0] += amount
+        } else {
+          termsAndScores.set(term.id, [amount, term])
+        }
+      }
+    })()
+
+    const queries: Promise<void>[] = []
+    // find matches of full words, worth 1 point
+    queries.push(
+      ...queryWords.map(async (queryWord) => {
+        checkAbortSignal(signal)
         const wordResults = await myTx
           .objectStore('nodes')
           .index('full-text-words')
-          .getAll(word)
+          .getAll(queryWord)
         for (const term of wordResults) {
-          const curr = termsAndCounts.get(term.id)
-          if (curr) {
-            curr[0] += 1
-          } else {
-            termsAndCounts.set(term.id, [1, term])
+          checkAbortSignal(signal)
+          termsAndScores.incrementScore(term, 1)
+        }
+      }),
+    )
+
+    // find matches of initial words, worth (match len)/(hit word length)
+    queries.push(
+      ...queryWords.map(async (queryWord) => {
+        checkAbortSignal(signal)
+        const idx = myTx.objectStore('nodes').index('full-text-words')
+        for await (const cursor of idx.iterate(
+          IDBKeyRange.bound(queryWord, `${queryWord}\uffff`, false, false),
+        )) {
+          checkAbortSignal(signal)
+          const term = cursor.value
+          const matchScores = term.fullTextWords
+            ?.filter((w) => w.startsWith(queryWord))
+            .map((w) => queryWord.length / w.length)
+
+          if (matchScores) {
+            termsAndScores.incrementScore(term, Math.max(...matchScores))
           }
         }
       }),
     )
 
-    // sort the terms by the number of words they have
-    return Array.from(termsAndCounts.values()).sort((a, b) => b[0] - a[0])
+    await Promise.all(queries)
+
+    const results = Array.from(termsAndScores.values())
+    // normalize the scores by number of words
+    for (const result of results) {
+      result[0] /= queryWords.length
+    }
+    // sort the terms by score descending and return
+    return results.sort((a, b) => b[0] - a[0])
   }
 }
