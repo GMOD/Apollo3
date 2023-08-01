@@ -1,7 +1,7 @@
 import { openLocation } from '@jbrowse/core/util/io'
 import { IDBPDatabase, IDBPTransaction, openDB } from 'idb/with-async-ittr'
 
-import { getWords } from './fulltext-indexing'
+import { getWords } from './fulltext'
 import {
   OntologyDB,
   isOntologyDBEdge,

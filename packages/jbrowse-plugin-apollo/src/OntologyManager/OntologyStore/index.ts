@@ -2,14 +2,11 @@ import {
   BlobLocation,
   LocalPathLocation,
   UriLocation,
-  checkAbortSignal,
   isUriLocation,
 } from '@jbrowse/core/util'
 import { IDBPTransaction, IndexNames, StoreNames } from 'idb/with-async-ittr'
-import { string } from 'prop-types'
 
-import { stringToWords } from './fulltext-indexing'
-import { stopwords } from './fulltext-stopwords'
+import { getTermsByFulltext } from './fulltext'
 import { OntologyDB, OntologyDBEdge, isDeprecated } from './indexeddb-schema'
 import {
   isDatabaseCompletelyLoaded,
@@ -27,7 +24,7 @@ import {
 export type SourceLocation = UriLocation | LocalPathLocation | BlobLocation
 
 /** type alias for a Transaction on this particular DB schema */
-type Transaction<
+export type Transaction<
   TxStores extends ArrayLike<StoreNames<OntologyDB>> = ArrayLike<
     StoreNames<OntologyDB>
   >,
@@ -68,6 +65,7 @@ export interface OntologyStoreOptions {
     /** json paths of paths in the nodes to index as full text */
     indexPaths?: string[]
   }
+  maxSearchResults?: number
 }
 
 /** query interface for a specific ontology */
@@ -79,6 +77,9 @@ export default class OntologyStore {
   options: OntologyStoreOptions
 
   loadOboGraphJson = loadOboGraphJson
+  getTermsByFulltext = getTermsByFulltext
+
+  readonly DEFAULT_MAX_SEARCH_RESULTS = 100
 
   constructor(
     name: string,
@@ -493,81 +494,5 @@ export default class OntologyStore {
     const myTx = tx ?? (await this.db).transaction(['nodes'])
     const all = await myTx.objectStore('nodes').getAll()
     return all.filter((term) => !isDeprecated(term))
-  }
-
-  /**
-   * @returns array of terms and a match score, as
-   * `[score, OntologyTerm][]`, sorted by score descending
-   **/
-  async getTermsByFulltext(
-    text: string,
-    tx?: Transaction<['nodes']>,
-    signal?: AbortSignal,
-  ) {
-    const myTx = tx ?? (await this.db).transaction(['nodes'])
-    const queryWords = stringToWords(text)
-      .map((w) => w.toLowerCase())
-      .filter((w) => !stopwords.has(w))
-
-    const termsAndScores = new (class ScoreSheet extends Map<
-      string,
-      [number, OntologyTerm]
-    > {
-      incrementScore(term: OntologyTerm, amount: number) {
-        const curr = this.get(term.id)
-        if (curr) {
-          curr[0] += amount
-        } else {
-          termsAndScores.set(term.id, [amount, term])
-        }
-      }
-    })()
-
-    const queries: Promise<void>[] = []
-    // find matches of full words, worth 1 point
-    queries.push(
-      ...queryWords.map(async (queryWord) => {
-        checkAbortSignal(signal)
-        const wordResults = await myTx
-          .objectStore('nodes')
-          .index('full-text-words')
-          .getAll(queryWord)
-        for (const term of wordResults) {
-          checkAbortSignal(signal)
-          termsAndScores.incrementScore(term, 1)
-        }
-      }),
-    )
-
-    // find matches of initial words, worth (match len)/(hit word length)
-    queries.push(
-      ...queryWords.map(async (queryWord) => {
-        checkAbortSignal(signal)
-        const idx = myTx.objectStore('nodes').index('full-text-words')
-        for await (const cursor of idx.iterate(
-          IDBKeyRange.bound(queryWord, `${queryWord}\uffff`, false, false),
-        )) {
-          checkAbortSignal(signal)
-          const term = cursor.value
-          const matchScores = term.fullTextWords
-            ?.filter((w) => w.startsWith(queryWord))
-            .map((w) => queryWord.length / w.length)
-
-          if (matchScores) {
-            termsAndScores.incrementScore(term, Math.max(...matchScores))
-          }
-        }
-      }),
-    )
-
-    await Promise.all(queries)
-
-    const results = Array.from(termsAndScores.values())
-    // normalize the scores by number of words
-    for (const result of results) {
-      result[0] /= queryWords.length
-    }
-    // sort the terms by score descending and return
-    return results.sort((a, b) => b[0] - a[0])
   }
 }

@@ -108,7 +108,7 @@ exports[`OntologyStore can load goslim generic 1`] = `248`;
 exports[`OntologyStore can load goslim generic 2`] = `
 [
   [
-    3,
+    2.3333333333333335,
     {
       "fullTextWords": [
         "mitotic",
@@ -157,7 +157,7 @@ exports[`OntologyStore can load goslim generic 2`] = `
     },
   ],
   [
-    2,
+    1.3333333333333333,
     {
       "fullTextWords": [
         "meiotic",
@@ -205,7 +205,7 @@ exports[`OntologyStore can load goslim generic 2`] = `
     },
   ],
   [
-    1,
+    0.3333333333333333,
     {
       "fullTextWords": [
         "mitotic",
@@ -258,7 +258,7 @@ exports[`OntologyStore can load goslim generic 2`] = `
     },
   ],
   [
-    1,
+    0.3333333333333333,
     {
       "fullTextWords": [
         "nuclear",
@@ -295,7 +295,38 @@ exports[`OntologyStore can load goslim generic 2`] = `
     },
   ],
   [
-    1,
+    0.3333333333333333,
+    {
+      "fullTextWords": [
+        "results",
+        "division",
+      ],
+      "id": "http://purl.obolibrary.org/obo/GOREL_0001019",
+      "lbl": "results in division of",
+      "meta": {
+        "basicPropertyValues": [
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+            "val": "external",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#shorthand",
+            "val": "results_in_division_of",
+          },
+        ],
+        "comments": [
+          "use occurs_in",
+        ],
+        "xrefs": [
+          {
+            "val": "GOREL:0001019",
+          },
+        ],
+      },
+    },
+  ],
+  [
+    0.3333333333333333,
     {
       "fullTextWords": [
         "nuclear",
@@ -332,37 +363,6 @@ exports[`OntologyStore can load goslim generic 2`] = `
         ],
       },
       "type": "CLASS",
-    },
-  ],
-  [
-    1,
-    {
-      "fullTextWords": [
-        "results",
-        "division",
-      ],
-      "id": "http://purl.obolibrary.org/obo/GOREL_0001019",
-      "lbl": "results in division of",
-      "meta": {
-        "basicPropertyValues": [
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
-            "val": "external",
-          },
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#shorthand",
-            "val": "results_in_division_of",
-          },
-        ],
-        "comments": [
-          "use occurs_in",
-        ],
-        "xrefs": [
-          {
-            "val": "GOREL:0001019",
-          },
-        ],
-      },
     },
   ],
 ]
