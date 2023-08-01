@@ -41,20 +41,6 @@ export class ApolloTextSearchAdapter
       .catch((err) => err)
   }
 
-  // async fetchFeatureByAttr(attrType: string, attr: string) {
-  //   const url = new URL(`features/${attrType}/${attr}`, this.baseURL)
-  //   const uri = url.toString()
-  //   const location: UriLocation = { locationType: 'UriLocation', uri }
-  //   if (this.internetAccountPreAuthorization) {
-  //     location.internetAccountPreAuthorization =
-  //       this.internetAccountPreAuthorization
-  //   }
-  //   const fetch = getFetcher(location, this.pluginManager)
-  //   return fetch(uri)
-  //     .then((res) => res.json())
-  //     .catch((err) => err)
-  // }
-
   mapBaseResult(
     features: {
       refSeq: any // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -76,15 +62,6 @@ export class ApolloTextSearchAdapter
 
   searchIndex(args: BaseTextSearchArgs): Promise<BaseResult[]> {
     const query = args.queryString
-    // const isId = query.startsWith('id:')
-    // // portion of query after first occurance of ':'
-    // const id = isId ? query.slice(query.indexOf(':') + 1) : null
-
-    // if (isId && id) {
-    //   return this.fetchFeatureByAttr('id', id)
-    //     .then((features) => this.mapBaseResult(features, query))
-    //     .catch((err) => err)
-    // }
     return this.searchFeatures(query)
       .then((features) => this.mapBaseResult(features, query))
       .catch((err) => err)
