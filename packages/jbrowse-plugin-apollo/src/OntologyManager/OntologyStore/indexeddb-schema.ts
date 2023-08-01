@@ -38,6 +38,7 @@ export interface Meta {
 export type OntologyDBNode = OboGraphNode & {
   id: string
   type: 'CLASS' | 'INDIVIDUAL' | 'PROPERTY'
+  fullTextWords: string[]
 }
 export function isOntologyDBNode(node: OboGraphNode): node is OntologyDBNode {
   return typeof node.id === 'string'
@@ -74,6 +75,8 @@ export interface OntologyDB extends DBSchema {
       'by-label': string
       'by-type': string
       'by-synonym': string
+      /** full-text index for fast searching by words */
+      'full-text-words': string
     }
   }
   edges: {

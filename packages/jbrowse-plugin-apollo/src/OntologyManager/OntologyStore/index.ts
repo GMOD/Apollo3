@@ -6,6 +6,7 @@ import {
 } from '@jbrowse/core/util'
 import { IDBPTransaction, IndexNames, StoreNames } from 'idb/with-async-ittr'
 
+import { stringToWords } from './fulltext-indexing'
 import { OntologyDB, OntologyDBEdge, isDeprecated } from './indexeddb-schema'
 import {
   isDatabaseCompletelyLoaded,
@@ -59,18 +60,34 @@ async function arrayFromAsync<T>(iter: AsyncIterable<T>) {
 //   )
 // }
 
+export interface OntologyStoreOptions {
+  textIndexing?: {
+    /** json paths of paths in the nodes to index as full text */
+    indexPaths?: string[]
+  }
+}
+
 /** query interface for a specific ontology */
 export default class OntologyStore {
   ontologyName: string
   ontologyVersion: string
   sourceLocation: SourceLocation
   db: ReturnType<OntologyStore['prepareDatabase']>
+  options: OntologyStoreOptions
 
-  constructor(name: string, version: string, source: SourceLocation) {
+  loadOboGraphJson = loadOboGraphJson
+
+  constructor(
+    name: string,
+    version: string,
+    source: SourceLocation,
+    options?: OntologyStoreOptions,
+  ) {
     this.ontologyName = name
     this.ontologyVersion = version
     this.sourceLocation = source
     this.db = this.prepareDatabase()
+    this.options = options ?? {}
   }
 
   /**
@@ -136,7 +153,7 @@ export default class OntologyStore {
 
     const { sourceType } = this
     if (sourceType === 'obo-graph-json') {
-      await loadOboGraphJson(this, db)
+      await this.loadOboGraphJson(db)
     } else {
       throw new Error(
         `ontology source file ${JSON.stringify(
@@ -473,5 +490,34 @@ export default class OntologyStore {
     const myTx = tx ?? (await this.db).transaction(['nodes'])
     const all = await myTx.objectStore('nodes').getAll()
     return all.filter((term) => !isDeprecated(term))
+  }
+
+  /**
+   * @returns array of terms and a count of how many words they matched, as
+   * `[count, OntologyTerm][]`, sorted by count descending
+   **/
+  async getTermsByFulltext(text: string, tx?: Transaction<['nodes']>) {
+    const myTx = tx ?? (await this.db).transaction(['nodes'])
+    const words = stringToWords(text)
+    const termsAndCounts = new Map<string, [number, OntologyTerm]>()
+    await Promise.all(
+      words.map(async (word) => {
+        const wordResults = await myTx
+          .objectStore('nodes')
+          .index('full-text-words')
+          .getAll(word)
+        for (const term of wordResults) {
+          const curr = termsAndCounts.get(term.id)
+          if (curr) {
+            curr[0] += 1
+          } else {
+            termsAndCounts.set(term.id, [1, term])
+          }
+        }
+      }),
+    )
+
+    // sort the terms by the number of words they have
+    return Array.from(termsAndCounts.values()).sort((a, b) => b[0] - a[0])
   }
 }

@@ -1,6 +1,7 @@
 import { openLocation } from '@jbrowse/core/util/io'
 import { IDBPDatabase, IDBPTransaction, openDB } from 'idb/with-async-ittr'
 
+import { getWords } from './fulltext-indexing'
 import {
   OntologyDB,
   isOntologyDBEdge,
@@ -10,7 +11,7 @@ import { GraphDocument } from './obo-graph-json-schema'
 import OntologyStore from '.'
 
 /** schema version we are currently on, used for the IndexedDB schema open call */
-const schemaVersion = 1
+const schemaVersion = 2
 
 export type Database = IDBPDatabase<OntologyDB>
 
@@ -24,15 +25,21 @@ export async function openDatabase(dbName: string) {
       newVersion: number | null,
       transaction: IDBPTransaction<
         OntologyDB,
-        ArrayLike<'nodes' | 'edges'>,
+        ArrayLike<'nodes' | 'edges' | 'meta'>,
         'versionchange'
       >,
       _event: IDBVersionChangeEvent,
     ): void {
-      if (schemaVersion !== 1) {
-        throw new Error(
-          'now that the schemaVersion is past 1, you need to write some upgrade logic here',
-        )
+      if (oldVersion < schemaVersion) {
+        if (database.objectStoreNames.contains('meta')) {
+          database.deleteObjectStore('meta')
+        }
+        if (database.objectStoreNames.contains('nodes')) {
+          database.deleteObjectStore('nodes')
+        }
+        if (database.objectStoreNames.contains('edges')) {
+          database.deleteObjectStore('edges')
+        }
       }
       if (!database.objectStoreNames.contains('meta')) {
         database.createObjectStore('meta')
@@ -43,6 +50,9 @@ export async function openDatabase(dbName: string) {
         nodes.createIndex('by-label', 'lbl')
         nodes.createIndex('by-type', 'type')
         nodes.createIndex('by-synonym', ['meta', 'synonyms', 'val'])
+        nodes.createIndex('full-text-words', 'fullTextWords', {
+          multiEntry: true,
+        })
       }
       if (!database.objectStoreNames.contains('edges')) {
         database.createObjectStore('edges', { autoIncrement: true })
@@ -56,14 +66,14 @@ export async function openDatabase(dbName: string) {
 }
 
 /** load a OBO Graph JSON file into a database */
-export async function loadOboGraphJson(store: OntologyStore, db: Database) {
+export async function loadOboGraphJson(this: OntologyStore, db: Database) {
   const startTime = Date.now()
 
   // TODO: using file streaming along with an event-based json parser
   // instead of JSON.parse and .readFile could probably make this faster
   // and less memory intensive
   const oboGraph = JSON.parse(
-    await openLocation(store.sourceLocation).readFile('utf8'),
+    await openLocation(this.sourceLocation).readFile('utf8'),
   ) as GraphDocument
 
   const parseTime = Date.now()
@@ -84,9 +94,15 @@ export async function loadOboGraphJson(store: OntologyStore, db: Database) {
 
     // load nodes
     const nodeStore = tx.objectStore('nodes')
+    const fullTextIndexPaths = this.options.textIndexing?.indexPaths
+      ? this.options.textIndexing?.indexPaths.map((p) => p.split('/'))
+      : [['lbl']]
     for (const node of graph.nodes ?? []) {
       if (isOntologyDBNode(node)) {
-        await nodeStore.add(node)
+        await nodeStore.add({
+          ...node,
+          fullTextWords: Array.from(getWords(node, fullTextIndexPaths)),
+        })
       }
     }
 
@@ -105,9 +121,9 @@ export async function loadOboGraphJson(store: OntologyStore, db: Database) {
     await tx2.objectStore('meta').add(
       {
         ontologyRecord: {
-          name: store.ontologyName,
-          version: store.ontologyVersion,
-          sourceLocation: store.sourceLocation,
+          name: this.ontologyName,
+          version: this.ontologyVersion,
+          sourceLocation: this.sourceLocation,
         },
         graphMeta: graph.meta,
         timestamp: String(new Date()),

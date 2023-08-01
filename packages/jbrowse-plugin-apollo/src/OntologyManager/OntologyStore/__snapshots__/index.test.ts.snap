@@ -3,6 +3,11 @@
 exports[`OntologyStore SO clone_insert_end is among valid subparts of BAC_cloned_genomic_insert 1`] = `
 [
   {
+    "fullTextWords": [
+      "clone",
+      "insert",
+      "end",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000103",
     "lbl": "clone_insert_end",
     "meta": {
@@ -31,6 +36,11 @@ exports[`OntologyStore SO clone_insert_end is among valid subparts of BAC_cloned
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "clone",
+      "insert",
+      "start",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000179",
     "lbl": "clone_insert_start",
     "meta": {
@@ -59,6 +69,10 @@ exports[`OntologyStore SO clone_insert_end is among valid subparts of BAC_cloned
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "cloned",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000785",
     "lbl": "cloned_region",
     "meta": {
@@ -91,6 +105,269 @@ exports[`OntologyStore can load goslim aspergillus 1`] = `187`;
 
 exports[`OntologyStore can load goslim generic 1`] = `248`;
 
+exports[`OntologyStore can load goslim generic 2`] = `
+[
+  [
+    3,
+    {
+      "fullTextWords": [
+        "mitotic",
+        "nuclear",
+        "division",
+      ],
+      "id": "http://purl.obolibrary.org/obo/GO_0140014",
+      "lbl": "mitotic nuclear division",
+      "meta": {
+        "basicPropertyValues": [
+          {
+            "pred": "http://purl.obolibrary.org/obo/IAO_0000233",
+            "val": "https://github.com/geneontology/go-ontology/issues/19910",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#created_by",
+            "val": "pg",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#creation_date",
+            "val": "2017-03-23T14:44:23Z",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+            "val": "biological_process",
+          },
+        ],
+        "definition": {
+          "val": "A mitotic cell cycle process comprising the steps by which the nucleus of a eukaryotic cell divides; the process involves condensation of chromosomal DNA into a highly compacted form. Canonically, mitosis produces two daughter nuclei whose chromosome complement is identical to that of the mother cell.",
+          "xrefs": [
+            "ISBN:0198547684",
+          ],
+        },
+        "subsets": [
+          "http://purl.obolibrary.org/obo/go#goslim_chembl",
+          "http://purl.obolibrary.org/obo/go#goslim_generic",
+        ],
+        "synonyms": [
+          {
+            "pred": "hasExactSynonym",
+            "val": "mitosis",
+          },
+        ],
+      },
+      "type": "CLASS",
+    },
+  ],
+  [
+    2,
+    {
+      "fullTextWords": [
+        "meiotic",
+        "nuclear",
+        "division",
+      ],
+      "id": "http://purl.obolibrary.org/obo/GO_0140013",
+      "lbl": "meiotic nuclear division",
+      "meta": {
+        "basicPropertyValues": [
+          {
+            "pred": "http://purl.obolibrary.org/obo/IAO_0000233",
+            "val": "https://github.com/geneontology/go-ontology/issues/19910",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#created_by",
+            "val": "pg",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#creation_date",
+            "val": "2017-03-23T09:40:00Z",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+            "val": "biological_process",
+          },
+        ],
+        "definition": {
+          "val": "One of the two nuclear divisions that occur as part of the meiotic cell cycle.",
+          "xrefs": [
+            "PMID:9334324",
+          ],
+        },
+        "subsets": [
+          "http://purl.obolibrary.org/obo/go#goslim_generic",
+        ],
+        "synonyms": [
+          {
+            "pred": "hasExactSynonym",
+            "val": "meiosis",
+          },
+        ],
+      },
+      "type": "CLASS",
+    },
+  ],
+  [
+    1,
+    {
+      "fullTextWords": [
+        "mitotic",
+        "cell",
+        "cycle",
+      ],
+      "id": "http://purl.obolibrary.org/obo/GO_0000278",
+      "lbl": "mitotic cell cycle",
+      "meta": {
+        "basicPropertyValues": [
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasAlternativeId",
+            "val": "GO:0007067",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+            "val": "biological_process",
+          },
+        ],
+        "comments": [
+          "Note that this term should not be confused with 'GO:0140014 ; mitotic nuclear division'. 'GO:0000278 ; mitotic cell cycle represents the entire mitotic cell cycle, while 'GO:0140014 ; mitotic nuclear division' specifically represents the actual nuclear division step of the mitotic cell cycle.",
+        ],
+        "definition": {
+          "val": "Progression through the phases of the mitotic cell cycle, the most common eukaryotic cell cycle, which canonically comprises four successive phases called G1, S, G2, and M and includes replication of the genome and the subsequent segregation of chromosomes into daughter cells. In some variant cell cycles nuclear replication or nuclear division may not be followed by cell division, or G1 and G2 phases may be absent.",
+          "xrefs": [
+            "GOC:mah",
+            "ISBN:0815316194",
+            "Reactome:69278",
+          ],
+        },
+        "subsets": [
+          "http://purl.obolibrary.org/obo/go#goslim_chembl",
+          "http://purl.obolibrary.org/obo/go#goslim_drosophila",
+          "http://purl.obolibrary.org/obo/go#goslim_generic",
+          "http://purl.obolibrary.org/obo/go#goslim_yeast",
+        ],
+        "synonyms": [
+          {
+            "pred": "hasRelatedSynonym",
+            "val": "mitosis",
+          },
+        ],
+        "xrefs": [
+          {
+            "val": "Wikipedia:Mitosis",
+          },
+        ],
+      },
+      "type": "CLASS",
+    },
+  ],
+  [
+    1,
+    {
+      "fullTextWords": [
+        "nuclear",
+        "chromosome",
+      ],
+      "id": "http://purl.obolibrary.org/obo/GO_0000228",
+      "lbl": "nuclear chromosome",
+      "meta": {
+        "basicPropertyValues": [
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+            "val": "cellular_component",
+          },
+        ],
+        "definition": {
+          "val": "A chromosome that encodes the nuclear genome and is found in the nucleus of a eukaryotic cell during the cell cycle phases when the nucleus is intact.",
+          "xrefs": [
+            "GOC:dph",
+            "GOC:mah",
+          ],
+        },
+        "subsets": [
+          "http://purl.obolibrary.org/obo/go#goslim_chembl",
+          "http://purl.obolibrary.org/obo/go#goslim_generic",
+        ],
+        "synonyms": [
+          {
+            "pred": "hasNarrowSynonym",
+            "val": "nuclear interphase chromosome",
+          },
+        ],
+      },
+      "type": "CLASS",
+    },
+  ],
+  [
+    1,
+    {
+      "fullTextWords": [
+        "nuclear",
+        "envelope",
+      ],
+      "id": "http://purl.obolibrary.org/obo/GO_0005635",
+      "lbl": "nuclear envelope",
+      "meta": {
+        "basicPropertyValues": [
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasAlternativeId",
+            "val": "GO:0005636",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+            "val": "cellular_component",
+          },
+        ],
+        "definition": {
+          "val": "The double lipid bilayer enclosing the nucleus and separating its contents from the rest of the cytoplasm; includes the intermembrane space, a gap of width 20-40 nm (also called the perinuclear space).",
+          "xrefs": [
+            "ISBN:0198547684",
+          ],
+        },
+        "subsets": [
+          "http://purl.obolibrary.org/obo/go#goslim_chembl",
+          "http://purl.obolibrary.org/obo/go#goslim_generic",
+          "http://purl.obolibrary.org/obo/go#goslim_plant",
+        ],
+        "xrefs": [
+          {
+            "val": "Wikipedia:Nuclear_envelope",
+          },
+        ],
+      },
+      "type": "CLASS",
+    },
+  ],
+  [
+    1,
+    {
+      "fullTextWords": [
+        "results",
+        "division",
+      ],
+      "id": "http://purl.obolibrary.org/obo/GOREL_0001019",
+      "lbl": "results in division of",
+      "meta": {
+        "basicPropertyValues": [
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+            "val": "external",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#shorthand",
+            "val": "results_in_division_of",
+          },
+        ],
+        "comments": [
+          "use occurs_in",
+        ],
+        "xrefs": [
+          {
+            "val": "GOREL:0001019",
+          },
+        ],
+      },
+    },
+  ],
+]
+`;
+
 exports[`OntologyStore can query SO 1`] = `2629`;
 
 exports[`OntologyStore can query SO features not part of something else 1`] = `1147`;
@@ -98,6 +375,9 @@ exports[`OntologyStore can query SO features not part of something else 1`] = `1
 exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
 [
   {
+    "fullTextWords": [
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000704",
     "lbl": "gene",
     "meta": {
@@ -134,6 +414,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "nuclear",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000087",
     "lbl": "nuclear_gene",
     "meta": {
@@ -164,6 +448,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mt",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000088",
     "lbl": "mt_gene",
     "meta": {
@@ -198,6 +486,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "plastid",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000090",
     "lbl": "plastid_gene",
     "meta": {
@@ -223,6 +515,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "nucleomorph",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000097",
     "lbl": "nucleomorph_gene",
     "meta": {
@@ -248,6 +544,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "plasmid",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000098",
     "lbl": "plasmid_gene",
     "meta": {
@@ -273,6 +573,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "proviral",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000099",
     "lbl": "proviral_gene",
     "meta": {
@@ -298,6 +602,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "transposable",
+      "element",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000111",
     "lbl": "transposable_element_gene",
     "meta": {
@@ -323,6 +632,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "silenced",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000127",
     "lbl": "silenced_gene",
     "meta": {
@@ -348,6 +661,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "engineered",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000280",
     "lbl": "engineered_gene",
     "meta": {
@@ -373,6 +690,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "foreign",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000285",
     "lbl": "foreign_gene",
     "meta": {
@@ -398,6 +719,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "fusion",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000287",
     "lbl": "fusion_gene",
     "meta": {
@@ -428,6 +753,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "recombinationally",
+      "rearranged",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000456",
     "lbl": "recombinationally_rearranged_gene",
     "meta": {
@@ -453,6 +783,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "trans",
+      "spliced",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000459",
     "lbl": "gene_with_trans_spliced_transcript",
     "meta": {
@@ -478,6 +814,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "polycistronic",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000690",
     "lbl": "gene_with_polycistronic_transcript",
     "meta": {
@@ -503,6 +844,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rescue",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000816",
     "lbl": "rescue_gene",
     "meta": {
@@ -528,6 +873,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "post",
+      "translationally",
+      "regulated",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000890",
     "lbl": "post_translationally_regulated_gene",
     "meta": {
@@ -553,6 +904,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "negatively",
+      "autoregulated",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000891",
     "lbl": "negatively_autoregulated_gene",
     "meta": {
@@ -578,6 +934,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "positively",
+      "autoregulated",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000892",
     "lbl": "positively_autoregulated_gene",
     "meta": {
@@ -603,6 +964,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "translationally",
+      "regulated",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000896",
     "lbl": "translationally_regulated_gene",
     "meta": {
@@ -628,6 +994,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "epigenetically",
+      "modified",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000898",
     "lbl": "epigenetically_modified_gene",
     "meta": {
@@ -653,6 +1024,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "transgene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000902",
     "lbl": "transgene",
     "meta": {
@@ -677,6 +1051,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "predicted",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000996",
     "lbl": "predicted_gene",
     "meta": {
@@ -699,6 +1077,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "protein",
+      "coding",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001217",
     "lbl": "protein_coding_gene",
     "meta": {
@@ -718,6 +1101,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "retrogene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001219",
     "lbl": "retrogene",
     "meta": {
@@ -731,6 +1117,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "ncrna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001263",
     "lbl": "ncRNA_gene",
     "meta": {
@@ -757,6 +1147,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "cryptic",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001431",
     "lbl": "cryptic_gene",
     "meta": {
@@ -782,6 +1176,13 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "non",
+      "canonical",
+      "start",
+      "codon",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001739",
     "lbl": "gene_with_non_canonical_start_codon",
     "meta": {
@@ -818,6 +1219,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "candidate",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001867",
     "lbl": "candidate_gene",
     "meta": {
@@ -858,6 +1263,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "vertebrate",
+      "immune",
+      "system",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002121",
     "lbl": "vertebrate_immune_system_gene",
     "meta": {
@@ -895,6 +1306,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "cassette",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0005853",
     "lbl": "gene_cassette",
     "meta": {
@@ -928,6 +1343,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "kinetoplast",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000089",
     "lbl": "kinetoplast_gene",
     "meta": {
@@ -953,6 +1372,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "apicoplast",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000091",
     "lbl": "apicoplast_gene",
     "meta": {
@@ -978,6 +1401,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "ct",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000092",
     "lbl": "ct_gene",
     "meta": {
@@ -1007,6 +1434,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "chromoplast",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000093",
     "lbl": "chromoplast_gene",
     "meta": {
@@ -1032,6 +1463,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "cyanelle",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000094",
     "lbl": "cyanelle_gene",
     "meta": {
@@ -1057,6 +1492,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "leucoplast",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000095",
     "lbl": "leucoplast_gene",
     "meta": {
@@ -1082,6 +1521,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "proplastid",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000096",
     "lbl": "proplastid_gene",
     "meta": {
@@ -1107,6 +1550,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "endogenous",
+      "retroviral",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000100",
     "lbl": "endogenous_retroviral_gene",
     "meta": {
@@ -1132,6 +1580,13 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "engineered",
+      "foreign",
+      "transposable",
+      "element",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000283",
     "lbl": "engineered_foreign_transposable_element_gene",
     "meta": {
@@ -1157,6 +1612,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "silenced",
+      "dna",
+      "modification",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000128",
     "lbl": "gene_silenced_by_DNA_modification",
     "meta": {
@@ -1182,6 +1643,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "silenced",
+      "rna",
+      "interference",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001224",
     "lbl": "gene_silenced_by_RNA_interference",
     "meta": {
@@ -1215,6 +1682,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "silenced",
+      "histone",
+      "modification",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001225",
     "lbl": "gene_silenced_by_histone_modification",
     "meta": {
@@ -1240,6 +1713,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "engineered",
+      "foreign",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000281",
     "lbl": "engineered_foreign_gene",
     "meta": {
@@ -1265,6 +1743,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "engineered",
+      "fusion",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000288",
     "lbl": "engineered_fusion_gene",
     "meta": {
@@ -1290,6 +1773,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "recombinationally",
+      "inverted",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000373",
     "lbl": "recombinationally_inverted_gene",
     "meta": {
@@ -1315,6 +1803,14 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "recombinationally",
+      "rearranged",
+      "vertebrate",
+      "immune",
+      "system",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000941",
     "lbl": "recombinationally_rearranged_vertebrate_immune_system_gene",
     "meta": {
@@ -1340,6 +1836,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "dicistronic",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000692",
     "lbl": "gene_with_dicistronic_transcript",
     "meta": {
@@ -1365,6 +1866,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "wild",
+      "type",
+      "rescue",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000818",
     "lbl": "wild_type_rescue_gene",
     "meta": {
@@ -1390,6 +1897,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "rearranged",
+      "dna",
+      "level",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000138",
     "lbl": "gene_rearranged_at_DNA_level",
     "meta": {
@@ -1415,6 +1928,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "maternally",
+      "imprinted",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000888",
     "lbl": "maternally_imprinted_gene",
     "meta": {
@@ -1440,6 +1958,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "paternally",
+      "imprinted",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000889",
     "lbl": "paternally_imprinted_gene",
     "meta": {
@@ -1465,6 +1988,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "allelically",
+      "excluded",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000897",
     "lbl": "allelically_excluded_gene",
     "meta": {
@@ -1490,6 +2018,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "floxed",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000363",
     "lbl": "floxed_gene",
     "meta": {
@@ -1515,6 +2047,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "polyadenylated",
+      "mrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000451",
     "lbl": "gene_with_polyadenylated_mRNA",
     "meta": {
@@ -1540,6 +2077,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "mrna",
+      "frameshift",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000455",
     "lbl": "gene_with_mRNA_with_frameshift",
     "meta": {
@@ -1565,6 +2107,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "edited",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000548",
     "lbl": "gene_with_edited_transcript",
     "meta": {
@@ -1590,6 +2137,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "recoded",
+      "mrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000693",
     "lbl": "gene_with_recoded_mRNA",
     "meta": {
@@ -1615,6 +2167,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "grna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001264",
     "lbl": "gRNA_gene",
     "meta": {
@@ -1634,6 +2190,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mirna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001265",
     "lbl": "miRNA_gene",
     "meta": {
@@ -1665,6 +2225,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "scrna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001266",
     "lbl": "scRNA_gene",
     "meta": {
@@ -1684,6 +2248,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "snorna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001267",
     "lbl": "snoRNA_gene",
     "meta": {
@@ -1703,6 +2271,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "snrna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001268",
     "lbl": "snRNA_gene",
     "meta": {
@@ -1732,6 +2304,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "srp",
+      "rna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001269",
     "lbl": "SRP_RNA_gene",
     "meta": {
@@ -1751,6 +2328,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "tmrna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001271",
     "lbl": "tmRNA_gene",
     "meta": {
@@ -1770,6 +2351,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "trna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001272",
     "lbl": "tRNA_gene",
     "meta": {
@@ -1789,6 +2374,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rrna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001637",
     "lbl": "rRNA_gene",
     "meta": {
@@ -1826,6 +2415,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "pirna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001638",
     "lbl": "piRNA_gene",
     "meta": {
@@ -1859,6 +2452,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rnase",
+      "p",
+      "rna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001639",
     "lbl": "RNase_P_RNA_gene",
     "meta": {
@@ -1892,6 +2491,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rnase",
+      "mrp",
+      "rna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001640",
     "lbl": "RNase_MRP_RNA_gene",
     "meta": {
@@ -1925,6 +2530,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "telomerase",
+      "rna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001643",
     "lbl": "telomerase_RNA_gene",
     "meta": {
@@ -1971,6 +2581,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "lncrna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002127",
     "lbl": "lncRNA_gene",
     "meta": {
@@ -2015,6 +2629,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "enzymatic",
+      "rna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002180",
     "lbl": "enzymatic_RNA_gene",
     "meta": {
@@ -2045,6 +2664,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "cryptogene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_1001196",
     "lbl": "cryptogene",
     "meta": {
@@ -2064,6 +2686,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "start",
+      "codon",
+      "cug",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001740",
     "lbl": "gene_with_start_codon_CUG",
     "meta": {
@@ -2100,6 +2728,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "positional",
+      "candidate",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001868",
     "lbl": "positional_candidate_gene",
     "meta": {
@@ -2140,6 +2773,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "functional",
+      "candidate",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001869",
     "lbl": "functional_candidate_gene",
     "meta": {
@@ -2180,6 +2818,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "immunoglobulin",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002122",
     "lbl": "immunoglobulin_gene",
     "meta": {
@@ -2220,6 +2862,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "cell",
+      "receptor",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002133",
     "lbl": "T_cell_receptor_gene",
     "meta": {
@@ -2253,6 +2900,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "maxicircle",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000654",
     "lbl": "maxicircle_gene",
     "meta": {
@@ -2282,6 +2933,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "minicircle",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000975",
     "lbl": "minicircle_gene",
     "meta": {
@@ -2301,6 +2956,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "silenced",
+      "dna",
+      "methylation",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000129",
     "lbl": "gene_silenced_by_DNA_methylation",
     "meta": {
@@ -2330,6 +2991,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "silenced",
+      "histone",
+      "methylation",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001226",
     "lbl": "gene_silenced_by_histone_methylation",
     "meta": {
@@ -2355,6 +3022,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "silenced",
+      "histone",
+      "deacetylation",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001227",
     "lbl": "gene_silenced_by_histone_deacetylation",
     "meta": {
@@ -2380,6 +3053,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "dicistronic",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000721",
     "lbl": "gene_with_dicistronic_primary_transcript",
     "meta": {
@@ -2408,6 +3087,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "dicistronic",
+      "mrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000722",
     "lbl": "gene_with_dicistronic_mRNA",
     "meta": {
@@ -2440,6 +3124,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "stop",
+      "codon",
+      "read",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000697",
     "lbl": "gene_with_stop_codon_read_through",
     "meta": {
@@ -2465,6 +3155,13 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "mrna",
+      "recoded",
+      "translational",
+      "bypass",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000711",
     "lbl": "gene_with_mRNA_recoded_by_translational_bypass",
     "meta": {
@@ -2490,6 +3187,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "transcript",
+      "translational",
+      "frameshift",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000712",
     "lbl": "gene_with_transcript_with_translational_frameshift",
     "meta": {
@@ -2515,6 +3218,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "lincrna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001641",
     "lbl": "lincRNA_gene",
     "meta": {
@@ -2550,6 +3257,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "antisense",
+      "lncrna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002182",
     "lbl": "antisense_lncRNA_gene",
     "meta": {
@@ -2580,6 +3292,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "sense",
+      "overlap",
+      "ncrna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002183",
     "lbl": "sense_overlap_ncRNA_gene",
     "meta": {
@@ -2618,6 +3336,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "sense",
+      "intronic",
+      "ncrna",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002184",
     "lbl": "sense_intronic_ncRNA_gene",
     "meta": {
@@ -2656,6 +3380,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "bidirectional",
+      "promoter",
+      "lncrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002185",
     "lbl": "bidirectional_promoter_lncRNA",
     "meta": {
@@ -2689,6 +3418,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "ribozyme",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002181",
     "lbl": "ribozyme_gene",
     "meta": {
@@ -2719,6 +3452,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "ig",
+      "c",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002123",
     "lbl": "IG_C_gene",
     "meta": {
@@ -2764,6 +3502,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "ig",
+      "d",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002124",
     "lbl": "IG_D_gene",
     "meta": {
@@ -2809,6 +3552,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "ig",
+      "j",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002125",
     "lbl": "IG_J_gene",
     "meta": {
@@ -2854,6 +3602,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "ig",
+      "v",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002126",
     "lbl": "IG_V_gene",
     "meta": {
@@ -2899,6 +3652,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "tr",
+      "c",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002134",
     "lbl": "TR_C_Gene",
     "meta": {
@@ -2936,6 +3694,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "tr",
+      "d",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002135",
     "lbl": "TR_D_Gene",
     "meta": {
@@ -2973,6 +3736,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "tr",
+      "j",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002136",
     "lbl": "TR_J_Gene",
     "meta": {
@@ -3010,6 +3778,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "tr",
+      "v",
+      "gene",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002137",
     "lbl": "TR_V_Gene",
     "meta": {
@@ -3047,6 +3820,13 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "stop",
+      "codon",
+      "redefined",
+      "pyrrolysine",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000698",
     "lbl": "gene_with_stop_codon_redefined_as_pyrrolysine",
     "meta": {
@@ -3072,6 +3852,13 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "stop",
+      "codon",
+      "redefined",
+      "selenocysteine",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000710",
     "lbl": "gene_with_stop_codon_redefined_as_selenocysteine",
     "meta": {
@@ -3102,6 +3889,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 1`] = `
 exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
 [
   {
+    "fullTextWords": [
+      "gene",
+      "member",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000831",
     "lbl": "gene_member_region",
     "meta": {
@@ -3133,6 +3925,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "component",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000842",
     "lbl": "gene_component_region",
     "meta": {
@@ -3155,6 +3952,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000673",
     "lbl": "transcript",
     "meta": {
@@ -3188,6 +3988,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "functional",
+      "gene",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002188",
     "lbl": "functional_gene_region",
     "meta": {
@@ -3224,6 +4029,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "regulatory",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0005836",
     "lbl": "regulatory_region",
     "meta": {
@@ -3265,6 +4074,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "non",
+      "transcribed",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000183",
     "lbl": "non_transcribed_region",
     "meta": {
@@ -3305,6 +4119,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "fragment",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000997",
     "lbl": "gene_fragment",
     "meta": {
@@ -3327,6 +4145,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "tss",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001240",
     "lbl": "TSS_region",
     "meta": {
@@ -3352,6 +4174,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "intein",
+      "encoding",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002026",
     "lbl": "intein_encoding_region",
     "meta": {
@@ -3382,6 +4209,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "segment",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_3000000",
     "lbl": "gene_segment",
     "meta": {
@@ -3410,6 +4241,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "polycistronic",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000078",
     "lbl": "polycistronic_transcript",
     "meta": {
@@ -3435,6 +4270,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "transcript",
+      "translational",
+      "frameshift",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000118",
     "lbl": "transcript_with_translational_frameshift",
     "meta": {
@@ -3460,6 +4300,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000185",
     "lbl": "primary_transcript",
     "meta": {
@@ -3505,6 +4349,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mature",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000233",
     "lbl": "mature_transcript",
     "meta": {
@@ -3541,6 +4389,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "transcript",
+      "bound",
+      "nucleic",
+      "acid",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000278",
     "lbl": "transcript_bound_by_nucleic_acid",
     "meta": {
@@ -3569,6 +4423,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "transcript",
+      "bound",
+      "protein",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000279",
     "lbl": "transcript_bound_by_protein",
     "meta": {
@@ -3597,6 +4456,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "enzymatic",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000372",
     "lbl": "enzymatic_RNA",
     "meta": {
@@ -3628,6 +4491,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "trans",
+      "spliced",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000479",
     "lbl": "trans_spliced_transcript",
     "meta": {
@@ -3665,6 +4533,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "monocistronic",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000665",
     "lbl": "monocistronic_transcript",
     "meta": {
@@ -3690,6 +4562,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "aberrant",
+      "processed",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000681",
     "lbl": "aberrant_processed_transcript",
     "meta": {
@@ -3715,6 +4592,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "edited",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000873",
     "lbl": "edited_transcript",
     "meta": {
@@ -3740,6 +4621,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "processed",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001503",
     "lbl": "processed_transcript",
     "meta": {
@@ -3776,6 +4661,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "predicted",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002138",
     "lbl": "predicted_transcript",
     "meta": {
@@ -3809,6 +4698,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "alternatively",
+      "spliced",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_1001187",
     "lbl": "alternatively_spliced_transcript",
     "meta": {
@@ -3834,6 +4728,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "transcription",
+      "regulatory",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001679",
     "lbl": "transcription_regulatory_region",
     "meta": {
@@ -3870,6 +4769,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "translation",
+      "regulatory",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001680",
     "lbl": "translation_regulatory_region",
     "meta": {
@@ -3903,6 +4807,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "recombination",
+      "regulatory",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001681",
     "lbl": "recombination_regulatory_region",
     "meta": {
@@ -3936,6 +4845,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "replication",
+      "regulatory",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001682",
     "lbl": "replication_regulatory_region",
     "meta": {
@@ -3977,6 +4891,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "imprinting",
+      "control",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002191",
     "lbl": "imprinting_control_region",
     "meta": {
@@ -4015,6 +4934,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "pseudogenic",
+      "gene",
+      "segment",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001741",
     "lbl": "pseudogenic_gene_segment",
     "meta": {
@@ -4048,6 +4972,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "dicistronic",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000079",
     "lbl": "dicistronic_transcript",
     "meta": {
@@ -4073,6 +5001,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "polycistronic",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000631",
     "lbl": "polycistronic_primary_transcript",
     "meta": {
@@ -4098,6 +5031,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "polycistronic",
+      "mrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000634",
     "lbl": "polycistronic_mRNA",
     "meta": {
@@ -4132,6 +5069,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "protein",
+      "coding",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000120",
     "lbl": "protein_coding_primary_transcript",
     "meta": {
@@ -4167,6 +5110,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "nc",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000483",
     "lbl": "nc_primary_transcript",
     "meta": {
@@ -4199,6 +5147,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "monocistronic",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000632",
     "lbl": "monocistronic_primary_transcript",
     "meta": {
@@ -4224,6 +5177,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mini",
+      "exon",
+      "donor",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000635",
     "lbl": "mini_exon_donor_RNA",
     "meta": {
@@ -4253,6 +5212,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "antisense",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000645",
     "lbl": "antisense_primary_transcript",
     "meta": {
@@ -4281,6 +5245,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "capped",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000861",
     "lbl": "capped_primary_transcript",
     "meta": {
@@ -4306,6 +5275,13 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "regional",
+      "centromere",
+      "outer",
+      "repeat",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001905",
     "lbl": "regional_centromere_outer_repeat_transcript",
     "meta": {
@@ -4347,6 +5323,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "pseudogenic",
+      "transcript",
+      "retained",
+      "intron",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002115",
     "lbl": "pseudogenic_transcript_with_retained_intron",
     "meta": {
@@ -4383,6 +5365,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000234",
     "lbl": "mRNA",
     "meta": {
@@ -4430,6 +5415,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "ncrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000655",
     "lbl": "ncRNA",
     "meta": {
@@ -4477,6 +5465,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "ribozyme",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000374",
     "lbl": "ribozyme",
     "meta": {
@@ -4514,6 +5505,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "trans",
+      "spliced",
+      "mrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000872",
     "lbl": "trans_spliced_mRNA",
     "meta": {
@@ -4539,6 +5535,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "monocistronic",
+      "mrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000633",
     "lbl": "monocistronic_mRNA",
     "meta": {
@@ -4573,6 +5573,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "edited",
+      "transcript",
+      "substitution",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000874",
     "lbl": "edited_transcript_by_A_to_I_substitution",
     "meta": {
@@ -4598,6 +5603,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "edited",
+      "mrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000929",
     "lbl": "edited_mRNA",
     "meta": {
@@ -4623,6 +5632,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "pseudogene",
+      "processed",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002111",
     "lbl": "pseudogene_processed_transcript",
     "meta": {
@@ -4659,6 +5673,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "unconfirmed",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002139",
     "lbl": "unconfirmed_transcript",
     "meta": {
@@ -4696,6 +5714,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "terminator",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000141",
     "lbl": "terminator",
     "meta": {
@@ -4737,6 +5758,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "tf",
+      "binding",
+      "site",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000235",
     "lbl": "TF_binding_site",
     "meta": {
@@ -4769,6 +5795,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "polya",
+      "signal",
+      "sequence",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000551",
     "lbl": "polyA_signal_sequence",
     "meta": {
@@ -4813,6 +5844,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gene",
+      "group",
+      "regulatory",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000752",
     "lbl": "gene_group_regulatory_region",
     "meta": {
@@ -4835,6 +5872,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "transcriptional",
+      "cis",
+      "regulatory",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001055",
     "lbl": "transcriptional_cis_regulatory_region",
     "meta": {
@@ -4876,6 +5919,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "splicing",
+      "regulatory",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001056",
     "lbl": "splicing_regulatory_region",
     "meta": {
@@ -4904,6 +5952,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "cis",
+      "regulatory",
+      "frameshift",
+      "element",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001427",
     "lbl": "cis_regulatory_frameshift_element",
     "meta": {
@@ -4929,6 +5983,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "intronic",
+      "regulatory",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001492",
     "lbl": "intronic_regulatory_region",
     "meta": {
@@ -4962,6 +6021,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "transcription",
+      "pause",
+      "site",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002047",
     "lbl": "transcription_pause_site",
     "meta": {
@@ -4996,6 +6060,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "response",
+      "element",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002205",
     "lbl": "response_element",
     "meta": {
@@ -5034,6 +6102,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "attenuator",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000140",
     "lbl": "attenuator",
     "meta": {
@@ -5075,6 +6146,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "recombination",
+      "enhancer",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002059",
     "lbl": "recombination_enhancer",
     "meta": {
@@ -5109,6 +6184,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "dicistronic",
+      "mrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000716",
     "lbl": "dicistronic_mRNA",
     "meta": {
@@ -5138,6 +6217,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "dicistronic",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_1001197",
     "lbl": "dicistronic_primary_transcript",
     "meta": {
@@ -5163,6 +6247,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "pre",
+      "edited",
+      "mrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000932",
     "lbl": "pre_edited_mRNA",
     "meta": {
@@ -5182,6 +6271,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "coding",
+      "transcript",
+      "retained",
+      "intron",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002112",
     "lbl": "coding_transcript_with_retained_intron",
     "meta": {
@@ -5218,6 +6313,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "nmd",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002114",
     "lbl": "NMD_transcript",
     "meta": {
@@ -5267,6 +6366,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "scrna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000012",
     "lbl": "scRNA_primary_transcript",
     "meta": {
@@ -5308,6 +6412,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rrna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000209",
     "lbl": "rRNA_primary_transcript",
     "meta": {
@@ -5340,6 +6449,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000210",
     "lbl": "tRNA_primary_transcript",
     "meta": {
@@ -5365,6 +6479,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "snrna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000231",
     "lbl": "snRNA_primary_transcript",
     "meta": {
@@ -5390,6 +6509,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "snorna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000232",
     "lbl": "snoRNA_primary_transcript",
     "meta": {
@@ -5415,6 +6539,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "tmrna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000586",
     "lbl": "tmRNA_primary_transcript",
     "meta": {
@@ -5448,6 +6577,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "srp",
+      "rna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000589",
     "lbl": "SRP_RNA_primary_transcript",
     "meta": {
@@ -5473,6 +6608,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mirna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000647",
     "lbl": "miRNA_primary_transcript",
     "meta": {
@@ -5518,6 +6658,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "tasirna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001801",
     "lbl": "tasiRNA_primary_transcript",
     "meta": {
@@ -5551,6 +6696,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "lncrna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002035",
     "lbl": "lncRNA_primary_transcript",
     "meta": {
@@ -5584,6 +6734,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "shrna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002038",
     "lbl": "shRNA_primary_transcript",
     "meta": {
@@ -5617,6 +6772,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "vaultrna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002040",
     "lbl": "vaultRNA_primary_transcript",
     "meta": {
@@ -5650,6 +6810,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "y",
+      "rna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002042",
     "lbl": "Y_RNA_primary_transcript",
     "meta": {
@@ -5683,6 +6849,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mrna",
+      "frameshift",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000108",
     "lbl": "mRNA_with_frameshift",
     "meta": {
@@ -5712,6 +6882,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "exemplar",
+      "mrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000734",
     "lbl": "exemplar_mRNA",
     "meta": {
@@ -5740,6 +6914,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "capped",
+      "mrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000862",
     "lbl": "capped_mRNA",
     "meta": {
@@ -5765,6 +6943,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "polyadenylated",
+      "mrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000871",
     "lbl": "polyadenylated_mRNA",
     "meta": {
@@ -5790,6 +6972,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "consensus",
+      "mrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000995",
     "lbl": "consensus_mRNA",
     "meta": {
@@ -5812,6 +6998,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "nsd",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002130",
     "lbl": "NSD_transcript",
     "meta": {
@@ -5845,6 +7035,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "recoded",
+      "mrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_1001261",
     "lbl": "recoded_mRNA",
     "meta": {
@@ -5870,6 +7064,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "scrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000013",
     "lbl": "scRNA",
     "meta": {
@@ -5906,6 +7103,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000252",
     "lbl": "rRNA",
     "meta": {
@@ -5952,6 +7152,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000253",
     "lbl": "tRNA",
     "meta": {
@@ -6001,6 +7204,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "snrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000274",
     "lbl": "snRNA",
     "meta": {
@@ -6047,6 +7253,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "snorna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000275",
     "lbl": "snoRNA",
     "meta": {
@@ -6088,6 +7297,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "small",
+      "regulatory",
+      "ncrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000370",
     "lbl": "small_regulatory_ncRNA",
     "meta": {
@@ -6118,6 +7332,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rnase",
+      "mrp",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000385",
     "lbl": "RNase_MRP_RNA",
     "meta": {
@@ -6154,6 +7373,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rnase",
+      "p",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000386",
     "lbl": "RNase_P_RNA",
     "meta": {
@@ -6190,6 +7414,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "telomerase",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000390",
     "lbl": "telomerase_RNA",
     "meta": {
@@ -6231,6 +7459,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "vault",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000404",
     "lbl": "vault_RNA",
     "meta": {
@@ -6272,6 +7504,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "y",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000405",
     "lbl": "Y_RNA",
     "meta": {
@@ -6313,6 +7549,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rasirna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000454",
     "lbl": "rasiRNA",
     "meta": {
@@ -6354,6 +7593,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "srp",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000590",
     "lbl": "SRP_RNA",
     "meta": {
@@ -6398,6 +7641,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "guide",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000602",
     "lbl": "guide_RNA",
     "meta": {
@@ -6443,6 +7690,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "antisense",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000644",
     "lbl": "antisense_RNA",
     "meta": {
@@ -6484,6 +7735,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "class",
+      "ii",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000989",
     "lbl": "class_II_RNA",
     "meta": {
@@ -6509,6 +7765,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "class",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000990",
     "lbl": "class_I_RNA",
     "meta": {
@@ -6537,6 +7797,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "tasirna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001800",
     "lbl": "tasiRNA",
     "meta": {
@@ -6570,6 +7833,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "enhancerrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001870",
     "lbl": "enhancerRNA",
     "meta": {
@@ -6604,6 +7870,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "lnc",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001877",
     "lbl": "lnc_RNA",
     "meta": {
@@ -6654,6 +7924,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "telomeric",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001927",
     "lbl": "telomeric_transcript",
     "meta": {
@@ -6687,6 +7961,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "prirna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002022",
     "lbl": "priRNA",
     "meta": {
@@ -6722,6 +7999,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "shrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002031",
     "lbl": "shRNA",
     "meta": {
@@ -6765,6 +8045,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "scarna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002095",
     "lbl": "scaRNA",
     "meta": {
@@ -6808,6 +8091,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "three",
+      "prime",
+      "overlapping",
+      "ncrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002120",
     "lbl": "three_prime_overlapping_ncrna",
     "meta": {
@@ -6852,6 +8141,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rrna",
+      "cleavage",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0005843",
     "lbl": "rRNA_cleavage_RNA",
     "meta": {
@@ -6877,6 +8171,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "polymorphic",
+      "pseudogene",
+      "processed",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002116",
     "lbl": "polymorphic_pseudogene_processed_transcript",
     "meta": {
@@ -6913,6 +8213,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "bacterial",
+      "terminator",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000614",
     "lbl": "bacterial_terminator",
     "meta": {
@@ -6938,6 +8242,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "eukaryotic",
+      "terminator",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000951",
     "lbl": "eukaryotic_terminator",
     "meta": {
@@ -6957,6 +8265,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "pheromone",
+      "response",
+      "element",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002045",
     "lbl": "pheromone_response_element",
     "meta": {
@@ -6998,6 +8311,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "operator",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000057",
     "lbl": "operator",
     "meta": {
@@ -7031,6 +8347,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "bacterial",
+      "rnapol",
+      "promoter",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000613",
     "lbl": "bacterial_RNApol_promoter",
     "meta": {
@@ -7056,6 +8377,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "promoter",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000167",
     "lbl": "promoter",
     "meta": {
@@ -7100,6 +8424,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "insulator",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000627",
     "lbl": "insulator",
     "meta": {
@@ -7143,6 +8470,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "crm",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000727",
     "lbl": "CRM",
     "meta": {
@@ -7183,6 +8513,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "promoter",
+      "targeting",
+      "sequence",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001058",
     "lbl": "promoter_targeting_sequence",
     "meta": {
@@ -7208,6 +8543,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "isre",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001715",
     "lbl": "ISRE",
     "meta": {
@@ -7244,6 +8582,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "promoter",
+      "flanking",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001952",
     "lbl": "promoter_flanking_region",
     "meta": {
@@ -7277,6 +8620,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "splice",
+      "enhancer",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000344",
     "lbl": "splice_enhancer",
     "meta": {
@@ -7305,6 +8652,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "nmd",
+      "polymorphic",
+      "pseudogene",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002118",
     "lbl": "NMD_polymorphic_pseudogene_transcript",
     "meta": {
@@ -7345,6 +8698,13 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rrna",
+      "small",
+      "subunit",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000255",
     "lbl": "rRNA_small_subunit_primary_transcript",
     "meta": {
@@ -7370,6 +8730,13 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rrna",
+      "large",
+      "subunit",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000325",
     "lbl": "rRNA_large_subunit_primary_transcript",
     "meta": {
@@ -7402,6 +8769,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "alanine",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000211",
     "lbl": "alanine_tRNA_primary_transcript",
     "meta": {
@@ -7427,6 +8800,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "arginine",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000212",
     "lbl": "arginine_tRNA_primary_transcript",
     "meta": {
@@ -7452,6 +8831,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "asparagine",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000213",
     "lbl": "asparagine_tRNA_primary_transcript",
     "meta": {
@@ -7477,6 +8862,13 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "aspartic",
+      "acid",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000214",
     "lbl": "aspartic_acid_tRNA_primary_transcript",
     "meta": {
@@ -7502,6 +8894,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "cysteine",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000215",
     "lbl": "cysteine_tRNA_primary_transcript",
     "meta": {
@@ -7527,6 +8925,13 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "glutamic",
+      "acid",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000216",
     "lbl": "glutamic_acid_tRNA_primary_transcript",
     "meta": {
@@ -7552,6 +8957,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "glutamine",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000217",
     "lbl": "glutamine_tRNA_primary_transcript",
     "meta": {
@@ -7577,6 +8988,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "glycine",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000218",
     "lbl": "glycine_tRNA_primary_transcript",
     "meta": {
@@ -7602,6 +9019,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "histidine",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000219",
     "lbl": "histidine_tRNA_primary_transcript",
     "meta": {
@@ -7627,6 +9050,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "isoleucine",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000220",
     "lbl": "isoleucine_tRNA_primary_transcript",
     "meta": {
@@ -7652,6 +9081,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "leucine",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000221",
     "lbl": "leucine_tRNA_primary_transcript",
     "meta": {
@@ -7677,6 +9112,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "lysine",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000222",
     "lbl": "lysine_tRNA_primary_transcript",
     "meta": {
@@ -7702,6 +9143,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "methionine",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000223",
     "lbl": "methionine_tRNA_primary_transcript",
     "meta": {
@@ -7727,6 +9174,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "phenylalanine",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000224",
     "lbl": "phenylalanine_tRNA_primary_transcript",
     "meta": {
@@ -7752,6 +9205,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "proline",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000225",
     "lbl": "proline_tRNA_primary_transcript",
     "meta": {
@@ -7777,6 +9236,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "serine",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000226",
     "lbl": "serine_tRNA_primary_transcript",
     "meta": {
@@ -7802,6 +9267,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "threonine",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000227",
     "lbl": "threonine_tRNA_primary_transcript",
     "meta": {
@@ -7827,6 +9298,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "tryptophan",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000228",
     "lbl": "tryptophan_tRNA_primary_transcript",
     "meta": {
@@ -7852,6 +9329,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "tyrosine",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000229",
     "lbl": "tyrosine_tRNA_primary_transcript",
     "meta": {
@@ -7877,6 +9360,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "valine",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000230",
     "lbl": "valine_tRNA_primary_transcript",
     "meta": {
@@ -7902,6 +9391,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "pyrrolysine",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001178",
     "lbl": "pyrrolysine_tRNA_primary_transcript",
     "meta": {
@@ -7927,6 +9422,13 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mir",
+      "encoding",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002037",
     "lbl": "miR_encoding_tRNA_primary_transcript",
     "meta": {
@@ -7960,6 +9462,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "selenocysteine",
+      "trna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0005856",
     "lbl": "selenocysteine_tRNA_primary_transcript",
     "meta": {
@@ -7985,6 +9493,13 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "methylation",
+      "guide",
+      "snorna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000580",
     "lbl": "methylation_guide_snoRNA_primary_transcript",
     "meta": {
@@ -8010,6 +9525,13 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rrna",
+      "cleavage",
+      "snorna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000582",
     "lbl": "rRNA_cleavage_snoRNA_primary_transcript",
     "meta": {
@@ -8035,6 +9557,14 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "c",
+      "d",
+      "box",
+      "snorna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000595",
     "lbl": "C_D_box_snoRNA_primary_transcript",
     "meta": {
@@ -8060,6 +9590,14 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "h",
+      "aca",
+      "box",
+      "snorna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000596",
     "lbl": "H_ACA_box_snoRNA_primary_transcript",
     "meta": {
@@ -8085,6 +9623,13 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mir",
+      "encoding",
+      "snorna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002034",
     "lbl": "miR_encoding_snoRNA_primary_transcript",
     "meta": {
@@ -8118,6 +9663,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "u14",
+      "snorna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0005837",
     "lbl": "U14_snoRNA_primary_transcript",
     "meta": {
@@ -8147,6 +9698,13 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mir",
+      "encoding",
+      "lncrna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002036",
     "lbl": "miR_encoding_lncRNA_primary_transcript",
     "meta": {
@@ -8180,6 +9738,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "lncrna",
+      "retained",
+      "intron",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002113",
     "lbl": "lncRNA_with_retained_intron",
     "meta": {
@@ -8220,6 +9783,13 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mir",
+      "encoding",
+      "shrna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002039",
     "lbl": "miR_encoding_shRNA_primary_transcript",
     "meta": {
@@ -8253,6 +9823,13 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mir",
+      "encoding",
+      "vaultrna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002041",
     "lbl": "miR_encoding_vaultRNA_primary_transcript",
     "meta": {
@@ -8286,6 +9863,14 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mir",
+      "encoding",
+      "y",
+      "rna",
+      "primary",
+      "transcript",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002043",
     "lbl": "miR_encoding_Y_RNA_primary_transcript",
     "meta": {
@@ -8319,6 +9904,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mrna",
+      "minus",
+      "1",
+      "frameshift",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000282",
     "lbl": "mRNA_with_minus_1_frameshift",
     "meta": {
@@ -8344,6 +9935,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mrna",
+      "plus",
+      "1",
+      "frameshift",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000321",
     "lbl": "mRNA_with_plus_1_frameshift",
     "meta": {
@@ -8369,6 +9966,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mrna",
+      "plus",
+      "2",
+      "frameshift",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000329",
     "lbl": "mRNA_with_plus_2_frameshift",
     "meta": {
@@ -8394,6 +9997,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mrna",
+      "minus",
+      "2",
+      "frameshift",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000335",
     "lbl": "mRNA_with_minus_2_frameshift",
     "meta": {
@@ -8419,6 +10028,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mrna",
+      "recoded",
+      "translational",
+      "bypass",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_1001264",
     "lbl": "mRNA_recoded_by_translational_bypass",
     "meta": {
@@ -8444,6 +10059,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mrna",
+      "recoded",
+      "codon",
+      "redefinition",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_1001265",
     "lbl": "mRNA_recoded_by_codon_redefinition",
     "meta": {
@@ -8469,6 +10090,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "small",
+      "subunit",
+      "rrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000650",
     "lbl": "small_subunit_rRNA",
     "meta": {
@@ -8511,6 +10137,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "large",
+      "subunit",
+      "rrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000651",
     "lbl": "large_subunit_rRNA",
     "meta": {
@@ -8553,6 +10184,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mt",
+      "rrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002128",
     "lbl": "mt_rRNA",
     "meta": {
@@ -8590,6 +10225,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "alanyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000254",
     "lbl": "alanyl_tRNA",
     "meta": {
@@ -8623,6 +10262,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "asparaginyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000256",
     "lbl": "asparaginyl_tRNA",
     "meta": {
@@ -8656,6 +10299,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "aspartyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000257",
     "lbl": "aspartyl_tRNA",
     "meta": {
@@ -8689,6 +10336,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "cysteinyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000258",
     "lbl": "cysteinyl_tRNA",
     "meta": {
@@ -8722,6 +10373,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "glutaminyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000259",
     "lbl": "glutaminyl_tRNA",
     "meta": {
@@ -8755,6 +10410,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "glutamyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000260",
     "lbl": "glutamyl_tRNA",
     "meta": {
@@ -8788,6 +10447,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "glycyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000261",
     "lbl": "glycyl_tRNA",
     "meta": {
@@ -8821,6 +10484,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "histidyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000262",
     "lbl": "histidyl_tRNA",
     "meta": {
@@ -8854,6 +10521,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "isoleucyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000263",
     "lbl": "isoleucyl_tRNA",
     "meta": {
@@ -8887,6 +10558,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "leucyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000264",
     "lbl": "leucyl_tRNA",
     "meta": {
@@ -8920,6 +10595,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "lysyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000265",
     "lbl": "lysyl_tRNA",
     "meta": {
@@ -8953,6 +10632,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "methionyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000266",
     "lbl": "methionyl_tRNA",
     "meta": {
@@ -8986,6 +10669,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "phenylalanyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000267",
     "lbl": "phenylalanyl_tRNA",
     "meta": {
@@ -9019,6 +10706,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "prolyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000268",
     "lbl": "prolyl_tRNA",
     "meta": {
@@ -9052,6 +10743,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "seryl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000269",
     "lbl": "seryl_tRNA",
     "meta": {
@@ -9085,6 +10780,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "threonyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000270",
     "lbl": "threonyl_tRNA",
     "meta": {
@@ -9118,6 +10817,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "tryptophanyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000271",
     "lbl": "tryptophanyl_tRNA",
     "meta": {
@@ -9151,6 +10854,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "tyrosyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000272",
     "lbl": "tyrosyl_tRNA",
     "meta": {
@@ -9184,6 +10891,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "valyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000273",
     "lbl": "valyl_tRNA",
     "meta": {
@@ -9217,6 +10928,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "pyrrolysyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000766",
     "lbl": "pyrrolysyl_tRNA",
     "meta": {
@@ -9250,6 +10965,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "arginyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001036",
     "lbl": "arginyl_tRNA",
     "meta": {
@@ -9275,6 +10994,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mt",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002129",
     "lbl": "mt_tRNA",
     "meta": {
@@ -9312,6 +11035,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "selenocysteinyl",
+      "trna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0005857",
     "lbl": "selenocysteinyl_tRNA",
     "meta": {
@@ -9345,6 +11072,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "u1",
+      "snrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000391",
     "lbl": "U1_snRNA",
     "meta": {
@@ -9399,6 +11130,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "u2",
+      "snrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000392",
     "lbl": "U2_snRNA",
     "meta": {
@@ -9453,6 +11188,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "u4",
+      "snrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000393",
     "lbl": "U4_snRNA",
     "meta": {
@@ -9507,6 +11246,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "u4atac",
+      "snrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000394",
     "lbl": "U4atac_snRNA",
     "meta": {
@@ -9556,6 +11299,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "u5",
+      "snrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000395",
     "lbl": "U5_snRNA",
     "meta": {
@@ -9610,6 +11357,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "u6",
+      "snrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000396",
     "lbl": "U6_snRNA",
     "meta": {
@@ -9664,6 +11415,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "u6atac",
+      "snrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000397",
     "lbl": "U6atac_snRNA",
     "meta": {
@@ -9709,6 +11464,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "u11",
+      "snrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000398",
     "lbl": "U11_snRNA",
     "meta": {
@@ -9763,6 +11522,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "u12",
+      "snrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000399",
     "lbl": "U12_snRNA",
     "meta": {
@@ -9817,6 +11580,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "c",
+      "d",
+      "box",
+      "snorna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000593",
     "lbl": "C_D_box_snoRNA",
     "meta": {
@@ -9853,6 +11622,12 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "h",
+      "aca",
+      "box",
+      "snorna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000594",
     "lbl": "H_ACA_box_snoRNA",
     "meta": {
@@ -9886,6 +11661,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mirna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000276",
     "lbl": "miRNA",
     "meta": {
@@ -9947,6 +11725,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rna",
+      "6s",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000376",
     "lbl": "RNA_6S",
     "meta": {
@@ -9981,6 +11763,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "csrb",
+      "rsmb",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000377",
     "lbl": "CsrB_RsmB_RNA",
     "meta": {
@@ -10010,6 +11797,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "dsra",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000378",
     "lbl": "DsrA_RNA",
     "meta": {
@@ -10040,6 +11831,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "oxys",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000384",
     "lbl": "OxyS_RNA",
     "meta": {
@@ -10070,6 +11865,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rpra",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000387",
     "lbl": "RprA_RNA",
     "meta": {
@@ -10100,6 +11899,10 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rre",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000388",
     "lbl": "RRE_RNA",
     "meta": {
@@ -10125,6 +11928,11 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "spot",
+      "42",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000389",
     "lbl": "spot_42_RNA",
     "meta": {
@@ -10155,6 +11963,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "tmrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000584",
     "lbl": "tmRNA",
     "meta": {
@@ -10193,6 +12004,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "sirna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000646",
     "lbl": "siRNA",
     "meta": {
@@ -10234,6 +12048,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "pirna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001035",
     "lbl": "piRNA",
     "meta": {
@@ -10272,6 +12089,9 @@ exports[`OntologyStore can query SO gene terms and parts of genes 2`] = `
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "mor",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002032",
     "lbl": "moR",
     "meta": {
@@ -10309,6 +12129,9 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "lor",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002033",
     "lbl": "loR",
     "meta": {
@@ -10346,6 +12169,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "micf",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000383",
     "lbl": "MicF_RNA",
     "meta": {
@@ -10376,6 +12203,9 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "lincrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001463",
     "lbl": "lincRNA",
     "meta": {
@@ -10412,6 +12242,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "antisense",
+      "lncrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001904",
     "lbl": "antisense_lncRNA",
     "meta": {
@@ -10449,6 +12283,11 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "sense",
+      "intronic",
+      "ncrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002131",
     "lbl": "sense_intronic_ncRNA",
     "meta": {
@@ -10498,6 +12337,11 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "sense",
+      "overlap",
+      "ncrna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002132",
     "lbl": "sense_overlap_ncRNA",
     "meta": {
@@ -10539,6 +12383,9 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "terra",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001923",
     "lbl": "TERRA",
     "meta": {
@@ -10575,6 +12422,9 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "arret",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001924",
     "lbl": "ARRET",
     "meta": {
@@ -10605,6 +12455,9 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "aria",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001925",
     "lbl": "ARIA",
     "meta": {
@@ -10635,6 +12488,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "anti",
+      "arret",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001926",
     "lbl": "anti_ARRET",
     "meta": {
@@ -10671,6 +12528,12 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rho",
+      "dependent",
+      "bacterial",
+      "terminator",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000981",
     "lbl": "rho_dependent_bacterial_terminator",
     "meta": {
@@ -10690,6 +12553,12 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rho",
+      "independent",
+      "bacterial",
+      "terminator",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000982",
     "lbl": "rho_independent_bacterial_terminator",
     "meta": {
@@ -10709,6 +12578,14 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "terminator",
+      "type",
+      "2",
+      "rnapol",
+      "iii",
+      "promoter",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000615",
     "lbl": "terminator_of_type_2_RNApol_III_promoter",
     "meta": {
@@ -10734,6 +12611,13 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "bacterial",
+      "rnapol",
+      "promoter",
+      "sigma",
+      "70",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001671",
     "lbl": "bacterial_RNApol_promoter_sigma_70",
     "meta": {
@@ -10761,6 +12645,12 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "bacterial",
+      "rnapol",
+      "promoter",
+      "sigma54",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001672",
     "lbl": "bacterial_RNApol_promoter_sigma54",
     "meta": {
@@ -10788,6 +12678,13 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "bacterial",
+      "rnapol",
+      "promoter",
+      "sigma",
+      "ecf",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001913",
     "lbl": "bacterial_RNApol_promoter_sigma_ecf",
     "meta": {
@@ -10824,6 +12721,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "bidirectional",
+      "promoter",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000568",
     "lbl": "bidirectional_promoter",
     "meta": {
@@ -10849,6 +12750,11 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rna",
+      "polymerase",
+      "promoter",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001203",
     "lbl": "RNA_polymerase_promoter",
     "meta": {
@@ -10874,6 +12780,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "constitutive",
+      "promoter",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002050",
     "lbl": "constitutive_promoter",
     "meta": {
@@ -10907,6 +12817,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "inducible",
+      "promoter",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002051",
     "lbl": "inducible_promoter",
     "meta": {
@@ -10940,6 +12854,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "boundary",
+      "element",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002020",
     "lbl": "boundary_element",
     "meta": {
@@ -10980,6 +12898,11 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "enhancer",
+      "blocking",
+      "element",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002190",
     "lbl": "enhancer_blocking_element",
     "meta": {
@@ -11028,6 +12951,11 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "locus",
+      "control",
+      "region",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000037",
     "lbl": "locus_control_region",
     "meta": {
@@ -11074,6 +13002,9 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "enhancer",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000165",
     "lbl": "enhancer",
     "meta": {
@@ -11114,6 +13045,9 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "silencer",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000625",
     "lbl": "silencer",
     "meta": {
@@ -11151,6 +13085,11 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "intronic",
+      "splice",
+      "enhancer",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000320",
     "lbl": "intronic_splice_enhancer",
     "meta": {
@@ -11176,6 +13115,11 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "exonic",
+      "splice",
+      "enhancer",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000683",
     "lbl": "exonic_splice_enhancer",
     "meta": {
@@ -11201,6 +13145,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rrna",
+      "18s",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000407",
     "lbl": "rRNA_18S",
     "meta": {
@@ -11242,6 +13190,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rrna",
+      "16s",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001000",
     "lbl": "rRNA_16S",
     "meta": {
@@ -11287,6 +13239,11 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rrna",
+      "5",
+      "8s",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000375",
     "lbl": "rRNA_5_8S",
     "meta": {
@@ -11332,6 +13289,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rrna",
+      "5s",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000652",
     "lbl": "rRNA_5S",
     "meta": {
@@ -11377,6 +13338,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rrna",
+      "28s",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000653",
     "lbl": "rRNA_28S",
     "meta": {
@@ -11422,6 +13387,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rrna",
+      "23s",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001001",
     "lbl": "rRNA_23S",
     "meta": {
@@ -11462,6 +13431,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rrna",
+      "25s",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001002",
     "lbl": "rRNA_25S",
     "meta": {
@@ -11502,6 +13475,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rrna",
+      "21s",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001171",
     "lbl": "rRNA_21S",
     "meta": {
@@ -11539,6 +13516,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "u14",
+      "snorna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000403",
     "lbl": "U14_snoRNA",
     "meta": {
@@ -11587,6 +13568,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "u3",
+      "snorna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001179",
     "lbl": "U3_snoRNA",
     "meta": {
@@ -11632,6 +13617,11 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "methylation",
+      "guide",
+      "snorna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0005841",
     "lbl": "methylation_guide_snoRNA",
     "meta": {
@@ -11661,6 +13651,11 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "pseudouridylation",
+      "guide",
+      "snorna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001187",
     "lbl": "pseudouridylation_guide_snoRNA",
     "meta": {
@@ -11690,6 +13685,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "ref",
+      "mirna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002166",
     "lbl": "ref_miRNA",
     "meta": {
@@ -11731,6 +13730,9 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "isomir",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002167",
     "lbl": "isomiR",
     "meta": {
@@ -11758,6 +13760,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "gcvb",
+      "rna",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000379",
     "lbl": "GcvB_RNA",
     "meta": {
@@ -11788,6 +13794,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rnapol",
+      "promoter",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000169",
     "lbl": "RNApol_I_promoter",
     "meta": {
@@ -11825,6 +13835,11 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rnapol",
+      "ii",
+      "promoter",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000170",
     "lbl": "RNApol_II_promoter",
     "meta": {
@@ -11862,6 +13877,11 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rnapol",
+      "iii",
+      "promoter",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000171",
     "lbl": "RNApol_III_promoter",
     "meta": {
@@ -11899,6 +13919,12 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "phage",
+      "rna",
+      "polymerase",
+      "promoter",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001204",
     "lbl": "Phage_RNA_Polymerase_Promoter",
     "meta": {
@@ -11924,6 +13950,11 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "enhancer",
+      "bound",
+      "factor",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000166",
     "lbl": "enhancer_bound_by_factor",
     "meta": {
@@ -11949,6 +13980,10 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "shadow",
+      "enhancer",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001482",
     "lbl": "shadow_enhancer",
     "meta": {
@@ -11976,6 +14011,11 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "intronic",
+      "splicing",
+      "silencer",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002056",
     "lbl": "intronic_splicing_silencer",
     "meta": {
@@ -12017,6 +14057,11 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "exonic",
+      "splicing",
+      "silencer",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0002058",
     "lbl": "exonic_splicing_silencer",
     "meta": {
@@ -12058,6 +14103,12 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rnapol",
+      "ii",
+      "core",
+      "promoter",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001669",
     "lbl": "RNApol_II_core_promoter",
     "meta": {
@@ -12091,6 +14142,13 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rnapol",
+      "iii",
+      "promoter",
+      "type",
+      "1",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000617",
     "lbl": "RNApol_III_promoter_type_1",
     "meta": {
@@ -12110,6 +14168,13 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rnapol",
+      "iii",
+      "promoter",
+      "type",
+      "2",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000618",
     "lbl": "RNApol_III_promoter_type_2",
     "meta": {
@@ -12133,6 +14198,13 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "rnapol",
+      "iii",
+      "promoter",
+      "type",
+      "3",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0000621",
     "lbl": "RNApol_III_promoter_type_3",
     "meta": {
@@ -12152,6 +14224,12 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "sp6",
+      "rna",
+      "polymerase",
+      "promoter",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001205",
     "lbl": "SP6_RNA_Polymerase_Promoter",
     "meta": {
@@ -12177,6 +14255,12 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "t3",
+      "rna",
+      "polymerase",
+      "promoter",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001206",
     "lbl": "T3_RNA_Polymerase_Promoter",
     "meta": {
@@ -12202,6 +14286,12 @@ Requested by Thomas Desvignes, Jan 2015.",
     "type": "CLASS",
   },
   {
+    "fullTextWords": [
+      "t7",
+      "rna",
+      "polymerase",
+      "promoter",
+    ],
     "id": "http://purl.obolibrary.org/obo/SO_0001207",
     "lbl": "T7_RNA_Polymerase_Promoter",
     "meta": {
@@ -12222,6 +14312,36 @@ Requested by Thomas Desvignes, Jan 2015.",
           "pred": "hasExactSynonym",
           "val": "T7 RNA Polymerase Promoter",
         },
+      ],
+    },
+    "type": "CLASS",
+  },
+]
+`;
+
+exports[`OntologyStore can query valid part_of for match 1`] = `
+[
+  {
+    "fullTextWords": [
+      "match",
+    ],
+    "id": "http://purl.obolibrary.org/obo/SO_0000343",
+    "lbl": "match",
+    "meta": {
+      "basicPropertyValues": [
+        {
+          "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+          "val": "sequence",
+        },
+      ],
+      "definition": {
+        "val": "A region of sequence, aligned to another sequence with some statistical significance, using an algorithm such as BLAST or SIM4.",
+        "xrefs": [
+          "SO:ke",
+        ],
+      },
+      "subsets": [
+        "http://purl.obolibrary.org/obo/so#SOFA",
       ],
     },
     "type": "CLASS",

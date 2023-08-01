@@ -33,6 +33,10 @@ describe('OntologyStore', () => {
     )
 
     expect(await goslimGeneric.termCount()).toMatchSnapshot()
+
+    expect(
+      await goslimGeneric.getTermsByFulltext('mitotic nuclear division'),
+    ).toMatchSnapshot()
   })
 
   it('can query SO', async () => {
@@ -72,11 +76,7 @@ describe('OntologyStore', () => {
       ex.push(node)
     }
     expect(ex.length).toBeGreaterThan(0)
-    expect(ex).toMatchInlineSnapshot(`
-      [
-        "http://purl.obolibrary.org/obo/SO_0000039",
-      ]
-    `)
+    expect(ex).toEqual(['http://purl.obolibrary.org/obo/SO_0000039'])
   })
   it('can query valid part_of for match', async () => {
     const parentTypeTerms = (
@@ -84,32 +84,7 @@ describe('OntologyStore', () => {
         includeSubclasses: false,
       })
     ).filter(isOntologyClass)
-    expect(parentTypeTerms).toMatchInlineSnapshot(`
-      [
-        {
-          "id": "http://purl.obolibrary.org/obo/SO_0000343",
-          "lbl": "match",
-          "meta": {
-            "basicPropertyValues": [
-              {
-                "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
-                "val": "sequence",
-              },
-            ],
-            "definition": {
-              "val": "A region of sequence, aligned to another sequence with some statistical significance, using an algorithm such as BLAST or SIM4.",
-              "xrefs": [
-                "SO:ke",
-              ],
-            },
-            "subsets": [
-              "http://purl.obolibrary.org/obo/so#SOFA",
-            ],
-          },
-          "type": "CLASS",
-        },
-      ]
-    `)
+    expect(parentTypeTerms).toMatchSnapshot()
     const subpartTerms = await so.getClassesThat('part_of', parentTypeTerms)
     expect(subpartTerms.length).toBeGreaterThan(0)
   })
