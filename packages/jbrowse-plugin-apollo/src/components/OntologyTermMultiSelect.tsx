@@ -8,6 +8,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
+import { debounce } from '@mui/material/utils'
 import highlightMatch from 'autosuggest-highlight/match'
 import highlightParse from 'autosuggest-highlight/parse'
 import { getParent } from 'mobx-state-tree'
@@ -19,6 +20,7 @@ import {
   OntologyTerm,
   isOntologyClass,
 } from '../OntologyManager'
+import { OntologyDBNode } from '../OntologyManager/OntologyStore/indexeddb-schema'
 
 type TermValue = OntologyTerm
 
@@ -122,6 +124,45 @@ export function OntologyTermMultiSelect({
   const [loading, setLoading] = React.useState(false)
   const [errorMessage, setErrorMessage] = React.useState('')
 
+  const getOntologyTerms = React.useMemo(
+    () =>
+      debounce(
+        async (
+          request: { input: string; signal: AbortSignal },
+          callback: (results: OntologyDBNode[]) => void,
+        ) => {
+          if (!ontology) {
+            return undefined
+          }
+          const { dataStore } = ontology
+          if (!dataStore) {
+            return undefined
+          }
+          const { input, signal } = request
+          try {
+            const matches: OntologyTerm[] = []
+            const tx = (await dataStore.db).transaction('nodes')
+            for await (const cursor of tx.objectStore('nodes')) {
+              if (signal.aborted) {
+                return
+              }
+              const node = cursor.value
+              if (
+                (node.lbl ?? '').toLowerCase().includes(input.toLowerCase())
+              ) {
+                matches.push(node)
+              }
+            }
+            callback(matches)
+          } catch (error) {
+            setErrorMessage(String(error))
+          }
+        },
+        400,
+      ),
+    [ontology],
+  )
+
   React.useEffect(() => {
     const aborter = new AbortController()
     const { signal } = aborter
@@ -133,36 +174,22 @@ export function OntologyTermMultiSelect({
 
     setLoading(true)
 
-    if (!ontology) {
-      return undefined
-    }
-    const { dataStore } = ontology
-    if (!dataStore) {
-      return undefined
-    }
-
-    ;(async () => {
-      const matches: OntologyTerm[] = []
-      const tx = (await dataStore.db).transaction('nodes')
-      for await (const cursor of tx.objectStore('nodes')) {
-        if (signal.aborted) {
-          return
-        }
-        const node = cursor.value
-        if ((node.lbl ?? '').toLowerCase().includes(inputValue.toLowerCase())) {
-          matches.push(node)
-        }
+    void getOntologyTerms({ input: inputValue, signal }, (results) => {
+      let newOptions: readonly OntologyTerm[] = []
+      if (value.length) {
+        newOptions = value
       }
-      setOptions(matches)
+      if (results) {
+        newOptions = [...newOptions, ...results]
+      }
+      setOptions(newOptions)
       setLoading(false)
-    })().catch((error) => {
-      setErrorMessage(String(error))
     })
 
     return () => {
       aborter.abort()
     }
-  }, [value, inputValue, ontology])
+  }, [getOntologyTerms, inputValue, value])
 
   if (!ontology) {
     return null
