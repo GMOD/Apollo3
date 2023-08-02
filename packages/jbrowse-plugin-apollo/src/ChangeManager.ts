@@ -1,5 +1,9 @@
 import { getSession } from '@jbrowse/core/util'
-import { Change, ClientDataStore } from 'apollo-common'
+import {
+  Change,
+  ClientDataStore,
+  isAssemblySpecificChange,
+} from 'apollo-common'
 import { ValidationResultSet, validationRegistry } from 'apollo-shared'
 import { IAnyStateTreeNode } from 'mobx-state-tree'
 
@@ -51,10 +55,10 @@ export class ChangeManager {
 
     if (submitToBackend) {
       // submit to driver
-      const { backendDriver } = this.dataStore
-      if (!backendDriver) {
-        throw new Error('No backendDriver set')
-      }
+      const { getBackendDriver, collaborationServerDriver } = this.dataStore
+      const backendDriver = isAssemblySpecificChange(change)
+        ? getBackendDriver(change.assembly)
+        : collaborationServerDriver
       let backendResult: ValidationResultSet
       try {
         backendResult = await backendDriver.submitChange(change, opts)

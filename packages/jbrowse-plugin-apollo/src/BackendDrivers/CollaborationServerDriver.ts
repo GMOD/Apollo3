@@ -18,37 +18,6 @@ export interface ApolloInternetAccount extends BaseInternetAccountModel {
 }
 
 export class CollaborationServerDriver extends BackendDriver {
-  private getInternetAccount(
-    assemblyName?: string,
-    internetAccountId?: string,
-  ) {
-    if (!(assemblyName ?? internetAccountId)) {
-      throw new Error('Must provide either assemblyName or internetAccountId')
-    }
-    let configId = internetAccountId
-    if (assemblyName && !configId) {
-      const { assemblyManager } = getSession(this.clientStore)
-      const assembly = assemblyManager.get(assemblyName)
-      if (!assembly) {
-        throw new Error(`No assembly found with name ${assemblyName}`)
-      }
-      ;({ internetAccountConfigId: configId } = getConf(assembly, [
-        'sequence',
-        'metadata',
-      ]) as { internetAccountConfigId: string })
-    }
-    const { internetAccounts } = this.clientStore
-    const internetAccount = internetAccounts.find(
-      (ia) => getConf(ia, 'internetAccountId') === configId,
-    ) as ApolloInternetAccount | undefined
-    if (!internetAccount) {
-      throw new Error(
-        `No InternetAccount found with config id ${internetAccountId}`,
-      )
-    }
-    return internetAccount
-  }
-
   private async fetch(
     internetAccount: ApolloInternetAccount,
     info: RequestInfo,
@@ -80,7 +49,9 @@ export class CollaborationServerDriver extends BackendDriver {
     if (!refSeq) {
       throw new Error(`Could not find refSeq "${refName}"`)
     }
-    const internetAccount = this.getInternetAccount(assemblyName)
+    const internetAccount = this.clientStore.getInternetAccount(
+      assemblyName,
+    ) as ApolloInternetAccount
     const { baseURL } = internetAccount
 
     const url = new URL('features/getFeatures', baseURL)
@@ -171,7 +142,9 @@ export class CollaborationServerDriver extends BackendDriver {
     if (!refSeq) {
       throw new Error(`Could not find refSeq "${refName}"`)
     }
-    const internetAccount = this.getInternetAccount(assemblyName)
+    const internetAccount = this.clientStore.getInternetAccount(
+      assemblyName,
+    ) as ApolloInternetAccount
     const { baseURL } = internetAccount
 
     const url = new URL('refSeqs/getSequence', baseURL)
@@ -208,15 +181,35 @@ export class CollaborationServerDriver extends BackendDriver {
     return []
   }
 
+  getAssemblies(internetAccountId?: string) {
+    const { assemblyManager } = getSession(this.clientStore)
+    return assemblyManager.assemblies.filter((assembly) => {
+      const sequenceMetadata = getConf(assembly, ['sequence', 'metadata']) as
+        | { apollo: boolean; internetAccountConfigId?: string }
+        | undefined
+      if (
+        sequenceMetadata &&
+        sequenceMetadata.apollo &&
+        sequenceMetadata.internetAccountConfigId
+      ) {
+        if (internetAccountId) {
+          return sequenceMetadata.internetAccountConfigId === internetAccountId
+        }
+        return true
+      }
+      return false
+    })
+  }
+
   async submitChange(
     change: Change | AssemblySpecificChange,
     opts: SubmitOpts = {},
   ) {
     const { internetAccountId = undefined } = opts
-    const internetAccount = this.getInternetAccount(
+    const internetAccount = this.clientStore.getInternetAccount(
       'assembly' in change ? change.assembly : undefined,
       internetAccountId,
-    )
+    ) as ApolloInternetAccount
     const { baseURL } = internetAccount
     const url = new URL('changes', baseURL).href
     const response = await this.fetch(internetAccount, url, {
