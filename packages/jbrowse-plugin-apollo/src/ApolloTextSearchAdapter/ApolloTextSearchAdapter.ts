@@ -17,28 +17,24 @@ export class ApolloTextSearchAdapter
   }
 
   get trackId() {
-    return readConfObject(this.config, 'trackId').uri
+    return readConfObject(this.config, 'trackId')
   }
 
-  get internetAccountPreAuthorization():
-    | { authInfo: { token: string }; internetAccountType: string }
-    | undefined {
-    return readConfObject(this.config, 'baseURL')
-      .internetAccountPreAuthorization
+  get assemblyNames() {
+    return readConfObject(this.config, 'assemblyNames')
   }
 
   async searchFeatures(term: string) {
-    const url = new URL(`features/searchFeatures?term=${term}`, this.baseURL)
+    const assemblies = this.assemblyNames.join(',')
+    const url = new URL('features/searchFeatures', this.baseURL)
+    const searchParams = new URLSearchParams({ assemblies, term })
+    url.search = searchParams.toString()
     const uri = url.toString()
+
     const location: UriLocation = { locationType: 'UriLocation', uri }
-    if (this.internetAccountPreAuthorization) {
-      location.internetAccountPreAuthorization =
-        this.internetAccountPreAuthorization
-    }
     const fetch = getFetcher(location, this.pluginManager)
-    return fetch(uri)
-      .then((res) => res.json())
-      .catch((err) => err)
+    const response = await fetch(uri)
+    return response.json()
   }
 
   mapBaseResult(
@@ -53,18 +49,16 @@ export class ApolloTextSearchAdapter
       (feature) =>
         new BaseResult({
           label: query,
-          displayString: query,
           trackId: this.trackId,
           locString: `${feature.refSeq?.name}:${feature.start}..${feature.end}`,
         }),
     )
   }
 
-  searchIndex(args: BaseTextSearchArgs): Promise<BaseResult[]> {
+  async searchIndex(args: BaseTextSearchArgs): Promise<BaseResult[]> {
     const query = args.queryString
-    return this.searchFeatures(query)
-      .then((features) => this.mapBaseResult(features, query))
-      .catch((err) => err)
+    const features = await this.searchFeatures(query)
+    return this.mapBaseResult(features, query)
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
