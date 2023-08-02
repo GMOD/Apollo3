@@ -62,7 +62,7 @@ module.exports = {
       { allowWithDecorator: true },
     ],
     '@typescript-eslint/no-unused-vars': [
-      'error',
+      'warn',
       { argsIgnorePattern: '^_', ignoreRestSiblings: true },
     ],
     '@typescript-eslint/return-await': 'error',

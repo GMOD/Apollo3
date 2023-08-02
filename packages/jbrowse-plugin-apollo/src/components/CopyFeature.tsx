@@ -71,7 +71,7 @@ export function CopyFeature({
       }
       const newRefNames = Array.from(Object.entries(refNameAliases))
         .filter(([id, refName]) => id !== refName)
-        .map(([id, refName]) => ({ _id: id, name: refName }))
+        .map(([id, refName]) => ({ _id: id, name: refName ?? '' }))
       setRefNames(newRefNames)
       setSelectedRefSeqId(newRefNames[0]?._id || '')
     }

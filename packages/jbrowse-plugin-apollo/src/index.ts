@@ -28,8 +28,8 @@ import {
   ReactComponent as ApolloSixFrameRendererReactComponent,
   configSchema as apolloSixFrameRendererConfigSchema,
 } from './ApolloSixFrameRenderer'
-import { ViewChangeLog } from './components'
-import { DownloadGFF3 } from './components/DownloadGFF3'
+import { DownloadGFF3, OpenLocalFile, ViewChangeLog } from './components'
+import ApolloPluginConfigurationSchema from './config'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
@@ -38,7 +38,7 @@ import {
   DisplayComponent,
   makeSixFrameDisplayComponent,
 } from './makeDisplayComponent'
-import { extendSession } from './session'
+import { ApolloSessionModel, extendSession } from './session'
 import {
   stateModelFactory as SixFrameFeatureDisplayStateModelFactory,
   configSchemaFactory as sixFrameFeatureDisplayConfigSchemaFactory,
@@ -54,14 +54,7 @@ validationRegistry.registerValidation(new ParentChildValidation())
 export default class ApolloPlugin extends Plugin {
   name = 'ApolloPlugin'
   version = version
-  configurationSchema = ConfigurationSchema('ApolloPlugin', {
-    goLocation: {
-      type: 'fileLocation',
-      defaultValue: {
-        uri: '',
-      },
-    },
-  })
+  configurationSchema = ApolloPluginConfigurationSchema
 
   install(pluginManager: PluginManager) {
     installApolloSequenceAdapter(pluginManager)
@@ -172,6 +165,22 @@ export default class ApolloPlugin extends Plugin {
               handleClose: () => {
                 doneCallback()
               },
+            },
+          ])
+        },
+      })
+      pluginManager.rootModel.appendToMenu('Apollo', {
+        label: 'Open local GFF3 file',
+        onClick: (session: AbstractSessionModel) => {
+          session.queueDialog((doneCallback) => [
+            OpenLocalFile,
+            {
+              session,
+              handleClose: () => {
+                doneCallback()
+              },
+              inMemoryFileDriver: (session as ApolloSessionModel)
+                .apolloDataStore.inMemoryFileDriver,
             },
           ])
         },

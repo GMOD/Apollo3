@@ -1,4 +1,5 @@
-import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import { AppRootModel } from '@jbrowse/core/util'
 import {
   Button,
   Checkbox,
@@ -18,11 +19,15 @@ import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import {
+  ApolloInternetAccount,
+  CollaborationServerDriver,
+} from '../BackendDrivers'
 import { ChangeManager } from '../ChangeManager'
-import { AssemblyData, useAssemblies } from './'
+import { ApolloSessionModel } from '../session'
 
 interface DeleteAssemblyProps {
-  session: AbstractSessionModel
+  session: ApolloSessionModel
   handleClose(): void
   changeManager: ChangeManager
 }
@@ -33,7 +38,7 @@ export function DeleteAssembly({
   changeManager,
 }: DeleteAssemblyProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
-  const [selectedAssembly, setSelectedAssembly] = useState<AssemblyData>()
+  const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
   const [errorMessage, setErrorMessage] = useState('')
   const [confirmDelete, setconfirmDelete] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -47,10 +52,15 @@ export function DeleteAssembly({
     apolloInternetAccounts[0],
   )
 
-  const assemblies: AssemblyData[] = useAssemblies(
-    internetAccounts,
-    setErrorMessage,
-  )
+  const { collaborationServerDriver } = session.apolloDataStore as {
+    collaborationServerDriver: CollaborationServerDriver
+    getInternetAccount(
+      assemblyName?: string,
+      internetAccountId?: string,
+    ): ApolloInternetAccount
+  }
+
+  const assemblies = collaborationServerDriver.getAssemblies()
 
   useEffect(() => {
     if (assemblies.length > 0 && selectedAssembly === undefined) {
@@ -72,7 +82,7 @@ export function DeleteAssembly({
   }
 
   function handleChangeAssembly(e: SelectChangeEvent<string>) {
-    const newAssembly = assemblies.find((asm) => asm._id === e.target.value)
+    const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
     setSelectedAssembly(newAssembly)
   }
 
@@ -86,7 +96,7 @@ export function DeleteAssembly({
     }
     const change = new DeleteAssemblyChange({
       typeName: 'DeleteAssemblyChange',
-      assembly: selectedAssembly._id,
+      assembly: selectedAssembly.name,
     })
     await changeManager.submit?.(change, {
       internetAccountId: selectedInternetAcount.internetAccountId,
@@ -119,13 +129,13 @@ export function DeleteAssembly({
           <DialogContentText>Select assembly</DialogContentText>
           <Select
             labelId="label"
-            value={selectedAssembly?._id ?? ''}
+            value={selectedAssembly?.name ?? ''}
             onChange={handleChangeAssembly}
             disabled={!assemblies.length}
           >
             {assemblies.map((option) => (
-              <MenuItem key={option._id} value={option._id}>
-                {option.name}
+              <MenuItem key={option.name} value={option.name}>
+                {option.displayName ?? option.name}
               </MenuItem>
             ))}
           </Select>

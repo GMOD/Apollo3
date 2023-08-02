@@ -1,10 +1,12 @@
-import { getSession } from '@jbrowse/core/util'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { observer } from 'mobx-react'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
+import { OntologyTermAutocomplete } from '../../components/OntologyTermAutocomplete'
+import { isOntologyClass } from '../../OntologyManager'
+import OntologyStore from '../../OntologyManager/OntologyStore'
 import { DisplayStateModel } from '../types'
 import {
   handleFeatureEndChange,
@@ -14,7 +16,6 @@ import {
 import { FeatureAttributes } from './FeatureAttributes'
 import { featureContextMenuItems } from './featureContextMenuItems'
 import type { ContextMenuState } from './HybridGrid'
-import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
 
 const useStyles = makeStyles()((theme) => ({
   levelIndicator: {
@@ -107,12 +108,12 @@ export const Feature = observer(function Feature({
 
   // pop up a snackbar in the session notifying user of an error
   const notifyError = (e: Error) =>
-    getSession(displayState).notify(e.message, 'error')
+    displayState.session.notify(e.message, 'error')
 
   return (
     <>
       <tr
-        onMouseEnter={() => {
+        onMouseEnter={(_e) => {
           displayState.setApolloHover({
             feature,
             topLevelFeature: getTopLevelFeature(feature),
@@ -159,10 +160,12 @@ export const Feature = observer(function Feature({
           ) : null}
           <div className={classes.typeContent}>
             <OntologyTermAutocomplete
-              feature={feature}
+              session={displayState.session}
+              ontologyName="Sequence Ontology"
               style={{ width: 170 }}
               value={feature.type}
-              internetAccount={internetAccount}
+              filterTerms={isOntologyClass}
+              fetchValidTerms={fetchValidTypeTerms.bind(null, feature)}
               onChange={(oldValue, newValue) => {
                 if (newValue) {
                   handleFeatureTypeChange(
@@ -246,3 +249,27 @@ export const Feature = observer(function Feature({
     </>
   )
 })
+async function fetchValidTypeTerms(
+  feature: AnnotationFeatureI,
+  ontologyStore: OntologyStore,
+  _signal: AbortSignal,
+) {
+  const { parent: parentFeature } = feature
+  if (parentFeature) {
+    // if this is a child of an existing feature, restrict the autocomplete choices to valid
+    // parts of that feature
+    const parentTypeTerms = (
+      await ontologyStore.getTermsWithLabelOrSynonym(parentFeature.type, {
+        includeSubclasses: false,
+      })
+    ).filter(isOntologyClass)
+    if (parentTypeTerms.length) {
+      const subpartTerms = await ontologyStore.getClassesThat(
+        'part_of',
+        parentTypeTerms,
+      )
+      return subpartTerms
+    }
+  }
+  return undefined
+}

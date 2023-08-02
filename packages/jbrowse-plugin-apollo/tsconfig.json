@@ -9,6 +9,8 @@
   "include": ["src"],
   "exclude": ["**/dist/"],
   "references": [
+    { "path": "../apollo-common"},
+    { "path": "../apollo-mst"},
     { "path": "../apollo-shared"},
   ],
 }

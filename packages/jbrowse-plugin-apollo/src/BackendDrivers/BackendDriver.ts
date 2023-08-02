@@ -1,3 +1,4 @@
+import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { Region } from '@jbrowse/core/util'
 import { Change, ClientDataStore } from 'apollo-common'
 import { AnnotationFeatureSnapshot } from 'apollo-mst'
@@ -13,6 +14,8 @@ export abstract class BackendDriver {
   abstract getSequence(region: Region): Promise<{ seq: string; refSeq: string }>
 
   abstract getRefSeqs(): Promise<string[]>
+
+  abstract getAssemblies(internetAccountConfigId?: string): Assembly[]
 
   abstract submitChange(
     change: Change,

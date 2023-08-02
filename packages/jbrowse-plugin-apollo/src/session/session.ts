@@ -1,43 +1,22 @@
 import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
-import { getConf, readConfObject } from '@jbrowse/core/configuration'
+import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { AbstractSessionModel, AppRootModel, Region } from '@jbrowse/core/util'
-import { openLocation } from '@jbrowse/core/util/io'
+import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { ClientDataStore as ClientDataStoreType, OboJson } from 'apollo-common'
-import {
-  AnnotationFeature,
-  AnnotationFeatureI,
-  AnnotationFeatureSnapshot,
-  ApolloAssembly,
-  ApolloRefSeq,
-} from 'apollo-mst'
+import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
+import { AnnotationFeature, AnnotationFeatureI } from 'apollo-mst'
 import { autorun, observable } from 'mobx'
-import {
-  IAnyModelType,
-  Instance,
-  flow,
-  getParentOfType,
-  getRoot,
-  resolveIdentifier,
-  types,
-} from 'mobx-state-tree'
+import { IAnyModelType, Instance, flow, getRoot, types } from 'mobx-state-tree'
 
 import {
   ApolloInternetAccountModel,
   UserLocation,
-} from './ApolloInternetAccount/model'
-import { BackendDriver, CollaborationServerDriver } from './BackendDrivers'
-import { ChangeManager } from './ChangeManager'
-import {
-  Stores,
-  addBatchData,
-  getStoreDataCount,
-  initDB,
-} from './components/db'
-import { ApolloRootModel } from './types'
-import { createFetchErrorMessage } from './util'
+} from '../ApolloInternetAccount/model'
+import { ChangeManager } from '../ChangeManager'
+import { ApolloRootModel } from '../types'
+import { createFetchErrorMessage } from '../util'
+import { clientDataStoreFactory } from './ClientDataStore'
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreType & { changeManager: ChangeManager }
@@ -53,7 +32,7 @@ interface ApolloAssemblyResponse {
   aliases?: string[]
 }
 
-interface ApolloRefSeqResponse {
+export interface ApolloRefSeqResponse {
   _id: string
   name: string
   description?: string
@@ -72,136 +51,6 @@ export interface Collaborator {
   name: string
   id: string
   locations: CollaboratorLocation[]
-}
-
-function clientDataStoreFactory(
-  AnnotationFeatureExtended: typeof AnnotationFeature,
-) {
-  return types
-    .model('ClientDataStore', {
-      typeName: types.optional(types.literal('Client'), 'Client'),
-      assemblies: types.map(ApolloAssembly),
-      backendDriverType: types.optional(
-        types.enumeration('backendDriverType', ['CollaborationServerDriver']),
-        'CollaborationServerDriver',
-      ),
-    })
-    .views((self) => ({
-      get internetAccounts() {
-        return (getRoot<ApolloRootModel>(self) as AppRootModel).internetAccounts
-      },
-      getFeature(featureId: string) {
-        return resolveIdentifier(
-          AnnotationFeatureExtended,
-          self.assemblies,
-          featureId,
-        )
-      },
-    }))
-    .actions((self) => ({
-      loadFeatures: flow(function* loadFeatures(regions: Region[]) {
-        for (const region of regions) {
-          const features = (yield (
-            self as unknown as { backendDriver: BackendDriver }
-          ).backendDriver.getFeatures(region)) as AnnotationFeatureSnapshot[]
-          if (!features.length) {
-            continue
-          }
-          const { assemblyName, refName } = region
-          let assembly = self.assemblies.get(assemblyName)
-          if (!assembly) {
-            assembly = self.assemblies.put({ _id: assemblyName, refSeqs: {} })
-          }
-          const [firstFeature] = features
-          let ref = assembly.refSeqs.get(firstFeature.refSeq)
-          if (!ref) {
-            ref = assembly.refSeqs.put({
-              _id: firstFeature.refSeq,
-              name: refName,
-              features: {},
-            })
-          }
-          for (const feature of features) {
-            if (!ref.features.has(feature._id)) {
-              ref.features.put(feature)
-            }
-          }
-        }
-      }),
-      loadRefSeq: flow(function* loadRefSeq(regions: Region[]) {
-        for (const region of regions) {
-          const { seq, refSeq } = yield (
-            self as unknown as { backendDriver: BackendDriver }
-          ).backendDriver.getSequence(region)
-          const { assemblyName, refName } = region
-          let assembly = self.assemblies.get(assemblyName)
-          if (!assembly) {
-            assembly = self.assemblies.put({ _id: assemblyName, refSeqs: {} })
-          }
-          let ref = assembly.refSeqs.get(refSeq)
-          if (!ref) {
-            ref = assembly.refSeqs.put({
-              _id: refSeq,
-              name: refName,
-              sequence: [],
-            })
-          }
-          ref.addSequence({
-            start: region.start,
-            stop: region.end,
-            sequence: seq,
-          })
-        }
-      }),
-
-      addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot) {
-        const assembly = self.assemblies.get(assemblyId)
-        if (!assembly) {
-          throw new Error(
-            `Could not find assembly "${assemblyId}" to add feature "${feature._id}"`,
-          )
-        }
-        const ref = assembly.refSeqs.get(feature.refSeq)
-        if (!ref) {
-          throw new Error(
-            `Could not find refSeq "${feature.refSeq}" to add feature "${feature._id}"`,
-          )
-        }
-        ref.features.put(feature)
-      },
-      addAssembly(assemblyId: string) {
-        self.assemblies.put({ _id: assemblyId, refSeqs: {} })
-      },
-      deleteFeature(featureId: string) {
-        const feature = self.getFeature(featureId)
-        if (!feature) {
-          throw new Error(`Could not find feature "${featureId}" to delete`)
-        }
-        const { parent } = feature
-        if (parent) {
-          parent.deleteChild(featureId)
-        } else {
-          const refSeq = getParentOfType(feature, ApolloRefSeq)
-          refSeq.deleteFeature(feature._id)
-        }
-      },
-      deleteAssembly(assemblyId: string) {
-        self.assemblies.delete(assemblyId)
-      },
-    }))
-    .volatile((self) => ({
-      changeManager: new ChangeManager(self as unknown as ClientDataStoreType),
-    }))
-    .volatile((self) => {
-      if (self.backendDriverType !== 'CollaborationServerDriver') {
-        throw new Error(
-          `Unknown backend driver type "${self.backendDriverType}"`,
-        )
-      }
-      return {
-        backendDriver: new CollaborationServerDriver(self),
-      }
-    })
 }
 
 export function extendSession(
@@ -260,6 +109,7 @@ export function extendSession(
             type: 'ApolloTrack',
             trackId,
             name: `Annotations (${
+              // @ts-expect-error getConf types don't quite work here for some reason
               getConf(assembly, 'displayName') || assembly.name
             })`,
             assemblyNames: [assembly.name],
@@ -385,7 +235,14 @@ export function extendSession(
           },
           { name: 'ApolloSession' },
         )
+        // END AUTORUN
+
+        // fetch and initialize assemblies for each of our Apollo internet accounts
         for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
+          if (internetAccount.type !== 'ApolloInternetAccount') {
+            continue
+          }
+
           const { baseURL } = internetAccount
           const uri = new URL('assemblies', baseURL).href
           const fetch = internetAccount.getFetcher({
@@ -470,6 +327,7 @@ export function extendSession(
                   baseURL: { uri: baseURL, locationType: 'UriLocation' },
                 },
                 metadata: {
+                  apollo: true,
                   internetAccountConfigId:
                     internetAccount.configuration.internetAccountId,
                   ids,
@@ -485,62 +343,6 @@ export function extendSession(
             ;(self.addSessionAssembly || self.addAssembly)(assemblyConfig)
             const a = yield assemblyManager.waitForAssembly(assemblyConfig.name)
             self.addApolloTrackConfig(a)
-          }
-
-          // GO stuff starts here
-          yield initDB()
-          const recCount = yield getStoreDataCount()
-          if (recCount) {
-            return
-          }
-          const { jbrowse } = getRoot<ApolloRootModel>(self)
-          const { configuration } = jbrowse
-          const location = readConfObject(configuration, [
-            'ApolloPlugin',
-            'goLocation',
-          ])
-          if ('uri' in location && location.uri === '') {
-            return
-          }
-          const goTermsArray: { id: string; label: string }[] = []
-          try {
-            const ontologyText = yield openLocation(location).readFile('utf8')
-            if (ontologyText) {
-              const ontologyJson = JSON.parse(ontologyText) as OboJson
-              const ontology: OboJson = ontologyJson
-              // Iterate over the nodes and edges in the JSON file
-              for (const node of ontology.graphs[0].nodes) {
-                if (node.id.startsWith('http://purl.obolibrary.org/obo/GO_')) {
-                  const { meta } = node
-                  let labelText = node.lbl
-                  if ('deprecated' in meta) {
-                    const tmpObj = JSON.parse(JSON.stringify(meta))
-                    if (tmpObj.deprecated === true) {
-                      labelText = '*** This term is deprecated ***'
-                    }
-                  }
-                  goTermsArray.push({
-                    id: node.id.replace(
-                      'http://purl.obolibrary.org/obo/GO_',
-                      'GO:',
-                    ),
-                    label: labelText,
-                  })
-                }
-              }
-            }
-          } catch (error) {
-            console.error(`Error loading ontology file: ${error}`)
-            throw error
-          }
-          if (goTermsArray.length > 0) {
-            console.debug(`Fetched ${goTermsArray.length} GO terms`)
-            const start = Date.now()
-            const res = yield addBatchData(Stores.GOTerms, goTermsArray)
-            const end = Date.now()
-            console.debug(
-              `Inserted ${res} GO terms into database in ${end - start} ms`,
-            )
           }
         }
       }),

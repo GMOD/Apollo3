@@ -23,6 +23,7 @@ export const TrackHeightMixin = types
   }))
   .views((self) => ({
     get height() {
+      // @ts-expect-error getConf needs self.configuration
       return self.heightPreConfig ?? (getConf(self, 'height') as number)
     },
   }))

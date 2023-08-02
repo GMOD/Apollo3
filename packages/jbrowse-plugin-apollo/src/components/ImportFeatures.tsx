@@ -1,4 +1,5 @@
-import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
+import { getConf } from '@jbrowse/core/configuration'
 import {
   Button,
   Dialog,
@@ -14,15 +15,18 @@ import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import LinearProgress from '@mui/material/LinearProgress'
 import { AddFeaturesFromFileChange } from 'apollo-shared'
-import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
+import {
+  ApolloInternetAccount,
+  CollaborationServerDriver,
+} from '../BackendDrivers'
 import { ChangeManager } from '../ChangeManager'
+import { ApolloSessionModel } from '../session'
 import { createFetchErrorMessage } from '../util'
-import { useAssemblies } from './'
 
 interface ImportFeaturesProps {
-  session: AbstractSessionModel
+  session: ApolloSessionModel
   handleClose(): void
   changeManager: ChangeManager
 }
@@ -32,12 +36,10 @@ export function ImportFeatures({
   handleClose,
   changeManager,
 }: ImportFeaturesProps) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
   const { notify } = session
 
-  const [assemblyName, setAssemblyName] = useState('')
   const [file, setFile] = useState<File>()
-  const [assemblyId, setAssemblyId] = useState('')
+  const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
   const [errorMessage, setErrorMessage] = useState('')
   const [submitted, setSubmitted] = useState(false)
   // default is -1, submit button should be disabled until count is set
@@ -45,18 +47,20 @@ export function ImportFeatures({
   const [deleteFeatures, setDeleteFeatures] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const assemblies = useAssemblies(internetAccounts, setErrorMessage)
+  const { collaborationServerDriver, getInternetAccount } =
+    session.apolloDataStore as {
+      collaborationServerDriver: CollaborationServerDriver
+      getInternetAccount(
+        assemblyName?: string,
+        internetAccountId?: string,
+      ): ApolloInternetAccount
+    }
+  const assemblies = collaborationServerDriver.getAssemblies()
 
   function handleChangeAssembly(e: SelectChangeEvent<string>) {
-    const assemblyId = e.target.value
-    const newAssemblyName = assemblies.find((i) => i._id === assemblyId)?.name
+    const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
+    setSelectedAssembly(newAssembly)
     setSubmitted(false)
-    setAssemblyId(assemblyId)
-    if (!newAssemblyName) {
-      setErrorMessage(`Could not find assembly name for id "${assemblyId}"`)
-    } else {
-      setAssemblyName(newAssemblyName)
-    }
   }
 
   function handleDeleteFeatures(e: React.ChangeEvent<HTMLInputElement>) {
@@ -65,12 +69,15 @@ export function ImportFeatures({
 
   // fetch and set features count for selected assembly
   useEffect(() => {
+    if (!selectedAssembly) {
+      return
+    }
     const updateFeaturesCount = async () => {
-      const assembly = assemblies.find((asm) => asm._id === assemblyId)
-      if (!assembly) {
-        throw new Error(`No assembly found with id ${assemblyId}`)
-      }
-      const { internetAccount: apolloInternetAccount } = assembly
+      const { internetAccountConfigId } = getConf(selectedAssembly, [
+        'sequence',
+        'metadata',
+      ]) as { internetAccountConfigId?: string }
+      const apolloInternetAccount = getInternetAccount(internetAccountConfigId)
       if (!apolloInternetAccount) {
         throw new Error('No Apollo internet account found')
       }
@@ -78,7 +85,7 @@ export function ImportFeatures({
       const { baseURL } = apolloInternetAccount
       const uri = new URL('/features/count', baseURL)
       const searchParams = new URLSearchParams({
-        assemblyId,
+        assemblyId: selectedAssembly.name,
       })
       uri.search = searchParams.toString()
       const fetch = apolloInternetAccount?.getFetcher({
@@ -103,10 +110,8 @@ export function ImportFeatures({
       }
     }
 
-    if (assemblyId) {
-      updateFeaturesCount().catch((err) => err)
-    }
-  }, [assemblies, assemblyId])
+    updateFeaturesCount().catch((err) => err)
+  }, [getInternetAccount, selectedAssembly])
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
     setSubmitted(false)
@@ -126,14 +131,20 @@ export function ImportFeatures({
     let fileId = ''
 
     if (!file) {
-      throw new Error('must select a file')
+      setErrorMessage('must select a file')
+      return
     }
 
-    const assembly = assemblies.find((asm) => asm.name === assemblyName)
-    if (!assembly) {
-      throw new Error(`No assembly found with name ${assemblyName}`)
+    if (!selectedAssembly) {
+      setErrorMessage('Must select assembly to download')
+      return
     }
-    const { internetAccount: apolloInternetAccount } = assembly
+
+    const { internetAccountConfigId } = getConf(selectedAssembly, [
+      'sequence',
+      'metadata',
+    ]) as { internetAccountConfigId?: string }
+    const apolloInternetAccount = getInternetAccount(internetAccountConfigId)
     const { baseURL } = apolloInternetAccount
 
     // First upload file
@@ -167,12 +178,17 @@ export function ImportFeatures({
     // Add features
     const change = new AddFeaturesFromFileChange({
       typeName: 'AddFeaturesFromFileChange',
-      assembly: assemblyId,
+      assembly: selectedAssembly.name,
       fileId,
       deleteExistingFeatures: deleteFeatures,
     })
     await changeManager.submit(change)
-    notify(`Features are being added to "${assemblyName}"`, 'info')
+    notify(
+      `Features are being added to "${
+        selectedAssembly.displayName ?? selectedAssembly.name
+      }"`,
+      'info',
+    )
     handleClose()
     event.preventDefault()
   }
@@ -187,13 +203,13 @@ export function ImportFeatures({
           <DialogContentText>Select assembly</DialogContentText>
           <Select
             labelId="label"
-            value={assemblyId}
+            value={selectedAssembly?.name ?? ''}
             onChange={handleChangeAssembly}
             disabled={submitted && !errorMessage}
           >
             {assemblies.map((option) => (
-              <MenuItem key={option._id} value={option._id}>
-                {option.name}
+              <MenuItem key={option.name} value={option.name}>
+                {option.displayName ?? option.name}
               </MenuItem>
             ))}
           </Select>
@@ -231,7 +247,7 @@ export function ImportFeatures({
         <DialogActions>
           <Button
             disabled={
-              !(assemblyId && file && featuresCount !== -1) || submitted
+              !(selectedAssembly && file && featuresCount !== -1) || submitted
             }
             variant="contained"
             type="submit"

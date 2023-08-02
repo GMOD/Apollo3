@@ -15,7 +15,28 @@
           "main": "#6b4e2b"
         }
       }
-    }
+    },
+    "ApolloPlugin": {
+        "ontologies": [
+            {
+                "name": "Gene Ontology",
+                "version": "full",
+                "source": {
+                    "uri": "http://release.geneontology.org/2023-06-11/ontology/go.json",
+                    "locationType": "UriLocation"
+                }
+            },
+            {
+              "name": "Sequence Ontology",
+              "version": "3.1",
+              "source": {
+                  "uri": "test_data/so-v3.1.json",
+                  "locationType": "UriLocation"
+              }
+          }
+
+        ]
+      }
   },
   "plugins": [
     {
@@ -23,6 +44,7 @@
       "url": "http://localhost:9000/dist/jbrowse-plugin-apollo.umd.development.js"
     }
   ],
+
   "internetAccounts": [
     {
       "type": "ApolloInternetAccount",
