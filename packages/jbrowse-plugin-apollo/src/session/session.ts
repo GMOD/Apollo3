@@ -1,11 +1,10 @@
 import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
-import { getConf, readConfObject } from '@jbrowse/core/configuration'
+import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
-import { openLocation } from '@jbrowse/core/util/io'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { ClientDataStore as ClientDataStoreType, OboJson } from 'apollo-common'
+import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
 import { AnnotationFeature, AnnotationFeatureI } from 'apollo-mst'
 import { autorun, observable } from 'mobx'
 import { IAnyModelType, Instance, flow, getRoot, types } from 'mobx-state-tree'
@@ -15,12 +14,6 @@ import {
   UserLocation,
 } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
-import {
-  Stores,
-  addBatchData,
-  getStoreDataCount,
-  initDB,
-} from '../components/db'
 import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 import { clientDataStoreFactory } from './ClientDataStore'
@@ -116,6 +109,7 @@ export function extendSession(
             type: 'ApolloTrack',
             trackId,
             name: `Annotations (${
+              // @ts-expect-error getConf types don't quite work here for some reason
               getConf(assembly, 'displayName') || assembly.name
             })`,
             assemblyNames: [assembly.name],
@@ -241,7 +235,14 @@ export function extendSession(
           },
           { name: 'ApolloSession' },
         )
+        // END AUTORUN
+
+        // fetch and initialize assemblies for each of our Apollo internet accounts
         for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
+          if (internetAccount.type !== 'ApolloInternetAccount') {
+            continue
+          }
+
           const { baseURL } = internetAccount
           const uri = new URL('assemblies', baseURL).href
           const fetch = internetAccount.getFetcher({
@@ -342,62 +343,6 @@ export function extendSession(
             ;(self.addSessionAssembly || self.addAssembly)(assemblyConfig)
             const a = yield assemblyManager.waitForAssembly(assemblyConfig.name)
             self.addApolloTrackConfig(a)
-          }
-
-          // GO stuff starts here
-          yield initDB()
-          const recCount = yield getStoreDataCount()
-          if (recCount) {
-            return
-          }
-          const { jbrowse } = getRoot<ApolloRootModel>(self)
-          const { configuration } = jbrowse
-          const location = readConfObject(configuration, [
-            'ApolloPlugin',
-            'goLocation',
-          ])
-          if ('uri' in location && location.uri === '') {
-            return
-          }
-          const goTermsArray: { id: string; label: string }[] = []
-          try {
-            const ontologyText = yield openLocation(location).readFile('utf8')
-            if (ontologyText) {
-              const ontologyJson = JSON.parse(ontologyText) as OboJson
-              const ontology: OboJson = ontologyJson
-              // Iterate over the nodes and edges in the JSON file
-              for (const node of ontology.graphs[0].nodes) {
-                if (node.id.startsWith('http://purl.obolibrary.org/obo/GO_')) {
-                  const { meta } = node
-                  let labelText = node.lbl
-                  if ('deprecated' in meta) {
-                    const tmpObj = JSON.parse(JSON.stringify(meta))
-                    if (tmpObj.deprecated === true) {
-                      labelText = '*** This term is deprecated ***'
-                    }
-                  }
-                  goTermsArray.push({
-                    id: node.id.replace(
-                      'http://purl.obolibrary.org/obo/GO_',
-                      'GO:',
-                    ),
-                    label: labelText,
-                  })
-                }
-              }
-            }
-          } catch (error) {
-            console.error(`Error loading ontology file: ${error}`)
-            throw error
-          }
-          if (goTermsArray.length > 0) {
-            console.debug(`Fetched ${goTermsArray.length} GO terms`)
-            const start = Date.now()
-            const res = yield addBatchData(Stores.GOTerms, goTermsArray)
-            const end = Date.now()
-            console.debug(
-              `Inserted ${res} GO terms into database in ${end - start} ms`,
-            )
           }
         }
       }),

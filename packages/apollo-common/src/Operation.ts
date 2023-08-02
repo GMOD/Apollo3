@@ -25,46 +25,6 @@ interface CreateFileDto {
   readonly user: string
 }
 
-interface OboJsonNode {
-  id: string
-  meta: {
-    definition: { val: string; xrefs: string[] }
-    comments: string[]
-    synonyms: { pred: string; val: string; xrefs: string[] }[]
-    basicPropertyValues: { pred: string; val: string }[]
-  }
-  type: string
-  lbl: string
-}
-
-interface OboJsonEdge {
-  sub: string
-  pred: string
-  obj: string
-}
-
-interface OboJsonMetadata {
-  basicPropertyValues: { pred: string; val: string }[]
-  version: string
-  xrefs?: string[]
-  subsets?: string[]
-}
-
-export interface OboJson {
-  graphs: [
-    {
-      nodes: OboJsonNode[]
-      edges: OboJsonEdge[]
-      id: string
-      meta: OboJsonMetadata
-      equivalentNodesSets?: string[]
-      logicalDefinitionAxioms?: string[]
-      domainRangeAxioms?: string[]
-      propertyChainAxioms?: string[]
-    },
-  ]
-}
-
 export interface ServerDataStore {
   typeName: 'Server'
   featureModel: Model<FeatureDocument>
@@ -90,11 +50,8 @@ export interface ServerDataStore {
   counterService: {
     getNextSequenceValue(sequenceName: string): Promise<number>
   }
-  ontology: OboJson
   user: string
 }
-export type OboJsonShared = OboJson
-
 export interface SerializedOperation {
   typeName: string
 }

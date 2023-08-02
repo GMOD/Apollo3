@@ -8,10 +8,74 @@
       "cwd": "${workspaceFolder}/packages/apollo-collaboration-server",
       "name": "Debug Collaboration Server",
       "request": "launch",
-      "runtimeArgs": ["start:debug"],
+      "runtimeArgs": [
+        "start:debug"
+      ],
       "runtimeExecutable": "yarn",
-      "skipFiles": ["<node_internals>/**"],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
       "type": "node"
+    },
+    {
+      "name": "All Jest Tests",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": [
+        "run",
+        "--inspect-brk",
+        "test",
+        "--runInBand"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**",
+        ".yarn/cache/**"
+      ]
+    },
+    {
+      "name": "Current Jest Test",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": [
+        "run",
+        "--inspect-brk",
+        "test",
+        "--runInBand",
+        "${relativeFile}"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/.yarn/cache/**"
+      ]
+    },
+    {
+      "type": "node",
+      "name": "vscode-jest-tests.v2",
+      "request": "launch",
+      "args": [
+        "test",
+        "--runInBand",
+        "--watchAll=false",
+        "--testNamePattern",
+        "${jest.testNamePattern}",
+        "--runTestsByPath",
+        "${jest.testFile}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "disableOptimisticBPs": true,
+      "runtimeExecutable": "yarn",
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/.yarn/cache/**"
+      ]
     }
-  ]
+  ],
 }

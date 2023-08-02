@@ -97,7 +97,7 @@ export class BoxGlyph extends Glyph {
       return
     }
     const { feature, mousePosition } = apolloHover
-    if (!(feature && mousePosition)) {
+    if (!feature || !mousePosition) {
       return
     }
     const { bpPerPx, bpToPx, offsetPx } = lgv

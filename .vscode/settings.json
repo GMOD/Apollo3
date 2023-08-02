@@ -5,5 +5,7 @@
   },
   "typescript.tsdk": ".yarn/sdks/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
-  "eslint.nodePath": ".yarn/sdks"
+  "eslint.nodePath": ".yarn/sdks",
+  "jest.jestCommandLine": "yarn test",
+  "jest.autoRun": {},
 }

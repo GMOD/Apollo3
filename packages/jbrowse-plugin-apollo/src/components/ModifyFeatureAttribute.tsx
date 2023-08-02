@@ -1,4 +1,8 @@
-import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  AppRootModel,
+  getSession,
+} from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Button,
@@ -26,7 +30,7 @@ import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
-import { GoAutocomplete } from './GoAutocomplete'
+import { OntologyTermMultiSelect } from './OntologyTermMultiSelect'
 
 interface ModifyFeatureAttributeProps {
   session: AbstractSessionModel
@@ -36,16 +40,21 @@ interface ModifyFeatureAttributeProps {
   changeManager: ChangeManager
 }
 
-function SoAutocompleteUnimplemented() {
-  return <></>
-}
-
-const reservedKeys = new Map<
-  string,
-  React.FunctionComponent<AttributeValueEditorProps>
->([
-  ['Gene Ontology', GoAutocomplete],
-  ['Sequence Ontology', SoAutocompleteUnimplemented],
+const reservedKeys = new Map([
+  [
+    'Gene Ontology',
+    (props: AttributeValueEditorProps) => {
+      return <OntologyTermMultiSelect {...props} ontologyName="Gene Ontology" />
+    },
+  ],
+  [
+    'Sequence Ontology',
+    (props: AttributeValueEditorProps) => {
+      return (
+        <OntologyTermMultiSelect {...props} ontologyName="Sequence Ontology" />
+      )
+    },
+  ],
 ])
 
 const useStyles = makeStyles()((theme) => ({
@@ -63,6 +72,7 @@ const useStyles = makeStyles()((theme) => ({
 }))
 
 export interface AttributeValueEditorProps {
+  session: ReturnType<typeof getSession>
   value: string[]
   onChange(newValue: string[]): void
 }
@@ -295,6 +305,7 @@ export function ModifyFeatureAttribute({
                   </Grid>
                   <Grid item flexGrow={1}>
                     <EditorComponent
+                      session={session}
                       value={value}
                       onChange={makeOnChange(key)}
                     />
@@ -333,7 +344,7 @@ export function ModifyFeatureAttribute({
                     <Grid item>
                       <FormControl>
                         <FormLabel id="attribute-radio-button-group">
-                          Attribute type
+                          Select attribute type
                         </FormLabel>
                         <RadioGroup
                           aria-labelledby="demo-radio-buttons-group-label"
@@ -374,8 +385,6 @@ export function ModifyFeatureAttribute({
                               value={key}
                               control={<Radio />}
                               label={key}
-                              // TODO: disable this when SO editor is implemented
-                              disabled={key === 'Sequence Ontology'}
                             />
                           ))}
                         </RadioGroup>
