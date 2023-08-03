@@ -12,6 +12,7 @@ import {
 import {
   Instance,
   SnapshotIn,
+  SnapshotOut,
   flow,
   getParentOfType,
   getRoot,
@@ -241,8 +242,10 @@ export function clientDataStoreFactory(
   // assembly and feature data isn't actually reloaded on reload unless we delete it from the snap
   return types.snapshotProcessor(clientStoreType, {
     preProcessor(snap: SnapshotIn<typeof clientStoreType>) {
-      delete snap.assemblies
-      return snap
+      return { ...snap, assemblies: {} }
+    },
+    postProcessor(snap: SnapshotOut<typeof clientStoreType>) {
+      return { ...snap, assemblies: {} }
     },
   })
 }
