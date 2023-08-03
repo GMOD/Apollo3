@@ -77,7 +77,10 @@ export function ImportFeatures({
         'sequence',
         'metadata',
       ]) as { internetAccountConfigId?: string }
-      const apolloInternetAccount = getInternetAccount(internetAccountConfigId)
+      const apolloInternetAccount = getInternetAccount(
+        selectedAssembly.name,
+        internetAccountConfigId,
+      )
       if (!apolloInternetAccount) {
         throw new Error('No Apollo internet account found')
       }
@@ -144,7 +147,10 @@ export function ImportFeatures({
       'sequence',
       'metadata',
     ]) as { internetAccountConfigId?: string }
-    const apolloInternetAccount = getInternetAccount(internetAccountConfigId)
+    const apolloInternetAccount = getInternetAccount(
+      selectedAssembly.name,
+      internetAccountConfigId,
+    )
     const { baseURL } = apolloInternetAccount
 
     // First upload file
@@ -255,14 +261,13 @@ export function ImportFeatures({
             {submitted ? 'Submitting...' : 'Submit'}
           </Button>
           <Button
-            disabled={submitted}
             variant="outlined"
             type="submit"
             onClick={() => {
               handleClose()
             }}
           >
-            Cancel
+            Close
           </Button>
         </DialogActions>
       </form>
