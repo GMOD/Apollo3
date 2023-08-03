@@ -52,6 +52,13 @@ const useStyles = makeStyles()((theme) => ({
   hoveredFeature: {
     backgroundColor: theme.palette.grey[300],
   },
+  typeInputElement: {
+    border: 'none',
+    background: 'none',
+  },
+  typeErrorMessage: {
+    color: 'red',
+  },
 }))
 
 function makeContextMenuItems(
@@ -166,6 +173,23 @@ export const Feature = observer(function Feature({
               value={feature.type}
               filterTerms={isOntologyClass}
               fetchValidTerms={fetchValidTypeTerms.bind(null, feature)}
+              renderInput={(params) => {
+                return (
+                  <div ref={params.InputProps.ref}>
+                    <input
+                      type="text"
+                      {...params.inputProps}
+                      className={classes.typeInputElement}
+                      style={{ width: 170 }}
+                    />
+                    {params.error ? (
+                      <div className={classes.typeErrorMessage}>
+                        {params.errorMessage ?? 'unknown error'}
+                      </div>
+                    ) : null}
+                  </div>
+                )
+              }}
               onChange={(oldValue, newValue) => {
                 if (newValue) {
                   handleFeatureTypeChange(

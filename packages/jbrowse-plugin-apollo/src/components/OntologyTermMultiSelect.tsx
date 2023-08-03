@@ -199,7 +199,7 @@ export function OntologyTermMultiSelect({
     return () => {
       aborter.abort()
     }
-  }, [getOntologyTerms, inputValue, value])
+  }, [getOntologyTerms, ontology, inputValue, value])
 
   if (!ontology) {
     return null
