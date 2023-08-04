@@ -162,7 +162,7 @@ export function elaborateMatch(
   const matchedQueryWords = sortedWordIndexes.map((i) => queryWords[i])
   const queryWordRegexps = matchedQueryWords.map((queryWord) => {
     const escaped = queryWord.replace(/[/\-\\^$*+?.()|[\]{}]/g, '\\$&')
-    return RegExp(`\\b${escaped}`, 'g')
+    return RegExp(`\\b${escaped}`, 'gi')
   })
   // const needle = matchedQueryWords.join(' ')
 
