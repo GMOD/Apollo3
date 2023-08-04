@@ -10,7 +10,7 @@ import { getTermsByFulltext } from './fulltext'
 import { OntologyDB, OntologyDBEdge, isDeprecated } from './indexeddb-schema'
 import {
   getTextIndexPaths,
-  isDatabaseCompletelyLoaded,
+  isDatabaseCurrent,
   loadOboGraphJson,
   openDatabase,
 } from './indexeddb-storage'
@@ -81,6 +81,7 @@ export default class OntologyStore {
   loadOboGraphJson = loadOboGraphJson
   getTermsByFulltext = getTermsByFulltext
   openDatabase = openDatabase
+  isDatabaseCurrent = isDatabaseCurrent
 
   get textIndexPaths() {
     return getTextIndexPaths.call(this)
@@ -162,7 +163,7 @@ export default class OntologyStore {
     const db = await this.openDatabase(this.dbName)
 
     // if database is already completely loaded, just return it
-    if (await isDatabaseCompletelyLoaded(db)) {
+    if (await this.isDatabaseCurrent(db)) {
       return db
     }
 

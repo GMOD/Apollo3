@@ -6,7 +6,7 @@ import {
   Meta as OboGraphMeta,
   Node as OboGraphNode,
 } from './obo-graph-json-schema'
-import { SourceLocation } from '.'
+import { OntologyStoreOptions, SourceLocation } from '.'
 
 /** metadata about this IndexedDB ontology database */
 export interface Meta {
@@ -16,6 +16,7 @@ export interface Meta {
     version: string
     sourceLocation: SourceLocation
   }
+  storeOptions: OntologyStoreOptions
   /** graph metadata in OBO Graph metadata format */
   graphMeta?: OboGraphMeta
   timestamp: string

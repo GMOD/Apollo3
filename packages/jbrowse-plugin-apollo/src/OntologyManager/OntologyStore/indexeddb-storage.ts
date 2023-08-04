@@ -1,4 +1,5 @@
 import { openLocation } from '@jbrowse/core/util/io'
+import equal from 'fast-deep-equal/es6'
 import { IDBPDatabase, IDBPTransaction, openDB } from 'idb/with-async-ittr'
 
 import { PREFIXED_ID_PATH, getWords } from './fulltext'
@@ -134,6 +135,7 @@ export async function loadOboGraphJson(this: OntologyStore, db: Database) {
           version: this.ontologyVersion,
           sourceLocation: this.sourceLocation,
         },
+        storeOptions: this.options,
         graphMeta: graph.meta,
         timestamp: String(new Date()),
         schemaVersion,
@@ -164,9 +166,16 @@ export function getTextIndexPaths(this: OntologyStore) {
   ]
 }
 
-export async function isDatabaseCompletelyLoaded(db: Database) {
+export async function isDatabaseCurrent(this: OntologyStore, db: Database) {
   // since metadata is loaded last, we use it as a signal that all the other data
   // was loaded
   const [meta] = await db.transaction('meta').objectStore('meta').getAll()
-  return !!meta
+  if (!meta) {
+    return false
+  }
+  // check that the index paths and prefixes are the same as our current ones
+  return (
+    equal(this.options.prefixes, meta.storeOptions?.prefixes) &&
+    equal(this.options.textIndexing, meta.storeOptions?.textIndexing)
+  )
 }

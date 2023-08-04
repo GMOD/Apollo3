@@ -103,7 +103,10 @@ export const OntologyManagerType = types
         name,
         version,
         source,
-        options: options ?? {},
+        options: {
+          prefixes: new Map(self.prefixes.entries()),
+          ...(options ?? {}),
+        },
       })
       // access it immediately to fire its lifecycle hooks
       // (see https://github.com/mobxjs/mobx-state-tree/issues/1665)
@@ -120,11 +123,6 @@ export const OntologyRecordConfiguration = ConfigurationSchema(
       type: 'string',
       description: 'the full name of the ontology, e.g. "Gene Ontology"',
       defaultValue: 'My Ontology',
-    },
-    prefix: {
-      type: 'string',
-      description: 'the identifier prefix used for the ontology, e.g. "GO"',
-      defaultValue: 'MY',
     },
     version: {
       type: 'string',
