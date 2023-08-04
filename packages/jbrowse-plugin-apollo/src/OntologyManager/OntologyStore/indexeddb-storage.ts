@@ -16,7 +16,7 @@ const schemaVersion = 2
 export type Database = IDBPDatabase<OntologyDB>
 
 /** open the IndexedDB and create the DB schema if necessary */
-export async function openDatabase(dbName: string) {
+export async function openDatabase(this: OntologyStore, dbName: string) {
   // await deleteDB(dbName) // uncomment this to reload every time during development
   return openDB<OntologyDB>(dbName, schemaVersion, {
     upgrade(
@@ -65,6 +65,15 @@ export async function openDatabase(dbName: string) {
   })
 }
 
+/** serialize all our words in the DB node so they can be indexed */
+function serializeWords(foundWords: Iterable<[string, string]>): string[] {
+  const allWords = new Set<string>()
+  for (const [, word] of foundWords) {
+    allWords.add(word)
+  }
+  return Array.from(allWords)
+}
+
 /** load a OBO Graph JSON file into a database */
 export async function loadOboGraphJson(this: OntologyStore, db: Database) {
   const startTime = Date.now()
@@ -94,14 +103,12 @@ export async function loadOboGraphJson(this: OntologyStore, db: Database) {
 
     // load nodes
     const nodeStore = tx.objectStore('nodes')
-    const fullTextIndexPaths = this.options.textIndexing?.indexPaths
-      ? this.options.textIndexing?.indexPaths.map((p) => p.split('/'))
-      : [['lbl'], ['meta', 'definition', 'val']]
+    const fullTextIndexPaths = getTextIndexPaths.call(this)
     for (const node of graph.nodes ?? []) {
       if (isOntologyDBNode(node)) {
         await nodeStore.add({
           ...node,
-          fullTextWords: Array.from(getWords(node, fullTextIndexPaths)),
+          fullTextWords: serializeWords(getWords(node, fullTextIndexPaths)),
         })
       }
     }
@@ -142,6 +149,16 @@ export async function loadOboGraphJson(this: OntologyStore, db: Database) {
     throw e
   }
   return
+}
+
+export function getTextIndexPaths(this: OntologyStore) {
+  return (
+    this.options.textIndexing?.indexPaths ?? [
+      '$.lbl',
+      '$.meta.synonyms[*].val',
+      '$.meta.definition.val',
+    ]
+  )
 }
 
 export async function isDatabaseCompletelyLoaded(db: Database) {

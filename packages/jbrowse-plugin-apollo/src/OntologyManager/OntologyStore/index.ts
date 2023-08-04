@@ -9,6 +9,7 @@ import { IDBPTransaction, IndexNames, StoreNames } from 'idb/with-async-ittr'
 import { getTermsByFulltext } from './fulltext'
 import { OntologyDB, OntologyDBEdge, isDeprecated } from './indexeddb-schema'
 import {
+  getTextIndexPaths,
   isDatabaseCompletelyLoaded,
   loadOboGraphJson,
   openDatabase,
@@ -78,6 +79,11 @@ export default class OntologyStore {
 
   loadOboGraphJson = loadOboGraphJson
   getTermsByFulltext = getTermsByFulltext
+  openDatabase = openDatabase
+
+  get textIndexPaths() {
+    return getTextIndexPaths.call(this)
+  }
 
   readonly DEFAULT_MAX_SEARCH_RESULTS = 100
 
@@ -148,7 +154,7 @@ export default class OntologyStore {
       throw errors
     }
 
-    const db = await openDatabase(this.dbName)
+    const db = await this.openDatabase(this.dbName)
 
     // if database is already completely loaded, just return it
     if (await isDatabaseCompletelyLoaded(db)) {

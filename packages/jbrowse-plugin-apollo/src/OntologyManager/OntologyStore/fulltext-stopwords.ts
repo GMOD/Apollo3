@@ -127,6 +127,7 @@ export const genericEnglishStopwords = new Set([
   'don',
   'should',
   'now',
+  ...'1234567890'.split(''),
 ])
 
 /**

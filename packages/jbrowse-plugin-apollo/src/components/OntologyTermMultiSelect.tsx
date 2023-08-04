@@ -188,7 +188,7 @@ export function OntologyTermMultiSelect({
         undefined,
         signal,
       )
-      setOptions(matches.map((m) => m[1]).filter(isOntologyClass))
+      setOptions(matches.map((m) => m.term).filter(isOntologyClass))
       setLoading(false)
     })().catch((error) => {
       if (!isAbortException(error)) {

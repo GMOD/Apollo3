@@ -152,7 +152,11 @@ export const OntologyRecordConfiguration = ConfigurationSchema(
       type: 'frozen',
       description:
         'JSON paths for text fields that will be indexed for text searching',
-      defaultValue: ['lbl', 'meta/definition/val'],
+      defaultValue: [
+        '$.lbl',
+        '$.meta.synonyms[*].val',
+        '$.meta.definition.val',
+      ],
     },
   },
 )
