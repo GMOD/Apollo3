@@ -39,6 +39,24 @@ if ('document' in window) {
 }
 
 export class ImplicitExonGeneGlyph extends Glyph {
+  featuresForRow(feature: AnnotationFeatureI): AnnotationFeatureI[][] {
+    const features: AnnotationFeatureI[][] = []
+    // how to check if parent feature is displayed ?
+    // const features: AnnotationFeatureI[][] = [[feature]]
+
+    feature.children?.forEach((child: AnnotationFeatureI) => {
+      const childFeatures: AnnotationFeatureI[] = []
+      child.children?.forEach((annotationFeature: AnnotationFeatureI) => {
+        childFeatures.push(annotationFeature)
+      })
+      // for selecting parent object if we click on gaps
+      childFeatures.push(child)
+      features.push(childFeatures)
+    })
+
+    return features
+  }
+
   getRowCount(feature: AnnotationFeatureI): number {
     let mrnaCount = 0
     for (const [, child] of feature.children ?? new Map()) {
@@ -63,6 +81,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
     const utrHeight = Math.round(0.6 * rowHeight)
     const cdsHeight = Math.round(0.9 * rowHeight)
     const { _id, children, max, min, strand } = feature
+    const { apolloSelectedFeature } = session
     let currentMRNA = 0
     for (const [, mrna] of children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
@@ -109,7 +128,13 @@ export class ImplicitExonGeneGlyph extends Glyph {
           ctx.fillRect(startPx, cdsOrUTRTop, widthPx, height)
           if (widthPx > 2) {
             ctx.clearRect(startPx + 1, cdsOrUTRTop + 1, widthPx - 2, height - 2)
-            ctx.fillStyle = isCDS ? 'rgb(255,165,0)' : 'rgb(211,211,211)'
+            ctx.fillStyle =
+              apolloSelectedFeature &&
+              cdsOrUTR._id === apolloSelectedFeature._id
+                ? 'rgb(0,0,0)'
+                : isCDS
+                ? 'rgb(255,165,0)'
+                : 'rgb(211,211,211)'
             ctx.fillRect(startPx + 1, cdsOrUTRTop + 1, widthPx - 2, height - 2)
             if (forwardFill && backwardFill && strand) {
               const reversal = reversed ? -1 : 1
@@ -137,7 +162,6 @@ export class ImplicitExonGeneGlyph extends Glyph {
       }
       currentMRNA += 1
     }
-    const { apolloSelectedFeature } = session
     if (apolloSelectedFeature && _id === apolloSelectedFeature._id) {
       const widthPx = max - min
       const startPx = reversed ? xOffset - widthPx : xOffset
@@ -202,7 +226,10 @@ export class ImplicitExonGeneGlyph extends Glyph {
 
   getFeatureFromLayout(
     feature: AnnotationFeatureI,
+    bp: number,
+    row: number,
   ): AnnotationFeatureI | undefined {
-    return feature
+    const layoutRow = this.featuresForRow(feature)[row]
+    return layoutRow?.find((f) => bp >= f.start && bp <= f.end)
   }
 }
