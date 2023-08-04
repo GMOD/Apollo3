@@ -41,7 +41,6 @@ if ('document' in window) {
 export class ImplicitExonGeneGlyph extends Glyph {
   featuresForRow(feature: AnnotationFeatureI): AnnotationFeatureI[][] {
     const features: AnnotationFeatureI[][] = []
-    // how to check if parent feature is displayed ?
     // const features: AnnotationFeatureI[][] = [[feature]]
 
     feature.children?.forEach((child: AnnotationFeatureI) => {
