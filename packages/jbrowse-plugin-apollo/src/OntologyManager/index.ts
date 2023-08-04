@@ -9,6 +9,7 @@ import { Instance, addDisposer, getSnapshot, types } from 'mobx-state-tree'
 
 import OntologyStore, { OntologyStoreOptions } from './OntologyStore'
 import { OntologyDBNode } from './OntologyStore/indexeddb-schema'
+import { applyPrefixes, expandPrefixes } from './OntologyStore/prefixes'
 
 export { isDeprecated } from './OntologyStore/indexeddb-schema'
 
@@ -81,24 +82,14 @@ export const OntologyManagerType = types
      * prefixes
      */
     applyPrefixes(uri: string) {
-      for (const [prefix, uriBase] of self.prefixes.entries()) {
-        if (uri.startsWith(uriBase)) {
-          return uri.replace(uriBase, prefix)
-        }
-      }
-      return uri
+      return applyPrefixes(uri, self.prefixes)
     },
     /**
      * expand the given compacted URI using the currently
      * configured prefixes
      */
     expandPrefixes(uri: string) {
-      for (const [prefix, uriBase] of self.prefixes.entries()) {
-        if (uri.startsWith(prefix)) {
-          return uri.replace(prefix, uriBase)
-        }
-      }
-      return uri
+      return expandPrefixes(uri, self.prefixes)
     },
   }))
   .actions((self) => ({

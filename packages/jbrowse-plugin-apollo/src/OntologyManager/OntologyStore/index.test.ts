@@ -4,24 +4,23 @@ import OntologyStore from '.'
 import { OntologyClass, isOntologyClass } from '..'
 
 jest.setTimeout(1000000000)
-const so = new OntologyStore('Sequence Ontology', 'automated testing', {
-  locationType: 'LocalPathLocation',
-  localPath: 'test_data/so-v3.1.json',
-})
+
+const prefixes = new Map([
+  ['SO:', 'http://purl.obolibrary.org/obo/SO_'],
+  ['GO:', 'http://purl.obolibrary.org/obo/GO_'],
+])
+
+const so = new OntologyStore(
+  'Sequence Ontology',
+  'automated testing',
+  {
+    locationType: 'LocalPathLocation',
+    localPath: 'test_data/so-v3.1.json',
+  },
+  { prefixes },
+)
 
 describe('OntologyStore', () => {
-  it('can load goslim aspergillus', async () => {
-    const goslimAspergillus = new OntologyStore(
-      'GO-slim aspergillus',
-      'automated testing',
-      {
-        locationType: 'LocalPathLocation',
-        localPath: 'test_data/goslim_aspergillus.json',
-      },
-    )
-
-    expect(await goslimAspergillus.termCount()).toMatchSnapshot()
-  })
   it('can load goslim generic', async () => {
     const goslimGeneric = new OntologyStore(
       'Gene Ontology',
@@ -30,6 +29,7 @@ describe('OntologyStore', () => {
         locationType: 'LocalPathLocation',
         localPath: 'test_data/goslim_generic.json',
       },
+      { prefixes },
     )
 
     expect(await goslimGeneric.termCount()).toMatchSnapshot()

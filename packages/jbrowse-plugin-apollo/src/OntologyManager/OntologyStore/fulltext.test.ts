@@ -1,6 +1,11 @@
 import { describe, expect, it } from '@jest/globals'
 
-import { elaborateMatch, extractWords, getWords } from './fulltext'
+import {
+  PREFIXED_ID_PATH,
+  elaborateMatch,
+  extractWords,
+  getWords,
+} from './fulltext'
 import { OntologyDBNode } from './indexeddb-schema'
 
 const testNode: OntologyDBNode = {
@@ -28,6 +33,10 @@ const testNode: OntologyDBNode = {
   },
 }
 
+const prefixes = new Map<string, string>([
+  ['SO:', 'http://purl.obolibrary.org/obo/SO_'],
+])
+
 describe('extractWords', () => {
   it('can words from the members of objects', () => {
     const result = extractWords(['bar baz', 'noggin'])
@@ -48,11 +57,16 @@ describe('extractWords', () => {
 
 describe('getWords', () => {
   it('can get the words from a test node', () => {
-    const result = getWords(testNode, [
-      '$.lbl',
-      '$.meta.definition.val',
-      '$.meta.synonyms[*].val',
-    ])
+    const result = getWords(
+      testNode,
+      [
+        PREFIXED_ID_PATH,
+        '$.lbl',
+        '$.meta.definition.val',
+        '$.meta.synonyms[*].val',
+      ],
+      prefixes,
+    )
     expect([...result]).toMatchSnapshot()
   })
 })
@@ -64,6 +78,23 @@ describe('elaborateMatch', () => {
       testNode,
       new Set([1, 2]),
       ['zonk', 'nucleotide', 'region'],
+      prefixes,
+    )
+    expect(result.length).toBe(1)
+    expect(result).toMatchSnapshot()
+  })
+  it('can do another', () => {
+    const result = elaborateMatch(
+      [
+        PREFIXED_ID_PATH,
+        '$.lbl',
+        '$.meta.synonyms[*].val',
+        '$.meta.definition.val',
+      ],
+      testNode,
+      new Set([0]),
+      ['SO:0000001'],
+      prefixes,
     )
     expect(result.length).toBe(1)
     expect(result).toMatchSnapshot()

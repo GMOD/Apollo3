@@ -62,6 +62,7 @@ async function arrayFromAsync<T>(iter: AsyncIterable<T>) {
 // }
 
 export interface OntologyStoreOptions {
+  prefixes?: Map<string, string>
   textIndexing?: {
     /** json paths of paths in the nodes to index as full text */
     indexPaths?: string[]
@@ -83,6 +84,10 @@ export default class OntologyStore {
 
   get textIndexPaths() {
     return getTextIndexPaths.call(this)
+  }
+
+  get prefixes(): Map<string, string> {
+    return this.options.prefixes ?? new Map()
   }
 
   readonly DEFAULT_MAX_SEARCH_RESULTS = 100

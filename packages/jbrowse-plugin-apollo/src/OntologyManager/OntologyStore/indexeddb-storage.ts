@@ -1,7 +1,7 @@
 import { openLocation } from '@jbrowse/core/util/io'
 import { IDBPDatabase, IDBPTransaction, openDB } from 'idb/with-async-ittr'
 
-import { getWords } from './fulltext'
+import { PREFIXED_ID_PATH, getWords } from './fulltext'
 import {
   OntologyDB,
   isOntologyDBEdge,
@@ -108,7 +108,9 @@ export async function loadOboGraphJson(this: OntologyStore, db: Database) {
       if (isOntologyDBNode(node)) {
         await nodeStore.add({
           ...node,
-          fullTextWords: serializeWords(getWords(node, fullTextIndexPaths)),
+          fullTextWords: serializeWords(
+            getWords(node, fullTextIndexPaths, this.prefixes),
+          ),
         })
       }
     }
@@ -152,13 +154,14 @@ export async function loadOboGraphJson(this: OntologyStore, db: Database) {
 }
 
 export function getTextIndexPaths(this: OntologyStore) {
-  return (
-    this.options.textIndexing?.indexPaths ?? [
+  return [
+    PREFIXED_ID_PATH,
+    ...(this.options.textIndexing?.indexPaths ?? [
       '$.lbl',
       '$.meta.synonyms[*].val',
       '$.meta.definition.val',
-    ]
-  )
+    ]),
+  ]
 }
 
 export async function isDatabaseCompletelyLoaded(db: Database) {

@@ -6,12 +6,27 @@ import jsonpath from 'jsonpath'
 
 import { stopwords } from './fulltext-stopwords'
 import { OntologyDBNode } from './indexeddb-schema'
+import { applyPrefixes } from './prefixes'
 import OntologyStore, { Transaction } from '.'
+
+export const PREFIXED_ID_PATH = '$PREFIXED_ID'
+
+/** small wrapper for jsonpath.query that intercepts requests for the special prefixed ID path */
+function jsonPathQuery(
+  node: OntologyDBNode,
+  path: string,
+  prefixes: Map<string, string>,
+) {
+  if (path === PREFIXED_ID_PATH) {
+    return [applyPrefixes(node.id, prefixes)]
+  }
+  return jsonpath.query(node, path)
+}
 
 function wordsInString(str: string) {
   return str
     .toLowerCase()
-    .split(/[\W_]+/)
+    .split(/[^A-Za-z0-9:]+/)
     .filter((word) => word && !stopwords.has(word))
 }
 
@@ -44,9 +59,10 @@ export function* extractStrings(
 export function* getWords(
   node: OntologyDBNode,
   jsonPaths: Iterable<string>,
+  prefixes: Map<string, string>,
 ): Generator<[string, string], void, undefined> {
   for (const path of jsonPaths) {
-    const queryResult = jsonpath.query(node, path) as unknown[]
+    const queryResult = jsonPathQuery(node, path, prefixes) as unknown[]
     if (queryResult.length) {
       for (const word of extractWords(extractStrings(queryResult))) {
         yield [path, word]
@@ -115,7 +131,13 @@ export async function getTermsByFulltext(
   for (const [, [term, wordIndexes]] of initialMatches) {
     checkAbortSignal(signal)
     results.push(
-      ...elaborateMatch(this.textIndexPaths, term, wordIndexes, queryWords),
+      ...elaborateMatch(
+        this.textIndexPaths,
+        term,
+        wordIndexes,
+        queryWords,
+        this.prefixes,
+      ),
     )
   }
 
@@ -134,6 +156,7 @@ export function elaborateMatch(
   term: OntologyDBNode,
   queryWordIndexes: Set<number>,
   queryWords: string[],
+  prefixes: Map<string, string>,
 ): Match[] {
   const sortedWordIndexes = Array.from(queryWordIndexes).sort()
   const matchedQueryWords = sortedWordIndexes.map((i) => queryWords[i])
@@ -151,7 +174,9 @@ export function elaborateMatch(
   let matches: (Match & { wordMatches: WordMatch[] })[] = []
   let maxScore = 0
   for (const path of textIndexPaths) {
-    const termStrings = Array.from(extractStrings(jsonpath.query(term, path)))
+    const termStrings = Array.from(
+      extractStrings(jsonPathQuery(term, path, prefixes)),
+    )
     // find occurrences of each of the words in the strings
     for (const str of termStrings) {
       let score = 0
@@ -170,11 +195,14 @@ export function elaborateMatch(
       }
       // sort the word matches by position in the target string ascending
       wordMatches.sort((a, b) => a.position - b.position)
-      matches.push({ term, path, str, score, wordMatches })
+      if (wordMatches.length) {
+        matches.push({ term, path, str, score, wordMatches })
+      }
     }
   }
 
-  // keep only the highest-score matches
+  // Keep only the highest-scored matches. Usually 1, but there
+  // could be multiple if there is a tie for first place.
   matches = matches.filter((m) => m.score === maxScore)
 
   for (const match of matches) {

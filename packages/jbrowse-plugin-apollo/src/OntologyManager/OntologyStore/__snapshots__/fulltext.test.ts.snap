@@ -1,5 +1,49 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`elaborateMatch can do another 1`] = `
+[
+  {
+    "path": "$PREFIXED_ID",
+    "score": 1,
+    "str": "SO:0000001",
+    "term": {
+      "id": "http://purl.obolibrary.org/obo/SO_0000001",
+      "lbl": "region",
+      "meta": {
+        "basicPropertyValues": [
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+            "val": "sequence",
+          },
+        ],
+        "definition": {
+          "val": "A sequence_feature with an extent greater than zero. A nucleotide region is composed of bases and a polypeptide region is composed of amino acids. It may also be termed a region of some number of nucleotides.",
+          "xrefs": [
+            "SO:ke",
+          ],
+        },
+        "subsets": [
+          "http://purl.obolibrary.org/obo/so#SOFA",
+        ],
+        "synonyms": [
+          {
+            "pred": "hasExactSynonym",
+            "val": "sequence",
+          },
+        ],
+      },
+      "type": "CLASS",
+    },
+    "wordMatches": [
+      {
+        "position": 0,
+        "wordIndex": 0,
+      },
+    ],
+  },
+]
+`;
+
 exports[`elaborateMatch can do one 1`] = `
 [
   {
@@ -62,6 +106,10 @@ exports[`elaborateMatch can do one 1`] = `
 
 exports[`getWords can get the words from a test node 1`] = `
 [
+  [
+    "$PREFIXED_ID",
+    "so:0000001",
+  ],
   [
     "$.lbl",
     "region",
