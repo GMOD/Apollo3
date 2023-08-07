@@ -164,7 +164,7 @@ export function AddAssembly({
   }
 
   return (
-    <Dialog open maxWidth="xl" data-testid="login-apollo">
+    <Dialog open maxWidth="xl" data-testid="add-assembly-dialog">
       <DialogTitle>Add new assembly</DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
