@@ -38,6 +38,7 @@
     "@nestjs/passport": "^10.0.0",
     "@nestjs/platform-express": "^10.1.0",
     "@nestjs/platform-socket.io": "^10.1.0",
+    "@nestjs/terminus": "^10.0.1",
     "@nestjs/websockets": "^10.1.0",
     "apollo-common": "workspace:^",
     "apollo-schemas": "workspace:^",

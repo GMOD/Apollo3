@@ -13,6 +13,7 @@ import { ChangesModule } from './changes/changes.module'
 import { CountersModule } from './counters/counters.module'
 import { FeaturesModule } from './features/features.module'
 import { FilesModule } from './files/files.module'
+import { HealthModule } from './health/health.module'
 import { MessagesModule } from './messages/messages.module'
 import { OperationsModule } from './operations/operations.module'
 import { PluginsModule } from './plugins/plugins.module'
@@ -151,6 +152,7 @@ async function mongoDBURIFactory(
     OperationsModule,
     CountersModule,
     PluginsModule.registerAsync(),
+    HealthModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
