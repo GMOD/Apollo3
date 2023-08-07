@@ -1,9 +1,11 @@
 import fs from 'fs/promises'
+import path from 'path'
 
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
 import { MongooseModule, MongooseModuleFactoryOptions } from '@nestjs/mongoose'
+import { ServeStaticModule } from '@nestjs/serve-static'
 import Joi from 'joi'
 import { Connection } from 'mongoose'
 
@@ -153,6 +155,9 @@ async function mongoDBURIFactory(
     CountersModule,
     PluginsModule.registerAsync(),
     HealthModule,
+    ServeStaticModule.forRoot({
+      rootPath: path.join(__dirname, '..', 'public'),
+    }),
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
