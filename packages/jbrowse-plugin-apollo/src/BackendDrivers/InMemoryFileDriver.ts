@@ -40,4 +40,11 @@ export class InMemoryFileDriver extends BackendDriver {
   ) {
     return new ValidationResultSet()
   }
+
+  async searchFeatures(
+    term: string,
+    assemblies: string[],
+  ): Promise<AnnotationFeatureSnapshot[]> {
+    return []
+  }
 }

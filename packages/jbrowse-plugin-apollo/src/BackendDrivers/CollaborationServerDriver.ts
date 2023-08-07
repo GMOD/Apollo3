@@ -30,6 +30,33 @@ export class CollaborationServerDriver extends BackendDriver {
     return customFetch(info, init)
   }
 
+  async searchFeatures(term: string, assemblies: string[]) {
+    const internetAccount = this.clientStore.getInternetAccount(
+      assemblies[0],
+    ) as ApolloInternetAccount
+    const { baseURL } = internetAccount
+
+    const url = new URL('features/searchFeatures', baseURL)
+    const searchParams = new URLSearchParams({
+      assemblies: assemblies.join(','),
+      term,
+    })
+    url.search = searchParams.toString()
+    const uri = url.toString()
+
+    const response = await this.fetch(internetAccount, uri)
+    if (!response.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'getFeatures failed',
+      )
+      throw new Error(errorMessage)
+    }
+    const refSeqs = await this.refSeqModel
+    await this.checkSocket(assemblyName, refName, internetAccount)
+    return response.json() as Promise<AnnotationFeatureSnapshot[]>
+  }
+
   /**
    * Call backend endpoint to get features by criteria
    * @param region -  Searchable region containing refSeq, start and end

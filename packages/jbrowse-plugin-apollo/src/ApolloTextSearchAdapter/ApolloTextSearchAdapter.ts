@@ -5,7 +5,7 @@ import {
   BaseTextSearchArgs,
 } from '@jbrowse/core/data_adapters/BaseAdapter'
 import BaseResult from '@jbrowse/core/TextSearch/BaseResults'
-import { UriLocation } from '@jbrowse/core/util'
+import { getSession, UriLocation } from '@jbrowse/core/util'
 import { getFetcher } from '@jbrowse/core/util/io'
 
 export class ApolloTextSearchAdapter
@@ -24,17 +24,20 @@ export class ApolloTextSearchAdapter
     return readConfObject(this.config, 'assemblyNames')
   }
 
-  async searchFeatures(term: string) {
-    const assemblies = this.assemblyNames.join(',')
-    const url = new URL('features/searchFeatures', this.baseURL)
-    const searchParams = new URLSearchParams({ assemblies, term })
-    url.search = searchParams.toString()
-    const uri = url.toString()
-
-    const location: UriLocation = { locationType: 'UriLocation', uri }
-    const fetch = getFetcher(location, this.pluginManager)
-    const response = await fetch(uri)
-    return response.json()
+  async searchFeatures(searchDto: { term: string; assemblies: string }) {
+    const { term, assemblies } = searchDto
+    const results = []
+    for (const assemblyName of this.assemblyNames) {
+      const session = getSession(self)
+      const backendDriver =
+        session.apolloDataStore.getBackendDriver(assemblyName)
+      // const backendDriver = this.pluginManager.rootModel.session.apolloDataStore.getBackendDriver(
+      //     assemblyName,
+      //  )
+      const r = await backendDriver.searchFeatures(term, assemblies)
+      results.push(...r)
+    }
+    return results
   }
 
   mapBaseResult(
