@@ -20,9 +20,13 @@ import {
   OntologyTerm,
   isOntologyClass,
 } from '../OntologyManager'
+import { Match } from '../OntologyManager/OntologyStore/fulltext'
 import { OntologyDBNode } from '../OntologyManager/OntologyStore/indexeddb-schema'
 
-type TermValue = OntologyTerm
+interface TermValue {
+  term: OntologyTerm
+  matches?: Match[]
+}
 
 // interface TermAutocompleteResult extends TermValue {
 //   label: string[]
@@ -116,8 +120,8 @@ export function OntologyTermMultiSelect({
     .ontologyManager as OntologyManager
   const ontology = ontologyManager.findOntology(ontologyName, ontologyVersion)
 
-  const [value, setValue] = React.useState<OntologyTerm[]>(
-    initialValue.map((id) => ({ id, type: 'CLASS' })),
+  const [value, setValue] = React.useState<TermValue[]>(
+    initialValue.map((id) => ({ term: { id, type: 'CLASS' } })),
   )
   const [inputValue, setInputValue] = React.useState('')
   const [options, setOptions] = React.useState<readonly TermValue[]>([])
@@ -188,7 +192,25 @@ export function OntologyTermMultiSelect({
         undefined,
         signal,
       )
-      setOptions(matches.map((m) => m.term).filter(isOntologyClass))
+      // aggregate the matches by term
+      const byTerm = new Map<string, Required<TermValue>>()
+      const options: Required<TermValue>[] = []
+      for (const match of matches) {
+        if (!isOntologyClass(match.term)) {
+          continue
+        }
+        let slot = byTerm.get(match.term.id)
+        if (!slot) {
+          slot = {
+            term: match.term,
+            matches: [],
+          }
+          byTerm.set(match.term.id, slot)
+          options.push(slot)
+        }
+        slot.matches.push(match)
+      }
+      setOptions(options)
       setLoading(false)
     })().catch((error) => {
       if (!isAbortException(error)) {
@@ -213,19 +235,19 @@ export function OntologyTermMultiSelect({
 
   return (
     <Autocomplete
-      getOptionLabel={(option) => option.id}
-      filterOptions={(terms) => terms.filter(isOntologyClass)}
+      getOptionLabel={(option) => option.term.id}
+      filterOptions={(terms) => terms.filter((t) => isOntologyClass(t.term))}
       options={options}
       autoComplete
       includeInputInList
       filterSelectedOptions
       value={value}
       loading={loading}
-      isOptionEqualToValue={(option, v) => option.id === v.id}
+      isOptionEqualToValue={(option, v) => option.term.id === v.term.id}
       noOptionsText={inputValue ? 'No matches' : 'Start typing to search'}
       onChange={(_, newValue) => {
         setOptions(newValue ? [...newValue, ...options] : options)
-        onChange(newValue.map((v) => ontologyManager.applyPrefixes(v.id)))
+        onChange(newValue.map((v) => ontologyManager.applyPrefixes(v.term.id)))
         setValue(newValue)
       }}
       onInputChange={(event, newInputValue) => {
@@ -244,48 +266,91 @@ export function OntologyTermMultiSelect({
           fullWidth
         />
       )}
-      renderOption={(props, option) => {
-        let parts: { text: string; highlight: boolean }[] = []
-        const label = option.lbl ?? '(no label)'
-        const matches = highlightMatch(label, inputValue, {
-          insideWords: true,
-          findAllOccurrences: true,
-        })
-        parts = highlightParse(label, matches)
-        return (
-          <li {...props}>
-            <Grid container>
-              <Grid item>
-                <Typography>
-                  {ontologyManager.applyPrefixes(option.id)}
-                </Typography>
-                {parts.map((part, index) => (
-                  <Typography
-                    key={index}
-                    component="span"
-                    sx={{ fontWeight: part.highlight ? 'bold' : 'regular' }}
-                    variant="body2"
-                    color="text.secondary"
-                  >
-                    {part.text}
-                  </Typography>
-                ))}
-              </Grid>
-            </Grid>
-          </li>
-        )
-      }}
+      renderOption={(props, option) => (
+        <Option
+          ontologyManager={ontologyManager}
+          option={option}
+          inputValue={inputValue}
+        />
+      )}
       renderTags={(v, getTagProps) =>
         v.map((option, index) => (
           <TermTagWithTooltip
-            termId={option.id}
+            termId={option.term.id}
             index={index}
             ontology={ontology}
             getTagProps={getTagProps}
-            key={option.id}
+            key={option.term.id}
           />
         ))
       }
     />
+  )
+}
+
+function HighlightedText(props: { str: string; search: string }) {
+  const { str, search } = props
+
+  const highlights = highlightMatch(str, search, {
+    insideWords: true,
+    findAllOccurrences: true,
+  })
+  const parts = highlightParse(str, highlights)
+  return (
+    <>
+      {parts.map((part, index) => (
+        <Typography
+          key={index}
+          component="span"
+          sx={{ fontWeight: part.highlight ? 'bold' : 'regular' }}
+          variant="body2"
+          color="text.secondary"
+        >
+          {part.text}
+        </Typography>
+      ))}
+    </>
+  )
+}
+function Option(props: {
+  ontologyManager: OntologyManager
+  inputValue: string
+  option: TermValue
+}) {
+  const { option, inputValue, ontologyManager } = props
+  const fields = option.matches?.length ? (
+    option.matches.map((match, idx) => {
+      return (
+        <>
+          <Typography
+            key={idx}
+            component="span"
+            variant="body2"
+            color="text.secondary"
+          >
+            {match.field.displayName}:
+          </Typography>{' '}
+          <HighlightedText str={match.str} search={inputValue} />
+        </>
+      )
+    })
+  ) : (
+    <HighlightedText
+      str={option.term.lbl ?? '(no label)'}
+      search={inputValue}
+    />
+  )
+
+  return (
+    <li {...props}>
+      <Grid container>
+        <Grid item>
+          <Typography>
+            {ontologyManager.applyPrefixes(option.term.id)}
+          </Typography>
+          {fields}
+        </Grid>
+      </Grid>
+    </li>
   )
 }

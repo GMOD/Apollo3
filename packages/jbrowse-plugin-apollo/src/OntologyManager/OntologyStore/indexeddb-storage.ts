@@ -10,6 +10,7 @@ import {
 } from './indexeddb-schema'
 import { GraphDocument } from './obo-graph-json-schema'
 import OntologyStore from '.'
+import { defaultTextIndexFields } from '..'
 
 /** schema version we are currently on, used for the IndexedDB schema open call */
 const schemaVersion = 2
@@ -104,7 +105,9 @@ export async function loadOboGraphJson(this: OntologyStore, db: Database) {
 
     // load nodes
     const nodeStore = tx.objectStore('nodes')
-    const fullTextIndexPaths = getTextIndexPaths.call(this)
+    const fullTextIndexPaths = getTextIndexFields
+      .call(this)
+      .map((def) => def.jsonPath)
     for (const node of graph.nodes ?? []) {
       if (isOntologyDBNode(node)) {
         await nodeStore.add({
@@ -155,14 +158,10 @@ export async function loadOboGraphJson(this: OntologyStore, db: Database) {
   return
 }
 
-export function getTextIndexPaths(this: OntologyStore) {
+export function getTextIndexFields(this: OntologyStore) {
   return [
-    PREFIXED_ID_PATH,
-    ...(this.options.textIndexing?.indexPaths ?? [
-      '$.lbl',
-      '$.meta.synonyms[*].val',
-      '$.meta.definition.val',
-    ]),
+    { displayName: 'ID', jsonPath: PREFIXED_ID_PATH },
+    ...(this.options.textIndexing?.indexFields ?? defaultTextIndexFields),
   ]
 }
 

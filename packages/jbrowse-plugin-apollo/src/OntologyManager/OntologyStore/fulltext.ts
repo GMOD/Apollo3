@@ -8,7 +8,9 @@ import { stopwords } from './fulltext-stopwords'
 import { OntologyDBNode } from './indexeddb-schema'
 import { applyPrefixes } from './prefixes'
 import OntologyStore, { Transaction } from '.'
+import { TextIndexFieldDefinition } from '..'
 
+/** special value of jsonPath that gets the IRI (that is, ID) of the node with the configured prefixes applied */
 export const PREFIXED_ID_PATH = '$PREFIXED_ID'
 
 /** small wrapper for jsonpath.query that intercepts requests for the special prefixed ID path */
@@ -71,18 +73,23 @@ export function* getWords(
   }
 }
 
-interface Match {
+export interface Match {
   term: OntologyDBNode
-  path: string
+  field: TextIndexFieldDefinition
   str: string
   score: number
 }
 
+export function isMatch(thing: object): thing is Match {
+  return (
+    'term' in thing && 'field' in thing && 'str' in thing && 'score' in thing
+  )
+}
+
 /**
- * @returns array of terms and a match score, as
- * `[score, OntologyTerm][]`, sorted by score descending
+ *
  **/
-export async function getTermsByFulltext(
+export async function textSearch(
   this: OntologyStore,
   text: string,
   tx?: Transaction<['nodes']>,
@@ -132,7 +139,7 @@ export async function getTermsByFulltext(
     checkAbortSignal(signal)
     results.push(
       ...elaborateMatch(
-        this.textIndexPaths,
+        this.textIndexFields,
         term,
         wordIndexes,
         queryWords,
@@ -152,7 +159,7 @@ export async function getTermsByFulltext(
 }
 
 export function elaborateMatch(
-  textIndexPaths: string[],
+  textIndexPaths: TextIndexFieldDefinition[],
   term: OntologyDBNode,
   queryWordIndexes: Set<number>,
   queryWords: string[],
@@ -173,9 +180,9 @@ export function elaborateMatch(
   }
   let matches: (Match & { wordMatches: WordMatch[] })[] = []
   let maxScore = 0
-  for (const path of textIndexPaths) {
+  for (const field of textIndexPaths) {
     const termStrings = Array.from(
-      extractStrings(jsonPathQuery(term, path, prefixes)),
+      extractStrings(jsonPathQuery(term, field.jsonPath, prefixes)),
     )
     // find occurrences of each of the words in the strings
     for (const str of termStrings) {
@@ -196,7 +203,7 @@ export function elaborateMatch(
       // sort the word matches by position in the target string ascending
       wordMatches.sort((a, b) => a.position - b.position)
       if (wordMatches.length) {
-        matches.push({ term, path, str, score, wordMatches })
+        matches.push({ term, field, str, score, wordMatches })
       }
     }
   }

@@ -6,10 +6,10 @@ import {
 } from '@jbrowse/core/util'
 import { IDBPTransaction, IndexNames, StoreNames } from 'idb/with-async-ittr'
 
-import { getTermsByFulltext } from './fulltext'
+import { textSearch } from './fulltext'
 import { OntologyDB, OntologyDBEdge, isDeprecated } from './indexeddb-schema'
 import {
-  getTextIndexPaths,
+  getTextIndexFields,
   isDatabaseCurrent,
   loadOboGraphJson,
   openDatabase,
@@ -65,7 +65,7 @@ export interface OntologyStoreOptions {
   prefixes?: Map<string, string>
   textIndexing?: {
     /** json paths of paths in the nodes to index as full text */
-    indexPaths?: string[]
+    indexFields?: { displayName: string; jsonPath: string }[]
   }
   maxSearchResults?: number
 }
@@ -79,12 +79,12 @@ export default class OntologyStore {
   options: OntologyStoreOptions
 
   loadOboGraphJson = loadOboGraphJson
-  getTermsByFulltext = getTermsByFulltext
+  getTermsByFulltext = textSearch
   openDatabase = openDatabase
   isDatabaseCurrent = isDatabaseCurrent
 
-  get textIndexPaths() {
-    return getTextIndexPaths.call(this)
+  get textIndexFields() {
+    return getTextIndexFields.call(this)
   }
 
   get prefixes(): Map<string, string> {

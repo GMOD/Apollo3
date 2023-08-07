@@ -116,6 +116,18 @@ export const OntologyManagerType = types
 
 export default OntologyManagerType
 
+export interface TextIndexFieldDefinition {
+  /** name to display in the UI for text taken from this field or fields */
+  displayName: string
+  /** JSONPath of the field(s) */
+  jsonPath: string
+}
+export const defaultTextIndexFields: TextIndexFieldDefinition[] = [
+  { displayName: 'Label', jsonPath: '$.lbl' },
+  { displayName: 'Synonym', jsonPath: '$.meta.synonyms[*].val' },
+  { displayName: 'Definition', jsonPath: '$.meta.definition.val' },
+]
+
 export const OntologyRecordConfiguration = ConfigurationSchema(
   'OntologyRecord',
   {
@@ -137,15 +149,11 @@ export const OntologyRecordConfiguration = ConfigurationSchema(
         uri: 'http://example.com/myontology.json',
       },
     },
-    textIndexingPaths: {
+    textIndexFields: {
       type: 'frozen',
       description:
         'JSON paths for text fields that will be indexed for text searching',
-      defaultValue: [
-        '$.lbl',
-        '$.meta.synonyms[*].val',
-        '$.meta.definition.val',
-      ],
+      defaultValue: defaultTextIndexFields,
     },
   },
 )

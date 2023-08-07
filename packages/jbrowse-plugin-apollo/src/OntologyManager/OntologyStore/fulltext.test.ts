@@ -74,7 +74,11 @@ describe('getWords', () => {
 describe('elaborateMatch', () => {
   it('can do one', () => {
     const result = elaborateMatch(
-      ['$.lbl', '$.meta.synonyms[*].val', '$.meta.definition.val'],
+      [
+        { displayName: 'label', jsonPath: '$.lbl' },
+        { displayName: 'synonym', jsonPath: '$.meta.synonyms[*].val' },
+        { displayName: 'definition', jsonPath: '$.meta.definition.val' },
+      ],
       testNode,
       new Set([1, 2]),
       ['zonk', 'nucleotide', 'region'],
@@ -86,10 +90,10 @@ describe('elaborateMatch', () => {
   it('can do another', () => {
     const result = elaborateMatch(
       [
-        PREFIXED_ID_PATH,
-        '$.lbl',
-        '$.meta.synonyms[*].val',
-        '$.meta.definition.val',
+        { displayName: 'ID', jsonPath: PREFIXED_ID_PATH },
+        { displayName: 'label', jsonPath: '$.lbl' },
+        { displayName: 'synonym', jsonPath: '$.meta.synonyms[*].val' },
+        { displayName: 'definition', jsonPath: '$.meta.definition.val' },
       ],
       testNode,
       new Set([0]),

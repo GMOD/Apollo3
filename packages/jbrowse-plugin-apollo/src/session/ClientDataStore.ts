@@ -29,6 +29,7 @@ import ApolloPluginConfigurationSchema from '../config'
 import {
   OntologyManagerType,
   OntologyRecordConfiguration,
+  TextIndexFieldDefinition,
 } from '../OntologyManager'
 import { ApolloRootModel } from '../types'
 
@@ -114,17 +115,20 @@ export function clientDataStoreFactory(
         >[]
 
         for (const ont of configuredOntologies || []) {
-          const [name, version, source, indexPaths] = [
+          const [name, version, source, indexFields] = [
             readConfObject(ont, 'name') as string,
             readConfObject(ont, 'version') as string,
             readConfObject(ont, 'source') as
               | Instance<typeof LocalPathLocation>
               | Instance<typeof UriLocation>,
-            readConfObject(ont, 'textIndexingPaths') as string[],
+            readConfObject(
+              ont,
+              'textIndexFields',
+            ) as TextIndexFieldDefinition[],
           ]
           if (!ontologyManager.findOntology(name)) {
             ontologyManager.addOntology(name, version, source, {
-              textIndexing: { indexPaths },
+              textIndexing: { indexFields },
             })
           }
         }
