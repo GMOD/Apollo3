@@ -39,6 +39,20 @@ if ('document' in window) {
 }
 
 export class CanonicalGeneGlyph extends Glyph {
+  featuresForRow(feature: AnnotationFeatureI): AnnotationFeatureI[][] {
+    const features: AnnotationFeatureI[][] = []
+
+    feature.children?.forEach((child: AnnotationFeatureI) => {
+      const childFeatures: AnnotationFeatureI[] = []
+      child.children?.forEach((annotationFeature: AnnotationFeatureI) => {
+        childFeatures.push(annotationFeature)
+      })
+      features.push(childFeatures)
+    })
+
+    return features
+  }
+
   getRowCount(feature: AnnotationFeatureI, _bpPerPx: number): number {
     let cdsCount = 0
     for (const [, child] of feature.children ?? new Map()) {
@@ -65,6 +79,7 @@ export class CanonicalGeneGlyph extends Glyph {
     const utrHeight = Math.round(0.6 * rowHeight)
     const cdsHeight = Math.round(0.9 * rowHeight)
     const { _id, children, max, min, strand } = feature
+    const { apolloSelectedFeature } = session
     let currentCDS = 0
     for (const [, mrna] of children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
@@ -113,7 +128,10 @@ export class CanonicalGeneGlyph extends Glyph {
           ctx.fillRect(startPx, utrTop, widthPx, utrHeight)
           if (widthPx > 2) {
             ctx.clearRect(startPx + 1, utrTop + 1, widthPx - 2, utrHeight - 2)
-            ctx.fillStyle = 'rgb(211,211,211)'
+            ctx.fillStyle =
+              apolloSelectedFeature && exon._id === apolloSelectedFeature._id
+                ? 'rgb(0,0,0)'
+                : 'rgb(211,211,211)'
             ctx.fillRect(startPx + 1, utrTop + 1, widthPx - 2, utrHeight - 2)
             if (forwardFill && backwardFill && strand) {
               const reversal = reversed ? -1 : 1
@@ -192,7 +210,7 @@ export class CanonicalGeneGlyph extends Glyph {
         currentCDS += 1
       }
     }
-    const { apolloSelectedFeature } = session
+
     if (apolloSelectedFeature && _id === apolloSelectedFeature._id) {
       const widthPx = max - min
       const startPx = reversed ? xOffset - widthPx : xOffset
@@ -257,7 +275,10 @@ export class CanonicalGeneGlyph extends Glyph {
 
   getFeatureFromLayout(
     feature: AnnotationFeatureI,
+    bp: number,
+    row: number,
   ): AnnotationFeatureI | undefined {
-    return feature
+    const layoutRow = this.featuresForRow(feature)[row]
+    return layoutRow?.find((f) => bp >= f.start && bp <= f.end)
   }
 }
