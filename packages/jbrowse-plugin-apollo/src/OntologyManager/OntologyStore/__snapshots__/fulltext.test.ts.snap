@@ -3,8 +3,11 @@
 exports[`elaborateMatch can do another 1`] = `
 [
   {
-    "path": "$PREFIXED_ID",
-    "score": 1,
+    "field": {
+      "displayName": "ID",
+      "jsonPath": "$PREFIXED_ID",
+    },
+    "score": 109.1,
     "str": "SO:0000001",
     "term": {
       "id": "http://purl.obolibrary.org/obo/SO_0000001",
@@ -47,8 +50,11 @@ exports[`elaborateMatch can do another 1`] = `
 exports[`elaborateMatch can do one 1`] = `
 [
   {
-    "path": "$.meta.definition.val",
-    "score": 7.1,
+    "field": {
+      "displayName": "definition",
+      "jsonPath": "$.meta.definition.val",
+    },
+    "score": 208.39346153846154,
     "str": "A sequence_feature with an extent greater than zero. A nucleotide region is composed of bases and a polypeptide region is composed of amino acids. It may also be termed a region of some number of nucleotides.",
     "term": {
       "id": "http://purl.obolibrary.org/obo/SO_0000001",

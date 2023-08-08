@@ -110,8 +110,11 @@ exports[`OntologyStore can load goslim generic 1`] = `248`;
 exports[`OntologyStore can load goslim generic 2`] = `
 [
   {
-    "path": "$.lbl",
-    "score": 7,
+    "field": {
+      "displayName": "Label",
+      "jsonPath": "$.lbl",
+    },
+    "score": 317.80333333333334,
     "str": "mitotic nuclear division",
     "term": {
       "fullTextWords": [
@@ -202,901 +205,11 @@ exports[`OntologyStore can load goslim generic 2`] = `
     ],
   },
   {
-    "path": "$.lbl",
-    "score": 4,
-    "str": "meiotic nuclear division",
-    "term": {
-      "fullTextWords": [
-        "go:0140013",
-        "meiotic",
-        "nuclear",
-        "division",
-        "meiosis",
-        "one",
-        "two",
-        "divisions",
-        "occur",
-        "part",
-        "cell",
-        "cycle",
-      ],
-      "id": "http://purl.obolibrary.org/obo/GO_0140013",
-      "lbl": "meiotic nuclear division",
-      "meta": {
-        "basicPropertyValues": [
-          {
-            "pred": "http://purl.obolibrary.org/obo/IAO_0000233",
-            "val": "https://github.com/geneontology/go-ontology/issues/19910",
-          },
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#created_by",
-            "val": "pg",
-          },
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#creation_date",
-            "val": "2017-03-23T09:40:00Z",
-          },
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
-            "val": "biological_process",
-          },
-        ],
-        "definition": {
-          "val": "One of the two nuclear divisions that occur as part of the meiotic cell cycle.",
-          "xrefs": [
-            "PMID:9334324",
-          ],
-        },
-        "subsets": [
-          "http://purl.obolibrary.org/obo/go#goslim_generic",
-        ],
-        "synonyms": [
-          {
-            "pred": "hasExactSynonym",
-            "val": "meiosis",
-          },
-        ],
-      },
-      "type": "CLASS",
+    "field": {
+      "displayName": "Definition",
+      "jsonPath": "$.meta.definition.val",
     },
-    "wordMatches": [
-      {
-        "position": 8,
-        "wordIndex": 0,
-      },
-      {
-        "position": 16,
-        "wordIndex": 1,
-      },
-    ],
-  },
-  {
-    "path": "$.meta.definition.val",
-    "score": 4,
-    "str": "One of the two nuclear divisions that occur as part of the meiotic cell cycle.",
-    "term": {
-      "fullTextWords": [
-        "go:0140013",
-        "meiotic",
-        "nuclear",
-        "division",
-        "meiosis",
-        "one",
-        "two",
-        "divisions",
-        "occur",
-        "part",
-        "cell",
-        "cycle",
-      ],
-      "id": "http://purl.obolibrary.org/obo/GO_0140013",
-      "lbl": "meiotic nuclear division",
-      "meta": {
-        "basicPropertyValues": [
-          {
-            "pred": "http://purl.obolibrary.org/obo/IAO_0000233",
-            "val": "https://github.com/geneontology/go-ontology/issues/19910",
-          },
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#created_by",
-            "val": "pg",
-          },
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#creation_date",
-            "val": "2017-03-23T09:40:00Z",
-          },
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
-            "val": "biological_process",
-          },
-        ],
-        "definition": {
-          "val": "One of the two nuclear divisions that occur as part of the meiotic cell cycle.",
-          "xrefs": [
-            "PMID:9334324",
-          ],
-        },
-        "subsets": [
-          "http://purl.obolibrary.org/obo/go#goslim_generic",
-        ],
-        "synonyms": [
-          {
-            "pred": "hasExactSynonym",
-            "val": "meiosis",
-          },
-        ],
-      },
-      "type": "CLASS",
-    },
-    "wordMatches": [
-      {
-        "position": 15,
-        "wordIndex": 0,
-      },
-      {
-        "position": 23,
-        "wordIndex": 1,
-      },
-    ],
-  },
-  {
-    "path": "$.meta.definition.val",
-    "score": 2,
-    "str": "The chemical reactions and pathways involving snRNA, small nuclear RNA, any of various low-molecular-mass RNA molecules found in the eukaryotic nucleus as components of the small nuclear ribonucleoprotein.",
-    "term": {
-      "fullTextWords": [
-        "go:0016073",
-        "snrna",
-        "metabolic",
-        "process",
-        "metabolism",
-        "chemical",
-        "reactions",
-        "pathways",
-        "involving",
-        "small",
-        "nuclear",
-        "rna",
-        "various",
-        "low",
-        "molecular",
-        "mass",
-        "molecules",
-        "found",
-        "eukaryotic",
-        "nucleus",
-        "components",
-        "ribonucleoprotein",
-      ],
-      "id": "http://purl.obolibrary.org/obo/GO_0016073",
-      "lbl": "snRNA metabolic process",
-      "meta": {
-        "basicPropertyValues": [
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
-            "val": "biological_process",
-          },
-        ],
-        "definition": {
-          "val": "The chemical reactions and pathways involving snRNA, small nuclear RNA, any of various low-molecular-mass RNA molecules found in the eukaryotic nucleus as components of the small nuclear ribonucleoprotein.",
-          "xrefs": [
-            "ISBN:0198506732",
-          ],
-        },
-        "subsets": [
-          "http://purl.obolibrary.org/obo/go#goslim_drosophila",
-          "http://purl.obolibrary.org/obo/go#goslim_generic",
-          "http://purl.obolibrary.org/obo/go#goslim_pombe",
-        ],
-        "synonyms": [
-          {
-            "pred": "hasExactSynonym",
-            "val": "snRNA metabolism",
-          },
-        ],
-      },
-      "type": "CLASS",
-    },
-    "wordMatches": [
-      {
-        "position": 59,
-        "wordIndex": 0,
-      },
-      {
-        "position": 179,
-        "wordIndex": 0,
-      },
-    ],
-  },
-  {
-    "path": "$.lbl",
-    "score": 1,
-    "str": "nuclear chromosome",
-    "term": {
-      "fullTextWords": [
-        "go:0000228",
-        "nuclear",
-        "chromosome",
-        "interphase",
-        "encodes",
-        "genome",
-        "found",
-        "nucleus",
-        "eukaryotic",
-        "cell",
-        "cycle",
-        "phases",
-        "intact",
-      ],
-      "id": "http://purl.obolibrary.org/obo/GO_0000228",
-      "lbl": "nuclear chromosome",
-      "meta": {
-        "basicPropertyValues": [
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
-            "val": "cellular_component",
-          },
-        ],
-        "definition": {
-          "val": "A chromosome that encodes the nuclear genome and is found in the nucleus of a eukaryotic cell during the cell cycle phases when the nucleus is intact.",
-          "xrefs": [
-            "GOC:dph",
-            "GOC:mah",
-          ],
-        },
-        "subsets": [
-          "http://purl.obolibrary.org/obo/go#goslim_chembl",
-          "http://purl.obolibrary.org/obo/go#goslim_generic",
-        ],
-        "synonyms": [
-          {
-            "pred": "hasNarrowSynonym",
-            "val": "nuclear interphase chromosome",
-          },
-        ],
-      },
-      "type": "CLASS",
-    },
-    "wordMatches": [
-      {
-        "position": 0,
-        "wordIndex": 0,
-      },
-    ],
-  },
-  {
-    "path": "$.meta.synonyms[*].val",
-    "score": 1,
-    "str": "nuclear interphase chromosome",
-    "term": {
-      "fullTextWords": [
-        "go:0000228",
-        "nuclear",
-        "chromosome",
-        "interphase",
-        "encodes",
-        "genome",
-        "found",
-        "nucleus",
-        "eukaryotic",
-        "cell",
-        "cycle",
-        "phases",
-        "intact",
-      ],
-      "id": "http://purl.obolibrary.org/obo/GO_0000228",
-      "lbl": "nuclear chromosome",
-      "meta": {
-        "basicPropertyValues": [
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
-            "val": "cellular_component",
-          },
-        ],
-        "definition": {
-          "val": "A chromosome that encodes the nuclear genome and is found in the nucleus of a eukaryotic cell during the cell cycle phases when the nucleus is intact.",
-          "xrefs": [
-            "GOC:dph",
-            "GOC:mah",
-          ],
-        },
-        "subsets": [
-          "http://purl.obolibrary.org/obo/go#goslim_chembl",
-          "http://purl.obolibrary.org/obo/go#goslim_generic",
-        ],
-        "synonyms": [
-          {
-            "pred": "hasNarrowSynonym",
-            "val": "nuclear interphase chromosome",
-          },
-        ],
-      },
-      "type": "CLASS",
-    },
-    "wordMatches": [
-      {
-        "position": 0,
-        "wordIndex": 0,
-      },
-    ],
-  },
-  {
-    "path": "$.meta.definition.val",
-    "score": 1,
-    "str": "A chromosome that encodes the nuclear genome and is found in the nucleus of a eukaryotic cell during the cell cycle phases when the nucleus is intact.",
-    "term": {
-      "fullTextWords": [
-        "go:0000228",
-        "nuclear",
-        "chromosome",
-        "interphase",
-        "encodes",
-        "genome",
-        "found",
-        "nucleus",
-        "eukaryotic",
-        "cell",
-        "cycle",
-        "phases",
-        "intact",
-      ],
-      "id": "http://purl.obolibrary.org/obo/GO_0000228",
-      "lbl": "nuclear chromosome",
-      "meta": {
-        "basicPropertyValues": [
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
-            "val": "cellular_component",
-          },
-        ],
-        "definition": {
-          "val": "A chromosome that encodes the nuclear genome and is found in the nucleus of a eukaryotic cell during the cell cycle phases when the nucleus is intact.",
-          "xrefs": [
-            "GOC:dph",
-            "GOC:mah",
-          ],
-        },
-        "subsets": [
-          "http://purl.obolibrary.org/obo/go#goslim_chembl",
-          "http://purl.obolibrary.org/obo/go#goslim_generic",
-        ],
-        "synonyms": [
-          {
-            "pred": "hasNarrowSynonym",
-            "val": "nuclear interphase chromosome",
-          },
-        ],
-      },
-      "type": "CLASS",
-    },
-    "wordMatches": [
-      {
-        "position": 30,
-        "wordIndex": 0,
-      },
-    ],
-  },
-  {
-    "path": "$.lbl",
-    "score": 1,
-    "str": "results in division of",
-    "term": {
-      "fullTextWords": [
-        "http:",
-        "purl",
-        "obolibrary",
-        "org",
-        "obo",
-        "gorel",
-        "0001019",
-        "results",
-        "division",
-      ],
-      "id": "http://purl.obolibrary.org/obo/GOREL_0001019",
-      "lbl": "results in division of",
-      "meta": {
-        "basicPropertyValues": [
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
-            "val": "external",
-          },
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#shorthand",
-            "val": "results_in_division_of",
-          },
-        ],
-        "comments": [
-          "use occurs_in",
-        ],
-        "xrefs": [
-          {
-            "val": "GOREL:0001019",
-          },
-        ],
-      },
-    },
-    "wordMatches": [
-      {
-        "position": 11,
-        "wordIndex": 0,
-      },
-    ],
-  },
-  {
-    "path": "$.lbl",
-    "score": 1,
-    "str": "nuclear envelope",
-    "term": {
-      "fullTextWords": [
-        "go:0005635",
-        "nuclear",
-        "envelope",
-        "double",
-        "lipid",
-        "bilayer",
-        "enclosing",
-        "nucleus",
-        "separating",
-        "contents",
-        "rest",
-        "cytoplasm",
-        "includes",
-        "intermembrane",
-        "space",
-        "gap",
-        "width",
-        "20",
-        "40",
-        "nm",
-        "also",
-        "called",
-        "perinuclear",
-      ],
-      "id": "http://purl.obolibrary.org/obo/GO_0005635",
-      "lbl": "nuclear envelope",
-      "meta": {
-        "basicPropertyValues": [
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#hasAlternativeId",
-            "val": "GO:0005636",
-          },
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
-            "val": "cellular_component",
-          },
-        ],
-        "definition": {
-          "val": "The double lipid bilayer enclosing the nucleus and separating its contents from the rest of the cytoplasm; includes the intermembrane space, a gap of width 20-40 nm (also called the perinuclear space).",
-          "xrefs": [
-            "ISBN:0198547684",
-          ],
-        },
-        "subsets": [
-          "http://purl.obolibrary.org/obo/go#goslim_chembl",
-          "http://purl.obolibrary.org/obo/go#goslim_generic",
-          "http://purl.obolibrary.org/obo/go#goslim_plant",
-        ],
-        "xrefs": [
-          {
-            "val": "Wikipedia:Nuclear_envelope",
-          },
-        ],
-      },
-      "type": "CLASS",
-    },
-    "wordMatches": [
-      {
-        "position": 0,
-        "wordIndex": 0,
-      },
-    ],
-  },
-  {
-    "path": "$.meta.definition.val",
-    "score": 1,
-    "str": "The division of the cytoplasm and the plasma membrane of a cell and its partitioning into two daughter cells.",
-    "term": {
-      "fullTextWords": [
-        "go:0000910",
-        "cytokinesis",
-        "cell",
-        "cycle",
-        "involved",
-        "division",
-        "cytoplasm",
-        "plasma",
-        "membrane",
-        "partitioning",
-        "two",
-        "daughter",
-        "cells",
-      ],
-      "id": "http://purl.obolibrary.org/obo/GO_0000910",
-      "lbl": "cytokinesis",
-      "meta": {
-        "basicPropertyValues": [
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#hasAlternativeId",
-            "val": "GO:0007104",
-          },
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#hasAlternativeId",
-            "val": "GO:0016288",
-          },
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#hasAlternativeId",
-            "val": "GO:0033205",
-          },
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
-            "val": "biological_process",
-          },
-        ],
-        "comments": [
-          "Note that this term should not be used for direct annotation. When annotating eukaryotic species, mitotic or meiotic cytokinesis should always be specified for manual annotation and for prokaryotic species use 'FtsZ-dependent cytokinesis ; GO:0043093' or Cdv-dependent cytokinesis ; GO:0061639. Also, note that cytokinesis does not necessarily result in physical separation and detachment of the two daughter cells from each other.",
-        ],
-        "definition": {
-          "val": "The division of the cytoplasm and the plasma membrane of a cell and its partitioning into two daughter cells.",
-          "xrefs": [
-            "GOC:mtg_cell_cycle",
-          ],
-        },
-        "subsets": [
-          "http://purl.obolibrary.org/obo/go#gocheck_do_not_manually_annotate",
-          "http://purl.obolibrary.org/obo/go#goslim_candida",
-          "http://purl.obolibrary.org/obo/go#goslim_generic",
-          "http://purl.obolibrary.org/obo/go#goslim_yeast",
-          "http://purl.obolibrary.org/obo/go#prokaryote_subset",
-        ],
-        "synonyms": [
-          {
-            "pred": "hasExactSynonym",
-            "val": "cell cycle cytokinesis",
-          },
-          {
-            "pred": "hasExactSynonym",
-            "val": "cytokinesis involved in cell cycle",
-            "xrefs": [
-              "GOC:dph",
-              "GOC:tb",
-            ],
-          },
-        ],
-        "xrefs": [
-          {
-            "val": "Wikipedia:Cytokinesis",
-          },
-        ],
-      },
-      "type": "CLASS",
-    },
-    "wordMatches": [
-      {
-        "position": 4,
-        "wordIndex": 0,
-      },
-    ],
-  },
-  {
-    "path": "$.meta.definition.val",
-    "score": 1,
-    "str": "That part of the nuclear content other than the chromosomes or the nucleolus.",
-    "term": {
-      "fullTextWords": [
-        "go:0005654",
-        "nucleoplasm",
-        "part",
-        "nuclear",
-        "content",
-        "chromosomes",
-        "nucleolus",
-      ],
-      "id": "http://purl.obolibrary.org/obo/GO_0005654",
-      "lbl": "nucleoplasm",
-      "meta": {
-        "basicPropertyValues": [
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
-            "val": "cellular_component",
-          },
-        ],
-        "definition": {
-          "val": "That part of the nuclear content other than the chromosomes or the nucleolus.",
-          "xrefs": [
-            "GOC:ma",
-            "ISBN:0124325653",
-          ],
-        },
-        "subsets": [
-          "http://purl.obolibrary.org/obo/go#goslim_chembl",
-          "http://purl.obolibrary.org/obo/go#goslim_generic",
-          "http://purl.obolibrary.org/obo/go#goslim_plant",
-        ],
-        "xrefs": [
-          {
-            "val": "NIF_Subcellular:sao661522542",
-          },
-          {
-            "val": "Wikipedia:Nucleoplasm",
-          },
-        ],
-      },
-      "type": "CLASS",
-    },
-    "wordMatches": [
-      {
-        "position": 17,
-        "wordIndex": 0,
-      },
-    ],
-  },
-  {
-    "path": "$.meta.definition.val",
-    "score": 1,
-    "str": "A cellular structure that forms the internal framework of eukaryotic and prokaryotic cells. The cytoskeleton includes intermediate filaments, microfilaments, microtubules, the microtrabecular lattice, and other structures characterized by a polymeric filamentous nature and long-range order within the cell. The various elements of the cytoskeleton not only serve in the maintenance of cellular shape but also have roles in other cellular functions, including cellular movement, cell division, endocytosis, and movement of organelles.",
-    "term": {
-      "fullTextWords": [
-        "go:0005856",
-        "cytoskeleton",
-        "cellular",
-        "structure",
-        "forms",
-        "internal",
-        "framework",
-        "eukaryotic",
-        "prokaryotic",
-        "cells",
-        "includes",
-        "intermediate",
-        "filaments",
-        "microfilaments",
-        "microtubules",
-        "microtrabecular",
-        "lattice",
-        "structures",
-        "characterized",
-        "polymeric",
-        "filamentous",
-        "nature",
-        "long",
-        "range",
-        "order",
-        "within",
-        "cell",
-        "various",
-        "elements",
-        "serve",
-        "maintenance",
-        "shape",
-        "also",
-        "roles",
-        "functions",
-        "including",
-        "movement",
-        "division",
-        "endocytosis",
-        "organelles",
-      ],
-      "id": "http://purl.obolibrary.org/obo/GO_0005856",
-      "lbl": "cytoskeleton",
-      "meta": {
-        "basicPropertyValues": [
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
-            "val": "cellular_component",
-          },
-        ],
-        "definition": {
-          "val": "A cellular structure that forms the internal framework of eukaryotic and prokaryotic cells. The cytoskeleton includes intermediate filaments, microfilaments, microtubules, the microtrabecular lattice, and other structures characterized by a polymeric filamentous nature and long-range order within the cell. The various elements of the cytoskeleton not only serve in the maintenance of cellular shape but also have roles in other cellular functions, including cellular movement, cell division, endocytosis, and movement of organelles.",
-          "xrefs": [
-            "GOC:mah",
-            "PMID:16959967",
-            "PMID:27419875",
-          ],
-        },
-        "subsets": [
-          "http://purl.obolibrary.org/obo/go#goslim_agr",
-          "http://purl.obolibrary.org/obo/go#goslim_candida",
-          "http://purl.obolibrary.org/obo/go#goslim_chembl",
-          "http://purl.obolibrary.org/obo/go#goslim_drosophila",
-          "http://purl.obolibrary.org/obo/go#goslim_flybase_ribbon",
-          "http://purl.obolibrary.org/obo/go#goslim_generic",
-          "http://purl.obolibrary.org/obo/go#goslim_mouse",
-          "http://purl.obolibrary.org/obo/go#goslim_pir",
-          "http://purl.obolibrary.org/obo/go#goslim_plant",
-          "http://purl.obolibrary.org/obo/go#goslim_yeast",
-          "http://purl.obolibrary.org/obo/go#prokaryote_subset",
-        ],
-        "xrefs": [
-          {
-            "val": "Wikipedia:Cytoskeleton",
-          },
-        ],
-      },
-      "type": "CLASS",
-    },
-    "wordMatches": [
-      {
-        "position": 484,
-        "wordIndex": 0,
-      },
-    ],
-  },
-  {
-    "path": "$.meta.synonyms[*].val",
-    "score": 1,
-    "str": "chromosome division",
-    "term": {
-      "fullTextWords": [
-        "go:0007059",
-        "chromosome",
-        "segregation",
-        "division",
-        "transmission",
-        "process",
-        "genetic",
-        "material",
-        "form",
-        "chromosomes",
-        "organized",
-        "specific",
-        "structures",
-        "physically",
-        "separated",
-        "apportioned",
-        "two",
-        "sets",
-        "eukaryotes",
-        "begins",
-        "condensation",
-        "includes",
-        "separation",
-        "ends",
-        "completed",
-        "movement",
-        "spindle",
-        "poles",
-      ],
-      "id": "http://purl.obolibrary.org/obo/GO_0007059",
-      "lbl": "chromosome segregation",
-      "meta": {
-        "basicPropertyValues": [
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
-            "val": "biological_process",
-          },
-        ],
-        "definition": {
-          "val": "The process in which genetic material, in the form of chromosomes, is organized into specific structures and then physically separated and apportioned to two or more sets. In eukaryotes, chromosome segregation begins with the condensation of chromosomes, includes chromosome separation, and ends when chromosomes have completed movement to the spindle poles.",
-          "xrefs": [
-            "GOC:jl",
-            "GOC:mah",
-            "GOC:mtg_cell_cycle",
-            "GOC:vw",
-          ],
-        },
-        "subsets": [
-          "http://purl.obolibrary.org/obo/go#goslim_chembl",
-          "http://purl.obolibrary.org/obo/go#goslim_drosophila",
-          "http://purl.obolibrary.org/obo/go#goslim_generic",
-          "http://purl.obolibrary.org/obo/go#goslim_pir",
-          "http://purl.obolibrary.org/obo/go#goslim_yeast",
-          "http://purl.obolibrary.org/obo/go#prokaryote_subset",
-        ],
-        "synonyms": [
-          {
-            "pred": "hasExactSynonym",
-            "val": "chromosome division",
-          },
-          {
-            "pred": "hasRelatedSynonym",
-            "val": "chromosome transmission",
-          },
-        ],
-        "xrefs": [
-          {
-            "val": "Wikipedia:Chromosome_segregation",
-          },
-        ],
-      },
-      "type": "CLASS",
-    },
-    "wordMatches": [
-      {
-        "position": 11,
-        "wordIndex": 0,
-      },
-    ],
-  },
-  {
-    "path": "$.meta.definition.val",
-    "score": 1,
-    "str": "Binding to a histone, any of a group of water-soluble proteins found in association with the DNA of eukaryotic or archaeal chromosomes. They are involved in the condensation and coiling of chromosomes during cell division and have also been implicated in gene regulation and DNA replication. They may be chemically modified (methylated, acetlyated and others) to regulate gene transcription.",
-    "term": {
-      "fullTextWords": [
-        "go:0042393",
-        "histone",
-        "binding",
-        "specific",
-        "chaperone",
-        "activity",
-        "group",
-        "water",
-        "soluble",
-        "proteins",
-        "found",
-        "association",
-        "dna",
-        "eukaryotic",
-        "archaeal",
-        "chromosomes",
-        "involved",
-        "condensation",
-        "coiling",
-        "cell",
-        "division",
-        "also",
-        "implicated",
-        "gene",
-        "regulation",
-        "replication",
-        "may",
-        "chemically",
-        "modified",
-        "methylated",
-        "acetlyated",
-        "others",
-        "regulate",
-        "transcription",
-      ],
-      "id": "http://purl.obolibrary.org/obo/GO_0042393",
-      "lbl": "histone binding",
-      "meta": {
-        "basicPropertyValues": [
-          {
-            "pred": "http://purl.obolibrary.org/obo/IAO_0000233",
-            "val": "https://github.com/geneontology/go-ontology/issues/23106",
-          },
-          {
-            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
-            "val": "molecular_function",
-          },
-        ],
-        "definition": {
-          "val": "Binding to a histone, any of a group of water-soluble proteins found in association with the DNA of eukaryotic or archaeal chromosomes. They are involved in the condensation and coiling of chromosomes during cell division and have also been implicated in gene regulation and DNA replication. They may be chemically modified (methylated, acetlyated and others) to regulate gene transcription.",
-          "xrefs": [
-            "GOC:jl",
-            "PMID:16209651",
-            "PMID:30212449",
-            "PMID:9305837",
-          ],
-        },
-        "subsets": [
-          "http://purl.obolibrary.org/obo/go#goslim_chembl",
-          "http://purl.obolibrary.org/obo/go#goslim_drosophila",
-          "http://purl.obolibrary.org/obo/go#goslim_generic",
-          "http://purl.obolibrary.org/obo/go#goslim_yeast",
-          "http://purl.obolibrary.org/obo/go#prokaryote_subset",
-        ],
-        "synonyms": [
-          {
-            "pred": "hasRelatedSynonym",
-            "val": "histone-specific chaperone activity",
-          },
-        ],
-      },
-      "type": "CLASS",
-    },
-    "wordMatches": [
-      {
-        "position": 213,
-        "wordIndex": 0,
-      },
-    ],
-  },
-  {
-    "path": "$.meta.definition.val",
-    "score": -4,
+    "score": 296.8125837320574,
     "str": "Progression through the phases of the mitotic cell cycle, the most common eukaryotic cell cycle, which canonically comprises four successive phases called G1, S, G2, and M and includes replication of the genome and the subsequent segregation of chromosomes into daughter cells. In some variant cell cycles nuclear replication or nuclear division may not be followed by cell division, or G1 and G2 phases may be absent.",
     "term": {
       "fullTextWords": [
@@ -1197,6 +310,748 @@ exports[`OntologyStore can load goslim generic 2`] = `
       {
         "position": 374,
         "wordIndex": 2,
+      },
+    ],
+  },
+  {
+    "field": {
+      "displayName": "Label",
+      "jsonPath": "$.lbl",
+    },
+    "score": 211.05666666666667,
+    "str": "meiotic nuclear division",
+    "term": {
+      "fullTextWords": [
+        "go:0140013",
+        "meiotic",
+        "nuclear",
+        "division",
+        "meiosis",
+        "one",
+        "two",
+        "divisions",
+        "occur",
+        "part",
+        "cell",
+        "cycle",
+      ],
+      "id": "http://purl.obolibrary.org/obo/GO_0140013",
+      "lbl": "meiotic nuclear division",
+      "meta": {
+        "basicPropertyValues": [
+          {
+            "pred": "http://purl.obolibrary.org/obo/IAO_0000233",
+            "val": "https://github.com/geneontology/go-ontology/issues/19910",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#created_by",
+            "val": "pg",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#creation_date",
+            "val": "2017-03-23T09:40:00Z",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+            "val": "biological_process",
+          },
+        ],
+        "definition": {
+          "val": "One of the two nuclear divisions that occur as part of the meiotic cell cycle.",
+          "xrefs": [
+            "PMID:9334324",
+          ],
+        },
+        "subsets": [
+          "http://purl.obolibrary.org/obo/go#goslim_generic",
+        ],
+        "synonyms": [
+          {
+            "pred": "hasExactSynonym",
+            "val": "meiosis",
+          },
+        ],
+      },
+      "type": "CLASS",
+    },
+    "wordMatches": [
+      {
+        "position": 8,
+        "wordIndex": 0,
+      },
+      {
+        "position": 16,
+        "wordIndex": 1,
+      },
+    ],
+  },
+  {
+    "field": {
+      "displayName": "Label",
+      "jsonPath": "$.lbl",
+    },
+    "score": 105.2575,
+    "str": "nuclear envelope",
+    "term": {
+      "fullTextWords": [
+        "go:0005635",
+        "nuclear",
+        "envelope",
+        "double",
+        "lipid",
+        "bilayer",
+        "enclosing",
+        "nucleus",
+        "separating",
+        "contents",
+        "rest",
+        "cytoplasm",
+        "includes",
+        "intermembrane",
+        "space",
+        "gap",
+        "width",
+        "20",
+        "40",
+        "nm",
+        "also",
+        "called",
+        "perinuclear",
+      ],
+      "id": "http://purl.obolibrary.org/obo/GO_0005635",
+      "lbl": "nuclear envelope",
+      "meta": {
+        "basicPropertyValues": [
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasAlternativeId",
+            "val": "GO:0005636",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+            "val": "cellular_component",
+          },
+        ],
+        "definition": {
+          "val": "The double lipid bilayer enclosing the nucleus and separating its contents from the rest of the cytoplasm; includes the intermembrane space, a gap of width 20-40 nm (also called the perinuclear space).",
+          "xrefs": [
+            "ISBN:0198547684",
+          ],
+        },
+        "subsets": [
+          "http://purl.obolibrary.org/obo/go#goslim_chembl",
+          "http://purl.obolibrary.org/obo/go#goslim_generic",
+          "http://purl.obolibrary.org/obo/go#goslim_plant",
+        ],
+        "xrefs": [
+          {
+            "val": "Wikipedia:Nuclear_envelope",
+          },
+        ],
+      },
+      "type": "CLASS",
+    },
+    "wordMatches": [
+      {
+        "position": 0,
+        "wordIndex": 0,
+      },
+    ],
+  },
+  {
+    "field": {
+      "displayName": "Label",
+      "jsonPath": "$.lbl",
+    },
+    "score": 105.01444444444445,
+    "str": "nuclear chromosome",
+    "term": {
+      "fullTextWords": [
+        "go:0000228",
+        "nuclear",
+        "chromosome",
+        "interphase",
+        "encodes",
+        "genome",
+        "found",
+        "nucleus",
+        "eukaryotic",
+        "cell",
+        "cycle",
+        "phases",
+        "intact",
+      ],
+      "id": "http://purl.obolibrary.org/obo/GO_0000228",
+      "lbl": "nuclear chromosome",
+      "meta": {
+        "basicPropertyValues": [
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+            "val": "cellular_component",
+          },
+        ],
+        "definition": {
+          "val": "A chromosome that encodes the nuclear genome and is found in the nucleus of a eukaryotic cell during the cell cycle phases when the nucleus is intact.",
+          "xrefs": [
+            "GOC:dph",
+            "GOC:mah",
+          ],
+        },
+        "subsets": [
+          "http://purl.obolibrary.org/obo/go#goslim_chembl",
+          "http://purl.obolibrary.org/obo/go#goslim_generic",
+        ],
+        "synonyms": [
+          {
+            "pred": "hasNarrowSynonym",
+            "val": "nuclear interphase chromosome",
+          },
+        ],
+      },
+      "type": "CLASS",
+    },
+    "wordMatches": [
+      {
+        "position": 0,
+        "wordIndex": 0,
+      },
+    ],
+  },
+  {
+    "field": {
+      "displayName": "Label",
+      "jsonPath": "$.lbl",
+    },
+    "score": 104.66090909090909,
+    "str": "results in division of",
+    "term": {
+      "fullTextWords": [
+        "http:",
+        "purl",
+        "obolibrary",
+        "org",
+        "obo",
+        "gorel",
+        "0001019",
+        "results",
+        "division",
+      ],
+      "id": "http://purl.obolibrary.org/obo/GOREL_0001019",
+      "lbl": "results in division of",
+      "meta": {
+        "basicPropertyValues": [
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+            "val": "external",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#shorthand",
+            "val": "results_in_division_of",
+          },
+        ],
+        "comments": [
+          "use occurs_in",
+        ],
+        "xrefs": [
+          {
+            "val": "GOREL:0001019",
+          },
+        ],
+      },
+    },
+    "wordMatches": [
+      {
+        "position": 11,
+        "wordIndex": 0,
+      },
+    ],
+  },
+  {
+    "field": {
+      "displayName": "Synonym",
+      "jsonPath": "$.meta.synonyms[*].val",
+    },
+    "score": 103.9121052631579,
+    "str": "chromosome division",
+    "term": {
+      "fullTextWords": [
+        "go:0007059",
+        "chromosome",
+        "segregation",
+        "division",
+        "transmission",
+        "process",
+        "genetic",
+        "material",
+        "form",
+        "chromosomes",
+        "organized",
+        "specific",
+        "structures",
+        "physically",
+        "separated",
+        "apportioned",
+        "two",
+        "sets",
+        "eukaryotes",
+        "begins",
+        "condensation",
+        "includes",
+        "separation",
+        "ends",
+        "completed",
+        "movement",
+        "spindle",
+        "poles",
+      ],
+      "id": "http://purl.obolibrary.org/obo/GO_0007059",
+      "lbl": "chromosome segregation",
+      "meta": {
+        "basicPropertyValues": [
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+            "val": "biological_process",
+          },
+        ],
+        "definition": {
+          "val": "The process in which genetic material, in the form of chromosomes, is organized into specific structures and then physically separated and apportioned to two or more sets. In eukaryotes, chromosome segregation begins with the condensation of chromosomes, includes chromosome separation, and ends when chromosomes have completed movement to the spindle poles.",
+          "xrefs": [
+            "GOC:jl",
+            "GOC:mah",
+            "GOC:mtg_cell_cycle",
+            "GOC:vw",
+          ],
+        },
+        "subsets": [
+          "http://purl.obolibrary.org/obo/go#goslim_chembl",
+          "http://purl.obolibrary.org/obo/go#goslim_drosophila",
+          "http://purl.obolibrary.org/obo/go#goslim_generic",
+          "http://purl.obolibrary.org/obo/go#goslim_pir",
+          "http://purl.obolibrary.org/obo/go#goslim_yeast",
+          "http://purl.obolibrary.org/obo/go#prokaryote_subset",
+        ],
+        "synonyms": [
+          {
+            "pred": "hasExactSynonym",
+            "val": "chromosome division",
+          },
+          {
+            "pred": "hasRelatedSynonym",
+            "val": "chromosome transmission",
+          },
+        ],
+        "xrefs": [
+          {
+            "val": "Wikipedia:Chromosome_segregation",
+          },
+        ],
+      },
+      "type": "CLASS",
+    },
+    "wordMatches": [
+      {
+        "position": 11,
+        "wordIndex": 0,
+      },
+    ],
+  },
+  {
+    "field": {
+      "displayName": "Definition",
+      "jsonPath": "$.meta.definition.val",
+    },
+    "score": 102.48146341463415,
+    "str": "The chemical reactions and pathways involving snRNA, small nuclear RNA, any of various low-molecular-mass RNA molecules found in the eukaryotic nucleus as components of the small nuclear ribonucleoprotein.",
+    "term": {
+      "fullTextWords": [
+        "go:0016073",
+        "snrna",
+        "metabolic",
+        "process",
+        "metabolism",
+        "chemical",
+        "reactions",
+        "pathways",
+        "involving",
+        "small",
+        "nuclear",
+        "rna",
+        "various",
+        "low",
+        "molecular",
+        "mass",
+        "molecules",
+        "found",
+        "eukaryotic",
+        "nucleus",
+        "components",
+        "ribonucleoprotein",
+      ],
+      "id": "http://purl.obolibrary.org/obo/GO_0016073",
+      "lbl": "snRNA metabolic process",
+      "meta": {
+        "basicPropertyValues": [
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+            "val": "biological_process",
+          },
+        ],
+        "definition": {
+          "val": "The chemical reactions and pathways involving snRNA, small nuclear RNA, any of various low-molecular-mass RNA molecules found in the eukaryotic nucleus as components of the small nuclear ribonucleoprotein.",
+          "xrefs": [
+            "ISBN:0198506732",
+          ],
+        },
+        "subsets": [
+          "http://purl.obolibrary.org/obo/go#goslim_drosophila",
+          "http://purl.obolibrary.org/obo/go#goslim_generic",
+          "http://purl.obolibrary.org/obo/go#goslim_pombe",
+        ],
+        "synonyms": [
+          {
+            "pred": "hasExactSynonym",
+            "val": "snRNA metabolism",
+          },
+        ],
+      },
+      "type": "CLASS",
+    },
+    "wordMatches": [
+      {
+        "position": 59,
+        "wordIndex": 0,
+      },
+      {
+        "position": 179,
+        "wordIndex": 0,
+      },
+    ],
+  },
+  {
+    "field": {
+      "displayName": "Definition",
+      "jsonPath": "$.meta.definition.val",
+    },
+    "score": 101.52454545454546,
+    "str": "That part of the nuclear content other than the chromosomes or the nucleolus.",
+    "term": {
+      "fullTextWords": [
+        "go:0005654",
+        "nucleoplasm",
+        "part",
+        "nuclear",
+        "content",
+        "chromosomes",
+        "nucleolus",
+      ],
+      "id": "http://purl.obolibrary.org/obo/GO_0005654",
+      "lbl": "nucleoplasm",
+      "meta": {
+        "basicPropertyValues": [
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+            "val": "cellular_component",
+          },
+        ],
+        "definition": {
+          "val": "That part of the nuclear content other than the chromosomes or the nucleolus.",
+          "xrefs": [
+            "GOC:ma",
+            "ISBN:0124325653",
+          ],
+        },
+        "subsets": [
+          "http://purl.obolibrary.org/obo/go#goslim_chembl",
+          "http://purl.obolibrary.org/obo/go#goslim_generic",
+          "http://purl.obolibrary.org/obo/go#goslim_plant",
+        ],
+        "xrefs": [
+          {
+            "val": "NIF_Subcellular:sao661522542",
+          },
+          {
+            "val": "Wikipedia:Nucleoplasm",
+          },
+        ],
+      },
+      "type": "CLASS",
+    },
+    "wordMatches": [
+      {
+        "position": 17,
+        "wordIndex": 0,
+      },
+    ],
+  },
+  {
+    "field": {
+      "displayName": "Definition",
+      "jsonPath": "$.meta.definition.val",
+    },
+    "score": 101.39110091743119,
+    "str": "The division of the cytoplasm and the plasma membrane of a cell and its partitioning into two daughter cells.",
+    "term": {
+      "fullTextWords": [
+        "go:0000910",
+        "cytokinesis",
+        "cell",
+        "cycle",
+        "involved",
+        "division",
+        "cytoplasm",
+        "plasma",
+        "membrane",
+        "partitioning",
+        "two",
+        "daughter",
+        "cells",
+      ],
+      "id": "http://purl.obolibrary.org/obo/GO_0000910",
+      "lbl": "cytokinesis",
+      "meta": {
+        "basicPropertyValues": [
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasAlternativeId",
+            "val": "GO:0007104",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasAlternativeId",
+            "val": "GO:0016288",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasAlternativeId",
+            "val": "GO:0033205",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+            "val": "biological_process",
+          },
+        ],
+        "comments": [
+          "Note that this term should not be used for direct annotation. When annotating eukaryotic species, mitotic or meiotic cytokinesis should always be specified for manual annotation and for prokaryotic species use 'FtsZ-dependent cytokinesis ; GO:0043093' or Cdv-dependent cytokinesis ; GO:0061639. Also, note that cytokinesis does not necessarily result in physical separation and detachment of the two daughter cells from each other.",
+        ],
+        "definition": {
+          "val": "The division of the cytoplasm and the plasma membrane of a cell and its partitioning into two daughter cells.",
+          "xrefs": [
+            "GOC:mtg_cell_cycle",
+          ],
+        },
+        "subsets": [
+          "http://purl.obolibrary.org/obo/go#gocheck_do_not_manually_annotate",
+          "http://purl.obolibrary.org/obo/go#goslim_candida",
+          "http://purl.obolibrary.org/obo/go#goslim_generic",
+          "http://purl.obolibrary.org/obo/go#goslim_yeast",
+          "http://purl.obolibrary.org/obo/go#prokaryote_subset",
+        ],
+        "synonyms": [
+          {
+            "pred": "hasExactSynonym",
+            "val": "cell cycle cytokinesis",
+          },
+          {
+            "pred": "hasExactSynonym",
+            "val": "cytokinesis involved in cell cycle",
+            "xrefs": [
+              "GOC:dph",
+              "GOC:tb",
+            ],
+          },
+        ],
+        "xrefs": [
+          {
+            "val": "Wikipedia:Cytokinesis",
+          },
+        ],
+      },
+      "type": "CLASS",
+    },
+    "wordMatches": [
+      {
+        "position": 4,
+        "wordIndex": 0,
+      },
+    ],
+  },
+  {
+    "field": {
+      "displayName": "Definition",
+      "jsonPath": "$.meta.definition.val",
+    },
+    "score": 101.15951406649616,
+    "str": "Binding to a histone, any of a group of water-soluble proteins found in association with the DNA of eukaryotic or archaeal chromosomes. They are involved in the condensation and coiling of chromosomes during cell division and have also been implicated in gene regulation and DNA replication. They may be chemically modified (methylated, acetlyated and others) to regulate gene transcription.",
+    "term": {
+      "fullTextWords": [
+        "go:0042393",
+        "histone",
+        "binding",
+        "specific",
+        "chaperone",
+        "activity",
+        "group",
+        "water",
+        "soluble",
+        "proteins",
+        "found",
+        "association",
+        "dna",
+        "eukaryotic",
+        "archaeal",
+        "chromosomes",
+        "involved",
+        "condensation",
+        "coiling",
+        "cell",
+        "division",
+        "also",
+        "implicated",
+        "gene",
+        "regulation",
+        "replication",
+        "may",
+        "chemically",
+        "modified",
+        "methylated",
+        "acetlyated",
+        "others",
+        "regulate",
+        "transcription",
+      ],
+      "id": "http://purl.obolibrary.org/obo/GO_0042393",
+      "lbl": "histone binding",
+      "meta": {
+        "basicPropertyValues": [
+          {
+            "pred": "http://purl.obolibrary.org/obo/IAO_0000233",
+            "val": "https://github.com/geneontology/go-ontology/issues/23106",
+          },
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+            "val": "molecular_function",
+          },
+        ],
+        "definition": {
+          "val": "Binding to a histone, any of a group of water-soluble proteins found in association with the DNA of eukaryotic or archaeal chromosomes. They are involved in the condensation and coiling of chromosomes during cell division and have also been implicated in gene regulation and DNA replication. They may be chemically modified (methylated, acetlyated and others) to regulate gene transcription.",
+          "xrefs": [
+            "GOC:jl",
+            "PMID:16209651",
+            "PMID:30212449",
+            "PMID:9305837",
+          ],
+        },
+        "subsets": [
+          "http://purl.obolibrary.org/obo/go#goslim_chembl",
+          "http://purl.obolibrary.org/obo/go#goslim_drosophila",
+          "http://purl.obolibrary.org/obo/go#goslim_generic",
+          "http://purl.obolibrary.org/obo/go#goslim_yeast",
+          "http://purl.obolibrary.org/obo/go#prokaryote_subset",
+        ],
+        "synonyms": [
+          {
+            "pred": "hasRelatedSynonym",
+            "val": "histone-specific chaperone activity",
+          },
+        ],
+      },
+      "type": "CLASS",
+    },
+    "wordMatches": [
+      {
+        "position": 213,
+        "wordIndex": 0,
+      },
+    ],
+  },
+  {
+    "field": {
+      "displayName": "Definition",
+      "jsonPath": "$.meta.definition.val",
+    },
+    "score": 101.13554307116105,
+    "str": "A cellular structure that forms the internal framework of eukaryotic and prokaryotic cells. The cytoskeleton includes intermediate filaments, microfilaments, microtubules, the microtrabecular lattice, and other structures characterized by a polymeric filamentous nature and long-range order within the cell. The various elements of the cytoskeleton not only serve in the maintenance of cellular shape but also have roles in other cellular functions, including cellular movement, cell division, endocytosis, and movement of organelles.",
+    "term": {
+      "fullTextWords": [
+        "go:0005856",
+        "cytoskeleton",
+        "cellular",
+        "structure",
+        "forms",
+        "internal",
+        "framework",
+        "eukaryotic",
+        "prokaryotic",
+        "cells",
+        "includes",
+        "intermediate",
+        "filaments",
+        "microfilaments",
+        "microtubules",
+        "microtrabecular",
+        "lattice",
+        "structures",
+        "characterized",
+        "polymeric",
+        "filamentous",
+        "nature",
+        "long",
+        "range",
+        "order",
+        "within",
+        "cell",
+        "various",
+        "elements",
+        "serve",
+        "maintenance",
+        "shape",
+        "also",
+        "roles",
+        "functions",
+        "including",
+        "movement",
+        "division",
+        "endocytosis",
+        "organelles",
+      ],
+      "id": "http://purl.obolibrary.org/obo/GO_0005856",
+      "lbl": "cytoskeleton",
+      "meta": {
+        "basicPropertyValues": [
+          {
+            "pred": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+            "val": "cellular_component",
+          },
+        ],
+        "definition": {
+          "val": "A cellular structure that forms the internal framework of eukaryotic and prokaryotic cells. The cytoskeleton includes intermediate filaments, microfilaments, microtubules, the microtrabecular lattice, and other structures characterized by a polymeric filamentous nature and long-range order within the cell. The various elements of the cytoskeleton not only serve in the maintenance of cellular shape but also have roles in other cellular functions, including cellular movement, cell division, endocytosis, and movement of organelles.",
+          "xrefs": [
+            "GOC:mah",
+            "PMID:16959967",
+            "PMID:27419875",
+          ],
+        },
+        "subsets": [
+          "http://purl.obolibrary.org/obo/go#goslim_agr",
+          "http://purl.obolibrary.org/obo/go#goslim_candida",
+          "http://purl.obolibrary.org/obo/go#goslim_chembl",
+          "http://purl.obolibrary.org/obo/go#goslim_drosophila",
+          "http://purl.obolibrary.org/obo/go#goslim_flybase_ribbon",
+          "http://purl.obolibrary.org/obo/go#goslim_generic",
+          "http://purl.obolibrary.org/obo/go#goslim_mouse",
+          "http://purl.obolibrary.org/obo/go#goslim_pir",
+          "http://purl.obolibrary.org/obo/go#goslim_plant",
+          "http://purl.obolibrary.org/obo/go#goslim_yeast",
+          "http://purl.obolibrary.org/obo/go#prokaryote_subset",
+        ],
+        "xrefs": [
+          {
+            "val": "Wikipedia:Cytoskeleton",
+          },
+        ],
+      },
+      "type": "CLASS",
+    },
+    "wordMatches": [
+      {
+        "position": 484,
+        "wordIndex": 0,
       },
     ],
   },
