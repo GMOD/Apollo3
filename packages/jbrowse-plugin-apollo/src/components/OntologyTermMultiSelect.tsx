@@ -235,7 +235,7 @@ export function OntologyTermMultiSelect({
 
   return (
     <Autocomplete
-      getOptionLabel={(option) => option.term.id}
+      getOptionLabel={(option) => ontologyManager.applyPrefixes(option.term.id)}
       filterOptions={(terms) => terms.filter((t) => isOntologyClass(t.term))}
       options={options}
       autoComplete

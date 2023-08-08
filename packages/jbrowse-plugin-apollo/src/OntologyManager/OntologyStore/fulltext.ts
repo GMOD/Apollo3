@@ -178,8 +178,8 @@ export function elaborateMatch(
   const MATCH_WORDS_CLOSENESS_WEIGHT = 0.05
   const MATCH_ADJACENCY_BONUS = 1
   const MATCH_RIGHT_ORDER_BONUS = 1
-  const MATCH_WHOLE_STRING_BONUS = 1000
-  const PCT_OF_STRING_WEIGHT = 0.3
+  const MATCH_LENGTH_WEIGHT = 0.01
+  const PCT_OF_STRING_WEIGHT = 0.05
 
   // inspect the node at each of the index paths, because we don't know which ones matched
   interface WordMatch {
@@ -203,11 +203,9 @@ export function elaborateMatch(
           const position = match.index
           const queryWord = queryWords[wordIndex]
           if (position !== undefined) {
+            score += queryWord.length * MATCH_LENGTH_WEIGHT
             score +=
               (queryWord.length / str.length) * 100 * PCT_OF_STRING_WEIGHT
-            if (position === 0 && queryWord.length === str.length) {
-              score += MATCH_WHOLE_STRING_BONUS
-            }
             wordMatches.push({ wordIndex, position })
           }
         }
