@@ -250,10 +250,12 @@ export function clientDataStoreFactory(
   // assembly and feature data isn't actually reloaded on reload unless we delete it from the snap
   return types.snapshotProcessor(clientStoreType, {
     preProcessor(snap: SnapshotIn<typeof clientStoreType>) {
-      return { ...snap, assemblies: {} }
+      snap.assemblies = {}
+      return snap
     },
     postProcessor(snap: SnapshotOut<typeof clientStoreType>) {
-      return { ...snap, assemblies: {} }
+      snap.assemblies = {}
+      return snap
     },
   })
 }
