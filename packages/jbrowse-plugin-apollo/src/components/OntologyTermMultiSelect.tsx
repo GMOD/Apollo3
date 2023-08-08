@@ -268,6 +268,7 @@ export function OntologyTermMultiSelect({
       )}
       renderOption={(props, option) => (
         <Option
+          {...props}
           ontologyManager={ontologyManager}
           option={option}
           inputValue={inputValue}
@@ -318,37 +319,38 @@ function Option(props: {
   option: TermValue
 }) {
   const { option, inputValue, ontologyManager } = props
-  const fields = option.matches?.length ? (
-    option.matches.map((match, idx) => {
+  const matches = option.matches ?? []
+  const fields = matches
+    .filter((match) => match.field.jsonPath !== '$.lbl')
+    .map((match) => {
       return (
         <>
-          <Typography
-            key={idx}
-            component="span"
-            variant="body2"
-            color="text.secondary"
-          >
-            {match.field.displayName}:
-          </Typography>{' '}
-          <HighlightedText str={match.str} search={inputValue} />
+          <Typography component="dt" variant="body2" color="text.secondary">
+            {match.field.displayName}
+          </Typography>
+          <dd>
+            <HighlightedText str={match.str} search={inputValue} />
+          </dd>
         </>
       )
     })
-  ) : (
-    <HighlightedText
-      str={option.term.lbl ?? '(no label)'}
-      search={inputValue}
-    />
-  )
-
+  // const lblScore = matches
+  //   .filter((match) => match.field.jsonPath === '$.lbl')
+  //   .map((m) => m.score)
+  //   .join(', ')
   return (
     <li {...props}>
       <Grid container>
         <Grid item>
-          <Typography>
+          <Typography component="span">
             {ontologyManager.applyPrefixes(option.term.id)}
-          </Typography>
-          {fields}
+          </Typography>{' '}
+          <HighlightedText
+            str={option.term.lbl ?? '(no label)'}
+            search={inputValue}
+          />{' '}
+          {/* ({lblScore}) */}
+          <dl>{fields}</dl>
         </Grid>
       </Grid>
     </li>

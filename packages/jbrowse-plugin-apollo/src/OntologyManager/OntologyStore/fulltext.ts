@@ -173,6 +173,14 @@ export function elaborateMatch(
   })
   // const needle = matchedQueryWords.join(' ')
 
+  // ranking weights that can be tweaked if you know what you're doing
+  const FIELD_PRIORITY_WEIGHT = 1
+  const MATCH_WORDS_CLOSENESS_WEIGHT = 0.05
+  const MATCH_ADJACENCY_BONUS = 1
+  const MATCH_RIGHT_ORDER_BONUS = 1
+  const MATCH_WHOLE_STRING_BONUS = 1000
+  const PCT_OF_STRING_WEIGHT = 0.3
+
   // inspect the node at each of the index paths, because we don't know which ones matched
   interface WordMatch {
     wordIndex: number
@@ -191,9 +199,15 @@ export function elaborateMatch(
       const wordMatches: WordMatch[] = []
       queryWordRegexps.forEach((re, wordIndex) => {
         for (const match of str.matchAll(re)) {
-          score += 1 + fieldPriorityBonus
+          score += 1 + fieldPriorityBonus * FIELD_PRIORITY_WEIGHT
           const position = match.index
+          const queryWord = queryWords[wordIndex]
           if (position !== undefined) {
+            score +=
+              (queryWord.length / str.length) * 100 * PCT_OF_STRING_WEIGHT
+            if (position === 0 && queryWord.length === str.length) {
+              score += MATCH_WHOLE_STRING_BONUS
+            }
             wordMatches.push({ wordIndex, position })
           }
         }
@@ -224,10 +238,10 @@ export function elaborateMatch(
       const wdiff = m2.wordIndex - m1.wordIndex
       if (wdiff === 1 || wdiff === -1) {
         // they are adjacent, bonus
-        match.score += 1
+        match.score += MATCH_ADJACENCY_BONUS
         if (wdiff === 1) {
           // they are in the right order, bonus
-          match.score += 1
+          match.score += MATCH_RIGHT_ORDER_BONUS
         }
         // give additional bonus for how close they are
         const spacing =
@@ -235,7 +249,7 @@ export function elaborateMatch(
             m2.position -
               (m1.position + matchedQueryWords[m1.wordIndex].length),
           ) - 1
-        match.score -= spacing * 0.05
+        match.score -= spacing * MATCH_WORDS_CLOSENESS_WEIGHT
       }
     }
   }
