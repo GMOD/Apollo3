@@ -21,7 +21,10 @@ import {
   isOntologyClass,
 } from '../OntologyManager'
 import { Match } from '../OntologyManager/OntologyStore/fulltext'
-import { OntologyDBNode } from '../OntologyManager/OntologyStore/indexeddb-schema'
+import {
+  OntologyDBNode,
+  isDeprecated,
+} from '../OntologyManager/OntologyStore/indexeddb-schema'
 
 interface TermValue {
   term: OntologyTerm
@@ -109,11 +112,14 @@ export function OntologyTermMultiSelect({
   onChange,
   ontologyName,
   ontologyVersion,
+  includeDeprecated,
 }: {
   session: ReturnType<typeof getSession>
   value: string[]
   ontologyName: string
   ontologyVersion?: string
+  /** if true, include deprecated/obsolete terms */
+  includeDeprecated?: boolean
   onChange(newValue: string[]): void
 }) {
   const ontologyManager = session.apolloDataStore
@@ -196,7 +202,10 @@ export function OntologyTermMultiSelect({
       const byTerm = new Map<string, Required<TermValue>>()
       const options: Required<TermValue>[] = []
       for (const match of matches) {
-        if (!isOntologyClass(match.term)) {
+        if (
+          !isOntologyClass(match.term) ||
+          (!includeDeprecated && isDeprecated(match.term))
+        ) {
           continue
         }
         let slot = byTerm.get(match.term.id)
@@ -221,7 +230,7 @@ export function OntologyTermMultiSelect({
     return () => {
       aborter.abort()
     }
-  }, [getOntologyTerms, ontology, inputValue, value])
+  }, [getOntologyTerms, ontology, includeDeprecated, inputValue, value])
 
   if (!ontology) {
     return null

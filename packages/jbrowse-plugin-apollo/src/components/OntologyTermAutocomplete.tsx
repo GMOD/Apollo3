@@ -4,10 +4,10 @@ import {
   AutocompleteRenderInputParams,
   TextField,
 } from '@mui/material'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import type { OntologyManager } from '../OntologyManager'
-import { OntologyTerm } from '../OntologyManager'
+import { OntologyTerm, isDeprecated } from '../OntologyManager'
 import OntologyStore from '../OntologyManager/OntologyStore'
 
 interface OntologyTermAutocompleteProps {
@@ -29,6 +29,8 @@ interface OntologyTermAutocompleteProps {
     },
   ) => React.ReactNode
   onChange: (oldValue: string, newValue: string | null | undefined) => void
+  /** if true, include deprecated/obsolete terms */
+  includeDeprecated?: boolean
 }
 
 export function OntologyTermAutocomplete({
@@ -38,9 +40,10 @@ export function OntologyTermAutocomplete({
   ontologyName,
   ontologyVersion,
   fetchValidTerms,
-  filterTerms,
+  filterTerms: filterTermsProp,
   onChange,
   renderInput,
+  includeDeprecated,
 }: OntologyTermAutocompleteProps) {
   const [open, setOpen] = useState(false)
   const [termChoices, setTermChoices] = useState<OntologyTerm[] | undefined>()
@@ -59,6 +62,14 @@ export function OntologyTermAutocomplete({
 
   const needToLoadTermChoices = ontologyStore && open && !termChoices
   const needToLoadCurrentTerm = ontologyStore && !currentOntologyTerm
+
+  const filterTerms = useCallback(
+    (term: OntologyTerm) =>
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      (includeDeprecated || !isDeprecated(term)) &&
+      (!filterTermsProp || filterTermsProp(term)),
+    [filterTermsProp, includeDeprecated],
+  )
 
   // effect for clearing choices when not open
   useEffect(() => {

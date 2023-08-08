@@ -180,6 +180,7 @@ export function elaborateMatch(
   const MATCH_RIGHT_ORDER_BONUS = 1
   const MATCH_LENGTH_WEIGHT = 0.01
   const PCT_OF_STRING_WEIGHT = 0.05
+  const WORD_BONUS = 100 // bonus for each of the words matched
 
   // inspect the node at each of the index paths, because we don't know which ones matched
   interface WordMatch {
@@ -189,6 +190,7 @@ export function elaborateMatch(
   let matches: (Match & { wordMatches: WordMatch[] })[] = []
   let maxScore = 0
   textIndexPaths.forEach((field, fieldIdx) => {
+    const wordsMatched = new Set<number>()
     const fieldPriorityBonus = textIndexPaths.length - fieldIdx - 1
     const termStrings = Array.from(
       extractStrings(jsonPathQuery(term, field.jsonPath, prefixes)),
@@ -200,6 +202,7 @@ export function elaborateMatch(
       queryWordRegexps.forEach((re, wordIndex) => {
         for (const match of str.matchAll(re)) {
           score += 1 + fieldPriorityBonus * FIELD_PRIORITY_WEIGHT
+          wordsMatched.add(wordIndex)
           const position = match.index
           const queryWord = queryWords[wordIndex]
           if (position !== undefined) {
@@ -210,6 +213,10 @@ export function elaborateMatch(
           }
         }
       })
+
+      // apply the words-matched bonus
+      score += wordsMatched.size * WORD_BONUS
+
       if (maxScore < score) {
         maxScore = score
       }
