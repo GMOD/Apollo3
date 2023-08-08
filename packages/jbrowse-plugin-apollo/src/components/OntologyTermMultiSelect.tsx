@@ -327,20 +327,20 @@ function Option(props: {
   inputValue: string
   option: TermValue
 }) {
-  const { option, inputValue, ontologyManager } = props
+  const { option, inputValue, ontologyManager, ...other } = props
   const matches = option.matches ?? []
   const fields = matches
     .filter((match) => match.field.jsonPath !== '$.lbl')
     .map((match) => {
       return (
-        <>
+        <React.Fragment key={`option-${match.term.id}-${match.str}`}>
           <Typography component="dt" variant="body2" color="text.secondary">
             {match.field.displayName}
           </Typography>
           <dd>
             <HighlightedText str={match.str} search={inputValue} />
           </dd>
-        </>
+        </React.Fragment>
       )
     })
   // const lblScore = matches
@@ -348,7 +348,7 @@ function Option(props: {
   //   .map((m) => m.score)
   //   .join(', ')
   return (
-    <li {...props}>
+    <li {...other}>
       <Grid container>
         <Grid item>
           <Typography component="span">
