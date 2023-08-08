@@ -7,8 +7,9 @@ import {
 import { autorun } from 'mobx'
 import { Instance, addDisposer, getSnapshot, types } from 'mobx-state-tree'
 
-import OntologyStore from './OntologyStore'
+import OntologyStore, { OntologyStoreOptions } from './OntologyStore'
 import { OntologyDBNode } from './OntologyStore/indexeddb-schema'
+import { applyPrefixes, expandPrefixes } from './OntologyStore/prefixes'
 
 export { isDeprecated } from './OntologyStore/indexeddb-schema'
 
@@ -17,6 +18,7 @@ export const OntologyRecordType = types
     name: types.string,
     version: 'unversioned',
     source: types.union(LocalPathLocation, UriLocation, BlobLocation),
+    options: types.frozen<OntologyStoreOptions>(),
   })
   .volatile((_self) => ({
     dataStore: undefined as undefined | OntologyStore,
@@ -31,6 +33,7 @@ export const OntologyRecordType = types
         self.name,
         self.version,
         getSnapshot(self.source),
+        self.options,
       )
     },
     afterCreate() {
@@ -79,24 +82,14 @@ export const OntologyManagerType = types
      * prefixes
      */
     applyPrefixes(uri: string) {
-      for (const [prefix, uriBase] of self.prefixes.entries()) {
-        if (uri.startsWith(uriBase)) {
-          return uri.replace(uriBase, prefix)
-        }
-      }
-      return uri
+      return applyPrefixes(uri, self.prefixes)
     },
     /**
      * expand the given compacted URI using the currently
      * configured prefixes
      */
     expandPrefixes(uri: string) {
-      for (const [prefix, uriBase] of self.prefixes.entries()) {
-        if (uri.startsWith(prefix)) {
-          return uri.replace(prefix, uriBase)
-        }
-      }
-      return uri
+      return expandPrefixes(uri, self.prefixes)
     },
   }))
   .actions((self) => ({
@@ -104,8 +97,17 @@ export const OntologyManagerType = types
       name: string,
       version: string,
       source: Instance<typeof LocalPathLocation> | Instance<typeof UriLocation>,
+      options?: OntologyStoreOptions,
     ) {
-      const newlen = self.ontologies.push({ name, version, source })
+      const newlen = self.ontologies.push({
+        name,
+        version,
+        source,
+        options: {
+          prefixes: new Map(self.prefixes.entries()),
+          ...(options ?? {}),
+        },
+      })
       // access it immediately to fire its lifecycle hooks
       // (see https://github.com/mobxjs/mobx-state-tree/issues/1665)
       self.ontologies[newlen - 1].ping()
@@ -114,6 +116,18 @@ export const OntologyManagerType = types
 
 export default OntologyManagerType
 
+export interface TextIndexFieldDefinition {
+  /** name to display in the UI for text taken from this field or fields */
+  displayName: string
+  /** JSONPath of the field(s) */
+  jsonPath: string
+}
+export const defaultTextIndexFields: TextIndexFieldDefinition[] = [
+  { displayName: 'Label', jsonPath: '$.lbl' },
+  { displayName: 'Synonym', jsonPath: '$.meta.synonyms[*].val' },
+  { displayName: 'Definition', jsonPath: '$.meta.definition.val' },
+]
+
 export const OntologyRecordConfiguration = ConfigurationSchema(
   'OntologyRecord',
   {
@@ -121,11 +135,6 @@ export const OntologyRecordConfiguration = ConfigurationSchema(
       type: 'string',
       description: 'the full name of the ontology, e.g. "Gene Ontology"',
       defaultValue: 'My Ontology',
-    },
-    prefix: {
-      type: 'string',
-      description: 'the identifier prefix used for the ontology, e.g. "GO"',
-      defaultValue: 'MY',
     },
     version: {
       type: 'string',
@@ -139,6 +148,12 @@ export const OntologyRecordConfiguration = ConfigurationSchema(
         locationType: 'UriLocation',
         uri: 'http://example.com/myontology.json',
       },
+    },
+    textIndexFields: {
+      type: 'frozen',
+      description:
+        'JSON paths for text fields that will be indexed for text searching',
+      defaultValue: defaultTextIndexFields,
     },
   },
 )
