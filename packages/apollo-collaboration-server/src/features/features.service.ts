@@ -303,4 +303,11 @@ export class FeaturesService {
       end: searchDto.end,
     })
   }
+
+  async searchFeatures(searchDto: { term: string }) {
+    return this.featureModel
+      .find({ $text: { $search: searchDto.term } })
+      .populate('refSeq')
+      .exec()
+  }
 }

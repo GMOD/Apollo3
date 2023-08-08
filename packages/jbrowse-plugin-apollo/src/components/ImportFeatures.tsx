@@ -267,14 +267,13 @@ export function ImportFeatures({
             {submitted ? 'Submitting...' : 'Submit'}
           </Button>
           <Button
-            disabled={submitted}
             variant="outlined"
             type="submit"
             onClick={() => {
               handleClose()
             }}
           >
-            Cancel
+            Close
           </Button>
         </DialogActions>
       </form>
