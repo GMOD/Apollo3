@@ -304,9 +304,14 @@ export class FeaturesService {
     })
   }
 
-  async searchFeatures(searchDto: { term: string }) {
+  async searchFeatures(searchDto: { term: string; assemblies: string }) {
+    const { term, assemblies } = searchDto
+    const assemblyIds = assemblies.split(',')
+    const refSeqs = await this.refSeqModel
+      .find({ assembly: assemblyIds })
+      .exec()
     return this.featureModel
-      .find({ $text: { $search: searchDto.term } })
+      .find({ $text: { $search: term }, refSeq: refSeqs })
       .populate('refSeq')
       .exec()
   }

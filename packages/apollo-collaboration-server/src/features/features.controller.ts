@@ -67,7 +67,7 @@ export class FeaturesController {
    */
   @Public()
   @Get('searchFeatures')
-  async searchFeatures(@Query() request: { term: string }) {
+  async searchFeatures(@Query() request: { term: string; assemblies: string }) {
     return this.featuresService.searchFeatures(request)
   }
 
