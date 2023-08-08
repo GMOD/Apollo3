@@ -6,9 +6,11 @@ import {
 } from '@jbrowse/core/util'
 import { IDBPTransaction, IndexNames, StoreNames } from 'idb/with-async-ittr'
 
+import { textSearch } from './fulltext'
 import { OntologyDB, OntologyDBEdge, isDeprecated } from './indexeddb-schema'
 import {
-  isDatabaseCompletelyLoaded,
+  getTextIndexFields,
+  isDatabaseCurrent,
   loadOboGraphJson,
   openDatabase,
 } from './indexeddb-storage'
@@ -23,7 +25,7 @@ import {
 export type SourceLocation = UriLocation | LocalPathLocation | BlobLocation
 
 /** type alias for a Transaction on this particular DB schema */
-type Transaction<
+export type Transaction<
   TxStores extends ArrayLike<StoreNames<OntologyDB>> = ArrayLike<
     StoreNames<OntologyDB>
   >,
@@ -59,18 +61,49 @@ async function arrayFromAsync<T>(iter: AsyncIterable<T>) {
 //   )
 // }
 
+export interface OntologyStoreOptions {
+  prefixes?: Map<string, string>
+  textIndexing?: {
+    /** json paths of paths in the nodes to index as full text */
+    indexFields?: { displayName: string; jsonPath: string }[]
+  }
+  maxSearchResults?: number
+}
+
 /** query interface for a specific ontology */
 export default class OntologyStore {
   ontologyName: string
   ontologyVersion: string
   sourceLocation: SourceLocation
   db: ReturnType<OntologyStore['prepareDatabase']>
+  options: OntologyStoreOptions
 
-  constructor(name: string, version: string, source: SourceLocation) {
+  loadOboGraphJson = loadOboGraphJson
+  getTermsByFulltext = textSearch
+  openDatabase = openDatabase
+  isDatabaseCurrent = isDatabaseCurrent
+
+  get textIndexFields() {
+    return getTextIndexFields.call(this)
+  }
+
+  get prefixes(): Map<string, string> {
+    return this.options.prefixes ?? new Map()
+  }
+
+  readonly DEFAULT_MAX_SEARCH_RESULTS = 100
+
+  constructor(
+    name: string,
+    version: string,
+    source: SourceLocation,
+    options?: OntologyStoreOptions,
+  ) {
     this.ontologyName = name
     this.ontologyVersion = version
     this.sourceLocation = source
     this.db = this.prepareDatabase()
+    this.options = options ?? {}
   }
 
   /**
@@ -127,16 +160,16 @@ export default class OntologyStore {
       throw errors
     }
 
-    const db = await openDatabase(this.dbName)
+    const db = await this.openDatabase(this.dbName)
 
     // if database is already completely loaded, just return it
-    if (await isDatabaseCompletelyLoaded(db)) {
+    if (await this.isDatabaseCurrent(db)) {
       return db
     }
 
     const { sourceType } = this
     if (sourceType === 'obo-graph-json') {
-      await loadOboGraphJson(this, db)
+      await this.loadOboGraphJson(db)
     } else {
       throw new Error(
         `ontology source file ${JSON.stringify(

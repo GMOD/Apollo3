@@ -16,11 +16,12 @@ import {
 import { AnnotationFeatureI } from 'apollo-mst'
 import { AddFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
-import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
-import { createFetchErrorMessage } from '../util'
+import { isOntologyClass } from '../OntologyManager'
+import OntologyStore from '../OntologyManager/OntologyStore'
+import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
 
 interface AddFeatureProps {
   session: AbstractSessionModel
@@ -28,7 +29,6 @@ interface AddFeatureProps {
   sourceFeature: AnnotationFeatureI
   sourceAssemblyId: string
   changeManager: ChangeManager
-  internetAccount: ApolloInternetAccountModel
 }
 
 enum PhaseEnum {
@@ -37,13 +37,36 @@ enum PhaseEnum {
   two = 2,
 }
 
+async function fetchValidDescendantTerms(
+  parentFeature: AnnotationFeatureI | undefined,
+  ontologyStore: OntologyStore,
+  _signal: AbortSignal,
+) {
+  if (parentFeature) {
+    // since this is a child of an existing feature, restrict the autocomplete choices to valid
+    // parts of that feature
+    const parentTypeTerms = (
+      await ontologyStore.getTermsWithLabelOrSynonym(parentFeature.type, {
+        includeSubclasses: false,
+      })
+    ).filter(isOntologyClass)
+    if (parentTypeTerms.length) {
+      const subpartTerms = await ontologyStore.getClassesThat(
+        'part_of',
+        parentTypeTerms,
+      )
+      return subpartTerms
+    }
+  }
+  return undefined
+}
+
 export function AddFeature({
   session,
   handleClose,
   sourceFeature,
   sourceAssemblyId,
   changeManager,
-  internetAccount,
 }: AddFeatureProps) {
   const { notify } = session
   const [end, setEnd] = useState(String(sourceFeature.end))
@@ -52,41 +75,8 @@ export function AddFeature({
   const [phase, setPhase] = useState('')
   const [phaseAsNumber, setPhaseAsNumber] = useState<PhaseEnum>()
   const [showPhase, setShowPhase] = useState<boolean>(false)
-  const [possibleChildTypes, setPossibleChildTypes] = useState<string[]>()
 
-  const { baseURL } = internetAccount
   const [errorMessage, setErrorMessage] = useState('')
-
-  useEffect(() => {
-    async function getTypes() {
-      const parentType = sourceFeature.type
-      const url = `/ontologies/descendants/${parentType}`
-      const uri = new URL(url, baseURL).href
-      const apolloFetch = internetAccount?.getFetcher({
-        locationType: 'UriLocation',
-        uri,
-      })
-      const response = await apolloFetch(uri, {
-        method: 'GET',
-      })
-      if (!response.ok) {
-        const newErrorMessage = await createFetchErrorMessage(
-          response,
-          'Error when retrieving ontologies from server',
-        )
-        setErrorMessage(newErrorMessage)
-        return
-      }
-      const data = (await response.json()) as string[]
-      if (data.length < 1) {
-        setErrorMessage(
-          `Feature type "${parentType}" cannot have a child feature`,
-        )
-      }
-      setPossibleChildTypes(data)
-    }
-    getTypes().catch((e) => setErrorMessage(String(e)))
-  }, [baseURL, internetAccount, sourceFeature.type])
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -115,10 +105,10 @@ export function AddFeature({
     handleClose()
     event.preventDefault()
   }
-  async function handleChangeType(e: SelectChangeEvent<string>) {
+  function handleChangeType(newType: string) {
     setErrorMessage('')
-    setType(e.target.value)
-    if (e.target.value.startsWith('CDS')) {
+    setType(newType)
+    if (newType.startsWith('CDS')) {
       setShowPhase(true)
       setPhase('')
     } else {
@@ -146,7 +136,7 @@ export function AddFeature({
   const error = Number(end) <= Number(start)
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo">
-      <DialogTitle>Add new feature</DialogTitle>
+      <DialogTitle>Add new child feature</DialogTitle>
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <TextField
@@ -171,16 +161,37 @@ export function AddFeature({
             error={error}
             helperText={error ? '"End" must be greater than "Start"' : null}
           />
-          <FormControl>
-            <InputLabel>Type</InputLabel>
-            <Select value={type} onChange={handleChangeType} label="Type">
+          {/* <Select value={type} onChange={handleChangeType} label="Type">
               {(possibleChildTypes ?? []).map((option) => (
                 <MenuItem key={option} value={option}>
                   {option}
                 </MenuItem>
               ))}
-            </Select>
-          </FormControl>
+            </Select> */}
+          <OntologyTermAutocomplete
+            session={session}
+            ontologyName="Sequence Ontology"
+            style={{ width: 170 }}
+            value={type}
+            filterTerms={isOntologyClass}
+            fetchValidTerms={fetchValidDescendantTerms.bind(
+              null,
+              sourceFeature,
+            )}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Type"
+                variant="outlined"
+                fullWidth
+              />
+            )}
+            onChange={(oldValue, newValue) => {
+              if (newValue) {
+                handleChangeType(newValue)
+              }
+            }}
+          />
           {showPhase ? (
             <FormControl>
               <InputLabel>Phase</InputLabel>

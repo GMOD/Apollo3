@@ -1,4 +1,4 @@
-import { getSession } from '@jbrowse/core/util'
+import { getSession, isAbortException } from '@jbrowse/core/util'
 import {
   Autocomplete,
   AutocompleteRenderGetTagProps,
@@ -20,9 +20,13 @@ import {
   OntologyTerm,
   isOntologyClass,
 } from '../OntologyManager'
-import { OntologyDBNode } from '../OntologyManager/OntologyStore/indexeddb-schema'
+import { Match } from '../OntologyManager/OntologyStore/fulltext'
+import { isDeprecated } from '../OntologyManager/OntologyStore/indexeddb-schema'
 
-type TermValue = OntologyTerm
+interface TermValue {
+  term: OntologyTerm
+  matches?: Match[]
+}
 
 // interface TermAutocompleteResult extends TermValue {
 //   label: string[]
@@ -105,19 +109,22 @@ export function OntologyTermMultiSelect({
   onChange,
   ontologyName,
   ontologyVersion,
+  includeDeprecated,
 }: {
   session: ReturnType<typeof getSession>
   value: string[]
   ontologyName: string
   ontologyVersion?: string
+  /** if true, include deprecated/obsolete terms */
+  includeDeprecated?: boolean
   onChange(newValue: string[]): void
 }) {
   const ontologyManager = session.apolloDataStore
     .ontologyManager as OntologyManager
   const ontology = ontologyManager.findOntology(ontologyName, ontologyVersion)
 
-  const [value, setValue] = React.useState<OntologyTerm[]>(
-    initialValue.map((id) => ({ id, type: 'CLASS' })),
+  const [value, setValue] = React.useState<TermValue[]>(
+    initialValue.map((id) => ({ term: { id, type: 'CLASS' } })),
   )
   const [inputValue, setInputValue] = React.useState('')
   const [options, setOptions] = React.useState<readonly TermValue[]>([])
@@ -129,7 +136,7 @@ export function OntologyTermMultiSelect({
       debounce(
         async (
           request: { input: string; signal: AbortSignal },
-          callback: (results: OntologyDBNode[]) => void,
+          callback: (results: TermValue[]) => void,
         ) => {
           if (!ontology) {
             return undefined
@@ -140,27 +147,42 @@ export function OntologyTermMultiSelect({
           }
           const { input, signal } = request
           try {
-            const matches: OntologyTerm[] = []
-            const tx = (await dataStore.db).transaction('nodes')
-            for await (const cursor of tx.objectStore('nodes')) {
-              if (signal.aborted) {
-                return
-              }
-              const node = cursor.value
+            const matches = await dataStore.getTermsByFulltext(
+              input,
+              undefined,
+              signal,
+            )
+            // aggregate the matches by term
+            const byTerm = new Map<string, Required<TermValue>>()
+            const options: Required<TermValue>[] = []
+            for (const match of matches) {
               if (
-                (node.lbl ?? '').toLowerCase().includes(input.toLowerCase())
+                !isOntologyClass(match.term) ||
+                (!includeDeprecated && isDeprecated(match.term))
               ) {
-                matches.push(node)
+                continue
               }
+              let slot = byTerm.get(match.term.id)
+              if (!slot) {
+                slot = {
+                  term: match.term,
+                  matches: [],
+                }
+                byTerm.set(match.term.id, slot)
+                options.push(slot)
+              }
+              slot.matches.push(match)
             }
-            callback(matches)
+            callback(options)
           } catch (error) {
-            setErrorMessage(String(error))
+            if (!isAbortException(error)) {
+              setErrorMessage(String(error))
+            }
           }
         },
         400,
       ),
-    [ontology],
+    [includeDeprecated, ontology],
   )
 
   React.useEffect(() => {
@@ -175,7 +197,7 @@ export function OntologyTermMultiSelect({
     setLoading(true)
 
     void getOntologyTerms({ input: inputValue, signal }, (results) => {
-      let newOptions: readonly OntologyTerm[] = []
+      let newOptions: readonly TermValue[] = []
       if (value.length) {
         newOptions = value
       }
@@ -189,7 +211,7 @@ export function OntologyTermMultiSelect({
     return () => {
       aborter.abort()
     }
-  }, [getOntologyTerms, inputValue, value])
+  }, [getOntologyTerms, ontology, includeDeprecated, inputValue, value])
 
   if (!ontology) {
     return null
@@ -203,19 +225,22 @@ export function OntologyTermMultiSelect({
 
   return (
     <Autocomplete
-      getOptionLabel={(option) => option.id}
-      filterOptions={(terms) => terms.filter(isOntologyClass)}
+      getOptionLabel={(option) => ontologyManager.applyPrefixes(option.term.id)}
+      filterOptions={(terms) => terms.filter((t) => isOntologyClass(t.term))}
       options={options}
       autoComplete
       includeInputInList
       filterSelectedOptions
       value={value}
       loading={loading}
-      isOptionEqualToValue={(option, v) => option.id === v.id}
+      isOptionEqualToValue={(option, v) =>
+        ontologyManager.applyPrefixes(option.term.id) ===
+        ontologyManager.applyPrefixes(v.term.id)
+      }
       noOptionsText={inputValue ? 'No matches' : 'Start typing to search'}
       onChange={(_, newValue) => {
         setOptions(newValue ? [...newValue, ...options] : options)
-        onChange(newValue.map((v) => ontologyManager.applyPrefixes(v.id)))
+        onChange(newValue.map((v) => ontologyManager.applyPrefixes(v.term.id)))
         setValue(newValue)
       }}
       onInputChange={(event, newInputValue) => {
@@ -234,47 +259,93 @@ export function OntologyTermMultiSelect({
           fullWidth
         />
       )}
-      renderOption={(props, option) => {
-        let parts: { text: string; highlight: boolean }[] = []
-        const label = option.lbl ?? '(no label)'
-        const matches = highlightMatch(label, inputValue, {
-          insideWords: true,
-        })
-        parts = highlightParse(label, matches)
-        return (
-          <li {...props}>
-            <Grid container>
-              <Grid item>
-                <Typography>
-                  {ontologyManager.applyPrefixes(option.id)}
-                </Typography>
-                {parts.map((part, index) => (
-                  <Typography
-                    key={index}
-                    component="span"
-                    sx={{ fontWeight: part.highlight ? 'bold' : 'regular' }}
-                    variant="body2"
-                    color="text.secondary"
-                  >
-                    {part.text}
-                  </Typography>
-                ))}
-              </Grid>
-            </Grid>
-          </li>
-        )
-      }}
+      renderOption={(props, option) => (
+        <Option
+          {...props}
+          ontologyManager={ontologyManager}
+          option={option}
+          inputValue={inputValue}
+        />
+      )}
       renderTags={(v, getTagProps) =>
         v.map((option, index) => (
           <TermTagWithTooltip
-            termId={option.id}
+            termId={option.term.id}
             index={index}
             ontology={ontology}
             getTagProps={getTagProps}
-            key={option.id}
+            key={option.term.id}
           />
         ))
       }
     />
+  )
+}
+
+function HighlightedText(props: { str: string; search: string }) {
+  const { str, search } = props
+
+  const highlights = highlightMatch(str, search, {
+    insideWords: true,
+    findAllOccurrences: true,
+  })
+  const parts = highlightParse(str, highlights)
+  return (
+    <>
+      {parts.map((part, index) => (
+        <Typography
+          key={index}
+          component="span"
+          sx={{ fontWeight: part.highlight ? 'bold' : 'regular' }}
+          variant="body2"
+          color="text.secondary"
+        >
+          {part.text}
+        </Typography>
+      ))}
+    </>
+  )
+}
+function Option(props: {
+  ontologyManager: OntologyManager
+  inputValue: string
+  option: TermValue
+}) {
+  const { option, inputValue, ontologyManager, ...other } = props
+  const matches = option.matches ?? []
+  const fields = matches
+    .filter((match) => match.field.jsonPath !== '$.lbl')
+    .map((match) => {
+      return (
+        <React.Fragment key={`option-${match.term.id}-${match.str}`}>
+          <Typography component="dt" variant="body2" color="text.secondary">
+            {match.field.displayName}
+          </Typography>
+          <dd>
+            <HighlightedText str={match.str} search={inputValue} />
+          </dd>
+        </React.Fragment>
+      )
+    })
+  // const lblScore = matches
+  //   .filter((match) => match.field.jsonPath === '$.lbl')
+  //   .map((m) => m.score)
+  //   .join(', ')
+  return (
+    <li {...other}>
+      <Grid container>
+        <Grid item>
+          <Typography component="span">
+            {ontologyManager.applyPrefixes(option.term.id)}
+          </Typography>{' '}
+          <HighlightedText
+            str={option.term.lbl ?? '(no label)'}
+            search={inputValue}
+          />{' '}
+          {/* ({lblScore}) */}
+          <dl>{fields}</dl>
+        </Grid>
+      </Grid>
+    </li>
   )
 }

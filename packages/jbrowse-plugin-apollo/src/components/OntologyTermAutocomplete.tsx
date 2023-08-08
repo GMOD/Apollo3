@@ -1,34 +1,36 @@
 import { getSession, isAbortException } from '@jbrowse/core/util'
-import { Autocomplete } from '@mui/material'
-import React, { useEffect, useState } from 'react'
-import { makeStyles } from 'tss-react/mui'
+import {
+  Autocomplete,
+  AutocompleteRenderInputParams,
+  TextField,
+} from '@mui/material'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import type { OntologyManager } from '../OntologyManager'
-import { OntologyTerm } from '../OntologyManager'
+import { OntologyTerm, isDeprecated } from '../OntologyManager'
 import OntologyStore from '../OntologyManager/OntologyStore'
-
-const useStyles = makeStyles()((_theme) => ({
-  inputElement: {
-    border: 'none',
-    background: 'none',
-  },
-  errorMessage: {
-    color: 'red',
-  },
-}))
 
 interface OntologyTermAutocompleteProps {
   session: ReturnType<typeof getSession>
   ontologyName: string
   ontologyVersion?: string
   value: string
+  error?: boolean
   filterTerms?: (term: OntologyTerm) => boolean
   fetchValidTerms?: (
     ontologyStore: OntologyStore,
     signal: AbortSignal,
   ) => Promise<OntologyTerm[] | undefined>
   style?: React.CSSProperties
+  renderInput?: (
+    params: AutocompleteRenderInputParams & {
+      error?: boolean
+      errorMessage?: string
+    },
+  ) => React.ReactNode
   onChange: (oldValue: string, newValue: string | null | undefined) => void
+  /** if true, include deprecated/obsolete terms */
+  includeDeprecated?: boolean
 }
 
 export function OntologyTermAutocomplete({
@@ -38,11 +40,11 @@ export function OntologyTermAutocomplete({
   ontologyName,
   ontologyVersion,
   fetchValidTerms,
-  filterTerms,
+  filterTerms: filterTermsProp,
   onChange,
+  renderInput,
+  includeDeprecated,
 }: OntologyTermAutocompleteProps) {
-  const { classes } = useStyles()
-
   const [open, setOpen] = useState(false)
   const [termChoices, setTermChoices] = useState<OntologyTerm[] | undefined>()
   const [currentOntologyTermInvalid, setCurrentOntologyTermInvalid] =
@@ -60,6 +62,14 @@ export function OntologyTermAutocomplete({
 
   const needToLoadTermChoices = ontologyStore && open && !termChoices
   const needToLoadCurrentTerm = ontologyStore && !currentOntologyTerm
+
+  const filterTerms = useCallback(
+    (term: OntologyTerm) =>
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      (includeDeprecated || !isDeprecated(term)) &&
+      (!filterTermsProp || filterTermsProp(term)),
+    [filterTermsProp, includeDeprecated],
+  )
 
   // effect for clearing choices when not open
   useEffect(() => {
@@ -138,35 +148,36 @@ export function OntologyTermAutocomplete({
     }
   }
 
+  const extraTextFieldParams: { error?: boolean; helperText?: string } = {}
+  if (currentOntologyTermInvalid) {
+    extraTextFieldParams.error = true
+    extraTextFieldParams.helperText = currentOntologyTermInvalid
+  }
+
   return (
     <Autocomplete
-      options={termChoices ?? []}
       style={style}
+      autoComplete
+      filterSelectedOptions
+      disableClearable
+      selectOnFocus
+      clearOnBlur
+      handleHomeEndKeys
+      freeSolo={true}
+      value={valueString}
+      options={termChoices ?? []}
       onOpen={() => {
         setOpen(true)
       }}
       onClose={() => {
         setOpen(false)
       }}
-      freeSolo={true}
+      // noOptionsText={valueString ? 'No matches' : 'Start typing to search'}
       loading={needToLoadTermChoices}
-      renderInput={(params) => {
-        return (
-          <div ref={params.InputProps.ref}>
-            <input
-              type="text"
-              {...params.inputProps}
-              className={classes.inputElement}
-              style={{ width: 170 }}
-            />
-            {currentOntologyTermInvalid ? (
-              <div className={classes.errorMessage}>
-                {currentOntologyTermInvalid}
-              </div>
-            ) : null}
-          </div>
-        )
-      }}
+      renderInput={
+        renderInput ??
+        ((params) => <TextField {...params} {...extraTextFieldParams} />)
+      }
       getOptionLabel={(option) => {
         if (typeof option === 'string') {
           return option
@@ -174,11 +185,7 @@ export function OntologyTermAutocomplete({
         return option.lbl ?? ''
       }}
       isOptionEqualToValue={(option, val) => option.lbl === val.lbl}
-      value={valueString}
       onChange={handleChange}
-      disableClearable
-      selectOnFocus
-      handleHomeEndKeys
     />
   )
 }
