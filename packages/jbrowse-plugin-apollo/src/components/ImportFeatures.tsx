@@ -43,7 +43,7 @@ export function ImportFeatures({
   const [errorMessage, setErrorMessage] = useState('')
   const [submitted, setSubmitted] = useState(false)
   // default is -1, submit button should be disabled until count is set
-  const [featuresCount, setFeaturesCount] = useState(-1)
+  const [featuresCount, setFeaturesCount] = useState<number | undefined>()
   const [deleteFeatures, setDeleteFeatures] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -73,11 +73,15 @@ export function ImportFeatures({
       return
     }
     const updateFeaturesCount = async () => {
+      // TODO: this code will not work for running on desktop
       const { internetAccountConfigId } = getConf(selectedAssembly, [
         'sequence',
         'metadata',
       ]) as { internetAccountConfigId?: string }
-      const apolloInternetAccount = getInternetAccount(internetAccountConfigId)
+      const apolloInternetAccount = getInternetAccount(
+        selectedAssembly.name,
+        internetAccountConfigId,
+      )
       if (!apolloInternetAccount) {
         throw new Error('No Apollo internet account found')
       }
@@ -93,25 +97,24 @@ export function ImportFeatures({
         uri: uri.toString(),
       })
 
-      if (fetch) {
-        // sumbit might get enabled when we change assembly before loading features count
-        setFeaturesCount(-1)
-        setLoading(true)
-        const response = await fetch(uri.toString(), { method: 'GET' })
+      setLoading(true)
+      const response = await fetch(uri.toString(), { method: 'GET' })
 
-        if (!response.ok) {
-          setFeaturesCount(0)
-        } else {
-          const countObj = (await response.json()) as { count: number }
-          setFeaturesCount(countObj.count)
-        }
-
-        setLoading(false)
+      if (!response.ok) {
+        throw new Error(await createFetchErrorMessage(response))
+      } else {
+        const countObj = (await response.json()) as { count: number }
+        setFeaturesCount(countObj.count)
       }
+
+      setLoading(false)
     }
 
-    updateFeaturesCount().catch((err) => err)
-  }, [getInternetAccount, selectedAssembly])
+    updateFeaturesCount().catch((err) => {
+      console.error(err)
+      setErrorMessage(err.message ?? err)
+    })
+  }, [getInternetAccount, session, selectedAssembly])
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
     setSubmitted(false)
@@ -144,7 +147,10 @@ export function ImportFeatures({
       'sequence',
       'metadata',
     ]) as { internetAccountConfigId?: string }
-    const apolloInternetAccount = getInternetAccount(internetAccountConfigId)
+    const apolloInternetAccount = getInternetAccount(
+      selectedAssembly.name,
+      internetAccountConfigId,
+    )
     const { baseURL } = apolloInternetAccount
 
     // First upload file
@@ -194,7 +200,12 @@ export function ImportFeatures({
   }
 
   return (
-    <Dialog open maxWidth="xs" data-testid="login-apollo" fullWidth={true}>
+    <Dialog
+      open
+      maxWidth="xs"
+      data-testid="import-features-dialog"
+      fullWidth={true}
+    >
       <DialogTitle>Import Features from GFF3 file</DialogTitle>
       {loading ? <LinearProgress /> : null}
 
@@ -223,7 +234,7 @@ export function ImportFeatures({
           />
         </DialogContent>
 
-        {featuresCount > 0 ? (
+        {featuresCount && featuresCount > 0 ? (
           <DialogContent>
             <DialogContentText>
               This assembly already has {featuresCount} features, would you like
@@ -247,7 +258,8 @@ export function ImportFeatures({
         <DialogActions>
           <Button
             disabled={
-              !(selectedAssembly && file && featuresCount !== -1) || submitted
+              !(selectedAssembly && file && featuresCount !== undefined) ||
+              submitted
             }
             variant="contained"
             type="submit"

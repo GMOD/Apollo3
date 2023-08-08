@@ -229,7 +229,7 @@ export function AddAssembly({
   }
 
   return (
-    <Dialog open maxWidth="xs" data-testid="login-apollo" fullWidth={true}>
+    <Dialog open maxWidth="xl" data-testid="add-assembly-dialog">
       <DialogTitle>Add new assembly</DialogTitle>
       {loading ? <LinearProgress /> : null}
       <form onSubmit={onSubmit}>
