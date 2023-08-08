@@ -21,10 +21,7 @@ import {
   isOntologyClass,
 } from '../OntologyManager'
 import { Match } from '../OntologyManager/OntologyStore/fulltext'
-import {
-  OntologyDBNode,
-  isDeprecated,
-} from '../OntologyManager/OntologyStore/indexeddb-schema'
+import { isDeprecated } from '../OntologyManager/OntologyStore/indexeddb-schema'
 
 interface TermValue {
   term: OntologyTerm
@@ -139,7 +136,7 @@ export function OntologyTermMultiSelect({
       debounce(
         async (
           request: { input: string; signal: AbortSignal },
-          callback: (results: OntologyDBNode[]) => void,
+          callback: (results: TermValue[]) => void,
         ) => {
           if (!ontology) {
             return undefined
@@ -150,27 +147,42 @@ export function OntologyTermMultiSelect({
           }
           const { input, signal } = request
           try {
-            const matches: OntologyTerm[] = []
-            const tx = (await dataStore.db).transaction('nodes')
-            for await (const cursor of tx.objectStore('nodes')) {
-              if (signal.aborted) {
-                return
-              }
-              const node = cursor.value
+            const matches = await dataStore.getTermsByFulltext(
+              input,
+              undefined,
+              signal,
+            )
+            // aggregate the matches by term
+            const byTerm = new Map<string, Required<TermValue>>()
+            const options: Required<TermValue>[] = []
+            for (const match of matches) {
               if (
-                (node.lbl ?? '').toLowerCase().includes(input.toLowerCase())
+                !isOntologyClass(match.term) ||
+                (!includeDeprecated && isDeprecated(match.term))
               ) {
-                matches.push(node)
+                continue
               }
+              let slot = byTerm.get(match.term.id)
+              if (!slot) {
+                slot = {
+                  term: match.term,
+                  matches: [],
+                }
+                byTerm.set(match.term.id, slot)
+                options.push(slot)
+              }
+              slot.matches.push(match)
             }
-            callback(matches)
+            callback(options)
           } catch (error) {
-            setErrorMessage(String(error))
+            if (!isAbortException(error)) {
+              setErrorMessage(String(error))
+            }
           }
         },
         400,
       ),
-    [ontology],
+    [includeDeprecated, ontology],
   )
 
   React.useEffect(() => {
@@ -184,47 +196,16 @@ export function OntologyTermMultiSelect({
 
     setLoading(true)
 
-    if (!ontology) {
-      return undefined
-    }
-    const { dataStore } = ontology
-    if (!dataStore) {
-      return undefined
-    }
-
-    ;(async () => {
-      const matches = await dataStore.getTermsByFulltext(
-        inputValue,
-        undefined,
-        signal,
-      )
-      // aggregate the matches by term
-      const byTerm = new Map<string, Required<TermValue>>()
-      const options: Required<TermValue>[] = []
-      for (const match of matches) {
-        if (
-          !isOntologyClass(match.term) ||
-          (!includeDeprecated && isDeprecated(match.term))
-        ) {
-          continue
-        }
-        let slot = byTerm.get(match.term.id)
-        if (!slot) {
-          slot = {
-            term: match.term,
-            matches: [],
-          }
-          byTerm.set(match.term.id, slot)
-          options.push(slot)
-        }
-        slot.matches.push(match)
+    void getOntologyTerms({ input: inputValue, signal }, (results) => {
+      let newOptions: readonly TermValue[] = []
+      if (value.length) {
+        newOptions = value
       }
-      setOptions(options)
+      if (results) {
+        newOptions = [...newOptions, ...results]
+      }
+      setOptions(newOptions)
       setLoading(false)
-    })().catch((error) => {
-      if (!isAbortException(error)) {
-        setErrorMessage(String(error))
-      }
     })
 
     return () => {
@@ -252,7 +233,10 @@ export function OntologyTermMultiSelect({
       filterSelectedOptions
       value={value}
       loading={loading}
-      isOptionEqualToValue={(option, v) => option.term.id === v.term.id}
+      isOptionEqualToValue={(option, v) =>
+        ontologyManager.applyPrefixes(option.term.id) ===
+        ontologyManager.applyPrefixes(v.term.id)
+      }
       noOptionsText={inputValue ? 'No matches' : 'Start typing to search'}
       onChange={(_, newValue) => {
         setOptions(newValue ? [...newValue, ...options] : options)
