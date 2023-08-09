@@ -168,45 +168,46 @@ export class CanonicalGeneGlyph extends Glyph {
         if (cds.type !== 'CDS') {
           return
         }
-        if (cds.discontinuousLocations) {
-          for (const cdsLocation of cds.discontinuousLocations) {
-            const offsetPx = (cdsLocation.start - min) / bpPerPx
-            const widthPx = (cdsLocation.end - cdsLocation.start) / bpPerPx
-            const startPx = reversed
-              ? xOffset - offsetPx - widthPx
-              : xOffset + offsetPx
-            ctx.fillStyle = theme?.palette.text.primary ?? 'black'
-            const top = (row + currentCDS) * rowHeight
-            const cdsTop = top + (rowHeight - cdsHeight) / 2
-            ctx.fillRect(startPx, cdsTop, widthPx, cdsHeight)
-            if (widthPx > 2) {
-              ctx.clearRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
-              ctx.fillStyle = 'rgb(255,165,0)'
-              ctx.fillRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
-              if (forwardFill && backwardFill && strand) {
-                const reversal = reversed ? -1 : 1
-                const [topFill, bottomFill] =
-                  strand * reversal === 1
-                    ? [forwardFill, backwardFill]
-                    : [backwardFill, forwardFill]
-                ctx.fillStyle = topFill
-                ctx.fillRect(
-                  startPx + 1,
-                  cdsTop + 1,
-                  widthPx - 2,
-                  (cdsHeight - 2) / 2,
-                )
-                ctx.fillStyle = bottomFill
-                ctx.fillRect(
-                  startPx + 1,
-                  cdsTop + (cdsHeight - 2) / 2,
-                  widthPx - 2,
-                  (cdsHeight - 2) / 2,
-                )
-              }
+        cds.discontinuousLocations?.forEach((cdsLocation) => {
+          const offsetPx = (cdsLocation.start - feature.min) / bpPerPx
+          const widthPx = (cdsLocation.end - cdsLocation.start) / bpPerPx
+          const startPx = reversed
+            ? xOffset - offsetPx - widthPx
+            : xOffset + offsetPx
+          ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+          const top = (row + currentCDS) * rowHeight
+          const cdsTop = top + (rowHeight - cdsHeight) / 2
+          ctx.fillRect(startPx, cdsTop, widthPx, cdsHeight)
+          if (widthPx > 2) {
+            ctx.clearRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
+            ctx.fillStyle =
+              apolloSelectedFeature && cds._id === apolloSelectedFeature._id
+                ? 'rgb(0,0,0)'
+                : 'rgb(255,165,0)'
+            ctx.fillRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
+            if (forwardFill && backwardFill && strand) {
+              const reversal = reversed ? -1 : 1
+              const [topFill, bottomFill] =
+                strand * reversal === 1
+                  ? [forwardFill, backwardFill]
+                  : [backwardFill, forwardFill]
+              ctx.fillStyle = topFill
+              ctx.fillRect(
+                startPx + 1,
+                cdsTop + 1,
+                widthPx - 2,
+                (cdsHeight - 2) / 2,
+              )
+              ctx.fillStyle = bottomFill
+              ctx.fillRect(
+                startPx + 1,
+                cdsTop + (cdsHeight - 2) / 2,
+                widthPx - 2,
+                (cdsHeight - 2) / 2,
+              )
             }
           }
-        }
+        })
         currentCDS += 1
       }
     }
@@ -279,6 +280,26 @@ export class CanonicalGeneGlyph extends Glyph {
     row: number,
   ): AnnotationFeatureI | undefined {
     const layoutRow = this.featuresForRow(feature)[row]
+    // check CDS with discontinuousLocations first, because CDS is rendered on top of exons
+    const discontinuousLocationFeature = layoutRow?.find((f) => {
+      let isDiscontinuousLocationFeature = false
+      if (f.discontinuousLocations && f.discontinuousLocations?.length > 0) {
+        f.discontinuousLocations.forEach((discontinuousLocation) => {
+          if (
+            bp >= discontinuousLocation.start &&
+            bp <= discontinuousLocation.end
+          ) {
+            isDiscontinuousLocationFeature = true
+          }
+        })
+      }
+      return isDiscontinuousLocationFeature
+    })
+
+    if (discontinuousLocationFeature) {
+      return discontinuousLocationFeature
+    }
+
     return layoutRow?.find((f) => bp >= f.start && bp <= f.end)
   }
 }
