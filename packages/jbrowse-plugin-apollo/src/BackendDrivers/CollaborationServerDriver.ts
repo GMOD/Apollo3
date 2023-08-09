@@ -48,12 +48,10 @@ export class CollaborationServerDriver extends BackendDriver {
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(
         response,
-        'getFeatures failed',
+        'searchFeatures failed',
       )
       throw new Error(errorMessage)
     }
-    const refSeqs = await this.refSeqModel
-    await this.checkSocket(assemblyName, refName, internetAccount)
     return response.json() as Promise<AnnotationFeatureSnapshot[]>
   }
 
