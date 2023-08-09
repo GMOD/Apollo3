@@ -98,7 +98,7 @@ export function extendSession(
       apolloSetSelectedFeature(feature?: AnnotationFeatureI) {
         self.apolloSelectedFeature = feature
       },
-      addApolloTrackConfig(assembly: AssemblyModel, baseURL: string) {
+      addApolloTrackConfig(assembly: AssemblyModel, baseURL?: string) {
         const trackId = `apollo_track_${assembly.name}`
         const hasTrack = Boolean(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -116,20 +116,22 @@ export function extendSession(
             textSearching: {
               textSearchAdapter: {
                 type: 'ApolloTextSearchAdapter',
-                baseURL: { uri: baseURL, locationType: 'UriLocation' },
                 trackId,
                 assemblyNames: [assembly.name],
-                textSearchAdapterId: 'apollo-search',
+                textSearchAdapterId: `apollo_search_${assembly.name}`,
+                ...(baseURL
+                  ? { baseURL: { uri: baseURL, locationType: 'UriLocation' } }
+                  : {}),
               },
             },
             displays: [
               {
                 type: 'LinearApolloDisplay',
-                displayId: `apollo_track_${assembly.name}-LinearApolloDisplay`,
+                displayId: `${trackId}-LinearApolloDisplay`,
               },
               {
                 type: 'SixFrameFeatureDisplay',
-                displayId: `apollo_track_${assembly.name}-SixFrameFeatureDisplay`,
+                displayId: `${trackId}-SixFrameFeatureDisplay`,
               },
             ],
           })
