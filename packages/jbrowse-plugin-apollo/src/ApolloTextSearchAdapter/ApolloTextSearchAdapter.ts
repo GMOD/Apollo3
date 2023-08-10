@@ -5,8 +5,6 @@ import {
   BaseTextSearchArgs,
 } from '@jbrowse/core/data_adapters/BaseAdapter'
 import BaseResult from '@jbrowse/core/TextSearch/BaseResults'
-import { UriLocation } from '@jbrowse/core/util'
-import { getFetcher } from '@jbrowse/core/util/io'
 
 export class ApolloTextSearchAdapter
   extends BaseAdapter
@@ -22,19 +20,6 @@ export class ApolloTextSearchAdapter
 
   get assemblyNames() {
     return readConfObject(this.config, 'assemblyNames')
-  }
-
-  async searchFeatures(term: string) {
-    const assemblies = this.assemblyNames.join(',')
-    const url = new URL('features/searchFeatures', this.baseURL)
-    const searchParams = new URLSearchParams({ assemblies, term })
-    url.search = searchParams.toString()
-    const uri = url.toString()
-
-    const location: UriLocation = { locationType: 'UriLocation', uri }
-    const fetch = getFetcher(location, this.pluginManager)
-    const response = await fetch(uri)
-    return response.json()
   }
 
   mapBaseResult(
@@ -56,9 +41,20 @@ export class ApolloTextSearchAdapter
   }
 
   async searchIndex(args: BaseTextSearchArgs): Promise<BaseResult[]> {
+    const results = []
+    for (const assemblyName of this.assemblyNames) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const session = this.pluginManager?.rootModel?.session as any
+      const backendDriver =
+        session?.apolloDataStore.getBackendDriver(assemblyName)
+      const r = await backendDriver.searchFeatures(args.queryString, [
+        assemblyName,
+      ])
+      results.push(...r)
+    }
+
     const query = args.queryString
-    const features = await this.searchFeatures(query)
-    return this.mapBaseResult(features, query)
+    return this.mapBaseResult(results, query)
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
