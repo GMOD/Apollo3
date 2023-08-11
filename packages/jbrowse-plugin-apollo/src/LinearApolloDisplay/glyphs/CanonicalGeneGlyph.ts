@@ -46,18 +46,18 @@ interface AnnotationFeature {
   annotationFeature: AnnotationFeatureI
 }
 
-interface DiscontinuousLocsFeature {
+interface CDSFeatures {
   parent: AnnotationFeatureI
   cds: AnnotationFeatureI
 }
 
 export class CanonicalGeneGlyph extends Glyph {
   featuresForRow(feature: AnnotationFeatureI): AnnotationFeature[][] {
-    const cdsWithDiscontinuousLocs: DiscontinuousLocsFeature[] = []
+    const cdsFeatures: CDSFeatures[] = []
     feature.children?.forEach((child: AnnotationFeatureI) => {
       child.children?.forEach((annotationFeature: AnnotationFeatureI) => {
         if (annotationFeature.type === 'CDS') {
-          cdsWithDiscontinuousLocs.push({
+          cdsFeatures.push({
             parent: child,
             cds: annotationFeature,
           })
@@ -66,7 +66,7 @@ export class CanonicalGeneGlyph extends Glyph {
     })
 
     const features: AnnotationFeature[][] = []
-    cdsWithDiscontinuousLocs.forEach((f: DiscontinuousLocsFeature) => {
+    cdsFeatures.forEach((f: CDSFeatures) => {
       const childFeatures: AnnotationFeature[] = []
       f.parent.children?.forEach((cf: AnnotationFeatureI) => {
         if (cf.type === 'CDS' && cf._id !== f.cds._id) {
