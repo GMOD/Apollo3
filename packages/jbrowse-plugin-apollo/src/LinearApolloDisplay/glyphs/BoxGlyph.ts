@@ -3,13 +3,67 @@ import { AnnotationFeatureI } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 
 import { LinearApolloDisplay } from '../stateModel'
-import { MousePosition } from '../stateModel/mouseEvents'
+import {
+  LinearApolloDisplayMouseEvents,
+  MousePosition,
+} from '../stateModel/mouseEvents'
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 
 export class BoxGlyph extends Glyph {
   getRowCount() {
     return 1
+  }
+
+  drawTooltip(
+    linearApolloDisplayMouseEvents: LinearApolloDisplayMouseEvents,
+    context: CanvasRenderingContext2D,
+  ) {
+    const { apolloHover, lgv, apolloRowHeight, displayedRegions } =
+      linearApolloDisplayMouseEvents
+    if (!apolloHover) {
+      return
+    }
+    const { feature, mousePosition } = apolloHover
+    if (!(feature && mousePosition)) {
+      return
+    }
+    const { regionNumber, y } = mousePosition
+    const displayedRegion = displayedRegions[regionNumber]
+    const { refName, reversed } = displayedRegion
+    const { bpPerPx, bpToPx, offsetPx } = lgv
+    const { start, end, length } = feature
+    let startPx =
+      (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
+        ?.offsetPx ?? 0) - offsetPx
+    const row = Math.floor(y / apolloRowHeight)
+    const top = row * apolloRowHeight
+    const widthPx = length / bpPerPx
+
+    const featureType = `Type: ${feature.type}`
+    const featureId = `Id: ${feature.gffId}`
+    const featureStart = `Start: ${feature.start.toString()}`
+    const featureEnd = `End: ${feature.end.toString()}`
+    const textWidth = [
+      context.measureText(featureType).width,
+      context.measureText(featureId).width,
+      context.measureText(featureStart).width,
+      context.measureText(featureEnd).width,
+    ]
+    const maxWidth = Math.max(...textWidth)
+
+    startPx = startPx + widthPx + 2
+    context.fillStyle = 'rgba(1, 1, 1, 0.7)'
+    context.fillRect(startPx, top, maxWidth + 4, 55)
+    context.fillStyle = 'rgba(255, 255, 255)'
+    let textTop = top + 12
+    context.fillText(featureType, startPx + 2, textTop)
+    textTop = textTop + 12
+    context.fillText(featureId, startPx + 2, textTop)
+    textTop = textTop + 12
+    context.fillText(featureStart, startPx + 2, textTop)
+    textTop = textTop + 12
+    context.fillText(featureEnd, startPx + 2, textTop)
   }
 
   draw(

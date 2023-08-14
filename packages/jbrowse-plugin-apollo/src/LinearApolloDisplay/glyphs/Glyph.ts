@@ -32,6 +32,11 @@ export abstract class Glyph {
     row: number,
   ): AnnotationFeatureI | undefined
 
+  abstract drawTooltip(
+    display: LinearApolloDisplayMouseEvents,
+    context: CanvasRenderingContext2D,
+  ): void
+
   drawHover(
     _display: LinearApolloDisplayMouseEvents,
     _overlayCtx: CanvasRenderingContext2D,

@@ -265,6 +265,7 @@ export function mouseEventsModelFactory(
 
               // draw mouseover hovers
               self.apolloHover?.glyph?.drawHover(self, ctx)
+              self.apolloHover?.glyph?.drawTooltip(self, ctx)
 
               // dragging previews
               if (self.apolloDragging) {
