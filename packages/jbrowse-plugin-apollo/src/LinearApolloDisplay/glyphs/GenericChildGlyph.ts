@@ -46,25 +46,41 @@ export class GenericChildGlyph extends Glyph {
     const widthPx = length / bpPerPx
 
     const featureType = `Type: ${feature.type}`
-    const featureId = `Id: ${feature.gffId}`
+    const featureName = feature.attributes
+      .get('gff_name')
+      ?.find((name) => name !== '')
     const featureStart = `Start: ${feature.start.toString()}`
     const featureEnd = `End: ${feature.end.toString()}`
     const textWidth = [
       context.measureText(featureType).width,
-      context.measureText(featureId).width,
       context.measureText(featureStart).width,
       context.measureText(featureEnd).width,
     ]
+    if (featureName) {
+      textWidth.push(context.measureText(`Name: ${featureName}`).width)
+    }
     const maxWidth = Math.max(...textWidth)
 
-    startPx = startPx + widthPx + 2
+    startPx = startPx + widthPx + 5
     context.fillStyle = 'rgba(1, 1, 1, 0.7)'
-    context.fillRect(startPx, top, maxWidth + 4, 55)
+    context.fillRect(
+      startPx,
+      top,
+      maxWidth + 4,
+      textWidth.length === 4 ? 55 : 45,
+    )
+    context.beginPath()
+    context.moveTo(startPx, top)
+    context.lineTo(startPx - 5, top + 5)
+    context.lineTo(startPx, top + 10)
+    context.fill()
     context.fillStyle = 'rgba(255, 255, 255)'
     let textTop = top + 12
     context.fillText(featureType, startPx + 2, textTop)
-    textTop = textTop + 12
-    context.fillText(featureId, startPx + 2, textTop)
+    if (featureName) {
+      textTop = textTop + 12
+      context.fillText(`Name: ${featureName}`, startPx + 2, textTop)
+    }
     textTop = textTop + 12
     context.fillText(featureStart, startPx + 2, textTop)
     textTop = textTop + 12
