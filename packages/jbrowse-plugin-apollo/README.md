@@ -12,21 +12,28 @@ change and temporary.
 yarn add cypress --dev
 ```
 
-* Edit `.development.env` to work with a test database and give the guest user admin permission:
+* Start Apollo server. Within the docker container (*i.e* within vscode) and in distinct terminals run:
 
 ```
-sed -i 's|^MONGODB_URI=mongodb://localhost:27017/apolloDb|MONGODB_URI=mongodb://localhost:27017/apolloTestDb|' packages/apollo-collaboration-server/.development.env 
-sed -i 's|^# GUEST_USER_ROLE=readOnly|GUEST_USER_ROLE=admin|' packages/apollo-collaboration-server/.development.env
+yarn --cwd packages/apollo-shared start
 ```
 
-* Start Apollo server as usual.
+```
+yarn --cwd packages/apollo-collaboration-server run cypress:start
+```
+
+```
+yarn --cwd packages/jbrowse-plugin-apollo start
+```
+
+
+If above you change the name fo the test database (`apolloTestDb`), change accordingly in `commands.ts`
 
 * Open cypress in the testing directory, *i.e.* where yo have the relevant
   `package.json`. Typically (again outside the dev container/vscode):
 
 ```
-cd packages/jbrowse-plugin-apollo/
-yarn run cypress open
+yarn --cwd packages/jbrowse-plugin-apollo run cypress open
 ```
 
 * For end-to-end testing, click "E2E Testing" `->` Chrome `->` `Start E2E
