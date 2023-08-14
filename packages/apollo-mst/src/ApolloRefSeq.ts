@@ -14,12 +14,14 @@ export const Sequence = types.model({
   start: types.number,
   stop: types.number,
   sequence: types.string,
+  description: types.string,
 })
 
 interface SequenceSnapshot {
   start: number
   stop: number
   sequence: string
+  description: string
 }
 
 export const ApolloRefSeq = types
@@ -45,11 +47,13 @@ export const ApolloRefSeq = types
         start: s.start,
         stop: s.stop,
         sequence: s.sequence,
+        description: s.description,
       }))
       newSequences.push({
         start: seq.start,
         stop: seq.stop,
         sequence: seq.sequence,
+        description: seq.description,
       })
       newSequences.sort((s1, s2) => s1.start - s2.start)
       // eslint-disable-next-line unicorn/no-array-reduce

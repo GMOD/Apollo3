@@ -27,6 +27,7 @@ import {
   CollaborationServerDriver,
   InMemoryFileDriver,
 } from '../BackendDrivers'
+import { DesktopFileDriver } from '../BackendDrivers/DesktopFileDriver'
 import { ChangeManager } from '../ChangeManager'
 import ApolloPluginConfigurationSchema from '../config'
 import {
@@ -116,6 +117,9 @@ export function clientDataStoreFactory(
       inMemoryFileDriver: new InMemoryFileDriver(
         self as unknown as ClientDataStoreType,
       ),
+      desktopFileDriver: new DesktopFileDriver(
+        self as unknown as ClientDataStoreType,
+      ),
       ontologyManager: OntologyManagerType.create(),
     }))
     .actions((self) => ({
@@ -167,10 +171,17 @@ export function clientDataStoreFactory(
           'sequence',
           'metadata',
         ]) as { internetAccountConfigId?: string }
-        if (internetAccountConfigId) {
-          return self.collaborationServerDriver
-        }
-        return self.inMemoryFileDriver
+        const { apollo, file } = getConf(assembly, ['sequence', 'metadata'])
+        console.log(`APOLLO: ${JSON.stringify(apollo)}`)
+        console.log(`FILE: ${JSON.stringify(file)}`)
+        return self.desktopFileDriver
+        // if (internetAccountConfigId) {
+        //   return self.collaborationServerDriver
+        // }
+        // if (file) {
+        //   return self.desktopFileDriver
+        // }
+        // return self.inMemoryFileDriver
       },
       getInternetAccount(assemblyName?: string, internetAccountId?: string) {
         if (!(assemblyName ?? internetAccountId)) {

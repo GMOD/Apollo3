@@ -15,6 +15,7 @@ import {
   Region,
   getSession,
   isAbstractMenuManager,
+  isElectron,
 } from '@jbrowse/core/util'
 import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
@@ -39,6 +40,7 @@ import {
 } from './ApolloSixFrameRenderer'
 import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
 import { BackendDriver } from './BackendDrivers'
+import { DesktopFileDriver } from './BackendDrivers/DesktopFileDriver'
 import { DownloadGFF3, OpenLocalFile, ViewChangeLog } from './components'
 import { AddFeature } from './components/AddFeature'
 import { ViewCheckResults } from './components/ViewCheckResults'
@@ -291,6 +293,14 @@ export default class ApolloPlugin extends Plugin {
           return handle
         },
       )
+    }
+    console.log('indeksi ts')
+    console.log(`isElectron: ${isElectron}`)
+    // MITEN TAMAN SAA TEHTYA!!!!
+    // this method "isElectron" is very important for developing a desktop plugin
+    if (isElectron) {
+      console.log(` ON isElectron: ${isElectron}`)
+      // OpenLocalFile(pluginManager)
     }
   }
 
