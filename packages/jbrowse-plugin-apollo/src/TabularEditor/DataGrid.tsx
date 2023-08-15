@@ -31,6 +31,8 @@ interface GridRow {
   refSeq: string
   start: number
   end: number
+  strand: number | undefined
+  phase: number | undefined
   feature: AnnotationFeatureI
   model: LinearApolloDisplay
   attributes: unknown
@@ -59,6 +61,20 @@ function getFeatureColumns(
       editable,
     },
     { field: 'end', headerName: 'End', type: 'number', width: 80, editable },
+    {
+      field: 'strand',
+      headerName: 'Strand',
+      type: 'number | undefined',
+      width: 80,
+      editable: false,
+    },
+    {
+      field: 'phase',
+      headerName: 'Phase',
+      type: 'number | undefined',
+      width: 80,
+      editable: false,
+    },
     { field: 'attributes', headerName: 'Attributes', width: 300, editable },
   ]
 }
@@ -177,8 +193,10 @@ function DataGrid({ model }: { model: LinearApolloDisplay }) {
     _id: id,
     assemblyId: assembly,
     end,
+    phase,
     refSeq,
     start,
+    strand,
     type,
   } = selectedFeature
   const { assemblyManager } = session
@@ -209,6 +227,8 @@ function DataGrid({ model }: { model: LinearApolloDisplay }) {
       refSeq: refName,
       start,
       end,
+      strand,
+      phase,
       feature: selectedFeature,
       model,
       attributes,
@@ -240,6 +260,8 @@ function DataGrid({ model }: { model: LinearApolloDisplay }) {
         refSeq: refName,
         start: child.start,
         end: child.end,
+        strand: child.strand,
+        phase: child.phase,
         feature: child,
         model,
         attributes,
@@ -288,6 +310,7 @@ function DataGrid({ model }: { model: LinearApolloDisplay }) {
         assembly,
       })
     }
+    console.log(`CHANGE: ${JSON.stringify(change)}`)
     if (change) {
       changeManager?.submit(change)
     }

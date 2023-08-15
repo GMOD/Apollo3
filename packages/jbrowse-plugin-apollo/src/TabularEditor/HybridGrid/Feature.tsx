@@ -129,6 +129,19 @@ export const Feature = observer(function Feature({
   // pop up a snackbar in the session notifying user of an error
   const notifyError = (e: Error) => session.notify(e.message, 'error')
 
+    const handleNumberChange = (event, id) => {
+      const newValue = event.target.value;
+      console.log(`NEW VALUE: ${newValue}`)
+      if (!isNaN(newValue)) {
+        const updatedData = data.map(item => {
+          if (item.id === id) {
+            return { ...item, number: newValue };
+          }
+          return item;
+        });
+        setData(updatedData);
+      }
+    };
   return (
     <>
       <tr
@@ -149,6 +162,7 @@ export const Feature = observer(function Feature({
         onClick={(e) => {
           e.stopPropagation()
           displayState.setSelectedFeature(feature)
+
         }}
         onContextMenu={(e) => {
           e.preventDefault()
@@ -219,6 +233,9 @@ export const Feature = observer(function Feature({
           contentEditable={true}
           onBlur={(e) => {
             const newValue = Number(e.target.textContent)
+            if (Number.isNaN(newValue)) {
+              e.target.textContent = feature.start
+              }
             if (!Number.isNaN(newValue) && newValue !== feature.start) {
               handleFeatureStartChange(
                 changeManager,
@@ -235,6 +252,9 @@ export const Feature = observer(function Feature({
           contentEditable={true}
           onBlur={(e) => {
             const newValue = Number(e.target.textContent)
+            if (Number.isNaN(newValue)) {
+            e.target.textContent = feature.end
+            }
             if (!Number.isNaN(newValue) && newValue !== feature.end) {
               handleFeatureEndChange(
                 changeManager,
@@ -246,6 +266,16 @@ export const Feature = observer(function Feature({
           }}
         >
           {feature.end}
+        </td>
+        <td
+          contentEditable={false}
+        >
+          {feature.strand}
+        </td>
+        <td
+          contentEditable={false}
+        >
+          {feature.phase}
         </td>
         <td>
           <FeatureAttributes filterText={filterText} feature={feature} />
