@@ -129,19 +129,6 @@ export const Feature = observer(function Feature({
   // pop up a snackbar in the session notifying user of an error
   const notifyError = (e: Error) => session.notify(e.message, 'error')
 
-    const handleNumberChange = (event, id) => {
-      const newValue = event.target.value;
-      console.log(`NEW VALUE: ${newValue}`)
-      if (!isNaN(newValue)) {
-        const updatedData = data.map(item => {
-          if (item.id === id) {
-            return { ...item, number: newValue };
-          }
-          return item;
-        });
-        setData(updatedData);
-      }
-    };
   return (
     <>
       <tr
@@ -162,7 +149,6 @@ export const Feature = observer(function Feature({
         onClick={(e) => {
           e.stopPropagation()
           displayState.setSelectedFeature(feature)
-
         }}
         onContextMenu={(e) => {
           e.preventDefault()
@@ -234,8 +220,12 @@ export const Feature = observer(function Feature({
           onBlur={(e) => {
             const newValue = Number(e.target.textContent)
             if (Number.isNaN(newValue)) {
-              e.target.textContent = feature.start
-              }
+              session.notify(
+                `Entered value "${e.target.textContent}" was not numeric. Old value is reverted back!`,
+                'error',
+              )
+              e.target.textContent = feature.start.toString()
+            }
             if (!Number.isNaN(newValue) && newValue !== feature.start) {
               handleFeatureStartChange(
                 changeManager,
@@ -253,7 +243,11 @@ export const Feature = observer(function Feature({
           onBlur={(e) => {
             const newValue = Number(e.target.textContent)
             if (Number.isNaN(newValue)) {
-            e.target.textContent = feature.end
+              session.notify(
+                `Entered value "${e.target.textContent}" was not numeric. Old value is reverted back!`,
+                'error',
+              )
+              e.target.textContent = feature.end.toString()
             }
             if (!Number.isNaN(newValue) && newValue !== feature.end) {
               handleFeatureEndChange(
@@ -267,16 +261,8 @@ export const Feature = observer(function Feature({
         >
           {feature.end}
         </td>
-        <td
-          contentEditable={false}
-        >
-          {feature.strand}
-        </td>
-        <td
-          contentEditable={false}
-        >
-          {feature.phase}
-        </td>
+        <td contentEditable={false}>{feature.strand}</td>
+        <td contentEditable={false}>{feature.phase}</td>
         <td>
           <FeatureAttributes filterText={filterText} feature={feature} />
         </td>

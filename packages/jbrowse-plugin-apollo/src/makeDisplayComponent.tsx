@@ -170,10 +170,11 @@ export const DisplayComponent = observer(function DisplayComponent({
     () => scrollSelectedFeatureIntoView(model, canvasScrollContainerRef),
     [model, selectedFeature],
   )
-  const containerStyle = {
+  const headerStyle = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    background: 'turquoise'
   };
   return (
     <div style={{ height: overallHeight }}>
@@ -189,7 +190,7 @@ export const DisplayComponent = observer(function DisplayComponent({
       >
         <LinearApolloDisplay model={model} {...other} />
       </div>
-      <div style={containerStyle}>
+      <div style={headerStyle}>
       <AccordionControl
         title="Table"
         open={tabularEditor.isShown}
