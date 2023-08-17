@@ -52,6 +52,15 @@ interface CDSFeatures {
 }
 
 export class CanonicalGeneGlyph extends Glyph {
+  /**
+   * Returns features as rows (Array of all child features and the parent feature at the end).
+   * ex:
+   * [ [ UTR/CDS/exon, UTR/CDS/exon, . . . , UTR/CDS/exon, mRNA/transcript ],
+   * [ UTR/CDS/exon, UTR/CDS/exon, . . . , UTR/CDS/exon, mRNA/transcript ] ]
+   *
+   * @param feature - Parent feature (ex: gene)
+   * @returns returns features for selected row
+   */
   featuresForRow(feature: AnnotationFeatureI): AnnotationFeature[][] {
     const cdsFeatures: CDSFeatures[] = []
     feature.children?.forEach((child: AnnotationFeatureI) => {
@@ -89,6 +98,9 @@ export class CanonicalGeneGlyph extends Glyph {
           })
         }
       })
+      childFeatures.push({
+        annotationFeature: f.parent,
+      })
       features.push(childFeatures)
     })
 
@@ -120,7 +132,7 @@ export class CanonicalGeneGlyph extends Glyph {
     const rowHeight = apolloRowHeight
     const utrHeight = Math.round(0.6 * rowHeight)
     const cdsHeight = Math.round(0.9 * rowHeight)
-    const { _id, children, max, min, strand } = feature
+    const { children, min, strand } = feature
     const { apolloSelectedFeature } = session
     let currentCDS = 0
     for (const [, mrna] of children ?? new Map()) {
@@ -255,87 +267,75 @@ export class CanonicalGeneGlyph extends Glyph {
         currentCDS += 1
       }
     }
-
-    // hightlight selected row
-    if (apolloSelectedFeature) {
-      const featuresForRow: AnnotationFeature[][] = this.featuresForRow(feature)
-      let featureEntry: AnnotationFeatureI | undefined
-      let featureRow: number | undefined
-
-      let i = 0
-      for (const row of featuresForRow) {
-        for (const f of row) {
-          if (apolloSelectedFeature._id === f.annotationFeature._id) {
-            featureEntry = f.parent
-            featureRow = i
-          }
-        }
-        if (featureEntry) {
-          break
-        }
-        i++
-      }
-
-      if (featureEntry === undefined || featureRow === undefined) {
-        return
-      }
-      const widthPx = featureEntry.length / bpPerPx
-      const offsetPx = (featureEntry.start - min) / bpPerPx
-      const startPx = reversed ? xOffset - widthPx : xOffset + offsetPx
-      const top = (row + featureRow) * rowHeight
-      ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,08)'
-      ctx.fillRect(startPx, top, widthPx, rowHeight)
-    }
   }
 
   drawHover(stateModel: LinearApolloDisplay, ctx: CanvasRenderingContext2D) {
-    const {
-      apolloHover,
-      apolloRowHeight,
-      displayedRegions,
-      featureLayouts,
-      lgv,
-      theme,
-    } = stateModel
+    const { apolloHover } = stateModel
     if (!apolloHover) {
       return
     }
-    const { feature, mousePosition } = apolloHover
-    if (!(feature && mousePosition)) {
+    const { feature } = apolloHover
+    if (!feature) {
+      return
+    }
+
+    if (
+      feature.discontinuousLocations &&
+      feature.discontinuousLocations.length > 0
+    ) {
+      feature.discontinuousLocations.forEach(
+        (dl: { end: number; start: number }) => {
+          this.drawShadeForFeature(
+            stateModel,
+            ctx,
+            dl.start,
+            dl.end,
+            dl.end - dl.start,
+          )
+        },
+      )
+    } else {
+      this.drawShadeForFeature(
+        stateModel,
+        ctx,
+        feature.start,
+        feature.end,
+        feature.length,
+      )
+    }
+  }
+
+  drawShadeForFeature(
+    stateModel: LinearApolloDisplay,
+    ctx: CanvasRenderingContext2D,
+    start: number,
+    end: number,
+    length: number,
+  ) {
+    const { apolloHover, apolloRowHeight, displayedRegions, lgv, theme } =
+      stateModel
+    if (!apolloHover) {
+      return
+    }
+    const { mousePosition } = apolloHover
+    if (!mousePosition) {
       return
     }
     const { bpPerPx, bpToPx, offsetPx } = lgv
     const rowHeight = apolloRowHeight
     const { regionNumber, y } = mousePosition
     const rowNumber = Math.floor(y / rowHeight)
-    const layout = featureLayouts[regionNumber]
-    const row = layout.get(rowNumber)
-    let featureEntry: AnnotationFeatureI | undefined
-    if (row) {
-      for (const [, featureObj] of row) {
-        featureObj.children?.forEach((f: AnnotationFeatureI) => {
-          f.children?.forEach((cf: AnnotationFeatureI) => {
-            if (feature?._id === cf._id) {
-              featureEntry = f
-            }
-          })
-        })
-      }
-    }
 
-    if (!featureEntry) {
-      return
-    }
     const displayedRegion = displayedRegions[regionNumber]
     const { refName, reversed } = displayedRegion
     const startPx =
       (bpToPx({
         refName,
-        coord: reversed ? featureEntry.end : featureEntry.start,
+        coord: reversed ? end : start,
         regionNumber,
       })?.offsetPx ?? 0) - offsetPx
     const top = rowNumber * rowHeight
-    const widthPx = featureEntry.length / bpPerPx
+    const widthPx = length / bpPerPx
     ctx.fillStyle = theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
     ctx.fillRect(startPx, top, widthPx, rowHeight)
   }
@@ -365,14 +365,22 @@ export class CanonicalGeneGlyph extends Glyph {
         f.end !== undefined &&
         f.phase !== undefined
       ) {
-        if (bp >= f.start && bp <= f.end) {
+        if (bp >= f.start && bp <= f.end && f.parent) {
           featureFromLayout = f.annotationFeature
         }
       } else {
-        if (bp >= f.annotationFeature.start && bp <= f.annotationFeature.end) {
+        if (
+          bp >= f.annotationFeature.start &&
+          bp <= f.annotationFeature.end &&
+          f.parent
+        ) {
           featureFromLayout = f.annotationFeature
         }
       }
+    }
+
+    if (!featureFromLayout) {
+      featureFromLayout = featuresForRow.at(-1).annotationFeature
     }
 
     return featureFromLayout
