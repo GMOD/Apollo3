@@ -75,7 +75,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
     const rowHeight = apolloRowHeight
     const utrHeight = Math.round(0.6 * rowHeight)
     const cdsHeight = Math.round(0.9 * rowHeight)
-    const { children, min, strand } = feature
+    const { _id, children, min, strand } = feature
     const { apolloSelectedFeature } = session
     let currentMRNA = 0
     for (const [, mrna] of children ?? new Map()) {
@@ -156,6 +156,38 @@ export class ImplicitExonGeneGlyph extends Glyph {
         }
       }
       currentMRNA += 1
+    }
+
+    if (apolloSelectedFeature) {
+      if (_id === apolloSelectedFeature._id) {
+        const widthPx = feature.length / bpPerPx
+        const startPx = reversed ? xOffset - widthPx : xOffset
+        const top = row * rowHeight
+        const height = this.getRowCount(feature) * rowHeight
+        ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,0.08)'
+        ctx.fillRect(startPx, top, widthPx, height)
+      } else {
+        let featureEntry: AnnotationFeatureI | undefined
+        let featureRow: number | undefined
+        let i = 0
+        children?.forEach((f: AnnotationFeatureI) => {
+          if (f._id === apolloSelectedFeature?._id) {
+            featureEntry = f
+            featureRow = i
+          }
+          i++
+        })
+
+        if (featureEntry === undefined || featureRow === undefined) {
+          return
+        }
+        const widthPx = featureEntry.length / bpPerPx
+        const offsetPx = (featureEntry.start - min) / bpPerPx
+        const startPx = reversed ? xOffset - widthPx : xOffset + offsetPx
+        const top = (row + featureRow) * rowHeight
+        ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,08)'
+        ctx.fillRect(startPx, top, widthPx, rowHeight)
+      }
     }
   }
 

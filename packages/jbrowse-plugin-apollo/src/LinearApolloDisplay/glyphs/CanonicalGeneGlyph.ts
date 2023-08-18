@@ -52,15 +52,6 @@ interface CDSFeatures {
 }
 
 export class CanonicalGeneGlyph extends Glyph {
-  /**
-   * Returns features as rows (Array of all child features and the parent feature at the end).
-   * ex:
-   * [ [ UTR/CDS/exon, UTR/CDS/exon, . . . , UTR/CDS/exon, mRNA/transcript ],
-   * [ UTR/CDS/exon, UTR/CDS/exon, . . . , UTR/CDS/exon, mRNA/transcript ] ]
-   *
-   * @param feature - Parent feature (ex: gene)
-   * @returns returns features for selected row
-   */
   featuresForRow(feature: AnnotationFeatureI): AnnotationFeature[][] {
     const cdsFeatures: CDSFeatures[] = []
     feature.children?.forEach((child: AnnotationFeatureI) => {
@@ -107,7 +98,7 @@ export class CanonicalGeneGlyph extends Glyph {
     return features
   }
 
-  getRowCount(feature: AnnotationFeatureI, _bpPerPx: number): number {
+  getRowCount(feature: AnnotationFeatureI, _bpPerPx?: number): number {
     let cdsCount = 0
     for (const [, child] of feature.children ?? new Map()) {
       for (const [, grandchild] of child.children ?? new Map()) {
@@ -132,7 +123,7 @@ export class CanonicalGeneGlyph extends Glyph {
     const rowHeight = apolloRowHeight
     const utrHeight = Math.round(0.6 * rowHeight)
     const cdsHeight = Math.round(0.9 * rowHeight)
-    const { children, min, strand } = feature
+    const { _id, children, min, strand } = feature
     const { apolloSelectedFeature } = session
     let currentCDS = 0
     for (const [, mrna] of children ?? new Map()) {
@@ -265,6 +256,50 @@ export class CanonicalGeneGlyph extends Glyph {
           }
         }
         currentCDS += 1
+      }
+    }
+    if (apolloSelectedFeature) {
+      if (_id === apolloSelectedFeature._id) {
+        const widthPx = feature.length / bpPerPx
+        const startPx = reversed ? xOffset - widthPx : xOffset
+        const top = row * rowHeight
+        const height = this.getRowCount(feature) * rowHeight
+        ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,0.08)'
+        ctx.fillRect(startPx, top, widthPx, height)
+      } else {
+        let featureEntry: AnnotationFeatureI | undefined
+        let featureRow: number | undefined
+        let i = 0
+        children?.forEach((f: AnnotationFeatureI) => {
+          if (f._id === apolloSelectedFeature?._id) {
+            featureEntry = f
+            featureRow = i
+          }
+          i++
+        })
+
+        if (featureEntry === undefined || featureRow === undefined) {
+          return
+        }
+        let cdsCount = 0
+        featureEntry.children?.forEach((cf: AnnotationFeatureI) => {
+          if (
+            cf.discontinuousLocations &&
+            cf.discontinuousLocations.length > 0
+          ) {
+            cdsCount++
+          }
+        })
+        let height = rowHeight
+        if (cdsCount > 1) {
+          height = height * cdsCount
+        }
+        const widthPx = featureEntry.length / bpPerPx
+        const offsetPx = (featureEntry.start - min) / bpPerPx
+        const startPx = reversed ? xOffset - widthPx : xOffset + offsetPx
+        const top = (row + featureRow) * rowHeight
+        ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,08)'
+        ctx.fillRect(startPx, top, widthPx, height)
       }
     }
   }
