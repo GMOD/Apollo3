@@ -1,6 +1,6 @@
 import { getConf, readConfObject } from '@jbrowse/core/configuration'
 import { ConfigurationModel } from '@jbrowse/core/configuration/types'
-import { Region, getSession } from '@jbrowse/core/util'
+import { Region, getSession, isElectron } from '@jbrowse/core/util'
 import { LocalPathLocation, UriLocation } from '@jbrowse/core/util/types/mst'
 import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
 import {
@@ -117,9 +117,9 @@ export function clientDataStoreFactory(
       inMemoryFileDriver: new InMemoryFileDriver(
         self as unknown as ClientDataStoreType,
       ),
-      desktopFileDriver: new DesktopFileDriver(
-        self as unknown as ClientDataStoreType,
-      ),
+      desktopFileDriver: isElectron
+        ? new DesktopFileDriver(self as unknown as ClientDataStoreType)
+        : undefined,
       ontologyManager: OntologyManagerType.create(),
     }))
     .actions((self) => ({
@@ -167,21 +167,18 @@ export function clientDataStoreFactory(
         if (!assembly) {
           return self.collaborationServerDriver
         }
+        const { file } = getConf(assembly, ['sequence', 'metadata'])
+        if (isElectron && file) {
+          return self.desktopFileDriver
+        }
         const { internetAccountConfigId } = getConf(assembly, [
           'sequence',
           'metadata',
         ]) as { internetAccountConfigId?: string }
-        const { apollo, file } = getConf(assembly, ['sequence', 'metadata'])
-        console.log(`APOLLO: ${JSON.stringify(apollo)}`)
-        console.log(`FILE: ${JSON.stringify(file)}`)
-        return self.desktopFileDriver
-        // if (internetAccountConfigId) {
-        //   return self.collaborationServerDriver
-        // }
-        // if (file) {
-        //   return self.desktopFileDriver
-        // }
-        // return self.inMemoryFileDriver
+        if (internetAccountConfigId) {
+          return self.collaborationServerDriver
+        }
+        return self.inMemoryFileDriver
       },
       getInternetAccount(assemblyName?: string, internetAccountId?: string) {
         if (!(assemblyName ?? internetAccountId)) {
@@ -217,6 +214,9 @@ export function clientDataStoreFactory(
       loadFeatures: flow(function* loadFeatures(regions: Region[]) {
         for (const region of regions) {
           const backendDriver = self.getBackendDriver(region.assemblyName)
+          if (!backendDriver) {
+            return
+          }
           const features = (yield backendDriver.getFeatures(
             region,
           )) as AnnotationFeatureSnapshot[]
@@ -245,10 +245,15 @@ export function clientDataStoreFactory(
         }
       }),
       loadRefSeq: flow(function* loadRefSeq(regions: Region[]) {
+        console.log('LATAA SEQUENCE')
         for (const region of regions) {
           const backendDriver = self.getBackendDriver(region.assemblyName)
+          if (!backendDriver) {
+            return
+          }
           const { refSeq, seq } = yield backendDriver.getSequence(region)
-          const { assemblyName, end, refName, start } = region
+          // const { seq, refSeq } = yield (self as unknown as { backendDriver: BackendDriver }).backendDriver.getSequence(region)
+          const { assemblyName, refName } = region
           let assembly = self.assemblies.get(assemblyName)
           if (!assembly) {
             assembly = self.assemblies.put({ _id: assemblyName, refSeqs: {} })

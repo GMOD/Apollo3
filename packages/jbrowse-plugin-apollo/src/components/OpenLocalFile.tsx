@@ -1,24 +1,5 @@
 import gff, { GFF3Feature, GFF3Sequence } from '@gmod/gff'
 import { AbstractSessionModel } from '@jbrowse/core/util'
-import {
-  Button,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  FormControl,
-  FormHelperText,
-  TextField,
-  useTheme,
-} from '@mui/material'
-// import { Check } from 'apollo-common'
-import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
-import { nanoid } from 'nanoid'
-import React, { useState } from 'react'
-
-import { InMemoryFileDriver } from '../BackendDrivers'
-import { ApolloSessionModel } from '../session'
-import { Dialog } from './Dialog'
-
 // class FakeCheck extends Check {
 //   async checkFeature(
 //     feature: AnnotationFeatureSnapshot,
@@ -38,6 +19,24 @@ import { Dialog } from './Dialog'
 // }
 import { isElectron } from '@jbrowse/core/util'
 import { storeBlobLocation } from '@jbrowse/core/util/tracks'
+import {
+  Button,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  FormControl,
+  FormHelperText,
+  TextField,
+  useTheme,
+} from '@mui/material'
+// import { Check } from 'apollo-common'
+import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
+import { nanoid } from 'nanoid'
+import React, { useState } from 'react'
+
+import { InMemoryFileDriver } from '../BackendDrivers'
+import { ApolloSessionModel } from '../session'
+import { Dialog } from './Dialog'
 
 interface OpenLocalFileProps {
   session: ApolloSessionModel
@@ -64,10 +63,6 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
   const [errorMessage, setErrorMessage] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const theme = useTheme()
-
-  // we need to ensure we're running on electron to load in this node package
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-empty-function
-const exec = isElectron ? require('child_process').exec : () => {}
 
   async function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
     const selectedFile = e.target.files?.item(0)
@@ -104,7 +99,7 @@ const exec = isElectron ? require('child_process').exec : () => {}
         parseSequences: true,
         parseComments: false,
         parseDirectives: false,
-        parseFeatures: true,
+        parseFeatures: isElectron ? false : true,
       })
     } catch (error) {
       setSubmitted(false)
@@ -172,11 +167,10 @@ const exec = isElectron ? require('child_process').exec : () => {}
         trackId: `sequenceConfigId-${assemblyName}`,
         type: 'ReferenceSequenceTrack',
         adapter: { type: 'ApolloSequenceAdapter', assemblyId },
-        metadata: { apollo: true },
-        metadata: { apollo: true, file: file.name },
+        metadata: { apollo: true, file: isElectron ? file.name : undefined },
       },
     }
-    console.log(`Filename: ${file.name}`)
+    console.log(`Filename: "${file.name}"`)
 
     // Save assembly into session
     await (addSessionAssembly || addAssembly)(assemblyConfig)
