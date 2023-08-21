@@ -281,15 +281,7 @@ export class CanonicalGeneGlyph extends Glyph {
         if (featureEntry === undefined || featureRow === undefined) {
           return
         }
-        let cdsCount = 0
-        featureEntry.children?.forEach((cf: AnnotationFeatureI) => {
-          if (
-            cf.discontinuousLocations &&
-            cf.discontinuousLocations.length > 0
-          ) {
-            cdsCount++
-          }
-        })
+        const cdsCount = this.cdsCount(featureEntry)
         let height = rowHeight
         if (cdsCount > 1) {
           height = height * cdsCount
@@ -302,6 +294,16 @@ export class CanonicalGeneGlyph extends Glyph {
         ctx.fillRect(startPx, top, widthPx, height)
       }
     }
+  }
+
+  cdsCount(feature?: AnnotationFeatureI) {
+    let cdsCount = 0
+    feature?.children?.forEach((cf: AnnotationFeatureI) => {
+      if (cf.discontinuousLocations && cf.discontinuousLocations.length > 0) {
+        cdsCount++
+      }
+    })
+    return cdsCount
   }
 
   drawHover(
@@ -391,12 +393,7 @@ export class CanonicalGeneGlyph extends Glyph {
       i++
     })
 
-    let cdsCount = 0
-    featureEntry?.children?.forEach((cf: AnnotationFeatureI) => {
-      if (cf.discontinuousLocations && cf.discontinuousLocations.length > 0) {
-        cdsCount++
-      }
-    })
+    const cdsCount = this.cdsCount(featureEntry)
 
     if (cdsCount > 1 && rowNum && xOffset) {
       if (featureEntry === undefined || featureRow === undefined) {
@@ -410,7 +407,7 @@ export class CanonicalGeneGlyph extends Glyph {
         : (featureEntry.start - feature.min) / bpPerPx
       const startPx = reversed ? xOffset - widthPx : xOffset + offsetPx
       const top = (rowNum + featureRow) * apolloRowHeight
-      ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,08)'
+      ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,04)'
       ctx.fillRect(startPx, top, widthPx, apolloRowHeight * cdsCount)
     } else {
       const { mousePosition } = apolloHover
