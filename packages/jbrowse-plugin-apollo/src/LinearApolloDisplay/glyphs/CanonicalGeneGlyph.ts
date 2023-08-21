@@ -304,7 +304,13 @@ export class CanonicalGeneGlyph extends Glyph {
     }
   }
 
-  drawHover(stateModel: LinearApolloDisplay, ctx: CanvasRenderingContext2D) {
+  drawHover(
+    stateModel: LinearApolloDisplay,
+    ctx: CanvasRenderingContext2D,
+    rowNum: number,
+    xOffset: number,
+    reversed: boolean,
+  ) {
     const { apolloHover } = stateModel
     if (!apolloHover) {
       return
@@ -336,6 +342,9 @@ export class CanonicalGeneGlyph extends Glyph {
         feature.start,
         feature.end,
         feature.length,
+        rowNum,
+        xOffset,
+        reversed,
       )
     }
   }
@@ -346,33 +355,85 @@ export class CanonicalGeneGlyph extends Glyph {
     start: number,
     end: number,
     length: number,
+    rowNum?: number,
+    xOffset?: number,
+    reversed?: boolean,
   ) {
     const { apolloHover, apolloRowHeight, displayedRegions, lgv, theme } =
       stateModel
+    const { bpPerPx, bpToPx, offsetPx } = lgv
+
     if (!apolloHover) {
       return
     }
-    const { mousePosition } = apolloHover
-    if (!mousePosition) {
+    const { feature, topLevelFeature } = apolloHover
+
+    if (!feature || !topLevelFeature) {
       return
     }
-    const { bpPerPx, bpToPx, offsetPx } = lgv
-    const rowHeight = apolloRowHeight
-    const { regionNumber, y } = mousePosition
-    const rowNumber = Math.floor(y / rowHeight)
 
-    const displayedRegion = displayedRegions[regionNumber]
-    const { refName, reversed } = displayedRegion
-    const startPx =
-      (bpToPx({
-        refName,
-        coord: reversed ? end : start,
-        regionNumber,
-      })?.offsetPx ?? 0) - offsetPx
-    const top = rowNumber * rowHeight
-    const widthPx = length / bpPerPx
-    ctx.fillStyle = theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
-    ctx.fillRect(startPx, top, widthPx, rowHeight)
+    let featureEntry: AnnotationFeatureI | undefined
+    let childFeature: AnnotationFeatureI | undefined
+    let featureRow: number | undefined
+    let i = 0
+    topLevelFeature.children?.forEach((f: AnnotationFeatureI) => {
+      if (f._id === feature?._id) {
+        featureEntry = f
+        featureRow = i
+      }
+      f.children?.forEach((cf: AnnotationFeatureI) => {
+        if (cf._id === feature._id) {
+          childFeature = cf
+          featureEntry = f
+          featureRow = i
+        }
+      })
+      i++
+    })
+
+    let cdsCount = 0
+    featureEntry?.children?.forEach((cf: AnnotationFeatureI) => {
+      if (cf.discontinuousLocations && cf.discontinuousLocations.length > 0) {
+        cdsCount++
+      }
+    })
+
+    if (cdsCount > 1 && rowNum && xOffset) {
+      if (featureEntry === undefined || featureRow === undefined) {
+        return
+      }
+      const widthPx = childFeature
+        ? childFeature.length / bpPerPx
+        : featureEntry.length / bpPerPx
+      const offsetPx = childFeature
+        ? (childFeature.start - feature.min) / bpPerPx
+        : (featureEntry.start - feature.min) / bpPerPx
+      const startPx = reversed ? xOffset - widthPx : xOffset + offsetPx
+      const top = (rowNum + featureRow) * apolloRowHeight
+      ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,08)'
+      ctx.fillRect(startPx, top, widthPx, apolloRowHeight * cdsCount)
+    } else {
+      const { mousePosition } = apolloHover
+      if (!mousePosition) {
+        return
+      }
+      const rowHeight = apolloRowHeight
+      const { regionNumber, y } = mousePosition
+      const rowNumber = Math.floor(y / rowHeight)
+
+      const displayedRegion = displayedRegions[regionNumber]
+      const { refName, reversed } = displayedRegion
+      const startPx =
+        (bpToPx({
+          refName,
+          coord: reversed ? end : start,
+          regionNumber,
+        })?.offsetPx ?? 0) - offsetPx
+      const top = rowNumber * rowHeight
+      const widthPx = length / bpPerPx
+      ctx.fillStyle = theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
+      ctx.fillRect(startPx, top, widthPx, rowHeight)
+    }
   }
 
   onMouseUp(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {

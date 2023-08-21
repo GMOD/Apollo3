@@ -35,6 +35,9 @@ export abstract class Glyph {
   drawHover(
     _display: LinearApolloDisplayMouseEvents,
     _overlayCtx: CanvasRenderingContext2D,
+    _rowNum?: number,
+    _xOffset?: number,
+    _reversed?: boolean,
   ) {
     return
   }

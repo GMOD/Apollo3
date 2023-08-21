@@ -52,6 +52,9 @@ export function mouseEventsModelIntermediateFactory(
   )
 
   return LinearApolloDisplayRendering.named('LinearApolloDisplayMouseEvents')
+    .props({
+      apolloRowHeight: 20,
+    })
     .volatile(() => ({
       apolloDragging: null as {
         start: {
@@ -255,8 +258,65 @@ export function mouseEventsModelFactory(
                 self.featuresHeight,
               )
 
+              const { apolloHover } = self
+              if (!apolloHover) {
+                return
+              }
+              const { feature } = apolloHover
+              if (!feature) {
+                return
+              }
+              let rowNum = 0
+              let xOffset = 0
+              let reversed = false
+              self.featureLayouts.forEach((featureLayout, idx) => {
+                const displayedRegion = self.displayedRegions[idx]
+                featureLayout.forEach((featureLayoutRow, row) => {
+                  if (rowNum !== 0) {
+                    return
+                  }
+                  featureLayoutRow.forEach(([, f]) => {
+                    f.children?.forEach((cf: AnnotationFeatureI) => {
+                      if (rowNum !== 0) {
+                        return
+                      }
+                      xOffset =
+                        (self.lgv.bpToPx({
+                          refName: displayedRegion.refName,
+                          coord: feature.min,
+                          regionNumber: idx,
+                        })?.offsetPx ?? 0) - self.lgv.offsetPx
+                      // eslint-disable-next-line prefer-destructuring
+                      reversed = displayedRegion.reversed
+
+                      if (cf._id === feature._id) {
+                        rowNum = row
+                        return
+                      }
+                      cf.children?.forEach(
+                        (annotationFeature: AnnotationFeatureI) => {
+                          if (rowNum !== 0) {
+                            return
+                          }
+                          if (annotationFeature._id === feature._id) {
+                            rowNum = row
+                            return
+                          }
+                        },
+                      )
+                    })
+                  })
+                })
+              })
+
               // draw mouseover hovers
-              self.apolloHover?.glyph?.drawHover(self, ctx)
+              self.apolloHover?.glyph?.drawHover(
+                self,
+                ctx,
+                rowNum,
+                xOffset,
+                reversed,
+              )
 
               // dragging previews
               if (self.apolloDragging) {
