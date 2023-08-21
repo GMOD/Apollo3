@@ -296,10 +296,15 @@ export class CanonicalGeneGlyph extends Glyph {
     }
   }
 
+  // CDS count with discontinuous locations
   cdsCount(feature?: AnnotationFeatureI) {
     let cdsCount = 0
     feature?.children?.forEach((cf: AnnotationFeatureI) => {
-      if (cf.discontinuousLocations && cf.discontinuousLocations.length > 0) {
+      if (
+        cf.type === 'CDS' &&
+        cf.discontinuousLocations &&
+        cf.discontinuousLocations.length > 0
+      ) {
         cdsCount++
       }
     })
