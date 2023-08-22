@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals'
+import { beforeAll, describe, expect, it, jest } from '@jest/globals'
 
 import OntologyStore from '.'
 import { OntologyClass, isOntologyClass } from '..'
@@ -10,12 +10,17 @@ const prefixes = new Map([
   ['GO:', 'http://purl.obolibrary.org/obo/GO_'],
 ])
 
-const so = new OntologyStore(
-  'Sequence Ontology',
-  'automated testing',
-  { locationType: 'LocalPathLocation', localPath: 'test_data/so-v3.1.json' },
-  { prefixes },
-)
+let so: OntologyStore
+
+beforeAll(async () => {
+  so = new OntologyStore(
+    'Sequence Ontology',
+    'automated testing',
+    { locationType: 'LocalPathLocation', localPath: 'test_data/so-v3.1.json' },
+    { prefixes },
+  )
+  await so.db
+})
 
 describe('OntologyStore', () => {
   it('can load goslim generic', async () => {
