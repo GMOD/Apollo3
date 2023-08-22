@@ -49,8 +49,8 @@ export class UserChange extends Change {
   }
 
   async executeOnServer(backend: ServerDataStore) {
-    const { userModel, session } = backend
-    const { changes, userId, logger } = this
+    const { session, userModel } = backend
+    const { changes, logger, userId } = this
 
     for (const change of changes) {
       logger.debug?.(`change: ${JSON.stringify(changes)}`)
@@ -75,7 +75,7 @@ export class UserChange extends Change {
   async executeOnClient(_dataStore: ClientDataStore) {}
 
   getInverse() {
-    const { typeName, changes, userId, logger } = this
+    const { changes, logger, typeName, userId } = this
     return new UserChange({ typeName, changes, userId }, { logger })
   }
 }

@@ -1,4 +1,4 @@
-import fs from 'fs/promises'
+import fs from 'node:fs/promises'
 
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
@@ -24,10 +24,9 @@ async function jwtConfigFactory(
   if (!jwtSecret) {
     // We can use non-null assertion since joi already checks this for us
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const uriFile = configService.get('JWT_SECRET_FILE', {
-      infer: true,
-    })!
-    jwtSecret = (await fs.readFile(uriFile, 'utf-8')).trim()
+    const jwtFile = configService.get('JWT_SECRET_FILE', { infer: true })!
+    const jwtFileText = await fs.readFile(jwtFile, 'utf8')
+    jwtSecret = jwtFileText.trim()
   }
   return { secret: jwtSecret, signOptions: { expiresIn: '1d' } }
 }

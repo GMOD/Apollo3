@@ -45,8 +45,8 @@ export class DeleteUserChange extends Change {
   }
 
   async executeOnServer(backend: ServerDataStore) {
-    const { userModel, session } = backend
-    const { userId, logger } = this
+    const { session, userModel } = backend
+    const { logger, userId } = this
     const user = await userModel
       .findOneAndDelete({ _id: userId })
       .session(session)
@@ -66,7 +66,7 @@ export class DeleteUserChange extends Change {
   async executeOnClient(_dataStore: ClientDataStore) {}
 
   getInverse() {
-    const { typeName, userId, logger } = this
+    const { logger, typeName, userId } = this
     return new DeleteUserChange({ typeName, userId }, { logger })
     //   const inverseChangedIds = this.changedIds.slice().reverse()
     //   const inverseChanges = this.changes

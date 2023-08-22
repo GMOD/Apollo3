@@ -16,7 +16,7 @@
     "tslib": "^2.3.1"
   },
   "devDependencies": {
-    "@types/node": "^16.0.0",
+    "@types/node": "^18.11.9",
     "apollo-mst": "workspace:^",
     "typescript": "^5.1.6"
   },

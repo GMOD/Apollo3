@@ -31,6 +31,6 @@ export class CoreValidation extends Validation {
     if (key === 'type') {
       return soSequenceTypes
     }
-    return undefined
+    return
   }
 }

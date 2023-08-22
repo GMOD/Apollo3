@@ -3,6 +3,7 @@
 module.exports = {
   extends: [
     'eslint:recommended',
+    'plugin:unicorn/recommended',
     'plugin:cypress/recommended',
     'plugin:import/recommended',
     'plugin:import/typescript',
@@ -10,7 +11,7 @@ module.exports = {
     'plugin:@typescript-eslint/stylistic-type-checked',
     'plugin:prettier/recommended',
   ],
-  plugins: ['tsdoc'],
+  plugins: ['tsdoc', 'sort-destructure-keys'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: true,
@@ -70,8 +71,16 @@ module.exports = {
     'import/no-extraneous-dependencies': 'error',
     // eslint-plugin-prettier rules (override recommended)
     'prettier/prettier': 'warn',
+    // eslint-plugin-sort-destructure-keys rules
+    'sort-destructure-keys/sort-destructure-keys': 'warn',
     // eslint-plugin-tsdoc rules
     'tsdoc/syntax': 'warn',
+    // eslint-plugin-unicorn rules (override recommended)
+    'unicorn/filename-case': 'off', // Doesn't match our file naming, maybe can be configured later
+    'unicorn/no-empty-file': 'off', // False positives
+    'unicorn/no-null': 'off', // A lot of null in React and other libraries
+    'unicorn/prefer-module': 'off', // Cypress and apollo-collaboration-server need this
+    'unicorn/prevent-abbreviations': 'off', // Doesn't guess a lot of abbreviations correctly
     // Special case @typescript-eslint/eslint-plugin rule
     // Will be part of "plugin:@typescript-eslint/recommended-type-checked" when
     // that extension is enabled. Remove from here at that time.
@@ -79,6 +88,50 @@ module.exports = {
   },
   overrides: [
     // Only use React-specific lint rules in jbrowse-plugin-apollo
+    {
+      files: ['./packages/jbrowse-plugin-apollo/**/*.{ts,tsx}'],
+      env: { browser: true },
+      extends: [
+        'plugin:react/recommended',
+        'plugin:react-hooks/recommended',
+        'plugin:jsx-a11y/recommended',
+      ],
+      settings: {
+        // These settings are from eslint-plugin-react
+        react: {
+          // React version. "detect" automatically picks the version you have installed.
+          // You can also use `16.0`, `16.3`, etc, if you want to override the detected value.
+          // It will default to "latest" and warn if missing, and to "detect" in the future
+          version: 'detect',
+        },
+        componentWrapperFunctions: [
+          // The name of any function used to wrap components, e.g. Mobx `observer` function. If this isn't set, components wrapped by these functions will be skipped.
+          'observer', // `property`
+          { property: 'styled' }, // `object` is optional
+          { property: 'observer', object: 'Mobx' },
+          { property: 'observer', object: '<pragma>' }, // sets `object` to whatever value `settings.react.pragma` is set to
+        ],
+      },
+    },
+    // Lint non-src files (e.g. jest.config.js) using a separate tsconfig
+    {
+      files: ['./packages/jbrowse-plugin-apollo/*.js'],
+      parserOptions: {
+        project: 'packages/jbrowse-plugin-apollo/tsconfig.eslint.json',
+      },
+      env: { node: true },
+    },
+    // Specify Node env for cypress testing files
+    {
+      files: ['./packages/jbrowse-plugin-apollo/cypress/**/*.js'],
+      env: { node: true },
+    },
+    // Specify Node env for apollo-collaboration-server/
+    {
+      files: ['./packages/apollo-collaboration-server/**/*.ts'],
+      env: { node: true },
+    },
+    // Don't enforce tsdoc syntax in JS files
     {
       files: ['./packages/jbrowse-plugin-apollo/**/*.{ts,tsx}'],
       env: { browser: true },

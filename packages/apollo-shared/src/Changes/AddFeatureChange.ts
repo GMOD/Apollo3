@@ -44,9 +44,9 @@ export class AddFeatureChange extends FeatureChange {
   }
 
   toJSON(): SerializedAddFeatureChange {
-    const { changes, changedIds, typeName, assembly } = this
+    const { assembly, changedIds, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ addedFeature, parentFeatureId, copyFeature, allIds }] = changes
+      const [{ addedFeature, allIds, copyFeature, parentFeatureId }] = changes
       return {
         typeName,
         changedIds,
@@ -67,7 +67,7 @@ export class AddFeatureChange extends FeatureChange {
    */
   async executeOnServer(backend: ServerDataStore) {
     const { assemblyModel, featureModel, refSeqModel, session, user } = backend
-    const { changes, assembly, logger } = this
+    const { assembly, changes, logger } = this
 
     const assemblyDoc = await assemblyModel
       .findById(assembly)
@@ -85,8 +85,8 @@ export class AddFeatureChange extends FeatureChange {
     // Loop the changes
     for (const change of changes) {
       logger.debug?.(`change: ${JSON.stringify(change)}`)
-      const { addedFeature, parentFeatureId, copyFeature, allIds } = change
-      const { refSeq } = addedFeature
+      const { addedFeature, allIds, copyFeature, parentFeatureId } = change
+      const { _id, refSeq } = addedFeature
       const refSeqDoc = await refSeqModel
         .findById(refSeq)
         .session(session)
@@ -102,16 +102,14 @@ export class AddFeatureChange extends FeatureChange {
         // Add into Mongo
         const [newFeatureDoc] = await featureModel.create(
           [{ ...addedFeature, allIds, status: -1, user }],
-          {
-            session,
-          },
+          { session },
         )
         logger.debug?.(
           `Copied feature, docId "${newFeatureDoc._id}" to assembly "${assembly}"`,
         )
         featureCnt++
       } else {
-        addedFeature.gffId = addedFeature._id // User added manually new feature so then gffId = _id
+        addedFeature.gffId = _id // User added manually new feature so then gffId = _id
         // Adding new child feature
         if (parentFeatureId) {
           const topLevelFeature = await featureModel
@@ -146,19 +144,19 @@ export class AddFeatureChange extends FeatureChange {
             }
             parentFeature.attributes = attributes
           }
-          parentFeature.children.set(addedFeature._id, {
+          parentFeature.children.set(_id, {
             allIds: [],
             ...addedFeature,
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
-            _id: addedFeature._id,
+            _id,
           })
           const childIds = this.getChildFeatureIds(addedFeature)
-          topLevelFeature.allIds.push(addedFeature._id, ...childIds)
+          topLevelFeature.allIds.push(_id, ...childIds)
           await topLevelFeature.save()
         } else {
           const childIds = this.getChildFeatureIds(addedFeature)
-          const allIdsV2 = [addedFeature._id, ...childIds]
+          const allIdsV2 = [_id, ...childIds]
           const [newFeatureDoc] = await featureModel.create(
             [{ allIds: allIdsV2, ...addedFeature }],
             { session },
@@ -179,7 +177,7 @@ export class AddFeatureChange extends FeatureChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
-    const { changes, assembly } = this
+    const { assembly, changes } = this
     for (const change of changes) {
       const { addedFeature, parentFeatureId } = change
       if (parentFeatureId) {
@@ -199,15 +197,12 @@ export class AddFeatureChange extends FeatureChange {
   }
 
   getInverse() {
-    const { changes, changedIds, assembly, logger } = this
-    const inverseChangedIds = changedIds.slice().reverse()
-    const inverseChanges = changes
-      .slice()
-      .reverse()
-      .map((addFeatureChange) => ({
-        deletedFeature: addFeatureChange.addedFeature,
-        parentFeatureId: addFeatureChange.parentFeatureId,
-      }))
+    const { assembly, changedIds, changes, logger } = this
+    const inverseChangedIds = [...changedIds].reverse()
+    const inverseChanges = [...changes].reverse().map((addFeatureChange) => ({
+      deletedFeature: addFeatureChange.addedFeature,
+      parentFeatureId: addFeatureChange.parentFeatureId,
+    }))
 
     return new DeleteFeatureChange(
       {

@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'node:fs'
 
 import { LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
@@ -25,9 +25,9 @@ async function bootstrap() {
   const {
     CORS,
     LOG_LEVELS,
-    PORT,
     MONGODB_URI,
     MONGODB_URI_FILE,
+    PORT,
     SESSION_SECRET,
     SESSION_SECRET_FILE,
   } = process.env
@@ -45,7 +45,7 @@ async function bootstrap() {
     if (!MONGODB_URI_FILE) {
       throw new Error('No MONGODB_URI or MONGODB_URI_FILE found in .env file')
     }
-    mongodbURI = fs.readFileSync(MONGODB_URI_FILE, 'utf-8').trim()
+    mongodbURI = fs.readFileSync(MONGODB_URI_FILE, 'utf8').trim()
   }
 
   let sessionSecret = SESSION_SECRET
@@ -55,16 +55,16 @@ async function bootstrap() {
         'No SESSION_SECRET or SESSION_SECRET_FILE found in .env file',
       )
     }
-    sessionSecret = fs.readFileSync(SESSION_SECRET_FILE, 'utf-8').trim()
+    sessionSecret = fs.readFileSync(SESSION_SECRET_FILE, 'utf8').trim()
   }
 
-  Object.entries(changes).forEach(([changeName, change]) => {
+  for (const [changeName, change] of Object.entries(changes)) {
     changeRegistry.registerChange(changeName, change)
-  })
+  }
 
-  Object.entries(operations).forEach(([operationName, operation]) => {
+  for (const [operationName, operation] of Object.entries(operations)) {
     operationRegistry.registerOperation(operationName, operation)
-  })
+  }
 
   validationRegistry.registerValidation(new CoreValidation())
   validationRegistry.registerValidation(new AuthorizationValidation())
@@ -74,10 +74,7 @@ async function bootstrap() {
 
   const logLevels = LOG_LEVELS.split(',') as LogLevel[]
 
-  const app = await NestFactory.create(AppModule, {
-    logger: logLevels,
-    cors,
-  })
+  const app = await NestFactory.create(AppModule, { logger: logLevels, cors })
 
   const { httpAdapter } = app.get(HttpAdapterHost)
   app.useGlobalFilters(new GlobalExceptionsFilter(httpAdapter))
@@ -100,12 +97,13 @@ async function bootstrap() {
     `Application is running on: ${await app.getUrl()}, CORS = ${cors}`,
   )
 }
+// eslint-disable-next-line unicorn/prefer-top-level-await
 void bootstrap()
 
 function convertToBoolean(input: string): boolean | undefined {
   try {
     return JSON.parse(input)
-  } catch (e) {
+  } catch {
     return undefined
   }
 }

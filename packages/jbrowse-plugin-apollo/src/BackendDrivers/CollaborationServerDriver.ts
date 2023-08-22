@@ -61,7 +61,7 @@ export class CollaborationServerDriver extends BackendDriver {
    * @returns
    */
   async getFeatures(region: Region) {
-    const { assemblyName, refName, start, end } = region
+    const { assemblyName, end, refName, start } = region
     const { assemblyManager } = getSession(this.clientStore)
     const assembly = assemblyManager.get(assemblyName)
     if (!assembly) {
@@ -154,7 +154,7 @@ export class CollaborationServerDriver extends BackendDriver {
    * @returns
    */
   async getSequence(region: Region): Promise<{ seq: string; refSeq: string }> {
-    const { assemblyName, refName, start, end } = region
+    const { assemblyName, end, refName, start } = region
     const { assemblyManager } = getSession(this.clientStore)
     const assembly = assemblyManager.get(assemblyName)
     if (!assembly) {
@@ -186,7 +186,7 @@ export class CollaborationServerDriver extends BackendDriver {
       let errorMessage
       try {
         errorMessage = await response.text()
-      } catch (error) {
+      } catch {
         errorMessage = ''
       }
       throw new Error(
@@ -230,7 +230,7 @@ export class CollaborationServerDriver extends BackendDriver {
     change: Change | AssemblySpecificChange,
     opts: SubmitOpts = {},
   ) {
-    const { internetAccountId = undefined } = opts
+    const { internetAccountId } = opts
     const internetAccount = this.clientStore.getInternetAccount(
       'assembly' in change ? change.assembly : undefined,
       internetAccountId,

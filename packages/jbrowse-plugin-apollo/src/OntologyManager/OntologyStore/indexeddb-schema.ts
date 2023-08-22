@@ -65,10 +65,7 @@ export function isDeprecated(thing: OntologyDBNode | OntologyDBEdge) {
 
 /** schema types used to strongly-type using the `idb` type system */
 export interface OntologyDB extends DBSchema {
-  meta: {
-    key: string
-    value: Meta
-  }
+  meta: { key: string; value: Meta }
   nodes: {
     key: string
     value: OntologyDBNode

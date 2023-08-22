@@ -7,7 +7,7 @@ import { Glyph } from './Glyph'
 let forwardFill: CanvasPattern | null = null
 let backwardFill: CanvasPattern | null = null
 if ('document' in window) {
-  ;['forward', 'backward'].forEach((direction) => {
+  for (const direction of ['forward', 'backward']) {
     const canvas = document.createElement('canvas')
     const canvasSize = 10
     canvas.width = canvas.height = canvasSize
@@ -35,19 +35,19 @@ if ('document' in window) {
         backwardFill = ctx.createPattern(canvas, 'repeat')
       }
     }
-  })
+  }
 }
 
 export class CanonicalGeneGlyph extends Glyph {
   getRowCount(feature: AnnotationFeatureI, _bpPerPx: number): number {
     let cdsCount = 0
-    feature.children?.forEach((child: AnnotationFeatureI) => {
-      child.children?.forEach((grandchild: AnnotationFeatureI) => {
+    for (const [, child] of feature.children ?? new Map()) {
+      for (const [, grandchild] of child.children ?? new Map()) {
         if (grandchild.type === 'CDS') {
           cdsCount += 1
         }
-      })
-    })
+      }
+    }
     return cdsCount
   }
 
@@ -59,22 +59,22 @@ export class CanonicalGeneGlyph extends Glyph {
     row: number,
     reversed: boolean,
   ): void {
-    const { theme, lgv, session } = stateModel
+    const { apolloRowHeight, lgv, session, theme } = stateModel
     const { bpPerPx } = lgv
-    const rowHeight = stateModel.apolloRowHeight
+    const rowHeight = apolloRowHeight
     const utrHeight = Math.round(0.6 * rowHeight)
     const cdsHeight = Math.round(0.9 * rowHeight)
-    const { strand } = feature
+    const { _id, children, max, min, strand } = feature
     let currentCDS = 0
-    feature.children?.forEach((mrna: AnnotationFeatureI) => {
+    for (const [, mrna] of children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
         return
       }
-      mrna.children?.forEach((cds: AnnotationFeatureI) => {
+      for (const [, cds] of mrna.children ?? new Map()) {
         if (cds.type !== 'CDS') {
           return
         }
-        const offsetPx = (mrna.start - feature.min) / bpPerPx
+        const offsetPx = (mrna.start - min) / bpPerPx
         const widthPx = mrna.length / bpPerPx
         const startPx = reversed
           ? xOffset - offsetPx - widthPx
@@ -87,22 +87,22 @@ export class CanonicalGeneGlyph extends Glyph {
         ctx.lineTo(startPx + widthPx, height)
         ctx.stroke()
         currentCDS += 1
-      })
-    })
+      }
+    }
     currentCDS = 0
-    feature.children?.forEach((mrna: AnnotationFeatureI) => {
+    for (const [, mrna] of children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
         return
       }
-      const cdsCount = Array.from(mrna.children ?? []).filter(
+      const cdsCount = [...(mrna.children ?? [])].filter(
         ([, exonOrCDS]) => exonOrCDS.type === 'CDS',
       ).length
-      new Array(cdsCount).fill(undefined).forEach(() => {
-        mrna.children?.forEach((exon: AnnotationFeatureI) => {
+      for (let count = 0; count < cdsCount; count++) {
+        for (const [, exon] of mrna.children ?? new Map()) {
           if (exon.type !== 'exon') {
             return
           }
-          const offsetPx = (exon.start - feature.min) / bpPerPx
+          const offsetPx = (exon.start - min) / bpPerPx
           const widthPx = exon.length / bpPerPx
           const startPx = reversed
             ? xOffset - offsetPx - widthPx
@@ -137,62 +137,64 @@ export class CanonicalGeneGlyph extends Glyph {
               )
             }
           }
-        })
+        }
         currentCDS += 1
-      })
-    })
+      }
+    }
     currentCDS = 0
-    feature.children?.forEach((mrna: AnnotationFeatureI) => {
+    for (const [, mrna] of children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
         return
       }
-      mrna.children?.forEach((cds: AnnotationFeatureI) => {
+      for (const [, cds] of mrna.children ?? new Map()) {
         if (cds.type !== 'CDS') {
           return
         }
-        cds.discontinuousLocations?.forEach((cdsLocation) => {
-          const offsetPx = (cdsLocation.start - feature.min) / bpPerPx
-          const widthPx = (cdsLocation.end - cdsLocation.start) / bpPerPx
-          const startPx = reversed
-            ? xOffset - offsetPx - widthPx
-            : xOffset + offsetPx
-          ctx.fillStyle = theme?.palette.text.primary ?? 'black'
-          const top = (row + currentCDS) * rowHeight
-          const cdsTop = top + (rowHeight - cdsHeight) / 2
-          ctx.fillRect(startPx, cdsTop, widthPx, cdsHeight)
-          if (widthPx > 2) {
-            ctx.clearRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
-            ctx.fillStyle = 'rgb(255,165,0)'
-            ctx.fillRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
-            if (forwardFill && backwardFill && strand) {
-              const reversal = reversed ? -1 : 1
-              const [topFill, bottomFill] =
-                strand * reversal === 1
-                  ? [forwardFill, backwardFill]
-                  : [backwardFill, forwardFill]
-              ctx.fillStyle = topFill
-              ctx.fillRect(
-                startPx + 1,
-                cdsTop + 1,
-                widthPx - 2,
-                (cdsHeight - 2) / 2,
-              )
-              ctx.fillStyle = bottomFill
-              ctx.fillRect(
-                startPx + 1,
-                cdsTop + (cdsHeight - 2) / 2,
-                widthPx - 2,
-                (cdsHeight - 2) / 2,
-              )
+        if (cds.discontinuousLocations) {
+          for (const cdsLocation of cds.discontinuousLocations) {
+            const offsetPx = (cdsLocation.start - min) / bpPerPx
+            const widthPx = (cdsLocation.end - cdsLocation.start) / bpPerPx
+            const startPx = reversed
+              ? xOffset - offsetPx - widthPx
+              : xOffset + offsetPx
+            ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+            const top = (row + currentCDS) * rowHeight
+            const cdsTop = top + (rowHeight - cdsHeight) / 2
+            ctx.fillRect(startPx, cdsTop, widthPx, cdsHeight)
+            if (widthPx > 2) {
+              ctx.clearRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
+              ctx.fillStyle = 'rgb(255,165,0)'
+              ctx.fillRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
+              if (forwardFill && backwardFill && strand) {
+                const reversal = reversed ? -1 : 1
+                const [topFill, bottomFill] =
+                  strand * reversal === 1
+                    ? [forwardFill, backwardFill]
+                    : [backwardFill, forwardFill]
+                ctx.fillStyle = topFill
+                ctx.fillRect(
+                  startPx + 1,
+                  cdsTop + 1,
+                  widthPx - 2,
+                  (cdsHeight - 2) / 2,
+                )
+                ctx.fillStyle = bottomFill
+                ctx.fillRect(
+                  startPx + 1,
+                  cdsTop + (cdsHeight - 2) / 2,
+                  widthPx - 2,
+                  (cdsHeight - 2) / 2,
+                )
+              }
             }
           }
-        })
+        }
         currentCDS += 1
-      })
-    })
+      }
+    }
     const { apolloSelectedFeature } = session
-    if (apolloSelectedFeature && feature._id === apolloSelectedFeature._id) {
-      const widthPx = feature.max - feature.min
+    if (apolloSelectedFeature && _id === apolloSelectedFeature._id) {
+      const widthPx = max - min
       const startPx = reversed ? xOffset - widthPx : xOffset
       const top = row * rowHeight
       const height = this.getRowCount(feature, bpPerPx) * rowHeight
@@ -206,13 +208,13 @@ export class CanonicalGeneGlyph extends Glyph {
     if (!hover) {
       return
     }
-    const { topLevelFeature, mousePosition } = hover
+    const { mousePosition, topLevelFeature } = hover
     if (!(topLevelFeature && mousePosition)) {
       return
     }
     const rowHeight = stateModel.apolloRowHeight
     const rowNumber = Math.floor(mousePosition.y / rowHeight)
-    const { featureLayouts } = stateModel
+    const { displayedRegions, featureLayouts, lgv, theme } = stateModel
     const layout = featureLayouts[mousePosition.regionNumber]
     const row = layout.get(rowNumber)
     const featureRowEntry = row?.find(
@@ -221,25 +223,24 @@ export class CanonicalGeneGlyph extends Glyph {
     if (!featureRowEntry) {
       return
     }
-    const displayedRegion =
-      stateModel.displayedRegions[mousePosition.regionNumber]
+    const displayedRegion = displayedRegions[mousePosition.regionNumber]
     const x =
-      (stateModel.lgv.bpToPx({
+      (lgv.bpToPx({
         refName: displayedRegion.refName,
         coord: topLevelFeature.min,
         regionNumber: mousePosition.regionNumber,
-      })?.offsetPx ?? 0) - stateModel.lgv.offsetPx
+      })?.offsetPx ?? 0) - lgv.offsetPx
     const [featureRowNumber] = featureRowEntry
     const topRowNumber = rowNumber - featureRowNumber
     const y = topRowNumber * rowHeight
-    const { bpPerPx } = stateModel.lgv
+    const { bpPerPx } = lgv
     const width = topLevelFeature.end - topLevelFeature.start
     const widthPx = width / bpPerPx
     const startBp = displayedRegion.reversed
       ? topLevelFeature.max - topLevelFeature.end
       : topLevelFeature.start - topLevelFeature.min
     const startPx = startBp / bpPerPx
-    ctx.fillStyle = stateModel.theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
+    ctx.fillStyle = theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
     const height = this.getRowCount(topLevelFeature, bpPerPx) * rowHeight
     ctx.fillRect(x + startPx, y, widthPx, height)
   }

@@ -7,7 +7,7 @@ import { Glyph } from './Glyph'
 let forwardFill: CanvasPattern | null = null
 let backwardFill: CanvasPattern | null = null
 if ('document' in window) {
-  ;['forward', 'backward'].forEach((direction) => {
+  for (const direction of ['forward', 'backward']) {
     const canvas = document.createElement('canvas')
     const canvasSize = 10
     canvas.width = canvas.height = canvasSize
@@ -35,17 +35,17 @@ if ('document' in window) {
         backwardFill = ctx.createPattern(canvas, 'repeat')
       }
     }
-  })
+  }
 }
 
 export class ImplicitExonGeneGlyph extends Glyph {
   getRowCount(feature: AnnotationFeatureI): number {
     let mrnaCount = 0
-    feature.children?.forEach((child: AnnotationFeatureI) => {
+    for (const [, child] of feature.children ?? new Map()) {
       if (child.type === 'mRNA') {
         mrnaCount += 1
       }
-    })
+    }
     return mrnaCount
   }
 
@@ -57,18 +57,18 @@ export class ImplicitExonGeneGlyph extends Glyph {
     row: number,
     reversed?: boolean,
   ): void {
-    const { theme, lgv, session } = stateModel
+    const { apolloRowHeight, lgv, session, theme } = stateModel
     const { bpPerPx } = lgv
-    const rowHeight = stateModel.apolloRowHeight
+    const rowHeight = apolloRowHeight
     const utrHeight = Math.round(0.6 * rowHeight)
     const cdsHeight = Math.round(0.9 * rowHeight)
-    const { strand } = feature
+    const { _id, children, max, min, strand } = feature
     let currentMRNA = 0
-    feature.children?.forEach((mrna: AnnotationFeatureI) => {
+    for (const [, mrna] of children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
         return
       }
-      const offsetPx = (mrna.start - feature.min) / bpPerPx
+      const offsetPx = (mrna.start - min) / bpPerPx
       const widthPx = mrna.length / bpPerPx
       const startPx = reversed
         ? xOffset - offsetPx - widthPx
@@ -81,23 +81,23 @@ export class ImplicitExonGeneGlyph extends Glyph {
       ctx.lineTo(startPx + widthPx, height)
       ctx.stroke()
       currentMRNA += 1
-    })
+    }
     currentMRNA = 0
-    feature.children?.forEach((mrna: AnnotationFeatureI) => {
+    for (const [, mrna] of children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
         return
       }
-      const cdsCount = Array.from(mrna.children ?? []).filter(
+      const cdsCount = [...(mrna.children ?? [])].filter(
         ([, exonOrCDS]) => exonOrCDS.type === 'CDS',
       ).length
-      new Array(cdsCount).fill(undefined).forEach(() => {
-        mrna.children?.forEach((cdsOrUTR: AnnotationFeatureI) => {
+      for (let count = 0; count < cdsCount; count++) {
+        for (const [, cdsOrUTR] of mrna.children ?? new Map()) {
           const isCDS = cdsOrUTR.type === 'CDS'
           const isUTR = cdsOrUTR.type.endsWith('UTR')
           if (!(isCDS || isUTR)) {
             return
           }
-          const offsetPx = (cdsOrUTR.start - feature.min) / bpPerPx
+          const offsetPx = (cdsOrUTR.start - min) / bpPerPx
           const widthPx = cdsOrUTR.length / bpPerPx
           const startPx = reversed
             ? xOffset - offsetPx - widthPx
@@ -133,13 +133,13 @@ export class ImplicitExonGeneGlyph extends Glyph {
               )
             }
           }
-        })
-      })
+        }
+      }
       currentMRNA += 1
-    })
+    }
     const { apolloSelectedFeature } = session
-    if (apolloSelectedFeature && feature._id === apolloSelectedFeature._id) {
-      const widthPx = feature.max - feature.min
+    if (apolloSelectedFeature && _id === apolloSelectedFeature._id) {
+      const widthPx = max - min
       const startPx = reversed ? xOffset - widthPx : xOffset
       const top = row * rowHeight
       const height = this.getRowCount(feature) * rowHeight
@@ -152,15 +152,15 @@ export class ImplicitExonGeneGlyph extends Glyph {
     const {
       apolloHover,
       apolloRowHeight,
+      displayedRegions,
       featureLayouts,
       lgv,
-      displayedRegions,
       theme,
     } = stateModel
     if (!apolloHover) {
       return
     }
-    const { topLevelFeature, mousePosition } = apolloHover
+    const { mousePosition, topLevelFeature } = apolloHover
     if (!(topLevelFeature && mousePosition)) {
       return
     }
@@ -171,7 +171,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
     const layout = featureLayouts[regionNumber]
     const row = layout.get(rowNumber)
 
-    const { _id, start, end, length } = topLevelFeature
+    const { _id, end, length, start } = topLevelFeature
     const featureRowEntry = row?.find(([, feature]) => feature._id === _id)
     if (!featureRowEntry) {
       return

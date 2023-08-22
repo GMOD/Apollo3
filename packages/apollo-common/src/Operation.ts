@@ -1,5 +1,5 @@
-import type { ReadStream } from 'fs'
-import type { FileHandle } from 'fs/promises'
+import type { ReadStream } from 'node:fs'
+import type { FileHandle } from 'node:fs/promises'
 
 import type { LoggerService } from '@nestjs/common'
 import {

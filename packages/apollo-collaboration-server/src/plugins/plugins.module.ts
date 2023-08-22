@@ -1,6 +1,6 @@
-import fs from 'fs'
-import fsPromises from 'fs/promises'
-import path from 'path'
+import fs from 'node:fs'
+import fsPromises from 'node:fs/promises'
+import path from 'node:path'
 
 import { DynamicModule, Logger, Module, Provider } from '@nestjs/common'
 import { ApolloPlugin, ApolloPluginConstructor } from 'apollo-common'
@@ -17,16 +17,14 @@ export class PluginsModule {
   static async registerAsync(): Promise<DynamicModule> {
     const { PLUGIN_URLS, PLUGIN_URLS_FILE } = process.env
     let pluginURLs = PLUGIN_URLS ? PLUGIN_URLS.split(',') : []
-    if (!pluginURLs.length) {
-      if (PLUGIN_URLS_FILE) {
-        const pluginURLsFileText = await fsPromises.readFile(
-          PLUGIN_URLS_FILE,
-          'utf-8',
-        )
-        pluginURLs = pluginURLsFileText
-          .split(/\n|\r\n|\r/)
-          .map((line) => line.trim())
-      }
+    if (pluginURLs.length === 0 && PLUGIN_URLS_FILE) {
+      const pluginURLsFileText = await fsPromises.readFile(
+        PLUGIN_URLS_FILE,
+        'utf8',
+      )
+      pluginURLs = pluginURLsFileText
+        .split(/\n|\r\n|\r/)
+        .map((line) => line.trim())
     }
 
     const pluginsProvider: Provider = {
@@ -48,7 +46,7 @@ export class PluginsModule {
       const tmpDir = await fsPromises.mkdtemp(
         path.join(__dirname, 'jbrowse-plugin-'),
       )
-      let plugin: { default: ApolloPluginConstructor } | undefined = undefined
+      let plugin: { default: ApolloPluginConstructor } | undefined
       try {
         const pluginLocation = path.join(tmpDir, sanitize(url))
         const pluginLocationRelative = `.${path.sep}${path.relative(
@@ -69,9 +67,9 @@ export class PluginsModule {
                 reject(err)
               })
             })
-            .catch((err) => {
-              console.error(err)
-              throw err
+            .catch((error) => {
+              console.error(error)
+              throw error
             })
         })
         plugin = await import(pluginLocationRelative)

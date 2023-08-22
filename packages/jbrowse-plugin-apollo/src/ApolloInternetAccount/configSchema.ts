@@ -45,10 +45,7 @@ const ApolloConfigSchema = ConfigurationSchema(
       },
     }),
   },
-  {
-    baseConfiguration: BaseInternetAccountConfig,
-    explicitlyTyped: true,
-  },
+  { baseConfiguration: BaseInternetAccountConfig, explicitlyTyped: true },
 )
 
 export type ApolloInternetAccountConfigModel = typeof ApolloConfigSchema

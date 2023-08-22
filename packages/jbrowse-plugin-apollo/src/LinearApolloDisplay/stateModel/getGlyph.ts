@@ -17,16 +17,16 @@ const implicitExonGeneGlyph = new ImplicitExonGeneGlyph()
 export function getGlyph(feature: AnnotationFeatureI, _bpPerPx: number): Glyph {
   if (feature.type === 'gene') {
     let hasExon = false
-    feature.children?.forEach((mrna: AnnotationFeatureI) => {
+    for (const [, mrna] of feature.children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
-        return
+        continue
       }
-      mrna.children?.forEach((possibleExon: AnnotationFeatureI) => {
+      for (const [, possibleExon] of mrna.children ?? new Map()) {
         if (possibleExon.type === 'exon') {
           hasExon = true
         }
-      })
-    })
+      }
+    }
     if (hasExon) {
       return canonicalGeneGlyph
     }

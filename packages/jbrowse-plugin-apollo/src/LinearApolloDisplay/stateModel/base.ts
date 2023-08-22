@@ -36,13 +36,13 @@ export function baseModelFactory(
       lgv: getContainingView(self) as unknown as LinearGenomeViewModel,
     }))
     .views((self) => {
-      const { renderProps: superRenderProps } = self
+      const { configuration, renderProps: superRenderProps } = self
       return {
         renderProps() {
           return {
             ...superRenderProps(),
             ...getParentRenderProps(self),
-            config: self.configuration.renderer,
+            config: configuration.renderer,
           }
         },
       }
@@ -56,7 +56,7 @@ export function baseModelFactory(
       },
       get regions() {
         const regions = self.lgv.dynamicBlocks.contentBlocks.map(
-          ({ assemblyName, refName, start, end }) => ({
+          ({ assemblyName, end, refName, start }) => ({
             assemblyName,
             refName,
             start: Math.round(start),
@@ -72,7 +72,7 @@ export function baseModelFactory(
         if (self.lgv && self.lgv.bpPerPx >= 200) {
           return 'Zoom in to see annotations'
         }
-        return undefined
+        return
       },
     }))
     .views((self) => ({

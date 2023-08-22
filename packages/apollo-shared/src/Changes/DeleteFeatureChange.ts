@@ -43,16 +43,10 @@ export class DeleteFeatureChange extends FeatureChange {
   }
 
   toJSON(): SerializedDeleteFeatureChange {
-    const { changes, changedIds, typeName, assembly } = this
+    const { assembly, changedIds, changes, typeName } = this
     if (changes.length === 1) {
       const [{ deletedFeature, parentFeatureId }] = changes
-      return {
-        typeName,
-        changedIds,
-        assembly,
-        deletedFeature,
-        parentFeatureId,
-      }
+      return { typeName, changedIds, assembly, deletedFeature, parentFeatureId }
     }
     return { typeName, changedIds, assembly, changes }
   }
@@ -132,7 +126,7 @@ export class DeleteFeatureChange extends FeatureChange {
     if (!feature.children) {
       throw new Error(`Feature ${feature._id} has no children`)
     }
-    const { children } = feature
+    const { _id, children } = feature
     const child = children.get(featureIdToDelete)
     if (child) {
       const deletedIds = this.getChildFeatureIds(child)
@@ -142,14 +136,12 @@ export class DeleteFeatureChange extends FeatureChange {
     for (const [, childFeature] of children) {
       try {
         return this.findAndDeleteChildFeature(childFeature, featureIdToDelete)
-      } catch (error) {
+      } catch {
         // pass
       }
     }
 
-    throw new Error(
-      `Feature "${featureIdToDelete}" not found in ${feature._id}`,
-    )
+    throw new Error(`Feature "${featureIdToDelete}" not found in ${_id}`)
   }
 
   async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
@@ -177,10 +169,9 @@ export class DeleteFeatureChange extends FeatureChange {
   }
 
   getInverse() {
-    const { changes, changedIds, assembly, logger } = this
-    const inverseChangedIds = changedIds.slice().reverse()
-    const inverseChanges = changes
-      .slice()
+    const { assembly, changedIds, changes, logger } = this
+    const inverseChangedIds = [...changedIds].reverse()
+    const inverseChanges = [...changes]
       .reverse()
       .map((deleteFeatuerChange) => ({
         addedFeature: deleteFeatuerChange.deletedFeature,

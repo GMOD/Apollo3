@@ -96,10 +96,10 @@ export abstract class FeatureChange extends AssemblySpecificChange {
 
     const children: Record<string, AnnotationFeatureSnapshot> = {}
     if (feature.children) {
-      Object.values(feature.children).forEach((child) => {
+      for (const child of Object.values(feature.children)) {
         const newChild = this.generateNewIds(child, featureIds)
         children[newChild._id] = newChild
-      })
+      }
     }
     const refSeq =
       typeof feature.refSeq === 'string'

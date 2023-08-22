@@ -10,7 +10,7 @@ export async function createFetchErrorMessage(
   let errorMessage
   try {
     errorMessage = await response.text()
-  } catch (error) {
+  } catch {
     errorMessage = ''
   }
   const responseMessage = `${response.status} ${response.statusText}${

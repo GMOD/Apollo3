@@ -73,8 +73,8 @@ export class ValidationSet {
   async backendPostValidate(
     change: Change,
     {
-      session,
       featureModel,
+      session,
     }: { session: ClientSession; featureModel: Model<FeatureDocument> },
   ): Promise<ValidationResultSet> {
     const results = new ValidationResultSet()
@@ -98,7 +98,7 @@ export class ValidationSet {
         return vals
       }
     }
-    return undefined
+    return
   }
 }
 

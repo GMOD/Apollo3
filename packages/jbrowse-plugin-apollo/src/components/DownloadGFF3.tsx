@@ -37,13 +37,7 @@ function makeGFF3Feature(
 ): GFF3Feature {
   const locations = feature.discontinuousLocations?.length
     ? feature.discontinuousLocations
-    : [
-        {
-          start: feature.start,
-          end: feature.end,
-          phase: feature.phase,
-        },
-      ]
+    : [{ start: feature.start, end: feature.end, phase: feature.phase }]
   const attributes: Record<string, string[]> = {
     ...(feature.attributes ? getSnapshot(feature.attributes) : {}),
   }
@@ -101,7 +95,7 @@ function makeGFF3Feature(
     ontologyTerms.push(...attributes['Sequence Ontology'])
     delete attributes['Sequence Ontology']
   }
-  if (ontologyTerms.length) {
+  if (ontologyTerms.length > 0) {
     attributes.Ontology_term = ontologyTerms
   }
   return locations.map((location) => {
@@ -121,7 +115,7 @@ function makeGFF3Feature(
           : location.phase === 2
           ? '2'
           : null,
-      attributes: Object.keys(attributes).length ? attributes : null,
+      attributes: Object.keys(attributes).length > 0 ? attributes : null,
       derived_features: [],
       child_features: [],
     }
@@ -137,11 +131,11 @@ function makeGFF3Feature(
   })
 }
 
-export function DownloadGFF3({ session, handleClose }: DownloadGFF3Props) {
+export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
   const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
   const [errorMessage, setErrorMessage] = useState('')
 
-  const { collaborationServerDriver, inMemoryFileDriver, getInternetAccount } =
+  const { collaborationServerDriver, getInternetAccount, inMemoryFileDriver } =
     session.apolloDataStore as {
       collaborationServerDriver: CollaborationServerDriver
       inMemoryFileDriver: InMemoryFileDriver
@@ -240,7 +234,7 @@ export function DownloadGFF3({ session, handleClose }: DownloadGFF3Props) {
       'features',
     ]) as { refName: string; start: number; end: number; seq: string }[]
     for (const sequenceFeature of sequenceFeatures) {
-      const { refName, start, end } = sequenceFeature
+      const { end, refName, start } = sequenceFeature
       gff3Items.push({
         directive: 'sequence-region',
         value: `${refName} ${start + 1} ${end}`,
@@ -257,11 +251,7 @@ export function DownloadGFF3({ session, handleClose }: DownloadGFF3Props) {
     }
     for (const sequenceFeature of sequenceFeatures) {
       const { refName, seq } = sequenceFeature
-      gff3Items.push({
-        id: refName,
-        description: '',
-        sequence: seq,
-      })
+      gff3Items.push({ id: refName, description: '', sequence: seq })
     }
     const gff3 = gff.formatSync(gff3Items)
     const gff3Blob = new Blob([gff3], { type: 'text/plain;charset=utf-8' })
@@ -281,7 +271,7 @@ export function DownloadGFF3({ session, handleClose }: DownloadGFF3Props) {
             labelId="label"
             value={selectedAssembly?.name ?? ''}
             onChange={handleChangeAssembly}
-            disabled={!assemblies.length}
+            disabled={assemblies.length === 0}
           >
             {assemblies.map((option) => (
               <MenuItem key={option.name} value={option.name}>

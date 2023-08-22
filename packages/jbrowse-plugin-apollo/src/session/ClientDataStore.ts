@@ -83,12 +83,12 @@ export function clientDataStoreFactory(
         if (!feature) {
           throw new Error(`Could not find feature "${featureId}" to delete`)
         }
-        const { parent } = feature
+        const { _id, parent } = feature
         if (parent) {
           parent.deleteChild(featureId)
         } else {
           const refSeq = getParentOfType(feature, ApolloRefSeq)
-          refSeq.deleteFeature(feature._id)
+          refSeq.deleteFeature(_id)
         }
       },
       deleteAssembly(assemblyId: string) {
@@ -110,11 +110,11 @@ export function clientDataStoreFactory(
         // Merge in the ontologies from our plugin configuration.
         // Ontologies of a given name that are already in the session
         // take precedence over the ontologies in the configuration.
-        const { ontologyManager } = self
-        const configuredOntologies = self.pluginConfiguration
-          .ontologies as ConfigurationModel<
-          typeof OntologyRecordConfiguration
-        >[]
+        const { ontologyManager, pluginConfiguration } = self
+        const configuredOntologies =
+          pluginConfiguration.ontologies as ConfigurationModel<
+            typeof OntologyRecordConfiguration
+          >[]
 
         for (const ont of configuredOntologies || []) {
           const [name, version, source, indexFields] = [
@@ -196,7 +196,7 @@ export function clientDataStoreFactory(
           const features = (yield backendDriver.getFeatures(
             region,
           )) as AnnotationFeatureSnapshot[]
-          if (!features.length) {
+          if (features.length === 0) {
             continue
           }
           const { assemblyName, refName } = region
@@ -222,10 +222,10 @@ export function clientDataStoreFactory(
       }),
       loadRefSeq: flow(function* loadRefSeq(regions: Region[]) {
         for (const region of regions) {
-          const { seq, refSeq } = yield (
+          const { refSeq, seq } = yield (
             self as unknown as { backendDriver: BackendDriver }
           ).backendDriver.getSequence(region)
-          const { assemblyName, refName } = region
+          const { assemblyName, end, refName, start } = region
           let assembly = self.assemblies.get(assemblyName)
           if (!assembly) {
             assembly = self.assemblies.put({ _id: assemblyName, refSeqs: {} })
@@ -238,11 +238,7 @@ export function clientDataStoreFactory(
               sequence: [],
             })
           }
-          ref.addSequence({
-            start: region.start,
-            stop: region.end,
-            sequence: seq,
-          })
+          ref.addSequence({ start, stop: end, sequence: seq })
         }
       }),
     }))

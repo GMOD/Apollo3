@@ -19,9 +19,7 @@ export function isContext(thing: Change | Context): thing is Context {
 
 export interface ValidationResult {
   validationName: string
-  error?: {
-    message: string
-  }
+  error?: { message: string }
 }
 
 export abstract class Validation {

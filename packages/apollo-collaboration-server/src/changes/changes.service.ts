@@ -116,7 +116,7 @@ export class ChangesService {
           pluginsService: this.pluginsService,
           user: uniqUserId,
         })
-      } catch (e) {
+      } catch (error) {
         // Clean up old "temporary document" -documents
         // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
         this.logger.debug(
@@ -134,16 +134,12 @@ export class ChangesService {
         await this.refSeqChunkModel.deleteMany({
           $and: [{ status: -1, user: uniqUserId }],
         })
-        throw new UnprocessableEntityException(String(e))
+        throw new UnprocessableEntityException(String(error))
       }
 
       // Add entry to change collection
       const [savedChangedLogDoc] = await this.changeModel.create([
-        {
-          ...change,
-          user: user.email,
-          sequence,
-        },
+        { ...change, user: user.email, sequence },
       ])
       changeDoc = savedChangedLogDoc
       const validationResult2 = await validationRegistry.backendPostValidate(
@@ -181,7 +177,7 @@ export class ChangesService {
           { $and: [{ status: -1, user: uniqUserId }] },
           { $set: { status: 0 } },
         )
-      } catch (e) {
+      } catch (error) {
         // Clean up old "temporary document" -documents
         this.logger.debug(
           '*** UPDATE STATUS EXCEPTION - Start to clean up old temporary documents...',
@@ -199,7 +195,7 @@ export class ChangesService {
         await this.refSeqChunkModel.deleteMany({
           $and: [{ status: -1, user: uniqUserId }],
         })
-        throw new UnprocessableEntityException(String(e))
+        throw new UnprocessableEntityException(String(error))
       }
     })
 
@@ -240,10 +236,7 @@ export class ChangesService {
   async findAll(changeFilter: FindChangeDto) {
     const queryCond: FilterQuery<ChangeDocument> = { ...changeFilter }
     if (changeFilter.user) {
-      queryCond.user = {
-        $regex: `${changeFilter.user}`,
-        $options: 'i',
-      }
+      queryCond.user = { $regex: `${changeFilter.user}`, $options: 'i' }
     }
     if (changeFilter.since) {
       queryCond.sequence = { $gt: Number(changeFilter.since) }
@@ -252,12 +245,12 @@ export class ChangesService {
     this.logger.debug(`Search criteria: "${JSON.stringify(queryCond)}"`)
 
     let sortOrder: 1 | -1 = -1
-    if (changeFilter.sort) {
-      if (changeFilter.sort === '1') {
-        sortOrder = 1
-      }
+    if (changeFilter.sort && changeFilter.sort === '1') {
+      sortOrder = 1
     }
     let changeCursor = this.changeModel
+      // unicorn thinks this is an Array.prototype.find, so we ignore it
+      // eslint-disable-next-line unicorn/no-array-callback-reference
       .find(queryCond)
       .sort({ sequence: sortOrder })
 
