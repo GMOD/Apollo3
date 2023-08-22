@@ -150,6 +150,60 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
 
   return (
     <Dialog open maxWidth="xl" data-testid="login-apollo" fullScreen>
+      <div>
+        <svg
+          onClick={() => {
+            handleClose()
+          }}
+          style={{
+            position: 'absolute',
+            top: '2px',
+            left: '2px',
+          }}
+          width="25"
+          height="25"
+          viewBox="0 0 25 25"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <line
+            x1="5"
+            y1="12.5"
+            x2="25"
+            y2="12.5"
+            stroke="black"
+            strokeWidth="2"
+          />
+          <polyline
+            points="15 5 5 12.5 15 20"
+            fill="none"
+            stroke="black"
+            strokeWidth="2"
+          />
+        </svg>
+        <svg
+          onClick={() => {
+            handleClose()
+          }}
+          style={{
+            position: 'absolute',
+            top: '5px',
+            right: '5px',
+          }}
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M18 6L6 18M6 6L18 18"
+            stroke="black"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
       <DialogTitle>
         View change log
         <Select
@@ -164,7 +218,6 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
           ))}
         </Select>
       </DialogTitle>
-
       <DialogContent>
         <div style={{ height: '100%', width: '100%' }}>
           <DataGrid
