@@ -5,10 +5,7 @@ export type CounterDocument = Counter & Document
 
 @Schema()
 export class Counter {
-  @Prop({
-    default: 0,
-    required: true,
-  })
+  @Prop({ default: 0, required: true })
   sequenceValue: number
 
   @Prop({ required: true })

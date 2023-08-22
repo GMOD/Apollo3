@@ -46,13 +46,7 @@ export class DeleteFeatureChange extends FeatureChange {
     const { assembly, changedIds, changes, typeName } = this
     if (changes.length === 1) {
       const [{ deletedFeature, parentFeatureId }] = changes
-      return {
-        typeName,
-        changedIds,
-        assembly,
-        deletedFeature,
-        parentFeatureId,
-      }
+      return { typeName, changedIds, assembly, deletedFeature, parentFeatureId }
     }
     return { typeName, changedIds, assembly, changes }
   }

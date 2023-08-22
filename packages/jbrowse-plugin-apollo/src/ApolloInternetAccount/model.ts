@@ -206,9 +206,7 @@ const stateModelFactory = (
             uri,
           })
 
-          const response = yield apolloFetch(uri, {
-            method: 'GET',
-          })
+          const response = yield apolloFetch(uri, { method: 'GET' })
           if (!response.ok) {
             const errorMessage = yield createFetchErrorMessage(
               response,
@@ -244,9 +242,7 @@ const stateModelFactory = (
           uri,
         })
 
-        const response = yield apolloFetch(uri, {
-          method: 'GET',
-        })
+        const response = yield apolloFetch(uri, { method: 'GET' })
         if (!response.ok) {
           console.error(
             `Error when fetching the last updates to recover socket connection — ${response.status}`,
@@ -292,9 +288,7 @@ const stateModelFactory = (
           timeoutId = setTimeout(() => fn(userLocation), debounceTimeout)
         }
       }
-      return {
-        postUserLocation: debouncePostUserLocation(postUserLocation),
-      }
+      return { postUserLocation: debouncePostUserLocation(postUserLocation) }
     })
     .actions(() => ({
       addMenuItems(role: Role) {
@@ -436,9 +430,7 @@ const stateModelFactory = (
           locationType: 'UriLocation',
           uri,
         })
-        yield apolloFetch(uri, {
-          method: 'GET',
-        })
+        yield apolloFetch(uri, { method: 'GET' })
         window.addEventListener('beforeunload', () => {
           self.postUserLocation([])
         })

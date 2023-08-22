@@ -238,11 +238,7 @@ export function clientDataStoreFactory(
               sequence: [],
             })
           }
-          ref.addSequence({
-            start,
-            stop: end,
-            sequence: seq,
-          })
+          ref.addSequence({ start, stop: end, sequence: seq })
         }
       }),
     }))

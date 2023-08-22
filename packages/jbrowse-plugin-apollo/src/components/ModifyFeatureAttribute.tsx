@@ -261,10 +261,7 @@ export function ModifyFeatureAttribute({
       )
       return
     }
-    setAttributes({
-      ...attributes,
-      [newAttributeKey]: [],
-    })
+    setAttributes({ ...attributes, [newAttributeKey]: [] })
     setShowAddNewForm(false)
     setNewAttributeKey('')
   }

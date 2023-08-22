@@ -103,10 +103,7 @@ export const OntologyManagerType = types
         name,
         version,
         source,
-        options: {
-          prefixes: new Map(self.prefixes.entries()),
-          ...options,
-        },
+        options: { prefixes: new Map(self.prefixes.entries()), ...options },
       })
       // access it immediately to fire its lifecycle hooks
       // (see https://github.com/mobxjs/mobx-state-tree/issues/1665)

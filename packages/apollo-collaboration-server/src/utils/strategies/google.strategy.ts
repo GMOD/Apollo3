@@ -38,9 +38,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     let clientSecret = 'none'
     let callbackURL
     if (configured) {
-      clientSecret = configService.get('GOOGLE_CLIENT_SECRET', {
-        infer: true,
-      })
+      clientSecret = configService.get('GOOGLE_CLIENT_SECRET', { infer: true })
       if (!clientSecret) {
         // We can use non-null assertion since joi already checks this for us
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

@@ -64,16 +64,8 @@ export class BoxGlyph extends Glyph {
     const { refName, regionNumber, x } = mousePosition
     const { lgv } = stateModel
     const { bpToPx, offsetPx } = lgv
-    const startPxInfo = bpToPx({
-      refName,
-      coord: feature.start,
-      regionNumber,
-    })
-    const endPxInfo = bpToPx({
-      refName,
-      coord: feature.end,
-      regionNumber,
-    })
+    const startPxInfo = bpToPx({ refName, coord: feature.start, regionNumber })
+    const endPxInfo = bpToPx({ refName, coord: feature.end, regionNumber })
     if (startPxInfo !== undefined && endPxInfo !== undefined) {
       const startPx = startPxInfo.offsetPx - offsetPx
       const endPx = endPxInfo.offsetPx - offsetPx

@@ -24,11 +24,7 @@ export const TabularEditorPane = observer(function TabularEditorPane({
     <div
       onMouseDown={stopPropagation}
       onClick={stopPropagation}
-      style={{
-        width: '100%',
-        height: '100%',
-        position: 'relative',
-      }}
+      style={{ width: '100%', height: '100%', position: 'relative' }}
     >
       <ToolBar model={displayState} />
       <HybridGrid model={displayState} />

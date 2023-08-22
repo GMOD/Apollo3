@@ -19,16 +19,8 @@ import { Instance, addDisposer, types } from 'mobx-state-tree'
 
 import { ApolloSession } from '../session'
 
-const forwardPhaseMap: Record<number, number> = {
-  0: 2,
-  1: 1,
-  2: 0,
-}
-const reversePhaseMap: Record<number, number> = {
-  3: 0,
-  4: 1,
-  5: 2,
-}
+const forwardPhaseMap: Record<number, number> = { 0: 2, 1: 1, 2: 0 }
+const reversePhaseMap: Record<number, number> = { 3: 0, 4: 1, 5: 2 }
 
 export function stateModelFactory(
   pluginManager: PluginManager,
@@ -216,10 +208,7 @@ export function stateModelFactory(
       get codonLayout() {
         const codonLayout = new Map<
           number,
-          {
-            starts: number[]
-            stops: number[]
-          }
+          { starts: number[]; stops: number[] }
         >()
         let fullSeq = ''
         let fullStart = 0

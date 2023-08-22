@@ -136,13 +136,7 @@ export abstract class AssemblySpecificChange extends Change {
             )
             // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
             await refSeqChunkModel.create([
-              {
-                refSeq: _id,
-                n: chunkIndex,
-                sequence,
-                user,
-                status: -1,
-              },
+              { refSeq: _id, n: chunkIndex, sequence, user, status: -1 },
             ])
             chunkIndex++
             // Set remaining sequence

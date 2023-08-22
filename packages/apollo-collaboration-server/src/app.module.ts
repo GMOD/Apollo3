@@ -116,9 +116,7 @@ async function mongoDBURIFactory(
   if (!uri) {
     // We can use non-null assertion since joi already checks this for us
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const uriFile = configService.get('MONGODB_URI_FILE', {
-      infer: true,
-    })!
+    const uriFile = configService.get('MONGODB_URI_FILE', { infer: true })!
     const uriFileText = await fs.readFile(uriFile, 'utf8')
     uri = uriFileText.trim()
   }

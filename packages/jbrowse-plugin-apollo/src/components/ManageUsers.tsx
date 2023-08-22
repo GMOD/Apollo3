@@ -73,9 +73,7 @@ export function ManageUsers({
       uri,
     })
     if (apolloFetch) {
-      const response = await apolloFetch(uri, {
-        method: 'GET',
-      })
+      const response = await apolloFetch(uri, { method: 'GET' })
       if (!response.ok) {
         const newErrorMessage = await createFetchErrorMessage(
           response,

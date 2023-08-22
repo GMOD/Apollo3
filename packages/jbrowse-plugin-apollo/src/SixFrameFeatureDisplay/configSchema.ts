@@ -14,10 +14,7 @@ export function configSchemaFactory(pluginManager: PluginManager) {
     'SixFrameFeatureDisplay',
     {
       renderer: apolloRendererConfigSchema,
-      height: {
-        type: 'number',
-        defaultValue: 120,
-      },
+      height: { type: 'number', defaultValue: 120 },
     },
     { baseConfiguration: baseLinearDisplayConfigSchema, explicitlyTyped: true },
   )

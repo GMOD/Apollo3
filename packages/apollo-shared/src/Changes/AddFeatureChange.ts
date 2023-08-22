@@ -102,9 +102,7 @@ export class AddFeatureChange extends FeatureChange {
         // Add into Mongo
         const [newFeatureDoc] = await featureModel.create(
           [{ ...addedFeature, allIds, status: -1, user }],
-          {
-            session,
-          },
+          { session },
         )
         logger.debug?.(
           `Copied feature, docId "${newFeatureDoc._id}" to assembly "${assembly}"`,

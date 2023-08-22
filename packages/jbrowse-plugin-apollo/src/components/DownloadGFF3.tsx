@@ -37,13 +37,7 @@ function makeGFF3Feature(
 ): GFF3Feature {
   const locations = feature.discontinuousLocations?.length
     ? feature.discontinuousLocations
-    : [
-        {
-          start: feature.start,
-          end: feature.end,
-          phase: feature.phase,
-        },
-      ]
+    : [{ start: feature.start, end: feature.end, phase: feature.phase }]
   const attributes: Record<string, string[]> = {
     ...(feature.attributes ? getSnapshot(feature.attributes) : {}),
   }
@@ -257,11 +251,7 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
     }
     for (const sequenceFeature of sequenceFeatures) {
       const { refName, seq } = sequenceFeature
-      gff3Items.push({
-        id: refName,
-        description: '',
-        sequence: seq,
-      })
+      gff3Items.push({ id: refName, description: '', sequence: seq })
     }
     const gff3 = gff.formatSync(gff3Items)
     const gff3Blob = new Blob([gff3], { type: 'text/plain;charset=utf-8' })

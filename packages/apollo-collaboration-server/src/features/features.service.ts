@@ -35,9 +35,7 @@ function makeGFF3Feature(
           phase: featureDocument.phase,
         },
       ]
-  const attributes: Record<string, string[]> = {
-    ...featureDocument.attributes,
-  }
+  const attributes: Record<string, string[]> = { ...featureDocument.attributes }
   const ontologyTerms: string[] = []
   const source = featureDocument.attributes?.source?.[0] ?? null
   delete attributes.source

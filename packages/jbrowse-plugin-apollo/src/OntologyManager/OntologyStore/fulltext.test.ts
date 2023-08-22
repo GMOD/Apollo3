@@ -18,12 +18,7 @@ const testNode: OntologyDBNode = {
       xrefs: ['SO:ke'],
     },
     subsets: ['http://purl.obolibrary.org/obo/so#SOFA'],
-    synonyms: [
-      {
-        pred: 'hasExactSynonym',
-        val: 'sequence',
-      },
-    ],
+    synonyms: [{ pred: 'hasExactSynonym', val: 'sequence' }],
     basicPropertyValues: [
       {
         pred: 'http://www.geneontology.org/formats/oboInOwl#hasOBONamespace',

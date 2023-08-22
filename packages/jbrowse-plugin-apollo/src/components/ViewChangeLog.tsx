@@ -86,9 +86,7 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
         uri,
       })
       if (apolloFetch) {
-        const response = await apolloFetch(uri, {
-          method: 'GET',
-        })
+        const response = await apolloFetch(uri, { method: 'GET' })
         if (!response.ok) {
           const newErrorMessage = await createFetchErrorMessage(
             response,

@@ -35,10 +35,7 @@ function getMousePosition(
 ): MousePosition {
   const canvas = event.currentTarget
   const { clientX, clientY } = event
-  const { left, top } = canvas.getBoundingClientRect() || {
-    left: 0,
-    top: 0,
-  }
+  const { left, top } = canvas.getBoundingClientRect() || { left: 0, top: 0 }
   const x = clientX - left
   const y = clientY - top
   const { coord: bp, index: regionNumber, refName } = lgv.pxToBp(x)
@@ -116,12 +113,7 @@ export function mouseEventsModelIntermediateFactory(
         }
         self.apolloDragging = {
           ...self.apolloDragging,
-          current: {
-            feature,
-            topLevelFeature,
-            glyph,
-            mousePosition,
-          },
+          current: { feature, topLevelFeature, glyph, mousePosition },
         }
       },
       setDragging(dragInfo?: typeof self.apolloDragging) {

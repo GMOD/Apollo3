@@ -13,10 +13,7 @@ const prefixes = new Map([
 const so = new OntologyStore(
   'Sequence Ontology',
   'automated testing',
-  {
-    locationType: 'LocalPathLocation',
-    localPath: 'test_data/so-v3.1.json',
-  },
+  { locationType: 'LocalPathLocation', localPath: 'test_data/so-v3.1.json' },
   { prefixes },
 )
 
@@ -55,9 +52,7 @@ describe('OntologyStore', () => {
   it('can query SO features not part of something else', async () => {
     const topLevelClasses = await so.getClassesWithoutPropertyLabeled(
       'part_of',
-      {
-        includeSubProperties: true,
-      },
+      { includeSubProperties: true },
     )
     expect(topLevelClasses.length).toMatchSnapshot()
     expect(topLevelClasses.find((term) => term.lbl === 'mRNA')).toBeUndefined()

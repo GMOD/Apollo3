@@ -164,10 +164,7 @@ export function OntologyTermMultiSelect({
               }
               let slot = byTerm.get(match.term.id)
               if (!slot) {
-                slot = {
-                  term: match.term,
-                  matches: [],
-                }
+                slot = { term: match.term, matches: [] }
                 byTerm.set(match.term.id, slot)
                 options.push(slot)
               }

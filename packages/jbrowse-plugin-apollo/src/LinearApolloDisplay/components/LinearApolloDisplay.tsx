@@ -61,10 +61,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   return (
     <div
       className={classes.canvasContainer}
-      style={{
-        width: lgv.dynamicBlocks.totalWidthPx,
-        height: featuresHeight,
-      }}
+      style={{ width: lgv.dynamicBlocks.totalWidthPx, height: featuresHeight }}
       onContextMenu={(event) => {
         event.preventDefault()
         if (contextMenuItems.length > 0) {

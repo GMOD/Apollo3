@@ -58,19 +58,8 @@ function getFeatureColumns(
       width: 80,
       editable,
     },
-    {
-      field: 'end',
-      headerName: 'End',
-      type: 'number',
-      width: 80,
-      editable,
-    },
-    {
-      field: 'attributes',
-      headerName: 'Attributes',
-      width: 300,
-      editable,
-    },
+    { field: 'end', headerName: 'End', type: 'number', width: 80, editable },
+    { field: 'attributes', headerName: 'Attributes', width: 300, editable },
   ]
 }
 

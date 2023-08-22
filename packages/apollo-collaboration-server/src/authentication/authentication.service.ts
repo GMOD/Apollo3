@@ -19,10 +19,7 @@ export class AuthenticationService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService<
-      {
-        DEFAULT_NEW_USER_ROLE: Role | 'none'
-        ALLOW_GUEST_USER: boolean
-      },
+      { DEFAULT_NEW_USER_ROLE: Role | 'none'; ALLOW_GUEST_USER: boolean },
       true
     >,
   ) {
@@ -87,10 +84,7 @@ export class AuthenticationService {
       const hasAdmin = userCount > 1 || (userCount === 1 && !guestUser)
       // If there is not a non-guest user yet, the 1st user role will be admin
       const newUserRole = hasAdmin ? this.defaultNewUserRole : Role.Admin
-      const newUser: CreateUserDto = {
-        email,
-        username: name,
-      }
+      const newUser: CreateUserDto = { email, username: name }
       if (newUserRole !== 'none') {
         newUser.role = newUserRole
       }

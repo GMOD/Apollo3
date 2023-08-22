@@ -139,11 +139,7 @@ export class ChangesService {
 
       // Add entry to change collection
       const [savedChangedLogDoc] = await this.changeModel.create([
-        {
-          ...change,
-          user: user.email,
-          sequence,
-        },
+        { ...change, user: user.email, sequence },
       ])
       changeDoc = savedChangedLogDoc
       const validationResult2 = await validationRegistry.backendPostValidate(
@@ -240,10 +236,7 @@ export class ChangesService {
   async findAll(changeFilter: FindChangeDto) {
     const queryCond: FilterQuery<ChangeDocument> = { ...changeFilter }
     if (changeFilter.user) {
-      queryCond.user = {
-        $regex: `${changeFilter.user}`,
-        $options: 'i',
-      }
+      queryCond.user = { $regex: `${changeFilter.user}`, $options: 'i' }
     }
     if (changeFilter.since) {
       queryCond.sequence = { $gt: Number(changeFilter.since) }

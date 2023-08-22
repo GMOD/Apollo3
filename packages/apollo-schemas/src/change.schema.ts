@@ -17,10 +17,7 @@ export class Change {
   @Prop({ type: JSON })
   changes: unknown // serialized change
 
-  @Prop({
-    type: MongooseSchema.Types.ObjectId,
-    ref: 'Change',
-  })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Change' })
   reverts: Change
 
   @Prop({ required: true, index: true })

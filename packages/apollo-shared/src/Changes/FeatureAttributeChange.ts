@@ -43,13 +43,7 @@ export class FeatureAttributeChange extends FeatureChange {
     const { assembly, changedIds, changes, typeName } = this
     if (changes.length === 1) {
       const [{ attributes, featureId }] = changes
-      return {
-        typeName,
-        changedIds,
-        assembly,
-        featureId,
-        attributes,
-      }
+      return { typeName, changedIds, assembly, featureId, attributes }
     }
     return { typeName, changedIds, assembly, changes }
   }

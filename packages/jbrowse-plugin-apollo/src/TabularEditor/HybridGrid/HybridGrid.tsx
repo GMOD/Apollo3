@@ -64,10 +64,7 @@ const HybridGrid = observer(function HybridGrid({
           newScrollTop > currScroll &&
           newScrollTop < currScroll + scrollContainer.offsetHeight
         if (!isVisible) {
-          scrollContainer.scroll({
-            top: newScrollTop - 40,
-            behavior: 'smooth',
-          })
+          scrollContainer.scroll({ top: newScrollTop - 40, behavior: 'smooth' })
         }
       }
     }
@@ -76,11 +73,7 @@ const HybridGrid = observer(function HybridGrid({
   return (
     <div
       ref={scrollContainerRef}
-      style={{
-        width: '100%',
-        overflowY: 'auto',
-        height: '100%',
-      }}
+      style={{ width: '100%', overflowY: 'auto', height: '100%' }}
     >
       <table className={classes.scrollableTable}>
         <thead>

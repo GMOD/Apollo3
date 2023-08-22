@@ -9,16 +9,10 @@ import { AuthenticationService } from '../../authentication/authentication.servi
 
 export interface Profile {
   provider: 'microsoft'
-  name: {
-    familyName: string
-    givenName: string
-  }
+  name: { familyName: string; givenName: string }
   id: string
   displayName: string
-  emails: {
-    type: string
-    value: string
-  }[]
+  emails: { type: string; value: string }[]
 }
 
 interface ConfigValues {

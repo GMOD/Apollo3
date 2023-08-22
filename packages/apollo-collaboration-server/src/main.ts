@@ -74,10 +74,7 @@ async function bootstrap() {
 
   const logLevels = LOG_LEVELS.split(',') as LogLevel[]
 
-  const app = await NestFactory.create(AppModule, {
-    logger: logLevels,
-    cors,
-  })
+  const app = await NestFactory.create(AppModule, { logger: logLevels, cors })
 
   const { httpAdapter } = app.get(HttpAdapterHost)
   app.useGlobalFilters(new GlobalExceptionsFilter(httpAdapter))
