@@ -1,8 +1,7 @@
-/** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
+/** @type {import('ts-jest').JestConfigWithTsJest} */
 
 module.exports = {
   preset: 'ts-jest',
-  testEnvironment: 'node',
   testPathIgnorePatterns: ['<rootDir>/cypress/'],
   automock: false,
   setupFiles: ['./jestSetup.js', 'fake-indexeddb/auto'],

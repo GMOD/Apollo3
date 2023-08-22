@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import { beforeAll, describe, expect, it, jest } from '@jest/globals'
 
 import OntologyStore from '.'
@@ -13,10 +15,11 @@ const prefixes = new Map([
 let so: OntologyStore
 
 beforeAll(async () => {
+  const localPath = path.resolve(__dirname, '../../../test_data/so-v3.1.json')
   so = new OntologyStore(
     'Sequence Ontology',
     'automated testing',
-    { locationType: 'LocalPathLocation', localPath: 'test_data/so-v3.1.json' },
+    { locationType: 'LocalPathLocation', localPath },
     { prefixes },
   )
   await so.db
@@ -24,13 +27,14 @@ beforeAll(async () => {
 
 describe('OntologyStore', () => {
   it('can load goslim generic', async () => {
+    const localPath = path.resolve(
+      __dirname,
+      '../../../test_data/goslim_generic.json',
+    )
     const goslimGeneric = new OntologyStore(
       'Gene Ontology',
       'automated testing',
-      {
-        locationType: 'LocalPathLocation',
-        localPath: 'test_data/goslim_generic.json',
-      },
+      { locationType: 'LocalPathLocation', localPath },
       { prefixes },
     )
 
