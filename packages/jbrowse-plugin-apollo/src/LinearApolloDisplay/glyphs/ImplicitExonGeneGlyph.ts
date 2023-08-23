@@ -41,14 +41,14 @@ if ('document' in window) {
 export class ImplicitExonGeneGlyph extends Glyph {
   featuresForRow(feature: AnnotationFeatureI): AnnotationFeatureI[][] {
     const features: AnnotationFeatureI[][] = []
-    feature.children?.forEach((child: AnnotationFeatureI) => {
+    for (const [, child] of feature.children ?? new Map()) {
       const childFeatures: AnnotationFeatureI[] = []
-      child.children?.forEach((annotationFeature: AnnotationFeatureI) => {
+      for (const [, annotationFeature] of child.children ?? new Map()) {
         childFeatures.push(annotationFeature)
-      })
+      }
       childFeatures.push(child)
       features.push(childFeatures)
-    })
+    }
     return features
   }
 
@@ -80,7 +80,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
     let currentMRNA = 0
     for (const [, mrna] of children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
-        return
+        continue
       }
       const offsetPx = (mrna.start - min) / bpPerPx
       const widthPx = mrna.length / bpPerPx
@@ -99,7 +99,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
     currentMRNA = 0
     for (const [, mrna] of children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
-        return
+        continue
       }
       const cdsCount = [...(mrna.children ?? [])].filter(
         ([, exonOrCDS]) => exonOrCDS.type === 'CDS',
@@ -109,7 +109,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
           const isCDS = cdsOrUTR.type === 'CDS'
           const isUTR = cdsOrUTR.type.endsWith('UTR')
           if (!(isCDS || isUTR)) {
-            return
+            continue
           }
           const offsetPx = (cdsOrUTR.start - min) / bpPerPx
           const widthPx = cdsOrUTR.length / bpPerPx
@@ -170,13 +170,13 @@ export class ImplicitExonGeneGlyph extends Glyph {
         let featureEntry: AnnotationFeatureI | undefined
         let featureRow: number | undefined
         let i = 0
-        children?.forEach((f: AnnotationFeatureI) => {
+        for (const [, f] of children ?? new Map()) {
           if (f._id === apolloSelectedFeature?._id) {
             featureEntry = f
             featureRow = i
           }
           i++
-        })
+        }
 
         if (featureEntry === undefined || featureRow === undefined) {
           return

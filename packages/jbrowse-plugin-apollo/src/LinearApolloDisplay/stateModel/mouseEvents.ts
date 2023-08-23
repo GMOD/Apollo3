@@ -52,9 +52,6 @@ export function mouseEventsModelIntermediateFactory(
   )
 
   return LinearApolloDisplayRendering.named('LinearApolloDisplayMouseEvents')
-    .props({
-      apolloRowHeight: 20,
-    })
     .volatile(() => ({
       apolloDragging: null as {
         start: {
@@ -258,72 +255,70 @@ export function mouseEventsModelFactory(
                 self.featuresHeight,
               )
 
-              const { apolloHover } = self
+              const {
+                apolloDragging,
+                apolloHover,
+                displayedRegions,
+                featureLayouts,
+                lgv,
+              } = self
               if (!apolloHover) {
                 return
               }
-              const { feature } = apolloHover
+              const { feature, glyph } = apolloHover
               if (!feature) {
                 return
               }
               let rowNum = 0
               let xOffset = 0
               let reversed = false
-              self.featureLayouts.forEach((featureLayout, idx) => {
-                const displayedRegion = self.displayedRegions[idx]
-                featureLayout.forEach((featureLayoutRow, row) => {
+              for (const [idx, featureLayout] of featureLayouts.entries()) {
+                const displayedRegion = displayedRegions[idx]
+                for (const [row, featureLayoutRow] of featureLayout.entries()) {
                   if (rowNum !== 0) {
-                    return
+                    continue
                   }
-                  featureLayoutRow.forEach(([, f]) => {
-                    f.children?.forEach((cf: AnnotationFeatureI) => {
+                  for (const [, f] of featureLayoutRow) {
+                    for (const [, cf] of f.children ?? new Map()) {
                       if (rowNum !== 0) {
-                        return
+                        continue
                       }
                       xOffset =
-                        (self.lgv.bpToPx({
+                        (lgv.bpToPx({
                           refName: displayedRegion.refName,
                           coord: feature.min,
                           regionNumber: idx,
-                        })?.offsetPx ?? 0) - self.lgv.offsetPx
-                      // eslint-disable-next-line prefer-destructuring
-                      reversed = displayedRegion.reversed
+                        })?.offsetPx ?? 0) - lgv.offsetPx
+                      ;({ reversed } = displayedRegion)
 
                       if (cf._id === feature._id) {
                         rowNum = row
-                        return
+                        continue
                       }
-                      cf.children?.forEach(
-                        (annotationFeature: AnnotationFeatureI) => {
-                          if (rowNum !== 0) {
-                            return
-                          }
-                          if (annotationFeature._id === feature._id) {
-                            rowNum = row
-                            return
-                          }
-                        },
-                      )
-                    })
-                  })
-                })
-              })
+                      for (const [, annotationFeature] of cf.children ??
+                        new Map()) {
+                        if (rowNum !== 0) {
+                          continue
+                        }
+                        if (annotationFeature._id === feature._id) {
+                          rowNum = row
+                          continue
+                        }
+                      }
+                    }
+                  }
+                }
+              }
 
               // draw mouseover hovers
-              self.apolloHover?.glyph?.drawHover(
-                self,
-                ctx,
-                rowNum,
-                xOffset,
-                reversed,
-              )
+              glyph?.drawHover(self, ctx, rowNum, xOffset, reversed)
 
               // dragging previews
-              if (self.apolloDragging) {
+              if (apolloDragging) {
                 // NOTE: the glyph where the drag started is responsible for drawing the preview.
                 // it can call methods in other glyphs to help with this though.
 
-                self.apolloDragging.start.glyph?.drawDragPreview(self, ctx)
+                apolloDragging.start.glyph?.drawDragPreview(self, ctx)
               }
             },
             { name: 'LinearApolloDisplayRenderMouseoverAndDrag' },

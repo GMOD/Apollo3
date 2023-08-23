@@ -54,23 +54,23 @@ interface CDSFeatures {
 export class CanonicalGeneGlyph extends Glyph {
   featuresForRow(feature: AnnotationFeatureI): AnnotationFeature[][] {
     const cdsFeatures: CDSFeatures[] = []
-    feature.children?.forEach((child: AnnotationFeatureI) => {
-      child.children?.forEach((annotationFeature: AnnotationFeatureI) => {
+    for (const [, child] of feature.children ?? new Map()) {
+      for (const [, annotationFeature] of child.children ?? new Map()) {
         if (annotationFeature.type === 'CDS') {
           cdsFeatures.push({
             parent: child,
             cds: annotationFeature,
           })
         }
-      })
-    })
+      }
+    }
 
     const features: AnnotationFeature[][] = []
-    cdsFeatures.forEach((f: CDSFeatures) => {
+    for (const f of cdsFeatures) {
       const childFeatures: AnnotationFeature[] = []
-      f.parent.children?.forEach((cf: AnnotationFeatureI) => {
+      for (const [, cf] of f.parent.children ?? new Map()) {
         if (cf.type === 'CDS' && cf._id !== f.cds._id) {
-          return
+          continue
         }
         if (cf.discontinuousLocations && cf.discontinuousLocations.length > 0) {
           for (const dl of cf.discontinuousLocations) {
@@ -88,12 +88,12 @@ export class CanonicalGeneGlyph extends Glyph {
             parent: f.parent,
           })
         }
-      })
+      }
       childFeatures.push({
         annotationFeature: f.parent,
       })
       features.push(childFeatures)
-    })
+    }
 
     return features
   }
@@ -128,11 +128,11 @@ export class CanonicalGeneGlyph extends Glyph {
     let currentCDS = 0
     for (const [, mrna] of children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
-        return
+        continue
       }
       for (const [, cds] of mrna.children ?? new Map()) {
         if (cds.type !== 'CDS') {
-          return
+          continue
         }
         const offsetPx = (mrna.start - min) / bpPerPx
         const widthPx = mrna.length / bpPerPx
@@ -152,7 +152,7 @@ export class CanonicalGeneGlyph extends Glyph {
     currentCDS = 0
     for (const [, mrna] of children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
-        return
+        continue
       }
       const cdsCount = [...(mrna.children ?? [])].filter(
         ([, exonOrCDS]) => exonOrCDS.type === 'CDS',
@@ -160,7 +160,7 @@ export class CanonicalGeneGlyph extends Glyph {
       for (let count = 0; count < cdsCount; count++) {
         for (const [, exon] of mrna.children ?? new Map()) {
           if (exon.type !== 'exon') {
-            return
+            continue
           }
           const offsetPx = (exon.start - min) / bpPerPx
           const widthPx = exon.length / bpPerPx
@@ -207,11 +207,11 @@ export class CanonicalGeneGlyph extends Glyph {
     currentCDS = 0
     for (const [, mrna] of children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
-        return
+        continue
       }
       for (const [, cds] of mrna.children ?? new Map()) {
         if (cds.type !== 'CDS') {
-          return
+          continue
         }
         if (cds.discontinuousLocations) {
           for (const cdsLocation of cds.discontinuousLocations) {
@@ -270,13 +270,13 @@ export class CanonicalGeneGlyph extends Glyph {
         let featureEntry: AnnotationFeatureI | undefined
         let featureRow: number | undefined
         let i = 0
-        children?.forEach((f: AnnotationFeatureI) => {
+        for (const [, f] of children ?? new Map()) {
           if (f._id === apolloSelectedFeature?._id) {
             featureEntry = f
             featureRow = i
           }
           i++
-        })
+        }
 
         if (featureEntry === undefined || featureRow === undefined) {
           return
@@ -299,7 +299,7 @@ export class CanonicalGeneGlyph extends Glyph {
   // CDS count with discontinuous locations
   cdsCount(feature?: AnnotationFeatureI) {
     let cdsCount = 0
-    feature?.children?.forEach((cf: AnnotationFeatureI) => {
+    for (const [, cf] of feature?.children ?? new Map()) {
       if (
         cf.type === 'CDS' &&
         cf.discontinuousLocations &&
@@ -307,7 +307,7 @@ export class CanonicalGeneGlyph extends Glyph {
       ) {
         cdsCount++
       }
-    })
+    }
     return cdsCount
   }
 
@@ -331,17 +331,15 @@ export class CanonicalGeneGlyph extends Glyph {
       feature.discontinuousLocations &&
       feature.discontinuousLocations.length > 0
     ) {
-      feature.discontinuousLocations.forEach(
-        (dl: { end: number; start: number }) => {
-          this.drawShadeForFeature(
-            stateModel,
-            ctx,
-            dl.start,
-            dl.end,
-            dl.end - dl.start,
-          )
-        },
-      )
+      for (const dl of feature.discontinuousLocations) {
+        this.drawShadeForFeature(
+          stateModel,
+          ctx,
+          dl.start,
+          dl.end,
+          dl.end - dl.start,
+        )
+      }
     } else {
       this.drawShadeForFeature(
         stateModel,
@@ -383,20 +381,20 @@ export class CanonicalGeneGlyph extends Glyph {
     let childFeature: AnnotationFeatureI | undefined
     let featureRow: number | undefined
     let i = 0
-    topLevelFeature.children?.forEach((f: AnnotationFeatureI) => {
+    for (const [, f] of topLevelFeature.children ?? new Map()) {
       if (f._id === feature?._id) {
         featureEntry = f
         featureRow = i
       }
-      f.children?.forEach((cf: AnnotationFeatureI) => {
+      for (const [, cf] of f.children ?? new Map()) {
         if (cf._id === feature._id) {
           childFeature = cf
           featureEntry = f
           featureRow = i
         }
-      })
+      }
       i++
-    })
+    }
 
     const cdsCount = this.cdsCount(featureEntry)
 
@@ -478,7 +476,7 @@ export class CanonicalGeneGlyph extends Glyph {
     }
 
     if (!featureFromLayout) {
-      featureFromLayout = featuresForRow.at(-1).annotationFeature
+      featureFromLayout = featuresForRow.at(-1)?.annotationFeature
     }
 
     return featureFromLayout
