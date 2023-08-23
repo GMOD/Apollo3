@@ -40,9 +40,9 @@ export class TypeChange extends FeatureChange {
   }
 
   toJSON(): SerializedTypeChange {
-    const { changes, changedIds, typeName, assembly } = this
+    const { assembly, changedIds, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ featureId, oldType, newType }] = changes
+      const [{ featureId, newType, oldType }] = changes
       return { typeName, changedIds, assembly, featureId, oldType, newType }
     }
     return { typeName, changedIds, assembly, changes }
@@ -126,26 +126,23 @@ export class TypeChange extends FeatureChange {
     if (!dataStore) {
       throw new Error('No data store')
     }
-    this.changedIds.forEach((changedId, idx) => {
+    for (const [idx, changedId] of this.changedIds.entries()) {
       const feature = dataStore.getFeature(changedId)
       if (!feature) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
       feature.setType(this.changes[idx].newType)
-    })
+    }
   }
 
   getInverse() {
-    const { changes, changedIds, typeName, assembly, logger } = this
-    const inverseChangedIds = changedIds.slice().reverse()
-    const inverseChanges = changes
-      .slice()
-      .reverse()
-      .map((endChange) => ({
-        featureId: endChange.featureId,
-        oldType: endChange.newType,
-        newType: endChange.oldType,
-      }))
+    const { assembly, changedIds, changes, logger, typeName } = this
+    const inverseChangedIds = [...changedIds].reverse()
+    const inverseChanges = [...changes].reverse().map((endChange) => ({
+      featureId: endChange.featureId,
+      oldType: endChange.newType,
+      newType: endChange.oldType,
+    }))
     return new TypeChange(
       {
         changedIds: inverseChangedIds,

@@ -37,16 +37,16 @@ interface AddAssemblyProps {
 }
 
 export function AddAssembly({
-  session,
-  handleClose,
   changeManager,
+  handleClose,
+  session,
 }: AddAssemblyProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const { notify } = session
   const apolloInternetAccounts = internetAccounts.filter(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel[]
-  if (!apolloInternetAccounts.length) {
+  if (apolloInternetAccounts.length === 0) {
     throw new Error('No Apollo internet account found')
   }
   const [assemblyName, setAssemblyName] = useState('')
@@ -112,7 +112,7 @@ export function AddAssembly({
     }
 
     // First upload file
-    const { baseURL, getFetcher } = selectedInternetAcount
+    const { baseURL, getFetcher, internetAccountId } = selectedInternetAcount
     const url = new URL('/files', baseURL).href
     const formData = new FormData()
     formData.append('file', file)
@@ -155,9 +155,7 @@ export function AddAssembly({
             ...changeBase,
           })
 
-    await changeManager.submit(change, {
-      internetAccountId: selectedInternetAcount.internetAccountId,
-    })
+    await changeManager.submit(change, { internetAccountId })
     notify(`Assembly "${assemblyName}" is being added`, 'info')
     handleClose()
     event.preventDefault()

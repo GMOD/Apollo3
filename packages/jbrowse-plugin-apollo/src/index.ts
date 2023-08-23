@@ -45,9 +45,9 @@ import {
   configSchemaFactory as sixFrameFeatureDisplayConfigSchemaFactory,
 } from './SixFrameFeatureDisplay'
 
-Object.entries(changes).forEach(([changeName, change]) => {
+for (const [changeName, change] of Object.entries(changes)) {
   changeRegistry.registerChange(changeName, change)
-})
+}
 
 validationRegistry.registerValidation(new CoreValidation())
 validationRegistry.registerValidation(new ParentChildValidation())

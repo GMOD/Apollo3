@@ -45,28 +45,29 @@ async function fetchValidDescendantTerms(
   if (parentFeature) {
     // since this is a child of an existing feature, restrict the autocomplete choices to valid
     // parts of that feature
-    const parentTypeTerms = (
-      await ontologyStore.getTermsWithLabelOrSynonym(parentFeature.type, {
-        includeSubclasses: false,
-      })
-    ).filter(isOntologyClass)
-    if (parentTypeTerms.length) {
+    const parentTypeTerms = await ontologyStore.getTermsWithLabelOrSynonym(
+      parentFeature.type,
+      { includeSubclasses: false },
+    )
+    // eslint-disable-next-line unicorn/no-array-callback-reference
+    const parentTypeClassTerms = parentTypeTerms.filter(isOntologyClass)
+    if (parentTypeClassTerms.length > 0) {
       const subpartTerms = await ontologyStore.getClassesThat(
         'part_of',
-        parentTypeTerms,
+        parentTypeClassTerms,
       )
       return subpartTerms
     }
   }
-  return undefined
+  return
 }
 
 export function AddFeature({
-  session,
-  handleClose,
-  sourceFeature,
-  sourceAssemblyId,
   changeManager,
+  handleClose,
+  session,
+  sourceAssemblyId,
+  sourceFeature,
 }: AddFeatureProps) {
   const { notify } = session
   const [end, setEnd] = useState(String(sourceFeature.end))
@@ -120,17 +121,22 @@ export function AddFeature({
     setPhase(e.target.value)
 
     switch (Number(e.target.value)) {
-      case 0:
+      case 0: {
         setPhaseAsNumber(PhaseEnum.zero)
         break
-      case 1:
+      }
+      case 1: {
         setPhaseAsNumber(PhaseEnum.one)
         break
-      case 2:
+      }
+      case 2: {
         setPhaseAsNumber(PhaseEnum.two)
         break
-      default:
+      }
+      default: {
+        // eslint-disable-next-line unicorn/no-useless-undefined
         setPhaseAsNumber(undefined)
+      }
     }
   }
   const error = Number(end) <= Number(start)

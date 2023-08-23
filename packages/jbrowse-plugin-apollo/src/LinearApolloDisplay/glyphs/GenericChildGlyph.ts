@@ -9,9 +9,9 @@ export class GenericChildGlyph extends Glyph {
   featuresForRow(feature: AnnotationFeatureI): AnnotationFeatureI[][] {
     const features = [[feature]]
     if (feature.children) {
-      feature.children?.forEach((child: AnnotationFeatureI) => {
+      for (const [, child] of feature.children ?? new Map()) {
         features.push(...this.featuresForRow(child))
-      })
+      }
     }
     return features
   }
@@ -110,12 +110,12 @@ export class GenericChildGlyph extends Glyph {
     reversed: boolean,
   ) {
     const features = this.featuresForRow(topLevelFeature)[row - topRow]
-    const { lgv, theme, apolloRowHeight, session } = stateModel
+    const { apolloRowHeight, lgv, session, theme } = stateModel
     const { bpPerPx } = lgv
     const { apolloSelectedFeature } = session
     const top = row * apolloRowHeight
 
-    features.forEach((feature) => {
+    for (const feature of features) {
       const offsetPx = (feature.start - topLevelFeature.min) / bpPerPx
       const widthPx = feature.length / bpPerPx
       const startPx = reversed
@@ -150,13 +150,13 @@ export class GenericChildGlyph extends Glyph {
         feature.type &&
           ctx.fillText(feature.type, textStart, top + 11, textWidth)
       }
-    })
+    }
     if (features.length > 1) {
-      let [{ start, end }] = features
-      features.forEach((feature) => {
+      let [{ end, start }] = features
+      for (const feature of features) {
         start = Math.min(start, feature.start)
         end = Math.max(end, feature.end)
-      })
+      }
       const width = end - start
       const startPx = (start - topLevelFeature.start) / bpPerPx
       const widthPx = width / bpPerPx
@@ -166,7 +166,7 @@ export class GenericChildGlyph extends Glyph {
   }
 
   drawHover(stateModel: LinearApolloDisplay, ctx: CanvasRenderingContext2D) {
-    const { apolloHover, lgv, apolloRowHeight, displayedRegions } = stateModel
+    const { apolloHover, apolloRowHeight, displayedRegions, lgv } = stateModel
     if (!apolloHover) {
       return
     }
@@ -178,7 +178,7 @@ export class GenericChildGlyph extends Glyph {
     const displayedRegion = displayedRegions[regionNumber]
     const { refName, reversed } = displayedRegion
     const { bpPerPx, bpToPx, offsetPx } = lgv
-    const { start, end, length } = feature
+    const { end, length, start } = feature
     const startPx =
       (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
         ?.offsetPx ?? 0) - offsetPx

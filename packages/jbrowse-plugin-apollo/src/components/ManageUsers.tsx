@@ -47,16 +47,16 @@ interface ApolloRootModel extends AbstractRootModel {
 }
 
 export function ManageUsers({
-  session,
-  handleClose,
   changeManager,
+  handleClose,
+  session,
 }: ManageUsersProps) {
   const { internetAccounts } = getRoot(session) as ApolloRootModel
   const apolloInternetAccounts = internetAccounts.filter(
     (ia) =>
       ia.type === 'ApolloInternetAccount' && ia.getRole()?.includes('admin'),
   )
-  if (!apolloInternetAccounts.length) {
+  if (apolloInternetAccounts.length === 0) {
     throw new Error('No Apollo internet account found')
   }
   const [errorMessage, setErrorMessage] = useState('')
@@ -73,9 +73,7 @@ export function ManageUsers({
       uri,
     })
     if (apolloFetch) {
-      const response = await apolloFetch(uri, {
-        method: 'GET',
-      })
+      const response = await apolloFetch(uri, { method: 'GET' })
       if (!response.ok) {
         const newErrorMessage = await createFetchErrorMessage(
           response,
@@ -90,7 +88,7 @@ export function ManageUsers({
   }, [selectedInternetAcount])
 
   useEffect(() => {
-    getUsers().catch((e) => setErrorMessage(String(e)))
+    getUsers().catch((error) => setErrorMessage(String(error)))
   }, [getUsers])
 
   async function deleteUser(id: GridRowId) {

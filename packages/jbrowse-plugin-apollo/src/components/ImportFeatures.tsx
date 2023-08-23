@@ -32,11 +32,11 @@ interface ImportFeaturesProps {
 }
 
 export function ImportFeatures({
-  session,
-  handleClose,
   changeManager,
+  handleClose,
+  session,
 }: ImportFeaturesProps) {
-  const { notify } = session
+  const { apolloDataStore, notify } = session
 
   const [file, setFile] = useState<File>()
   const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
@@ -47,14 +47,13 @@ export function ImportFeatures({
   const [deleteFeatures, setDeleteFeatures] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const { collaborationServerDriver, getInternetAccount } =
-    session.apolloDataStore as {
-      collaborationServerDriver: CollaborationServerDriver
-      getInternetAccount(
-        assemblyName?: string,
-        internetAccountId?: string,
-      ): ApolloInternetAccount
-    }
+  const { collaborationServerDriver, getInternetAccount } = apolloDataStore as {
+    collaborationServerDriver: CollaborationServerDriver
+    getInternetAccount(
+      assemblyName?: string,
+      internetAccountId?: string,
+    ): ApolloInternetAccount
+  }
   const assemblies = collaborationServerDriver.getAssemblies()
 
   function handleChangeAssembly(e: SelectChangeEvent<string>) {
@@ -100,19 +99,19 @@ export function ImportFeatures({
       setLoading(true)
       const response = await fetch(uri.toString(), { method: 'GET' })
 
-      if (!response.ok) {
-        throw new Error(await createFetchErrorMessage(response))
-      } else {
+      if (response.ok) {
         const countObj = (await response.json()) as { count: number }
         setFeaturesCount(countObj.count)
+      } else {
+        throw new Error(await createFetchErrorMessage(response))
       }
 
       setLoading(false)
     }
 
-    updateFeaturesCount().catch((err) => {
-      console.error(err)
-      setErrorMessage(err.message ?? err)
+    updateFeaturesCount().catch((error) => {
+      console.error(error)
+      setErrorMessage(error.message ?? error)
     })
   }, [getInternetAccount, session, selectedAssembly])
 

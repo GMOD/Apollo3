@@ -45,10 +45,10 @@ interface TermValue {
 // const hiliteRegex = /(?<=<em class="hilite">)(.*?)(?=<\/em>)/g
 
 function TermTagWithTooltip({
-  termId,
-  index,
   getTagProps,
+  index,
   ontology,
+  termId,
 }: {
   termId: string
   index: number
@@ -78,9 +78,9 @@ function TermTagWithTooltip({
         setDescription(term.lbl || 'no label')
       }
     }
-    fetchDescription().catch((e) => {
+    fetchDescription().catch((error) => {
       if (!signal.aborted) {
-        setErrorMessage(String(e))
+        setErrorMessage(String(error))
       }
     })
 
@@ -104,12 +104,12 @@ function TermTagWithTooltip({
 }
 
 export function OntologyTermMultiSelect({
-  value: initialValue,
-  session,
+  includeDeprecated,
   onChange,
   ontologyName,
   ontologyVersion,
-  includeDeprecated,
+  session,
+  value: initialValue,
 }: {
   session: ReturnType<typeof getSession>
   value: string[]
@@ -139,11 +139,11 @@ export function OntologyTermMultiSelect({
           callback: (results: TermValue[]) => void,
         ) => {
           if (!ontology) {
-            return undefined
+            return
           }
           const { dataStore } = ontology
           if (!dataStore) {
-            return undefined
+            return
           }
           const { input, signal } = request
           try {
@@ -164,10 +164,7 @@ export function OntologyTermMultiSelect({
               }
               let slot = byTerm.get(match.term.id)
               if (!slot) {
-                slot = {
-                  term: match.term,
-                  matches: [],
-                }
+                slot = { term: match.term, matches: [] }
                 byTerm.set(match.term.id, slot)
                 options.push(slot)
               }
@@ -191,14 +188,14 @@ export function OntologyTermMultiSelect({
 
     if (inputValue === '') {
       setOptions([])
-      return undefined
+      return
     }
 
     setLoading(true)
 
     void getOntologyTerms({ input: inputValue, signal }, (results) => {
       let newOptions: readonly TermValue[] = []
-      if (value.length) {
+      if (value.length > 0) {
         newOptions = value
       }
       if (results) {
@@ -283,7 +280,7 @@ export function OntologyTermMultiSelect({
 }
 
 function HighlightedText(props: { str: string; search: string }) {
-  const { str, search } = props
+  const { search, str } = props
 
   const highlights = highlightMatch(str, search, {
     insideWords: true,
@@ -311,7 +308,7 @@ function Option(props: {
   inputValue: string
   option: TermValue
 }) {
-  const { option, inputValue, ontologyManager, ...other } = props
+  const { inputValue, ontologyManager, option, ...other } = props
   const matches = option.matches ?? []
   const fields = matches
     .filter((match) => match.field.jsonPath !== '$.lbl')

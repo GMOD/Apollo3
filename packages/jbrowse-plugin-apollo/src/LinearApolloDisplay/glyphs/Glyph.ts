@@ -40,6 +40,9 @@ export abstract class Glyph {
   drawHover(
     _display: LinearApolloDisplayMouseEvents,
     _overlayCtx: CanvasRenderingContext2D,
+    _rowNum?: number,
+    _xOffset?: number,
+    _reversed?: boolean,
   ) {
     return
   }
@@ -107,8 +110,10 @@ export abstract class Glyph {
       apolloInternetAccount: internetAccount,
       changeManager,
       getAssemblyId,
-      session,
       regions,
+      selectedFeature,
+      session,
+      setSelectedFeature,
     } = display
     const { feature: sourceFeature } = apolloHover ?? {}
     const { getRole } = internetAccount
@@ -172,8 +177,8 @@ export abstract class Glyph {
                 changeManager,
                 sourceFeature,
                 sourceAssemblyId: currentAssemblyId,
-                selectedFeature: display.selectedFeature,
-                setSelectedFeature: display.setSelectedFeature,
+                selectedFeature,
+                setSelectedFeature,
               },
             ])
           },

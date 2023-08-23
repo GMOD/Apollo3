@@ -38,13 +38,13 @@ export interface SequenceAdapterFeatureInterface {
   seq: string
 }
 
-export function OpenLocalFile({ session, handleClose }: OpenLocalFileProps) {
+export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
   const {
-    notify,
-    addSessionAssembly,
-    addAssembly,
-    assemblyManager,
     addApolloTrackConfig,
+    addAssembly,
+    addSessionAssembly,
+    assemblyManager,
+    notify,
   } = session as ApolloSessionModel
 
   const [file, setFile] = useState<File | null>(null)
@@ -229,16 +229,16 @@ export function OpenLocalFile({ session, handleClose }: OpenLocalFileProps) {
 function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
   const [firstFeature] = gff3Feature
   const {
-    seq_id: refName,
-    type,
-    start,
-    end,
-    strand,
-    score,
-    phase,
-    child_features: childFeatures,
-    source,
     attributes,
+    child_features: childFeatures,
+    end,
+    phase,
+    score,
+    seq_id: refName,
+    source,
+    start,
+    strand,
+    type,
   } = firstFeature
   if (!refName) {
     throw new Error(
@@ -270,22 +270,33 @@ function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
   }
   if (gff3Feature.length > 1) {
     feature.discontinuousLocations = gff3Feature.map((f) => {
-      const { start: subStart, end: subEnd, phase: locationPhase } = f
+      const { end: subEnd, phase: locationPhase, start: subStart } = f
       if (subStart === null || subEnd === null) {
         throw new Error(
           `feature does not have start and/or end: ${JSON.stringify(f)}`,
         )
       }
-      let parsedPhase: 0 | 1 | 2 | undefined = undefined
+      let parsedPhase: 0 | 1 | 2 | undefined
       if (locationPhase) {
-        if (locationPhase === '0') {
-          parsedPhase = 0
-        } else if (locationPhase === '1') {
-          parsedPhase = 1
-        } else if (locationPhase === '2') {
-          parsedPhase = 2
-        } else {
-          throw new Error(`Unknown phase: "${locationPhase}"`)
+        switch (locationPhase) {
+          case '0': {
+            parsedPhase = 0
+
+            break
+          }
+          case '1': {
+            parsedPhase = 1
+
+            break
+          }
+          case '2': {
+            parsedPhase = 2
+
+            break
+          }
+          default: {
+            throw new Error(`Unknown phase: "${locationPhase}"`)
+          }
         }
       }
       return { start: subStart, end: subEnd, phase: parsedPhase }
@@ -304,14 +315,25 @@ function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
     feature.score = score
   }
   if (phase) {
-    if (phase === '0') {
-      feature.phase = 0
-    } else if (phase === '1') {
-      feature.phase = 1
-    } else if (phase === '2') {
-      feature.phase = 2
-    } else {
-      throw new Error(`Unknown phase: "${phase}"`)
+    switch (phase) {
+      case '0': {
+        feature.phase = 0
+
+        break
+      }
+      case '1': {
+        feature.phase = 1
+
+        break
+      }
+      case '2': {
+        feature.phase = 2
+
+        break
+      }
+      default: {
+        throw new Error(`Unknown phase: "${phase}"`)
+      }
     }
   }
 
@@ -333,63 +355,73 @@ function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
       attrs.source = [source]
     }
     if (attributes) {
-      Object.entries(attributes).forEach(([key, val]) => {
+      for (const [key, val] of Object.entries(attributes)) {
         if (val) {
           const newKey = key.toLowerCase()
           if (newKey !== 'parent') {
             // attrs[key.toLowerCase()] = val
             switch (key) {
-              case 'ID':
+              case 'ID': {
                 attrs._id = val
                 break
-              case 'Name':
+              }
+              case 'Name': {
                 attrs.gff_name = val
                 break
-              case 'Alias':
+              }
+              case 'Alias': {
                 attrs.gff_alias = val
                 break
-              case 'Target':
+              }
+              case 'Target': {
                 attrs.gff_target = val
                 break
-              case 'Gap':
+              }
+              case 'Gap': {
                 attrs.gff_gap = val
                 break
-              case 'Derives_from':
+              }
+              case 'Derives_from': {
                 attrs.gff_derives_from = val
                 break
-              case 'Note':
+              }
+              case 'Note': {
                 attrs.gff_note = val
                 break
-              case 'Dbxref':
+              }
+              case 'Dbxref': {
                 attrs.gff_dbxref = val
                 break
+              }
               case 'Ontology_term': {
                 const goTerms: string[] = []
                 const otherTerms: string[] = []
-                val.forEach((v) => {
+                for (const v of val) {
                   if (v.startsWith('GO:')) {
                     goTerms.push(v)
                   } else {
                     otherTerms.push(v)
                   }
-                })
-                if (goTerms.length) {
+                }
+                if (goTerms.length > 0) {
                   attrs['Gene Ontology'] = goTerms
                 }
-                if (otherTerms.length) {
+                if (otherTerms.length > 0) {
                   attrs.gff_ontology_term = otherTerms
                 }
                 break
               }
-              case 'Is_circular':
+              case 'Is_circular': {
                 attrs.gff_is_circular = val
                 break
-              default:
+              }
+              default: {
                 attrs[key.toLowerCase()] = val
+              }
             }
           }
         }
-      })
+      }
     }
     feature.attributes = attrs
   }

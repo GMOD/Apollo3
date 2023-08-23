@@ -5,6 +5,10 @@ import HybridGrid from './HybridGrid'
 import { ToolBar } from './HybridGrid/ToolBar'
 import { DisplayStateModel } from './types'
 
+function stopPropagation(e: React.MouseEvent) {
+  e.stopPropagation()
+}
+
 export const TabularEditorPane = observer(function TabularEditorPane({
   model: displayState,
 }: {
@@ -14,18 +18,13 @@ export const TabularEditorPane = observer(function TabularEditorPane({
   if (!model.isShown) {
     return null
   }
-  const stopPropagation = (e: React.MouseEvent) => e.stopPropagation()
   return (
     // TODO: a11y
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
       onMouseDown={stopPropagation}
       onClick={stopPropagation}
-      style={{
-        width: '100%',
-        height: '100%',
-        position: 'relative',
-      }}
+      style={{ width: '100%', height: '100%', position: 'relative' }}
     >
       <ToolBar model={displayState} />
       <HybridGrid model={displayState} />

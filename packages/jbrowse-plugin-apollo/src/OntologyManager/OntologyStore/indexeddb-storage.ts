@@ -73,7 +73,7 @@ function serializeWords(foundWords: Iterable<[string, string]>): string[] {
   for (const [, word] of foundWords) {
     allWords.add(word)
   }
-  return Array.from(allWords)
+  return [...allWords]
 }
 
 /** load a OBO Graph JSON file into a database */
@@ -93,7 +93,7 @@ export async function loadOboGraphJson(this: OntologyStore, db: Database) {
   if (!graph) {
     return
   }
-  if (additionalGraphs.length) {
+  if (additionalGraphs.length > 0) {
     throw new Error('multiple graphs not supported')
   }
 
@@ -151,9 +151,9 @@ export async function loadOboGraphJson(this: OntologyStore, db: Database) {
     )
 
     await tx2.done
-  } catch (e) {
+  } catch (error) {
     await db.transaction('meta', 'readwrite').objectStore('meta').clear()
-    throw e
+    throw error
   }
   return
 }

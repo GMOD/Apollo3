@@ -25,10 +25,7 @@ import { FeaturesService } from './features.service'
         },
         inject: [getConnectionToken()],
       },
-      {
-        name: Export.name,
-        useFactory: () => ExportSchema,
-      },
+      { name: Export.name, useFactory: () => ExportSchema },
     ]),
   ],
   exports: [MongooseModule],

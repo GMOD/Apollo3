@@ -1,34 +1,57 @@
-import { describe, expect, it, jest } from '@jest/globals'
+import path from 'node:path'
+
+import { beforeAll, describe, expect, it, jest } from '@jest/globals'
 
 import OntologyStore from '.'
 import { OntologyClass, isOntologyClass } from '..'
 
-jest.setTimeout(1000000000)
+jest.setTimeout(1_000_000_000)
 
 const prefixes = new Map([
   ['SO:', 'http://purl.obolibrary.org/obo/SO_'],
   ['GO:', 'http://purl.obolibrary.org/obo/GO_'],
 ])
 
-const so = new OntologyStore(
-  'Sequence Ontology',
-  'automated testing',
-  {
-    locationType: 'LocalPathLocation',
-    localPath: 'test_data/so-v3.1.json',
-  },
-  { prefixes },
-)
+// jsonpath uses an "obj instanceof Object" check in its "query", which fails in
+// tests because the mocked indexedDb uses a different scope and thus a
+// different "Object". This intercepts calls to "query" in this test and makes
+// sure the main scope "Object" is used.
+jest.mock('jsonpath', () => {
+  const original = jest.requireActual('jsonpath') as typeof import('jsonpath')
+  return {
+    ...original,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    query: jest.fn((obj: any, pathExpression: string, count?: number) => {
+      const newObj =
+        obj instanceof Object ? obj : JSON.parse(JSON.stringify(obj))
+      return original.query(newObj, pathExpression, count)
+    }),
+  }
+})
+
+let so: OntologyStore
+
+beforeAll(async () => {
+  const localPath = path.resolve(__dirname, '../../../test_data/so-v3.1.json')
+  so = new OntologyStore(
+    'Sequence Ontology',
+    'automated testing',
+    { locationType: 'LocalPathLocation', localPath },
+    { prefixes },
+  )
+  await so.db
+})
 
 describe('OntologyStore', () => {
   it('can load goslim generic', async () => {
+    const localPath = path.resolve(
+      __dirname,
+      '../../../test_data/goslim_generic.json',
+    )
     const goslimGeneric = new OntologyStore(
       'Gene Ontology',
       'automated testing',
-      {
-        locationType: 'LocalPathLocation',
-        localPath: 'test_data/goslim_generic.json',
-      },
+      { locationType: 'LocalPathLocation', localPath },
       { prefixes },
     )
 
@@ -55,9 +78,7 @@ describe('OntologyStore', () => {
   it('can query SO features not part of something else', async () => {
     const topLevelClasses = await so.getClassesWithoutPropertyLabeled(
       'part_of',
-      {
-        includeSubProperties: true,
-      },
+      { includeSubProperties: true },
     )
     expect(topLevelClasses.length).toMatchSnapshot()
     expect(topLevelClasses.find((term) => term.lbl === 'mRNA')).toBeUndefined()
@@ -79,25 +100,29 @@ describe('OntologyStore', () => {
     expect(ex).toEqual(['http://purl.obolibrary.org/obo/SO_0000039'])
   })
   it('can query valid part_of for match', async () => {
-    const parentTypeTerms = (
-      await so.getTermsWithLabelOrSynonym('match', {
-        includeSubclasses: false,
-      })
-    ).filter(isOntologyClass)
-    expect(parentTypeTerms).toMatchSnapshot()
-    const subpartTerms = await so.getClassesThat('part_of', parentTypeTerms)
+    const parentTypeTerms = await so.getTermsWithLabelOrSynonym('match', {
+      includeSubclasses: false,
+    })
+    // eslint-disable-next-line unicorn/no-array-callback-reference
+    const parentTypeClassTerms = parentTypeTerms.filter(isOntologyClass)
+    expect(parentTypeClassTerms).toMatchSnapshot()
+    const subpartTerms = await so.getClassesThat(
+      'part_of',
+      parentTypeClassTerms,
+    )
     expect(subpartTerms.length).toBeGreaterThan(0)
   })
 
   it('SO clone_insert_end is among valid subparts of BAC_cloned_genomic_insert', async () => {
-    const bcgi = (
-      await so.getTermsWithLabelOrSynonym('BAC_cloned_genomic_insert', {
-        includeSubclasses: false,
-      })
-    ).filter(isOntologyClass)
-    expect(bcgi.length).toBe(1)
-    expect(bcgi[0].lbl).toBe('BAC_cloned_genomic_insert')
-    const subpartTerms = await so.getClassesThat('part_of', bcgi)
+    const bcgi = await so.getTermsWithLabelOrSynonym(
+      'BAC_cloned_genomic_insert',
+      { includeSubclasses: false },
+    )
+    // eslint-disable-next-line unicorn/no-array-callback-reference
+    const bcgiClas = bcgi.filter(isOntologyClass)
+    expect(bcgiClas.length).toBe(1)
+    expect(bcgiClas[0].lbl).toBe('BAC_cloned_genomic_insert')
+    const subpartTerms = await so.getClassesThat('part_of', bcgiClas)
     expect(subpartTerms.length).toBeGreaterThan(0)
     expect(subpartTerms.find((t) => t.lbl === 'clone_insert_end')).toBeTruthy()
     expect(subpartTerms).toMatchSnapshot()

@@ -1,7 +1,7 @@
-import { ReadStream, createReadStream } from 'fs'
-import { unlink } from 'fs/promises'
-import { join } from 'path'
-import { Gunzip, createGunzip } from 'zlib'
+import { ReadStream, createReadStream } from 'node:fs'
+import { unlink } from 'node:fs/promises'
+import { join } from 'node:path'
+import { Gunzip, createGunzip } from 'node:zlib'
 
 import gff from '@gmod/gff'
 import {
@@ -120,7 +120,7 @@ export class FilesService {
 
       try {
         await unlink(compressedFullFileName)
-      } catch (error) {
+      } catch {
         throw new InternalServerErrorException(
           `File "${compressedFullFileName}" could not be deleted from server`,
         )

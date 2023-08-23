@@ -5,7 +5,7 @@ import { createRollupConfig } from '@jbrowse/development-tools'
 
 function stringToBoolean(string) {
   if (string === undefined) {
-    return undefined
+    return
   }
   if (string === 'true') {
     return true

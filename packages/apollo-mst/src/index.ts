@@ -52,11 +52,12 @@ export const ApolloRefSeq = types
         sequence: seq.sequence,
       })
       newSequences.sort((s1, s2) => s1.start - s2.start)
+      // eslint-disable-next-line unicorn/no-array-reduce
       const consolidatedSequences = newSequences.reduce((result, current) => {
-        if (result.length === 0) {
+        const lastRange = result.at(-1)
+        if (lastRange === undefined) {
           return [current]
         }
-        const lastRange = result[result.length - 1]
         if (lastRange.stop >= current.start) {
           if (current.stop > lastRange.stop) {
             lastRange.stop = current.stop
@@ -87,9 +88,9 @@ export const ApolloRefSeq = types
   .views((self) => ({
     getSequence(start: number, stop: number): string {
       for (const {
+        sequence,
         start: seqStart,
         stop: seqStop,
-        sequence,
       } of self.sequence) {
         // adjacent to existing sequence - modify
         if (start <= seqStop && stop >= seqStart) {
@@ -114,9 +115,7 @@ export const ApolloAssembly = types
   })
   .views((self) => ({
     getByRefName(refName: string) {
-      return Array.from(self.refSeqs.values()).find(
-        (val) => val.name === refName,
-      )
+      return [...self.refSeqs.values()].find((val) => val.name === refName)
     },
   }))
   .actions((self) => ({

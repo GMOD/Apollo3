@@ -13,12 +13,7 @@ import { getApolloInternetAccount } from '../../util'
 
 export function featureContextMenuItems(
   feature: AnnotationFeatureI | undefined,
-  region: {
-    assemblyName: string
-    refName: string
-    start: number
-    end: number
-  },
+  region: { assemblyName: string; refName: string; start: number; end: number },
   getAssemblyId: (assemblyName: string) => string,
   selectedFeature: AnnotationFeatureI | undefined,
   setSelectedFeature: (f: AnnotationFeatureI | undefined) => void,
