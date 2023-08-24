@@ -118,6 +118,7 @@ export abstract class Glyph {
 
     const { discontinuousLocations } = feature
     let start: number, end: number, length: number
+    let location = 'Loc: '
     if (discontinuousLocations && discontinuousLocations.length > 0) {
       const lastLoc = discontinuousLocations.at(-1)
       if (!lastLoc) {
@@ -126,8 +127,16 @@ export abstract class Glyph {
       start = lastLoc?.start
       end = lastLoc?.end
       length = lastLoc?.end - lastLoc?.start
+
+      for (const [i, loc] of discontinuousLocations.entries()) {
+        location += `${loc.start.toString()}-${loc.end.toString()}`
+        if (i !== discontinuousLocations.length - 1) {
+          location += ','
+        }
+      }
     } else {
       ;({ end, length, start } = feature)
+      location += `${start.toString()}-${end.toString()}`
     }
 
     let startPx =
@@ -140,12 +149,9 @@ export abstract class Glyph {
     const featureType = `Type: ${feature.type}`
     const { attributes } = feature
     const featureName = attributes.get('gff_name')?.find((name) => name !== '')
-    const featureStart = `Start: ${feature.start.toString()}`
-    const featureEnd = `End: ${feature.end.toString()}`
     const textWidth = [
       context.measureText(featureType).width,
-      context.measureText(featureStart).width,
-      context.measureText(featureEnd).width,
+      context.measureText(location).width,
     ]
     if (featureName) {
       textWidth.push(context.measureText(`Name: ${featureName}`).width)
@@ -158,7 +164,7 @@ export abstract class Glyph {
       startPx,
       top,
       maxWidth + 4,
-      textWidth.length === 4 ? 55 : 45,
+      textWidth.length === 3 ? 45 : 35,
     )
     context.beginPath()
     context.moveTo(startPx, top)
@@ -173,9 +179,7 @@ export abstract class Glyph {
       context.fillText(`Name: ${featureName}`, startPx + 2, textTop)
     }
     textTop = textTop + 12
-    context.fillText(featureStart, startPx + 2, textTop)
-    textTop = textTop + 12
-    context.fillText(featureEnd, startPx + 2, textTop)
+    context.fillText(location, startPx + 2, textTop)
   }
 
   getContextMenuItems(display: LinearApolloDisplayMouseEvents): MenuItem[] {
