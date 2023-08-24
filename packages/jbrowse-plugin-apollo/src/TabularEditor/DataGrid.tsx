@@ -310,7 +310,6 @@ function DataGrid({ model }: { model: LinearApolloDisplay }) {
         assembly,
       })
     }
-    console.log(`CHANGE: ${JSON.stringify(change)}`)
     if (change) {
       changeManager?.submit(change)
     }

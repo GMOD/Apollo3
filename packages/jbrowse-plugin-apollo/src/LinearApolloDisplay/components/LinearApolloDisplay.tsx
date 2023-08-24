@@ -53,7 +53,8 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
 
   useEffect(() => {
-    setTheme(theme), [theme, setTheme]})
+    setTheme(theme), [theme, setTheme]
+  })
   const [contextCoord, setContextCoord] = useState<Coord>()
   const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
   const message = regionCannotBeRendered()

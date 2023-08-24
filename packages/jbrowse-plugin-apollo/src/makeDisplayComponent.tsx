@@ -37,7 +37,6 @@ const useStyles = makeStyles()((theme) => ({
   },
 }))
 
-
 function scrollSelectedFeatureIntoView(
   model: LinearApolloDisplayI,
   scrollContainerRef: React.RefObject<HTMLDivElement>,
@@ -174,8 +173,8 @@ export const DisplayComponent = observer(function DisplayComponent({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    background: 'turquoise'
-  };
+    background: 'turquoise',
+  }
   return (
     <div style={{ height: overallHeight }}>
       <AccordionControl
@@ -191,12 +190,12 @@ export const DisplayComponent = observer(function DisplayComponent({
         <LinearApolloDisplay model={model} {...other} />
       </div>
       <div style={headerStyle}>
-      <AccordionControl
-        title="Table"
-        open={tabularEditor.isShown}
-        onClick={tabularEditor.togglePane}
-        onResize={onDetailsResize}
-      />
+        <AccordionControl
+          title="Table"
+          open={tabularEditor.isShown}
+          onClick={tabularEditor.togglePane}
+          onResize={onDetailsResize}
+        />
       </div>
       <div className={classes.details} style={{ height: detailsHeight }}>
         <TabularEditorPane model={model} />
