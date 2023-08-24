@@ -32,11 +32,6 @@ export abstract class Glyph {
     row: number,
   ): AnnotationFeatureI | undefined
 
-  abstract drawTooltip(
-    display: LinearApolloDisplayMouseEvents,
-    context: CanvasRenderingContext2D,
-  ): void
-
   drawHover(
     _display: LinearApolloDisplayMouseEvents,
     _overlayCtx: CanvasRenderingContext2D,
@@ -102,6 +97,85 @@ export abstract class Glyph {
     _event: CanvasMouseEvent,
   ): void {
     return
+  }
+
+  drawTooltip(
+    display: LinearApolloDisplayMouseEvents,
+    context: CanvasRenderingContext2D,
+  ): void {
+    const { apolloHover, apolloRowHeight, displayedRegions, lgv } = display
+    if (!apolloHover) {
+      return
+    }
+    const { feature, mousePosition } = apolloHover
+    if (!(feature && mousePosition)) {
+      return
+    }
+    const { regionNumber, y } = mousePosition
+    const displayedRegion = displayedRegions[regionNumber]
+    const { refName, reversed } = displayedRegion
+    const { bpPerPx, bpToPx, offsetPx } = lgv
+
+    const { discontinuousLocations } = feature
+    let start: number, end: number, length: number
+    if (discontinuousLocations && discontinuousLocations.length > 0) {
+      const lastLoc = discontinuousLocations.at(-1)
+      if (!lastLoc) {
+        return
+      }
+      start = lastLoc?.start
+      end = lastLoc?.end
+      length = lastLoc?.end - lastLoc?.start
+    } else {
+      ;({ end, length, start } = feature)
+    }
+
+    let startPx =
+      (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
+        ?.offsetPx ?? 0) - offsetPx
+    const row = Math.floor(y / apolloRowHeight)
+    const top = row * apolloRowHeight
+    const widthPx = length / bpPerPx
+
+    const featureType = `Type: ${feature.type}`
+    const { attributes } = feature
+    const featureName = attributes.get('gff_name')?.find((name) => name !== '')
+    const featureStart = `Start: ${feature.start.toString()}`
+    const featureEnd = `End: ${feature.end.toString()}`
+    const textWidth = [
+      context.measureText(featureType).width,
+      context.measureText(featureStart).width,
+      context.measureText(featureEnd).width,
+    ]
+    if (featureName) {
+      textWidth.push(context.measureText(`Name: ${featureName}`).width)
+    }
+    const maxWidth = Math.max(...textWidth)
+
+    startPx = startPx + widthPx + 5
+    context.fillStyle = 'rgba(1, 1, 1, 0.7)'
+    context.fillRect(
+      startPx,
+      top,
+      maxWidth + 4,
+      textWidth.length === 4 ? 55 : 45,
+    )
+    context.beginPath()
+    context.moveTo(startPx, top)
+    context.lineTo(startPx - 5, top + 5)
+    context.lineTo(startPx, top + 10)
+    context.fill()
+    context.fillStyle = 'rgba(255, 255, 255)'
+    let textTop = top + 12
+    context.fillText(featureType, startPx + 2, textTop)
+    if (featureName) {
+      textTop = textTop + 12
+      context.fillText(`Name: ${featureName}`, startPx + 2, textTop)
+    }
+    textTop = textTop + 12
+    context.fillText(featureStart, startPx + 2, textTop)
+    textTop = textTop + 12
+    context.fillText(featureEnd, startPx + 2, textTop)
   }
 
   getContextMenuItems(display: LinearApolloDisplayMouseEvents): MenuItem[] {
