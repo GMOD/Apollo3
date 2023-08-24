@@ -28,6 +28,7 @@ import {
   ReactComponent as ApolloSixFrameRendererReactComponent,
   configSchema as apolloSixFrameRendererConfigSchema,
 } from './ApolloSixFrameRenderer'
+import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
 import { DownloadGFF3, OpenLocalFile, ViewChangeLog } from './components'
 import ApolloPluginConfigurationSchema from './config'
 import {
@@ -44,9 +45,9 @@ import {
   configSchemaFactory as sixFrameFeatureDisplayConfigSchemaFactory,
 } from './SixFrameFeatureDisplay'
 
-Object.entries(changes).forEach(([changeName, change]) => {
+for (const [changeName, change] of Object.entries(changes)) {
   changeRegistry.registerChange(changeName, change)
-})
+}
 
 validationRegistry.registerValidation(new CoreValidation())
 validationRegistry.registerValidation(new ParentChildValidation())
@@ -58,6 +59,7 @@ export default class ApolloPlugin extends Plugin {
 
   install(pluginManager: PluginManager) {
     installApolloSequenceAdapter(pluginManager)
+    installApolloTextSearchAdapter(pluginManager)
     pluginManager.addTrackType(() => {
       const configSchema = ConfigurationSchema(
         'ApolloTrack',

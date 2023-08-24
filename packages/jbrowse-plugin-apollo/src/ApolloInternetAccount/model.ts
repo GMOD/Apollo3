@@ -8,7 +8,7 @@ import {
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
 import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
-import { Change, SerializedChange } from 'apollo-common'
+import { Change } from 'apollo-common'
 import { getDecodedToken, makeUserSessionId } from 'apollo-shared'
 import { autorun } from 'mobx'
 import { Instance, flow, getRoot, types } from 'mobx-state-tree'
@@ -86,7 +86,7 @@ const stateModelFactory = (
       getUserId() {
         const token = self.retrieveToken()
         if (!token) {
-          return undefined
+          return
         }
         const dec = getDecodedToken(token)
         return dec.id
@@ -98,7 +98,7 @@ const stateModelFactory = (
         getRole() {
           const token = self.retrieveToken()
           if (!token) {
-            return undefined
+            return
           }
           const dec = getDecodedToken(token)
           const { role } = dec
@@ -170,7 +170,7 @@ const stateModelFactory = (
           notify('You are disconnected from the Apollo server.', 'error')
         })
         socket.on('USER_LOCATION', (message) => {
-          const { channel, userName, userSessionId, locations } = message
+          const { channel, locations, userName, userSessionId } = message
           const user = getDecodedToken(token)
           const localSessionId = makeUserSessionId(user)
           if (channel === 'USER_LOCATION' && userSessionId !== localSessionId) {
@@ -183,12 +183,13 @@ const stateModelFactory = (
           }
         })
         socket.on('REQUEST_INFORMATION', (message) => {
-          const { channel, userToken, reqType } = message
+          const { channel, reqType, userToken } = message
           if (channel === 'REQUEST_INFORMATION' && userToken !== token) {
             switch (reqType) {
-              case 'CURRENT_LOCATION':
+              case 'CURRENT_LOCATION': {
                 session.broadcastLocations()
                 break
+              }
             }
           }
         })
@@ -205,9 +206,7 @@ const stateModelFactory = (
             uri,
           })
 
-          const response = yield apolloFetch(uri, {
-            method: 'GET',
-          })
+          const response = yield apolloFetch(uri, { method: 'GET' })
           if (!response.ok) {
             const errorMessage = yield createFetchErrorMessage(
               response,
@@ -216,7 +215,7 @@ const stateModelFactory = (
             throw new Error(errorMessage)
           }
           const changes = yield response.json()
-          const sequence = changes.length ? changes[0].sequence : 0
+          const sequence = changes.length > 0 ? changes[0].sequence : 0
           self.setLastChangeSequenceNumber(sequence)
         },
       ),
@@ -229,11 +228,11 @@ const stateModelFactory = (
             'No LastChangeSequence stored in session. Please, refresh you browser to get last updates from server',
           )
         }
-        const { baseURL } = self
+        const { baseURL, lastChangeSequenceNumber } = self
 
         const url = new URL('changes', baseURL)
         const searchParams = new URLSearchParams({
-          since: String(self.lastChangeSequenceNumber),
+          since: String(lastChangeSequenceNumber),
           sort: '1',
         })
         url.search = searchParams.toString()
@@ -243,9 +242,7 @@ const stateModelFactory = (
           uri,
         })
 
-        const response = yield apolloFetch(uri, {
-          method: 'GET',
-        })
+        const response = yield apolloFetch(uri, { method: 'GET' })
         if (!response.ok) {
           console.error(
             `Error when fetching the last updates to recover socket connection — ${response.status}`,
@@ -253,10 +250,10 @@ const stateModelFactory = (
           return
         }
         const serializedChanges = yield response.json()
-        serializedChanges.forEach((serializedChange: SerializedChange) => {
+        for (const serializedChange of serializedChanges) {
           const change = Change.fromJSON(serializedChange)
           changeManager?.submit(change, { submitToBackend: false })
-        })
+        }
       }),
     }))
     .actions((self) => {
@@ -275,9 +272,9 @@ const stateModelFactory = (
             body: userLocation,
           })
           if (!response.ok) {
-            throw new Error() // no message here, will get caught by "catch"
+            throw new Error('ignore') // ignore message, will get caught by "catch"
           }
-        } catch (error) {
+        } catch {
           console.error('Broadcasting user location failed')
         }
       }
@@ -291,9 +288,7 @@ const stateModelFactory = (
           timeoutId = setTimeout(() => fn(userLocation), debounceTimeout)
         }
       }
-      return {
-        postUserLocation: debouncePostUserLocation(postUserLocation),
-      }
+      return { postUserLocation: debouncePostUserLocation(postUserLocation) }
     })
     .actions(() => ({
       addMenuItems(role: Role) {
@@ -313,12 +308,12 @@ const stateModelFactory = (
         }
         const { menuItems } = apolloMenu
         if (
-          !menuItems.find(
+          !menuItems.some(
             (menuItem) =>
               'label' in menuItem && menuItem.label === 'Add Assembly',
           )
         ) {
-          pluginManager.rootModel.insertInMenu(
+          rootModel.insertInMenu(
             'Apollo',
             {
               label: 'Add Assembly',
@@ -338,7 +333,7 @@ const stateModelFactory = (
             },
             0,
           )
-          pluginManager.rootModel.insertInMenu(
+          rootModel.insertInMenu(
             'Apollo',
             {
               label: 'Delete Assembly',
@@ -358,7 +353,7 @@ const stateModelFactory = (
             },
             1,
           )
-          pluginManager.rootModel.insertInMenu(
+          rootModel.insertInMenu(
             'Apollo',
             {
               label: 'Import Features',
@@ -378,7 +373,7 @@ const stateModelFactory = (
             },
             2,
           )
-          pluginManager.rootModel.insertInMenu(
+          rootModel.insertInMenu(
             'Apollo',
             {
               label: 'Manage Users',
@@ -398,13 +393,13 @@ const stateModelFactory = (
             },
             9,
           )
-          pluginManager.rootModel.insertInMenu(
+          rootModel.insertInMenu(
             'Apollo',
             {
               label: 'Undo',
               onClick: (session: ApolloSessionModel) => {
                 const { apolloDataStore, notify } = session
-                if (apolloDataStore.changeManager.recentChanges.length) {
+                if (apolloDataStore.changeManager.recentChanges.length > 0) {
                   apolloDataStore.changeManager.revertLastChange()
                 } else {
                   notify('No changes to undo', 'info')
@@ -435,9 +430,7 @@ const stateModelFactory = (
           locationType: 'UriLocation',
           uri,
         })
-        yield apolloFetch(uri, {
-          method: 'GET',
-        })
+        yield apolloFetch(uri, { method: 'GET' })
         window.addEventListener('beforeunload', () => {
           self.postUserLocation([])
         })
@@ -462,7 +455,7 @@ const stateModelFactory = (
               return
             }
             try {
-              const { getRole, authType } = self
+              const { authType, getRole } = self
               if (!authType) {
                 return
               }
@@ -471,7 +464,7 @@ const stateModelFactory = (
                 await self.initialize(role)
               }
               reaction.dispose()
-            } catch (error) {
+            } catch {
               // pass
             }
           },
@@ -554,11 +547,11 @@ const stateModelFactory = (
     }))
     .actions((self) => {
       const {
-        retrieveToken: superRetrieveToken,
         getFetcher: superGetFetcher,
         getPreAuthorizationInformation: superGetPreAuthorizationInformation,
+        retrieveToken: superRetrieveToken,
       } = self
-      let authTypePromise: Promise<AuthType> | undefined = undefined
+      let authTypePromise: Promise<AuthType> | undefined
       return {
         async getPreAuthorizationInformation(location: UriLocation) {
           const preAuthInfo = await superGetPreAuthorizationInformation(
@@ -573,16 +566,21 @@ const stateModelFactory = (
           }
         },
         retrieveToken() {
-          if (self.authType === 'google') {
-            return self.googleAuthInternetAccount.retrieveToken()
+          const {
+            authType,
+            googleAuthInternetAccount,
+            microsoftAuthInternetAccount,
+          } = self
+          if (authType === 'google') {
+            return googleAuthInternetAccount.retrieveToken()
           }
-          if (self.authType === 'microsoft') {
-            return self.microsoftAuthInternetAccount.retrieveToken()
+          if (authType === 'microsoft') {
+            return microsoftAuthInternetAccount.retrieveToken()
           }
-          if (self.authType === 'guest') {
+          if (authType === 'guest') {
             return superRetrieveToken()
           }
-          throw new Error(`Unknown authType "${self.authType}"`)
+          throw new Error(`Unknown authType "${authType}"`)
         },
         getFetcher(
           location?: UriLocation,
@@ -592,22 +590,28 @@ const stateModelFactory = (
             init?: RequestInit,
           ): Promise<Response> => {
             let { authType } = self
+            const {
+              googleAuthInternetAccount,
+              googleClientId,
+              microsoftAuthInternetAccount,
+              microsoftClientId,
+            } = self
             if (!authType) {
               if (!authTypePromise) {
                 if (location?.internetAccountPreAuthorization) {
                   authTypePromise = Promise.resolve(
                     location.internetAccountPreAuthorization.authInfo.authType,
                   )
-                } else if (self.googleAuthInternetAccount.retrieveToken()) {
+                } else if (googleAuthInternetAccount.retrieveToken()) {
                   authTypePromise = Promise.resolve('google')
-                } else if (self.microsoftAuthInternetAccount.retrieveToken()) {
+                } else if (microsoftAuthInternetAccount.retrieveToken()) {
                   authTypePromise = Promise.resolve('microsoft')
                 } else if (superRetrieveToken()) {
                   authTypePromise = Promise.resolve('guest')
                 } else {
                   authTypePromise = new Promise((resolve, reject) => {
                     const { session } = getRoot<ApolloRootModel>(self)
-                    const { baseURL, name, allowGuestUser } = self
+                    const { allowGuestUser, baseURL, name } = self
                     session.queueDialog((doneCallback: () => void) => [
                       AuthTypeSelector,
                       {
@@ -623,8 +627,8 @@ const stateModelFactory = (
                           }
                           doneCallback()
                         },
-                        google: Boolean(self.googleClientId),
-                        microsoft: Boolean(self.microsoftClientId),
+                        google: Boolean(googleClientId),
+                        microsoft: Boolean(microsoftClientId),
                         allowGuestUser,
                       },
                     ])
@@ -638,15 +642,26 @@ const stateModelFactory = (
               input: RequestInfo,
               init?: RequestInit,
             ) => Promise<Response>
-            if (authType === 'google') {
-              fetchToUse = self.googleAuthInternetAccount.getFetcher(location)
-            } else if (authType === 'microsoft') {
-              fetchToUse =
-                self.microsoftAuthInternetAccount.getFetcher(location)
-            } else if (authType === 'guest') {
-              fetchToUse = superGetFetcher(location)
-            } else {
-              throw new Error(`Unknown authType "${authType}"`)
+            switch (authType) {
+              case 'google': {
+                fetchToUse = self.googleAuthInternetAccount.getFetcher(location)
+
+                break
+              }
+              case 'microsoft': {
+                fetchToUse =
+                  self.microsoftAuthInternetAccount.getFetcher(location)
+
+                break
+              }
+              case 'guest': {
+                fetchToUse = superGetFetcher(location)
+
+                break
+              }
+              default: {
+                throw new Error(`Unknown authType "${authType}"`)
+              }
             }
             const response = await fetchToUse(input, init)
             if (response.status === 401) {

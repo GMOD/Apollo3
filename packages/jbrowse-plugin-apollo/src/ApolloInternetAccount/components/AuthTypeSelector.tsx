@@ -19,11 +19,11 @@ const useStyles = makeStyles()((theme) => ({
 }))
 
 export const AuthTypeSelector = ({
-  name,
-  handleClose,
-  google,
-  microsoft,
   allowGuestUser,
+  google,
+  handleClose,
+  microsoft,
+  name,
 }: {
   baseURL: string
   name: string

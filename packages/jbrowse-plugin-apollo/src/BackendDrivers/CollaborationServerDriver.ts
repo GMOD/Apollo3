@@ -30,13 +30,38 @@ export class CollaborationServerDriver extends BackendDriver {
     return customFetch(info, init)
   }
 
+  async searchFeatures(term: string, assemblies: string[]) {
+    const internetAccount = this.clientStore.getInternetAccount(
+      assemblies[0],
+    ) as ApolloInternetAccount
+    const { baseURL } = internetAccount
+
+    const url = new URL('features/searchFeatures', baseURL)
+    const searchParams = new URLSearchParams({
+      assemblies: assemblies.join(','),
+      term,
+    })
+    url.search = searchParams.toString()
+    const uri = url.toString()
+
+    const response = await this.fetch(internetAccount, uri)
+    if (!response.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'searchFeatures failed',
+      )
+      throw new Error(errorMessage)
+    }
+    return response.json() as Promise<AnnotationFeatureSnapshot[]>
+  }
+
   /**
    * Call backend endpoint to get features by criteria
    * @param region -  Searchable region containing refSeq, start and end
    * @returns
    */
   async getFeatures(region: Region) {
-    const { assemblyName, refName, start, end } = region
+    const { assemblyName, end, refName, start } = region
     const { assemblyManager } = getSession(this.clientStore)
     const assembly = assemblyManager.get(assemblyName)
     if (!assembly) {
@@ -129,7 +154,7 @@ export class CollaborationServerDriver extends BackendDriver {
    * @returns
    */
   async getSequence(region: Region): Promise<{ seq: string; refSeq: string }> {
-    const { assemblyName, refName, start, end } = region
+    const { assemblyName, end, refName, start } = region
     const { assemblyManager } = getSession(this.clientStore)
     const assembly = assemblyManager.get(assemblyName)
     if (!assembly) {
@@ -161,7 +186,7 @@ export class CollaborationServerDriver extends BackendDriver {
       let errorMessage
       try {
         errorMessage = await response.text()
-      } catch (error) {
+      } catch {
         errorMessage = ''
       }
       throw new Error(
@@ -205,7 +230,7 @@ export class CollaborationServerDriver extends BackendDriver {
     change: Change | AssemblySpecificChange,
     opts: SubmitOpts = {},
   ) {
-    const { internetAccountId = undefined } = opts
+    const { internetAccountId } = opts
     const internetAccount = this.clientStore.getInternetAccount(
       'assembly' in change ? change.assembly : undefined,
       internetAccountId,

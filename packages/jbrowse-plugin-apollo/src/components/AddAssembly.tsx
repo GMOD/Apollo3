@@ -64,16 +64,16 @@ enum FileType {
 }
 
 export function AddAssembly({
-  session,
-  handleClose,
   changeManager,
+  handleClose,
+  session,
 }: AddAssemblyProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const { notify } = session
   const apolloInternetAccounts = internetAccounts.filter(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel[]
-  if (!apolloInternetAccounts.length) {
+  if (apolloInternetAccounts.length === 0) {
     throw new Error('No Apollo internet account found')
   }
   const [assemblyName, setAssemblyName] = useState('')
@@ -151,7 +151,7 @@ export function AddAssembly({
 
     // let fileChecksum = ''
     let fileId = ''
-    const { baseURL, getFetcher } = selectedInternetAcount
+    const { baseURL, getFetcher, internetAccountId } = selectedInternetAcount
     if (fileType !== FileType.EXTERNAL && file) {
       // First upload file
       const url = new URL('/files', baseURL).href
@@ -204,21 +204,20 @@ export function AddAssembly({
         assemblyName,
         fileId,
       }
-      if (fileType === FileType.GFF3 && importFeatures) {
-        change = new AddAssemblyAndFeaturesFromFileChange({
-          typeName: 'AddAssemblyAndFeaturesFromFileChange',
-          ...fileUploadChangeBase,
-        })
-      } else {
-        change = new AddAssemblyFromFileChange({
-          typeName: 'AddAssemblyFromFileChange',
-          ...fileUploadChangeBase,
-        })
-      }
+      change =
+        fileType === FileType.GFF3 && importFeatures
+          ? new AddAssemblyAndFeaturesFromFileChange({
+              typeName: 'AddAssemblyAndFeaturesFromFileChange',
+              ...fileUploadChangeBase,
+            })
+          : new AddAssemblyFromFileChange({
+              typeName: 'AddAssemblyFromFileChange',
+              ...fileUploadChangeBase,
+            })
     }
 
     await changeManager.submit(change, {
-      internetAccountId: selectedInternetAcount.internetAccountId,
+      internetAccountId,
     })
 
     setSubmitted(false)

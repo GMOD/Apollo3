@@ -21,4 +21,9 @@ export abstract class BackendDriver {
     change: Change,
     opts: SubmitOpts,
   ): Promise<ValidationResultSet>
+
+  abstract searchFeatures(
+    term: string,
+    assemblies: string[],
+  ): Promise<AnnotationFeatureSnapshot[]>
 }

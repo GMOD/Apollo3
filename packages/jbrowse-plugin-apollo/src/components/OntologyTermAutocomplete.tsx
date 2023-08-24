@@ -34,16 +34,16 @@ interface OntologyTermAutocompleteProps {
 }
 
 export function OntologyTermAutocomplete({
-  value: valueString,
-  style,
-  session,
-  ontologyName,
-  ontologyVersion,
   fetchValidTerms,
   filterTerms: filterTermsProp,
-  onChange,
-  renderInput,
   includeDeprecated,
+  onChange,
+  ontologyName,
+  ontologyVersion,
+  renderInput,
+  session,
+  style,
+  value: valueString,
 }: OntologyTermAutocompleteProps) {
   const [open, setOpen] = useState(false)
   const [termChoices, setTermChoices] = useState<OntologyTerm[] | undefined>()
@@ -74,6 +74,7 @@ export function OntologyTermAutocomplete({
   // effect for clearing choices when not open
   useEffect(() => {
     if (!open) {
+      // eslint-disable-next-line unicorn/no-useless-undefined
       setTermChoices(undefined)
     }
   }, [open])
@@ -90,9 +91,9 @@ export function OntologyTermAutocomplete({
             setCurrentOntologyTerm(term)
           }
         },
-        (err) => {
-          if (!signal.aborted && !isAbortException(err)) {
-            setCurrentOntologyTermInvalid(String(err))
+        (error) => {
+          if (!signal.aborted && !isAbortException(error)) {
+            setCurrentOntologyTermInvalid(String(error))
           }
         },
       )
@@ -139,6 +140,7 @@ export function OntologyTermAutocomplete({
       return
     }
     if (typeof newValue === 'string') {
+      // eslint-disable-next-line unicorn/no-useless-undefined
       setCurrentOntologyTerm(undefined)
       onChange(valueString, newValue)
     } else if (newValue.lbl !== valueString) {
@@ -230,5 +232,5 @@ async function getValidTerms(
   if (!result) {
     result = await ontologyStore.getAllTerms()
   }
-  return filterTerms ? result.filter(filterTerms) : result
+  return filterTerms ? result.filter((element) => filterTerms(element)) : result
 }

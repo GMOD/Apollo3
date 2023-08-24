@@ -1,4 +1,4 @@
-import { Readable, Transform, pipeline } from 'stream'
+import { Readable, Transform, pipeline } from 'node:stream'
 
 import gff, { GFF3Feature } from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
@@ -35,9 +35,7 @@ function makeGFF3Feature(
           phase: featureDocument.phase,
         },
       ]
-  const attributes: Record<string, string[]> = {
-    ...(featureDocument.attributes ?? {}),
-  }
+  const attributes: Record<string, string[]> = { ...featureDocument.attributes }
   const ontologyTerms: string[] = []
   const source = featureDocument.attributes?.source?.[0] ?? null
   delete attributes.source
@@ -92,7 +90,7 @@ function makeGFF3Feature(
     ontologyTerms.push(...attributes['Sequence Ontology'])
     delete attributes['Sequence Ontology']
   }
-  if (ontologyTerms.length) {
+  if (ontologyTerms.length > 0) {
     attributes.Ontology_term = ontologyTerms
   }
   const refSeq = refSeqs.find((rs) => rs._id.equals(featureDocument.refSeq))
@@ -119,7 +117,7 @@ function makeGFF3Feature(
         : location.phase === 2
         ? '2'
         : null,
-    attributes: Object.keys(attributes).length ? attributes : null,
+    attributes: Object.keys(attributes).length > 0 ? attributes : null,
     derived_features: [],
     child_features: featureDocument.children
       ? Object.values(featureDocument.children).map((child) =>
@@ -151,7 +149,7 @@ export class FeaturesService {
 
   async getFeatureCount(featureCountRequest: FeatureCountRequest) {
     let count = 0
-    const { assemblyId, refSeqId, start, end } = featureCountRequest
+    const { assemblyId, end, refSeqId, start } = featureCountRequest
     const filter: Record<
       string,
       number | string | { $lte: number } | { $gte: number }
@@ -201,17 +199,19 @@ export class FeaturesService {
 
     const headerStream = new Readable({ objectMode: true })
     headerStream.push('##gff-version 3\n')
-    refSeqs.forEach((refSeqDoc: RefSeqDocument) => {
+    for (const refSeqDoc of refSeqs) {
       headerStream.push(
         `##sequence-region ${refSeqDoc.name} 1 ${refSeqDoc.length}\n`,
       )
-    })
+    }
     headerStream.push(null)
 
     const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
     const query = { refSeq: { $in: refSeqIds } }
 
     const featureStream = pipeline(
+      // unicorn thinks this is an Array.prototype.find, so we ignore it
+      // eslint-disable-next-line unicorn/no-array-callback-reference
       this.featureModel.find(query).cursor(),
       new Transform({
         writableObjectMode: true,
@@ -302,5 +302,17 @@ export class FeaturesService {
       start: searchDto.start,
       end: searchDto.end,
     })
+  }
+
+  async searchFeatures(searchDto: { term: string; assemblies: string }) {
+    const { assemblies, term } = searchDto
+    const assemblyIds = assemblies.split(',')
+    const refSeqs = await this.refSeqModel
+      .find({ assembly: assemblyIds })
+      .exec()
+    return this.featureModel
+      .find({ $text: { $search: term }, refSeq: refSeqs })
+      .populate('refSeq')
+      .exec()
   }
 }

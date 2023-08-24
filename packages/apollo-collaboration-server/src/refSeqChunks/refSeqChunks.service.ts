@@ -30,7 +30,7 @@ export class RefSeqChunksService {
     return this.refSeqChunkModel.create(createRefSeqChunkDto)
   }
 
-  async getSequence({ refSeq: refSeqId, start, end }: GetSequenceDto) {
+  async getSequence({ end, refSeq: refSeqId, start }: GetSequenceDto) {
     const refSeq = await this.refSeqModel.findById(refSeqId)
     if (!refSeq) {
       throw new Error(`RefSeq "${refSeqId}" not found`)

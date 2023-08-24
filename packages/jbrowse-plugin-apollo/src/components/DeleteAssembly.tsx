@@ -33,9 +33,9 @@ interface DeleteAssemblyProps {
 }
 
 export function DeleteAssembly({
-  session,
-  handleClose,
   changeManager,
+  handleClose,
+  session,
 }: DeleteAssemblyProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
@@ -45,7 +45,7 @@ export function DeleteAssembly({
   const apolloInternetAccounts = internetAccounts.filter(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel[]
-  if (!apolloInternetAccounts.length) {
+  if (apolloInternetAccounts.length === 0) {
     throw new Error('No Apollo internet account found')
   }
   const [selectedInternetAcount, setSelectedInternetAcount] = useState(
@@ -131,7 +131,7 @@ export function DeleteAssembly({
             labelId="label"
             value={selectedAssembly?.name ?? ''}
             onChange={handleChangeAssembly}
-            disabled={!assemblies.length}
+            disabled={assemblies.length === 0}
           >
             {assemblies.map((option) => (
               <MenuItem key={option.name} value={option.name}>

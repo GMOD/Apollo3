@@ -70,6 +70,11 @@ export interface OntologyStoreOptions {
   maxSearchResults?: number
 }
 
+export interface PropertiesOptions {
+  /** default true */
+  includeSubProperties: boolean
+}
+
 /** query interface for a specific ontology */
 export default class OntologyStore {
   ontologyName: string
@@ -114,12 +119,12 @@ export default class OntologyStore {
     const errors = []
 
     // validate the source's file type
-    const { sourceType } = this
+    const { sourceLocation, sourceType } = this
     if (!sourceType) {
       errors.push(
         new Error(
           `unable to determine format of ontology source file ${JSON.stringify(
-            this.sourceLocation,
+            sourceLocation,
           )}, file name must end with ".json", ".obo", or ".owl"`,
         ),
       )
@@ -127,7 +132,7 @@ export default class OntologyStore {
       errors.push(
         new Error(
           `ontology source file ${JSON.stringify(
-            this.sourceLocation,
+            sourceLocation,
           )} has type ${sourceType}, which is not yet supported`,
         ),
       )
@@ -141,10 +146,11 @@ export default class OntologyStore {
       if (this.sourceLocation.uri.endsWith('.json')) {
         return 'obo-graph-json'
       }
-    } else if (isLocalPathLocation(this.sourceLocation)) {
-      if (this.sourceLocation.localPath.endsWith('.json')) {
-        return 'obo-graph-json'
-      }
+    } else if (
+      isLocalPathLocation(this.sourceLocation) &&
+      this.sourceLocation.localPath.endsWith('.json')
+    ) {
+      return 'obo-graph-json'
     }
     return undefined
   }
@@ -156,7 +162,7 @@ export default class OntologyStore {
 
   async prepareDatabase() {
     const errors = this.validate()
-    if (errors.length) {
+    if (errors.length > 0) {
       throw errors
     }
 
@@ -167,13 +173,13 @@ export default class OntologyStore {
       return db
     }
 
-    const { sourceType } = this
+    const { sourceLocation, sourceType } = this
     if (sourceType === 'obo-graph-json') {
       await this.loadOboGraphJson(db)
     } else {
       throw new Error(
         `ontology source file ${JSON.stringify(
-          this.sourceLocation,
+          sourceLocation,
         )} has type ${sourceType}, which is not yet supported`,
       )
     }
@@ -182,7 +188,8 @@ export default class OntologyStore {
   }
 
   async termCount(tx?: Transaction<['nodes']>) {
-    const myTx = tx ?? (await this.db).transaction('nodes')
+    const db = await this.db
+    const myTx = tx ?? db.transaction('nodes')
     return myTx.objectStore('nodes').count()
   }
 
@@ -204,11 +211,13 @@ export default class OntologyStore {
     tx?: Transaction<['nodes', 'edges']>,
   ): Promise<OntologyTerm[]> {
     const includeSubclasses = options?.includeSubclasses ?? true
-    const myTx = tx ?? (await this.db).transaction(['nodes', 'edges'])
+    const db = await this.db
+    const myTx = tx ?? db.transaction(['nodes', 'edges'])
     const nodes = myTx.objectStore('nodes')
-    const resultNodes = (
-      await nodes.index('by-label').getAll(termLabelOrSynonym)
-    ).concat(await nodes.index('by-synonym').getAll(termLabelOrSynonym))
+    const resultNodes = [
+      ...(await nodes.index('by-label').getAll(termLabelOrSynonym)),
+      ...(await nodes.index('by-synonym').getAll(termLabelOrSynonym)),
+    ]
 
     if (includeSubclasses) {
       // now recursively traverse is_a relations to gather nodes that are subclasses any of these
@@ -242,20 +251,22 @@ export default class OntologyStore {
    */
   async getPropertiesByLabel(
     propertyLabel: string,
-    options?: { includeSubProperties?: boolean },
+    options?: PropertiesOptions,
     tx?: Transaction<['nodes', 'edges']>,
   ): Promise<OntologyProperty[]> {
     const includeSubProperties = options?.includeSubProperties ?? true
 
-    const myTx = tx ?? (await this.db).transaction(['nodes', 'edges'])
+    const db = await this.db
+    const myTx = tx ?? db.transaction(['nodes', 'edges'])
 
-    const properties = (
-      await this.getTermsWithLabelOrSynonym(
-        propertyLabel,
-        { includeSubclasses: false },
-        myTx,
-      )
-    ).filter((p): p is OntologyProperty => isOntologyProperty(p))
+    const terms = await this.getTermsWithLabelOrSynonym(
+      propertyLabel,
+      { includeSubclasses: false },
+      myTx,
+    )
+    const properties = terms.filter((p): p is OntologyProperty =>
+      isOntologyProperty(p),
+    )
 
     if (includeSubProperties) {
       const subPropertyIds = await this.recurseEdges(
@@ -290,17 +301,17 @@ export default class OntologyStore {
 
     async function recur(queryIds: Iterable<string>) {
       await Promise.all(
-        Array.from(queryIds).map(async (queryId) => {
+        [...queryIds].map(async (queryId) => {
           const theseResults = (
             (await myTx
               .objectStore('edges')
               .index(queryIndex)
               .getAll(queryId)) as OntologyDBEdge[]
           )
-            .filter(filterEdge)
+            .filter((element) => filterEdge(element))
             .map((edge) => edge[resultProp])
 
-          if (theseResults.length) {
+          if (theseResults.length > 0) {
             // report these subjects as results
             for (const resultId of theseResults) {
               resultIds.add(resultId)
@@ -327,8 +338,9 @@ export default class OntologyStore {
     direction: 'superclasses' | 'subclasses',
     tx?: Transaction<['edges']>,
   ) {
-    const myTx = tx ?? (await this.db).transaction(['edges'])
-    const startingNodes = Array.from(startingNodeIds)
+    const db = await this.db
+    const myTx = tx ?? db.transaction(['edges'])
+    const startingNodes = [...startingNodeIds]
     const subclassIds = await this.recurseEdges(
       direction === 'subclasses' ? 'by-object' : 'by-subject',
       startingNodes,
@@ -385,7 +397,8 @@ export default class OntologyStore {
     targetTerms: OntologyClass[],
     tx?: Transaction<['nodes', 'edges']>,
   ) {
-    const myTx = tx ?? (await this.db).transaction(['nodes', 'edges'])
+    const db = await this.db
+    const myTx = tx ?? db.transaction(['nodes', 'edges'])
 
     // find all the terms for the properties we are using
     const relatingProperties = await this.getPropertiesByLabel(
@@ -393,7 +406,7 @@ export default class OntologyStore {
       { includeSubProperties: true },
       myTx,
     )
-    const relatingPropertyIds = relatingProperties.map((p) => p.id)
+    const relatingPropertyIds = new Set(relatingProperties.map((p) => p.id))
 
     // expand to search all the superclasses of the target terms
     const targetTermsWithSuperClasses = await arrayFromAsync(
@@ -408,7 +421,7 @@ export default class OntologyStore {
     const termIds = await this.recurseEdges(
       'by-object',
       targetTermsWithSuperClasses,
-      (edge) => relatingPropertyIds.includes(edge.pred),
+      (edge) => relatingPropertyIds.has(edge.pred),
       'sub',
       myTx as unknown as Transaction<['edges']>,
     )
@@ -434,10 +447,11 @@ export default class OntologyStore {
 
   async getClassesWithoutPropertyLabeled(
     propertyLabel: string,
-    options = { includeSubProperties: false },
+    options: PropertiesOptions,
     tx?: Transaction<['nodes', 'edges']>,
   ) {
-    const myTx = tx ?? (await this.db).transaction(['nodes', 'edges'])
+    const db = await this.db
+    const myTx = tx ?? db.transaction(['nodes', 'edges'])
     const nodeStore = myTx.objectStore('nodes')
     const edgeStore = myTx.objectStore('edges')
 
@@ -494,7 +508,8 @@ export default class OntologyStore {
   }
 
   async getAllClasses(tx?: Transaction<['nodes']>): Promise<OntologyClass[]> {
-    const myTx = tx ?? (await this.db).transaction(['nodes'])
+    const db = await this.db
+    const myTx = tx ?? db.transaction(['nodes'])
     const all = (await myTx
       .objectStore('nodes')
       .index('by-type')
@@ -503,7 +518,8 @@ export default class OntologyStore {
   }
 
   async getAllTerms(tx?: Transaction<['nodes']>): Promise<OntologyTerm[]> {
-    const myTx = tx ?? (await this.db).transaction(['nodes'])
+    const db = await this.db
+    const myTx = tx ?? db.transaction(['nodes'])
     const all = await myTx.objectStore('nodes').getAll()
     return all.filter((term) => !isDeprecated(term))
   }

@@ -12,10 +12,10 @@ export const FeatureAttributes = observer(function FeatureAttributes({
   feature: AnnotationFeatureI
   filterText: string
 }) {
-  const attrString = Array.from(feature.attributes.entries())
+  const attrString = [...feature.attributes.entries()]
     .map(([key, value]) => {
       if (key.startsWith('gff_')) {
-        const newKey = key.substring(4)
+        const newKey = key.slice(4)
         const capitalizedKey = newKey.charAt(0).toUpperCase() + newKey.slice(1)
         return [capitalizedKey, getSnapshot(value)]
       }

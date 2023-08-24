@@ -33,7 +33,7 @@ interface AssemblyDocument {
   name: string
 }
 
-export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
+export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',
@@ -57,7 +57,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
       width: 200,
       type: 'singleSelect',
       // TODO: Get these from change manager once it's on the session
-      valueOptions: Array.from(changeRegistry.changes.keys()),
+      valueOptions: [...changeRegistry.changes.keys()],
     },
     {
       field: 'changes',
@@ -86,9 +86,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
         uri,
       })
       if (apolloFetch) {
-        const response = await apolloFetch(uri, {
-          method: 'GET',
-        })
+        const response = await apolloFetch(uri, { method: 'GET' })
         if (!response.ok) {
           const newErrorMessage = await createFetchErrorMessage(
             response,
@@ -101,11 +99,11 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
         setAssemblyCollection(data)
       }
     }
-    getAssemblies().catch((e) => setErrorMessage(String(e)))
+    getAssemblies().catch((error) => setErrorMessage(String(error)))
   }, [apolloInternetAccount, baseURL])
 
   useEffect(() => {
-    if (!assemblyId && assemblyCollection.length) {
+    if (!assemblyId && assemblyCollection.length > 0) {
       setAssemblyId(assemblyCollection[0]._id)
     }
   }, [assemblyId, assemblyCollection])
@@ -141,7 +139,7 @@ export function ViewChangeLog({ session, handleClose }: ViewChangeLogProps) {
         setDisplayGridData(data)
       }
     }
-    getGridData().catch((e) => setErrorMessage(String(e)))
+    getGridData().catch((error) => setErrorMessage(String(error)))
   }, [assemblyId, apolloInternetAccount, baseURL])
 
   async function handleChangeAssembly(e: SelectChangeEvent<string>) {

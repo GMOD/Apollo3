@@ -47,24 +47,36 @@ export class OperationsService {
   async executeOperation<T extends Operation>(
     serializedOperation: ReturnType<T['toJSON']>,
   ): Promise<ReturnType<T['executeOnServer']>> {
-    const { logger } = this
+    const {
+      assemblyModel,
+      connection,
+      countersService,
+      featureModel,
+      fileModel,
+      filesService,
+      logger,
+      pluginsService,
+      refSeqChunkModel,
+      refSeqModel,
+      userModel,
+    } = this
     const OperationType = operationRegistry.getOperationType(
       serializedOperation.typeName,
     )
     const operation = new OperationType(serializedOperation, { logger })
-    const session = await this.connection.startSession()
+    const session = await connection.startSession()
     const result = (await operation.execute({
       typeName: 'Server',
-      featureModel: this.featureModel,
-      assemblyModel: this.assemblyModel,
-      refSeqModel: this.refSeqModel,
-      refSeqChunkModel: this.refSeqChunkModel,
-      fileModel: this.fileModel,
-      userModel: this.userModel,
+      featureModel,
+      assemblyModel,
+      refSeqModel,
+      refSeqChunkModel,
+      fileModel,
+      userModel,
       session,
-      filesService: this.filesService,
-      counterService: this.countersService,
-      pluginsService: this.pluginsService,
+      filesService,
+      counterService: countersService,
+      pluginsService,
       user: '',
     })) as ReturnType<T['executeOnServer']>
     await session.endSession()

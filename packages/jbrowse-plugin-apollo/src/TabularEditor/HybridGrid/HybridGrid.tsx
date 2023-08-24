@@ -38,13 +38,13 @@ const HybridGrid = observer(function HybridGrid({
 }: {
   model: DisplayStateModel
 }) {
-  const { seenFeatures, selectedFeature } = model
+  const { apolloHover, seenFeatures, selectedFeature, tabularEditor } = model
   const theme = useTheme()
   const { classes } = useStyles()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(null)
 
-  const { filterText } = model.tabularEditor
+  const { filterText } = tabularEditor
 
   const internetAccount = useMemo(() => {
     return getApolloInternetAccount(getSession(model))
@@ -64,10 +64,7 @@ const HybridGrid = observer(function HybridGrid({
           newScrollTop > currScroll &&
           newScrollTop < currScroll + scrollContainer.offsetHeight
         if (!isVisible) {
-          scrollContainer.scroll({
-            top: newScrollTop - 40,
-            behavior: 'smooth',
-          })
+          scrollContainer.scroll({ top: newScrollTop - 40, behavior: 'smooth' })
         }
       }
     }
@@ -76,11 +73,7 @@ const HybridGrid = observer(function HybridGrid({
   return (
     <div
       ref={scrollContainerRef}
-      style={{
-        width: '100%',
-        overflowY: 'auto',
-        height: '100%',
-      }}
+      style={{ width: '100%', overflowY: 'auto', height: '100%' }}
     >
       <table className={classes.scrollableTable}>
         <thead>
@@ -92,7 +85,7 @@ const HybridGrid = observer(function HybridGrid({
           </tr>
         </thead>
         <tbody>
-          {Array.from(seenFeatures.entries())
+          {[...seenFeatures.entries()]
             .filter((entry) => {
               if (!filterText) {
                 return true
@@ -107,7 +100,7 @@ const HybridGrid = observer(function HybridGrid({
             })
             .map(([featureId, feature]) => {
               const isSelected = selectedFeature?._id === featureId
-              const isHovered = model.apolloHover?.feature?._id === featureId
+              const isHovered = apolloHover?.feature?._id === featureId
               return (
                 <Feature
                   key={featureId}

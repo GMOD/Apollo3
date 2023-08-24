@@ -30,8 +30,8 @@
     "tss-react": "^4.0.0"
   },
   "devDependencies": {
-    "@nestjs/common": "^9.3.9",
-    "@nestjs/core": "^9.3.9",
+    "@nestjs/common": "^10.1.0",
+    "@nestjs/core": "^10.1.0",
     "@types/node": "^18.14.2",
     "apollo-mst": "workspace:^",
     "mongoose": "^7.0.0",

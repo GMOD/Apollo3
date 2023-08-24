@@ -58,19 +58,8 @@ function getFeatureColumns(
       width: 80,
       editable,
     },
-    {
-      field: 'end',
-      headerName: 'End',
-      type: 'number',
-      width: 80,
-      editable,
-    },
-    {
-      field: 'attributes',
-      headerName: 'Attributes',
-      width: 300,
-      editable,
-    },
+    { field: 'end', headerName: 'End', type: 'number', width: 80, editable },
+    { field: 'attributes', headerName: 'Attributes', width: 300, editable },
   ]
 }
 
@@ -79,7 +68,7 @@ interface AutocompleteInputCellProps extends GridRenderEditCellParams {
 }
 
 function AutocompleteInputCell(props: AutocompleteInputCellProps) {
-  const { id, value, field, row, internetAccount } = props
+  const { field, id, internetAccount, row, value } = props
   const [soSequenceTerms, setSOSequenceTerms] = useState<string[]>([])
   const [errorMessage, setErrorMessage] = useState('')
   const apiRef = useGridApiContext()
@@ -89,7 +78,7 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
     const { signal } = controller
     async function getSOSequenceTerms() {
       const { feature } = row
-      const { type, parent, children } = feature
+      const { children, parent, type } = feature
       let endpoint = '/ontologies/equivalents/sequence_feature'
       if (parent) {
         endpoint = `/ontologies/descendants/${parent.type}`
@@ -112,9 +101,9 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
         setSOSequenceTerms(soTerms)
       }
     }
-    getSOSequenceTerms().catch((e) => {
+    getSOSequenceTerms().catch((error) => {
       if (!signal.aborted) {
-        setErrorMessage(String(e))
+        setErrorMessage(String(error))
       }
     })
     return () => {
@@ -136,7 +125,7 @@ function AutocompleteInputCell(props: AutocompleteInputCellProps) {
     }
   }
 
-  if (!soSequenceTerms.length) {
+  if (soSequenceTerms.length === 0) {
     return null
   }
 
@@ -180,26 +169,26 @@ function DataGrid({ model }: { model: LinearApolloDisplay }) {
   const editable =
     Boolean(internetAccount.authType) &&
     ['admin', 'user'].includes(internetAccount.getRole() ?? '')
-  const { selectedFeature, changeManager, detailsHeight } = model
+  const { changeManager, detailsHeight, selectedFeature } = model
   if (!selectedFeature) {
     return null
   }
   const {
     _id: id,
-    type,
+    assemblyId: assembly,
+    end,
     refSeq,
     start,
-    end,
-    assemblyId: assembly,
+    type,
   } = selectedFeature
   const { assemblyManager } = session
   const refName =
     assemblyManager.get(assembly)?.getCanonicalRefName(refSeq) ?? refSeq
 
   let tmp = Object.fromEntries(
-    Array.from(selectedFeature.attributes.entries()).map(([key, value]) => {
+    [...selectedFeature.attributes.entries()].map(([key, value]) => {
       if (key.startsWith('gff_')) {
-        const newKey = key.substring(4)
+        const newKey = key.slice(4)
         const capitalizedKey = newKey.charAt(0).toUpperCase() + newKey.slice(1)
         return [capitalizedKey, getSnapshot(value)]
       }
@@ -226,11 +215,11 @@ function DataGrid({ model }: { model: LinearApolloDisplay }) {
     },
   ]
   function addChildFeatures(f: typeof selectedFeature) {
-    f?.children?.forEach((child: AnnotationFeatureI) => {
+    for (const [, child] of f?.children ?? new Map()) {
       tmp = Object.fromEntries(
-        Array.from(child.attributes.entries()).map(([key, value]) => {
+        [...child.attributes.entries()].map(([key, value]) => {
           if (key.startsWith('gff_')) {
-            const newKey = key.substring(4)
+            const newKey = key.slice(4)
             const capitalizedKey =
               newKey.charAt(0).toUpperCase() + newKey.slice(1)
             return [capitalizedKey, getSnapshot(value)]
@@ -256,21 +245,17 @@ function DataGrid({ model }: { model: LinearApolloDisplay }) {
         attributes,
       })
       addChildFeatures(child)
-    })
+    }
   }
   addChildFeatures(selectedFeature)
   function processRowUpdate(
     newRow: GridRowModel<(typeof selectedFeatureRows)[0]>,
     oldRow: GridRowModel<(typeof selectedFeatureRows)[0]>,
   ) {
-    let change:
-      | LocationStartChange
-      | LocationEndChange
-      | TypeChange
-      | undefined = undefined
+    let change: LocationStartChange | LocationEndChange | TypeChange | undefined
 
     if (newRow.start !== oldRow.start) {
-      const { start: oldStart, id: featureId } = oldRow
+      const { id: featureId, start: oldStart } = oldRow
       const { start: newStart } = newRow
       change = new LocationStartChange({
         typeName: 'LocationStartChange',
@@ -292,7 +277,7 @@ function DataGrid({ model }: { model: LinearApolloDisplay }) {
         assembly,
       })
     } else if (newRow.type !== oldRow.type) {
-      const { type: oldType, id: featureId } = oldRow
+      const { id: featureId, type: oldType } = oldRow
       const { type: newType } = newRow
       change = new TypeChange({
         typeName: 'TypeChange',
@@ -335,7 +320,7 @@ function DataGrid({ model }: { model: LinearApolloDisplay }) {
         // is still in view mode. Probably an MUI bug, but since we're
         // likely going to replace DataGrid, it's not worth fixing now.
         await new Promise((resolve) => setTimeout(resolve, 0))
-        const { id: cellId, field } = params
+        const { field, id: cellId } = params
         apiRef.current.stopCellEditMode({ id: cellId, field })
       }}
     />

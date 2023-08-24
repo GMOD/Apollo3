@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'node:fs'
 
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
@@ -19,10 +19,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!jwtSecret) {
       // We can use non-null assertion since joi already checks this for us
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const uriFile = configService.get('JWT_SECRET_FILE', {
-        infer: true,
-      })!
-      jwtSecret = fs.readFileSync(uriFile, 'utf-8').trim()
+      const uriFile = configService.get('JWT_SECRET_FILE', { infer: true })!
+      jwtSecret = fs.readFileSync(uriFile, 'utf8').trim()
     }
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

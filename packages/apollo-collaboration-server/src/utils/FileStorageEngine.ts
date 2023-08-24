@@ -1,9 +1,9 @@
-import { createHash } from 'crypto'
-import { createWriteStream } from 'fs'
-import { mkdir, mkdtemp, rename, rmdir } from 'fs/promises'
-import { join } from 'path'
-import { pipeline } from 'stream/promises'
-import { createGzip } from 'zlib'
+import { createHash } from 'node:crypto'
+import { createWriteStream } from 'node:fs'
+import { mkdir, mkdtemp, rename, rmdir } from 'node:fs/promises'
+import { join } from 'node:path'
+import { pipeline } from 'node:stream/promises'
+import { createGzip } from 'node:zlib'
 
 import {
   Injectable,

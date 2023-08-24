@@ -85,10 +85,10 @@ export function extendSession(
             const existingCollaborator = collabs.find(
               (obj: Collaborator) => obj.id === collaborator.id,
             )
-            if (!existingCollaborator) {
-              collabs.push(collaborator)
-            } else {
+            if (existingCollaborator) {
               existingCollaborator.locations = collaborator.locations
+            } else {
+              collabs.push(collaborator)
             }
           },
         },
@@ -98,12 +98,11 @@ export function extendSession(
       apolloSetSelectedFeature(feature?: AnnotationFeatureI) {
         self.apolloSelectedFeature = feature
       },
-      addApolloTrackConfig(assembly: AssemblyModel) {
+      addApolloTrackConfig(assembly: AssemblyModel, baseURL?: string) {
         const trackId = `apollo_track_${assembly.name}`
-        const hasTrack = Boolean(
+        const hasTrack =
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          self.tracks.find((track: any) => track.trackId === trackId),
-        )
+          self.tracks.some((track: any) => track.trackId === trackId)
         if (!hasTrack) {
           self.addTrackConf({
             type: 'ApolloTrack',
@@ -113,14 +112,25 @@ export function extendSession(
               getConf(assembly, 'displayName') || assembly.name
             })`,
             assemblyNames: [assembly.name],
+            textSearching: {
+              textSearchAdapter: {
+                type: 'ApolloTextSearchAdapter',
+                trackId,
+                assemblyNames: [assembly.name],
+                textSearchAdapterId: `apollo_search_${assembly.name}`,
+                ...(baseURL
+                  ? { baseURL: { uri: baseURL, locationType: 'UriLocation' } }
+                  : {}),
+              },
+            },
             displays: [
               {
                 type: 'LinearApolloDisplay',
-                displayId: `apollo_track_${assembly.name}-LinearApolloDisplay`,
+                displayId: `${trackId}-LinearApolloDisplay`,
               },
               {
                 type: 'SixFrameFeatureDisplay',
-                displayId: `apollo_track_${assembly.name}-SixFrameFeatureDisplay`,
+                displayId: `${trackId}-SixFrameFeatureDisplay`,
               },
             ],
           })
@@ -139,15 +149,16 @@ export function extendSession(
         for (const view of self.views) {
           if (view.type === 'LinearGenomeView' && view.initialized) {
             const { dynamicBlocks } = view as LinearGenomeViewModel
+            // eslint-disable-next-line unicorn/no-array-for-each
             dynamicBlocks.forEach((block) => {
               if (block.regionNumber !== undefined) {
-                const { assemblyName, refName, start, end } = block
+                const { assemblyName, end, refName, start } = block
                 locations.push({ assemblyName, refName, start, end })
               }
             })
           }
         }
-        if (!locations.length) {
+        if (locations.length === 0) {
           for (const internetAccount of internetAccounts as (
             | BaseInternetAccountModel
             | ApolloInternetAccountModel
@@ -194,15 +205,16 @@ export function extendSession(
             for (const view of self.views) {
               if (view.type === 'LinearGenomeView' && view.initialized) {
                 const { dynamicBlocks } = view as LinearGenomeViewModel
+                // eslint-disable-next-line unicorn/no-array-for-each
                 dynamicBlocks.forEach((block) => {
                   if (block.regionNumber !== undefined) {
-                    const { assemblyName, refName, start, end } = block
+                    const { assemblyName, end, refName, start } = block
                     locations.push({ assemblyName, refName, start, end })
                   }
                 })
               }
             }
-            if (!locations.length) {
+            if (locations.length === 0) {
               for (const internetAccount of internetAccounts as (
                 | BaseInternetAccountModel
                 | ApolloInternetAccountModel
@@ -243,7 +255,7 @@ export function extendSession(
             continue
           }
 
-          const { baseURL } = internetAccount
+          const { baseURL, configuration } = internetAccount
           const uri = new URL('assemblies', baseURL).href
           const fetch = internetAccount.getFetcher({
             locationType: 'UriLocation',
@@ -252,8 +264,8 @@ export function extendSession(
           let response: Response
           try {
             response = yield fetch(uri, { signal })
-          } catch (e) {
-            console.error(e)
+          } catch (error) {
+            console.error(error)
             // setError(e instanceof Error ? e : new Error(String(e)))
             continue
           }
@@ -269,15 +281,15 @@ export function extendSession(
           try {
             fetchedAssemblies =
               (yield response.json()) as ApolloAssemblyResponse[]
-          } catch (e) {
-            console.error(e)
+          } catch (error) {
+            console.error(error)
             continue
           }
           for (const assembly of fetchedAssemblies) {
-            const { assemblyManager } = self
+            const { addAssembly, addSessionAssembly, assemblyManager } = self
             const selectedAssembly = assemblyManager.get(assembly.name)
             if (selectedAssembly) {
-              self.addApolloTrackConfig(selectedAssembly)
+              self.addApolloTrackConfig(selectedAssembly, baseURL)
               continue
             }
             const url = new URL('refSeqs', baseURL)
@@ -295,7 +307,7 @@ export function extendSession(
               let errorMessage
               try {
                 errorMessage = yield response2.text()
-              } catch (e) {
+              } catch {
                 errorMessage = ''
               }
               throw new Error(
@@ -328,8 +340,7 @@ export function extendSession(
                 },
                 metadata: {
                   apollo: true,
-                  internetAccountConfigId:
-                    internetAccount.configuration.internetAccountId,
+                  internetAccountConfigId: configuration.internetAccountId,
                   ids,
                 },
               },
@@ -340,9 +351,9 @@ export function extendSession(
                 },
               },
             }
-            ;(self.addSessionAssembly || self.addAssembly)(assemblyConfig)
+            ;(addSessionAssembly || addAssembly)(assemblyConfig)
             const a = yield assemblyManager.waitForAssembly(assemblyConfig.name)
-            self.addApolloTrackConfig(a)
+            self.addApolloTrackConfig(a, baseURL)
           }
         }
       }),

@@ -66,3 +66,4 @@ FeatureSchema.add({ children: { type: Map, of: FeatureSchema } })
 
 FeatureSchema.index({ refSeq: 1, start: 1 })
 FeatureSchema.index({ refSeq: 1, end: 1 })
+FeatureSchema.index({ '$**': 'text' })

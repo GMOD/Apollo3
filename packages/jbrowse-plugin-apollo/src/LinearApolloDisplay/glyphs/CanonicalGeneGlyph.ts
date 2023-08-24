@@ -7,7 +7,7 @@ import { Glyph } from './Glyph'
 let forwardFill: CanvasPattern | null = null
 let backwardFill: CanvasPattern | null = null
 if ('document' in window) {
-  ;['forward', 'backward'].forEach((direction) => {
+  for (const direction of ['forward', 'backward']) {
     const canvas = document.createElement('canvas')
     const canvasSize = 10
     canvas.width = canvas.height = canvasSize
@@ -35,19 +35,78 @@ if ('document' in window) {
         backwardFill = ctx.createPattern(canvas, 'repeat')
       }
     }
-  })
+  }
+}
+
+interface AnnotationFeature {
+  parent?: AnnotationFeatureI
+  start?: number
+  end?: number
+  phase?: 0 | 1 | 2
+  annotationFeature: AnnotationFeatureI
+}
+
+interface CDSFeatures {
+  parent: AnnotationFeatureI
+  cds: AnnotationFeatureI
 }
 
 export class CanonicalGeneGlyph extends Glyph {
-  getRowCount(feature: AnnotationFeatureI, _bpPerPx: number): number {
+  featuresForRow(feature: AnnotationFeatureI): AnnotationFeature[][] {
+    const cdsFeatures: CDSFeatures[] = []
+    for (const [, child] of feature.children ?? new Map()) {
+      for (const [, annotationFeature] of child.children ?? new Map()) {
+        if (annotationFeature.type === 'CDS') {
+          cdsFeatures.push({
+            parent: child,
+            cds: annotationFeature,
+          })
+        }
+      }
+    }
+
+    const features: AnnotationFeature[][] = []
+    for (const f of cdsFeatures) {
+      const childFeatures: AnnotationFeature[] = []
+      for (const [, cf] of f.parent.children ?? new Map()) {
+        if (cf.type === 'CDS' && cf._id !== f.cds._id) {
+          continue
+        }
+        if (cf.discontinuousLocations && cf.discontinuousLocations.length > 0) {
+          for (const dl of cf.discontinuousLocations) {
+            childFeatures.push({
+              annotationFeature: cf,
+              parent: f.parent,
+              start: dl.start,
+              end: dl.end,
+              phase: dl.phase,
+            })
+          }
+        } else {
+          childFeatures.push({
+            annotationFeature: cf,
+            parent: f.parent,
+          })
+        }
+      }
+      childFeatures.push({
+        annotationFeature: f.parent,
+      })
+      features.push(childFeatures)
+    }
+
+    return features
+  }
+
+  getRowCount(feature: AnnotationFeatureI, _bpPerPx?: number): number {
     let cdsCount = 0
-    feature.children?.forEach((child: AnnotationFeatureI) => {
-      child.children?.forEach((grandchild: AnnotationFeatureI) => {
+    for (const [, child] of feature.children ?? new Map()) {
+      for (const [, grandchild] of child.children ?? new Map()) {
         if (grandchild.type === 'CDS') {
           cdsCount += 1
         }
-      })
-    })
+      }
+    }
     return cdsCount
   }
 
@@ -59,22 +118,23 @@ export class CanonicalGeneGlyph extends Glyph {
     row: number,
     reversed: boolean,
   ): void {
-    const { theme, lgv, session } = stateModel
+    const { apolloRowHeight, lgv, session, theme } = stateModel
     const { bpPerPx } = lgv
-    const rowHeight = stateModel.apolloRowHeight
+    const rowHeight = apolloRowHeight
     const utrHeight = Math.round(0.6 * rowHeight)
     const cdsHeight = Math.round(0.9 * rowHeight)
-    const { strand } = feature
+    const { _id, children, min, strand } = feature
+    const { apolloSelectedFeature } = session
     let currentCDS = 0
-    feature.children?.forEach((mrna: AnnotationFeatureI) => {
+    for (const [, mrna] of children ?? new Map()) {
       if (mrna.type !== 'mRNA') {
-        return
+        continue
       }
-      mrna.children?.forEach((cds: AnnotationFeatureI) => {
+      for (const [, cds] of mrna.children ?? new Map()) {
         if (cds.type !== 'CDS') {
-          return
+          continue
         }
-        const offsetPx = (mrna.start - feature.min) / bpPerPx
+        const offsetPx = (mrna.start - min) / bpPerPx
         const widthPx = mrna.length / bpPerPx
         const startPx = reversed
           ? xOffset - offsetPx - widthPx
@@ -87,22 +147,22 @@ export class CanonicalGeneGlyph extends Glyph {
         ctx.lineTo(startPx + widthPx, height)
         ctx.stroke()
         currentCDS += 1
-      })
-    })
-    currentCDS = 0
-    feature.children?.forEach((mrna: AnnotationFeatureI) => {
-      if (mrna.type !== 'mRNA') {
-        return
       }
-      const cdsCount = Array.from(mrna.children ?? []).filter(
+    }
+    currentCDS = 0
+    for (const [, mrna] of children ?? new Map()) {
+      if (mrna.type !== 'mRNA') {
+        continue
+      }
+      const cdsCount = [...(mrna.children ?? [])].filter(
         ([, exonOrCDS]) => exonOrCDS.type === 'CDS',
       ).length
-      new Array(cdsCount).fill(undefined).forEach(() => {
-        mrna.children?.forEach((exon: AnnotationFeatureI) => {
+      for (let count = 0; count < cdsCount; count++) {
+        for (const [, exon] of mrna.children ?? new Map()) {
           if (exon.type !== 'exon') {
-            return
+            continue
           }
-          const offsetPx = (exon.start - feature.min) / bpPerPx
+          const offsetPx = (exon.start - min) / bpPerPx
           const widthPx = exon.length / bpPerPx
           const startPx = reversed
             ? xOffset - offsetPx - widthPx
@@ -113,7 +173,10 @@ export class CanonicalGeneGlyph extends Glyph {
           ctx.fillRect(startPx, utrTop, widthPx, utrHeight)
           if (widthPx > 2) {
             ctx.clearRect(startPx + 1, utrTop + 1, widthPx - 2, utrHeight - 2)
-            ctx.fillStyle = 'rgb(211,211,211)'
+            ctx.fillStyle =
+              apolloSelectedFeature && exon._id === apolloSelectedFeature._id
+                ? 'rgb(0,0,0)'
+                : 'rgb(211,211,211)'
             ctx.fillRect(startPx + 1, utrTop + 1, widthPx - 2, utrHeight - 2)
             if (forwardFill && backwardFill && strand) {
               const reversal = reversed ? -1 : 1
@@ -137,111 +200,240 @@ export class CanonicalGeneGlyph extends Glyph {
               )
             }
           }
-        })
-        currentCDS += 1
-      })
-    })
-    currentCDS = 0
-    feature.children?.forEach((mrna: AnnotationFeatureI) => {
-      if (mrna.type !== 'mRNA') {
-        return
-      }
-      mrna.children?.forEach((cds: AnnotationFeatureI) => {
-        if (cds.type !== 'CDS') {
-          return
         }
-        cds.discontinuousLocations?.forEach((cdsLocation) => {
-          const offsetPx = (cdsLocation.start - feature.min) / bpPerPx
-          const widthPx = (cdsLocation.end - cdsLocation.start) / bpPerPx
-          const startPx = reversed
-            ? xOffset - offsetPx - widthPx
-            : xOffset + offsetPx
-          ctx.fillStyle = theme?.palette.text.primary ?? 'black'
-          const top = (row + currentCDS) * rowHeight
-          const cdsTop = top + (rowHeight - cdsHeight) / 2
-          ctx.fillRect(startPx, cdsTop, widthPx, cdsHeight)
-          if (widthPx > 2) {
-            ctx.clearRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
-            ctx.fillStyle = 'rgb(255,165,0)'
-            ctx.fillRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
-            if (forwardFill && backwardFill && strand) {
-              const reversal = reversed ? -1 : 1
-              const [topFill, bottomFill] =
-                strand * reversal === 1
-                  ? [forwardFill, backwardFill]
-                  : [backwardFill, forwardFill]
-              ctx.fillStyle = topFill
-              ctx.fillRect(
-                startPx + 1,
-                cdsTop + 1,
-                widthPx - 2,
-                (cdsHeight - 2) / 2,
-              )
-              ctx.fillStyle = bottomFill
-              ctx.fillRect(
-                startPx + 1,
-                cdsTop + (cdsHeight - 2) / 2,
-                widthPx - 2,
-                (cdsHeight - 2) / 2,
-              )
+        currentCDS += 1
+      }
+    }
+    currentCDS = 0
+    for (const [, mrna] of children ?? new Map()) {
+      if (mrna.type !== 'mRNA') {
+        continue
+      }
+      for (const [, cds] of mrna.children ?? new Map()) {
+        if (cds.type !== 'CDS') {
+          continue
+        }
+        if (cds.discontinuousLocations) {
+          for (const cdsLocation of cds.discontinuousLocations) {
+            const offsetPx = (cdsLocation.start - min) / bpPerPx
+            const widthPx = (cdsLocation.end - cdsLocation.start) / bpPerPx
+            const startPx = reversed
+              ? xOffset - offsetPx - widthPx
+              : xOffset + offsetPx
+            ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+            const top = (row + currentCDS) * rowHeight
+            const cdsTop = top + (rowHeight - cdsHeight) / 2
+            ctx.fillRect(startPx, cdsTop, widthPx, cdsHeight)
+            if (widthPx > 2) {
+              ctx.clearRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
+              ctx.fillStyle =
+                apolloSelectedFeature && cds._id === apolloSelectedFeature._id
+                  ? 'rgb(0,0,0)'
+                  : 'rgb(255,165,0)'
+              ctx.fillRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
+              if (forwardFill && backwardFill && strand) {
+                const reversal = reversed ? -1 : 1
+                const [topFill, bottomFill] =
+                  strand * reversal === 1
+                    ? [forwardFill, backwardFill]
+                    : [backwardFill, forwardFill]
+                ctx.fillStyle = topFill
+                ctx.fillRect(
+                  startPx + 1,
+                  cdsTop + 1,
+                  widthPx - 2,
+                  (cdsHeight - 2) / 2,
+                )
+                ctx.fillStyle = bottomFill
+                ctx.fillRect(
+                  startPx + 1,
+                  cdsTop + (cdsHeight - 2) / 2,
+                  widthPx - 2,
+                  (cdsHeight - 2) / 2,
+                )
+              }
             }
           }
-        })
+        }
         currentCDS += 1
-      })
-    })
-    const { apolloSelectedFeature } = session
-    if (apolloSelectedFeature && feature._id === apolloSelectedFeature._id) {
-      const widthPx = feature.max - feature.min
-      const startPx = reversed ? xOffset - widthPx : xOffset
-      const top = row * rowHeight
-      const height = this.getRowCount(feature, bpPerPx) * rowHeight
-      ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,0.08)'
-      ctx.fillRect(startPx, top, widthPx, height)
+      }
+    }
+    if (apolloSelectedFeature) {
+      if (_id === apolloSelectedFeature._id) {
+        const widthPx = feature.length / bpPerPx
+        const startPx = reversed ? xOffset - widthPx : xOffset
+        const top = row * rowHeight
+        const height = this.getRowCount(feature) * rowHeight
+        ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,0.08)'
+        ctx.fillRect(startPx, top, widthPx, height)
+      } else {
+        let featureEntry: AnnotationFeatureI | undefined
+        let featureRow: number | undefined
+        let i = 0
+        for (const [, f] of children ?? new Map()) {
+          if (f._id === apolloSelectedFeature?._id) {
+            featureEntry = f
+            featureRow = i
+          }
+          i++
+        }
+
+        if (featureEntry === undefined || featureRow === undefined) {
+          return
+        }
+        const cdsCount = this.cdsCount(featureEntry)
+        let height = rowHeight
+        if (cdsCount > 1) {
+          height = height * cdsCount
+        }
+        const widthPx = featureEntry.length / bpPerPx
+        const offsetPx = (featureEntry.start - min) / bpPerPx
+        const startPx = reversed ? xOffset - widthPx : xOffset + offsetPx
+        const top = (row + featureRow) * rowHeight
+        ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,08)'
+        ctx.fillRect(startPx, top, widthPx, height)
+      }
     }
   }
 
-  drawHover(stateModel: LinearApolloDisplay, ctx: CanvasRenderingContext2D) {
-    const hover = stateModel.apolloHover
-    if (!hover) {
+  // CDS count with discontinuous locations
+  cdsCount(feature?: AnnotationFeatureI) {
+    let cdsCount = 0
+    for (const [, cf] of feature?.children ?? new Map()) {
+      if (
+        cf.type === 'CDS' &&
+        cf.discontinuousLocations &&
+        cf.discontinuousLocations.length > 0
+      ) {
+        cdsCount++
+      }
+    }
+    return cdsCount
+  }
+
+  drawHover(
+    stateModel: LinearApolloDisplay,
+    ctx: CanvasRenderingContext2D,
+    rowNum: number,
+    xOffset: number,
+    reversed: boolean,
+  ) {
+    const { apolloHover } = stateModel
+    if (!apolloHover) {
       return
     }
-    const { topLevelFeature, mousePosition } = hover
-    if (!(topLevelFeature && mousePosition)) {
+    const { feature } = apolloHover
+    if (!feature) {
       return
     }
-    const rowHeight = stateModel.apolloRowHeight
-    const rowNumber = Math.floor(mousePosition.y / rowHeight)
-    const { featureLayouts } = stateModel
-    const layout = featureLayouts[mousePosition.regionNumber]
-    const row = layout.get(rowNumber)
-    const featureRowEntry = row?.find(
-      ([, feature]) => feature._id === topLevelFeature._id,
-    )
-    if (!featureRowEntry) {
+
+    if (
+      feature.discontinuousLocations &&
+      feature.discontinuousLocations.length > 0
+    ) {
+      for (const dl of feature.discontinuousLocations) {
+        this.drawShadeForFeature(
+          stateModel,
+          ctx,
+          dl.start,
+          dl.end,
+          dl.end - dl.start,
+        )
+      }
+    } else {
+      this.drawShadeForFeature(
+        stateModel,
+        ctx,
+        feature.start,
+        feature.end,
+        feature.length,
+        rowNum,
+        xOffset,
+        reversed,
+      )
+    }
+  }
+
+  drawShadeForFeature(
+    stateModel: LinearApolloDisplay,
+    ctx: CanvasRenderingContext2D,
+    start: number,
+    end: number,
+    length: number,
+    rowNum?: number,
+    xOffset?: number,
+    reversed?: boolean,
+  ) {
+    const { apolloHover, apolloRowHeight, displayedRegions, lgv, theme } =
+      stateModel
+    const { bpPerPx, bpToPx, offsetPx } = lgv
+
+    if (!apolloHover) {
       return
     }
-    const displayedRegion =
-      stateModel.displayedRegions[mousePosition.regionNumber]
-    const x =
-      (stateModel.lgv.bpToPx({
-        refName: displayedRegion.refName,
-        coord: topLevelFeature.min,
-        regionNumber: mousePosition.regionNumber,
-      })?.offsetPx ?? 0) - stateModel.lgv.offsetPx
-    const [featureRowNumber] = featureRowEntry
-    const topRowNumber = rowNumber - featureRowNumber
-    const y = topRowNumber * rowHeight
-    const { bpPerPx } = stateModel.lgv
-    const width = topLevelFeature.end - topLevelFeature.start
-    const widthPx = width / bpPerPx
-    const startBp = displayedRegion.reversed
-      ? topLevelFeature.max - topLevelFeature.end
-      : topLevelFeature.start - topLevelFeature.min
-    const startPx = startBp / bpPerPx
-    ctx.fillStyle = stateModel.theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
-    const height = this.getRowCount(topLevelFeature, bpPerPx) * rowHeight
-    ctx.fillRect(x + startPx, y, widthPx, height)
+    const { feature, topLevelFeature } = apolloHover
+
+    if (!feature || !topLevelFeature) {
+      return
+    }
+
+    let featureEntry: AnnotationFeatureI | undefined
+    let childFeature: AnnotationFeatureI | undefined
+    let featureRow: number | undefined
+    let i = 0
+    for (const [, f] of topLevelFeature.children ?? new Map()) {
+      if (f._id === feature?._id) {
+        featureEntry = f
+        featureRow = i
+      }
+      for (const [, cf] of f.children ?? new Map()) {
+        if (cf._id === feature._id) {
+          childFeature = cf
+          featureEntry = f
+          featureRow = i
+        }
+      }
+      i++
+    }
+
+    const cdsCount = this.cdsCount(featureEntry)
+
+    if (cdsCount > 1 && rowNum && xOffset) {
+      if (featureEntry === undefined || featureRow === undefined) {
+        return
+      }
+      const widthPx = childFeature
+        ? childFeature.length / bpPerPx
+        : featureEntry.length / bpPerPx
+      const offsetPx = childFeature
+        ? (childFeature.start - feature.min) / bpPerPx
+        : (featureEntry.start - feature.min) / bpPerPx
+      const startPx = reversed ? xOffset - widthPx : xOffset + offsetPx
+      const top = (rowNum + featureRow) * apolloRowHeight
+      ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,04)'
+      ctx.fillRect(startPx, top, widthPx, apolloRowHeight * cdsCount)
+    } else {
+      const { mousePosition } = apolloHover
+      if (!mousePosition) {
+        return
+      }
+      const rowHeight = apolloRowHeight
+      const { regionNumber, y } = mousePosition
+      const rowNumber = Math.floor(y / rowHeight)
+
+      const displayedRegion = displayedRegions[regionNumber]
+      const { refName, reversed } = displayedRegion
+      const startPx =
+        (bpToPx({
+          refName,
+          coord: reversed ? end : start,
+          regionNumber,
+        })?.offsetPx ?? 0) - offsetPx
+      const top = rowNumber * rowHeight
+      const widthPx = length / bpPerPx
+      ctx.fillStyle = theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
+      ctx.fillRect(startPx, top, widthPx, rowHeight)
+    }
   }
 
   onMouseUp(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
@@ -256,7 +448,37 @@ export class CanonicalGeneGlyph extends Glyph {
 
   getFeatureFromLayout(
     feature: AnnotationFeatureI,
+    bp: number,
+    row: number,
   ): AnnotationFeatureI | undefined {
-    return feature
+    const featuresForRow: AnnotationFeature[] =
+      this.featuresForRow(feature)[row]
+    let featureFromLayout: AnnotationFeatureI | undefined
+
+    for (const f of featuresForRow) {
+      if (
+        f.start !== undefined &&
+        f.end !== undefined &&
+        f.phase !== undefined
+      ) {
+        if (bp >= f.start && bp <= f.end && f.parent) {
+          featureFromLayout = f.annotationFeature
+        }
+      } else {
+        if (
+          bp >= f.annotationFeature.start &&
+          bp <= f.annotationFeature.end &&
+          f.parent
+        ) {
+          featureFromLayout = f.annotationFeature
+        }
+      }
+    }
+
+    if (!featureFromLayout) {
+      featureFromLayout = featuresForRow.at(-1)?.annotationFeature
+    }
+
+    return featureFromLayout
   }
 }

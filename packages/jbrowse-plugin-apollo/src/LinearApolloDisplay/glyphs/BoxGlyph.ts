@@ -20,7 +20,7 @@ export class BoxGlyph extends Glyph {
     row: number,
     reversed: boolean,
   ) {
-    const { lgv, theme, apolloRowHeight: rowHeight, session } = stateModel
+    const { apolloRowHeight: rowHeight, lgv, session, theme } = stateModel
     const { bpPerPx } = lgv
     const { apolloSelectedFeature } = session
     const offsetPx = (feature.start - feature.min) / bpPerPx
@@ -61,19 +61,11 @@ export class BoxGlyph extends Glyph {
     if (!mousePosition) {
       return
     }
-    const { x, regionNumber, refName } = mousePosition
+    const { refName, regionNumber, x } = mousePosition
     const { lgv } = stateModel
-    const { offsetPx, bpToPx } = lgv
-    const startPxInfo = bpToPx({
-      refName,
-      coord: feature.start,
-      regionNumber,
-    })
-    const endPxInfo = bpToPx({
-      refName,
-      coord: feature.end,
-      regionNumber,
-    })
+    const { bpToPx, offsetPx } = lgv
+    const startPxInfo = bpToPx({ refName, coord: feature.start, regionNumber })
+    const endPxInfo = bpToPx({ refName, coord: feature.end, regionNumber })
     if (startPxInfo !== undefined && endPxInfo !== undefined) {
       const startPx = startPxInfo.offsetPx - offsetPx
       const endPx = endPxInfo.offsetPx - offsetPx
@@ -87,11 +79,11 @@ export class BoxGlyph extends Glyph {
         return 'end'
       }
     }
-    return undefined
+    return
   }
 
   drawHover(stateModel: LinearApolloDisplay, ctx: CanvasRenderingContext2D) {
-    const { apolloHover, lgv, apolloRowHeight, displayedRegions, theme } =
+    const { apolloHover, apolloRowHeight, displayedRegions, lgv, theme } =
       stateModel
     if (!apolloHover) {
       return
@@ -103,7 +95,7 @@ export class BoxGlyph extends Glyph {
     const { bpPerPx, bpToPx, offsetPx } = lgv
     const displayedRegion = displayedRegions[mousePosition.regionNumber]
     const { refName, reversed } = displayedRegion
-    const { start, end, length } = feature
+    const { end, length, start } = feature
     const { regionNumber, y } = mousePosition
     const startPx =
       (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
@@ -119,7 +111,7 @@ export class BoxGlyph extends Glyph {
     stateModel: LinearApolloDisplay,
     overlayCtx: CanvasRenderingContext2D,
   ) {
-    const { apolloDragging, lgv, apolloRowHeight, displayedRegions, theme } =
+    const { apolloDragging, apolloRowHeight, displayedRegions, lgv, theme } =
       stateModel
     const { bpPerPx, offsetPx } = lgv
     if (!apolloDragging) {
@@ -182,7 +174,7 @@ export class BoxGlyph extends Glyph {
       if (edge) {
         stateModel.setCursor('col-resize')
       } else {
-        stateModel.setCursor(undefined)
+        stateModel.setCursor()
       }
     }
   }
@@ -211,7 +203,7 @@ export class BoxGlyph extends Glyph {
 
   startDrag(stateModel: LinearApolloDisplay): boolean {
     // only accept the drag if we are on the edge of the feature
-    const { mousePosition, feature } = stateModel.apolloDragging?.start ?? {}
+    const { feature, mousePosition } = stateModel.apolloDragging?.start ?? {}
     if (feature && mousePosition) {
       const edge = this.isMouseOnFeatureEdge(mousePosition, feature, stateModel)
       if (edge) {
@@ -224,9 +216,9 @@ export class BoxGlyph extends Glyph {
   executeDrag(stateModel: LinearApolloDisplay) {
     const {
       apolloDragging,
+      changeManager,
       displayedRegions,
       getAssemblyId,
-      changeManager,
       setCursor,
     } = stateModel
     if (!apolloDragging) {
@@ -286,6 +278,6 @@ export class BoxGlyph extends Glyph {
       throw new Error('no change manager')
     }
     changeManager.submit(change)
-    setCursor(undefined)
+    setCursor()
   }
 }

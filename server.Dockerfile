@@ -8,7 +8,7 @@ COPY packages packages
 RUN find packages/ -type f \! \( -name "package.json" -o -name "yarn.lock" \) -delete
 RUN find . -type d -empty -delete
 
-FROM node:16
+FROM node:18
 WORKDIR /app
 COPY --from=setup /app .
 RUN yarn install --immutable

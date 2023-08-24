@@ -23,9 +23,9 @@ export function layoutsModelFactory(
         const { assemblyManager } = self.session
         return self.displayedRegions.map((region) => {
           const assembly = assemblyManager.get(region.assemblyName)
-          let min: number | undefined = undefined
-          let max: number | undefined = undefined
-          const { refName, start, end } = region
+          let min: number | undefined
+          let max: number | undefined
+          const { end, refName, start } = region
           for (const [, feature] of self.seenFeatures) {
             if (
               refName !== assembly?.getCanonicalRefName(feature.refSeq) ||
@@ -49,7 +49,7 @@ export function layoutsModelFactory(
           if (min !== undefined && max !== undefined) {
             return [min, max]
           }
-          return undefined
+          return
         })
       },
     }))
@@ -76,17 +76,17 @@ export function layoutsModelFactory(
           }
           const [min, max] = minMax
           const rows: boolean[][] = []
-          const { refName, start, end } = region
-          self.seenFeatures.forEach((feature, id) => {
+          const { end, refName, start } = region
+          for (const [id, feature] of self.seenFeatures.entries()) {
             if (!isAlive(feature)) {
               self.deleteSeenFeature(id)
-              return
+              continue
             }
             if (
               refName !== assembly?.getCanonicalRefName(feature.refSeq) ||
               !doesIntersect2(start, end, feature.min, feature.max)
             ) {
-              return
+              continue
             }
             const rowCount = getGlyph(feature, self.lgv.bpPerPx).getRowCount(
               feature,
@@ -102,7 +102,7 @@ export function layoutsModelFactory(
               if (rowsForFeature.length < rowCount) {
                 for (let i = 0; i < rowCount - rowsForFeature.length; i++) {
                   const newRowNumber = rows.length
-                  rows[newRowNumber] = new Array(max - min)
+                  rows[newRowNumber] = Array.from({ length: max - min })
                   featureLayout.set(newRowNumber, [])
                 }
                 rowsForFeature = rows.slice(startingRow, startingRow + rowCount)
@@ -136,7 +136,7 @@ export function layoutsModelFactory(
               }
               placed = true
             }
-          })
+          }
           return featureLayout
         })
       },
@@ -151,7 +151,7 @@ export function layoutsModelFactory(
             }
           }
         }
-        return undefined
+        return
       },
     }))
     .views((self) => ({
@@ -176,7 +176,7 @@ export function layoutsModelFactory(
                   region.assemblyName,
                 )
                 const ref = assembly?.getByRefName(region.refName)
-                ref?.features.forEach((feature: AnnotationFeatureI) => {
+                for (const [, feature] of ref?.features ?? new Map()) {
                   if (
                     doesIntersect2(
                       region.start,
@@ -188,7 +188,7 @@ export function layoutsModelFactory(
                   ) {
                     self.addSeenFeature(feature)
                   }
-                })
+                }
               }
             },
             { name: 'LinearApolloDisplaySetSeenFeatures', delay: 1000 },

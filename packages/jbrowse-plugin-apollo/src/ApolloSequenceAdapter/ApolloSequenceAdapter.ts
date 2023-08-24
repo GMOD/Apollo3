@@ -79,7 +79,7 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
    * @returns Observable of Feature objects in the region
    */
   public getFeatures(
-    { refName, start, end }: NoAssemblyRegion,
+    { end, refName, start }: NoAssemblyRegion,
     opts: BaseOptions,
   ) {
     return ObservableCreate<Feature>(async (observer) => {

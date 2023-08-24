@@ -84,7 +84,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     useState(false)
   const [collaborators, setCollaborators] = useState<Collaborator[]>([])
 
-  const { regions, bpPerPx, displayModel } = props
+  const { bpPerPx, displayModel, regions } = props
   const session = getSession(displayModel)
   const { collaborators: collabs } = session
 
@@ -95,28 +95,28 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const [region] = regions
   const totalWidth = (region.end - region.start) / bpPerPx
   const {
-    featureLayout,
-    codonLayout,
     apolloFeatureUnderMouse,
-    setApolloFeatureUnderMouse,
+    apolloRowHeight: height,
     apolloRowUnderMouse,
-    setApolloRowUnderMouse,
     changeManager,
-    getAssemblyId,
-    selectedFeature,
-    setSelectedFeature,
+    codonLayout,
+    featureLayout,
     features,
     featuresHeight: totalHeight,
-    apolloRowHeight: height,
+    getAssemblyId,
+    selectedFeature,
+    setApolloFeatureUnderMouse,
+    setApolloRowUnderMouse,
+    setSelectedFeature,
+    showIntronLines: showLines,
     showStartCodons: showStarts,
     showStopCodons: showStops,
-    showIntronLines: showLines,
   } = displayModel
   // use this to convince useEffect that the features really did change
-  const featureSnap = Array.from(features.values()).map((a) =>
+  const featureSnap = [...features.values()].map((a) =>
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
-    Array.from(a.values()).map((f) => getSnapshot(f)),
+    [...a.values()].map((f) => getSnapshot(f)),
   )
 
   const apolloInternetAccount = useMemo(() => {
@@ -185,14 +185,14 @@ function ApolloRendering(props: ApolloRenderingProps) {
           transcript[parentID] = []
         }
         if (
-          !transcript[parentID].find(
+          !transcript[parentID].some(
             (el) => el[0] === startPx && el[1] === lineY,
           )
         ) {
           transcript[parentID].push([startPx, lineY])
         }
         if (
-          !transcript[parentID].find((el) => el[0] === endPx && el[1] === lineY)
+          !transcript[parentID].some((el) => el[0] === endPx && el[1] === lineY)
         ) {
           transcript[parentID].push([endPx, lineY])
         }
@@ -202,38 +202,33 @@ function ApolloRendering(props: ApolloRenderingProps) {
       let offset = -Math.floor(Object.keys(transcript).length / 2)
       for (const pid in transcript) {
         ctx.strokeStyle = selectColor(offset)
-        let prevCoords: [number, number]
-        transcript[pid]
-          .sort(function (a, b) {
-            return a[0] - b[0]
-          })
-
-          .forEach((coords, index) => {
-            if (index === 0) {
-              prevCoords = coords
-            } else {
-              if (index % 2 === 0) {
-                /** Mid-point for intron line "hat" */
-                const midPoint: [number, number] = [
-                  (coords[0] - prevCoords[0]) / 2 + prevCoords[0],
-                  Math.max(
-                    1, // Avoid render ceiling
-                    Math.min(prevCoords[1], coords[1]) -
-                      height / 2 +
-                      offset * 2,
-                  ),
-                ]
-                ctx.beginPath()
-                ctx.moveTo(prevCoords[0], prevCoords[1] + offset * 2)
-                ctx.lineTo(...midPoint)
-                ctx.stroke()
-                ctx.moveTo(...midPoint)
-                ctx.lineTo(coords[0], coords[1] + offset * 2)
-                ctx.stroke()
-              }
-              prevCoords = coords
-            }
-          })
+        const sortedCoords = transcript[pid].sort((a, b) => {
+          return a[0] - b[0]
+        })
+        let [prevCoords] = sortedCoords
+        for (const [index, coords] of sortedCoords.entries()) {
+          if (index === 0) {
+            continue
+          }
+          if (index % 2 === 0) {
+            /** Mid-point for intron line "hat" */
+            const midPoint: [number, number] = [
+              (coords[0] - prevCoords[0]) / 2 + prevCoords[0],
+              Math.max(
+                1, // Avoid render ceiling
+                Math.min(prevCoords[1], coords[1]) - height / 2 + offset * 2,
+              ),
+            ]
+            ctx.beginPath()
+            ctx.moveTo(prevCoords[0], prevCoords[1] + offset * 2)
+            ctx.lineTo(...midPoint)
+            ctx.stroke()
+            ctx.moveTo(...midPoint)
+            ctx.lineTo(coords[0], coords[1] + offset * 2)
+            ctx.stroke()
+          }
+          prevCoords = coords
+        }
         offset += 1
       }
     }
@@ -364,11 +359,11 @@ function ApolloRendering(props: ApolloRenderingProps) {
     // }
     for (const collaborator of collaborators) {
       const { locations } = collaborator
-      if (!locations.length) {
+      if (locations.length === 0) {
         return
       }
       for (const location of locations) {
-        const { start, end } = location
+        const { end, start } = location
         const locationStart = region.reversed
           ? region.end - start
           : start - region.start
@@ -485,8 +480,8 @@ function ApolloRendering(props: ApolloRenderingProps) {
   //   setApolloRowUnderMouse(row)
   // }
   function onMouseLeave() {
-    setApolloFeatureUnderMouse(undefined)
-    setApolloRowUnderMouse(undefined)
+    setApolloFeatureUnderMouse()
+    setApolloRowUnderMouse()
   }
   // function onMouseDown(event: React.MouseEvent) {
   //   if (apolloFeatureUnderMouse && overEdge) {
@@ -513,7 +508,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
       }
     } else if (dragging) {
       const assembly = getAssemblyId(region.assemblyName)
-      const { feature, bp, edge } = dragging
+      const { bp, edge, feature } = dragging
       let change: LocationEndChange | LocationStartChange
       if (edge === 'end') {
         const featureId = feature._id
@@ -542,6 +537,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
       }
       await changeManager?.submit(change)
     }
+    // eslint-disable-next-line unicorn/no-useless-undefined
     setDragging(undefined)
     setMovedDuringLastMouseDown(false)
   }
@@ -565,6 +561,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
         }
         data-testid="base_linear_display_context_menu"
         onClose={() => {
+          // eslint-disable-next-line unicorn/no-useless-undefined
           setContextMenuFeature(undefined)
         }}
       >
@@ -583,6 +580,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
                 session,
                 handleClose: () => {
                   doneCallback()
+                  // eslint-disable-next-line unicorn/no-useless-undefined
                   setContextMenuFeature(undefined)
                 },
                 changeManager,
@@ -610,6 +608,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
                 session,
                 handleClose: () => {
                   doneCallback()
+                  // eslint-disable-next-line unicorn/no-useless-undefined
                   setContextMenuFeature(undefined)
                 },
                 changeManager,
@@ -636,6 +635,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
                 session,
                 handleClose: () => {
                   doneCallback()
+                  // eslint-disable-next-line unicorn/no-useless-undefined
                   setContextMenuFeature(undefined)
                 },
                 changeManager,
