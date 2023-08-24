@@ -49,9 +49,9 @@ export class AddAssemblyFromExternalChange extends AssemblySpecificChange {
   }
 
   toJSON(): SerializedAddAssemblyFromExternalChange {
-    const { changes, typeName, assembly } = this
+    const { assembly, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ externalLocation, assemblyName }] = changes
+      const [{ assemblyName, externalLocation }] = changes
       return { typeName, assembly, assemblyName, externalLocation }
     }
     return { typeName, assembly, changes }
@@ -64,7 +64,7 @@ export class AddAssemblyFromExternalChange extends AssemblySpecificChange {
    */
   async executeOnServer(backend: ServerDataStore) {
     const { assemblyModel, refSeqModel, user } = backend
-    const { changes, assembly, logger } = this
+    const { assembly, changes, logger } = this
     const { CHUNK_SIZE } = process.env
     const customChunkSize = CHUNK_SIZE && Number(CHUNK_SIZE)
 
@@ -126,7 +126,7 @@ export class AddAssemblyFromExternalChange extends AssemblySpecificChange {
   async executeOnClient(_dataStore: ClientDataStore) {}
 
   getInverse() {
-    const { typeName, changes, assembly, logger } = this
+    const { assembly, changes, logger, typeName } = this
     return new AddAssemblyFromExternalChange(
       { typeName, changes, assembly },
       { logger },

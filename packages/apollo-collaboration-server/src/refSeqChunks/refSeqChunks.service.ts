@@ -36,7 +36,7 @@ export class RefSeqChunksService {
       throw new Error(`RefSeq "${refSeqId}" not found`)
     }
 
-    const { chunkSize, assembly, name } = refSeq
+    const { assembly, chunkSize, name } = refSeq
     const assemblyDoc = await this.assembliesService.findOne(
       assembly.toString(),
     )
