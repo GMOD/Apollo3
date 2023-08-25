@@ -211,7 +211,8 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
           return
         }
         setSelectedFilePath(selectedFilePath)
-        setFileName(path.basename(selectedFilePath))
+        const fileNam = path.basename(selectedFilePath)
+        setFileName(fileNam)
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const fs = require('node:fs')
         try {
@@ -223,11 +224,11 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
 
         setErrorMessage('')
         if (!assemblyName) {
-          const lastDotIndex = fileName.lastIndexOf('.')
+          const lastDotIndex = fileNam.lastIndexOf('.')
           if (lastDotIndex === -1) {
-            setAssemblyName(fileName)
+            setAssemblyName(fileNam)
           } else {
-            setAssemblyName(fileName.slice(0, lastDotIndex))
+            setAssemblyName(fileNam.slice(0, lastDotIndex))
           }
         }
       })
@@ -261,7 +262,7 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
                   />
                 </Button>
               )}
-              {file ? file.name : 'No file chosen'}
+              {isElectron ? (fileName ? fileName : 'No file chosen') : (file ? file.name : 'No file chosen')}
             </div>
             <FormHelperText>
               Make sure your GFF3 has an embedded FASTA section
