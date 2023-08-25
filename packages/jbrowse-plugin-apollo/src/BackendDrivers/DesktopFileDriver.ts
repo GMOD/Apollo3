@@ -227,202 +227,6 @@ export class DesktopFileDriver extends BackendDriver {
     return response.json() as Promise<AnnotationFeatureSnapshot[]>
   }
 
-  /**
-   * Call backend endpoint to get features by criteria
-   * @param region -  Searchable region containing refSeq, start and end
-   * @returns
-   */
-  /*
-  async getFeatures(region: Region) {
-    let feature: AnnotationFeatureSnapshot
-    const { assemblyName, refName, start, end } = region
-    const { assemblyManager } = getSession(this.clientStore)
-    const assembly = assemblyManager.get(assemblyName)
-    if (!assembly) {
-      throw new Error(`Could not find assembly with name "${assemblyName}"`)
-    }
-    // const { ids } = getConf(assembly, ['sequence', 'metadata']) as {
-    //   ids: Record<string, string>
-    // }
-    const { file } = getConf(assembly, ['sequence', 'metadata'])
-    console.log(`Filename: ${file}`)
-    if (!file) {
-      throw new Error('Could not get local filename')
-    }
-    console.log(`region: ${JSON.stringify(region)}`)
-    console.log(`assembly: ${JSON.stringify(assembly)}`)
-    console.log(`assemblyName: ${assemblyName}`)
-    console.log(`refName: ${refName}`)
-    //* *********** 
-    // Here read the file and parse features
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fs = require('fs')
-    const filePath = '/Users/kyosti/src/Apollo/Assembly_files/volvox.sort.fasta.gff3' // Replace with the actual file path
-    let featuresAndSequences: (GFF3Feature | GFF3Sequence)[] = []
-
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fsPromises = require('fs').promises;
-    const fileData = await fsPromises.readFile(filePath, 'utf-8');
-    // console.log(`++++++++++++++++ FILEDATA: ${JSON.stringify(fileData)}`)
-    try {
-      featuresAndSequences = gff.parseStringSync(fileData, {
-        parseSequences: false,
-        parseComments: false,
-        parseDirectives: false,
-        parseFeatures: isElectron ? true : false,
-      })
-    } catch (error) {
-      throw new Error(`Error parsing GFF3 file: ${error}`)
-    }
-    const session = getSession(this.clientStore)
-    console.log(`featuresAndSequences: ${JSON.stringify(featuresAndSequences)}`)
-    if (featuresAndSequences.length === 0) {
-      throw new Error('No features found in GFF3 file')
-    }
-    for (const seqLine of featuresAndSequences) {
-      if (Array.isArray(seqLine)) {
-        // regular feature
-        feature = createFeature(seqLine)
-        console.log(`REFNAMES: ${JSON.stringify(assembly.refNames)}`)
-
-        // let ref = assembly.refSeqs.get(feature.refSeq)
-        // if (!ref) {
-        //   ref = assembly2.refNames.addRefSeq(feature.refSeq, feature.refSeq)
-        // }
-        // if (!ref.features.has(feature._id)) {
-        //   ref.addFeature(feature)
-        // }
-        // let ref = assembly.refSeqs.get(feature.refSeq)
-        // if (!ref) {
-        //   ref = assembly.addRefSeq(feature.refSeq, feature.refSeq)
-        // }
-        // if (!ref.features.has(feature._id)) {
-        //   ref.addFeature(feature)
-        // }
-        console.log(`*** feature: ${JSON.stringify(feature)}`)
-      } else {
-        console.log(`SEQLINE ELSE: ${seqLine}`)
-        // sequence feature
-        // sequenceAdapterFeatures.push({
-        //   refName: seqLine.id,
-        //   uniqueId: `${assemblyId}-${seqLine.id}`,
-        //   start: 0,
-        //   end: seqLine.sequence.length,
-        //   seq: seqLine.sequence,
-        // })
-      }
-  }  
-    /*
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await fs.readFile(filePath, 'utf8', (err: any, data: any) => {
-      if (err) {
-        console.error('Error reading the file:', err)
-        return
-      }
-      try {
-        featuresAndSequences = gff.parseStringSync(data, {
-          parseSequences: true,
-          parseComments: false,
-          parseDirectives: false,
-          parseFeatures: isElectron ? true : false,
-        })
-      } catch (error) {
-        throw new Error(`Error parsing GFF3 file: ${error}`)
-      }
-      console.log(`featuresAndSequences: ${JSON.stringify(featuresAndSequences)}`)
-      if (featuresAndSequences.length === 0) {
-        throw new Error('No features found in GFF3 file')
-      }
-      for (const seqLine of featuresAndSequences) {
-        if (Array.isArray(seqLine)) {
-          console.log(`SEQLINE: ${seqLine}`)
-          // regular feature
-          feature = createFeature(seqLine)
-          // let ref = assembly.refSeqs.get(feature.refSeq)
-          // if (!ref) {
-          //   ref = assembly.refNames.addRefSeq(feature.refSeq, feature.refSeq)
-          // }
-          // if (!ref.features.has(feature._id)) {
-          //   ref.addFeature(feature)
-          // }
-          // let ref = assembly.refSeqs.get(feature.refSeq)
-          // if (!ref) {
-          //   ref = assembly.addRefSeq(feature.refSeq, feature.refSeq)
-          // }
-          // if (!ref.features.has(feature._id)) {
-          //   ref.addFeature(feature)
-          // }
-          console.log(`*** feature: ${JSON.stringify(feature)}`)
-        } else {
-          console.log(`SEQLINE ELSE: ${seqLine}`)
-          // sequence feature
-          // sequenceAdapterFeatures.push({
-          //   refName: seqLine.id,
-          //   uniqueId: `${assemblyId}-${seqLine.id}`,
-          //   start: 0,
-          //   end: seqLine.sequence.length,
-          //   seq: seqLine.sequence,
-          // })
-        }
-      }  
-          console.log(`*** RETURNED  FEATURE: ${JSON.stringify(feature)}`)
-          return feature as unknown as Promise<AnnotationFeatureSnapshot[]>
-
-    })
-    // 
-    console.log('*** Tiedosto luettu!!!')
-    // //* ******* 
-    // let featuresAndSequences: (GFF3Feature | GFF3Sequence)[] = []
-    // try {
-    //   featuresAndSequences = gff.parseStringSync(data, {
-    //     parseSequences: true,
-    //     parseComments: false,
-    //     parseDirectives: false,
-    //     parseFeatures: isElectron ? false : true,
-    //   })
-    // } catch (error) {
-    //   throw new Error(`Error parsing GFF3 file: ${error}`)
-    // }
-    // console.log(`featuresAndSequences: ${JSON.stringify(featuresAndSequences)}`)
-    // if (featuresAndSequences.length === 0) {
-    //   throw new Error('No features found in GFF3 file')
-    // }
-
-    // const refSeq = ids[refName]
-    // console.log(`refSeq: ${refSeq}`)
-    // if (!refSeq) {
-    //   throw new Error(`Could not find refSeq "${refName}"`)
-    // }
-
-    // const internetAccount = this.clientStore.getInternetAccount(
-    //   assemblyName,
-    // ) as ApolloInternetAccount
-    // const { baseURL } = internetAccount
-
-    // const url = new URL('features/getFeatures', baseURL)
-    // const searchParams = new URLSearchParams({
-    //   refSeq,
-    //   start: String(start),
-    //   end: String(end),
-    // })
-    // url.search = searchParams.toString()
-    // const uri = url.toString()
-
-    // const response = await this.fetch(internetAccount, uri)
-    // if (!response.ok) {
-    //   const errorMessage = await createFetchErrorMessage(
-    //     response,
-    //     'getFeatures failed',
-    //   )
-    //   throw new Error(errorMessage)
-    // }
-    // await this.checkSocket(assemblyName, refName, internetAccount)
-    console.log('*********** OLLAAN IHAN LOPUSSA')
-    return new Response(file).text() as unknown as Promise<AnnotationFeatureSnapshot[]>
-    // return feature as unknown as Promise<AnnotationFeatureSnapshot[]>
-  }
-*/
-
   async getFeatures(region: Region) {
     const { assemblyName, refName, start, end } = region
     const { assemblyManager } = getSession(this.clientStore)
@@ -435,13 +239,9 @@ export class DesktopFileDriver extends BackendDriver {
     }
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const fs = require('fs')
-    const filePath =
-      '/Users/kyosti/src/Apollo/Assembly_files/volvox.sort.fasta.gff3'
-    console.log(`FILE: ${file}`)
     console.log(`region: ${JSON.stringify(region)}`)
 
-    const fileData = await fs.promises.readFile(filePath, 'utf-8')
-    // const fileData = await fs.promises.readFile(fileName, 'utf-8')
+    const fileData = await fs.promises.readFile(file, 'utf-8')
     const featuresAndSequences = gff.parseStringSync(fileData, {
       parseSequences: false,
       parseComments: false,
@@ -462,7 +262,6 @@ export class DesktopFileDriver extends BackendDriver {
         feature.start >= start &&
         feature.end <= end,
     )
-    console.log(`******** filteredResults: ${JSON.stringify(filteredResults)}`)
     return filteredResults
   }
 
@@ -533,12 +332,9 @@ export class DesktopFileDriver extends BackendDriver {
     const fs = require('fs')
     const filePath =
       '/Users/kyosti/src/Apollo/Assembly_files/volvox.sort.fasta.gff3'
-    console.log(`FILE: ${file}`)
-    console.log(`region: ${JSON.stringify(region)}`)
 
     const fileData = (await fs.promises.readFile(filePath, 'utf-8')
       .text) as string
-    // const fileData = await fs.promises.readFile(fileName, 'utf-8')
     const featuresAndSequences = gff.parseStringSync(fileData, {
       parseSequences: true,
       parseComments: false,
@@ -546,57 +342,8 @@ export class DesktopFileDriver extends BackendDriver {
       parseFeatures: false,
     })
     const result = { seq: fileData, refSeq: refName }
-    console.log(`*** SEQ RESULT: ${JSON.stringify(result)}`)
     return { seq: fileData, refSeq: refName }
   }
-
-  // async getSequence(region: Region): Promise<{ seq: string; refSeq: string }> {
-  //   const { assemblyName, refName, start, end } = region
-  //   const { assemblyManager } = getSession(this.clientStore)
-  //   const assembly = assemblyManager.get(assemblyName)
-  //   if (!assembly) {
-  //     throw new Error(`Could not find assembly with name "${assemblyName}"`)
-  //   }
-  //   const { ids } = getConf(assembly, ['sequence', 'metadata']) as {
-  //     ids: Record<string, string>
-  //   }
-  //   const refSeq = ids[refName]
-  //   if (!refSeq) {
-  //     throw new Error(`Could not find refSeq "${refName}"`)
-  //   }
-  //   const internetAccount = this.clientStore.getInternetAccount(
-  //     assemblyName,
-  //   ) as ApolloInternetAccount
-  //   const { baseURL } = internetAccount
-
-  //   const url = new URL('refSeqs/getSequence', baseURL)
-  //   const searchParams = new URLSearchParams({
-  //     refSeq,
-  //     start: String(start),
-  //     end: String(end),
-  //   })
-  //   url.search = searchParams.toString()
-  //   const uri = url.toString()
-
-  //   const response = await this.fetch(internetAccount, uri)
-  //   if (!response.ok) {
-  //     let errorMessage
-  //     try {
-  //       errorMessage = await response.text()
-  //     } catch (error) {
-  //       errorMessage = ''
-  //     }
-  //     throw new Error(
-  //       `getSequence failed: ${response.status} (${response.statusText})${
-  //         errorMessage ? ` (${errorMessage})` : ''
-  //       }`,
-  //     )
-  //   }
-  //   await this.checkSocket(assemblyName, refName, internetAccount)
-  //   // const seq = (await response.text()) as string
-  //   // return seq as string
-  //   return { seq: await response.text(), refSeq }
-  // }
 
   async getRefSeqs() {
     throw new Error('getRefSeqs not yet implemented')

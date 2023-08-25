@@ -1,5 +1,7 @@
+import path from 'node:path'
+
 import gff, { GFF3Feature, GFF3Sequence } from '@gmod/gff'
-import { AbstractSessionModel } from '@jbrowse/core/util'
+import { AbstractSessionModel, isElectron } from '@jbrowse/core/util'
 // class FakeCheck extends Check {
 //   async checkFeature(
 //     feature: AnnotationFeatureSnapshot,
@@ -17,7 +19,6 @@ import { AbstractSessionModel } from '@jbrowse/core/util'
 //     }
 //   }
 // }
-import { isElectron } from '@jbrowse/core/util'
 import { storeBlobLocation } from '@jbrowse/core/util/tracks'
 import {
   Button,
@@ -37,6 +38,8 @@ import React, { useState } from 'react'
 import { InMemoryFileDriver } from '../BackendDrivers'
 import { ApolloSessionModel } from '../session'
 import { Dialog } from './Dialog'
+
+const { ipcRenderer } = window.require('electron')
 
 interface OpenLocalFileProps {
   session: ApolloSessionModel
@@ -62,6 +65,9 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
   const [assemblyName, setAssemblyName] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [fileContent, setFileContent] = useState('')
+  const [fileName, setFileName] = useState('')
+  const [selectedFilePath, setSelectedFilePath] = useState('')
   const theme = useTheme()
 
   async function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -87,12 +93,17 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
     setErrorMessage('')
     setSubmitted(true)
 
-    if (!file) {
-      throw new Error('No file selected')
+    let fileData: string
+    if (isElectron) {
+      fileData = fileContent
+    } else {
+      if (!file) {
+        throw new Error('No file selected')
+      }
+      setFileName(file.name)
+      // Right now we are not using stream because there was a problem with 'pipe' in ReadStream
+      fileData = await new Response(file).text()
     }
-
-    // Right now we are not using stream because there was a problem with 'pipe' in ReadStream
-    const fileData = await new Response(file).text()
     let featuresAndSequences: (GFF3Feature | GFF3Sequence)[] = []
     try {
       featuresAndSequences = gff.parseStringSync(fileData, {
@@ -110,7 +121,7 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
       setSubmitted(false)
     }
 
-    const assemblyId = `${assemblyName}-${file.name}-${nanoid(8)}`
+    const assemblyId = `${assemblyName}-${fileName}-${nanoid(8)}`
 
     let sequenceFeatureCount = 0
     let assembly = apolloDataStore.assemblies.get(assemblyId)
@@ -167,11 +178,12 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
         trackId: `sequenceConfigId-${assemblyName}`,
         type: 'ReferenceSequenceTrack',
         adapter: { type: 'ApolloSequenceAdapter', assemblyId },
-        metadata: { apollo: true, file: isElectron ? file.name : undefined },
+        metadata: {
+          apollo: true,
+          file: isElectron ? selectedFilePath : undefined,
+        },
       },
     }
-    console.log(`Filename: "${file.name}"`)
-
     // Save assembly into session
     await (addSessionAssembly || addAssembly)(assemblyConfig)
     const a = await assemblyManager.waitForAssembly(assemblyConfig.name)
@@ -191,6 +203,35 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
     setAssemblyName(event.target.value)
   }
 
+  const uploadFile = () => {
+    ipcRenderer
+      .invoke('promptOpenGFF3File')
+      .then((selectedFilePath: string) => {
+        if (!selectedFilePath) {
+          return
+        }
+        setSelectedFilePath(selectedFilePath)
+        setFileName(path.basename(selectedFilePath))
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const fs = require('node:fs')
+        try {
+          const content = fs.readFileSync(selectedFilePath, 'utf8')
+          setFileContent(content)
+        } catch (error) {
+          console.error('Error reading file:', error)
+        }
+
+        setErrorMessage('')
+        if (!assemblyName) {
+          const lastDotIndex = fileName.lastIndexOf('.')
+          if (lastDotIndex === -1) {
+            setAssemblyName(fileName)
+          } else {
+            setAssemblyName(fileName.slice(0, lastDotIndex))
+          }
+        }
+      })
+  }
   return (
     <Dialog
       open
@@ -203,20 +244,24 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <FormControl>
             <div style={{ flexDirection: 'row' }}>
-              <Button
-                variant="contained"
-                component="label"
-                style={{ marginRight: theme.spacing() }}
-              >
-                Choose File
-                <input
-                  type="file"
-                  required
-                  hidden
-                  onChange={handleChangeFile}
-                />
-              </Button>
-              {file ? file.name : 'No file chosen'} 
+              {isElectron ? (
+                <button onClick={uploadFile}>Upload File</button>
+              ) : (
+                <Button
+                  variant="contained"
+                  component="label"
+                  style={{ marginRight: theme.spacing() }}
+                >
+                  Choose File
+                  <input
+                    type="file"
+                    required
+                    hidden
+                    onChange={handleChangeFile}
+                  />
+                </Button>
+              )}
+              {file ? file.name : 'No file chosen'}
             </div>
             <FormHelperText>
               Make sure your GFF3 has an embedded FASTA section
@@ -231,7 +276,9 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
         </DialogContent>
         <DialogActions>
           <Button
-            disabled={!(file && assemblyName)}
+            // disabled={!(file && assemblyName)}
+            // disabled={!(!isElectron && file && assemblyName)}
+            disabled={false}
             variant="contained"
             type="submit"
           >
