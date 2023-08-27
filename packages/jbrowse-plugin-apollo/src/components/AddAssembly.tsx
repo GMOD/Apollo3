@@ -42,21 +42,6 @@ interface AddAssemblyProps {
   changeManager: ChangeManager
 }
 
-interface FileUploadChangeBase {
-  assembly: string
-  assemblyName: string
-  fileId: string
-}
-
-interface ExternalAssemblyChangeBase {
-  assembly: string
-  assemblyName: string
-  externalLocation: {
-    fa: string
-    fai: string
-  }
-}
-
 enum FileType {
   GFF3 = 'text/x-gff3',
   FASTA = 'text/x-fasta',
@@ -86,11 +71,8 @@ export function AddAssembly({
     apolloInternetAccounts[0],
   )
   const [fastaFile, setFastaFile] = useState('')
-  const [validFastaFile, setValidFastaFile] = useState(true)
   const [fastaIndexFile, setFastaIndexFile] = useState('')
-  const [validFastaIndexFile, setValidFastaIndexFile] = useState(true)
   const [loading, setLoading] = useState(false)
-  const r = /^(http|https):\/\/.+$/
 
   function handleChangeInternetAccount(e: SelectChangeEvent<string>) {
     setSubmitted(false)
@@ -126,12 +108,10 @@ export function AddAssembly({
   }
 
   function updateFastaFile(url: string) {
-    setValidFastaFile(r.test(url))
     setFastaFile(url)
   }
 
   function updateFastaIndexFile(url: string) {
-    setValidFastaIndexFile(r.test(url))
     setFastaIndexFile(url)
   }
 
@@ -186,20 +166,18 @@ export function AddAssembly({
       | AddAssemblyAndFeaturesFromFileChange
       | AddAssemblyFromFileChange
     if (fileType == FileType.EXTERNAL) {
-      const externalAssemblyChangeBase: ExternalAssemblyChangeBase = {
+      change = new AddAssemblyFromExternalChange({
+        typeName: 'AddAssemblyFromExternalChange',
+
         assembly: new ObjectID().toHexString(),
         assemblyName,
         externalLocation: {
           fa: fastaFile,
           fai: fastaIndexFile,
         },
-      }
-      change = new AddAssemblyFromExternalChange({
-        typeName: 'AddAssemblyFromExternalChange',
-        ...externalAssemblyChangeBase,
       })
     } else {
-      const fileUploadChangeBase: FileUploadChangeBase = {
+      const fileUploadChangeBase = {
         assembly: new ObjectID().toHexString(),
         assemblyName,
         fileId,
@@ -216,15 +194,32 @@ export function AddAssembly({
             })
     }
 
-    await changeManager.submit(change, {
-      internetAccountId,
-    })
+    await changeManager.submit(change, { internetAccountId })
 
     setSubmitted(false)
     setLoading(false)
     notify(`Assembly "${assemblyName}" is being added`, 'info')
     handleClose()
     event.preventDefault()
+  }
+
+  let validFastaFile = false
+  try {
+    const url = new URL(fastaFile)
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      validFastaFile = true
+    }
+  } catch {
+    // pass
+  }
+  let validFastaIndexFile = false
+  try {
+    const url = new URL(fastaIndexFile)
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      validFastaIndexFile = true
+    }
+  } catch {
+    // pass
   }
 
   return (
@@ -286,7 +281,7 @@ export function AddAssembly({
               <FormControlLabel
                 value={FileType.EXTERNAL}
                 control={<Radio />}
-                label="EXTERNAL"
+                label="External"
                 disabled={submitted && !errorMessage}
               />
             </RadioGroup>

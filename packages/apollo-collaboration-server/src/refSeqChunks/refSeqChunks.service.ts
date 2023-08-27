@@ -49,8 +49,7 @@ export class RefSeqChunksService {
         fasta: new RemoteFile(fa, { fetch }),
         fai: new RemoteFile(fai, { fetch }),
       })
-      const sequence = await indexedFasta.getSequence(name, start, end)
-      return sequence
+      return indexedFasta.getSequence(name, start, end)
     }
 
     const startChunk = Math.floor(start / chunkSize)

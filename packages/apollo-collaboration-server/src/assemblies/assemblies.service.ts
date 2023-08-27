@@ -30,7 +30,7 @@ export class AssembliesService {
 
   async findOne(id: string) {
     const assembly = await this.assemblyModel
-      .findById({ _id: id, status: 0 })
+      .findOne({ _id: id, status: 0 })
       .exec()
     if (!assembly) {
       throw new NotFoundException(`Assembly with id "${id}" not found`)
