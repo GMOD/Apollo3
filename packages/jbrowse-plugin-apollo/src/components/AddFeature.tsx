@@ -37,31 +37,6 @@ enum PhaseEnum {
   two = 2,
 }
 
-async function fetchValidDescendantTerms(
-  parentFeature: AnnotationFeatureI | undefined,
-  ontologyStore: OntologyStore,
-  _signal: AbortSignal,
-) {
-  if (parentFeature) {
-    // since this is a child of an existing feature, restrict the autocomplete choices to valid
-    // parts of that feature
-    const parentTypeTerms = await ontologyStore.getTermsWithLabelOrSynonym(
-      parentFeature.type,
-      { includeSubclasses: false },
-    )
-    // eslint-disable-next-line unicorn/no-array-callback-reference
-    const parentTypeClassTerms = parentTypeTerms.filter(isOntologyClass)
-    if (parentTypeClassTerms.length > 0) {
-      const subpartTerms = await ontologyStore.getClassesThat(
-        'part_of',
-        parentTypeClassTerms,
-      )
-      return subpartTerms
-    }
-  }
-  return
-}
-
 export function AddFeature({
   changeManager,
   handleClose,
@@ -76,8 +51,41 @@ export function AddFeature({
   const [phase, setPhase] = useState('')
   const [phaseAsNumber, setPhaseAsNumber] = useState<PhaseEnum>()
   const [showPhase, setShowPhase] = useState<boolean>(false)
-
   const [errorMessage, setErrorMessage] = useState('')
+  const [typeWarningText, setTypeWarningText] = useState('')
+
+  async function fetchValidDescendantTerms(
+    parentFeature: AnnotationFeatureI | undefined,
+    ontologyStore: OntologyStore,
+    _signal: AbortSignal,
+  ) {
+    if (!parentFeature) {
+      return
+    }
+    // since this is a child of an existing feature, restrict the autocomplete choices to valid
+    // parts of that feature
+    const parentTypeTerms = await ontologyStore.getTermsWithLabelOrSynonym(
+      parentFeature.type,
+      { includeSubclasses: false },
+    )
+    // eslint-disable-next-line unicorn/no-array-callback-reference
+    const parentTypeClassTerms = parentTypeTerms.filter(isOntologyClass)
+    if (parentTypeTerms.length === 0) {
+      return
+    }
+    const subpartTerms = await ontologyStore.getClassesThat(
+      'part_of',
+      parentTypeClassTerms,
+    )
+    if (subpartTerms.length > 0) {
+      setTypeWarningText('')
+    } else {
+      setTypeWarningText(
+        `Type "${parentFeature.type}" does not have any children in the ontology`,
+      )
+    }
+    return subpartTerms
+  }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -190,6 +198,8 @@ export function AddFeature({
                 label="Type"
                 variant="outlined"
                 fullWidth
+                error={Boolean(typeWarningText)}
+                helperText={typeWarningText}
               />
             )}
             onChange={(oldValue, newValue) => {
@@ -209,7 +219,6 @@ export function AddFeature({
             </FormControl>
           ) : null}
         </DialogContent>
-
         <DialogActions>
           <Button
             variant="contained"
