@@ -67,9 +67,7 @@ export function extendSession(
   return sessionModel
     .props({
       apolloDataStore: types.optional(ClientDataStore, { typeName: 'Client' }),
-      apolloSelectedFeature: types.maybe(
-        types.reference(AnnotationFeatureExtended),
-      ),
+      apolloSelectedFeature: types.safeReference(AnnotationFeatureExtended),
     })
     .extend(() => {
       const collabs = observable.array<Collaborator>([])
