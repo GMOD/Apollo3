@@ -1,14 +1,8 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-} from '@mui/material'
+import { Button, DialogActions, DialogContent, Divider } from '@mui/material'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'
 
+import { Dialog } from '../../components/Dialog'
 import { GoogleButton, GuestButton, MicrosoftButton } from './LoginButtons'
 
 const useStyles = makeStyles()((theme) => ({
@@ -44,8 +38,13 @@ export const AuthTypeSelector = ({
   }
   // convert component to string useable in data-uri
   return (
-    <Dialog open maxWidth="xl" data-testid="login-apollo">
-      <DialogTitle>Log in to {name}</DialogTitle>
+    <Dialog
+      open
+      title={`Log in to ${name}`}
+      handleClose={handleClose}
+      maxWidth={false}
+      data-testid="login-apollo"
+    >
       <DialogContent
         style={{ display: 'flex', flexDirection: 'column', paddingTop: 8 }}
       >

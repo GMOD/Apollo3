@@ -4,11 +4,9 @@ import {
   Box,
   Button,
   Checkbox,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle,
   FormControl,
   FormControlLabel,
   FormGroup,
@@ -35,6 +33,7 @@ import React, { useState } from 'react'
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
 import { createFetchErrorMessage } from '../util'
+import { Dialog } from './Dialog'
 
 interface AddAssemblyProps {
   session: AbstractSessionModel
@@ -223,8 +222,13 @@ export function AddAssembly({
   }
 
   return (
-    <Dialog open maxWidth="xl" data-testid="add-assembly-dialog">
-      <DialogTitle>Add new assembly</DialogTitle>
+    <Dialog
+      open
+      maxWidth={false}
+      data-testid="add-assembly-dialog"
+      title="Add new assembly"
+      handleClose={handleClose}
+    >
       {loading ? <LinearProgress /> : null}
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
@@ -374,13 +378,7 @@ export function AddAssembly({
           >
             {submitted ? 'Submitting...' : 'Submit'}
           </Button>
-          <Button
-            variant="outlined"
-            type="submit"
-            onClick={() => {
-              handleClose()
-            }}
-          >
+          <Button variant="outlined" type="submit" onClick={handleClose}>
             Cancel
           </Button>
         </DialogActions>

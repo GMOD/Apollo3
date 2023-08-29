@@ -1,11 +1,9 @@
 import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
 import {
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle,
 } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { DeleteFeatureChange } from 'apollo-shared'
@@ -14,6 +12,7 @@ import React, { useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
+import { Dialog } from './Dialog'
 
 interface DeleteFeatureProps {
   session: AbstractSessionModel
@@ -66,8 +65,13 @@ export function DeleteFeature({
   }
 
   return (
-    <Dialog open maxWidth="xl" data-testid="login-apollo">
-      <DialogTitle>Delete feature</DialogTitle>
+    <Dialog
+      open
+      title="Delete feature"
+      handleClose={handleClose}
+      maxWidth={false}
+      data-testid="delete-feature"
+    >
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText>
@@ -78,13 +82,7 @@ export function DeleteFeature({
           <Button variant="contained" type="submit">
             Yes
           </Button>
-          <Button
-            variant="outlined"
-            type="submit"
-            onClick={() => {
-              handleClose()
-            }}
-          >
+          <Button variant="outlined" type="submit" onClick={handleClose}>
             Cancel
           </Button>
         </DialogActions>

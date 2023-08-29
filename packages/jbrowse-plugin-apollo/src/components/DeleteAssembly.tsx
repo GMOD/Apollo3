@@ -3,11 +3,9 @@ import { AppRootModel } from '@jbrowse/core/util'
 import {
   Button,
   Checkbox,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle,
   FormControlLabel,
   FormGroup,
   MenuItem,
@@ -25,6 +23,7 @@ import {
 } from '../BackendDrivers'
 import { ChangeManager } from '../ChangeManager'
 import { ApolloSessionModel } from '../session'
+import { Dialog } from './Dialog'
 
 interface DeleteAssemblyProps {
   session: ApolloSessionModel
@@ -106,8 +105,13 @@ export function DeleteAssembly({
   }
 
   return (
-    <Dialog open maxWidth="xl" data-testid="login-apollo">
-      <DialogTitle>Delete Assembly</DialogTitle>
+    <Dialog
+      open
+      title="Delete Assembly"
+      handleClose={handleClose}
+      maxWidth={false}
+      data-testid="delete-assembly"
+    >
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           {apolloInternetAccounts.length > 1 ? (
@@ -166,13 +170,7 @@ export function DeleteAssembly({
           >
             Delete
           </Button>
-          <Button
-            variant="outlined"
-            type="submit"
-            onClick={() => {
-              handleClose()
-            }}
-          >
+          <Button variant="outlined" type="submit" onClick={handleClose}>
             Cancel
           </Button>
         </DialogActions>

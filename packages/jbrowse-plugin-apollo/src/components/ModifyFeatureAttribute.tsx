@@ -6,11 +6,9 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -30,6 +28,7 @@ import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
+import { Dialog } from './Dialog'
 import { OntologyTermMultiSelect } from './OntologyTermMultiSelect'
 
 interface ModifyFeatureAttributeProps {
@@ -296,8 +295,13 @@ export function ModifyFeatureAttribute({
   )
 
   return (
-    <Dialog open maxWidth="xl" data-testid="login-apollo">
-      <DialogTitle>Feature attributes</DialogTitle>
+    <Dialog
+      open
+      title="Feature attributes"
+      handleClose={handleClose}
+      maxWidth={false}
+      data-testid="modify-feature-attribute"
+    >
       <form onSubmit={onSubmit}>
         <DialogContent>
           <Grid container direction="column" spacing={1}>
@@ -445,9 +449,7 @@ export function ModifyFeatureAttribute({
             variant="outlined"
             type="submit"
             disabled={showAddNewForm}
-            onClick={() => {
-              handleClose()
-            }}
+            onClick={handleClose}
           >
             Cancel
           </Button>

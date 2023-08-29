@@ -1,11 +1,9 @@
 import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
 import {
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle,
   MenuItem,
   Select,
   SelectChangeEvent,
@@ -19,9 +17,11 @@ import {
 import { changeRegistry } from 'apollo-common'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
+import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { createFetchErrorMessage } from '../util'
+import { Dialog } from './Dialog'
 
 interface ViewChangeLogProps {
   session: AbstractSessionModel
@@ -33,6 +33,16 @@ interface AssemblyDocument {
   name: string
 }
 
+const useStyles = makeStyles()((theme) => ({
+  changeTextarea: {
+    fontFamily: 'monospace',
+    width: 600,
+    resize: 'none',
+    border: `1px solid ${theme.palette.divider}`,
+    borderRadius: theme.shape.borderRadius,
+  },
+}))
+
 export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
   const { internetAccounts } = getRoot(session) as AppRootModel
   const apolloInternetAccount = internetAccounts.find(
@@ -42,11 +52,12 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
     throw new Error('No Apollo internet account found')
   }
   const { baseURL } = apolloInternetAccount
+  const { classes } = useStyles()
   const [errorMessage, setErrorMessage] = useState<string>()
   const [assemblyCollection, setAssemblyCollection] = useState<
     AssemblyDocument[]
   >([])
-  const [assemblyId, setAssemblyId] = useState<string>()
+  const [assemblyId, setAssemblyId] = useState<string>('')
   const [displayGridData, setDisplayGridData] = useState<GridRowsProp[]>([])
 
   const gridColumns: GridColDef[] = [
@@ -64,7 +75,9 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
       headerName: 'Change JSON',
       width: 600,
       renderCell: ({ value }) => (
-        <div style={{ fontFamily: 'monospace' }}>{JSON.stringify(value)}</div>
+        <textarea className={classes.changeTextarea} readOnly>
+          {JSON.stringify(value)}
+        </textarea>
       ),
       valueFormatter: ({ value }) => JSON.stringify(value),
     },
@@ -136,6 +149,7 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
           return
         }
         const data = await response.json()
+        console.log({ data })
         setDisplayGridData(data)
       }
     }
@@ -147,48 +161,40 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
   }
 
   return (
-    <Dialog open maxWidth="xl" data-testid="login-apollo" fullScreen>
-      <DialogTitle>
-        View change log
-        <Select
-          style={{ width: 200, marginLeft: 40 }}
-          value={assemblyId}
-          onChange={handleChangeAssembly}
-        >
-          {assemblyCollection.map((option) => (
-            <MenuItem key={option._id} value={option._id}>
-              {option.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </DialogTitle>
+    <Dialog
+      open
+      fullScreen
+      title="View change log"
+      handleClose={handleClose}
+      data-testid="view-changelog"
+    >
+      <Select
+        style={{ width: 200, marginLeft: 40 }}
+        value={assemblyId}
+        onChange={handleChangeAssembly}
+      >
+        {assemblyCollection.map((option) => (
+          <MenuItem key={option._id} value={option._id}>
+            {option.name}
+          </MenuItem>
+        ))}
+      </Select>
 
       <DialogContent>
-        <div style={{ height: '100%', width: '100%' }}>
-          <DataGrid
-            // className={classes.root}
-            autoPageSize
-            pagination
-            rows={displayGridData}
-            columns={gridColumns}
-            getRowId={(row) => row._id}
-            components={{ Toolbar: GridToolbar }}
-            getRowHeight={() => 'auto'}
-            initialState={{
-              sorting: { sortModel: [{ field: 'sequence', sort: 'desc' }] },
-              columns: { columnVisibilityModel: { sequence: false } },
-            }}
-          />
-        </div>
+        <DataGrid
+          pagination
+          rows={displayGridData}
+          columns={gridColumns}
+          getRowId={(row) => row._id}
+          slots={{ toolbar: GridToolbar }}
+          initialState={{
+            sorting: { sortModel: [{ field: 'sequence', sort: 'desc' }] },
+            columns: { columnVisibilityModel: { sequence: false } },
+          }}
+        />
       </DialogContent>
       <DialogActions>
-        <Button
-          variant="outlined"
-          type="submit"
-          onClick={() => {
-            handleClose()
-          }}
-        >
+        <Button variant="outlined" type="submit" onClick={handleClose}>
           Close
         </Button>
       </DialogActions>

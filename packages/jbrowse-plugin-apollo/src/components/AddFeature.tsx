@@ -1,11 +1,9 @@
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle,
   FormControl,
   InputLabel,
   MenuItem,
@@ -21,6 +19,7 @@ import React, { useState } from 'react'
 import { ChangeManager } from '../ChangeManager'
 import { isOntologyClass } from '../OntologyManager'
 import OntologyStore from '../OntologyManager/OntologyStore'
+import { Dialog } from './Dialog'
 import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
 
 interface AddFeatureProps {
@@ -149,8 +148,13 @@ export function AddFeature({
   }
   const error = Number(end) <= Number(start)
   return (
-    <Dialog open maxWidth="xl" data-testid="login-apollo">
-      <DialogTitle>Add new child feature</DialogTitle>
+    <Dialog
+      open
+      title="Add new child feature"
+      handleClose={handleClose}
+      maxWidth={false}
+      data-testid="add-feature-dialog"
+    >
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <TextField
@@ -227,13 +231,7 @@ export function AddFeature({
           >
             Submit
           </Button>
-          <Button
-            variant="outlined"
-            type="submit"
-            onClick={() => {
-              handleClose()
-            }}
-          >
+          <Button variant="outlined" type="submit" onClick={handleClose}>
             Cancel
           </Button>
         </DialogActions>

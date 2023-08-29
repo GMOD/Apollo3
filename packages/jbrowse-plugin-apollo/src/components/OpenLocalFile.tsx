@@ -1,11 +1,9 @@
 import gff, { GFF3Feature, GFF3Sequence } from '@gmod/gff'
 import {
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle,
   FormControl,
   FormHelperText,
   TextField,
@@ -17,6 +15,7 @@ import React, { useState } from 'react'
 
 import { InMemoryFileDriver } from '../BackendDrivers'
 import { ApolloSessionModel } from '../session'
+import { Dialog } from './Dialog'
 
 interface OpenLocalFileProps {
   session: ApolloSessionModel
@@ -165,8 +164,13 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
   }
 
   return (
-    <Dialog open maxWidth="xl" data-testid="login-apollo">
-      <DialogTitle>Open local GFF3 file</DialogTitle>
+    <Dialog
+      open
+      title="Open local GFF3 file"
+      handleClose={handleClose}
+      maxWidth={false}
+      data-testid="open-local-file"
+    >
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <FormControl>
@@ -209,9 +213,7 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
             disabled={submitted}
             variant="outlined"
             type="submit"
-            onClick={() => {
-              handleClose()
-            }}
+            onClick={handleClose}
           >
             Cancel
           </Button>

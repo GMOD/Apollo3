@@ -2,11 +2,9 @@ import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import {
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle,
   MenuItem,
   Select,
   SelectChangeEvent,
@@ -24,6 +22,7 @@ import {
 import { ChangeManager } from '../ChangeManager'
 import { ApolloSessionModel } from '../session'
 import { createFetchErrorMessage } from '../util'
+import { Dialog } from './Dialog'
 
 interface ImportFeaturesProps {
   session: ApolloSessionModel
@@ -201,11 +200,11 @@ export function ImportFeatures({
   return (
     <Dialog
       open
-      maxWidth="xs"
+      title="Import Features from GFF3 file"
+      handleClose={handleClose}
+      maxWidth={false}
       data-testid="import-features-dialog"
-      fullWidth={true}
     >
-      <DialogTitle>Import Features from GFF3 file</DialogTitle>
       {loading ? <LinearProgress /> : null}
 
       <form onSubmit={onSubmit}>
@@ -265,13 +264,7 @@ export function ImportFeatures({
           >
             {submitted ? 'Submitting...' : 'Submit'}
           </Button>
-          <Button
-            variant="outlined"
-            type="submit"
-            onClick={() => {
-              handleClose()
-            }}
-          >
+          <Button variant="outlined" type="submit" onClick={handleClose}>
             Close
           </Button>
         </DialogActions>

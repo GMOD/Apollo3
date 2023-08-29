@@ -3,11 +3,9 @@ import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import {
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle,
   MenuItem,
   Select,
   SelectChangeEvent,
@@ -25,6 +23,7 @@ import {
 } from '../BackendDrivers'
 import { ApolloSessionModel } from '../session'
 import { createFetchErrorMessage } from '../util'
+import { Dialog } from './Dialog'
 
 interface DownloadGFF3Props {
   session: ApolloSessionModel
@@ -262,8 +261,13 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
   }
 
   return (
-    <Dialog open maxWidth="xl" data-testid="login-apollo">
-      <DialogTitle>Export GFF3</DialogTitle>
+    <Dialog
+      open
+      title="Export GFF3"
+      handleClose={handleClose}
+      maxWidth={false}
+      data-testid="download-gff3"
+    >
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText>Select assembly</DialogContentText>
@@ -291,13 +295,7 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
           >
             Download
           </Button>
-          <Button
-            variant="outlined"
-            type="submit"
-            onClick={() => {
-              handleClose()
-            }}
-          >
+          <Button variant="outlined" type="submit" onClick={handleClose}>
             Cancel
           </Button>
         </DialogActions>

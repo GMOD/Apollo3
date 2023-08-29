@@ -2,11 +2,9 @@ import { readConfObject } from '@jbrowse/core/configuration'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle,
   MenuItem,
   Select,
   SelectChangeEvent,
@@ -20,6 +18,7 @@ import { getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
 import { ChangeManager } from '../ChangeManager'
+import { Dialog } from './Dialog'
 
 interface CopyFeatureProps {
   session: AbstractSessionModel
@@ -251,8 +250,13 @@ export function CopyFeature({
   }
 
   return (
-    <Dialog open maxWidth="xl" data-testid="login-apollo">
-      <DialogTitle>Copy features and annotations</DialogTitle>
+    <Dialog
+      open
+      title="Copy features and annotations"
+      handleClose={handleClose}
+      maxWidth={false}
+      data-testid="copy-feature"
+    >
       <form onSubmit={onSubmit}>
         <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText>Target assembly</DialogContentText>
@@ -303,13 +307,7 @@ export function CopyFeature({
           >
             Submit
           </Button>
-          <Button
-            variant="outlined"
-            type="submit"
-            onClick={() => {
-              handleClose()
-            }}
-          >
+          <Button variant="outlined" type="submit" onClick={handleClose}>
             Cancel
           </Button>
         </DialogActions>

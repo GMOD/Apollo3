@@ -2,11 +2,9 @@ import { AbstractRootModel, AbstractSessionModel } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle,
   MenuItem,
   Select,
   SelectChangeEvent,
@@ -28,6 +26,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
 import { createFetchErrorMessage } from '../util'
+import { Dialog } from './Dialog'
 
 interface UserResponse {
   _id: string
@@ -164,9 +163,13 @@ export function ManageUsers({
   }
 
   return (
-    <Dialog open maxWidth="xl" data-testid="login-apollo" fullScreen>
-      <DialogTitle>Manage users</DialogTitle>
-
+    <Dialog
+      open
+      fullScreen
+      title="Manage users"
+      handleClose={handleClose}
+      data-testid="manage-users"
+    >
       <DialogContent>
         {apolloInternetAccounts.length > 1 ? (
           <>
@@ -202,13 +205,7 @@ export function ManageUsers({
         </div>
       </DialogContent>
       <DialogActions>
-        <Button
-          variant="outlined"
-          type="submit"
-          onClick={() => {
-            handleClose()
-          }}
-        >
+        <Button variant="outlined" type="submit" onClick={handleClose}>
           Close
         </Button>
       </DialogActions>
