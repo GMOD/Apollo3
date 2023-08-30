@@ -193,6 +193,37 @@ export abstract class Glyph {
     context.fillText(location, startPx + 2, textTop)
   }
 
+  getParentFeature(
+    feature: AnnotationFeatureI,
+    topLevelFeature?: AnnotationFeatureI,
+  ) {
+    let parentFeature
+
+    if (!(topLevelFeature && topLevelFeature.children)) {
+      return parentFeature
+    }
+
+    for (const [, f] of topLevelFeature.children) {
+      if (f._id === feature._id) {
+        parentFeature = topLevelFeature
+        break
+      }
+      if (!f?.children) {
+        continue
+      }
+      for (const [, cf] of f.children) {
+        if (cf._id === feature._id) {
+          parentFeature = f
+          break
+        }
+      }
+      if (parentFeature) {
+        break
+      }
+    }
+    return parentFeature
+  }
+
   getContextMenuItems(display: LinearApolloDisplayMouseEvents): MenuItem[] {
     const {
       apolloHover,
