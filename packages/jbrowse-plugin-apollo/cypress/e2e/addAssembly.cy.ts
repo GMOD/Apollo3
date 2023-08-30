@@ -1,14 +1,7 @@
 describe('Add Assembly', () => {
   beforeEach(() => {
-    cy.fixture('tmp.json').then((config) => {
-      cy.exec(
-        `mongosh ${config.MONGODB_URI} --eval 'db.assemblies.deleteOne({name: "volvox_deleteme"})'`,
-      ).then((result) => {
-        cy.log(result.stdout)
-        cy.log(result.stderr)
-      })
-    })
-    cy.loginAsGuest('config.tmp.json')
+    cy.deleteAssemblies()
+    cy.loginAsGuest()
   })
 
   it('Can add assembly from fasta', () => {

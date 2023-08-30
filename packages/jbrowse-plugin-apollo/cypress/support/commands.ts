@@ -1,14 +1,24 @@
-Cypress.Commands.add('loginAsGuest', (configJsonFile) => {
-  cy.fixture(configJsonFile).then((config) => {
+Cypress.Commands.add('loginAsGuest', () => {
+  cy.fixture('config.json').then((config) => {
     cy.visit(config.apollo_url)
   })
-  cy.contains('Continue as Guest').click()
+  cy.contains('Continue as Guest', { timeout: 15000 }).click()
   cy.reload()
 })
 
+Cypress.Commands.add('deleteAssemblies', () => {
+  cy.exec(
+    // Hardcode the test DB so we don't accidentally delete from unexpected databases
+    "mongosh mongodb://localhost:27017/apolloTestDb  --eval 'db.assemblies.deleteMany({})'",
+  ).then((result) => {
+    cy.log(result.stdout)
+    cy.log(result.stderr)
+  })
+})
+
 Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
-  cy.contains('Apollo').click()
-  cy.contains('Add Assembly').click()
+  cy.get('button[data-testid="dropDownMenuButton"]').contains('Apollo').click()
+  cy.contains('Add Assembly', { timeout: 15000 }).click()
   cy.get('input[type="TextField"]').type(assemblyName)
   cy.get('input[value="text/x-gff3"]').check()
   cy.get('input[type="file"]').selectFile(fin)
@@ -21,21 +31,22 @@ Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
   cy.contains('Submit').click()
   cy.wait('@changes').its('response.statusCode').should('match', /2../)
   cy.reload()
+  cy.contains('Select assembly to view', { timeout: 10000 })
 })
 
 Cypress.Commands.add('selectAssemblyToView', (assemblyName) => {
   cy.contains('Select assembly to view', { timeout: 10000 })
   cy.get('[data-testid="assembly-selector"]').parent().click()
   cy.contains(assemblyName).parent().click()
-  cy.intercept('POST', '/users/userLocation').as('userLocation')
+  cy.intercept('POST', '/users/userLocation').as('selectAssemblyToViewDone')
   cy.contains('Open').click()
-  cy.wait('@userLocation')
+  cy.wait('@selectAssemblyToViewDone')
 })
 
 Cypress.Commands.add('searchFeatures', (query) => {
-  cy.intercept('POST', '/users/userLocation').as('userLocation')
+  cy.intercept('POST', '/users/userLocation').as('searchFeaturesDone')
   cy.get('input[placeholder="Search for location"]').type(`${query}{enter}`)
-  cy.wait('@userLocation')
+  cy.wait('@searchFeaturesDone')
 })
 
 Cypress.Commands.add(
