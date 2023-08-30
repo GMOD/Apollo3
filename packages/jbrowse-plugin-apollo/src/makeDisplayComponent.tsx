@@ -150,11 +150,15 @@ export const DisplayComponent = observer(function DisplayComponent({
 
   const {
     height: overallHeight,
+    heightPreConfig,
     isShown,
     selectedFeature,
     tabularEditor,
     toggleShown,
   } = model
+  if (!heightPreConfig) {
+    model.setHeight(500)
+  }
   const detailsHeight = tabularEditor.isShown ? model.detailsHeight : 0
   const featureAreaHeight = isShown
     ? overallHeight - detailsHeight - accordionControlHeight * 2
