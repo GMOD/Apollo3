@@ -1,6 +1,6 @@
 describe('Open Assembly', () => {
   it('Can open assembly', () => {
-    cy.loginAsGuest('config.tmp.json')
+    cy.loginAsGuest()
     cy.contains('Select assembly to view', { timeout: 10000 })
     cy.get('input[data-testid="assembly-selector"]').parent().click()
     cy.contains('volvox_cy').click()
