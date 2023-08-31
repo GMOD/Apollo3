@@ -319,6 +319,7 @@ export class DesktopFileDriver extends BackendDriver {
    * @returns
    */
   async getSequence(region: Region): Promise<{ seq: string; refSeq: string }> {
+    console.log('**** IT NEVER COMES HERE TO READ SEQUENCE **** ')
     const { assemblyName, refName, start, end } = region
     const { assemblyManager } = getSession(this.clientStore)
     const assembly = assemblyManager.get(assemblyName)
@@ -374,29 +375,35 @@ export class DesktopFileDriver extends BackendDriver {
     change: Change | AssemblySpecificChange,
     opts: SubmitOpts = {},
   ) {
-    const { internetAccountId = undefined } = opts
-    const internetAccount = this.clientStore.getInternetAccount(
-      'assembly' in change ? change.assembly : undefined,
-      internetAccountId,
-    ) as ApolloInternetAccount
-    const { baseURL } = internetAccount
-    const url = new URL('changes', baseURL).href
-    const response = await this.fetch(internetAccount, url, {
-      method: 'POST',
-      body: JSON.stringify(change.toJSON()),
-      headers: { 'Content-Type': 'application/json' },
+    const tmpObj = JSON.parse(JSON.stringify(change.toJSON()))
+    console.log(`**** SUBMIT CHANGE: ${JSON.stringify(change)}`)
+    const { assemblyManager } = getSession(this.clientStore)
+    const assembly = assemblyManager.get(tmpObj.assembly)
+    if (!assembly) {
+      throw new Error(`Could not find assembly with name "${tmpObj.assembly}"`)
+    }
+    const { file } = getConf(assembly, ['sequence', 'metadata']) as {
+      file: string
+    }
+    console.log(`**** ORIGINAL FILE: ${file}`)
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fs = require('fs')
+    const newFileName = `${file}_001.txt`
+
+    const fileDataTmp = await fs.promises.readFile(file, 'utf-8')
+    console.log(`**** fileDataTmp: ${fileDataTmp}`)
+    const sequenceData = gff.parseStringSync(fileDataTmp, {
+      parseSequences: true,
+      parseComments: false,
+      parseDirectives: false,
+      parseFeatures: false,
     })
-    if (!response.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        response,
-        'submitChange failed',
-      )
-      throw new Error(errorMessage)
-    }
+    // format an array of items to a string
+    const newStringOfGFF3 = gff.formatSync(sequenceData)
+    await fs.promises.writeFile(newFileName, newStringOfGFF3, 'utf-8')
+    console.log('**** WRITE DONE')
+
     const results = new ValidationResultSet()
-    if (!response.ok) {
-      results.ok = false
-    }
     return results
   }
 }
