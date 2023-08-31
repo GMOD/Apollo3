@@ -16,17 +16,9 @@ import {
 import { FeatureAttributes } from './FeatureAttributes'
 import { featureContextMenuItems } from './featureContextMenuItems'
 import type { ContextMenuState } from './HybridGrid'
+import { NumberCell } from './NumberCell'
 
 const useStyles = makeStyles()((theme) => ({
-  levelIndicator: {
-    width: '1em',
-    height: '100%',
-    position: 'relative',
-    flex: 1,
-    marginLeft: '1em',
-    verticalAlign: 'top',
-    background: 'blue',
-  },
   typeContent: {
     display: 'inline-block',
     width: '174px',
@@ -215,38 +207,38 @@ export const Feature = observer(function Feature({
             />
           </div>
         </td>
-        <td
-          contentEditable={true}
-          onBlur={(e) => {
-            const newValue = Number(e.target.textContent)
-            if (!Number.isNaN(newValue) && newValue !== feature.start) {
+        <td>
+          <NumberCell
+            initialValue={feature.start}
+            notifyError={notifyError}
+            onChangeCommitted={(newStart) =>
               handleFeatureStartChange(
                 changeManager,
                 feature,
                 feature.start,
-                newValue,
-              ).catch(notifyError)
+                newStart,
+              )
             }
-          }}
-        >
-          {feature.start}
+          />
         </td>
-        <td
-          contentEditable={true}
-          onBlur={(e) => {
-            const newValue = Number(e.target.textContent)
-            if (!Number.isNaN(newValue) && newValue !== feature.end) {
+        <td>
+          <NumberCell
+            initialValue={feature.end}
+            notifyError={notifyError}
+            onChangeCommitted={(newEnd) =>
               handleFeatureEndChange(
                 changeManager,
                 feature,
-                feature.end,
-                newValue,
-              ).catch(notifyError)
+                feature.start,
+                newEnd,
+              )
             }
-          }}
-        >
-          {feature.end}
+          />
         </td>
+        <td>
+          {feature.strand === 1 ? '+' : feature.strand === -1 ? '-' : undefined}
+        </td>
+        <td>{feature.phase}</td>
         <td>
           <FeatureAttributes filterText={filterText} feature={feature} />
         </td>

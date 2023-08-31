@@ -81,6 +81,8 @@ const HybridGrid = observer(function HybridGrid({
             <th>Type</th>
             <th>Start</th>
             <th>End</th>
+            <th>Strand</th>
+            <th>Phase</th>
             <th>Attributes</th>
           </tr>
         </thead>
