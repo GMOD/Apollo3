@@ -235,7 +235,9 @@ export const Feature = observer(function Feature({
             }
           />
         </td>
-        <td>{feature.strand}</td>
+        <td>
+          {feature.strand === 1 ? '+' : feature.strand === -1 ? '-' : undefined}
+        </td>
         <td>{feature.phase}</td>
         <td>
           <FeatureAttributes filterText={filterText} feature={feature} />
