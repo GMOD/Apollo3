@@ -52,14 +52,10 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const { classes } = useStyles()
   const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
 
-  useEffect(() => {
-    setTheme(theme), [theme, setTheme]
-  })
+  useEffect(() => setTheme(theme), [theme, setTheme])
   const [contextCoord, setContextCoord] = useState<Coord>()
   const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
   const message = regionCannotBeRendered()
-  // console.log('SHOW PANEL')    // * KOPIOI TAMA KOHTAAN JOKA AKTIVOIDAAN KUN CLIKAAN FEATUREA!!!!
-  // model.tabularEditor.showPane()
   if (!isShown) {
     return null
   }

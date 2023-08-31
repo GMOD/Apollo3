@@ -149,7 +149,6 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
           return
         }
         const data = await response.json()
-        console.log({ data })
         setDisplayGridData(data)
       }
     }
