@@ -56,6 +56,8 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const [contextCoord, setContextCoord] = useState<Coord>()
   const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
   const message = regionCannotBeRendered()
+  // eslint-disable-next-line unicorn/consistent-destructuring
+  model.tabularEditor.showPane()
   if (!isShown) {
     return null
   }

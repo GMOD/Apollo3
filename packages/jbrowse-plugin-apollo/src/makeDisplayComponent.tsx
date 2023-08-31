@@ -31,9 +31,26 @@ const useStyles = makeStyles()((theme) => ({
     '&:hover': {
       background: theme.palette.action.hover,
     },
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   accordionRoot: {
-    background: theme.palette.background.paper,
+    background: theme.palette.divider,
+  },
+  resizeHandle: {
+    width: '100%',
+    height: 4,
+    position: 'absolute',
+    cursor: 'row-resize',
+    zIndex: 100,
+  },
+  expandIcon: {
+    // position: 'relative',
+  },
+  title: {
+    // position: 'relative',
+    userSelect: 'none',
   },
 }))
 
@@ -60,6 +77,7 @@ const ResizeHandle = ({
 }: {
   onResize: (sizeDelta: number) => void
 }) => {
+  const { classes } = useStyles()
   const mouseMove = useCallback(
     (event: MouseEvent) => {
       event.stopPropagation()
@@ -92,13 +110,7 @@ const ResizeHandle = ({
         e.stopPropagation()
         e.preventDefault()
       }}
-      style={{
-        width: '100%',
-        height: '4px',
-        position: 'absolute',
-        cursor: 'row-resize',
-        zIndex: 100,
-      }}
+      className={classes.resizeHandle}
     />
   )
 }
@@ -117,18 +129,18 @@ const AccordionControl = observer(function AccordionControl({
   const { classes } = useStyles()
   return (
     <div className={classes.accordionRoot}>
+      {open && onResize ? <ResizeHandle onResize={onResize} /> : null}
       {/* TODO: a11y */}
       {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div className={classes.accordionControl} onClick={onClick}>
-        {open && onResize ? <ResizeHandle onResize={onResize} /> : null}
         {open ? (
-          <ExpandLessIcon sx={{ position: 'relative', top: -4 }} />
+          <ExpandLessIcon className={classes.expandIcon} />
         ) : (
-          <ExpandMoreIcon sx={{ position: 'relative', top: -4 }} />
+          <ExpandMoreIcon className={classes.expandIcon} />
         )}
         {title ? (
           <Typography
-            sx={{ position: 'relative', top: -11, userSelect: 'none' }}
+            className={classes.title}
             variant="caption"
             component="span"
           >
@@ -150,11 +162,15 @@ export const DisplayComponent = observer(function DisplayComponent({
 
   const {
     height: overallHeight,
+    heightPreConfig,
     isShown,
     selectedFeature,
     tabularEditor,
     toggleShown,
   } = model
+  if (!heightPreConfig) {
+    model.setHeight(500)
+  }
   const detailsHeight = tabularEditor.isShown ? model.detailsHeight : 0
   const featureAreaHeight = isShown
     ? overallHeight - detailsHeight - accordionControlHeight * 2
@@ -169,14 +185,8 @@ export const DisplayComponent = observer(function DisplayComponent({
     () => scrollSelectedFeatureIntoView(model, canvasScrollContainerRef),
     [model, selectedFeature],
   )
-  const headerStyle = {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    background: 'turquoise',
-  }
   return (
-    <div style={{ height: overallHeight }}>
+    <div className={classes.details} style={{ height: overallHeight }}>
       <AccordionControl
         open={isShown}
         title="Graphical"
@@ -189,15 +199,13 @@ export const DisplayComponent = observer(function DisplayComponent({
       >
         <LinearApolloDisplay model={model} {...other} />
       </div>
-      <div style={headerStyle}>
-        <AccordionControl
-          title="Table"
-          open={tabularEditor.isShown}
-          onClick={tabularEditor.togglePane}
-          onResize={onDetailsResize}
-        />
-      </div>
-      <div className={classes.details} style={{ height: detailsHeight }}>
+      <AccordionControl
+        title="Table"
+        open={tabularEditor.isShown}
+        onClick={tabularEditor.togglePane}
+        onResize={onDetailsResize}
+      />
+      <div style={{ height: detailsHeight }}>
         <TabularEditorPane model={model} />
       </div>
     </div>
