@@ -42,7 +42,7 @@ const useStyles = makeStyles()((theme) => ({
     transform: 'rotate(90deg)',
   },
   hoveredFeature: {
-    backgroundColor: theme.palette.grey[300],
+    backgroundColor: theme.palette.action.hover,
   },
   typeInputElement: {
     border: 'none',

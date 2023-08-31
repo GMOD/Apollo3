@@ -24,7 +24,7 @@ const useStyles = makeStyles()((theme) => ({
     td: { whiteSpace: 'normal' },
   },
   selectedFeature: {
-    backgroundColor: theme.palette.secondary.light,
+    backgroundColor: theme.palette.action.selected,
   },
 }))
 
