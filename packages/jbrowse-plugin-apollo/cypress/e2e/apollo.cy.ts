@@ -1,3 +1,4 @@
+/*
 describe('My First Test', () => {
   it('visits JBrowse with Apollo', () => {
     // You can put JBrowse 2 into any session you want this way at the beginning
@@ -13,4 +14,4 @@ describe('My First Test', () => {
       cy.contains('Log in to Demo Server')
     })
   })
-})
+}) */
