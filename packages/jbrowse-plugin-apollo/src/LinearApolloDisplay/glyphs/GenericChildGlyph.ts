@@ -1,6 +1,7 @@
 import { AnnotationFeatureI } from 'apollo-mst'
 
 import { LinearApolloDisplay } from '../stateModel'
+import { MousePosition } from '../stateModel/mouseEvents'
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 
@@ -134,6 +135,13 @@ export class GenericChildGlyph extends Glyph {
     if (feature) {
       stateModel.setSelectedFeature(feature)
     }
+  }
+
+  continueDrag(
+    _display: LinearApolloDisplay,
+    _currentMousePosition: MousePosition,
+  ): void {
+    // pass
   }
 
   getFeatureFromLayout(feature: AnnotationFeatureI, bp: number, row: number) {

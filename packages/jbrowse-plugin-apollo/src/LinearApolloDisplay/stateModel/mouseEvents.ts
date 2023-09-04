@@ -106,15 +106,12 @@ export function mouseEventsModelIntermediateFactory(
           )
         }
         event.stopPropagation()
-        const { feature, glyph, mousePosition, topLevelFeature } =
-          self.getFeatureAndGlyphUnderMouse(event)
-        if (!mousePosition) {
+        const { glyph } = self.apolloDragging.start
+        const { mousePosition } = self.getFeatureAndGlyphUnderMouse(event)
+        if (!(mousePosition && glyph)) {
           return
         }
-        self.apolloDragging = {
-          ...self.apolloDragging,
-          current: { feature, topLevelFeature, glyph, mousePosition },
-        }
+        glyph.continueDrag(self, mousePosition)
       },
       setDragging(dragInfo?: typeof self.apolloDragging) {
         self.apolloDragging = dragInfo ?? null

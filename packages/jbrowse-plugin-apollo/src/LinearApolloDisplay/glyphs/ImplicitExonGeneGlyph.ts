@@ -1,5 +1,6 @@
 import { alpha } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
+import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 
 import { LinearApolloDisplay } from '../stateModel'
 import { MousePosition } from '../stateModel/mouseEvents'
@@ -386,14 +387,163 @@ export class ImplicitExonGeneGlyph extends Glyph {
 
   startDrag(stateModel: LinearApolloDisplay): boolean {
     // only accept the drag if we are on the edge of the feature
-    const { feature, mousePosition } = stateModel.apolloDragging?.start ?? {}
-    if (feature && mousePosition) {
-      const edge = this.isMouseOnFeatureEdge(mousePosition, feature, stateModel)
+    const { feature, mousePosition, topLevelFeature } =
+      stateModel.apolloDragging?.start ?? {}
+    const { mousePosition: currentMousePosition } =
+      stateModel.apolloDragging?.current ?? {}
+    if (feature && mousePosition && currentMousePosition) {
+      const edge = this.isMouseOnFeatureEdge(
+        mousePosition,
+        feature,
+        stateModel,
+        topLevelFeature,
+      )
       if (edge) {
         return true
       }
     }
     return false
+  }
+
+  continueDrag(
+    stateModel: LinearApolloDisplay,
+    currentMousePosition: MousePosition,
+  ): void {
+    const { feature, glyph, mousePosition, topLevelFeature } =
+      stateModel.apolloDragging?.start ?? {}
+    if (!(currentMousePosition && mousePosition)) {
+      return
+    }
+    const parentFeature = this.getParentFeature(feature, topLevelFeature)
+    const adjacentFeatures: {
+      prevFeature?: AnnotationFeatureI
+      nextFeature?: AnnotationFeatureI
+    } = this.getAdjacentFeatures(feature, parentFeature)
+    if (!feature) {
+      return
+    }
+    if (
+      feature.type !== 'CDS' &&
+      adjacentFeatures.prevFeature &&
+      !adjacentFeatures.nextFeature
+    ) {
+      if (
+        adjacentFeatures.prevFeature.type === 'CDS' &&
+        currentMousePosition &&
+        currentMousePosition.bp <= adjacentFeatures.prevFeature.start + 1
+      ) {
+        return
+      }
+      if (
+        adjacentFeatures.prevFeature.type !== 'CDS' &&
+        currentMousePosition &&
+        currentMousePosition.bp <= adjacentFeatures.prevFeature.end + 1
+      ) {
+        return
+      }
+    }
+
+    if (
+      feature.type !== 'CDS' &&
+      !adjacentFeatures.prevFeature &&
+      adjacentFeatures.nextFeature
+    ) {
+      if (
+        adjacentFeatures.nextFeature.type === 'CDS' &&
+        currentMousePosition &&
+        currentMousePosition.bp >= adjacentFeatures.nextFeature.end - 1
+      ) {
+        return
+      }
+      if (
+        adjacentFeatures.nextFeature.type !== 'CDS' &&
+        currentMousePosition &&
+        currentMousePosition.bp >= adjacentFeatures.nextFeature.start - 1
+      ) {
+        return
+      }
+    }
+
+    if (adjacentFeatures.prevFeature && adjacentFeatures.nextFeature) {
+      if (
+        feature.type === 'CDS' &&
+        adjacentFeatures.nextFeature.type !== 'CDS' &&
+        currentMousePosition &&
+        currentMousePosition.bp >= adjacentFeatures.nextFeature.end - 1
+      ) {
+        return
+      }
+      if (
+        feature.type === 'CDS' &&
+        adjacentFeatures.nextFeature.type === 'CDS' &&
+        currentMousePosition &&
+        currentMousePosition.bp >= adjacentFeatures.nextFeature.start - 1
+      ) {
+        return
+      }
+      if (
+        feature.type === 'CDS' &&
+        adjacentFeatures.prevFeature.type !== 'CDS' &&
+        currentMousePosition &&
+        currentMousePosition.bp <= adjacentFeatures.prevFeature.start + 1
+      ) {
+        return
+      }
+      if (
+        feature.type === 'CDS' &&
+        adjacentFeatures.prevFeature.type === 'CDS' &&
+        currentMousePosition &&
+        currentMousePosition.bp <= adjacentFeatures.prevFeature.end + 1
+      ) {
+        return
+      }
+      if (
+        feature.type !== 'CDS' &&
+        adjacentFeatures.prevFeature.type === 'CDS' &&
+        currentMousePosition &&
+        currentMousePosition.bp <= adjacentFeatures.prevFeature.start + 1
+      ) {
+        return
+      }
+      if (
+        feature.type !== 'CDS' &&
+        adjacentFeatures.prevFeature.type !== 'CDS' &&
+        currentMousePosition &&
+        currentMousePosition.bp <= adjacentFeatures.prevFeature.end + 1
+      ) {
+        return
+      }
+      if (
+        feature.type !== 'CDS' &&
+        adjacentFeatures.nextFeature.type !== 'CDS' &&
+        currentMousePosition &&
+        currentMousePosition.bp >= adjacentFeatures.nextFeature.start - 1
+      ) {
+        return
+      }
+      if (
+        feature.type !== 'CDS' &&
+        adjacentFeatures.nextFeature.type === 'CDS' &&
+        currentMousePosition &&
+        currentMousePosition.bp >= adjacentFeatures.nextFeature.end - 1
+      ) {
+        return
+      }
+    }
+    stateModel.setDragging({
+      start: {
+        feature,
+        topLevelFeature,
+        glyph,
+        mousePosition,
+      },
+      current: {
+        feature,
+        topLevelFeature,
+        glyph,
+        mousePosition: currentMousePosition,
+      },
+    })
   }
 
   getFeatureFromLayout(
@@ -403,5 +553,125 @@ export class ImplicitExonGeneGlyph extends Glyph {
   ): AnnotationFeatureI | undefined {
     const layoutRow = this.featuresForRow(feature)[row]
     return layoutRow?.find((f) => bp >= f.start && bp <= f.end)
+  }
+
+  async executeDrag(stateModel: LinearApolloDisplay) {
+    const {
+      apolloDragging,
+      changeManager,
+      displayedRegions,
+      getAssemblyId,
+      setCursor,
+    } = stateModel
+    if (!apolloDragging) {
+      return
+    }
+    const {
+      feature,
+      glyph,
+      mousePosition: startingMousePosition,
+      topLevelFeature,
+    } = apolloDragging.start
+    if (!feature) {
+      throw new Error('no feature for drag preview??')
+    }
+    if (glyph !== this) {
+      throw new Error('drawDragPreview() called on wrong glyph?')
+    }
+    const edge = this.isMouseOnFeatureEdge(
+      startingMousePosition,
+      feature,
+      stateModel,
+    )
+    if (!edge) {
+      return
+    }
+
+    const { mousePosition: currentMousePosition } = apolloDragging.current
+    const region = displayedRegions[startingMousePosition.regionNumber]
+    const newBp = currentMousePosition.bp
+    const assembly = getAssemblyId(region.assemblyName)
+
+    const parentFeature = this.getParentFeature(feature, topLevelFeature)
+    const adjacentFeatures: {
+      prevFeature?: AnnotationFeatureI
+      nextFeature?: AnnotationFeatureI
+    } = this.getAdjacentFeatures(feature, parentFeature)
+    const changes: (LocationStartChange | LocationEndChange)[] = []
+
+    if (edge === 'end') {
+      this.addEndLocation(changes, feature, newBp, assembly)
+      const { nextFeature } = adjacentFeatures
+      if (!nextFeature) {
+        return
+      }
+      if (
+        (feature.type !== 'CDS' && nextFeature.type === 'CDS') ||
+        (feature.type === 'CDS' && nextFeature.type !== 'CDS')
+      ) {
+        this.addStartLocation(changes, nextFeature, newBp + 1, assembly)
+      }
+    } else {
+      this.addStartLocation(changes, feature, newBp, assembly)
+      const { prevFeature } = adjacentFeatures
+      if (!prevFeature) {
+        return
+      }
+      if (
+        (feature.type !== 'CDS' && prevFeature.type === 'CDS') ||
+        (feature.type === 'CDS' && prevFeature.type !== 'CDS')
+      ) {
+        this.addEndLocation(changes, prevFeature, newBp - 1, assembly)
+      }
+    }
+    if (!changeManager) {
+      throw new Error('no change manager')
+    }
+    for (const change of changes) {
+      await changeManager.submit(change)
+    }
+    setCursor()
+  }
+
+  addEndLocation(
+    changes: (LocationStartChange | LocationEndChange)[] = [],
+    feature: AnnotationFeatureI,
+    newBp: number,
+    assembly: string,
+  ) {
+    const featureId = feature._id
+    const oldEnd = feature.end
+    const newEnd = newBp
+    changes.push(
+      new LocationEndChange({
+        typeName: 'LocationEndChange',
+        changedIds: [featureId],
+        featureId,
+        oldEnd,
+        newEnd,
+        assembly,
+      }),
+    )
+  }
+
+  addStartLocation(
+    changes: (LocationStartChange | LocationEndChange)[] = [],
+    feature: AnnotationFeatureI,
+    newBp: number,
+    assembly: string,
+  ) {
+    const featureId = feature._id
+    const oldStart = feature.start
+    const newStart = newBp
+    changes.push(
+      new LocationStartChange({
+        typeName: 'LocationStartChange',
+        changedIds: [featureId],
+        featureId,
+        oldStart,
+        newStart,
+        assembly,
+      }),
+    )
   }
 }

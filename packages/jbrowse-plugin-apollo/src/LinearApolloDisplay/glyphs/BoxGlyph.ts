@@ -220,6 +220,31 @@ export class BoxGlyph extends Glyph {
     return false
   }
 
+  continueDrag(
+    stateModel: LinearApolloDisplay,
+    currentMousePosition: MousePosition,
+  ) {
+    const { feature, glyph, mousePosition, topLevelFeature } =
+      stateModel.apolloDragging?.start ?? {}
+    if (!(currentMousePosition && mousePosition)) {
+      return
+    }
+    stateModel.setDragging({
+      start: {
+        feature,
+        topLevelFeature,
+        glyph,
+        mousePosition,
+      },
+      current: {
+        feature,
+        topLevelFeature,
+        glyph,
+        mousePosition: currentMousePosition,
+      },
+    })
+  }
+
   executeDrag(stateModel: LinearApolloDisplay) {
     const {
       apolloDragging,
