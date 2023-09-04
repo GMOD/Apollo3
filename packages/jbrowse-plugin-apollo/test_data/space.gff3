@@ -4,7 +4,7 @@ ctgA	est	EST_match	1150	7200	.	+	.	ID=Match1;Target=agt 1
 ctgA	est	EST_match	5410	7503	.	-	.	ID=Match2;Target=agt 1
 ctgA	est	EST_match	7500	8000	.	-	.	ID=Match3;Target=agt A
 ctgA	est	EST_match	8000	9000	.	-	.	ID=Match4;Target=agt B
-ctgA	est	EST_match	9500	9900	.	-	.	ID=Match5;Target=agt_1
+ctgA	est	EST_match	9520	9900	.	-	.	ID=Match5;Target=agt_1
 ##FASTA
 >ctgA
 cattgttgcggagttgaacaACGGCATTAGGAACACTTCCGTCTCtcacttttatacgat
