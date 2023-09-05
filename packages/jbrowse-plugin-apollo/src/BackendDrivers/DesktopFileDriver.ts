@@ -1,4 +1,4 @@
-import gff, { GFF3Feature, GFF3Sequence } from '@gmod/gff'
+import gff, { GFF3Feature, GFF3FeatureLine, GFF3FeatureLineWithRefs, GFF3Sequence } from '@gmod/gff'
 import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { Region, getSession, isElectron } from '@jbrowse/core/util'
@@ -7,10 +7,12 @@ import { AnnotationFeatureSnapshot } from 'apollo-mst'
 import { ValidationResultSet } from 'apollo-shared'
 import { nanoid } from 'nanoid'
 import { Socket } from 'socket.io-client'
+import { ApolloSession } from '../session'
 
 import { ChangeManager, SubmitOpts } from '../ChangeManager'
 import { createFetchErrorMessage } from '../util'
 import { BackendDriver } from './BackendDriver'
+import { GFF3Attributes } from '@gmod/gff/dist/util'
 
 export interface ApolloInternetAccount extends BaseInternetAccountModel {
   baseURL: string
@@ -237,6 +239,7 @@ export class DesktopFileDriver extends BackendDriver {
     const { file } = getConf(assembly, ['sequence', 'metadata']) as {
       file: string
     }
+
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const fs = require('fs')
     console.log(`region: ${JSON.stringify(region)}`)
@@ -385,13 +388,122 @@ export class DesktopFileDriver extends BackendDriver {
     const { file } = getConf(assembly, ['sequence', 'metadata']) as {
       file: string
     }
-    console.log(`**** ORIGINAL FILE: ${file}`)
+
+    // ** ALKAA **
+    // const as = getSession(this.clientStore) as ApolloSession
+    // console.log(`**** APOLLO SESSION: ${JSON.stringify(as)}`)
+    // console.log(`**** APOLLO feature: ${JSON.stringify(as.apolloSelectedFeature)}`)
+    // console.log(`**** APOLLO datastore: ${JSON.stringify(as.apolloDataStore)}`)
+    // as.apolloDataStore
+    // const region1: Region = {assemblyName: tmpObj.assembly, start: 0, end: 50000, refName: 'ctgA'}
+    // console.log(`region1: ${JSON.stringify(region1)}`)
+
+    const assembly0 = getSession(this.clientStore.assemblies)
+    const assembly2 = this.clientStore.assemblies
+    console.log(`*** ASS: ${JSON.stringify(assembly0)}`)  // INCLUDES BOTH (ctgA and ctgB) SEQUENCES
+    console.log(`*** ASS2 *********: ${JSON.stringify(assembly2)}`) // INCLUDES ONLY CURRENT (ctgA or ctgB) FEATURES
+    
+    console.log(`*** FEATURE ID: ${JSON.stringify(tmpObj.featureId)}`)
+    const featureOne = this.clientStore.getFeature(tmpObj.featureId)
+    console.log(`*** FEATURE: ${JSON.stringify(featureOne)}`) // MODIFIED FEATURE
+
+    const util = gff.util
+    assembly2.forEach((value, key) => {
+      // console.log(`Key: ${key}, Value: ${value._id}, RefSeqs: ${JSON.stringify(value.refSeqs)}`)
+      value.refSeqs.forEach((val1, key1) => {
+        val1.features.forEach((val2, key2) => {
+          console.log(`Feature: ${JSON.stringify(val2)}`)
+          const attr: GFF3Attributes = {}
+          let sourceValue = ''
+          val2.attributes.forEach((valAttr, keyAttr) => {
+            console.log(`Attribute KEY: "${keyAttr}", VALUE: "${valAttr}"`)
+            switch (keyAttr) {
+              case '_id':
+                keyAttr = 'ID'
+                break
+              case 'gff_name':
+                keyAttr = 'Name'
+                break
+              case 'gff_alias':
+                keyAttr = 'Alias'
+                break
+              case 'gff_target':
+                keyAttr = 'Target'
+                break
+              case 'gff_gap':
+                keyAttr  = 'Gap'
+                break
+              case 'gff_derives_from':
+                keyAttr = 'Derives_from'
+                break
+              case 'gff_note':
+                keyAttr = 'Note'
+                break
+              case 'gff_dbxref':
+                keyAttr = 'Dbxref'
+                break
+              // case 'Ontology_term': {
+              //   const goTerms: string[] = []
+              //   const otherTerms: string[] = []
+              //   val.forEach((v) => {
+              //     if (v.startsWith('GO:')) {
+              //       goTerms.push(v)
+              //     } else {
+              //       otherTerms.push(v)
+              //     }
+              //   })
+              //   if (goTerms.length) {
+              //     attrs['Gene Ontology'] = goTerms
+              //   }
+              //   if (otherTerms.length) {
+              //     attrs.gff_ontology_term = otherTerms
+              //   }
+              //   break
+              // }
+              case 'gff_is_circular':
+                keyAttr = 'Is_circular'
+                break
+              default:
+                keyAttr = keyAttr.toUpperCase()
+            }
+            if (keyAttr === 'SOURCE') {
+              sourceValue = valAttr as unknown as string
+            } else {
+              attr[keyAttr] = valAttr
+            }
+          })
+          const strand: string|null = val2.strand ? val2.strand as unknown as string : null
+          const phase: string|null = val2.phase ? val2.phase as unknown as string : null
+          const d: GFF3FeatureLine = { seq_id: val2.refSeq, start: val2.start, source: sourceValue, type: val2.type, end: val2.end, score: 1, strand, phase, attributes: attr }
+          const eka = util.formatFeature(d)
+          console.log(`Feature line: ${eka}`)
+        })
+      })
+    })
+    // const { refSeqs } = assembly2
+    // console.log(`*** refSeqs: ${JSON.stringify(refSeqs)}`) // MODIFIED FEATURE
+
+    // GETS SEQUENCES FROM CLIENT DATA STORE
+    // const feats = await assembly0.sessionAssemblies[0].sequence.adapter.features
+    // // console.log(`*** FEATS: ${JSON.stringify(feats)}`)
+    // const eka = JSON.stringify(feats)
+    // const featsJson = JSON.parse(eka)
+
+    // if (Array.isArray(featsJson)) {
+    //   for (const item of featsJson) {
+    //     console.log(`REF: ${JSON.stringify(item.refName)}`)
+    //     console.log(`SEQ: ${JSON.stringify(item)}`)
+    //   }
+    // }
+    // ** LOPPUU **
+
+    // Read sequence from original file and write it back
+    // console.log(`**** ORIGINAL FILE: ${file}`)
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const fs = require('fs')
     const newFileName = `${file}_001.txt`
 
     const fileDataTmp = await fs.promises.readFile(file, 'utf-8')
-    console.log(`**** fileDataTmp: ${fileDataTmp}`)
     const sequenceData = gff.parseStringSync(fileDataTmp, {
       parseSequences: true,
       parseComments: false,
@@ -401,7 +513,6 @@ export class DesktopFileDriver extends BackendDriver {
     // format an array of items to a string
     const newStringOfGFF3 = gff.formatSync(sequenceData)
     await fs.promises.writeFile(newFileName, newStringOfGFF3, 'utf-8')
-    console.log('**** WRITE DONE')
 
     const results = new ValidationResultSet()
     return results
