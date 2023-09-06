@@ -12,7 +12,7 @@
     "start:server": "yarn workspace apollo-collaboration-server run start",
     "start:plugin": "yarn workspace jbrowse-plugin-apollo run start",
     "start": "npm-run-all --print-label --parallel start:shared start:server start:plugin",
-    "test": "yarn workspace jbrowse-plugin-apollo run test"
+    "test": "yarn workspace jbrowse-plugin-apollo run test:ci"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.1.0",
