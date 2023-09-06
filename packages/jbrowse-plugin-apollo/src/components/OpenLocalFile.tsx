@@ -110,7 +110,8 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
         parseSequences: true,
         parseComments: false,
         parseDirectives: false,
-        parseFeatures: isElectron ? false : true,
+        parseFeatures: true,
+        // parseFeatures: isElectron ? false : true,
       })
     } catch (error) {
       setSubmitted(false)
@@ -132,7 +133,7 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
     const checkResults: CheckResultSnapshot[] = []
     for (const seqLine of featuresAndSequences) {
       if (Array.isArray(seqLine)) {
-        // regular feature
+        // feature
         const feature = createFeature(seqLine)
 
         // const fakeCheck = new FakeCheck()
@@ -149,9 +150,15 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
           ref.addFeature(feature)
         }
       } else {
-        sequenceFeatureCount++
-        // sequence feature
         let ref = assembly.refSeqs.get(seqLine.id)
+        // sequence
+        sequenceAdapterFeatures.push({
+          refName: seqLine.id,
+          uniqueId: `${assemblyId}-${seqLine.id}`,
+          start: 0,
+          stop: seqLine.sequence.length,
+          sequence: seqLine.sequence,
+        })
         if (!ref) {
           ref = assembly.addRefSeq(seqLine.id, seqLine.id)
         }
@@ -262,7 +269,13 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
                   />
                 </Button>
               )}
-              {isElectron ? (fileName ? fileName : 'No file chosen') : (file ? file.name : 'No file chosen')}
+              {isElectron
+                ? fileName
+                  ? fileName
+                  : 'No file chosen'
+                : file
+                ? file.name
+                : 'No file chosen'}
             </div>
             <FormHelperText>
               Make sure your GFF3 has an embedded FASTA section

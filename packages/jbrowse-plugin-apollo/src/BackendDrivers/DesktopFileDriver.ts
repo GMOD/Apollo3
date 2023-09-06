@@ -1,4 +1,10 @@
-import gff, { GFF3Feature, GFF3FeatureLine, GFF3FeatureLineWithRefs, GFF3Sequence } from '@gmod/gff'
+import gff, {
+  GFF3Feature,
+  GFF3FeatureLine,
+  GFF3FeatureLineWithRefs,
+  GFF3Sequence,
+} from '@gmod/gff'
+import { GFF3Attributes } from '@gmod/gff/dist/util'
 import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { Region, getSession, isElectron } from '@jbrowse/core/util'
@@ -7,12 +13,11 @@ import { AnnotationFeatureSnapshot } from 'apollo-mst'
 import { ValidationResultSet } from 'apollo-shared'
 import { nanoid } from 'nanoid'
 import { Socket } from 'socket.io-client'
-import { ApolloSession } from '../session'
 
 import { ChangeManager, SubmitOpts } from '../ChangeManager'
+import { ApolloSession } from '../session'
 import { createFetchErrorMessage } from '../util'
 import { BackendDriver } from './BackendDriver'
-import { GFF3Attributes } from '@gmod/gff/dist/util'
 
 export interface ApolloInternetAccount extends BaseInternetAccountModel {
   baseURL: string
@@ -242,7 +247,7 @@ export class DesktopFileDriver extends BackendDriver {
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const fs = require('fs')
-    console.log(`region: ${JSON.stringify(region)}`)
+    // console.log(`region: ${JSON.stringify(region)}`)
 
     const fileData = await fs.promises.readFile(file, 'utf-8')
     const featuresAndSequences = gff.parseStringSync(fileData, {
@@ -379,7 +384,6 @@ export class DesktopFileDriver extends BackendDriver {
     opts: SubmitOpts = {},
   ) {
     const tmpObj = JSON.parse(JSON.stringify(change.toJSON()))
-    console.log(`**** SUBMIT CHANGE: ${JSON.stringify(change)}`)
     const { assemblyManager } = getSession(this.clientStore)
     const assembly = assemblyManager.get(tmpObj.assembly)
     if (!assembly) {
@@ -388,35 +392,24 @@ export class DesktopFileDriver extends BackendDriver {
     const { file } = getConf(assembly, ['sequence', 'metadata']) as {
       file: string
     }
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fs = require('fs')
+    const newFileName = `${file}_001.gff3`
+    let newStringOfGFF3 = ''
 
-    // ** ALKAA **
-    // const as = getSession(this.clientStore) as ApolloSession
-    // console.log(`**** APOLLO SESSION: ${JSON.stringify(as)}`)
-    // console.log(`**** APOLLO feature: ${JSON.stringify(as.apolloSelectedFeature)}`)
-    // console.log(`**** APOLLO datastore: ${JSON.stringify(as.apolloDataStore)}`)
-    // as.apolloDataStore
-    // const region1: Region = {assemblyName: tmpObj.assembly, start: 0, end: 50000, refName: 'ctgA'}
-    // console.log(`region1: ${JSON.stringify(region1)}`)
+    const assemblyName = this.clientStore.assemblies
+    console.log(`*** ASSEMBLY DATA: ${JSON.stringify(assemblyName)}`) // INCLUDES ONLY CURRENT (ctgA or ctgB) FEATURES BUT NO ANY SEQUENCE
 
-    const assembly0 = getSession(this.clientStore.assemblies)
-    const assembly2 = this.clientStore.assemblies
-    console.log(`*** ASS: ${JSON.stringify(assembly0)}`)  // INCLUDES BOTH (ctgA and ctgB) SEQUENCES
-    console.log(`*** ASS2 *********: ${JSON.stringify(assembly2)}`) // INCLUDES ONLY CURRENT (ctgA or ctgB) FEATURES
-    
-    console.log(`*** FEATURE ID: ${JSON.stringify(tmpObj.featureId)}`)
-    const featureOne = this.clientStore.getFeature(tmpObj.featureId)
-    console.log(`*** FEATURE: ${JSON.stringify(featureOne)}`) // MODIFIED FEATURE
-
-    const util = gff.util
-    assembly2.forEach((value, key) => {
+    const { util } = gff
+    assemblyName.forEach((value, key) => {
       // console.log(`Key: ${key}, Value: ${value._id}, RefSeqs: ${JSON.stringify(value.refSeqs)}`)
       value.refSeqs.forEach((val1, key1) => {
         val1.features.forEach((val2, key2) => {
-          console.log(`Feature: ${JSON.stringify(val2)}`)
+          // console.log(`Feature: ${JSON.stringify(val2)}`)
           const attr: GFF3Attributes = {}
           let sourceValue = ''
           val2.attributes.forEach((valAttr, keyAttr) => {
-            console.log(`Attribute KEY: "${keyAttr}", VALUE: "${valAttr}"`)
+            // console.log(`Attribute KEY: "${keyAttr}", VALUE: "${valAttr}"`)
             switch (keyAttr) {
               case '_id':
                 keyAttr = 'ID'
@@ -431,7 +424,7 @@ export class DesktopFileDriver extends BackendDriver {
                 keyAttr = 'Target'
                 break
               case 'gff_gap':
-                keyAttr  = 'Gap'
+                keyAttr = 'Gap'
                 break
               case 'gff_derives_from':
                 keyAttr = 'Derives_from'
@@ -442,29 +435,11 @@ export class DesktopFileDriver extends BackendDriver {
               case 'gff_dbxref':
                 keyAttr = 'Dbxref'
                 break
-              // case 'Ontology_term': {
-              //   const goTerms: string[] = []
-              //   const otherTerms: string[] = []
-              //   val.forEach((v) => {
-              //     if (v.startsWith('GO:')) {
-              //       goTerms.push(v)
-              //     } else {
-              //       otherTerms.push(v)
-              //     }
-              //   })
-              //   if (goTerms.length) {
-              //     attrs['Gene Ontology'] = goTerms
-              //   }
-              //   if (otherTerms.length) {
-              //     attrs.gff_ontology_term = otherTerms
-              //   }
-              //   break
-              // }
               case 'gff_is_circular':
                 keyAttr = 'Is_circular'
                 break
               default:
-                keyAttr = keyAttr.toUpperCase()
+                break
             }
             if (keyAttr === 'SOURCE') {
               sourceValue = valAttr as unknown as string
@@ -472,11 +447,35 @@ export class DesktopFileDriver extends BackendDriver {
               attr[keyAttr] = valAttr
             }
           })
-          const strand: string|null = val2.strand ? val2.strand as unknown as string : null
-          const phase: string|null = val2.phase ? val2.phase as unknown as string : null
-          const d: GFF3FeatureLine = { seq_id: val2.refSeq, start: val2.start, source: sourceValue, type: val2.type, end: val2.end, score: 1, strand, phase, attributes: attr }
-          const eka = util.formatFeature(d)
-          console.log(`Feature line: ${eka}`)
+          let strand: string | null = null
+          if (val2.strand) {
+            if (val2.strand === 1) {
+              strand = '+'
+            } else if (val2.strand === -1) {
+              strand = '-'
+            }
+          }
+          let score: number | null = null
+          if (val2.score) {
+            score = val2.score
+          }
+          const phase: string | null = val2.phase
+            ? (val2.phase as unknown as string)
+            : null
+          const featureLine: GFF3FeatureLine = {
+            seq_id: val2.refSeq,
+            start: val2.start,
+            source: sourceValue,
+            type: val2.type,
+            end: val2.end,
+            score,
+            strand,
+            phase,
+            attributes: attr,
+          }
+          const featureLineAsString = util.formatFeature(featureLine)
+          newStringOfGFF3 += featureLineAsString
+          console.log(`Feature line: ${featureLineAsString}`)
         })
       })
     })
@@ -499,9 +498,6 @@ export class DesktopFileDriver extends BackendDriver {
 
     // Read sequence from original file and write it back
     // console.log(`**** ORIGINAL FILE: ${file}`)
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fs = require('fs')
-    const newFileName = `${file}_001.txt`
 
     const fileDataTmp = await fs.promises.readFile(file, 'utf-8')
     const sequenceData = gff.parseStringSync(fileDataTmp, {
@@ -511,7 +507,7 @@ export class DesktopFileDriver extends BackendDriver {
       parseFeatures: false,
     })
     // format an array of items to a string
-    const newStringOfGFF3 = gff.formatSync(sequenceData)
+    newStringOfGFF3 += gff.formatSync(sequenceData)
     await fs.promises.writeFile(newFileName, newStringOfGFF3, 'utf-8')
 
     const results = new ValidationResultSet()
