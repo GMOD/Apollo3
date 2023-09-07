@@ -408,17 +408,31 @@ export class ImplicitExonGeneGlyph extends Glyph {
     if (!feature || !currentMousePosition) {
       return
     }
+    const { bp } = currentMousePosition
+    const edge = this.isMouseOnFeatureEdge(
+      mousePosition,
+      feature,
+      stateModel,
+      topLevelFeature,
+    )
+    if (
+      edge &&
+      ((edge === 'start' && bp >= feature.end - 1) ||
+        (edge === 'end' && bp <= feature.start + 1))
+    ) {
+      return
+    }
     if (feature.type !== 'CDS') {
       if (adjacentFeatures.prevFeature && !adjacentFeatures.nextFeature) {
         if (
           adjacentFeatures.prevFeature.type === 'CDS' &&
-          currentMousePosition.bp <= adjacentFeatures.prevFeature.start + 1
+          bp <= adjacentFeatures.prevFeature.start + 1
         ) {
           return
         }
         if (
           adjacentFeatures.prevFeature.type !== 'CDS' &&
-          currentMousePosition.bp <= adjacentFeatures.prevFeature.end + 1
+          bp <= adjacentFeatures.prevFeature.end + 1
         ) {
           return
         }
@@ -426,13 +440,13 @@ export class ImplicitExonGeneGlyph extends Glyph {
       if (!adjacentFeatures.prevFeature && adjacentFeatures.nextFeature) {
         if (
           adjacentFeatures.nextFeature.type === 'CDS' &&
-          currentMousePosition.bp >= adjacentFeatures.nextFeature.end - 1
+          bp >= adjacentFeatures.nextFeature.end - 1
         ) {
           return
         }
         if (
           adjacentFeatures.nextFeature.type !== 'CDS' &&
-          currentMousePosition.bp >= adjacentFeatures.nextFeature.start - 1
+          bp >= adjacentFeatures.nextFeature.start - 1
         ) {
           return
         }
@@ -443,50 +457,50 @@ export class ImplicitExonGeneGlyph extends Glyph {
       if (feature.type === 'CDS') {
         if (
           adjacentFeatures.nextFeature.type !== 'CDS' &&
-          currentMousePosition.bp >= adjacentFeatures.nextFeature.end - 1
+          bp >= adjacentFeatures.nextFeature.end - 1
         ) {
           return
         }
         if (
           adjacentFeatures.nextFeature.type === 'CDS' &&
-          currentMousePosition.bp >= adjacentFeatures.nextFeature.start - 1
+          bp >= adjacentFeatures.nextFeature.start - 1
         ) {
           return
         }
         if (
           adjacentFeatures.prevFeature.type !== 'CDS' &&
-          currentMousePosition.bp <= adjacentFeatures.prevFeature.start + 1
+          bp <= adjacentFeatures.prevFeature.start + 1
         ) {
           return
         }
         if (
           adjacentFeatures.prevFeature.type === 'CDS' &&
-          currentMousePosition.bp <= adjacentFeatures.prevFeature.end + 1
+          bp <= adjacentFeatures.prevFeature.end + 1
         ) {
           return
         }
       } else {
         if (
           adjacentFeatures.prevFeature.type === 'CDS' &&
-          currentMousePosition.bp <= adjacentFeatures.prevFeature.start + 1
+          bp <= adjacentFeatures.prevFeature.start + 1
         ) {
           return
         }
         if (
           adjacentFeatures.prevFeature.type !== 'CDS' &&
-          currentMousePosition.bp <= adjacentFeatures.prevFeature.end + 1
+          bp <= adjacentFeatures.prevFeature.end + 1
         ) {
           return
         }
         if (
           adjacentFeatures.nextFeature.type !== 'CDS' &&
-          currentMousePosition.bp >= adjacentFeatures.nextFeature.start - 1
+          bp >= adjacentFeatures.nextFeature.start - 1
         ) {
           return
         }
         if (
           adjacentFeatures.nextFeature.type === 'CDS' &&
-          currentMousePosition.bp >= adjacentFeatures.nextFeature.end - 1
+          bp >= adjacentFeatures.nextFeature.end - 1
         ) {
           return
         }

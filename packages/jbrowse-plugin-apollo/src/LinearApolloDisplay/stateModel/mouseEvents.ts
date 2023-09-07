@@ -29,6 +29,13 @@ export interface FeatureAndGlyphInfo {
   mousePosition?: MousePosition
 }
 
+export interface CDSDiscontinuousLocation {
+  start: number
+  end: number
+  phase: 0 | 1 | 2 | undefined
+  idx?: number
+}
+
 function getMousePosition(
   event: CanvasMouseEvent,
   lgv: LinearGenomeViewModel,
@@ -58,12 +65,7 @@ export function mouseEventsModelIntermediateFactory(
           glyph?: Glyph
           feature?: AnnotationFeatureI
           topLevelFeature?: AnnotationFeatureI
-          discontinuousLocation?: {
-            start: number
-            end: number
-            phase: 0 | 1 | 2 | undefined
-            idx?: number
-          }
+          discontinuousLocation?: CDSDiscontinuousLocation
           mousePosition: MousePosition
         }
         current: {

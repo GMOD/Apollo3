@@ -1,8 +1,12 @@
 import { alpha } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
+import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 
 import { LinearApolloDisplay } from '../stateModel'
-import { MousePosition } from '../stateModel/mouseEvents'
+import {
+  CDSDiscontinuousLocation,
+  MousePosition,
+} from '../stateModel/mouseEvents'
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 
@@ -53,12 +57,6 @@ interface CDSFeatures {
   cds: AnnotationFeatureI
 }
 
-interface CDSDiscontinuousLocation {
-  start: number
-  end: number
-  phase: 0 | 1 | 2 | undefined
-  idx?: number
-}
 interface ExonCDSRelation {
   exon: AnnotationFeatureI
   cdsDL?: CDSDiscontinuousLocation
@@ -656,7 +654,7 @@ export class CanonicalGeneGlyph extends Glyph {
     return false
   }
 
-  adjacentExonsOfCDSDL(
+  adjacentExonsOfCdsDL(
     cdsDL: CDSDiscontinuousLocation,
     exonCDSRelations: ExonCDSRelation[],
   ) {
@@ -782,6 +780,12 @@ export class CanonicalGeneGlyph extends Glyph {
     if (!feature || !currentMousePosition) {
       return
     }
+    const edge = this.isMouseOnFeatureEdge(
+      mousePosition,
+      feature,
+      stateModel,
+      topLevelFeature,
+    )
     if (
       feature.type === 'CDS' &&
       feature.discontinuousLocations &&
@@ -805,7 +809,7 @@ export class CanonicalGeneGlyph extends Glyph {
       }
 
       const exonCDSRelations = this.exonCDSRelation(feature, topLevelFeature)
-      const { matchingExon, nextExon, prevExon } = this.adjacentExonsOfCDSDL(
+      const { matchingExon, nextExon, prevExon } = this.adjacentExonsOfCdsDL(
         discontinuousLocation,
         exonCDSRelations,
       )
@@ -848,6 +852,14 @@ export class CanonicalGeneGlyph extends Glyph {
       ) {
         return
       }
+
+      if (
+        edge &&
+        ((edge === 'start' && bp >= discontinuousLocation.end - 1) ||
+          (edge === 'end' && bp <= discontinuousLocation.start + 1))
+      ) {
+        return
+      }
     }
 
     if (feature.type !== 'CDS') {
@@ -869,6 +881,13 @@ export class CanonicalGeneGlyph extends Glyph {
         adjacentExons?.prevExon &&
         !adjacentExons?.nextExon &&
         bp > feature.end
+      ) {
+        return
+      }
+      if (
+        edge &&
+        ((edge === 'start' && bp >= feature.end - 1) ||
+          (edge === 'end' && bp <= feature.start + 1))
       ) {
         return
       }
@@ -925,5 +944,159 @@ export class CanonicalGeneGlyph extends Glyph {
     }
 
     return featureFromLayout
+  }
+
+  async executeDrag(stateModel: LinearApolloDisplay) {
+    const {
+      apolloDragging,
+      changeManager,
+      displayedRegions,
+      getAssemblyId,
+      setCursor,
+    } = stateModel
+    if (!apolloDragging) {
+      return
+    }
+    const {
+      discontinuousLocation,
+      feature,
+      glyph,
+      mousePosition: startingMousePosition,
+      topLevelFeature,
+    } = apolloDragging.start
+    if (!feature) {
+      throw new Error('no feature for drag preview??')
+    }
+    if (glyph !== this) {
+      throw new Error('drawDragPreview() called on wrong glyph?')
+    }
+    const edge = this.isMouseOnFeatureEdge(
+      startingMousePosition,
+      feature,
+      stateModel,
+    )
+    if (!edge) {
+      return
+    }
+
+    const { mousePosition: currentMousePosition } = apolloDragging.current
+    const region = displayedRegions[startingMousePosition.regionNumber]
+    const newBp = currentMousePosition.bp
+    const assembly = getAssemblyId(region.assemblyName)
+    const changes: (LocationStartChange | LocationEndChange)[] = []
+
+    if (edge === 'start') {
+      if (discontinuousLocation?.idx && feature.discontinuousLocations) {
+        if (discontinuousLocation.idx) {
+          // feature.discontinuousLocations[discontinuousLocation.idx].start =
+          //   newBp
+          // TODO: add dl change
+
+          const exonCDSRelations = this.exonCDSRelation(
+            feature,
+            topLevelFeature,
+          )
+          const exonForCds = this.adjacentExonsOfCdsDL(
+            discontinuousLocation,
+            exonCDSRelations,
+          )
+          if (
+            exonForCds &&
+            exonForCds.matchingExon &&
+            newBp < exonForCds.matchingExon.start
+          ) {
+            this.addStartLocation(
+              changes,
+              exonForCds.matchingExon,
+              newBp,
+              assembly,
+            )
+          }
+        }
+      } else {
+        this.addStartLocation(changes, feature, newBp, assembly)
+      }
+    } else {
+      if (discontinuousLocation?.idx && feature.discontinuousLocations) {
+        if (discontinuousLocation.idx) {
+          // feature.discontinuousLocations[discontinuousLocation.idx].end = newBp
+          // TODO: add dl change
+
+          const exonCDSRelations = this.exonCDSRelation(
+            feature,
+            topLevelFeature,
+          )
+          const exonForCds = this.adjacentExonsOfCdsDL(
+            discontinuousLocation,
+            exonCDSRelations,
+          )
+          if (
+            exonForCds &&
+            exonForCds.matchingExon &&
+            newBp > exonForCds.matchingExon.end
+          ) {
+            this.addEndLocation(
+              changes,
+              exonForCds.matchingExon,
+              newBp,
+              assembly,
+            )
+          }
+        }
+      } else {
+        this.addEndLocation(changes, feature, newBp, assembly)
+      }
+    }
+
+    if (!changeManager) {
+      throw new Error('no change manager')
+    }
+    for (const change of changes) {
+      await changeManager.submit(change)
+    }
+
+    setCursor()
+  }
+
+  addEndLocation(
+    changes: (LocationStartChange | LocationEndChange)[] = [],
+    feature: AnnotationFeatureI,
+    newBp: number,
+    assembly: string,
+  ) {
+    const featureId = feature._id
+    const oldEnd = feature.end
+    const newEnd = newBp
+    changes.push(
+      new LocationEndChange({
+        typeName: 'LocationEndChange',
+        changedIds: [featureId],
+        featureId,
+        oldEnd,
+        newEnd,
+        assembly,
+      }),
+    )
+  }
+
+  addStartLocation(
+    changes: (LocationStartChange | LocationEndChange)[] = [],
+    feature: AnnotationFeatureI,
+    newBp: number,
+    assembly: string,
+  ) {
+    const featureId = feature._id
+    const oldStart = feature.start
+    const newStart = newBp
+    changes.push(
+      new LocationStartChange({
+        typeName: 'LocationStartChange',
+        changedIds: [featureId],
+        featureId,
+        oldStart,
+        newStart,
+        assembly,
+      }),
+    )
   }
 }
