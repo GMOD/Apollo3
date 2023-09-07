@@ -59,13 +59,7 @@ export class BoxGlyph extends Glyph {
     feature: AnnotationFeatureI,
     stateModel: LinearApolloDisplay,
   ) {
-    const { session } = stateModel
-    const { apolloSelectedFeature } = session
-    if (
-      !mousePosition ||
-      !apolloSelectedFeature ||
-      feature._id !== apolloSelectedFeature._id
-    ) {
+    if (!mousePosition) {
       return
     }
     const { refName, regionNumber, x } = mousePosition

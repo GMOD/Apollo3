@@ -279,11 +279,6 @@ export class ImplicitExonGeneGlyph extends Glyph {
 
   /**
    * Check If the mouse position is on the edge of the selected feature
-   * @param mousePosition - mouse position
-   * @param feature - feature under the mouse
-   * @param topLevelFeature - topLevelFeature
-   * @param stateModel - LinearApolloDisplay model
-   * @returns undefined if mouse not on the edge of this feature, otherwise 'start' or 'end' depending on which edge
    */
   isMouseOnFeatureEdge(
     mousePosition: MousePosition,
@@ -291,13 +286,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
     stateModel: LinearApolloDisplay,
     topLevelFeature?: AnnotationFeatureI,
   ) {
-    const { session } = stateModel
-    const { apolloSelectedFeature } = session
-    if (
-      !mousePosition ||
-      !apolloSelectedFeature ||
-      feature._id !== apolloSelectedFeature._id
-    ) {
+    if (!mousePosition) {
       return
     }
 
@@ -312,21 +301,18 @@ export class ImplicitExonGeneGlyph extends Glyph {
       if (Math.abs(endPx - startPx) < 8) {
         return
       }
-      const parentFeature = this.getParentFeature(
-        apolloSelectedFeature,
-        topLevelFeature,
-      )
+      const parentFeature = this.getParentFeature(feature, topLevelFeature)
       // Limit dragging till parent feature end
       if (
         parentFeature &&
-        apolloSelectedFeature.start <= parentFeature.start &&
+        feature.start <= parentFeature.start &&
         Math.abs(startPx - x) < 4
       ) {
         return
       }
       if (
         parentFeature &&
-        apolloSelectedFeature.end >= parentFeature.end &&
+        feature.end >= parentFeature.end &&
         Math.abs(endPx - x) < 4
       ) {
         return
@@ -607,6 +593,37 @@ export class ImplicitExonGeneGlyph extends Glyph {
       await changeManager.submit(change)
     }
     setCursor()
+  }
+
+  getAdjacentFeatures(
+    feature?: AnnotationFeatureI,
+    parentFeature?: AnnotationFeatureI,
+  ): {
+    prevFeature?: AnnotationFeatureI
+    nextFeature?: AnnotationFeatureI
+  } {
+    let prevFeature: AnnotationFeatureI | undefined
+    let nextFeature: AnnotationFeatureI | undefined
+    let i = 0
+    if (!feature || !(parentFeature && parentFeature.children)) {
+      return { prevFeature, nextFeature }
+    }
+    for (const [, f] of parentFeature.children) {
+      if (f._id === feature._id) {
+        break
+      }
+      i++
+    }
+    const keys = [...parentFeature.children.keys()]
+    if (i > 0) {
+      const key = keys[i - 1]
+      prevFeature = parentFeature.children.get(key)
+    }
+    if (i < keys.length - 1) {
+      const key = keys[i + 1]
+      nextFeature = parentFeature.children.get(key)
+    }
+    return { prevFeature, nextFeature }
   }
 
   addEndLocation(

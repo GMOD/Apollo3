@@ -58,6 +58,12 @@ export function mouseEventsModelIntermediateFactory(
           glyph?: Glyph
           feature?: AnnotationFeatureI
           topLevelFeature?: AnnotationFeatureI
+          discontinuousLocation?: {
+            start: number
+            end: number
+            phase: 0 | 1 | 2 | undefined
+            idx?: number
+          }
           mousePosition: MousePosition
         }
         current: {
@@ -160,8 +166,37 @@ export function mouseEventsModelFactory(
         const { feature, glyph, mousePosition, topLevelFeature } =
           self.getFeatureAndGlyphUnderMouse(event)
         if (feature && topLevelFeature && glyph && mousePosition) {
+          let dl, idx
+          if (
+            feature.discontinuousLocations &&
+            feature.discontinuousLocations.length > 0
+          ) {
+            for (let i = 0; i < feature.discontinuousLocations.length; i++) {
+              if (
+                mousePosition.bp >= feature.discontinuousLocations[i].start &&
+                mousePosition.bp <= feature.discontinuousLocations[i].end
+              ) {
+                idx = i
+                dl = feature.discontinuousLocations[idx]
+                break
+              }
+            }
+          }
           self.apolloDragging = {
-            start: { glyph, feature, topLevelFeature, mousePosition },
+            start: {
+              glyph,
+              feature,
+              topLevelFeature,
+              discontinuousLocation: dl
+                ? {
+                    start: dl.start,
+                    end: dl.end,
+                    phase: dl.phase,
+                    idx,
+                  }
+                : undefined,
+              mousePosition,
+            },
             current: { glyph, feature, topLevelFeature, mousePosition },
           }
           if (!glyph.startDrag(self, event)) {
