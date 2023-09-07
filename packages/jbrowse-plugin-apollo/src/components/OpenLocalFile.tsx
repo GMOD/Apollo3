@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import gff, { GFF3Feature, GFF3Sequence } from '@gmod/gff'
+import gff, { GFF3Comment, GFF3Feature, GFF3Sequence } from '@gmod/gff'
 import { AbstractSessionModel, isElectron } from '@jbrowse/core/util'
 // class FakeCheck extends Check {
 //   async checkFeature(
@@ -104,14 +104,13 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
       // Right now we are not using stream because there was a problem with 'pipe' in ReadStream
       fileData = await new Response(file).text()
     }
-    let featuresAndSequences: (GFF3Feature | GFF3Sequence)[] = []
+    let featuresAndSequences: (GFF3Feature | GFF3Sequence | GFF3Comment)[] = []
     try {
       featuresAndSequences = gff.parseStringSync(fileData, {
         parseSequences: true,
-        parseComments: false,
+        parseComments: true,
         parseDirectives: false,
         parseFeatures: true,
-        // parseFeatures: isElectron ? false : true,
       })
     } catch (error) {
       setSubmitted(false)
@@ -124,7 +123,7 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
 
     const assemblyId = `${assemblyName}-${fileName}-${nanoid(8)}`
 
-    let sequenceFeatureCount = 0
+    const sequenceFeatureCount = 0
     let assembly = apolloDataStore.assemblies.get(assemblyId)
     if (!assembly) {
       assembly = apolloDataStore.addAssembly(assemblyId)
@@ -149,6 +148,8 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
         if (!ref.features.has(feature._id)) {
           ref.addFeature(feature)
         }
+      } else if ('comment' in seqLine) {
+        assembly.addComment(seqLine.comment)
       } else {
         let ref = assembly.refSeqs.get(seqLine.id)
         // sequence
@@ -166,6 +167,7 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
           start: 0,
           stop: seqLine.sequence.length,
           sequence: seqLine.sequence,
+          description: seqLine.description,
         })
       }
     }

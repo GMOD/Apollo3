@@ -1,16 +1,18 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import gff, {
   GFF3Feature,
   GFF3FeatureLine,
   GFF3FeatureLineWithRefs,
   GFF3Sequence,
 } from '@gmod/gff'
-import { GFF3Attributes } from '@gmod/gff/dist/util'
+import { GFF3Attributes, GFF3Item } from '@gmod/gff/dist/util'
 import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { Region, getSession, isElectron } from '@jbrowse/core/util'
 import { AssemblySpecificChange, Change, SerializedChange } from 'apollo-common'
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
+import { AnnotationFeatureI, AnnotationFeatureSnapshot } from 'apollo-mst'
 import { ValidationResultSet } from 'apollo-shared'
+import { values } from 'mobx'
 import { nanoid } from 'nanoid'
 import { Socket } from 'socket.io-client'
 
@@ -235,42 +237,7 @@ export class DesktopFileDriver extends BackendDriver {
   }
 
   async getFeatures(region: Region) {
-    const { assemblyName, refName, start, end } = region
-    const { assemblyManager } = getSession(this.clientStore)
-    const assembly = assemblyManager.get(assemblyName)
-    if (!assembly) {
-      throw new Error(`Could not find assembly with name "${assemblyName}"`)
-    }
-    const { file } = getConf(assembly, ['sequence', 'metadata']) as {
-      file: string
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fs = require('fs')
-    // console.log(`region: ${JSON.stringify(region)}`)
-
-    const fileData = await fs.promises.readFile(file, 'utf-8')
-    const featuresAndSequences = gff.parseStringSync(fileData, {
-      parseSequences: false,
-      parseComments: false,
-      parseDirectives: false,
-      parseFeatures: true,
-    })
-    const features: AnnotationFeatureSnapshot[] = []
-    for (const seqLine of featuresAndSequences) {
-      if (Array.isArray(seqLine)) {
-        // regular feature
-        features.push(createFeature(seqLine))
-      }
-    }
-    // return features
-    const filteredResults = features.filter(
-      (feature) =>
-        feature.refSeq === refName &&
-        feature.start >= start &&
-        feature.end <= end,
-    )
-    return filteredResults
+    return []
   }
 
   /**
@@ -395,122 +362,455 @@ export class DesktopFileDriver extends BackendDriver {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const fs = require('fs')
     const newFileName = `${file}_001.gff3`
-    let newStringOfGFF3 = ''
-
+    let commentsOfGFF3 = ''
+    let headersOfGFF3 = '##gff-version 3\n'
+    let featuresOfGFF3 = ''
+    let fastaOfGFF3 = '##FASTA\n'
+    let wholeGFF3 = ''
+    const gff3Items: GFF3Item[] = [{ directive: 'gff-version', value: '3' }]
     const assemblyName = this.clientStore.assemblies
-    console.log(`*** ASSEMBLY DATA: ${JSON.stringify(assemblyName)}`) // INCLUDES ONLY CURRENT (ctgA or ctgB) FEATURES BUT NO ANY SEQUENCE
+    // console.log(`*** ASSEMBLY DATA: ${JSON.stringify(assemblyName)}`)
 
     const { util } = gff
-    assemblyName.forEach((value, key) => {
-      // console.log(`Key: ${key}, Value: ${value._id}, RefSeqs: ${JSON.stringify(value.refSeqs)}`)
-      value.refSeqs.forEach((val1, key1) => {
-        val1.features.forEach((val2, key2) => {
+    assemblyName.forEach((valueAssembly, keyAssembly) => {
+      if (valueAssembly.comments) {
+        commentsOfGFF3 += `${valueAssembly.comments}\n`
+      }
+      valueAssembly.refSeqs.forEach((valRefSeq, keyRefSeq) => {
+        const refSeqName = valRefSeq.name
+        valRefSeq.features.forEach((valFeature, keyFeature) => {
           // console.log(`Feature: ${JSON.stringify(val2)}`)
           const attr: GFF3Attributes = {}
-          let sourceValue = ''
-          val2.attributes.forEach((valAttr, keyAttr) => {
-            // console.log(`Attribute KEY: "${keyAttr}", VALUE: "${valAttr}"`)
-            switch (keyAttr) {
-              case '_id':
-                keyAttr = 'ID'
-                break
-              case 'gff_name':
-                keyAttr = 'Name'
-                break
-              case 'gff_alias':
-                keyAttr = 'Alias'
-                break
-              case 'gff_target':
-                keyAttr = 'Target'
-                break
-              case 'gff_gap':
-                keyAttr = 'Gap'
-                break
-              case 'gff_derives_from':
-                keyAttr = 'Derives_from'
-                break
-              case 'gff_note':
-                keyAttr = 'Note'
-                break
-              case 'gff_dbxref':
-                keyAttr = 'Dbxref'
-                break
-              case 'gff_is_circular':
-                keyAttr = 'Is_circular'
-                break
-              default:
-                break
-            }
-            if (keyAttr === 'SOURCE') {
-              sourceValue = valAttr as unknown as string
-            } else {
-              attr[keyAttr] = valAttr
-            }
-          })
+          // let sourceValue = ''
+          // valFeature.attributes.forEach((valAttribute, keyAttribute) => {
+          //   // console.log(`Attribute KEY: "${keyAttr}", VALUE: "${valAttr}"`)
+          //   switch (keyAttribute) {
+          //     case '_id':
+          //       keyAttribute = 'ID'
+          //       break
+          //     case 'gff_name':
+          //       keyAttribute = 'Name'
+          //       break
+          //     case 'gff_alias':
+          //       keyAttribute = 'Alias'
+          //       break
+          //     case 'gff_target':
+          //       keyAttribute = 'Target'
+          //       break
+          //     case 'gff_gap':
+          //       keyAttribute = 'Gap'
+          //       break
+          //     case 'gff_derives_from':
+          //       keyAttribute = 'Derives_from'
+          //       break
+          //     case 'gff_note':
+          //       keyAttribute = 'Note'
+          //       break
+          //     case 'gff_dbxref':
+          //       keyAttribute = 'Dbxref'
+          //       break
+          //     case 'gff_is_circular':
+          //       keyAttribute = 'Is_circular'
+          //       break
+          //     default:
+          //       break
+          //   }
+          //   if (keyAttribute.toUpperCase() === 'SOURCE') {
+          //     sourceValue = valAttribute as unknown as string
+          //   } else {
+          //     attr[keyAttribute] = valAttribute
+          //   }
+          // })
           let strand: string | null = null
-          if (val2.strand) {
-            if (val2.strand === 1) {
+          if (valFeature.strand) {
+            if (valFeature.strand === 1) {
               strand = '+'
-            } else if (val2.strand === -1) {
+            } else if (valFeature.strand === -1) {
               strand = '-'
             }
           }
           let score: number | null = null
-          if (val2.score) {
-            score = val2.score
+          if (valFeature.score) {
+            score = valFeature.score
           }
-          const phase: string | null = val2.phase
-            ? (val2.phase as unknown as string)
+          const phase: string | null = valFeature.phase
+            ? (valFeature.phase as unknown as string)
             : null
-          const featureLine: GFF3FeatureLine = {
-            seq_id: val2.refSeq,
-            start: val2.start,
-            source: sourceValue,
-            type: val2.type,
-            end: val2.end,
-            score,
-            strand,
-            phase,
-            attributes: attr,
+
+          // const locations = valFeature.discontinuousLocations?.length
+          //   ? valFeature.discontinuousLocations
+          //   : [
+          //       {
+          //         start: valFeature.start,
+          //         end: valFeature.end,
+          //         phase,
+          //       },
+          //     ]
+          // *******
+
+          // *******
+          // console.log(`ATTRIBUTES: ${JSON.stringify(valFeature.attributes)}`)
+          // // *** TÄHÄN EHKÄ PITÄÄ LAITTAA FUNKTIO KUTSUÖ makeGFF3Feature() niinkuin "features.services.ts" luokassa
+          const featureLine0 = this.makeGFF3Feature(
+            valFeature,
+            // valFeature.refSeq,
+          )
+          gff3Items.push(this.makeGFF3Feature(valFeature, ))
+          // const featureLine: GFF3FeatureLineWithRefs = {
+          //   seq_id: valFeature.refSeq,
+          //   start: valFeature.start,
+          //   source: sourceValue,
+          //   type: valFeature.type,
+          //   end: valFeature.end,
+          //   score,
+          //   strand,
+          //   phase,
+          //   attributes: attr,
+          //   child_features: valFeature.children as unknown as GFF3Feature[],
+          //   derived_features:
+          //     valFeature.discontinuousLocations as unknown as GFF3Feature[],
+          //   // derived_features: ** EMPTY ARRAY **/valFeature.discontinuousLocations as unknown as GFF3Feature[]
+          // }
+
+          // const featureLine01 = this.makeGFF3Feature(
+          //   featureLine,
+          //   valFeature.refSeq,
+          // )
+          // const featureLineAsString = util.formatFeature([featureLine]) // SHOULD WE USE formatFeature or formatItem ???
+          // const featureLineAsString = util.formatFeature([featureLine])
+          const featureLineAsString = util.formatFeature(featureLine0)
+          if (valFeature.start > 17399 && valFeature.end < 23001) {
+            console.log(`Feature line: ${JSON.stringify(valFeature)}`)
+            console.log(`A Feature line: ${JSON.stringify(featureLine0)}`)
+            console.log(
+              `B Feature line: ${JSON.stringify(
+                util.formatFeature(featureLine0),
+              )}`,
+            )
+            console.log(
+              `C Feature line: ${JSON.stringify(
+                util.formatItem(featureLine0),
+              )}`,
+            )
+            console.log(`D Feature line: ${featureLineAsString}`)
+            console.log(
+              `discontinuousLocations: ${JSON.stringify(
+                valFeature.discontinuousLocations,
+              )}`,
+            )
           }
-          const featureLineAsString = util.formatFeature(featureLine)
-          newStringOfGFF3 += featureLineAsString
-          console.log(`Feature line: ${featureLineAsString}`)
+          // const featureLineAsString = util.formatFeature([featureLine01])
+          featuresOfGFF3 += featureLineAsString
+          // console.log(`Feature line: ${featureLineAsString}`)
+        })
+        valRefSeq.sequence.forEach((valSeq, keySeq) => {
+          headersOfGFF3 += `##sequence-region ${refSeqName} 1 ${valSeq.stop}\n`
+          const gff3Seq: GFF3Sequence = {
+            id: refSeqName,
+            description: refSeqName,
+            sequence: valSeq.sequence,
+          }
+          fastaOfGFF3 += util.formatSequence(gff3Seq)
         })
       })
     })
-    // const { refSeqs } = assembly2
-    // console.log(`*** refSeqs: ${JSON.stringify(refSeqs)}`) // MODIFIED FEATURE
+    const gff3 = gff.formatSync(gff3Items)
+    // console.log(`RESULT: ${JSON.stringify(gff3)}`)
+    if (commentsOfGFF3) {
+      const parts = commentsOfGFF3.split(',')
+      const resultString = parts.map((part) => `# ${part}`).join('\n')
+      wholeGFF3 = resultString
+    }
+    wholeGFF3 += headersOfGFF3
+    wholeGFF3 += featuresOfGFF3
+    wholeGFF3 += fastaOfGFF3
 
-    // GETS SEQUENCES FROM CLIENT DATA STORE
-    // const feats = await assembly0.sessionAssemblies[0].sequence.adapter.features
-    // // console.log(`*** FEATS: ${JSON.stringify(feats)}`)
-    // const eka = JSON.stringify(feats)
-    // const featsJson = JSON.parse(eka)
-
-    // if (Array.isArray(featsJson)) {
-    //   for (const item of featsJson) {
-    //     console.log(`REF: ${JSON.stringify(item.refName)}`)
-    //     console.log(`SEQ: ${JSON.stringify(item)}`)
-    //   }
-    // }
-    // ** LOPPUU **
-
-    // Read sequence from original file and write it back
-    // console.log(`**** ORIGINAL FILE: ${file}`)
-
-    const fileDataTmp = await fs.promises.readFile(file, 'utf-8')
-    const sequenceData = gff.parseStringSync(fileDataTmp, {
-      parseSequences: true,
-      parseComments: false,
-      parseDirectives: false,
-      parseFeatures: false,
-    })
-    // format an array of items to a string
-    newStringOfGFF3 += gff.formatSync(sequenceData)
-    await fs.promises.writeFile(newFileName, newStringOfGFF3, 'utf-8')
+    await fs.promises.writeFile(newFileName, wholeGFF3, 'utf-8')
 
     const results = new ValidationResultSet()
     return results
+  }
+
+  // makeGFF3Feature1(
+  //   feature: AnnotationFeatureI,
+  //   parentId?: string,
+  // ): GFF3Feature {
+  //   const locations = feature.discontinuousLocations?.length
+  //     ? feature.discontinuousLocations
+  //     : [
+  //         {
+  //           start: feature.start,
+  //           end: feature.end,
+  //           phase: feature.phase,
+  //         },
+  //       ]
+  //   const attributes: Record<string, string[]> = {
+  //     ...(feature.attributes ? getSnapshot(feature.attributes) : {}),
+  //   }
+  //   const ontologyTerms: string[] = []
+  //   const source = feature.attributes?.get('source')?.[0] ?? null
+  //   delete attributes.source
+  //   if (parentId) {
+  //     attributes.Parent = [parentId]
+  //   }
+  //   if (attributes._id) {
+  //     attributes.ID = attributes._id
+  //     delete attributes._id
+  //   }
+  //   if (attributes.gff_name) {
+  //     attributes.Name = attributes.gff_name
+  //     delete attributes.gff_name
+  //   }
+  //   if (attributes.gff_alias) {
+  //     attributes.Alias = attributes.gff_alias
+  //     delete attributes.gff_alias
+  //   }
+  //   if (attributes.gff_target) {
+  //     attributes.Target = attributes.gff_target
+  //     delete attributes.gff_target
+  //   }
+  //   if (attributes.gff_gap) {
+  //     attributes.Gap = attributes.gff_gap
+  //     delete attributes.gff_gap
+  //   }
+  //   if (attributes.gff_derives_from) {
+  //     attributes.Derives_from = attributes.gff_derives_from
+  //     delete attributes.gff_derives_from
+  //   }
+  //   if (attributes.gff_note) {
+  //     attributes.Note = attributes.gff_note
+  //     delete attributes.gff_note
+  //   }
+  //   if (attributes.gff_dbxref) {
+  //     attributes.Dbxref = attributes.gff_dbxref
+  //     delete attributes.gff_dbxref
+  //   }
+  //   if (attributes.gff_is_circular) {
+  //     attributes.Is_circular = attributes.gff_is_circular
+  //     delete attributes.gff_is_circular
+  //   }
+  //   if (attributes.gff_ontology_term) {
+  //     ontologyTerms.push(...attributes.gff_ontology_term)
+  //     delete attributes.gff_ontology_term
+  //   }
+  //   if (attributes['Gene Ontology']) {
+  //     ontologyTerms.push(...attributes['Gene Ontology'])
+  //     delete attributes['Gene Ontology']
+  //   }
+  //   if (attributes['Sequence Ontology']) {
+  //     ontologyTerms.push(...attributes['Sequence Ontology'])
+  //     delete attributes['Sequence Ontology']
+  //   }
+  //   if (ontologyTerms.length) {
+  //     attributes.Ontology_term = ontologyTerms
+  //   }
+  //   return locations.map((location) => {
+  //     const featureLine: GFF3FeatureLineWithRefs = {
+  //       start: location.start,
+  //       end: location.end,
+  //       seq_id: feature.refSeq,
+  //       source,
+  //       type: feature.type,
+  //       score: feature.score ?? null,
+  //       strand: feature.strand ? (feature.strand === 1 ? '+' : '-') : null,
+  //       phase:
+  //         location.phase === 0
+  //           ? '0'
+  //           : location.phase === 1
+  //           ? '1'
+  //           : location.phase === 2
+  //           ? '2'
+  //           : null,
+  //       attributes: Object.keys(attributes).length ? attributes : null,
+  //       derived_features: [],
+  //       child_features: [],
+  //     }
+  //     if (feature.children && feature.children.size > 0) {
+  //       featureLine.child_features = values(feature.children).map((child) => {
+  //         return makeGFF3Feature1(
+  //           child as unknown as AnnotationFeatureI,
+  //           attributes.ID[0],
+  //         )
+  //       })
+  //     }
+  //     return featureLine
+  //   })
+  // }
+
+  makeGFF3Feature(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    featureDocument: any,
+    // refSeqName: string,
+    parentId?: string,
+  ): GFF3FeatureLineWithRefs[] {
+    const locations = featureDocument.discontinuousLocations?.length
+      ? featureDocument.discontinuousLocations
+      : [
+          {
+            start: featureDocument.start,
+            end: featureDocument.end,
+            phase: featureDocument.phase,
+          },
+        ]
+
+    const attributes: Record<string, string[]> = featureDocument.attributes
+      ? JSON.parse(JSON.stringify(featureDocument.attributes))
+      : {}
+
+    // console.log(`GFF ATTRIBUTE _id: ${JSON.stringify(attributes._id)}`)
+    const ontologyTerms: string[] = []
+    // const source = featureDocument.attributes?.source?.[0] ?? null
+    let source: any = null
+    // let parentId: any = null
+    if (featureDocument.attributes) {
+      source = JSON.parse(JSON.stringify(featureDocument.attributes)).source?.[0]
+    }
+    if (featureDocument.attributes) {
+      console.log(`*** PARENT: ${JSON.parse(JSON.stringify(featureDocument.attributes)).parent?.[0]}`)
+    }
+    if (parentId) {
+      console.log(`*** PARENTTI OLI: ${parentId}`)
+    }
+    let featId = ''
+    if (featureDocument.attributes) {
+      featId  = JSON.parse(JSON.stringify(featureDocument.attributes))._id?.[0]
+      console.log(`*** FEATURE ID ${featId}`)
+    }
+    // const source = featureDocument.attributes?.source?.[0] ?? null
+
+    if (featureDocument.start > 17399 && featureDocument.end < 23001) {
+      console.log(`1 attributes: ${JSON.stringify(featureDocument.attributes)}`)
+      console.log(`2 locations: ${JSON.stringify(locations)}`)
+      console.log(`3 children: ${JSON.stringify(featureDocument.children)}`)
+      console.log(`4 source: ${source}`)
+    }
+
+    delete attributes.source
+    if (parentId) {
+      attributes.Parent = [parentId]
+    }
+    if (attributes._id) {
+      attributes.ID = attributes._id
+      delete attributes._id
+    }
+    if (attributes.gff_name) {
+      attributes.Name = attributes.gff_name
+      delete attributes.gff_name
+    }
+    if (attributes.gff_alias) {
+      attributes.Alias = attributes.gff_alias
+      delete attributes.gff_alias
+    }
+    if (attributes.gff_target) {
+      attributes.Target = attributes.gff_target
+      delete attributes.gff_target
+    }
+    if (attributes.gff_gap) {
+      attributes.Gap = attributes.gff_gap
+      delete attributes.gff_gap
+    }
+    if (attributes.gff_derives_from) {
+      attributes.Derives_from = attributes.gff_derives_from
+      delete attributes.gff_derives_from
+    }
+    if (attributes.gff_note) {
+      attributes.Note = attributes.gff_note
+      delete attributes.gff_note
+    }
+    if (attributes.gff_dbxref) {
+      attributes.Dbxref = attributes.gff_dbxref
+      delete attributes.gff_dbxref
+    }
+    if (attributes.gff_is_circular) {
+      attributes.Is_circular = attributes.gff_is_circular
+      delete attributes.gff_is_circular
+    }
+    if (attributes.gff_ontology_term) {
+      ontologyTerms.push(...attributes.gff_ontology_term)
+      delete attributes.gff_ontology_term
+    }
+    if (attributes['Gene Ontology']) {
+      ontologyTerms.push(...attributes['Gene Ontology'])
+      delete attributes['Gene Ontology']
+    }
+    if (attributes['Sequence Ontology']) {
+      ontologyTerms.push(...attributes['Sequence Ontology'])
+      delete attributes['Sequence Ontology']
+    }
+    if (ontologyTerms.length) {
+      attributes.Ontology_term = ontologyTerms
+    }
+
+    // return locations.map(
+    //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    //   (location: any) => ({
+    //     start: location.start,
+    //     end: location.end,
+    //     seq_id: refSeqName,
+    //     source,
+    //     type: featureDocument.type,
+    //     score: featureDocument.score ?? null,
+    //     strand: featureDocument.strand
+    //       ? featureDocument.strand === 1
+    //         ? '+'
+    //         : '-'
+    //       : null,
+    //     phase:
+    //       location.phase === 0
+    //         ? '0'
+    //         : location.phase === 1
+    //         ? '1'
+    //         : location.phase === 2
+    //         ? '2'
+    //         : null,
+    //     attributes: Object.keys(attributes).length ? attributes : null,
+    //     derived_features: [],
+    //     // child_features: featureDocument.children
+    //     //   ? Object.values(featureDocument.children).map((child) =>
+    //     //       this.makeGFF3Feature(child, refSeqName, attributes.ID[0]),
+    //     //     )
+    //     //   : [],
+    //   }),
+    // )
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return locations.map((location: any) => {
+      const featureLine: GFF3FeatureLineWithRefs = {
+        start: location.start,
+        end: location.end,
+        seq_id: featureDocument.refSeq,
+        source,
+        type: featureDocument.type,
+        score: featureDocument.score ?? null,
+        strand: featureDocument.strand
+          ? featureDocument.strand === 1
+            ? '+'
+            : '-'
+          : null,
+        phase:
+          location.phase === 0
+            ? '0'
+            : location.phase === 1
+            ? '1'
+            : location.phase === 2
+            ? '2'
+            : null,
+        attributes: Object.keys(attributes).length ? attributes : null,
+        derived_features: [],
+        child_features: [],
+      }
+      if (featureDocument.children && featureDocument.children.size > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        featureLine.child_features = values(featureDocument.children).map(
+          (child: any) => {
+            return this.makeGFF3Feature(
+              child as unknown as AnnotationFeatureI,
+              featId,
+              // attributes.ID[0],
+            )
+          },
+        )
+      }
+      return featureLine
+    })
   }
 }

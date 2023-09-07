@@ -68,6 +68,7 @@ export function clientDataStoreFactory(
         return self.assemblies.put({ _id: assemblyId, refSeqs: {} })
       },
       addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot) {
+        console.log('ADD FEATURE INTO CLIENT DATA STORE')
         const assembly = self.assemblies.get(assemblyId)
         if (!assembly) {
           throw new Error(
