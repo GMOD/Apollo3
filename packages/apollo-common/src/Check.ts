@@ -1,5 +1,6 @@
 import { Feature } from "apollo-schemas";
 
+/** basically just a Region like all the others in the codebase */
 export interface RunRegion {
   assemblyId: string
   refId: string
@@ -12,7 +13,14 @@ export abstract class Check {
     constructor(db: DataProvider) {
         this.db = db
     }
+
+    /** The main method that runs a check. Runs this check on a specific region of the genome. */
     abstract run(region: RunRegion, db: DataProvider): AsyncGenerator<Problem>;
+
+    /**
+     * check a problem again to see whether it is still present.
+     * Returns undefined if the problem is no longer present
+     **/
     abstract reCheck(problem: Problem): Promise<Problem | undefined>;
 }
 
@@ -32,8 +40,7 @@ export interface DataProvider {
 
 
 
-
-
+/** prototype implementation of a check that looks for missing start and stop codons in a transcript */
 export class CheckMissingStartAndStopCodonsInTranscripts extends Check {
     async* run(region: RunRegion): AsyncGenerator<Problem> {
         // fetch the features in the region
@@ -51,7 +58,7 @@ export class CheckMissingStartAndStopCodonsInTranscripts extends Check {
 
     private async* checkTranscript(region: RunRegion, transcript: Feature) {
         const sequence = this.db.getSequence(region.assemblyId, transcript.refSeq, transcript.start, transcript.end)
-
+        // TODO finish this
     }
 
     /** traverse a feature hierarchy to find features that match the given predicate */
