@@ -161,13 +161,13 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
           sequence: seqLine.sequence,
         })
         if (!ref) {
-          ref = assembly.addRefSeq(seqLine.id, seqLine.id)
+          ref = assembly.addRefSeq(seqLine.id, seqLine.description)
         }
         ref.addSequence({
           start: 0,
           stop: seqLine.sequence.length,
           sequence: seqLine.sequence,
-          description: seqLine.description,
+          description: seqLine.description ? seqLine.description : '',
         })
       }
     }
@@ -291,13 +291,7 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
           />
         </DialogContent>
         <DialogActions>
-          <Button
-            // disabled={!(file && assemblyName)}
-            // disabled={!(!isElectron && file && assemblyName)}
-            disabled={false}
-            variant="contained"
-            type="submit"
-          >
+          <Button disabled={false} variant="contained" type="submit">
             {submitted ? 'Submitting...' : 'Submit'}
           </Button>
           <Button

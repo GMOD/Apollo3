@@ -1,6 +1,11 @@
 import { getConf, readConfObject } from '@jbrowse/core/configuration'
 import { ConfigurationModel } from '@jbrowse/core/configuration/types'
-import { Region, getSession, isElectron } from '@jbrowse/core/util'
+import {
+  AppRootModel,
+  Region,
+  getSession,
+  isElectron,
+} from '@jbrowse/core/util'
 import { LocalPathLocation, UriLocation } from '@jbrowse/core/util/types/mst'
 import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
 import {
@@ -68,7 +73,6 @@ export function clientDataStoreFactory(
         return self.assemblies.put({ _id: assemblyId, refSeqs: {} })
       },
       addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot) {
-        console.log('ADD FEATURE INTO CLIENT DATA STORE')
         const assembly = self.assemblies.get(assemblyId)
         if (!assembly) {
           throw new Error(
@@ -246,7 +250,6 @@ export function clientDataStoreFactory(
         }
       }),
       loadRefSeq: flow(function* loadRefSeq(regions: Region[]) {
-        console.log('LATAA SEQUENCE')
         for (const region of regions) {
           const backendDriver = self.getBackendDriver(region.assemblyName)
           if (!backendDriver) {
@@ -267,7 +270,7 @@ export function clientDataStoreFactory(
               sequence: [],
             })
           }
-          ref.addSequence({ start, stop: end, sequence: seq })
+          ref.addSequence({ start, stop: end, sequence: seq, description: '' })
         }
       }),
     }))
