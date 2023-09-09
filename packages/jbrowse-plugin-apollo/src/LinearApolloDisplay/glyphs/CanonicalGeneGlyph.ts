@@ -1,6 +1,10 @@
 import { alpha } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
-import { LocationEndChange, LocationStartChange } from 'apollo-shared'
+import {
+  DiscontinuousLocationChange,
+  LocationEndChange,
+  LocationStartChange,
+} from 'apollo-shared'
 
 import { LinearApolloDisplay } from '../stateModel'
 import {
@@ -675,10 +679,10 @@ export class CanonicalGeneGlyph extends Glyph {
         const { exon } = exonCDSRelations[idx]
         matchingExon = exon
       }
-      if (idx && idx > 0) {
+      if (idx !== undefined && idx > 0) {
         prevExon = exonCDSRelations[idx - 1].exon
       }
-      if (idx && idx < exonCDSRelations.length - 1) {
+      if (idx !== undefined && idx < exonCDSRelations.length - 1) {
         nextExon = exonCDSRelations[idx + 1].exon
       }
     }
@@ -697,7 +701,6 @@ export class CanonicalGeneGlyph extends Glyph {
     if (!parentFeature?.children) {
       return exonCDSRelations
     }
-    // assuming exons are already stored in sorted order
     for (const [, f] of parentFeature.children) {
       if (f.type === 'exon') {
         const cdsDLForExon = this.cdsDLForExon(f, cds)
@@ -729,6 +732,35 @@ export class CanonicalGeneGlyph extends Glyph {
     return discontinuousLocation
   }
 
+  cdsDlsForExon(
+    exon: AnnotationFeatureI,
+    topLevelFeature?: AnnotationFeatureI,
+  ): CDSDiscontinuousLocation[] {
+    const dls: CDSDiscontinuousLocation[] = []
+    const parentFeature = this.getParentFeature(exon, topLevelFeature)
+    if (!parentFeature?.children || !topLevelFeature) {
+      return dls
+    }
+    const cdsFeatures: AnnotationFeatureI[] = []
+    for (const [, f] of parentFeature.children) {
+      if (f.type === 'CDS') {
+        cdsFeatures.push(f)
+      }
+    }
+
+    for (const cds of cdsFeatures) {
+      for (const [, f] of parentFeature.children) {
+        if (f.type === 'exon' && f._id === exon._id) {
+          const cdsDLForExon = this.cdsDLForExon(f, cds)
+          if (cdsDLForExon) {
+            dls.push(cdsDLForExon)
+          }
+        }
+      }
+    }
+    return dls
+  }
+
   adjacentExonsOfExon(
     exon: AnnotationFeatureI,
     topLevelFeature?: AnnotationFeatureI,
@@ -752,12 +784,16 @@ export class CanonicalGeneGlyph extends Glyph {
     let prevExon, nextExon
     const keys = [...parentFeature.children.keys()]
     if (i > 0) {
-      const key = keys[i - 1]
-      prevExon = parentFeature.children.get(key)
+      const f = parentFeature.children.get(keys[i - 1])
+      if (f && f.type === 'exon') {
+        prevExon = f
+      }
     }
     if (i < keys.length - 1) {
-      const key = keys[i + 1]
-      nextExon = parentFeature.children.get(key)
+      const f = parentFeature.children.get(keys[i + 1])
+      if (f && f.type === 'exon') {
+        nextExon = f
+      }
     }
     return { prevExon, nextExon }
   }
@@ -786,70 +822,29 @@ export class CanonicalGeneGlyph extends Glyph {
       stateModel,
       topLevelFeature,
     )
+
     if (
       feature.type === 'CDS' &&
       feature.discontinuousLocations &&
-      feature.discontinuousLocations.length > 0
+      feature.discontinuousLocations.length > 0 &&
+      discontinuousLocation
     ) {
-      if (discontinuousLocation?.idx === undefined) {
-        return
-      }
-      const prevDL =
-        feature.discontinuousLocations[discontinuousLocation.idx - 1]
-      const nextDL =
-        feature.discontinuousLocations[discontinuousLocation.idx + 1]
-
-      // draggind towards next DL from first DL
-      if (!prevDL && nextDL && bp >= nextDL.start - 1) {
-        return
-      }
-      // draggind towards previous DL from last DL
-      if (prevDL && !nextDL && bp <= prevDL.end + 1) {
-        return
-      }
-
       const exonCDSRelations = this.exonCDSRelation(feature, topLevelFeature)
       const { matchingExon, nextExon, prevExon } = this.adjacentExonsOfCdsDL(
         discontinuousLocation,
         exonCDSRelations,
       )
-      // drag cds DL from start towards previous exon
-      if (!prevDL && nextDL && prevExon && bp <= prevExon.end + 1) {
+
+      if (nextExon && bp >= nextExon.start - 1) {
         return
       }
-
-      // drag cds DL from end towards next exon
-      if (prevDL && !nextDL && nextExon && bp >= nextExon.start - 1) {
+      if (prevExon && bp <= prevExon.end + 1) {
         return
       }
-
-      // drag cds DL from start towards start of exon
-      if (
-        !prevDL &&
-        nextDL &&
-        !prevExon &&
-        matchingExon &&
-        bp <= matchingExon.start
-      ) {
+      if (!prevExon && nextExon && matchingExon && bp < matchingExon.start) {
         return
       }
-
-      // drag cds DL from end towards end of exon
-      if (
-        prevDL &&
-        !nextDL &&
-        !nextExon &&
-        matchingExon &&
-        bp > matchingExon.end
-      ) {
-        return
-      }
-
-      if (
-        prevDL &&
-        nextDL &&
-        (bp <= prevDL.end + 1 || bp >= nextDL.start - 1)
-      ) {
+      if (prevExon && !nextExon && matchingExon && bp > matchingExon.end) {
         return
       }
 
@@ -870,26 +865,34 @@ export class CanonicalGeneGlyph extends Glyph {
       if (adjacentExons?.prevExon && bp <= adjacentExons?.prevExon.end + 1) {
         return
       }
-      if (
-        !adjacentExons?.prevExon &&
-        adjacentExons?.nextExon &&
-        bp < feature.start
-      ) {
-        return
-      }
-      if (
-        adjacentExons?.prevExon &&
-        !adjacentExons?.nextExon &&
-        bp > feature.end
-      ) {
-        return
-      }
-      if (
-        edge &&
-        ((edge === 'start' && bp >= feature.end - 1) ||
-          (edge === 'end' && bp <= feature.start + 1))
-      ) {
-        return
+      const dls: CDSDiscontinuousLocation[] = this.cdsDlsForExon(
+        feature,
+        topLevelFeature,
+      )
+
+      if (dls && dls.length > 0) {
+        let stopDrag
+        for (const dl of dls) {
+          if (
+            edge &&
+            ((edge === 'start' && bp >= dl.start - 1) ||
+              (edge === 'end' && bp <= dl.end + 1))
+          ) {
+            stopDrag = true
+            break
+          }
+        }
+        if (stopDrag) {
+          return
+        }
+      } else {
+        if (
+          edge &&
+          ((edge === 'start' && bp >= feature.end - 1) ||
+            (edge === 'end' && bp <= feature.start + 1))
+        ) {
+          return
+        }
       }
     }
 
@@ -983,68 +986,79 @@ export class CanonicalGeneGlyph extends Glyph {
     const region = displayedRegions[startingMousePosition.regionNumber]
     const newBp = currentMousePosition.bp
     const assembly = getAssemblyId(region.assemblyName)
-    const changes: (LocationStartChange | LocationEndChange)[] = []
+    const changes: (
+      | LocationStartChange
+      | LocationEndChange
+      | DiscontinuousLocationChange
+    )[] = []
 
     if (edge === 'start') {
-      if (discontinuousLocation?.idx && feature.discontinuousLocations) {
-        if (discontinuousLocation.idx) {
-          // feature.discontinuousLocations[discontinuousLocation.idx].start =
-          //   newBp
-          // TODO: add dl change
+      if (
+        discontinuousLocation?.idx !== undefined &&
+        feature.discontinuousLocations &&
+        feature.discontinuousLocations.length > 0
+      ) {
+        this.addDiscontinuousLocStartChange(
+          changes,
+          feature,
+          newBp,
+          assembly,
+          discontinuousLocation?.idx,
+        )
 
-          const exonCDSRelations = this.exonCDSRelation(
-            feature,
-            topLevelFeature,
+        const exonCDSRelations = this.exonCDSRelation(feature, topLevelFeature)
+        const exonForCds = this.adjacentExonsOfCdsDL(
+          discontinuousLocation,
+          exonCDSRelations,
+        )
+        if (
+          exonForCds &&
+          exonForCds.matchingExon &&
+          newBp < exonForCds.matchingExon.start
+        ) {
+          this.addStartLocationChange(
+            changes,
+            exonForCds.matchingExon,
+            newBp,
+            assembly,
           )
-          const exonForCds = this.adjacentExonsOfCdsDL(
-            discontinuousLocation,
-            exonCDSRelations,
-          )
-          if (
-            exonForCds &&
-            exonForCds.matchingExon &&
-            newBp < exonForCds.matchingExon.start
-          ) {
-            this.addStartLocation(
-              changes,
-              exonForCds.matchingExon,
-              newBp,
-              assembly,
-            )
-          }
         }
       } else {
-        this.addStartLocation(changes, feature, newBp, assembly)
+        this.addStartLocationChange(changes, feature, newBp, assembly)
       }
     } else {
-      if (discontinuousLocation?.idx && feature.discontinuousLocations) {
-        if (discontinuousLocation.idx) {
-          // feature.discontinuousLocations[discontinuousLocation.idx].end = newBp
-          // TODO: add dl change
+      if (
+        discontinuousLocation?.idx !== undefined &&
+        feature.discontinuousLocations &&
+        feature.discontinuousLocations.length > 0
+      ) {
+        this.addDiscontinuousLocEndChange(
+          changes,
+          feature,
+          newBp,
+          assembly,
+          discontinuousLocation?.idx,
+        )
 
-          const exonCDSRelations = this.exonCDSRelation(
-            feature,
-            topLevelFeature,
+        const exonCDSRelations = this.exonCDSRelation(feature, topLevelFeature)
+        const exonForCds = this.adjacentExonsOfCdsDL(
+          discontinuousLocation,
+          exonCDSRelations,
+        )
+        if (
+          exonForCds &&
+          exonForCds.matchingExon &&
+          newBp > exonForCds.matchingExon.end
+        ) {
+          this.addEndLocationChange(
+            changes,
+            exonForCds.matchingExon,
+            newBp,
+            assembly,
           )
-          const exonForCds = this.adjacentExonsOfCdsDL(
-            discontinuousLocation,
-            exonCDSRelations,
-          )
-          if (
-            exonForCds &&
-            exonForCds.matchingExon &&
-            newBp > exonForCds.matchingExon.end
-          ) {
-            this.addEndLocation(
-              changes,
-              exonForCds.matchingExon,
-              newBp,
-              assembly,
-            )
-          }
         }
       } else {
-        this.addEndLocation(changes, feature, newBp, assembly)
+        this.addEndLocationChange(changes, feature, newBp, assembly)
       }
     }
 
@@ -1058,8 +1072,58 @@ export class CanonicalGeneGlyph extends Glyph {
     setCursor()
   }
 
-  addEndLocation(
-    changes: (LocationStartChange | LocationEndChange)[] = [],
+  addDiscontinuousLocStartChange(
+    changes: (
+      | LocationStartChange
+      | LocationEndChange
+      | DiscontinuousLocationChange
+    )[],
+    feature: AnnotationFeatureI, // cds
+    newBp: number,
+    assembly: string,
+    index: number,
+  ) {
+    const featureId = feature._id
+    changes.push(
+      new DiscontinuousLocationChange({
+        typeName: 'DiscontinuousLocationChange',
+        changedIds: [feature._id],
+        featureId,
+        start: { newStart: newBp, index },
+        assembly,
+      }),
+    )
+  }
+
+  addDiscontinuousLocEndChange(
+    changes: (
+      | LocationStartChange
+      | LocationEndChange
+      | DiscontinuousLocationChange
+    )[],
+    feature: AnnotationFeatureI, // cds
+    newBp: number,
+    assembly: string,
+    index: number,
+  ) {
+    const featureId = feature._id
+    changes.push(
+      new DiscontinuousLocationChange({
+        typeName: 'DiscontinuousLocationChange',
+        changedIds: [feature._id],
+        featureId,
+        end: { newEnd: newBp, index },
+        assembly,
+      }),
+    )
+  }
+
+  addEndLocationChange(
+    changes: (
+      | LocationStartChange
+      | LocationEndChange
+      | DiscontinuousLocationChange
+    )[],
     feature: AnnotationFeatureI,
     newBp: number,
     assembly: string,
@@ -1079,8 +1143,12 @@ export class CanonicalGeneGlyph extends Glyph {
     )
   }
 
-  addStartLocation(
-    changes: (LocationStartChange | LocationEndChange)[] = [],
+  addStartLocationChange(
+    changes: (
+      | LocationStartChange
+      | LocationEndChange
+      | DiscontinuousLocationChange
+    )[],
     feature: AnnotationFeatureI,
     newBp: number,
     assembly: string,

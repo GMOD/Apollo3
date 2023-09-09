@@ -113,12 +113,30 @@ export const AnnotationFeature = types
         self.start = start
       }
     },
+    setCDSDiscontinuousLocationStart(start: number, index: number) {
+      const dl = self.discontinuousLocations
+      if (dl && dl.length > 0 && dl[index].start !== start) {
+        dl[index].start = start
+        if (index === 0) {
+          self.start = start
+        }
+      }
+    },
     setEnd(end: number) {
       if (end < self.start) {
         throw new Error(`End "${end}" is less than start "${self.start}"`)
       }
       if (self.end !== end) {
         self.end = end
+      }
+    },
+    setCDSDiscontinuousLocationEnd(end: number, index: number) {
+      const dl = self.discontinuousLocations
+      if (dl && dl.length > 0 && dl[index].end !== end) {
+        dl[index].end = end
+        if (index === 0) {
+          self.end = end
+        }
       }
     },
     setStrand(strand?: 1 | -1) {
