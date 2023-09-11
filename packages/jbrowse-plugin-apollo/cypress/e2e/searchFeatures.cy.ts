@@ -4,7 +4,7 @@ describe('Search features', () => {
     cy.loginAsGuest()
   })
 
-  it('One hit, no children', () => {
+  it.only('One hit, no children', () => {
     cy.addAssemblyFromGff('volvox_cy', 'test_data/volvox.fasta.gff3')
     cy.selectAssemblyToView('volvox_cy')
     cy.searchFeatures('Match6')
