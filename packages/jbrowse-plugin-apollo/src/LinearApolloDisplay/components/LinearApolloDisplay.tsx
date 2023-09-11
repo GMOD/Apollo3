@@ -89,6 +89,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             width={lgv.dynamicBlocks.totalWidthPx}
             height={featuresHeight}
             className={classes.canvas}
+            data-testid="collaboratorCanvas"
           />
           <canvas
             ref={(node) => {
@@ -97,6 +98,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             width={lgv.dynamicBlocks.totalWidthPx}
             height={featuresHeight}
             className={classes.canvas}
+            data-testid="canvas"
           />
           <canvas
             ref={(node) => {
@@ -104,12 +106,13 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             }}
             width={lgv.dynamicBlocks.totalWidthPx}
             height={featuresHeight}
-            onMouseMove={onMouseMove}
+            onMouseMove={(...args) => {console.log('mousemove'); onMouseMove(...args)}} // {onMouseMove}
             onMouseLeave={onMouseLeave}
-            onMouseDown={onMouseDown}
+            onMouseDown={(...args) => {console.log('mousedown'); onMouseDown(...args)}} // {onMouseDown}
             onMouseUp={onMouseUp}
             className={classes.canvas}
             style={{ cursor: cursor ?? 'default' }}
+            data-testid="overlayCanvas"
           />
           <Menu
             open={contextMenuItems.length > 0}

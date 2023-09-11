@@ -5,5 +5,5 @@
     "types": ["cypress", "node"],
     "strict": true,
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts", "support/e2e.ts"]
 }

@@ -9,8 +9,19 @@ change and temporary.
   E.g. on your OS terminal (not vscode) run: 
 
 ```
-yarn add cypress --dev
+yarn --cwd packages/jbrowse-plugin-apollo add cypress --dev
+yarn --cwd packages/jbrowse-plugin-apollo add cypress-mongodb --dev
 ```
+
+Add these lines to the `packageExtensions` section of `.yarnrc.yml`:
+
+```
+  cypress-mongodb@*:
+    dependencies:
+      bson: "*"
+```
+
+Then run `yarn` again.
 
 * Start Apollo server. Within the docker container (*i.e* within vscode) and in distinct terminals run:
 
