@@ -39,7 +39,7 @@
     "test:ci": "jest --coverage",
     "test:e2e": "start-test \"npm-run-all --parallel start browse\" \"9000|8999\" \"npm-run-all cypress:run\"",
     "cypress:run": "cypress run --browser chrome --config baseUrl=http://localhost:8999",
-    "cypress:open": "cypress open --config baseUrl=http://localhost:8999",
+    "cypress:open": "cypress open --config baseUrl=http://localhost:3000",
     "prepublish": "yarn test",
     "prepack": "yarn build",
     "postversion": "git push --follow-tags"

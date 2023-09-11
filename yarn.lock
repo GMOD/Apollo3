@@ -7895,23 +7895,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bson@npm:*, bson@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "bson@npm:6.0.0"
-  checksum: 594ebbfcaef8487741405915977b5d38dcd6e36b08af54faf459a8e8d039d555a2db2bb422c8d25b065ac9b5bb9828bc8cc49aa145194f53f8352d355fd83a77
-  languageName: node
-  linkType: hard
-
-"bson@npm:^4.6.2, bson@npm:^4.6.3":
-  version: 4.6.5
-  resolution: "bson@npm:4.6.5"
-  dependencies:
-    buffer: ^5.6.0
-  checksum: b9d4856241e76f6bacf6825b5280f993a867b74fa47bb62b3a20d835d9f02979e1a10a6c38536ac86cb485dc96aabdacb0c6922fca7a784603a781a00e23c336
-  languageName: node
-  linkType: hard
-
-"bson@npm:^4.7.0, bson@npm:^4.7.2":
+"bson@npm:^4, bson@npm:^4.6.2, bson@npm:^4.6.3, bson@npm:^4.7.0, bson@npm:^4.7.2":
   version: 4.7.2
   resolution: "bson@npm:4.7.2"
   dependencies:
@@ -7921,9 +7905,16 @@ __metadata:
   linkType: hard
 
 "bson@npm:^5.0.1":
-  version: 5.0.1
-  resolution: "bson@npm:5.0.1"
-  checksum: c8b028cdad57ab967d8deb4895d1341d84cd350c20137e9949ebd7924e408e81921fa5fcd17e07bc3aa3bca99a49208e95f0ab9606686b980af2eaf798b56e1f
+  version: 5.4.0
+  resolution: "bson@npm:5.4.0"
+  checksum: 1c07e3d09f139d414bd226bf7f4e9aaa7a726e0c9718c55b53bb23ffa2805cac8b66e4fa46b424c73a35c6e292ed5f7432df5c76ea5d08052642b2ac9e0399e3
+  languageName: node
+  linkType: hard
+
+"bson@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "bson@npm:6.0.0"
+  checksum: 594ebbfcaef8487741405915977b5d38dcd6e36b08af54faf459a8e8d039d555a2db2bb422c8d25b065ac9b5bb9828bc8cc49aa145194f53f8352d355fd83a77
   languageName: node
   linkType: hard
 
