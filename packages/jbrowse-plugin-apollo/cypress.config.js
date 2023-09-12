@@ -6,22 +6,13 @@ const { configurePlugin } = require('cypress-mongodb')
 module.exports = defineConfig({
   env: {
     mongodb: {
-      uri: 'mongodb://localhost:27017',
-      database: 'database_name',
-      collection: 'collection_name',
+      uri: 'mongodb://localhost:27017/?directConnection=true',
+      database: 'apolloTestDb',
     },
   },
   e2e: {
-    setupNodeEvents(on, config) {
+    setupNodeEvents(on, _config) {
       configurePlugin(on)
     },
   },
 })
-
-// module.exports = {
-//   e2e: {
-//     setupNodeEvents(_on, _config) {
-//       // implement node event listeners here
-//     },
-//   },
-// }
