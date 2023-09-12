@@ -128,11 +128,15 @@ export abstract class Glyph {
       end = lastLoc?.end
       length = lastLoc?.end - lastLoc?.start
 
-      for (const [i, loc] of discontinuousLocations.entries()) {
-        location += `${loc.start.toString()}-${loc.end.toString()}`
-        if (i !== discontinuousLocations.length - 1) {
-          location += ','
+      if (discontinuousLocations.length <= 2) {
+        for (const [i, loc] of discontinuousLocations.entries()) {
+          location += `${loc.start.toString()}-${loc.end.toString()}`
+          if (i !== discontinuousLocations.length - 1) {
+            location += ','
+          }
         }
+      } else {
+        location += `${feature.start}-${feature.end},..,${start}-${end}`
       }
     } else {
       ;({ end, length, start } = feature)
