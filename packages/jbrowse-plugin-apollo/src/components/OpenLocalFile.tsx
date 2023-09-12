@@ -30,14 +30,6 @@ export interface RefSeqInterface {
   aliases?: string[]
 }
 
-export interface SequenceAdapterFeatureInterface {
-  refName: string
-  uniqueId: string
-  start: number
-  end: number
-  seq: string
-}
-
 export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
   const { addApolloTrackConfig, apolloDataStore } = session
   const { addAssembly, addSessionAssembly, assemblyManager, notify } =
@@ -100,7 +92,7 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
 
     const assemblyId = `${assemblyName}-${file.name}-${nanoid(8)}`
 
-    const sequenceAdapterFeatures: SequenceAdapterFeatureInterface[] = []
+    let sequenceFeatureCount = 0
     let assembly = apolloDataStore.assemblies.get(assemblyId)
     if (!assembly) {
       assembly = apolloDataStore.addAssembly(assemblyId)
@@ -117,17 +109,20 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
           ref.addFeature(feature)
         }
       } else {
+        sequenceFeatureCount++
         // sequence feature
-        sequenceAdapterFeatures.push({
-          refName: seqLine.id,
-          uniqueId: `${assemblyId}-${seqLine.id}`,
+        let ref = assembly.refSeqs.get(seqLine.id)
+        if (!ref) {
+          ref = assembly.addRefSeq(seqLine.id, seqLine.id)
+        }
+        ref.addSequence({
           start: 0,
-          end: seqLine.sequence.length,
-          seq: seqLine.sequence,
+          stop: seqLine.sequence.length,
+          sequence: seqLine.sequence,
         })
       }
     }
-    if (sequenceAdapterFeatures.length === 0) {
+    if (sequenceFeatureCount === 0) {
       setErrorMessage('No embedded FASTA section found in GFF3')
       setSubmitted(false)
       return
@@ -140,11 +135,7 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
       sequence: {
         trackId: `sequenceConfigId-${assemblyName}`,
         type: 'ReferenceSequenceTrack',
-        adapter: {
-          type: 'FromConfigSequenceAdapter',
-          assemblyId,
-          features: sequenceAdapterFeatures,
-        },
+        adapter: { type: 'ApolloSequenceAdapter', assemblyId },
         metadata: { apollo: true },
       },
     }

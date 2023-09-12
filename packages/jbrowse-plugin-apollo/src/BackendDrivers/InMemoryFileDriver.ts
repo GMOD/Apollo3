@@ -1,5 +1,5 @@
 import { getConf } from '@jbrowse/core/configuration'
-import { getSession } from '@jbrowse/core/util'
+import { Region, getSession } from '@jbrowse/core/util'
 import { AssemblySpecificChange, Change } from 'apollo-common'
 import { AnnotationFeatureSnapshot } from 'apollo-mst'
 import { ValidationResultSet } from 'apollo-shared'
@@ -12,12 +12,35 @@ export class InMemoryFileDriver extends BackendDriver {
     return []
   }
 
-  async getSequence() {
-    return { seq: '', refSeq: '' }
+  async getSequence(region: Region) {
+    const { assemblyName, end, refName, start } = region
+    const assembly = this.clientStore.assemblies.get(assemblyName)
+    if (!assembly) {
+      return { seq: '', refSeq: refName }
+    }
+    const refSeq = assembly.refSeqs.get(refName)
+    if (!refSeq) {
+      return { seq: '', refSeq: refName }
+    }
+    const seq = refSeq.getSequence(start, end)
+    return { seq, refSeq: refName }
   }
 
-  async getRefSeqs() {
-    return []
+  async getRegions(assemblyName: string): Promise<Region[]> {
+    const assembly = this.clientStore.assemblies.get(assemblyName)
+    if (!assembly) {
+      return []
+    }
+    const regions: Region[] = []
+    for (const [, refSeq] of assembly.refSeqs) {
+      regions.push({
+        assemblyName,
+        refName: refSeq.name,
+        start: refSeq.sequence[0].start,
+        end: refSeq.sequence[0].stop,
+      })
+    }
+    return regions
   }
 
   getAssemblies() {

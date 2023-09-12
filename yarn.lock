@@ -11344,6 +11344,7 @@ __metadata:
     jest: ^29.6.2
     jest-fetch-mock: ^3.0.3
     jsonpath: ^1.1.1
+    librpc-web-mod: ^1.1.9
     mobx: ^6.6.1
     mobx-react: ^7.2.1
     mobx-state-tree: ^5.1.7
@@ -12387,6 +12388,16 @@ __metadata:
   linkType: hard
 
 "librpc-web-mod@npm:^1.1.5":
+  version: 1.1.9
+  resolution: "librpc-web-mod@npm:1.1.9"
+  dependencies:
+    "@librpc/ee": 1.0.4
+    serialize-error: ^8.1.0
+  checksum: ed47e278c8ebf748ce3c532839d5cad5dd2e87319ff6e4992d4adee0d88df127f700c9e141aafe963c34c4df11c418699c6dcf4548ef946166b4ee821e6aaa3b
+  languageName: node
+  linkType: hard
+
+"librpc-web-mod@npm:^1.1.9":
   version: 1.1.9
   resolution: "librpc-web-mod@npm:1.1.9"
   dependencies:

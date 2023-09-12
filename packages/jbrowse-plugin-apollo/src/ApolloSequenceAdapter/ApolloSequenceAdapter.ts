@@ -3,12 +3,18 @@ import {
   BaseOptions,
   BaseSequenceAdapter,
 } from '@jbrowse/core/data_adapters/BaseAdapter'
-import { getFetcher } from '@jbrowse/core/util/io'
 import { ObservableCreate } from '@jbrowse/core/util/rxjs'
 import SimpleFeature, { Feature } from '@jbrowse/core/util/simpleFeature'
-import { NoAssemblyRegion, UriLocation } from '@jbrowse/core/util/types'
+import { NoAssemblyRegion, Region } from '@jbrowse/core/util/types'
+import { nanoid } from 'nanoid'
 
-import { createFetchErrorMessage } from '../util'
+import { BackendDriver } from '../BackendDrivers'
+import { ApolloSessionModel } from '../session'
+
+declare global {
+  // eslint-disable-next-line no-var
+  var rpcServer: import('librpc-web-mod').RpcServer
+}
 
 export interface RefSeq {
   _id: string
@@ -17,8 +23,26 @@ export interface RefSeq {
   length: number
 }
 
+interface ApolloMessageData {
+  apollo: true
+  messageId: string
+  sequence: string
+  regions: Region[]
+}
+
+function isApolloMessageData(data?: unknown): data is ApolloMessageData {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'apollo' in data &&
+    data.apollo === true
+  )
+}
+
+const isInWebWorker = typeof sessionStorage === 'undefined'
+
 export class ApolloSequenceAdapter extends BaseSequenceAdapter {
-  private refSeqs: Promise<RefSeq[]> | undefined
+  private regions: NoAssemblyRegion[] | undefined
 
   get baseURL(): string {
     return readConfObject(this.config, 'baseURL').uri
@@ -31,46 +55,63 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
       .internetAccountPreAuthorization
   }
 
-  protected async getRefSeqs({ signal }: BaseOptions) {
-    if (this.refSeqs) {
-      return this.refSeqs
-    }
-    const assemblyId = readConfObject(this.config, 'assemblyId')
-    const url = new URL('refSeqs', this.baseURL)
-    const searchParams = new URLSearchParams({ assembly: assemblyId })
-    url.search = searchParams.toString()
-    const uri = url.toString()
-    const location: UriLocation = { locationType: 'UriLocation', uri }
-    if (this.internetAccountPreAuthorization) {
-      location.internetAccountPreAuthorization =
-        this.internetAccountPreAuthorization
-    }
-    const fetch = getFetcher(location, this.pluginManager)
-    const response = await fetch(uri, { signal })
-    if (!response.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        response,
-        'Failed to fetch refSeqs',
-      )
-      throw new Error(errorMessage)
-    }
-    const refSeqs = (await response.json()) as RefSeq[]
-    this.refSeqs = Promise.resolve(refSeqs)
-    return refSeqs
-  }
-
   public async getRefNames(opts: BaseOptions) {
-    const refSeqs = await this.getRefSeqs(opts)
-    return refSeqs.map((refSeq) => refSeq.name)
+    const regions = await this.getRegions(opts)
+    return regions.map((regions) => regions.refName)
   }
 
   public async getRegions(opts: BaseOptions): Promise<NoAssemblyRegion[]> {
-    const refSeqs = await this.getRefSeqs(opts)
-    return refSeqs.map((refSeq) => ({
-      refName: refSeq.name,
-      start: 0,
-      end: refSeq.length,
-    }))
+    if (this.regions) {
+      return this.regions
+    }
+    const assemblyId = readConfObject(this.config, 'assemblyId')
+    if (!isInWebWorker) {
+      const dataStore = (
+        this.pluginManager?.rootModel?.session as ApolloSessionModel | undefined
+      )?.apolloDataStore
+      if (!dataStore) {
+        throw new Error('No Apollo data store found')
+      }
+      const backendDriver = dataStore.getBackendDriver(
+        assemblyId,
+      ) as BackendDriver
+      const regions = await backendDriver.getRegions(assemblyId)
+      this.regions = regions
+      return regions
+    }
+    const { signal } = opts
+    const regions = await new Promise(
+      (
+        resolve: (sequence: Region[]) => void,
+        reject: (reason: string) => void,
+      ) => {
+        const timeoutId = setTimeout(() => {
+          reject('timeout')
+        }, 20_000)
+        const messageId = nanoid()
+        const messageListener = (event: MessageEvent) => {
+          const { data } = event
+          if (!isApolloMessageData(data)) {
+            return
+          }
+          if (data.messageId !== messageId) {
+            return
+          }
+          clearTimeout(timeoutId)
+          removeEventListener('message', messageListener)
+          resolve(data.regions)
+        }
+        addEventListener('message', messageListener, { signal })
+        globalThis.rpcServer.emit('apollo', {
+          apollo: true,
+          method: 'getRegions',
+          assembly: assemblyId,
+          messageId,
+        })
+      },
+    )
+    this.regions = regions
+    return regions
   }
 
   /**
@@ -78,49 +119,68 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
    * @param param -
    * @returns Observable of Feature objects in the region
    */
-  public getFeatures(
-    { end, refName, start }: NoAssemblyRegion,
-    opts: BaseOptions,
-  ) {
+  public getFeatures(region: Region, opts: BaseOptions) {
+    const { signal } = opts
+    const { assemblyName, end, refName, start } = region
     return ObservableCreate<Feature>(async (observer) => {
-      const refSeqs = await this.getRefSeqs(opts)
-      const refSeq = refSeqs.find((rs) => rs.name === refName)
-      if (!refSeq) {
-        return observer.error(
-          `Could not find refSeq that matched refName "${refName}"`,
-        )
-      }
-      const url = new URL('refSeqs/getSequence', this.baseURL)
-      const searchParams = new URLSearchParams({
-        refSeq: refSeq._id,
-        start: String(start),
-        end: String(end),
-      })
-      url.search = searchParams.toString()
-      const uri = url.toString()
-      const location: UriLocation = { locationType: 'UriLocation', uri }
-      if (this.internetAccountPreAuthorization) {
-        location.internetAccountPreAuthorization =
-          this.internetAccountPreAuthorization
-      }
-      const fetch = getFetcher(location, this.pluginManager)
-      const response = await fetch(uri, { signal: opts.signal })
-      if (!response.ok) {
-        const errorMessage = await createFetchErrorMessage(
-          response,
-          'Failed to fetch refSeqs',
-        )
-        throw new Error(errorMessage)
-      }
-      const seq = (await response.text()) as string
-      if (seq) {
+      if (!isInWebWorker) {
+        const dataStore = (
+          this.pluginManager?.rootModel?.session as
+            | ApolloSessionModel
+            | undefined
+        )?.apolloDataStore
+        if (!dataStore) {
+          observer.error('No Apollo data store found')
+        }
+        const backendDriver = dataStore.getBackendDriver(
+          assemblyName,
+        ) as BackendDriver
+        const { seq } = await backendDriver.getSequence(region)
         observer.next(
           new SimpleFeature({
             id: `${refName} ${start}-${end}`,
             data: { refName, start, end, seq },
           }),
         )
+        observer.complete()
+        return
       }
+      const seq = await new Promise(
+        (
+          resolve: (sequence: string) => void,
+          reject: (reason: string) => void,
+        ) => {
+          const timeoutId = setTimeout(() => {
+            reject('timeout')
+          }, 20_000)
+          const messageId = nanoid()
+          const messageListener = (event: MessageEvent) => {
+            const { data } = event
+            if (!isApolloMessageData(data)) {
+              return
+            }
+            if (data.messageId !== messageId) {
+              return
+            }
+            clearTimeout(timeoutId)
+            removeEventListener('message', messageListener)
+            resolve(data.sequence)
+          }
+          addEventListener('message', messageListener, { signal })
+          globalThis.rpcServer.emit('apollo', {
+            apollo: true,
+            method: 'getSequence',
+            region,
+            messageId,
+          })
+        },
+      )
+      observer.next(
+        new SimpleFeature({
+          id: `${refName} ${start}-${end}`,
+          data: { refName, start, end, seq },
+        }),
+      )
       observer.complete()
     })
   }

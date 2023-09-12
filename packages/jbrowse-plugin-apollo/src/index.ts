@@ -10,8 +10,10 @@ import {
 } from '@jbrowse/core/pluggableElementTypes'
 import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
+import { WorkerHandle } from '@jbrowse/core/rpc/BaseRpcDriver'
 import {
   AbstractSessionModel,
+  Region,
   getSession,
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
@@ -37,6 +39,7 @@ import {
   configSchema as apolloSixFrameRendererConfigSchema,
 } from './ApolloSixFrameRenderer'
 import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
+import { BackendDriver } from './BackendDrivers'
 import { DownloadGFF3, OpenLocalFile, ViewChangeLog } from './components'
 import { AddFeature } from './components/AddFeature'
 import ApolloPluginConfigurationSchema from './config'
@@ -53,6 +56,26 @@ import {
   stateModelFactory as SixFrameFeatureDisplayStateModelFactory,
   configSchemaFactory as sixFrameFeatureDisplayConfigSchemaFactory,
 } from './SixFrameFeatureDisplay'
+
+interface ApolloMessageData {
+  apollo: true
+  messageId: string
+  method: string
+  region: Region
+  sequence: string
+  assembly: string
+}
+
+function isApolloMessageData(data?: unknown): data is ApolloMessageData {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'apollo' in data &&
+    data.apollo === true
+  )
+}
+
+const inWebWorker = 'WorkerGlobalScope' in globalThis
 
 for (const [changeName, change] of Object.entries(changes)) {
   changeRegistry.registerChange(changeName, change)
@@ -198,6 +221,72 @@ export default class ApolloPlugin extends Plugin {
         return pluggableElement
       },
     )
+    if (!inWebWorker) {
+      pluginManager.addToExtensionPoint(
+        'Core-extendWorker',
+        (handle: WorkerHandle) => {
+          if (!('on' in handle && handle.on)) {
+            return handle
+          }
+          ;(handle as any).on('apollo', async (event: MessageEvent) => {
+            if (!isApolloMessageData(event)) {
+              return
+            }
+            const { apollo, messageId, method } = event
+            switch (method) {
+              case 'getSequence': {
+                const { region } = event
+                const { assemblyName } = region
+                const dataStore = (
+                  pluginManager.rootModel?.session as
+                    | ApolloSessionModel
+                    | undefined
+                )?.apolloDataStore
+                if (!dataStore) {
+                  break
+                }
+                const backendDriver = dataStore.getBackendDriver(
+                  assemblyName,
+                ) as BackendDriver
+                const { seq: sequence } =
+                  await backendDriver.getSequence(region)
+                ;(handle as any).workers[0].postMessage({
+                  apollo,
+                  messageId,
+                  sequence,
+                })
+                break
+              }
+              case 'getRegions': {
+                const { assembly } = event
+                const dataStore = (
+                  pluginManager.rootModel?.session as
+                    | ApolloSessionModel
+                    | undefined
+                )?.apolloDataStore
+                if (!dataStore) {
+                  break
+                }
+                const backendDriver = dataStore.getBackendDriver(
+                  assembly,
+                ) as BackendDriver
+                const regions = await backendDriver.getRegions(assembly)
+                ;(handle as any).workers[0].postMessage({
+                  apollo,
+                  messageId,
+                  regions,
+                })
+                break
+              }
+              default: {
+                break
+              }
+            }
+          })
+          return handle
+        },
+      )
+    }
   }
 
   configure(pluginManager: PluginManager) {
