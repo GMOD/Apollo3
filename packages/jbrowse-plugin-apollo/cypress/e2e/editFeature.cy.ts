@@ -4,7 +4,7 @@ describe('Different ways of editing features', () => {
     cy.loginAsGuest()
   })
 
-  it.only('Can select region on rubber-band and zoom into it', () => {
+  it('Can select region on rubber-band and zoom into it', () => {
     cy.viewport(1000, 1000)
     cy.addAssemblyFromGff('volvox_cy', 'test_data/space.gff3')
     cy.selectAssemblyToView('volvox_cy')
@@ -21,39 +21,6 @@ describe('Different ways of editing features', () => {
     cy.contains('Zoom to region').click()
     cy.wait('@done')
     cy.currentLocationEquals('ctgA', 1021, 2041, 10)
-  })
-
-  it('Can drag and move position', () => {
-    cy.viewport(1000, 1000)
-    cy.addAssemblyFromGff('volvox_cy', 'test_data/space.gff3')
-    cy.selectAssemblyToView('volvox_cy')
-    cy.contains('Open track selector').click()
-    cy.contains('Annotations (').click()
-    cy.get('[data-testid="MinimizeIcon"]').eq(1).click()
-    cy.get('input[placeholder="Search for location"]').type(
-      'ctgA:9400..9600{enter}',
-    )
-    // cy.contains('Table').click()
-    // cy.contains('Match5').click()
-    // cy.get('[data-testid="MoreVertIcon"]').click()
-    // cy.contains('Minimize track').click()
-    // cy.get('[data-testid="MoreVertIcon"]').click()
-    // cy.contains('Restore track').click()
-
-    cy.get('[data-testid="overlayCanvas"]').then((canvas) => {
-      cy.wrap(canvas).trigger('mouseover', 700, 10) //  .rightclick()
-    })
-    // cy.get('[class="css-17gfnt3-verticalGuidesContainer"]').children().eq(0).trigger('mousedown', 200, 30)
-    // cy.get('[class="css-17gfnt3-verticalGuidesContainer"]').children().eq(0).trigger('mousemove', 900, 30)
-    // cy.get('[class="css-17gfnt3-verticalGuidesContainer"]').children().eq(0).trigger('mouseup', 900, 30)
-
-    // cy.get('[data-testid="trackContainer"]').children().eq(0).children().trigger('mousedown', 700, 30, { force: true })
-    // cy.get('[data-testid="trackContainer"]').children().eq(0).children().trigger('mousemove', 900, 30, { force: true })
-    // cy.get('[data-testid="trackContainer"]').children().eq(0).children().trigger('mouseup', 900, 30, { force: true })
-    // .parent().parent().trigger('mouseover')
-    // cy.get('[data-testid="canvas"]').parent().parent().trigger('mousedown', 580, 30)
-    // cy.get('[data-testid="canvas"]').parent().parent().trigger('mousemove', 200, 30)
-    // cy.get('[data-testid="canvas"]').parent().parent().trigger('mouseup', 200, 30)
   })
 
   it('Can edit feature via table editor', () => {
@@ -92,4 +59,38 @@ describe('Different ways of editing features', () => {
     cy.contains('9567')
     cy.get('input[type="text"][value="CDS"]')
   })
+
+  it.skip('Can drag and move position', () => {
+    cy.viewport(1000, 1000)
+    cy.addAssemblyFromGff('volvox_cy', 'test_data/space.gff3')
+    cy.selectAssemblyToView('volvox_cy')
+    cy.contains('Open track selector').click()
+    cy.contains('Annotations (').click()
+    cy.get('[data-testid="MinimizeIcon"]').eq(1).click()
+    cy.get('input[placeholder="Search for location"]').type(
+      'ctgA:9400..9600{enter}',
+    )
+    // cy.contains('Table').click()
+    // cy.contains('Match5').click()
+    // cy.get('[data-testid="MoreVertIcon"]').click()
+    // cy.contains('Minimize track').click()
+    // cy.get('[data-testid="MoreVertIcon"]').click()
+    // cy.contains('Restore track').click()
+
+    cy.get('[data-testid="overlayCanvas"]').then((canvas) => {
+      cy.wrap(canvas).trigger('mouseover', 700, 10) //  .rightclick()
+    })
+    // cy.get('[class="css-17gfnt3-verticalGuidesContainer"]').children().eq(0).trigger('mousedown', 200, 30)
+    // cy.get('[class="css-17gfnt3-verticalGuidesContainer"]').children().eq(0).trigger('mousemove', 900, 30)
+    // cy.get('[class="css-17gfnt3-verticalGuidesContainer"]').children().eq(0).trigger('mouseup', 900, 30)
+
+    // cy.get('[data-testid="trackContainer"]').children().eq(0).children().trigger('mousedown', 700, 30, { force: true })
+    // cy.get('[data-testid="trackContainer"]').children().eq(0).children().trigger('mousemove', 900, 30, { force: true })
+    // cy.get('[data-testid="trackContainer"]').children().eq(0).children().trigger('mouseup', 900, 30, { force: true })
+    // .parent().parent().trigger('mouseover')
+    // cy.get('[data-testid="canvas"]').parent().parent().trigger('mousedown', 580, 30)
+    // cy.get('[data-testid="canvas"]').parent().parent().trigger('mousemove', 200, 30)
+    // cy.get('[data-testid="canvas"]').parent().parent().trigger('mouseup', 200, 30)
+  })
+
 })
