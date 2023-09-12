@@ -3,6 +3,7 @@ Cypress.Commands.add('loginAsGuest', () => {
     cy.visit(config.apollo_url)
   })
   cy.contains('Continue as Guest', { timeout: 10_000 }).click()
+  // eslint-disable-next-line cypress/no-unnecessary-waiting
   cy.wait(2000)
   cy.reload()
 })
