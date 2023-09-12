@@ -8,13 +8,12 @@ Cypress.Commands.add('loginAsGuest', () => {
 })
 
 Cypress.Commands.add('deleteAssemblies', () => {
-  cy.exec(
-    // Hardcode the test DB so we don't accidentally delete from unexpected databases
-    "mongosh mongodb://localhost:27017/apolloTestDb  --eval 'db.assemblies.deleteMany({}); db.features.deleteMany({})'",
-  ).then((result) => {
-    cy.log(result.stdout)
-    cy.log(result.stderr)
-  })
+  for (const x of ['assemblies', 'features']) {
+    cy.log(x)
+    cy.deleteMany({}, { collection: x }).then((results: undefined) => {
+      cy.log(`Collection ${x}: ${results}` as unknown as string)
+    })
+  }
 })
 
 Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
