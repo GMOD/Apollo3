@@ -11,6 +11,8 @@ import {
   Feature,
   FeatureDocument,
   RefSeq,
+  RefSeqChunk,
+  RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
 import { GetFeaturesOperation } from 'apollo-shared'
@@ -19,6 +21,7 @@ import StreamConcat from 'stream-concat'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { OperationsService } from '../operations/operations.service'
+import { RefSeqChunksService } from '../refSeqChunks/refSeqChunks.service'
 import { FeatureCountRequest } from './dto/feature.dto'
 
 function makeGFF3Feature(
@@ -131,6 +134,7 @@ function makeGFF3Feature(
 export class FeaturesService {
   constructor(
     private readonly operationsService: OperationsService,
+    private readonly refSeqChunkService: RefSeqChunksService,
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
     @InjectModel(Assembly.name)
@@ -139,6 +143,8 @@ export class FeaturesService {
     private readonly refSeqModel: Model<RefSeqDocument>,
     @InjectModel(Export.name)
     private readonly exportModel: Model<ExportDocument>,
+    @InjectModel(RefSeqChunk.name)
+    private readonly refSeqChunksModel: Model<RefSeqChunkDocument>,
   ) {}
 
   private readonly logger = new Logger(FeaturesService.name)
@@ -195,6 +201,16 @@ export class FeaturesService {
     return assemblyDoc.name
   }
 
+  splitStringIntoChunks(input: string, chunkSize: number): string {
+    const chunks: string[] = []
+    for (let i = 0; i < input.length; i += chunkSize) {
+      // eslint-disable-next-line unicorn/prefer-string-slice
+      const chunk = input.substring(i, i + chunkSize)
+      chunks.push(chunk)
+    }
+    return chunks.join('\n')
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async exportGFF3(exportID: string): Promise<any> {
     const exportDoc = await this.exportModel.findById(exportID)
@@ -204,19 +220,56 @@ export class FeaturesService {
 
     const { assembly } = exportDoc
     const refSeqs = await this.refSeqModel.find({ assembly }).exec()
+    const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
+
+    const sequenceStream = new Readable({ objectMode: true })
+    // const seqQueryInfo = refSeqs.map((entry) => ({
+    //   id: entry.id,
+    //   name: entry.name,
+    //   desc: entry.description,
+    // }))
+
+    // Implement the _read() method for the custom stream. This is just a placeholder; we can leave it empty
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    sequenceStream._read = function () {}
+
+    let printFasta = true
+    // for await (const item of seqQueryInfo) {
+    //   for await (const doc of this.refSeqChunksModel
+    //     .find({ refSeq: item.id })
+    //     .sort({ n: 1 })
+    //     .cursor()) {
+    //     printFasta ? sequenceStream.push('##FASTA\n') : null
+    //     sequenceStream.push(`>${item.name} ${item.desc}\n`)
+    //     // eslint-disable-next-line unicorn/no-array-push-push
+    //     sequenceStream.push(this.splitStringIntoChunks(doc.sequence, 80))
+    //     printFasta = false
+    //   }
+    // }
 
     const headerStream = new Readable({ objectMode: true })
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    headerStream._read = function () {}
     headerStream.push('##gff-version 3\n')
     for (const refSeqDoc of refSeqs) {
       headerStream.push(
         `##sequence-region ${refSeqDoc.name} 1 ${refSeqDoc.length}\n`,
       )
+      for await (const doc of this.refSeqChunksModel
+        .find({ refSeq: refSeqDoc.id })
+        .sort({ n: 1 })
+        .cursor()) {
+        printFasta ? sequenceStream.push('##FASTA\n') : null
+        sequenceStream.push(`>${refSeqDoc.name} ${refSeqDoc.description}\n`)
+        // eslint-disable-next-line unicorn/no-array-push-push
+        sequenceStream.push(`${this.splitStringIntoChunks(doc.sequence, 60)}\n`)
+        printFasta = false
+      }
     }
     headerStream.push(null)
+    sequenceStream.push(null)
 
-    const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
     const query = { refSeq: { $in: refSeqIds } }
-
     const featureStream = pipeline(
       // unicorn thinks this is an Array.prototype.find, so we ignore it
       // eslint-disable-next-line unicorn/no-array-callback-reference
@@ -242,7 +295,12 @@ export class FeaturesService {
         }
       },
     )
-    const combinedStream = new StreamConcat([headerStream, featureStream])
+
+    const combinedStream = new StreamConcat([
+      headerStream,
+      featureStream,
+      sequenceStream,
+    ])
     return [combinedStream, assembly]
   }
 
