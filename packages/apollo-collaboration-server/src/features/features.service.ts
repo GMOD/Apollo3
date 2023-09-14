@@ -221,35 +221,17 @@ export class FeaturesService {
     const { assembly } = exportDoc
     const refSeqs = await this.refSeqModel.find({ assembly }).exec()
     const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
+    let printFasta = true
 
+    const headerStream = new Readable({ objectMode: true })
     const sequenceStream = new Readable({ objectMode: true })
-    // const seqQueryInfo = refSeqs.map((entry) => ({
-    //   id: entry.id,
-    //   name: entry.name,
-    //   desc: entry.description,
-    // }))
 
     // Implement the _read() method for the custom stream. This is just a placeholder; we can leave it empty
     // eslint-disable-next-line @typescript-eslint/no-empty-function
+    headerStream._read = function () {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     sequenceStream._read = function () {}
 
-    let printFasta = true
-    // for await (const item of seqQueryInfo) {
-    //   for await (const doc of this.refSeqChunksModel
-    //     .find({ refSeq: item.id })
-    //     .sort({ n: 1 })
-    //     .cursor()) {
-    //     printFasta ? sequenceStream.push('##FASTA\n') : null
-    //     sequenceStream.push(`>${item.name} ${item.desc}\n`)
-    //     // eslint-disable-next-line unicorn/no-array-push-push
-    //     sequenceStream.push(this.splitStringIntoChunks(doc.sequence, 80))
-    //     printFasta = false
-    //   }
-    // }
-
-    const headerStream = new Readable({ objectMode: true })
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    headerStream._read = function () {}
     headerStream.push('##gff-version 3\n')
     for (const refSeqDoc of refSeqs) {
       headerStream.push(
