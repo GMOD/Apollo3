@@ -1,5 +1,6 @@
 export * from './assembly.schema'
 export * from './change.schema'
+export * from './checkReport.schema'
 export * from './counter.schema'
 export * from './export.schema'
 export * from './feature.schema'
