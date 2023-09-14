@@ -12,6 +12,7 @@ import { Connection } from 'mongoose'
 import { AssembliesModule } from './assemblies/assemblies.module'
 import { AuthenticationModule } from './authentication/authentication.module'
 import { ChangesModule } from './changes/changes.module'
+import { CheckReportsModule } from './checkReports/checkReports.module'
 import { CountersModule } from './counters/counters.module'
 import { FeaturesModule } from './features/features.module'
 import { FilesModule } from './files/files.module'
@@ -157,10 +158,12 @@ async function mongoDBURIFactory(
     ServeStaticModule.forRoot({
       rootPath: path.join(__dirname, '..', 'public'),
     }),
+    CheckReportsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: ValidationGuard },
   ],
+  controllers: [],
 })
 export class AppModule {}

@@ -4,7 +4,7 @@ import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose'
 
 export type FeatureDocument = HydratedDocument<Feature>
 
-@Schema()
+@Schema({ timestamps: true })
 export class Feature
   implements Omit<AnnotationFeatureSnapshot, '_id' | 'children' | 'refSeq'>
 {
