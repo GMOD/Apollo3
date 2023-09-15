@@ -56,8 +56,6 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const [contextCoord, setContextCoord] = useState<Coord>()
   const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
   const message = regionCannotBeRendered()
-  // eslint-disable-next-line unicorn/consistent-destructuring
-  model.tabularEditor.showPane()
   if (!isShown) {
     return null
   }
@@ -84,9 +82,12 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
           </Tooltip>
         </Alert>
       ) : (
+        // Promise.resolve() in these 3 callbacks is to avoid infinite rendering loop
+        // https://github.com/mobxjs/mobx/issues/3728#issuecomment-1715400931
         <>
           <canvas
-            ref={(node) => {
+            ref={async (node: HTMLCanvasElement) => {
+              await Promise.resolve()
               setCollaboratorCanvas(node)
             }}
             width={lgv.dynamicBlocks.totalWidthPx}
@@ -94,7 +95,8 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             className={classes.canvas}
           />
           <canvas
-            ref={(node) => {
+            ref={async (node: HTMLCanvasElement) => {
+              await Promise.resolve()
               setCanvas(node)
             }}
             width={lgv.dynamicBlocks.totalWidthPx}
@@ -102,7 +104,8 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             className={classes.canvas}
           />
           <canvas
-            ref={(node) => {
+            ref={async (node: HTMLCanvasElement) => {
+              await Promise.resolve()
               setOverlayCanvas(node)
             }}
             width={lgv.dynamicBlocks.totalWidthPx}

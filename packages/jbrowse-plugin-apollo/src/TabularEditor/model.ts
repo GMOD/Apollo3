@@ -4,7 +4,7 @@ import { DisplayStateModel } from './types'
 
 export const TabularEditorStateModelType = types
   .model('TabularEditor', {
-    isShown: false,
+    isShown: true,
     featureCollapsed: types.map(types.boolean),
     filterText: '',
   })
