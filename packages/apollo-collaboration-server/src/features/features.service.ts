@@ -6,6 +6,8 @@ import { InjectModel } from '@nestjs/mongoose'
 import {
   Assembly,
   AssemblyDocument,
+  CheckReport,
+  CheckReportDocument,
   Export,
   ExportDocument,
   Feature,
@@ -17,7 +19,11 @@ import { GetFeaturesOperation } from 'apollo-shared'
 import { Model } from 'mongoose'
 import StreamConcat from 'stream-concat'
 
-import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
+import { CheckReportsService } from '../checkReports/checkReports.service'
+import {
+  CheckReportResultDto,
+  FeatureRangeSearchDto,
+} from '../entity/gff3Object.dto'
 import { OperationsService } from '../operations/operations.service'
 import { FeatureCountRequest } from './dto/feature.dto'
 
@@ -139,6 +145,8 @@ export class FeaturesService {
     private readonly refSeqModel: Model<RefSeqDocument>,
     @InjectModel(Export.name)
     private readonly exportModel: Model<ExportDocument>,
+    @InjectModel(CheckReport.name)
+    private readonly checkReportModel: Model<CheckReportDocument>,
   ) {}
 
   private readonly logger = new Logger(FeaturesService.name)
@@ -296,12 +304,41 @@ export class FeaturesService {
   }
 
   async findByRange(searchDto: FeatureRangeSearchDto) {
-    return this.operationsService.executeOperation<GetFeaturesOperation>({
-      typeName: 'GetFeaturesOperation',
-      refSeq: searchDto.refSeq,
-      start: searchDto.start,
-      end: searchDto.end,
-    })
+    const features =
+      await this.operationsService.executeOperation<GetFeaturesOperation>({
+        typeName: 'GetFeaturesOperation',
+        refSeq: searchDto.refSeq,
+        start: searchDto.start,
+        end: searchDto.end,
+      })
+
+    // ***** JATKA TASTA ****
+    const checkReports: CheckReportResultDto[] = await this.checkReportModel
+      .find({ pass: false })
+      .exec()
+      console.log(`REPORTS: ${JSON.stringify(checkReports)}`)
+    // if (!checkReports) {
+    //   const errMsg = `ERROR: The following featureId was not found in database ='${featureId}'`
+    //   this.logger.error(errMsg)
+    //   throw new NotFoundException(errMsg)
+    // }
+    // Get the IDs (or range) and check if there are check reports....
+    const checkReports1: CheckReportResultDto = {
+      checkName: 'test check 1',
+      ids: ['featureId1', 'featureId2'],
+      pass: false,
+      ignored: '',
+      problems: 'Check found the following problems...',
+    }
+    const checkReports2: CheckReportResultDto = {
+      checkName: 'test check 2',
+      ids: ['featureId1', 'featureId2'],
+      pass: false,
+      ignored: '',
+      problems: 'Check found the following problems...',
+    }
+    return { features, checkReports }
+    // return { features, checkReports: [checkReports1, checkReports2] }
   }
 
   async searchFeatures(searchDto: { term: string; assemblies: string }) {

@@ -25,6 +25,7 @@ export class CheckReportsService {
           { refSeq: request.refSeq },
           { start: { $gte: request.start } },
           { end: { $lte: request.end } },
+          { status: 0 },
         ],
       })
       .exec()
