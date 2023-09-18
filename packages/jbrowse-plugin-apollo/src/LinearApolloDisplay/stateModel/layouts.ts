@@ -134,13 +134,11 @@ export function layoutsModelFactory(
                 rowNum++
               ) {
                 const row = rows[rowNum]
-                let start, end
-                if (feature.min - min < 0) {
-                  start = Math.max(0, feature.min - min)
-                  end = Math.min(feature.max - feature.min, feature.max - min)
-                } else {
-                  start = feature.min - min
+                let start = feature.min - min,
                   end = feature.max - min
+                if (feature.min - min < 0) {
+                  start = 0
+                  end = feature.max - feature.min
                 }
                 row.fill(true, start, end)
                 const layoutRow = featureLayout.get(rowNum)
