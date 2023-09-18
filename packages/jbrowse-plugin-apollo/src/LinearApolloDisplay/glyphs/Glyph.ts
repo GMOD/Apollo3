@@ -1,4 +1,5 @@
 import { MenuItem } from '@jbrowse/core/ui'
+import { alpha } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 
 import {
@@ -103,7 +104,8 @@ export abstract class Glyph {
     display: LinearApolloDisplayMouseEvents,
     context: CanvasRenderingContext2D,
   ): void {
-    const { apolloHover, apolloRowHeight, displayedRegions, lgv } = display
+    const { apolloHover, apolloRowHeight, displayedRegions, lgv, theme } =
+      display
     if (!apolloHover) {
       return
     }
@@ -163,7 +165,10 @@ export abstract class Glyph {
     const maxWidth = Math.max(...textWidth)
 
     startPx = startPx + widthPx + 5
-    context.fillStyle = 'rgba(1, 1, 1, 0.7)'
+    context.fillStyle = alpha(
+      theme?.palette.text.primary ?? 'rgb(1, 1, 1)',
+      0.7,
+    )
     context.fillRect(
       startPx,
       top,
@@ -175,7 +180,8 @@ export abstract class Glyph {
     context.lineTo(startPx - 5, top + 5)
     context.lineTo(startPx, top + 10)
     context.fill()
-    context.fillStyle = 'rgba(255, 255, 255)'
+    context.fillStyle =
+      theme?.palette.background.default ?? 'rgba(255, 255, 255)'
     let textTop = top + 12
     context.fillText(featureType, startPx + 2, textTop)
     if (featureName) {
