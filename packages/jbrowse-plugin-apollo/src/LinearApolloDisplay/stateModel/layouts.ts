@@ -15,6 +15,9 @@ export function layoutsModelFactory(
   const BaseLinearApolloDisplay = baseModelFactory(pluginManager, configSchema)
 
   return BaseLinearApolloDisplay.named('LinearApolloDisplayLayouts')
+    .props({
+      featuresMinMaxLimit: 500_000,
+    })
     .volatile(() => ({
       seenFeatures: observable.map<string, AnnotationFeatureI>(),
     }))
@@ -29,7 +32,8 @@ export function layoutsModelFactory(
           for (const [, feature] of self.seenFeatures) {
             if (
               refName !== assembly?.getCanonicalRefName(feature.refSeq) ||
-              !doesIntersect2(start, end, feature.min, feature.max)
+              !doesIntersect2(start, end, feature.min, feature.max) ||
+              feature.length > self.featuresMinMaxLimit
             ) {
               continue
             }
@@ -130,7 +134,15 @@ export function layoutsModelFactory(
                 rowNum++
               ) {
                 const row = rows[rowNum]
-                row.fill(true, feature.min - min, feature.max - min)
+                let start, end
+                if (feature.min - min < 0) {
+                  start = Math.max(0, feature.min - min)
+                  end = Math.min(feature.max - feature.min, feature.max - min)
+                } else {
+                  start = feature.min - min
+                  end = feature.max - min
+                }
+                row.fill(true, start, end)
                 const layoutRow = featureLayout.get(rowNum)
                 layoutRow?.push([rowNum - startingRow, feature])
               }
