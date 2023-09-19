@@ -23,6 +23,7 @@ export function renderingModelIntermediateFactory(
       apolloRowHeight: 20,
       detailsMinHeight: 200,
       detailsHeight: 200,
+      lastRowTooltipBufferHeight: 40,
       isShown: true,
     })
     .volatile(() => ({
@@ -33,7 +34,10 @@ export function renderingModelIntermediateFactory(
     }))
     .views((self) => ({
       get featuresHeight() {
-        return (self.highestRow + 1) * self.apolloRowHeight
+        return (
+          (self.highestRow + 1) * self.apolloRowHeight +
+          self.lastRowTooltipBufferHeight
+        )
       },
     }))
     .actions((self) => ({
