@@ -46,6 +46,7 @@
     "apollo-common": "workspace:^",
     "apollo-schemas": "workspace:^",
     "apollo-shared": "workspace:^",
+    "bson-objectid": "^2.0.4",
     "connect-mongodb-session": "^3.1.1",
     "express": "^4.18.0",
     "express-session": "^1.17.3",

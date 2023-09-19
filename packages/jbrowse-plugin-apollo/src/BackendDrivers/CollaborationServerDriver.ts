@@ -79,7 +79,6 @@ export class CollaborationServerDriver extends BackendDriver {
     ) as ApolloInternetAccount
     const { baseURL } = internetAccount
 
-    console.log('HAETAAN')
     const url = new URL('features/getFeatures', baseURL)
     const searchParams = new URLSearchParams({
       refSeq,
@@ -100,7 +99,10 @@ export class CollaborationServerDriver extends BackendDriver {
 
     await this.checkSocket(assemblyName, refName, internetAccount)
     const resultAsJson = await response.json()
-    console.log('Check reports:', JSON.stringify(resultAsJson.checkReports))
+    console.log(
+      'CheckReport results:',
+      JSON.stringify(resultAsJson.checkReports),
+    )
     return resultAsJson.features as Promise<AnnotationFeatureSnapshot[]>
   }
 
