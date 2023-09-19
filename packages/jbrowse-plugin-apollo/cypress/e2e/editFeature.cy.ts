@@ -18,7 +18,6 @@ describe('Different ways of editing features', () => {
       force: true,
     })
     cy.intercept('POST', '/users/userLocation').as('done')
-    cy.wait(4000)
     cy.contains('Zoom to region').click()
     cy.wait('@done')
     cy.currentLocationEquals('ctgA', 1021, 2041, 10)

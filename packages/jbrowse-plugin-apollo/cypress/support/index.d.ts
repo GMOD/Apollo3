@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 
 declare namespace Cypress {
-  interface Chainable<Subject> {
+  interface Chainable {
     loginAsGuest(): Chainable<void>
     deleteAssemblies(): Chainable<void>
     addAssemblyFromGff(assemblyName: string, fin: string): Chainable<void>
