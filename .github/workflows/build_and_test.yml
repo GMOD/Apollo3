@@ -1,0 +1,48 @@
+name: CI
+on: 
+  push:
+    branches:
+      - cypress
+
+jobs:
+  build:
+    name: Test Apollo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: yarn
+
+      - name: Install
+        run: yarn --immutable
+
+      - name: Get latest JBrowse
+        working-directory: packages/jbrowse-plugin-apollo
+        run: yarn run jbrowse create --nightly .jbrowse
+
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.10.0
+        with:
+          mongodb-version: 7
+          mongodb-replica-set: test-rs
+
+      - name: Setup config
+        # Use the same port you have in test:e2e
+        run: sed -i 's|http://localhost:[0-9]\+/|http://localhost:8999/|' packages/jbrowse-plugin-apollo/cypress/fixtures/config.json
+
+      - name: Run tests
+        working-directory: packages/jbrowse-plugin-apollo
+        env:
+          GUEST_USER_ROLE: admin
+          MONGODB_URI: mongodb://localhost:27017/apolloTestDb
+        run: yarn run test:e2e
+
+      - name: Archive test results
+        if: '!cancelled()'
+        uses: actions/upload-artifact@v3
+        with:
+          name: cypress_results
+          path: packages/jbrowse-plugin-apollo/cypress
