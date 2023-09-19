@@ -5,6 +5,7 @@ describe('Search features', () => {
   })
 
   it('One hit, no children', () => {
+    cy.viewport(2000, 1000)
     cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
     cy.selectAssemblyToView('volvox.fasta.gff3')
     cy.searchFeatures('Match6')
