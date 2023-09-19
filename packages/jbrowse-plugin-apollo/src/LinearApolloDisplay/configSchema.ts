@@ -10,7 +10,7 @@ export function configSchemaFactory(pluginManager: PluginManager) {
 
   return ConfigurationSchema(
     'LinearApolloDisplay',
-    {},
+    { height: { type: 'number', defaultValue: 500 } },
     { baseConfiguration: baseLinearDisplayConfigSchema, explicitlyTyped: true },
   )
 }
