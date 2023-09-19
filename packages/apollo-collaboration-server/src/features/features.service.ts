@@ -16,10 +16,10 @@ import {
   RefSeqDocument,
 } from 'apollo-schemas'
 import { GetFeaturesOperation } from 'apollo-shared'
+import ObjectID from 'bson-objectid'
 import { Model } from 'mongoose'
 import StreamConcat from 'stream-concat'
 
-import { CheckReportsService } from '../checkReports/checkReports.service'
 import {
   CheckReportResultDto,
   FeatureRangeSearchDto,
@@ -312,33 +312,76 @@ export class FeaturesService {
         end: searchDto.end,
       })
 
-    // ***** JATKA TASTA ****
+    const featureIds: string[] = features.flatMap((doc) => doc.allIds)
     const checkReports: CheckReportResultDto[] = await this.checkReportModel
-      .find({ pass: false })
+      .find({ pass: false, ignored: '', ids: { $in: featureIds } })
       .exec()
-      console.log(`REPORTS: ${JSON.stringify(checkReports)}`)
-    // if (!checkReports) {
-    //   const errMsg = `ERROR: The following featureId was not found in database ='${featureId}'`
-    //   this.logger.error(errMsg)
-    //   throw new NotFoundException(errMsg)
-    // }
-    // Get the IDs (or range) and check if there are check reports....
-    const checkReports1: CheckReportResultDto = {
-      checkName: 'test check 1',
-      ids: ['featureId1', 'featureId2'],
-      pass: false,
-      ignored: '',
-      problems: 'Check found the following problems...',
-    }
-    const checkReports2: CheckReportResultDto = {
-      checkName: 'test check 2',
-      ids: ['featureId1', 'featureId2'],
-      pass: false,
-      ignored: '',
-      problems: 'Check found the following problems...',
+    if (checkReports) {
+      // If there are check reports then check that each feature timestamp is less than in the check reports
+      const maxFeatureTimestamp = await this.featureModel
+        .aggregate([
+          {
+            $match: {
+              $and: [
+                { refSeq: { $eq: ObjectID(searchDto.refSeq) } },
+                { start: { $gte: Number(searchDto.start) } },
+                { end: { $lte: Number(searchDto.end) } },
+                { status: 0 },
+              ],
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              maxUpdatedAt: { $max: '$updatedAt' },
+            },
+          },
+        ])
+        .exec()
+
+      // Get max timestamp from checkReports -collection
+      const maxCheckReportsTimestamp = await this.checkReportModel
+        .aggregate([
+          {
+            $match: {
+              $and: [{ ids: { $in: featureIds } }],
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              maxUpdatedAt: { $max: '$updatedAt' },
+            },
+          },
+        ])
+        .exec()
+
+      if (maxCheckReportsTimestamp[0] && maxFeatureTimestamp[0]) {
+        this.logger.debug(
+          `Within search range, max timestamp in Feature -collection: ${JSON.stringify(
+            maxFeatureTimestamp[0].maxUpdatedAt,
+          )}`,
+        )
+        this.logger.debug(
+          `Within search range, max timestamp in CheckReports -collection: ${JSON.stringify(
+            maxCheckReportsTimestamp[0].maxUpdatedAt,
+          )}`,
+        )
+        if (
+          new Date(maxFeatureTimestamp[0].maxUpdatedAt) >
+          new Date(maxCheckReportsTimestamp[0].maxUpdatedAt)
+        ) {
+          this.logger.error(
+            'The last Feature timestamp cannot be later than the last CheckReport timestamp',
+          )
+          // const errMsg =
+          //   'ERROR:The last Feature timestamp cannot be later than the last CheckReport timestamp'
+          // this.logger.error(errMsg)
+          // throw new NotAcceptableException(errMsg)
+        }
+      }
     }
     return { features, checkReports }
-    // return { features, checkReports: [checkReports1, checkReports2] }
   }
 
   async searchFeatures(searchDto: { term: string; assemblies: string }) {

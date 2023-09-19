@@ -11,6 +11,7 @@ export class CheckReportsController {
 
   constructor(private readonly checkReportsService: CheckReportsService) {}
 
+  // Right now this is just for demo/test purpose
   @Get('checkFeatures')
   async checkFeatures(@Query() request: FeatureRangeSearchDto) {
     this.logger.debug(

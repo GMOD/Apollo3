@@ -14,6 +14,7 @@ export class CheckReportsService {
 
   private readonly logger = new Logger(CheckReportsService.name)
 
+  // Right now this is just for demo/test purpose
   async checkFeatureRange(request: FeatureRangeSearchDto) {
     this.logger.debug(
       `getFeaturesByCriteria -method: refSeq: ${request.refSeq}, start: ${request.start}, end: ${request.end}`,
