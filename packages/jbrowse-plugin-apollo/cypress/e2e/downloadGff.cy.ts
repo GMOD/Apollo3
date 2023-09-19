@@ -10,7 +10,7 @@ describe('Download GFF', () => {
   })
 
   it('FIXME: Can download gff', () => {
-    cy.addAssemblyFromGff('volvox_cy', 'test_data/volvox.fasta.gff3')
+    cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
     cy.get('button[data-testid="dropDownMenuButton"]')
       .contains('Apollo')
       .click()

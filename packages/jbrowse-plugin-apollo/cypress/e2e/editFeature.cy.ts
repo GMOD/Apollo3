@@ -4,10 +4,11 @@ describe('Different ways of editing features', () => {
     cy.loginAsGuest()
   })
 
-  it.only('Can select region on rubber-band and zoom into it', () => {
+  it('Can select region on rubber-band and zoom into it', () => {
     cy.viewport(1000, 1000)
-    cy.addAssemblyFromGff('volvox_cy', 'test_data/space.gff3')
-    cy.selectAssemblyToView('volvox_cy')
+    const assemblyName = 'space.gff3'
+    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
+    cy.selectAssemblyToView(assemblyName)
     cy.get('input[placeholder="Search for location"]').type(
       'ctgA:1..10000{enter}',
     )
@@ -24,8 +25,9 @@ describe('Different ways of editing features', () => {
   })
 
   it('FIXME: edit feature via table editor', () => {
-    cy.addAssemblyFromGff('volvox_cy', 'test_data/space.gff3')
-    cy.selectAssemblyToView('volvox_cy')
+    const assemblyName = 'space.gff3'
+    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
+    cy.selectAssemblyToView(assemblyName)
 
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
@@ -81,8 +83,9 @@ describe('Different ways of editing features', () => {
 
   it.skip('Can drag and move position', () => {
     cy.viewport(1000, 1000)
-    cy.addAssemblyFromGff('volvox_cy', 'test_data/space.gff3')
-    cy.selectAssemblyToView('volvox_cy')
+    const assemblyName = 'space.gff3'
+    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
+    cy.selectAssemblyToView(assemblyName)
     cy.contains('Open track selector').click()
     cy.contains('Annotations (').click()
     cy.get('[data-testid="MinimizeIcon"]').eq(1).click()
