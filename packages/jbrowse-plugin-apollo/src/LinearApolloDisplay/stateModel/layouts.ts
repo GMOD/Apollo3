@@ -119,9 +119,13 @@ export function layoutsModelFactory(
                       feature.max - feature.min === 0
                         ? feature.min + 1
                         : feature.max
-                    return rowForFeature
-                      .slice(feature.min - min, featureMax - min)
-                      .some(Boolean)
+                    let start = feature.min - min,
+                      end = featureMax - min
+                    if (feature.min - min < 0) {
+                      start = 0
+                      end = featureMax - feature.min
+                    }
+                    return rowForFeature.slice(start, end).some(Boolean)
                   })
                   .some(Boolean)
               ) {
