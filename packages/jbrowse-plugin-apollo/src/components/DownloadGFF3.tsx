@@ -180,7 +180,10 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
       setErrorMessage('Must select assembly to download')
       return
     }
-    const internetAccount = getInternetAccount(internetAccountConfigId)
+    const internetAccount = getInternetAccount(
+      selectedAssembly.configuration.name,
+      internetAccountConfigId,
+    )
     const url = new URL('features/getExportID', internetAccount.baseURL)
     const searchParams = new URLSearchParams({
       assembly: selectedAssembly.name,
