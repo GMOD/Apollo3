@@ -34,10 +34,20 @@ describe('Search features', () => {
     cy.contains('Error: Unknown reference sequence "SpamGene"')
   })
 
-  it('FIXME: Can handle space in attribute values', () => {
+  it('Can use quotes to handle spaces', () => {
     cy.addAssemblyFromGff('space.gff3', 'test_data/space.gff3')
     cy.selectAssemblyToView('space.gff3')
-    cy.searchFeatures('.1')
-    cy.contains('Error: Unknown reference sequence')
+    cy.searchFeatures('"agt A"')
+    cy.currentLocationEquals('ctgA', 7500, 8000, 10)
+  })
+
+  it('FIXME: Can handle regex and space in attribute values', () => {
+    cy.addAssemblyFromGff('space.gff3', 'test_data/space.gff3')
+    cy.selectAssemblyToView('space.gff3')
+    cy.get('input[placeholder="Search for location"]').type('Ma*.1{enter}')
+    cy.contains('Search results')
+    // It should instead either:
+    // * Return only one hit for Match1, or
+    // * Return 'Error: Unknown reference sequence'
   })
 })

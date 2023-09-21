@@ -4,25 +4,6 @@ describe('Different ways of editing features', () => {
     cy.loginAsGuest()
   })
 
-  it.skip('Can select region on rubber-band and zoom into it', () => {
-    const assemblyName = 'space.gff3'
-    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
-    cy.selectAssemblyToView(assemblyName)
-    cy.get('input[placeholder="Search for location"]').type(
-      'ctgA:1..10000{enter}',
-    )
-    cy.get('[data-testid="rubberband_controls"]').trigger('mouseover')
-    cy.get('[data-testid="rubberband_controls"]').trigger('mousedown', 100, 5)
-    cy.get('[data-testid="rubberband_controls"]').trigger('mousemove', 200, 5)
-    cy.get('[data-testid="rubberband_controls"]').trigger('mouseup', 200, 5, {
-      force: true,
-    })
-    cy.intercept('POST', '/users/userLocation').as('done')
-    cy.contains('Zoom to region').click()
-    cy.wait('@done')
-    cy.currentLocationEquals('ctgA', 1021, 2041, 10)
-  })
-
   it('FIXME: edit feature via table editor', () => {
     const assemblyName = 'space.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
@@ -56,7 +37,7 @@ describe('Different ways of editing features', () => {
       'ctgA:9400..9600{enter}',
     )
 
-    cy.get('tbody')
+    cy.get('tbody', { timeout: 10_000 })
       .contains('tr', 'Match5')
       .within(() => {
         cy.get('input[type="text"][value="EST_match"]').type('CDS{enter}', {
@@ -70,14 +51,34 @@ describe('Different ways of editing features', () => {
         })
       })
     cy.get('body').click(0, 0)
+
     // Check edit is done
     cy.reload()
-    cy.get('tbody').within(() => {
+    cy.get('tbody', { timeout: 10_000 }).within(() => {
       cy.get('input[type="text"][value="CDS"]')
       cy.contains('9432')
       // FIXME: It *should* contain 9567
       cy.contains('9567').should('not.exist')
     })
+  })
+
+  it.skip('Can select region on rubber-band and zoom into it', () => {
+    const assemblyName = 'space.gff3'
+    cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
+    cy.selectAssemblyToView(assemblyName)
+    cy.get('input[placeholder="Search for location"]').type(
+      'ctgA:1..10000{enter}',
+    )
+    cy.get('[data-testid="rubberband_controls"]').trigger('mouseover')
+    cy.get('[data-testid="rubberband_controls"]').trigger('mousedown', 100, 5)
+    cy.get('[data-testid="rubberband_controls"]').trigger('mousemove', 200, 5)
+    cy.get('[data-testid="rubberband_controls"]').trigger('mouseup', 200, 5, {
+      force: true,
+    })
+    cy.intercept('POST', '/users/userLocation').as('done')
+    cy.contains('Zoom to region').click()
+    cy.wait('@done')
+    cy.currentLocationEquals('ctgA', 1021, 2041, 10)
   })
 
   it.skip('Can drag and move position', () => {

@@ -1,8 +1,6 @@
 # Testing with cypress
 
-These are some notes to setup cypress and run tests. These notes are likely to
-change and temporary.
-
+These notes setup cypress and run tests. These notes are likely to change.
 
 * One time step: **Outside** the Apollo dev container [install
   cypress](https://docs.cypress.io/guides/getting-started/installing-cypress).
@@ -22,6 +20,16 @@ Add these lines to the `packageExtensions` section of `.yarnrc.yml`:
 ```
 
 Then run `yarn` again.
+
+-----
+
+* Start [jbrowse](https://github.com/GMOD/jbrowse-components): You may want to pull the latest code to be consistent with the GitHub workflow
+
+```
+cd /path/to/jbrowse-components
+git pull
+yarn --cwd products/jbrowse-web start
+```
 
 * Start Apollo server. Within the docker container (*i.e* within vscode) and in distinct terminals run:
 

@@ -9,7 +9,7 @@ describe('Download GFF', () => {
     cy.loginAsGuest()
   })
 
-  it('FIXME: Can download gff', () => {
+  it('Can download gff', () => {
     cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
     cy.get('button[data-testid="dropDownMenuButton"]')
       .contains('Apollo')
@@ -28,13 +28,12 @@ describe('Download GFF', () => {
     // TODO 1: Wait for download to complete
     // TODO 2: Be sure you scan the right gff file! There may be other gffs
     // in downloadsFolder, possibly even from the same assembly used here
-    /*
-    cy.exec(`wc -l ${Cypress.config('downloadsFolder')}/*_apollo.gff3`).then(
-      (result) => {
-        expect(result.stdout).eq(242)
-        cy.log(result.stderr)
-      },
-    )
-    */
+    // eslint-disable-next-line prettier/prettier
+    const cmd = `grep -v -P '^#' ${Cypress.config('downloadsFolder')}/*_apollo.gff3 | wc -l`
+    cy.log(cmd)
+    cy.exec(cmd).then((result) => {
+      expect(result.stdout).eq('242')
+      cy.log(result.stderr)
+    })
   })
 })

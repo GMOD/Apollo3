@@ -4,6 +4,8 @@ const { defineConfig } = require('cypress')
 const { configurePlugin } = require('cypress-mongodb')
 
 module.exports = defineConfig({
+  // Make viewport long and thin to avoid the scrollbar on the right intefere
+  // with the coordinates
   viewportHeight: 2000,
   viewportWidth: 1000,
   env: {
