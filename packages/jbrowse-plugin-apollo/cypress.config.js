@@ -10,6 +10,9 @@ module.exports = defineConfig({
   // with the coordinates
   viewportHeight: 2000,
   viewportWidth: 1000,
+  retries: {
+    runMode: 2,
+  },
   env: {
     mongodb: {
       uri: 'mongodb://localhost:27017/?directConnection=true',
