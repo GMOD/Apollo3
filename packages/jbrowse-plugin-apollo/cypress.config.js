@@ -24,8 +24,7 @@ module.exports = defineConfig({
       configurePlugin(on)
       on('task', {
         readdirSync(path) {
-          const dir = fs.readdirSync(path)
-          return dir
+          return fs.readdirSync(path)
         },
       })
     },

@@ -112,9 +112,9 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             }}
             width={lgv.dynamicBlocks.totalWidthPx}
             height={featuresHeight}
-            onMouseMove={onMouseMove} // {(...args) => {console.log('mousemove'); onMouseMove(...args)}}
+            onMouseMove={onMouseMove}
             onMouseLeave={onMouseLeave}
-            onMouseDown={onMouseDown} // {(...args) => {console.log('mousedown'); onMouseDown(...args)}}
+            onMouseDown={onMouseDown}
             onMouseUp={onMouseUp}
             onClick={() => {
               tabularEditor.showPane()
