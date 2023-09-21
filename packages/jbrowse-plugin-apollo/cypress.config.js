@@ -4,6 +4,8 @@ const { defineConfig } = require('cypress')
 const { configurePlugin } = require('cypress-mongodb')
 
 module.exports = defineConfig({
+  viewportHeight: 2000,
+  viewportWidth: 1000,
   env: {
     mongodb: {
       uri: 'mongodb://localhost:27017/?directConnection=true',

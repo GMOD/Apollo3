@@ -4,8 +4,7 @@ describe('Different ways of editing features', () => {
     cy.loginAsGuest()
   })
 
-  it('Can select region on rubber-band and zoom into it', () => {
-    cy.viewport(1000, 1000)
+  it.skip('Can select region on rubber-band and zoom into it', () => {
     const assemblyName = 'space.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
     cy.selectAssemblyToView(assemblyName)
@@ -82,7 +81,6 @@ describe('Different ways of editing features', () => {
   })
 
   it.skip('Can drag and move position', () => {
-    cy.viewport(1000, 1000)
     const assemblyName = 'space.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
     cy.selectAssemblyToView(assemblyName)

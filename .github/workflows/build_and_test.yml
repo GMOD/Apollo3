@@ -1,8 +1,5 @@
 name: CI
-on: 
-  push:
-    branches:
-      - cypress
+on: pull_request
 
 jobs:
   build:
@@ -38,6 +35,7 @@ jobs:
         env:
           GUEST_USER_ROLE: admin
           MONGODB_URI: mongodb://localhost:27017/apolloTestDb
+          LOG_LEVELS: error,warn,log
         run: yarn run test:e2e
 
       - name: Archive test results
