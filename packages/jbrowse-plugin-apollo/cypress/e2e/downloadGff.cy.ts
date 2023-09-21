@@ -1,3 +1,5 @@
+import { listenerCount } from 'node:process'
+
 describe('Download GFF', () => {
   beforeEach(() => {
     cy.exec(`rm ${Cypress.config('downloadsFolder')}/*_apollo.gff3`, {
@@ -24,16 +26,17 @@ describe('Download GFF', () => {
     cy.contains('volvox.fasta.gff3').click()
     cy.get('button').contains('Download').click()
 
-    // Once downloading works:
-    // TODO 1: Wait for download to complete
-    // TODO 2: Be sure you scan the right gff file! There may be other gffs
-    // in downloadsFolder, possibly even from the same assembly used here
-    // eslint-disable-next-line prettier/prettier
-    const cmd = `grep -v '#' ${Cypress.config('downloadsFolder')}/*_apollo.gff3 | wc -l`
-    cy.log(cmd)
-    cy.exec(cmd).then((result) => {
-      expect(result.stdout).eq('242')
-      cy.log(result.stderr)
+    // We don't know when the download is done
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(4000)
+    cy.task('readdirSync', Cypress.config('downloadsFolder')).then((out) => {
+      const gff = out as string
+      cy.readFile(`${Cypress.config('downloadsFolder')}/${gff[0]}`).then(
+        (x: string) => {
+          const lines: string[] = x.trim().split('\n')
+          expect(lines.length).eq(247)
+        },
+      )
     })
   })
 })

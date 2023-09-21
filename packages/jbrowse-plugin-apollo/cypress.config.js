@@ -2,6 +2,8 @@
 const { defineConfig } = require('cypress')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { configurePlugin } = require('cypress-mongodb')
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const fs = require('node:fs')
 
 module.exports = defineConfig({
   // Make viewport long and thin to avoid the scrollbar on the right intefere
@@ -17,6 +19,12 @@ module.exports = defineConfig({
   e2e: {
     setupNodeEvents(on, _config) {
       configurePlugin(on)
+      on('task', {
+        readdirSync(path) {
+          const dir = fs.readdirSync(path)
+          return dir
+        },
+      })
     },
   },
 })
