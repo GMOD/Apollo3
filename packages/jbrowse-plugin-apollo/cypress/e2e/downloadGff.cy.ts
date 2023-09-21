@@ -1,5 +1,3 @@
-import { listenerCount } from 'node:process'
-
 describe('Download GFF', () => {
   beforeEach(() => {
     cy.exec(`rm ${Cypress.config('downloadsFolder')}/*_apollo.gff3`, {
