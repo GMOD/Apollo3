@@ -241,9 +241,14 @@ export class FeaturesService {
         .find({ refSeq: refSeqDoc.id })
         .sort({ n: 1 })
         .cursor()) {
-        printFasta ? sequenceStream.push('##FASTA\n') : null
-        sequenceStream.push(`>${refSeqDoc.name} ${refSeqDoc.description}\n`)
-        // eslint-disable-next-line unicorn/no-array-push-push
+        if (printFasta) {
+          sequenceStream.push('##FASTA\n')
+          refSeqDoc.description
+            ? sequenceStream.push(
+                `>${refSeqDoc.name} ${refSeqDoc.description}\n`,
+              )
+            : sequenceStream.push(`>${refSeqDoc.name}\n`)
+        }
         sequenceStream.push(`${this.splitStringIntoChunks(doc.sequence, 60)}\n`)
         printFasta = false
       }
