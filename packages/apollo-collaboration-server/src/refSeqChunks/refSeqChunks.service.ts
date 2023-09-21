@@ -36,6 +36,7 @@ export class RefSeqChunksService {
       throw new Error(`RefSeq "${refSeqId}" not found`)
     }
 
+    console.log(`SEQ FOR: ${refSeqId}, ${start} - ${end}`)
     const { assembly, chunkSize, name } = refSeq
     const assemblyDoc = await this.assembliesService.findOne(
       assembly.toString(),
@@ -73,6 +74,8 @@ export class RefSeqChunksService {
         seq.push(sequence)
       }
     }
+
+    console.log(`SEQ ${seq.join('')}`)
     return seq.join('')
   }
 }
