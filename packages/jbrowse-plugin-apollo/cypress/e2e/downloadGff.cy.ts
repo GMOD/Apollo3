@@ -1,6 +1,6 @@
 describe('Download GFF', () => {
   beforeEach(() => {
-    cy.exec(`rm -r ${Cypress.config('downloadsFolder')}/*`, {
+    cy.exec(`rm ${Cypress.config('downloadsFolder')}/*_apollo.gff3`, {
       failOnNonZeroExit: false,
     }).then((result) => {
       cy.log(result.stderr)
@@ -29,7 +29,7 @@ describe('Download GFF', () => {
     // TODO 2: Be sure you scan the right gff file! There may be other gffs
     // in downloadsFolder, possibly even from the same assembly used here
     // eslint-disable-next-line prettier/prettier
-    const cmd = `grep -v -P '^#' ${Cypress.config('downloadsFolder')}/*_apollo.gff3 | wc -l`
+    const cmd = `grep -v '#' ${Cypress.config('downloadsFolder')}/*_apollo.gff3 | wc -l`
     cy.log(cmd)
     cy.exec(cmd).then((result) => {
       expect(result.stdout).eq('242')
