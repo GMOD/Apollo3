@@ -113,7 +113,7 @@ module.exports = {
         ],
       },
     },
-    // Lint non-src files (e.g. jest.config.js) using a separate tsconfig
+    // Lint non-src JS files (e.g. jest.config.js) using a separate tsconfig
     {
       files: ['./packages/jbrowse-plugin-apollo/*.js'],
       parserOptions: {
@@ -121,53 +121,15 @@ module.exports = {
       },
       env: { node: true },
     },
-    // Specify Node env for cypress testing files
+    // Specify Node env and tsconfig for cypress testing and config files
     {
-      files: ['./packages/jbrowse-plugin-apollo/cypress/**/*.js'],
-      env: { node: true },
-    },
-    // Specify Node env for apollo-collaboration-server/
-    {
-      files: ['./packages/apollo-collaboration-server/**/*.ts'],
-      env: { node: true },
-    },
-    // Don't enforce tsdoc syntax in JS files
-    {
-      files: ['./packages/jbrowse-plugin-apollo/**/*.{ts,tsx}'],
-      env: { browser: true },
-      extends: [
-        'plugin:react/recommended',
-        'plugin:react-hooks/recommended',
-        'plugin:jsx-a11y/recommended',
+      files: [
+        './packages/jbrowse-plugin-apollo/cypress.config.js',
+        './packages/jbrowse-plugin-apollo/cypress/**/*.{j,t}s',
       ],
-      settings: {
-        // These settings are from eslint-plugin-react
-        react: {
-          // React version. "detect" automatically picks the version you have installed.
-          // You can also use `16.0`, `16.3`, etc, if you want to override the detected value.
-          // It will default to "latest" and warn if missing, and to "detect" in the future
-          version: 'detect',
-        },
-        componentWrapperFunctions: [
-          // The name of any function used to wrap components, e.g. Mobx `observer` function. If this isn't set, components wrapped by these functions will be skipped.
-          'observer', // `property`
-          { property: 'styled' }, // `object` is optional
-          { property: 'observer', object: 'Mobx' },
-          { property: 'observer', object: '<pragma>' }, // sets `object` to whatever value `settings.react.pragma` is set to
-        ],
-      },
-    },
-    // Lint non-src files (e.g. jest.config.js) using a separate tsconfig
-    {
-      files: ['./packages/jbrowse-plugin-apollo/*.js'],
       parserOptions: {
-        project: 'packages/jbrowse-plugin-apollo/tsconfig.eslint.json',
+        project: 'packages/jbrowse-plugin-apollo/cypress/tsconfig.json',
       },
-      env: { node: true },
-    },
-    // Specify Node env for cypress testing files
-    {
-      files: ['./packages/jbrowse-plugin-apollo/cypress/**/*.js'],
       env: { node: true },
     },
     // Specify Node env for apollo-collaboration-server/
@@ -183,4 +145,4 @@ module.exports = {
       },
     },
   ],
-};
+}
