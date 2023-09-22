@@ -4,7 +4,7 @@ describe('Different ways of editing features', () => {
     cy.loginAsGuest()
   })
 
-  it('FIXME: edit feature via table editor', () => {
+  it('Edit feature via table editor', () => {
     const assemblyName = 'space.gff3'
     cy.addAssemblyFromGff(assemblyName, `test_data/${assemblyName}`)
     cy.selectAssemblyToView(assemblyName)
@@ -57,9 +57,17 @@ describe('Different ways of editing features', () => {
     cy.get('tbody', { timeout: 10_000 }).within(() => {
       cy.get('input[type="text"][value="CDS"]')
       cy.contains('9432')
-      // FIXME: It *should* contain 9567
-      cy.contains('9567').should('not.exist')
+      cy.contains('9567')
     })
+  })
+
+  it('Suggest only valid SO terms from dropdown', () => {
+    cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
+    cy.selectAssemblyToView('volvox.fasta.gff3')
+    cy.searchFeatures('"Eden splice form 1"')
+    cy.get('input[type="text"][value="five_prime_UTR"]').eq(0).click({ force: true })
+    cy.contains('li', /^CDS$/, { timeout: 4000 }).should('exist')
+    cy.contains('li', '/^gene$/', { timeout: 4000 }).should('not.exist')
   })
 
   it.skip('Can select region on rubber-band and zoom into it', () => {

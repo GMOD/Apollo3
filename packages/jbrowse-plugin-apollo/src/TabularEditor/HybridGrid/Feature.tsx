@@ -229,7 +229,7 @@ export const Feature = observer(function Feature({
               handleFeatureEndChange(
                 changeManager,
                 feature,
-                feature.start,
+                feature.end,
                 newEnd,
               )
             }

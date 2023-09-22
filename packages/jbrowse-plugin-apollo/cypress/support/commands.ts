@@ -39,7 +39,7 @@ Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
 
 Cypress.Commands.add('selectAssemblyToView', (assemblyName) => {
   cy.contains('Select assembly to view', { timeout: 10_000 })
-  cy.get('[data-testid="assembly-selector"]').parent().click()
+  cy.get('input[data-testid="assembly-selector"]').parent().click()
   cy.contains(assemblyName).parent().click()
   cy.intercept('POST', '/users/userLocation').as('selectAssemblyToViewDone')
   cy.contains('Open').click()
