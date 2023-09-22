@@ -6,6 +6,7 @@ import idValidator from 'mongoose-id-validator'
 import { AssembliesModule } from '../assemblies/assemblies.module'
 import { CheckReportsModule } from '../checkReports/checkReports.module'
 import { OperationsModule } from '../operations/operations.module'
+import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
 import { FeaturesController } from './features.controller'
 import { FeaturesService } from './features.service'
@@ -17,6 +18,7 @@ import { FeaturesService } from './features.service'
     forwardRef(() => AssembliesModule),
     forwardRef(() => OperationsModule),
     forwardRef(() => CheckReportsModule),
+    RefSeqChunksModule,
     RefSeqsModule,
     MongooseModule.forFeatureAsync([
       {

@@ -3,6 +3,7 @@ import { Readable, Transform, pipeline } from 'node:stream'
 import gff, { GFF3Feature } from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
+import { AnnotationFeatureSnapshot } from 'apollo-mst'
 import {
   Assembly,
   AssemblyDocument,
@@ -25,6 +26,7 @@ import {
   FeatureRangeSearchDto,
 } from '../entity/gff3Object.dto'
 import { OperationsService } from '../operations/operations.service'
+import { RefSeqChunksService } from '../refSeqChunks/refSeqChunks.service'
 import { FeatureCountRequest } from './dto/feature.dto'
 
 function makeGFF3Feature(
@@ -137,6 +139,7 @@ function makeGFF3Feature(
 export class FeaturesService {
   constructor(
     private readonly operationsService: OperationsService,
+    private readonly refCheckChunkService: RefSeqChunksService,
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
     @InjectModel(Assembly.name)
@@ -312,6 +315,9 @@ export class FeaturesService {
         end: searchDto.end,
       })
 
+    // Run check reports
+    await this.runCheckReports(searchDto, features as unknown as Feature[])
+
     const featureIds: string[] = features.flatMap((doc) => doc.allIds)
     const checkReports: CheckReportResultDto[] = await this.checkReportModel
       .find({ pass: false, ignored: '', ids: { $in: featureIds } })
@@ -382,6 +388,134 @@ export class FeaturesService {
       }
     }
     return { features, checkReports }
+  }
+
+  async runCheckReports(searchDto: FeatureRangeSearchDto, features: Feature[]) {
+    const seq = await this.refCheckChunkService.getSequence(searchDto)
+    // console.log(`SEQUENCE (${searchDto.start} - ${searchDto.end}): ${seq}`)
+    console.log(`SEQUENCE (${searchDto.start} - ${searchDto.end})`)
+    for (const feat of features) {
+      seq
+        ? this.checkStopCodon(feat, seq, searchDto.start, searchDto.end)
+        : null
+    }
+  }
+
+  checkStopCodon(feature: Feature, seq: string, start: number, end: number) {
+    if (feature.type === 'CDS') {
+      let cdsSeq = ''
+      // Whole CDS is inside search range
+      if (feature.start > start && feature.end < end) {
+        cdsSeq = seq.slice(
+          feature.start - start,
+          feature.start - start + feature.end - feature.start,
+        )
+        // console.log(
+        //   `CDS feature: ${feature.start} - ${
+        //     feature.end
+        //   } (search start=${start}, end=${end}), substring from ${
+        //     feature.start - start
+        //   } to ${feature.start - start + feature.end - feature.start}`,
+        // )
+        console.log(`Whole CDS is inside search range, SEQUENCE: ${cdsSeq}`)
+        const threeBasesArray = this.splitStringIntoChunks(cdsSeq, 3)
+        // console.log(`THREE BASES: ${JSON.stringify(threeBasesArray)}`)
+        for (let i = 0; i < threeBasesArray.length - 1; i++) {
+          const currentItem = threeBasesArray[i]
+          if (
+            currentItem.toUpperCase() === 'TAA' ||
+            currentItem.toUpperCase() === 'TAG' ||
+            currentItem.toUpperCase() === 'TGA'
+          ) {
+            console.log(
+              `********** FOUND SUSPICIOUS STOP CODON "${currentItem}"`,
+            )
+          }
+        }
+      } else if (feature.start < start && feature.end > end) {
+        // CDS's middle part is only inside search range
+        cdsSeq = seq
+        // console.log(`CDS feature: ${feature.start} - ${feature.end}`)
+        console.log(
+          `CDS's middle part is only inside search range, SEQUENCE: ${cdsSeq}`,
+        )
+        const threeBasesArray = this.splitStringIntoChunks(cdsSeq, 3)
+        // console.log(`THREE BASES: ${JSON.stringify(threeBasesArray)}`)
+        for (let i = 0; i < threeBasesArray.length - 1; i++) {
+          const currentItem = threeBasesArray[i]
+          if (
+            currentItem.toUpperCase() === 'TAA' ||
+            currentItem.toUpperCase() === 'TAG' ||
+            currentItem.toUpperCase() === 'TGA'
+          ) {
+            console.log(
+              `********** FOUND SUSPICIOUS STOP CODON "${currentItem}"`,
+            )
+          }
+        }
+      } else if (
+        feature.start < start &&
+        feature.end > start &&
+        feature.end < end
+      ) {
+        // CDS's end is inside search range
+        cdsSeq = seq.slice(0, feature.end - start)
+        // console.log(`CDS feature: ${feature.start} - ${feature.end}`)
+        console.log(`CDS's end is inside search range, SEQUENCE: ${cdsSeq}`)
+        const threeBasesArray = this.splitStringIntoChunks(cdsSeq, 3)
+        // console.log(`THREE BASES: ${JSON.stringify(threeBasesArray)}`)
+        for (let i = 0; i < threeBasesArray.length - 1; i++) {
+          const currentItem = threeBasesArray[i]
+          if (
+            currentItem.toUpperCase() === 'TAA' ||
+            currentItem.toUpperCase() === 'TAG' ||
+            currentItem.toUpperCase() === 'TGA'
+          ) {
+            console.log(
+              `********** FOUND SUSPICIOUS STOP CODON "${currentItem}"`,
+            )
+          }
+        }
+      } else if (
+        feature.start > start &&
+        feature.start < end &&
+        feature.end > end
+      ) {
+        // CDS's start is inside search range
+        cdsSeq = seq.slice(feature.start - start, end-start)
+        // console.log(`CDS feature: ${feature.start} - ${feature.end}`)
+        console.log(`CDS's start is inside search range, SEQUENCE: ${cdsSeq}`)
+        const threeBasesArray = this.splitStringIntoChunks(cdsSeq, 3)
+        // console.log(`THREE BASES: ${JSON.stringify(threeBasesArray)}`)
+        for (let i = 0; i < threeBasesArray.length - 1; i++) {
+          const currentItem = threeBasesArray[i]
+          if (
+            currentItem.toUpperCase() === 'TAA' ||
+            currentItem.toUpperCase() === 'TAG' ||
+            currentItem.toUpperCase() === 'TGA'
+          ) {
+            console.log(
+              `********** FOUND SUSPICIOUS STOP CODON "${currentItem}"`,
+            )
+          }
+        }
+      }
+    }
+
+    // Iterate through children
+    if (feature.children) {
+      for (const [, child] of feature.children) {
+        this.checkStopCodon(child, seq, start, end)
+      }
+    }
+  }
+
+  splitStringIntoChunks(inputString: string, chunkSize: number): string[] {
+    const result: string[] = []
+    for (let i = 0; i < inputString.length; i += chunkSize) {
+      result.push(inputString.slice(i, i + chunkSize))
+    }
+    return result
   }
 
   async searchFeatures(searchDto: { term: string; assemblies: string }) {
