@@ -19,14 +19,18 @@ module.exports = defineConfig({
       database: 'apolloTestDb',
     },
   },
+  screenshotOnRunFailure: false,
+  video: false,
   e2e: {
-    setupNodeEvents(on, _config) {
+    baseUrl: 'http://localhost:8999',
+    setupNodeEvents(on, config) {
       configurePlugin(on)
       on('task', {
         readdirSync(path) {
           return fs.readdirSync(path)
         },
       })
+      return config
     },
   },
 })
