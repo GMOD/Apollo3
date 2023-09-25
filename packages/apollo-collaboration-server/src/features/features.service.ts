@@ -222,7 +222,12 @@ export class FeaturesService {
     const refSeqs = await this.refSeqModel.find({ assembly }).exec()
     const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
     let printFasta = true
-
+    let printSeqName = true
+    const { SEQ_LINE_LEN } = process.env
+    if (!SEQ_LINE_LEN) {
+      throw new NotFoundException()
+    }
+    const seqLineLenght = Number(SEQ_LINE_LEN)
     const headerStream = new Readable({ objectMode: true })
     const sequenceStream = new Readable({ objectMode: true })
 
@@ -237,21 +242,51 @@ export class FeaturesService {
       headerStream.push(
         `##sequence-region ${refSeqDoc.name} 1 ${refSeqDoc.length}\n`,
       )
+      let remainingLastLine = ''
+      if (printFasta) {
+        sequenceStream.push('##FASTA\n')
+      }
       for await (const doc of this.refSeqChunksModel
         .find({ refSeq: refSeqDoc.id })
         .sort({ n: 1 })
         .cursor()) {
-        if (printFasta) {
-          sequenceStream.push('##FASTA\n')
+        if (printSeqName) {
           refSeqDoc.description
             ? sequenceStream.push(
                 `>${refSeqDoc.name} ${refSeqDoc.description}\n`,
               )
             : sequenceStream.push(`>${refSeqDoc.name}\n`)
         }
-        sequenceStream.push(`${this.splitStringIntoChunks(doc.sequence, 60)}\n`)
-        printFasta = false
+        let seqLine = doc.sequence
+        // If previous's chunk last line was not "seqLineLenght" characters long then take the first characters from the first line and make one full line
+        if (remainingLastLine.length > 0) {
+          const tmp1: string = doc.sequence.slice(
+            0,
+            seqLineLenght - remainingLastLine.length,
+          )
+          sequenceStream.push(`${remainingLastLine}${tmp1}\n`)
+          seqLine = doc.sequence.slice(seqLineLenght - remainingLastLine.length)
+          remainingLastLine = ''
+        }
+        const seqData = this.splitStringIntoChunks(seqLine, seqLineLenght)
+        const lines: string[] = seqData.split('\n')
+        const lastLine: string = lines.at(-1) ?? ''
+        if (lastLine.length === seqLineLenght) {
+          sequenceStream.push(`${seqData}\n`)
+        } else {
+          for (let i = 0; i < lines.length - 1; i++) {
+            sequenceStream.push(`${lines[i]}\n`)
+          }
+          remainingLastLine = lastLine
+        }
+        printSeqName = false
       }
+      if (remainingLastLine.length > 0) {
+        sequenceStream.push(`${remainingLastLine}\n`)
+        remainingLastLine = ''
+      }
+      printFasta = false
+      printSeqName = true
     }
     headerStream.push(null)
     sequenceStream.push(null)
