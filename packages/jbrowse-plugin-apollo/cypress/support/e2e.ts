@@ -18,3 +18,12 @@ import './commands'
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
+import { addCommands } from 'cypress-mongodb/dist/index-browser'
+
+addCommands()
+
+// Cypress.on('uncaught:exception', (err, _runnable) => {
+//   if (err.message.includes('ResizeObserver')) {
+//     return false
+//   }
+// })

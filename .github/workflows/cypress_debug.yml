@@ -1,46 +1,42 @@
-name: Pull Request
-
-on: pull_request
+name: Cypress debug
+on: workflow_dispatch
 
 jobs:
   build:
-    name: Strict lint and test
+    name: End-to-end test
     runs-on: ubuntu-latest
     steps:
-      - name: Check out
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
       - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
           node-version: 18
           cache: yarn
+
       - name: Install
         run: yarn --immutable
-        # Have to build shared before linting so type-based lint rules can
-        # run correctly
-      - name: Build shared
-        run: yarn build
-        working-directory: packages/apollo-shared
-      - name: Lint codebase
-        run: yarn eslint --report-unused-disable-directives --max-warnings 0 --ext .js,.ts,.jsx,.tsx .
-      - name: Run Jest tests
-        run: yarn test
+
       - name: Get latest JBrowse
         working-directory: packages/jbrowse-plugin-apollo
         run: yarn run jbrowse create --nightly .jbrowse
+
       - name: Start MongoDB
         uses: supercharge/mongodb-github-action@1.10.0
         with:
           mongodb-version: 7
           mongodb-replica-set: test-rs
-      - name: Run Cypress tests
+
+      - name: Run tests
         working-directory: packages/jbrowse-plugin-apollo
         env:
           GUEST_USER_ROLE: admin
           MONGODB_URI: mongodb://localhost:27017/apolloTestDb
           LOG_LEVELS: error,warn,log
-        run: yarn run test:e2e
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: yarn run test:e2e:debug
+
+      - name: Archive test results
+        if: '!cancelled()'
+        uses: actions/upload-artifact@v3
+        with:
+          name: cypress_results
+          path: packages/jbrowse-plugin-apollo/cypress
