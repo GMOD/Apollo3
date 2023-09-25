@@ -1,4 +1,4 @@
-name: CI
+name: Cypress debug
 on: workflow_dispatch
 
 jobs:

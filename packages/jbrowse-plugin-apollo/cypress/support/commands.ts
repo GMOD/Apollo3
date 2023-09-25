@@ -1,7 +1,10 @@
 Cypress.Commands.add('loginAsGuest', () => {
-  cy.fixture('config.json').then((config) => {
-    cy.visit(config.apollo_url)
-  })
+  const baseUrl = Cypress.config('baseUrl')
+  if (!baseUrl) {
+    throw new Error('no baseUrl defined')
+  }
+  const url = `${baseUrl}/?config=http://localhost:9000/jbrowse_config.json`
+  cy.visit(url)
   cy.contains('Continue as Guest', { timeout: 10_000 }).click()
   // eslint-disable-next-line cypress/no-unnecessary-waiting
   cy.wait(2000)
