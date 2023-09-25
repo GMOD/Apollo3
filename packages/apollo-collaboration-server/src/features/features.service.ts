@@ -316,41 +316,108 @@ export class FeaturesService {
       })
 
     // Run check reports
-    await this.runCheckReports(searchDto, features as unknown as Feature[])
+    const checkReports: CheckReportResultDto[] = await this.runCheckReports(
+      searchDto,
+      features as unknown as Feature[],
+    )
 
-    const featureIds: string[] = features.flatMap((doc) => doc.allIds)
-    const checkReports: CheckReportResultDto[] = await this.checkReportModel
-      .find({ pass: false, ignored: '', ids: { $in: featureIds } })
-      .exec()
-    if (checkReports) {
-      // If there are check reports then check that each feature timestamp is less than in the check reports
-      const maxFeatureTimestamp = await this.featureModel
-        .aggregate([
-          {
-            $match: {
-              $and: [
-                { refSeq: { $eq: ObjectID(searchDto.refSeq) } },
-                { start: { $gte: Number(searchDto.start) } },
-                { end: { $lte: Number(searchDto.end) } },
-                { status: 0 },
-              ],
-            },
-          },
-          {
-            $group: {
-              _id: null,
-              maxUpdatedAt: { $max: '$updatedAt' },
-            },
-          },
-        ])
-        .exec()
+    // **** TODO **** CONTINUE HERE : content of checkRejports should be real data from Mongo (after checks have been ran, OR if no need to run then just old results)
+    // const featureIds: string[] = features.flatMap((doc) => doc.allIds)
+    // const checkReports: CheckReportResultDto[] = await this.checkReportModel
+    //   .find({ pass: false, ignored: '', ids: { $in: featureIds } })
+    //   .exec()
+    // if (checkReports) {
+    //   // If there are check reports then check that each feature timestamp is less than in the check reports
+    //   const maxFeatureTimestamp = await this.featureModel
+    //     .aggregate([
+    //       {
+    //         $match: {
+    //           $and: [
+    //             { refSeq: { $eq: ObjectID(searchDto.refSeq) } },
+    //             { start: { $gte: Number(searchDto.start) } },
+    //             { end: { $lte: Number(searchDto.end) } },
+    //             { status: 0 },
+    //           ],
+    //         },
+    //       },
+    //       {
+    //         $group: {
+    //           _id: null,
+    //           maxUpdatedAt: { $max: '$updatedAt' },
+    //         },
+    //       },
+    //     ])
+    //     .exec()
 
+    //   // Get max timestamp from checkReports -collection
+    //   const maxCheckReportsTimestamp = await this.checkReportModel
+    //     .aggregate([
+    //       {
+    //         $match: {
+    //           $and: [{ ids: { $in: featureIds } }],
+    //         },
+    //       },
+    //       {
+    //         $group: {
+    //           _id: null,
+    //           maxUpdatedAt: { $max: '$updatedAt' },
+    //         },
+    //       },
+    //     ])
+    //     .exec()
+
+    //   if (maxCheckReportsTimestamp[0] && maxFeatureTimestamp[0]) {
+    //     this.logger.debug(
+    //       `Within search range, max timestamp in Feature -collection: ${JSON.stringify(
+    //         maxFeatureTimestamp[0].maxUpdatedAt,
+    //       )}`,
+    //     )
+    //     this.logger.debug(
+    //       `Within search range, max timestamp in CheckReports -collection: ${JSON.stringify(
+    //         maxCheckReportsTimestamp[0].maxUpdatedAt,
+    //       )}`,
+    //     )
+    //     if (
+    //       new Date(maxFeatureTimestamp[0].maxUpdatedAt) >
+    //       new Date(maxCheckReportsTimestamp[0].maxUpdatedAt)
+    //     ) {
+    //       this.logger.error(
+    //         'The last Feature timestamp cannot be later than the last CheckReport timestamp',
+    //       )
+    //       // const errMsg =
+    //       //   'ERROR:The last Feature timestamp cannot be later than the last CheckReport timestamp'
+    //       // this.logger.error(errMsg)
+    //       // throw new NotAcceptableException(errMsg)
+    //     }
+    //   }
+    // }
+    return { features, checkReports }
+  }
+
+  async runCheckReports(
+    searchDto: FeatureRangeSearchDto,
+    features: Feature[],
+  ): Promise<CheckReportResultDto[]> {
+    const checkReportResult: CheckReportResultDto[] = []
+    for (const feat of features) {
+      const featureDoc = await this.featureModel.findById(feat._id).exec()
+      if (!featureDoc) {
+        const errMsg = 'ERROR when searching feature by featureId'
+        this.logger.error(errMsg)
+        throw new NotFoundException(errMsg)
+      }
+      const tmpDoc = JSON.parse(JSON.stringify(featureDoc))
+      this.logger.debug(
+        `Feature's (${featureDoc.id}) timestamp: ${
+          tmpDoc.updatedAt
+        }, ${feat._id.toString()}`,
+      )
       // Get max timestamp from checkReports -collection
       const maxCheckReportsTimestamp = await this.checkReportModel
         .aggregate([
           {
             $match: {
-              $and: [{ ids: { $in: featureIds } }],
+              $and: [{ ids: { $in: feat.allIds } }], // we need to use allIds here
             },
           },
           {
@@ -361,143 +428,108 @@ export class FeaturesService {
           },
         ])
         .exec()
-
-      if (maxCheckReportsTimestamp[0] && maxFeatureTimestamp[0]) {
+      // If there are already checkReports but if feature's timestamp is later than checkReports timestamp then re-run checkReport
+      if (maxCheckReportsTimestamp[0]) {
         this.logger.debug(
-          `Within search range, max timestamp in Feature -collection: ${JSON.stringify(
-            maxFeatureTimestamp[0].maxUpdatedAt,
-          )}`,
+          `Feature's updatedAt value : ${JSON.stringify(tmpDoc.updatedAt)}`,
         )
         this.logger.debug(
-          `Within search range, max timestamp in CheckReports -collection: ${JSON.stringify(
+          `Feature's timestamp in CheckReports -collection: ${JSON.stringify(
             maxCheckReportsTimestamp[0].maxUpdatedAt,
           )}`,
         )
         if (
-          new Date(maxFeatureTimestamp[0].maxUpdatedAt) >
+          new Date(tmpDoc.updatedAt) >
           new Date(maxCheckReportsTimestamp[0].maxUpdatedAt)
         ) {
-          this.logger.error(
-            'The last Feature timestamp cannot be later than the last CheckReport timestamp',
+          this.logger.debug(
+            'The last Feature timestamp is later than the last CheckReport timestamp. Must re-run the check reports!',
           )
-          // const errMsg =
-          //   'ERROR:The last Feature timestamp cannot be later than the last CheckReport timestamp'
-          // this.logger.error(errMsg)
-          // throw new NotAcceptableException(errMsg)
+          await this.checkStopCodon(feat)
         }
+      } else {
+        // Run checkReports first time
+        await this.checkStopCodon(feat)
+      }
+      this.logger.debug(`Find checkReports for feature ${feat._id.toString()}`)
+      const foundCheckReports: CheckReportResultDto[] =
+        await this.checkReportModel
+          .find({
+            pass: false,
+            ignored: '',
+            ids: { $in: feat.allIds }, // we need to use allIds here
+          })
+          .exec()
+      for (const oneDoc of foundCheckReports) {
+        checkReportResult.push(oneDoc)
       }
     }
-    return { features, checkReports }
+    this.logger.debug(
+      `Return checkReports: ${JSON.stringify(checkReportResult)}`,
+    )
+    return checkReportResult
   }
 
-  async runCheckReports(searchDto: FeatureRangeSearchDto, features: Feature[]) {
-    const seq = await this.refCheckChunkService.getSequence(searchDto)
-    // console.log(`SEQUENCE (${searchDto.start} - ${searchDto.end}): ${seq}`)
-    console.log(`SEQUENCE (${searchDto.start} - ${searchDto.end})`)
-    for (const feat of features) {
-      seq
-        ? this.checkStopCodon(feat, seq, searchDto.start, searchDto.end)
-        : null
-    }
-  }
-
-  checkStopCodon(feature: Feature, seq: string, start: number, end: number) {
+  async checkStopCodon(feature: Feature) {
     if (feature.type === 'CDS') {
-      let cdsSeq = ''
-      // Whole CDS is inside search range
-      if (feature.start > start && feature.end < end) {
-        cdsSeq = seq.slice(
-          feature.start - start,
-          feature.start - start + feature.end - feature.start,
-        )
-        // console.log(
-        //   `CDS feature: ${feature.start} - ${
-        //     feature.end
-        //   } (search start=${start}, end=${end}), substring from ${
-        //     feature.start - start
-        //   } to ${feature.start - start + feature.end - feature.start}`,
-        // )
-        console.log(`Whole CDS is inside search range, SEQUENCE: ${cdsSeq}`)
-        const threeBasesArray = this.splitStringIntoChunks(cdsSeq, 3)
-        // console.log(`THREE BASES: ${JSON.stringify(threeBasesArray)}`)
-        for (let i = 0; i < threeBasesArray.length - 1; i++) {
-          const currentItem = threeBasesArray[i]
-          if (
-            currentItem.toUpperCase() === 'TAA' ||
-            currentItem.toUpperCase() === 'TAG' ||
-            currentItem.toUpperCase() === 'TGA'
-          ) {
-            console.log(
-              `********** FOUND SUSPICIOUS STOP CODON "${currentItem}"`,
-            )
-          }
-        }
-      } else if (feature.start < start && feature.end > end) {
-        // CDS's middle part is only inside search range
-        cdsSeq = seq
-        // console.log(`CDS feature: ${feature.start} - ${feature.end}`)
-        console.log(
-          `CDS's middle part is only inside search range, SEQUENCE: ${cdsSeq}`,
-        )
-        const threeBasesArray = this.splitStringIntoChunks(cdsSeq, 3)
-        // console.log(`THREE BASES: ${JSON.stringify(threeBasesArray)}`)
-        for (let i = 0; i < threeBasesArray.length - 1; i++) {
-          const currentItem = threeBasesArray[i]
-          if (
-            currentItem.toUpperCase() === 'TAA' ||
-            currentItem.toUpperCase() === 'TAG' ||
-            currentItem.toUpperCase() === 'TGA'
-          ) {
-            console.log(
-              `********** FOUND SUSPICIOUS STOP CODON "${currentItem}"`,
-            )
-          }
-        }
-      } else if (
-        feature.start < start &&
-        feature.end > start &&
-        feature.end < end
-      ) {
-        // CDS's end is inside search range
-        cdsSeq = seq.slice(0, feature.end - start)
-        // console.log(`CDS feature: ${feature.start} - ${feature.end}`)
-        console.log(`CDS's end is inside search range, SEQUENCE: ${cdsSeq}`)
-        const threeBasesArray = this.splitStringIntoChunks(cdsSeq, 3)
-        // console.log(`THREE BASES: ${JSON.stringify(threeBasesArray)}`)
-        for (let i = 0; i < threeBasesArray.length - 1; i++) {
-          const currentItem = threeBasesArray[i]
-          if (
-            currentItem.toUpperCase() === 'TAA' ||
-            currentItem.toUpperCase() === 'TAG' ||
-            currentItem.toUpperCase() === 'TGA'
-          ) {
-            console.log(
-              `********** FOUND SUSPICIOUS STOP CODON "${currentItem}"`,
-            )
-          }
-        }
-      } else if (
-        feature.start > start &&
-        feature.start < end &&
-        feature.end > end
-      ) {
-        // CDS's start is inside search range
-        cdsSeq = seq.slice(feature.start - start, end-start)
-        // console.log(`CDS feature: ${feature.start} - ${feature.end}`)
-        console.log(`CDS's start is inside search range, SEQUENCE: ${cdsSeq}`)
-        const threeBasesArray = this.splitStringIntoChunks(cdsSeq, 3)
-        // console.log(`THREE BASES: ${JSON.stringify(threeBasesArray)}`)
-        for (let i = 0; i < threeBasesArray.length - 1; i++) {
-          const currentItem = threeBasesArray[i]
-          if (
-            currentItem.toUpperCase() === 'TAA' ||
-            currentItem.toUpperCase() === 'TAG' ||
-            currentItem.toUpperCase() === 'TGA'
-          ) {
-            console.log(
-              `********** FOUND SUSPICIOUS STOP CODON "${currentItem}"`,
-            )
-          }
+      this.logger.debug(
+        `Run checkStopCodon -check report for feature ${feature._id}, type=${
+          feature.type
+        }, start=${feature.start}, end=${feature.end}, lenght=${
+          feature.end - feature.start
+        }`,
+      )
+      const featSeq = await this.refCheckChunkService.getSequence({
+        refSeq: feature.refSeq.toString(),
+        start: feature.start,
+        end: feature.end,
+      })
+      if (!featSeq) {
+        const errMsg = 'ERROR - No feature sequence was found!'
+        this.logger.error(errMsg)
+        throw new NotFoundException(errMsg)
+      }
+      if (featSeq.length % 3 !== 0) {
+        const errMsg = `Feature sequence was not divisible by 3 (sequence lenght is ${featSeq.length})`
+        this.logger.error(`ERROR - ${errMsg}`)
+        // throw new NotFoundException(errMsg)
+        // Add entry to checkReport collection
+        const [newCheckReportDoc] = await this.checkReportModel.create([
+          {
+            checkName: 'StopCodonCheckReport',
+            ids: [feature._id],
+            pass: false,
+            ignored: '',
+            problems: 'Feature sequence was not divisible by 3!',
+          },
+        ])
+        return
+      }
+      // this.logger.debug(`Found sequence: ${featSeq}`)
+      const threeBasesArray = this.splitStringIntoChunks(featSeq, 3)
+      // console.log(`THREE BASES: ${JSON.stringify(threeBasesArray)}`)
+      for (let i = 0; i < threeBasesArray.length - 1; i++) {
+        const currentItem = threeBasesArray[i]
+        if (
+          currentItem.toUpperCase() === 'TAA' ||
+          currentItem.toUpperCase() === 'TAG' ||
+          currentItem.toUpperCase() === 'TGA'
+        ) {
+          const errMsg = `Found suspicious stop codon "${currentItem}". The base number is ${
+            i + 1
+          } inside sequence.`
+          this.logger.error(`ERROR - ${errMsg}`)
+
+          // Add entry to checkReport collection
+          const [newCheckReportDoc] = await this.checkReportModel.create([
+            {
+              checkName: 'StopCodonCheckReport',
+              ids: [feature._id],
+              pass: false,
+              problems: errMsg,
+            },
+          ])
+          return
         }
       }
     }
@@ -505,7 +537,7 @@ export class FeaturesService {
     // Iterate through children
     if (feature.children) {
       for (const [, child] of feature.children) {
-        this.checkStopCodon(child, seq, start, end)
+        await this.checkStopCodon(child)
       }
     }
   }
