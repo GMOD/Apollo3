@@ -62,12 +62,19 @@ describe('Different ways of editing features', () => {
   })
 
   it('Suggest only valid SO terms from dropdown', () => {
-    cy.addAssemblyFromGff('volvox.fasta.gff3', 'test_data/volvox.fasta.gff3')
-    cy.selectAssemblyToView('volvox.fasta.gff3')
-    cy.searchFeatures('"Eden splice form 1"')
-    cy.get('input[type="text"][value="five_prime_UTR"]').eq(0).click({ force: true })
-    cy.contains('li', /^CDS$/, { timeout: 4000 }).should('exist')
-    cy.contains('li', '/^gene$/', { timeout: 4000 }).should('not.exist')
+    cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
+    cy.selectAssemblyToView('onegene.fasta.gff3')
+    cy.searchFeatures('gx1')
+    // In headless mode it seems to take a long time for menus to be populated
+    cy.get('input[type="text"][value="exon"]', { timeout: 60_000 })
+      .eq(0)
+      .click({ timeout: 60_000, force: true })
+    cy.contains('li', /^CDS$/, { timeout: 60_000, matchCase: false }).should(
+      'exist',
+    )
+    cy.contains('li', /^gene$/, { timeout: 60_000, matchCase: false }).should(
+      'not.exist',
+    )
   })
 
   it.skip('Can select region on rubber-band and zoom into it', () => {
