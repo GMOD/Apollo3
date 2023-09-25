@@ -23,8 +23,23 @@ jobs:
         working-directory: packages/apollo-shared
       - name: Lint codebase
         run: yarn eslint --report-unused-disable-directives --max-warnings 0 --ext .js,.ts,.jsx,.tsx .
-      - name: Test codebase
+      - name: Run Jest tests
         run: yarn test
+      - name: Get latest JBrowse
+        working-directory: packages/jbrowse-plugin-apollo
+        run: yarn run jbrowse create --nightly .jbrowse
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.10.0
+        with:
+          mongodb-version: 7
+          mongodb-replica-set: test-rs
+      - name: Run Cypress tests
+        working-directory: packages/jbrowse-plugin-apollo
+        env:
+          GUEST_USER_ROLE: admin
+          MONGODB_URI: mongodb://localhost:27017/apolloTestDb
+          LOG_LEVELS: error,warn,log
+        run: yarn run test:e2e
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         env:

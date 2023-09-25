@@ -1,5 +1,5 @@
-name: CI
-on: pull_request
+name: Cypress debug
+on: workflow_dispatch
 
 jobs:
   build:
@@ -26,17 +26,13 @@ jobs:
           mongodb-version: 7
           mongodb-replica-set: test-rs
 
-      - name: Setup config
-        # Use the same port you have in test:e2e
-        run: sed -i 's|http://localhost:[0-9]\+/|http://localhost:8999/|' packages/jbrowse-plugin-apollo/cypress/fixtures/config.json
-
       - name: Run tests
         working-directory: packages/jbrowse-plugin-apollo
         env:
           GUEST_USER_ROLE: admin
           MONGODB_URI: mongodb://localhost:27017/apolloTestDb
           LOG_LEVELS: error,warn,log
-        run: yarn run test:e2e
+        run: yarn run test:e2e:debug
 
       - name: Archive test results
         if: '!cancelled()'

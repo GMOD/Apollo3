@@ -1,7 +1,5 @@
 Cypress.Commands.add('loginAsGuest', () => {
-  cy.fixture('config.json').then((config) => {
-    cy.visit(config.apollo_url)
-  })
+  cy.visit('/?config=http://localhost:9000/jbrowse_config.json')
   cy.contains('Continue as Guest', { timeout: 10_000 }).click()
   // eslint-disable-next-line cypress/no-unnecessary-waiting
   cy.wait(2000)

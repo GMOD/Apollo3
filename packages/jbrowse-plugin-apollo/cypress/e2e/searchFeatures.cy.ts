@@ -26,9 +26,7 @@ describe('Search features', () => {
     cy.searchFeatures('SpamGene')
     cy.currentLocationEquals('ctgA', 100, 200, 10)
 
-    cy.fixture('config.json').then((config) => {
-      cy.visit(config.apollo_url)
-    })
+    cy.visit('/?config=http://localhost:9000/jbrowse_config.json')
     cy.selectAssemblyToView('volvox.fasta.gff3')
     cy.searchFeatures('SpamGene')
     cy.contains('Error: Unknown reference sequence "SpamGene"')
