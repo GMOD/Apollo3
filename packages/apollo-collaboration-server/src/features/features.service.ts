@@ -3,7 +3,6 @@ import { Readable, Transform, pipeline } from 'node:stream'
 import gff, { GFF3Feature } from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
 import {
   Assembly,
   AssemblyDocument,
@@ -17,7 +16,6 @@ import {
   RefSeqDocument,
 } from 'apollo-schemas'
 import { GetFeaturesOperation } from 'apollo-shared'
-import ObjectID from 'bson-objectid'
 import { Model } from 'mongoose'
 import StreamConcat from 'stream-concat'
 
@@ -320,77 +318,6 @@ export class FeaturesService {
       searchDto,
       features as unknown as Feature[],
     )
-
-    // **** TODO **** CONTINUE HERE : content of checkRejports should be real data from Mongo (after checks have been ran, OR if no need to run then just old results)
-    // const featureIds: string[] = features.flatMap((doc) => doc.allIds)
-    // const checkReports: CheckReportResultDto[] = await this.checkReportModel
-    //   .find({ pass: false, ignored: '', ids: { $in: featureIds } })
-    //   .exec()
-    // if (checkReports) {
-    //   // If there are check reports then check that each feature timestamp is less than in the check reports
-    //   const maxFeatureTimestamp = await this.featureModel
-    //     .aggregate([
-    //       {
-    //         $match: {
-    //           $and: [
-    //             { refSeq: { $eq: ObjectID(searchDto.refSeq) } },
-    //             { start: { $gte: Number(searchDto.start) } },
-    //             { end: { $lte: Number(searchDto.end) } },
-    //             { status: 0 },
-    //           ],
-    //         },
-    //       },
-    //       {
-    //         $group: {
-    //           _id: null,
-    //           maxUpdatedAt: { $max: '$updatedAt' },
-    //         },
-    //       },
-    //     ])
-    //     .exec()
-
-    //   // Get max timestamp from checkReports -collection
-    //   const maxCheckReportsTimestamp = await this.checkReportModel
-    //     .aggregate([
-    //       {
-    //         $match: {
-    //           $and: [{ ids: { $in: featureIds } }],
-    //         },
-    //       },
-    //       {
-    //         $group: {
-    //           _id: null,
-    //           maxUpdatedAt: { $max: '$updatedAt' },
-    //         },
-    //       },
-    //     ])
-    //     .exec()
-
-    //   if (maxCheckReportsTimestamp[0] && maxFeatureTimestamp[0]) {
-    //     this.logger.debug(
-    //       `Within search range, max timestamp in Feature -collection: ${JSON.stringify(
-    //         maxFeatureTimestamp[0].maxUpdatedAt,
-    //       )}`,
-    //     )
-    //     this.logger.debug(
-    //       `Within search range, max timestamp in CheckReports -collection: ${JSON.stringify(
-    //         maxCheckReportsTimestamp[0].maxUpdatedAt,
-    //       )}`,
-    //     )
-    //     if (
-    //       new Date(maxFeatureTimestamp[0].maxUpdatedAt) >
-    //       new Date(maxCheckReportsTimestamp[0].maxUpdatedAt)
-    //     ) {
-    //       this.logger.error(
-    //         'The last Feature timestamp cannot be later than the last CheckReport timestamp',
-    //       )
-    //       // const errMsg =
-    //       //   'ERROR:The last Feature timestamp cannot be later than the last CheckReport timestamp'
-    //       // this.logger.error(errMsg)
-    //       // throw new NotAcceptableException(errMsg)
-    //     }
-    //   }
-    // }
     return { features, checkReports }
   }
 
@@ -407,10 +334,8 @@ export class FeaturesService {
         throw new NotFoundException(errMsg)
       }
       const tmpDoc = JSON.parse(JSON.stringify(featureDoc))
-      this.logger.debug(
-        `Feature's (${featureDoc.id}) timestamp: ${
-          tmpDoc.updatedAt
-        }, ${feat._id.toString()}`,
+      this.logger.verbose(
+        `Feature's (${featureDoc.id}) timestamp: ${tmpDoc.updatedAt}`,
       )
       // Get max timestamp from checkReports -collection
       const maxCheckReportsTimestamp = await this.checkReportModel
@@ -431,10 +356,9 @@ export class FeaturesService {
       // If there are already checkReports but if feature's timestamp is later than checkReports timestamp then re-run checkReport
       if (maxCheckReportsTimestamp[0]) {
         this.logger.debug(
-          `Feature's updatedAt value : ${JSON.stringify(tmpDoc.updatedAt)}`,
-        )
-        this.logger.debug(
-          `Feature's timestamp in CheckReports -collection: ${JSON.stringify(
+          `Feature was updated at ${JSON.stringify(
+            tmpDoc.updatedAt,
+          )}, and its timestamp in CheckReports -collection is ${JSON.stringify(
             maxCheckReportsTimestamp[0].maxUpdatedAt,
           )}`,
         )
@@ -443,7 +367,7 @@ export class FeaturesService {
           new Date(maxCheckReportsTimestamp[0].maxUpdatedAt)
         ) {
           this.logger.debug(
-            'The last Feature timestamp is later than the last CheckReport timestamp. Must re-run the check reports!',
+            '*** The last Feature timestamp is later than the last CheckReport timestamp. Must re-run the check reports!',
           )
           await this.checkStopCodon(feat)
         }
@@ -451,7 +375,9 @@ export class FeaturesService {
         // Run checkReports first time
         await this.checkStopCodon(feat)
       }
-      this.logger.debug(`Find checkReports for feature ${feat._id.toString()}`)
+      this.logger.verbose(
+        `Find checkReports for feature ${feat._id.toString()}`,
+      )
       const foundCheckReports: CheckReportResultDto[] =
         await this.checkReportModel
           .find({
@@ -472,12 +398,13 @@ export class FeaturesService {
 
   async checkStopCodon(feature: Feature) {
     if (feature.type === 'CDS') {
+      const tmp1 = JSON.parse(JSON.stringify(feature))
       this.logger.debug(
-        `Run checkStopCodon -check report for feature ${feature._id}, type=${
-          feature.type
-        }, start=${feature.start}, end=${feature.end}, lenght=${
-          feature.end - feature.start
-        }`,
+        `*** Run checkStopCodon -check report for feature ${
+          feature._id
+        }, modified at ${tmp1.updatedAt}, type=${feature.type}, start=${
+          feature.start
+        }, end=${feature.end}, lenght=${feature.end - feature.start}`,
       )
       const featSeq = await this.refCheckChunkService.getSequence({
         refSeq: feature.refSeq.toString(),
@@ -492,9 +419,7 @@ export class FeaturesService {
       if (featSeq.length % 3 !== 0) {
         const errMsg = `Feature sequence was not divisible by 3 (sequence lenght is ${featSeq.length})`
         this.logger.error(`ERROR - ${errMsg}`)
-        // throw new NotFoundException(errMsg)
-        // Add entry to checkReport collection
-        const [newCheckReportDoc] = await this.checkReportModel.create([
+        await this.checkReportModel.create([
           {
             checkName: 'StopCodonCheckReport',
             ids: [feature._id],
@@ -507,25 +432,23 @@ export class FeaturesService {
       }
       // this.logger.debug(`Found sequence: ${featSeq}`)
       const threeBasesArray = this.splitStringIntoChunks(featSeq, 3)
-      // console.log(`THREE BASES: ${JSON.stringify(threeBasesArray)}`)
       for (let i = 0; i < threeBasesArray.length - 1; i++) {
         const currentItem = threeBasesArray[i]
         if (
-          currentItem.toUpperCase() === 'TAA' ||
-          currentItem.toUpperCase() === 'TAG' ||
-          currentItem.toUpperCase() === 'TGA'
+          currentItem.toUpperCase() !== 'TAA' &&
+          currentItem.toUpperCase() !== 'TAG' &&
+          currentItem.toUpperCase() !== 'TGA'
         ) {
           const errMsg = `Found suspicious stop codon "${currentItem}". The base number is ${
             i + 1
-          } inside sequence.`
+          } (st/nd/rd/th) inside sequence.`
           this.logger.error(`ERROR - ${errMsg}`)
-
-          // Add entry to checkReport collection
-          const [newCheckReportDoc] = await this.checkReportModel.create([
+          await this.checkReportModel.create([
             {
               checkName: 'StopCodonCheckReport',
               ids: [feature._id],
               pass: false,
+              ignored: '',
               problems: errMsg,
             },
           ])
