@@ -187,6 +187,14 @@ export class FeaturesService {
     return this.exportModel.create({ assembly })
   }
 
+  async getAssemblyName(assemblyId: string) {
+    const assemblyDoc = await this.assemblyModel.findById(assemblyId)
+    if (!assemblyDoc) {
+      throw new NotFoundException()
+    }
+    return assemblyDoc.name
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async exportGFF3(exportID: string): Promise<any> {
     const exportDoc = await this.exportModel.findById(exportID)
