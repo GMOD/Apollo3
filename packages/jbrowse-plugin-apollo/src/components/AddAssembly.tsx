@@ -1,4 +1,5 @@
 import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import { readConfObject } from '@jbrowse/core/configuration'
 import LinkIcon from '@mui/icons-material/Link'
 import {
   Box,
@@ -62,6 +63,7 @@ export function AddAssembly({
   }
   const [assemblyName, setAssemblyName] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
+  const [validAsm, setValidAsm] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [fileType, setFileType] = useState(FileType.GFF3)
   const [importFeatures, setImportFeatures] = useState(true)
@@ -122,13 +124,37 @@ export function AddAssembly({
     setFile(null)
   }
 
+  function checkAssemblyName(assembly: string) {
+    const checkAsm = session.assemblies.find((asm) => readConfObject(asm, 'displayName') === assembly )
+    if (checkAsm) { 
+      setValidAsm(false)
+      setErrorMessage(`Assembly ${assembly} already exists.`)
+    } else {
+      setValidAsm(true)
+      setErrorMessage('')
+    }
+  }
+
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
     setSubmitted(true)
     setLoading(true)
 
-    // let fileChecksum = ''
+    notify(`Assembly "${assemblyName}" is being added`, 'info')
+    handleClose()
+    event.preventDefault()
+
+    // @ts-ignore
+    const { jobsManager } = session
+
+    jobsManager.runJob({
+      name: `UploadAssemblyFile for ${assemblyName}`,
+      statusMessage: 'Pre-validating',
+      progressPct: 0,
+      cancelCallback: () => jobsManager.abortJob(),
+    })
+
     let fileId = ''
     const { baseURL, getFetcher, internetAccountId } = selectedInternetAcount
     if (fileType !== FileType.EXTERNAL && file) {
@@ -143,6 +169,9 @@ export function AddAssembly({
         uri: url,
       })
       if (apolloFetchFile) {
+        jobsManager.update(
+          'Uploading file, this may take awhile'
+        )
         const response = await apolloFetchFile(url, {
           method: 'POST',
           body: formData,
@@ -152,6 +181,7 @@ export function AddAssembly({
             response,
             'Error when inserting new assembly (while uploading file)',
           )
+          jobsManager.abortJob(newErrorMessage)
           setErrorMessage(newErrorMessage)
           return
         }
@@ -193,13 +223,12 @@ export function AddAssembly({
             })
     }
 
-    await changeManager.submit(change, { internetAccountId })
+    jobsManager.done()
+
+    await changeManager.submit(change, { internetAccountId, updateJobsManager: true })
 
     setSubmitted(false)
     setLoading(false)
-    notify(`Assembly "${assemblyName}" is being added`, 'info')
-    handleClose()
-    event.preventDefault()
   }
 
   let validFastaFile = false
@@ -258,6 +287,7 @@ export function AddAssembly({
             onChange={(e) => {
               setSubmitted(false)
               setAssemblyName(e.target.value)
+              checkAssemblyName(e.target.value)
             }}
             disabled={submitted && !errorMessage}
           />
@@ -364,7 +394,7 @@ export function AddAssembly({
         <DialogActions>
           <Button
             disabled={
-              !(
+              !validAsm || !(
                 (assemblyName && file) ??
                 (assemblyName &&
                   fastaFile &&

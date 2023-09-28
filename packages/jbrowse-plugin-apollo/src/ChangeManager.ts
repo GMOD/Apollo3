@@ -14,6 +14,8 @@ export interface SubmitOpts {
   addToRecents?: boolean
   /** defaults to undefined */
   internetAccountId?: string
+  /** defaults to false */
+  updateJobsManager?: boolean
 }
 
 export class ChangeManager {
@@ -22,13 +24,28 @@ export class ChangeManager {
   recentChanges: Change[] = []
 
   async submit(change: Change, opts: SubmitOpts = {}) {
-    const { addToRecents = true, submitToBackend = true } = opts
+    const { addToRecents = true, submitToBackend = true, updateJobsManager = false } = opts
     // pre-validate
     const session = getSession(this.dataStore)
+    const { jobsManager } = session
+
+    if (updateJobsManager) {
+      jobsManager.runJob({
+        name: `${change.typeName}`,
+        statusMessage: 'Pre-validating',
+        progressPct: 0,
+        cancelCallback: () => jobsManager.abortJob(),
+      })
+    }
+
     const result = await validationRegistry.frontendPreValidate(change)
     if (!result.ok) {
+      const msg = `Pre-validation failed: "${result.resultsMessages}"`
+      if (updateJobsManager) {
+        jobsManager.abortJob(msg)
+      }
       session.notify(
-        `Pre-validation failed: "${result.resultsMessages}"`,
+        msg,
         'error',
       )
       return
@@ -38,6 +55,9 @@ export class ChangeManager {
       // submit to client data store
       await change.execute(this.dataStore)
     } catch (error) {
+      if (updateJobsManager) {
+        jobsManager.abortJob(String(error))
+      }
       console.error(error)
       session.notify(String(error), 'error')
       return
@@ -54,6 +74,12 @@ export class ChangeManager {
     }
 
     if (submitToBackend) {
+      if (updateJobsManager) {
+        // seen, add an increment here
+        jobsManager.update(
+          'Submitting to driver'
+        )
+      }
       // submit to driver
       const { collaborationServerDriver, getBackendDriver } = this.dataStore
       const backendDriver = isAssemblySpecificChange(change)
@@ -63,14 +89,21 @@ export class ChangeManager {
       try {
         backendResult = await backendDriver.submitChange(change, opts)
       } catch (error) {
+        if (updateJobsManager) {
+          jobsManager.abortJob(String(error))
+        }
         console.error(error)
         session.notify(String(error), 'error')
         await this.revert(change, false)
         return
       }
       if (!backendResult.ok) {
+        const msg = `Post-validation failed: "${result.resultsMessages}"`
+        if (updateJobsManager) {
+          jobsManager.abortJob(msg)
+        }
         session.notify(
-          `Post-validation failed: "${result.resultsMessages}"`,
+          msg,
           'error',
         )
         await this.revert(change, false)
@@ -83,6 +116,10 @@ export class ChangeManager {
     if (addToRecents) {
       // Push the change into array
       this.recentChanges.push(change)
+    }
+
+    if (updateJobsManager) {
+      jobsManager.done()
     }
   }
 

@@ -161,6 +161,19 @@ export function ImportFeatures({
       locationType: 'UriLocation',
       uri: url,
     })
+
+    handleClose()
+
+    // @ts-ignore
+    const { jobsManager } = session
+
+    jobsManager.runJob({
+      name: `Importing features for ${selectedAssembly.displayName}`,
+      statusMessage: 'Uploading file, this may take awhile',
+      progressPct: 0,
+      cancelCallback: () => jobsManager.abortJob(),
+    })
+
     if (apolloFetchFile) {
       const response = await apolloFetchFile(url, {
         method: 'POST',
@@ -171,6 +184,7 @@ export function ImportFeatures({
           response,
           'Error when inserting new features (while uploading file)',
         )
+        jobsManager.abortJob(newErrorMessage)
         setErrorMessage(newErrorMessage)
         return
       }
@@ -186,15 +200,10 @@ export function ImportFeatures({
       fileId,
       deleteExistingFeatures: deleteFeatures,
     })
-    await changeManager.submit(change)
-    notify(
-      `Features are being added to "${
-        selectedAssembly.displayName ?? selectedAssembly.name
-      }"`,
-      'info',
-    )
-    handleClose()
-    event.preventDefault()
+
+    jobsManager.done()
+
+    await changeManager.submit(change, { updateJobsManager: true })
   }
 
   return (
