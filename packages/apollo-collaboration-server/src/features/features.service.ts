@@ -369,11 +369,12 @@ export class FeaturesService {
           this.logger.debug(
             '*** The last Feature timestamp is later than the last CheckReport timestamp. Must re-run the check reports!',
           )
-          await this.checkStopCodon(feat)
+          await this.checkReportModel.deleteMany({ ids: { $in: feat.allIds } })
+          await this.checkCodon(feat)
         }
       } else {
         // Run checkReports first time
-        await this.checkStopCodon(feat)
+        await this.checkCodon(feat)
       }
       this.logger.verbose(
         `Find checkReports for feature ${feat._id.toString()}`,
@@ -396,11 +397,15 @@ export class FeaturesService {
     return checkReportResult
   }
 
-  async checkStopCodon(feature: Feature) {
+  /**
+   * Checks suspicious start and stop codons. Also check if CDS sequence is divisible by 3
+   * @param feature - feature
+   */
+  async checkCodon(feature: Feature) {
     if (feature.type === 'CDS') {
       const tmp1 = JSON.parse(JSON.stringify(feature))
       this.logger.debug(
-        `*** Run checkStopCodon -check report for feature ${
+        `*** Run checkCodon -check report for feature ${
           feature._id
         }, modified at ${tmp1.updatedAt}, type=${feature.type}, start=${
           feature.start
@@ -416,6 +421,24 @@ export class FeaturesService {
         this.logger.error(errMsg)
         throw new NotFoundException(errMsg)
       }
+      const startBase = featSeq.slice(0, 3).toUpperCase()
+      if (startBase !== 'ATG' && startBase !== 'GTG' && startBase !== 'TTG') {
+        const errMsg = `Found suspicious start codon "${featSeq.slice(
+          0,
+          3,
+        )}" in the beginning of the CDS sequence.`
+        this.logger.error(`ERROR - ${errMsg}`)
+        await this.checkReportModel.create([
+          {
+            checkName: 'StopCodonCheckReport',
+            ids: [feature._id],
+            pass: false,
+            ignored: '',
+            problems: errMsg,
+          },
+        ])
+        // return
+      }
       if (featSeq.length % 3 !== 0) {
         const errMsg = `Feature sequence was not divisible by 3 (sequence lenght is ${featSeq.length})`
         this.logger.error(`ERROR - ${errMsg}`)
@@ -428,20 +451,20 @@ export class FeaturesService {
             problems: 'Feature sequence was not divisible by 3!',
           },
         ])
-        return
+        // return
       }
       // this.logger.debug(`Found sequence: ${featSeq}`)
       const threeBasesArray = this.splitStringIntoChunks(featSeq, 3)
       for (let i = 0; i < threeBasesArray.length - 1; i++) {
         const currentItem = threeBasesArray[i]
         if (
-          currentItem.toUpperCase() !== 'TAA' &&
-          currentItem.toUpperCase() !== 'TAG' &&
-          currentItem.toUpperCase() !== 'TGA'
+          currentItem.toUpperCase() === 'TAA' ||
+          currentItem.toUpperCase() === 'TAG' ||
+          currentItem.toUpperCase() === 'TGA'
         ) {
-          const errMsg = `Found suspicious stop codon "${currentItem}". The base number is ${
+          const errMsg = `Found suspicious stop codon "${currentItem}" inside CDS. The base number is ${
             i + 1
-          } (st/nd/rd/th) inside sequence.`
+          } (st/nd/rd/th) inside CDSsequence.`
           this.logger.error(`ERROR - ${errMsg}`)
           await this.checkReportModel.create([
             {
@@ -452,7 +475,7 @@ export class FeaturesService {
               problems: errMsg,
             },
           ])
-          return
+          // return
         }
       }
     }
@@ -460,7 +483,7 @@ export class FeaturesService {
     // Iterate through children
     if (feature.children) {
       for (const [, child] of feature.children) {
-        await this.checkStopCodon(child)
+        await this.checkCodon(child)
       }
     }
   }
