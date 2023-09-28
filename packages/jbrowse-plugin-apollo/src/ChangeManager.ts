@@ -24,7 +24,11 @@ export class ChangeManager {
   recentChanges: Change[] = []
 
   async submit(change: Change, opts: SubmitOpts = {}) {
-    const { addToRecents = true, submitToBackend = true, updateJobsManager = false } = opts
+    const {
+      addToRecents = true,
+      submitToBackend = true,
+      updateJobsManager = false,
+    } = opts
     // pre-validate
     const session = getSession(this.dataStore)
     const { jobsManager } = session
@@ -44,10 +48,7 @@ export class ChangeManager {
       if (updateJobsManager) {
         jobsManager.abortJob(msg)
       }
-      session.notify(
-        msg,
-        'error',
-      )
+      session.notify(msg, 'error')
       return
     }
 
@@ -76,9 +77,7 @@ export class ChangeManager {
     if (submitToBackend) {
       if (updateJobsManager) {
         // seen, add an increment here
-        jobsManager.update(
-          'Submitting to driver'
-        )
+        jobsManager.update('Submitting to driver')
       }
       // submit to driver
       const { collaborationServerDriver, getBackendDriver } = this.dataStore
@@ -102,10 +101,7 @@ export class ChangeManager {
         if (updateJobsManager) {
           jobsManager.abortJob(msg)
         }
-        session.notify(
-          msg,
-          'error',
-        )
+        session.notify(msg, 'error')
         await this.revert(change, false)
         return
       }

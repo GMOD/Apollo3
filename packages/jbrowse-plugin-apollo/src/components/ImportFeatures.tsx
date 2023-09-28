@@ -35,7 +35,7 @@ export function ImportFeatures({
   handleClose,
   session,
 }: ImportFeaturesProps) {
-  const { apolloDataStore, notify } = session
+  const { apolloDataStore } = session
 
   const [file, setFile] = useState<File>()
   const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
@@ -164,7 +164,6 @@ export function ImportFeatures({
 
     handleClose()
 
-    // @ts-ignore
     const { jobsManager } = session
 
     jobsManager.runJob({

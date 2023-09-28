@@ -1,5 +1,5 @@
-import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
 import { readConfObject } from '@jbrowse/core/configuration'
+import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
 import LinkIcon from '@mui/icons-material/Link'
 import {
   Box,
@@ -125,8 +125,11 @@ export function AddAssembly({
   }
 
   function checkAssemblyName(assembly: string) {
-    const checkAsm = session.assemblies.find((asm) => readConfObject(asm, 'displayName') === assembly )
-    if (checkAsm) { 
+    const { assemblies } = session
+    const checkAsm = assemblies.find(
+      (asm) => readConfObject(asm, 'displayName') === assembly,
+    )
+    if (checkAsm) {
       setValidAsm(false)
       setErrorMessage(`Assembly ${assembly} already exists.`)
     } else {
@@ -145,7 +148,7 @@ export function AddAssembly({
     handleClose()
     event.preventDefault()
 
-    // @ts-ignore
+    // @ts-expect-error: jobsManager added to apollo session
     const { jobsManager } = session
 
     jobsManager.runJob({
@@ -169,9 +172,7 @@ export function AddAssembly({
         uri: url,
       })
       if (apolloFetchFile) {
-        jobsManager.update(
-          'Uploading file, this may take awhile'
-        )
+        jobsManager.update('Uploading file, this may take awhile')
         const response = await apolloFetchFile(url, {
           method: 'POST',
           body: formData,
@@ -225,7 +226,10 @@ export function AddAssembly({
 
     jobsManager.done()
 
-    await changeManager.submit(change, { internetAccountId, updateJobsManager: true })
+    await changeManager.submit(change, {
+      internetAccountId,
+      updateJobsManager: true,
+    })
 
     setSubmitted(false)
     setLoading(false)
@@ -394,14 +398,16 @@ export function AddAssembly({
         <DialogActions>
           <Button
             disabled={
-              !validAsm || !(
+              !validAsm ||
+              !(
                 (assemblyName && file) ??
                 (assemblyName &&
                   fastaFile &&
                   fastaIndexFile &&
                   validFastaFile &&
                   validFastaIndexFile)
-              ) || submitted
+              ) ||
+              submitted
             }
             variant="contained"
             type="submit"

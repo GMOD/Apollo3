@@ -1,10 +1,7 @@
-import {
-  types,
-  Instance,
-} from 'mobx-state-tree'
-import { observable } from 'mobx'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { getSession, isSessionModelWithWidgets } from '@jbrowse/core/util'
+import { observable } from 'mobx'
+import { Instance, types } from 'mobx-state-tree'
 
 interface JobsEntry {
   name: string
@@ -24,18 +21,21 @@ export default function jobsModelFactory(_pluginManager: PluginManager) {
       controller: new AbortController(),
       jobsQueue: observable.array([] as JobsEntry[]),
     }))
-    .actions(self => ({
+    .actions((self) => ({
       getJobStatusWidget() {
         const { widgets } = getSession(self)
         let jobStatusWidget = widgets.get('JobsList')
         if (!jobStatusWidget) {
-          // @ts-ignore
-          jobStatusWidget = getSession(self).addWidget('JobsListWidget', 'JobsList')
+          // @ts-expect-error: addWidget function not detected on the session
+          jobStatusWidget = getSession(self).addWidget(
+            'JobsListWidget',
+            'JobsList',
+          )
         }
         return jobStatusWidget
       },
     }))
-    .actions(self => ({
+    .actions((self) => ({
       setRunning(running: boolean) {
         self.running = running
       },
@@ -47,7 +47,7 @@ export default function jobsModelFactory(_pluginManager: PluginManager) {
       },
       /**
        * sets the progress percent of the running job, sets the status message to a default success if process is 100
-       * @param arg the percent to set the progress to
+       * @param arg - the percent to set the progress to
        */
       setProgressPct(arg: number) {
         const progress = +arg
@@ -67,14 +67,14 @@ export default function jobsModelFactory(_pluginManager: PluginManager) {
       },
       /**
        * aborts the running job with a message to the user
-       * @param msg a message to communicate to the user about the abort operation
+       * @param msg - a message to communicate to the user about the abort operation
        */
       abortJob(msg?: string) {
         const session = getSession(self)
         if (isSessionModelWithWidgets(session)) {
           const jobStatusWidget = self.getJobStatusWidget()
           session.showWidget(jobStatusWidget)
-          this.setStatusMessage(msg || 'Aborted unexpectedly.')
+          this.setStatusMessage(msg ?? 'Aborted unexpectedly')
           jobStatusWidget.removeJob(self.jobName)
           jobStatusWidget.addAbortedJob({
             name: self.jobName,
@@ -110,24 +110,28 @@ export default function jobsModelFactory(_pluginManager: PluginManager) {
       },
       /**
        * updates the status message and the progress percent of the job
-       * @param statusMessage the message to be communicated to the user
-       * @param progressPct the percent through the run the job is
+       * @param statusMessage - the message to be communicated to the user
+       * @param progressPct - the percent through the run the job is
        */
       update(statusMessage: string, progressPct?: number) {
         this.setStatusMessage(statusMessage)
-        this.setProgressPct(progressPct || 0)
+        this.setProgressPct(progressPct ?? 0)
       },
       /**
        * opens the job status widget and adds the job to the running jobs
-       * @param job the job to be run within the JobsManager
+       * @param job - the job to be run within the JobsManager
        */
       runJob(job: JobsEntry) {
         const session = getSession(self)
         if (isSessionModelWithWidgets(session)) {
           const jobStatusWidget = self.getJobStatusWidget()
           session.showWidget(jobStatusWidget)
-          const { name, statusMessage = '', progressPct = 0, cancelCallback } =
-            job
+          const {
+            cancelCallback,
+            name,
+            progressPct = 0,
+            statusMessage = '',
+          } = job
           jobStatusWidget.addJob({
             name,
             statusMessage: statusMessage || '',

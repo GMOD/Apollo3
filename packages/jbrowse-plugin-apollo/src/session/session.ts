@@ -13,11 +13,11 @@ import {
   ApolloInternetAccountModel,
   UserLocation,
 } from '../ApolloInternetAccount/model'
+import jobsModelFactory from '../ApolloJobModel'
 import { ChangeManager } from '../ChangeManager'
 import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 import { clientDataStoreFactory } from './ClientDataStore'
-import jobsModelFactory from '../ApolloJobModel'
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreType & { changeManager: ChangeManager }
@@ -70,7 +70,7 @@ export function extendSession(
     .props({
       apolloDataStore: types.optional(ClientDataStore, { typeName: 'Client' }),
       apolloSelectedFeature: types.safeReference(AnnotationFeatureExtended),
-      jobsManager: types.optional(JobsManager, {})
+      jobsManager: types.optional(JobsManager, {}),
     })
     .extend(() => {
       const collabs = observable.array<Collaborator>([])
