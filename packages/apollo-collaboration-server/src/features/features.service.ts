@@ -27,6 +27,11 @@ import { OperationsService } from '../operations/operations.service'
 import { RefSeqChunksService } from '../refSeqChunks/refSeqChunks.service'
 import { FeatureCountRequest } from './dto/feature.dto'
 
+interface Range {
+  start: number
+  end: number
+}
+
 function makeGFF3Feature(
   featureDocument: Feature,
   refSeqs: RefSeqDocument[],
@@ -327,6 +332,7 @@ export class FeaturesService {
   ): Promise<CheckReportResultDto[]> {
     const checkReportResult: CheckReportResultDto[] = []
     for (const feat of features) {
+      const emptyRangeArray: Range[] = []
       const featureDoc = await this.featureModel.findById(feat._id).exec()
       if (!featureDoc) {
         const errMsg = 'ERROR when searching feature by featureId'
@@ -370,11 +376,11 @@ export class FeaturesService {
             '*** The last Feature timestamp is later than the last CheckReport timestamp. Must re-run the check reports!',
           )
           await this.checkReportModel.deleteMany({ ids: { $in: feat.allIds } })
-          await this.checkCodon(feat)
+          await this.checkCodon(feat, emptyRangeArray)
         }
       } else {
         // Run checkReports first time
-        await this.checkCodon(feat)
+        await this.checkCodon(feat, emptyRangeArray)
       }
       this.logger.verbose(
         `Find checkReports for feature ${feat._id.toString()}`,
@@ -401,7 +407,7 @@ export class FeaturesService {
    * Checks suspicious start and stop codons. Also check if CDS sequence is divisible by 3
    * @param feature - feature
    */
-  async checkCodon(feature: Feature) {
+  async checkCodon(feature: Feature, cdsRangesArray: Range[]) {
     if (feature.type === 'CDS') {
       const tmp1 = JSON.parse(JSON.stringify(feature))
       this.logger.debug(
@@ -421,6 +427,28 @@ export class FeaturesService {
         this.logger.error(errMsg)
         throw new NotFoundException(errMsg)
       }
+      // Check if new CDS overlaps in previous CDSs
+      const isOverlapFound = this.isOverlap(
+        feature.start,
+        feature.end,
+        cdsRangesArray,
+      )
+
+      if (isOverlapFound) {
+        const errMsg = `CDS (start: ${feature.start}, end: ${feature.end}) overlaps with other CDS.`
+        this.logger.error(`ERROR - ${errMsg}`)
+        await this.checkReportModel.create([
+          {
+            checkName: 'StopCodonCheckReport',
+            ids: [feature._id],
+            pass: false,
+            ignored: '',
+            problems: errMsg,
+          },
+        ])
+      } else {
+        cdsRangesArray.push({ start: feature.start, end: feature.end })
+      }
       const startBase = featSeq.slice(0, 3).toUpperCase()
       if (startBase !== 'ATG' && startBase !== 'GTG' && startBase !== 'TTG') {
         const errMsg = `Found suspicious start codon "${featSeq.slice(
@@ -437,7 +465,6 @@ export class FeaturesService {
             problems: errMsg,
           },
         ])
-        // return
       }
       if (featSeq.length % 3 !== 0) {
         const errMsg = `Feature sequence was not divisible by 3 (sequence lenght is ${featSeq.length})`
@@ -451,10 +478,10 @@ export class FeaturesService {
             problems: 'Feature sequence was not divisible by 3!',
           },
         ])
-        // return
       }
       // this.logger.debug(`Found sequence: ${featSeq}`)
       const threeBasesArray = this.splitStringIntoChunks(featSeq, 3)
+      // Loop all bases except the last one
       for (let i = 0; i < threeBasesArray.length - 1; i++) {
         const currentItem = threeBasesArray[i]
         if (
@@ -475,7 +502,6 @@ export class FeaturesService {
               problems: errMsg,
             },
           ])
-          // return
         }
       }
     }
@@ -483,7 +509,7 @@ export class FeaturesService {
     // Iterate through children
     if (feature.children) {
       for (const [, child] of feature.children) {
-        await this.checkCodon(child)
+        await this.checkCodon(child, cdsRangesArray)
       }
     }
   }
@@ -494,6 +520,20 @@ export class FeaturesService {
       result.push(inputString.slice(i, i + chunkSize))
     }
     return result
+  }
+
+  isOverlap(newStart: number, newEnd: number, ranges: Range[]): boolean {
+    for (const range of ranges) {
+      // Check for overlap with existing ranges
+      if (
+        (newStart >= range.start && newStart <= range.end) || // New start overlaps
+        (newEnd >= range.start && newEnd <= range.end) || // New end overlaps
+        (newStart <= range.start && newEnd >= range.end) // New range completely overlaps an existing range
+      ) {
+        return true
+      }
+    }
+    return false
   }
 
   async searchFeatures(searchDto: { term: string; assemblies: string }) {
