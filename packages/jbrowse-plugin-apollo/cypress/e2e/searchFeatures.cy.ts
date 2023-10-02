@@ -35,7 +35,7 @@ describe('Search features', () => {
   it('Can use quotes to handle spaces', () => {
     cy.addAssemblyFromGff('space.gff3', 'test_data/space.gff3')
     cy.selectAssemblyToView('space.gff3')
-    cy.searchFeatures('"agt A"')
+    cy.searchFeatures('agt A')
     cy.currentLocationEquals('ctgA', 7500, 8000, 10)
   })
 
