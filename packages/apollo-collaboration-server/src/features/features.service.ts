@@ -413,20 +413,32 @@ export class FeaturesService {
       this.logger.debug(
         `*** Run checkCodon -check report for feature ${
           feature._id
-        }, modified at ${tmp1.updatedAt}, type=${feature.type}, start=${
-          feature.start
-        }, end=${feature.end}, lenght=${feature.end - feature.start}`,
+        }, modified at ${tmp1.updatedAt}, type=${feature.type}, strand=${
+          feature.strand
+        }, start=${feature.start}, end=${feature.end}, lenght=${
+          feature.end - feature.start
+        }`,
       )
-      const featSeq = await this.refCheckChunkService.getSequence({
+      const featSeqOrig = await this.refCheckChunkService.getSequence({
         refSeq: feature.refSeq.toString(),
         start: feature.start,
         end: feature.end,
       })
-      if (!featSeq) {
+      if (!featSeqOrig) {
         const errMsg = 'ERROR - No feature sequence was found!'
         this.logger.error(errMsg)
         throw new NotFoundException(errMsg)
       }
+      let featSeq: string
+      // eslint-disable-next-line unicorn/prefer-ternary
+      if (feature.strand === -1) {
+        // If negative strand then reverse sequence
+        // eslint-disable-next-line unicorn/prefer-spread
+        featSeq = featSeqOrig.split('').reverse().join('')
+      } else {
+        featSeq = featSeqOrig
+      }
+
       // Check if new CDS overlaps in previous CDSs
       const isOverlapFound = this.isOverlap(
         feature.start,
@@ -479,15 +491,35 @@ export class FeaturesService {
           },
         ])
       }
-      // this.logger.debug(`Found sequence: ${featSeq}`)
+      if (featSeq.length % 3 !== 0 && featSeq.length >= 3) {
+        const lastBase = featSeq.slice(-3).toUpperCase()
+        if (lastBase !== 'TAA' && lastBase !== 'TAG' && lastBase !== 'TGA') {
+          const errMsg = `CDS last base "${lastBase}" is not any not stop codons (TAA, TAG or TGA).`
+          this.logger.error(`ERROR - ${errMsg}`)
+          await this.checkReportModel.create([
+            {
+              checkName: 'StopCodonCheckReport',
+              ids: [feature._id],
+              pass: false,
+              ignored: '',
+              problems: errMsg,
+            },
+          ])
+        } else {
+          const errMsg =
+            'ERROR - Feature sequence is less than 3 characters long!'
+          this.logger.error(errMsg)
+          throw new NotFoundException(errMsg)
+        }
+      }
       const threeBasesArray = this.splitStringIntoChunks(featSeq, 3)
       // Loop all bases except the last one
       for (let i = 0; i < threeBasesArray.length - 1; i++) {
-        const currentItem = threeBasesArray[i]
+        const currentItem = threeBasesArray[i].toUpperCase()
         if (
-          currentItem.toUpperCase() === 'TAA' ||
-          currentItem.toUpperCase() === 'TAG' ||
-          currentItem.toUpperCase() === 'TGA'
+          currentItem === 'TAA' ||
+          currentItem === 'TAG' ||
+          currentItem === 'TGA'
         ) {
           const errMsg = `Found suspicious stop codon "${currentItem}" inside CDS. The base number is ${
             i + 1
