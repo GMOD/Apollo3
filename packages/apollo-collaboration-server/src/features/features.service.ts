@@ -311,7 +311,7 @@ export class FeaturesService {
       .find({ assembly: assemblyIds })
       .exec()
     return this.featureModel
-      .find({ $text: { $search: term }, refSeq: refSeqs })
+      .find({ $text: { $search: `"${term}"` }, refSeq: refSeqs })
       .populate('refSeq')
       .exec()
   }

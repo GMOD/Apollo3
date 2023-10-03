@@ -61,20 +61,110 @@ describe('Different ways of editing features', () => {
     })
   })
 
+  it('Can add gene ontology attribute', () => {
+    cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
+    cy.selectAssemblyToView('onegene.fasta.gff3')
+    cy.searchFeatures('gx1', 1)
+    cy.contains('td', 'CDS1').rightclick()
+    cy.contains('Edit attributes').click()
+    cy.contains('Feature attributes')
+      .parent()
+      .within(() => {
+        cy.contains('button', 'Add new').click()
+        cy.get('input[value="Gene Ontology"]').click()
+        cy.contains('button', /^Add$/).click()
+        cy.contains('Gene Ontology')
+          .parent()
+          .parent()
+          .parent()
+          .within(() => {
+            cy.get('input').type('quiescence')
+          })
+      })
+    // This seems to take ~6 minutes in headless mode!
+    cy.contains('li', 'GO:0044838', { timeout: 600_000 }).click()
+    cy.contains('button', 'Submit changes').click()
+    cy.contains('td', 'Gene Ontology=GO:0044838')
+  })
+
+  it('Can delete feature', () => {
+    cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
+    cy.selectAssemblyToView('onegene.fasta.gff3')
+    cy.searchFeatures('gx1', 1)
+    cy.contains('td', '=CDS1')
+    cy.contains('td', '=tx1').rightclick()
+    cy.contains('Delete feature').click()
+    cy.contains('Are you sure you want to delete the selected feature?')
+      .parent()
+      .parent()
+      .within(() => {
+        cy.contains('button', /^yes$/, { matchCase: false }).click()
+      })
+    cy.contains('td', '=gx1')
+    cy.contains('td', '=tx1').should('not.exist')
+    cy.contains('td', '=CDS1').should('not.exist')
+  })
+
   it('Suggest only valid SO terms from dropdown', () => {
     cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
     cy.selectAssemblyToView('onegene.fasta.gff3')
-    cy.searchFeatures('gx1')
+    cy.searchFeatures('gx1', 1)
     // In headless mode it seems to take a long time for menus to be populated
-    cy.get('input[type="text"][value="exon"]', { timeout: 60_000 })
-      .eq(0)
-      .click({ timeout: 60_000, force: true })
-    cy.contains('li', /^CDS$/, { timeout: 60_000, matchCase: false }).should(
-      'exist',
-    )
+    cy.get('input[type="text"][value="CDS"]', { timeout: 60_000 }).click({
+      timeout: 60_000,
+      force: true,
+    })
+    cy.contains('li', /^start_codon$/, {
+      timeout: 60_000,
+      matchCase: false,
+    }).should('exist')
     cy.contains('li', /^gene$/, { timeout: 60_000, matchCase: false }).should(
       'not.exist',
     )
+  })
+
+  it('Can add child feature via table editor', () => {
+    cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
+    cy.selectAssemblyToView('onegene.fasta.gff3')
+    cy.searchFeatures('gx1', 1)
+    // In headless mode it seems to take a long time for menus to be populated
+    cy.get('input[type="text"][value="CDS"]', { timeout: 60_000 }).rightclick({
+      timeout: 60_000,
+      force: true,
+    })
+    cy.contains('Add child feature').click()
+    cy.contains('Add new child feature')
+      .parent()
+      .within(() => {
+        cy.get('form').within(() => {
+          cy.contains('Start')
+            .parent()
+            .within(() => {
+              cy.get('input').type('{selectall}{backspace}1')
+            })
+          cy.contains('End')
+            .parent()
+            .within(() => {
+              cy.get('input').type('{selectall}{backspace}3')
+            })
+          cy.contains('Type')
+            .parent()
+            .within(() => {
+              cy.get('input').click({ timeout: 60_000 })
+            })
+        })
+      })
+    cy.contains('li', /^start_codon$/, {
+      timeout: 60_000,
+      matchCase: false,
+    }).click()
+    cy.get('button').contains('Submit').click()
+    cy.reload() // Ideally, you shouldn't need to reload to see the change?
+    cy.get('tbody', { timeout: 60_000 }).within(() => {
+      cy.get('input[value="start_codon"]').should('have.length', 1)
+      cy.get('input[value="1"]').should('have.length', 4)
+      cy.get('input[value="3"]').should('have.length', 1)
+    })
   })
 
   it.skip('Can select region on rubber-band and zoom into it', () => {
