@@ -20,6 +20,5 @@
     "apollo-mst": "workspace:^",
     "typescript": "^5.1.6"
   },
-  "packageManager": "yarn@3.2.2",
   "private": true
 }

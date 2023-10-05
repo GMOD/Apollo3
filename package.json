@@ -1,7 +1,7 @@
 {
   "name": "apollo3",
   "description": "Monorepo containing Apollo front and back end code",
-  "packageManager": "yarn@3.6.1",
+  "packageManager": "yarn@3.6.4",
   "workspaces": [
     "packages/*"
   ],
