@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { createWriteStream } from 'node:fs'
 import { mkdir, mkdtemp, rename, rmdir } from 'node:fs/promises'
 import { join } from 'node:path'
+import { Transform, finished } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { createGzip } from 'node:zlib'
 
@@ -40,15 +41,40 @@ export class FileStorageEngine implements StorageEngine {
     this.logger.debug(`User uploaded file: ${file.originalname}`)
 
     const hash = createHash('md5')
-    file.stream.on('data', (chunk) => {
-      hash.update(chunk, 'utf8')
-      return chunk
+    // file.stream.on('data', (chunk) => {
+    //   hash.update(chunk, 'utf8')
+    //   return chunk
+    // })
+    const hashUpdater = new Transform({
+      transform: (chunk, encoding, callback) => {
+        hash.update(chunk, encoding)
+        callback(null, chunk)
+      },
     })
 
     // Check md5 checksum of saved file
     const fileWriteStream = createWriteStream(tempFullFileName)
     const gz = createGzip()
-    await pipeline(file.stream, gz, fileWriteStream)
+
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, unicorn/prefer-node-protocol
+    const zlib = require('zlib')
+    this.logger.debug('*** Pipeline starts here...')
+    await pipeline(
+      file.stream,
+      new Transform({
+        transform: (chunk, encoding, callback) => {
+          hash.update(chunk, encoding)
+          callback(null, chunk)
+        },
+      }),
+      // createGzip(),  // If this is commented then pipeline is processed
+      zlib.createGzip({ level: zlib.constants.Z_BEST_SPEED }),
+      fileWriteStream,
+    )
+
+    this.logger.debug('*** Pipeline ended ...')
+
+    // await pipeline(file.stream, hashUpdater, gz, fileWriteStream)
     this.logger.debug(`Compressed file: ${tempFullFileName}`)
     const fileChecksum = hash.digest('hex')
     this.logger.debug(`Uploaded file checksum: ${fileChecksum}`)
