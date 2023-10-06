@@ -187,6 +187,12 @@ export default class ApolloPlugin extends Plugin {
           ])
         },
       })
+      pluginManager.rootModel.appendToMenu('Apollo', {
+        label: 'Check stop codons',
+        onClick: (session: ApolloSessionModel) => {
+          console.log(session.apolloDataStore.checkStopCodons())
+        },
+      })
     }
   }
 }

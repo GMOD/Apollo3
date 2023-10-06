@@ -128,6 +128,7 @@ export function baseModelFactory(
               if (!self.lgv.initialized || self.regionCannotBeRendered()) {
                 return
               }
+              self.session.apolloDataStore.loadRefSeq(self.regions)
               self.session.apolloDataStore.loadFeatures(self.regions)
             },
             { name: 'LinearApolloDisplayLoadFeatures', delay: 1000 },

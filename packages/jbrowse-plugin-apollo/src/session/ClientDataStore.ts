@@ -35,6 +35,18 @@ import {
 } from '../OntologyManager'
 import { ApolloRootModel } from '../types'
 
+import { getSnapshot } from 'mobx-state-tree'
+
+enum checkType {
+  StopCodonCheck,
+}
+
+interface checkReport {
+  type: checkType
+  featureId: string
+  message: string
+}
+
 export function clientDataStoreFactory(
   AnnotationFeatureExtended: typeof AnnotationFeature,
 ) {
@@ -47,6 +59,21 @@ export function clientDataStoreFactory(
       get internetAccounts() {
         return (getRoot<ApolloRootModel>(self) as AppRootModel).internetAccounts
       },
+
+      checkStopCodons(): checkReport[] {
+        const checkReports: checkReport[] = []
+        for (const [, assembly] of self.assemblies) {
+          for (const [, refSeq] of assembly.refSeqs) {
+            for (const [, feature] of refSeq.features) {
+              const seq: string = refSeq.getSequence(feature.start, feature.end)
+              console.log(`sequence ${new Date()}: ${seq}`)
+              console.log(JSON.stringify(feature, null, 2))
+            }
+          }
+        }
+        return checkReports
+      },
+
       get pluginConfiguration() {
         return (getRoot(self) as AppRootModel).jbrowse.configuration
           .ApolloPlugin as Instance<typeof ApolloPluginConfigurationSchema>
@@ -222,9 +249,8 @@ export function clientDataStoreFactory(
       }),
       loadRefSeq: flow(function* loadRefSeq(regions: Region[]) {
         for (const region of regions) {
-          const { refSeq, seq } = yield (
-            self as unknown as { backendDriver: BackendDriver }
-          ).backendDriver.getSequence(region)
+          const backendDriver = self.getBackendDriver(region.assemblyName)
+          const { refSeq, seq } = yield backendDriver.getSequence(region)
           const { assemblyName, end, refName, start } = region
           let assembly = self.assemblies.get(assemblyName)
           if (!assembly) {

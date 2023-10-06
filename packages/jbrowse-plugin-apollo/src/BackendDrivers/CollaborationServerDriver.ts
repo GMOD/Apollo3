@@ -101,7 +101,7 @@ export class CollaborationServerDriver extends BackendDriver {
     const resultAsJson = await response.json()
     console.log(
       'CheckReport results:',
-      JSON.stringify(resultAsJson.checkReports),
+      JSON.stringify(resultAsJson.checkReports, null, 2),
     )
     return resultAsJson.features as Promise<AnnotationFeatureSnapshot[]>
   }
