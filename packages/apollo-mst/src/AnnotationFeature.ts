@@ -113,7 +113,7 @@ export const AnnotationFeature = types
 
     _getCodingSequence(refSeq: any, cdna: string[]): void {
       if (self.type === 'CDS') {
-        let seq: string
+        let seq = ''
         if (
           self.discontinuousLocations === undefined ||
           self.discontinuousLocations.length === 0
