@@ -1,0 +1,29 @@
+##gff-version 3
+chr1	.	gene	1	30	.	+	.	ID=gene01
+chr1	.	mRNA	1	30	.	+	.	ID=mrna01;Parent=gene01
+chr1	.	CDS	1	30	.	+	0	ID=cds01;Parent=mrna01
+#
+chr2	.	gene	1	30	.	+	.	ID=gene02
+chr2	.	mRNA	1	30	.	+	.	ID=mrna02;Parent=gene02
+chr2	.	CDS	1	9	.	+	0	ID=cds02.1;Parent=mrna02
+chr2	.	CDS	16	30	.	+	0	ID=cds02.2;Parent=mrna02
+#
+chr3	.	gene	1	30	.	+	.	ID=gene03
+chr3	.	mRNA	1	30	.	+	.	ID=mrna03;Parent=gene03
+chr3	.	exon	1	9	.	+	0	Parent=mrna03
+chr3	.	exon	16	30	.	+	0	Parent=mrna03
+chr3	.	CDS	1	9	.	+	0	ID=cds03;Parent=mrna03
+chr3	.	CDS	16	30	.	+	0	ID=cds03;Parent=mrna03
+#
+chr4	.	gene	1	30	.	-	.	ID=gene04
+chr4	.	mRNA	1	30	.	-	.	ID=mrna04;Parent=gene04
+chr4	.	CDS	1	30	.	-	0	ID=cds04.1;Parent=mrna04
+##FASTA
+>chr1
+ATGGTGCCGCAAAGTACTGGTGGGGGTTAAnnnnnnnnnnnnnnnnnnnnn
+>chr2
+ATGGTGtagCAAAGTACTGTTAGGGGTTAAnnnnnnnnnnnnnnnnnnnnn
+>chr3
+ATGGTGtagCAAAGTACTGTTAGGtagTAAnnnnnnnnnnnnnnnnnnnnn
+>chr4
+TTActaCCCACCAGTACTTTGCGGtcaCATnnnnnnnnnnnnnnnnnnnnn
