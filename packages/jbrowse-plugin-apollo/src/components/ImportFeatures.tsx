@@ -1,5 +1,6 @@
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
+import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
   DialogActions,
@@ -35,7 +36,8 @@ export function ImportFeatures({
   handleClose,
   session,
 }: ImportFeaturesProps) {
-  const { apolloDataStore, notify } = session
+  const { apolloDataStore } = session
+  const { notify } = session as unknown as AbstractSessionModel
 
   const [file, setFile] = useState<File>()
   const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()

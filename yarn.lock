@@ -2926,9 +2926,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/core@npm:2.6.3":
-  version: 2.6.3
-  resolution: "@jbrowse/core@npm:2.6.3"
+"@jbrowse/core@npm:^2.7.0":
+  version: 2.7.0
+  resolution: "@jbrowse/core@npm:2.7.0"
   dependencies:
     "@babel/runtime": ^7.17.9
     "@gmod/bgzf-filehandle": ^1.4.3
@@ -2938,8 +2938,8 @@ __metadata:
     canvas-sequencer: ^3.1.0
     canvas2svg: ^1.0.16
     clone: ^2.1.2
-    clsx: ^1.0.4
-    color: ^3.1.3
+    clsx: ^2.0.0
+    colord: ^2.9.3
     copy-to-clipboard: ^3.3.1
     deepmerge: ^4.2.2
     detect-node: ^2.1.0
@@ -2957,20 +2957,19 @@ __metadata:
     rbush: ^3.0.1
     react-error-boundary: ^4.0.3
     serialize-error: ^8.0.0
-    shortid: ^2.2.13
     svg-path-generator: ^1.1.0
   peerDependencies:
     "@mui/material": ^5.0.0
     "@mui/x-data-grid": ^6.0.1
     mobx: ^6.0.0
-    mobx-react: ^7.0.0
+    mobx-react: ^9.0.0
     mobx-state-tree: ^5.0.0
     prop-types: ^15.0.0
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
     rxjs: ^7.0.0
     tss-react: ^4.0.0
-  checksum: 915461755144b8bf99313a6efb5f486fd56ebfc9c14e0072ec61888be64f4bc66f5ec7c7ea73a9784ed967d0ef2eed2eb5a857aa133afffeac469f06a6165107
+  checksum: 8eb972e5e7d037277b6f237dbd2e872efb32200e647c834f82568b41feaa876c3a9ebf8ae0028435e5a16c43deb17f004b15d67ad104412698c13f1e53b87055
   languageName: node
   linkType: hard
 
@@ -6050,7 +6049,7 @@ __metadata:
     "@emotion/styled": ^11.10.6
     "@gmod/gff": ^1.2.0
     "@gmod/indexedfasta": ^2.0.4
-    "@jbrowse/core": 2.6.3
+    "@jbrowse/core": ^2.7.0
     "@mui/base": ^5.0.0-alpha.118
     "@mui/material": ^5.11.10
     "@nestjs/cli": ^10.1.10
@@ -6133,7 +6132,7 @@ __metadata:
   resolution: "apollo-common@workspace:packages/apollo-common"
   dependencies:
     "@gmod/gff": ^1.2.0
-    "@jbrowse/core": 2.6.3
+    "@jbrowse/core": ^2.7.0
     "@nestjs/common": ^10.1.0
     "@nestjs/core": ^10.1.0
     "@types/node": ^18.14.2
@@ -6161,7 +6160,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "apollo-mst@workspace:packages/apollo-mst"
   dependencies:
-    "@jbrowse/core": 2.6.3
+    "@jbrowse/core": ^2.7.0
     mobx: ^6.6.1
     mobx-state-tree: ^5.1.7
     rxjs: ^7.4.0
@@ -6194,7 +6193,7 @@ __metadata:
   dependencies:
     "@gmod/gff": ^1.2.0
     "@gmod/indexedfasta": ^2.0.4
-    "@jbrowse/core": 2.6.3
+    "@jbrowse/core": ^2.7.0
     "@nestjs/common": ^10.1.0
     "@nestjs/core": ^10.1.0
     "@types/node": ^18.14.2
@@ -7765,6 +7764,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"clsx@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "clsx@npm:2.0.0"
+  checksum: a2cfb2351b254611acf92faa0daf15220f4cd648bdf96ce369d729813b85336993871a4bf6978ddea2b81b5a130478339c20d9d0b5c6fc287e5147f0c059276e
+  languageName: node
+  linkType: hard
+
 "co@npm:^4.6.0":
   version: 4.6.0
   resolution: "co@npm:4.6.0"
@@ -7779,7 +7785,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"color-convert@npm:^1.9.0, color-convert@npm:^1.9.3":
+"color-convert@npm:^1.9.0":
   version: 1.9.3
   resolution: "color-convert@npm:1.9.3"
   dependencies:
@@ -7804,20 +7810,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"color-name@npm:^1.0.0, color-name@npm:~1.1.4":
+"color-name@npm:~1.1.4":
   version: 1.1.4
   resolution: "color-name@npm:1.1.4"
   checksum: b0445859521eb4021cd0fb0cc1a75cecf67fceecae89b63f62b201cca8d345baf8b952c966862a9d9a2632987d4f6581f0ec8d957dfacece86f0a7919316f610
-  languageName: node
-  linkType: hard
-
-"color-string@npm:^1.6.0":
-  version: 1.9.1
-  resolution: "color-string@npm:1.9.1"
-  dependencies:
-    color-name: ^1.0.0
-    simple-swizzle: ^0.2.2
-  checksum: c13fe7cff7885f603f49105827d621ce87f4571d78ba28ef4a3f1a104304748f620615e6bf065ecd2145d0d9dad83a3553f52bb25ede7239d18e9f81622f1cc5
   languageName: node
   linkType: hard
 
@@ -7830,13 +7826,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"color@npm:^3.1.3":
-  version: 3.2.1
-  resolution: "color@npm:3.2.1"
-  dependencies:
-    color-convert: ^1.9.3
-    color-string: ^1.6.0
-  checksum: f81220e8b774d35865c2561be921f5652117638dcda7ca4029262046e37fc2444ac7bbfdd110cf1fd9c074a4ee5eda8f85944ffbdda26186b602dd9bb05f6400
+"colord@npm:^2.9.3":
+  version: 2.9.3
+  resolution: "colord@npm:2.9.3"
+  checksum: 95d909bfbcfd8d5605cbb5af56f2d1ce2b323990258fd7c0d2eb0e6d3bb177254d7fb8213758db56bb4ede708964f78c6b992b326615f81a18a6aaf11d64c650
   languageName: node
   linkType: hard
 
@@ -11435,13 +11428,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-arrayish@npm:^0.3.1":
-  version: 0.3.2
-  resolution: "is-arrayish@npm:0.3.2"
-  checksum: 977e64f54d91c8f169b59afcd80ff19227e9f5c791fa28fa2e5bce355cbaf6c2c356711b734656e80c9dd4a854dd7efcf7894402f1031dfc5de5d620775b4d5f
-  languageName: node
-  linkType: hard
-
 "is-bigint@npm:^1.0.1":
   version: 1.0.4
   resolution: "is-bigint@npm:1.0.4"
@@ -11956,7 +11942,7 @@ __metadata:
     "@emotion/styled": ^11.10.6
     "@gmod/gff": ^1.2.0
     "@jbrowse/cli": ^2.6.2
-    "@jbrowse/core": 2.6.3
+    "@jbrowse/core": ^2.7.0
     "@jbrowse/development-tools": ^2.1.1
     "@jbrowse/plugin-authentication": ^2.0.1
     "@jbrowse/plugin-linear-genome-view": ^2.0.1
@@ -12009,7 +11995,7 @@ __metadata:
     tss-react: ^4.6.1
     typescript: ^5.1.6
   peerDependencies:
-    "@jbrowse/core": 2.6.3
+    "@jbrowse/core": ^2.7.0
     "@mui/material": ^5.11.10
     mobx: ^6.6.1
     mobx-react: ^7.2.1
@@ -14170,13 +14156,6 @@ __metadata:
   version: 0.0.8
   resolution: "mute-stream@npm:0.0.8"
   checksum: ff48d251fc3f827e5b1206cda0ffdaec885e56057ee86a3155e1951bc940fd5f33531774b1cc8414d7668c10a8907f863f6561875ee6e8768931a62121a531a1
-  languageName: node
-  linkType: hard
-
-"nanoid@npm:^2.1.0":
-  version: 2.1.11
-  resolution: "nanoid@npm:2.1.11"
-  checksum: 18cd14386816873849787eb4e65667021bfdeb019a8f14c74287c23594c67b7c0e8f42c7d69f6aedf05cd3d100f1ddc41184f9f9b6b17fbaea1c3ee3f0704eec
   languageName: node
   linkType: hard
 
@@ -16808,15 +16787,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"shortid@npm:^2.2.13":
-  version: 2.2.16
-  resolution: "shortid@npm:2.2.16"
-  dependencies:
-    nanoid: ^2.1.0
-  checksum: 0790ce22fe20aacc226915160da178b5a6af7814d1796404684f6699b60f77e291d39ad3b6b2b4c6efcf5553e1deeee7e29a48b8f46955de1425e67ab934e309
-  languageName: node
-  linkType: hard
-
 "shx@npm:^0.3.3":
   version: 0.3.4
   resolution: "shx@npm:0.3.4"
@@ -16858,15 +16828,6 @@ __metadata:
   version: 4.0.2
   resolution: "signal-exit@npm:4.0.2"
   checksum: 41f5928431cc6e91087bf0343db786a6313dd7c6fd7e551dbc141c95bb5fb26663444fd9df8ea47c5d7fc202f60aa7468c3162a9365cbb0615fc5e1b1328fe31
-  languageName: node
-  linkType: hard
-
-"simple-swizzle@npm:^0.2.2":
-  version: 0.2.2
-  resolution: "simple-swizzle@npm:0.2.2"
-  dependencies:
-    is-arrayish: ^0.3.1
-  checksum: a7f3f2ab5c76c4472d5c578df892e857323e452d9f392e1b5cf74b74db66e6294a1e1b8b390b519fa1b96b5b613f2a37db6cffef52c3f1f8f3c5ea64eb2d54c0
   languageName: node
   linkType: hard
 

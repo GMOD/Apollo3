@@ -18,10 +18,11 @@ import { getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
 import { ChangeManager } from '../ChangeManager'
+import { ApolloSessionModel } from '../session'
 import { Dialog } from './Dialog'
 
 interface CopyFeatureProps {
-  session: AbstractSessionModel
+  session: ApolloSessionModel
   handleClose(): void
   sourceFeature: AnnotationFeatureI
   sourceAssemblyId: string
@@ -73,7 +74,7 @@ export function CopyFeature({
   sourceAssemblyId,
   sourceFeature,
 }: CopyFeatureProps) {
-  const { assemblyManager } = session
+  const { assemblyManager, notify } = session as unknown as AbstractSessionModel
   const assemblies = assemblyManager.assemblyList
 
   const [selectedAssemblyId, setSelectedAssemblyId] =
@@ -84,7 +85,6 @@ export function CopyFeature({
   const [selectedRefSeqId, setSelectedRefSeqId] = useState('')
   const [start, setStart] = useState(sourceFeature.start)
   const [errorMessage, setErrorMessage] = useState('')
-  const { notify } = session
 
   async function handleChangeAssembly(e: SelectChangeEvent<string>) {
     setSelectedAssemblyId(e.target.value)

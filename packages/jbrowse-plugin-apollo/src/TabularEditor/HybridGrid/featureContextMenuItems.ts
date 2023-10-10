@@ -9,6 +9,7 @@ import {
   DeleteFeature,
   ModifyFeatureAttribute,
 } from '../../components'
+import { ApolloSessionModel } from '../../session'
 import { getApolloInternetAccount } from '../../util'
 
 export function featureContextMenuItems(
@@ -17,7 +18,7 @@ export function featureContextMenuItems(
   getAssemblyId: (assemblyName: string) => string,
   selectedFeature: AnnotationFeatureI | undefined,
   setSelectedFeature: (f: AnnotationFeatureI | undefined) => void,
-  session: AbstractSessionModel,
+  session: ApolloSessionModel,
   changeManager: ChangeManager,
 ) {
   const internetAccount = getApolloInternetAccount(session)
@@ -34,75 +35,83 @@ export function featureContextMenuItems(
         label: 'Add child feature',
         disabled: readOnly,
         onClick: () => {
-          session.queueDialog((doneCallback) => [
-            AddFeature,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              AddFeature,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                changeManager,
+                sourceFeature: feature,
+                sourceAssemblyId,
+                internetAccount,
               },
-              changeManager,
-              sourceFeature: feature,
-              sourceAssemblyId,
-              internetAccount,
-            },
-          ])
+            ],
+          )
         },
       },
       {
         label: 'Copy features and annotations',
         disabled: readOnly,
         onClick: () => {
-          session.queueDialog((doneCallback) => [
-            CopyFeature,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              CopyFeature,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                changeManager,
+                sourceFeature: feature,
+                sourceAssemblyId: currentAssemblyId,
               },
-              changeManager,
-              sourceFeature: feature,
-              sourceAssemblyId: currentAssemblyId,
-            },
-          ])
+            ],
+          )
         },
       },
       {
         label: 'Delete feature',
         disabled: !admin,
         onClick: () => {
-          session.queueDialog((doneCallback) => [
-            DeleteFeature,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              DeleteFeature,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                changeManager,
+                sourceFeature: feature,
+                sourceAssemblyId: currentAssemblyId,
+                selectedFeature,
+                setSelectedFeature,
               },
-              changeManager,
-              sourceFeature: feature,
-              sourceAssemblyId: currentAssemblyId,
-              selectedFeature,
-              setSelectedFeature,
-            },
-          ])
+            ],
+          )
         },
       },
       {
         label: 'Edit attributes',
         disabled: readOnly,
         onClick: () => {
-          session.queueDialog((doneCallback) => [
-            ModifyFeatureAttribute,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              ModifyFeatureAttribute,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                changeManager,
+                sourceFeature: feature,
+                sourceAssemblyId: currentAssemblyId,
               },
-              changeManager,
-              sourceFeature: feature,
-              sourceAssemblyId: currentAssemblyId,
-            },
-          ])
+            ],
+          )
         },
       },
     )

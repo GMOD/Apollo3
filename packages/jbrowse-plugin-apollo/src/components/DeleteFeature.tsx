@@ -1,4 +1,4 @@
-import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
   DialogActions,
@@ -12,10 +12,12 @@ import React, { useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
+import { ApolloSessionModel } from '../session'
+import { ApolloRootModel } from '../types'
 import { Dialog } from './Dialog'
 
 interface DeleteFeatureProps {
-  session: AbstractSessionModel
+  session: ApolloSessionModel
   handleClose(): void
   sourceFeature: AnnotationFeatureI
   sourceAssemblyId: string
@@ -33,8 +35,8 @@ export function DeleteFeature({
   sourceAssemblyId,
   sourceFeature,
 }: DeleteFeatureProps) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
-  const { notify } = session
+  const { internetAccounts } = getRoot<ApolloRootModel>(session)
+  const { notify } = session as unknown as AbstractSessionModel
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel | undefined

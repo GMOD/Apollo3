@@ -17,7 +17,7 @@ import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { Instance, addDisposer, types } from 'mobx-state-tree'
 
-import { ApolloSession } from '../session'
+import { ApolloSession, ApolloSessionModel } from '../session'
 
 const forwardPhaseMap: Record<number, number> = { 0: 2, 1: 1, 2: 0 }
 const reversePhaseMap: Record<number, number> = { 3: 0, 4: 1, 5: 2 }
@@ -76,11 +76,14 @@ export function stateModelFactory(
         return regions
       },
       regionCannotBeRendered(/* region */) {
-        const view = getContainingView(self)
+        const view = getContainingView(self) as unknown as LinearGenomeViewModel
         if (view && view.bpPerPx >= 200) {
           return 'Zoom in to see annotations'
         }
         return
+      },
+      get session() {
+        return getSession(self) as unknown as ApolloSessionModel
       },
     }))
     .actions((self) => {
