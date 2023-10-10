@@ -49,7 +49,8 @@ export class FileStorageEngine implements StorageEngine {
     const zlib = require('node:zlib')
     // Check md5 checksum of saved file
     const fileWriteStream = createWriteStream(tempFullFileName)
-    const gz = createGzip({ level: zlib.constants.Z_BEST_SPEED }) // BEST_SPEED option must be used in order to process also FASTA files > 1 GB (in Node 18 onwards)
+    // const gz = createGzip({ level: zlib.constants.Z_BEST_SPEED }) // BEST_SPEED option must be used in order to process also FASTA files > 1 GB (in Node 18 onwards)
+    const gz = createGzip() // BEST_SPEED option must be used in order to process also FASTA files > 1 GB (in Node 18 onwards)
     await pipeline(file.stream, gz, fileWriteStream)
     this.logger.debug(`Compressed file: ${tempFullFileName}`)
     const fileChecksum = hash.digest('hex')
