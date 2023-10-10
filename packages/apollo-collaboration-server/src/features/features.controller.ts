@@ -106,9 +106,8 @@ export class FeaturesController {
     this.logger.debug(
       `Get features count by ${JSON.stringify(featureCountRequest)}`,
     )
-    const count = await this.featuresService.getFeatureCount(
-      featureCountRequest,
-    )
+    const count =
+      await this.featuresService.getFeatureCount(featureCountRequest)
     return { count }
   }
 
