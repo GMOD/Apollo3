@@ -91,7 +91,6 @@ async function bootstrap() {
     }),
   )
 
-  // await app.listen(PORT)
   const server = await app.listen(PORT)
   server.headersTimeout = 24 * 60 * 60 * 1000 // one day
   server.requestTimeout = 24 * 60 * 60 * 1000 // one day
