@@ -1,4 +1,4 @@
-import { getSession, isAbortException } from '@jbrowse/core/util'
+import { AbstractSessionModel, isAbortException } from '@jbrowse/core/util'
 import {
   Autocomplete,
   AutocompleteRenderInputParams,
@@ -9,9 +9,10 @@ import React, { useCallback, useEffect, useState } from 'react'
 import type { OntologyManager } from '../OntologyManager'
 import { OntologyTerm, isDeprecated } from '../OntologyManager'
 import OntologyStore from '../OntologyManager/OntologyStore'
+import { ApolloSessionModel } from '../session'
 
 interface OntologyTermAutocompleteProps {
-  session: ReturnType<typeof getSession>
+  session: ApolloSessionModel
   ontologyName: string
   ontologyVersion?: string
   value: string
@@ -116,7 +117,10 @@ export function OntologyTermAutocomplete({
         },
         (error) => {
           if (!signal.aborted && !isAbortException(error)) {
-            session.notify(error.message, 'error')
+            ;(session as unknown as AbstractSessionModel).notify(
+              error.message,
+              'error',
+            )
           }
         },
       )

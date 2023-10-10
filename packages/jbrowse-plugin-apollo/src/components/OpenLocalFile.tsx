@@ -1,4 +1,5 @@
 import gff, { GFF3Feature, GFF3Sequence } from '@gmod/gff'
+import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
   DialogActions,
@@ -38,13 +39,12 @@ export interface SequenceAdapterFeatureInterface {
 }
 
 export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
-  const {
-    addApolloTrackConfig,
-    addAssembly,
-    addSessionAssembly,
-    assemblyManager,
-    notify,
-  } = session as ApolloSessionModel
+  const { addApolloTrackConfig, apolloDataStore } = session
+  const { addAssembly, addSessionAssembly, assemblyManager, notify } =
+    session as unknown as AbstractSessionModel & {
+      // eslint-disable-next-line @typescript-eslint/ban-types
+      addSessionAssembly: Function
+    }
 
   const [file, setFile] = useState<File | null>(null)
   const [assemblyName, setAssemblyName] = useState('')
@@ -101,9 +101,9 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
     const assemblyId = `${assemblyName}-${file.name}-${nanoid(8)}`
 
     const sequenceAdapterFeatures: SequenceAdapterFeatureInterface[] = []
-    let assembly = session.apolloDataStore.assemblies.get(assemblyId)
+    let assembly = apolloDataStore.assemblies.get(assemblyId)
     if (!assembly) {
-      assembly = session.apolloDataStore.addAssembly(assemblyId)
+      assembly = apolloDataStore.addAssembly(assemblyId)
     }
     for (const seqLine of featuresAndSequences) {
       if (Array.isArray(seqLine)) {
@@ -152,8 +152,13 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
     // Save assembly into session
     await (addSessionAssembly || addAssembly)(assemblyConfig)
     const a = await assemblyManager.waitForAssembly(assemblyConfig.name)
-    addApolloTrackConfig(a)
-    notify(`Loaded GFF3 ${file?.name}`, 'success')
+    if (a) {
+      // @ts-expect-error MST type coercion problem?
+      addApolloTrackConfig(a)
+      notify(`Loaded GFF3 ${file?.name}`, 'success')
+    } else {
+      notify(`Error loading GFF3 ${file?.name}`, 'error')
+    }
     handleClose()
   }
 

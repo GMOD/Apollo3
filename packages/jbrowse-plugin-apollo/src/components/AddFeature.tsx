@@ -19,11 +19,12 @@ import React, { useState } from 'react'
 import { ChangeManager } from '../ChangeManager'
 import { isOntologyClass } from '../OntologyManager'
 import OntologyStore from '../OntologyManager/OntologyStore'
+import { ApolloSessionModel } from '../session'
 import { Dialog } from './Dialog'
 import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
 
 interface AddFeatureProps {
-  session: AbstractSessionModel
+  session: ApolloSessionModel
   handleClose(): void
   sourceFeature: AnnotationFeatureI
   sourceAssemblyId: string
@@ -43,7 +44,7 @@ export function AddFeature({
   sourceAssemblyId,
   sourceFeature,
 }: AddFeatureProps) {
-  const { notify } = session
+  const { notify } = session as unknown as AbstractSessionModel
   const [end, setEnd] = useState(String(sourceFeature.end))
   const [start, setStart] = useState(String(sourceFeature.start))
   const [type, setType] = useState('')

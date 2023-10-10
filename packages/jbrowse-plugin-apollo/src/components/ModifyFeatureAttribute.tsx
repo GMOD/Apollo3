@@ -1,8 +1,4 @@
-import {
-  AbstractSessionModel,
-  AppRootModel,
-  getSession,
-} from '@jbrowse/core/util'
+import { AbstractSessionModel } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Button,
@@ -28,11 +24,13 @@ import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
+import { ApolloSessionModel } from '../session'
+import { ApolloRootModel } from '../types'
 import { Dialog } from './Dialog'
 import { OntologyTermMultiSelect } from './OntologyTermMultiSelect'
 
 interface ModifyFeatureAttributeProps {
-  session: AbstractSessionModel
+  session: ApolloSessionModel
   handleClose(): void
   sourceFeature: AnnotationFeatureI
   sourceAssemblyId: string
@@ -71,7 +69,7 @@ const useStyles = makeStyles()((theme) => ({
 }))
 
 export interface AttributeValueEditorProps {
-  session: ReturnType<typeof getSession>
+  session: ApolloSessionModel
   value: string[]
   onChange(newValue: string[]): void
 }
@@ -117,9 +115,9 @@ export function ModifyFeatureAttribute({
   sourceAssemblyId,
   sourceFeature,
 }: ModifyFeatureAttributeProps) {
-  const { notify } = session
+  const { notify } = session as unknown as AbstractSessionModel
 
-  const { internetAccounts } = getRoot(session) as AppRootModel
+  const { internetAccounts } = getRoot<ApolloRootModel>(session)
   const internetAccount = useMemo(() => {
     const apolloInternetAccount = internetAccounts.find(
       (ia) => ia.type === 'ApolloInternetAccount',

@@ -5,6 +5,7 @@ import { observer } from 'mobx-react'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
+import { ApolloSessionModel } from '../../session'
 import { getApolloInternetAccount } from '../../util'
 import { DisplayStateModel } from '../types'
 import { Feature } from './Feature'
@@ -47,7 +48,9 @@ const HybridGrid = observer(function HybridGrid({
   const { filterText } = tabularEditor
 
   const internetAccount = useMemo(() => {
-    return getApolloInternetAccount(getSession(model))
+    return getApolloInternetAccount(
+      getSession(model) as unknown as ApolloSessionModel,
+    )
   }, [model])
 
   // scrolls to selected feature if one is selected and it's not already visible

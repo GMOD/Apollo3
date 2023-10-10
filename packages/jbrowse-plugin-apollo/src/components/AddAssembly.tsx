@@ -1,4 +1,4 @@
-import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import { AbstractSessionModel } from '@jbrowse/core/util'
 import LinkIcon from '@mui/icons-material/Link'
 import {
   Box,
@@ -32,11 +32,13 @@ import React, { useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
+import { ApolloSessionModel } from '../session'
+import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 import { Dialog } from './Dialog'
 
 interface AddAssemblyProps {
-  session: AbstractSessionModel
+  session: ApolloSessionModel
   handleClose(): void
   changeManager: ChangeManager
 }
@@ -52,8 +54,8 @@ export function AddAssembly({
   handleClose,
   session,
 }: AddAssemblyProps) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
-  const { notify } = session
+  const { internetAccounts } = getRoot<ApolloRootModel>(session)
+  const { notify } = session as unknown as AbstractSessionModel
   const apolloInternetAccounts = internetAccounts.filter(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel[]

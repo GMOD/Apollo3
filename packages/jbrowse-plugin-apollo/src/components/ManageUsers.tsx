@@ -1,4 +1,4 @@
-import { AbstractRootModel, AbstractSessionModel } from '@jbrowse/core/util'
+import { AbstractRootModel } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Button,
@@ -25,6 +25,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
+import { ApolloSessionModel } from '../session'
 import { createFetchErrorMessage } from '../util'
 import { Dialog } from './Dialog'
 
@@ -36,7 +37,7 @@ interface UserResponse {
 }
 
 interface ManageUsersProps {
-  session: AbstractSessionModel
+  session: ApolloSessionModel
   handleClose(): void
   changeManager: ChangeManager
 }
@@ -50,7 +51,7 @@ export function ManageUsers({
   handleClose,
   session,
 }: ManageUsersProps) {
-  const { internetAccounts } = getRoot(session) as ApolloRootModel
+  const { internetAccounts } = getRoot<ApolloRootModel>(session)
   const apolloInternetAccounts = internetAccounts.filter(
     (ia) =>
       ia.type === 'ApolloInternetAccount' && ia.getRole()?.includes('admin'),

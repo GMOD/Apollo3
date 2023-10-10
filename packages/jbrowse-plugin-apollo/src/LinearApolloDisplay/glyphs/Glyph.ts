@@ -1,4 +1,5 @@
 import { MenuItem } from '@jbrowse/core/ui'
+import { AbstractSessionModel } from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 
@@ -218,75 +219,83 @@ export abstract class Glyph {
           label: 'Add child feature',
           disabled: readOnly,
           onClick: () => {
-            session.queueDialog((doneCallback) => [
-              AddFeature,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
+            ;(session as unknown as AbstractSessionModel).queueDialog(
+              (doneCallback) => [
+                AddFeature,
+                {
+                  session,
+                  handleClose: () => {
+                    doneCallback()
+                  },
+                  changeManager,
+                  sourceFeature,
+                  sourceAssemblyId,
+                  internetAccount,
                 },
-                changeManager,
-                sourceFeature,
-                sourceAssemblyId,
-                internetAccount,
-              },
-            ])
+              ],
+            )
           },
         },
         {
           label: 'Copy features and annotations',
           disabled: readOnly,
           onClick: () => {
-            session.queueDialog((doneCallback) => [
-              CopyFeature,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
+            ;(session as unknown as AbstractSessionModel).queueDialog(
+              (doneCallback) => [
+                CopyFeature,
+                {
+                  session,
+                  handleClose: () => {
+                    doneCallback()
+                  },
+                  changeManager,
+                  sourceFeature,
+                  sourceAssemblyId: currentAssemblyId,
                 },
-                changeManager,
-                sourceFeature,
-                sourceAssemblyId: currentAssemblyId,
-              },
-            ])
+              ],
+            )
           },
         },
         {
           label: 'Delete feature',
           disabled: !admin,
           onClick: () => {
-            session.queueDialog((doneCallback) => [
-              DeleteFeature,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
+            ;(session as unknown as AbstractSessionModel).queueDialog(
+              (doneCallback) => [
+                DeleteFeature,
+                {
+                  session,
+                  handleClose: () => {
+                    doneCallback()
+                  },
+                  changeManager,
+                  sourceFeature,
+                  sourceAssemblyId: currentAssemblyId,
+                  selectedFeature,
+                  setSelectedFeature,
                 },
-                changeManager,
-                sourceFeature,
-                sourceAssemblyId: currentAssemblyId,
-                selectedFeature,
-                setSelectedFeature,
-              },
-            ])
+              ],
+            )
           },
         },
         {
           label: 'Modify feature attribute',
           disabled: readOnly,
           onClick: () => {
-            session.queueDialog((doneCallback) => [
-              ModifyFeatureAttribute,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
+            ;(session as unknown as AbstractSessionModel).queueDialog(
+              (doneCallback) => [
+                ModifyFeatureAttribute,
+                {
+                  session,
+                  handleClose: () => {
+                    doneCallback()
+                  },
+                  changeManager,
+                  sourceFeature,
+                  sourceAssemblyId: currentAssemblyId,
                 },
-                changeManager,
-                sourceFeature,
-                sourceAssemblyId: currentAssemblyId,
-              },
-            ])
+              ],
+            )
           },
         },
       )

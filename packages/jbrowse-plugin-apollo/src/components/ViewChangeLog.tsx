@@ -1,4 +1,3 @@
-import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
 import {
   Button,
   DialogActions,
@@ -20,11 +19,13 @@ import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { ApolloSessionModel } from '../session'
+import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 import { Dialog } from './Dialog'
 
 interface ViewChangeLogProps {
-  session: AbstractSessionModel
+  session: ApolloSessionModel
   handleClose(): void
 }
 
@@ -44,7 +45,7 @@ const useStyles = makeStyles()((theme) => ({
 }))
 
 export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
+  const { internetAccounts } = getRoot<ApolloRootModel>(session)
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel | undefined

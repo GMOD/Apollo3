@@ -1,7 +1,8 @@
-import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
 import { getParent } from 'mobx-state-tree'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { ApolloSessionModel } from '../session'
+import { ApolloRootModel } from '../types'
 
 export async function createFetchErrorMessage(
   response: Response,
@@ -20,8 +21,8 @@ export async function createFetchErrorMessage(
 }
 
 /** given a session, get our ApolloInternetAccount */
-export function getApolloInternetAccount(session: AbstractSessionModel) {
-  const { internetAccounts } = getParent<AppRootModel>(session)
+export function getApolloInternetAccount(session: ApolloSessionModel) {
+  const { internetAccounts } = getParent<ApolloRootModel>(session)
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel | undefined

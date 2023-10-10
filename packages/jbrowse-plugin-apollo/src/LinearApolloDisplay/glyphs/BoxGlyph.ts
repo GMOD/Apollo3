@@ -2,6 +2,7 @@ import { alpha } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 
+import { ApolloSessionModel } from '../../session'
 import { LinearApolloDisplay } from '../stateModel'
 import { MousePosition } from '../stateModel/mouseEvents'
 import { CanvasMouseEvent } from '../types'
@@ -22,7 +23,7 @@ export class BoxGlyph extends Glyph {
   ) {
     const { apolloRowHeight: rowHeight, lgv, session, theme } = stateModel
     const { bpPerPx } = lgv
-    const { apolloSelectedFeature } = session
+    const { apolloSelectedFeature } = session as unknown as ApolloSessionModel
     const offsetPx = (feature.start - feature.min) / bpPerPx
     const widthPx = feature.length / bpPerPx
     const startPx = reversed ? xOffset - offsetPx - widthPx : xOffset + offsetPx
@@ -277,7 +278,7 @@ export class BoxGlyph extends Glyph {
     if (!changeManager) {
       throw new Error('no change manager')
     }
-    changeManager.submit(change)
+    void changeManager.submit(change)
     setCursor()
   }
 }

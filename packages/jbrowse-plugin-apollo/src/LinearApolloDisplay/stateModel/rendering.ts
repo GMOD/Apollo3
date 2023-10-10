@@ -5,7 +5,7 @@ import { Theme } from '@mui/material'
 import { autorun } from 'mobx'
 import { Instance, addDisposer } from 'mobx-state-tree'
 
-import { Collaborator } from '../../session'
+import { ApolloSessionModel } from '../../session'
 import { getGlyph } from './getGlyph'
 import { layoutsModelFactory } from './layouts'
 
@@ -82,8 +82,9 @@ export function renderingModelIntermediateFactory(
                 self.lgv.dynamicBlocks.totalWidthPx,
                 self.featuresHeight,
               )
-              for (const collaborator of self.session
-                .collaborators as Collaborator[]) {
+              for (const collaborator of (
+                self.session as unknown as ApolloSessionModel
+              ).collaborators) {
                 const { locations } = collaborator
                 if (locations.length === 0) {
                   continue
