@@ -18,13 +18,13 @@ import {
   flow,
   getParentOfType,
   getRoot,
+  getSnapshot,
   resolveIdentifier,
   types,
 } from 'mobx-state-tree'
 
 import {
   ApolloInternetAccount,
-  BackendDriver,
   CollaborationServerDriver,
   InMemoryFileDriver,
 } from '../BackendDrivers'
@@ -36,6 +36,7 @@ import {
   TextIndexFieldDefinition,
 } from '../OntologyManager'
 import { ApolloRootModel } from '../types'
+import { CheckReport, detectStopCodons } from './CheckReports'
 
 export function clientDataStoreFactory(
   AnnotationFeatureExtended: typeof AnnotationFeature,
@@ -50,6 +51,20 @@ export function clientDataStoreFactory(
       get internetAccounts() {
         return getRoot<ApolloRootModel>(self).internetAccounts
       },
+
+      checkStopCodons(): CheckReport[] {
+        let checkReport: CheckReport[] = []
+        for (const [, assembly] of self.assemblies) {
+          for (const [, refSeq] of assembly.refSeqs) {
+            for (const [, feature] of refSeq.features) {
+              const cds: string = feature.getCodingSequence(refSeq).join('')
+              checkReport = detectStopCodons(feature.gffId ?? 'n/a', cds)
+            }
+          }
+        }
+        return checkReport
+      },
+
       get pluginConfiguration() {
         return getRoot<ApolloRootModel>(self).jbrowse.configuration
           .ApolloPlugin as Instance<typeof ApolloPluginConfigurationSchema>
@@ -235,9 +250,8 @@ export function clientDataStoreFactory(
       }),
       loadRefSeq: flow(function* loadRefSeq(regions: Region[]) {
         for (const region of regions) {
-          const { refSeq, seq } = yield (
-            self as unknown as { backendDriver: BackendDriver }
-          ).backendDriver.getSequence(region)
+          const backendDriver = self.getBackendDriver(region.assemblyName)
+          const { refSeq, seq } = yield backendDriver.getSequence(region)
           const { assemblyName, end, refName, start } = region
           let assembly = self.assemblies.get(assemblyName)
           if (!assembly) {
