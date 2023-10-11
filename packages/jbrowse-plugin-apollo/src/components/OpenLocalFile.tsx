@@ -263,7 +263,7 @@ function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
     gffId: '',
     refSeq: refName,
     type,
-    start,
+    start: start - 1,
     end,
   }
   if (gff3Feature.length > 1) {
@@ -297,7 +297,7 @@ function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
           }
         }
       }
-      return { start: subStart, end: subEnd, phase: parsedPhase }
+      return { start: subStart - 1, end: subEnd, phase: parsedPhase }
     })
   }
   if (strand) {
