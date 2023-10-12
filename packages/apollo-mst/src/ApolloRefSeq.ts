@@ -7,6 +7,7 @@ import {
 
 import {
   AnnotationFeature,
+  AnnotationFeatureI,
   AnnotationFeatureSnapshot,
 } from './AnnotationFeature'
 
@@ -98,6 +99,58 @@ export const ApolloRefSeq = types
         }
       }
       return ''
+    },
+    _reverseComplement(dna: string): string {
+      const COMPLEMENTS: Record<string, string> = {
+        A: 'T',
+        C: 'G',
+        G: 'C',
+        T: 'A',
+        N: 'N',
+      }
+      const revComp: string[] = []
+      for (const nt of dna) {
+        const rc: string = COMPLEMENTS[nt]
+        if (rc === undefined) {
+          throw new TypeError(`Cannot complement nucleotide: "${nt}"`)
+        }
+        revComp.push(rc)
+      }
+      return revComp.reverse().join('')
+    },
+    _getCodingSequence(feature: AnnotationFeatureI, cdna: string[]): void {
+      if (feature.type === 'CDS') {
+        let seq = ''
+        if (
+          feature.discontinuousLocations === undefined ||
+          feature.discontinuousLocations.length === 0
+        ) {
+          // Remove -1 once off-by-one error is fixed
+          seq = this.getSequence(feature.start - 1, feature.end).toUpperCase()
+        } else {
+          for (const x of feature.discontinuousLocations) {
+            seq = seq + this.getSequence(x.start - 1, x.end).toUpperCase()
+          }
+        }
+        if (feature.strand === 1) {
+          //
+        } else if (feature.strand === -1) {
+          seq = this._reverseComplement(seq)
+        } else {
+          throw new Error(`Unexpected strand ${feature.strand}`)
+        }
+        cdna.push(seq)
+      }
+      if (feature.children) {
+        for (const [, child] of feature.children) {
+          this._getCodingSequence(child, cdna)
+        }
+      }
+    },
+    getCodingSequence(feature: AnnotationFeatureI): string[] {
+      const cdna: string[] = []
+      this._getCodingSequence(feature, cdna)
+      return cdna
     },
   }))
 
