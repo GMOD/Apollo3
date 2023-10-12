@@ -1,5 +1,6 @@
 enum CHECK_TYPE {
   'StopCodonCheck',
+  'MultipleOfThreeCheck',
 }
 
 enum STOP_CODONS {
@@ -26,11 +27,6 @@ export class CheckReport {
 }
 
 function splitSequenceInCodons(cds: string): string[] {
-  if (cds.length % 3 !== 0) {
-    throw new Error(
-      `Length of coding sequence is not a multiple of 3: ${cds.length}`,
-    )
-  }
   const codons: string[] = []
   for (let i = 0; i <= cds.length - 3; i += 3) {
     codons.push(cds.slice(i, i + 3))
@@ -43,8 +39,17 @@ export function detectStopCodons(
   cds: string,
 ): CheckReport[] {
   const checkReports: CheckReport[] = []
-  const codons: string[] = splitSequenceInCodons(cds)
-  codons.pop() // Last codon is supposed to be a stop
+  const codons = splitSequenceInCodons(cds)
+  if (cds.length % 3 === 0) {
+    codons.pop() // Last codon is supposed to be a stop
+  } else {
+    const report: CheckReport = new CheckReport(
+      CHECK_TYPE.MultipleOfThreeCheck,
+      featureId,
+      `Coding sequence length is not a multiple of 3 in ${cds}`,
+    )
+    checkReports.push(report)
+  }
   for (const stopCodon in STOP_CODONS) {
     const st: string = STOP_CODONS[stopCodon]
     for (const codon of codons) {

@@ -18,6 +18,14 @@ chr3	.	CDS	16	30	.	+	0	ID=cds03;Parent=mrna03
 chr4	.	gene	1	30	.	-	.	ID=gene04
 chr4	.	mRNA	1	30	.	-	.	ID=mrna04;Parent=gene04
 chr4	.	CDS	1	30	.	-	0	ID=cds04.1;Parent=mrna04
+#
+chr5	.	gene	1	30	.	+	.	ID=gene05
+chr5	.	mRNA	1	30	.	+	.	ID=mrna05;Parent=gene05
+chr5	.	CDS_region	1	30	.	+	0	ID=cds05.1;Parent=mrna05
+#
+chr6	.	gene	1	30	.	+	.	ID=gene06
+chr6	.	mRNA	1	30	.	+	.	ID=mrna06;Parent=gene06
+chr6	.	CDS	1	10	.	+	0	ID=cds06.1;Parent=mrna06
 ##FASTA
 >chr1
 ATGGTGCCGCAAAGTACTGGTGGGGGTTAAnnnnnnnnnnnnnnnnnnnnn
@@ -27,3 +35,7 @@ ATGGTGtagCAAAGTACTGTTAGGGGTTAAnnnnnnnnnnnnnnnnnnnnn
 ATGGTGtagCAAAGTACTGTTAGGtagTAAnnnnnnnnnnnnnnnnnnnnn
 >chr4
 TTActaCCCACCAGTACTTTGCGGtcaCATnnnnnnnnnnnnnnnnnnnnn
+>chr5
+ATGGTGtagCAAAGTACTGTTAGGGGTTAAnnnnnnnnnnnnnnnnnnnnn
+>chr6
+ATGGTGtagCAAAGTACTGTTAGGGGTTAAnnnnnnnnnnnnnnnnnnnnn

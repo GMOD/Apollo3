@@ -88,62 +88,6 @@ export const AnnotationFeature = types
       }
       return max
     },
-
-    _reverseComplement(dna: string): string {
-      const COMPLEMENTS: Record<string, string> = {
-        A: 'T',
-        C: 'G',
-        G: 'C',
-        T: 'A',
-        N: 'N',
-      }
-
-      const revComp = Array.from({ length: dna.length })
-      for (let i = 0; i < dna.length; i++) {
-        const nt: string = dna[i]
-        const rc: string = COMPLEMENTS[nt]
-        if (rc === undefined) {
-          throw new TypeError(`Cannot complement nucleotide: "${nt}"`)
-        }
-        revComp[i] = rc
-      }
-      return revComp.reverse().join('')
-    },
-
-    _getCodingSequence(refSeq: any, cdna: string[]): void {
-      if (self.type === 'CDS') {
-        let seq = ''
-        if (
-          self.discontinuousLocations === undefined ||
-          self.discontinuousLocations.length === 0
-        ) {
-          // Remove -1 once off-by-one error is fixed
-          seq = refSeq.getSequence(self.start - 1, self.end).toUpperCase()
-        } else {
-          for (const x of self.discontinuousLocations) {
-            seq = seq + refSeq.getSequence(x.start - 1, x.end).toUpperCase()
-          }
-        }
-        if (self.strand === 1) {
-          //
-        } else if (self.strand === -1) {
-          seq = this._reverseComplement(seq)
-        } else {
-          throw new Error(`Unexpected strand ${self.strand}`)
-        }
-        cdna.push(seq)
-      }
-      if (self.children) {
-        for (const [, child] of self.children) {
-          child._getCodingSequence(refSeq, cdna)
-        }
-      }
-    },
-    getCodingSequence(refSeq: any): string[] {
-      const cdna: string[] = []
-      this._getCodingSequence(refSeq, cdna)
-      return cdna
-    },
   }))
   .actions((self) => ({
     setAttributes(attributes: Map<string, string[]>) {

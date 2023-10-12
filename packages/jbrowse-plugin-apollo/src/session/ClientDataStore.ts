@@ -51,11 +51,14 @@ export function clientDataStoreFactory(
 
       checkStopCodons(): CheckReport[] {
         let checkReport: CheckReport[] = []
+        let n = 0
         for (const [, assembly] of self.assemblies) {
           for (const [, refSeq] of assembly.refSeqs) {
             for (const [, feature] of refSeq.features) {
-              const cds: string = feature.getCodingSequence(refSeq).join('')
+              const cds: string = refSeq.getCodingSequence(feature).join('')
+              const featureSnap = getSnapshot(feature)
               checkReport = detectStopCodons(feature.gffId ?? 'n/a', cds)
+              n++
             }
           }
         }
