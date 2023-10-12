@@ -11,7 +11,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@gmod/gff": "^1.2.0",
+    "@gmod/gff": "1.2.0",
     "@jbrowse/core": "^2.7.0",
     "apollo-schemas": "workspace:^",
     "bson-objectid": "^2.0.4",

@@ -561,9 +561,8 @@ const stateModelFactory = (
       let authTypePromise: Promise<AuthType> | undefined
       return {
         async getPreAuthorizationInformation(location: UriLocation) {
-          const preAuthInfo = await superGetPreAuthorizationInformation(
-            location,
-          )
+          const preAuthInfo =
+            await superGetPreAuthorizationInformation(location)
           return {
             ...preAuthInfo,
             authInfo: {

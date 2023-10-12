@@ -26,7 +26,7 @@
   "dependencies": {
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
-    "@gmod/gff": "^1.2.0",
+    "@gmod/gff": "1.2.0",
     "@gmod/indexedfasta": "^2.0.4",
     "@jbrowse/core": "^2.7.0",
     "@mui/base": "^5.0.0-alpha.118",
@@ -57,7 +57,7 @@
     "mobx-state-tree": "^5.1.7",
     "mongoose": "^6.12.0",
     "mongoose-id-validator": "^0.6.0",
-    "multer": "^1.4.4",
+    "multer": "^1.4.5-lts.1",
     "node-fetch": "^2.6.7",
     "passport": "^0.5.0",
     "passport-google-oauth20": "^2.0.0",
