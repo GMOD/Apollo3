@@ -68,6 +68,7 @@ const HybridGrid = observer(function HybridGrid({
   const { loadingRegions } = getSession(model).apolloDataStore
   const { filterText } = tabularEditor
 
+  // filters seenFeatures by features only directly observed by the user
   const [visibleRegion] = lgv.getSelectedRegions()
   const visibleFeatures = [...seenFeatures.entries()].filter((entry) => {
     const [, feature] = entry
@@ -75,7 +76,6 @@ const HybridGrid = observer(function HybridGrid({
       feature.start > visibleRegion.start && feature.end < visibleRegion.end
     )
   })
-  // filter seenFeatures such that they're only within this value
 
   const internetAccount = useMemo(() => {
     return getApolloInternetAccount(getSession(model))
