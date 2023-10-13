@@ -130,7 +130,7 @@ export function baseModelFactory(
               }
               self.session.apolloDataStore.loadFeatures(self.regions)
             },
-            { name: 'LinearApolloDisplayLoadFeatures', delay: 1000 },
+            { name: 'LinearApolloDisplayLoadFeatures' },
           ),
         )
       },

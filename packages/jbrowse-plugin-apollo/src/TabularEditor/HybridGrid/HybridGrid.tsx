@@ -1,6 +1,7 @@
 import { Menu, MenuItem } from '@jbrowse/core/ui'
 import { getSession } from '@jbrowse/core/util'
-import { useTheme } from '@mui/material'
+import LoadingEllipses from '@jbrowse/core/ui/LoadingEllipses'
+import { Alert, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
@@ -23,6 +24,26 @@ const useStyles = makeStyles()((theme) => ({
     },
     td: { whiteSpace: 'normal' },
   },
+  loading: {
+    backgroundColor: theme.palette.background.default,
+    backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 5px, ${theme.palette.action.disabledBackground} 5px, ${theme.palette.action.disabledBackground} 10px)`,
+    position: 'absolute',
+    height: 50,
+    width: 300,
+    right: 0,
+    zIndex: 10,
+    pointerEvents: 'none',
+    textAlign: 'center',
+  },
+  message: {
+    position: 'absolute',
+    height: 50,
+    width: 300,
+    right: 0,
+    zIndex: 10,
+    pointerEvents: 'none',
+    textAlign: 'center',
+  },
   selectedFeature: {
     backgroundColor: theme.palette.action.selected,
   },
@@ -43,8 +64,15 @@ const HybridGrid = observer(function HybridGrid({
   const { classes } = useStyles()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(null)
-
+  const { loadingRegions } = getSession(model).apolloDataStore
   const { filterText } = tabularEditor
+
+  const visibleRegion = model.lgv.getSelectedRegions(undefined, undefined)[0]
+  const visibleFeatures = [...seenFeatures.entries()].filter((entry: any) => {
+    const [, feature] = entry
+    return feature.start > visibleRegion.start && feature.end < visibleRegion.end
+  })
+  // filter seenFeatures such that they're only within this value
 
   const internetAccount = useMemo(() => {
     return getApolloInternetAccount(getSession(model))
@@ -75,6 +103,18 @@ const HybridGrid = observer(function HybridGrid({
       ref={scrollContainerRef}
       style={{ width: '100%', overflowY: 'auto', height: '100%' }}
     >
+      { loadingRegions ? (
+        <div className={classes.loading}>
+          <LoadingEllipses message={'Fetching features'}/>
+        </div>
+      ) : null}
+      { !loadingRegions && visibleFeatures.length === 0 ? (
+        <div className={classes.message}>
+          <Alert severity="warning">
+            <div>No data to display</div>
+          </Alert>
+        </div>
+      ) : null}
       <table className={classes.scrollableTable}>
         <thead>
           <tr>
@@ -87,7 +127,7 @@ const HybridGrid = observer(function HybridGrid({
           </tr>
         </thead>
         <tbody>
-          {[...seenFeatures.entries()]
+          { visibleFeatures
             .filter((entry) => {
               if (!filterText) {
                 return true

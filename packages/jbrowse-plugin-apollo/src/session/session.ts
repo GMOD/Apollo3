@@ -22,6 +22,7 @@ export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreType & { changeManager: ChangeManager }
   apolloSelectedFeature?: AnnotationFeatureI
   apolloSetSelectedFeature(feature?: AnnotationFeatureI): void
+  apolloSetLoadingRegions(loading?: boolean): void
 }
 
 interface ApolloAssemblyResponse {
@@ -95,6 +96,9 @@ export function extendSession(
     .actions((self) => ({
       apolloSetSelectedFeature(feature?: AnnotationFeatureI) {
         self.apolloSelectedFeature = feature
+      },
+      apolloSetLoadingRegions(loading?: boolean) {
+        self.apolloDataStore.setLoadingRegions(loading)
       },
       addApolloTrackConfig(assembly: AssemblyModel, baseURL?: string) {
         const trackId = `apollo_track_${assembly.name}`
