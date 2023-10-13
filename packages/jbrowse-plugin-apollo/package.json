@@ -53,7 +53,7 @@
   "dependencies": {
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
-    "@gmod/gff": "^1.2.0",
+    "@gmod/gff": "1.2.0",
     "@jbrowse/plugin-authentication": "^2.0.1",
     "@jbrowse/plugin-linear-genome-view": "^2.0.1",
     "@mui/icons-material": "^5.8.4",
@@ -75,7 +75,7 @@
     "tslib": "^2.3.1"
   },
   "peerDependencies": {
-    "@jbrowse/core": "2.6.3",
+    "@jbrowse/core": "^2.7.0",
     "@mui/material": "^5.11.10",
     "mobx": "^6.6.1",
     "mobx-react": "^7.2.1",
@@ -88,7 +88,7 @@
   },
   "devDependencies": {
     "@jbrowse/cli": "^2.6.2",
-    "@jbrowse/core": "2.6.3",
+    "@jbrowse/core": "^2.7.0",
     "@jbrowse/development-tools": "^2.1.1",
     "@jest/globals": "^29.0.3",
     "@mui/material": "^5.11.10",
@@ -99,7 +99,7 @@
     "@types/prop-types": "^15",
     "@types/react": "^17.0.34",
     "@types/react-dom": "^18",
-    "cypress": "^12.17.2",
+    "cypress": "12.17.3",
     "cypress-mongodb": "^6.2.0",
     "fake-indexeddb": "^4.0.2",
     "jest": "^29.6.2",

@@ -145,46 +145,51 @@ export default class ApolloPlugin extends Plugin {
       pluginManager.rootModel.insertMenu('Apollo', -1)
       pluginManager.rootModel.appendToMenu('Apollo', {
         label: 'Download GFF3',
-        onClick: (session: AbstractSessionModel) => {
-          session.queueDialog((doneCallback) => [
-            DownloadGFF3,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
+        onClick: (session: ApolloSessionModel) => {
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              DownloadGFF3,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
               },
-            },
-          ])
+            ],
+          )
         },
       })
       pluginManager.rootModel.appendToMenu('Apollo', {
         label: 'View Change Log',
-        onClick: (session: AbstractSessionModel) => {
-          session.queueDialog((doneCallback) => [
-            ViewChangeLog,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
+        onClick: (session: ApolloSessionModel) => {
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              ViewChangeLog,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
               },
-            },
-          ])
+            ],
+          )
         },
       })
       pluginManager.rootModel.appendToMenu('Apollo', {
         label: 'Open local GFF3 file',
-        onClick: (session: AbstractSessionModel) => {
-          session.queueDialog((doneCallback) => [
-            OpenLocalFile,
-            {
-              session,
-              handleClose: () => {
-                doneCallback()
+        onClick: (session: ApolloSessionModel) => {
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              OpenLocalFile,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+                inMemoryFileDriver: session.apolloDataStore.inMemoryFileDriver,
               },
-              inMemoryFileDriver: (session as ApolloSessionModel)
-                .apolloDataStore.inMemoryFileDriver,
-            },
-          ])
+            ],
+          )
         },
       })
     }

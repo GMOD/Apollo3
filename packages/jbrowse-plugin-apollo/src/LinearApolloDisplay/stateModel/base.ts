@@ -2,7 +2,11 @@ import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { AppRootModel, getContainingView, getSession } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  getContainingView,
+  getSession,
+} from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
@@ -11,6 +15,7 @@ import { autorun } from 'mobx'
 import { addDisposer, getRoot, types } from 'mobx-state-tree'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
+import { ApolloSessionModel } from '../../session'
 import { ApolloRootModel } from '../../types'
 import { TrackHeightMixin } from './trackHeightMixin'
 
@@ -52,7 +57,7 @@ export function baseModelFactory(
         return self.configuration.renderer.type
       },
       get session() {
-        return getSession(self)
+        return getSession(self) as unknown as ApolloSessionModel
       },
       get regions() {
         const regions = self.lgv.dynamicBlocks.contentBlocks.map(
@@ -78,11 +83,10 @@ export function baseModelFactory(
     .views((self) => ({
       get apolloInternetAccount() {
         const [region] = self.regions
-        const { internetAccounts } = getRoot<ApolloRootModel>(
-          self,
-        ) as AppRootModel
+        const { internetAccounts } = getRoot<ApolloRootModel>(self)
         const { assemblyName } = region
-        const { assemblyManager } = self.session
+        const { assemblyManager } =
+          self.session as unknown as AbstractSessionModel
         const assembly = assemblyManager.get(assemblyName)
         if (!assembly) {
           throw new Error(`No assembly found with name ${assemblyName}`)
@@ -102,10 +106,12 @@ export function baseModelFactory(
         return matchingAccount
       },
       get changeManager() {
-        return self.session.apolloDataStore?.changeManager
+        return (self.session as unknown as ApolloSessionModel).apolloDataStore
+          ?.changeManager
       },
       getAssemblyId(assemblyName: string) {
-        const { assemblyManager } = self.session
+        const { assemblyManager } =
+          self.session as unknown as AbstractSessionModel
         const assembly = assemblyManager.get(assemblyName)
         if (!assembly) {
           throw new Error(`Could not find assembly named ${assemblyName}`)
@@ -113,12 +119,15 @@ export function baseModelFactory(
         return assembly.name
       },
       get selectedFeature(): AnnotationFeatureI | undefined {
-        return self.session.apolloSelectedFeature
+        return (self.session as unknown as ApolloSessionModel)
+          .apolloSelectedFeature
       },
     }))
     .actions((self) => ({
       setSelectedFeature(feature?: AnnotationFeatureI) {
-        return self.session.apolloSetSelectedFeature(feature)
+        return (
+          self.session as unknown as ApolloSessionModel
+        ).apolloSetSelectedFeature(feature)
       },
       afterAttach() {
         addDisposer(
@@ -128,7 +137,9 @@ export function baseModelFactory(
               if (!self.lgv.initialized || self.regionCannotBeRendered()) {
                 return
               }
-              self.session.apolloDataStore.loadFeatures(self.regions)
+              void (
+                self.session as unknown as ApolloSessionModel
+              ).apolloDataStore.loadFeatures(self.regions)
             },
             { name: 'LinearApolloDisplayLoadFeatures' },
           ),

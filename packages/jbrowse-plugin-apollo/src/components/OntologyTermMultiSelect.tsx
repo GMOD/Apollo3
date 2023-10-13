@@ -1,4 +1,4 @@
-import { getSession, isAbortException } from '@jbrowse/core/util'
+import { isAbortException } from '@jbrowse/core/util'
 import {
   Autocomplete,
   AutocompleteRenderGetTagProps,
@@ -22,6 +22,7 @@ import {
 } from '../OntologyManager'
 import { Match } from '../OntologyManager/OntologyStore/fulltext'
 import { isDeprecated } from '../OntologyManager/OntologyStore/indexeddb-schema'
+import { ApolloSessionModel } from '../session'
 
 interface TermValue {
   term: OntologyTerm
@@ -111,7 +112,7 @@ export function OntologyTermMultiSelect({
   session,
   value: initialValue,
 }: {
-  session: ReturnType<typeof getSession>
+  session: ApolloSessionModel
   value: string[]
   ontologyName: string
   ontologyVersion?: string

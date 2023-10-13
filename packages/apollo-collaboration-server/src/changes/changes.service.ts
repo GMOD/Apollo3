@@ -66,9 +66,8 @@ export class ChangesService {
   async create(change: BaseChange, user: DecodedJWT) {
     this.logger.debug(`Requested change: ${JSON.stringify(change)}`)
 
-    const sequence = await this.countersService.getNextSequenceValue(
-      'changeCounter',
-    )
+    const sequence =
+      await this.countersService.getNextSequenceValue('changeCounter')
     const uniqUserId = `${user.email}-${sequence}` // Same user can upload data from more than one client
 
     const validationResult = await validationRegistry.backendPreValidate(change)
