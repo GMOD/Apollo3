@@ -105,7 +105,7 @@ export function clientDataStoreFactory(
       ),
       ontologyManager: OntologyManagerType.create(),
       loadingRegions: false,
-      lastFeat: {},
+      lastFeat: {} as AnnotationFeatureSnapshot | undefined,
     }))
     .actions((self) => ({
       afterCreate() {
@@ -193,7 +193,7 @@ export function clientDataStoreFactory(
       setLoadingRegions(state: boolean) {
         self.loadingRegions = state
       },
-      setLastFeat(feat: Region) {
+      setLastFeat(feat?: AnnotationFeatureSnapshot) {
         self.lastFeat = feat
       },
     }))
@@ -208,7 +208,7 @@ export function clientDataStoreFactory(
           if (features.length === 0) {
             continue
           }
-          self.setLastFeat(features.at(-1) as unknown as Region)
+          self.setLastFeat(features.at(-1))
           const { assemblyName, refName } = region
           let assembly = self.assemblies.get(assemblyName)
           if (!assembly) {

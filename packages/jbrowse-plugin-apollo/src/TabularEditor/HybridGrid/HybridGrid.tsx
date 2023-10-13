@@ -66,7 +66,9 @@ const HybridGrid = observer(function HybridGrid({
   const { classes } = useStyles()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(null)
-  const { loadingRegions } = getSession(model).apolloDataStore
+  const { loadingRegions } = (
+    getSession(model) as unknown as ApolloSessionModel
+  ).apolloDataStore
   const { filterText } = tabularEditor
 
   // filters seenFeatures by features only directly observed by the user

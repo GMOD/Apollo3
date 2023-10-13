@@ -7,6 +7,7 @@ import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
+import { ApolloSessionModel } from '../../session'
 import { LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
 
 interface LinearApolloDisplayProps {
@@ -67,7 +68,9 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   useEffect(() => setTheme(theme), [theme, setTheme])
   const [contextCoord, setContextCoord] = useState<Coord>()
   const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
-  const { loadingRegions } = getSession(model).apolloDataStore
+  const { loadingRegions } = (
+    getSession(model) as unknown as ApolloSessionModel
+  ).apolloDataStore
   const message = regionCannotBeRendered()
 
   if (!isShown) {

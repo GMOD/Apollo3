@@ -156,11 +156,12 @@ export function renderingModelFactory(
               self.lgv.dynamicBlocks.totalWidthPx,
               self.featuresHeight,
             )
+            const session = getSession(self) as unknown as ApolloSessionModel
             for (const [idx, featureLayout] of self.featureLayouts.entries()) {
               const displayedRegion = self.displayedRegions[idx]
               if (featureLayout.size === 0) {
                 // loading cancelled if there is nothing to display
-                getSession(self).apolloSetLoadingRegions(false)
+                session.apolloSetLoadingRegions(false)
               }
               for (const [row, featureLayoutRow] of featureLayout.entries()) {
                 for (const [featureRow, feature] of featureLayoutRow) {
@@ -192,11 +193,10 @@ export function renderingModelFactory(
                     displayedRegion.reversed,
                   )
                   if (
-                    feature.gffId ===
-                    getSession(self).apolloDataStore.lastFeat.gffId
+                    feature.gffId === session.apolloDataStore.lastFeat?.gffId
                   ) {
                     // ensures the loading message is dismissed when the last feature to load is drawn
-                    getSession(self).apolloSetLoadingRegions(false)
+                    session.apolloSetLoadingRegions(false)
                   }
                 }
               }
