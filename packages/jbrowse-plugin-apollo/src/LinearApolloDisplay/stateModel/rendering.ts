@@ -1,7 +1,6 @@
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { getSession } from '@jbrowse/core/util'
-import { doesIntersect2 } from '@jbrowse/core/util'
+import { doesIntersect2, getSession } from '@jbrowse/core/util'
 import { Theme } from '@mui/material'
 import { autorun } from 'mobx'
 import { Instance, addDisposer } from 'mobx-state-tree'
@@ -191,7 +190,10 @@ export function renderingModelFactory(
                     row,
                     displayedRegion.reversed,
                   )
-                  if (feature.gffId === getSession(self).apolloDataStore.lastFeat.gffId) {
+                  if (
+                    feature.gffId ===
+                    getSession(self).apolloDataStore.lastFeat.gffId
+                  ) {
                     // ensures the loading message is dismissed when the last feature to load is drawn
                     getSession(self).apolloSetLoadingRegions(false)
                   }

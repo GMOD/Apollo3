@@ -1,6 +1,6 @@
 import { Menu, MenuItem } from '@jbrowse/core/ui'
-import { getContainingView, getSession } from '@jbrowse/core/util'
 import LoadingEllipses from '@jbrowse/core/ui/LoadingEllipses'
+import { getContainingView, getSession } from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { Alert, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
@@ -90,7 +90,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
         }
       }}
     >
-      { loadingRegions ? (
+      {loadingRegions ? (
         <div className={classes.loading}>
           <LoadingEllipses />
         </div>

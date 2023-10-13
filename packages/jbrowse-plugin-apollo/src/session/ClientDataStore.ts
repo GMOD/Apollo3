@@ -105,7 +105,7 @@ export function clientDataStoreFactory(
       ),
       ontologyManager: OntologyManagerType.create(),
       loadingRegions: false,
-      lastFeat: {}
+      lastFeat: {},
     }))
     .actions((self) => ({
       afterCreate() {
@@ -195,7 +195,7 @@ export function clientDataStoreFactory(
       },
       setLastFeat(feat: Region) {
         self.lastFeat = feat
-      }
+      },
     }))
     .actions((self) => ({
       loadFeatures: flow(function* loadFeatures(regions: Region[]) {
@@ -208,7 +208,7 @@ export function clientDataStoreFactory(
           if (features.length === 0) {
             continue
           }
-          self.setLastFeat(features.slice(-1)[0] as unknown as Region)
+          self.setLastFeat(features.at(-1) as unknown as Region)
           const { assemblyName, refName } = region
           let assembly = self.assemblies.get(assemblyName)
           if (!assembly) {

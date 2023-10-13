@@ -1,6 +1,6 @@
 import { Menu, MenuItem } from '@jbrowse/core/ui'
-import { getSession } from '@jbrowse/core/util'
 import LoadingEllipses from '@jbrowse/core/ui/LoadingEllipses'
+import { getSession } from '@jbrowse/core/util'
 import { Alert, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
@@ -59,7 +59,8 @@ const HybridGrid = observer(function HybridGrid({
 }: {
   model: DisplayStateModel
 }) {
-  const { apolloHover, seenFeatures, selectedFeature, tabularEditor } = model
+  const { apolloHover, lgv, seenFeatures, selectedFeature, tabularEditor } =
+    model
   const theme = useTheme()
   const { classes } = useStyles()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -67,10 +68,12 @@ const HybridGrid = observer(function HybridGrid({
   const { loadingRegions } = getSession(model).apolloDataStore
   const { filterText } = tabularEditor
 
-  const visibleRegion = model.lgv.getSelectedRegions(undefined, undefined)[0]
-  const visibleFeatures = [...seenFeatures.entries()].filter((entry: any) => {
+  const [visibleRegion] = lgv.getSelectedRegions()
+  const visibleFeatures = [...seenFeatures.entries()].filter((entry) => {
     const [, feature] = entry
-    return feature.start > visibleRegion.start && feature.end < visibleRegion.end
+    return (
+      feature.start > visibleRegion.start && feature.end < visibleRegion.end
+    )
   })
   // filter seenFeatures such that they're only within this value
 
@@ -103,12 +106,12 @@ const HybridGrid = observer(function HybridGrid({
       ref={scrollContainerRef}
       style={{ width: '100%', overflowY: 'auto', height: '100%' }}
     >
-      { loadingRegions ? (
+      {loadingRegions ? (
         <div className={classes.loading}>
-          <LoadingEllipses message={'Fetching features'}/>
+          <LoadingEllipses message={'Fetching features'} />
         </div>
       ) : null}
-      { !loadingRegions && visibleFeatures.length === 0 ? (
+      {!loadingRegions && visibleFeatures.length === 0 ? (
         <div className={classes.message}>
           <Alert severity="warning">
             <div>No data to display</div>
@@ -127,7 +130,7 @@ const HybridGrid = observer(function HybridGrid({
           </tr>
         </thead>
         <tbody>
-          { visibleFeatures
+          {visibleFeatures
             .filter((entry) => {
               if (!filterText) {
                 return true
