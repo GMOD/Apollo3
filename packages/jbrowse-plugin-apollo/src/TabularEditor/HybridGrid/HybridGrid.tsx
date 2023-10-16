@@ -71,15 +71,6 @@ const HybridGrid = observer(function HybridGrid({
   ).apolloDataStore
   const { filterText } = tabularEditor
 
-  // filters seenFeatures by features only directly observed by the user
-  const [visibleRegion] = lgv.getSelectedRegions()
-  const visibleFeatures = [...seenFeatures.entries()].filter((entry) => {
-    const [, feature] = entry
-    return (
-      feature.start > visibleRegion.start && feature.end < visibleRegion.end
-    )
-  })
-
   const internetAccount = useMemo(() => {
     return getApolloInternetAccount(
       getSession(model) as unknown as ApolloSessionModel,
@@ -116,7 +107,7 @@ const HybridGrid = observer(function HybridGrid({
           <LoadingEllipses message={'Fetching features'} />
         </div>
       ) : null}
-      {!loadingRegions && visibleFeatures.length === 0 ? (
+      {!loadingRegions && [...seenFeatures.entries()].length === 0 ? (
         <div className={classes.message}>
           <Alert severity="warning">
             <div>No data to display</div>
@@ -135,7 +126,7 @@ const HybridGrid = observer(function HybridGrid({
           </tr>
         </thead>
         <tbody>
-          {visibleFeatures
+          {[...seenFeatures.entries()]
             .filter((entry) => {
               if (!filterText) {
                 return true
