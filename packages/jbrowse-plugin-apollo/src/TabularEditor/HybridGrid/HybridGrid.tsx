@@ -60,8 +60,7 @@ const HybridGrid = observer(function HybridGrid({
 }: {
   model: DisplayStateModel
 }) {
-  const { apolloHover, seenFeatures, selectedFeature, tabularEditor } =
-    model
+  const { apolloHover, seenFeatures, selectedFeature, tabularEditor } = model
   const theme = useTheme()
   const { classes } = useStyles()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
