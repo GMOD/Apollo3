@@ -1,6 +1,5 @@
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
-import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
   DialogActions,

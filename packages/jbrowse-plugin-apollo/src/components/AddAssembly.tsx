@@ -1,5 +1,5 @@
 import { readConfObject } from '@jbrowse/core/configuration'
-import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import { AbstractSessionModel } from '@jbrowse/core/util'
 import LinkIcon from '@mui/icons-material/Link'
 import {
   Box,
