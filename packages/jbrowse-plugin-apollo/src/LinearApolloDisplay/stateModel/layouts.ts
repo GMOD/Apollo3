@@ -1,10 +1,11 @@
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { doesIntersect2 } from '@jbrowse/core/util'
+import { AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun, observable } from 'mobx'
 import { addDisposer, isAlive } from 'mobx-state-tree'
 
+import { ApolloSessionModel } from '../../session'
 import { baseModelFactory } from './base'
 import { getGlyph } from './getGlyph'
 
@@ -20,7 +21,8 @@ export function layoutsModelFactory(
     }))
     .views((self) => ({
       get featuresMinMax() {
-        const { assemblyManager } = self.session
+        const { assemblyManager } =
+          self.session as unknown as AbstractSessionModel
         return self.displayedRegions.map((region) => {
           const assembly = assemblyManager.get(region.assemblyName)
           let min: number | undefined
@@ -63,7 +65,8 @@ export function layoutsModelFactory(
     }))
     .views((self) => ({
       get featureLayouts() {
-        const { assemblyManager } = self.session
+        const { assemblyManager } =
+          self.session as unknown as AbstractSessionModel
         return self.displayedRegions.map((region, idx) => {
           const assembly = assemblyManager.get(region.assemblyName)
           const featureLayout = new Map<
@@ -172,9 +175,9 @@ export function layoutsModelFactory(
                 return
               }
               for (const region of self.regions) {
-                const assembly = self.session.apolloDataStore.assemblies.get(
-                  region.assemblyName,
-                )
+                const assembly = (
+                  self.session as unknown as ApolloSessionModel
+                ).apolloDataStore.assemblies.get(region.assemblyName)
                 const ref = assembly?.getByRefName(region.refName)
                 for (const [, feature] of ref?.features ?? new Map()) {
                   if (

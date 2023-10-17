@@ -38,9 +38,10 @@ export class FeaturesController {
     const [stream, assembly] = await this.featuresService.exportGFF3(
       request.exportID,
     )
+    const assemblyName = await this.featuresService.getAssemblyName(assembly)
     res.set({
       'Content-Type': 'application/text',
-      'Content-Disposition': `attachment; filename="${assembly}_apollo.gff3"`,
+      'Content-Disposition': `attachment; filename="${assemblyName}_apollo.gff3"`,
     })
     // TODO: remove ts-ignores below after a resolution for this issue is
     // released: https://github.com/nestjs/nest/issues/10681
@@ -105,9 +106,8 @@ export class FeaturesController {
     this.logger.debug(
       `Get features count by ${JSON.stringify(featureCountRequest)}`,
     )
-    const count = await this.featuresService.getFeatureCount(
-      featureCountRequest,
-    )
+    const count =
+      await this.featuresService.getFeatureCount(featureCountRequest)
     return { count }
   }
 

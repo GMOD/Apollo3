@@ -104,7 +104,7 @@ const stateModelFactory = (
           const { role } = dec
           if (!role && !roleNotificationSent) {
             const { session } = getRoot<ApolloRootModel>(self)
-            session.notify(
+            ;(session as unknown as AbstractSessionModel).notify(
               'You have registered as a user but have not been given access. Ask your administrator to enable access for your account.',
               'warning',
             )
@@ -145,7 +145,7 @@ const stateModelFactory = (
       },
       addSocketListeners() {
         const { session } = getRoot<ApolloRootModel>(self)
-        const { notify } = session
+        const { notify } = session as unknown as AbstractSessionModel
         const token = self.retrieveToken()
         if (!token) {
           throw new Error('No Token found')
@@ -160,7 +160,7 @@ const stateModelFactory = (
             return // we did this change, no need to apply it again
           }
           const change = Change.fromJSON(message.changeInfo)
-          changeManager?.submit(change, { submitToBackend: false })
+          void changeManager?.submit(change, { submitToBackend: false })
         })
         socket.on('reconnect', async () => {
           notify('You are re-connected to the Apollo server.', 'success')
@@ -252,7 +252,7 @@ const stateModelFactory = (
         const serializedChanges = yield response.json()
         for (const serializedChange of serializedChanges) {
           const change = Change.fromJSON(serializedChange)
-          changeManager?.submit(change, { submitToBackend: false })
+          void changeManager?.submit(change, { submitToBackend: false })
         }
       }),
     }))
@@ -317,18 +317,19 @@ const stateModelFactory = (
             'Apollo',
             {
               label: 'Add Assembly',
-              onClick: (session: AbstractSessionModel) => {
-                session.queueDialog((doneCallback) => [
-                  AddAssembly,
-                  {
-                    session,
-                    handleClose: () => {
-                      doneCallback()
+              onClick: (session: ApolloSessionModel) => {
+                ;(session as unknown as AbstractSessionModel).queueDialog(
+                  (doneCallback) => [
+                    AddAssembly,
+                    {
+                      session,
+                      handleClose: () => {
+                        doneCallback()
+                      },
+                      changeManager: session.apolloDataStore.changeManager,
                     },
-                    changeManager: (session as ApolloSessionModel)
-                      .apolloDataStore.changeManager,
-                  },
-                ])
+                  ],
+                )
               },
             },
             0,
@@ -337,18 +338,19 @@ const stateModelFactory = (
             'Apollo',
             {
               label: 'Delete Assembly',
-              onClick: (session: AbstractSessionModel) => {
-                session.queueDialog((doneCallback) => [
-                  DeleteAssembly,
-                  {
-                    session,
-                    handleClose: () => {
-                      doneCallback()
+              onClick: (session: ApolloSessionModel) => {
+                ;(session as unknown as AbstractSessionModel).queueDialog(
+                  (doneCallback) => [
+                    DeleteAssembly,
+                    {
+                      session,
+                      handleClose: () => {
+                        doneCallback()
+                      },
+                      changeManager: session.apolloDataStore.changeManager,
                     },
-                    changeManager: (session as ApolloSessionModel)
-                      .apolloDataStore.changeManager,
-                  },
-                ])
+                  ],
+                )
               },
             },
             1,
@@ -357,18 +359,20 @@ const stateModelFactory = (
             'Apollo',
             {
               label: 'Import Features',
-              onClick: (session: AbstractSessionModel) => {
-                session.queueDialog((doneCallback) => [
-                  ImportFeatures,
-                  {
-                    session,
-                    handleClose: () => {
-                      doneCallback()
+              onClick: (session: ApolloSessionModel) => {
+                ;(session as unknown as AbstractSessionModel).queueDialog(
+                  (doneCallback) => [
+                    ImportFeatures,
+                    {
+                      session,
+                      handleClose: () => {
+                        doneCallback()
+                      },
+                      changeManager: (session as ApolloSessionModel)
+                        .apolloDataStore.changeManager,
                     },
-                    changeManager: (session as ApolloSessionModel)
-                      .apolloDataStore.changeManager,
-                  },
-                ])
+                  ],
+                )
               },
             },
             2,
@@ -377,18 +381,20 @@ const stateModelFactory = (
             'Apollo',
             {
               label: 'Manage Users',
-              onClick: (session: AbstractSessionModel) => {
-                session.queueDialog((doneCallback) => [
-                  ManageUsers,
-                  {
-                    session,
-                    handleClose: () => {
-                      doneCallback()
+              onClick: (session: ApolloSessionModel) => {
+                ;(session as unknown as AbstractSessionModel).queueDialog(
+                  (doneCallback) => [
+                    ManageUsers,
+                    {
+                      session,
+                      handleClose: () => {
+                        doneCallback()
+                      },
+                      changeManager: (session as ApolloSessionModel)
+                        .apolloDataStore.changeManager,
                     },
-                    changeManager: (session as ApolloSessionModel)
-                      .apolloDataStore.changeManager,
-                  },
-                ])
+                  ],
+                )
               },
             },
             9,
@@ -398,9 +404,10 @@ const stateModelFactory = (
             {
               label: 'Undo',
               onClick: (session: ApolloSessionModel) => {
-                const { apolloDataStore, notify } = session
+                const { apolloDataStore } = session
+                const { notify } = session as unknown as AbstractSessionModel
                 if (apolloDataStore.changeManager.recentChanges.length > 0) {
-                  apolloDataStore.changeManager.revertLastChange()
+                  void apolloDataStore.changeManager.revertLastChange()
                 } else {
                   notify('No changes to undo', 'info')
                 }
@@ -554,9 +561,8 @@ const stateModelFactory = (
       let authTypePromise: Promise<AuthType> | undefined
       return {
         async getPreAuthorizationInformation(location: UriLocation) {
-          const preAuthInfo = await superGetPreAuthorizationInformation(
-            location,
-          )
+          const preAuthInfo =
+            await superGetPreAuthorizationInformation(location)
           return {
             ...preAuthInfo,
             authInfo: {
@@ -612,26 +618,28 @@ const stateModelFactory = (
                   authTypePromise = new Promise((resolve, reject) => {
                     const { session } = getRoot<ApolloRootModel>(self)
                     const { allowGuestUser, baseURL, name } = self
-                    session.queueDialog((doneCallback: () => void) => [
-                      AuthTypeSelector,
-                      {
-                        baseURL,
-                        name,
-                        handleClose: (newAuthType?: AuthType | Error) => {
-                          if (!newAuthType) {
-                            reject(new Error('user cancelled entry'))
-                          } else if (newAuthType instanceof Error) {
-                            reject(newAuthType)
-                          } else {
-                            resolve(newAuthType)
-                          }
-                          doneCallback()
+                    ;(session as unknown as AbstractSessionModel).queueDialog(
+                      (doneCallback: () => void) => [
+                        AuthTypeSelector,
+                        {
+                          baseURL,
+                          name,
+                          handleClose: (newAuthType?: AuthType | Error) => {
+                            if (!newAuthType) {
+                              reject(new Error('user cancelled entry'))
+                            } else if (newAuthType instanceof Error) {
+                              reject(newAuthType)
+                            } else {
+                              resolve(newAuthType)
+                            }
+                            doneCallback()
+                          },
+                          google: Boolean(googleClientId),
+                          microsoft: Boolean(microsoftClientId),
+                          allowGuestUser,
                         },
-                        google: Boolean(googleClientId),
-                        microsoft: Boolean(microsoftClientId),
-                        allowGuestUser,
-                      },
-                    ])
+                      ],
+                    )
                   })
                 }
               }

@@ -1,5 +1,5 @@
 import { getConf } from '@jbrowse/core/configuration'
-import { AppRootModel, Region, getSession } from '@jbrowse/core/util'
+import { AbstractSessionModel, Region, getSession } from '@jbrowse/core/util'
 import { Menu, MenuItem } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
@@ -14,6 +14,7 @@ import { CopyFeature } from '../../components/CopyFeature'
 import { DeleteFeature } from '../../components/DeleteFeature'
 import { Collaborator } from '../../session'
 import { SixFrameFeatureDisplay } from '../../SixFrameFeatureDisplay/stateModel'
+import { ApolloRootModel } from '../../types'
 
 interface ApolloRenderingProps {
   assemblyName: string
@@ -85,7 +86,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const [collaborators, setCollaborators] = useState<Collaborator[]>([])
 
   const { bpPerPx, displayModel, regions } = props
-  const session = getSession(displayModel)
+  const { session } = displayModel
   const { collaborators: collabs } = session
 
   // bridging mobx observability and React useEffect observability
@@ -120,7 +121,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   )
 
   const apolloInternetAccount = useMemo(() => {
-    const { internetAccounts } = getRoot(session) as AppRootModel
+    const { internetAccounts } = getRoot<ApolloRootModel>(session)
     const { assemblyName } = region
     const { assemblyManager } = getSession(displayModel)
     const assembly = assemblyManager.get(assemblyName)
@@ -574,21 +575,23 @@ function ApolloRendering(props: ApolloRenderingProps) {
               return
             }
             const currentAssemblyId = getAssemblyId(region.assemblyName)
-            session.queueDialog((doneCallback) => [
-              AddFeature,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                  // eslint-disable-next-line unicorn/no-useless-undefined
-                  setContextMenuFeature(undefined)
+            ;(session as unknown as AbstractSessionModel).queueDialog(
+              (doneCallback) => [
+                AddFeature,
+                {
+                  session,
+                  handleClose: () => {
+                    doneCallback()
+                    // eslint-disable-next-line unicorn/no-useless-undefined
+                    setContextMenuFeature(undefined)
+                  },
+                  changeManager,
+                  sourceFeature: contextMenuFeature,
+                  sourceAssemblyId: currentAssemblyId,
+                  internetAccount: apolloInternetAccount,
                 },
-                changeManager,
-                sourceFeature: contextMenuFeature,
-                sourceAssemblyId: currentAssemblyId,
-                internetAccount: apolloInternetAccount,
-              },
-            ])
+              ],
+            )
           }}
         >
           Add child feature
@@ -602,20 +605,22 @@ function ApolloRendering(props: ApolloRenderingProps) {
               return
             }
             const currentAssemblyId = getAssemblyId(region.assemblyName)
-            session.queueDialog((doneCallback) => [
-              CopyFeature,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                  // eslint-disable-next-line unicorn/no-useless-undefined
-                  setContextMenuFeature(undefined)
+            ;(session as unknown as AbstractSessionModel).queueDialog(
+              (doneCallback) => [
+                CopyFeature,
+                {
+                  session,
+                  handleClose: () => {
+                    doneCallback()
+                    // eslint-disable-next-line unicorn/no-useless-undefined
+                    setContextMenuFeature(undefined)
+                  },
+                  changeManager,
+                  sourceFeature: contextMenuFeature,
+                  sourceAssemblyId: currentAssemblyId,
                 },
-                changeManager,
-                sourceFeature: contextMenuFeature,
-                sourceAssemblyId: currentAssemblyId,
-              },
-            ])
+              ],
+            )
           }}
         >
           Copy features and annotations
@@ -629,22 +634,24 @@ function ApolloRendering(props: ApolloRenderingProps) {
               return
             }
             const currentAssemblyId = getAssemblyId(region.assemblyName)
-            session.queueDialog((doneCallback) => [
-              DeleteFeature,
-              {
-                session,
-                handleClose: () => {
-                  doneCallback()
-                  // eslint-disable-next-line unicorn/no-useless-undefined
-                  setContextMenuFeature(undefined)
+            ;(session as unknown as AbstractSessionModel).queueDialog(
+              (doneCallback) => [
+                DeleteFeature,
+                {
+                  session,
+                  handleClose: () => {
+                    doneCallback()
+                    // eslint-disable-next-line unicorn/no-useless-undefined
+                    setContextMenuFeature(undefined)
+                  },
+                  changeManager,
+                  sourceFeature: contextMenuFeature,
+                  sourceAssemblyId: currentAssemblyId,
+                  selectedFeature,
+                  setSelectedFeature,
                 },
-                changeManager,
-                sourceFeature: contextMenuFeature,
-                sourceAssemblyId: currentAssemblyId,
-                selectedFeature,
-                setSelectedFeature,
-              },
-            ])
+              ],
+            )
           }}
         >
           Delete feature

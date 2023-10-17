@@ -1,6 +1,6 @@
 import { getConf, readConfObject } from '@jbrowse/core/configuration'
 import { ConfigurationModel } from '@jbrowse/core/configuration/types'
-import { AppRootModel, Region, getSession } from '@jbrowse/core/util'
+import { Region, getSession } from '@jbrowse/core/util'
 import { LocalPathLocation, UriLocation } from '@jbrowse/core/util/types/mst'
 import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
 import {
@@ -45,10 +45,10 @@ export function clientDataStoreFactory(
     })
     .views((self) => ({
       get internetAccounts() {
-        return (getRoot<ApolloRootModel>(self) as AppRootModel).internetAccounts
+        return getRoot<ApolloRootModel>(self).internetAccounts
       },
       get pluginConfiguration() {
-        return (getRoot(self) as AppRootModel).jbrowse.configuration
+        return getRoot<ApolloRootModel>(self).jbrowse.configuration
           .ApolloPlugin as Instance<typeof ApolloPluginConfigurationSchema>
       },
       getFeature(featureId: string) {

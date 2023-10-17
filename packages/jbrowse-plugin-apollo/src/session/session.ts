@@ -2,12 +2,15 @@ import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { AbstractSessionModel, AppRootModel } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  SessionWithConfigEditing,
+} from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
 import { AnnotationFeature, AnnotationFeatureI } from 'apollo-mst'
 import { autorun, observable } from 'mobx'
-import { IAnyModelType, Instance, flow, getRoot, types } from 'mobx-state-tree'
+import { Instance, flow, getRoot, types } from 'mobx-state-tree'
 
 import {
   ApolloInternetAccountModel,
@@ -56,7 +59,7 @@ export interface Collaborator {
 
 export function extendSession(
   pluginManager: PluginManager,
-  sessionModel: IAnyModelType,
+  sessionModel: ReturnType<typeof types.model>,
 ) {
   const aborter = new AbortController()
   const { signal } = aborter
@@ -101,11 +104,11 @@ export function extendSession(
       },
       addApolloTrackConfig(assembly: AssemblyModel, baseURL?: string) {
         const trackId = `apollo_track_${assembly.name}`
-        const hasTrack =
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          self.tracks.some((track: any) => track.trackId === trackId)
+        const hasTrack = (self as unknown as AbstractSessionModel).tracks.some(
+          (track) => track.trackId === trackId,
+        )
         if (!hasTrack) {
-          self.addTrackConf({
+          ;(self as unknown as SessionWithConfigEditing).addTrackConf({
             type: 'ApolloTrack',
             trackId,
             name: `Annotations (${
@@ -138,18 +141,20 @@ export function extendSession(
         }
       },
       broadcastLocations() {
-        const { internetAccounts } = getRoot<ApolloRootModel>(
-          self,
-        ) as AppRootModel
+        const { internetAccounts } = getRoot<ApolloRootModel>(self)
         const locations: {
           assemblyName: string
           refName: string
           start: number
           end: number
         }[] = []
-        for (const view of self.views) {
-          if (view.type === 'LinearGenomeView' && view.initialized) {
-            const { dynamicBlocks } = view as LinearGenomeViewModel
+        for (const view of (self as unknown as AbstractSessionModel).views) {
+          if (view.type !== 'LinearGenomeView') {
+            return
+          }
+          const lgv = view as unknown as LinearGenomeViewModel
+          if (lgv.initialized) {
+            const { dynamicBlocks } = lgv
             // eslint-disable-next-line unicorn/no-array-for-each
             dynamicBlocks.forEach((block) => {
               if (block.regionNumber !== undefined) {
@@ -190,10 +195,10 @@ export function extendSession(
           }
         }
       },
+    }))
+    .actions((self) => ({
       afterCreate: flow(function* afterCreate() {
-        const { internetAccounts } = getRoot<ApolloRootModel>(
-          self,
-        ) as AppRootModel
+        const { internetAccounts } = getRoot<ApolloRootModel>(self)
         autorun(
           () => {
             // broadcastLocations() // **** This is not working and therefore we need to duplicate broadcastLocations() -method code here because autorun() does not observe changes otherwise
@@ -203,9 +208,14 @@ export function extendSession(
               start: number
               end: number
             }[] = []
-            for (const view of self.views) {
-              if (view.type === 'LinearGenomeView' && view.initialized) {
-                const { dynamicBlocks } = view as LinearGenomeViewModel
+            for (const view of (self as unknown as AbstractSessionModel)
+              .views) {
+              if (view.type !== 'LinearGenomeView') {
+                return
+              }
+              const lgv = view as unknown as LinearGenomeViewModel
+              if (lgv.initialized) {
+                const { dynamicBlocks } = lgv as LinearGenomeViewModel
                 // eslint-disable-next-line unicorn/no-array-for-each
                 dynamicBlocks.forEach((block) => {
                   if (block.regionNumber !== undefined) {
@@ -287,9 +297,14 @@ export function extendSession(
             continue
           }
           for (const assembly of fetchedAssemblies) {
-            const { addAssembly, addSessionAssembly, assemblyManager } = self
+            const { addAssembly, addSessionAssembly, assemblyManager } =
+              self as unknown as AbstractSessionModel & {
+                // eslint-disable-next-line @typescript-eslint/ban-types
+                addSessionAssembly: Function
+              }
             const selectedAssembly = assemblyManager.get(assembly.name)
             if (selectedAssembly) {
+              // @ts-expect-error MST type coercion problem?
               self.addApolloTrackConfig(selectedAssembly, baseURL)
               continue
             }

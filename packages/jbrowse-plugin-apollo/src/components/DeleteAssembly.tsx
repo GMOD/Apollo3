@@ -1,5 +1,4 @@
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
-import { AppRootModel } from '@jbrowse/core/util'
 import {
   Button,
   Checkbox,
@@ -23,6 +22,7 @@ import {
 } from '../BackendDrivers'
 import { ChangeManager } from '../ChangeManager'
 import { ApolloSessionModel } from '../session'
+import { ApolloRootModel } from '../types'
 import { Dialog } from './Dialog'
 
 interface DeleteAssemblyProps {
@@ -36,7 +36,7 @@ export function DeleteAssembly({
   handleClose,
   session,
 }: DeleteAssemblyProps) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
+  const { internetAccounts } = getRoot<ApolloRootModel>(session)
   const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
   const [errorMessage, setErrorMessage] = useState('')
   const [confirmDelete, setconfirmDelete] = useState(false)

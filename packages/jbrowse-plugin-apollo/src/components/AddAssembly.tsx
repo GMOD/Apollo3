@@ -33,11 +33,13 @@ import React, { useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
+import { ApolloSessionModel } from '../session'
+import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 import { Dialog } from './Dialog'
 
 interface AddAssemblyProps {
-  session: AbstractSessionModel
+  session: ApolloSessionModel
   handleClose(): void
   changeManager: ChangeManager
 }
@@ -53,8 +55,8 @@ export function AddAssembly({
   handleClose,
   session,
 }: AddAssemblyProps) {
-  const { internetAccounts } = getRoot(session) as AppRootModel
-  const { notify } = session
+  const { internetAccounts } = getRoot<ApolloRootModel>(session)
+  const { notify } = session as unknown as AbstractSessionModel
   const apolloInternetAccounts = internetAccounts.filter(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel[]
@@ -125,7 +127,7 @@ export function AddAssembly({
   }
 
   function checkAssemblyName(assembly: string) {
-    const { assemblies } = session
+    const { assemblies } = session as unknown as AbstractSessionModel
     const checkAsm = assemblies.find(
       (asm) => readConfObject(asm, 'displayName') === assembly,
     )
@@ -148,7 +150,6 @@ export function AddAssembly({
     handleClose()
     event.preventDefault()
 
-    // @ts-expect-error: jobsManager added to apollo session
     const { jobsManager } = session
 
     jobsManager.runJob({
