@@ -151,13 +151,19 @@ export function AddAssembly({
     event.preventDefault()
 
     const { jobsManager } = session
+    const controller = new AbortController()
 
-    jobsManager.runJob({
+    const job = {
       name: `UploadAssemblyFile for ${assemblyName}`,
       statusMessage: 'Pre-validating',
       progressPct: 0,
-      cancelCallback: () => jobsManager.abortJob(),
-    })
+      cancelCallback: () => {
+        controller.abort()
+        jobsManager.abortJob(job.name)
+      },
+    }
+
+    jobsManager.runJob(job)
 
     let fileId = ''
     const { baseURL, getFetcher, internetAccountId } = selectedInternetAcount
@@ -173,17 +179,19 @@ export function AddAssembly({
         uri: url,
       })
       if (apolloFetchFile) {
-        jobsManager.update('Uploading file, this may take awhile')
+        jobsManager.update(job.name, 'Uploading file, this may take awhile')
+        const { signal } = controller
         const response = await apolloFetchFile(url, {
           method: 'POST',
           body: formData,
+          signal,
         })
         if (!response.ok) {
           const newErrorMessage = await createFetchErrorMessage(
             response,
             'Error when inserting new assembly (while uploading file)',
           )
-          jobsManager.abortJob(newErrorMessage)
+          jobsManager.abortJob(job.name, newErrorMessage)
           setErrorMessage(newErrorMessage)
           return
         }
@@ -225,7 +233,7 @@ export function AddAssembly({
             })
     }
 
-    jobsManager.done()
+    jobsManager.done(job)
 
     await changeManager.submit(change, {
       internetAccountId,

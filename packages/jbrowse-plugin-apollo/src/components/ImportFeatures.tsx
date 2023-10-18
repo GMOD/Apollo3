@@ -165,25 +165,33 @@ export function ImportFeatures({
     handleClose()
 
     const { jobsManager } = session
+    const controller = new AbortController()
 
-    jobsManager.runJob({
+    const job = {
       name: `Importing features for ${selectedAssembly.displayName}`,
       statusMessage: 'Uploading file, this may take awhile',
       progressPct: 0,
-      cancelCallback: () => jobsManager.abortJob(),
-    })
+      cancelCallback: () => {
+        controller.abort()
+        jobsManager.abortJob(job.name)
+      },
+    }
+
+    jobsManager.runJob(job)
 
     if (apolloFetchFile) {
+      const { signal } = controller
       const response = await apolloFetchFile(url, {
         method: 'POST',
         body: formData,
+        signal,
       })
       if (!response.ok) {
         const newErrorMessage = await createFetchErrorMessage(
           response,
           'Error when inserting new features (while uploading file)',
         )
-        jobsManager.abortJob(newErrorMessage)
+        jobsManager.abortJob(job.name, newErrorMessage)
         setErrorMessage(newErrorMessage)
         return
       }
@@ -200,7 +208,7 @@ export function ImportFeatures({
       deleteExistingFeatures: deleteFeatures,
     })
 
-    jobsManager.done()
+    jobsManager.done(job)
 
     await changeManager.submit(change, { updateJobsManager: true })
   }
