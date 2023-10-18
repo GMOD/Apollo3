@@ -29,7 +29,7 @@ Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
     .get('input[type="checkbox"]')
     .should('be.checked')
   cy.intercept('/changes').as('changes')
-  cy.contains('Submit').click()
+  cy.get('button').contains('Submit').click()
   cy.wait('@changes').its('response.statusCode').should('match', /2../)
   cy.reload()
   cy.contains('Select assembly to view', { timeout: 10_000 })
@@ -38,7 +38,7 @@ Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
 Cypress.Commands.add('selectAssemblyToView', (assemblyName) => {
   cy.contains('Select assembly to view', { timeout: 10_000 })
   cy.get('input[data-testid="assembly-selector"]').parent().click()
-  cy.contains(assemblyName).parent().click()
+  cy.get('li').contains(assemblyName).click()
   cy.intercept('POST', '/users/userLocation').as('selectAssemblyToViewDone')
   cy.contains('Open').click()
   cy.wait('@selectAssemblyToViewDone')

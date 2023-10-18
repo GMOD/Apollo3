@@ -61,6 +61,7 @@ export default function jobsModelFactory(_pluginManager: PluginManager) {
       },
       /**
        * aborts the provided job with a message to the user
+       * @param jobName - the name of the job to be aborted
        * @param msg - a message to communicate to the user about the abort operation
        */
       abortJob(jobName: string, msg?: string) {
