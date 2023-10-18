@@ -90,7 +90,7 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
           `Could not find refSeq that matched refName "${refName}"`,
         )
       }
-      const url = new URL('refSeqs/getSequence', this.baseURL)
+      const url = new URL('sequence', this.baseURL)
       const searchParams = new URLSearchParams({
         refSeq: refSeq._id,
         start: String(start),

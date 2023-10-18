@@ -21,6 +21,7 @@ import { OperationsModule } from './operations/operations.module'
 import { PluginsModule } from './plugins/plugins.module'
 import { RefSeqChunksModule } from './refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from './refSeqs/refSeqs.module'
+import { SequenceModule } from './sequence/sequence.module'
 import { UsersModule } from './users/users.module'
 import { JwtAuthGuard } from './utils/jwt-auth.guard'
 import { ValidationGuard } from './utils/validation/validation.guards'
@@ -157,6 +158,7 @@ async function mongoDBURIFactory(
     ServeStaticModule.forRoot({
       rootPath: path.join(__dirname, '..', 'public'),
     }),
+    SequenceModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
