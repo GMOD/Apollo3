@@ -172,7 +172,7 @@ export class CollaborationServerDriver extends BackendDriver {
     ) as ApolloInternetAccount
     const { baseURL } = internetAccount
 
-    const url = new URL('refSeqs/getSequence', baseURL)
+    const url = new URL('sequence', baseURL)
     const searchParams = new URLSearchParams({
       refSeq,
       start: String(start),
