@@ -13,7 +13,8 @@ import { FeaturesService } from './features.service'
   controllers: [FeaturesController],
   providers: [FeaturesService],
   imports: [
-    forwardRef(() => AssembliesModule),
+    // AssembliesModule,
+    // forwardRef(() => AssembliesModule), //We need this only to get assembly friendly name for exported GFF3 file
     forwardRef(() => OperationsModule),
     RefSeqsModule,
     MongooseModule.forFeatureAsync([

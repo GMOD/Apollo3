@@ -133,8 +133,8 @@ export class FeaturesService {
     private readonly operationsService: OperationsService,
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
-    @InjectModel(Assembly.name)
-    private readonly assemblyModel: Model<AssemblyDocument>,
+    // @InjectModel(Assembly.name)
+    // private readonly assemblyModel: Model<AssemblyDocument>,
     @InjectModel(RefSeq.name)
     private readonly refSeqModel: Model<RefSeqDocument>,
     @InjectModel(Export.name)
@@ -187,13 +187,13 @@ export class FeaturesService {
     return this.exportModel.create({ assembly })
   }
 
-  async getAssemblyName(assemblyId: string) {
-    const assemblyDoc = await this.assemblyModel.findById(assemblyId)
-    if (!assemblyDoc) {
-      throw new NotFoundException()
-    }
-    return assemblyDoc.name
-  }
+  // async getAssemblyName(assemblyId: string) {
+  //   const assemblyDoc = await this.assemblyModel.findById(assemblyId)
+  //   if (!assemblyDoc) {
+  //     throw new NotFoundException()
+  //   }
+  //   return assemblyDoc.name
+  // }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async exportGFF3(exportID: string): Promise<any> {
