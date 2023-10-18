@@ -184,7 +184,7 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
       selectedAssembly.configuration.name,
       internetAccountConfigId,
     )
-    const url = new URL('features/getExportID', internetAccount.baseURL)
+    const url = new URL('export/getID', internetAccount.baseURL)
     const searchParams = new URLSearchParams({
       assembly: selectedAssembly.name,
     })
@@ -205,7 +205,7 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
     }
     const { exportID } = (await response.json()) as { exportID: string }
 
-    const exportURL = new URL('features/exportGFF3', internetAccount.baseURL)
+    const exportURL = new URL('export', internetAccount.baseURL)
     const exportSearchParams = new URLSearchParams({ exportID })
     exportURL.search = exportSearchParams.toString()
     const exportUri = exportURL.toString()

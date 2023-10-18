@@ -13,7 +13,6 @@ import { OperationsService } from './operations.service'
 @Module({
   imports: [
     forwardRef(() => AssembliesModule),
-    // forwardRef(() => FeaturesModule), //KS comment: We can comment this out if we do not import assemblies module into features module
     FeaturesModule,
     RefSeqsModule,
     RefSeqChunksModule,
