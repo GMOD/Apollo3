@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Logger,
-  Param,
-  Query,
-  Response,
-  StreamableFile,
-} from '@nestjs/common'
-import { Response as ExpressResponse } from 'express'
+import { Controller, Get, Logger, Param, Query } from '@nestjs/common'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { Public } from '../utils/jwt-auth.guard'
@@ -22,47 +13,6 @@ export class FeaturesController {
   private readonly logger = new Logger(FeaturesController.name)
 
   /**
-   * Export GFF3 from database.
-   * e.g: curl http://localhost:3999/features/exportGFF3?exportID=624a7e97d45d7745c2532b01
-   *
-   * @param request -
-   * @param res -
-   * @returns A StreamableFile of the GFF3
-   */
-  @Public()
-  @Get('exportGFF3')
-  async exportGFF3(
-    @Query() request: { exportID: string },
-    @Response({ passthrough: true }) res: ExpressResponse,
-  ) {
-    const [stream, assembly] = await this.featuresService.exportGFF3(
-      request.exportID,
-    )
-    const assemblyName = 'dummy'// await this.featuresService.getAssemblyName(assembly)
-    // const assemblyName = await this.featuresService.getAssemblyName(assembly)
-    res.set({
-      'Content-Type': 'application/text',
-      'Content-Disposition': `attachment; filename="${assemblyName}_apollo.gff3"`,
-    })
-    // TODO: remove ts-ignores below after a resolution for this issue is
-    // released: https://github.com/nestjs/nest/issues/10681
-    return new StreamableFile(stream).setErrorHandler((error, response) => {
-      if (response.destroyed) {
-        return
-      }
-      if (response.headersSent) {
-        // TODO: maybe broadcast message to user that they shouldn't trust the
-        // exported GFF3? From the client side there's no way to tell this
-        // stream terminated early.
-        response.end()
-        return
-      }
-      response.statusCode = 400
-      response.send(error.message)
-    })
-  }
-
-  /**
    * Search database for queries
    * For testing try to go to:
    * http://localhost:3999/features/searchFeatures?term=exonerate
@@ -71,18 +21,6 @@ export class FeaturesController {
   @Get('searchFeatures')
   async searchFeatures(@Query() request: { term: string; assemblies: string }) {
     return this.featuresService.searchFeatures(request)
-  }
-
-  /**
-   * Get and ID to be used with exportGFF3. ID will be valid for 5 minutes.
-   * @param request -
-   * @returns The ID of an export that will be valid for 5 minutes
-   */
-  @Validations(Role.ReadOnly)
-  @Get('getExportID')
-  async getExportID(@Query() request: { assembly: string }) {
-    const exportDoc = await this.featuresService.getExportID(request.assembly)
-    return { exportID: exportDoc._id }
   }
 
   /**

@@ -13,6 +13,7 @@ import { AssembliesModule } from './assemblies/assemblies.module'
 import { AuthenticationModule } from './authentication/authentication.module'
 import { ChangesModule } from './changes/changes.module'
 import { CountersModule } from './counters/counters.module'
+import { ExportModule } from './export/export.module'
 import { FeaturesModule } from './features/features.module'
 import { FilesModule } from './files/files.module'
 import { HealthModule } from './health/health.module'
@@ -132,33 +133,34 @@ async function mongoDBURIFactory(
 
 @Module({
   imports: [
+    AssembliesModule,
     AuthenticationModule,
+    ChangesModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: nodeEnv === 'production' ? '.env' : '.development.env',
       validationSchema,
     }),
-    ChangesModule,
+    CountersModule,
+    ExportModule,
+    FeaturesModule,
+    FilesModule,
+    HealthModule,
+    MessagesModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: mongoDBURIFactory,
       inject: [ConfigService],
     }),
-    AssembliesModule,
+    OperationsModule,
+    PluginsModule.registerAsync(),
     RefSeqChunksModule,
     RefSeqsModule,
-    FeaturesModule,
-    FilesModule,
-    UsersModule,
-    MessagesModule,
-    OperationsModule,
-    CountersModule,
-    PluginsModule.registerAsync(),
-    HealthModule,
+    SequenceModule,
     ServeStaticModule.forRoot({
       rootPath: path.join(__dirname, '..', 'public'),
     }),
-    SequenceModule,
+    UsersModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
