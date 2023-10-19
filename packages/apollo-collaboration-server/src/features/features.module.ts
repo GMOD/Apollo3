@@ -4,6 +4,8 @@ import { Feature, FeatureSchema } from 'apollo-schemas'
 import { Connection } from 'mongoose'
 import idValidator from 'mongoose-id-validator'
 
+import { ChecksModule } from '../checks/checks.module'
+import { ChecksService } from '../checks/checks.service'
 import { OperationsModule } from '../operations/operations.module'
 import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
@@ -20,11 +22,15 @@ import { FeaturesService } from './features.service'
     MongooseModule.forFeatureAsync([
       {
         name: Feature.name,
-        useFactory: (connection: Connection) => {
+        useFactory: (connection: Connection, checksService: ChecksService) => {
           FeatureSchema.plugin(idValidator, { connection })
+          FeatureSchema.post('save', async (doc) => {
+            await checksService.checkFeature(doc)
+          })
           return FeatureSchema
         },
-        inject: [getConnectionToken()],
+        imports: [ChecksModule],
+        inject: [getConnectionToken(), ChecksService],
       },
     ]),
   ],

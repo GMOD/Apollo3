@@ -12,6 +12,7 @@ import { Connection } from 'mongoose'
 import { AssembliesModule } from './assemblies/assemblies.module'
 import { AuthenticationModule } from './authentication/authentication.module'
 import { ChangesModule } from './changes/changes.module'
+import { ChecksModule } from './checks/checks.module'
 import { CountersModule } from './counters/counters.module'
 import { ExportModule } from './export/export.module'
 import { FeaturesModule } from './features/features.module'
@@ -136,6 +137,7 @@ async function mongoDBURIFactory(
     AssembliesModule,
     AuthenticationModule,
     ChangesModule,
+    ChecksModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: nodeEnv === 'production' ? '.env' : '.development.env',
