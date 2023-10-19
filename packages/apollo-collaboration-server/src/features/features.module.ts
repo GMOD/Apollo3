@@ -1,6 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import { Feature, FeatureSchema } from 'apollo-schemas'
+import { Connection } from 'mongoose'
 import idValidator from 'mongoose-id-validator'
 
 import { OperationsModule } from '../operations/operations.module'
@@ -19,7 +20,7 @@ import { FeaturesService } from './features.service'
     MongooseModule.forFeatureAsync([
       {
         name: Feature.name,
-        useFactory: (connection) => {
+        useFactory: (connection: Connection) => {
           FeatureSchema.plugin(idValidator, { connection })
           return FeatureSchema
         },
@@ -27,6 +28,6 @@ import { FeaturesService } from './features.service'
       },
     ]),
   ],
-  exports: [MongooseModule],
+  exports: [MongooseModule, FeaturesService],
 })
 export class FeaturesModule {}
