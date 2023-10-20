@@ -28,3 +28,11 @@ export interface FeatureRangeSearchDto {
   start: number
   end: number
 }
+
+export interface CheckReportResultDto {
+  checkName: string
+  ids: string[]
+  pass: boolean
+  ignored: string
+  problems: string
+}

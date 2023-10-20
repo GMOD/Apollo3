@@ -10,5 +10,6 @@ import { SequenceService } from './sequence.service'
   imports: [RefSeqsModule, RefSeqChunksModule, AssembliesModule],
   providers: [SequenceService],
   controllers: [SequenceController],
+  exports: [SequenceService],
 })
 export class SequenceModule {}
