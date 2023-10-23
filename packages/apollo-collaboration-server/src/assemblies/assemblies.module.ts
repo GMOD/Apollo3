@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 import { Assembly, AssemblySchema } from 'apollo-schemas'
 
@@ -13,8 +13,10 @@ import { AssembliesService } from './assemblies.service'
     MongooseModule.forFeature([
       { name: Assembly.name, schema: AssemblySchema },
     ]),
-    OperationsModule,
+    // OperationsModule,
+    forwardRef(() => OperationsModule),
   ],
-  exports: [MongooseModule, AssembliesService],
+  exports: [AssembliesService],
+  // exports: [MongooseModule, AssembliesService],
 })
 export class AssembliesModule {}

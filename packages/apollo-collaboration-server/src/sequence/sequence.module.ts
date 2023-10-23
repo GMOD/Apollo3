@@ -7,7 +7,8 @@ import { SequenceController } from './sequence.controller'
 import { SequenceService } from './sequence.service'
 
 @Module({
-  imports: [RefSeqsModule, RefSeqChunksModule, AssembliesModule],
+  // imports: [RefSeqsModule, RefSeqChunksModule, AssembliesModule],
+  imports: [RefSeqsModule, RefSeqChunksModule],
   providers: [SequenceService],
   controllers: [SequenceController],
   exports: [SequenceService],
