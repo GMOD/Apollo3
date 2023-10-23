@@ -32,7 +32,6 @@ export class SequenceService {
     }
 
     const { assembly, chunkSize, name } = refSeq
-    /*
     const assemblyDoc = await this.assembliesService.findOne(
       assembly.toString(),
     )
@@ -70,7 +69,5 @@ export class SequenceService {
       }
     }
     return seq.join('')
-    */
-    return 'juupasen juu'
   }
 }
