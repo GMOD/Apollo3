@@ -158,7 +158,7 @@ export class AddFeatureChange extends FeatureChange {
           const childIds = this.getChildFeatureIds(addedFeature)
           const allIdsV2 = [_id, ...childIds]
           const [newFeatureDoc] = await featureModel.create(
-            [{ allIds: allIdsV2, ...addedFeature }],
+            [{ allIds: allIdsV2, status: 0, ...addedFeature }],
             { session },
           )
           logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)

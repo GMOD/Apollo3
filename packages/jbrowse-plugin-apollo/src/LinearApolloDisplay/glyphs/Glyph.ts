@@ -4,7 +4,7 @@ import { alpha } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 
 import {
-  AddFeature,
+  AddChildFeature,
   CopyFeature,
   DeleteFeature,
   ModifyFeatureAttribute,
@@ -221,7 +221,7 @@ export abstract class Glyph {
           onClick: () => {
             ;(session as unknown as AbstractSessionModel).queueDialog(
               (doneCallback) => [
-                AddFeature,
+                AddChildFeature,
                 {
                   session,
                   handleClose: () => {

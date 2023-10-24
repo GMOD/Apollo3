@@ -2,13 +2,21 @@ import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import {
   DisplayType,
   InternetAccountType,
+  PluggableElementType,
   TrackType,
+  ViewType,
   createBaseTrackConfig,
   createBaseTrackModel,
 } from '@jbrowse/core/pluggableElementTypes'
 import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { AbstractSessionModel, isAbstractMenuManager } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  getSession,
+  isAbstractMenuManager,
+} from '@jbrowse/core/util'
+import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
+import AddIcon from '@mui/icons-material/Add'
 import { changeRegistry } from 'apollo-common'
 import {
   CoreValidation,
@@ -30,6 +38,7 @@ import {
 } from './ApolloSixFrameRenderer'
 import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
 import { DownloadGFF3, OpenLocalFile, ViewChangeLog } from './components'
+import { AddFeature } from './components/AddFeature'
 import ApolloPluginConfigurationSchema from './config'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
@@ -137,6 +146,57 @@ export default class ApolloPlugin extends Plugin {
     pluginManager.addToExtensionPoint(
       'Core-extendSession',
       extendSession.bind(this, pluginManager),
+    )
+
+    pluginManager.addToExtensionPoint(
+      'Core-extendPluggableElement',
+      (pluggableElement: PluggableElementType) => {
+        if (pluggableElement.name === 'LinearGenomeView') {
+          const { stateModel } = pluggableElement as ViewType
+          const lgv = stateModel as LinearGenomeViewStateModel
+          const newStateModel = lgv.views((self) => {
+            const superRubberBandMenuItems = self.rubberBandMenuItems
+            return {
+              rubberBandMenuItems() {
+                return [
+                  ...superRubberBandMenuItems(),
+                  {
+                    label: 'Add new feature',
+                    icon: AddIcon,
+                    onClick: () => {
+                      const session = getSession(
+                        self,
+                      ) as unknown as ApolloSessionModel
+                      const { leftOffset, rightOffset } = self
+                      const selectedRegions = self.getSelectedRegions(
+                        leftOffset,
+                        rightOffset,
+                      )
+                      ;(session as unknown as AbstractSessionModel).queueDialog(
+                        (doneCallback) => [
+                          AddFeature,
+                          {
+                            session,
+                            handleClose: () => {
+                              doneCallback()
+                            },
+                            region: selectedRegions[0],
+                            changeManager:
+                              session.apolloDataStore.changeManager,
+                          },
+                        ],
+                      )
+                    },
+                  },
+                ]
+              },
+            }
+          })
+
+          ;(pluggableElement as ViewType).stateModel = newStateModel
+        }
+        return pluggableElement
+      },
     )
   }
 

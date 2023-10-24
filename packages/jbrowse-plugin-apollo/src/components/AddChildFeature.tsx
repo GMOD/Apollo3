@@ -1,4 +1,4 @@
-import { AbstractSessionModel, Region } from '@jbrowse/core/util/types'
+import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
   DialogActions,
@@ -11,20 +11,23 @@ import {
   SelectChangeEvent,
   TextField,
 } from '@mui/material'
+import { AnnotationFeatureI } from 'apollo-mst'
 import { AddFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import React, { useState } from 'react'
 
 import { ChangeManager } from '../ChangeManager'
 import { isOntologyClass } from '../OntologyManager'
+import OntologyStore from '../OntologyManager/OntologyStore'
 import { ApolloSessionModel } from '../session'
 import { Dialog } from './Dialog'
 import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
 
-interface AddFeatureProps {
+interface AddChildFeatureProps {
   session: ApolloSessionModel
   handleClose(): void
-  region: Region
+  sourceFeature: AnnotationFeatureI
+  sourceAssemblyId: string
   changeManager: ChangeManager
 }
 
@@ -34,21 +37,55 @@ enum PhaseEnum {
   two = 2,
 }
 
-export function AddFeature({
+export function AddChildFeature({
   changeManager,
   handleClose,
-  region,
   session,
-}: AddFeatureProps) {
+  sourceAssemblyId,
+  sourceFeature,
+}: AddChildFeatureProps) {
   const { notify } = session as unknown as AbstractSessionModel
-  const [end, setEnd] = useState(String(region.end))
-  const [start, setStart] = useState(String(region.start))
+  const [end, setEnd] = useState(String(sourceFeature.end))
+  const [start, setStart] = useState(String(sourceFeature.start))
   const [type, setType] = useState('')
   const [phase, setPhase] = useState('')
   const [phaseAsNumber, setPhaseAsNumber] = useState<PhaseEnum>()
   const [showPhase, setShowPhase] = useState<boolean>(false)
   const [errorMessage, setErrorMessage] = useState('')
-  const [typeWarningText] = useState('')
+  const [typeWarningText, setTypeWarningText] = useState('')
+
+  async function fetchValidDescendantTerms(
+    parentFeature: AnnotationFeatureI | undefined,
+    ontologyStore: OntologyStore,
+    _signal: AbortSignal,
+  ) {
+    if (!parentFeature) {
+      return
+    }
+    // since this is a child of an existing feature, restrict the autocomplete choices to valid
+    // parts of that feature
+    const parentTypeTerms = await ontologyStore.getTermsWithLabelOrSynonym(
+      parentFeature.type,
+      { includeSubclasses: false },
+    )
+    // eslint-disable-next-line unicorn/no-array-callback-reference
+    const parentTypeClassTerms = parentTypeTerms.filter(isOntologyClass)
+    if (parentTypeTerms.length === 0) {
+      return
+    }
+    const subpartTerms = await ontologyStore.getClassesThat(
+      'part_of',
+      parentTypeClassTerms,
+    )
+    if (subpartTerms.length > 0) {
+      setTypeWarningText('')
+    } else {
+      setTypeWarningText(
+        `Type "${parentFeature.type}" does not have any children in the ontology`,
+      )
+    }
+    return subpartTerms
+  }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -57,44 +94,26 @@ export function AddFeature({
       setErrorMessage('The phase is REQUIRED for all CDS features.')
       return
     }
-
-    let refSeqId
-    for (const [, asm] of session.apolloDataStore.assemblies ?? new Map()) {
-      if (asm._id === region.assemblyName) {
-        for (const [, refseq] of asm.refSeqs ?? new Map()) {
-          if (refseq.name === region.refName) {
-            refSeqId = refseq._id
-          }
-        }
-      }
-    }
-
-    if (!refSeqId) {
-      setErrorMessage('Invalid refseq id')
-      return
-    }
-
-    const _id = new ObjectID().toHexString()
     const change = new AddFeatureChange({
-      changedIds: [_id],
+      changedIds: [sourceFeature._id],
       typeName: 'AddFeatureChange',
-      assembly: region.assemblyName,
+      assembly: sourceAssemblyId,
       addedFeature: {
-        _id,
+        _id: new ObjectID().toHexString(),
         gffId: '',
-        refSeq: refSeqId,
+        refSeq: sourceFeature.refSeq,
         start: Number(start),
         end: Number(end),
         type,
         phase: phaseAsNumber,
       },
+      parentFeatureId: sourceFeature._id,
     })
     await changeManager.submit?.(change)
     notify('Feature added successfully', 'success')
     handleClose()
     event.preventDefault()
   }
-
   function handleChangeType(newType: string) {
     setErrorMessage('')
     setType(newType)
@@ -105,7 +124,6 @@ export function AddFeature({
       setShowPhase(false)
     }
   }
-
   async function handleChangePhase(e: SelectChangeEvent<string>) {
     setErrorMessage('')
     setPhase(e.target.value)
@@ -129,13 +147,11 @@ export function AddFeature({
       }
     }
   }
-
   const error = Number(end) <= Number(start)
-
   return (
     <Dialog
       open
-      title="Add new feature"
+      title="Add new child feature"
       handleClose={handleClose}
       maxWidth={false}
       data-testid="add-feature-dialog"
@@ -164,12 +180,23 @@ export function AddFeature({
             error={error}
             helperText={error ? '"End" must be greater than "Start"' : null}
           />
+          {/* <Select value={type} onChange={handleChangeType} label="Type">
+              {(possibleChildTypes ?? []).map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </Select> */}
           <OntologyTermAutocomplete
             session={session}
             ontologyName="Sequence Ontology"
             style={{ width: 170 }}
             value={type}
             filterTerms={isOntologyClass}
+            fetchValidTerms={fetchValidDescendantTerms.bind(
+              null,
+              sourceFeature,
+            )}
             renderInput={(params) => (
               <TextField
                 {...params}
