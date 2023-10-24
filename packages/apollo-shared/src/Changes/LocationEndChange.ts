@@ -86,6 +86,15 @@ export class LocationEndChange extends FeatureChange {
         throw new Error(errMsg)
       }
       logger.debug?.(`*** Found feature: ${JSON.stringify(foundFeature)}`)
+      if (
+        foundFeature.discontinuousLocations &&
+        foundFeature.discontinuousLocations.length > 0
+      ) {
+        const errMsg =
+          'Must use "DiscontinuousLocationEndChange" to change a feature end that has discontinuous locations'
+        logger.error(errMsg)
+        throw new Error(errMsg)
+      }
       if (foundFeature.end !== oldEnd) {
         const errMsg = `*** ERROR: Feature's current end value ${foundFeature.end} doesn't match with expected value ${oldEnd}`
         logger.error(errMsg)

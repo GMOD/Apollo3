@@ -1,7 +1,8 @@
 import { alpha } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import {
-  DiscontinuousLocationChange,
+  DiscontinuousLocationEndChange,
+  DiscontinuousLocationStartChange,
   LocationEndChange,
   LocationStartChange,
 } from 'apollo-shared'
@@ -13,6 +14,12 @@ import {
 } from '../stateModel/mouseEvents'
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
+
+type LocationChange =
+  | DiscontinuousLocationEndChange
+  | DiscontinuousLocationStartChange
+  | LocationEndChange
+  | LocationStartChange
 
 let forwardFill: CanvasPattern | null = null
 let backwardFill: CanvasPattern | null = null
@@ -989,7 +996,8 @@ export class CanonicalGeneGlyph extends Glyph {
     const changes: (
       | LocationStartChange
       | LocationEndChange
-      | DiscontinuousLocationChange
+      | DiscontinuousLocationEndChange
+      | DiscontinuousLocationStartChange
     )[] = []
 
     if (edge === 'start') {
@@ -998,12 +1006,15 @@ export class CanonicalGeneGlyph extends Glyph {
         feature.discontinuousLocations &&
         feature.discontinuousLocations.length > 0
       ) {
+        const oldStart =
+          feature.discontinuousLocations[discontinuousLocation.idx].start
         this.addDiscontinuousLocStartChange(
           changes,
           feature,
           newBp,
+          oldStart,
           assembly,
-          discontinuousLocation?.idx,
+          discontinuousLocation.idx,
         )
 
         const exonCDSRelations = this.exonCDSRelation(feature, topLevelFeature)
@@ -1032,12 +1043,15 @@ export class CanonicalGeneGlyph extends Glyph {
         feature.discontinuousLocations &&
         feature.discontinuousLocations.length > 0
       ) {
+        const oldEnd =
+          feature.discontinuousLocations[discontinuousLocation.idx].end
         this.addDiscontinuousLocEndChange(
           changes,
           feature,
           newBp,
+          oldEnd,
           assembly,
-          discontinuousLocation?.idx,
+          discontinuousLocation.idx,
         )
 
         const exonCDSRelations = this.exonCDSRelation(feature, topLevelFeature)
@@ -1073,57 +1087,51 @@ export class CanonicalGeneGlyph extends Glyph {
   }
 
   addDiscontinuousLocStartChange(
-    changes: (
-      | LocationStartChange
-      | LocationEndChange
-      | DiscontinuousLocationChange
-    )[],
+    changes: LocationChange[],
     feature: AnnotationFeatureI, // cds
     newBp: number,
+    oldStart: number,
     assembly: string,
     index: number,
   ) {
     const featureId = feature._id
     changes.push(
-      new DiscontinuousLocationChange({
-        typeName: 'DiscontinuousLocationChange',
+      new DiscontinuousLocationStartChange({
+        typeName: 'DiscontinuousLocationStartChange',
         changedIds: [feature._id],
         featureId,
-        start: { newStart: newBp, index },
+        newStart: newBp,
+        oldStart,
+        index,
         assembly,
       }),
     )
   }
 
   addDiscontinuousLocEndChange(
-    changes: (
-      | LocationStartChange
-      | LocationEndChange
-      | DiscontinuousLocationChange
-    )[],
+    changes: LocationChange[],
     feature: AnnotationFeatureI, // cds
     newBp: number,
+    oldEnd: number,
     assembly: string,
     index: number,
   ) {
     const featureId = feature._id
     changes.push(
-      new DiscontinuousLocationChange({
-        typeName: 'DiscontinuousLocationChange',
+      new DiscontinuousLocationEndChange({
+        typeName: 'DiscontinuousLocationEndChange',
         changedIds: [feature._id],
         featureId,
-        end: { newEnd: newBp, index },
+        newEnd: newBp,
+        oldEnd,
+        index,
         assembly,
       }),
     )
   }
 
   addEndLocationChange(
-    changes: (
-      | LocationStartChange
-      | LocationEndChange
-      | DiscontinuousLocationChange
-    )[],
+    changes: LocationChange[],
     feature: AnnotationFeatureI,
     newBp: number,
     assembly: string,
@@ -1144,11 +1152,7 @@ export class CanonicalGeneGlyph extends Glyph {
   }
 
   addStartLocationChange(
-    changes: (
-      | LocationStartChange
-      | LocationEndChange
-      | DiscontinuousLocationChange
-    )[],
+    changes: LocationChange[],
     feature: AnnotationFeatureI,
     newBp: number,
     assembly: string,

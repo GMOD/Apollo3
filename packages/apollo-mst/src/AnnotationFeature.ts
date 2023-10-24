@@ -134,7 +134,7 @@ export const AnnotationFeature = types
       const dl = self.discontinuousLocations
       if (dl && dl.length > 0 && dl[index].end !== end) {
         dl[index].end = end
-        if (index === 0) {
+        if (index === dl.length - 1) {
           self.end = end
         }
       }

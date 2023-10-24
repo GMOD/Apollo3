@@ -6,7 +6,8 @@ import { AddFeaturesFromFileChange } from './AddFeaturesFromFileChange'
 import { DeleteAssemblyChange } from './DeleteAssemblyChange'
 import { DeleteFeatureChange } from './DeleteFeatureChange'
 import { DeleteUserChange } from './DeleteUserChange'
-import { DiscontinuousLocationChange } from './DiscontinuousLocationChange'
+import { DiscontinuousLocationEndChange } from './DiscontinuousLocationEndChange'
+import { DiscontinuousLocationStartChange } from './DiscontinuousLocationStartChange'
 import { FeatureAttributeChange } from './FeatureAttributeChange'
 import { LocationEndChange } from './LocationEndChange'
 import { LocationStartChange } from './LocationStartChange'
@@ -21,11 +22,12 @@ export const changes = {
   AddFeaturesFromFileChange,
   DeleteAssemblyChange,
   DeleteFeatureChange,
-  FeatureAttributeChange,
   DeleteUserChange,
+  DiscontinuousLocationEndChange,
+  DiscontinuousLocationStartChange,
+  FeatureAttributeChange,
   LocationEndChange,
   LocationStartChange,
-  DiscontinuousLocationChange,
   TypeChange,
   UserChange,
 }
@@ -38,9 +40,10 @@ export * from './AddFeaturesFromFileChange'
 export * from './DeleteAssemblyChange'
 export * from './DeleteFeatureChange'
 export * from './DeleteUserChange'
+export * from './DiscontinuousLocationEndChange'
+export * from './DiscontinuousLocationStartChange'
 export * from './FeatureAttributeChange'
 export * from './LocationEndChange'
 export * from './LocationStartChange'
-export * from './DiscontinuousLocationChange'
 export * from './TypeChange'
 export * from './UserChange'
