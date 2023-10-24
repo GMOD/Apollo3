@@ -13,9 +13,10 @@ import { AssembliesService } from './assemblies.service'
     MongooseModule.forFeature([
       { name: Assembly.name, schema: AssemblySchema },
     ]),
-    OperationsModule, // Original
-    // forwardRef(() => OperationsModule),
+    // OperationsModule, // Original
+    forwardRef(() => OperationsModule),
   ],
-  exports: [MongooseModule, AssembliesService],
+  // exports: [AssembliesService],
+  exports: [MongooseModule, AssembliesService], // Original
 })
 export class AssembliesModule {}
