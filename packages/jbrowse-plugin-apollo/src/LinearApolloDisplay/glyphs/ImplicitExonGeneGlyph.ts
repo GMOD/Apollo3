@@ -1,6 +1,9 @@
+import { alpha } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
+import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 
 import { LinearApolloDisplay } from '../stateModel'
+import { MousePosition } from '../stateModel/mouseEvents'
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 
@@ -219,6 +222,145 @@ export class ImplicitExonGeneGlyph extends Glyph {
     ctx.fillRect(startPx, top, widthPx, rowHeight)
   }
 
+  drawDragPreview(
+    stateModel: LinearApolloDisplay,
+    overlayCtx: CanvasRenderingContext2D,
+  ) {
+    const { apolloDragging, apolloRowHeight, displayedRegions, lgv, theme } =
+      stateModel
+    const { bpPerPx, offsetPx } = lgv
+    if (!apolloDragging) {
+      return
+    }
+    const {
+      feature,
+      glyph,
+      mousePosition: startingMousePosition,
+    } = apolloDragging.start
+    if (!feature) {
+      throw new Error('no feature for drag preview??')
+    }
+    if (glyph !== this) {
+      throw new Error('drawDragPreview() called on wrong glyph?')
+    }
+    const { mousePosition: currentMousePosition } = apolloDragging.current
+    const edge = this.isMouseOnFeatureEdge(
+      startingMousePosition,
+      feature,
+      stateModel,
+    )
+    if (!edge) {
+      return
+    }
+
+    const row = Math.floor(startingMousePosition.y / apolloRowHeight)
+    const region = displayedRegions[startingMousePosition.regionNumber]
+    const rowCount = 1
+
+    const featureEdgeBp = region.reversed
+      ? region.end - feature[edge]
+      : feature[edge] - region.start
+    const featureEdgePx = featureEdgeBp / bpPerPx - offsetPx
+
+    const rectX = Math.min(currentMousePosition.x, featureEdgePx)
+    const rectY = row * apolloRowHeight
+    const rectWidth = Math.abs(currentMousePosition.x - featureEdgePx)
+    const rectHeight = apolloRowHeight * rowCount
+
+    overlayCtx.strokeStyle = theme?.palette.info.main ?? 'rgb(255,0,0)'
+    overlayCtx.setLineDash([6])
+    overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
+    overlayCtx.fillStyle = alpha(
+      theme?.palette.info.main ?? 'rgb(255,0,0)',
+      0.2,
+    )
+    overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
+  }
+
+  /**
+   * Check If the mouse position is on the edge of the selected feature
+   */
+  isMouseOnFeatureEdge(
+    mousePosition: MousePosition,
+    feature: AnnotationFeatureI,
+    stateModel: LinearApolloDisplay,
+    topLevelFeature?: AnnotationFeatureI,
+  ) {
+    if (!mousePosition) {
+      return
+    }
+
+    const { refName, regionNumber, x } = mousePosition
+    const { lgv } = stateModel
+    const { bpToPx, offsetPx } = lgv
+    const startPxInfo = bpToPx({ refName, coord: feature.start, regionNumber })
+    const endPxInfo = bpToPx({ refName, coord: feature.end, regionNumber })
+    if (startPxInfo !== undefined && endPxInfo !== undefined) {
+      const startPx = startPxInfo.offsetPx - offsetPx
+      const endPx = endPxInfo.offsetPx - offsetPx
+      if (Math.abs(endPx - startPx) < 8) {
+        return
+      }
+      const parentFeature = this.getParentFeature(feature, topLevelFeature)
+      // Limit dragging till parent feature end
+      if (
+        parentFeature &&
+        feature.start <= parentFeature.start &&
+        Math.abs(startPx - x) < 4
+      ) {
+        return
+      }
+      if (
+        parentFeature &&
+        feature.end >= parentFeature.end &&
+        Math.abs(endPx - x) < 4
+      ) {
+        return
+      }
+      if (Math.abs(startPx - x) < 4) {
+        return 'start'
+      }
+      if (Math.abs(endPx - x) < 4) {
+        return 'end'
+      }
+    }
+    return
+  }
+
+  onMouseMove(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
+    const { feature, mousePosition, topLevelFeature } =
+      stateModel.getFeatureAndGlyphUnderMouse(event)
+    if (stateModel.apolloDragging) {
+      stateModel.setCursor('col-resize')
+      return
+    }
+    if (feature && mousePosition) {
+      const edge = this.isMouseOnFeatureEdge(
+        mousePosition,
+        feature,
+        stateModel,
+        topLevelFeature,
+      )
+      if (edge) {
+        stateModel.setCursor('col-resize')
+      } else {
+        stateModel.setCursor()
+      }
+    }
+  }
+
+  onMouseDown(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
+    // swallow the mouseDown if we are on the edge of the feature
+    const { feature, mousePosition } =
+      stateModel.getFeatureAndGlyphUnderMouse(event)
+    if (feature && mousePosition) {
+      const edge = this.isMouseOnFeatureEdge(mousePosition, feature, stateModel)
+      if (edge) {
+        event.stopPropagation()
+      }
+    }
+  }
+
   onMouseUp(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
     if (stateModel.apolloDragging ?? event.button !== 0) {
       return
@@ -229,6 +371,157 @@ export class ImplicitExonGeneGlyph extends Glyph {
     }
   }
 
+  startDrag(stateModel: LinearApolloDisplay): boolean {
+    // only accept the drag if we are on the edge of the feature
+    const { feature, mousePosition, topLevelFeature } =
+      stateModel.apolloDragging?.start ?? {}
+    const { mousePosition: currentMousePosition } =
+      stateModel.apolloDragging?.current ?? {}
+    if (feature && mousePosition && currentMousePosition) {
+      const edge = this.isMouseOnFeatureEdge(
+        mousePosition,
+        feature,
+        stateModel,
+        topLevelFeature,
+      )
+      if (edge) {
+        return true
+      }
+    }
+    return false
+  }
+
+  continueDrag(
+    stateModel: LinearApolloDisplay,
+    currentMousePosition: MousePosition,
+  ): void {
+    const { feature, glyph, mousePosition, topLevelFeature } =
+      stateModel.apolloDragging?.start ?? {}
+    if (!(currentMousePosition && mousePosition)) {
+      return
+    }
+    const parentFeature = this.getParentFeature(feature, topLevelFeature)
+    const adjacentFeatures: {
+      prevFeature?: AnnotationFeatureI
+      nextFeature?: AnnotationFeatureI
+    } = this.getAdjacentFeatures(feature, parentFeature)
+    if (!feature || !currentMousePosition) {
+      return
+    }
+    const { bp } = currentMousePosition
+    const edge = this.isMouseOnFeatureEdge(
+      mousePosition,
+      feature,
+      stateModel,
+      topLevelFeature,
+    )
+    if (
+      edge &&
+      ((edge === 'start' && bp >= feature.end - 1) ||
+        (edge === 'end' && bp <= feature.start + 1))
+    ) {
+      return
+    }
+    if (feature.type !== 'CDS') {
+      if (adjacentFeatures.prevFeature && !adjacentFeatures.nextFeature) {
+        if (
+          adjacentFeatures.prevFeature.type === 'CDS' &&
+          bp <= adjacentFeatures.prevFeature.start + 1
+        ) {
+          return
+        }
+        if (
+          adjacentFeatures.prevFeature.type !== 'CDS' &&
+          bp <= adjacentFeatures.prevFeature.end + 1
+        ) {
+          return
+        }
+      }
+      if (!adjacentFeatures.prevFeature && adjacentFeatures.nextFeature) {
+        if (
+          adjacentFeatures.nextFeature.type === 'CDS' &&
+          bp >= adjacentFeatures.nextFeature.end - 1
+        ) {
+          return
+        }
+        if (
+          adjacentFeatures.nextFeature.type !== 'CDS' &&
+          bp >= adjacentFeatures.nextFeature.start - 1
+        ) {
+          return
+        }
+      }
+    }
+
+    if (adjacentFeatures.prevFeature && adjacentFeatures.nextFeature) {
+      if (feature.type === 'CDS') {
+        if (
+          adjacentFeatures.nextFeature.type !== 'CDS' &&
+          bp >= adjacentFeatures.nextFeature.end - 1
+        ) {
+          return
+        }
+        if (
+          adjacentFeatures.nextFeature.type === 'CDS' &&
+          bp >= adjacentFeatures.nextFeature.start - 1
+        ) {
+          return
+        }
+        if (
+          adjacentFeatures.prevFeature.type !== 'CDS' &&
+          bp <= adjacentFeatures.prevFeature.start + 1
+        ) {
+          return
+        }
+        if (
+          adjacentFeatures.prevFeature.type === 'CDS' &&
+          bp <= adjacentFeatures.prevFeature.end + 1
+        ) {
+          return
+        }
+      } else {
+        if (
+          adjacentFeatures.prevFeature.type === 'CDS' &&
+          bp <= adjacentFeatures.prevFeature.start + 1
+        ) {
+          return
+        }
+        if (
+          adjacentFeatures.prevFeature.type !== 'CDS' &&
+          bp <= adjacentFeatures.prevFeature.end + 1
+        ) {
+          return
+        }
+        if (
+          adjacentFeatures.nextFeature.type !== 'CDS' &&
+          bp >= adjacentFeatures.nextFeature.start - 1
+        ) {
+          return
+        }
+        if (
+          adjacentFeatures.nextFeature.type === 'CDS' &&
+          bp >= adjacentFeatures.nextFeature.end - 1
+        ) {
+          return
+        }
+      }
+    }
+    stateModel.setDragging({
+      start: {
+        feature,
+        topLevelFeature,
+        glyph,
+        mousePosition,
+      },
+      current: {
+        feature,
+        topLevelFeature,
+        glyph,
+        mousePosition: currentMousePosition,
+      },
+    })
+  }
+
   getFeatureFromLayout(
     feature: AnnotationFeatureI,
     bp: number,
@@ -236,5 +529,156 @@ export class ImplicitExonGeneGlyph extends Glyph {
   ): AnnotationFeatureI | undefined {
     const layoutRow = this.featuresForRow(feature)[row]
     return layoutRow?.find((f) => bp >= f.start && bp <= f.end)
+  }
+
+  async executeDrag(stateModel: LinearApolloDisplay) {
+    const {
+      apolloDragging,
+      changeManager,
+      displayedRegions,
+      getAssemblyId,
+      setCursor,
+    } = stateModel
+    if (!apolloDragging) {
+      return
+    }
+    const {
+      feature,
+      glyph,
+      mousePosition: startingMousePosition,
+      topLevelFeature,
+    } = apolloDragging.start
+    if (!feature) {
+      throw new Error('no feature for drag preview??')
+    }
+    if (glyph !== this) {
+      throw new Error('drawDragPreview() called on wrong glyph?')
+    }
+    const edge = this.isMouseOnFeatureEdge(
+      startingMousePosition,
+      feature,
+      stateModel,
+    )
+    if (!edge) {
+      return
+    }
+
+    const { mousePosition: currentMousePosition } = apolloDragging.current
+    const region = displayedRegions[startingMousePosition.regionNumber]
+    const newBp = currentMousePosition.bp
+    const assembly = getAssemblyId(region.assemblyName)
+
+    const parentFeature = this.getParentFeature(feature, topLevelFeature)
+    const adjacentFeatures: {
+      prevFeature?: AnnotationFeatureI
+      nextFeature?: AnnotationFeatureI
+    } = this.getAdjacentFeatures(feature, parentFeature)
+    const changes: (LocationStartChange | LocationEndChange)[] = []
+
+    if (edge === 'end') {
+      this.addEndLocation(changes, feature, newBp, assembly)
+      const { nextFeature } = adjacentFeatures
+      if (!nextFeature) {
+        return
+      }
+      if (
+        (feature.type !== 'CDS' && nextFeature.type === 'CDS') ||
+        (feature.type === 'CDS' && nextFeature.type !== 'CDS')
+      ) {
+        this.addStartLocation(changes, nextFeature, newBp + 1, assembly)
+      }
+    } else {
+      this.addStartLocation(changes, feature, newBp, assembly)
+      const { prevFeature } = adjacentFeatures
+      if (!prevFeature) {
+        return
+      }
+      if (
+        (feature.type !== 'CDS' && prevFeature.type === 'CDS') ||
+        (feature.type === 'CDS' && prevFeature.type !== 'CDS')
+      ) {
+        this.addEndLocation(changes, prevFeature, newBp - 1, assembly)
+      }
+    }
+    if (!changeManager) {
+      throw new Error('no change manager')
+    }
+    for (const change of changes) {
+      await changeManager.submit(change)
+    }
+    setCursor()
+  }
+
+  getAdjacentFeatures(
+    feature?: AnnotationFeatureI,
+    parentFeature?: AnnotationFeatureI,
+  ): {
+    prevFeature?: AnnotationFeatureI
+    nextFeature?: AnnotationFeatureI
+  } {
+    let prevFeature: AnnotationFeatureI | undefined
+    let nextFeature: AnnotationFeatureI | undefined
+    let i = 0
+    if (!feature || !(parentFeature && parentFeature.children)) {
+      return { prevFeature, nextFeature }
+    }
+    for (const [, f] of parentFeature.children) {
+      if (f._id === feature._id) {
+        break
+      }
+      i++
+    }
+    const keys = [...parentFeature.children.keys()]
+    if (i > 0) {
+      const key = keys[i - 1]
+      prevFeature = parentFeature.children.get(key)
+    }
+    if (i < keys.length - 1) {
+      const key = keys[i + 1]
+      nextFeature = parentFeature.children.get(key)
+    }
+    return { prevFeature, nextFeature }
+  }
+
+  addEndLocation(
+    changes: (LocationStartChange | LocationEndChange)[] = [],
+    feature: AnnotationFeatureI,
+    newBp: number,
+    assembly: string,
+  ) {
+    const featureId = feature._id
+    const oldEnd = feature.end
+    const newEnd = newBp
+    changes.push(
+      new LocationEndChange({
+        typeName: 'LocationEndChange',
+        changedIds: [featureId],
+        featureId,
+        oldEnd,
+        newEnd,
+        assembly,
+      }),
+    )
+  }
+
+  addStartLocation(
+    changes: (LocationStartChange | LocationEndChange)[] = [],
+    feature: AnnotationFeatureI,
+    newBp: number,
+    assembly: string,
+  ) {
+    const featureId = feature._id
+    const oldStart = feature.start
+    const newStart = newBp
+    changes.push(
+      new LocationStartChange({
+        typeName: 'LocationStartChange',
+        changedIds: [featureId],
+        featureId,
+        oldStart,
+        newStart,
+        assembly,
+      }),
+    )
   }
 }

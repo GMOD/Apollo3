@@ -199,49 +199,47 @@ export abstract class AssemblySpecificChange extends Change {
     const { featureModel, refSeqModel, user } = backend
     const { assembly, logger, refSeqCache } = this
 
-    for (const featureLine of gff3Feature) {
-      const { seq_id: refName } = featureLine
-      if (!refName) {
-        throw new Error(
-          `Valid seq_id not found in feature ${JSON.stringify(featureLine)}`,
-        )
-      }
-      let refSeqDoc = refSeqCache.get(refName)
-      if (!refSeqDoc) {
-        refSeqDoc =
-          (await refSeqModel.findOne({ assembly, name: refName }).exec()) ??
-          undefined
-        if (refSeqDoc) {
-          refSeqCache.set(refName, refSeqDoc)
-        }
-      }
-      if (!refSeqDoc) {
-        throw new Error(
-          `RefSeq was not found by assembly "${assembly}" and seq_id "${refName}" not found`,
-        )
-      }
-      // Let's add featureId to parent feature
-      const featureIds: string[] = []
-
-      const newFeature = createFeature(gff3Feature, refSeqDoc._id, featureIds)
-      logger.debug?.(`So far feature ids are: ${featureIds.toString()}`)
-      // Add value to gffId
-      newFeature.attributes?._id
-        ? (newFeature.gffId = newFeature.attributes?._id.toString())
-        : (newFeature.gffId = newFeature._id)
-      logger.debug?.(
-        `********************* Assembly specific change create ${JSON.stringify(
-          newFeature,
-        )}`,
+    const [{ seq_id: refName }] = gff3Feature
+    if (!refName) {
+      throw new Error(
+        `Valid seq_id not found in feature ${JSON.stringify(gff3Feature)}`,
       )
-
-      // Add into Mongo
-      // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
-      const [newFeatureDoc] = await featureModel.create([
-        { allIds: featureIds, ...newFeature, user, status: -1 },
-      ])
-      logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
     }
+    let refSeqDoc = refSeqCache.get(refName)
+    if (!refSeqDoc) {
+      refSeqDoc =
+        (await refSeqModel.findOne({ assembly, name: refName }).exec()) ??
+        undefined
+      if (refSeqDoc) {
+        refSeqCache.set(refName, refSeqDoc)
+      }
+    }
+    if (!refSeqDoc) {
+      throw new Error(
+        `RefSeq was not found by assembly "${assembly}" and seq_id "${refName}" not found`,
+      )
+    }
+    // Let's add featureId to parent feature
+    const featureIds: string[] = []
+
+    const newFeature = createFeature(gff3Feature, refSeqDoc._id, featureIds)
+    logger.debug?.(`So far feature ids are: ${featureIds.toString()}`)
+    // Add value to gffId
+    newFeature.attributes?._id
+      ? (newFeature.gffId = newFeature.attributes?._id.toString())
+      : (newFeature.gffId = newFeature._id)
+    logger.debug?.(
+      `********************* Assembly specific change create ${JSON.stringify(
+        newFeature,
+      )}`,
+    )
+
+    // Add into Mongo
+    // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
+    const [newFeatureDoc] = await featureModel.create([
+      { allIds: featureIds, ...newFeature, user, status: -1 },
+    ])
+    logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
   }
 }
 
@@ -292,6 +290,15 @@ function createFeature(
     end,
   }
   if (gff3Feature.length > 1) {
+    const lastEnd = Math.max(
+      ...gff3Feature.map((f) => {
+        if (f.end === null) {
+          throw new Error(`feature does not have end: ${JSON.stringify(f)}`)
+        }
+        return f.end
+      }),
+    )
+    feature.end = lastEnd
     feature.discontinuousLocations = gff3Feature.map((f) => {
       const { end: subEnd, phase: locationPhase, start: subStart } = f
       if (subStart === null || subEnd === null) {

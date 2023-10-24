@@ -1,10 +1,11 @@
 import { AnnotationFeatureI } from 'apollo-mst'
 
 import { LinearApolloDisplay } from '../stateModel'
+import { MousePosition } from '../stateModel/mouseEvents'
 import { CanvasMouseEvent } from '../types'
-import { Glyph } from './Glyph'
+import { BoxGlyph } from './BoxGlyph'
 
-export class GenericChildGlyph extends Glyph {
+export class GenericChildGlyph extends BoxGlyph {
   featuresForRow(feature: AnnotationFeatureI): AnnotationFeatureI[][] {
     const features = [[feature]]
     if (feature.children) {
@@ -42,59 +43,46 @@ export class GenericChildGlyph extends Glyph {
     reversed: boolean,
   ) {
     const features = this.featuresForRow(topLevelFeature)[row - topRow]
-    const { apolloRowHeight, lgv, session, theme } = stateModel
+    for (const feature of features) {
+      this.drawFeature(
+        stateModel,
+        ctx,
+        topLevelFeature,
+        feature,
+        xOffset,
+        row,
+        reversed,
+      )
+    }
+  }
+
+  private drawFeature(
+    stateModel: LinearApolloDisplay,
+    ctx: CanvasRenderingContext2D,
+    topLevelFeature: AnnotationFeatureI,
+    feature: AnnotationFeatureI,
+    xOffset: number,
+    row: number,
+    reversed: boolean,
+  ) {
+    const { apolloRowHeight: heightPx, lgv, session } = stateModel
     const { bpPerPx } = lgv
     const { apolloSelectedFeature } = session
-    const top = row * apolloRowHeight
-
-    for (const feature of features) {
-      const offsetPx = (feature.start - topLevelFeature.min) / bpPerPx
-      const widthPx = feature.length / bpPerPx
-      const startPx = reversed
-        ? xOffset - offsetPx - widthPx
-        : xOffset + offsetPx
-      const rowCount = this.getRowCount(feature)
-      if (rowCount > 1) {
-        const featureHeight = rowCount * apolloRowHeight
-        ctx.fillStyle =
-          apolloSelectedFeature && feature._id === apolloSelectedFeature._id
-            ? 'rgba(130,0,0,0.45)'
-            : 'rgba(255,0,0,0.25)'
-        ctx.fillRect(startPx, top, widthPx, featureHeight)
-      }
-      ctx.fillStyle = theme?.palette.text.primary ?? 'black'
-      ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
-      if (widthPx > 2) {
-        const backgroundColor =
-          apolloSelectedFeature && feature._id === apolloSelectedFeature._id
-            ? theme?.palette.text.primary ?? 'black'
-            : theme?.palette.background.default ?? 'white'
-        const textColor =
-          apolloSelectedFeature && feature._id === apolloSelectedFeature._id
-            ? theme?.palette.getContrastText(backgroundColor) ?? 'white'
-            : theme?.palette.text.primary ?? 'black'
-        ctx.clearRect(startPx + 1, top + 1, widthPx - 2, apolloRowHeight - 2)
-        ctx.fillStyle = backgroundColor
-        ctx.fillRect(startPx + 1, top + 1, widthPx - 2, apolloRowHeight - 2)
-        ctx.fillStyle = textColor
-        const textStart = Math.max(startPx + 1, 0)
-        const textWidth = startPx - 1 + widthPx - textStart
-        feature.type &&
-          ctx.fillText(feature.type, textStart, top + 11, textWidth)
-      }
+    const offsetPx = (feature.start - topLevelFeature.min) / bpPerPx
+    const widthPx = feature.length / bpPerPx
+    const startPx = reversed ? xOffset - offsetPx - widthPx : xOffset + offsetPx
+    const top = row * heightPx
+    const rowCount = this.getRowCount(feature)
+    const isSelected = this.getIsSelectedFeature(feature, apolloSelectedFeature)
+    const groupingColor = isSelected
+      ? 'rgba(130,0,0,0.45)'
+      : 'rgba(255,0,0,0.25)'
+    if (rowCount > 1) {
+      // draw background that encapsulates all child features
+      const featureHeight = rowCount * heightPx
+      this.drawBox(ctx, startPx, top, widthPx, featureHeight, groupingColor)
     }
-    if (features.length > 1) {
-      let [{ end, start }] = features
-      for (const feature of features) {
-        start = Math.min(start, feature.start)
-        end = Math.max(end, feature.end)
-      }
-      const width = end - start
-      const startPx = (start - topLevelFeature.start) / bpPerPx
-      const widthPx = width / bpPerPx
-      ctx.fillStyle = 'rgba(0,255,255,0.2)'
-      ctx.fillRect(startPx + 1, top + 1, widthPx - 2, apolloRowHeight - 2)
-    }
+    super.draw(stateModel, ctx, feature, startPx, row, reversed)
   }
 
   drawHover(stateModel: LinearApolloDisplay, ctx: CanvasRenderingContext2D) {
@@ -134,6 +122,13 @@ export class GenericChildGlyph extends Glyph {
     if (feature) {
       stateModel.setSelectedFeature(feature)
     }
+  }
+
+  continueDrag(
+    _display: LinearApolloDisplay,
+    _currentMousePosition: MousePosition,
+  ): void {
+    // pass
   }
 
   getFeatureFromLayout(feature: AnnotationFeatureI, bp: number, row: number) {
