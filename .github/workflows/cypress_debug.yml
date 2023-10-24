@@ -6,7 +6,9 @@ jobs:
     name: End-to-end test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Check out
+        uses: actions/checkout@v3
+
       - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
@@ -17,8 +19,8 @@ jobs:
         run: yarn --immutable
 
       - name: Get latest JBrowse
-        working-directory: packages/jbrowse-plugin-apollo
         run: yarn run jbrowse create --nightly .jbrowse
+        working-directory: packages/jbrowse-plugin-apollo
 
       - name: Start MongoDB
         uses: supercharge/mongodb-github-action@1.10.0
@@ -27,16 +29,14 @@ jobs:
           mongodb-replica-set: test-rs
 
       - name: Run tests
+        run: yarn run test:e2e:debug
         working-directory: packages/jbrowse-plugin-apollo
         env:
-          GUEST_USER_ROLE: admin
-          MONGODB_URI: mongodb://localhost:27017/apolloTestDb
-          LOG_LEVELS: error,warn,log
-        run: yarn run test:e2e:debug
+          LOG_LEVELS: error,warn,log,debug
 
       - name: Archive test results
-        if: '!cancelled()'
         uses: actions/upload-artifact@v3
+        if: '!cancelled()'
         with:
           name: cypress_results
           path: packages/jbrowse-plugin-apollo/cypress
