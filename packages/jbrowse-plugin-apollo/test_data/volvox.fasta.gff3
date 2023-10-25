@@ -6,7 +6,7 @@ ctgA	example	contig	1	50001	.	.	.	Name=ctgA;multivalue=val1,val2,val3
 ctgA	example	BAC	1000	20000	.	.	.	ID=b101.2;Name=b101.2;Note=Fingerprinted BAC with end reads
 ctgA	example	SNP	1000	1000	0.987	.	.	ID=FakeSNP1;Name=FakeSNP;Note=This is a fake SNP that should appear at 1000 with length 1
 ctgA	example	clone_start	1000	1500	.	+	.	Parent=b101.2
-ctgA	example	remark	1000	2000	.	.	.	Name=Remark:hga;Alias=hga
+ctgA	example	remark	1000	2000	.	.	.	Name=Remark:hga;Alias=hga;description=Some%2CNote
 ctgA	est	EST_match	1050	3202	.	+	.	ID=Match1;Name=agt830.5;Target=agt830.5 1 654
 ctgA	est	EST_match	1050	7300	.	+	.	ID=Match3;Name=agt221.5;Target=agt221.5 1 1253
 ctgA	est	match_part	1050	1500	.	+	.	Parent=Match1;Name=agt830.5;Target=agt830.5 1 451

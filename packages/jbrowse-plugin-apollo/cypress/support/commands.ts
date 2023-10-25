@@ -31,23 +31,74 @@ Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
   cy.intercept('/changes').as('changes')
   cy.contains('Submit').click()
   cy.wait('@changes').its('response.statusCode').should('match', /2../)
+
+  cy.get('body').then((el) => {
+    // Not sure if this is needed. Wait for the "Assembly ..." message to disappear
+    let i = 0
+    while (i < 20) {
+      if (el.text().includes(`Assembly "${assemblyName}" is being added`)) {
+        // eslint-disable-next-line cypress/no-unnecessary-waiting
+        cy.wait(1000)
+        break
+      }
+      i++
+    }
+  })
+
   cy.reload()
   cy.contains('Select assembly to view', { timeout: 10_000 })
 })
 
 Cypress.Commands.add('selectAssemblyToView', (assemblyName) => {
   cy.contains('Select assembly to view', { timeout: 10_000 })
-  cy.get('input[data-testid="assembly-selector"]').parent().click()
-  cy.contains(assemblyName).parent().click()
+
+  cy.get('input[data-testid="assembly-selector"]')
+    .parent()
+    .then((el) => {
+      if (el.text().includes(assemblyName) === false) {
+        cy.get('input[data-testid="assembly-selector"]').parent().click()
+        cy.contains(assemblyName).parent().click()
+      }
+    })
   cy.intercept('POST', '/users/userLocation').as('selectAssemblyToViewDone')
-  cy.contains('Open').click()
+  cy.contains('button', /^Open$/, { matchCase: false }).click()
   cy.wait('@selectAssemblyToViewDone')
 })
 
-Cypress.Commands.add('searchFeatures', (query) => {
-  cy.intercept('POST', '/users/userLocation').as('searchFeaturesDone')
-  cy.get('input[placeholder="Search for location"]').type(`${query}{enter}`)
-  cy.wait('@searchFeaturesDone')
+Cypress.Commands.add('searchFeatures', (query, expectedNumOfHits) => {
+  if (expectedNumOfHits < 0) {
+    throw new Error(
+      `Expected number of hits must be >= 0. Got: ${expectedNumOfHits}`,
+    )
+  }
+  cy.intercept('POST', '/users/userLocation').as(`search ${query}`)
+  cy.get('input[placeholder="Search for location"]').type(
+    `{selectall}{backspace}${query}{enter}`,
+  )
+  if (expectedNumOfHits === 0) {
+    cy.contains(`Error: Unknown reference sequence "${query}"`)
+  } else if (expectedNumOfHits === 1) {
+    cy.wait(`@search ${query}`)
+  } else {
+    cy.contains('Search results')
+      .parent()
+      .within(() => {
+        cy.get('tbody')
+          .find('tr')
+          .then((rows) => {
+            expect(rows.length).equal(expectedNumOfHits)
+          })
+      })
+  }
+})
+
+Cypress.Commands.add('closeSearchBox', () => {
+  cy.contains('Search results', { matchCase: false })
+    .parent()
+    .parent()
+    .within(() => {
+      cy.get('[data-testid="CloseIcon"]').click()
+    })
 })
 
 Cypress.Commands.add(
@@ -62,8 +113,51 @@ Cypress.Commands.add(
       const xstart: number = Number.parseInt(s.replace(',', ''), 10)
       const xend: number = Number.parseInt(e.replace(',', ''), 10)
       expect(xcontig).equal(contig)
-      expect(xstart).to.be.within(start - tolerance, end + tolerance)
+      expect(xstart).to.be.within(start - tolerance, start + tolerance)
       expect(xend).to.be.within(end - tolerance, end + tolerance)
     })
+  },
+)
+
+Cypress.Commands.add(
+  'importFeatures',
+  (gffFile, assemblyName, deleteExistingFeatures) => {
+    cy.contains('button[data-testid="dropDownMenuButton"]', 'Apollo').click({
+      timeout: 10_000,
+    })
+    cy.contains('Import Features').click()
+    cy.contains('Import Features from GFF3 file', { matchCase: false })
+      .parent()
+      .within(() => {
+        cy.contains('Upload GFF3 to load features', { matchCase: false })
+          .parent()
+          .within(() => {
+            cy.get('input[type="file"]').selectFile(gffFile)
+          })
+
+        cy.contains('Select assembly')
+          .parent()
+          .within(() => {
+            cy.get('input').parent().click()
+          })
+      })
+    cy.contains('li', assemblyName, { timeout: 10_000 }).click()
+
+    cy.contains('Yes, delete existing features')
+      .parent()
+      .within(() => {
+        if (deleteExistingFeatures) {
+          cy.get('input[type="checkbox"]').click()
+          cy.get('input[type="checkbox"]').should('be.checked')
+        } else {
+          cy.get('input[type="checkbox"]').should('be.not.checked')
+        }
+      })
+
+    cy.contains('button', 'Submit').click()
+    cy.contains('Features are being added').should('exist')
+    cy.contains('Features are being added', { timeout: 20_000 }).should(
+      'not.exist',
+    )
   },
 )
