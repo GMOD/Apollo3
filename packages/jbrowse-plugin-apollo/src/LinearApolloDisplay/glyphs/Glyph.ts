@@ -9,7 +9,10 @@ import {
   DeleteFeature,
   ModifyFeatureAttribute,
 } from '../../components'
-import { LinearApolloDisplayMouseEvents } from '../stateModel/mouseEvents'
+import {
+  LinearApolloDisplayMouseEvents,
+  MousePosition,
+} from '../stateModel/mouseEvents'
 import { LinearApolloDisplayRendering } from '../stateModel/rendering'
 import { CanvasMouseEvent } from '../types'
 
@@ -33,6 +36,11 @@ export abstract class Glyph {
     bp: number,
     row: number,
   ): AnnotationFeatureI | undefined
+
+  abstract continueDrag(
+    display: LinearApolloDisplayRendering,
+    currentMousePosition: MousePosition,
+  ): void
 
   drawHover(
     _display: LinearApolloDisplayMouseEvents,
@@ -191,6 +199,68 @@ export abstract class Glyph {
     }
     textTop = textTop + 12
     context.fillText(location, startPx + 2, textTop)
+  }
+
+  getAdjacentFeatures(
+    feature?: AnnotationFeatureI,
+    parentFeature?: AnnotationFeatureI,
+  ): {
+    prevFeature?: AnnotationFeatureI
+    nextFeature?: AnnotationFeatureI
+  } {
+    let prevFeature: AnnotationFeatureI | undefined
+    let nextFeature: AnnotationFeatureI | undefined
+    let i = 0
+    if (!feature || !(parentFeature && parentFeature.children)) {
+      return { prevFeature, nextFeature }
+    }
+    for (const [, f] of parentFeature.children) {
+      if (f._id === feature._id) {
+        break
+      }
+      i++
+    }
+    const keys = [...parentFeature.children.keys()]
+    if (i > 0) {
+      const key = keys[i - 1]
+      prevFeature = parentFeature.children.get(key)
+    }
+    if (i < keys.length - 1) {
+      const key = keys[i + 1]
+      nextFeature = parentFeature.children.get(key)
+    }
+    return { prevFeature, nextFeature }
+  }
+
+  getParentFeature(
+    feature?: AnnotationFeatureI,
+    topLevelFeature?: AnnotationFeatureI,
+  ) {
+    let parentFeature
+
+    if (!feature || !(topLevelFeature && topLevelFeature.children)) {
+      return parentFeature
+    }
+
+    for (const [, f] of topLevelFeature.children) {
+      if (f._id === feature._id) {
+        parentFeature = topLevelFeature
+        break
+      }
+      if (!f?.children) {
+        continue
+      }
+      for (const [, cf] of f.children) {
+        if (cf._id === feature._id) {
+          parentFeature = f
+          break
+        }
+      }
+      if (parentFeature) {
+        break
+      }
+    }
+    return parentFeature
   }
 
   getContextMenuItems(display: LinearApolloDisplayMouseEvents): MenuItem[] {

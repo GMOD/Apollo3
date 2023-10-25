@@ -29,6 +29,13 @@ export interface FeatureAndGlyphInfo {
   mousePosition?: MousePosition
 }
 
+export interface CDSDiscontinuousLocation {
+  start: number
+  end: number
+  phase: 0 | 1 | 2 | undefined
+  idx?: number
+}
+
 function getMousePosition(
   event: CanvasMouseEvent,
   lgv: LinearGenomeViewModel,
@@ -58,6 +65,7 @@ export function mouseEventsModelIntermediateFactory(
           glyph?: Glyph
           feature?: AnnotationFeatureI
           topLevelFeature?: AnnotationFeatureI
+          discontinuousLocation?: CDSDiscontinuousLocation
           mousePosition: MousePosition
         }
         current: {
@@ -106,15 +114,12 @@ export function mouseEventsModelIntermediateFactory(
           )
         }
         event.stopPropagation()
-        const { feature, glyph, mousePosition, topLevelFeature } =
-          self.getFeatureAndGlyphUnderMouse(event)
-        if (!mousePosition) {
+        const { glyph } = self.apolloDragging.start
+        const { mousePosition } = self.getFeatureAndGlyphUnderMouse(event)
+        if (!(mousePosition && glyph)) {
           return
         }
-        self.apolloDragging = {
-          ...self.apolloDragging,
-          current: { feature, topLevelFeature, glyph, mousePosition },
-        }
+        glyph.continueDrag(self, mousePosition)
       },
       setDragging(dragInfo?: typeof self.apolloDragging) {
         self.apolloDragging = dragInfo ?? null
@@ -163,8 +168,37 @@ export function mouseEventsModelFactory(
         const { feature, glyph, mousePosition, topLevelFeature } =
           self.getFeatureAndGlyphUnderMouse(event)
         if (feature && topLevelFeature && glyph && mousePosition) {
+          let dl, idx
+          if (
+            feature.discontinuousLocations &&
+            feature.discontinuousLocations.length > 0
+          ) {
+            for (let i = 0; i < feature.discontinuousLocations.length; i++) {
+              if (
+                mousePosition.bp >= feature.discontinuousLocations[i].start &&
+                mousePosition.bp <= feature.discontinuousLocations[i].end
+              ) {
+                idx = i
+                dl = feature.discontinuousLocations[idx]
+                break
+              }
+            }
+          }
           self.apolloDragging = {
-            start: { glyph, feature, topLevelFeature, mousePosition },
+            start: {
+              glyph,
+              feature,
+              topLevelFeature,
+              discontinuousLocation: dl
+                ? {
+                    start: dl.start,
+                    end: dl.end,
+                    phase: dl.phase,
+                    idx,
+                  }
+                : undefined,
+              mousePosition,
+            },
             current: { glyph, feature, topLevelFeature, mousePosition },
           }
           if (!glyph.startDrag(self, event)) {

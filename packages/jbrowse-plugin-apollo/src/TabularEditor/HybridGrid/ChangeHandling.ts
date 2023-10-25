@@ -1,5 +1,7 @@
 import type { AnnotationFeatureI } from 'apollo-mst'
 import {
+  DiscontinuousLocationEndChange,
+  DiscontinuousLocationStartChange,
   LocationEndChange,
   LocationStartChange,
   TypeChange,
@@ -30,16 +32,28 @@ export function handleFeatureStartChange(
   feature: AnnotationFeatureI,
   oldStart: number,
   newStart: number,
+  index?: number,
 ) {
   const featureId = feature._id
-  const change = new LocationStartChange({
-    typeName: 'LocationStartChange',
-    changedIds: [featureId],
-    featureId,
-    oldStart,
-    newStart,
-    assembly: feature.assemblyId,
-  })
+  const change =
+    index === undefined
+      ? new LocationStartChange({
+          typeName: 'LocationStartChange',
+          changedIds: [featureId],
+          featureId,
+          oldStart,
+          newStart,
+          assembly: feature.assemblyId,
+        })
+      : new DiscontinuousLocationStartChange({
+          typeName: 'DiscontinuousLocationStartChange',
+          changedIds: [featureId],
+          featureId,
+          oldStart,
+          newStart,
+          assembly: feature.assemblyId,
+          index,
+        })
   return changeManager.submit(change)
 }
 
@@ -48,15 +62,27 @@ export function handleFeatureEndChange(
   feature: AnnotationFeatureI,
   oldEnd: number,
   newEnd: number,
+  index?: number,
 ) {
   const featureId = feature._id
-  const change = new LocationEndChange({
-    typeName: 'LocationEndChange',
-    changedIds: [featureId],
-    featureId,
-    oldEnd,
-    newEnd,
-    assembly: feature.assemblyId,
-  })
+  const change =
+    index === undefined
+      ? new LocationEndChange({
+          typeName: 'LocationEndChange',
+          changedIds: [featureId],
+          featureId,
+          oldEnd,
+          newEnd,
+          assembly: feature.assemblyId,
+        })
+      : new DiscontinuousLocationEndChange({
+          typeName: 'DiscontinuousLocationEndChange',
+          changedIds: [featureId],
+          featureId,
+          oldEnd,
+          newEnd,
+          assembly: feature.assemblyId,
+          index,
+        })
   return changeManager.submit(change)
 }

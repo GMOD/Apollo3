@@ -1,4 +1,10 @@
-import { Readable, Transform, pipeline } from 'node:stream'
+import {
+  Readable,
+  Transform,
+  TransformCallback,
+  TransformOptions,
+  pipeline,
+} from 'node:stream'
 
 import gff, { GFF3Feature } from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
@@ -11,6 +17,8 @@ import {
   Feature,
   FeatureDocument,
   RefSeq,
+  RefSeqChunk,
+  RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
 import { GetFeaturesOperation } from 'apollo-shared'
@@ -19,7 +27,85 @@ import StreamConcat from 'stream-concat'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { OperationsService } from '../operations/operations.service'
+import { RefSeqChunksService } from '../refSeqChunks/refSeqChunks.service'
 import { FeatureCountRequest } from './dto/feature.dto'
+
+interface FastaTransformOptions extends TransformOptions {
+  fastaWidth?: number
+}
+
+class FastaTransform extends Transform {
+  lineBuffer = ''
+  currentRefSeq?: string = undefined
+  fastaWidth
+
+  constructor(opts: FastaTransformOptions) {
+    super({ ...opts, objectMode: true })
+    const { fastaWidth = 80 } = opts
+    this.fastaWidth = fastaWidth
+    this.push('##FASTA\n')
+  }
+
+  _transform(
+    refSeqChunkDoc: RefSeqChunkDocument,
+    encoding: BufferEncoding,
+    callback: TransformCallback,
+  ): void {
+    const refSeqDoc = refSeqChunkDoc.refSeq
+    const refSeqDocId = refSeqDoc._id.toString()
+    if (refSeqDocId !== this.currentRefSeq) {
+      this.flushLineBuffer()
+      const refSeqDescription = refSeqDoc.description
+        ? ` ${refSeqDoc.description}`
+        : ''
+      const fastaHeader = `>${refSeqDoc.name}${refSeqDescription}\n`
+      this.push(fastaHeader)
+      this.currentRefSeq = refSeqDocId
+    }
+    let { sequence } = refSeqChunkDoc
+    if (this.lineBuffer) {
+      const neededLength = this.fastaWidth - this.lineBuffer.length
+      const bufferFiller = sequence.slice(0, neededLength)
+      sequence = sequence.slice(neededLength)
+      this.lineBuffer += bufferFiller
+      if (this.lineBuffer.length === this.fastaWidth) {
+        this.flushLineBuffer()
+      } else {
+        return callback()
+      }
+    }
+    const seqLines = splitStringIntoChunks(sequence, this.fastaWidth)
+    const lastLine = seqLines.at(-1) ?? ''
+    if (lastLine.length > 0 && lastLine.length !== this.fastaWidth) {
+      this.lineBuffer = seqLines.pop() ?? ''
+    }
+    if (seqLines.length > 0) {
+      this.push(`${seqLines.join('\n')}\n`)
+    }
+    callback()
+  }
+
+  flushLineBuffer() {
+    if (this.lineBuffer) {
+      this.push(`${this.lineBuffer}\n`)
+      this.lineBuffer = ''
+    }
+  }
+
+  _flush(callback: TransformCallback): void {
+    this.flushLineBuffer()
+    callback()
+  }
+}
+
+function splitStringIntoChunks(input: string, chunkSize: number): string[] {
+  const chunks: string[] = []
+  for (let i = 0; i < input.length; i += chunkSize) {
+    const chunk = input.slice(i, i + chunkSize)
+    chunks.push(chunk)
+  }
+  return chunks
+}
 
 function makeGFF3Feature(
   featureDocument: Feature,
@@ -131,6 +217,7 @@ function makeGFF3Feature(
 export class FeaturesService {
   constructor(
     private readonly operationsService: OperationsService,
+    private readonly refSeqChunkService: RefSeqChunksService,
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
     @InjectModel(Assembly.name)
@@ -139,6 +226,8 @@ export class FeaturesService {
     private readonly refSeqModel: Model<RefSeqDocument>,
     @InjectModel(Export.name)
     private readonly exportModel: Model<ExportDocument>,
+    @InjectModel(RefSeqChunk.name)
+    private readonly refSeqChunksModel: Model<RefSeqChunkDocument>,
   ) {}
 
   private readonly logger = new Logger(FeaturesService.name)
@@ -195,36 +284,49 @@ export class FeaturesService {
     return assemblyDoc.name
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async exportGFF3(exportID: string): Promise<any> {
+  async exportGFF3(
+    exportID: string,
+    opts: { fastaWidth?: number },
+  ): Promise<[Readable, string]> {
     const exportDoc = await this.exportModel.findById(exportID)
     if (!exportDoc) {
       throw new NotFoundException()
     }
+    const { fastaWidth } = opts
 
     const { assembly } = exportDoc
     const refSeqs = await this.refSeqModel.find({ assembly }).exec()
-
-    const headerStream = new Readable({ objectMode: true })
-    headerStream.push('##gff-version 3\n')
-    for (const refSeqDoc of refSeqs) {
-      headerStream.push(
-        `##sequence-region ${refSeqDoc.name} 1 ${refSeqDoc.length}\n`,
-      )
-    }
-    headerStream.push(null)
-
     const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
-    const query = { refSeq: { $in: refSeqIds } }
 
+    const headerStream = pipeline(
+      this.refSeqModel.find({ assembly }).cursor(),
+      new Transform({
+        objectMode: true,
+        construct(callback) {
+          this.push('##gff-version 3\n')
+          callback()
+        },
+        transform(chunk: RefSeqDocument, encoding, callback) {
+          this.push(`##sequence-region ${chunk.name} 1 ${chunk.length}\n`)
+          callback()
+        },
+      }),
+      (error) => {
+        if (error) {
+          this.logger.error('GFF3 export failed')
+          this.logger.error(error)
+        }
+      },
+    )
+
+    const query = { refSeq: { $in: refSeqIds } }
     const featureStream = pipeline(
       // unicorn thinks this is an Array.prototype.find, so we ignore it
       // eslint-disable-next-line unicorn/no-array-callback-reference
       this.featureModel.find(query).cursor(),
       new Transform({
-        writableObjectMode: true,
-        readableObjectMode: true,
-        transform: (chunk, encoding, callback) => {
+        objectMode: true,
+        transform: (chunk: FeatureDocument, encoding, callback) => {
           try {
             const flattened = chunk.toObject({ flattenMaps: true })
             const gff3Feature = makeGFF3Feature(flattened, refSeqs)
@@ -242,8 +344,30 @@ export class FeaturesService {
         }
       },
     )
-    const combinedStream = new StreamConcat([headerStream, featureStream])
-    return [combinedStream, assembly]
+
+    const sequenceStream = pipeline(
+      this.refSeqChunksModel
+        // unicorn thinks this is an Array.prototype.find, so we ignore it
+        // eslint-disable-next-line unicorn/no-array-callback-reference
+        .find(query)
+        .sort({ refSeq: 1, n: 1 })
+        .populate('refSeq')
+        .cursor(),
+      new FastaTransform({ fastaWidth }),
+      (error) => {
+        if (error) {
+          this.logger.error('GFF3 export failed')
+          this.logger.error(error)
+        }
+      },
+    )
+
+    const combinedStream: Readable = new StreamConcat([
+      headerStream,
+      featureStream,
+      sequenceStream,
+    ])
+    return [combinedStream, assembly.toString()]
   }
 
   /**

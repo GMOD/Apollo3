@@ -113,10 +113,20 @@ export const Feature = observer(function Feature({
     tabularEditor: tabularEditorState,
   } = displayState
   const { featureCollapsed, filterText } = tabularEditorState
-  const expanded = !featureCollapsed.get(feature._id)
+  const {
+    _id,
+    children,
+    discontinuousLocations,
+    end,
+    phase,
+    start,
+    strand,
+    type,
+  } = feature
+  const expanded = !featureCollapsed.get(_id)
   const toggleExpanded = (e: React.MouseEvent) => {
     e.stopPropagation()
-    tabularEditorState.setFeatureCollapsed(feature._id, expanded)
+    tabularEditorState.setFeatureCollapsed(_id, expanded)
   }
 
   // pop up a snackbar in the session notifying user of an error
@@ -159,7 +169,7 @@ export const Feature = observer(function Feature({
             borderLeft: `${depth * 2}em solid transparent`,
           }}
         >
-          {feature.children?.size ? (
+          {children?.size ? (
             // TODO: a11y
             // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
             <div
@@ -176,7 +186,7 @@ export const Feature = observer(function Feature({
               session={session}
               ontologyName="Sequence Ontology"
               style={{ width: 170 }}
-              value={feature.type}
+              value={type}
               filterTerms={isOntologyClass}
               fetchValidTerms={fetchValidTypeTerms.bind(null, feature)}
               renderInput={(params) => {
@@ -210,43 +220,78 @@ export const Feature = observer(function Feature({
           </div>
         </td>
         <td>
-          <NumberCell
-            initialValue={feature.start}
-            notifyError={notifyError}
-            onChangeCommitted={(newStart) =>
-              handleFeatureStartChange(
-                changeManager,
-                feature,
-                feature.start,
-                newStart,
-              )
-            }
-          />
+          {discontinuousLocations && discontinuousLocations.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {discontinuousLocations.map((loc, index) => (
+                <NumberCell
+                  key={`${_id}:${loc.start},${loc.phase}`}
+                  initialValue={loc.start}
+                  notifyError={notifyError}
+                  onChangeCommitted={(newStart) =>
+                    handleFeatureStartChange(
+                      changeManager,
+                      feature,
+                      discontinuousLocations[index].start,
+                      newStart,
+                      index,
+                    )
+                  }
+                />
+              ))}
+            </div>
+          ) : (
+            <NumberCell
+              initialValue={start}
+              notifyError={notifyError}
+              onChangeCommitted={(newStart) =>
+                handleFeatureStartChange(
+                  changeManager,
+                  feature,
+                  start,
+                  newStart,
+                )
+              }
+            />
+          )}
         </td>
         <td>
-          <NumberCell
-            initialValue={feature.end}
-            notifyError={notifyError}
-            onChangeCommitted={(newEnd) =>
-              handleFeatureEndChange(
-                changeManager,
-                feature,
-                feature.end,
-                newEnd,
-              )
-            }
-          />
+          {discontinuousLocations && discontinuousLocations.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {discontinuousLocations.map((loc, index) => (
+                <NumberCell
+                  key={`${_id}:${loc.end},${loc.phase}`}
+                  initialValue={loc.end}
+                  notifyError={notifyError}
+                  onChangeCommitted={(newEnd) =>
+                    handleFeatureEndChange(
+                      changeManager,
+                      feature,
+                      discontinuousLocations[index].end,
+                      newEnd,
+                      index,
+                    )
+                  }
+                />
+              ))}
+            </div>
+          ) : (
+            <NumberCell
+              initialValue={end}
+              notifyError={notifyError}
+              onChangeCommitted={(newEnd) =>
+                handleFeatureEndChange(changeManager, feature, end, newEnd)
+              }
+            />
+          )}
         </td>
-        <td>
-          {feature.strand === 1 ? '+' : feature.strand === -1 ? '-' : undefined}
-        </td>
-        <td>{feature.phase}</td>
+        <td>{strand === 1 ? '+' : strand === -1 ? '-' : undefined}</td>
+        <td>{phase}</td>
         <td>
           <FeatureAttributes filterText={filterText} feature={feature} />
         </td>
       </tr>
-      {expanded && feature.children
-        ? [...feature.children.entries()]
+      {expanded && children
+        ? [...children.entries()]
             .filter((entry) => {
               if (!filterText) {
                 return true
