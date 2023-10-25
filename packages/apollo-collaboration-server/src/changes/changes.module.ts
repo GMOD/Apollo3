@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import { Change, ChangeSchema } from 'apollo-schemas'
 import idValidator from 'mongoose-id-validator'
@@ -28,8 +28,7 @@ import { ChangesService } from './changes.service'
         inject: [getConnectionToken()],
       },
     ]),
-    // AssembliesModule, // Original
-    forwardRef(() => AssembliesModule),
+    AssembliesModule,
     RefSeqsModule,
     RefSeqChunksModule,
     FeaturesModule,

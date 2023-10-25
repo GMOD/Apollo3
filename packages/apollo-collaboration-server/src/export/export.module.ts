@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 import { Export, ExportSchema } from 'apollo-schemas'
 
@@ -10,8 +10,7 @@ import { ExportService } from './export.service'
 
 @Module({
   imports: [
-    AssembliesModule, // Original
-    // forwardRef(() => AssembliesModule),
+    AssembliesModule,
     FeaturesModule,
     MongooseModule.forFeature([{ name: Export.name, schema: ExportSchema }]),
     RefSeqsModule,

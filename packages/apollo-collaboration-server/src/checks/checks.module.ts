@@ -11,7 +11,6 @@ import { ChecksService } from './checks.service'
     MongooseModule.forFeature([
       { name: CheckReport.name, schema: CheckReportSchema },
     ]),
-    SequenceModule,
   ],
   exports: [ChecksService],
 })

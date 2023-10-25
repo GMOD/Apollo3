@@ -1,18 +1,19 @@
+import { IndexedFasta } from '@gmod/indexedfasta'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import {
+  Assembly,
+  AssemblyDocument,
   CheckReport,
   CheckReportDocument,
   Feature,
   FeatureDocument,
   RefSeq,
   RefSeqChunk,
-  RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
+import { RemoteFile } from 'generic-filehandle'
 import { Model } from 'mongoose'
-
-import { SequenceService } from '../sequence/sequence.service'
 
 interface Range {
   start: number
@@ -22,7 +23,7 @@ interface Range {
 export class ChecksService {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(
-    private readonly sequenceService: SequenceService,
+    // private readonly sequenceService: SequenceService,
     @InjectModel(CheckReport.name)
     private readonly checkReportModel: Model<CheckReportDocument>,
   ) {}
@@ -34,7 +35,6 @@ export class ChecksService {
     // this.logger.debug(`Feature Model: ${featureModel}`)
     // const features = await featureModel.find().exec()
     // this.logger.log(features[0])
-    // const refSeqModel = doc.$model(RefSeq.name)
     // this.logger.debug(`RefSeq Model: ${refSeqModel}`)
     // const refSeqs = await refSeqModel.find().exec()
     // this.logger.log(refSeqs[0])
@@ -45,7 +45,69 @@ export class ChecksService {
       throw new NotFoundException(errMsg)
     }
     const emptyRangeArray: Range[] = []
-    await this.checkCodon(featureDoc, emptyRangeArray, this.checkReportModel)
+    await this.checkCodon(featureDoc, featureDoc, emptyRangeArray)
+  }
+
+  async getSequence({
+    end,
+    featureDoc,
+    start,
+  }: {
+    end: number
+    featureDoc: FeatureDocument
+    start: number
+  }) {
+    const refSeqModel = featureDoc.$model<Model<RefSeqDocument>>(RefSeq.name)
+    const refSeqId = featureDoc.refSeq.toString()
+    const refSeqDoc = await refSeqModel.findById(refSeqId).exec()
+    if (!refSeqDoc) {
+      throw new Error(`Could not find refSeq ${refSeqId}`)
+    }
+    const { assembly, chunkSize, name } = refSeqDoc
+    const assemblyModel = featureDoc.$model<Model<AssemblyDocument>>(
+      Assembly.name,
+    )
+    const assemblyDoc = await assemblyModel.findById(assembly)
+    if (!assemblyDoc) {
+      throw new Error(`Could not find assembly ${assembly}`)
+    }
+
+    if (assemblyDoc.externalLocation) {
+      const { fa, fai } = assemblyDoc.externalLocation
+      this.logger.debug(`Fasta file URL = ${fa}, Fasta index file URL = ${fai}`)
+
+      const indexedFasta = new IndexedFasta({
+        fasta: new RemoteFile(fa, { fetch }),
+        fai: new RemoteFile(fai, { fetch }),
+      })
+      return indexedFasta.getSequence(name, start, end)
+    }
+
+    const startChunk = Math.floor(start / chunkSize)
+    const endChunk = Math.floor(end / chunkSize)
+    const seq: string[] = []
+    const refSeqChunkModel = featureDoc.$model<Model<RefSeqChunk>>(
+      Assembly.name,
+    )
+    for await (const refSeqChunk of refSeqChunkModel
+      .find({
+        refSeq: refSeqId,
+        $and: [{ n: { $gte: startChunk } }, { n: { $lte: endChunk } }],
+      })
+      .sort({ n: 1 })) {
+      const { n, sequence } = refSeqChunk
+      if (n === startChunk || n === endChunk) {
+        seq.push(
+          sequence.slice(
+            n === startChunk ? start - n * chunkSize : undefined,
+            n === endChunk ? end - n * chunkSize : undefined,
+          ),
+        )
+      } else {
+        seq.push(sequence)
+      }
+    }
+    return seq.join('')
   }
 
   /**
@@ -54,10 +116,10 @@ export class ChecksService {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types
   async checkCodon(
+    featureDoc: FeatureDocument,
     feature: Feature,
     cdsRangesArray: Range[],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types
-    checkReportModel: Model<CheckReportDocument, {}, {}, {}, any>,
   ) {
     if (feature.type === 'CDS') {
       const tmp1 = JSON.parse(JSON.stringify(feature))
@@ -68,8 +130,8 @@ export class ChecksService {
           feature.end
         }, lenght=${feature.end - feature.start}`,
       )
-      const featSeqOrig = await this.sequenceService.getSequence({
-        refSeq: feature.refSeq.toString(),
+      const featSeqOrig = await this.getSequence({
+        featureDoc,
         start: feature.start,
         end: feature.end,
       })
@@ -98,7 +160,7 @@ export class ChecksService {
       if (isOverlapFound) {
         const errMsg = `CDS (start: ${feature.start}, end: ${feature.end}) overlaps with other CDS.`
         this.logger.error(`ERROR - ${errMsg}`)
-        await checkReportModel.create([
+        await this.checkReportModel.create([
           {
             checkName: 'StopCodonCheckReport',
             ids: [feature._id],
@@ -117,7 +179,7 @@ export class ChecksService {
           3,
         )}" in the beginning of the CDS sequence.`
         this.logger.error(`ERROR - ${errMsg}`)
-        await checkReportModel.create([
+        await this.checkReportModel.create([
           {
             checkName: 'StopCodonCheckReport',
             ids: [feature._id],
@@ -130,7 +192,7 @@ export class ChecksService {
       if (featSeq.length % 3 !== 0) {
         const errMsg = `Feature sequence was not divisible by 3 (sequence lenght is ${featSeq.length})`
         this.logger.error(`ERROR - ${errMsg}`)
-        await checkReportModel.create([
+        await this.checkReportModel.create([
           {
             checkName: 'StopCodonCheckReport',
             ids: [feature._id],
@@ -145,7 +207,7 @@ export class ChecksService {
         if (lastBase !== 'TAA' && lastBase !== 'TAG' && lastBase !== 'TGA') {
           const errMsg = `CDS last base "${lastBase}" is not any not stop codons (TAA, TAG or TGA).`
           this.logger.error(`ERROR - ${errMsg}`)
-          await checkReportModel.create([
+          await this.checkReportModel.create([
             {
               checkName: 'StopCodonCheckReport',
               ids: [feature._id],
@@ -174,7 +236,7 @@ export class ChecksService {
             i + 1
           } (st/nd/rd/th) inside CDSsequence.`
           this.logger.error(`ERROR - ${errMsg}`)
-          await checkReportModel.create([
+          await this.checkReportModel.create([
             {
               checkName: 'StopCodonCheckReport',
               ids: [feature._id],
@@ -190,7 +252,7 @@ export class ChecksService {
     // Iterate through children
     if (feature.children) {
       for (const [, child] of feature.children) {
-        await this.checkCodon(child, cdsRangesArray, checkReportModel)
+        await this.checkCodon(featureDoc, child, cdsRangesArray)
       }
     }
   }
