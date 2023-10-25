@@ -21,9 +21,7 @@ interface Range {
 }
 @Injectable()
 export class ChecksService {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(
-    // private readonly sequenceService: SequenceService,
     @InjectModel(CheckReport.name)
     private readonly checkReportModel: Model<CheckReportDocument>,
   ) {}
@@ -32,12 +30,6 @@ export class ChecksService {
 
   async checkFeature(doc: FeatureDocument) {
     const featureModel = doc.$model<Model<FeatureDocument>>(Feature.name)
-    // this.logger.debug(`Feature Model: ${featureModel}`)
-    // const features = await featureModel.find().exec()
-    // this.logger.log(features[0])
-    // this.logger.debug(`RefSeq Model: ${refSeqModel}`)
-    // const refSeqs = await refSeqModel.find().exec()
-    // this.logger.log(refSeqs[0])
     const featureDoc = await featureModel.findById(doc._id).exec()
     if (!featureDoc) {
       const errMsg = 'ERROR when searching feature by featureId'
@@ -71,7 +63,6 @@ export class ChecksService {
     if (!assemblyDoc) {
       throw new Error(`Could not find assembly ${assembly}`)
     }
-
     if (assemblyDoc.externalLocation) {
       const { fa, fai } = assemblyDoc.externalLocation
       this.logger.debug(`Fasta file URL = ${fa}, Fasta index file URL = ${fai}`)
@@ -87,8 +78,9 @@ export class ChecksService {
     const endChunk = Math.floor(end / chunkSize)
     const seq: string[] = []
     const refSeqChunkModel = featureDoc.$model<Model<RefSeqChunk>>(
-      Assembly.name,
+      RefSeqChunk.name,
     )
+
     for await (const refSeqChunk of refSeqChunkModel
       .find({
         refSeq: refSeqId,
@@ -114,17 +106,14 @@ export class ChecksService {
    * Checks suspicious start and stop codons. Also check if CDS sequence is divisible by 3
    * @param feature - feature
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types
   async checkCodon(
     featureDoc: FeatureDocument,
     feature: Feature,
     cdsRangesArray: Range[],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types
   ) {
     if (feature.type === 'CDS') {
-      const tmp1 = JSON.parse(JSON.stringify(feature))
       this.logger.debug(
-        `*** Run checkCodon -check report for feature ${feature._id}, type=${
+        `* Run checkCodon -check report for feature ${feature._id}, type=${
           feature.type
         }, strand=${feature.strand}, start=${feature.start}, end=${
           feature.end
@@ -174,10 +163,7 @@ export class ChecksService {
       }
       const startBase = featSeq.slice(0, 3).toUpperCase()
       if (startBase !== 'ATG' && startBase !== 'GTG' && startBase !== 'TTG') {
-        const errMsg = `Found suspicious start codon "${featSeq.slice(
-          0,
-          3,
-        )}" in the beginning of the CDS sequence.`
+        const errMsg = `Found suspicious start codon "${startBase}" in the beginning of the CDS sequence.`
         this.logger.error(`ERROR - ${errMsg}`)
         await this.checkReportModel.create([
           {
@@ -232,9 +218,9 @@ export class ChecksService {
           currentItem === 'TAG' ||
           currentItem === 'TGA'
         ) {
-          const errMsg = `Found suspicious stop codon "${currentItem}" inside CDS. The base number is ${
+          const errMsg = `Found suspicious stop codon "${currentItem}" inside CDS (base number ${
             i + 1
-          } (st/nd/rd/th) inside CDSsequence.`
+          }).`
           this.logger.error(`ERROR - ${errMsg}`)
           await this.checkReportModel.create([
             {
