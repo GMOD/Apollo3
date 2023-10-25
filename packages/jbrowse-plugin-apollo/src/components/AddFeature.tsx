@@ -45,6 +45,7 @@ export function AddFeature({
   const [start, setStart] = useState(String(region.start))
   const [type, setType] = useState('')
   const [phase, setPhase] = useState('')
+  const [strand, setStrand] = useState<1 | -1 | undefined>()
   const [phaseAsNumber, setPhaseAsNumber] = useState<PhaseEnum>()
   const [showPhase, setShowPhase] = useState<boolean>(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -74,19 +75,20 @@ export function AddFeature({
       return
     }
 
-    const _id = new ObjectID().toHexString()
+    const id = new ObjectID().toHexString()
     const change = new AddFeatureChange({
-      changedIds: [_id],
+      changedIds: [id],
       typeName: 'AddFeatureChange',
       assembly: region.assemblyName,
       addedFeature: {
-        _id,
+        _id: id,
         gffId: '',
         refSeq: refSeqId,
         start: Number(start),
         end: Number(end),
         type,
         phase: phaseAsNumber,
+        strand,
       },
     })
     await changeManager.submit?.(change)
@@ -103,6 +105,25 @@ export function AddFeature({
       setPhase('')
     } else {
       setShowPhase(false)
+    }
+  }
+
+  function handleChangeStrand(e: SelectChangeEvent<string>) {
+    setErrorMessage('')
+
+    switch (Number(e.target.value)) {
+      case 1: {
+        setStrand(1)
+        break
+      }
+      case -1: {
+        setStrand(-1)
+        break
+      }
+      default: {
+        // eslint-disable-next-line unicorn/no-useless-undefined
+        setStrand(undefined)
+      }
     }
   }
 
@@ -186,6 +207,20 @@ export function AddFeature({
               }
             }}
           />
+          <FormControl>
+            <InputLabel id="demo-simple-select-label">Strand</InputLabel>
+            <Select
+              labelId="demo-simple-select-label"
+              id="demo-simple-select"
+              label="Strand"
+              value={strand?.toString()}
+              onChange={handleChangeStrand}
+            >
+              <MenuItem value={undefined}></MenuItem>
+              <MenuItem value={1}>+</MenuItem>
+              <MenuItem value={-1}>-</MenuItem>
+            </Select>
+          </FormControl>
           {showPhase ? (
             <FormControl>
               <InputLabel>Phase</InputLabel>
