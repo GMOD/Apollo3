@@ -1,8 +1,25 @@
+import { alpha } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
+import {
+  DiscontinuousLocationEndChange,
+  DiscontinuousLocationStartChange,
+  LocationEndChange,
+  LocationStartChange,
+} from 'apollo-shared'
 
 import { LinearApolloDisplay } from '../stateModel'
+import {
+  CDSDiscontinuousLocation,
+  MousePosition,
+} from '../stateModel/mouseEvents'
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
+
+type LocationChange =
+  | DiscontinuousLocationEndChange
+  | DiscontinuousLocationStartChange
+  | LocationEndChange
+  | LocationStartChange
 
 let forwardFill: CanvasPattern | null = null
 let backwardFill: CanvasPattern | null = null
@@ -49,6 +66,11 @@ interface AnnotationFeature {
 interface CDSFeatures {
   parent: AnnotationFeatureI
   cds: AnnotationFeatureI
+}
+
+interface ExonCDSRelation {
+  exon: AnnotationFeatureI
+  cdsDL?: CDSDiscontinuousLocation
 }
 
 export class CanonicalGeneGlyph extends Glyph {
@@ -436,6 +458,183 @@ export class CanonicalGeneGlyph extends Glyph {
     }
   }
 
+  drawDragPreview(
+    stateModel: LinearApolloDisplay,
+    overlayCtx: CanvasRenderingContext2D,
+  ) {
+    const { apolloDragging, apolloRowHeight, displayedRegions, lgv, theme } =
+      stateModel
+    const { bpPerPx, offsetPx } = lgv
+    if (!apolloDragging) {
+      return
+    }
+    const {
+      discontinuousLocation,
+      feature,
+      glyph,
+      mousePosition: startingMousePosition,
+    } = apolloDragging.start
+    if (!feature) {
+      throw new Error('no feature for drag preview??')
+    }
+    if (glyph !== this) {
+      throw new Error('drawDragPreview() called on wrong glyph?')
+    }
+    const { mousePosition: currentMousePosition } = apolloDragging.current
+    const edge = this.isMouseOnFeatureEdge(
+      startingMousePosition,
+      feature,
+      stateModel,
+    )
+    if (!edge) {
+      return
+    }
+
+    const row = Math.floor(startingMousePosition.y / apolloRowHeight)
+    const region = displayedRegions[startingMousePosition.regionNumber]
+    const rowCount = 1
+
+    let featureEdgeBp
+    if (discontinuousLocation) {
+      featureEdgeBp = region.reversed
+        ? region.end - discontinuousLocation[edge]
+        : discontinuousLocation[edge] - region.start
+    } else {
+      featureEdgeBp = region.reversed
+        ? region.end - feature[edge]
+        : feature[edge] - region.start
+    }
+    const featureEdgePx = featureEdgeBp / bpPerPx - offsetPx
+
+    const rectX = Math.min(currentMousePosition.x, featureEdgePx)
+    const rectY = row * apolloRowHeight
+    const rectWidth = Math.abs(currentMousePosition.x - featureEdgePx)
+    const rectHeight = apolloRowHeight * rowCount
+
+    overlayCtx.strokeStyle = theme?.palette.info.main ?? 'rgb(255,0,0)'
+    overlayCtx.setLineDash([6])
+    overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
+    overlayCtx.fillStyle = alpha(
+      theme?.palette.info.main ?? 'rgb(255,0,0)',
+      0.2,
+    )
+    overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
+  }
+
+  /**
+   * Check If the mouse position is on the edge of the selected feature
+   */
+  isMouseOnFeatureEdge(
+    mousePosition: MousePosition,
+    feature: AnnotationFeatureI,
+    stateModel: LinearApolloDisplay,
+    topLevelFeature?: AnnotationFeatureI,
+  ) {
+    if (!mousePosition) {
+      return
+    }
+
+    const { bp, refName, regionNumber, x } = mousePosition
+    const { lgv } = stateModel
+    const { bpToPx, offsetPx } = lgv
+    let startPxInfo
+    let endPxInfo
+    if (
+      feature.discontinuousLocations &&
+      feature.discontinuousLocations.length > 0
+    ) {
+      let discontinuousLocation
+      for (const dl of feature.discontinuousLocations) {
+        if (bp >= dl.start && bp <= dl.end) {
+          discontinuousLocation = dl
+          break
+        }
+      }
+      if (!discontinuousLocation) {
+        return
+      }
+      startPxInfo = bpToPx({
+        refName,
+        coord: discontinuousLocation.start,
+        regionNumber,
+      })
+      endPxInfo = bpToPx({
+        refName,
+        coord: discontinuousLocation.end,
+        regionNumber,
+      })
+    } else {
+      startPxInfo = bpToPx({
+        refName,
+        coord: feature.start,
+        regionNumber,
+      })
+      endPxInfo = bpToPx({ refName, coord: feature.end, regionNumber })
+    }
+
+    if (startPxInfo !== undefined && endPxInfo !== undefined) {
+      const startPx = startPxInfo.offsetPx - offsetPx
+      const endPx = endPxInfo.offsetPx - offsetPx
+      if (Math.abs(endPx - startPx) < 8) {
+        return
+      }
+      const parentFeature = this.getParentFeature(feature, topLevelFeature)
+      // Limit dragging till parent feature end
+      if (parentFeature) {
+        if (parentFeature.type === 'gene') {
+          return
+        }
+        if (feature.start <= parentFeature.start && Math.abs(startPx - x) < 4) {
+          return
+        }
+        if (feature.end >= parentFeature.end && Math.abs(endPx - x) < 4) {
+          return
+        }
+      }
+      if (Math.abs(startPx - x) < 4) {
+        return 'start'
+      }
+      if (Math.abs(endPx - x) < 4) {
+        return 'end'
+      }
+    }
+    return
+  }
+
+  onMouseMove(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
+    const { feature, mousePosition, topLevelFeature } =
+      stateModel.getFeatureAndGlyphUnderMouse(event)
+    if (stateModel.apolloDragging) {
+      stateModel.setCursor('col-resize')
+      return
+    }
+    if (feature && mousePosition) {
+      const edge = this.isMouseOnFeatureEdge(
+        mousePosition,
+        feature,
+        stateModel,
+        topLevelFeature,
+      )
+      if (edge) {
+        stateModel.setCursor('col-resize')
+      } else {
+        stateModel.setCursor()
+      }
+    }
+  }
+
+  onMouseDown(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
+    // swallow the mouseDown if we are on the edge of the feature
+    const { feature, mousePosition } =
+      stateModel.getFeatureAndGlyphUnderMouse(event)
+    if (feature && mousePosition) {
+      const edge = this.isMouseOnFeatureEdge(mousePosition, feature, stateModel)
+      if (edge) {
+        event.stopPropagation()
+      }
+    }
+  }
+
   onMouseUp(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
     if (stateModel.apolloDragging ?? event.button !== 0) {
       return
@@ -444,6 +643,281 @@ export class CanonicalGeneGlyph extends Glyph {
     if (feature) {
       stateModel.setSelectedFeature(feature)
     }
+  }
+
+  startDrag(stateModel: LinearApolloDisplay): boolean {
+    // only accept the drag if we are on the edge of the feature
+    const { feature, mousePosition, topLevelFeature } =
+      stateModel.apolloDragging?.start ?? {}
+    const { mousePosition: currentMousePosition } =
+      stateModel.apolloDragging?.current ?? {}
+    if (feature && mousePosition && currentMousePosition) {
+      const edge = this.isMouseOnFeatureEdge(
+        mousePosition,
+        feature,
+        stateModel,
+        topLevelFeature,
+      )
+      if (edge) {
+        return true
+      }
+    }
+    return false
+  }
+
+  adjacentExonsOfCdsDL(
+    cdsDL: CDSDiscontinuousLocation,
+    exonCDSRelations: ExonCDSRelation[],
+  ) {
+    let prevExon, nextExon, matchingExon, idx
+    if (exonCDSRelations) {
+      for (const [i, exonCDSRelation] of exonCDSRelations.entries()) {
+        const dl = exonCDSRelation.cdsDL
+        if (
+          cdsDL.start === dl?.start &&
+          cdsDL.end === dl.end &&
+          cdsDL.phase === dl.phase
+        ) {
+          idx = i
+          break
+        }
+      }
+      if (idx !== undefined) {
+        const { exon } = exonCDSRelations[idx]
+        matchingExon = exon
+      }
+      if (idx !== undefined && idx > 0) {
+        prevExon = exonCDSRelations[idx - 1].exon
+      }
+      if (idx !== undefined && idx < exonCDSRelations.length - 1) {
+        nextExon = exonCDSRelations[idx + 1].exon
+      }
+    }
+    return { prevExon, matchingExon, nextExon }
+  }
+
+  exonCDSRelation(
+    cds?: AnnotationFeatureI,
+    topLevelFeature?: AnnotationFeatureI,
+  ): ExonCDSRelation[] {
+    const exonCDSRelations: ExonCDSRelation[] = []
+    if (!cds) {
+      return exonCDSRelations
+    }
+    const parentFeature = this.getParentFeature(cds, topLevelFeature)
+    if (!parentFeature?.children) {
+      return exonCDSRelations
+    }
+    for (const [, f] of parentFeature.children) {
+      if (f.type === 'exon') {
+        const cdsDLForExon = this.cdsDLForExon(f, cds)
+        exonCDSRelations.push({
+          exon: f,
+          cdsDL: cdsDLForExon
+            ? {
+                start: cdsDLForExon.start,
+                end: cdsDLForExon.end,
+                phase: cdsDLForExon.phase,
+              }
+            : undefined,
+        })
+      }
+    }
+    return exonCDSRelations
+  }
+
+  cdsDLForExon(exon: AnnotationFeatureI, cds: AnnotationFeatureI) {
+    let discontinuousLocation
+    if (cds.discontinuousLocations && cds.discontinuousLocations.length > 0) {
+      for (const dl of cds.discontinuousLocations) {
+        if (dl.start >= exon.start && dl.end <= exon.end) {
+          discontinuousLocation = dl
+          break
+        }
+      }
+    }
+    return discontinuousLocation
+  }
+
+  cdsDlsForExon(
+    exon: AnnotationFeatureI,
+    topLevelFeature?: AnnotationFeatureI,
+  ): CDSDiscontinuousLocation[] {
+    const dls: CDSDiscontinuousLocation[] = []
+    const parentFeature = this.getParentFeature(exon, topLevelFeature)
+    if (!parentFeature?.children || !topLevelFeature) {
+      return dls
+    }
+    const cdsFeatures: AnnotationFeatureI[] = []
+    for (const [, f] of parentFeature.children) {
+      if (f.type === 'CDS') {
+        cdsFeatures.push(f)
+      }
+    }
+
+    for (const cds of cdsFeatures) {
+      for (const [, f] of parentFeature.children) {
+        if (f.type === 'exon' && f._id === exon._id) {
+          const cdsDLForExon = this.cdsDLForExon(f, cds)
+          if (cdsDLForExon) {
+            dls.push(cdsDLForExon)
+          }
+        }
+      }
+    }
+    return dls
+  }
+
+  adjacentExonsOfExon(
+    exon: AnnotationFeatureI,
+    topLevelFeature?: AnnotationFeatureI,
+  ) {
+    const parentFeature: AnnotationFeatureI = this.getParentFeature(
+      exon,
+      topLevelFeature,
+    )
+    if (!(parentFeature && parentFeature.children)) {
+      return
+    }
+
+    let i = 0
+    for (const [, f] of parentFeature.children) {
+      if (f._id === exon._id) {
+        break
+      }
+      i++
+    }
+
+    let prevExon, nextExon
+    const keys = [...parentFeature.children.keys()]
+    if (i > 0) {
+      const f = parentFeature.children.get(keys[i - 1])
+      if (f && f.type === 'exon') {
+        prevExon = f
+      }
+    }
+    if (i < keys.length - 1) {
+      const f = parentFeature.children.get(keys[i + 1])
+      if (f && f.type === 'exon') {
+        nextExon = f
+      }
+    }
+    return { prevExon, nextExon }
+  }
+
+  continueDrag(
+    stateModel: LinearApolloDisplay,
+    currentMousePosition: MousePosition,
+  ): void {
+    const {
+      discontinuousLocation,
+      feature,
+      glyph,
+      mousePosition,
+      topLevelFeature,
+    } = stateModel.apolloDragging?.start ?? {}
+    if (!(currentMousePosition && mousePosition)) {
+      return
+    }
+    const { bp } = currentMousePosition
+    if (!feature || !currentMousePosition) {
+      return
+    }
+    const edge = this.isMouseOnFeatureEdge(
+      mousePosition,
+      feature,
+      stateModel,
+      topLevelFeature,
+    )
+
+    if (
+      feature.type === 'CDS' &&
+      feature.discontinuousLocations &&
+      feature.discontinuousLocations.length > 0 &&
+      discontinuousLocation
+    ) {
+      const exonCDSRelations = this.exonCDSRelation(feature, topLevelFeature)
+      const { matchingExon, nextExon, prevExon } = this.adjacentExonsOfCdsDL(
+        discontinuousLocation,
+        exonCDSRelations,
+      )
+
+      if (nextExon && bp >= nextExon.start - 1) {
+        return
+      }
+      if (prevExon && bp <= prevExon.end + 1) {
+        return
+      }
+      if (!prevExon && nextExon && matchingExon && bp < matchingExon.start) {
+        return
+      }
+      if (prevExon && !nextExon && matchingExon && bp > matchingExon.end) {
+        return
+      }
+
+      if (
+        edge &&
+        ((edge === 'start' && bp >= discontinuousLocation.end - 1) ||
+          (edge === 'end' && bp <= discontinuousLocation.start + 1))
+      ) {
+        return
+      }
+    }
+
+    if (feature.type !== 'CDS') {
+      const adjacentExons = this.adjacentExonsOfExon(feature, topLevelFeature)
+      if (adjacentExons?.nextExon && bp >= adjacentExons?.nextExon.start - 1) {
+        return
+      }
+      if (adjacentExons?.prevExon && bp <= adjacentExons?.prevExon.end + 1) {
+        return
+      }
+      const dls: CDSDiscontinuousLocation[] = this.cdsDlsForExon(
+        feature,
+        topLevelFeature,
+      )
+
+      if (dls && dls.length > 0) {
+        let stopDrag
+        for (const dl of dls) {
+          if (
+            edge &&
+            ((edge === 'start' && bp >= dl.start - 1) ||
+              (edge === 'end' && bp <= dl.end + 1))
+          ) {
+            stopDrag = true
+            break
+          }
+        }
+        if (stopDrag) {
+          return
+        }
+      } else {
+        if (
+          edge &&
+          ((edge === 'start' && bp >= feature.end - 1) ||
+            (edge === 'end' && bp <= feature.start + 1))
+        ) {
+          return
+        }
+      }
+    }
+
+    stateModel.setDragging({
+      start: {
+        feature,
+        topLevelFeature,
+        glyph,
+        discontinuousLocation,
+        mousePosition,
+      },
+      current: {
+        feature,
+        topLevelFeature,
+        glyph,
+        mousePosition: currentMousePosition,
+      },
+    })
   }
 
   getFeatureFromLayout(
@@ -480,5 +954,221 @@ export class CanonicalGeneGlyph extends Glyph {
     }
 
     return featureFromLayout
+  }
+
+  async executeDrag(stateModel: LinearApolloDisplay) {
+    const {
+      apolloDragging,
+      changeManager,
+      displayedRegions,
+      getAssemblyId,
+      setCursor,
+    } = stateModel
+    if (!apolloDragging) {
+      return
+    }
+    const {
+      discontinuousLocation,
+      feature,
+      glyph,
+      mousePosition: startingMousePosition,
+      topLevelFeature,
+    } = apolloDragging.start
+    if (!feature) {
+      throw new Error('no feature for drag preview??')
+    }
+    if (glyph !== this) {
+      throw new Error('drawDragPreview() called on wrong glyph?')
+    }
+    const edge = this.isMouseOnFeatureEdge(
+      startingMousePosition,
+      feature,
+      stateModel,
+    )
+    if (!edge) {
+      return
+    }
+
+    const { mousePosition: currentMousePosition } = apolloDragging.current
+    const region = displayedRegions[startingMousePosition.regionNumber]
+    const newBp = currentMousePosition.bp
+    const assembly = getAssemblyId(region.assemblyName)
+    const changes: (
+      | LocationStartChange
+      | LocationEndChange
+      | DiscontinuousLocationEndChange
+      | DiscontinuousLocationStartChange
+    )[] = []
+
+    if (edge === 'start') {
+      if (
+        discontinuousLocation?.idx !== undefined &&
+        feature.discontinuousLocations &&
+        feature.discontinuousLocations.length > 0
+      ) {
+        const oldStart =
+          feature.discontinuousLocations[discontinuousLocation.idx].start
+        this.addDiscontinuousLocStartChange(
+          changes,
+          feature,
+          newBp,
+          oldStart,
+          assembly,
+          discontinuousLocation.idx,
+        )
+
+        const exonCDSRelations = this.exonCDSRelation(feature, topLevelFeature)
+        const exonForCds = this.adjacentExonsOfCdsDL(
+          discontinuousLocation,
+          exonCDSRelations,
+        )
+        if (
+          exonForCds &&
+          exonForCds.matchingExon &&
+          newBp < exonForCds.matchingExon.start
+        ) {
+          this.addStartLocationChange(
+            changes,
+            exonForCds.matchingExon,
+            newBp,
+            assembly,
+          )
+        }
+      } else {
+        this.addStartLocationChange(changes, feature, newBp, assembly)
+      }
+    } else {
+      if (
+        discontinuousLocation?.idx !== undefined &&
+        feature.discontinuousLocations &&
+        feature.discontinuousLocations.length > 0
+      ) {
+        const oldEnd =
+          feature.discontinuousLocations[discontinuousLocation.idx].end
+        this.addDiscontinuousLocEndChange(
+          changes,
+          feature,
+          newBp,
+          oldEnd,
+          assembly,
+          discontinuousLocation.idx,
+        )
+
+        const exonCDSRelations = this.exonCDSRelation(feature, topLevelFeature)
+        const exonForCds = this.adjacentExonsOfCdsDL(
+          discontinuousLocation,
+          exonCDSRelations,
+        )
+        if (
+          exonForCds &&
+          exonForCds.matchingExon &&
+          newBp > exonForCds.matchingExon.end
+        ) {
+          this.addEndLocationChange(
+            changes,
+            exonForCds.matchingExon,
+            newBp,
+            assembly,
+          )
+        }
+      } else {
+        this.addEndLocationChange(changes, feature, newBp, assembly)
+      }
+    }
+
+    if (!changeManager) {
+      throw new Error('no change manager')
+    }
+    for (const change of changes) {
+      await changeManager.submit(change)
+    }
+
+    setCursor()
+  }
+
+  addDiscontinuousLocStartChange(
+    changes: LocationChange[],
+    feature: AnnotationFeatureI, // cds
+    newBp: number,
+    oldStart: number,
+    assembly: string,
+    index: number,
+  ) {
+    const featureId = feature._id
+    changes.push(
+      new DiscontinuousLocationStartChange({
+        typeName: 'DiscontinuousLocationStartChange',
+        changedIds: [feature._id],
+        featureId,
+        newStart: newBp,
+        oldStart,
+        index,
+        assembly,
+      }),
+    )
+  }
+
+  addDiscontinuousLocEndChange(
+    changes: LocationChange[],
+    feature: AnnotationFeatureI, // cds
+    newBp: number,
+    oldEnd: number,
+    assembly: string,
+    index: number,
+  ) {
+    const featureId = feature._id
+    changes.push(
+      new DiscontinuousLocationEndChange({
+        typeName: 'DiscontinuousLocationEndChange',
+        changedIds: [feature._id],
+        featureId,
+        newEnd: newBp,
+        oldEnd,
+        index,
+        assembly,
+      }),
+    )
+  }
+
+  addEndLocationChange(
+    changes: LocationChange[],
+    feature: AnnotationFeatureI,
+    newBp: number,
+    assembly: string,
+  ) {
+    const featureId = feature._id
+    const oldEnd = feature.end
+    const newEnd = newBp
+    changes.push(
+      new LocationEndChange({
+        typeName: 'LocationEndChange',
+        changedIds: [featureId],
+        featureId,
+        oldEnd,
+        newEnd,
+        assembly,
+      }),
+    )
+  }
+
+  addStartLocationChange(
+    changes: LocationChange[],
+    feature: AnnotationFeatureI,
+    newBp: number,
+    assembly: string,
+  ) {
+    const featureId = feature._id
+    const oldStart = feature.start
+    const newStart = newBp
+    changes.push(
+      new LocationStartChange({
+        typeName: 'LocationStartChange',
+        changedIds: [featureId],
+        featureId,
+        oldStart,
+        newStart,
+        assembly,
+      }),
+    )
   }
 }

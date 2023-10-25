@@ -86,8 +86,17 @@ export class LocationStartChange extends FeatureChange {
         throw new Error(errMsg)
       }
       logger.debug?.(`*** Found feature: ${JSON.stringify(foundFeature)}`)
+      if (
+        foundFeature.discontinuousLocations &&
+        foundFeature.discontinuousLocations.length > 0
+      ) {
+        const errMsg =
+          'Must use "DiscontinuousLocationStartChange" to change a feature start that has discontinuous locations'
+        logger.error(errMsg)
+        throw new Error(errMsg)
+      }
       if (foundFeature.start !== oldStart) {
-        const errMsg = `*** ERROR: Feature's current start value ${topLevelFeature.start} doesn't match with expected value ${oldStart}`
+        const errMsg = `*** ERROR: Feature's current start value ${foundFeature.start} doesn't match with expected value ${oldStart}`
         logger.error(errMsg)
         throw new Error(errMsg)
       }

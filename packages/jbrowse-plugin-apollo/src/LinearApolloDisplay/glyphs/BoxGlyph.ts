@@ -1,16 +1,85 @@
-import { alpha } from '@mui/material'
+import { Theme, alpha } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 
-import { ApolloSessionModel } from '../../session'
 import { LinearApolloDisplay } from '../stateModel'
 import { MousePosition } from '../stateModel/mouseEvents'
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 
 export class BoxGlyph extends Glyph {
-  getRowCount() {
+  getRowCount(_feature: AnnotationFeatureI) {
     return 1
+  }
+
+  protected getIsSelectedFeature(
+    feature: AnnotationFeatureI,
+    selectedFeature: AnnotationFeatureI | undefined,
+  ) {
+    return Boolean(selectedFeature && feature._id === selectedFeature._id)
+  }
+
+  protected getBackgroundColor(theme: Theme | undefined, selected: boolean) {
+    return selected
+      ? theme?.palette.text.primary ?? 'black'
+      : theme?.palette.background.default ?? 'white'
+  }
+
+  protected getTextColor(theme: Theme | undefined, selected: boolean) {
+    return selected
+      ? theme?.palette.getContrastText(
+          this.getBackgroundColor(theme, selected),
+        ) ?? 'white'
+      : theme?.palette.text.primary ?? 'black'
+  }
+
+  protected drawBox(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    color: string,
+  ) {
+    ctx.fillStyle = color
+    ctx.fillRect(x, y, width, height)
+  }
+
+  protected drawBoxOutline(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    color: string,
+  ) {
+    this.drawBox(ctx, x, y, width, height, color)
+    ctx.clearRect(x + 1, y + 1, width - 2, height - 2)
+  }
+
+  protected drawBoxFill(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    color: string,
+  ) {
+    this.drawBox(ctx, x + 1, y + 1, width - 2, height - 2, color)
+  }
+
+  protected drawBoxText(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    width: number,
+    color: string,
+    text: string,
+  ) {
+    ctx.fillStyle = color
+    const textStart = Math.max(x + 1, 0)
+    const textWidth = x - 1 + width - textStart
+    ctx.fillText(text, textStart, y + 11, textWidth)
   }
 
   draw(
@@ -21,35 +90,72 @@ export class BoxGlyph extends Glyph {
     row: number,
     reversed: boolean,
   ) {
-    const { apolloRowHeight: rowHeight, lgv, session, theme } = stateModel
+    const { apolloRowHeight: heightPx, lgv, session, theme } = stateModel
     const { bpPerPx } = lgv
-    const { apolloSelectedFeature } = session as unknown as ApolloSessionModel
+    const { apolloSelectedFeature } = session
     const offsetPx = (feature.start - feature.min) / bpPerPx
     const widthPx = feature.length / bpPerPx
     const startPx = reversed ? xOffset - offsetPx - widthPx : xOffset + offsetPx
-    const top = row * rowHeight
-    ctx.fillStyle = theme?.palette.text.primary ?? 'black'
-    ctx.fillRect(startPx, top, widthPx, rowHeight)
-    if (widthPx > 2) {
-      const backgroundColor =
-        apolloSelectedFeature && feature._id === apolloSelectedFeature._id
-          ? theme?.palette.text.primary ?? 'black'
-          : theme?.palette.background.default ?? 'white'
-      const textColor =
-        apolloSelectedFeature && feature._id === apolloSelectedFeature._id
-          ? theme?.palette.getContrastText(backgroundColor) ?? 'white'
-          : theme?.palette.text.primary ?? 'black'
-      ctx.clearRect(startPx + 1, top + 1, widthPx - 2, rowHeight - 2)
-      ctx.fillStyle = backgroundColor
-      ctx.fillRect(startPx + 1, top + 1, widthPx - 2, rowHeight - 2)
-      ctx.fillStyle = textColor
-      const textStart = Math.max(startPx + 1, 0)
-      const textWidth = startPx - 1 + widthPx - textStart
-      feature.type && ctx.fillText(feature.type, textStart, top + 11, textWidth)
+    const top = row * heightPx
+    const isSelected = this.getIsSelectedFeature(feature, apolloSelectedFeature)
+    const backgroundColor = this.getBackgroundColor(theme, isSelected)
+    const textColor = this.getTextColor(theme, isSelected)
+    const groupingColor = isSelected
+      ? 'rgba(130,0,0,0.45)'
+      : 'rgba(255,0,0,0.25)'
+    const featureBox: [number, number, number, number] = [
+      startPx,
+      top,
+      widthPx,
+      heightPx,
+    ]
+    this.drawBoxOutline(ctx, ...featureBox, textColor)
+    if (widthPx <= 2) {
+      // Don't need to add details if the feature is too small to see them
+      return
+    }
+
+    let featureLocations: { start: number; end: number; type: string }[] = [
+      feature,
+    ]
+    if (
+      feature.discontinuousLocations &&
+      feature.discontinuousLocations.length > 0
+    ) {
+      featureLocations = feature.discontinuousLocations.map((f) => ({
+        start: f.start,
+        end: f.end,
+        type: feature.type,
+      }))
+    }
+    if (featureLocations.length > 1) {
+      this.drawBoxFill(ctx, ...featureBox, groupingColor)
+      for (const location of featureLocations) {
+        const offsetPx = (location.start - feature.min) / bpPerPx
+        const widthPx = (location.end - location.start) / bpPerPx
+        const startPx = reversed
+          ? xOffset - offsetPx - widthPx
+          : xOffset + offsetPx
+        this.drawBoxOutline(ctx, startPx, top, widthPx, heightPx, textColor)
+      }
+    }
+
+    for (const location of featureLocations) {
+      const offsetPx = (location.start - feature.min) / bpPerPx
+      const widthPx = (location.end - location.start) / bpPerPx
+      const startPx = reversed
+        ? xOffset - offsetPx - widthPx
+        : xOffset + offsetPx
+      this.drawBoxFill(ctx, startPx, top, widthPx, heightPx, backgroundColor)
+      this.drawBoxText(ctx, startPx, top, widthPx, textColor, location.type)
     }
   }
 
-  getFeatureFromLayout(feature: AnnotationFeatureI) {
+  getFeatureFromLayout(
+    feature: AnnotationFeatureI,
+    _bp: number,
+    _row: number,
+  ): AnnotationFeatureI | undefined {
     return feature
   }
 
@@ -141,7 +247,7 @@ export class BoxGlyph extends Glyph {
 
     const row = Math.floor(startingMousePosition.y / apolloRowHeight)
     const region = displayedRegions[startingMousePosition.regionNumber]
-    const rowCount = this.getRowCount()
+    const rowCount = this.getRowCount(feature)
 
     const featureEdgeBp = region.reversed
       ? region.end - feature[edge]
@@ -212,6 +318,31 @@ export class BoxGlyph extends Glyph {
       }
     }
     return false
+  }
+
+  continueDrag(
+    stateModel: LinearApolloDisplay,
+    currentMousePosition: MousePosition,
+  ) {
+    const { feature, glyph, mousePosition, topLevelFeature } =
+      stateModel.apolloDragging?.start ?? {}
+    if (!(currentMousePosition && mousePosition)) {
+      return
+    }
+    stateModel.setDragging({
+      start: {
+        feature,
+        topLevelFeature,
+        glyph,
+        mousePosition,
+      },
+      current: {
+        feature,
+        topLevelFeature,
+        glyph,
+        mousePosition: currentMousePosition,
+      },
+    })
   }
 
   executeDrag(stateModel: LinearApolloDisplay) {

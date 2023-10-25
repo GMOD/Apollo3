@@ -1,10 +1,10 @@
 ##gff-version 3
 ctgA	example	gene	1050	9000	.	+	.	ID=EDEN
-ctgA	est	EST_match	1150	7200	.	+	.	ID=Match1;Target=agt 1
+ctgA	est	EST_match	1150	7200	.	+	.	ID=Match1;Target=agt 1,agt 2,spam"foo"eggs
 ctgA	est	EST_match	5410	7503	.	-	.	ID=Match2;Target=agt 1
 ctgA	est	EST_match	7500	8000	.	-	.	ID=Match3;Target=agt A
 ctgA	est	EST_match	8000	9000	.	-	.	ID=Match4;Target=agt B
-ctgA	est	EST_match	9520	9900	.	-	.	ID=Match5;Target=agt_1
+ctgA	est	EST_match	9520	9900	.	-	.	ID=Match5;Target=agt_1;Note=mRNA with both CDSs and UTRs and 7-transmembrane and someKeyWord
 ##FASTA
 >ctgA
 cattgttgcggagttgaacaACGGCATTAGGAACACTTCCGTCTCtcacttttatacgat

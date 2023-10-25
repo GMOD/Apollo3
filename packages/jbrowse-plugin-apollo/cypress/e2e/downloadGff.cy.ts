@@ -32,7 +32,7 @@ describe('Download GFF', () => {
       cy.readFile(`${Cypress.config('downloadsFolder')}/${gff[0]}`).then(
         (x: string) => {
           const lines: string[] = x.trim().split('\n')
-          expect(lines.length).eq(247)
+          expect(lines.length).eq(952)
         },
       )
     })

@@ -32,12 +32,13 @@ export class FeaturesController {
   @Public()
   @Get('exportGFF3')
   async exportGFF3(
-    @Query() request: { exportID: string },
+    @Query() request: { exportID: string; fastaWidth?: number },
     @Response({ passthrough: true }) res: ExpressResponse,
   ) {
-    const [stream, assembly] = await this.featuresService.exportGFF3(
-      request.exportID,
-    )
+    const { exportID, ...rest } = request
+    const [stream, assembly] = await this.featuresService.exportGFF3(exportID, {
+      ...rest,
+    })
     const assemblyName = await this.featuresService.getAssemblyName(assembly)
     res.set({
       'Content-Type': 'application/text',
