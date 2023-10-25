@@ -16,7 +16,6 @@ import {
   flow,
   getParentOfType,
   getRoot,
-  getSnapshot,
   resolveIdentifier,
   types,
 } from 'mobx-state-tree'
@@ -51,14 +50,12 @@ export function clientDataStoreFactory(
 
       checkStopCodons(): CheckReport[] {
         let checkReport: CheckReport[] = []
-        let n = 0
         for (const [, assembly] of self.assemblies) {
           for (const [, refSeq] of assembly.refSeqs) {
             for (const [, feature] of refSeq.features) {
-              const cds: string = refSeq.getCodingSequence(feature).join('')
-              const featureSnap = getSnapshot(feature)
+              const jsonFeature: string = JSON.stringify(feature)
+              const cds: string = refSeq.getCodingSequence(jsonFeature).join('')
               checkReport = detectStopCodons(feature.gffId ?? 'n/a', cds)
-              n++
             }
           }
         }

@@ -30,7 +30,9 @@ Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
     .should('be.checked')
   cy.intercept('/changes').as('changes')
   cy.contains('Submit').click()
-  cy.wait('@changes').its('response.statusCode').should('match', /2../)
+  cy.wait('@changes', { timeout: 300_000 })
+    .its('response.statusCode')
+    .should('match', /2../)
 
   cy.get('body').then((el) => {
     // Not sure if this is needed. Wait for the "Assembly ..." message to disappear

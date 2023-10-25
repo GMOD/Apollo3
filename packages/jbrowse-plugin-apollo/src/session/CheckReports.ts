@@ -51,13 +51,13 @@ export function detectStopCodons(
     checkReports.push(report)
   }
   for (const stopCodon in STOP_CODONS) {
-    const st: string = STOP_CODONS[stopCodon]
+    const STOP: string = STOP_CODONS[stopCodon]
     for (const codon of codons) {
-      if (st === codon) {
+      if (STOP === codon.toUpperCase()) {
         const report: CheckReport = new CheckReport(
           CHECK_TYPE.StopCodonCheck,
           featureId,
-          `Stop codon ${st} found in ${codons}`,
+          `Stop codon ${STOP} found in ${codons}`,
         )
         checkReports.push(report)
       }

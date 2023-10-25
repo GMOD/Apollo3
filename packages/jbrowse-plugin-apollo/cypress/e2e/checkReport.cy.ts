@@ -1,17 +1,21 @@
 describe('Run check reports', () => {
-  // before(() => {
-  //   // eslint-disable-next-line prettier/prettier
-  //   const hsGff = `${Cypress.config('downloadsFolder')}/Homo_sapiens.18.fasta.gff3`
-  //   cy.exec(
-  //     `curl -L -s https://ftp.ensembl.org/pub/release-110/gff3/homo_sapiens/Homo_sapiens.GRCh38.110.chromosome.18.gff3.gz \
-  //         | gunzip > ${hsGff}
-  //         echo '##FASTA' >> ${hsGff}
-  //         curl -L -s https://ftp.ensembl.org/pub/release-110/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.18.fa.gz \
-  //         | gunzip >> ${hsGff}`,
-  //   ).then((result) => {
-  //     cy.log(result.stderr)
-  //   })
-  // })
+  before(() => {
+    // eslint-disable-next-line prettier/prettier
+    const gff = `${Cypress.config('downloadsFolder')}/PlasmoDB-64_Pfalciparum3D7.fasta.gff3`
+    cy.exec(
+      `curl -L -s https://plasmodb.org/common/downloads/release-64/Pfalciparum3D7/gff/data/PlasmoDB-64_Pfalciparum3D7.gff \
+      | grep -P '^##|^Pf3D7_01_v3' > ${gff}
+      echo '##FASTA' >> ${gff}
+      curl -L -s https://plasmodb.org/common/downloads/release-64/Pfalciparum3D7/fasta/data/PlasmoDB-64_Pfalciparum3D7_Genome.fasta \
+      | awk -v start=0 '{
+        if(start == 1 && $1 ~ "^>"){exit 0} 
+        if($1 ~ "^>Pf3D7_01_v3") {start = 1} 
+        if(start == 1){print $0}
+      }' >> ${gff}`,
+    ).then((result) => {
+      cy.log(result.stderr)
+    })
+  })
 
   beforeEach(() => {
     cy.deleteAssemblies()
@@ -171,34 +175,6 @@ describe('Run check reports', () => {
       })
   })
 
-  it.skip('No errors in real data', () => {
-    cy.addAssemblyFromGff('Homo_sapiens.18.fasta.gff3', 'test_data/cdsChecks/stopcodon.gff3hsGff')
-    // cy.selectAssemblyToView('Homo_sapiens.18.fasta.gff3')
-
-    // cy.searchFeatures('gene05', 1)
-    // cy.contains('tbody', 'gene05', { timeout: 10_000 })
-
-    // cy.window()
-    //   .its('console')
-    //   .then((console) => {
-    //     cy.spy(console, 'log').as('log')
-    //   })
-
-    // cy.get('button[data-testid="dropDownMenuButton"]', { timeout: 10_000 })
-    //   .contains('Apollo')
-    //   .click({ force: true, timeout: 10_000 })
-    // cy.contains('Check stop codons', { timeout: 10_000 }).click()
-
-    // cy.get('@log')
-    //   .invoke('getCalls')
-    //   .each((call) => {
-    //     for (const arg of call.args) {
-    //       expect(arg).to.match(/Found 0 /)
-    //       expect(arg).not.to.contain('gene')
-    //     }
-    //   })
-  })
-
   it('FIXME: Report error in SO other than CDS', () => {
     cy.addAssemblyFromGff(
       'stopcodon.gff3',
@@ -208,6 +184,46 @@ describe('Run check reports', () => {
 
     cy.searchFeatures('gene05', 1)
     cy.contains('tbody', 'gene05', { timeout: 10_000 })
+
+    cy.window()
+      .its('console')
+      .then((console) => {
+        cy.spy(console, 'log').as('log')
+      })
+
+    cy.get('button[data-testid="dropDownMenuButton"]', { timeout: 10_000 })
+      .contains('Apollo')
+      .click({ force: true, timeout: 10_000 })
+    cy.contains('Check stop codons', { timeout: 10_000 }).click()
+
+    cy.get('@log')
+      .invoke('getCalls')
+      .each((call) => {
+        for (const arg of call.args) {
+          expect(arg).to.match(/Found 0 /)
+          expect(arg).not.to.contain('gene')
+        }
+      })
+  })
+
+  it('Real data', () => {
+    cy.addAssemblyFromGff(
+      'PlasmoDB-64_Pfalciparum3D7.fasta.gff3',
+      `${Cypress.config(
+        'downloadsFolder',
+      )}/PlasmoDB-64_Pfalciparum3D7.fasta.gff3`,
+    )
+    cy.selectAssemblyToView('PlasmoDB-64_Pfalciparum3D7.fasta.gff3')
+
+    cy.searchFeatures('PF3D7_0102200', 1)
+    cy.contains('tbody', 'PF3D7_0102200', { timeout: 10_000 })
+
+    const query = 'Pf3D7_01_v3:30000..200000'
+    cy.get('input[placeholder="Search for location"]').type(
+      `{selectall}{backspace}${query}{enter}`,
+    )
+    cy.contains('tbody', 'PF3D7_0102200', { timeout: 10_000 })
+    cy.contains('tbody', 'PF3D7_0104300', { timeout: 10_000 })
 
     cy.window()
       .its('console')
