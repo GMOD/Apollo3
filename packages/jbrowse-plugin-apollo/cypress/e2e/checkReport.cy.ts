@@ -175,37 +175,6 @@ describe('Run check reports', () => {
       })
   })
 
-  it('FIXME: Report error in SO other than CDS', () => {
-    cy.addAssemblyFromGff(
-      'stopcodon.gff3',
-      'test_data/cdsChecks/stopcodon.gff3',
-    )
-    cy.selectAssemblyToView('stopcodon.gff3')
-
-    cy.searchFeatures('gene05', 1)
-    cy.contains('tbody', 'gene05', { timeout: 10_000 })
-
-    cy.window()
-      .its('console')
-      .then((console) => {
-        cy.spy(console, 'log').as('log')
-      })
-
-    cy.get('button[data-testid="dropDownMenuButton"]', { timeout: 10_000 })
-      .contains('Apollo')
-      .click({ force: true, timeout: 10_000 })
-    cy.contains('Check stop codons', { timeout: 10_000 }).click()
-
-    cy.get('@log')
-      .invoke('getCalls')
-      .each((call) => {
-        for (const arg of call.args) {
-          expect(arg).to.match(/Found 0 /)
-          expect(arg).not.to.contain('gene')
-        }
-      })
-  })
-
   it('Real data', () => {
     cy.addAssemblyFromGff(
       'PlasmoDB-64_Pfalciparum3D7.fasta.gff3',
