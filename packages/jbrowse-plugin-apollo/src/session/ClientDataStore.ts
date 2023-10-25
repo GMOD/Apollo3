@@ -15,6 +15,7 @@ import {
   Instance,
   SnapshotIn,
   SnapshotOut,
+  getSnapshot,
   flow,
   getParentOfType,
   getRoot,
@@ -56,8 +57,11 @@ export function clientDataStoreFactory(
         for (const [, assembly] of self.assemblies) {
           for (const [, refSeq] of assembly.refSeqs) {
             for (const [, feature] of refSeq.features) {
-              const jsonFeature: string = JSON.stringify(feature)
-              const cds: string = refSeq.getCodingSequence(jsonFeature).join('')
+              const featureSnapshot: AnnotationFeatureSnapshot =
+                getSnapshot(feature)
+              const cds: string = refSeq
+                .getCodingSequence(featureSnapshot)
+                .join('')
               checkReport = detectStopCodons(feature.gffId ?? 'n/a', cds)
             }
           }

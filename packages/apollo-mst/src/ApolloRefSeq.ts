@@ -121,8 +121,10 @@ export const ApolloRefSeq = types
       }
       return revComp.reverse().join('')
     },
-    _getCodingSequence(jsonFeature: string, cdna: string[]): void {
-      const feature = JSON.parse(jsonFeature)
+    _getCodingSequence(
+      feature: AnnotationFeatureSnapshot,
+      cdna: string[],
+    ): void {
       if (feature.type === 'CDS') {
         let seq = ''
         if (
@@ -147,14 +149,14 @@ export const ApolloRefSeq = types
       }
       if (feature.children) {
         for (const key in feature.children) {
-          const child = JSON.stringify(feature.children[key])
+          const child = feature.children[key]
           this._getCodingSequence(child, cdna)
         }
       }
     },
-    getCodingSequence(jsonFeature: string): string[] {
+    getCodingSequence(feature: AnnotationFeatureSnapshot): string[] {
       const cdna: string[] = []
-      this._getCodingSequence(jsonFeature, cdna)
+      this._getCodingSequence(feature, cdna)
       return cdna
     },
   }))
