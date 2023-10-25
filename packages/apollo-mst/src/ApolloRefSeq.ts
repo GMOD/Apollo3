@@ -7,7 +7,6 @@ import {
 
 import {
   AnnotationFeature,
-  AnnotationFeatureI,
   AnnotationFeatureSnapshot,
 } from './AnnotationFeature'
 
@@ -110,15 +109,20 @@ export const ApolloRefSeq = types
       }
       const revComp: string[] = []
       for (const nt of dna) {
-        const rc: string = COMPLEMENTS[nt]
+        const rc: string = COMPLEMENTS[nt.toUpperCase()]
         if (rc === undefined) {
           throw new TypeError(`Cannot complement nucleotide: "${nt}"`)
         }
-        revComp.push(rc)
+        if (nt === nt.toLowerCase()) {
+          revComp.push(rc.toLowerCase())
+        } else {
+          revComp.push(rc)
+        }
       }
       return revComp.reverse().join('')
     },
-    _getCodingSequence(feature: AnnotationFeatureI, cdna: string[]): void {
+    _getCodingSequence(jsonFeature: string, cdna: string[]): void {
+      const feature = JSON.parse(jsonFeature)
       if (feature.type === 'CDS') {
         let seq = ''
         if (
@@ -126,10 +130,10 @@ export const ApolloRefSeq = types
           feature.discontinuousLocations.length === 0
         ) {
           // Remove -1 once off-by-one error is fixed
-          seq = this.getSequence(feature.start - 1, feature.end).toUpperCase()
+          seq = this.getSequence(feature.start - 1, feature.end)
         } else {
           for (const x of feature.discontinuousLocations) {
-            seq = seq + this.getSequence(x.start - 1, x.end).toUpperCase()
+            seq = seq + this.getSequence(x.start - 1, x.end)
           }
         }
         if (feature.strand === 1) {
@@ -142,14 +146,15 @@ export const ApolloRefSeq = types
         cdna.push(seq)
       }
       if (feature.children) {
-        for (const [, child] of feature.children) {
+        for (const key in feature.children) {
+          const child = JSON.stringify(feature.children[key])
           this._getCodingSequence(child, cdna)
         }
       }
     },
-    getCodingSequence(feature: AnnotationFeatureI): string[] {
+    getCodingSequence(jsonFeature: string): string[] {
       const cdna: string[] = []
-      this._getCodingSequence(feature, cdna)
+      this._getCodingSequence(jsonFeature, cdna)
       return cdna
     },
   }))
