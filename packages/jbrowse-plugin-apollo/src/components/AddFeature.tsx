@@ -49,7 +49,6 @@ export function AddFeature({
   const [phaseAsNumber, setPhaseAsNumber] = useState<PhaseEnum>()
   const [showPhase, setShowPhase] = useState<boolean>(false)
   const [errorMessage, setErrorMessage] = useState('')
-  const [typeWarningText] = useState('')
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -197,8 +196,6 @@ export function AddFeature({
                 label="Type"
                 variant="outlined"
                 fullWidth
-                error={Boolean(typeWarningText)}
-                helperText={typeWarningText}
               />
             )}
             onChange={(oldValue, newValue) => {
