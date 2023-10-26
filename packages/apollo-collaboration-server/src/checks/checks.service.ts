@@ -24,25 +24,28 @@ export class ChecksService {
   constructor(
     @InjectModel(CheckReport.name)
     private readonly checkReportModel: Model<CheckReportDocument>,
+    // @InjectModel(Feature.name)
+    // private readonly featureModel: Model<FeatureDocument>,
   ) {}
 
   private readonly logger = new Logger(ChecksService.name)
 
   async checkFeature(doc: FeatureDocument) {
     const featureModel = doc.$model<Model<FeatureDocument>>(Feature.name)
-    const featureDoc = await featureModel.findById(doc._id).exec()
-    if (!featureDoc) {
-      const errMsg = 'ERROR when searching feature by featureId'
-      this.logger.error(errMsg)
-      throw new NotFoundException(errMsg)
-    }
-    const emptyRangeArray: Range[] = []
-    const combinedSequence: string[] = []
-    await this.checkCodonPart1(featureDoc, featureDoc, emptyRangeArray, combinedSequence)
-    if (combinedSequence.join('').length > 0) {
-      console.log(`*** COMBINED SEQUENCE: ${combinedSequence.join('')}`)
-      await this.checkCodonPart2(featureDoc._id as unknown as ObjectId, combinedSequence.join(''))
-    }
+    // const featureDoc = await featureModel.findById(doc._id).exec()
+    // if (!featureDoc) {
+    //   const errMsg = 'ERROR when searching feature by featureId'
+    //   this.logger.error(errMsg)
+    //   throw new NotFoundException(errMsg)
+    // }
+    // TODO: Delete old checkReports if any
+    // const emptyRangeArray: Range[] = []
+    // const combinedSequence: string[] = []
+    // await this.checkCodonPart1(featureDoc, featureDoc, emptyRangeArray, combinedSequence)
+    // if (combinedSequence.join('').length > 0) {
+    //   console.log(`*** COMBINED SEQUENCE: ${combinedSequence.join('')}`)
+    //   await this.checkCodonPart2(featureDoc._id as unknown as ObjectId, combinedSequence.join(''))
+    // }
   }
 
   async getSequence({

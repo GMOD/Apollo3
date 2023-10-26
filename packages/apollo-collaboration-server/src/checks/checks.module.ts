@@ -23,7 +23,9 @@ import { ChecksService } from './checks.service'
         useFactory: (connection: Connection, checksService: ChecksService) => {
           FeatureSchema.plugin(idValidator, { connection })
           FeatureSchema.post('save', async (doc) => {
-            await checksService.checkFeature(doc)
+            if (doc.allIds.length > 0) {
+              await checksService.checkFeature(doc)
+            }
           })
           return FeatureSchema
         },
