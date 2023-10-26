@@ -232,7 +232,7 @@ export const Feature = observer(function Feature({
                       changeManager,
                       feature,
                       discontinuousLocations[index].start,
-                      newStart,
+                      newStart - 1,
                       index,
                     )
                   }
@@ -248,7 +248,7 @@ export const Feature = observer(function Feature({
                   changeManager,
                   feature,
                   start,
-                  newStart,
+                  newStart - 1,
                 )
               }
             />
