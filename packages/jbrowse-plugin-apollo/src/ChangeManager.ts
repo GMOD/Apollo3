@@ -7,6 +7,8 @@ import {
 import { ValidationResultSet, validationRegistry } from 'apollo-shared'
 import { IAnyStateTreeNode } from 'mobx-state-tree'
 
+import { ApolloSessionModel } from './session'
+
 export interface SubmitOpts {
   /** defaults to true */
   submitToBackend?: boolean
@@ -14,6 +16,8 @@ export interface SubmitOpts {
   addToRecents?: boolean
   /** defaults to undefined */
   internetAccountId?: string
+  /** defaults to false */
+  updateJobsManager?: boolean
 }
 
 export class ChangeManager {
@@ -22,15 +26,39 @@ export class ChangeManager {
   recentChanges: Change[] = []
 
   async submit(change: Change, opts: SubmitOpts = {}) {
-    const { addToRecents = true, submitToBackend = true } = opts
+    const {
+      addToRecents = true,
+      submitToBackend = true,
+      updateJobsManager = false,
+    } = opts
     // pre-validate
     const session = getSession(this.dataStore)
+    const controller = new AbortController()
+
+    const { jobsManager } = getSession(
+      this.dataStore,
+    ) as unknown as ApolloSessionModel
+
+    const job = {
+      name: `${change.typeName}`,
+      statusMessage: 'Pre-validating',
+      progressPct: 0,
+      cancelCallback: () => {
+        controller.abort()
+      },
+    }
+
+    if (updateJobsManager) {
+      jobsManager.runJob(job)
+    }
+
     const result = await validationRegistry.frontendPreValidate(change)
     if (!result.ok) {
-      session.notify(
-        `Pre-validation failed: "${result.resultsMessages}"`,
-        'error',
-      )
+      const msg = `Pre-validation failed: "${result.resultsMessages}"`
+      if (updateJobsManager) {
+        jobsManager.abortJob(job.name, msg)
+      }
+      session.notify(msg, 'error')
       return
     }
 
@@ -38,6 +66,9 @@ export class ChangeManager {
       // submit to client data store
       await change.execute(this.dataStore)
     } catch (error) {
+      if (updateJobsManager) {
+        jobsManager.abortJob(job.name, String(error))
+      }
       console.error(error)
       session.notify(String(error), 'error')
       return
@@ -54,6 +85,9 @@ export class ChangeManager {
     }
 
     if (submitToBackend) {
+      if (updateJobsManager) {
+        jobsManager.update(job.name, 'Submitting to driver')
+      }
       // submit to driver
       const { collaborationServerDriver, getBackendDriver } = this.dataStore
       const backendDriver = isAssemblySpecificChange(change)
@@ -63,16 +97,20 @@ export class ChangeManager {
       try {
         backendResult = await backendDriver.submitChange(change, opts)
       } catch (error) {
+        if (updateJobsManager) {
+          jobsManager.abortJob(job.name, String(error))
+        }
         console.error(error)
         session.notify(String(error), 'error')
         await this.revert(change, false)
         return
       }
       if (!backendResult.ok) {
-        session.notify(
-          `Post-validation failed: "${result.resultsMessages}"`,
-          'error',
-        )
+        const msg = `Post-validation failed: "${result.resultsMessages}"`
+        if (updateJobsManager) {
+          jobsManager.abortJob(job.name, msg)
+        }
+        session.notify(msg, 'error')
         await this.revert(change, false)
         return
       }
@@ -83,6 +121,10 @@ export class ChangeManager {
     if (addToRecents) {
       // Push the change into array
       this.recentChanges.push(change)
+    }
+
+    if (updateJobsManager) {
+      jobsManager.done(job)
     }
   }
 

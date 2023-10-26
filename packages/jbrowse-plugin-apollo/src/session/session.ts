@@ -16,6 +16,7 @@ import {
   ApolloInternetAccountModel,
   UserLocation,
 } from '../ApolloInternetAccount/model'
+import { ApolloJobModel } from '../ApolloJobModel'
 import { ChangeManager } from '../ChangeManager'
 import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
@@ -71,6 +72,7 @@ export function extendSession(
     .props({
       apolloDataStore: types.optional(ClientDataStore, { typeName: 'Client' }),
       apolloSelectedFeature: types.safeReference(AnnotationFeatureExtended),
+      jobsManager: types.optional(ApolloJobModel, {}),
     })
     .extend(() => {
       const collabs = observable.array<Collaborator>([])

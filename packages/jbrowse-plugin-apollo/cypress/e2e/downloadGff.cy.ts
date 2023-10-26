@@ -21,7 +21,7 @@ describe('Download GFF', () => {
       .within(() => {
         cy.get('input').parent().click()
       })
-    cy.contains('volvox.fasta.gff3').click()
+    cy.get('li').contains('volvox.fasta.gff3').click()
     cy.get('button').contains('Download').click()
 
     // We don't know when the download is done

@@ -1,6 +1,5 @@
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
-import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
   DialogActions,
@@ -37,7 +36,6 @@ export function ImportFeatures({
   session,
 }: ImportFeaturesProps) {
   const { apolloDataStore } = session
-  const { notify } = session as unknown as AbstractSessionModel
 
   const [file, setFile] = useState<File>()
   const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
@@ -163,16 +161,37 @@ export function ImportFeatures({
       locationType: 'UriLocation',
       uri: url,
     })
+
+    handleClose()
+
+    const { jobsManager } = session
+    const controller = new AbortController()
+
+    const job = {
+      name: `Importing features for ${selectedAssembly.displayName}`,
+      statusMessage: 'Uploading file, this may take awhile',
+      progressPct: 0,
+      cancelCallback: () => {
+        controller.abort()
+        jobsManager.abortJob(job.name)
+      },
+    }
+
+    jobsManager.runJob(job)
+
     if (apolloFetchFile) {
+      const { signal } = controller
       const response = await apolloFetchFile(url, {
         method: 'POST',
         body: formData,
+        signal,
       })
       if (!response.ok) {
         const newErrorMessage = await createFetchErrorMessage(
           response,
           'Error when inserting new features (while uploading file)',
         )
+        jobsManager.abortJob(job.name, newErrorMessage)
         setErrorMessage(newErrorMessage)
         return
       }
@@ -188,15 +207,10 @@ export function ImportFeatures({
       fileId,
       deleteExistingFeatures: deleteFeatures,
     })
-    await changeManager.submit(change)
-    notify(
-      `Features are being added to "${
-        selectedAssembly.displayName ?? selectedAssembly.name
-      }"`,
-      'info',
-    )
-    handleClose()
-    event.preventDefault()
+
+    jobsManager.done(job)
+
+    await changeManager.submit(change, { updateJobsManager: true })
   }
 
   return (
