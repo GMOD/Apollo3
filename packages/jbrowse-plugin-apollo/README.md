@@ -56,8 +56,21 @@ accordingly in `commands.ts`
   `package.json`. Typically (again outside the dev container/vscode):
 
 ```
-yarn --cwd packages/jbrowse-plugin-apollo run cypress open
+yarn --cwd packages/jbrowse-plugin-apollo run cypress open --config baseUrl=http://localhost:3000
 ```
 
 - For end-to-end testing, click "E2E Testing" `->` Chrome `->`
   `Start E2E Testing`. Click on one of the available test scripts.
+
+To run tests locally in headless mode:
+
+```
+yarn --cwd packages/jbrowse-plugin-apollo run cypress run \
+  --browser chrome \
+  --config '{"baseUrl": "http://localhost:3000", 
+             "screenshotOnRunFailure": true, 
+             "video": true, 
+             "videoCompression": false, 
+             "retries": {"runMode": 0}}' \
+  --spec cypress/e2e/editFeature.cy.ts
+```
