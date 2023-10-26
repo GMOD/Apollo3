@@ -13,7 +13,7 @@ import {
   RefSeqDocument,
 } from 'apollo-schemas'
 import { RemoteFile } from 'generic-filehandle'
-import { Model } from 'mongoose'
+import { Model, ObjectId } from 'mongoose'
 
 interface Range {
   start: number
@@ -37,7 +37,12 @@ export class ChecksService {
       throw new NotFoundException(errMsg)
     }
     const emptyRangeArray: Range[] = []
-    await this.checkCodon(featureDoc, featureDoc, emptyRangeArray)
+    const combinedSequence: string[] = []
+    await this.checkCodonPart1(featureDoc, featureDoc, emptyRangeArray, combinedSequence)
+    if (combinedSequence.join('').length > 0) {
+      console.log(`*** COMBINED SEQUENCE: ${combinedSequence.join('')}`)
+      await this.checkCodonPart2(featureDoc._id as unknown as ObjectId, combinedSequence.join(''))
+    }
   }
 
   async getSequence({
@@ -102,146 +107,311 @@ export class ChecksService {
     return seq.join('')
   }
 
-  /**
-   * Checks suspicious start and stop codons. Also check if CDS sequence is divisible by 3
-   * @param feature - feature
-   */
-  async checkCodon(
-    featureDoc: FeatureDocument,
-    feature: Feature,
-    cdsRangesArray: Range[],
-  ) {
-    if (feature.type === 'CDS') {
-      this.logger.debug(
-        `* Run checkCodon -check report for feature ${feature._id}, type=${
-          feature.type
-        }, strand=${feature.strand}, start=${feature.start}, end=${
-          feature.end
-        }, lenght=${feature.end - feature.start}`,
-      )
-      const featSeqOrig = await this.getSequence({
-        featureDoc,
-        start: feature.start,
-        end: feature.end,
-      })
-      if (!featSeqOrig) {
-        const errMsg = 'ERROR - No feature sequence was found!'
-        this.logger.error(errMsg)
-        throw new NotFoundException(errMsg)
-      }
-      let featSeq: string
-      // eslint-disable-next-line unicorn/prefer-ternary
-      if (feature.strand === -1) {
-        // If negative strand then reverse sequence
-        // eslint-disable-next-line unicorn/prefer-spread
-        featSeq = featSeqOrig.split('').reverse().join('')
-      } else {
-        featSeq = featSeqOrig
-      }
 
-      // Check if new CDS overlaps in previous CDSs
-      const isOverlapFound = this.isOverlap(
-        feature.start,
-        feature.end,
-        cdsRangesArray,
-      )
+    /**
+     * Combines all CDS sequences and checks possibly overlapping CDSs
+     * @param featureDoc -
+     * @param feature -
+     * @param cdsRangesArray - 
+     * @param combinedSequence - 
+     */
+      async checkCodonPart1(
+        featureDoc: FeatureDocument,
+        feature: Feature,
+        cdsRangesArray: Range[],
+        combinedSequence: string[],
+      ) {
+        if (feature.type === 'CDS') {
+          this.logger.debug(
+            `* Run checkCodon: feature ${feature._id}, type=${
+              feature.type
+            }, strand=${feature.strand}, start=${feature.start}, end=${
+              feature.end
+            }, lenght=${feature.end - feature.start}`,
+          )
+          const featSeqOrig = await this.getSequence({
+            featureDoc,
+            start: feature.start,
+            end: feature.end,
+          })
 
-      if (isOverlapFound) {
-        const errMsg = `CDS (start: ${feature.start}, end: ${feature.end}) overlaps with other CDS.`
-        this.logger.error(`ERROR - ${errMsg}`)
-        await this.checkReportModel.create([
-          {
-            checkName: 'StopCodonCheckReport',
-            ids: [feature._id],
-            pass: false,
-            ignored: '',
-            problems: errMsg,
-          },
-        ])
-      } else {
-        cdsRangesArray.push({ start: feature.start, end: feature.end })
-      }
-      const startBase = featSeq.slice(0, 3).toUpperCase()
-      if (startBase !== 'ATG' && startBase !== 'GTG' && startBase !== 'TTG') {
-        const errMsg = `Found suspicious start codon "${startBase}" in the beginning of the CDS sequence.`
-        this.logger.error(`ERROR - ${errMsg}`)
-        await this.checkReportModel.create([
-          {
-            checkName: 'StopCodonCheckReport',
-            ids: [feature._id],
-            pass: false,
-            ignored: '',
-            problems: errMsg,
-          },
-        ])
-      }
-      if (featSeq.length % 3 !== 0) {
-        const errMsg = `Feature sequence was not divisible by 3 (sequence lenght is ${featSeq.length})`
-        this.logger.error(`ERROR - ${errMsg}`)
-        await this.checkReportModel.create([
-          {
-            checkName: 'StopCodonCheckReport',
-            ids: [feature._id],
-            pass: false,
-            ignored: '',
-            problems: 'Feature sequence was not divisible by 3!',
-          },
-        ])
-      }
-      if (featSeq.length % 3 !== 0 && featSeq.length >= 3) {
-        const lastBase = featSeq.slice(-3).toUpperCase()
-        if (lastBase !== 'TAA' && lastBase !== 'TAG' && lastBase !== 'TGA') {
-          const errMsg = `CDS last base "${lastBase}" is not any not stop codons (TAA, TAG or TGA).`
-          this.logger.error(`ERROR - ${errMsg}`)
-          await this.checkReportModel.create([
-            {
-              checkName: 'StopCodonCheckReport',
-              ids: [feature._id],
-              pass: false,
-              ignored: '',
-              problems: errMsg,
-            },
-          ])
-        } else {
-          const errMsg =
-            'ERROR - Feature sequence is less than 3 characters long!'
-          this.logger.error(errMsg)
-          throw new NotFoundException(errMsg)
+          if (!featSeqOrig) {
+            const errMsg = 'ERROR - No feature sequence was found!'
+            this.logger.error(errMsg)
+            throw new NotFoundException(errMsg)
+          }
+          let featSeq: string
+          // eslint-disable-next-line unicorn/prefer-ternary
+          if (feature.strand === -1) {
+            // If negative strand then reverse sequence
+            // eslint-disable-next-line unicorn/prefer-spread
+            featSeq = featSeqOrig.split('').reverse().join('')
+          } else {
+            featSeq = featSeqOrig
+          }
+          combinedSequence.push(featSeq)
+    
+          // Check if new CDS overlaps in previous CDSs
+          const isOverlapFound = this.isOverlap(
+            feature.start,
+            feature.end,
+            cdsRangesArray,
+          )
+    
+          if (isOverlapFound) {
+            const errMsg = `CDS (start: ${feature.start}, end: ${feature.end}) overlaps with other CDS.`
+            this.logger.error(`ERROR - ${errMsg}`)
+            await this.checkReportModel.create([
+              {
+                checkName: 'StopCodonCheckReport',
+                ids: [feature._id],
+                pass: false,
+                ignored: '',
+                problems: errMsg,
+              },
+            ])
+          } else {
+            cdsRangesArray.push({ start: feature.start, end: feature.end })
+          }
+        }
+    
+        // Iterate through children
+        if (feature.children) {
+          for (const [, child] of feature.children) {
+            await this.checkCodonPart1(featureDoc, child, cdsRangesArray, combinedSequence)
+          }
         }
       }
-      const threeBasesArray = this.splitStringIntoChunks(featSeq, 3)
-      // Loop all bases except the last one
-      for (let i = 0; i < threeBasesArray.length - 1; i++) {
-        const currentItem = threeBasesArray[i].toUpperCase()
-        if (
-          currentItem === 'TAA' ||
-          currentItem === 'TAG' ||
-          currentItem === 'TGA'
-        ) {
-          const errMsg = `Found suspicious stop codon "${currentItem}" inside CDS (base number ${
-            i + 1
-          }).`
+
+    /**
+     * Checks suspicious start and end codons. Checks if the sequence is divisible by three
+     * @param featureId 
+     * @param combinedSequence 
+     */
+    async checkCodonPart2(
+      featureId: ObjectId,
+      combinedSequence: string,
+    ) {
+        const startBase = combinedSequence.slice(0, 3).toUpperCase()
+        if (startBase !== 'ATG' && startBase !== 'GTG' && startBase !== 'TTG') {
+          const errMsg = `Found suspicious start codon "${startBase}" in the beginning of the CDS sequence.`
           this.logger.error(`ERROR - ${errMsg}`)
           await this.checkReportModel.create([
             {
               checkName: 'StopCodonCheckReport',
-              ids: [feature._id],
+              ids: [featureId],
               pass: false,
               ignored: '',
               problems: errMsg,
             },
           ])
         }
-      }
+        if (combinedSequence.length % 3 !== 0) {
+          const errMsg = `Feature sequence was not divisible by 3 (sequence lenght is ${combinedSequence.length})`
+          this.logger.error(`ERROR - ${errMsg}`)
+          await this.checkReportModel.create([
+            {
+              checkName: 'StopCodonCheckReport',
+              ids: [featureId],
+              pass: false,
+              ignored: '',
+              problems: 'Feature sequence was not divisible by 3!',
+            },
+          ])
+        }
+        if (combinedSequence.length % 3 !== 0 && combinedSequence.length >= 3) {
+          const lastBase = combinedSequence.slice(-3).toUpperCase()
+          if (lastBase !== 'TAA' && lastBase !== 'TAG' && lastBase !== 'TGA') {
+            const errMsg = `CDS last base "${lastBase}" is not any not stop codons (TAA, TAG or TGA).`
+            this.logger.error(`ERROR - ${errMsg}`)
+            await this.checkReportModel.create([
+              {
+                checkName: 'StopCodonCheckReport',
+                ids: [featureId],
+                pass: false,
+                ignored: '',
+                problems: errMsg,
+              },
+            ])
+          } else {
+            const errMsg =
+              'ERROR - Feature sequence is less than 3 characters long!'
+            this.logger.error(errMsg)
+            throw new NotFoundException(errMsg)
+          }
+        }
+        const threeBasesArray = this.splitStringIntoChunks(combinedSequence, 3)
+        // Loop all bases except the last one
+        for (let i = 0; i < threeBasesArray.length - 1; i++) {
+          const currentItem = threeBasesArray[i].toUpperCase()
+          if (
+            currentItem === 'TAA' ||
+            currentItem === 'TAG' ||
+            currentItem === 'TGA'
+          ) {
+            const errMsg = `Found suspicious stop codon "${currentItem}" inside CDS (base number ${
+              i + 1
+            }).`
+            this.logger.error(`ERROR - ${errMsg}`)
+            await this.checkReportModel.create([
+              {
+                checkName: 'StopCodonCheckReport',
+                ids: [featureId],
+                pass: false,
+                ignored: '',
+                problems: errMsg,
+              },
+            ])
+          }
+        }
     }
 
-    // Iterate through children
-    if (feature.children) {
-      for (const [, child] of feature.children) {
-        await this.checkCodon(featureDoc, child, cdsRangesArray)
-      }
-    }
-  }
+  // /**
+  //  * Checks suspicious start and stop codons. Also check if CDS sequence is divisible by 3
+  //  * @param feature - feature
+  //  */
+  // async checkCodon(
+  //   featureDoc: FeatureDocument,
+  //   feature: Feature,
+  //   cdsRangesArray: Range[],
+  //   combinedSequence: string[],
+  // ) {
+  //   if (feature.type === 'CDS') {
+  //     this.logger.debug(
+  //       `* Run checkCodon: feature ${feature._id}, type=${
+  //         feature.type
+  //       }, strand=${feature.strand}, start=${feature.start}, end=${
+  //         feature.end
+  //       }, lenght=${feature.end - feature.start}`,
+  //     )
+  //     const featSeqOrig = await this.getSequence({
+  //       featureDoc,
+  //       start: feature.start,
+  //       end: feature.end,
+  //     })
+  //     if (!featSeqOrig) {
+  //       const errMsg = 'ERROR - No feature sequence was found!'
+  //       this.logger.error(errMsg)
+  //       throw new NotFoundException(errMsg)
+  //     }
+  //     let featSeq: string
+  //     // eslint-disable-next-line unicorn/prefer-ternary
+  //     if (feature.strand === -1) {
+  //       // If negative strand then reverse sequence
+  //       // eslint-disable-next-line unicorn/prefer-spread
+  //       featSeq = featSeqOrig.split('').reverse().join('')
+  //     } else {
+  //       featSeq = featSeqOrig
+  //     }
+  //     combinedSequence.push(featSeq)
+
+  //     // Check if new CDS overlaps in previous CDSs
+  //     const isOverlapFound = this.isOverlap(
+  //       feature.start,
+  //       feature.end,
+  //       cdsRangesArray,
+  //     )
+
+  //     if (isOverlapFound) {
+  //       const errMsg = `CDS (start: ${feature.start}, end: ${feature.end}) overlaps with other CDS.`
+  //       this.logger.error(`ERROR - ${errMsg}`)
+  //       await this.checkReportModel.create([
+  //         {
+  //           checkName: 'StopCodonCheckReport',
+  //           ids: [feature._id],
+  //           pass: false,
+  //           ignored: '',
+  //           problems: errMsg,
+  //         },
+  //       ])
+  //     } else {
+  //       cdsRangesArray.push({ start: feature.start, end: feature.end })
+  //     }
+  //     // /*
+  //     const startBase = featSeq.slice(0, 3).toUpperCase()
+  //     if (startBase !== 'ATG' && startBase !== 'GTG' && startBase !== 'TTG') {
+  //       const errMsg = `Found suspicious start codon "${startBase}" in the beginning of the CDS sequence.`
+  //       this.logger.error(`ERROR - ${errMsg}`)
+  //       await this.checkReportModel.create([
+  //         {
+  //           checkName: 'StopCodonCheckReport',
+  //           ids: [feature._id],
+  //           pass: false,
+  //           ignored: '',
+  //           problems: errMsg,
+  //         },
+  //       ])
+  //     }
+  //     if (featSeq.length % 3 !== 0) {
+  //       const errMsg = `Feature sequence was not divisible by 3 (sequence lenght is ${featSeq.length})`
+  //       this.logger.error(`ERROR - ${errMsg}`)
+  //       await this.checkReportModel.create([
+  //         {
+  //           checkName: 'StopCodonCheckReport',
+  //           ids: [feature._id],
+  //           pass: false,
+  //           ignored: '',
+  //           problems: 'Feature sequence was not divisible by 3!',
+  //         },
+  //       ])
+  //     }
+  //     if (featSeq.length % 3 !== 0 && featSeq.length >= 3) {
+  //       const lastBase = featSeq.slice(-3).toUpperCase()
+  //       if (lastBase !== 'TAA' && lastBase !== 'TAG' && lastBase !== 'TGA') {
+  //         const errMsg = `CDS last base "${lastBase}" is not any not stop codons (TAA, TAG or TGA).`
+  //         this.logger.error(`ERROR - ${errMsg}`)
+  //         await this.checkReportModel.create([
+  //           {
+  //             checkName: 'StopCodonCheckReport',
+  //             ids: [feature._id],
+  //             pass: false,
+  //             ignored: '',
+  //             problems: errMsg,
+  //           },
+  //         ])
+  //       } else {
+  //         const errMsg =
+  //           'ERROR - Feature sequence is less than 3 characters long!'
+  //         this.logger.error(errMsg)
+  //         throw new NotFoundException(errMsg)
+  //       }
+  //     }
+  //     const threeBasesArray = this.splitStringIntoChunks(featSeq, 3)
+  //     // Loop all bases except the last one
+  //     for (let i = 0; i < threeBasesArray.length - 1; i++) {
+  //       const currentItem = threeBasesArray[i].toUpperCase()
+  //       if (
+  //         currentItem === 'TAA' ||
+  //         currentItem === 'TAG' ||
+  //         currentItem === 'TGA'
+  //       ) {
+  //         const errMsg = `Found suspicious stop codon "${currentItem}" inside CDS (base number ${
+  //           i + 1
+  //         }).`
+  //         this.logger.error(`ERROR - ${errMsg}`)
+  //         await this.checkReportModel.create([
+  //           {
+  //             checkName: 'StopCodonCheckReport',
+  //             ids: [feature._id],
+  //             pass: false,
+  //             ignored: '',
+  //             problems: errMsg,
+  //           },
+  //         ])
+  //       }
+  //     }
+  //     //*/
+  //   }
+
+  //   // Iterate through children
+  //   if (feature.children) {
+  //     for (const [, child] of feature.children) {
+  //   console.log('LAPSISSA',combinedSequence)
+
+  //       await this.checkCodon(featureDoc, child, cdsRangesArray, combinedSequence)
+  //     }
+  //   }
+  // }
 
   splitStringIntoChunks(inputString: string, chunkSize: number): string[] {
     const result: string[] = []
