@@ -32,18 +32,14 @@ Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
   cy.get('button').contains('Submit').click()
   cy.wait('@changes').its('response.statusCode').should('match', /2../)
 
-  cy.get('body').then((el) => {
-    // Not sure if this is needed. Wait for the "Assembly ..." message to disappear
-    let i = 0
-    while (i < 20) {
-      if (el.text().includes(`Assembly "${assemblyName}" is being added`)) {
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
-        cy.wait(1000)
-        break
-      }
-      i++
-    }
-  })
+  cy.contains('UploadAssemblyFile')
+    .parent()
+    .should('contain', 'All operations successful')
+  cy.contains('AddAssemblyAndFeaturesFromFileChange')
+    .parent()
+    .should('contain', 'All operations successful')
+  // eslint-disable-next-line cypress/no-unnecessary-waiting
+  cy.wait(1000)
 
   cy.reload()
   cy.contains('Select assembly to view', { timeout: 10_000 })
@@ -57,7 +53,7 @@ Cypress.Commands.add('selectAssemblyToView', (assemblyName) => {
     .then((el) => {
       if (el.text().includes(assemblyName) === false) {
         cy.get('input[data-testid="assembly-selector"]').parent().click()
-        cy.contains(assemblyName).parent().click()
+        cy.get('li').contains(assemblyName).click()
       }
     })
   cy.intercept('POST', '/users/userLocation').as('selectAssemblyToViewDone')
@@ -155,9 +151,11 @@ Cypress.Commands.add(
       })
 
     cy.contains('button', 'Submit').click()
-    cy.contains('Features are being added').should('exist')
-    cy.contains('Features are being added', { timeout: 20_000 }).should(
-      'not.exist',
-    )
+    cy.contains('Importing features for')
+      .parent()
+      .should('contain', 'All operations successful')
+    cy.contains('AddFeaturesFromFileChange')
+      .parent()
+      .should('contain', 'All operations successful')
   },
 )

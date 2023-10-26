@@ -115,5 +115,3 @@ export const ApolloJobModel = types
       }
     },
   }))
-
-export { types as JobsManager } from 'mobx-state-tree'
