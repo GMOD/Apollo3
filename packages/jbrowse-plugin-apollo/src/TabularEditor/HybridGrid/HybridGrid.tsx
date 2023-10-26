@@ -71,7 +71,7 @@ const HybridGrid = observer(function HybridGrid({
         }
       }
     }
-  }, [selectedFeature, seenFeatures, classes.selectedFeature])
+}, [selectedFeature, seenFeatures, classes.selectedFeature])
 
   return (
     <div
@@ -106,6 +106,11 @@ const HybridGrid = observer(function HybridGrid({
             .map(([featureId, feature]) => {
               const isSelected = selectedFeature?._id === featureId
               const isHovered = apolloHover?.feature?._id === featureId
+              // Set zero-based coordination
+              // const newEnd = feature.end+1
+              // feature.setEnd(newEnd)
+              const newStart = feature.start+1
+              feature.setStart(newStart) 
               return (
                 <Feature
                   key={featureId}

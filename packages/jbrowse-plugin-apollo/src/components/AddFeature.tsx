@@ -169,7 +169,8 @@ export function AddFeature({
             type="number"
             fullWidth
             variant="outlined"
-            value={start}
+            value={Number(start)+1}
+            // value={start}
             onChange={(e) => setStart(e.target.value)}
           />
           <TextField
