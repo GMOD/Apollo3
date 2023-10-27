@@ -1,13 +1,6 @@
 import { Module } from '@nestjs/common'
-import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
-import {
-  CheckReport,
-  CheckReportSchema,
-  Feature,
-  FeatureSchema,
-} from 'apollo-schemas'
-import { Connection } from 'mongoose'
-import idValidator from 'mongoose-id-validator'
+import { MongooseModule } from '@nestjs/mongoose'
+import { CheckReport, CheckReportSchema } from 'apollo-schemas'
 
 import { ChecksService } from './checks.service'
 
@@ -16,22 +9,6 @@ import { ChecksService } from './checks.service'
   imports: [
     MongooseModule.forFeature([
       { name: CheckReport.name, schema: CheckReportSchema },
-    ]),
-    MongooseModule.forFeatureAsync([
-      {
-        name: Feature.name,
-        useFactory: (connection: Connection, checksService: ChecksService) => {
-          FeatureSchema.plugin(idValidator, { connection })
-          FeatureSchema.post('save', async (doc) => {
-            if (doc.allIds.length > 0) {
-              await checksService.checkFeature(doc)
-            }
-          })
-          return FeatureSchema
-        },
-        imports: [ChecksModule],
-        inject: [getConnectionToken(), ChecksService],
-      },
     ]),
   ],
   exports: [ChecksService],
