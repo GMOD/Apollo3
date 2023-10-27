@@ -190,12 +190,11 @@ export function ManageUsers({
         ) : null}
         <div style={{ height: '100%', width: '100%' }}>
           <DataGrid
-            autoPageSize
             pagination
             rows={users}
             columns={gridColumns}
             getRowId={(row) => row._id}
-            components={{ Toolbar: GridToolbar }}
+            slots={{ toolbar: GridToolbar }}
             getRowHeight={() => 'auto'}
             isCellEditable={(params: GridCellParams) =>
               !isCurrentUser(params.id)
