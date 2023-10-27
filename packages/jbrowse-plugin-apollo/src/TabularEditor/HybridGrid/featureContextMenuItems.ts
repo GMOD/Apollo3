@@ -4,7 +4,7 @@ import { AnnotationFeatureI } from 'apollo-mst'
 
 import { ChangeManager } from '../../ChangeManager'
 import {
-  AddFeature,
+  AddChildFeature,
   CopyFeature,
   DeleteFeature,
   ModifyFeatureAttribute,
@@ -37,7 +37,7 @@ export function featureContextMenuItems(
         onClick: () => {
           ;(session as unknown as AbstractSessionModel).queueDialog(
             (doneCallback) => [
-              AddFeature,
+              AddChildFeature,
               {
                 session,
                 handleClose: () => {

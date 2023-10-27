@@ -5,6 +5,7 @@ import {
   SnapshotOrInstance,
   cast,
   getParentOfType,
+  getSnapshot,
   types,
 } from 'mobx-state-tree'
 
@@ -143,10 +144,19 @@ export const AnnotationFeature = types
       self.strand = strand
     },
     addChild(childFeature: AnnotationFeatureSnapshot) {
-      if (!self.children) {
+      if (self.children && self.children.size > 0) {
+        const existingChildren = getSnapshot(self.children) ?? {}
+        self.children.clear()
+        for (const [, child] of Object.entries({
+          ...existingChildren,
+          [childFeature._id]: childFeature,
+        }).sort(([, a], [, b]) => a.start - b.start)) {
+          self.children.put(child)
+        }
+      } else {
         self.children = cast({})
+        self.children?.put(childFeature)
       }
-      self.children?.put(childFeature)
     },
     deleteChild(childFeatureId: string) {
       self.children?.delete(childFeatureId)

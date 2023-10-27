@@ -1,5 +1,5 @@
 export * from './AddAssembly'
-export * from './AddFeature'
+export * from './AddChildFeature'
 export * from './CopyFeature'
 export * from './DeleteAssembly'
 export * from './DeleteFeature'

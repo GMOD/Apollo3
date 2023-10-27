@@ -151,6 +151,12 @@ export class AddFeatureChange extends FeatureChange {
             // @ts-expect-error
             _id,
           })
+          // Child features should be sorted for click and drag of gene glyphs to work properly
+          parentFeature.children = new Map(
+            [...parentFeature.children.entries()].sort(
+              (a, b) => a[1].start - b[1].start,
+            ),
+          )
           const childIds = this.getChildFeatureIds(addedFeature)
           topLevelFeature.allIds.push(_id, ...childIds)
           await topLevelFeature.save()
@@ -158,7 +164,7 @@ export class AddFeatureChange extends FeatureChange {
           const childIds = this.getChildFeatureIds(addedFeature)
           const allIdsV2 = [_id, ...childIds]
           const [newFeatureDoc] = await featureModel.create(
-            [{ allIds: allIdsV2, ...addedFeature }],
+            [{ allIds: allIdsV2, status: 0, ...addedFeature }],
             { session },
           )
           logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)

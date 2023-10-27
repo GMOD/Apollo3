@@ -9,7 +9,7 @@ import { getRoot, getSnapshot } from 'mobx-state-tree'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
-import { AddFeature } from '../../components/AddFeature'
+import { AddChildFeature } from '../../components/AddChildFeature'
 import { CopyFeature } from '../../components/CopyFeature'
 import { DeleteFeature } from '../../components/DeleteFeature'
 import { Collaborator } from '../../session'
@@ -577,7 +577,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
             const currentAssemblyId = getAssemblyId(region.assemblyName)
             ;(session as unknown as AbstractSessionModel).queueDialog(
               (doneCallback) => [
-                AddFeature,
+                AddChildFeature,
                 {
                   session,
                   handleClose: () => {
