@@ -170,7 +170,6 @@ export function AddFeature({
             fullWidth
             variant="outlined"
             value={Number(start)+1}
-            // value={start}
             onChange={(e) => setStart(e.target.value)}
           />
           <TextField
