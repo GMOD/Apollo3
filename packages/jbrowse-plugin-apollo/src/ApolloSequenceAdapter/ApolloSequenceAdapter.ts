@@ -11,10 +11,9 @@ import { nanoid } from 'nanoid'
 import { BackendDriver } from '../BackendDrivers'
 import { ApolloSessionModel } from '../session'
 
-declare global {
-  // eslint-disable-next-line no-var
-  var rpcServer: import('librpc-web-mod').RpcServer
-}
+// declare global {
+//   var rpcServer: import('librpc-web-mod').RpcServer
+// }
 
 export interface RefSeq {
   _id: string
@@ -102,6 +101,7 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
           resolve(data.regions)
         }
         addEventListener('message', messageListener, { signal })
+        // @ts-expect-error waiting for types to be published
         globalThis.rpcServer.emit('apollo', {
           apollo: true,
           method: 'getRegions',
@@ -131,6 +131,7 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
         )?.apolloDataStore
         if (!dataStore) {
           observer.error('No Apollo data store found')
+          return
         }
         const backendDriver = dataStore.getBackendDriver(
           assemblyName,
@@ -167,6 +168,7 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
             resolve(data.sequence)
           }
           addEventListener('message', messageListener, { signal })
+          // @ts-expect-error waiting for types to be published
           globalThis.rpcServer.emit('apollo', {
             apollo: true,
             method: 'getSequence',

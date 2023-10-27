@@ -10,7 +10,6 @@ import {
 } from '@jbrowse/core/pluggableElementTypes'
 import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { WorkerHandle } from '@jbrowse/core/rpc/BaseRpcDriver'
 import {
   AbstractSessionModel,
   Region,
@@ -56,6 +55,11 @@ import {
   stateModelFactory as SixFrameFeatureDisplayStateModelFactory,
   configSchemaFactory as sixFrameFeatureDisplayConfigSchemaFactory,
 } from './SixFrameFeatureDisplay'
+
+interface RpcHandle {
+  on(event: string, listener: (event: MessageEvent) => void): this
+  workers: Worker[]
+}
 
 interface ApolloMessageData {
   apollo: true
@@ -224,11 +228,11 @@ export default class ApolloPlugin extends Plugin {
     if (!inWebWorker) {
       pluginManager.addToExtensionPoint(
         'Core-extendWorker',
-        (handle: WorkerHandle) => {
+        (handle: RpcHandle) => {
           if (!('on' in handle && handle.on)) {
             return handle
           }
-          ;(handle as any).on('apollo', async (event: MessageEvent) => {
+          handle.on('apollo', async (event: MessageEvent) => {
             if (!isApolloMessageData(event)) {
               return
             }
@@ -250,7 +254,7 @@ export default class ApolloPlugin extends Plugin {
                 ) as BackendDriver
                 const { seq: sequence } =
                   await backendDriver.getSequence(region)
-                ;(handle as any).workers[0].postMessage({
+                handle.workers[0].postMessage({
                   apollo,
                   messageId,
                   sequence,
@@ -271,7 +275,7 @@ export default class ApolloPlugin extends Plugin {
                   assembly,
                 ) as BackendDriver
                 const regions = await backendDriver.getRegions(assembly)
-                ;(handle as any).workers[0].postMessage({
+                handle.workers[0].postMessage({
                   apollo,
                   messageId,
                   regions,
