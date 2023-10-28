@@ -47,7 +47,12 @@ describe('ApolloSequenceAdapter', () => {
   it('can get features', async () => {
     fetchMock.mockResponseOnce('GCGTGCAACAGACTTTCCATGATGCGAGCT')
     const features = adapter.getFeatures(
-      { refName: 'ctgA', start: 0, end: 30 },
+      {
+        assemblyName: '6317d5436061de774b43e9d6',
+        refName: 'ctgA',
+        start: 0,
+        end: 30,
+      },
       {},
     )
     const featuresArray = await features.pipe(toArray()).toPromise()
