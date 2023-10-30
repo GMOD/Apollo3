@@ -11344,6 +11344,7 @@ __metadata:
     jest: ^29.6.2
     jest-fetch-mock: ^3.0.3
     jsonpath: ^1.1.1
+    librpc-web-mod: ^1.1.9
     mobx: ^6.6.1
     mobx-react: ^7.2.1
     mobx-state-tree: ^5.1.7
@@ -12386,7 +12387,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"librpc-web-mod@npm:^1.1.5":
+"librpc-web-mod@npm:^1.1.5, librpc-web-mod@npm:^1.1.9":
   version: 1.1.9
   resolution: "librpc-web-mod@npm:1.1.9"
   dependencies:

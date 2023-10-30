@@ -13,7 +13,7 @@ export abstract class BackendDriver {
 
   abstract getSequence(region: Region): Promise<{ seq: string; refSeq: string }>
 
-  abstract getRefSeqs(): Promise<string[]>
+  abstract getRegions(assemblyName: string): Promise<Region[]>
 
   abstract getAssemblies(internetAccountConfigId?: string): Assembly[]
 

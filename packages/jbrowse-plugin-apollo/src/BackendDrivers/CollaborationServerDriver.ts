@@ -201,9 +201,41 @@ export class CollaborationServerDriver extends BackendDriver {
     return { seq: await response.text(), refSeq }
   }
 
-  async getRefSeqs() {
-    throw new Error('getRefSeqs not yet implemented')
-    return []
+  async getRegions(assemblyName: string): Promise<Region[]> {
+    const { assemblyManager } = getSession(this.clientStore)
+    const assembly = assemblyManager.get(assemblyName)
+    if (!assembly) {
+      throw new Error(`Could not find assembly with name "${assemblyName}"`)
+    }
+    const internetAccount = this.clientStore.getInternetAccount(
+      assemblyName,
+    ) as ApolloInternetAccount
+    const { baseURL } = internetAccount
+    const url = new URL('refSeqs', baseURL)
+    const searchParams = new URLSearchParams({ assembly: assemblyName })
+    url.search = searchParams.toString()
+    const uri = url.toString()
+
+    const response = await this.fetch(internetAccount, uri)
+    if (!response.ok) {
+      let errorMessage
+      try {
+        errorMessage = await response.text()
+      } catch {
+        errorMessage = ''
+      }
+      throw new Error(
+        `getRegions failed: ${response.status} (${response.statusText})${
+          errorMessage ? ` (${errorMessage})` : ''
+        }`,
+      )
+    }
+    const refSeqs = await response.json()
+    return refSeqs.map((refSeq: { name: string; length: number }) => ({
+      refName: refSeq.name,
+      start: 0,
+      end: refSeq.length,
+    }))
   }
 
   getAssemblies(internetAccountId?: string) {
