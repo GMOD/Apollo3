@@ -43,17 +43,6 @@ const isInWebWorker = typeof sessionStorage === 'undefined'
 export class ApolloSequenceAdapter extends BaseSequenceAdapter {
   private regions: NoAssemblyRegion[] | undefined
 
-  get baseURL(): string {
-    return readConfObject(this.config, 'baseURL').uri
-  }
-
-  get internetAccountPreAuthorization():
-    | { authInfo: { token: string }; internetAccountType: string }
-    | undefined {
-    return readConfObject(this.config, 'baseURL')
-      .internetAccountPreAuthorization
-  }
-
   public async getRefNames(opts: BaseOptions) {
     const regions = await this.getRegions(opts)
     return regions.map((regions) => regions.refName)

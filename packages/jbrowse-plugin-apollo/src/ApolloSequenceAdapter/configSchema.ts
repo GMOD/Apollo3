@@ -7,13 +7,6 @@ export default ConfigurationSchema(
       type: 'string',
       defaultValue: '',
     },
-    baseURL: {
-      type: 'fileLocation',
-      defaultValue: {
-        uri: '',
-        locationType: 'UriLocation',
-      },
-    },
   },
   { explicitlyTyped: true },
 )
