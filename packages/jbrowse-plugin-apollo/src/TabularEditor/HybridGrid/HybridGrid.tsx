@@ -71,7 +71,7 @@ const HybridGrid = observer(function HybridGrid({
         }
       }
     }
-}, [selectedFeature, seenFeatures, classes.selectedFeature])
+  }, [selectedFeature, seenFeatures, classes.selectedFeature])
 
   return (
     <div

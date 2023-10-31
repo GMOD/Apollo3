@@ -42,7 +42,7 @@ export function AddFeature({
 }: AddFeatureProps) {
   const { notify } = session as unknown as AbstractSessionModel
   const [end, setEnd] = useState(String(region.end))
-  const [start, setStart] = useState(String(region.start))
+  const [start, setStart] = useState(String(region.start + 1))
   const [type, setType] = useState('')
   const [phase, setPhase] = useState('')
   const [strand, setStrand] = useState<1 | -1 | undefined>()
@@ -83,7 +83,7 @@ export function AddFeature({
         _id: id,
         gffId: '',
         refSeq: refSeqId,
-        start: Number(start),
+        start: Number(start) - 1,
         end: Number(end),
         type,
         phase: phaseAsNumber,
@@ -169,7 +169,7 @@ export function AddFeature({
             type="number"
             fullWidth
             variant="outlined"
-            value={Number(start)+1}
+            value={Number(start)}
             onChange={(e) => setStart(e.target.value)}
           />
           <TextField

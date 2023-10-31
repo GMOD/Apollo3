@@ -225,7 +225,7 @@ export const Feature = observer(function Feature({
               {discontinuousLocations.map((loc, index) => (
                 <NumberCell
                   key={`${_id}:${loc.start},${loc.phase}`}
-                  initialValue={loc.start}
+                  initialValue={loc.start + 1}
                   notifyError={notifyError}
                   onChangeCommitted={(newStart) =>
                     handleFeatureStartChange(
@@ -241,7 +241,7 @@ export const Feature = observer(function Feature({
             </div>
           ) : (
             <NumberCell
-              initialValue={start}
+              initialValue={start + 1}
               notifyError={notifyError}
               onChangeCommitted={(newStart) =>
                 handleFeatureStartChange(

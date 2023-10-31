@@ -1,3 +1,4 @@
 dist/
 .eslintrc.js
 esm/
+coverage/
