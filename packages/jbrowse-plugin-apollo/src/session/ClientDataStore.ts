@@ -8,6 +8,7 @@ import {
   AnnotationFeatureSnapshot,
   ApolloAssembly,
   ApolloRefSeq,
+  CheckResult,
 } from 'apollo-mst'
 import {
   Instance,
@@ -42,6 +43,7 @@ export function clientDataStoreFactory(
     .model('ClientDataStore', {
       typeName: types.optional(types.literal('Client'), 'Client'),
       assemblies: types.map(ApolloAssembly),
+      checkResults: types.map(CheckResult),
     })
     .views((self) => ({
       get internetAccounts() {
