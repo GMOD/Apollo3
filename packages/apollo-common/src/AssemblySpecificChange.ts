@@ -286,7 +286,7 @@ function createFeature(
     gffId: '',
     refSeq,
     type,
-    start,
+    start: start - 1,
     end,
   }
   if (gff3Feature.length > 1) {
@@ -329,7 +329,7 @@ function createFeature(
           }
         }
       }
-      return { start: subStart, end: subEnd, phase: parsedPhase }
+      return { start: subStart - 1, end: subEnd, phase: parsedPhase }
     })
   }
   if (strand) {

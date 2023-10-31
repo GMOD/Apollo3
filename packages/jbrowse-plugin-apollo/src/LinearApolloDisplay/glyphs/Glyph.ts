@@ -135,24 +135,26 @@ export abstract class Glyph {
       if (!lastLoc) {
         return
       }
-      start = lastLoc?.start
-      end = lastLoc?.end
-      length = lastLoc?.end - lastLoc?.start
+      ;({ start } = lastLoc)
+      ;({ end } = lastLoc)
+      length = lastLoc.end - lastLoc.start
 
       if (discontinuousLocations.length <= 2) {
         for (const [i, loc] of discontinuousLocations.entries()) {
-          location += `${loc.start.toString()}-${loc.end.toString()}`
+          location += `${loc.start + 1}–${loc.end}`
           if (i !== discontinuousLocations.length - 1) {
             location += ','
           }
         }
       } else {
         const [firstLoc] = discontinuousLocations
-        location += `${firstLoc.start}-${firstLoc.end},..,${start}-${end}`
+        location += `${firstLoc.start + 1}–${firstLoc.end},…,${
+          lastLoc.start + 1
+        }–${lastLoc.end}`
       }
     } else {
       ;({ end, length, start } = feature)
-      location += `${start.toString()}-${end.toString()}`
+      location += `${start + 1}–${end}`
     }
 
     let startPx =

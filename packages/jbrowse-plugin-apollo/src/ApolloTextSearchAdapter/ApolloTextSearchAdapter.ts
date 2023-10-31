@@ -35,7 +35,9 @@ export class ApolloTextSearchAdapter
         new BaseResult({
           label: query,
           trackId: this.trackId,
-          locString: `${feature.refSeq?.name}:${feature.start}..${feature.end}`,
+          locString: `${feature.refSeq?.name}:${feature.start + 1}..${
+            feature.end
+          }`,
         }),
     )
   }

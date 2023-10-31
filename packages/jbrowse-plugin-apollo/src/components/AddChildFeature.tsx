@@ -46,7 +46,7 @@ export function AddChildFeature({
 }: AddChildFeatureProps) {
   const { notify } = session as unknown as AbstractSessionModel
   const [end, setEnd] = useState(String(sourceFeature.end))
-  const [start, setStart] = useState(String(sourceFeature.start))
+  const [start, setStart] = useState(String(sourceFeature.start + 1))
   const [type, setType] = useState('')
   const [phase, setPhase] = useState('')
   const [phaseAsNumber, setPhaseAsNumber] = useState<PhaseEnum>()
@@ -102,7 +102,7 @@ export function AddChildFeature({
         _id: new ObjectID().toHexString(),
         gffId: '',
         refSeq: sourceFeature.refSeq,
-        start: Number(start),
+        start: Number(start) - 1,
         end: Number(end),
         type,
         phase: phaseAsNumber,
