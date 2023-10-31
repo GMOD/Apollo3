@@ -117,7 +117,11 @@ export class DiscontinuousLocationStartChange extends FeatureChange {
       }
 
       try {
-        topLevelFeature.markModified('children')
+        if (topLevelFeature._id.equals(feature._id)) {
+          topLevelFeature.markModified('discontinuousLocations')
+        } else {
+          topLevelFeature.markModified('children')
+        }
         await topLevelFeature.save()
       } catch (error) {
         logger.debug?.(`*** FAILED: ${error}`)
