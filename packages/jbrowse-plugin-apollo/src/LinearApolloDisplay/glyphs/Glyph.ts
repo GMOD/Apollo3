@@ -147,7 +147,8 @@ export abstract class Glyph {
           }
         }
       } else {
-        location += `${feature.start}-${feature.end},..,${start}-${end}`
+        const [firstLoc] = discontinuousLocations
+        location += `${firstLoc.start}-${firstLoc.end},..,${start}-${end}`
       }
     } else {
       ;({ end, length, start } = feature)

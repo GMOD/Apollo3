@@ -117,7 +117,7 @@ export class DiscontinuousLocationEndChange extends FeatureChange {
       }
 
       try {
-        topLevelFeature.markModified('discontinuousLocations')
+        topLevelFeature.markModified('children')
         await topLevelFeature.save()
       } catch (error) {
         logger.debug?.(`*** FAILED: ${error}`)
