@@ -3,24 +3,25 @@ import { Region, getSession } from '@jbrowse/core/util'
 import { AssemblySpecificChange, Change } from 'apollo-common'
 import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
 import { ValidationResultSet } from 'apollo-shared'
+import { Check } from 'apollo-shared/src/Checks/Checks'
 
 import { SubmitOpts } from '../ChangeManager'
 import { BackendDriver } from './BackendDriver'
 
-import { Check } from 'apollo-shared/src/Checks/Checks'
-
 export class InMemoryFileDriver extends BackendDriver implements Check {
-  async checkFeature(feature: AnnotationFeatureSnapshot): Promise<CheckResultSnapshot> {
+  async checkFeature(
+    feature: AnnotationFeatureSnapshot,
+  ): Promise<CheckResultSnapshot> {
     const { _id, end, refSeq, start } = feature
     const id = _id.toString()
     return {
-        _id: `${id}-fake`,
-        name: 'FakeInMemoryCheckResult',
-        ids: [id],
-        refSeq: refSeq.toString(),
-        start,
-        end,
-        message: `This is a fake result for feature ${id}`,
+      _id: `${id}-fake`,
+      name: 'FakeInMemoryCheckResult',
+      ids: [id],
+      refSeq: refSeq.toString(),
+      start,
+      end,
+      message: `This is a fake result for feature ${id}`,
     }
   }
 

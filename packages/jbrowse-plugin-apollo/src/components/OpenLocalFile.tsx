@@ -103,7 +103,7 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
       if (Array.isArray(seqLine)) {
         // regular feature
         const feature = createFeature(seqLine)
-        
+
         const inMemoryFileDriver = new InMemoryFileDriver(apolloDataStore)
         const checkResult = await inMemoryFileDriver.checkFeature(feature)
         if (checkResult) {
