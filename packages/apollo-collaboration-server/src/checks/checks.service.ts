@@ -7,14 +7,16 @@ export class ChecksService {
   private readonly logger = new Logger(ChecksService.name)
 
   async checkFeature(doc: FeatureDocument): Promise<CheckResultSnapshot[]> {
-    const { _id, end, start } = doc
+    const { _id, end, refSeq, start } = doc
     const id = _id.toString()
     return [
       {
-        id: `${id}-fake`,
+        _id: `${id}-fake`,
         name: 'FakeCheckResult',
         ids: [id],
-        location: { start, end },
+        refSeq: refSeq.toString(),
+        start,
+        end,
         message: `This is a fake result for feature ${id}`,
       },
     ]

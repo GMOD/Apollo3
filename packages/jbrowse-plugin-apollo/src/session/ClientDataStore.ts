@@ -102,7 +102,7 @@ export function clientDataStoreFactory(
       },
       addCheckResults(checkResults: CheckResultSnapshot[]) {
         for (const checkResult of checkResults) {
-          if (!self.checkResults.has(checkResult.id)) {
+          if (!self.checkResults.has(checkResult._id)) {
             self.checkResults.put(checkResult)
           }
         }
