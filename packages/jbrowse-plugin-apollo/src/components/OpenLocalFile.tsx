@@ -10,7 +10,7 @@ import {
   TextField,
   useTheme,
 } from '@mui/material'
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
+import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
 import { nanoid } from 'nanoid'
 import React, { useState } from 'react'
 
@@ -97,10 +97,19 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
     if (!assembly) {
       assembly = apolloDataStore.addAssembly(assemblyId)
     }
+
+    const checkResults: CheckResultSnapshot[] = []
     for (const seqLine of featuresAndSequences) {
       if (Array.isArray(seqLine)) {
         // regular feature
         const feature = createFeature(seqLine)
+        
+        const inMemoryFileDriver = new InMemoryFileDriver(apolloDataStore)
+        const checkResult = await inMemoryFileDriver.checkFeature(feature)
+        if (checkResult) {
+          checkResults.push(checkResult)
+        }
+
         let ref = assembly.refSeqs.get(feature.refSeq)
         if (!ref) {
           ref = assembly.addRefSeq(feature.refSeq, feature.refSeq)
@@ -122,6 +131,8 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
         })
       }
     }
+    apolloDataStore.addCheckResults(checkResults)
+
     if (sequenceFeatureCount === 0) {
       setErrorMessage('No embedded FASTA section found in GFF3')
       setSubmitted(false)
