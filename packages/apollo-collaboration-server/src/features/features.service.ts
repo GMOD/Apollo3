@@ -9,6 +9,7 @@ import {
 import { GetFeaturesOperation } from 'apollo-shared'
 import { Model } from 'mongoose'
 
+import { ChecksService } from '../checks/checks.service'
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { OperationsService } from '../operations/operations.service'
 import { FeatureCountRequest } from './dto/feature.dto'
@@ -17,6 +18,7 @@ import { FeatureCountRequest } from './dto/feature.dto'
 export class FeaturesService {
   constructor(
     private readonly operationsService: OperationsService,
+    private readonly checksService: ChecksService,
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
     @InjectModel(RefSeq.name)
@@ -123,12 +125,20 @@ export class FeaturesService {
   }
 
   async findByRange(searchDto: FeatureRangeSearchDto) {
-    return this.operationsService.executeOperation<GetFeaturesOperation>({
-      typeName: 'GetFeaturesOperation',
-      refSeq: searchDto.refSeq,
-      start: searchDto.start,
-      end: searchDto.end,
-    })
+    const featureDocs =
+      await this.operationsService.executeOperation<GetFeaturesOperation>({
+        typeName: 'GetFeaturesOperation',
+        refSeq: searchDto.refSeq,
+        start: searchDto.start,
+        end: searchDto.end,
+      })
+    const checkResults = await Promise.all(
+      featureDocs.map(async (featureDoc) =>
+        this.checksService.checkFeature(featureDoc),
+      ),
+    )
+    const checkResultsFlat = checkResults.flat()
+    return [featureDocs, checkResultsFlat]
   }
 
   async searchFeatures(searchDto: { term: string; assemblies: string }) {

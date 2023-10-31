@@ -5,7 +5,6 @@ import { Connection } from 'mongoose'
 import idValidator from 'mongoose-id-validator'
 
 import { ChecksModule } from '../checks/checks.module'
-import { ChecksService } from '../checks/checks.service'
 import { OperationsModule } from '../operations/operations.module'
 import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
@@ -16,21 +15,18 @@ import { FeaturesService } from './features.service'
   controllers: [FeaturesController],
   providers: [FeaturesService],
   imports: [
+    ChecksModule,
     forwardRef(() => OperationsModule),
     RefSeqChunksModule,
     RefSeqsModule,
     MongooseModule.forFeatureAsync([
       {
         name: Feature.name,
-        useFactory: (connection: Connection, checksService: ChecksService) => {
+        useFactory: (connection: Connection) => {
           FeatureSchema.plugin(idValidator, { connection })
-          FeatureSchema.post('save', async (doc) => {
-            await checksService.checkFeature(doc)
-          })
           return FeatureSchema
         },
-        imports: [ChecksModule],
-        inject: [getConnectionToken(), ChecksService],
+        inject: [getConnectionToken()],
       },
     ]),
   ],

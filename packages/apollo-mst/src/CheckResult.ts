@@ -1,4 +1,4 @@
-import { types } from 'mobx-state-tree'
+import { Instance, SnapshotIn, types } from 'mobx-state-tree'
 
 import { AnnotationFeature } from './AnnotationFeature'
 
@@ -10,3 +10,6 @@ export const CheckResult = types.model('CheckResult', {
   ignored: false,
   message: types.string,
 })
+
+export type CheckResultI = Instance<typeof CheckResult>
+export type CheckResultSnapshot = SnapshotIn<typeof CheckResult>

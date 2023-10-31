@@ -9,6 +9,7 @@ import {
   ApolloAssembly,
   ApolloRefSeq,
   CheckResult,
+  CheckResultSnapshot,
 } from 'apollo-mst'
 import {
   Instance,
@@ -95,6 +96,16 @@ export function clientDataStoreFactory(
       },
       deleteAssembly(assemblyId: string) {
         self.assemblies.delete(assemblyId)
+      },
+      addCheckResult(checkResult: CheckResultSnapshot) {
+        self.checkResults.put(checkResult)
+      },
+      addCheckResults(checkResults: CheckResultSnapshot[]) {
+        for (const checkResult of checkResults) {
+          if (!self.checkResults.has(checkResult.id)) {
+            self.checkResults.put(checkResult)
+          }
+        }
       },
     }))
     .volatile((self) => ({

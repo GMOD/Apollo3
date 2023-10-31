@@ -2,7 +2,7 @@ import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { Region, getSession } from '@jbrowse/core/util'
 import { AssemblySpecificChange, Change, SerializedChange } from 'apollo-common'
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
+import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
 import { ValidationResultSet } from 'apollo-shared'
 import { Socket } from 'socket.io-client'
 
@@ -97,7 +97,12 @@ export class CollaborationServerDriver extends BackendDriver {
       throw new Error(errorMessage)
     }
     await this.checkSocket(assemblyName, refName, internetAccount)
-    return response.json() as Promise<AnnotationFeatureSnapshot[]>
+    const [features, checkResults] = (await response.json()) as [
+      AnnotationFeatureSnapshot[],
+      CheckResultSnapshot[],
+    ]
+    this.clientStore.addCheckResults(checkResults)
+    return features
   }
 
   /**
