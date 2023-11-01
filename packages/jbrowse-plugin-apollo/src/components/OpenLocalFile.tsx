@@ -11,12 +11,31 @@ import {
   useTheme,
 } from '@mui/material'
 import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
+import { Check } from 'apollo-shared'
 import { nanoid } from 'nanoid'
 import React, { useState } from 'react'
 
 import { InMemoryFileDriver } from '../BackendDrivers'
 import { ApolloSessionModel } from '../session'
 import { Dialog } from './Dialog'
+
+class FakeCheck extends Check {
+  async checkFeature(
+    feature: AnnotationFeatureSnapshot,
+  ): Promise<CheckResultSnapshot> {
+    const { _id, end, refSeq, start } = feature
+    const id = _id.toString()
+    return {
+      _id: `${id}-fake`,
+      name: 'FakeInMemoryCheckResult',
+      ids: [id],
+      refSeq: refSeq.toString(),
+      start,
+      end,
+      message: `This is a fake result for feature ${id}`,
+    }
+  }
+}
 
 interface OpenLocalFileProps {
   session: ApolloSessionModel
@@ -104,8 +123,8 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
         // regular feature
         const feature = createFeature(seqLine)
 
-        const inMemoryFileDriver = new InMemoryFileDriver(apolloDataStore)
-        const checkResult = await inMemoryFileDriver.checkFeature(feature)
+        const fakeCheck = new FakeCheck()
+        const checkResult = await fakeCheck.checkFeature(feature)
         if (checkResult) {
           checkResults.push(checkResult)
         }
