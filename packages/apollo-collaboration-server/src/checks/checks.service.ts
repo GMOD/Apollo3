@@ -2,11 +2,10 @@ import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { CheckResultSnapshot } from 'apollo-mst'
 import {
-  CheckReport,
-  CheckReportDocument,
+  CheckResult,
+  CheckResultDocument,
   FeatureDocument,
 } from 'apollo-schemas'
-import { GetFeaturesOperation } from 'apollo-shared'
 import { Model } from 'mongoose'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
@@ -16,8 +15,8 @@ import { OperationsService } from '../operations/operations.service'
 export class ChecksService {
   constructor(
     private readonly operationsService: OperationsService,
-    @InjectModel(CheckReport.name)
-    private readonly checkReportModel: Model<CheckReportDocument>,
+    @InjectModel(CheckResult.name)
+    private readonly checkResultModel: Model<CheckResultDocument>,
   ) {}
 
   private readonly logger = new Logger(ChecksService.name)
@@ -39,33 +38,30 @@ export class ChecksService {
   }
 
   /**
-   * Get all possible checkReports for given featureId
+   * Get all possible checkResults for given featureId
    * @param id - featureId
-   * @returns - an array of checkReport -documents
+   * @returns - an array of checkResult -documents
    */
   async findByFeatureId(id: string) {
-    const checkReports = await this.checkReportModel.find({ ids: id }).exec()
-    return checkReports
+    return this.checkResultModel.find({ ids: id }).exec()
   }
 
   /**
-   * Get all possible checkReports for given range (refSeq, start, end)
+   * Get all possible checkResults for given range (refSeq, start, end)
    * @param searchDto - range
-   * @returns an array of checkReport -documents
+   * @returns an array of checkResult-documents
    */
   async findByRange(searchDto: FeatureRangeSearchDto) {
-    const featureDocs =
-      await this.operationsService.executeOperation<GetFeaturesOperation>({
-        typeName: 'GetFeaturesOperation',
-        refSeq: searchDto.refSeq,
-        start: searchDto.start,
-        end: searchDto.end,
+    const checkResults = await this.checkResultModel
+      .find({
+        $and: [
+          { start: searchDto.start },
+          { end: searchDto.end },
+          { refSeq: searchDto.refSeq },
+        ],
       })
-    const allIdsArray: string[] = featureDocs.flatMap((doc) => doc.allIds)
-    const checkReports = await this.checkReportModel
-      .find({ ids: { $in: allIdsArray } })
       .exec()
-    return checkReports
+    return checkResults
   }
   // async checkFeature(doc: FeatureDocument) {
   //   const featureModel = doc.$model<Model<FeatureDocument>>(Feature.name)

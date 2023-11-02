@@ -14,26 +14,26 @@ export class ChecksController {
   private readonly logger = new Logger(ChecksController.name)
 
   /**
-   * Get all possible checkReports for given range (refSeq, start, end)
+   * Get all possible checkResults for given range (refSeq, start, end)
    * @param searchDto - range
-   * @returns an array of checkReport -documents
+   * @returns an array of checkResult -documents
    */
   @Get('getFeatures')
   getFeatures(@Query() request: FeatureRangeSearchDto) {
     this.logger.debug(
-      `Get checkReports for refSeq: "${request.refSeq}", start: ${request.start}, end: ${request.end}`,
+      `Get checkResults for refSeq: "${request.refSeq}", start: ${request.start}, end: ${request.end}`,
     )
     return this.checksService.findByRange(request)
   }
 
   /**
-   * Get all possible checkReports for given featureId
+   * Get all possible checkResults for given featureId
    * @param id - featureId
-   * @returns - an array of checkReport -documents
+   * @returns - an array of checkResult -documents
    */
   @Get(':id')
   findByFeatureId(@Param('id') id: string) {
-    this.logger.debug(`Get checkReports for feature "${id}"`)
+    this.logger.debug(`Get checkResults for feature "${id}"`)
     return this.checksService.findByFeatureId(id)
   }
 }

@@ -1,6 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
-import { CheckReport, CheckReportSchema } from 'apollo-schemas'
+import { CheckResult, CheckResultSchema } from 'apollo-schemas'
 import idValidator from 'mongoose-id-validator'
 
 import { OperationsModule } from '../operations/operations.module'
@@ -13,10 +13,10 @@ import { ChecksService } from './checks.service'
     forwardRef(() => OperationsModule),
     MongooseModule.forFeatureAsync([
       {
-        name: CheckReport.name,
+        name: CheckResult.name,
         useFactory: (connection) => {
-          CheckReportSchema.plugin(idValidator, { connection })
-          return CheckReportSchema
+          CheckResultSchema.plugin(idValidator, { connection })
+          return CheckResultSchema
         },
         inject: [getConnectionToken()],
       },

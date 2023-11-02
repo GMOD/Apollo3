@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import type { CheckResultSnapshot } from 'apollo-mst'
 import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose'
 
-export type FeatureDocument = HydratedDocument<CheckResult>
+export type CheckResultDocument = HydratedDocument<CheckResult>
 
 @Schema()
 export class CheckResult
