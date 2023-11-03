@@ -6,7 +6,6 @@ import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { ChecksService } from './checks.service'
 
-@Validations(Role.ReadOnly)
 @Public()
 @Controller('checks')
 export class ChecksController {
@@ -18,6 +17,7 @@ export class ChecksController {
    * @param searchDto - range
    * @returns an array of checkResult -documents
    */
+  @Validations(Role.ReadOnly)
   @Get('getFeatures')
   getFeatures(@Query() request: FeatureRangeSearchDto) {
     this.logger.debug(
@@ -31,9 +31,14 @@ export class ChecksController {
    * @param id - featureId
    * @returns - an array of checkResult -documents
    */
-  @Get(':id')
+  // @Get(':id')
+  // findByFeatureId(@Param('id') id: string) {
+  //   this.logger.debug(`Get checkResults for feature "${id}"`)
+  //   return this.checksService.findByFeatureId(id)
+  // }
+  @Public()
+  @Get('check/:id')
   findByFeatureId(@Param('id') id: string) {
-    this.logger.debug(`Get checkResults for feature "${id}"`)
-    return this.checksService.findByFeatureId(id)
+    return this.checksService.checkFeature(id)
   }
 }

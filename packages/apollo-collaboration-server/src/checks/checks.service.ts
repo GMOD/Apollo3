@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { CheckResultSnapshot } from 'apollo-mst'
+import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
 import {
   CheckResult,
   CheckResultDocument,
@@ -10,6 +10,25 @@ import { Model } from 'mongoose'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { OperationsService } from '../operations/operations.service'
+import { Check } from 'apollo-shared'
+
+class FakeCheck extends Check {
+  async checkFeature(
+    feature: AnnotationFeatureSnapshot,
+  ): Promise<CheckResultSnapshot> {
+    const { _id, end, refSeq, start } = feature
+    const id = _id.toString()
+    return {
+      _id: `${id}-fake`,
+      name: 'FakeInMemoryCheckResult',
+      ids: [id],
+      refSeq: refSeq.toString(),
+      start,
+      end,
+      message: `This is a fake result for feature ${id}`,
+    }
+  }
+}
 
 @Injectable()
 export class ChecksService {
@@ -21,20 +40,17 @@ export class ChecksService {
 
   private readonly logger = new Logger(ChecksService.name)
 
-  async checkFeature(doc: FeatureDocument): Promise<CheckResultSnapshot[]> {
-    const { _id, end, refSeq, start } = doc
-    const id = _id.toString()
-    return [
-      {
-        _id: `${id}-fake`,
-        name: 'FakeCheckResult',
-        ids: [id],
-        refSeq: refSeq.toString(),
-        start,
-        end,
-        message: `This is a fake result for feature ${id}`,
-      },
-    ]
+  async checkFeature(doc: FeatureDocument): Promise<CheckResultSnapshot> {
+    const annotationFeatureSnapshot: AnnotationFeatureSnapshot = {
+      _id: doc.id,
+      gffId: doc.gffId,
+      refSeq: doc.refSeq.toString(),
+      type: doc.type,
+      start: doc.start,
+      end: doc.end,
+    }
+    const check: FakeCheck = new FakeCheck()
+    return check.checkFeature(annotationFeatureSnapshot)
   }
 
   /**
