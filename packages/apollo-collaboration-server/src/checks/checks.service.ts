@@ -68,16 +68,14 @@ export class ChecksService {
    * @returns an array of checkResult-documents
    */
   async findByRange(searchDto: FeatureRangeSearchDto) {
-    const checkResults = await this.checkResultModel
+    return this.checkResultModel
       .find({
-        $and: [
-          { start: searchDto.start },
-          { end: searchDto.end },
-          { refSeq: searchDto.refSeq },
-        ],
+        refSeq: searchDto.refSeq,
+        start: { $lte: searchDto.end },
+        end: { $gte: searchDto.start },
+        status: 0,
       })
       .exec()
-    return checkResults
   }
   // async checkFeature(doc: FeatureDocument) {
   //   const featureModel = doc.$model<Model<FeatureDocument>>(Feature.name)
