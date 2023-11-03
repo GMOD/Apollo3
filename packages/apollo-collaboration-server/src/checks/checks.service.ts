@@ -6,11 +6,11 @@ import {
   CheckResultDocument,
   FeatureDocument,
 } from 'apollo-schemas'
+import { Check } from 'apollo-shared'
 import { Model } from 'mongoose'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { OperationsService } from '../operations/operations.service'
-import { Check } from 'apollo-shared'
 
 class FakeCheck extends Check {
   async checkFeature(
@@ -41,16 +41,11 @@ export class ChecksService {
   private readonly logger = new Logger(ChecksService.name)
 
   async checkFeature(doc: FeatureDocument): Promise<CheckResultSnapshot> {
-    const annotationFeatureSnapshot: AnnotationFeatureSnapshot = {
-      _id: doc.id,
-      gffId: doc.gffId,
-      refSeq: doc.refSeq.toString(),
-      type: doc.type,
-      start: doc.start,
-      end: doc.end,
-    }
+    const flatDoc: AnnotationFeatureSnapshot = doc.toObject({
+      flattenMaps: true,
+    })
     const check: FakeCheck = new FakeCheck()
-    return check.checkFeature(annotationFeatureSnapshot)
+    return check.checkFeature(flatDoc)
   }
 
   /**

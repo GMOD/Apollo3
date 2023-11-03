@@ -18,7 +18,7 @@ export class ChecksController {
    * @returns an array of checkResult -documents
    */
   @Validations(Role.ReadOnly)
-  @Get('getFeatures')
+  @Get('range')
   getFeatures(@Query() request: FeatureRangeSearchDto) {
     this.logger.debug(
       `Get checkResults for refSeq: "${request.refSeq}", start: ${request.start}, end: ${request.end}`,
@@ -31,14 +31,9 @@ export class ChecksController {
    * @param id - featureId
    * @returns - an array of checkResult -documents
    */
-  // @Get(':id')
-  // findByFeatureId(@Param('id') id: string) {
-  //   this.logger.debug(`Get checkResults for feature "${id}"`)
-  //   return this.checksService.findByFeatureId(id)
-  // }
-  @Public()
-  @Get('check/:id')
+  @Get(':id')
   findByFeatureId(@Param('id') id: string) {
-    return this.checksService.checkFeature(id)
+    this.logger.debug(`Get checkResults for feature "${id}"`)
+    return this.checksService.findByFeatureId(id)
   }
 }

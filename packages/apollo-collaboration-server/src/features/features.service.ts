@@ -141,6 +141,14 @@ export class FeaturesService {
     return [featureDocs, checkResultsFlat]
   }
 
+  async checkFeature(featureId: string) {
+    const topLevelFeature = await this.featureModel.findById(featureId).exec()
+    if (!topLevelFeature) {
+      return
+    }
+    return this.checksService.checkFeature(topLevelFeature)
+  }
+
   async searchFeatures(searchDto: { term: string; assemblies: string }) {
     const { assemblies, term } = searchDto
     const assemblyIds = assemblies.split(',')

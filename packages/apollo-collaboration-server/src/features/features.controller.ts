@@ -63,6 +63,12 @@ export class FeaturesController {
     return this.featuresService.findById(featureid)
   }
 
+  @Public()
+  @Get('check/:featureid')
+  checkFeature(@Param('featureid') featureid: string) {
+    return this.featuresService.checkFeature(featureid)
+  }
+
   /**
    * Fetch all features
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
