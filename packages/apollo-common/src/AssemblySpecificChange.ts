@@ -69,7 +69,7 @@ export abstract class AssemblySpecificChange extends Change {
           continue
         }
         const refSeqInfoLine = /^>\s*(\S+)\s*(.*)/.exec(line)
-        // Add new ref sequence infor if we are reference seq info line
+        // Add new ref sequence info if we are reference seq info line
         if (refSeqInfoLine) {
           parsingStarted = true
           logger.debug?.(

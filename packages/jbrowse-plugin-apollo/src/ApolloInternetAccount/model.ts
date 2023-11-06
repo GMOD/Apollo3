@@ -154,7 +154,7 @@ const stateModelFactory = (
         const { changeManager } = (session as ApolloSessionModel)
           .apolloDataStore
         socket.on('COMMON', (message) => {
-          // Save server last change sequnece into session storage
+          // Save server last change sequence into session storage
           sessionStorage.setItem('LastChangeSequence', message.changeSequence)
           if (message.userToken === token) {
             return // we did this change, no need to apply it again
@@ -419,14 +419,14 @@ const stateModelFactory = (
       },
     }))
     .actions((self) => ({
-      initialize: flow(function* intitialize(role?: Role) {
+      initialize: flow(function* initialize(role?: Role) {
         if (!role) {
           return
         }
         if (role === 'admin') {
           self.addMenuItems(role)
         }
-        // Get and set server last change sequnece into session storage
+        // Get and set server last change sequence into session storage
         yield self.updateLastChangeSequenceNumber()
         // Open socket listeners
         self.addSocketListeners()

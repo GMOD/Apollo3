@@ -119,10 +119,10 @@ describe('OntologyStore', () => {
       { includeSubclasses: false },
     )
     // eslint-disable-next-line unicorn/no-array-callback-reference
-    const bcgiClas = bcgi.filter(isOntologyClass)
-    expect(bcgiClas.length).toBe(1)
-    expect(bcgiClas[0].lbl).toBe('BAC_cloned_genomic_insert')
-    const subpartTerms = await so.getClassesThat('part_of', bcgiClas)
+    const bcgiClass = bcgi.filter(isOntologyClass)
+    expect(bcgiClass.length).toBe(1)
+    expect(bcgiClass[0].lbl).toBe('BAC_cloned_genomic_insert')
+    const subpartTerms = await so.getClassesThat('part_of', bcgiClass)
     expect(subpartTerms.length).toBeGreaterThan(0)
     expect(subpartTerms.find((t) => t.lbl === 'clone_insert_end')).toBeTruthy()
     expect(subpartTerms).toMatchSnapshot()
