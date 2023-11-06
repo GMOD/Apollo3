@@ -6,8 +6,8 @@ import idValidator from 'mongoose-id-validator'
 
 import { ChecksModule } from '../checks/checks.module'
 import { OperationsModule } from '../operations/operations.module'
-import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
+import { SequenceModule } from '../sequence/sequence.module'
 import { FeaturesController } from './features.controller'
 import { FeaturesService } from './features.service'
 
@@ -17,8 +17,8 @@ import { FeaturesService } from './features.service'
   imports: [
     ChecksModule,
     forwardRef(() => OperationsModule),
-    RefSeqChunksModule,
     RefSeqsModule,
+    SequenceModule,
     MongooseModule.forFeatureAsync([
       {
         name: Feature.name,

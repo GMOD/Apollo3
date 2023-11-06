@@ -44,7 +44,11 @@ export class SequenceService {
         fasta: new RemoteFile(fa, { fetch }),
         fai: new RemoteFile(fai, { fetch }),
       })
-      return indexedFasta.getSequence(name, start, end)
+      const sequence = await indexedFasta.getSequence(name, start, end)
+      if (sequence === undefined) {
+        throw new Error('Sequence not found')
+      }
+      return sequence
     }
 
     const startChunk = Math.floor(start / chunkSize)

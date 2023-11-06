@@ -15,7 +15,6 @@ import {
   Instance,
   SnapshotIn,
   SnapshotOut,
-  getSnapshot,
   flow,
   getParentOfType,
   getRoot,
@@ -36,7 +35,6 @@ import {
   TextIndexFieldDefinition,
 } from '../OntologyManager'
 import { ApolloRootModel } from '../types'
-import { CheckReport, detectStopCodons } from './CheckReports'
 
 export function clientDataStoreFactory(
   AnnotationFeatureExtended: typeof AnnotationFeature,
@@ -50,23 +48,6 @@ export function clientDataStoreFactory(
     .views((self) => ({
       get internetAccounts() {
         return getRoot<ApolloRootModel>(self).internetAccounts
-      },
-
-      checkStopCodons(): CheckReport[] {
-        let checkReport: CheckReport[] = []
-        for (const [, assembly] of self.assemblies) {
-          for (const [, refSeq] of assembly.refSeqs) {
-            for (const [, feature] of refSeq.features) {
-              const featureSnapshot: AnnotationFeatureSnapshot =
-                getSnapshot(feature)
-              const cds: string = refSeq
-                .getCodingSequence(featureSnapshot)
-                .join('')
-              checkReport = detectStopCodons(feature.gffId ?? 'n/a', cds)
-            }
-          }
-        }
-        return checkReport
       },
 
       get pluginConfiguration() {

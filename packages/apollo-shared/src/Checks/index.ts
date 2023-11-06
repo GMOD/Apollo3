@@ -1,1 +1,1 @@
-export * from './Checks'
+export * from './CDSCheck'

@@ -6,29 +6,11 @@ import {
   CheckResultDocument,
   FeatureDocument,
 } from 'apollo-schemas'
-import { Check } from 'apollo-shared'
+import { CDSCheck } from 'apollo-shared'
 import { Model } from 'mongoose'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { OperationsService } from '../operations/operations.service'
-
-class FakeCheck extends Check {
-  async checkFeature(
-    feature: AnnotationFeatureSnapshot,
-  ): Promise<CheckResultSnapshot> {
-    const { _id, end, refSeq, start } = feature
-    const id = _id.toString()
-    return {
-      _id: `${id}-fake`,
-      name: 'FakeInMemoryCheckResult',
-      ids: [id],
-      refSeq: refSeq.toString(),
-      start,
-      end,
-      message: `This is a fake result for feature ${id}`,
-    }
-  }
-}
 
 @Injectable()
 export class ChecksService {
@@ -40,12 +22,15 @@ export class ChecksService {
 
   private readonly logger = new Logger(ChecksService.name)
 
-  async checkFeature(doc: FeatureDocument): Promise<CheckResultSnapshot> {
+  async checkFeature(
+    doc: FeatureDocument,
+    getSequence: (start: number, end: number) => Promise<string>,
+  ): Promise<CheckResultSnapshot[]> {
     const flatDoc: AnnotationFeatureSnapshot = doc.toObject({
       flattenMaps: true,
     })
-    const check: FakeCheck = new FakeCheck()
-    return check.checkFeature(flatDoc)
+    const check = new CDSCheck()
+    return check.checkFeature(flatDoc, getSequence)
   }
 
   /**

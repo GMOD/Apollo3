@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 
 import { AssembliesModule } from '../assemblies/assemblies.module'
 import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module'
@@ -7,7 +7,11 @@ import { SequenceController } from './sequence.controller'
 import { SequenceService } from './sequence.service'
 
 @Module({
-  imports: [AssembliesModule, RefSeqsModule, RefSeqChunksModule],
+  imports: [
+    forwardRef(() => AssembliesModule),
+    RefSeqsModule,
+    RefSeqChunksModule,
+  ],
   providers: [SequenceService],
   controllers: [SequenceController],
   exports: [SequenceService],

@@ -10,8 +10,8 @@ import {
   TextField,
   useTheme,
 } from '@mui/material'
+// import { Check } from 'apollo-common'
 import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
-import { Check } from 'apollo-shared'
 import { nanoid } from 'nanoid'
 import React, { useState } from 'react'
 
@@ -19,23 +19,23 @@ import { InMemoryFileDriver } from '../BackendDrivers'
 import { ApolloSessionModel } from '../session'
 import { Dialog } from './Dialog'
 
-class FakeCheck extends Check {
-  async checkFeature(
-    feature: AnnotationFeatureSnapshot,
-  ): Promise<CheckResultSnapshot> {
-    const { _id, end, refSeq, start } = feature
-    const id = _id.toString()
-    return {
-      _id: `${id}-fake`,
-      name: 'FakeInMemoryCheckResult',
-      ids: [id],
-      refSeq: refSeq.toString(),
-      start,
-      end,
-      message: `This is a fake result for feature ${id}`,
-    }
-  }
-}
+// class FakeCheck extends Check {
+//   async checkFeature(
+//     feature: AnnotationFeatureSnapshot,
+//   ): Promise<CheckResultSnapshot> {
+//     const { _id, end, refSeq, start } = feature
+//     const id = _id.toString()
+//     return {
+//       _id: `${id}-fake`,
+//       name: 'FakeInMemoryCheckResult',
+//       ids: [id],
+//       refSeq: refSeq.toString(),
+//       start,
+//       end,
+//       message: `This is a fake result for feature ${id}`,
+//     }
+//   }
+// }
 
 interface OpenLocalFileProps {
   session: ApolloSessionModel
@@ -123,11 +123,11 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
         // regular feature
         const feature = createFeature(seqLine)
 
-        const fakeCheck = new FakeCheck()
-        const checkResult = await fakeCheck.checkFeature(feature)
-        if (checkResult) {
-          checkResults.push(checkResult)
-        }
+        // const fakeCheck = new FakeCheck()
+        // const checkResult = await fakeCheck.checkFeature(feature)
+        // if (checkResult) {
+        //   checkResults.push(checkResult)
+        // }
 
         let ref = assembly.refSeqs.get(feature.refSeq)
         if (!ref) {

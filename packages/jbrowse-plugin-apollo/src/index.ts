@@ -345,16 +345,6 @@ export default class ApolloPlugin extends Plugin {
           )
         },
       })
-      pluginManager.rootModel.appendToMenu('Apollo', {
-        label: 'Check stop codons',
-        onClick: (session: ApolloSessionModel) => {
-          const reports = session.apolloDataStore.checkStopCodons()
-          console.log(`Found ${reports.length} codon sequence error(s)`)
-          for (const report of reports) {
-            console.log(report.toString())
-          }
-        },
-      })
     }
   }
 }
