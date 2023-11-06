@@ -101,8 +101,6 @@ export class CollaborationServerDriver extends BackendDriver {
       AnnotationFeatureSnapshot[],
       CheckResultSnapshot[],
     ]
-    console.log('Got check results:')
-    console.log(checkResults)
     this.clientStore.addCheckResults(checkResults)
     return features
   }

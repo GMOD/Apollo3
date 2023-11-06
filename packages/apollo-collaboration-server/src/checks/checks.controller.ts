@@ -12,6 +12,11 @@ export class ChecksController {
   constructor(private readonly checksService: ChecksService) {}
   private readonly logger = new Logger(ChecksController.name)
 
+  @Get()
+  findAll() {
+    return this.checksService.findAll()
+  }
+
   /**
    * Get all possible checkResults for given range (refSeq, start, end)
    * @param searchDto - range

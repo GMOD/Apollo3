@@ -22,6 +22,10 @@ export class ChecksService {
 
   private readonly logger = new Logger(ChecksService.name)
 
+  async findAll() {
+    return this.checkResultModel.find().exec()
+  }
+
   async checkFeature(
     doc: FeatureDocument,
     getSequence: (start: number, end: number) => Promise<string>,
