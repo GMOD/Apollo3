@@ -12,7 +12,6 @@ import { Model } from 'mongoose'
 import { ChecksService } from '../checks/checks.service'
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { OperationsService } from '../operations/operations.service'
-import { SequenceService } from '../sequence/sequence.service'
 import { FeatureCountRequest } from './dto/feature.dto'
 
 @Injectable()
@@ -20,7 +19,6 @@ export class FeaturesService {
   constructor(
     private readonly operationsService: OperationsService,
     private readonly checksService: ChecksService,
-    private readonly sequenceService: SequenceService,
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
     @InjectModel(RefSeq.name)
@@ -134,18 +132,7 @@ export class FeaturesService {
         start: searchDto.start,
         end: searchDto.end,
       })
-    const checkResults = await Promise.all(
-      featureDocs.map(async (featureDoc) => {
-        const getSequence = (start: number, end: number) => {
-          return this.sequenceService.getSequence({
-            start,
-            end,
-            refSeq: featureDoc.refSeq.toString(),
-          })
-        }
-        return this.checksService.checkFeature(featureDoc, getSequence)
-      }),
-    )
+    const checkResults = await this.checksService.findByRange(searchDto)
     const checkResultsFlat = checkResults.flat()
     return [featureDocs, checkResultsFlat]
   }
@@ -155,14 +142,7 @@ export class FeaturesService {
     if (!topLevelFeature) {
       return
     }
-    const getSequence = (start: number, end: number) => {
-      return this.sequenceService.getSequence({
-        start,
-        end,
-        refSeq: topLevelFeature.refSeq.toString(),
-      })
-    }
-    return this.checksService.checkFeature(topLevelFeature, getSequence)
+    return this.checksService.checkFeature(topLevelFeature)
   }
 
   async searchFeatures(searchDto: { term: string; assemblies: string }) {
