@@ -1,3 +1,4 @@
+import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import {
   Button,
   DialogActions,
@@ -27,16 +28,12 @@ interface ViewCheckResultsProps {
   handleClose(): void
 }
 
-interface AssemblyDocument {
-  _id: string
-  name: string
-}
-
 export function ViewCheckResults({
   handleClose,
   session,
 }: ViewCheckResultsProps) {
   const { internetAccounts } = getRoot<ApolloRootModel>(session)
+  const { collaborationServerDriver } = session.apolloDataStore
   const apolloInternetAccount = internetAccounts.find(
     (ia) => ia.type === 'ApolloInternetAccount',
   ) as ApolloInternetAccountModel | undefined
@@ -45,10 +42,7 @@ export function ViewCheckResults({
   }
   const { baseURL } = apolloInternetAccount
   const [errorMessage, setErrorMessage] = useState<string>()
-  const [assemblyCollection, setAssemblyCollection] = useState<
-    AssemblyDocument[]
-  >([])
-  const [assemblyId, setAssemblyId] = useState<string>('')
+  const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
   const [displayGridData, setDisplayGridData] = useState<GridRowsProp[]>([])
 
   const gridColumns: GridColDef[] = [
@@ -62,35 +56,12 @@ export function ViewCheckResults({
     { field: 'message', headerName: 'Message', flex: 1 },
   ]
 
+  const assemblies = collaborationServerDriver.getAssemblies()
   useEffect(() => {
-    async function getAssemblies() {
-      const uri = new URL('/assemblies', baseURL).href
-      const apolloFetch = apolloInternetAccount?.getFetcher({
-        locationType: 'UriLocation',
-        uri,
-      })
-      if (apolloFetch) {
-        const response = await apolloFetch(uri, { method: 'GET' })
-        if (!response.ok) {
-          const newErrorMessage = await createFetchErrorMessage(
-            response,
-            'Error when retrieving assemblies from server',
-          )
-          setErrorMessage(newErrorMessage)
-          return
-        }
-        const data = (await response.json()) as AssemblyDocument[]
-        setAssemblyCollection(data)
-      }
+    if (!selectedAssembly && assemblies.length > 0) {
+      setSelectedAssembly(assemblies[0])
     }
-    getAssemblies().catch((error) => setErrorMessage(String(error)))
-  }, [apolloInternetAccount, baseURL])
-
-  useEffect(() => {
-    if (!assemblyId && assemblyCollection.length > 0) {
-      setAssemblyId(assemblyCollection[0]._id)
-    }
-  }, [assemblyId, assemblyCollection])
+  }, [assemblies, selectedAssembly])
 
   useEffect(() => {
     async function getGridData() {
@@ -113,15 +84,15 @@ export function ViewCheckResults({
           return
         }
         const data = await response.json()
-        console.log(data)
         setDisplayGridData(data)
       }
     }
     getGridData().catch((error) => setErrorMessage(String(error)))
-  }, [assemblyId, apolloInternetAccount, baseURL])
+  }, [apolloInternetAccount, baseURL])
 
-  async function handleChangeAssembly(e: SelectChangeEvent<string>) {
-    setAssemblyId(e.target.value as string)
+  function handleChangeAssembly(e: SelectChangeEvent<string>) {
+    const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
+    setSelectedAssembly(newAssembly)
   }
 
   return (
@@ -134,12 +105,13 @@ export function ViewCheckResults({
     >
       <Select
         style={{ width: 200, marginLeft: 40 }}
-        value={assemblyId}
+        value={selectedAssembly?.name ?? ''}
         onChange={handleChangeAssembly}
+        disabled={assemblies.length === 0}
       >
-        {assemblyCollection.map((option) => (
-          <MenuItem key={option._id} value={option._id}>
-            {option.name}
+        {assemblies.map((option) => (
+          <MenuItem key={option.name} value={option.name}>
+            {option.displayName ?? option.name}
           </MenuItem>
         ))}
       </Select>
@@ -149,7 +121,7 @@ export function ViewCheckResults({
           pagination
           rows={displayGridData}
           columns={gridColumns}
-          getRowId={(row) => row.message}
+          getRowId={(row) => row._id}
           slots={{ toolbar: GridToolbar }}
           initialState={{
             sorting: { sortModel: [{ field: 'name', sort: 'asc' }] },
