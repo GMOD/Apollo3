@@ -55,6 +55,7 @@ import {
   stateModelFactory as SixFrameFeatureDisplayStateModelFactory,
   configSchemaFactory as sixFrameFeatureDisplayConfigSchemaFactory,
 } from './SixFrameFeatureDisplay'
+import { ViewCheckResults } from './components/ViewCheckResults'
 
 interface RpcHandle {
   on(event: string, listener: (event: MessageEvent) => void): this
@@ -340,6 +341,22 @@ export default class ApolloPlugin extends Plugin {
                   doneCallback()
                 },
                 inMemoryFileDriver: session.apolloDataStore.inMemoryFileDriver,
+              },
+            ],
+          )
+        },
+      })
+      pluginManager.rootModel.appendToMenu('Apollo', {
+        label: 'View check results',
+        onClick: (session: ApolloSessionModel) => {
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              ViewCheckResults,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
               },
             ],
           )
