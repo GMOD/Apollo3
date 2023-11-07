@@ -221,6 +221,8 @@ async function checkCDS(
 }
 
 export class CDSCheck extends Check {
+  name = 'CDSCheck'
+
   async checkFeature(
     feature: AnnotationFeatureSnapshot,
     getSequence: (start: number, end: number) => Promise<string>,

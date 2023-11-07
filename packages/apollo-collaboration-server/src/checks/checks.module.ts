@@ -1,6 +1,11 @@
 import { Module } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
-import { CheckResult, CheckResultSchema } from 'apollo-schemas'
+import {
+  Check,
+  CheckResult,
+  CheckResultSchema,
+  CheckSchema,
+} from 'apollo-schemas'
 import idValidator from 'mongoose-id-validator'
 
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
@@ -20,6 +25,7 @@ import { ChecksService } from './checks.service'
         },
         inject: [getConnectionToken()],
       },
+      { name: Check.name, useFactory: () => CheckSchema },
     ]),
   ],
 

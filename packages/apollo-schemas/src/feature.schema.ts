@@ -2,9 +2,12 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import type { AnnotationFeatureSnapshot } from 'apollo-mst'
 import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose'
 
-export type FeatureDocument = HydratedDocument<Feature>
+export interface FeatureDocument extends HydratedDocument<Feature> {
+  createdAt?: Date
+  updatedAt?: Date
+}
 
-@Schema()
+@Schema({ timestamps: true })
 export class Feature
   implements Omit<AnnotationFeatureSnapshot, '_id' | 'children' | 'refSeq'>
 {

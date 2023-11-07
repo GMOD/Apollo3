@@ -2,8 +2,9 @@ import fs from 'node:fs'
 
 import { LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
-import { changeRegistry, operationRegistry } from 'apollo-common'
+import { changeRegistry, checkRegistry, operationRegistry } from 'apollo-common'
 import {
+  CDSCheck,
   CoreValidation,
   ParentChildValidation,
   changes,
@@ -65,6 +66,9 @@ async function bootstrap() {
   for (const [operationName, operation] of Object.entries(operations)) {
     operationRegistry.registerOperation(operationName, operation)
   }
+
+  const cdsCheck = new CDSCheck()
+  checkRegistry.registerCheck(cdsCheck.name, cdsCheck)
 
   validationRegistry.registerValidation(new CoreValidation())
   validationRegistry.registerValidation(new AuthorizationValidation())

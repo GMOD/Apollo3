@@ -1,10 +1,12 @@
 import { IndexedFasta } from '@gmod/indexedfasta'
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
+import { checkRegistry } from 'apollo-common'
 import { AnnotationFeatureSnapshot } from 'apollo-mst'
 import {
   Assembly,
   AssemblyDocument,
+  CheckDocument,
   CheckResult,
   CheckResultDocument,
   FeatureDocument,
@@ -13,7 +15,6 @@ import {
   RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
-import { CDSCheck } from 'apollo-shared'
 import { RemoteFile } from 'generic-filehandle'
 import { Model } from 'mongoose'
 
@@ -41,18 +42,50 @@ export class ChecksService {
     return this.checkResultModel.find(query).exec()
   }
 
-  async checkFeature(doc: FeatureDocument): Promise<void> {
+  async getChecksForAssembly(featureDoc: FeatureDocument) {
+    const refSeqModel = featureDoc.$model<Model<RefSeqDocument>>(RefSeq.name)
+    const refSeqId = featureDoc.refSeq.toString()
+    const refSeqDoc = await refSeqModel.findById(refSeqId).exec()
+    if (!refSeqDoc) {
+      throw new Error(`Could not find refSeq ${refSeqId}`)
+    }
+    const { assembly } = refSeqDoc
+    const assemblyModel = featureDoc.$model<Model<AssemblyDocument>>(
+      Assembly.name,
+    )
+    const assemblyDoc = await assemblyModel
+      .findById(assembly)
+      .populate('checks')
+    if (!assemblyDoc) {
+      throw new Error(`Could not find assembly ${assembly}`)
+    }
+    return assemblyDoc.checks as unknown as CheckDocument[]
+  }
+
+  async checkFeature(
+    doc: FeatureDocument,
+    checkTimestamps = true,
+  ): Promise<void> {
     const flatDoc: AnnotationFeatureSnapshot = doc.toObject({
       flattenMaps: true,
     })
-    const check = new CDSCheck()
-    const result = await check.checkFeature(
-      flatDoc,
-      (start: number, end: number) => {
-        return this.getSequence({ start, end, featureDoc: doc })
-      },
-    )
-    await this.checkResultModel.insertMany(result)
+    const checks = await this.getChecksForAssembly(doc)
+    for (const check of checks) {
+      if (checkTimestamps && doc.updatedAt && check.updatedAt < doc.updatedAt) {
+        continue
+      }
+      const c = checkRegistry.getCheck(check.name)
+      if (!c) {
+        throw new Error(`Check "${check.name}" not registered`)
+      }
+      const result = await c.checkFeature(
+        flatDoc,
+        (start: number, end: number) => {
+          return this.getSequence({ start, end, featureDoc: doc })
+        },
+      )
+      await this.checkResultModel.insertMany(result)
+    }
   }
 
   async getSequence({
