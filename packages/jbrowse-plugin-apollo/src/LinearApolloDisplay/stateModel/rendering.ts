@@ -1,6 +1,6 @@
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { doesIntersect2 } from '@jbrowse/core/util'
+import { doesIntersect2, getSession } from '@jbrowse/core/util'
 import { Theme } from '@mui/material'
 import { autorun } from 'mobx'
 import { Instance, addDisposer } from 'mobx-state-tree'
@@ -156,8 +156,13 @@ export function renderingModelFactory(
               self.lgv.dynamicBlocks.totalWidthPx,
               self.featuresHeight,
             )
+            const session = getSession(self) as unknown as ApolloSessionModel
             for (const [idx, featureLayout] of self.featureLayouts.entries()) {
               const displayedRegion = self.displayedRegions[idx]
+              if (featureLayout.size === 0) {
+                // loading cancelled if there is nothing to display
+                session.apolloSetLoadingRegions(false)
+              }
               for (const [row, featureLayoutRow] of featureLayout.entries()) {
                 for (const [featureRow, feature] of featureLayoutRow) {
                   if (featureRow > 0) {
@@ -187,6 +192,12 @@ export function renderingModelFactory(
                     row,
                     displayedRegion.reversed,
                   )
+                  if (
+                    feature.gffId === session.apolloDataStore.lastFeat?.gffId
+                  ) {
+                    // ensures the loading message is dismissed when the last feature to load is drawn
+                    session.apolloSetLoadingRegions(false)
+                  }
                 }
               }
             }

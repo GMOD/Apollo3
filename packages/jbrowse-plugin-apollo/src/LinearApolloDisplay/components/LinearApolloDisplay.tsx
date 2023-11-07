@@ -1,11 +1,13 @@
 import { Menu, MenuItem } from '@jbrowse/core/ui'
-import { getContainingView } from '@jbrowse/core/util'
+import LoadingEllipses from '@jbrowse/core/ui/LoadingEllipses'
+import { getContainingView, getSession } from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { Alert, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
+import { ApolloSessionModel } from '../../session'
 import { LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
 
 interface LinearApolloDisplayProps {
@@ -13,7 +15,7 @@ interface LinearApolloDisplayProps {
 }
 export type Coord = [number, number]
 
-const useStyles = makeStyles()({
+const useStyles = makeStyles()((theme) => ({
   canvasContainer: {
     position: 'relative',
     left: 0,
@@ -26,7 +28,18 @@ const useStyles = makeStyles()({
     textOverflow: 'ellipsis',
     overflow: 'hidden',
   },
-})
+  loading: {
+    backgroundColor: theme.palette.background.default,
+    backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 5px, ${theme.palette.action.disabledBackground} 5px, ${theme.palette.action.disabledBackground} 10px)`,
+    position: 'absolute',
+    height: 50,
+    width: 300,
+    right: 0,
+    zIndex: 10,
+    pointerEvents: 'none',
+    textAlign: 'center',
+  },
+}))
 
 export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   props: LinearApolloDisplayProps,
@@ -55,10 +68,15 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   useEffect(() => setTheme(theme), [theme, setTheme])
   const [contextCoord, setContextCoord] = useState<Coord>()
   const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
+  const { loadingRegions } = (
+    getSession(model) as unknown as ApolloSessionModel
+  ).apolloDataStore
   const message = regionCannotBeRendered()
+
   if (!isShown) {
     return null
   }
+
   return (
     <div
       className={classes.canvasContainer}
@@ -75,6 +93,11 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
         }
       }}
     >
+      {loadingRegions ? (
+        <div className={classes.loading}>
+          <LoadingEllipses />
+        </div>
+      ) : null}
       {message ? (
         <Alert severity="warning" classes={{ message: classes.ellipses }}>
           <Tooltip title={message}>

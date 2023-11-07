@@ -141,7 +141,7 @@ export function baseModelFactory(
                 self.session as unknown as ApolloSessionModel
               ).apolloDataStore.loadFeatures(self.regions)
             },
-            { name: 'LinearApolloDisplayLoadFeatures', delay: 1000 },
+            { name: 'LinearApolloDisplayLoadFeatures' },
           ),
         )
       },

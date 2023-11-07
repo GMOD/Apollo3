@@ -104,6 +104,8 @@ export function clientDataStoreFactory(
         self as unknown as ClientDataStoreType,
       ),
       ontologyManager: OntologyManagerType.create(),
+      loadingRegions: false,
+      lastFeat: {} as AnnotationFeatureSnapshot | undefined,
     }))
     .actions((self) => ({
       afterCreate() {
@@ -188,10 +190,17 @@ export function clientDataStoreFactory(
         }
         return internetAccount
       },
+      setLoadingRegions(state: boolean) {
+        self.loadingRegions = state
+      },
+      setLastFeat(feat?: AnnotationFeatureSnapshot) {
+        self.lastFeat = feat
+      },
     }))
     .actions((self) => ({
       loadFeatures: flow(function* loadFeatures(regions: Region[]) {
         for (const region of regions) {
+          self.setLoadingRegions(true)
           const backendDriver = self.getBackendDriver(region.assemblyName)
           const features = (yield backendDriver.getFeatures(
             region,
@@ -199,6 +208,7 @@ export function clientDataStoreFactory(
           if (features.length === 0) {
             continue
           }
+          self.setLastFeat(features.at(-1))
           const { assemblyName, refName } = region
           let assembly = self.assemblies.get(assemblyName)
           if (!assembly) {
