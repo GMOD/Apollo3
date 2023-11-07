@@ -19,7 +19,7 @@ import { RefSeqsService } from './refSeqs.service'
       },
     ]),
   ],
-  exports: [MongooseModule],
+  exports: [MongooseModule, RefSeqsService],
   controllers: [RefSeqsController],
   providers: [RefSeqsService],
 })

@@ -10,20 +10,27 @@ import { CDSCheck } from 'apollo-shared'
 import { Model } from 'mongoose'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
-import { OperationsService } from '../operations/operations.service'
+import { RefSeqsService } from '../refSeqs/refSeqs.service'
 
 @Injectable()
 export class ChecksService {
   constructor(
-    private readonly operationsService: OperationsService,
     @InjectModel(CheckResult.name)
     private readonly checkResultModel: Model<CheckResultDocument>,
+    private readonly refSeqsService: RefSeqsService,
   ) {}
 
   private readonly logger = new Logger(ChecksService.name)
 
-  async findAll() {
-    return this.checkResultModel.find().exec()
+  async find({ assembly }: { assembly?: string }) {
+    let query = {}
+    if (assembly) {
+      const refSeqs = await this.refSeqsService.findAll({ assembly })
+      const refSeqIds = refSeqs.map((refSeq) => refSeq._id)
+      query = { refSeq: { $in: refSeqIds } }
+    }
+    // eslint-disable-next-line unicorn/no-array-callback-reference
+    return this.checkResultModel.find(query).exec()
   }
 
   async checkFeature(
