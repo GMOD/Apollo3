@@ -46,6 +46,7 @@ export function ViewCheckResults({
   const [displayGridData, setDisplayGridData] = useState<GridRowsProp[]>([])
 
   const gridColumns: GridColDef[] = [
+    { field: '_id', headerName: 'id', width: 50 },
     {
       field: 'name',
       headerName: 'Check name',
@@ -65,7 +66,13 @@ export function ViewCheckResults({
 
   useEffect(() => {
     async function getGridData() {
+      const assemblyId: string | undefined = selectedAssembly?.name
+      if (!assemblyId) {
+        return
+      }
       const url = new URL('checks', baseURL)
+      const searchParams = new URLSearchParams({ assembly: assemblyId })
+      url.search = searchParams.toString()
       const uri = url.toString()
       const apolloFetch = apolloInternetAccount?.getFetcher({
         locationType: 'UriLocation',
@@ -88,7 +95,7 @@ export function ViewCheckResults({
       }
     }
     getGridData().catch((error) => setErrorMessage(String(error)))
-  }, [apolloInternetAccount, baseURL])
+  }, [selectedAssembly, apolloInternetAccount, baseURL])
 
   function handleChangeAssembly(e: SelectChangeEvent<string>) {
     const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
