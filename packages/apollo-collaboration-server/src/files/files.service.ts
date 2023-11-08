@@ -12,18 +12,7 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
-import {
-  Assembly,
-  AssemblyDocument,
-  Feature,
-  FeatureDocument,
-  File,
-  FileDocument,
-  RefSeq,
-  RefSeqChunk,
-  RefSeqChunkDocument,
-  RefSeqDocument,
-} from 'apollo-schemas'
+import { File, FileDocument } from 'apollo-schemas'
 import { Model } from 'mongoose'
 
 import { CreateFileDto } from './dto/create-file.dto'
@@ -33,14 +22,6 @@ export class FilesService {
   constructor(
     @InjectModel(File.name)
     private readonly fileModel: Model<FileDocument>,
-    @InjectModel(Feature.name)
-    private readonly featureModel: Model<FeatureDocument>,
-    @InjectModel(Assembly.name)
-    private readonly assemblyModel: Model<AssemblyDocument>,
-    @InjectModel(RefSeq.name)
-    private readonly refSeqModel: Model<RefSeqDocument>,
-    @InjectModel(RefSeqChunk.name)
-    private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
     private readonly configService: ConfigService<
       { FILE_UPLOAD_FOLDER: string },
       true

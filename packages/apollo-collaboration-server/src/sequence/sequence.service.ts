@@ -11,11 +11,10 @@ import { RemoteFile } from 'generic-filehandle'
 import { Model } from 'mongoose'
 
 import { AssembliesService } from '../assemblies/assemblies.service'
-import { CreateRefSeqChunkDto } from './dto/create-refSeqChunk.dto'
 import { GetSequenceDto } from './dto/get-sequence.dto'
 
 @Injectable()
-export class RefSeqChunksService {
+export class SequenceService {
   constructor(
     @InjectModel(RefSeqChunk.name)
     private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
@@ -24,11 +23,7 @@ export class RefSeqChunksService {
     private readonly assembliesService: AssembliesService,
   ) {}
 
-  private readonly logger = new Logger(RefSeqChunksService.name)
-
-  create(createRefSeqChunkDto: CreateRefSeqChunkDto) {
-    return this.refSeqChunkModel.create(createRefSeqChunkDto)
-  }
+  private readonly logger = new Logger(SequenceService.name)
 
   async getSequence({ end, refSeq: refSeqId, start }: GetSequenceDto) {
     const refSeq = await this.refSeqModel.findById(refSeqId)
@@ -49,7 +44,11 @@ export class RefSeqChunksService {
         fasta: new RemoteFile(fa, { fetch }),
         fai: new RemoteFile(fai, { fetch }),
       })
-      return indexedFasta.getSequence(name, start, end)
+      const sequence = await indexedFasta.getSequence(name, start, end)
+      if (sequence === undefined) {
+        throw new Error('Sequence not found')
+      }
+      return sequence
     }
 
     const startChunk = Math.floor(start / chunkSize)

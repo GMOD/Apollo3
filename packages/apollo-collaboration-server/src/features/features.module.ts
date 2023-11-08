@@ -1,12 +1,13 @@
 import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
-import { Export, ExportSchema, Feature, FeatureSchema } from 'apollo-schemas'
+import { Feature, FeatureSchema } from 'apollo-schemas'
+import { Connection } from 'mongoose'
 import idValidator from 'mongoose-id-validator'
 
-import { AssembliesModule } from '../assemblies/assemblies.module'
+import { ChecksModule } from '../checks/checks.module'
 import { OperationsModule } from '../operations/operations.module'
-import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
+import { SequenceModule } from '../sequence/sequence.module'
 import { FeaturesController } from './features.controller'
 import { FeaturesService } from './features.service'
 
@@ -14,22 +15,21 @@ import { FeaturesService } from './features.service'
   controllers: [FeaturesController],
   providers: [FeaturesService],
   imports: [
-    forwardRef(() => AssembliesModule),
+    ChecksModule,
     forwardRef(() => OperationsModule),
-    RefSeqChunksModule,
     RefSeqsModule,
+    SequenceModule,
     MongooseModule.forFeatureAsync([
       {
         name: Feature.name,
-        useFactory: (connection) => {
+        useFactory: (connection: Connection) => {
           FeatureSchema.plugin(idValidator, { connection })
           return FeatureSchema
         },
         inject: [getConnectionToken()],
       },
-      { name: Export.name, useFactory: () => ExportSchema },
     ]),
   ],
-  exports: [MongooseModule],
+  exports: [MongooseModule, FeaturesService],
 })
 export class FeaturesModule {}

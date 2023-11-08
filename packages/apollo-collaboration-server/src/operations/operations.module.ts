@@ -13,7 +13,7 @@ import { OperationsService } from './operations.service'
 @Module({
   imports: [
     forwardRef(() => AssembliesModule),
-    forwardRef(() => FeaturesModule),
+    FeaturesModule,
     RefSeqsModule,
     RefSeqChunksModule,
     FilesModule,

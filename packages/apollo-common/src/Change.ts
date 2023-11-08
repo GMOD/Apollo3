@@ -3,6 +3,7 @@ import {
   AnnotationFeatureI,
   AnnotationFeatureSnapshot,
   ApolloAssemblyI,
+  CheckResultSnapshot,
 } from 'apollo-mst'
 
 import { changeRegistry } from './ChangeTypeRegistry'
@@ -27,6 +28,7 @@ export interface ClientDataStore {
   addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot): void
   deleteFeature(featureId: string): void
   deleteAssembly(assemblyId: string): void
+  addCheckResults(checkResults: CheckResultSnapshot[]): void
 }
 
 export type SerializedChange = SerializedOperation

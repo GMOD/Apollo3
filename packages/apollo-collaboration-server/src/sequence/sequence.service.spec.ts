@@ -1,16 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing'
 
-import { RefSeqChunksService } from './refSeqChunks.service'
+import { SequenceService } from './sequence.service'
 
-describe('RefSeqChunksService', () => {
-  let service: RefSeqChunksService
+describe('SequenceService', () => {
+  let service: SequenceService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [RefSeqChunksService],
+      providers: [SequenceService],
     }).compile()
 
-    service = module.get<RefSeqChunksService>(RefSeqChunksService)
+    service = module.get<SequenceService>(SequenceService)
   })
 
   it('should be defined', () => {

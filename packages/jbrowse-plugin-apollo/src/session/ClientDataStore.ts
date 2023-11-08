@@ -8,6 +8,8 @@ import {
   AnnotationFeatureSnapshot,
   ApolloAssembly,
   ApolloRefSeq,
+  CheckResult,
+  CheckResultSnapshot,
 } from 'apollo-mst'
 import {
   Instance,
@@ -22,7 +24,6 @@ import {
 
 import {
   ApolloInternetAccount,
-  BackendDriver,
   CollaborationServerDriver,
   InMemoryFileDriver,
 } from '../BackendDrivers'
@@ -42,11 +43,13 @@ export function clientDataStoreFactory(
     .model('ClientDataStore', {
       typeName: types.optional(types.literal('Client'), 'Client'),
       assemblies: types.map(ApolloAssembly),
+      checkResults: types.map(CheckResult),
     })
     .views((self) => ({
       get internetAccounts() {
         return getRoot<ApolloRootModel>(self).internetAccounts
       },
+
       get pluginConfiguration() {
         return getRoot<ApolloRootModel>(self).jbrowse.configuration
           .ApolloPlugin as Instance<typeof ApolloPluginConfigurationSchema>
@@ -93,6 +96,16 @@ export function clientDataStoreFactory(
       },
       deleteAssembly(assemblyId: string) {
         self.assemblies.delete(assemblyId)
+      },
+      addCheckResult(checkResult: CheckResultSnapshot) {
+        self.checkResults.put(checkResult)
+      },
+      addCheckResults(checkResults: CheckResultSnapshot[]) {
+        for (const checkResult of checkResults) {
+          if (!self.checkResults.has(checkResult._id)) {
+            self.checkResults.put(checkResult)
+          }
+        }
       },
     }))
     .volatile((self) => ({
@@ -222,9 +235,8 @@ export function clientDataStoreFactory(
       }),
       loadRefSeq: flow(function* loadRefSeq(regions: Region[]) {
         for (const region of regions) {
-          const { refSeq, seq } = yield (
-            self as unknown as { backendDriver: BackendDriver }
-          ).backendDriver.getSequence(region)
+          const backendDriver = self.getBackendDriver(region.assemblyName)
+          const { refSeq, seq } = yield backendDriver.getSequence(region)
           const { assemblyName, end, refName, start } = region
           let assembly = self.assemblies.get(assemblyName)
           if (!assembly) {
