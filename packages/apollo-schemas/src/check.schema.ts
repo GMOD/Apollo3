@@ -16,5 +16,8 @@ export class Check {
 
   @Prop()
   default: boolean
+
+  @Prop()
+  version: number
 }
 export const CheckSchema = SchemaFactory.createForClass(Check)

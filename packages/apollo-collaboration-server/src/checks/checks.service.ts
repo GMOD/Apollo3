@@ -6,6 +6,7 @@ import { AnnotationFeatureSnapshot } from 'apollo-mst'
 import {
   Assembly,
   AssemblyDocument,
+  Check,
   CheckDocument,
   CheckResult,
   CheckResultDocument,
@@ -27,6 +28,8 @@ export class ChecksService {
     @InjectModel(CheckResult.name)
     private readonly checkResultModel: Model<CheckResultDocument>,
     private readonly refSeqsService: RefSeqsService,
+    @InjectModel(Check.name)
+    private readonly checkModel: Model<CheckDocument>,
   ) {}
 
   private readonly logger = new Logger(ChecksService.name)
@@ -40,6 +43,10 @@ export class ChecksService {
     }
     // eslint-disable-next-line unicorn/no-array-callback-reference
     return this.checkResultModel.find(query).exec()
+  }
+
+  async getChecks() {
+    return this.checkModel.find().sort({ name: 1 }).exec()
   }
 
   async getChecksForAssembly(featureDoc: FeatureDocument) {

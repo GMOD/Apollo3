@@ -222,6 +222,8 @@ async function checkCDS(
 
 export class CDSCheck extends Check {
   name = 'CDSCheck'
+  version = 1
+  default = true
 
   async checkFeature(
     feature: AnnotationFeatureSnapshot,

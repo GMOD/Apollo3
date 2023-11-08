@@ -16,6 +16,11 @@ export class ChecksController {
     return this.checksService.find(request)
   }
 
+  @Get('types')
+  getCheckTypes() {
+    return this.checksService.getChecks()
+  }
+
   /**
    * Get all possible checkResults for given range (refSeq, start, end)
    * @param searchDto - range
