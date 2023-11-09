@@ -41,6 +41,7 @@ import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
 import { BackendDriver } from './BackendDrivers'
 import { DownloadGFF3, OpenLocalFile, ViewChangeLog } from './components'
 import { AddFeature } from './components/AddFeature'
+import { ViewCheckResults } from './components/ViewCheckResults'
 import ApolloPluginConfigurationSchema from './config'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
@@ -55,7 +56,6 @@ import {
   stateModelFactory as SixFrameFeatureDisplayStateModelFactory,
   configSchemaFactory as sixFrameFeatureDisplayConfigSchemaFactory,
 } from './SixFrameFeatureDisplay'
-import { ViewCheckResults } from './components/ViewCheckResults'
 
 interface RpcHandle {
   on(event: string, listener: (event: MessageEvent) => void): this
