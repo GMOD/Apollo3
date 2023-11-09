@@ -1,5 +1,6 @@
 import { Check } from 'apollo-common'
 import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
+import ObjectID from 'bson-objectid'
 
 enum STOP_CODONS {
   'TAG',
@@ -153,10 +154,16 @@ async function checkCDS(
   getSequence: (start: number, end: number) => Promise<string>,
 ): Promise<CheckResultSnapshot[]> {
   const checkResults: CheckResultSnapshot[] = []
-  let _id: string, start: number, end: number, refSeq: string, sequence: string
+  let _id: string,
+    ids: string[],
+    start: number,
+    end: number,
+    refSeq: string,
+    sequence: string
   if (Array.isArray(feature)) {
     sequence = await getSequenceFromMultipleFeatures(feature, getSequence)
-    _id = feature.map((f) => f._id).join(',')
+    ids = feature.map((f) => f._id)
+    _id = ids.join(',')
     ;[{ refSeq, start }] = feature
     const lastFeature = feature.at(-1)
     if (!lastFeature) {
@@ -166,6 +173,7 @@ async function checkCDS(
   } else {
     sequence = await getSequenceFromSingleFeature(feature, getSequence)
     ;({ _id, end, refSeq, start } = feature)
+    ids = [_id]
   }
   const codons = splitSequenceInCodons(sequence)
   if (sequence.length % 3 === 0) {
@@ -175,9 +183,9 @@ async function checkCDS(
     }
     if (!(lastCodon.toUpperCase() in STOP_CODONS)) {
       checkResults.push({
-        _id: `${_id}-MissingStopCodonCheck`,
+        _id: new ObjectID().toHexString(),
         name: 'MissingStopCodonCheck',
-        ids: [_id],
+        ids,
         refSeq: refSeq.toString(),
         start: end - 3,
         end,
@@ -186,9 +194,9 @@ async function checkCDS(
     }
   } else {
     checkResults.push({
-      _id: `${_id}-MultipleOfThreeCheck`,
+      _id: new ObjectID().toHexString(),
       name: 'MultipleOfThreeCheck',
-      ids: [_id],
+      ids,
       refSeq: refSeq.toString(),
       start,
       end,
@@ -199,9 +207,9 @@ async function checkCDS(
     const [codonStart, codonEnd] = getOriginalCodonLocation(feature, idx)
     if (codon.toUpperCase() in STOP_CODONS) {
       checkResults.push({
-        _id: `${_id}-InternalStopCodonCheck-${idx}`,
+        _id: new ObjectID().toHexString(),
         name: 'InternalStopCodonCheck',
-        ids: [_id],
+        ids,
         refSeq: refSeq.toString(),
         start: codonStart,
         end: codonEnd,

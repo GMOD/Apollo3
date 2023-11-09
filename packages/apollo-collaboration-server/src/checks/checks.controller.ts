@@ -1,20 +1,19 @@
 import { Controller, Get, Logger, Param, Query } from '@nestjs/common'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
-import { Public } from '../utils/jwt-auth.guard'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { ChecksService } from './checks.service'
 
-@Public()
 @Controller('checks')
 export class ChecksController {
   constructor(private readonly checksService: ChecksService) {}
   private readonly logger = new Logger(ChecksController.name)
 
   @Get()
-  findAll() {
-    return this.checksService.findAll()
+  findAll(@Query() request: { assembly?: string }) {
+    // eslint-disable-next-line unicorn/no-array-callback-reference
+    return this.checksService.find(request)
   }
 
   /**

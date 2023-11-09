@@ -41,6 +41,7 @@ import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
 import { BackendDriver } from './BackendDrivers'
 import { DownloadGFF3, OpenLocalFile, ViewChangeLog } from './components'
 import { AddFeature } from './components/AddFeature'
+import { ViewCheckResults } from './components/ViewCheckResults'
 import ApolloPluginConfigurationSchema from './config'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
@@ -340,6 +341,22 @@ export default class ApolloPlugin extends Plugin {
                   doneCallback()
                 },
                 inMemoryFileDriver: session.apolloDataStore.inMemoryFileDriver,
+              },
+            ],
+          )
+        },
+      })
+      pluginManager.rootModel.appendToMenu('Apollo', {
+        label: 'View check results',
+        onClick: (session: ApolloSessionModel) => {
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              ViewCheckResults,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
               },
             ],
           )
