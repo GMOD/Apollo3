@@ -1,3 +1,4 @@
+import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
   DialogActions,
@@ -9,7 +10,6 @@ import {
 } from '@mui/material'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
-// import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloSessionModel } from '../session'
@@ -51,7 +51,7 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
   )
 
   const [assemblyId, setAssemblyId] = useState<string>('')
-  const [selectedChecks, setSelectedChecks] = useState([])
+  const [selectedChecks, setSelectedChecks] = useState<string[]>([])
 
   useEffect(() => {
     async function getAssemblies() {
@@ -101,7 +101,7 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
   useEffect(() => {
     if (!assemblyId && assemblyCollection.length > 0) {
       setAssemblyId(assemblyCollection[0]._id)
-      setSelectedChecks(assemblyCollection[0].checks as never[])
+      setSelectedChecks(assemblyCollection[0].checks)
     }
   }, [assemblyId, assemblyCollection])
 
@@ -109,35 +109,43 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
     const assId = e.target.value as string
     setAssemblyId(assId)
     const result = assemblyCollection.find(({ _id }) => _id === assId)
-    console.log('Assembly checks are:', assId, result?.checks)
-    setSelectedChecks(result?.checks as never[])
+    if (result?.checks) {
+      setSelectedChecks(result?.checks)
+    } else {
+      setSelectedChecks([])
+    }
   }
 
   // eslint-disable-next-line unicorn/consistent-function-scoping
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    console.log('SAVE DATA:', assemblyId, selectedChecks)
+    const { notify } = session as unknown as AbstractSessionModel
     const uri = new URL('/assemblies/checks', baseURL).href
     const apolloFetch = apolloInternetAccount?.getFetcher({
       locationType: 'UriLocation',
       uri,
     })
-    const eka: AssemblyDocument = {_id: 'jou', checks: ['jaa','juu'], name: 'nimi'}
     if (apolloFetch) {
-      const response = await apolloFetch(uri, { 
-      method: 'POST',
-      body: JSON.stringify(eka),
-      // body: JSON.stringify(change.toJSON()),
-      headers: { 'Content-Type': 'application/json' },
+      const response = await apolloFetch(uri, {
+        method: 'POST',
+        body: JSON.stringify({
+          _id: assemblyId,
+          checks: selectedChecks,
+          name: '',
+        }),
+        headers: { 'Content-Type': 'application/json' },
       })
-      if (!response.ok) {
+      if (response.ok) {
+        notify('Assembly checks updated successfully', 'success')
+        handleClose()
+      } else {
         const newErrorMessage = await createFetchErrorMessage(
           response,
           'Error when updating assembly checks',
         )
         setErrorMessage(newErrorMessage)
-        return
       }
+      return
     }
   }
 
@@ -146,18 +154,24 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
     e: React.ChangeEvent<HTMLInputElement>,
     _id: string,
   ): void {
-    const eka = selectedChecks as string[]
-    if (e.target.checked && !eka.includes(_id)) {
-      eka.push(_id)
-      setSelectedChecks(eka as never[])
+    const checks = selectedChecks as string[]
+    if (e.target.checked && !checks.includes(_id)) {
+      checks.push(_id)
+      setSelectedChecks(checks)
     }
     if (!e.target.checked) {
-      const index = eka.indexOf(_id, 0)
+      const index = checks.indexOf(_id, 0)
       if (index > -1) {
-        eka.splice(index, 1)
+        checks.splice(index, 1)
       }
-      setSelectedChecks(eka as never[])
+      setSelectedChecks(checks)
     }
+  }
+
+  // eslint-disable-next-line unicorn/consistent-function-scoping
+  function getCheck(_id: string): boolean {
+    // TODO: GARRETT
+    return selectedChecks.includes(_id) || false
   }
 
   return (
@@ -204,7 +218,7 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
                 <td>
                   <input
                     type="checkbox"
-                    // checked={selectedChecks[check._id as never] || false}
+                    // checked={getCheck(check._id)} // TODO: GARRETT
                     onChange={(e) => handleCheckboxChange(e, check._id)}
                   />
                 </td>

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Logger, Param, Post, Req } from '@nestjs/common'
+import { Body, Controller, Get, Logger, Param, Post } from '@nestjs/common'
 
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
@@ -6,7 +6,6 @@ import { AssembliesService } from './assemblies.service'
 
 interface AssemblyDocument {
   _id: string
-  // name: string
   checks: string[]
 }
 
@@ -27,8 +26,10 @@ export class AssembliesController {
   }
 
   @Post('checks')
-  updateChecks(@Body() updatedChecks: AssemblyDocument, @Req() req: Request) {
-    // **** JATKA TÄSTÄ: SEURAAVAKSI PÄIVITÄ ASSEMBLYN CHECKS TIETO!!!!
-    console.log(updatedChecks)
+  updateChecks(@Body() updatedChecks: AssemblyDocument) {
+    return this.assembliesService.updateChecks(
+      updatedChecks._id,
+      updatedChecks.checks,
+    )
   }
 }
