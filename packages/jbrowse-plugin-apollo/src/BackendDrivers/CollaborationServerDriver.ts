@@ -97,12 +97,9 @@ export class CollaborationServerDriver extends BackendDriver {
       throw new Error(errorMessage)
     }
     await this.checkSocket(assemblyName, refName, internetAccount)
-    const [features, checkResults] = (await response.json()) as [
-      AnnotationFeatureSnapshot[],
-      CheckResultSnapshot[],
-    ]
-    this.clientStore.addCheckResults(checkResults)
-    return features
+    return response.json() as Promise<
+      [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
+    >
   }
 
   /**

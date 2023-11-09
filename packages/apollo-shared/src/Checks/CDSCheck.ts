@@ -187,7 +187,7 @@ async function checkCDS(
         name: 'MissingStopCodonCheck',
         ids,
         refSeq: refSeq.toString(),
-        start: end - 3,
+        start: end,
         end,
         message: `Feature "${_id}" is missing a stop codon`,
       })

@@ -1,12 +1,14 @@
 import { Menu, MenuItem } from '@jbrowse/core/ui'
-import { getContainingView } from '@jbrowse/core/util'
+import { AbstractSessionModel, getContainingView } from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import WarningIcon from '@mui/icons-material/WarningAmberRounded'
 import { Alert, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
+import { getGlyph } from '../stateModel/getGlyph'
 
 interface LinearApolloDisplayProps {
   model: LinearApolloDisplayI
@@ -34,6 +36,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const theme = useTheme()
   const { model } = props
   const {
+    apolloRowHeight,
     contextMenuItems: getContextMenuItems,
     cursor,
     featuresHeight,
@@ -43,6 +46,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
     onMouseMove,
     onMouseUp,
     regionCannotBeRendered,
+    session,
     setCanvas,
     setCollaboratorCanvas,
     setOverlayCanvas,
@@ -59,6 +63,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   if (!isShown) {
     return null
   }
+  const { assemblyManager } = session as unknown as AbstractSessionModel
   return (
     <div
       className={classes.canvasContainer}
@@ -123,6 +128,53 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             style={{ cursor: cursor ?? 'default' }}
             data-testid="overlayCanvas"
           />
+          {lgv.displayedRegions.flatMap((region, idx) => {
+            const assembly = assemblyManager.get(region.assemblyName)
+            return [...session.apolloDataStore.checkResults.values()]
+              .filter(
+                (checkResult) => assembly?.isValidRefName(checkResult.refSeq),
+              )
+              .map((checkResult) => {
+                const left =
+                  (lgv.bpToPx({
+                    refName: region.refName,
+                    coord: checkResult.start,
+                    regionNumber: idx,
+                  })?.offsetPx ?? 0) - lgv.offsetPx
+                const [feature] = checkResult.ids
+                let parent = feature
+                while (parent?.parent) {
+                  ;({ parent } = parent)
+                }
+                const topRow = parent
+                  ? model.getFeatureLayoutPosition(parent)?.layoutRow ?? 0
+                  : 0
+                const rowCount = parent
+                  ? getGlyph(parent, lgv.bpPerPx).getRowCount(
+                      parent,
+                      lgv.bpPerPx,
+                    )
+                  : 0
+                const top = topRow * apolloRowHeight
+                const height = rowCount * apolloRowHeight
+                return (
+                  <div
+                    key={checkResult._id}
+                    style={{
+                      position: 'absolute',
+                      top,
+                      left,
+                      height,
+                      borderWidth: 1,
+                      borderStyle: 'solid',
+                      borderColor: 'black',
+                    }}
+                  >
+                    <WarningIcon color="warning" />
+                  </div>
+                )
+              })
+          })}
           <Menu
             open={contextMenuItems.length > 0}
             onMenuItemClick={(_, callback) => {
