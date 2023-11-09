@@ -8,7 +8,6 @@ import {
   createBaseTrackConfig,
   createBaseTrackModel,
 } from '@jbrowse/core/pluggableElementTypes'
-import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
 import {
   AbstractSessionModel,
@@ -25,8 +24,10 @@ import {
   changes,
   validationRegistry,
 } from 'apollo-shared'
+import { FC } from 'react'
 
 import { version } from '../package.json'
+import { ApolloBasePlugin } from './ApolloBasePlugin'
 import {
   configSchema as apolloInternetAccountConfigSchema,
   modelFactory as apolloInternetAccountModelFactory,
@@ -39,9 +40,15 @@ import {
 } from './ApolloSixFrameRenderer'
 import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
 import { BackendDriver } from './BackendDrivers'
-import { DownloadGFF3, OpenLocalFile, ViewChangeLog } from './components'
+import {
+  AttributeValueEditorProps,
+  DownloadGFF3,
+  OpenLocalFile,
+  ViewChangeLog,
+} from './components'
 import { AddFeature } from './components/AddFeature'
 import ApolloPluginConfigurationSchema from './config'
+import { DemoCustomKeyEditor } from './DemoCustomKeyEditor'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
@@ -88,7 +95,7 @@ for (const [changeName, change] of Object.entries(changes)) {
 validationRegistry.registerValidation(new CoreValidation())
 validationRegistry.registerValidation(new ParentChildValidation())
 
-export default class ApolloPlugin extends Plugin {
+export default class ApolloPlugin extends ApolloBasePlugin {
   name = 'ApolloPlugin'
   version = version
   configurationSchema = ApolloPluginConfigurationSchema
@@ -346,5 +353,9 @@ export default class ApolloPlugin extends Plugin {
         },
       })
     }
+  }
+
+  apolloRegisterReservedKeys(): [string, FC<AttributeValueEditorProps>][] {
+    return [['DEMO_ID', DemoCustomKeyEditor]]
   }
 }

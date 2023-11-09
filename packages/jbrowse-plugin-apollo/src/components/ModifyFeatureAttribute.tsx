@@ -19,7 +19,7 @@ import {
 import { AnnotationFeatureI } from 'apollo-mst'
 import { FeatureAttributeChange } from 'apollo-shared'
 import { getRoot, getSnapshot } from 'mobx-state-tree'
-import React, { useMemo, useState } from 'react'
+import React, { FC, useMemo, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
@@ -37,7 +37,7 @@ interface ModifyFeatureAttributeProps {
   changeManager: ChangeManager
 }
 
-const reservedKeys = new Map([
+const reservedKeys = new Map<string, FC<AttributeValueEditorProps>>([
   [
     'Gene Ontology',
     (props: AttributeValueEditorProps) => {
@@ -118,6 +118,12 @@ export function ModifyFeatureAttribute({
   const { notify } = session as unknown as AbstractSessionModel
 
   const { internetAccounts } = getRoot<ApolloRootModel>(session)
+  const pluginReservedKeys: [string, FC<AttributeValueEditorProps>][] =
+    session.getReservedKeys()
+  for (const [keyName, KeyComponent] of pluginReservedKeys) {
+    reservedKeys.set(keyName, KeyComponent)
+  }
+
   const internetAccount = useMemo(() => {
     const apolloInternetAccount = internetAccounts.find(
       (ia) => ia.type === 'ApolloInternetAccount',

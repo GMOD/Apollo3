@@ -1,6 +1,7 @@
 import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
+import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
 import {
   AbstractSessionModel,
@@ -11,13 +12,16 @@ import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
 import { AnnotationFeature, AnnotationFeatureI } from 'apollo-mst'
 import { autorun, observable } from 'mobx'
 import { Instance, flow, getRoot, types } from 'mobx-state-tree'
+import { FC } from 'react'
 
+import { ApolloBasePlugin } from '../ApolloBasePlugin'
 import {
   ApolloInternetAccountModel,
   UserLocation,
 } from '../ApolloInternetAccount/model'
 import { ApolloJobModel } from '../ApolloJobModel'
 import { ChangeManager } from '../ChangeManager'
+import { AttributeValueEditorProps } from '../components'
 import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 import { clientDataStoreFactory } from './ClientDataStore'
@@ -74,6 +78,20 @@ export function extendSession(
       apolloSelectedFeature: types.safeReference(AnnotationFeatureExtended),
       jobsManager: types.optional(ApolloJobModel, {}),
     })
+    .views(() => ({
+      getReservedKeys() {
+        const reserved: [string, FC<AttributeValueEditorProps>][] = []
+        const { plugins } = pluginManager as {
+          plugins: (Plugin | ApolloBasePlugin)[]
+        }
+        for (const plugin of plugins) {
+          if ('apolloRegisterReservedKeys' in plugin) {
+            reserved.push(...plugin.apolloRegisterReservedKeys())
+          }
+        }
+        return reserved
+      },
+    }))
     .extend(() => {
       const collabs = observable.array<Collaborator>([])
 
