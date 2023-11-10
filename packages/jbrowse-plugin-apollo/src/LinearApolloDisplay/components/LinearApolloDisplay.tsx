@@ -33,6 +33,12 @@ const useStyles = makeStyles()({
 export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   props: LinearApolloDisplayProps,
 ) {
+  const [open, setOpen] = useState(false)
+
+  const toggleTooltip = () => {
+    setOpen(!open)
+  }
+
   const theme = useTheme()
   const { model } = props
   const {
@@ -170,7 +176,18 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
                       borderColor: 'black',
                     }}
                   >
-                    <WarningIcon color="warning" />
+                    <Tooltip
+                      PopperProps={{
+                        disablePortal: true,
+                      }}
+                      open={open}
+                      disableFocusListener
+                      disableHoverListener
+                      disableTouchListener
+                      title={checkResult.message}
+                    >
+                      <WarningIcon color="warning" onClick={toggleTooltip} />
+                    </Tooltip>
                   </div>
                 )
               })
