@@ -213,7 +213,7 @@ async function checkCDS(
         refSeq: refSeq.toString(),
         start: codonStart,
         end: codonEnd,
-        message: `The coding sequence for feature "${_id}" is not a multiple of three`,
+        message: `The coding sequence for feature "${_id}" has an internal stop codon`,
       })
     }
   }
