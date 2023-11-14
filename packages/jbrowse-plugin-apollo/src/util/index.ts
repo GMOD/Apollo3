@@ -31,3 +31,5 @@ export function getApolloInternetAccount(session: ApolloSessionModel) {
   }
   return apolloInternetAccount
 }
+
+export * from './loadAssemblyIntoClient'

@@ -1,6 +1,6 @@
 import { getConf, readConfObject } from '@jbrowse/core/configuration'
 import { ConfigurationModel } from '@jbrowse/core/configuration/types'
-import { Region, getSession } from '@jbrowse/core/util'
+import { Region, getSession, isElectron } from '@jbrowse/core/util'
 import { LocalPathLocation, UriLocation } from '@jbrowse/core/util/types/mst'
 import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
 import {
@@ -13,7 +13,6 @@ import {
 } from 'apollo-mst'
 import {
   Instance,
-  SnapshotIn,
   SnapshotOut,
   flow,
   getParentOfType,
@@ -25,6 +24,7 @@ import {
 import {
   ApolloInternetAccount,
   CollaborationServerDriver,
+  DesktopFileDriver,
   InMemoryFileDriver,
 } from '../BackendDrivers'
 import { ChangeManager } from '../ChangeManager'
@@ -116,6 +116,9 @@ export function clientDataStoreFactory(
       inMemoryFileDriver: new InMemoryFileDriver(
         self as unknown as ClientDataStoreType,
       ),
+      desktopFileDriver: isElectron
+        ? new DesktopFileDriver(self as unknown as ClientDataStoreType)
+        : undefined,
       ontologyManager: OntologyManagerType.create(),
     }))
     .actions((self) => ({
@@ -163,10 +166,13 @@ export function clientDataStoreFactory(
         if (!assembly) {
           return self.collaborationServerDriver
         }
-        const { internetAccountConfigId } = getConf(assembly, [
+        const { file, internetAccountConfigId } = getConf(assembly, [
           'sequence',
           'metadata',
-        ]) as { internetAccountConfigId?: string }
+        ]) as { internetAccountConfigId?: string; file: string }
+        if (isElectron && file) {
+          return self.desktopFileDriver
+        }
         if (internetAccountConfigId) {
           return self.collaborationServerDriver
         }
@@ -206,6 +212,9 @@ export function clientDataStoreFactory(
       loadFeatures: flow(function* loadFeatures(regions: Region[]) {
         for (const region of regions) {
           const backendDriver = self.getBackendDriver(region.assemblyName)
+          if (!backendDriver) {
+            return
+          }
           const features = (yield backendDriver.getFeatures(
             region,
           )) as AnnotationFeatureSnapshot[]
@@ -236,6 +245,9 @@ export function clientDataStoreFactory(
       loadRefSeq: flow(function* loadRefSeq(regions: Region[]) {
         for (const region of regions) {
           const backendDriver = self.getBackendDriver(region.assemblyName)
+          if (!backendDriver) {
+            return
+          }
           const { refSeq, seq } = yield backendDriver.getSequence(region)
           const { assemblyName, end, refName, start } = region
           let assembly = self.assemblies.get(assemblyName)
@@ -257,10 +269,6 @@ export function clientDataStoreFactory(
 
   // assembly and feature data isn't actually reloaded on reload unless we delete it from the snap
   return types.snapshotProcessor(clientStoreType, {
-    preProcessor(snap: SnapshotIn<typeof clientStoreType>) {
-      snap.assemblies = {}
-      return snap
-    },
     postProcessor(snap: SnapshotOut<typeof clientStoreType>) {
       snap.assemblies = {}
       return snap

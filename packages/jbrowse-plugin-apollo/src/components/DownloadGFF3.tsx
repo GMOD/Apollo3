@@ -1,4 +1,4 @@
-import gff, { GFF3Feature, GFF3FeatureLineWithRefs, GFF3Item } from '@gmod/gff'
+import gff, { GFF3Item } from '@gmod/gff'
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import {
@@ -10,9 +10,9 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material'
-import { AnnotationFeatureI, ApolloAssembly } from 'apollo-mst'
+import { ApolloAssembly } from 'apollo-mst'
+import { makeGFF3Feature } from 'apollo-shared'
 import { saveAs } from 'file-saver'
-import { values } from 'mobx'
 import { IMSTMap, getSnapshot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
@@ -28,106 +28,6 @@ import { Dialog } from './Dialog'
 interface DownloadGFF3Props {
   session: ApolloSessionModel
   handleClose(): void
-}
-
-function makeGFF3Feature(
-  feature: AnnotationFeatureI,
-  parentId?: string,
-): GFF3Feature {
-  const locations = feature.discontinuousLocations?.length
-    ? feature.discontinuousLocations
-    : [{ start: feature.start, end: feature.end, phase: feature.phase }]
-  const attributes: Record<string, string[]> = {
-    ...(feature.attributes ? getSnapshot(feature.attributes) : {}),
-  }
-  const ontologyTerms: string[] = []
-  const source = feature.attributes?.get('source')?.[0] ?? null
-  delete attributes.source
-  if (parentId) {
-    attributes.Parent = [parentId]
-  }
-  if (attributes._id) {
-    attributes.ID = attributes._id
-    delete attributes._id
-  }
-  if (attributes.gff_name) {
-    attributes.Name = attributes.gff_name
-    delete attributes.gff_name
-  }
-  if (attributes.gff_alias) {
-    attributes.Alias = attributes.gff_alias
-    delete attributes.gff_alias
-  }
-  if (attributes.gff_target) {
-    attributes.Target = attributes.gff_target
-    delete attributes.gff_target
-  }
-  if (attributes.gff_gap) {
-    attributes.Gap = attributes.gff_gap
-    delete attributes.gff_gap
-  }
-  if (attributes.gff_derives_from) {
-    attributes.Derives_from = attributes.gff_derives_from
-    delete attributes.gff_derives_from
-  }
-  if (attributes.gff_note) {
-    attributes.Note = attributes.gff_note
-    delete attributes.gff_note
-  }
-  if (attributes.gff_dbxref) {
-    attributes.Dbxref = attributes.gff_dbxref
-    delete attributes.gff_dbxref
-  }
-  if (attributes.gff_is_circular) {
-    attributes.Is_circular = attributes.gff_is_circular
-    delete attributes.gff_is_circular
-  }
-  if (attributes.gff_ontology_term) {
-    ontologyTerms.push(...attributes.gff_ontology_term)
-    delete attributes.gff_ontology_term
-  }
-  if (attributes['Gene Ontology']) {
-    ontologyTerms.push(...attributes['Gene Ontology'])
-    delete attributes['Gene Ontology']
-  }
-  if (attributes['Sequence Ontology']) {
-    ontologyTerms.push(...attributes['Sequence Ontology'])
-    delete attributes['Sequence Ontology']
-  }
-  if (ontologyTerms.length > 0) {
-    attributes.Ontology_term = ontologyTerms
-  }
-  return locations.map((location) => {
-    const featureLine: GFF3FeatureLineWithRefs = {
-      start: location.start,
-      end: location.end,
-      seq_id: feature.refSeq,
-      source,
-      type: feature.type,
-      score: feature.score ?? null,
-      strand: feature.strand ? (feature.strand === 1 ? '+' : '-') : null,
-      phase:
-        location.phase === 0
-          ? '0'
-          : location.phase === 1
-          ? '1'
-          : location.phase === 2
-          ? '2'
-          : null,
-      attributes: Object.keys(attributes).length > 0 ? attributes : null,
-      derived_features: [],
-      child_features: [],
-    }
-    if (feature.children && feature.children.size > 0) {
-      featureLine.child_features = values(feature.children).map((child) => {
-        return makeGFF3Feature(
-          child as unknown as AnnotationFeatureI,
-          attributes.ID[0],
-        )
-      })
-    }
-    return featureLine
-  })
 }
 
 export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
@@ -248,7 +148,7 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
         continue
       }
       for (const [, feature] of features) {
-        gff3Items.push(makeGFF3Feature(feature))
+        gff3Items.push(makeGFF3Feature(getSnapshot(feature)))
       }
     }
     for (const sequenceFeature of sequenceFeatures) {
