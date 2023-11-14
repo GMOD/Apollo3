@@ -29,6 +29,7 @@ export interface ClientDataStore {
   deleteFeature(featureId: string): void
   deleteAssembly(assemblyId: string): void
   addCheckResults(checkResults: CheckResultSnapshot[]): void
+  addAssembly(assemblyId: string): ApolloAssemblyI
 }
 
 export type SerializedChange = SerializedOperation

@@ -1,11 +1,6 @@
 import { getConf, readConfObject } from '@jbrowse/core/configuration'
 import { ConfigurationModel } from '@jbrowse/core/configuration/types'
-import {
-  AppRootModel,
-  Region,
-  getSession,
-  isElectron,
-} from '@jbrowse/core/util'
+import { Region, getSession, isElectron } from '@jbrowse/core/util'
 import { LocalPathLocation, UriLocation } from '@jbrowse/core/util/types/mst'
 import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
 import {
@@ -18,7 +13,6 @@ import {
 } from 'apollo-mst'
 import {
   Instance,
-  SnapshotIn,
   SnapshotOut,
   flow,
   getParentOfType,
@@ -30,9 +24,9 @@ import {
 import {
   ApolloInternetAccount,
   CollaborationServerDriver,
+  DesktopFileDriver,
   InMemoryFileDriver,
 } from '../BackendDrivers'
-import { DesktopFileDriver } from '../BackendDrivers/DesktopFileDriver'
 import { ChangeManager } from '../ChangeManager'
 import ApolloPluginConfigurationSchema from '../config'
 import {
@@ -172,14 +166,13 @@ export function clientDataStoreFactory(
         if (!assembly) {
           return self.collaborationServerDriver
         }
-        const { file } = getConf(assembly, ['sequence', 'metadata'])
+        const { file, internetAccountConfigId } = getConf(assembly, [
+          'sequence',
+          'metadata',
+        ]) as { internetAccountConfigId?: string; file: string }
         if (isElectron && file) {
           return self.desktopFileDriver
         }
-        const { internetAccountConfigId } = getConf(assembly, [
-          'sequence',
-          'metadata',
-        ]) as { internetAccountConfigId?: string }
         if (internetAccountConfigId) {
           return self.collaborationServerDriver
         }
@@ -256,8 +249,7 @@ export function clientDataStoreFactory(
             return
           }
           const { refSeq, seq } = yield backendDriver.getSequence(region)
-          // const { seq, refSeq } = yield (self as unknown as { backendDriver: BackendDriver }).backendDriver.getSequence(region)
-          const { assemblyName, refName } = region
+          const { assemblyName, end, refName, start } = region
           let assembly = self.assemblies.get(assemblyName)
           if (!assembly) {
             assembly = self.assemblies.put({ _id: assemblyName, refSeqs: {} })
@@ -270,17 +262,13 @@ export function clientDataStoreFactory(
               sequence: [],
             })
           }
-          ref.addSequence({ start, stop: end, sequence: seq, description: '' })
+          ref.addSequence({ start, stop: end, sequence: seq })
         }
       }),
     }))
 
   // assembly and feature data isn't actually reloaded on reload unless we delete it from the snap
   return types.snapshotProcessor(clientStoreType, {
-    preProcessor(snap: SnapshotIn<typeof clientStoreType>) {
-      snap.assemblies = {}
-      return snap
-    },
     postProcessor(snap: SnapshotOut<typeof clientStoreType>) {
       snap.assemblies = {}
       return snap

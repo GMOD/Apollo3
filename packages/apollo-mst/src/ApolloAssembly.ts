@@ -22,8 +22,8 @@ export const ApolloAssembly = types
     },
   }))
   .actions((self) => ({
-    addRefSeq(id: string, name: string) {
-      return self.refSeqs.put({ _id: id, name })
+    addRefSeq(id: string, name: string, description?: string) {
+      return self.refSeqs.put({ _id: id, name, description })
     },
     addComment(comment: string) {
       return self.comments.push(comment)

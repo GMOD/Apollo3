@@ -47,11 +47,12 @@ export class InMemoryFileDriver extends BackendDriver {
     const { assemblyManager } = getSession(this.clientStore)
     return assemblyManager.assemblies.filter((assembly) => {
       const sequenceMetadata = getConf(assembly, ['sequence', 'metadata']) as
-        | { apollo: boolean; internetAccountConfigId?: string }
+        | { apollo: boolean; internetAccountConfigId?: string; file?: string }
         | undefined
       return Boolean(
         sequenceMetadata &&
           sequenceMetadata.apollo &&
+          !sequenceMetadata.file &&
           !sequenceMetadata.internetAccountConfigId,
       )
     })
