@@ -89,6 +89,21 @@ export const AnnotationFeature = types
       }
       return max
     },
+    hasDescendant(featureId: string) {
+      const { children } = self
+      if (!children) {
+        return false
+      }
+      for (const [id, child] of children) {
+        if (id === featureId) {
+          return true
+        }
+        if (child.hasDescendant(featureId)) {
+          return true
+        }
+      }
+      return false
+    },
   }))
   .actions((self) => ({
     setAttributes(attributes: Map<string, string[]>) {

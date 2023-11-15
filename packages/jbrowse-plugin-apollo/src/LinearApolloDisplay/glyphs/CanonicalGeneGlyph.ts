@@ -956,6 +956,23 @@ export class CanonicalGeneGlyph extends Glyph {
     return featureFromLayout
   }
 
+  getRowForFeature(
+    feature: AnnotationFeatureI,
+    childFeature: AnnotationFeatureI,
+  ) {
+    const rows = this.featuresForRow(feature)
+    for (const [idx, row] of rows.entries()) {
+      if (
+        row.some(
+          (feature) => feature.annotationFeature._id === childFeature._id,
+        )
+      ) {
+        return idx
+      }
+    }
+    return
+  }
+
   async executeDrag(stateModel: LinearApolloDisplay) {
     const {
       apolloDragging,

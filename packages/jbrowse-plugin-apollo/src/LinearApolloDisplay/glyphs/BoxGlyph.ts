@@ -159,6 +159,13 @@ export class BoxGlyph extends Glyph {
     return feature
   }
 
+  getRowForFeature(
+    _feature: AnnotationFeatureI,
+    _childFeature: AnnotationFeatureI,
+  ): number | undefined {
+    return 0
+  }
+
   /** @returns undefined if mouse not on the edge of this feature, otherwise 'start' or 'end' depending on which edge */
   isMouseOnFeatureEdge(
     mousePosition: MousePosition,

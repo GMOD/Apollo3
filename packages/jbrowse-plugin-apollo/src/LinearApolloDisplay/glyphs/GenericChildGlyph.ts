@@ -135,4 +135,17 @@ export class GenericChildGlyph extends BoxGlyph {
     const layoutRow = this.featuresForRow(feature)[row]
     return layoutRow?.find((f) => bp >= f.start && bp <= f.end)
   }
+
+  getRowForFeature(
+    feature: AnnotationFeatureI,
+    childFeature: AnnotationFeatureI,
+  ) {
+    const rows = this.featuresForRow(feature)
+    for (const [idx, row] of rows.entries()) {
+      if (row.some((feature) => feature._id === childFeature._id)) {
+        return idx
+      }
+    }
+    return
+  }
 }
