@@ -212,7 +212,7 @@ export const AnnotationFeature = types
       }
       return parent
     },
-    get topLevelFeature() {
+    get topLevelFeature(): AnnotationFeatureI {
       let feature = self
       let parent
       do {
@@ -223,7 +223,7 @@ export const AnnotationFeature = types
           parent = undefined
         }
       } while (parent)
-      return feature
+      return feature as AnnotationFeatureI
     },
     get assemblyId(): string {
       return getParentOfType(self, ApolloAssembly)._id

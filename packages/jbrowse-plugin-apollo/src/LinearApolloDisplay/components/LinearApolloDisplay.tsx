@@ -159,7 +159,9 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
                     regionNumber: idx,
                   })?.offsetPx ?? 0) - lgv.offsetPx
                 const [feature] = checkResult.ids
-                // @ts-expect-error this does exist
+                if (!feature) {
+                  return null
+                }
                 const { topLevelFeature } = feature
                 const row = parent
                   ? model.getFeatureLayoutPosition(topLevelFeature)
