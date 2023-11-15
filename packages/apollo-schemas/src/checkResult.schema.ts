@@ -6,7 +6,7 @@ export type CheckResultDocument = HydratedDocument<CheckResult>
 
 @Schema()
 export class CheckResult
-  implements Omit<CheckResultSnapshot, '_id' | 'refSeq'>
+  implements Omit<CheckResultSnapshot, '_id' | 'ids' | 'refSeq'>
 {
   // Don't make this a @Prop since _id is already on a MongoDB document
   _id: Types.ObjectId
@@ -14,8 +14,8 @@ export class CheckResult
   @Prop()
   name: string
 
-  @Prop({ type: [String], required: true, index: true })
-  ids: string[]
+  @Prop({ type: [MongooseSchema.Types.ObjectId], required: true, index: true })
+  ids: Types.ObjectId[]
 
   @Prop({
     required: true,
