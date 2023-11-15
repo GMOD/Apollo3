@@ -87,6 +87,43 @@ describe('Different ways of editing features', () => {
     cy.contains('td', 'Gene Ontology=GO:0044838')
   })
 
+  it('FIXME: Can delete feature with checks', () => {
+    cy.addAssemblyFromGff('stopcodon', 'test_data/cdsChecks/stopcodon.gff3')
+    cy.selectAssemblyToView('stopcodon')
+    cy.searchFeatures('gene02', 1)
+    cy.contains('td', '=cds02.1').rightclick()
+    cy.contains('Delete feature').click()
+    cy.contains('Are you sure you want to delete the selected feature?')
+      .parent()
+      .parent()
+      .within(() => {
+        cy.contains('button', /^yes$/, { matchCase: false }).click()
+      })
+    // Nice to fix: Avoid reloading to make the deleted row disappear
+    cy.reload()
+    cy.contains('td', '=gene02', { timeout: 10_000 })
+    cy.contains('td', '=cds02.1', { timeout: 10_000 }).should('not.exist')
+  })
+
+  it('FIXME: Can delete single CDS mRNA with checks', () => {
+    cy.addAssemblyFromGff('stopcodon', 'test_data/cdsChecks/stopcodon.gff3')
+    cy.selectAssemblyToView('stopcodon')
+    cy.searchFeatures('gene04', 1)
+    cy.contains('td', '=cds04.1').rightclick()
+    cy.contains('Delete feature').click()
+
+    // Fails with `Cannot destructure property 'topLevelFeature' of 'feature' as it is undefined.`
+    // cy.contains('Are you sure you want to delete the selected feature?')
+    //   .parent()
+    //   .parent()
+    //   .within(() => {
+    //     cy.contains('button', /^yes$/, { matchCase: false }).click()
+    //   })
+    // cy.reload()
+    // cy.contains('td', '=gene04', { timeout: 10_000 })
+    // cy.contains('td', '=cds04.1', { timeout: 10_000 }).should('not.exist')
+  })
+
   it('Can delete feature', () => {
     cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
     cy.selectAssemblyToView('onegene.fasta.gff3')

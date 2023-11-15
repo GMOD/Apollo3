@@ -1,15 +1,17 @@
 import { getConf } from '@jbrowse/core/configuration'
 import { Region, getSession } from '@jbrowse/core/util'
 import { AssemblySpecificChange, Change } from 'apollo-common'
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
+import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
 import { ValidationResultSet } from 'apollo-shared'
 
 import { SubmitOpts } from '../ChangeManager'
 import { BackendDriver } from './BackendDriver'
 
 export class InMemoryFileDriver extends BackendDriver {
-  async getFeatures(): Promise<AnnotationFeatureSnapshot[]> {
-    return []
+  async getFeatures(): Promise<
+    [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
+  > {
+    return [[], []]
   }
 
   async getSequence(region: Region) {

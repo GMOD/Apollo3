@@ -40,8 +40,8 @@ Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
     .should('contain', 'All operations successful')
   // eslint-disable-next-line cypress/no-unnecessary-waiting
   cy.wait(1000)
-
   cy.reload()
+  cy.get('button[aria-label="Close drawer"]', { timeout: 20_000 }).click()
   cy.contains('Select assembly to view', { timeout: 10_000 })
 })
 
@@ -104,7 +104,7 @@ Cypress.Commands.add(
       .invoke('val')
       .as('currentLocation')
 
-    cy.get<string>('@currentLocation').then((currentLocation) => {
+    cy.get<string>('@currentLocation').should((currentLocation) => {
       const [xcontig, s, e] = currentLocation.split(/:|\.\./)
       const xstart: number = Number.parseInt(s.replace(',', ''), 10)
       const xend: number = Number.parseInt(e.replace(',', ''), 10)

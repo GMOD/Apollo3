@@ -162,8 +162,22 @@ export function layoutsModelFactory(
         for (const layout of featureLayouts) {
           for (const [layoutRowNum, layoutRow] of layout) {
             for (const [featureRowNum, layoutFeature] of layoutRow) {
+              if (featureRowNum !== 0) {
+                // Same top-level feature in all feature rows, so only need to
+                // check the first one
+                continue
+              }
               if (feature._id === layoutFeature._id) {
                 return { layoutRow: layoutRowNum, featureRow: featureRowNum }
+              }
+              if (layoutFeature.hasDescendant(feature._id)) {
+                const row = getGlyph(
+                  layoutFeature,
+                  self.lgv.bpPerPx,
+                ).getRowForFeature(layoutFeature, feature)
+                if (row !== undefined) {
+                  return { layoutRow: layoutRowNum, featureRow: row }
+                }
               }
             }
           }

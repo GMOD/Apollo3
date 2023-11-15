@@ -251,7 +251,7 @@ export class CanonicalGeneGlyph extends Glyph {
               ctx.fillStyle =
                 apolloSelectedFeature && cds._id === apolloSelectedFeature._id
                   ? 'rgb(0,0,0)'
-                  : 'rgb(255,165,0)'
+                  : 'rgb(171,71,188)'
               ctx.fillRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
               if (forwardFill && backwardFill && strand) {
                 const reversal = reversed ? -1 : 1
@@ -954,6 +954,23 @@ export class CanonicalGeneGlyph extends Glyph {
     }
 
     return featureFromLayout
+  }
+
+  getRowForFeature(
+    feature: AnnotationFeatureI,
+    childFeature: AnnotationFeatureI,
+  ) {
+    const rows = this.featuresForRow(feature)
+    for (const [idx, row] of rows.entries()) {
+      if (
+        row.some(
+          (feature) => feature.annotationFeature._id === childFeature._id,
+        )
+      ) {
+        return idx
+      }
+    }
+    return
   }
 
   async executeDrag(stateModel: LinearApolloDisplay) {

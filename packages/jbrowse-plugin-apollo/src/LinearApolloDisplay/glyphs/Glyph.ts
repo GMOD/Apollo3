@@ -37,6 +37,11 @@ export abstract class Glyph {
     row: number,
   ): AnnotationFeatureI | undefined
 
+  abstract getRowForFeature(
+    feature: AnnotationFeatureI,
+    childFeature: AnnotationFeatureI,
+  ): number | undefined
+
   abstract continueDrag(
     display: LinearApolloDisplayRendering,
     currentMousePosition: MousePosition,

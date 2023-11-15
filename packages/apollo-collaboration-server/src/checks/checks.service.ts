@@ -121,7 +121,9 @@ export class ChecksService {
   }
 
   async clearChecksForFeature(featureDoc: FeatureDocument) {
-    return this.checkResultModel.deleteMany({ ids: featureDoc._id }).exec()
+    return this.checkResultModel
+      .deleteMany({ ids: { $in: featureDoc.allIds } })
+      .exec()
   }
 
   /**

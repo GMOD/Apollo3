@@ -215,9 +215,9 @@ export function clientDataStoreFactory(
           if (!backendDriver) {
             return
           }
-          const features = (yield backendDriver.getFeatures(
+          const [features, checkResults] = (yield backendDriver.getFeatures(
             region,
-          )) as AnnotationFeatureSnapshot[]
+          )) as [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
           if (features.length === 0) {
             continue
           }
@@ -240,6 +240,7 @@ export function clientDataStoreFactory(
               ref.features.put(feature)
             }
           }
+          self.addCheckResults(checkResults)
         }
       }),
       loadRefSeq: flow(function* loadRefSeq(regions: Region[]) {
@@ -271,6 +272,7 @@ export function clientDataStoreFactory(
   return types.snapshotProcessor(clientStoreType, {
     postProcessor(snap: SnapshotOut<typeof clientStoreType>) {
       snap.assemblies = {}
+      snap.checkResults = {}
       return snap
     },
   })

@@ -89,6 +89,21 @@ export const AnnotationFeature = types
       }
       return max
     },
+    hasDescendant(featureId: string) {
+      const { children } = self
+      if (!children) {
+        return false
+      }
+      for (const [id, child] of children) {
+        if (id === featureId) {
+          return true
+        }
+        if (child.hasDescendant(featureId)) {
+          return true
+        }
+      }
+      return false
+    },
   }))
   .actions((self) => ({
     setAttributes(attributes: Map<string, string[]>) {
@@ -196,6 +211,19 @@ export const AnnotationFeature = types
         // pass
       }
       return parent
+    },
+    get topLevelFeature(): AnnotationFeatureI {
+      let feature = self
+      let parent
+      do {
+        try {
+          parent = getParentOfType(feature, AnnotationFeature)
+          feature = parent
+        } catch {
+          parent = undefined
+        }
+      } while (parent)
+      return feature as AnnotationFeatureI
     },
     get assemblyId(): string {
       return getParentOfType(self, ApolloAssembly)._id

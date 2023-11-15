@@ -1,7 +1,12 @@
 import { Menu, MenuItem } from '@jbrowse/core/ui'
-import { getContainingView } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  doesIntersect2,
+  getContainingView,
+} from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { Alert, Tooltip, useTheme } from '@mui/material'
+import ErrorIcon from '@mui/icons-material/Error'
+import { Alert, Avatar, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
@@ -13,7 +18,7 @@ interface LinearApolloDisplayProps {
 }
 export type Coord = [number, number]
 
-const useStyles = makeStyles()({
+const useStyles = makeStyles()((theme) => ({
   canvasContainer: {
     position: 'relative',
     left: 0,
@@ -26,7 +31,12 @@ const useStyles = makeStyles()({
     textOverflow: 'ellipsis',
     overflow: 'hidden',
   },
-})
+  avatar: {
+    position: 'absolute',
+    color: theme.palette.warning.light,
+    backgroundColor: theme.palette.warning.contrastText,
+  },
+}))
 
 export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   props: LinearApolloDisplayProps,
@@ -34,6 +44,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const theme = useTheme()
   const { model } = props
   const {
+    apolloRowHeight,
     contextMenuItems: getContextMenuItems,
     cursor,
     featuresHeight,
@@ -43,6 +54,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
     onMouseMove,
     onMouseUp,
     regionCannotBeRendered,
+    session,
     setCanvas,
     setCollaboratorCanvas,
     setOverlayCanvas,
@@ -59,6 +71,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   if (!isShown) {
     return null
   }
+  const { assemblyManager } = session as unknown as AbstractSessionModel
   return (
     <div
       className={classes.canvasContainer}
@@ -123,6 +136,51 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             style={{ cursor: cursor ?? 'default' }}
             data-testid="overlayCanvas"
           />
+          {lgv.displayedRegions.flatMap((region, idx) => {
+            const assembly = assemblyManager.get(region.assemblyName)
+            return [...session.apolloDataStore.checkResults.values()]
+              .filter(
+                (checkResult) =>
+                  assembly?.isValidRefName(checkResult.refSeq) &&
+                  assembly?.getCanonicalRefName(checkResult.refSeq) ===
+                    region.refName &&
+                  doesIntersect2(
+                    region.start,
+                    region.end,
+                    checkResult.start,
+                    checkResult.end,
+                  ),
+              )
+              .map((checkResult) => {
+                const left =
+                  (lgv.bpToPx({
+                    refName: region.refName,
+                    coord: checkResult.start,
+                    regionNumber: idx,
+                  })?.offsetPx ?? 0) - lgv.offsetPx
+                const [feature] = checkResult.ids
+                if (!feature) {
+                  return null
+                }
+                const { topLevelFeature } = feature
+                const row = parent
+                  ? model.getFeatureLayoutPosition(topLevelFeature)
+                      ?.layoutRow ?? 0
+                  : 0
+                const top = row * apolloRowHeight
+                const height = apolloRowHeight
+                return (
+                  <Tooltip key={checkResult._id} title={checkResult.message}>
+                    <Avatar
+                      className={classes.avatar}
+                      style={{ top, left, height, width: height }}
+                    >
+                      <ErrorIcon />
+                    </Avatar>
+                  </Tooltip>
+                )
+              })
+          })}
           <Menu
             open={contextMenuItems.length > 0}
             onMenuItemClick={(_, callback) => {
