@@ -1,21 +1,24 @@
 import { Menu, MenuItem } from '@jbrowse/core/ui'
-import { AbstractSessionModel, getContainingView } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  doesIntersect2,
+  getContainingView,
+} from '@jbrowse/core/util'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import WarningIcon from '@mui/icons-material/WarningAmberRounded'
-import { Alert, Tooltip, useTheme } from '@mui/material'
+import ErrorIcon from '@mui/icons-material/Error'
+import { Alert, Avatar, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
-import { getGlyph } from '../stateModel/getGlyph'
 
 interface LinearApolloDisplayProps {
   model: LinearApolloDisplayI
 }
 export type Coord = [number, number]
 
-const useStyles = makeStyles()({
+const useStyles = makeStyles()((theme) => ({
   canvasContainer: {
     position: 'relative',
     left: 0,
@@ -28,17 +31,16 @@ const useStyles = makeStyles()({
     textOverflow: 'ellipsis',
     overflow: 'hidden',
   },
-})
+  avatar: {
+    position: 'absolute',
+    color: theme.palette.warning.light,
+    backgroundColor: theme.palette.warning.contrastText,
+  },
+}))
 
 export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   props: LinearApolloDisplayProps,
 ) {
-  const [open, setOpen] = useState(false)
-
-  const toggleTooltip = () => {
-    setOpen(!open)
-  }
-
   const theme = useTheme()
   const { model } = props
   const {
@@ -138,7 +140,16 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             const assembly = assemblyManager.get(region.assemblyName)
             return [...session.apolloDataStore.checkResults.values()]
               .filter(
-                (checkResult) => assembly?.isValidRefName(checkResult.refSeq),
+                (checkResult) =>
+                  assembly?.isValidRefName(checkResult.refSeq) &&
+                  assembly?.getCanonicalRefName(checkResult.refSeq) ===
+                    region.refName &&
+                  doesIntersect2(
+                    region.start,
+                    region.end,
+                    checkResult.start,
+                    checkResult.end,
+                  ),
               )
               .map((checkResult) => {
                 const left =
@@ -148,47 +159,23 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
                     regionNumber: idx,
                   })?.offsetPx ?? 0) - lgv.offsetPx
                 const [feature] = checkResult.ids
-                let parent = feature
-                while (parent?.parent) {
-                  ;({ parent } = parent)
-                }
-                const topRow = parent
-                  ? model.getFeatureLayoutPosition(parent)?.layoutRow ?? 0
+                // @ts-expect-error this does exist
+                const { topLevelFeature } = feature
+                const row = parent
+                  ? model.getFeatureLayoutPosition(topLevelFeature)
+                      ?.layoutRow ?? 0
                   : 0
-                const rowCount = parent
-                  ? getGlyph(parent, lgv.bpPerPx).getRowCount(
-                      parent,
-                      lgv.bpPerPx,
-                    )
-                  : 0
-                const top = topRow * apolloRowHeight
-                const height = rowCount * apolloRowHeight
+                const top = row * apolloRowHeight
+                const height = apolloRowHeight
                 return (
-                  <div
-                    key={checkResult._id}
-                    style={{
-                      position: 'absolute',
-                      top,
-                      left,
-                      height,
-                      borderWidth: 1,
-                      borderStyle: 'solid',
-                      borderColor: 'black',
-                    }}
-                  >
-                    <Tooltip
-                      PopperProps={{
-                        disablePortal: true,
-                      }}
-                      open={open}
-                      disableFocusListener
-                      disableHoverListener
-                      disableTouchListener
-                      title={checkResult.message}
+                  <Tooltip key={checkResult._id} title={checkResult.message}>
+                    <Avatar
+                      className={classes.avatar}
+                      style={{ top, left, height, width: height }}
                     >
-                      <WarningIcon color="warning" onClick={toggleTooltip} />
-                    </Tooltip>
-                  </div>
+                      <ErrorIcon />
+                    </Avatar>
+                  </Tooltip>
                 )
               })
           })}

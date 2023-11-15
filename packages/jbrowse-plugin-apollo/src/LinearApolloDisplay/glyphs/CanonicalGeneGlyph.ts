@@ -251,7 +251,7 @@ export class CanonicalGeneGlyph extends Glyph {
               ctx.fillStyle =
                 apolloSelectedFeature && cds._id === apolloSelectedFeature._id
                   ? 'rgb(0,0,0)'
-                  : 'rgb(255,165,0)'
+                  : 'rgb(171,71,188)'
               ctx.fillRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
               if (forwardFill && backwardFill && strand) {
                 const reversal = reversed ? -1 : 1

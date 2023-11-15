@@ -131,7 +131,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
               cdsOrUTR._id === apolloSelectedFeature._id
                 ? 'rgb(0,0,0)'
                 : isCDS
-                ? 'rgb(255,165,0)'
+                ? 'rgb(171,71,188)'
                 : 'rgb(211,211,211)'
             ctx.fillRect(startPx + 1, cdsOrUTRTop + 1, widthPx - 2, height - 2)
             if (forwardFill && backwardFill && strand) {
