@@ -1,17 +1,30 @@
+import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
+  Checkbox,
   DialogActions,
   DialogContent,
   DialogContentText,
   MenuItem,
+  Paper,
   Select,
   SelectChangeEvent,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import {
+  ApolloInternetAccount,
+  CollaborationServerDriver,
+} from '../BackendDrivers'
 import { ApolloSessionModel } from '../session'
 import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
@@ -35,131 +48,132 @@ interface CheckDocument {
 
 export function ManageChecks({ handleClose, session }: ManageChecksProps) {
   const { internetAccounts } = getRoot<ApolloRootModel>(session)
-  const apolloInternetAccount = internetAccounts.find(
+  const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
+  const [errorMessage, setErrorMessage] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+  const apolloInternetAccounts = internetAccounts.filter(
     (ia) => ia.type === 'ApolloInternetAccount',
-  ) as ApolloInternetAccountModel | undefined
-  if (!apolloInternetAccount) {
+  ) as ApolloInternetAccountModel[]
+  if (apolloInternetAccounts.length === 0) {
     throw new Error('No Apollo internet account found')
   }
-  const { baseURL } = apolloInternetAccount
-  const [errorMessage, setErrorMessage] = useState<string>()
-  const [assemblyCollection, setAssemblyCollection] = useState<
-    AssemblyDocument[]
-  >([])
-  const [allCheckCollection, setAllCheckCollection] = useState<CheckDocument[]>(
-    [],
+  const [selectedInternetAccount, setSelectedInternetAccount] = useState(
+    apolloInternetAccounts[0],
   )
-
-  const [assemblyId, setAssemblyId] = useState<string>('')
+  const [checks, setChecks] = useState<CheckDocument[]>([])
   const [selectedChecks, setSelectedChecks] = useState<string[]>([])
 
-  useEffect(() => {
-    async function getAssemblies() {
-      const uri = new URL('/assemblies', baseURL).href
-      const apolloFetch = apolloInternetAccount?.getFetcher({
-        locationType: 'UriLocation',
-        uri,
-      })
-      if (apolloFetch) {
-        const response = await apolloFetch(uri, { method: 'GET' })
-        if (!response.ok) {
-          const newErrorMessage = await createFetchErrorMessage(
-            response,
-            'Error when retrieving assemblies from server',
-          )
-          setErrorMessage(newErrorMessage)
-          return
-        }
-        const data = (await response.json()) as AssemblyDocument[]
-        setAssemblyCollection(data)
-      }
-    }
-    async function getChecks() {
-      const uri = new URL('/checks/types', baseURL).href
-      const apolloFetch = apolloInternetAccount?.getFetcher({
-        locationType: 'UriLocation',
-        uri,
-      })
-      if (apolloFetch) {
-        const response = await apolloFetch(uri, { method: 'GET' })
-        if (!response.ok) {
-          const newErrorMessage = await createFetchErrorMessage(
-            response,
-            'Error when retrieving checks from server',
-          )
-          setErrorMessage(newErrorMessage)
-          return
-        }
-        const data = (await response.json()) as CheckDocument[]
-        setAllCheckCollection(data)
-      }
-    }
-    getAssemblies().catch((error) => setErrorMessage(String(error)))
-    getChecks().catch((error) => setErrorMessage(String(error)))
-  }, [apolloInternetAccount, baseURL])
-
-  useEffect(() => {
-    if (!assemblyId && assemblyCollection.length > 0) {
-      setAssemblyId(assemblyCollection[0]._id)
-      setSelectedChecks(assemblyCollection[0].checks)
-    }
-  }, [assemblyId, assemblyCollection])
-
-  async function handleChangeAssembly(e: SelectChangeEvent<string>) {
-    const assId = e.target.value as string
-    setAssemblyId(assId)
-    const result = assemblyCollection.find(({ _id }) => _id === assId)
-    if (result?.checks) {
-      setSelectedChecks(result?.checks)
-    } else {
-      setSelectedChecks([])
-    }
+  const { collaborationServerDriver } = session.apolloDataStore as {
+    collaborationServerDriver: CollaborationServerDriver
+    getInternetAccount(
+      assemblyName?: string,
+      internetAccountId?: string,
+    ): ApolloInternetAccount
   }
 
-  // eslint-disable-next-line unicorn/consistent-function-scoping
+  const assemblies = collaborationServerDriver.getAssemblies()
+
+  useEffect(() => {
+    async function getChecks() {
+      const { baseURL, getFetcher } = selectedInternetAccount
+      const uri = new URL('/checks/types', baseURL).href
+      const apolloFetch = getFetcher({ locationType: 'UriLocation', uri })
+      const response = await apolloFetch(uri, { method: 'GET' })
+      if (!response.ok) {
+        const newErrorMessage = await createFetchErrorMessage(
+          response,
+          'Error when retrieving checks from server',
+        )
+        setErrorMessage(newErrorMessage)
+        return
+      }
+      const data = (await response.json()) as CheckDocument[]
+      setChecks(data)
+    }
+    getChecks().catch((error) => setErrorMessage(String(error)))
+  }, [selectedInternetAccount])
+
+  useEffect(() => {
+    if (assemblies.length > 0 && selectedAssembly === undefined) {
+      setSelectedAssembly(assemblies[0])
+    }
+  }, [assemblies, selectedAssembly])
+
+  useEffect(() => {
+    async function getChecks() {
+      if (!selectedAssembly) {
+        return
+      }
+      const { baseURL, getFetcher } = selectedInternetAccount
+      const uri = new URL(`/assemblies/${selectedAssembly.name}`, baseURL).href
+      const apolloFetch = getFetcher({ locationType: 'UriLocation', uri })
+      const response = await apolloFetch(uri, { method: 'GET' })
+      if (!response.ok) {
+        const newErrorMessage = await createFetchErrorMessage(
+          response,
+          'Error when retrieving assembly from server',
+        )
+        setErrorMessage(newErrorMessage)
+        return
+      }
+      const assembly = (await response.json()) as AssemblyDocument
+      setSelectedChecks(assembly.checks)
+    }
+    getChecks().catch((error) => setErrorMessage(String(error)))
+  }, [selectedAssembly, selectedInternetAccount])
+
+  function handleChangeAssembly(e: SelectChangeEvent<string>) {
+    const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
+    setSelectedAssembly(newAssembly)
+  }
+
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!selectedAssembly) {
+      setErrorMessage('Must select assembly!')
+      return
+    }
     const { notify } = session as unknown as AbstractSessionModel
+    const { baseURL, getFetcher } = selectedInternetAccount
     const uri = new URL('/assemblies/checks', baseURL).href
-    const apolloFetch = apolloInternetAccount?.getFetcher({
+    const apolloFetch = getFetcher({
       locationType: 'UriLocation',
       uri,
     })
-    if (apolloFetch) {
-      const response = await apolloFetch(uri, {
-        method: 'POST',
-        body: JSON.stringify({
-          _id: assemblyId,
-          checks: selectedChecks,
-          name: '',
-        }),
-        headers: { 'Content-Type': 'application/json' },
-      })
-      if (response.ok) {
-        notify('Assembly checks updated successfully', 'success')
-        handleClose()
-      } else {
-        const newErrorMessage = await createFetchErrorMessage(
-          response,
-          'Error when updating assembly checks',
-        )
-        setErrorMessage(newErrorMessage)
-      }
-      return
+    const response = await apolloFetch(uri, {
+      method: 'POST',
+      body: JSON.stringify({
+        _id: selectedAssembly.name,
+        checks: selectedChecks,
+        name: '',
+      }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    if (response.ok) {
+      notify('Assembly checks updated successfully', 'success')
+      handleClose()
+    } else {
+      const newErrorMessage = await createFetchErrorMessage(
+        response,
+        'Error when updating assembly checks',
+      )
+      setErrorMessage(newErrorMessage)
     }
+    return
   }
 
-  // eslint-disable-next-line unicorn/consistent-function-scoping
   function handleCheckboxChange(
     e: React.ChangeEvent<HTMLInputElement>,
-    _id: string,
+    checked: boolean,
   ): void {
-    const checks = selectedChecks as string[]
-    if (e.target.checked && !checks.includes(_id)) {
-      checks.push(_id)
-      setSelectedChecks(checks)
-    }
-    if (!e.target.checked) {
+    const checks = [...selectedChecks]
+    const _id = e.target.value
+    if (checked) {
+      if (!checks.includes(_id)) {
+        checks.push(_id)
+        setSelectedChecks(checks)
+      }
+    } else {
       const index = checks.indexOf(_id, 0)
       if (index > -1) {
         checks.splice(index, 1)
@@ -168,64 +182,85 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
     }
   }
 
-  // eslint-disable-next-line unicorn/consistent-function-scoping
-  function getCheck(_id: string): boolean {
-    // TODO: GARRETT
-    return selectedChecks.includes(_id) || false
+  function handleChangeInternetAccount(e: SelectChangeEvent<string>) {
+    setSubmitted(false)
+    const newlySelectedInternetAccount = apolloInternetAccounts.find(
+      (ia) => ia.internetAccountId === e.target.value,
+    )
+    if (!newlySelectedInternetAccount) {
+      throw new Error(
+        `Could not find internetAccount with ID "${e.target.value}"`,
+      )
+    }
+    setSelectedInternetAccount(newlySelectedInternetAccount)
   }
 
   return (
     <Dialog
       open
-      style={{
-        width: '500px',
-        position: 'fixed',
-        left: '50%',
-      }}
       title="Manage Checks"
       handleClose={handleClose}
       data-testid="manage-checks"
     >
-      <Select
-        style={{ width: 300, marginLeft: 40 }}
-        value={assemblyId}
-        onChange={handleChangeAssembly}
-      >
-        {assemblyCollection.map((option) => (
-          <MenuItem key={option._id} value={option._id}>
-            {option.name}
-          </MenuItem>
-        ))}
-      </Select>
-      <br />
-      <br />
       <form onSubmit={onSubmit}>
-        <table style={{ width: 300, marginLeft: 40 }}>
-          <thead>
-            <tr
-              style={{
-                textAlign: 'left',
-              }}
-            >
-              <th>Check name</th>
-              <th>Use check</th>
-            </tr>
-          </thead>
-          <tbody>
-            {allCheckCollection.map((check) => (
-              <tr key={check._id}>
-                <td>{check.name}</td>
-                <td>
-                  <input
-                    type="checkbox"
-                    // checked={getCheck(check._id)} // TODO: GARRETT
-                    onChange={(e) => handleCheckboxChange(e, check._id)}
-                  />
-                </td>
-              </tr>
+        <DialogContent>
+          {apolloInternetAccounts.length > 1 ? (
+            <>
+              <DialogContentText>Select account</DialogContentText>
+              <Select
+                value={selectedInternetAccount.internetAccountId}
+                onChange={handleChangeInternetAccount}
+                disabled={submitted && !errorMessage}
+              >
+                {internetAccounts.map((option) => (
+                  <MenuItem key={option.id} value={option.internetAccountId}>
+                    {option.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </>
+          ) : null}
+          <DialogContentText>Select assembly</DialogContentText>
+          <Select
+            style={{ width: 300 }}
+            labelId="label"
+            value={selectedAssembly?.name ?? ''}
+            onChange={handleChangeAssembly}
+            disabled={assemblies.length === 0}
+          >
+            {assemblies.map((option) => (
+              <MenuItem key={option.name} value={option.name}>
+                {option.displayName ?? option.name}
+              </MenuItem>
             ))}
-          </tbody>
-        </table>
+          </Select>
+          <br />
+          <br />
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Check name</TableCell>
+                  <TableCell>Use check</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {checks.map((check) => (
+                  <TableRow key={check._id}>
+                    <TableCell>{check.name}</TableCell>
+                    <TableCell>
+                      <Checkbox
+                        value={check._id}
+                        checked={selectedChecks.includes(check._id)}
+                        onChange={handleCheckboxChange}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </DialogContent>
         <DialogActions>
           <Button variant="contained" type="submit">
             Submit
