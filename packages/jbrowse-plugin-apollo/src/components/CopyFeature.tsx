@@ -77,10 +77,9 @@ export function CopyFeature({
   const { assemblyManager, notify } = session as unknown as AbstractSessionModel
   const assemblies = assemblyManager.assemblyList
 
-  const [selectedAssemblyId, setSelectedAssemblyId] =
-    useState<string>(
-      assemblies.find((a) => a.name !== sourceAssemblyId)?.name,
-    ) || ''
+  const [selectedAssemblyId, setSelectedAssemblyId] = useState<
+    string | undefined
+  >(assemblies.find((a) => a.name !== sourceAssemblyId)?.name)
   const [refNames, setRefNames] = useState<Collection[]>([])
   const [selectedRefSeqId, setSelectedRefSeqId] = useState('')
   const [start, setStart] = useState(sourceFeature.start)
@@ -93,6 +92,10 @@ export function CopyFeature({
   useEffect(() => {
     setSelectedRefSeqId('')
     async function getRefNames() {
+      if (!selectedAssemblyId) {
+        setErrorMessage('No assemblies to copy to')
+        return
+      }
       const assembly = await assemblyManager.waitForAssembly(selectedAssemblyId)
       if (!assembly) {
         return
@@ -116,6 +119,9 @@ export function CopyFeature({
   }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    if (!selectedAssemblyId) {
+      return
+    }
     event.preventDefault()
     setErrorMessage('')
     const featureLength = sourceFeature.length

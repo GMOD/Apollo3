@@ -7,13 +7,11 @@ import {
 } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { DeleteFeatureChange } from 'apollo-shared'
-import { getRoot, getSnapshot } from 'mobx-state-tree'
+import { getSnapshot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
-import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ChangeManager } from '../ChangeManager'
 import { ApolloSessionModel } from '../session'
-import { ApolloRootModel } from '../types'
 import { Dialog } from './Dialog'
 
 interface DeleteFeatureProps {
@@ -35,14 +33,7 @@ export function DeleteFeature({
   sourceAssemblyId,
   sourceFeature,
 }: DeleteFeatureProps) {
-  const { internetAccounts } = getRoot<ApolloRootModel>(session)
   const { notify } = session as unknown as AbstractSessionModel
-  const apolloInternetAccount = internetAccounts.find(
-    (ia) => ia.type === 'ApolloInternetAccount',
-  ) as ApolloInternetAccountModel | undefined
-  if (!apolloInternetAccount) {
-    throw new Error('No Apollo internet account found')
-  }
   const [errorMessage, setErrorMessage] = useState('')
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {

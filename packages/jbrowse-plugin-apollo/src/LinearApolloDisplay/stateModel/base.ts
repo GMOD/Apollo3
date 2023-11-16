@@ -95,15 +95,9 @@ export function baseModelFactory(
           'sequence',
           'metadata',
         ]) as { internetAccountConfigId: string }
-        const matchingAccount = internetAccounts.find(
+        return internetAccounts.find(
           (ia) => getConf(ia, 'internetAccountId') === internetAccountConfigId,
         ) as ApolloInternetAccountModel | undefined
-        if (!matchingAccount) {
-          throw new Error(
-            `No InternetAccount found with config id ${internetAccountConfigId}`,
-          )
-        }
-        return matchingAccount
       },
       get changeManager() {
         return (self.session as unknown as ApolloSessionModel).apolloDataStore
