@@ -22,8 +22,7 @@ export function featureContextMenuItems(
   changeManager: ChangeManager,
 ) {
   const internetAccount = getApolloInternetAccount(session)
-  const { getRole } = internetAccount
-  const role = getRole()
+  const role = internetAccount ? internetAccount.getRole() : 'admin'
   const admin = role === 'admin'
   const readOnly = !(role && ['admin', 'user'].includes(role))
   const menuItems: MenuItem[] = []

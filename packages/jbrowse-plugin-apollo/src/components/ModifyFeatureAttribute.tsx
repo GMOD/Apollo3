@@ -119,17 +119,12 @@ export function ModifyFeatureAttribute({
 
   const { internetAccounts } = getRoot<ApolloRootModel>(session)
   const internetAccount = useMemo(() => {
-    const apolloInternetAccount = internetAccounts.find(
+    return internetAccounts.find(
       (ia) => ia.type === 'ApolloInternetAccount',
     ) as ApolloInternetAccountModel | undefined
-    if (!apolloInternetAccount) {
-      throw new Error('No Apollo internet account found')
-    }
-    return apolloInternetAccount
   }, [internetAccounts])
-  const editable =
-    Boolean(internetAccount.authType) &&
-    ['admin', 'user'].includes(internetAccount.getRole() ?? '')
+  const role = internetAccount ? internetAccount.getRole() : 'admin'
+  const editable = ['admin', 'user'].includes(role ?? '')
 
   const [errorMessage, setErrorMessage] = useState('')
   const [attributes, setAttributes] = useState<Record<string, string[]>>(
