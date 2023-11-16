@@ -130,7 +130,7 @@ export class CollaborationServerDriver extends BackendDriver {
           changeInfo: SerializedChange
           userName: string
         }) => {
-          // Save server last change sequnece into session storage
+          // Save server last change sequence into session storage
           internetAccount.setLastChangeSequenceNumber(
             Number(message.changeSequence),
           )

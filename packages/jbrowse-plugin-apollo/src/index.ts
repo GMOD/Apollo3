@@ -39,7 +39,12 @@ import {
 } from './ApolloSixFrameRenderer'
 import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
 import { BackendDriver } from './BackendDrivers'
-import { DownloadGFF3, OpenLocalFile, ViewChangeLog } from './components'
+import {
+  DownloadGFF3,
+  ManageChecks,
+  OpenLocalFile,
+  ViewChangeLog,
+} from './components'
 import { AddFeature } from './components/AddFeature'
 import { ViewCheckResults } from './components/ViewCheckResults'
 import ApolloPluginConfigurationSchema from './config'
@@ -303,6 +308,22 @@ export default class ApolloPlugin extends Plugin {
           ;(session as unknown as AbstractSessionModel).queueDialog(
             (doneCallback) => [
               DownloadGFF3,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+              },
+            ],
+          )
+        },
+      })
+      pluginManager.rootModel.appendToMenu('Apollo', {
+        label: 'Manage Checks',
+        onClick: (session: ApolloSessionModel) => {
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              ManageChecks,
               {
                 session,
                 handleClose: () => {

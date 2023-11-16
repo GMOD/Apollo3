@@ -96,7 +96,11 @@ export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange
 
       // Add refSeqs
       // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
-      await this.addRefSeqIntoDb(fileDoc, newAssemblyDoc._id, backend)
+      await this.addRefSeqIntoDb(
+        fileDoc,
+        newAssemblyDoc._id.toString(),
+        backend,
+      )
 
       // Loop all features
       const featureStream = filesService.parseGFF3(

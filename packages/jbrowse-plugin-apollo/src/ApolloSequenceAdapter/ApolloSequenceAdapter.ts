@@ -178,7 +178,7 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
 
   /**
    * called to provide a hint that data tied to a certain region
-   * will not be needed for the forseeable future and can be purged
+   * will not be needed for the foreseeable future and can be purged
    * from caches, etc
    */
   // eslint-disable-next-line @typescript-eslint/no-empty-function

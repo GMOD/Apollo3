@@ -70,7 +70,7 @@ export function AddAssembly({
   const [fileType, setFileType] = useState(FileType.GFF3)
   const [importFeatures, setImportFeatures] = useState(true)
   const [submitted, setSubmitted] = useState(false)
-  const [selectedInternetAcount, setSelectedInternetAcount] = useState(
+  const [selectedInternetAccount, setSelectedInternetAccount] = useState(
     apolloInternetAccounts[0],
   )
   const [fastaFile, setFastaFile] = useState('')
@@ -87,7 +87,7 @@ export function AddAssembly({
         `Could not find internetAccount with ID "${e.target.value}"`,
       )
     }
-    setSelectedInternetAcount(newlySelectedInternetAccount)
+    setSelectedInternetAccount(newlySelectedInternetAccount)
   }
 
   function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -166,7 +166,7 @@ export function AddAssembly({
     jobsManager.runJob(job)
 
     let fileId = ''
-    const { baseURL, getFetcher, internetAccountId } = selectedInternetAcount
+    const { baseURL, getFetcher, internetAccountId } = selectedInternetAccount
     if (fileType !== FileType.EXTERNAL && file) {
       // First upload file
       const url = new URL('/files', baseURL).href
@@ -278,7 +278,7 @@ export function AddAssembly({
             <>
               <DialogContentText>Select account</DialogContentText>
               <Select
-                value={selectedInternetAcount.internetAccountId}
+                value={selectedInternetAccount.internetAccountId}
                 onChange={handleChangeInternetAccount}
                 disabled={submitted && !errorMessage}
               >

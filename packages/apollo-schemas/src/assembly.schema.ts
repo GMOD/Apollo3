@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { Document } from 'mongoose'
+import { Schema as MongooseSchema, Types } from 'mongoose'
 
 export type AssemblyDocument = Assembly & Document
 
@@ -25,6 +25,9 @@ export class Assembly {
 
   @Prop({ type: { fa: String, fai: String } })
   externalLocation: { fa: string; fai: string }
+
+  @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Check' }] })
+  checks: Types.ObjectId[]
 }
 
 export const AssemblySchema = SchemaFactory.createForClass(Assembly)

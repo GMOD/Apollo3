@@ -132,9 +132,11 @@ export class FeaturesService {
         start: searchDto.start,
         end: searchDto.end,
       })
+    for (const featureDoc of featureDocs) {
+      await this.checksService.checkFeature(featureDoc)
+    }
     const checkResults = await this.checksService.findByRange(searchDto)
-    const checkResultsFlat = checkResults.flat()
-    return [featureDocs, checkResultsFlat]
+    return [featureDocs, checkResults]
   }
 
   async checkFeature(featureId: string) {

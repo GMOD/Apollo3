@@ -29,7 +29,7 @@ import { FeaturesService } from './features.service'
             // @ts-expect-error ownerDocument does exist, TS just doesn't know it
             if (doc.ownerDocument() === doc && doc.status === 0) {
               await checksService.clearChecksForFeature(doc)
-              await checksService.checkFeature(doc)
+              await checksService.checkFeature(doc, false)
             }
           }
           FeatureSchema.post('save', runChecksOnDocument)

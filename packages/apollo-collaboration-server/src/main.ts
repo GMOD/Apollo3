@@ -2,8 +2,15 @@ import fs from 'node:fs'
 
 import { LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
-import { changeRegistry, operationRegistry } from 'apollo-common'
 import {
+  Check,
+  changeRegistry,
+  checkRegistry,
+  operationRegistry,
+} from 'apollo-common'
+import { CheckSchema } from 'apollo-schemas'
+import {
+  CDSCheck,
   CoreValidation,
   ParentChildValidation,
   changes,
@@ -12,6 +19,7 @@ import {
 } from 'apollo-shared'
 import connectMongoDBSession from 'connect-mongodb-session'
 import session from 'express-session'
+import mongoose from 'mongoose'
 
 import { AppModule } from './app.module'
 import { GlobalExceptionsFilter } from './global-exceptions.filter'
@@ -66,6 +74,9 @@ async function bootstrap() {
     operationRegistry.registerOperation(operationName, operation)
   }
 
+  const cdsCheck = new CDSCheck()
+  checkRegistry.registerCheck(cdsCheck.name, cdsCheck)
+
   validationRegistry.registerValidation(new CoreValidation())
   validationRegistry.registerValidation(new AuthorizationValidation())
   validationRegistry.registerValidation(new ParentChildValidation())
@@ -94,6 +105,27 @@ async function bootstrap() {
   const server = await app.listen(PORT)
   server.headersTimeout = 24 * 60 * 60 * 1000 // one day
   server.requestTimeout = 24 * 60 * 60 * 1000 // one day
+
+  // Add/update checks if needed
+  const checksMap: Map<string, Check> = checkRegistry.getChecks()
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  await mongoose.connect(MONGODB_URI!, {})
+  const ChecksModel = mongoose.model('checks', CheckSchema)
+  for (const [key, check] of checksMap.entries()) {
+    const checkByName = await ChecksModel.find({ name: key }).exec()
+    if (checkByName.length > 0) {
+      const checkByNameAndVersion = await ChecksModel.find({
+        name: key,
+        version: check.version,
+      }).exec()
+      if (checkByNameAndVersion.length === 0) {
+        checkByName[0].version = check.version
+        await checkByName[0].save()
+      }
+    } else {
+      await ChecksModel.create(check)
+    }
+  }
   // eslint-disable-next-line no-console
   console.log(
     `Application is running on: ${await app.getUrl()}, CORS = ${cors}`,

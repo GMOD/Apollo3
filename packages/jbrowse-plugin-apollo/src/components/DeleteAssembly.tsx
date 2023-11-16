@@ -47,7 +47,7 @@ export function DeleteAssembly({
   if (apolloInternetAccounts.length === 0) {
     throw new Error('No Apollo internet account found')
   }
-  const [selectedInternetAcount, setSelectedInternetAcount] = useState(
+  const [selectedInternetAccount, setSelectedInternetAccount] = useState(
     apolloInternetAccounts[0],
   )
 
@@ -77,7 +77,7 @@ export function DeleteAssembly({
         `Could not find internetAccount with ID "${e.target.value}"`,
       )
     }
-    setSelectedInternetAcount(newlySelectedInternetAccount)
+    setSelectedInternetAccount(newlySelectedInternetAccount)
   }
 
   function handleChangeAssembly(e: SelectChangeEvent<string>) {
@@ -98,7 +98,7 @@ export function DeleteAssembly({
       assembly: selectedAssembly.name,
     })
     await changeManager.submit?.(change, {
-      internetAccountId: selectedInternetAcount.internetAccountId,
+      internetAccountId: selectedInternetAccount.internetAccountId,
     })
     handleClose()
     event.preventDefault()
@@ -118,7 +118,7 @@ export function DeleteAssembly({
             <>
               <DialogContentText>Select account</DialogContentText>
               <Select
-                value={selectedInternetAcount.internetAccountId}
+                value={selectedInternetAccount.internetAccountId}
                 onChange={handleChangeInternetAccount}
                 disabled={submitted && !errorMessage}
               >
