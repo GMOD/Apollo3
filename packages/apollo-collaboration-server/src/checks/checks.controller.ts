@@ -1,10 +1,14 @@
-import { Controller, Get, Logger, Param, Query } from '@nestjs/common'
+import { Body, Controller, Get, Logger, Param, Post, Query, Req } from '@nestjs/common'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { ChecksService } from './checks.service'
+import { DecodedJWT } from 'apollo-shared'
+import { CheckDocument } from 'apollo-schemas'
+import { Public } from '../utils/jwt-auth.guard'
 
+@Public()
 @Controller('checks')
 export class ChecksController {
   constructor(private readonly checksService: ChecksService) {}
@@ -19,6 +23,13 @@ export class ChecksController {
   @Get('types')
   getCheckTypes() {
     return this.checksService.getChecks()
+  }
+
+  @Post('broadcast')
+  updateCheckResult(@Body() updatedChecks: CheckDocument, @Req() request: Request) {
+    // const { user } = request as unknown as { user: DecodedJWT }
+    this.logger.debug(`CheckResult: ${JSON.stringify(updatedChecks)}`)
+    return this.checksService.update(updatedChecks._id.toString(), updatedChecks)
   }
 
   /**
