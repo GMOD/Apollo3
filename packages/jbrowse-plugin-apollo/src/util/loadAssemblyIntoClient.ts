@@ -1,6 +1,11 @@
 import gff, { GFF3Comment, GFF3Feature, GFF3Sequence } from '@gmod/gff'
-import { ClientDataStore } from 'apollo-common'
-import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
+import { ClientDataStore, checkRegistry } from 'apollo-common'
+import {
+  AnnotationFeatureSnapshot,
+  ApolloAssemblyI,
+  CheckResultSnapshot,
+} from 'apollo-mst'
+import { getSnapshot } from 'mobx-state-tree'
 import { nanoid } from 'nanoid'
 
 export async function loadAssemblyIntoClient(
@@ -25,16 +30,14 @@ export async function loadAssemblyIntoClient(
     assembly = apolloDataStore.addAssembly(assemblyId)
   }
 
-  const checkResults: CheckResultSnapshot[] = []
   for (const seqLine of featuresAndSequences) {
     if (Array.isArray(seqLine)) {
       // regular feature
       const feature = createFeature(seqLine)
 
-      let ref = assembly.refSeqs.get(feature.refSeq)
-      if (!ref) {
-        ref = assembly.addRefSeq(feature.refSeq, feature.refSeq)
-      }
+      const ref =
+        assembly.refSeqs.get(feature.refSeq) ??
+        assembly.addRefSeq(feature.refSeq, feature.refSeq)
       if (!ref.features.has(feature._id)) {
         ref.addFeature(feature)
       }
@@ -57,13 +60,32 @@ export async function loadAssemblyIntoClient(
       })
     }
   }
-  apolloDataStore.addCheckResults(checkResults)
 
   if (sequenceFeatureCount === 0) {
     throw new Error('No embedded FASTA section found in GFF3')
   }
 
+  const checkResults: CheckResultSnapshot[] = await checkFeatures(assembly)
+  apolloDataStore.addCheckResults(checkResults)
   return assembly
+}
+
+async function checkFeatures(
+  assembly: ApolloAssemblyI,
+): Promise<CheckResultSnapshot[]> {
+  const checkResults: CheckResultSnapshot[] = []
+  for (const ref of assembly.refSeqs.values()) {
+    for (const feature of ref.features.values()) {
+      for (const check of checkRegistry.getChecks().values()) {
+        const result: CheckResultSnapshot[] = await check.checkFeature(
+          getSnapshot(feature),
+          async (start: number, stop: number) => ref.getSequence(start, stop),
+        )
+        checkResults.push(...result)
+      }
+    }
+  }
+  return checkResults
 }
 
 function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
