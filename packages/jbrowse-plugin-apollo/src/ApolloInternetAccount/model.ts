@@ -9,7 +9,14 @@ import {
 } from '@jbrowse/core/util'
 import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
 import { Change } from 'apollo-common'
-import { getDecodedToken, makeUserSessionId } from 'apollo-shared'
+import {
+  ChangeMessage,
+  RequestUserInformationMessage,
+  UserLocation,
+  UserLocationMessage,
+  getDecodedToken,
+  makeUserSessionId,
+} from 'apollo-shared'
 import { autorun } from 'mobx'
 import { Instance, flow, getRoot, types } from 'mobx-state-tree'
 import { io } from 'socket.io-client'
@@ -34,13 +41,6 @@ interface Menu {
 type AuthType = 'google' | 'microsoft' | 'guest'
 
 type Role = 'admin' | 'user' | 'readOnly'
-
-export interface UserLocation {
-  assemblyId: string
-  refSeq: string
-  start: number
-  end: number
-}
 
 const inWebWorker = typeof sessionStorage === 'undefined'
 
@@ -153,10 +153,13 @@ const stateModelFactory = (
         const { socket } = self
         const { changeManager } = (session as ApolloSessionModel)
           .apolloDataStore
-        socket.on('COMMON', (message) => {
+        socket.on('COMMON', (message: ChangeMessage) => {
           // Save server last change sequence into session storage
-          sessionStorage.setItem('LastChangeSequence', message.changeSequence)
-          if (message.userToken === token) {
+          sessionStorage.setItem(
+            'LastChangeSequence',
+            String(message.changeSequence),
+          )
+          if (message.userSessionId === token) {
             return // we did this change, no need to apply it again
           }
           const change = Change.fromJSON(message.changeInfo)
@@ -169,7 +172,7 @@ const stateModelFactory = (
         socket.on('disconnect', () => {
           notify('You are disconnected from the Apollo server.', 'error')
         })
-        socket.on('USER_LOCATION', (message) => {
+        socket.on('USER_LOCATION', (message: UserLocationMessage) => {
           const { channel, locations, userName, userSessionId } = message
           const user = getDecodedToken(token)
           const localSessionId = makeUserSessionId(user)
@@ -182,17 +185,20 @@ const stateModelFactory = (
             session.addOrUpdateCollaborator(collaborator)
           }
         })
-        socket.on('REQUEST_INFORMATION', (message) => {
-          const { channel, reqType, userToken } = message
-          if (channel === 'REQUEST_INFORMATION' && userToken !== token) {
-            switch (reqType) {
-              case 'CURRENT_LOCATION': {
-                session.broadcastLocations()
-                break
+        socket.on(
+          'REQUEST_INFORMATION',
+          (message: RequestUserInformationMessage) => {
+            const { channel, reqType, userSessionId } = message
+            if (channel === 'REQUEST_INFORMATION' && userSessionId !== token) {
+              switch (reqType) {
+                case 'CURRENT_LOCATION': {
+                  session.broadcastLocations()
+                  break
+                }
               }
             }
-          }
-        })
+          },
+        )
       },
       updateLastChangeSequenceNumber: flow(
         function* updateLastChangeSequenceNumber() {

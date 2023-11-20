@@ -18,8 +18,8 @@ export interface CheckResultUpdate extends BaseMessage {
 export interface UserLocation {
   assemblyId: string
   refSeq: string
-  start: string
-  end: string
+  start: number
+  end: number
 }
 
 export interface UserLocationMessage extends BaseMessage {

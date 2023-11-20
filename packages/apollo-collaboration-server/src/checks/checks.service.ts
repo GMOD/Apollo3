@@ -16,15 +16,11 @@ import {
   RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
-import { DecodedJWT, makeUserSessionId } from 'apollo-shared'
+import { CheckResultUpdate } from 'apollo-shared'
 import { RemoteFile } from 'generic-filehandle'
 import { Model } from 'mongoose'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
-import {
-  ChangeMessage,
-  CheckResultUpdate,
-} from '../messages/entities/message.entity'
 import { MessagesGateway } from '../messages/messages.gateway'
 import { RefSeqsService } from '../refSeqs/refSeqs.service'
 
@@ -215,7 +211,9 @@ export class ChecksService {
   }
 
   async broadcastCheckResult(updatedCheck: CheckResultDocument, user: string) {
-    this.logger.debug(`*** Broadcast changed checkReport: ${JSON.stringify(updatedCheck)}`)
+    this.logger.debug(
+      `*** Broadcast changed checkReport: ${JSON.stringify(updatedCheck)}`,
+    )
     const messages: CheckResultUpdate[] = []
     this.logger.debug(`Username: ${user}`)
     const userSessionId = 'dummy userSessionId'

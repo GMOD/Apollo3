@@ -1,9 +1,9 @@
 import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { Region, getSession } from '@jbrowse/core/util'
-import { AssemblySpecificChange, Change, SerializedChange } from 'apollo-common'
+import { AssemblySpecificChange, Change } from 'apollo-common'
 import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
-import { ValidationResultSet } from 'apollo-shared'
+import { ChangeMessage, ValidationResultSet } from 'apollo-shared'
 import { Socket } from 'socket.io-client'
 
 import { ChangeManager, SubmitOpts } from '../ChangeManager'
@@ -121,25 +121,16 @@ export class CollaborationServerDriver extends BackendDriver {
     const { notify } = session
 
     if (!socket.hasListeners(channel)) {
-      socket.on(
-        channel,
-        async (message: {
-          changeSequence: string
-          userToken: string
-          channel: string
-          changeInfo: SerializedChange
-          userName: string
-        }) => {
-          // Save server last change sequence into session storage
-          internetAccount.setLastChangeSequenceNumber(
-            Number(message.changeSequence),
-          )
-          if (message.userToken !== token && message.channel === channel) {
-            const change = Change.fromJSON(message.changeInfo)
-            await changeManager.submit(change, { submitToBackend: false })
-          }
-        },
-      )
+      socket.on(channel, async (message: ChangeMessage) => {
+        // Save server last change sequence into session storage
+        internetAccount.setLastChangeSequenceNumber(
+          Number(message.changeSequence),
+        )
+        if (message.userSessionId !== token && message.channel === channel) {
+          const change = Change.fromJSON(message.changeInfo)
+          await changeManager.submit(change, { submitToBackend: false })
+        }
+      })
       socket.on('reconnect', () => {
         notify('You are re-connected to the Apollo server.', 'success')
         internetAccount.getMissingChanges()
