@@ -73,15 +73,15 @@ export async function loadAssemblyIntoClient(
 async function checkFeatures(
   assembly: ApolloAssemblyI,
 ): Promise<CheckResultSnapshot[]> {
-  let checkResults: CheckResultSnapshot[] = []
+  const checkResults: CheckResultSnapshot[] = []
   for (const ref of assembly.refSeqs.values()) {
     for (const feature of ref.features.values()) {
       for (const check of checkRegistry.getChecks().values()) {
         const result: CheckResultSnapshot[] = await check.checkFeature(
           getSnapshot(feature),
           async (start: number, stop: number) => ref.getSequence(start, stop),
-        );
-        checkResults = [...checkResults, ...result]
+        )
+        checkResults.push(...result)
       }
     }
   }
