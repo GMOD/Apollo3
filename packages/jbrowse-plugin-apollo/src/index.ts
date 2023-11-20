@@ -18,8 +18,9 @@ import {
 } from '@jbrowse/core/util'
 import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
-import { changeRegistry } from 'apollo-common'
+import { changeRegistry, checkRegistry } from 'apollo-common'
 import {
+  CDSCheck,
   CoreValidation,
   ParentChildValidation,
   changes,
@@ -90,6 +91,9 @@ const inWebWorker = 'WorkerGlobalScope' in globalThis
 for (const [changeName, change] of Object.entries(changes)) {
   changeRegistry.registerChange(changeName, change)
 }
+
+const cdsCheck = new CDSCheck()
+checkRegistry.registerCheck(cdsCheck.name, cdsCheck)
 
 validationRegistry.registerValidation(new CoreValidation())
 validationRegistry.registerValidation(new ParentChildValidation())
