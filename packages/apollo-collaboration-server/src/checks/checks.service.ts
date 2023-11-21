@@ -190,14 +190,10 @@ export class ChecksService {
       })
       .exec()
   }
-  // async checkFeature(doc: FeatureDocument) {
-  //   const featureModel = doc.$model<Model<FeatureDocument>>(Feature.name)
-  //   this.logger.debug(`Feature Model: ${featureModel}`)
-  //   const features = await featureModel.find().exec()
-  //   this.logger.log(features[0])
-  //   const refSeqModel = doc.$model(RefSeq.name)
-  //   this.logger.debug(`RefSeq Model: ${refSeqModel}`)
-  //   const refSeqs = await refSeqModel.find().exec()
-  //   this.logger.log(refSeqs[0])
-  // }
+
+  update(id: string, updatedCheckReport: CheckDocument) {
+    return this.checkResultModel
+      .findByIdAndUpdate(id, updatedCheckReport)
+      .exec()
+  }
 }

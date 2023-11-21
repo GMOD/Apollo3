@@ -1,4 +1,5 @@
 import { SerializedChange } from 'apollo-common'
+import { CheckResultSnapshot } from 'apollo-mst'
 
 interface BaseMessage {
   channel: string
@@ -10,12 +11,16 @@ export interface ChangeMessage extends BaseMessage {
   changeInfo: SerializedChange
   changeSequence: number
 }
+export interface CheckResultUpdate extends BaseMessage {
+  checkResult: CheckResultSnapshot
+  deleted?: boolean
+}
 
 export interface UserLocation {
   assemblyId: string
   refSeq: string
-  start: string
-  end: string
+  start: number
+  end: number
 }
 
 export interface UserLocationMessage extends BaseMessage {
