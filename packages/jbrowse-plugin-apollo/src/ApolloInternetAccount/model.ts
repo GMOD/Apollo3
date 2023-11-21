@@ -153,6 +153,12 @@ const stateModelFactory = (
         const { socket } = self
         const { changeManager } = (session as ApolloSessionModel)
           .apolloDataStore
+        socket.on('connect', async () => {
+          await this.getMissingChanges()
+        })
+        socket.on('connect_error', () => {
+          notify('Could not connect to the Apollo server.', 'error')
+        })
         socket.on('COMMON', (message: ChangeMessage) => {
           // Save server last change sequence into session storage
           sessionStorage.setItem(
@@ -164,13 +170,6 @@ const stateModelFactory = (
           }
           const change = Change.fromJSON(message.changeInfo)
           void changeManager?.submit(change, { submitToBackend: false })
-        })
-        socket.on('reconnect', async () => {
-          notify('You are re-connected to the Apollo server.', 'success')
-          await this.getMissingChanges()
-        })
-        socket.on('disconnect', () => {
-          notify('You are disconnected from the Apollo server.', 'error')
         })
         socket.on('USER_LOCATION', (message: UserLocationMessage) => {
           const { channel, locations, userName, userSessionId } = message

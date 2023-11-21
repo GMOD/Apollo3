@@ -117,8 +117,6 @@ export class CollaborationServerDriver extends BackendDriver {
     const token = internetAccount.retrieveToken()
     const channel = `${assembly}-${refSeq}`
     const changeManager = new ChangeManager(this.clientStore)
-    const session = getSession(this.clientStore)
-    const { notify } = session
 
     if (!socket.hasListeners(channel)) {
       socket.on(channel, async (message: ChangeMessage) => {
@@ -130,13 +128,6 @@ export class CollaborationServerDriver extends BackendDriver {
           const change = Change.fromJSON(message.changeInfo)
           await changeManager.submit(change, { submitToBackend: false })
         }
-      })
-      socket.on('reconnect', () => {
-        notify('You are re-connected to the Apollo server.', 'success')
-        internetAccount.getMissingChanges()
-      })
-      socket.on('disconnect', () => {
-        notify('You are disconnected from the Apollo server.', 'error')
       })
     }
   }
