@@ -9,7 +9,6 @@ import {
   TextField,
   useTheme,
 } from '@mui/material'
-// import { Check } from 'apollo-common'
 import { nanoid } from 'nanoid'
 import React, { useState } from 'react'
 
@@ -17,24 +16,6 @@ import { InMemoryFileDriver } from '../BackendDrivers'
 import { ApolloSessionModel } from '../session'
 import { loadAssemblyIntoClient } from '../util'
 import { Dialog } from './Dialog'
-
-// class FakeCheck extends Check {
-//   async checkFeature(
-//     feature: AnnotationFeatureSnapshot,
-//   ): Promise<CheckResultSnapshot> {
-//     const { _id, end, refSeq, start } = feature
-//     const id = _id.toString()
-//     return {
-//       _id: `${id}-fake`,
-//       name: 'FakeInMemoryCheckResult',
-//       ids: [id],
-//       refSeq: refSeq.toString(),
-//       start,
-//       end,
-//       message: `This is a fake result for feature ${id}`,
-//     }
-//   }
-// }
 
 interface OpenLocalFileProps {
   session: ApolloSessionModel

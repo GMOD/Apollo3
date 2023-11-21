@@ -70,7 +70,7 @@ export async function loadAssemblyIntoClient(
   return assembly
 }
 
-async function checkFeatures(
+export async function checkFeatures(
   assembly: ApolloAssemblyI,
 ): Promise<CheckResultSnapshot[]> {
   const checkResults: CheckResultSnapshot[] = []

@@ -3,6 +3,7 @@ import {
   AnnotationFeatureI,
   AnnotationFeatureSnapshot,
   ApolloAssemblyI,
+  CheckResultI,
   CheckResultSnapshot,
 } from 'apollo-mst'
 
@@ -17,6 +18,7 @@ import {
 export interface ClientDataStore {
   typeName: 'Client'
   assemblies: Map<string, ApolloAssemblyI>
+  checkResults: Map<string, CheckResultI>
   internetAccounts: AppRootModel['internetAccounts']
   getInternetAccount(
     assemblyName?: string,

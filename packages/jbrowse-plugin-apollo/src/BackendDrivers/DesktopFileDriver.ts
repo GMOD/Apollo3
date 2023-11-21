@@ -10,7 +10,7 @@ import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
 import { ValidationResultSet, makeGFF3Feature } from 'apollo-shared'
 import { getSnapshot } from 'mobx-state-tree'
 
-import { loadAssemblyIntoClient } from '../util'
+import { checkFeatures, loadAssemblyIntoClient } from '../util'
 import { BackendDriver } from './BackendDriver'
 
 function splitStringIntoChunks(input: string, chunkSize: number): string[] {
@@ -113,6 +113,15 @@ export class DesktopFileDriver extends BackendDriver {
         `Could not find assembly in client with name "${change.assembly}"`,
       )
     }
+    const refSeqs = new Set(...clientAssembly.refSeqs.keys())
+    const { checkResults } = this.clientStore
+    for (const checkResult of checkResults.values()) {
+      if (refSeqs.has(checkResult.refSeq)) {
+        checkResults.delete(checkResult._id)
+      }
+    }
+    const newCheckResults = await checkFeatures(clientAssembly)
+    this.clientStore.addCheckResults(newCheckResults)
     const gff3Items: GFF3Item[] = [{ directive: 'gff-version', value: '3' }]
     for (const [, refSeq] of clientAssembly.refSeqs) {
       gff3Items.push({
