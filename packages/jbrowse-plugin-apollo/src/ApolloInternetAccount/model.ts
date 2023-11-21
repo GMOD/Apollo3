@@ -11,6 +11,7 @@ import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
 import { Change } from 'apollo-common'
 import {
   ChangeMessage,
+  CheckResultUpdate,
   RequestUserInformationMessage,
   UserLocation,
   UserLocationMessage,
@@ -151,15 +152,24 @@ const stateModelFactory = (
           throw new Error('No Token found')
         }
         const { socket } = self
-        const { changeManager } = (session as ApolloSessionModel)
-          .apolloDataStore
+        const { addCheckResult, changeManager, deleteCheckResult } = (
+          session as ApolloSessionModel
+        ).apolloDataStore
         socket.on('connect', async () => {
           await this.getMissingChanges()
         })
         socket.on('connect_error', () => {
           notify('Could not connect to the Apollo server.', 'error')
         })
-        socket.on('COMMON', (message: ChangeMessage) => {
+        socket.on('COMMON', (message: ChangeMessage | CheckResultUpdate) => {
+          if ('checkResult' in message) {
+            if (message.deleted) {
+              deleteCheckResult(message.checkResult._id.toString())
+            } else {
+              addCheckResult(message.checkResult)
+            }
+            return
+          }
           // Save server last change sequence into session storage
           sessionStorage.setItem(
             'LastChangeSequence',

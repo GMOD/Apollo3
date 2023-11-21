@@ -16,12 +16,10 @@ import {
   RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
-import { CheckResultUpdate } from 'apollo-shared'
 import { RemoteFile } from 'generic-filehandle'
 import { Model } from 'mongoose'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
-import { MessagesGateway } from '../messages/messages.gateway'
 import { RefSeqsService } from '../refSeqs/refSeqs.service'
 
 @Injectable()
@@ -32,7 +30,6 @@ export class ChecksService {
     private readonly refSeqsService: RefSeqsService,
     @InjectModel(Check.name)
     private readonly checkModel: Model<CheckDocument>,
-    private readonly messagesGateway: MessagesGateway,
   ) {}
 
   private readonly logger = new Logger(ChecksService.name)
@@ -193,45 +190,10 @@ export class ChecksService {
       })
       .exec()
   }
-  // async checkFeature(doc: FeatureDocument) {
-  //   const featureModel = doc.$model<Model<FeatureDocument>>(Feature.name)
-  //   this.logger.debug(`Feature Model: ${featureModel}`)
-  //   const features = await featureModel.find().exec()
-  //   this.logger.log(features[0])
-  //   const refSeqModel = doc.$model(RefSeq.name)
-  //   this.logger.debug(`RefSeq Model: ${refSeqModel}`)
-  //   const refSeqs = await refSeqModel.find().exec()
-  //   this.logger.log(refSeqs[0])
-  // }
 
   update(id: string, updatedCheckReport: CheckDocument) {
     return this.checkResultModel
       .findByIdAndUpdate(id, updatedCheckReport)
       .exec()
-  }
-
-  async broadcastCheckResult(updatedCheck: CheckResultDocument, user: string) {
-    this.logger.debug(
-      `*** Broadcast changed checkReport: ${JSON.stringify(updatedCheck)}`,
-    )
-    const messages: CheckResultUpdate[] = []
-    this.logger.debug(`Username: ${user}`)
-    const userSessionId = 'dummy userSessionId'
-    // const userSessionId = makeUserSessionId(user)
-
-    messages.push({
-      channel: 'COMMON',
-      userName: user,
-      userSessionId,
-      checkResult: updatedCheck,
-    })
-    for (const message of messages) {
-      this.logger.debug(
-        `Broadcasting to channels '${
-          message.channel
-        }', checkResult update: "${JSON.stringify(message)}"`,
-      )
-      await this.messagesGateway.create(message.channel, message)
-    }
   }
 }

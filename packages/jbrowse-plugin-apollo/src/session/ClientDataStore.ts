@@ -107,6 +107,9 @@ export function clientDataStoreFactory(
           }
         }
       },
+      deleteCheckResult(checkResultId: string) {
+        self.checkResults.delete(checkResultId)
+      },
     }))
     .volatile((self) => ({
       changeManager: new ChangeManager(self as unknown as ClientDataStoreType),
