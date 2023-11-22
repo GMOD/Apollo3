@@ -108,7 +108,9 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
    * @returns Observable of Feature objects in the region
    */
   public getFeatures(region: Region, opts?: BaseOptions) {
-    const { assemblyName, end, refName, start } = region
+    const { end, refName, start } = region
+    const assemblyId = readConfObject(this.config, 'assemblyId')
+    const regionWithAssemblyName = { ...region, assemblyName: assemblyId }
     return ObservableCreate<Feature>(async (observer) => {
       if (!isInWebWorker) {
         const dataStore = (
@@ -121,9 +123,9 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
           return
         }
         const backendDriver = dataStore.getBackendDriver(
-          assemblyName,
+          assemblyId,
         ) as BackendDriver
-        const { seq } = await backendDriver.getSequence(region)
+        const { seq } = await backendDriver.getSequence(regionWithAssemblyName)
         observer.next(
           new SimpleFeature({
             id: `${refName} ${start}-${end}`,
@@ -159,7 +161,7 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
           globalThis.rpcServer.emit('apollo', {
             apollo: true,
             method: 'getSequence',
-            region,
+            region: regionWithAssemblyName,
             messageId,
           })
         },
