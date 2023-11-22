@@ -23,8 +23,8 @@ export class Assembly {
   @Prop()
   user: string
 
-  @Prop({ type: { fa: String, fai: String } })
-  externalLocation: { fa: string; fai: string }
+  @Prop({ type: { fa: String, fai: String, gzi: String } })
+  externalLocation: { fa: string; fai: string; gzi?: string }
 
   @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Check' }] })
   checks: Types.ObjectId[]

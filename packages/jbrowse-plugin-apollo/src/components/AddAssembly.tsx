@@ -75,6 +75,7 @@ export function AddAssembly({
   )
   const [fastaFile, setFastaFile] = useState('')
   const [fastaIndexFile, setFastaIndexFile] = useState('')
+  const [fastaGziIndexFile, setFastaGziIndexFile] = useState('')
   const [loading, setLoading] = useState(false)
 
   function handleChangeInternetAccount(e: SelectChangeEvent<string>) {
@@ -108,14 +109,6 @@ export function AddAssembly({
     ) {
       setFileType(FileType.GFF3)
     }
-  }
-
-  function updateFastaFile(url: string) {
-    setFastaFile(url)
-  }
-
-  function updateFastaIndexFile(url: string) {
-    setFastaIndexFile(url)
   }
 
   function handleChangeFileType(e: React.ChangeEvent<HTMLInputElement>) {
@@ -204,7 +197,7 @@ export function AddAssembly({
       | AddAssemblyFromExternalChange
       | AddAssemblyAndFeaturesFromFileChange
       | AddAssemblyFromFileChange
-    if (fileType == FileType.EXTERNAL) {
+    if (fileType === FileType.EXTERNAL) {
       change = new AddAssemblyFromExternalChange({
         typeName: 'AddAssemblyFromExternalChange',
 
@@ -213,6 +206,7 @@ export function AddAssembly({
         externalLocation: {
           fa: fastaFile,
           fai: fastaIndexFile,
+          ...(fastaGziIndexFile ? { gzi: fastaGziIndexFile } : {}),
         },
       })
     } else {
@@ -258,6 +252,15 @@ export function AddAssembly({
     const url = new URL(fastaIndexFile)
     if (url.protocol === 'http:' || url.protocol === 'https:') {
       validFastaIndexFile = true
+    }
+  } catch {
+    // pass
+  }
+  let validFastaGziIndexFile = false
+  try {
+    const url = new URL(fastaGziIndexFile)
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      validFastaGziIndexFile = true
     }
   } catch {
     // pass
@@ -336,10 +339,11 @@ export function AddAssembly({
           {fileType === FileType.EXTERNAL ? (
             <Box style={{ marginTop: 20 }}>
               <Typography variant="caption">
-                Enter FASTA and FASTA index file URL
+                Enter FASTA and FASTA index(es) URL
               </Typography>
               <TextField
                 margin="dense"
+                helperText="Can be bgz-compressed"
                 id="fasta"
                 label="FASTA"
                 type="TextField"
@@ -347,7 +351,7 @@ export function AddAssembly({
                 variant="outlined"
                 error={!validFastaFile}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  updateFastaFile(e.target.value)
+                  setFastaFile(e.target.value)
                 }
                 disabled={submitted && !errorMessage}
                 InputProps={{
@@ -362,12 +366,34 @@ export function AddAssembly({
                 margin="dense"
                 id="fasta-index"
                 label="FASTA Index"
+                helperText=".fai or .gz.fai"
                 type="TextField"
                 fullWidth
                 variant="outlined"
                 error={!validFastaIndexFile}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  updateFastaIndexFile(e.target.value)
+                  setFastaIndexFile(e.target.value)
+                }
+                disabled={submitted && !errorMessage}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LinkIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <TextField
+                margin="dense"
+                id="fasta-gzi-index"
+                label="FASTA GZI Index"
+                helperText="Only for bgz-compressed FASTA, .gz.gzi"
+                type="TextField"
+                fullWidth
+                variant="outlined"
+                error={Boolean(fastaGziIndexFile) && !validFastaGziIndexFile}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setFastaGziIndexFile(e.target.value)
                 }
                 disabled={submitted && !errorMessage}
                 InputProps={{

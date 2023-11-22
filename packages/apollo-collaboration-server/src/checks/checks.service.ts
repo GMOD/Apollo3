@@ -1,4 +1,4 @@
-import { IndexedFasta } from '@gmod/indexedfasta'
+import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { checkRegistry } from 'apollo-common'
@@ -120,14 +120,20 @@ export class ChecksService {
     }
 
     if (assemblyDoc.externalLocation) {
-      const { fa, fai } = assemblyDoc.externalLocation
+      const { fa, fai, gzi } = assemblyDoc.externalLocation
       this.logger.debug(`Fasta file URL = ${fa}, Fasta index file URL = ${fai}`)
 
-      const indexedFasta = new IndexedFasta({
-        fasta: new RemoteFile(fa, { fetch }),
-        fai: new RemoteFile(fai, { fetch }),
-      })
-      const sequence = await indexedFasta.getSequence(name, start, end)
+      const sequenceAdapter = gzi
+        ? new BgzipIndexedFasta({
+            fasta: new RemoteFile(fa, { fetch }),
+            fai: new RemoteFile(fai, { fetch }),
+            gzi: new RemoteFile(gzi, { fetch }),
+          })
+        : new IndexedFasta({
+            fasta: new RemoteFile(fa, { fetch }),
+            fai: new RemoteFile(fai, { fetch }),
+          })
+      const sequence = await sequenceAdapter.getSequence(name, start, end)
       if (sequence === undefined) {
         throw new Error('Sequence not found')
       }

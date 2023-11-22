@@ -1,4 +1,4 @@
-import { IndexedFasta } from '@gmod/indexedfasta'
+import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
 import {
   AssemblySpecificChange,
   ChangeOptions,
@@ -16,7 +16,7 @@ export interface SerializedAddAssemblyFromExternalChangeBase
 
 export interface AddAssemblyFromExternalChangeDetails {
   assemblyName: string
-  externalLocation: { fa: string; fai: string }
+  externalLocation: { fa: string; fai: string; gzi?: string }
 }
 
 export interface SerializedAddAssemblyFromExternalChangeSingle
@@ -70,12 +70,18 @@ export class AddAssemblyFromExternalChange extends AssemblySpecificChange {
 
     for (const change of changes) {
       const { assemblyName, externalLocation } = change
-      const { fa, fai } = externalLocation
-
-      const allSequenceSizes = await new IndexedFasta({
-        fasta: new RemoteFile(fa, { fetch }),
-        fai: new RemoteFile(fai, { fetch }),
-      }).getSequenceSizes()
+      const { fa, fai, gzi } = externalLocation
+      const sequenceAdapter = gzi
+        ? new BgzipIndexedFasta({
+            fasta: new RemoteFile(fa, { fetch }),
+            fai: new RemoteFile(fai, { fetch }),
+            gzi: new RemoteFile(gzi, { fetch }),
+          })
+        : new IndexedFasta({
+            fasta: new RemoteFile(fa, { fetch }),
+            fai: new RemoteFile(fai, { fetch }),
+          })
+      const allSequenceSizes = await sequenceAdapter.getSequenceSizes()
 
       if (!allSequenceSizes) {
         throw new Error('No data read from indexed fasta getSequenceSizes')
