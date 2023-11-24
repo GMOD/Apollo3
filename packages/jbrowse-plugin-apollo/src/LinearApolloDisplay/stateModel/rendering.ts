@@ -150,9 +150,17 @@ export function renderingModelFactory(
             if (!ctx) {
               return
             }
+            console.log('length 1 = ' + self.lgv.dynamicBlocks.totalWidthPx)
+            console.log('length 2 = ' + (self.lgv.dynamicBlocks.length))
+            if (self.lgv.bpPerPx <= 1) {
+              ctx.beginPath()
+              ctx.strokeStyle = self.lgv.bpPerPx <= 0.1 ? 'blue' : 'red'
+              ctx.rect(0, 0, length / self.lgv.bpPerPx, self.apolloRowHeight)
+              ctx.stroke()
+            }
             ctx.clearRect(
               0,
-              0,
+              0 + self.apolloRowHeight,
               self.lgv.dynamicBlocks.totalWidthPx,
               self.featuresHeight,
             )
@@ -179,12 +187,14 @@ export function renderingModelFactory(
                       coord: feature.min,
                       regionNumber: idx,
                     })?.offsetPx ?? 0) - self.lgv.offsetPx
+                  console.log('bpperpx ==== ' + self.lgv.bpPerPx)
+                  const r = self.lgv.bpPerPx <= 1 ? row + 1 : row
                   getGlyph(feature, self.lgv.bpPerPx).draw(
                     self,
                     ctx,
                     feature,
                     x,
-                    row,
+                    r,
                     displayedRegion.reversed,
                   )
                 }
