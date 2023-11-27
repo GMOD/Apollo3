@@ -43,12 +43,12 @@ const isInWebWorker = typeof sessionStorage === 'undefined'
 export class ApolloSequenceAdapter extends BaseSequenceAdapter {
   private regions: NoAssemblyRegion[] | undefined
 
-  public async getRefNames(opts: BaseOptions) {
+  public async getRefNames(opts?: BaseOptions) {
     const regions = await this.getRegions(opts)
     return regions.map((regions) => regions.refName)
   }
 
-  public async getRegions(opts: BaseOptions): Promise<NoAssemblyRegion[]> {
+  public async getRegions(opts?: BaseOptions): Promise<NoAssemblyRegion[]> {
     if (this.regions) {
       return this.regions
     }
@@ -67,7 +67,6 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
       this.regions = regions
       return regions
     }
-    const { signal } = opts
     const regions = await new Promise(
       (
         resolve: (sequence: Region[]) => void,
@@ -89,7 +88,7 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
           removeEventListener('message', messageListener)
           resolve(data.regions)
         }
-        addEventListener('message', messageListener, { signal })
+        addEventListener('message', messageListener, opts)
         // @ts-expect-error waiting for types to be published
         globalThis.rpcServer.emit('apollo', {
           apollo: true,
@@ -108,9 +107,10 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
    * @param param -
    * @returns Observable of Feature objects in the region
    */
-  public getFeatures(region: Region, opts: BaseOptions) {
-    const { signal } = opts
-    const { assemblyName, end, refName, start } = region
+  public getFeatures(region: Region, opts?: BaseOptions) {
+    const { end, refName, start } = region
+    const assemblyId = readConfObject(this.config, 'assemblyId')
+    const regionWithAssemblyName = { ...region, assemblyName: assemblyId }
     return ObservableCreate<Feature>(async (observer) => {
       if (!isInWebWorker) {
         const dataStore = (
@@ -123,9 +123,9 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
           return
         }
         const backendDriver = dataStore.getBackendDriver(
-          assemblyName,
+          assemblyId,
         ) as BackendDriver
-        const { seq } = await backendDriver.getSequence(region)
+        const { seq } = await backendDriver.getSequence(regionWithAssemblyName)
         observer.next(
           new SimpleFeature({
             id: `${refName} ${start}-${end}`,
@@ -156,12 +156,12 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
             removeEventListener('message', messageListener)
             resolve(data.sequence)
           }
-          addEventListener('message', messageListener, { signal })
+          addEventListener('message', messageListener, opts)
           // @ts-expect-error waiting for types to be published
           globalThis.rpcServer.emit('apollo', {
             apollo: true,
             method: 'getSequence',
-            region,
+            region: regionWithAssemblyName,
             messageId,
           })
         },
@@ -178,7 +178,7 @@ export class ApolloSequenceAdapter extends BaseSequenceAdapter {
 
   /**
    * called to provide a hint that data tied to a certain region
-   * will not be needed for the forseeable future and can be purged
+   * will not be needed for the foreseeable future and can be purged
    * from caches, etc
    */
   // eslint-disable-next-line @typescript-eslint/no-empty-function

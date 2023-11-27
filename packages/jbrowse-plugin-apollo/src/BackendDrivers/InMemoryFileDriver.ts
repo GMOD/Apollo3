@@ -1,15 +1,17 @@
 import { getConf } from '@jbrowse/core/configuration'
 import { Region, getSession } from '@jbrowse/core/util'
 import { AssemblySpecificChange, Change } from 'apollo-common'
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
+import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
 import { ValidationResultSet } from 'apollo-shared'
 
 import { SubmitOpts } from '../ChangeManager'
 import { BackendDriver } from './BackendDriver'
 
 export class InMemoryFileDriver extends BackendDriver {
-  async getFeatures(): Promise<AnnotationFeatureSnapshot[]> {
-    return []
+  async getFeatures(): Promise<
+    [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
+  > {
+    return [[], []]
   }
 
   async getSequence(region: Region) {
@@ -47,11 +49,12 @@ export class InMemoryFileDriver extends BackendDriver {
     const { assemblyManager } = getSession(this.clientStore)
     return assemblyManager.assemblies.filter((assembly) => {
       const sequenceMetadata = getConf(assembly, ['sequence', 'metadata']) as
-        | { apollo: boolean; internetAccountConfigId?: string }
+        | { apollo: boolean; internetAccountConfigId?: string; file?: string }
         | undefined
       return Boolean(
         sequenceMetadata &&
           sequenceMetadata.apollo &&
+          !sequenceMetadata.file &&
           !sequenceMetadata.internetAccountConfigId,
       )
     })

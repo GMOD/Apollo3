@@ -131,7 +131,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
               cdsOrUTR._id === apolloSelectedFeature._id
                 ? 'rgb(0,0,0)'
                 : isCDS
-                ? 'rgb(255,165,0)'
+                ? 'rgb(171,71,188)'
                 : 'rgb(211,211,211)'
             ctx.fillRect(startPx + 1, cdsOrUTRTop + 1, widthPx - 2, height - 2)
             if (forwardFill && backwardFill && strand) {
@@ -529,6 +529,19 @@ export class ImplicitExonGeneGlyph extends Glyph {
   ): AnnotationFeatureI | undefined {
     const layoutRow = this.featuresForRow(feature)[row]
     return layoutRow?.find((f) => bp >= f.start && bp <= f.end)
+  }
+
+  getRowForFeature(
+    feature: AnnotationFeatureI,
+    childFeature: AnnotationFeatureI,
+  ) {
+    const rows = this.featuresForRow(feature)
+    for (const [idx, row] of rows.entries()) {
+      if (row.some((feature) => feature._id === childFeature._id)) {
+        return idx
+      }
+    }
+    return
   }
 
   async executeDrag(stateModel: LinearApolloDisplay) {

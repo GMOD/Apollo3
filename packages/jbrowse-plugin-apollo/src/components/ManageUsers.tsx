@@ -60,15 +60,15 @@ export function ManageUsers({
     throw new Error('No Apollo internet account found')
   }
   const [errorMessage, setErrorMessage] = useState('')
-  const [selectedInternetAcount, setSelectedInternetAcount] = useState(
+  const [selectedInternetAccount, setSelectedInternetAccount] = useState(
     apolloInternetAccounts[0],
   )
   const [users, setUsers] = useState<UserResponse[]>([])
 
   const getUsers = useCallback(async () => {
-    const { baseURL } = selectedInternetAcount
+    const { baseURL } = selectedInternetAccount
     const uri = new URL('/users', baseURL).href
-    const apolloFetch = selectedInternetAcount?.getFetcher({
+    const apolloFetch = selectedInternetAccount?.getFetcher({
       locationType: 'UriLocation',
       uri,
     })
@@ -85,7 +85,7 @@ export function ManageUsers({
       const data = (await response.json()) as UserResponse[]
       setUsers(data.map((u) => (u.role === undefined ? { ...u, role: '' } : u)))
     }
-  }, [selectedInternetAcount])
+  }, [selectedInternetAccount])
 
   useEffect(() => {
     getUsers().catch((error) => setErrorMessage(String(error)))
@@ -97,13 +97,13 @@ export function ManageUsers({
       userId: id as string,
     })
     await changeManager.submit(change, {
-      internetAccountId: selectedInternetAcount.internetAccountId,
+      internetAccountId: selectedInternetAccount.internetAccountId,
     })
     setUsers((prevUsers) => prevUsers.filter((row) => row._id !== id))
   }
 
   function isCurrentUser(id: GridRowId) {
-    if (id === selectedInternetAcount.getUserId()) {
+    if (id === selectedInternetAccount.getUserId()) {
       return true
     }
     return false
@@ -148,7 +148,7 @@ export function ManageUsers({
         `Could not find internetAccount with ID "${e.target.value}"`,
       )
     }
-    setSelectedInternetAcount(newlySelectedInternetAccount)
+    setSelectedInternetAccount(newlySelectedInternetAccount)
   }
 
   async function processRowUpdate(newRow: GridRowModel) {
@@ -158,7 +158,7 @@ export function ManageUsers({
       userId: newRow._id,
     })
     await changeManager.submit(change, {
-      internetAccountId: selectedInternetAcount.internetAccountId,
+      internetAccountId: selectedInternetAccount.internetAccountId,
     })
     return newRow
   }
@@ -176,7 +176,7 @@ export function ManageUsers({
           <>
             <DialogContentText>Select account</DialogContentText>
             <Select
-              value={selectedInternetAcount.internetAccountId}
+              value={selectedInternetAccount.internetAccountId}
               onChange={handleChangeInternetAccount}
               disabled={!errorMessage}
             >

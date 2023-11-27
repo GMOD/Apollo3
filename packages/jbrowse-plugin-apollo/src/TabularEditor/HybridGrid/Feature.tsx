@@ -4,7 +4,6 @@ import { observer } from 'mobx-react'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'
 
-import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { OntologyTermAutocomplete } from '../../components/OntologyTermAutocomplete'
 import { isOntologyClass } from '../../OntologyManager'
 import OntologyStore from '../../OntologyManager/OntologyStore'
@@ -88,7 +87,6 @@ function getTopLevelFeature(feature: AnnotationFeatureI): AnnotationFeatureI {
 export const Feature = observer(function Feature({
   depth,
   feature,
-  internetAccount,
   isHovered,
   isSelected,
   model: displayState,
@@ -101,7 +99,6 @@ export const Feature = observer(function Feature({
   isHovered: boolean
   isSelected: boolean
   selectedFeatureClass: string
-  internetAccount: ApolloInternetAccountModel
   setContextMenu: (menu: ContextMenuState) => void
 }) {
   const { classes } = useStyles()
@@ -311,7 +308,6 @@ export const Feature = observer(function Feature({
                   isSelected={childSelected}
                   selectedFeatureClass={selectedFeatureClass}
                   key={featureId}
-                  internetAccount={internetAccount}
                   depth={(depth || 0) + 1}
                   feature={childFeature}
                   model={displayState}

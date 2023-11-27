@@ -2,13 +2,14 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
 import { UserDocument, User as UserSchema } from 'apollo-schemas'
-import { DecodedJWT, makeUserSessionId } from 'apollo-shared'
-import { Model } from 'mongoose'
-
 import {
+  DecodedJWT,
   RequestUserInformationMessage,
   UserLocationMessage,
-} from '../messages/entities/message.entity'
+  makeUserSessionId,
+} from 'apollo-shared'
+import { Model } from 'mongoose'
+
 import { MessagesGateway } from '../messages/messages.gateway'
 import { GUEST_USER_EMAIL, GUEST_USER_NAME } from '../utils/constants'
 import { Role } from '../utils/role/role.enum'
@@ -101,7 +102,7 @@ export class UsersService {
    * @param userLocation - user's location information
    * @param token - user's token, email will be decoded from the token
    */
-  broadcastLocation(userLocation: UserLocationDto[], user: DecodedJWT) {
+  broadcastLocation(userLocations: UserLocationDto[], user: DecodedJWT) {
     const broadcast = this.configService.get('BROADCAST_USER_LOCATION', {
       infer: true,
     })
@@ -113,7 +114,11 @@ export class UsersService {
     const { email, username: userName } = user
     const userSessionId = makeUserSessionId(user)
     const msg: UserLocationMessage = {
-      locations: userLocation,
+      locations: userLocations.map((location) => ({
+        ...location,
+        start: Number(location.start),
+        end: Number(location.end),
+      })),
       channel,
       userName,
       userSessionId,

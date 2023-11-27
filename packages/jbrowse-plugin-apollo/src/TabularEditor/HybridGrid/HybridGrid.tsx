@@ -1,12 +1,9 @@
 import { Menu, MenuItem } from '@jbrowse/core/ui'
-import { getSession } from '@jbrowse/core/util'
 import { useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
-import { ApolloSessionModel } from '../../session'
-import { getApolloInternetAccount } from '../../util'
 import { DisplayStateModel } from '../types'
 import { Feature } from './Feature'
 
@@ -46,12 +43,6 @@ const HybridGrid = observer(function HybridGrid({
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(null)
 
   const { filterText } = tabularEditor
-
-  const internetAccount = useMemo(() => {
-    return getApolloInternetAccount(
-      getSession(model) as unknown as ApolloSessionModel,
-    )
-  }, [model])
 
   // scrolls to selected feature if one is selected and it's not already visible
   useEffect(() => {
@@ -109,7 +100,6 @@ const HybridGrid = observer(function HybridGrid({
               return (
                 <Feature
                   key={featureId}
-                  internetAccount={internetAccount}
                   isSelected={isSelected}
                   isHovered={isHovered}
                   selectedFeatureClass={classes.selectedFeature}

@@ -23,11 +23,9 @@ export async function createFetchErrorMessage(
 /** given a session, get our ApolloInternetAccount */
 export function getApolloInternetAccount(session: ApolloSessionModel) {
   const { internetAccounts } = getParent<ApolloRootModel>(session)
-  const apolloInternetAccount = internetAccounts.find(
-    (ia) => ia.type === 'ApolloInternetAccount',
-  ) as ApolloInternetAccountModel | undefined
-  if (!apolloInternetAccount) {
-    throw new Error('No Apollo internet account found')
-  }
-  return apolloInternetAccount
+  return internetAccounts.find((ia) => ia.type === 'ApolloInternetAccount') as
+    | ApolloInternetAccountModel
+    | undefined
 }
+
+export * from './loadAssemblyIntoClient'

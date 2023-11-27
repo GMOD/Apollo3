@@ -9,13 +9,11 @@ import {
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
 import { AnnotationFeature, AnnotationFeatureI } from 'apollo-mst'
+import { UserLocation } from 'apollo-shared'
 import { autorun, observable } from 'mobx'
 import { Instance, flow, getRoot, types } from 'mobx-state-tree'
 
-import {
-  ApolloInternetAccountModel,
-  UserLocation,
-} from '../ApolloInternetAccount/model'
+import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloJobModel } from '../ApolloJobModel'
 import { ChangeManager } from '../ChangeManager'
 import { ApolloRootModel } from '../types'
@@ -44,17 +42,10 @@ export interface ApolloRefSeqResponse {
   assembly: string
 }
 
-export interface CollaboratorLocation {
-  assemblyId: string
-  refSeq: string
-  start: number
-  end: number
-}
-
 export interface Collaborator {
   name: string
   id: string
-  locations: CollaboratorLocation[]
+  locations: UserLocation[]
 }
 
 export function extendSession(

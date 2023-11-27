@@ -3,6 +3,7 @@ import {
   AnnotationFeatureI,
   AnnotationFeatureSnapshot,
   ApolloAssemblyI,
+  CheckResultI,
   CheckResultSnapshot,
 } from 'apollo-mst'
 
@@ -17,6 +18,7 @@ import {
 export interface ClientDataStore {
   typeName: 'Client'
   assemblies: Map<string, ApolloAssemblyI>
+  checkResults: Map<string, CheckResultI>
   internetAccounts: AppRootModel['internetAccounts']
   getInternetAccount(
     assemblyName?: string,
@@ -29,6 +31,7 @@ export interface ClientDataStore {
   deleteFeature(featureId: string): void
   deleteAssembly(assemblyId: string): void
   addCheckResults(checkResults: CheckResultSnapshot[]): void
+  addAssembly(assemblyId: string): ApolloAssemblyI
 }
 
 export type SerializedChange = SerializedOperation

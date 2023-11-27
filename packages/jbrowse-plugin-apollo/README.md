@@ -49,7 +49,7 @@ yarn --cwd packages/apollo-collaboration-server run cypress:start
 yarn --cwd packages/jbrowse-plugin-apollo start
 ```
 
-If above you change the name fo the test database (`apolloTestDb`), change
+If above you change the name for the test database (`apolloTestDb`), change
 accordingly in `commands.ts`
 
 - Open cypress in the testing directory, _i.e._ where yo have the relevant
@@ -67,10 +67,10 @@ To run tests locally in headless mode:
 ```
 yarn --cwd packages/jbrowse-plugin-apollo run cypress run \
   --browser chrome \
-  --config '{"baseUrl": "http://localhost:3000", 
-             "screenshotOnRunFailure": true, 
-             "video": true, 
-             "videoCompression": false, 
+  --config '{"baseUrl": "http://localhost:3000",
+             "screenshotOnRunFailure": true,
+             "video": true,
+             "videoCompression": false,
              "retries": {"runMode": 0}}' \
   --spec cypress/e2e/editFeature.cy.ts
 ```

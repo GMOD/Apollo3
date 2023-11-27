@@ -6,10 +6,12 @@ export const ApolloAssembly = types
   .model('ApolloAssembly', {
     _id: types.identifier,
     refSeqs: types.map(ApolloRefSeq),
+    comments: types.array(types.string),
     backendDriverType: types.optional(
       types.enumeration('backendDriverType', [
         'CollaborationServerDriver',
         'InMemoryFileDriver',
+        'DesktopFileDriver',
       ]),
       'CollaborationServerDriver',
     ),
@@ -20,8 +22,11 @@ export const ApolloAssembly = types
     },
   }))
   .actions((self) => ({
-    addRefSeq(id: string, name: string) {
-      return self.refSeqs.put({ _id: id, name })
+    addRefSeq(id: string, name: string, description?: string) {
+      return self.refSeqs.put({ _id: id, name, description })
+    },
+    addComment(comment: string) {
+      return self.comments.push(comment)
     },
   }))
 

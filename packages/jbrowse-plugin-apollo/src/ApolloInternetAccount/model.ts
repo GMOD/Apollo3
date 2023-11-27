@@ -9,7 +9,15 @@ import {
 } from '@jbrowse/core/util'
 import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
 import { Change } from 'apollo-common'
-import { getDecodedToken, makeUserSessionId } from 'apollo-shared'
+import {
+  ChangeMessage,
+  CheckResultUpdate,
+  RequestUserInformationMessage,
+  UserLocation,
+  UserLocationMessage,
+  getDecodedToken,
+  makeUserSessionId,
+} from 'apollo-shared'
 import { autorun } from 'mobx'
 import { Instance, flow, getRoot, types } from 'mobx-state-tree'
 import { io } from 'socket.io-client'
@@ -34,13 +42,6 @@ interface Menu {
 type AuthType = 'google' | 'microsoft' | 'guest'
 
 type Role = 'admin' | 'user' | 'readOnly'
-
-export interface UserLocation {
-  assemblyId: string
-  refSeq: string
-  start: number
-  end: number
-}
 
 const inWebWorker = typeof sessionStorage === 'undefined'
 
@@ -151,25 +152,36 @@ const stateModelFactory = (
           throw new Error('No Token found')
         }
         const { socket } = self
-        const { changeManager } = (session as ApolloSessionModel)
-          .apolloDataStore
-        socket.on('COMMON', (message) => {
-          // Save server last change sequnece into session storage
-          sessionStorage.setItem('LastChangeSequence', message.changeSequence)
-          if (message.userToken === token) {
+        const { addCheckResult, changeManager, deleteCheckResult } = (
+          session as ApolloSessionModel
+        ).apolloDataStore
+        socket.on('connect', async () => {
+          await this.getMissingChanges()
+        })
+        socket.on('connect_error', () => {
+          notify('Could not connect to the Apollo server.', 'error')
+        })
+        socket.on('COMMON', (message: ChangeMessage | CheckResultUpdate) => {
+          if ('checkResult' in message) {
+            if (message.deleted) {
+              deleteCheckResult(message.checkResult._id.toString())
+            } else {
+              addCheckResult(message.checkResult)
+            }
+            return
+          }
+          // Save server last change sequence into session storage
+          sessionStorage.setItem(
+            'LastChangeSequence',
+            String(message.changeSequence),
+          )
+          if (message.userSessionId === token) {
             return // we did this change, no need to apply it again
           }
           const change = Change.fromJSON(message.changeInfo)
           void changeManager?.submit(change, { submitToBackend: false })
         })
-        socket.on('reconnect', async () => {
-          notify('You are re-connected to the Apollo server.', 'success')
-          await this.getMissingChanges()
-        })
-        socket.on('disconnect', () => {
-          notify('You are disconnected from the Apollo server.', 'error')
-        })
-        socket.on('USER_LOCATION', (message) => {
+        socket.on('USER_LOCATION', (message: UserLocationMessage) => {
           const { channel, locations, userName, userSessionId } = message
           const user = getDecodedToken(token)
           const localSessionId = makeUserSessionId(user)
@@ -182,17 +194,20 @@ const stateModelFactory = (
             session.addOrUpdateCollaborator(collaborator)
           }
         })
-        socket.on('REQUEST_INFORMATION', (message) => {
-          const { channel, reqType, userToken } = message
-          if (channel === 'REQUEST_INFORMATION' && userToken !== token) {
-            switch (reqType) {
-              case 'CURRENT_LOCATION': {
-                session.broadcastLocations()
-                break
+        socket.on(
+          'REQUEST_INFORMATION',
+          (message: RequestUserInformationMessage) => {
+            const { channel, reqType, userSessionId } = message
+            if (channel === 'REQUEST_INFORMATION' && userSessionId !== token) {
+              switch (reqType) {
+                case 'CURRENT_LOCATION': {
+                  session.broadcastLocations()
+                  break
+                }
               }
             }
-          }
-        })
+          },
+        )
       },
       updateLastChangeSequenceNumber: flow(
         function* updateLastChangeSequenceNumber() {
@@ -419,14 +434,14 @@ const stateModelFactory = (
       },
     }))
     .actions((self) => ({
-      initialize: flow(function* intitialize(role?: Role) {
+      initialize: flow(function* initialize(role?: Role) {
         if (!role) {
           return
         }
         if (role === 'admin') {
           self.addMenuItems(role)
         }
-        // Get and set server last change sequnece into session storage
+        // Get and set server last change sequence into session storage
         yield self.updateLastChangeSequenceNumber()
         // Open socket listeners
         self.addSocketListeners()

@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Assembly, AssemblyDocument } from 'apollo-schemas'
 import { GetAssembliesOperation } from 'apollo-shared'
@@ -20,6 +25,20 @@ export class AssembliesService {
 
   create(createAssemblyDto: CreateAssemblyDto) {
     return this.assemblyModel.create(createAssemblyDto)
+  }
+
+  async updateChecks(_id: string, checks: string[]) {
+    try {
+      await this.assemblyModel.updateOne(
+        { $and: [{ _id, status: 0 }] },
+        { $set: { checks } },
+      )
+    } catch (error) {
+      this.logger.debug(
+        '*** UPDATE STATUS EXCEPTION - Could not update checks in assembly document!',
+      )
+      throw new UnprocessableEntityException(String(error))
+    }
   }
 
   findAll() {

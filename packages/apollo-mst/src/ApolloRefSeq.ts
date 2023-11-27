@@ -26,6 +26,7 @@ export const ApolloRefSeq = types
   .model('ApolloRefSeq', {
     _id: types.identifier,
     name: types.string,
+    description: '',
     features: types.map(AnnotationFeature),
     sequence: types.array(Sequence),
   })
@@ -35,6 +36,9 @@ export const ApolloRefSeq = types
     },
     deleteFeature(featureId: string) {
       return self.features.delete(featureId)
+    },
+    setDescription(description: string) {
+      self.description = description
     },
     addSequence(seq: SnapshotOrInstance<typeof Sequence>) {
       if (self.sequence.length === 0) {

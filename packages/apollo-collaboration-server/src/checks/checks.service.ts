@@ -1,10 +1,13 @@
-import { IndexedFasta } from '@gmod/indexedfasta'
+import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
+import { checkRegistry } from 'apollo-common'
 import { AnnotationFeatureSnapshot } from 'apollo-mst'
 import {
   Assembly,
   AssemblyDocument,
+  Check,
+  CheckDocument,
   CheckResult,
   CheckResultDocument,
   FeatureDocument,
@@ -13,7 +16,6 @@ import {
   RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
-import { CDSCheck } from 'apollo-shared'
 import { RemoteFile } from 'generic-filehandle'
 import { Model } from 'mongoose'
 
@@ -26,6 +28,8 @@ export class ChecksService {
     @InjectModel(CheckResult.name)
     private readonly checkResultModel: Model<CheckResultDocument>,
     private readonly refSeqsService: RefSeqsService,
+    @InjectModel(Check.name)
+    private readonly checkModel: Model<CheckDocument>,
   ) {}
 
   private readonly logger = new Logger(ChecksService.name)
@@ -41,18 +45,54 @@ export class ChecksService {
     return this.checkResultModel.find(query).exec()
   }
 
-  async checkFeature(doc: FeatureDocument): Promise<void> {
+  async getChecks() {
+    return this.checkModel.find().sort({ name: 1 }).exec()
+  }
+
+  async getChecksForAssembly(featureDoc: FeatureDocument) {
+    const refSeqModel = featureDoc.$model<Model<RefSeqDocument>>(RefSeq.name)
+    const refSeqId = featureDoc.refSeq.toString()
+    const refSeqDoc = await refSeqModel.findById(refSeqId).exec()
+    if (!refSeqDoc) {
+      throw new Error(`Could not find refSeq ${refSeqId}`)
+    }
+    const { assembly } = refSeqDoc
+    const assemblyModel = featureDoc.$model<Model<AssemblyDocument>>(
+      Assembly.name,
+    )
+    const assemblyDoc = await assemblyModel
+      .findById(assembly)
+      .populate('checks')
+    if (!assemblyDoc) {
+      throw new Error(`Could not find assembly ${assembly}`)
+    }
+    return assemblyDoc.checks as unknown as CheckDocument[]
+  }
+
+  async checkFeature(
+    doc: FeatureDocument,
+    checkTimestamps = true,
+  ): Promise<void> {
     const flatDoc: AnnotationFeatureSnapshot = doc.toObject({
       flattenMaps: true,
     })
-    const check = new CDSCheck()
-    const result = await check.checkFeature(
-      flatDoc,
-      (start: number, end: number) => {
-        return this.getSequence({ start, end, featureDoc: doc })
-      },
-    )
-    await this.checkResultModel.insertMany(result)
+    const checks = await this.getChecksForAssembly(doc)
+    for (const check of checks) {
+      if (checkTimestamps && doc.updatedAt && check.updatedAt < doc.updatedAt) {
+        continue
+      }
+      const c = checkRegistry.getCheck(check.name)
+      if (!c) {
+        throw new Error(`Check "${check.name}" not registered`)
+      }
+      const result = await c.checkFeature(
+        flatDoc,
+        (start: number, end: number) => {
+          return this.getSequence({ start, end, featureDoc: doc })
+        },
+      )
+      await this.checkResultModel.insertMany(result)
+    }
   }
 
   async getSequence({
@@ -80,14 +120,20 @@ export class ChecksService {
     }
 
     if (assemblyDoc.externalLocation) {
-      const { fa, fai } = assemblyDoc.externalLocation
+      const { fa, fai, gzi } = assemblyDoc.externalLocation
       this.logger.debug(`Fasta file URL = ${fa}, Fasta index file URL = ${fai}`)
 
-      const indexedFasta = new IndexedFasta({
-        fasta: new RemoteFile(fa, { fetch }),
-        fai: new RemoteFile(fai, { fetch }),
-      })
-      const sequence = await indexedFasta.getSequence(name, start, end)
+      const sequenceAdapter = gzi
+        ? new BgzipIndexedFasta({
+            fasta: new RemoteFile(fa, { fetch }),
+            fai: new RemoteFile(fai, { fetch }),
+            gzi: new RemoteFile(gzi, { fetch }),
+          })
+        : new IndexedFasta({
+            fasta: new RemoteFile(fa, { fetch }),
+            fai: new RemoteFile(fai, { fetch }),
+          })
+      const sequence = await sequenceAdapter.getSequence(name, start, end)
       if (sequence === undefined) {
         throw new Error('Sequence not found')
       }
@@ -121,7 +167,9 @@ export class ChecksService {
   }
 
   async clearChecksForFeature(featureDoc: FeatureDocument) {
-    return this.checkResultModel.deleteMany({ ids: featureDoc._id }).exec()
+    return this.checkResultModel
+      .deleteMany({ ids: { $in: featureDoc.allIds } })
+      .exec()
   }
 
   /**
@@ -148,14 +196,10 @@ export class ChecksService {
       })
       .exec()
   }
-  // async checkFeature(doc: FeatureDocument) {
-  //   const featureModel = doc.$model<Model<FeatureDocument>>(Feature.name)
-  //   this.logger.debug(`Feature Model: ${featureModel}`)
-  //   const features = await featureModel.find().exec()
-  //   this.logger.log(features[0])
-  //   const refSeqModel = doc.$model(RefSeq.name)
-  //   this.logger.debug(`RefSeq Model: ${refSeqModel}`)
-  //   const refSeqs = await refSeqModel.find().exec()
-  //   this.logger.log(refSeqs[0])
-  // }
+
+  update(id: string, updatedCheckReport: CheckDocument) {
+    return this.checkResultModel
+      .findByIdAndUpdate(id, updatedCheckReport)
+      .exec()
+  }
 }
