@@ -151,6 +151,14 @@ export class CollaborationServerDriver extends BackendDriver {
     if (!refSeq) {
       throw new Error(`Could not find refSeq "${refName}"`)
     }
+    const apolloAssembly = this.clientStore.assemblies.get(assemblyName)
+    const apolloRefSeq = apolloAssembly?.refSeqs.get(refSeq)
+    if (apolloRefSeq) {
+      const seq = apolloRefSeq.getSequence(start, end)
+      if (seq.length === end - start) {
+        return { seq, refSeq }
+      }
+    }
     const internetAccount = this.clientStore.getInternetAccount(
       assemblyName,
     ) as ApolloInternetAccount
@@ -180,9 +188,9 @@ export class CollaborationServerDriver extends BackendDriver {
       )
     }
     await this.checkSocket(assemblyName, refName, internetAccount)
-    // const seq = (await response.text()) as string
-    // return seq as string
-    return { seq: await response.text(), refSeq }
+    const seq = await response.text()
+    apolloRefSeq?.addSequence({ sequence: seq, start, stop: end })
+    return { seq, refSeq }
   }
 
   async getRegions(assemblyName: string): Promise<Region[]> {

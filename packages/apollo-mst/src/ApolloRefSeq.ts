@@ -1,3 +1,4 @@
+import { isContainedWithin } from '@jbrowse/core/util'
 import {
   Instance,
   SnapshotIn,
@@ -41,6 +42,9 @@ export const ApolloRefSeq = types
       self.description = description
     },
     addSequence(seq: SnapshotOrInstance<typeof Sequence>) {
+      if (seq.sequence.length !== seq.stop - seq.start) {
+        throw new Error('sequence does not match declared length')
+      }
       if (self.sequence.length === 0) {
         self.sequence.push(seq)
         return
@@ -97,7 +101,7 @@ export const ApolloRefSeq = types
         stop: seqStop,
       } of self.sequence) {
         // adjacent to existing sequence - modify
-        if (start <= seqStop && stop >= seqStart) {
+        if (isContainedWithin(start, stop, seqStart, seqStop)) {
           return sequence.slice(start - seqStart, stop - seqStart)
         }
       }
