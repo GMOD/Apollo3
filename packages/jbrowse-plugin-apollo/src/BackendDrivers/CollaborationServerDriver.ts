@@ -2,7 +2,11 @@ import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { Region, getSession } from '@jbrowse/core/util'
 import { AssemblySpecificChange, Change } from 'apollo-common'
-import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
+import {
+  AnnotationFeatureSnapshot,
+  ApolloRefSeqI,
+  CheckResultSnapshot,
+} from 'apollo-mst'
 import { ChangeMessage, ValidationResultSet } from 'apollo-shared'
 import { Socket } from 'socket.io-client'
 
@@ -18,6 +22,8 @@ export interface ApolloInternetAccount extends BaseInternetAccountModel {
 }
 
 export class CollaborationServerDriver extends BackendDriver {
+  private inFlight = new Map<string, Promise<string>>()
+
   private async fetch(
     internetAccount: ApolloInternetAccount,
     info: RequestInfo,
@@ -138,6 +144,8 @@ export class CollaborationServerDriver extends BackendDriver {
    * @returns
    */
   async getSequence(region: Region): Promise<{ seq: string; refSeq: string }> {
+    const inFlightKey = `${region.refName}:${region.start}-${region.end}`
+    const inFlightPromise = this.inFlight.get(inFlightKey)
     const { assemblyName, end, refName, start } = region
     const { assemblyManager } = getSession(this.clientStore)
     const assembly = assemblyManager.get(assemblyName)
@@ -151,13 +159,21 @@ export class CollaborationServerDriver extends BackendDriver {
     if (!refSeq) {
       throw new Error(`Could not find refSeq "${refName}"`)
     }
-    const apolloAssembly = this.clientStore.assemblies.get(assemblyName)
-    const apolloRefSeq = apolloAssembly?.refSeqs.get(refSeq)
-    if (apolloRefSeq) {
-      const seq = apolloRefSeq.getSequence(start, end)
-      if (seq.length === end - start) {
-        return { seq, refSeq }
-      }
+    if (inFlightPromise) {
+      const seq = await inFlightPromise
+      return { seq, refSeq }
+    }
+    let apolloAssembly = this.clientStore.assemblies.get(assemblyName)
+    if (!apolloAssembly) {
+      apolloAssembly = this.clientStore.addAssembly(assemblyName)
+    }
+    let apolloRefSeq = apolloAssembly?.refSeqs.get(refSeq)
+    if (!apolloRefSeq) {
+      apolloRefSeq = apolloAssembly.addRefSeq(refSeq, refName)
+    }
+    const clientStoreSequence = apolloRefSeq.getSequence(start, end)
+    if (clientStoreSequence.length === end - start) {
+      return { seq: clientStoreSequence, refSeq }
     }
     const internetAccount = this.clientStore.getInternetAccount(
       assemblyName,
@@ -173,6 +189,27 @@ export class CollaborationServerDriver extends BackendDriver {
     url.search = searchParams.toString()
     const uri = url.toString()
 
+    const seqPromise = this.getSeqFromServer(
+      internetAccount,
+      uri,
+      apolloRefSeq,
+      start,
+      end,
+    )
+    this.inFlight.set(inFlightKey, seqPromise)
+    const seq = await seqPromise
+    await this.checkSocket(assemblyName, refName, internetAccount)
+    this.inFlight.delete(inFlightKey)
+    return { seq, refSeq }
+  }
+
+  private async getSeqFromServer(
+    internetAccount: ApolloInternetAccount,
+    uri: string,
+    apolloRefSeq: ApolloRefSeqI,
+    start: number,
+    stop: number,
+  ) {
     const response = await this.fetch(internetAccount, uri)
     if (!response.ok) {
       let errorMessage
@@ -187,10 +224,9 @@ export class CollaborationServerDriver extends BackendDriver {
         }`,
       )
     }
-    await this.checkSocket(assemblyName, refName, internetAccount)
     const seq = await response.text()
-    apolloRefSeq?.addSequence({ sequence: seq, start, stop: end })
-    return { seq, refSeq }
+    apolloRefSeq.addSequence({ sequence: seq, start, stop })
+    return seq
   }
 
   async getRegions(assemblyName: string): Promise<Region[]> {
