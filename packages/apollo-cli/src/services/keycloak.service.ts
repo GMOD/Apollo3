@@ -1,45 +1,47 @@
-import axios, { AxiosError, AxiosInstance } from 'axios'
 import * as querystring from 'node:querystring'
+
+import axios, { AxiosError, AxiosInstance } from 'axios'
+
 import {
   CLI_SERVER_ADDRESS_CALLBACK,
-  getUserCredentials,
   KEYCLOAK_SERVER_ADDRESS,
+  getUserCredentials,
 } from '../utils'
 
-type GetDeviceCodeResponse = {
-  device_code: string;
-  user_code: string;
-  verification_uri: string;
-  verification_uri_complete: string;
-  expires_in: number;
-  interval: number;
-};
+interface GetDeviceCodeResponse {
+  device_code: string
+  user_code: string
+  verification_uri: string
+  verification_uri_complete: string
+  expires_in: number
+  interval: number
+}
 
-type GetTokenResponse = {
-  access_token: string;
-  expires_in: number;
-  refresh_expires_in: number;
-  refresh_token: string;
-  token_type: string;
-  'not-before-policy': number;
-  session_state: string;
-  scope: string;
-};
+interface GetTokenResponse {
+  access_token: string
+  expires_in: number
+  refresh_expires_in: number
+  refresh_token: string
+  token_type: string
+  'not-before-policy': number
+  session_state: string
+  scope: string
+}
 
-type GetUserInfoResponse = {
-  sub: string;
-  email_verified: boolean;
-  name: string;
-  preferred_username: string;
-  given_name: string;
-  family_name: string;
-  email: string;
-};
+interface GetUserInfoResponse {
+  sub: string
+  email_verified: boolean
+  name: string
+  preferred_username: string
+  given_name: string
+  family_name: string
+  email: string
+}
 
 export class KeycloakService {
-  http: AxiosInstance;
-  realm: string;
-  clientId: string;
+  http: AxiosInstance
+  realm: string
+  clientId: string
 
   constructor() {
     const realm = 'oclif-keycloak'
@@ -87,11 +89,13 @@ export class KeycloakService {
           },
         )
         .then(({ data }) => data)
-        .catch(error => {
+        .catch((error) => {
           if (error instanceof AxiosError) {
-            const { error: err } = error.response?.data
+            const { error: err } = error.response?.data || {}
 
-            if (err === 'authorization_pending') return null
+            if (err === 'authorization_pending') {
+              return null
+            }
           }
 
           throw error
@@ -100,7 +104,7 @@ export class KeycloakService {
     let response = await getToken()
 
     while (!response) {
-      response = await new Promise(resolve => {
+      response = await new Promise((resolve) => {
         setTimeout(async () => {
           resolve(await getToken())
         }, interval * 1100) // interval equal to 1 is equivalent to 1.1 seconds between one request and another
@@ -113,7 +117,9 @@ export class KeycloakService {
   async getUserInfo(): Promise<GetUserInfoResponse | null> {
     const userCredentials = getUserCredentials()
 
-    if (!userCredentials?.accessToken) return null
+    if (!userCredentials?.accessToken) {
+      return null
+    }
 
     try {
       const { data } = await this.http.get('/userinfo', {
@@ -123,17 +129,20 @@ export class KeycloakService {
       })
       return data
     } catch (error) {
-      if (error instanceof AxiosError && error.response?.status === 401)
+      if (error instanceof AxiosError && error.response?.status === 401) {
         return null
+      }
 
       throw error
     }
   }
 
-  async logout(): Promise<void | null> {
+  async logout(): Promise<null> {
     const userCredentials = getUserCredentials()
 
-    if (!userCredentials?.refreshToken) return null
+    if (!userCredentials?.refreshToken) {
+      return null
+    }
 
     try {
       const { data } = await this.http.post(
@@ -150,8 +159,9 @@ export class KeycloakService {
       )
       return data
     } catch (error) {
-      if (error instanceof AxiosError && error.response?.status === 401)
+      if (error instanceof AxiosError && error.response?.status === 401) {
         return null
+      }
 
       throw error
     }
@@ -170,7 +180,10 @@ export class KeycloakService {
     return `${KEYCLOAK_SERVER_ADDRESS}/auth/realms/${this.clientId}/protocol/openid-connect/auth?${queryParams}`
   }
 
-  async getAuthorizationCodeToken(code: string, codeVerifier: string): Promise<GetTokenResponse> {
+  async getAuthorizationCodeToken(
+    code: string,
+    codeVerifier: string,
+  ): Promise<GetTokenResponse> {
     return this.http
       .post(
         '/token',

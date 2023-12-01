@@ -1,9 +1,8 @@
-import { CliUx, Command, Flags } from '@oclif/core'
-
-import { CLIError, ExitError } from '@oclif/core/lib/errors'
-import EventEmitter = require('node:events');
 import * as http from 'node:http'
 import * as querystring from 'node:querystring'
+
+import { CliUx, Command, Flags } from '@oclif/core'
+import { CLIError, ExitError } from '@oclif/core/lib/errors'
 
 import { KeycloakService } from '../../services/keycloak.service'
 import {
@@ -13,11 +12,11 @@ import {
   waitFor,
 } from '../../utils'
 
-type AuthorizationCodeCallbackParams = {
-  state: string;
-  code: string;
-  session_state: string;
-};
+import EventEmitter = require('node:events')
+
+interface AuthorizationCodeCallbackParams {
+  access_token: string
+}
 
 export default class AuthLogin extends Command {
   static description = 'Authenticate with Keycloak'
@@ -70,10 +69,12 @@ export default class AuthLogin extends Command {
     }
 
     const alreadyLoggedIn = (
-      Object.keys(userCredentials) as Array<keyof typeof userCredentials>
-    ).every(key => Boolean(userCredentials[key]))
+      Object.keys(userCredentials) as (keyof typeof userCredentials)[]
+    ).every((key) => Boolean(userCredentials[key]))
 
-    if (!alreadyLoggedIn) return
+    if (!alreadyLoggedIn) {
+      return
+    }
 
     const reAuthenticate = await CliUx.ux.confirm(
       "You're already logged. Do you want to re-authenticate? (y/n)",
@@ -105,10 +106,12 @@ export default class AuthLogin extends Command {
     }
   }
 
-  private async startAuthorizationCodeFlow(address: string): Promise<UserCredentials> {
+  private async startAuthorizationCodeFlow(
+    address: string,
+  ): Promise<UserCredentials> {
     const callbackPath = '/'
     const authorizationCodeURL = `${address}/auth/google?client_id=1054515969695-3hpfg1gd0ld3sgj135kfgikolu86vv30.apps.googleusercontent.com&redirect_uri=http://localhost:3000/auth/callback&response_type=code&token_access_type=offline&state=http%3A%2F%2Flocalhost%3A3000`
- 
+
     const emitter = new EventEmitter()
     const eventName = 'authorication_code_callback_params'
     const port = 3000
@@ -117,7 +120,7 @@ export default class AuthLogin extends Command {
         if (req?.url?.startsWith(callbackPath)) {
           const params = querystring.decode(
             req?.url.replace(`${callbackPath}?`, ''),
-          ) as AuthorizationCodeCallbackParams
+          )
 
           emitter.emit(eventName, params)
 
@@ -141,9 +144,10 @@ export default class AuthLogin extends Command {
 
     CliUx.ux.action.start('Waiting for authentication')
 
-    // @ts-expect-error just testing
-    const { access_token, code, state: stateFromParams } =
-      await waitFor<AuthorizationCodeCallbackParams>(eventName, emitter)
+    const { access_token } = await waitFor<AuthorizationCodeCallbackParams>(
+      eventName,
+      emitter,
+    )
 
     const response = await fetch('http://localhost:3999/assemblies', {
       headers: { Authorization: `Bearer ${access_token}` },
@@ -153,7 +157,7 @@ export default class AuthLogin extends Command {
 
     return {
       accessToken: access_token,
-      refreshToken: ''
+      refreshToken: '',
     }
   }
 }
