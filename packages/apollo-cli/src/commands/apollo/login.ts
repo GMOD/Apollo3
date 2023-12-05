@@ -1,3 +1,5 @@
+import { AuthenticationService } from '../../../../apollo-collaboration-server/src/authentication/authentication.service' // '../../authentication/authentication.service'
+
 import * as http from 'node:http'
 import * as querystring from 'node:querystring'
 
@@ -30,17 +32,31 @@ export default class AuthLogin extends Command {
       default: 'http://localhost:3999',
       required: false,
     }),
+    username: Flags.string({
+      char: 'u',
+      description: 'Username for root login',
+      default: '',
+      required: false,
+    }),
+    password: Flags.string({
+      char: 'p',
+      description: 'Password for <username>',
+      required: false,
+    }),
   }
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(AuthLogin)
-
     try {
       await this.checkUserAlreadyLoggedIn()
 
       let userCredentials: UserCredentials = {
         accessToken: '',
         refreshToken: '',
+      }
+
+      if (flags.username !== '') {
+        // new AuthenticationService()
       }
 
       userCredentials = await this.startAuthorizationCodeFlow(flags.address)
@@ -85,26 +101,26 @@ export default class AuthLogin extends Command {
     }
   }
 
-  private async startDeviceCodeFlow(): Promise<UserCredentials> {
-    const { device_code, interval, user_code, verification_uri } =
-      await this.keycloakService.getDeviceCode()
+  // private async startDeviceCodeFlow(): Promise<UserCredentials> {
+  //   const { device_code, interval, user_code, verification_uri } =
+  //     await this.keycloakService.getDeviceCode()
 
-    this.log(`⚠️  First copy your one-time code: ${user_code}`)
+  //   this.log(`⚠️  First copy your one-time code: ${user_code}`)
 
-    await CliUx.ux.anykey('Press any key to open Keycloak in your browser')
+  //   await CliUx.ux.anykey('Press any key to open Keycloak in your browser')
 
-    await CliUx.ux.open(verification_uri)
+  //   await CliUx.ux.open(verification_uri)
 
-    CliUx.ux.action.start('Waiting for authentication')
+  //   CliUx.ux.action.start('Waiting for authentication')
 
-    const { access_token, refresh_token } =
-      await this.keycloakService.poolToken(device_code, interval)
+  //   const { access_token, refresh_token } =
+  //     await this.keycloakService.poolToken(device_code, interval)
 
-    return {
-      accessToken: access_token,
-      refreshToken: refresh_token,
-    }
-  }
+  //   return {
+  //     accessToken: access_token,
+  //     refreshToken: refresh_token,
+  //   }
+  // }
 
   private async startAuthorizationCodeFlow(
     address: string,

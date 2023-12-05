@@ -55,6 +55,11 @@ const validationSchema = Joi.object({
   SESSION_SECRET_FILE: Joi.string(),
   ONTOLOGY_FILE: Joi.string(),
   // Optional
+  ALLOW_ROOT_USER: Joi.boolean().default(false),
+  ROOT_USER_NAME: Joi.string(),
+  ROOT_USER_PASSWORD: Joi.string(),
+  ROOT_USER_PASSWORD_FILE: Joi.string(),
+
   PORT: Joi.number().default(3999),
   CORS: Joi.boolean().default(true),
   LOG_LEVELS: Joi.string()
