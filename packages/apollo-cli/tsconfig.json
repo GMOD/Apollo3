@@ -7,7 +7,22 @@
     "rootDir": "src",
     "strict": true,
     "target": "es2019",
-    "strictPropertyInitialization": false
+    "strictPropertyInitialization": false,
+
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false
+
   },
   "include": [
     "src/**/*"
