@@ -1,8 +1,10 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   Get,
   Logger,
+  Post,
   Query,
   Redirect,
   Req,
@@ -39,7 +41,7 @@ export class AuthenticationController {
     if (redirect_uri) {
       params.set('redirect_uri', redirect_uri)
     }
-    if (['google', 'microsoft', 'guest'].includes(type)) {
+    if (['google', 'microsoft', 'guest', 'root'].includes(type)) {
       const url = redirect_uri
         ? `${type}?${new URLSearchParams({ redirect_uri }).toString()}`
         : type
@@ -65,5 +67,11 @@ export class AuthenticationController {
   @Get('guest')
   guestLogin() {
     return this.authService.guestLogin()
+  }
+
+  @Get('root')
+  @Post()
+  rootLogin(@Body() username: string, password: string) {
+    return this.authService.rootLogin(username, password)
   }
 }
