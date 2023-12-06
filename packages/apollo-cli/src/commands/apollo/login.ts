@@ -1,5 +1,3 @@
-import { AuthenticationService } from '../../../../apollo-collaboration-server/src/authentication/authentication.service' // '../../authentication/authentication.service'
-
 import * as http from 'node:http'
 import * as querystring from 'node:querystring'
 
@@ -21,7 +19,7 @@ interface AuthorizationCodeCallbackParams {
 }
 
 export default class AuthLogin extends Command {
-  static description = 'Authenticate with Keycloak'
+  static description = 'Login to Apollo'
 
   keycloakService = new KeycloakService()
 
@@ -41,6 +39,7 @@ export default class AuthLogin extends Command {
     password: Flags.string({
       char: 'p',
       description: 'Password for <username>',
+      default: '',
       required: false,
     }),
   }
@@ -56,13 +55,20 @@ export default class AuthLogin extends Command {
       }
 
       if (flags.username !== '') {
-        // new AuthenticationService()
+        userCredentials = await this.startRootLogin(flags.address, flags.username, flags.password)
+      } else {
+        userCredentials = await this.startAuthorizationCodeFlow(flags.address)
+        CliUx.ux.action.stop('done ✅')
       }
-
-      userCredentials = await this.startAuthorizationCodeFlow(flags.address)
-      CliUx.ux.action.stop('done ✅')
-
       saveUserCredentials(userCredentials)
+
+      // For testing
+      //const response = await fetch(`${flags.address}/assemblies`, {
+      //   headers: { Authorization: `Bearer ${userCredentials.accessToken}` },
+      //})
+      //console.log(`Access token: ${userCredentials.accessToken}`)
+      //console.log(await response.json())
+
     } catch (error) {
       if (
         (error instanceof CLIError && error.message === 'ctrl-c') ||
@@ -71,7 +77,6 @@ export default class AuthLogin extends Command {
         this.exit(0)
       } else if (error instanceof Error) {
         CliUx.ux.action.stop(error.message)
-
         this.exit(1)
       }
     }
@@ -101,26 +106,24 @@ export default class AuthLogin extends Command {
     }
   }
 
-  // private async startDeviceCodeFlow(): Promise<UserCredentials> {
-  //   const { device_code, interval, user_code, verification_uri } =
-  //     await this.keycloakService.getDeviceCode()
+  private async startRootLogin(address: string, username: string, password: string): Promise<UserCredentials> {
+    const url = `${address}/auth/root`
+    const response = await fetch(url, {
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+      method: 'POST',
+      body: JSON.stringify({ username: username, password: password }),
+    })
+    if(! response.ok) {
+      // FIXME: Better error handling
+      throw new Error('Failed to post request')
+    }
 
-  //   this.log(`⚠️  First copy your one-time code: ${user_code}`)
-
-  //   await CliUx.ux.anykey('Press any key to open Keycloak in your browser')
-
-  //   await CliUx.ux.open(verification_uri)
-
-  //   CliUx.ux.action.start('Waiting for authentication')
-
-  //   const { access_token, refresh_token } =
-  //     await this.keycloakService.poolToken(device_code, interval)
-
-  //   return {
-  //     accessToken: access_token,
-  //     refreshToken: refresh_token,
-  //   }
-  // }
+    const dat = await response.json()
+    return {
+      accessToken: dat.token,
+      refreshToken: '',
+    }
+  }
 
   private async startAuthorizationCodeFlow(
     address: string,
@@ -164,13 +167,6 @@ export default class AuthLogin extends Command {
       eventName,
       emitter,
     )
-
-    const response = await fetch('http://localhost:3999/assemblies', {
-      headers: { Authorization: `Bearer ${access_token}` },
-    })
-    console.log(`Access token: ${access_token}`)
-    console.log(await response.json())
-
     return {
       accessToken: access_token,
       refreshToken: '',

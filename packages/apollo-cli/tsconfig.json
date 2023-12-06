@@ -4,12 +4,12 @@
     "importHelpers": true,
     "module": "commonjs",
     "outDir": "dist",
+    "rootDir": "src",
     "strict": true,
     "target": "es2019",
     "strictPropertyInitialization": false
   },
   "include": [
-    "src/**/*",
-    "../apollo-collaboration-server/src/**/*",
+    "src/**/*"
   ]
 }
