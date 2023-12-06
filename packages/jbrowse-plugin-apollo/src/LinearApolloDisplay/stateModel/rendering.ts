@@ -1,6 +1,6 @@
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { doesIntersect2 } from '@jbrowse/core/util'
+import { defaultCodonTable, doesIntersect2 } from '@jbrowse/core/util'
 import { Theme } from '@mui/material'
 import { autorun } from 'mobx'
 import { Instance, addDisposer } from 'mobx-state-tree'
@@ -134,23 +134,23 @@ export function renderingModelIntermediateFactory(
 }
 
 function colorCode(letter: string) {
-  switch (letter.toUpperCase()) {
-    case 'A': {
-      return '#4caf50'
-    }
-    case 'T': {
-      return '#f44336'
-    }
-    case 'C': {
-      return '#2196f3'
-    }
-    case 'G': {
-      return '#ff9800'
-    }
-    default: {
-      return 'white'
-    }
+  const colorMap: Record<string, string> = {
+    A: '#4caf50',
+    T: '#f44336',
+    C: '#2196f3',
+    G: '#ff9800',
   }
+
+  return colorMap[letter?.toUpperCase()] || '#adadad'
+}
+
+function codonColorCode(letter: string) {
+  const colorMap: Record<string, string> = {
+    M: '#33ee33',
+    '*': '#f44336',
+  }
+
+  return colorMap[letter?.toUpperCase()] || '#adadad'
 }
 
 function reverseLetter(letter: string) {
@@ -165,6 +165,13 @@ function reverseLetter(letter: string) {
     g: 'c',
   }
   return letterMappings[letter] || letter
+}
+
+function reverseCodonSeq(seq: string): string {
+  return [...seq]
+    .map((c) => reverseLetter(c))
+    .reverse()
+    .join('')
 }
 
 function drawLetter(
@@ -182,6 +189,36 @@ function drawLetter(
   seqTrackctx.fillText(letter, textX, textY + 10)
 }
 
+function drawCodon(
+  seqTrackctx: CanvasRenderingContext2D,
+  bpPerPx: number,
+  trnslStartPx: number,
+  trnslY: number,
+  trnslWidthPx: number,
+  sequenceRowHeight: number,
+  seq: string,
+  i: number,
+  reverse: boolean,
+) {
+  let codonSeq: string = seq.slice(i, i + 3).toUpperCase()
+  if (reverse) {
+    codonSeq = reverseCodonSeq(codonSeq)
+  }
+  const codonLetter =
+    defaultCodonTable[codonSeq as keyof typeof defaultCodonTable]
+  if (!codonLetter) {
+    return
+  }
+  seqTrackctx.beginPath()
+  seqTrackctx.fillStyle = codonColorCode(codonLetter)
+  seqTrackctx.rect(trnslStartPx, trnslY, trnslWidthPx, sequenceRowHeight)
+  seqTrackctx.fill()
+  if (bpPerPx <= 0.1) {
+    seqTrackctx.stroke()
+    drawLetter(seqTrackctx, trnslStartPx, trnslWidthPx, codonLetter, trnslY)
+  }
+}
+
 export function sequenceRenderingModelFactory(
   pluginManager: PluginManager,
   configSchema: AnyConfigurationSchemaType,
@@ -196,7 +233,7 @@ export function sequenceRenderingModelFactory(
       addDisposer(
         self,
         autorun(
-          () => {
+          async () => {
             if (!self.lgv.initialized || self.regionCannotBeRendered()) {
               return
             }
@@ -205,18 +242,74 @@ export function sequenceRenderingModelFactory(
               return
             }
 
-            seqTrackctx.clearRect(0, 0, self.lgv.dynamicBlocks.totalWidthPx, 80)
-            console.log(`regions = ${JSON.stringify(self.regions)}`)
+            seqTrackctx.clearRect(
+              0,
+              0,
+              self.lgv.dynamicBlocks.totalWidthPx,
+              125,
+            )
 
             for (const [idx, region] of self.regions.entries()) {
-              const assembly = (
+              const driver = (
                 self.session as unknown as ApolloSessionModel
-              ).apolloDataStore.assemblies.get(region.assemblyName)
-              const ref = assembly?.getByRefName(region.refName)
-              const seq = ref?.getSequence(region.start, region.end)
+              ).apolloDataStore.getBackendDriver(region.assemblyName)
+              if (!driver) {
+                throw new Error('error...')
+              }
+              const { seq } = await driver.getSequence(region)
               if (seq) {
-                console.log(`seq = ${seq}`)
                 for (const [i, letter] of [...seq].entries()) {
+                  const trnslXOffset =
+                    (self.lgv.bpToPx({
+                      refName: region.refName,
+                      coord: region.start + i,
+                      regionNumber: idx,
+                    })?.offsetPx ?? 0) - self.lgv.offsetPx
+                  const trnslWidthPx = 3 / self.lgv.bpPerPx
+                  const trnslStartPx = self.displayedRegions[idx].reversed
+                    ? trnslXOffset - trnslWidthPx
+                    : trnslXOffset
+
+                  if ((region.start + i) % 3 === 2) {
+                    drawCodon(
+                      seqTrackctx,
+                      self.lgv.bpPerPx,
+                      trnslStartPx,
+                      0,
+                      trnslWidthPx,
+                      self.sequenceRowHeight,
+                      seq,
+                      i,
+                      false,
+                    )
+                  }
+                  if ((region.start + i) % 3 === 1) {
+                    drawCodon(
+                      seqTrackctx,
+                      self.lgv.bpPerPx,
+                      trnslStartPx,
+                      self.sequenceRowHeight,
+                      trnslWidthPx,
+                      self.sequenceRowHeight,
+                      seq,
+                      i,
+                      false,
+                    )
+                  }
+                  if ((region.start + i) % 3 === 0) {
+                    drawCodon(
+                      seqTrackctx,
+                      self.lgv.bpPerPx,
+                      trnslStartPx,
+                      self.sequenceRowHeight * 2,
+                      trnslWidthPx,
+                      self.sequenceRowHeight,
+                      seq,
+                      i,
+                      false,
+                    )
+                  }
+
                   const xOffset =
                     (self.lgv.bpToPx({
                       refName: region.refName,
@@ -230,29 +323,84 @@ export function sequenceRenderingModelFactory(
 
                   seqTrackctx.beginPath()
                   seqTrackctx.fillStyle = colorCode(letter)
-                  seqTrackctx.rect(startPx, 0, widthPx, self.sequenceRowHeight)
+                  seqTrackctx.rect(
+                    startPx,
+                    self.sequenceRowHeight * 3,
+                    widthPx,
+                    self.sequenceRowHeight,
+                  )
                   seqTrackctx.fill()
-                  seqTrackctx.stroke()
-                  drawLetter(seqTrackctx, startPx, widthPx, letter, 0)
+                  if (self.lgv.bpPerPx <= 0.1) {
+                    seqTrackctx.stroke()
+                    drawLetter(
+                      seqTrackctx,
+                      startPx,
+                      widthPx,
+                      letter,
+                      self.sequenceRowHeight * 3,
+                    )
+                  }
 
                   const revLetter = reverseLetter(letter)
                   seqTrackctx.beginPath()
                   seqTrackctx.fillStyle = colorCode(revLetter)
                   seqTrackctx.rect(
                     startPx,
-                    self.sequenceRowHeight,
+                    self.sequenceRowHeight * 4,
                     widthPx,
                     self.sequenceRowHeight,
                   )
                   seqTrackctx.fill()
-                  seqTrackctx.stroke()
-                  drawLetter(
-                    seqTrackctx,
-                    startPx,
-                    widthPx,
-                    revLetter,
-                    self.sequenceRowHeight,
-                  )
+                  if (self.lgv.bpPerPx <= 0.1) {
+                    seqTrackctx.stroke()
+                    drawLetter(
+                      seqTrackctx,
+                      startPx,
+                      widthPx,
+                      revLetter,
+                      self.sequenceRowHeight * 4,
+                    )
+                  }
+
+                  if ((region.start + i) % 3 === 0) {
+                    drawCodon(
+                      seqTrackctx,
+                      self.lgv.bpPerPx,
+                      trnslStartPx,
+                      self.sequenceRowHeight * 5,
+                      trnslWidthPx,
+                      self.sequenceRowHeight,
+                      seq,
+                      i,
+                      true,
+                    )
+                  }
+                  if ((region.start + i) % 3 === 1) {
+                    drawCodon(
+                      seqTrackctx,
+                      self.lgv.bpPerPx,
+                      trnslStartPx,
+                      self.sequenceRowHeight * 6,
+                      trnslWidthPx,
+                      self.sequenceRowHeight,
+                      seq,
+                      i,
+                      true,
+                    )
+                  }
+                  if ((region.start + i) % 3 === 2) {
+                    drawCodon(
+                      seqTrackctx,
+                      self.lgv.bpPerPx,
+                      trnslStartPx,
+                      self.sequenceRowHeight * 7,
+                      trnslWidthPx,
+                      self.sequenceRowHeight,
+                      seq,
+                      i,
+                      true,
+                    )
+                  }
                 }
               }
             }

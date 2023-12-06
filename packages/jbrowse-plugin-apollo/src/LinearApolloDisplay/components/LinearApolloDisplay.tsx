@@ -80,7 +80,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
           className={classes.canvasContainer}
           style={{
             width: lgv.dynamicBlocks.totalWidthPx,
-            height: 80,
+            height: 125,
           }}
           onContextMenu={(event) => {
             event.preventDefault()
@@ -100,7 +100,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
               setSeqTrackCanvas(node)
             }}
             width={lgv.dynamicBlocks.totalWidthPx}
-            height={80}
+            height={125}
             className={classes.canvas}
             data-testid="seqTrackCanvas"
           />
