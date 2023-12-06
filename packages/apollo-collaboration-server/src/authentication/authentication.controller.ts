@@ -72,9 +72,10 @@ export class AuthenticationController {
     return this.authService.guestLogin()
   }
 
-  @Get('root')
-  @Post()
-  rootLogin(@Body() username: string, password: string) {
+  @Post('root')
+  rootLogin(
+    @Body() { password, username }: { password: string; username: string },
+  ) {
     return this.authService.rootLogin(username, password)
   }
 }
