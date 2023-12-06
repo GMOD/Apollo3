@@ -85,6 +85,9 @@ export function layoutsModelFactory(
           const rows: boolean[][] = []
           const { end, refName, start } = region
           for (const [id, feature] of self.seenFeatures.entries()) {
+            if (feature.type !== 'gene' && feature.type !== 'operon') {
+              continue
+            }
             if (!isAlive(feature)) {
               self.deleteSeenFeature(id)
               continue
