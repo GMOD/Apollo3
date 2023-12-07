@@ -63,14 +63,8 @@ const stateModelFactory = (
       configuration: ConfigurationReference(configSchema),
     })
     .views((self) => ({
-      get googleClientId(): string {
-        return getConf(self, ['google', 'clientId'])
-      },
       get googleAuthEndpoint(): string {
         return getConf(self, ['google', 'authEndpoint'])
-      },
-      get microsoftClientId(): string {
-        return getConf(self, ['microsoft', 'clientId'])
       },
       get microsoftAuthEndpoint(): string {
         return getConf(self, ['microsoft', 'authEndpoint'])
@@ -502,13 +496,6 @@ const stateModelFactory = (
       googleAuthInternetAccount: OAuthInternetAccountModelFactory(
         OAuthConfigSchema,
       )
-        .views(() => ({
-          state() {
-            return (
-              window.location.origin + window.location.pathname.slice(0, -1)
-            )
-          },
-        }))
         .actions((s) => {
           const superStoreToken = s.storeToken
           return {
@@ -527,19 +514,11 @@ const stateModelFactory = (
             description: `${self.description}-apolloGoogle`,
             domains: self.domains,
             authEndpoint: self.googleAuthEndpoint,
-            clientId: self.googleClientId,
           },
         }),
       microsoftAuthInternetAccount: OAuthInternetAccountModelFactory(
         OAuthConfigSchema,
       )
-        .views(() => ({
-          state() {
-            return (
-              window.location.origin + window.location.pathname.slice(0, -1)
-            )
-          },
-        }))
         .actions((s) => {
           const superStoreToken = s.storeToken
           return {
@@ -558,7 +537,6 @@ const stateModelFactory = (
             description: `${self.description}-apolloMicrosoft`,
             domains: self.domains,
             authEndpoint: self.microsoftAuthEndpoint,
-            clientId: self.microsoftClientId,
           },
         }),
     }))
@@ -612,10 +590,10 @@ const stateModelFactory = (
           ): Promise<Response> => {
             let { authType } = self
             const {
+              googleAuthEndpoint,
               googleAuthInternetAccount,
-              googleClientId,
+              microsoftAuthEndpoint,
               microsoftAuthInternetAccount,
-              microsoftClientId,
             } = self
             if (!authType) {
               if (!authTypePromise) {
@@ -649,8 +627,8 @@ const stateModelFactory = (
                             }
                             doneCallback()
                           },
-                          google: Boolean(googleClientId),
-                          microsoft: Boolean(microsoftClientId),
+                          google: Boolean(googleAuthEndpoint),
+                          microsoft: Boolean(microsoftAuthEndpoint),
                           allowGuestUser,
                         },
                       ],
