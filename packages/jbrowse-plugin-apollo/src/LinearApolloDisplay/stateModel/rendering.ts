@@ -153,7 +153,7 @@ function codonColorCode(letter: string) {
   return colorMap[letter?.toUpperCase()] || '#adadad'
 }
 
-function reverseLetter(letter: string) {
+function reverseComplement(letter: string) {
   const letterMappings: Record<string, string> = {
     A: 'T',
     a: 't',
@@ -169,7 +169,7 @@ function reverseLetter(letter: string) {
 
 function reverseCodonSeq(seq: string): string {
   return [...seq]
-    .map((c) => reverseLetter(c))
+    .map((c) => reverseComplement(c))
     .reverse()
     .join('')
 }
@@ -189,7 +189,7 @@ function drawLetter(
   seqTrackctx.fillText(letter, textX, textY + 10)
 }
 
-function drawCodon(
+function drawTranslation(
   seqTrackctx: CanvasRenderingContext2D,
   bpPerPx: number,
   trnslStartPx: number,
@@ -253,10 +253,12 @@ export function sequenceRenderingModelFactory(
               const driver = (
                 self.session as unknown as ApolloSessionModel
               ).apolloDataStore.getBackendDriver(region.assemblyName)
+
               if (!driver) {
-                throw new Error('error...')
+                throw new Error('Failed to get the backend driver')
               }
               const { seq } = await driver.getSequence(region)
+
               if (seq) {
                 for (const [i, letter] of [...seq].entries()) {
                   const trnslXOffset =
@@ -270,44 +272,21 @@ export function sequenceRenderingModelFactory(
                     ? trnslXOffset - trnslWidthPx
                     : trnslXOffset
 
-                  if ((region.start + i) % 3 === 2) {
-                    drawCodon(
-                      seqTrackctx,
-                      self.lgv.bpPerPx,
-                      trnslStartPx,
-                      0,
-                      trnslWidthPx,
-                      self.sequenceRowHeight,
-                      seq,
-                      i,
-                      false,
-                    )
-                  }
-                  if ((region.start + i) % 3 === 1) {
-                    drawCodon(
-                      seqTrackctx,
-                      self.lgv.bpPerPx,
-                      trnslStartPx,
-                      self.sequenceRowHeight,
-                      trnslWidthPx,
-                      self.sequenceRowHeight,
-                      seq,
-                      i,
-                      false,
-                    )
-                  }
-                  if ((region.start + i) % 3 === 0) {
-                    drawCodon(
-                      seqTrackctx,
-                      self.lgv.bpPerPx,
-                      trnslStartPx,
-                      self.sequenceRowHeight * 2,
-                      trnslWidthPx,
-                      self.sequenceRowHeight,
-                      seq,
-                      i,
-                      false,
-                    )
+                  // Draw translation forward
+                  for (let j = 2; j >= 0; j--) {
+                    if ((region.start + i) % 3 === j) {
+                      drawTranslation(
+                        seqTrackctx,
+                        self.lgv.bpPerPx,
+                        trnslStartPx,
+                        self.sequenceRowHeight * (2 - j),
+                        trnslWidthPx,
+                        self.sequenceRowHeight,
+                        seq,
+                        i,
+                        false,
+                      )
+                    }
                   }
 
                   const xOffset =
@@ -321,6 +300,7 @@ export function sequenceRenderingModelFactory(
                     ? xOffset - widthPx
                     : xOffset
 
+                  // Draw forward
                   seqTrackctx.beginPath()
                   seqTrackctx.fillStyle = colorCode(letter)
                   seqTrackctx.rect(
@@ -341,7 +321,8 @@ export function sequenceRenderingModelFactory(
                     )
                   }
 
-                  const revLetter = reverseLetter(letter)
+                  // Draw reverse
+                  const revLetter = reverseComplement(letter)
                   seqTrackctx.beginPath()
                   seqTrackctx.fillStyle = colorCode(revLetter)
                   seqTrackctx.rect(
@@ -362,44 +343,21 @@ export function sequenceRenderingModelFactory(
                     )
                   }
 
-                  if ((region.start + i) % 3 === 0) {
-                    drawCodon(
-                      seqTrackctx,
-                      self.lgv.bpPerPx,
-                      trnslStartPx,
-                      self.sequenceRowHeight * 5,
-                      trnslWidthPx,
-                      self.sequenceRowHeight,
-                      seq,
-                      i,
-                      true,
-                    )
-                  }
-                  if ((region.start + i) % 3 === 1) {
-                    drawCodon(
-                      seqTrackctx,
-                      self.lgv.bpPerPx,
-                      trnslStartPx,
-                      self.sequenceRowHeight * 6,
-                      trnslWidthPx,
-                      self.sequenceRowHeight,
-                      seq,
-                      i,
-                      true,
-                    )
-                  }
-                  if ((region.start + i) % 3 === 2) {
-                    drawCodon(
-                      seqTrackctx,
-                      self.lgv.bpPerPx,
-                      trnslStartPx,
-                      self.sequenceRowHeight * 7,
-                      trnslWidthPx,
-                      self.sequenceRowHeight,
-                      seq,
-                      i,
-                      true,
-                    )
+                  // Draw translation reverse
+                  for (let k = 0; k <= 2; k++) {
+                    if ((region.start + i) % 3 === k) {
+                      drawTranslation(
+                        seqTrackctx,
+                        self.lgv.bpPerPx,
+                        trnslStartPx,
+                        self.sequenceRowHeight * (5 + k),
+                        trnslWidthPx,
+                        self.sequenceRowHeight,
+                        seq,
+                        i,
+                        true,
+                      )
+                    }
                   }
                 }
               }
