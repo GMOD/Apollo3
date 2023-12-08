@@ -144,7 +144,7 @@ up authentication with Google and get those values.
   `http://example.com`
 - Enter the following as an authorized redirect URI, replacing the `example.com`
   with the correct value for your URL:
-  `http://example.com:3999/auth/google/redirect`
+  `http://example.com:3999/auth/google`
 - Click "Create"
 - Take note of Client ID and Client secret listed
 
@@ -152,26 +152,6 @@ Now that you have the client ID and secret, you'll need to add them to your
 `apollo.env` file. There are placeholders in the file for these in the file, so
 you'll need to uncomment those lines (remove the `# ` from the beginning) and
 fill in the correct values for `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
-Then you'll also need to edit `config.json` as well. In the "internetAccounts"
-section, add an auth endpoint and the client ID so that it looks like this:
-
-```json
-{
-  "internetAccounts": [
-    {
-      "type": "ApolloInternetAccount",
-      "internetAccountId": "apolloInternetAccount",
-      "name": "Apollo Server",
-      "description": "Apollo server for my organization",
-      "baseURL": "http://example.com:3999",
-      "google": {
-        "authEndpoint": "http://example.com:3999/auth/google",
-        "clientId": "1054515969789-3hpfg1gd0ld3sgj135kfgikolu86vv30.apps.googleusercontent.com"
-      }
-    }
-  ]
-}
-```
 
 Now restart the Docker Compose stack and re-copy `config.json` by running
 

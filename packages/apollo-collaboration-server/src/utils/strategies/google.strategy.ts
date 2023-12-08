@@ -54,7 +54,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       callbackURI.port = String(port)
       callbackURI.pathname = `${callbackURI.pathname}${
         callbackURI.pathname.endsWith('/') ? '' : '/'
-      }auth/google/redirect`
+      }auth/google`
       callbackURL = callbackURI.href
     }
     super({
