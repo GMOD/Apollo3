@@ -132,7 +132,6 @@ export default class ApolloPlugin extends Plugin {
         configSchema: apolloInternetAccountConfigSchema,
         stateModel: apolloInternetAccountModelFactory(
           apolloInternetAccountConfigSchema,
-          pluginManager,
         ),
       })
     })
@@ -305,7 +304,6 @@ export default class ApolloPlugin extends Plugin {
 
   configure(pluginManager: PluginManager) {
     if (isAbstractMenuManager(pluginManager.rootModel)) {
-      pluginManager.rootModel.insertMenu('Apollo', -1)
       pluginManager.rootModel.appendToMenu('Apollo', {
         label: 'Download GFF3',
         onClick: (session: ApolloSessionModel) => {

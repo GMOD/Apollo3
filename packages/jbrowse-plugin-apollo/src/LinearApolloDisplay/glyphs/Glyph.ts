@@ -283,7 +283,7 @@ export abstract class Glyph {
       setSelectedFeature,
     } = display
     const { feature: sourceFeature } = apolloHover ?? {}
-    const role = internetAccount ? internetAccount.getRole() : 'admin'
+    const role = internetAccount ? internetAccount.role : 'admin'
     const admin = role === 'admin'
     const readOnly = !(role && ['admin', 'user'].includes(role))
     const menuItems: MenuItem[] = []

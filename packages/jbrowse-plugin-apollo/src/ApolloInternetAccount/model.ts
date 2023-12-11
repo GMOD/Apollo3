@@ -1,7 +1,10 @@
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
-import PluginManager from '@jbrowse/core/PluginManager'
-import { AbstractSessionModel, isElectron } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  isAbstractMenuManager,
+  isElectron,
+} from '@jbrowse/core/util'
 import { Change } from 'apollo-common'
 import {
   ChangeMessage,
@@ -19,18 +22,17 @@ import { io } from 'socket.io-client'
 import { ApolloSessionModel, Collaborator } from '../session'
 import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
-import { Role, addMenuItems } from './addMenuItems'
+import { addMenuItems } from './addMenuItems'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { ApolloInternetAccountConfigModel } from './configSchema'
 
 type AuthType = 'google' | 'microsoft' | 'guest'
 
+type Role = 'admin' | 'user' | 'readOnly'
+
 const inWebWorker = typeof sessionStorage === 'undefined'
 
-const stateModelFactory = (
-  configSchema: ApolloInternetAccountConfigModel,
-  pluginManager: PluginManager,
-) => {
+const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
   return InternetAccount.named('ApolloInternetAccount')
     .props({
       type: types.literal('ApolloInternetAccount'),
@@ -49,6 +51,35 @@ const stateModelFactory = (
         return dec.id
       },
     }))
+    .volatile(() => ({
+      role: undefined as Role | undefined,
+    }))
+    .actions((self) => {
+      let roleNotificationSent = false
+      return {
+        setRole() {
+          const token = self.retrieveToken()
+          if (!token) {
+            self.role = undefined
+            return
+          }
+          const dec = getDecodedToken(token)
+          const { role } = dec
+          if (!role && !roleNotificationSent) {
+            const { session } = getRoot<ApolloRootModel>(self)
+            ;(session as unknown as AbstractSessionModel).notify(
+              'You have registered as a user but have not been given access. Ask your administrator to enable access for your account.',
+              'warning',
+            )
+            // notify
+            roleNotificationSent = true
+          }
+          if (self.role !== role) {
+            self.role = role
+          }
+        },
+      }
+    })
     .actions((self) => {
       let listener: (event: MessageEvent) => void
       return {
@@ -87,6 +118,7 @@ const stateModelFactory = (
             return reject(new Error('Error with token endpoint'))
           }
           self.storeToken(token)
+          self.setRole()
           return resolve(token)
         },
         async openAuthWindow(
@@ -354,12 +386,12 @@ const stateModelFactory = (
       return { postUserLocation: debouncePostUserLocation(postUserLocation) }
     })
     .actions((self) => ({
-      initialize: flow(function* initialize(role?: Role) {
-        if (!role) {
-          return
-        }
+      initialize: flow(function* initialize(role: Role) {
         if (role === 'admin') {
-          addMenuItems(pluginManager, role)
+          const rootModel = getRoot(self)
+          if (isAbstractMenuManager(rootModel)) {
+            addMenuItems(rootModel)
+          }
         }
         // Get and set server last change sequence into session storage
         yield self.updateLastChangeSequenceNumber()
@@ -389,45 +421,17 @@ const stateModelFactory = (
         })
       }),
     }))
-    .actions((self) => {
-      let roleNotificationSent = false
-      return {
-        getRole() {
-          const token = self.retrieveToken()
-          if (!token) {
-            return
-          }
-          const dec = getDecodedToken(token)
-          const { role } = dec
-          if (!role && !roleNotificationSent) {
-            const { session } = getRoot<ApolloRootModel>(self)
-            ;(session as unknown as AbstractSessionModel).notify(
-              'You have registered as a user but have not been given access. Ask your administrator to enable access for your account.',
-              'warning',
-            )
-            // notify
-            roleNotificationSent = true
-          }
-          return role
-        },
-      }
-    })
     .actions((self) => ({
       afterAttach() {
+        self.setRole()
         autorun(
           async (reaction) => {
             if (inWebWorker) {
               return
             }
-            try {
-              const { getRole } = self
-              const role = getRole()
-              if (role) {
-                await self.initialize(role)
-              }
+            if (self.role) {
+              await self.initialize(self.role)
               reaction.dispose()
-            } catch {
-              // pass
             }
           },
           { name: 'ApolloInternetAccount' },
