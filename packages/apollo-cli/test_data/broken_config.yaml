@@ -1,0 +1,4 @@
+login
+  address: http://localhost:3999
+  username: root
+  password: 1234

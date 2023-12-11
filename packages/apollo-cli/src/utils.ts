@@ -9,6 +9,11 @@ export const CLI_SERVER_ADDRESS = 'http://127.0.0.1:5657'
 export const CLI_SERVER_ADDRESS_CALLBACK = `${CLI_SERVER_ADDRESS}/auth/callback`
 export const KEYCLOAK_SERVER_ADDRESS = 'http://127.0.0.1:8080'
 
+export class LoginError extends Error {
+  constructor(msg?: string) {
+      super(msg)
+  }
+}
 export interface UserCredentials {
   accessToken: string
   refreshToken: string
@@ -30,28 +35,6 @@ export const getUserCredentials = (): UserCredentials | null => {
   }
 }
 
-export const generatePkceChallenge = (): {
-  state: string
-  codeVerifier: string
-  codeChallenge: string
-} => {
-  const codeVerifier = crypto.randomBytes(64).toString('hex')
-
-  const codeChallenge = crypto
-    .createHash('sha256')
-    .update(codeVerifier)
-    .digest('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '')
-
-  return {
-    state: crypto.randomBytes(32).toString('hex'),
-    codeVerifier,
-    codeChallenge,
-  }
-}
-
 export const waitFor = <T>(
   eventName: string,
   emitter: EventEmitter,
@@ -68,3 +51,26 @@ export const waitFor = <T>(
 
   return promise
 }
+
+// export const generatePkceChallenge = (): {
+//   state: string
+//   codeVerifier: string
+//   codeChallenge: string
+// } => {
+//   const codeVerifier = crypto.randomBytes(64).toString('hex')
+
+//   const codeChallenge = crypto
+//     .createHash('sha256')
+//     .update(codeVerifier)
+//     .digest('base64')
+//     .replace(/\+/g, '-')
+//     .replace(/\//g, '_')
+//     .replace(/=/g, '')
+
+//   return {
+//     state: crypto.randomBytes(32).toString('hex'),
+//     codeVerifier,
+//     codeChallenge,
+//   }
+// }
+

@@ -1,0 +1,7 @@
+login:
+  address: http://localhost:3999
+  username: root
+  password: 1234
+  stuff: 'foo'
+more_stuff:
+  useless: true

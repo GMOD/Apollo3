@@ -17,12 +17,14 @@
   "dependencies": {
     "@oclif/core": "^1.22.0",
     "@oclif/plugin-help": "^5",
-    "axios": "^1.2.2"
+    "axios": "^1.2.2",
+    "js-yaml": "^4.1.0"
   },
   "devDependencies": {
     "@oclif/test": "^2.2.16",
     "@types/axios": "^0.14.0",
     "@types/chai": "^4",
+    "@types/js-yaml": "^4",
     "@types/mocha": "^9.0.0",
     "@types/node": "^18.14.2",
     "chai": "^4",
@@ -37,7 +39,7 @@
   },
   "oclif": {
     "bin": "./bin/run",
-    "dirname": "cli",
+    "dirname": "apollo",
     "commands": "./dist/commands",
     "plugins": [
       "@oclif/plugin-help"
@@ -51,7 +53,7 @@
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "yarn lint",
     "prepack": "yarn build && oclif manifest && oclif readme",
-    "test": "mocha --forbid-only \"test/**/*.test.ts\"",
+    "test": "mocha --require ts-node/register --require test/fixtures.ts --forbid-only \"test/**/*.test.ts\"",
     "version": "oclif readme && git add README.md"
   },
   "engines": {

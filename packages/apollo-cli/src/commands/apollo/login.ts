@@ -1,11 +1,15 @@
 import * as http from 'node:http'
 import * as querystring from 'node:querystring'
+import * as path from 'path'
+import * as fs from 'node:fs'
+const yaml = require('js-yaml');
 
 import { CliUx, Command, Flags } from '@oclif/core'
 import { CLIError, ExitError } from '@oclif/core/lib/errors'
 
 import { KeycloakService } from '../../services/keycloak.service'
 import {
+  LoginError,
   UserCredentials,
   getUserCredentials,
   saveUserCredentials,
@@ -13,39 +17,46 @@ import {
 } from '../../utils'
 
 import EventEmitter = require('node:events')
+import { Config, LoginConfig } from '../../config';
 
 interface AuthorizationCodeCallbackParams {
   access_token: string
 }
 
-export default class AuthLogin extends Command {
+const apolloAddress = 'http://localhost:3999'
+
+export default class ApolloLogin extends Command {
   static description = 'Login to Apollo'
-
-  keycloakService = new KeycloakService()
-
   static flags = {
     address: Flags.string({
       char: 'a',
-      description: 'Address of Apollo server',
-      default: 'http://localhost:3999',
+      description: `Address of Apollo server [${apolloAddress}]`,
+      default: undefined,
       required: false,
     }),
     username: Flags.string({
       char: 'u',
-      description: 'Username for root login',
-      default: '',
+      description: 'Username',
+      default: undefined,
       required: false,
     }),
     password: Flags.string({
       char: 'p',
-      description: 'Password for <username>',
-      default: '',
+      description: 'Password',
+      default: undefined,
       required: false,
+    }),
+    "root-login": Flags.boolean({
+      char: 'r',
+      description: 'Login as root using configured credentials',
     }),
   }
 
+  keycloakService = new KeycloakService()
+
   public async run(): Promise<void> {
-    const { flags } = await this.parse(AuthLogin)
+
+    const { flags } = await this.parse(ApolloLogin)
     try {
       await this.checkUserAlreadyLoggedIn()
 
@@ -54,29 +65,58 @@ export default class AuthLogin extends Command {
         refreshToken: '',
       }
 
-      if (flags.username !== '') {
-        userCredentials = await this.startRootLogin(flags.address, flags.username, flags.password)
+      let config: Config = new Config()
+      // if (fs.existsSync(CONFIG_FILE)) {
+      //   config = new Config(CONFIG_FILE)
+      // }
+      const loginConfig: LoginConfig = config.login
+      
+      for (const key of Object.keys(loginConfig)) {
+        if (flags[key] !== undefined) {
+          // If given, command arguments override config file
+          loginConfig[key as keyof LoginConfig] = flags[key]
+        }
+      }
+
+      if(flags['root-login']) {
+        for (const key of Object.keys(loginConfig)) {
+          if(loginConfig[key as keyof LoginConfig] === undefined) {
+            throw new LoginError(`Failed to login: Provide a "${key}" via command line flags or configuration file\nTo setup the configuration run "apollo config"`)
+          }
+        }
+      }
+
+      if(loginConfig.address === undefined) {
+        loginConfig.address = apolloAddress
+      }
+      
+      if (loginConfig.username && loginConfig.password) {
+        userCredentials = await this.startRootLogin(loginConfig.address, loginConfig.username, loginConfig.password)
       } else {
-        userCredentials = await this.startAuthorizationCodeFlow(flags.address)
+        userCredentials = await this.startAuthorizationCodeFlow(loginConfig.address)
         CliUx.ux.action.stop('done ✅')
       }
       saveUserCredentials(userCredentials)
-
-      // For testing
-      //const response = await fetch(`${flags.address}/assemblies`, {
+      this.log('Login complete')
+ 
+      // For testing --->
+      // const response = await fetch(`${loginConfig.address}/assemblies`, {
       //   headers: { Authorization: `Bearer ${userCredentials.accessToken}` },
-      //})
-      //console.log(`Access token: ${userCredentials.accessToken}`)
-      //console.log(await response.json())
+      // })
+      // console.log(await response.json())
+      // <---
 
     } catch (error) {
-      if (
+      if (error instanceof LoginError) {
+        this.logToStderr(`${error.message}`)
+        this.exit(2)
+      } else if (
         (error instanceof CLIError && error.message === 'ctrl-c') ||
         error instanceof ExitError
       ) {
         this.exit(0)
       } else if (error instanceof Error) {
-        CliUx.ux.action.stop(error.message)
+        this.logToStderr(`${error.message}`)
         this.exit(1)
       }
     }
@@ -108,16 +148,19 @@ export default class AuthLogin extends Command {
 
   private async startRootLogin(address: string, username: string, password: string): Promise<UserCredentials> {
     const url = `${address}/auth/root`
-    const response = await fetch(url, {
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-      method: 'POST',
-      body: JSON.stringify({ username: username, password: password }),
-    })
-    if(! response.ok) {
-      // FIXME: Better error handling
-      throw new Error('Failed to post request')
+    let response = undefined
+    try {
+      response = await fetch(url, {
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+        method: 'POST',
+        body: JSON.stringify({ username: username, password: password }),
+      })
+    } catch(error) {
+        throw new LoginError(`Failed to login with error: "${(error as Error).message}". Perhaps login address is invalid.`)
     }
-
+    if(! response.ok) {
+      throw new LoginError(`Failed to login (status: ${response.status}). Perhaps username or password are invalid.`)
+    }
     const dat = await response.json()
     return {
       accessToken: dat.token,
@@ -157,7 +200,7 @@ export default class AuthLogin extends Command {
       })
       .listen(port)
 
-    await CliUx.ux.anykey('Press any key to open Keycloak in your browser')
+    // await CliUx.ux.anykey('Press any key to open Keycloak in your browser')
 
     await CliUx.ux.open(authorizationCodeURL)
 
