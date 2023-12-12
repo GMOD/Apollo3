@@ -22,7 +22,7 @@ import {
 import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
 import { changeRegistry, checkRegistry } from 'apollo-common'
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
+import { AnnotationFeatureSnapshot, ApolloAssembly } from 'apollo-mst'
 import {
   AddFeatureChange,
   CDSCheck,
@@ -32,6 +32,7 @@ import {
   validationRegistry,
 } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
+import { IMSTMap } from 'mobx-state-tree'
 
 import { version } from '../package.json'
 import {
@@ -102,30 +103,6 @@ const createExonSubFeature = (
   start: number,
   end: number,
 ): AnnotationFeatureSnapshot => {
-  // // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  // console.log(`parent: ${JSON.stringify(feature)}`)
-  // console.log(`start: ${feature.get('start')}`)
-  // console.log(`end: ${feature.get('end')}`)
-  // console.log(`strand: ${feature.get('strand')}`)
-  // // const exon = new SimpleFeature({
-  // //   parent: feature,
-  // //   data: { start, end },
-  // //   id: '',
-  // // })
-  // const exon = new SimpleFeature({  parent: feature, uniqueId: '' }) // PROBLEM!!!!!
-  // console.log('*** Exon done ***', exon)
-  // exon.set('start', start)
-  // exon.set('end', end)
-  // exon.set('strand', feature.get('strand'))
-  // exon.set('type', 'exon')
-  // console.log(`exon: ${JSON.stringify(exon)}`)
-  // const subfeature = makeSimpleFeature(exon, feature)
-  // console.log(`subfeature: ${JSON.stringify(subfeature)}`)
-  // const eka = feature.get('subfeatures')
-  // if (eka) {
-  //   // feature.get('subfeatures').push(subfeature) // *********** TOIMIIKOHAN *************
-  //   eka.push(subfeature)
-  // }
   return {
     _id: '',
     refSeq: feature.get('refName'),
@@ -135,36 +112,6 @@ const createExonSubFeature = (
     strand: feature.get('strand'),
   }
 }
-const makeSimpleFeature = (
-  feature: Feature,
-  parent?: Feature,
-): SimpleFeature => {
-  const result = new SimpleFeature({
-    id: feature.id(),
-    data: {},
-    parent: parent ?? feature.parent(),
-  })
-  const ftags = feature.tags()
-
-  for (const tag of ftags) {
-    // Forcing lower case, since still having case issues with NCList features
-    result.set(tag.toLowerCase(), feature.get(tag.toLowerCase()))
-  }
-
-  const subfeats = feature.get('subfeatures')
-
-  if (subfeats && subfeats.length > 0) {
-    const simpleSubfeats: SimpleFeature[] = []
-    for (const subfeat of subfeats) {
-      const simpleSubfeat = makeSimpleFeature(subfeat, result)
-      simpleSubfeats.push(simpleSubfeat)
-    }
-    result.set('subfeatures', simpleSubfeats)
-  }
-
-  return result
-}
-
 const inWebWorker = 'WorkerGlobalScope' in globalThis
 
 for (const [changeName, change] of Object.entries(changes)) {
@@ -173,7 +120,6 @@ for (const [changeName, change] of Object.entries(changes)) {
 
 const cdsCheck = new CDSCheck()
 checkRegistry.registerCheck(cdsCheck.name, cdsCheck)
-
 validationRegistry.registerValidation(new CoreValidation())
 validationRegistry.registerValidation(new ParentChildValidation())
 
@@ -308,13 +254,13 @@ export default class ApolloPlugin extends Plugin {
               },
             }
           })
-
           ;(pluggableElement as ViewType).stateModel = newStateModel
         }
         return pluggableElement
       },
     )
-    // ISSUE 336 BEGIN
+
+    // ISSUE 336 BEGINS
     pluginManager.addToExtensionPoint(
       'Core-extendPluggableElement',
       (pluggableElement) => {
@@ -330,8 +276,7 @@ export default class ApolloPlugin extends Plugin {
                 contextMenuItems() {
                   const feature = self.contextMenuFeature
                   if (!feature) {
-                    // we're not adding any menu items since the click was not
-                    // on a feature
+                    // we're not adding any menu items since the click was not on a feature
                     return superContextMenuItems()
                   }
                   return [
@@ -341,12 +286,10 @@ export default class ApolloPlugin extends Plugin {
                       icon: AddIcon,
                       onClick: async () => {
                         console.log('Feature:', JSON.stringify(feature))
-
                         const cigarData = feature.data.CIGAR
                         // 12M3N5M9N4M
                         // split <Number>Cigar
                         const ops = parseCigar(cigarData)
-                        // console.log(`ops: ${JSON.stringify(ops)}`)
                         let currOffset = 0
                         const { start } = feature.data
                         feature.set('subfeatures', [])
@@ -355,7 +298,6 @@ export default class ApolloPlugin extends Plugin {
                         let openStart: any
                         const exonArray: AnnotationFeatureSnapshot[] = []
                         for (const oprec of ops) {
-                          // console.log(`OPREC: ${oprec[0]}, ${oprec[1]}`)
                           // eslint-disable-next-line prefer-destructuring
                           const op = oprec[0]
                           const len = oprec[1]
@@ -372,13 +314,6 @@ export default class ApolloPlugin extends Plugin {
                             op === 'N' && // if it was open, then close and add the subfeature
                             openExon
                           ) {
-                            // console.log(
-                            //   '***** Feature:',
-                            //   feature,
-                            //   openStart,
-                            //   currOffset,
-                            //   start,
-                            // )
                             const feat = createExonSubFeature(
                               feature,
                               openStart,
@@ -387,7 +322,6 @@ export default class ApolloPlugin extends Plugin {
                             exonArray.push(feat)
                             openExon = false
                           }
-
                           // we ignore insertions when calculating potential exon length
                           if (op !== 'I') {
                             currOffset += len
@@ -396,13 +330,6 @@ export default class ApolloPlugin extends Plugin {
 
                         // F. if we are still open, then close with the final length and add subfeature
                         if (openExon && openStart !== undefined) {
-                          // console.log(
-                          //   '2 Feature:',
-                          //   feature,
-                          //   openStart,
-                          //   currOffset,
-                          //   start,
-                          // )
                           const feat = createExonSubFeature(
                             feature,
                             openStart,
@@ -410,7 +337,6 @@ export default class ApolloPlugin extends Plugin {
                           )
                           exonArray.push(feat)
                         }
-
                         // const assembly = session.apolloDataStore.assemblies.get(
                         //   region.assemblyName,
                         // )
@@ -492,6 +418,11 @@ export default class ApolloPlugin extends Plugin {
                           self,
                         ) as unknown as ApolloSessionModel
                         console.log(`change: ${JSON.stringify(change)}`)
+                        const { assemblies } = session.apolloDataStore as {
+                          assemblies: IMSTMap<typeof ApolloAssembly>
+                        }
+                        console.log(`assemblies: ${JSON.stringify(assemblies)}`)
+
                         // console.log(`session: ${JSON.stringify(session)}`)
                         // console.log(
                         //   `assemblies: ${JSON.stringify(
