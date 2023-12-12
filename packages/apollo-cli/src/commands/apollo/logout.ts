@@ -11,10 +11,7 @@ export default class AuthLogout extends Command {
 
     await keycloakService.logout()
 
-    saveUserCredentials({
-      accessToken: '',
-      refreshToken: '',
-    })
+    saveUserCredentials({ accessToken: '' })
 
     this.log('Logged out of Keycloak ✅')
   }

@@ -1,10 +1,11 @@
+import EventEmitter from 'node:events'
 import * as http from 'node:http'
 import * as querystring from 'node:querystring'
 
-import { CliUx, Command, Flags } from '@oclif/core'
+import { Command, Flags, ux } from '@oclif/core'
 import { CLIError, ExitError } from '@oclif/core/lib/errors'
+import open from 'open'
 
-import { KeycloakService } from '../../services/keycloak.service'
 import {
   UserCredentials,
   getUserCredentials,
@@ -12,16 +13,12 @@ import {
   waitFor,
 } from '../../utils'
 
-import EventEmitter = require('node:events')
-
 interface AuthorizationCodeCallbackParams {
   access_token: string
 }
 
-export default class AuthLogin extends Command {
-  static description = 'Login to Apollo'
-
-  keycloakService = new KeycloakService()
+export default class Login extends Command {
+  static description = 'Log in to Apollo'
 
   static flags = {
     address: Flags.string({
@@ -45,30 +42,30 @@ export default class AuthLogin extends Command {
   }
 
   public async run(): Promise<void> {
-    const { flags } = await this.parse(AuthLogin)
+    const { flags } = await this.parse(Login)
     try {
       await this.checkUserAlreadyLoggedIn()
 
-      let userCredentials: UserCredentials = {
-        accessToken: '',
-        refreshToken: '',
-      }
+      let userCredentials: UserCredentials = { accessToken: '' }
 
-      if (flags.username !== '') {
-        userCredentials = await this.startRootLogin(flags.address, flags.username, flags.password)
-      } else {
+      if (flags.username === '') {
         userCredentials = await this.startAuthorizationCodeFlow(flags.address)
-        CliUx.ux.action.stop('done ✅')
+        ux.action.stop('done ✅')
+      } else {
+        userCredentials = await this.startRootLogin(
+          flags.address,
+          flags.username,
+          flags.password,
+        )
       }
       saveUserCredentials(userCredentials)
 
       // For testing
-      //const response = await fetch(`${flags.address}/assemblies`, {
+      // const response = await fetch(`${flags.address}/assemblies`, {
       //   headers: { Authorization: `Bearer ${userCredentials.accessToken}` },
-      //})
-      //console.log(`Access token: ${userCredentials.accessToken}`)
-      //console.log(await response.json())
-
+      // })
+      // console.log(`Access token: ${userCredentials.accessToken}`)
+      // console.log(await response.json())
     } catch (error) {
       if (
         (error instanceof CLIError && error.message === 'ctrl-c') ||
@@ -76,7 +73,7 @@ export default class AuthLogin extends Command {
       ) {
         this.exit(0)
       } else if (error instanceof Error) {
-        CliUx.ux.action.stop(error.message)
+        ux.action.stop(error.message)
         this.exit(1)
       }
     }
@@ -97,7 +94,7 @@ export default class AuthLogin extends Command {
       return
     }
 
-    const reAuthenticate = await CliUx.ux.confirm(
+    const reAuthenticate = await ux.confirm(
       "You're already logged. Do you want to re-authenticate? (y/n)",
     )
 
@@ -106,31 +103,34 @@ export default class AuthLogin extends Command {
     }
   }
 
-  private async startRootLogin(address: string, username: string, password: string): Promise<UserCredentials> {
+  private async startRootLogin(
+    address: string,
+    username: string,
+    password: string,
+  ): Promise<UserCredentials> {
     const url = `${address}/auth/root`
+    // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/pull/66824
     const response = await fetch(url, {
-      headers: new Headers({ 'Content-Type': 'application/json' }),
+      headers: { 'Content-Type': 'application/json' },
       method: 'POST',
-      body: JSON.stringify({ username: username, password: password }),
+      body: JSON.stringify({ username, password }),
     })
-    if(! response.ok) {
+    if (!response.ok) {
       // FIXME: Better error handling
       throw new Error('Failed to post request')
     }
 
     const dat = await response.json()
-    return {
-      accessToken: dat.token,
-      refreshToken: '',
-    }
+    return { accessToken: dat.token }
   }
 
   private async startAuthorizationCodeFlow(
     address: string,
   ): Promise<UserCredentials> {
     const callbackPath = '/'
-    const authorizationCodeURL = `${address}/auth/google?client_id=1054515969695-3hpfg1gd0ld3sgj135kfgikolu86vv30.apps.googleusercontent.com&redirect_uri=http://localhost:3000/auth/callback&response_type=code&token_access_type=offline&state=http%3A%2F%2Flocalhost%3A3000`
+    const authorizationCodeURL = `${address}/auth?type=google&redirect_uri=http://localhost:3000/auth/callback`
 
+    // eslint-disable-next-line unicorn/prefer-event-target
     const emitter = new EventEmitter()
     const eventName = 'authorication_code_callback_params'
     const port = 3000
@@ -150,26 +150,22 @@ export default class AuthLogin extends Command {
           server.close()
         } else {
           // TODO: handle an invalid URL address
-          console.log(req.url)
           res.end('Unsupported')
           emitter.emit(eventName, new Error('Invalid URL address'))
         }
       })
       .listen(port)
 
-    await CliUx.ux.anykey('Press any key to open Keycloak in your browser')
+    await ux.anykey('Press any key to open Keycloak in your browser')
 
-    await CliUx.ux.open(authorizationCodeURL)
+    await open(authorizationCodeURL)
 
-    CliUx.ux.action.start('Waiting for authentication')
+    ux.action.start('Waiting for authentication')
 
     const { access_token } = await waitFor<AuthorizationCodeCallbackParams>(
       eventName,
       emitter,
     )
-    return {
-      accessToken: access_token,
-      refreshToken: '',
-    }
+    return { accessToken: access_token }
   }
 }

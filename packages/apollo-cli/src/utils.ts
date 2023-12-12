@@ -11,7 +11,6 @@ export const KEYCLOAK_SERVER_ADDRESS = 'http://127.0.0.1:8080'
 
 export interface UserCredentials {
   accessToken: string
-  refreshToken: string
 }
 
 export const saveUserCredentials = (data: UserCredentials): void => {
@@ -41,9 +40,9 @@ export const generatePkceChallenge = (): {
     .createHash('sha256')
     .update(codeVerifier)
     .digest('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '')
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replaceAll('=', '')
 
   return {
     state: crypto.randomBytes(32).toString('hex'),
@@ -57,7 +56,7 @@ export const waitFor = <T>(
   emitter: EventEmitter,
 ): Promise<T> => {
   const promise = new Promise<T>((resolve, reject) => {
-    const handleEvent = (eventData: any): void => {
+    const handleEvent = (eventData: T): void => {
       eventData instanceof Error ? reject(eventData) : resolve(eventData)
 
       emitter.removeListener(eventName, handleEvent)

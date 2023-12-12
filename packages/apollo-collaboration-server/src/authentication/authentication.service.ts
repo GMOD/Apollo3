@@ -32,6 +32,7 @@ interface ConfigValues {
   GOOGLE_CLIENT_ID?: string
   GOOGLE_CLIENT_ID_FILE?: string
   ALLOW_GUEST_USER: boolean
+  ALLOW_ROOT_USER: boolean
   ROOT_USER_NAME: string
   ROOT_USER_PASSWORD: string
   DEFAULT_NEW_USER_ROLE: Role | 'none'
@@ -92,6 +93,9 @@ export class AuthenticationService {
     const allowGuestUser = this.configService.get('ALLOW_GUEST_USER', {
       infer: true,
     })
+    const allowRootUser = this.configService.get('ALLOW_ROOT_USER', {
+      infer: true,
+    })
     if (microsoftClientID) {
       loginTypes.push('microsoft')
     }
@@ -100,6 +104,9 @@ export class AuthenticationService {
     }
     if (allowGuestUser) {
       loginTypes.push('guest')
+    }
+    if (allowRootUser) {
+      loginTypes.push('root')
     }
     return loginTypes
   }

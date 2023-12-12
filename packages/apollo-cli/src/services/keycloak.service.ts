@@ -20,8 +20,6 @@ interface GetDeviceCodeResponse {
 interface GetTokenResponse {
   access_token: string
   expires_in: number
-  refresh_expires_in: number
-  refresh_token: string
   token_type: string
   'not-before-policy': number
   session_state: string
@@ -40,7 +38,6 @@ interface GetUserInfoResponse {
 
 export class KeycloakService {
   http: AxiosInstance
-  realm: string
   clientId: string
 
   constructor() {
@@ -138,18 +135,11 @@ export class KeycloakService {
   }
 
   async logout(): Promise<null> {
-    const userCredentials = getUserCredentials()
-
-    if (!userCredentials?.refreshToken) {
-      return null
-    }
-
     try {
       const { data } = await this.http.post(
         '/logout',
         {
           client_id: this.clientId,
-          refresh_token: userCredentials.refreshToken,
         },
         {
           headers: {

@@ -1,65 +1,69 @@
 {
-  "name": "apollo",
+  "name": "apollo-cli",
+  "description": "CLI for managing an Apollo Collaboration Server",
   "version": "0.0.0",
-  "description": "Command line interface for Apollo3",
-  "author": "",
-  "bin": {
-    "cli": "./bin/run"
+  "author": "Apollo Team",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GMOD/Apollo3.git",
+    "directory": "packages/apollo-cli"
   },
-  "main": "dist/index.js",
-  "repository": "https://github.com/GMOD/Apollo3",
+  "bin": {
+    "apollo": "./bin/run.js"
+  },
+  "type": "module",
+  "main": "",
+  "types": "dist/index.d.ts",
+  "exports": "./lib/index.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "files": [
     "/bin",
     "/dist",
-    "/npm-shrinkwrap.json",
     "/oclif.manifest.json"
   ],
-  "dependencies": {
-    "@oclif/core": "^1.22.0",
-    "@oclif/plugin-help": "^5",
-    "axios": "^1.2.2"
-  },
-  "devDependencies": {
-    "@oclif/test": "^2.2.16",
-    "@types/axios": "^0.14.0",
-    "@types/chai": "^4",
-    "@types/mocha": "^9.0.0",
-    "@types/node": "^18.14.2",
-    "chai": "^4",
-    "eslint-config-oclif": "^4",
-    "eslint-config-oclif-typescript": "^1.0.3",
-    "mocha": "^9",
-    "oclif": "^3",
-    "shx": "^0.3.3",
-    "ts-node": "^10.3.0",
-    "tslib": "^2.3.1",
-    "typescript": "^5.1.6"
-  },
-  "oclif": {
-    "bin": "./bin/run",
-    "dirname": "cli",
-    "commands": "./dist/commands",
-    "plugins": [
-      "@oclif/plugin-help"
-    ],
-    "topicSeparator": " ",
-    "topics": {}
-  },
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
-    "lint": "eslint . --ext .ts --config .eslintrc",
+    "lint": "eslint . --ext .ts",
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "yarn lint",
     "prepack": "yarn build && oclif manifest && oclif readme",
+    "prepare": "yarn build",
     "test": "mocha --forbid-only \"test/**/*.test.ts\"",
     "version": "oclif readme && git add README.md"
   },
-  "engines": {
-    "node": ">=12.0.0"
+  "dependencies": {
+    "@oclif/core": "^3",
+    "@oclif/plugin-help": "^5",
+    "@oclif/plugin-plugins": "^4",
+    "axios": "^1.6.2",
+    "open": "^9.1.0",
+    "tslib": "^2.3.1"
   },
-  "bugs": "https://github.com/GMOD/Apollo3/issues",
-  "keywords": [
-    "oclif"
-  ],
-  "types": "dist/index.d.ts"
+  "devDependencies": {
+    "@oclif/test": "^3",
+    "@types/chai": "^4",
+    "@types/mocha": "^10",
+    "@types/node": "^18.14.2",
+    "oclif": "^4.0.4",
+    "shx": "^0.3.3",
+    "ts-node": "^10.3.0",
+    "typescript": "^5.1.6"
+  },
+  "oclif": {
+    "bin": "apollo",
+    "dirname": "apollo",
+    "commands": "./dist/commands",
+    "plugins": [
+      "@oclif/plugin-help",
+      "@oclif/plugin-plugins"
+    ],
+    "topicSeparator": " ",
+    "topics": {
+      "hello": {
+        "description": "Say hello to the world and others"
+      }
+    }
+  }
 }
