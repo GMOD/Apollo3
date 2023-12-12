@@ -8,24 +8,30 @@ import {
   createBaseTrackConfig,
   createBaseTrackModel,
 } from '@jbrowse/core/pluggableElementTypes'
+import PluggableElementBase from '@jbrowse/core/pluggableElementTypes/PluggableElementBase'
 import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
 import {
   AbstractSessionModel,
+  Feature,
   Region,
+  SimpleFeature,
   getSession,
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
 import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
 import { changeRegistry, checkRegistry } from 'apollo-common'
+import { AnnotationFeatureSnapshot } from 'apollo-mst'
 import {
+  AddFeatureChange,
   CDSCheck,
   CoreValidation,
   ParentChildValidation,
   changes,
   validationRegistry,
 } from 'apollo-shared'
+import ObjectID from 'bson-objectid'
 
 import { version } from '../package.json'
 import {
@@ -84,6 +90,79 @@ function isApolloMessageData(data?: unknown): data is ApolloMessageData {
     'apollo' in data &&
     data.apollo === true
   )
+}
+
+const parseCigar = (cigar: string): [string | undefined, number][] => {
+  return (cigar.toUpperCase().match(/\d+\D/g) ?? []).map((op) => {
+    return [(op.match(/\D/) ?? [])[0], Number.parseInt(op, 10)]
+  })
+}
+const createExonSubFeature = (
+  feature: Feature,
+  start: number,
+  end: number,
+): AnnotationFeatureSnapshot => {
+  // // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // console.log(`parent: ${JSON.stringify(feature)}`)
+  // console.log(`start: ${feature.get('start')}`)
+  // console.log(`end: ${feature.get('end')}`)
+  // console.log(`strand: ${feature.get('strand')}`)
+  // // const exon = new SimpleFeature({
+  // //   parent: feature,
+  // //   data: { start, end },
+  // //   id: '',
+  // // })
+  // const exon = new SimpleFeature({  parent: feature, uniqueId: '' }) // PROBLEM!!!!!
+  // console.log('*** Exon done ***', exon)
+  // exon.set('start', start)
+  // exon.set('end', end)
+  // exon.set('strand', feature.get('strand'))
+  // exon.set('type', 'exon')
+  // console.log(`exon: ${JSON.stringify(exon)}`)
+  // const subfeature = makeSimpleFeature(exon, feature)
+  // console.log(`subfeature: ${JSON.stringify(subfeature)}`)
+  // const eka = feature.get('subfeatures')
+  // if (eka) {
+  //   // feature.get('subfeatures').push(subfeature) // *********** TOIMIIKOHAN *************
+  //   eka.push(subfeature)
+  // }
+  return {
+    _id: '',
+    refSeq: feature.get('refName'),
+    type: 'exon',
+    start,
+    end,
+    strand: feature.get('strand'),
+  }
+}
+const makeSimpleFeature = (
+  feature: Feature,
+  parent?: Feature,
+): SimpleFeature => {
+  const result = new SimpleFeature({
+    id: feature.id(),
+    data: {},
+    parent: parent ?? feature.parent(),
+  })
+  const ftags = feature.tags()
+
+  for (const tag of ftags) {
+    // Forcing lower case, since still having case issues with NCList features
+    result.set(tag.toLowerCase(), feature.get(tag.toLowerCase()))
+  }
+
+  const subfeats = feature.get('subfeatures')
+
+  if (subfeats && subfeats.length > 0) {
+    const simpleSubfeats: SimpleFeature[] = []
+    for (const subfeat of subfeats) {
+      const simpleSubfeat = makeSimpleFeature(subfeat, result)
+      simpleSubfeats.push(simpleSubfeat)
+    }
+    result.set('subfeatures', simpleSubfeats)
+  }
+
+  return result
 }
 
 const inWebWorker = 'WorkerGlobalScope' in globalThis
@@ -231,6 +310,206 @@ export default class ApolloPlugin extends Plugin {
           })
 
           ;(pluggableElement as ViewType).stateModel = newStateModel
+        }
+        return pluggableElement
+      },
+    )
+    // ISSUE 336 BEGIN
+    pluginManager.addToExtensionPoint(
+      'Core-extendPluggableElement',
+      (pluggableElement) => {
+        if (
+          (pluggableElement as PluggableElementBase).name ===
+          'LinearPileupDisplay'
+        ) {
+          const { stateModel } = pluggableElement as DisplayType
+          const newStateModel = stateModel.extend((self) => {
+            const superContextMenuItems = self.contextMenuItems
+            return {
+              views: {
+                contextMenuItems() {
+                  const feature = self.contextMenuFeature
+                  if (!feature) {
+                    // we're not adding any menu items since the click was not
+                    // on a feature
+                    return superContextMenuItems()
+                  }
+                  return [
+                    ...superContextMenuItems(),
+                    {
+                      label: 'Create annotation',
+                      icon: AddIcon,
+                      onClick: async () => {
+                        console.log('Feature:', JSON.stringify(feature))
+
+                        const cigarData = feature.data.CIGAR
+                        // 12M3N5M9N4M
+                        // split <Number>Cigar
+                        const ops = parseCigar(cigarData)
+                        // console.log(`ops: ${JSON.stringify(ops)}`)
+                        let currOffset = 0
+                        const { start } = feature.data
+                        feature.set('subfeatures', [])
+                        let openExon = false
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        let openStart: any
+                        const exonArray: AnnotationFeatureSnapshot[] = []
+                        for (const oprec of ops) {
+                          // console.log(`OPREC: ${oprec[0]}, ${oprec[1]}`)
+                          // eslint-disable-next-line prefer-destructuring
+                          const op = oprec[0]
+                          const len = oprec[1]
+
+                          // 1. open or continue open
+                          if (op === 'M' || op === '=' || op === 'E') {
+                            // if it was closed, then open with start, strand, type
+                            if (!openExon) {
+                              // add subfeature
+                              openStart = currOffset + start
+                              openExon = true
+                            }
+                          } else if (
+                            op === 'N' && // if it was open, then close and add the subfeature
+                            openExon
+                          ) {
+                            // console.log(
+                            //   '***** Feature:',
+                            //   feature,
+                            //   openStart,
+                            //   currOffset,
+                            //   start,
+                            // )
+                            const feat = createExonSubFeature(
+                              feature,
+                              openStart,
+                              currOffset + start,
+                            )
+                            exonArray.push(feat)
+                            openExon = false
+                          }
+
+                          // we ignore insertions when calculating potential exon length
+                          if (op !== 'I') {
+                            currOffset += len
+                          }
+                        }
+
+                        // F. if we are still open, then close with the final length and add subfeature
+                        if (openExon && openStart !== undefined) {
+                          // console.log(
+                          //   '2 Feature:',
+                          //   feature,
+                          //   openStart,
+                          //   currOffset,
+                          //   start,
+                          // )
+                          const feat = createExonSubFeature(
+                            feature,
+                            openStart,
+                            currOffset + start,
+                          )
+                          exonArray.push(feat)
+                        }
+
+                        // const assembly = session.apolloDataStore.assemblies.get(
+                        //   region.assemblyName,
+                        // )
+                        // const ref = assembly?.getByRefName(region.refName)
+
+                        const children: Record<
+                          string,
+                          AnnotationFeatureSnapshot
+                        > = {}
+                        const disContLoc: {
+                          start: number
+                          end: number
+                          phase?: 0 | 1 | 2
+                        }[] = []
+                        console.log(`EXONS: ${JSON.stringify(exonArray)}`)
+                        let strand,
+                          phase,
+                          mRNAstart = 0,
+                          mRNAend = 0
+                        for (const [i, snapshot] of exonArray.entries()) {
+                          strand = snapshot.strand
+                          phase = snapshot.phase
+                          if (mRNAstart === 0 || snapshot.start < mRNAstart) {
+                            mRNAstart = Number(snapshot.start) - 1
+                          }
+                          if (mRNAend === 0 || snapshot.end > mRNAend) {
+                            mRNAend = Number(snapshot.end)
+                          }
+                          if (exonArray.length > 1) {
+                            const newChild: AnnotationFeatureSnapshot = {
+                              _id: new ObjectID().toHexString(),
+                              start: Number(snapshot.start) - 1,
+                              end: Number(snapshot.end),
+                              type: 'exon',
+                              refSeq: '65670e19a8c9de1496adff58',
+                            }
+                            children[newChild._id] = newChild
+                            // Add discontinous locations
+                            disContLoc.push({
+                              start: Number(snapshot.start) - 1,
+                              end: Number(snapshot.end),
+                              phase: snapshot.phase,
+                            })
+                          }
+                        }
+                        // Create also CDS child
+                        if (exonArray.length > 1) {
+                          const newChild: AnnotationFeatureSnapshot = {
+                            _id: new ObjectID().toHexString(),
+                            start: mRNAstart,
+                            end: mRNAend,
+                            type: 'CDS',
+                            refSeq: '65670e19a8c9de1496adff58',
+                          }
+                          children[newChild._id] = newChild
+                        }
+                        const id = new ObjectID().toHexString()
+                        const change = new AddFeatureChange({
+                          changedIds: [id],
+                          typeName: 'AddFeatureChange',
+                          assembly: '65670e1581b16efd76d513dc',
+                          addedFeature: {
+                            _id: id,
+                            gffId: '',
+                            refSeq: '65670e19a8c9de1496adff58', // snapshot.refSeq,
+                            start: mRNAstart,
+                            end: mRNAend,
+                            children: children as unknown as Record<
+                              string,
+                              AnnotationFeatureSnapshot
+                            >,
+                            discontinuousLocations: disContLoc,
+                            type: 'mRNA',
+                            phase,
+                            strand,
+                          },
+                        })
+                        const session = getSession(
+                          self,
+                        ) as unknown as ApolloSessionModel
+                        console.log(`change: ${JSON.stringify(change)}`)
+                        // console.log(`session: ${JSON.stringify(session)}`)
+                        // console.log(
+                        //   `assemblies: ${JSON.stringify(
+                        //     session.apolloDataStore.assemblies,
+                        //   )}`,
+                        // )
+                        await session.apolloDataStore.changeManager.submit?.(
+                          change,
+                        )
+                        // notify('Feature added successfully', 'success')
+                      },
+                    },
+                  ]
+                },
+              },
+            }
+          })
+          ;(pluggableElement as DisplayType).stateModel = newStateModel
         }
         return pluggableElement
       },
