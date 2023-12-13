@@ -15,14 +15,17 @@ import {
   AbstractSessionModel,
   Feature,
   Region,
-  SimpleFeature,
+  getContainingView,
   getSession,
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
-import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
+import {
+  LinearGenomeViewModel,
+  LinearGenomeViewStateModel,
+} from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
 import { changeRegistry, checkRegistry } from 'apollo-common'
-import { AnnotationFeatureSnapshot, ApolloAssembly } from 'apollo-mst'
+import { AnnotationFeatureSnapshot } from 'apollo-mst'
 import {
   AddFeatureChange,
   CDSCheck,
@@ -32,7 +35,6 @@ import {
   validationRegistry,
 } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
-import { IMSTMap } from 'mobx-state-tree'
 
 import { version } from '../package.json'
 import {
@@ -260,7 +262,6 @@ export default class ApolloPlugin extends Plugin {
       },
     )
 
-    // ISSUE 336 BEGINS
     pluginManager.addToExtensionPoint(
       'Core-extendPluggableElement',
       (pluggableElement) => {
@@ -285,7 +286,39 @@ export default class ApolloPlugin extends Plugin {
                       label: 'Create annotation',
                       icon: AddIcon,
                       onClick: async () => {
-                        console.log('Feature:', JSON.stringify(feature))
+                        const lgv = getContainingView(
+                          self,
+                        ) as unknown as LinearGenomeViewModel
+                        // eslint-disable-next-line prefer-destructuring
+                        const firstRegion = lgv.dynamicBlocks.contentBlocks[0]
+                        const session = getSession(self)
+                        const { assemblyManager } = session
+                        const { assemblyName, refName } = firstRegion
+                        const assembly = assemblyManager.get(assemblyName)
+                        if (!assembly) {
+                          throw new Error(
+                            `Could not find assembly named ${assemblyName}`,
+                          )
+                        }
+                        const assemblyId = assembly.name
+                        const { refNameAliases } = assembly
+                        if (!refNameAliases) {
+                          return
+                        }
+                        const newRefNames = [...Object.entries(refNameAliases)]
+                          .filter(([id, refName]) => id !== refName)
+                          .map(([id, refName]) => ({
+                            _id: id,
+                            name: refName ?? '',
+                          }))
+                        const refSeqId = newRefNames.find(
+                          (item) => item.name === refName,
+                        )?._id
+                        if (!refSeqId) {
+                          throw new Error(
+                            `Could not find refSeqId named ${refName}`,
+                          )
+                        }
                         const cigarData = feature.data.CIGAR
                         // 12M3N5M9N4M
                         // split <Number>Cigar
@@ -300,8 +333,8 @@ export default class ApolloPlugin extends Plugin {
                         for (const oprec of ops) {
                           // eslint-disable-next-line prefer-destructuring
                           const op = oprec[0]
+                          // eslint-disable-next-line prefer-destructuring
                           const len = oprec[1]
-
                           // 1. open or continue open
                           if (op === 'M' || op === '=' || op === 'E') {
                             // if it was closed, then open with start, strand, type
@@ -327,7 +360,6 @@ export default class ApolloPlugin extends Plugin {
                             currOffset += len
                           }
                         }
-
                         // F. if we are still open, then close with the final length and add subfeature
                         if (openExon && openStart !== undefined) {
                           const feat = createExonSubFeature(
@@ -337,11 +369,6 @@ export default class ApolloPlugin extends Plugin {
                           )
                           exonArray.push(feat)
                         }
-                        // const assembly = session.apolloDataStore.assemblies.get(
-                        //   region.assemblyName,
-                        // )
-                        // const ref = assembly?.getByRefName(region.refName)
-
                         const children: Record<
                           string,
                           AnnotationFeatureSnapshot
@@ -351,16 +378,17 @@ export default class ApolloPlugin extends Plugin {
                           end: number
                           phase?: 0 | 1 | 2
                         }[] = []
-                        console.log(`EXONS: ${JSON.stringify(exonArray)}`)
                         let strand,
                           phase,
                           mRNAstart = 0,
                           mRNAend = 0
-                        for (const [i, snapshot] of exonArray.entries()) {
+                        for (const [, snapshot] of exonArray.entries()) {
+                          // eslint-disable-next-line prefer-destructuring
                           strand = snapshot.strand
+                          // eslint-disable-next-line prefer-destructuring
                           phase = snapshot.phase
                           if (mRNAstart === 0 || snapshot.start < mRNAstart) {
-                            mRNAstart = Number(snapshot.start) - 1
+                            mRNAstart = Number(snapshot.start)
                           }
                           if (mRNAend === 0 || snapshot.end > mRNAend) {
                             mRNAend = Number(snapshot.end)
@@ -368,15 +396,15 @@ export default class ApolloPlugin extends Plugin {
                           if (exonArray.length > 1) {
                             const newChild: AnnotationFeatureSnapshot = {
                               _id: new ObjectID().toHexString(),
-                              start: Number(snapshot.start) - 1,
+                              start: Number(snapshot.start),
                               end: Number(snapshot.end),
                               type: 'exon',
-                              refSeq: '65670e19a8c9de1496adff58',
+                              refSeq: refSeqId,
                             }
                             children[newChild._id] = newChild
                             // Add discontinous locations
                             disContLoc.push({
-                              start: Number(snapshot.start) - 1,
+                              start: Number(snapshot.start),
                               end: Number(snapshot.end),
                               phase: snapshot.phase,
                             })
@@ -388,8 +416,9 @@ export default class ApolloPlugin extends Plugin {
                             _id: new ObjectID().toHexString(),
                             start: mRNAstart,
                             end: mRNAend,
+                            discontinuousLocations: disContLoc,
                             type: 'CDS',
-                            refSeq: '65670e19a8c9de1496adff58',
+                            refSeq: refSeqId,
                           }
                           children[newChild._id] = newChild
                         }
@@ -397,42 +426,33 @@ export default class ApolloPlugin extends Plugin {
                         const change = new AddFeatureChange({
                           changedIds: [id],
                           typeName: 'AddFeatureChange',
-                          assembly: '65670e1581b16efd76d513dc',
+                          assembly: assemblyId,
                           addedFeature: {
                             _id: id,
                             gffId: '',
-                            refSeq: '65670e19a8c9de1496adff58', // snapshot.refSeq,
+                            refSeq: refSeqId,
                             start: mRNAstart,
                             end: mRNAend,
                             children: children as unknown as Record<
                               string,
                               AnnotationFeatureSnapshot
                             >,
-                            discontinuousLocations: disContLoc,
                             type: 'mRNA',
                             phase,
                             strand,
                           },
                         })
-                        const session = getSession(
+                        const sessionApollo = getSession(
                           self,
                         ) as unknown as ApolloSessionModel
-                        console.log(`change: ${JSON.stringify(change)}`)
-                        const { assemblies } = session.apolloDataStore as {
-                          assemblies: IMSTMap<typeof ApolloAssembly>
-                        }
-                        console.log(`assemblies: ${JSON.stringify(assemblies)}`)
 
-                        // console.log(`session: ${JSON.stringify(session)}`)
-                        // console.log(
-                        //   `assemblies: ${JSON.stringify(
-                        //     session.apolloDataStore.assemblies,
-                        //   )}`,
-                        // )
-                        await session.apolloDataStore.changeManager.submit?.(
+                        await sessionApollo.apolloDataStore.changeManager.submit?.(
                           change,
                         )
-                        // notify('Feature added successfully', 'success')
+                        session.notify(
+                          'Annotation added successfully',
+                          'success',
+                        )
                       },
                     },
                   ]
