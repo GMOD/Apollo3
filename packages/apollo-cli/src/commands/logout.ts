@@ -1,7 +1,7 @@
 import { Command } from '@oclif/core'
 
-import { KeycloakService } from '../../services/keycloak.service'
-import { saveUserCredentials } from '../../utils'
+import { KeycloakService } from '../services/keycloak.service.js'
+import { saveUserCredentials } from '../utils.js'
 
 export default class AuthLogout extends Command {
   static description = 'Log out of Keycloak'

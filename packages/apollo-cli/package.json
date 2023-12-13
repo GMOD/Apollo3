@@ -25,7 +25,7 @@
   ],
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
-    "lint": "eslint . --ext .ts",
+    "dev": "node --loader @esbuild-kit/esm-loader bin/dev.js",
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "yarn lint",
     "prepack": "yarn build && oclif manifest && oclif readme",
@@ -42,6 +42,7 @@
     "tslib": "^2.3.1"
   },
   "devDependencies": {
+    "@esbuild-kit/esm-loader": "^2.6.5",
     "@oclif/test": "^3",
     "@types/chai": "^4",
     "@types/mocha": "^10",
@@ -53,17 +54,10 @@
   },
   "oclif": {
     "bin": "apollo",
-    "dirname": "apollo",
     "commands": "./dist/commands",
     "plugins": [
-      "@oclif/plugin-help",
-      "@oclif/plugin-plugins"
+      "@oclif/plugin-help"
     ],
-    "topicSeparator": " ",
-    "topics": {
-      "hello": {
-        "description": "Say hello to the world and others"
-      }
-    }
+    "topicSeparator": " "
   }
 }

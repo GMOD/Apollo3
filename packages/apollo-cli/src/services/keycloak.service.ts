@@ -6,7 +6,7 @@ import {
   CLI_SERVER_ADDRESS_CALLBACK,
   KEYCLOAK_SERVER_ADDRESS,
   getUserCredentials,
-} from '../utils'
+} from '../utils.js'
 
 interface GetDeviceCodeResponse {
   device_code: string

@@ -2,8 +2,7 @@ import EventEmitter from 'node:events'
 import * as http from 'node:http'
 import * as querystring from 'node:querystring'
 
-import { Command, Flags, ux } from '@oclif/core'
-import { CLIError, ExitError } from '@oclif/core/lib/errors'
+import { Command, Errors, Flags, ux } from '@oclif/core'
 import open from 'open'
 
 import {
@@ -11,7 +10,7 @@ import {
   getUserCredentials,
   saveUserCredentials,
   waitFor,
-} from '../../utils'
+} from '../utils.js'
 
 interface AuthorizationCodeCallbackParams {
   access_token: string
@@ -68,8 +67,8 @@ export default class Login extends Command {
       // console.log(await response.json())
     } catch (error) {
       if (
-        (error instanceof CLIError && error.message === 'ctrl-c') ||
-        error instanceof ExitError
+        (error instanceof Errors.CLIError && error.message === 'ctrl-c') ||
+        error instanceof Errors.ExitError
       ) {
         this.exit(0)
       } else if (error instanceof Error) {
@@ -109,7 +108,6 @@ export default class Login extends Command {
     password: string,
   ): Promise<UserCredentials> {
     const url = `${address}/auth/root`
-    // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/pull/66824
     const response = await fetch(url, {
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
