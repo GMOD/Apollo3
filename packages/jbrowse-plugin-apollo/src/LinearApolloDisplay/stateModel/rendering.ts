@@ -1,6 +1,6 @@
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { defaultCodonTable, doesIntersect2 } from '@jbrowse/core/util'
+import { defaultCodonTable, doesIntersect2, revcom } from '@jbrowse/core/util'
 import { Theme } from '@mui/material'
 import { autorun } from 'mobx'
 import { Instance, addDisposer } from 'mobx-state-tree'
@@ -133,15 +133,12 @@ export function renderingModelIntermediateFactory(
     }))
 }
 
-function colorCode(letter: string) {
-  const colorMap: Record<string, string> = {
-    A: '#4caf50',
-    T: '#f44336',
-    C: '#2196f3',
-    G: '#ff9800',
-  }
-
-  return colorMap[letter?.toUpperCase()] || '#adadad'
+function colorCode(letter: string, theme?: Theme) {
+  return (
+    theme?.palette.bases[
+      letter.toUpperCase() as keyof Theme['palette']['bases']
+    ].main.toString() ?? '#adadad'
+  )
 }
 
 function codonColorCode(letter: string) {
@@ -153,23 +150,9 @@ function codonColorCode(letter: string) {
   return colorMap[letter?.toUpperCase()] || '#adadad'
 }
 
-function reverseComplement(letter: string) {
-  const letterMappings: Record<string, string> = {
-    A: 'T',
-    a: 't',
-    T: 'A',
-    t: 'a',
-    C: 'G',
-    c: 'g',
-    G: 'C',
-    g: 'c',
-  }
-  return letterMappings[letter] || letter
-}
-
 function reverseCodonSeq(seq: string): string {
   return [...seq]
-    .map((c) => reverseComplement(c))
+    .map((c) => revcom(c))
     .reverse()
     .join('')
 }
@@ -183,7 +166,7 @@ function drawLetter(
 ) {
   const fontSize = Math.min(widthPx, 10)
   seqTrackctx.fillStyle = '#000'
-  seqTrackctx.font = `${fontSize}px Arial`
+  seqTrackctx.font = `${fontSize}px`
   const textWidth = seqTrackctx.measureText(letter).width
   const textX = startPx + (widthPx - textWidth) / 2
   seqTrackctx.fillText(letter, textX, textY + 10)
@@ -246,7 +229,7 @@ export function sequenceRenderingModelFactory(
               0,
               0,
               self.lgv.dynamicBlocks.totalWidthPx,
-              125,
+              self.lgv.bpPerPx <= 1 ? 125 : 95,
             )
 
             for (const [idx, region] of self.regions.entries()) {
@@ -289,68 +272,71 @@ export function sequenceRenderingModelFactory(
                     }
                   }
 
-                  const xOffset =
-                    (self.lgv.bpToPx({
-                      refName: region.refName,
-                      coord: region.start + i,
-                      regionNumber: idx,
-                    })?.offsetPx ?? 0) - self.lgv.offsetPx
-                  const widthPx = 1 / self.lgv.bpPerPx
-                  const startPx = self.displayedRegions[idx].reversed
-                    ? xOffset - widthPx
-                    : xOffset
+                  if (self.lgv.bpPerPx <= 1) {
+                    const xOffset =
+                      (self.lgv.bpToPx({
+                        refName: region.refName,
+                        coord: region.start + i,
+                        regionNumber: idx,
+                      })?.offsetPx ?? 0) - self.lgv.offsetPx
+                    const widthPx = 1 / self.lgv.bpPerPx
+                    const startPx = self.displayedRegions[idx].reversed
+                      ? xOffset - widthPx
+                      : xOffset
 
-                  // Draw forward
-                  seqTrackctx.beginPath()
-                  seqTrackctx.fillStyle = colorCode(letter)
-                  seqTrackctx.rect(
-                    startPx,
-                    self.sequenceRowHeight * 3,
-                    widthPx,
-                    self.sequenceRowHeight,
-                  )
-                  seqTrackctx.fill()
-                  if (self.lgv.bpPerPx <= 0.1) {
-                    seqTrackctx.stroke()
-                    drawLetter(
-                      seqTrackctx,
+                    // Draw forward
+                    seqTrackctx.beginPath()
+                    seqTrackctx.fillStyle = colorCode(letter, self.theme)
+                    seqTrackctx.rect(
                       startPx,
-                      widthPx,
-                      letter,
                       self.sequenceRowHeight * 3,
-                    )
-                  }
-
-                  // Draw reverse
-                  const revLetter = reverseComplement(letter)
-                  seqTrackctx.beginPath()
-                  seqTrackctx.fillStyle = colorCode(revLetter)
-                  seqTrackctx.rect(
-                    startPx,
-                    self.sequenceRowHeight * 4,
-                    widthPx,
-                    self.sequenceRowHeight,
-                  )
-                  seqTrackctx.fill()
-                  if (self.lgv.bpPerPx <= 0.1) {
-                    seqTrackctx.stroke()
-                    drawLetter(
-                      seqTrackctx,
-                      startPx,
                       widthPx,
-                      revLetter,
-                      self.sequenceRowHeight * 4,
+                      self.sequenceRowHeight,
                     )
+                    seqTrackctx.fill()
+                    if (self.lgv.bpPerPx <= 0.1) {
+                      seqTrackctx.stroke()
+                      drawLetter(
+                        seqTrackctx,
+                        startPx,
+                        widthPx,
+                        letter,
+                        self.sequenceRowHeight * 3,
+                      )
+                    }
+
+                    // Draw reverse
+                    const revLetter = revcom(letter)
+                    seqTrackctx.beginPath()
+                    seqTrackctx.fillStyle = colorCode(revLetter, self.theme)
+                    seqTrackctx.rect(
+                      startPx,
+                      self.sequenceRowHeight * 4,
+                      widthPx,
+                      self.sequenceRowHeight,
+                    )
+                    seqTrackctx.fill()
+                    if (self.lgv.bpPerPx <= 0.1) {
+                      seqTrackctx.stroke()
+                      drawLetter(
+                        seqTrackctx,
+                        startPx,
+                        widthPx,
+                        revLetter,
+                        self.sequenceRowHeight * 4,
+                      )
+                    }
                   }
 
                   // Draw translation reverse
                   for (let k = 0; k <= 2; k++) {
+                    const rowOffset = self.lgv.bpPerPx <= 1 ? 5 : 3
                     if ((region.start + i) % 3 === k) {
                       drawTranslation(
                         seqTrackctx,
                         self.lgv.bpPerPx,
                         trnslStartPx,
-                        self.sequenceRowHeight * (5 + k),
+                        self.sequenceRowHeight * (rowOffset + k),
                         trnslWidthPx,
                         self.sequenceRowHeight,
                         seq,

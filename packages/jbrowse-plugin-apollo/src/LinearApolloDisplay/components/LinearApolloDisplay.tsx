@@ -75,12 +75,12 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const { assemblyManager } = session as unknown as AbstractSessionModel
   return (
     <>
-      {lgv.bpPerPx <= 1 ? (
+      {lgv.bpPerPx <= 3 ? (
         <div
           className={classes.canvasContainer}
           style={{
             width: lgv.dynamicBlocks.totalWidthPx,
-            height: 125,
+            height: lgv.bpPerPx <= 1 ? 125 : 95,
           }}
           onContextMenu={(event) => {
             event.preventDefault()
@@ -100,7 +100,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
               setSeqTrackCanvas(node)
             }}
             width={lgv.dynamicBlocks.totalWidthPx}
-            height={125}
+            height={lgv.bpPerPx <= 1 ? 125 : 95}
             className={classes.canvas}
             data-testid="seqTrackCanvas"
           />
