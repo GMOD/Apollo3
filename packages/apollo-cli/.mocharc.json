@@ -1,7 +1,6 @@
 {
   "require": [
-    "../../.pnp.cjs",
-    "ts-node/register"
+    "../../.pnp.cjs"
   ],
   "watch-extensions": [
     "ts"
@@ -11,8 +10,7 @@
   "forbidOnly": true,
   "timeout": 60000,
   "node-option": [
-    "loader=ts-node/esm",
-    "experimental-specifier-resolution=node",
+    "import=tsx",
     "no-warnings=ExperimentalWarning",
     "experimental-loader=../../.pnp.loader.mjs"
   ]

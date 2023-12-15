@@ -25,7 +25,7 @@
   ],
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
-    "dev": "node --loader @esbuild-kit/esm-loader bin/dev.js",
+    "dev": "tsx bin/dev.js",
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "yarn lint",
     "prepack": "yarn build && oclif manifest && oclif readme",
@@ -50,6 +50,7 @@
     "oclif": "^4.1.0",
     "shx": "^0.3.3",
     "ts-node": "^10.3.0",
+    "tsx": "^4.6.2",
     "typescript": "^5.1.6"
   },
   "oclif": {
