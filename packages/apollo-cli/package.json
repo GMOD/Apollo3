@@ -31,6 +31,7 @@
     "prepack": "yarn build && oclif manifest && oclif readme",
     "prepare": "yarn build",
     "test": "mocha 'src/**/*.test.ts'",
+    "test:ci": "nyc mocha 'src/**/*.test.ts'",
     "version": "oclif readme && git add README.md"
   },
   "dependencies": {
@@ -42,11 +43,15 @@
   },
   "devDependencies": {
     "@esbuild-kit/esm-loader": "^2.6.5",
+    "@istanbuljs/esm-loader-hook": "^0.2.0",
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@oclif/test": "^3.1.3",
     "@types/chai": "^4",
     "@types/mocha": "^10",
     "@types/node": "^18.14.2",
+    "babel-plugin-istanbul": "^6.1.1",
     "mocha": "^10.2.0",
+    "nyc": "^15.1.0",
     "oclif": "^4.1.0",
     "shx": "^0.3.3",
     "ts-node": "^10.3.0",
