@@ -121,6 +121,13 @@ module.exports = {
       },
       env: { node: true },
     },
+    {
+      files: ['./packages/apollo-cli/*.{c,}js'],
+      parserOptions: {
+        project: 'packages/apollo-cli/tsconfig.eslint.json',
+      },
+      env: { node: true },
+    },
     // Specify Node env and tsconfig for cypress testing and config files
     {
       files: [

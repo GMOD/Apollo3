@@ -1,20 +1,35 @@
+import * as fs from 'node:fs'
+import * as os from 'node:os'
+import * as path from 'node:path'
+
 import { Command } from '@oclif/core'
 
-import { KeycloakService } from '../services/keycloak.service.js'
+const CONFIG_PATH = path.resolve(os.homedir(), '.clirc')
+
+export interface UserCredentials {
+  accessToken: string
+}
+
+export const getUserCredentials = (): UserCredentials | null => {
+  try {
+    const content = fs.readFileSync(CONFIG_PATH, { encoding: 'utf8' })
+
+    return JSON.parse(content) as UserCredentials
+  } catch {
+    return null
+  }
+}
 
 export default class AuthStatus extends Command {
   static description = 'View authentication status'
 
   public async run(): Promise<void> {
-    const keycloakService = new KeycloakService()
+    const userCredentials = getUserCredentials()
 
-    const userInfo = await keycloakService.getUserInfo()
-
-    if (userInfo) {
-      this.log(`Logged as ${userInfo.preferred_username} <${userInfo.email}>`)
+    if (userCredentials) {
+      this.log(`Logged in with token ${userCredentials.accessToken}`)
     } else {
-      this.log("You're not logged. Run cli auth login to authenticate.")
-      this.exit(0)
+      this.log("You're not logged in. Run `apollo login` to authenticate.")
     }
   }
 }

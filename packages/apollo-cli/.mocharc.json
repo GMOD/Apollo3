@@ -1,0 +1,19 @@
+{
+  "require": [
+    "../../.pnp.cjs",
+    "ts-node/register"
+  ],
+  "watch-extensions": [
+    "ts"
+  ],
+  "recursive": true,
+  "reporter": "spec",
+  "forbidOnly": true,
+  "timeout": 60000,
+  "node-option": [
+    "loader=ts-node/esm",
+    "experimental-specifier-resolution=node",
+    "no-warnings=ExperimentalWarning",
+    "experimental-loader=../../.pnp.loader.mjs"
+  ]
+}
