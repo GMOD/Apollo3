@@ -110,7 +110,6 @@ export default class ApolloPlugin extends Plugin {
     installApolloSequenceAdapter(pluginManager)
     installApolloTextSearchAdapter(pluginManager)
 
-    // Widget starts
     pluginManager.addWidgetType(() => {
       const configSchema = ConfigurationSchema('ApolloFeatureDetailsWidget', {})
       return new WidgetType({

@@ -1,7 +1,14 @@
+import PluginManager from '@jbrowse/core/PluginManager'
 import { MenuItem } from '@jbrowse/core/ui'
-import { AbstractSessionModel } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  SessionWithWidgets,
+  getSession,
+  isSessionModelWithWidgets,
+} from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
+import { ApolloPlugin, ApolloPluginConstructor } from 'apollo-common'
+import { AnnotationFeature, AnnotationFeatureI } from 'apollo-mst'
 
 import {
   AddChildFeature,
@@ -15,6 +22,11 @@ import {
 } from '../stateModel/mouseEvents'
 import { LinearApolloDisplayRendering } from '../stateModel/rendering'
 import { CanvasMouseEvent } from '../types'
+
+interface ApolloFeatureDetailsModel {
+  id: number
+  type: 'ApolloFeatureDetails'
+}
 
 export abstract class Glyph {
   /** @returns number of layout rows used by this glyph with this feature and zoom level */
@@ -373,6 +385,30 @@ export abstract class Glyph {
                 },
               ],
             )
+          },
+        },
+        {
+          label: 'Edit feature details',
+          // icon: EditIcon,
+          onClick: () => {
+            const ses = session as unknown as AbstractSessionModel
+            if (ses) {
+              const { widgets } = session as unknown as SessionWithWidgets
+              const sesWidged = session as unknown as SessionWithWidgets
+              console.log(`widgets: ${JSON.stringify(widgets)}`)
+              let apolloFeatureWidget = widgets.get('apolloFeatureDetails1')
+              if (!apolloFeatureWidget) {
+                console.log('Lets add new widget...')
+                apolloFeatureWidget = sesWidged.addWidget(
+                  'ApolloFeatureDetails', // This does not work
+                  // 'BaseFeatureWidget', // This works
+                  'apolloFeatureDetails1',
+                  { feature: sourceFeature },
+                )
+                console.log('Widget added!')
+                ses.showWidget?.(apolloFeatureWidget)
+              }
+            }
           },
         },
       )
