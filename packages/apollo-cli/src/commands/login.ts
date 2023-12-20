@@ -60,11 +60,11 @@ export default class Login extends Command {
       saveUserCredentials(userCredentials)
 
       // For testing
-      // const response = await fetch(`${flags.address}/assemblies`, {
-      //   headers: { Authorization: `Bearer ${userCredentials.accessToken}` },
-      // })
-      // console.log(`Access token: ${userCredentials.accessToken}`)
-      // console.log(await response.json())
+      const response = await fetch(`${flags.address}/assemblies`, {
+        headers: { Authorization: `Bearer ${userCredentials.accessToken}` },
+      })
+      console.log(`Access token: ${userCredentials.accessToken}`)
+      console.log(await response.json())
     } catch (error) {
       if (
         (error instanceof Errors.CLIError && error.message === 'ctrl-c') ||

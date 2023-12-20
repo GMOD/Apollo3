@@ -9,6 +9,7 @@ export const CLI_SERVER_ADDRESS = 'http://127.0.0.1:5657'
 export const CLI_SERVER_ADDRESS_CALLBACK = `${CLI_SERVER_ADDRESS}/auth/callback`
 export const KEYCLOAK_SERVER_ADDRESS = 'http://127.0.0.1:8080'
 
+export class ConfigError extends Error {}
 export interface UserCredentials {
   accessToken: string
 }
