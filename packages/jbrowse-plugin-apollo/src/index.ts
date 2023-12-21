@@ -51,7 +51,7 @@ import { AddFeature } from './components/AddFeature'
 import { ViewCheckResults } from './components/ViewCheckResults'
 import ApolloPluginConfigurationSchema from './config'
 import { annotationFromPileup } from './extensions'
-import ApolloFeatureDetails from './FeatureDetailsWidget/ApolloFeatureDetails'
+import { ApolloFeatureDetailsWidget } from './FeatureDetailsWidget/ApolloFeatureDetailsWidget'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
@@ -109,17 +109,6 @@ export default class ApolloPlugin extends Plugin {
   install(pluginManager: PluginManager) {
     installApolloSequenceAdapter(pluginManager)
     installApolloTextSearchAdapter(pluginManager)
-
-    pluginManager.addWidgetType(() => {
-      const configSchema = ConfigurationSchema('ApolloFeatureDetailsWidget', {})
-      return new WidgetType({
-        name: 'ApolloFeatureDetails',
-        heading: 'Apollo feature details',
-        configSchema,
-        stateModel: stateModelFactory(pluginManager, configSchema),
-        ReactComponent: ApolloFeatureDetails,
-      })
-    })
 
     pluginManager.addTrackType(() => {
       const configSchema = ConfigurationSchema(
@@ -319,6 +308,19 @@ export default class ApolloPlugin extends Plugin {
         },
       )
     }
+
+    pluginManager.addWidgetType(() => {
+      const configSchema = ConfigurationSchema('ApolloFeatureDetails', {})
+      const widgetType = new WidgetType({
+        name: 'ApolloFeatureDetails',
+        heading: 'Apollo feature details',
+        configSchema,
+        stateModel: stateModelFactory(pluginManager, configSchema),
+        ReactComponent: ApolloFeatureDetailsWidget,
+      })
+      console.log(`Add widget: ${JSON.stringify(widgetType)}`)
+      return widgetType
+    })
   }
 
   configure(pluginManager: PluginManager) {
