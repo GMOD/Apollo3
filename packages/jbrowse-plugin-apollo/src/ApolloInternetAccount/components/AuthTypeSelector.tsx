@@ -1,8 +1,16 @@
-import { Button, DialogActions, DialogContent, Divider } from '@mui/material'
-import React from 'react'
+import { isAbortException } from '@jbrowse/core/util'
+import {
+  Button,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  Divider,
+} from '@mui/material'
+import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { Dialog } from '../../components/Dialog'
+import { createFetchErrorMessage } from '../../util'
 import { GoogleButton, GuestButton, MicrosoftButton } from './LoginButtons'
 
 const useStyles = makeStyles()((theme) => ({
@@ -13,20 +21,42 @@ const useStyles = makeStyles()((theme) => ({
 }))
 
 export const AuthTypeSelector = ({
-  allowGuestUser,
-  google,
+  baseURL,
   handleClose,
-  microsoft,
   name,
 }: {
   baseURL: string
   name: string
   handleClose: (type?: 'google' | 'microsoft' | 'guest' | Error) => void
-  google: boolean
-  microsoft: boolean
-  allowGuestUser: boolean
 }) => {
   const { classes } = useStyles()
+  const [errorMessage, setErrorMessage] = useState('')
+  const [loginTypes, setLoginTypes] = useState<string[]>([])
+  useEffect(() => {
+    const controller = new AbortController()
+    const { signal } = controller
+    async function getAuthTypes() {
+      const uri = new URL('/auth/types', baseURL).href
+      const response = await fetch(uri, { method: 'GET', signal })
+      if (!response.ok) {
+        const newErrorMessage = await createFetchErrorMessage(
+          response,
+          'Error when retrieving auth types from server',
+        )
+        setErrorMessage(newErrorMessage)
+        return
+      }
+      const data = (await response.json()) as string[]
+      setLoginTypes(data)
+    }
+    getAuthTypes().catch((error) =>
+      isAbortException(error) ? '' : setErrorMessage(String(error)),
+    )
+    return () => {
+      controller.abort()
+    }
+  }, [baseURL])
+
   function handleClick(authType: 'google' | 'microsoft' | 'guest') {
     if (authType === 'google') {
       handleClose('google')
@@ -36,7 +66,10 @@ export const AuthTypeSelector = ({
       handleClose('guest')
     }
   }
-  // convert component to string useable in data-uri
+
+  const allowGoogle = loginTypes.includes('google')
+  const allowMicrosoft = loginTypes.includes('microsoft')
+  const allowGuest = loginTypes.includes('guest')
   return (
     <Dialog
       open
@@ -48,15 +81,19 @@ export const AuthTypeSelector = ({
       <DialogContent
         style={{ display: 'flex', flexDirection: 'column', paddingTop: 8 }}
       >
-        <GoogleButton
-          disabled={!google}
-          onClick={() => handleClick('google')}
-        />
-        <MicrosoftButton
-          disabled={!microsoft}
-          onClick={() => handleClick('microsoft')}
-        />
-        {allowGuestUser ? (
+        {allowGoogle ? (
+          <GoogleButton
+            disabled={!allowGoogle}
+            onClick={() => handleClick('google')}
+          />
+        ) : null}
+        {allowMicrosoft ? (
+          <MicrosoftButton
+            disabled={!allowMicrosoft}
+            onClick={() => handleClick('microsoft')}
+          />
+        ) : null}
+        {allowGuest ? (
           <>
             <Divider className={classes.divider} />
             <GuestButton onClick={() => handleClick('guest')} />
@@ -74,6 +111,11 @@ export const AuthTypeSelector = ({
           Cancel
         </Button>
       </DialogActions>
+      {errorMessage ? (
+        <DialogContent>
+          <DialogContentText color="error">{errorMessage}</DialogContentText>
+        </DialogContent>
+      ) : null}
     </Dialog>
   )
 }

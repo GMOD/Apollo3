@@ -15,35 +15,6 @@ const ApolloConfigSchema = ConfigurationSchema(
       type: 'string',
       defaultValue: 'Bearer',
     },
-    allowGuestUser: {
-      description: 'Whether to allow a guest user who does not have to log in',
-      type: 'boolean',
-      defaultValue: true,
-    },
-    google: ConfigurationSchema('ApolloGoogleInternetAccount', {
-      authEndpoint: {
-        description: 'the authorization code endpoint of the internet account',
-        type: 'string',
-        defaultValue: '',
-      },
-      clientId: {
-        description: 'id for the OAuth application',
-        type: 'string',
-        defaultValue: '',
-      },
-    }),
-    microsoft: ConfigurationSchema('ApolloMicrosoftInternetAccount', {
-      authEndpoint: {
-        description: 'the authorization code endpoint of the internet account',
-        type: 'string',
-        defaultValue: '',
-      },
-      clientId: {
-        description: 'id for the OAuth application',
-        type: 'string',
-        defaultValue: '',
-      },
-    }),
   },
   { baseConfiguration: BaseInternetAccountConfig, explicitlyTyped: true },
 )

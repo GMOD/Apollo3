@@ -64,7 +64,7 @@ export class MicrosoftStrategy extends PassportStrategy(Strategy) {
       callbackURI.port = String(port)
       callbackURI.pathname = `${callbackURI.pathname}${
         callbackURI.pathname.endsWith('/') ? '' : '/'
-      }auth/microsoft/redirect`
+      }auth/microsoft`
       callbackURL = callbackURI.href
     }
     super({

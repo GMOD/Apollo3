@@ -143,19 +143,16 @@ function ApolloRendering(props: ApolloRenderingProps) {
     return matchingAccount
   }, [displayModel, region, session])
 
-  const { authType, getRole } = apolloInternetAccount
+  const { role } = apolloInternetAccount
 
   useEffect(() => {
-    if (!authType) {
-      return
-    }
-    if (getRole()?.includes('admin')) {
+    if (role?.includes('admin')) {
       setIsAdmin(true)
     }
-    if (getRole()?.includes('admin') ?? getRole()?.includes('user')) {
+    if (role?.includes('admin') ?? role?.includes('user')) {
       setIsReadOnly(false)
     }
-  }, [authType, getRole])
+  }, [role])
 
   useEffect(() => {
     // if (!isAlive(region)) {

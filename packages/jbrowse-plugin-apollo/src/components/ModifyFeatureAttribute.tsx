@@ -123,7 +123,7 @@ export function ModifyFeatureAttribute({
       (ia) => ia.type === 'ApolloInternetAccount',
     ) as ApolloInternetAccountModel | undefined
   }, [internetAccounts])
-  const role = internetAccount ? internetAccount.getRole() : 'admin'
+  const role = internetAccount ? internetAccount.role : 'admin'
   const editable = ['admin', 'user'].includes(role ?? '')
 
   const [errorMessage, setErrorMessage] = useState('')

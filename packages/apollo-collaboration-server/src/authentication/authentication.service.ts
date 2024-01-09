@@ -1,7 +1,15 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
+import fs from 'node:fs/promises'
+
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import { JWTPayload } from 'apollo-shared'
+import { Request } from 'express'
 import { Profile as GoogleProfile } from 'passport-google-oauth20'
 
 import { CreateUserDto } from '../users/dto/create-user.dto'
@@ -9,6 +17,19 @@ import { UsersService } from '../users/users.service'
 import { GUEST_USER_EMAIL, GUEST_USER_NAME } from '../utils/constants'
 import { Role } from '../utils/role/role.enum'
 import { Profile as MicrosoftProfile } from '../utils/strategies/microsoft.strategy'
+
+export interface RequestWithUserToken extends Request {
+  user: { token: string }
+}
+
+interface ConfigValues {
+  MICROSOFT_CLIENT_ID?: string
+  MICROSOFT_CLIENT_ID_FILE?: string
+  GOOGLE_CLIENT_ID?: string
+  GOOGLE_CLIENT_ID_FILE?: string
+  ALLOW_GUEST_USER: boolean
+  DEFAULT_NEW_USER_ROLE: Role | 'none'
+}
 
 @Injectable()
 export class AuthenticationService {
@@ -18,14 +39,63 @@ export class AuthenticationService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService<
-      { DEFAULT_NEW_USER_ROLE: Role | 'none'; ALLOW_GUEST_USER: boolean },
-      true
-    >,
+    private readonly configService: ConfigService<ConfigValues, true>,
   ) {
     this.defaultNewUserRole = configService.get('DEFAULT_NEW_USER_ROLE', {
       infer: true,
     })
+  }
+
+  handleRedirect(req: RequestWithUserToken) {
+    if (!req.user) {
+      throw new BadRequestException()
+    }
+
+    const { redirect_uri } = (
+      req.authInfo as { state: { redirect_uri: string } }
+    ).state
+    const url = new URL(redirect_uri)
+    const searchParams = new URLSearchParams({ access_token: req.user.token })
+    url.search = searchParams.toString()
+    return { url: url.toString() }
+  }
+
+  async getLoginTypes() {
+    const loginTypes: string[] = []
+    let microsoftClientID = this.configService.get('MICROSOFT_CLIENT_ID', {
+      infer: true,
+    })
+    if (!microsoftClientID) {
+      const clientIDFile = this.configService.get('MICROSOFT_CLIENT_ID_FILE', {
+        infer: true,
+      })
+      microsoftClientID =
+        clientIDFile && (await fs.readFile(clientIDFile, 'utf8'))
+      microsoftClientID = clientIDFile?.trim()
+    }
+    let googleClientID = this.configService.get('GOOGLE_CLIENT_ID', {
+      infer: true,
+    })
+    if (!googleClientID) {
+      const clientIDFile = this.configService.get('GOOGLE_CLIENT_ID_FILE', {
+        infer: true,
+      })
+      googleClientID = clientIDFile && (await fs.readFile(clientIDFile, 'utf8'))
+      googleClientID = clientIDFile?.trim()
+    }
+    const allowGuestUser = this.configService.get('ALLOW_GUEST_USER', {
+      infer: true,
+    })
+    if (microsoftClientID) {
+      loginTypes.push('microsoft')
+    }
+    if (googleClientID) {
+      loginTypes.push('google')
+    }
+    if (allowGuestUser) {
+      loginTypes.push('guest')
+    }
+    return loginTypes
   }
 
   /**

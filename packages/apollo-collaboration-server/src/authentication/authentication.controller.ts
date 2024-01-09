@@ -3,20 +3,19 @@ import {
   Controller,
   Get,
   Logger,
+  Query,
   Redirect,
   Req,
   UseGuards,
 } from '@nestjs/common'
-import { Request } from 'express'
 
 import { GoogleAuthGuard } from '../utils/google.guard'
 import { Public } from '../utils/jwt-auth.guard'
 import { MicrosoftAuthGuard } from '../utils/microsoft.guard'
-import { AuthenticationService } from './authentication.service'
-
-interface RequestWithUserToken extends Request {
-  user: { token: string }
-}
+import {
+  AuthenticationService,
+  RequestWithUserToken,
+} from './authentication.service'
 
 @Public()
 @Controller('auth')
@@ -25,44 +24,42 @@ export class AuthenticationController {
 
   constructor(private readonly authService: AuthenticationService) {}
 
-  @Get('google')
-  @UseGuards(GoogleAuthGuard)
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  authLogin() {}
+  @Get('types')
+  getLoginTypes() {
+    return this.authService.getLoginTypes()
+  }
 
-  @Get('google/redirect')
+  @Get('login')
+  @Redirect()
+  handleLogin(
+    @Query('type') type: string,
+    @Query('redirect_uri') redirect_uri?: string,
+  ) {
+    const params = new URLSearchParams({ type })
+    if (redirect_uri) {
+      params.set('redirect_uri', redirect_uri)
+    }
+    if (['google', 'microsoft', 'guest'].includes(type)) {
+      const url = redirect_uri
+        ? `${type}?${new URLSearchParams({ redirect_uri }).toString()}`
+        : type
+      return { url }
+    }
+    throw new BadRequestException(`Unknown login type "${type}"`)
+  }
+
+  @Get('google')
   @Redirect()
   @UseGuards(GoogleAuthGuard)
   async handleRedirect(@Req() req: RequestWithUserToken) {
-    if (!req.user) {
-      throw new BadRequestException()
-    }
-
-    const { appURL } = (req.authInfo as { state: { appURL: string } }).state
-    const url = new URL(appURL)
-    const searchParams = new URLSearchParams({ access_token: req.user.token })
-    url.search = searchParams.toString()
-    return { url: url.toString() }
+    return this.authService.handleRedirect(req)
   }
 
   @Get('microsoft')
-  @UseGuards(MicrosoftAuthGuard)
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  microsoftAuthLogin() {}
-
-  @Get('microsoft/redirect')
   @Redirect()
   @UseGuards(MicrosoftAuthGuard)
   async microsoftHandleRedirect(@Req() req: RequestWithUserToken) {
-    if (!req.user) {
-      throw new BadRequestException()
-    }
-
-    const { appURL } = (req.authInfo as { state: { appURL: string } }).state
-    const url = new URL(appURL)
-    const searchParams = new URLSearchParams({ access_token: req.user.token })
-    url.search = searchParams.toString()
-    return { url: url.toString() }
+    return this.authService.handleRedirect(req)
   }
 
   @Get('guest')

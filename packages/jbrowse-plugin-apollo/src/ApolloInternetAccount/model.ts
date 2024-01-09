@@ -1,13 +1,10 @@
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
-import PluginManager from '@jbrowse/core/PluginManager'
-import { MenuItem } from '@jbrowse/core/ui'
 import {
   AbstractSessionModel,
-  UriLocation,
   isAbstractMenuManager,
+  isElectron,
 } from '@jbrowse/core/util'
-import type AuthenticationPlugin from '@jbrowse/plugin-authentication'
 import { Change } from 'apollo-common'
 import {
   ChangeMessage,
@@ -22,22 +19,12 @@ import { autorun } from 'mobx'
 import { Instance, flow, getRoot, types } from 'mobx-state-tree'
 import { io } from 'socket.io-client'
 
-import {
-  AddAssembly,
-  DeleteAssembly,
-  ImportFeatures,
-  ManageUsers,
-} from '../components'
 import { ApolloSessionModel, Collaborator } from '../session'
 import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
+import { addMenuItems } from './addMenuItems'
 import { AuthTypeSelector } from './components/AuthTypeSelector'
 import { ApolloInternetAccountConfigModel } from './configSchema'
-
-interface Menu {
-  label: string
-  menuItems: MenuItem[]
-}
 
 type AuthType = 'google' | 'microsoft' | 'guest'
 
@@ -45,44 +32,15 @@ type Role = 'admin' | 'user' | 'readOnly'
 
 const inWebWorker = typeof sessionStorage === 'undefined'
 
-const stateModelFactory = (
-  configSchema: ApolloInternetAccountConfigModel,
-  pluginManager: PluginManager,
-) => {
-  const AuthPlugin = pluginManager.getPlugin('AuthenticationPlugin') as
-    | AuthenticationPlugin
-    | undefined
-  if (!AuthPlugin) {
-    throw new Error('Authentication plugin not found')
-  }
-  const { OAuthConfigSchema, OAuthInternetAccountModelFactory } =
-    AuthPlugin.exports
+const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
   return InternetAccount.named('ApolloInternetAccount')
     .props({
       type: types.literal('ApolloInternetAccount'),
       configuration: ConfigurationReference(configSchema),
     })
     .views((self) => ({
-      get googleClientId(): string {
-        return getConf(self, ['google', 'clientId'])
-      },
-      get googleAuthEndpoint(): string {
-        return getConf(self, ['google', 'authEndpoint'])
-      },
-      get microsoftClientId(): string {
-        return getConf(self, ['microsoft', 'clientId'])
-      },
-      get microsoftAuthEndpoint(): string {
-        return getConf(self, ['microsoft', 'authEndpoint'])
-      },
-      get internetAccountType() {
-        return 'ApolloInternetAccount'
-      },
       get baseURL(): string {
         return getConf(self, 'baseURL')
-      },
-      get allowGuestUser(): boolean {
-        return getConf(self, 'allowGuestUser')
       },
       getUserId() {
         const token = self.retrieveToken()
@@ -93,12 +51,16 @@ const stateModelFactory = (
         return dec.id
       },
     }))
+    .volatile(() => ({
+      role: undefined as Role | undefined,
+    }))
     .actions((self) => {
       let roleNotificationSent = false
       return {
-        getRole() {
+        setRole() {
           const token = self.retrieveToken()
           if (!token) {
+            self.role = undefined
             return
           }
           const dec = getDecodedToken(token)
@@ -112,13 +74,143 @@ const stateModelFactory = (
             // notify
             roleNotificationSent = true
           }
-          return role
+          if (self.role !== role) {
+            self.role = role
+          }
         },
       }
     })
-    .volatile((self) => ({
-      authType: undefined as AuthType | undefined,
-      socket: io(self.baseURL),
+    .actions((self) => {
+      let listener: (event: MessageEvent) => void
+      return {
+        addMessageChannel(
+          resolve: (token: string) => void,
+          reject: (error: Error) => void,
+        ) {
+          listener = (event) => {
+            // this should probably get better handling, but ignored for now
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            this.finishOAuthWindow(event, resolve, reject)
+          }
+          window.addEventListener('message', listener)
+        },
+        deleteMessageChannel() {
+          window.removeEventListener('message', listener)
+        },
+        async finishOAuthWindow(
+          event: MessageEvent,
+          resolve: (token: string) => void,
+          reject: (error: Error) => void,
+        ) {
+          if (
+            event.data.name !== `JBrowseAuthWindow-${self.internetAccountId}`
+          ) {
+            return this.deleteMessageChannel()
+          }
+          const redirectUriWithInfo = event.data.redirectUri
+          const fixedQueryString = redirectUriWithInfo.replace('#', '?')
+          const redirectUrl = new URL(fixedQueryString)
+          const queryStringSearch = redirectUrl.search
+          const urlParams = new URLSearchParams(queryStringSearch)
+          const token = urlParams.get('access_token')
+          this.deleteMessageChannel()
+          if (!token) {
+            return reject(new Error('Error with token endpoint'))
+          }
+          self.storeToken(token)
+          self.setRole()
+          return resolve(token)
+        },
+        async openAuthWindow(
+          type: string,
+          resolve: (token: string) => void,
+          reject: (error: Error) => void,
+        ) {
+          const redirectUri = isElectron
+            ? 'http://localhost/auth'
+            : window.location.origin + window.location.pathname
+          const url = new URL('auth/login', self.baseURL)
+          const params = new URLSearchParams({
+            type,
+            redirect_uri: redirectUri,
+          })
+          url.search = params.toString()
+          const eventName = `JBrowseAuthWindow-${self.internetAccountId}`
+          if (isElectron) {
+            const { ipcRenderer } = window.require('electron')
+            const redirectUriFromElectron = await ipcRenderer.invoke(
+              'openAuthWindow',
+              {
+                internetAccountId: self.internetAccountId,
+                data: { redirect_uri: redirectUri },
+                url: url.toString(),
+              },
+            )
+            const eventFromDesktop = new MessageEvent('message', {
+              data: { name: eventName, redirectUri: redirectUriFromElectron },
+            })
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            this.finishOAuthWindow(eventFromDesktop, resolve, reject)
+          } else {
+            this.addMessageChannel(resolve, reject)
+            window.open(url, eventName, 'width=500,height=600')
+          }
+        },
+      }
+    })
+    .actions((self) => ({
+      async getTokenFromUser(
+        resolve: (token: string) => void,
+        reject: (error: Error) => void,
+      ): Promise<void> {
+        const { baseURL } = self
+        const authType = await new Promise(
+          (resolve: (authType: AuthType) => void, reject) => {
+            const { session } = getRoot<ApolloRootModel>(self)
+            const { baseURL, name } = self
+            ;(session as unknown as AbstractSessionModel).queueDialog(
+              (doneCallback: () => void) => [
+                AuthTypeSelector,
+                {
+                  name,
+                  handleClose: (newAuthType?: AuthType | Error) => {
+                    if (!newAuthType) {
+                      reject(new Error('user cancelled entry'))
+                    } else if (newAuthType instanceof Error) {
+                      reject(newAuthType)
+                    } else {
+                      resolve(newAuthType)
+                    }
+                    doneCallback()
+                  },
+                  baseURL,
+                },
+              ],
+            )
+          },
+        )
+        if (authType !== 'guest') {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          self.openAuthWindow(authType, resolve, reject)
+          return
+        }
+        const url = new URL('auth/login', baseURL)
+        const searchParams = new URLSearchParams({ type: authType })
+        url.search = searchParams.toString()
+        const uri = url.toString()
+        const response = await fetch(uri)
+        if (!response.ok) {
+          const errorMessage = await createFetchErrorMessage(
+            response,
+            'Error when logging in',
+          )
+          return reject(new Error(errorMessage))
+        }
+        const { token } = await response.json()
+        resolve(token)
+      },
+    }))
+    .volatile(() => ({
       lastChangeSequenceNumber: undefined as number | undefined,
     }))
     .actions((self) => ({
@@ -127,88 +219,6 @@ const stateModelFactory = (
       },
     }))
     .actions((self) => ({
-      async getTokenFromUser(
-        resolve: (token: string) => void,
-        reject: (error: Error) => void,
-      ): Promise<void> {
-        const { baseURL } = self
-        const url = new URL('auth/guest', baseURL)
-        const response = await fetch(url)
-        if (!response.ok) {
-          const errorMessage = await createFetchErrorMessage(
-            response,
-            'Error when logging in as guest',
-          )
-          return reject(new Error(errorMessage))
-        }
-        const { token } = await response.json()
-        resolve(token)
-      },
-      addSocketListeners() {
-        const { session } = getRoot<ApolloRootModel>(self)
-        const { notify } = session as unknown as AbstractSessionModel
-        const token = self.retrieveToken()
-        if (!token) {
-          throw new Error('No Token found')
-        }
-        const { socket } = self
-        const { addCheckResult, changeManager, deleteCheckResult } = (
-          session as ApolloSessionModel
-        ).apolloDataStore
-        socket.on('connect', async () => {
-          await this.getMissingChanges()
-        })
-        socket.on('connect_error', () => {
-          notify('Could not connect to the Apollo server.', 'error')
-        })
-        socket.on('COMMON', (message: ChangeMessage | CheckResultUpdate) => {
-          if ('checkResult' in message) {
-            if (message.deleted) {
-              deleteCheckResult(message.checkResult._id.toString())
-            } else {
-              addCheckResult(message.checkResult)
-            }
-            return
-          }
-          // Save server last change sequence into session storage
-          sessionStorage.setItem(
-            'LastChangeSequence',
-            String(message.changeSequence),
-          )
-          if (message.userSessionId === token) {
-            return // we did this change, no need to apply it again
-          }
-          const change = Change.fromJSON(message.changeInfo)
-          void changeManager?.submit(change, { submitToBackend: false })
-        })
-        socket.on('USER_LOCATION', (message: UserLocationMessage) => {
-          const { channel, locations, userName, userSessionId } = message
-          const user = getDecodedToken(token)
-          const localSessionId = makeUserSessionId(user)
-          if (channel === 'USER_LOCATION' && userSessionId !== localSessionId) {
-            const collaborator: Collaborator = {
-              name: userName,
-              id: userSessionId,
-              locations,
-            }
-            session.addOrUpdateCollaborator(collaborator)
-          }
-        })
-        socket.on(
-          'REQUEST_INFORMATION',
-          (message: RequestUserInformationMessage) => {
-            const { channel, reqType, userSessionId } = message
-            if (channel === 'REQUEST_INFORMATION' && userSessionId !== token) {
-              switch (reqType) {
-                case 'CURRENT_LOCATION': {
-                  session.broadcastLocations()
-                  break
-                }
-              }
-            }
-          },
-        )
-      },
       updateLastChangeSequenceNumber: flow(
         function* updateLastChangeSequenceNumber() {
           const { baseURL } = self
@@ -271,6 +281,76 @@ const stateModelFactory = (
         }
       }),
     }))
+    .volatile((self) => ({
+      socket: io(self.baseURL),
+    }))
+    .actions((self) => ({
+      addSocketListeners() {
+        const { session } = getRoot<ApolloRootModel>(self)
+        const { notify } = session as unknown as AbstractSessionModel
+        const token = self.retrieveToken()
+        if (!token) {
+          throw new Error('No Token found')
+        }
+        const { socket } = self
+        const { addCheckResult, changeManager, deleteCheckResult } = (
+          session as ApolloSessionModel
+        ).apolloDataStore
+        socket.on('connect', async () => {
+          await self.getMissingChanges()
+        })
+        socket.on('connect_error', () => {
+          notify('Could not connect to the Apollo server.', 'error')
+        })
+        socket.on('COMMON', (message: ChangeMessage | CheckResultUpdate) => {
+          if ('checkResult' in message) {
+            if (message.deleted) {
+              deleteCheckResult(message.checkResult._id.toString())
+            } else {
+              addCheckResult(message.checkResult)
+            }
+            return
+          }
+          // Save server last change sequence into session storage
+          sessionStorage.setItem(
+            'LastChangeSequence',
+            String(message.changeSequence),
+          )
+          if (message.userSessionId === token) {
+            return // we did this change, no need to apply it again
+          }
+          const change = Change.fromJSON(message.changeInfo)
+          void changeManager?.submit(change, { submitToBackend: false })
+        })
+        socket.on('USER_LOCATION', (message: UserLocationMessage) => {
+          const { channel, locations, userName, userSessionId } = message
+          const user = getDecodedToken(token)
+          const localSessionId = makeUserSessionId(user)
+          if (channel === 'USER_LOCATION' && userSessionId !== localSessionId) {
+            const collaborator: Collaborator = {
+              name: userName,
+              id: userSessionId,
+              locations,
+            }
+            session.addOrUpdateCollaborator(collaborator)
+          }
+        })
+        socket.on(
+          'REQUEST_INFORMATION',
+          (message: RequestUserInformationMessage) => {
+            const { channel, reqType, userSessionId } = message
+            if (channel === 'REQUEST_INFORMATION' && userSessionId !== token) {
+              switch (reqType) {
+                case 'CURRENT_LOCATION': {
+                  session.broadcastLocations()
+                  break
+                }
+              }
+            }
+          },
+        )
+      },
+    }))
     .actions((self) => {
       async function postUserLocation(userLoc: UserLocation[]) {
         const { baseURL } = self
@@ -305,141 +385,13 @@ const stateModelFactory = (
       }
       return { postUserLocation: debouncePostUserLocation(postUserLocation) }
     })
-    .actions(() => ({
-      addMenuItems(role: Role) {
-        if (
-          !(role === 'admin' && isAbstractMenuManager(pluginManager.rootModel))
-        ) {
-          return
-        }
-        const { rootModel } = pluginManager
-        const { menus } = rootModel as unknown as { menus: Menu[] }
-        // Find 'Apollo' menu and its items
-        const apolloMenu = menus.find((menu) => {
-          return menu.label === 'Apollo'
-        })
-        if (!apolloMenu) {
-          return
-        }
-        const { menuItems } = apolloMenu
-        if (
-          !menuItems.some(
-            (menuItem) =>
-              'label' in menuItem && menuItem.label === 'Add Assembly',
-          )
-        ) {
-          rootModel.insertInMenu(
-            'Apollo',
-            {
-              label: 'Add Assembly',
-              onClick: (session: ApolloSessionModel) => {
-                ;(session as unknown as AbstractSessionModel).queueDialog(
-                  (doneCallback) => [
-                    AddAssembly,
-                    {
-                      session,
-                      handleClose: () => {
-                        doneCallback()
-                      },
-                      changeManager: session.apolloDataStore.changeManager,
-                    },
-                  ],
-                )
-              },
-            },
-            0,
-          )
-          rootModel.insertInMenu(
-            'Apollo',
-            {
-              label: 'Delete Assembly',
-              onClick: (session: ApolloSessionModel) => {
-                ;(session as unknown as AbstractSessionModel).queueDialog(
-                  (doneCallback) => [
-                    DeleteAssembly,
-                    {
-                      session,
-                      handleClose: () => {
-                        doneCallback()
-                      },
-                      changeManager: session.apolloDataStore.changeManager,
-                    },
-                  ],
-                )
-              },
-            },
-            1,
-          )
-          rootModel.insertInMenu(
-            'Apollo',
-            {
-              label: 'Import Features',
-              onClick: (session: ApolloSessionModel) => {
-                ;(session as unknown as AbstractSessionModel).queueDialog(
-                  (doneCallback) => [
-                    ImportFeatures,
-                    {
-                      session,
-                      handleClose: () => {
-                        doneCallback()
-                      },
-                      changeManager: (session as ApolloSessionModel)
-                        .apolloDataStore.changeManager,
-                    },
-                  ],
-                )
-              },
-            },
-            2,
-          )
-          rootModel.insertInMenu(
-            'Apollo',
-            {
-              label: 'Manage Users',
-              onClick: (session: ApolloSessionModel) => {
-                ;(session as unknown as AbstractSessionModel).queueDialog(
-                  (doneCallback) => [
-                    ManageUsers,
-                    {
-                      session,
-                      handleClose: () => {
-                        doneCallback()
-                      },
-                      changeManager: (session as ApolloSessionModel)
-                        .apolloDataStore.changeManager,
-                    },
-                  ],
-                )
-              },
-            },
-            9,
-          )
-          rootModel.insertInMenu(
-            'Apollo',
-            {
-              label: 'Undo',
-              onClick: (session: ApolloSessionModel) => {
-                const { apolloDataStore } = session
-                const { notify } = session as unknown as AbstractSessionModel
-                if (apolloDataStore.changeManager.recentChanges.length > 0) {
-                  void apolloDataStore.changeManager.revertLastChange()
-                } else {
-                  notify('No changes to undo', 'info')
-                }
-              },
-            },
-            10,
-          )
-        }
-      },
-    }))
     .actions((self) => ({
-      initialize: flow(function* initialize(role?: Role) {
-        if (!role) {
-          return
-        }
+      initialize: flow(function* initialize(role: Role) {
         if (role === 'admin') {
-          self.addMenuItems(role)
+          const rootModel = getRoot(self)
+          if (isAbstractMenuManager(rootModel)) {
+            addMenuItems(rootModel)
+          }
         }
         // Get and set server last change sequence into session storage
         yield self.updateLastChangeSequenceNumber()
@@ -471,236 +423,21 @@ const stateModelFactory = (
     }))
     .actions((self) => ({
       afterAttach() {
+        self.setRole()
         autorun(
           async (reaction) => {
             if (inWebWorker) {
               return
             }
-            try {
-              const { authType, getRole } = self
-              if (!authType) {
-                return
-              }
-              const role = getRole()
-              if (role) {
-                await self.initialize(role)
-              }
+            if (self.role) {
+              await self.initialize(self.role)
               reaction.dispose()
-            } catch {
-              // pass
             }
           },
           { name: 'ApolloInternetAccount' },
         )
       },
-      initializeFromToken: flow(function* initializeFromToken(token: string) {
-        const payload = getDecodedToken(token)
-        yield self.initialize(payload.role)
-      }),
     }))
-    .volatile((self) => ({
-      googleAuthInternetAccount: OAuthInternetAccountModelFactory(
-        OAuthConfigSchema,
-      )
-        .views(() => ({
-          state() {
-            return (
-              window.location.origin + window.location.pathname.slice(0, -1)
-            )
-          },
-        }))
-        .actions((s) => {
-          const superStoreToken = s.storeToken
-          return {
-            storeToken: flow(function* storeToken(token: string) {
-              superStoreToken(token)
-              yield self.initializeFromToken(token)
-            }),
-          }
-        })
-        .create({
-          type: 'OAuthInternetAccount',
-          configuration: {
-            type: 'OAuthInternetAccount',
-            internetAccountId: `${self.internetAccountId}-apolloGoogle`,
-            name: `${self.name}-apolloGoogle`,
-            description: `${self.description}-apolloGoogle`,
-            domains: self.domains,
-            authEndpoint: self.googleAuthEndpoint,
-            clientId: self.googleClientId,
-          },
-        }),
-      microsoftAuthInternetAccount: OAuthInternetAccountModelFactory(
-        OAuthConfigSchema,
-      )
-        .views(() => ({
-          state() {
-            return (
-              window.location.origin + window.location.pathname.slice(0, -1)
-            )
-          },
-        }))
-        .actions((s) => {
-          const superStoreToken = s.storeToken
-          return {
-            storeToken: flow(function* storeToken(token: string) {
-              superStoreToken(token)
-              yield self.initializeFromToken(token)
-            }),
-          }
-        })
-        .create({
-          type: 'OAuthInternetAccount',
-          configuration: {
-            type: 'OAuthInternetAccount',
-            internetAccountId: `${self.internetAccountId}-apolloMicrosoft`,
-            name: `${self.name}-apolloMicrosoft`,
-            description: `${self.description}-apolloMicrosoft`,
-            domains: self.domains,
-            authEndpoint: self.microsoftAuthEndpoint,
-            clientId: self.microsoftClientId,
-          },
-        }),
-    }))
-    .actions((self) => ({
-      setAuthType(authType: AuthType) {
-        self.authType = authType
-      },
-    }))
-    .actions((self) => {
-      const {
-        getFetcher: superGetFetcher,
-        getPreAuthorizationInformation: superGetPreAuthorizationInformation,
-        retrieveToken: superRetrieveToken,
-      } = self
-      let authTypePromise: Promise<AuthType> | undefined
-      return {
-        async getPreAuthorizationInformation(location: UriLocation) {
-          const preAuthInfo =
-            await superGetPreAuthorizationInformation(location)
-          return {
-            ...preAuthInfo,
-            authInfo: {
-              ...preAuthInfo.authInfo,
-              authType: await authTypePromise,
-            },
-          }
-        },
-        retrieveToken() {
-          const {
-            authType,
-            googleAuthInternetAccount,
-            microsoftAuthInternetAccount,
-          } = self
-          if (authType === 'google') {
-            return googleAuthInternetAccount.retrieveToken()
-          }
-          if (authType === 'microsoft') {
-            return microsoftAuthInternetAccount.retrieveToken()
-          }
-          if (authType === 'guest') {
-            return superRetrieveToken()
-          }
-          throw new Error(`Unknown authType "${authType}"`)
-        },
-        getFetcher(
-          location?: UriLocation,
-        ): (input: RequestInfo, init?: RequestInit) => Promise<Response> {
-          return async (
-            input: RequestInfo,
-            init?: RequestInit,
-          ): Promise<Response> => {
-            let { authType } = self
-            const {
-              googleAuthInternetAccount,
-              googleClientId,
-              microsoftAuthInternetAccount,
-              microsoftClientId,
-            } = self
-            if (!authType) {
-              if (!authTypePromise) {
-                if (location?.internetAccountPreAuthorization) {
-                  authTypePromise = Promise.resolve(
-                    location.internetAccountPreAuthorization.authInfo.authType,
-                  )
-                } else if (googleAuthInternetAccount.retrieveToken()) {
-                  authTypePromise = Promise.resolve('google')
-                } else if (microsoftAuthInternetAccount.retrieveToken()) {
-                  authTypePromise = Promise.resolve('microsoft')
-                } else if (superRetrieveToken()) {
-                  authTypePromise = Promise.resolve('guest')
-                } else {
-                  authTypePromise = new Promise((resolve, reject) => {
-                    const { session } = getRoot<ApolloRootModel>(self)
-                    const { allowGuestUser, baseURL, name } = self
-                    ;(session as unknown as AbstractSessionModel).queueDialog(
-                      (doneCallback: () => void) => [
-                        AuthTypeSelector,
-                        {
-                          baseURL,
-                          name,
-                          handleClose: (newAuthType?: AuthType | Error) => {
-                            if (!newAuthType) {
-                              reject(new Error('user cancelled entry'))
-                            } else if (newAuthType instanceof Error) {
-                              reject(newAuthType)
-                            } else {
-                              resolve(newAuthType)
-                            }
-                            doneCallback()
-                          },
-                          google: Boolean(googleClientId),
-                          microsoft: Boolean(microsoftClientId),
-                          allowGuestUser,
-                        },
-                      ],
-                    )
-                  })
-                }
-              }
-              authType = await authTypePromise
-            }
-            self.setAuthType(authType)
-            let fetchToUse: (
-              input: RequestInfo,
-              init?: RequestInit,
-            ) => Promise<Response>
-            switch (authType) {
-              case 'google': {
-                fetchToUse = self.googleAuthInternetAccount.getFetcher(location)
-
-                break
-              }
-              case 'microsoft': {
-                fetchToUse =
-                  self.microsoftAuthInternetAccount.getFetcher(location)
-
-                break
-              }
-              case 'guest': {
-                fetchToUse = superGetFetcher(location)
-
-                break
-              }
-              default: {
-                throw new Error(`Unknown authType "${authType}"`)
-              }
-            }
-            const response = await fetchToUse(input, init)
-            if (response.status === 401) {
-              if (authType === 'google') {
-                self.googleAuthInternetAccount.removeToken()
-              } else if (authType === 'microsoft') {
-                self.microsoftAuthInternetAccount.removeToken()
-              } else {
-                self.removeToken()
-              }
-            }
-            return response
-          }
-        },
-      }
-    })
 }
 
 export default stateModelFactory
