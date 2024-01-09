@@ -110,6 +110,19 @@ export default class ApolloPlugin extends Plugin {
     installApolloSequenceAdapter(pluginManager)
     installApolloTextSearchAdapter(pluginManager)
 
+    pluginManager.addWidgetType(() => {
+      const configSchema = ConfigurationSchema('ApolloFeatureDetails', {})
+      const widgetType = new WidgetType({
+        name: 'ApolloFeatureDetails',
+        heading: 'Apollo feature details',
+        configSchema,
+        stateModel: stateModelFactory(pluginManager, configSchema),
+        ReactComponent: ApolloFeatureDetailsWidget,
+      })
+      console.log(`Add widget: ${JSON.stringify(widgetType)}`)
+      return widgetType
+    })
+    
     pluginManager.addTrackType(() => {
       const configSchema = ConfigurationSchema(
         'ApolloTrack',
@@ -308,19 +321,6 @@ export default class ApolloPlugin extends Plugin {
         },
       )
     }
-
-    pluginManager.addWidgetType(() => {
-      const configSchema = ConfigurationSchema('ApolloFeatureDetails', {})
-      const widgetType = new WidgetType({
-        name: 'ApolloFeatureDetails',
-        heading: 'Apollo feature details',
-        configSchema,
-        stateModel: stateModelFactory(pluginManager, configSchema),
-        ReactComponent: ApolloFeatureDetailsWidget,
-      })
-      console.log(`Add widget: ${JSON.stringify(widgetType)}`)
-      return widgetType
-    })
   }
 
   configure(pluginManager: PluginManager) {
