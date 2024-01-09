@@ -50,13 +50,13 @@ import {
 import { AddFeature } from './components/AddFeature'
 import { ViewCheckResults } from './components/ViewCheckResults'
 import ApolloPluginConfigurationSchema from './config'
-import ApolloFeatureDetails, {
+import {
+  ApolloFeatureDetails,
   ApolloFeatureDetailsWidget,
-} from './FeatureDetailsWidget/ApolloFeatureDetailsWidget'
+} from './FeatureDetailsWidget'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
-  stateModelFactory,
 } from './LinearApolloDisplay'
 import {
   DisplayComponent,
@@ -118,7 +118,7 @@ export default class ApolloPlugin extends Plugin {
         name: 'ApolloFeatureDetails',
         heading: 'Apollo feature details',
         configSchema,
-        stateModel: stateModelFactory(pluginManager, configSchema),
+        stateModel: ApolloFeatureDetails,
         ReactComponent: ApolloFeatureDetailsWidget,
       })
       console.log(`Add widget: ${JSON.stringify(widgetType)}`)
