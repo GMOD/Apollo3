@@ -396,18 +396,20 @@ export abstract class Glyph {
               const { widgets } = session as unknown as SessionWithWidgets
               const sesWidged = session as unknown as SessionWithWidgets
               console.log(`widgets: ${JSON.stringify(widgets)}`)
-              let apolloFeatureWidget = widgets.get('apolloFeatureDetails1')
+              let apolloFeatureWidget = widgets.get('apolloFeatureDetails')
               if (!apolloFeatureWidget) {
                 console.log('Lets add new widget...')
                 apolloFeatureWidget = sesWidged.addWidget(
                   'ApolloFeatureDetails', // This does not work
                   // 'BaseFeatureWidget', // This works
-                  'apolloFeatureDetails1',
-                  { feature: sourceFeature },
+                  'apolloFeatureDetails',
+                  { feature: sourceFeature._id },
                 )
                 console.log('Widget added!')
-                ses.showWidget?.(apolloFeatureWidget)
               }
+              console.log('Show Widget!')
+
+              ses.showWidget?.(apolloFeatureWidget)
             }
           },
         },
