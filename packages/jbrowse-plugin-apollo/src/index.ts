@@ -121,7 +121,7 @@ export default class ApolloPlugin extends Plugin {
         stateModel: ApolloFeatureDetails,
         ReactComponent: ApolloFeatureDetailsWidget,
       })
-      console.log(`Add widget: ${JSON.stringify(widgetType)}`)
+      // console.log(`Add widget: ${JSON.stringify(widgetType)}`)
       return widgetType
     })
     
