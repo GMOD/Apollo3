@@ -4,7 +4,6 @@ import {
   Controller,
   Get,
   Logger,
-  Post,
   Query,
   Redirect,
   Req,
@@ -41,7 +40,7 @@ export class AuthenticationController {
     if (redirect_uri) {
       params.set('redirect_uri', redirect_uri)
     }
-    if (['google', 'microsoft', 'guest', 'root'].includes(type)) {
+    if (['google', 'microsoft', 'guest'].includes(type)) {
       const url = redirect_uri
         ? `${type}?${new URLSearchParams({ redirect_uri }).toString()}`
         : type
