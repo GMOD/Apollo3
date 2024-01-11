@@ -16,13 +16,13 @@ import {
   DeleteFeature,
   ModifyFeatureAttribute,
 } from '../../components'
+import { ApolloSessionModel } from '../../session'
 import {
   LinearApolloDisplayMouseEvents,
   MousePosition,
 } from '../stateModel/mouseEvents'
 import { LinearApolloDisplayRendering } from '../stateModel/rendering'
 import { CanvasMouseEvent } from '../types'
-import { ApolloSessionModel } from '../../session'
 
 interface ApolloFeatureDetailsModel {
   id: number
@@ -399,24 +399,24 @@ export abstract class Glyph {
               console.log(`widgets: ${JSON.stringify(widgets)}`)
               let apolloFeatureWidget = widgets.get('apolloFeatureDetails')
               // if (apolloFeatureWidget) {
-              //   widgets.delete('apolloFeatureDetails')
-              // }
-              // if (!apolloFeatureWidget) {
+              //   // @ts-expect-error testing
+              //   apolloFeatureWidget.setFeature(sourceFeature) // TAMA AIHEUTTAA SEN ETTA CHANGEMANAGER EI ENAA TOIMI OIKEIN REACT SIVULTA. ELI BACKENDIA EI KUTSUTA OLLENKAAN
+              // } else {
               console.log('Lets add new widget...')
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const ses = session as unknown as any
-              console.log(`Type of ses: ${typeof(ses)}`)
-              console.log(`Type of session: ${typeof(session)}`)
               apolloFeatureWidget = sesWidged.addWidget(
-                'ApolloFeatureDetails', // This does not work
+                'ApolloFeatureDetails',
                 'apolloFeatureDetails',
-                // { feature: sourceFeature, assembly: currentAssemblyId, session: session as ApolloSessionModel },
-                { feature: sourceFeature, assembly: currentAssemblyId, session: session as unknown as ApolloSessionModel, changeManager },
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                // { feature: sourceFeature, assembly: currentAssemblyId, session: ses as unknown as any },
+                {
+                  feature: sourceFeature,
+                  assembly: currentAssemblyId,
+                  changeManager,
+                  refName: region.refName
+                },
               )
               console.log('Widget added!')
               // }
+
               ses.showWidget?.(apolloFeatureWidget)
             }
           },
