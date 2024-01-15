@@ -50,10 +50,12 @@ function getMousePosition(
 }
 
 function getSeqRow(feature: AnnotationFeatureI, bpPerPx: number) {
-  if (feature.type === 'CDS' && feature.phase) {
-    return feature.strand === -1
-      ? (feature.end - feature.phase) % 3
-      : (feature.start - feature.phase) % 3
+  if (feature.type === 'CDS' && feature.phase != undefined) {
+    const r =
+      feature.strand === -1
+        ? (feature.end - 1 - feature.phase) % 3
+        : (feature.start - 1 - feature.phase) % 3
+    return Math.abs(r - 2)
   }
 
   if (bpPerPx <= 1) {
@@ -218,7 +220,7 @@ export function mouseEventsSeqHightlightModelFactory(
                 : trnslXOffset
 
               const row = getSeqRow(feature, lgv.bpPerPx)
-              if (row) {
+              if (row != undefined) {
                 seqTrackOverlayctx.fillStyle =
                   theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
                 seqTrackOverlayctx.fillRect(
