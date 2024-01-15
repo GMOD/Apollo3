@@ -50,12 +50,11 @@ function getMousePosition(
 }
 
 function getSeqRow(feature: AnnotationFeatureI, bpPerPx: number) {
+  const rowOffset = bpPerPx <= 1 ? 5 : 3
   if (feature.type === 'CDS' && feature.phase != undefined) {
-    const r =
-      feature.strand === -1
-        ? (feature.end - 1 - feature.phase) % 3
-        : (feature.start - 1 - feature.phase) % 3
-    return Math.abs(r - 2)
+    return feature.strand === -1
+      ? Math.abs(((feature.end - 1 - feature.phase) % 3) - 2) + rowOffset
+      : Math.abs(((feature.start - 1 - feature.phase) % 3) - 2)
   }
 
   if (bpPerPx <= 1) {
