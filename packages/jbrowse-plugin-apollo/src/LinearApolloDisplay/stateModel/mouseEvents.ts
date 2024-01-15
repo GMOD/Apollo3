@@ -2,6 +2,7 @@ import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configur
 import PluginManager from '@jbrowse/core/PluginManager'
 import { MenuItem } from '@jbrowse/core/ui'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import { Theme } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { Instance, addDisposer } from 'mobx-state-tree'
@@ -62,6 +63,26 @@ function getSeqRow(feature: AnnotationFeatureI, bpPerPx: number) {
   }
 
   return
+}
+
+function highlightSeq(
+  seqTrackOverlayctx: CanvasRenderingContext2D,
+  theme: Theme | undefined,
+  startPx: number,
+  sequenceRowHeight: number,
+  row: number | undefined,
+  widthPx: number,
+) {
+  if (row != undefined) {
+    seqTrackOverlayctx.fillStyle =
+      theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
+    seqTrackOverlayctx.fillRect(
+      startPx,
+      sequenceRowHeight * row,
+      widthPx,
+      sequenceRowHeight,
+    )
+  }
 }
 
 export function mouseEventsModelIntermediateFactory(
@@ -207,26 +228,51 @@ export function mouseEventsSeqHightlightModelFactory(
             }
 
             for (const [idx, region] of regions.entries()) {
-              const trnslXOffset =
-                (lgv.bpToPx({
-                  refName: region.refName,
-                  coord: feature.start,
-                  regionNumber: idx,
-                })?.offsetPx ?? 0) - lgv.offsetPx
-              const trnslWidthPx = feature.length / lgv.bpPerPx
-              const trnslStartPx = displayedRegions[idx].reversed
-                ? trnslXOffset - trnslWidthPx
-                : trnslXOffset
-
               const row = getSeqRow(feature, lgv.bpPerPx)
-              if (row != undefined) {
-                seqTrackOverlayctx.fillStyle =
-                  theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
-                seqTrackOverlayctx.fillRect(
-                  trnslStartPx,
-                  sequenceRowHeight * row,
-                  trnslWidthPx,
+              if (
+                feature.discontinuousLocations &&
+                feature.discontinuousLocations.length > 0
+              ) {
+                for (const dl of feature.discontinuousLocations) {
+                  const offset =
+                    (lgv.bpToPx({
+                      refName: region.refName,
+                      coord: dl.start,
+                      regionNumber: idx,
+                    })?.offsetPx ?? 0) - lgv.offsetPx
+                  const widthPx = (dl.end - dl.start) / lgv.bpPerPx
+                  const startPx = displayedRegions[idx].reversed
+                    ? offset - widthPx
+                    : offset
+
+                  highlightSeq(
+                    seqTrackOverlayctx,
+                    theme,
+                    startPx,
+                    sequenceRowHeight,
+                    row,
+                    widthPx,
+                  )
+                }
+              } else {
+                const offset =
+                  (lgv.bpToPx({
+                    refName: region.refName,
+                    coord: feature.start,
+                    regionNumber: idx,
+                  })?.offsetPx ?? 0) - lgv.offsetPx
+                const widthPx = feature.length / lgv.bpPerPx
+                const startPx = displayedRegions[idx].reversed
+                  ? offset - widthPx
+                  : offset
+
+                highlightSeq(
+                  seqTrackOverlayctx,
+                  theme,
+                  startPx,
                   sequenceRowHeight,
+                  row,
+                  widthPx,
                 )
               }
             }
