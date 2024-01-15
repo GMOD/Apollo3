@@ -124,6 +124,7 @@ export const ApolloFeatureDetailsWidget = observer(
     const [typeWarningText, setTypeWarningText] = useState('')
     const [strand, setStrand] = useState(String(feature.strand))
     const [errorMessage, setErrorMessage] = useState('')
+    const [showSequence, setShowSequence] = useState(false)
     const { notify } = session as unknown as AbstractSessionModel
     const { internetAccounts } = getRoot<ApolloRootModel>(session)
     console.log(`Model: ${JSON.stringify(model)}`)
@@ -137,7 +138,7 @@ export const ApolloFeatureDetailsWidget = observer(
       Number(feature.end),
     )
     const [sequence, setSequence] = useState(refSeq)
-    console.log(`refSeq: ${JSON.stringify(refSeq)}`)
+    console.log(`Sequence: ${JSON.stringify(refSeq)}`)
 
     const internetAccount = useMemo(() => {
       return internetAccounts.find(
@@ -290,7 +291,7 @@ export const ApolloFeatureDetailsWidget = observer(
       setErrorMessage('')
       let changed = false
       if (feature.start !== Number(start)) {
-        console.log(`Update start: ${start} vs ${feature.start}`)
+        console.log(`Update start: ${start} vs ${feature.start}, end=${end}`)
         const change = new LocationStartChange({
           typeName: 'LocationStartChange',
           changedIds: [feature._id],
@@ -301,7 +302,14 @@ export const ApolloFeatureDetailsWidget = observer(
         })
         await changeManager.submit?.(change)
         changed = true
+        const refData = currentAssembly?.getByRefName(refName)
+        const refSeq: string | undefined = refData?.getSequence(
+          Number(start + 1),
+          Number(feature.end),
+        )
+        setSequence(refSeq)
       }
+
       if (feature.end !== Number(end)) {
         console.log(`Update end: ${end} vs ${feature.end}`)
         const change = new LocationEndChange({
@@ -314,7 +322,14 @@ export const ApolloFeatureDetailsWidget = observer(
         })
         await changeManager.submit?.(change)
         changed = true
+        const refData = currentAssembly?.getByRefName(refName)
+        const refSeq: string | undefined = refData?.getSequence(
+          Number(feature.start + 1),
+          Number(end),
+        )
+        setSequence(refSeq)
       }
+
       if (feature.strand !== Number(strand)) {
         console.log(`Update strand: ${strand} vs ${feature.strand}`)
         const change = new StrandChange({
@@ -422,6 +437,10 @@ export const ApolloFeatureDetailsWidget = observer(
     const hasEmptyAttributes = Object.values(attributes).some(
       (value) => value.length === 0 || value.includes(''),
     )
+
+    const handleSeqButtonClick = () => {
+      setShowSequence(!showSequence)
+    }
 
     const error = Number(end) <= Number(start)
     const handleStrandChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -676,19 +695,26 @@ export const ApolloFeatureDetailsWidget = observer(
           </DialogActions>
         </form>
         <div>
-          <h2 style={{ marginLeft: '15px' }}>Sequence</h2>
-          <textarea
-            readOnly
-            style={{
-              marginLeft: '15px',
-              height: '300px',
-              width: '95%',
-              resize: 'vertical',
-              overflowY: 'scroll',
-            }}
-            value={sequence}
-            onChange={(e) => setSequence(e.target.value)}
-          />
+          <h2 style={{ display: 'inline', marginLeft: '15px' }}>Sequence</h2>
+          <button style={{ marginLeft: '15px' }} onClick={handleSeqButtonClick}>
+            {showSequence ? 'Hide sequence' : 'Show sequence'}
+          </button>
+        </div>
+        <div>
+          {showSequence && (
+            <textarea
+              readOnly
+              style={{
+                marginLeft: '15px',
+                height: '300px',
+                width: '95%',
+                resize: 'vertical',
+                overflowY: 'scroll',
+              }}
+              value={sequence}
+              // onChange={(e) => setSequence(e.target.value)}
+            />
+          )}
         </div>
       </>
     )
