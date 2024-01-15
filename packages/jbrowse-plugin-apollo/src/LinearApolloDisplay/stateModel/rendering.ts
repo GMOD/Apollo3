@@ -32,6 +32,7 @@ export function renderingModelIntermediateFactory(
       overlayCanvas: null as HTMLCanvasElement | null,
       collaboratorCanvas: null as HTMLCanvasElement | null,
       seqTrackCanvas: null as HTMLCanvasElement | null,
+      seqTrackOverlayCanvas: null as HTMLCanvasElement | null,
       theme: undefined as Theme | undefined,
     }))
     .views((self) => ({
@@ -65,6 +66,9 @@ export function renderingModelIntermediateFactory(
       },
       setSeqTrackCanvas(canvas: HTMLCanvasElement | null) {
         self.seqTrackCanvas = canvas
+      },
+      setSeqTrackOverlayCanvas(canvas: HTMLCanvasElement | null) {
+        self.seqTrackOverlayCanvas = canvas
       },
       setTheme(theme: Theme) {
         self.theme = theme
@@ -137,7 +141,7 @@ function colorCode(letter: string, theme?: Theme) {
   return (
     theme?.palette.bases[
       letter.toUpperCase() as keyof Theme['palette']['bases']
-    ].main.toString() ?? '#adadad'
+    ].main.toString() ?? 'lightgray'
   )
 }
 
@@ -147,7 +151,7 @@ function codonColorCode(letter: string) {
     '*': '#f44336',
   }
 
-  return colorMap[letter?.toUpperCase()] || '#adadad'
+  return colorMap[letter?.toUpperCase()] || 'lightgray'
 }
 
 function reverseCodonSeq(seq: string): string {

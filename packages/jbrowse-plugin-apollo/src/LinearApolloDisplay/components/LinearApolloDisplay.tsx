@@ -59,6 +59,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
     setCollaboratorCanvas,
     setOverlayCanvas,
     setSeqTrackCanvas,
+    setSeqTrackOverlayCanvas,
     setTheme,
     tabularEditor,
   } = model
@@ -103,6 +104,17 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             height={lgv.bpPerPx <= 1 ? 125 : 95}
             className={classes.canvas}
             data-testid="seqTrackCanvas"
+          />
+          <canvas
+            ref={async (node: HTMLCanvasElement) => {
+              await Promise.resolve()
+              setSeqTrackOverlayCanvas(node)
+            }}
+            width={lgv.dynamicBlocks.totalWidthPx}
+            height={lgv.bpPerPx <= 1 ? 125 : 95}
+            className={classes.canvas}
+            style={{ cursor: cursor ?? 'default' }}
+            data-testid="seqTrackOverlayCanvas"
           />
         </div>
       ) : null}
