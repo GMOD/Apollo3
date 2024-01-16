@@ -1,8 +1,9 @@
-login:
+default:
   address: http://localhost:3999
-  accessToken:
-    - token: XYZ # This is wrong
-    - token: ABC
-  userCredentials:
+  accessType: google
+  rootCredentials:
     username: root
     password: 1234
+  foobar: an alien key/value pair
+profile1:
+  address: http://localhost:1999

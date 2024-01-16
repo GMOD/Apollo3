@@ -1,15 +1,29 @@
 import path from 'node:path'
 
-import { Args, Command, ux } from '@oclif/core'
 import input from '@inquirer/input'
-import password from '@inquirer/password';
+import password from '@inquirer/password'
 import select from '@inquirer/select'
+import { Args, Command, Flags } from '@oclif/core'
 
-import { Config } from '../Config.js'
-import { ConfigError } from '../utils.js'
+import { Config } from '../Config.ts'
+import { ConfigError } from '../utils.ts'
+import { access } from 'node:fs'
 
 export default class ApolloConfig extends Command {
   static description = 'Get or set Apollo configuration options'
+
+  static flags = {
+    profile: Flags.string({
+      char: 'p',
+      description: 'Set or get configuration for this profile',
+      default: 'default',
+    }),
+    'config-file': Flags.string({
+      char: 'c',
+      description: 'Use this config file (mostly for testing)',
+    }),
+  }
+
   static args = {
     key: Args.string({
       name: 'key',
@@ -23,20 +37,27 @@ export default class ApolloConfig extends Command {
 
   public async run(): Promise<void> {
     const { args } = await this.parse(ApolloConfig)
+    const { flags } = await this.parse(ApolloConfig)
 
-    const config: Config = new Config(
-      path.join(this.config.configDir, 'config.yaml'),
-    )
+    let configFile = flags['config-file']
+    if (configFile === undefined) {
+      configFile = path.join(this.config.configDir, 'config.yaml')
+    }
+
+    const config: Config = new Config(configFile)
 
     if (args.key === undefined) {
       await this.interactiveSetup(config)
     } else {
       try {
-        const currentValue = config.get(args.key)
         if (args.value === undefined) {
+          const currentValue: string | undefined = config.get(
+            args.key,
+            flags.profile,
+          )
           this.log(currentValue)
         } else {
-          config.set(args.key, args.value)
+          config.set(args.key, args.value, flags.profile)
           config.writeConfigFile()
         }
       } catch (error) {
@@ -49,12 +70,17 @@ export default class ApolloConfig extends Command {
   }
 
   private async interactiveSetup(config: Config) {
-    const address: string = await this.askAddress(config)
-    config.set('address', address)
+    const profileName: string = await this.askProfileName(
+      config.getProfileNames(),
+    )
+    const address: string = await this.askAddress(
+      config.get('address', profileName),
+    )
+    config.set('address', address, profileName)
 
-    let loginType
+    let accessType
     try {
-      loginType = await this.selectLoginType(config)
+      accessType = await this.selectAccessType(address)
     } catch (error) {
       if (error instanceof ConfigError) {
         this.logToStderr(error.message)
@@ -62,55 +88,76 @@ export default class ApolloConfig extends Command {
       }
     }
 
-    if (loginType && ['microsoft', 'google'].includes(loginType)) {
-      const token: string = await this.askToken(loginType)
-      config.set(loginType, token)
-    } else if (loginType === 'guest') {
-      const username = await this.askUsername(config)
-      config.set('username', username)
+    if (accessType && ['microsoft', 'google', 'guest'].includes(accessType)) {
+      config.set('accessType', accessType, profileName)
+    }
+    const username: string = await this.askUsername(
+      config.get('rootCredentials.username', profileName),
+    )
+    config.set('rootCredentials.username', username, profileName)
 
-      const password = await this.askPassword()
-      config.set('password', password)
+    const password: string = await this.askPassword()
+    config.set('rootCredentials.password', password, profileName)
+    config.writeConfigFile()
+  }
+
+  private async askProfileName(currentProfiles: string[]): Promise<string> {
+    currentProfiles.push('<New profile>')
+    const xchoices = []
+    for (const profileName of currentProfiles) {
+      xchoices.push({ name: profileName, value: profileName })
     }
 
-    config.writeConfigFile()
+    let answer = await select({
+      message: 'Select profile to edit or create a new one:',
+      choices: xchoices,
+    })
+
+    if (answer === '<New profile>') {
+      answer = await input({
+        message: 'New profile name:',
+        default: currentProfiles.includes('default') ? undefined : 'default',
+      })
+    }
+
+    return answer
   }
 
   private async askPassword(): Promise<string> {
     const answer = await password({
-      message: 'Password: ',
+      message: 'Root password:',
       mask: true,
     })
     return answer.trim()
   }
 
-  private async askUsername(config: Config): Promise<string> {
+  private async askUsername(currentUsername: string | undefined): Promise<string> {
+    if (currentUsername === undefined || currentUsername.trim() === '') {
+      currentUsername = 'root'
+    }
     const answer = await input({
-      message: 'Username: ',
-      default: config.get('username'),
+      message: 'Root username:',
+      default: currentUsername,
     })
     return answer.trim()
   }
 
-  private async askToken(loginType: string): Promise<string> {
+  private async askAddress(
+    currentAddress: string | undefined,
+  ): Promise<string> {
+    if (currentAddress === '' || currentAddress === undefined) {
+      currentAddress = 'http://localhost:3999'
+    }
     const answer = await input({
-      message: `Paste your ${loginType} account token: `,
+      message: 'Server address and port:',
+      default: currentAddress,
     })
     return answer.trim()
   }
 
-  private async askAddress(config: Config): Promise<string> {
-    const current: string = config.get('address')
-    const answer = await input({
-      message: 'Server address and port, e.g. http://localhost:3999: ',
-      default: current,
-    })
-    return answer.trim()
-  }
-
-  private async selectLoginType(config: Config): Promise<string> {
+  private async selectAccessType(address: string): Promise<string> {
     const xchoices = []
-    const types: string[] = await this.getLoginTypes(config)
+    const types: string[] = await this.getLoginTypes(address)
     for (const type of types) {
       xchoices.push({ name: type, value: type })
     }
@@ -121,13 +168,14 @@ export default class ApolloConfig extends Command {
     return answer
   }
 
-  private async getLoginTypes(config: Config): Promise<string[]> {
-    const address: string = config.get('address')
+  private async getLoginTypes(address: string): Promise<string[]> {
     try {
       const response = await fetch(`${address}/auth/types`)
       return await response.json()
     } catch {
-      throw new ConfigError(`Unable to retrieve login types for address: "${address}"`)
+      throw new ConfigError(
+        `Unable to retrieve login types for address: "${address}"`,
+      )
     }
   }
 }

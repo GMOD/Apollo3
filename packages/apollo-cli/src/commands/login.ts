@@ -38,12 +38,18 @@ export default class Login extends Command {
       default: '',
       required: false,
     }),
+    force: Flags.boolean({
+      char: 'f',
+      description: 'Force re-authentication even if user is already logged in',
+    }),
   }
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(Login)
     try {
-      await this.checkUserAlreadyLoggedIn()
+      if (!flags.force) {
+        await this.checkUserAlreadyLoggedIn()
+      }
 
       let userCredentials: UserCredentials = { accessToken: '' }
 
@@ -59,12 +65,13 @@ export default class Login extends Command {
       }
       saveUserCredentials(userCredentials)
 
-      // For testing
+      // <<< For testing
       const response = await fetch(`${flags.address}/assemblies`, {
         headers: { Authorization: `Bearer ${userCredentials.accessToken}` },
       })
       console.log(`Access token: ${userCredentials.accessToken}`)
       console.log(await response.json())
+      // >>>
     } catch (error) {
       if (
         (error instanceof Errors.CLIError && error.message === 'ctrl-c') ||
@@ -117,7 +124,6 @@ export default class Login extends Command {
       // FIXME: Better error handling
       throw new Error('Failed to post request')
     }
-
     const dat = await response.json()
     return { accessToken: dat.token }
   }
@@ -126,12 +132,12 @@ export default class Login extends Command {
     address: string,
   ): Promise<UserCredentials> {
     const callbackPath = '/'
-    const authorizationCodeURL = `${address}/auth?type=google&redirect_uri=http://localhost:3000/auth/callback`
+    const port = 3000
+    const authorizationCodeURL = `${address}/auth/login?type=google&redirect_uri=http://localhost:${port}${callbackPath}`
 
     // eslint-disable-next-line unicorn/prefer-event-target
     const emitter = new EventEmitter()
     const eventName = 'authorication_code_callback_params'
-    const port = 3000
     const server = http
       .createServer((req, res) => {
         if (req?.url?.startsWith(callbackPath)) {

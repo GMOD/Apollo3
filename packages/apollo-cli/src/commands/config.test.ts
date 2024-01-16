@@ -3,7 +3,6 @@ import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { expect, test } from '@oclif/test'
-
 import YAML from 'yaml'
 
 import {
@@ -23,7 +22,7 @@ describe('apollo config: Query config file', () => {
     fs.rmSync(CONFIG_FILE)
   })
 
-  let cmd = ['config', 'password']
+  let cmd = ['config', 'rootCredentials.password']
   test
     .stdout()
     .command(cmd, { root: dirname(dirname(__dirname)) })
@@ -39,17 +38,41 @@ describe('apollo config: Query config file', () => {
       expect(ctx.stdout.trim()).to.equal('http://localhost:3999')
     })
 
-  cmd = ['config', 'stuff']
+  cmd = ['config', 'someInvalidKey']
   test
     .stderr()
     .command(cmd, { root: dirname(dirname(__dirname)) })
     .exit(1)
-    .do((output) => expect(output.stderr).to.contain('stuff'))
+    .do((output) => expect(output.stderr).to.contain('someInvalidKey'))
     .it(cmd.join(' '))
+
+  cmd = ['config', '-p', 'profile1', 'address']
+  test
+    .stdout()
+    .command(cmd, { root: dirname(dirname(__dirname)) })
+    .it(cmd.join(' '), (ctx) => {
+      expect(ctx.stdout.trim()).to.equal('http://localhost:1999')
+    })
+
+  cmd = ['config', '-p', 'profile1', 'rootCredentials.username']
+  test
+    .stdout()
+    .command(cmd, { root: dirname(dirname(__dirname)) })
+    .it(cmd.join(' '), (ctx) => {
+      expect(ctx.stdout.trim()).to.equal('')
+    })
+
+  cmd = ['config', '-p', 'nonExistantProfile', 'address']
+  test
+    .stdout()
+    .command(cmd, { root: dirname(dirname(__dirname)) })
+    .it(cmd.join(' '), (ctx) => {
+      expect(ctx.stdout.trim()).to.equal('')
+    })
 })
 
 describe('apollo config: Missing config file', () => {
-  let cmd = ['config', 'password']
+  let cmd = ['config', 'rootCredentials.password']
   test
     .stdout()
     .command(cmd, { root: dirname(dirname(__dirname)) })
@@ -80,26 +103,26 @@ describe('apollo config: Read & edit config file', () => {
     .command(cmd, { root: dirname(dirname(__dirname)) })
     .it(cmd.join(' '), () => {
       const cfg = YAML.parse(fs.readFileSync(CONFIG_FILE, 'utf8'))
-      expect(cfg.login.address).to.equal('http://localhost:4321')
-      expect(cfg.login.userCredentials.username).to.equal('root')
+      expect(cfg.default.address).to.equal('http://localhost:4321')
+      expect(cfg.default.rootCredentials.username).to.equal('root')
     })
 
-  cmd = ['config', 'username', 'root2']
+  cmd = ['config', 'rootCredentials.username', 'root2']
   test
     .stdout()
     .command(cmd, { root: dirname(dirname(__dirname)) })
     .it(cmd.join(' '), () => {
       const cfg = YAML.parse(fs.readFileSync(CONFIG_FILE, 'utf8'))
-      expect(cfg.login.userCredentials.username).to.equal('root2')
+      expect(cfg.default.rootCredentials.username).to.equal('root2')
     })
 
-  cmd = ['config', 'google', 'abcd']
+  cmd = ['config', 'accessType', 'microsoft']
   test
     .stdout()
     .command(cmd, { root: dirname(dirname(__dirname)) })
     .it(cmd.join(' '), () => {
       const cfg = YAML.parse(fs.readFileSync(CONFIG_FILE, 'utf8'))
-      expect(cfg.login.accessToken.google).to.equal('abcd')
+      expect(cfg.default.accessType).to.equal('microsoft')
     })
 })
 
@@ -108,31 +131,21 @@ describe('apollo config: Write config file from scratch', () => {
     fs.rmSync(CONFIG_FILE)
   })
 
-  let cmd = ['config', 'address', 'http://localhost:4321']
+  let cmd = ['config', 'rootCredentials.username', 'somename']
   test
     .stdout()
     .command(cmd, { root: dirname(dirname(__dirname)) })
     .it(cmd.join(' '), () => {
       const cfg = YAML.parse(fs.readFileSync(CONFIG_FILE, 'utf8'))
-      expect(cfg.login.address).to.equal('http://localhost:4321')
+      expect(cfg.default.rootCredentials.username).to.equal('somename')
     })
 
-  cmd = ['config', 'username', 'me']
+  cmd = ['config', '-p', 'myProfile', 'rootCredentials.password', 'somepwd']
   test
     .stdout()
     .command(cmd, { root: dirname(dirname(__dirname)) })
     .it(cmd.join(' '), () => {
       const cfg = YAML.parse(fs.readFileSync(CONFIG_FILE, 'utf8'))
-      expect(cfg.login.userCredentials.username).to.equal('me')
-      expect(cfg.login.address).to.equal('http://localhost:4321')
-    })
-
-  cmd = ['config', 'google', 'abcd']
-  test
-    .stdout()
-    .command(cmd, { root: dirname(dirname(__dirname)) })
-    .it(cmd.join(' '), () => {
-      const cfg = YAML.parse(fs.readFileSync(CONFIG_FILE, 'utf8'))
-      expect(cfg.login.accessToken.google).to.equal('abcd')
+      expect(cfg.myProfile.rootCredentials.password).to.equal('somepwd')
     })
 })

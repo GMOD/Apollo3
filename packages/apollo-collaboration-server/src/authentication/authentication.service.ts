@@ -33,6 +33,8 @@ interface ConfigValues {
   GOOGLE_CLIENT_ID_FILE?: string
   ALLOW_GUEST_USER: boolean
   DEFAULT_NEW_USER_ROLE: Role | 'none'
+  ROOT_USER_NAME: string
+  ROOT_USER_PASSWORD: string
 }
 
 @Injectable()

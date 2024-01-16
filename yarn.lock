@@ -6784,6 +6784,7 @@ __metadata:
     axios: ^1.6.2
     babel-plugin-istanbul: ^6.1.1
     inquirer: ^9.2.12
+    joi: ^17.7.0
     mocha: ^10.2.0
     nyc: ^15.1.0
     oclif: ^4.1.0
