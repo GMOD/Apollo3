@@ -10,13 +10,9 @@ import {
   FormLabel,
   Grid,
   IconButton,
-  InputLabel,
-  MenuItem,
   Paper,
   Radio,
   RadioGroup,
-  Select,
-  SelectChangeEvent,
   TextField,
   Typography,
 } from '@mui/material'
@@ -118,6 +114,10 @@ export const ApolloFeatureDetailsWidget = observer(
     const { assembly, changeManager, feature, refName } = model
     const session = getSession(model) as unknown as AbstractSessionModel
     const apolloSession = getSession(model) as unknown as ApolloSessionModel
+    const [showAddNewForm, setShowAddNewForm] = useState(false)
+    const [newAttributeKey, setNewAttributeKey] = useState('')
+    const { classes } = useStyles()
+    const [featureId, setFeatureId] = useState(String(feature._id))
     const [end, setEnd] = useState(String(feature.end))
     const [start, setStart] = useState(String(feature.start + 1))
     const [type, setType] = useState(feature.type)
@@ -127,8 +127,7 @@ export const ApolloFeatureDetailsWidget = observer(
     const [showSequence, setShowSequence] = useState(false)
     const { notify } = session as unknown as AbstractSessionModel
     const { internetAccounts } = getRoot<ApolloRootModel>(session)
-    console.log(`Model: ${JSON.stringify(model)}`)
-    console.log(`End: ${feature.end}`)
+    // console.log(`Model: ${JSON.stringify(model)}`)
 
     const currentAssembly =
       apolloSession.apolloDataStore.assemblies.get(assembly)
@@ -138,7 +137,7 @@ export const ApolloFeatureDetailsWidget = observer(
       Number(feature.end),
     )
     const [sequence, setSequence] = useState(refSeq)
-    console.log(`Sequence: ${JSON.stringify(refSeq)}`)
+    // console.log(`Sequence: ${JSON.stringify(refSeq)}`)
 
     const internetAccount = useMemo(() => {
       return internetAccounts.find(
@@ -166,9 +165,32 @@ export const ApolloFeatureDetailsWidget = observer(
       ),
     )
 
-    const [showAddNewForm, setShowAddNewForm] = useState(false)
-    const [newAttributeKey, setNewAttributeKey] = useState('')
-    const { classes } = useStyles()
+    // User has selected another feature
+    if (feature._id !== featureId) {
+      setFeatureId(feature._id)
+      setStart(feature.start)
+      setEnd(feature.end)
+      setType(feature.type)
+      setStrand(String(feature.strand))
+      setSequence(refSeq)
+      setAttributes(
+        Object.fromEntries(
+          [...feature.attributes.entries()].map(([key, value]) => {
+            if (key.startsWith('gff_')) {
+              const newKey = key.slice(4)
+              const capitalizedKey =
+                newKey.charAt(0).toUpperCase() + newKey.slice(1)
+              return [capitalizedKey, getSnapshot(value)]
+            }
+            if (key === '_id') {
+              return ['ID', getSnapshot(value)]
+            }
+            return [key, getSnapshot(value)]
+          }),
+        ),
+      )
+    }
+
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
       event.preventDefault()
       setErrorMessage('')
@@ -302,11 +324,13 @@ export const ApolloFeatureDetailsWidget = observer(
         })
         await changeManager.submit?.(change)
         changed = true
-        const refData = currentAssembly?.getByRefName(refName)
+        // const refData = currentAssembly?.getByRefName(refName)
         const refSeq: string | undefined = refData?.getSequence(
           Number(start + 1),
           Number(feature.end),
         )
+        console.log(`refData: ${JSON.stringify(refData)}`)
+        console.log(`Start... Sequence: ${refSeq}`)
         setSequence(refSeq)
       }
 
@@ -322,11 +346,13 @@ export const ApolloFeatureDetailsWidget = observer(
         })
         await changeManager.submit?.(change)
         changed = true
-        const refData = currentAssembly?.getByRefName(refName)
+        // const refData = currentAssembly?.getByRefName(refName)
         const refSeq: string | undefined = refData?.getSequence(
           Number(feature.start + 1),
           Number(end),
         )
+        console.log(`refData: ${JSON.stringify(refData)}`)
+        console.log(`End... Sequence: ${refSeq}`)
         setSequence(refSeq)
       }
 
@@ -369,12 +395,6 @@ export const ApolloFeatureDetailsWidget = observer(
     function handleChangeType(newType: string) {
       setErrorMessage('')
       setType(newType)
-      // if (newType.startsWith('CDS')) {
-      //   setShowPhase(true)
-      //   setPhase('')
-      // } else {
-      //   setShowPhase(false)
-      // }
     }
     function handleAddNewAttributeChange() {
       setErrorMessage('')
@@ -449,8 +469,16 @@ export const ApolloFeatureDetailsWidget = observer(
     return (
       <>
         <form onSubmit={onSubmitBasic}>
-          <h2 style={{ marginLeft: '15px' }}>Basic information</h2>
-          <DialogContent style={{ display: 'flex', flexDirection: 'column' }}>
+          <h2 style={{ marginLeft: '15px', marginBottom: '0' }}>
+            Basic information
+          </h2>
+          <DialogContent
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              paddingTop: '0',
+            }}
+          >
             <TextField
               margin="dense"
               id="start"
@@ -535,9 +563,16 @@ export const ApolloFeatureDetailsWidget = observer(
             </Button>
           </DialogActions>
         </form>
+        <hr />
         <form onSubmit={onSubmit}>
-          <h2 style={{ marginLeft: '15px' }}>Attributes</h2>
-          <DialogContent>
+          <h2 style={{ marginLeft: '15px', marginBottom: '0' }}>Attributes</h2>
+          <DialogContent
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              paddingTop: '0',
+            }}
+          >
             <Grid container direction="column" spacing={1}>
               {Object.entries(attributes).map(([key, value]) => {
                 const EditorComponent =
@@ -694,11 +729,16 @@ export const ApolloFeatureDetailsWidget = observer(
             </Button>
           </DialogActions>
         </form>
+        <hr />
         <div>
           <h2 style={{ display: 'inline', marginLeft: '15px' }}>Sequence</h2>
-          <button style={{ marginLeft: '15px' }} onClick={handleSeqButtonClick}>
+          <Button
+            variant="contained"
+            style={{ marginLeft: '15px' }}
+            onClick={handleSeqButtonClick}
+          >
             {showSequence ? 'Hide sequence' : 'Show sequence'}
-          </button>
+          </Button>
         </div>
         <div>
           {showSequence && (
