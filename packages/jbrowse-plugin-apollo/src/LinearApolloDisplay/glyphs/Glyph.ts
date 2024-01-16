@@ -3,6 +3,7 @@ import { MenuItem } from '@jbrowse/core/ui'
 import {
   AbstractSessionModel,
   SessionWithWidgets,
+  Widget,
   getSession,
   isSessionModelWithWidgets,
 } from '@jbrowse/core/util'
@@ -402,6 +403,12 @@ export abstract class Glyph {
               //   // @ts-expect-error testing
               //   apolloFeatureWidget.setFeature(sourceFeature) // TAMA AIHEUTTAA SEN ETTA CHANGEMANAGER EI ENAA TOIMI OIKEIN REACT SIVULTA. ELI BACKENDIA EI KUTSUTA OLLENKAAN
               // } else {
+              // if (apolloFeatureWidget) {
+              //   console.log(`Poista: ${apolloFeatureWidget.id}`)
+              //   // ses.showWidget()
+              //   sesWidged.hideWidget('apolloFeatureWidget')
+              //   // sesWidged.widgets.delete(apolloFeatureWidget.id)
+              // }
               console.log('Lets add new widget...')
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               apolloFeatureWidget = sesWidged.addWidget(
@@ -411,7 +418,7 @@ export abstract class Glyph {
                   feature: sourceFeature,
                   assembly: currentAssemblyId,
                   changeManager,
-                  refName: region.refName
+                  refName: region.refName,
                 },
               )
               console.log('Widget added!')
