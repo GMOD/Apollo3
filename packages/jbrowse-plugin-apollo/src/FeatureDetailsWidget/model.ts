@@ -1,5 +1,5 @@
 import { ElementId } from '@jbrowse/core/util/types/mst'
-import { AnnotationFeature, AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeature } from 'apollo-mst'
 import { types } from 'mobx-state-tree'
 
 import { ChangeManager } from '../ChangeManager'
@@ -12,10 +12,3 @@ export const ApolloFeatureDetails = types.model('ApolloFeatureDetails', {
   refName: types.string,
   changeManager: types.frozen<ChangeManager>(),
 })
-// .actions((self) => ({
-//   setFeature(feature: AnnotationFeatureI) {
-//     console.log('SET FEATURE ****')
-//     console.log(feature)
-//     self.feature = feature
-//   },
-// }))

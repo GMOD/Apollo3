@@ -26,7 +26,7 @@ import {
 } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import { IAnyStateTreeNode, getRoot, getSnapshot } from 'mobx-state-tree'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
@@ -56,7 +56,7 @@ const reservedKeys = new Map([
 
 const useStyles = makeStyles()((theme) => ({
   attributeInput: {
-    maxWidth: 600,
+    maxWidth: 400,
   },
   newAttributePaper: {
     padding: theme.spacing(2),
@@ -114,31 +114,17 @@ export const ApolloFeatureDetailsWidget = observer(
     const { assembly, changeManager, feature, refName } = model
     const session = getSession(model) as unknown as AbstractSessionModel
     const apolloSession = getSession(model) as unknown as ApolloSessionModel
-    const [showAddNewForm, setShowAddNewForm] = useState(false)
-    const [newAttributeKey, setNewAttributeKey] = useState('')
-    const { classes } = useStyles()
-    const [featureId, setFeatureId] = useState(String(feature._id))
-    const [end, setEnd] = useState(String(feature.end))
-    const [start, setStart] = useState(String(feature.start + 1))
-    const [type, setType] = useState(feature.type)
-    const [typeWarningText, setTypeWarningText] = useState('')
-    const [strand, setStrand] = useState(String(feature.strand))
-    const [errorMessage, setErrorMessage] = useState('')
-    const [showSequence, setShowSequence] = useState(false)
-    const { notify } = session as unknown as AbstractSessionModel
-    const { internetAccounts } = getRoot<ApolloRootModel>(session)
-    // console.log(`Model: ${JSON.stringify(model)}`)
-
     const currentAssembly =
       apolloSession.apolloDataStore.assemblies.get(assembly)
     const refData = currentAssembly?.getByRefName(refName)
-    const refSeq: string | undefined = refData?.getSequence(
-      Number(feature.start + 1),
-      Number(feature.end),
-    )
-    const [sequence, setSequence] = useState(refSeq)
-    // console.log(`Sequence: ${JSON.stringify(refSeq)}`)
-
+    const [showAddNewForm, setShowAddNewForm] = useState(false)
+    const [newAttributeKey, setNewAttributeKey] = useState('')
+    const { classes } = useStyles()
+    const [errorMessage, setErrorMessage] = useState('')
+    const [typeWarningText, setTypeWarningText] = useState('')
+    const [showSequence, setShowSequence] = useState(false)
+    const { notify } = session as unknown as AbstractSessionModel
+    const { internetAccounts } = getRoot<ApolloRootModel>(session)
     const internetAccount = useMemo(() => {
       return internetAccounts.find(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -147,6 +133,18 @@ export const ApolloFeatureDetailsWidget = observer(
     }, [internetAccounts])
     const role = internetAccount ? internetAccount.getRole() : 'admin'
     const editable = ['admin', 'user'].includes(role ?? '')
+
+    const [featureId, setFeatureId] = useState(String(feature._id))
+    const [end, setEnd] = useState(String(feature.end))
+    const [start, setStart] = useState(String(feature.start + 1))
+    const [type, setType] = useState(feature.type)
+    const [strand, setStrand] = useState(String(feature.strand))
+
+    const refSeq: string | undefined = refData?.getSequence(
+      Number(feature.start + 1),
+      Number(feature.end),
+    )
+    const [sequence, setSequence] = useState(refSeq)
 
     const [attributes, setAttributes] = useState<Record<string, string[]>>(
       Object.fromEntries(
@@ -312,8 +310,9 @@ export const ApolloFeatureDetailsWidget = observer(
       event.preventDefault()
       setErrorMessage('')
       let changed = false
+      let changedPosition = false
+
       if (feature.start !== Number(start)) {
-        console.log(`Update start: ${start} vs ${feature.start}, end=${end}`)
         const change = new LocationStartChange({
           typeName: 'LocationStartChange',
           changedIds: [feature._id],
@@ -324,18 +323,10 @@ export const ApolloFeatureDetailsWidget = observer(
         })
         await changeManager.submit?.(change)
         changed = true
-        // const refData = currentAssembly?.getByRefName(refName)
-        const refSeq: string | undefined = refData?.getSequence(
-          Number(start + 1),
-          Number(feature.end),
-        )
-        console.log(`refData: ${JSON.stringify(refData)}`)
-        console.log(`Start... Sequence: ${refSeq}`)
-        setSequence(refSeq)
+        changedPosition = true
       }
 
       if (feature.end !== Number(end)) {
-        console.log(`Update end: ${end} vs ${feature.end}`)
         const change = new LocationEndChange({
           typeName: 'LocationEndChange',
           changedIds: [feature._id],
@@ -346,18 +337,10 @@ export const ApolloFeatureDetailsWidget = observer(
         })
         await changeManager.submit?.(change)
         changed = true
-        // const refData = currentAssembly?.getByRefName(refName)
-        const refSeq: string | undefined = refData?.getSequence(
-          Number(feature.start + 1),
-          Number(end),
-        )
-        console.log(`refData: ${JSON.stringify(refData)}`)
-        console.log(`End... Sequence: ${refSeq}`)
-        setSequence(refSeq)
+        changedPosition = true
       }
 
       if (feature.strand !== Number(strand)) {
-        console.log(`Update strand: ${strand} vs ${feature.strand}`)
         const change = new StrandChange({
           typeName: 'StrandChange',
           changedIds: [feature._id],
@@ -376,7 +359,6 @@ export const ApolloFeatureDetailsWidget = observer(
         changed = true
       }
       if (feature.type !== type) {
-        console.log(`Update type: ${type} vs ${feature.type}`)
         const change = new TypeChange({
           typeName: 'TypeChange',
           changedIds: [feature._id],
@@ -387,6 +369,13 @@ export const ApolloFeatureDetailsWidget = observer(
         })
         await changeManager.submit?.(change)
         changed = true
+      }
+      if (changedPosition) {
+        const refSeq: string | undefined = refData?.getSequence(
+          Number(feature.start + 1),
+          Number(feature.end),
+        )
+        refSeq ? setSequence(refSeq) : null
       }
       changed ? notify('Feature data saved successfully', 'success') : null
       event.preventDefault()
@@ -752,7 +741,6 @@ export const ApolloFeatureDetailsWidget = observer(
                 overflowY: 'scroll',
               }}
               value={sequence}
-              // onChange={(e) => setSequence(e.target.value)}
             />
           )}
         </div>

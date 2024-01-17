@@ -1,15 +1,7 @@
-import PluginManager from '@jbrowse/core/PluginManager'
 import { MenuItem } from '@jbrowse/core/ui'
-import {
-  AbstractSessionModel,
-  SessionWithWidgets,
-  Widget,
-  getSession,
-  isSessionModelWithWidgets,
-} from '@jbrowse/core/util'
+import { AbstractSessionModel, SessionWithWidgets } from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
-import { ApolloPlugin, ApolloPluginConstructor } from 'apollo-common'
-import { AnnotationFeature, AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureI } from 'apollo-mst'
 
 import {
   AddChildFeature,
@@ -17,18 +9,12 @@ import {
   DeleteFeature,
   ModifyFeatureAttribute,
 } from '../../components'
-import { ApolloSessionModel } from '../../session'
 import {
   LinearApolloDisplayMouseEvents,
   MousePosition,
 } from '../stateModel/mouseEvents'
 import { LinearApolloDisplayRendering } from '../stateModel/rendering'
 import { CanvasMouseEvent } from '../types'
-
-interface ApolloFeatureDetailsModel {
-  id: number
-  type: 'ApolloFeatureDetails'
-}
 
 export abstract class Glyph {
   /** @returns number of layout rows used by this glyph with this feature and zoom level */
@@ -391,27 +377,11 @@ export abstract class Glyph {
         },
         {
           label: 'Edit feature details',
-          // icon: EditIcon,
           onClick: () => {
             const ses = session as unknown as AbstractSessionModel
             if (ses) {
-              const { widgets } = session as unknown as SessionWithWidgets
               const sesWidged = session as unknown as SessionWithWidgets
-              console.log(`widgets: ${JSON.stringify(widgets)}`)
-              let apolloFeatureWidget = widgets.get('apolloFeatureDetails')
-              // if (apolloFeatureWidget) {
-              //   // @ts-expect-error testing
-              //   apolloFeatureWidget.setFeature(sourceFeature) // TAMA AIHEUTTAA SEN ETTA CHANGEMANAGER EI ENAA TOIMI OIKEIN REACT SIVULTA. ELI BACKENDIA EI KUTSUTA OLLENKAAN
-              // } else {
-              // if (apolloFeatureWidget) {
-              //   console.log(`Poista: ${apolloFeatureWidget.id}`)
-              //   // ses.showWidget()
-              //   sesWidged.hideWidget('apolloFeatureWidget')
-              //   // sesWidged.widgets.delete(apolloFeatureWidget.id)
-              // }
-              console.log('Lets add new widget...')
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              apolloFeatureWidget = sesWidged.addWidget(
+              const apolloFeatureWidget = sesWidged.addWidget(
                 'ApolloFeatureDetails',
                 'apolloFeatureDetails',
                 {
@@ -421,9 +391,6 @@ export abstract class Glyph {
                   refName: region.refName,
                 },
               )
-              console.log('Widget added!')
-              // }
-
               ses.showWidget?.(apolloFeatureWidget)
             }
           },
