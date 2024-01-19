@@ -8,7 +8,9 @@
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 
   // Features to add to the dev container. More info: https://containers.dev/features.
-  // "features": {},
+  "features": {
+    "./git-autocomplete": "1.0.0",
+  },
   // Configure tool-specific properties.
   "customizations": {
     // Configure properties specific to VS Code.

@@ -1,0 +1,6 @@
+{
+  "name": "Git Autocomplete",
+  "id": "git-autocomplete",
+  "version": "1.0.0",
+  "description": "Enable git autocomplete in the shell",
+}
