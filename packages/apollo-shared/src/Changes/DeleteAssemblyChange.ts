@@ -77,16 +77,13 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
       throw new Error('No data store')
     }
     const session = getSession(dataStore)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tmpSession = getSession(dataStore) as any
     // If assemblyId is not present in client data store
-    if (!dataStore.assemblies.has(assembly)) {
-      await session.removeAssembly?.(assembly)
-      await tmpSession.removeSessionAssembly?.(assembly)
-      return
+    if (dataStore.assemblies.has(assembly)) {
+      dataStore.deleteAssembly(assembly)
     }
-    dataStore.deleteAssembly(assembly)
-    await tmpSession.removeAssembly?.(assembly)
+    await session.removeAssembly?.(assembly)
+    // @ts-expect-error this isn't on the AbstractSessionModel
+    await session.removeSessionAssembly?.(assembly)
   }
 
   getInverse() {
