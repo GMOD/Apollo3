@@ -126,6 +126,25 @@ describe('apollo config: Read & edit config file', () => {
     })
 })
 
+describe('Do not set invalid address', () => {
+  before(() => {
+    copyFile(`${TEST_DATA_DIR}/complete_config.yaml`, CONFIG_FILE, VERBOSE)
+  })
+  after(() => {
+    fs.rmSync(CONFIG_FILE)
+  })
+
+  const cmd = ['config', 'address', 'http://localhost:3999xxx']
+  test
+    .stderr()
+    .command(cmd, { root: dirname(dirname(__dirname)) })
+    .exit(1)
+    .do((output) =>
+      expect(output.stderr).to.contain('http://localhost:3999xxx'),
+    )
+    .it(cmd.join(' '))
+})
+
 describe('apollo config: Write config file from scratch', () => {
   after(() => {
     fs.rmSync(CONFIG_FILE)

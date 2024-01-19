@@ -27,13 +27,39 @@ interface RecursiveObject {
   [key: number | string]: RecursiveObject | unknown
 }
 
+function isValidAddress(address: string): boolean {
+  const port: string | undefined = address.split(':').pop()
+  if (port === undefined || /^\d+$/.test(port) === false) {
+    return false
+  }
+
+  let url
+  try {
+    url = new URL(address)
+  } catch {
+    return false
+  }
+
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return false
+  }
+  return true
+}
+
+const validateAddress = (address: string, helpers: any) => {
+  if (isValidAddress(address)) {
+    return address
+  }
+  return helpers.error('any.invalid')
+}
+
 const profileSchema = Joi.object({
-  address: Joi.string(),
+  address: Joi.string().custom(validateAddress),
   accessType: Joi.string(),
   rootCredentials: {
     username: Joi.string().allow(null, ''),
     password: Joi.string().allow(null, ''),
-  }
+  },
 })
 const configSchema = Joi.object().pattern(/.*/, profileSchema)
 
@@ -46,8 +72,6 @@ export class Config {
         YAML.parseDocument(fs.readFileSync(configFile, 'utf8')),
       )
       const config = cfg.toJS()
-      // validation if wanted
-      const v = configSchema.validate(config)
       this.profiles = config
     }
   }
@@ -125,6 +149,11 @@ export class Config {
     profileName: string,
   ) {
     this.checkKey(key)
+
+    if (key === 'address' && ! isValidAddress(value)) {
+      throw new ConfigError(`"${value}" is not a valid value for "${key}"`)
+    }
+
     let profile = this.profiles[profileName]
     if (!profile) {
       profile = {}
@@ -140,6 +169,10 @@ export class Config {
 
   public getProfileNames(): string[] {
     return Object.keys(this.profiles)
+  }
+
+  public validate(): Joi.ValidationResult {
+    return configSchema.validate(this.profiles)
   }
 
   public toString(): string {

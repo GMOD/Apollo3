@@ -3,7 +3,6 @@ default:
   accessType: google
   rootCredentials:
     username: root
-    password: 1234
-  foobar: an alien key/value pair
+    password: "1234"
 profile1:
   address: http://localhost:1999

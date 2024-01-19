@@ -7,7 +7,6 @@ import { Args, Command, Flags } from '@oclif/core'
 
 import { Config } from '../Config.ts'
 import { ConfigError } from '../utils.ts'
-import { access } from 'node:fs'
 
 export default class ApolloConfig extends Command {
   static description = 'Get or set Apollo configuration options'
@@ -58,7 +57,6 @@ export default class ApolloConfig extends Command {
           this.log(currentValue)
         } else {
           config.set(args.key, args.value, flags.profile)
-          config.writeConfigFile()
         }
       } catch (error) {
         if (error instanceof Error) {
@@ -67,30 +65,51 @@ export default class ApolloConfig extends Command {
         this.exit(1)
       }
     }
+
+    const v = config.validate().error?.message
+    if (v) {
+      this.logToStderr(v)
+    }
+
+    config.writeConfigFile()
   }
 
   private async interactiveSetup(config: Config) {
     const profileName: string = await this.askProfileName(
       config.getProfileNames(),
     )
-    const address: string = await this.askAddress(
-      config.get('address', profileName),
-    )
-    config.set('address', address, profileName)
 
-    let accessType
-    try {
-      accessType = await this.selectAccessType(address)
-    } catch (error) {
-      if (error instanceof ConfigError) {
-        this.logToStderr(error.message)
-        this.exit(1)
+    let setMe = true
+    while (setMe) {
+      const address: string = await this.askAddress(
+        config.get('address', profileName),
+      )
+      try {
+        config.set('address', address, profileName)
+        setMe = false
+      } catch (error) {
+        if (error instanceof ConfigError) {
+          this.logToStderr(error.message)
+        }
       }
     }
 
-    if (accessType && ['microsoft', 'google', 'guest'].includes(accessType)) {
-      config.set('accessType', accessType, profileName)
+    const address = config.get('address', profileName)
+    if (address) {
+      let accessType
+      try {
+        accessType = await this.selectAccessType(address)
+      } catch (error) {
+        if (error instanceof ConfigError) {
+          this.logToStderr(error.message)
+          this.exit(1)
+        }
+      }
+      if (accessType && ['microsoft', 'google', 'guest'].includes(accessType)) {
+        config.set('accessType', accessType, profileName)
+      }
     }
+
     const username: string = await this.askUsername(
       config.get('rootCredentials.username', profileName),
     )
@@ -98,7 +117,6 @@ export default class ApolloConfig extends Command {
 
     const password: string = await this.askPassword()
     config.set('rootCredentials.password', password, profileName)
-    config.writeConfigFile()
   }
 
   private async askProfileName(currentProfiles: string[]): Promise<string> {
@@ -131,7 +149,9 @@ export default class ApolloConfig extends Command {
     return answer.trim()
   }
 
-  private async askUsername(currentUsername: string | undefined): Promise<string> {
+  private async askUsername(
+    currentUsername: string | undefined,
+  ): Promise<string> {
     if (currentUsername === undefined || currentUsername.trim() === '') {
       currentUsername = 'root'
     }
