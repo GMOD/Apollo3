@@ -2,6 +2,7 @@ import fs from 'node:fs'
 
 import { LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import {
   Check,
   changeRegistry,
@@ -86,6 +87,15 @@ async function bootstrap() {
   const logLevels = LOG_LEVELS.split(',') as LogLevel[]
 
   const app = await NestFactory.create(AppModule, { logger: logLevels, cors })
+
+  const config = new DocumentBuilder()
+    .setTitle('Apollo3 endpoints')
+    .setDescription('API for working with Apollo3')
+    .setVersion('1.0')
+    .addTag('apollo')
+    .build()
+  const document = SwaggerModule.createDocument(app, config)
+  SwaggerModule.setup('api', app, document)
 
   const { httpAdapter } = app.get(HttpAdapterHost)
   app.useGlobalFilters(new GlobalExceptionsFilter(httpAdapter))

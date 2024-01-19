@@ -1,4 +1,5 @@
 import { Controller, Get, Logger, Param, Query } from '@nestjs/common'
+import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { Public } from '../utils/jwt-auth.guard'
@@ -7,6 +8,7 @@ import { Validations } from '../utils/validation/validatation.decorator'
 import { FeatureCountRequest } from './dto/feature.dto'
 import { FeaturesService } from './features.service'
 
+@ApiTags('API for features')
 @Controller('features')
 export class FeaturesController {
   constructor(private readonly featuresService: FeaturesService) {}
@@ -19,6 +21,8 @@ export class FeaturesController {
    */
   @Public()
   @Get('searchFeatures')
+  @ApiOperation({ summary: 'Search term in assembly' })
+  @ApiQuery({ name: 'request', description: 'Search term', example: '{ACTB, "oneAssembly,another"}' })
   async searchFeatures(@Query() request: { term: string; assemblies: string }) {
     return this.featuresService.searchFeatures(request)
   }
@@ -58,6 +62,8 @@ export class FeaturesController {
    */
   @Validations(Role.ReadOnly)
   @Get(':featureid')
+  @ApiOperation({ summary: 'Get feature by ID' })
+  @ApiParam({ name: 'featureid', description: 'Feature ID' })
   getFeature(@Param('featureid') featureid: string) {
     this.logger.debug(`Get feature by featureId: ${featureid}`)
     return this.featuresService.findById(featureid)
