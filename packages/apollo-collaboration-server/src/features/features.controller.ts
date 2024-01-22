@@ -22,7 +22,11 @@ export class FeaturesController {
   @Public()
   @Get('searchFeatures')
   @ApiOperation({ summary: 'Search term in assembly' })
-  @ApiQuery({ name: 'request', description: 'Search term', example: '{ACTB, "oneAssembly,another"}' })
+  @ApiQuery({
+    name: 'request',
+    description: 'Search term',
+    example: '{ACTB, "oneAssembly,another"}',
+  })
   async searchFeatures(@Query() request: { term: string; assemblies: string }) {
     return this.featuresService.searchFeatures(request)
   }

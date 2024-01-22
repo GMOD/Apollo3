@@ -95,6 +95,7 @@ async function bootstrap() {
     .addTag('apollo')
     .build()
   const document = SwaggerModule.createDocument(app, config)
+  fs.writeFileSync('./swagger-spec.json', JSON.stringify(document))
   SwaggerModule.setup('api', app, document)
 
   const { httpAdapter } = app.get(HttpAdapterHost)
