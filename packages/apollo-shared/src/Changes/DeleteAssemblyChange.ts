@@ -78,12 +78,12 @@ export class DeleteAssemblyChange extends AssemblySpecificChange {
     }
     const session = getSession(dataStore)
     // If assemblyId is not present in client data store
-    if (!dataStore.assemblies.has(assembly)) {
-      await session.removeAssembly?.(assembly)
-      return
+    if (dataStore.assemblies.has(assembly)) {
+      dataStore.deleteAssembly(assembly)
     }
-    dataStore.deleteAssembly(assembly)
     await session.removeAssembly?.(assembly)
+    // @ts-expect-error this isn't on the AbstractSessionModel
+    await session.removeSessionAssembly?.(assembly)
   }
 
   getInverse() {
