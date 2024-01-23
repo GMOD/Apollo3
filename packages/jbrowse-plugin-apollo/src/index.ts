@@ -49,6 +49,7 @@ import {
 import { AddFeature } from './components/AddFeature'
 import { ViewCheckResults } from './components/ViewCheckResults'
 import ApolloPluginConfigurationSchema from './config'
+import { annotationFromPileup } from './extensions'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
@@ -94,7 +95,6 @@ for (const [changeName, change] of Object.entries(changes)) {
 
 const cdsCheck = new CDSCheck()
 checkRegistry.registerCheck(cdsCheck.name, cdsCheck)
-
 validationRegistry.registerValidation(new CoreValidation())
 validationRegistry.registerValidation(new ParentChildValidation())
 
@@ -228,11 +228,15 @@ export default class ApolloPlugin extends Plugin {
               },
             }
           })
-
           ;(pluggableElement as ViewType).stateModel = newStateModel
         }
         return pluggableElement
       },
+    )
+
+    pluginManager.addToExtensionPoint(
+      'Core-extendPluggableElement',
+      annotationFromPileup,
     )
     if (!inWebWorker) {
       pluginManager.addToExtensionPoint(
