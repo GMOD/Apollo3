@@ -8,33 +8,24 @@ import {
   createBaseTrackConfig,
   createBaseTrackModel,
 } from '@jbrowse/core/pluggableElementTypes'
-import PluggableElementBase from '@jbrowse/core/pluggableElementTypes/PluggableElementBase'
 import Plugin from '@jbrowse/core/Plugin'
 import PluginManager from '@jbrowse/core/PluginManager'
 import {
   AbstractSessionModel,
-  Feature,
   Region,
-  getContainingView,
   getSession,
   isAbstractMenuManager,
 } from '@jbrowse/core/util'
-import {
-  LinearGenomeViewModel,
-  LinearGenomeViewStateModel,
-} from '@jbrowse/plugin-linear-genome-view'
+import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
 import { changeRegistry, checkRegistry } from 'apollo-common'
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
 import {
-  AddFeatureChange,
   CDSCheck,
   CoreValidation,
   ParentChildValidation,
   changes,
   validationRegistry,
 } from 'apollo-shared'
-import ObjectID from 'bson-objectid'
 
 import { version } from '../package.json'
 import {
@@ -58,6 +49,7 @@ import {
 import { AddFeature } from './components/AddFeature'
 import { ViewCheckResults } from './components/ViewCheckResults'
 import ApolloPluginConfigurationSchema from './config'
+import { annotationFromPileup } from './extensions'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
@@ -95,25 +87,6 @@ function isApolloMessageData(data?: unknown): data is ApolloMessageData {
   )
 }
 
-const parseCigar = (cigar: string): [string | undefined, number][] => {
-  return (cigar.toUpperCase().match(/\d+\D/g) ?? []).map((op) => {
-    return [(op.match(/\D/) ?? [])[0], Number.parseInt(op, 10)]
-  })
-}
-const createExonSubFeature = (
-  feature: Feature,
-  start: number,
-  end: number,
-): AnnotationFeatureSnapshot => {
-  return {
-    _id: '',
-    refSeq: feature.get('refName'),
-    type: 'exon',
-    start,
-    end,
-    strand: feature.get('strand'),
-  }
-}
 const inWebWorker = 'WorkerGlobalScope' in globalThis
 
 for (const [changeName, change] of Object.entries(changes)) {
@@ -264,206 +237,7 @@ export default class ApolloPlugin extends Plugin {
 
     pluginManager.addToExtensionPoint(
       'Core-extendPluggableElement',
-      (pluggableElement) => {
-        if (
-          (pluggableElement as PluggableElementBase).name ===
-          'LinearPileupDisplay'
-        ) {
-          const { stateModel } = pluggableElement as DisplayType
-          const newStateModel = stateModel.extend((self) => {
-            const superContextMenuItems = self.contextMenuItems
-            return {
-              views: {
-                contextMenuItems() {
-                  const feature = self.contextMenuFeature
-                  if (!feature) {
-                    // we're not adding any menu items since the click was not on a feature
-                    return superContextMenuItems()
-                  }
-                  return [
-                    ...superContextMenuItems(),
-                    {
-                      label: 'Create annotation',
-                      icon: AddIcon,
-                      onClick: async () => {
-                        const lgv = getContainingView(
-                          self,
-                        ) as unknown as LinearGenomeViewModel
-                        // eslint-disable-next-line prefer-destructuring
-                        const firstRegion = lgv.dynamicBlocks.contentBlocks[0]
-                        const session = getSession(self)
-                        const { assemblyManager } = session
-                        const { assemblyName, refName } = firstRegion
-                        const assembly = assemblyManager.get(assemblyName)
-                        if (!assembly) {
-                          throw new Error(
-                            `Could not find assembly named ${assemblyName}`,
-                          )
-                        }
-                        const assemblyId = assembly.name
-                        const { refNameAliases } = assembly
-                        if (!refNameAliases) {
-                          return
-                        }
-                        const newRefNames = [...Object.entries(refNameAliases)]
-                          .filter(([id, refName]) => id !== refName)
-                          .map(([id, refName]) => ({
-                            _id: id,
-                            name: refName ?? '',
-                          }))
-                        const refSeqId = newRefNames.find(
-                          (item) => item.name === refName,
-                        )?._id
-                        if (!refSeqId) {
-                          throw new Error(
-                            `Could not find refSeqId named ${refName}`,
-                          )
-                        }
-                        const cigarData = feature.data.CIGAR
-                        // 12M3N5M9N4M
-                        // split <Number>Cigar
-                        const ops = parseCigar(cigarData)
-                        let currOffset = 0
-                        const { start } = feature.data
-                        feature.set('subfeatures', [])
-                        let openExon = false
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        let openStart: any
-                        const exonArray: AnnotationFeatureSnapshot[] = []
-                        for (const oprec of ops) {
-                          // eslint-disable-next-line prefer-destructuring
-                          const op = oprec[0]
-                          // eslint-disable-next-line prefer-destructuring
-                          const len = oprec[1]
-                          // 1. open or continue open
-                          if (op === 'M' || op === '=' || op === 'E') {
-                            // if it was closed, then open with start, strand, type
-                            if (!openExon) {
-                              // add subfeature
-                              openStart = currOffset + start
-                              openExon = true
-                            }
-                          } else if (
-                            op === 'N' && // if it was open, then close and add the subfeature
-                            openExon
-                          ) {
-                            const feat = createExonSubFeature(
-                              feature,
-                              openStart,
-                              currOffset + start,
-                            )
-                            exonArray.push(feat)
-                            openExon = false
-                          }
-                          // we ignore insertions when calculating potential exon length
-                          if (op !== 'I') {
-                            currOffset += len
-                          }
-                        }
-                        // F. if we are still open, then close with the final length and add subfeature
-                        if (openExon && openStart !== undefined) {
-                          const feat = createExonSubFeature(
-                            feature,
-                            openStart,
-                            currOffset + start,
-                          )
-                          exonArray.push(feat)
-                        }
-                        const children: Record<
-                          string,
-                          AnnotationFeatureSnapshot
-                        > = {}
-                        const disContLoc: {
-                          start: number
-                          end: number
-                          phase?: 0 | 1 | 2
-                        }[] = []
-                        let strand,
-                          phase,
-                          mRNAstart = 0,
-                          mRNAend = 0
-                        for (const [, snapshot] of exonArray.entries()) {
-                          // eslint-disable-next-line prefer-destructuring
-                          strand = snapshot.strand
-                          // eslint-disable-next-line prefer-destructuring
-                          phase = snapshot.phase
-                          if (mRNAstart === 0 || snapshot.start < mRNAstart) {
-                            mRNAstart = Number(snapshot.start)
-                          }
-                          if (mRNAend === 0 || snapshot.end > mRNAend) {
-                            mRNAend = Number(snapshot.end)
-                          }
-                          if (exonArray.length > 1) {
-                            const newChild: AnnotationFeatureSnapshot = {
-                              _id: new ObjectID().toHexString(),
-                              start: Number(snapshot.start),
-                              end: Number(snapshot.end),
-                              type: 'exon',
-                              refSeq: refSeqId,
-                            }
-                            children[newChild._id] = newChild
-                            // Add discontinous locations
-                            disContLoc.push({
-                              start: Number(snapshot.start),
-                              end: Number(snapshot.end),
-                              phase: snapshot.phase,
-                            })
-                          }
-                        }
-                        // Create also CDS child
-                        if (exonArray.length > 1) {
-                          const newChild: AnnotationFeatureSnapshot = {
-                            _id: new ObjectID().toHexString(),
-                            start: mRNAstart,
-                            end: mRNAend,
-                            discontinuousLocations: disContLoc,
-                            type: 'CDS',
-                            refSeq: refSeqId,
-                          }
-                          children[newChild._id] = newChild
-                        }
-                        const id = new ObjectID().toHexString()
-                        const change = new AddFeatureChange({
-                          changedIds: [id],
-                          typeName: 'AddFeatureChange',
-                          assembly: assemblyId,
-                          addedFeature: {
-                            _id: id,
-                            gffId: '',
-                            refSeq: refSeqId,
-                            start: mRNAstart,
-                            end: mRNAend,
-                            children: children as unknown as Record<
-                              string,
-                              AnnotationFeatureSnapshot
-                            >,
-                            type: 'mRNA',
-                            phase,
-                            strand,
-                          },
-                        })
-                        const sessionApollo = getSession(
-                          self,
-                        ) as unknown as ApolloSessionModel
-
-                        await sessionApollo.apolloDataStore.changeManager.submit?.(
-                          change,
-                        )
-                        session.notify(
-                          'Annotation added successfully',
-                          'success',
-                        )
-                      },
-                    },
-                  ]
-                },
-              },
-            }
-          })
-          ;(pluggableElement as DisplayType).stateModel = newStateModel
-        }
-        return pluggableElement
-      },
+      annotationFromPileup,
     )
     if (!inWebWorker) {
       pluginManager.addToExtensionPoint(
