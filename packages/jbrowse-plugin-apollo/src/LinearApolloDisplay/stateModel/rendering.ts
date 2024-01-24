@@ -224,6 +224,9 @@ export function sequenceRenderingModelFactory(
             if (!self.lgv.initialized || self.regionCannotBeRendered()) {
               return
             }
+            if (self.lgv.bpPerPx > 3) {
+              return
+            }
             const seqTrackctx = self.seqTrackCanvas?.getContext('2d')
             if (!seqTrackctx) {
               return
@@ -246,108 +249,109 @@ export function sequenceRenderingModelFactory(
               }
               const { seq } = await driver.getSequence(region)
 
-              if (seq) {
-                for (const [i, letter] of [...seq].entries()) {
-                  const trnslXOffset =
+              if (!seq) {
+                return
+              }
+              for (const [i, letter] of [...seq].entries()) {
+                const trnslXOffset =
+                  (self.lgv.bpToPx({
+                    refName: region.refName,
+                    coord: region.start + i,
+                    regionNumber: idx,
+                  })?.offsetPx ?? 0) - self.lgv.offsetPx
+                const trnslWidthPx = 3 / self.lgv.bpPerPx
+                const trnslStartPx = self.displayedRegions[idx].reversed
+                  ? trnslXOffset - trnslWidthPx
+                  : trnslXOffset
+
+                // Draw translation forward
+                for (let j = 2; j >= 0; j--) {
+                  if ((region.start + i) % 3 === j) {
+                    drawTranslation(
+                      seqTrackctx,
+                      self.lgv.bpPerPx,
+                      trnslStartPx,
+                      self.sequenceRowHeight * (2 - j),
+                      trnslWidthPx,
+                      self.sequenceRowHeight,
+                      seq,
+                      i,
+                      false,
+                    )
+                  }
+                }
+
+                if (self.lgv.bpPerPx <= 1) {
+                  const xOffset =
                     (self.lgv.bpToPx({
                       refName: region.refName,
                       coord: region.start + i,
                       regionNumber: idx,
                     })?.offsetPx ?? 0) - self.lgv.offsetPx
-                  const trnslWidthPx = 3 / self.lgv.bpPerPx
-                  const trnslStartPx = self.displayedRegions[idx].reversed
-                    ? trnslXOffset - trnslWidthPx
-                    : trnslXOffset
+                  const widthPx = 1 / self.lgv.bpPerPx
+                  const startPx = self.displayedRegions[idx].reversed
+                    ? xOffset - widthPx
+                    : xOffset
 
-                  // Draw translation forward
-                  for (let j = 2; j >= 0; j--) {
-                    if ((region.start + i) % 3 === j) {
-                      drawTranslation(
-                        seqTrackctx,
-                        self.lgv.bpPerPx,
-                        trnslStartPx,
-                        self.sequenceRowHeight * (2 - j),
-                        trnslWidthPx,
-                        self.sequenceRowHeight,
-                        seq,
-                        i,
-                        false,
-                      )
-                    }
-                  }
-
-                  if (self.lgv.bpPerPx <= 1) {
-                    const xOffset =
-                      (self.lgv.bpToPx({
-                        refName: region.refName,
-                        coord: region.start + i,
-                        regionNumber: idx,
-                      })?.offsetPx ?? 0) - self.lgv.offsetPx
-                    const widthPx = 1 / self.lgv.bpPerPx
-                    const startPx = self.displayedRegions[idx].reversed
-                      ? xOffset - widthPx
-                      : xOffset
-
-                    // Draw forward
-                    seqTrackctx.beginPath()
-                    seqTrackctx.fillStyle = colorCode(letter, self.theme)
-                    seqTrackctx.rect(
+                  // Draw forward
+                  seqTrackctx.beginPath()
+                  seqTrackctx.fillStyle = colorCode(letter, self.theme)
+                  seqTrackctx.rect(
+                    startPx,
+                    self.sequenceRowHeight * 3,
+                    widthPx,
+                    self.sequenceRowHeight,
+                  )
+                  seqTrackctx.fill()
+                  if (self.lgv.bpPerPx <= 0.1) {
+                    seqTrackctx.stroke()
+                    drawLetter(
+                      seqTrackctx,
                       startPx,
+                      widthPx,
+                      letter,
                       self.sequenceRowHeight * 3,
-                      widthPx,
-                      self.sequenceRowHeight,
                     )
-                    seqTrackctx.fill()
-                    if (self.lgv.bpPerPx <= 0.1) {
-                      seqTrackctx.stroke()
-                      drawLetter(
-                        seqTrackctx,
-                        startPx,
-                        widthPx,
-                        letter,
-                        self.sequenceRowHeight * 3,
-                      )
-                    }
-
-                    // Draw reverse
-                    const revLetter = revcom(letter)
-                    seqTrackctx.beginPath()
-                    seqTrackctx.fillStyle = colorCode(revLetter, self.theme)
-                    seqTrackctx.rect(
-                      startPx,
-                      self.sequenceRowHeight * 4,
-                      widthPx,
-                      self.sequenceRowHeight,
-                    )
-                    seqTrackctx.fill()
-                    if (self.lgv.bpPerPx <= 0.1) {
-                      seqTrackctx.stroke()
-                      drawLetter(
-                        seqTrackctx,
-                        startPx,
-                        widthPx,
-                        revLetter,
-                        self.sequenceRowHeight * 4,
-                      )
-                    }
                   }
 
-                  // Draw translation reverse
-                  for (let k = 0; k <= 2; k++) {
-                    const rowOffset = self.lgv.bpPerPx <= 1 ? 5 : 3
-                    if ((region.start + i) % 3 === k) {
-                      drawTranslation(
-                        seqTrackctx,
-                        self.lgv.bpPerPx,
-                        trnslStartPx,
-                        self.sequenceRowHeight * (rowOffset + k),
-                        trnslWidthPx,
-                        self.sequenceRowHeight,
-                        seq,
-                        i,
-                        true,
-                      )
-                    }
+                  // Draw reverse
+                  const revLetter = revcom(letter)
+                  seqTrackctx.beginPath()
+                  seqTrackctx.fillStyle = colorCode(revLetter, self.theme)
+                  seqTrackctx.rect(
+                    startPx,
+                    self.sequenceRowHeight * 4,
+                    widthPx,
+                    self.sequenceRowHeight,
+                  )
+                  seqTrackctx.fill()
+                  if (self.lgv.bpPerPx <= 0.1) {
+                    seqTrackctx.stroke()
+                    drawLetter(
+                      seqTrackctx,
+                      startPx,
+                      widthPx,
+                      revLetter,
+                      self.sequenceRowHeight * 4,
+                    )
+                  }
+                }
+
+                // Draw translation reverse
+                for (let k = 0; k <= 2; k++) {
+                  const rowOffset = self.lgv.bpPerPx <= 1 ? 5 : 3
+                  if ((region.start + i) % 3 === k) {
+                    drawTranslation(
+                      seqTrackctx,
+                      self.lgv.bpPerPx,
+                      trnslStartPx,
+                      self.sequenceRowHeight * (rowOffset + k),
+                      trnslWidthPx,
+                      self.sequenceRowHeight,
+                      seq,
+                      i,
+                      true,
+                    )
                   }
                 }
               }

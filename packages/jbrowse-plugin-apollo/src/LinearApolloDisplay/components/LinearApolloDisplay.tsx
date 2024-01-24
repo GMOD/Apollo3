@@ -83,17 +83,6 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             width: lgv.dynamicBlocks.totalWidthPx,
             height: lgv.bpPerPx <= 1 ? 125 : 95,
           }}
-          onContextMenu={(event) => {
-            event.preventDefault()
-            if (contextMenuItems.length > 0) {
-              // There's already a context menu open, so close it
-              setContextMenuItems([])
-            } else {
-              const coord: [number, number] = [event.clientX, event.clientY]
-              setContextCoord(coord)
-              setContextMenuItems(getContextMenuItems(coord))
-            }
-          }}
         >
           <canvas
             ref={async (node: HTMLCanvasElement) => {
@@ -113,7 +102,6 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
             width={lgv.dynamicBlocks.totalWidthPx}
             height={lgv.bpPerPx <= 1 ? 125 : 95}
             className={classes.canvas}
-            style={{ cursor: cursor ?? 'default' }}
             data-testid="seqTrackOverlayCanvas"
           />
         </div>
