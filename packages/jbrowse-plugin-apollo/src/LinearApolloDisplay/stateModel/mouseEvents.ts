@@ -2,6 +2,7 @@ import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configur
 import PluginManager from '@jbrowse/core/PluginManager'
 import { MenuItem } from '@jbrowse/core/ui'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import { Theme } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { Instance, addDisposer } from 'mobx-state-tree'
@@ -47,6 +48,41 @@ function getMousePosition(
   const y = clientY - top
   const { coord: bp, index: regionNumber, refName } = lgv.pxToBp(x)
   return { x, y, refName, bp, regionNumber }
+}
+
+function getSeqRow(feature: AnnotationFeatureI, bpPerPx: number) {
+  const rowOffset = bpPerPx <= 1 ? 5 : 3
+  if (feature.type === 'CDS' && feature.phase !== undefined) {
+    return feature.strand === -1
+      ? ((feature.end - feature.phase) % 3) + rowOffset
+      : Math.abs(((feature.start + feature.phase) % 3) - 2)
+  }
+
+  if (bpPerPx <= 1) {
+    return feature.strand === -1 ? 4 : 3
+  }
+
+  return
+}
+
+function highlightSeq(
+  seqTrackOverlayctx: CanvasRenderingContext2D,
+  theme: Theme | undefined,
+  startPx: number,
+  sequenceRowHeight: number,
+  row: number | undefined,
+  widthPx: number,
+) {
+  if (row !== undefined) {
+    seqTrackOverlayctx.fillStyle =
+      theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
+    seqTrackOverlayctx.fillRect(
+      startPx,
+      sequenceRowHeight * row,
+      widthPx,
+      sequenceRowHeight,
+    )
+  }
 }
 
 export function mouseEventsModelIntermediateFactory(
@@ -143,11 +179,116 @@ export function mouseEventsModelIntermediateFactory(
     }))
 }
 
+export function mouseEventsSeqHightlightModelFactory(
+  pluginManager: PluginManager,
+  configSchema: AnyConfigurationSchemaType,
+) {
+  const LinearApolloDisplayRendering = mouseEventsModelIntermediateFactory(
+    pluginManager,
+    configSchema,
+  )
+
+  return LinearApolloDisplayRendering.actions((self) => ({
+    afterAttach() {
+      addDisposer(
+        self,
+        autorun(
+          async () => {
+            if (!self.lgv.initialized || self.regionCannotBeRendered()) {
+              return
+            }
+            const seqTrackOverlayctx =
+              self.seqTrackOverlayCanvas?.getContext('2d')
+            if (!seqTrackOverlayctx) {
+              return
+            }
+
+            seqTrackOverlayctx.clearRect(
+              0,
+              0,
+              self.lgv.dynamicBlocks.totalWidthPx,
+              self.lgv.bpPerPx <= 1 ? 125 : 95,
+            )
+
+            const {
+              apolloHover,
+              displayedRegions,
+              lgv,
+              regions,
+              sequenceRowHeight,
+              theme,
+            } = self
+
+            if (!apolloHover) {
+              return
+            }
+            const { feature, mousePosition } = apolloHover
+            if (!feature || !mousePosition) {
+              return
+            }
+
+            for (const [idx, region] of regions.entries()) {
+              const row = getSeqRow(feature, lgv.bpPerPx)
+              if (
+                feature.discontinuousLocations &&
+                feature.discontinuousLocations.length > 0
+              ) {
+                for (const dl of feature.discontinuousLocations) {
+                  const offset =
+                    (lgv.bpToPx({
+                      refName: region.refName,
+                      coord: dl.start,
+                      regionNumber: idx,
+                    })?.offsetPx ?? 0) - lgv.offsetPx
+                  const widthPx = (dl.end - dl.start) / lgv.bpPerPx
+                  const startPx = displayedRegions[idx].reversed
+                    ? offset - widthPx
+                    : offset
+
+                  highlightSeq(
+                    seqTrackOverlayctx,
+                    theme,
+                    startPx,
+                    sequenceRowHeight,
+                    row,
+                    widthPx,
+                  )
+                }
+              } else {
+                const offset =
+                  (lgv.bpToPx({
+                    refName: region.refName,
+                    coord: feature.start,
+                    regionNumber: idx,
+                  })?.offsetPx ?? 0) - lgv.offsetPx
+                const widthPx = feature.length / lgv.bpPerPx
+                const startPx = displayedRegions[idx].reversed
+                  ? offset - widthPx
+                  : offset
+
+                highlightSeq(
+                  seqTrackOverlayctx,
+                  theme,
+                  startPx,
+                  sequenceRowHeight,
+                  row,
+                  widthPx,
+                )
+              }
+            }
+          },
+          { name: 'LinearApolloDisplayRenderSeqHighlight' },
+        ),
+      )
+    },
+  }))
+}
+
 export function mouseEventsModelFactory(
   pluginManager: PluginManager,
   configSchema: AnyConfigurationSchemaType,
 ) {
-  const LinearApolloDisplayMouseEvents = mouseEventsModelIntermediateFactory(
+  const LinearApolloDisplayMouseEvents = mouseEventsSeqHightlightModelFactory(
     pluginManager,
     configSchema,
   )
