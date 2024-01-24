@@ -53,6 +53,8 @@ import ApolloPluginConfigurationSchema from './config'
 import {
   ApolloFeatureDetailsWidget,
   ApolloFeatureDetailsWidgetModel,
+  ApolloTranscriptDetails,
+  ApolloTranscriptDetailsWidget,
 } from './FeatureDetailsWidget'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
@@ -120,6 +122,18 @@ export default class ApolloPlugin extends Plugin {
         configSchema,
         stateModel: ApolloFeatureDetailsWidgetModel,
         ReactComponent: ApolloFeatureDetailsWidget,
+      })
+      return widgetType
+    })
+
+    pluginManager.addWidgetType(() => {
+      const configSchema = ConfigurationSchema('ApolloTranscriptDetails', {})
+      const widgetType = new WidgetType({
+        name: 'ApolloTranscriptDetails',
+        heading: 'Apollo transcript details',
+        configSchema,
+        stateModel: ApolloTranscriptDetails,
+        ReactComponent: ApolloTranscriptDetailsWidget,
       })
       return widgetType
     })

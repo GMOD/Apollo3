@@ -4,6 +4,7 @@ import { AnnotationFeature, AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { Instance, SnapshotIn, addDisposer, types } from 'mobx-state-tree'
 
+import { ChangeManager } from '../ChangeManager'
 import { ApolloSessionModel } from '../session'
 
 export const ApolloFeatureDetailsWidgetModel = types
@@ -62,3 +63,12 @@ export type ApolloFeatureDetailsWidget = Instance<
 export type ApolloFeatureDetailsWidgetSnapshot = SnapshotIn<
   typeof ApolloFeatureDetailsWidgetModel
 >
+
+export const ApolloTranscriptDetails = types.model('ApolloTranscriptDetails', {
+  id: ElementId,
+  type: types.literal('ApolloTranscriptDetails'),
+  feature: types.safeReference(AnnotationFeature),
+  assembly: types.string,
+  refName: types.string,
+  changeManager: types.frozen<ChangeManager>(),
+})

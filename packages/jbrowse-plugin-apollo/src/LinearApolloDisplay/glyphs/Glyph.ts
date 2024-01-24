@@ -395,6 +395,29 @@ export abstract class Glyph {
           },
         },
       )
+      if (sourceFeature.type === 'mRNA') {
+        // eslint-disable-next-line unicorn/no-array-push-push
+        menuItems.push({
+          label: 'Open transcript widget',
+          onClick: () => {
+            const ses = session as unknown as AbstractSessionModel
+            if (ses) {
+              const sesWidged = session as unknown as SessionWithWidgets
+              const apolloTranscriptWidget = sesWidged.addWidget(
+                'ApolloTranscriptDetails',
+                'apolloTranscriptDetails',
+                {
+                  feature: sourceFeature,
+                  assembly: currentAssemblyId,
+                  changeManager,
+                  refName: region.refName,
+                },
+              )
+              ses.showWidget?.(apolloTranscriptWidget)
+            }
+          },
+        })
+      }
     }
     return menuItems
   }
