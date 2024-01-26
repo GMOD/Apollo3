@@ -1,4 +1,5 @@
 import { AbstractSessionModel, getSession } from '@jbrowse/core/util'
+import { Key } from '@mui/icons-material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Button,
@@ -107,6 +108,7 @@ export interface GOTerm {
   id: string
   label: string
 }
+let error = false
 
 export const ApolloTranscriptDetailsWidget = observer(
   function ApolloTranscriptDetails(props: { model: IAnyStateTreeNode }) {
@@ -139,7 +141,47 @@ export const ApolloTranscriptDetailsWidget = observer(
     const [start, setStart] = useState(String(feature.start + 1))
     const [type, setType] = useState(feature.type)
     const [strand, setStrand] = useState(String(feature.strand))
+    // eslint-disable-next-line unicorn/consistent-function-scoping, @typescript-eslint/no-explicit-any
+    const getStartEndArray = (feature: any, searchType: string): number[][] => {
+      const result: number[][] = []
+      // console.log('*** getStartEndArray alkaa...')
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const traverse = (currentFeature: any, isParentMRNA: boolean) => {
+        // console.log(`isParentmRNA: ${isParentMRNA}, featureId: ${feature._id}, current featureType: ${currentFeature.type}`)
+        if (isParentMRNA && currentFeature.type === searchType) {
+          // console.log('IF : Parent is mRNA and current type is CDS')
+          result.push([
+            currentFeature.start + 1,
+            currentFeature.end,
+            currentFeature._id,
+          ])
+        }
+        if (currentFeature.children) {
+          // console.log(`IF: feature has children: ${}`)
+          for (const child of currentFeature.children) {
+            // console.log(`FOR : child: ${child[1].type},  ${JSON.stringify(child[1])}`)
+            traverse(child[1], feature.type === 'mRNA')
+          }
+        }
+        // currentFeature.children?.forEach(child => traverse(child, currentFeature.type === 'mRNA'));
+      }
+      // console.log(`Traverse alkaa: ${feature.type}`)
+      traverse(feature, feature.type === 'mRNA')
+      // console.log('*** getStartEndArray paattyi...')
+      return result
+    }
+    // setArrayCDS(getStartEndArray(feature, 'CDS'))
+
+    const [arrayCDS, setArrayCDS] = useState<number[][]>(
+      getStartEndArray(feature, 'CDS'),
+    )
+    const [array3UTR, setArray3UTR] = useState<number[][]>(
+      getStartEndArray(feature, 'three_prime_UTR'),
+    )
+    const [array5UTR, setArray5UTR] = useState<number[][]>(
+      getStartEndArray(feature, 'five_prime_UTR'),
+    )
     const refSeq: string | undefined = refData?.getSequence(
       Number(feature.start + 1),
       Number(feature.end),
@@ -187,6 +229,90 @@ export const ApolloTranscriptDetailsWidget = observer(
           }),
         ),
       )
+    }
+
+    // // eslint-disable-next-line @typescript-eslint/no-explicit-any, unicorn/consistent-function-scoping
+    // const getStartEndArray = (features: any): number[][] => {
+    //   const result: number[][] = []
+
+    //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    //   const traverse = (feature: any, isParentMRNA: boolean) => {
+    //     if (isParentMRNA && feature.type === 'CDS') {
+    //       result.push([feature.start, feature.end])
+    //     }
+
+    //     // eslint-disable-next-line prettier/prettier
+    //       if (feature.children) {for (const child of feature.children) {traverse(child, feature.type === 'mRNA');}}
+    //   }
+
+    //   for (const feature of features) {
+    //     traverse(feature, false)
+    //   }
+    //   return result
+    // }
+
+    // // eslint-disable-next-line unicorn/consistent-function-scoping, @typescript-eslint/no-explicit-any
+    // const getStartEndArray = (feature: any, searchType: string): number[][] => {
+    //   const result: number[][] = []
+    //   // console.log('*** getStartEndArray alkaa...')
+
+    //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    //   const traverse = (currentFeature: any, isParentMRNA: boolean) => {
+    //     // console.log(`isParentmRNA: ${isParentMRNA}, featureId: ${feature._id}, current featureType: ${currentFeature.type}`)
+    //     if (isParentMRNA && currentFeature.type === searchType) {
+    //       // console.log('IF : Parent is mRNA and current type is CDS')
+    //       result.push([currentFeature.start + 1, currentFeature.end])
+    //     }
+    //     if (currentFeature.children) {
+    //       // console.log(`IF: feature has children: ${}`)
+    //       for (const child of currentFeature.children) {
+    //         // console.log(`FOR : child: ${child[1].type},  ${JSON.stringify(child[1])}`)
+    //         traverse(child[1], feature.type === 'mRNA')
+    //       }
+    //     }
+    //     // currentFeature.children?.forEach(child => traverse(child, currentFeature.type === 'mRNA'));
+    //   }
+    //   // console.log(`Traverse alkaa: ${feature.type}`)
+    //   traverse(feature, feature.type === 'mRNA')
+    //   // console.log('*** getStartEndArray paattyi...')
+    //   return result
+    // }
+    // setArrayCDS(getStartEndArray(feature, 'CDS'))
+    // console.log(
+    //   `CDS array: ${JSON.stringify(getStartEndArray(feature, 'CDS'))}`,
+    // )
+    // console.log(
+    //   `3'UTR array: ${JSON.stringify(
+    //     getStartEndArray(feature, 'three_prime_UTR'),
+    //   )}`,
+    // )
+    // console.log(
+    //   `5'UTR array: ${JSON.stringify(
+    //     getStartEndArray(feature, 'five_prime_UTR'),
+    //   )}`,
+    // )
+    // console.log(`CDS array: ${JSON.stringify(getStartEndArray(feature, 'CDS'))}`)
+
+    const handleInputChange = (
+      index: number,
+      position: 'start' | 'end',
+      value: string,
+      id: string,
+    ) => {
+      // Create a new array with the updated values
+      const newArray = arrayCDS.map((item, i) => {
+        if (i === index) {
+          error = Number(item[1]) <= Number(item[0])
+          console.log(error)
+          const updatedValue = Number.parseInt(value, 10)
+          return position === 'start'
+            ? [updatedValue, item[1]]
+            : [item[0], updatedValue]
+        }
+        return item
+      })
+      // console.log(index, position, id, value)
+      setArrayCDS(newArray)
     }
 
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -451,7 +577,7 @@ export const ApolloTranscriptDetailsWidget = observer(
       setShowSequence(!showSequence)
     }
 
-    const error = Number(end) <= Number(start)
+    // const error = Number(end) <= Number(start)
     const handleStrandChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       setStrand(event.target.value)
     }
@@ -460,8 +586,111 @@ export const ApolloTranscriptDetailsWidget = observer(
       <>
         <form onSubmit={onSubmitBasic}>
           <h2 style={{ marginLeft: '15px', marginBottom: '0' }}>
-            Basic information
+            CDS and UTRs
           </h2>
+          <div>
+            {array5UTR.map((item, index) => (
+              <div
+                key={index}
+                style={{ display: 'flex', alignItems: 'center' }}
+              >
+                <span style={{ marginLeft: '20px', width: '50px' }}>5 UTR</span>
+                <TextField
+                  margin="dense"
+                  id="start"
+                  label="Start"
+                  style={{ width: '200px', marginLeft: '20px' }}
+                  variant="outlined"
+                  value={item[0]}
+                  disabled
+                />
+                <span style={{ margin: '0 10px' }}>to</span>
+                <TextField
+                  margin="dense"
+                  id="end"
+                  label="End"
+                  style={{ width: '200px' }}
+                  variant="outlined"
+                  value={item[1]}
+                  disabled
+                />
+              </div>
+            ))}
+          </div>
+          <div>
+            {array3UTR.map((item, index) => (
+              <div
+                key={index}
+                style={{ display: 'flex', alignItems: 'center' }}
+              >
+                <span style={{ marginLeft: '20px', width: '50px' }}>3 UTR</span>
+                <TextField
+                  margin="dense"
+                  id="start"
+                  label="Start"
+                  style={{ width: '200px', marginLeft: '20px' }}
+                  variant="outlined"
+                  value={item[0]}
+                  disabled
+                />
+                <span style={{ margin: '0 10px' }}>to</span>
+                <TextField
+                  margin="dense"
+                  id="end"
+                  label="End"
+                  style={{ width: '200px' }}
+                  variant="outlined"
+                  value={item[1]}
+                  disabled
+                />
+              </div>
+            ))}
+          </div>
+          <div>
+            {arrayCDS.map((item, index) => (
+              <div
+                key={index}
+                style={{ display: 'flex', alignItems: 'center' }}
+              >
+                <span style={{ marginLeft: '20px', width: '50px' }}>CDS</span>
+                <TextField
+                  margin="dense"
+                  id={String(item[2])}
+                  label="Start"
+                  type="number"
+                  style={{ width: '200px', marginLeft: '20px' }}
+                  variant="outlined"
+                  value={item[0]}
+                  onChange={(e) =>
+                    handleInputChange(
+                      index,
+                      'start',
+                      e.target.value,
+                      e.target.id,
+                    )
+                  }
+                />
+                <span style={{ margin: '0 10px' }}>to</span>
+                <TextField
+                  margin="dense"
+                  id={String(item[2])}
+                  label="End"
+                  type="number"
+                  style={{ width: '200px' }}
+                  variant="outlined"
+                  value={item[1]}
+                  error={error}
+                  helperText={
+                    error ? '"End" must be greater than "Start"' : null
+                  }
+                  onChange={(e) =>
+                    handleInputChange(index, 'end', e.target.value, e.target.id)
+                  }
+                />
+              </div>
+            ))}
+          </div>
+
           <DialogContent
             style={{
               display: 'flex',
@@ -469,7 +698,7 @@ export const ApolloTranscriptDetailsWidget = observer(
               paddingTop: '0',
             }}
           >
-            <TextField
+            {/* <TextField
               margin="dense"
               id="start"
               label="Start"
@@ -490,58 +719,7 @@ export const ApolloTranscriptDetailsWidget = observer(
               onChange={(e) => setEnd(e.target.value)}
               error={error}
               helperText={error ? '"End" must be greater than "Start"' : null}
-            />
-            <OntologyTermAutocomplete
-              session={apolloSession}
-              ontologyName="Sequence Ontology"
-              value={type}
-              filterTerms={isOntologyClass}
-              fetchValidTerms={fetchValidDescendantTerms.bind(null, feature)}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Type"
-                  variant="outlined"
-                  fullWidth
-                  error={Boolean(typeWarningText)}
-                  helperText={typeWarningText}
-                />
-              )}
-              onChange={(oldValue, newValue) => {
-                if (newValue) {
-                  handleChangeType(newValue)
-                }
-              }}
-            />
-            <form>
-              <label>
-                <input
-                  type="radio"
-                  value="1"
-                  checked={strand === '1'}
-                  onChange={handleStrandChange}
-                />
-                Positive Strand (+)
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  value="-1"
-                  checked={strand === '-1'}
-                  onChange={handleStrandChange}
-                />
-                Negative Strand (-)
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  value=""
-                  checked={strand === ''}
-                  onChange={handleStrandChange}
-                />
-                No Strand Information
-              </label>
-            </form>
+            /> */}
           </DialogContent>
           <DialogActions>
             <Button
