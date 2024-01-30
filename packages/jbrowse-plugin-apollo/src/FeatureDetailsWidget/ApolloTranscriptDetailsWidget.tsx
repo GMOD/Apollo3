@@ -22,8 +22,6 @@ import {
   FeatureAttributeChange,
   LocationEndChange,
   LocationStartChange,
-  StrandChange,
-  TypeChange,
 } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import { IAnyStateTreeNode, getRoot, getSnapshot } from 'mobx-state-tree'
@@ -31,10 +29,10 @@ import React, { useMemo, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { OntologyTermAutocomplete } from '../components/OntologyTermAutocomplete'
+// import { OntologyTermAutocomplete } from '../components/OntologyTermAutocomplete'
 import { OntologyTermMultiSelect } from '../components/OntologyTermMultiSelect'
-import { isOntologyClass } from '../OntologyManager'
-import OntologyStore from '../OntologyManager/OntologyStore'
+// import { isOntologyClass } from '../OntologyManager'
+// import OntologyStore from '../OntologyManager/OntologyStore'
 import { ApolloSessionModel } from '../session'
 import { ApolloRootModel } from '../types'
 
@@ -104,11 +102,21 @@ function CustomAttributeValueEditor(props: AttributeValueEditorProps) {
   )
 }
 
+export interface CDSInfo {
+  id: string
+  start: string
+  oldStart: string
+  end: string
+  oldEnd: string
+  startSeq: string
+  endSeq: string
+}
+
 export interface GOTerm {
   id: string
   label: string
 }
-let error = false
+const error = false
 
 export const ApolloTranscriptDetailsWidget = observer(
   function ApolloTranscriptDetails(props: { model: IAnyStateTreeNode }) {
@@ -141,46 +149,42 @@ export const ApolloTranscriptDetailsWidget = observer(
     const [start, setStart] = useState(String(feature.start + 1))
     const [type, setType] = useState(feature.type)
     const [strand, setStrand] = useState(String(feature.strand))
-    // eslint-disable-next-line unicorn/consistent-function-scoping, @typescript-eslint/no-explicit-any
-    const getStartEndArray = (feature: any, searchType: string): number[][] => {
-      const result: number[][] = []
-      // console.log('*** getStartEndArray alkaa...')
 
+    // eslint-disable-next-line unicorn/consistent-function-scoping, @typescript-eslint/no-explicit-any
+    const getCDSInfo = (feature: any, searchType: string): CDSInfo[] => {
+      const CDSresult: CDSInfo[] = []
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const traverse = (currentFeature: any, isParentMRNA: boolean) => {
-        // console.log(`isParentmRNA: ${isParentMRNA}, featureId: ${feature._id}, current featureType: ${currentFeature.type}`)
         if (isParentMRNA && currentFeature.type === searchType) {
-          // console.log('IF : Parent is mRNA and current type is CDS')
-          result.push([
-            currentFeature.start + 1,
-            currentFeature.end,
-            currentFeature._id,
-          ])
+          const oneCDS: CDSInfo = {
+            id: currentFeature._id,
+            start: currentFeature.start + 1,
+            end: currentFeature.end + 1,
+            oldStart: currentFeature.start + 1,
+            oldEnd: currentFeature.end + 1,
+            startSeq: '..',
+            endSeq: '..',
+          }
+          CDSresult.push(oneCDS)
         }
         if (currentFeature.children) {
-          // console.log(`IF: feature has children: ${}`)
           for (const child of currentFeature.children) {
-            // console.log(`FOR : child: ${child[1].type},  ${JSON.stringify(child[1])}`)
             traverse(child[1], feature.type === 'mRNA')
           }
         }
-        // currentFeature.children?.forEach(child => traverse(child, currentFeature.type === 'mRNA'));
       }
-      // console.log(`Traverse alkaa: ${feature.type}`)
       traverse(feature, feature.type === 'mRNA')
-      // console.log('*** getStartEndArray paattyi...')
-      return result
+      return CDSresult
     }
-    // setArrayCDS(getStartEndArray(feature, 'CDS'))
 
-    const [arrayCDS, setArrayCDS] = useState<number[][]>(
-      getStartEndArray(feature, 'CDS'),
+    const [arrayCDS1, setArrayCDS1] = useState<CDSInfo[]>(
+      getCDSInfo(feature, 'CDS'),
     )
-    const [array3UTR, setArray3UTR] = useState<number[][]>(
-      getStartEndArray(feature, 'three_prime_UTR'),
+    const [array3UTR1, setArray3UTR1] = useState<CDSInfo[]>(
+      getCDSInfo(feature, 'three_prime_UTR'),
     )
-    const [array5UTR, setArray5UTR] = useState<number[][]>(
-      getStartEndArray(feature, 'five_prime_UTR'),
+    const [array5UTR1, setArray5UTR1] = useState<CDSInfo[]>(
+      getCDSInfo(feature, 'five_prime_UTR'),
     )
     const refSeq: string | undefined = refData?.getSequence(
       Number(feature.start + 1),
@@ -231,68 +235,6 @@ export const ApolloTranscriptDetailsWidget = observer(
       )
     }
 
-    // // eslint-disable-next-line @typescript-eslint/no-explicit-any, unicorn/consistent-function-scoping
-    // const getStartEndArray = (features: any): number[][] => {
-    //   const result: number[][] = []
-
-    //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    //   const traverse = (feature: any, isParentMRNA: boolean) => {
-    //     if (isParentMRNA && feature.type === 'CDS') {
-    //       result.push([feature.start, feature.end])
-    //     }
-
-    //     // eslint-disable-next-line prettier/prettier
-    //       if (feature.children) {for (const child of feature.children) {traverse(child, feature.type === 'mRNA');}}
-    //   }
-
-    //   for (const feature of features) {
-    //     traverse(feature, false)
-    //   }
-    //   return result
-    // }
-
-    // // eslint-disable-next-line unicorn/consistent-function-scoping, @typescript-eslint/no-explicit-any
-    // const getStartEndArray = (feature: any, searchType: string): number[][] => {
-    //   const result: number[][] = []
-    //   // console.log('*** getStartEndArray alkaa...')
-
-    //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    //   const traverse = (currentFeature: any, isParentMRNA: boolean) => {
-    //     // console.log(`isParentmRNA: ${isParentMRNA}, featureId: ${feature._id}, current featureType: ${currentFeature.type}`)
-    //     if (isParentMRNA && currentFeature.type === searchType) {
-    //       // console.log('IF : Parent is mRNA and current type is CDS')
-    //       result.push([currentFeature.start + 1, currentFeature.end])
-    //     }
-    //     if (currentFeature.children) {
-    //       // console.log(`IF: feature has children: ${}`)
-    //       for (const child of currentFeature.children) {
-    //         // console.log(`FOR : child: ${child[1].type},  ${JSON.stringify(child[1])}`)
-    //         traverse(child[1], feature.type === 'mRNA')
-    //       }
-    //     }
-    //     // currentFeature.children?.forEach(child => traverse(child, currentFeature.type === 'mRNA'));
-    //   }
-    //   // console.log(`Traverse alkaa: ${feature.type}`)
-    //   traverse(feature, feature.type === 'mRNA')
-    //   // console.log('*** getStartEndArray paattyi...')
-    //   return result
-    // }
-    // setArrayCDS(getStartEndArray(feature, 'CDS'))
-    // console.log(
-    //   `CDS array: ${JSON.stringify(getStartEndArray(feature, 'CDS'))}`,
-    // )
-    // console.log(
-    //   `3'UTR array: ${JSON.stringify(
-    //     getStartEndArray(feature, 'three_prime_UTR'),
-    //   )}`,
-    // )
-    // console.log(
-    //   `5'UTR array: ${JSON.stringify(
-    //     getStartEndArray(feature, 'five_prime_UTR'),
-    //   )}`,
-    // )
-    // console.log(`CDS array: ${JSON.stringify(getStartEndArray(feature, 'CDS'))}`)
-
     const handleInputChange = (
       index: number,
       position: 'start' | 'end',
@@ -300,19 +242,33 @@ export const ApolloTranscriptDetailsWidget = observer(
       id: string,
     ) => {
       // Create a new array with the updated values
-      const newArray = arrayCDS.map((item, i) => {
+      const newArray = arrayCDS1.map((item, i) => {
         if (i === index) {
-          error = Number(item[1]) <= Number(item[0])
-          console.log(error)
-          const updatedValue = Number.parseInt(value, 10)
+          // error = Number(item.end) <= Number(item.start)
+          // console.log(error)
           return position === 'start'
-            ? [updatedValue, item[1]]
-            : [item[0], updatedValue]
+            ? {
+                id: item.id,
+                start: value,
+                oldStart: item.oldStart,
+                end: item.end,
+                oldEnd: item.oldEnd,
+                startSeq: item.startSeq,
+                endSeq: item.endSeq,
+              }
+            : {
+                id: item.id,
+                start: item.start,
+                oldStart: item.oldStart,
+                end: value,
+                oldEnd: item.oldEnd,
+                startSeq: item.startSeq,
+                endSeq: item.endSeq,
+              }
         }
         return item
       })
-      // console.log(index, position, id, value)
-      setArrayCDS(newArray)
+      setArrayCDS1(newArray)
     }
 
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -393,109 +349,43 @@ export const ApolloTranscriptDetailsWidget = observer(
       event.preventDefault()
     }
 
-    async function fetchValidDescendantTerms(
-      parentFeature: AnnotationFeatureI | undefined,
-      ontologyStore: OntologyStore,
-      _signal: AbortSignal,
-    ) {
-      if (!parentFeature) {
-        return
-      }
-      if (
-        parentFeature?.children === undefined &&
-        parentFeature?.parent === undefined
-      ) {
-        return // A single alone feature all types are allowed (for time beeing)
-      }
-      // since this is a child of an existing feature, restrict the autocomplete choices to valid
-      // parts of that feature
-      const parentTypeTerms = await ontologyStore.getTermsWithLabelOrSynonym(
-        parentFeature.type,
-        { includeSubclasses: false },
-      )
-      // eslint-disable-next-line unicorn/no-array-callback-reference
-      const parentTypeClassTerms = parentTypeTerms.filter(isOntologyClass)
-      if (parentTypeTerms.length === 0) {
-        return
-      }
-      const subpartTerms = await ontologyStore.getClassesThat(
-        'part_of',
-        parentTypeClassTerms,
-      )
-      if (subpartTerms.length > 0) {
-        setTypeWarningText('')
-      } else {
-        setTypeWarningText(
-          `Type "${parentFeature.type}" does not have any children in the ontology`,
-        )
-      }
-      return subpartTerms
-    }
-
     async function onSubmitBasic(event: React.FormEvent<HTMLFormElement>) {
       event.preventDefault()
       setErrorMessage('')
       let changed = false
       let changedPosition = false
 
-      if (feature.start !== Number(start)) {
-        const change = new LocationStartChange({
-          typeName: 'LocationStartChange',
-          changedIds: [feature._id],
-          featureId: feature._id,
-          oldStart: Number(feature.start),
-          newStart: Number(start),
-          assembly,
-        })
-        await changeManager.submit?.(change)
-        changed = true
-        changedPosition = true
+      for (const item of arrayCDS1) {
+        if (item.start !== item.oldStart) {
+          console.log(item.id, item.start, item.oldStart)
+          const change = new LocationStartChange({
+            typeName: 'LocationStartChange',
+            changedIds: [item.id],
+            featureId: item.id,
+            oldStart: Number(item.oldStart) - 1,
+            newStart: Number(item.start) - 1,
+            assembly,
+          })
+          await changeManager.submit?.(change)
+          changed = true
+          changedPosition = true
+        }
+
+        if (item.end !== item.oldEnd) {
+          const change = new LocationEndChange({
+            typeName: 'LocationEndChange',
+            changedIds: [item.id],
+            featureId: item.id,
+            oldEnd: Number(item.oldEnd) - 1,
+            newEnd: Number(item.end) - 1,
+            assembly,
+          })
+          await changeManager.submit?.(change)
+          changed = true
+          changedPosition = true
+        }
       }
 
-      if (feature.end !== Number(end)) {
-        const change = new LocationEndChange({
-          typeName: 'LocationEndChange',
-          changedIds: [feature._id],
-          featureId: feature._id,
-          oldEnd: Number(feature.end),
-          newEnd: Number(end),
-          assembly,
-        })
-        await changeManager.submit?.(change)
-        changed = true
-        changedPosition = true
-      }
-
-      if (feature.strand !== Number(strand)) {
-        const change = new StrandChange({
-          typeName: 'StrandChange',
-          changedIds: [feature._id],
-          featureId: feature._id,
-          oldStrand:
-            Number(feature.strand) === 1
-              ? 1
-              : Number(feature.strand) === -1
-              ? -1
-              : undefined,
-          newStrand:
-            Number(strand) === 1 ? 1 : Number(strand) === -1 ? -1 : undefined,
-          assembly,
-        })
-        await changeManager.submit?.(change)
-        changed = true
-      }
-      if (feature.type !== type) {
-        const change = new TypeChange({
-          typeName: 'TypeChange',
-          changedIds: [feature._id],
-          featureId: feature._id,
-          oldType: feature.type,
-          newType: type,
-          assembly,
-        })
-        await changeManager.submit?.(change)
-        changed = true
-      }
       if (changedPosition) {
         const refSeq: string | undefined = refData?.getSequence(
           Number(feature.start + 1),
@@ -507,10 +397,6 @@ export const ApolloTranscriptDetailsWidget = observer(
       event.preventDefault()
     }
 
-    function handleChangeType(newType: string) {
-      setErrorMessage('')
-      setType(newType)
-    }
     function handleAddNewAttributeChange() {
       setErrorMessage('')
       if (newAttributeKey.trim().length === 0) {
@@ -577,11 +463,6 @@ export const ApolloTranscriptDetailsWidget = observer(
       setShowSequence(!showSequence)
     }
 
-    // const error = Number(end) <= Number(start)
-    const handleStrandChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      setStrand(event.target.value)
-    }
-
     return (
       <>
         <form onSubmit={onSubmitBasic}>
@@ -589,7 +470,7 @@ export const ApolloTranscriptDetailsWidget = observer(
             CDS and UTRs
           </h2>
           <div>
-            {array5UTR.map((item, index) => (
+            {array5UTR1.map((item, index) => (
               <div
                 key={index}
                 style={{ display: 'flex', alignItems: 'center' }}
@@ -599,9 +480,9 @@ export const ApolloTranscriptDetailsWidget = observer(
                   margin="dense"
                   id="start"
                   label="Start"
-                  style={{ width: '200px', marginLeft: '20px' }}
+                  style={{ width: '150px', marginLeft: '20px' }}
                   variant="outlined"
-                  value={item[0]}
+                  value={item.start}
                   disabled
                 />
                 <span style={{ margin: '0 10px' }}>to</span>
@@ -609,16 +490,16 @@ export const ApolloTranscriptDetailsWidget = observer(
                   margin="dense"
                   id="end"
                   label="End"
-                  style={{ width: '200px' }}
+                  style={{ width: '150px' }}
                   variant="outlined"
-                  value={item[1]}
+                  value={item.end}
                   disabled
                 />
               </div>
             ))}
           </div>
           <div>
-            {array3UTR.map((item, index) => (
+            {array3UTR1.map((item, index) => (
               <div
                 key={index}
                 style={{ display: 'flex', alignItems: 'center' }}
@@ -628,9 +509,9 @@ export const ApolloTranscriptDetailsWidget = observer(
                   margin="dense"
                   id="start"
                   label="Start"
-                  style={{ width: '200px', marginLeft: '20px' }}
+                  style={{ width: '150px', marginLeft: '20px' }}
                   variant="outlined"
-                  value={item[0]}
+                  value={item.start}
                   disabled
                 />
                 <span style={{ margin: '0 10px' }}>to</span>
@@ -638,29 +519,30 @@ export const ApolloTranscriptDetailsWidget = observer(
                   margin="dense"
                   id="end"
                   label="End"
-                  style={{ width: '200px' }}
+                  style={{ width: '150px' }}
                   variant="outlined"
-                  value={item[1]}
+                  value={item.end}
                   disabled
                 />
               </div>
             ))}
           </div>
           <div>
-            {arrayCDS.map((item, index) => (
+            {arrayCDS1.map((item, index) => (
               <div
                 key={index}
                 style={{ display: 'flex', alignItems: 'center' }}
               >
                 <span style={{ marginLeft: '20px', width: '50px' }}>CDS</span>
+                <span>{item.startSeq}</span>
                 <TextField
                   margin="dense"
-                  id={String(item[2])}
+                  id={item.id}
                   label="Start"
                   type="number"
-                  style={{ width: '200px', marginLeft: '20px' }}
+                  style={{ width: '150px', marginLeft: '3px' }}
                   variant="outlined"
-                  value={item[0]}
+                  value={item.start}
                   onChange={(e) =>
                     handleInputChange(
                       index,
@@ -673,12 +555,12 @@ export const ApolloTranscriptDetailsWidget = observer(
                 <span style={{ margin: '0 10px' }}>to</span>
                 <TextField
                   margin="dense"
-                  id={String(item[2])}
+                  id={item.id}
                   label="End"
                   type="number"
-                  style={{ width: '200px' }}
+                  style={{ width: '150px' }}
                   variant="outlined"
-                  value={item[1]}
+                  value={item.end}
                   error={error}
                   helperText={
                     error ? '"End" must be greater than "Start"' : null
@@ -687,40 +569,17 @@ export const ApolloTranscriptDetailsWidget = observer(
                     handleInputChange(index, 'end', e.target.value, e.target.id)
                   }
                 />
+                <span style={{ marginRight: '3px' }}>{item.endSeq}</span>
               </div>
             ))}
           </div>
-
           <DialogContent
             style={{
               display: 'flex',
               flexDirection: 'column',
               paddingTop: '0',
             }}
-          >
-            {/* <TextField
-              margin="dense"
-              id="start"
-              label="Start"
-              type="number"
-              fullWidth
-              variant="outlined"
-              value={start}
-              onChange={(e) => setStart(e.target.value)}
-            />
-            <TextField
-              margin="dense"
-              id="end"
-              label="End"
-              type="number"
-              fullWidth
-              variant="outlined"
-              value={end}
-              onChange={(e) => setEnd(e.target.value)}
-              error={error}
-              helperText={error ? '"End" must be greater than "Start"' : null}
-            /> */}
-          </DialogContent>
+          ></DialogContent>
           <DialogActions>
             <Button
               variant="contained"
