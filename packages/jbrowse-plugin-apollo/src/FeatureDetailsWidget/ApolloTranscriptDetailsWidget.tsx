@@ -29,10 +29,7 @@ import React, { useMemo, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-// import { OntologyTermAutocomplete } from '../components/OntologyTermAutocomplete'
 import { OntologyTermMultiSelect } from '../components/OntologyTermMultiSelect'
-// import { isOntologyClass } from '../OntologyManager'
-// import OntologyStore from '../OntologyManager/OntologyStore'
 import { ApolloSessionModel } from '../session'
 import { ApolloRootModel } from '../types'
 
@@ -131,7 +128,6 @@ export const ApolloTranscriptDetailsWidget = observer(
     const [newAttributeKey, setNewAttributeKey] = useState('')
     const { classes } = useStyles()
     const [errorMessage, setErrorMessage] = useState('')
-    const [typeWarningText, setTypeWarningText] = useState('')
     const [showSequence, setShowSequence] = useState(false)
     const { notify } = session as unknown as AbstractSessionModel
     const { internetAccounts } = getRoot<ApolloRootModel>(session)
@@ -143,12 +139,7 @@ export const ApolloTranscriptDetailsWidget = observer(
     }, [internetAccounts])
     const role = internetAccount ? internetAccount.getRole() : 'admin'
     const editable = ['admin', 'user'].includes(role ?? '')
-
     const [featureId, setFeatureId] = useState(String(feature._id))
-    const [end, setEnd] = useState(String(feature.end))
-    const [start, setStart] = useState(String(feature.start + 1))
-    const [type, setType] = useState(feature.type)
-    const [strand, setStrand] = useState(String(feature.strand))
 
     // eslint-disable-next-line unicorn/consistent-function-scoping, @typescript-eslint/no-explicit-any
     const getCDSInfo = (feature: any, searchType: string): CDSInfo[] => {
@@ -156,14 +147,22 @@ export const ApolloTranscriptDetailsWidget = observer(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const traverse = (currentFeature: any, isParentMRNA: boolean) => {
         if (isParentMRNA && currentFeature.type === searchType) {
+          const startSeq = refData?.getSequence(
+            Number(currentFeature.start + 1),
+            Number(currentFeature.start + 1) + 2,
+          )
+          const endSeq = refData?.getSequence(
+            Number(currentFeature.end + 1),
+            Number(currentFeature.end + 1) + 2,
+          )
           const oneCDS: CDSInfo = {
             id: currentFeature._id,
             start: currentFeature.start + 1,
             end: currentFeature.end + 1,
             oldStart: currentFeature.start + 1,
             oldEnd: currentFeature.end + 1,
-            startSeq: '..',
-            endSeq: '..',
+            startSeq: startSeq ?? '',
+            endSeq: endSeq ?? '',
           }
           CDSresult.push(oneCDS)
         }
@@ -177,13 +176,13 @@ export const ApolloTranscriptDetailsWidget = observer(
       return CDSresult
     }
 
-    const [arrayCDS1, setArrayCDS1] = useState<CDSInfo[]>(
+    const [arrayCDS, setArrayCDS] = useState<CDSInfo[]>(
       getCDSInfo(feature, 'CDS'),
     )
-    const [array3UTR1, setArray3UTR1] = useState<CDSInfo[]>(
+    const [array3UTR, setArray3UTR] = useState<CDSInfo[]>(
       getCDSInfo(feature, 'three_prime_UTR'),
     )
-    const [array5UTR1, setArray5UTR1] = useState<CDSInfo[]>(
+    const [array5UTR, setArray5UTR] = useState<CDSInfo[]>(
       getCDSInfo(feature, 'five_prime_UTR'),
     )
     const refSeq: string | undefined = refData?.getSequence(
@@ -212,10 +211,9 @@ export const ApolloTranscriptDetailsWidget = observer(
     // User has selected another feature
     if (feature._id !== featureId) {
       setFeatureId(feature._id)
-      setStart(feature.start)
-      setEnd(feature.end)
-      setType(feature.type)
-      setStrand(String(feature.strand))
+      setArrayCDS(getCDSInfo(feature, 'CDS'))
+      setArray3UTR(getCDSInfo(feature, 'three_prime_UTR'))
+      setArray5UTR(getCDSInfo(feature, 'five_prime_UTR'))
       setSequence(refSeq)
       setAttributes(
         Object.fromEntries(
@@ -242,10 +240,8 @@ export const ApolloTranscriptDetailsWidget = observer(
       id: string,
     ) => {
       // Create a new array with the updated values
-      const newArray = arrayCDS1.map((item, i) => {
+      const newArray = arrayCDS.map((item, i) => {
         if (i === index) {
-          // error = Number(item.end) <= Number(item.start)
-          // console.log(error)
           return position === 'start'
             ? {
                 id: item.id,
@@ -268,7 +264,7 @@ export const ApolloTranscriptDetailsWidget = observer(
         }
         return item
       })
-      setArrayCDS1(newArray)
+      setArrayCDS(newArray)
     }
 
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -355,7 +351,7 @@ export const ApolloTranscriptDetailsWidget = observer(
       let changed = false
       let changedPosition = false
 
-      for (const item of arrayCDS1) {
+      for (const item of arrayCDS) {
         if (item.start !== item.oldStart) {
           console.log(item.id, item.start, item.oldStart)
           const change = new LocationStartChange({
@@ -470,7 +466,7 @@ export const ApolloTranscriptDetailsWidget = observer(
             CDS and UTRs
           </h2>
           <div>
-            {array5UTR1.map((item, index) => (
+            {array5UTR.map((item, index) => (
               <div
                 key={index}
                 style={{ display: 'flex', alignItems: 'center' }}
@@ -480,12 +476,12 @@ export const ApolloTranscriptDetailsWidget = observer(
                   margin="dense"
                   id="start"
                   label="Start"
-                  style={{ width: '150px', marginLeft: '20px' }}
+                  style={{ width: '150px', marginLeft: '23px' }}
                   variant="outlined"
                   value={item.start}
                   disabled
                 />
-                <span style={{ margin: '0 10px' }}>to</span>
+                <span style={{ margin: '0 10px' }}> - </span>
                 <TextField
                   margin="dense"
                   id="end"
@@ -499,7 +495,7 @@ export const ApolloTranscriptDetailsWidget = observer(
             ))}
           </div>
           <div>
-            {array3UTR1.map((item, index) => (
+            {array3UTR.map((item, index) => (
               <div
                 key={index}
                 style={{ display: 'flex', alignItems: 'center' }}
@@ -509,12 +505,12 @@ export const ApolloTranscriptDetailsWidget = observer(
                   margin="dense"
                   id="start"
                   label="Start"
-                  style={{ width: '150px', marginLeft: '20px' }}
+                  style={{ width: '150px', marginLeft: '23px' }}
                   variant="outlined"
                   value={item.start}
                   disabled
                 />
-                <span style={{ margin: '0 10px' }}>to</span>
+                <span style={{ margin: '0 10px' }}> - </span>
                 <TextField
                   margin="dense"
                   id="end"
@@ -528,7 +524,7 @@ export const ApolloTranscriptDetailsWidget = observer(
             ))}
           </div>
           <div>
-            {arrayCDS1.map((item, index) => (
+            {arrayCDS.map((item, index) => (
               <div
                 key={index}
                 style={{ display: 'flex', alignItems: 'center' }}
@@ -540,7 +536,7 @@ export const ApolloTranscriptDetailsWidget = observer(
                   id={item.id}
                   label="Start"
                   type="number"
-                  style={{ width: '150px', marginLeft: '3px' }}
+                  style={{ width: '150px', marginLeft: '8px' }}
                   variant="outlined"
                   value={item.start}
                   onChange={(e) =>
@@ -552,7 +548,7 @@ export const ApolloTranscriptDetailsWidget = observer(
                     )
                   }
                 />
-                <span style={{ margin: '0 10px' }}>to</span>
+                <span style={{ margin: '0 10px' }}> - </span>
                 <TextField
                   margin="dense"
                   id={item.id}
@@ -569,7 +565,7 @@ export const ApolloTranscriptDetailsWidget = observer(
                     handleInputChange(index, 'end', e.target.value, e.target.id)
                   }
                 />
-                <span style={{ marginRight: '3px' }}>{item.endSeq}</span>
+                <span style={{ marginLeft: '8px' }}>{item.endSeq}</span>
               </div>
             ))}
           </div>
@@ -584,7 +580,7 @@ export const ApolloTranscriptDetailsWidget = observer(
             <Button
               variant="contained"
               type="submit"
-              disabled={error || !(start && end)}
+              // disabled={error || !(start && end)}
             >
               Save
             </Button>
