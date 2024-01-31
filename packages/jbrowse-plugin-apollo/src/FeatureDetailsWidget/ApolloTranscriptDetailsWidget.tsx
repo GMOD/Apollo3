@@ -1,4 +1,4 @@
-import { AbstractSessionModel, getSession } from '@jbrowse/core/util'
+import { AbstractSessionModel, getSession, revcom } from '@jbrowse/core/util'
 import { Key } from '@mui/icons-material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
@@ -29,6 +29,7 @@ import React, { useMemo, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { BackendDriver } from '../BackendDrivers'
 import { OntologyTermMultiSelect } from '../components/OntologyTermMultiSelect'
 import { ApolloSessionModel } from '../session'
 import { ApolloRootModel } from '../types'
@@ -147,14 +148,29 @@ export const ApolloTranscriptDetailsWidget = observer(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const traverse = (currentFeature: any, isParentMRNA: boolean) => {
         if (isParentMRNA && currentFeature.type === searchType) {
-          const startSeq = refData?.getSequence(
-            Number(currentFeature.start + 1),
-            Number(currentFeature.start + 1) + 2,
+          // let startSeq, endSeq
+          // if (currentAssembly) {
+          //   const backendDriver: BackendDriver = apolloSession.apolloDataStore.getBackendDriver(currentAssembly._id) as BackendDriver
+          //   const { seq: sequence } = await backendDriver.getSequence({ start: Number(currentFeature.start) - 2, end: Number(currentFeature.start), refName, assemblyName: currentAssembly._id})
+          // }
+          let startSeq = refData?.getSequence(
+            Number(currentFeature.start) - 2,
+            Number(currentFeature.start),
           )
-          const endSeq = refData?.getSequence(
-            Number(currentFeature.end + 1),
-            Number(currentFeature.end + 1) + 2,
+          let endSeq = refData?.getSequence(
+            Number(currentFeature.end),
+            Number(currentFeature.end) + 2,
           )
+          // console.log(`strand: ${currentFeature.strand}`)
+          // console.log(`startSeq: ${startSeq}`)
+          // console.log(`endSeq: ${endSeq}`)
+
+          if (currentFeature.strand === -1 && startSeq && endSeq) {
+            startSeq = revcom(startSeq)
+            // console.log(`After revcom startSeq: ${startSeq}`)
+            endSeq = revcom(endSeq)
+            // console.log(`After revcom endSeq: ${endSeq}`)
+          }
           const oneCDS: CDSInfo = {
             id: currentFeature._id,
             start: currentFeature.start + 1,
@@ -383,6 +399,7 @@ export const ApolloTranscriptDetailsWidget = observer(
       }
 
       if (changedPosition) {
+        setArrayCDS(getCDSInfo(feature, 'CDS'))
         const refSeq: string | undefined = refData?.getSequence(
           Number(feature.start + 1),
           Number(feature.end),
@@ -471,7 +488,9 @@ export const ApolloTranscriptDetailsWidget = observer(
                 key={index}
                 style={{ display: 'flex', alignItems: 'center' }}
               >
-                <span style={{ marginLeft: '20px', width: '50px' }}>5 UTR</span>
+                <span style={{ marginLeft: '20px', width: '50px' }}>
+                  5` UTR
+                </span>
                 <TextField
                   margin="dense"
                   id="start"
@@ -500,7 +519,9 @@ export const ApolloTranscriptDetailsWidget = observer(
                 key={index}
                 style={{ display: 'flex', alignItems: 'center' }}
               >
-                <span style={{ marginLeft: '20px', width: '50px' }}>3 UTR</span>
+                <span style={{ marginLeft: '20px', width: '50px' }}>
+                  3` UTR
+                </span>
                 <TextField
                   margin="dense"
                   id="start"
@@ -530,7 +551,7 @@ export const ApolloTranscriptDetailsWidget = observer(
                 style={{ display: 'flex', alignItems: 'center' }}
               >
                 <span style={{ marginLeft: '20px', width: '50px' }}>CDS</span>
-                <span>{item.startSeq}</span>
+                <span style={{ fontWeight: 'bold' }}>{item.startSeq}</span>
                 <TextField
                   margin="dense"
                   id={item.id}
@@ -565,7 +586,9 @@ export const ApolloTranscriptDetailsWidget = observer(
                     handleInputChange(index, 'end', e.target.value, e.target.id)
                   }
                 />
-                <span style={{ marginLeft: '8px' }}>{item.endSeq}</span>
+                <span style={{ marginLeft: '8px', fontWeight: 'bold' }}>
+                  {item.endSeq}
+                </span>
               </div>
             ))}
           </div>
