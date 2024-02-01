@@ -1,41 +1,36 @@
 import EventEmitter from 'node:events'
 import * as http from 'node:http'
+import path from 'node:path'
 import * as querystring from 'node:querystring'
 
-import { Command, Errors, Flags, ux } from '@oclif/core'
+import { Errors, Flags, ux } from '@oclif/core'
 import open from 'open'
 
-import {
-  UserCredentials,
-  getUserCredentials,
-  saveUserCredentials,
-  waitFor,
-} from '../utils.js'
+import { BaseCommand } from '../baseCommand.ts'
+import { Config } from '../Config.ts'
+import { UserCredentials, getUserCredentials, waitFor } from '../utils.js'
 
 interface AuthorizationCodeCallbackParams {
   access_token: string
 }
 
-export default class Login extends Command {
+export default class Login extends BaseCommand<typeof Login> {
   static description = 'Log in to Apollo'
 
   static flags = {
     address: Flags.string({
       char: 'a',
       description: 'Address of Apollo server',
-      default: 'http://localhost:3999',
       required: false,
     }),
     username: Flags.string({
       char: 'u',
       description: 'Username for root login',
-      default: '',
       required: false,
     }),
     password: Flags.string({
       char: 'p',
       description: 'Password for <username>',
-      default: '',
       required: false,
     }),
     force: Flags.boolean({
@@ -46,32 +41,47 @@ export default class Login extends Command {
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(Login)
+
+    const configFile = path.join(this.config.configDir, 'config.yaml')
+    const config: Config = new Config(configFile)
+    const accessType: string | undefined = config.get(
+      'accessType',
+      flags.profile,
+    )
+    const address: string | undefined =
+      flags.address ?? config.get('address', flags.profile)
+    if (address === undefined) {
+      this.logToStderr('Address to apollo must be set')
+      this.exit(1)
+    }
+
+    let userCredentials: UserCredentials = { accessToken: '' }
+
     try {
       if (!flags.force) {
         await this.checkUserAlreadyLoggedIn()
       }
-
-      let userCredentials: UserCredentials = { accessToken: '' }
-
-      if (flags.username === '') {
-        userCredentials = await this.startAuthorizationCodeFlow(flags.address)
-        ux.action.stop('done ✅')
+      if (accessType === 'root' || flags.username !== undefined) {
+        const username: string | undefined =
+          flags.username ??
+          config.get('rootCredentials.username', flags.profile)
+        const password: string | undefined =
+          flags.password ??
+          config.get('rootCredentials.password', flags.profile)
+        if (username === undefined || password === undefined) {
+          this.logToStderr('Username and password must be set')
+          this.exit(1)
+        }
+        userCredentials = await this.startRootLogin(address, username, password)
+      } else if (accessType === undefined) {
+        this.logToStderr('Undefined access type')
+        this.exit(1)
       } else {
-        userCredentials = await this.startRootLogin(
-          flags.address,
-          flags.username,
-          flags.password,
+        userCredentials = await this.startAuthorizationCodeFlow(
+          address,
+          accessType,
         )
       }
-      saveUserCredentials(userCredentials)
-
-      // <<< For testing
-      const response = await fetch(`${flags.address}/assemblies`, {
-        headers: { Authorization: `Bearer ${userCredentials.accessToken}` },
-      })
-      console.log(`Access token: ${userCredentials.accessToken}`)
-      console.log(await response.json())
-      // >>>
     } catch (error) {
       if (
         (error instanceof Errors.CLIError && error.message === 'ctrl-c') ||
@@ -79,10 +89,13 @@ export default class Login extends Command {
       ) {
         this.exit(0)
       } else if (error instanceof Error) {
+        this.logToStderr(error.message)
         ux.action.stop(error.message)
         this.exit(1)
       }
     }
+    config.set('accessToken', userCredentials.accessToken, flags.profile)
+    config.writeConfigFile()
   }
 
   private async checkUserAlreadyLoggedIn() {
@@ -130,10 +143,11 @@ export default class Login extends Command {
 
   private async startAuthorizationCodeFlow(
     address: string,
+    accessType: string,
   ): Promise<UserCredentials> {
     const callbackPath = '/'
     const port = 3000
-    const authorizationCodeURL = `${address}/auth/login?type=google&redirect_uri=http://localhost:${port}${callbackPath}`
+    const authorizationCodeURL = `${address}/auth/login?type=${accessType}&redirect_uri=http://localhost:${port}${callbackPath}`
 
     // eslint-disable-next-line unicorn/prefer-event-target
     const emitter = new EventEmitter()

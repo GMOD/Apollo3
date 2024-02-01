@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 
 import Joi from 'joi'
-import YAML, { Schema } from 'yaml'
+import YAML from 'yaml'
 
 import { ConfigError } from './utils.ts'
 
@@ -13,12 +13,14 @@ interface RootCredentials {
 interface Profile {
   address?: string
   accessType?: string
+  accessToken?: string
   rootCredentials?: RootCredentials
 }
 
 const KEYS = [
   'address',
   'accessType',
+  'accessToken',
   'rootCredentials.username',
   'rootCredentials.password',
 ]
@@ -55,7 +57,8 @@ const validateAddress = (address: string, helpers: any) => {
 
 const profileSchema = Joi.object({
   address: Joi.string().custom(validateAddress),
-  accessType: Joi.string(),
+  accessType: Joi.string().valid('google', 'microsoft', 'root'),
+  accessToken: Joi.string(),
   rootCredentials: {
     username: Joi.string().allow(null, ''),
     password: Joi.string().allow(null, ''),
@@ -150,7 +153,7 @@ export class Config {
   ) {
     this.checkKey(key)
 
-    if (key === 'address' && ! isValidAddress(value)) {
+    if (key === 'address' && !isValidAddress(value)) {
       throw new ConfigError(`"${value}" is not a valid value for "${key}"`)
     }
 
