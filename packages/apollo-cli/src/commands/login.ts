@@ -6,8 +6,8 @@ import * as querystring from 'node:querystring'
 import { Errors, Flags, ux } from '@oclif/core'
 import open from 'open'
 
-import { BaseCommand } from '../baseCommand.ts'
-import { Config } from '../Config.ts'
+import { BaseCommand } from '../baseCommand.js'
+import { Config } from '../Config.js'
 import { UserCredentials, getUserCredentials, waitFor } from '../utils.js'
 
 interface AuthorizationCodeCallbackParams {

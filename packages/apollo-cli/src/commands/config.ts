@@ -5,8 +5,8 @@ import password from '@inquirer/password'
 import select from '@inquirer/select'
 import { Args, Command, Flags } from '@oclif/core'
 
-import { Config } from '../Config.ts'
-import { ConfigError } from '../utils.ts'
+import { Config } from '../Config.js'
+import { ConfigError } from '../utils.js'
 
 export default class ApolloConfig extends Command {
   static description = 'Get or set Apollo configuration options'

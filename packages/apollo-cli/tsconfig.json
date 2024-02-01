@@ -8,8 +8,6 @@
     "target": "es2022",
     "moduleResolution": "node16",
     "skipLibCheck": true,
-    "noEmit": true,
-    "allowImportingTsExtensions": true,
   },
   "include": ["./src"],
   "ts-node": {

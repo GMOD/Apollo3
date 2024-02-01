@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import Joi from 'joi'
 import YAML from 'yaml'
 
-import { ConfigError } from './utils.ts'
+import { ConfigError } from './utils.js'
 
 interface BaseProfile {
   address: string
