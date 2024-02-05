@@ -5,17 +5,22 @@ import YAML from 'yaml'
 
 import { ConfigError } from './utils.ts'
 
-interface RootCredentials {
-  username?: string
-  password?: string
+interface BaseProfile {
+  address: string
+  accessType: 'google' | 'microsoft' | 'guest'
+  accessToken: string
+  token: string
 }
 
-interface Profile {
-  address?: string
-  accessType?: string
-  accessToken?: string
-  rootCredentials?: RootCredentials
+interface RootProfile extends Omit<BaseProfile, 'accessType'> {
+  accessType: 'root'
+  rootCredentials: {
+    username: string
+    password: string
+  }
 }
+
+export type Profile = BaseProfile | RootProfile
 
 const KEYS = [
   'address',
@@ -48,23 +53,25 @@ function isValidAddress(address: string): boolean {
   return true
 }
 
-const validateAddress = (address: string, helpers: any) => {
-  if (isValidAddress(address)) {
-    return address
-  }
-  return helpers.error('any.invalid')
-}
-
 const profileSchema = Joi.object({
-  address: Joi.string().custom(validateAddress),
-  accessType: Joi.string().valid('google', 'microsoft', 'root'),
+  address: Joi.string()
+    .uri({ scheme: /https?/ })
+    .required(),
+  accessType: Joi.string()
+    .valid('google', 'microsoft', 'root', 'guest')
+    .required(),
   accessToken: Joi.string(),
-  rootCredentials: {
-    username: Joi.string().allow(null, ''),
-    password: Joi.string().allow(null, ''),
-  },
+  rootCredentials: Joi.object({
+    username: Joi.string().required(),
+    password: Joi.string().required(),
+  }).when('accessType', {
+    is: Joi.string().valid('root'),
+    // eslint-disable-next-line unicorn/no-thenable
+    then: Joi.required(),
+    otherwise: Joi.forbidden(),
+  }),
 })
-const configSchema = Joi.object().pattern(/.*/, profileSchema)
+const configSchema = Joi.object().pattern(Joi.string(), profileSchema)
 
 export class Config {
   private profiles: Record<string, Profile | undefined> = {}
@@ -130,18 +137,18 @@ export class Config {
     }
   }
 
-  public get(key: string, profileName: string): string | undefined {
+  public get(key: string, profileName: string): string {
     this.checkKey(key)
-    const profile = this.profiles[profileName] as RecursiveObject
+    const profile = this.profiles[profileName] as unknown as RecursiveObject
     if (!profile) {
       // throw new Error(`No profile name "${profileName}" found`)
-      return undefined
+      return ''
     }
     this.addProps(profile as RecursiveObject, key)
     const value = this.index(profile, key)
     if (typeof value === 'object' && Object.keys(value).length === 0) {
       // The key is valid but missing from config
-      return undefined
+      return ''
     }
     return value as unknown as string
   }
@@ -157,12 +164,10 @@ export class Config {
       throw new ConfigError(`"${value}" is not a valid value for "${key}"`)
     }
 
-    let profile = this.profiles[profileName]
-    if (!profile) {
-      profile = {}
-      this.profiles[profileName] = profile
-    }
-    this.addProps(profile as RecursiveObject, key, value)
+    const profile = this.profiles[profileName] ?? ({} as Profile)
+    this.profiles[profileName] = profile
+
+    this.addProps(profile as unknown as RecursiveObject, key, value)
   }
 
   public writeConfigFile() {

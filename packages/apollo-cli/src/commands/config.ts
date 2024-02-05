@@ -95,28 +95,27 @@ export default class ApolloConfig extends Command {
     }
 
     const address = config.get('address', profileName)
-    if (address) {
-      let accessType
-      try {
-        accessType = await this.selectAccessType(address)
-      } catch (error) {
-        if (error instanceof ConfigError) {
-          this.logToStderr(error.message)
-          this.exit(1)
-        }
-      }
-      if (accessType && ['microsoft', 'google', 'guest'].includes(accessType)) {
-        config.set('accessType', accessType, profileName)
+    let accessType = ''
+    try {
+      accessType = await this.selectAccessType(address)
+    } catch (error) {
+      if (error instanceof ConfigError) {
+        this.logToStderr(error.message)
+        this.exit(1)
       }
     }
+    config.set('accessType', accessType, profileName)
+    if (accessType === 'root') {
+      const username: string = await this.askUsername(
+        config.get('rootCredentials.username', profileName),
+      )
+      config.set('rootCredentials.username', username, profileName)
 
-    const username: string = await this.askUsername(
-      config.get('rootCredentials.username', profileName),
-    )
-    config.set('rootCredentials.username', username, profileName)
-
-    const password: string = await this.askPassword()
-    config.set('rootCredentials.password', password, profileName)
+      const password: string = await this.askPassword()
+      config.set('rootCredentials.password', password, profileName)
+    } else {
+      throw new ConfigError(`Unexpected accessType: ${accessType}`)
+    }
   }
 
   private async askProfileName(currentProfiles: string[]): Promise<string> {
@@ -176,7 +175,7 @@ export default class ApolloConfig extends Command {
   }
 
   private async selectAccessType(address: string): Promise<string> {
-    const xchoices = []
+    const xchoices = [{ name: 'root', value: 'root' }]
     const types: string[] = await this.getLoginTypes(address)
     for (const type of types) {
       xchoices.push({ name: type, value: type })
