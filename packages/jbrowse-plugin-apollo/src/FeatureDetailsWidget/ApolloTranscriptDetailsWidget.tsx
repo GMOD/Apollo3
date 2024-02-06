@@ -102,6 +102,8 @@ function CustomAttributeValueEditor(props: AttributeValueEditorProps) {
 
 export interface CDSInfo {
   id: string
+  type: string
+  strand: number
   start: string
   oldStart: string
   end: string
@@ -143,11 +145,16 @@ export const ApolloTranscriptDetailsWidget = observer(
     const [featureId, setFeatureId] = useState(String(feature._id))
 
     // eslint-disable-next-line unicorn/consistent-function-scoping, @typescript-eslint/no-explicit-any
-    const getCDSInfo = (feature: any, searchType: string): CDSInfo[] => {
+    const getCDSInfo = (feature: any): CDSInfo[] => {
       const CDSresult: CDSInfo[] = []
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const traverse = (currentFeature: any, isParentMRNA: boolean) => {
-        if (isParentMRNA && currentFeature.type === searchType) {
+        if (
+          isParentMRNA &&
+          (currentFeature.type === 'CDS' ||
+            currentFeature.type === 'three_prime_UTR' ||
+            currentFeature.type === 'five_prime_UTR')
+        ) {
           // let startSeq, endSeq
           // if (currentAssembly) {
           //   const backendDriver: BackendDriver = apolloSession.apolloDataStore.getBackendDriver(currentAssembly._id) as BackendDriver
@@ -161,18 +168,15 @@ export const ApolloTranscriptDetailsWidget = observer(
             Number(currentFeature.end),
             Number(currentFeature.end) + 2,
           )
-          // console.log(`strand: ${currentFeature.strand}`)
-          // console.log(`startSeq: ${startSeq}`)
-          // console.log(`endSeq: ${endSeq}`)
 
           if (currentFeature.strand === -1 && startSeq && endSeq) {
             startSeq = revcom(startSeq)
-            // console.log(`After revcom startSeq: ${startSeq}`)
             endSeq = revcom(endSeq)
-            // console.log(`After revcom endSeq: ${endSeq}`)
           }
           const oneCDS: CDSInfo = {
             id: currentFeature._id,
+            type: currentFeature.type,
+            strand: Number(currentFeature.strand),
             start: currentFeature.start + 1,
             end: currentFeature.end + 1,
             oldStart: currentFeature.start + 1,
@@ -189,18 +193,34 @@ export const ApolloTranscriptDetailsWidget = observer(
         }
       }
       traverse(feature, feature.type === 'mRNA')
+      CDSresult.sort((a, b) => {
+        return Number(a.start) - Number(b.start)
+      })
+      if (CDSresult.length > 0) {
+        CDSresult[0].startSeq = ''
+
+        // eslint-disable-next-line unicorn/prefer-at
+        CDSresult[CDSresult.length - 1].endSeq = ''
+
+        // Loop through the array and clear "startSeq" or "endSeq" based on the conditions
+        for (let i = 0; i < CDSresult.length; i++) {
+          if (i > 0 && CDSresult[i].start === CDSresult[i - 1].end) {
+            // Clear "startSeq" if the current item's "start" is equal to the previous item's "end"
+            CDSresult[i].startSeq = ''
+          }
+          if (
+            i < CDSresult.length - 1 &&
+            CDSresult[i].end === CDSresult[i + 1].start
+          ) {
+            // Clear "endSeq" if the next item's "start" is equal to the current item's "end"
+            CDSresult[i].endSeq = ''
+          }
+        }
+      }
       return CDSresult
     }
 
-    const [arrayCDS, setArrayCDS] = useState<CDSInfo[]>(
-      getCDSInfo(feature, 'CDS'),
-    )
-    const [array3UTR, setArray3UTR] = useState<CDSInfo[]>(
-      getCDSInfo(feature, 'three_prime_UTR'),
-    )
-    const [array5UTR, setArray5UTR] = useState<CDSInfo[]>(
-      getCDSInfo(feature, 'five_prime_UTR'),
-    )
+    const [arrayCDS, setArrayCDS] = useState<CDSInfo[]>(getCDSInfo(feature))
     const refSeq: string | undefined = refData?.getSequence(
       Number(feature.start + 1),
       Number(feature.end),
@@ -227,9 +247,7 @@ export const ApolloTranscriptDetailsWidget = observer(
     // User has selected another feature
     if (feature._id !== featureId) {
       setFeatureId(feature._id)
-      setArrayCDS(getCDSInfo(feature, 'CDS'))
-      setArray3UTR(getCDSInfo(feature, 'three_prime_UTR'))
-      setArray5UTR(getCDSInfo(feature, 'five_prime_UTR'))
+      setArrayCDS(getCDSInfo(feature))
       setSequence(refSeq)
       setAttributes(
         Object.fromEntries(
@@ -261,6 +279,8 @@ export const ApolloTranscriptDetailsWidget = observer(
           return position === 'start'
             ? {
                 id: item.id,
+                type: item.type,
+                strand: item.strand,
                 start: value,
                 oldStart: item.oldStart,
                 end: item.end,
@@ -270,6 +290,8 @@ export const ApolloTranscriptDetailsWidget = observer(
               }
             : {
                 id: item.id,
+                type: item.type,
+                strand: item.strand,
                 start: item.start,
                 oldStart: item.oldStart,
                 end: value,
@@ -399,7 +421,7 @@ export const ApolloTranscriptDetailsWidget = observer(
       }
 
       if (changedPosition) {
-        setArrayCDS(getCDSInfo(feature, 'CDS'))
+        setArrayCDS(getCDSInfo(feature))
         const refSeq: string | undefined = refData?.getSequence(
           Number(feature.start + 1),
           Number(feature.end),
@@ -476,6 +498,20 @@ export const ApolloTranscriptDetailsWidget = observer(
       setShowSequence(!showSequence)
     }
 
+    // Function to copy text to clipboard
+    const copyToClipboard = () => {
+      if (sequence) {
+        navigator.clipboard
+          .writeText(sequence)
+          .then(() => {
+            // console.log('Text copied to clipboard!')
+          })
+          .catch((error_) => {
+            console.error('Failed to copy text to clipboard', error_)
+          })
+      }
+    }
+
     return (
       <>
         <form onSubmit={onSubmitBasic}>
@@ -483,80 +519,27 @@ export const ApolloTranscriptDetailsWidget = observer(
             CDS and UTRs
           </h2>
           <div>
-            {array5UTR.map((item, index) => (
-              <div
-                key={index}
-                style={{ display: 'flex', alignItems: 'center' }}
-              >
-                <span style={{ marginLeft: '20px', width: '50px' }}>
-                  5` UTR
-                </span>
-                <TextField
-                  margin="dense"
-                  id="start"
-                  label="Start"
-                  style={{ width: '150px', marginLeft: '23px' }}
-                  variant="outlined"
-                  value={item.start}
-                  disabled
-                />
-                <span style={{ margin: '0 10px' }}> - </span>
-                <TextField
-                  margin="dense"
-                  id="end"
-                  label="End"
-                  style={{ width: '150px' }}
-                  variant="outlined"
-                  value={item.end}
-                  disabled
-                />
-              </div>
-            ))}
-          </div>
-          <div>
-            {array3UTR.map((item, index) => (
-              <div
-                key={index}
-                style={{ display: 'flex', alignItems: 'center' }}
-              >
-                <span style={{ marginLeft: '20px', width: '50px' }}>
-                  3` UTR
-                </span>
-                <TextField
-                  margin="dense"
-                  id="start"
-                  label="Start"
-                  style={{ width: '150px', marginLeft: '23px' }}
-                  variant="outlined"
-                  value={item.start}
-                  disabled
-                />
-                <span style={{ margin: '0 10px' }}> - </span>
-                <TextField
-                  margin="dense"
-                  id="end"
-                  label="End"
-                  style={{ width: '150px' }}
-                  variant="outlined"
-                  value={item.end}
-                  disabled
-                />
-              </div>
-            ))}
-          </div>
-          <div>
             {arrayCDS.map((item, index) => (
               <div
                 key={index}
                 style={{ display: 'flex', alignItems: 'center' }}
               >
-                <span style={{ marginLeft: '20px', width: '50px' }}>CDS</span>
-                <span style={{ fontWeight: 'bold' }}>{item.startSeq}</span>
+                <span style={{ marginLeft: '20px', width: '50px' }}>
+                  {item.type === 'three_prime_UTR'
+                    ? '3 UTR'
+                    : item.type === 'five_prime_UTR'
+                    ? '5 UTR'
+                    : 'CDS'}
+                </span>
+                <span style={{ fontWeight: 'bold', width: '30px' }}>
+                  {item.startSeq}
+                </span>
                 <TextField
                   margin="dense"
                   id={item.id}
                   label="Start"
                   type="number"
+                  disabled={item.type !== 'CDS'}
                   style={{ width: '150px', marginLeft: '8px' }}
                   variant="outlined"
                   value={item.start}
@@ -569,12 +552,15 @@ export const ApolloTranscriptDetailsWidget = observer(
                     )
                   }
                 />
-                <span style={{ margin: '0 10px' }}> - </span>
+                <span style={{ margin: '0 10px' }}>
+                  {item.strand === -1 ? '-' : item.strand === 1 ? '+' : ''}
+                </span>
                 <TextField
                   margin="dense"
                   id={item.id}
                   label="End"
                   type="number"
+                  disabled={item.type !== 'CDS'}
                   style={{ width: '150px' }}
                   variant="outlined"
                   value={item.end}
@@ -787,6 +773,15 @@ export const ApolloTranscriptDetailsWidget = observer(
           </Button>
         </div>
         <div>
+          {showSequence && (
+            <Button
+              variant="contained"
+              style={{ marginLeft: '15px' }}
+              onClick={copyToClipboard}
+            >
+              Copy sequence
+            </Button>
+          )}
           {showSequence && (
             <textarea
               readOnly
