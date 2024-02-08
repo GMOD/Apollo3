@@ -1,5 +1,4 @@
 import { AbstractSessionModel, getSession, revcom } from '@jbrowse/core/util'
-import { Key } from '@mui/icons-material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Button,
@@ -11,13 +10,15 @@ import {
   FormLabel,
   Grid,
   IconButton,
+  MenuItem,
   Paper,
   Radio,
   RadioGroup,
+  Select,
+  SelectChangeEvent,
   TextField,
   Typography,
 } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
 import {
   FeatureAttributeChange,
   LocationEndChange,
@@ -33,6 +34,10 @@ import { BackendDriver } from '../BackendDrivers'
 import { OntologyTermMultiSelect } from '../components/OntologyTermMultiSelect'
 import { ApolloSessionModel } from '../session'
 import { ApolloRootModel } from '../types'
+
+interface Props {
+  textSegments: { text: string; color: string }[]
+}
 
 const reservedKeys = new Map([
   [
@@ -111,12 +116,26 @@ export interface CDSInfo {
   startSeq: string
   endSeq: string
 }
+// Original jBrowse color codes
+// export const intronColor = undefined
+// export const utrColor = 'rgb(200,240,240)'
+// export const proteinColor = 'rgb(220,160,220)'
+// export const cdsColor = 'rgb(220,220,180)'
+// export const updownstreamColor = 'rgba(250,200,200)'
+// export const genomeColor = 'rgb(200,280,200)'
+export const intronColor = 'rgb(120,120,120)' // Slightly brighter gray
+export const utrColor = 'rgb(20,200,200)' // Slightly brighter cyan
+export const proteinColor = 'rgb(220,70,220)' // Slightly brighter magenta
+export const cdsColor = 'rgb(240,200,20)' // Slightly brighter yellow
+export const updownstreamColor = 'rgb(255,130,130)' // Slightly brighter red
+export const genomeColor = 'rgb(20,230,20)' // Slightly brighter green
 
 export interface GOTerm {
   id: string
   label: string
 }
 const error = false
+let textSegments = [{ text: '', color: '' }]
 
 export const ApolloTranscriptDetailsWidget = observer(
   function ApolloTranscriptDetails(props: { model: IAnyStateTreeNode }) {
@@ -132,6 +151,7 @@ export const ApolloTranscriptDetailsWidget = observer(
     const { classes } = useStyles()
     const [errorMessage, setErrorMessage] = useState('')
     const [showSequence, setShowSequence] = useState(false)
+    const [selectedOption, setSelectedOption] = useState('Select')
     const { notify } = session as unknown as AbstractSessionModel
     const { internetAccounts } = getRoot<ApolloRootModel>(session)
     const internetAccount = useMemo(() => {
@@ -155,6 +175,7 @@ export const ApolloTranscriptDetailsWidget = observer(
             currentFeature.type === 'three_prime_UTR' ||
             currentFeature.type === 'five_prime_UTR')
         ) {
+          // **** TRYING TO IMPLEMENT getSequence using BackendDriver
           // let startSeq, endSeq
           // if (currentAssembly) {
           //   const backendDriver: BackendDriver = apolloSession.apolloDataStore.getBackendDriver(currentAssembly._id) as BackendDriver
@@ -220,12 +241,9 @@ export const ApolloTranscriptDetailsWidget = observer(
       return CDSresult
     }
 
-    const [arrayCDS, setArrayCDS] = useState<CDSInfo[]>(getCDSInfo(feature))
-    const refSeq: string | undefined = refData?.getSequence(
-      Number(feature.start + 1),
-      Number(feature.end),
+    const [transcriptItems, setTranscriptItems] = useState<CDSInfo[]>(
+      getCDSInfo(feature),
     )
-    const [sequence, setSequence] = useState(refSeq)
 
     const [attributes, setAttributes] = useState<Record<string, string[]>>(
       Object.fromEntries(
@@ -247,8 +265,9 @@ export const ApolloTranscriptDetailsWidget = observer(
     // User has selected another feature
     if (feature._id !== featureId) {
       setFeatureId(feature._id)
-      setArrayCDS(getCDSInfo(feature))
-      setSequence(refSeq)
+      setTranscriptItems(getCDSInfo(feature))
+      setSelectedOption('Select')
+      textSegments = []
       setAttributes(
         Object.fromEntries(
           [...feature.attributes.entries()].map(([key, value]) => {
@@ -274,7 +293,7 @@ export const ApolloTranscriptDetailsWidget = observer(
       id: string,
     ) => {
       // Create a new array with the updated values
-      const newArray = arrayCDS.map((item, i) => {
+      const newArray = transcriptItems.map((item, i) => {
         if (i === index) {
           return position === 'start'
             ? {
@@ -302,7 +321,7 @@ export const ApolloTranscriptDetailsWidget = observer(
         }
         return item
       })
-      setArrayCDS(newArray)
+      setTranscriptItems(newArray)
     }
 
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -389,9 +408,8 @@ export const ApolloTranscriptDetailsWidget = observer(
       let changed = false
       let changedPosition = false
 
-      for (const item of arrayCDS) {
+      for (const item of transcriptItems) {
         if (item.start !== item.oldStart) {
-          console.log(item.id, item.start, item.oldStart)
           const change = new LocationStartChange({
             typeName: 'LocationStartChange',
             changedIds: [item.id],
@@ -421,12 +439,12 @@ export const ApolloTranscriptDetailsWidget = observer(
       }
 
       if (changedPosition) {
-        setArrayCDS(getCDSInfo(feature))
-        const refSeq: string | undefined = refData?.getSequence(
-          Number(feature.start + 1),
-          Number(feature.end),
-        )
-        refSeq ? setSequence(refSeq) : null
+        setTranscriptItems(getCDSInfo(feature))
+        // const refSeq: string | undefined = refData?.getSequence(
+        //   Number(feature.start + 1),
+        //   Number(feature.end),
+        // )
+        // TODO: Update sequence data!!!
       }
       changed ? notify('Feature data saved successfully', 'success') : null
       event.preventDefault()
@@ -500,9 +518,11 @@ export const ApolloTranscriptDetailsWidget = observer(
 
     // Function to copy text to clipboard
     const copyToClipboard = () => {
-      if (sequence) {
+      const textToCopy = textSegments.map((segment) => segment.text).join('')
+
+      if (textToCopy) {
         navigator.clipboard
-          .writeText(sequence)
+          .writeText(textToCopy)
           .then(() => {
             // console.log('Text copied to clipboard!')
           })
@@ -512,6 +532,124 @@ export const ApolloTranscriptDetailsWidget = observer(
       }
     }
 
+    async function handleChangeSeqOption(e: SelectChangeEvent<string>) {
+      setErrorMessage('')
+      setSelectedOption(e.target.value)
+      let seqData = ''
+      textSegments = []
+      switch (e.target.value) {
+        case 'CDS': {
+          textSegments.push({ text: '>CDS\n', color: 'black' })
+          for (const item of transcriptItems) {
+            if (item.type === 'CDS') {
+              const refSeq: string | undefined = refData?.getSequence(
+                Number(item.start + 1),
+                Number(item.end),
+              )
+              seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
+              textSegments.push({ text: seqData, color: cdsColor })
+            }
+          }
+          break
+        }
+        case 'cDNA': {
+          textSegments.push({ text: '>cDNA\n', color: 'black' })
+          for (const item of transcriptItems) {
+            if (
+              item.type === 'CDS' ||
+              item.type === 'three_prime_UTR' ||
+              item.type === 'five_prime_UTR'
+            ) {
+              const refSeq: string | undefined = refData?.getSequence(
+                Number(item.start + 1),
+                Number(item.end),
+              )
+              seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
+              if (item.type === 'CDS') {
+                textSegments.push({ text: seqData, color: cdsColor })
+              } else {
+                textSegments.push({ text: seqData, color: utrColor })
+              }
+            }
+          }
+          break
+        }
+        case 'Full': {
+          textSegments.push({ text: '>Full genomic\n', color: 'black' })
+          let lastEnd = 0
+          let count = 0
+          for (const item of transcriptItems) {
+            count++
+            if (
+              lastEnd != 0 &&
+              lastEnd != Number(item.start) &&
+              count != transcriptItems.length
+            ) {
+              // Intron etc. between CDS/UTRs. No need to check this on very last item
+              const refSeq: string | undefined = refData?.getSequence(
+                lastEnd + 1,
+                Number(item.start) - 1,
+              )
+              seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
+              textSegments.push({ text: seqData, color: 'black' })
+            }
+            if (
+              item.type === 'CDS' ||
+              item.type === 'three_prime_UTR' ||
+              item.type === 'five_prime_UTR'
+            ) {
+              const refSeq: string | undefined = refData?.getSequence(
+                Number(item.start + 1),
+                Number(item.end),
+              )
+              seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
+              switch (item.type) {
+                case 'CDS': {
+                  textSegments.push({ text: seqData, color: cdsColor })
+                  break
+                }
+                case 'three_prime_UTR': {
+                  textSegments.push({ text: seqData, color: utrColor })
+                  break
+                }
+                case 'five_prime_UTR': {
+                  textSegments.push({ text: seqData, color: utrColor })
+                  break
+                }
+                default: {
+                  textSegments.push({ text: seqData, color: 'black' })
+                  break
+                }
+              }
+            }
+            lastEnd = Number(item.end)
+          }
+          break
+        }
+        default: {
+          console.log('DEFAULT selected')
+        }
+      }
+    }
+
+    const ColoredText: React.FC<Props> = ({ textSegments }) => {
+      return (
+        <div>
+          {textSegments.map((segment, index) => (
+            <span key={index} style={{ color: segment.color }}>
+              {/* Adding line breaks after every 120 characters */}
+              {segment.text.match(/.{1,120}/g)?.map((line, idx) => (
+                <React.Fragment key={idx}>
+                  {line}
+                  <br />
+                </React.Fragment>
+              ))}
+            </span>
+          ))}
+        </div>
+      )
+    }
+
     return (
       <>
         <form onSubmit={onSubmitBasic}>
@@ -519,7 +657,7 @@ export const ApolloTranscriptDetailsWidget = observer(
             CDS and UTRs
           </h2>
           <div>
-            {arrayCDS.map((item, index) => (
+            {transcriptItems.map((item, index) => (
               <div
                 key={index}
                 style={{ display: 'flex', alignItems: 'center' }}
@@ -537,10 +675,16 @@ export const ApolloTranscriptDetailsWidget = observer(
                 <TextField
                   margin="dense"
                   id={item.id}
-                  label="Start"
                   type="number"
                   disabled={item.type !== 'CDS'}
-                  style={{ width: '150px', marginLeft: '8px' }}
+                  style={{
+                    width: '150px',
+                    marginLeft: '8px',
+                    backgroundColor:
+                      item.startSeq.trim() === '' && index !== 0
+                        ? 'lightblue'
+                        : 'inherit',
+                  }}
                   variant="outlined"
                   value={item.start}
                   onChange={(e) =>
@@ -558,10 +702,16 @@ export const ApolloTranscriptDetailsWidget = observer(
                 <TextField
                   margin="dense"
                   id={item.id}
-                  label="End"
                   type="number"
                   disabled={item.type !== 'CDS'}
-                  style={{ width: '150px' }}
+                  style={{
+                    width: '150px',
+                    backgroundColor:
+                      item.endSeq.trim() === '' &&
+                      index + 1 !== transcriptItems.length
+                        ? 'lightblue'
+                        : 'inherit',
+                  }}
                   variant="outlined"
                   value={item.end}
                   error={error}
@@ -586,11 +736,7 @@ export const ApolloTranscriptDetailsWidget = observer(
             }}
           ></DialogContent>
           <DialogActions>
-            <Button
-              variant="contained"
-              type="submit"
-              // disabled={error || !(start && end)}
-            >
+            <Button variant="contained" type="submit">
               Save
             </Button>
           </DialogActions>
@@ -774,28 +920,38 @@ export const ApolloTranscriptDetailsWidget = observer(
         </div>
         <div>
           {showSequence && (
-            <Button
-              variant="contained"
-              style={{ marginLeft: '15px' }}
-              onClick={copyToClipboard}
+            <Select
+              value={selectedOption}
+              onChange={handleChangeSeqOption}
+              style={{ width: '150px', marginLeft: '15px', height: '25px' }}
             >
-              Copy sequence
-            </Button>
-          )}
-          {showSequence && (
-            <textarea
-              readOnly
-              style={{
-                marginLeft: '15px',
-                height: '300px',
-                width: '95%',
-                resize: 'vertical',
-                overflowY: 'scroll',
-              }}
-              value={sequence}
-            />
+              <MenuItem value={'Select'}>Select</MenuItem>
+              <MenuItem value={'CDS'}>CDS</MenuItem>
+              <MenuItem value={'cDNA'}>cDNA</MenuItem>
+              <MenuItem value={'Full'}>Full genomics</MenuItem>
+            </Select>
           )}
         </div>
+        <div
+          style={{
+            width: '500px',
+            marginLeft: '15px',
+            height: '300px',
+            overflowY: 'auto',
+            border: '1px solid #ccc',
+          }}
+        >
+          {showSequence && <ColoredText textSegments={textSegments} />}
+        </div>
+        {showSequence && (
+          <Button
+            variant="contained"
+            style={{ marginLeft: '15px' }}
+            onClick={copyToClipboard}
+          >
+            Copy sequence
+          </Button>
+        )}
       </>
     )
   },
