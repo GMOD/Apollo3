@@ -63,6 +63,9 @@
     "typescript": "^5.1.6"
   },
   "oclif": {
+    "helpOptions": {
+      "flagSortOrder": "none"
+    },
     "bin": "apollo",
     "dirname": "apollo-cli",
     "commands": "./dist/commands",

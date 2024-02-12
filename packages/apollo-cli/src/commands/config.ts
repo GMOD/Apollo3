@@ -3,25 +3,14 @@ import path from 'node:path'
 import input from '@inquirer/input'
 import password from '@inquirer/password'
 import select from '@inquirer/select'
-import { Args, Command, Flags } from '@oclif/core'
+import { Args, Flags } from '@oclif/core'
 
-import { Config } from '../Config.js'
+import { BaseCommand } from '../baseCommand.js'
+import { Config, KEYS } from '../Config.js'
 import { ConfigError } from '../utils.js'
 
-export default class ApolloConfig extends Command {
+export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
   static description = 'Get or set Apollo configuration options'
-
-  static flags = {
-    profile: Flags.string({
-      char: 'p',
-      description: 'Set or get configuration for this profile',
-      default: 'default',
-    }),
-    'config-file': Flags.string({
-      char: 'c',
-      description: 'Use this config file (mostly for testing)',
-    }),
-  }
 
   static args = {
     key: Args.string({
@@ -31,6 +20,13 @@ export default class ApolloConfig extends Command {
     value: Args.string({
       name: 'value',
       description: 'Parameter value',
+    }),
+  }
+
+  static flags = {
+    profile: Flags.string({
+      description: 'Profile to create or edit',
+      required: false,
     }),
   }
 
@@ -46,17 +42,21 @@ export default class ApolloConfig extends Command {
     const config: Config = new Config(configFile)
 
     if (args.key === undefined) {
-      await this.interactiveSetup(config)
+      await this.interactiveSetup(config, flags.profile)
     } else {
+      let profileName = 'default'
+      if (flags.profile !== undefined) {
+        profileName = flags.profile
+      }
       try {
         if (args.value === undefined) {
           const currentValue: string | undefined = config.get(
             args.key,
-            flags.profile,
+            profileName,
           )
           this.log(currentValue)
         } else {
-          config.set(args.key, args.value, flags.profile)
+          config.set(args.key, args.value, profileName)
         }
       } catch (error) {
         if (error instanceof Error) {
@@ -74,15 +74,18 @@ export default class ApolloConfig extends Command {
     config.writeConfigFile()
   }
 
-  private async interactiveSetup(config: Config) {
-    const profileName: string = await this.askProfileName(
-      config.getProfileNames(),
-    )
+  private async interactiveSetup(
+    config: Config,
+    profileName: string | undefined,
+  ) {
+    if (profileName === undefined) {
+      profileName = await this.askProfileName(config.getProfileNames())
+    }
 
     let setMe = true
     while (setMe) {
       const address: string = await this.askAddress(
-        config.get('address', profileName),
+        config.get(KEYS[KEYS.address], profileName),
       )
       try {
         config.set('address', address, profileName)
@@ -94,7 +97,7 @@ export default class ApolloConfig extends Command {
       }
     }
 
-    const address = config.get('address', profileName)
+    const address = config.get(KEYS[KEYS.address], profileName)
     let accessType = ''
     try {
       accessType = await this.selectAccessType(address)
@@ -104,33 +107,36 @@ export default class ApolloConfig extends Command {
         this.exit(1)
       }
     }
-    config.set('accessType', accessType, profileName)
+
+    config.set(KEYS[KEYS.accessType], accessType, profileName)
     if (accessType === 'root') {
       const username: string = await this.askUsername(
-        config.get('rootCredentials.username', profileName),
+        config.get(KEYS.rootCredentials_username, profileName),
       )
       config.set('rootCredentials.username', username, profileName)
 
       const password: string = await this.askPassword()
       config.set('rootCredentials.password', password, profileName)
-    } else {
-      throw new ConfigError(`Unexpected accessType: ${accessType}`)
-    }
+    } 
   }
 
   private async askProfileName(currentProfiles: string[]): Promise<string> {
-    currentProfiles.push('<New profile>')
+    const newProfile = '<New profile>'
+    currentProfiles.push(newProfile)
     const xchoices = []
     for (const profileName of currentProfiles) {
       xchoices.push({ name: profileName, value: profileName })
     }
 
-    let answer = await select({
-      message: 'Select profile to edit or create a new one:',
-      choices: xchoices,
-    })
+    let answer = newProfile
+    if (currentProfiles.length > 1) {
+      answer = await select({
+        message: 'Select profile to edit or create a new one:',
+        choices: xchoices,
+      })
+    }
 
-    if (answer === '<New profile>') {
+    if (answer === newProfile) {
       answer = await input({
         message: 'New profile name:',
         default: currentProfiles.includes('default') ? undefined : 'default',
@@ -141,11 +147,15 @@ export default class ApolloConfig extends Command {
   }
 
   private async askPassword(): Promise<string> {
-    const answer = await password({
-      message: 'Root password:',
-      mask: true,
-    })
-    return answer.trim()
+    let answer = ''
+    while (answer === '') {
+      answer = await password({
+        message: 'Root password:',
+        mask: true,
+      })
+      answer = answer.trim()
+    }
+    return answer
   }
 
   private async askUsername(

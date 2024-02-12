@@ -46,7 +46,7 @@ describe('apollo config: Query config file', () => {
     .do((output) => expect(output.stderr).to.contain('someInvalidKey'))
     .it(cmd.join(' '))
 
-  cmd = ['config', '-p', 'profile1', 'address']
+  cmd = ['config', '--profile', 'profile1', 'address']
   test
     .stdout()
     .command(cmd, { root: dirname(dirname(__dirname)) })
@@ -54,7 +54,7 @@ describe('apollo config: Query config file', () => {
       expect(ctx.stdout.trim()).to.equal('http://localhost:1999')
     })
 
-  cmd = ['config', '-p', 'profile1', 'rootCredentials.username']
+  cmd = ['config', '--profile', 'profile1', 'rootCredentials.username']
   test
     .stdout()
     .command(cmd, { root: dirname(dirname(__dirname)) })
@@ -62,7 +62,7 @@ describe('apollo config: Query config file', () => {
       expect(ctx.stdout.trim()).to.equal('')
     })
 
-  cmd = ['config', '-p', 'nonExistantProfile', 'address']
+  cmd = ['config', '--profile', 'nonExistantProfile', 'address']
   test
     .stdout()
     .command(cmd, { root: dirname(dirname(__dirname)) })
@@ -86,6 +86,30 @@ describe('apollo config: Missing config file', () => {
     .command(cmd, { root: dirname(dirname(__dirname)) })
     .it(cmd.join(' '), (ctx) => {
       expect(ctx.stdout.trim()).to.equal('')
+    })
+})
+
+describe('apollo config: Create config directory', () => {
+  const outdir = `${TEST_DATA_DIR}/_tmp`
+  before(() => {
+    fs.rmSync(outdir, { recursive: true, force: true })
+  })
+  after(() => {
+    fs.rmSync(outdir, { recursive: true, force: true })
+  })
+
+  const cmd = [
+    'config',
+    '--config-file',
+    `${outdir}/config.yaml`,
+    'address',
+    'http://localhost:3999',
+  ]
+  test
+    .stdout()
+    .command(cmd, { root: dirname(dirname(__dirname)) })
+    .it(cmd.join(' '), (ctx) => {
+      expect(fs.existsSync(`${outdir}/config.yaml`))
     })
 })
 
@@ -145,6 +169,20 @@ describe('Do not set invalid address', () => {
     .it(cmd.join(' '))
 })
 
+// describe('apollo config: Friendly error with invalid configfile', () => {
+//   const cmd = ['config', '--config-file', `${TEST_DATA_DIR}/invalid.yaml`]
+//   test
+//     .stderr()
+//     .command(cmd, { root: dirname(dirname(__dirname)) })
+//     .exit(1)
+//     .do((output) =>
+//       expect(output.stderr).to.contain(
+//         'Configuration file is probably malformed',
+//       ),
+//     )
+//     .it(cmd.join(' '))
+// })
+
 describe('apollo config: Write config file from scratch', () => {
   after(() => {
     fs.rmSync(CONFIG_FILE)
@@ -159,12 +197,35 @@ describe('apollo config: Write config file from scratch', () => {
       expect(cfg.default.rootCredentials.username).to.equal('somename')
     })
 
-  cmd = ['config', '-p', 'myProfile', 'rootCredentials.password', 'somepwd']
+  cmd = [
+    'config',
+    '--profile',
+    'myProfile',
+    'rootCredentials.password',
+    'somepwd',
+  ]
   test
     .stdout()
     .command(cmd, { root: dirname(dirname(__dirname)) })
     .it(cmd.join(' '), () => {
       const cfg = YAML.parse(fs.readFileSync(CONFIG_FILE, 'utf8'))
       expect(cfg.myProfile.rootCredentials.password).to.equal('somepwd')
+    })
+})
+
+describe('apollo config: Handle strings as numbers in yaml', () => {
+  const cmd = [
+    'config',
+    '--config-file',
+    'test_data/nameAsNumber.yaml',
+    'rootCredentials.username',
+  ]
+  test
+    .stderr()
+    .stdout()
+    .command(cmd, { root: dirname(dirname(__dirname)) })
+    .do((output) => expect(output.stderr).contains('must be a string'))
+    .it(cmd.join(' '), (ctx) => {
+      expect(ctx.stdout.trim()).to.equal('7890')
     })
 })

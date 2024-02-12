@@ -1,21 +1,33 @@
-import { Command } from '@oclif/core'
+import path from 'node:path'
+import { BaseCommand } from '../baseCommand.js'
+import { ConfigError, basicCheckConfig } from '../utils.js'
+import { Config, KEYS } from '../Config.js'
 
-import { getUserCredentials } from '../utils.js'
-
-export interface UserCredentials {
-  accessToken: string
-}
-
-export default class AuthStatus extends Command {
+export default class Status extends BaseCommand<typeof Status> {
   static description = 'View authentication status'
 
   public async run(): Promise<void> {
-    const userCredentials = getUserCredentials()
+    const { flags } = await this.parse(Status)
 
-    if (userCredentials) {
-      this.log(`Logged in with token ${userCredentials.accessToken}`)
+    let configFile = flags['config-file']
+    if (configFile === undefined) {
+      configFile = path.join(this.config.configDir, 'config.yaml')
+    }
+    try {
+      basicCheckConfig(configFile, flags.profile)
+    } catch (err) {
+      if (err instanceof ConfigError) { 
+        this.logToStderr(err.message)
+        this.exit(1)
+      }
+    }
+
+    const config: Config = new Config(configFile)
+    const accessToken: string = config.get(KEYS.accessToken, flags.profile)
+    if (accessToken === undefined || accessToken.trim() === '') {
+      this.log('Logged out')
     } else {
-      this.log("You're not logged in. Run `apollo login` to authenticate.")
+      this.log('Logged in')
     }
   }
 }

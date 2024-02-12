@@ -8,7 +8,13 @@ import open from 'open'
 
 import { BaseCommand } from '../baseCommand.js'
 import { Config } from '../Config.js'
-import { UserCredentials, getUserCredentials, waitFor } from '../utils.js'
+import {
+  ConfigError,
+  UserCredentials,
+  basicCheckConfig,
+  getUserCredentials,
+  waitFor,
+} from '../utils.js'
 
 interface AuthorizationCodeCallbackParams {
   access_token: string
@@ -42,8 +48,21 @@ export default class Login extends BaseCommand<typeof Login> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Login)
 
-    const configFile = path.join(this.config.configDir, 'config.yaml')
+    let configFile = flags['config-file']
+    if (configFile === undefined) {
+      configFile = path.join(this.config.configDir, 'config.yaml')
+    } 
+    try {
+      basicCheckConfig(configFile, flags.profile)
+    } catch (error) {
+      if (error instanceof ConfigError) {
+        this.logToStderr(error.message)
+        this.exit(1)
+      }
+    }
+
     const config: Config = new Config(configFile)
+
     const accessType: string | undefined = config.get(
       'accessType',
       flags.profile,
@@ -73,6 +92,8 @@ export default class Login extends BaseCommand<typeof Login> {
           this.exit(1)
         }
         userCredentials = await this.startRootLogin(address, username, password)
+      } else if (accessType === 'guest') {
+        userCredentials = await this.startGuestLogin(address)
       } else if (accessType === undefined) {
         this.logToStderr('Undefined access type')
         this.exit(1)
@@ -141,6 +162,19 @@ export default class Login extends BaseCommand<typeof Login> {
     return { accessToken: dat.token }
   }
 
+  private async startGuestLogin(address: string): Promise<UserCredentials> {
+    const url = `${address}/auth/login?type=guest`
+    const response = await fetch(url, {
+      headers: { 'Content-Type': 'application/json' },
+    })
+    if (!response.ok) {
+      // FIXME: Better error handling
+      throw new Error('Failed to post request')
+    }
+    const dat = await response.json()
+    return { accessToken: dat.token }
+  }
+
   private async startAuthorizationCodeFlow(
     address: string,
     accessType: string,
@@ -174,7 +208,7 @@ export default class Login extends BaseCommand<typeof Login> {
       })
       .listen(port)
 
-    await ux.anykey('Press any key to open Keycloak in your browser')
+    await ux.anykey('Press any key to open your browser')
 
     await open(authorizationCodeURL)
 

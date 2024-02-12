@@ -1,7 +1,8 @@
 import fs from 'node:fs'
+import path from 'node:path'
 
 import Joi from 'joi'
-import YAML from 'yaml'
+import YAML, { YAMLParseError } from 'yaml'
 
 import { ConfigError } from './utils.js'
 
@@ -22,13 +23,13 @@ interface RootProfile extends Omit<BaseProfile, 'accessType'> {
 
 export type Profile = BaseProfile | RootProfile
 
-const KEYS = [
-  'address',
-  'accessType',
-  'accessToken',
-  'rootCredentials.username',
-  'rootCredentials.password',
-]
+export enum KEYS {
+  address = 'address',
+  accessType = 'accessType',
+  accessToken = 'accessToken',
+  rootCredentials_username = 'rootCredentials.username',
+  rootCredentials_password = 'rootCredentials.password',
+}
 
 interface RecursiveObject {
   [key: number | string]: RecursiveObject | unknown
@@ -78,11 +79,26 @@ export class Config {
 
   constructor(private configFile: string) {
     if (fs.existsSync(configFile)) {
-      const cfg = new YAML.Document(
-        YAML.parseDocument(fs.readFileSync(configFile, 'utf8')),
-      )
-      const config = cfg.toJS()
-      this.profiles = config
+      const data: string = fs.readFileSync(configFile, 'utf8').trim()
+      if (data !== '') {
+        let config
+        try {
+          config = YAML.parse(data)
+        } catch (error) {
+          if (error instanceof YAMLParseError) {
+            process.stderr.write(
+              'Error: Configuration file is probably invalid yaml format:\n',
+            )
+            process.stderr.write(error.message)
+          } else if (error instanceof Error) {
+            process.stderr.write('Unexpected error:')
+            process.stderr.write(error.message)
+          }
+          // eslint-disable-next-line unicorn/no-process-exit
+          process.exit(1)
+        }
+        this.profiles = config
+      }
     }
   }
 
@@ -128,13 +144,16 @@ export class Config {
   }
 
   private checkKey(key: string) {
-    if (!KEYS.includes(key)) {
-      throw new ConfigError(
-        `Invalid configuration key: "${key}". Valid keys are:\n${KEYS.join(
-          '\n',
-        )}`,
-      )
+    for (const x of Object.values(KEYS)) {
+      if (x === key) {
+        return
+      }
     }
+    throw new ConfigError(
+      `Invalid configuration key: "${key}". Valid keys are:\n${Object.values(
+        '\n',
+      )}`,
+    )
   }
 
   public get(key: string, profileName: string): string {
@@ -160,7 +179,7 @@ export class Config {
   ) {
     this.checkKey(key)
 
-    if (key === 'address' && !isValidAddress(value)) {
+    if (key === KEYS[KEYS.address] && !isValidAddress(value)) {
       throw new ConfigError(`"${value}" is not a valid value for "${key}"`)
     }
 
@@ -172,6 +191,7 @@ export class Config {
 
   public writeConfigFile() {
     const yml = YAML.stringify(this.profiles)
+    fs.mkdirSync(path.dirname(this.configFile), { recursive: true })
     fs.writeFileSync(this.configFile, yml)
   }
 
