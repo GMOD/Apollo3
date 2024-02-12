@@ -117,7 +117,7 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
 
       const password: string = await this.askPassword()
       config.set('rootCredentials.password', password, profileName)
-    } 
+    }
   }
 
   private async askProfileName(currentProfiles: string[]): Promise<string> {

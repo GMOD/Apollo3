@@ -22,6 +22,7 @@ function renameFile(src: string, dest: string, verbose = true) {
     msg = `${src} does not exist`
   }
   if (verbose) {
+    // eslint-disable-next-line no-console
     console.log(msg)
   }
 }
@@ -30,6 +31,7 @@ export function copyFile(src: string, dest: string, verbose: boolean) {
   fs.copyFileSync(src, dest)
   if (verbose) {
     const msg = `cp ${src} ${dest}`
+    // eslint-disable-next-line no-console
     console.log(`${msg} # Copied: ${fs.existsSync(dest)}`)
   }
 }

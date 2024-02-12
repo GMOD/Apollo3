@@ -3,7 +3,6 @@ import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { expect, test } from '@oclif/test'
-import YAML from 'yaml'
 
 import {
   CONFIG_FILE,
@@ -27,14 +26,16 @@ describe('apollo status: Check logged in', () => {
     .stdout()
     .command(cmd, { root: dirname(dirname(__dirname)) })
     .it(cmd.join(' '), (ctx) => {
-      expect(ctx.stdout).contain('Logged in')})
+      expect(ctx.stdout).contain('Logged in')
+    })
 
   cmd = ['status', '--profile', 'noAccessToken']
   test
     .stdout()
     .command(cmd, { root: dirname(dirname(__dirname)) })
     .it(cmd.join(' '), (ctx) => {
-      expect(ctx.stdout).contain('Logged out')})
+      expect(ctx.stdout).contain('Logged out')
+    })
 })
 
 describe('apollo status: Config file does not exist', () => {
@@ -48,7 +49,13 @@ describe('apollo status: Config file does not exist', () => {
 })
 
 describe('apollo status: Profile does not exist', () => {
-  const cmd = ['status', '--config-file', 'test_data/complete_config.yaml', '--profile', 'notavailable']
+  const cmd = [
+    'status',
+    '--config-file',
+    'test_data/complete_config.yaml',
+    '--profile',
+    'notavailable',
+  ]
   test
     .stderr()
     .command(cmd, { root: dirname(dirname(__dirname)) })

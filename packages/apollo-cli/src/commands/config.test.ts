@@ -108,7 +108,7 @@ describe('apollo config: Create config directory', () => {
   test
     .stdout()
     .command(cmd, { root: dirname(dirname(__dirname)) })
-    .it(cmd.join(' '), (ctx) => {
+    .it(cmd.join(' '), () => {
       expect(fs.existsSync(`${outdir}/config.yaml`))
     })
 })

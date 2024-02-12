@@ -1,7 +1,8 @@
 import path from 'node:path'
+
 import { BaseCommand } from '../baseCommand.js'
-import { ConfigError, basicCheckConfig } from '../utils.js'
 import { Config, KEYS } from '../Config.js'
+import { ConfigError, basicCheckConfig } from '../utils.js'
 
 export default class Status extends BaseCommand<typeof Status> {
   static description = 'View authentication status'
@@ -15,9 +16,9 @@ export default class Status extends BaseCommand<typeof Status> {
     }
     try {
       basicCheckConfig(configFile, flags.profile)
-    } catch (err) {
-      if (err instanceof ConfigError) { 
-        this.logToStderr(err.message)
+    } catch (error) {
+      if (error instanceof ConfigError) {
+        this.logToStderr(error.message)
         this.exit(1)
       }
     }

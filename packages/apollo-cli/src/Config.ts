@@ -10,7 +10,6 @@ interface BaseProfile {
   address: string
   accessType: 'google' | 'microsoft' | 'guest'
   accessToken: string
-  token: string
 }
 
 interface RootProfile extends Omit<BaseProfile, 'accessType'> {
@@ -172,11 +171,7 @@ export class Config {
     return value as unknown as string
   }
 
-  public set<T extends keyof Profile>(
-    key: string,
-    value: string,
-    profileName: string,
-  ) {
+  public set(key: string, value: string, profileName: string) {
     this.checkKey(key)
 
     if (key === KEYS[KEYS.address] && !isValidAddress(value)) {

@@ -51,7 +51,7 @@ export default class Login extends BaseCommand<typeof Login> {
     let configFile = flags['config-file']
     if (configFile === undefined) {
       configFile = path.join(this.config.configDir, 'config.yaml')
-    } 
+    }
     try {
       basicCheckConfig(configFile, flags.profile)
     } catch (error) {

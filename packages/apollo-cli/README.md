@@ -1,5 +1,4 @@
-oclif-hello-world
-=================
+# oclif-hello-world
 
 oclif example Hello World CLI
 
@@ -8,11 +7,15 @@ oclif example Hello World CLI
 [![GitHub license](https://img.shields.io/github/license/oclif/hello-world)](https://github.com/oclif/hello-world/blob/main/LICENSE)
 
 <!-- toc -->
-* [Usage](#usage)
-* [Commands](#commands)
+
+- [Usage](#usage)
+- [Commands](#commands)
 <!-- tocstop -->
+
 # Usage
+
 <!-- usage -->
+
 ```sh-session
 $ npm install -g apollo-cli
 $ apollo COMMAND
@@ -24,14 +27,18 @@ USAGE
   $ apollo COMMAND
 ...
 ```
+
 <!-- usagestop -->
+
 # Commands
+
 <!-- commands -->
-* [`apollo config [KEY] [VALUE]`](#apollo-config-key-value)
-* [`apollo help [COMMANDS]`](#apollo-help-commands)
-* [`apollo login`](#apollo-login)
-* [`apollo logout`](#apollo-logout)
-* [`apollo status`](#apollo-status)
+
+- [`apollo config [KEY] [VALUE]`](#apollo-config-key-value)
+- [`apollo help [COMMANDS]`](#apollo-help-commands)
+- [`apollo login`](#apollo-login)
+- [`apollo logout`](#apollo-logout)
+- [`apollo status`](#apollo-status)
 
 ## `apollo config [KEY] [VALUE]`
 
@@ -39,21 +46,21 @@ Get or set Apollo configuration options
 
 ```
 USAGE
-  $ apollo config [KEY] [VALUE] [-p <value>] [-c <value>]
+  $ apollo config [KEY] [VALUE] [-p <value>]
 
 ARGUMENTS
   KEY    Name of configuration parameter
   VALUE  Parameter value
 
 FLAGS
-  -c, --config-file=<value>  Use this config file (mostly for testing)
-  -p, --profile=<value>      [default: default] Set or get configuration for this profile
+  -p, --profile=<value>  [default: default] Set or get configuration for this profile
 
 DESCRIPTION
   Get or set Apollo configuration options
 ```
 
-_See code: [src/commands/config.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/config.ts)_
+_See code:
+[src/commands/config.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/config.ts)_
 
 ## `apollo help [COMMANDS]`
 
@@ -73,7 +80,8 @@ DESCRIPTION
   Display help for apollo.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.8/src/commands/help.ts)_
+_See code:
+[@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.8/src/commands/help.ts)_
 
 ## `apollo login`
 
@@ -94,7 +102,8 @@ DESCRIPTION
   Log in to Apollo
 ```
 
-_See code: [src/commands/login.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/login.ts)_
+_See code:
+[src/commands/login.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/login.ts)_
 
 ## `apollo logout`
 
@@ -108,7 +117,8 @@ DESCRIPTION
   Log out of Keycloak
 ```
 
-_See code: [src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/logout.ts)_
+_See code:
+[src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/logout.ts)_
 
 ## `apollo status`
 
@@ -122,5 +132,7 @@ DESCRIPTION
   View authentication status
 ```
 
-_See code: [src/commands/status.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/status.ts)_
+_See code:
+[src/commands/status.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/status.ts)_
+
 <!-- commandsstop -->
