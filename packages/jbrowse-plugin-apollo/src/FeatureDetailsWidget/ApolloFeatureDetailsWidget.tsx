@@ -33,7 +33,7 @@ export interface GOTerm {
 export const ApolloFeatureDetailsWidget = observer(
   function ApolloFeatureDetailsWidget(props: { model: ApolloFeatureDetails }) {
     const { model } = props
-    const { assembly, feature } = model
+    const { assembly, feature, refName } = model
     const session = getSession(model) as unknown as ApolloSessionModel
     const currentAssembly = session.apolloDataStore.assemblies.get(assembly)
     const { classes } = useStyles()
@@ -53,6 +53,17 @@ export const ApolloFeatureDetailsWidget = observer(
 
     if (!(feature && currentAssembly)) {
       return null
+    }
+    const refSeq = currentAssembly.getByRefName(refName)
+    if (!refSeq) {
+      return null
+    }
+    const { end, start } = feature
+    const sequence = refSeq.getSequence(start, end)
+    if (!sequence) {
+      void session.apolloDataStore.loadRefSeq([
+        { assemblyName: assembly, refName, start, end },
+      ])
     }
 
     return (
@@ -74,21 +85,19 @@ export const ApolloFeatureDetailsWidget = observer(
         <Button variant="contained" onClick={handleSeqButtonClick}>
           {showSequence ? 'Hide sequence' : 'Show sequence'}
         </Button>
-        <div>
-          {showSequence && (
-            <textarea
-              readOnly
-              style={{
-                marginLeft: '15px',
-                height: '300px',
-                width: '95%',
-                resize: 'vertical',
-                overflowY: 'scroll',
-              }}
-              value={''}
-            />
-          )}
-        </div>
+        {showSequence && (
+          <textarea
+            readOnly
+            style={{
+              marginLeft: '15px',
+              height: '300px',
+              width: '95%',
+              resize: 'vertical',
+              overflowY: 'scroll',
+            }}
+            value={sequence}
+          />
+        )}
       </div>
     )
   },
