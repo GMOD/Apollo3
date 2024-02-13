@@ -378,21 +378,20 @@ export abstract class Glyph {
         {
           label: 'Edit feature details',
           onClick: () => {
-            const ses = session as unknown as AbstractSessionModel
-            if (ses) {
-              const sesWidged = session as unknown as SessionWithWidgets
-              const apolloFeatureWidget = sesWidged.addWidget(
-                'ApolloFeatureDetails',
-                'apolloFeatureDetails',
-                {
-                  feature: sourceFeature,
-                  assembly: currentAssemblyId,
-                  changeManager,
-                  refName: region.refName,
-                },
-              )
-              ses.showWidget?.(apolloFeatureWidget)
-            }
+            const apolloFeatureWidget = (
+              session as unknown as SessionWithWidgets
+            ).addWidget(
+              'ApolloFeatureDetailsWidget',
+              'apolloFeatureDetailsWidget',
+              {
+                feature: sourceFeature,
+                assembly: currentAssemblyId,
+                refName: region.refName,
+              },
+            )
+            ;(session as unknown as SessionWithWidgets).showWidget?.(
+              apolloFeatureWidget,
+            )
           },
         },
       )
