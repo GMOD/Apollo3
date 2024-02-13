@@ -42,7 +42,8 @@ describe('apollo login: Profile does not exist', () => {
     .it(cmd.join(' '))
 })
 
-describe('apollo login: Add token for guest', () => {
+// TODO: Mock server
+describe.skip('apollo login: Add token for guest', () => {
   before(() => {
     copyFile(`${TEST_DATA_DIR}/guest.yaml`, CONFIG_FILE, VERBOSE)
   })
