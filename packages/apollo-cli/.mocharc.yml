@@ -1,0 +1,14 @@
+---
+require:
+  - ../../.pnp.cjs
+watch-extensions:
+  - ts
+recursive: true
+reporter: spec
+forbidOnly: true
+timeout: 60000
+node-option:
+  - import=tsx
+  - no-warnings=ExperimentalWarning
+  - loader=@istanbuljs/esm-loader-hook
+  - experimental-loader=../../.pnp.loader.mjs

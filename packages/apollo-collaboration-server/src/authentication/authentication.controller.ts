@@ -1,8 +1,10 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   Get,
   Logger,
+  Post,
   Query,
   Redirect,
   Req,
@@ -65,5 +67,12 @@ export class AuthenticationController {
   @Get('guest')
   guestLogin() {
     return this.authService.guestLogin()
+  }
+
+  @Post('root')
+  rootLogin(
+    @Body() { password, username }: { password: string; username: string },
+  ) {
+    return this.authService.rootLogin(username, password)
   }
 }

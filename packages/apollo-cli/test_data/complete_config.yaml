@@ -1,0 +1,15 @@
+default:
+  address: http://localhost:3999
+  accessType: root
+  accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InJvb3QiLCJlbWFpbCI6InJvb3RfdXNlciIsInJvbGUiOiJhZG1pbiIsImlkIjoiNjU3MDhlZTY4MTViOWNiZjg3ZmU2NzZjIiwiaWF0IjoxNzA3MzA4NTQ5LCJleHAiOjE3MDczOTQ5NDl9.EunwXsL3AcKg9BBTofHg_GbhDzyiK7QCSjaSKr5YXk4
+  rootCredentials:
+    username: root
+    password: "1234"
+profile1:
+  address: http://localhost:1999
+  accessToken: xyz
+noAccessToken:
+  address: http://localhost:1999
+test1:
+  address: http://localhost:3999
+  accessType: google

@@ -14,7 +14,11 @@ import { Profile as GoogleProfile } from 'passport-google-oauth20'
 
 import { CreateUserDto } from '../users/dto/create-user.dto'
 import { UsersService } from '../users/users.service'
-import { GUEST_USER_EMAIL, GUEST_USER_NAME } from '../utils/constants'
+import {
+  GUEST_USER_EMAIL,
+  GUEST_USER_NAME,
+  ROOT_USER_EMAIL,
+} from '../utils/constants'
 import { Role } from '../utils/role/role.enum'
 import { Profile as MicrosoftProfile } from '../utils/strategies/microsoft.strategy'
 
@@ -29,6 +33,8 @@ interface ConfigValues {
   GOOGLE_CLIENT_ID_FILE?: string
   ALLOW_GUEST_USER: boolean
   DEFAULT_NEW_USER_ROLE: Role | 'none'
+  ROOT_USER_NAME: string
+  ROOT_USER_PASSWORD: string
 }
 
 @Injectable()
@@ -139,6 +145,19 @@ export class AuthenticationService {
     throw new UnauthorizedException('Guest users are not allowed')
   }
 
+  async rootLogin(username: string, password: string) {
+    const root_user_name: string = this.configService.get('ROOT_USER_NAME')
+    if (
+      username === root_user_name &&
+      password === this.configService.get('ROOT_USER_PASSWORD')
+    ) {
+      return this.logIn(root_user_name, ROOT_USER_EMAIL)
+    }
+    throw new UnauthorizedException(
+      'Invalid username or password for ROOT user',
+    )
+  }
+
   /**
    * Log in
    * @param name - User's display name
@@ -149,11 +168,19 @@ export class AuthenticationService {
     // Find user from Mongo
     let user = await this.usersService.findByEmail(email)
     if (!user) {
-      const userCount = await this.usersService.getCount()
-      const guestUser = await this.usersService.findGuest()
-      const hasAdmin = userCount > 1 || (userCount === 1 && !guestUser)
-      // If there is not a non-guest user yet, the 1st user role will be admin
-      const newUserRole = hasAdmin ? this.defaultNewUserRole : Role.Admin
+      let newUserRole = this.defaultNewUserRole
+      const isRootUser =
+        name === this.configService.get('ROOT_USER_NAME') &&
+        email === ROOT_USER_EMAIL
+      if (isRootUser) {
+        newUserRole = Role.Admin
+      } else {
+        const userCount = await this.usersService.getCount()
+        const guestUser = await this.usersService.findGuest()
+        const hasAdmin = userCount > 1 || (userCount === 1 && !guestUser)
+        // If there is not a non-guest user yet, the 1st user role will be admin
+        newUserRole = hasAdmin ? this.defaultNewUserRole : Role.Admin
+      }
       const newUser: CreateUserDto = { email, username: name }
       if (newUserRole !== 'none') {
         newUser.role = newUserRole

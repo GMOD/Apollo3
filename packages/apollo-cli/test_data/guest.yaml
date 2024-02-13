@@ -1,0 +1,3 @@
+default:
+  address: http://localhost:3999
+  accessType: guest
