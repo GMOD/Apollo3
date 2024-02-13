@@ -3,8 +3,6 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Button,
   DialogActions,
-  DialogContent,
-  DialogContentText,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -55,8 +53,8 @@ const reservedKeys = new Map([
 ])
 
 const useStyles = makeStyles()((theme) => ({
-  attributeInput: {
-    maxWidth: 400,
+  root: {
+    padding: theme.spacing(2),
   },
   newAttributePaper: {
     padding: theme.spacing(2),
@@ -111,8 +109,8 @@ export interface GOTerm {
 export const ApolloFeatureDetailsWidget = observer(
   function ApolloFeatureDetails(props: { model: IAnyStateTreeNode }) {
     const { model } = props
-    const { assembly, changeManager, feature, refName } = model
-    const session = getSession(model) as unknown as AbstractSessionModel
+    const { assembly, feature, refName } = model
+    const session = getSession(model) as AbstractSessionModel
     const apolloSession = getSession(model) as unknown as ApolloSessionModel
     const currentAssembly =
       apolloSession.apolloDataStore.assemblies.get(assembly)
@@ -456,92 +454,82 @@ export const ApolloFeatureDetailsWidget = observer(
       setStrand(event.target.value)
     }
     return (
-      <>
+      <div className={classes.root}>
         <form onSubmit={onSubmitBasic}>
-          <h2 style={{ marginLeft: '15px', marginBottom: '0' }}>
-            Basic information
-          </h2>
-          <DialogContent
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              paddingTop: '0',
+          <Typography variant="h4">Basic information</Typography>
+          <TextField
+            margin="dense"
+            id="start"
+            label="Start"
+            type="number"
+            fullWidth
+            variant="outlined"
+            value={start}
+            onChange={(e) => setStart(e.target.value)}
+          />
+          <TextField
+            margin="dense"
+            id="end"
+            label="End"
+            type="number"
+            fullWidth
+            variant="outlined"
+            value={end}
+            onChange={(e) => setEnd(e.target.value)}
+            error={error}
+            helperText={error ? '"End" must be greater than "Start"' : null}
+          />
+          <OntologyTermAutocomplete
+            session={apolloSession}
+            ontologyName="Sequence Ontology"
+            value={type}
+            filterTerms={isOntologyClass}
+            fetchValidTerms={fetchValidDescendantTerms.bind(null, feature)}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Type"
+                variant="outlined"
+                fullWidth
+                error={Boolean(typeWarningText)}
+                helperText={typeWarningText}
+              />
+            )}
+            onChange={(oldValue, newValue) => {
+              if (newValue) {
+                handleChangeType(newValue)
+              }
             }}
-          >
-            <TextField
-              margin="dense"
-              id="start"
-              label="Start"
-              type="number"
-              fullWidth
-              variant="outlined"
-              value={start}
-              onChange={(e) => setStart(e.target.value)}
-            />
-            <TextField
-              margin="dense"
-              id="end"
-              label="End"
-              type="number"
-              fullWidth
-              variant="outlined"
-              value={end}
-              onChange={(e) => setEnd(e.target.value)}
-              error={error}
-              helperText={error ? '"End" must be greater than "Start"' : null}
-            />
-            <OntologyTermAutocomplete
-              session={apolloSession}
-              ontologyName="Sequence Ontology"
-              value={type}
-              filterTerms={isOntologyClass}
-              fetchValidTerms={fetchValidDescendantTerms.bind(null, feature)}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Type"
-                  variant="outlined"
-                  fullWidth
-                  error={Boolean(typeWarningText)}
-                  helperText={typeWarningText}
-                />
-              )}
-              onChange={(oldValue, newValue) => {
-                if (newValue) {
-                  handleChangeType(newValue)
-                }
-              }}
-            />
-            <form>
-              <label>
-                <input
-                  type="radio"
-                  value="1"
-                  checked={strand === '1'}
-                  onChange={handleStrandChange}
-                />
-                Positive Strand (+)
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  value="-1"
-                  checked={strand === '-1'}
-                  onChange={handleStrandChange}
-                />
-                Negative Strand (-)
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  value=""
-                  checked={strand === ''}
-                  onChange={handleStrandChange}
-                />
-                No Strand Information
-              </label>
-            </form>
-          </DialogContent>
+          />
+          <form>
+            <label>
+              <input
+                type="radio"
+                value="1"
+                checked={strand === '1'}
+                onChange={handleStrandChange}
+              />
+              Positive Strand (+)
+            </label>
+            <label>
+              <input
+                type="radio"
+                value="-1"
+                checked={strand === '-1'}
+                onChange={handleStrandChange}
+              />
+              Negative Strand (-)
+            </label>
+            <label>
+              <input
+                type="radio"
+                value=""
+                checked={strand === ''}
+                onChange={handleStrandChange}
+              />
+              No Strand Information
+            </label>
+          </form>
           <DialogActions>
             <Button
               variant="contained"
@@ -554,160 +542,138 @@ export const ApolloFeatureDetailsWidget = observer(
         </form>
         <hr />
         <form onSubmit={onSubmit}>
-          <h2 style={{ marginLeft: '15px', marginBottom: '0' }}>Attributes</h2>
-          <DialogContent
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              paddingTop: '0',
-            }}
-          >
-            <Grid container direction="column" spacing={1}>
-              {Object.entries(attributes).map(([key, value]) => {
-                const EditorComponent =
-                  reservedKeys.get(key) ?? CustomAttributeValueEditor
-                return (
-                  <Grid
-                    container
-                    item
-                    spacing={3}
-                    alignItems="center"
-                    key={key}
-                  >
-                    <Grid item xs="auto">
-                      <Paper
-                        variant="outlined"
-                        className={classes.attributeName}
-                      >
-                        <Typography>{key}</Typography>
-                      </Paper>
+          <Typography variant="h4">Attributes</Typography>
+          <Grid container direction="column" spacing={1}>
+            {Object.entries(attributes).map(([key, value]) => {
+              const EditorComponent =
+                reservedKeys.get(key) ?? CustomAttributeValueEditor
+              return (
+                <Grid container item spacing={3} alignItems="center" key={key}>
+                  <Grid item xs="auto">
+                    <Paper variant="outlined" className={classes.attributeName}>
+                      <Typography>{key}</Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item flexGrow={1}>
+                    <EditorComponent
+                      session={apolloSession}
+                      value={value}
+                      onChange={makeOnChange(key)}
+                    />
+                  </Grid>
+                  <Grid item xs={1}>
+                    <IconButton
+                      aria-label="delete"
+                      size="medium"
+                      disabled={!editable}
+                      onClick={() => {
+                        deleteAttribute(key)
+                      }}
+                    >
+                      <DeleteIcon fontSize="medium" key={key} />
+                    </IconButton>
+                  </Grid>
+                </Grid>
+              )
+            })}
+            <Grid item>
+              <Button
+                color="primary"
+                variant="contained"
+                disabled={showAddNewForm || !editable}
+                onClick={() => {
+                  setShowAddNewForm(true)
+                }}
+              >
+                Add new
+              </Button>
+            </Grid>
+            {showAddNewForm ? (
+              <Grid item>
+                <Paper elevation={8} className={classes.newAttributePaper}>
+                  <Grid container direction="column">
+                    <Grid item>
+                      <FormControl>
+                        <FormLabel id="attribute-radio-button-group">
+                          Select attribute type
+                        </FormLabel>
+                        <RadioGroup
+                          aria-labelledby="demo-radio-buttons-group-label"
+                          defaultValue="custom"
+                          name="radio-buttons-group"
+                          onChange={handleRadioButtonChange}
+                        >
+                          <FormControlLabel
+                            value="custom"
+                            control={<Radio />}
+                            disableTypography
+                            label={
+                              <Grid container spacing={1} alignItems="center">
+                                <Grid item>
+                                  <Typography>Custom</Typography>
+                                </Grid>
+                                <Grid item>
+                                  <TextField
+                                    label="Custom attribute key"
+                                    variant="outlined"
+                                    value={
+                                      reservedKeys.has(newAttributeKey)
+                                        ? ''
+                                        : newAttributeKey
+                                    }
+                                    disabled={reservedKeys.has(newAttributeKey)}
+                                    onChange={(event) => {
+                                      setNewAttributeKey(event.target.value)
+                                    }}
+                                  />
+                                </Grid>
+                              </Grid>
+                            }
+                          />
+                          {[...reservedKeys.keys()].map((key) => (
+                            <FormControlLabel
+                              key={key}
+                              value={key}
+                              control={<Radio />}
+                              label={key}
+                            />
+                          ))}
+                        </RadioGroup>
+                      </FormControl>
                     </Grid>
-                    <Grid item flexGrow={1}>
-                      <EditorComponent
-                        session={apolloSession}
-                        value={value}
-                        onChange={makeOnChange(key)}
-                      />
-                    </Grid>
-                    <Grid item xs={1}>
-                      <IconButton
-                        aria-label="delete"
-                        size="medium"
-                        disabled={!editable}
-                        onClick={() => {
-                          deleteAttribute(key)
-                        }}
-                      >
-                        <DeleteIcon fontSize="medium" key={key} />
-                      </IconButton>
+                    <Grid item>
+                      <DialogActions>
+                        <Button
+                          key="addButton"
+                          color="primary"
+                          variant="contained"
+                          onClick={handleAddNewAttributeChange}
+                          disabled={!newAttributeKey}
+                        >
+                          Add
+                        </Button>
+                        <Button
+                          key="cancelAddButton"
+                          variant="outlined"
+                          type="submit"
+                          onClick={() => {
+                            setShowAddNewForm(false)
+                            setNewAttributeKey('')
+                            setErrorMessage('')
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </DialogActions>
                     </Grid>
                   </Grid>
-                )
-              })}
-              <Grid item>
-                <Button
-                  color="primary"
-                  variant="contained"
-                  disabled={showAddNewForm || !editable}
-                  onClick={() => {
-                    setShowAddNewForm(true)
-                  }}
-                >
-                  Add new
-                </Button>
+                </Paper>
               </Grid>
-              {showAddNewForm ? (
-                <Grid item>
-                  <Paper elevation={8} className={classes.newAttributePaper}>
-                    <Grid container direction="column">
-                      <Grid item>
-                        <FormControl>
-                          <FormLabel id="attribute-radio-button-group">
-                            Select attribute type
-                          </FormLabel>
-                          <RadioGroup
-                            aria-labelledby="demo-radio-buttons-group-label"
-                            defaultValue="custom"
-                            name="radio-buttons-group"
-                            onChange={handleRadioButtonChange}
-                          >
-                            <FormControlLabel
-                              value="custom"
-                              control={<Radio />}
-                              disableTypography
-                              label={
-                                <Grid container spacing={1} alignItems="center">
-                                  <Grid item>
-                                    <Typography>Custom</Typography>
-                                  </Grid>
-                                  <Grid item>
-                                    <TextField
-                                      label="Custom attribute key"
-                                      variant="outlined"
-                                      value={
-                                        reservedKeys.has(newAttributeKey)
-                                          ? ''
-                                          : newAttributeKey
-                                      }
-                                      disabled={reservedKeys.has(
-                                        newAttributeKey,
-                                      )}
-                                      onChange={(event) => {
-                                        setNewAttributeKey(event.target.value)
-                                      }}
-                                    />
-                                  </Grid>
-                                </Grid>
-                              }
-                            />
-                            {[...reservedKeys.keys()].map((key) => (
-                              <FormControlLabel
-                                key={key}
-                                value={key}
-                                control={<Radio />}
-                                label={key}
-                              />
-                            ))}
-                          </RadioGroup>
-                        </FormControl>
-                      </Grid>
-                      <Grid item>
-                        <DialogActions>
-                          <Button
-                            key="addButton"
-                            color="primary"
-                            variant="contained"
-                            style={{ margin: 2 }}
-                            onClick={handleAddNewAttributeChange}
-                            disabled={!newAttributeKey}
-                          >
-                            Add
-                          </Button>
-                          <Button
-                            key="cancelAddButton"
-                            variant="outlined"
-                            type="submit"
-                            onClick={() => {
-                              setShowAddNewForm(false)
-                              setNewAttributeKey('')
-                              setErrorMessage('')
-                            }}
-                          >
-                            Cancel
-                          </Button>
-                        </DialogActions>
-                      </Grid>
-                    </Grid>
-                  </Paper>
-                </Grid>
-              ) : null}
-            </Grid>
-            {errorMessage ? (
-              <DialogContentText color="error">
-                {errorMessage}
-              </DialogContentText>
             ) : null}
-          </DialogContent>
+          </Grid>
+          {errorMessage ? (
+            <Typography color="error">{errorMessage}</Typography>
+          ) : null}
           <DialogActions>
             <Button
               variant="contained"
@@ -719,16 +685,10 @@ export const ApolloFeatureDetailsWidget = observer(
           </DialogActions>
         </form>
         <hr />
-        <div>
-          <h2 style={{ display: 'inline', marginLeft: '15px' }}>Sequence</h2>
-          <Button
-            variant="contained"
-            style={{ marginLeft: '15px' }}
-            onClick={handleSeqButtonClick}
-          >
-            {showSequence ? 'Hide sequence' : 'Show sequence'}
-          </Button>
-        </div>
+        <Typography variant="h4">Sequence</Typography>
+        <Button variant="contained" onClick={handleSeqButtonClick}>
+          {showSequence ? 'Hide sequence' : 'Show sequence'}
+        </Button>
         <div>
           {showSequence && (
             <textarea
@@ -744,7 +704,7 @@ export const ApolloFeatureDetailsWidget = observer(
             />
           )}
         </div>
-      </>
+      </div>
     )
   },
 )
