@@ -1,9 +1,8 @@
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { getSession } from '@jbrowse/core/util'
-import { Button, Typography } from '@mui/material'
 import { observer } from 'mobx-react'
 import { getRoot } from 'mobx-state-tree'
-import React, { useMemo, useState } from 'react'
+import React, { useMemo } from 'react'
 import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
@@ -12,23 +11,13 @@ import { ApolloRootModel } from '../types'
 import { Attributes } from './Attributes'
 import { BasicInformation } from './BasicInformation'
 import { ApolloFeatureDetailsWidget as ApolloFeatureDetails } from './model'
+import { Sequence } from './Sequence'
 
 const useStyles = makeStyles()((theme) => ({
   root: {
     padding: theme.spacing(2),
   },
 }))
-
-export interface AttributeValueEditorProps {
-  session: ApolloSessionModel
-  value: string[]
-  onChange(newValue: string[]): void
-}
-
-export interface GOTerm {
-  id: string
-  label: string
-}
 
 export const ApolloFeatureDetailsWidget = observer(
   function ApolloFeatureDetailsWidget(props: { model: ApolloFeatureDetails }) {
@@ -37,7 +26,6 @@ export const ApolloFeatureDetailsWidget = observer(
     const session = getSession(model) as unknown as ApolloSessionModel
     const currentAssembly = session.apolloDataStore.assemblies.get(assembly)
     const { classes } = useStyles()
-    const [showSequence, setShowSequence] = useState(false)
     const { internetAccounts } = getRoot<ApolloRootModel>(session)
     const internetAccount = useMemo(() => {
       return internetAccounts.find(
@@ -46,10 +34,6 @@ export const ApolloFeatureDetailsWidget = observer(
     }, [internetAccounts])
     const role = internetAccount ? internetAccount.getRole() : 'admin'
     const editable = ['admin', 'user'].includes(role ?? '')
-
-    const handleSeqButtonClick = () => {
-      setShowSequence(!showSequence)
-    }
 
     if (!(feature && currentAssembly)) {
       return null
@@ -81,23 +65,12 @@ export const ApolloFeatureDetailsWidget = observer(
           editable={editable}
         />
         <hr />
-        <Typography variant="h4">Sequence</Typography>
-        <Button variant="contained" onClick={handleSeqButtonClick}>
-          {showSequence ? 'Hide sequence' : 'Show sequence'}
-        </Button>
-        {showSequence && (
-          <textarea
-            readOnly
-            style={{
-              marginLeft: '15px',
-              height: '300px',
-              width: '95%',
-              resize: 'vertical',
-              overflowY: 'scroll',
-            }}
-            value={sequence}
-          />
-        )}
+        <Sequence
+          feature={feature}
+          session={session}
+          assembly={currentAssembly._id}
+          refName={refName}
+        />
       </div>
     )
   },
