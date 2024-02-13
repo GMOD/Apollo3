@@ -1,2 +1,2 @@
 export { ApolloFeatureDetailsWidget } from './ApolloFeatureDetailsWidget'
-export { ApolloFeatureDetails } from './model'
+export { ApolloFeatureDetailsWidgetModel } from './model'

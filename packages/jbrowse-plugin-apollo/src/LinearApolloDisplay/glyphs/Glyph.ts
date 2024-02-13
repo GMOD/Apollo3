@@ -382,12 +382,11 @@ export abstract class Glyph {
             if (ses) {
               const sesWidged = session as unknown as SessionWithWidgets
               const apolloFeatureWidget = sesWidged.addWidget(
-                'ApolloFeatureDetails',
-                'apolloFeatureDetails',
+                'ApolloFeatureDetailsWidget',
+                'apolloFeatureDetailsWidget',
                 {
                   feature: sourceFeature,
                   assembly: currentAssemblyId,
-                  changeManager,
                   refName: region.refName,
                 },
               )

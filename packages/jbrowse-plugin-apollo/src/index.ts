@@ -51,8 +51,8 @@ import { AddFeature } from './components/AddFeature'
 import { ViewCheckResults } from './components/ViewCheckResults'
 import ApolloPluginConfigurationSchema from './config'
 import {
-  ApolloFeatureDetails,
   ApolloFeatureDetailsWidget,
+  ApolloFeatureDetailsWidgetModel,
 } from './FeatureDetailsWidget'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
@@ -113,12 +113,12 @@ export default class ApolloPlugin extends Plugin {
     installApolloTextSearchAdapter(pluginManager)
 
     pluginManager.addWidgetType(() => {
-      const configSchema = ConfigurationSchema('ApolloFeatureDetails', {})
+      const configSchema = ConfigurationSchema('ApolloFeatureDetailsWidget', {})
       const widgetType = new WidgetType({
-        name: 'ApolloFeatureDetails',
+        name: 'ApolloFeatureDetailsWidget',
         heading: 'Apollo feature details',
         configSchema,
-        stateModel: ApolloFeatureDetails,
+        stateModel: ApolloFeatureDetailsWidgetModel,
         ReactComponent: ApolloFeatureDetailsWidget,
       })
       return widgetType
