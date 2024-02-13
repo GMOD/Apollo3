@@ -7,20 +7,15 @@ import {
   isAssemblySpecificChange,
 } from 'apollo-common'
 import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
-import { ValidationResultSet, makeGFF3Feature } from 'apollo-shared'
+import {
+  ValidationResultSet,
+  makeGFF3Feature,
+  splitStringIntoChunks,
+} from 'apollo-shared'
 import { getSnapshot } from 'mobx-state-tree'
 
 import { checkFeatures, loadAssemblyIntoClient } from '../util'
 import { BackendDriver } from './BackendDriver'
-
-function splitStringIntoChunks(input: string, chunkSize: number): string[] {
-  const chunks: string[] = []
-  for (let i = 0; i < input.length; i += chunkSize) {
-    const chunk = input.slice(i, i + chunkSize)
-    chunks.push(chunk)
-  }
-  return chunks
-}
 
 export class DesktopFileDriver extends BackendDriver {
   async loadAssembly(assemblyName: string) {
