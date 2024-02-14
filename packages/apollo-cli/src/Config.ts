@@ -198,6 +198,54 @@ export class Config {
     return configSchema.validate(this.profiles)
   }
 
+  private checkProfileExists(profileName: string) {
+    if (!this.getProfileNames().includes(profileName)) {
+      throw new ConfigError(
+        `Profile "${profileName}" does not exist. Please run "apollo config" to set this profile up or choose a different profile`,
+      )
+    }
+  }
+
+  private async checkAccess(
+    address: string,
+    accessToken: string,
+  ): Promise<void> {
+    const url = new URL(`${address}/users`)
+    const auth = {
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    }
+    const response = await fetch(url, auth)
+    if (response.ok) {
+      return
+    }
+    const msg = `Failed to access Apollo with the current address and/or access token\nThe server returned:\n${response.statusText}`
+    throw new ConfigError(msg)
+  }
+
+  public async getAccess(profileName: string) {
+    this.checkProfileExists(profileName)
+
+    const address: string = this.get('address', profileName)
+    if (address === undefined || address.trim() === '') {
+      throw new ConfigError(
+        `Profile "${profileName}" has no address. Please run "apollo config" to set it up.`,
+      )
+    }
+
+    const accessToken: string | undefined = this.get('accessToken', profileName)
+    if (accessToken === undefined || accessToken.trim() === '') {
+      throw new ConfigError(
+        `Profile "${profileName}" has no access token. Please run "apollo login" to set it up.`,
+      )
+    }
+
+    await this.checkAccess(address, accessToken)
+    return { address, accessToken }
+  }
+
   public toString(): string {
     return YAML.stringify(this.profiles)
   }

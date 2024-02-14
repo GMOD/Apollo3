@@ -3,9 +3,6 @@ import path from 'node:path'
 import { Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { Config } from '../../Config.js'
-import { ConfigError, basicCheckConfig, getAccess } from '../../utils.js'
-import { string } from 'joi'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description = 'Get available assemblies'
@@ -21,42 +18,17 @@ export default class Get extends BaseCommand<typeof Get> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Get)
 
-    let configFile: string | undefined = flags['config-file']
-    if (configFile === undefined) {
-      configFile = path.join(this.config.configDir, 'config.yaml')
-    }
-
-    let access: { address: string; accessToken: string }
-    try {
-      access = await getAccess(configFile, flags.profile)
-    } catch (error) {
-      if (error instanceof Error) {
-        this.logToStderr(error.message)
-        throw error
-      }
-      this.exit(1)
-    }
+    const access = await this.getAccess(flags['config-file'], flags.profile)
+    // let access: { address: string; accessToken: string }
+    // try {
+    //   access = await getAccess(configFile, flags.profile)
+    // } catch (error) {
+    //   if (error instanceof Error) {
+    //     this.logToStderr(error.message)
+    //   }
+    //   this.exit(1)
+    // }
     console.log(access)
-
-  //   try {
-  //     basicCheckConfig(configFile, flags.profile)
-  //   } catch (error) {
-  //     if (error instanceof ConfigError) {
-  //       this.logToStderr(error.message)
-  //       this.exit(1)
-  //     }
-  //   }
-  //   const config: Config = new Config(configFile)
-  //   const address: string | undefined = config.get('address', flags.profile)
-  //   const accessToken: string | undefined = config.get('accessToken', flags.profile)
-
-  //   if (address === undefined || accessToken === undefined) {
-  //     // handle this
-  //   } else {
-  //     const assemblies: string[] = await this.getAssembly(address, token)
-  //     this.log(JSON.stringify(assemblies, null, 2))
-  //   }
-  // }
 
   // private async getAssembly(address: string, token: string): Promise<string[]> {
   //   const url = new URL(`${address}/assemblies`)
