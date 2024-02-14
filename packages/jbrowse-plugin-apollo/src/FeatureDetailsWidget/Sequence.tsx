@@ -68,7 +68,7 @@ export const Sequence = observer(function Sequence({
 
   return (
     <>
-      <Typography variant="h4">Sequence</Typography>
+      <Typography variant="h5">Sequence</Typography>
       <Button variant="contained" onClick={onButtonClick}>
         {showSequence ? 'Hide sequence' : 'Show sequence'}
       </Button>
