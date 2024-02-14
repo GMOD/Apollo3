@@ -1,41 +1,12 @@
 import { AbstractSessionModel, getSession, revcom } from '@jbrowse/core/util'
-import DeleteIcon from '@mui/icons-material/Delete'
-import {
-  Button,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  FormControl,
-  FormControlLabel,
-  FormLabel,
-  Grid,
-  IconButton,
-  MenuItem,
-  Paper,
-  Radio,
-  RadioGroup,
-  Select,
-  SelectChangeEvent,
-  TextField,
-  Typography,
-} from '@mui/material'
-import {
-  FeatureAttributeChange,
-  LocationEndChange,
-  LocationStartChange,
-} from 'apollo-shared'
 import { observer } from 'mobx-react'
-import { IAnyStateTreeNode, getRoot, getSnapshot } from 'mobx-state-tree'
-import React, { useMemo, useState } from 'react'
-import { makeStyles } from 'tss-react/mui'
+import { IAnyStateTreeNode, getRoot } from 'mobx-state-tree'
+import React, { useMemo } from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
-import { BackendDriver } from '../BackendDrivers'
-import { OntologyTermMultiSelect } from '../components/OntologyTermMultiSelect'
 import { ApolloSessionModel } from '../session'
 import { ApolloRootModel } from '../types'
 import { Attributes } from './Attributes'
-import { Sequence } from './Sequence'
 import { TranscriptBasicInformation } from './TranscriptBasic'
 import TranscriptSequence from './TranscriptSequence'
 
@@ -51,16 +22,81 @@ export interface CDSInfo {
   endSeq: string
 }
 
-export interface GOTerm {
-  id: string
-  label: string
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getCDSInfo = (feature: any, refData: any): CDSInfo[] => {
+  const CDSresult: CDSInfo[] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const traverse = (currentFeature: any, isParentMRNA: boolean) => {
+    if (
+      isParentMRNA &&
+      (currentFeature.type === 'CDS' ||
+        currentFeature.type === 'three_prime_UTR' ||
+        currentFeature.type === 'five_prime_UTR')
+    ) {
+      let startSeq = refData.getSequence(
+        Number(currentFeature.start) - 2,
+        Number(currentFeature.start),
+      )
+      let endSeq = refData.getSequence(
+        Number(currentFeature.end),
+        Number(currentFeature.end) + 2,
+      )
+
+      if (currentFeature.strand === -1 && startSeq && endSeq) {
+        startSeq = revcom(startSeq)
+        endSeq = revcom(endSeq)
+      }
+      const oneCDS: CDSInfo = {
+        id: currentFeature._id,
+        type: currentFeature.type,
+        strand: Number(currentFeature.strand),
+        start: currentFeature.start + 1,
+        end: currentFeature.end + 1,
+        oldStart: currentFeature.start + 1,
+        oldEnd: currentFeature.end + 1,
+        startSeq: startSeq ?? '',
+        endSeq: endSeq ?? '',
+      }
+      CDSresult.push(oneCDS)
+    }
+    if (currentFeature.children) {
+      for (const child of currentFeature.children) {
+        traverse(child[1], feature.type === 'mRNA')
+      }
+    }
+  }
+  traverse(feature, feature.type === 'mRNA')
+  CDSresult.sort((a, b) => {
+    return Number(a.start) - Number(b.start)
+  })
+  if (CDSresult.length > 0) {
+    CDSresult[0].startSeq = ''
+
+    // eslint-disable-next-line unicorn/prefer-at
+    CDSresult[CDSresult.length - 1].endSeq = ''
+
+    // Loop through the array and clear "startSeq" or "endSeq" based on the conditions
+    for (let i = 0; i < CDSresult.length; i++) {
+      if (i > 0 && CDSresult[i].start === CDSresult[i - 1].end) {
+        // Clear "startSeq" if the current item's "start" is equal to the previous item's "end"
+        CDSresult[i].startSeq = ''
+      }
+      if (
+        i < CDSresult.length - 1 &&
+        CDSresult[i].end === CDSresult[i + 1].start
+      ) {
+        // Clear "endSeq" if the next item's "start" is equal to the current item's "end"
+        CDSresult[i].endSeq = ''
+      }
+    }
+  }
+  return CDSresult
 }
-// const error = false
 
 export const ApolloTranscriptDetailsWidget = observer(
   function ApolloTranscriptDetails(props: { model: IAnyStateTreeNode }) {
     const { model } = props
-    const { assembly, changeManager, feature, refName } = model
+    const { assembly, feature, refName } = model
     const session = getSession(model) as unknown as AbstractSessionModel
     const apolloSession = getSession(model) as unknown as ApolloSessionModel
     const currentAssembly =
@@ -78,7 +114,6 @@ export const ApolloTranscriptDetailsWidget = observer(
     if (!(feature && currentAssembly)) {
       return null
     }
-    console.log(`featureID=${feature._id}`)
     const refSeq = currentAssembly.getByRefName(refName)
     if (!refSeq) {
       return null

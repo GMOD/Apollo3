@@ -10,10 +10,9 @@ import { AnnotationFeatureI } from 'apollo-mst'
 import { splitStringIntoChunks } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
-import { makeStyles } from 'tss-react/mui'
 
 import { ApolloSessionModel } from '../session'
-import { CDSInfo } from './ApolloTranscriptDetailsWidget'
+import { getCDSInfo } from './ApolloTranscriptDetailsWidget'
 
 interface Props {
   textSegments: { text: string; color: string }[]
@@ -32,13 +31,6 @@ function formatSequence(
   return `${header}${body}`
 }
 
-const useStyles = makeStyles()({
-  sequence: {
-    width: '100%',
-    resize: 'vertical',
-  },
-})
-
 export const intronColor = 'rgb(120,120,120)' // Slightly brighter gray
 export const utrColor = 'rgb(20,200,200)' // Slightly brighter cyan
 export const proteinColor = 'rgb(220,70,220)' // Slightly brighter magenta
@@ -46,7 +38,6 @@ export const cdsColor = 'rgb(240,200,20)' // Slightly brighter yellow
 export const updownstreamColor = 'rgb(255,130,130)' // Slightly brighter red
 export const genomeColor = 'rgb(20,230,20)' // Slightly brighter green
 
-const error = false
 let textSegments = [{ text: '', color: '' }]
 
 export const TranscriptSequence = observer(function TranscriptSequence({
@@ -62,86 +53,8 @@ export const TranscriptSequence = observer(function TranscriptSequence({
 }) {
   const currentAssembly = session.apolloDataStore.assemblies.get(assembly)
   const refData = currentAssembly?.getByRefName(refName)
-  const { classes } = useStyles()
-  const [errorMessage, setErrorMessage] = useState('')
   const [showSequence, setShowSequence] = useState(false)
   const [selectedOption, setSelectedOption] = useState('Select')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const getCDSInfo = (feature: any): CDSInfo[] => {
-    const CDSresult: CDSInfo[] = []
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const traverse = (currentFeature: any, isParentMRNA: boolean) => {
-      if (
-        isParentMRNA &&
-        (currentFeature.type === 'CDS' ||
-          currentFeature.type === 'three_prime_UTR' ||
-          currentFeature.type === 'five_prime_UTR')
-      ) {
-        let startSeq = refData?.getSequence(
-          Number(currentFeature.start) - 2,
-          Number(currentFeature.start),
-        )
-        let endSeq = refData?.getSequence(
-          Number(currentFeature.end),
-          Number(currentFeature.end) + 2,
-        )
-
-        if (currentFeature.strand === -1 && startSeq && endSeq) {
-          startSeq = revcom(startSeq)
-          endSeq = revcom(endSeq)
-        }
-        const oneCDS: CDSInfo = {
-          id: currentFeature._id,
-          type: currentFeature.type,
-          strand: Number(currentFeature.strand),
-          start: currentFeature.start + 1,
-          end: currentFeature.end + 1,
-          oldStart: currentFeature.start + 1,
-          oldEnd: currentFeature.end + 1,
-          startSeq: startSeq ?? '',
-          endSeq: endSeq ?? '',
-        }
-        CDSresult.push(oneCDS)
-      }
-      if (currentFeature.children) {
-        for (const child of currentFeature.children) {
-          traverse(child[1], feature.type === 'mRNA')
-        }
-      }
-    }
-    traverse(feature, feature.type === 'mRNA')
-    CDSresult.sort((a, b) => {
-      return Number(a.start) - Number(b.start)
-    })
-    if (CDSresult.length > 0) {
-      CDSresult[0].startSeq = ''
-
-      // eslint-disable-next-line unicorn/prefer-at
-      CDSresult[CDSresult.length - 1].endSeq = ''
-
-      // Loop through the array and clear "startSeq" or "endSeq" based on the conditions
-      for (let i = 0; i < CDSresult.length; i++) {
-        if (i > 0 && CDSresult[i].start === CDSresult[i - 1].end) {
-          // Clear "startSeq" if the current item's "start" is equal to the previous item's "end"
-          CDSresult[i].startSeq = ''
-        }
-        if (
-          i < CDSresult.length - 1 &&
-          CDSresult[i].end === CDSresult[i + 1].start
-        ) {
-          // Clear "endSeq" if the next item's "start" is equal to the current item's "end"
-          CDSresult[i].endSeq = ''
-        }
-      }
-    }
-    return CDSresult
-  }
-  const [transcriptItems, setTranscriptItems] = useState<CDSInfo[]>(
-    getCDSInfo(feature),
-  )
-  const onButtonClick = () => {
-    setShowSequence(!showSequence)
-  }
 
   if (!(feature && currentAssembly)) {
     return null
@@ -150,31 +63,36 @@ export const TranscriptSequence = observer(function TranscriptSequence({
   if (!refSeq) {
     return null
   }
+  const transcriptItems = getCDSInfo(feature, refData)
   const { end, start } = feature
   let sequence = ''
   if (showSequence) {
-    sequence = refSeq.getSequence(start, end)
-    if (sequence) {
-      sequence = formatSequence(sequence, refName, start, end)
-    } else {
+    getSequenceAsString(start, end)
+  }
+
+  function getSequenceAsString(start: number, end: number): string {
+    sequence = refSeq?.getSequence(start, end) ?? ''
+    if (sequence === '') {
       void session.apolloDataStore.loadRefSeq([
         { assemblyName: assembly, refName, start, end },
       ])
+    } else {
+      sequence = formatSequence(sequence, refName, start, end)
     }
+    getSequenceAsTextSegment(selectedOption) // For color coded sequence
+    return sequence
   }
 
   const handleSeqButtonClick = () => {
     setShowSequence(!showSequence)
   }
 
-  async function handleChangeSeqOption(e: SelectChangeEvent<string>) {
-    setErrorMessage('')
-    setSelectedOption(e.target.value)
+  function getSequenceAsTextSegment(option: string) {
     let seqData = ''
     textSegments = []
-    switch (e.target.value) {
+    switch (option) {
       case 'CDS': {
-        textSegments.push({ text: '>CDS\n', color: 'black' })
+        textSegments.push({ text: `>${refName} : CDS\n`, color: 'black' })
         for (const item of transcriptItems) {
           if (item.type === 'CDS') {
             const refSeq: string | undefined = refData?.getSequence(
@@ -188,7 +106,7 @@ export const TranscriptSequence = observer(function TranscriptSequence({
         break
       }
       case 'cDNA': {
-        textSegments.push({ text: '>cDNA\n', color: 'black' })
+        textSegments.push({ text: `>${refName} : cDNA\n`, color: 'black' })
         for (const item of transcriptItems) {
           if (
             item.type === 'CDS' ||
@@ -210,7 +128,10 @@ export const TranscriptSequence = observer(function TranscriptSequence({
         break
       }
       case 'Full': {
-        textSegments.push({ text: '>Full genomic\n', color: 'black' })
+        textSegments.push({
+          text: `>${refName} : Full genomic\n`,
+          color: 'black',
+        })
         let lastEnd = 0
         let count = 0
         for (const item of transcriptItems) {
@@ -267,6 +188,12 @@ export const TranscriptSequence = observer(function TranscriptSequence({
     }
   }
 
+  async function handleChangeSeqOption(e: SelectChangeEvent<string>) {
+    const option = e.target.value
+    setSelectedOption(option)
+    void getSequenceAsTextSegment(option)
+  }
+
   // Function to copy text to clipboard
   const copyToClipboard = () => {
     const textToCopy = textSegments.map((segment) => segment.text).join('')
@@ -288,13 +215,6 @@ export const TranscriptSequence = observer(function TranscriptSequence({
       <div>
         {textSegments.map((segment, index) => (
           <span key={index} style={{ color: segment.color }}>
-            {/* Adding line breaks after every 120 characters */}
-            {/* {segment.text.match(/.{1,120}/g)?.map((line, idx) => (
-              <React.Fragment key={idx}>
-                {line}
-                <br />
-              </React.Fragment>
-            ))} */}
             {splitStringIntoChunks(segment.text, 150).join('\n')}
           </span>
         ))}

@@ -64,11 +64,53 @@ export type ApolloFeatureDetailsWidgetSnapshot = SnapshotIn<
   typeof ApolloFeatureDetailsWidgetModel
 >
 
-export const ApolloTranscriptDetails = types.model('ApolloTranscriptDetails', {
-  id: ElementId,
-  type: types.literal('ApolloTranscriptDetails'),
-  feature: types.safeReference(AnnotationFeature),
-  assembly: types.string,
-  refName: types.string,
-  changeManager: types.frozen<ChangeManager>(),
-})
+export const ApolloTranscriptDetails = types
+  .model('ApolloTranscriptDetails', {
+    id: ElementId,
+    type: types.literal('ApolloTranscriptDetails'),
+    feature: types.maybe(
+      types.reference(AnnotationFeature, {
+        onInvalidated(ev) {
+          ev.parent.setTryReload(ev.invalidId)
+          ev.removeRef()
+        },
+      }),
+    ),
+    assembly: types.string,
+    refName: types.string,
+    changeManager: types.frozen<ChangeManager>(),
+  })
+  .volatile(() => ({
+    tryReload: undefined as string | undefined,
+  }))
+  .actions((self) => ({
+    setFeature(feature: AnnotationFeatureI) {
+      self.feature = feature
+    },
+    setTryReload(featureId?: string) {
+      self.tryReload = featureId
+    },
+  }))
+  .actions((self) => ({
+    afterAttach() {
+      addDisposer(
+        self,
+        autorun((reaction) => {
+          if (!self.tryReload) {
+            return
+          }
+          const session = getSession(self) as unknown as ApolloSessionModel
+          const { apolloDataStore } = session
+          if (!apolloDataStore) {
+            return
+          }
+          const feature = apolloDataStore.getFeature(self.tryReload)
+          if (feature) {
+            self.setFeature(feature)
+            self.setTryReload()
+            reaction.dispose()
+          }
+        }),
+      )
+    },
+  }))

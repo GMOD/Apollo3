@@ -396,7 +396,6 @@ export abstract class Glyph {
         },
       )
       if (sourceFeature.type === 'mRNA') {
-        // eslint-disable-next-line unicorn/no-array-push-push
         menuItems.push({
           label: 'Edit transcript details',
           onClick: () => {
@@ -416,7 +415,7 @@ export abstract class Glyph {
               ses.showWidget?.(apolloTranscriptWidget)
             }
           },
-        })        
+        })
       }
     }
     return menuItems
