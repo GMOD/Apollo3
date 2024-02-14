@@ -1,5 +1,8 @@
 import { Command, Flags, Interfaces } from '@oclif/core'
 
+import { Config } from './Config.js'
+import { checkConfigfileExists } from './utils.js'
+
 export type Flags<T extends typeof Command> = Interfaces.InferredFlags<
   (typeof BaseCommand)['baseFlags'] & T['flags']
 >
@@ -28,6 +31,23 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     })
     this.flags = flags as Flags<T>
     this.args = args as Args<T>
+  }
+
+  private getConfig(configFile: string | undefined): Config {
+    if (configFile === undefined) {
+      configFile = path.join(this.config.configDir, 'config.yaml')
+    }
+    checkConfigfileExists(configFile)
+    const config: Config = new Config(configFile)
+    return config
+  }
+
+  public async getAccess(
+    configFile: string | undefined,
+    profileName: string,
+  ): Promise<{ address: string; accessToken: string }> {
+    const config: Config = this.getConfig(configFile)
+    return config.getAccess(profileName)
   }
 
   protected async catch(err: Error & { exitCode?: number }): Promise<unknown> {

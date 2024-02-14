@@ -17,7 +17,7 @@ export interface UserCredentials {
   accessToken: string
 }
 
-function checkConfigfileExists(configFile: string) {
+export function checkConfigfileExists(configFile: string) {
   if (!fs.existsSync(configFile)) {
     throw new ConfigError(
       `Configuration file "${configFile}" does not exist. Please run "apollo config" first`,
@@ -25,67 +25,62 @@ function checkConfigfileExists(configFile: string) {
   }
 }
 
-function checkProfileExists(profileName: string, config: Config) {
-  if (!config.getProfileNames().includes(profileName)) {
-    throw new ConfigError(
-      `Profile "${profileName}" does not exist. Please run "apollo config" to set this profile up or choose a different profile`,
-    )
-  }
-}
+// export function checkProfileExists(profileName: string, config: Config) {
+//   if (!config.getProfileNames().includes(profileName)) {
+//     throw new ConfigError(
+//       `Profile "${profileName}" does not exist. Please run "apollo config" to set this profile up or choose a different profile`,
+//     )
+//   }
+// }
 
-export function basicCheckConfig(configFile: string, profileName: string) {
-  checkConfigfileExists(configFile)
-  const config: Config = new Config(configFile)
-  checkProfileExists(profileName, config)
-}
+// export function basicCheckConfig(configFile: string, profileName: string) {
+//   checkConfigfileExists(configFile)
+//   const config: Config = new Config(configFile)
+//   checkProfileExists(profileName, config)
+// }
 
-async function checkAccess(
-  address: string,
-  accessToken: string,
-): Promise<void> {
-  const url = new URL(`${address}/assemblies`)
-  const auth = {
-    headers: {
-      authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-  }
-  try {
-    const response = await fetch(url, auth)
-    console.log('HERE')
-  } catch {
-    console.log('THERE')
-  }
-  //   if (response.ok) {
-  //   return
-  // }
-  // const msg = `Failed to access Apollo with the current address and/or access token\nThe server returned:\n${response.statusText}`
-  // throw new ConfigError(msg)
-}
+// export async function checkAccess(
+//   address: string,
+//   accessToken: string,
+// ): Promise<void> {
+//   const url = new URL(`${address}/users`)
+//   const auth = {
+//     headers: {
+//       authorization: `Bearer ${accessToken}`,
+//       'Content-Type': 'application/json',
+//     },
+//   }
+//   const response = await fetch(url, auth)
+//   if (response.ok) {
+//     return
+//   }
+//   const msg = `Failed to access Apollo with the current address and/or access token\nThe server returned:\n${response.statusText}`
+//   throw new ConfigError(msg)
+// }
 
-export async function getAccess(
-  configFile: string,
-  profileName: string,
-): Promise<{ address: string; accessToken: string }> {
-  checkConfigfileExists(configFile)
-  const config: Config = new Config(configFile)
-  checkProfileExists(profileName, config)
+// export async function getAccess(
+//   configFile: string,
+//   profileName: string,
+// ): Promise<{ address: string; accessToken: string }> {
+//   checkConfigfileExists(configFile)
+//   const config: Config = new Config(configFile)
+//   checkProfileExists(profileName, config)
 
-  const address: string = config.get('address', profileName)
-  if (address === undefined || address.trim() === '') {
-    throw new ConfigError(
-      `Profile ${profileName} has no address. Please run "apollo config" to set it up.`,
-    )
-  }
-  const accessToken: string | undefined = config.get('accessToken', profileName)
-  if (accessToken === undefined || accessToken.trim() === '') {
-    throw new ConfigError(
-      `Profile ${profileName} has no access token. Please run "apollo login" to set it up.`,
-    )
-  }
-  await checkAccess(address, accessToken)
-  return { address, accessToken }
-}
+//   const address: string = config.get('address', profileName)
+//   if (address === undefined || address.trim() === '') {
+//     throw new ConfigError(
+//       `Profile "${profileName}" has no address. Please run "apollo config" to set it up.`,
+//     )
+//   }
+//   const accessToken: string | undefined = config.get('accessToken', profileName)
+//   if (accessToken === undefined || accessToken.trim() === '') {
+//     throw new ConfigError(
+//       `Profile "${profileName}" has no access token. Please run "apollo login" to set it up.`,
+//     )
+//   }
+//   await checkAccess(address, accessToken)
+//   return { address, accessToken }
+// }
 
 export const getUserCredentials = (): UserCredentials | null => {
   try {
