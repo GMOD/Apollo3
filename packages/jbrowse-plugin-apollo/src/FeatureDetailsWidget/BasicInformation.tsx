@@ -15,6 +15,7 @@ import { isOntologyClass } from '../OntologyManager'
 import OntologyStore from '../OntologyManager/OntologyStore'
 import { fetchValidDescendantTerms } from '../OntologyManager/util'
 import { ApolloSessionModel } from '../session'
+import { NumberTextField } from './NumberTextField'
 
 export const BasicInformation = observer(function BasicInformation({
   assembly,
@@ -62,9 +63,8 @@ export const BasicInformation = observer(function BasicInformation({
     return changeManager.submit(change)
   }
 
-  function handleStartChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const { value } = event.target
-    const newStart = Number(value) - 1
+  function handleStartChange(newStart: number) {
+    newStart--
     const change = new LocationStartChange({
       typeName: 'LocationStartChange',
       changedIds: [_id],
@@ -76,9 +76,7 @@ export const BasicInformation = observer(function BasicInformation({
     return changeManager.submit(change)
   }
 
-  function handleEndChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const { value } = event.target
-    const newEnd = Number(value)
+  function handleEndChange(newEnd: number) {
     const change = new LocationEndChange({
       typeName: 'LocationEndChange',
       changedIds: [_id],
@@ -112,25 +110,23 @@ export const BasicInformation = observer(function BasicInformation({
   return (
     <>
       <Typography variant="h4">Basic information</Typography>
-      <TextField
+      <NumberTextField
         margin="dense"
         id="start"
         label="Start"
-        type="number"
         fullWidth
         variant="outlined"
         value={start + 1}
-        onChange={handleStartChange}
+        onChangeCommitted={handleStartChange}
       />
-      <TextField
+      <NumberTextField
         margin="dense"
         id="end"
         label="End"
-        type="number"
         fullWidth
         variant="outlined"
         value={end}
-        onChange={handleEndChange}
+        onChangeCommitted={handleEndChange}
       />
       <OntologyTermAutocomplete
         session={session}
