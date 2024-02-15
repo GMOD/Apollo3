@@ -4,7 +4,9 @@ import path from 'node:path'
 import Joi from 'joi'
 import YAML, { YAMLParseError } from 'yaml'
 
-import { ConfigError } from './utils.js'
+import { checkProfileExists, localhostToAddress, queryApollo } from './utils.js'
+
+export class ConfigError extends Error {}
 
 interface BaseProfile {
   address: string
@@ -198,35 +200,28 @@ export class Config {
     return configSchema.validate(this.profiles)
   }
 
-  private checkProfileExists(profileName: string) {
-    if (!this.getProfileNames().includes(profileName)) {
-      throw new ConfigError(
-        `Profile "${profileName}" does not exist. Please run "apollo config" to set this profile up or choose a different profile`,
-      )
-    }
-  }
+  // private async checkCanAccessApollo(
+  //   address: string,
+  //   accessToken: string,
+  // ): Promise<void> {
+  //   const auth = {
+  //     headers: {
+  //       Authorization: `Bearer ${accessToken}`,
+  //       'Content-Type': 'application/json',
+  //     },
+  //   }
 
-  private async checkAccess(
-    address: string,
-    accessToken: string,
-  ): Promise<void> {
-    const url = new URL(`${address}/users`)
-    const auth = {
-      headers: {
-        authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    }
-    const response = await fetch(url, auth)
-    if (response.ok) {
-      return
-    }
-    const msg = `Failed to access Apollo with the current address and/or access token\nThe server returned:\n${response.statusText}`
-    throw new ConfigError(msg)
-  }
+  //   const url = new URL(localhostToAddress(`${address}/assemblies`))
+  //   const response = await fetch(url, auth)
+  //   if (response.ok) {
+  //     return
+  //   }
+  //   const msg = `Failed to access Apollo with the current address and/or access token\nThe server returned:\n${response.statusText}`
+  //   throw new ConfigError(msg)
+  // }
 
   public async getAccess(profileName: string) {
-    this.checkProfileExists(profileName)
+    checkProfileExists(profileName, this)
 
     const address: string = this.get('address', profileName)
     if (address === undefined || address.trim() === '') {
@@ -242,7 +237,7 @@ export class Config {
       )
     }
 
-    await this.checkAccess(address, accessToken)
+    await queryApollo(address, accessToken, 'assemblies')
     return { address, accessToken }
   }
 

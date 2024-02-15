@@ -6,8 +6,8 @@ import select from '@inquirer/select'
 import { Args, Flags } from '@oclif/core'
 
 import { BaseCommand } from '../baseCommand.js'
-import { Config, KEYS } from '../Config.js'
-import { ConfigError } from '../utils.js'
+import { Config, ConfigError, KEYS } from '../Config.js'
+import { localhostToAddress } from '../utils.js'
 
 export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
   static description = 'Get or set Apollo configuration options'
@@ -199,7 +199,7 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
 
   private async getLoginTypes(address: string): Promise<string[]> {
     try {
-      const response = await fetch(`${address}/auth/types`)
+      const response = await fetch(localhostToAddress(`${address}/auth/types`))
       return await response.json()
     } catch {
       throw new ConfigError(
