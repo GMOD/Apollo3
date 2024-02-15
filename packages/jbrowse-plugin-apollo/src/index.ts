@@ -5,6 +5,7 @@ import {
   PluggableElementType,
   TrackType,
   ViewType,
+  WidgetType,
   createBaseTrackConfig,
   createBaseTrackModel,
 } from '@jbrowse/core/pluggableElementTypes'
@@ -50,6 +51,10 @@ import { AddFeature } from './components/AddFeature'
 import { ViewCheckResults } from './components/ViewCheckResults'
 import ApolloPluginConfigurationSchema from './config'
 import { annotationFromPileup } from './extensions'
+import {
+  ApolloFeatureDetailsWidget,
+  ApolloFeatureDetailsWidgetModel,
+} from './FeatureDetailsWidget'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
@@ -106,6 +111,19 @@ export default class ApolloPlugin extends Plugin {
   install(pluginManager: PluginManager) {
     installApolloSequenceAdapter(pluginManager)
     installApolloTextSearchAdapter(pluginManager)
+
+    pluginManager.addWidgetType(() => {
+      const configSchema = ConfigurationSchema('ApolloFeatureDetailsWidget', {})
+      const widgetType = new WidgetType({
+        name: 'ApolloFeatureDetailsWidget',
+        heading: 'Apollo feature details',
+        configSchema,
+        stateModel: ApolloFeatureDetailsWidgetModel,
+        ReactComponent: ApolloFeatureDetailsWidget,
+      })
+      return widgetType
+    })
+
     pluginManager.addTrackType(() => {
       const configSchema = ConfigurationSchema(
         'ApolloTrack',
