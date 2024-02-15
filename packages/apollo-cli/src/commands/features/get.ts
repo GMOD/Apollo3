@@ -4,6 +4,7 @@ import { Args, Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'
 import { Config } from '../../Config.js'
+import { localhostToAddress, queryApollo } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description = 'Get features in a genomic window'
@@ -28,13 +29,7 @@ export default class Get extends BaseCommand<typeof Get> {
   }
 
   public async run(): Promise<void> {
-    const { args } = await this.parse(Get)
     const { flags } = await this.parse(Get)
-
-    const configFile = path.join(this.config.configDir, 'config.yaml')
-    const config: Config = new Config(configFile)
-    const address: string | undefined = config.get('address', flags.profile)
-    const token: string | undefined = config.get('accessType', flags.profile)
 
     const endCoord: number = flags.end ?? Number.MAX_SAFE_INTEGER
     if (flags.start <= 0 || endCoord <= 0) {
@@ -42,18 +37,19 @@ export default class Get extends BaseCommand<typeof Get> {
       this.exit(1)
     }
 
-    if (address === undefined || token === undefined) {
-      // handle this
-    } else {
-      const features: string[] = await this.getFeatures(
-        address,
-        token,
-        flags.refSeq,
-        flags.start,
-        endCoord,
-      )
-      process.stdout.write(`${JSON.stringify(features, null, 2)}\n`)
-    }
+    const access: { address: string; accessToken: string } =
+      await this.getAccess(flags['config-file'], flags.profile)
+
+    const features: Response = await this.getFeatures(
+      access.address,
+      access.accessToken,
+      flags.refSeq,
+      flags.start,
+      endCoord,
+    )
+
+    const json = await features.json()
+    this.log(JSON.stringify(json, null, 2))
   }
 
   private async getFeatures(
@@ -62,29 +58,25 @@ export default class Get extends BaseCommand<typeof Get> {
     refSeq: string,
     start: number,
     end: number,
-  ): Promise<string[]> {
-    const url = new URL(`${address}/features/getFeatures`)
+  ): Promise<Response> {
+    const url = new URL(localhostToAddress(`${address}/features/getFeatures`))
     const searchParams = new URLSearchParams({
       refSeq,
       start: start.toString(),
       end: end.toString(),
     })
     url.search = searchParams.toString()
-
-    token =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkRhcmlvIEJlcmFsZGkiLCJlbWFpbCI6ImRhcmlvLmJlcmFsZGlAZ21haWwuY29tIiwicm9sZSI6ImFkbWluIiwiaWQiOiI2NTUzN2I1OWNiYmYxN2FjZGI2NWU5MWMiLCJpYXQiOjE3MDY3MTA1ODQsImV4cCI6MTcwNjc5Njk4NH0.uSLcgueGBpJxwQADLQPXngDCBBEItfe6RkzCksCnwC8'
-
     const auth = {
       headers: {
         authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     }
-    try {
-      const response = await fetch(url, auth)
-      return await response.json()
-    } catch {
-      throw new Error('Unable to get features...')
+    const response = await fetch(url, auth)
+    if (response.ok) {
+      return response
     }
+    const msg = `Failed to access Apollo with the current address and/or access token\nThe server returned:\n${response.statusText}`
+    throw new Error(msg)
   }
 }

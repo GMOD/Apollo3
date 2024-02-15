@@ -1,8 +1,8 @@
 import path from 'node:path'
 
 import { BaseCommand } from '../baseCommand.js'
-import { Config, KEYS } from '../Config.js'
-import { ConfigError, basicCheckConfig } from '../utils.js'
+import { Config, ConfigError, KEYS } from '../Config.js'
+import { basicCheckConfig } from '../utils.js'
 
 export default class Logout extends BaseCommand<typeof Logout> {
   static description = 'Log out of Apollo'

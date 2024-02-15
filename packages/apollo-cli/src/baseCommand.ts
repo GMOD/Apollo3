@@ -1,6 +1,8 @@
+import path from 'node:path'
+
 import { Command, Flags, Interfaces } from '@oclif/core'
 
-import { Config } from './Config.js'
+import { Config, ConfigError } from './Config.js'
 import { checkConfigfileExists } from './utils.js'
 
 export type Flags<T extends typeof Command> = Interfaces.InferredFlags<
@@ -47,7 +49,17 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     profileName: string,
   ): Promise<{ address: string; accessToken: string }> {
     const config: Config = this.getConfig(configFile)
-    return config.getAccess(profileName)
+
+    try {
+      return await config.getAccess(profileName)
+    } catch (error) {
+      if (error instanceof ConfigError) {
+        this.logToStderr(error.message)
+        this.exit(1)
+      } else {
+        throw error
+      }
+    }
   }
 
   protected async catch(err: Error & { exitCode?: number }): Promise<unknown> {

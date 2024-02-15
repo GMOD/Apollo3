@@ -4,15 +4,11 @@ import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
 
-import { Command } from '@oclif/core'
-
-import { Config } from './Config.js'
+import { Config, ConfigError } from './Config.js'
 
 const CONFIG_PATH = path.resolve(os.homedir(), '.clirc')
 export const CLI_SERVER_ADDRESS = 'http://127.0.0.1:5657'
 export const CLI_SERVER_ADDRESS_CALLBACK = `${CLI_SERVER_ADDRESS}/auth/callback`
-
-export class ConfigError extends Error {}
 export interface UserCredentials {
   accessToken: string
 }
@@ -25,62 +21,64 @@ export function checkConfigfileExists(configFile: string) {
   }
 }
 
-// export function checkProfileExists(profileName: string, config: Config) {
-//   if (!config.getProfileNames().includes(profileName)) {
-//     throw new ConfigError(
-//       `Profile "${profileName}" does not exist. Please run "apollo config" to set this profile up or choose a different profile`,
-//     )
-//   }
-// }
+export function checkProfileExists(profileName: string, config: Config) {
+  if (!config.getProfileNames().includes(profileName)) {
+    throw new ConfigError(
+      `Profile "${profileName}" does not exist. Please run "apollo config" to set this profile up or choose a different profile`,
+    )
+  }
+}
 
-// export function basicCheckConfig(configFile: string, profileName: string) {
-//   checkConfigfileExists(configFile)
-//   const config: Config = new Config(configFile)
-//   checkProfileExists(profileName, config)
-// }
+export function basicCheckConfig(configFile: string, profileName: string) {
+  checkConfigfileExists(configFile)
+  const config: Config = new Config(configFile)
+  checkProfileExists(profileName, config)
+}
 
-// export async function checkAccess(
-//   address: string,
-//   accessToken: string,
-// ): Promise<void> {
-//   const url = new URL(`${address}/users`)
-//   const auth = {
-//     headers: {
-//       authorization: `Bearer ${accessToken}`,
-//       'Content-Type': 'application/json',
-//     },
-//   }
-//   const response = await fetch(url, auth)
-//   if (response.ok) {
-//     return
-//   }
-//   const msg = `Failed to access Apollo with the current address and/or access token\nThe server returned:\n${response.statusText}`
-//   throw new ConfigError(msg)
-// }
+/**
+ * @deprecated Use this function while we wait to resolve the TypeError when using localhost in fetch.
+ */
+export function localhostToAddress(url: string) {
+  /** This is hacked function that should become redundant: On my MacOS (?)
+   * localhost must be converted to address otherwise fetch throws TypeError
+   * */
+  return url.replace('//localhost', '127.0.0.1')
+}
 
-// export async function getAccess(
-//   configFile: string,
-//   profileName: string,
-// ): Promise<{ address: string; accessToken: string }> {
-//   checkConfigfileExists(configFile)
-//   const config: Config = new Config(configFile)
-//   checkProfileExists(profileName, config)
+export async function queryApollo(
+  address: string,
+  accessToken: string,
+  endpoint: string,
+): Promise<Response> {
+  const auth = {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+  }
+  const url = new URL(localhostToAddress(`${address}/${endpoint}`))
+  const response = await fetch(url, auth)
+  if (response.ok) {
+    return response
+  }
+  const msg = `Failed to access Apollo with the current address and/or access token\nThe server returned:\n${response.statusText}`
+  throw new ConfigError(msg)
+}
 
-//   const address: string = config.get('address', profileName)
-//   if (address === undefined || address.trim() === '') {
-//     throw new ConfigError(
-//       `Profile "${profileName}" has no address. Please run "apollo config" to set it up.`,
-//     )
-//   }
-//   const accessToken: string | undefined = config.get('accessToken', profileName)
-//   if (accessToken === undefined || accessToken.trim() === '') {
-//     throw new ConfigError(
-//       `Profile "${profileName}" has no access token. Please run "apollo login" to set it up.`,
-//     )
-//   }
-//   await checkAccess(address, accessToken)
-//   return { address, accessToken }
-// }
+export function filterJsonList(
+  json: object[],
+  keep: string[],
+  key: string,
+): object[] {
+  const unique = new Set(keep)
+  const results: object[] = []
+  for (const x of json) {
+    if (Object.keys(x).includes(key) && unique.has(x[key as keyof typeof x])) {
+      results.push(x)
+    }
+  }
+  return results
+}
 
 export const getUserCredentials = (): UserCredentials | null => {
   try {
