@@ -24,6 +24,7 @@ import { makeStyles } from 'tss-react/mui'
 import { AttributeValueEditorProps } from '../components'
 import { OntologyTermMultiSelect } from '../components/OntologyTermMultiSelect'
 import { ApolloSessionModel } from '../session'
+import { StringTextField } from './StringTextField'
 
 const reservedKeys = new Map([
   [
@@ -69,11 +70,10 @@ const useStyles = makeStyles()((theme) => ({
 function CustomAttributeValueEditor(props: AttributeValueEditorProps) {
   const { onChange, value } = props
   return (
-    <TextField
-      type="text"
+    <StringTextField
       value={value}
-      onChange={(event) => {
-        onChange(event.target.value.split(','))
+      onChangeCommitted={(newValue) => {
+        onChange(newValue.split(','))
       }}
       variant="outlined"
       fullWidth
@@ -97,33 +97,33 @@ export const Attributes = observer(function Attributes({
   const [showAddNewForm, setShowAddNewForm] = useState(false)
   const { classes } = useStyles()
   const [newAttributeKey, setNewAttributeKey] = useState('')
-  const [attributes, setAttributes] = useState<Record<string, string[]>>(
-    Object.fromEntries(
-      [...feature.attributes.entries()].map(([key, value]) => {
-        if (key.startsWith('gff_')) {
-          const newKey = key.slice(4)
-          const capitalizedKey =
-            newKey.charAt(0).toUpperCase() + newKey.slice(1)
-          return [capitalizedKey, getSnapshot(value)]
-        }
-        if (key === '_id') {
-          return ['ID', getSnapshot(value)]
-        }
-        return [key, getSnapshot(value)]
-      }),
-    ),
+  const attributes = Object.fromEntries(
+    [...feature.attributes.entries()].map(([key, value]) => {
+      if (key.startsWith('gff_')) {
+        const newKey = key.slice(4)
+        const capitalizedKey = newKey.charAt(0).toUpperCase() + newKey.slice(1)
+        return [capitalizedKey, getSnapshot(value)]
+      }
+      if (key === '_id') {
+        return ['ID', getSnapshot(value)]
+      }
+      return [key, getSnapshot(value)]
+    }),
   )
   const { notify } = session as unknown as AbstractSessionModel
 
   const { changeManager } = session.apolloDataStore
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  async function onChangeCommitted(newKey: string, newValue?: string[]) {
     setErrorMessage('')
 
     const attrs: Record<string, string[]> = {}
     if (attributes) {
-      for (const [key, val] of Object.entries(attributes)) {
+      const modifiedAttrs = Object.entries({
+        ...attributes,
+        [newKey]: newValue,
+      })
+      for (const [key, val] of modifiedAttrs) {
         if (!val) {
           continue
         }
@@ -192,7 +192,6 @@ export const Attributes = observer(function Attributes({
     })
     await changeManager.submit?.(change)
     notify('Feature attributes modified successfully', 'success')
-    event.preventDefault()
   }
   function handleAddNewAttributeChange() {
     setErrorMessage('')
@@ -222,21 +221,7 @@ export const Attributes = observer(function Attributes({
       )
       return
     }
-    setAttributes({ ...attributes, [newAttributeKey]: [] })
-    setShowAddNewForm(false)
-    setNewAttributeKey('')
-  }
-
-  function deleteAttribute(key: string) {
-    setErrorMessage('')
-    const { [key]: remove, ...rest } = attributes
-    setAttributes(rest)
-  }
-
-  function makeOnChange(id: string) {
-    return (newValue: string[]) => {
-      setAttributes({ ...attributes, [id]: newValue })
-    }
+    void onChangeCommitted(newAttributeKey, [])
   }
 
   function handleRadioButtonChange(
@@ -252,12 +237,8 @@ export const Attributes = observer(function Attributes({
     }
   }
 
-  const hasEmptyAttributes = Object.values(attributes).some(
-    (value) => value.length === 0 || value.includes(''),
-  )
-
   return (
-    <form onSubmit={onSubmit}>
+    <>
       <Typography variant="h4">Attributes</Typography>
       <Grid container direction="column" spacing={1}>
         {Object.entries(attributes).map(([key, value]) => {
@@ -274,7 +255,7 @@ export const Attributes = observer(function Attributes({
                 <EditorComponent
                   session={session}
                   value={value}
-                  onChange={makeOnChange(key)}
+                  onChange={(newValue) => onChangeCommitted(key, newValue)}
                 />
               </Grid>
               <Grid item xs={1}>
@@ -282,9 +263,7 @@ export const Attributes = observer(function Attributes({
                   aria-label="delete"
                   size="medium"
                   disabled={!editable}
-                  onClick={() => {
-                    deleteAttribute(key)
-                  }}
+                  onClick={() => onChangeCommitted(key)}
                 >
                   <DeleteIcon fontSize="medium" key={key} />
                 </IconButton>
@@ -390,15 +369,6 @@ export const Attributes = observer(function Attributes({
       {errorMessage ? (
         <Typography color="error">{errorMessage}</Typography>
       ) : null}
-      <DialogActions>
-        <Button
-          variant="contained"
-          type="submit"
-          disabled={showAddNewForm || hasEmptyAttributes || !editable}
-        >
-          Save
-        </Button>
-      </DialogActions>
-    </form>
+    </>
   )
 })
