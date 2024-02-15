@@ -2,26 +2,20 @@ import { TextField, TextFieldProps } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 
-interface NumberTextFieldProps
+interface StringTextFieldProps
   extends Omit<
     TextFieldProps,
-    | 'type'
-    | 'onChange'
-    | 'onKeyDown'
-    | 'onBlur'
-    | 'ref'
-    | 'error'
-    | 'helperText'
+    'type' | 'onChange' | 'onKeyDown' | 'onBlur' | 'ref'
   > {
-  onChangeCommitted(newValue: number): void
+  onChangeCommitted(newValue: string): void
   value: unknown
 }
 
-export const NumberTextField = observer(function NumberTextField({
+export const StringTextField = observer(function StringTextField({
   onChangeCommitted,
   value: initialValue,
   ...props
-}: NumberTextFieldProps) {
+}: StringTextFieldProps) {
   const [value, setValue] = useState(String(initialValue))
   const [blur, setBlur] = useState(false)
   const [inputNode, setInputNode] = useState<HTMLDivElement | null>(null)
@@ -41,8 +35,6 @@ export const NumberTextField = observer(function NumberTextField({
     setValue(event.target.value)
   }
 
-  const error = Number.isNaN(Number(value))
-
   return (
     <TextField
       {...props}
@@ -58,18 +50,11 @@ export const NumberTextField = observer(function NumberTextField({
         }
       }}
       onBlur={() => {
-        const valueAsNumber = Number(value)
         if (value !== String(initialValue)) {
-          if (Number.isNaN(valueAsNumber)) {
-            setValue(String(initialValue))
-          } else {
-            onChangeCommitted(valueAsNumber)
-          }
+          onChangeCommitted(value)
         }
       }}
       inputRef={(node) => setInputNode(node)}
-      error={error}
-      helperText={error ? 'Not a valid number' : undefined}
     />
   )
 })
