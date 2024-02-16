@@ -20,8 +20,7 @@ function renameFile(src: string, dest: string, verbose = true) {
     msg = `${src} does not exist`
   }
   if (verbose) {
-    // eslint-disable-next-line no-console
-    console.log(msg)
+    process.stdout.write(`${msg}\n`)
   }
 }
 
@@ -30,17 +29,16 @@ export function copyFile(src: string, dest: string, verbose: boolean) {
   fs.copyFileSync(src, dest)
   if (verbose) {
     const msg = `cp ${src} ${dest}`
-    // eslint-disable-next-line no-console
-    console.log(`${msg} # Copied: ${fs.existsSync(dest)}`)
+    process.stdout.write(`${msg} # Copied: ${fs.existsSync(dest)}\n`)
   }
 }
 
-export async function mochaGlobalSetup() {
-  // Temporarily remove config file, if any
+export function mochaGlobalSetup() {
+  process.stdout.write(`Temporarily remove config file ${CONFIG_FILE} if any`)
   renameFile(CONFIG_FILE, CONFIG_BAK, VERBOSE)
 }
 
-export async function mochaGlobalTeardown() {
-  // Put config file back
+export function mochaGlobalTeardown() {
+  process.stdout.write(`Putting back config file ${CONFIG_FILE} if any\n`)
   renameFile(CONFIG_BAK, CONFIG_FILE, VERBOSE)
 }
