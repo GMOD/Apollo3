@@ -1,10 +1,7 @@
-import path from 'node:path'
-
-import { Args, Flags } from '@oclif/core'
+import { Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { Config } from '../../Config.js'
-import { localhostToAddress, queryApollo } from '../../utils.js'
+import { localhostToAddress } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description = 'Get features in a genomic window'

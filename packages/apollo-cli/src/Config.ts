@@ -4,7 +4,7 @@ import path from 'node:path'
 import Joi from 'joi'
 import YAML, { YAMLParseError } from 'yaml'
 
-import { checkProfileExists, localhostToAddress, queryApollo } from './utils.js'
+import { checkProfileExists, queryApollo } from './utils.js'
 
 export class ConfigError extends Error {}
 
