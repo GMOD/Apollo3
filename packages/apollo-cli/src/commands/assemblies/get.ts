@@ -4,7 +4,7 @@ import { BaseCommand } from '../../baseCommand.js'
 import { filterJsonList, queryApollo } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
-  static description = 'Get available assemblies <testme2>'
+  static description = 'Get available assemblies <testme3>'
 
   static flags = {
     names: Flags.string({
