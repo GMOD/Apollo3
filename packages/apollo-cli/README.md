@@ -1,12 +1,16 @@
 # Table of contents
+
 <!-- toc -->
-* [Table of contents](#table-of-contents)
-* [Usage](#usage)
-* [Commands](#commands)
+
+- [Table of contents](#table-of-contents)
+- [Usage](#usage)
+- [Commands](#commands)
 <!-- tocstop -->
 
 # Usage
+
 <!-- usage -->
+
 ```sh-session
 $ npm install -g apollo-cli
 $ apollo COMMAND
@@ -18,19 +22,23 @@ USAGE
   $ apollo COMMAND
 ...
 ```
+
 <!-- usagestop -->
+
 # Commands
+
 <!-- commands -->
-* [`apollo assemblies get`](#apollo-assemblies-get)
-* [`apollo changes get`](#apollo-changes-get)
-* [`apollo config [KEY] [VALUE]`](#apollo-config-key-value)
-* [`apollo features get`](#apollo-features-get)
-* [`apollo help [COMMANDS]`](#apollo-help-commands)
-* [`apollo login`](#apollo-login)
-* [`apollo logout`](#apollo-logout)
-* [`apollo refSeqs get`](#apollo-refseqs-get)
-* [`apollo status`](#apollo-status)
-* [`apollo users get`](#apollo-users-get)
+
+- [`apollo assemblies get`](#apollo-assemblies-get)
+- [`apollo changes get`](#apollo-changes-get)
+- [`apollo config [KEY] [VALUE]`](#apollo-config-key-value)
+- [`apollo features get`](#apollo-features-get)
+- [`apollo help [COMMANDS]`](#apollo-help-commands)
+- [`apollo login`](#apollo-login)
+- [`apollo logout`](#apollo-logout)
+- [`apollo refSeqs get`](#apollo-refseqs-get)
+- [`apollo status`](#apollo-status)
+- [`apollo users get`](#apollo-users-get)
 
 ## `apollo assemblies get`
 
@@ -49,7 +57,8 @@ DESCRIPTION
   Get available assemblies
 ```
 
-_See code: [src/commands/assemblies/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/assemblies/get.ts)_
+_See code:
+[src/commands/assemblies/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/assemblies/get.ts)_
 
 ## `apollo changes get`
 
@@ -67,7 +76,8 @@ DESCRIPTION
   Get changes
 ```
 
-_See code: [src/commands/changes/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/changes/get.ts)_
+_See code:
+[src/commands/changes/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/changes/get.ts)_
 
 ## `apollo config [KEY] [VALUE]`
 
@@ -89,7 +99,8 @@ DESCRIPTION
   Get or set Apollo configuration options
 ```
 
-_See code: [src/commands/config.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/config.ts)_
+_See code:
+[src/commands/config.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/config.ts)_
 
 ## `apollo features get`
 
@@ -110,7 +121,8 @@ DESCRIPTION
   Get features in a genomic window
 ```
 
-_See code: [src/commands/features/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/features/get.ts)_
+_See code:
+[src/commands/features/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/features/get.ts)_
 
 ## `apollo help [COMMANDS]`
 
@@ -130,7 +142,8 @@ DESCRIPTION
   Display help for apollo.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.8/src/commands/help.ts)_
+_See code:
+[@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.8/src/commands/help.ts)_
 
 ## `apollo login`
 
@@ -152,7 +165,8 @@ DESCRIPTION
   Log in to Apollo
 ```
 
-_See code: [src/commands/login.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/login.ts)_
+_See code:
+[src/commands/login.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/login.ts)_
 
 ## `apollo logout`
 
@@ -170,7 +184,8 @@ DESCRIPTION
   Log out of Apollo
 ```
 
-_See code: [src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/logout.ts)_
+_See code:
+[src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/logout.ts)_
 
 ## `apollo refSeqs get`
 
@@ -188,7 +203,8 @@ DESCRIPTION
   Get available reference sequences
 ```
 
-_See code: [src/commands/refSeqs/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/refSeqs/get.ts)_
+_See code:
+[src/commands/refSeqs/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/refSeqs/get.ts)_
 
 ## `apollo status`
 
@@ -206,7 +222,8 @@ DESCRIPTION
   View authentication status
 ```
 
-_See code: [src/commands/status.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/status.ts)_
+_See code:
+[src/commands/status.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/status.ts)_
 
 ## `apollo users get`
 
@@ -224,5 +241,7 @@ DESCRIPTION
   Get users
 ```
 
-_See code: [src/commands/users/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/users/get.ts)_
+_See code:
+[src/commands/users/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/users/get.ts)_
+
 <!-- commandsstop -->
