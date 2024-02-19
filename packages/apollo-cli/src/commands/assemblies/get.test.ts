@@ -33,7 +33,8 @@ describe('apollo assemblies get: Fail without token', () => {
     .it(cmd.join(' '))
 })
 
-describe('apollo assemblies get: Get assemblies as YAML string', () => {
+// TODO: Need valid token
+describe.skip('apollo assemblies get: Get assemblies as YAML string', () => {
   before(() => {
     copyFile(`${TEST_DATA_DIR}/complete_config.yaml`, CONFIG_FILE, VERBOSE)
   })

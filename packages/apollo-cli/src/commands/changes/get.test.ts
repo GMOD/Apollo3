@@ -13,7 +13,8 @@ import {
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
-describe('apollo users get: Get users as YAML string', () => {
+// TODO: Need valid token
+describe.skip('apollo changes get: Get changes as YAML string', () => {
   before(() => {
     copyFile(`${TEST_DATA_DIR}/complete_config.yaml`, CONFIG_FILE, VERBOSE)
   })
@@ -21,7 +22,7 @@ describe('apollo users get: Get users as YAML string', () => {
     fs.rmSync(CONFIG_FILE)
   })
 
-  const cmd = ['users:get']
+  const cmd = ['changes:get']
   test
     .stdout()
     .command(cmd, { root: dirname(dirname(__dirname)) })
