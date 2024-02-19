@@ -42,7 +42,7 @@ USAGE
 
 ## `apollo assemblies get`
 
-Get available assemblies
+Get available assemblies <testme>
 
 ```
 USAGE
@@ -54,7 +54,7 @@ FLAGS
       --profile=<value>      [default: default] Use credentials from this profile
 
 DESCRIPTION
-  Get available assemblies
+  Get available assemblies <testme>
 ```
 
 _See code:
