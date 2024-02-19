@@ -1,5 +1,8 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+exit 1
+
 yarn constraints
 node scripts/pre-commit.js
+
