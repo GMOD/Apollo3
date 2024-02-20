@@ -18,7 +18,10 @@ function main() {
     .filter(Boolean)
 
   if (changedFiles.some((fileName) => fileName.includes('apollo-cli'))) {
-    spawn.sync('yarn', ['--cwd', 'packages/apollo-cli', 'oclif', 'readme'], {
+    spawn.sync('yarn', ['workspace', 'apollo-cli', 'build'], {
+      stdio: 'inherit',
+    })
+    spawn.sync('yarn', ['workspace', 'apollo-cli', 'oclif', 'readme'], {
       stdio: 'inherit',
     })
     if (!changedFiles.includes('packages/apollo-cli/README.md')) {
