@@ -4,11 +4,12 @@
  */
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, no-undef
-const { spawnSync } = require('node:child_process')
+const spawn = require('cross-spawn')
 
 function main() {
   // Get names of files that were changed
-  const changedFiles = spawnSync('git', ['diff', '--cached', '--name-status'])
+  const changedFiles = spawn
+    .sync('git', ['diff', '--cached', '--name-status'])
     .stdout.toString()
     .trim()
     .split(/[\n\r]+/)
@@ -17,7 +18,7 @@ function main() {
     .filter(Boolean)
 
   if (changedFiles.some((fileName) => fileName.includes('apollo-cli'))) {
-    spawnSync('yarn', ['--cwd', 'packages/apollo-cli', 'oclif', 'readme'], {
+    spawn.sync('yarn', ['--cwd', 'packages/apollo-cli', 'oclif', 'readme'], {
       stdio: 'inherit',
     })
     if (!changedFiles.includes('packages/apollo-cli/README.md')) {
@@ -32,12 +33,12 @@ function main() {
 
   // Run prettier formatting on non-JS/TS files
   if (filesToFormat.length > 0) {
-    spawnSync(
+    spawn.sync(
       'yarn',
       ['prettier', ...filesToFormat, '--write', '--ignore-unknown'],
       { stdio: 'inherit' },
     )
-    spawnSync('git', ['add', ...filesToFormat], { stdio: 'inherit' })
+    spawn.sync('git', ['add', ...filesToFormat], { stdio: 'inherit' })
   }
 }
 
