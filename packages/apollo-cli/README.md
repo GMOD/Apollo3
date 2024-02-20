@@ -16,7 +16,7 @@ $ npm install -g apollo-cli
 $ apollo COMMAND
 running command...
 $ apollo (--version)
-apollo-cli/0.0.0 darwin-x64 node-v18.19.0
+apollo-cli/0.0.0 linux-x64 node-v18.19.0
 $ apollo --help [COMMAND]
 USAGE
   $ apollo COMMAND
@@ -42,7 +42,7 @@ USAGE
 
 ## `apollo assemblies get`
 
-Get available assemblies <testme>
+Get available assemblies <testme4>
 
 ```
 USAGE
@@ -54,7 +54,7 @@ FLAGS
       --profile=<value>      [default: default] Use credentials from this profile
 
 DESCRIPTION
-  Get available assemblies <testme>
+  Get available assemblies <testme4>
 ```
 
 _See code:
