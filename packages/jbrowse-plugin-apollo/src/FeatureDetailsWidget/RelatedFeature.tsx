@@ -30,7 +30,7 @@ export const RelatedFeatures = observer(function RelatedFeatures({
   session: ApolloSessionModel
   assembly: string
 }) {
-  const [selectedOption, setSelectedOption] = useState('')
+  const [selectedOption, setSelectedOption] = useState('default')
   const { children, parent } = feature
 
   const childItems: Child[] = []
@@ -66,7 +66,6 @@ export const RelatedFeatures = observer(function RelatedFeatures({
 
   async function handleChangeSeqOption(e: SelectChangeEvent<string>) {
     const option = e.target.value
-    setSelectedOption(option)
     if (children) {
       // eslint-disable-next-line unicorn/no-array-for-each
       children.forEach((child) => {
@@ -125,7 +124,7 @@ export const RelatedFeatures = observer(function RelatedFeatures({
                   height: '25px',
                 }}
               >
-                {/* <MenuItem value={'Select child'}>Select child</MenuItem> */}
+                <MenuItem value="default">Select an option</MenuItem>
                 {childItems.map((child) => (
                   <MenuItem key={child._id} value={child._id}>
                     {`Start: ${child.start}, End: ${child.end}, Type: ${child.type}`}
