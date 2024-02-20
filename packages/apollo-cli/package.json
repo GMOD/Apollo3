@@ -30,7 +30,7 @@
     "posttest": "yarn lint",
     "prepack": "yarn build && oclif manifest && oclif readme",
     "prepare": "yarn build",
-    "test": "mocha 'src/**/*.test.ts'",
+    "test": "mocha --require src/test/fixtures.ts 'src/**/*.test.ts'",
     "test:ci": "nyc mocha 'src/**/*.test.ts'",
     "version": "oclif readme && git add README.md"
   },

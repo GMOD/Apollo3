@@ -7,12 +7,12 @@ import { Errors, Flags, ux } from '@oclif/core'
 import open from 'open'
 
 import { BaseCommand } from '../baseCommand.js'
-import { Config } from '../Config.js'
+import { Config, ConfigError } from '../Config.js'
 import {
-  ConfigError,
   UserCredentials,
   basicCheckConfig,
   getUserCredentials,
+  localhostToAddress,
   waitFor,
 } from '../utils.js'
 
@@ -148,7 +148,7 @@ export default class Login extends BaseCommand<typeof Login> {
     username: string,
     password: string,
   ): Promise<UserCredentials> {
-    const url = `${address}/auth/root`
+    const url = localhostToAddress(`${address}/auth/root`)
     const response = await fetch(url, {
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
@@ -163,7 +163,7 @@ export default class Login extends BaseCommand<typeof Login> {
   }
 
   private async startGuestLogin(address: string): Promise<UserCredentials> {
-    const url = `${address}/auth/login?type=guest`
+    const url = localhostToAddress(`${address}/auth/login?type=guest`)
     const response = await fetch(url, {
       headers: { 'Content-Type': 'application/json' },
     })

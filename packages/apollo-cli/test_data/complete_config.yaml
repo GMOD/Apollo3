@@ -1,10 +1,10 @@
 default:
   address: http://localhost:3999
   accessType: root
-  accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InJvb3QiLCJlbWFpbCI6InJvb3RfdXNlciIsInJvbGUiOiJhZG1pbiIsImlkIjoiNjU3MDhlZTY4MTViOWNiZjg3ZmU2NzZjIiwiaWF0IjoxNzA3MzA4NTQ5LCJleHAiOjE3MDczOTQ5NDl9.EunwXsL3AcKg9BBTofHg_GbhDzyiK7QCSjaSKr5YXk4
+  accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Ikd1ZXN0IiwiZW1haWwiOiJndWVzdF91c2VyIiwicm9sZSI6InJlYWRPbmx5IiwiaWQiOiI2NWM2NTM5M2FiMzA5OGY1ZDJmNWQ3NTQiLCJpYXQiOjE3MDgwODg4OTUsImV4cCI6MTcwODE3NTI5NX0.2mO177Kn8WlzccigzxKp6dfOEiJ9YGr0FWpw32_ICR4
   rootCredentials:
     username: root
-    password: "1234"
+    password: '1234'
 profile1:
   address: http://localhost:1999
   accessToken: xyz

@@ -4,7 +4,9 @@ import path from 'node:path'
 import Joi from 'joi'
 import YAML, { YAMLParseError } from 'yaml'
 
-import { ConfigError } from './utils.js'
+import { checkProfileExists, queryApollo } from './utils.js'
+
+export class ConfigError extends Error {}
 
 interface BaseProfile {
   address: string
@@ -196,6 +198,47 @@ export class Config {
 
   public validate(): Joi.ValidationResult {
     return configSchema.validate(this.profiles)
+  }
+
+  // private async checkCanAccessApollo(
+  //   address: string,
+  //   accessToken: string,
+  // ): Promise<void> {
+  //   const auth = {
+  //     headers: {
+  //       Authorization: `Bearer ${accessToken}`,
+  //       'Content-Type': 'application/json',
+  //     },
+  //   }
+
+  //   const url = new URL(localhostToAddress(`${address}/assemblies`))
+  //   const response = await fetch(url, auth)
+  //   if (response.ok) {
+  //     return
+  //   }
+  //   const msg = `Failed to access Apollo with the current address and/or access token\nThe server returned:\n${response.statusText}`
+  //   throw new ConfigError(msg)
+  // }
+
+  public async getAccess(profileName: string) {
+    checkProfileExists(profileName, this)
+
+    const address: string = this.get('address', profileName)
+    if (address === undefined || address.trim() === '') {
+      throw new ConfigError(
+        `Profile "${profileName}" has no address. Please run "apollo config" to set it up.`,
+      )
+    }
+
+    const accessToken: string | undefined = this.get('accessToken', profileName)
+    if (accessToken === undefined || accessToken.trim() === '') {
+      throw new ConfigError(
+        `Profile "${profileName}" has no access token. Please run "apollo login" to set it up.`,
+      )
+    }
+
+    await queryApollo(address, accessToken, 'assemblies')
+    return { address, accessToken }
   }
 
   public toString(): string {
