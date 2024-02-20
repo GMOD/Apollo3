@@ -8359,6 +8359,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^6.1.0"
     "@typescript-eslint/parser": "npm:^6.1.0"
     "@yarnpkg/types": "npm:^4.0.0"
+    cross-spawn: "npm:^7.0.3"
     eslint: "npm:^8.45.0"
     eslint-config-prettier: "npm:^8.8.0"
     eslint-import-resolver-typescript: "npm:^3.5.5"
