@@ -53,13 +53,6 @@ export const ApolloFeatureDetailsWidget = observer(
 
     return (
       <div className={classes.root}>
-        <RelatedFeatures
-          feature={feature}
-          refName={refName}
-          session={session}
-          assembly={currentAssembly._id}
-        />
-        <hr />
         <BasicInformation
           feature={feature}
           session={session}
@@ -78,6 +71,13 @@ export const ApolloFeatureDetailsWidget = observer(
           session={session}
           assembly={currentAssembly._id}
           refName={refName}
+        />
+        <hr />
+        <RelatedFeatures
+          feature={feature}
+          refName={refName}
+          session={session}
+          assembly={currentAssembly._id}
         />
       </div>
     )
