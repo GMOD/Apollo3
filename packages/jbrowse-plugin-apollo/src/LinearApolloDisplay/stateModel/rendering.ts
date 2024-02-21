@@ -9,6 +9,15 @@ import { ApolloSessionModel } from '../../session'
 import { getGlyph } from './getGlyph'
 import { layoutsModelFactory } from './layouts'
 
+export const transRowsColorCodes: Record<number, string> = {
+  0: '#F1948A',
+  1: '#7DCEA0',
+  2: '#7FB3D5',
+  5: '#7FB3D5',
+  6: '#7DCEA0',
+  7: '#F1948A',
+}
+
 export function renderingModelIntermediateFactory(
   pluginManager: PluginManager,
   configSchema: AnyConfigurationSchemaType,
@@ -145,13 +154,17 @@ function colorCode(letter: string, theme?: Theme) {
   )
 }
 
-function codonColorCode(letter: string) {
+function codonColorCode(letter: string, rowColorCode: string, bpPerPx: number) {
   const colorMap: Record<string, string> = {
     M: '#33ee33',
     '*': '#f44336',
   }
 
-  return colorMap[letter?.toUpperCase()] || 'lightgray'
+  if (colorMap[letter?.toUpperCase()] !== undefined) {
+    return colorMap[letter?.toUpperCase()]
+  }
+
+  return bpPerPx <= 0.1 ? rowColorCode : 'lightgray'
 }
 
 function reverseCodonSeq(seq: string): string {
@@ -186,6 +199,7 @@ function drawTranslation(
   seq: string,
   i: number,
   reverse: boolean,
+  rowColorCode: string,
 ) {
   let codonSeq: string = seq.slice(i, i + 3).toUpperCase()
   if (reverse) {
@@ -197,7 +211,7 @@ function drawTranslation(
     return
   }
   seqTrackctx.beginPath()
-  seqTrackctx.fillStyle = codonColorCode(codonLetter)
+  seqTrackctx.fillStyle = codonColorCode(codonLetter, rowColorCode, bpPerPx)
   seqTrackctx.rect(trnslStartPx, trnslY, trnslWidthPx, sequenceRowHeight)
   seqTrackctx.fill()
   if (bpPerPx <= 0.1) {
@@ -277,6 +291,7 @@ export function sequenceRenderingModelFactory(
                       seq,
                       i,
                       false,
+                      transRowsColorCodes[Math.abs(j - 2)],
                     )
                   }
                 }
@@ -351,6 +366,7 @@ export function sequenceRenderingModelFactory(
                       seq,
                       i,
                       true,
+                      transRowsColorCodes[rowOffset + k],
                     )
                   }
                 }

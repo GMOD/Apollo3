@@ -3,7 +3,8 @@ import { AnnotationFeatureI } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 
 import { LinearApolloDisplay } from '../stateModel'
-import { MousePosition } from '../stateModel/mouseEvents'
+import { MousePosition, getSeqRow } from '../stateModel/mouseEvents'
+import { transRowsColorCodes } from '../stateModel/rendering'
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 
@@ -126,12 +127,17 @@ export class ImplicitExonGeneGlyph extends Glyph {
           ctx.fillRect(startPx, cdsOrUTRTop, widthPx, height)
           if (widthPx > 2) {
             ctx.clearRect(startPx + 1, cdsOrUTRTop + 1, widthPx - 2, height - 2)
+            const seqRow = getSeqRow(cdsOrUTR, bpPerPx)
+            const cdsColorCode =
+              seqRow !== undefined && isCDS
+                ? transRowsColorCodes[seqRow]
+                : 'rgb(171,71,188)'
             ctx.fillStyle =
               apolloSelectedFeature &&
               cdsOrUTR._id === apolloSelectedFeature._id
                 ? 'rgb(0,0,0)'
                 : isCDS
-                ? 'rgb(171,71,188)'
+                ? cdsColorCode
                 : 'rgb(211,211,211)'
             ctx.fillRect(startPx + 1, cdsOrUTRTop + 1, widthPx - 2, height - 2)
             if (forwardFill && backwardFill && strand) {
