@@ -13,6 +13,7 @@ import { ChecksService } from '../checks/checks.service'
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { OperationsService } from '../operations/operations.service'
 import { FeatureCountRequest } from './dto/feature.dto'
+import { FeatureObject } from './entities/feature.entity'
 
 @Injectable()
 export class FeaturesService {
@@ -70,9 +71,10 @@ export class FeaturesService {
   /**
    * Get feature by featureId. When retrieving features by id, the features and any of its children are returned, but not any of its parent or sibling features.
    * @param featureId - featureId
+   * @param parentId - If true, the parent feature id is also returned
    * @returns Return the feature(s) if search was successful. Otherwise throw exception
    */
-  async findById(featureId: string) {
+  async findById(featureId: string, includeParentId: boolean) {
     // Search correct feature
     const topLevelFeature = await this.featureModel
       .findOne({ allIds: featureId })
@@ -84,8 +86,16 @@ export class FeaturesService {
       throw new NotFoundException(errMsg)
     }
 
+    const topLevelFeatureObject: FeatureObject = JSON.parse(
+      JSON.stringify(topLevelFeature),
+    ) as FeatureObject
+
     // Now we need to find correct top level feature or sub-feature inside the feature
-    const foundFeature = this.getFeatureFromId(topLevelFeature, featureId)
+    const foundFeature = this.getFeatureFromId(
+      topLevelFeatureObject,
+      featureId,
+      includeParentId,
+    )
     if (!foundFeature) {
       const errMsg = 'ERROR when searching feature by featureId'
       this.logger.error(errMsg)
@@ -97,14 +107,18 @@ export class FeaturesService {
 
   /**
    * Get single feature by featureId
-   * @param featureOrDocument -
-   * @param featureId -
-   * @returns
+   * @param feature - FeatureObject
+   * @param featureId - featureId
+   * @param includeParentId - If true, the parent feature id is also returned
+   * @returns FeatureObject | null
    */
-  getFeatureFromId(feature: Feature, featureId: string): Feature | null {
+  getFeatureFromId(
+    feature: FeatureObject,
+    featureId: string,
+    includeParentId: boolean,
+  ): FeatureObject | null {
     this.logger.verbose(`Entry=${JSON.stringify(feature)}`)
-
-    if (feature._id.equals(featureId)) {
+    if (feature._id.toString() === featureId.toString()) {
       this.logger.debug(
         `Top level featureId matches in object ${JSON.stringify(feature)}`,
       )
@@ -115,9 +129,22 @@ export class FeaturesService {
     this.logger.debug(
       'FeatureId was not found on top level so lets make recursive call...',
     )
-    for (const [, childFeature] of feature.children ?? new Map()) {
-      const subFeature = this.getFeatureFromId(childFeature, featureId)
+    for (const [, childFeature] of new Map(
+      Object.entries(feature.children ?? {}),
+    )) {
+      const subFeature = this.getFeatureFromId(
+        childFeature,
+        featureId,
+        includeParentId,
+      )
       if (subFeature) {
+        if (
+          subFeature?.attributes &&
+          includeParentId &&
+          !subFeature.attributes.parent_id
+        ) {
+          subFeature.attributes.parent_id = [feature._id.toString()]
+        }
         return subFeature
       }
     }
