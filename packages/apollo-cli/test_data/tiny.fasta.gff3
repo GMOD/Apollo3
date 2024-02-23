@@ -1,0 +1,22 @@
+# Note: See http://song.sourceforge.net
+# multi-exon gene - several linked CDSs
+# single exon gene - one CDS only
+##gff-version 3
+ctgA	example	contig	1	50	.	.	.	Name=ctgA;multivalue=val1,val2,val3
+ctgA	example	BAC	10	20	.	.	.	ID=b101.2;Name=b101.2;Note=Fingerprinted BAC with end reads
+ctgA	example	SNP	10	30	0.987	.	.	ID=FakeSNP1;Name=FakeSNP;Note=This is a fake SNP that should appear at 1000 with length 1
+##FASTA
+>ctgA
+cattgttgcggagttgaacaACGGCATTAGGAACACTTCCGTCTCtcacttttatacgat
+tatgattggttctttagccttggtttagattggtagtagtagcggcgctaatgctacctg
+aattgagaactcgagcgggggctaggcaaattctgattcagcctgacttctcttggaacc
+ctgcccataaatcaaagggttagtgcggccaaaacgttggacaacggtattagaagacca
+acctgaccaccaaaccgtcaattaaccggtatcttctcggaaacggcggttctctcctag
+atagcgatctgtggtctcaccatgcaatttaaacaggtgagtaaagattgctacaaatac
+gagactagctgtcaccagatgctgttcatctgttggctccttggtcgctccgttgtaccc
+
+>ctgB
+ACATGCTAGCTACGTGCATGCTCGACATGCATCATCAGCCTGATGCTGATACATGCTAGCTACGTGCATGCTCGACATGCATCATCAGCCTGATGCTGAT
+ACATGCTAGCTACGTGCATGCTCGACATGCATCATCAGCCTGATGCTGATACATGCTAGCTACGTGCATGCTCGACATGCATCATCAGCCTGATGCTGAT
+ACATGCTAGCTACGTGCATGCTCGACATGCATCATCAGCCTGATGCTGATACATGCTAGCTACGTGCATGCTCGACATGCATCATCAGCCTGATGCTGAT
+ACATGCTAGCTACGTGCATGCTCGACATGCATCATCAGCCTGATGCTGATACATGCTAGCTACGTGCATGCTCGACATGCATCATCAGCCTGATGCTGAT

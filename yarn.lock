@@ -8036,6 +8036,7 @@ __metadata:
     "@types/mocha": ^10
     "@types/node": ^18.14.2
     babel-plugin-istanbul: ^6.1.1
+    bson-objectid: ^2.0.4
     joi: ^17.7.0
     mocha: ^10.2.0
     nyc: ^15.1.0
