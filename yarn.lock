@@ -8153,6 +8153,7 @@ __metadata:
     "@types/mocha": "npm:^10"
     "@types/node": "npm:^18.14.2"
     babel-plugin-istanbul: "npm:^6.1.1"
+    bson-objectid: "npm:^2.0.4"
     joi: "npm:^17.7.0"
     mocha: "npm:^10.2.0"
     nyc: "npm:^15.1.0"
