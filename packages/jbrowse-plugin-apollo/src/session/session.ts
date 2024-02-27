@@ -294,8 +294,7 @@ export function extendSession(
               }
             const selectedAssembly = assemblyManager.get(assembly.name)
             if (selectedAssembly) {
-              // @ts-expect-error MST type coercion problem?
-              self.addApolloTrackConfig(selectedAssembly, baseURL)
+              // self.addApolloTrackConfig(selectedAssembly, baseURL)
               continue
             }
             const url = new URL('refSeqs', baseURL)
@@ -357,9 +356,9 @@ export function extendSession(
                 },
               },
             }
-            ;(addSessionAssembly || addAssembly)(assemblyConfig)
+            // ;(addSessionAssembly || addAssembly)(assemblyConfig)
             const a = yield assemblyManager.waitForAssembly(assemblyConfig.name)
-            self.addApolloTrackConfig(a, baseURL)
+            // self.addApolloTrackConfig(a, baseURL)
           }
         }
       }),
