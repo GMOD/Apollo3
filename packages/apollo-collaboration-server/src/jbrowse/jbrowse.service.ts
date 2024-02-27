@@ -15,8 +15,13 @@ export class JBrowseService {
   async getConfig() {
     const assemblies = await this.assembliesService.findAll()
     const config = this.getDefaultConfig()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const assemblyConfigs: any[] = []
     config.assemblies = assemblyConfigs
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const trackConfigs: any[] = []
+    config.tracks = trackConfigs
+
     for (const assembly of assemblies) {
       const refSeqs = await this.refSeqsService.findAll({
         assembly: assembly._id.toHexString(),
@@ -30,6 +35,7 @@ export class JBrowseService {
           uniqueId: `alias-${refSeq._id}`,
         }
       })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const assemblyConfig: any = {
         name: assembly._id,
         aliases: [assembly.name, ...(assembly.aliases ?? [])],
@@ -60,13 +66,49 @@ export class JBrowseService {
         },
       }
       assemblyConfigs.push(assemblyConfig)
+
+      // Tracks
+      const trackId = `apollo_track_${assembly.id}`
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const trackConfig: any = {
+        type: 'ApolloTrack',
+        trackId,
+        name: `Annotations (${assembly.displayName ?? assembly.name})`,
+        assemblyNames: [assembly.id],
+        textSearching: {
+          textSearchAdapter: {
+            type: 'ApolloTextSearchAdapter',
+            trackId,
+            assemblyNames: [assembly.id],
+            textSearchAdapterId: `apollo_search_${assembly.id}`,
+            baseURL: {
+              uri: 'http://localhost:3999',
+              locationType: 'UriLocation',
+            },
+          },
+        },
+        displays: [
+          {
+            type: 'LinearApolloDisplay',
+            displayId: `${trackId}-LinearApolloDisplay`,
+          },
+          {
+            type: 'SixFrameFeatureDisplay',
+            displayId: `${trackId}-SixFrameFeatureDisplay`,
+          },
+        ],
+      }
+      trackConfigs.push(trackConfig)
     }
+    console.log(`TRACK CONFIGS = ${JSON.stringify(trackConfigs)}`)
     return config
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getDefaultConfig(): any {
     return {
       assemblies: [],
+      tracks: [],
       configuration: {
         theme: {
           palette: {
