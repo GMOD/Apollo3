@@ -1,7 +1,7 @@
 import * as fs from 'node:fs'
 
 import { Flags } from '@oclif/core'
-import ObjectID from 'bson-objectid'
+import { ObjectId } from 'bson'
 
 import { BaseCommand } from '../../baseCommand.js'
 import { localhostToAddress } from '../../utils.js'
@@ -44,7 +44,7 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
     )
 
     let typeName = 'AddAssemblyAndFeaturesFromFileChange'
-    if (!flags['omit-features']) {
+    if (flags['omit-features']) {
       typeName = 'AddAssemblyFromFileChange'
     }
 
@@ -85,7 +85,6 @@ async function uploadFile(
   }
 
   const url = new URL(localhostToAddress(`${address}/files`))
-
   try {
     const response = await fetch(url, auth)
     const json = await response.json()
@@ -107,7 +106,7 @@ async function submitAssembly(
     assemblyName,
     fileId,
     typeName,
-    assembly: new ObjectID().toHexString(),
+    assembly: new ObjectId().toHexString(),
   }
 
   const auth = {

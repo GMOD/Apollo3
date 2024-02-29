@@ -1,7 +1,7 @@
 import { Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { filterJsonList, localhostToAddress, queryApollo } from '../../utils.js'
+import { assemblyNamesToIds, localhostToAddress } from '../../utils.js'
 
 export default class Delete extends BaseCommand<typeof Delete> {
   static description = 'Delete assemblies'
@@ -9,36 +9,10 @@ export default class Delete extends BaseCommand<typeof Delete> {
   static flags = {
     names: Flags.string({
       char: 'n',
-      description: 'Assembly names to delete',
+      description: 'Assembly names or IDs to delete',
       multiple: true,
       required: true,
     }),
-  }
-
-  private async getAssemblyIdFromName(
-    address: string,
-    accessToken: string,
-    names: string[],
-  ): Promise<string[]> {
-    const assemblies: Response = await queryApollo(
-      address,
-      accessToken,
-      'assemblies',
-    )
-    const json = await assemblies.json()
-    const ids: string[] = []
-
-    for (const x of new Set(names)) {
-      const toDelete = filterJsonList(json, [x], 'name')
-      if (toDelete.length === 0) {
-        this.logToStderr(`Note: No assembly found with name "${x}"`)
-      } else if (toDelete.length > 1) {
-        throw new Error(`Error: More than one assembly have name "${x}"`)
-      } else {
-        ids.push(toDelete[0]['_id' as keyof (typeof toDelete)[0]])
-      }
-    }
-    return ids
   }
 
   private async deleteAssembly(
@@ -75,11 +49,26 @@ export default class Delete extends BaseCommand<typeof Delete> {
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 
-    const deleteIds = await this.getAssemblyIdFromName(
+    const nameToId = await assemblyNamesToIds(
       access.address,
       access.accessToken,
-      flags.names,
     )
+
+    let deleteIds = flags.names
+    for (const x of flags.names) {
+      if (nameToId[x] !== undefined) {
+        deleteIds[deleteIds.indexOf(x)] = nameToId[x]
+      } else if (!Object.values(nameToId).includes(x)) {
+        this.logToStderr(`Warning: Omitting unknown assembly: "${x}"`)
+        deleteIds[deleteIds.indexOf(x)] = ''
+      }
+    }
+    deleteIds = deleteIds.filter((e) => e !== '')
+    if (deleteIds.length === 0) {
+      this.log(JSON.stringify([], null, 2))
+      this.exit(0)
+    }
+
     for (const x of deleteIds) {
       await this.deleteAssembly(access.address, access.accessToken, x)
     }
