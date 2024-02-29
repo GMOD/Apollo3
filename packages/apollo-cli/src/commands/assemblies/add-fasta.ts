@@ -1,7 +1,7 @@
 import * as fs from 'node:fs'
 
 import { Flags } from '@oclif/core'
-import ObjectID from 'bson-objectid'
+import { ObjectId } from 'bson'
 
 import { BaseCommand } from '../../baseCommand.js'
 import { localhostToAddress } from '../../utils.js'
@@ -95,7 +95,7 @@ async function uploadFile(
   const buffer: Buffer =
     file === '-' ? fs.readFileSync(process.stdin.fd) : fs.readFileSync(file)
   const blob = new Blob([buffer])
-
+  
   const formData = new FormData()
   formData.append('type', 'text/x-fasta')
   formData.append('file', blob)
@@ -129,7 +129,7 @@ async function addAssemblyFromExternal(
 ) {
   const body = {
     typeName: 'AddAssemblyFromExternalChange',
-    assembly: new ObjectID().toHexString(),
+    assembly: new ObjectId().toHexString(),
     assemblyName,
     externalLocation: {
       fa,
@@ -159,7 +159,7 @@ async function submitAssembly(
 ): Promise<Response> {
   const body = {
     typeName: 'AddAssemblyFromFileChange',
-    assembly: new ObjectID().toHexString(),
+    assembly: new ObjectId().toHexString(),
     assemblyName,
     fileId,
   }

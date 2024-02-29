@@ -45,6 +45,44 @@ export function localhostToAddress(url: string) {
   return url.replace('//localhost', '127.0.0.1')
 }
 
+export async function assemblyNamesToIds(
+  address: string,
+  accessToken: string,
+): Promise<Record<string, string>> {
+  const asm = await queryApollo(address, accessToken, 'assemblies')
+  const ja = await asm.json()
+  const nameToId: Record<string, string> = {}
+  for (const x of ja) {
+    nameToId[x['name' as keyof typeof x]] = x['_id' as keyof typeof x]
+  }
+  return nameToId
+}
+
+export async function getFeatureById(
+  address: string,
+  accessToken: string,
+  id: string,
+): Promise<Response> {
+  const url = new URL(localhostToAddress(`${address}/features/${id}`))
+  const auth = {
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+    },
+  }
+  const response = await fetch(url, auth)
+  return response
+}
+
+export async function getAssemblyFromRefseq(
+  address: string,
+  accessToken: string,
+  refSeq: string,
+): Promise<string> {
+  const refSeqs: Response = await queryApollo(address, accessToken, 'refSeqs')
+  const refJson = filterJsonList(await refSeqs.json(), [refSeq], '_id')
+  return refJson[0]['assembly' as keyof (typeof refJson)[0]]
+}
+
 export async function queryApollo(
   address: string,
   accessToken: string,
