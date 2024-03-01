@@ -8036,7 +8036,7 @@ __metadata:
     "@types/mocha": ^10
     "@types/node": ^18.14.2
     babel-plugin-istanbul: ^6.1.1
-    bson-objectid: ^2.0.4
+    bson: ^6.3.0
     joi: ^17.7.0
     mocha: ^10.2.0
     nyc: ^15.1.0
@@ -9309,6 +9309,13 @@ __metadata:
   version: 6.1.0
   resolution: "bson@npm:6.1.0"
   checksum: 8250c8158c22d2a0ca0e7677c0cbef9fa6341c176382b835dbf4c7f8aebdfd74d530f7225c6f3b98ca78a68aab4f1ad3d2fad54160a98b3e6ed9823b80db2e48
+  languageName: node
+  linkType: hard
+
+"bson@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "bson@npm:6.3.0"
+  checksum: 57fab13c535f368cb15811cbc48e361bd3275710318c807082e65fb62fdf0a63e732671871bb739d99105f27d7cedbbea0284963a59bd3b50c86a2a5cc5c58b1
   languageName: node
   linkType: hard
 
