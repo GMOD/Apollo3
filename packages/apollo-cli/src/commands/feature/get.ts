@@ -1,18 +1,21 @@
 import { Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { localhostToAddress } from '../../utils.js'
+import { getRefseqId, localhostToAddress, queryApollo, subAssemblyNameToId } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description = 'Get features in a genomic window'
 
   static flags = {
-    // Do we need to add "assembly" as required param?
-    // Alternatively use syntax "chrom:start-end" or "chrom:start..end" and possibly allow for multiple queries
-    refSeq: Flags.string({
+    refseq: Flags.string({
       char: 'r',
       description: 'Reference sequence',
       required: true,
+    }),
+    assembly: Flags.string({
+      char: 'a',
+      description:
+        'Find the input reference sequence in this assembly name or ID',
     }),
     start: Flags.integer({
       char: 's',
@@ -37,10 +40,26 @@ export default class Get extends BaseCommand<typeof Get> {
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 
+    const refseqIds = await getRefseqId(
+      access.address,
+      access.accessToken,
+      flags.refseq,
+      flags.assembly,
+    )
+    if (refseqIds.length > 1) {
+      this.logToStderr(
+        `More than one reference sequence found with name ${flags.refseq}`,
+      )
+      this.exit(1)
+    } else if (refseqIds.length === 0) {
+      this.logToStderr('No reference sequence found')
+      this.log(JSON.stringify([[], []], null, 2))
+      this.exit(0)
+    }
     const features: Response = await this.getFeatures(
       access.address,
       access.accessToken,
-      flags.refSeq,
+      refseqIds[0],
       flags.start,
       endCoord,
     )

@@ -3,7 +3,7 @@ import * as fs from 'node:fs'
 import { Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { assemblyNamesToIds, localhostToAddress } from '../../utils.js'
+import { localhostToAddress, subAssemblyNameToId } from '../../utils.js'
 
 async function searchFeatures(
   address: string,
@@ -49,34 +49,25 @@ export default class Search extends BaseCommand<typeof Search> {
     const { flags } = await this.parse(Search)
 
     // eslint-disable-next-line prefer-destructuring
-    let assemblies = flags.assemblies
-    if (JSON.stringify(assemblies) === JSON.stringify(['-'])) {
-      assemblies = fs
+    let nameOrIds = flags.assemblies
+    if (JSON.stringify(nameOrIds) === JSON.stringify(['-'])) {
+      nameOrIds = fs
         .readFileSync(process.stdin.fd)
         .toString()
         .trim()
         .split(/(\s+)/)
     }
+    nameOrIds = nameOrIds.filter((x) => x.trim() != '')
 
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 
-    const nameToId = await assemblyNamesToIds(
+    const assemblies = await subAssemblyNameToId(
       access.address,
       access.accessToken,
+      nameOrIds,
     )
 
-    for (const x of assemblies) {
-      if (nameToId[x] !== undefined) {
-        assemblies[assemblies.indexOf(x)] = nameToId[x]
-      } else if (!Object.values(nameToId).includes(x)) {
-        this.logToStderr(
-          `Warning: Omitting from search unknown assembly: "${x}"`,
-        )
-        assemblies[assemblies.indexOf(x)] = ''
-      }
-    }
-    assemblies = assemblies.filter((e) => e !== '')
     if (assemblies.length === 0) {
       this.log(JSON.stringify([], null, 2))
       this.exit(0)

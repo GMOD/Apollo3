@@ -13,7 +13,7 @@ import {
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
-describe('apollo assemblies get: Fail without token', () => {
+describe('apollo assembly get: Fail without token', () => {
   before(() => {
     copyFile(`${TEST_DATA_DIR}/guest.yaml`, CONFIG_FILE, VERBOSE)
   })
@@ -21,7 +21,7 @@ describe('apollo assemblies get: Fail without token', () => {
     fs.rmSync(CONFIG_FILE)
   })
 
-  const cmd = ['assemblies:get']
+  const cmd = ['assembly:get']
   test
     .stderr()
     .command(cmd, { root: dirname(dirname(__dirname)) })
@@ -34,7 +34,7 @@ describe('apollo assemblies get: Fail without token', () => {
 })
 
 // TODO: Need valid token
-describe.skip('apollo assemblies get: Get assemblies as YAML string', () => {
+describe.skip('apollo assembly get: Get assemblies as YAML string', () => {
   before(() => {
     copyFile(`${TEST_DATA_DIR}/complete_config.yaml`, CONFIG_FILE, VERBOSE)
   })
@@ -42,7 +42,7 @@ describe.skip('apollo assemblies get: Get assemblies as YAML string', () => {
     fs.rmSync(CONFIG_FILE)
   })
 
-  const cmd = ['assemblies:get']
+  const cmd = ['assembly:get']
   test
     .stdout()
     .command(cmd, { root: dirname(dirname(__dirname)) })

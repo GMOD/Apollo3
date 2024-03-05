@@ -28,7 +28,7 @@ export default class Get extends BaseCommand<typeof Get> {
     type: Flags.string({
       char: 't',
       required: true,
-      description: 'Feature ID to edit or - to read it from stdin',
+      description: 'Type of child feature',
     }),
   }
 

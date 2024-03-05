@@ -1,13 +1,12 @@
 import * as fs from 'node:fs'
 
 import { Flags } from '@oclif/core'
-import { ObjectId } from 'bson'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { localhostToAddress } from '../../utils.js'
+import { localhostToAddress, subAssemblyNameToId } from '../../utils.js'
 
-export default class AddGff extends BaseCommand<typeof AddGff> {
-  static description = 'Add assembly sequences from gff or gft file'
+export default class Import extends BaseCommand<typeof Import> {
+  static description = 'Import features from local gff file'
 
   static flags = {
     'input-file': Flags.string({
@@ -15,27 +14,39 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
       description: 'Input gff or gtf file',
       required: true,
     }),
-    'assembly-name': Flags.string({
-      char: 'n',
-      description: 'Name for this assembly',
+    assembly: Flags.string({
+      char: 'a',
+      description: 'Import into this assembly name or assembly ID',
       required: true,
     }),
-    'omit-features': Flags.boolean({
-      char: 'o',
-      description: 'Do not import features, only upload the sequences',
+    'delete-existing': Flags.boolean({
+      char: 'd',
+      description: 'Delete existing features before importing',
     }),
   }
 
   public async run(): Promise<void> {
-    const { flags } = await this.parse(AddGff)
+    const { flags } = await this.parse(Import)
 
     if (!fs.existsSync(flags['input-file'])) {
-      this.logToStderr(`File ${flags['input-file']} does not exist`)
+      this.logToStderr(`File "${flags['input-file']}" does not exist`)
       this.exit(1)
     }
 
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
+
+    const assembly = await subAssemblyNameToId(
+      access.address,
+      access.accessToken,
+      [flags.assembly],
+    )
+    if (assembly.length === 0) {
+      this.logToStderr(
+        `Assembly "${flags.assembly}" does not exist. Perhaps you want to create this assembly first`,
+      )
+      this.exit(1)
+    }
 
     const uploadId = await uploadFile(
       access.address,
@@ -43,18 +54,14 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
       flags['input-file'],
     )
 
-    let typeName = 'AddAssemblyAndFeaturesFromFileChange'
-    if (flags['omit-features']) {
-      typeName = 'AddAssemblyFromFileChange'
-    }
-
-    const response: Response = await submitAssembly(
+    const response: Response = await importFeatures(
       access.address,
       access.accessToken,
-      flags['assembly-name'],
+      assembly[0],
       uploadId,
-      typeName,
+      flags['delete-existing'],
     )
+
     if (!response.ok) {
       const json = JSON.parse(await response.text())
       const message: string = json['message' as keyof typeof json]
@@ -62,6 +69,34 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
       this.exit(1)
     }
   }
+}
+
+async function importFeatures(
+  address: string,
+  accessToken: string,
+  assembly: string,
+  fileId: string,
+  deleteExistingFeatures: boolean,
+): Promise<Response> {
+  const body = {
+    typeName: 'AddFeaturesFromFileChange',
+    assembly,
+    fileId,
+    deleteExistingFeatures,
+  }
+
+  const auth = {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+  }
+
+  const url = new URL(localhostToAddress(`${address}/changes`))
+  const response = await fetch(url, auth)
+  return response
 }
 
 async function uploadFile(
@@ -93,32 +128,4 @@ async function uploadFile(
     console.error(error)
     throw error
   }
-}
-
-async function submitAssembly(
-  address: string,
-  accessToken: string,
-  assemblyName: string,
-  fileId: string,
-  typeName: string,
-): Promise<Response> {
-  const body = {
-    assemblyName,
-    fileId,
-    typeName,
-    assembly: new ObjectId().toHexString(),
-  }
-
-  const auth = {
-    method: 'POST',
-    body: JSON.stringify(body),
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-  }
-
-  const url = new URL(localhostToAddress(`${address}/changes`))
-  const response = await fetch(url, auth)
-  return response
 }

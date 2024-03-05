@@ -29,35 +29,36 @@ USAGE
 
 <!-- commands -->
 
-- [`apollo assemblies add-fasta`](#apollo-assemblies-add-fasta)
-- [`apollo assemblies add-gff`](#apollo-assemblies-add-gff)
-- [`apollo assemblies delete`](#apollo-assemblies-delete)
-- [`apollo assemblies get`](#apollo-assemblies-get)
-- [`apollo changes get`](#apollo-changes-get)
+- [`apollo assembly add-fasta`](#apollo-assembly-add-fasta)
+- [`apollo assembly add-gff`](#apollo-assembly-add-gff)
+- [`apollo assembly delete`](#apollo-assembly-delete)
+- [`apollo assembly get`](#apollo-assembly-get)
+- [`apollo change get`](#apollo-change-get)
 - [`apollo config [KEY] [VALUE]`](#apollo-config-key-value)
-- [`apollo features add-child`](#apollo-features-add-child)
-- [`apollo features delete`](#apollo-features-delete)
-- [`apollo features edit`](#apollo-features-edit)
-- [`apollo features edit-attribute`](#apollo-features-edit-attribute)
-- [`apollo features edit-coords`](#apollo-features-edit-coords)
-- [`apollo features edit-type`](#apollo-features-edit-type)
-- [`apollo features get`](#apollo-features-get)
-- [`apollo features import`](#apollo-features-import)
-- [`apollo features search`](#apollo-features-search)
+- [`apollo feature add-child`](#apollo-feature-add-child)
+- [`apollo feature copy`](#apollo-feature-copy)
+- [`apollo feature delete`](#apollo-feature-delete)
+- [`apollo feature edit`](#apollo-feature-edit)
+- [`apollo feature edit-attribute`](#apollo-feature-edit-attribute)
+- [`apollo feature edit-coords`](#apollo-feature-edit-coords)
+- [`apollo feature edit-type`](#apollo-feature-edit-type)
+- [`apollo feature get`](#apollo-feature-get)
+- [`apollo feature import`](#apollo-feature-import)
+- [`apollo feature search`](#apollo-feature-search)
 - [`apollo help [COMMANDS]`](#apollo-help-commands)
 - [`apollo login`](#apollo-login)
 - [`apollo logout`](#apollo-logout)
-- [`apollo refSeqs get`](#apollo-refseqs-get)
+- [`apollo refseq get`](#apollo-refseq-get)
 - [`apollo status`](#apollo-status)
-- [`apollo users get`](#apollo-users-get)
+- [`apollo user get`](#apollo-user-get)
 
-## `apollo assemblies add-fasta`
+## `apollo assembly add-fasta`
 
 Add assembly sequences from local fasta file or external source
 
 ```
 USAGE
-  $ apollo assemblies add-fasta -i <value> -n <value> [--profile <value>] [--config-file <value>] [-x <value>]
+  $ apollo assembly add-fasta -i <value> -n <value> [--profile <value>] [--config-file <value>] [-x <value>]
 
 FLAGS
   -i, --input-file=<value>     (required) Input fasta file
@@ -71,15 +72,15 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/assemblies/add-fasta.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/assemblies/add-fasta.ts)_
+[src/commands/assembly/add-fasta.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/assembly/add-fasta.ts)_
 
-## `apollo assemblies add-gff`
+## `apollo assembly add-gff`
 
 Add assembly sequences from gff or gft file
 
 ```
 USAGE
-  $ apollo assemblies add-gff -i <value> -n <value> [--profile <value>] [--config-file <value>] [-o]
+  $ apollo assembly add-gff -i <value> -n <value> [--profile <value>] [--config-file <value>] [-o]
 
 FLAGS
   -i, --input-file=<value>     (required) Input gff or gtf file
@@ -93,18 +94,18 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/assemblies/add-gff.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/assemblies/add-gff.ts)_
+[src/commands/assembly/add-gff.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/assembly/add-gff.ts)_
 
-## `apollo assemblies delete`
+## `apollo assembly delete`
 
 Delete assemblies
 
 ```
 USAGE
-  $ apollo assemblies delete -n <value> [--profile <value>] [--config-file <value>]
+  $ apollo assembly delete -a <value> [--profile <value>] [--config-file <value>]
 
 FLAGS
-  -n, --names=<value>...     (required) Assembly names or IDs to delete
+  -a, --assembly=<value>...  (required) Assembly names or IDs to delete
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      [default: default] Use credentials from this profile
 
@@ -113,18 +114,18 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/assemblies/delete.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/assemblies/delete.ts)_
+[src/commands/assembly/delete.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/assembly/delete.ts)_
 
-## `apollo assemblies get`
+## `apollo assembly get`
 
 Get available assemblies
 
 ```
 USAGE
-  $ apollo assemblies get [--profile <value>] [--config-file <value>] [-n <value>]
+  $ apollo assembly get [--profile <value>] [--config-file <value>] [-a <value>]
 
 FLAGS
-  -n, --names=<value>...     Get assemblies in this list of names
+  -a, --assembly=<value>...  Get assemblies in this list of names or IDs
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      [default: default] Use credentials from this profile
 
@@ -133,15 +134,15 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/assemblies/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/assemblies/get.ts)_
+[src/commands/assembly/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/assembly/get.ts)_
 
-## `apollo changes get`
+## `apollo change get`
 
 Get changes
 
 ```
 USAGE
-  $ apollo changes get [--profile <value>] [--config-file <value>]
+  $ apollo change get [--profile <value>] [--config-file <value>]
 
 FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
@@ -152,7 +153,7 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/changes/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/changes/get.ts)_
+[src/commands/change/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/change/get.ts)_
 
 ## `apollo config [KEY] [VALUE]`
 
@@ -177,19 +178,19 @@ DESCRIPTION
 _See code:
 [src/commands/config.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/config.ts)_
 
-## `apollo features add-child`
+## `apollo feature add-child`
 
 Add a child feature
 
 ```
 USAGE
-  $ apollo features add-child -s <value> -e <value> -t <value> [--profile <value>] [--config-file <value>] [-i <value>]
+  $ apollo feature add-child -s <value> -e <value> -t <value> [--profile <value>] [--config-file <value>] [-i <value>]
 
 FLAGS
   -e, --end=<value>          (required) End coordinate of the child feature (1-based)
   -i, --feature-id=<value>   [default: -] Feature ID to add child to; use - to read it from stdin
   -s, --start=<value>        (required) Start coordinate of the child feature (1-based)
-  -t, --type=<value>         (required) Feature ID to edit or - to read it from stdin
+  -t, --type=<value>         (required) Type of child feature
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      [default: default] Use credentials from this profile
 
@@ -198,15 +199,38 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/features/add-child.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/features/add-child.ts)_
+[src/commands/feature/add-child.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/feature/add-child.ts)_
 
-## `apollo features delete`
+## `apollo feature copy`
+
+Copy feature
+
+```
+USAGE
+  $ apollo feature copy -r <value> -s <value> [--profile <value>] [--config-file <value>] [-i <value>] [-a <value>]
+
+FLAGS
+  -a, --assembly=<value>     Name or ID of target assembly. Not required if refseq is unique in the database
+  -i, --feature-id=<value>   [default: -] Feature ID to copy to; use - to read it from stdin
+  -r, --refseq=<value>       (required) Name or ID of target reference sequence
+  -s, --start=<value>        (required) Start position in target reference sequence
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      [default: default] Use credentials from this profile
+
+DESCRIPTION
+  Copy feature
+```
+
+_See code:
+[src/commands/feature/copy.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/feature/copy.ts)_
+
+## `apollo feature delete`
 
 Free text search for feature in one or more assemblies
 
 ```
 USAGE
-  $ apollo features delete [--profile <value>] [--config-file <value>] [-i <value>]
+  $ apollo feature delete [--profile <value>] [--config-file <value>] [-i <value>]
 
 FLAGS
   -i, --feature-id=<value>   [default: -] Feature ID to delete
@@ -218,15 +242,15 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/features/delete.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/features/delete.ts)_
+[src/commands/feature/delete.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/feature/delete.ts)_
 
-## `apollo features edit`
+## `apollo feature edit`
 
 Edit features using an appropiate json input
 
 ```
 USAGE
-  $ apollo features edit [--profile <value>] [--config-file <value>] [-j <value>]
+  $ apollo feature edit [--profile <value>] [--config-file <value>] [-j <value>]
 
 FLAGS
   -j, --json-input=<value>   [default: -] Json string or json file or "-" to read json from stdin
@@ -238,15 +262,15 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/features/edit.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/features/edit.ts)_
+[src/commands/feature/edit.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/feature/edit.ts)_
 
-## `apollo features edit-attribute`
+## `apollo feature edit-attribute`
 
 Add or edit a feature attribute
 
 ```
 USAGE
-  $ apollo features edit-attribute -a <value> [--profile <value>] [--config-file <value>] [-i <value>] [-v <value>]
+  $ apollo feature edit-attribute -a <value> [--profile <value>] [--config-file <value>] [-i <value>] [-v <value>]
 
 FLAGS
   -a, --attribute=<value>    (required) Attribute key to add or edit
@@ -260,15 +284,15 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/features/edit-attribute.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/features/edit-attribute.ts)_
+[src/commands/feature/edit-attribute.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/feature/edit-attribute.ts)_
 
-## `apollo features edit-coords`
+## `apollo feature edit-coords`
 
 Edit feature coordinates (start and/or end)
 
 ```
 USAGE
-  $ apollo features edit-coords [--profile <value>] [--config-file <value>] [-i <value>] [-s <value>] [-e <value>]
+  $ apollo feature edit-coords [--profile <value>] [--config-file <value>] [-i <value>] [-s <value>] [-e <value>]
 
 FLAGS
   -e, --end=<value>          New end coordinate (1-based)
@@ -282,15 +306,15 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/features/edit-coords.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/features/edit-coords.ts)_
+[src/commands/feature/edit-coords.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/feature/edit-coords.ts)_
 
-## `apollo features edit-type`
+## `apollo feature edit-type`
 
 Edit type of feature
 
 ```
 USAGE
-  $ apollo features edit-type -t <value> [--profile <value>] [--config-file <value>] [-i <value>]
+  $ apollo feature edit-type -t <value> [--profile <value>] [--config-file <value>] [-i <value>]
 
 FLAGS
   -i, --feature-id=<value>   [default: -] Feature ID to edit or "-" to read it from stdin
@@ -303,19 +327,21 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/features/edit-type.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/features/edit-type.ts)_
+[src/commands/feature/edit-type.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/feature/edit-type.ts)_
 
-## `apollo features get`
+## `apollo feature get`
 
 Get features in a genomic window
 
 ```
 USAGE
-  $ apollo features get -r <value> [--profile <value>] [--config-file <value>] [-s <value>] [-e <value>]
+  $ apollo feature get -r <value> [--profile <value>] [--config-file <value>] [-a <value>] [-s <value>] [-e
+    <value>]
 
 FLAGS
+  -a, --assembly=<value>     Find the input reference sequence in this assembly name or ID
   -e, --end=<value>          End coordinate
-  -r, --refSeq=<value>       (required) Reference sequence
+  -r, --refseq=<value>       (required) Reference sequence
   -s, --start=<value>        [default: 1] Start coordinate (1-based)
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      [default: default] Use credentials from this profile
@@ -325,15 +351,15 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/features/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/features/get.ts)_
+[src/commands/feature/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/feature/get.ts)_
 
-## `apollo features import`
+## `apollo feature import`
 
 Import features from local gff file
 
 ```
 USAGE
-  $ apollo features import -i <value> -a <value> [--profile <value>] [--config-file <value>] [-d]
+  $ apollo feature import -i <value> -a <value> [--profile <value>] [--config-file <value>] [-d]
 
 FLAGS
   -a, --assembly=<value>     (required) Import into this assembly name or assembly ID
@@ -347,15 +373,15 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/features/import.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/features/import.ts)_
+[src/commands/feature/import.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/feature/import.ts)_
 
-## `apollo features search`
+## `apollo feature search`
 
 Free text search for feature in one or more assemblies
 
 ```
 USAGE
-  $ apollo features search -t <value> [--profile <value>] [--config-file <value>] [-a <value>]
+  $ apollo feature search -t <value> [--profile <value>] [--config-file <value>] [-a <value>]
 
 FLAGS
   -a, --assemblies=<value>...  [default: -] Assembly names or IDs to search; use "-" to read it from stdin
@@ -368,7 +394,7 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/features/search.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/features/search.ts)_
+[src/commands/feature/search.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/feature/search.ts)_
 
 ## `apollo help [COMMANDS]`
 
@@ -433,24 +459,25 @@ DESCRIPTION
 _See code:
 [src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/logout.ts)_
 
-## `apollo refSeqs get`
+## `apollo refseq get`
 
 Get available reference sequences
 
 ```
 USAGE
-  $ apollo refSeqs get [--profile <value>] [--config-file <value>]
+  $ apollo refseq get [--profile <value>] [--config-file <value>] [-a <value>]
 
 FLAGS
-  --config-file=<value>  Use this config file (mostly for testing)
-  --profile=<value>      [default: default] Use credentials from this profile
+  -a, --assembly=<value>...  Get reference sequences for these assembly names or IDs; use - to read it from stdin
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      [default: default] Use credentials from this profile
 
 DESCRIPTION
   Get available reference sequences
 ```
 
 _See code:
-[src/commands/refSeqs/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/refSeqs/get.ts)_
+[src/commands/refseq/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/refseq/get.ts)_
 
 ## `apollo status`
 
@@ -471,13 +498,13 @@ DESCRIPTION
 _See code:
 [src/commands/status.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/status.ts)_
 
-## `apollo users get`
+## `apollo user get`
 
 Get users
 
 ```
 USAGE
-  $ apollo users get [--profile <value>] [--config-file <value>]
+  $ apollo user get [--profile <value>] [--config-file <value>]
 
 FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
@@ -488,6 +515,6 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/users/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/users/get.ts)_
+[src/commands/user/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/user/get.ts)_
 
 <!-- commandsstop -->
