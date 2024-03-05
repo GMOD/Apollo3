@@ -45,7 +45,35 @@ export function localhostToAddress(url: string) {
   return url.replace('//localhost', '127.0.0.1')
 }
 
-export async function assemblyNamesToIds(
+export async function getRefseqId(
+  address: string,
+  accessToken: string,
+  refseqNameOrId: string,
+  inAssembly?: string,
+): Promise<string[]> {
+  const res: Response = await queryApollo(address, accessToken, 'refSeqs')
+  const refSeqs = await res.json()
+  let assemblyId: string[] = []
+  if (inAssembly !== undefined) {
+    assemblyId = await subAssemblyNameToId(address, accessToken, [inAssembly])
+  }
+  const refseqIds = []
+  for (const x of refSeqs) {
+    const aid = x['assembly' as keyof typeof x]
+    const rid = x['_id' as keyof typeof x]
+    const rname = x['name' as keyof typeof x]
+    if (refseqNameOrId === rid || refseqNameOrId === rname) {
+      if (inAssembly === undefined || assemblyId.includes(aid)) {
+        refseqIds.push(rid)
+      } else {
+        //
+      }
+    }
+  }
+  return refseqIds
+}
+
+async function assemblyNamesToIds(
   address: string,
   accessToken: string,
 ): Promise<Record<string, string>> {
@@ -57,6 +85,36 @@ export async function assemblyNamesToIds(
   }
   return nameToId
 }
+
+/** In input array namesOrIds, substitute common names with internal IDs */
+export async function subAssemblyNameToId(
+  address: string,
+  accessToken: string,
+  namesOrIds: string[],
+): Promise<string[]> {
+  const nameToId = await assemblyNamesToIds(address, accessToken)
+  const ids = []
+  for (const x of namesOrIds) {
+    if (nameToId[x] !== undefined) {
+      ids.push(nameToId[x])
+    } else if (Object.values(nameToId).includes(x)) {
+      ids.push(x)
+    } else {
+      process.stderr.write(`Warning: Omitting unknown assembly: "${x}"\n`)
+    }
+  }
+  return ids
+}
+
+// /** In input array namesOrIds, substitute common names with internal IDs */
+// export async function subRefseqNameToId(
+//   address: string,
+//   accessToken: string,
+//   namesOrIds: string[],
+// ): Promise<string[]> {
+// // Get 
+
+// }
 
 export async function getFeatureById(
   address: string,

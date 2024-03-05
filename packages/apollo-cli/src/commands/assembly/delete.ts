@@ -1,14 +1,14 @@
 import { Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { assemblyNamesToIds, localhostToAddress } from '../../utils.js'
+import { localhostToAddress, subAssemblyNameToId } from '../../utils.js'
 
 export default class Delete extends BaseCommand<typeof Delete> {
   static description = 'Delete assemblies'
 
   static flags = {
-    names: Flags.string({
-      char: 'n',
+    assembly: Flags.string({
+      char: 'a',
       description: 'Assembly names or IDs to delete',
       multiple: true,
       required: true,
@@ -49,26 +49,11 @@ export default class Delete extends BaseCommand<typeof Delete> {
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 
-    const nameToId = await assemblyNamesToIds(
+    const deleteIds = await subAssemblyNameToId(
       access.address,
       access.accessToken,
+      flags.assembly,
     )
-
-    let deleteIds = flags.names
-    for (const x of flags.names) {
-      if (nameToId[x] !== undefined) {
-        deleteIds[deleteIds.indexOf(x)] = nameToId[x]
-      } else if (!Object.values(nameToId).includes(x)) {
-        this.logToStderr(`Warning: Omitting unknown assembly: "${x}"`)
-        deleteIds[deleteIds.indexOf(x)] = ''
-      }
-    }
-    deleteIds = deleteIds.filter((e) => e !== '')
-    if (deleteIds.length === 0) {
-      this.log(JSON.stringify([], null, 2))
-      this.exit(0)
-    }
-
     for (const x of deleteIds) {
       await this.deleteAssembly(access.address, access.accessToken, x)
     }
