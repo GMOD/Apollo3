@@ -3,6 +3,7 @@ import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { expect, test } from '@oclif/test'
+import { MockAgent, setGlobalDispatcher } from 'undici'
 import YAML from 'yaml'
 
 import {
@@ -11,6 +12,13 @@ import {
   VERBOSE,
   copyFile,
 } from '../test/fixtures.js'
+
+const mockAgent = new MockAgent()
+mockAgent.disableNetConnect()
+
+setGlobalDispatcher(mockAgent)
+
+const mockPool = mockAgent.get('http://example.com')
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
@@ -42,21 +50,20 @@ describe('apollo login: Profile does not exist', () => {
     .it(cmd.join(' '))
 })
 
-// TODO: Mock server
-describe.skip('apollo login: Add token for guest', () => {
-  before(() => {
-    copyFile(`${TEST_DATA_DIR}/guest.yaml`, CONFIG_FILE, VERBOSE)
-  })
-  after(() => {
-    fs.rmSync(CONFIG_FILE)
-  })
-
+describe('apollo login: Add token for guest', () => {
   const cmd = ['login']
   test
+    .do(() => copyFile(`${TEST_DATA_DIR}/guest.yaml`, CONFIG_FILE, VERBOSE))
+    .finally(() => fs.rmSync(CONFIG_FILE))
     .stdout()
+    .do(() => {
+      mockPool
+        .intercept({ path: '/auth/login', query: { type: 'guest' } })
+        .reply(200, { token: 'thisisatoken' })
+    })
     .command(cmd, { root: dirname(dirname(__dirname)) })
     .it(cmd.join(' '), () => {
       const cfg = YAML.parse(fs.readFileSync(CONFIG_FILE, 'utf8'))
-      expect(cfg.default.accessToken).not.empty
+      expect(cfg.default.accessToken).to.equal('thisisatoken')
     })
 })
