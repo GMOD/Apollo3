@@ -116,9 +116,8 @@ class TestCLI(unittest.TestCase):
         self.assertTrue("volvox3" in p.stdout)
 
     def testAddAssemblyFromGff(self):
-        shell(f"{apollo} assembly delete -a vv1")
         shell(
-            f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a vv1 --omit-features"
+            f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a vv1 --omit-features -f"
         )
 
         ## Get id of assembly named vv1 and check there are no features
@@ -145,15 +144,16 @@ class TestCLI(unittest.TestCase):
         self.assertTrue('Error: Assembly "vv1" already exists' in p.stderr)
 
     def testAddAssemblyFromLocalFasta(self):
-        shell(f"{apollo} assembly delete -a vv1")
-        shell(f"{apollo} assembly add-fasta -i test_data/tiny.fasta -a vv1")
+        shell(f"{apollo} assembly add-fasta -i test_data/tiny.fasta -a vv1 -f")
         p = shell(f"{apollo} assembly get -a vv1")
         self.assertTrue("vv1" in p.stdout)
+        p = shell(f"{apollo} assembly add-fasta -i test_data/tiny.fasta -a vv1", strict=False)
+        self.assertTrue(p.returncode != 0)
+        self.assertTrue('Error: Assembly "vv1" already exists' in p.stderr)
 
     def testAddAssemblyFromExternalFasta(self):
-        shell(f"{apollo} assembly delete -a vv1")
         shell(
-            f"""{apollo} assembly add-fasta -a vv1 \
+            f"""{apollo} assembly add-fasta -a vv1 -f \
                 -i https://raw.githubusercontent.com/GMOD/Apollo3/main/packages/apollo-collaboration-server/test/data/volvox.fa \
                 -x https://raw.githubusercontent.com/GMOD/Apollo3/main/packages/apollo-collaboration-server/test/data/volvox.fa.fai
                   """

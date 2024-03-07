@@ -1,7 +1,7 @@
 import { Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { localhostToAddress, subAssemblyNameToId } from '../../utils.js'
+import { deleteAssembly, localhostToAddress, subAssemblyNameToId } from '../../utils.js'
 
 export default class Delete extends BaseCommand<typeof Delete> {
   static description = 'Delete assemblies'
@@ -13,34 +13,6 @@ export default class Delete extends BaseCommand<typeof Delete> {
       multiple: true,
       required: true,
     }),
-  }
-
-  private async deleteAssembly(
-    address: string,
-    accessToken: string,
-    assemblyId: string,
-  ): Promise<void> {
-    const body = {
-      typeName: 'DeleteAssemblyChange',
-      assembly: assemblyId,
-    }
-
-    const auth = {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    }
-
-    const url = new URL(localhostToAddress(`${address}/changes`))
-    const response = await fetch(url, auth)
-    if (!response.ok) {
-      const json = JSON.parse(await response.text())
-      const message: string = json['message' as keyof typeof json]
-      throw new Error(message)
-    }
   }
 
   public async run(): Promise<void> {
@@ -55,7 +27,7 @@ export default class Delete extends BaseCommand<typeof Delete> {
       flags.assembly,
     )
     for (const x of deleteIds) {
-      await this.deleteAssembly(access.address, access.accessToken, x)
+      await deleteAssembly(access.address, access.accessToken, x)
     }
   }
 }

@@ -45,6 +45,34 @@ export function localhostToAddress(url: string) {
   return url.replace('//localhost', '127.0.0.1')
 }
 
+export async function deleteAssembly(
+  address: string,
+  accessToken: string,
+  assemblyId: string,
+): Promise<void> {
+  const body = {
+    typeName: 'DeleteAssemblyChange',
+    assembly: assemblyId,
+  }
+
+  const auth = {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+  }
+
+  const url = new URL(localhostToAddress(`${address}/changes`))
+  const response = await fetch(url, auth)
+  if (!response.ok) {
+    const json = JSON.parse(await response.text())
+    const message: string = json['message' as keyof typeof json]
+    throw new Error(message)
+  }
+}
+
 export async function getRefseqId(
   address: string,
   accessToken: string,

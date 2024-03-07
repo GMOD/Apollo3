@@ -2,9 +2,10 @@ import * as fs from 'node:fs'
 
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
+// import { fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { localhostToAddress } from '../../utils.js'
+import { deleteAssembly, localhostToAddress, queryApollo } from '../../utils.js'
 
 export default class AddGff extends BaseCommand<typeof AddGff> {
   static description = 'Add assembly sequences from gff or gft file'
@@ -23,6 +24,10 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
     'omit-features': Flags.boolean({
       char: 'o',
       description: 'Do not import features, only upload the sequences',
+    }),
+    force: Flags.boolean({
+      char: 'f',
+      description: 'Delete existing assembly, if it exists',
     }),
   }
 
@@ -48,12 +53,13 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
       typeName = 'AddAssemblyFromFileChange'
     }
 
-    const response: Response = await submitAssembly(
+    const response: Response = await this.submitAssembly(
       access.address,
       access.accessToken,
       flags.assembly,
       uploadId,
       typeName,
+      flags.force
     )
     if (!response.ok) {
       const json = JSON.parse(await response.text())
@@ -61,6 +67,45 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
       this.logToStderr(message)
       this.exit(1)
     }
+  }
+
+  async submitAssembly(
+    address: string,
+    accessToken: string,
+    assemblyName: string,
+    fileId: string,
+    typeName: string,
+    force: boolean,
+  ): Promise<Response> {
+    const body = {
+      assemblyName,
+      fileId,
+      typeName,
+      assembly: new ObjectId().toHexString(),
+    }
+    const assemblies = await queryApollo(address, accessToken, 'assemblies')
+    for (const x of await assemblies.json()) {
+      if (x['name' as keyof typeof x] === assemblyName) {
+        if (force) {
+          await deleteAssembly(address, accessToken, x['_id' as keyof typeof x])
+        } else {
+          this.logToStderr(`Error: Assembly "${assemblyName}" already exists`)
+          this.exit(1)
+        }
+      }
+    }
+
+    const auth = {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    }
+    const url = new URL(localhostToAddress(`${address}/changes`))
+    const response = await fetch(url, auth)
+    return response
   }
 }
 
@@ -83,43 +128,17 @@ async function uploadFile(
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
+    // dispatcher: new Agent({ bodyTimeout: 24 * 60 * 60 * 1000 }),
+    // signal: AbortSignal.timeout(500_000),
   }
 
   const url = new URL(localhostToAddress(`${address}/files`))
   try {
     const response = await fetch(url, auth)
-    const json = await response.json()
-    return json['_id' as typeof json]
+    const json = (await response.json()) as object
+    return json['_id' as keyof typeof json]
   } catch (error) {
     console.error(error)
     throw error
   }
-}
-
-async function submitAssembly(
-  address: string,
-  accessToken: string,
-  assemblyName: string,
-  fileId: string,
-  typeName: string,
-): Promise<Response> {
-  const body = {
-    assemblyName,
-    fileId,
-    typeName,
-    assembly: new ObjectId().toHexString(),
-  }
-
-  const auth = {
-    method: 'POST',
-    body: JSON.stringify(body),
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-  }
-
-  const url = new URL(localhostToAddress(`${address}/changes`))
-  const response = await fetch(url, auth)
-  return response
 }
