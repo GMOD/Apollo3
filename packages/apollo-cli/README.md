@@ -58,14 +58,14 @@ Add assembly sequences from local fasta file or external source
 
 ```
 USAGE
-  $ apollo assembly add-fasta -i <value> -n <value> [--profile <value>] [--config-file <value>] [-x <value>]
+  $ apollo assembly add-fasta -i <value> -a <value> [--profile <value>] [--config-file <value>] [-x <value>]
 
 FLAGS
-  -i, --input-file=<value>     (required) Input fasta file
-  -n, --assembly-name=<value>  (required) Name for this assembly
-  -x, --index=<value>          URL of the index. Ignored if input is a local file
-      --config-file=<value>    Use this config file (mostly for testing)
-      --profile=<value>        [default: default] Use credentials from this profile
+  -a, --assembly=<value>     (required) Name for this assembly
+  -i, --input-file=<value>   (required) Input fasta file
+  -x, --index=<value>        URL of the index. Ignored if input is a local file
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      [default: default] Use credentials from this profile
 
 DESCRIPTION
   Add assembly sequences from local fasta file or external source
@@ -80,14 +80,14 @@ Add assembly sequences from gff or gft file
 
 ```
 USAGE
-  $ apollo assembly add-gff -i <value> -n <value> [--profile <value>] [--config-file <value>] [-o]
+  $ apollo assembly add-gff -i <value> -a <value> [--profile <value>] [--config-file <value>] [-o]
 
 FLAGS
-  -i, --input-file=<value>     (required) Input gff or gtf file
-  -n, --assembly-name=<value>  (required) Name for this assembly
-  -o, --omit-features          Do not import features, only upload the sequences
-      --config-file=<value>    Use this config file (mostly for testing)
-      --profile=<value>        [default: default] Use credentials from this profile
+  -a, --assembly=<value>     (required) Name for this assembly
+  -i, --input-file=<value>   (required) Input gff or gtf file
+  -o, --omit-features        Do not import features, only upload the sequences
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      [default: default] Use credentials from this profile
 
 DESCRIPTION
   Add assembly sequences from gff or gft file
@@ -226,7 +226,7 @@ _See code:
 
 ## `apollo feature delete`
 
-Free text search for feature in one or more assemblies
+Delete a feature
 
 ```
 USAGE
@@ -238,7 +238,7 @@ FLAGS
       --profile=<value>      [default: default] Use credentials from this profile
 
 DESCRIPTION
-  Free text search for feature in one or more assemblies
+  Delete a feature
 ```
 
 _See code:

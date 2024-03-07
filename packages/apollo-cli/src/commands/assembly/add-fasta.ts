@@ -16,8 +16,8 @@ export default class Get extends BaseCommand<typeof Get> {
       description: 'Input fasta file',
       required: true,
     }),
-    'assembly-name': Flags.string({
-      char: 'n',
+    assembly: Flags.string({
+      char: 'a',
       description: 'Name for this assembly',
       required: true,
     }),
@@ -45,7 +45,7 @@ export default class Get extends BaseCommand<typeof Get> {
       response = await addAssemblyFromExternal(
         access.address,
         access.accessToken,
-        flags['assembly-name'],
+        flags.assembly,
         flags['input-file'],
         flags.index,
       )
@@ -64,7 +64,7 @@ export default class Get extends BaseCommand<typeof Get> {
       response = await submitAssembly(
         access.address,
         access.accessToken,
-        flags['assembly-name'],
+        flags.assembly,
         uploadId,
       )
     }
@@ -95,7 +95,8 @@ async function uploadFile(
   const buffer: Buffer =
     file === '-' ? fs.readFileSync(process.stdin.fd) : fs.readFileSync(file)
   const blob = new Blob([buffer])
-  
+  await blob.text()
+
   const formData = new FormData()
   formData.append('type', 'text/x-fasta')
   formData.append('file', blob)

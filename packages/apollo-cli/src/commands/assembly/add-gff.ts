@@ -15,8 +15,8 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
       description: 'Input gff or gtf file',
       required: true,
     }),
-    'assembly-name': Flags.string({
-      char: 'n',
+    assembly: Flags.string({
+      char: 'a',
       description: 'Name for this assembly',
       required: true,
     }),
@@ -51,7 +51,7 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
     const response: Response = await submitAssembly(
       access.address,
       access.accessToken,
-      flags['assembly-name'],
+      flags.assembly,
       uploadId,
       typeName,
     )
