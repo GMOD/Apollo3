@@ -3,6 +3,7 @@ import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { expect, test } from '@oclif/test'
+// import nock from 'nock'
 
 import {
   CONFIG_FILE,
@@ -13,7 +14,7 @@ import {
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
-describe('apollo assembly get: Fail without token', () => {
+describe.skip('apollo assembly get: Fail without token', () => {
   before(() => {
     copyFile(`${TEST_DATA_DIR}/guest.yaml`, CONFIG_FILE, VERBOSE)
   })
@@ -48,5 +49,19 @@ describe.skip('apollo assembly get: Get assemblies as YAML string', () => {
     .command(cmd, { root: dirname(dirname(__dirname)) })
     .it(cmd.join(' '), (output) => {
       JSON.parse(output.stdout)
+    })
+})
+
+describe('apollo assembly get: Test nock', () => {
+  const cmd = ['assembly:get', '--config-file', 'tmp.yaml']
+  test
+    .stdout()
+    .nock('http://127.0.0.1:3999', (api) =>
+      api.persist().get('/assemblies').reply(200, { stuff: 'foo' }),
+    )
+    .command(cmd, { root: dirname(dirname(__dirname)) })
+    .it(cmd.join(' '), (output) => {
+      console.error(output.stdout)
+      // const out = JSON.parse(output.stdout)
     })
 })

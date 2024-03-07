@@ -40,7 +40,7 @@ async function deleteFeature(
 }
 
 export default class Delete extends BaseCommand<typeof Delete> {
-  static description = 'Free text search for feature in one or more assemblies'
+  static description = 'Delete a feature'
 
   static flags = {
     'feature-id': Flags.string({

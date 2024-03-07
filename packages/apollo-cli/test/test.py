@@ -49,8 +49,8 @@ class TestCLI(unittest.TestCase):
 
     def testFeatureGet(self):
         shell(f"{apollo} assembly delete -a vv1 vv2")
-        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -n vv1")
-        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -n vv2")
+        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a vv1")
+        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a vv2")
 
         p = shell(f"{apollo} feature get -r ctgA", strict=False)
         self.assertTrue(p.returncode != 0)
@@ -78,9 +78,9 @@ class TestCLI(unittest.TestCase):
 
     def testAssemblyGet(self):
         shell(f"{apollo} assembly delete -a vv1 vv2 vv3")
-        shell(f"{apollo} assembly add-fasta -i test_data/tiny.fasta -n vv1")
-        shell(f"{apollo} assembly add-fasta -i test_data/tiny.fasta -n vv2")
-        shell(f"{apollo} assembly add-fasta -i test_data/tiny.fasta -n vv3")
+        shell(f"{apollo} assembly add-fasta -i test_data/tiny.fasta -a vv1")
+        shell(f"{apollo} assembly add-fasta -i test_data/tiny.fasta -a vv2")
+        shell(f"{apollo} assembly add-fasta -i test_data/tiny.fasta -a vv3")
         p = shell(f"{apollo} assembly get")
         self.assertTrue("vv1" in p.stdout)
         self.assertTrue("vv2" in p.stdout)
@@ -100,9 +100,9 @@ class TestCLI(unittest.TestCase):
 
     def testDeleteAssembly(self):
         shell(f"{apollo} assembly delete -a volvox1 volvox2 volvox3")
-        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -n volvox1")
-        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -n volvox2")
-        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -n volvox3")
+        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a volvox1")
+        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a volvox2")
+        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a volvox3")
         p = shell(
             f"""{apollo} assembly get | jq '.[] | select(.name == "volvox1") | ._id'"""
         )
@@ -118,7 +118,7 @@ class TestCLI(unittest.TestCase):
     def testAddAssemblyFromGff(self):
         shell(f"{apollo} assembly delete -a vv1")
         shell(
-            f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -n vv1 --omit-features"
+            f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a vv1 --omit-features"
         )
 
         ## Get id of assembly named vv1 and check there are no features
@@ -138,7 +138,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(ff[1], [])
 
         p = shell(
-            f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -n vv1",
+            f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a vv1",
             strict=False,
         )
         self.assertTrue(p.returncode != 0)
@@ -146,14 +146,14 @@ class TestCLI(unittest.TestCase):
 
     def testAddAssemblyFromLocalFasta(self):
         shell(f"{apollo} assembly delete -a vv1")
-        shell(f"{apollo} assembly add-fasta -i test_data/tiny.fasta -n vv1")
+        shell(f"{apollo} assembly add-fasta -i test_data/tiny.fasta -a vv1")
         p = shell(f"{apollo} assembly get -a vv1")
         self.assertTrue("vv1" in p.stdout)
 
     def testAddAssemblyFromExternalFasta(self):
         shell(f"{apollo} assembly delete -a vv1")
         shell(
-            f"""{apollo} assembly add-fasta -n vv1 \
+            f"""{apollo} assembly add-fasta -a vv1 \
                 -i https://raw.githubusercontent.com/GMOD/Apollo3/main/packages/apollo-collaboration-server/test/data/volvox.fa \
                 -x https://raw.githubusercontent.com/GMOD/Apollo3/main/packages/apollo-collaboration-server/test/data/volvox.fa.fai
                   """
@@ -163,7 +163,7 @@ class TestCLI(unittest.TestCase):
 
     def testEditFeatureType(self):
         shell(f"{apollo} assembly delete -a vv1")
-        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -n vv1")
+        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a vv1")
 
         ## Get id of assembly named vv1
         p = shell(f"{apollo} assembly get -a vv1")
@@ -196,7 +196,7 @@ class TestCLI(unittest.TestCase):
 
     def testEditFeatureCoords(self):
         shell(f"{apollo} assembly delete -a vv1")
-        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -n vv1")
+        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a vv1")
 
         ## Get id of assembly named vv1
         p = shell(f"{apollo} assembly get -a vv1")
@@ -260,7 +260,7 @@ class TestCLI(unittest.TestCase):
 
     def testEditAttributes(self):
         shell(f"{apollo} assembly delete -a vv1")
-        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -n vv1")
+        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a vv1")
 
         ## Get id of assembly named vv1
         p = shell(f"{apollo} assembly get -a vv1")
@@ -311,8 +311,8 @@ class TestCLI(unittest.TestCase):
 
     def testSearchFeatures(self):
         shell(f"{apollo} assembly delete -a vv1 vv2")
-        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -n vv1")
-        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -n vv2")
+        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a vv1")
+        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a vv2")
 
         p = shell(f"{apollo} feature search -a vv1 vv2 -t EDEN")
         out = json.loads(p.stdout)
@@ -333,7 +333,7 @@ class TestCLI(unittest.TestCase):
 
     def testDeleteFeatures(self):
         shell(f"{apollo} assembly delete -a vv1")
-        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -n vv1")
+        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a vv1")
         p = shell(f"{apollo} feature search -a vv1 -t EDEN")
         fid = json.loads(p.stdout)[0]["_id"]
 
@@ -347,7 +347,7 @@ class TestCLI(unittest.TestCase):
 
     def testAddChildFeatures(self):
         shell(f"{apollo} assembly delete -a vv1")
-        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -n vv1")
+        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a vv1")
         p = shell(f"{apollo} feature search -a vv1 -t contig")
         fid = json.loads(p.stdout)[0]["_id"]
 
@@ -372,7 +372,7 @@ class TestCLI(unittest.TestCase):
 
     def testImportFeatures(self):
         shell(f"{apollo} assembly delete -a vv1")
-        shell(f"{apollo} assembly add-fasta -i test_data/tiny.fasta -n vv1")
+        shell(f"{apollo} assembly add-fasta -i test_data/tiny.fasta -a vv1")
         shell(f"{apollo} feature import -i test_data/tiny.fasta.gff3 -a vv1")
         p = shell(f"{apollo} feature search -a vv1 -t contig")
         out = json.loads(p.stdout)
@@ -401,9 +401,9 @@ class TestCLI(unittest.TestCase):
 
     def testCopyFeature(self):
         shell(f"{apollo} assembly delete -a source dest dest2")
-        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -n source")
-        shell(f"{apollo} assembly add-fasta -i test_data/tiny.fasta -n dest")
-        shell(f"{apollo} assembly add-fasta -i test_data/tiny.fasta -n dest2")
+        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a source")
+        shell(f"{apollo} assembly add-fasta -i test_data/tiny.fasta -a dest")
+        shell(f"{apollo} assembly add-fasta -i test_data/tiny.fasta -a dest2")
         p = shell(f"{apollo} feature search -a source -t contig")
         fid = json.loads(p.stdout)[0]["_id"]
 
