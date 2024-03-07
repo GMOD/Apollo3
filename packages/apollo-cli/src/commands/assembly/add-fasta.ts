@@ -4,7 +4,7 @@ import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { localhostToAddress } from '../../utils.js'
+import { deleteAssembly, localhostToAddress, queryApollo } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description =
@@ -25,6 +25,10 @@ export default class Get extends BaseCommand<typeof Get> {
       char: 'x',
       description: 'URL of the index. Ignored if input is a local file',
     }),
+    force: Flags.boolean({
+      char: 'f',
+      description: 'Delete existing assembly, if it exists',
+    }),
   }
 
   public async run(): Promise<void> {
@@ -32,6 +36,26 @@ export default class Get extends BaseCommand<typeof Get> {
 
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
+
+    const assemblies = await queryApollo(
+      access.address,
+      access.accessToken,
+      'assemblies',
+    )
+    for (const x of await assemblies.json()) {
+      if (x['name' as keyof typeof x] === flags.assembly) {
+        if (flags.force) {
+          await deleteAssembly(
+            access.address,
+            access.accessToken,
+            x['_id' as keyof typeof x],
+          )
+        } else {
+          this.logToStderr(`Error: Assembly "${flags.assembly}" already exists`)
+          this.exit(1)
+        }
+      }
+    }
 
     const isExternal = isValidHttpUrl(flags['input-file'])
     let response: Response

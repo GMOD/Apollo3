@@ -58,10 +58,11 @@ Add assembly sequences from local fasta file or external source
 
 ```
 USAGE
-  $ apollo assembly add-fasta -i <value> -a <value> [--profile <value>] [--config-file <value>] [-x <value>]
+  $ apollo assembly add-fasta -i <value> -a <value> [--profile <value>] [--config-file <value>] [-x <value>] [-f]
 
 FLAGS
   -a, --assembly=<value>     (required) Name for this assembly
+  -f, --force                Delete existing assembly, if it exists
   -i, --input-file=<value>   (required) Input fasta file
   -x, --index=<value>        URL of the index. Ignored if input is a local file
       --config-file=<value>  Use this config file (mostly for testing)
@@ -80,10 +81,11 @@ Add assembly sequences from gff or gft file
 
 ```
 USAGE
-  $ apollo assembly add-gff -i <value> -a <value> [--profile <value>] [--config-file <value>] [-o]
+  $ apollo assembly add-gff -i <value> -a <value> [--profile <value>] [--config-file <value>] [-o] [-f]
 
 FLAGS
   -a, --assembly=<value>     (required) Name for this assembly
+  -f, --force                Delete existing assembly, if it exists
   -i, --input-file=<value>   (required) Input gff or gtf file
   -o, --omit-features        Do not import features, only upload the sequences
       --config-file=<value>  Use this config file (mostly for testing)
