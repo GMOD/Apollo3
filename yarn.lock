@@ -3241,6 +3241,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fastify/busboy@npm:^2.0.0":
+  version: 2.1.1
+  resolution: "@fastify/busboy@npm:2.1.1"
+  checksum: 10/2bb8a7eca8289ed14c9eb15239bc1019797454624e769b39a0b90ed204d032403adc0f8ed0d2aef8a18c772205fa7808cf5a1b91f21c7bfc7b6032150b1062c5
+  languageName: node
+  linkType: hard
+
 "@floating-ui/core@npm:^1.0.0":
   version: 1.6.0
   resolution: "@floating-ui/core@npm:1.6.0"
@@ -8164,6 +8171,7 @@ __metadata:
     tslib: "npm:^2.3.1"
     tsx: "npm:^4.6.2"
     typescript: "npm:^5.1.6"
+    undici: "npm:^6.7.0"
     yaml: "npm:^2.3.4"
   bin:
     apollo: ./bin/run.js
@@ -22025,6 +22033,15 @@ __metadata:
   version: 5.26.5
   resolution: "undici-types@npm:5.26.5"
   checksum: 10/0097779d94bc0fd26f0418b3a05472410408877279141ded2bd449167be1aed7ea5b76f756562cb3586a07f251b90799bab22d9019ceba49c037c76445f7cddd
+  languageName: node
+  linkType: hard
+
+"undici@npm:^6.7.0":
+  version: 6.7.0
+  resolution: "undici@npm:6.7.0"
+  dependencies:
+    "@fastify/busboy": "npm:^2.0.0"
+  checksum: 10/e133a27f89075329a337ab4220839ba6a48bdb62ee7dd824ed72415aabe705522fdbb1b0016fb5a4d74ee2ca3ca2854ae9d085aae970e4519678bdc8c96fdf0b
   languageName: node
   linkType: hard
 
