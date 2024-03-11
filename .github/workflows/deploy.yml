@@ -20,7 +20,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
 
               chmod -R 755 /home/ec2-user/Apollo3
-              chmod 755 /home/ubuntu/docker-compose.yml
+              chmod 755 /home/ec2-user/Apollo3/docker-compose.yml
               sudo apt-get update
               sudo apt-get install -y docker.io
               sudo systemctl start docker
