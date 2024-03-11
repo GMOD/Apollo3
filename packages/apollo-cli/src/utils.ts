@@ -79,10 +79,13 @@ export async function getRefseqId(
   refseqNameOrId: string,
   inAssembly?: string,
 ): Promise<string[]> {
+  if (inAssembly === undefined) {
+    inAssembly = ''
+  }
   const res: Response = await queryApollo(address, accessToken, 'refSeqs')
   const refSeqs = await res.json()
   let assemblyId: string[] = []
-  if (inAssembly !== undefined) {
+  if (inAssembly !== '') {
     assemblyId = await subAssemblyNameToId(address, accessToken, [inAssembly])
   }
   const refseqIds = []
@@ -91,7 +94,7 @@ export async function getRefseqId(
     const rid = x['_id' as keyof typeof x]
     const rname = x['name' as keyof typeof x]
     if (refseqNameOrId === rid || refseqNameOrId === rname) {
-      if (inAssembly === undefined || assemblyId.includes(aid)) {
+      if (inAssembly === '' || assemblyId.includes(aid)) {
         refseqIds.push(rid)
       } else {
         //
@@ -250,4 +253,8 @@ export const waitFor = <T>(
   })
 
   return promise
+}
+
+export function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
