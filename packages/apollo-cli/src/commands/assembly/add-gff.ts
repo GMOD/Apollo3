@@ -1,11 +1,12 @@
 import * as fs from 'node:fs'
+import * as http from 'node:http'
+import * as https from 'node:https'
 
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
-// import { fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { deleteAssembly, localhostToAddress, queryApollo } from '../../utils.js'
+import { deleteAssembly, localhostToAddress, queryApollo, sleep } from '../../utils.js'
 
 export default class AddGff extends BaseCommand<typeof AddGff> {
   static description = 'Add assembly sequences from gff or gft file'
@@ -53,19 +54,24 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
       typeName = 'AddAssemblyFromFileChange'
     }
 
-    const response: Response = await this.submitAssembly(
-      access.address,
+    const res = await this.submitAssembly(
+      localhostToAddress(access.address),
       access.accessToken,
       flags.assembly,
       uploadId,
       typeName,
-      flags.force
+      flags.force,
     )
-    if (!response.ok) {
-      const json = JSON.parse(await response.text())
-      const message: string = json['message' as keyof typeof json]
-      this.logToStderr(message)
-      this.exit(1)
+    if (
+      res.statusCode !== undefined &&
+      res.statusCode >= 200 &&
+      res.statusCode <= 299
+    ) {
+      this.exit(0)
+    } else {
+      this.logToStderr(
+        `Request returned with code ${res.statusCode} and message:\n${res.statusMessage}`,
+      )
     }
   }
 
@@ -76,13 +82,15 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
     fileId: string,
     typeName: string,
     force: boolean,
-  ): Promise<Response> {
+  ): Promise<http.IncomingMessage> {
     const body = {
       assemblyName,
       fileId,
       typeName,
       assembly: new ObjectId().toHexString(),
     }
+    // Using http.request instead of fetch to avoid timeout see
+    // https://github.com/nodejs/node/issues/46375#issuecomment-1406305331
     const assemblies = await queryApollo(address, accessToken, 'assemblies')
     for (const x of await assemblies.json()) {
       if (x['name' as keyof typeof x] === assemblyName) {
@@ -94,17 +102,27 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
         }
       }
     }
-
+    const url = new URL(address)
     const auth = {
+      hostname: url.hostname,
+      port: url.port,
+      path: '/changes',
       method: 'POST',
-      body: JSON.stringify(body),
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
     }
-    const url = new URL(localhostToAddress(`${address}/changes`))
-    const response = await fetch(url, auth)
+    let response: http.IncomingMessage | undefined = undefined
+    const req = await http.request(auth, (res) => {
+      response = res
+    })
+    req.write(JSON.stringify(body))
+    req.end()
+    while (response === undefined) {
+      // There must be a better way to wait for response to materialize
+      await sleep(1000)
+    }
     return response
   }
 }
@@ -128,8 +146,6 @@ async function uploadFile(
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
-    // dispatcher: new Agent({ bodyTimeout: 24 * 60 * 60 * 1000 }),
-    // signal: AbortSignal.timeout(500_000),
   }
 
   const url = new URL(localhostToAddress(`${address}/files`))

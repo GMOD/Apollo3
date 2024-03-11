@@ -23,7 +23,8 @@ class shell:
         print(cmd)
         cmd = f"set -e; set -u; set -o pipefail\n{cmd}"
         p = subprocess.Popen(
-            cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            executable="/usr/bin/bash"
         )
         stdout, stderr = p.communicate()
         self.returncode = p.returncode
@@ -51,6 +52,10 @@ class TestCLI(unittest.TestCase):
         shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a vv1 -f")
         shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a vv2 -f")
 
+        p = shell(f"{apollo} feature get -a vv1")
+        self.assertTrue('ctgA' in p.stdout)
+        self.assertTrue('ctgB' in p.stdout)
+
         p = shell(f"{apollo} feature get -r ctgA", strict=False)
         self.assertTrue(p.returncode != 0)
         self.assertTrue("More than one reference" in p.stderr)
@@ -71,9 +76,10 @@ class TestCLI(unittest.TestCase):
         out = json.loads(p.stdout)
         self.assertEqual([[], []], out)
 
-        p = shell(f"{apollo} feature get -a FOOBAR -r ctgA")
-        out = json.loads(p.stdout)
-        self.assertEqual([[], []], out)
+        p = shell(f"{apollo} feature get -a FOOBAR -r ctgA", strict=False)
+        self.assertTrue(p.returncode != 0)
+        self.assertTrue("not exist" in p.stderr)
+
 
     def testAssemblyGet(self):
         shell(f"{apollo} assembly add-fasta -i test_data/tiny.fasta -a vv1 -f")
@@ -366,17 +372,19 @@ class TestCLI(unittest.TestCase):
         shell(f"{apollo} feature import -i test_data/tiny.fasta.gff3 -a vv1")
         p = shell(f"{apollo} feature search -a vv1 -t contig")
         out = json.loads(p.stdout)
-        self.assertEqual(len(out), 1)
+        self.assertEqual(len(out), 2)
 
+        # Import again: Add to existing feature
         p = shell(f"{apollo} feature import -i test_data/tiny.fasta.gff3 -a vv1")
         p = shell(f"{apollo} feature search -a vv1 -t contig")
         out = json.loads(p.stdout)
-        self.assertEqual(len(out), 2)
+        self.assertEqual(len(out), 4)
 
+        # Import again: delete existing
         p = shell(f"{apollo} feature import -d -i test_data/tiny.fasta.gff3 -a vv1")
         p = shell(f"{apollo} feature search -a vv1 -t contig")
         out = json.loads(p.stdout)
-        self.assertEqual(len(out), 1)
+        self.assertEqual(len(out), 2)
 
         p = shell(f"{apollo} assembly delete -a vv2")
         p = shell(
