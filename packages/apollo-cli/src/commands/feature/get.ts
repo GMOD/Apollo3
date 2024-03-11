@@ -1,7 +1,15 @@
+import { assert } from 'node:console'
+
 import { Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { getRefseqId, localhostToAddress, queryApollo, subAssemblyNameToId } from '../../utils.js'
+import {
+  getRefseqId,
+  localhostToAddress,
+  queryApollo,
+  subAssemblyNameToId as convertAssemblyNameToId,
+} from '../../utils.js'
+
 
 export default class Get extends BaseCommand<typeof Get> {
   static description = 'Get features in a genomic window'
@@ -9,13 +17,11 @@ export default class Get extends BaseCommand<typeof Get> {
   static flags = {
     refseq: Flags.string({
       char: 'r',
-      description: 'Reference sequence',
-      required: true,
+      description: 'Reference sequence. If unset, query all sequences',
     }),
     assembly: Flags.string({
       char: 'a',
-      description:
-        'Find the input reference sequence in this assembly name or ID',
+      description: 'Find input reference sequence in this assembly',
     }),
     start: Flags.integer({
       char: 's',
@@ -40,32 +46,76 @@ export default class Get extends BaseCommand<typeof Get> {
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 
-    const refseqIds = await getRefseqId(
-      access.address,
-      access.accessToken,
-      flags.refseq,
-      flags.assembly,
-    )
-    if (refseqIds.length > 1) {
+    let assembly = ''
+    if (flags.assembly !== undefined) {
+      const xa: string[] = await convertAssemblyNameToId(
+        access.address,
+        access.accessToken,
+        [flags.assembly],
+      )
+      if (xa.length === 0) {
+        this.logToStderr(`Assembly ${flags.assembly} does not exist`)
+        this.exit(1)
+      }
+      ;[assembly] = xa
+    }
+
+    let refseqIds: string[] = []
+
+    if (flags.refseq === undefined && assembly !== '') {
+      // Get all refseqs for this assembly
+      const res: Response = await queryApollo(
+        access.address,
+        access.accessToken,
+        'refSeqs',
+      )
+      const refSeqs = await res.json()
+      for (const x of refSeqs) {
+        if (x['assembly' as keyof typeof x] === assembly) {
+          refseqIds.push(x['_id' as keyof typeof x])
+        }
+      }
+    } else if (flags.refseq === undefined) {
       this.logToStderr(
-        `More than one reference sequence found with name ${flags.refseq}`,
+        'Please provide a reference sequence and/or an assembly to query',
       )
       this.exit(1)
-    } else if (refseqIds.length === 0) {
+    } else {
+      refseqIds = await getRefseqId(
+        access.address,
+        access.accessToken,
+        flags.refseq,
+        assembly,
+      )
+      if (refseqIds.length > 1) {
+        this.logToStderr(
+          `More than one reference sequence found with name ${flags.refseq}`,
+        )
+        this.exit(1)
+      }
+    }
+
+    if (refseqIds.length === 0) {
       this.logToStderr('No reference sequence found')
       this.log(JSON.stringify([[], []], null, 2))
       this.exit(0)
     }
-    const features: Response = await this.getFeatures(
-      access.address,
-      access.accessToken,
-      refseqIds[0],
-      flags.start,
-      endCoord,
-    )
 
-    const json = await features.json()
-    this.log(JSON.stringify(json, null, 2))
+    const results: object[] = []
+    for (const refseq of refseqIds) {
+      const features: Response = await this.getFeatures(
+        access.address,
+        access.accessToken,
+        refseq,
+        flags.start,
+        endCoord,
+      )
+      const json = await features.json()
+      assert(JSON.stringify(json[1]) === '[]' && json.length === 2)
+      results.push(json[0])
+    }
+    results.push([])
+    this.log(JSON.stringify(results, null, 2))
   }
 
   private async getFeatures(

@@ -16,7 +16,7 @@ $ npm install -g apollo-cli
 $ apollo COMMAND
 running command...
 $ apollo (--version)
-apollo-cli/0.0.0 darwin-x64 node-v18.19.0
+apollo-cli/0.0.0 linux-x64 node-v18.19.0
 $ apollo --help [COMMAND]
 USAGE
   $ apollo COMMAND
@@ -337,13 +337,13 @@ Get features in a genomic window
 
 ```
 USAGE
-  $ apollo feature get -r <value> [--profile <value>] [--config-file <value>] [-a <value>] [-s <value>] [-e
+  $ apollo feature get [--profile <value>] [--config-file <value>] [-r <value>] [-a <value>] [-s <value>] [-e
     <value>]
 
 FLAGS
-  -a, --assembly=<value>     Find the input reference sequence in this assembly name or ID
+  -a, --assembly=<value>     Find input reference sequence in this assembly
   -e, --end=<value>          End coordinate
-  -r, --refseq=<value>       (required) Reference sequence
+  -r, --refseq=<value>       Reference sequence. If unset, query all sequences
   -s, --start=<value>        [default: 1] Start coordinate (1-based)
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      [default: default] Use credentials from this profile
