@@ -19,5 +19,15 @@ jobs:
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
 
-              ls -la
+              chmod -R 755 /home/ec2-user/Apollo3
+              chmod 755 /home/ubuntu/docker-compose.yml
+              sudo apt-get update
+              sudo apt-get install -y docker.io
+              sudo systemctl start docker
+              sudo systemctl enable docker
+              sudo curl -L \"https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-$(uname -s)-$(uname -m)\"  -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+              cd ~/Apollo3
+              sudo docker-compose up -d
+              sudo docker-compose cp ./docker/config/config.json jbrowse-web:/usr/local/apache2/htdocs/
               '
