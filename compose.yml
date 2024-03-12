@@ -1,12 +1,11 @@
-version: '3.8'
+name: apollo
 
 services:
   apollo-collaboration-server:
-    image: public.ecr.aws/p1r0y7k4/apollo-collaboration-server-alpha
+    build:
+      dockerfile: ./server.Dockerfile
     volumes:
       - uploaded-files-volume:/data/uploads
-    ports:
-      - 3999:3999
     env_file: ./docker/.development.env
     secrets:
       - mongodb-uri
@@ -20,13 +19,9 @@ services:
       mongodb-init:
         condition: service_completed_successfully
 
-  jbrowse-plugin-apollo:
-    image: public.ecr.aws/p1r0y7k4/jbrowse-plugin-apollo-alpha
-    ports:
-      - 9000:80
-
-  jbrowse-web:
-    image: public.ecr.aws/p1r0y7k4/jbrowse-web-apollo-alpha
+  client:
+    build:
+      dockerfile: ./client.Dockerfile
     ports:
       - 80:80
       - 443:443
@@ -44,7 +39,7 @@ services:
     image: mongo
     depends_on:
       - mongodb
-    command: mongosh mongodb://mongodb:27017 --eval 'try {rs.initiate();} catch {}'
+    command: sleep 5 && mongosh mongodb://mongodb:27017 --eval 'try {rs.initiate();} catch {}'
 
 volumes:
   mongodb-volume: null

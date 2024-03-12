@@ -18,3 +18,7 @@ RUN yarn build
 
 FROM httpd:alpine
 COPY --from=build /app/packages/jbrowse-plugin-apollo/dist /usr/local/apache2/htdocs
+COPY ./docker/httpd.conf /usr/local/apache2/conf/httpd.conf
+ADD https://github.com/GMOD/jbrowse-components/releases/download/v2.10.3/jbrowse-web-v2.10.3.zip /usr/local/apache2/htdocs/
+WORKDIR /usr/local/apache2/htdocs/
+RUN unzip -o jbrowse-web-v2.10.3.zip && rm jbrowse-web-v2.10.3.zip
