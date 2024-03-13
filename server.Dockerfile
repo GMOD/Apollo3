@@ -9,6 +9,8 @@ RUN find packages/ -type f \! \( -name "package.json" -o -name "yarn.lock" \) -d
 RUN find . -type d -empty -delete
 
 FROM node:18
+LABEL org.opencontainers.image.source=https://github.com/GMOD/Apollo3
+LABEL org.opencontainers.image.description="Apollo collaboration server"
 WORKDIR /app
 COPY --from=setup /app .
 RUN yarn install --immutable

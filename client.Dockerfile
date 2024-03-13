@@ -17,6 +17,8 @@ WORKDIR /app/packages/jbrowse-plugin-apollo
 RUN yarn build
 
 FROM httpd:alpine
+LABEL org.opencontainers.image.source=https://github.com/GMOD/Apollo3
+LABEL org.opencontainers.image.description="Apollo JBrowse plugin"
 COPY --from=build /app/packages/jbrowse-plugin-apollo/dist /usr/local/apache2/htdocs
 COPY ./docker/httpd.conf /usr/local/apache2/conf/httpd.conf
 ADD https://github.com/GMOD/jbrowse-components/releases/download/v2.10.3/jbrowse-web-v2.10.3.zip /usr/local/apache2/htdocs/
