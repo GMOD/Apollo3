@@ -12,7 +12,10 @@ import { UsersService } from './users.service'
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
   private readonly logger = new Logger(UsersController.name)
-
+/**
+ * Get all users
+ * @returns 
+ */
   @Get()
   findAll() {
     return this.usersService.findAll()
