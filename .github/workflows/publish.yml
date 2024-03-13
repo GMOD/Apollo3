@@ -26,5 +26,5 @@ jobs:
         context: .
         file: ../../server.Dockerfile
         push: true
-        tags: ghcr.io/${{ github.repository_owner }}/apollo-collaboration-server:development
+        tags: ghcr.io/gmod/apollo-collaboration-server:development
 
