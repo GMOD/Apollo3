@@ -21,8 +21,8 @@ jobs:
         run: |
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
-              chmod -R 755 /home/${USER_NAME}/Apollo3
-              chmod 755 /home/${USER_NAME}/Apollo3/docker-compose.yml
+              chmod -R 755 /home/ec2-user/Apollo3
+              chmod 755 /home/ec2-user/Apollo3/docker-compose.yml
               cd ~/Apollo3
               sudo docker-compose down
               sudo docker-compose pull
