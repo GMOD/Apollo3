@@ -21,8 +21,8 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build Docker image
-      run: docker build . --file ./server.Dockerfile --tag ghcr.io/gmod/apollo-collaboration-server:development
+      run: docker build . --file ./server.Dockerfile --tag ghcr.io/gmod/apollo-collaboration-server:development1
 
     - name: Push Docker image to GitHub Container Registry
-      run: docker push ghcr.io/gmod/apollo-collaboration-server:development
+      run: docker push ghcr.io/gmod/apollo-collaboration-server:development1
 
