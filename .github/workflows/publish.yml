@@ -17,11 +17,11 @@ jobs:
       uses: docker/login-action@v1
       with:
         registry: ghcr.io
-        username: ${{ github.repository_owner }}
-        password: ${{ secrets.CR_PAT }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build Docker image
-      run: docker build . --file server.Dockerfile --tag ghcr.io/gmod/apollo-collaboration-server:development
+      run: docker build . --file ./server.Dockerfile --tag ghcr.io/gmod/apollo-collaboration-server:development
 
     - name: Push Docker image to GitHub Container Registry
       run: docker push ghcr.io/gmod/apollo-collaboration-server:development
