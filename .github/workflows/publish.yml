@@ -20,9 +20,14 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build Docker image
-      run: docker build . --file ./server.Dockerfile --tag ghcr.io/gmod/apollo-collaboration-server:development1
+    - name: Build Docker image of Apollo Collaboration server
+      run: docker build -file ./server.Dockerfile -tag ghcr.io/gmod/apollo-collaboration-server:development
 
     - name: Push Docker image to GitHub Container Registry
-      run: docker push ghcr.io/gmod/apollo-collaboration-server:development1
+      run: docker push ghcr.io/gmod/apollo-collaboration-server:development
 
+    - name: Build Docker image of Apollo UI
+      run: docker build -file ./client.Dockerfile -tag ghcr.io/gmod/apollo-jbrowse-plugin:development
+
+    - name: Push Docker image to GitHub Container Registry
+      run: docker push ghcr.io/gmod/apollo-jbrowse-plugin:development
