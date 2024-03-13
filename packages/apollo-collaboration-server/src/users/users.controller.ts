@@ -14,7 +14,7 @@ export class UsersController {
   private readonly logger = new Logger(UsersController.name)
   /**
    * Get all users
-   * @returns all users from Mongo
+   * @returns all users from MongoDb
    */
   @Get()
   findAll() {
