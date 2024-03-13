@@ -2,8 +2,7 @@ name: apollo
 
 services:
   apollo-collaboration-server:
-    build:
-      dockerfile: ./server.Dockerfile
+    image: public.ecr.aws/p1r0y7k4/apollo-collaboration-server-alpha:latest
     volumes:
       - uploaded-files-volume:/data/uploads
     env_file: ./docker/.development.env
@@ -20,8 +19,7 @@ services:
         condition: service_completed_successfully
 
   client:
-    build:
-      dockerfile: ./client.Dockerfile
+    image: public.ecr.aws/p1r0y7k4/apollo-jbrowse-plugin:latest
     ports:
       - 80:80
       - 443:443

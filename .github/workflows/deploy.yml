@@ -1,0 +1,30 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - publish_docker
+
+jobs:
+  Deploy:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v2 
+      - name: Deploy
+        env:
+            PRIVATE_KEY: ${{ secrets.DOCKER_SSH_PRIVATE_KEY  }}
+            HOSTNAME: ec2-18-207-237-97.compute-1.amazonaws.com
+            USER_NAME: ec2-user
+      
+        run: |
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
+              chmod -R 755 /home/${USER_NAME}/Apollo3
+              chmod 755 /home/${USER_NAME}/Apollo3/docker-compose.yml
+              cd ~/Apollo3
+              sudo docker-compose down
+              sudo docker-compose pull
+              sudo docker-compose up -d
+              '
