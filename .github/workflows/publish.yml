@@ -26,7 +26,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: .
-        file: ./server.Dockerfile
+        file: ./../../server.Dockerfile
         push: true
         tags: ghcr.io/gmod/apollo-collaboration-server:development
 
@@ -34,6 +34,6 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: .
-        file: ./client.Dockerfile
+        file: ./../../client.Dockerfile
         push: true
         tags: ghcr.io/gmod/apollo-jbrowse-plugin:development
