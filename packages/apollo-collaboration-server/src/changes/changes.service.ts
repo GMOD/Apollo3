@@ -1,14 +1,8 @@
 import {
-  Logger,
-  NotFoundException,
-  UnprocessableEntityException,
-} from '@nestjs/common'
-import { InjectModel } from '@nestjs/mongoose'
-import {
   Change as BaseChange,
   isAssemblySpecificChange,
   isFeatureChange,
-} from 'apollo-common'
+} from '@apollo-annotation/apollo-common'
 import {
   Assembly,
   AssemblyDocument,
@@ -24,13 +18,19 @@ import {
   RefSeqDocument,
   User,
   UserDocument,
-} from 'apollo-schemas'
+} from '@apollo-annotation/apollo-schemas'
 import {
   ChangeMessage,
   DecodedJWT,
   makeUserSessionId,
   validationRegistry,
-} from 'apollo-shared'
+} from '@apollo-annotation/apollo-shared'
+import {
+  Logger,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common'
+import { InjectModel } from '@nestjs/mongoose'
 import { FilterQuery, Model } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service'

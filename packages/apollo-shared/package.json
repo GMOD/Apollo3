@@ -1,6 +1,6 @@
 {
-  "name": "apollo-shared",
-  "version": "1.0.0-alpha.0",
+  "name": "@apollo-annotation/apollo-shared",
+  "version": "0.1.0",
   "main": "./dist/index.js",
   "scripts": {
     "start": "tsc --build --watch",
@@ -8,12 +8,12 @@
     "clean": "rimraf dist"
   },
   "dependencies": {
+    "@apollo-annotation/apollo-common": "workspace:^",
+    "@apollo-annotation/apollo-mst": "workspace:^",
+    "@apollo-annotation/apollo-schemas": "workspace:^",
     "@gmod/gff": "1.2.0",
     "@gmod/indexedfasta": "^2.0.4",
     "@jbrowse/core": "^2.7.0",
-    "apollo-common": "workspace:^",
-    "apollo-mst": "workspace:^",
-    "apollo-schemas": "workspace:^",
     "bson-objectid": "^2.0.4",
     "generic-filehandle": "^3.0.0",
     "jwt-decode": "^3.1.2",
@@ -43,5 +43,7 @@
     "react-dom": "^18.2.0",
     "rxjs": "^7.4.0"
   },
-  "private": true
+  "publishConfig": {
+    "access": "public"
+  }
 }

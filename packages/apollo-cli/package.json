@@ -1,7 +1,7 @@
 {
-  "name": "apollo-cli",
+  "name": "@apollo-annotation/apollo-cli",
   "description": "CLI for managing an Apollo Collaboration Server",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "author": "Apollo Team",
   "repository": {
     "type": "git",
@@ -74,5 +74,8 @@
     ],
     "repositoryPrefix": "<%- repo %>/blob/v<%- version %>/packages/apollo-cli/<%- commandPath %>",
     "topicSeparator": " "
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -1,5 +1,5 @@
-import type { AnnotationFeatureSnapshot } from 'apollo-mst'
-import { Feature } from 'apollo-schemas'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/apollo-mst'
+import { Feature } from '@apollo-annotation/apollo-schemas'
 import ObjectID from 'bson-objectid'
 import type { Types } from 'mongoose'
 

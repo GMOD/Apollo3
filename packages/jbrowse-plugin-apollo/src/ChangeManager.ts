@@ -1,10 +1,13 @@
-import { getSession } from '@jbrowse/core/util'
 import {
   Change,
   ClientDataStore,
   isAssemblySpecificChange,
-} from 'apollo-common'
-import { ValidationResultSet, validationRegistry } from 'apollo-shared'
+} from '@apollo-annotation/apollo-common'
+import {
+  ValidationResultSet,
+  validationRegistry,
+} from '@apollo-annotation/apollo-shared'
+import { getSession } from '@jbrowse/core/util'
 import { IAnyStateTreeNode } from 'mobx-state-tree'
 
 import { ApolloSessionModel } from './session'

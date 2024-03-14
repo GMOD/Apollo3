@@ -1,7 +1,7 @@
+import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
 import { MenuItem } from '@jbrowse/core/ui'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
 
 import {
   AddChildFeature,
