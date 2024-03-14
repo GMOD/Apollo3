@@ -86,7 +86,9 @@ export async function getRefseqId(
   const refSeqs = await res.json()
   let assemblyId: string[] = []
   if (inAssembly !== '') {
-    assemblyId = await subAssemblyNameToId(address, accessToken, [inAssembly])
+    assemblyId = await convertAssemblyNameToId(address, accessToken, [
+      inAssembly,
+    ])
   }
   const refseqIds = []
   for (const x of refSeqs) {
@@ -118,7 +120,7 @@ async function assemblyNamesToIds(
 }
 
 /** In input array namesOrIds, substitute common names with internal IDs */
-export async function subAssemblyNameToId(
+export async function convertAssemblyNameToId(
   address: string,
   accessToken: string,
   namesOrIds: string[],
@@ -136,16 +138,6 @@ export async function subAssemblyNameToId(
   }
   return ids
 }
-
-// /** In input array namesOrIds, substitute common names with internal IDs */
-// export async function subRefseqNameToId(
-//   address: string,
-//   accessToken: string,
-//   namesOrIds: string[],
-// ): Promise<string[]> {
-// // Get 
-
-// }
 
 export async function getFeatureById(
   address: string,
@@ -255,6 +247,69 @@ export const waitFor = <T>(
   return promise
 }
 
-export function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+export async function uploadFile(
+  address: string,
+  accessToken: string,
+  file: string,
+  type: string,
+): Promise<string> {
+  const buffer: string = fs.readFileSync(file, 'utf8')
+  const blob = new Blob([buffer])
+  await blob.text()
+
+  const formData = new FormData()
+  formData.append('type', type)
+  formData.append('file', blob)
+
+  const auth = {
+    method: 'POST',
+    body: formData,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  }
+
+  const url = new URL(localhostToAddress(`${address}/files`))
+  try {
+    const response = await fetch(url, auth)
+    const json = (await response.json()) as object
+    return json['_id' as keyof typeof json]
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+export function idReader(input: string[]): string[] {
+  const ids = []
+  for (const xin of input) {
+    let data
+    if (xin == '-') {
+      data = fs.readFileSync('/dev/stdin').toString()
+    } else if (fs.existsSync(xin)) {
+      data = fs.readFileSync(xin).toString()
+    } else {
+      data = xin
+    }
+    try {
+      data = JSON.parse(data)
+      if (data.length === undefined) {
+        data = [data]
+      }
+      for (const x of data) {
+        const id = x['_id' as keyof typeof x]
+        if (id !== undefined) {
+          ids.push(id)
+        }
+      }
+    } catch {
+      for (let x of data.split('\n')) {
+        x = x.trim()
+        if (x !== '') {
+          ids.push(x)
+        }
+      }
+    }
+  }
+  return ids
 }

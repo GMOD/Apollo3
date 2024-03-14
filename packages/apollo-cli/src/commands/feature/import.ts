@@ -1,9 +1,14 @@
 import * as fs from 'node:fs'
 
 import { Flags } from '@oclif/core'
+import nodeFetch, { Response } from 'node-fetch'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { localhostToAddress, subAssemblyNameToId } from '../../utils.js'
+import {
+  convertAssemblyNameToId,
+  localhostToAddress,
+  uploadFile,
+} from '../../utils.js'
 
 export default class Import extends BaseCommand<typeof Import> {
   static description = 'Import features from local gff file'
@@ -36,7 +41,7 @@ export default class Import extends BaseCommand<typeof Import> {
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 
-    const assembly = await subAssemblyNameToId(
+    const assembly = await convertAssemblyNameToId(
       access.address,
       access.accessToken,
       [flags.assembly],
@@ -52,6 +57,7 @@ export default class Import extends BaseCommand<typeof Import> {
       access.address,
       access.accessToken,
       flags['input-file'],
+      'text/x-gff3',
     )
 
     const response: Response = await importFeatures(
@@ -68,6 +74,7 @@ export default class Import extends BaseCommand<typeof Import> {
       this.logToStderr(message)
       this.exit(1)
     }
+    this.exit(0)
   }
 }
 
@@ -85,6 +92,14 @@ async function importFeatures(
     deleteExistingFeatures,
   }
 
+  const controller = new AbortController()
+  setTimeout(
+    () => {
+      controller.abort()
+    },
+    24 * 60 * 60 * 1000,
+  )
+
   const auth = {
     method: 'POST',
     body: JSON.stringify(body),
@@ -92,40 +107,10 @@ async function importFeatures(
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
+    signal: controller.signal,
   }
 
   const url = new URL(localhostToAddress(`${address}/changes`))
-  const response = await fetch(url, auth)
+  const response = await nodeFetch(url, auth)
   return response
-}
-
-async function uploadFile(
-  address: string,
-  accessToken: string,
-  file: string,
-): Promise<string> {
-  const buffer: Buffer = fs.readFileSync(file)
-  const blob = new Blob([buffer])
-
-  const formData = new FormData()
-  formData.append('type', 'text/x-gff3')
-  formData.append('file', blob)
-
-  const auth = {
-    method: 'POST',
-    body: formData,
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  }
-
-  const url = new URL(localhostToAddress(`${address}/files`))
-  try {
-    const response = await fetch(url, auth)
-    const json = await response.json()
-    return json['_id' as typeof json]
-  } catch (error) {
-    console.error(error)
-    throw error
-  }
 }

@@ -81,10 +81,10 @@ export function makeGFF3Feature(
       location.phase === 0
         ? '0'
         : location.phase === 1
-        ? '1'
-        : location.phase === 2
-        ? '2'
-        : null,
+          ? '1'
+          : location.phase === 2
+            ? '2'
+            : null,
     attributes: Object.keys(attributes).length > 0 ? attributes : null,
     derived_features: [],
     child_features: feature.children

@@ -3,7 +3,6 @@ import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { expect, test } from '@oclif/test'
-// import nock from 'nock'
 
 import {
   CONFIG_FILE,
@@ -11,6 +10,8 @@ import {
   VERBOSE,
   copyFile,
 } from '../../test/fixtures.js'
+
+// import nock from 'nock'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 

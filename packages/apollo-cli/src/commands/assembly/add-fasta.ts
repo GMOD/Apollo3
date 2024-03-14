@@ -4,7 +4,12 @@ import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { deleteAssembly, localhostToAddress, queryApollo } from '../../utils.js'
+import {
+  deleteAssembly,
+  localhostToAddress,
+  queryApollo,
+  uploadFile,
+} from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description =
@@ -83,6 +88,7 @@ export default class Get extends BaseCommand<typeof Get> {
         access.address,
         access.accessToken,
         flags['input-file'],
+        'text/x-fasta',
       )
 
       response = await submitAssembly(
@@ -109,40 +115,6 @@ function isValidHttpUrl(x: string) {
     return false
   }
   return url.protocol === 'http:' || url.protocol === 'https:'
-}
-
-async function uploadFile(
-  address: string,
-  accessToken: string,
-  file: string,
-): Promise<string> {
-  const buffer: Buffer =
-    file === '-' ? fs.readFileSync(process.stdin.fd) : fs.readFileSync(file)
-  const blob = new Blob([buffer])
-  await blob.text()
-
-  const formData = new FormData()
-  formData.append('type', 'text/x-fasta')
-  formData.append('file', blob)
-
-  const auth = {
-    method: 'POST',
-    body: formData,
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  }
-
-  const url = new URL(localhostToAddress(`${address}/files`))
-
-  try {
-    const response = await fetch(url, auth)
-    const json = await response.json()
-    return json['_id' as typeof json]
-  } catch (error) {
-    console.error(error)
-    throw error
-  }
 }
 
 async function addAssemblyFromExternal(
@@ -202,13 +174,3 @@ async function submitAssembly(
   const response = await fetch(url, auth)
   return response
 }
-
-// x = {
-//   typeName: 'AddAssemblyFromExternalChange',
-//   assembly: '65d8b6968872ed560aa41ef0',
-//   assemblyName: 'vv',
-//   externalLocation: {
-//     fa: 'https://raw.githubusercontent.com/GMOD/Apollo3/main/packages/apollo-collaboration-server/test/data/volvox.fa',
-//     fai: 'https://raw.githubusercontent.com/GMOD/Apollo3/main/packages/apollo-collaboration-server/test/data/volvox.fa.fai',
-//   },
-// }

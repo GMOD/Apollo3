@@ -1,12 +1,16 @@
 import * as fs from 'node:fs'
-import * as http from 'node:http'
-import * as https from 'node:https'
 
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
+import nodeFetch, { Response } from 'node-fetch'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { deleteAssembly, localhostToAddress, queryApollo, sleep } from '../../utils.js'
+import {
+  deleteAssembly,
+  localhostToAddress,
+  queryApollo,
+  uploadFile,
+} from '../../utils.js'
 
 export default class AddGff extends BaseCommand<typeof AddGff> {
   static description = 'Add assembly sequences from gff or gft file'
@@ -47,6 +51,7 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
       access.address,
       access.accessToken,
       flags['input-file'],
+      'text/x-gff3',
     )
 
     let typeName = 'AddAssemblyAndFeaturesFromFileChange'
@@ -62,17 +67,23 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
       typeName,
       flags.force,
     )
-    if (
-      res.statusCode !== undefined &&
-      res.statusCode >= 200 &&
-      res.statusCode <= 299
-    ) {
-      this.exit(0)
-    } else {
-      this.logToStderr(
-        `Request returned with code ${res.statusCode} and message:\n${res.statusMessage}`,
-      )
+    const out = JSON.stringify(await res.json(), null, 2)
+    if (!res.ok) {
+      this.logToStderr(`Failed with ${out}`)
+      this.exit(1)
     }
+
+    const assemblies = await queryApollo(
+      access.address,
+      access.accessToken,
+      'assemblies',
+    )
+    for (const x of await assemblies.json()) {
+      if (x['name' as keyof typeof x] === flags.assembly) {
+        this.log(JSON.stringify(x, null, 2))
+      }
+    }
+    this.exit(0)
   }
 
   async submitAssembly(
@@ -82,15 +93,13 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
     fileId: string,
     typeName: string,
     force: boolean,
-  ): Promise<http.IncomingMessage> {
+  ): Promise<Response> {
     const body = {
       assemblyName,
       fileId,
       typeName,
       assembly: new ObjectId().toHexString(),
     }
-    // Using http.request instead of fetch to avoid timeout see
-    // https://github.com/nodejs/node/issues/46375#issuecomment-1406305331
     const assemblies = await queryApollo(address, accessToken, 'assemblies')
     for (const x of await assemblies.json()) {
       if (x['name' as keyof typeof x] === assemblyName) {
@@ -102,59 +111,26 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
         }
       }
     }
-    const url = new URL(address)
+
+    const controller = new AbortController()
+    setTimeout(
+      () => {
+        controller.abort()
+      },
+      24 * 60 * 60 * 1000,
+    )
+
     const auth = {
-      hostname: url.hostname,
-      port: url.port,
-      path: '/changes',
       method: 'POST',
+      body: JSON.stringify(body),
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
+      signal: controller.signal,
     }
-    let response: http.IncomingMessage | undefined = undefined
-    const req = await http.request(auth, (res) => {
-      response = res
-    })
-    req.write(JSON.stringify(body))
-    req.end()
-    while (response === undefined) {
-      // There must be a better way to wait for response to materialize
-      await sleep(1000)
-    }
+    const url = new URL(localhostToAddress(`${address}/changes`))
+    const response = await nodeFetch(url, auth)
     return response
-  }
-}
-
-async function uploadFile(
-  address: string,
-  accessToken: string,
-  file: string,
-): Promise<string> {
-  const buffer: string = fs.readFileSync(file, 'utf8')
-  const blob = new Blob([buffer])
-  await blob.text()
-
-  const formData = new FormData()
-  formData.append('type', 'text/x-gff3')
-  formData.append('file', blob)
-
-  const auth = {
-    method: 'POST',
-    body: formData,
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  }
-
-  const url = new URL(localhostToAddress(`${address}/files`))
-  try {
-    const response = await fetch(url, auth)
-    const json = (await response.json()) as object
-    return json['_id' as keyof typeof json]
-  } catch (error) {
-    console.error(error)
-    throw error
   }
 }

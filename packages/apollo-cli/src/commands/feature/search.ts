@@ -1,9 +1,11 @@
-import * as fs from 'node:fs'
-
 import { Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { localhostToAddress, subAssemblyNameToId } from '../../utils.js'
+import {
+  convertAssemblyNameToId,
+  idReader,
+  localhostToAddress,
+} from '../../utils.js'
 
 async function searchFeatures(
   address: string,
@@ -31,7 +33,7 @@ export default class Search extends BaseCommand<typeof Search> {
   static description = 'Free text search for feature in one or more assemblies'
 
   static flags = {
-    assemblies: Flags.string({
+    assembly: Flags.string({
       char: 'a',
       default: ['-'],
       multiple: true,
@@ -48,27 +50,20 @@ export default class Search extends BaseCommand<typeof Search> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Search)
 
-    // eslint-disable-next-line prefer-destructuring
-    let nameOrIds = flags.assemblies
-    if (JSON.stringify(nameOrIds) === JSON.stringify(['-'])) {
-      nameOrIds = fs
-        .readFileSync(process.stdin.fd)
-        .toString()
-        .trim()
-        .split(/(\s+)/)
-    }
-    nameOrIds = nameOrIds.filter((x) => x.trim() != '')
-
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 
-    const assemblies = await subAssemblyNameToId(
-      access.address,
-      access.accessToken,
-      nameOrIds,
-    )
+    let assemblyIds: string[] = []
+    if (flags.assembly !== undefined) {
+      const assembly = idReader(flags.assembly)
+      assemblyIds = await convertAssemblyNameToId(
+        access.address,
+        access.accessToken,
+        assembly,
+      )
+    }
 
-    if (assemblies.length === 0) {
+    if (assemblyIds.length === 0) {
       this.log(JSON.stringify([], null, 2))
       this.exit(0)
     }
@@ -76,7 +71,7 @@ export default class Search extends BaseCommand<typeof Search> {
     const response: Response = await searchFeatures(
       access.address,
       access.accessToken,
-      assemblies,
+      assemblyIds,
       flags.text,
     )
     const results = JSON.parse(await response.text())

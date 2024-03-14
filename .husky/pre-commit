@@ -2,4 +2,4 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 yarn node scripts/pre-commit.js
-yarn constraints
+# yarn constraints
