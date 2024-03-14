@@ -1,5 +1,5 @@
+import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
 import { AbstractSessionModel } from '@jbrowse/core/util'
-import { AnnotationFeatureI } from 'apollo-mst'
 import { observer } from 'mobx-react'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'

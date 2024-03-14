@@ -1,6 +1,6 @@
+import { Counter, CounterSchema } from '@apollo-annotation/apollo-schemas'
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
-import { Counter, CounterSchema } from 'apollo-schemas'
 
 import { CountersService } from './counters.service'
 

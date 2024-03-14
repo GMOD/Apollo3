@@ -1,3 +1,4 @@
+import { DeleteUserChange, UserChange } from '@apollo-annotation/apollo-shared'
 import { AbstractRootModel } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
@@ -19,7 +20,6 @@ import {
   GridRowParams,
   GridToolbar,
 } from '@mui/x-data-grid'
-import { DeleteUserChange, UserChange } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useCallback, useEffect, useState } from 'react'
 

@@ -1,4 +1,4 @@
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
 import { observer } from 'mobx-react'
 import { getSnapshot } from 'mobx-state-tree'
 import React from 'react'

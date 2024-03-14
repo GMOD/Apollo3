@@ -1,7 +1,7 @@
 {
-  "name": "apollo-cli",
-  "description": "Command line interface for the Apollo annotation server",
-  "version": "0.0.0",
+  "name": "@apollo-annotation/apollo-cli",
+  "description": "CLI for managing an Apollo Collaboration Server",
+  "version": "0.1.0",
   "author": "Apollo Team",
   "repository": {
     "type": "git",
@@ -75,23 +75,9 @@
       "@oclif/plugin-help"
     ],
     "repositoryPrefix": "<%- repo %>/blob/v<%- version %>/packages/apollo-cli/<%- commandPath %>",
-    "topicSeparator": " ",
-    "topics": {
-      "assembly": {
-        "description": "Commands to handle assemblies"
-      },
-      "change": {
-        "description": "Commands to handle the log of changes made to the database"
-      },
-      "feature": {
-        "description": "Commands to handle features"
-      },
-      "refseq": {
-        "description": "Commands to handle reference sequences"
-      },
-      "user": {
-        "description": "Commands to handle users"
-      }
-    }
+    "topicSeparator": " "
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

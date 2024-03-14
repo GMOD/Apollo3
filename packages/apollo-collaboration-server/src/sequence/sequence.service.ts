@@ -1,12 +1,12 @@
-import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
-import { Injectable, Logger } from '@nestjs/common'
-import { InjectModel } from '@nestjs/mongoose'
 import {
   RefSeq,
   RefSeqChunk,
   RefSeqChunkDocument,
   RefSeqDocument,
-} from 'apollo-schemas'
+} from '@apollo-annotation/apollo-schemas'
+import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
+import { Injectable, Logger } from '@nestjs/common'
+import { InjectModel } from '@nestjs/mongoose'
 import { RemoteFile } from 'generic-filehandle'
 import { Model } from 'mongoose'
 
