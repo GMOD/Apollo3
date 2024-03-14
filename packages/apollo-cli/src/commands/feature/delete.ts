@@ -1,9 +1,7 @@
-import * as fs from 'node:fs'
-
 import { Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { getFeatureById, localhostToAddress } from '../../utils.js'
+import { getFeatureById, idReader, localhostToAddress } from '../../utils.js'
 
 async function deleteFeature(
   address: string,
@@ -45,43 +43,43 @@ export default class Delete extends BaseCommand<typeof Delete> {
   static flags = {
     'feature-id': Flags.string({
       char: 'i',
-      default: '-',
+      default: ['-'],
       description: 'Feature ID to delete',
+      multiple: true,
     }),
   }
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(Delete)
 
-    let featureId = flags['feature-id']
-    if (featureId === '-') {
-      featureId = fs.readFileSync(process.stdin.fd).toString().trim()
-    }
+    const featureIds = idReader(flags['feature-id'])
 
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 
-    const response: Response = await getFeatureById(
-      access.address,
-      access.accessToken,
-      featureId,
-    )
-    const feature = JSON.parse(await response.text())
-    if (!response.ok) {
-      const message: string = feature['message' as keyof typeof feature]
-      this.logToStderr(message)
-      this.exit(1)
-    }
-    const delFet: Response = await deleteFeature(
-      access.address,
-      access.accessToken,
-      feature,
-    )
-    if (!delFet.ok) {
-      const json = await delFet.json()
-      const message: string = json['message' as keyof typeof json]
-      this.logToStderr(message)
-      this.exit(1)
+    for (const featureId of featureIds) {
+      const response: Response = await getFeatureById(
+        access.address,
+        access.accessToken,
+        featureId,
+      )
+      const feature = JSON.parse(await response.text())
+      if (!response.ok) {
+        const message: string = feature['message' as keyof typeof feature]
+        this.logToStderr(message)
+        this.exit(1)
+      }
+      const delFet: Response = await deleteFeature(
+        access.address,
+        access.accessToken,
+        feature,
+      )
+      if (!delFet.ok) {
+        const json = await delFet.json()
+        const message: string = json['message' as keyof typeof json]
+        this.logToStderr(message)
+        this.exit(1)
+      }
     }
   }
 }

@@ -1,7 +1,7 @@
 import { Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { queryApollo, subAssemblyNameToId } from '../../utils.js'
+import { convertAssemblyNameToId, idReader, queryApollo } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description = 'Get available assemblies'
@@ -28,10 +28,11 @@ export default class Get extends BaseCommand<typeof Get> {
 
     let assemblyIds: string[] = []
     if (flags.assembly !== undefined) {
-      assemblyIds = await subAssemblyNameToId(
+      const assembly = idReader(flags.assembly)
+      assemblyIds = await convertAssemblyNameToId(
         access.address,
         access.accessToken,
-        flags.assembly,
+        assembly,
       )
     }
 

@@ -192,11 +192,8 @@ export default class Login extends BaseCommand<typeof Login> {
           const params = querystring.decode(
             req?.url.replace(`${callbackPath}?`, ''),
           )
-
           emitter.emit(eventName, params)
-
           res.end('You can close this browser now.')
-
           res.socket?.end()
           res.socket?.destroy()
           server.close()
@@ -209,9 +206,7 @@ export default class Login extends BaseCommand<typeof Login> {
       .listen(port)
 
     await ux.anykey('Press any key to open your browser')
-
     await open(authorizationCodeURL)
-
     ux.action.start('Waiting for authentication')
 
     const { access_token } = await waitFor<AuthorizationCodeCallbackParams>(

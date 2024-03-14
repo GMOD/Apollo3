@@ -1,7 +1,11 @@
 import { Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { deleteAssembly, localhostToAddress, subAssemblyNameToId } from '../../utils.js'
+import {
+  convertAssemblyNameToId,
+  deleteAssembly,
+  idReader,
+} from '../../utils.js'
 
 export default class Delete extends BaseCommand<typeof Delete> {
   static description = 'Delete assemblies'
@@ -21,10 +25,11 @@ export default class Delete extends BaseCommand<typeof Delete> {
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 
-    const deleteIds = await subAssemblyNameToId(
+    const assembly = idReader(flags.assembly)
+    const deleteIds = await convertAssemblyNameToId(
       access.address,
       access.accessToken,
-      flags.assembly,
+      assembly,
     )
     for (const x of deleteIds) {
       await deleteAssembly(access.address, access.accessToken, x)

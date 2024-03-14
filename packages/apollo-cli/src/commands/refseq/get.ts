@@ -1,9 +1,7 @@
-import * as fs from 'node:fs'
-
 import { Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { queryApollo, subAssemblyNameToId } from '../../utils.js'
+import { convertAssemblyNameToId, idReader, queryApollo } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description = 'Get available reference sequences'
@@ -32,18 +30,8 @@ export default class Get extends BaseCommand<typeof Get> {
     let keep = json
     if (flags.assembly !== undefined) {
       keep = []
-      // eslint-disable-next-line prefer-destructuring
-      let assembly = flags.assembly
-      if (JSON.stringify(assembly) === JSON.stringify(['-'])) {
-        assembly = fs
-          .readFileSync(process.stdin.fd)
-          .toString()
-          .trim()
-          .split(/(\s+)/)
-      }
-      assembly = assembly.filter((e) => e.trim() !== '')
-
-      const assemblyIds = await subAssemblyNameToId(
+      const assembly = idReader(flags.assembly)
+      const assemblyIds = await convertAssemblyNameToId(
         access.address,
         access.accessToken,
         assembly,

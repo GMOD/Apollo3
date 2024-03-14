@@ -118,6 +118,68 @@ class TestCLI(unittest.TestCase):
         self.assertTrue("volvox2" not in p.stdout)
         self.assertTrue("volvox3" in p.stdout)
 
+    def testIdReader(self):
+        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a v1 -f")
+        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a v2 -f")
+        shell(f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a v3 -f")
+        p = shell(f"{apollo} assembly get")
+        xall = json.loads(p.stdout)
+        
+        p = shell(f"{apollo} assembly get -a v1 v2")
+        out = json.loads(p.stdout)
+        self.assertEqual(len(out), 2)
+
+        # This is interpreted as an assembly named 'v1 v2'
+        p = shell(f"echo v1 v2 | {apollo} assembly get -a -")
+        out = json.loads(p.stdout)
+        self.assertEqual(len(out), 0)
+
+        # These are two assemblies
+        p = shell(f"echo -e 'v1 \n v2' | {apollo} assembly get -a -")
+        out = json.loads(p.stdout)
+        self.assertEqual(len(out), 2)
+
+        p = shell(f"{apollo} assembly get | {apollo} assembly get -a -")
+        out = json.loads(p.stdout)
+        self.assertTrue(len(out) >= 3)
+
+        # From json file
+        shell(f"{apollo} assembly get > tmp.json")
+        p = shell(f"{apollo} assembly get -a tmp.json")
+        out = json.loads(p.stdout)
+        self.assertTrue(len(out) >= 3)
+        os.remove("tmp.json")
+
+        # From text file, one name or id per line
+        with open("tmp.txt", "w") as fout:
+            fout.write("v1 \n v2 \r\n v3 \n")
+        p = shell(f"{apollo} assembly get -a tmp.txt")
+        out = json.loads(p.stdout)
+        self.assertEqual(len(out), 3)
+        os.remove("tmp.txt")
+
+        # From json string
+        aid = xall[0]["_id"]
+        j = '{"_id": "%s"}' % aid
+        p = shell(f"{apollo} assembly get -a '{j}'")
+        out = json.loads(p.stdout)
+        self.assertEqual(len(out), 1)
+        self.assertEqual(out[0]["_id"], aid)
+
+        j = '[{"_id": "%s"}, {"_id": "%s"}]' % (xall[0]["_id"], xall[1]["_id"])
+        p = shell(f"{apollo} assembly get -a '{j}'")
+        out = json.loads(p.stdout)
+        self.assertEqual(len(out), 2)
+
+        j = '{"XYZ": "%s"}' % aid
+        p = shell(f"{apollo} assembly get -a '{j}'")
+        out = json.loads(p.stdout)
+        self.assertEqual(len(out), 0)
+
+        p = shell(f"{apollo} assembly get -a '[...'")
+        out = json.loads(p.stdout)
+        self.assertEqual(len(out), 0)
+        
     def testAddAssemblyFromGff(self):
         shell(
             f"{apollo} assembly add-gff -i test_data/tiny.fasta.gff3 -a vv1 --omit-features -f"

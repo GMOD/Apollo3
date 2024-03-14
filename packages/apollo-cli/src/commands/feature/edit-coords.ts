@@ -1,11 +1,10 @@
-import * as fs from 'node:fs'
-
 import { Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
   getAssemblyFromRefseq,
   getFeatureById,
+  idReader,
   localhostToAddress,
 } from '../../utils.js'
 
@@ -58,10 +57,11 @@ export default class Get extends BaseCommand<typeof Get> {
       flags.start -= 1
     }
 
-    let featureId = flags['feature-id']
-    if (featureId === '-') {
-      featureId = fs.readFileSync(process.stdin.fd).toString().trim()
+    const ff = idReader([flags['feature-id']])
+    if (ff.length !== 1) {
+      this.logToStderr(`Expected only one feature identifier. Got ${ff.length}`)
     }
+    const [featureId] = ff
 
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)

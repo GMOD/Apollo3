@@ -4,12 +4,11 @@ import { Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
+  convertAssemblyNameToId,
   getRefseqId,
   localhostToAddress,
   queryApollo,
-  subAssemblyNameToId as convertAssemblyNameToId,
 } from '../../utils.js'
-
 
 export default class Get extends BaseCommand<typeof Get> {
   static description = 'Get features in a genomic window'

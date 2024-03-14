@@ -1,10 +1,13 @@
-import * as fs from 'node:fs'
-
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { getAssemblyFromRefseq, getFeatureById, getRefseqId, localhostToAddress, queryApollo } from '../../utils.js'
+import {
+  getAssemblyFromRefseq,
+  getFeatureById,
+  getRefseqId,
+  localhostToAddress,
+} from '../../utils.js'
 
 export default class Copy extends BaseCommand<typeof Copy> {
   static description = 'Copy feature'

@@ -1,10 +1,13 @@
-import * as fs from 'node:fs'
-
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { getFeatureById, localhostToAddress, queryApollo } from '../../utils.js'
+import {
+  getFeatureById,
+  idReader,
+  localhostToAddress,
+  queryApollo,
+} from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description = 'Add a child feature'
@@ -46,10 +49,11 @@ export default class Get extends BaseCommand<typeof Get> {
       this.exit(1)
     }
 
-    let featureId = flags['feature-id']
-    if (featureId === '-') {
-      featureId = fs.readFileSync(process.stdin.fd).toString().trim()
+    const ff = idReader([flags['feature-id']])
+    if (ff.length !== 1) {
+      this.logToStderr(`Expected only one feature identifier. Got ${ff.length}`)
     }
+    const [featureId] = ff
 
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)

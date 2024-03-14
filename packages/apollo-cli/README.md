@@ -235,9 +235,9 @@ USAGE
   $ apollo feature delete [--profile <value>] [--config-file <value>] [-i <value>]
 
 FLAGS
-  -i, --feature-id=<value>   [default: -] Feature ID to delete
-      --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+  -i, --feature-id=<value>...  [default: -] Feature ID to delete
+      --config-file=<value>    Use this config file (mostly for testing)
+      --profile=<value>        [default: default] Use credentials from this profile
 
 DESCRIPTION
   Delete a feature
@@ -386,10 +386,10 @@ USAGE
   $ apollo feature search -t <value> [--profile <value>] [--config-file <value>] [-a <value>]
 
 FLAGS
-  -a, --assemblies=<value>...  [default: -] Assembly names or IDs to search; use "-" to read it from stdin
-  -t, --text=<value>           (required) Search for this text query
-      --config-file=<value>    Use this config file (mostly for testing)
-      --profile=<value>        [default: default] Use credentials from this profile
+  -a, --assembly=<value>...  [default: -] Assembly names or IDs to search; use "-" to read it from stdin
+  -t, --text=<value>         (required) Search for this text query
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      [default: default] Use credentials from this profile
 
 DESCRIPTION
   Free text search for feature in one or more assemblies
