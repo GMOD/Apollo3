@@ -14,10 +14,10 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
       - run: |
-          npm publish package/apollo-common 
-          npm publish package/apollo-mst 
-          npm publish package/apollo-schemas 
-          npm publish package/apollo-shared
-          npm publish package/jbrowse-plugin-apollo
+          npm publish --access public package/apollo-common 
+          npm publish --access public package/apollo-mst 
+          npm publish --access public package/apollo-schemas 
+          npm publish --access public package/apollo-shared
+          npm publish --access public package/jbrowse-plugin-apollo
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
