@@ -30,7 +30,9 @@ services:
     image: mongo
     volumes:
       - mongodb-volume:/data/db
-    command: --replSet rs0
+    command: ["--replSet", "rs0", "--port", "27017"]
+    ports:
+      - 27017:27017
 
   # this container will exit after initializing the replica set
   mongodb-init:
