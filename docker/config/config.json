@@ -20,7 +20,7 @@
   "plugins": [
     {
       "name": "Apollo",
-      "url": "http://localhost:9000/jbrowse-plugin-apollo.umd.development.js"
+      "url": "http://localhost/jbrowse-plugin-apollo.umd.development.js"
     }
   ],
   "internetAccounts": [
@@ -29,8 +29,8 @@
       "internetAccountId": "apolloInternetAccount",
       "name": "Demo Server",
       "description": "A server hosting a small fictional organism to demonstrate Apollo capabilities",
-      "domains": ["localhost:3999"],
-      "baseURL": "http://localhost:3999"
+      "domains": ["localhost"],
+      "baseURL": "http://localhost"
     }
   ],
   "defaultSession": {
