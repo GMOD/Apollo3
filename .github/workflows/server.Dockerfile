@@ -8,7 +8,7 @@ COPY packages packages
 RUN find packages/ -type f \! \( -name "package.json" -o -name "yarn.lock" \) -delete
 RUN find . -type d -empty -delete
 
-FROM node:18
+FROM --platform=linux/arm64/v8 node:18
 LABEL org.opencontainers.image.source=https://github.com/GMOD/Apollo3
 LABEL org.opencontainers.image.description="Apollo collaboration server"
 WORKDIR /app
