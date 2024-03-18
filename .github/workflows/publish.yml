@@ -27,7 +27,7 @@ jobs:
       with:
         context: .
         file: ./server.Dockerfile
-        platform: linux/arm64/v8,linux/amd64
+        platforms: linux/arm64/v8,linux/amd64
         push: true
         tags: ghcr.io/gmod/apollo-collaboration-server:development
 
@@ -36,6 +36,6 @@ jobs:
       with:
         context: .
         file: ./client.Dockerfile
-        platform: linux/arm64/v8,linux/amd64
+        platforms: linux/arm64/v8,linux/amd64
         push: true
         tags: ghcr.io/gmod/apollo-jbrowse-plugin:development
