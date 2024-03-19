@@ -78,7 +78,7 @@ jobs:
       - name: Create Docker context
         run: |
           docker context create staging \
-            --docker ssh://staging \
+            --docker host=ssh://staging \
             --description "Staging server"
       - name: Deploy
         env:
