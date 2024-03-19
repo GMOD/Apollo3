@@ -87,4 +87,6 @@ jobs:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET:  ${{ secrets.GOOGLE_CLIENT_SECRET }}
         working-directory: .github/workflows/deploy
-        run: docker --context staging compose up --detach
+        run: |
+          docker --context staging compose down
+          docker --context staging compose up --build --detach
