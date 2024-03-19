@@ -3,49 +3,49 @@ name: Push
 on: push
 
 jobs:
-  # build:
-  #   name: Build
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Check out
-  #       uses: actions/checkout@v3
-  #     - name: Use Node.js 18.x
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: 18
-  #         cache: yarn
-  #     - name: Install
-  #       run: yarn --immutable
-  #     - name: Build collaboration server
-  #       run: yarn build
-  #       working-directory: packages/apollo-collaboration-server
-  #     - name: Build plugin
-  #       run: yarn build
-  #       working-directory: packages/jbrowse-plugin-apollo
-  # lint:
-  #   name: Lint
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Check out
-  #       uses: actions/checkout@v3
-  #     - name: Use Node.js 18.x
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: 18
-  #         cache: yarn
-  #     - name: Install
-  #       run: yarn --immutable
-  #       # Have to build shared before linting so type-based lint rules can
-  #       # run correctly
-  #     - name: Build shared
-  #       run: yarn build
-  #       working-directory: packages/apollo-shared
-  #     - name: Lint codebase
-  #       run: yarn eslint --ext .js,.ts,.jsx,.tsx .
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v3
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: yarn
+      - name: Install
+        run: yarn --immutable
+      - name: Build collaboration server
+        run: yarn build
+        working-directory: packages/apollo-collaboration-server
+      - name: Build plugin
+        run: yarn build
+        working-directory: packages/jbrowse-plugin-apollo
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v3
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: yarn
+      - name: Install
+        run: yarn --immutable
+        # Have to build shared before linting so type-based lint rules can
+        # run correctly
+      - name: Build shared
+        run: yarn build
+        working-directory: packages/apollo-shared
+      - name: Lint codebase
+        run: yarn eslint --ext .js,.ts,.jsx,.tsx .
   deploy:
     runs-on: ubuntu-latest
     environment: staging
-    if: github.ref == 'refs/heads/deploy_staging'
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Check out
         uses: actions/checkout@v3
