@@ -1,0 +1,89 @@
+name: apollo-demo-site
+
+services:
+  apollo-collaboration-server:
+    image: public.ecr.aws/p1r0y7k4/apollo-collaboration-server-alpha:arm
+    depends_on:
+      mongo-node-1:
+        condition: service_healthy
+    environment:
+      MONGODB_URI: mongodb://mongo-node-1:27017,mongo-node-2:27018/apolloDb?replicaSet=rs0
+      FILE_UPLOAD_FOLDER: /data/uploads
+      LOG_LEVELS: error,warn,log,debug
+      ALLOW_GUEST_USER: true
+    ports:
+      - 3999:3999
+    volumes:
+      - uploaded-files-volume:/data/uploads
+
+  client:
+    build:
+      args:
+        APOLLO_VERSION: 0.1.0
+        JBROWSE_VERSION: 2.10.3
+      context: .
+    depends_on:
+      - apollo-collaboration-server
+    ports:
+      - '80:80'
+    volumes:
+      - /home/ec2-user/deployment/config.json:/usr/local/apache2/htdocs/config.json
+      - /home/ec2-user/deployment/data/:/usr/local/apache2/htdocs/data/
+      - /home/ec2-user/deployment/demoData/:/usr/local/apache2/htdocs/demoData/
+
+  mongo-node-1:
+    image: mongo:7
+    command:
+      - '--replSet'
+      - rs0
+      - '--bind_ip_all'
+      - '--port'
+      - '27017'
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_interval: 5s
+      start_period: 2m
+      test: |
+        mongosh --port 27017 --quiet --eval "
+        try {
+          rs.status()
+          console.log('replica set ok')
+        } catch {
+          rs.initiate({
+            _id: 'rs0',
+            members: [
+              { _id: 0, host: 'mongo-node-1:27017', priority: 1 },
+              { _id: 1, host: 'mongo-node-2:27018', priority: 0.5 },
+            ],
+          })
+          console.log('replica set initiated')
+        }
+        "
+      timeout: 10s
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-node-1_data:/data/db
+      - mongo-node-1_config:/data/configdb
+
+  mongo-node-2:
+    image: mongo:7
+    command:
+      - '--replSet'
+      - rs0
+      - '--bind_ip_all'
+      - '--port'
+      - '27018'
+    ports:
+      - '27018:27018'
+    volumes:
+      - mongo-node-2_data:/data/db
+      - mongo-node-2_config:/data/configdb
+
+volumes:
+  mongo-node-1_config: null
+  mongo-node-1_data: null
+  mongo-node-2_config: null
+  mongo-node-2_data: null
+  uploaded-files-volume: null
