@@ -50,8 +50,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       }
       const urlString = configService.get('URL', { infer: true })
       const callbackURI = new URL(urlString)
-      const port = configService.get('PORT', { infer: true })
-      callbackURI.port = String(port)
       callbackURI.pathname = `${callbackURI.pathname}${
         callbackURI.pathname.endsWith('/') ? '' : '/'
       }auth/google`
