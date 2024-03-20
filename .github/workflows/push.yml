@@ -1,11 +1,23 @@
 name: Push
 
-on: push
+on:
+  push: null
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Build and publish Docker image'
+        required: false
+        type: boolean
+      deploy:
+        description: 'Deploy to demo server'
+        required: false
+        type: boolean
 
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' }}
     steps:
       - name: Check out
         uses: actions/checkout@v3
@@ -25,6 +37,7 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' }}
     steps:
       - name: Check out
         uses: actions/checkout@v3
@@ -45,31 +58,36 @@ jobs:
   build-and-push-docker:
     name: Build and push Docker image
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: ${{ github.ref == 'refs/heads/main' || inputs.publish }}
     steps:
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    - name: Log in to the GitHub Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.repository_owner }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Build and push Apollo collaboration server image
-      uses: docker/build-push-action@v5
-      with:
-        platforms: linux/arm64/v8,linux/amd64
-        push: true
-        tags: ghcr.io/gmod/apollo-collaboration-server:development
-        outputs: type=image,annotation-index.org.opencontainers.image.description=Apollo collaboration server
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to the GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Apollo collaboration server image
+        uses: docker/build-push-action@v5
+        with:
+          platforms: linux/arm64/v8,linux/amd64
+          push: true
+          tags: ghcr.io/gmod/apollo-collaboration-server:development
+          outputs:
+            type=image,annotation-index.org.opencontainers.image.description=Apollo
+            collaboration server
+          cache-from: type=registry,ref=user/app:latest
+          cache-to: type=inline
   deploy:
     name: Deploy to demo staging server
     runs-on: ubuntu-latest
     environment: staging
-    if: github.ref == 'refs/heads/main'
     needs: build-and-push-docker
+    if:
+      ${{ github.ref  == 'refs/heads/main' || ( inputs.deploy  &&  always()) }}
     steps:
       - name: Check out
         uses: actions/checkout@v3
@@ -115,8 +133,10 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET:  ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          URL: ${{ vars.URL }}
         working-directory: .github/workflows/deploy
         run: |
           docker --context staging compose down
+          docker --context staging compose pull
           docker --context staging compose up --build --detach
