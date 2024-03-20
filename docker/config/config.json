@@ -20,7 +20,7 @@
   "plugins": [
     {
       "name": "Apollo",
-      "url": "http://localhost/jbrowse-plugin-apollo.umd.development.js"
+      "url": "http://localhost:9000/jbrowse-plugin-apollo.umd.development.js"
     }
   ],
   "internetAccounts": [
