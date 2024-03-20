@@ -3,6 +3,7 @@ import { unlink } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Gunzip, createGunzip } from 'node:zlib'
 
+import { File, FileDocument } from '@apollo-annotation/apollo-schemas'
 import gff from '@gmod/gff'
 import {
   Injectable,
@@ -12,7 +13,6 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
-import { File, FileDocument } from 'apollo-schemas'
 import { Model } from 'mongoose'
 
 import { CreateFileDto } from './dto/create-file.dto'

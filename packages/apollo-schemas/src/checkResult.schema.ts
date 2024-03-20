@@ -1,5 +1,5 @@
+import type { CheckResultSnapshot } from '@apollo-annotation/apollo-mst'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import type { CheckResultSnapshot } from 'apollo-mst'
 import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose'
 
 export type CheckResultDocument = HydratedDocument<CheckResult>

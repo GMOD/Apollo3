@@ -1,3 +1,5 @@
+import { Assembly, AssemblyDocument } from '@apollo-annotation/apollo-schemas'
+import { GetAssembliesOperation } from '@apollo-annotation/apollo-shared'
 import {
   Injectable,
   Logger,
@@ -5,8 +7,6 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Assembly, AssemblyDocument } from 'apollo-schemas'
-import { GetAssembliesOperation } from 'apollo-shared'
 import { Model } from 'mongoose'
 
 import { OperationsService } from '../operations/operations.service'

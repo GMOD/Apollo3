@@ -1,3 +1,8 @@
+import {
+  AnnotationFeatureI,
+  AnnotationFeatureSnapshot,
+} from '@apollo-annotation/apollo-mst'
+import { AddFeatureChange } from '@apollo-annotation/apollo-shared'
 import { readConfObject } from '@jbrowse/core/configuration'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
@@ -10,8 +15,6 @@ import {
   SelectChangeEvent,
   TextField,
 } from '@mui/material'
-import { AnnotationFeatureI, AnnotationFeatureSnapshot } from 'apollo-mst'
-import { AddFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import { IKeyValueMap } from 'mobx'
 import { getSnapshot } from 'mobx-state-tree'

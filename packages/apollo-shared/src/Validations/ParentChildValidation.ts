@@ -1,5 +1,5 @@
-import { Change } from 'apollo-common'
-import { Feature, FeatureDocument } from 'apollo-schemas'
+import { Change } from '@apollo-annotation/apollo-common'
+import { Feature, FeatureDocument } from '@apollo-annotation/apollo-schemas'
 import { ClientSession, Model } from 'mongoose'
 
 import {

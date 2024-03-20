@@ -1,8 +1,14 @@
+import {
+  AssemblySpecificChange,
+  Change,
+} from '@apollo-annotation/apollo-common'
+import {
+  AnnotationFeatureSnapshot,
+  CheckResultSnapshot,
+} from '@apollo-annotation/apollo-mst'
+import { ValidationResultSet } from '@apollo-annotation/apollo-shared'
 import { getConf } from '@jbrowse/core/configuration'
 import { Region, getSession } from '@jbrowse/core/util'
-import { AssemblySpecificChange, Change } from 'apollo-common'
-import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
-import { ValidationResultSet } from 'apollo-shared'
 
 import { SubmitOpts } from '../ChangeManager'
 import { BackendDriver } from './BackendDriver'

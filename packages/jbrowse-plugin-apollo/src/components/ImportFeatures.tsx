@@ -1,3 +1,4 @@
+import { AddFeaturesFromFileChange } from '@apollo-annotation/apollo-shared'
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import {
@@ -12,7 +13,6 @@ import {
 import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import LinearProgress from '@mui/material/LinearProgress'
-import { AddFeaturesFromFileChange } from 'apollo-shared'
 import React, { useEffect, useState } from 'react'
 
 import {

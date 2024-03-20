@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises'
 
+import { JWTPayload } from '@apollo-annotation/apollo-shared'
 import {
   BadRequestException,
   Injectable,
@@ -8,7 +9,6 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
-import { JWTPayload } from 'apollo-shared'
 import { Request } from 'express'
 import { Profile as GoogleProfile } from 'passport-google-oauth20'
 

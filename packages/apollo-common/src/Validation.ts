@@ -1,6 +1,6 @@
+import { FeatureDocument } from '@apollo-annotation/apollo-schemas'
 import type { ExecutionContext } from '@nestjs/common'
 import type { Reflector } from '@nestjs/core'
-import { FeatureDocument } from 'apollo-schemas'
 import { ClientSession, Model } from 'mongoose'
 
 import { Change, ClientDataStore } from './Change'

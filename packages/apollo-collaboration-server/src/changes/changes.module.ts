@@ -1,6 +1,6 @@
+import { Change, ChangeSchema } from '@apollo-annotation/apollo-schemas'
 import { Module } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
-import { Change, ChangeSchema } from 'apollo-schemas'
 import idValidator from 'mongoose-id-validator'
 
 import { AssembliesModule } from '../assemblies/assemblies.module'

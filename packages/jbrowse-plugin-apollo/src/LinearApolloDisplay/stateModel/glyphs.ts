@@ -1,4 +1,4 @@
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
 import { ObservableMap, observable } from 'mobx'
 import { types } from 'mobx-state-tree'
 

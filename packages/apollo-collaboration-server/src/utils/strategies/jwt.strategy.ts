@@ -1,9 +1,9 @@
 import fs from 'node:fs'
 
+import { DecodedJWT } from '@apollo-annotation/apollo-shared'
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'
-import { DecodedJWT } from 'apollo-shared'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 
 interface JWTSecretConfig {

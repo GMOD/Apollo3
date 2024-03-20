@@ -1,5 +1,5 @@
+import { ApolloPlugin } from '@apollo-annotation/apollo-common'
 import { Inject, Injectable } from '@nestjs/common'
-import { ApolloPlugin } from 'apollo-common'
 
 import { APOLLO_PLUGINS } from './plugins.constants'
 

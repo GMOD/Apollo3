@@ -1,7 +1,7 @@
+import { Change, ClientDataStore } from '@apollo-annotation/apollo-common'
+import { FeatureDocument } from '@apollo-annotation/apollo-schemas'
 import type { ExecutionContext } from '@nestjs/common'
 import type { Reflector } from '@nestjs/core'
-import { Change, ClientDataStore } from 'apollo-common'
-import { FeatureDocument } from 'apollo-schemas'
 import { ClientSession, Model } from 'mongoose'
 
 export interface Context {

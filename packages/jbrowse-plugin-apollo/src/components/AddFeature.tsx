@@ -1,3 +1,4 @@
+import { AddFeatureChange } from '@apollo-annotation/apollo-shared'
 import { AbstractSessionModel, Region } from '@jbrowse/core/util/types'
 import {
   Button,
@@ -11,7 +12,6 @@ import {
   SelectChangeEvent,
   TextField,
 } from '@mui/material'
-import { AddFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import React, { useState } from 'react'
 

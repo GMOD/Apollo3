@@ -5,8 +5,8 @@ import {
   LocalGFF3DataStore,
   SerializedFeatureChange,
   ServerDataStore,
-} from 'apollo-common'
-import { Feature, FeatureDocument } from 'apollo-schemas'
+} from '@apollo-annotation/apollo-common'
+import { Feature, FeatureDocument } from '@apollo-annotation/apollo-schemas'
 
 interface SerializedTypeChangeBase extends SerializedFeatureChange {
   typeName: 'TypeChange'

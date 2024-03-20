@@ -1,6 +1,6 @@
+import { Change } from '@apollo-annotation/apollo-common'
+import { DecodedJWT } from '@apollo-annotation/apollo-shared'
 import { Body, Controller, Get, Logger, Post, Query, Req } from '@nestjs/common'
-import { Change } from 'apollo-common'
-import { DecodedJWT } from 'apollo-shared'
 import { Request } from 'express'
 
 import { ParseChangePipe } from '../utils/parse-change.pipe'

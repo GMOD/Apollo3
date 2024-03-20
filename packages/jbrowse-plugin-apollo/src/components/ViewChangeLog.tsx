@@ -1,3 +1,4 @@
+import { changeRegistry } from '@apollo-annotation/apollo-common'
 import {
   Button,
   DialogActions,
@@ -13,7 +14,6 @@ import {
   GridRowsProp,
   GridToolbar,
 } from '@mui/x-data-grid'
-import { changeRegistry } from 'apollo-common'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'

@@ -1,6 +1,10 @@
+import {
+  Feature,
+  FeatureDocument,
+  FeatureSchema,
+} from '@apollo-annotation/apollo-schemas'
 import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
-import { Feature, FeatureDocument, FeatureSchema } from 'apollo-schemas'
 import { Connection } from 'mongoose'
 import idValidator from 'mongoose-id-validator'
 

@@ -1,6 +1,9 @@
+import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
+import {
+  LocationEndChange,
+  LocationStartChange,
+} from '@apollo-annotation/apollo-shared'
 import { Theme, alpha } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
-import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 
 import { LinearApolloDisplay } from '../stateModel'
 import { MousePosition } from '../stateModel/mouseEvents'

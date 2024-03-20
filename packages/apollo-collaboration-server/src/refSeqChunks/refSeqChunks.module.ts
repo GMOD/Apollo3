@@ -1,6 +1,9 @@
+import {
+  RefSeqChunk,
+  RefSeqChunkSchema,
+} from '@apollo-annotation/apollo-schemas'
 import { Module } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
-import { RefSeqChunk, RefSeqChunkSchema } from 'apollo-schemas'
 import idValidator from 'mongoose-id-validator'
 
 @Module({

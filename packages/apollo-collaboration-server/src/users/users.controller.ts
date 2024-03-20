@@ -1,5 +1,5 @@
+import { DecodedJWT } from '@apollo-annotation/apollo-shared'
 import { Body, Controller, Get, Logger, Param, Post, Req } from '@nestjs/common'
-import { DecodedJWT } from 'apollo-shared'
 import { Request } from 'express'
 
 import { Role } from '../utils/role/role.enum'

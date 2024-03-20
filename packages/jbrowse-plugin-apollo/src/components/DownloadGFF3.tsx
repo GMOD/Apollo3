@@ -1,3 +1,5 @@
+import { ApolloAssembly } from '@apollo-annotation/apollo-mst'
+import { makeGFF3Feature } from '@apollo-annotation/apollo-shared'
 import gff, { GFF3Item } from '@gmod/gff'
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
@@ -10,8 +12,6 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material'
-import { ApolloAssembly } from 'apollo-mst'
-import { makeGFF3Feature } from 'apollo-shared'
 import { saveAs } from 'file-saver'
 import { IMSTMap, getSnapshot } from 'mobx-state-tree'
 import React, { useState } from 'react'
