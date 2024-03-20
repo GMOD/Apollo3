@@ -2,7 +2,7 @@ name: apollo-demo-site
 
 services:
   apollo-collaboration-server:
-    image: public.ecr.aws/p1r0y7k4/apollo-collaboration-server-alpha:arm
+    image: ghcr.io/gmod/apollo-collaboration-server:development
     depends_on:
       mongo-node-1:
         condition: service_healthy
