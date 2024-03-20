@@ -1,4 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
+import { InjectModel } from '@nestjs/mongoose'
+import { Track, TrackDocument } from '@apollo-annotation/schemas'
+import { Model } from 'mongoose'
 
 import { AssembliesService } from '../assemblies/assemblies.service'
 import { RefSeqsService } from '../refSeqs/refSeqs.service'
@@ -8,9 +11,16 @@ export class JBrowseService {
   constructor(
     private readonly assembliesService: AssembliesService,
     private readonly refSeqsService: RefSeqsService,
+    @InjectModel(Track.name)
+    private readonly trackModel: Model<TrackDocument>,
   ) {}
 
   private readonly logger = new Logger(JBrowseService.name)
+
+  findAllTracks() {
+    this.logger.debug('***** Find all tracks information...')
+    return this.trackModel.find({}).exec()
+  }
 
   async getConfig() {
     const assemblies = await this.assembliesService.findAll()
