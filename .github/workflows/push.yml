@@ -6,12 +6,14 @@ on:
     inputs:
       publish:
         description: 'Build and publish Docker image'
-        required: false
         type: boolean
+        required: false
+        default: false
       deploy:
         description: 'Deploy to demo server'
-        required: false
         type: boolean
+        required: false
+        default: false
 
 jobs:
   build:
@@ -58,7 +60,9 @@ jobs:
   build-and-push-docker:
     name: Build and push Docker image
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/main' || inputs.publish }}
+    if:
+      ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      inputs.publish }}
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -87,7 +91,8 @@ jobs:
     environment: staging
     needs: build-and-push-docker
     if:
-      ${{ github.ref  == 'refs/heads/main' || ( inputs.deploy  &&  always()) }}
+      ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      ( inputs.deploy  &&  always()) }}
     steps:
       - name: Check out
         uses: actions/checkout@v3

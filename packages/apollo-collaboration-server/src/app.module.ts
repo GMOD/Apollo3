@@ -38,7 +38,7 @@ const nodeEnv = process.env.NODE_ENV ?? 'production'
 const validationSchema = Joi.object({
   // Required
   URL: Joi.string().uri().required(),
-  MONGODB_URI: Joi.string().uri(),
+  MONGODB_URI: Joi.string(),
   MONGODB_URI_FILE: Joi.string(),
   FILE_UPLOAD_FOLDER: Joi.string().required(),
   GOOGLE_CLIENT_ID: Joi.string(),

@@ -11,6 +11,11 @@ services:
       FILE_UPLOAD_FOLDER: /data/uploads
       LOG_LEVELS: error,warn,log,debug
       ALLOW_GUEST_USER: true
+      URL: ${URL}
+      JWT_SECRET: ${JWT_SECRET}
+      SESSION_SECRET: ${SESSION_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
     ports:
       - 3999:3999
     volumes:
