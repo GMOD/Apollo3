@@ -1,5 +1,8 @@
 name: Test Apollo CLI
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - cli-misc
 
 jobs:
   build:
@@ -18,15 +21,16 @@ jobs:
       - name: Install
         run: yarn --immutable
 
-      - name: Get latest JBrowse
-        run: yarn run jbrowse create --nightly .jbrowse
-        working-directory: packages/jbrowse-plugin-apollo
-
       - name: Start MongoDB
         uses: supercharge/mongodb-github-action@1.10.0
         with:
           mongodb-version: 7
           mongodb-replica-set: test-rs
+
+      - name: Start apollo
+        run: |
+          yarn --cwd packages/apollo-shared start & 
+          yarn --cwd packages/apollo-collaboration-server start
 
       - name: Run tests
         run: python3 ./test/test.py
