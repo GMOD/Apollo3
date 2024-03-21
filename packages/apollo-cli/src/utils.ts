@@ -4,6 +4,8 @@ import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
 
+import nodeFetch, { Response } from 'node-fetch'
+
 import { Config, ConfigError } from './Config.js'
 
 const CONFIG_PATH = path.resolve(os.homedir(), '.clirc')
@@ -83,14 +85,14 @@ export async function getRefseqId(
     inAssembly = ''
   }
   const res: Response = await queryApollo(address, accessToken, 'refSeqs')
-  const refSeqs = await res.json()
+  const refSeqs = (await res.json()) as object[]
   let assemblyId: string[] = []
   if (inAssembly !== '') {
     assemblyId = await convertAssemblyNameToId(address, accessToken, [
       inAssembly,
     ])
   }
-  const refseqIds = []
+  const refseqIds: string[] | PromiseLike<string[]> = []
   for (const x of refSeqs) {
     const aid = x['assembly' as keyof typeof x]
     const rid = x['_id' as keyof typeof x]
@@ -111,7 +113,7 @@ async function assemblyNamesToIds(
   accessToken: string,
 ): Promise<Record<string, string>> {
   const asm = await queryApollo(address, accessToken, 'assemblies')
-  const ja = await asm.json()
+  const ja = (await asm.json()) as object[]
   const nameToId: Record<string, string> = {}
   for (const x of ja) {
     nameToId[x['name' as keyof typeof x]] = x['_id' as keyof typeof x]
@@ -150,7 +152,7 @@ export async function getFeatureById(
       authorization: `Bearer ${accessToken}`,
     },
   }
-  const response = await fetch(url, auth)
+  const response = await nodeFetch(url, auth)
   return response
 }
 
@@ -160,7 +162,11 @@ export async function getAssemblyFromRefseq(
   refSeq: string,
 ): Promise<string> {
   const refSeqs: Response = await queryApollo(address, accessToken, 'refSeqs')
-  const refJson = filterJsonList(await refSeqs.json(), [refSeq], '_id')
+  const refJson = filterJsonList(
+    (await refSeqs.json()) as object[],
+    [refSeq],
+    '_id',
+  )
   return refJson[0]['assembly' as keyof (typeof refJson)[0]]
 }
 
@@ -176,7 +182,7 @@ export async function queryApollo(
     },
   }
   const url = new URL(localhostToAddress(`${address}/${endpoint}`))
-  const response = await fetch(url, auth)
+  const response = await nodeFetch(url, auth)
   if (response.ok) {
     return response
   }
@@ -245,6 +251,58 @@ export const waitFor = <T>(
   })
 
   return promise
+}
+
+interface bodyLocalFile {
+  assemblyName: string
+  typeName: string
+  fileId: string
+}
+interface bodyExternalFile {
+  assemblyName: string
+  typeName: string
+  externalLocation: {
+    fa: string
+    fai: string
+  }
+}
+
+export async function submitAssembly(
+  address: string,
+  accessToken: string,
+  body: bodyLocalFile | bodyExternalFile,
+  force: boolean,
+): Promise<Response> {
+  const assemblies = await queryApollo(address, accessToken, 'assemblies')
+  for (const x of (await assemblies.json()) as object[]) {
+    if (x['name' as keyof typeof x] === body.assemblyName) {
+      if (force) {
+        await deleteAssembly(address, accessToken, x['_id' as keyof typeof x])
+      } else {
+        throw new Error(`Error: Assembly "${body.assemblyName}" already exists`)
+      }
+    }
+  }
+  const controller = new AbortController()
+  setTimeout(
+    () => {
+      controller.abort()
+    },
+    24 * 60 * 60 * 1000,
+  )
+
+  const auth = {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    signal: controller.signal,
+  }
+  const url = new URL(localhostToAddress(`${address}/changes`))
+  const response = await nodeFetch(url, auth)
+  return response
 }
 
 export async function uploadFile(

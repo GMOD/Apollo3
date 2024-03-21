@@ -1,3 +1,5 @@
+import { Response } from 'node-fetch'
+
 import { BaseCommand } from '../../baseCommand.js'
 import { queryApollo } from '../../utils.js'
 

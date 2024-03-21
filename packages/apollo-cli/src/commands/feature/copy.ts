@@ -1,5 +1,6 @@
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
+import nodeFetch, { Response } from 'node-fetch'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
@@ -52,7 +53,7 @@ export default class Copy extends BaseCommand<typeof Copy> {
       access.accessToken,
       flags['feature-id'],
     )
-    const feature = await res.json()
+    const feature = (await res.json()) as object
     if (!res.ok) {
       const message: string = feature['message' as keyof typeof feature]
       this.logToStderr(message)
@@ -96,6 +97,7 @@ export default class Copy extends BaseCommand<typeof Copy> {
       this.logToStderr(message)
       this.exit(1)
     }
+    this.exit(0)
   }
 
   private async copyFeature(
@@ -137,6 +139,6 @@ export default class Copy extends BaseCommand<typeof Copy> {
         'Content-Type': 'application/json',
       },
     }
-    return fetch(url, auth)
+    return nodeFetch(url, auth)
   }
 }

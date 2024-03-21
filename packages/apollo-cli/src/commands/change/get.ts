@@ -1,8 +1,10 @@
+import { Response } from 'node-fetch'
+
 import { BaseCommand } from '../../baseCommand.js'
 import { queryApollo } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
-  static description = 'Get changes'
+  static description = 'Get list of changes'
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(Get)
