@@ -140,7 +140,7 @@ _See code:
 
 ## `apollo change get`
 
-Get changes
+Get list of changes
 
 ```
 USAGE
@@ -151,7 +151,7 @@ FLAGS
   --profile=<value>      [default: default] Use credentials from this profile
 
 DESCRIPTION
-  Get changes
+  Get list of changes
 ```
 
 _See code:

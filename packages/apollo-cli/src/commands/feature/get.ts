@@ -1,6 +1,7 @@
 import { assert } from 'node:console'
 
 import { Flags } from '@oclif/core'
+import nodeFetch, { Response } from 'node-fetch'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
@@ -68,7 +69,7 @@ export default class Get extends BaseCommand<typeof Get> {
         access.accessToken,
         'refSeqs',
       )
-      const refSeqs = await res.json()
+      const refSeqs = (await res.json()) as object[]
       for (const x of refSeqs) {
         if (x['assembly' as keyof typeof x] === assembly) {
           refseqIds.push(x['_id' as keyof typeof x])
@@ -109,12 +110,13 @@ export default class Get extends BaseCommand<typeof Get> {
         flags.start,
         endCoord,
       )
-      const json = await features.json()
+      const json = (await features.json()) as object[]
       assert(JSON.stringify(json[1]) === '[]' && json.length === 2)
       results.push(json[0])
     }
     results.push([])
     this.log(JSON.stringify(results, null, 2))
+    this.exit(0)
   }
 
   private async getFeatures(
@@ -137,7 +139,7 @@ export default class Get extends BaseCommand<typeof Get> {
         'Content-Type': 'application/json',
       },
     }
-    const response = await fetch(url, auth)
+    const response = await nodeFetch(url, auth)
     if (response.ok) {
       return response
     }

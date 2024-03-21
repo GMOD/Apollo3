@@ -1,5 +1,6 @@
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
+import nodeFetch, { Response } from 'node-fetch'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
@@ -84,6 +85,7 @@ export default class Get extends BaseCommand<typeof Get> {
       this.logToStderr(message)
       this.exit(1)
     }
+    this.exit(0)
   }
 
   private async addChild(
@@ -103,7 +105,7 @@ export default class Get extends BaseCommand<typeof Get> {
       this.exit(1)
     }
     const res = await queryApollo(address, accessToken, 'refSeqs')
-    const refSeqs = await res.json()
+    const refSeqs = (await res.json()) as object[]
     const refSeq = parentFeature['refSeq' as keyof typeof parentFeature]
     let assembly = ''
     for (const x of refSeqs) {
@@ -135,6 +137,6 @@ export default class Get extends BaseCommand<typeof Get> {
         'Content-Type': 'application/json',
       },
     }
-    return fetch(url, auth)
+    return nodeFetch(url, auth)
   }
 }

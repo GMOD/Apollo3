@@ -1,4 +1,5 @@
 import { Flags } from '@oclif/core'
+import { Response } from 'node-fetch'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {

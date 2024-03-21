@@ -237,6 +237,10 @@ class TestCLI(unittest.TestCase):
         self.assertTrue(p.returncode != 0)
         self.assertTrue('Error: Assembly "vv1" already exists' in p.stderr)
 
+        p = shell(f"{apollo} assembly add-fasta {P} -i na.fa -a vv1 -f", strict=False)
+        self.assertTrue(p.returncode != 0)
+        self.assertTrue('does not exist' in p.stderr)
+
     def testAddAssemblyFromExternalFasta(self):
         shell(
             f"""{apollo} assembly add-fasta {P} -a vv1 -f \
@@ -246,6 +250,9 @@ class TestCLI(unittest.TestCase):
         )
         p = shell(f"{apollo} assembly get {P} -a vv1")
         self.assertTrue("vv1" in p.stdout)
+
+        p = shell(f"{apollo} assembly add-fasta {P} -a vv1 -f -i https://x.fa -x https://x.fai", strict=False)
+        self.assertTrue(p.returncode != 0)
 
     def testEditFeatureType(self):
         shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
@@ -511,7 +518,6 @@ class TestCLI(unittest.TestCase):
         shell(f"{apollo} feature copy {P} -i {fid} -r ctgA -a source -s 10")
         p = shell(f"{apollo} feature search {P} -a source -t contig")
         out = json.loads(p.stdout)
-        print(out)
 
         # Copy non-existant feature or refseq
         p = shell(
@@ -531,6 +537,9 @@ class TestCLI(unittest.TestCase):
         self.assertTrue(p.returncode != 0)
         self.assertTrue("More than one" in p.stderr)
 
+    def testGetChanges(self):
+        p = shell(f"{apollo} change get {P}")
+        out = json.loads(p.stdout)
 
 if __name__ == "__main__":
     unittest.main()

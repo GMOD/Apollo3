@@ -4,12 +4,7 @@ import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  deleteAssembly,
-  localhostToAddress,
-  queryApollo,
-  uploadFile,
-} from '../../utils.js'
+import { submitAssembly, uploadFile } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description =
@@ -42,26 +37,6 @@ export default class Get extends BaseCommand<typeof Get> {
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 
-    const assemblies = await queryApollo(
-      access.address,
-      access.accessToken,
-      'assemblies',
-    )
-    for (const x of await assemblies.json()) {
-      if (x['name' as keyof typeof x] === flags.assembly) {
-        if (flags.force) {
-          await deleteAssembly(
-            access.address,
-            access.accessToken,
-            x['_id' as keyof typeof x],
-          )
-        } else {
-          this.logToStderr(`Error: Assembly "${flags.assembly}" already exists`)
-          this.exit(1)
-        }
-      }
-    }
-
     const isExternal = isValidHttpUrl(flags['input-file'])
     let response: Response
     if (isExternal) {
@@ -71,39 +46,55 @@ export default class Get extends BaseCommand<typeof Get> {
         )
         this.exit(1)
       }
-      response = await addAssemblyFromExternal(
+      const body = {
+        assemblyName: flags.assembly,
+        typeName: 'AddAssemblyFromExternalChange',
+        externalLocation: {
+          fa: flags['input-file'],
+          fai: flags.index,
+        },
+      }
+      response = (await submitAssembly(
         access.address,
         access.accessToken,
-        flags.assembly,
-        flags['input-file'],
-        flags.index,
-      )
+        body,
+        flags.force,
+      )) as unknown as Response
     } else {
       if (!isExternal && !fs.existsSync(flags['input-file'])) {
         this.logToStderr(`File ${flags['input-file']} does not exist`)
         this.exit(1)
       }
-
-      const uploadId = await uploadFile(
-        access.address,
-        access.accessToken,
-        flags['input-file'],
-        'text/x-fasta',
-      )
-
-      response = await submitAssembly(
-        access.address,
-        access.accessToken,
-        flags.assembly,
-        uploadId,
-      )
+      try {
+        const fileId = await uploadFile(
+          access.address,
+          access.accessToken,
+          flags['input-file'],
+          'text/x-fasta',
+        )
+        const body = {
+          assemblyName: flags.assembly,
+          fileId,
+          typeName: 'AddAssemblyFromFileChange',
+          assembly: new ObjectId().toHexString(),
+        }
+        response = (await submitAssembly(
+          access.address,
+          access.accessToken,
+          body,
+          flags.force,
+        )) as unknown as Response
+      } catch (error) {
+        this.logToStderr((error as Error).message)
+        this.exit(1)
+      }
     }
     if (!response.ok) {
       const json = JSON.parse(await response.text())
-      const message: string = json['message' as keyof typeof json]
-      this.logToStderr(message)
+      this.logToStderr(JSON.stringify(json, null, 2))
       this.exit(1)
     }
+    this.exit(0)
   }
 }
 
@@ -115,62 +106,4 @@ function isValidHttpUrl(x: string) {
     return false
   }
   return url.protocol === 'http:' || url.protocol === 'https:'
-}
-
-async function addAssemblyFromExternal(
-  address: string,
-  accessToken: string,
-  assemblyName: string,
-  fa: string,
-  fai: string,
-) {
-  const body = {
-    typeName: 'AddAssemblyFromExternalChange',
-    assembly: new ObjectId().toHexString(),
-    assemblyName,
-    externalLocation: {
-      fa,
-      fai,
-    },
-  }
-
-  const auth = {
-    method: 'POST',
-    body: JSON.stringify(body),
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-  }
-
-  const url = new URL(localhostToAddress(`${address}/changes`))
-  const response = await fetch(url, auth)
-  return response
-}
-
-async function submitAssembly(
-  address: string,
-  accessToken: string,
-  assemblyName: string,
-  fileId: string,
-): Promise<Response> {
-  const body = {
-    typeName: 'AddAssemblyFromFileChange',
-    assembly: new ObjectId().toHexString(),
-    assemblyName,
-    fileId,
-  }
-
-  const auth = {
-    method: 'POST',
-    body: JSON.stringify(body),
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-  }
-
-  const url = new URL(localhostToAddress(`${address}/changes`))
-  const response = await fetch(url, auth)
-  return response
 }

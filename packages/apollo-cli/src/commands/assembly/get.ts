@@ -1,4 +1,5 @@
 import { Flags } from '@oclif/core'
+import { Response } from 'node-fetch'
 
 import { BaseCommand } from '../../baseCommand.js'
 import { convertAssemblyNameToId, idReader, queryApollo } from '../../utils.js'
@@ -36,7 +37,7 @@ export default class Get extends BaseCommand<typeof Get> {
       )
     }
 
-    const json: object[] = await assemblies.json()
+    const json = (await assemblies.json()) as object[]
     const keep = []
     for (const x of json) {
       if (

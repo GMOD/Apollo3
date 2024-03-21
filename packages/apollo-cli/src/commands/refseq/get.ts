@@ -1,4 +1,5 @@
 import { Flags } from '@oclif/core'
+import { Response } from 'node-fetch'
 
 import { BaseCommand } from '../../baseCommand.js'
 import { convertAssemblyNameToId, idReader, queryApollo } from '../../utils.js'
@@ -25,7 +26,7 @@ export default class Get extends BaseCommand<typeof Get> {
       access.accessToken,
       'refSeqs',
     )
-    const json: object[] = await refSeqs.json()
+    const json = (await refSeqs.json()) as object[]
 
     let keep = json
     if (flags.assembly !== undefined) {
