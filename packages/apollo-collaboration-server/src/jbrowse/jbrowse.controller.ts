@@ -13,9 +13,4 @@ export class JBrowseController {
   getLoginTypes() {
     return this.jbrowseService.getConfig()
   }
-
-  @Get('getTracks')
-  getAll() {
-    return this.jbrowseService.findAllTracks()
-  }
 }
