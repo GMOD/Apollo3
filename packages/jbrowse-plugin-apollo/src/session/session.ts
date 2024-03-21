@@ -92,44 +92,44 @@ export function extendSession(
       apolloSetSelectedFeature(feature?: AnnotationFeatureI) {
         self.apolloSelectedFeature = feature
       },
-      addApolloTrackConfig(assembly: AssemblyModel, baseURL?: string) {
-        const trackId = `apollo_track_${assembly.name}`
-        const hasTrack = (self as unknown as AbstractSessionModel).tracks.some(
-          (track) => track.trackId === trackId,
-        )
-        if (!hasTrack) {
-          ;(self as unknown as SessionWithConfigEditing).addTrackConf({
-            type: 'ApolloTrack',
-            trackId,
-            name: `Annotations (${
-              // @ts-expect-error getConf types don't quite work here for some reason
-              getConf(assembly, 'displayName') || assembly.name
-            })`,
-            assemblyNames: [assembly.name],
-            textSearching: {
-              textSearchAdapter: {
-                type: 'ApolloTextSearchAdapter',
-                trackId,
-                assemblyNames: [assembly.name],
-                textSearchAdapterId: `apollo_search_${assembly.name}`,
-                ...(baseURL
-                  ? { baseURL: { uri: baseURL, locationType: 'UriLocation' } }
-                  : {}),
-              },
-            },
-            displays: [
-              {
-                type: 'LinearApolloDisplay',
-                displayId: `${trackId}-LinearApolloDisplay`,
-              },
-              {
-                type: 'SixFrameFeatureDisplay',
-                displayId: `${trackId}-SixFrameFeatureDisplay`,
-              },
-            ],
-          })
-        }
-      },
+      // addApolloTrackConfig(assembly: AssemblyModel, baseURL?: string) {
+      //   const trackId = `apollo_track_${assembly.name}`
+      //   const hasTrack = (self as unknown as AbstractSessionModel).tracks.some(
+      //     (track) => track.trackId === trackId,
+      //   )
+      //   if (!hasTrack) {
+      //     ;(self as unknown as SessionWithConfigEditing).addTrackConf({
+      //       type: 'ApolloTrack',
+      //       trackId,
+      //       name: `Annotations (${
+      //         // @ts-expect-error getConf types don't quite work here for some reason
+      //         getConf(assembly, 'displayName') || assembly.name
+      //       })`,
+      //       assemblyNames: [assembly.name],
+      //       textSearching: {
+      //         textSearchAdapter: {
+      //           type: 'ApolloTextSearchAdapter',
+      //           trackId,
+      //           assemblyNames: [assembly.name],
+      //           textSearchAdapterId: `apollo_search_${assembly.name}`,
+      //           ...(baseURL
+      //             ? { baseURL: { uri: baseURL, locationType: 'UriLocation' } }
+      //             : {}),
+      //         },
+      //       },
+      //       displays: [
+      //         {
+      //           type: 'LinearApolloDisplay',
+      //           displayId: `${trackId}-LinearApolloDisplay`,
+      //         },
+      //         {
+      //           type: 'SixFrameFeatureDisplay',
+      //           displayId: `${trackId}-SixFrameFeatureDisplay`,
+      //         },
+      //       ],
+      //     })
+      //   }
+      // },
       broadcastLocations() {
         const { internetAccounts } = getRoot<ApolloRootModel>(self)
         const locations: {
@@ -294,8 +294,7 @@ export function extendSession(
               }
             const selectedAssembly = assemblyManager.get(assembly.name)
             if (selectedAssembly) {
-              // @ts-expect-error MST type coercion problem?
-              self.addApolloTrackConfig(selectedAssembly, baseURL)
+              // self.addApolloTrackConfig(selectedAssembly, baseURL)
               continue
             }
             const url = new URL('refSeqs', baseURL)
@@ -357,9 +356,9 @@ export function extendSession(
                 },
               },
             }
-            ;(addSessionAssembly || addAssembly)(assemblyConfig)
+            // ;(addSessionAssembly || addAssembly)(assemblyConfig)
             const a = yield assemblyManager.waitForAssembly(assemblyConfig.name)
-            self.addApolloTrackConfig(a, baseURL)
+            // self.addApolloTrackConfig(a, baseURL)
           }
         }
       }),
