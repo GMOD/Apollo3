@@ -17,8 +17,7 @@ export class JBrowseService {
 
   private readonly logger = new Logger(JBrowseService.name)
 
-  findAllTracks() {
-    this.logger.debug('***** Find all tracks information...')
+  async findAllTracks() {
     return this.trackModel.find({}).exec()
   }
 
@@ -31,6 +30,7 @@ export class JBrowseService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const trackConfigs: any[] = []
     config.tracks = trackConfigs
+    trackConfigs.push(...(await this.findAllTracks()))
 
     for (const assembly of assemblies) {
       const refSeqs = await this.refSeqsService.findAll({
