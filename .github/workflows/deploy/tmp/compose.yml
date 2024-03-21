@@ -1,0 +1,7 @@
+name: hello-world
+
+services:
+  hello:
+    image: hello-world
+    environment:
+      SOME_VAR: ${SOME_VAR}
