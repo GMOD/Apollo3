@@ -130,7 +130,7 @@ class TestCLI(unittest.TestCase):
         aid = p.stdout.strip()
         shell(f"{apollo} assembly delete {P} -a {aid} volvox2")
         shell(f"{apollo} assembly delete {P} -a {aid} volvox2")  # Ok
-        p = shell(f"{apollo} assembly get")
+        p = shell(f"{apollo} assembly get {P}")
         self.assertTrue(f"{aid}" not in p.stdout)
         self.assertTrue("volvox1" not in p.stdout)
         self.assertTrue("volvox2" not in p.stdout)
@@ -140,7 +140,7 @@ class TestCLI(unittest.TestCase):
         shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a v1 -f")
         shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a v2 -f")
         shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a v3 -f")
-        p = shell(f"{apollo} assembly get")
+        p = shell(f"{apollo} assembly get {P}")
         xall = json.loads(p.stdout)
 
         p = shell(f"{apollo} assembly get {P} -a v1 v2")

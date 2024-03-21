@@ -35,5 +35,3 @@ jobs:
       - name: Run tests
         run: python3 ./test/test.py
         working-directory: packages/apollo-cli
-        env:
-          LOG_LEVELS: error,warn,log,debug
