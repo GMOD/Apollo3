@@ -60,18 +60,19 @@ export default class Copy extends BaseCommand<typeof Copy> {
       this.exit(1)
     }
 
-    const refseqIds = await getRefseqId(
-      access.address,
-      access.accessToken,
-      flags.refseq,
-      flags.assembly,
-    )
-    if (refseqIds.length > 1) {
-      this.logToStderr(
-        `More than one reference sequence found with name ${flags.refseq}`,
+    let refseqIds: string[] = []
+    try {
+      refseqIds = await getRefseqId(
+        access.address,
+        access.accessToken,
+        flags.refseq,
+        flags.assembly,
       )
+    } catch (error) {
+      this.logToStderr((error as Error).message)
       this.exit(1)
-    } else if (refseqIds.length === 0) {
+    }
+    if (refseqIds.length === 0) {
       this.logToStderr('No reference sequence found')
       this.exit(1)
     }

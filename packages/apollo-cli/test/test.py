@@ -535,11 +535,43 @@ class TestCLI(unittest.TestCase):
         # Ambiguous refseq
         p = shell(f"{apollo} feature copy {P} -i {fid} -r ctgA -s 1", strict=False)
         self.assertTrue(p.returncode != 0)
-        self.assertTrue("More than one" in p.stderr)
+        self.assertTrue("more than one" in p.stderr)
 
     def testGetChanges(self):
         p = shell(f"{apollo} change get {P}")
         out = json.loads(p.stdout)
+
+    def testGetSequence(self):
+        shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a v1 -f")
+        shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a v2 -f")
+
+        p = shell(f"{apollo} assembly sequence {P} -a nonExistant", strict=False)
+        self.assertTrue(p.returncode != 0)
+        self.assertTrue('returned 0 assemblies' in p.stderr)
+        
+        p = shell(f"{apollo} assembly sequence {P} -a v1 -s 0", strict=False)
+        self.assertTrue(p.returncode != 0)
+        self.assertTrue('must be greater than 0' in p.stderr)
+
+        p = shell(f"{apollo} assembly sequence {P} -a v1")
+        self.assertTrue('>ctgA:1..420\n' in p.stdout)
+        self.assertTrue('>ctgB:1..800\n' in p.stdout)
+        self.assertTrue('cattgttgcggagttgaaca' in p.stdout)
+        self.assertTrue('gttgtaccc\n' in p.stdout)
+
+        p = shell(f"{apollo} assembly sequence {P} -a v1 -r ctgB -s 1 -e 1")
+        seq = p.stdout.split('\n')
+        self.assertEqual(seq[0], '>ctgB:1..1')
+        self.assertEqual(seq[1], 'A')
+
+        p = shell(f"{apollo} assembly sequence {P} -a v1 -r ctgB -s 2 -e 4")
+        seq = p.stdout.split('\n')
+        self.assertEqual(seq[0], '>ctgB:2..4')
+        self.assertEqual(seq[1], 'CAT')
+
+        p = shell(f"{apollo} assembly sequence {P} -r ctgB", strict=False)
+        self.assertTrue(p.returncode != 0)
+        self.assertTrue('found in more than one' in p.stderr)
 
 if __name__ == "__main__":
     unittest.main()

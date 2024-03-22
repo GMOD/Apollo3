@@ -4,7 +4,7 @@ import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
 
-import nodeFetch, { Response } from 'node-fetch'
+import nodeFetch, { Response as NodeResponse } from 'node-fetch'
 
 import { Config, ConfigError } from './Config.js'
 
@@ -78,31 +78,50 @@ export async function deleteAssembly(
 export async function getRefseqId(
   address: string,
   accessToken: string,
-  refseqNameOrId: string,
-  inAssembly?: string,
+  refseqNameOrId?: string,
+  inAssemblyNameOrId?: string,
 ): Promise<string[]> {
-  if (inAssembly === undefined) {
-    inAssembly = ''
+  if (refseqNameOrId === undefined && inAssemblyNameOrId === undefined) {
+    throw new Error('Please provide refseq and/or assembly')
   }
-  const res: Response = await queryApollo(address, accessToken, 'refSeqs')
-  const refSeqs = (await res.json()) as object[]
+  if (inAssemblyNameOrId === undefined) {
+    inAssemblyNameOrId = ''
+  }
   let assemblyId: string[] = []
-  if (inAssembly !== '') {
+  if (inAssemblyNameOrId !== '') {
     assemblyId = await convertAssemblyNameToId(address, accessToken, [
-      inAssembly,
+      inAssemblyNameOrId,
     ])
+    if (assemblyId.length !== 1) {
+      throw new Error(
+        `Assembly name or assembly id returned ${assemblyId.length} assemblies instead of just one`,
+      )
+    }
   }
+  const res: NodeResponse = await queryApollo(address, accessToken, 'refSeqs')
+  const refSeqs = (await res.json()) as object[]
   const refseqIds: string[] | PromiseLike<string[]> = []
+  const nAssemblies = new Set<string>()
   for (const x of refSeqs) {
     const aid = x['assembly' as keyof typeof x]
     const rid = x['_id' as keyof typeof x]
     const rname = x['name' as keyof typeof x]
-    if (refseqNameOrId === rid || refseqNameOrId === rname) {
-      if (inAssembly === '' || assemblyId.includes(aid)) {
+    if (
+      refseqNameOrId === rid ||
+      refseqNameOrId === rname ||
+      refseqNameOrId === undefined
+    ) {
+      if (inAssemblyNameOrId === '' || assemblyId.includes(aid)) {
         refseqIds.push(rid)
+        nAssemblies.add(aid)
       } else {
         //
       }
+    }
+    if (nAssemblies.size > 1) {
+      throw new Error(
+        `Sequence name "${refseqNameOrId}" found in more than one assembly`,
+      )
     }
   }
   return refseqIds
@@ -145,7 +164,7 @@ export async function getFeatureById(
   address: string,
   accessToken: string,
   id: string,
-): Promise<Response> {
+): Promise<NodeResponse> {
   const url = new URL(localhostToAddress(`${address}/features/${id}`))
   const auth = {
     headers: {
@@ -161,7 +180,7 @@ export async function getAssemblyFromRefseq(
   accessToken: string,
   refSeq: string,
 ): Promise<string> {
-  const refSeqs: Response = await queryApollo(address, accessToken, 'refSeqs')
+  const refSeqs: NodeResponse = await queryApollo(address, accessToken, 'refSeqs')
   const refJson = filterJsonList(
     (await refSeqs.json()) as object[],
     [refSeq],
@@ -174,7 +193,7 @@ export async function queryApollo(
   address: string,
   accessToken: string,
   endpoint: string,
-): Promise<Response> {
+): Promise<NodeResponse> {
   const auth = {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -272,7 +291,7 @@ export async function submitAssembly(
   accessToken: string,
   body: bodyLocalFile | bodyExternalFile,
   force: boolean,
-): Promise<Response> {
+): Promise<NodeResponse> {
   const assemblies = await queryApollo(address, accessToken, 'assemblies')
   for (const x of (await assemblies.json()) as object[]) {
     if (x['name' as keyof typeof x] === body.assemblyName) {
