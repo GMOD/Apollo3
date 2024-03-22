@@ -4,12 +4,7 @@ import { Flags } from '@oclif/core'
 import nodeFetch, { Response } from 'node-fetch'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  convertAssemblyNameToId,
-  getRefseqId,
-  localhostToAddress,
-  queryApollo,
-} from '../../utils.js'
+import { getRefseqId, localhostToAddress } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description = 'Get features in a genomic window'
@@ -46,55 +41,18 @@ export default class Get extends BaseCommand<typeof Get> {
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 
-    let assembly = ''
-    if (flags.assembly !== undefined) {
-      const xa: string[] = await convertAssemblyNameToId(
-        access.address,
-        access.accessToken,
-        [flags.assembly],
-      )
-      if (xa.length === 0) {
-        this.logToStderr(`Assembly ${flags.assembly} does not exist`)
-        this.exit(1)
-      }
-      ;[assembly] = xa
-    }
-
     let refseqIds: string[] = []
-
-    if (flags.refseq === undefined && assembly !== '') {
-      // Get all refseqs for this assembly
-      const res: Response = await queryApollo(
-        access.address,
-        access.accessToken,
-        'refSeqs',
-      )
-      const refSeqs = (await res.json()) as object[]
-      for (const x of refSeqs) {
-        if (x['assembly' as keyof typeof x] === assembly) {
-          refseqIds.push(x['_id' as keyof typeof x])
-        }
-      }
-    } else if (flags.refseq === undefined) {
-      this.logToStderr(
-        'Please provide a reference sequence and/or an assembly to query',
-      )
-      this.exit(1)
-    } else {
+    try {
       refseqIds = await getRefseqId(
         access.address,
         access.accessToken,
         flags.refseq,
-        assembly,
+        flags.assembly,
       )
-      if (refseqIds.length > 1) {
-        this.logToStderr(
-          `More than one reference sequence found with name ${flags.refseq}`,
-        )
-        this.exit(1)
-      }
+    } catch (error) {
+      this.logToStderr((error as Error).message)
+      this.exit(1)
     }
-
     if (refseqIds.length === 0) {
       this.logToStderr('No reference sequence found')
       this.log(JSON.stringify([[], []], null, 2))

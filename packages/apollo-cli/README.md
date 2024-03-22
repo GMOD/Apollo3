@@ -33,6 +33,7 @@ USAGE
 - [`apollo assembly add-gff`](#apollo-assembly-add-gff)
 - [`apollo assembly delete`](#apollo-assembly-delete)
 - [`apollo assembly get`](#apollo-assembly-get)
+- [`apollo assembly sequence`](#apollo-assembly-sequence)
 - [`apollo change get`](#apollo-change-get)
 - [`apollo config [KEY] [VALUE]`](#apollo-config-key-value)
 - [`apollo feature add-child`](#apollo-feature-add-child)
@@ -137,6 +138,30 @@ DESCRIPTION
 
 _See code:
 [src/commands/assembly/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/assembly/get.ts)_
+
+## `apollo assembly sequence`
+
+Get reference sequence
+
+```
+USAGE
+  $ apollo assembly sequence [--profile <value>] [--config-file <value>] [-a <value>] [-r <value>] [-s <value>] [-e
+    <value>]
+
+FLAGS
+  -a, --assembly=<value>     Find input reference sequence in this assembly
+  -e, --end=<value>          End coordinate
+  -r, --refseq=<value>       Reference sequence. If unset, get all sequences
+  -s, --start=<value>        [default: 1] Start coordinate (1-based)
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      [default: default] Use credentials from this profile
+
+DESCRIPTION
+  Get reference sequence
+```
+
+_See code:
+[src/commands/assembly/sequence.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/assembly/sequence.ts)_
 
 ## `apollo change get`
 
