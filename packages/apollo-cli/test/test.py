@@ -557,10 +557,19 @@ class TestCLI(unittest.TestCase):
         self.assertTrue("must be greater than 0" in p.stderr)
 
         p = shell(f"{apollo} assembly sequence {P} -a v1")
-        self.assertTrue(">ctgA:1..420\n" in p.stdout)
-        self.assertTrue(">ctgB:1..800\n" in p.stdout)
-        self.assertTrue("cattgttgcggagttgaaca" in p.stdout)
-        self.assertTrue("gttgtaccc\n" in p.stdout)
+        seq = p.stdout.strip().split("\n")
+        self.assertEqual(len(seq), 18)
+        self.assertEqual(seq[0], ">ctgA:1..420")
+        self.assertEqual(
+            seq[1],
+            "cattgttgcggagttgaacaACGGCATTAGGAACACTTCCGTCTCtcacttttatacgattatgattggttctttagcct",
+        )
+        self.assertEqual(seq[6], "ttggtcgctccgttgtaccc")
+        self.assertEqual(seq[7], ">ctgB:1..800")
+        self.assertEqual(
+            seq[-1],
+            "CTCGACATGCATCATCAGCCTGATGCTGATACATGCTAGCTACGTGCATGCTCGACATGCATCATCAGCCTGATGCTGAT",
+        )
 
         p = shell(f"{apollo} assembly sequence {P} -a v1 -r ctgB -s 1 -e 1")
         seq = p.stdout.split("\n")
