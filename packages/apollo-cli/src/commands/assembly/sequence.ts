@@ -121,7 +121,7 @@ export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
         this.exit(1)
       }
 
-      const seq = (await res.body?.read().toString()) ?? ''
+      const seq = res.body?.read().toString() ?? ''
       let header = ''
       for (const x of refSeqs) {
         if (x['_id' as keyof typeof x] === rid) {
@@ -131,8 +131,19 @@ export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
         }
       }
       this.log(header)
-      this.log(seq)
+      this.log(wrapString(seq, 80).join('\n'))
     }
     this.exit(0)
   }
+}
+
+function wrapString(x: string, lineLen: number): string[] {
+  let start = 0
+  const wrapped = []
+  while (start < x.length) {
+    const end = start + lineLen < x.length ? start + lineLen : x.length
+    wrapped.push(x.slice(start, end))
+    start += lineLen
+  }
+  return wrapped
 }
