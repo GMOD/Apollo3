@@ -71,7 +71,7 @@ class TestCLI(unittest.TestCase):
 
         p = shell(f"{apollo} feature get {P} -r ctgA", strict=False)
         self.assertTrue(p.returncode != 0)
-        self.assertTrue("More than one reference" in p.stderr)
+        self.assertTrue("found in more than one assembly" in p.stderr)
 
         p = shell(f"{apollo} feature get {P} -a vv1 -r ctgA")
         out = json.loads(p.stdout)
@@ -91,7 +91,7 @@ class TestCLI(unittest.TestCase):
 
         p = shell(f"{apollo} feature get {P} -a FOOBAR -r ctgA", strict=False)
         self.assertTrue(p.returncode != 0)
-        self.assertTrue("not exist" in p.stderr)
+        self.assertTrue("returned 0 assemblies" in p.stderr)
 
     def testAssemblyGet(self):
         shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a vv1 -f")
