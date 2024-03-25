@@ -239,7 +239,7 @@ class TestCLI(unittest.TestCase):
 
         p = shell(f"{apollo} assembly add-fasta {P} -i na.fa -a vv1 -f", strict=False)
         self.assertTrue(p.returncode != 0)
-        self.assertTrue('does not exist' in p.stderr)
+        self.assertTrue("does not exist" in p.stderr)
 
     def testAddAssemblyFromExternalFasta(self):
         shell(
@@ -251,7 +251,10 @@ class TestCLI(unittest.TestCase):
         p = shell(f"{apollo} assembly get {P} -a vv1")
         self.assertTrue("vv1" in p.stdout)
 
-        p = shell(f"{apollo} assembly add-fasta {P} -a vv1 -f -i https://x.fa -x https://x.fai", strict=False)
+        p = shell(
+            f"{apollo} assembly add-fasta {P} -a vv1 -f -i https://x.fa -x https://x.fai",
+            strict=False,
+        )
         self.assertTrue(p.returncode != 0)
 
     def testEditFeatureType(self):
@@ -547,31 +550,32 @@ class TestCLI(unittest.TestCase):
 
         p = shell(f"{apollo} assembly sequence {P} -a nonExistant", strict=False)
         self.assertTrue(p.returncode != 0)
-        self.assertTrue('returned 0 assemblies' in p.stderr)
-        
+        self.assertTrue("returned 0 assemblies" in p.stderr)
+
         p = shell(f"{apollo} assembly sequence {P} -a v1 -s 0", strict=False)
         self.assertTrue(p.returncode != 0)
-        self.assertTrue('must be greater than 0' in p.stderr)
+        self.assertTrue("must be greater than 0" in p.stderr)
 
         p = shell(f"{apollo} assembly sequence {P} -a v1")
-        self.assertTrue('>ctgA:1..420\n' in p.stdout)
-        self.assertTrue('>ctgB:1..800\n' in p.stdout)
-        self.assertTrue('cattgttgcggagttgaaca' in p.stdout)
-        self.assertTrue('gttgtaccc\n' in p.stdout)
+        self.assertTrue(">ctgA:1..420\n" in p.stdout)
+        self.assertTrue(">ctgB:1..800\n" in p.stdout)
+        self.assertTrue("cattgttgcggagttgaaca" in p.stdout)
+        self.assertTrue("gttgtaccc\n" in p.stdout)
 
         p = shell(f"{apollo} assembly sequence {P} -a v1 -r ctgB -s 1 -e 1")
-        seq = p.stdout.split('\n')
-        self.assertEqual(seq[0], '>ctgB:1..1')
-        self.assertEqual(seq[1], 'A')
+        seq = p.stdout.split("\n")
+        self.assertEqual(seq[0], ">ctgB:1..1")
+        self.assertEqual(seq[1], "A")
 
         p = shell(f"{apollo} assembly sequence {P} -a v1 -r ctgB -s 2 -e 4")
-        seq = p.stdout.split('\n')
-        self.assertEqual(seq[0], '>ctgB:2..4')
-        self.assertEqual(seq[1], 'CAT')
+        seq = p.stdout.split("\n")
+        self.assertEqual(seq[0], ">ctgB:2..4")
+        self.assertEqual(seq[1], "CAT")
 
         p = shell(f"{apollo} assembly sequence {P} -r ctgB", strict=False)
         self.assertTrue(p.returncode != 0)
-        self.assertTrue('found in more than one' in p.stderr)
+        self.assertTrue("found in more than one" in p.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
