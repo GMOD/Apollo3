@@ -5,6 +5,7 @@ import {
   DeleteAssembly,
   ImportFeatures,
   ManageUsers,
+  SaveTrack,
 } from '../components'
 import { ApolloSessionModel } from '../session'
 
@@ -87,6 +88,23 @@ export function addMenuItems(rootModel: AbstractMenuManager) {
       } else {
         notify('No changes to undo', 'info')
       }
+    },
+  })
+  rootModel.appendToMenu('Apollo', {
+    label: 'Save Track Configuration',
+    onClick: (session: ApolloSessionModel) => {
+      ;(session as unknown as AbstractSessionModel).queueDialog(
+        (doneCallback) => [
+          SaveTrack,
+          {
+            session,
+            handleClose: () => {
+              doneCallback()
+            },
+            changeManager: session.apolloDataStore.changeManager,
+          },
+        ],
+      )
     },
   })
 }

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import { Track, TrackSchema } from '@apollo-annotation/schemas'
 import idValidator from 'mongoose-id-validator'
@@ -11,8 +11,8 @@ import { JBrowseService } from './jbrowse.service'
 @Module({
   controllers: [JBrowseController],
   imports: [
-    AssembliesModule,
-    RefSeqsModule,
+    // AssembliesModule,
+    forwardRef(() => AssembliesModule),
     MongooseModule.forFeatureAsync([
       {
         name: Track.name,
@@ -23,7 +23,9 @@ import { JBrowseService } from './jbrowse.service'
         inject: [getConnectionToken()],
       },
     ]),
+    RefSeqsModule,
   ],
   providers: [JBrowseService],
+  exports: [MongooseModule, JBrowseService],
 })
 export class JbrowseModule {}

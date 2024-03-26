@@ -12,6 +12,7 @@ import { FeatureAttributeChange } from './FeatureAttributeChange'
 import { LocationEndChange } from './LocationEndChange'
 import { LocationStartChange } from './LocationStartChange'
 import { StrandChange } from './StrandChange'
+import { SaveTrackChange } from './SaveTrackChange'
 import { TypeChange } from './TypeChange'
 import { UserChange } from './UserChange'
 
@@ -30,6 +31,7 @@ export const changes = {
   LocationEndChange,
   LocationStartChange,
   StrandChange,
+  SaveTrackChange,
   TypeChange,
   UserChange,
 }
@@ -48,5 +50,6 @@ export * from './FeatureAttributeChange'
 export * from './LocationEndChange'
 export * from './LocationStartChange'
 export * from './StrandChange'
+export * from './SaveTrackChange'
 export * from './TypeChange'
 export * from './UserChange'
