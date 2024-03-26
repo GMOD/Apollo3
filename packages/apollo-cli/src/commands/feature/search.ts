@@ -25,8 +25,7 @@ async function searchFeatures(
       authorization: `Bearer ${accessToken}`,
     },
   }
-  const response = await fetch(uri, auth)
-  return response
+  return fetch(uri, auth)
 }
 
 export default class Search extends BaseCommand<typeof Search> {

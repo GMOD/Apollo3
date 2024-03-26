@@ -1,7 +1,7 @@
 import { assert } from 'node:console'
 
 import { Flags } from '@oclif/core'
-import nodeFetch, { Response } from 'node-fetch'
+import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import { getRefseqId, localhostToAddress } from '../../utils.js'
@@ -97,7 +97,7 @@ export default class Get extends BaseCommand<typeof Get> {
         'Content-Type': 'application/json',
       },
     }
-    const response = await nodeFetch(url, auth)
+    const response = await fetch(url, auth)
     if (response.ok) {
       return response
     }

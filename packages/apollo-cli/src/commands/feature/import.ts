@@ -1,7 +1,7 @@
 import * as fs from 'node:fs'
 
 import { Flags } from '@oclif/core'
-import nodeFetch, { Response } from 'node-fetch'
+import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
@@ -111,6 +111,5 @@ async function importFeatures(
   }
 
   const url = new URL(localhostToAddress(`${address}/changes`))
-  const response = await nodeFetch(url, auth)
-  return response
+  return fetch(url, auth)
 }

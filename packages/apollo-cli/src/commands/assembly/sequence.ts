@@ -1,5 +1,5 @@
 import { Flags } from '@oclif/core'
-import nodeFetch, { Response } from 'node-fetch'
+import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
@@ -39,8 +39,7 @@ async function getSequence(
     },
     signal: controller.signal,
   }
-  const response = await nodeFetch(uri, auth)
-  return response
+  return fetch(uri, auth)
 }
 
 export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
@@ -80,7 +79,7 @@ export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
 
     let assembly = undefined
     if (flags.assembly !== undefined) {
-      [assembly] = idReader([flags.assembly])
+      ;[assembly] = idReader([flags.assembly])
     }
 
     let refseqIds: string[] = []
@@ -121,7 +120,7 @@ export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
         this.exit(1)
       }
 
-      const seq = res.body?.read().toString() ?? ''
+      const seq = res.body?.toString() ?? ''
       let header = ''
       for (const x of refSeqs) {
         if (x['_id' as keyof typeof x] === rid) {
