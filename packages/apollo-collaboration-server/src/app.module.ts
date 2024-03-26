@@ -61,7 +61,7 @@ const validationSchema = Joi.object({
   ROOT_USER_PASSWORD_FILE: Joi.string(),
 
   PORT: Joi.number().default(3999),
-  CORS: Joi.boolean().default(true),
+  CORS: Joi.boolean().default(false),
   LOG_LEVELS: Joi.string()
     .custom((value) => {
       const errorMessage =
