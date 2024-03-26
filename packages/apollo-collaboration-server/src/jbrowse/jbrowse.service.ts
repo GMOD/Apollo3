@@ -17,6 +17,11 @@ export class JBrowseService {
 
   private readonly logger = new Logger(JBrowseService.name)
 
+  create(createAssemblyDto: string) {
+    console.log('***************** CREATE NEW DOCUMENT ************************')
+    // return this.trackModel.create(createAssemblyDto)
+  }
+
   async findAllTracks() {
     return this.trackModel.find({}).exec()
   }

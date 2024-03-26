@@ -22,6 +22,8 @@ import {
   RefSeqChunk,
   RefSeqChunkDocument,
   RefSeqDocument,
+  Track,
+  TrackDocument,
   User,
   UserDocument,
 } from 'apollo-schemas'
@@ -53,6 +55,8 @@ export class ChangesService {
     private readonly fileModel: Model<FileDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
+    @InjectModel(Track.name)
+    private readonly trackModel: Model<TrackDocument>,
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
     private readonly filesService: FilesService,
@@ -109,6 +113,7 @@ export class ChangesService {
           refSeqChunkModel: this.refSeqChunkModel,
           fileModel: this.fileModel,
           userModel: this.userModel,
+          trackModel: this.trackModel,
           session,
           filesService: this.filesService,
           counterService: this.countersService,

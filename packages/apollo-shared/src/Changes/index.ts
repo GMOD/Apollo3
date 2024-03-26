@@ -11,6 +11,7 @@ import { DiscontinuousLocationStartChange } from './DiscontinuousLocationStartCh
 import { FeatureAttributeChange } from './FeatureAttributeChange'
 import { LocationEndChange } from './LocationEndChange'
 import { LocationStartChange } from './LocationStartChange'
+import { SaveTrackChange } from './SaveTrackChange'
 import { TypeChange } from './TypeChange'
 import { UserChange } from './UserChange'
 
@@ -28,6 +29,7 @@ export const changes = {
   FeatureAttributeChange,
   LocationEndChange,
   LocationStartChange,
+  SaveTrackChange,
   TypeChange,
   UserChange,
 }
@@ -45,5 +47,6 @@ export * from './DiscontinuousLocationStartChange'
 export * from './FeatureAttributeChange'
 export * from './LocationEndChange'
 export * from './LocationStartChange'
+export * from './SaveTrackChange'
 export * from './TypeChange'
 export * from './UserChange'

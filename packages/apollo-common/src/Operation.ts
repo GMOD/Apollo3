@@ -8,6 +8,7 @@ import {
   FileDocument,
   RefSeqChunkDocument,
   RefSeqDocument,
+  TrackDocument,
   UserDocument,
 } from 'apollo-schemas'
 import type { ClientSession, Model } from 'mongoose'
@@ -33,6 +34,7 @@ export interface ServerDataStore {
   refSeqChunkModel: Model<RefSeqChunkDocument>
   fileModel: Model<FileDocument>
   userModel: Model<UserDocument>
+  trackModel: Model<TrackDocument>
   session: ClientSession
   filesService: {
     getFileStream(file: FileDocument): ReadStream

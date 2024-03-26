@@ -7,6 +7,7 @@ import { AssembliesModule } from '../assemblies/assemblies.module'
 import { CountersModule } from '../counters/counters.module'
 import { FeaturesModule } from '../features/features.module'
 import { FilesModule } from '../files/files.module'
+import { JbrowseModule } from '../jbrowse/jbrowse.module'
 import { MessagesModule } from '../messages/messages.module'
 import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
@@ -36,6 +37,7 @@ import { ChangesService } from './changes.service'
     UsersModule,
     CountersModule,
     MessagesModule,
+    JbrowseModule,
   ],
 })
 export class ChangesModule {}
