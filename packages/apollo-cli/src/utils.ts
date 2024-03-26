@@ -342,6 +342,10 @@ export async function uploadFile(
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
+    dispatcher: new Agent({
+      keepAliveTimeout: 10 * 60 * 1000, // 10 minutes
+      keepAliveMaxTimeout: 10 * 60 * 1000, // 10 minutes
+    }),
   }
 
   const url = new URL(localhostToAddress(`${address}/files`))
