@@ -4,7 +4,7 @@ import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
 
-import nodeFetch, { Response as NodeResponse } from 'node-fetch'
+import { Agent, FormData, RequestInit, Response, fetch } from 'undici'
 
 import { Config, ConfigError } from './Config.js'
 
@@ -57,7 +57,7 @@ export async function deleteAssembly(
     assembly: assemblyId,
   }
 
-  const auth = {
+  const auth: RequestInit = {
     method: 'POST',
     body: JSON.stringify(body),
     headers: {
@@ -98,7 +98,7 @@ export async function getRefseqId(
       )
     }
   }
-  const res: NodeResponse = await queryApollo(address, accessToken, 'refSeqs')
+  const res: Response = await queryApollo(address, accessToken, 'refSeqs')
   const refSeqs = (await res.json()) as object[]
   const refseqIds: string[] | PromiseLike<string[]> = []
   const nAssemblies = new Set<string>()
@@ -164,15 +164,14 @@ export async function getFeatureById(
   address: string,
   accessToken: string,
   id: string,
-): Promise<NodeResponse> {
+): Promise<Response> {
   const url = new URL(localhostToAddress(`${address}/features/${id}`))
   const auth = {
     headers: {
       authorization: `Bearer ${accessToken}`,
     },
   }
-  const response = await nodeFetch(url, auth)
-  return response
+  return fetch(url, auth)
 }
 
 export async function getAssemblyFromRefseq(
@@ -180,7 +179,7 @@ export async function getAssemblyFromRefseq(
   accessToken: string,
   refSeq: string,
 ): Promise<string> {
-  const refSeqs: NodeResponse = await queryApollo(address, accessToken, 'refSeqs')
+  const refSeqs: Response = await queryApollo(address, accessToken, 'refSeqs')
   const refJson = filterJsonList(
     (await refSeqs.json()) as object[],
     [refSeq],
@@ -193,7 +192,7 @@ export async function queryApollo(
   address: string,
   accessToken: string,
   endpoint: string,
-): Promise<NodeResponse> {
+): Promise<Response> {
   const auth = {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -201,7 +200,7 @@ export async function queryApollo(
     },
   }
   const url = new URL(localhostToAddress(`${address}/${endpoint}`))
-  const response = await nodeFetch(url, auth)
+  const response = await fetch(url, auth)
   if (response.ok) {
     return response
   }
@@ -291,7 +290,7 @@ export async function submitAssembly(
   accessToken: string,
   body: bodyLocalFile | bodyExternalFile,
   force: boolean,
-): Promise<NodeResponse> {
+): Promise<Response> {
   const assemblies = await queryApollo(address, accessToken, 'assemblies')
   for (const x of (await assemblies.json()) as object[]) {
     if (x['name' as keyof typeof x] === body.assemblyName) {
@@ -320,8 +319,7 @@ export async function submitAssembly(
     signal: controller.signal,
   }
   const url = new URL(localhostToAddress(`${address}/changes`))
-  const response = await nodeFetch(url, auth)
-  return response
+  return fetch(url, auth)
 }
 
 export async function uploadFile(
@@ -330,13 +328,13 @@ export async function uploadFile(
   file: string,
   type: string,
 ): Promise<string> {
-  const buffer: string = fs.readFileSync(file, 'utf8')
-  const blob = new Blob([buffer])
-  await blob.text()
+  const stream = fs.createReadStream(file, 'utf8')
+  const fileStream = new Response(stream)
+  const fileBlob = await fileStream.blob()
 
   const formData = new FormData()
   formData.append('type', type)
-  formData.append('file', blob)
+  formData.append('file', fileBlob)
 
   const auth = {
     method: 'POST',

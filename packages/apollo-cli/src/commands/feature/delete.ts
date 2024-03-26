@@ -1,5 +1,5 @@
 import { Flags } from '@oclif/core'
-import nodeFetch, { Response } from 'node-fetch'
+import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import { getFeatureById, idReader, localhostToAddress } from '../../utils.js'
@@ -35,7 +35,7 @@ async function deleteFeature(
       'Content-Type': 'application/json',
     },
   }
-  return nodeFetch(url, auth)
+  return fetch(url, auth)
 }
 
 export default class Delete extends BaseCommand<typeof Delete> {

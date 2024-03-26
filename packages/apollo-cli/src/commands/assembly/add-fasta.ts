@@ -2,6 +2,7 @@ import * as fs from 'node:fs'
 
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
+import { Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import { submitAssembly, uploadFile } from '../../utils.js'

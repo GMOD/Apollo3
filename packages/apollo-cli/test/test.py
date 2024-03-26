@@ -6,7 +6,7 @@
 
 and run it:
 
-    ./test/test.py 
+    ./test/test.py
     ./test/test.py TestCLI.testAddAssemblyFromGff # Run only this test
 """
 
@@ -27,7 +27,7 @@ class shell:
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            executable="/usr/bin/bash",
+            executable="/bin/bash",
         )
         stdout, stderr = p.communicate()
         self.returncode = p.returncode

@@ -1,6 +1,6 @@
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
-import nodeFetch, { Response } from 'node-fetch'
+import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
@@ -137,6 +137,6 @@ export default class Get extends BaseCommand<typeof Get> {
         'Content-Type': 'application/json',
       },
     }
-    return nodeFetch(url, auth)
+    return fetch(url, auth)
   }
 }
