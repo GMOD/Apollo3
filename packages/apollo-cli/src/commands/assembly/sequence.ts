@@ -120,7 +120,8 @@ export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
         this.exit(1)
       }
 
-      const seq = res.body?.toString() ?? ''
+      const seqObj = await res.body?.getReader().read()
+      const seq: string = new TextDecoder().decode(seqObj?.value)
       let header = ''
       for (const x of refSeqs) {
         if (x['_id' as keyof typeof x] === rid) {
