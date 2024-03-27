@@ -226,6 +226,18 @@ class TestCLI(unittest.TestCase):
         self.assertTrue(p.returncode != 0)
         self.assertTrue('Error: Assembly "vv1" already exists' in p.stderr)
 
+    def testAddAssemblyLargeInput(self):
+        with open('test_data/tmp.fa', 'w') as fout:
+            i = 0
+            fout.write('>chr1\n')
+            while i < 10000:
+                fout.write('CATTGTTGCGGAGTTGAACAACGGCATTAGGAACACTTCCGTCTC\n')
+                i += 1
+        shell(f"{apollo} assembly add-fasta -i test_data/tmp.fa -a test -f")
+        shell(f"{apollo} assembly add-gff -i test_data/tmp.fa -a test -f", strict=False)
+        shell(f"{apollo} assembly add-fasta -i test_data/tmp.fa -a test -f")
+        os.remove("test_data/tmp.fa")
+
     def testAddAssemblyFromLocalFasta(self):
         shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a vv1 -f")
         p = shell(f"{apollo} assembly get {P} -a vv1")
