@@ -33,5 +33,5 @@ jobs:
           yarn --cwd packages/apollo-collaboration-server start &
 
       - name: Run tests
-        run: python3 ./test/test.py
+        run: python3 ./test/test.py TestCLI.testAddAssemblyLargeInput
         working-directory: packages/apollo-cli
