@@ -233,9 +233,12 @@ class TestCLI(unittest.TestCase):
             while i < 10000:
                 fout.write("CATTGTTGCGGAGTTGAACAACGGCATTAGGAACACTTCCGTCTC\n")
                 i += 1
-        shell(f"{apollo} assembly add-fasta -i test_data/tmp.fa -a test -f")
-        shell(f"{apollo} assembly add-gff -i test_data/tmp.fa -a test -f", strict=False)
-        shell(f"{apollo} assembly add-fasta -i test_data/tmp.fa -a test -f")
+        shell(f"{apollo} assembly add-fasta {P} -i test_data/tmp.fa -a test -f")
+        shell(
+            f"{apollo} assembly add-gff {P} -i test_data/tmp.fa -a test -f",
+            strict=False,
+        )
+        shell(f"{apollo} assembly add-fasta {P} -i test_data/tmp.fa -a test -f")
         os.remove("test_data/tmp.fa")
 
     def testAddAssemblyFromLocalFasta(self):
