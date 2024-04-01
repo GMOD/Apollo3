@@ -18,8 +18,8 @@
     "tslib": "^2.3.1"
   },
   "peerDependencies": {
-    "@mui/material": "^5.11.10",
-    "@mui/x-data-grid": "^6.0.1",
+    "@mui/material": "^5.11.14",
+    "@mui/x-data-grid": "^7.0.0",
     "mobx": "^6.6.1",
     "mobx-react": "^7.2.1",
     "mobx-state-tree": "^5.1.7",
