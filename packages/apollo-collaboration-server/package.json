@@ -30,7 +30,7 @@
     "@gmod/indexedfasta": "^2.0.4",
     "@jbrowse/core": "^2.7.0",
     "@mui/base": "^5.0.0-alpha.118",
-    "@mui/material": "^5.11.10",
+    "@mui/material": "^5.11.14",
     "@nestjs/common": "^10.1.0",
     "@nestjs/config": "^3.0.0",
     "@nestjs/core": "^10.1.0",

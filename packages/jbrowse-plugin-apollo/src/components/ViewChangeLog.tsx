@@ -76,9 +76,11 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
       headerName: 'Change JSON',
       width: 600,
       renderCell: ({ value }) => (
-        <textarea className={classes.changeTextarea} readOnly>
-          {JSON.stringify(value)}
-        </textarea>
+        <textarea
+          className={classes.changeTextarea}
+          value={JSON.stringify(value)}
+          readOnly
+        />
       ),
       valueFormatter: ({ value }) => JSON.stringify(value),
     },
@@ -88,7 +90,7 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
       headerName: 'Time',
       width: 160,
       type: 'dateTime',
-      valueGetter: ({ value }) => value && new Date(value),
+      valueGetter: (value) => value && new Date(value),
     },
   ]
 
