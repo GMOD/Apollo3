@@ -22,7 +22,7 @@ import {
   RefSeqChunkDocument,
   RefSeqDocument,
 } from 'apollo-schemas'
-import { makeGFF3Feature } from 'apollo-shared'
+import { makeGFF3Feature, splitStringIntoChunks } from 'apollo-shared'
 import { Model } from 'mongoose'
 import StreamConcat from 'stream-concat'
 
@@ -92,15 +92,6 @@ class FastaTransform extends Transform {
     this.flushLineBuffer()
     callback()
   }
-}
-
-function splitStringIntoChunks(input: string, chunkSize: number): string[] {
-  const chunks: string[] = []
-  for (let i = 0; i < input.length; i += chunkSize) {
-    const chunk = input.slice(i, i + chunkSize)
-    chunks.push(chunk)
-  }
-  return chunks
 }
 
 @Injectable()
