@@ -17,11 +17,11 @@ const sidebars: SidebarsConfig = {
   // But you can create a sidebar manually
   tutorialSidebar: [
     'intro',
-    // {
-    //   type: 'category',
-    //   label: 'Tutorial',
-    //   items: ['tutorial-basics/create-a-document'],
-    // },
+    {
+      type: 'category',
+      label: 'User guide',
+      items: ['guide/upload-assembly', 'guide/import-features', 'guide/delete-assembly'],
+    },
   ],
 }
 
