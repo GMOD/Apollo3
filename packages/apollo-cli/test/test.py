@@ -36,7 +36,7 @@ class shell:
         self.cmd = cmd
         if strict and self.returncode != 0:
             raise subprocess.SubprocessError(
-                f"{self.stderr}\nExit code: {self.returncode}"
+                    f"\nSTDOUT:\n{self.stdout}\nSTDERR:\n{self.stderr}\nEXIT CODE: {self.returncode}"
             )
 
 
@@ -162,19 +162,19 @@ class TestCLI(unittest.TestCase):
         self.assertTrue(len(out) >= 3)
 
         # From json file
-        shell(f"{apollo} assembly get {P} > tmp.json")
-        p = shell(f"{apollo} assembly get {P} -a tmp.json")
+        shell(f"{apollo} assembly get {P} > test_data/tmp.json")
+        p = shell(f"{apollo} assembly get {P} -a test_data/tmp.json")
         out = json.loads(p.stdout)
         self.assertTrue(len(out) >= 3)
-        os.remove("tmp.json")
+        os.remove("test_data/tmp.json")
 
         # From text file, one name or id per line
-        with open("tmp.txt", "w") as fout:
+        with open("test_data/tmp.txt", "w") as fout:
             fout.write("v1 \n v2 \r\n v3 \n")
-        p = shell(f"{apollo} assembly get {P} -a tmp.txt")
+        p = shell(f"{apollo} assembly get {P} -a test_data/tmp.txt")
         out = json.loads(p.stdout)
         self.assertEqual(len(out), 3)
-        os.remove("tmp.txt")
+        os.remove("test_data/tmp.txt")
 
         # From json string
         aid = xall[0]["_id"]
