@@ -1,5 +1,5 @@
 import { MenuItem } from '@jbrowse/core/ui'
-import { AbstractSessionModel } from '@jbrowse/core/util'
+import { AbstractSessionModel, SessionWithWidgets } from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 
@@ -372,6 +372,25 @@ export abstract class Glyph {
                   sourceAssemblyId: currentAssemblyId,
                 },
               ],
+            )
+          },
+        },
+        {
+          label: 'Edit feature details',
+          onClick: () => {
+            const apolloFeatureWidget = (
+              session as unknown as SessionWithWidgets
+            ).addWidget(
+              'ApolloFeatureDetailsWidget',
+              'apolloFeatureDetailsWidget',
+              {
+                feature: sourceFeature,
+                assembly: currentAssemblyId,
+                refName: region.refName,
+              },
+            )
+            ;(session as unknown as SessionWithWidgets).showWidget?.(
+              apolloFeatureWidget,
             )
           },
         },
