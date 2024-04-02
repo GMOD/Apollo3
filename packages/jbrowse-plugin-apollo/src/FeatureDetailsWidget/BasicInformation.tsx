@@ -1,5 +1,13 @@
 import { AbstractSessionModel } from '@jbrowse/core/util'
-import { TextField, Typography } from '@mui/material'
+import {
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
 import {
   LocationEndChange,
@@ -150,33 +158,18 @@ export const BasicInformation = observer(function BasicInformation({
           }
         }}
       />
-      <label>
-        <input
-          type="radio"
-          value="1"
-          checked={strand === 1}
-          onChange={handleStrandChange}
-        />
-        Positive Strand (+)
-      </label>
-      <label>
-        <input
-          type="radio"
-          value="-1"
-          checked={strand === -1}
-          onChange={handleStrandChange}
-        />
-        Negative Strand (-)
-      </label>
-      <label>
-        <input
-          type="radio"
-          value=""
-          checked={strand === undefined}
-          onChange={handleStrandChange}
-        />
-        No Strand Information
-      </label>
+      <FormControl>
+        <FormLabel>Strand</FormLabel>
+        <RadioGroup row value={strand ?? ''} onChange={handleStrandChange}>
+          <FormControlLabel value="1" control={<Radio />} label="Forward (+)" />
+          <FormControlLabel
+            value="-1"
+            control={<Radio />}
+            label="Reverse (-)"
+          />
+          <FormControlLabel value="" control={<Radio />} label="None" />
+        </RadioGroup>
+      </FormControl>
       {errorMessage ? (
         <Typography color="error">{errorMessage}</Typography>
       ) : null}
