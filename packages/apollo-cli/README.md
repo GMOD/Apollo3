@@ -184,7 +184,7 @@ _See code:
 
 ## `apollo config [KEY] [VALUE]`
 
-Get or set Apollo configuration options
+Get or set apollo configuration options
 
 ```
 USAGE
@@ -199,7 +199,26 @@ FLAGS
   --profile=<value>      Profile to create or edit
 
 DESCRIPTION
-  Get or set Apollo configuration options
+  Get or set apollo configuration options
+
+  Use this command to create or edit a user profile with credentials to access
+  Apollo.
+  Usage in interactive mode (`apollo config`) should be self explanatory. On
+  *nix system the configuration file is typically
+  `~/.config/apollo-cli/config.yaml`
+
+EXAMPLES
+  Interactive setup:
+
+    $ apollo config
+
+  Setup with key/value pairs:
+
+    $ apollo config --profile admin address http://localhost:3999
+
+  Get current address for default profile:
+
+    $ apollo config address
 ```
 
 _See code:

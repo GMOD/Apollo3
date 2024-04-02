@@ -7,10 +7,14 @@ import { Args, Flags } from '@oclif/core'
 
 import { BaseCommand } from '../baseCommand.js'
 import { Config, ConfigError, KEYS } from '../Config.js'
-import { localhostToAddress } from '../utils.js'
+import { localhostToAddress, wrapLines } from '../utils.js'
 
 export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
-  static description = 'Get or set Apollo configuration options'
+  static summary = 'Get or set apollo configuration options'
+  static description = wrapLines("Use this command to create or edit a user profile with credentials to access Apollo. \
+  \n\
+  Usage in interactive mode (\`apollo config\`) should be self explanatory. On *nix system the configuration file is typically \`~/.config/apollo-cli/config.yaml\`")
+  
 
   static args = {
     key: Args.string({
@@ -29,6 +33,22 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
       required: false,
     }),
   }
+
+  static examples = [
+    {
+      description: 'Interactive setup:',
+      command: '<%= config.bin %> <%= command.id %>',
+    },
+    {
+      description: 'Setup with key/value pairs:',
+      command: `<%= config.bin %> <%= command.id %> --profile admin address http://localhost:3999`
+    },
+    {
+      description: 'Get current address for default profile:',
+      command: `<%= config.bin %> <%= command.id %> address`
+    }
+  ]
+
 
   public async run(): Promise<void> {
     const { args } = await this.parse(ApolloConfig)

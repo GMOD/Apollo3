@@ -359,6 +359,18 @@ export async function uploadFile(
   }
 }
 
+/* Wrap text to max `length` per line */
+export function wrapLines(s: string, length?: number): string {
+  if (length === undefined) {
+      length = 80
+  }
+  // Credit: https://stackoverflow.com/questions/14484787/wrap-text-in-javascript
+  const re = new RegExp(`(?![^\\n]{1,${length}}$)([^\\n]{1,${length}})\\s`, 'g')
+  const wr = s.replace(re, '$1\n')
+  return wr
+}
+
+
 export function idReader(input: string[]): string[] {
   const ids = []
   for (const xin of input) {
