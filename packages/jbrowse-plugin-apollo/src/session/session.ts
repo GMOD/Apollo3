@@ -7,13 +7,17 @@ import { AnnotationFeature, AnnotationFeatureI } from '@apollo-annotation/mst'
 import { UserLocation } from '@apollo-annotation/shared'
 import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
-import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
+import {
+  BaseInternetAccountModel,
+  BaseTrackConfig,
+} from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
 import {
   AbstractSessionModel,
   SessionWithConfigEditing,
 } from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import SaveIcon from '@mui/icons-material/Save'
 import { autorun, observable } from 'mobx'
 import { Instance, flow, getRoot, types } from 'mobx-state-tree'
 
@@ -354,6 +358,45 @@ export function extendSession(
         aborter.abort()
       },
     }))
+
+    .views((self) => {
+      const superTrackActionMenuItems = (
+        self as unknown as AbstractSessionModel
+      ).getTrackActionMenuItems
+      return {
+        getTrackActionMenuItems(conf: BaseTrackConfig) {
+          if (conf.type === 'ApolloTrack') {
+            return superTrackActionMenuItems?.(conf)
+          }
+          return [
+            ...(superTrackActionMenuItems?.(conf) ?? []),
+            {
+              label: 'Save track for next time',
+              onClick: async () => {
+                const { internetAccounts } = getRoot<ApolloRootModel>(self)
+                for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
+                  if (internetAccount.type !== 'ApolloInternetAccount') {
+                    continue
+                  }
+                  const change = new SaveTrackChange({
+                    typeName: 'SaveTrackChange',
+                    trackConfig: JSON.stringify(conf),
+                    changes: [],
+                  })
+                  const { internetAccountId } = internetAccount
+                  await self.apolloDataStore.changeManager.submit(change, {
+                    internetAccountId,
+                  })
+                  const { notify } = self as unknown as AbstractSessionModel
+                  notify('Track information saved for next time', 'success')
+                }
+              },
+              icon: SaveIcon,
+            },
+          ]
+        },
+      }
+    })
 }
 
 export type ApolloSessionStateModel = ReturnType<typeof extendSession>

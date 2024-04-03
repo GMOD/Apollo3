@@ -5,6 +5,7 @@ import { Model } from 'mongoose'
 
 import { AssembliesService } from '../assemblies/assemblies.service'
 import { RefSeqsService } from '../refSeqs/refSeqs.service'
+import { CreateTrackDto } from './dto/create-track.dto'
 
 @Injectable()
 export class JBrowseService {
@@ -17,13 +18,10 @@ export class JBrowseService {
 
   private readonly logger = new Logger(JBrowseService.name)
 
-  create(createAssemblyDto: string) {
-    console.log('***************** CREATE NEW DOCUMENT ************************')
-    // return this.trackModel.create(createAssemblyDto)
-  }
-
   async findAllTracks() {
-    return this.trackModel.find({}).exec()
+    const trackArray = await this.trackModel.find({}).exec()
+    const trackConfig = trackArray.map(t => t.trackConfig)
+    return trackConfig
   }
 
   async getConfig() {
@@ -115,7 +113,7 @@ export class JBrowseService {
       }
       trackConfigs.push(trackConfig)
     }
-    // console.log(`TRACK CONFIGS = ${JSON.stringify(trackConfigs)}`)
+    console.log(`********* TRACK CONFIGS = ${JSON.stringify(trackConfigs)}`)
     return config
   }
 
