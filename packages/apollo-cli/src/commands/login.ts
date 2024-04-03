@@ -14,6 +14,7 @@ import {
   getUserCredentials,
   localhostToAddress,
   waitFor,
+  wrapLines,
 } from '../utils.js'
 
 interface AuthorizationCodeCallbackParams {
@@ -21,7 +22,25 @@ interface AuthorizationCodeCallbackParams {
 }
 
 export default class Login extends BaseCommand<typeof Login> {
-  static description = 'Log in to Apollo'
+  static summary = 'Login to Apollo'
+  static description = wrapLines(
+    'Use the provided credentials to obtain and save the token to access Apollo. Once the token for \
+    the given profile has been saved in the configuration file, users do not normally need to execute \
+    this command again unless the token has expired. To setup a new profile use "apollo config"',
+  )
+
+  static examples = [
+    {
+      description: wrapLines(
+        'The most basic and probably most typical usage is to login using the default profile in configuration file:',
+      ),
+      command: '<%= config.bin %> <%= command.id %>',
+    },
+    {
+      description: wrapLines('Login with a different profile:'),
+      command: '<%= config.bin %> <%= command.id %> --profile my-profile',
+    },
+  ]
 
   static flags = {
     address: Flags.string({

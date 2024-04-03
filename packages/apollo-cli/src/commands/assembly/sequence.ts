@@ -7,6 +7,7 @@ import {
   idReader,
   localhostToAddress,
   queryApollo,
+  wrapLines,
 } from '../../utils.js'
 
 async function getSequence(
@@ -43,7 +44,22 @@ async function getSequence(
 }
 
 export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
-  static description = 'Get reference sequence'
+  static summary = 'Get reference sequence in fasta format'
+  static description = wrapLines(
+    'Return the reference sequence for a given assembly and coordinates',
+  )
+
+  static examples = [
+    {
+      description: 'Get all sequences in myAssembly:',
+      command: '<%= config.bin %> <%= command.id %> -a myAssembly',
+    },
+    {
+      description: 'Get sequence in coordinates chr1:1..1000:',
+      command: 
+        '<%= config.bin %> <%= command.id %> -a myAssembly -r chr1 -s 1 -e 1000',
+    },
+  ]
 
   static flags = {
     assembly: Flags.string({

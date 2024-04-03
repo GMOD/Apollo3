@@ -2,10 +2,18 @@ import { Flags } from '@oclif/core'
 import { Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { convertAssemblyNameToId, idReader, queryApollo } from '../../utils.js'
+import {
+  convertAssemblyNameToId,
+  idReader,
+  queryApollo,
+  wrapLines,
+} from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
-  static description = 'Get available assemblies'
+  static summary = 'Get available assemblies'
+  static description = wrapLines(
+    'Print to stdout the list of assemblies in json format',
+  )
 
   static flags = {
     assembly: Flags.string({

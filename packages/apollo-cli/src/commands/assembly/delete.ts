@@ -5,10 +5,19 @@ import {
   convertAssemblyNameToId,
   deleteAssembly,
   idReader,
+  wrapLines,
 } from '../../utils.js'
 
 export default class Delete extends BaseCommand<typeof Delete> {
-  static description = 'Delete assemblies'
+  static summary = 'Delete assemblies'
+  static description = wrapLines('Assemblies to delete may be names or IDs')
+  static examples = [
+    {
+      description: 'Delete multiple assemblies using name or ID:',
+      command:
+        '<%= config.bin %> <%= command.id %> -i mouse 6605826fbd0eee691f83e73f',
+    },
+  ]
 
   static flags = {
     assembly: Flags.string({

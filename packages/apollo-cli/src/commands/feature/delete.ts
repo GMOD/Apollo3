@@ -2,7 +2,7 @@ import { Flags } from '@oclif/core'
 import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { getFeatureById, idReader, localhostToAddress } from '../../utils.js'
+import { getFeatureById, idReader, localhostToAddress, wrapLines } from '../../utils.js'
 
 async function deleteFeature(
   address: string,
@@ -39,21 +39,36 @@ async function deleteFeature(
 }
 
 export default class Delete extends BaseCommand<typeof Delete> {
-  static description = 'Delete a feature'
+  static summary = 'Delete one or more features by ID'
+  static description = wrapLines(
+    'Note that deleting a child feature after deleting its parent will result in an error unless you set -f/--force.',
+  )
 
   static flags = {
     'feature-id': Flags.string({
       char: 'i',
       default: ['-'],
-      description: 'Feature ID to delete',
+      description: 'Feature IDs to delete',
       multiple: true,
+    }),
+    force: Flags.boolean({
+      char: 'f',
+      description: 'Ignore non-existing features',
+    }),
+    'dry-run': Flags.boolean({
+      char: 'n',
+      description: 'Only show what would be delete',
     }),
   }
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(Delete)
 
-    const featureIds = idReader(flags['feature-id'])
+    const tmpIds = idReader(flags['feature-id'])
+    const featureIds = new Set<string>()
+    for (const x of tmpIds) {
+      featureIds.add(x)
+    }
 
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
@@ -65,21 +80,28 @@ export default class Delete extends BaseCommand<typeof Delete> {
         featureId,
       )
       const feature = JSON.parse(await response.text())
+      if (response.status === 404 && flags.force) {
+        continue
+      }
       if (!response.ok) {
         const message: string = feature['message' as keyof typeof feature]
         this.logToStderr(message)
         this.exit(1)
       }
-      const delFet: Response = await deleteFeature(
-        access.address,
-        access.accessToken,
-        feature,
-      )
-      if (!delFet.ok) {
-        const json = (await delFet.json()) as object
-        const message: string = json['message' as keyof typeof json]
-        this.logToStderr(message)
-        this.exit(1)
+      if (flags['dry-run']) {
+        this.log(feature)
+      } else {
+        const delFet: Response = await deleteFeature(
+          access.address,
+          access.accessToken,
+          feature,
+        )
+        if (!delFet.ok) {
+          const json = (await delFet.json()) as object
+          const message: string = json['message' as keyof typeof json]
+          this.logToStderr(message)
+          this.exit(1)
+        }
       }
     }
     this.exit(0)

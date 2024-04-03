@@ -8,16 +8,30 @@ import {
   idReader,
   localhostToAddress,
   queryApollo,
+  wrapLines,
 } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
-  static description = 'Add a child feature'
+  static summary = 'Add a child feature (e.g. add an exon to an mRNA)'
+  static description = wrapLines(
+    'See the other commands under `apollo feature` to retrive the parent ID of interest and to populate the child feature with attributes.',
+  )
+
+  static examples = [
+    {
+      description:
+        'Add an exon at genomic coordinates 10..20 to this feature ID:',
+      command:
+        '<%= config.bin %> <%= command.id %> -i 6605826fbd0eee691f83e73f -t exon -s 10 -e 20',
+    },
+  ]
 
   static flags = {
     'feature-id': Flags.string({
       char: 'i',
       default: '-',
-      description: 'Feature ID to add child to; use - to read it from stdin',
+      description:
+        'Add a child to this feature ID; use - to read it from stdin',
     }),
     start: Flags.integer({
       char: 's',

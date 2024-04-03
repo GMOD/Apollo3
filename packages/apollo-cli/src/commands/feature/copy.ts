@@ -8,10 +8,23 @@ import {
   getFeatureById,
   getRefseqId,
   localhostToAddress,
+  wrapLines,
 } from '../../utils.js'
 
 export default class Copy extends BaseCommand<typeof Copy> {
-  static description = 'Copy feature'
+  static summary = 'Copy a feature to another location'
+  static description = wrapLines(
+    'The feature may be copied to the same or to a different assembly. \
+    he destination reference sequence may be selected by name only if unique in the database or by name and assembly or by identifier.',
+  )
+
+  static examples = [
+    {
+      description: 'Copy this feature ID to chr1:100 in assembly hg38:',
+      command:
+        '<%= config.bin %> <%= command.id %> -i 6605826fbd0eee691f83e73f -r chr1 -s 100 -a hg38',
+    },
+  ]
 
   static flags = {
     'feature-id': Flags.string({

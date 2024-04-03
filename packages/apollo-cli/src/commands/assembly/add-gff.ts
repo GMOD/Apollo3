@@ -4,10 +4,24 @@ import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { submitAssembly, uploadFile } from '../../utils.js'
+import { submitAssembly, uploadFile, wrapLines } from '../../utils.js'
 
 export default class AddGff extends BaseCommand<typeof AddGff> {
-  static description = 'Add assembly sequences from gff or gft file'
+  static summary = 'Add new assembly from gff or gft file'
+  static description = wrapLines(
+    'The gff file is expected to contain sequences as per gff specifications. Features are also imported by default',
+  )
+
+  static examples = [
+    {
+      description: 'Import sequences and features:',
+      command: '<%= config.bin %> <%= command.id %> -i genome.gff -a myAssembly',
+    },
+    {
+      description: 'Import sequences only:',
+      command: '<%= config.bin %> <%= command.id %> -i genome.gff -a myAssembly -o',
+    },
+  ]
 
   static flags = {
     'input-file': Flags.string({

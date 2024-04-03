@@ -5,11 +5,23 @@ import { ObjectId } from 'bson'
 import { Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { submitAssembly, uploadFile } from '../../utils.js'
+import { submitAssembly, uploadFile, wrapLines } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
-  static description =
-    'Add assembly sequences from local fasta file or external source'
+  static description = 'Add new assembly from local or external fasta file'
+
+  static examples = [
+    {
+      description: wrapLines('From local file:'),
+      command: '<%= config.bin %> <%= command.id %> -i genome.fa -a myAssembly',
+    },
+    {
+      description: wrapLines(
+        'From external source we also need the URL of the index:',
+      ),
+      command: '<%= config.bin %> <%= command.id %> -i https://.../genome.fa -x https://.../genome.fa.fai -a myAssembly',
+    },
+  ]
 
   static flags = {
     'input-file': Flags.string({
@@ -24,7 +36,7 @@ export default class Get extends BaseCommand<typeof Get> {
     }),
     index: Flags.string({
       char: 'x',
-      description: 'URL of the index. Ignored if input is a local file',
+      description: 'URL of the index. Required if input is an external source and ignored if input is a local file',
     }),
     force: Flags.boolean({
       char: 'f',
