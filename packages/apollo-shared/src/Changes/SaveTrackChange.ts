@@ -50,13 +50,11 @@ export class SaveTrackChange extends Change {
   }
 
   async executeOnServer(backend: ServerDataStore) {
-    const { session, trackModel } = backend
-    const { logger, trackConfig } = this
-    logger.debug?.(`-***********trackConfig: ${JSON.stringify(trackConfig)}`)
-    console.log(`-***********trackConfig: ${JSON.stringify(trackConfig)}`)
-
-    const user = await trackModel.create([JSON.parse(trackConfig)])
-    console.log(`+*** USER: ${JSON.stringify(user)}`)
+    const { trackModel } = backend
+    const { trackConfig } = this
+    const jsonObject = JSON.parse(trackConfig)
+    const { trackId, type } = jsonObject
+    await trackModel.create({ type, trackId, trackConfig: jsonObject })
   }
 
   async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {

@@ -1,4 +1,3 @@
-import { readConfObject } from '@jbrowse/core/configuration'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
@@ -10,7 +9,7 @@ import {
   SelectChangeEvent,
 } from '@mui/material'
 import LinearProgress from '@mui/material/LinearProgress'
-import { DeleteUserChange, SaveTrackChange } from 'apollo-shared'
+import { SaveTrackChange } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
@@ -70,23 +69,20 @@ export function SaveTrack({
     handleClose()
     event.preventDefault()
 
-    const { jobsManager } = session
-    const controller = new AbortController()
-
-    const job = {
-      name: 'Saving track to Mongo',
-      statusMessage: 'Pre-validating',
-      progressPct: 0,
-      cancelCallback: () => {
-        controller.abort()
-        jobsManager.abortJob(job.name)
-      },
+    const { internetAccountId } = selectedInternetAccount
+    const jsonObject = JSON.parse(trackConfig)
+    const { type } = jsonObject
+    const { trackId } = jsonObject
+    if (!type) {
+      setErrorMessage('"Type" is missing in the track configuration')
+      return
     }
-
-    jobsManager.runJob(job)
-
-    const { baseURL, getFetcher, internetAccountId } = selectedInternetAccount
-
+    if (!trackId) {
+      setErrorMessage('"TrackId" is missing in the track configuration')
+      return
+    }
+    console.log(`Type:${type}`)
+    console.log(`TrackId:${trackId}`)
     const change = new SaveTrackChange({
       typeName: 'SaveTrackChange',
       trackConfig,
@@ -94,12 +90,6 @@ export function SaveTrack({
     })
     await changeManager.submit(change, {
       internetAccountId,
-    })
-    jobsManager.done(job)
-
-    await changeManager.submit(change, {
-      internetAccountId,
-      updateJobsManager: true,
     })
 
     setSubmitted(false)
