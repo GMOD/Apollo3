@@ -36,7 +36,7 @@ class shell:
         self.cmd = cmd
         if strict and self.returncode != 0:
             raise subprocess.SubprocessError(
-                    f"\nSTDOUT:\n{self.stdout}\nSTDERR:\n{self.stderr}\nEXIT CODE: {self.returncode}"
+                f"\nSTDOUT:\n{self.stdout}\nSTDERR:\n{self.stderr}\nEXIT CODE: {self.returncode}"
             )
 
 
@@ -394,15 +394,26 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(out[0], "Eggs & Stuff")
 
         ## Add attribute
-        p = shell(f"{apollo} feature edit-attribute {P} -i {fid} -a newAttr -v stuff")
+        shell(f"{apollo} feature edit-attribute {P} -i {fid} -a newAttr -v stuff")
         p = shell(f"{apollo} feature edit-attribute {P} -i {fid} -a newAttr")
         self.assertTrue("stuff" in p.stdout)
+        
+        ## Non existing attr
+        p = shell(f"{apollo} feature edit-attribute {P} -i {fid} -a NonExist")
+        self.assertEqual(p.stdout.strip(), '')
 
         ## List of values
         p = shell(f"{apollo} feature edit-attribute {P} -i {fid} -a newAttr -v A B C")
         p = shell(f"{apollo} feature edit-attribute {P} -i {fid} -a newAttr")
         out = json.loads(p.stdout)
         self.assertEqual(out, ["A", "B", "C"])
+
+        ## Delete attribute
+        shell(f"{apollo} feature edit-attribute {P} -i {fid} -a newAttr -d")
+        p = shell(f"{apollo} feature edit-attribute {P} -i {fid} -a newAttr")
+        self.assertEqual(p.stdout.strip(), '')
+        ## Delete again is ok
+        shell(f"{apollo} feature edit-attribute {P} -i {fid} -a newAttr -d") 
 
         ## Special fields
         p = shell(
@@ -443,6 +454,9 @@ class TestCLI(unittest.TestCase):
         p = shell(f"{apollo} feature search {P} -a vv1 -t EDEN")
         fid = json.loads(p.stdout)[0]["_id"]
 
+        p = shell(f"{apollo} feature delete {P} -i {fid} --dry-run")
+        self.assertTrue(fid in p.stdout)
+
         shell(f"{apollo} feature delete {P} -i {fid}")
         p = shell(f"{apollo} feature search {P} -a vv1 -t EDEN")
         self.assertEqual(p.stdout.strip(), "[]")
@@ -450,6 +464,9 @@ class TestCLI(unittest.TestCase):
         p = shell(f"{apollo} feature delete {P} -i {fid}", strict=False)
         self.assertEqual(p.returncode, 1)
         self.assertTrue("The following featureId was not found in database" in p.stderr)
+
+        p = shell(f"{apollo} feature delete {P} --force -i {fid}")
+        self.assertEqual(p.returncode, 0)
 
     def testAddChildFeatures(self):
         shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
@@ -556,8 +573,33 @@ class TestCLI(unittest.TestCase):
         self.assertTrue("more than one" in p.stderr)
 
     def testGetChanges(self):
+        shell(
+            f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a myAssembly -f"
+        )
+        shell(
+            f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a yourAssembly -f"
+        )
+        shell(
+            f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a ourAssembly -f"
+        )
+
         p = shell(f"{apollo} change get {P}")
+        json.loads(p.stdout)
+        self.assertTrue("myAssembly" in p.stdout)
+        self.assertTrue("yourAssembly" in p.stdout)
+
+        p = shell(f"{apollo} change get {P} -a myAssembly ourAssembly")
+        self.assertTrue("myAssembly" in p.stdout)
+        self.assertTrue("ourAssembly" in p.stdout)
+        self.assertTrue("yourAssembly" not in p.stdout)
+
+        # Delete assemblies and get changes by assembly name: Nothing is
+        # returned because the assemblies collection doesn't contain that name
+        # anymore. Ideally you should still be able to get changes by name?
+        shell(f"{apollo} assembly delete {P} -a myAssembly yourAssembly ourAssembly")
+        p = shell(f"{apollo} change get {P} -a myAssembly")
         out = json.loads(p.stdout)
+        self.assertEqual(len(out), 0)
 
     def testGetSequence(self):
         shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a v1 -f")

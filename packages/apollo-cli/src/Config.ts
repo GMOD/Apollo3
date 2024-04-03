@@ -32,6 +32,65 @@ export enum KEYS {
   rootCredentials_password = 'rootCredentials.password',
 }
 
+
+function optionDocs(): { key: string; description: string }[] {
+  const docs: { key: string; description: string }[] = []
+  for (const v of Object.values(KEYS)) {
+    switch (v) {
+      case 'address': {
+        docs.push({
+          key: v,
+          description: 'Address and port e.g http://localhost:3999',
+        })
+        break
+      }
+      case 'accessType': {
+        docs.push({
+          key: v,
+          description:
+            'How to access Apollo. Allowed types depend on your Apollo setup, typically these are: google, microsoft, guest, root',
+        })
+        break
+      }
+      case 'accessToken': {
+        docs.push({
+          key: v,
+          description: 'Access token. Usually inserted by `apollo login`',
+        })
+        break
+      }
+      case 'rootCredentials.username': {
+        docs.push({
+          key: v,
+          description:
+            'Username of root account. Only set this for "root" access type',
+        })
+        break
+      }
+      case 'rootCredentials.password': {
+        docs.push({
+          key: v,
+          description:
+            'Password for root account. Only set this for "root" access type',
+        })
+        break
+      }
+      default: {
+        throw new ConfigError(`Unexpected key: ${v}`)
+      }
+    }
+  }
+  return docs
+}
+
+export function optionDesc(): string[] {
+  const docs: string[] = []
+  for (const x of optionDocs()) {
+    docs.push(`- ${x.key}:\n${x.description}`)
+  }
+  return docs
+}
+
 interface RecursiveObject {
   [key: number | string]: RecursiveObject | unknown
 }

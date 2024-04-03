@@ -5,7 +5,7 @@ import { Config, ConfigError, KEYS } from '../Config.js'
 import { basicCheckConfig } from '../utils.js'
 
 export default class Status extends BaseCommand<typeof Status> {
-  static description = 'View authentication status'
+  static summary = 'View authentication status'
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(Status)

@@ -2,10 +2,24 @@ import path from 'node:path'
 
 import { BaseCommand } from '../baseCommand.js'
 import { Config, ConfigError, KEYS } from '../Config.js'
-import { basicCheckConfig } from '../utils.js'
+import { basicCheckConfig, wrapLines } from '../utils.js'
 
 export default class Logout extends BaseCommand<typeof Logout> {
-  static description = 'Log out of Apollo'
+  static summary = 'Logout of Apollo'
+  static description = wrapLines(
+    'Logout by removing the access token from the selected profile',
+  )
+
+  static examples = [
+    {
+      description: 'Logout default profile:',
+      command: '<%= config.bin %> <%= command.id %>',
+    },
+    {
+      description: 'Logout selected profile',
+      command: '<%= config.bin %> <%= command.id %> --profile my-profile',
+    },
+  ]
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(Logout)

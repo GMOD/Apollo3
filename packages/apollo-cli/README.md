@@ -55,7 +55,7 @@ USAGE
 
 ## `apollo assembly add-fasta`
 
-Add assembly sequences from local fasta file or external source
+Add new assembly from local or external fasta file
 
 ```
 USAGE
@@ -65,12 +65,22 @@ FLAGS
   -a, --assembly=<value>     (required) Name for this assembly
   -f, --force                Delete existing assembly, if it exists
   -i, --input-file=<value>   (required) Input fasta file
-  -x, --index=<value>        URL of the index. Ignored if input is a local file
+  -x, --index=<value>        URL of the index. Required if input is an external source and ignored if input is a local
+                             file
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      [default: default] Use credentials from this profile
 
 DESCRIPTION
-  Add assembly sequences from local fasta file or external source
+  Add new assembly from local or external fasta file
+
+EXAMPLES
+  From local file:
+
+    $ apollo assembly add-fasta -i genome.fa -a myAssembly
+
+  From external source we also need the URL of the index:
+
+    $ apollo assembly add-fasta -i https://.../genome.fa -x https://.../genome.fa.fai -a myAssembly
 ```
 
 _See code:
@@ -78,7 +88,7 @@ _See code:
 
 ## `apollo assembly add-gff`
 
-Add assembly sequences from gff or gft file
+Add new assembly from gff or gft file
 
 ```
 USAGE
@@ -93,7 +103,19 @@ FLAGS
       --profile=<value>      [default: default] Use credentials from this profile
 
 DESCRIPTION
-  Add assembly sequences from gff or gft file
+  Add new assembly from gff or gft file
+
+  The gff file is expected to contain sequences as per gff specifications.
+  Features are also imported by default
+
+EXAMPLES
+  Import sequences and features:
+
+    $ apollo assembly add-gff -i genome.gff -a myAssembly
+
+  Import sequences only:
+
+    $ apollo assembly add-gff -i genome.gff -a myAssembly -o
 ```
 
 _See code:
@@ -114,6 +136,13 @@ FLAGS
 
 DESCRIPTION
   Delete assemblies
+
+  Assemblies to delete may be names or IDs
+
+EXAMPLES
+  Delete multiple assemblies using name or ID:
+
+    $ apollo assembly delete -i mouse 6605826fbd0eee691f83e73f
 ```
 
 _See code:
@@ -134,6 +163,8 @@ FLAGS
 
 DESCRIPTION
   Get available assemblies
+
+  Print to stdout the list of assemblies in json format
 ```
 
 _See code:
@@ -141,7 +172,7 @@ _See code:
 
 ## `apollo assembly sequence`
 
-Get reference sequence
+Get reference sequence in fasta format
 
 ```
 USAGE
@@ -157,7 +188,18 @@ FLAGS
       --profile=<value>      [default: default] Use credentials from this profile
 
 DESCRIPTION
-  Get reference sequence
+  Get reference sequence in fasta format
+
+  Return the reference sequence for a given assembly and coordinates
+
+EXAMPLES
+  Get all sequences in myAssembly:
+
+    $ apollo assembly sequence -a myAssembly
+
+  Get sequence in coordinates chr1:1..1000:
+
+    $ apollo assembly sequence -a myAssembly -r chr1 -s 1 -e 1000
 ```
 
 _See code:
@@ -169,14 +211,20 @@ Get list of changes
 
 ```
 USAGE
-  $ apollo change get [--profile <value>] [--config-file <value>]
+  $ apollo change get [--profile <value>] [--config-file <value>] [-a <value>]
 
 FLAGS
-  --config-file=<value>  Use this config file (mostly for testing)
-  --profile=<value>      [default: default] Use credentials from this profile
+  -a, --assembly=<value>...  Get changes only for these assembly names or IDs (but see description)
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      [default: default] Use credentials from this profile
 
 DESCRIPTION
   Get list of changes
+
+  Return the change log in json format. Note that when an assembly is deleted the
+  link between common name and ID is lost (it can still be recovered by inspecting
+  the change log but at present this task is left to the user). In such cases you
+  need to use the assembly ID.
 ```
 
 _See code:
@@ -202,10 +250,22 @@ DESCRIPTION
   Get or set apollo configuration options
 
   Use this command to create or edit a user profile with credentials to access
-  Apollo.
-  Usage in interactive mode (`apollo config`) should be self explanatory. On
-  *nix system the configuration file is typically
-  `~/.config/apollo-cli/config.yaml`
+  Apollo. On *nix system the configuration is usually stored in the yaml file
+  '~/.config/apollo-cli/config.yaml'. Configuration options are: - address:
+  Address and port e.g http://localhost:3999
+
+  - accessType:
+  How to access Apollo. Allowed types depend on your Apollo setup, typically these
+  are: google, microsoft, guest, root
+
+  - accessToken:
+  Access token. Usually inserted by `apollo login`
+
+  - rootCredentials.username:
+  Username of root account. Only set this for "root" access type
+
+  - rootCredentials.password:
+  Password for root account. Only set this for "root" access type
 
 EXAMPLES
   Interactive setup:
@@ -226,7 +286,7 @@ _See code:
 
 ## `apollo feature add-child`
 
-Add a child feature
+Add a child feature (e.g. add an exon to an mRNA)
 
 ```
 USAGE
@@ -234,14 +294,22 @@ USAGE
 
 FLAGS
   -e, --end=<value>          (required) End coordinate of the child feature (1-based)
-  -i, --feature-id=<value>   [default: -] Feature ID to add child to; use - to read it from stdin
+  -i, --feature-id=<value>   [default: -] Add a child to this feature ID; use - to read it from stdin
   -s, --start=<value>        (required) Start coordinate of the child feature (1-based)
   -t, --type=<value>         (required) Type of child feature
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      [default: default] Use credentials from this profile
 
 DESCRIPTION
-  Add a child feature
+  Add a child feature (e.g. add an exon to an mRNA)
+
+  See the other commands under `apollo feature` to retrive the parent ID of
+  interest and to populate the child feature with attributes.
+
+EXAMPLES
+  Add an exon at genomic coordinates 10..20 to this feature ID:
+
+    $ apollo feature add-child -i 6605826fbd0eee691f83e73f -t exon -s 10 -e 20
 ```
 
 _See code:
@@ -249,7 +317,7 @@ _See code:
 
 ## `apollo feature copy`
 
-Copy feature
+Copy a feature to another location
 
 ```
 USAGE
@@ -264,7 +332,16 @@ FLAGS
       --profile=<value>      [default: default] Use credentials from this profile
 
 DESCRIPTION
-  Copy feature
+  Copy a feature to another location
+
+  The feature may be copied to the same or to a different assembly. he destination
+  reference sequence may be selected by name only if unique in the database or by
+  name and assembly or by identifier.
+
+EXAMPLES
+  Copy this feature ID to chr1:100 in assembly hg38:
+
+    $ apollo feature copy -i 6605826fbd0eee691f83e73f -r chr1 -s 100 -a hg38
 ```
 
 _See code:
@@ -272,19 +349,24 @@ _See code:
 
 ## `apollo feature delete`
 
-Delete a feature
+Delete one or more features by ID
 
 ```
 USAGE
-  $ apollo feature delete [--profile <value>] [--config-file <value>] [-i <value>]
+  $ apollo feature delete [--profile <value>] [--config-file <value>] [-i <value>] [-f] [-n]
 
 FLAGS
-  -i, --feature-id=<value>...  [default: -] Feature ID to delete
+  -f, --force                  Ignore non-existing features
+  -i, --feature-id=<value>...  [default: -] Feature IDs to delete
+  -n, --dry-run                Only show what would be delete
       --config-file=<value>    Use this config file (mostly for testing)
       --profile=<value>        [default: default] Use credentials from this profile
 
 DESCRIPTION
-  Delete a feature
+  Delete one or more features by ID
+
+  Note that deleting a child feature after deleting its parent will result in an
+  error unless you set -f/--force.
 ```
 
 _See code:
@@ -312,21 +394,40 @@ _See code:
 
 ## `apollo feature edit-attribute`
 
-Add or edit a feature attribute
+Add, edit, or view a feature attribute
 
 ```
 USAGE
-  $ apollo feature edit-attribute -a <value> [--profile <value>] [--config-file <value>] [-i <value>] [-v <value>]
+  $ apollo feature edit-attribute -a <value> [--profile <value>] [--config-file <value>] [-i <value>] [-v <value>] [-d]
 
 FLAGS
   -a, --attribute=<value>    (required) Attribute key to add or edit
+  -d, --delete               Delete this attribute
   -i, --feature-id=<value>   [default: -] Feature ID to edit or "-" to read it from stdin
-  -v, --value=<value>...     New attribute value or return current value if unset
+  -v, --value=<value>...     New attribute value. Separated mutliple values by space to them as a list. If unset return
+                             current value
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      [default: default] Use credentials from this profile
 
 DESCRIPTION
-  Add or edit a feature attribute
+  Add, edit, or view a feature attribute
+
+  Be aware that there is no checking whether attributes names and values are
+  valid. For example, you can create non-unique ID attributes or you can set gene
+  ontology terms to non-existing terms
+
+EXAMPLES
+  Add attribute "domains" with a list of values:
+
+    $ apollo feature edit-attribute -i 66...3f -a domains -v ABC PLD
+
+  Print values in "domains" as json array:
+
+    $ apollo feature edit-attribute -i 66...3f -a domains
+
+  Delete attribute "domains"
+
+    $ apollo feature edit-attribute -i 66...3f -a domains -d
 ```
 
 _See code:
@@ -465,7 +566,7 @@ _See code:
 
 ## `apollo login`
 
-Log in to Apollo
+Login to Apollo
 
 ```
 USAGE
@@ -480,7 +581,22 @@ FLAGS
       --profile=<value>      [default: default] Use credentials from this profile
 
 DESCRIPTION
-  Log in to Apollo
+  Login to Apollo
+
+  Use the provided credentials to obtain and save the token to access Apollo. Once
+  the token for the given profile has been saved in the configuration file, users
+  do not normally need to execute this command again unless the token has expired.
+  To setup a new profile use "apollo config"
+
+EXAMPLES
+  The most basic and probably most typical usage is to login using the default
+  profile in configuration file:
+
+    $ apollo login
+
+  Login with a different profile:
+
+    $ apollo login --profile my-profile
 ```
 
 _See code:
@@ -488,7 +604,7 @@ _See code:
 
 ## `apollo logout`
 
-Log out of Apollo
+Logout of Apollo
 
 ```
 USAGE
@@ -499,7 +615,18 @@ FLAGS
   --profile=<value>      [default: default] Use credentials from this profile
 
 DESCRIPTION
-  Log out of Apollo
+  Logout of Apollo
+
+  Logout by removing the access token from the selected profile
+
+EXAMPLES
+  Logout default profile:
+
+    $ apollo logout
+
+  Logout selected profile
+
+    $ apollo logout --profile my-profile
 ```
 
 _See code:
@@ -536,9 +663,6 @@ USAGE
 FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
   --profile=<value>      [default: default] Use credentials from this profile
-
-DESCRIPTION
-  View authentication status
 ```
 
 _See code:
