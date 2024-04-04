@@ -19,7 +19,6 @@ import React, { useState } from 'react'
 import { ChangeManager } from '../ChangeManager'
 import { isOntologyClass } from '../OntologyManager'
 import OntologyStore from '../OntologyManager/OntologyStore'
-import { fetchValidDescendantTerms } from '../OntologyManager/util'
 import { ApolloSessionModel } from '../session'
 import { Dialog } from './Dialog'
 import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
@@ -55,23 +54,37 @@ export function AddChildFeature({
   const [errorMessage, setErrorMessage] = useState('')
   const [typeWarningText, setTypeWarningText] = useState('')
 
-  async function fetchValidTerms(
+  async function fetchValidDescendantTerms(
     parentFeature: AnnotationFeatureI | undefined,
     ontologyStore: OntologyStore,
     _signal: AbortSignal,
   ) {
-    const terms = await fetchValidDescendantTerms(
-      parentFeature,
-      ontologyStore,
-      _signal,
-    )
-    if (!terms) {
-      setTypeWarningText(
-        `Type "${parentFeature?.type}" does not have any children in the ontology`,
-      )
+    if (!parentFeature) {
       return
     }
-    return terms
+    // since this is a child of an existing feature, restrict the autocomplete choices to valid
+    // parts of that feature
+    const parentTypeTerms = await ontologyStore.getTermsWithLabelOrSynonym(
+      parentFeature.type,
+      { includeSubclasses: false },
+    )
+    // eslint-disable-next-line unicorn/no-array-callback-reference
+    const parentTypeClassTerms = parentTypeTerms.filter(isOntologyClass)
+    if (parentTypeTerms.length === 0) {
+      return
+    }
+    const subpartTerms = await ontologyStore.getClassesThat(
+      'part_of',
+      parentTypeClassTerms,
+    )
+    if (subpartTerms.length > 0) {
+      setTypeWarningText('')
+    } else {
+      setTypeWarningText(
+        `Type "${parentFeature.type}" does not have any children in the ontology`,
+      )
+    }
+    return subpartTerms
   }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -180,7 +193,10 @@ export function AddChildFeature({
             style={{ width: 170 }}
             value={type}
             filterTerms={isOntologyClass}
-            fetchValidTerms={fetchValidTerms.bind(null, sourceFeature)}
+            fetchValidTerms={fetchValidDescendantTerms.bind(
+              null,
+              sourceFeature,
+            )}
             renderInput={(params) => (
               <TextField
                 {...params}
