@@ -81,7 +81,7 @@ class TestCLI(unittest.TestCase):
 
         p = shell(f"{apollo} feature get {P} -a vv1")
         self.assertTrue("ctgA" in p.stdout)
-        self.assertTrue("ctgB" in p.stdout)
+        self.assertTrue("SomeContig" in p.stdout)
 
         p = shell(f"{apollo} feature get {P} -r ctgA", strict=False)
         self.assertTrue(p.returncode != 0)
