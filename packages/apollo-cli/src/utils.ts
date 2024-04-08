@@ -10,6 +10,7 @@ import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
 
+import { SingleBar } from 'cli-progress'
 import { Agent, RequestInit, Response, fetch } from 'undici'
 
 import { ApolloConf, ConfigError } from './ApolloConf.js'
@@ -432,7 +433,14 @@ export async function uploadFile(
 ) {
   const filehandle = await fs.promises.open(file)
   const { size } = await filehandle.stat()
-  const stream = filehandle.createReadStream({ encoding: 'utf8' })
+  const stream = filehandle.createReadStream()
+  const progressBar = new SingleBar({ etaBuffer: 100_000_000 })
+  let sizeProcesed = 0
+  stream.on('data', (chunk) => {
+    sizeProcesed += chunk.length
+    progressBar.update(sizeProcesed)
+    return chunk
+  })
   const init: RequestInit = {
     method: 'POST',
     body: stream,
@@ -443,24 +451,32 @@ export async function uploadFile(
       'Content-Length': String(size),
     },
     dispatcher: new Agent({
-      keepAliveTimeout: 10 * 60 * 1000, // 10 minutes
-      keepAliveMaxTimeout: 10 * 60 * 1000, // 10 minutes
+      keepAliveTimeout: 60 * 60 * 1000, // 1 hour
+      keepAliveMaxTimeout: 60 * 60 * 1000, // 1 hour
     }),
   }
 
   const fileName = path.basename(file)
   const url = new URL(localhostToAddress(`${address}/files/stream`))
   url.searchParams.set('name', fileName)
-  const response = await fetch(url, auth)
-  if (!response.ok) {
-    const errorMessage = await createFetchErrorMessage(
-      response,
-      'uploadFile failed',
-    )
-    throw new ConfigError(errorMessage)
+  progressBar.start(size, 0)
+  try {
+    const response = await fetch(url, init)
+    if (!response.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'uploadFile failed',
+      )
+      throw new ConfigError(errorMessage)
+    }
+    const json = (await response.json()) as object
+    return json['_id' as keyof typeof json]
+  } catch (error) {
+    console.error(error)
+    throw error
+  } finally {
+    progressBar.stop()
   }
-  const json = (await response.json()) as object
-  return json['_id' as keyof typeof json]
 }
 
 /* Wrap text to max `length` per line */
