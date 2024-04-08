@@ -10,7 +10,7 @@ import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
 
-import { Agent, FormData, RequestInit, Response, fetch } from 'undici'
+import { Agent, RequestInit, Response, fetch } from 'undici'
 
 import { ApolloConf, ConfigError } from './ApolloConf.js'
 
@@ -429,20 +429,18 @@ export async function uploadFile(
   accessToken: string,
   file: string,
   type: string,
-): Promise<string> {
-  const stream = fs.createReadStream(file, 'utf8')
-  const fileStream = new Response(stream)
-  const fileBlob = await fileStream.blob()
-
-  const formData = new FormData()
-  formData.append('type', type)
-  formData.append('file', fileBlob)
-
-  const auth = {
+) {
+  const filehandle = await fs.promises.open(file)
+  const { size } = await filehandle.stat()
+  const stream = filehandle.createReadStream({ encoding: 'utf8' })
+  const init: RequestInit = {
     method: 'POST',
-    body: formData,
+    body: stream,
+    duplex: 'half',
     headers: {
       Authorization: `Bearer ${accessToken}`,
+      'Content-Type': type,
+      'Content-Length': String(size),
     },
     dispatcher: new Agent({
       keepAliveTimeout: 10 * 60 * 1000, // 10 minutes
@@ -450,7 +448,9 @@ export async function uploadFile(
     }),
   }
 
-  const url = new URL(localhostToAddress(`${address}/files`))
+  const fileName = path.basename(file)
+  const url = new URL(localhostToAddress(`${address}/files/stream`))
+  url.searchParams.set('name', fileName)
   const response = await fetch(url, auth)
   if (!response.ok) {
     const errorMessage = await createFetchErrorMessage(
