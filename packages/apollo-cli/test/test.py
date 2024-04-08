@@ -61,6 +61,20 @@ class TestCLI(unittest.TestCase):
         p = shell(f"{apollo} --help")
         self.assertTrue("COMMANDS" in p.stdout)
 
+    def testGetConfigFile(self):
+        p = shell(f"{apollo} config --get-config-file")
+        self.assertTrue(p.stdout.strip().startswith('/'))
+
+    def testApolloStatus(self):
+        p = shell(f"{apollo} status {P}")
+        self.assertEqual(p.stdout.strip(), 'Logged in')
+
+        shell(f"{apollo} logout {P}")
+        p = shell(f"{apollo} status {P}")
+        self.assertEqual(p.stdout.strip(), 'Logged out')
+
+        shell(f"{apollo} login {P}")
+
     def testFeatureGet(self):
         shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
         shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv2 -f")
@@ -225,6 +239,11 @@ class TestCLI(unittest.TestCase):
         )
         self.assertTrue(p.returncode != 0)
         self.assertTrue('Error: Assembly "vv1" already exists' in p.stderr)
+        
+        # Default assembly name
+        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -f")
+        p = shell(f"{apollo} assembly get {P} -a tiny.fasta.gff3")
+        self.assertTrue("tiny.fasta.gff3" in p.stdout)
 
     def testAddAssemblyLargeInput(self):
         with open("test_data/tmp.fa", "w") as fout:
@@ -256,6 +275,11 @@ class TestCLI(unittest.TestCase):
         self.assertTrue(p.returncode != 0)
         self.assertTrue("does not exist" in p.stderr)
 
+        # Test default name
+        shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -f")
+        p = shell(f"{apollo} assembly get {P} -a tiny.fasta")
+        self.assertTrue("tiny.fasta" in p.stdout)
+
     def testAddAssemblyFromExternalFasta(self):
         shell(
             f"""{apollo} assembly add-fasta {P} -a vv1 -f \
@@ -271,6 +295,26 @@ class TestCLI(unittest.TestCase):
             strict=False,
         )
         self.assertTrue(p.returncode != 0)
+    
+    def testEditFeatureFromJson(self):
+        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
+        p = shell(f"{apollo} feature search {P} -a vv1 -t BAC")
+        out = json.loads(p.stdout)[0]
+        self.assertEqual(out['type'], "BAC")
+
+        req = [{
+          "typeName": "TypeChange",
+          "changedIds": [out['_id']],
+          "assembly": out['refSeq']['assembly'],
+          "featureId": out['_id'],
+          "oldType": "BAC",
+          "newType": "G_quartet"
+        }]
+        j = json.dumps(req)
+        shell(f"echo '{j}' | {apollo} feature edit {P} -j -")
+        p = shell(f"{apollo} feature search {P} -a vv1 -t G_quartet")
+        out = json.loads(p.stdout)[0]
+        self.assertEqual(out['type'], "G_quartet")
 
     def testEditFeatureType(self):
         shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
@@ -303,6 +347,10 @@ class TestCLI(unittest.TestCase):
         )
         contig = json.loads(p.stdout)
         self.assertEqual(contig["type"], "region")
+        
+        # Return current type
+        p = shell(f"{apollo} feature edit-type {P} -i {contig_id}")
+        self.assertEqual(p.stdout.strip(), 'region')
 
     def testEditFeatureCoords(self):
         shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
@@ -437,6 +485,10 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(len(out), 2)
         self.assertTrue("EDEN" in p.stdout)
 
+        p = shell(f"{apollo} feature search {P} -t EDEN")
+        out = json.loads(p.stdout)
+        self.assertTrue(len(out) >= 2)
+
         p = shell(f"{apollo} feature search {P} -a vv1 -t EDEN")
         out = json.loads(p.stdout)
         self.assertEqual(len(out), 1)
@@ -448,6 +500,47 @@ class TestCLI(unittest.TestCase):
 
         p = shell(f"{apollo} feature search {P} -a vv1 -t foobarspam")
         self.assertEqual("[]", p.stdout.strip())
+
+        # It searches attributes values, not attribute names
+        p = shell(f"{apollo} feature search {P} -a vv1 -t multivalue")
+        self.assertEqual("[]", p.stdout.strip())
+
+        # Search feature type
+        p = shell(f"{apollo} feature search {P} -a vv1 -t contig")
+        self.assertTrue('"type": "contig"' in p.stdout)
+
+        # Search source (which in fact is an attribute)
+        p = shell(f"{apollo} feature search {P} -a vv1 -t someExample")
+        self.assertTrue('SomeContig' in p.stdout)
+
+        # Case insensitive
+        p = shell(f"{apollo} feature search {P} -a vv1 -t SOMEexample")
+        self.assertTrue('SomeContig' in p.stdout)
+
+        # No partial word match
+        p = shell(f"{apollo} feature search {P} -a vv1 -t Fingerpri")
+        self.assertEqual("[]", p.stdout.strip())
+
+        # Match full word not necessarily full value
+        p = shell(f"{apollo} feature search {P} -a vv1 -t Fingerprinted")
+        self.assertTrue("Fingerprinted" in p.stdout.strip())
+
+        # Does not search contig names (reference sequence name)
+        p = shell(f"{apollo} feature search {P} -a vv1 -t ctgB")
+        self.assertEqual("[]", p.stdout.strip())
+
+        # Does not match common words (?) ...
+        p = shell(f"{apollo} feature search {P} -a vv1 -t with")
+        self.assertEqual("[]", p.stdout.strip())
+
+        # ...But "fake" is ok
+        p = shell(f"{apollo} feature search {P} -a vv1 -t fake")
+        self.assertTrue("FakeSNP1" in p.stdout.strip())
+
+        # ...or a single unusual letter
+        p = shell(f"{apollo} feature search {P} -a vv1 -t Q")
+        self.assertTrue('"Q"' in p.stdout.strip())
+
 
     def testDeleteFeatures(self):
         shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
@@ -486,7 +579,7 @@ class TestCLI(unittest.TestCase):
         self.assertTrue(p.returncode != 0)
         self.assertTrue("Child feature coordinates" in p.stderr)
 
-        # This should fail
+        # Should this fail?
         p = shell(
             f"{apollo} feature add-child {P} -i {fid} -s 10 -e 20 -t FOOBAR",
             strict=False,

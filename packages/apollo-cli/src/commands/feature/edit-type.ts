@@ -7,10 +7,14 @@ import {
   getFeatureById,
   idReader,
   localhostToAddress,
+  wrapLines,
 } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
-  static description = 'Edit type of feature'
+  static summary = 'Edit or view feature type'
+  static description = wrapLines('Feature type is column 3 in gff format.\
+    It must be a valid sequence ontology term although but the valifdity of the new term is not checked.',
+  )
 
   static flags = {
     'feature-id': Flags.string({
@@ -20,8 +24,8 @@ export default class Get extends BaseCommand<typeof Get> {
     }),
     type: Flags.string({
       char: 't',
-      required: true,
-      description: 'Assign this type',
+      description:
+        'Assign feature to this type. If unset return the current type',
     }),
   }
 
@@ -50,6 +54,10 @@ export default class Get extends BaseCommand<typeof Get> {
     }
 
     const currentType = featureJson['type' as keyof typeof featureJson]
+    if (flags.type === undefined) {
+      this.log(currentType)
+      this.exit(0)
+    }
     if (flags.type === currentType) {
       this.logToStderr(
         `NOTE: Feature ${featureId} is already of type "${flags.type}"`,
@@ -73,6 +81,7 @@ export default class Get extends BaseCommand<typeof Get> {
     }
 
     const url = new URL(localhostToAddress(`${access.address}/changes`))
+
     const auth = {
       method: 'POST',
       body: JSON.stringify(changeJson),

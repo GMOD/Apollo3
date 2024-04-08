@@ -13,7 +13,7 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
   static summary = 'Get or set apollo configuration options'
   static description = wrapLines(
     `Use this command to create or edit a user profile with credentials to access Apollo. \
-     On *nix system the configuration is usually stored in the yaml file '~/.config/apollo-cli/config.yaml'. Configuration options are: \
+     Configuration options are: \
      \
      ${optionDesc().join('\n\n')}`,
   )
@@ -33,6 +33,10 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
     profile: Flags.string({
       description: 'Profile to create or edit',
       required: false,
+    }),
+    'get-config-file': Flags.boolean({
+      description:
+        'Return the path to the config file and exit (this file may not exist yet)',
     }),
   }
 
@@ -57,8 +61,13 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
     const { flags } = await this.parse(ApolloConfig)
 
     let configFile = flags['config-file']
-    if (configFile === undefined) {
-      configFile = path.join(this.config.configDir, 'config.yaml')
+    configFile =
+      configFile === undefined
+        ? path.join(this.config.configDir, 'config.yaml')
+        : path.resolve(configFile)
+    if (flags['get-config-file']) {
+      this.log(configFile)
+      this.exit(0)
     }
 
     const config: Config = new Config(configFile)

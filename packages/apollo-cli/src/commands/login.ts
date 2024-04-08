@@ -62,6 +62,11 @@ export default class Login extends BaseCommand<typeof Login> {
       char: 'f',
       description: 'Force re-authentication even if user is already logged in',
     }),
+    port: Flags.integer({
+      description:
+        'Get token by listening to this port number (usually this is >= 1024 and < 65536)',
+      default: 3000,
+    }),
   }
 
   public async run(): Promise<void> {
@@ -120,6 +125,7 @@ export default class Login extends BaseCommand<typeof Login> {
         userCredentials = await this.startAuthorizationCodeFlow(
           address,
           accessType,
+          flags.port,
         )
       }
     } catch (error) {
@@ -197,11 +203,9 @@ export default class Login extends BaseCommand<typeof Login> {
   private async startAuthorizationCodeFlow(
     address: string,
     accessType: string,
+    port: number,
   ): Promise<UserCredentials> {
     const callbackPath = '/'
-    const port = 3000
-    const authorizationCodeURL = `${address}/auth/login?type=${accessType}&redirect_uri=http://localhost:${port}${callbackPath}`
-
     // eslint-disable-next-line unicorn/prefer-event-target
     const emitter = new EventEmitter()
     const eventName = 'authorication_code_callback_params'
@@ -212,7 +216,9 @@ export default class Login extends BaseCommand<typeof Login> {
             req?.url.replace(`${callbackPath}?`, ''),
           )
           emitter.emit(eventName, params)
-          res.end('You can close this browser now.')
+          res.end(
+            'This browser window was opened by `apollo login`, you can close it now.',
+          )
           res.socket?.end()
           res.socket?.destroy()
           server.close()
@@ -224,7 +230,22 @@ export default class Login extends BaseCommand<typeof Login> {
       })
       .listen(port)
 
-    await ux.anykey('Press any key to open your browser')
+    server.on('error', async (e) => {
+      if (e.message.includes('EADDRINUSE')) {
+        this.logToStderr(
+          `It appears that port ${port} is in use. Perhaps you have JBrowse running?\nTry using a different port using the --port option or temporarily stop JBrowse`,
+        )
+        // eslint-disable-next-line unicorn/no-process-exit
+        process.exit(1)
+      } else {
+        this.logToStderr(e.message)
+        // eslint-disable-next-line unicorn/no-process-exit
+        process.exit(1)
+      }
+    })
+
+    // await ux.anykey('Press any key to open your browser') // Do we need this?
+    const authorizationCodeURL = `${address}/auth/login?type=${accessType}&redirect_uri=http://localhost:${port}${callbackPath}`
     await open(authorizationCodeURL)
     ux.action.start('Waiting for authentication')
 
@@ -232,6 +253,7 @@ export default class Login extends BaseCommand<typeof Login> {
       eventName,
       emitter,
     )
+
     return { accessToken: access_token }
   }
 }

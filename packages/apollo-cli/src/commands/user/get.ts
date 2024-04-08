@@ -4,7 +4,7 @@ import { BaseCommand } from '../../baseCommand.js'
 import { queryApollo } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
-  static description = 'Get users'
+  static description = 'Get list of users'
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(Get)
