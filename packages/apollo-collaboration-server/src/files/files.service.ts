@@ -13,9 +13,11 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectModel } from '@nestjs/mongoose'
+import { Request } from 'express'
 import { Model } from 'mongoose'
 
 import { CreateFileDto } from './dto/create-file.dto'
+import { writeFileAndCalculateHash } from './filesUtil'
 
 @Injectable()
 export class FilesService {
@@ -29,6 +31,13 @@ export class FilesService {
   ) {}
 
   private readonly logger = new Logger(FilesService.name)
+
+  async uploadFileFromRequest(req: Request, name: string) {
+    const fileUploadFolder = this.configService.get('FILE_UPLOAD_FOLDER', {
+      infer: true,
+    })
+    return writeFileAndCalculateHash(fileUploadFolder, name, req, this.logger)
+  }
 
   create(createFileDto: CreateFileDto) {
     this.logger.debug(
