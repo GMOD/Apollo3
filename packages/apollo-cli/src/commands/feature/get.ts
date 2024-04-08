@@ -4,19 +4,33 @@ import { Flags } from '@oclif/core'
 import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { getRefseqId, localhostToAddress } from '../../utils.js'
+import { getRefseqId, localhostToAddress, wrapLines } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description = 'Get features in a genomic window'
 
+  static examples = [
+    {
+      description: 'Get all features in myAssembly:',
+      command: '<%= config.bin %> <%= command.id %> -a myAssembly',
+    },
+    {
+      description: wrapLines(
+        'Get features intersecting chr1:1..1000. You can omit the assembly name if there are no other reference sequences named chr1:',
+      ),
+      command: 
+        '<%= config.bin %> <%= command.id %> -a myAssembly -r chr1 -s 1 -e 1000',
+    },
+  ]
+
   static flags = {
-    refseq: Flags.string({
-      char: 'r',
-      description: 'Reference sequence. If unset, query all sequences',
-    }),
     assembly: Flags.string({
       char: 'a',
       description: 'Find input reference sequence in this assembly',
+    }),
+    refseq: Flags.string({
+      char: 'r',
+      description: 'Reference sequence. If unset, query all sequences',
     }),
     start: Flags.integer({
       char: 's',

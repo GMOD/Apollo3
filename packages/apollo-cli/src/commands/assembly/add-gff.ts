@@ -1,4 +1,5 @@
 import * as fs from 'node:fs'
+import * as path from 'node:path'
 
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
@@ -9,17 +10,19 @@ import { submitAssembly, uploadFile, wrapLines } from '../../utils.js'
 export default class AddGff extends BaseCommand<typeof AddGff> {
   static summary = 'Add new assembly from gff or gft file'
   static description = wrapLines(
-    'The gff file is expected to contain sequences as per gff specifications. Features are also imported by default',
+    'The gff file is expected to contain sequences as per gff specifications. Features are also imported by default.',
   )
 
   static examples = [
     {
       description: 'Import sequences and features:',
-      command: '<%= config.bin %> <%= command.id %> -i genome.gff -a myAssembly',
+      command:
+        '<%= config.bin %> <%= command.id %> -i genome.gff -a myAssembly',
     },
     {
       description: 'Import sequences only:',
-      command: '<%= config.bin %> <%= command.id %> -i genome.gff -a myAssembly -o',
+      command:
+        '<%= config.bin %> <%= command.id %> -i genome.gff -a myAssembly -o',
     },
   ]
 
@@ -31,8 +34,7 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
     }),
     assembly: Flags.string({
       char: 'a',
-      description: 'Name for this assembly',
-      required: true,
+      description: 'Name for this assembly. Use the file name if omitted',
     }),
     'omit-features': Flags.boolean({
       char: 'o',
@@ -67,10 +69,12 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
       typeName = 'AddAssemblyFromFileChange'
     }
 
+    const assemblyName = flags.assembly ?? path.basename(flags['input-file'])
+
     let res
     try {
       const body = {
-        assemblyName: flags.assembly,
+        assemblyName,
         fileId,
         typeName,
         assembly: new ObjectId().toHexString(),

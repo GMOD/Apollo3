@@ -5,6 +5,8 @@ import {
   convertAssemblyNameToId,
   idReader,
   localhostToAddress,
+  queryApollo,
+  wrapLines,
 } from '../../utils.js'
 
 async function searchFeatures(
@@ -29,20 +31,52 @@ async function searchFeatures(
 }
 
 export default class Search extends BaseCommand<typeof Search> {
-  static description = 'Free text search for feature in one or more assemblies'
+  static summary = 'Free text search for feature in one or more assemblies'
+  static description = wrapLines(
+    `Return features matching a query string. This command searches only in:
+    
+    - Attribute *values* (not attribute names)
+    - Source field (which in fact is stored as an attribute)
+    - Feature type
+    
+    The search mode is:
+    
+    - Case insensitive
+    - Match only full words, but not necessarily the full value
+    - Common words are ignored. E.g. "the", "with"
+    
+    For example, given this feature:
+    
+    chr1 example SNP 10 30 0.987 . . "someKey=Fingerprint BAC with reads"
+    
+    Queries "bac" or "mRNA" return the feature. Instead these queries will NOT match:
+    
+    - "someKey"
+    - "with"
+    - "Finger"
+    - "chr1"
+    - "0.987"`,
+  )
+
+  static examples = [
+    {
+      description: 'Search "bac" in these assemblies:',
+      command: '<%= config.bin %> <%= command.id %> -a mm9 mm10 -t bac',
+    },
+  ]
 
   static flags = {
-    assembly: Flags.string({
-      char: 'a',
-      default: ['-'],
-      multiple: true,
-      description:
-        'Assembly names or IDs to search; use "-" to read it from stdin',
-    }),
     text: Flags.string({
       char: 't',
       required: true,
       description: 'Search for this text query',
+    }),
+    assembly: Flags.string({
+      char: 'a',
+      multiple: true,
+      description: wrapLines(
+        'Assembly names or IDs to search; use "-" to read it from stdin. If omitted search all assemblies',
+      ),
     }),
   }
 
@@ -53,7 +87,16 @@ export default class Search extends BaseCommand<typeof Search> {
       await this.getAccess(flags['config-file'], flags.profile)
 
     let assemblyIds: string[] = []
-    if (flags.assembly !== undefined) {
+    if (flags.assembly === undefined) {
+      const asm = await queryApollo(
+        access.address,
+        access.accessToken,
+        'assemblies',
+      )
+      for (const x of (await asm.json()) as object[]) {
+        assemblyIds.push(x['_id' as keyof typeof x])
+      }
+    } else {
       const assembly = idReader(flags.assembly)
       assemblyIds = await convertAssemblyNameToId(
         access.address,

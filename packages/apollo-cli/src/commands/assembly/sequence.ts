@@ -147,19 +147,17 @@ export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
         }
       }
       this.log(header)
-      this.log(wrapString(seq, 80).join('\n'))
+      this.log(splitStringIntoChunks(seq, 80).join('\n'))
     }
     this.exit(0)
   }
 }
 
-function wrapString(x: string, lineLen: number): string[] {
-  let start = 0
-  const wrapped = []
-  while (start < x.length) {
-    const end = start + lineLen < x.length ? start + lineLen : x.length
-    wrapped.push(x.slice(start, end))
-    start += lineLen
+function splitStringIntoChunks(input: string, chunkSize: number): string[] {
+  const chunks: string[] = []
+  for (let i = 0; i < input.length; i += chunkSize) {
+    const chunk = input.slice(i, i + chunkSize)
+    chunks.push(chunk)
   }
-  return wrapped
+  return chunks
 }

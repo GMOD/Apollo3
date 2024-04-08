@@ -1,4 +1,5 @@
 import * as fs from 'node:fs'
+import * as path from 'node:path'
 
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
@@ -19,7 +20,8 @@ export default class Get extends BaseCommand<typeof Get> {
       description: wrapLines(
         'From external source we also need the URL of the index:',
       ),
-      command: '<%= config.bin %> <%= command.id %> -i https://.../genome.fa -x https://.../genome.fa.fai -a myAssembly',
+      command: 
+        '<%= config.bin %> <%= command.id %> -i https://.../genome.fa -x https://.../genome.fa.fai -a myAssembly',
     },
   ]
 
@@ -31,12 +33,12 @@ export default class Get extends BaseCommand<typeof Get> {
     }),
     assembly: Flags.string({
       char: 'a',
-      description: 'Name for this assembly',
-      required: true,
+      description: 'Name for this assembly. Use the file name if omitted',
     }),
     index: Flags.string({
       char: 'x',
-      description: 'URL of the index. Required if input is an external source and ignored if input is a local file',
+      description: 
+        'URL of the index. Required if input is an external source and ignored if input is a local file',
     }),
     force: Flags.boolean({
       char: 'f',
@@ -50,6 +52,8 @@ export default class Get extends BaseCommand<typeof Get> {
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 
+    const assemblyName = flags.assembly ?? path.basename(flags['input-file'])
+
     const isExternal = isValidHttpUrl(flags['input-file'])
     let response: Response
     if (isExternal) {
@@ -60,7 +64,7 @@ export default class Get extends BaseCommand<typeof Get> {
         this.exit(1)
       }
       const body = {
-        assemblyName: flags.assembly,
+        assemblyName,
         typeName: 'AddAssemblyFromExternalChange',
         externalLocation: {
           fa: flags['input-file'],
@@ -86,7 +90,7 @@ export default class Get extends BaseCommand<typeof Get> {
           'text/x-fasta',
         )
         const body = {
-          assemblyName: flags.assembly,
+          assemblyName,
           fileId,
           typeName: 'AddAssemblyFromFileChange',
           assembly: new ObjectId().toHexString(),

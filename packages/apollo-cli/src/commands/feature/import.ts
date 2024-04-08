@@ -11,7 +11,15 @@ import {
 } from '../../utils.js'
 
 export default class Import extends BaseCommand<typeof Import> {
-  static description = 'Import features from local gff file'
+  static summary = 'Import features from local gff file'
+  static description = 'By default, features are added to the existing ones.'
+
+  static examples = [
+    {
+      description: 'Delete features in myAssembly and then import features.gff3:',
+      command: '<%= config.bin %> <%= command.id %> -d -i features.gff3 -a myAssembly',
+    },
+  ]
 
   static flags = {
     'input-file': Flags.string({
