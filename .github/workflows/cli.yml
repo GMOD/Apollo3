@@ -1,8 +1,5 @@
 name: Test CLI
-on:
-  push:
-    branches:
-      - cli-misc
+on: push
 
 jobs:
   build:
