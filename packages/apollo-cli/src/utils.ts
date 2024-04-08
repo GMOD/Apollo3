@@ -4,7 +4,7 @@ import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
 
-import { Agent, FormData, RequestInit, Response, fetch } from 'undici'
+import { Agent, RequestInit, Response, fetch } from 'undici'
 
 import { Config, ConfigError } from './Config.js'
 
@@ -45,6 +45,22 @@ export function localhostToAddress(url: string) {
    * localhost must be converted to address otherwise fetch throws TypeError
    * */
   return url.replace('//localhost', '127.0.0.1')
+}
+
+export async function createFetchErrorMessage(
+  response: Response,
+  additionalText?: string,
+): Promise<string> {
+  let errorMessage
+  try {
+    errorMessage = await response.text()
+  } catch {
+    errorMessage = ''
+  }
+  const responseMessage = `${response.status} ${response.statusText}${
+    errorMessage ? ` (${errorMessage})` : ''
+  }`
+  return `${additionalText ? `${additionalText} — ` : ''}${responseMessage}`
 }
 
 export async function deleteAssembly(
@@ -327,20 +343,18 @@ export async function uploadFile(
   accessToken: string,
   file: string,
   type: string,
-): Promise<string> {
-  const stream = fs.createReadStream(file, 'utf8')
-  const fileStream = new Response(stream)
-  const fileBlob = await fileStream.blob()
-
-  const formData = new FormData()
-  formData.append('type', type)
-  formData.append('file', fileBlob)
-
-  const auth = {
+) {
+  const filehandle = await fs.promises.open(file)
+  const { size } = await filehandle.stat()
+  const stream = filehandle.createReadStream({ encoding: 'utf8' })
+  const init: RequestInit = {
     method: 'POST',
-    body: formData,
+    body: stream,
+    duplex: 'half',
     headers: {
       Authorization: `Bearer ${accessToken}`,
+      'Content-Type': type,
+      'Content-Length': String(size),
     },
     dispatcher: new Agent({
       keepAliveTimeout: 10 * 60 * 1000, // 10 minutes
@@ -351,7 +365,10 @@ export async function uploadFile(
   const url = new URL(localhostToAddress(`${address}/files/stream`))
   url.searchParams.set('name', fileName)
   try {
-    const response = await fetch(url, auth)
+    const response = await fetch(url, init)
+    if (!response.ok) {
+      throw new Error(await createFetchErrorMessage(response))
+    }
     const json = (await response.json()) as object
     return json['_id' as keyof typeof json]
   } catch (error) {

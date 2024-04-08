@@ -20,7 +20,7 @@ export default class Get extends BaseCommand<typeof Get> {
       description: wrapLines(
         'From external source we also need the URL of the index:',
       ),
-      command: 
+      command:
         '<%= config.bin %> <%= command.id %> -i https://.../genome.fa -x https://.../genome.fa.fai -a myAssembly',
     },
   ]
@@ -37,7 +37,7 @@ export default class Get extends BaseCommand<typeof Get> {
     }),
     index: Flags.string({
       char: 'x',
-      description: 
+      description:
         'URL of the index. Required if input is an external source and ignored if input is a local file',
     }),
     force: Flags.boolean({
@@ -102,8 +102,10 @@ export default class Get extends BaseCommand<typeof Get> {
           flags.force,
         )) as unknown as Response
       } catch (error) {
-        this.logToStderr((error as Error).message)
-        this.exit(1)
+        if (error instanceof Error) {
+          return this.error(error)
+        }
+        return this.error(String(error))
       }
     }
     if (!response.ok) {

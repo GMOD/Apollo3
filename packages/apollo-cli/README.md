@@ -16,7 +16,7 @@ $ npm install -g apollo-cli
 $ apollo COMMAND
 running command...
 $ apollo (--version)
-apollo-cli/0.0.0 linux-x64 node-v18.19.0
+apollo-cli/0.0.0 linux-x64 node-v18.20.1
 $ apollo --help [COMMAND]
 USAGE
   $ apollo COMMAND
@@ -44,7 +44,6 @@ USAGE
 - [`apollo feature edit-coords`](#apollo-feature-edit-coords)
 - [`apollo feature edit-type`](#apollo-feature-edit-type)
 - [`apollo feature get`](#apollo-feature-get)
-- [`apollo feature get-id`](#apollo-feature-get-id)
 - [`apollo feature import`](#apollo-feature-import)
 - [`apollo feature search`](#apollo-feature-search)
 - [`apollo help [COMMANDS]`](#apollo-help-commands)
@@ -549,31 +548,6 @@ EXAMPLES
 
 _See code:
 [src/commands/feature/get.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/feature/get.ts)_
-
-## `apollo feature get-id`
-
-Get features by identifier
-
-```
-USAGE
-  $ apollo feature get-id [--profile <value>] [--config-file <value>] [-i <value>]
-
-FLAGS
-  -i, --feature-id=<value>...  [default: -] Feature IDs to get
-      --config-file=<value>    Use this config file (mostly for testing)
-      --profile=<value>        [default: default] Use credentials from this profile
-
-DESCRIPTION
-  Get features by identifier
-
-EXAMPLES
-  Get a list of features :
-
-    $ apollo feature get-id -i abc...zyz def...foo
-```
-
-_See code:
-[src/commands/feature/get-id.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/feature/get-id.ts)_
 
 ## `apollo feature import`
 
