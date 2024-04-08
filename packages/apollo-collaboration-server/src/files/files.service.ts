@@ -32,11 +32,15 @@ export class FilesService {
 
   private readonly logger = new Logger(FilesService.name)
 
-  async uploadFileFromRequest(req: Request, name: string) {
+  async uploadFileFromRequest(req: Request, name: string, size: number) {
     const fileUploadFolder = this.configService.get('FILE_UPLOAD_FOLDER', {
       infer: true,
     })
-    return writeFileAndCalculateHash(fileUploadFolder, name, req, this.logger)
+    return writeFileAndCalculateHash(
+      { originalname: name, stream: req, size },
+      fileUploadFolder,
+      this.logger,
+    )
   }
 
   create(createFileDto: CreateFileDto) {

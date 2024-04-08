@@ -76,7 +76,13 @@ export class FilesController {
     @Headers('Content-Length') contentLength: string,
     @Headers('Content-Type') contentType: 'text/x-gff3' | 'text/x-fasta',
   ) {
-    const checksum = await this.filesService.uploadFileFromRequest(req, name)
+    let size = Number.parseInt(contentLength, 10)
+    size = Number.isNaN(size) ? 0 : size
+    const checksum = await this.filesService.uploadFileFromRequest(
+      req,
+      name,
+      size,
+    )
     return this.filesService.create({
       basename: name,
       checksum,
