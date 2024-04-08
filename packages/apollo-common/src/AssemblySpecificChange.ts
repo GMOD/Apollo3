@@ -48,6 +48,7 @@ export abstract class AssemblySpecificChange extends Change {
     let lastLineIsIncomplete = true
     let parsingStarted = false
     logger.debug?.('starting sequence stream')
+    let lineCount = 0
     for await (const data of sequenceStream) {
       const chunk = data.toString()
       lastLineIsIncomplete = !chunk.endsWith('\n')
@@ -61,6 +62,10 @@ export abstract class AssemblySpecificChange extends Change {
         incompleteLine = lines.pop() || ''
       }
       for await (const line of lines) {
+        lineCount++
+        if (lineCount % 1_000_000 === 0) {
+          logger.debug?.(`Processed ${lineCount} lines`)
+        }
         // In case of GFF3 file we start to read sequence after '##FASTA' is found
         if (!fastaInfoStarted) {
           if (line.trim() === '##FASTA') {
@@ -82,9 +87,6 @@ export abstract class AssemblySpecificChange extends Change {
               throw new Error('No refSeq document found')
             }
             refSeqLen += sequenceBuffer.length
-            logger.debug?.(
-              `Creating refSeq chunk number ${chunkIndex} of "${refSeqDoc._id}"`,
-            )
             // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
             await refSeqChunkModel.create([
               {
@@ -131,9 +133,6 @@ export abstract class AssemblySpecificChange extends Change {
           while (sequenceBuffer.length >= chunkSize) {
             const sequence = sequenceBuffer.slice(0, chunkSize)
             refSeqLen += sequence.length
-            logger.debug?.(
-              `Creating refSeq chunk number ${chunkIndex} of "${_id}"`,
-            )
             // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
             await refSeqChunkModel.create([
               { refSeq: _id, n: chunkIndex, sequence, user, status: -1 },
@@ -141,7 +140,6 @@ export abstract class AssemblySpecificChange extends Change {
             chunkIndex++
             // Set remaining sequence
             sequenceBuffer = sequenceBuffer.slice(chunkSize)
-            logger.debug?.(`Remaining sequence: "${sequenceBuffer}"`)
           }
         }
       }

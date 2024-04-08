@@ -4,9 +4,11 @@ import {
   Delete,
   Get,
   Head,
+  Headers,
   Logger,
   Param,
   Post,
+  Query,
   Req,
   Res,
   StreamableFile,
@@ -17,13 +19,13 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express/multer'
 import { Request, Response } from 'express'
 
-import {
-  FileStorageEngine,
-  UploadedFile as UploadedApolloFile,
-} from '../utils/FileStorageEngine'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { FilesService } from './files.service'
+import {
+  FileStorageEngine,
+  UploadedFile as UploadedApolloFile,
+} from './FileStorageEngine'
 
 @Validations(Role.ReadOnly)
 @Controller('files')
@@ -62,6 +64,23 @@ export class FilesController {
       basename: file.originalname,
       checksum: file.checksum,
       type: body.type,
+      user: 'na',
+    })
+  }
+
+  @Validations(Role.Admin)
+  @Post('stream')
+  async streamFile(
+    @Req() req: Request,
+    @Query('name') name: string,
+    @Headers('Content-Length') contentLength: string,
+    @Headers('Content-Type') contentType: 'text/x-gff3' | 'text/x-fasta',
+  ) {
+    const checksum = await this.filesService.uploadFileFromRequest(req, name)
+    return this.filesService.create({
+      basename: name,
+      checksum,
+      type: contentType,
       user: 'na',
     })
   }

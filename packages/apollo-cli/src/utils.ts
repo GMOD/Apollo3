@@ -347,8 +347,9 @@ export async function uploadFile(
       keepAliveMaxTimeout: 10 * 60 * 1000, // 10 minutes
     }),
   }
-
-  const url = new URL(localhostToAddress(`${address}/files`))
+  const fileName = path.basename(file)
+  const url = new URL(localhostToAddress(`${address}/files/stream`))
+  url.searchParams.set('name', fileName)
   try {
     const response = await fetch(url, auth)
     const json = (await response.json()) as object
