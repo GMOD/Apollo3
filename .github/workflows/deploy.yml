@@ -6,23 +6,6 @@ on:
       environment:
         required: true
         type: string
-    secrets:
-      aws_access_key_id:
-        required: true
-      aws_secret_access_key:
-        required: true
-      ssh_private_key:
-        required: true
-      jwt_secret:
-        required: true
-      session_secret:
-        required: true
-      google_client_id:
-        required: true
-      google_client_secret:
-        required: true
-      github_token:
-        required: true
 
 jobs:
   deploy:
