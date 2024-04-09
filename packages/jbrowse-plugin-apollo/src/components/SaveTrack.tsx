@@ -81,8 +81,6 @@ export function SaveTrack({
       setErrorMessage('"TrackId" is missing in the track configuration')
       return
     }
-    console.log(`Type:${type}`)
-    console.log(`TrackId:${trackId}`)
     const change = new SaveTrackChange({
       typeName: 'SaveTrackChange',
       trackConfig,

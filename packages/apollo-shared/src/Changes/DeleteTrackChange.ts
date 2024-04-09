@@ -9,40 +9,40 @@ import {
 
 import { generateRandomString } from '../Common'
 
-export interface SerializedSaveTrackChangeBase extends SerializedChange {
-  typeName: 'SaveTrackChange'
+export interface SerializedDeleteTrackChangeBase extends SerializedChange {
+  typeName: 'DeleteTrackChange'
   trackConfig: string
 }
 
-export interface SaveTrackChangeDetails {
+export interface DeleteTrackChangeDetails {
   role: 'admin' | 'user' | 'readOnly'
 }
 
-export interface SerializedSaveTrackChangeSingle
-  extends SerializedSaveTrackChangeBase,
-    SaveTrackChangeDetails {}
+export interface SerializedDeleteTrackChangeSingle
+  extends SerializedDeleteTrackChangeBase,
+    DeleteTrackChangeDetails {}
 
-export interface SerializedSaveTrackChangeMultiple
-  extends SerializedSaveTrackChangeBase {
-  changes: SaveTrackChangeDetails[]
+export interface SerializedDeleteTrackChangeMultiple
+  extends SerializedDeleteTrackChangeBase {
+  changes: DeleteTrackChangeDetails[]
 }
 
-export type SerializedSaveTrackChange =
-  | SerializedSaveTrackChangeSingle
-  | SerializedSaveTrackChangeMultiple
+export type SerializedDeleteTrackChange =
+  | SerializedDeleteTrackChangeSingle
+  | SerializedDeleteTrackChangeMultiple
 
-export class SaveTrackChange extends Change {
-  typeName = 'SaveTrackChange' as const
-  changes: SaveTrackChangeDetails[]
+export class DeleteTrackChange extends Change {
+  typeName = 'DeleteTrackChange' as const
+  changes: DeleteTrackChangeDetails[]
   trackConfig: string
 
-  constructor(json: SerializedSaveTrackChange, options?: ChangeOptions) {
+  constructor(json: SerializedDeleteTrackChange, options?: ChangeOptions) {
     super(json, options)
     this.changes = 'changes' in json ? json.changes : [json]
     this.trackConfig = json.trackConfig
   }
 
-  toJSON(): SerializedSaveTrackChange {
+  toJSON(): SerializedDeleteTrackChange {
     const { changes, trackConfig, typeName } = this
     if (changes.length === 1) {
       const [{ role }] = changes
@@ -55,24 +55,14 @@ export class SaveTrackChange extends Change {
     const { trackModel } = backend
     const { logger, trackConfig } = this
     const jsonObject = JSON.parse(trackConfig)
-    const { type } = jsonObject
     let { trackId } = jsonObject
     const suffix = '-sessionTrack'
     // Remove '-sessionTrack' if exists
     if (trackId.endsWith(suffix)) {
       trackId = trackId.slice(0, trackId.length - suffix.length)
     }
-    const tracks = await trackModel.find({ trackId: new RegExp(`^${trackId}`) })
-    if (tracks.length > 0) {
-      throw new Error('Same track already exists in database.')
-    }
-    await trackModel.create({
-      type,
-      // trackId: `${trackId}-${generateRandomString(5)}`,
-      trackId,
-      trackConfig: jsonObject,
-    })
-    logger.debug?.(`Added "${trackId}" new track into database.`)
+    await trackModel.deleteOne({ trackId: new RegExp(`^${trackId}`) })
+    logger.debug?.(`Deleted track "${trackId}" from database.`)
   }
 
   async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
@@ -84,6 +74,6 @@ export class SaveTrackChange extends Change {
 
   getInverse() {
     const { changes, logger, trackConfig, typeName } = this
-    return new SaveTrackChange({ typeName, changes, trackConfig }, { logger })
+    return new DeleteTrackChange({ typeName, changes, trackConfig }, { logger })
   }
 }

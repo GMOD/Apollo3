@@ -113,7 +113,6 @@ export class JBrowseService {
       }
       trackConfigs.push(trackConfig)
     }
-    console.log(`********* TRACK CONFIGS = ${JSON.stringify(trackConfigs)}`)
     return config
   }
 
