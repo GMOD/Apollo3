@@ -552,22 +552,27 @@ _See code:
 
 ## `apollo feature get-id`
 
-Get features by identifier
+Get features given their identifiers
 
 ```
 USAGE
   $ apollo feature get-id [--profile <value>] [--config-file <value>] [-i <value>]
 
 FLAGS
-  -i, --feature-id=<value>...  [default: -] Feature IDs to get
+  -i, --feature-id=<value>...  [default: -] Retrieves feature with these IDs to get.
+                               Use "-" to read IDs from stdin (one per
+                               line)
       --config-file=<value>    Use this config file (mostly for testing)
       --profile=<value>        [default: default] Use credentials from this profile
 
 DESCRIPTION
-  Get features by identifier
+  Get features given their identifiers
+
+  Invalid identifiers or identifiers not found in the database will be silently
+  ignored
 
 EXAMPLES
-  Get a list of features :
+  Get features for these identifiers:
 
     $ apollo feature get-id -i abc...zyz def...foo
 ```

@@ -63,15 +63,15 @@ class TestCLI(unittest.TestCase):
 
     def testGetConfigFile(self):
         p = shell(f"{apollo} config --get-config-file")
-        self.assertTrue(p.stdout.strip().startswith('/'))
+        self.assertTrue(p.stdout.strip().startswith("/"))
 
     def testApolloStatus(self):
         p = shell(f"{apollo} status {P}")
-        self.assertEqual(p.stdout.strip(), 'Logged in')
+        self.assertEqual(p.stdout.strip(), "Logged in")
 
         shell(f"{apollo} logout {P}")
         p = shell(f"{apollo} status {P}")
-        self.assertEqual(p.stdout.strip(), 'Logged out')
+        self.assertEqual(p.stdout.strip(), "Logged out")
 
         shell(f"{apollo} login {P}")
 
@@ -239,7 +239,7 @@ class TestCLI(unittest.TestCase):
         )
         self.assertTrue(p.returncode != 0)
         self.assertTrue('Error: Assembly "vv1" already exists' in p.stderr)
-        
+
         # Default assembly name
         shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -f")
         p = shell(f"{apollo} assembly get {P} -a tiny.fasta.gff3")
@@ -295,26 +295,28 @@ class TestCLI(unittest.TestCase):
             strict=False,
         )
         self.assertTrue(p.returncode != 0)
-    
+
     def testEditFeatureFromJson(self):
         shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
         p = shell(f"{apollo} feature search {P} -a vv1 -t BAC")
         out = json.loads(p.stdout)[0]
-        self.assertEqual(out['type'], "BAC")
+        self.assertEqual(out["type"], "BAC")
 
-        req = [{
-          "typeName": "TypeChange",
-          "changedIds": [out['_id']],
-          "assembly": out['refSeq']['assembly'],
-          "featureId": out['_id'],
-          "oldType": "BAC",
-          "newType": "G_quartet"
-        }]
+        req = [
+            {
+                "typeName": "TypeChange",
+                "changedIds": [out["_id"]],
+                "assembly": out["refSeq"]["assembly"],
+                "featureId": out["_id"],
+                "oldType": "BAC",
+                "newType": "G_quartet",
+            }
+        ]
         j = json.dumps(req)
         shell(f"echo '{j}' | {apollo} feature edit {P} -j -")
         p = shell(f"{apollo} feature search {P} -a vv1 -t G_quartet")
         out = json.loads(p.stdout)[0]
-        self.assertEqual(out['type'], "G_quartet")
+        self.assertEqual(out["type"], "G_quartet")
 
     def testEditFeatureType(self):
         shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
@@ -347,10 +349,10 @@ class TestCLI(unittest.TestCase):
         )
         contig = json.loads(p.stdout)
         self.assertEqual(contig["type"], "region")
-        
+
         # Return current type
         p = shell(f"{apollo} feature edit-type {P} -i {contig_id}")
-        self.assertEqual(p.stdout.strip(), 'region')
+        self.assertEqual(p.stdout.strip(), "region")
 
     def testEditFeatureCoords(self):
         shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
@@ -445,10 +447,10 @@ class TestCLI(unittest.TestCase):
         shell(f"{apollo} feature edit-attribute {P} -i {fid} -a newAttr -v stuff")
         p = shell(f"{apollo} feature edit-attribute {P} -i {fid} -a newAttr")
         self.assertTrue("stuff" in p.stdout)
-        
+
         ## Non existing attr
         p = shell(f"{apollo} feature edit-attribute {P} -i {fid} -a NonExist")
-        self.assertEqual(p.stdout.strip(), '')
+        self.assertEqual(p.stdout.strip(), "")
 
         ## List of values
         p = shell(f"{apollo} feature edit-attribute {P} -i {fid} -a newAttr -v A B C")
@@ -459,9 +461,9 @@ class TestCLI(unittest.TestCase):
         ## Delete attribute
         shell(f"{apollo} feature edit-attribute {P} -i {fid} -a newAttr -d")
         p = shell(f"{apollo} feature edit-attribute {P} -i {fid} -a newAttr")
-        self.assertEqual(p.stdout.strip(), '')
+        self.assertEqual(p.stdout.strip(), "")
         ## Delete again is ok
-        shell(f"{apollo} feature edit-attribute {P} -i {fid} -a newAttr -d") 
+        shell(f"{apollo} feature edit-attribute {P} -i {fid} -a newAttr -d")
 
         ## Special fields
         p = shell(
@@ -511,11 +513,11 @@ class TestCLI(unittest.TestCase):
 
         # Search source (which in fact is an attribute)
         p = shell(f"{apollo} feature search {P} -a vv1 -t someExample")
-        self.assertTrue('SomeContig' in p.stdout)
+        self.assertTrue("SomeContig" in p.stdout)
 
         # Case insensitive
         p = shell(f"{apollo} feature search {P} -a vv1 -t SOMEexample")
-        self.assertTrue('SomeContig' in p.stdout)
+        self.assertTrue("SomeContig" in p.stdout)
 
         # No partial word match
         p = shell(f"{apollo} feature search {P} -a vv1 -t Fingerpri")
@@ -540,7 +542,6 @@ class TestCLI(unittest.TestCase):
         # ...or a single unusual letter
         p = shell(f"{apollo} feature search {P} -a vv1 -t Q")
         self.assertTrue('"Q"' in p.stdout.strip())
-
 
     def testDeleteFeatures(self):
         shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
@@ -734,6 +735,26 @@ class TestCLI(unittest.TestCase):
         p = shell(f"{apollo} assembly sequence {P} -r ctgB", strict=False)
         self.assertTrue(p.returncode != 0)
         self.assertTrue("found in more than one" in p.stderr)
+
+    def testGetFeatureById(self):
+        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a v1 -f")
+        p = shell(f"{apollo} feature get {P} -a v1")
+        ff = json.loads(p.stdout)
+
+        x1 = ff[0][0]["_id"]
+        x2 = ff[0][1]["_id"]
+        p = shell(f"{apollo} feature get-id {P} -i {x1} {x1} {x2}")
+        out = json.loads(p.stdout)
+        self.assertEqual(len(out), 2)
+        self.assertEqual(out[0]["_id"], x1)
+        self.assertEqual(out[1]["_id"], x2)
+
+        p = shell(f"{apollo} feature get-id {P} -i FOOBAR")
+        self.assertEqual(p.stdout.strip(), "[]")
+
+        p = shell(f"echo -e '{x1} \n {x2}' | {apollo} feature get-id {P}")
+        out = json.loads(p.stdout)
+        self.assertEqual(len(out), 2)
 
 
 if __name__ == "__main__":
