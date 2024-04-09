@@ -50,7 +50,7 @@ function getMousePosition(
   return { x, y, refName, bp, regionNumber }
 }
 
-export function getSeqRow(feature: AnnotationFeatureI, bpPerPx: number) {
+function getSeqRow(feature: AnnotationFeatureI, bpPerPx: number) {
   const rowOffset = bpPerPx <= 1 ? 5 : 3
   if (feature.type === 'CDS' && feature.phase !== undefined) {
     return feature.strand === -1
@@ -74,7 +74,8 @@ function highlightSeq(
   widthPx: number,
 ) {
   if (row !== undefined) {
-    seqTrackOverlayctx.fillStyle = 'rgba(0,0,0,0.3)'
+    seqTrackOverlayctx.fillStyle =
+      theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
     seqTrackOverlayctx.fillRect(
       startPx,
       sequenceRowHeight * row,

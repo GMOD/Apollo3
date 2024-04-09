@@ -11,9 +11,8 @@ import { LinearApolloDisplay } from '../stateModel'
 import {
   CDSDiscontinuousLocation,
   MousePosition,
-  getSeqRow,
 } from '../stateModel/mouseEvents'
-import { transRowsColorCodes } from '../stateModel/rendering'
+import { frameColors, getFrame } from '../stateModel/rendering'
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 
@@ -250,11 +249,13 @@ export class CanonicalGeneGlyph extends Glyph {
             ctx.fillRect(startPx, cdsTop, widthPx, cdsHeight)
             if (widthPx > 2) {
               ctx.clearRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
-              const seqRow = getSeqRow(cds, bpPerPx)
-              const cdsColorCode =
-                seqRow === undefined
-                  ? 'rgb(171,71,188)'
-                  : transRowsColorCodes[seqRow]
+              const frame = getFrame(
+                cdsLocation.start,
+                cdsLocation.end,
+                cdsLocation.strand,
+                cdsLocation.phase,
+              )
+              const cdsColorCode = frameColors.at(frame) ?? 'rgb(171,71,188)'
               ctx.fillStyle =
                 apolloSelectedFeature && cds._id === apolloSelectedFeature._id
                   ? 'rgb(0,0,0)'

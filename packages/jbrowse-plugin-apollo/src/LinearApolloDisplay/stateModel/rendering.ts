@@ -9,14 +9,28 @@ import { ApolloSessionModel } from '../../session'
 import { getGlyph } from './getGlyph'
 import { layoutsModelFactory } from './layouts'
 
-export const transRowsColorCodes: Record<number, string> = {
-  0: '#F1948A',
-  1: '#7DCEA0',
-  2: '#7FB3D5',
-  5: '#7FB3D5',
-  6: '#7DCEA0',
-  7: '#F1948A',
+export type Frame = 1 | 2 | 3 | -1 | -2 | -3
+
+export function getFrame(
+  start: number,
+  end: number,
+  strand: 1 | -1,
+  phase: 0 | 1 | 2,
+): Frame {
+  return strand === 1
+    ? ((((start + phase) % 3) + 1) as 1 | 2 | 3)
+    : ((-1 * ((end - phase) % 3) - 1) as -1 | -2 | -3)
 }
+
+export const frameColors: [
+  null,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+] = [null, '#FF8080', '#80FF80', '#8080FF', '#8080FF', '#80FF80', '#FF8080']
 
 export function renderingModelIntermediateFactory(
   pluginManager: PluginManager,
@@ -280,6 +294,7 @@ export function sequenceRenderingModelFactory(
 
                 // Draw translation forward
                 for (let j = 2; j >= 0; j--) {
+                  const color = frameColors.at(j + 1) ?? '#ffffff'
                   if ((region.start + i) % 3 === j) {
                     drawTranslation(
                       seqTrackctx,
@@ -291,7 +306,7 @@ export function sequenceRenderingModelFactory(
                       seq,
                       i,
                       false,
-                      transRowsColorCodes[Math.abs(j - 2)],
+                      color,
                     )
                   }
                 }
@@ -354,6 +369,7 @@ export function sequenceRenderingModelFactory(
 
                 // Draw translation reverse
                 for (let k = 0; k <= 2; k++) {
+                  const color = frameColors.at(-(k + 1)) ?? '#ffffff'
                   const rowOffset = self.lgv.bpPerPx <= 1 ? 5 : 3
                   if ((region.start + i) % 3 === k) {
                     drawTranslation(
@@ -366,7 +382,7 @@ export function sequenceRenderingModelFactory(
                       seq,
                       i,
                       true,
-                      transRowsColorCodes[rowOffset + k],
+                      color,
                     )
                   }
                 }
