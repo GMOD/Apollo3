@@ -12,6 +12,7 @@ import {
   CDSDiscontinuousLocation,
   MousePosition,
 } from '../stateModel/mouseEvents'
+import { frameColors, getFrame } from '../stateModel/rendering'
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 
@@ -248,10 +249,17 @@ export class CanonicalGeneGlyph extends Glyph {
             ctx.fillRect(startPx, cdsTop, widthPx, cdsHeight)
             if (widthPx > 2) {
               ctx.clearRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
+              const frame = getFrame(
+                cdsLocation.start,
+                cdsLocation.end,
+                cdsLocation.strand,
+                cdsLocation.phase,
+              )
+              const cdsColorCode = frameColors.at(frame) ?? 'rgb(171,71,188)'
               ctx.fillStyle =
                 apolloSelectedFeature && cds._id === apolloSelectedFeature._id
                   ? 'rgb(0,0,0)'
-                  : 'rgb(171,71,188)'
+                  : cdsColorCode
               ctx.fillRect(startPx + 1, cdsTop + 1, widthPx - 2, cdsHeight - 2)
               if (forwardFill && backwardFill && strand) {
                 const reversal = reversed ? -1 : 1

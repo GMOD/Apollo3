@@ -4,6 +4,7 @@ import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 
 import { LinearApolloDisplay } from '../stateModel'
 import { MousePosition } from '../stateModel/mouseEvents'
+import { frameColors, getFrame } from '../stateModel/rendering'
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 
@@ -126,13 +127,22 @@ export class ImplicitExonGeneGlyph extends Glyph {
           ctx.fillRect(startPx, cdsOrUTRTop, widthPx, height)
           if (widthPx > 2) {
             ctx.clearRect(startPx + 1, cdsOrUTRTop + 1, widthPx - 2, height - 2)
+            let colorCode = 'rgb(211,211,211)'
+            if (isCDS) {
+              const frame = getFrame(
+                cdsOrUTR.start,
+                cdsOrUTR.end,
+                cdsOrUTR.strand,
+                cdsOrUTR.phase,
+              )
+              const color = frameColors.at(frame)
+              colorCode = color ?? 'rgb(171,71,188)'
+            }
             ctx.fillStyle =
               apolloSelectedFeature &&
               cdsOrUTR._id === apolloSelectedFeature._id
                 ? 'rgb(0,0,0)'
-                : isCDS
-                ? 'rgb(171,71,188)'
-                : 'rgb(211,211,211)'
+                : colorCode
             ctx.fillRect(startPx + 1, cdsOrUTRTop + 1, widthPx - 2, height - 2)
             if (forwardFill && backwardFill && strand) {
               const reversal = reversed ? -1 : 1
