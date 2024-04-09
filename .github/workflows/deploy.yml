@@ -6,6 +6,9 @@ on:
       environment:
         required: true
         type: string
+    secrets:
+      GITHUB_TOKEN:
+        required: true
 
 jobs:
   deploy:
@@ -19,21 +22,21 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.aws_access_key_id }}
-          aws-secret-access-key: ${{ secrets.aws_secret_access_key }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
       - name: Get instance address
         id: ec2-describe-instances
         run: |
           INSTANCE_ADDRESS=$(aws ec2 describe-instances \
-            --instance-ids ${{ vars.instance_id }} \
+            --instance-ids ${{ vars.INSTANCE_ID }} \
             --query "Reservations[*].Instances[*].[PublicDnsName]" \
             --output text)
           echo "INSTANCE_ADDRESS=$INSTANCE_ADDRESS" >> "$GITHUB_OUTPUT"
       - name: Set up SSH
         run: |
           mkdir --parents ~/.ssh
-          echo "${{ secrets.ssh_private_key  }}" >  ~/.ssh/staging
+          echo "${{ secrets.SSH_PRIVATE_KEY  }}" >  ~/.ssh/staging
           chmod 600 ~/.ssh/staging
           cat >>~/.ssh/config <<END
           Host staging
@@ -52,14 +55,14 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.github_token }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Deploy
         env:
-          JWT_SECRET: ${{ secrets.jwt_secret }}
-          SESSION_SECRET: ${{ secrets.session_secret }}
-          GOOGLE_CLIENT_ID: ${{ secrets.google_client_id }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.google_client_secret }}
-          URL: ${{ vars.url }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          URL: ${{ vars.URL }}
         working-directory: .github/workflows/deploy
         run: |
           docker --context staging compose down

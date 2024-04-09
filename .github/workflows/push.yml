@@ -96,9 +96,11 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       environment: 'staging'
+    secrets: inherit
   deploy-demo:
     name: Deploy to demo server
     if: ${{ github.event_name == 'release' }}
     uses: ./.github/workflows/deploy.yml
     with:
       environment: 'demo'
+    secrets: inherit
