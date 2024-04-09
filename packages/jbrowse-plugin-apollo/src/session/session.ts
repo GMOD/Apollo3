@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
 import { AnnotationFeature, AnnotationFeatureI } from '@apollo-annotation/mst'
-import { UserLocation } from '@apollo-annotation/shared'
+import { DeleteTrackChange, SaveTrackChange, UserLocation } from '@apollo-annotation/shared'
 import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import {
@@ -12,10 +12,7 @@ import {
   BaseTrackConfig,
 } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
-import {
-  AbstractSessionModel,
-  SessionWithConfigEditing,
-} from '@jbrowse/core/util'
+import { AbstractSessionModel } from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import SaveIcon from '@mui/icons-material/Save'
 import { autorun, observable } from 'mobx'
@@ -364,14 +361,17 @@ export function extendSession(
         self as unknown as AbstractSessionModel
       ).getTrackActionMenuItems
       return {
-        getTrackActionMenuItems(conf: BaseTrackConfig) {
-          if (conf.type === 'ApolloTrack') {
+        async getTrackActionMenuItems(conf: BaseTrackConfig) {
+          if (
+            conf.type === 'ApolloTrack' ||
+            conf.type === 'ReferenceSequenceTrack'
+          ) {
             return superTrackActionMenuItems?.(conf)
           }
           return [
             ...(superTrackActionMenuItems?.(conf) ?? []),
             {
-              label: 'Save track for next time',
+              label: 'Save track to Apollo',
               onClick: async () => {
                 const { internetAccounts } = getRoot<ApolloRootModel>(self)
                 for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
@@ -388,7 +388,30 @@ export function extendSession(
                     internetAccountId,
                   })
                   const { notify } = self as unknown as AbstractSessionModel
-                  notify('Track information saved for next time', 'success')
+                  notify('Track information saved to Apollo', 'success')
+                }
+              },
+              icon: SaveIcon,
+            },
+            {
+              label: 'Remove track from Apollo',
+              onClick: async () => {
+                const { internetAccounts } = getRoot<ApolloRootModel>(self)
+                for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
+                  if (internetAccount.type !== 'ApolloInternetAccount') {
+                    continue
+                  }
+                  const change = new DeleteTrackChange({
+                    typeName: 'DeleteTrackChange',
+                    trackConfig: JSON.stringify(conf),
+                    changes: [],
+                  })
+                  const { internetAccountId } = internetAccount
+                  await self.apolloDataStore.changeManager.submit(change, {
+                    internetAccountId,
+                  })
+                  const { notify } = self as unknown as AbstractSessionModel
+                  notify('Track removed from Apollo', 'success')
                 }
               },
               icon: SaveIcon,

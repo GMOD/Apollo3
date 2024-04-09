@@ -9,7 +9,7 @@ import {
   SelectChangeEvent,
 } from '@mui/material'
 import LinearProgress from '@mui/material/LinearProgress'
-import { SaveTrackChange } from 'apollo-shared'
+import { SaveTrackChange } from '@apollo-annotation/shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
@@ -81,8 +81,6 @@ export function SaveTrack({
       setErrorMessage('"TrackId" is missing in the track configuration')
       return
     }
-    console.log(`Type:${type}`)
-    console.log(`TrackId:${trackId}`)
     const change = new SaveTrackChange({
       typeName: 'SaveTrackChange',
       trackConfig,
