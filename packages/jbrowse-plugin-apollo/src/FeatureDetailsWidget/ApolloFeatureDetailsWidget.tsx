@@ -11,6 +11,7 @@ import { ApolloRootModel } from '../types'
 import { Attributes } from './Attributes'
 import { BasicInformation } from './BasicInformation'
 import { ApolloFeatureDetailsWidget as ApolloFeatureDetails } from './model'
+import { RelatedFeatures } from './RelatedFeature'
 import { Sequence } from './Sequence'
 
 const useStyles = makeStyles()((theme) => ({
@@ -70,6 +71,13 @@ export const ApolloFeatureDetailsWidget = observer(
           session={session}
           assembly={currentAssembly._id}
           refName={refName}
+        />
+        <hr />
+        <RelatedFeatures
+          feature={feature}
+          refName={refName}
+          session={session}
+          assembly={currentAssembly._id}
         />
       </div>
     )
