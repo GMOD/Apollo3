@@ -13,6 +13,7 @@ and run it:
 import json
 import os
 import shutil
+import signal
 import sys
 import subprocess
 import unittest
@@ -39,10 +40,12 @@ class shell:
                 f"\nSTDOUT:\n{self.stdout}\nSTDERR:\n{self.stderr}\nEXIT CODE: {self.returncode}"
             )
 
+def handler(signum, frame):
+    raise Exception("end of time")
+
 
 apollo = "yarn dev"
 P = "--profile testAdmin"
-
 
 def setUpModule():
     # See apollo-collaboration-server/.development.env for credentials etc.
@@ -252,13 +255,25 @@ class TestCLI(unittest.TestCase):
             while i < 10000:
                 fout.write("CATTGTTGCGGAGTTGAACAACGGCATTAGGAACACTTCCGTCTC\n")
                 i += 1
-        shell(f"{apollo} assembly add-fasta {P} -i test_data/tmp.fa -a test -f")
-        shell(
-            f"{apollo} assembly add-gff {P} -i test_data/tmp.fa -a test -f",
-            strict=False,
-        )
-        shell(f"{apollo} assembly add-fasta {P} -i test_data/tmp.fa -a test -f")
+
+        signal.signal(signal.SIGALRM, handler)
+        signal.alarm(120) # Allow these many secs to complete
+
+        try:
+            shell(f"{apollo} assembly add-fasta {P} -i test_data/tmp.fa -a test -f")
+            shell(
+                f"{apollo} assembly add-gff {P} -i test_data/tmp.fa -a test -f",
+                strict=False,
+            )
+            shell(f"{apollo} assembly add-fasta {P} -i test_data/tmp.fa -a test -f")
+            done = True
+        except Exception as exc: 
+            print(exc)
+            p.kill()
+            done = False
+
         os.remove("test_data/tmp.fa")
+        self.assertTrue(done)
 
     def testAddAssemblyFromLocalFasta(self):
         shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a vv1 -f")
