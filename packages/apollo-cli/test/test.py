@@ -20,7 +20,7 @@ import unittest
 
 
 class shell:
-    def __init__(self, cmd, strict=True):
+    def __init__(self, cmd, strict=True, timeout=None):
         print(cmd)
         cmd = f"set -e; set -u; set -o pipefail\n{cmd}"
         p = subprocess.Popen(
@@ -30,7 +30,12 @@ class shell:
             stderr=subprocess.PIPE,
             executable="/bin/bash",
         )
-        stdout, stderr = p.communicate()
+        try:
+            stdout, stderr = p.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            p.kill()
+            sys.stderr.write(f"Error: Timeout after {timeout} seconds\n")
+            stdout, stderr = p.communicate()
         self.returncode = p.returncode
         self.stdout = stdout.decode()
         self.stderr = stderr.decode()
@@ -40,12 +45,10 @@ class shell:
                 f"\nSTDOUT:\n{self.stdout}\nSTDERR:\n{self.stderr}\nEXIT CODE: {self.returncode}"
             )
 
-def handler(signum, frame):
-    raise Exception("end of time")
-
 
 apollo = "yarn dev"
 P = "--profile testAdmin"
+
 
 def setUpModule():
     # See apollo-collaboration-server/.development.env for credentials etc.
@@ -256,24 +259,21 @@ class TestCLI(unittest.TestCase):
                 fout.write("CATTGTTGCGGAGTTGAACAACGGCATTAGGAACACTTCCGTCTC\n")
                 i += 1
 
-        signal.signal(signal.SIGALRM, handler)
-        signal.alarm(120) # Allow these many secs to complete
-
-        try:
-            shell(f"{apollo} assembly add-fasta {P} -i test_data/tmp.fa -a test -f")
-            shell(
-                f"{apollo} assembly add-gff {P} -i test_data/tmp.fa -a test -f",
-                strict=False,
-            )
-            shell(f"{apollo} assembly add-fasta {P} -i test_data/tmp.fa -a test -f")
-            done = True
-        except Exception as exc: 
-            print(exc)
-            p.kill()
-            done = False
+        shell(
+            f"{apollo} assembly add-fasta {P} -i test_data/tmp.fa -a test -f",
+            timeout=60,
+        )
+        shell(
+            f"{apollo} assembly add-gff {P} -i test_data/tmp.fa -a test -f",
+            strict=False,
+            timeout=60,
+        )
+        shell(
+            f"{apollo} assembly add-fasta {P} -i test_data/tmp.fa -a test -f",
+            timeout=60,
+        )
 
         os.remove("test_data/tmp.fa")
-        self.assertTrue(done)
 
     def testAddAssemblyFromLocalFasta(self):
         shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a vv1 -f")
