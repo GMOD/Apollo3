@@ -7,8 +7,6 @@ import {
   ServerDataStore,
 } from '@apollo-annotation/common'
 
-import { generateRandomString } from '../Common'
-
 export interface SerializedSaveTrackChangeBase extends SerializedChange {
   typeName: 'SaveTrackChange'
   trackConfig: string
@@ -55,24 +53,29 @@ export class SaveTrackChange extends Change {
     const { trackModel } = backend
     const { logger, trackConfig } = this
     const jsonObject = JSON.parse(trackConfig)
-    const { type } = jsonObject
-    let { trackId } = jsonObject
     const suffix = '-sessionTrack'
     // Remove '-sessionTrack' if exists
-    if (trackId.endsWith(suffix)) {
-      trackId = trackId.slice(0, trackId.length - suffix.length)
+    if (jsonObject.trackId.endsWith(suffix)) {
+      jsonObject.trackId = jsonObject.trackId.slice(
+        0,
+        jsonObject.trackId.length - suffix.length,
+      )
     }
-    const tracks = await trackModel.find({ trackId: new RegExp(`^${trackId}`) })
+    const tracks = await trackModel.find({
+      trackId: new RegExp(`^${jsonObject.trackId}`),
+    })
     if (tracks.length > 0) {
       throw new Error('Same track already exists in database.')
     }
+    // Check if 'metadata' exists, if not, initialize it
+    if (!jsonObject.metadata) {
+      jsonObject.metadata = {}
+    }
+    jsonObject.metadata.savedToApollo = true
     await trackModel.create({
-      type,
-      // trackId: `${trackId}-${generateRandomString(5)}`,
-      trackId,
       trackConfig: jsonObject,
     })
-    logger.debug?.(`Added "${trackId}" new track into database.`)
+    logger.debug?.(`Added "${jsonObject.trackId}" new track into database.`)
   }
 
   async executeOnLocalGFF3(_backend: LocalGFF3DataStore) {
