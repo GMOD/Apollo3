@@ -1,10 +1,11 @@
 import { createHash } from 'node:crypto'
-import { createWriteStream } from 'node:fs'
+import { createWriteStream, statSync } from 'node:fs'
 import { mkdir, mkdtemp, rename, rmdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { createGzip } from 'node:zlib'
+
 
 import { Logger } from '@nestjs/common'
 
@@ -55,15 +56,17 @@ export async function writeFileAndCalculateHash(
   const gz = createGzip()
   await pipeline(stream, gz, fileWriteStream)
 
-  const fileChecksum = hash.digest('hex')
-  logger.debug(`Uploaded file checksum: "${fileChecksum}"`)
+  const checksum = hash.digest('hex')
+  logger.debug(`Uploaded file checksum: "${checksum}"`)
 
-  const uploadedFileName = join(fileUploadFolder, fileChecksum)
+  const uploadedFileName = join(fileUploadFolder, checksum)
   logger.debug(
     `File uploaded successfully, moving temporary file to final location: "${uploadedFileName}"`,
   )
   await rename(tmpFileName, uploadedFileName)
+  const filesizeCompressed = statSync(uploadedFileName).size
+
   await rmdir(tmpDir)
   logger.log('File upload finished')
-  return fileChecksum
+  return { checksum, filesizeCompressed, filesize: sizeProcesed }
 }

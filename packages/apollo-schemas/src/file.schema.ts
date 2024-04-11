@@ -13,6 +13,12 @@ export class File {
 
   @Prop({ required: true, enum: ['text/x-gff3', 'text/x-fasta'] })
   type: 'text/x-gff3' | 'text/x-fasta'
+
+  @Prop({ required: true })
+  filesize: number
+
+  @Prop({ required: true })
+  filesizeCompressed: number
 }
 
 export const FileSchema = SchemaFactory.createForClass(File)

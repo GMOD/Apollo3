@@ -9,6 +9,8 @@ import { writeFileAndCalculateHash } from './filesUtil'
 
 export interface UploadedFile extends Express.Multer.File {
   checksum: string
+  filesizeCompressed: number
+  filesize: number
 }
 
 @Injectable()
@@ -28,13 +30,10 @@ export class FileStorageEngine implements StorageEngine {
         ),
       )
     }
-    const checksum = await writeFileAndCalculateHash(
-      file,
-      FILE_UPLOAD_FOLDER,
-      this.logger,
-    )
-
-    cb(null, { ...file, checksum })
+    const { checksum, filesize, filesizeCompressed } =
+      await writeFileAndCalculateHash(file, FILE_UPLOAD_FOLDER, this.logger)
+    this.logger.log(`SIZE: ${filesize}`)
+    cb(null, { ...file, checksum, filesizeCompressed, filesize })
   }
 
   _removeFile(

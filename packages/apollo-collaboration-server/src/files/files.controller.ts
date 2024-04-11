@@ -65,6 +65,8 @@ export class FilesController {
       checksum: file.checksum,
       type: body.type,
       user: 'na',
+      filesize: file.filesize,
+      filesizeCompressed: file.filesizeCompressed,
     })
   }
 
@@ -78,16 +80,18 @@ export class FilesController {
   ) {
     let size = Number.parseInt(contentLength, 10)
     size = Number.isNaN(size) ? 0 : size
-    const checksum = await this.filesService.uploadFileFromRequest(
+    const fileStat = await this.filesService.uploadFileFromRequest(
       req,
       name,
       size,
     )
     return this.filesService.create({
       basename: name,
-      checksum,
+      checksum: fileStat.checksum,
       type: contentType,
       user: 'na',
+      filesize: fileStat.filesize,
+      filesizeCompressed: fileStat.filesizeCompressed,
     })
   }
 
