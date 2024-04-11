@@ -1,3 +1,4 @@
+import { readConfObject } from '@jbrowse/core/configuration'
 import {
   BaseInternetAccountModel,
   BaseTrackConfig,
@@ -371,62 +372,67 @@ export function extendSession(
         self as unknown as AbstractSessionModel
       ).getTrackActionMenuItems
       return {
-        async getTrackActionMenuItems(conf: BaseTrackConfig) {
+        getTrackActionMenuItems(conf: BaseTrackConfig) {
           if (
             conf.type === 'ApolloTrack' ||
             conf.type === 'ReferenceSequenceTrack'
           ) {
             return superTrackActionMenuItems?.(conf)
           }
-          return [
-            ...(superTrackActionMenuItems?.(conf) ?? []),
-            {
-              label: 'Save track to Apollo',
-              onClick: async () => {
-                const { internetAccounts } = getRoot<ApolloRootModel>(self)
-                for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
-                  if (internetAccount.type !== 'ApolloInternetAccount') {
-                    continue
-                  }
-                  const change = new SaveTrackChange({
-                    typeName: 'SaveTrackChange',
-                    trackConfig: JSON.stringify(conf),
-                    changes: [],
-                  })
-                  const { internetAccountId } = internetAccount
-                  await self.apolloDataStore.changeManager.submit(change, {
-                    internetAccountId,
-                  })
-                  const { notify } = self as unknown as AbstractSessionModel
-                  notify('Track information saved to Apollo', 'success')
-                }
-              },
-              icon: SaveIcon,
-            },
-            {
-              label: 'Remove track from Apollo',
-              onClick: async () => {
-                const { internetAccounts } = getRoot<ApolloRootModel>(self)
-                for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
-                  if (internetAccount.type !== 'ApolloInternetAccount') {
-                    continue
-                  }
-                  const change = new DeleteTrackChange({
-                    typeName: 'DeleteTrackChange',
-                    trackConfig: JSON.stringify(conf),
-                    changes: [],
-                  })
-                  const { internetAccountId } = internetAccount
-                  await self.apolloDataStore.changeManager.submit(change, {
-                    internetAccountId,
-                  })
-                  const { notify } = self as unknown as AbstractSessionModel
-                  notify('Track removed from Apollo', 'success')
-                }
-              },
-              icon: SaveIcon,
-            },
-          ]
+          const metadata = readConfObject(conf, 'metadata')
+          return metadata.savedToApollo
+            ? [
+                ...(superTrackActionMenuItems?.(conf) ?? []),
+                {
+                  label: 'Remove track from Apollo',
+                  onClick: async () => {
+                    const { internetAccounts } = getRoot<ApolloRootModel>(self)
+                    for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
+                      if (internetAccount.type !== 'ApolloInternetAccount') {
+                        continue
+                      }
+                      const change = new DeleteTrackChange({
+                        typeName: 'DeleteTrackChange',
+                        trackConfig: JSON.stringify(conf),
+                        changes: [],
+                      })
+                      const { internetAccountId } = internetAccount
+                      await self.apolloDataStore.changeManager.submit(change, {
+                        internetAccountId,
+                      })
+                      const { notify } = self as unknown as AbstractSessionModel
+                      notify('Track removed from Apollo', 'success')
+                    }
+                  },
+                  icon: SaveIcon,
+                },
+              ]
+            : [
+                ...(superTrackActionMenuItems?.(conf) ?? []),
+                {
+                  label: 'Save track to Apollo',
+                  onClick: async () => {
+                    const { internetAccounts } = getRoot<ApolloRootModel>(self)
+                    for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
+                      if (internetAccount.type !== 'ApolloInternetAccount') {
+                        continue
+                      }
+                      const change = new SaveTrackChange({
+                        typeName: 'SaveTrackChange',
+                        trackConfig: JSON.stringify(conf),
+                        changes: [],
+                      })
+                      const { internetAccountId } = internetAccount
+                      await self.apolloDataStore.changeManager.submit(change, {
+                        internetAccountId,
+                      })
+                      const { notify } = self as unknown as AbstractSessionModel
+                      notify('Track information saved to Apollo', 'success')
+                    }
+                  },
+                  icon: SaveIcon,
+                },
+              ]
         },
       }
     })

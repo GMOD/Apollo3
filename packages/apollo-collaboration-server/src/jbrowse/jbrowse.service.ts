@@ -5,7 +5,6 @@ import { Model } from 'mongoose'
 
 import { AssembliesService } from '../assemblies/assemblies.service'
 import { RefSeqsService } from '../refSeqs/refSeqs.service'
-import { CreateTrackDto } from './dto/create-track.dto'
 
 @Injectable()
 export class JBrowseService {
@@ -20,7 +19,7 @@ export class JBrowseService {
 
   async findAllTracks() {
     const trackArray = await this.trackModel.find({}).exec()
-    const trackConfig = trackArray.map(t => t.trackConfig)
+    const trackConfig = trackArray.map((t) => t.trackConfig)
     return trackConfig
   }
 

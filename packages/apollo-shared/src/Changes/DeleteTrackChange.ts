@@ -7,8 +7,6 @@ import {
   ServerDataStore,
 } from 'apollo-common'
 
-import { generateRandomString } from '../Common'
-
 export interface SerializedDeleteTrackChangeBase extends SerializedChange {
   typeName: 'DeleteTrackChange'
   trackConfig: string
