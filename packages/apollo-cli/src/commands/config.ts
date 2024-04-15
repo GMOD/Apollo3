@@ -13,8 +13,8 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
   static summary = 'Get or set apollo configuration options'
   static description = wrapLines(
     `Use this command to create or edit a user profile with credentials to access Apollo. \
-     Configuration options are: \
-     \
+     Configuration options are:
+
      ${optionDesc().join('\n\n')}`,
   )
 

@@ -48,7 +48,7 @@ function optionDocs(): { key: string; description: string }[] {
         docs.push({
           key: v,
           description:
-            'How to access Apollo. Allowed types depend on your Apollo setup, typically these are: google, microsoft, guest, root',
+            'How to access Apollo. accessType is typically one of: google, microsoft, guest, root. Allowed types depend on your Apollo setup',
         })
         break
       }

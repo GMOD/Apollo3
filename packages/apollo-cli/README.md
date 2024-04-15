@@ -252,12 +252,14 @@ DESCRIPTION
   Get or set apollo configuration options
 
   Use this command to create or edit a user profile with credentials to access
-  Apollo. Configuration options are: - address:
+  Apollo. Configuration options are:
+
+  - address:
   Address and port e.g http://localhost:3999
 
   - accessType:
-  How to access Apollo. Allowed types depend on your Apollo setup, typically these
-  are: google, microsoft, guest, root
+  How to access Apollo. accessType is typically one of: google, microsoft, guest,
+  root. Allowed types depend on your Apollo setup
 
   - accessToken:
   Access token. Usually inserted by `apollo login`
