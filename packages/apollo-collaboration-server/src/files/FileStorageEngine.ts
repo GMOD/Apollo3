@@ -32,7 +32,6 @@ export class FileStorageEngine implements StorageEngine {
     }
     const { checksum, filesize, filesizeCompressed } =
       await writeFileAndCalculateHash(file, FILE_UPLOAD_FOLDER, this.logger)
-    this.logger.log(`SIZE: ${filesize}`)
     cb(null, { ...file, checksum, filesizeCompressed, filesize })
   }
 

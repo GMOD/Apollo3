@@ -5,6 +5,14 @@ import ObjectID from 'bson-objectid'
 
 import { Change, ChangeOptions, SerializedChange, isChange } from './Change'
 import { ServerDataStore } from './Operation'
+import express from 'express'
+
+function progressReport(msg: string) {
+  const app = express()
+  app.get('/', (req, res) => {
+    res.send(msg)
+  })
+}
 
 export interface SerializedAssemblySpecificChange extends SerializedChange {
   assembly: string
@@ -49,6 +57,7 @@ export abstract class AssemblySpecificChange extends Change {
     let parsingStarted = false
     logger.debug?.('starting sequence stream')
     let lineCount = 0
+
     for await (const data of sequenceStream) {
       const chunk = data.toString()
       lastLineIsIncomplete = !chunk.endsWith('\n')
@@ -63,7 +72,8 @@ export abstract class AssemblySpecificChange extends Change {
       }
       for await (const line of lines) {
         lineCount++
-        if (lineCount % 1_000_000 === 0) {
+        if (lineCount % 10 === 0) { // 1_000_000
+          progressReport(`Processed ${lineCount} lines`)
           logger.debug?.(`Processed ${lineCount} lines`)
         }
         // In case of GFF3 file we start to read sequence after '##FASTA' is found
