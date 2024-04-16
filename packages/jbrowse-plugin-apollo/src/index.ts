@@ -27,12 +27,14 @@ import {
   changes,
   validationRegistry,
 } from 'apollo-shared'
+import { getRoot } from 'mobx-state-tree'
 
 import { version } from '../package.json'
 import {
   configSchema as apolloInternetAccountConfigSchema,
   modelFactory as apolloInternetAccountModelFactory,
 } from './ApolloInternetAccount'
+import { ApolloInternetAccountModel } from './ApolloInternetAccount/model'
 import { installApolloSequenceAdapter } from './ApolloSequenceAdapter'
 import {
   ApolloSixFrameRenderer,
@@ -68,6 +70,7 @@ import {
   stateModelFactory as SixFrameFeatureDisplayStateModelFactory,
   configSchemaFactory as sixFrameFeatureDisplayConfigSchemaFactory,
 } from './SixFrameFeatureDisplay'
+import { ApolloRootModel } from './types'
 
 interface RpcHandle {
   on(event: string, listener: (event: MessageEvent) => void): this
@@ -405,6 +408,42 @@ export default class ApolloPlugin extends Plugin {
               },
             ],
           )
+        },
+      })
+      pluginManager.rootModel.appendToMenu('Apollo', {
+        label: 'Get stream response',
+        onClick: async (session: ApolloSessionModel) => {
+          const { internetAccounts } = getRoot<ApolloRootModel>(session)
+          const apolloInternetAccount = internetAccounts.find(
+            (ia) => ia.type === 'ApolloInternetAccount',
+          ) as ApolloInternetAccountModel | undefined
+          if (!apolloInternetAccount) {
+            throw new Error('No Apollo internet account found')
+          }
+          const { baseURL } = apolloInternetAccount
+          const url = new URL('files/streamResponseDemo', baseURL)
+          const uri = url.toString()
+          const apolloFetch = apolloInternetAccount?.getFetcher({
+            locationType: 'UriLocation',
+            uri,
+          })
+          const response = await apolloFetch(uri)
+          const { body, ok } = response
+          if (!ok) {
+            throw new Error(await response.text())
+          }
+          if (!body) {
+            return
+          }
+          const tds = new TextDecoderStream()
+          body.pipeThrough(tds)
+          const reader = tds.readable.getReader()
+          let { done, value } = await reader.read()
+          while (!done) {
+            console.log(`Got "${value}"`)
+            ;({ done, value } = await reader.read())
+          }
+          console.log('done')
         },
       })
     }

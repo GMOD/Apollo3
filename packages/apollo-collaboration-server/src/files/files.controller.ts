@@ -1,3 +1,5 @@
+import { Readable } from 'node:stream'
+
 import {
   Body,
   Controller,
@@ -25,7 +27,6 @@ import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { FilesService } from './files.service'
 
-@Validations(Role.ReadOnly)
 @Controller('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
@@ -64,6 +65,23 @@ export class FilesController {
       type: body.type,
       user: 'na',
     })
+  }
+
+  @Get('streamResponseDemo')
+  async streamResponse(@Res() res: Response) {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    const s = new Readable({ read() {} })
+    s.pipe(res)
+    const n = 4
+    for (let i = 0; i < n; i++) {
+      const progress = String(i * 10)
+      s.push(progress)
+      this.logger.log(`pushed ${progress}`)
+      if (i < n - 1) {
+        await new Promise((r) => setTimeout(r, 5000))
+      }
+    }
+    s.push(null)
   }
 
   /**
