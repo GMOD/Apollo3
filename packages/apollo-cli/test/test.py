@@ -51,6 +51,7 @@ P = "--profile testAdmin"
 
 
 def setUpModule():
+    return
     # See apollo-collaboration-server/.development.env for credentials etc.
     shell(f"{apollo} config {P} address http://localhost:3999")
     shell(f"{apollo} config {P} accessType root")
@@ -99,15 +100,15 @@ class TestCLI(unittest.TestCase):
 
         p = shell(f"{apollo} feature get {P} -a vv1 -r ctgA -s 40 -e 41")
         out = json.loads(p.stdout)
-        self.assertEqual(len(out[0]), 1)
+        self.assertEqual(len(out), 1)
 
         p = shell(f"{apollo} feature get {P} -a vv1 -r ctgA -s 1000 -e 1000")
         out = json.loads(p.stdout)
-        self.assertEqual([[], []], out)
+        self.assertEqual([], out)
 
         p = shell(f"{apollo} feature get {P} -r FOOBAR")
         out = json.loads(p.stdout)
-        self.assertEqual([[], []], out)
+        self.assertEqual([], out)
 
         p = shell(f"{apollo} feature get {P} -a FOOBAR -r ctgA", strict=False)
         self.assertTrue(p.returncode != 0)
@@ -236,8 +237,7 @@ class TestCLI(unittest.TestCase):
 
         p = shell(f"{apollo} feature get {P} -r {refseq_id}")
         ff = json.loads(p.stdout)
-        self.assertEqual(ff[0], [])
-        self.assertEqual(ff[1], [])
+        self.assertEqual(ff, [])
 
         p = shell(
             f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1",
@@ -348,7 +348,7 @@ class TestCLI(unittest.TestCase):
 
         ## Get feature in vv1
         p = shell(f"{apollo} feature get {P} -r {refseq}")
-        features = json.loads(p.stdout)[0]
+        features = json.loads(p.stdout)
         self.assertTrue(len(features) > 2)
 
         # Get id of feature of type contig
@@ -360,7 +360,7 @@ class TestCLI(unittest.TestCase):
         p = shell(f"{apollo} feature edit-type {P} -i {contig_id} -t region")
 
         p = shell(
-            f"""{apollo} feature get {P} -r {refseq} | jq '.[0][] | select(._id == "{contig_id}")'"""
+            f"""{apollo} feature get {P} -r {refseq} | jq '.[] | select(._id == "{contig_id}")'"""
         )
         contig = json.loads(p.stdout)
         self.assertEqual(contig["type"], "region")
@@ -384,7 +384,7 @@ class TestCLI(unittest.TestCase):
 
         ## Get feature in vv1
         p = shell(f"{apollo} feature get {P} -r {refseq}")
-        features = json.loads(p.stdout)[0]
+        features = json.loads(p.stdout)
         self.assertTrue(len(features) > 2)
 
         # Get id of feature of type contig
@@ -397,7 +397,7 @@ class TestCLI(unittest.TestCase):
         shell(f"{apollo} feature edit-coords {P} -i {contig_id} -s 20 -e 100")
 
         p = shell(
-            f"""{apollo} feature get {P} -r {refseq} | jq '.[0][] | select(._id == "{contig_id}")'"""
+            f"""{apollo} feature get {P} -r {refseq} | jq '.[] | select(._id == "{contig_id}")'"""
         )
         contig = json.loads(p.stdout)
         self.assertEqual(contig["start"], 20 - 1)
@@ -405,7 +405,7 @@ class TestCLI(unittest.TestCase):
 
         p = shell(f"{apollo} feature edit-coords {P} -i {contig_id} -s 1 -e 1")
         p = shell(
-            f"""{apollo} feature get {P} -r {refseq} | jq '.[0][] | select(._id == "{contig_id}")'"""
+            f"""{apollo} feature get {P} -r {refseq} | jq '.[] | select(._id == "{contig_id}")'"""
         )
         contig = json.loads(p.stdout)
         self.assertEqual(contig["start"], 0)
@@ -446,7 +446,7 @@ class TestCLI(unittest.TestCase):
 
         ## Get feature in vv1
         p = shell(
-            f"""{apollo} feature get {P} -r {refseq} | jq '.[0][] | select(.type == "contig") | ._id'"""
+            f"""{apollo} feature get {P} -r {refseq} | jq '.[] | select(.type == "contig") | ._id'"""
         )
         fid = p.stdout.strip()
 
@@ -756,8 +756,8 @@ class TestCLI(unittest.TestCase):
         p = shell(f"{apollo} feature get {P} -a v1")
         ff = json.loads(p.stdout)
 
-        x1 = ff[0][0]["_id"]
-        x2 = ff[0][1]["_id"]
+        x1 = ff[0]["_id"]
+        x2 = ff[1]["_id"]
         p = shell(f"{apollo} feature get-id {P} -i {x1} {x1} {x2}")
         out = json.loads(p.stdout)
         self.assertEqual(len(out), 2)

@@ -69,8 +69,6 @@ export default class Get extends BaseCommand<typeof Get> {
     }
     if (refseqIds.length === 0) {
       this.logToStderr('No reference sequence found')
-      this.log(JSON.stringify([[], []], null, 2))
-      this.exit(0)
     }
 
     const results: object[] = []
@@ -83,10 +81,11 @@ export default class Get extends BaseCommand<typeof Get> {
         endCoord,
       )
       const json = (await features.json()) as object[]
-      assert(JSON.stringify(json[1]) === '[]' && json.length === 2)
-      results.push(json[0])
+      assert(json.length === 2 && JSON.stringify(json[1]) === '[]')
+      for (const x of json[0] as object[]) {
+        results.push(x)
+      }
     }
-    results.push([])
     this.log(JSON.stringify(results, null, 2))
     this.exit(0)
   }

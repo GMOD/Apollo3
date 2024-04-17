@@ -37,6 +37,7 @@ USAGE
 - [`apollo change get`](#apollo-change-get)
 - [`apollo config [KEY] [VALUE]`](#apollo-config-key-value)
 - [`apollo feature add-child`](#apollo-feature-add-child)
+- [`apollo feature check`](#apollo-feature-check)
 - [`apollo feature copy`](#apollo-feature-copy)
 - [`apollo feature delete`](#apollo-feature-delete)
 - [`apollo feature edit`](#apollo-feature-edit)
@@ -317,6 +318,31 @@ EXAMPLES
 
 _See code:
 [src/commands/feature/add-child.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/feature/add-child.ts)_
+
+## `apollo feature check`
+
+Get feature checks
+
+```
+USAGE
+  $ apollo feature check [--profile <value>] [--config-file <value>] [-i <value>]
+
+FLAGS
+  -i, --feature-id=<value>...  Get checks for these feature identifiers
+      --config-file=<value>    Use this config file (mostly for testing)
+      --profile=<value>        [default: default] Use credentials from this profile
+
+DESCRIPTION
+  Get feature checks
+
+EXAMPLES
+  ...
+
+    $ apollo feature check ...
+```
+
+_See code:
+[src/commands/feature/check.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/feature/check.ts)_
 
 ## `apollo feature copy`
 
