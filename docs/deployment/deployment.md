@@ -2,6 +2,21 @@ Apollo 3 Deployment
 
 ## Full deployment with collaboration server
 
+<!-- vim-markdown-toc GFM -->
+
+* [Basic components](#basic-components)
+* [Deploying with Docker](#deploying-with-docker)
+    * [Name](#name)
+    * [Volumes](#volumes)
+    * [Services](#services)
+        * [Client](#client)
+        * [Apollo Collaboration Server](#apollo-collaboration-server)
+        * [MongoDB](#mongodb)
+* [Starting everything](#starting-everything)
+* [Deploying](#deploying)
+
+<!-- vim-markdown-toc -->
+
 Apollo can be used in some cases on local files with no need to set up a server,
 but this guide will focus on deploying Apollo with all the components needed for
 a hosted server that allows collaborative annotation.
