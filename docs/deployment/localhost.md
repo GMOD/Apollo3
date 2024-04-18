@@ -6,23 +6,23 @@ requires docker, for further details see the [full installation
 guide](deployment.md).
 
 ```
-mkdir -p apollo # Or any directory name of your choice
+mkdir -p apollo # Or any directory of your choice
 cd apollo
 
-## MEMO TO DEVS: Edit URL once branch is merged
+## MEMO: Edit URL once branch is merged
 
-curl -O https://github.com/GMOD/Apollo3/tree/deployment_docs_fix_url/docs/deployment/compose.yml
-curl -O https://github.com/GMOD/Apollo3/tree/deployment_docs_fix_url/docs/deployment/Dockerfile
-curl -O https://github.com/GMOD/Apollo3/tree/deployment_docs_fix_url/docs/deployment/.env
+curl -O https://raw.githubusercontent.com/GMOD/Apollo3/deployment_docs_fix_url/docs/deployment/compose.yml
+curl -O https://raw.githubusercontent.com/GMOD/Apollo3/deployment_docs_fix_url/docs/deployment/Dockerfile
+curl -O https://raw.githubusercontent.com/GMOD/Apollo3/deployment_docs_fix_url/docs/deployment/.env
 ```
 
-Since we deploy on localhost for a single user, we give the *guest* admin
-rights:
+Since we deploy on localhost for a single user, we give the *guest* user full
+permission:
 
 ```
-sed -i 's|#* *URL=.*|URL=http://localhost|' .env
-sed -i 's|#* *ALLOW_GUEST_USER=.*|ALLOW_GUEST_USER=true|' .env
 sed -i 's|#* *GUEST_USER_ROLE=.*|GUEST_USER_ROLE=admin|' .env
+sed -i 's| ALLOW_GUEST_USER:.*| ALLOW_GUEST_USER: true|' compose.yml
+sed -i 's| URL: .*| URL: http://localhost|' compose.yml
 ```
 
 Start Apollo:
@@ -30,3 +30,7 @@ Start Apollo:
 ```
 docker compose up
 ```
+
+Open a web browser, navigate to [localhost](http://localhost), start a new
+session, and login as guest. You may need to refresh the page for the full list
+of options to appear under the Apollo menu.
