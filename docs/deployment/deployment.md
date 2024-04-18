@@ -223,7 +223,8 @@ URL=https://my-apollo-site.org
 
 There are several other options you can configure. You can see [this](.env)
 sample `.env` file for a description of the other configuration options. For
-now, we will set `ALLOW_GUEST_USER` to be true to simplify testing.
+now, we will set `ALLOW_GUEST_USER` to be true to simplify testing. Options set
+in `compose.yml` take precedence over the options in the `.env` file.
 
 ##### MongoDB
 
