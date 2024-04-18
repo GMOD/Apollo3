@@ -26,6 +26,7 @@ services:
         JBROWSE_VERSION: 2.10.3
         FORWARD_HOSTNAME: apollo-collaboration-server
         FORWARD_PORT: 3999
+        URL: http://my-apollo-site.org
       context: .
     depends_on:
       - apollo-collaboration-server
