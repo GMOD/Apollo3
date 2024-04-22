@@ -17,12 +17,12 @@ curl -O https://raw.githubusercontent.com/GMOD/Apollo3/deployment_docs_fix_url/d
 ```
 
 Since we deploy on localhost for a single user, we give the *guest* user full
-permission:
+permission (NB: the `sed` commands edit the target files *in place*):
 
 ```
-sed -i 's|#* *GUEST_USER_ROLE=.*|GUEST_USER_ROLE=admin|' .env
-sed -i 's| ALLOW_GUEST_USER:.*| ALLOW_GUEST_USER: true|' compose.yml
-sed -i 's| URL: .*| URL: http://localhost|' compose.yml
+sed -i'' 's|#* *GUEST_USER_ROLE=.*|GUEST_USER_ROLE=admin|' .env
+sed -i'' 's| ALLOW_GUEST_USER:.*| ALLOW_GUEST_USER: true|' compose.yml
+sed -i'' 's| URL: .*| URL: http://localhost|' compose.yml
 ```
 
 Start Apollo:
