@@ -831,7 +831,7 @@ class TestCLI(unittest.TestCase):
 
         shell(f"{apollo} feature edit-coords {P} -i {g1['_id']} -e 201")
         shell(f"{apollo} feature edit-coords {P} -i {g2['_id']} -e 251")
-        p = shell(f"{apollo} feature check -a v1")
+        p = shell(f"{apollo} feature check {P} -a v1")
         out = json.loads(p.stdout)
         self.assertTrue(len(out) > 1)
         self.assertTrue("InternalStopCodonCheck" in p.stdout)
