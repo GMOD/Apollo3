@@ -6,8 +6,30 @@ import { observer } from 'mobx-react'
 import React from 'react'
 
 import { ApolloSessionModel } from '../session'
-import { CDSInfo, getCDSInfo } from './ApolloTranscriptDetailsWidget'
+import {
+  CDSInfo,
+  getCDSInfo,
+  getCDSInfo2,
+} from './ApolloTranscriptDetailsWidget'
 import { NumberTextField } from './NumberTextField'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const containsUTR = (currentFeature: any): boolean => {
+  if (
+    currentFeature.type === 'three_prime_UTR' ||
+    currentFeature.type === 'five_prime_UTR'
+  ) {
+    return true
+  }
+  if (currentFeature.children) {
+    for (const child of currentFeature.children) {
+      if (containsUTR(child[1])) {
+        return true
+      }
+    }
+  }
+  return false
+}
 
 export const TranscriptBasicInformation = observer(
   function TranscriptBasicInformation({
@@ -61,7 +83,9 @@ export const TranscriptBasicInformation = observer(
       return changeManager.submit(change)
     }
 
-    const transcriptItems = getCDSInfo(feature, refData)
+    const transcriptItems = containsUTR(feature)
+      ? getCDSInfo(feature, refData)
+      : getCDSInfo2(feature, refData)
 
     return (
       <>
