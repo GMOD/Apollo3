@@ -21,7 +21,7 @@ export default class Get extends BaseCommand<typeof Get> {
     'feature-id': Flags.string({
       char: 'i',
       description: wrapLines(
-        'Retrieves feature with these IDs to get. Use "-" to read IDs from stdin (one per line)',
+        'Retrieves feature with these IDs. Use "-" to read IDs from stdin (one per line)',
         40,
       ),
       multiple: true,

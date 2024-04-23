@@ -12,7 +12,8 @@ import {
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Edit or view feature type'
-  static description = wrapLines('Feature type is column 3 in gff format.\
+  static description = wrapLines(
+    'Feature type is column 3 in gff format.\
     It must be a valid sequence ontology term although but the valifdity of the new term is not checked.',
   )
 

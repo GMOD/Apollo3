@@ -32,7 +32,6 @@ export enum KEYS {
   rootCredentials_password = 'rootCredentials.password',
 }
 
-
 function optionDocs(): { key: string; description: string }[] {
   const docs: { key: string; description: string }[] = []
   for (const v of Object.values(KEYS)) {

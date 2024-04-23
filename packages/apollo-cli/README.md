@@ -31,6 +31,7 @@ USAGE
 
 - [`apollo assembly add-fasta`](#apollo-assembly-add-fasta)
 - [`apollo assembly add-gff`](#apollo-assembly-add-gff)
+- [`apollo assembly check`](#apollo-assembly-check)
 - [`apollo assembly delete`](#apollo-assembly-delete)
 - [`apollo assembly get`](#apollo-assembly-get)
 - [`apollo assembly sequence`](#apollo-assembly-sequence)
@@ -122,6 +123,49 @@ EXAMPLES
 
 _See code:
 [src/commands/assembly/add-gff.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/assembly/add-gff.ts)_
+
+## `apollo assembly check`
+
+Add, view, or delete checks to assembly
+
+```
+USAGE
+  $ apollo assembly check [--profile <value>] [--config-file <value>] [-a <value>] [-c <value>] [-d]
+
+FLAGS
+  -a, --assembly=<value>     Manage checks in this assembly
+  -c, --check=<value>...     Add these check names or IDs. If unset, print the checks set for assembly
+  -d, --delete               Delete (instead of adding) checks
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      [default: default] Use credentials from this profile
+
+DESCRIPTION
+  Add, view, or delete checks to assembly
+
+  Manage checks, i.e. the rules ensuring features in an assembly are plausible.
+  This command only sets the check to apply, to retrieve features flagged by these
+  checks use `apollo feature check`.
+
+EXAMPLES
+  View available check types:
+
+    $ apollo assembly check
+
+  View checks set for assembly hg19:
+
+    $ apollo assembly check -a hg19
+
+  Add checks to assembly:
+
+    $ apollo assembly check -a hg19 -c CDSCheck
+
+  Delete checks from assembly:
+
+    $ apollo assembly check -a hg19 -c CDSCheck --delete
+```
+
+_See code:
+[src/commands/assembly/check.ts](https://github.com/GMOD/Apollo3/blob/v0.0.0/packages/apollo-cli/src/commands/assembly/check.ts)_
 
 ## `apollo assembly delete`
 
@@ -321,24 +365,33 @@ _See code:
 
 ## `apollo feature check`
 
-Get feature checks
+Get check results
 
 ```
 USAGE
-  $ apollo feature check [--profile <value>] [--config-file <value>] [-i <value>]
+  $ apollo feature check [--profile <value>] [--config-file <value>] [-i <value>] [-a <value>]
 
 FLAGS
+  -a, --assembly=<value>       Get checks for this assembly
   -i, --feature-id=<value>...  Get checks for these feature identifiers
       --config-file=<value>    Use this config file (mostly for testing)
       --profile=<value>        [default: default] Use credentials from this profile
 
 DESCRIPTION
-  Get feature checks
+  Get check results
+
+  Use this command to view which features fail checks along with the reason for
+  failing. Use `apollo assembly check` for managing which checks should be applied
+  to an assembly
 
 EXAMPLES
-  ...
+  Get all check results in the database:
 
-    $ apollo feature check ...
+    $ apollo feature check
+
+  Get check results for assembly hg19:
+
+    $ apollo feature check -a hg19
 ```
 
 _See code:
@@ -546,7 +599,7 @@ _See code:
 
 ## `apollo feature get`
 
-Get features in a genomic window
+Get features in assembly, reference sequence or genomic window
 
 ```
 USAGE
@@ -562,7 +615,7 @@ FLAGS
       --profile=<value>      [default: default] Use credentials from this profile
 
 DESCRIPTION
-  Get features in a genomic window
+  Get features in assembly, reference sequence or genomic window
 
 EXAMPLES
   Get all features in myAssembly:
@@ -587,8 +640,8 @@ USAGE
   $ apollo feature get-id [--profile <value>] [--config-file <value>] [-i <value>]
 
 FLAGS
-  -i, --feature-id=<value>...  [default: -] Retrieves feature with these IDs to get.
-                               Use "-" to read IDs from stdin (one per
+  -i, --feature-id=<value>...  [default: -] Retrieves feature with these IDs. Use
+                               "-" to read IDs from stdin (one per
                                line)
       --config-file=<value>    Use this config file (mostly for testing)
       --profile=<value>        [default: default] Use credentials from this profile

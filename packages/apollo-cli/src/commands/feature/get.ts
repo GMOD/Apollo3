@@ -1,5 +1,3 @@
-import { assert } from 'node:console'
-
 import { Flags } from '@oclif/core'
 import { Response, fetch } from 'undici'
 
@@ -7,7 +5,8 @@ import { BaseCommand } from '../../baseCommand.js'
 import { getRefseqId, localhostToAddress, wrapLines } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
-  static description = 'Get features in a genomic window'
+  static description =
+    'Get features in assembly, reference sequence or genomic window'
 
   static examples = [
     {
@@ -18,7 +17,7 @@ export default class Get extends BaseCommand<typeof Get> {
       description: wrapLines(
         'Get features intersecting chr1:1..1000. You can omit the assembly name if there are no other reference sequences named chr1:',
       ),
-      command: 
+      command:
         '<%= config.bin %> <%= command.id %> -a myAssembly -r chr1 -s 1 -e 1000',
     },
   ]
@@ -81,7 +80,6 @@ export default class Get extends BaseCommand<typeof Get> {
         endCoord,
       )
       const json = (await features.json()) as object[]
-      assert(json.length === 2 && JSON.stringify(json[1]) === '[]')
       for (const x of json[0] as object[]) {
         results.push(x)
       }

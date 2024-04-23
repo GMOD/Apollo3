@@ -144,8 +144,8 @@ export const Feature = observer(function Feature({
           (isSelected
             ? ` ${selectedFeatureClass}`
             : isHovered
-            ? ` ${classes.hoveredFeature}`
-            : '')
+              ? ` ${classes.hoveredFeature}`
+              : '')
         }
         onClick={(e) => {
           e.stopPropagation()

@@ -2,7 +2,12 @@ import { Flags } from '@oclif/core'
 import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { getFeatureById, idReader, localhostToAddress, wrapLines } from '../../utils.js'
+import {
+  getFeatureById,
+  idReader,
+  localhostToAddress,
+  wrapLines,
+} from '../../utils.js'
 
 async function deleteFeature(
   address: string,

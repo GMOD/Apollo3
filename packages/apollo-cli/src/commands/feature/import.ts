@@ -16,8 +16,10 @@ export default class Import extends BaseCommand<typeof Import> {
 
   static examples = [
     {
-      description: 'Delete features in myAssembly and then import features.gff3:',
-      command: '<%= config.bin %> <%= command.id %> -d -i features.gff3 -a myAssembly',
+      description:
+        'Delete features in myAssembly and then import features.gff3:',
+      command:
+        '<%= config.bin %> <%= command.id %> -d -i features.gff3 -a myAssembly',
     },
   ]
 

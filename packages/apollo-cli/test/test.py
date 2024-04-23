@@ -51,7 +51,6 @@ P = "--profile testAdmin"
 
 
 def setUpModule():
-    return
     # See apollo-collaboration-server/.development.env for credentials etc.
     shell(f"{apollo} config {P} address http://localhost:3999")
     shell(f"{apollo} config {P} accessType root")
@@ -724,7 +723,7 @@ class TestCLI(unittest.TestCase):
 
         p = shell(f"{apollo} assembly sequence {P} -a v1")
         seq = p.stdout.strip().split("\n")
-        self.assertEqual(len(seq), 18)
+        self.assertEqual(len(seq), 25)
         self.assertEqual(seq[0], ">ctgA:1..420")
         self.assertEqual(
             seq[1],
@@ -734,7 +733,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(seq[7], ">ctgB:1..800")
         self.assertEqual(
             seq[-1],
-            "CTCGACATGCATCATCAGCCTGATGCTGATACATGCTAGCTACGTGCATGCTCGACATGCATCATCAGCCTGATGCTGAT",
+            "ttggtcgctccgttgtaccc",
         )
 
         p = shell(f"{apollo} assembly sequence {P} -a v1 -r ctgB -s 1 -e 1")
@@ -770,6 +769,83 @@ class TestCLI(unittest.TestCase):
         p = shell(f"echo -e '{x1} \n {x2}' | {apollo} feature get-id {P}")
         out = json.loads(p.stdout)
         self.assertEqual(len(out), 2)
+
+    def testAssemblyChecks(self):
+        ## TODO: Improve tests once more checks exist (currently there is only
+        ## CDSCheck)
+        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a v1 -f")
+
+        # Test view available check type
+        p = shell(f"{apollo} assembly check {P}")
+        out = json.loads(p.stdout)
+        self.assertTrue("CDSCheck" in p.stdout)
+        cdsCheckId = [x for x in out if x["name"] == "CDSCheck"][0]["_id"]
+
+        # Test view checks set for assembly
+        p = shell(f"{apollo} assembly check {P} -a v1")
+        self.assertEqual(p.stdout.strip(), "[]")
+
+        # Test non-existant assembly
+        p = shell(f"{apollo} assembly check {P} -a non-existant", strict=False)
+        self.assertEqual(p.returncode, 1)
+        self.assertTrue("non-existant" in p.stderr)
+
+        # Test non-existant check
+        p = shell(f"{apollo} assembly check {P} -a v1 -c not-a-check", strict=False)
+        self.assertEqual(p.returncode, 1)
+        self.assertTrue("not-a-check" in p.stderr)
+
+        # Test add checks. Test check is added as opposed to replacing current
+        # checks with input list
+        shell(f"{apollo} assembly check {P} -a v1 -c CDSCheck CDSCheck")
+        p = shell(f"{apollo} assembly check {P} -a v1")
+        out = json.loads(p.stdout)
+        self.assertEqual(len(out), 1)
+        self.assertEqual(out[0]["name"], "CDSCheck")
+
+        # Works also with check id
+        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a v2 -f")
+        shell(f"{apollo} assembly check {P} -a v2 -c {cdsCheckId}")
+        p = shell(f"{apollo} assembly check {P} -a v2")
+        out = json.loads(p.stdout)
+        self.assertEqual(len(out), 1)
+        self.assertEqual(out[0]["name"], "CDSCheck")
+
+        # Delete check
+        shell(f"{apollo} assembly check {P} -a v1 -d -c CDSCheck")
+        p = shell(f"{apollo} assembly check {P} -a v1")
+        out = json.loads(p.stdout)
+        self.assertEqual(p.stdout.strip(), "[]")
+
+    def testFeatureChecks(self):
+        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a v1 -f")
+        shell(f"{apollo} assembly check {P} -a v1 -c CDSCheck")
+        p = shell(f"{apollo} feature check -a v1")
+        ## If we don't edit a feature, checks are not activated (!?)
+        self.assertEqual(p.stdout.strip(), "[]")
+
+        p = shell(f"{apollo} feature get {P} -a v1")
+        ff = json.loads(p.stdout)
+        g1 = [x for x in ff if x["gffId"] == "MyGene"][0]
+        g2 = [x for x in ff if x["gffId"] == "AnotherGene"][0]
+
+        shell(f"{apollo} feature edit-coords -i {g1['_id']} -e 201")
+        shell(f"{apollo} feature edit-coords -i {g2['_id']} -e 251")
+        p = shell(f"{apollo} feature check -a v1")
+        out = json.loads(p.stdout)
+        self.assertTrue(len(out) > 1)
+        self.assertTrue("InternalStopCodonCheck" in p.stdout)
+
+        ## Ids with checks
+        ids = []
+        for x in out:
+            ids.extend(x["ids"])
+        self.assertTrue(len(set(ids)) > 1)
+
+        ## Retrieve by feature id
+        xid = " ".join(ids)
+        p = shell(f"{apollo} feature check -i {xid}")
+        self.assertTrue("InternalStopCodonCheck" in p.stdout)
 
 
 if __name__ == "__main__":

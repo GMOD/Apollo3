@@ -52,7 +52,7 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
     },
     {
       description: 'Get current address for default profile:',
-      command: '<%= config.bin %> <%= command.id %> address'
+      command: '<%= config.bin %> <%= command.id %> address',
     },
   ]
 

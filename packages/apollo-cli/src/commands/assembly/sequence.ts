@@ -56,7 +56,7 @@ export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
     },
     {
       description: 'Get sequence in coordinates chr1:1..1000:',
-      command: 
+      command:
         '<%= config.bin %> <%= command.id %> -a myAssembly -r chr1 -s 1 -e 1000',
     },
   ]

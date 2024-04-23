@@ -11,6 +11,9 @@ import { Config, ConfigError } from './Config.js'
 const CONFIG_PATH = path.resolve(os.homedir(), '.clirc')
 export const CLI_SERVER_ADDRESS = 'http://127.0.0.1:5657'
 export const CLI_SERVER_ADDRESS_CALLBACK = `${CLI_SERVER_ADDRESS}/auth/callback`
+
+export class CheckError extends Error {}
+
 export interface UserCredentials {
   accessToken: string
 }
@@ -75,6 +78,31 @@ export async function deleteAssembly(
   }
 }
 
+export async function getAssembly(
+  address: string,
+  accessToken: string,
+  assemblyNameOrId: string,
+): Promise<object> {
+  const assemblyId: string[] = await convertAssemblyNameToId(
+    address,
+    accessToken,
+    [assemblyNameOrId],
+  )
+  if (assemblyId.length === 0) {
+    return {}
+  }
+  const res: Response = await queryApollo(address, accessToken, 'assemblies')
+  const assemblies: object[] = (await res.json()) as object[]
+  let assemblyObj = {}
+  for (const x of assemblies) {
+    if (x['_id' as keyof typeof x] === assemblyId[0]) {
+      assemblyObj = JSON.parse(JSON.stringify(x))
+      break
+    }
+  }
+  return assemblyObj
+}
+
 export async function getRefseqId(
   address: string,
   accessToken: string,
@@ -127,7 +155,40 @@ export async function getRefseqId(
   return refseqIds
 }
 
-async function assemblyNamesToIds(
+async function checkNameToIdDict(
+  address: string,
+  accessToken: string,
+): Promise<Record<string, string>> {
+  const asm = await queryApollo(address, accessToken, 'checks/types')
+  const ja = (await asm.json()) as object[]
+  const nameToId: Record<string, string> = {}
+  for (const x of ja) {
+    const name: string = x['name' as keyof typeof x]
+    nameToId[name] = x['_id' as keyof typeof x]
+  }
+  return nameToId
+}
+
+export async function convertCheckNameToId(
+  address: string,
+  accessToken: string,
+  namesOrIds: string[],
+): Promise<string[]> {
+  const nameToId = await checkNameToIdDict(address, accessToken)
+  const ids = []
+  for (const x of namesOrIds) {
+    if (nameToId[x] !== undefined) {
+      ids.push(nameToId[x])
+    } else if (Object.values(nameToId).includes(x)) {
+      ids.push(x)
+    } else {
+      throw new CheckError(`Check name or id "${x}" not found`)
+    }
+  }
+  return ids
+}
+
+async function assemblyNameToIdDict(
   address: string,
   accessToken: string,
 ): Promise<Record<string, string>> {
@@ -145,15 +206,16 @@ export async function convertAssemblyNameToId(
   address: string,
   accessToken: string,
   namesOrIds: string[],
+  verbose = true,
 ): Promise<string[]> {
-  const nameToId = await assemblyNamesToIds(address, accessToken)
+  const nameToId = await assemblyNameToIdDict(address, accessToken)
   const ids = []
   for (const x of namesOrIds) {
     if (nameToId[x] !== undefined) {
       ids.push(nameToId[x])
     } else if (Object.values(nameToId).includes(x)) {
       ids.push(x)
-    } else {
+    } else if (verbose) {
       process.stderr.write(`Warning: Omitting unknown assembly: "${x}"\n`)
     }
   }
