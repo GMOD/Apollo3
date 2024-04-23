@@ -820,7 +820,7 @@ class TestCLI(unittest.TestCase):
     def testFeatureChecks(self):
         shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a v1 -f")
         shell(f"{apollo} assembly check {P} -a v1 -c CDSCheck")
-        p = shell(f"{apollo} feature check -a v1")
+        p = shell(f"{apollo} feature check {P} -a v1")
         ## If we don't edit a feature, checks are not activated (!?)
         self.assertEqual(p.stdout.strip(), "[]")
 
@@ -829,8 +829,8 @@ class TestCLI(unittest.TestCase):
         g1 = [x for x in ff if x["gffId"] == "MyGene"][0]
         g2 = [x for x in ff if x["gffId"] == "AnotherGene"][0]
 
-        shell(f"{apollo} feature edit-coords -i {g1['_id']} -e 201")
-        shell(f"{apollo} feature edit-coords -i {g2['_id']} -e 251")
+        shell(f"{apollo} feature edit-coords {P} -i {g1['_id']} -e 201")
+        shell(f"{apollo} feature edit-coords {P} -i {g2['_id']} -e 251")
         p = shell(f"{apollo} feature check -a v1")
         out = json.loads(p.stdout)
         self.assertTrue(len(out) > 1)
@@ -844,7 +844,7 @@ class TestCLI(unittest.TestCase):
 
         ## Retrieve by feature id
         xid = " ".join(ids)
-        p = shell(f"{apollo} feature check -i {xid}")
+        p = shell(f"{apollo} feature check {P} -i {xid}")
         self.assertTrue("InternalStopCodonCheck" in p.stdout)
 
 
