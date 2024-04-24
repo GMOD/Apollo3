@@ -9,7 +9,7 @@ import { ApolloSessionModel } from '../session'
 import {
   CDSInfo,
   getCDSInfo,
-  getCDSInfo2,
+  getCDSInfoWithoutUTRLines,
 } from './ApolloTranscriptDetailsWidget'
 import { NumberTextField } from './NumberTextField'
 
@@ -85,7 +85,7 @@ export const TranscriptBasicInformation = observer(
 
     const transcriptItems = containsUTR(feature)
       ? getCDSInfo(feature, refData)
-      : getCDSInfo2(feature, refData)
+      : getCDSInfoWithoutUTRLines(feature, refData)
 
     return (
       <>
