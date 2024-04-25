@@ -179,11 +179,10 @@ export default class Login extends BaseCommand<typeof Login> {
       method: 'POST',
       body: JSON.stringify({ username, password }),
     })
-    if (!response.ok) {
-      // FIXME: Better error handling
-      throw new Error('Failed to post request')
-    }
     const dat = await response.json()
+    if (!response.ok) {
+      throw new Error(dat)
+    }
     return { accessToken: dat.token }
   }
 
@@ -192,11 +191,10 @@ export default class Login extends BaseCommand<typeof Login> {
     const response = await fetch(url, {
       headers: { 'Content-Type': 'application/json' },
     })
-    if (!response.ok) {
-      // FIXME: Better error handling
-      throw new Error('Failed to post request')
-    }
     const dat = await response.json()
+    if (!response.ok) {
+      throw new Error(dat)
+    }
     return { accessToken: dat.token }
   }
 
