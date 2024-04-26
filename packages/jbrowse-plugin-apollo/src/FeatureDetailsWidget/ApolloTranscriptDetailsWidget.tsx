@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { AbstractSessionModel, getSession, revcom } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
 import { IAnyStateTreeNode, getRoot } from 'mobx-state-tree'
@@ -121,25 +122,32 @@ function removeMatchingExon(
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[] => {
+export const getCDSInfoWithoutUTRLines = (
+  feature: any,
+  refData: any,
+): CDSInfo[] => {
   const CDSresult: CDSInfo[] = []
   let exonsArray: ExonInfo[] = []
-  let maxCDSend = 0
-  console.log(`WHOLE FEATUTE= ${JSON.stringify(feature)}`)
+  // console.log(`WHOLE FEATUTE= ${JSON.stringify(feature)}`)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const traverse = (currentFeature: any, isParentMRNA: boolean) => {
-    console.log(
-      `Feature type=${currentFeature.type}, Feature range: ${currentFeature.start} - ${currentFeature.end}, isParentMRNA=${isParentMRNA}, Parent range: ${feature.start} - ${feature.end}`,
-    )
+  const traverse = (currentFeature: any) => {
+    // console.log(
+    //   `Feature type=${currentFeature.type}, Feature range: ${currentFeature.start} - ${currentFeature.end}, isParentMRNA=${isParentMRNA}, Parent range: ${feature.start} - ${feature.end}`,
+    // )
+
+    // console.log(
+    //   `**** FEATURE ID = ${currentFeature._id}, TYPE = ${currentFeature.type}`,
+    // )
+
     if (currentFeature.type === 'exon') {
-      console.log(`EXON DATA = ${currentFeature.start} - ${currentFeature.end}`)
+      // console.log(`EXON DATA = ${currentFeature.start} - ${currentFeature.end}`)
       exonsArray.push({ start: currentFeature.start, end: currentFeature.end })
     }
     if (currentFeature.type === 'CDS') {
       if (currentFeature.discontinuousLocations.length > 0) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, unicorn/no-array-for-each
         currentFeature.discontinuousLocations.forEach((element: any) => {
-          console.log(`CDS range ${element.start} - ${element.end}`)
+          // console.log(`CDS range ${element.start} - ${element.end}`)
           let startSeq = refData.getSequence(
             Number(element.start) - 2,
             Number(element.start),
@@ -164,9 +172,6 @@ export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[]
             startSeq: startSeq ?? '',
             endSeq: endSeq ?? '',
           }
-          if (Number(element.end) > maxCDSend) {
-            maxCDSend = Number(element.end)
-          }
           // Check if there is already an object with the same start and end
           const exists = CDSresult.some(
             (obj) =>
@@ -181,24 +186,24 @@ export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[]
           }
 
           // Add possible UTRs
-          console.log(`Exon array : ${JSON.stringify(exonsArray)}`)
+          // console.log(`Exon array : ${JSON.stringify(exonsArray)}`)
           const foundExon = findExonInRange(
             exonsArray,
             element.start,
             element.end,
           )
-          console.log(
-            foundExon
-              ? `Found exon range: ${foundExon.start}-${foundExon.end}`
-              : 'No range found.',
-          )
+          // console.log(
+          //   foundExon
+          //     ? `Found exon range: ${foundExon.start}-${foundExon.end}`
+          //     : 'No range found.',
+          // )
           if (foundExon && foundExon.start < element.start) {
             if (feature.strand === 1) {
-              console.log(
-                `* TYPE = 5 UTR, start=${foundExon.start + 1}, end=${Number(
-                  element.start,
-                )}`,
-              )
+              // console.log(
+              //   `* TYPE = 5 UTR, start=${foundExon.start + 1}, end=${Number(
+              //     element.start,
+              //   )}`,
+              // )
               const oneCDS: CDSInfo = {
                 id: feature._id,
                 type: 'five_prime_UTR',
@@ -212,11 +217,11 @@ export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[]
               }
               CDSresult.push(oneCDS)
             } else {
-              console.log(
-                `TYPE = 3 UTR, start=${feature.start}, end=${
-                  Number(element.end) - 1
-                }`,
-              )
+              // console.log(
+              //   `TYPE = 3 UTR, start=${feature.start}, end=${
+              //     Number(element.end) - 1
+              //   }`,
+              // )
               const oneCDS: CDSInfo = {
                 id: feature._id,
                 type: 'three_prime_UTR',
@@ -228,6 +233,7 @@ export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[]
                 startSeq: '',
                 endSeq: '',
               }
+              CDSresult.push(oneCDS)
             }
             exonsArray = removeMatchingExon(
               exonsArray,
@@ -236,15 +242,15 @@ export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[]
             )
           }
           if (foundExon && foundExon.end > element.end) {
-            console.log(
-              `*** Need to add ending UTR: ${element.end} - ${foundExon.end}`,
-            )
+            // console.log(
+            //   `*** Need to add ending UTR: ${element.end} - ${foundExon.end}`,
+            // )
             if (feature.strand === 1) {
-              console.log(
-                `TYPE = 3 UTR, start=${element.end}, end=${
-                  Number(foundExon.end) - 1
-                }`,
-              )
+              // console.log(
+              //   `TYPE = 3 UTR, start=${element.end}, end=${
+              //     Number(foundExon.end) - 1
+              //   }`,
+              // )
               const oneCDS: CDSInfo = {
                 id: feature._id,
                 type: 'three_prime_UTR',
@@ -258,11 +264,11 @@ export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[]
               }
               CDSresult.push(oneCDS)
             } else {
-              console.log(
-                `** TYPE = 5 UTR, start=${feature.start}, end=${Number(
-                  element.end,
-                )}`,
-              )
+              // console.log(
+              //   `** TYPE = 5 UTR, start=${feature.start}, end=${Number(
+              //     element.end,
+              //   )}`,
+              // )
               const oneCDS: CDSInfo = {
                 id: feature._id,
                 type: 'five_prime_UTR',
@@ -274,6 +280,7 @@ export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[]
                 startSeq: '',
                 endSeq: '',
               }
+              CDSresult.push(oneCDS)
             }
             exonsArray = removeMatchingExon(
               exonsArray,
@@ -318,9 +325,6 @@ export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[]
           startSeq: startSeq ?? '',
           endSeq: endSeq ?? '',
         }
-        if (Number(currentFeature.end) > maxCDSend) {
-          maxCDSend = Number(currentFeature.end)
-        }
         // Check if there is already an object with the same start and end
         const exists = CDSresult.some(
           (obj) =>
@@ -333,28 +337,28 @@ export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[]
         if (!exists) {
           CDSresult.push(oneCDS)
         }
-        console.log(
-          `Added a single CDS (without discontinous locations): ${currentFeature.start} - ${currentFeature.end}`,
-        )
+        // console.log(
+        //   `Added a single CDS (without discontinous locations): ${currentFeature.start} - ${currentFeature.end}`,
+        // )
         // Add possible UTRs
-        console.log(`Exon array : ${JSON.stringify(exonsArray)}`)
+        // console.log(`Exon array : ${JSON.stringify(exonsArray)}`)
         const foundExon = findExonInRange(
           exonsArray,
           currentFeature.start,
           currentFeature.end,
         )
-        console.log(
-          foundExon
-            ? `Found exon range: ${foundExon.start}-${foundExon.end}`
-            : 'No range found.',
-        )
+        // console.log(
+        //   foundExon
+        //     ? `Found exon range: ${foundExon.start}-${foundExon.end}`
+        //     : 'No range found.',
+        // )
         if (foundExon && foundExon.start < currentFeature.start) {
           if (feature.strand === 1) {
-            console.log(
-              `* TYPE = 5 UTR, start=${foundExon.start + 1}, end=${Number(
-                currentFeature.start,
-              )}`,
-            )
+            // console.log(
+            //   `* TYPE = 5 UTR, start=${foundExon.start + 1}, end=${Number(
+            //     currentFeature.start,
+            //   )}`,
+            // )
             const oneCDS: CDSInfo = {
               id: feature._id,
               type: 'five_prime_UTR',
@@ -368,11 +372,11 @@ export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[]
             }
             CDSresult.push(oneCDS)
           } else {
-            console.log(
-              `TYPE = 3 UTR, start=${feature.start}, end=${
-                Number(currentFeature.end) - 1
-              }`,
-            )
+            // console.log(
+            //   `TYPE = 3 UTR, start=${feature.start}, end=${
+            //     Number(currentFeature.end) - 1
+            //   }`,
+            // )
             const oneCDS: CDSInfo = {
               id: feature._id,
               type: 'three_prime_UTR',
@@ -384,6 +388,7 @@ export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[]
               startSeq: '',
               endSeq: '',
             }
+            CDSresult.push(oneCDS)
           }
           exonsArray = removeMatchingExon(
             exonsArray,
@@ -392,15 +397,15 @@ export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[]
           )
         }
         if (foundExon && foundExon.end > currentFeature.end) {
-          console.log(
-            `*** Need to add ending UTR: ${currentFeature.end} - ${foundExon.end}`,
-          )
+          // console.log(
+          //   `*** Need to add ending UTR: ${currentFeature.end} - ${foundExon.end}`,
+          // )
           if (feature.strand === 1) {
-            console.log(
-              `TYPE = 3 UTR, start=${currentFeature.end}, end=${
-                Number(foundExon.end) - 1
-              }`,
-            )
+            // console.log(
+            //   `TYPE = 3 UTR, start=${currentFeature.end}, end=${
+            //     Number(foundExon.end) - 1
+            //   }`,
+            // )
             const oneCDS: CDSInfo = {
               id: feature._id,
               type: 'three_prime_UTR',
@@ -414,11 +419,11 @@ export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[]
             }
             CDSresult.push(oneCDS)
           } else {
-            console.log(
-              `** TYPE = 5 UTR, start=${feature.start}, end=${Number(
-                currentFeature.end,
-              )}`,
-            )
+            // console.log(
+            //   `** TYPE = 5 UTR, start=${feature.start}, end=${Number(
+            //     currentFeature.end,
+            //   )}`,
+            // )
             const oneCDS: CDSInfo = {
               id: feature._id,
               type: 'five_prime_UTR',
@@ -430,6 +435,7 @@ export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[]
               startSeq: '',
               endSeq: '',
             }
+            CDSresult.push(oneCDS)
           }
           exonsArray = removeMatchingExon(
             exonsArray,
@@ -441,7 +447,7 @@ export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[]
           currentFeature.start === foundExon?.start &&
           currentFeature.end === foundExon?.end
         ) {
-          console.log('******* CDS OLI KOKO EXONIN PITUINEN *****')
+          // console.log('******* CDS OLI KOKO EXONIN PITUINEN *****')
           exonsArray = removeMatchingExon(
             exonsArray,
             currentFeature.start,
@@ -449,26 +455,25 @@ export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[]
           )
         }
       }
-      console.log(`MAX CDS END=${maxCDSend}`)
     }
     if (currentFeature.children) {
       for (const child of currentFeature.children) {
-        traverse(child[1], feature.type === 'mRNA')
+        traverse(child[1])
       }
     }
   }
-  traverse(feature, feature.type === 'mRNA')
+  traverse(feature)
 
   // Add remaining UTRs if any
   if (exonsArray.length > 0) {
     // eslint-disable-next-line unicorn/no-array-for-each
     exonsArray.forEach((element: ExonInfo) => {
-      console.log(`Remaining EXON range ${element.start} - ${element.end}`)
+      // console.log(`Remaining EXON range ${element.start} - ${element.end}`)
       if (element.start === feature.start) {
         if (feature.strand === 1) {
-          console.log(
-            `TYPE = 5 UTR, start=${element.start}, end=${Number(element.end)}`,
-          )
+          // console.log(
+          //   `TYPE = 5 UTR, start=${element.start}, end=${Number(element.end)}`,
+          // )
           const oneCDS: CDSInfo = {
             id: feature._id,
             type: 'five_prime_UTR',
@@ -482,11 +487,11 @@ export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[]
           }
           CDSresult.push(oneCDS)
         } else {
-          console.log(
-            `TYPE = 3 UTR, start=${feature.start}, end=${
-              Number(element.end) - 1
-            }`,
-          )
+          // console.log(
+          //   `TYPE = 3 UTR, start=${feature.start}, end=${
+          //     Number(element.end) - 1
+          //   }`,
+          // )
           const oneCDS: CDSInfo = {
             id: feature._id,
             type: 'three_prime_UTR',
@@ -498,6 +503,7 @@ export const getCDSInfoWithoutUTRLines = (feature: any, refData: any): CDSInfo[]
             startSeq: '',
             endSeq: '',
           }
+          CDSresult.push(oneCDS)
         }
       }
     })

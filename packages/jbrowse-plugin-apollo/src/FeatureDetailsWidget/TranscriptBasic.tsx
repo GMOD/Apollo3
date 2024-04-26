@@ -1,13 +1,17 @@
-import { revcom } from '@jbrowse/core/util'
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Typography } from '@mui/material'
 import { AnnotationFeatureI } from 'apollo-mst'
-import { LocationEndChange, LocationStartChange } from 'apollo-shared'
+import {
+  DiscontinuousLocationEndChange,
+  DiscontinuousLocationStartChange,
+  LocationEndChange,
+  LocationStartChange,
+} from 'apollo-shared'
 import { observer } from 'mobx-react'
 import React from 'react'
 
 import { ApolloSessionModel } from '../session'
 import {
-  CDSInfo,
   getCDSInfo,
   getCDSInfoWithoutUTRLines,
 } from './ApolloTranscriptDetailsWidget'
@@ -29,6 +33,33 @@ const containsUTR = (currentFeature: any): boolean => {
     }
   }
   return false
+}
+
+/**
+ * Get single feature by featureId
+ * @param feature -
+ * @param featureId -
+ * @returns
+ */
+function getFeatureFromId(feature: any, featureId: string): any | null {
+  if (feature._id === featureId) {
+    console.log(
+      `Top level featureId matches in the object ${JSON.stringify(feature)}`,
+    )
+    return feature
+  }
+  // Check if there is also childFeatures in parent feature and it's not empty
+  // Let's get featureId from recursive method
+  console.log(
+    'FeatureId was not found on top level so lets make recursive call...',
+  )
+  for (const [, childFeature] of feature.children ?? new Map()) {
+    const subFeature = getFeatureFromId(childFeature, featureId)
+    if (subFeature) {
+      return subFeature
+    }
+  }
+  return null
 }
 
 export const TranscriptBasicInformation = observer(
@@ -54,13 +85,36 @@ export const TranscriptBasicInformation = observer(
     ) {
       newStart--
       oldStart--
-      const change = new LocationStartChange({
-        typeName: 'LocationStartChange',
+      if (containsUTR(feature)) {
+        const change = new LocationStartChange({
+          typeName: 'LocationStartChange',
+          changedIds: [featureId],
+          featureId,
+          oldStart,
+          newStart,
+          assembly,
+        })
+        return changeManager.submit(change)
+      }
+      const subFeature = getFeatureFromId(feature, featureId)
+      console.log(`======= SUB FEATURE: ${JSON.stringify(subFeature)}`)
+      let ind = 0
+      // eslint-disable-next-line @typescript-eslint/prefer-for-of
+      for (let i = 0; i < subFeature.discontinuousLocations.length; i++) {
+        if (subFeature.discontinuousLocations[i].start === oldStart) {
+          console.log(`++ Lets update start by index ${ind}`)
+          break
+        }
+        ind++
+      }
+      const change = new DiscontinuousLocationStartChange({
+        typeName: 'DiscontinuousLocationStartChange',
         changedIds: [featureId],
         featureId,
         oldStart,
         newStart,
         assembly,
+        index: ind,
       })
       return changeManager.submit(change)
     }
@@ -71,14 +125,37 @@ export const TranscriptBasicInformation = observer(
       oldEnd: number,
     ) {
       newEnd--
-      oldEnd--
-      const change = new LocationEndChange({
-        typeName: 'LocationEndChange',
+      // oldEnd--
+      if (containsUTR(feature)) {
+        const change = new LocationEndChange({
+          typeName: 'LocationEndChange',
+          changedIds: [featureId],
+          featureId,
+          oldEnd,
+          newEnd,
+          assembly,
+        })
+        return changeManager.submit(change)
+      }
+      const subFeature = getFeatureFromId(feature, featureId)
+      console.log(`======= SUB FEATURE: ${JSON.stringify(subFeature)}`)
+      let ind = 0
+      // eslint-disable-next-line @typescript-eslint/prefer-for-of
+      for (let i = 0; i < subFeature.discontinuousLocations.length; i++) {
+        if (subFeature.discontinuousLocations[i].end === oldEnd) {
+          console.log(`++ Lets update end by index ${ind}`)
+          break
+        }
+        ind++
+      }
+      const change = new DiscontinuousLocationEndChange({
+        typeName: 'DiscontinuousLocationEndChange',
         changedIds: [featureId],
         featureId,
         oldEnd,
         newEnd,
         assembly,
+        index: ind,
       })
       return changeManager.submit(change)
     }
