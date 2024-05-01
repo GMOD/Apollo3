@@ -135,7 +135,7 @@ export default class Login extends BaseCommand<typeof Login> {
       ) {
         this.exit(0)
       } else if (error instanceof Error) {
-        this.logToStderr(error.message)
+        this.logToStderr(error.stack)
         ux.action.stop(error.message)
         this.exit(1)
       }

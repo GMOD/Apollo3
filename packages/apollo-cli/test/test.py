@@ -847,6 +847,25 @@ class TestCLI(unittest.TestCase):
         p = shell(f"{apollo} feature check {P} -i {xid}")
         self.assertTrue("InternalStopCodonCheck" in p.stdout)
 
+    def testUser(self):
+        p = shell(f"{apollo} user get {P}")
+        out = json.loads(p.stdout)
+        self.assertTrue(len(out) > 0)
+
+        p = shell(f"{apollo} user get {P} -r admin")
+        out2 = json.loads(p.stdout)
+        self.assertTrue(len(out) > 0)
+        self.assertTrue(len(out) > len(out2))
+
+        p = shell(f"{apollo} user get {P} -r admin -u admin")
+        out = json.loads(p.stdout)
+        self.assertEqual(len(out), 1)
+
+        p = shell(f"{apollo} user get {P} -r readOnly -u admin")
+        out = json.loads(p.stdout)
+        self.assertEqual(len(out), 0)
+
+        
 
 if __name__ == "__main__":
     unittest.main()
