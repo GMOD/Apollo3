@@ -40,4 +40,40 @@ jobs:
       - name: Test ssh
         run: |
           ssh staging
-          touch ~/dario/test.txt
+
+          cat <<'EOF' > ${HOME}/dario/cleanup_apollo.$$.tmp.sh
+          set -e
+          set -u
+          set -o pipefail
+
+          cd ${HOME}/Apollo3/packages/apollo-cli
+
+          export APOLLO_PROFILE=auto
+
+          alias apollo='yarn --cwd  node bin/run.js'
+          apollo config address http://localhost
+          apollo config accessType root
+          apollo config rootCredentials.username admin
+          apollo config rootCredentials.password pass
+          apollo login 
+
+          rm -rf ${HOME}/dario/demoData
+          mkdir -p ${HOME}/dario/demoData
+          cd demoData
+
+          curl -O -s -L  https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz
+          curl -O -s -L  https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz
+          curl -O -s -L  https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3.gz
+          curl -O -s -L  https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3.gz
+
+          gunzip *.gz
+
+          apollo assembly add-fasta -i schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa -a schistosoma_haematobium -f
+          apollo assembly add-fasta -i schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa -a schistosoma_mansoni -f
+
+          apollo feature import -i schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3 -a schistosoma_haematobium -d
+          apollo feature import -i schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3 -a schistosoma_mansoni -d
+          EOF
+
+          : # bash ${HOME}/dario/cleanup_apollo.$$.tmp.sh &
+          : # rm ${HOME}/dario/cleanup_apollo.$$.tmp.sh
