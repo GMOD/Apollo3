@@ -24,12 +24,17 @@ export default class Logout extends BaseCommand<typeof Logout> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Logout)
 
+    let profileName = flags.profile
+    if (profileName === undefined) {
+      profileName = process.env.APOLLO_PROFILE ?? 'default'
+    }
+
     let configFile = flags['config-file']
     if (configFile === undefined) {
       configFile = path.join(this.config.configDir, 'config.yaml')
     }
     try {
-      basicCheckConfig(configFile, flags.profile)
+      basicCheckConfig(configFile, profileName)
     } catch (error) {
       if (error instanceof ConfigError) {
         this.logToStderr(error.message)
@@ -39,7 +44,7 @@ export default class Logout extends BaseCommand<typeof Logout> {
 
     const config: Config = new Config(configFile)
 
-    config.set(KEYS.accessToken, '', flags.profile)
+    config.set(KEYS.accessToken, '', profileName)
     config.writeConfigFile()
   }
 }

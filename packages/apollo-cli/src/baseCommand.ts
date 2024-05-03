@@ -13,7 +13,6 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
   static baseFlags = {
     profile: Flags.string({
       description: 'Use credentials from this profile',
-      default: 'default',
     }),
     'config-file': Flags.string({
       description: 'Use this config file (mostly for testing)',
@@ -46,9 +45,13 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
 
   public async getAccess(
     configFile: string | undefined,
-    profileName: string,
+    profileName: string | undefined,
   ): Promise<{ address: string; accessToken: string }> {
     const config: Config = this.getConfig(configFile)
+
+    if (profileName === undefined) {
+      profileName = process.env.APOLLO_PROFILE ?? 'default'
+    }
 
     try {
       return await config.getAccess(profileName)

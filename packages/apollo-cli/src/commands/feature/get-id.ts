@@ -2,7 +2,7 @@ import { Flags } from '@oclif/core'
 import { fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { idReader, localhostToAddress, wrapLines } from '../../utils.js'
+import { createFetchErrorMessage, idReader, localhostToAddress, wrapLines } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Get features given their identifiers'
@@ -67,13 +67,16 @@ export default class Get extends BaseCommand<typeof Get> {
       },
     }
     const response = await fetch(url, auth)
-    if (response.ok) {
-      return (await response.json()) as object
+    if (!response.ok) {
+      if (response.status === 404) {
+        return {}
+      }
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'Failed to access Apollo with the current address and/or access token\nThe server returned:\n',
+      )
+      throw new Error(errorMessage)
     }
-    if (response.status === 404) {
-      return {}
-    }
-    const msg = `Failed to access Apollo with the current address and/or access token\nThe server returned:\n${response.statusText}`
-    throw new Error(msg)
+    return (await response.json()) as object
   }
 }

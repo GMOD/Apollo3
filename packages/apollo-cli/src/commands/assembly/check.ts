@@ -5,6 +5,7 @@ import { BaseCommand } from '../../baseCommand.js'
 import {
   CheckError,
   convertCheckNameToId,
+  createFetchErrorMessage,
   getAssembly,
   idReader,
   localhostToAddress,
@@ -32,7 +33,15 @@ async function setChecks(
     },
   }
   const url = new URL(localhostToAddress(`${address}/assemblies/checks`))
-  return fetch(url, auth)
+  const response = await fetch(url, auth)
+  if (!response.ok) {
+    const errorMessage = await createFetchErrorMessage(
+      response,
+      'setChecks failed',
+    )
+    throw new Error(errorMessage)
+  }
+  return response
 }
 
 async function getCheckTypes(
@@ -47,8 +56,15 @@ async function getCheckTypes(
     },
   }
   const url = new URL(localhostToAddress(`${address}/checks/types`))
-  const res = await fetch(url, auth)
-  const chk = (await res.json()) as object[]
+  const response = await fetch(url, auth)
+  if (!response.ok) {
+    const errorMessage = await createFetchErrorMessage(
+      response,
+      'getCheckTypes failed',
+    )
+    throw new Error(errorMessage)
+  }
+  const chk = (await response.json()) as object[]
   return chk
 }
 

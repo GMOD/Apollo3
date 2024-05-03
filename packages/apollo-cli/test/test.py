@@ -73,11 +73,11 @@ class TestCLI(unittest.TestCase):
 
     def testApolloStatus(self):
         p = shell(f"{apollo} status {P}")
-        self.assertEqual(p.stdout.strip(), "Logged in")
+        self.assertEqual(p.stdout.strip(), "testAdmin: Logged in")
 
         shell(f"{apollo} logout {P}")
         p = shell(f"{apollo} status {P}")
-        self.assertEqual(p.stdout.strip(), "Logged out")
+        self.assertEqual(p.stdout.strip(), "testAdmin: Logged out")
 
         shell(f"{apollo} login {P}")
 
@@ -864,6 +864,14 @@ class TestCLI(unittest.TestCase):
         p = shell(f"{apollo} user get {P} -r readOnly -u admin")
         out = json.loads(p.stdout)
         self.assertEqual(len(out), 0)
+    
+    def testApolloEnv(self):
+        p = shell(f"export APOLLO_PROFILE=testAdmin; {apollo} user get")
+        out = json.loads(p.stdout)
+        self.assertTrue(len(out) >= 1)
+
+        p = shell(f"{apollo} user get --profile na", strict=False)
+        self.assertTrue(p.returncode != 0)
 
         
 

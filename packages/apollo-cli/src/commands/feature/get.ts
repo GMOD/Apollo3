@@ -2,7 +2,7 @@ import { Flags } from '@oclif/core'
 import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { getRefseqId, localhostToAddress, wrapLines } from '../../utils.js'
+import { createFetchErrorMessage, getRefseqId, localhostToAddress, wrapLines } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description =
@@ -109,10 +109,13 @@ export default class Get extends BaseCommand<typeof Get> {
       },
     }
     const response = await fetch(url, auth)
-    if (response.ok) {
-      return response
+    if (!response.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'Failed to access Apollo with the current address and/or access token\nThe server returned:\n',
+      )
+      throw new Error(errorMessage)
     }
-    const msg = `Failed to access Apollo with the current address and/or access token\nThe server returned:\n${response.statusText}`
-    throw new Error(msg)
+    return response
   }
 }

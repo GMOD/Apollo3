@@ -4,6 +4,7 @@ import { fetch } from 'undici'
 import { BaseCommand } from '../../baseCommand.js'
 import {
   convertAssemblyNameToId,
+  createFetchErrorMessage,
   idReader,
   localhostToAddress,
   queryApollo,
@@ -116,9 +117,12 @@ async function getChecks(address: string, token: string): Promise<object[]> {
     },
   }
   const response = await fetch(url, auth)
-  if (response.ok) {
-    return (await response.json()) as object[]
+  if (!response.ok) {
+    const errorMessage = await createFetchErrorMessage(
+      response,
+      'Failed to access Apollo with the current address and/or access token\nThe server returned:\n',
+    )
+    throw new Error(errorMessage)
   }
-  const msg = `Failed to access Apollo with the current address and/or access token\nThe server returned:\n${response.statusText}`
-  throw new Error(msg)
+  return (await response.json()) as object[]
 }

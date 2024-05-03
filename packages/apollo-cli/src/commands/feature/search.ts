@@ -1,8 +1,10 @@
 import { Flags } from '@oclif/core'
+import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
   convertAssemblyNameToId,
+  createFetchErrorMessage,
   idReader,
   localhostToAddress,
   queryApollo,
@@ -27,7 +29,16 @@ async function searchFeatures(
       authorization: `Bearer ${accessToken}`,
     },
   }
-  return fetch(uri, auth)
+  const response = await fetch(uri, auth)
+  if (!response.ok) {
+    const errorMessage = await createFetchErrorMessage(
+      response,
+      'searchFeatures failed',
+    )
+    throw new Error(errorMessage)
+  }
+
+  return response
 }
 
 export default class Search extends BaseCommand<typeof Search> {
@@ -117,11 +128,6 @@ export default class Search extends BaseCommand<typeof Search> {
       flags.text,
     )
     const results = JSON.parse(await response.text())
-    if (!response.ok) {
-      const message: string = results['message' as keyof typeof results]
-      this.logToStderr(message)
-      this.exit(1)
-    }
     this.log(JSON.stringify(results, null, 2))
   }
 }

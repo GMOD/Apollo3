@@ -4,10 +4,15 @@ import input from '@inquirer/input'
 import password from '@inquirer/password'
 import select from '@inquirer/select'
 import { Args, Flags } from '@oclif/core'
+import { fetch } from 'undici'
 
 import { BaseCommand } from '../baseCommand.js'
 import { Config, ConfigError, KEYS, optionDesc } from '../Config.js'
-import { localhostToAddress, wrapLines } from '../utils.js'
+import {
+  createFetchErrorMessage,
+  localhostToAddress,
+  wrapLines,
+} from '../utils.js'
 
 export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
   static summary = 'Get or set apollo configuration options'
@@ -229,13 +234,18 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
   }
 
   private async getLoginTypes(address: string): Promise<string[]> {
-    try {
-      const response = await fetch(localhostToAddress(`${address}/auth/types`))
-      return await response.json()
-    } catch {
-      throw new ConfigError(
-        `Unable to retrieve login types for address: "${address}"`,
+    const response = await fetch(localhostToAddress(`${address}/auth/types`))
+    if (!response.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        `Unable to retrieve login types for address: "${address}"\n`,
       )
+      throw new Error(errorMessage)
     }
+    const dat = await response.json()
+    if (Array.isArray(dat)) {
+      return dat
+    }
+    throw new Error(`Unexpected object: ${JSON.stringify(dat)}`)
   }
 }

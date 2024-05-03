@@ -4,6 +4,7 @@ import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
+  createFetchErrorMessage,
   getAssemblyFromRefseq,
   getFeatureById,
   getRefseqId,
@@ -61,18 +62,19 @@ export default class Copy extends BaseCommand<typeof Copy> {
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 
-    const res: Response = await getFeatureById(
+    const response: Response = await getFeatureById(
       access.address,
       access.accessToken,
       flags['feature-id'],
     )
-    const feature = (await res.json()) as object
-    if (!res.ok) {
-      const message: string = feature['message' as keyof typeof feature]
-      this.logToStderr(message)
-      this.exit(1)
+    if (!response.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'getFeatureById failed',
+      )
+      throw new Error(errorMessage)
     }
-
+    const feature = (await response.json()) as object
     let refseqIds: string[] = []
     try {
       refseqIds = await getRefseqId(
@@ -153,6 +155,14 @@ export default class Copy extends BaseCommand<typeof Copy> {
         'Content-Type': 'application/json',
       },
     }
-    return fetch(url, auth)
+    const response = await fetch(url, auth)
+    if (!response.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'copyFeature failed',
+      )
+      throw new Error(errorMessage)
+    }
+    return response
   }
 }

@@ -1,8 +1,9 @@
 import { Flags } from '@oclif/core'
-import { Response } from 'undici'
+import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
+  createFetchErrorMessage,
   getAssemblyFromRefseq,
   getFeatureById,
   idReader,
@@ -88,12 +89,14 @@ export default class Get extends BaseCommand<typeof Get> {
       access.accessToken,
       featureId,
     )
-    const featureJson = JSON.parse(await response.text())
     if (!response.ok) {
-      const message: string = featureJson['message' as keyof typeof featureJson]
-      this.logToStderr(message)
-      this.exit(1)
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'getFeatureById failed',
+      )
+      throw new Error(errorMessage)
     }
+    const featureJson = JSON.parse(await response.text())
 
     const assembly = await getAssemblyFromRefseq(
       access.address,
@@ -141,19 +144,13 @@ export default class Get extends BaseCommand<typeof Get> {
           'Content-Type': 'application/json',
         },
       }
-      try {
-        const response = await fetch(url, auth)
-        if (!response.ok) {
-          const j = await response.json()
-          const message: string = j['message' as keyof typeof j]
-          this.logToStderr(message)
-          this.exit(1)
-        }
-      } catch (error) {
-        if (error instanceof Error) {
-          this.logToStderr(error.message)
-        }
-        throw error
+      const response = await fetch(url, auth)
+      if (!response.ok) {
+        const errorMessage = await createFetchErrorMessage(
+          response,
+          'edit-coords failed',
+        )
+        throw new Error(errorMessage)
       }
     }
   }

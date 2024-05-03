@@ -14,12 +14,17 @@ export default class Status extends BaseCommand<typeof Status> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Status)
 
+    let profileName = flags.profile
+    if (profileName === undefined) {
+      profileName = process.env.APOLLO_PROFILE ?? 'default'
+    }
+
     let configFile = flags['config-file']
     if (configFile === undefined) {
       configFile = path.join(this.config.configDir, 'config.yaml')
     }
     try {
-      basicCheckConfig(configFile, flags.profile)
+      basicCheckConfig(configFile, profileName)
     } catch (error) {
       if (error instanceof ConfigError) {
         this.logToStderr(error.message)
@@ -28,11 +33,11 @@ export default class Status extends BaseCommand<typeof Status> {
     }
 
     const config: Config = new Config(configFile)
-    const accessToken: string = config.get(KEYS.accessToken, flags.profile)
+    const accessToken: string = config.get(KEYS.accessToken, profileName)
     if (accessToken === undefined || accessToken.trim() === '') {
-      this.log('Logged out')
+      this.log(`${profileName}: Logged out`)
     } else {
-      this.log('Logged in')
+      this.log(`${profileName}: Logged in`)
     }
   }
 }

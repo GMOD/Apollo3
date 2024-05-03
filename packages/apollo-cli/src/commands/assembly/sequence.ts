@@ -3,6 +3,7 @@ import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
+  createFetchErrorMessage,
   getRefseqId,
   idReader,
   localhostToAddress,
@@ -40,7 +41,15 @@ async function getSequence(
     },
     signal: controller.signal,
   }
-  return fetch(uri, auth)
+  const response = await fetch(uri, auth)
+  if (!response.ok) {
+    const errorMessage = await createFetchErrorMessage(
+      response,
+      'getSequence failed',
+    )
+    throw new Error(errorMessage)
+  }
+  return response
 }
 
 export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
@@ -129,12 +138,6 @@ export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
         flags.start - 1,
         endCoord,
       )
-      if (!res.ok) {
-        const json = JSON.parse(await res.text())
-        const message: string = json['message' as keyof typeof json]
-        this.logToStderr(message)
-        this.exit(1)
-      }
 
       const seqObj = await res.body?.getReader().read()
       const seq: string = new TextDecoder().decode(seqObj?.value)

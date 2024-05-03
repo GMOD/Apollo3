@@ -3,6 +3,7 @@ import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
+  createFetchErrorMessage,
   getFeatureById,
   idReader,
   localhostToAddress,
@@ -40,7 +41,15 @@ async function deleteFeature(
       'Content-Type': 'application/json',
     },
   }
-  return fetch(url, auth)
+  const response = await fetch(url, auth)
+  if (!response.ok) {
+    const errorMessage = await createFetchErrorMessage(
+      response,
+      'deleteFeature failed',
+    )
+    throw new Error(errorMessage)
+  }
+  return response
 }
 
 export default class Delete extends BaseCommand<typeof Delete> {
@@ -84,10 +93,17 @@ export default class Delete extends BaseCommand<typeof Delete> {
         access.accessToken,
         featureId,
       )
-      const feature = JSON.parse(await response.text())
       if (response.status === 404 && flags.force) {
         continue
       }
+      if (!response.ok) {
+        const errorMessage = await createFetchErrorMessage(
+          response,
+          'getFeatureById failed',
+        )
+        throw new Error(errorMessage)
+      }
+      const feature = JSON.parse(await response.text())
       if (!response.ok) {
         const message: string = feature['message' as keyof typeof feature]
         this.logToStderr(message)

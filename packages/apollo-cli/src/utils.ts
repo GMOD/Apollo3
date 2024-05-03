@@ -18,6 +18,23 @@ export interface UserCredentials {
   accessToken: string
 }
 
+
+export async function createFetchErrorMessage(
+  response: Response,
+  additionalText?: string,
+): Promise<string> {
+  let errorMessage
+  try {
+    errorMessage = await response.text()
+  } catch {
+    errorMessage = ''
+  }
+  const responseMessage = `${response.status} ${response.statusText}${
+    errorMessage ? ` (${errorMessage})` : ''
+  }`
+  return `${additionalText ? `${additionalText} — ` : ''}${responseMessage}`
+}
+
 export function checkConfigfileExists(configFile: string) {
   if (!fs.existsSync(configFile)) {
     throw new ConfigError(
@@ -72,9 +89,11 @@ export async function deleteAssembly(
   const url = new URL(localhostToAddress(`${address}/changes`))
   const response = await fetch(url, auth)
   if (!response.ok) {
-    const json = JSON.parse(await response.text())
-    const message: string = json['message' as keyof typeof json]
-    throw new Error(message)
+    const errorMessage = await createFetchErrorMessage(
+      response,
+      'deleteAssembly failed',
+    )
+    throw new Error(errorMessage)
   }
 }
 
@@ -233,7 +252,8 @@ export async function getFeatureById(
       authorization: `Bearer ${accessToken}`,
     },
   }
-  return fetch(url, auth)
+  const response = await fetch(url, auth)
+  return response
 }
 
 export async function getAssemblyFromRefseq(
@@ -263,11 +283,14 @@ export async function queryApollo(
   }
   const url = new URL(localhostToAddress(`${address}/${endpoint}`))
   const response = await fetch(url, auth)
-  if (response.ok) {
-    return response
+  if (!response.ok) {
+    const errorMessage = await createFetchErrorMessage(
+      response,
+      'queryApollo failed',
+    )
+    throw new ConfigError(errorMessage)
   }
-  const msg = `Failed to access Apollo with the current address and/or access token\nThe server returned:\n${response.statusText}`
-  throw new ConfigError(msg)
+  return response
 }
 
 export function filterJsonList(
@@ -381,7 +404,15 @@ export async function submitAssembly(
     signal: controller.signal,
   }
   const url = new URL(localhostToAddress(`${address}/changes`))
-  return fetch(url, auth)
+  const response = await fetch(url, auth)
+  if (!response.ok) {
+    const errorMessage = await createFetchErrorMessage(
+      response,
+      'submitAssembly failed',
+    )
+    throw new ConfigError(errorMessage)
+  }
+  return response
 }
 
 export async function uploadFile(
@@ -413,6 +444,13 @@ export async function uploadFile(
   const url = new URL(localhostToAddress(`${address}/files`))
   try {
     const response = await fetch(url, auth)
+    if (!response.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'uploadFile failed',
+      )
+      throw new ConfigError(errorMessage)
+    }
     const json = (await response.json()) as object
     return json['_id' as keyof typeof json]
   } catch (error) {

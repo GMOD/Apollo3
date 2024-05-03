@@ -71,7 +71,7 @@ FLAGS
   -x, --index=<value>        URL of the index. Required if input is an external source and ignored if input is a local
                              file
       --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Add new assembly from local or external fasta file
@@ -103,7 +103,7 @@ FLAGS
   -i, --input-file=<value>   (required) Input gff or gtf file
   -o, --omit-features        Do not import features, only upload the sequences
       --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Add new assembly from gff or gft file
@@ -137,7 +137,7 @@ FLAGS
   -c, --check=<value>...     Add these check names or IDs. If unset, print the checks set for assembly
   -d, --delete               Delete (instead of adding) checks
       --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Add, view, or delete checks to assembly
@@ -178,7 +178,7 @@ USAGE
 FLAGS
   -a, --assembly=<value>...  (required) Assembly names or IDs to delete
       --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Delete assemblies
@@ -205,7 +205,7 @@ USAGE
 FLAGS
   -a, --assembly=<value>...  Get assemblies in this list of names or IDs
       --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Get available assemblies
@@ -231,7 +231,7 @@ FLAGS
   -r, --refseq=<value>       Reference sequence. If unset, get all sequences
   -s, --start=<value>        [default: 1] Start coordinate (1-based)
       --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Get reference sequence in fasta format
@@ -262,7 +262,7 @@ USAGE
 FLAGS
   -a, --assembly=<value>...  Get changes only for these assembly names or IDs (but see description)
       --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Get list of changes
@@ -346,7 +346,7 @@ FLAGS
   -s, --start=<value>        (required) Start coordinate of the child feature (1-based)
   -t, --type=<value>         (required) Type of child feature
       --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Add a child feature (e.g. add an exon to an mRNA)
@@ -375,7 +375,7 @@ FLAGS
   -a, --assembly=<value>       Get checks for this assembly
   -i, --feature-id=<value>...  Get checks for these feature identifiers
       --config-file=<value>    Use this config file (mostly for testing)
-      --profile=<value>        [default: default] Use credentials from this profile
+      --profile=<value>        Use credentials from this profile
 
 DESCRIPTION
   Get check results
@@ -411,7 +411,7 @@ FLAGS
   -r, --refseq=<value>       (required) Name or ID of target reference sequence
   -s, --start=<value>        (required) Start position in target reference sequence
       --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Copy a feature to another location
@@ -442,7 +442,7 @@ FLAGS
   -i, --feature-id=<value>...  [default: -] Feature IDs to delete
   -n, --dry-run                Only show what would be delete
       --config-file=<value>    Use this config file (mostly for testing)
-      --profile=<value>        [default: default] Use credentials from this profile
+      --profile=<value>        Use credentials from this profile
 
 DESCRIPTION
   Delete one or more features by ID
@@ -465,7 +465,7 @@ USAGE
 FLAGS
   -j, --json-input=<value>   [default: -] Json string or json file or "-" to read json from stdin
       --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Edit features using an appropiate json input
@@ -512,7 +512,7 @@ FLAGS
   -v, --value=<value>...     New attribute value. Separated mutliple values by space to them as a list. If unset return
                              current value
       --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Add, edit, or view a feature attribute
@@ -551,7 +551,7 @@ FLAGS
   -i, --feature-id=<value>   [default: -] Feature ID to edit or "-" to read it from stdin
   -s, --start=<value>        New start coordinate (1-based)
       --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Edit feature start and/or end coordinates
@@ -585,7 +585,7 @@ FLAGS
   -i, --feature-id=<value>   [default: -] Feature ID to edit or "-" to read it from stdin
   -t, --type=<value>         Assign feature to this type. If unset return the current type
       --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Edit or view feature type
@@ -612,7 +612,7 @@ FLAGS
   -r, --refseq=<value>       Reference sequence. If unset, query all sequences
   -s, --start=<value>        [default: 1] Start coordinate (1-based)
       --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Get features in assembly, reference sequence or genomic window
@@ -644,7 +644,7 @@ FLAGS
                                "-" to read IDs from stdin (one per
                                line)
       --config-file=<value>    Use this config file (mostly for testing)
-      --profile=<value>        [default: default] Use credentials from this profile
+      --profile=<value>        Use credentials from this profile
 
 DESCRIPTION
   Get features given their identifiers
@@ -674,7 +674,7 @@ FLAGS
   -d, --delete-existing      Delete existing features before importing
   -i, --input-file=<value>   (required) Input gff or gtf file
       --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Import features from local gff file
@@ -703,7 +703,7 @@ FLAGS
                              search all assemblies
   -t, --text=<value>         (required) Search for this text query
       --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Free text search for feature in one or more assemblies
@@ -780,7 +780,7 @@ FLAGS
       --config-file=<value>  Use this config file (mostly for testing)
       --port=<value>         [default: 3000] Get token by listening to this port number (usually this is >= 1024 and <
                              65536)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Login to Apollo
@@ -814,7 +814,7 @@ USAGE
 
 FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
-  --profile=<value>      [default: default] Use credentials from this profile
+  --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Logout of Apollo
@@ -845,7 +845,7 @@ USAGE
 FLAGS
   -a, --assembly=<value>...  Get reference sequences for these assembly names or IDs; use - to read it from stdin
       --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Get reference sequences
@@ -877,7 +877,7 @@ USAGE
 
 FLAGS
   --config-file=<value>  Use this config file (mostly for testing)
-  --profile=<value>      [default: default] Use credentials from this profile
+  --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   View authentication status
@@ -902,7 +902,7 @@ FLAGS
   -r, --role=<value>         Get users with this role
   -u, --username=<value>     Find this username
       --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      [default: default] Use credentials from this profile
+      --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Get list of users

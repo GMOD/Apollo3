@@ -1,9 +1,14 @@
 import * as fs from 'node:fs'
 
 import { Flags } from '@oclif/core'
+import { fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { localhostToAddress, wrapLines } from '../../utils.js'
+import {
+  createFetchErrorMessage,
+  localhostToAddress,
+  wrapLines,
+} from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Edit features using an appropiate json input'
@@ -80,21 +85,15 @@ export default class Get extends BaseCommand<typeof Get> {
           'Content-Type': 'application/json',
         },
       }
-      try {
-        const response = await fetch(url, auth)
-        this.logToStderr(response.statusText)
-        if (!response.ok) {
-          const msg = await response.json()
-          const message: string = msg['message' as keyof typeof msg]
-          this.logToStderr(message)
-          this.exit(1)
-        }
-      } catch (error) {
-        if (error instanceof Error) {
-          this.logToStderr(error.message)
-        }
-        throw error
+      const response = await fetch(url, auth)
+      if (!response.ok) {
+        const errorMessage = await createFetchErrorMessage(
+          response,
+          'edit failed',
+        )
+        throw new Error(errorMessage)
       }
     }
+    this.exit(0)
   }
 }

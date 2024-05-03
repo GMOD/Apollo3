@@ -4,6 +4,7 @@ import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
+  createFetchErrorMessage,
   getFeatureById,
   idReader,
   localhostToAddress,
@@ -78,13 +79,14 @@ export default class Get extends BaseCommand<typeof Get> {
       access.accessToken,
       featureId,
     )
-    const feature = JSON.parse(await response.text())
     if (!response.ok) {
-      const message: string = feature['message' as keyof typeof feature]
-      this.logToStderr(message)
-      this.exit(1)
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'getFeatureById failed',
+      )
+      throw new Error(errorMessage)
     }
-
+    const feature = JSON.parse(await response.text())
     const childRes = await this.addChild(
       access.address,
       access.accessToken,
@@ -151,6 +153,14 @@ export default class Get extends BaseCommand<typeof Get> {
         'Content-Type': 'application/json',
       },
     }
-    return fetch(url, auth)
+    const response = await fetch(url, auth)
+    if (!response.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'getFeatureById failed',
+      )
+      throw new Error(errorMessage)
+    }
+    return response
   }
 }

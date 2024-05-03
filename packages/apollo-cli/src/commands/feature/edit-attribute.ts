@@ -1,8 +1,9 @@
 import { Flags } from '@oclif/core'
-import { Response } from 'undici'
+import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
+  createFetchErrorMessage,
   getAssemblyFromRefseq,
   getFeatureById,
   idReader,
@@ -80,12 +81,14 @@ export default class EditAttibute extends BaseCommand<typeof EditAttibute> {
       access.accessToken,
       featureId,
     )
-    const featureJson = JSON.parse(await response.text())
     if (!response.ok) {
-      const message: string = featureJson['message' as keyof typeof featureJson]
-      this.logToStderr(message)
-      this.exit(1)
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'getFeatureById failed',
+      )
+      throw new Error(errorMessage)
     }
+    const featureJson = JSON.parse(await response.text())
 
     if (flags.value === undefined && !flags.delete) {
       this.log(JSON.stringify(featureJson.attributes[flags.attribute]))
@@ -122,13 +125,14 @@ export default class EditAttibute extends BaseCommand<typeof EditAttibute> {
         'Content-Type': 'application/json',
       },
     }
-    try {
-      await fetch(url, auth)
-    } catch (error) {
-      if (error instanceof Error) {
-        this.logToStderr(error.message)
-      }
-      throw error
+    const res = await fetch(url, auth)
+    if (!res.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        res,
+        'edit-attribute failed',
+      )
+      throw new Error(errorMessage)
     }
+    this.exit(0)
   }
 }

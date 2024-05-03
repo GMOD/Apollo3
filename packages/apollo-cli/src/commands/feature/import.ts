@@ -6,6 +6,7 @@ import { Response, fetch } from 'undici'
 import { BaseCommand } from '../../baseCommand.js'
 import {
   convertAssemblyNameToId,
+  createFetchErrorMessage,
   localhostToAddress,
   uploadFile,
 } from '../../utils.js'
@@ -121,5 +122,13 @@ async function importFeatures(
   }
 
   const url = new URL(localhostToAddress(`${address}/changes`))
-  return fetch(url, auth)
+  const response = await fetch(url, auth)
+  if (!response.ok) {
+    const errorMessage = await createFetchErrorMessage(
+      response,
+      'importFeatures failed',
+    )
+    throw new Error(errorMessage)
+  }
+  return response
 }

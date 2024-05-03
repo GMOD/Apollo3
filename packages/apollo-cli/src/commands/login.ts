@@ -5,12 +5,14 @@ import * as querystring from 'node:querystring'
 
 import { Errors, Flags, ux } from '@oclif/core'
 import open from 'open'
+import { fetch } from 'undici'
 
 import { BaseCommand } from '../baseCommand.js'
 import { Config, ConfigError } from '../Config.js'
 import {
   UserCredentials,
   basicCheckConfig,
+  createFetchErrorMessage,
   getUserCredentials,
   localhostToAddress,
   waitFor,
@@ -76,8 +78,14 @@ export default class Login extends BaseCommand<typeof Login> {
     if (configFile === undefined) {
       configFile = path.join(this.config.configDir, 'config.yaml')
     }
+
+    let profileName = flags.profile
+    if (profileName === undefined) {
+      profileName = process.env.APOLLO_PROFILE ?? 'default'
+    }
+
     try {
-      basicCheckConfig(configFile, flags.profile)
+      basicCheckConfig(configFile, profileName)
     } catch (error) {
       if (error instanceof ConfigError) {
         this.logToStderr(error.message)
@@ -87,12 +95,9 @@ export default class Login extends BaseCommand<typeof Login> {
 
     const config: Config = new Config(configFile)
 
-    const accessType: string | undefined = config.get(
-      'accessType',
-      flags.profile,
-    )
+    const accessType: string | undefined = config.get('accessType', profileName)
     const address: string | undefined =
-      flags.address ?? config.get('address', flags.profile)
+      flags.address ?? config.get('address', profileName)
     if (address === undefined) {
       this.logToStderr('Address to apollo must be set')
       this.exit(1)
@@ -106,11 +111,9 @@ export default class Login extends BaseCommand<typeof Login> {
       }
       if (accessType === 'root' || flags.username !== undefined) {
         const username: string | undefined =
-          flags.username ??
-          config.get('rootCredentials.username', flags.profile)
+          flags.username ?? config.get('rootCredentials.username', profileName)
         const password: string | undefined =
-          flags.password ??
-          config.get('rootCredentials.password', flags.profile)
+          flags.password ?? config.get('rootCredentials.password', profileName)
         if (username === undefined || password === undefined) {
           this.logToStderr('Username and password must be set')
           this.exit(1)
@@ -140,7 +143,7 @@ export default class Login extends BaseCommand<typeof Login> {
         this.exit(1)
       }
     }
-    config.set('accessToken', userCredentials.accessToken, flags.profile)
+    config.set('accessToken', userCredentials.accessToken, profileName)
     config.writeConfigFile()
   }
 
@@ -179,11 +182,18 @@ export default class Login extends BaseCommand<typeof Login> {
       method: 'POST',
       body: JSON.stringify({ username, password }),
     })
-    const dat = await response.json()
     if (!response.ok) {
-      throw new Error(dat)
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'startRootLogin failed',
+      )
+      throw new Error(errorMessage)
     }
-    return { accessToken: dat.token }
+    const dat = await response.json()
+    if (typeof dat === 'object' && dat !== null && 'token' in dat) {
+      return { accessToken: dat.token as string }
+    }
+    throw new Error(`Unexpected response: ${JSON.stringify(dat)}`)
   }
 
   private async startGuestLogin(address: string): Promise<UserCredentials> {
@@ -191,11 +201,18 @@ export default class Login extends BaseCommand<typeof Login> {
     const response = await fetch(url, {
       headers: { 'Content-Type': 'application/json' },
     })
-    const dat = await response.json()
     if (!response.ok) {
-      throw new Error(dat)
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'startGuestLogin failed',
+      )
+      throw new Error(errorMessage)
     }
-    return { accessToken: dat.token }
+    const dat = await response.json()
+    if (typeof dat === 'object' && dat !== null && 'token' in dat) {
+      return { accessToken: dat.token as string }
+    }
+    throw new Error(`Unexpected response: ${JSON.stringify(dat)}`)
   }
 
   private async startAuthorizationCodeFlow(
