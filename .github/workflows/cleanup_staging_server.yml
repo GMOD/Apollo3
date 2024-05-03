@@ -39,4 +39,5 @@ jobs:
           ssh-keyscan -H ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }} >> ~/.ssh/known_hosts
       - name: Test ssh
         run: |
+          ssh staging
           touch ~/dario/test.txt
