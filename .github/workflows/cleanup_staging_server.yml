@@ -48,15 +48,11 @@ jobs:
           mkdir -p ${{ '${HOME}' }}/dario/demoData
           cd ${{ '${HOME}' }}/dario/demoData
 
-          touch done.txt
-          exit 9
-
-          curl -O -s -L  https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz
-          curl -O -s -L  https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz
-          curl -O -s -L  https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3.gz
-          curl -O -s -L  https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3.gz
-
-          gunzip *.gz
+          : # curl -O -s -L https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz
+          : # curl -O -s -L https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz
+          : # curl -O -s -L https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3.gz
+          : # curl -O -s -L https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3.gz
+          : # gunzip *.gz
 
           cd ${{ '${HOME}' }}/Apollo3/packages/apollo-cli
 
@@ -69,6 +65,8 @@ jobs:
           apollo config rootCredentials.password pass
           apollo login 
 
+          apollo delete assembly -a schistosoma_haematobium schistosoma_mansoni
+
           apollo assembly add-fasta -i schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa -a schistosoma_haematobium -f
           apollo assembly add-fasta -i schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa -a schistosoma_mansoni -f
 
@@ -77,4 +75,4 @@ jobs:
           EOF
 
           rsync -av cleanup_apollo.$$.tmp.sh staging:dario/
-          ssh staging -t "bash dario/cleanup_apollo.$$.tmp.sh"
+          ssh staging -f "bash dario/cleanup_apollo.$$.tmp.sh && rm dario/cleanup_apollo.$$.tmp.sh"
