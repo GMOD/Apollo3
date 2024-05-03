@@ -44,22 +44,12 @@ jobs:
           set -u
           set -o pipefail
 
-          cd ${{ '${{HOME}}' }}/Apollo3/packages/apollo-cli
+          rm -rf ${{ '${HOME}' }}/dario/demoData
+          mkdir -p ${{ '${HOME}' }}/dario/demoData
+          cd ${{ '${HOME}' }}/dario/demoData
 
-          export APOLLO_PROFILE=auto
-
-          alias apollo='yarn node bin/run.js'
-          apollo config address http://localhost
-          apollo config accessType root
-          apollo config rootCredentials.username admin
-          apollo config rootCredentials.password pass
-          apollo login 
-
+          touch done.txt
           exit 9
-
-          rm -rf dario/demoData
-          mkdir -p dario/demoData
-          cd demoData
 
           curl -O -s -L  https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz
           curl -O -s -L  https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz
@@ -68,6 +58,17 @@ jobs:
 
           gunzip *.gz
 
+          cd ${{ '${HOME}' }}/Apollo3/packages/apollo-cli
+
+          export APOLLO_PROFILE=auto
+          alias apollo='yarn node bin/run.js'
+
+          apollo config address http://localhost
+          apollo config accessType root
+          apollo config rootCredentials.username admin
+          apollo config rootCredentials.password pass
+          apollo login 
+
           apollo assembly add-fasta -i schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa -a schistosoma_haematobium -f
           apollo assembly add-fasta -i schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa -a schistosoma_mansoni -f
 
@@ -75,5 +76,5 @@ jobs:
           apollo feature import -i schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3 -a schistosoma_mansoni -d
           EOF
 
-          rsync -av cleanup_apollo.$$.tmp.sh staging:dario/
-          ssh staging -t "dario/cleanup_apollo.$$.tmp.sh"
+          rsync -av cleanup_apollo.$$.tmp.sh staging:${{ '${HOME}' }}/dario/
+          ssh staging -t "bash ${{ '${HOME}' }}/dario/cleanup_apollo.$$.tmp.sh"
