@@ -41,12 +41,12 @@ jobs:
         run: |
           ssh staging
 
-          cat <<'EOF' > $HOME/dario/cleanup_apollo.$$.tmp.sh
+          cat <<'EOF' > dario/cleanup_apollo.$$.tmp.sh
           set -e
           set -u
           set -o pipefail
 
-          cd $HOME/Apollo3/packages/apollo-cli
+          cd Apollo3/packages/apollo-cli
 
           export APOLLO_PROFILE=auto
 
@@ -57,8 +57,8 @@ jobs:
           apollo config rootCredentials.password pass
           apollo login 
 
-          rm -rf $HOME/dario/demoData
-          mkdir -p $HOME/dario/demoData
+          rm -rf dario/demoData
+          mkdir -p dario/demoData
           cd demoData
 
           curl -O -s -L  https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz
@@ -75,5 +75,5 @@ jobs:
           apollo feature import -i schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3 -a schistosoma_mansoni -d
           EOF
 
-          : # bash ${HOME}/dario/cleanup_apollo.$$.tmp.sh &
-          : # rm ${HOME}/dario/cleanup_apollo.$$.tmp.sh
+          : # bash dario/cleanup_apollo.$$.tmp.sh &
+          : # rm dario/cleanup_apollo.$$.tmp.sh
