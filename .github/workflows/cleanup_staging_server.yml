@@ -40,6 +40,7 @@ jobs:
       - name: Test ssh
         run: |
           ssh staging
+          ls
 
           cat <<'EOF' > dario/cleanup_apollo.$$.tmp.sh
           set -e
