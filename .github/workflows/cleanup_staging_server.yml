@@ -1,0 +1,43 @@
+name: Cleanup staging server
+
+on:
+  push: null
+  workflow_dispatch
+
+jobs:
+  deploy:
+    name: Cleanup
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Check out
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Get instance address
+        id: ec2-describe-instances
+        run: |
+          INSTANCE_ADDRESS=$(aws ec2 describe-instances \
+            --instance-ids ${{ vars.INSTANCE_ID }} \
+            --query "Reservations[*].Instances[*].[PublicDnsName]" \
+            --output text)
+          echo "INSTANCE_ADDRESS=$INSTANCE_ADDRESS" >> "$GITHUB_OUTPUT"
+      - name: Set up SSH
+        run: |
+          mkdir --parents ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY  }}" >  ~/.ssh/staging
+          chmod 600 ~/.ssh/staging
+          cat >>~/.ssh/config <<END
+          Host staging
+            HostName ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }}
+            User ec2-user
+            IdentityFile ~/.ssh/staging
+          END
+          ssh-keyscan -H ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }} >> ~/.ssh/known_hosts
+      - name: Test ssh
+        run: |
+          touch ~/dario/test.txt
