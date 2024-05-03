@@ -41,24 +41,24 @@ jobs:
         run: |
           ssh staging
 
-          cat <<'EOF' > ${{HOME}}/dario/cleanup_apollo.$$.tmp.sh
+          cat <<'EOF' > $HOME/dario/cleanup_apollo.$$.tmp.sh
           set -e
           set -u
           set -o pipefail
 
-          cd ${{HOME}}/Apollo3/packages/apollo-cli
+          cd $HOME/Apollo3/packages/apollo-cli
 
           export APOLLO_PROFILE=auto
 
-          alias apollo='yarn --cwd  node bin/run.js'
+          alias apollo='yarn node bin/run.js'
           apollo config address http://localhost
           apollo config accessType root
           apollo config rootCredentials.username admin
           apollo config rootCredentials.password pass
           apollo login 
 
-          rm -rf ${{HOME}}/dario/demoData
-          mkdir -p ${{HOME}}/dario/demoData
+          rm -rf $HOME/dario/demoData
+          mkdir -p $HOME/dario/demoData
           cd demoData
 
           curl -O -s -L  https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz
