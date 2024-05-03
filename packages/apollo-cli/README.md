@@ -188,7 +188,7 @@ DESCRIPTION
 EXAMPLES
   Delete multiple assemblies using name or ID:
 
-    $ apollo assembly delete -i mouse 6605826fbd0eee691f83e73f
+    $ apollo assembly delete -a mouse 6605826fbd0eee691f83e73f
 ```
 
 _See code:

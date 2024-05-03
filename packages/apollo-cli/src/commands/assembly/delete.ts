@@ -15,7 +15,7 @@ export default class Delete extends BaseCommand<typeof Delete> {
     {
       description: 'Delete multiple assemblies using name or ID:',
       command:
-        '<%= config.bin %> <%= command.id %> -i mouse 6605826fbd0eee691f83e73f',
+        '<%= config.bin %> <%= command.id %> -a mouse 6605826fbd0eee691f83e73f',
     },
   ]
 
