@@ -39,10 +39,7 @@ jobs:
           ssh-keyscan -H ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }} >> ~/.ssh/known_hosts
       - name: Test ssh
         run: |
-          ssh staging
-          ls
-
-          cat <<'EOF' > dario/cleanup_apollo.$$.tmp.sh
+          cat <<'EOF' > cleanup_apollo.$$.tmp.sh
           set -e
           set -u
           set -o pipefail
@@ -76,5 +73,9 @@ jobs:
           apollo feature import -i schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3 -a schistosoma_mansoni -d
           EOF
 
+          cat cleanup_apollo.$$.tmp.sh
+
           : # bash dario/cleanup_apollo.$$.tmp.sh &
           : # rm dario/cleanup_apollo.$$.tmp.sh
+
+          rsync -av cleanup_apollo.$$.tmp.sh staging:dario/
