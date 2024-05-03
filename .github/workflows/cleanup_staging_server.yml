@@ -44,7 +44,7 @@ jobs:
           set -u
           set -o pipefail
 
-          cd Apollo3/packages/apollo-cli
+          cd ${{ '${{HOME}}' }}/Apollo3/packages/apollo-cli
 
           export APOLLO_PROFILE=auto
 
@@ -54,6 +54,8 @@ jobs:
           apollo config rootCredentials.username admin
           apollo config rootCredentials.password pass
           apollo login 
+
+          exit 9
 
           rm -rf dario/demoData
           mkdir -p dario/demoData
@@ -73,9 +75,5 @@ jobs:
           apollo feature import -i schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3 -a schistosoma_mansoni -d
           EOF
 
-          cat cleanup_apollo.$$.tmp.sh
-
-          : # bash dario/cleanup_apollo.$$.tmp.sh &
-          : # rm dario/cleanup_apollo.$$.tmp.sh
-
           rsync -av cleanup_apollo.$$.tmp.sh staging:dario/
+          ssh staging -t "dario/cleanup_apollo.$$.tmp.sh"
