@@ -76,5 +76,5 @@ jobs:
           apollo feature import -i schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3 -a schistosoma_mansoni -d
           EOF
 
-          rsync -av cleanup_apollo.$$.tmp.sh staging:${{ '${HOME}' }}/dario/
-          ssh staging -t "bash ${{ '${HOME}' }}/dario/cleanup_apollo.$$.tmp.sh"
+          rsync -av cleanup_apollo.$$.tmp.sh staging:dario/
+          ssh staging -t "bash dario/cleanup_apollo.$$.tmp.sh"
