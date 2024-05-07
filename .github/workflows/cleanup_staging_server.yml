@@ -5,7 +5,7 @@ on:
     - cron: '/3 * * * *'
     # - cron: '13 9 * * MON'
   push: null
-  on: workflow_dispatch
+  workflow_dispatch:
 
 jobs:
   deploy:
