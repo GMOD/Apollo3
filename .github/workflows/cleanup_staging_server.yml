@@ -1,11 +1,11 @@
 name: Cleanup staging server
+on: workflow_dispatch
 
-on:
-  schedule:
-    - cron: '13 9 * * MON'
-    - cron: '*/10 * * * *'
-  push: null
-  workflow_dispatch:
+#on:
+#  schedule:
+#    - cron: '13 9 * * MON'
+#  push: null
+#  workflow_dispatch:
 
 jobs:
   deploy:
