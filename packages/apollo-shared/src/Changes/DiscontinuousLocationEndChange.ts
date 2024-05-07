@@ -76,7 +76,11 @@ export class DiscontinuousLocationEndChange extends FeatureChange {
         logger.error(errMsg)
         throw new Error(errMsg)
       }
-
+      if (topLevelFeature.end < newEnd) {
+        const errMsg = `ERROR: Feature's new end (${newEnd}) can not be greater than parent's end (${topLevelFeature.end}'`
+        logger.error(errMsg)
+        throw new Error(errMsg)
+      }
       const feature = this.getFeatureFromId(topLevelFeature, featureId)
       if (!feature) {
         const errMsg = 'ERROR when searching feature by featureId'

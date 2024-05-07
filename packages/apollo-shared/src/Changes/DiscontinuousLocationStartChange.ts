@@ -76,8 +76,13 @@ export class DiscontinuousLocationStartChange extends FeatureChange {
         logger.error(errMsg)
         throw new Error(errMsg)
       }
-
+      if (topLevelFeature.start > newStart) {
+        const errMsg = `ERROR: Feature's new start (${newStart}) can not be lower than parent's start (${topLevelFeature.start}'`
+        logger.error(errMsg)
+        throw new Error(errMsg)
+      }
       const feature = this.getFeatureFromId(topLevelFeature, featureId)
+
       if (!feature) {
         const errMsg = 'ERROR when searching feature by featureId'
         logger.error(errMsg)

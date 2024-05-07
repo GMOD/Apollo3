@@ -128,17 +128,9 @@ export const getCDSInfoWithoutUTRLines = (
 ): CDSInfo[] => {
   const CDSresult: CDSInfo[] = []
   let exonsArray: ExonInfo[] = []
-  // console.log(`WHOLE FEATUTE= ${JSON.stringify(feature)}`)
+  // console.log(`WHOLE FEATURE= ${JSON.stringify(feature)}`)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const traverse = (currentFeature: any) => {
-    // console.log(
-    //   `Feature type=${currentFeature.type}, Feature range: ${currentFeature.start} - ${currentFeature.end}, isParentMRNA=${isParentMRNA}, Parent range: ${feature.start} - ${feature.end}`,
-    // )
-
-    // console.log(
-    //   `**** FEATURE ID = ${currentFeature._id}, TYPE = ${currentFeature.type}`,
-    // )
-
     if (currentFeature.type === 'exon') {
       // console.log(`EXON DATA = ${currentFeature.start} - ${currentFeature.end}`)
       exonsArray.push({ start: currentFeature.start, end: currentFeature.end })
@@ -429,9 +421,9 @@ export const getCDSInfoWithoutUTRLines = (
               type: 'five_prime_UTR',
               strand: Number(feature.strand),
               start: feature.start + 1,
-              end: currentFeature.start,
+              end: currentFeature.end,
               oldStart: feature.start + 1,
-              oldEnd: currentFeature.start,
+              oldEnd: currentFeature.end,
               startSeq: '',
               endSeq: '',
             }
@@ -487,11 +479,11 @@ export const getCDSInfoWithoutUTRLines = (
           }
           CDSresult.push(oneCDS)
         } else {
-          // console.log(
-          //   `TYPE = 3 UTR, start=${feature.start}, end=${
-          //     Number(element.end) - 1
-          //   }`,
-          // )
+          console.log(
+            `TYPE = 3 UTR, start=${feature.start}, end=${
+              Number(element.end) - 1
+            }`,
+          )
           const oneCDS: CDSInfo = {
             id: feature._id,
             type: 'three_prime_UTR',

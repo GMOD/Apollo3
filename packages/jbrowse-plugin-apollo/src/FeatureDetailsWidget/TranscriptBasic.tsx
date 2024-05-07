@@ -43,16 +43,10 @@ const containsUTR = (currentFeature: any): boolean => {
  */
 function getFeatureFromId(feature: any, featureId: string): any | null {
   if (feature._id === featureId) {
-    console.log(
-      `Top level featureId matches in the object ${JSON.stringify(feature)}`,
-    )
     return feature
   }
   // Check if there is also childFeatures in parent feature and it's not empty
   // Let's get featureId from recursive method
-  console.log(
-    'FeatureId was not found on top level so lets make recursive call...',
-  )
   for (const [, childFeature] of feature.children ?? new Map()) {
     const subFeature = getFeatureFromId(childFeature, featureId)
     if (subFeature) {
@@ -98,11 +92,57 @@ export const TranscriptBasicInformation = observer(
       }
       const subFeature = getFeatureFromId(feature, featureId)
       console.log(`======= SUB FEATURE: ${JSON.stringify(subFeature)}`)
+      console.log(
+        `======= Parent feature type = ${feature.type} (${feature.start} - ${feature.end})`,
+      )
+      let exonChange
+      if (feature.children) {
+        // Let's check EXONs start and end values. And possibly update those too
+        for (const child of feature.children) {
+          if (child[1].type === 'exon') {
+            // if (Number(child[1].start) <= oldStart && Number(child[1].end) >= subFeature.end && child[1].type === 'exon') {
+            console.log(
+              `======= Child type = '${child[1].type}', start = ${child[1].start}, end = ${child[1].end}`,
+            )
+            // eslint-disable-next-line @typescript-eslint/prefer-for-of
+            for (let i = 0; i < subFeature.discontinuousLocations.length; i++) {
+              if (
+                Number(child[1].start) <=
+                  subFeature.discontinuousLocations[i].start &&
+                Number(child[1].end) >=
+                  subFeature.discontinuousLocations[i].end &&
+                subFeature.discontinuousLocations[i].start === oldStart &&
+                Number(child[1].start) > newStart
+              ) {
+                console.log(
+                  `+++++++ PITAA PAIVITTAA EXONI ALKAMAAN KOHDASTA  ${newStart}. Exonin ID = ${child[1]._id}`,
+                )
+                exonChange = new LocationStartChange({
+                  typeName: 'LocationStartChange',
+                  changedIds: [child[1]._id],
+                  featureId: child[1]._id,
+                  oldStart: child[1].start,
+                  newStart,
+                  assembly,
+                })
+              }
+              // if (subFeature.discontinuousLocations[i].start === oldStart) {
+              //   console.log(
+              //     `++ Lets update start by index ${ind}, oldStart=${oldStart}, newStart=${newStart}`,
+              //   )
+              //   break
+              // }
+            }
+          }
+        }
+      }
       let ind = 0
       // eslint-disable-next-line @typescript-eslint/prefer-for-of
       for (let i = 0; i < subFeature.discontinuousLocations.length; i++) {
         if (subFeature.discontinuousLocations[i].start === oldStart) {
-          console.log(`++ Lets update start by index ${ind}`)
+          console.log(
+            `++ Lets update start by index ${ind}, oldStart=${oldStart}, newStart=${newStart}`,
+          )
           break
         }
         ind++
@@ -116,6 +156,12 @@ export const TranscriptBasicInformation = observer(
         assembly,
         index: ind,
       })
+      if (exonChange) {
+        console.log('============ Lets update exon start')
+        void changeManager.submit(exonChange)
+        console.log('============ Exon start updated')
+      }
+      console.log('============ Lets update CDS start')
       return changeManager.submit(change)
     }
 
@@ -138,12 +184,12 @@ export const TranscriptBasicInformation = observer(
         return changeManager.submit(change)
       }
       const subFeature = getFeatureFromId(feature, featureId)
-      console.log(`======= SUB FEATURE: ${JSON.stringify(subFeature)}`)
+      // console.log(`======= SUB FEATURE: ${JSON.stringify(subFeature)}`)
       let ind = 0
       // eslint-disable-next-line @typescript-eslint/prefer-for-of
       for (let i = 0; i < subFeature.discontinuousLocations.length; i++) {
         if (subFeature.discontinuousLocations[i].end === oldEnd) {
-          console.log(`++ Lets update end by index ${ind}`)
+          // console.log(`++ Lets update end by index ${ind}`)
           break
         }
         ind++
