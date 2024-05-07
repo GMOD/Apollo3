@@ -3,6 +3,7 @@ name: Cleanup staging server
 on:
   schedule:
     - cron: '13 9 * * MON'
+    - cron: '*/10 * * * *'
   push: null
   workflow_dispatch:
 
