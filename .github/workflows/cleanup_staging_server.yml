@@ -59,24 +59,26 @@ jobs:
           cd ${{ '${HOME}' }}/Apollo3/packages/apollo-cli
 
           export APOLLO_PROFILE=auto
-          alias apollo='yarn node bin/run.js'
+          function apollo () {
+            yarn node bin/run.js
+          }
 
-          apollo config address http://localhost
-          apollo config accessType root
-          apollo config rootCredentials.username admin
-          apollo config rootCredentials.password ${{ secrets.AWS_ACCESS_KEY_ID }}
-          apollo login
+          $apollo config address http://localhost
+          $apollo config accessType root
+          $apollo config rootCredentials.username admin
+          $apollo config rootCredentials.password ${{ secrets.ROOT_PASSWORD }}
+          $apollo login
 
-          apollo assembly get 
+          $apollo assembly get 
           exit 0
 
-          apollo assembly get | apollo assembly delete -a -
+          $apollo assembly get | $apollo assembly delete -a -
 
-          apollo assembly add-fasta -i schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa -a schistosoma_haematobium -f
-          apollo assembly add-fasta -i schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa -a schistosoma_mansoni -f
+          $apollo assembly add-fasta -i schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa -a schistosoma_haematobium -f
+          $apollo assembly add-fasta -i schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa -a schistosoma_mansoni -f
 
-          apollo feature import -i schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3 -a schistosoma_haematobium -d
-          apollo feature import -i schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3 -a schistosoma_mansoni -d
+          $apollo feature import -i schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3 -a schistosoma_haematobium -d
+          $apollo feature import -i schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3 -a schistosoma_mansoni -d
           EOF
 
           rsync -av cleanup_apollo.$xid.sh staging:dario/
