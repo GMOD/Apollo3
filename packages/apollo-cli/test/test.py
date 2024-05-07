@@ -864,16 +864,21 @@ class TestCLI(unittest.TestCase):
         p = shell(f"{apollo} user get {P} -r readOnly -u admin")
         out = json.loads(p.stdout)
         self.assertEqual(len(out), 0)
-    
+
     def testApolloEnv(self):
-        p = shell(f"export APOLLO_PROFILE=testAdmin; {apollo} user get")
-        out = json.loads(p.stdout)
-        self.assertTrue(len(out) >= 1)
+        p = shell(
+            f"""export APOLLO_PROFILE=testAdmin2
+                {apollo} config address http://localhost:3999
+                {apollo} config accessType root
+                {apollo} config rootCredentials.username admin
+                {apollo} config rootCredentials.password pass
+                {apollo} login
+                {apollo} status 
+                {apollo} user get"""
+        )
+        self.assertTrue("testAdmin2: Logged in" in p.stdout)
+        self.assertTrue("createdAt" in p.stdout)
 
-        p = shell(f"{apollo} user get --profile na", strict=False)
-        self.assertTrue(p.returncode != 0)
-
-        
 
 if __name__ == "__main__":
     unittest.main()

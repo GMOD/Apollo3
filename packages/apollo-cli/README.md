@@ -882,9 +882,9 @@ FLAGS
 DESCRIPTION
   View authentication status
 
-  This command returns "Logged in" if the selected profile has an access token and
-  "Logged out" otherwise. Note that this command does not check the validity of
-  the access token.
+  This command returns "<profile>: Logged in" if the selected profile has an
+  access token and "<profile>: Logged out" otherwise. Note that this command does
+  not check the validity of the access token.
 ```
 
 _See code:
