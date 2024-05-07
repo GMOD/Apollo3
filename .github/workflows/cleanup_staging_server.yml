@@ -39,7 +39,8 @@ jobs:
           ssh-keyscan -H ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }} >> ~/.ssh/known_hosts
       - name: Test ssh
         run: |
-          cat <<'EOF' > cleanup_apollo.$$.tmp.sh
+          xid=`date +"%Y-%m-%dT%H-%M-%S"`
+          cat <<'EOF' > cleanup_apollo.$xid.sh
           set -e
           set -u
           set -o pipefail
@@ -48,10 +49,11 @@ jobs:
           mkdir -p ${{ '${HOME}' }}/dario/demoData
           cd ${{ '${HOME}' }}/dario/demoData
 
-          : # curl -O -s -L https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz
-          : # curl -O -s -L https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz
-          : # curl -O -s -L https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3.gz
-          : # curl -O -s -L https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3.gz
+          wormbase='https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species'
+          : # curl -O -s -L $wormbase/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz
+          : # curl -O -s -L $wormbase/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz
+          : # curl -O -s -L $wormbase/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3.gz
+          : # curl -O -s -L $wormbase/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3.gz
           : # gunzip *.gz
 
           cd ${{ '${HOME}' }}/Apollo3/packages/apollo-cli
@@ -62,10 +64,13 @@ jobs:
           apollo config address http://localhost
           apollo config accessType root
           apollo config rootCredentials.username admin
-          apollo config rootCredentials.password pass
-          apollo login 
+          apollo config rootCredentials.password ${{ secrets.AWS_ACCESS_KEY_ID }}
+          apollo login
 
-          apollo delete assembly -a schistosoma_haematobium schistosoma_mansoni
+          apollo assembly get 
+          exit 0
+
+          apollo assembly get | apollo assembly delete -a -
 
           apollo assembly add-fasta -i schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa -a schistosoma_haematobium -f
           apollo assembly add-fasta -i schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa -a schistosoma_mansoni -f
@@ -74,5 +79,5 @@ jobs:
           apollo feature import -i schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3 -a schistosoma_mansoni -d
           EOF
 
-          rsync -av cleanup_apollo.$$.tmp.sh staging:dario/
-          ssh staging -f "bash dario/cleanup_apollo.$$.tmp.sh && rm dario/cleanup_apollo.$$.tmp.sh"
+          rsync -av cleanup_apollo.$xid.sh staging:dario/
+          ssh staging -f "bash dario/cleanup_apollo.$xid.sh > dario/cleanup_apollo.$xid.out 2> dario/cleanup_apollo.$xid.err && rm dario/cleanup_apollo.$xid.sh"
