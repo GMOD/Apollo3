@@ -80,7 +80,10 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
     if (args.key === undefined) {
       await this.interactiveSetup(config, flags.profile)
     } else {
-      let profileName = 'default'
+      let profileName = flags.profile
+      if (profileName === undefined) {
+        profileName = process.env.APOLLO_PROFILE ?? 'default'
+      }
       if (flags.profile !== undefined) {
         profileName = flags.profile
       }
