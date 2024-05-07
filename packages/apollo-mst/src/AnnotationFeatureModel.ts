@@ -1,26 +1,22 @@
 import {
   IAnyModelType,
   IMSTMap,
-  IReferenceType,
   Instance,
   SnapshotIn,
   SnapshotOrInstance,
   cast,
   getParentOfType,
-  getRelativePath,
   getSnapshot,
-  resolvePath,
   types,
 } from 'mobx-state-tree'
 
 import { ApolloAssembly } from '.'
 
-export const LateAnnotationFeature = types.late(
-  (): IAnyModelType | IReferenceType<IAnyModelType> =>
-    types.union(AnnotationFeatureModel, AnnotationFeatureReference),
+export const LateAnnotationFeatureNew = types.late(
+  (): IAnyModelType => AnnotationFeatureModelNew,
 )
 
-export const AnnotationFeatureModel = types
+export const AnnotationFeatureModelNew = types
   .model('AnnotationFeature', {
     _id: types.identifier,
     /** Unique ID of the reference sequence on which this feature is located */
@@ -50,7 +46,7 @@ export const AnnotationFeatureModel = types
      */
     strand: types.maybe(types.union(types.literal(1), types.literal(-1))),
     /** Child features of this feature */
-    children: types.maybe(types.map(LateAnnotationFeature)),
+    children: types.maybe(types.map(LateAnnotationFeatureNew)),
     /**
      * Additional attributes of the feature. This could include name, source,
      * note, dbxref, etc.
@@ -147,10 +143,10 @@ export const AnnotationFeatureModel = types
     setStrand(strand?: 1 | -1 | undefined) {
       self.strand = strand
     },
-    addChild(childFeature: AnnotationFeatureSnapshot) {
+    addChild(childFeature: AnnotationFeatureSnapshotNew) {
       if (self.children && self.children.size > 0) {
         const existingChildren = getSnapshot<
-          Record<string, AnnotationFeatureSnapshot>
+          Record<string, AnnotationFeatureSnapshotNew>
         >(self.children)
         self.children.clear()
         for (const [, child] of Object.entries({
@@ -194,59 +190,39 @@ export const AnnotationFeatureModel = types
   // This views block has to be last to avoid:
   // "'parent' is referenced directly or indirectly in its own type annotation."
   .views((self) => ({
-    get parent(): AnnotationFeature | undefined {
-      let parent: AnnotationFeature | undefined
+    get parent(): AnnotationFeatureNew | undefined {
+      let parent: AnnotationFeatureNew | undefined
       try {
-        parent = getParentOfType(self, AnnotationFeatureModel)
+        parent = getParentOfType(self, AnnotationFeatureModelNew)
       } catch {
         // pass
       }
       return parent
     },
-    get topLevelFeature(): AnnotationFeature {
+    get topLevelFeature(): AnnotationFeatureNew {
       let feature = self
       let parent
       do {
         try {
-          parent = getParentOfType(feature, AnnotationFeatureModel)
+          parent = getParentOfType(feature, AnnotationFeatureModelNew)
           feature = parent
         } catch {
           parent = undefined
         }
       } while (parent)
-      return feature as AnnotationFeature
+      return feature as AnnotationFeatureNew
     },
     get assemblyId(): string {
       return getParentOfType(self, ApolloAssembly)._id
     },
   }))
 
-const AnnotationFeatureReference = types.reference(AnnotationFeatureModel, {
-  get(identifier, parent: AnnotationFeature): AnnotationFeature {
-    if (typeof identifier === 'number') {
-      throw new TypeError(`Invalid identifier: ${identifier}`)
-    }
-    const feature = resolvePath(parent, identifier) as
-      | AnnotationFeature
-      | undefined
-    if (!feature) {
-      throw new Error('Could not find feature')
-    }
-    return feature
-  },
-  set(feature: AnnotationFeature, parent: AnnotationFeature): string {
-    return getRelativePath(parent, feature)
-  },
-})
+type Children = IMSTMap<typeof AnnotationFeatureModelNew> | undefined
 
-type Children =
-  | IMSTMap<typeof AnnotationFeatureModel | typeof AnnotationFeatureReference>
-  | undefined
-
-export type AnnotationFeature = Instance<typeof AnnotationFeatureModel>
-type AnnotationFeatureSnapshotRaw = SnapshotIn<typeof AnnotationFeatureModel>
-export interface AnnotationFeatureSnapshot
+export type AnnotationFeatureNew = Instance<typeof AnnotationFeatureModelNew>
+type AnnotationFeatureSnapshotRaw = SnapshotIn<typeof AnnotationFeatureModelNew>
+export interface AnnotationFeatureSnapshotNew
   extends AnnotationFeatureSnapshotRaw {
   /** Child features of this feature */
-  children?: Record<string, AnnotationFeatureSnapshot>
+  children?: Children
 }
