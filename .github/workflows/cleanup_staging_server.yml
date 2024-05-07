@@ -60,7 +60,7 @@ jobs:
 
           export APOLLO_PROFILE=auto
           function apollo () {
-            yarn node bin/run.js
+            yarn node bin/run.js "$@"
           }
 
           $apollo config address http://localhost
