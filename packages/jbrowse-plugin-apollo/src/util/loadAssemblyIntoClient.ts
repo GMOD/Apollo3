@@ -1,6 +1,6 @@
 import { ClientDataStore, checkRegistry } from '@apollo-annotation/common'
 import {
-  AnnotationFeatureSnapshot,
+  AnnotationFeatureSnapshotNew,
   ApolloAssemblyI,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
@@ -89,7 +89,7 @@ export async function checkFeatures(
   return checkResults
 }
 
-function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
+function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshotNew {
   const [firstFeature] = gff3Feature
   const {
     attributes,
@@ -123,7 +123,7 @@ function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
       `feature does not have end: ${JSON.stringify(firstFeature)}`,
     )
   }
-  const feature: AnnotationFeatureSnapshot = {
+  const feature: AnnotationFeatureSnapshotNew = {
     _id: nanoid(),
     gffId: '',
     refSeq: refName,
@@ -200,8 +200,8 @@ function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
     }
   }
 
-  if (childFeatures.length > 0) {
-    const children: Record<string, AnnotationFeatureSnapshot> = {}
+  if (childFeatures?.length) {
+    const children: Record<string, AnnotationFeatureSnapshotNew> = {}
     for (const childFeature of childFeatures) {
       const child = createFeature(childFeature)
       children[child._id] = child
