@@ -71,11 +71,12 @@ jobs:
 
           apollo config address http://localhost
           apollo config accessType root
-          apollo config rootCredentials.username ${{ secrets.ROOT_USERNAME }}
-          apollo config rootCredentials.password ${{ secrets.ROOT_PASSWORD }}
+          apollo config rootCredentials.username ${{ secrets.ROOT_USER_NAME }}
+          apollo config rootCredentials.password ${{ secrets.ROOT_USER_PASSWORD }}
           apollo login
 
-          exit 9
+          apollo assembly get # Tmp command
+          exit 9 # Tmp command
 
           apollo assembly get | apollo assembly delete -a -
 
