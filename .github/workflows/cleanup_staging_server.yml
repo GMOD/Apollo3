@@ -1,7 +1,11 @@
 name: Cleanup staging server
 
 on:
+  schedule:
+    - cron: '/3 * * * *'
+    # - cron: '13 9 * * MON'
   push: null
+  on: workflow_dispatch
 
 jobs:
   deploy:
@@ -50,11 +54,11 @@ jobs:
           cd ${{ '${HOME}' }}/dario/demoData
 
           wormbase='https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species'
-          : # curl -O -s -L $wormbase/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz
-          : # curl -O -s -L $wormbase/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz
-          : # curl -O -s -L $wormbase/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3.gz
-          : # curl -O -s -L $wormbase/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3.gz
-          : # gunzip *.gz
+          curl -O -s -L $wormbase/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz
+          curl -O -s -L $wormbase/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz
+          curl -O -s -L $wormbase/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3.gz
+          curl -O -s -L $wormbase/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3.gz
+          gunzip *.gz
 
           cd ${{ '${HOME}' }}/Apollo3/packages/apollo-cli
 
@@ -65,12 +69,11 @@ jobs:
 
           apollo config address http://localhost
           apollo config accessType root
-          apollo config rootCredentials.username admin
+          apollo config rootCredentials.username ${{ secrets.ROOT_USERNAME }}
           apollo config rootCredentials.password ${{ secrets.ROOT_PASSWORD }}
           apollo login
 
-          apollo assembly get 
-          exit 0
+          exit 9
 
           apollo assembly get | apollo assembly delete -a -
 
