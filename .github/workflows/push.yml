@@ -122,6 +122,9 @@ jobs:
             IdentityFile ~/.ssh/staging
           END
           ssh-keyscan -H ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }} >> ~/.ssh/known_hosts
+      - name: Rsync plugin file
+        run: |
+          rsync -av packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js staging:dario/
       - name: Create Docker context
         run: |
           docker context create staging \
