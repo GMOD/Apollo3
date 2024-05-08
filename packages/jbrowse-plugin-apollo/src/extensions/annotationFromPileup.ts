@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import { AnnotationFeatureSnapshotNew } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { DisplayType } from '@jbrowse/core/pluggableElementTypes'
@@ -104,7 +104,7 @@ export function annotationFromPileup(pluggableElement: PluggableElementBase) {
           })
         }
 
-        const newFeature: AnnotationFeatureSnapshot = {
+        const newFeature: AnnotationFeatureSnapshotNew = {
           _id: ObjectID().toHexString(),
           gffId: '',
           refSeq: refSeqId,
@@ -117,10 +117,10 @@ export function annotationFromPileup(pluggableElement: PluggableElementBase) {
           return newFeature
         }
 
-        const children: Record<string, AnnotationFeatureSnapshot> = {}
+        const children: Record<string, AnnotationFeatureSnapshotNew> = {}
         newFeature.children = children
         const [firstExon] = exons
-        const cdsFeature: AnnotationFeatureSnapshot = {
+        const cdsFeature: AnnotationFeatureSnapshotNew = {
           _id: ObjectID().toHexString(),
           gffId: '',
           refSeq: refSeqId,
@@ -132,7 +132,7 @@ export function annotationFromPileup(pluggableElement: PluggableElementBase) {
         }
         newFeature.children[cdsFeature._id] = cdsFeature
         if (exons.length === 1) {
-          const exon: AnnotationFeatureSnapshot = {
+          const exon: AnnotationFeatureSnapshotNew = {
             _id: ObjectID().toHexString(),
             gffId: '',
             refSeq: refSeqId,
@@ -158,7 +158,7 @@ export function annotationFromPileup(pluggableElement: PluggableElementBase) {
           discontinuousLocations.push({ start, end, phase })
           const localPhase = (end - start) % 3
           phase = ((phase + localPhase) % 3) as 0 | 1 | 2
-          const newExon: AnnotationFeatureSnapshot = {
+          const newExon: AnnotationFeatureSnapshotNew = {
             _id: ObjectID().toHexString(),
             gffId: '',
             refSeq: refSeqId,

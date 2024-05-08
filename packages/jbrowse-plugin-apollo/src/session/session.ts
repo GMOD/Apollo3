@@ -2,7 +2,10 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
-import { AnnotationFeature, AnnotationFeatureI } from '@apollo-annotation/mst'
+import {
+  AnnotationFeatureModelNew,
+  AnnotationFeatureNew,
+} from '@apollo-annotation/mst'
 import {
   filterJBrowseConfig,
   ImportJBrowseConfigChange,
@@ -35,8 +38,8 @@ import { clientDataStoreFactory } from './ClientDataStore'
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreType & { changeManager: ChangeManager }
-  apolloSelectedFeature?: AnnotationFeatureI
-  apolloSetSelectedFeature(feature?: AnnotationFeatureI): void
+  apolloSelectedFeature?: AnnotationFeatureNew
+  apolloSetSelectedFeature(feature?: AnnotationFeatureNew): void
 }
 
 export interface Collaborator {
@@ -53,8 +56,8 @@ export function extendSession(
   const { signal } = aborter
   const AnnotationFeatureExtended = pluginManager.evaluateExtensionPoint(
     'Apollo-extendAnnotationFeature',
-    AnnotationFeature,
-  ) as typeof AnnotationFeature
+    AnnotationFeatureModelNew,
+  ) as typeof AnnotationFeatureModelNew
   const ClientDataStore = clientDataStoreFactory(AnnotationFeatureExtended)
   const sm = sessionModel
     .props({
@@ -86,7 +89,7 @@ export function extendSession(
       }
     })
     .actions((self) => ({
-      apolloSetSelectedFeature(feature?: AnnotationFeatureI) {
+      apolloSetSelectedFeature(feature?: AnnotationFeatureNew) {
         self.apolloSelectedFeature = feature
       },
       broadcastLocations() {

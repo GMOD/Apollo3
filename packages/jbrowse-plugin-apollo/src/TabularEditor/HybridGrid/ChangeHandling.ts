@@ -1,4 +1,4 @@
-import type { AnnotationFeatureI } from '@apollo-annotation/mst'
+import type { AnnotationFeatureNew } from '@apollo-annotation/mst'
 import {
   DiscontinuousLocationEndChange,
   DiscontinuousLocationStartChange,
@@ -11,7 +11,7 @@ import type { ChangeManager } from '../../ChangeManager'
 
 export function handleFeatureTypeChange(
   changeManager: ChangeManager,
-  feature: AnnotationFeatureI,
+  feature: AnnotationFeatureNew,
   oldType: string,
   newType: string,
 ) {
@@ -29,7 +29,7 @@ export function handleFeatureTypeChange(
 
 export function handleFeatureStartChange(
   changeManager: ChangeManager,
-  feature: AnnotationFeatureI,
+  feature: AnnotationFeatureNew,
   oldStart: number,
   newStart: number,
   index?: number,
@@ -59,7 +59,7 @@ export function handleFeatureStartChange(
 
 export function handleFeatureEndChange(
   changeManager: ChangeManager,
-  feature: AnnotationFeatureI,
+  feature: AnnotationFeatureNew,
   oldEnd: number,
   newEnd: number,
   index?: number,

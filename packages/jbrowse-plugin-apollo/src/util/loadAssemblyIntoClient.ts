@@ -1,12 +1,9 @@
-import { ClientDataStore, checkRegistry } from '@apollo-annotation/common'
-import {
-  AnnotationFeatureSnapshotNew,
-  ApolloAssemblyI,
-  CheckResultSnapshot,
-} from '@apollo-annotation/mst'
+import { ClientDataStore } from '@apollo-annotation/common'
+import { ApolloAssemblyI, CheckResultSnapshot } from '@apollo-annotation/mst'
+import { gff3ToAnnotationFeature } from '@apollo-annotation/shared'
 import gff, { GFF3Comment, GFF3Feature, GFF3Sequence } from '@gmod/gff'
-import { getSnapshot } from 'mobx-state-tree'
-import { nanoid } from 'nanoid'
+// import { getSnapshot } from 'mobx-state-tree'
+// import { ClientDataStore, checkRegistry } from 'apollo-common'
 
 export async function loadAssemblyIntoClient(
   assemblyId: string,
@@ -33,7 +30,7 @@ export async function loadAssemblyIntoClient(
   for (const seqLine of featuresAndSequences) {
     if (Array.isArray(seqLine)) {
       // regular feature
-      const feature = createFeature(seqLine)
+      const feature = gff3ToAnnotationFeature(seqLine)
 
       const ref =
         assembly.refSeqs.get(feature.refSeq) ??
@@ -65,228 +62,27 @@ export async function loadAssemblyIntoClient(
     throw new Error('No embedded FASTA section found in GFF3')
   }
 
-  const checkResults: CheckResultSnapshot[] = await checkFeatures(assembly)
+  const checkResults: CheckResultSnapshot[] = []
+  // const checkResults: CheckResultSnapshot[] = await checkFeatures(assembly)
   apolloDataStore.addCheckResults(checkResults)
   return assembly
 }
 
 export async function checkFeatures(
-  assembly: ApolloAssemblyI,
+  _assembly: ApolloAssemblyI,
 ): Promise<CheckResultSnapshot[]> {
-  const checkResults: CheckResultSnapshot[] = []
-  for (const ref of assembly.refSeqs.values()) {
-    for (const feature of ref.features.values()) {
-      for (const check of checkRegistry.getChecks().values()) {
-        const result: CheckResultSnapshot[] = await check.checkFeature(
-          getSnapshot(feature),
-          (start: number, stop: number) =>
-            Promise.resolve(ref.getSequence(start, stop)),
-        )
-        checkResults.push(...result)
-      }
-    }
-  }
-  return checkResults
-}
-
-function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshotNew {
-  const [firstFeature] = gff3Feature
-  const {
-    attributes,
-    child_features: childFeatures,
-    end,
-    phase,
-    score,
-    seq_id: refName,
-    source,
-    start,
-    strand,
-    type,
-  } = firstFeature
-  if (!refName) {
-    throw new Error(
-      `feature does not have seq_id: ${JSON.stringify(firstFeature)}`,
-    )
-  }
-  if (!type) {
-    throw new Error(
-      `feature does not have type: ${JSON.stringify(firstFeature)}`,
-    )
-  }
-  if (start === null) {
-    throw new Error(
-      `feature does not have start: ${JSON.stringify(firstFeature)}`,
-    )
-  }
-  if (end === null) {
-    throw new Error(
-      `feature does not have end: ${JSON.stringify(firstFeature)}`,
-    )
-  }
-  const feature: AnnotationFeatureSnapshotNew = {
-    _id: nanoid(),
-    gffId: '',
-    refSeq: refName,
-    type,
-    start: start - 1,
-    end,
-  }
-  if (gff3Feature.length > 1) {
-    feature.discontinuousLocations = gff3Feature.map((f) => {
-      const { end: subEnd, phase: locationPhase, start: subStart } = f
-      if (subStart === null || subEnd === null) {
-        throw new Error(
-          `feature does not have start and/or end: ${JSON.stringify(f)}`,
-        )
-      }
-      let parsedPhase: 0 | 1 | 2 | undefined
-      if (locationPhase) {
-        switch (locationPhase) {
-          case '0': {
-            parsedPhase = 0
-
-            break
-          }
-          case '1': {
-            parsedPhase = 1
-
-            break
-          }
-          case '2': {
-            parsedPhase = 2
-
-            break
-          }
-          default: {
-            throw new Error(`Unknown phase: "${locationPhase}"`)
-          }
-        }
-      }
-      return { start: subStart - 1, end: subEnd, phase: parsedPhase }
-    })
-  }
-  if (strand) {
-    if (strand === '+') {
-      feature.strand = 1
-    } else if (strand === '-') {
-      feature.strand = -1
-    } else {
-      throw new Error(`Unknown strand: "${strand}"`)
-    }
-  }
-  if (score !== null) {
-    feature.score = score
-  }
-  if (phase) {
-    switch (phase) {
-      case '0': {
-        feature.phase = 0
-
-        break
-      }
-      case '1': {
-        feature.phase = 1
-
-        break
-      }
-      case '2': {
-        feature.phase = 2
-
-        break
-      }
-      default: {
-        throw new Error(`Unknown phase: "${phase}"`)
-      }
-    }
-  }
-
-  if (childFeatures?.length) {
-    const children: Record<string, AnnotationFeatureSnapshotNew> = {}
-    for (const childFeature of childFeatures) {
-      const child = createFeature(childFeature)
-      children[child._id] = child
-      // Add value to gffId
-      child.attributes?._id
-        ? (child.gffId = child.attributes._id.toString())
-        : (child.gffId = child._id)
-    }
-    feature.children = children
-  }
-  if (source ?? attributes) {
-    const attrs: Record<string, string[]> = {}
-    if (source) {
-      attrs.source = [source]
-    }
-    if (attributes) {
-      for (const [key, val] of Object.entries(attributes)) {
-        if (val) {
-          const newKey = key.toLowerCase()
-          if (newKey !== 'parent') {
-            // attrs[key.toLowerCase()] = val
-            switch (key) {
-              case 'ID': {
-                attrs._id = val
-                break
-              }
-              case 'Name': {
-                attrs.gff_name = val
-                break
-              }
-              case 'Alias': {
-                attrs.gff_alias = val
-                break
-              }
-              case 'Target': {
-                attrs.gff_target = val
-                break
-              }
-              case 'Gap': {
-                attrs.gff_gap = val
-                break
-              }
-              case 'Derives_from': {
-                attrs.gff_derives_from = val
-                break
-              }
-              case 'Note': {
-                attrs.gff_note = val
-                break
-              }
-              case 'Dbxref': {
-                attrs.gff_dbxref = val
-                break
-              }
-              case 'Ontology_term': {
-                const goTerms: string[] = []
-                const otherTerms: string[] = []
-                for (const v of val) {
-                  if (v.startsWith('GO:')) {
-                    goTerms.push(v)
-                  } else {
-                    otherTerms.push(v)
-                  }
-                }
-                if (goTerms.length > 0) {
-                  attrs['Gene Ontology'] = goTerms
-                }
-                if (otherTerms.length > 0) {
-                  attrs.gff_ontology_term = otherTerms
-                }
-                break
-              }
-              case 'Is_circular': {
-                attrs.gff_is_circular = val
-                break
-              }
-              default: {
-                attrs[key.toLowerCase()] = val
-              }
-            }
-          }
-        }
-      }
-    }
-    feature.attributes = attrs
-  }
-  return feature
+  return []
+  //   const checkResults: CheckResultSnapshot[] = []
+  //   for (const ref of assembly.refSeqs.values()) {
+  //     for (const feature of ref.features.values()) {
+  //       for (const check of checkRegistry.getChecks().values()) {
+  //         const result: CheckResultSnapshot[] = await check.checkFeature(
+  //           getSnapshot(feature),
+  //           async (start: number, stop: number) => ref.getSequence(start, stop),
+  //         )
+  //         checkResults.push(...result)
+  //       }
+  //     }
+  //   }
+  //   return checkResults
 }

@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { AnnotationFeature, AnnotationFeatureI } from '@apollo-annotation/mst'
+import {
+  AnnotationFeatureModelNew,
+  AnnotationFeatureNew,
+} from '@apollo-annotation/mst'
 import { SessionWithWidgets } from '@jbrowse/core/util'
 import { Button, Paper, Typography } from '@mui/material'
 import { observer } from 'mobx-react'
@@ -26,7 +29,7 @@ export const RelatedFeatures = observer(function RelatedFeatures({
   refName,
   session,
 }: {
-  feature: AnnotationFeatureI
+  feature: AnnotationFeatureNew
   refName: string
   session: ApolloSessionModel
   assembly: string
@@ -34,10 +37,10 @@ export const RelatedFeatures = observer(function RelatedFeatures({
   const { classes } = useStyles()
   const { parent } = feature
   const { children } = feature as {
-    children?: IMSTMap<typeof AnnotationFeature>
+    children?: IMSTMap<typeof AnnotationFeatureModelNew>
   }
 
-  const onButtonClick = (newFeature: AnnotationFeatureI) => {
+  const onButtonClick = (newFeature: AnnotationFeatureNew) => {
     if (parent) {
       const apolloFeatureWidget = (
         session as unknown as SessionWithWidgets

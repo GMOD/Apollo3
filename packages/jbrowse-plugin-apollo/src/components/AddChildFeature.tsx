@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { AnnotationFeatureNew } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
@@ -28,7 +28,7 @@ import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
 interface AddChildFeatureProps {
   session: ApolloSessionModel
   handleClose(): void
-  sourceFeature: AnnotationFeatureI
+  sourceFeature: AnnotationFeatureNew
   sourceAssemblyId: string
   changeManager: ChangeManager
 }
@@ -57,7 +57,7 @@ export function AddChildFeature({
   const [typeWarningText, setTypeWarningText] = useState('')
 
   async function fetchValidTerms(
-    parentFeature: AnnotationFeatureI | undefined,
+    parentFeature: AnnotationFeatureNew | undefined,
     ontologyStore: OntologyStore,
     _signal: AbortSignal,
   ) {
