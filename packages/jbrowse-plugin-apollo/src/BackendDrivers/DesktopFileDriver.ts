@@ -6,7 +6,7 @@ import {
   Change,
   isAssemblySpecificChange,
 } from 'apollo-common'
-import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
+import { AnnotationFeatureSnapshotNew, CheckResultSnapshot } from 'apollo-mst'
 import {
   ValidationResultSet,
   makeGFF3Feature,
@@ -43,7 +43,7 @@ export class DesktopFileDriver extends BackendDriver {
 
   async getFeatures(
     region: Region,
-  ): Promise<[AnnotationFeatureSnapshot[], CheckResultSnapshot[]]> {
+  ): Promise<[AnnotationFeatureSnapshotNew[], CheckResultSnapshot[]]> {
     await this.getAssembly(region.assemblyName)
     return [[], []]
   }
@@ -159,7 +159,7 @@ export class DesktopFileDriver extends BackendDriver {
   async searchFeatures(
     _term: string,
     _assemblies: string[],
-  ): Promise<AnnotationFeatureSnapshot[]> {
+  ): Promise<AnnotationFeatureSnapshotNew[]> {
     return []
   }
 }

@@ -11,7 +11,7 @@ import {
   SelectChangeEvent,
   TextField,
 } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 import { AddFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import React, { useState } from 'react'
@@ -27,7 +27,7 @@ import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
 interface AddChildFeatureProps {
   session: ApolloSessionModel
   handleClose(): void
-  sourceFeature: AnnotationFeatureI
+  sourceFeature: AnnotationFeatureNew
   sourceAssemblyId: string
   changeManager: ChangeManager
 }
@@ -56,7 +56,7 @@ export function AddChildFeature({
   const [typeWarningText, setTypeWarningText] = useState('')
 
   async function fetchValidTerms(
-    parentFeature: AnnotationFeatureI | undefined,
+    parentFeature: AnnotationFeatureNew | undefined,
     ontologyStore: OntologyStore,
     _signal: AbortSignal,
   ) {

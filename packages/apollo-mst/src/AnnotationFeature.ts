@@ -11,9 +11,7 @@ import {
 
 import { ApolloAssembly } from '.'
 
-export const LateAnnotationFeature = types.late(
-  (): IAnyModelType => AnnotationFeature,
-)
+const LateAnnotationFeature = types.late((): IAnyModelType => AnnotationFeature)
 
 const Phase = types.maybe(
   types.union(types.literal(0), types.literal(1), types.literal(2)),

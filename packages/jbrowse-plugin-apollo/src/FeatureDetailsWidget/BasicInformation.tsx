@@ -8,7 +8,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 import {
   LocationEndChange,
   LocationStartChange,
@@ -30,7 +30,7 @@ export const BasicInformation = observer(function BasicInformation({
   feature,
   session,
 }: {
-  feature: AnnotationFeatureI
+  feature: AnnotationFeatureNew
   session: ApolloSessionModel
   assembly: string
 }) {
@@ -97,7 +97,7 @@ export const BasicInformation = observer(function BasicInformation({
   }
 
   async function fetchValidTerms(
-    parentFeature: AnnotationFeatureI | undefined,
+    parentFeature: AnnotationFeatureNew | undefined,
     ontologyStore: OntologyStore,
     _signal: AbortSignal,
   ) {

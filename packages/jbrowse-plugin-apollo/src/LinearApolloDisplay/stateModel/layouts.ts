@@ -1,7 +1,7 @@
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 import { autorun, observable } from 'mobx'
 import { addDisposer, isAlive } from 'mobx-state-tree'
 
@@ -20,7 +20,7 @@ export function layoutsModelFactory(
       featuresMinMaxLimit: 500_000,
     })
     .volatile(() => ({
-      seenFeatures: observable.map<string, AnnotationFeatureI>(),
+      seenFeatures: observable.map<string, AnnotationFeatureNew>(),
     }))
     .views((self) => ({
       get featuresMinMax() {
@@ -60,7 +60,7 @@ export function layoutsModelFactory(
       },
     }))
     .actions((self) => ({
-      addSeenFeature(feature: AnnotationFeatureI) {
+      addSeenFeature(feature: AnnotationFeatureNew) {
         self.seenFeatures.set(feature._id, feature)
       },
       deleteSeenFeature(featureId: string) {
@@ -75,7 +75,7 @@ export function layoutsModelFactory(
           const assembly = assemblyManager.get(region.assemblyName)
           const featureLayout = new Map<
             number,
-            [number, AnnotationFeatureI][]
+            [number, AnnotationFeatureNew][]
           >()
           const minMax = self.featuresMinMax[idx]
           if (!minMax) {
@@ -157,7 +157,7 @@ export function layoutsModelFactory(
           return featureLayout
         })
       },
-      getFeatureLayoutPosition(feature: AnnotationFeatureI) {
+      getFeatureLayoutPosition(feature: AnnotationFeatureNew) {
         const { featureLayouts } = this
         for (const layout of featureLayouts) {
           for (const [layoutRowNum, layoutRow] of layout) {

@@ -4,7 +4,7 @@ import PluggableElementBase from '@jbrowse/core/pluggableElementTypes/PluggableE
 import { getContainingView, getSession } from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
+import { AnnotationFeatureSnapshotNew } from 'apollo-mst'
 import { AddFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 
@@ -99,7 +99,7 @@ export function annotationFromPileup(pluggableElement: PluggableElementBase) {
           })
         }
 
-        const newFeature: AnnotationFeatureSnapshot = {
+        const newFeature: AnnotationFeatureSnapshotNew = {
           _id: ObjectID().toHexString(),
           gffId: '',
           refSeq: refSeqId,
@@ -112,10 +112,10 @@ export function annotationFromPileup(pluggableElement: PluggableElementBase) {
           return newFeature
         }
 
-        const children: Record<string, AnnotationFeatureSnapshot> = {}
+        const children: Record<string, AnnotationFeatureSnapshotNew> = {}
         newFeature.children = children
         const [firstExon] = exons
-        const cdsFeature: AnnotationFeatureSnapshot = {
+        const cdsFeature: AnnotationFeatureSnapshotNew = {
           _id: ObjectID().toHexString(),
           gffId: '',
           refSeq: refSeqId,
@@ -127,7 +127,7 @@ export function annotationFromPileup(pluggableElement: PluggableElementBase) {
         }
         newFeature.children[cdsFeature._id] = cdsFeature
         if (exons.length === 1) {
-          const exon: AnnotationFeatureSnapshot = {
+          const exon: AnnotationFeatureSnapshotNew = {
             _id: ObjectID().toHexString(),
             gffId: '',
             refSeq: refSeqId,
@@ -153,7 +153,7 @@ export function annotationFromPileup(pluggableElement: PluggableElementBase) {
           discontinuousLocations?.push({ start, end, phase })
           const localPhase = (end - start) % 3
           phase = ((phase + localPhase) % 3) as 0 | 1 | 2
-          const newExon: AnnotationFeatureSnapshot = {
+          const newExon: AnnotationFeatureSnapshotNew = {
             _id: ObjectID().toHexString(),
             gffId: '',
             refSeq: refSeqId,

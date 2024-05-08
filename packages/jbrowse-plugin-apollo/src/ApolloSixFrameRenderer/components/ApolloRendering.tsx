@@ -1,7 +1,7 @@
 import { getConf } from '@jbrowse/core/configuration'
 import { AbstractSessionModel, Region, getSession } from '@jbrowse/core/util'
 import { Menu, MenuItem } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { autorun, toJS } from 'mobx'
 import { observer } from 'mobx-react'
@@ -66,7 +66,7 @@ function selectColor(number: number) {
 function ApolloRendering(props: ApolloRenderingProps) {
   const [contextCoord, setContextCoord] = useState<Coord>()
   const [contextMenuFeature, setContextMenuFeature] =
-    useState<AnnotationFeatureI>()
+    useState<AnnotationFeatureNew>()
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -76,7 +76,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   // const [overEdge, setOverEdge] = useState<'start' | 'end'>()
   const [dragging, setDragging] = useState<{
     edge: 'start' | 'end'
-    feature: AnnotationFeatureI
+    feature: AnnotationFeatureNew
     row: number
     bp: number
     px: number
@@ -447,7 +447,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   //   const [parentID, feat] =
   //     layoutRow.find((f) => bp >= f[1].min && bp <= f[1].max) || []
-  //   let feature: AnnotationFeatureI | undefined = feat
+  //   let feature: AnnotationFeatureNew | undefined = feat
   //   if (feature) {
   //     const topRow = row
   //     const startPx = (feature.start - region.start) / bpPerPx
@@ -457,7 +457,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   //       y - topRow * height,
   //       bpPerPx,
   //       height,
-  //     ) as AnnotationFeatureI
+  //     ) as AnnotationFeatureNew
   //   }
   //   if (feature) {
   //     // TODO: check reversed

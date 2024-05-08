@@ -1,4 +1,4 @@
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 
 import { LinearApolloDisplay } from '../stateModel'
 import { MousePosition } from '../stateModel/mouseEvents'
@@ -6,7 +6,7 @@ import { CanvasMouseEvent } from '../types'
 import { BoxGlyph } from './BoxGlyph'
 
 export class GenericChildGlyph extends BoxGlyph {
-  featuresForRow(feature: AnnotationFeatureI): AnnotationFeatureI[][] {
+  featuresForRow(feature: AnnotationFeatureNew): AnnotationFeatureNew[][] {
     const features = [[feature]]
     if (feature.children) {
       for (const [, child] of feature.children ?? new Map()) {
@@ -16,14 +16,14 @@ export class GenericChildGlyph extends BoxGlyph {
     return features
   }
 
-  getRowCount(feature: AnnotationFeatureI) {
+  getRowCount(feature: AnnotationFeatureNew) {
     return this.featuresForRow(feature).length
   }
 
   draw(
     stateModel: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
-    feature: AnnotationFeatureI,
+    feature: AnnotationFeatureNew,
     xOffset: number,
     row: number,
     reversed: boolean,
@@ -36,7 +36,7 @@ export class GenericChildGlyph extends BoxGlyph {
   drawRow(
     stateModel: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
-    topLevelFeature: AnnotationFeatureI,
+    topLevelFeature: AnnotationFeatureNew,
     xOffset: number,
     row: number,
     topRow: number,
@@ -59,8 +59,8 @@ export class GenericChildGlyph extends BoxGlyph {
   private drawFeature(
     stateModel: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
-    topLevelFeature: AnnotationFeatureI,
-    feature: AnnotationFeatureI,
+    topLevelFeature: AnnotationFeatureNew,
+    feature: AnnotationFeatureNew,
     xOffset: number,
     row: number,
     reversed: boolean,
@@ -131,14 +131,14 @@ export class GenericChildGlyph extends BoxGlyph {
     // pass
   }
 
-  getFeatureFromLayout(feature: AnnotationFeatureI, bp: number, row: number) {
+  getFeatureFromLayout(feature: AnnotationFeatureNew, bp: number, row: number) {
     const layoutRow = this.featuresForRow(feature)[row]
     return layoutRow?.find((f) => bp >= f.start && bp <= f.end)
   }
 
   getRowForFeature(
-    feature: AnnotationFeatureI,
-    childFeature: AnnotationFeatureI,
+    feature: AnnotationFeatureNew,
+    childFeature: AnnotationFeatureNew,
   ) {
     const rows = this.featuresForRow(feature)
     for (const [idx, row] of rows.entries()) {

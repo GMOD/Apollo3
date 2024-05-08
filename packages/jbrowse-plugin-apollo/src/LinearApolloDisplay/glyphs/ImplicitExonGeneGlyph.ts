@@ -1,5 +1,5 @@
 import { alpha } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 
 import { LinearApolloDisplay } from '../stateModel'
@@ -43,10 +43,10 @@ if ('document' in window) {
 }
 
 export class ImplicitExonGeneGlyph extends Glyph {
-  featuresForRow(feature: AnnotationFeatureI): AnnotationFeatureI[][] {
-    const features: AnnotationFeatureI[][] = []
+  featuresForRow(feature: AnnotationFeatureNew): AnnotationFeatureNew[][] {
+    const features: AnnotationFeatureNew[][] = []
     for (const [, child] of feature.children ?? new Map()) {
-      const childFeatures: AnnotationFeatureI[] = []
+      const childFeatures: AnnotationFeatureNew[] = []
       for (const [, annotationFeature] of child.children ?? new Map()) {
         childFeatures.push(annotationFeature)
       }
@@ -56,7 +56,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
     return features
   }
 
-  getRowCount(feature: AnnotationFeatureI): number {
+  getRowCount(feature: AnnotationFeatureNew): number {
     let mrnaCount = 0
     for (const [, child] of feature.children ?? new Map()) {
       if (child.type === 'mRNA') {
@@ -69,7 +69,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
   draw(
     stateModel: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
-    feature: AnnotationFeatureI,
+    feature: AnnotationFeatureNew,
     xOffset: number,
     row: number,
     reversed?: boolean,
@@ -180,7 +180,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
         ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,0.08)'
         ctx.fillRect(startPx, top, widthPx, height)
       } else {
-        let featureEntry: AnnotationFeatureI | undefined
+        let featureEntry: AnnotationFeatureNew | undefined
         let featureRow: number | undefined
         let i = 0
         for (const [, f] of children ?? new Map()) {
@@ -292,9 +292,9 @@ export class ImplicitExonGeneGlyph extends Glyph {
    */
   isMouseOnFeatureEdge(
     mousePosition: MousePosition,
-    feature: AnnotationFeatureI,
+    feature: AnnotationFeatureNew,
     stateModel: LinearApolloDisplay,
-    topLevelFeature?: AnnotationFeatureI,
+    topLevelFeature?: AnnotationFeatureNew,
   ) {
     if (!mousePosition) {
       return
@@ -412,8 +412,8 @@ export class ImplicitExonGeneGlyph extends Glyph {
     }
     const parentFeature = this.getParentFeature(feature, topLevelFeature)
     const adjacentFeatures: {
-      prevFeature?: AnnotationFeatureI
-      nextFeature?: AnnotationFeatureI
+      prevFeature?: AnnotationFeatureNew
+      nextFeature?: AnnotationFeatureNew
     } = this.getAdjacentFeatures(feature, parentFeature)
     if (!feature || !currentMousePosition) {
       return
@@ -533,17 +533,17 @@ export class ImplicitExonGeneGlyph extends Glyph {
   }
 
   getFeatureFromLayout(
-    feature: AnnotationFeatureI,
+    feature: AnnotationFeatureNew,
     bp: number,
     row: number,
-  ): AnnotationFeatureI | undefined {
+  ): AnnotationFeatureNew | undefined {
     const layoutRow = this.featuresForRow(feature)[row]
     return layoutRow?.find((f) => bp >= f.start && bp <= f.end)
   }
 
   getRowForFeature(
-    feature: AnnotationFeatureI,
-    childFeature: AnnotationFeatureI,
+    feature: AnnotationFeatureNew,
+    childFeature: AnnotationFeatureNew,
   ) {
     const rows = this.featuresForRow(feature)
     for (const [idx, row] of rows.entries()) {
@@ -593,8 +593,8 @@ export class ImplicitExonGeneGlyph extends Glyph {
 
     const parentFeature = this.getParentFeature(feature, topLevelFeature)
     const adjacentFeatures: {
-      prevFeature?: AnnotationFeatureI
-      nextFeature?: AnnotationFeatureI
+      prevFeature?: AnnotationFeatureNew
+      nextFeature?: AnnotationFeatureNew
     } = this.getAdjacentFeatures(feature, parentFeature)
     const changes: (LocationStartChange | LocationEndChange)[] = []
 
@@ -633,14 +633,14 @@ export class ImplicitExonGeneGlyph extends Glyph {
   }
 
   getAdjacentFeatures(
-    feature?: AnnotationFeatureI,
-    parentFeature?: AnnotationFeatureI,
+    feature?: AnnotationFeatureNew,
+    parentFeature?: AnnotationFeatureNew,
   ): {
-    prevFeature?: AnnotationFeatureI
-    nextFeature?: AnnotationFeatureI
+    prevFeature?: AnnotationFeatureNew
+    nextFeature?: AnnotationFeatureNew
   } {
-    let prevFeature: AnnotationFeatureI | undefined
-    let nextFeature: AnnotationFeatureI | undefined
+    let prevFeature: AnnotationFeatureNew | undefined
+    let nextFeature: AnnotationFeatureNew | undefined
     let i = 0
     if (!feature || !(parentFeature && parentFeature.children)) {
       return { prevFeature, nextFeature }
@@ -665,7 +665,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
 
   addEndLocation(
     changes: (LocationStartChange | LocationEndChange)[] = [],
-    feature: AnnotationFeatureI,
+    feature: AnnotationFeatureNew,
     newBp: number,
     assembly: string,
   ) {
@@ -686,7 +686,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
 
   addStartLocation(
     changes: (LocationStartChange | LocationEndChange)[] = [],
-    feature: AnnotationFeatureI,
+    feature: AnnotationFeatureNew,
     newBp: number,
     assembly: string,
   ) {

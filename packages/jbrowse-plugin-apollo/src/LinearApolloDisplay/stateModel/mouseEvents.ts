@@ -3,7 +3,7 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import { MenuItem } from '@jbrowse/core/ui'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { Theme } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { Instance, addDisposer } from 'mobx-state-tree'
 import type { CSSProperties } from 'react'
@@ -24,8 +24,8 @@ export interface MousePosition {
 }
 
 export interface FeatureAndGlyphInfo {
-  feature?: AnnotationFeatureI
-  topLevelFeature?: AnnotationFeatureI
+  feature?: AnnotationFeatureNew
+  topLevelFeature?: AnnotationFeatureNew
   glyph?: Glyph
   mousePosition?: MousePosition
 }
@@ -50,7 +50,7 @@ function getMousePosition(
   return { x, y, refName, bp, regionNumber }
 }
 
-function getSeqRow(feature: AnnotationFeatureI, bpPerPx: number) {
+function getSeqRow(feature: AnnotationFeatureNew, bpPerPx: number) {
   const rowOffset = bpPerPx <= 1 ? 5 : 3
   if (feature.type === 'CDS' && feature.phase !== undefined) {
     return feature.strand === -1
@@ -99,15 +99,15 @@ export function mouseEventsModelIntermediateFactory(
       apolloDragging: null as {
         start: {
           glyph?: Glyph
-          feature?: AnnotationFeatureI
-          topLevelFeature?: AnnotationFeatureI
+          feature?: AnnotationFeatureNew
+          topLevelFeature?: AnnotationFeatureNew
           discontinuousLocation?: CDSDiscontinuousLocation
           mousePosition: MousePosition
         }
         current: {
           glyph?: Glyph
-          feature?: AnnotationFeatureI
-          topLevelFeature?: AnnotationFeatureI
+          feature?: AnnotationFeatureNew
+          topLevelFeature?: AnnotationFeatureNew
           mousePosition: MousePosition
         }
       } | null,

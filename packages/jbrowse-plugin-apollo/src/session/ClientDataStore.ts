@@ -4,8 +4,8 @@ import { Region, getSession, isElectron } from '@jbrowse/core/util'
 import { LocalPathLocation, UriLocation } from '@jbrowse/core/util/types/mst'
 import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
 import {
-  AnnotationFeature,
-  AnnotationFeatureSnapshot,
+  AnnotationFeatureModelNew,
+  AnnotationFeatureSnapshotNew,
   ApolloAssembly,
   ApolloRefSeq,
   CheckResult,
@@ -37,7 +37,7 @@ import {
 import { ApolloRootModel } from '../types'
 
 export function clientDataStoreFactory(
-  AnnotationFeatureExtended: typeof AnnotationFeature,
+  AnnotationFeatureExtended: typeof AnnotationFeatureModelNew,
 ) {
   const clientStoreType = types
     .model('ClientDataStore', {
@@ -66,7 +66,7 @@ export function clientDataStoreFactory(
       addAssembly(assemblyId: string) {
         return self.assemblies.put({ _id: assemblyId, refSeqs: {} })
       },
-      addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot) {
+      addFeature(assemblyId: string, feature: AnnotationFeatureSnapshotNew) {
         const assembly = self.assemblies.get(assemblyId)
         if (!assembly) {
           throw new Error(
@@ -220,7 +220,7 @@ export function clientDataStoreFactory(
           }
           const [features, checkResults] = (yield backendDriver.getFeatures(
             region,
-          )) as [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
+          )) as [AnnotationFeatureSnapshotNew[], CheckResultSnapshot[]]
           if (features.length === 0) {
             continue
           }
