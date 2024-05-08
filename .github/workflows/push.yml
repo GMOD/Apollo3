@@ -36,11 +36,6 @@ jobs:
       - name: Build plugin
         run: yarn build
         working-directory: packages/jbrowse-plugin-apollo
-      - name: Copy plugin
-        working-directory: packages/jbrowse-plugin-apollo
-        run: |
-          cp dist/jbrowse-plugin-apollo.umd.production.min.js ../../.github/workflows/deploy/
-          echo $HOME
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -66,8 +61,9 @@ jobs:
     name: Build and push Docker image
     runs-on: ubuntu-latest
     if:
-      ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      inputs.publish }}
+      ${{ (github.event_name == 'push' || inputs.publish }}
+      #${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      #inputs.publish }}
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -96,8 +92,9 @@ jobs:
     environment: staging
     needs: build-and-push-docker
     if:
-      ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      ( inputs.deploy  &&  always()) }}
+      ${{ (github.event_name == 'push' || ( inputs.deploy  &&  always()) }}
+      #${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      #( inputs.deploy  &&  always()) }}
     steps:
       - name: Check out
         uses: actions/checkout@v3
@@ -151,4 +148,8 @@ jobs:
         run: |
           docker --context staging compose down
           docker --context staging compose pull
+
+          docker --context staging compose cp ../../../packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js client:/usr/local/apache2/htdocs/
+          docker --context staging compose cp ../../../packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.production.min.js client:/usr/local/apache2/htdocs/
+          
           docker --context staging compose up --build --detach
