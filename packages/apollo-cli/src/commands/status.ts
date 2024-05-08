@@ -7,7 +7,7 @@ import { basicCheckConfig, wrapLines } from '../utils.js'
 export default class Status extends BaseCommand<typeof Status> {
   static summary = 'View authentication status'
   static description = wrapLines(
-    'This command returns "Logged in" if the selected profile has an access token and "Logged out" otherwise.\
+    'This command returns "<profile>: Logged in" if the selected profile has an access token and "<profile>: Logged out" otherwise.\
     Note that this command does not check the validity of the access token.',
   )
 
