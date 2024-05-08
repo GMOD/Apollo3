@@ -54,7 +54,7 @@ jobs:
           demoDataDir=${{ '${HOME}' }}/dario/demoData
           rm -rf $demoDataDir
           mkdir -p $demoDataDir
-          cd $demoData
+          cd $demoDataDir
 
           wormbase='https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species'
           curl -O -s -L $wormbase/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz
