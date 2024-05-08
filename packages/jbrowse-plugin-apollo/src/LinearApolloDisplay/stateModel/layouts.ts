@@ -47,10 +47,10 @@ export function layoutsModelFactory(
             if (max === undefined) {
               ;({ max } = feature)
             }
-            if (feature.min < min) {
+            if (feature.minWithChildren < min) {
               ;({ min } = feature)
             }
-            if (feature.end > max) {
+            if (feature.maxWithChildren > max) {
               ;({ max } = feature)
             }
           }
@@ -209,13 +209,17 @@ export function layoutsModelFactory(
                   self.session as unknown as ApolloSessionModel
                 ).apolloDataStore.assemblies.get(region.assemblyName)
                 const ref = assembly?.getByRefName(region.refName)
-                for (const [, feature] of ref?.features ?? new Map()) {
+                const features = ref?.features
+                if (!features) {
+                  continue
+                }
+                for (const [, feature] of features) {
                   if (
                     doesIntersect2(
                       region.start,
                       region.end,
-                      feature.start,
-                      feature.end,
+                      feature.min,
+                      feature.max,
                     ) &&
                     !self.seenFeatures.has(feature._id)
                   ) {
