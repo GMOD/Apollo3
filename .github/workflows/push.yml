@@ -39,9 +39,8 @@ jobs:
       - name: Copy plugin
         working-directory: packages/jbrowse-plugin-apollo
         run: |
-          ls -a ~/
-          ls dist/
-          cp dist/jbrowse-plugin-apollo.umd.production.min.js ~/Apollo3/Apollo3/.github/workflows/deploy/
+          cp dist/jbrowse-plugin-apollo.umd.production.min.js /home/runner/work/Apollo3/Apollo3/.github/workflows/deploy/
+          echo $HOME
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -152,5 +151,4 @@ jobs:
         run: |
           docker --context staging compose down
           docker --context staging compose pull
-          docker --context staging compose cp ~/packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js /usr/local/apache2/htdocs/jbrowse-plugin-apollo.umd.production.min.js
           docker --context staging compose up --build --detach
