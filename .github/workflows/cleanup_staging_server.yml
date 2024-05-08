@@ -51,9 +51,10 @@ jobs:
           set -u
           set -o pipefail
 
-          rm -rf ${{ '${HOME}' }}/dario/demoData
-          mkdir -p ${{ '${HOME}' }}/dario/demoData
-          cd ${{ '${HOME}' }}/dario/demoData
+          demoDataDir=${{ '${HOME}' }}/dario/demoData
+          rm -rf $demoDataDir
+          mkdir -p $demoDataDir
+          cd $demoData
 
           wormbase='https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species'
           curl -O -s -L $wormbase/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz
@@ -77,11 +78,11 @@ jobs:
 
           echo "apollo assembly get | apollo assembly delete -v -a -"
 
-          apollo assembly add-fasta -i schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa -a schistosoma_haematobium -f
-          apollo assembly add-fasta -i schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa -a schistosoma_mansoni -f
+          apollo assembly add-fasta -i $demoDataDir/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa -a schistosoma_haematobium -f
+          apollo assembly add-fasta -i $demoDataDir/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa -a schistosoma_mansoni -f
 
-          apollo feature import -i schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3 -a schistosoma_haematobium -d
-          apollo feature import -i schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3 -a schistosoma_mansoni -d
+          apollo feature import -i $demoDataDir/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3 -a schistosoma_haematobium -d
+          apollo feature import -i $demoDataDir/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3 -a schistosoma_mansoni -d
           EOF
 
           rsync -av cleanup_apollo.$xid.sh staging:dario/
