@@ -39,8 +39,8 @@ jobs:
       - name: Copy plugin
         working-directory: packages/jbrowse-plugin-apollo
         run: |
-          ls packages/jbrowse-plugin-apollo/dist/
-          cp packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js ~/.github/workflows/deploy/
+          ls dist/
+          cp dist/jbrowse-plugin-apollo.umd.development.js ~/.github/workflows/deploy/
   lint:
     name: Lint
     runs-on: ubuntu-latest
