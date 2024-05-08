@@ -36,12 +36,11 @@ jobs:
       - name: Build plugin
         run: yarn build
         working-directory: packages/jbrowse-plugin-apollo
-      - name: Test path
+      - name: Copy plugin
+        working-directory: packages/jbrowse-plugin-apollo
         run: |
-          echo ~
-          pwd
-          find ~+ -type f -name "packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js"
-          ls packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js
+          ls packages/jbrowse-plugin-apollo/dist/
+          cp packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js ~/.github/workflows/deploy/
   lint:
     name: Lint
     runs-on: ubuntu-latest
