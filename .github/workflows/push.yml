@@ -36,6 +36,12 @@ jobs:
       - name: Build plugin
         run: yarn build
         working-directory: packages/jbrowse-plugin-apollo
+      - name: Test path
+        run: |
+          echo ~
+          pwd
+          find ~+ -type f -name "packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js"
+          ls packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -85,14 +91,6 @@ jobs:
             collaboration server
           cache-from: type=registry,ref=user/app:latest
           cache-to: type=inline
-  test-step:
-    name: Get file
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get file
-        run: |
-          pwd
-          ls
   deploy:
     name: Deploy to demo staging server
     runs-on: ubuntu-latest
