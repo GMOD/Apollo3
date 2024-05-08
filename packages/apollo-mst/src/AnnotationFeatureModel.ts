@@ -12,7 +12,7 @@ import {
 
 import { ApolloAssembly } from '.'
 
-export const LateAnnotationFeatureNew = types.late(
+const LateAnnotationFeature = types.late(
   (): IAnyModelType => AnnotationFeatureModelNew,
 )
 
@@ -46,7 +46,7 @@ export const AnnotationFeatureModelNew = types
      */
     strand: types.maybe(types.union(types.literal(1), types.literal(-1))),
     /** Child features of this feature */
-    children: types.maybe(types.map(LateAnnotationFeatureNew)),
+    children: types.maybe(types.map(LateAnnotationFeature)),
     /**
      * Additional attributes of the feature. This could include name, source,
      * note, dbxref, etc.
@@ -224,5 +224,5 @@ type AnnotationFeatureSnapshotRaw = SnapshotIn<typeof AnnotationFeatureModelNew>
 export interface AnnotationFeatureSnapshotNew
   extends AnnotationFeatureSnapshotRaw {
   /** Child features of this feature */
-  children?: Children
+  children?: Record<string, AnnotationFeatureSnapshotNew>
 }

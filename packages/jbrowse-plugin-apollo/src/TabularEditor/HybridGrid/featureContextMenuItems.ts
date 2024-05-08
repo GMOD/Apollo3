@@ -1,4 +1,4 @@
-import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { AnnotationFeatureNew } from '@apollo-annotation/mst'
 import { MenuItem } from '@jbrowse/core/ui'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 
@@ -13,11 +13,11 @@ import { ApolloSessionModel } from '../../session'
 import { getApolloInternetAccount } from '../../util'
 
 export function featureContextMenuItems(
-  feature: AnnotationFeatureI | undefined,
+  feature: AnnotationFeatureNew | undefined,
   region: { assemblyName: string; refName: string; start: number; end: number },
   getAssemblyId: (assemblyName: string) => string,
-  selectedFeature: AnnotationFeatureI | undefined,
-  setSelectedFeature: (f: AnnotationFeatureI | undefined) => void,
+  selectedFeature: AnnotationFeatureNew | undefined,
+  setSelectedFeature: (f: AnnotationFeatureNew | undefined) => void,
   session: ApolloSessionModel,
   changeManager: ChangeManager,
 ) {

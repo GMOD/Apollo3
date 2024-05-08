@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/unbound-method */
-import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { AnnotationFeatureNew } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
@@ -13,13 +13,13 @@ import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 
 export class BoxGlyph extends Glyph {
-  getRowCount(_feature: AnnotationFeatureI) {
+  getRowCount(_feature: AnnotationFeatureNew) {
     return 1
   }
 
   protected getIsSelectedFeature(
-    feature: AnnotationFeatureI,
-    selectedFeature: AnnotationFeatureI | undefined,
+    feature: AnnotationFeatureNew,
+    selectedFeature: AnnotationFeatureNew | undefined,
   ) {
     return Boolean(selectedFeature && feature._id === selectedFeature._id)
   }
@@ -90,7 +90,7 @@ export class BoxGlyph extends Glyph {
   draw(
     stateModel: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
-    feature: AnnotationFeatureI,
+    feature: AnnotationFeatureNew,
     xOffset: number,
     row: number,
     reversed: boolean,
@@ -157,16 +157,16 @@ export class BoxGlyph extends Glyph {
   }
 
   getFeatureFromLayout(
-    feature: AnnotationFeatureI,
+    feature: AnnotationFeatureNew,
     _bp: number,
     _row: number,
-  ): AnnotationFeatureI | undefined {
+  ): AnnotationFeatureNew | undefined {
     return feature
   }
 
   getRowForFeature(
-    _feature: AnnotationFeatureI,
-    _childFeature: AnnotationFeatureI,
+    _feature: AnnotationFeatureNew,
+    _childFeature: AnnotationFeatureNew,
   ): number | undefined {
     return 0
   }
@@ -174,7 +174,7 @@ export class BoxGlyph extends Glyph {
   /** @returns undefined if mouse not on the edge of this feature, otherwise 'start' or 'end' depending on which edge */
   isMouseOnFeatureEdge(
     mousePosition: MousePosition,
-    feature: AnnotationFeatureI,
+    feature: AnnotationFeatureNew,
     stateModel: LinearApolloDisplay,
   ) {
     if (!mousePosition) {

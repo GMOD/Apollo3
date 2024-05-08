@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { AnnotationFeatureNew } from '@apollo-annotation/mst'
 import { ObservableMap, observable } from 'mobx'
 import { types } from 'mobx-state-tree'
 
@@ -29,7 +29,7 @@ export default function Glyphs() {
           return new BoxGlyph()
         },
         /** get the appropriate glyph for the given top-level feature */
-        getGlyph(feature: AnnotationFeatureI, bpPerPx: number) {
+        getGlyph(feature: AnnotationFeatureNew, bpPerPx: number) {
           const glyphsForZoomLevel = this.getGlyphsForZoomLevel(bpPerPx)
           const glyphForFeature = glyphsForZoomLevel.get(feature._id)
           if (glyphForFeature) {
