@@ -61,7 +61,7 @@ jobs:
     name: Build and push Docker image
     runs-on: ubuntu-latest
     if:
-      ${{ (github.event_name == 'push' || inputs.publish }}
+      ${{ github.event_name == 'push' || inputs.publish }}
       #${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       #inputs.publish }}
     steps:
@@ -92,7 +92,7 @@ jobs:
     environment: staging
     needs: build-and-push-docker
     if:
-      ${{ (github.event_name == 'push' || ( inputs.deploy  &&  always()) }}
+      ${{ github.event_name == 'push' || ( inputs.deploy  &&  always()) }}
       #${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       #( inputs.deploy  &&  always()) }}
     steps:
