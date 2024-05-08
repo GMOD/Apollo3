@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/require-await */
 import { AssemblySpecificChange, Change } from '@apollo-annotation/common'
 import {
-  AnnotationFeatureSnapshot,
+  AnnotationFeatureSnapshotNew,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 import { ValidationResultSet } from '@apollo-annotation/shared'
@@ -13,7 +13,7 @@ import { BackendDriver } from './BackendDriver'
 
 export class InMemoryFileDriver extends BackendDriver {
   async getFeatures(): Promise<
-    [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
+    [AnnotationFeatureSnapshotNew[], CheckResultSnapshot[]]
   > {
     return [[], []]
   }
@@ -74,7 +74,7 @@ export class InMemoryFileDriver extends BackendDriver {
   async searchFeatures(
     _term: string,
     _assemblies: string[],
-  ): Promise<AnnotationFeatureSnapshot[]> {
+  ): Promise<AnnotationFeatureSnapshotNew[]> {
     return []
   }
 }

@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
-  AnnotationFeatureI,
-  AnnotationFeatureSnapshot,
+  AnnotationFeatureNew,
+  AnnotationFeatureSnapshotNew,
 } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
 import { readConfObject } from '@jbrowse/core/configuration'
@@ -30,7 +30,7 @@ import { Dialog } from './Dialog'
 interface CopyFeatureProps {
   session: ApolloSessionModel
   handleClose(): void
-  sourceFeature: AnnotationFeatureI
+  sourceFeature: AnnotationFeatureNew
   sourceAssemblyId: string
   changeManager: ChangeManager
 }
@@ -46,14 +46,14 @@ interface Collection {
  * @param featureIds -
  */
 function generateNewIds(
-  // feature: AnnotationFeatureSnapshot,
-  feature: AnnotationFeatureSnapshot,
+  // feature: AnnotationFeatureSnapshotNew,
+  feature: AnnotationFeatureSnapshotNew,
   featureIds: string[],
-): AnnotationFeatureSnapshot {
+): AnnotationFeatureSnapshotNew {
   const newId = new ObjectID().toHexString()
   featureIds.push(newId)
 
-  const children: Record<string, AnnotationFeatureSnapshot> = {}
+  const children: Record<string, AnnotationFeatureSnapshotNew> = {}
   if (feature.children) {
     for (const child of Object.values(feature.children)) {
       const newChild = generateNewIds(child, featureIds)
@@ -162,7 +162,7 @@ export function CopyFeature({
     const featureIds: string[] = []
     // Let's add featureId to each child recursively
     const newFeatureLine = generateNewIds(
-      getSnapshot(sourceFeature) as unknown as AnnotationFeatureSnapshot,
+      getSnapshot(sourceFeature) as unknown as AnnotationFeatureSnapshotNew,
       featureIds,
     )
     // Clear possible parentId -attribute.
@@ -202,7 +202,7 @@ export function CopyFeature({
         type: newFeatureLine.type,
         children: updatedChildren.children as unknown as Record<
           string,
-          AnnotationFeatureSnapshot
+          AnnotationFeatureSnapshotNew
         >,
         attributes: attributeMap,
         discontinuousLocations: newFeatureLine.discontinuousLocations,
@@ -227,10 +227,10 @@ export function CopyFeature({
    * @returns
    */
   function updateRefSeqStartEndAndGffId(
-    feature: AnnotationFeatureSnapshot,
+    feature: AnnotationFeatureSnapshotNew,
     locationMove: number,
-  ): AnnotationFeatureSnapshot {
-    const children: Record<string, AnnotationFeatureSnapshot> = {}
+  ): AnnotationFeatureSnapshotNew {
+    const children: Record<string, AnnotationFeatureSnapshotNew> = {}
     if (feature.children) {
       for (const child of Object.values(feature.children)) {
         const newChild = updateRefSeqStartEndAndGffId(child, locationMove)

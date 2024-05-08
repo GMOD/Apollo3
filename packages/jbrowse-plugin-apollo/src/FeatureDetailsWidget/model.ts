@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { AnnotationFeature, AnnotationFeatureI } from '@apollo-annotation/mst'
+import {
+  AnnotationFeatureModelNew,
+  AnnotationFeatureNew,
+} from '@apollo-annotation/mst'
 import { getSession } from '@jbrowse/core/util'
 import { ElementId } from '@jbrowse/core/util/types/mst'
 import { autorun } from 'mobx'
@@ -13,7 +16,7 @@ export const ApolloFeatureDetailsWidgetModel = types
     id: ElementId,
     type: types.literal('ApolloFeatureDetailsWidget'),
     feature: types.maybe(
-      types.reference(AnnotationFeature, {
+      types.reference(AnnotationFeatureModelNew, {
         onInvalidated(ev) {
           ev.parent.setTryReload(ev.invalidId)
           ev.removeRef()
@@ -27,7 +30,7 @@ export const ApolloFeatureDetailsWidgetModel = types
     tryReload: undefined as string | undefined,
   }))
   .actions((self) => ({
-    setFeature(feature: AnnotationFeatureI) {
+    setFeature(feature: AnnotationFeatureNew) {
       self.feature = feature
     },
     setTryReload(featureId?: string) {

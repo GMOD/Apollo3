@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/unbound-method */
-import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { AnnotationFeatureNew } from '@apollo-annotation/mst'
 import { ConfigurationReference } from '@jbrowse/core/configuration'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
@@ -48,7 +48,7 @@ export function stateModelFactory(
       showIntronLines: true,
     })
     .volatile(() => ({
-      apolloFeatureUnderMouse: undefined as AnnotationFeatureI | undefined,
+      apolloFeatureUnderMouse: undefined as AnnotationFeatureNew | undefined,
       apolloRowUnderMouse: undefined as number | undefined,
     }))
     .views((self) => {
@@ -169,7 +169,7 @@ export function stateModelFactory(
       get features() {
         const { regions } = self
         const session = getSession(self) as ApolloSession
-        const features = new Map<string, Map<string, AnnotationFeatureI>>()
+        const features = new Map<string, Map<string, AnnotationFeatureNew>>()
         for (const region of regions) {
           const assembly = session.apolloDataStore.assemblies.get(
             region.assemblyName,
@@ -177,7 +177,7 @@ export function stateModelFactory(
           const ref = assembly?.getByRefName(region.refName)
           let filteredRef = features.get(region.refName)
           if (!filteredRef) {
-            filteredRef = new Map<string, AnnotationFeatureI>()
+            filteredRef = new Map<string, AnnotationFeatureNew>()
             features.set(region.refName, filteredRef)
           }
           for (const [featureId, feature] of ref?.features.entries() ??
@@ -269,7 +269,10 @@ export function stateModelFactory(
         return codonLayout
       },
       get featureLayout() {
-        const featureLayout = new Map<number, [string, AnnotationFeatureI][]>()
+        const featureLayout = new Map<
+          number,
+          [string, AnnotationFeatureNew][]
+        >()
         for (const [refSeq, featuresForRefSeq] of this.features || []) {
           if (!featuresForRefSeq) {
             continue
@@ -342,7 +345,7 @@ export function stateModelFactory(
         }
         return assembly.name
       },
-      get selectedFeature(): AnnotationFeatureI | undefined {
+      get selectedFeature(): AnnotationFeatureNew | undefined {
         const session = getSession(self) as ApolloSession
         return session.apolloSelectedFeature
       },
@@ -352,11 +355,11 @@ export function stateModelFactory(
       },
     }))
     .actions((self) => ({
-      setSelectedFeature(feature?: AnnotationFeatureI) {
+      setSelectedFeature(feature?: AnnotationFeatureNew) {
         const session = getSession(self) as ApolloSession
         session.apolloSetSelectedFeature(feature)
       },
-      setApolloFeatureUnderMouse(feature?: AnnotationFeatureI) {
+      setApolloFeatureUnderMouse(feature?: AnnotationFeatureNew) {
         self.apolloFeatureUnderMouse = feature
       },
       setApolloRowUnderMouse(row?: number) {

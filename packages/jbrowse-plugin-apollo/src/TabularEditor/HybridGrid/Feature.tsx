@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { AnnotationFeatureNew } from '@apollo-annotation/mst'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
 import React from 'react'
@@ -59,7 +59,7 @@ const useStyles = makeStyles()((theme) => ({
 
 function makeContextMenuItems(
   display: DisplayStateModel,
-  feature: AnnotationFeatureI,
+  feature: AnnotationFeatureNew,
 ) {
   const {
     changeManager,
@@ -80,7 +80,9 @@ function makeContextMenuItems(
   )
 }
 
-function getTopLevelFeature(feature: AnnotationFeatureI): AnnotationFeatureI {
+function getTopLevelFeature(
+  feature: AnnotationFeatureNew,
+): AnnotationFeatureNew {
   let cur = feature
   while (cur.parent) {
     cur = cur.parent
@@ -98,7 +100,7 @@ export const Feature = observer(function Feature({
   setContextMenu,
 }: {
   model: DisplayStateModel
-  feature: AnnotationFeatureI
+  feature: AnnotationFeatureNew
   depth: number
   isHovered: boolean
   isSelected: boolean
@@ -325,7 +327,7 @@ export const Feature = observer(function Feature({
   )
 })
 async function fetchValidTypeTerms(
-  feature: AnnotationFeatureI,
+  feature: AnnotationFeatureNew,
   ontologyStore: OntologyStore,
   _signal: AbortSignal,
 ) {
