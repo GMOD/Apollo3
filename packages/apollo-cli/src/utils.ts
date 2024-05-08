@@ -207,7 +207,7 @@ export async function convertCheckNameToId(
   return ids
 }
 
-async function assemblyNameToIdDict(
+export async function assemblyNameToIdDict(
   address: string,
   accessToken: string,
 ): Promise<Record<string, string>> {
@@ -226,9 +226,10 @@ export async function convertAssemblyNameToId(
   accessToken: string,
   namesOrIds: string[],
   verbose = true,
+  removeDuplicates = true,
 ): Promise<string[]> {
   const nameToId = await assemblyNameToIdDict(address, accessToken)
-  const ids = []
+  let ids = []
   for (const x of namesOrIds) {
     if (nameToId[x] !== undefined) {
       ids.push(nameToId[x])
@@ -237,6 +238,9 @@ export async function convertAssemblyNameToId(
     } else if (verbose) {
       process.stderr.write(`Warning: Omitting unknown assembly: "${x}"\n`)
     }
+  }
+  if (removeDuplicates) {
+    ids = [...new Set(ids)]
   }
   return ids
 }
@@ -471,8 +475,8 @@ export function wrapLines(s: string, length?: number): string {
   return wr
 }
 
-export function idReader(input: string[]): string[] {
-  const ids = []
+export function idReader(input: string[], removeDuplicates = true): string[] {
+  let ids = []
   for (const xin of input) {
     let data
     if (xin == '-') {
@@ -501,6 +505,9 @@ export function idReader(input: string[]): string[] {
         }
       }
     }
+  }
+  if (removeDuplicates) {
+    ids = [...new Set(ids)]
   }
   return ids
 }

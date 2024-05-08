@@ -173,10 +173,11 @@ Delete assemblies
 
 ```
 USAGE
-  $ apollo assembly delete -a <value> [--profile <value>] [--config-file <value>]
+  $ apollo assembly delete -a <value> [--profile <value>] [--config-file <value>] [-v]
 
 FLAGS
   -a, --assembly=<value>...  (required) Assembly names or IDs to delete
+  -v, --verbose              Print to stdout the array of assemblies deleted
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
 

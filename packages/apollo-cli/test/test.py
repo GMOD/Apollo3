@@ -148,7 +148,12 @@ class TestCLI(unittest.TestCase):
             f"""{apollo} assembly get {P} | jq '.[] | select(.name == "volvox1") | ._id'"""
         )
         aid = p.stdout.strip()
-        shell(f"{apollo} assembly delete {P} -a {aid} volvox2")
+
+        p = shell(f"{apollo} assembly delete {P} -v -a {aid} volvox2 volvox2")
+        out = json.loads(p.stdout)
+        self.assertEqual(len(out), 2)
+        self.assertTrue("2 " in p.stderr)
+
         shell(f"{apollo} assembly delete {P} -a {aid} volvox2")  # Ok
         p = shell(f"{apollo} assembly get {P}")
         self.assertTrue(f"{aid}" not in p.stdout)

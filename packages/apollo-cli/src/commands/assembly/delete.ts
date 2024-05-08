@@ -4,6 +4,7 @@ import { BaseCommand } from '../../baseCommand.js'
 import {
   convertAssemblyNameToId,
   deleteAssembly,
+  getAssembly,
   idReader,
   wrapLines,
 } from '../../utils.js'
@@ -26,6 +27,10 @@ export default class Delete extends BaseCommand<typeof Delete> {
       multiple: true,
       required: true,
     }),
+    verbose: Flags.boolean({
+      char: 'v',
+      description: 'Print to stdout the array of assemblies deleted',
+    }),
   }
 
   public async run(): Promise<void> {
@@ -34,14 +39,23 @@ export default class Delete extends BaseCommand<typeof Delete> {
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 
-    const assembly = idReader(flags.assembly)
+    const assembly: string[] = idReader(flags.assembly)
     const deleteIds = await convertAssemblyNameToId(
       access.address,
       access.accessToken,
       assembly,
     )
+    let i = 0
+    const deleted: object[] = []
     for (const x of deleteIds) {
+      const asm = await getAssembly(access.address, access.accessToken, x)
       await deleteAssembly(access.address, access.accessToken, x)
+      deleted.push(asm)
+      i += 1
     }
+    if (flags.verbose) {
+      this.log(JSON.stringify(deleted, null, 2))
+    }
+    this.logToStderr(`${i} assemblies deleted`)
   }
 }
