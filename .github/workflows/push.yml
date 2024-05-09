@@ -67,9 +67,8 @@ jobs:
     name: Build and push Docker image
     runs-on: ubuntu-latest
     if:
-      ${{ github.event_name == 'push' || inputs.publish }}
-      #${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      #inputs.publish }}
+      ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      inputs.publish }}
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -96,11 +95,10 @@ jobs:
     name: Deploy to demo staging server
     runs-on: ubuntu-latest
     environment: staging
-    needs: build-and-push-docker
+    needs: [build, build-and-push-docker]
     if:
-      ${{ github.event_name == 'push' || ( inputs.deploy  &&  always()) }}
-      #${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      #( inputs.deploy  &&  always()) }}
+      ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      ( inputs.deploy  &&  always()) }}
     steps:
       - name: Check out
         uses: actions/checkout@v3
