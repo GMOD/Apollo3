@@ -38,7 +38,6 @@ jobs:
         working-directory: packages/jbrowse-plugin-apollo
       - uses: actions/upload-artifact@v4
         with:
-          name: plugin
           path: |
             packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js
             packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.production.min.js
@@ -47,8 +46,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
-        with:
-          name: plugin
       - name: Test Display structure of downloaded files
         working-directory: .github/workflows/deploy
         run: |
@@ -116,8 +113,6 @@ jobs:
       - name: Check out
         uses: actions/checkout@v3
       - uses: actions/download-artifact@v4
-        with:
-          name: plugin
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
