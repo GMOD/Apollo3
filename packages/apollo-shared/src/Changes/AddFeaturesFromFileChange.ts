@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await */
 import { GFF3Feature } from '@gmod/gff'
 import {
   AssemblySpecificChange,

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Dialog as JBDialog } from '@jbrowse/core/ui'
 import CloseIcon from '@mui/icons-material/Close'
 import { DialogProps, DialogTitle, IconButton } from '@mui/material'

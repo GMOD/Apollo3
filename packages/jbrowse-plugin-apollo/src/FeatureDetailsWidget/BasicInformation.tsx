@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   FormControl,

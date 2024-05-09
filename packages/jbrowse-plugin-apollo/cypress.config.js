@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { defineConfig } = require('cypress')
 // eslint-disable-next-line @typescript-eslint/no-var-requires

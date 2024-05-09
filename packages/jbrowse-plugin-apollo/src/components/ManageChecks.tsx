@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {

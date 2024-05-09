@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import ClearIcon from '@mui/icons-material/Clear'
 import UnfoldLessIcon from '@mui/icons-material/UnfoldLess'
 import { IconButton, InputAdornment, TextField, Tooltip } from '@mui/material'

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { openLocation } from '@jbrowse/core/util/io'
 import equal from 'fast-deep-equal/es6'
 import { IDBPDatabase, IDBPTransaction, openDB } from 'idb/with-async-ittr'

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import * as fs from 'node:fs'
 
 import { Flags } from '@oclif/core'
@@ -13,8 +14,8 @@ import {
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Edit features using an appropiate json input'
   static description = wrapLines(
-    `Edit a feature by submitting a json input with all the required attributes for Apollo to process it. This is a very low level command which most users probably do not need. 
-    
+    `Edit a feature by submitting a json input with all the required attributes for Apollo to process it. This is a very low level command which most users probably do not need.
+
     Input may be a json string or a json file and it may be an array of changes. This is an example input for editing feature type:
 
     {

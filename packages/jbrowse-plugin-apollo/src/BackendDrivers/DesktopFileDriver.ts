@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await */
 import gff, { GFF3Item } from '@gmod/gff'
 import { getConf } from '@jbrowse/core/configuration'
 import { Region, getSession } from '@jbrowse/core/util'

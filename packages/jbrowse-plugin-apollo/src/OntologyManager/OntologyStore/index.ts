@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-throw-literal */
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable unicorn/no-await-expression-member */
 import {
   BlobLocation,
   LocalPathLocation,

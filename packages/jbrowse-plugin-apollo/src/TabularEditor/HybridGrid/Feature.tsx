@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import { AnnotationFeatureI } from 'apollo-mst'
 import { observer } from 'mobx-react'

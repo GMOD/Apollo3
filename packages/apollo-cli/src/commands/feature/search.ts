@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Flags } from '@oclif/core'
 import { Response, fetch } from 'undici'
 
@@ -45,23 +46,23 @@ export default class Search extends BaseCommand<typeof Search> {
   static summary = 'Free text search for feature in one or more assemblies'
   static description = wrapLines(
     `Return features matching a query string. This command searches only in:
-    
+
     - Attribute *values* (not attribute names)
     - Source field (which in fact is stored as an attribute)
     - Feature type
-    
+
     The search mode is:
-    
+
     - Case insensitive
     - Match only full words, but not necessarily the full value
     - Common words are ignored. E.g. "the", "with"
-    
+
     For example, given this feature:
-    
+
     chr1 example SNP 10 30 0.987 . . "someKey=Fingerprint BAC with reads"
-    
+
     Queries "bac" or "mRNA" return the feature. Instead these queries will NOT match:
-    
+
     - "someKey"
     - "with"
     - "Finger"

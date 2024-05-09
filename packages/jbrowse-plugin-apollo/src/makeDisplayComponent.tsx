@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import PluginManager from '@jbrowse/core/PluginManager'
 import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'

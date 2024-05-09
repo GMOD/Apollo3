@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { isAbortException } from '@jbrowse/core/util'
 import {
   Autocomplete,

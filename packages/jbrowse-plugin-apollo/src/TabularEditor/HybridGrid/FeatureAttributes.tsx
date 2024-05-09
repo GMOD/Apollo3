@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { AnnotationFeatureI } from 'apollo-mst'
 import { observer } from 'mobx-react'
 import { getSnapshot } from 'mobx-state-tree'

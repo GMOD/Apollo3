@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await */
 import gff, { GFF3Comment, GFF3Feature, GFF3Sequence } from '@gmod/gff'
 import { ClientDataStore, checkRegistry } from 'apollo-common'
 import {

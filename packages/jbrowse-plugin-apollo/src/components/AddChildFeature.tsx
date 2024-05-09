@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,

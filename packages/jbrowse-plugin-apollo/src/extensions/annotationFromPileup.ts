@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { DisplayType } from '@jbrowse/core/pluggableElementTypes'
 import PluggableElementBase from '@jbrowse/core/pluggableElementTypes/PluggableElementBase'

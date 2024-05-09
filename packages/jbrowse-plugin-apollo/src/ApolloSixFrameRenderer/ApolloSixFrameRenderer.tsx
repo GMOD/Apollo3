@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await */
 import { RenderProps, RendererType } from '@jbrowse/core/pluggableElementTypes'
 import RpcManager from '@jbrowse/core/rpc/RpcManager'
 

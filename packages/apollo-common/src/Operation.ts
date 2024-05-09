@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import type { ReadStream } from 'node:fs'
 import type { FileHandle } from 'node:fs/promises'
 

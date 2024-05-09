@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import path from 'node:path'
 
 import input from '@inquirer/input'
