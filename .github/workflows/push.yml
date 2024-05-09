@@ -46,7 +46,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: plugin
-      - name: Test: Display structure of downloaded files
+      - name: Test Display structure of downloaded files
         working-directory: .github/workflows/deploy
         run: |
           ls -l ../../../packages/jbrowse-plugin-apollo/dist
