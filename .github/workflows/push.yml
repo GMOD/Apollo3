@@ -36,6 +36,20 @@ jobs:
       - name: Build plugin
         run: yarn build
         working-directory: packages/jbrowse-plugin-apollo
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plugin
+          path: |
+            packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js
+            packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.production.min.js
+  test-artifact:
+      - uses: actions/download-artifact@v4
+        with:
+          name: plugin
+      - name: Test: Display structure of downloaded files
+        working-directory: .github/workflows/deploy
+        run: |
+          ls -l ../../../packages/jbrowse-plugin-apollo/dist
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -98,6 +112,9 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v3
+      - uses: actions/download-artifact@v4
+        with:
+          name: plugin
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -135,18 +152,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          cache: yarn
-      - name: Install
-        run: yarn --immutable
-      - name: Build plugin
-        run: yarn build
-        working-directory: packages/jbrowse-plugin-apollo
-
       - name: Deploy
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
