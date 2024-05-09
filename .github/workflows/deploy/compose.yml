@@ -27,7 +27,6 @@ services:
   client:
     build:
       args:
-        APOLLO_VERSION: 0.1.0
         JBROWSE_VERSION: 2.10.3
       context: .
     depends_on:
