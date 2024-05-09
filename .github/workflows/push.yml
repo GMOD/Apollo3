@@ -61,9 +61,9 @@ jobs:
     name: Build and push Docker image
     runs-on: ubuntu-latest
     if:
-      ${{ github.event_name == 'push' || inputs.publish }}
-      #${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      #inputs.publish }}
+      #${{ github.event_name == 'push' || inputs.publish }}
+      ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      inputs.publish }}
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -135,6 +135,9 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build plugin
+        run: yarn build
+        working-directory: packages/jbrowse-plugin-apollo
       - name: Deploy
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
