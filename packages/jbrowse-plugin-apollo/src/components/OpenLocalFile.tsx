@@ -103,9 +103,9 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
     if (a) {
       // @ts-expect-error MST type coercion problem?
       addApolloTrackConfig(a)
-      notify(`Loaded GFF3 ${file?.name}`, 'success')
+      notify(`Loaded GFF3 ${file.name}`, 'success')
     } else {
-      notify(`Error loading GFF3 ${file?.name}`, 'error')
+      notify(`Error loading GFF3 ${file.name}`, 'error')
     }
     handleClose()
   }

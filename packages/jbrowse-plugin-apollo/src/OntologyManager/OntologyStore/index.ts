@@ -303,10 +303,7 @@ export default class OntologyStore {
       await Promise.all(
         [...queryIds].map(async (queryId) => {
           const theseResults = (
-            (await myTx
-              .objectStore('edges')
-              .index(queryIndex)
-              .getAll(queryId)) as OntologyDBEdge[]
+            await myTx.objectStore('edges').index(queryIndex).getAll(queryId)
           )
             .filter((element) => filterEdge(element))
             .map((edge) => edge[resultProp])

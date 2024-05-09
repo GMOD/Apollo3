@@ -174,8 +174,8 @@ function codonColorCode(letter: string, rowColorCode: string, bpPerPx: number) {
     '*': '#f44336',
   }
 
-  if (colorMap[letter?.toUpperCase()] !== undefined) {
-    return colorMap[letter?.toUpperCase()]
+  if (colorMap[letter.toUpperCase()] !== undefined) {
+    return colorMap[letter.toUpperCase()]
   }
 
   return bpPerPx <= 0.1 ? rowColorCode : 'lightgray'

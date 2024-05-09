@@ -133,7 +133,7 @@ export class GenericChildGlyph extends BoxGlyph {
 
   getFeatureFromLayout(feature: AnnotationFeatureI, bp: number, row: number) {
     const layoutRow = this.featuresForRow(feature)[row]
-    return layoutRow?.find((f) => bp >= f.start && bp <= f.end)
+    return layoutRow.find((f) => bp >= f.start && bp <= f.end)
   }
 
   getRowForFeature(

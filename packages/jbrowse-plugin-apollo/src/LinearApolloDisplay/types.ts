@@ -1,1 +1,1 @@
-export type CanvasMouseEvent = React.MouseEvent<HTMLCanvasElement, MouseEvent>
+export type CanvasMouseEvent = React.MouseEvent<HTMLCanvasElement>

@@ -101,7 +101,7 @@ export function baseModelFactory(
       },
       get changeManager() {
         return (self.session as unknown as ApolloSessionModel).apolloDataStore
-          ?.changeManager
+          .changeManager
       },
       getAssemblyId(assemblyName: string) {
         const { assemblyManager } =
@@ -119,7 +119,7 @@ export function baseModelFactory(
     }))
     .actions((self) => ({
       setSelectedFeature(feature?: AnnotationFeatureI) {
-        return (
+        ;(
           self.session as unknown as ApolloSessionModel
         ).apolloSetSelectedFeature(feature)
       },

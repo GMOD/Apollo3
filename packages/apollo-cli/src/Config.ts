@@ -175,11 +175,7 @@ export class Config {
     if (arr.length === 0) {
       return obj
     }
-    return this.index(
-      obj[arr[0]] as unknown as RecursiveObject,
-      arr.slice(1),
-      value,
-    )
+    return this.index(obj[arr[0]] as RecursiveObject, arr.slice(1), value)
   }
 
   private addProps(
@@ -222,7 +218,7 @@ export class Config {
       // throw new Error(`No profile name "${profileName}" found`)
       return ''
     }
-    this.addProps(profile as RecursiveObject, key)
+    this.addProps(profile, key)
     const value = this.index(profile, key)
     if (typeof value === 'object' && Object.keys(value).length === 0) {
       // The key is valid but missing from config

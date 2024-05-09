@@ -54,8 +54,7 @@ export function OntologyTermAutocomplete({
     OntologyTerm | undefined
   >()
 
-  const ontologyManager = session.apolloDataStore
-    .ontologyManager as OntologyManager
+  const { ontologyManager } = session.apolloDataStore
   const ontologyStore = ontologyManager.findOntology(
     ontologyName,
     ontologyVersion,
@@ -137,7 +136,7 @@ export function OntologyTermAutocomplete({
   ])
 
   const handleChange = async (
-    event: React.SyntheticEvent<Element, Event>,
+    event: React.SyntheticEvent,
     newValue?: OntologyTerm | string | null,
   ) => {
     if (!newValue) {

@@ -184,7 +184,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
         let featureRow: number | undefined
         let i = 0
         for (const [, f] of children ?? new Map()) {
-          if (f._id === apolloSelectedFeature?._id) {
+          if (f._id === apolloSelectedFeature._id) {
             featureEntry = f
             featureRow = i
           }
@@ -538,7 +538,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
     row: number,
   ): AnnotationFeatureI | undefined {
     const layoutRow = this.featuresForRow(feature)[row]
-    return layoutRow?.find((f) => bp >= f.start && bp <= f.end)
+    return layoutRow.find((f) => bp >= f.start && bp <= f.end)
   }
 
   getRowForFeature(

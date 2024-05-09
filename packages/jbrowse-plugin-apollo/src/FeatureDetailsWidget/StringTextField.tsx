@@ -54,7 +54,9 @@ export const StringTextField = observer(function StringTextField({
           onChangeCommitted(value)
         }
       }}
-      inputRef={(node) => setInputNode(node)}
+      inputRef={(node) => {
+        setInputNode(node)
+      }}
     />
   )
 })

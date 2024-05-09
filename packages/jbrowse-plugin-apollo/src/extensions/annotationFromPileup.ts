@@ -150,7 +150,7 @@ export function annotationFromPileup(pluggableElement: PluggableElementBase) {
           cdsFeature.start = Math.min(cdsFeature.start, exon.start)
           cdsFeature.end = Math.max(cdsFeature.end, exon.end)
           const { end, start } = exon
-          discontinuousLocations?.push({ start, end, phase })
+          discontinuousLocations.push({ start, end, phase })
           const localPhase = (end - start) % 3
           phase = ((phase + localPhase) % 3) as 0 | 1 | 2
           const newExon: AnnotationFeatureSnapshot = {
@@ -180,7 +180,7 @@ export function annotationFromPileup(pluggableElement: PluggableElementBase) {
         const session = getSession(self)
         await (
           session as unknown as ApolloSessionModel
-        ).apolloDataStore.changeManager.submit?.(change)
+        ).apolloDataStore.changeManager.submit(change)
         session.notify('Annotation added successfully', 'success')
       },
     }))

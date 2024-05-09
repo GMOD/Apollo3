@@ -48,7 +48,7 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
     ...inMemoryFileDriver.getAssemblies(),
   ]
 
-  function handleChangeAssembly(e: SelectChangeEvent<string>) {
+  function handleChangeAssembly(e: SelectChangeEvent) {
     const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
     setSelectedAssembly(newAssembly)
   }
@@ -143,7 +143,7 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
       })
     }
     for (const [, refSeq] of refSeqs) {
-      const features = refSeq?.features
+      const { features } = refSeq
       if (!features) {
         continue
       }

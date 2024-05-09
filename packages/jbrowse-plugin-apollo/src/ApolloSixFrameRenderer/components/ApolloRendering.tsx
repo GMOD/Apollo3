@@ -90,8 +90,14 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const { collaborators: collabs } = session
 
   // bridging mobx observability and React useEffect observability
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => autorun(() => setCollaborators(toJS(collabs))), [])
+
+  useEffect(
+    () =>
+      autorun(() => {
+        setCollaborators(toJS(collabs))
+      }),
+    [],
+  )
 
   const [region] = regions
   const totalWidth = (region.end - region.start) / bpPerPx
@@ -533,7 +539,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
           assembly,
         })
       }
-      await changeManager?.submit(change)
+      await changeManager.submit(change)
     }
     // eslint-disable-next-line unicorn/no-useless-undefined
     setDragging(undefined)

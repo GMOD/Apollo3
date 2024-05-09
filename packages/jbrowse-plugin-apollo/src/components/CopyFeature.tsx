@@ -85,7 +85,7 @@ export function CopyFeature({
   const [start, setStart] = useState(sourceFeature.start)
   const [errorMessage, setErrorMessage] = useState('')
 
-  async function handleChangeAssembly(e: SelectChangeEvent<string>) {
+  async function handleChangeAssembly(e: SelectChangeEvent) {
     setSelectedAssemblyId(e.target.value)
   }
 
@@ -110,11 +110,13 @@ export function CopyFeature({
       setRefNames(newRefNames)
       setSelectedRefSeqId(newRefNames[0]?._id || '')
     }
-    getRefNames().catch((error) => setErrorMessage(String(error)))
+    getRefNames().catch((error) => {
+      setErrorMessage(String(error))
+    })
   }, [selectedAssemblyId, assemblyManager])
 
-  async function handleChangeRefSeq(e: SelectChangeEvent<string>) {
-    const refSeq = e.target.value as string
+  async function handleChangeRefSeq(e: SelectChangeEvent) {
+    const refSeq = e.target.value
     setSelectedRefSeqId(refSeq)
   }
 
@@ -130,7 +132,7 @@ export function CopyFeature({
       setErrorMessage(`Assembly not found: ${selectedAssemblyId}.`)
       return
     }
-    const canonicalRefName = assembly?.getCanonicalRefName(selectedRefSeqId)
+    const canonicalRefName = assembly.getCanonicalRefName(selectedRefSeqId)
     const region = assembly.regions?.find((r) => r.refName === canonicalRefName)
     if (!region) {
       setErrorMessage(`RefSeq not found: ${selectedRefSeqId}.`)
@@ -205,7 +207,7 @@ export function CopyFeature({
       copyFeature: true,
       allIds: featureIds,
     })
-    await changeManager.submit?.(change)
+    await changeManager.submit(change)
 
     notify('Feature copied successfully', 'success')
     handleClose()

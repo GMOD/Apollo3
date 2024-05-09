@@ -14,12 +14,10 @@ export interface DecodedJWT extends JWTPayload {
 
 export function makeUserSessionId(userOrToken: DecodedJWT | string): string {
   const user =
-    typeof userOrToken === 'string'
-      ? (jwtDecode(userOrToken) as DecodedJWT)
-      : userOrToken
+    typeof userOrToken === 'string' ? jwtDecode(userOrToken) : userOrToken
   return `${user.id}-${user.iat}`
 }
 
 export function getDecodedToken(token: string): DecodedJWT {
-  return jwtDecode(token) as DecodedJWT
+  return jwtDecode(token)
 }

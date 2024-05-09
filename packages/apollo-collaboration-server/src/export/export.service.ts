@@ -67,7 +67,8 @@ class FastaTransform extends Transform {
       if (this.lineBuffer.length === this.fastaWidth) {
         this.flushLineBuffer()
       } else {
-        return callback()
+        callback()
+        return
       }
     }
     const seqLines = splitStringIntoChunks(sequence, this.fastaWidth)

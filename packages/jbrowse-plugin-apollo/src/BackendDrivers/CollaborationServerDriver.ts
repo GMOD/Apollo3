@@ -167,7 +167,7 @@ export class CollaborationServerDriver extends BackendDriver {
     if (!apolloAssembly) {
       apolloAssembly = this.clientStore.addAssembly(assemblyName)
     }
-    let apolloRefSeq = apolloAssembly?.refSeqs.get(refSeq)
+    let apolloRefSeq = apolloAssembly.refSeqs.get(refSeq)
     if (!apolloRefSeq) {
       apolloRefSeq = apolloAssembly.addRefSeq(refSeq, refName)
     }

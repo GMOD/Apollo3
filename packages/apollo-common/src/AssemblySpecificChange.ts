@@ -226,7 +226,7 @@ export abstract class AssemblySpecificChange extends Change {
     logger.debug?.(`So far feature ids are: ${featureIds.toString()}`)
     // Add value to gffId
     newFeature.attributes?._id
-      ? (newFeature.gffId = newFeature.attributes?._id.toString())
+      ? (newFeature.gffId = newFeature.attributes._id.toString())
       : (newFeature.gffId = newFeature._id)
     logger.debug?.(
       `********************* Assembly specific change create ${JSON.stringify(
@@ -370,14 +370,14 @@ function createFeature(
     featureIds.push(feature._id)
   }
 
-  if (childFeatures?.length) {
+  if (childFeatures.length > 0) {
     const children: Record<string, AnnotationFeatureSnapshot> = {}
     for (const childFeature of childFeatures) {
       const child = createFeature(childFeature, refSeq, featureIds)
       children[child._id] = child
       // Add value to gffId
       child.attributes?._id
-        ? (child.gffId = child.attributes?._id.toString())
+        ? (child.gffId = child.attributes._id.toString())
         : (child.gffId = child._id)
     }
     feature.children = children

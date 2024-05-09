@@ -50,7 +50,7 @@ const HybridGrid = observer(function HybridGrid({
     if (scrollContainer && selectedFeature) {
       const selectedRow = scrollContainer.querySelector(
         `.${classes.selectedFeature}`,
-      ) as HTMLElement | null
+      )
       if (selectedRow) {
         const currScroll = scrollContainer.scrollTop
         const newScrollTop = selectedRow.offsetTop - 25

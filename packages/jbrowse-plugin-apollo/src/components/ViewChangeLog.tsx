@@ -115,7 +115,9 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
         setAssemblyCollection(data)
       }
     }
-    getAssemblies().catch((error) => setErrorMessage(String(error)))
+    getAssemblies().catch((error) => {
+      setErrorMessage(String(error))
+    })
   }, [apolloInternetAccount, baseURL])
 
   useEffect(() => {
@@ -155,11 +157,13 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
         setDisplayGridData(data)
       }
     }
-    getGridData().catch((error) => setErrorMessage(String(error)))
+    getGridData().catch((error) => {
+      setErrorMessage(String(error))
+    })
   }, [assemblyId, apolloInternetAccount, baseURL])
 
-  async function handleChangeAssembly(e: SelectChangeEvent<string>) {
-    setAssemblyId(e.target.value as string)
+  async function handleChangeAssembly(e: SelectChangeEvent) {
+    setAssemblyId(e.target.value)
   }
 
   return (

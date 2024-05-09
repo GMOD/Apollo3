@@ -152,7 +152,7 @@ export class ChangesService {
         )
       }
     })
-    this.logger.debug?.('*** TEMPORARY DATA INSERTTED ***')
+    this.logger.debug('*** TEMPORARY DATA INSERTTED ***')
     // Set "temporary document" -status --> "valid" -status i.e. (-1 --> 0)
     await this.featureModel.db.transaction(async () => {
       this.logger.debug(
@@ -198,7 +198,7 @@ export class ChangesService {
       }
     })
 
-    this.logger.debug?.(`CHANGE DOC: ${JSON.stringify(changeDoc)}`)
+    this.logger.debug(`CHANGE DOC: ${JSON.stringify(changeDoc)}`)
     if (!changeDoc) {
       throw new UnprocessableEntityException('could not create change')
     }
@@ -228,7 +228,7 @@ export class ChangesService {
       )
       await this.messagesGateway.create(message.channel, message)
     }
-    this.logger.debug(`ChangeDocId: ${changeDoc?._id}`)
+    this.logger.debug(`ChangeDocId: ${changeDoc._id}`)
     return changeDoc
   }
 

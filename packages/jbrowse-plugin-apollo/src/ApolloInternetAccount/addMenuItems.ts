@@ -54,8 +54,7 @@ export function addMenuItems(rootModel: AbstractMenuManager) {
             handleClose: () => {
               doneCallback()
             },
-            changeManager: (session as ApolloSessionModel).apolloDataStore
-              .changeManager,
+            changeManager: session.apolloDataStore.changeManager,
           },
         ],
       )
@@ -72,8 +71,7 @@ export function addMenuItems(rootModel: AbstractMenuManager) {
             handleClose: () => {
               doneCallback()
             },
-            changeManager: (session as ApolloSessionModel).apolloDataStore
-              .changeManager,
+            changeManager: session.apolloDataStore.changeManager,
           },
         ],
       )

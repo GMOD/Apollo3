@@ -17,7 +17,7 @@ const prefixes = new Map([
 // different "Object". This intercepts calls to "query" in this test and makes
 // sure the main scope "Object" is used.
 jest.mock('jsonpath', () => {
-  const original = jest.requireActual('jsonpath') as typeof import('jsonpath')
+  const original = jest.requireActual('jsonpath')
   return {
     ...original,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

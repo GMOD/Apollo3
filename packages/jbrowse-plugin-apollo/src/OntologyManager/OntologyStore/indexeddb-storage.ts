@@ -174,7 +174,7 @@ export async function isDatabaseCurrent(this: OntologyStore, db: Database) {
   }
   // check that the index paths and prefixes are the same as our current ones
   return (
-    equal(this.options.prefixes, meta.storeOptions?.prefixes) &&
-    equal(this.options.textIndexing, meta.storeOptions?.textIndexing)
+    equal(this.options.prefixes, meta.storeOptions.prefixes) &&
+    equal(this.options.textIndexing, meta.storeOptions.textIndexing)
   )
 }

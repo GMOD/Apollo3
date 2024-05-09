@@ -67,7 +67,7 @@ export function ManageUsers({
   const getUsers = useCallback(async () => {
     const { baseURL } = selectedInternetAccount
     const uri = new URL('/users', baseURL).href
-    const apolloFetch = selectedInternetAccount?.getFetcher({
+    const apolloFetch = selectedInternetAccount.getFetcher({
       locationType: 'UriLocation',
       uri,
     })
@@ -87,7 +87,9 @@ export function ManageUsers({
   }, [selectedInternetAccount])
 
   useEffect(() => {
-    getUsers().catch((error) => setErrorMessage(String(error)))
+    getUsers().catch((error) => {
+      setErrorMessage(String(error))
+    })
   }, [getUsers])
 
   async function deleteUser(id: GridRowId) {
@@ -138,7 +140,7 @@ export function ManageUsers({
     },
   ]
 
-  function handleChangeInternetAccount(e: SelectChangeEvent<string>) {
+  function handleChangeInternetAccount(e: SelectChangeEvent) {
     const newlySelectedInternetAccount = apolloInternetAccounts.find(
       (ia) => ia.internetAccountId === e.target.value,
     )
@@ -199,7 +201,9 @@ export function ManageUsers({
               !isCurrentUser(params.id)
             }
             processRowUpdate={processRowUpdate}
-            onProcessRowUpdateError={(error) => setErrorMessage(String(error))}
+            onProcessRowUpdateError={(error) => {
+              setErrorMessage(String(error))
+            }}
           />
         </div>
       </DialogContent>

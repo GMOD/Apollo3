@@ -76,11 +76,12 @@ export abstract class Operation implements SerializedOperation {
     const backendType = backend.typeName
     if (backendType === 'Server') {
       const initialResult = this.executeOnServer(backend)
-      return backend.pluginsService.evaluateExtensionPoint(
+      backend.pluginsService.evaluateExtensionPoint(
         `${this.typeName}-transformResults`,
         initialResult,
         { operation: this, backend },
       )
+      return
     }
     if (backendType === 'LocalGFF3') {
       return this.executeOnLocalGFF3(backend)

@@ -61,23 +61,26 @@ export const ApolloRefSeq = types
       })
       newSequences.sort((s1, s2) => s1.start - s2.start)
       // eslint-disable-next-line unicorn/no-array-reduce
-      const consolidatedSequences = newSequences.reduce((result, current) => {
-        const lastRange = result.at(-1)
-        if (lastRange === undefined) {
-          return [current]
-        }
-        if (lastRange.stop >= current.start) {
-          if (current.stop > lastRange.stop) {
-            lastRange.stop = current.stop
-            lastRange.sequence += current.sequence.slice(
-              current.stop - lastRange.stop,
-            )
+      const consolidatedSequences = newSequences.reduce<SequenceSnapshot[]>(
+        (result, current) => {
+          const lastRange = result.at(-1)
+          if (lastRange === undefined) {
+            return [current]
           }
-        } else {
-          result.push(current)
-        }
-        return result
-      }, [] as SequenceSnapshot[])
+          if (lastRange.stop >= current.start) {
+            if (current.stop > lastRange.stop) {
+              lastRange.stop = current.stop
+              lastRange.sequence += current.sequence.slice(
+                current.stop - lastRange.stop,
+              )
+            }
+          } else {
+            result.push(current)
+          }
+          return result
+        },
+        [],
+      )
       if (
         self.sequence.length === consolidatedSequences.length &&
         self.sequence.every(

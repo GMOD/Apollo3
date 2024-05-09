@@ -43,11 +43,17 @@ export const ToolBar = observer(function ToolBar({
         value={model.filterText}
         sx={{ marginTop: 0 }}
         variant="outlined"
-        onChange={(event) => model.setFilterText(event.target.value)}
+        onChange={(event) => {
+          model.setFilterText(event.target.value)
+        }}
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">
-              <IconButton onClick={() => model.clearFilterText()}>
+              <IconButton
+                onClick={() => {
+                  model.clearFilterText()
+                }}
+              >
                 <ClearIcon />
               </IconButton>
             </InputAdornment>

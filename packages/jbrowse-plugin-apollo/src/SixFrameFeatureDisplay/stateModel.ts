@@ -141,7 +141,7 @@ export function stateModelFactory(
       },
       get changeManager() {
         const session = getSession(self) as ApolloSession
-        return session.apolloDataStore?.changeManager
+        return session.apolloDataStore.changeManager
       },
       get sequence() {
         const { regions } = self
@@ -348,7 +348,7 @@ export function stateModelFactory(
     .actions((self) => ({
       setSelectedFeature(feature?: AnnotationFeatureI) {
         const session = getSession(self) as ApolloSession
-        return session.apolloSetSelectedFeature(feature)
+        session.apolloSetSelectedFeature(feature)
       },
       setApolloFeatureUnderMouse(feature?: AnnotationFeatureI) {
         self.apolloFeatureUnderMouse = feature
@@ -388,19 +388,25 @@ export function stateModelFactory(
             label: 'Show start codons',
             type: 'checkbox',
             checked: self.showStartCodons,
-            onClick: () => self.toggleShowStartCodons(),
+            onClick: () => {
+              self.toggleShowStartCodons()
+            },
           },
           {
             label: 'Show stop codons',
             type: 'checkbox',
             checked: self.showStopCodons,
-            onClick: () => self.toggleShowStopCodons(),
+            onClick: () => {
+              self.toggleShowStopCodons()
+            },
           },
           {
             label: 'Show intron lines',
             type: 'checkbox',
             checked: self.showIntronLines,
-            onClick: () => self.toggleShowIntronLines(),
+            onClick: () => {
+              self.toggleShowIntronLines()
+            },
           },
         ]
       },

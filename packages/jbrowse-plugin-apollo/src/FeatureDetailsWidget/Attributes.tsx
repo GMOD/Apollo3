@@ -190,7 +190,7 @@ export const Attributes = observer(function Attributes({
       featureId: feature._id,
       attributes: attrs,
     })
-    await changeManager.submit?.(change)
+    await changeManager.submit(change)
     notify('Feature attributes modified successfully', 'success')
   }
   function handleAddNewAttributeChange() {

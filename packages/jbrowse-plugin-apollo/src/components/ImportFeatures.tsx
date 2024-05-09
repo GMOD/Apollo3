@@ -55,7 +55,7 @@ export function ImportFeatures({
   }
   const assemblies = collaborationServerDriver.getAssemblies()
 
-  function handleChangeAssembly(e: SelectChangeEvent<string>) {
+  function handleChangeAssembly(e: SelectChangeEvent) {
     const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
     setSelectedAssembly(newAssembly)
     setSubmitted(false)
@@ -90,7 +90,7 @@ export function ImportFeatures({
         assemblyId: selectedAssembly.name,
       })
       uri.search = searchParams.toString()
-      const fetch = apolloInternetAccount?.getFetcher({
+      const fetch = apolloInternetAccount.getFetcher({
         locationType: 'UriLocation',
         uri: uri.toString(),
       })
@@ -157,7 +157,7 @@ export function ImportFeatures({
     formData.append('file', file)
     formData.append('fileName', file.name)
     formData.append('type', 'text/x-gff3')
-    const apolloFetchFile = apolloInternetAccount?.getFetcher({
+    const apolloFetchFile = apolloInternetAccount.getFetcher({
       locationType: 'UriLocation',
       uri: url,
     })

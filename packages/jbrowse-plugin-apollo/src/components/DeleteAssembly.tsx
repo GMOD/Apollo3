@@ -67,7 +67,7 @@ export function DeleteAssembly({
     }
   }, [assemblies, selectedAssembly])
 
-  function handleChangeInternetAccount(e: SelectChangeEvent<string>) {
+  function handleChangeInternetAccount(e: SelectChangeEvent) {
     setSubmitted(false)
     const newlySelectedInternetAccount = apolloInternetAccounts.find(
       (ia) => ia.internetAccountId === e.target.value,
@@ -80,7 +80,7 @@ export function DeleteAssembly({
     setSelectedInternetAccount(newlySelectedInternetAccount)
   }
 
-  function handleChangeAssembly(e: SelectChangeEvent<string>) {
+  function handleChangeAssembly(e: SelectChangeEvent) {
     const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
     setSelectedAssembly(newAssembly)
   }
@@ -97,7 +97,7 @@ export function DeleteAssembly({
       typeName: 'DeleteAssemblyChange',
       assembly: selectedAssembly.name,
     })
-    await changeManager.submit?.(change, {
+    await changeManager.submit(change, {
       internetAccountId: selectedInternetAccount.internetAccountId,
     })
     handleClose()
@@ -154,7 +154,9 @@ export function DeleteAssembly({
               control={
                 <Checkbox
                   checked={confirmDelete}
-                  onChange={() => setconfirmDelete(!confirmDelete)}
+                  onChange={() => {
+                    setconfirmDelete(!confirmDelete)
+                  }}
                 />
               }
               label="I understand that all assembly data will be deleted"

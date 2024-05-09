@@ -96,7 +96,7 @@ export function AddChildFeature({
       },
       parentFeatureId: sourceFeature._id,
     })
-    await changeManager.submit?.(change)
+    await changeManager.submit(change)
     notify('Feature added successfully', 'success')
     handleClose()
     event.preventDefault()
@@ -111,7 +111,7 @@ export function AddChildFeature({
       setShowPhase(false)
     }
   }
-  async function handleChangePhase(e: SelectChangeEvent<string>) {
+  async function handleChangePhase(e: SelectChangeEvent) {
     setErrorMessage('')
     setPhase(e.target.value)
 
@@ -153,7 +153,9 @@ export function AddChildFeature({
             fullWidth
             variant="outlined"
             value={start}
-            onChange={(e) => setStart(e.target.value)}
+            onChange={(e) => {
+              setStart(e.target.value)
+            }}
           />
           <TextField
             margin="dense"
@@ -163,7 +165,9 @@ export function AddChildFeature({
             fullWidth
             variant="outlined"
             value={end}
-            onChange={(e) => setEnd(e.target.value)}
+            onChange={(e) => {
+              setEnd(e.target.value)
+            }}
             error={error}
             helperText={error ? '"End" must be greater than "Start"' : null}
           />

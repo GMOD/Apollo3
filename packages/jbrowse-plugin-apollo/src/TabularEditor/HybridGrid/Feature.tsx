@@ -127,8 +127,9 @@ export const Feature = observer(function Feature({
   }
 
   // pop up a snackbar in the session notifying user of an error
-  const notifyError = (e: Error) =>
-    (session as unknown as AbstractSessionModel).notify(e.message, 'error')
+  const notifyError = (e: Error) => {
+    ;(session as unknown as AbstractSessionModel).notify(e.message, 'error')
+  }
 
   return (
     <>

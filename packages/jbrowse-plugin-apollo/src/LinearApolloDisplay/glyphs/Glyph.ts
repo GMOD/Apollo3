@@ -389,7 +389,7 @@ export abstract class Glyph {
                 refName: region.refName,
               },
             )
-            ;(session as unknown as SessionWithWidgets).showWidget?.(
+            ;(session as unknown as SessionWithWidgets).showWidget(
               apolloFeatureWidget,
             )
           },

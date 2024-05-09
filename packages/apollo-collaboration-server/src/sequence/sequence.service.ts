@@ -36,7 +36,7 @@ export class SequenceService {
       assembly.toString(),
     )
 
-    if (assemblyDoc?.externalLocation) {
+    if (assemblyDoc.externalLocation) {
       const { fa, fai, gzi } = assemblyDoc.externalLocation
       this.logger.debug(`Fasta file URL = ${fa}, Fasta index file URL = ${fai}`)
 

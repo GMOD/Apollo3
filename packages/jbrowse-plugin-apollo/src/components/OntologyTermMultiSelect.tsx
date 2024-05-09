@@ -120,8 +120,7 @@ export function OntologyTermMultiSelect({
   includeDeprecated?: boolean
   onChange(newValue: string[]): void
 }) {
-  const ontologyManager = session.apolloDataStore
-    .ontologyManager as OntologyManager
+  const { ontologyManager } = session.apolloDataStore
   const ontology = ontologyManager.findOntology(ontologyName, ontologyVersion)
 
   const [value, setValue] = React.useState<TermValue[]>(

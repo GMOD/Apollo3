@@ -49,9 +49,9 @@ export const AuthTypeSelector = ({
       const data = (await response.json()) as string[]
       setLoginTypes(data)
     }
-    getAuthTypes().catch((error) =>
-      isAbortException(error) ? '' : setErrorMessage(String(error)),
-    )
+    getAuthTypes().catch((error) => {
+      isAbortException(error) ? '' : setErrorMessage(String(error))
+    })
     return () => {
       controller.abort()
     }
@@ -84,19 +84,27 @@ export const AuthTypeSelector = ({
         {allowGoogle ? (
           <GoogleButton
             disabled={!allowGoogle}
-            onClick={() => handleClick('google')}
+            onClick={() => {
+              handleClick('google')
+            }}
           />
         ) : null}
         {allowMicrosoft ? (
           <MicrosoftButton
             disabled={!allowMicrosoft}
-            onClick={() => handleClick('microsoft')}
+            onClick={() => {
+              handleClick('microsoft')
+            }}
           />
         ) : null}
         {allowGuest ? (
           <>
             <Divider className={classes.divider} />
-            <GuestButton onClick={() => handleClick('guest')} />
+            <GuestButton
+              onClick={() => {
+                handleClick('guest')
+              }}
+            />
           </>
         ) : null}
       </DialogContent>

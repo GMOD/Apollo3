@@ -58,7 +58,8 @@ export class PluginsModule {
           fetch(url)
             .then((response) => {
               if (!response.body) {
-                return reject('fetch failed')
+                reject('fetch failed')
+                return
               }
               response.body.pipe(file)
               file.on('finish', resolve)

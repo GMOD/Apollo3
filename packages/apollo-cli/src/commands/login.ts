@@ -226,9 +226,9 @@ export default class Login extends BaseCommand<typeof Login> {
     const eventName = 'authorication_code_callback_params'
     const server = http
       .createServer((req, res) => {
-        if (req?.url?.startsWith(callbackPath)) {
+        if (req.url?.startsWith(callbackPath)) {
           const params = querystring.decode(
-            req?.url.replace(`${callbackPath}?`, ''),
+            req.url.replace(`${callbackPath}?`, ''),
           )
           emitter.emit(eventName, params)
           res.end(

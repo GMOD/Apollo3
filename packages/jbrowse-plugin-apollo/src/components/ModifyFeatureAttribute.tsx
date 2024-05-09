@@ -219,7 +219,7 @@ export function ModifyFeatureAttribute({
       featureId: sourceFeature._id,
       attributes: attrs,
     })
-    await changeManager.submit?.(change)
+    await changeManager.submit(change)
     notify('Feature attributes modified successfully', 'success')
     handleClose()
     event.preventDefault()

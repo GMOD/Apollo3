@@ -39,8 +39,9 @@ export const BasicInformation = observer(function BasicInformation({
 
   const { _id, assemblyId, end, start, strand, type } = feature
 
-  const notifyError = (e: Error) =>
-    (session as unknown as AbstractSessionModel).notify(e.message, 'error')
+  const notifyError = (e: Error) => {
+    ;(session as unknown as AbstractSessionModel).notify(e.message, 'error')
+  }
 
   const { changeManager } = session.apolloDataStore
   function handleTypeChange(newType: string) {

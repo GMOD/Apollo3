@@ -67,7 +67,9 @@ export const NumberTextField = observer(function NumberTextField({
           }
         }
       }}
-      inputRef={(node) => setInputNode(node)}
+      inputRef={(node) => {
+        setInputNode(node)
+      }}
       error={error}
       helperText={error ? 'Not a valid number' : undefined}
     />
