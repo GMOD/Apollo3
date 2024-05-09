@@ -43,6 +43,9 @@ jobs:
             packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js
             packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.production.min.js
   test-artifact:
+    name: Test artifact
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/download-artifact@v4
         with:
           name: plugin
