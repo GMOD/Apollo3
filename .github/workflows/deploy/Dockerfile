@@ -1,7 +1,8 @@
 FROM httpd:alpine
 ARG JBROWSE_VERSION
-ARG APOLLO_VERSION
 COPY ./httpd.conf /usr/local/apache2/conf/httpd.conf
+COPY ./jbrowse-plugin-apollo.umd.development.js /usr/local/apache2/htdocs/
+COPY ./jbrowse-plugin-apollo.umd.production.min.js /usr/local/apache2/htdocs/
 WORKDIR /usr/local/apache2/htdocs/
 RUN <<EOF
 set -o errexit

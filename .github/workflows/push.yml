@@ -146,10 +146,8 @@ jobs:
           URL: ${{ vars.URL }}
         working-directory: .github/workflows/deploy
         run: |
+          cp ../../../packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js ./
+          cp ../../../packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.production.min.js ./
           docker --context staging compose down
           docker --context staging compose pull
-
-          docker --context staging compose cp ../../../packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js client:/usr/local/apache2/htdocs/
-          docker --context staging compose cp ../../../packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.production.min.js client:/usr/local/apache2/htdocs/
-          
           docker --context staging compose up --build --detach
