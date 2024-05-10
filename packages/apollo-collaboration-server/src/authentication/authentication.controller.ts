@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 import {
   BadRequestException,
   Body,
@@ -54,14 +53,14 @@ export class AuthenticationController {
   @Get('google')
   @Redirect()
   @UseGuards(GoogleAuthGuard)
-  async handleRedirect(@Req() req: RequestWithUserToken) {
+  handleRedirect(@Req() req: RequestWithUserToken) {
     return this.authService.handleRedirect(req)
   }
 
   @Get('microsoft')
   @Redirect()
   @UseGuards(MicrosoftAuthGuard)
-  async microsoftHandleRedirect(@Req() req: RequestWithUserToken) {
+  microsoftHandleRedirect(@Req() req: RequestWithUserToken) {
     return this.authService.handleRedirect(req)
   }
 

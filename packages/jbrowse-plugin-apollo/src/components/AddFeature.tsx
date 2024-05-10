@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { AbstractSessionModel, Region } from '@jbrowse/core/util/types'
 import {
@@ -129,7 +128,7 @@ export function AddFeature({
     }
   }
 
-  async function handleChangePhase(e: SelectChangeEvent) {
+  function handleChangePhase(e: SelectChangeEvent) {
     setErrorMessage('')
     setPhase(e.target.value)
 

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 import { Injectable } from '@nestjs/common'
 import {
   SubscribeMessage,
@@ -19,7 +18,7 @@ export class MessagesGateway {
   constructor(private readonly messagesService: MessagesService) {}
 
   @SubscribeMessage('createMessage')
-  async create(eventName: string, createMessageDto: CreateMessageDto) {
+  create(eventName: string, createMessageDto: CreateMessageDto) {
     this.server.emit(eventName, createMessageDto)
   }
 }

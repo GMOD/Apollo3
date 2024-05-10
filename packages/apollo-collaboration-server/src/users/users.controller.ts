@@ -42,7 +42,7 @@ export class UsersController {
       throw new Error('No user attached to request')
     }
     this.logger.debug('Requesting other users locations')
-    return this.usersService.requestUsersLocations(user)
+    this.usersService.requestUsersLocations(user)
   }
 
   @Get(':id')
@@ -71,6 +71,6 @@ export class UsersController {
     if (!user) {
       throw new Error('No user attached to request')
     }
-    return this.usersService.broadcastLocation(userLocationArray, user)
+    this.usersService.broadcastLocation(userLocationArray, user)
   }
 }

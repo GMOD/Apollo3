@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
@@ -196,7 +195,7 @@ export function mouseEventsSeqHightlightModelFactory(
       addDisposer(
         self,
         autorun(
-          async () => {
+          () => {
             if (!self.lgv.initialized || self.regionCannotBeRendered()) {
               return
             }

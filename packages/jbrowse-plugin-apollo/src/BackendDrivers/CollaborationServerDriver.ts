@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-base-to-string */
-/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -109,7 +108,7 @@ export class CollaborationServerDriver extends BackendDriver {
       )
       throw new Error(errorMessage)
     }
-    await this.checkSocket(assemblyName, refName, internetAccount)
+    this.checkSocket(assemblyName, refName, internetAccount)
     return response.json() as Promise<
       [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
     >
@@ -121,7 +120,7 @@ export class CollaborationServerDriver extends BackendDriver {
    * @param refSeq - refSeqName
    * @param internetAccount - internet account
    */
-  async checkSocket(
+  checkSocket(
     assembly: string,
     refSeq: string,
     internetAccount: ApolloInternetAccount,
@@ -205,7 +204,7 @@ export class CollaborationServerDriver extends BackendDriver {
     )
     this.inFlight.set(inFlightKey, seqPromise)
     const seq = await seqPromise
-    await this.checkSocket(assemblyName, refName, internetAccount)
+    this.checkSocket(assemblyName, refName, internetAccount)
     this.inFlight.delete(inFlightKey)
     return { seq, refSeq }
   }

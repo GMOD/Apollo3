@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { readConfObject } from '@jbrowse/core/configuration'
@@ -89,7 +88,7 @@ export function CopyFeature({
   const [start, setStart] = useState(sourceFeature.start)
   const [errorMessage, setErrorMessage] = useState('')
 
-  async function handleChangeAssembly(e: SelectChangeEvent) {
+  function handleChangeAssembly(e: SelectChangeEvent) {
     setSelectedAssemblyId(e.target.value)
   }
 
@@ -119,7 +118,7 @@ export function CopyFeature({
     })
   }, [selectedAssemblyId, assemblyManager])
 
-  async function handleChangeRefSeq(e: SelectChangeEvent) {
+  function handleChangeRefSeq(e: SelectChangeEvent) {
     const refSeq = e.target.value
     setSelectedRefSeqId(refSeq)
   }

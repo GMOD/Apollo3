@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { AbstractSessionModel, isElectron } from '@jbrowse/core/util'
@@ -47,7 +46,7 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
   const [submitted, setSubmitted] = useState(false)
   const theme = useTheme()
 
-  async function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
     const selectedFile = e.target.files?.item(0)
     if (!selectedFile) {
       return

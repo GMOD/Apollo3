@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -97,8 +96,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           reject: (error: Error) => void,
         ) {
           listener = (event) => {
-            // this should probably get better handling, but ignored for now
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             this.finishOAuthWindow(event, resolve, reject)
           }
           window.addEventListener('message', listener)
@@ -106,7 +103,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         deleteMessageChannel() {
           window.removeEventListener('message', listener)
         },
-        async finishOAuthWindow(
+        finishOAuthWindow(
           event: MessageEvent,
           resolve: (token: string) => void,
           reject: (error: Error) => void,
@@ -160,7 +157,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             const eventFromDesktop = new MessageEvent('message', {
               data: { name: eventName, redirectUri: redirectUriFromElectron },
             })
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             this.finishOAuthWindow(eventFromDesktop, resolve, reject)
           } else {
             this.addMessageChannel(resolve, reject)

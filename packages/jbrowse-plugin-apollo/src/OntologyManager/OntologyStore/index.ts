@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-throw-literal */
-/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable unicorn/no-await-expression-member */
 import {
   BlobLocation,
@@ -196,7 +195,7 @@ export default class OntologyStore {
     return myTx.objectStore('nodes').count()
   }
 
-  private async unique<ITEM extends { id: string }>(nodes: ITEM[]) {
+  private unique<ITEM extends { id: string }>(nodes: ITEM[]) {
     const seen = new Map<string, boolean>()
     const result: ITEM[] = []
     for (const node of nodes) {

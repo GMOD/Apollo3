@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 import gff, { GFF3Comment, GFF3Feature, GFF3Sequence } from '@gmod/gff'
 import { ClientDataStore, checkRegistry } from 'apollo-common'
 import {
@@ -80,7 +79,8 @@ export async function checkFeatures(
       for (const check of checkRegistry.getChecks().values()) {
         const result: CheckResultSnapshot[] = await check.checkFeature(
           getSnapshot(feature),
-          async (start: number, stop: number) => ref.getSequence(start, stop),
+          (start: number, stop: number) =>
+            Promise.resolve(ref.getSequence(start, stop)),
         )
         checkResults.push(...result)
       }

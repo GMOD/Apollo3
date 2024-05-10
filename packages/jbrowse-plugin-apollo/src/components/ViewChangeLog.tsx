@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/require-await */
-/* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
@@ -169,7 +167,7 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
     })
   }, [assemblyId, apolloInternetAccount, baseURL])
 
-  async function handleChangeAssembly(e: SelectChangeEvent) {
+  function handleChangeAssembly(e: SelectChangeEvent) {
     setAssemblyId(e.target.value)
   }
 

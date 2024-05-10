@@ -29,7 +29,7 @@ import { ChecksService } from './checks.service'
         name: CheckResult.name,
         useFactory: (connection, messagesGateway: MessagesGateway) => {
           CheckResultSchema.plugin(idValidator, { connection })
-          const broadcast = async (
+          const broadcast = (
             doc: CheckResultDocument | CheckResultSnapshot,
           ) => {
             const message: CheckResultUpdate = {
@@ -38,9 +38,9 @@ import { ChecksService } from './checks.service'
               userSessionId: 'none',
               checkResult: 'toJSON' in doc ? doc.toJSON() : doc,
             }
-            await messagesGateway.create(message.channel, message)
+            messagesGateway.create(message.channel, message)
           }
-          const broadcastDeletion = async (doc: CheckResultDocument) => {
+          const broadcastDeletion = (doc: CheckResultDocument) => {
             const message: CheckResultUpdate = {
               channel: 'COMMON',
               userName: 'none',
@@ -48,7 +48,7 @@ import { ChecksService } from './checks.service'
               checkResult: doc.toJSON(),
               deleted: true,
             }
-            await messagesGateway.create(message.channel, message)
+            messagesGateway.create(message.channel, message)
           }
           CheckResultSchema.post('save', broadcast)
           CheckResultSchema.post('updateOne', broadcast)
@@ -59,23 +59,20 @@ import { ChecksService } from './checks.service'
               this.getQuery(),
             )
             for (const checkResult of checkResults) {
-              await broadcast(checkResult)
+              broadcast(checkResult)
             }
           })
-          CheckResultSchema.pre(
-            'insertMany',
-            async function (_result, checkResults) {
-              for (const checkResult of checkResults) {
-                await broadcast(checkResult)
-              }
-            },
-          )
+          CheckResultSchema.pre('insertMany', function (_result, checkResults) {
+            for (const checkResult of checkResults) {
+              broadcast(checkResult)
+            }
+          })
           CheckResultSchema.pre('findOneAndDelete', async function () {
             const checkResults = await this.model.find<CheckResultDocument>(
               this.getQuery(),
             )
             for (const checkResult of checkResults) {
-              await broadcastDeletion(checkResult)
+              broadcastDeletion(checkResult)
             }
           })
           CheckResultSchema.pre('deleteMany', async function () {
@@ -83,7 +80,7 @@ import { ChecksService } from './checks.service'
               this.getQuery(),
             )
             for (const checkResult of checkResults) {
-              await broadcastDeletion(checkResult)
+              broadcastDeletion(checkResult)
             }
           })
           return CheckResultSchema
