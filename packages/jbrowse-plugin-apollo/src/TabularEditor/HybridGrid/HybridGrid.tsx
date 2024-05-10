@@ -48,7 +48,7 @@ const HybridGrid = observer(function HybridGrid({
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current
     if (scrollContainer && selectedFeature) {
-      const selectedRow = scrollContainer.querySelector(
+      const selectedRow = scrollContainer.querySelector<HTMLTableRowElement>(
         `.${classes.selectedFeature}`,
       )
       if (selectedRow) {

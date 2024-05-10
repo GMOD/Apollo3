@@ -14,7 +14,9 @@ export interface DecodedJWT extends JWTPayload {
 
 export function makeUserSessionId(userOrToken: DecodedJWT | string): string {
   const user =
-    typeof userOrToken === 'string' ? jwtDecode(userOrToken) : userOrToken
+    typeof userOrToken === 'string'
+      ? jwtDecode<DecodedJWT>(userOrToken)
+      : userOrToken
   return `${user.id}-${user.iat}`
 }
 
