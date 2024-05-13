@@ -1,0 +1,86 @@
+name: Cleanup staging server
+
+on:
+  schedule:
+    - cron: '13 9 * * MON'
+  workflow_dispatch: null
+
+jobs:
+  deploy:
+    name: Cleanup
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Get instance address
+        id: ec2-describe-instances
+        run: |
+          INSTANCE_ADDRESS=$(aws ec2 describe-instances \
+            --instance-ids ${{ vars.INSTANCE_ID }} \
+            --query "Reservations[*].Instances[*].[PublicDnsName]" \
+            --output text)
+          echo "INSTANCE_ADDRESS=$INSTANCE_ADDRESS" >> "$GITHUB_OUTPUT"
+      - name: Set up SSH
+        run: |
+          mkdir --parents ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY  }}" >  ~/.ssh/staging
+          chmod 600 ~/.ssh/staging
+          cat >>~/.ssh/config <<END
+          Host staging
+            HostName ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }}
+            User ec2-user
+            IdentityFile ~/.ssh/staging
+          END
+          ssh-keyscan -H ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }} >> ~/.ssh/known_hosts
+      - name: Test ssh
+        run: |
+          xid=`date +"%Y-%m-%dT%H-%M-%S"`
+          cat <<'EOF' > cleanup_apollo.$xid.sh
+          set -e
+          set -u
+          set -o pipefail
+          set -x
+
+          demoDataDir=${{ '${HOME}' }}/dario/demoData
+          rm -rf $demoDataDir
+          mkdir -p $demoDataDir
+          cd $demoDataDir
+
+          wormbase='https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species'
+          curl -O -s -L $wormbase/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz
+          curl -O -s -L $wormbase/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz
+          curl -O -s -L $wormbase/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3.gz
+          curl -O -s -L $wormbase/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3.gz
+          gunzip *.gz
+
+          cd ${{ '${HOME}' }}/Apollo3/packages/apollo-cli
+
+          export APOLLO_PROFILE=auto
+          function apollo () {
+            yarn node bin/run.js "$@"
+          }
+
+          apollo config address http://localhost
+          apollo config accessType root
+          apollo config rootCredentials.username ${{ secrets.ROOT_USER_NAME }}
+          apollo config rootCredentials.password ${{ secrets.ROOT_USER_PASSWORD }}
+          apollo login
+
+          echo "apollo assembly get | apollo assembly delete -v -a -"
+
+          apollo assembly add-fasta -i $demoDataDir/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa -a schistosoma_haematobium -f
+          apollo assembly add-fasta -i $demoDataDir/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa -a schistosoma_mansoni -f
+
+          apollo feature import -i $demoDataDir/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3 -a schistosoma_haematobium -d
+          apollo feature import -i $demoDataDir/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3 -a schistosoma_mansoni -d
+          EOF
+
+          rsync -av cleanup_apollo.$xid.sh staging:dario/
+          ssh staging -f "bash dario/cleanup_apollo.$xid.sh > dario/cleanup_apollo.$xid.out 2> dario/cleanup_apollo.$xid.err; echo 'Exit code:' $? >> dario/cleanup_apollo.$xid.err && rm dario/cleanup_apollo.$xid.sh"

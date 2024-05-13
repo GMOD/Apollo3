@@ -169,20 +169,6 @@ describe('Do not set invalid address', () => {
     .it(cmd.join(' '))
 })
 
-// describe('apollo config: Friendly error with invalid configfile', () => {
-//   const cmd = ['config', '--config-file', `${TEST_DATA_DIR}/invalid.yaml`]
-//   test
-//     .stderr()
-//     .command(cmd, { root: dirname(dirname(__dirname)) })
-//     .exit(1)
-//     .do((output) =>
-//       expect(output.stderr).to.contain(
-//         'Configuration file is probably malformed',
-//       ),
-//     )
-//     .it(cmd.join(' '))
-// })
-
 describe('apollo config: Write config file from scratch', () => {
   after(() => {
     fs.rmSync(CONFIG_FILE)

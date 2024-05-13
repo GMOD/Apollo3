@@ -8153,6 +8153,7 @@ __metadata:
     "@types/mocha": "npm:^10"
     "@types/node": "npm:^18.14.2"
     babel-plugin-istanbul: "npm:^6.1.1"
+    bson: "npm:^6.3.0"
     joi: "npm:^17.7.0"
     mocha: "npm:^10.2.0"
     nyc: "npm:^15.1.0"
@@ -8163,6 +8164,7 @@ __metadata:
     tslib: "npm:^2.3.1"
     tsx: "npm:^4.6.2"
     typescript: "npm:^5.1.6"
+    undici: "npm:^6.7.0"
     yaml: "npm:^2.3.4"
   bin:
     apollo: ./bin/run.js
@@ -8231,7 +8233,7 @@ __metadata:
     passport-jwt: "npm:^4.0.0"
     passport-local: "npm:^1.0.0"
     passport-microsoft: "npm:^1.0.0"
-    prettier: "npm:^3.0.0"
+    prettier: "npm:^3.2.5"
     prop-types: "npm:^15.8.1"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
@@ -8359,6 +8361,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^6.1.0"
     "@typescript-eslint/parser": "npm:^6.1.0"
     "@yarnpkg/types": "npm:^4.0.0"
+    cross-spawn: "npm:^7.0.3"
     eslint: "npm:^8.45.0"
     eslint-config-prettier: "npm:^8.8.0"
     eslint-import-resolver-typescript: "npm:^3.5.5"
@@ -8372,12 +8375,12 @@ __metadata:
     eslint-plugin-sort-destructure-keys: "npm:^1.5.0"
     eslint-plugin-tsdoc: "npm:^0.2.17"
     eslint-plugin-unicorn: "npm:^48.0.0"
-    husky: "npm:^8.0.3"
+    husky: "npm:^9.0.11"
     import-sort-parser-typescript: "npm:^6.0.0"
     import-sort-style-module: "npm:^6.0.0"
     jest: "npm:^29.6.2"
     npm-run-all: "npm:^4.1.5"
-    prettier: "npm:^3.0.0"
+    prettier: "npm:^3.2.5"
     prettier-plugin-import-sort: "npm:^0.0.7"
     react: "npm:^18.2.0"
     typescript: "npm:^5.1.6"
@@ -9380,6 +9383,13 @@ __metadata:
   version: 6.1.0
   resolution: "bson@npm:6.1.0"
   checksum: 10c0/45e1abbec0faf3614f070aed89eb065999777c8007e165bfb0afb4dbb1242cf33d78dc02e971edb0b60ed1cfaf00f81e20abf9a994bf13c4a2e21b50e178f8aa
+  languageName: node
+  linkType: hard
+
+"bson@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "bson@npm:6.3.0"
+  checksum: 10c0/5b7700e07dcb1cec4269e7f32e2b341add0891639b3bd24d5dfbd66f4ccc6e95d2eeae47066df0eaf2d87b865e2efbb2b487ad5d9953aa9614b42386e4e2572b
   languageName: node
   linkType: hard
 
@@ -13831,12 +13841,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"husky@npm:^8.0.3":
-  version: 8.0.3
-  resolution: "husky@npm:8.0.3"
+"husky@npm:^9.0.11":
+  version: 9.0.11
+  resolution: "husky@npm:9.0.11"
   bin:
-    husky: lib/bin.js
-  checksum: 10c0/6722591771c657b91a1abb082e07f6547eca79144d678e586828ae806499d90dce2a6aee08b66183fd8b085f19d20e0990a2ad396961746b4c8bd5bdb619d668
+    husky: bin.mjs
+  checksum: 10c0/2c787dcf74a837fc9a4fea7da907509d4bd9a289f4ea10ecc9d86279e4d4542b0f5f6443a619bccae19e265f2677172cc2b86aae5c932a35a330cc227d914605
   languageName: node
   linkType: hard
 
@@ -18729,12 +18739,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.0.0":
-  version: 3.0.3
-  resolution: "prettier@npm:3.0.3"
+"prettier@npm:^3.2.5":
+  version: 3.2.5
+  resolution: "prettier@npm:3.2.5"
   bin:
     prettier: bin/prettier.cjs
-  checksum: 10c0/f950887bc03c5b970d8c6dd129364acfbbc61e7b46aec5d5ce17f4adf6404e2ef43072c98b51c4786e0eaca949b307d362a773fd47502862d754b5a328fa2b26
+  checksum: 10c0/ea327f37a7d46f2324a34ad35292af2ad4c4c3c3355da07313339d7e554320f66f65f91e856add8530157a733c6c4a897dc41b577056be5c24c40f739f5ee8c6
   languageName: node
   linkType: hard
 
@@ -22016,6 +22026,13 @@ __metadata:
   version: 5.26.5
   resolution: "undici-types@npm:5.26.5"
   checksum: 10c0/bb673d7876c2d411b6eb6c560e0c571eef4a01c1c19925175d16e3a30c4c428181fb8d7ae802a261f283e4166a0ac435e2f505743aa9e45d893f9a3df017b501
+  languageName: node
+  linkType: hard
+
+"undici@npm:^6.7.0":
+  version: 6.16.1
+  resolution: "undici@npm:6.16.1"
+  checksum: 10c0/df9a46f79dcd4c9b6b8106619de2e31bc756ad88091f93615c0c7e9b60a80f3cffc744d2fda299689aea8d97cca93fecb6952b27f3bad9062efc63baceaf6586
   languageName: node
   linkType: hard
 

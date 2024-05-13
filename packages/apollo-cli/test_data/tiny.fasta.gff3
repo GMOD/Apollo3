@@ -1,0 +1,40 @@
+# Note: See http://song.sourceforge.net
+# multi-exon gene - several linked CDSs
+# single exon gene - one CDS only
+##gff-version 3
+ctgA	example	contig	1	50	1234567	.	.	Name=ctgA;multivalue=val1,val2,val3;aKey=Q;aNumber=987
+ctgA	example	BAC	10	20	.	.	.	ID=b101.2;Name=b101.2;Note=Fingerprinted BAC with end reads
+ctgA	example	SNP	10	30	0.987	.	.	ID=FakeSNP1;Name=FakeSNP;Note=This is a fake SNP that should appear at 1000 with length 1
+ctgA	example	gene	100	200	.	+	.	ID=EDEN;Name=EDEN;Note=protein kinase
+ctgA	example	mRNA	100	200	.	+	.	ID=EDEN.1;Parent=EDEN;Name=EDEN.1;Note=Eden splice form 1;Index=1
+ctgB	someExample	contig	1	50	.	.	.	Name=SomeContig
+ctgC	example	gene	100	200	.	+	.	ID=MyGene
+ctgC	example	mRNA	100	200	.	+	.	ID=MyGene.1;Parent=MyGene
+ctgC	example	CDS	100	170	.	+	.	ID=MyExon.1;Parent=MyGene.1
+ctgC	example	gene	150	250	.	+	.	ID=AnotherGene
+ctgC	example	mRNA	150	250	.	+	.	ID=mRNA.1;Parent=AnotherGene
+ctgC	example	CDS	150	201	.	+	.	ID=CDS.1;Parent=mRNA.1
+##FASTA
+>ctgA
+cattgttgcggagttgaacaACGGCATTAGGAACACTTCCGTCTCtcacttttatacgat
+tatgattggttctttagccttggtttagattggtagtagtagcggcgctaatgctacctg
+aattgagaactcgagcgggggctaggcaaattctgattcagcctgacttctcttggaacc
+ctgcccataaatcaaagggttagtgcggccaaaacgttggacaacggtattagaagacca
+acctgaccaccaaaccgtcaattaaccggtatcttctcggaaacggcggttctctcctag
+atagcgatctgtggtctcaccatgcaatttaaacaggtgagtaaagattgctacaaatac
+gagactagctgtcaccagatgctgttcatctgttggctccttggtcgctccgttgtaccc
+
+>ctgB
+ACATGCTAGCTACGTGCATGCTCGACATGCATCATCAGCCTGATGCTGATACATGCTAGCTACGTGCATGCTCGACATGCATCATCAGCCTGATGCTGAT
+ACATGCTAGCTACGTGCATGCTCGACATGCATCATCAGCCTGATGCTGATACATGCTAGCTACGTGCATGCTCGACATGCATCATCAGCCTGATGCTGAT
+ACATGCTAGCTACGTGCATGCTCGACATGCATCATCAGCCTGATGCTGATACATGCTAGCTACGTGCATGCTCGACATGCATCATCAGCCTGATGCTGAT
+ACATGCTAGCTACGTGCATGCTCGACATGCATCATCAGCCTGATGCTGATACATGCTAGCTACGTGCATGCTCGACATGCATCATCAGCCTGATGCTGAT
+>ctgC
+cattgttgcggagttgaacaACGGCATTAGGAACACTTCCGTCTCtcacttttatacgat
+tatgattggttctttagccttggtttagattggtagtagtagcggcgctaatgctacctg
+aattgagaactcgagcgggggctaggcaaattctgattcagcctgacttctcttggaacc
+ctgcccataaatcaaagggttagtgcggccaaaacgttggacaacggtattagaagacca
+acctgaccaccaaaccgtcaattaaccggtatcttctcggaaacggcggttctctcctag
+atagcgatctgtggtctcaccatgcaatttaaacaggtgagtaaagattgctacaaatac
+gagactagctgtcaccagatgctgttcatctgttggctccttggtcgctccgttgtaccc
+

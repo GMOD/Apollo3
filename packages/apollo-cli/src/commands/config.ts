@@ -4,13 +4,24 @@ import input from '@inquirer/input'
 import password from '@inquirer/password'
 import select from '@inquirer/select'
 import { Args, Flags } from '@oclif/core'
+import { fetch } from 'undici'
 
 import { BaseCommand } from '../baseCommand.js'
-import { Config, KEYS } from '../Config.js'
-import { ConfigError } from '../utils.js'
+import { Config, ConfigError, KEYS, optionDesc } from '../Config.js'
+import {
+  createFetchErrorMessage,
+  localhostToAddress,
+  wrapLines,
+} from '../utils.js'
 
 export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
-  static description = 'Get or set Apollo configuration options'
+  static summary = 'Get or set apollo configuration options'
+  static description = wrapLines(
+    `Use this command to create or edit a user profile with credentials to access Apollo. \
+     Configuration options are:
+
+     ${optionDesc().join('\n\n')}`,
+  )
 
   static args = {
     key: Args.string({
@@ -28,15 +39,40 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
       description: 'Profile to create or edit',
       required: false,
     }),
+    'get-config-file': Flags.boolean({
+      description:
+        'Return the path to the config file and exit (this file may not exist yet)',
+    }),
   }
+
+  static examples = [
+    {
+      description: 'Interactive setup:',
+      command: '<%= config.bin %> <%= command.id %>',
+    },
+    {
+      description: 'Setup with key/value pairs:',
+      command:
+        '<%= config.bin %> <%= command.id %> --profile admin address http://localhost:3999',
+    },
+    {
+      description: 'Get current address for default profile:',
+      command: '<%= config.bin %> <%= command.id %> address',
+    },
+  ]
 
   public async run(): Promise<void> {
     const { args } = await this.parse(ApolloConfig)
     const { flags } = await this.parse(ApolloConfig)
 
     let configFile = flags['config-file']
-    if (configFile === undefined) {
-      configFile = path.join(this.config.configDir, 'config.yaml')
+    configFile =
+      configFile === undefined
+        ? path.join(this.config.configDir, 'config.yaml')
+        : path.resolve(configFile)
+    if (flags['get-config-file']) {
+      this.log(configFile)
+      this.exit(0)
     }
 
     const config: Config = new Config(configFile)
@@ -44,7 +80,10 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
     if (args.key === undefined) {
       await this.interactiveSetup(config, flags.profile)
     } else {
-      let profileName = 'default'
+      let profileName = flags.profile
+      if (profileName === undefined) {
+        profileName = process.env.APOLLO_PROFILE ?? 'default'
+      }
       if (flags.profile !== undefined) {
         profileName = flags.profile
       }
@@ -198,13 +237,18 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
   }
 
   private async getLoginTypes(address: string): Promise<string[]> {
-    try {
-      const response = await fetch(`${address}/auth/types`)
-      return await response.json()
-    } catch {
-      throw new ConfigError(
-        `Unable to retrieve login types for address: "${address}"`,
+    const response = await fetch(localhostToAddress(`${address}/auth/types`))
+    if (!response.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        `Unable to retrieve login types for address: "${address}"\n`,
       )
+      throw new Error(errorMessage)
     }
+    const dat = await response.json()
+    if (Array.isArray(dat)) {
+      return dat
+    }
+    throw new Error(`Unexpected object: ${JSON.stringify(dat)}`)
   }
 }

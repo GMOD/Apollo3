@@ -1,6 +1,6 @@
 {
   "name": "apollo-cli",
-  "description": "CLI for managing an Apollo Collaboration Server",
+  "description": "Command line interface for the Apollo annotation server",
   "version": "0.0.0",
   "author": "Apollo Team",
   "repository": {
@@ -30,7 +30,7 @@
     "posttest": "yarn lint",
     "prepack": "yarn build && oclif manifest && oclif readme",
     "prepare": "yarn build",
-    "test": "mocha 'src/**/*.test.ts'",
+    "test": "mocha --require src/test/fixtures.ts 'src/**/*.test.ts'",
     "test:ci": "nyc mocha 'src/**/*.test.ts'",
     "version": "oclif readme && git add README.md"
   },
@@ -40,6 +40,7 @@
     "@inquirer/select": "^1.3.1",
     "@oclif/core": "^3.18.2",
     "@oclif/plugin-help": "^6.0.8",
+    "bson": "^6.3.0",
     "joi": "^17.7.0",
     "open": "^9.1.0",
     "tslib": "^2.3.1",
@@ -60,7 +61,8 @@
     "shx": "^0.3.3",
     "ts-node": "^10.3.0",
     "tsx": "^4.6.2",
-    "typescript": "^5.1.6"
+    "typescript": "^5.1.6",
+    "undici": "^6.7.0"
   },
   "oclif": {
     "helpOptions": {
@@ -73,6 +75,23 @@
       "@oclif/plugin-help"
     ],
     "repositoryPrefix": "<%- repo %>/blob/v<%- version %>/packages/apollo-cli/<%- commandPath %>",
-    "topicSeparator": " "
+    "topicSeparator": " ",
+    "topics": {
+      "assembly": {
+        "description": "Commands to handle assemblies"
+      },
+      "change": {
+        "description": "Commands to handle the log of changes made to the database"
+      },
+      "feature": {
+        "description": "Commands to handle features"
+      },
+      "refseq": {
+        "description": "Commands to handle reference sequences"
+      },
+      "user": {
+        "description": "Commands to handle users"
+      }
+    }
   }
 }

@@ -1,4 +1,9 @@
+import path from 'node:path'
+
 import { Command, Flags, Interfaces } from '@oclif/core'
+
+import { Config, ConfigError } from './Config.js'
+import { checkConfigfileExists } from './utils.js'
 
 export type Flags<T extends typeof Command> = Interfaces.InferredFlags<
   (typeof BaseCommand)['baseFlags'] & T['flags']
@@ -8,7 +13,6 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
   static baseFlags = {
     profile: Flags.string({
       description: 'Use credentials from this profile',
-      default: 'default',
     }),
     'config-file': Flags.string({
       description: 'Use this config file (mostly for testing)',
@@ -28,6 +32,37 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     })
     this.flags = flags as Flags<T>
     this.args = args as Args<T>
+  }
+
+  private getConfig(configFile: string | undefined): Config {
+    if (configFile === undefined) {
+      configFile = path.join(this.config.configDir, 'config.yaml')
+    }
+    checkConfigfileExists(configFile)
+    const config: Config = new Config(configFile)
+    return config
+  }
+
+  public async getAccess(
+    configFile: string | undefined,
+    profileName: string | undefined,
+  ): Promise<{ address: string; accessToken: string }> {
+    const config: Config = this.getConfig(configFile)
+
+    if (profileName === undefined) {
+      profileName = process.env.APOLLO_PROFILE ?? 'default'
+    }
+
+    try {
+      return await config.getAccess(profileName)
+    } catch (error) {
+      if (error instanceof ConfigError) {
+        this.logToStderr(error.message)
+        this.exit(1)
+      } else {
+        throw error
+      }
+    }
   }
 
   protected async catch(err: Error & { exitCode?: number }): Promise<unknown> {

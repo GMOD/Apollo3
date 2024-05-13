@@ -4,7 +4,9 @@ import path from 'node:path'
 import Joi from 'joi'
 import YAML, { YAMLParseError } from 'yaml'
 
-import { ConfigError } from './utils.js'
+import { checkProfileExists, queryApollo } from './utils.js'
+
+export class ConfigError extends Error {}
 
 interface BaseProfile {
   address: string
@@ -30,15 +32,73 @@ export enum KEYS {
   rootCredentials_password = 'rootCredentials.password',
 }
 
+function optionDocs(): { key: string; description: string }[] {
+  const docs: { key: string; description: string }[] = []
+  for (const v of Object.values(KEYS)) {
+    switch (v) {
+      case 'address': {
+        docs.push({
+          key: v,
+          description: 'Address and port e.g http://localhost:3999',
+        })
+        break
+      }
+      case 'accessType': {
+        docs.push({
+          key: v,
+          description:
+            'How to access Apollo. accessType is typically one of: google, microsoft, guest, root. Allowed types depend on your Apollo setup',
+        })
+        break
+      }
+      case 'accessToken': {
+        docs.push({
+          key: v,
+          description: 'Access token. Usually inserted by `apollo login`',
+        })
+        break
+      }
+      case 'rootCredentials.username': {
+        docs.push({
+          key: v,
+          description:
+            'Username of root account. Only set this for "root" access type',
+        })
+        break
+      }
+      case 'rootCredentials.password': {
+        docs.push({
+          key: v,
+          description:
+            'Password for root account. Only set this for "root" access type',
+        })
+        break
+      }
+      default: {
+        throw new ConfigError(`Unexpected key: ${v}`)
+      }
+    }
+  }
+  return docs
+}
+
+export function optionDesc(): string[] {
+  const docs: string[] = []
+  for (const x of optionDocs()) {
+    docs.push(`- ${x.key}:\n${x.description}`)
+  }
+  return docs
+}
+
 interface RecursiveObject {
   [key: number | string]: RecursiveObject | unknown
 }
 
 function isValidAddress(address: string): boolean {
-  const port: string | undefined = address.split(':').pop()
-  if (port === undefined || /^\d+$/.test(port) === false) {
-    return false
-  }
+  // const port: string | undefined = address.split(':').pop()
+  // if (port === undefined || /^\d+$/.test(port) === false) {
+  //   return false
+  // }
 
   let url
   try {
@@ -196,6 +256,27 @@ export class Config {
 
   public validate(): Joi.ValidationResult {
     return configSchema.validate(this.profiles)
+  }
+
+  public async getAccess(profileName: string) {
+    checkProfileExists(profileName, this)
+
+    const address: string = this.get('address', profileName)
+    if (address === undefined || address.trim() === '') {
+      throw new ConfigError(
+        `Profile "${profileName}" has no address. Please run "apollo config" to set it up.`,
+      )
+    }
+
+    const accessToken: string | undefined = this.get('accessToken', profileName)
+    if (accessToken === undefined || accessToken.trim() === '') {
+      throw new ConfigError(
+        `Profile "${profileName}" has no access token. Please run "apollo login" to set it up.`,
+      )
+    }
+
+    await queryApollo(address, accessToken, 'assemblies')
+    return { address, accessToken }
   }
 
   public toString(): string {
