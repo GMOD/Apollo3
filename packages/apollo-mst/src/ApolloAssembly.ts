@@ -2,6 +2,11 @@ import { Instance, SnapshotIn, types } from 'mobx-state-tree'
 
 import { ApolloRefSeq } from './ApolloRefSeq'
 
+export type BackendDriverType =
+  | 'CollaborationServerDriver'
+  | 'InMemoryFileDriver'
+  | 'DesktopFileDriver'
+
 export const ApolloAssembly = types
   .model('ApolloAssembly', {
     _id: types.identifier,
