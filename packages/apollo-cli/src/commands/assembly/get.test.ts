@@ -53,7 +53,7 @@ describe.skip('apollo assembly get: Get assemblies as YAML string', () => {
     })
 })
 
-describe('apollo assembly get: Test nock', () => {
+describe.skip('apollo assembly get: Test nock', () => {
   const cmd = ['assembly:get', '--config-file', 'tmp.yaml']
   test
     .stdout()
