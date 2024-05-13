@@ -18,7 +18,6 @@ export interface UserCredentials {
   accessToken: string
 }
 
-
 export async function createFetchErrorMessage(
   response: Response,
   additionalText?: string,

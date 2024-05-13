@@ -2,7 +2,12 @@ import { Flags } from '@oclif/core'
 import { fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { createFetchErrorMessage, idReader, localhostToAddress, wrapLines } from '../../utils.js'
+import {
+  createFetchErrorMessage,
+  idReader,
+  localhostToAddress,
+  wrapLines,
+} from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Get features given their identifiers'

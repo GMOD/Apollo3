@@ -2,7 +2,12 @@ import { Flags } from '@oclif/core'
 import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { createFetchErrorMessage, getRefseqId, localhostToAddress, wrapLines } from '../../utils.js'
+import {
+  createFetchErrorMessage,
+  getRefseqId,
+  localhostToAddress,
+  wrapLines,
+} from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description =
