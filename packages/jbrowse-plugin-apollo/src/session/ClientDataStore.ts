@@ -8,7 +8,9 @@ import {
   AnnotationFeatureModelNew,
   AnnotationFeatureSnapshotNew,
   ApolloAssembly,
+  ApolloAssemblySnapshot,
   ApolloRefSeq,
+  BackendDriverType,
   CheckResult,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
@@ -67,8 +69,15 @@ export function clientDataStoreFactory(
       },
     }))
     .actions((self) => ({
-      addAssembly(assemblyId: string) {
-        return self.assemblies.put({ _id: assemblyId, refSeqs: {} })
+      addAssembly(assemblyId: string, backendDriverType?: BackendDriverType) {
+        const assemblySnapshot: ApolloAssemblySnapshot = {
+          _id: assemblyId,
+          refSeqs: {},
+        }
+        if (backendDriverType) {
+          assemblySnapshot.backendDriverType = backendDriverType
+        }
+        return self.assemblies.put(assemblySnapshot)
       },
       addFeature(assemblyId: string, feature: AnnotationFeatureSnapshotNew) {
         const assembly = self.assemblies.get(assemblyId)

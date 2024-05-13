@@ -363,9 +363,14 @@ export function extendSession(
   return types.snapshotProcessor(sm, {
     postProcessor(snap: SnapshotOut<typeof sm>) {
       snap.apolloSelectedFeature = undefined
+      const assemblies = Object.fromEntries(
+        Object.entries(snap.apolloDataStore.assemblies).filter(
+          ([, assembly]) => assembly.backendDriverType === 'InMemoryFileDriver',
+        ),
+      )
       snap.apolloDataStore = {
         typeName: 'Client',
-        assemblies: {},
+        assemblies,
         checkResults: {},
       }
       return snap
