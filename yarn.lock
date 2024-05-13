@@ -8164,7 +8164,7 @@ __metadata:
     tslib: "npm:^2.3.1"
     tsx: "npm:^4.6.2"
     typescript: "npm:^5.1.6"
-    undici-types: "npm:^6.16.1"
+    undici: "npm:^6.7.0"
     yaml: "npm:^2.3.4"
   bin:
     apollo: ./bin/run.js
@@ -22015,13 +22015,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:^6.16.1":
-  version: 6.16.1
-  resolution: "undici-types@npm:6.16.1"
-  checksum: 10c0/fa043c1bf917b5abe6106ab31b136a3f62232eeefadd30a535fede17efed6fbe3fd01f35f0f96523e5b1bcb3686fe2225801c7fe57f07a6dbd91a0214f67efce
-  languageName: node
-  linkType: hard
-
 "undici-types@npm:~5.25.1":
   version: 5.25.3
   resolution: "undici-types@npm:5.25.3"
@@ -22033,6 +22026,13 @@ __metadata:
   version: 5.26.5
   resolution: "undici-types@npm:5.26.5"
   checksum: 10c0/bb673d7876c2d411b6eb6c560e0c571eef4a01c1c19925175d16e3a30c4c428181fb8d7ae802a261f283e4166a0ac435e2f505743aa9e45d893f9a3df017b501
+  languageName: node
+  linkType: hard
+
+"undici@npm:^6.7.0":
+  version: 6.16.1
+  resolution: "undici@npm:6.16.1"
+  checksum: 10c0/df9a46f79dcd4c9b6b8106619de2e31bc756ad88091f93615c0c7e9b60a80f3cffc744d2fda299689aea8d97cca93fecb6952b27f3bad9062efc63baceaf6586
   languageName: node
   linkType: hard
 
