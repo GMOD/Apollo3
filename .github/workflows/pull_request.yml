@@ -8,9 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: yarn
@@ -46,6 +46,6 @@ jobs:
         run: python3 ./test/test.py TestCLI
         working-directory: packages/apollo-cli
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
