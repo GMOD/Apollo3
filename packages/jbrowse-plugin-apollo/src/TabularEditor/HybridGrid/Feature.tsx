@@ -119,10 +119,10 @@ export const Feature = observer(function Feature({
   const {
     _id,
     children,
-    discontinuousLocations,
-    end,
-    phase,
-    start,
+    // discontinuousLocations,
+    max,
+    // phase,
+    min,
     strand,
     type,
   } = feature
@@ -224,7 +224,19 @@ export const Feature = observer(function Feature({
           </div>
         </td>
         <td>
-          {discontinuousLocations && discontinuousLocations.length > 0 ? (
+          <NumberCell
+            initialValue={min + 1}
+            notifyError={notifyError}
+            onChangeCommitted={(newStart) =>
+              handleFeatureStartChange(
+                changeManager,
+                feature,
+                min,
+                newStart - 1,
+              )
+            }
+          />
+          {/* {discontinuousLocations && discontinuousLocations.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {discontinuousLocations.map((loc, index) => (
                 <NumberCell
@@ -256,10 +268,10 @@ export const Feature = observer(function Feature({
                 )
               }
             />
-          )}
+          )} */}
         </td>
         <td>
-          {discontinuousLocations && discontinuousLocations.length > 0 ? (
+          {/* {discontinuousLocations && discontinuousLocations.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {discontinuousLocations.map((loc, index) => (
                 <NumberCell
@@ -286,10 +298,17 @@ export const Feature = observer(function Feature({
                 handleFeatureEndChange(changeManager, feature, end, newEnd)
               }
             />
-          )}
+          )} */}
+          <NumberCell
+            initialValue={max}
+            notifyError={notifyError}
+            onChangeCommitted={(newEnd) =>
+              handleFeatureEndChange(changeManager, feature, max, newEnd)
+            }
+          />
         </td>
         <td>{strand === 1 ? '+' : strand === -1 ? '-' : undefined}</td>
-        <td>{phase}</td>
+        {/* <td>{phase}</td> */}
         <td>
           <FeatureAttributes filterText={filterText} feature={feature} />
         </td>
