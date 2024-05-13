@@ -4,6 +4,7 @@ import {
   AnnotationFeatureI,
   AnnotationFeatureSnapshot,
   ApolloAssemblyI,
+  BackendDriverType,
   CheckResultI,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
@@ -33,7 +34,10 @@ export interface ClientDataStore {
   deleteFeature(featureId: string): void
   deleteAssembly(assemblyId: string): void
   addCheckResults(checkResults: CheckResultSnapshot[]): void
-  addAssembly(assemblyId: string): ApolloAssemblyI
+  addAssembly(
+    assemblyId: string,
+    backendDriverType?: BackendDriverType,
+  ): ApolloAssemblyI
 }
 
 export type SerializedChange = SerializedOperation
