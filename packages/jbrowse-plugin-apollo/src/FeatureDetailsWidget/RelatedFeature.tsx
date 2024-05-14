@@ -1,6 +1,6 @@
 import { SessionWithWidgets } from '@jbrowse/core/util'
 import { Button, Paper, Typography } from '@mui/material'
-import { AnnotationFeature, AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureModelNew, AnnotationFeatureNew } from 'apollo-mst'
 import { observer } from 'mobx-react'
 import { IMSTMap } from 'mobx-state-tree'
 import React from 'react'
@@ -23,7 +23,7 @@ export const RelatedFeatures = observer(function RelatedFeatures({
   refName,
   session,
 }: {
-  feature: AnnotationFeatureI
+  feature: AnnotationFeatureNew
   refName: string
   session: ApolloSessionModel
   assembly: string
@@ -31,10 +31,10 @@ export const RelatedFeatures = observer(function RelatedFeatures({
   const { classes } = useStyles()
   const { parent } = feature
   const { children } = feature as {
-    children?: IMSTMap<typeof AnnotationFeature>
+    children?: IMSTMap<typeof AnnotationFeatureModelNew>
   }
 
-  const onButtonClick = (newFeature: AnnotationFeatureI) => {
+  const onButtonClick = (newFeature: AnnotationFeatureNew) => {
     if (parent) {
       const apolloFeatureWidget = (
         session as unknown as SessionWithWidgets

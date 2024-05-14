@@ -1,7 +1,7 @@
 import { MenuItem } from '@jbrowse/core/ui'
 import { AbstractSessionModel, SessionWithWidgets } from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 
 import {
   AddChildFeature,
@@ -18,13 +18,13 @@ import { CanvasMouseEvent } from '../types'
 
 export abstract class Glyph {
   /** @returns number of layout rows used by this glyph with this feature and zoom level */
-  abstract getRowCount(feature: AnnotationFeatureI, bpPerPx: number): number
+  abstract getRowCount(feature: AnnotationFeatureNew, bpPerPx: number): number
 
   /** draw the feature's primary rendering on the canvas */
   abstract draw(
     display: LinearApolloDisplayRendering,
     ctx: CanvasRenderingContext2D,
-    feature: AnnotationFeatureI,
+    feature: AnnotationFeatureNew,
     xOffset: number,
     row: number,
     reversed: boolean,
@@ -32,14 +32,14 @@ export abstract class Glyph {
 
   /** @returns the feature or subfeature at the given bp and row number in this glyph's layout */
   abstract getFeatureFromLayout(
-    feature: AnnotationFeatureI,
+    feature: AnnotationFeatureNew,
     bp: number,
     row: number,
-  ): AnnotationFeatureI | undefined
+  ): AnnotationFeatureNew | undefined
 
   abstract getRowForFeature(
-    feature: AnnotationFeatureI,
-    childFeature: AnnotationFeatureI,
+    feature: AnnotationFeatureNew,
+    childFeature: AnnotationFeatureNew,
   ): number | undefined
 
   abstract continueDrag(
@@ -210,14 +210,14 @@ export abstract class Glyph {
   }
 
   getAdjacentFeatures(
-    feature?: AnnotationFeatureI,
-    parentFeature?: AnnotationFeatureI,
+    feature?: AnnotationFeatureNew,
+    parentFeature?: AnnotationFeatureNew,
   ): {
-    prevFeature?: AnnotationFeatureI
-    nextFeature?: AnnotationFeatureI
+    prevFeature?: AnnotationFeatureNew
+    nextFeature?: AnnotationFeatureNew
   } {
-    let prevFeature: AnnotationFeatureI | undefined
-    let nextFeature: AnnotationFeatureI | undefined
+    let prevFeature: AnnotationFeatureNew | undefined
+    let nextFeature: AnnotationFeatureNew | undefined
     let i = 0
     if (!feature || !(parentFeature && parentFeature.children)) {
       return { prevFeature, nextFeature }
@@ -241,8 +241,8 @@ export abstract class Glyph {
   }
 
   getParentFeature(
-    feature?: AnnotationFeatureI,
-    topLevelFeature?: AnnotationFeatureI,
+    feature?: AnnotationFeatureNew,
+    topLevelFeature?: AnnotationFeatureNew,
   ) {
     let parentFeature
 

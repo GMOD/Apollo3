@@ -1,4 +1,4 @@
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 
 import {
   BoxGlyph,
@@ -14,7 +14,10 @@ const genericChildGlyph = new GenericChildGlyph()
 const implicitExonGeneGlyph = new ImplicitExonGeneGlyph()
 
 /** get the appropriate glyph for the given top-level feature */
-export function getGlyph(feature: AnnotationFeatureI, _bpPerPx: number): Glyph {
+export function getGlyph(
+  feature: AnnotationFeatureNew,
+  _bpPerPx: number,
+): Glyph {
   if (feature.type === 'gene') {
     let hasExon = false
     for (const [, mrna] of feature.children ?? new Map()) {

@@ -10,7 +10,7 @@ import {
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { addDisposer, getRoot, types } from 'mobx-state-tree'
 
@@ -112,13 +112,13 @@ export function baseModelFactory(
         }
         return assembly.name
       },
-      get selectedFeature(): AnnotationFeatureI | undefined {
+      get selectedFeature(): AnnotationFeatureNew | undefined {
         return (self.session as unknown as ApolloSessionModel)
           .apolloSelectedFeature
       },
     }))
     .actions((self) => ({
-      setSelectedFeature(feature?: AnnotationFeatureI) {
+      setSelectedFeature(feature?: AnnotationFeatureNew) {
         return (
           self.session as unknown as ApolloSessionModel
         ).apolloSetSelectedFeature(feature)

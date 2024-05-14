@@ -5,7 +5,7 @@ import {
   DialogContent,
   DialogContentText,
 } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 import { DeleteFeatureChange } from 'apollo-shared'
 import { getSnapshot } from 'mobx-state-tree'
 import React, { useState } from 'react'
@@ -17,11 +17,11 @@ import { Dialog } from './Dialog'
 interface DeleteFeatureProps {
   session: ApolloSessionModel
   handleClose(): void
-  sourceFeature: AnnotationFeatureI
+  sourceFeature: AnnotationFeatureNew
   sourceAssemblyId: string
   changeManager: ChangeManager
-  selectedFeature?: AnnotationFeatureI
-  setSelectedFeature(feature?: AnnotationFeatureI): void
+  selectedFeature?: AnnotationFeatureNew
+  setSelectedFeature(feature?: AnnotationFeatureNew): void
 }
 
 export function DeleteFeature({

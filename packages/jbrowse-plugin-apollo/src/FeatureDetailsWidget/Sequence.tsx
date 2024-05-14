@@ -1,5 +1,5 @@
 import { Button, Typography } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 import { splitStringIntoChunks } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
@@ -34,7 +34,7 @@ export const Sequence = observer(function Sequence({
   session,
 }: {
   assembly: string
-  feature: AnnotationFeatureI
+  feature: AnnotationFeatureNew
   refName: string
   session: ApolloSessionModel
 }) {

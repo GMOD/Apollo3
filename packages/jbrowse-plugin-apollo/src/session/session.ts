@@ -8,7 +8,7 @@ import {
 } from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
-import { AnnotationFeature, AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureModelNew, AnnotationFeatureNew } from 'apollo-mst'
 import { UserLocation } from 'apollo-shared'
 import { autorun, observable } from 'mobx'
 import { Instance, flow, getRoot, types } from 'mobx-state-tree'
@@ -22,8 +22,8 @@ import { clientDataStoreFactory } from './ClientDataStore'
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreType & { changeManager: ChangeManager }
-  apolloSelectedFeature?: AnnotationFeatureI
-  apolloSetSelectedFeature(feature?: AnnotationFeatureI): void
+  apolloSelectedFeature?: AnnotationFeatureNew
+  apolloSetSelectedFeature(feature?: AnnotationFeatureNew): void
 }
 
 interface ApolloAssemblyResponse {
@@ -56,8 +56,8 @@ export function extendSession(
   const { signal } = aborter
   const AnnotationFeatureExtended = pluginManager.evaluateExtensionPoint(
     'Apollo-extendAnnotationFeature',
-    AnnotationFeature,
-  ) as typeof AnnotationFeature
+    AnnotationFeatureModelNew,
+  ) as typeof AnnotationFeatureModelNew
   const ClientDataStore = clientDataStoreFactory(AnnotationFeatureExtended)
   return sessionModel
     .props({
@@ -89,7 +89,7 @@ export function extendSession(
       }
     })
     .actions((self) => ({
-      apolloSetSelectedFeature(feature?: AnnotationFeatureI) {
+      apolloSetSelectedFeature(feature?: AnnotationFeatureNew) {
         self.apolloSelectedFeature = feature
       },
       addApolloTrackConfig(assembly: AssemblyModel, baseURL?: string) {

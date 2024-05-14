@@ -4,10 +4,12 @@ import { Region, getSession, isElectron } from '@jbrowse/core/util'
 import { LocalPathLocation, UriLocation } from '@jbrowse/core/util/types/mst'
 import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
 import {
-  AnnotationFeature,
-  AnnotationFeatureSnapshot,
+  AnnotationFeatureModelNew,
+  AnnotationFeatureSnapshotNew,
   ApolloAssembly,
+  ApolloAssemblySnapshot,
   ApolloRefSeq,
+  BackendDriverType,
   CheckResult,
   CheckResultSnapshot,
 } from 'apollo-mst'
@@ -37,7 +39,7 @@ import {
 import { ApolloRootModel } from '../types'
 
 export function clientDataStoreFactory(
-  AnnotationFeatureExtended: typeof AnnotationFeature,
+  AnnotationFeatureExtended: typeof AnnotationFeatureModelNew,
 ) {
   const clientStoreType = types
     .model('ClientDataStore', {
@@ -63,10 +65,17 @@ export function clientDataStoreFactory(
       },
     }))
     .actions((self) => ({
-      addAssembly(assemblyId: string) {
-        return self.assemblies.put({ _id: assemblyId, refSeqs: {} })
+      addAssembly(assemblyId: string, backendDriverType?: BackendDriverType) {
+        const assemblySnapshot: ApolloAssemblySnapshot = {
+          _id: assemblyId,
+          refSeqs: {},
+        }
+        if (backendDriverType) {
+          assemblySnapshot.backendDriverType = backendDriverType
+        }
+        return self.assemblies.put(assemblySnapshot)
       },
-      addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot) {
+      addFeature(assemblyId: string, feature: AnnotationFeatureSnapshotNew) {
         const assembly = self.assemblies.get(assemblyId)
         if (!assembly) {
           throw new Error(
@@ -220,7 +229,7 @@ export function clientDataStoreFactory(
           }
           const [features, checkResults] = (yield backendDriver.getFeatures(
             region,
-          )) as [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
+          )) as [AnnotationFeatureSnapshotNew[], CheckResultSnapshot[]]
           if (features.length === 0) {
             continue
           }
@@ -274,7 +283,11 @@ export function clientDataStoreFactory(
   // assembly and feature data isn't actually reloaded on reload unless we delete it from the snap
   return types.snapshotProcessor(clientStoreType, {
     postProcessor(snap: SnapshotOut<typeof clientStoreType>) {
-      snap.assemblies = {}
+      snap.assemblies = Object.fromEntries(
+        Object.entries(snap.assemblies).filter(
+          ([, assembly]) => assembly.backendDriverType === 'InMemoryFileDriver',
+        ),
+      )
       snap.checkResults = {}
       return snap
     },

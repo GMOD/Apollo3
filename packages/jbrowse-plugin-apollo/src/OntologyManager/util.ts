@@ -1,10 +1,10 @@
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 
 import OntologyStore from './OntologyStore'
 import { isOntologyClass } from '.'
 
 export async function fetchValidDescendantTerms(
-  parentFeature: AnnotationFeatureI | undefined,
+  parentFeature: AnnotationFeatureNew | undefined,
   ontologyStore: OntologyStore,
   _signal: AbortSignal,
 ) {

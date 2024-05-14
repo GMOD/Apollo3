@@ -3,7 +3,7 @@ import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { Region, getSession } from '@jbrowse/core/util'
 import { AssemblySpecificChange, Change } from 'apollo-common'
 import {
-  AnnotationFeatureSnapshot,
+  AnnotationFeatureSnapshotNew,
   ApolloRefSeqI,
   CheckResultSnapshot,
 } from 'apollo-mst'
@@ -58,7 +58,7 @@ export class CollaborationServerDriver extends BackendDriver {
       )
       throw new Error(errorMessage)
     }
-    return response.json() as Promise<AnnotationFeatureSnapshot[]>
+    return response.json() as Promise<AnnotationFeatureSnapshotNew[]>
   }
 
   /**
@@ -104,7 +104,7 @@ export class CollaborationServerDriver extends BackendDriver {
     }
     await this.checkSocket(assemblyName, refName, internetAccount)
     return response.json() as Promise<
-      [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
+      [AnnotationFeatureSnapshotNew[], CheckResultSnapshot[]]
     >
   }
 

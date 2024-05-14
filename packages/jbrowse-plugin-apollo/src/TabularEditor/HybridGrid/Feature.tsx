@@ -1,5 +1,5 @@
 import { AbstractSessionModel } from '@jbrowse/core/util'
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 import { observer } from 'mobx-react'
 import React from 'react'
 import { makeStyles } from 'tss-react/mui'
@@ -55,7 +55,7 @@ const useStyles = makeStyles()((theme) => ({
 
 function makeContextMenuItems(
   display: DisplayStateModel,
-  feature: AnnotationFeatureI,
+  feature: AnnotationFeatureNew,
 ) {
   const {
     changeManager,
@@ -76,7 +76,9 @@ function makeContextMenuItems(
   )
 }
 
-function getTopLevelFeature(feature: AnnotationFeatureI): AnnotationFeatureI {
+function getTopLevelFeature(
+  feature: AnnotationFeatureNew,
+): AnnotationFeatureNew {
   let cur = feature
   while (cur.parent) {
     cur = cur.parent
@@ -94,7 +96,7 @@ export const Feature = observer(function Feature({
   setContextMenu,
 }: {
   model: DisplayStateModel
-  feature: AnnotationFeatureI
+  feature: AnnotationFeatureNew
   depth: number
   isHovered: boolean
   isSelected: boolean
@@ -113,10 +115,10 @@ export const Feature = observer(function Feature({
   const {
     _id,
     children,
-    discontinuousLocations,
-    end,
-    phase,
-    start,
+    // discontinuousLocations,
+    max,
+    // phase,
+    min,
     strand,
     type,
   } = feature
@@ -217,7 +219,19 @@ export const Feature = observer(function Feature({
           </div>
         </td>
         <td>
-          {discontinuousLocations && discontinuousLocations.length > 0 ? (
+          <NumberCell
+            initialValue={min + 1}
+            notifyError={notifyError}
+            onChangeCommitted={(newStart) =>
+              handleFeatureStartChange(
+                changeManager,
+                feature,
+                min,
+                newStart - 1,
+              )
+            }
+          />
+          {/* {discontinuousLocations && discontinuousLocations.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {discontinuousLocations.map((loc, index) => (
                 <NumberCell
@@ -249,10 +263,10 @@ export const Feature = observer(function Feature({
                 )
               }
             />
-          )}
+          )} */}
         </td>
         <td>
-          {discontinuousLocations && discontinuousLocations.length > 0 ? (
+          {/* {discontinuousLocations && discontinuousLocations.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {discontinuousLocations.map((loc, index) => (
                 <NumberCell
@@ -279,10 +293,17 @@ export const Feature = observer(function Feature({
                 handleFeatureEndChange(changeManager, feature, end, newEnd)
               }
             />
-          )}
+          )} */}
+          <NumberCell
+            initialValue={max}
+            notifyError={notifyError}
+            onChangeCommitted={(newEnd) =>
+              handleFeatureEndChange(changeManager, feature, max, newEnd)
+            }
+          />
         </td>
         <td>{strand === 1 ? '+' : strand === -1 ? '-' : undefined}</td>
-        <td>{phase}</td>
+        {/* <td>{phase}</td> */}
         <td>
           <FeatureAttributes filterText={filterText} feature={feature} />
         </td>
@@ -320,7 +341,7 @@ export const Feature = observer(function Feature({
   )
 })
 async function fetchValidTypeTerms(
-  feature: AnnotationFeatureI,
+  feature: AnnotationFeatureNew,
   ontologyStore: OntologyStore,
   _signal: AbortSignal,
 ) {

@@ -1,4 +1,4 @@
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 import { observer } from 'mobx-react'
 import { getSnapshot } from 'mobx-state-tree'
 import React from 'react'
@@ -9,7 +9,7 @@ export const FeatureAttributes = observer(function FeatureAttributes({
   feature,
   filterText,
 }: {
-  feature: AnnotationFeatureI
+  feature: AnnotationFeatureNew
   filterText: string
 }) {
   const attrString = [...feature.attributes.entries()]

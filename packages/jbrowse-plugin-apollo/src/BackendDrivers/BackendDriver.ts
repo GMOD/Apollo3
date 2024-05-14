@@ -1,7 +1,7 @@
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { Region } from '@jbrowse/core/util'
 import { Change, ClientDataStore } from 'apollo-common'
-import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
+import { AnnotationFeatureSnapshotNew, CheckResultSnapshot } from 'apollo-mst'
 import { ValidationResultSet } from 'apollo-shared'
 
 import { SubmitOpts } from '../ChangeManager'
@@ -11,7 +11,7 @@ export abstract class BackendDriver {
 
   abstract getFeatures(
     region: Region,
-  ): Promise<[AnnotationFeatureSnapshot[], CheckResultSnapshot[]]>
+  ): Promise<[AnnotationFeatureSnapshotNew[], CheckResultSnapshot[]]>
 
   abstract getSequence(region: Region): Promise<{ seq: string; refSeq: string }>
 
@@ -27,5 +27,5 @@ export abstract class BackendDriver {
   abstract searchFeatures(
     term: string,
     assemblies: string[],
-  ): Promise<AnnotationFeatureSnapshot[]>
+  ): Promise<AnnotationFeatureSnapshotNew[]>
 }

@@ -16,7 +16,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 import { FeatureAttributeChange } from 'apollo-shared'
 import { getRoot, getSnapshot } from 'mobx-state-tree'
 import React, { useMemo, useState } from 'react'
@@ -32,7 +32,7 @@ import { OntologyTermMultiSelect } from './OntologyTermMultiSelect'
 interface ModifyFeatureAttributeProps {
   session: ApolloSessionModel
   handleClose(): void
-  sourceFeature: AnnotationFeatureI
+  sourceFeature: AnnotationFeatureNew
   sourceAssemblyId: string
   changeManager: ChangeManager
 }

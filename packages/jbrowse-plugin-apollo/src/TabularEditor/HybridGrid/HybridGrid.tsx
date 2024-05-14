@@ -76,7 +76,7 @@ const HybridGrid = observer(function HybridGrid({
             <th>Start</th>
             <th>End</th>
             <th>Strand</th>
-            <th>Phase</th>
+            {/* <th>Phase</th> */}
             <th>Attributes</th>
           </tr>
         </thead>
@@ -92,7 +92,7 @@ const HybridGrid = observer(function HybridGrid({
               return text.includes(filterText)
             })
             .sort((a, b) => {
-              return a[1].start - b[1].start
+              return a[1].min - b[1].min
             })
             .map(([featureId, feature]) => {
               const isSelected = selectedFeature?._id === featureId
