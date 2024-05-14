@@ -6,9 +6,6 @@ on:
       environment:
         required: true
         type: string
-    #secrets:
-    #  GITHUB_TOKEN:
-    #    required: true
 
 jobs:
   deploy:
@@ -64,7 +61,6 @@ jobs:
           URL: ${{ vars.URL }}
         working-directory: .github/workflows/deploy
         run: |
-          ssh server -f 'touch test.txt'
-          #docker --context server compose down
-          #docker --context server compose pull
-          #docker --context server compose up --build --detach
+          docker --context server compose down
+          docker --context server compose pull
+          docker --context server compose up --build --detach

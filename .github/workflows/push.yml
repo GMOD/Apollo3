@@ -3,7 +3,7 @@ name: Push
 on:
   push:
     branches:
-      # - main
+      - main
       - demo_server_deploy_db
   release:
     types:
@@ -94,15 +94,15 @@ jobs:
           cache-to: type=inline
   deploy-staging:
     name: Deploy to staging server
-    # needs: build-and-push-docker # Comment-out for testing
-    # if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs: build-and-push-docker
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     uses: ./.github/workflows/deploy.yml
     with:
       environment: 'staging'
     secrets: inherit
   deploy-demo:
     name: Deploy to demo server
-    # needs: build-and-push-docker # Comment-out for testing
+    needs: build-and-push-docker
     # if: ${{ github.event_name == 'release' }} # Comment-out for testing
     uses: ./.github/workflows/deploy.yml
     with:
