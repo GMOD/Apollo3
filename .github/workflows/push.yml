@@ -66,7 +66,8 @@ jobs:
   build-and-push-docker:
     name: Build and push Docker image
     runs-on: ubuntu-latest
-    #if:
+    # Comment-out for testing:
+    #if: 
     #  ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
     #  inputs.publish }}
     steps:
@@ -91,18 +92,19 @@ jobs:
             collaboration server
           cache-from: type=registry,ref=user/app:latest
           cache-to: type=inline
-  # deploy-staging:
-  #   name: Deploy to staging server
-  #   if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-  #   uses: ./.github/workflows/deploy.yml
-  #   with:
-  #     environment: 'staging'
-  #   secrets: inherit
+  deploy-staging:
+    name: Deploy to staging server
+    # needs: build-and-push-docker # Comment-out for testing
+    # if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: 'staging'
+    secrets: inherit
   deploy-demo:
     name: Deploy to demo server
-    # if: ${{ github.event_name == 'release' }}
-    uses: ./.github/workflows/deploy_demo.yml
-    # needs: build-and-push-docker
+    # needs: build-and-push-docker # Comment-out for testing
+    # if: ${{ github.event_name == 'release' }} # Comment-out for testing
+    uses: ./.github/workflows/deploy.yml
     with:
       environment: 'prod'
     secrets: inherit

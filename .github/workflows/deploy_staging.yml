@@ -12,7 +12,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to server
+    name: Deploy to demo staging server
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     needs: build-and-push-docker
@@ -36,20 +36,20 @@ jobs:
       - name: Set up SSH
         run: |
           mkdir --parents ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY  }}" >  ~/.ssh/server
-          chmod 600 ~/.ssh/server
+          echo "${{ secrets.SSH_PRIVATE_KEY  }}" >  ~/.ssh/staging
+          chmod 600 ~/.ssh/staging
           cat >>~/.ssh/config <<END
-          Host server
+          Host staging
             HostName ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }}
             User ec2-user
-            IdentityFile ~/.ssh/server
+            IdentityFile ~/.ssh/staging
           END
           ssh-keyscan -H ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }} >> ~/.ssh/known_hosts
       - name: Create Docker context
         run: |
-          docker context create server \
-            --docker host=ssh://server \
-            --description "Apollo server"
+          docker context create staging \
+            --docker host=ssh://staging \
+            --description "Staging server"
       - name: Log in to the GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -65,7 +65,6 @@ jobs:
           URL: ${{ vars.URL }}
         working-directory: .github/workflows/deploy
         run: |
-          ssh server -f 'touch test.txt'
-          #docker --context server compose down
-          #docker --context server compose pull
-          #docker --context server compose up --build --detach
+          docker --context staging compose down
+          docker --context staging compose pull
+          docker --context staging compose up --build --detach
