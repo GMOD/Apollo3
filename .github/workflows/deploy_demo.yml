@@ -1,0 +1,71 @@
+name: Deploy demo
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+
+jobs:
+  deploy:
+    name: Deploy to demo server
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    needs: build-and-push-docker
+    steps:
+      - name: Check out
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Get instance address
+        id: ec2-describe-instances
+        run: |
+          INSTANCE_ADDRESS=$(aws ec2 describe-instances \
+            --instance-ids ${{ vars.INSTANCE_ID }} \
+            --query "Reservations[*].Instances[*].[PublicDnsName]" \
+            --output text)
+          echo "INSTANCE_ADDRESS=$INSTANCE_ADDRESS" >> "$GITHUB_OUTPUT"
+      - name: Set up SSH
+        run: |
+          mkdir --parents ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY  }}" >  ~/.ssh/demo
+          chmod 600 ~/.ssh/demo
+          cat >>~/.ssh/config <<END
+          Host demo
+            HostName ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }}
+            User ec2-user
+            IdentityFile ~/.ssh/demo
+          END
+          ssh-keyscan -H ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }} >> ~/.ssh/known_hosts
+      - name: Create Docker context
+        run: |
+          docker context create demo \
+            --docker host=ssh://demo \
+            --description "Demo server"
+      - name: Log in to the GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Deploy
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          URL: ${{ vars.URL }}
+        working-directory: .github/workflows/deploy
+        run: |
+          touch test.txt 
+          # docker --context demo compose down
+          # docker --context demo compose pull
+          # docker --context demo compose up --build --detach

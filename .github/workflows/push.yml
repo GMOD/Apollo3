@@ -3,7 +3,8 @@ name: Push
 on:
   push:
     branches:
-      - main
+      # - main
+      - demo_server_deploy_db
   release:
     types:
       - created
@@ -90,17 +91,17 @@ jobs:
             collaboration server
           cache-from: type=registry,ref=user/app:latest
           cache-to: type=inline
-  deploy-staging:
-    name: Deploy to staging server
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    uses: ./.github/workflows/deploy.yml
-    with:
-      environment: 'staging'
-    secrets: inherit
+  # deploy-staging:
+  #   name: Deploy to staging server
+  #   if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+  #   uses: ./.github/workflows/deploy.yml
+  #   with:
+  #     environment: 'staging'
+  #   secrets: inherit
   deploy-demo:
     name: Deploy to demo server
-    if: ${{ github.event_name == 'release' }}
-    uses: ./.github/workflows/deploy.yml
+    # if: ${{ github.event_name == 'release' }}
+    uses: ./.github/workflows/deploy_demo.yml
     with:
-      environment: 'demo'
+      environment: 'prod'
     secrets: inherit
