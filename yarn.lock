@@ -8382,11 +8382,11 @@ __metadata:
     eslint-plugin-sort-destructure-keys: "npm:^1.5.0"
     eslint-plugin-tsdoc: "npm:^0.2.17"
     eslint-plugin-unicorn: "npm:^48.0.0"
-    husky: "npm:>=7"
+    husky: "npm:^9.0.11"
     import-sort-parser-typescript: "npm:^6.0.0"
     import-sort-style-module: "npm:^6.0.0"
     jest: "npm:^29.6.2"
-    lint-staged: "npm:>=10"
+    lint-staged: "npm:^15.2.2"
     npm-run-all: "npm:^4.1.5"
     prettier: "npm:^3.2.5"
     prettier-plugin-import-sort: "npm:^0.0.7"
@@ -13927,7 +13927,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"husky@npm:>=7":
+"husky@npm:^9.0.11":
   version: 9.0.11
   resolution: "husky@npm:9.0.11"
   bin:
@@ -16099,7 +16099,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lint-staged@npm:>=10":
+"lint-staged@npm:^15.2.2":
   version: 15.2.2
   resolution: "lint-staged@npm:15.2.2"
   dependencies:
