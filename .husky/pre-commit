@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-yarn node scripts/pre-commit.js
+yarn node .husky/pre-commit.js
+yarn lint-staged
