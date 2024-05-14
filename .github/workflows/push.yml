@@ -102,6 +102,7 @@ jobs:
     name: Deploy to demo server
     # if: ${{ github.event_name == 'release' }}
     uses: ./.github/workflows/deploy_demo.yml
+    needs: build-and-push-docker
     with:
       environment: 'prod'
     secrets: inherit

@@ -65,7 +65,7 @@ jobs:
           URL: ${{ vars.URL }}
         working-directory: .github/workflows/deploy
         run: |
-          touch test.txt 
+          ssh demo -f 'touch test.txt'
           # docker --context demo compose down
           # docker --context demo compose pull
           # docker --context demo compose up --build --detach
