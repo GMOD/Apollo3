@@ -61,13 +61,16 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
       return
     }
 
+    console.log('ALKAA....')
     const { internetAccountConfigId } = getConf(selectedAssembly, [
       'sequence',
       'metadata',
     ]) as { internetAccountConfigId?: string }
     if (internetAccountConfigId) {
+      console.log('EXPORT FROM SERVER')
       await exportFromCollaborationServer(internetAccountConfigId)
     } else {
+      console.log('EXPORT FROM MEMORY')
       exportFromMemory(session)
     }
     handleClose()
