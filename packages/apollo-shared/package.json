@@ -5,7 +5,8 @@
   "scripts": {
     "start": "tsc --build --watch",
     "build": "yarn clean && tsc --build",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "prepack": "yarn build"
   },
   "dependencies": {
     "@apollo-annotation/apollo-common": "workspace:^",
