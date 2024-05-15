@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "prepack": "yarn build"
   },
   "dependencies": {
     "@nestjs/common": "^10.1.0",

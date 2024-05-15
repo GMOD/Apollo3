@@ -17,6 +17,6 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: yarn --immutable
       - run: |
-          yarn workspaces foreach -A npm publish --tolerate-republish --tag devel
+          yarn workspaces foreach --no-private --all npm publish --tolerate-republish --tag devel 
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
