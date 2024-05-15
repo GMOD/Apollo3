@@ -14,11 +14,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '18.x'
+          cache: yarn
           registry-url: 'https://registry.npmjs.org'
           scope: '@apollo-annotation'
       - run: yarn --immutable
       - run: |
           yarn config set npmAuthToken ${{ secrets.NPM_TOKEN }}
-          yarn workspaces foreach --no-private --all npm publish --tolerate-republish --tag devel 
+          yarn workspaces foreach --no-private --all npm publish --tag devel 
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
