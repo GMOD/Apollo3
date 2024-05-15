@@ -15,13 +15,8 @@ jobs:
         with:
           node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm ci
+      - run: yarn --immutable
       - run: |
-          npm publish --access public package/apollo-cli
-          npm publish --access public package/apollo-common 
-          npm publish --access public package/apollo-mst 
-          npm publish --access public package/apollo-schemas 
-          npm publish --access public package/apollo-shared
-          npm publish --access public package/jbrowse-plugin-apollo
+          yarn workspaces foreach -A npm publish --tolerate-republish --tag devel
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
