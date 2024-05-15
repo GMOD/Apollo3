@@ -46,8 +46,8 @@ export function AddChildFeature({
   sourceFeature,
 }: AddChildFeatureProps) {
   const { notify } = session as unknown as AbstractSessionModel
-  const [end, setEnd] = useState(String(sourceFeature.end))
-  const [start, setStart] = useState(String(sourceFeature.start + 1))
+  const [end, setEnd] = useState(String(sourceFeature.max))
+  const [start, setStart] = useState(String(sourceFeature.min + 1))
   const [type, setType] = useState('')
   const [phase, setPhase] = useState('')
   const [phaseAsNumber, setPhaseAsNumber] = useState<PhaseEnum>()
