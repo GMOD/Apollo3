@@ -136,38 +136,12 @@ export abstract class Glyph {
     const { refName, reversed } = displayedRegion
     const { bpPerPx, bpToPx, offsetPx } = lgv
 
-    const { discontinuousLocations } = feature
-    let start: number, end: number, length: number
     let location = 'Loc: '
-    if (discontinuousLocations && discontinuousLocations.length > 0) {
-      const lastLoc = discontinuousLocations.at(-1)
-      if (!lastLoc) {
-        return
-      }
-      ;({ start } = lastLoc)
-      ;({ end } = lastLoc)
-      length = lastLoc.end - lastLoc.start
-
-      if (discontinuousLocations.length <= 2) {
-        for (const [i, loc] of discontinuousLocations.entries()) {
-          location += `${loc.start + 1}–${loc.end}`
-          if (i !== discontinuousLocations.length - 1) {
-            location += ','
-          }
-        }
-      } else {
-        const [firstLoc] = discontinuousLocations
-        location += `${firstLoc.start + 1}–${firstLoc.end},…,${
-          lastLoc.start + 1
-        }–${lastLoc.end}`
-      }
-    } else {
-      ;({ end, length, start } = feature)
-      location += `${start + 1}–${end}`
-    }
+    const { length, max, min } = feature
+    location += `${min + 1}–${max}`
 
     let startPx =
-      (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
+      (bpToPx({ refName, coord: reversed ? max : min, regionNumber })
         ?.offsetPx ?? 0) - offsetPx
     const row = Math.floor(y / apolloRowHeight)
     const top = row * apolloRowHeight
@@ -223,7 +197,7 @@ export abstract class Glyph {
     let prevFeature: AnnotationFeatureNew | undefined
     let nextFeature: AnnotationFeatureNew | undefined
     let i = 0
-    if (!feature || !(parentFeature && parentFeature.children)) {
+    if (!feature || !parentFeature?.children) {
       return { prevFeature, nextFeature }
     }
     for (const [, f] of parentFeature.children) {
@@ -250,7 +224,7 @@ export abstract class Glyph {
   ) {
     let parentFeature
 
-    if (!feature || !(topLevelFeature && topLevelFeature.children)) {
+    if (!feature || !topLevelFeature?.children) {
       return parentFeature
     }
 
