@@ -14,6 +14,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
       - run: |
+          npm publish --access public package/apollo-cli
           npm publish --access public package/apollo-common 
           npm publish --access public package/apollo-mst 
           npm publish --access public package/apollo-schemas 
