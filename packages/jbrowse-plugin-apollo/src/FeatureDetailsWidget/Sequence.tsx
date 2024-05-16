@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { AnnotationFeatureNew } from '@apollo-annotation/mst'
 import { splitStringIntoChunks } from '@apollo-annotation/shared'
 import { Button, Typography } from '@mui/material'
 import { observer } from 'mobx-react'
@@ -35,7 +35,7 @@ export const Sequence = observer(function Sequence({
   session,
 }: {
   assembly: string
-  feature: AnnotationFeatureI
+  feature: AnnotationFeatureNew
   refName: string
   session: ApolloSessionModel
 }) {
@@ -54,15 +54,15 @@ export const Sequence = observer(function Sequence({
   if (!refSeq) {
     return null
   }
-  const { end, start } = feature
+  const { max, min } = feature
   let sequence = ''
   if (showSequence) {
-    sequence = refSeq.getSequence(start, end)
+    sequence = refSeq.getSequence(min, max)
     if (sequence) {
-      sequence = formatSequence(sequence, refName, start, end)
+      sequence = formatSequence(sequence, refName, min, max)
     } else {
       void session.apolloDataStore.loadRefSeq([
-        { assemblyName: assembly, refName, start, end },
+        { assemblyName: assembly, refName, start:min, end:max },
       ])
     }
   }
