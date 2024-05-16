@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { AnnotationFeatureNew } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
@@ -31,14 +31,14 @@ export const BasicInformation = observer(function BasicInformation({
   feature,
   session,
 }: {
-  feature: AnnotationFeatureI
+  feature: AnnotationFeatureNew
   session: ApolloSessionModel
   assembly: string
 }) {
   const [errorMessage, setErrorMessage] = useState('')
   const [typeWarningText, setTypeWarningText] = useState('')
 
-  const { _id, assemblyId, end, start, strand, type } = feature
+  const { _id, assemblyId, max, min, strand, type } = feature
 
   const notifyError = (e: Error) => {
     ;(session as unknown as AbstractSessionModel).notify(e.message, 'error')
@@ -79,7 +79,7 @@ export const BasicInformation = observer(function BasicInformation({
       typeName: 'LocationStartChange',
       changedIds: [_id],
       featureId: _id,
-      oldStart: start,
+      oldStart: min,
       newStart,
       assembly,
     })
@@ -91,7 +91,7 @@ export const BasicInformation = observer(function BasicInformation({
       typeName: 'LocationEndChange',
       changedIds: [_id],
       featureId: _id,
-      oldEnd: end,
+      oldEnd: max,
       newEnd,
       assembly,
     })
@@ -99,7 +99,7 @@ export const BasicInformation = observer(function BasicInformation({
   }
 
   async function fetchValidTerms(
-    parentFeature: AnnotationFeatureI | undefined,
+    parentFeature: undefined | AnnotationFeatureNew,
     ontologyStore: OntologyStore,
     _signal: AbortSignal,
   ) {
@@ -126,7 +126,7 @@ export const BasicInformation = observer(function BasicInformation({
         label="Start"
         fullWidth
         variant="outlined"
-        value={start + 1}
+        value={min + 1}
         onChangeCommitted={handleStartChange}
       />
       <NumberTextField
@@ -135,7 +135,7 @@ export const BasicInformation = observer(function BasicInformation({
         label="End"
         fullWidth
         variant="outlined"
-        value={end}
+        value={max}
         onChangeCommitted={handleEndChange}
       />
       <OntologyTermAutocomplete

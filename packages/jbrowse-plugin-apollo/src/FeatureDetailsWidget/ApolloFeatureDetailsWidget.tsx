@@ -42,11 +42,11 @@ export const ApolloFeatureDetailsWidget = observer(
     if (!refSeq) {
       return null
     }
-    const { end, start } = feature
-    const sequence = refSeq.getSequence(start, end)
+    const { max, min } = feature
+    const sequence = refSeq.getSequence(min, max)
     if (!sequence) {
       void session.apolloDataStore.loadRefSeq([
-        { assemblyName: assembly, refName, start, end },
+        { assemblyName: assembly, refName, start: min, end: max },
       ])
     }
 
@@ -62,7 +62,6 @@ export const ApolloFeatureDetailsWidget = observer(
           feature={feature}
           session={session}
           assembly={currentAssembly._id}
-          // editable={editable}
           editable={true}
         />
         <hr />
