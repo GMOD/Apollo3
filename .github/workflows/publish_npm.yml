@@ -2,7 +2,7 @@ name: Publish Package to npmjs
 on:
   push:
     branches:
-      - npm 
+      - npm2
   release:
     types: [published]
 jobs:
