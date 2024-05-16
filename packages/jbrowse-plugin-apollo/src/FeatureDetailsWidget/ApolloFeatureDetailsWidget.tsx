@@ -11,7 +11,6 @@ import { ApolloRootModel } from '../types'
 import { Attributes } from './Attributes'
 import { BasicInformation } from './BasicInformation'
 import { ApolloFeatureDetailsWidget as ApolloFeatureDetails } from './model'
-import { RelatedFeatures } from './RelatedFeature'
 import { Sequence } from './Sequence'
 
 const useStyles = makeStyles()((theme) => ({
@@ -27,14 +26,14 @@ export const ApolloFeatureDetailsWidget = observer(
     const session = getSession(model) as unknown as ApolloSessionModel
     const currentAssembly = session.apolloDataStore.assemblies.get(assembly)
     const { classes } = useStyles()
-    const { internetAccounts } = getRoot<ApolloRootModel>(session)
-    const internetAccount = useMemo(() => {
-      return internetAccounts.find(
-        (ia: BaseInternetAccountModel) => ia.type === 'ApolloInternetAccount',
-      ) as ApolloInternetAccountModel | undefined
-    }, [internetAccounts])
-    const role = internetAccount ? internetAccount.role : 'admin'
-    const editable = ['admin', 'user'].includes(role ?? '')
+    // const { internetAccounts } = getRoot<ApolloRootModel>(session)
+    // const internetAccount = useMemo(() => {
+    //   return internetAccounts.find(
+    //     (ia: BaseInternetAccountModel) => ia.type === 'ApolloInternetAccount',
+    //   ) as ApolloInternetAccountModel | undefined
+    // }, [internetAccounts])
+    // const role = internetAccount ? internetAccount.getRole() : 'admin'
+    // const editable = ['admin', 'user'].includes(role ?? '')
 
     if (!(feature && currentAssembly)) {
       return null
@@ -63,7 +62,8 @@ export const ApolloFeatureDetailsWidget = observer(
           feature={feature}
           session={session}
           assembly={currentAssembly._id}
-          editable={editable}
+          // editable={editable}
+          editable={true}
         />
         <hr />
         <Sequence
@@ -71,13 +71,6 @@ export const ApolloFeatureDetailsWidget = observer(
           session={session}
           assembly={currentAssembly._id}
           refName={refName}
-        />
-        <hr />
-        <RelatedFeatures
-          feature={feature}
-          refName={refName}
-          session={session}
-          assembly={currentAssembly._id}
         />
       </div>
     )

@@ -14,7 +14,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { AnnotationFeatureNew } from 'apollo-mst'
+import { AnnotationFeatureI } from 'apollo-mst'
 import { FeatureAttributeChange } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import { getSnapshot } from 'mobx-state-tree'
@@ -88,7 +88,7 @@ export const Attributes = observer(function Attributes({
   feature,
   session,
 }: {
-  feature: AnnotationFeatureNew
+  feature: AnnotationFeatureI
   session: ApolloSessionModel
   assembly: string
   editable: boolean
@@ -239,7 +239,12 @@ export const Attributes = observer(function Attributes({
 
   return (
     <>
-      <Typography variant="h4">Attributes</Typography>
+      <Typography
+        style={{ display: 'inline', marginLeft: '15px' }}
+        variant="h5"
+      >
+        Attributes
+      </Typography>
       <Grid container direction="column" spacing={1}>
         {Object.entries(attributes).map(([key, value]) => {
           const EditorComponent =

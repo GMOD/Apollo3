@@ -1,16 +1,25 @@
 import { getSession } from '@jbrowse/core/util'
 import { ElementId } from '@jbrowse/core/util/types/mst'
-import { AnnotationFeatureModelNew, AnnotationFeatureNew } from 'apollo-mst'
+import { AnnotationFeature, AnnotationFeatureI, AnnotationFeatureModelNew, AnnotationFeatureNew } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { Instance, SnapshotIn, addDisposer, types } from 'mobx-state-tree'
 
+import { ChangeManager } from '../ChangeManager'
 import { ApolloSessionModel } from '../session'
 
 export const ApolloFeatureDetailsWidgetModel = types
   .model('ApolloFeatureDetailsWidget', {
     id: ElementId,
     type: types.literal('ApolloFeatureDetailsWidget'),
-    feature: types.maybe(
+    // feature: types.maybe(
+    //   types.reference(AnnotationFeature, {
+    //     onInvalidated(ev) {
+    //       ev.parent.setTryReload(ev.invalidId)
+    //       ev.removeRef()
+    //     },
+    //   }),
+    // ),
+      feature: types.maybe(
       types.reference(AnnotationFeatureModelNew, {
         onInvalidated(ev) {
           ev.parent.setTryReload(ev.invalidId)
@@ -25,7 +34,7 @@ export const ApolloFeatureDetailsWidgetModel = types
     tryReload: undefined as string | undefined,
   }))
   .actions((self) => ({
-    setFeature(feature: AnnotationFeatureNew) {
+      setFeature(feature: AnnotationFeatureNew) {
       self.feature = feature
     },
     setTryReload(featureId?: string) {
@@ -62,3 +71,62 @@ export type ApolloFeatureDetailsWidget = Instance<
 export type ApolloFeatureDetailsWidgetSnapshot = SnapshotIn<
   typeof ApolloFeatureDetailsWidgetModel
 >
+
+export const ApolloTranscriptDetails = types
+  .model('ApolloTranscriptDetails', {
+    id: ElementId,
+    type: types.literal('ApolloTranscriptDetails'),
+    feature: types.maybe(
+      types.reference(AnnotationFeatureModelNew, {
+        onInvalidated(ev) {
+          ev.parent.setTryReload(ev.invalidId);
+          ev.removeRef();
+        },
+      })
+    ),
+    // feature: types.maybe(
+    //   types.reference(AnnotationFeature, {
+    //     onInvalidated(ev) {
+    //       ev.parent.setTryReload(ev.invalidId)
+    //       ev.removeRef()
+    //     },
+    //   }),
+    // ),
+    assembly: types.string,
+    refName: types.string,
+    changeManager: types.frozen<ChangeManager>(),
+  })
+  .volatile(() => ({
+    tryReload: undefined as string | undefined,
+  }))
+  .actions((self) => ({
+    setFeature(feature: AnnotationFeatureNew) {
+      self.feature = feature
+    },
+    setTryReload(featureId?: string) {
+      self.tryReload = featureId
+    },
+  }))
+  .actions((self) => ({
+    afterAttach() {
+      addDisposer(
+        self,
+        autorun((reaction) => {
+          if (!self.tryReload) {
+            return
+          }
+          const session = getSession(self) as unknown as ApolloSessionModel
+          const { apolloDataStore } = session
+          if (!apolloDataStore) {
+            return
+          }
+          const feature = apolloDataStore.getFeature(self.tryReload)
+          if (feature) {
+            self.setFeature(feature)
+            self.setTryReload()
+            reaction.dispose()
+          }
+        }),
+      )
+    },
+  }))

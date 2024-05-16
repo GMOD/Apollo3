@@ -1,14 +1,6 @@
 import { AbstractSessionModel } from '@jbrowse/core/util'
-import {
-  FormControl,
-  FormControlLabel,
-  FormLabel,
-  Radio,
-  RadioGroup,
-  TextField,
-  Typography,
-} from '@mui/material'
-import { AnnotationFeatureNew } from 'apollo-mst'
+import { TextField, Typography } from '@mui/material'
+import { AnnotationFeatureI } from 'apollo-mst'
 import {
   LocationEndChange,
   LocationStartChange,
@@ -30,7 +22,7 @@ export const BasicInformation = observer(function BasicInformation({
   feature,
   session,
 }: {
-  feature: AnnotationFeatureNew
+  feature: AnnotationFeatureI
   session: ApolloSessionModel
   assembly: string
 }) {
@@ -97,7 +89,7 @@ export const BasicInformation = observer(function BasicInformation({
   }
 
   async function fetchValidTerms(
-    parentFeature: AnnotationFeatureNew | undefined,
+    parentFeature: AnnotationFeatureI | undefined,
     ontologyStore: OntologyStore,
     _signal: AbortSignal,
   ) {
@@ -117,7 +109,7 @@ export const BasicInformation = observer(function BasicInformation({
 
   return (
     <>
-      <Typography variant="h4">Basic information</Typography>
+      <Typography variant="h5">Basic information</Typography>
       <NumberTextField
         margin="dense"
         id="start"
@@ -158,18 +150,33 @@ export const BasicInformation = observer(function BasicInformation({
           }
         }}
       />
-      <FormControl>
-        <FormLabel>Strand</FormLabel>
-        <RadioGroup row value={strand ?? ''} onChange={handleStrandChange}>
-          <FormControlLabel value="1" control={<Radio />} label="Forward (+)" />
-          <FormControlLabel
-            value="-1"
-            control={<Radio />}
-            label="Reverse (-)"
-          />
-          <FormControlLabel value="" control={<Radio />} label="None" />
-        </RadioGroup>
-      </FormControl>
+      <label>
+        <input
+          type="radio"
+          value="1"
+          checked={strand === 1}
+          onChange={handleStrandChange}
+        />
+        Positive Strand (+)
+      </label>
+      <label>
+        <input
+          type="radio"
+          value="-1"
+          checked={strand === -1}
+          onChange={handleStrandChange}
+        />
+        Negative Strand (-)
+      </label>
+      <label>
+        <input
+          type="radio"
+          value=""
+          checked={strand === undefined}
+          onChange={handleStrandChange}
+        />
+        No Strand Information
+      </label>
       {errorMessage ? (
         <Typography color="error">{errorMessage}</Typography>
       ) : null}
