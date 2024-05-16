@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { AnnotationFeatureNew } from '@apollo-annotation/mst'
+import { AnnotationFeatureI } from '@apollo-annotation/mst'
 import { splitStringIntoChunks } from '@apollo-annotation/shared'
 import { Button, Typography } from '@mui/material'
 import { observer } from 'mobx-react'
@@ -35,7 +35,7 @@ export const Sequence = observer(function Sequence({
   session,
 }: {
   assembly: string
-  feature: AnnotationFeatureNew
+  feature: AnnotationFeatureI
   refName: string
   session: ApolloSessionModel
 }) {
@@ -69,7 +69,7 @@ export const Sequence = observer(function Sequence({
 
   return (
     <>
-      <Typography variant="h4">Sequence</Typography>
+      <Typography variant="h5">Sequence</Typography>
       <Button variant="contained" onClick={onButtonClick}>
         {showSequence ? 'Hide sequence' : 'Show sequence'}
       </Button>
