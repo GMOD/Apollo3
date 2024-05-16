@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AnnotationFeatureNew } from '@apollo-annotation/mst'
+import { AnnotationFeatureI } from '@apollo-annotation/mst'
 import { FeatureAttributeChange } from '@apollo-annotation/shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -91,7 +91,7 @@ export const Attributes = observer(function Attributes({
   feature,
   session,
 }: {
-  feature: AnnotationFeatureNew
+  feature: AnnotationFeatureI
   session: ApolloSessionModel
   assembly: string
   editable: boolean
@@ -242,7 +242,12 @@ export const Attributes = observer(function Attributes({
 
   return (
     <>
-      <Typography variant="h4">Attributes</Typography>
+      <Typography
+        style={{ display: 'inline', marginLeft: '15px' }}
+        variant="h5"
+      >
+        Attributes
+      </Typography>
       <Grid container direction="column" spacing={1}>
         {Object.entries(attributes).map(([key, value]) => {
           const EditorComponent =
