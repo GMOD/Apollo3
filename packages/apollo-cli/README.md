@@ -16,7 +16,7 @@ $ npm install -g apollo-cli
 $ apollo COMMAND
 running command...
 $ apollo (--version)
-apollo-cli/0.0.0 linux-x64 node-v18.20.1
+apollo-cli/0.0.0 linux-x64 node-v18.19.0
 $ apollo --help [COMMAND]
 USAGE
   $ apollo COMMAND
