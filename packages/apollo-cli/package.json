@@ -1,7 +1,7 @@
 {
-  "name": "apollo-cli",
+  "name": "@apollo-annotation/apollo-cli",
   "description": "Command line interface for the Apollo annotation server",
-  "version": "0.0.0",
+  "version": "0.1.1",
   "author": "Apollo Team",
   "repository": {
     "type": "git",
@@ -93,5 +93,8 @@
         "description": "Commands to handle users"
       }
     }
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -1,12 +1,12 @@
-import { Logger } from '@nestjs/common'
-import { Change, SerializedChange } from 'apollo-common'
+import { Change, SerializedChange } from '@apollo-annotation/apollo-common'
 import {
   Context,
   JWTPayload,
   Validation,
   ValidationResult,
   isContext,
-} from 'apollo-shared'
+} from '@apollo-annotation/apollo-shared'
+import { Logger } from '@nestjs/common'
 import { Request } from 'express'
 
 import { Role, RoleInheritance } from '../role/role.enum'

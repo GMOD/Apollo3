@@ -1,5 +1,8 @@
-import { Check } from 'apollo-common'
-import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
+import { Check } from '@apollo-annotation/apollo-common'
+import {
+  AnnotationFeatureSnapshot,
+  CheckResultSnapshot,
+} from '@apollo-annotation/apollo-mst'
 import ObjectID from 'bson-objectid'
 
 enum STOP_CODONS {

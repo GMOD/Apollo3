@@ -1,14 +1,12 @@
 import fs from 'node:fs'
 
-import { LogLevel } from '@nestjs/common'
-import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import {
   Check,
   changeRegistry,
   checkRegistry,
   operationRegistry,
-} from 'apollo-common'
-import { CheckSchema } from 'apollo-schemas'
+} from '@apollo-annotation/apollo-common'
+import { CheckSchema } from '@apollo-annotation/apollo-schemas'
 import {
   CDSCheck,
   CoreValidation,
@@ -16,7 +14,9 @@ import {
   changes,
   operations,
   validationRegistry,
-} from 'apollo-shared'
+} from '@apollo-annotation/apollo-shared'
+import { LogLevel } from '@nestjs/common'
+import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import connectMongoDBSession from 'connect-mongodb-session'
 import session from 'express-session'
 import mongoose from 'mongoose'

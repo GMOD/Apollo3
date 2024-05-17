@@ -1,3 +1,11 @@
+import { changeRegistry, checkRegistry } from '@apollo-annotation/apollo-common'
+import {
+  CDSCheck,
+  CoreValidation,
+  ParentChildValidation,
+  changes,
+  validationRegistry,
+} from '@apollo-annotation/apollo-shared'
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import {
   DisplayType,
@@ -19,14 +27,6 @@ import {
 } from '@jbrowse/core/util'
 import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
-import { changeRegistry, checkRegistry } from 'apollo-common'
-import {
-  CDSCheck,
-  CoreValidation,
-  ParentChildValidation,
-  changes,
-  validationRegistry,
-} from 'apollo-shared'
 
 import { version } from '../package.json'
 import {

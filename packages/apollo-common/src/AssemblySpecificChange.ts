@@ -1,6 +1,6 @@
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/apollo-mst'
+import { FileDocument, RefSeqDocument } from '@apollo-annotation/apollo-schemas'
 import { GFF3Feature } from '@gmod/gff'
-import type { AnnotationFeatureSnapshot } from 'apollo-mst'
-import { FileDocument, RefSeqDocument } from 'apollo-schemas'
 import ObjectID from 'bson-objectid'
 
 import { Change, ChangeOptions, SerializedChange, isChange } from './Change'

@@ -1,6 +1,6 @@
+import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
+import { splitStringIntoChunks } from '@apollo-annotation/apollo-shared'
 import { Button, Typography } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
-import { splitStringIntoChunks } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 import { makeStyles } from 'tss-react/mui'

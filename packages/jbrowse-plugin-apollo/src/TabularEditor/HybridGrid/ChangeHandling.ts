@@ -1,11 +1,11 @@
-import type { AnnotationFeatureI } from 'apollo-mst'
+import type { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
 import {
   DiscontinuousLocationEndChange,
   DiscontinuousLocationStartChange,
   LocationEndChange,
   LocationStartChange,
   TypeChange,
-} from 'apollo-shared'
+} from '@apollo-annotation/apollo-shared'
 
 import type { ChangeManager } from '../../ChangeManager'
 

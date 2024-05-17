@@ -1,8 +1,4 @@
-import { getConf, readConfObject } from '@jbrowse/core/configuration'
-import { ConfigurationModel } from '@jbrowse/core/configuration/types'
-import { Region, getSession, isElectron } from '@jbrowse/core/util'
-import { LocalPathLocation, UriLocation } from '@jbrowse/core/util/types/mst'
-import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
+import { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/apollo-common'
 import {
   AnnotationFeature,
   AnnotationFeatureSnapshot,
@@ -10,7 +6,11 @@ import {
   ApolloRefSeq,
   CheckResult,
   CheckResultSnapshot,
-} from 'apollo-mst'
+} from '@apollo-annotation/apollo-mst'
+import { getConf, readConfObject } from '@jbrowse/core/configuration'
+import { ConfigurationModel } from '@jbrowse/core/configuration/types'
+import { Region, getSession, isElectron } from '@jbrowse/core/util'
+import { LocalPathLocation, UriLocation } from '@jbrowse/core/util/types/mst'
 import {
   Instance,
   SnapshotOut,

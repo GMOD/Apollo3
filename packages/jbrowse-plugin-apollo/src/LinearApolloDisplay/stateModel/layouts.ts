@@ -1,7 +1,7 @@
+import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
-import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun, observable } from 'mobx'
 import { addDisposer, isAlive } from 'mobx-state-tree'
 

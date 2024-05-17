@@ -1,6 +1,9 @@
+import {
+  AnnotationFeature,
+  AnnotationFeatureI,
+} from '@apollo-annotation/apollo-mst'
 import { getSession } from '@jbrowse/core/util'
 import { ElementId } from '@jbrowse/core/util/types/mst'
-import { AnnotationFeature, AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { Instance, SnapshotIn, addDisposer, types } from 'mobx-state-tree'
 

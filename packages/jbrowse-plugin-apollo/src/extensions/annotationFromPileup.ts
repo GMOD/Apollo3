@@ -1,11 +1,11 @@
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/apollo-mst'
+import { AddFeatureChange } from '@apollo-annotation/apollo-shared'
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { DisplayType } from '@jbrowse/core/pluggableElementTypes'
 import PluggableElementBase from '@jbrowse/core/pluggableElementTypes/PluggableElementBase'
 import { getContainingView, getSession } from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
-import { AddFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 
 import { ApolloSessionModel } from '../session'
