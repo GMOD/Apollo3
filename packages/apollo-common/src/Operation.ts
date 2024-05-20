@@ -47,7 +47,7 @@ export interface ServerDataStore {
       extensionPointName: string,
       extendee: unknown,
       props?: Record<string, unknown>,
-    ): void
+    ): unknown
   }
   counterService: {
     getNextSequenceValue(sequenceName: string): Promise<number>
@@ -78,12 +78,11 @@ export abstract class Operation implements SerializedOperation {
     const backendType = backend.typeName
     if (backendType === 'Server') {
       const initialResult = this.executeOnServer(backend)
-      backend.pluginsService.evaluateExtensionPoint(
+      return backend.pluginsService.evaluateExtensionPoint(
         `${this.typeName}-transformResults`,
         initialResult,
         { operation: this, backend },
       )
-      return
     }
     if (backendType === 'LocalGFF3') {
       return this.executeOnLocalGFF3(backend)
