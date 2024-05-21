@@ -373,9 +373,9 @@ export class CanonicalGeneGlyph extends Glyph {
     if (feature.type === 'CDS') {
       const parentFeature = this.getParentFeature(feature, topLevelFeature)
       const cdsLocs = this.getDiscontinuousLocations(parentFeature, feature)
-      const { cdsLocations } = feature
+      const { cdsLocations } = parentFeature
 
-      console.log('cdsLocs', cdsLocs)
+      console.log('parentFeature type', parentFeature.type)
       console.log('cdsLocations', cdsLocations)
 
       for (const cdsLoc of cdsLocs) {
@@ -862,16 +862,22 @@ export class CanonicalGeneGlyph extends Glyph {
         discontinuousLocation,
         exonCDSRelations,
       )
-      if (nextExon && bp >= nextExon.min - 1) {
+      // if (nextExon && bp >= nextExon.min - 1) {
+      //   return
+      // }
+      // if (prevExon && bp <= prevExon.max + 1) {
+      //   return
+      // }
+      // if (!prevExon && nextExon && matchingExon && bp < matchingExon.min) {
+      //   return
+      // }
+      // if (prevExon && !nextExon && matchingExon && bp > matchingExon.max) {
+      //   return
+      // }
+      if (matchingExon && bp < matchingExon.min) {
         return
       }
-      if (prevExon && bp <= prevExon.max + 1) {
-        return
-      }
-      if (!prevExon && nextExon && matchingExon && bp < matchingExon.min) {
-        return
-      }
-      if (prevExon && !nextExon && matchingExon && bp > matchingExon.max) {
+      if (matchingExon && bp > matchingExon.max) {
         return
       }
       if (
