@@ -9,14 +9,17 @@ from utils import shell
 
 hostTmpDir = os.path.abspath("tmpTestDocker")
 hostDataDir = os.path.abspath("test_data")
-apollo = f"docker run --network host -v {hostTmpDir}/.config:/home/apolloUser/.config/apollo-cli -v {hostDataDir}:/data apollo"
+apollo = f"docker run --network host -v {hostTmpDir}:/root/.config/apollo-cli -v {hostDataDir}:/data apollo"
 
 
 def setUpModule():
-    os.makedirs(os.path.join(hostTmpDir, ".config"), exist_ok=True)
-    shell(
-        "docker build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t apollo ."
-    )
+    if os.path.exists(hostTmpDir) and os.path.isdir(hostTmpDir):
+        shutil.rmtree(hostTmpDir)
+    os.makedirs(os.path.join(hostTmpDir), exist_ok=True)
+    cfg = open(os.path.join(hostTmpDir, "config.yaml"), "w")
+    cfg.close()
+
+    shell("docker build --no-cache -t apollo .")
 
     # See apollo-collaboration-server/.development.env for credentials etc.
     shell(f"{apollo} config address http://localhost:3999")
@@ -47,13 +50,27 @@ class TestDocker(unittest.TestCase):
         p = shell(f"{apollo} assembly get -a vv1")
         self.assertEqual("[]", p.stdout.strip())
 
-    def testFilePermission(self):
-        cfg = Path(os.path.join(hostTmpDir, ".config/config.yaml"))
-        owner = cfg.owner()
-        group = cfg.group()
-        host = os.getenv("USERNAME")
-        self.assertEqual(host, owner)
-        self.assertEqual(host, group)
+    def testMissingConfig(self):
+        p = shell(
+            f"{apollo} config address --config-file {hostTmpDir}/new.yaml http://localhost:3999",
+            strict=False,
+        )
+        self.assertTrue(p.returncode != 0)
+        self.assertTrue("does not exist yet" in p.stderr)
+
+        p = shell(
+            f"{apollo} config address --config-file /root/.config/apollo-cli/new.yaml http://localhost:3999",
+            strict=False,
+        )
+        self.assertTrue(p.returncode != 0)
+        self.assertTrue("does not exist yet" in p.stderr)
+
+        cfg = open(os.path.join(hostTmpDir, "new.yaml"), "w")
+        cfg.close()
+        p = shell(
+            f"{apollo} config address --config-file /root/.config/apollo-cli/new.yaml http://localhost:3999"
+        )
+        self.assertEqual(0, p.returncode)
 
 
 if __name__ == "__main__":
