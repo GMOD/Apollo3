@@ -255,11 +255,7 @@ export class Config {
     }
     if (APOLLO_DISABLE_CONFIG_CREATE && !fs.existsSync(this.configFile)) {
       throw new ConfigError(
-        `Configuration file ${this.configFile} does not exist yet, please create it as an empty file first. 
-On *nix systems you can use:
-
-mkdir -p ${path.dirname(this.configFile)}
-touch ${this.configFile}\n`,
+        'Configuration file does not exist yet, please create it as an empty file first.',
       )
     }
     const yml = YAML.stringify(this.profiles)
