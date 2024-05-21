@@ -245,8 +245,15 @@ export class Config {
     this.addProps(profile as unknown as RecursiveObject, key, value)
   }
 
-  public writeConfigFile(disableConfigCreate: boolean) {
-    if (disableConfigCreate && !fs.existsSync(this.configFile)) {
+  public writeConfigFile() {
+    let APOLLO_DISABLE_CONFIG_CREATE = false
+    if (
+      process.env.APOLLO_DISABLE_CONFIG_CREATE !== undefined &&
+      process.env.APOLLO_DISABLE_CONFIG_CREATE !== '0'
+    ) {
+      APOLLO_DISABLE_CONFIG_CREATE = true
+    }
+    if (APOLLO_DISABLE_CONFIG_CREATE && !fs.existsSync(this.configFile)) {
       throw new ConfigError(
         `Configuration file ${this.configFile} does not exist yet, please create it as an empty file first. 
 On *nix systems you can use:
