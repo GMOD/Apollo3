@@ -96,6 +96,8 @@ export class CanonicalGeneGlyph extends Glyph {
       }
     }
 
+    console.log('cdsFeatures', cdsFeatures)
+
     const features: CanonicalGeneAnnotationFeature[][] = []
     for (const f of cdsFeatures) {
       const childFeatures: CanonicalGeneAnnotationFeature[] = []
@@ -104,7 +106,11 @@ export class CanonicalGeneGlyph extends Glyph {
           continue
         }
 
-        if (f.cdsDiscontinuousLocs && f.cdsDiscontinuousLocs.length > 0) {
+        if (
+          cf.type === 'CDS' &&
+          f.cdsDiscontinuousLocs &&
+          f.cdsDiscontinuousLocs.length > 0
+        ) {
           for (const dl of f.cdsDiscontinuousLocs) {
             childFeatures.push({
               annotationFeature: cf,
@@ -114,6 +120,11 @@ export class CanonicalGeneGlyph extends Glyph {
               phase: dl.phase,
             })
           }
+        } else {
+          childFeatures.push({
+            annotationFeature: cf,
+            parent: f.parent,
+          })
         }
       }
       childFeatures.push({
@@ -949,8 +960,8 @@ export class CanonicalGeneGlyph extends Glyph {
     for (const f of featuresForRow) {
       if (
         f.start !== undefined &&
-        f.end !== undefined &&
-        f.phase !== undefined
+        f.end !== undefined
+        // && f.phase !== undefined
       ) {
         if (bp >= f.start && bp <= f.end && f.parent) {
           featureFromLayout = f.annotationFeature
