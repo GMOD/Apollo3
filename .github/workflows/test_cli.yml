@@ -29,11 +29,11 @@ jobs:
           yarn --cwd packages/apollo-shared start & 
           yarn --cwd packages/apollo-collaboration-server start &
 
-      - name: Run docker tests
-        working-directory: packages/apollo-cli
-        run: python3 ./test/test_docker.py
-
       - name: Run tests
         working-directory: packages/apollo-cli
         run: python3 ./test/test.py TestCLI
+
+      - name: Run docker tests
+        working-directory: packages/apollo-cli
+        run: python3 ./test/test_docker.py
       
