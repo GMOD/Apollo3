@@ -110,7 +110,21 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
       this.logToStderr(v)
     }
 
-    config.writeConfigFile()
+    let APOLLO_DISABLE_CONFIG_CREATE = false
+    if (
+      process.env.APOLLO_DISABLE_CONFIG_CREATE !== undefined &&
+      process.env.APOLLO_DISABLE_CONFIG_CREATE !== '0'
+    ) {
+      APOLLO_DISABLE_CONFIG_CREATE = true
+    }
+    try {
+      config.writeConfigFile(APOLLO_DISABLE_CONFIG_CREATE)
+    } catch (error) {
+      if (error instanceof ConfigError) {
+        this.logToStderr(error.message)
+        this.exit(1)
+      }
+    }
   }
 
   private async interactiveSetup(
