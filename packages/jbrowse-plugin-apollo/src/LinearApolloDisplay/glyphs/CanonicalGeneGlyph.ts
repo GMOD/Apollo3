@@ -82,48 +82,6 @@ interface ExonCDSRelation {
 }
 
 export class CanonicalGeneGlyph extends Glyph {
-  getDiscontinuousLocations(
-    parentFeature: AnnotationFeatureNew,
-    cdsFeature: AnnotationFeatureNew,
-  ): CDSDiscontinuousLocation[] {
-    const exons: AnnotationFeatureNew[] = []
-
-    for (const [, child] of parentFeature.children ?? new Map()) {
-      if (child.type === 'exon') {
-        exons.push(child)
-      }
-    }
-
-    const cdsDLs: CDSDiscontinuousLocation[] = []
-    for (const exon of exons) {
-      if (exon.min > cdsFeature.max || exon.max < cdsFeature.min) {
-        continue
-      }
-
-      let cdsMin, cdsMax
-      if (exon.min >= cdsFeature.min && exon.max <= cdsFeature.max) {
-        cdsMin = cdsFeature.min
-        cdsMax = cdsFeature.max
-      } else {
-        cdsMin =
-          exon.min < cdsFeature.min && cdsFeature.min < exon.max
-            ? cdsFeature.min
-            : exon.min
-        cdsMax =
-          exon.min < cdsFeature.max && cdsFeature.max < exon.max
-            ? cdsFeature.max
-            : exon.max
-      }
-      cdsDLs.push({
-        start: cdsMin,
-        end: cdsMax,
-        phase: undefined,
-      })
-    }
-
-    return cdsDLs
-  }
-
   featuresForRow(
     feature: AnnotationFeatureNew,
   ): CanonicalGeneAnnotationFeature[][] {
@@ -343,6 +301,43 @@ export class CanonicalGeneGlyph extends Glyph {
         currentRow += 1
       }
     }
+
+    if (apolloSelectedFeature) {
+      if (_id === apolloSelectedFeature._id) {
+        const widthPx = feature.length / bpPerPx
+        const startPx = reversed ? xOffset - widthPx : xOffset
+        const top = row * rowHeight
+        const height = this.getRowCount(feature) * rowHeight
+        ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,0.08)'
+        ctx.fillRect(startPx, top, widthPx, height)
+      } else {
+        let featureEntry: AnnotationFeatureNew | undefined
+        let featureRow: number | undefined
+        let i = 0
+        for (const [, f] of children ?? new Map()) {
+          if (f._id === apolloSelectedFeature?._id) {
+            featureEntry = f
+            featureRow = i
+          }
+          i++
+        }
+
+        if (featureEntry === undefined || featureRow === undefined) {
+          return
+        }
+        const cdsCount = this.cdsCount(featureEntry)
+        let height = rowHeight
+        if (cdsCount > 1) {
+          height = height * cdsCount
+        }
+        const widthPx = featureEntry.length / bpPerPx
+        const offsetPx = (featureEntry.min - min) / bpPerPx
+        const startPx = reversed ? xOffset - widthPx : xOffset + offsetPx
+        const top = (row + featureRow) * rowHeight
+        ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,08)'
+        ctx.fillRect(startPx, top, widthPx, height)
+      }
+    }
   }
 
   // CDS count with discontinuous locations
@@ -371,21 +366,40 @@ export class CanonicalGeneGlyph extends Glyph {
     if (!apolloHover) {
       return
     }
-    const { feature } = apolloHover
-    if (!feature) {
+    const { feature, topLevelFeature } = apolloHover
+    if (!feature || !topLevelFeature) {
       return
     }
 
-    this.drawShadeForFeature(
-      stateModel,
-      ctx,
-      feature.min,
-      feature.max,
-      feature.length,
-      rowNum,
-      xOffset,
-      reversed,
-    )
+    if (feature.type === 'CDS') {
+      const parentFeature = this.getParentFeature(feature, topLevelFeature)
+      const cdsLocs = this.getDiscontinuousLocations(parentFeature, feature)
+      const { cdsLocations } = feature
+
+      console.log('cdsLocs', cdsLocs)
+      console.log('cdsLocations', cdsLocations)
+
+      for (const cdsLoc of cdsLocs) {
+        this.drawShadeForFeature(
+          stateModel,
+          ctx,
+          cdsLoc.start,
+          cdsLoc.end,
+          cdsLoc.end - cdsLoc.start,
+        )
+      }
+    } else {
+      this.drawShadeForFeature(
+        stateModel,
+        ctx,
+        feature.min,
+        feature.max,
+        feature.length,
+        rowNum,
+        xOffset,
+        reversed,
+      )
+    }
   }
 
   drawShadeForFeature(
@@ -471,62 +485,63 @@ export class CanonicalGeneGlyph extends Glyph {
   }
 
   drawDragPreview(
-    _stateModel: LinearApolloDisplay,
-    _overlayCtx: CanvasRenderingContext2D,
+    stateModel: LinearApolloDisplay,
+    overlayCtx: CanvasRenderingContext2D,
   ) {
-    // const { apolloDragging, apolloRowHeight, displayedRegions, lgv, theme } =
-    //   stateModel
-    // const { bpPerPx, offsetPx } = lgv
-    // if (!apolloDragging) {
-    //   return
-    // }
-    // const {
-    //   discontinuousLocation,
-    //   feature,
-    //   glyph,
-    //   mousePosition: startingMousePosition,
-    // } = apolloDragging.start
-    // if (!feature) {
-    //   throw new Error('no feature for drag preview??')
-    // }
-    // if (glyph !== this) {
-    //   throw new Error('drawDragPreview() called on wrong glyph?')
-    // }
-    // const { mousePosition: currentMousePosition } = apolloDragging.current
-    // const edge = this.isMouseOnFeatureEdge(
-    //   startingMousePosition,
-    //   feature,
-    //   stateModel,
-    // )
-    // if (!edge) {
-    //   return
-    // }
-    // const row = Math.floor(startingMousePosition.y / apolloRowHeight)
-    // const region = displayedRegions[startingMousePosition.regionNumber]
-    // const rowCount = 1
-    // let featureEdgeBp
-    // if (discontinuousLocation) {
-    //   featureEdgeBp = region.reversed
-    //     ? region.end - discontinuousLocation[edge]
-    //     : discontinuousLocation[edge] - region.start
-    // } else {
-    //   featureEdgeBp = region.reversed
-    //     ? region.end - feature[edge]
-    //     : feature[edge] - region.start
-    // }
-    // const featureEdgePx = featureEdgeBp / bpPerPx - offsetPx
-    // const rectX = Math.min(currentMousePosition.x, featureEdgePx)
-    // const rectY = row * apolloRowHeight
-    // const rectWidth = Math.abs(currentMousePosition.x - featureEdgePx)
-    // const rectHeight = apolloRowHeight * rowCount
-    // overlayCtx.strokeStyle = theme?.palette.info.main ?? 'rgb(255,0,0)'
-    // overlayCtx.setLineDash([6])
-    // overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
-    // overlayCtx.fillStyle = alpha(
-    //   theme?.palette.info.main ?? 'rgb(255,0,0)',
-    //   0.2,
-    // )
-    // overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
+    const { apolloDragging, apolloRowHeight, displayedRegions, lgv, theme } =
+      stateModel
+    const { bpPerPx, offsetPx } = lgv
+    if (!apolloDragging) {
+      return
+    }
+    const {
+      discontinuousLocation,
+      feature,
+      glyph,
+      mousePosition: startingMousePosition,
+    } = apolloDragging.start
+    if (!feature) {
+      throw new Error('no feature for drag preview??')
+    }
+    if (glyph !== this) {
+      throw new Error('drawDragPreview() called on wrong glyph?')
+    }
+    const { mousePosition: currentMousePosition } = apolloDragging.current
+    const edge = this.isMouseOnFeatureEdge(
+      startingMousePosition,
+      feature,
+      stateModel,
+    )
+    if (!edge) {
+      return
+    }
+    const row = Math.floor(startingMousePosition.y / apolloRowHeight)
+    const region = displayedRegions[startingMousePosition.regionNumber]
+    const rowCount = 1
+    let featureEdgeBp
+    if (discontinuousLocation) {
+      const attr = edge === 'min' ? 'start' : 'end'
+      featureEdgeBp = region.reversed
+        ? region.end - discontinuousLocation[attr]
+        : discontinuousLocation[attr] - region.start
+    } else {
+      featureEdgeBp = region.reversed
+        ? region.end - feature[edge]
+        : feature[edge] - region.start
+    }
+    const featureEdgePx = featureEdgeBp / bpPerPx - offsetPx
+    const rectX = Math.min(currentMousePosition.x, featureEdgePx)
+    const rectY = row * apolloRowHeight
+    const rectWidth = Math.abs(currentMousePosition.x - featureEdgePx)
+    const rectHeight = apolloRowHeight * rowCount
+    overlayCtx.strokeStyle = theme?.palette.info.main ?? 'rgb(255,0,0)'
+    overlayCtx.setLineDash([6])
+    overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
+    overlayCtx.fillStyle = alpha(
+      theme?.palette.info.main ?? 'rgb(255,0,0)',
+      0.2,
+    )
+    overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
   }
 
   /**
@@ -538,7 +553,7 @@ export class CanonicalGeneGlyph extends Glyph {
     stateModel: LinearApolloDisplay,
     topLevelFeature?: AnnotationFeatureNew,
   ) {
-    if (!mousePosition) {
+    if (!mousePosition || !feature) {
       return
     }
 
@@ -549,7 +564,7 @@ export class CanonicalGeneGlyph extends Glyph {
     let startPxInfo
     let endPxInfo
 
-    if (feature.type === 'CDS') {
+    if (feature.type === 'CDS' && parentFeature) {
       let discontinuousLocation
       const cdsDiscontinuousLocs = this.getDiscontinuousLocations(
         parentFeature,
@@ -602,10 +617,10 @@ export class CanonicalGeneGlyph extends Glyph {
         }
       }
       if (Math.abs(startPx - x) < 4) {
-        return 'start'
+        return 'min'
       }
       if (Math.abs(endPx - x) < 4) {
-        return 'end'
+        return 'max'
       }
     }
     return
@@ -685,8 +700,8 @@ export class CanonicalGeneGlyph extends Glyph {
         const dl = exonCDSRelation.cdsDL
         if (
           cdsDL.start === dl?.start &&
-          cdsDL.end === dl.end &&
-          cdsDL.phase === dl.phase
+          cdsDL.end === dl.end
+          // && cdsDL.phase === dl.phase
         ) {
           idx = i
           break
@@ -707,45 +722,48 @@ export class CanonicalGeneGlyph extends Glyph {
   }
 
   exonCDSRelation(
-    _cds?: AnnotationFeatureNew,
-    _topLevelFeature?: AnnotationFeatureNew,
+    cds?: AnnotationFeatureNew,
+    topLevelFeature?: AnnotationFeatureNew,
   ): ExonCDSRelation[] {
     const exonCDSRelations: ExonCDSRelation[] = []
-    // if (!cds) {
-    //   return exonCDSRelations
-    // }
-    // const parentFeature = this.getParentFeature(cds, topLevelFeature)
-    // if (!parentFeature?.children) {
-    //   return exonCDSRelations
-    // }
-    // for (const [, f] of parentFeature.children) {
-    //   if (f.type === 'exon') {
-    //     const cdsDLForExon = this.cdsDLForExon(f, cds)
-    //     exonCDSRelations.push({
-    //       exon: f,
-    //       cdsDL: cdsDLForExon
-    //         ? {
-    //             start: cdsDLForExon.start,
-    //             end: cdsDLForExon.end,
-    //             phase: cdsDLForExon.phase,
-    //           }
-    //         : undefined,
-    //     })
-    //   }
-    // }
+    if (!cds) {
+      return exonCDSRelations
+    }
+    const parentFeature = this.getParentFeature(cds, topLevelFeature)
+    if (!parentFeature?.children) {
+      return exonCDSRelations
+    }
+    for (const [, f] of parentFeature.children) {
+      if (f.type === 'exon') {
+        const cdsDLForExon = this.cdsDLForExon(f, cds, parentFeature)
+        exonCDSRelations.push({
+          exon: f,
+          cdsDL: cdsDLForExon
+            ? {
+                start: cdsDLForExon.start,
+                end: cdsDLForExon.end,
+                phase: undefined,
+              }
+            : undefined,
+        })
+      }
+    }
     return exonCDSRelations
   }
 
-  cdsDLForExon(_exon: AnnotationFeatureNew, _cds: AnnotationFeatureNew) {
+  cdsDLForExon(
+    exon: AnnotationFeatureNew,
+    cds: AnnotationFeatureNew,
+    parentFeature: AnnotationFeatureNew,
+  ) {
     let discontinuousLocation
-    // if (cds.discontinuousLocations && cds.discontinuousLocations.length > 0) {
-    //   for (const dl of cds.discontinuousLocations) {
-    //     if (dl.start >= exon.start && dl.end <= exon.end) {
-    //       discontinuousLocation = dl
-    //       break
-    //     }
-    //   }
-    // }
+    const cdsLocs = this.getDiscontinuousLocations(parentFeature, cds)
+    for (const dl of cdsLocs) {
+      if (dl.start >= exon.min && dl.end <= exon.max) {
+        discontinuousLocation = dl
+        break
+      }
+    }
     return discontinuousLocation
   }
 
@@ -768,7 +786,7 @@ export class CanonicalGeneGlyph extends Glyph {
     for (const cds of cdsFeatures) {
       for (const [, f] of parentFeature.children) {
         if (f.type === 'exon' && f._id === exon._id) {
-          const cdsDLForExon = this.cdsDLForExon(f, cds)
+          const cdsDLForExon = this.cdsDLForExon(f, cds, parentFeature)
           if (cdsDLForExon) {
             dls.push(cdsDLForExon)
           }
@@ -816,116 +834,108 @@ export class CanonicalGeneGlyph extends Glyph {
   }
 
   continueDrag(
-    _stateModel: LinearApolloDisplay,
-    _currentMousePosition: MousePosition,
+    stateModel: LinearApolloDisplay,
+    currentMousePosition: MousePosition,
   ): void {
-    // const {
-    //   discontinuousLocation,
-    //   feature,
-    //   glyph,
-    //   mousePosition,
-    //   topLevelFeature,
-    // } = stateModel.apolloDragging?.start ?? {}
-    // if (!(currentMousePosition && mousePosition)) {
-    //   return
-    // }
-    // const { bp } = currentMousePosition
-    // if (!feature || !currentMousePosition) {
-    //   return
-    // }
-    // const edge = this.isMouseOnFeatureEdge(
-    //   mousePosition,
-    //   feature,
-    //   stateModel,
-    //   topLevelFeature,
-    // )
-    // if (
-    //   feature.type === 'CDS' &&
-    //   feature.discontinuousLocations &&
-    //   feature.discontinuousLocations.length > 0 &&
-    //   discontinuousLocation
-    // ) {
-    //   const exonCDSRelations = this.exonCDSRelation(feature, topLevelFeature)
-    //   const { matchingExon, nextExon, prevExon } = this.adjacentExonsOfCdsDL(
-    //     discontinuousLocation,
-    //     exonCDSRelations,
-    //   )
-    //   if (nextExon && bp >= nextExon.min - 1) {
-    //     return
-    //   }
-    //   if (prevExon && bp <= prevExon.max + 1) {
-    //     return
-    //   }
-    //   if (!prevExon && nextExon && matchingExon && bp < matchingExon.min) {
-    //     return
-    //   }
-    //   if (prevExon && !nextExon && matchingExon && bp > matchingExon.max) {
-    //     return
-    //   }
-    //   if (
-    //     edge &&
-    //     ((edge === 'start' && bp >= discontinuousLocation.end - 1) ||
-    //       (edge === 'end' && bp <= discontinuousLocation.start + 1))
-    //   ) {
-    //     return
-    //   }
-    // }
-    // if (feature.type !== 'CDS') {
-    //   const adjacentExons = this.adjacentExonsOfExon(feature, topLevelFeature)
-    //   if (adjacentExons?.nextExon && bp >= adjacentExons?.nextExon.start - 1) {
-    //     return
-    //   }
-    //   if (adjacentExons?.prevExon && bp <= adjacentExons?.prevExon.end + 1) {
-    //     return
-    //   }
-    //   const dls: CDSDiscontinuousLocation[] = this.cdsDlsForExon(
-    //     feature,
-    //     topLevelFeature,
-    //   )
-    //   if (dls && dls.length > 0) {
-    //     let stopDrag
-    //     for (const dl of dls) {
-    //       if (
-    //         edge &&
-    //         ((edge === 'start' && bp >= dl.start - 1) ||
-    //           (edge === 'end' && bp <= dl.end + 1))
-    //       ) {
-    //         stopDrag = true
-    //         break
-    //       }
-    //     }
-    //     if (stopDrag) {
-    //       return
-    //     }
-    //   } else {
-    //     if (
-    //       edge &&
-    //       ((edge === 'start' && bp >= feature.max - 1) ||
-    //         (edge === 'end' && bp <= feature.min + 1))
-    //     ) {
-    //       return
-    //     }
-    //   }
-    // }
-    // stateModel.setDragging({
-    //   start: {
-    //     feature,
-    //     topLevelFeature,
-    //     glyph,
-    //     discontinuousLocation,
-    //     mousePosition,
-    //   },
-    //   current: {
-    //     feature,
-    //     topLevelFeature,
-    //     glyph,
-    //     mousePosition: currentMousePosition,
-    //   },
-    // })
+    const {
+      discontinuousLocation,
+      feature,
+      glyph,
+      mousePosition,
+      topLevelFeature,
+    } = stateModel.apolloDragging?.start ?? {}
+    if (!(currentMousePosition && mousePosition)) {
+      return
+    }
+    const { bp } = currentMousePosition
+    if (!feature || !currentMousePosition) {
+      return
+    }
+    const edge = this.isMouseOnFeatureEdge(
+      mousePosition,
+      feature,
+      stateModel,
+      topLevelFeature,
+    )
+    if (feature.type === 'CDS' && discontinuousLocation) {
+      const exonCDSRelations = this.exonCDSRelation(feature, topLevelFeature)
+      const { matchingExon, nextExon, prevExon } = this.adjacentExonsOfCdsDL(
+        discontinuousLocation,
+        exonCDSRelations,
+      )
+      if (nextExon && bp >= nextExon.min - 1) {
+        return
+      }
+      if (prevExon && bp <= prevExon.max + 1) {
+        return
+      }
+      if (!prevExon && nextExon && matchingExon && bp < matchingExon.min) {
+        return
+      }
+      if (prevExon && !nextExon && matchingExon && bp > matchingExon.max) {
+        return
+      }
+      if (
+        edge &&
+        ((edge === 'min' && bp >= discontinuousLocation.end - 1) ||
+          (edge === 'max' && bp <= discontinuousLocation.start + 1))
+      ) {
+        return
+      }
+    }
+    if (feature.type !== 'CDS') {
+      const adjacentExons = this.adjacentExonsOfExon(feature, topLevelFeature)
+      if (adjacentExons?.nextExon && bp >= adjacentExons?.nextExon.min - 1) {
+        return
+      }
+      if (adjacentExons?.prevExon && bp <= adjacentExons?.prevExon.max + 1) {
+        return
+      }
+      const dls: CDSDiscontinuousLocation[] = this.cdsDlsForExon(
+        feature,
+        topLevelFeature,
+      )
+      if (dls && dls.length > 0) {
+        let stopDrag
+        for (const dl of dls) {
+          if (
+            edge &&
+            ((edge === 'min' && bp >= dl.start - 1) ||
+              (edge === 'max' && bp <= dl.end + 1))
+          ) {
+            stopDrag = true
+            break
+          }
+        }
+        if (stopDrag) {
+          return
+        }
+      } else {
+        if (
+          edge &&
+          ((edge === 'min' && bp >= feature.max - 1) ||
+            (edge === 'max' && bp <= feature.min + 1))
+        ) {
+          return
+        }
+      }
+    }
+    stateModel.setDragging({
+      start: {
+        feature,
+        topLevelFeature,
+        glyph,
+        discontinuousLocation,
+        mousePosition,
+      },
+      current: {
+        feature,
+        topLevelFeature,
+        glyph,
+        mousePosition: currentMousePosition,
+      },
+    })
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
-  async executeDrag(_stateModel: LinearApolloDisplay) {}
 
   getFeatureFromLayout(
     feature: AnnotationFeatureNew,
@@ -980,6 +990,143 @@ export class CanonicalGeneGlyph extends Glyph {
     return
   }
 
+  async executeDrag(stateModel: LinearApolloDisplay) {
+    const {
+      apolloDragging,
+      changeManager,
+      displayedRegions,
+      getAssemblyId,
+      setCursor,
+    } = stateModel
+    if (!apolloDragging) {
+      return
+    }
+    const {
+      discontinuousLocation,
+      feature,
+      glyph,
+      mousePosition: startingMousePosition,
+      topLevelFeature,
+    } = apolloDragging.start
+    if (!feature) {
+      throw new Error('no feature for drag preview??')
+    }
+    if (glyph !== this) {
+      throw new Error('drawDragPreview() called on wrong glyph?')
+    }
+    const edge = this.isMouseOnFeatureEdge(
+      startingMousePosition,
+      feature,
+      stateModel,
+    )
+    if (!edge) {
+      return
+    }
+
+    const { mousePosition: currentMousePosition } = apolloDragging.current
+    const region = displayedRegions[startingMousePosition.regionNumber]
+    const newBp = currentMousePosition.bp
+    const assembly = getAssemblyId(region.assemblyName)
+    const changes: (
+      | LocationStartChange
+      | LocationEndChange
+      | DiscontinuousLocationEndChange
+      | DiscontinuousLocationStartChange
+    )[] = []
+
+    const parentFeature = glyph.getParentFeature(feature, topLevelFeature)
+    const cdsLocs = glyph.getDiscontinuousLocations(parentFeature, feature)
+
+    if (edge === 'min') {
+      if (
+        discontinuousLocation?.idx !== undefined &&
+        cdsLocs &&
+        cdsLocs.length > 0
+      ) {
+        const oldStart = cdsLocs[discontinuousLocation.idx].start
+        // this.addDiscontinuousLocStartChange(
+        //   changes,
+        //   feature,
+        //   newBp,
+        //   oldStart,
+        //   assembly,
+        //   discontinuousLocation.idx,
+        // )
+        feature.setMin(newBp)
+
+        const exonCDSRelations = this.exonCDSRelation(feature, topLevelFeature)
+        const exonForCds = this.adjacentExonsOfCdsDL(
+          discontinuousLocation,
+          exonCDSRelations,
+        )
+        if (
+          exonForCds &&
+          exonForCds.matchingExon &&
+          newBp < exonForCds.matchingExon.min
+        ) {
+          // this.addStartLocationChange(
+          //   changes,
+          //   exonForCds.matchingExon,
+          //   newBp,
+          //   assembly,
+          // )
+          exonForCds.matchingExon.setMin(newBp)
+        }
+      } else {
+        // this.addStartLocationChange(changes, feature, newBp, assembly)
+        feature.setMin(newBp)
+      }
+    } else {
+      if (
+        discontinuousLocation?.idx !== undefined &&
+        cdsLocs &&
+        cdsLocs.length > 0
+      ) {
+        const oldEnd = cdsLocs[discontinuousLocation.idx].end
+        // this.addDiscontinuousLocEndChange(
+        //   changes,
+        //   feature,
+        //   newBp,
+        //   oldEnd,
+        //   assembly,
+        //   discontinuousLocation.idx,
+        // )
+        feature.setMax(newBp)
+
+        const exonCDSRelations = this.exonCDSRelation(feature, topLevelFeature)
+        const exonForCds = this.adjacentExonsOfCdsDL(
+          discontinuousLocation,
+          exonCDSRelations,
+        )
+        if (
+          exonForCds &&
+          exonForCds.matchingExon &&
+          newBp > exonForCds.matchingExon.max
+        ) {
+          // this.addEndLocationChange(
+          //   changes,
+          //   exonForCds.matchingExon,
+          //   newBp,
+          //   assembly,
+          // )
+          exonForCds.matchingExon.setMax(newBp)
+        }
+      } else {
+        // this.addEndLocationChange(changes, feature, newBp, assembly)
+        feature.setMax(newBp)
+      }
+    }
+
+    if (!changeManager) {
+      throw new Error('no change manager')
+    }
+    // for (const change of changes) {
+    //   await changeManager.submit(change)
+    // }
+
+    setCursor()
+  }
+
   addDiscontinuousLocStartChange(
     changes: LocationChange[],
     feature: AnnotationFeatureNew, // cds
@@ -997,6 +1144,27 @@ export class CanonicalGeneGlyph extends Glyph {
         newStart: newBp,
         oldStart,
         index,
+        assembly,
+      }),
+    )
+  }
+
+  addStartLocationChange(
+    changes: LocationChange[],
+    feature: AnnotationFeatureNew,
+    newBp: number,
+    assembly: string,
+  ) {
+    const featureId = feature._id
+    const oldStart = feature.min
+    const newStart = newBp
+    changes.push(
+      new LocationStartChange({
+        typeName: 'LocationStartChange',
+        changedIds: [featureId],
+        featureId,
+        oldStart,
+        newStart,
         assembly,
       }),
     )
@@ -1040,27 +1208,6 @@ export class CanonicalGeneGlyph extends Glyph {
         featureId,
         oldEnd,
         newEnd,
-        assembly,
-      }),
-    )
-  }
-
-  addStartLocationChange(
-    changes: LocationChange[],
-    feature: AnnotationFeatureNew,
-    newBp: number,
-    assembly: string,
-  ) {
-    const featureId = feature._id
-    const oldStart = feature.min
-    const newStart = newBp
-    changes.push(
-      new LocationStartChange({
-        typeName: 'LocationStartChange',
-        changedIds: [featureId],
-        featureId,
-        oldStart,
-        newStart,
         assembly,
       }),
     )
