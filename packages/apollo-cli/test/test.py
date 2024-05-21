@@ -841,7 +841,7 @@ class TestCLI(unittest.TestCase):
         out = json.loads(p.stdout)
         self.assertEqual(len(out), 0)
 
-    def testApolloEnv(self):
+    def testApolloProfileEnv(self):
         p = shell(
             f"""export APOLLO_PROFILE=testAdmin2
                 {apollo} config address http://localhost:3999
@@ -854,6 +854,38 @@ class TestCLI(unittest.TestCase):
         )
         self.assertTrue("testAdmin2: Logged in" in p.stdout)
         self.assertTrue("createdAt" in p.stdout)
+
+    def testApolloConfigCreateEnv(self):
+        p = shell(
+            f"""\
+                export APOLLO_DISABLE_CONFIG_CREATE=1
+                rm -f tmp.yaml
+                {apollo} config --config-file tmp.yaml address http://localhost:3999""",
+            strict=False,
+        )
+        self.assertTrue(p.returncode != 0)
+        self.assertTrue("does not exist yet" in p.stderr)
+        self.assertFalse(os.path.isfile("tmp.yaml"))
+
+        p = shell(
+            f"""\
+                export APOLLO_DISABLE_CONFIG_CREATE=0
+                rm -f tmp.yaml
+                {apollo} config --config-file tmp.yaml address http://localhost:3999"""
+        )
+        self.assertEqual(0, p.returncode)
+        self.assertTrue(os.path.isfile("tmp.yaml"))
+
+        p = shell(
+            f"""\
+                unset APOLLO_DISABLE_CONFIG_CREATE
+                rm -f tmp.yaml
+                {apollo} config --config-file tmp.yaml address http://localhost:3999"""
+        )
+        self.assertEqual(0, p.returncode)
+        self.assertTrue(os.path.isfile("tmp.yaml"))
+
+        os.remove("tmp.yaml")
 
 
 if __name__ == "__main__":
