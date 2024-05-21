@@ -10,6 +10,7 @@ import {
   ModifyFeatureAttribute,
 } from '../../components'
 import {
+  CDSDiscontinuousLocation,
   LinearApolloDisplayMouseEvents,
   MousePosition,
 } from '../stateModel/mouseEvents'
@@ -114,6 +115,85 @@ export abstract class Glyph {
     return
   }
 
+  getDiscontinuousLocations(
+    parentFeature: AnnotationFeatureNew,
+    cdsFeature: AnnotationFeatureNew,
+  ): CDSDiscontinuousLocation[] {
+    const exons: AnnotationFeatureNew[] = []
+
+    for (const [, child] of parentFeature.children ?? new Map()) {
+      if (child.type === 'exon') {
+        exons.push(child)
+      }
+    }
+
+    const cdsDLs: CDSDiscontinuousLocation[] = []
+    for (const exon of exons) {
+      if (exon.min > cdsFeature.max || exon.max < cdsFeature.min) {
+        continue
+      }
+
+      let cdsMin, cdsMax
+      if (exon.min > cdsFeature.min && exon.max < cdsFeature.max) {
+        cdsMin = exon.min
+        cdsMax = exon.max
+      } else if (
+        exon.min <= cdsFeature.min &&
+        cdsFeature.min < exon.max &&
+        exon.max < cdsFeature.max
+      ) {
+        cdsMin = cdsFeature.min
+        cdsMax = exon.max
+      } else if (
+        exon.min < cdsFeature.max &&
+        cdsFeature.max <= exon.max &&
+        exon.min > cdsFeature.min
+      ) {
+        cdsMin = exon.min
+        cdsMax = cdsFeature.max
+      } else {
+        continue
+      }
+      cdsDLs.push({
+        start: cdsMin,
+        end: cdsMax,
+        phase: undefined,
+      })
+    }
+
+    return cdsDLs
+  }
+
+  getParentFeature(
+    feature?: AnnotationFeatureNew,
+    topLevelFeature?: AnnotationFeatureNew,
+  ) {
+    let parentFeature
+    if (!feature || !topLevelFeature?.children) {
+      return parentFeature
+    }
+
+    for (const [, f] of topLevelFeature.children) {
+      if (f._id === feature._id) {
+        parentFeature = topLevelFeature
+        break
+      }
+      if (!f?.children) {
+        continue
+      }
+      for (const [, cf] of f.children) {
+        if (cf._id === feature._id) {
+          parentFeature = f
+          break
+        }
+      }
+      if (parentFeature) {
+        break
+      }
+    }
+    return parentFeature
+  }
+
   drawTooltip(
     display: LinearApolloDisplayMouseEvents,
     context: CanvasRenderingContext2D,
@@ -123,8 +203,8 @@ export abstract class Glyph {
     if (!apolloHover) {
       return
     }
-    const { feature, mousePosition } = apolloHover
-    if (!(feature && mousePosition)) {
+    const { feature, mousePosition, topLevelFeature } = apolloHover
+    if (!(feature && mousePosition && topLevelFeature)) {
       return
     }
     const { regionNumber, y } = mousePosition
@@ -132,12 +212,42 @@ export abstract class Glyph {
     const { refName, reversed } = displayedRegion
     const { bpPerPx, bpToPx, offsetPx } = lgv
 
+    const parentFeature = this.getParentFeature(feature, topLevelFeature)
+    const cdsLocs = this.getDiscontinuousLocations(parentFeature, feature)
+    let start: number, end: number, length: number
     let location = 'Loc: '
-    const { length, max, min } = feature
-    location += `${min + 1}–${max}`
+    if (cdsLocs && cdsLocs.length > 0) {
+      const lastLoc = cdsLocs.at(-1)
+      if (!lastLoc) {
+        return
+      }
+      ;({ start } = lastLoc)
+      ;({ end } = lastLoc)
+      length = lastLoc.end - lastLoc.start
+
+      if (cdsLocs.length <= 2) {
+        for (const [i, loc] of cdsLocs.entries()) {
+          location += `${loc.start + 1}–${loc.end}`
+          if (i !== cdsLocs.length - 1) {
+            location += ','
+          }
+        }
+      } else {
+        const [firstLoc] = cdsLocs
+        location += `${firstLoc.start + 1}–${firstLoc.end},…,${
+          lastLoc.start + 1
+        }–${lastLoc.end}`
+      }
+    } else {
+      const { max, min } = feature
+      ;({ length } = feature)
+      location += `${min + 1}–${max}`
+      start = min
+      end = max
+    }
 
     let startPx =
-      (bpToPx({ refName, coord: reversed ? max : min, regionNumber })
+      (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
         ?.offsetPx ?? 0) - offsetPx
     const row = Math.floor(y / apolloRowHeight)
     const top = row * apolloRowHeight
@@ -212,37 +322,6 @@ export abstract class Glyph {
       nextFeature = parentFeature.children.get(key)
     }
     return { prevFeature, nextFeature }
-  }
-
-  getParentFeature(
-    feature?: AnnotationFeatureNew,
-    topLevelFeature?: AnnotationFeatureNew,
-  ) {
-    let parentFeature
-
-    if (!feature || !topLevelFeature?.children) {
-      return parentFeature
-    }
-
-    for (const [, f] of topLevelFeature.children) {
-      if (f._id === feature._id) {
-        parentFeature = topLevelFeature
-        break
-      }
-      if (!f?.children) {
-        continue
-      }
-      for (const [, cf] of f.children) {
-        if (cf._id === feature._id) {
-          parentFeature = f
-          break
-        }
-      }
-      if (parentFeature) {
-        break
-      }
-    }
-    return parentFeature
   }
 
   getContextMenuItems(display: LinearApolloDisplayMouseEvents): MenuItem[] {
