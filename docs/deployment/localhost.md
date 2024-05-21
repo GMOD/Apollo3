@@ -37,7 +37,7 @@ sed -i'' 's|#* *GUEST_USER_ROLE=.*|GUEST_USER_ROLE=admin|' .env
 
 # Allow root user and set its username and password
 sed -i'' 's|#* *ALLOW_ROOT_USER=.*|ALLOW_ROOT_USER=true|' .env
-sed -i'' 's|#* *ROOT_USER_NAME=.*|ROOT_USER_NAME=root|' .env
+sed -i'' 's|#* *ROOT_USER_NAME=.*|ROOT_USER_NAME=admin|' .env
 sed -i'' 's|#* *ROOT_USER_PASSWORD=.*|ROOT_USER_PASSWORD=pass|' .env
 
 sed -i'' 's| ALLOW_GUEST_USER:.*| ALLOW_GUEST_USER: true|' compose.yml
