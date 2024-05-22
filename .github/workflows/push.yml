@@ -67,9 +67,9 @@ jobs:
   build-and-push-docker:
     name: Build and push Docker image
     runs-on: ubuntu-latest
-    #if:
-    #  ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-    #  inputs.publish }}
+    if:
+      ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      inputs.publish }}
     steps:
       - name: Check out
         uses: actions/checkout@v4
