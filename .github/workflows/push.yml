@@ -67,9 +67,9 @@ jobs:
   build-and-push-docker:
     name: Build and push Docker image
     runs-on: ubuntu-latest
-    if:
-      ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      inputs.publish }}
+    #if:
+    #  ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+    #  inputs.publish }}
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -90,6 +90,18 @@ jobs:
           outputs:
             type=image,annotation-index.org.opencontainers.image.description=Apollo
             collaboration server
+          cache-from: type=registry,ref=user/app:latest
+          cache-to: type=inline
+      - name: Build and push Apollo CLI
+        uses: docker/build-push-action@v5
+        with:
+          platforms: linux/arm64/v8,linux/amd64
+          push: true
+          tags: ghcr.io/gmod/apollo-cli:development
+          context: packages/apollo-cli
+          outputs:
+            type=image,annotation-index.org.opencontainers.image.description=
+            Apollo CLI
           cache-from: type=registry,ref=user/app:latest
           cache-to: type=inline
   deploy:
