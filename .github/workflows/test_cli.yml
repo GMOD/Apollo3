@@ -1,0 +1,38 @@
+name: Test CLI
+on: push
+
+jobs:
+  build:
+    name: End-to-end test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v3
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: yarn
+
+      - name: Install
+        run: yarn --immutable
+
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.10.0
+        with:
+          mongodb-version: 7
+          mongodb-replica-set: test-rs
+
+      - name: Start apollo
+        run: |
+          yarn --cwd packages/apollo-shared start & 
+          yarn --cwd packages/apollo-collaboration-server start &
+
+      - name: Run tests
+        working-directory: packages/apollo-cli
+        run: python3 ./test/test.py TestCLI
+
+      - name: Run docker tests
+        working-directory: packages/apollo-cli
+        run: python3 ./test/test_docker.py

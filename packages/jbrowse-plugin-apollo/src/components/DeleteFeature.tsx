@@ -1,3 +1,5 @@
+import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
+import { DeleteFeatureChange } from '@apollo-annotation/apollo-shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
@@ -5,8 +7,6 @@ import {
   DialogContent,
   DialogContentText,
 } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
-import { DeleteFeatureChange } from 'apollo-shared'
 import { getSnapshot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 

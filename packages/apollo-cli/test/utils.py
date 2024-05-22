@@ -27,4 +27,3 @@ class shell:
             raise subprocess.SubprocessError(
                 f"\nSTDOUT:\n{self.stdout}\nSTDERR:\n{self.stderr}\nEXIT CODE: {self.returncode}"
             )
-

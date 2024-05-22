@@ -1,6 +1,9 @@
+import {
+  AnnotationFeature,
+  AnnotationFeatureI,
+} from '@apollo-annotation/apollo-mst'
 import { SessionWithWidgets } from '@jbrowse/core/util'
 import { Button, Paper, Typography } from '@mui/material'
-import { AnnotationFeature, AnnotationFeatureI } from 'apollo-mst'
 import { observer } from 'mobx-react'
 import { IMSTMap } from 'mobx-state-tree'
 import React from 'react'

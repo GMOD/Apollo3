@@ -1,8 +1,11 @@
+import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
+import {
+  LocationEndChange,
+  LocationStartChange,
+} from '@apollo-annotation/apollo-shared'
 import { getConf } from '@jbrowse/core/configuration'
 import { AbstractSessionModel, Region, getSession } from '@jbrowse/core/util'
 import { Menu, MenuItem } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
-import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { autorun, toJS } from 'mobx'
 import { observer } from 'mobx-react'
 import { getRoot, getSnapshot } from 'mobx-state-tree'

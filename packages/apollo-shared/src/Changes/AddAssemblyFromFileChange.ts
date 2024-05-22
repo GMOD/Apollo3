@@ -5,7 +5,7 @@ import {
   LocalGFF3DataStore,
   SerializedAssemblySpecificChange,
   ServerDataStore,
-} from 'apollo-common'
+} from '@apollo-annotation/apollo-common'
 
 export interface SerializedAddAssemblyFromFileChangeBase
   extends SerializedAssemblySpecificChange {

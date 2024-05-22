@@ -2,8 +2,11 @@ import fs from 'node:fs'
 import fsPromises from 'node:fs/promises'
 import path from 'node:path'
 
+import {
+  ApolloPlugin,
+  ApolloPluginConstructor,
+} from '@apollo-annotation/apollo-common'
 import { DynamicModule, Logger, Module, Provider } from '@nestjs/common'
-import { ApolloPlugin, ApolloPluginConstructor } from 'apollo-common'
 import fetch from 'node-fetch'
 import sanitize from 'sanitize-filename'
 

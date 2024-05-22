@@ -1,7 +1,6 @@
 import type { ReadStream } from 'node:fs'
 import type { FileHandle } from 'node:fs/promises'
 
-import type { LoggerService } from '@nestjs/common'
 import {
   AssemblyDocument,
   FeatureDocument,
@@ -9,7 +8,8 @@ import {
   RefSeqChunkDocument,
   RefSeqDocument,
   UserDocument,
-} from 'apollo-schemas'
+} from '@apollo-annotation/apollo-schemas'
+import type { LoggerService } from '@nestjs/common'
 import type { ClientSession, Model } from 'mongoose'
 
 export interface LocalGFF3DataStore {

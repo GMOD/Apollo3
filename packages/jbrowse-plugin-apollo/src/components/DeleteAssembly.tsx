@@ -1,3 +1,4 @@
+import { DeleteAssemblyChange } from '@apollo-annotation/apollo-shared'
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import {
   Button,
@@ -11,7 +12,6 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material'
-import { DeleteAssemblyChange } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 

@@ -1,6 +1,6 @@
 {
-  "version": "1.0.0-alpha.0",
-  "name": "jbrowse-plugin-apollo",
+  "name": "@apollo-annotation/jbrowse-plugin-apollo",
+  "version": "0.1.1",
   "description": "Apollo plugin for JBrowse 2",
   "repository": {
     "type": "git",
@@ -51,6 +51,9 @@
     "name": "Apollo"
   },
   "dependencies": {
+    "@apollo-annotation/apollo-common": "workspace:^",
+    "@apollo-annotation/apollo-mst": "workspace:^",
+    "@apollo-annotation/apollo-shared": "workspace:^",
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
     "@gmod/gff": "1.2.0",
@@ -58,9 +61,6 @@
     "@jbrowse/plugin-linear-genome-view": "^2.0.1",
     "@mui/icons-material": "^5.8.4",
     "@types/jsonpath": "^0.2.0",
-    "apollo-common": "workspace:^",
-    "apollo-mst": "workspace:^",
-    "apollo-shared": "workspace:^",
     "autosuggest-highlight": "^3.3.4",
     "bson-objectid": "^2.0.4",
     "clsx": "^1.1.1",
@@ -123,6 +123,8 @@
     "tss-react": "^4.6.1",
     "typescript": "^5.1.6"
   },
-  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
   "stableVersion": "0.0.0"
 }
