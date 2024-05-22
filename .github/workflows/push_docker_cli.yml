@@ -29,7 +29,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           platforms: linux/arm64/v8,linux/amd64
-          push: false
+          push: true
           tags: ghcr.io/gmod/apollo-cli:development
           context: packages/apollo-cli
           outputs:
