@@ -50,12 +50,16 @@ function getMousePosition(
   return { x, y, refName, bp, regionNumber }
 }
 
-/* function getSeqRow(feature: AnnotationFeatureNew, bpPerPx: number) {
+function getSeqRow(
+  feature: AnnotationFeatureNew,
+  bpPerPx: number,
+  phase?: number,
+) {
   const rowOffset = bpPerPx <= 1 ? 5 : 3
-  if (feature.type === 'CDS' && feature.phase !== undefined) {
+  if (feature.type === 'CDS' && phase !== undefined) {
     return feature.strand === -1
-      ? ((feature.max - feature.phase) % 3) + rowOffset
-      : Math.abs(((feature.min + feature.phase) % 3) - 2)
+      ? ((feature.max - phase) % 3) + rowOffset
+      : Math.abs(((feature.min + phase) % 3) - 2)
   }
 
   if (bpPerPx <= 1) {
@@ -63,7 +67,7 @@ function getMousePosition(
   }
 
   return
-} */
+}
 
 function highlightSeq(
   seqTrackOverlayctx: CanvasRenderingContext2D,
@@ -222,60 +226,67 @@ export function mouseEventsSeqHightlightModelFactory(
             if (!apolloHover) {
               return
             }
-            const { feature, mousePosition } = apolloHover
-            if (!feature || !mousePosition) {
+            const { feature, glyph, mousePosition, topLevelFeature } =
+              apolloHover
+            if (!feature || !mousePosition || !glyph) {
               return
             }
 
-            // for (const [idx, region] of regions.entries()) {
-            //   const row = getSeqRow(feature, lgv.bpPerPx)
-            //   if (
-            //     feature.discontinuousLocations &&
-            //     feature.discontinuousLocations.length > 0
-            //   ) {
-            //     for (const dl of feature.discontinuousLocations) {
-            //       const offset =
-            //         (lgv.bpToPx({
-            //           refName: region.refName,
-            //           coord: dl.start,
-            //           regionNumber: idx,
-            //         })?.offsetPx ?? 0) - lgv.offsetPx
-            //       const widthPx = (dl.end - dl.start) / lgv.bpPerPx
-            //       const startPx = displayedRegions[idx].reversed
-            //         ? offset - widthPx
-            //         : offset
+            for (const [idx, region] of regions.entries()) {
+              if (feature.type === 'CDS') {
+                const parentFeature = glyph.getParentFeature(
+                  feature,
+                  topLevelFeature,
+                )
+                const cdsLocs = glyph.getDiscontinuousLocations(
+                  parentFeature,
+                  feature,
+                )
+                for (const dl of cdsLocs) {
+                  const row = getSeqRow(feature, lgv.bpPerPx, dl.phase)
+                  const offset =
+                    (lgv.bpToPx({
+                      refName: region.refName,
+                      coord: dl.start,
+                      regionNumber: idx,
+                    })?.offsetPx ?? 0) - lgv.offsetPx
+                  const widthPx = (dl.end - dl.start) / lgv.bpPerPx
+                  const startPx = displayedRegions[idx].reversed
+                    ? offset - widthPx
+                    : offset
 
-            //       highlightSeq(
-            //         seqTrackOverlayctx,
-            //         theme,
-            //         startPx,
-            //         sequenceRowHeight,
-            //         row,
-            //         widthPx,
-            //       )
-            //     }
-            //   } else {
-            //     const offset =
-            //       (lgv.bpToPx({
-            //         refName: region.refName,
-            //         coord: feature.min,
-            //         regionNumber: idx,
-            //       })?.offsetPx ?? 0) - lgv.offsetPx
-            //     const widthPx = feature.length / lgv.bpPerPx
-            //     const startPx = displayedRegions[idx].reversed
-            //       ? offset - widthPx
-            //       : offset
+                  highlightSeq(
+                    seqTrackOverlayctx,
+                    theme,
+                    startPx,
+                    sequenceRowHeight,
+                    row,
+                    widthPx,
+                  )
+                }
+              } else {
+                const row = getSeqRow(feature, lgv.bpPerPx)
+                const offset =
+                  (lgv.bpToPx({
+                    refName: region.refName,
+                    coord: feature.min,
+                    regionNumber: idx,
+                  })?.offsetPx ?? 0) - lgv.offsetPx
+                const widthPx = feature.length / lgv.bpPerPx
+                const startPx = displayedRegions[idx].reversed
+                  ? offset - widthPx
+                  : offset
 
-            //     highlightSeq(
-            //       seqTrackOverlayctx,
-            //       theme,
-            //       startPx,
-            //       sequenceRowHeight,
-            //       row,
-            //       widthPx,
-            //     )
-            //   }
-            // }
+                highlightSeq(
+                  seqTrackOverlayctx,
+                  theme,
+                  startPx,
+                  sequenceRowHeight,
+                  row,
+                  widthPx,
+                )
+              }
+            }
           },
           { name: 'LinearApolloDisplayRenderSeqHighlight' },
         ),
