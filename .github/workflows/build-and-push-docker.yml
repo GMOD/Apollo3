@@ -28,7 +28,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           platforms: linux/arm64/v8,linux/amd64
-          push: false # true
+          push: true
           tags: ghcr.io/gmod/apollo-cli:${{ inputs.tag }}
           context: packages/apollo-cli
           outputs:
@@ -40,7 +40,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           platforms: linux/arm64/v8,linux/amd64
-          push: false # true
+          push: true
           tags: ghcr.io/gmod/apollo-collaboration-server:${{ inputs.tag }}
           outputs:
             type=image,annotation-index.org.opencontainers.image.description=Apollo
