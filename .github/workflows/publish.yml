@@ -4,9 +4,6 @@ on:
   push:
     # tags: 'v[0-9]'
 
-env:
-  tag: devel
-
 jobs:
   publish-npm:
     name: Publish to npm
@@ -23,11 +20,11 @@ jobs:
       - run: yarn --immutable
       - run: |
           yarn config set npmAuthToken ${{ secrets.NPM_TOKEN }}
-          yarn workspaces foreach --no-private --all npm publish --tolerate-republish --tag $tag
+          yarn workspaces foreach --no-private --all npm publish --tolerate-republish --tag devel
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   publish-docker:
     name: Build and push Docker image
     uses: ./.github/workflows/build-and-push-docker.yml
     with:
-      tag: '${{ tag }}'
+      tag: devel
