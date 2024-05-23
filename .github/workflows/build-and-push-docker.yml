@@ -24,29 +24,26 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Test
-        run: |
-          ls
-      # - name: Build and push Apollo CLI
-      #   uses: docker/build-push-action@v5
-      #   with:
-      #     platforms: linux/arm64/v8,linux/amd64
-      #     push: true
-      #     tags: ghcr.io/gmod/apollo-cli:${{ inputs.tag }}
-      #     context: packages/apollo-cli
-      #     outputs:
-      #       type=image,annotation-index.org.opencontainers.image.description=
-      #       Apollo CLI
-      #     cache-from: type=registry,ref=user/app:latest
-      #     cache-to: type=inline
-      # - name: Build and push Apollo collaboration server image
-      #   uses: docker/build-push-action@v5
-      #   with:
-      #     platforms: linux/arm64/v8,linux/amd64
-      #     push: true
-      #     tags: ghcr.io/gmod/apollo-collaboration-server:${{ inputs.tag }}
-      #     outputs:
-      #       type=image,annotation-index.org.opencontainers.image.description=Apollo
-      #       collaboration server
-      #     cache-from: type=registry,ref=user/app:latest
-      #     cache-to: type=inline
+      - name: Build and push Apollo CLI
+        uses: docker/build-push-action@v5
+        with:
+          platforms: linux/arm64/v8,linux/amd64
+          push: false # true
+          tags: ghcr.io/gmod/apollo-cli:${{ inputs.tag }}
+          context: packages/apollo-cli
+          outputs:
+            type=image,annotation-index.org.opencontainers.image.description=
+            Apollo CLI
+          cache-from: type=registry,ref=user/app:latest
+          cache-to: type=inline
+      - name: Build and push Apollo collaboration server image
+        uses: docker/build-push-action@v5
+        with:
+          platforms: linux/arm64/v8,linux/amd64
+          push: false # true
+          tags: ghcr.io/gmod/apollo-collaboration-server:${{ inputs.tag }}
+          outputs:
+            type=image,annotation-index.org.opencontainers.image.description=Apollo
+            collaboration server
+          cache-from: type=registry,ref=user/app:latest
+          cache-to: type=inline

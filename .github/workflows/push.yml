@@ -69,9 +69,9 @@ jobs:
     uses: ./.github/workflows/build-and-push-docker.yml
     with:
       tag: 'development'
-    #if:
-    #  ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-    #  inputs.publish }}
+    if:
+      ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      inputs.publish }}
   deploy:
     name: Deploy to demo staging server
     runs-on: ubuntu-latest
