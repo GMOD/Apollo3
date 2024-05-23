@@ -2,7 +2,7 @@ name: Publish Apollo
 
 on:
   push:
-    # tags: 'v[0-9]'
+    tags: 'v[0-9]'
 
 jobs:
   publish-npm:
