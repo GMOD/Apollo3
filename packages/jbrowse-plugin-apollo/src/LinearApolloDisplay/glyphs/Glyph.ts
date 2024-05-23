@@ -123,48 +123,6 @@ export abstract class Glyph {
     parentFeature: AnnotationFeatureNew,
     cdsFeature: AnnotationFeatureNew,
   ): CDSDiscontinuousLocation[] {
-    // const exons: AnnotationFeatureNew[] = []
-
-    // for (const [, child] of parentFeature.children ?? new Map()) {
-    //   if (child.type === 'exon') {
-    //     exons.push(child)
-    //   }
-    // }
-
-    // const cdsDLs: CDSDiscontinuousLocation[] = []
-    // for (const exon of exons) {
-    //   if (exon.min > cdsFeature.max || exon.max < cdsFeature.min) {
-    //     continue
-    //   }
-
-    //   let cdsMin, cdsMax
-    //   if (exon.min > cdsFeature.min && exon.max < cdsFeature.max) {
-    //     cdsMin = exon.min
-    //     cdsMax = exon.max
-    //   } else if (
-    //     exon.min <= cdsFeature.min &&
-    //     cdsFeature.min < exon.max &&
-    //     exon.max < cdsFeature.max
-    //   ) {
-    //     cdsMin = cdsFeature.min
-    //     cdsMax = exon.max
-    //   } else if (
-    //     exon.min < cdsFeature.max &&
-    //     cdsFeature.max <= exon.max &&
-    //     exon.min > cdsFeature.min
-    //   ) {
-    //     cdsMin = exon.min
-    //     cdsMax = cdsFeature.max
-    //   } else {
-    //     continue
-    //   }
-    //   cdsDLs.push({
-    //     start: cdsMin,
-    //     end: cdsMax,
-    //     phase: undefined,
-    //   })
-    // }
-
     const cdsDLs: CDSDiscontinuousLocation[] = []
 
     if (parentFeature?.type !== 'mRNA') {
