@@ -76,6 +76,9 @@ interface ExonCDSRelation {
 }
 
 export class CanonicalGeneGlyph extends Glyph {
+  /**
+   * Return list of all the features (exons/cds) for each row for a given feature
+   */
   featuresForRow(
     feature: AnnotationFeatureNew,
   ): CanonicalGeneAnnotationFeature[][] {
@@ -96,7 +99,7 @@ export class CanonicalGeneGlyph extends Glyph {
       }
     }
 
-    console.log('cdsFeatures', cdsFeatures)
+    // console.log('cdsFeatures', cdsFeatures)
 
     const features: CanonicalGeneAnnotationFeature[][] = []
     for (const f of cdsFeatures) {
@@ -106,6 +109,7 @@ export class CanonicalGeneGlyph extends Glyph {
           continue
         }
 
+        // Add all cds locations
         if (
           cf.type === 'CDS' &&
           f.cdsDiscontinuousLocs &&
@@ -121,12 +125,14 @@ export class CanonicalGeneGlyph extends Glyph {
             })
           }
         } else {
+          // Add all exons
           childFeatures.push({
             annotationFeature: cf,
             parent: f.parent,
           })
         }
       }
+      // Add parent(mRNA) feature
       childFeatures.push({
         annotationFeature: f.parent,
       })
@@ -381,8 +387,9 @@ export class CanonicalGeneGlyph extends Glyph {
       const cdsLocs = this.getDiscontinuousLocations(parentFeature, feature)
       const { cdsLocations } = parentFeature
 
-      console.log('parentFeature type', parentFeature.type)
+      // console.log('parentFeature type', parentFeature.type)
       console.log('cdsLocations', cdsLocations)
+      console.log('cdsLocs', cdsLocs)
 
       for (const cdsLoc of cdsLocs) {
         this.drawShadeForFeature(

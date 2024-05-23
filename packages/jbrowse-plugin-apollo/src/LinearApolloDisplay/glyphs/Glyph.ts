@@ -119,45 +119,77 @@ export abstract class Glyph {
     parentFeature: AnnotationFeatureNew,
     cdsFeature: AnnotationFeatureNew,
   ): CDSDiscontinuousLocation[] {
-    const exons: AnnotationFeatureNew[] = []
+    // const exons: AnnotationFeatureNew[] = []
 
-    for (const [, child] of parentFeature.children ?? new Map()) {
-      if (child.type === 'exon') {
-        exons.push(child)
+    // for (const [, child] of parentFeature.children ?? new Map()) {
+    //   if (child.type === 'exon') {
+    //     exons.push(child)
+    //   }
+    // }
+
+    // const cdsDLs: CDSDiscontinuousLocation[] = []
+    // for (const exon of exons) {
+    //   if (exon.min > cdsFeature.max || exon.max < cdsFeature.min) {
+    //     continue
+    //   }
+
+    //   let cdsMin, cdsMax
+    //   if (exon.min > cdsFeature.min && exon.max < cdsFeature.max) {
+    //     cdsMin = exon.min
+    //     cdsMax = exon.max
+    //   } else if (
+    //     exon.min <= cdsFeature.min &&
+    //     cdsFeature.min < exon.max &&
+    //     exon.max < cdsFeature.max
+    //   ) {
+    //     cdsMin = cdsFeature.min
+    //     cdsMax = exon.max
+    //   } else if (
+    //     exon.min < cdsFeature.max &&
+    //     cdsFeature.max <= exon.max &&
+    //     exon.min > cdsFeature.min
+    //   ) {
+    //     cdsMin = exon.min
+    //     cdsMax = cdsFeature.max
+    //   } else {
+    //     continue
+    //   }
+    //   cdsDLs.push({
+    //     start: cdsMin,
+    //     end: cdsMax,
+    //     phase: undefined,
+    //   })
+    // }
+
+    const cdsDLs: CDSDiscontinuousLocation[] = []
+
+    if (parentFeature?.type !== 'mRNA') {
+      return cdsDLs
+    }
+
+    const { cdsLocations, children } = parentFeature
+
+    let i = 0
+    for (const [, child] of children ?? new Map()) {
+      if (cdsFeature._id === child._id) {
+        break
+      }
+      if (child.type === 'CDS') {
+        i++
       }
     }
 
-    const cdsDLs: CDSDiscontinuousLocation[] = []
-    for (const exon of exons) {
-      if (exon.min > cdsFeature.max || exon.max < cdsFeature.min) {
-        continue
-      }
+    const cdsLocation = cdsLocations[i]
 
-      let cdsMin, cdsMax
-      if (exon.min > cdsFeature.min && exon.max < cdsFeature.max) {
-        cdsMin = exon.min
-        cdsMax = exon.max
-      } else if (
-        exon.min <= cdsFeature.min &&
-        cdsFeature.min < exon.max &&
-        exon.max < cdsFeature.max
-      ) {
-        cdsMin = cdsFeature.min
-        cdsMax = exon.max
-      } else if (
-        exon.min < cdsFeature.max &&
-        cdsFeature.max <= exon.max &&
-        exon.min > cdsFeature.min
-      ) {
-        cdsMin = exon.min
-        cdsMax = cdsFeature.max
-      } else {
-        continue
-      }
+    if (!cdsLocation) {
+      return cdsDLs
+    }
+
+    for (const { max, min, phase } of cdsLocation) {
       cdsDLs.push({
-        start: cdsMin,
-        end: cdsMax,
-        phase: undefined,
+        start: min,
+        end: max,
+        phase,
       })
     }
 
@@ -216,7 +248,7 @@ export abstract class Glyph {
     const cdsLocs = this.getDiscontinuousLocations(parentFeature, feature)
     let start: number, end: number, length: number
     let location = 'Loc: '
-    if (cdsLocs && cdsLocs.length > 0) {
+    if (feature.type === 'CDS' && cdsLocs && cdsLocs.length > 0) {
       const lastLoc = cdsLocs.at(-1)
       if (!lastLoc) {
         return
