@@ -391,12 +391,6 @@ export class CanonicalGeneGlyph extends Glyph {
     if (feature.type === 'CDS') {
       const parentFeature = this.getParentFeature(feature, topLevelFeature)
       const cdsLocs = this.getDiscontinuousLocations(parentFeature, feature)
-      const { cdsLocations } = parentFeature
-
-      // console.log('parentFeature type', parentFeature.type)
-      console.log('cdsLocations', cdsLocations)
-      console.log('cdsLocs', cdsLocs)
-
       for (const cdsLoc of cdsLocs) {
         this.drawShadeForFeature(
           stateModel,
@@ -718,8 +712,8 @@ export class CanonicalGeneGlyph extends Glyph {
         const dl = exonCDSRelation.cdsDL
         if (
           cdsDL.start === dl?.start &&
-          cdsDL.end === dl.end
-          // && cdsDL.phase === dl.phase
+          cdsDL.end === dl.end &&
+          cdsDL.phase === dl.phase
         ) {
           idx = i
           break
@@ -760,7 +754,7 @@ export class CanonicalGeneGlyph extends Glyph {
             ? {
                 start: cdsDLForExon.start,
                 end: cdsDLForExon.end,
-                phase: undefined,
+                phase: cdsDLForExon.phase,
               }
             : undefined,
         })
@@ -973,8 +967,8 @@ export class CanonicalGeneGlyph extends Glyph {
     for (const f of featuresForRow) {
       if (
         f.start !== undefined &&
-        f.end !== undefined
-        // && f.phase !== undefined
+        f.end !== undefined &&
+        f.phase !== undefined
       ) {
         if (bp >= f.start && bp <= f.end && f.parent) {
           featureFromLayout = f.annotationFeature
