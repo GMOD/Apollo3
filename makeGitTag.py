@@ -103,9 +103,6 @@ if __name__ == "__main__":
 
     os.chdir(args.root_dir)
 
-    print(get_packages())
-    sys.exit(0)
-
     m = args.message
     if m is None:
         m = f"Tag release {args.tag}"
