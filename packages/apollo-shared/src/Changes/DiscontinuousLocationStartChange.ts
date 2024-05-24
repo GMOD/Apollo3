@@ -144,7 +144,7 @@ export class DiscontinuousLocationStartChange extends FeatureChange {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
       const { index, newStart } = this.changes[idx]
-      feature.setCDSDiscontinuousLocationStart(newStart, index)
+      // feature.setCDSDiscontinuousLocationStart(newStart, index)
     }
   }
 

@@ -144,7 +144,7 @@ export class DiscontinuousLocationEndChange extends FeatureChange {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
       const { index, newEnd } = this.changes[idx]
-      feature.setCDSDiscontinuousLocationEnd(newEnd, index)
+      // feature.setCDSDiscontinuousLocationEnd(newEnd, index)
     }
   }
 

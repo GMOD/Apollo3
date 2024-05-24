@@ -141,7 +141,7 @@ export class LocationStartChange extends FeatureChange {
       if (!feature) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
-      feature.setStart(this.changes[idx].newStart)
+      feature.setMin(this.changes[idx].newStart)
     }
   }
 

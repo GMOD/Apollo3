@@ -1,4 +1,4 @@
-import type { AnnotationFeatureSnapshot } from 'apollo-mst'
+import type { AnnotationFeatureSnapshot, AnnotationFeatureSnapshotNew } from 'apollo-mst'
 import { Feature } from 'apollo-schemas'
 import ObjectID from 'bson-objectid'
 import type { Types } from 'mongoose'
@@ -67,7 +67,7 @@ export abstract class FeatureChange extends AssemblySpecificChange {
    * @param feature - parent feature
    * @returns
    */
-  getChildFeatureIds(feature: Feature | AnnotationFeatureSnapshot): string[] {
+  getChildFeatureIds(feature: Feature | AnnotationFeatureSnapshotNew): string[] {
     if (!feature.children) {
       return []
     }

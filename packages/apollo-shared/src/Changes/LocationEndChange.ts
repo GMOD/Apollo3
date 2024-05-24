@@ -141,7 +141,7 @@ export class LocationEndChange extends FeatureChange {
       if (!feature) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
-      feature.setEnd(this.changes[idx].newEnd)
+      feature.setMax(this.changes[idx].newEnd)
     }
   }
 
