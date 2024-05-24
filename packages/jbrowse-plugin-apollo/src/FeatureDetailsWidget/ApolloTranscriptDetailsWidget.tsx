@@ -136,9 +136,9 @@ export const getCDSInfoWithoutUTRLines = (
       exonsArray.push({ min: currentFeature.min, max: currentFeature.max })
     }
     if (currentFeature.type === 'CDS') {
-        console.log('1 NYT....')
-        console.log(JSON.stringify(currentFeature))
-        console.log('2 NYT....')
+        // console.log('1 NYT....')
+        // console.log(JSON.stringify(currentFeature))
+        // console.log('2 NYT....')
     //   if (currentFeature.discontinuousLocations.length > 0) {
     //     console.log('2 done')
     //     // eslint-disable-next-line @typescript-eslint/no-explicit-any, unicorn/no-array-for-each
