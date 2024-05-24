@@ -69,9 +69,7 @@ export abstract class FeatureChange extends AssemblySpecificChange {
    * @param feature - parent feature
    * @returns
    */
-  getChildFeatureIds(
-    feature: Feature | AnnotationFeatureSnapshotNew,
-  ): string[] {
+  getChildFeatureIds(feature: Feature | AnnotationFeatureSnapshotNew): string[] {
     if (!feature.children) {
       return []
     }
