@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-confusing-void-expression */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Body, Controller, Get, Logger, Param, Post, Req } from '@nestjs/common'
@@ -42,7 +43,7 @@ export class UsersController {
       throw new Error('No user attached to request')
     }
     this.logger.debug('Requesting other users locations')
-    this.usersService.requestUsersLocations(user)
+    return this.usersService.requestUsersLocations(user)
   }
 
   @Get(':id')
@@ -71,6 +72,6 @@ export class UsersController {
     if (!user) {
       throw new Error('No user attached to request')
     }
-    this.usersService.broadcastLocation(userLocationArray, user)
+    return this.usersService.broadcastLocation(userLocationArray, user)
   }
 }

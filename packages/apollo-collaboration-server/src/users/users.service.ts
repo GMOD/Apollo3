@@ -130,7 +130,7 @@ export class UsersService {
         msg,
       )}"`,
     )
-    this.messagesGateway.create(channel, msg)
+    return this.messagesGateway.create(channel, msg)
   }
 
   /**
@@ -152,6 +152,6 @@ export class UsersService {
         msg,
       )}"`,
     )
-    this.messagesGateway.create(channel, msg)
+    return this.messagesGateway.create(channel, msg)
   }
 }

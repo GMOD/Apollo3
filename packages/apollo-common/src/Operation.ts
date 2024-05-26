@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-confusing-void-expression */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import type { ReadStream } from 'node:fs'
@@ -47,7 +48,7 @@ export interface ServerDataStore {
       extensionPointName: string,
       extendee: unknown,
       props?: Record<string, unknown>,
-    ): unknown
+    ): void
   }
   counterService: {
     getNextSequenceValue(sequenceName: string): Promise<number>

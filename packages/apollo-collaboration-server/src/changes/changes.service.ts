@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-confusing-void-expression */
+/* eslint-disable @typescript-eslint/await-thenable */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
   Logger,
@@ -153,7 +155,7 @@ export class ChangesService {
         )
       }
     })
-    this.logger.debug('*** TEMPORARY DATA INSERTTED ***')
+    this.logger.debug?.('*** TEMPORARY DATA INSERTTED ***')
     // Set "temporary document" -status --> "valid" -status i.e. (-1 --> 0)
     await this.featureModel.db.transaction(async () => {
       this.logger.debug(
@@ -199,7 +201,7 @@ export class ChangesService {
       }
     })
 
-    this.logger.debug(`CHANGE DOC: ${JSON.stringify(changeDoc)}`)
+    this.logger.debug?.(`CHANGE DOC: ${JSON.stringify(changeDoc)}`)
     if (!changeDoc) {
       throw new UnprocessableEntityException('could not create change')
     }
@@ -227,9 +229,9 @@ export class ChangesService {
           message.channel
         }', changeObject: "${JSON.stringify(message)}"`,
       )
-      this.messagesGateway.create(message.channel, message)
+      await this.messagesGateway.create(message.channel, message)
     }
-    this.logger.debug(`ChangeDocId: ${changeDoc._id}`)
+    this.logger.debug(`ChangeDocId: ${changeDoc?._id}`)
     return changeDoc
   }
 

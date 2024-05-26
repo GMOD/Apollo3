@@ -21,5 +21,5 @@ export function makeUserSessionId(userOrToken: DecodedJWT | string): string {
 }
 
 export function getDecodedToken(token: string): DecodedJWT {
-  return jwtDecode(token)
+  return jwtDecode<DecodedJWT>(token)
 }

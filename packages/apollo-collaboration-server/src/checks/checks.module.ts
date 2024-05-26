@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-confusing-void-expression */
+/* eslint-disable @typescript-eslint/await-thenable */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Module } from '@nestjs/common'
@@ -29,7 +31,7 @@ import { ChecksService } from './checks.service'
         name: CheckResult.name,
         useFactory: (connection, messagesGateway: MessagesGateway) => {
           CheckResultSchema.plugin(idValidator, { connection })
-          const broadcast = (
+          const broadcast = async (
             doc: CheckResultDocument | CheckResultSnapshot,
           ) => {
             const message: CheckResultUpdate = {
@@ -38,9 +40,9 @@ import { ChecksService } from './checks.service'
               userSessionId: 'none',
               checkResult: 'toJSON' in doc ? doc.toJSON() : doc,
             }
-            messagesGateway.create(message.channel, message)
+            await messagesGateway.create(message.channel, message)
           }
-          const broadcastDeletion = (doc: CheckResultDocument) => {
+          const broadcastDeletion = async (doc: CheckResultDocument) => {
             const message: CheckResultUpdate = {
               channel: 'COMMON',
               userName: 'none',
@@ -48,7 +50,7 @@ import { ChecksService } from './checks.service'
               checkResult: doc.toJSON(),
               deleted: true,
             }
-            messagesGateway.create(message.channel, message)
+            await messagesGateway.create(message.channel, message)
           }
           CheckResultSchema.post('save', broadcast)
           CheckResultSchema.post('updateOne', broadcast)
@@ -59,20 +61,23 @@ import { ChecksService } from './checks.service'
               this.getQuery(),
             )
             for (const checkResult of checkResults) {
-              broadcast(checkResult)
+              await broadcast(checkResult)
             }
           })
-          CheckResultSchema.pre('insertMany', function (_result, checkResults) {
-            for (const checkResult of checkResults) {
-              broadcast(checkResult)
-            }
-          })
+          CheckResultSchema.pre(
+            'insertMany',
+            async function (_result, checkResults) {
+              for (const checkResult of checkResults) {
+                await broadcast(checkResult)
+              }
+            },
+          )
           CheckResultSchema.pre('findOneAndDelete', async function () {
             const checkResults = await this.model.find<CheckResultDocument>(
               this.getQuery(),
             )
             for (const checkResult of checkResults) {
-              broadcastDeletion(checkResult)
+              await broadcastDeletion(checkResult)
             }
           })
           CheckResultSchema.pre('deleteMany', async function () {
@@ -80,7 +85,7 @@ import { ChecksService } from './checks.service'
               this.getQuery(),
             )
             for (const checkResult of checkResults) {
-              broadcastDeletion(checkResult)
+              await broadcastDeletion(checkResult)
             }
           })
           return CheckResultSchema

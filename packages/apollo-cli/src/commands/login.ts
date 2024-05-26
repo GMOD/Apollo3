@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import EventEmitter from 'node:events'
 import * as http from 'node:http'
@@ -227,9 +229,9 @@ export default class Login extends BaseCommand<typeof Login> {
     const eventName = 'authorication_code_callback_params'
     const server = http
       .createServer((req, res) => {
-        if (req.url?.startsWith(callbackPath)) {
+        if (req?.url?.startsWith(callbackPath)) {
           const params = querystring.decode(
-            req.url.replace(`${callbackPath}?`, ''),
+            req?.url.replace(`${callbackPath}?`, ''),
           )
           emitter.emit(eventName, params)
           res.end(
@@ -246,7 +248,7 @@ export default class Login extends BaseCommand<typeof Login> {
       })
       .listen(port)
 
-    server.on('error', (e) => {
+    server.on('error', async (e) => {
       if (e.message.includes('EADDRINUSE')) {
         this.logToStderr(
           `It appears that port ${port} is in use. Perhaps you have JBrowse running?\nTry using a different port using the --port option or temporarily stop JBrowse`,
