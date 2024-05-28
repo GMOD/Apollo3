@@ -1,42 +1,14 @@
-import { revcom } from '@jbrowse/core/util'
+import { AbstractSessionModel, revcom } from '@jbrowse/core/util'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Typography } from '@mui/material'
 import { AnnotationFeatureI, AnnotationFeatureNew } from 'apollo-mst'
-import {
-  DiscontinuousLocationEndChange,
-  DiscontinuousLocationStartChange,
-  LocationEndChange,
-  LocationStartChange,
-} from 'apollo-shared'
+import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import React from 'react'
 
 import { ApolloSessionModel } from '../session'
-import {
-  CDSInfo,
-  ExonInfo,
-  getCDSInfo,
-  getCDSInfoWithoutUTRLines,
-} from './ApolloTranscriptDetailsWidget'
+import { CDSInfo, ExonInfo } from './ApolloTranscriptDetailsWidget'
 import { NumberTextField } from './NumberTextField'
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const containsUTR = (currentFeature: any): boolean => {
-  if (
-    currentFeature.type === 'three_prime_UTR' ||
-    currentFeature.type === 'five_prime_UTR'
-  ) {
-    return true
-  }
-  if (currentFeature.children) {
-    for (const child of currentFeature.children) {
-      if (containsUTR(child[1])) {
-        return true
-      }
-    }
-  }
-  return false
-}
 
 /**
  * Get single feature by featureId
@@ -95,11 +67,12 @@ export const TranscriptBasicInformation = observer(
     assembly: string
     refName: string
   }) {
+    const { notify } = session as unknown as AbstractSessionModel
     const currentAssembly = session.apolloDataStore.assemblies.get(assembly)
     const refData = currentAssembly?.getByRefName(refName)
     const { changeManager } = session.apolloDataStore
     const fea = feature as unknown as AnnotationFeatureNew
-    console.log(`******* FEA: ${JSON.stringify(fea.cdsLocations)}`)
+
     function handleStartChange(
       newStart: number,
       featureId: string,
@@ -107,90 +80,34 @@ export const TranscriptBasicInformation = observer(
     ) {
       newStart--
       oldStart--
-      if (containsUTR(feature)) {
-        const change = new LocationStartChange({
-          typeName: 'LocationStartChange',
-          changedIds: [featureId],
-          featureId,
-          oldStart,
-          newStart,
-          assembly,
-        })
-        return changeManager.submit(change)
+      if (newStart < fea.min) {
+        notify('Feature start cannot be less than parent starts', 'error')
+        return
       }
-      const subFeature = getFeatureFromId(feature, featureId)
-      console.log(`======= SUB FEATURE: ${JSON.stringify(subFeature)}`)
-      console.log(
-        `======= Parent feature type = ${feature.type} (${feature.start} - ${feature.end})`,
-      )
-      let exonChange
-      if (feature.children) {
-        // Let's check EXONs start and end values. And possibly update those too
-        for (const child of feature.children) {
-          if (child[1].type === 'exon') {
-            // if (Number(child[1].start) <= oldStart && Number(child[1].end) >= subFeature.end && child[1].type === 'exon') {
-            console.log(
-              `======= Child type = '${child[1].type}', start = ${child[1].start}, end = ${child[1].end}`,
-            )
-            // eslint-disable-next-line @typescript-eslint/prefer-for-of
-            for (let i = 0; i < subFeature.discontinuousLocations.length; i++) {
-              if (
-                Number(child[1].start) <=
-                  subFeature.discontinuousLocations[i].start &&
-                Number(child[1].end) >=
-                  subFeature.discontinuousLocations[i].end &&
-                subFeature.discontinuousLocations[i].start === oldStart &&
-                Number(child[1].start) > newStart
-              ) {
-                console.log(
-                  `+++++++ PITAA PAIVITTAA EXONI ALKAMAAN KOHDASTA  ${newStart}. Exonin ID = ${child[1]._id}`,
-                )
-                exonChange = new LocationStartChange({
-                  typeName: 'LocationStartChange',
-                  changedIds: [child[1]._id],
-                  featureId: child[1]._id,
-                  oldStart: child[1].start,
-                  newStart,
-                  assembly,
-                })
-              }
-              // if (subFeature.discontinuousLocations[i].start === oldStart) {
-              //   console.log(
-              //     `++ Lets update start by index ${ind}, oldStart=${oldStart}, newStart=${newStart}`,
-              //   )
-              //   break
-              // }
-            }
+      const subFeature = getFeatureFromId(
+        fea,
+        featureId,
+      ) as unknown as AnnotationFeatureNew
+      if (subFeature.children) {
+        // Let's check CDS start and end values. And possibly update those too
+        for (const child of subFeature.children) {
+          if (
+            (child[1].type === 'CDS' || child[1].type === 'exon') &&
+            child[1].min === oldStart
+          ) {
+            const change = new LocationStartChange({
+              typeName: 'LocationStartChange',
+              changedIds: [child[1]._id],
+              featureId,
+              oldStart,
+              newStart,
+              assembly,
+            })
+            return changeManager.submit(change)
           }
         }
       }
-      let ind = 0
-      // eslint-disable-next-line @typescript-eslint/prefer-for-of
-      for (let i = 0; i < subFeature.discontinuousLocations.length; i++) {
-        if (subFeature.discontinuousLocations[i].start === oldStart) {
-          console.log(
-            `++ Lets update start by index ${ind}, oldStart=${oldStart}, newStart=${newStart}`,
-          )
-          break
-        }
-        ind++
-      }
-      const change = new DiscontinuousLocationStartChange({
-        typeName: 'DiscontinuousLocationStartChange',
-        changedIds: [featureId],
-        featureId,
-        oldStart,
-        newStart,
-        assembly,
-        index: ind,
-      })
-      if (exonChange) {
-        console.log('============ Lets update exon start')
-        void changeManager.submit(exonChange)
-        console.log('============ Exon start updated')
-      }
-      console.log('============ Lets update CDS start')
-      return changeManager.submit(change)
+      return
     }
 
     function handleEndChange(
@@ -198,52 +115,37 @@ export const TranscriptBasicInformation = observer(
       featureId: string,
       oldEnd: number,
     ) {
-      newEnd--
-      // oldEnd--
-      if (containsUTR(feature)) {
-        const change = new LocationEndChange({
-          typeName: 'LocationEndChange',
-          changedIds: [featureId],
-          featureId,
-          oldEnd,
-          newEnd,
-          assembly,
-        })
-        return changeManager.submit(change)
-      }
       const subFeature = getFeatureFromId(feature, featureId)
-      // console.log(`======= SUB FEATURE: ${JSON.stringify(subFeature)}`)
-      let ind = 0
-      // eslint-disable-next-line @typescript-eslint/prefer-for-of
-      for (let i = 0; i < subFeature.discontinuousLocations.length; i++) {
-        if (subFeature.discontinuousLocations[i].end === oldEnd) {
-          // console.log(`++ Lets update end by index ${ind}`)
-          break
-        }
-        ind++
+      if (newEnd > fea.max) {
+        notify('Feature start cannot be greater than parent end', 'error')
+        return
       }
-      const change = new DiscontinuousLocationEndChange({
-        typeName: 'DiscontinuousLocationEndChange',
-        changedIds: [featureId],
-        featureId,
-        oldEnd,
-        newEnd,
-        assembly,
-        index: ind,
-      })
-      return changeManager.submit(change)
+      if (subFeature.children) {
+        // Let's check CDS start and end values. And possibly update those too
+        for (const child of subFeature.children) {
+          if (
+            (child[1].type === 'CDS' || child[1].type === 'exon') &&
+            child[1].max === oldEnd
+          ) {
+            const change = new LocationEndChange({
+              typeName: 'LocationEndChange',
+              changedIds: [child[1]._id],
+              featureId,
+              oldEnd,
+              newEnd,
+              assembly,
+            })
+            return changeManager.submit(change)
+          }
+        }
+      }
+      return
     }
-
-    // ******** UUSI ALKAA ********
-    console.log('*********** UUSI ALKAA **********')
 
     const featureNew = feature as unknown as AnnotationFeatureNew
     let exonsArray: ExonInfo[] = []
     const traverse = (currentFeature: AnnotationFeatureNew) => {
       if (currentFeature.type === 'exon') {
-        console.log(
-          `EXON DATA = ${currentFeature.min + 1} - ${currentFeature.max}`,
-        )
         exonsArray.push({
           min: (currentFeature.min + 1) as unknown as string,
           max: currentFeature.max as unknown as string,
@@ -259,13 +161,9 @@ export const TranscriptBasicInformation = observer(
 
     const CDSresult: CDSInfo[] = []
     const CDSData = featureNew.cdsLocations
-    console.log(`******* CDS data: ${JSON.stringify(CDSData)}`)
     if (refData) {
       for (const CDSDatum of CDSData) {
         for (const dataPoint of CDSDatum) {
-          console.log(
-            `CDS min: ${dataPoint.min}, max: ${dataPoint.max}, phase: ${dataPoint.phase}`,
-          )
           let startSeq = refData.getSequence(
             Number(dataPoint.min) - 2,
             Number(dataPoint.min),
@@ -305,24 +203,13 @@ export const TranscriptBasicInformation = observer(
           }
 
           // Add possible UTRs
-          console.log(`Exon array : ${JSON.stringify(exonsArray)}`)
           const foundExon = findExonInRange(
             exonsArray,
             dataPoint.min + 1,
             dataPoint.max,
           )
-          console.log(
-            foundExon
-              ? `Found exon range: ${foundExon.min}-${foundExon.max}`
-              : 'No range found.',
-          )
           if (foundExon && Number(foundExon.min) < dataPoint.min) {
             if (feature.strand === 1) {
-              console.log(
-                `* TYPE = 5 UTR, start=${foundExon.min}, end=${Number(
-                  dataPoint.min,
-                )}`,
-              )
               const oneCDS: CDSInfo = {
                 id: feature._id,
                 type: 'five_prime_UTR',
@@ -336,11 +223,6 @@ export const TranscriptBasicInformation = observer(
               }
               CDSresult.push(oneCDS)
             } else {
-              console.log(
-                `TYPE = 3 UTR, start=${dataPoint.min}, end=${
-                  Number(featureNew.max) - 1
-                }`,
-              )
               const oneCDS: CDSInfo = {
                 id: feature._id,
                 type: 'three_prime_UTR',
@@ -361,15 +243,7 @@ export const TranscriptBasicInformation = observer(
             )
           }
           if (foundExon && Number(foundExon.max) > dataPoint.max) {
-            console.log(
-              `*** Need to add ending UTR: ${dataPoint.max} - ${foundExon.max}`,
-            )
             if (feature.strand === 1) {
-              console.log(
-                `TYPE = 3 UTR, start=${dataPoint.max}, end=${
-                  Number(foundExon.max) - 1
-                }`,
-              )
               const oneCDS: CDSInfo = {
                 id: feature._id,
                 type: 'three_prime_UTR',
@@ -383,11 +257,6 @@ export const TranscriptBasicInformation = observer(
               }
               CDSresult.push(oneCDS)
             } else {
-              console.log(
-                `** TYPE = 5 UTR, start=${dataPoint.min}, end=${Number(
-                  foundExon.max,
-                )}`,
-              )
               const oneCDS: CDSInfo = {
                 id: feature._id,
                 type: 'five_prime_UTR',
@@ -411,7 +280,6 @@ export const TranscriptBasicInformation = observer(
             dataPoint.min + 1 === Number(foundExon?.min) &&
             dataPoint.max === Number(foundExon?.max)
           ) {
-            console.log('******* CDS OLI KOKO EXONIN PITUINEN *****')
             exonsArray = removeMatchingExon(
               exonsArray,
               foundExon?.min as unknown as string,
@@ -421,20 +289,12 @@ export const TranscriptBasicInformation = observer(
         }
       }
     }
-    console.log(`******* CDSresult: ${JSON.stringify(CDSresult)}`)
-    console.log(`******* EXONEITA JALJELLA: ${exonsArray.length}`)
-    console.log(`Exon array : ${JSON.stringify(exonsArray)}`)
 
     // Add remaining UTRs if any
     if (exonsArray.length > 0) {
       // eslint-disable-next-line unicorn/no-array-for-each
       exonsArray.forEach((element: ExonInfo) => {
-        console.log(`Remaining EXON range ${element.min} - ${element.max}`)
-        // if (element.min === (featureNew.min as unknown as string)) {
         if (featureNew.strand === 1) {
-          console.log(
-            `TYPE = 5 UTR, start=${element.min}, end=${Number(element.max)}`,
-          )
           const oneCDS: CDSInfo = {
             id: featureNew._id,
             type: 'five_prime_UTR',
@@ -448,11 +308,6 @@ export const TranscriptBasicInformation = observer(
           }
           CDSresult.push(oneCDS)
         } else {
-          console.log(
-            `TYPE = 3 UTR, start=${element.min}, end=${
-              Number(element.max) - 1
-            }`,
-          )
           const oneCDS: CDSInfo = {
             id: featureNew._id,
             type: 'three_prime_UTR',
@@ -467,7 +322,6 @@ export const TranscriptBasicInformation = observer(
           CDSresult.push(oneCDS)
         }
         exonsArray = removeMatchingExon(exonsArray, element.min, element.max)
-        // }
       })
     }
 
@@ -500,15 +354,8 @@ export const TranscriptBasicInformation = observer(
         }
       }
     }
-    console.log('*********** UUSI LOPPUU **********')
 
     const transcriptItems = CDSresult
-    // const transcriptItemsOld = containsUTR(feature)
-    //   ? getCDSInfo(feature, refData)
-    //   : getCDSInfoWithoutUTRLines(feature, refData)
-    // console.log(
-    //   `******* transcriptItemsOld: ${JSON.stringify(transcriptItemsOld)}`,
-    // )
 
     return (
       <>
