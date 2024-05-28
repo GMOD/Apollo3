@@ -182,9 +182,6 @@ export const TranscriptSequence = observer(function TranscriptSequence({
         }
         break
       }
-      default: {
-        console.log('DEFAULT selected')
-      }
     }
   }
 

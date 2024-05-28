@@ -62,7 +62,7 @@ export const Sequence = observer(function Sequence({
       sequence = formatSequence(sequence, refName, min, max)
     } else {
       void session.apolloDataStore.loadRefSeq([
-        { assemblyName: assembly, refName, start:min, end:max },
+        { assemblyName: assembly, refName, start: min, end: max },
       ])
     }
   }
