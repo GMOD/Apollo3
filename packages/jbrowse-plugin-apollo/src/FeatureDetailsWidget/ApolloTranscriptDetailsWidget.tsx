@@ -128,330 +128,133 @@ export const getCDSInfoWithoutUTRLines = (
 ): CDSInfo[] => {
   const CDSresult: CDSInfo[] = []
   let exonsArray: ExonInfo[] = []
-  console.log(`WHOLE FEATURE= ${JSON.stringify(feature)}`)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const traverse = (currentFeature: any) => {
     if (currentFeature.type === 'exon') {
-      console.log(`2 EXON DATA = ${currentFeature.min} - ${currentFeature.max}`)
       exonsArray.push({ min: currentFeature.min, max: currentFeature.max })
     }
     if (currentFeature.type === 'CDS') {
-        // console.log('1 NYT....')
-        // console.log(JSON.stringify(currentFeature))
-        // console.log('2 NYT....')
-    //   if (currentFeature.discontinuousLocations.length > 0) {
-    //     console.log('2 done')
-    //     // eslint-disable-next-line @typescript-eslint/no-explicit-any, unicorn/no-array-for-each
-    //     currentFeature.discontinuousLocations.forEach((element: any) => {
-    //       console.log(`CDS range ${element.min} - ${element.max}`)
-    //       let startSeq = refData.getSequence(
-    //         Number(element.min) - 2,
-    //         Number(element.min),
-    //       )
-    //       let endSeq = refData.getSequence(
-    //         Number(element.max),
-    //         Number(element.max) + 2,
-    //       )
+      // Process only one CDS
+      let startSeq = refData.getSequence(
+        Number(currentFeature.min) - 2,
+        Number(currentFeature.min),
+      )
+      let endSeq = refData.getSequence(
+        Number(currentFeature.max),
+        Number(currentFeature.max) + 2,
+      )
 
-    //       if (element.strand === -1 && startSeq && endSeq) {
-    //         startSeq = revcom(startSeq)
-    //         endSeq = revcom(endSeq)
-    //       }
-    //       const oneCDS: CDSInfo = {
-    //         id: currentFeature._id,
-    //         type: currentFeature.type,
-    //         strand: Number(currentFeature.strand),
-    //         min: element.min + 1,
-    //         max: element.max,
-    //         oldMin: element.min + 1,
-    //         oldMax: element.max,
-    //         startSeq: startSeq ?? '',
-    //         endSeq: endSeq ?? '',
-    //       }
-    //       // Check if there is already an object with the same start and end
-    //       const exists = CDSresult.some(
-    //         (obj) =>
-    //           obj.min === oneCDS.min &&
-    //           obj.max === oneCDS.max &&
-    //           obj.type === oneCDS.type,
-    //       )
+      if (currentFeature.strand === -1 && startSeq && endSeq) {
+        startSeq = revcom(startSeq)
+        endSeq = revcom(endSeq)
+      }
+      const oneCDS: CDSInfo = {
+        id: currentFeature._id,
+        type: currentFeature.type,
+        strand: Number(currentFeature.strand),
+        min: currentFeature.min + 1,
+        max: currentFeature.max + 1,
+        oldMin: currentFeature.min + 1,
+        oldMax: currentFeature.max + 1,
+        startSeq: startSeq ?? '',
+        endSeq: endSeq ?? '',
+      }
+      // Check if there is already an object with the same start and end
+      const exists = CDSresult.some(
+        (obj) =>
+          obj.min === oneCDS.min &&
+          obj.max === oneCDS.max &&
+          obj.type === oneCDS.type,
+      )
 
-    //       // If no such object exists, add the new object to the array
-    //       if (!exists) {
-    //         CDSresult.push(oneCDS)
-    //       }
-
-    //       // Add possible UTRs
-    //       console.log(`Exon array : ${JSON.stringify(exonsArray)}`)
-    //       const foundExon = findExonInRange(
-    //         exonsArray,
-    //         element.min,
-    //         element.max,
-    //       )
-    //       // console.log(
-    //       //   foundExon
-    //       //     ? `Found exon range: ${foundExon.min}-${foundExon.max}`
-    //       //     : 'No range found.',
-    //       // )
-    //       if (foundExon && foundExon.min < element.min) {
-    //         if (feature.strand === 1) {
-    //           // console.log(
-    //           //   `* TYPE = 5 UTR, start=${foundExon.min + 1}, end=${Number(
-    //           //     element.min,
-    //           //   )}`,
-    //           // )
-    //           const oneCDS: CDSInfo = {
-    //             id: feature._id,
-    //             type: 'five_prime_UTR',
-    //             strand: Number(feature.strand),
-    //             min: foundExon.min + 1,
-    //             max: element.min,
-    //             oldMin: foundExon.min + 1,
-    //             oldMax: element.min,
-    //             startSeq: '',
-    //             endSeq: '',
-    //           }
-    //           CDSresult.push(oneCDS)
-    //         } else {
-    //           // console.log(
-    //           //   `TYPE = 3 UTR, start=${feature.min}, end=${
-    //           //     Number(element.max) - 1
-    //           //   }`,
-    //           // )
-    //           const oneCDS: CDSInfo = {
-    //             id: feature._id,
-    //             type: 'three_prime_UTR',
-    //             strand: Number(feature.strand),
-    //             min: feature.min + 1,
-    //             max: element.min + 1,
-    //             oldMin: feature.min + 1,
-    //             oldMax: element.min + 1,
-    //             startSeq: '',
-    //             endSeq: '',
-    //           }
-    //           CDSresult.push(oneCDS)
-    //         }
-    //         exonsArray = removeMatchingExon(
-    //           exonsArray,
-    //           foundExon.min,
-    //           foundExon.max,
-    //         )
-    //       }
-    //       if (foundExon && foundExon.max > element.max) {
-    //         // console.log(
-    //         //   `*** Need to add ending UTR: ${element.max} - ${foundExon.max}`,
-    //         // )
-    //         if (feature.strand === 1) {
-    //           // console.log(
-    //           //   `TYPE = 3 UTR, start=${element.max}, end=${
-    //           //     Number(foundExon.max) - 1
-    //           //   }`,
-    //           // )
-    //           const oneCDS: CDSInfo = {
-    //             id: feature._id,
-    //             type: 'three_prime_UTR',
-    //             strand: Number(feature.strand),
-    //             min: element.max + 1,
-    //             max: foundExon.max,
-    //             oldMin: element.max + 1,
-    //             oldMax: foundExon.max,
-    //             startSeq: '',
-    //             endSeq: '',
-    //           }
-    //           CDSresult.push(oneCDS)
-    //         } else {
-    //           // console.log(
-    //           //   `** TYPE = 5 UTR, start=${feature.min}, end=${Number(
-    //           //     element.max,
-    //           //   )}`,
-    //           // )
-    //           const oneCDS: CDSInfo = {
-    //             id: feature._id,
-    //             type: 'five_prime_UTR',
-    //             strand: Number(feature.strand),
-    //             min: feature.min + 1,
-    //             max: element.min,
-    //             oldMin: feature.min + 1,
-    //             oldMax: element.min,
-    //             startSeq: '',
-    //             endSeq: '',
-    //           }
-    //           CDSresult.push(oneCDS)
-    //         }
-    //         exonsArray = removeMatchingExon(
-    //           exonsArray,
-    //           foundExon.min,
-    //           foundExon.max,
-    //         )
-    //       }
-    //       if (
-    //         element.min === foundExon?.min &&
-    //         element.max === foundExon?.max
-    //       ) {
-    //         exonsArray = removeMatchingExon(
-    //           exonsArray,
-    //           element.min,
-    //           element.max,
-    //         )
-    //       }
-    //     })
-    //   } else {
-        console.log('1 DONE')
-        // Process only one CDS
-        let startSeq = refData.getSequence(
-          Number(currentFeature.min) - 2,
-          Number(currentFeature.min),
-        )
-        let endSeq = refData.getSequence(
-          Number(currentFeature.max),
-          Number(currentFeature.max) + 2,
-        )
-
-        if (currentFeature.strand === -1 && startSeq && endSeq) {
-          startSeq = revcom(startSeq)
-          endSeq = revcom(endSeq)
-        }
-        const oneCDS: CDSInfo = {
-          id: currentFeature._id,
-          type: currentFeature.type,
-          strand: Number(currentFeature.strand),
-          min: currentFeature.min + 1,
-          max: currentFeature.max + 1,
-          oldMin: currentFeature.min + 1,
-          oldMax: currentFeature.max + 1,
-          startSeq: startSeq ?? '',
-          endSeq: endSeq ?? '',
-        }
-        // Check if there is already an object with the same start and end
-        const exists = CDSresult.some(
-          (obj) =>
-            obj.min === oneCDS.min &&
-            obj.max === oneCDS.max &&
-            obj.type === oneCDS.type,
-        )
-
-        // If no such object exists, add the new object to the array
-        if (!exists) {
+      // If no such object exists, add the new object to the array
+      if (!exists) {
+        CDSresult.push(oneCDS)
+      }
+      // Add possible UTRs
+      const foundExon = findExonInRange(
+        exonsArray,
+        currentFeature.min,
+        currentFeature.max,
+      )
+      if (foundExon && foundExon.min < currentFeature.min) {
+        if (feature.strand === 1) {
+          const oneCDS: CDSInfo = {
+            id: feature._id,
+            type: 'five_prime_UTR',
+            strand: Number(feature.strand),
+            min: foundExon.min + 1,
+            max: currentFeature.min,
+            oldMin: foundExon.min + 1,
+            oldMax: currentFeature.min,
+            startSeq: '',
+            endSeq: '',
+          }
+          CDSresult.push(oneCDS)
+        } else {
+          const oneCDS: CDSInfo = {
+            id: feature._id,
+            type: 'three_prime_UTR',
+            strand: Number(feature.strand),
+            min: feature.min + 1,
+            max: currentFeature.min + 1,
+            oldMin: feature.min + 1,
+            oldMax: currentFeature.min + 1,
+            startSeq: '',
+            endSeq: '',
+          }
           CDSresult.push(oneCDS)
         }
-        // console.log(
-        //   `Added a single CDS (without discontinous locations): ${currentFeature.min} - ${currentFeature.max}`,
-        // )
-        // Add possible UTRs
-        // console.log(`Exon array : ${JSON.stringify(exonsArray)}`)
-        const foundExon = findExonInRange(
+        exonsArray = removeMatchingExon(
+          exonsArray,
+          foundExon.min,
+          foundExon.max,
+        )
+      }
+      if (foundExon && foundExon.max > currentFeature.max) {
+        if (feature.strand === 1) {
+          const oneCDS: CDSInfo = {
+            id: feature._id,
+            type: 'three_prime_UTR',
+            strand: Number(feature.strand),
+            min: currentFeature.max + 1,
+            max: foundExon.max,
+            oldMin: currentFeature.max + 1,
+            oldMax: foundExon.max,
+            startSeq: '',
+            endSeq: '',
+          }
+          CDSresult.push(oneCDS)
+        } else {
+          const oneCDS: CDSInfo = {
+            id: feature._id,
+            type: 'five_prime_UTR',
+            strand: Number(feature.strand),
+            min: feature.min + 1,
+            max: currentFeature.max,
+            oldMin: feature.min + 1,
+            oldMax: currentFeature.max,
+            startSeq: '',
+            endSeq: '',
+          }
+          CDSresult.push(oneCDS)
+        }
+        exonsArray = removeMatchingExon(
+          exonsArray,
+          foundExon.min,
+          foundExon.max,
+        )
+      }
+      if (
+        currentFeature.min === foundExon?.min &&
+        currentFeature.max === foundExon?.max
+      ) {
+        exonsArray = removeMatchingExon(
           exonsArray,
           currentFeature.min,
           currentFeature.max,
         )
-        // console.log(
-        //   foundExon
-        //     ? `Found exon range: ${foundExon.min}-${foundExon.max}`
-        //     : 'No range found.',
-        // )
-        if (foundExon && foundExon.min < currentFeature.min) {
-          if (feature.strand === 1) {
-            // console.log(
-            //   `* TYPE = 5 UTR, start=${foundExon.min + 1}, end=${Number(
-            //     currentFeature.min,
-            //   )}`,
-            // )
-            const oneCDS: CDSInfo = {
-              id: feature._id,
-              type: 'five_prime_UTR',
-              strand: Number(feature.strand),
-              min: foundExon.min + 1,
-              max: currentFeature.min,
-              oldMin: foundExon.min + 1,
-              oldMax: currentFeature.min,
-              startSeq: '',
-              endSeq: '',
-            }
-            CDSresult.push(oneCDS)
-          } else {
-            // console.log(
-            //   `TYPE = 3 UTR, start=${feature.min}, end=${
-            //     Number(currentFeature.max) - 1
-            //   }`,
-            // )
-            const oneCDS: CDSInfo = {
-              id: feature._id,
-              type: 'three_prime_UTR',
-              strand: Number(feature.strand),
-              min: feature.min + 1,
-              max: currentFeature.min + 1,
-              oldMin: feature.min + 1,
-              oldMax: currentFeature.min + 1,
-              startSeq: '',
-              endSeq: '',
-            }
-            CDSresult.push(oneCDS)
-          }
-          exonsArray = removeMatchingExon(
-            exonsArray,
-            foundExon.min,
-            foundExon.max,
-          )
-        }
-        if (foundExon && foundExon.max > currentFeature.max) {
-          // console.log(
-          //   `*** Need to add ending UTR: ${currentFeature.max} - ${foundExon.max}`,
-          // )
-          if (feature.strand === 1) {
-            // console.log(
-            //   `TYPE = 3 UTR, start=${currentFeature.max}, end=${
-            //     Number(foundExon.max) - 1
-            //   }`,
-            // )
-            const oneCDS: CDSInfo = {
-              id: feature._id,
-              type: 'three_prime_UTR',
-              strand: Number(feature.strand),
-              min: currentFeature.max + 1,
-              max: foundExon.max,
-              oldMin: currentFeature.max + 1,
-              oldMax: foundExon.max,
-              startSeq: '',
-              endSeq: '',
-            }
-            CDSresult.push(oneCDS)
-          } else {
-            // console.log(
-            //   `** TYPE = 5 UTR, start=${feature.min}, end=${Number(
-            //     currentFeature.max,
-            //   )}`,
-            // )
-            const oneCDS: CDSInfo = {
-              id: feature._id,
-              type: 'five_prime_UTR',
-              strand: Number(feature.strand),
-              min: feature.min + 1,
-              max: currentFeature.max,
-              oldMin: feature.min + 1,
-              oldMax: currentFeature.max,
-              startSeq: '',
-              endSeq: '',
-            }
-            CDSresult.push(oneCDS)
-          }
-          exonsArray = removeMatchingExon(
-            exonsArray,
-            foundExon.min,
-            foundExon.max,
-          )
-        }
-        if (
-          currentFeature.min === foundExon?.min &&
-          currentFeature.max === foundExon?.max
-        ) {
-          // console.log('******* CDS OLI KOKO EXONIN PITUINEN *****')
-          exonsArray = removeMatchingExon(
-            exonsArray,
-            currentFeature.min,
-            currentFeature.max,
-          )
-        }
-    //   }
+      }
     }
     if (currentFeature.children) {
       for (const child of currentFeature.children) {
@@ -465,12 +268,8 @@ export const getCDSInfoWithoutUTRLines = (
   if (exonsArray.length > 0) {
     // eslint-disable-next-line unicorn/no-array-for-each
     exonsArray.forEach((element: ExonInfo) => {
-      // console.log(`Remaining EXON range ${element.min} - ${element.max}`)
       if (element.min === feature.min) {
         if (feature.strand === 1) {
-          // console.log(
-          //   `TYPE = 5 UTR, start=${element.min}, end=${Number(element.max)}`,
-          // )
           const oneCDS: CDSInfo = {
             id: feature._id,
             type: 'five_prime_UTR',
@@ -484,11 +283,6 @@ export const getCDSInfoWithoutUTRLines = (
           }
           CDSresult.push(oneCDS)
         } else {
-          console.log(
-            `TYPE = 3 UTR, start=${feature.min}, end=${
-              Number(element.max) - 1
-            }`,
-          )
           const oneCDS: CDSInfo = {
             id: feature._id,
             type: 'three_prime_UTR',
