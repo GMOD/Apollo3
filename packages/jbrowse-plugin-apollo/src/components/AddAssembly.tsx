@@ -1,3 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { readConfObject } from '@jbrowse/core/configuration'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import LinkIcon from '@mui/icons-material/Link'
@@ -78,7 +84,7 @@ export function AddAssembly({
   const [fastaGziIndexFile, setFastaGziIndexFile] = useState('')
   const [loading, setLoading] = useState(false)
 
-  function handleChangeInternetAccount(e: SelectChangeEvent<string>) {
+  function handleChangeInternetAccount(e: SelectChangeEvent) {
     setSubmitted(false)
     const newlySelectedInternetAccount = apolloInternetAccounts.find(
       (ia) => ia.internetAccountId === e.target.value,
@@ -350,9 +356,9 @@ export function AddAssembly({
                 fullWidth
                 variant="outlined"
                 error={!validFastaFile}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setFastaFile(e.target.value)
-                }
+                }}
                 disabled={submitted && !errorMessage}
                 InputProps={{
                   startAdornment: (
@@ -371,9 +377,9 @@ export function AddAssembly({
                 fullWidth
                 variant="outlined"
                 error={!validFastaIndexFile}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setFastaIndexFile(e.target.value)
-                }
+                }}
                 disabled={submitted && !errorMessage}
                 InputProps={{
                   startAdornment: (
@@ -392,9 +398,9 @@ export function AddAssembly({
                 fullWidth
                 variant="outlined"
                 error={Boolean(fastaGziIndexFile) && !validFastaGziIndexFile}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setFastaGziIndexFile(e.target.value)
-                }
+                }}
                 disabled={submitted && !errorMessage}
                 InputProps={{
                   startAdornment: (
@@ -417,7 +423,9 @@ export function AddAssembly({
                   control={
                     <Checkbox
                       checked={fileType === FileType.GFF3 && importFeatures}
-                      onChange={() => setImportFeatures(!importFeatures)}
+                      onChange={() => {
+                        setImportFeatures(!importFeatures)
+                      }}
                       disabled={
                         fileType !== FileType.GFF3 ||
                         (submitted && !errorMessage)

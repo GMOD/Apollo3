@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable import/no-named-as-default-member */
 // jsonpath triggers this rule for some reason. import { query } from 'jsonpath' does not work
 

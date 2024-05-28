@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { isAbortException } from '@jbrowse/core/util'
 import {
   Autocomplete,
@@ -120,8 +121,7 @@ export function OntologyTermMultiSelect({
   includeDeprecated?: boolean
   onChange(newValue: string[]): void
 }) {
-  const ontologyManager = session.apolloDataStore
-    .ontologyManager as OntologyManager
+  const { ontologyManager } = session.apolloDataStore
   const ontology = ontologyManager.findOntology(ontologyName, ontologyVersion)
 
   const [value, setValue] = React.useState<TermValue[]>(

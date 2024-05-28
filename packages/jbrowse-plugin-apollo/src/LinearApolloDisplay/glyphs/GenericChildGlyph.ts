@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/unbound-method */
 import { AnnotationFeatureI } from 'apollo-mst'
 
 import { LinearApolloDisplay } from '../stateModel'
@@ -133,7 +136,7 @@ export class GenericChildGlyph extends BoxGlyph {
 
   getFeatureFromLayout(feature: AnnotationFeatureI, bp: number, row: number) {
     const layoutRow = this.featuresForRow(feature)[row]
-    return layoutRow?.find((f) => bp >= f.start && bp <= f.end)
+    return layoutRow.find((f) => bp >= f.start && bp <= f.end)
   }
 
   getRowForFeature(

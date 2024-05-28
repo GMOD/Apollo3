@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import gff, { GFF3Item } from '@gmod/gff'
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
@@ -48,7 +53,7 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
     ...inMemoryFileDriver.getAssemblies(),
   ]
 
-  function handleChangeAssembly(e: SelectChangeEvent<string>) {
+  function handleChangeAssembly(e: SelectChangeEvent) {
     const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
     setSelectedAssembly(newAssembly)
   }
@@ -143,7 +148,7 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
       })
     }
     for (const [, refSeq] of refSeqs) {
-      const features = refSeq?.features
+      const { features } = refSeq
       if (!features) {
         continue
       }

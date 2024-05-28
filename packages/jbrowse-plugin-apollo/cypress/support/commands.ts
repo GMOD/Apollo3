@@ -51,7 +51,7 @@ Cypress.Commands.add('selectAssemblyToView', (assemblyName) => {
   cy.get('input[data-testid="assembly-selector"]')
     .parent()
     .then((el) => {
-      if (el.text().includes(assemblyName) === false) {
+      if (!el.text().includes(assemblyName)) {
         cy.get('input[data-testid="assembly-selector"]').parent().click()
         cy.get('li').contains(assemblyName).click()
       }

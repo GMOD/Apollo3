@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { SessionWithWidgets } from '@jbrowse/core/util'
 import { Button, Paper, Typography } from '@mui/material'
 import { AnnotationFeature, AnnotationFeatureI } from 'apollo-mst'
@@ -43,7 +46,7 @@ export const RelatedFeatures = observer(function RelatedFeatures({
         assembly,
         refName,
       })
-      ;(session as unknown as SessionWithWidgets).showWidget?.(
+      ;(session as unknown as SessionWithWidgets).showWidget(
         apolloFeatureWidget,
       )
     }
@@ -60,7 +63,12 @@ export const RelatedFeatures = observer(function RelatedFeatures({
           <Typography variant="h5">Parent</Typography>
           <Paper elevation={6} className={classes.paper}>
             {`Start: ${parent.start}, End: ${parent.end}, Type: ${parent.type}`}
-            <Button variant="contained" onClick={() => onButtonClick(parent)}>
+            <Button
+              variant="contained"
+              onClick={() => {
+                onButtonClick(parent)
+              }}
+            >
               Go to parent
             </Button>
           </Paper>
@@ -72,7 +80,12 @@ export const RelatedFeatures = observer(function RelatedFeatures({
           {[...children.values()].map((child) => (
             <Paper elevation={6} className={classes.paper} key={child._id}>
               {`Start: ${child.start}, End: ${child.end}, Type: ${child.type}`}
-              <Button variant="contained" onClick={() => onButtonClick(child)}>
+              <Button
+                variant="contained"
+                onClick={() => {
+                  onButtonClick(child)
+                }}
+              >
                 Go to child
               </Button>
             </Paper>

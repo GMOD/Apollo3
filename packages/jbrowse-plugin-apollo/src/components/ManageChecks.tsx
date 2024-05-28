@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
@@ -90,7 +92,9 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
       const data = (await response.json()) as CheckDocument[]
       setChecks(data)
     }
-    getChecks().catch((error) => setErrorMessage(String(error)))
+    getChecks().catch((error) => {
+      setErrorMessage(String(error))
+    })
   }, [selectedInternetAccount])
 
   useEffect(() => {
@@ -119,10 +123,12 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
       const assembly = (await response.json()) as AssemblyDocument
       setSelectedChecks(assembly.checks)
     }
-    getChecks().catch((error) => setErrorMessage(String(error)))
+    getChecks().catch((error) => {
+      setErrorMessage(String(error))
+    })
   }, [selectedAssembly, selectedInternetAccount])
 
-  function handleChangeAssembly(e: SelectChangeEvent<string>) {
+  function handleChangeAssembly(e: SelectChangeEvent) {
     const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
     setSelectedAssembly(newAssembly)
   }
@@ -182,7 +188,7 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
     }
   }
 
-  function handleChangeInternetAccount(e: SelectChangeEvent<string>) {
+  function handleChangeInternetAccount(e: SelectChangeEvent) {
     setSubmitted(false)
     const newlySelectedInternetAccount = apolloInternetAccounts.find(
       (ia) => ia.internetAccountId === e.target.value,

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import ClearIcon from '@mui/icons-material/Clear'
 import UnfoldLessIcon from '@mui/icons-material/UnfoldLess'
 import { IconButton, InputAdornment, TextField, Tooltip } from '@mui/material'
@@ -43,11 +44,17 @@ export const ToolBar = observer(function ToolBar({
         value={model.filterText}
         sx={{ marginTop: 0 }}
         variant="outlined"
-        onChange={(event) => model.setFilterText(event.target.value)}
+        onChange={(event) => {
+          model.setFilterText(event.target.value)
+        }}
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">
-              <IconButton onClick={() => model.clearFilterText()}>
+              <IconButton
+                onClick={() => {
+                  model.clearFilterText()
+                }}
+              >
                 <ClearIcon />
               </IconButton>
             </InputAdornment>

@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-misused-promises */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Menu, MenuItem } from '@jbrowse/core/ui'
 import {
   AbstractSessionModel,
@@ -66,7 +71,9 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const { classes } = useStyles()
   const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
 
-  useEffect(() => setTheme(theme), [theme, setTheme])
+  useEffect(() => {
+    setTheme(theme)
+  }, [theme, setTheme])
   const [contextCoord, setContextCoord] = useState<Coord>()
   const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
   const message = regionCannotBeRendered()
@@ -178,7 +185,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
                 .filter(
                   (checkResult) =>
                     assembly?.isValidRefName(checkResult.refSeq) &&
-                    assembly?.getCanonicalRefName(checkResult.refSeq) ===
+                    assembly.getCanonicalRefName(checkResult.refSeq) ===
                       region.refName &&
                     doesIntersect2(
                       region.start,

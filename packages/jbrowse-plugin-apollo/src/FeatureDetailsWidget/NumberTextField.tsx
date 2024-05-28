@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { TextField, TextFieldProps } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
@@ -67,7 +68,9 @@ export const NumberTextField = observer(function NumberTextField({
           }
         }
       }}
-      inputRef={(node) => setInputNode(node)}
+      inputRef={(node) => {
+        setInputNode(node)
+      }}
       error={error}
       helperText={error ? 'Not a valid number' : undefined}
     />

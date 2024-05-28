@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { AbstractSessionModel, isAbortException } from '@jbrowse/core/util'
 import {
   Autocomplete,
@@ -54,8 +58,7 @@ export function OntologyTermAutocomplete({
     OntologyTerm | undefined
   >()
 
-  const ontologyManager = session.apolloDataStore
-    .ontologyManager as OntologyManager
+  const { ontologyManager } = session.apolloDataStore
   const ontologyStore = ontologyManager.findOntology(
     ontologyName,
     ontologyVersion,
@@ -136,8 +139,8 @@ export function OntologyTermAutocomplete({
     fetchValidTerms,
   ])
 
-  const handleChange = async (
-    event: React.SyntheticEvent<Element, Event>,
+  const handleChange = (
+    event: React.SyntheticEvent,
     newValue?: OntologyTerm | string | null,
   ) => {
     if (!newValue) {

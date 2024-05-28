@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Body, Controller, Get, Logger, Param, Post, Req } from '@nestjs/common'
 import { DecodedJWT } from 'apollo-shared'
 import { Request } from 'express'

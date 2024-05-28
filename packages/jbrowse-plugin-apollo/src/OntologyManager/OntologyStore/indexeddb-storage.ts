@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { openLocation } from '@jbrowse/core/util/io'
 import equal from 'fast-deep-equal/es6'
 import { IDBPDatabase, IDBPTransaction, openDB } from 'idb/with-async-ittr'
@@ -174,7 +175,7 @@ export async function isDatabaseCurrent(this: OntologyStore, db: Database) {
   }
   // check that the index paths and prefixes are the same as our current ones
   return (
-    equal(this.options.prefixes, meta.storeOptions?.prefixes) &&
-    equal(this.options.textIndexing, meta.storeOptions?.textIndexing)
+    equal(this.options.prefixes, meta.storeOptions.prefixes) &&
+    equal(this.options.textIndexing, meta.storeOptions.textIndexing)
   )
 }

@@ -70,7 +70,9 @@ export const NumberCell = observer(function NumberCell({
             onChangeCommitted(value).catch(notifyError)
           }
         }}
-        ref={(node) => setInputNode(node)}
+        ref={(node) => {
+          setInputNode(node)
+        }}
       />
     </span>
   )

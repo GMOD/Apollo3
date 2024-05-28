@@ -1,3 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
 import {
@@ -88,8 +96,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           reject: (error: Error) => void,
         ) {
           listener = (event) => {
-            // this should probably get better handling, but ignored for now
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             this.finishOAuthWindow(event, resolve, reject)
           }
           window.addEventListener('message', listener)
@@ -97,7 +103,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         deleteMessageChannel() {
           window.removeEventListener('message', listener)
         },
-        async finishOAuthWindow(
+        finishOAuthWindow(
           event: MessageEvent,
           resolve: (token: string) => void,
           reject: (error: Error) => void,
@@ -105,7 +111,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           if (
             event.data.name !== `JBrowseAuthWindow-${self.internetAccountId}`
           ) {
-            return this.deleteMessageChannel()
+            this.deleteMessageChannel()
+            return
           }
           const redirectUriWithInfo = event.data.redirectUri
           const fixedQueryString = redirectUriWithInfo.replace('#', '?')
@@ -115,11 +122,12 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           const token = urlParams.get('access_token')
           this.deleteMessageChannel()
           if (!token) {
-            return reject(new Error('Error with token endpoint'))
+            reject(new Error('Error with token endpoint'))
+            return
           }
           self.storeToken(token)
           self.setRole()
-          return resolve(token)
+          resolve(token)
         },
         async openAuthWindow(
           type: string,
@@ -149,7 +157,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             const eventFromDesktop = new MessageEvent('message', {
               data: { name: eventName, redirectUri: redirectUriFromElectron },
             })
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             this.finishOAuthWindow(eventFromDesktop, resolve, reject)
           } else {
             this.addMessageChannel(resolve, reject)
@@ -204,7 +211,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             response,
             'Error when logging in',
           )
-          return reject(new Error(errorMessage))
+          reject(new Error(errorMessage))
+          return
         }
         const { token } = await response.json()
         resolve(token)
@@ -246,8 +254,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       ),
       getMissingChanges: flow(function* getMissingChanges() {
         const { session } = getRoot<ApolloRootModel>(self)
-        const { changeManager } = (session as ApolloSessionModel)
-          .apolloDataStore
+        const { changeManager } = session.apolloDataStore
         if (!self.lastChangeSequenceNumber) {
           throw new Error(
             'No LastChangeSequence stored in session. Please, refresh you browser to get last updates from server',
@@ -277,7 +284,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         const serializedChanges = yield response.json()
         for (const serializedChange of serializedChanges) {
           const change = Change.fromJSON(serializedChange)
-          void changeManager?.submit(change, { submitToBackend: false })
+          void changeManager.submit(change, { submitToBackend: false })
         }
       }),
     }))
@@ -293,9 +300,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           throw new Error('No Token found')
         }
         const { socket } = self
-        const { addCheckResult, changeManager, deleteCheckResult } = (
-          session as ApolloSessionModel
-        ).apolloDataStore
+        const { addCheckResult, changeManager, deleteCheckResult } =
+          session.apolloDataStore
         socket.on('connect', async () => {
           await self.getMissingChanges()
         })
@@ -320,7 +326,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             return // we did this change, no need to apply it again
           }
           const change = Change.fromJSON(message.changeInfo)
-          void changeManager?.submit(change, { submitToBackend: false })
+          void changeManager.submit(change, { submitToBackend: false })
         })
         socket.on('USER_LOCATION', (message: UserLocationMessage) => {
           const { channel, locations, userName, userSessionId } = message
@@ -380,7 +386,9 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         let timeoutId: ReturnType<typeof setTimeout>
         return (userLocation: UserLocation[]) => {
           clearTimeout(timeoutId)
-          timeoutId = setTimeout(() => fn(userLocation), debounceTimeout)
+          timeoutId = setTimeout(() => {
+            fn(userLocation)
+          }, debounceTimeout)
         }
       }
       return { postUserLocation: debouncePostUserLocation(postUserLocation) }
