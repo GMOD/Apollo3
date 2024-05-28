@@ -1,5 +1,5 @@
 import { Button, Typography } from '@mui/material'
-import { AnnotationFeatureI, AnnotationFeatureNew } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 import { splitStringIntoChunks } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
@@ -61,7 +61,7 @@ export const Sequence = observer(function Sequence({
       sequence = formatSequence(sequence, refName, min, max)
     } else {
       void session.apolloDataStore.loadRefSeq([
-        { assemblyName: assembly, refName, start:min, end:max },
+        { assemblyName: assembly, refName, start: min, end: max },
       ])
     }
   }

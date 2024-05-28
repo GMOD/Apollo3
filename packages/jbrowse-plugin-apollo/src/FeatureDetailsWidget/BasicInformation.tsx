@@ -1,6 +1,6 @@
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import { TextField, Typography } from '@mui/material'
-import { AnnotationFeatureI, AnnotationFeatureNew } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 import {
   LocationEndChange,
   LocationStartChange,

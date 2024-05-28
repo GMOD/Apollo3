@@ -1,8 +1,6 @@
 import { AppRootModel, Region } from '@jbrowse/core/util'
 import {
-  AnnotationFeatureI,
   AnnotationFeatureNew,
-  AnnotationFeatureSnapshot,
   AnnotationFeatureSnapshotNew,
   ApolloAssemblyI,
   BackendDriverType,

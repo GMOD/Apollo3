@@ -1,6 +1,6 @@
 import { getSession } from '@jbrowse/core/util'
 import { ElementId } from '@jbrowse/core/util/types/mst'
-import { AnnotationFeature, AnnotationFeatureI, AnnotationFeatureModelNew, AnnotationFeatureNew } from 'apollo-mst'
+import { AnnotationFeatureModelNew, AnnotationFeatureNew } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { Instance, SnapshotIn, addDisposer, types } from 'mobx-state-tree'
 
@@ -11,15 +11,7 @@ export const ApolloFeatureDetailsWidgetModel = types
   .model('ApolloFeatureDetailsWidget', {
     id: ElementId,
     type: types.literal('ApolloFeatureDetailsWidget'),
-    // feature: types.maybe(
-    //   types.reference(AnnotationFeature, {
-    //     onInvalidated(ev) {
-    //       ev.parent.setTryReload(ev.invalidId)
-    //       ev.removeRef()
-    //     },
-    //   }),
-    // ),
-      feature: types.maybe(
+    feature: types.maybe(
       types.reference(AnnotationFeatureModelNew, {
         onInvalidated(ev) {
           ev.parent.setTryReload(ev.invalidId)
@@ -34,7 +26,7 @@ export const ApolloFeatureDetailsWidgetModel = types
     tryReload: undefined as string | undefined,
   }))
   .actions((self) => ({
-      setFeature(feature: AnnotationFeatureNew) {
+    setFeature(feature: AnnotationFeatureNew) {
       self.feature = feature
     },
     setTryReload(featureId?: string) {
@@ -79,19 +71,11 @@ export const ApolloTranscriptDetails = types
     feature: types.maybe(
       types.reference(AnnotationFeatureModelNew, {
         onInvalidated(ev) {
-          ev.parent.setTryReload(ev.invalidId);
-          ev.removeRef();
+          ev.parent.setTryReload(ev.invalidId)
+          ev.removeRef()
         },
-      })
+      }),
     ),
-    // feature: types.maybe(
-    //   types.reference(AnnotationFeature, {
-    //     onInvalidated(ev) {
-    //       ev.parent.setTryReload(ev.invalidId)
-    //       ev.removeRef()
-    //     },
-    //   }),
-    // ),
     assembly: types.string,
     refName: types.string,
     changeManager: types.frozen<ChangeManager>(),

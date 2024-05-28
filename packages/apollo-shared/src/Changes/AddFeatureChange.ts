@@ -6,7 +6,7 @@ import {
   SerializedFeatureChange,
   ServerDataStore,
 } from 'apollo-common'
-import { AnnotationFeatureSnapshot, AnnotationFeatureSnapshotNew } from 'apollo-mst'
+import { AnnotationFeatureSnapshotNew } from 'apollo-mst'
 
 import { DeleteFeatureChange } from './DeleteFeatureChange'
 

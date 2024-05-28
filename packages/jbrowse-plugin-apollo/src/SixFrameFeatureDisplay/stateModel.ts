@@ -263,7 +263,10 @@ export function stateModelFactory(
         return codonLayout
       },
       get featureLayout() {
-        const featureLayout = new Map<number, [string, AnnotationFeatureNew][]>()
+        const featureLayout = new Map<
+          number,
+          [string, AnnotationFeatureNew][]
+        >()
         for (const [refSeq, featuresForRefSeq] of this.features || []) {
           if (!featuresForRefSeq) {
             continue
