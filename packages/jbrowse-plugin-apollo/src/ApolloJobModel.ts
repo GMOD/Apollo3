@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-confusing-void-expression */
 import {
   SessionWithWidgets,
   getSession,
@@ -80,7 +79,7 @@ export const ApolloJobModel = types
         // object needs to be shallow copied before it is removed from the state tree
         self.jobStatusWidget.addAbortedJob({ ...job })
         // removes the job from the state tree, this node is inaccessible thereafter
-        self.jobStatusWidget.removeJob(jobName) as unknown as JobsEntry
+        self.jobStatusWidget.removeJob(jobName)
         session.notify('Job aborted', 'info')
       }
     },

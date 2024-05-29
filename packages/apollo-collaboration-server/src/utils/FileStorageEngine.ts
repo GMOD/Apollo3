@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-confusing-void-expression */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
@@ -31,11 +30,12 @@ export class FileStorageEngine implements StorageEngine {
   ) {
     const { FILE_UPLOAD_FOLDER } = process.env
     if (!FILE_UPLOAD_FOLDER) {
-      return cb(
+      cb(
         new InternalServerErrorException(
           'No FILE_UPLOAD_FOLDER found in .env file',
         ),
       )
+      return
     }
     await mkdir(FILE_UPLOAD_FOLDER, { recursive: true })
     const tmpDir = await mkdtemp(join(FILE_UPLOAD_FOLDER, 'upload-tmp-'))
