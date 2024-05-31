@@ -5,6 +5,8 @@ import Conf from 'conf'
 import Joi from 'joi'
 import YAML from 'yaml'
 
+import { checkProfileExists, queryApollo } from './utils.js'
+
 export class ConfigError extends Error {}
 
 export enum KEYS {
@@ -127,6 +129,27 @@ export class ApolloConf extends Conf {
       this.delete(`${profileName}.rootCredentials`)
     }
     this.set(`${profileName}.accessType`, accessType)
+  }
+
+  public async getAccess(profileName: string) {
+    checkProfileExists(profileName, this)
+
+    const address: string = this.get(`${profileName}.address`) as string
+    if (address === undefined || address.trim() === '') {
+      throw new ConfigError(
+        `Profile "${profileName}" has no address. Please run "apollo config" to set it up.`,
+      )
+    }
+
+    const accessToken: string = this.get(`${profileName}.accessToken`) as string
+    if (accessToken === undefined || accessToken.trim() === '') {
+      throw new ConfigError(
+        `Profile "${profileName}" has no access token. Please run "apollo login" to set it up.`,
+      )
+    }
+
+    await queryApollo(address, accessToken, 'assemblies')
+    return { address, accessToken }
   }
 }
 
