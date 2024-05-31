@@ -1,7 +1,7 @@
 import path from 'node:path'
 
+import { ApolloConf, ConfigError, KEYS } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
-import { Config, ConfigError, KEYS } from '../Config.js'
 import { basicCheckConfig, wrapLines } from '../utils.js'
 
 export default class Logout extends BaseCommand<typeof Logout> {
@@ -41,10 +41,7 @@ export default class Logout extends BaseCommand<typeof Logout> {
         this.exit(1)
       }
     }
-
-    const config: Config = new Config(configFile)
-
-    config.set(KEYS.accessToken, '', profileName)
-    config.writeConfigFile()
+    const config: ApolloConf = new ApolloConf(configFile)
+    config.delete(`${profileName}.${KEYS.accessToken}`)
   }
 }

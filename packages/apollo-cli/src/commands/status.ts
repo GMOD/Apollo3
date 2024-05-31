@@ -1,7 +1,7 @@
 import path from 'node:path'
 
+import { ApolloConf, ConfigError, KEYS } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
-import { Config, ConfigError, KEYS } from '../Config.js'
 import { basicCheckConfig, wrapLines } from '../utils.js'
 
 export default class Status extends BaseCommand<typeof Status> {
@@ -32,8 +32,10 @@ export default class Status extends BaseCommand<typeof Status> {
       }
     }
 
-    const config: Config = new Config(configFile)
-    const accessToken: string = config.get(KEYS.accessToken, profileName)
+    const config: ApolloConf = new ApolloConf(configFile)
+    const accessToken: string = config.get(
+      `${profileName}.${KEYS.accessToken}`,
+    ) as string
     if (accessToken === undefined || accessToken.trim() === '') {
       this.log(`${profileName}: Logged out`)
     } else {
