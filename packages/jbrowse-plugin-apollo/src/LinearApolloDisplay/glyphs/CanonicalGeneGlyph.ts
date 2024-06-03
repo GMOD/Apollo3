@@ -361,11 +361,7 @@ export class CanonicalGeneGlyph extends Glyph {
   cdsCount(feature?: AnnotationFeatureNew) {
     let cdsCount = 0
     for (const [, cf] of feature?.children ?? new Map()) {
-      if (
-        cf.type === 'CDS' &&
-        cf.discontinuousLocations &&
-        cf.discontinuousLocations.length > 0
-      ) {
+      if (cf.type === 'CDS') {
         cdsCount++
       }
     }
@@ -469,7 +465,8 @@ export class CanonicalGeneGlyph extends Glyph {
         ? (childFeature.min - feature.min) / bpPerPx
         : (featureEntry.min - feature.min) / bpPerPx
       const startPx = reversed ? xOffset - widthPx : xOffset + offsetPx
-      const top = (rowNum + featureRow) * apolloRowHeight
+      // const top = (featureRow + rowNum) * apolloRowHeight
+      const top = featureRow * apolloRowHeight
       ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,04)'
       ctx.fillRect(startPx, top, widthPx, apolloRowHeight * cdsCount)
     } else {
@@ -511,6 +508,7 @@ export class CanonicalGeneGlyph extends Glyph {
       feature,
       glyph,
       mousePosition: startingMousePosition,
+      topLevelFeature,
     } = apolloDragging.start
     if (!feature) {
       throw new Error('no feature for drag preview??')
@@ -523,6 +521,7 @@ export class CanonicalGeneGlyph extends Glyph {
       startingMousePosition,
       feature,
       stateModel,
+      topLevelFeature,
     )
     if (!edge) {
       return
@@ -628,6 +627,7 @@ export class CanonicalGeneGlyph extends Glyph {
           return
         }
       }
+      // cds drag limit issue
       if (Math.abs(startPx - x) < 4) {
         return 'min'
       }
@@ -871,22 +871,10 @@ export class CanonicalGeneGlyph extends Glyph {
     )
     if (feature.type === 'CDS' && discontinuousLocation) {
       const exonCDSRelations = this.exonCDSRelation(feature, topLevelFeature)
-      const { matchingExon, nextExon, prevExon } = this.adjacentExonsOfCdsDL(
+      const { matchingExon } = this.adjacentExonsOfCdsDL(
         discontinuousLocation,
         exonCDSRelations,
       )
-      // if (nextExon && bp >= nextExon.min - 1) {
-      //   return
-      // }
-      // if (prevExon && bp <= prevExon.max + 1) {
-      //   return
-      // }
-      // if (!prevExon && nextExon && matchingExon && bp < matchingExon.min) {
-      //   return
-      // }
-      // if (prevExon && !nextExon && matchingExon && bp > matchingExon.max) {
-      //   return
-      // }
       if (matchingExon && bp < matchingExon.min) {
         return
       }
@@ -1061,16 +1049,8 @@ export class CanonicalGeneGlyph extends Glyph {
         cdsLocs &&
         cdsLocs.length > 0
       ) {
-        const oldStart = cdsLocs[discontinuousLocation.idx].start
-        // this.addDiscontinuousLocStartChange(
-        //   changes,
-        //   feature,
-        //   newBp,
-        //   oldStart,
-        //   assembly,
-        //   discontinuousLocation.idx,
-        // )
-        feature.setMin(newBp)
+        this.addStartLocationChange(changes, feature, newBp, assembly)
+        // feature.setMin(newBp)
 
         const exonCDSRelations = this.exonCDSRelation(feature, topLevelFeature)
         const exonForCds = this.adjacentExonsOfCdsDL(
@@ -1082,17 +1062,17 @@ export class CanonicalGeneGlyph extends Glyph {
           exonForCds.matchingExon &&
           newBp < exonForCds.matchingExon.min
         ) {
-          // this.addStartLocationChange(
-          //   changes,
-          //   exonForCds.matchingExon,
-          //   newBp,
-          //   assembly,
-          // )
-          exonForCds.matchingExon.setMin(newBp)
+          this.addStartLocationChange(
+            changes,
+            exonForCds.matchingExon,
+            newBp,
+            assembly,
+          )
+          // exonForCds.matchingExon.setMin(newBp)
         }
       } else {
-        // this.addStartLocationChange(changes, feature, newBp, assembly)
-        feature.setMin(newBp)
+        this.addStartLocationChange(changes, feature, newBp, assembly)
+        // feature.setMin(newBp)
       }
     } else {
       if (
@@ -1100,16 +1080,8 @@ export class CanonicalGeneGlyph extends Glyph {
         cdsLocs &&
         cdsLocs.length > 0
       ) {
-        const oldEnd = cdsLocs[discontinuousLocation.idx].end
-        // this.addDiscontinuousLocEndChange(
-        //   changes,
-        //   feature,
-        //   newBp,
-        //   oldEnd,
-        //   assembly,
-        //   discontinuousLocation.idx,
-        // )
-        feature.setMax(newBp)
+        this.addEndLocationChange(changes, feature, newBp, assembly)
+        // feature.setMax(newBp)
 
         const exonCDSRelations = this.exonCDSRelation(feature, topLevelFeature)
         const exonForCds = this.adjacentExonsOfCdsDL(
@@ -1121,50 +1093,28 @@ export class CanonicalGeneGlyph extends Glyph {
           exonForCds.matchingExon &&
           newBp > exonForCds.matchingExon.max
         ) {
-          // this.addEndLocationChange(
-          //   changes,
-          //   exonForCds.matchingExon,
-          //   newBp,
-          //   assembly,
-          // )
-          exonForCds.matchingExon.setMax(newBp)
+          this.addEndLocationChange(
+            changes,
+            exonForCds.matchingExon,
+            newBp,
+            assembly,
+          )
+          // exonForCds.matchingExon.setMax(newBp)
         }
       } else {
-        // this.addEndLocationChange(changes, feature, newBp, assembly)
-        feature.setMax(newBp)
+        this.addEndLocationChange(changes, feature, newBp, assembly)
+        // feature.setMax(newBp)
       }
     }
 
     if (!changeManager) {
       throw new Error('no change manager')
     }
-    // for (const change of changes) {
-    //   await changeManager.submit(change)
-    // }
+    for (const change of changes) {
+      await changeManager.submit(change)
+    }
 
     setCursor()
-  }
-
-  addDiscontinuousLocStartChange(
-    changes: LocationChange[],
-    feature: AnnotationFeatureNew, // cds
-    newBp: number,
-    oldStart: number,
-    assembly: string,
-    index: number,
-  ) {
-    const featureId = feature._id
-    changes.push(
-      new DiscontinuousLocationStartChange({
-        typeName: 'DiscontinuousLocationStartChange',
-        changedIds: [feature._id],
-        featureId,
-        newStart: newBp,
-        oldStart,
-        index,
-        assembly,
-      }),
-    )
   }
 
   addStartLocationChange(
@@ -1183,28 +1133,6 @@ export class CanonicalGeneGlyph extends Glyph {
         featureId,
         oldStart,
         newStart,
-        assembly,
-      }),
-    )
-  }
-
-  addDiscontinuousLocEndChange(
-    changes: LocationChange[],
-    feature: AnnotationFeatureNew, // cds
-    newBp: number,
-    oldEnd: number,
-    assembly: string,
-    index: number,
-  ) {
-    const featureId = feature._id
-    changes.push(
-      new DiscontinuousLocationEndChange({
-        typeName: 'DiscontinuousLocationEndChange',
-        changedIds: [feature._id],
-        featureId,
-        newEnd: newBp,
-        oldEnd,
-        index,
         assembly,
       }),
     )
