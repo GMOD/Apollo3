@@ -6,5 +6,5 @@
     "esModuleInterop": true,
     "moduleResolution": "node",
   },
-  "include": ["cli.ts"],
+  "include": ["makeGitTag.ts"],
 }
