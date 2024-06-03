@@ -12,15 +12,15 @@ class Shell {
   returncode: number
   cmd: string
   constructor(cmd: string, args: string[], verbose = true) {
-    this.cmd = cmd + ' ' + args.join(' ')
+    this.cmd = `${cmd} ${args.join(' ')}`
     if (verbose) {
-      process.stderr.write(this.cmd + '\n')
+      process.stderr.write(`${this.cmd}\n`)
     }
     const child = spawn.sync(cmd, args)
     this.stdout =
-      child.stdout !== null ? String.fromCharCode(...child.stdout) : ''
+      child.stdout === null ? '' : String.fromCodePoint(...child.stdout)
     this.stderr =
-      child.stderr !== null ? String.fromCharCode(...child.stderr) : ''
+      child.stderr === null ? '' : String.fromCodePoint(...child.stderr)
     this.returncode = child.status
 
     if (this.returncode != 0) {
@@ -37,7 +37,7 @@ function getPackages(): string[] {
   const packages: string[] = []
   for (const line of lines) {
     const j = JSON.parse(line)
-    const pack: string = path.join(j['location'], 'package.json')
+    const pack: string = path.join(j.location, 'package.json')
     if (!fs.existsSync(pack)) {
       throw new Error(`Error: Expected file '${pack}' does not exist\n`)
     }
@@ -46,7 +46,7 @@ function getPackages(): string[] {
   return packages
 }
 
-function checkTag(tag: string, testRegex = /v[0-9]+.[0-9]+.[0-9]+.*/) {
+function checkTag(tag: string, testRegex = /v\d+.\d+.\d+.*/) {
   if (!testRegex.test(tag)) {
     throw new Error(`Invalid tag: '${tag}' does not match regex ${testRegex}\n`)
   }
@@ -78,6 +78,7 @@ const usage = `Prepare and push source code for new tag release. See code for de
 const argv = yargs(process.argv.slice(2))
   .usage(usage)
   .version('0.1.0')
+  .example('$0 -t v1.2.3 -m "New relase"')
   .options({
     tag: {
       demandOption: true,
@@ -113,7 +114,7 @@ updatePackageVersion(tag, packages)
 if (argv['update-only']) {
   process.exit(0)
 }
-new Shell('git', ['add', '--force'].concat(packages))
-new Shell('git', ['commit', '--message', m, '--'].concat(packages))
+new Shell('git', ['add', '--force', ...packages])
+new Shell('git', ['commit', '--message', m, '--', ...packages])
 new Shell('git', ['tag', '--annotate', tag, '--message', m])
 new Shell('git', ['push', '--follow-tags'])
