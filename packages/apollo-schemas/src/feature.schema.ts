@@ -1,4 +1,4 @@
-import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import type { AnnotationFeatureSnapshotNew } from '@apollo-annotation/mst'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose'
 
@@ -9,7 +9,7 @@ export interface FeatureDocument extends HydratedDocument<Feature> {
 
 @Schema({ timestamps: true })
 export class Feature
-  implements Omit<AnnotationFeatureSnapshot, '_id' | 'children' | 'refSeq'>
+  implements Omit<AnnotationFeatureSnapshotNew, '_id' | 'children' | 'refSeq'>
 {
   // Don't make this a @Prop since _id is already on a MongoDB document
   _id: Types.ObjectId
@@ -33,10 +33,10 @@ export class Feature
   type: string
 
   @Prop({ required: true })
-  start: number
+  min: number
 
   @Prop({ required: true })
-  end: number
+  max: number
 
   @Prop()
   discontinuousLocations?: { start: number; end: number; phase?: 0 | 1 | 2 }[]
