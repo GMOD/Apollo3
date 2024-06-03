@@ -511,7 +511,6 @@ export function mouseEventsModelFactory(
               if (apolloDragging) {
                 // NOTE: the glyph where the drag started is responsible for drawing the preview.
                 // it can call methods in other glyphs to help with this though.
-
                 apolloDragging.start.glyph?.drawDragPreview(self, ctx)
               }
             },

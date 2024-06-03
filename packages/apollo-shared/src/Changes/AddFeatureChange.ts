@@ -6,7 +6,7 @@ import {
   SerializedFeatureChange,
   ServerDataStore,
 } from 'apollo-common'
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
+import { AnnotationFeatureSnapshotNew } from 'apollo-mst'
 
 import { DeleteFeatureChange } from './DeleteFeatureChange'
 
@@ -15,7 +15,7 @@ interface SerializedAddFeatureChangeBase extends SerializedFeatureChange {
 }
 
 export interface AddFeatureChangeDetails {
-  addedFeature: AnnotationFeatureSnapshot
+  addedFeature: AnnotationFeatureSnapshotNew
   parentFeatureId?: string // Parent feature to where feature will be added
   copyFeature?: boolean // Are we copying or adding a new child feature
   allIds?: string[]
@@ -109,7 +109,7 @@ export class AddFeatureChange extends FeatureChange {
         )
         featureCnt++
       } else {
-        addedFeature.gffId = _id // User added manually new feature so then gffId = _id
+        addedFeature._id = _id // User added manually new feature so then gffId = _id
         // Adding new child feature
         if (parentFeatureId) {
           const topLevelFeature = await featureModel
@@ -154,7 +154,7 @@ export class AddFeatureChange extends FeatureChange {
           // Child features should be sorted for click and drag of gene glyphs to work properly
           parentFeature.children = new Map(
             [...parentFeature.children.entries()].sort(
-              (a, b) => a[1].start - b[1].start,
+              (a, b) => a[1].min - b[1].min,
             ),
           )
           const childIds = this.getChildFeatureIds(addedFeature)
