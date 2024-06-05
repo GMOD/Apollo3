@@ -7698,6 +7698,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/yargs@npm:^17.0.32":
+  version: 17.0.32
+  resolution: "@types/yargs@npm:17.0.32"
+  dependencies:
+    "@types/yargs-parser": "npm:*"
+  checksum: 10c0/2095e8aad8a4e66b86147415364266b8d607a3b95b4239623423efd7e29df93ba81bb862784a6e08664f645cc1981b25fd598f532019174cd3e5e1e689e1cccf
+  languageName: node
+  linkType: hard
+
 "@types/yargs@npm:^17.0.8":
   version: 17.0.28
   resolution: "@types/yargs@npm:17.0.28"
@@ -8440,6 +8449,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "apollo3@workspace:."
   dependencies:
+    "@types/node": "npm:^18.14.2"
+    "@types/yargs": "npm:^17.0.32"
     "@typescript-eslint/eslint-plugin": "npm:^6.1.0"
     "@typescript-eslint/parser": "npm:^6.1.0"
     "@yarnpkg/types": "npm:^4.0.0"
@@ -8466,7 +8477,9 @@ __metadata:
     prettier: "npm:^3.2.5"
     prettier-plugin-import-sort: "npm:^0.0.7"
     react: "npm:^18.2.0"
+    tsx: "npm:^4.6.2"
     typescript: "npm:^5.1.6"
+    yargs: "npm:^17.7.2"
   languageName: unknown
   linkType: soft
 
@@ -23162,7 +23175,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yargs@npm:^17.3.1":
+"yargs@npm:^17.3.1, yargs@npm:^17.7.2":
   version: 17.7.2
   resolution: "yargs@npm:17.7.2"
   dependencies:
