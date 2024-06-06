@@ -80,7 +80,9 @@ export class LocationEndChange extends FeatureChange {
         throw new Error(errMsg)
         // throw new NotFoundException(errMsg)  -- This is causing runtime error because Exception comes from @nestjs/common!!!
       }
-      logger.debug?.(`*** Feature found: ${JSON.stringify(topLevelFeature)}`)
+      logger.debug?.(
+        `*** TOP level feature found: ${JSON.stringify(topLevelFeature)}`,
+      )
 
       const foundFeature = this.getFeatureFromId(topLevelFeature, featureId)
       if (!foundFeature) {
@@ -89,21 +91,26 @@ export class LocationEndChange extends FeatureChange {
         throw new Error(errMsg)
       }
       logger.debug?.(`*** Found feature: ${JSON.stringify(foundFeature)}`)
-      if (
-        foundFeature.discontinuousLocations &&
-        foundFeature.discontinuousLocations.length > 0
-      ) {
-        const errMsg =
-          'Must use "DiscontinuousLocationEndChange" to change a feature end that has discontinuous locations'
-        logger.error(errMsg)
-        throw new Error(errMsg)
+      if (foundFeature.max === oldEnd) {
+        featuresForChanges.push({ feature: foundFeature, topLevelFeature })
+      } else {
+        if (foundFeature.children) {
+          for (const [, childFeature] of foundFeature.children) {
+            if (childFeature.max === oldEnd) {
+              logger.debug?.(
+                `*************** UPDATE CHILD FEATURE ID= ${featureId}, CHILD: ${JSON.stringify(
+                  childFeature,
+                )}`,
+              )
+              featuresForChanges.push({
+                feature: childFeature,
+                topLevelFeature,
+              })
+              break
+            }
+          }
+        }
       }
-      if (foundFeature.max !== oldEnd) {
-        const errMsg = `*** ERROR: Feature's current end value ${foundFeature.max} doesn't match with expected value ${oldEnd}`
-        logger.error(errMsg)
-        throw new Error(errMsg)
-      }
-      featuresForChanges.push({ feature: foundFeature, topLevelFeature })
     }
 
     // Let's update objects.

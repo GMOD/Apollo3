@@ -1,7 +1,7 @@
 import { AbstractSessionModel, revcom } from '@jbrowse/core/util'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Typography } from '@mui/material'
-import { AnnotationFeatureI, AnnotationFeatureNew } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import React from 'react'
@@ -62,7 +62,7 @@ export const TranscriptBasicInformation = observer(
     refName,
     session,
   }: {
-    feature: AnnotationFeatureI
+    feature: AnnotationFeatureNew
     session: ApolloSessionModel
     assembly: string
     refName: string
