@@ -116,16 +116,7 @@ export const Feature = observer(function Feature({
     tabularEditor: tabularEditorState,
   } = displayState
   const { featureCollapsed, filterText } = tabularEditorState
-  const {
-    _id,
-    children,
-    // discontinuousLocations,
-    max,
-    // phase,
-    min,
-    strand,
-    type,
-  } = feature
+  const { _id, children, max, min, strand, type } = feature
   const expanded = !featureCollapsed.get(_id)
   const toggleExpanded = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -236,69 +227,8 @@ export const Feature = observer(function Feature({
               )
             }
           />
-          {/* {discontinuousLocations && discontinuousLocations.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {discontinuousLocations.map((loc, index) => (
-                <NumberCell
-                  key={`${_id}:${loc.start},${loc.phase}`}
-                  initialValue={loc.start + 1}
-                  notifyError={notifyError}
-                  onChangeCommitted={(newStart) =>
-                    handleFeatureStartChange(
-                      changeManager,
-                      feature,
-                      discontinuousLocations[index].start,
-                      newStart - 1,
-                      index,
-                    )
-                  }
-                />
-              ))}
-            </div>
-          ) : (
-            <NumberCell
-              initialValue={start + 1}
-              notifyError={notifyError}
-              onChangeCommitted={(newStart) =>
-                handleFeatureStartChange(
-                  changeManager,
-                  feature,
-                  start,
-                  newStart - 1,
-                )
-              }
-            />
-          )} */}
         </td>
         <td>
-          {/* {discontinuousLocations && discontinuousLocations.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {discontinuousLocations.map((loc, index) => (
-                <NumberCell
-                  key={`${_id}:${loc.end},${loc.phase}`}
-                  initialValue={loc.end}
-                  notifyError={notifyError}
-                  onChangeCommitted={(newEnd) =>
-                    handleFeatureEndChange(
-                      changeManager,
-                      feature,
-                      discontinuousLocations[index].end,
-                      newEnd,
-                      index,
-                    )
-                  }
-                />
-              ))}
-            </div>
-          ) : (
-            <NumberCell
-              initialValue={end}
-              notifyError={notifyError}
-              onChangeCommitted={(newEnd) =>
-                handleFeatureEndChange(changeManager, feature, end, newEnd)
-              }
-            />
-          )} */}
           <NumberCell
             initialValue={max}
             notifyError={notifyError}
@@ -308,7 +238,6 @@ export const Feature = observer(function Feature({
           />
         </td>
         <td>{strand === 1 ? '+' : strand === -1 ? '-' : undefined}</td>
-        {/* <td>{phase}</td> */}
         <td>
           <FeatureAttributes filterText={filterText} feature={feature} />
         </td>
