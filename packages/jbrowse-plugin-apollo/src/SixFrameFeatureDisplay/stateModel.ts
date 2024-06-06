@@ -198,7 +198,7 @@ export function stateModelFactory(
             if (featureLocation.min < min) {
               ;({ min } = featureLocation)
             }
-            if (featureLocation.end > max) {
+            if (featureLocation.max > max) {
               ;({ max } = featureLocation)
             }
           }

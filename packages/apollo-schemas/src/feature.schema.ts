@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import type { AnnotationFeatureSnapshot } from 'apollo-mst'
+import type { AnnotationFeatureSnapshotNew } from 'apollo-mst'
 import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose'
 
 export interface FeatureDocument extends HydratedDocument<Feature> {
@@ -9,14 +9,10 @@ export interface FeatureDocument extends HydratedDocument<Feature> {
 
 @Schema({ timestamps: true })
 export class Feature
-  implements Omit<AnnotationFeatureSnapshot, '_id' | 'children' | 'refSeq'>
+  implements Omit<AnnotationFeatureSnapshotNew, '_id' | 'children' | 'refSeq'>
 {
   // Don't make this a @Prop since _id is already on a MongoDB document
   _id: Types.ObjectId
-
-  // Here we store feature ID if it's given in attributes, otherwise gffId = _id as string
-  @Prop()
-  gffId: string
 
   @Prop({
     required: true,
@@ -33,22 +29,13 @@ export class Feature
   type: string
 
   @Prop({ required: true })
-  start: number
+  min: number
 
   @Prop({ required: true })
-  end: number
-
-  @Prop()
-  discontinuousLocations?: { start: number; end: number; phase?: 0 | 1 | 2 }[]
+  max: number
 
   @Prop()
   strand?: 1 | -1
-
-  @Prop()
-  score?: number
-
-  @Prop()
-  phase?: 0 | 1 | 2
 
   @Prop({ type: Map, of: [String] })
   attributes?: Record<string, string[]>
@@ -67,6 +54,6 @@ export const FeatureSchema = SchemaFactory.createForClass(Feature)
 
 FeatureSchema.add({ children: { type: Map, of: FeatureSchema } })
 
-FeatureSchema.index({ refSeq: 1, start: 1 })
-FeatureSchema.index({ refSeq: 1, end: 1 })
+FeatureSchema.index({ refSeq: 1, min: 1 })
+FeatureSchema.index({ refSeq: 1, max: 1 })
 FeatureSchema.index({ '$**': 'text' })

@@ -154,7 +154,7 @@ export class AddFeatureChange extends FeatureChange {
           // Child features should be sorted for click and drag of gene glyphs to work properly
           parentFeature.children = new Map(
             [...parentFeature.children.entries()].sort(
-              (a, b) => a[1].start - b[1].start,
+              (a, b) => a[1].min - b[1].min,
             ),
           )
           const childIds = this.getChildFeatureIds(addedFeature)

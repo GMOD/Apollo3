@@ -171,9 +171,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
     for (const [row, featureInfos] of featureLayout) {
       for (const [parentID, feature] of featureInfos) {
         const start = region.reversed
-          ? region.end - feature.end
-          : feature.start - region.start - 1
-        const end = feature.end - region.start - 1
+          ? region.end - feature.max
+          : feature.min - region.start - 1
+        const end = feature.max - region.start - 1
         const startPx = start / bpPerPx
         const endPx = end / bpPerPx
         const width = end - start
@@ -510,7 +510,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
       let change: LocationEndChange | LocationStartChange
       if (edge === 'end') {
         const featureId = feature._id
-        const oldEnd = feature.end
+        const oldEnd = feature.max
         const newEnd = Math.round(bp)
         change = new LocationEndChange({
           typeName: 'LocationEndChange',
@@ -522,7 +522,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
         })
       } else {
         const featureId = feature._id
-        const oldStart = feature.start
+        const oldStart = feature.min
         const newStart = Math.round(bp)
         change = new LocationStartChange({
           typeName: 'LocationStartChange',

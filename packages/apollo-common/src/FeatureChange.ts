@@ -1,7 +1,4 @@
-import type {
-  AnnotationFeatureSnapshot,
-  AnnotationFeatureSnapshotNew,
-} from 'apollo-mst'
+import type { AnnotationFeatureSnapshotNew } from 'apollo-mst'
 import { Feature } from 'apollo-schemas'
 import ObjectID from 'bson-objectid'
 import type { Types } from 'mongoose'
@@ -93,13 +90,13 @@ export abstract class FeatureChange extends AssemblySpecificChange {
    * @param featureIds -
    */
   generateNewIds(
-    feature: Feature | AnnotationFeatureSnapshot,
+    feature: Feature | AnnotationFeatureSnapshotNew,
     featureIds: string[],
-  ): AnnotationFeatureSnapshot {
+  ): AnnotationFeatureSnapshotNew {
     const newId = new ObjectID().toHexString()
     featureIds.push(newId)
 
-    const children: Record<string, AnnotationFeatureSnapshot> = {}
+    const children: Record<string, AnnotationFeatureSnapshotNew> = {}
     if (feature.children) {
       for (const child of Object.values(feature.children)) {
         const newChild = this.generateNewIds(child, featureIds)

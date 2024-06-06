@@ -1,13 +1,9 @@
-import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { getSession } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
-import { getRoot } from 'mobx-state-tree'
-import React, { useMemo } from 'react'
+import React from 'react'
 import { makeStyles } from 'tss-react/mui'
 
-import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloSessionModel } from '../session'
-import { ApolloRootModel } from '../types'
 import { Attributes } from './Attributes'
 import { BasicInformation } from './BasicInformation'
 import { ApolloFeatureDetailsWidget as ApolloFeatureDetails } from './model'
@@ -26,14 +22,6 @@ export const ApolloFeatureDetailsWidget = observer(
     const session = getSession(model) as unknown as ApolloSessionModel
     const currentAssembly = session.apolloDataStore.assemblies.get(assembly)
     const { classes } = useStyles()
-    // const { internetAccounts } = getRoot<ApolloRootModel>(session)
-    // const internetAccount = useMemo(() => {
-    //   return internetAccounts.find(
-    //     (ia: BaseInternetAccountModel) => ia.type === 'ApolloInternetAccount',
-    //   ) as ApolloInternetAccountModel | undefined
-    // }, [internetAccounts])
-    // const role = internetAccount ? internetAccount.getRole() : 'admin'
-    // const editable = ['admin', 'user'].includes(role ?? '')
 
     if (!(feature && currentAssembly)) {
       return null

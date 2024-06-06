@@ -77,7 +77,9 @@ export class LocationStartChange extends FeatureChange {
         throw new Error(errMsg)
         // throw new NotFoundException(errMsg)  -- This is causing runtime error because Exception comes from @nestjs/common!!!
       }
-      logger.debug?.(`*** Feature found: ${JSON.stringify(topLevelFeature)}`)
+      logger.debug?.(
+        `*** TOP level feature found: ${JSON.stringify(topLevelFeature)}`,
+      )
 
       const foundFeature = this.getFeatureFromId(topLevelFeature, featureId)
       if (!foundFeature) {
@@ -86,28 +88,33 @@ export class LocationStartChange extends FeatureChange {
         throw new Error(errMsg)
       }
       logger.debug?.(`*** Found feature: ${JSON.stringify(foundFeature)}`)
-      if (
-        foundFeature.discontinuousLocations &&
-        foundFeature.discontinuousLocations.length > 0
-      ) {
-        const errMsg =
-          'Must use "DiscontinuousLocationStartChange" to change a feature start that has discontinuous locations'
-        logger.error(errMsg)
-        throw new Error(errMsg)
+      if (foundFeature.min === oldStart) {
+        featuresForChanges.push({ feature: foundFeature, topLevelFeature })
+      } else {
+        if (foundFeature.children) {
+          for (const [, childFeature] of foundFeature.children) {
+            if (childFeature.min === oldStart) {
+              logger.debug?.(
+                `*** UPDATE CHILD FEATURE ID= ${featureId}, CHILD: ${JSON.stringify(
+                  childFeature,
+                )}`,
+              )
+              featuresForChanges.push({
+                feature: childFeature,
+                topLevelFeature,
+              })
+              break
+            }
+          }
+        }
       }
-      if (foundFeature.start !== oldStart) {
-        const errMsg = `*** ERROR: Feature's current start value ${foundFeature.start} doesn't match with expected value ${oldStart}`
-        logger.error(errMsg)
-        throw new Error(errMsg)
-      }
-      featuresForChanges.push({ feature: foundFeature, topLevelFeature })
     }
 
     // Let's update objects.
     for (const [idx, change] of changes.entries()) {
       const { newStart } = change
       const { feature, topLevelFeature } = featuresForChanges[idx]
-      feature.start = newStart
+      feature.min = newStart
       if (topLevelFeature._id.equals(feature._id)) {
         topLevelFeature.markModified('start') // Mark as modified. Without this save() -method is not updating data in database
       } else {
