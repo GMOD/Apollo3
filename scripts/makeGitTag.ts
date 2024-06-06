@@ -101,7 +101,7 @@ const tag = argv.tag as string
 
 process.chdir(argv['root-dir'])
 
-let m: string = argv.message as string
+let m: string | undefined = argv.message
 if (m === undefined) {
   m = `Tag release ${tag}`
 }
@@ -110,6 +110,7 @@ checkTag(tag)
 const packages = getPackages()
 updatePackageVersion(tag, packages)
 if (argv['update-only']) {
+  // eslint-disable-next-line unicorn/no-process-exit
   process.exit(0)
 }
 new Shell('git', ['add', '--force', ...packages])
