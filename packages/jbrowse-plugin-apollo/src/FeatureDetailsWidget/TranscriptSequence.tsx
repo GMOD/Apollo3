@@ -6,7 +6,7 @@ import {
   SelectChangeEvent,
   Typography,
 } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureNew } from 'apollo-mst'
 import { splitStringIntoChunks } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
@@ -47,7 +47,7 @@ export const TranscriptSequence = observer(function TranscriptSequence({
   session,
 }: {
   assembly: string
-  feature: AnnotationFeatureI
+  feature: AnnotationFeatureNew
   refName: string
   session: ApolloSessionModel
 }) {
@@ -64,10 +64,10 @@ export const TranscriptSequence = observer(function TranscriptSequence({
     return null
   }
   const transcriptItems = getCDSInfo(feature, refData)
-  const { end, start } = feature
+  const { max, min } = feature
   let sequence = ''
   if (showSequence) {
-    getSequenceAsString(start, end)
+    getSequenceAsString(min, max)
   }
 
   function getSequenceAsString(start: number, end: number): string {

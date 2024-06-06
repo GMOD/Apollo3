@@ -43,6 +43,24 @@
       "url": "http://localhost:9000/dist/jbrowse-plugin-apollo.umd.development.js"
     }
   ],
+  "internetAccounts": [
+    {
+      "type": "ApolloInternetAccount",
+      "internetAccountId": "apolloInternetAccount",
+      "name": "Demo Server",
+      "description": "A server hosting a small fictional organism to demonstrate Apollo capabilities",
+      "domains": ["localhost:3999"],
+      "baseURL": "http://localhost:3999",
+      "google": {
+        "authEndpoint": "http://localhost:3999/auth/google" ,
+        "clientId": "1054515969695-3hpfg1gd0ld3sgj135kfgikolu86vv30.apps.googleusercontent.com"
+      },
+      "microsoft": {
+        "authEndpoint": "http://localhost:3999/auth/microsoft" ,
+        "clientId": "fabdd045-163c-4712-9d40-dbbb043b3090"
+      }
+    }
+  ],
   "defaultSession": {
     "name": "Apollo Demo",
     "views": [
