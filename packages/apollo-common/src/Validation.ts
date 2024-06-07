@@ -12,10 +12,7 @@ export interface Context {
 }
 
 export function isContext(thing: Change | Context): thing is Context {
-  return (
-    (thing as Context).context !== undefined &&
-    (thing as Context).reflector !== undefined
-  )
+  return 'context' in thing && 'reflector' in thing
 }
 
 export interface ValidationResult {
