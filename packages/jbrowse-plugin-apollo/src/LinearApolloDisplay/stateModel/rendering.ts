@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { defaultCodonTable, doesIntersect2, revcom } from '@jbrowse/core/util'
@@ -102,6 +101,9 @@ export function renderingModelIntermediateFactory(
           self,
           autorun(
             () => {
+              // remove when regionCannotBeRendered return type is fixed in
+              // @jbrowse/core
+              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
               if (!self.lgv.initialized || self.regionCannotBeRendered()) {
                 return
               }
@@ -161,16 +163,32 @@ export function renderingModelIntermediateFactory(
     }))
 }
 
+function isThemedBase(
+  base: string,
+  theme: Theme,
+): base is keyof Theme['palette']['bases'] {
+  if (base.length !== 1) {
+    throw new Error(`Base can only be one character, got "${base}"`)
+  }
+  return base in theme.palette.bases
+}
+
 function colorCode(letter: string, theme?: Theme) {
-  return (
-    theme?.palette.bases[
-      letter.toUpperCase() as keyof Theme['palette']['bases']
-    ].main.toString() ?? 'lightgray'
-  )
+  const fallbackColor = 'lightgray'
+  if (theme) {
+    const letterUp = letter.toUpperCase()
+    if (isThemedBase(letterUp, theme)) {
+      const paletteColor = theme.palette.bases[letterUp]
+      if ('main' in paletteColor) {
+        return paletteColor.main
+      }
+    }
+  }
+  return fallbackColor
 }
 
 function codonColorCode(letter: string, rowColorCode: string, bpPerPx: number) {
-  const colorMap: Record<string, string> = {
+  const colorMap: Record<string, string | undefined> = {
     M: '#33ee33',
     '*': '#f44336',
   }
@@ -180,13 +198,6 @@ function codonColorCode(letter: string, rowColorCode: string, bpPerPx: number) {
   }
 
   return bpPerPx <= 0.1 ? rowColorCode : 'lightgray'
-}
-
-function reverseCodonSeq(seq: string): string {
-  return [...seq]
-    .map((c) => revcom(c))
-    .reverse()
-    .join('')
 }
 
 function drawLetter(
@@ -218,7 +229,7 @@ function drawTranslation(
 ) {
   let codonSeq: string = seq.slice(i, i + 3).toUpperCase()
   if (reverse) {
-    codonSeq = reverseCodonSeq(codonSeq)
+    codonSeq = revcom(codonSeq)
   }
   const codonLetter =
     defaultCodonTable[codonSeq as keyof typeof defaultCodonTable]
@@ -226,7 +237,8 @@ function drawTranslation(
     return
   }
   seqTrackctx.beginPath()
-  seqTrackctx.fillStyle = codonColorCode(codonLetter, rowColorCode, bpPerPx)
+  seqTrackctx.fillStyle =
+    codonColorCode(codonLetter, rowColorCode, bpPerPx) ?? seqTrackctx.fillStyle
   seqTrackctx.rect(trnslStartPx, trnslY, trnslWidthPx, sequenceRowHeight)
   seqTrackctx.fill()
   if (bpPerPx <= 0.1) {
@@ -250,6 +262,9 @@ export function sequenceRenderingModelFactory(
         self,
         autorun(
           async () => {
+            // remove when regionCannotBeRendered return type is fixed in
+            // @jbrowse/core
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             if (!self.lgv.initialized || self.regionCannotBeRendered()) {
               return
             }
@@ -412,6 +427,9 @@ export function renderingModelFactory(
         self,
         autorun(
           () => {
+            // remove when regionCannotBeRendered return type is fixed in
+            // @jbrowse/core
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             if (!self.lgv.initialized || self.regionCannotBeRendered()) {
               return
             }
