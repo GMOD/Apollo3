@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/require-await */
 import {
   AssemblySpecificChange,
@@ -7,7 +6,7 @@ import {
   LocalGFF3DataStore,
   SerializedAssemblySpecificChange,
   ServerDataStore,
-} from 'apollo-common'
+} from '@apollo-annotation/apollo-common'
 
 export interface SerializedAddAssemblyFromFileChangeBase
   extends SerializedAssemblySpecificChange {

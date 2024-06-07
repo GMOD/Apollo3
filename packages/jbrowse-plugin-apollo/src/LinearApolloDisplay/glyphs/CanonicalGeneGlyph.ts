@@ -3,14 +3,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { alpha } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
 import {
   DiscontinuousLocationEndChange,
   DiscontinuousLocationStartChange,
   LocationEndChange,
   LocationStartChange,
-} from 'apollo-shared'
+} from '@apollo-annotation/apollo-shared'
+import { alpha } from '@mui/material'
 
 import { LinearApolloDisplay } from '../stateModel'
 import {

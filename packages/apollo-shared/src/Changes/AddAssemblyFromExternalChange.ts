@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
+
 /* eslint-disable @typescript-eslint/require-await */
-import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
 import {
   AssemblySpecificChange,
   ChangeOptions,
@@ -9,7 +8,8 @@ import {
   LocalGFF3DataStore,
   SerializedAssemblySpecificChange,
   ServerDataStore,
-} from 'apollo-common'
+} from '@apollo-annotation/apollo-common'
+import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
 import { RemoteFile } from 'generic-filehandle'
 
 export interface SerializedAddAssemblyFromExternalChangeBase

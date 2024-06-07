@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
+import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
+import { FeatureAttributeChange } from '@apollo-annotation/apollo-shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
@@ -17,8 +19,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
-import { FeatureAttributeChange } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import { getSnapshot } from 'mobx-state-tree'
 import React, { useState } from 'react'

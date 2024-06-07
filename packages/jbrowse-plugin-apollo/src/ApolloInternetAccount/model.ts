@@ -6,14 +6,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
-import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
-import {
-  AbstractSessionModel,
-  isAbstractMenuManager,
-  isElectron,
-} from '@jbrowse/core/util'
-import { Change } from 'apollo-common'
+import { Change } from '@apollo-annotation/apollo-common'
 import {
   ChangeMessage,
   CheckResultUpdate,
@@ -22,7 +15,14 @@ import {
   UserLocationMessage,
   getDecodedToken,
   makeUserSessionId,
-} from 'apollo-shared'
+} from '@apollo-annotation/apollo-shared'
+import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
+import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
+import {
+  AbstractSessionModel,
+  isAbstractMenuManager,
+  isElectron,
+} from '@jbrowse/core/util'
 import { autorun } from 'mobx'
 import { Instance, flow, getRoot, types } from 'mobx-state-tree'
 import { io } from 'socket.io-client'

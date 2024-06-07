@@ -23,12 +23,20 @@ function main() {
         fileName.includes('apollo-cli') && !fileName.includes('test'),
     )
   ) {
-    spawn.sync('yarn', ['workspace', 'apollo-cli', 'build'], {
-      stdio: 'inherit',
-    })
-    spawn.sync('yarn', ['workspace', 'apollo-cli', 'oclif', 'readme'], {
-      stdio: 'inherit',
-    })
+    spawn.sync(
+      'yarn',
+      ['workspace', '@apollo-annotation/apollo-cli', 'build'],
+      {
+        stdio: 'inherit',
+      },
+    )
+    spawn.sync(
+      'yarn',
+      ['workspace', '@apollo-annotation/apollo-cli', 'oclif', 'readme'],
+      {
+        stdio: 'inherit',
+      },
+    )
     spawn.sync('git', ['add', 'packages/apollo-cli/README.md'], {
       stdio: 'inherit',
     })

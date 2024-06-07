@@ -2,6 +2,12 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/apollo-common'
+import {
+  AnnotationFeature,
+  AnnotationFeatureI,
+} from '@apollo-annotation/apollo-mst'
+import { UserLocation } from '@apollo-annotation/apollo-shared'
 import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
@@ -11,9 +17,6 @@ import {
   SessionWithConfigEditing,
 } from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
-import { AnnotationFeature, AnnotationFeatureI } from 'apollo-mst'
-import { UserLocation } from 'apollo-shared'
 import { autorun, observable } from 'mobx'
 import { Instance, flow, getRoot, types } from 'mobx-state-tree'
 

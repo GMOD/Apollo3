@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
+import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
@@ -15,7 +16,6 @@ import {
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { addDisposer, getRoot, types } from 'mobx-state-tree'
 

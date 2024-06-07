@@ -1,4 +1,11 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
+import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
+import {
+  LocationEndChange,
+  LocationStartChange,
+  StrandChange,
+  TypeChange,
+} from '@apollo-annotation/apollo-shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   FormControl,
@@ -9,13 +16,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
-import {
-  LocationEndChange,
-  LocationStartChange,
-  StrandChange,
-  TypeChange,
-} from 'apollo-shared'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 

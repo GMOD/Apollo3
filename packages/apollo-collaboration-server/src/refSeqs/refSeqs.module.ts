@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { RefSeq, RefSeqSchema } from '@apollo-annotation/apollo-schemas'
 import { Module } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
-import { RefSeq, RefSeqSchema } from 'apollo-schemas'
 import idValidator from 'mongoose-id-validator'
 
 import { RefSeqsController } from './refSeqs.controller'

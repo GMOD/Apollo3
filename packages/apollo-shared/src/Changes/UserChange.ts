@@ -6,7 +6,7 @@ import {
   LocalGFF3DataStore,
   SerializedChange,
   ServerDataStore,
-} from 'apollo-common'
+} from '@apollo-annotation/apollo-common'
 
 export interface SerializedUserChangeBase extends SerializedChange {
   typeName: 'UserChange'

@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { AppRootModel, Region } from '@jbrowse/core/util'
 import {
   AnnotationFeatureI,
   AnnotationFeatureSnapshot,
   ApolloAssemblyI,
   CheckResultI,
   CheckResultSnapshot,
-} from 'apollo-mst'
+} from '@apollo-annotation/apollo-mst'
+import { AppRootModel, Region } from '@jbrowse/core/util'
 
 import { changeRegistry } from './ChangeTypeRegistry'
 import {

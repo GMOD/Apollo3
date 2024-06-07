@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
+import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
+import { AddFeatureChange } from '@apollo-annotation/apollo-shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
@@ -12,8 +14,6 @@ import {
   SelectChangeEvent,
   TextField,
 } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
-import { AddFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import React, { useState } from 'react'
 

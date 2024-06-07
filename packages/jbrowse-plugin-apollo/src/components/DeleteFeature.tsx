@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-misused-promises */
+import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
+import { DeleteFeatureChange } from '@apollo-annotation/apollo-shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
@@ -8,8 +10,6 @@ import {
   DialogContent,
   DialogContentText,
 } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
-import { DeleteFeatureChange } from 'apollo-shared'
 import { getSnapshot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 

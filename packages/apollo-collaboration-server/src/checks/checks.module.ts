@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Module } from '@nestjs/common'
-import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
-import { CheckResultSnapshot } from 'apollo-mst'
+import { CheckResultSnapshot } from '@apollo-annotation/apollo-mst'
 import {
   Check,
   CheckResult,
   CheckResultDocument,
   CheckResultSchema,
   CheckSchema,
-} from 'apollo-schemas'
-import { CheckResultUpdate } from 'apollo-shared'
+} from '@apollo-annotation/apollo-schemas'
+import { CheckResultUpdate } from '@apollo-annotation/apollo-shared'
+import { Module } from '@nestjs/common'
+import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import idValidator from 'mongoose-id-validator'
 
 import { MessagesGateway } from '../messages/messages.gateway'
