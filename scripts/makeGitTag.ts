@@ -84,7 +84,7 @@ checkTag(tag)
 //   // eslint-disable-next-line unicorn/no-process-exit
 //   process.exit(0)
 // }
-new Shell('yarn', ['workspaces', 'foreach', 'version', tag])
+new Shell('yarn', ['workspaces', 'foreach', '--all', 'version', tag])
 new Shell('git', ['add', '--force', '*package.json'])
 new Shell('git', ['commit', '--message', m, '--', '*package.json'])
 new Shell('git', ['tag', '--annotate', tag, '--message', m])
