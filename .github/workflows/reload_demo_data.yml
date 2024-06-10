@@ -5,7 +5,7 @@ on:
     inputs:
       environment:
         description: Environment in which to reload data
-        type: environment
+        type: string
         required: true
   workflow_dispatch:
     inputs:
