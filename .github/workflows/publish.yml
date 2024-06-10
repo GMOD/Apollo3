@@ -26,8 +26,6 @@ jobs:
   publish-docker:
     name: Build and push Docker image
     uses: ./.github/workflows/build-and-push-docker.yml
-    with:
-      tag:
   deploy-to-demo-staging-server:
     name: Deploy to demo staging server
     needs: [publish-docker]
