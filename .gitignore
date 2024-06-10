@@ -123,3 +123,6 @@ packages/apollo-collaboration-server/test/uploaded
 
 # Vim
 *.swp
+
+# Python
+__pycache__/

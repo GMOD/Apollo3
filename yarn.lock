@@ -7011,6 +7011,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/cross-spawn@npm:^6.0.6":
+  version: 6.0.6
+  resolution: "@types/cross-spawn@npm:6.0.6"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/e3d476bb6b3a54a8934a97fe6ee4bd13e2e5eb29073929a4be76a52466602ffaea420b20774ffe8503f9fa24f3ae34817e95e7f625689fb0d1c10404f5b2889c
+  languageName: node
+  linkType: hard
+
 "@types/eslint-scope@npm:^3.7.3":
   version: 3.7.5
   resolution: "@types/eslint-scope@npm:3.7.5"
@@ -7695,6 +7704,15 @@ __metadata:
   version: 21.0.1
   resolution: "@types/yargs-parser@npm:21.0.1"
   checksum: 10c0/f1d723a4c4383a9c53b975820b7490186ca127237ca58eb2ee8f5eacdcdb195a81aeabd1d75560abdf22fc29f70e8bb103d7ab34c5ec49bc19196195a7bf3189
+  languageName: node
+  linkType: hard
+
+"@types/yargs@npm:^17.0.32":
+  version: 17.0.32
+  resolution: "@types/yargs@npm:17.0.32"
+  dependencies:
+    "@types/yargs-parser": "npm:*"
+  checksum: 10c0/2095e8aad8a4e66b86147415364266b8d607a3b95b4239623423efd7e29df93ba81bb862784a6e08664f645cc1981b25fd598f532019174cd3e5e1e689e1cccf
   languageName: node
   linkType: hard
 
@@ -8440,6 +8458,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "apollo3@workspace:."
   dependencies:
+    "@types/cross-spawn": "npm:^6.0.6"
+    "@types/node": "npm:^18.14.2"
+    "@types/yargs": "npm:^17.0.32"
     "@typescript-eslint/eslint-plugin": "npm:^6.1.0"
     "@typescript-eslint/parser": "npm:^6.1.0"
     "@yarnpkg/types": "npm:^4.0.0"
@@ -8466,7 +8487,9 @@ __metadata:
     prettier: "npm:^3.2.5"
     prettier-plugin-import-sort: "npm:^0.0.7"
     react: "npm:^18.2.0"
+    tsx: "npm:^4.6.2"
     typescript: "npm:^5.1.6"
+    yargs: "npm:^17.7.2"
   languageName: unknown
   linkType: soft
 
@@ -23162,7 +23185,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yargs@npm:^17.3.1":
+"yargs@npm:^17.3.1, yargs@npm:^17.7.2":
   version: 17.7.2
   resolution: "yargs@npm:17.7.2"
   dependencies:

@@ -111,7 +111,14 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
       this.logToStderr(v)
     }
 
-    config.writeConfigFile()
+    try {
+      config.writeConfigFile()
+    } catch (error) {
+      if (error instanceof ConfigError) {
+        this.logToStderr(error.message)
+        this.exit(1)
+      }
+    }
   }
 
   private async interactiveSetup(

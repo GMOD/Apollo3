@@ -12,38 +12,9 @@ and run it:
 
 import json
 import os
-import shutil
-import signal
 import sys
-import subprocess
 import unittest
-
-
-class shell:
-    def __init__(self, cmd, strict=True, timeout=None):
-        print(cmd)
-        cmd = f"set -e; set -u; set -o pipefail\n{cmd}"
-        p = subprocess.Popen(
-            cmd,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            executable="/bin/bash",
-        )
-        try:
-            stdout, stderr = p.communicate(timeout=timeout)
-        except subprocess.TimeoutExpired:
-            p.kill()
-            sys.stderr.write(f"Error: Timeout after {timeout} seconds\n")
-            stdout, stderr = p.communicate()
-        self.returncode = p.returncode
-        self.stdout = stdout.decode()
-        self.stderr = stderr.decode()
-        self.cmd = cmd
-        if strict and self.returncode != 0:
-            raise subprocess.SubprocessError(
-                f"\nSTDOUT:\n{self.stdout}\nSTDERR:\n{self.stderr}\nEXIT CODE: {self.returncode}"
-            )
+from utils import shell
 
 
 apollo = "yarn dev"
@@ -870,7 +841,7 @@ class TestCLI(unittest.TestCase):
         out = json.loads(p.stdout)
         self.assertEqual(len(out), 0)
 
-    def testApolloEnv(self):
+    def testApolloProfileEnv(self):
         p = shell(
             f"""export APOLLO_PROFILE=testAdmin2
                 {apollo} config address http://localhost:3999
@@ -883,6 +854,38 @@ class TestCLI(unittest.TestCase):
         )
         self.assertTrue("testAdmin2: Logged in" in p.stdout)
         self.assertTrue("createdAt" in p.stdout)
+
+    def testApolloConfigCreateEnv(self):
+        p = shell(
+            f"""\
+                export APOLLO_DISABLE_CONFIG_CREATE=1
+                rm -f tmp.yaml
+                {apollo} config --config-file tmp.yaml address http://localhost:3999""",
+            strict=False,
+        )
+        self.assertTrue(p.returncode != 0)
+        self.assertTrue("does not exist yet" in p.stderr)
+        self.assertFalse(os.path.isfile("tmp.yaml"))
+
+        p = shell(
+            f"""\
+                export APOLLO_DISABLE_CONFIG_CREATE=0
+                rm -f tmp.yaml
+                {apollo} config --config-file tmp.yaml address http://localhost:3999"""
+        )
+        self.assertEqual(0, p.returncode)
+        self.assertTrue(os.path.isfile("tmp.yaml"))
+
+        p = shell(
+            f"""\
+                unset APOLLO_DISABLE_CONFIG_CREATE
+                rm -f tmp.yaml
+                {apollo} config --config-file tmp.yaml address http://localhost:3999"""
+        )
+        self.assertEqual(0, p.returncode)
+        self.assertTrue(os.path.isfile("tmp.yaml"))
+
+        os.remove("tmp.yaml")
 
 
 if __name__ == "__main__":
