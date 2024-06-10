@@ -67,8 +67,6 @@ jobs:
   build-and-push-docker:
     name: Build and push Docker image
     uses: ./.github/workflows/build-and-push-docker.yml
-    with:
-      tag: 'development'
     if:
       ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       inputs.publish }}
