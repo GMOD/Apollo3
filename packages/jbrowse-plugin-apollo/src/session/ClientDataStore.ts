@@ -3,11 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { getConf, readConfObject } from '@jbrowse/core/configuration'
-import { ConfigurationModel } from '@jbrowse/core/configuration/types'
-import { Region, getSession, isElectron } from '@jbrowse/core/util'
-import { LocalPathLocation, UriLocation } from '@jbrowse/core/util/types/mst'
-import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
+import { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
 import {
   AnnotationFeature,
   AnnotationFeatureSnapshot,
@@ -15,7 +11,11 @@ import {
   ApolloRefSeq,
   CheckResult,
   CheckResultSnapshot,
-} from 'apollo-mst'
+} from '@apollo-annotation/mst'
+import { getConf, readConfObject } from '@jbrowse/core/configuration'
+import { ConfigurationModel } from '@jbrowse/core/configuration/types'
+import { Region, getSession, isElectron } from '@jbrowse/core/util'
+import { LocalPathLocation, UriLocation } from '@jbrowse/core/util/types/mst'
 import {
   Instance,
   SnapshotOut,

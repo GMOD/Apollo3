@@ -4,9 +4,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import { FileDocument, RefSeqDocument } from '@apollo-annotation/schemas'
 import { GFF3Feature } from '@gmod/gff'
-import type { AnnotationFeatureSnapshot } from 'apollo-mst'
-import { FileDocument, RefSeqDocument } from 'apollo-schemas'
 import ObjectID from 'bson-objectid'
 
 import { Change, ChangeOptions, SerializedChange, isChange } from './Change'

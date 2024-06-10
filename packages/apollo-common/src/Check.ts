@@ -1,4 +1,7 @@
-import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
+import {
+  AnnotationFeatureSnapshot,
+  CheckResultSnapshot,
+} from '@apollo-annotation/mst'
 
 export abstract class Check {
   abstract name: string

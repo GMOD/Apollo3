@@ -1,18 +1,21 @@
 /* eslint-disable @typescript-eslint/require-await */
-import gff, { GFF3Item } from '@gmod/gff'
-import { getConf } from '@jbrowse/core/configuration'
-import { Region, getSession } from '@jbrowse/core/util'
 import {
   AssemblySpecificChange,
   Change,
   isAssemblySpecificChange,
-} from 'apollo-common'
-import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
+} from '@apollo-annotation/common'
+import {
+  AnnotationFeatureSnapshot,
+  CheckResultSnapshot,
+} from '@apollo-annotation/mst'
 import {
   ValidationResultSet,
   makeGFF3Feature,
   splitStringIntoChunks,
-} from 'apollo-shared'
+} from '@apollo-annotation/shared'
+import gff, { GFF3Item } from '@gmod/gff'
+import { getConf } from '@jbrowse/core/configuration'
+import { Region, getSession } from '@jbrowse/core/util'
 import { getSnapshot } from 'mobx-state-tree'
 
 import { checkFeatures, loadAssemblyIntoClient } from '../util'

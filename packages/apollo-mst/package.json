@@ -1,5 +1,5 @@
 {
-  "name": "apollo-mst",
+  "name": "@apollo-annotation/mst",
   "version": "1.0.0-alpha.0",
   "main": "./dist/index.js",
   "scripts": {
@@ -15,5 +15,7 @@
   "devDependencies": {
     "typescript": "^5.1.6"
   },
-  "private": true
+  "publishConfig": {
+    "access": "public"
+  }
 }

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureI } from '@apollo-annotation/mst'
 
 import {
   BoxGlyph,

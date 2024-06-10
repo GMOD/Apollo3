@@ -1,8 +1,11 @@
+import { Change, ClientDataStore } from '@apollo-annotation/common'
+import {
+  AnnotationFeatureSnapshot,
+  CheckResultSnapshot,
+} from '@apollo-annotation/mst'
+import { ValidationResultSet } from '@apollo-annotation/shared'
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { Region } from '@jbrowse/core/util'
-import { Change, ClientDataStore } from 'apollo-common'
-import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
-import { ValidationResultSet } from 'apollo-shared'
 
 import { SubmitOpts } from '../ChangeManager'
 

@@ -4,16 +4,16 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { getConf } from '@jbrowse/core/configuration'
-import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
-import { Region, getSession } from '@jbrowse/core/util'
-import { AssemblySpecificChange, Change } from 'apollo-common'
+import { AssemblySpecificChange, Change } from '@apollo-annotation/common'
 import {
   AnnotationFeatureSnapshot,
   ApolloRefSeqI,
   CheckResultSnapshot,
-} from 'apollo-mst'
-import { ChangeMessage, ValidationResultSet } from 'apollo-shared'
+} from '@apollo-annotation/mst'
+import { ChangeMessage, ValidationResultSet } from '@apollo-annotation/shared'
+import { getConf } from '@jbrowse/core/configuration'
+import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
+import { Region, getSession } from '@jbrowse/core/util'
 import { Socket } from 'socket.io-client'
 
 import { ChangeManager, SubmitOpts } from '../ChangeManager'

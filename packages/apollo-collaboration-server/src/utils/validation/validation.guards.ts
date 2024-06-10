@@ -1,3 +1,4 @@
+import { validationRegistry } from '@apollo-annotation/shared'
 import {
   CanActivate,
   ExecutionContext,
@@ -6,7 +7,6 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { validationRegistry } from 'apollo-shared'
 
 @Injectable()
 export class ValidationGuard implements CanActivate {

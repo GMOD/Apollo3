@@ -8,8 +8,8 @@ import {
   LocalGFF3DataStore,
   SerializedFeatureChange,
   ServerDataStore,
-} from 'apollo-common'
-import { Feature, FeatureDocument } from 'apollo-schemas'
+} from '@apollo-annotation/common'
+import { Feature, FeatureDocument } from '@apollo-annotation/schemas'
 
 interface SerializedLocationEndChangeBase extends SerializedFeatureChange {
   typeName: 'LocationEndChange'

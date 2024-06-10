@@ -4,9 +4,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
+import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import {
+  LocationEndChange,
+  LocationStartChange,
+} from '@apollo-annotation/shared'
 import { alpha } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
-import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 
 import { LinearApolloDisplay } from '../stateModel'
 import { MousePosition } from '../stateModel/mouseEvents'

@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import {
+  AnnotationFeatureI,
+  AnnotationFeatureSnapshot,
+} from '@apollo-annotation/mst'
+import { AddFeatureChange } from '@apollo-annotation/shared'
 import { readConfObject } from '@jbrowse/core/configuration'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
@@ -13,8 +18,6 @@ import {
   SelectChangeEvent,
   TextField,
 } from '@mui/material'
-import { AnnotationFeatureI, AnnotationFeatureSnapshot } from 'apollo-mst'
-import { AddFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import { IKeyValueMap } from 'mobx'
 import { getSnapshot } from 'mobx-state-tree'

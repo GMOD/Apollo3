@@ -4,6 +4,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-misused-promises */
+import {
+  AddAssemblyAndFeaturesFromFileChange,
+  AddAssemblyFromExternalChange,
+  AddAssemblyFromFileChange,
+} from '@apollo-annotation/shared'
 import { readConfObject } from '@jbrowse/core/configuration'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import LinkIcon from '@mui/icons-material/Link'
@@ -28,11 +33,6 @@ import {
 } from '@mui/material'
 import InputAdornment from '@mui/material/InputAdornment'
 import LinearProgress from '@mui/material/LinearProgress'
-import {
-  AddAssemblyAndFeaturesFromFileChange,
-  AddAssemblyFromExternalChange,
-  AddAssemblyFromFileChange,
-} from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'

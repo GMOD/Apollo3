@@ -115,6 +115,299 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@apollo-annotation/cli@workspace:packages/apollo-cli":
+  version: 0.0.0-use.local
+  resolution: "@apollo-annotation/cli@workspace:packages/apollo-cli"
+  dependencies:
+    "@inquirer/input": "npm:^1.2.14"
+    "@inquirer/password": "npm:^1.1.14"
+    "@inquirer/select": "npm:^1.3.1"
+    "@istanbuljs/esm-loader-hook": "npm:^0.2.0"
+    "@istanbuljs/nyc-config-typescript": "npm:^1.0.2"
+    "@oclif/core": "npm:^3.18.2"
+    "@oclif/plugin-help": "npm:^6.0.8"
+    "@oclif/test": "npm:^3.1.3"
+    "@types/chai": "npm:^4"
+    "@types/inquirer": "npm:^9.0.7"
+    "@types/mocha": "npm:^10"
+    "@types/node": "npm:^18.14.2"
+    babel-plugin-istanbul: "npm:^6.1.1"
+    bson: "npm:^6.3.0"
+    joi: "npm:^17.7.0"
+    mocha: "npm:^10.2.0"
+    nyc: "npm:^15.1.0"
+    oclif: "npm:^4.4.2"
+    open: "npm:^9.1.0"
+    shx: "npm:^0.3.3"
+    ts-node: "npm:^10.3.0"
+    tslib: "npm:^2.3.1"
+    tsx: "npm:^4.6.2"
+    typescript: "npm:^5.1.6"
+    undici: "npm:^6.7.0"
+    yaml: "npm:^2.3.4"
+  bin:
+    apollo: ./bin/run.js
+  languageName: unknown
+  linkType: soft
+
+"@apollo-annotation/collaboration-server@workspace:packages/apollo-collaboration-server":
+  version: 0.0.0-use.local
+  resolution: "@apollo-annotation/collaboration-server@workspace:packages/apollo-collaboration-server"
+  dependencies:
+    "@apollo-annotation/common": "workspace:^"
+    "@apollo-annotation/mst": "workspace:^"
+    "@apollo-annotation/schemas": "workspace:^"
+    "@apollo-annotation/shared": "workspace:^"
+    "@emotion/react": "npm:^11.10.6"
+    "@emotion/styled": "npm:^11.10.6"
+    "@gmod/gff": "npm:1.2.0"
+    "@gmod/indexedfasta": "npm:^2.0.4"
+    "@jbrowse/core": "npm:^2.7.0"
+    "@mui/base": "npm:^5.0.0-alpha.118"
+    "@mui/material": "npm:^5.11.14"
+    "@nestjs/cli": "npm:^10.1.10"
+    "@nestjs/common": "npm:^10.1.0"
+    "@nestjs/config": "npm:^3.0.0"
+    "@nestjs/core": "npm:^10.1.0"
+    "@nestjs/jwt": "npm:^10.1.0"
+    "@nestjs/mapped-types": "npm:^2.0.2"
+    "@nestjs/mongoose": "npm:^10.0.0"
+    "@nestjs/passport": "npm:^10.0.0"
+    "@nestjs/platform-express": "npm:^10.1.0"
+    "@nestjs/platform-socket.io": "npm:^10.1.0"
+    "@nestjs/schematics": "npm:^10.0.1"
+    "@nestjs/serve-static": "npm:^4.0.0"
+    "@nestjs/terminus": "npm:^10.0.1"
+    "@nestjs/testing": "npm:^10.1.0"
+    "@nestjs/websockets": "npm:^10.1.0"
+    "@types/express": "npm:^4.17.13"
+    "@types/express-session": "npm:^1"
+    "@types/jest": "npm:^27.0.1"
+    "@types/multer": "npm:^1.4.7"
+    "@types/node": "npm:^18.14.2"
+    "@types/node-fetch": "npm:^2.6.2"
+    "@types/passport-google-oauth20": "npm:^2.0.11"
+    "@types/passport-jwt": "npm:^3.0.6"
+    "@types/passport-local": "npm:^1.0.34"
+    "@types/passport-microsoft": "npm:^0.0.0"
+    "@types/react": "npm:^17.0.34"
+    "@types/supertest": "npm:^2.0.11"
+    connect-mongodb-session: "npm:^3.1.1"
+    express: "npm:^4.18.0"
+    express-session: "npm:^1.17.3"
+    generic-filehandle: "npm:^3.0.0"
+    jest: "npm:^29.6.2"
+    joi: "npm:^17.7.0"
+    material-ui-popup-state: "npm:^5.0.4"
+    mobx: "npm:^6.6.1"
+    mobx-react: "npm:^7.2.1"
+    mobx-state-tree: "npm:^5.1.7"
+    mongodb: "npm:^4.7.0"
+    mongoose: "npm:^6.12.0"
+    mongoose-id-validator: "npm:^0.6.0"
+    multer: "npm:^1.4.5-lts.1"
+    node-fetch: "npm:^2.6.7"
+    passport: "npm:^0.5.0"
+    passport-google-oauth20: "npm:^2.0.0"
+    passport-jwt: "npm:^4.0.0"
+    passport-local: "npm:^1.0.0"
+    passport-microsoft: "npm:^1.0.0"
+    prettier: "npm:^3.2.5"
+    prop-types: "npm:^15.8.1"
+    react: "npm:^18.2.0"
+    react-dom: "npm:^18.2.0"
+    reflect-metadata: "npm:^0.1.13"
+    rimraf: "npm:^3.0.2"
+    rxjs: "npm:^7.4.0"
+    sanitize-filename: "npm:^1.6.3"
+    socket.io: "npm:^4.5.3"
+    source-map-support: "npm:^0.5.20"
+    stream-concat: "npm:^1.0.0"
+    supertest: "npm:^6.1.3"
+    ts-jest: "npm:^29.1.1"
+    ts-loader: "npm:^9.2.3"
+    ts-node: "npm:^10.3.0"
+    ts-node-dev: "npm:^1.1.8"
+    tsconfig-paths: "npm:^3.11.0"
+    tslib: "npm:^2.3.1"
+    tss-react: "npm:^4.6.1"
+    typescript: "npm:^5.1.6"
+  languageName: unknown
+  linkType: soft
+
+"@apollo-annotation/common@workspace:^, @apollo-annotation/common@workspace:packages/apollo-common":
+  version: 0.0.0-use.local
+  resolution: "@apollo-annotation/common@workspace:packages/apollo-common"
+  dependencies:
+    "@apollo-annotation/mst": "workspace:^"
+    "@apollo-annotation/schemas": "workspace:^"
+    "@gmod/gff": "npm:1.2.0"
+    "@jbrowse/core": "npm:^2.7.0"
+    "@nestjs/common": "npm:^10.1.0"
+    "@nestjs/core": "npm:^10.1.0"
+    "@types/node": "npm:^18.14.2"
+    bson-objectid: "npm:^2.0.4"
+    mongoose: "npm:^6.12.0"
+    tslib: "npm:^2.3.1"
+    typescript: "npm:^5.1.6"
+  peerDependencies:
+    "@mui/material": ^5.11.14
+    "@mui/x-data-grid": ^7.0.0
+    mobx: ^6.6.1
+    mobx-react: ^7.2.1
+    mobx-state-tree: ^5.1.7
+    prop-types: ^15.8.1
+    react: ^18.2.0
+    react-dom: ^18.2.0
+    rxjs: ^7.4.0
+    tss-react: ^4.6.1
+  languageName: unknown
+  linkType: soft
+
+"@apollo-annotation/jbrowse-plugin-apollo@workspace:packages/jbrowse-plugin-apollo":
+  version: 0.0.0-use.local
+  resolution: "@apollo-annotation/jbrowse-plugin-apollo@workspace:packages/jbrowse-plugin-apollo"
+  dependencies:
+    "@apollo-annotation/common": "workspace:^"
+    "@apollo-annotation/mst": "workspace:^"
+    "@apollo-annotation/shared": "workspace:^"
+    "@emotion/react": "npm:^11.10.6"
+    "@emotion/styled": "npm:^11.10.6"
+    "@gmod/gff": "npm:1.2.0"
+    "@jbrowse/cli": "npm:^2.6.2"
+    "@jbrowse/core": "npm:^2.7.0"
+    "@jbrowse/development-tools": "npm:^2.1.1"
+    "@jbrowse/plugin-authentication": "npm:^2.0.1"
+    "@jbrowse/plugin-linear-genome-view": "npm:^2.0.1"
+    "@jest/globals": "npm:^29.0.3"
+    "@mui/icons-material": "npm:^5.8.4"
+    "@mui/material": "npm:^5.11.14"
+    "@mui/x-data-grid": "npm:^7.0.0"
+    "@types/autosuggest-highlight": "npm:^3"
+    "@types/file-saver": "npm:^2"
+    "@types/jsonpath": "npm:^0.2.0"
+    "@types/node": "npm:^18.14.2"
+    "@types/prop-types": "npm:^15"
+    "@types/react": "npm:^17.0.34"
+    "@types/react-dom": "npm:^18"
+    autosuggest-highlight: "npm:^3.3.4"
+    bson-objectid: "npm:^2.0.4"
+    clsx: "npm:^1.1.1"
+    cypress: "npm:12.17.3"
+    cypress-mongodb: "npm:^6.2.0"
+    fake-indexeddb: "npm:^4.0.2"
+    fast-deep-equal: "npm:^3.1.3"
+    file-saver: "npm:^2.0.5"
+    http-proxy-middleware: "npm:^2.0.6"
+    idb: "npm:^7.1.1"
+    jest: "npm:^29.6.2"
+    jest-fetch-mock: "npm:^3.0.3"
+    jsonpath: "npm:^1.1.1"
+    librpc-web-mod: "npm:^1.1.9"
+    mobx: "npm:^6.6.1"
+    mobx-react: "npm:^7.2.1"
+    mobx-state-tree: "npm:^5.1.7"
+    nanoid: "npm:^4.0.2"
+    npm-run-all: "npm:^4.1.5"
+    prop-types: "npm:^15.8.1"
+    react: "npm:^18.2.0"
+    react-dom: "npm:^18.2.0"
+    regenerator-runtime: "npm:^0.13.9"
+    rimraf: "npm:^3.0.2"
+    rollup: "npm:^2.59.0"
+    rxjs: "npm:^7.4.0"
+    serve: "npm:^14.0.1"
+    shx: "npm:^0.3.3"
+    socket.io-client: "npm:^4.5.4"
+    start-server-and-test: "npm:^1.11.7"
+    ts-jest: "npm:^29.1.1"
+    ts-node: "npm:^10.3.0"
+    tslib: "npm:^2.3.1"
+    tss-react: "npm:^4.6.1"
+    typescript: "npm:^5.1.6"
+  peerDependencies:
+    "@jbrowse/core": ^2.7.0
+    "@mui/material": ^5.11.14
+    mobx: ^6.6.1
+    mobx-react: ^7.2.1
+    mobx-state-tree: ^5.1.7
+    prop-types: ^15.8.1
+    react: ^18.2.0
+    react-dom: ^18.2.0
+    rxjs: ^7.4.0
+    tss-react: ^4.6.1
+  languageName: unknown
+  linkType: soft
+
+"@apollo-annotation/mst@workspace:^, @apollo-annotation/mst@workspace:packages/apollo-mst":
+  version: 0.0.0-use.local
+  resolution: "@apollo-annotation/mst@workspace:packages/apollo-mst"
+  dependencies:
+    "@jbrowse/core": "npm:^2.7.0"
+    mobx: "npm:^6.6.1"
+    mobx-state-tree: "npm:^5.1.7"
+    rxjs: "npm:^7.4.0"
+    tslib: "npm:^2.3.1"
+    typescript: "npm:^5.1.6"
+  languageName: unknown
+  linkType: soft
+
+"@apollo-annotation/schemas@workspace:^, @apollo-annotation/schemas@workspace:packages/apollo-schemas":
+  version: 0.0.0-use.local
+  resolution: "@apollo-annotation/schemas@workspace:packages/apollo-schemas"
+  dependencies:
+    "@apollo-annotation/mst": "workspace:^"
+    "@nestjs/common": "npm:^10.1.0"
+    "@nestjs/core": "npm:^10.1.0"
+    "@nestjs/mongoose": "npm:^10.0.0"
+    "@types/node": "npm:^18.14.2"
+    mongoose: "npm:^6.12.0"
+    reflect-metadata: "npm:^0.1.13"
+    regenerator-runtime: "npm:^0.13.9"
+    rxjs: "npm:^7.4.0"
+    tslib: "npm:^2.3.1"
+    typescript: "npm:^5.1.6"
+  languageName: unknown
+  linkType: soft
+
+"@apollo-annotation/shared@workspace:^, @apollo-annotation/shared@workspace:packages/apollo-shared":
+  version: 0.0.0-use.local
+  resolution: "@apollo-annotation/shared@workspace:packages/apollo-shared"
+  dependencies:
+    "@apollo-annotation/common": "workspace:^"
+    "@apollo-annotation/mst": "workspace:^"
+    "@apollo-annotation/schemas": "workspace:^"
+    "@gmod/gff": "npm:1.2.0"
+    "@gmod/indexedfasta": "npm:^2.0.4"
+    "@jbrowse/core": "npm:^2.7.0"
+    "@nestjs/common": "npm:^10.1.0"
+    "@nestjs/core": "npm:^10.1.0"
+    "@types/node": "npm:^18.14.2"
+    "@types/rimraf": "npm:^3"
+    bson-objectid: "npm:^2.0.4"
+    generic-filehandle: "npm:^3.0.0"
+    jwt-decode: "npm:^3.1.2"
+    mobx: "npm:^6.6.1"
+    mobx-state-tree: "npm:^5.1.7"
+    mongoose: "npm:^6.12.0"
+    regenerator-runtime: "npm:^0.13.9"
+    rimraf: "npm:^3.0.2"
+    socket.io-client: "npm:^4.5.4"
+    tslib: "npm:^2.3.1"
+    typescript: "npm:^5.1.6"
+  peerDependencies:
+    "@mui/material": ^5.11.14
+    "@mui/x-data-grid": ^7.0.0
+    mobx: ^6.6.1
+    mobx-react: ^7.2.1
+    mobx-state-tree: ^5.1.7
+    prop-types: ^15.8.1
+    react: ^18.2.0
+    react-dom: ^18.2.0
+    rxjs: ^7.4.0
+  languageName: unknown
+  linkType: soft
+
 "@aws-crypto/crc32@npm:3.0.0":
   version: 3.0.0
   resolution: "@aws-crypto/crc32@npm:3.0.0"
@@ -8143,224 +8436,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"apollo-cli@workspace:packages/apollo-cli":
-  version: 0.0.0-use.local
-  resolution: "apollo-cli@workspace:packages/apollo-cli"
-  dependencies:
-    "@inquirer/input": "npm:^1.2.14"
-    "@inquirer/password": "npm:^1.1.14"
-    "@inquirer/select": "npm:^1.3.1"
-    "@istanbuljs/esm-loader-hook": "npm:^0.2.0"
-    "@istanbuljs/nyc-config-typescript": "npm:^1.0.2"
-    "@oclif/core": "npm:^3.18.2"
-    "@oclif/plugin-help": "npm:^6.0.8"
-    "@oclif/test": "npm:^3.1.3"
-    "@types/chai": "npm:^4"
-    "@types/inquirer": "npm:^9.0.7"
-    "@types/mocha": "npm:^10"
-    "@types/node": "npm:^18.14.2"
-    babel-plugin-istanbul: "npm:^6.1.1"
-    bson: "npm:^6.3.0"
-    joi: "npm:^17.7.0"
-    mocha: "npm:^10.2.0"
-    nyc: "npm:^15.1.0"
-    oclif: "npm:^4.4.2"
-    open: "npm:^9.1.0"
-    shx: "npm:^0.3.3"
-    ts-node: "npm:^10.3.0"
-    tslib: "npm:^2.3.1"
-    tsx: "npm:^4.6.2"
-    typescript: "npm:^5.1.6"
-    undici: "npm:^6.7.0"
-    yaml: "npm:^2.3.4"
-  bin:
-    apollo: ./bin/run.js
-  languageName: unknown
-  linkType: soft
-
-"apollo-collaboration-server@workspace:packages/apollo-collaboration-server":
-  version: 0.0.0-use.local
-  resolution: "apollo-collaboration-server@workspace:packages/apollo-collaboration-server"
-  dependencies:
-    "@emotion/react": "npm:^11.10.6"
-    "@emotion/styled": "npm:^11.10.6"
-    "@gmod/gff": "npm:1.2.0"
-    "@gmod/indexedfasta": "npm:^2.0.4"
-    "@jbrowse/core": "npm:^2.7.0"
-    "@mui/base": "npm:^5.0.0-alpha.118"
-    "@mui/material": "npm:^5.11.14"
-    "@nestjs/cli": "npm:^10.1.10"
-    "@nestjs/common": "npm:^10.1.0"
-    "@nestjs/config": "npm:^3.0.0"
-    "@nestjs/core": "npm:^10.1.0"
-    "@nestjs/jwt": "npm:^10.1.0"
-    "@nestjs/mapped-types": "npm:^2.0.2"
-    "@nestjs/mongoose": "npm:^10.0.0"
-    "@nestjs/passport": "npm:^10.0.0"
-    "@nestjs/platform-express": "npm:^10.1.0"
-    "@nestjs/platform-socket.io": "npm:^10.1.0"
-    "@nestjs/schematics": "npm:^10.0.1"
-    "@nestjs/serve-static": "npm:^4.0.0"
-    "@nestjs/terminus": "npm:^10.0.1"
-    "@nestjs/testing": "npm:^10.1.0"
-    "@nestjs/websockets": "npm:^10.1.0"
-    "@types/express": "npm:^4.17.13"
-    "@types/express-session": "npm:^1"
-    "@types/jest": "npm:^27.0.1"
-    "@types/multer": "npm:^1.4.7"
-    "@types/node": "npm:^18.14.2"
-    "@types/node-fetch": "npm:^2.6.2"
-    "@types/passport-google-oauth20": "npm:^2.0.11"
-    "@types/passport-jwt": "npm:^3.0.6"
-    "@types/passport-local": "npm:^1.0.34"
-    "@types/passport-microsoft": "npm:^0.0.0"
-    "@types/react": "npm:^17.0.34"
-    "@types/supertest": "npm:^2.0.11"
-    apollo-common: "workspace:^"
-    apollo-mst: "workspace:^"
-    apollo-schemas: "workspace:^"
-    apollo-shared: "workspace:^"
-    connect-mongodb-session: "npm:^3.1.1"
-    express: "npm:^4.18.0"
-    express-session: "npm:^1.17.3"
-    generic-filehandle: "npm:^3.0.0"
-    jest: "npm:^29.6.2"
-    joi: "npm:^17.7.0"
-    material-ui-popup-state: "npm:^5.0.4"
-    mobx: "npm:^6.6.1"
-    mobx-react: "npm:^7.2.1"
-    mobx-state-tree: "npm:^5.1.7"
-    mongodb: "npm:^4.7.0"
-    mongoose: "npm:^6.12.0"
-    mongoose-id-validator: "npm:^0.6.0"
-    multer: "npm:^1.4.5-lts.1"
-    node-fetch: "npm:^2.6.7"
-    passport: "npm:^0.5.0"
-    passport-google-oauth20: "npm:^2.0.0"
-    passport-jwt: "npm:^4.0.0"
-    passport-local: "npm:^1.0.0"
-    passport-microsoft: "npm:^1.0.0"
-    prettier: "npm:^3.2.5"
-    prop-types: "npm:^15.8.1"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
-    reflect-metadata: "npm:^0.1.13"
-    rimraf: "npm:^3.0.2"
-    rxjs: "npm:^7.4.0"
-    sanitize-filename: "npm:^1.6.3"
-    socket.io: "npm:^4.5.3"
-    source-map-support: "npm:^0.5.20"
-    stream-concat: "npm:^1.0.0"
-    supertest: "npm:^6.1.3"
-    ts-jest: "npm:^29.1.1"
-    ts-loader: "npm:^9.2.3"
-    ts-node: "npm:^10.3.0"
-    ts-node-dev: "npm:^1.1.8"
-    tsconfig-paths: "npm:^3.11.0"
-    tslib: "npm:^2.3.1"
-    tss-react: "npm:^4.6.1"
-    typescript: "npm:^5.1.6"
-  languageName: unknown
-  linkType: soft
-
-"apollo-common@workspace:^, apollo-common@workspace:packages/apollo-common":
-  version: 0.0.0-use.local
-  resolution: "apollo-common@workspace:packages/apollo-common"
-  dependencies:
-    "@gmod/gff": "npm:1.2.0"
-    "@jbrowse/core": "npm:^2.7.0"
-    "@nestjs/common": "npm:^10.1.0"
-    "@nestjs/core": "npm:^10.1.0"
-    "@types/node": "npm:^18.14.2"
-    apollo-mst: "workspace:^"
-    apollo-schemas: "workspace:^"
-    bson-objectid: "npm:^2.0.4"
-    mongoose: "npm:^6.12.0"
-    tslib: "npm:^2.3.1"
-    typescript: "npm:^5.1.6"
-  peerDependencies:
-    "@mui/material": ^5.11.14
-    "@mui/x-data-grid": ^7.0.0
-    mobx: ^6.6.1
-    mobx-react: ^7.2.1
-    mobx-state-tree: ^5.1.7
-    prop-types: ^15.8.1
-    react: ^18.2.0
-    react-dom: ^18.2.0
-    rxjs: ^7.4.0
-    tss-react: ^4.6.1
-  languageName: unknown
-  linkType: soft
-
-"apollo-mst@workspace:^, apollo-mst@workspace:packages/apollo-mst":
-  version: 0.0.0-use.local
-  resolution: "apollo-mst@workspace:packages/apollo-mst"
-  dependencies:
-    "@jbrowse/core": "npm:^2.7.0"
-    mobx: "npm:^6.6.1"
-    mobx-state-tree: "npm:^5.1.7"
-    rxjs: "npm:^7.4.0"
-    tslib: "npm:^2.3.1"
-    typescript: "npm:^5.1.6"
-  languageName: unknown
-  linkType: soft
-
-"apollo-schemas@workspace:^, apollo-schemas@workspace:packages/apollo-schemas":
-  version: 0.0.0-use.local
-  resolution: "apollo-schemas@workspace:packages/apollo-schemas"
-  dependencies:
-    "@nestjs/common": "npm:^10.1.0"
-    "@nestjs/core": "npm:^10.1.0"
-    "@nestjs/mongoose": "npm:^10.0.0"
-    "@types/node": "npm:^18.14.2"
-    apollo-mst: "workspace:^"
-    mongoose: "npm:^6.12.0"
-    reflect-metadata: "npm:^0.1.13"
-    regenerator-runtime: "npm:^0.13.9"
-    rxjs: "npm:^7.4.0"
-    tslib: "npm:^2.3.1"
-    typescript: "npm:^5.1.6"
-  languageName: unknown
-  linkType: soft
-
-"apollo-shared@workspace:^, apollo-shared@workspace:packages/apollo-shared":
-  version: 0.0.0-use.local
-  resolution: "apollo-shared@workspace:packages/apollo-shared"
-  dependencies:
-    "@gmod/gff": "npm:1.2.0"
-    "@gmod/indexedfasta": "npm:^2.0.4"
-    "@jbrowse/core": "npm:^2.7.0"
-    "@nestjs/common": "npm:^10.1.0"
-    "@nestjs/core": "npm:^10.1.0"
-    "@types/node": "npm:^18.14.2"
-    "@types/rimraf": "npm:^3"
-    apollo-common: "workspace:^"
-    apollo-mst: "workspace:^"
-    apollo-schemas: "workspace:^"
-    bson-objectid: "npm:^2.0.4"
-    generic-filehandle: "npm:^3.0.0"
-    jwt-decode: "npm:^3.1.2"
-    mobx: "npm:^6.6.1"
-    mobx-state-tree: "npm:^5.1.7"
-    mongoose: "npm:^6.12.0"
-    regenerator-runtime: "npm:^0.13.9"
-    rimraf: "npm:^3.0.2"
-    socket.io-client: "npm:^4.5.4"
-    tslib: "npm:^2.3.1"
-    typescript: "npm:^5.1.6"
-  peerDependencies:
-    "@mui/material": ^5.11.14
-    "@mui/x-data-grid": ^7.0.0
-    mobx: ^6.6.1
-    mobx-react: ^7.2.1
-    mobx-state-tree: ^5.1.7
-    prop-types: ^15.8.1
-    react: ^18.2.0
-    react-dom: ^18.2.0
-    rxjs: ^7.4.0
-  languageName: unknown
-  linkType: soft
-
 "apollo3@workspace:.":
   version: 0.0.0-use.local
   resolution: "apollo3@workspace:."
@@ -14969,81 +15044,6 @@ __metadata:
   checksum: 10c0/89326d01a8bc110d02d973729a66394c79a34b34461116f5c530a2a2dbc30265683fe6737928f75df9178e9d369ff1442f5753fb983d525e740eefdadc56a103
   languageName: node
   linkType: hard
-
-"jbrowse-plugin-apollo@workspace:packages/jbrowse-plugin-apollo":
-  version: 0.0.0-use.local
-  resolution: "jbrowse-plugin-apollo@workspace:packages/jbrowse-plugin-apollo"
-  dependencies:
-    "@emotion/react": "npm:^11.10.6"
-    "@emotion/styled": "npm:^11.10.6"
-    "@gmod/gff": "npm:1.2.0"
-    "@jbrowse/cli": "npm:^2.6.2"
-    "@jbrowse/core": "npm:^2.7.0"
-    "@jbrowse/development-tools": "npm:^2.1.1"
-    "@jbrowse/plugin-authentication": "npm:^2.0.1"
-    "@jbrowse/plugin-linear-genome-view": "npm:^2.0.1"
-    "@jest/globals": "npm:^29.0.3"
-    "@mui/icons-material": "npm:^5.8.4"
-    "@mui/material": "npm:^5.11.14"
-    "@mui/x-data-grid": "npm:^7.0.0"
-    "@types/autosuggest-highlight": "npm:^3"
-    "@types/file-saver": "npm:^2"
-    "@types/jsonpath": "npm:^0.2.0"
-    "@types/node": "npm:^18.14.2"
-    "@types/prop-types": "npm:^15"
-    "@types/react": "npm:^17.0.34"
-    "@types/react-dom": "npm:^18"
-    apollo-common: "workspace:^"
-    apollo-mst: "workspace:^"
-    apollo-shared: "workspace:^"
-    autosuggest-highlight: "npm:^3.3.4"
-    bson-objectid: "npm:^2.0.4"
-    clsx: "npm:^1.1.1"
-    cypress: "npm:12.17.3"
-    cypress-mongodb: "npm:^6.2.0"
-    fake-indexeddb: "npm:^4.0.2"
-    fast-deep-equal: "npm:^3.1.3"
-    file-saver: "npm:^2.0.5"
-    http-proxy-middleware: "npm:^2.0.6"
-    idb: "npm:^7.1.1"
-    jest: "npm:^29.6.2"
-    jest-fetch-mock: "npm:^3.0.3"
-    jsonpath: "npm:^1.1.1"
-    librpc-web-mod: "npm:^1.1.9"
-    mobx: "npm:^6.6.1"
-    mobx-react: "npm:^7.2.1"
-    mobx-state-tree: "npm:^5.1.7"
-    nanoid: "npm:^4.0.2"
-    npm-run-all: "npm:^4.1.5"
-    prop-types: "npm:^15.8.1"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
-    regenerator-runtime: "npm:^0.13.9"
-    rimraf: "npm:^3.0.2"
-    rollup: "npm:^2.59.0"
-    rxjs: "npm:^7.4.0"
-    serve: "npm:^14.0.1"
-    shx: "npm:^0.3.3"
-    socket.io-client: "npm:^4.5.4"
-    start-server-and-test: "npm:^1.11.7"
-    ts-jest: "npm:^29.1.1"
-    ts-node: "npm:^10.3.0"
-    tslib: "npm:^2.3.1"
-    tss-react: "npm:^4.6.1"
-    typescript: "npm:^5.1.6"
-  peerDependencies:
-    "@jbrowse/core": ^2.7.0
-    "@mui/material": ^5.11.14
-    mobx: ^6.6.1
-    mobx-react: ^7.2.1
-    mobx-state-tree: ^5.1.7
-    prop-types: ^15.8.1
-    react: ^18.2.0
-    react-dom: ^18.2.0
-    rxjs: ^7.4.0
-    tss-react: ^4.6.1
-  languageName: unknown
-  linkType: soft
 
 "jest-changed-files@npm:^29.7.0":
   version: 29.7.0

@@ -1,6 +1,6 @@
+import { AnnotationFeatureI } from '@apollo-annotation/mst'
 import { MenuItem } from '@jbrowse/core/ui'
 import { AbstractSessionModel } from '@jbrowse/core/util'
-import { AnnotationFeatureI } from 'apollo-mst'
 
 import { ChangeManager } from '../../ChangeManager'
 import {

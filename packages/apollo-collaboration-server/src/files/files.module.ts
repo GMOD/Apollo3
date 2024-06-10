@@ -1,6 +1,6 @@
+import { File, FileSchema } from '@apollo-annotation/schemas'
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
-import { File, FileSchema } from 'apollo-schemas'
 
 import { FilesController } from './files.controller'
 import { FilesService } from './files.service'

@@ -2,6 +2,14 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
+import { changeRegistry, checkRegistry } from '@apollo-annotation/common'
+import {
+  CDSCheck,
+  CoreValidation,
+  ParentChildValidation,
+  changes,
+  validationRegistry,
+} from '@apollo-annotation/shared'
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import {
   DisplayType,
@@ -23,14 +31,6 @@ import {
 } from '@jbrowse/core/util'
 import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
-import { changeRegistry, checkRegistry } from 'apollo-common'
-import {
-  CDSCheck,
-  CoreValidation,
-  ParentChildValidation,
-  changes,
-  validationRegistry,
-} from 'apollo-shared'
 
 import { version } from '../package.json'
 import {

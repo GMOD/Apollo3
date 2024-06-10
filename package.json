@@ -7,10 +7,10 @@
   ],
   "scripts": {
     "lint": "eslint --report-unused-disable-directives --max-warnings 0 --ext .js,.ts,.jsx,.tsx .",
-    "build:shared": "yarn workspace apollo-shared run build",
-    "start:shared": "yarn workspace apollo-shared run start",
-    "start:server": "yarn workspace apollo-collaboration-server run start",
-    "start:plugin": "yarn workspace jbrowse-plugin-apollo run start",
+    "build:shared": "yarn workspace @apollo-annotation/shared run build",
+    "start:shared": "yarn workspace @apollo-annotation/shared run start",
+    "start:server": "yarn workspace @apollo-annotation/collaboration-server run start",
+    "start:plugin": "yarn workspace @apollo-annotation/jbrowse-plugin-apollo run start",
     "start": "npm-run-all --print-label --parallel start:shared start:server start:plugin",
     "test": "yarn workspaces foreach --all run test:ci"
   },

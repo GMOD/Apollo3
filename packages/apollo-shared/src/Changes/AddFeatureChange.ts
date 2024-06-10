@@ -9,8 +9,8 @@ import {
   LocalGFF3DataStore,
   SerializedFeatureChange,
   ServerDataStore,
-} from 'apollo-common'
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
+} from '@apollo-annotation/common'
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 import { DeleteFeatureChange } from './DeleteFeatureChange'
 

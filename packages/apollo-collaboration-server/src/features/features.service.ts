@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
-import { InjectModel } from '@nestjs/mongoose'
 import {
   Feature,
   FeatureDocument,
   RefSeq,
   RefSeqDocument,
-} from 'apollo-schemas'
-import { GetFeaturesOperation } from 'apollo-shared'
+} from '@apollo-annotation/schemas'
+import { GetFeaturesOperation } from '@apollo-annotation/shared'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 
 import { ChecksService } from '../checks/checks.service'

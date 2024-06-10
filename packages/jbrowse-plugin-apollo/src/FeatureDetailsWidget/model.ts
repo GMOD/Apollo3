@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
+import { AnnotationFeature, AnnotationFeatureI } from '@apollo-annotation/mst'
 import { getSession } from '@jbrowse/core/util'
 import { ElementId } from '@jbrowse/core/util/types/mst'
-import { AnnotationFeature, AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { Instance, SnapshotIn, addDisposer, types } from 'mobx-state-tree'
 

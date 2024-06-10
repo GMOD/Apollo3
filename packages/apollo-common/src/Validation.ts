@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/require-await */
+import { FeatureDocument } from '@apollo-annotation/schemas'
 import type { ExecutionContext } from '@nestjs/common'
 import type { Reflector } from '@nestjs/core'
-import { FeatureDocument } from 'apollo-schemas'
 import { ClientSession, Model } from 'mongoose'
 
 import { Change, ClientDataStore } from './Change'
@@ -13,10 +12,7 @@ export interface Context {
 }
 
 export function isContext(thing: Change | Context): thing is Context {
-  return (
-    (thing as Context).context !== undefined &&
-    (thing as Context).reflector !== undefined
-  )
+  return 'context' in thing && 'reflector' in thing
 }
 
 export interface ValidationResult {

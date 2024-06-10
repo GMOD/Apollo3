@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-misused-promises */
+import { AddFeaturesFromFileChange } from '@apollo-annotation/shared'
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import {
@@ -18,7 +19,6 @@ import {
 import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import LinearProgress from '@mui/material/LinearProgress'
-import { AddFeaturesFromFileChange } from 'apollo-shared'
 import React, { useEffect, useState } from 'react'
 
 import {

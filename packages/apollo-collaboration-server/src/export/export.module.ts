@@ -1,6 +1,6 @@
+import { Export, ExportSchema } from '@apollo-annotation/schemas'
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
-import { Export, ExportSchema } from 'apollo-schemas'
 
 import { AssembliesModule } from '../assemblies/assemblies.module'
 import { FeaturesModule } from '../features/features.module'

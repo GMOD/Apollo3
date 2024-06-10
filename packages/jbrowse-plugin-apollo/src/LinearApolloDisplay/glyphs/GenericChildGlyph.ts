@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/unbound-method */
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeatureI } from '@apollo-annotation/mst'
 
 import { LinearApolloDisplay } from '../stateModel'
 import { MousePosition } from '../stateModel/mouseEvents'

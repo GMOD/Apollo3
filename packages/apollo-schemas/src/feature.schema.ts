@@ -1,5 +1,5 @@
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import type { AnnotationFeatureSnapshot } from 'apollo-mst'
 import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose'
 
 export interface FeatureDocument extends HydratedDocument<Feature> {

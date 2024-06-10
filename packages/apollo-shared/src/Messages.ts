@@ -1,5 +1,5 @@
-import { SerializedChange } from 'apollo-common'
-import { CheckResultSnapshot } from 'apollo-mst'
+import { SerializedChange } from '@apollo-annotation/common'
+import { CheckResultSnapshot } from '@apollo-annotation/mst'
 
 interface BaseMessage {
   channel: string

@@ -1,5 +1,5 @@
 {
-  "name": "apollo-schemas",
+  "name": "@apollo-annotation/schemas",
   "version": "1.0.0-alpha.0",
   "main": "./dist/index.js",
   "scripts": {
@@ -16,9 +16,11 @@
     "tslib": "^2.3.1"
   },
   "devDependencies": {
+    "@apollo-annotation/mst": "workspace:^",
     "@types/node": "^18.14.2",
-    "apollo-mst": "workspace:^",
     "typescript": "^5.1.6"
   },
-  "private": true
+  "publishConfig": {
+    "access": "public"
+  }
 }

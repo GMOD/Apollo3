@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { AnnotationFeatureI } from '@apollo-annotation/mst'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { MenuItem } from '@jbrowse/core/ui'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { Theme } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { Instance, addDisposer } from 'mobx-state-tree'
 import type { CSSProperties } from 'react'

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { Change } from 'apollo-common'
-import { Feature, FeatureDocument } from 'apollo-schemas'
+import { Change } from '@apollo-annotation/common'
+import { Feature, FeatureDocument } from '@apollo-annotation/schemas'
 import { ClientSession, Model } from 'mongoose'
 
 import {
