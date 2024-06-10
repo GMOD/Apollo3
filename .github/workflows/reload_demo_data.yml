@@ -1,15 +1,24 @@
-name: Cleanup staging server
+name: Reload data on a demo server
 
 on:
-  schedule:
-    - cron: '13 9 * * MON'
-  workflow_dispatch: null
+  workflow_call:
+    inputs:
+      environment:
+        description: Environment in which to reload data
+        type: environment
+        required: true
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment in which to reload data
+        type: environment
+        required: true
 
 jobs:
-  deploy:
-    name: Cleanup
+  reload:
+    name: Clean up ${{ inputs.environment }} demo server
     runs-on: ubuntu-latest
-    environment: staging
+    environment: ${{ inputs.environment }}
     steps:
       - name: Check out
         uses: actions/checkout@v4
@@ -30,7 +39,7 @@ jobs:
       - name: Set up SSH
         run: |
           mkdir --parents ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY  }}" >  ~/.ssh/staging
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/staging
           chmod 600 ~/.ssh/staging
           cat >>~/.ssh/config <<END
           Host staging

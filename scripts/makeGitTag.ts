@@ -1,4 +1,4 @@
-import { default as spawn } from 'cross-spawn'
+import { sync } from 'cross-spawn'
 import yargs from 'yargs/yargs'
 
 class Shell {
@@ -12,7 +12,7 @@ class Shell {
       process.stderr.write(`${this.cmd}\n`)
     }
 
-    const child = spawn.sync(cmd, args)
+    const child = sync(cmd, args)
     this.stdout = child.stdout.toString()
     this.stderr = child.stderr.toString()
     this.returncode = child.status
@@ -33,7 +33,7 @@ function checkTag(tag: string, testRegex = /v\d+.\d+.\d+.*/) {
 
 const usage = `Prepare and push source code for new tag release. See code for details. Steps are:
 
-* 'yarn version' to update non-private packages to <tag> 
+* 'yarn version' to update non-private packages to <tag>
 
 * 'git add' all (and only) the package.json files from previous step
 

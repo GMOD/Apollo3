@@ -2,7 +2,7 @@ name: Publish Apollo
 
 on:
   push:
-    tags: 'v[0-9]+.[0-9]+.[0-9]+*'
+    tags: v[0-9]+.[0-9]+.[0-9]+*
 
 jobs:
   publish-npm:
@@ -13,9 +13,8 @@ jobs:
       # Setup .npmrc file to publish to npm
       - uses: actions/setup-node@v4
         with:
-          node-version: '18.x'
-          cache: yarn
-          registry-url: 'https://registry.npmjs.org'
+          node-version: 18
+          registry-url: https://registry.npmjs.org
           scope: '@apollo-annotation'
       - run: yarn --immutable
       - run: |
@@ -25,8 +24,12 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   publish-docker:
     name: Build and push Docker image
-    uses: ./.github/workflows/build-and-push-docker.yml
-  deploy-to-demo-staging-server:
+    uses: ./.github/workflows/docker.yml
+    with:
+      tag: latest
+  deploy:
     name: Deploy to demo staging server
     needs: [publish-docker]
-    uses: ./.github/workflows/deploy-to-demo-staging-server.yml
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod

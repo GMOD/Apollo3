@@ -5,12 +5,12 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: 'Build and publish Docker image'
+        description: Build and publish Docker image
         type: boolean
         required: false
         default: false
       deploy:
-        description: 'Deploy to demo server'
+        description: Deploy to demo server
         type: boolean
         required: false
         default: false
@@ -64,16 +64,20 @@ jobs:
         working-directory: packages/apollo-shared
       - name: Lint codebase
         run: yarn eslint --ext .js,.ts,.jsx,.tsx .
-  build-and-push-docker:
+  docker:
     name: Build and push Docker image
-    uses: ./.github/workflows/build-and-push-docker.yml
     if:
       ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       inputs.publish }}
+    uses: ./.github/workflows/docker.yml
+    with:
+      tag: devel
   deploy:
     name: Deploy to demo staging server
-    needs: [build, build-and-push-docker]
+    needs: [build, docker]
     if:
       ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (
       inputs.deploy  &&  always()) }}
-    uses: ./.github/workflows/deploy-to-demo-staging-server.yml
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: staging

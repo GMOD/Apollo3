@@ -2,6 +2,10 @@ name: Build and push docker
 
 on:
   workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
 
 jobs:
   build-and-push-docker:
@@ -20,12 +24,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push Apollo CLI
+      - name: Build and push Apollo CLI image
         uses: docker/build-push-action@v5
         with:
           platforms: linux/arm64/v8,linux/amd64
           push: true
-          tags: ghcr.io/gmod/apollo-cli
+          tags: ghcr.io/gmod/apollo-cli:${{ inputs.tag }}
           context: packages/apollo-cli
           outputs:
             type=image,annotation-index.org.opencontainers.image.description=
@@ -37,7 +41,7 @@ jobs:
         with:
           platforms: linux/arm64/v8,linux/amd64
           push: true
-          tags: ghcr.io/gmod/apollo-collaboration-server
+          tags: ghcr.io/gmod/apollo-collaboration-server:${{ inputs.tag }}
           outputs:
             type=image,annotation-index.org.opencontainers.image.description=Apollo
             collaboration server

@@ -2,12 +2,16 @@ name: Deploy to demo staging server
 
 on:
   workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
 
 jobs:
-  deploy-to-demo-staging-server:
-    name: Deploy to demo staging server
+  deploy:
+    name: Deploy to ${{ inputs.environment }} demo server
     runs-on: ubuntu-latest
-    environment: staging
+    environment: ${{ inputs.environment }}
     steps:
       - name: Check out
         uses: actions/checkout@v4
