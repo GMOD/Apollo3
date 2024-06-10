@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
 import { splitStringIntoChunks } from '@apollo-annotation/apollo-shared'
 import { Button, Typography } from '@mui/material'

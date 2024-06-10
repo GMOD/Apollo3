@@ -1,3 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
 import {
   LocationEndChange,
@@ -93,8 +100,14 @@ function ApolloRendering(props: ApolloRenderingProps) {
   const { collaborators: collabs } = session
 
   // bridging mobx observability and React useEffect observability
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => autorun(() => setCollaborators(toJS(collabs))), [])
+
+  useEffect(
+    () =>
+      autorun(() => {
+        setCollaborators(toJS(collabs))
+      }),
+    [],
+  )
 
   const [region] = regions
   const totalWidth = (region.end - region.start) / bpPerPx
@@ -536,7 +549,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
           assembly,
         })
       }
-      await changeManager?.submit(change)
+      await changeManager.submit(change)
     }
     // eslint-disable-next-line unicorn/no-useless-undefined
     setDragging(undefined)

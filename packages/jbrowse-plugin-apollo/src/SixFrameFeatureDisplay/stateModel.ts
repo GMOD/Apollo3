@@ -1,3 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/unbound-method */
 import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
 import { ConfigurationReference } from '@jbrowse/core/configuration'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
@@ -141,7 +147,7 @@ export function stateModelFactory(
       },
       get changeManager() {
         const session = getSession(self) as ApolloSession
-        return session.apolloDataStore?.changeManager
+        return session.apolloDataStore.changeManager
       },
       get sequence() {
         const { regions } = self
@@ -348,7 +354,7 @@ export function stateModelFactory(
     .actions((self) => ({
       setSelectedFeature(feature?: AnnotationFeatureI) {
         const session = getSession(self) as ApolloSession
-        return session.apolloSetSelectedFeature(feature)
+        session.apolloSetSelectedFeature(feature)
       },
       setApolloFeatureUnderMouse(feature?: AnnotationFeatureI) {
         self.apolloFeatureUnderMouse = feature
@@ -388,19 +394,25 @@ export function stateModelFactory(
             label: 'Show start codons',
             type: 'checkbox',
             checked: self.showStartCodons,
-            onClick: () => self.toggleShowStartCodons(),
+            onClick: () => {
+              self.toggleShowStartCodons()
+            },
           },
           {
             label: 'Show stop codons',
             type: 'checkbox',
             checked: self.showStopCodons,
-            onClick: () => self.toggleShowStopCodons(),
+            onClick: () => {
+              self.toggleShowStopCodons()
+            },
           },
           {
             label: 'Show intron lines',
             type: 'checkbox',
             checked: self.showIntronLines,
-            onClick: () => self.toggleShowIntronLines(),
+            onClick: () => {
+              self.toggleShowIntronLines()
+            },
           },
         ]
       },

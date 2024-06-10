@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/require-await */
+
 import {
   AssemblySpecificChange,
   ChangeOptions,

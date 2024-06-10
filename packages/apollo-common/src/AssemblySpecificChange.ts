@@ -1,3 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import type { AnnotationFeatureSnapshot } from '@apollo-annotation/apollo-mst'
 import { FileDocument, RefSeqDocument } from '@apollo-annotation/apollo-schemas'
 import { GFF3Feature } from '@gmod/gff'

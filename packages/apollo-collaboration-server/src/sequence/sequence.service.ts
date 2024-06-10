@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-base-to-string */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
   RefSeq,
   RefSeqChunk,

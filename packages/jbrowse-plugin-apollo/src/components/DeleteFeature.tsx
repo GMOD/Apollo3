@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
 import { DeleteFeatureChange } from '@apollo-annotation/apollo-shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
@@ -51,7 +54,7 @@ export function DeleteFeature({
       deletedFeature: getSnapshot(sourceFeature),
       parentFeatureId: sourceFeature.parent?._id,
     })
-    await changeManager.submit?.(change)
+    await changeManager.submit(change)
     notify('Feature deleted successfully', 'success')
     handleClose()
     event.preventDefault()

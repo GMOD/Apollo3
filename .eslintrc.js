@@ -7,7 +7,7 @@ module.exports = {
     'plugin:cypress/recommended',
     'plugin:import/recommended',
     'plugin:import/typescript',
-    'plugin:@typescript-eslint/strict',
+    'plugin:@typescript-eslint/strict-type-checked',
     'plugin:@typescript-eslint/stylistic-type-checked',
     'plugin:prettier/recommended',
   ],
@@ -81,10 +81,6 @@ module.exports = {
     'unicorn/no-null': 'off', // A lot of null in React and other libraries
     'unicorn/prefer-module': 'off', // Cypress and apollo-collaboration-server need this
     'unicorn/prevent-abbreviations': 'off', // Doesn't guess a lot of abbreviations correctly
-    // Special case @typescript-eslint/eslint-plugin rule
-    // Will be part of "plugin:@typescript-eslint/recommended-type-checked" when
-    // that extension is enabled. Remove from here at that time.
-    '@typescript-eslint/no-floating-promises': 'error',
   },
   overrides: [
     // Only use React-specific lint rules in jbrowse-plugin-apollo

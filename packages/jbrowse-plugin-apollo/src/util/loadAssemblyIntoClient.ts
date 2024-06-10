@@ -82,7 +82,8 @@ export async function checkFeatures(
       for (const check of checkRegistry.getChecks().values()) {
         const result: CheckResultSnapshot[] = await check.checkFeature(
           getSnapshot(feature),
-          async (start: number, stop: number) => ref.getSequence(start, stop),
+          (start: number, stop: number) =>
+            Promise.resolve(ref.getSequence(start, stop)),
         )
         checkResults.push(...result)
       }
@@ -202,14 +203,14 @@ function createFeature(gff3Feature: GFF3Feature): AnnotationFeatureSnapshot {
     }
   }
 
-  if (childFeatures?.length) {
+  if (childFeatures.length > 0) {
     const children: Record<string, AnnotationFeatureSnapshot> = {}
     for (const childFeature of childFeatures) {
       const child = createFeature(childFeature)
       children[child._id] = child
       // Add value to gffId
       child.attributes?._id
-        ? (child.gffId = child.attributes?._id.toString())
+        ? (child.gffId = child.attributes._id.toString())
         : (child.gffId = child._id)
     }
     feature.children = children

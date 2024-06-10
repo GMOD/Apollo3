@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/apollo-common'
 import {
   AnnotationFeature,
@@ -158,10 +162,7 @@ export function extendSession(
           }
         }
         if (locations.length === 0) {
-          for (const internetAccount of internetAccounts as (
-            | BaseInternetAccountModel
-            | ApolloInternetAccountModel
-          )[]) {
+          for (const internetAccount of internetAccounts) {
             if ('baseURL' in internetAccount) {
               internetAccount.postUserLocation([])
             }
@@ -170,10 +171,7 @@ export function extendSession(
         }
 
         const allLocations: UserLocation[] = []
-        for (const internetAccount of internetAccounts as (
-          | BaseInternetAccountModel
-          | ApolloInternetAccountModel
-        )[]) {
+        for (const internetAccount of internetAccounts) {
           if ('baseURL' in internetAccount) {
             for (const location of locations) {
               const tmpLoc: UserLocation = {
@@ -208,7 +206,7 @@ export function extendSession(
               }
               const lgv = view as unknown as LinearGenomeViewModel
               if (lgv.initialized) {
-                const { dynamicBlocks } = lgv as LinearGenomeViewModel
+                const { dynamicBlocks } = lgv
                 // eslint-disable-next-line unicorn/no-array-for-each
                 dynamicBlocks.forEach((block) => {
                   if (block.regionNumber !== undefined) {
@@ -219,10 +217,7 @@ export function extendSession(
               }
             }
             if (locations.length === 0) {
-              for (const internetAccount of internetAccounts as (
-                | BaseInternetAccountModel
-                | ApolloInternetAccountModel
-              )[]) {
+              for (const internetAccount of internetAccounts) {
                 if ('baseURL' in internetAccount) {
                   internetAccount.postUserLocation([])
                 }
@@ -231,10 +226,7 @@ export function extendSession(
             }
 
             const allLocations: UserLocation[] = []
-            for (const internetAccount of internetAccounts as (
-              | BaseInternetAccountModel
-              | ApolloInternetAccountModel
-            )[]) {
+            for (const internetAccount of internetAccounts) {
               if ('baseURL' in internetAccount) {
                 for (const location of locations) {
                   const tmpLoc: UserLocation = {

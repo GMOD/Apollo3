@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await */
 import { Change } from '@apollo-annotation/apollo-common'
 
 import { TypeChange } from '../Changes'

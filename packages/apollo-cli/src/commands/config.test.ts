@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import fs from 'node:fs'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'

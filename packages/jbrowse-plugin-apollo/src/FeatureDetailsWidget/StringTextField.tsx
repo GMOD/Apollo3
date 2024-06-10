@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { TextField, TextFieldProps } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
@@ -54,7 +55,9 @@ export const StringTextField = observer(function StringTextField({
           onChangeCommitted(value)
         }
       }}
-      inputRef={(node) => setInputNode(node)}
+      inputRef={(node) => {
+        setInputNode(node)
+      }}
     />
   )
 })

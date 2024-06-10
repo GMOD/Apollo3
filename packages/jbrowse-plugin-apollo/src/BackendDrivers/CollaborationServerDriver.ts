@@ -1,3 +1,9 @@
+/* eslint-disable @typescript-eslint/no-base-to-string */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
   AssemblySpecificChange,
   Change,
@@ -108,7 +114,7 @@ export class CollaborationServerDriver extends BackendDriver {
       )
       throw new Error(errorMessage)
     }
-    await this.checkSocket(assemblyName, refName, internetAccount)
+    this.checkSocket(assemblyName, refName, internetAccount)
     return response.json() as Promise<
       [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
     >
@@ -120,7 +126,7 @@ export class CollaborationServerDriver extends BackendDriver {
    * @param refSeq - refSeqName
    * @param internetAccount - internet account
    */
-  async checkSocket(
+  checkSocket(
     assembly: string,
     refSeq: string,
     internetAccount: ApolloInternetAccount,
@@ -173,7 +179,7 @@ export class CollaborationServerDriver extends BackendDriver {
     if (!apolloAssembly) {
       apolloAssembly = this.clientStore.addAssembly(assemblyName)
     }
-    let apolloRefSeq = apolloAssembly?.refSeqs.get(refSeq)
+    let apolloRefSeq = apolloAssembly.refSeqs.get(refSeq)
     if (!apolloRefSeq) {
       apolloRefSeq = apolloAssembly.addRefSeq(refSeq, refName)
     }
@@ -204,7 +210,7 @@ export class CollaborationServerDriver extends BackendDriver {
     )
     this.inFlight.set(inFlightKey, seqPromise)
     const seq = await seqPromise
-    await this.checkSocket(assemblyName, refName, internetAccount)
+    this.checkSocket(assemblyName, refName, internetAccount)
     this.inFlight.delete(inFlightKey)
     return { seq, refSeq }
   }

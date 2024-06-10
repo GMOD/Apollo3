@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import {
   Button,
@@ -94,10 +98,12 @@ export function ViewCheckResults({
         setDisplayGridData(data)
       }
     }
-    getGridData().catch((error) => setErrorMessage(String(error)))
+    getGridData().catch((error) => {
+      setErrorMessage(String(error))
+    })
   }, [selectedAssembly, apolloInternetAccount, baseURL])
 
-  function handleChangeAssembly(e: SelectChangeEvent<string>) {
+  function handleChangeAssembly(e: SelectChangeEvent) {
     const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
     setSelectedAssembly(newAssembly)
   }

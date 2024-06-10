@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { AddFeatureChange } from '@apollo-annotation/apollo-shared'
 import { AbstractSessionModel, Region } from '@jbrowse/core/util/types'
 import {
@@ -90,7 +92,7 @@ export function AddFeature({
         strand,
       },
     })
-    await changeManager.submit?.(change)
+    await changeManager.submit(change)
     notify('Feature added successfully', 'success')
     handleClose()
     event.preventDefault()
@@ -107,7 +109,7 @@ export function AddFeature({
     }
   }
 
-  function handleChangeStrand(e: SelectChangeEvent<string>) {
+  function handleChangeStrand(e: SelectChangeEvent) {
     setErrorMessage('')
 
     switch (Number(e.target.value)) {
@@ -126,7 +128,7 @@ export function AddFeature({
     }
   }
 
-  async function handleChangePhase(e: SelectChangeEvent<string>) {
+  function handleChangePhase(e: SelectChangeEvent) {
     setErrorMessage('')
     setPhase(e.target.value)
 
@@ -170,7 +172,9 @@ export function AddFeature({
             fullWidth
             variant="outlined"
             value={Number(start)}
-            onChange={(e) => setStart(e.target.value)}
+            onChange={(e) => {
+              setStart(e.target.value)
+            }}
           />
           <TextField
             margin="dense"
@@ -180,7 +184,9 @@ export function AddFeature({
             fullWidth
             variant="outlined"
             value={end}
-            onChange={(e) => setEnd(e.target.value)}
+            onChange={(e) => {
+              setEnd(e.target.value)
+            }}
             error={error}
             helperText={error ? '"End" must be greater than "Start"' : null}
           />

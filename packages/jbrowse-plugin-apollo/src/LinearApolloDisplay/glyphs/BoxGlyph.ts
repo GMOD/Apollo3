@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/unbound-method */
 import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
 import {
   LocationEndChange,

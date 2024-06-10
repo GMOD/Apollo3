@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
@@ -101,7 +106,7 @@ export function baseModelFactory(
       },
       get changeManager() {
         return (self.session as unknown as ApolloSessionModel).apolloDataStore
-          ?.changeManager
+          .changeManager
       },
       getAssemblyId(assemblyName: string) {
         const { assemblyManager } =
@@ -119,7 +124,7 @@ export function baseModelFactory(
     }))
     .actions((self) => ({
       setSelectedFeature(feature?: AnnotationFeatureI) {
-        return (
+        ;(
           self.session as unknown as ApolloSessionModel
         ).apolloSetSelectedFeature(feature)
       },

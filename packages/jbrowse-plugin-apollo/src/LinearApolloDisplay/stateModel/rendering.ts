@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { defaultCodonTable, doesIntersect2, revcom } from '@jbrowse/core/util'
@@ -174,8 +175,8 @@ function codonColorCode(letter: string, rowColorCode: string, bpPerPx: number) {
     '*': '#f44336',
   }
 
-  if (colorMap[letter?.toUpperCase()] !== undefined) {
-    return colorMap[letter?.toUpperCase()]
+  if (colorMap[letter.toUpperCase()] !== undefined) {
+    return colorMap[letter.toUpperCase()]
   }
 
   return bpPerPx <= 0.1 ? rowColorCode : 'lightgray'

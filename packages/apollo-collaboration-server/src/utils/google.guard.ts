@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { ExecutionContext, Injectable } from '@nestjs/common'
 import { AuthGuard, IAuthModuleOptions } from '@nestjs/passport'
 

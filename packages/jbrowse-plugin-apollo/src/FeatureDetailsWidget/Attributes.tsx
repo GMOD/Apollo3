@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
 import { FeatureAttributeChange } from '@apollo-annotation/apollo-shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
@@ -190,7 +193,7 @@ export const Attributes = observer(function Attributes({
       featureId: feature._id,
       attributes: attrs,
     })
-    await changeManager.submit?.(change)
+    await changeManager.submit(change)
     notify('Feature attributes modified successfully', 'success')
   }
   function handleAddNewAttributeChange() {

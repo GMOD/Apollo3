@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Change, ChangeSchema } from '@apollo-annotation/apollo-schemas'
 import { Module } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'

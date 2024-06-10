@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import fs from 'node:fs/promises'
 
 import { JWTPayload } from '@apollo-annotation/apollo-shared'

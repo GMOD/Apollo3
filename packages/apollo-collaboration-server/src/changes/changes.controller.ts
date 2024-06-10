@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { Change } from '@apollo-annotation/apollo-common'
 import { DecodedJWT } from '@apollo-annotation/apollo-shared'
 import { Body, Controller, Get, Logger, Post, Query, Req } from '@nestjs/common'

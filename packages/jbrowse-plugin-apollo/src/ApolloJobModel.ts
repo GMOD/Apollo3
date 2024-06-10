@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-confusing-void-expression */
 import {
   SessionWithWidgets,
   getSession,

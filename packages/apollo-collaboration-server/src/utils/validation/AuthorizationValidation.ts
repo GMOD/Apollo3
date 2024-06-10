@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Change, SerializedChange } from '@apollo-annotation/apollo-common'
 import {
   Context,

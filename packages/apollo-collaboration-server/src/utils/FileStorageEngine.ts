@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-confusing-void-expression */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { createHash } from 'node:crypto'
 import { createWriteStream } from 'node:fs'
 import { mkdir, mkdtemp, rename, rmdir } from 'node:fs/promises'

@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
 import { MenuItem } from '@jbrowse/core/ui'
 import { AbstractSessionModel, SessionWithWidgets } from '@jbrowse/core/util'
@@ -389,7 +393,7 @@ export abstract class Glyph {
                 refName: region.refName,
               },
             )
-            ;(session as unknown as SessionWithWidgets).showWidget?.(
+            ;(session as unknown as SessionWithWidgets).showWidget(
               apolloFeatureWidget,
             )
           },

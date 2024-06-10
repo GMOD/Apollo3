@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-base-to-string */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { checkRegistry } from '@apollo-annotation/apollo-common'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/apollo-mst'
 import {

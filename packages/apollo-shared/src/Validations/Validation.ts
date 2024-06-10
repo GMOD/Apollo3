@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/require-await */
 import { Change, ClientDataStore } from '@apollo-annotation/apollo-common'
 import { FeatureDocument } from '@apollo-annotation/apollo-schemas'
 import type { ExecutionContext } from '@nestjs/common'

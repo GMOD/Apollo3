@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import type { AnnotationFeatureSnapshot } from '@apollo-annotation/apollo-mst'
 import { Feature } from '@apollo-annotation/apollo-schemas'
 import ObjectID from 'bson-objectid'
