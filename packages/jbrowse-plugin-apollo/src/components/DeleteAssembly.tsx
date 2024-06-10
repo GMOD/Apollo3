@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { DeleteAssemblyChange } from '@apollo-annotation/apollo-shared'
+import { DeleteAssemblyChange } from '@apollo-annotation/shared'
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import {
   Button,

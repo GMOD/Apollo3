@@ -1,7 +1,7 @@
 import {
   AnnotationFeatureSnapshot,
   CheckResultSnapshot,
-} from '@apollo-annotation/apollo-mst'
+} from '@apollo-annotation/mst'
 
 export abstract class Check {
   abstract name: string

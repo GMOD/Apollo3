@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { Counter, CounterDocument } from '@apollo-annotation/apollo-schemas'
+import { Counter, CounterDocument } from '@apollo-annotation/schemas'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'

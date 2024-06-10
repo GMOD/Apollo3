@@ -3,7 +3,7 @@ import {
   Feature,
   FeatureDocument,
   FeatureSchema,
-} from '@apollo-annotation/apollo-schemas'
+} from '@apollo-annotation/schemas'
 import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import { Connection } from 'mongoose'

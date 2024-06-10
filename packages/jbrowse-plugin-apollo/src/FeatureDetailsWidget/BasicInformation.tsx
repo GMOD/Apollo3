@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
+import { AnnotationFeatureI } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
   StrandChange,
   TypeChange,
-} from '@apollo-annotation/apollo-shared'
+} from '@apollo-annotation/shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   FormControl,

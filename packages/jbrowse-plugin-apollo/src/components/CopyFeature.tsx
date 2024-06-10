@@ -4,8 +4,8 @@
 import {
   AnnotationFeatureI,
   AnnotationFeatureSnapshot,
-} from '@apollo-annotation/apollo-mst'
-import { AddFeatureChange } from '@apollo-annotation/apollo-shared'
+} from '@apollo-annotation/mst'
+import { AddFeatureChange } from '@apollo-annotation/shared'
 import { readConfObject } from '@jbrowse/core/configuration'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {

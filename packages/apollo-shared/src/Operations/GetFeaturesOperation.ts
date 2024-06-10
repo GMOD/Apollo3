@@ -5,7 +5,7 @@ import {
   OperationOptions,
   SerializedOperation,
   ServerDataStore,
-} from '@apollo-annotation/apollo-common'
+} from '@apollo-annotation/common'
 
 interface SerializedGetFeaturesOperation extends SerializedOperation {
   typeName: 'GetFeaturesOperation'

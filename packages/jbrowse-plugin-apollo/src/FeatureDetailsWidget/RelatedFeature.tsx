@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import {
-  AnnotationFeature,
-  AnnotationFeatureI,
-} from '@apollo-annotation/apollo-mst'
+import { AnnotationFeature, AnnotationFeatureI } from '@apollo-annotation/mst'
 import { SessionWithWidgets } from '@jbrowse/core/util'
 import { Button, Paper, Typography } from '@mui/material'
 import { observer } from 'mobx-react'

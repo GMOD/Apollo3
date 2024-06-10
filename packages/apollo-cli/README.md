@@ -12,11 +12,11 @@
 <!-- usage -->
 
 ```sh-session
-$ npm install -g @apollo-annotation/apollo-cli
+$ npm install -g @apollo-annotation/cli
 $ apollo COMMAND
 running command...
 $ apollo (--version)
-@apollo-annotation/apollo-cli/0.1.1 linux-x64 node-v18.19.0
+@apollo-annotation/cli/0.1.1 linux-x64 node-v18.19.0
 $ apollo --help [COMMAND]
 USAGE
   $ apollo COMMAND

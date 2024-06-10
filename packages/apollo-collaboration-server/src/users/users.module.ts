@@ -1,4 +1,4 @@
-import { User, UserSchema } from '@apollo-annotation/apollo-schemas'
+import { User, UserSchema } from '@apollo-annotation/schemas'
 import { Module, OnApplicationBootstrap } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 

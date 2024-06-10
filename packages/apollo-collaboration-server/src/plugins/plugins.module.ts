@@ -8,7 +8,7 @@ import path from 'node:path'
 import {
   ApolloPlugin,
   ApolloPluginConstructor,
-} from '@apollo-annotation/apollo-common'
+} from '@apollo-annotation/common'
 import { DynamicModule, Logger, Module, Provider } from '@nestjs/common'
 import fetch from 'node-fetch'
 import sanitize from 'sanitize-filename'

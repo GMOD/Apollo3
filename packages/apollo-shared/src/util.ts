@@ -1,4 +1,4 @@
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/apollo-mst'
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { GFF3Feature } from '@gmod/gff'
 
 export function makeGFF3Feature(

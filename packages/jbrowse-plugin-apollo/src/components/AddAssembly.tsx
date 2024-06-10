@@ -8,7 +8,7 @@ import {
   AddAssemblyAndFeaturesFromFileChange,
   AddAssemblyFromExternalChange,
   AddAssemblyFromFileChange,
-} from '@apollo-annotation/apollo-shared'
+} from '@apollo-annotation/shared'
 import { readConfObject } from '@jbrowse/core/configuration'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import LinkIcon from '@mui/icons-material/Link'

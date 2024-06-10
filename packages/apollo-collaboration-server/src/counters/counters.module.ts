@@ -1,4 +1,4 @@
-import { Counter, CounterSchema } from '@apollo-annotation/apollo-schemas'
+import { Counter, CounterSchema } from '@apollo-annotation/schemas'
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 

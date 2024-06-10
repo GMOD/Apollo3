@@ -8,7 +8,7 @@ import {
   LocalGFF3DataStore,
   SerializedAssemblySpecificChange,
   ServerDataStore,
-} from '@apollo-annotation/apollo-common'
+} from '@apollo-annotation/common'
 import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
 import { RemoteFile } from 'generic-filehandle'
 

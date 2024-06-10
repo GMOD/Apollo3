@@ -8,8 +8,8 @@ import {
   changeRegistry,
   checkRegistry,
   operationRegistry,
-} from '@apollo-annotation/apollo-common'
-import { CheckSchema } from '@apollo-annotation/apollo-schemas'
+} from '@apollo-annotation/common'
+import { CheckSchema } from '@apollo-annotation/schemas'
 import {
   CDSCheck,
   CoreValidation,
@@ -17,7 +17,7 @@ import {
   changes,
   operations,
   validationRegistry,
-} from '@apollo-annotation/apollo-shared'
+} from '@apollo-annotation/shared'
 import { LogLevel } from '@nestjs/common'
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import connectMongoDBSession from 'connect-mongodb-session'

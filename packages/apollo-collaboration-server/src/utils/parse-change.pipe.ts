@@ -1,4 +1,4 @@
-import { Change, SerializedChange } from '@apollo-annotation/apollo-common'
+import { Change, SerializedChange } from '@apollo-annotation/common'
 import {
   ArgumentMetadata,
   BadRequestException,

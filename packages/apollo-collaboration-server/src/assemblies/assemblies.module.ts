@@ -1,4 +1,4 @@
-import { Assembly, AssemblySchema } from '@apollo-annotation/apollo-schemas'
+import { Assembly, AssemblySchema } from '@apollo-annotation/schemas'
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 

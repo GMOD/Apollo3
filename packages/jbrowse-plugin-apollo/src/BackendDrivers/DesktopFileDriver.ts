@@ -3,16 +3,16 @@ import {
   AssemblySpecificChange,
   Change,
   isAssemblySpecificChange,
-} from '@apollo-annotation/apollo-common'
+} from '@apollo-annotation/common'
 import {
   AnnotationFeatureSnapshot,
   CheckResultSnapshot,
-} from '@apollo-annotation/apollo-mst'
+} from '@apollo-annotation/mst'
 import {
   ValidationResultSet,
   makeGFF3Feature,
   splitStringIntoChunks,
-} from '@apollo-annotation/apollo-shared'
+} from '@apollo-annotation/shared'
 import gff, { GFF3Item } from '@gmod/gff'
 import { getConf } from '@jbrowse/core/configuration'
 import { Region, getSession } from '@jbrowse/core/util'

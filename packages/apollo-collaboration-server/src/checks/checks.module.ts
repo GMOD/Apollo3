@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { CheckResultSnapshot } from '@apollo-annotation/apollo-mst'
+import { CheckResultSnapshot } from '@apollo-annotation/mst'
 import {
   Check,
   CheckResult,
   CheckResultDocument,
   CheckResultSchema,
   CheckSchema,
-} from '@apollo-annotation/apollo-schemas'
-import { CheckResultUpdate } from '@apollo-annotation/apollo-shared'
+} from '@apollo-annotation/schemas'
+import { CheckResultUpdate } from '@apollo-annotation/shared'
 import { Module } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import idValidator from 'mongoose-id-validator'

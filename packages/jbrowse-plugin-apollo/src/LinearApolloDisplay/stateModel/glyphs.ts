@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
+import { AnnotationFeatureI } from '@apollo-annotation/mst'
 import { ObservableMap, observable } from 'mobx'
 import { types } from 'mobx-state-tree'
 

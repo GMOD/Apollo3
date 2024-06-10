@@ -1,5 +1,5 @@
-import { Assembly, AssemblyDocument } from '@apollo-annotation/apollo-schemas'
-import { GetAssembliesOperation } from '@apollo-annotation/apollo-shared'
+import { Assembly, AssemblyDocument } from '@apollo-annotation/schemas'
+import { GetAssembliesOperation } from '@apollo-annotation/shared'
 import {
   Injectable,
   Logger,

@@ -3,8 +3,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/apollo-mst'
-import { AddFeatureChange } from '@apollo-annotation/apollo-shared'
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import { AddFeatureChange } from '@apollo-annotation/shared'
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { DisplayType } from '@jbrowse/core/pluggableElementTypes'
 import PluggableElementBase from '@jbrowse/core/pluggableElementTypes/PluggableElementBase'

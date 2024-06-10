@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
-import { DeleteFeatureChange } from '@apollo-annotation/apollo-shared'
+import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { DeleteFeatureChange } from '@apollo-annotation/shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,

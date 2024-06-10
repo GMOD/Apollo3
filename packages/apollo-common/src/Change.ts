@@ -6,7 +6,7 @@ import {
   ApolloAssemblyI,
   CheckResultI,
   CheckResultSnapshot,
-} from '@apollo-annotation/apollo-mst'
+} from '@apollo-annotation/mst'
 import { AppRootModel, Region } from '@jbrowse/core/util'
 
 import { changeRegistry } from './ChangeTypeRegistry'

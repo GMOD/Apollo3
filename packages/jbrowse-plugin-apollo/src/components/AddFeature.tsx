@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AddFeatureChange } from '@apollo-annotation/apollo-shared'
+import { AddFeatureChange } from '@apollo-annotation/shared'
 import { AbstractSessionModel, Region } from '@jbrowse/core/util/types'
 import {
   Button,

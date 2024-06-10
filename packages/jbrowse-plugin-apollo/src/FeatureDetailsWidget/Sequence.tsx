@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
-import { splitStringIntoChunks } from '@apollo-annotation/apollo-shared'
+import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { splitStringIntoChunks } from '@apollo-annotation/shared'
 import { Button, Typography } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'

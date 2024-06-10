@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
+import { AnnotationFeatureI } from '@apollo-annotation/mst'
 import { MenuItem } from '@jbrowse/core/ui'
 import { AbstractSessionModel, SessionWithWidgets } from '@jbrowse/core/util'
 import { alpha } from '@mui/material'

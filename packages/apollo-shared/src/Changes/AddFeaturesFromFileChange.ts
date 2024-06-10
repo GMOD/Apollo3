@@ -6,7 +6,7 @@ import {
   LocalGFF3DataStore,
   SerializedAssemblySpecificChange,
   ServerDataStore,
-} from '@apollo-annotation/apollo-common'
+} from '@apollo-annotation/common'
 import { GFF3Feature } from '@gmod/gff'
 
 export interface SerializedAddFeaturesFromFileChangeBase

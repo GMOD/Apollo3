@@ -1,4 +1,4 @@
-import { validationRegistry } from '@apollo-annotation/apollo-shared'
+import { validationRegistry } from '@apollo-annotation/shared'
 import {
   CanActivate,
   ExecutionContext,

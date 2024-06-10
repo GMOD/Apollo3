@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Change, SerializedChange } from '@apollo-annotation/apollo-common'
+import { Change, SerializedChange } from '@apollo-annotation/common'
 import {
   Context,
   JWTPayload,
   Validation,
   ValidationResult,
   isContext,
-} from '@apollo-annotation/apollo-shared'
+} from '@apollo-annotation/shared'
 import { Logger } from '@nestjs/common'
 import { Request } from 'express'
 

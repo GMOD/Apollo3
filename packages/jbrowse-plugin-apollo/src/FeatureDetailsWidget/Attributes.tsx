@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
-import { FeatureAttributeChange } from '@apollo-annotation/apollo-shared'
+import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { FeatureAttributeChange } from '@apollo-annotation/shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {

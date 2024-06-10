@@ -5,11 +5,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
+import { AnnotationFeatureI } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
-} from '@apollo-annotation/apollo-shared'
+} from '@apollo-annotation/shared'
 import { getConf } from '@jbrowse/core/configuration'
 import { AbstractSessionModel, Region, getSession } from '@jbrowse/core/util'
 import { Menu, MenuItem } from '@mui/material'

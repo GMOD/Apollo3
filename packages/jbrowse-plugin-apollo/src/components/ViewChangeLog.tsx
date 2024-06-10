@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { changeRegistry } from '@apollo-annotation/apollo-common'
+import { changeRegistry } from '@apollo-annotation/common'
 import {
   Button,
   DialogActions,

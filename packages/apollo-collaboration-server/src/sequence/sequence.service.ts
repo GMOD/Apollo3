@@ -5,7 +5,7 @@ import {
   RefSeqChunk,
   RefSeqChunkDocument,
   RefSeqDocument,
-} from '@apollo-annotation/apollo-schemas'
+} from '@apollo-annotation/schemas'
 import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'

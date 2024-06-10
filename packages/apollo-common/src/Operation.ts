@@ -11,7 +11,7 @@ import {
   RefSeqChunkDocument,
   RefSeqDocument,
   UserDocument,
-} from '@apollo-annotation/apollo-schemas'
+} from '@apollo-annotation/schemas'
 import type { LoggerService } from '@nestjs/common'
 import type { ClientSession, Model } from 'mongoose'
 

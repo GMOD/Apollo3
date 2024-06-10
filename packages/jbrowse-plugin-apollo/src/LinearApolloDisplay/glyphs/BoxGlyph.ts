@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/unbound-method */
-import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
+import { AnnotationFeatureI } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
-} from '@apollo-annotation/apollo-shared'
+} from '@apollo-annotation/shared'
 import { Theme, alpha } from '@mui/material'
 
 import { LinearApolloDisplay } from '../stateModel'

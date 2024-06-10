@@ -3,7 +3,7 @@ import { unlink } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Gunzip, createGunzip } from 'node:zlib'
 
-import { File, FileDocument } from '@apollo-annotation/apollo-schemas'
+import { File, FileDocument } from '@apollo-annotation/schemas'
 import gff from '@gmod/gff'
 import {
   Injectable,

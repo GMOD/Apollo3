@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import fs from 'node:fs/promises'
 
-import { JWTPayload } from '@apollo-annotation/apollo-shared'
+import { JWTPayload } from '@apollo-annotation/shared'
 import {
   BadRequestException,
   Injectable,

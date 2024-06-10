@@ -11,7 +11,7 @@ import {
   pipeline,
 } from 'node:stream'
 
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/apollo-mst'
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import {
   Assembly,
   AssemblyDocument,
@@ -23,11 +23,11 @@ import {
   RefSeqChunk,
   RefSeqChunkDocument,
   RefSeqDocument,
-} from '@apollo-annotation/apollo-schemas'
+} from '@apollo-annotation/schemas'
 import {
   makeGFF3Feature,
   splitStringIntoChunks,
-} from '@apollo-annotation/apollo-shared'
+} from '@apollo-annotation/shared'
 import gff from '@gmod/gff'
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'

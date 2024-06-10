@@ -8,7 +8,7 @@ import {
   LocalGFF3DataStore,
   SerializedAssemblySpecificChange,
   ServerDataStore,
-} from '@apollo-annotation/apollo-common'
+} from '@apollo-annotation/common'
 import { getSession } from '@jbrowse/core/util'
 
 interface SerializedDeleteAssemblyChange

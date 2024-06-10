@@ -1,5 +1,5 @@
 {
-  "name": "@apollo-annotation/apollo-shared",
+  "name": "@apollo-annotation/shared",
   "version": "0.1.1",
   "main": "./dist/index.js",
   "scripts": {
@@ -8,9 +8,9 @@
     "clean": "rimraf dist"
   },
   "dependencies": {
-    "@apollo-annotation/apollo-common": "workspace:^",
-    "@apollo-annotation/apollo-mst": "workspace:^",
-    "@apollo-annotation/apollo-schemas": "workspace:^",
+    "@apollo-annotation/common": "workspace:^",
+    "@apollo-annotation/mst": "workspace:^",
+    "@apollo-annotation/schemas": "workspace:^",
     "@gmod/gff": "1.2.0",
     "@gmod/indexedfasta": "^2.0.4",
     "@jbrowse/core": "^2.7.0",

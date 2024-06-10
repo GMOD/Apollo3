@@ -1,4 +1,4 @@
-import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
+import { AnnotationFeatureI } from '@apollo-annotation/mst'
 import { MenuItem } from '@jbrowse/core/ui'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 

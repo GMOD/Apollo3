@@ -1,5 +1,5 @@
 {
-  "name": "@apollo-annotation/apollo-mst",
+  "name": "@apollo-annotation/mst",
   "version": "0.1.1",
   "main": "./dist/index.js",
   "scripts": {

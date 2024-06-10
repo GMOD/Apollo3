@@ -1,4 +1,4 @@
-import { File, FileSchema } from '@apollo-annotation/apollo-schemas'
+import { File, FileSchema } from '@apollo-annotation/schemas'
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 

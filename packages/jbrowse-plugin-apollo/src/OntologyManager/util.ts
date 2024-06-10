@@ -1,4 +1,4 @@
-import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
+import { AnnotationFeatureI } from '@apollo-annotation/mst'
 
 import OntologyStore from './OntologyStore'
 import { isOntologyClass } from '.'

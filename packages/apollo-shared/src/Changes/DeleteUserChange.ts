@@ -6,7 +6,7 @@ import {
   LocalGFF3DataStore,
   SerializedChange,
   ServerDataStore,
-} from '@apollo-annotation/apollo-common'
+} from '@apollo-annotation/common'
 
 export interface SerializedDeleteUserChangeBase extends SerializedChange {
   typeName: 'DeleteUserChange'

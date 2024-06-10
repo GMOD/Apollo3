@@ -2,14 +2,14 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { changeRegistry, checkRegistry } from '@apollo-annotation/apollo-common'
+import { changeRegistry, checkRegistry } from '@apollo-annotation/common'
 import {
   CDSCheck,
   CoreValidation,
   ParentChildValidation,
   changes,
   validationRegistry,
-} from '@apollo-annotation/apollo-shared'
+} from '@apollo-annotation/shared'
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import {
   DisplayType,

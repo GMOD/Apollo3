@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-base-to-string */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { checkRegistry } from '@apollo-annotation/apollo-common'
-import { AnnotationFeatureSnapshot } from '@apollo-annotation/apollo-mst'
+import { checkRegistry } from '@apollo-annotation/common'
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import {
   Assembly,
   AssemblyDocument,
@@ -16,7 +16,7 @@ import {
   RefSeqChunk,
   RefSeqChunkDocument,
   RefSeqDocument,
-} from '@apollo-annotation/apollo-schemas'
+} from '@apollo-annotation/schemas'
 import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'

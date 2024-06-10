@@ -3,7 +3,7 @@ import {
   Change as BaseChange,
   isAssemblySpecificChange,
   isFeatureChange,
-} from '@apollo-annotation/apollo-common'
+} from '@apollo-annotation/common'
 import {
   Assembly,
   AssemblyDocument,
@@ -19,13 +19,13 @@ import {
   RefSeqDocument,
   User,
   UserDocument,
-} from '@apollo-annotation/apollo-schemas'
+} from '@apollo-annotation/schemas'
 import {
   ChangeMessage,
   DecodedJWT,
   makeUserSessionId,
   validationRegistry,
-} from '@apollo-annotation/apollo-shared'
+} from '@apollo-annotation/shared'
 import {
   Logger,
   NotFoundException,

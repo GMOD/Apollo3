@@ -2,12 +2,9 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/apollo-common'
-import {
-  AnnotationFeature,
-  AnnotationFeatureI,
-} from '@apollo-annotation/apollo-mst'
-import { UserLocation } from '@apollo-annotation/apollo-shared'
+import { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
+import { AnnotationFeature, AnnotationFeatureI } from '@apollo-annotation/mst'
+import { UserLocation } from '@apollo-annotation/shared'
 import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'

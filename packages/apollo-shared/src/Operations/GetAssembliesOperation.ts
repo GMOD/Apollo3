@@ -4,7 +4,7 @@ import {
   Operation,
   SerializedOperation,
   ServerDataStore,
-} from '@apollo-annotation/apollo-common'
+} from '@apollo-annotation/common'
 
 interface SerializedGetAssembliesOperation extends SerializedOperation {
   typeName: 'GetAssembliesOperation'

@@ -5,11 +5,11 @@ import {
   Change,
   ClientDataStore,
   isAssemblySpecificChange,
-} from '@apollo-annotation/apollo-common'
+} from '@apollo-annotation/common'
 import {
   ValidationResultSet,
   validationRegistry,
-} from '@apollo-annotation/apollo-shared'
+} from '@apollo-annotation/shared'
 import { getSession } from '@jbrowse/core/util'
 import { IAnyStateTreeNode } from 'mobx-state-tree'
 

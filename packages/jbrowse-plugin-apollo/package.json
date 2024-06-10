@@ -37,7 +37,7 @@
     "browse": "serve --no-request-logging --listen 8999 --no-port-switching .jbrowse",
     "test": "jest",
     "test:ci": "jest --coverage",
-    "start:collab-cypress": "yarn workspace apollo-collaboration-server run cypress:start",
+    "start:collab-cypress": "yarn workspace @apollo-annotation/collaboration-server run cypress:start",
     "test:e2e": "yarn build && start-test \"npm-run-all --parallel start:server browse start:collab-cypress\" \"9000|8999|http://localhost:3999/health\" \"npm-run-all cypress:run\"",
     "test:e2e:debug": "yarn build && start-test \"npm-run-all --parallel start:server browse start:collab-cypress\" \"9000|8999|http://localhost:3999/health\" \"npm-run-all cypress:debug\"",
     "cypress:run": "cypress run --browser chrome",
@@ -51,9 +51,9 @@
     "name": "Apollo"
   },
   "dependencies": {
-    "@apollo-annotation/apollo-common": "workspace:^",
-    "@apollo-annotation/apollo-mst": "workspace:^",
-    "@apollo-annotation/apollo-shared": "workspace:^",
+    "@apollo-annotation/common": "workspace:^",
+    "@apollo-annotation/mst": "workspace:^",
+    "@apollo-annotation/shared": "workspace:^",
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
     "@gmod/gff": "1.2.0",

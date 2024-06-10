@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AnnotationFeatureI } from '@apollo-annotation/apollo-mst'
-import { AddFeatureChange } from '@apollo-annotation/apollo-shared'
+import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { AddFeatureChange } from '@apollo-annotation/shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,

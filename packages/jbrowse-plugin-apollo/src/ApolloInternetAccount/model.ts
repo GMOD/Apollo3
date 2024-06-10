@@ -6,7 +6,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { Change } from '@apollo-annotation/apollo-common'
+import { Change } from '@apollo-annotation/common'
 import {
   ChangeMessage,
   CheckResultUpdate,
@@ -15,7 +15,7 @@ import {
   UserLocationMessage,
   getDecodedToken,
   makeUserSessionId,
-} from '@apollo-annotation/apollo-shared'
+} from '@apollo-annotation/shared'
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
 import {

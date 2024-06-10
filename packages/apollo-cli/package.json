@@ -1,5 +1,5 @@
 {
-  "name": "@apollo-annotation/apollo-cli",
+  "name": "@apollo-annotation/cli",
   "description": "Command line interface for the Apollo annotation server",
   "version": "0.1.1",
   "author": "Apollo Team",

@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { DeleteUserChange, UserChange } from '@apollo-annotation/apollo-shared'
+import { DeleteUserChange, UserChange } from '@apollo-annotation/shared'
 import { AbstractRootModel } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {

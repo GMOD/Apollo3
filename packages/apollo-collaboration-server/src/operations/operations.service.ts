@@ -1,4 +1,4 @@
-import { Operation, operationRegistry } from '@apollo-annotation/apollo-common'
+import { Operation, operationRegistry } from '@apollo-annotation/common'
 import {
   Assembly,
   AssemblyDocument,
@@ -12,7 +12,7 @@ import {
   RefSeqDocument,
   User,
   UserDocument,
-} from '@apollo-annotation/apollo-schemas'
+} from '@apollo-annotation/schemas'
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectConnection, InjectModel } from '@nestjs/mongoose'
 import { Connection, Model } from 'mongoose'

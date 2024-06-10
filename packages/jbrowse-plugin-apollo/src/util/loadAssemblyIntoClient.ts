@@ -1,12 +1,9 @@
-import {
-  ClientDataStore,
-  checkRegistry,
-} from '@apollo-annotation/apollo-common'
+import { ClientDataStore, checkRegistry } from '@apollo-annotation/common'
 import {
   AnnotationFeatureSnapshot,
   ApolloAssemblyI,
   CheckResultSnapshot,
-} from '@apollo-annotation/apollo-mst'
+} from '@apollo-annotation/mst'
 import gff, { GFF3Comment, GFF3Feature, GFF3Sequence } from '@gmod/gff'
 import { getSnapshot } from 'mobx-state-tree'
 import { nanoid } from 'nanoid'
