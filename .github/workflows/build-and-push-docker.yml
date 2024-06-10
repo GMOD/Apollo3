@@ -2,10 +2,6 @@ name: Build and push docker
 
 on:
   workflow_call:
-    inputs:
-      tag:
-        required: true
-        type: string
 
 jobs:
   build-and-push-docker:
@@ -29,7 +25,7 @@ jobs:
         with:
           platforms: linux/arm64/v8,linux/amd64
           push: true
-          tags: ghcr.io/gmod/apollo-cli:${{ inputs.tag }}
+          tags: ghcr.io/gmod/apollo-cli
           context: packages/apollo-cli
           outputs:
             type=image,annotation-index.org.opencontainers.image.description=
@@ -41,7 +37,7 @@ jobs:
         with:
           platforms: linux/arm64/v8,linux/amd64
           push: true
-          tags: ghcr.io/gmod/apollo-collaboration-server:${{ inputs.tag }}
+          tags: ghcr.io/gmod/apollo-collaboration-server
           outputs:
             type=image,annotation-index.org.opencontainers.image.description=Apollo
             collaboration server
