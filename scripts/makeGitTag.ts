@@ -1,24 +1,20 @@
-import fs from 'node:fs'
-import path from 'node:path'
-
-import { spawn } from 'cross-spawn'
+import { default as spawn } from 'cross-spawn'
 import yargs from 'yargs/yargs'
 
 class Shell {
   stdout: string
   stderr: string
-  returncode: number
+  returncode: number | null
   cmd: string
   constructor(cmd: string, args: string[], verbose = true) {
     this.cmd = `${cmd} ${args.join(' ')}`
     if (verbose) {
       process.stderr.write(`${this.cmd}\n`)
     }
+
     const child = spawn.sync(cmd, args)
-    this.stdout =
-      child.stdout === null ? '' : String.fromCodePoint(...child.stdout)
-    this.stderr =
-      child.stderr === null ? '' : String.fromCodePoint(...child.stderr)
+    this.stdout = child.stdout.toString()
+    this.stderr = child.stderr.toString()
     this.returncode = child.status
 
     if (this.returncode != 0) {
@@ -29,35 +25,9 @@ class Shell {
   }
 }
 
-function getPackages(): string[] {
-  const p = new Shell('yarn', ['workspaces', 'list', '--json', '--no-private'])
-  const lines: string[] = p.stdout.trim().split('\n')
-  const packages: string[] = []
-  for (const line of lines) {
-    const j = JSON.parse(line)
-    const pack: string = path.join(j.location, 'package.json')
-    if (!fs.existsSync(pack)) {
-      throw new Error(`Error: Expected file '${pack}' does not exist\n`)
-    }
-    packages.push(pack)
-  }
-  return packages
-}
-
 function checkTag(tag: string, testRegex = /v\d+.\d+.\d+.*/) {
   if (!testRegex.test(tag)) {
     throw new Error(`Invalid tag: '${tag}' does not match regex ${testRegex}\n`)
-  }
-}
-
-function updatePackageVersion(newVersion: string, packagesToUpdate: string[]) {
-  for (const pck of packagesToUpdate) {
-    new Shell('yarn', [
-      '--cwd',
-      pck.replace('package.json', ''),
-      'version',
-      newVersion,
-    ])
   }
 }
 
@@ -75,8 +45,9 @@ const usage = `Prepare and push source code for new tag release. See code for de
 
 const argv = yargs(process.argv.slice(2))
   .usage(usage)
+  .strict()
   .version('0.1.0')
-  .example('$0 -t v1.2.3 -m "New relase"')
+  .example('$0 -t v1.2.3 -m "New relase"', '')
   .options({
     tag: {
       demandOption: true,
@@ -107,13 +78,14 @@ if (m === undefined) {
 }
 
 checkTag(tag)
-const packages = getPackages()
-updatePackageVersion(tag, packages)
-if (argv['update-only']) {
-  // eslint-disable-next-line unicorn/no-process-exit
-  process.exit(0)
-}
-new Shell('git', ['add', '--force', ...packages])
-new Shell('git', ['commit', '--message', m, '--', ...packages])
+// const packages = getPackages()
+// updatePackageVersion(tag, packages)
+// if (argv['update-only']) {
+//   // eslint-disable-next-line unicorn/no-process-exit
+//   process.exit(0)
+// }
+new Shell('yarn', ['workspaces', 'foreach', 'version', tag])
+new Shell('git', ['add', '--force', '*package.json'])
+new Shell('git', ['commit', '--message', m, '--', '*package.json'])
 new Shell('git', ['tag', '--annotate', tag, '--message', m])
 new Shell('git', ['push', '--follow-tags'])
