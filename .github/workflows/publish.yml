@@ -20,7 +20,7 @@ jobs:
       - run: yarn --immutable
       - run: |
           yarn config set npmAuthToken ${{ secrets.NPM_TOKEN }}
-          yarn workspaces foreach --no-private --all npm publish --tolerate-republish --tag devel
+          yarn workspaces foreach --no-private --all npm publish --tolerate-republish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   publish-docker:

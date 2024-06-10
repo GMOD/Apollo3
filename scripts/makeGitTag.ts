@@ -78,12 +78,6 @@ if (m === undefined) {
 }
 
 checkTag(tag)
-// const packages = getPackages()
-// updatePackageVersion(tag, packages)
-// if (argv['update-only']) {
-//   // eslint-disable-next-line unicorn/no-process-exit
-//   process.exit(0)
-// }
 new Shell('yarn', ['workspaces', 'foreach', '--all', 'version', tag])
 new Shell('git', ['add', '--force', '*package.json'])
 new Shell('git', ['commit', '--message', m, '--', '*package.json'])
