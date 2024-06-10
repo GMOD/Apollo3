@@ -73,7 +73,6 @@ jobs:
     with:
       tag: devel
   deploy:
-    name: Deploy to demo staging server
     needs: [build, docker]
     if:
       ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (

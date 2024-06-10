@@ -26,6 +26,6 @@ COPY --from=build /app/packages/apollo-common/dist /app/packages/apollo-common/d
 COPY --from=build /app/packages/apollo-mst/dist /app/packages/apollo-mst/dist
 COPY --from=build /app/packages/apollo-schemas/dist /app/packages/apollo-schemas/dist
 COPY --from=build /app/packages/apollo-shared/dist /app/packages/apollo-shared/dist
-RUN yarn workspaces focus --production apollo-collaboration-server
+RUN yarn workspaces focus --production @apollo-annotation/collaboration-server
 EXPOSE 3999
 CMD ["yarn", "start:prod"]

@@ -1,11 +1,11 @@
-name: Deploy to demo staging server
+name: Deploy to demo server
 
 on:
   workflow_call:
     inputs:
       environment:
         required: true
-        type: string
+        type: environment
 
 jobs:
   deploy:

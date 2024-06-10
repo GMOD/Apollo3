@@ -28,7 +28,6 @@ jobs:
     with:
       tag: latest
   deploy:
-    name: Deploy to demo staging server
     needs: [publish-docker]
     uses: ./.github/workflows/deploy.yml
     with:

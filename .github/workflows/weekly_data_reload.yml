@@ -8,12 +8,14 @@ jobs:
   prod-cleanup:
     name: Clean up prod demo server
     runs-on: ubuntu-latest
-    uses: ./.github/workflows/reload_demo_data.yml
-    with:
-      environment: prod
+    steps:
+      - uses: ./.github/workflows/reload_demo_data.yml
+        with:
+          environment: prod
   staging-cleanup:
     name: Clean up staging demo server
     runs-on: ubuntu-latest
-    uses: ./.github/workflows/reload_demo_data.yml
-    with:
-      environment: staging
+    steps:
+      - uses: ./.github/workflows/reload_demo_data.yml
+        with:
+          environment: staging
