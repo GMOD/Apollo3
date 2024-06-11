@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AnnotationFeatureNew } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
@@ -76,7 +76,7 @@ function selectColor(number: number) {
 function ApolloRendering(props: ApolloRenderingProps) {
   const [contextCoord, setContextCoord] = useState<Coord>()
   const [contextMenuFeature, setContextMenuFeature] =
-    useState<AnnotationFeatureNew>()
+    useState<AnnotationFeature>()
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -86,7 +86,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   // const [overEdge, setOverEdge] = useState<'start' | 'end'>()
   const [dragging, setDragging] = useState<{
     edge: 'start' | 'end'
-    feature: AnnotationFeatureNew
+    feature: AnnotationFeature
     row: number
     bp: number
     px: number
@@ -463,7 +463,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   //   const [parentID, feat] =
   //     layoutRow.find((f) => bp >= f[1].min && bp <= f[1].max) || []
-  //   let feature: AnnotationFeatureNew | undefined = feat
+  //   let feature: AnnotationFeature | undefined = feat
   //   if (feature) {
   //     const topRow = row
   //     const startPx = (feature.start - region.start) / bpPerPx
@@ -473,7 +473,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   //       y - topRow * height,
   //       bpPerPx,
   //       height,
-  //     ) as AnnotationFeatureNew
+  //     ) as AnnotationFeature
   //   }
   //   if (feature) {
   //     // TODO: check reversed

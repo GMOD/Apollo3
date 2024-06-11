@@ -5,8 +5,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
 import {
-  AnnotationFeatureModelNew,
-  AnnotationFeatureSnapshotNew,
+  AnnotationFeatureModel,
+  AnnotationFeatureSnapshot,
   ApolloAssembly,
   ApolloAssemblySnapshot,
   ApolloRefSeq,
@@ -44,7 +44,7 @@ import {
 import { ApolloRootModel } from '../types'
 
 export function clientDataStoreFactory(
-  AnnotationFeatureExtended: typeof AnnotationFeatureModelNew,
+  AnnotationFeatureExtended: typeof AnnotationFeatureModel,
 ) {
   const clientStoreType = types
     .model('ClientDataStore', {
@@ -80,7 +80,7 @@ export function clientDataStoreFactory(
         }
         return self.assemblies.put(assemblySnapshot)
       },
-      addFeature(assemblyId: string, feature: AnnotationFeatureSnapshotNew) {
+      addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot) {
         const assembly = self.assemblies.get(assemblyId)
         if (!assembly) {
           throw new Error(
@@ -234,7 +234,7 @@ export function clientDataStoreFactory(
           }
           const [features, checkResults] = (yield backendDriver.getFeatures(
             region,
-          )) as [AnnotationFeatureSnapshotNew[], CheckResultSnapshot[]]
+          )) as [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
           if (features.length === 0) {
             continue
           }

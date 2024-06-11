@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import type { AnnotationFeatureSnapshotNew } from '@apollo-annotation/mst'
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { Feature } from '@apollo-annotation/schemas'
 import ObjectID from 'bson-objectid'
 import type { Types } from 'mongoose'
@@ -69,9 +69,7 @@ export abstract class FeatureChange extends AssemblySpecificChange {
    * @param feature - parent feature
    * @returns
    */
-  getChildFeatureIds(
-    feature: Feature | AnnotationFeatureSnapshotNew,
-  ): string[] {
+  getChildFeatureIds(feature: Feature | AnnotationFeatureSnapshot): string[] {
     if (!feature.children) {
       return []
     }
@@ -92,13 +90,13 @@ export abstract class FeatureChange extends AssemblySpecificChange {
    * @param featureIds -
    */
   generateNewIds(
-    feature: Feature | AnnotationFeatureSnapshotNew,
+    feature: Feature | AnnotationFeatureSnapshot,
     featureIds: string[],
-  ): AnnotationFeatureSnapshotNew {
+  ): AnnotationFeatureSnapshot {
     const newId = new ObjectID().toHexString()
     featureIds.push(newId)
 
-    const children: Record<string, AnnotationFeatureSnapshotNew> = {}
+    const children: Record<string, AnnotationFeatureSnapshot> = {}
     if (feature.children) {
       for (const child of Object.values(feature.children)) {
         const newChild = this.generateNewIds(child, featureIds)

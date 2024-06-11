@@ -253,7 +253,7 @@ function createFeature(
   gff3Feature: GFF3Feature,
   refSeq: string,
   featureIds?: string[],
-): AnnotationFeatureSnapshotNew {
+): AnnotationFeatureSnapshot {
   const [firstFeature] = gff3Feature
   const {
     attributes,
@@ -286,7 +286,7 @@ function createFeature(
       `feature does not have end: ${JSON.stringify(firstFeature)}`,
     )
   }
-  const feature: AnnotationFeatureSnapshotNew = {
+  const feature: AnnotationFeatureSnapshot = {
     _id: new ObjectID().toHexString(),
     refSeq,
     type,
@@ -314,11 +314,11 @@ function createFeature(
     }
   }
   if (featureIds) {
-    featureIds.push(feature._id as string)
+    featureIds.push(feature._id)
   }
 
   if (childFeatures?.length) {
-    const children: Record<string, AnnotationFeatureSnapshotNew> = {}
+    const children: Record<string, AnnotationFeatureSnapshot> = {}
     for (const childFeature of childFeatures) {
       const child = createFeature(childFeature, refSeq, featureIds)
       children[child._id] = child

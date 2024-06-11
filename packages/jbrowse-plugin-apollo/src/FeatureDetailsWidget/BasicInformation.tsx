@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AnnotationFeatureNew } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
@@ -31,7 +31,7 @@ export const BasicInformation = observer(function BasicInformation({
   feature,
   session,
 }: {
-  feature: AnnotationFeatureNew
+  feature: AnnotationFeature
   session: ApolloSessionModel
   assembly: string
 }) {
@@ -99,7 +99,7 @@ export const BasicInformation = observer(function BasicInformation({
   }
 
   async function fetchValidTerms(
-    parentFeature: undefined | AnnotationFeatureNew,
+    parentFeature: undefined | AnnotationFeature,
     ontologyStore: OntologyStore,
     _signal: AbortSignal,
   ) {

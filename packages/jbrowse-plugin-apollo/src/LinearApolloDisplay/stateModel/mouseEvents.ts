@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { AnnotationFeatureNew } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { MenuItem } from '@jbrowse/core/ui'
@@ -26,8 +26,8 @@ export interface MousePosition {
 }
 
 export interface FeatureAndGlyphInfo {
-  feature?: AnnotationFeatureNew
-  topLevelFeature?: AnnotationFeatureNew
+  feature?: AnnotationFeature
+  topLevelFeature?: AnnotationFeature
   glyph?: Glyph
   mousePosition?: MousePosition
 }
@@ -53,7 +53,7 @@ function getMousePosition(
 }
 
 function getSeqRow(
-  feature: AnnotationFeatureNew,
+  feature: AnnotationFeature,
   bpPerPx: number,
   phase?: number,
 ) {
@@ -105,15 +105,15 @@ export function mouseEventsModelIntermediateFactory(
       apolloDragging: null as {
         start: {
           glyph?: Glyph
-          feature?: AnnotationFeatureNew
-          topLevelFeature?: AnnotationFeatureNew
+          feature?: AnnotationFeature
+          topLevelFeature?: AnnotationFeature
           discontinuousLocation?: CDSDiscontinuousLocation
           mousePosition: MousePosition
         }
         current: {
           glyph?: Glyph
-          feature?: AnnotationFeatureNew
-          topLevelFeature?: AnnotationFeatureNew
+          feature?: AnnotationFeature
+          topLevelFeature?: AnnotationFeature
           mousePosition: MousePosition
         }
       } | null,

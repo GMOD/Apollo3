@@ -1,11 +1,11 @@
 import { Instance, SnapshotIn, types } from 'mobx-state-tree'
 
-import { AnnotationFeature } from './AnnotationFeature'
+import { AnnotationFeatureModel } from './AnnotationFeatureModel'
 
 export const CheckResult = types.model('CheckResult', {
   _id: types.identifier,
   name: types.string,
-  ids: types.array(types.safeReference(AnnotationFeature)),
+  ids: types.array(types.safeReference(AnnotationFeatureModel)),
   refSeq: types.string,
   start: types.number,
   end: types.number,

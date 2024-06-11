@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
-  AnnotationFeatureNew,
-  AnnotationFeatureSnapshotNew,
+  AnnotationFeature,
+  AnnotationFeatureSnapshot,
   ApolloAssemblyI,
   BackendDriverType,
   CheckResultI,
@@ -29,8 +29,8 @@ export interface ClientDataStore {
   ): AppRootModel['internetAccounts'][0]
   loadFeatures(regions: Region[]): void
   loadRefSeq(regions: Region[]): void
-  getFeature(featureId: string): AnnotationFeatureNew | undefined
-  addFeature(assemblyId: string, feature: AnnotationFeatureSnapshotNew): void
+  getFeature(featureId: string): AnnotationFeature | undefined
+  addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot): void
   deleteFeature(featureId: string): void
   deleteAssembly(assemblyId: string): void
   addCheckResults(checkResults: CheckResultSnapshot[]): void

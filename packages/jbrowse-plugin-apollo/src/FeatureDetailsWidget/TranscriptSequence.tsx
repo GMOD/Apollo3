@@ -1,3 +1,5 @@
+import { AnnotationFeature } from '@apollo-annotation/mst'
+import { splitStringIntoChunks } from '@apollo-annotation/shared'
 import { revcom } from '@jbrowse/core/util'
 import {
   Button,
@@ -6,8 +8,6 @@ import {
   SelectChangeEvent,
   Typography,
 } from '@mui/material'
-import { AnnotationFeatureNew } from 'apollo-mst'
-import { splitStringIntoChunks } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 
@@ -47,7 +47,7 @@ export const TranscriptSequence = observer(function TranscriptSequence({
   session,
 }: {
   assembly: string
-  feature: AnnotationFeatureNew
+  feature: AnnotationFeature
   refName: string
   session: ApolloSessionModel
 }) {
@@ -185,10 +185,10 @@ export const TranscriptSequence = observer(function TranscriptSequence({
     }
   }
 
-  async function handleChangeSeqOption(e: SelectChangeEvent<string>) {
+  async function handleChangeSeqOption(e: SelectChangeEvent) {
     const option = e.target.value
     setSelectedOption(option)
-    void getSequenceAsTextSegment(option)
+    getSequenceAsTextSegment(option)
   }
 
   // Function to copy text to clipboard

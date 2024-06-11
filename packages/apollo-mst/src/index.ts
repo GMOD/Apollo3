@@ -1,4 +1,4 @@
-export * from './AnnotationFeature'
+export * from './AnnotationFeatureModel'
 export * from './AnnotationFeatureModel'
 export * from './ApolloAssembly'
 export * from './ApolloRefSeq'
