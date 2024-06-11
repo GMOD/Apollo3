@@ -3,7 +3,7 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import { defaultCodonTable, doesIntersect2, revcom } from '@jbrowse/core/util'
 import { Theme } from '@mui/material'
 import { autorun } from 'mobx'
-import { Instance, addDisposer } from 'mobx-state-tree'
+import { Instance, addDisposer, getSnapshot } from 'mobx-state-tree'
 
 import { ApolloSessionModel } from '../../session'
 import { getGlyph } from './getGlyph'
@@ -424,8 +424,24 @@ export function renderingModelFactory(
               self.lgv.dynamicBlocks.totalWidthPx,
               self.featuresHeight,
             )
-            for (const [idx, featureLayout] of self.featureLayouts.entries()) {
-              const displayedRegion = self.displayedRegions[idx]
+
+            const {
+              displayedRegions,
+              exonSynonyms,
+              featureLayouts,
+              geneSynonyms,
+              lgv,
+              mRNASynonyms,
+            } = self
+
+            const synonyms = {
+              geneSynonyms: getSnapshot(geneSynonyms),
+              mRNASynonyms: getSnapshot(mRNASynonyms),
+              exonSynonyms: getSnapshot(exonSynonyms),
+            }
+
+            for (const [idx, featureLayout] of featureLayouts.entries()) {
+              const displayedRegion = displayedRegions[idx]
               for (const [row, featureLayoutRow] of featureLayout.entries()) {
                 for (const [featureRow, feature] of featureLayoutRow) {
                   if (featureRow > 0) {
@@ -442,12 +458,12 @@ export function renderingModelFactory(
                     continue
                   }
                   const x =
-                    (self.lgv.bpToPx({
+                    (lgv.bpToPx({
                       refName: displayedRegion.refName,
                       coord: feature.min,
                       regionNumber: idx,
-                    })?.offsetPx ?? 0) - self.lgv.offsetPx
-                  getGlyph(feature, self.lgv.bpPerPx).draw(
+                    })?.offsetPx ?? 0) - lgv.offsetPx
+                  getGlyph(feature, lgv.bpPerPx, synonyms).draw(
                     self,
                     ctx,
                     feature,

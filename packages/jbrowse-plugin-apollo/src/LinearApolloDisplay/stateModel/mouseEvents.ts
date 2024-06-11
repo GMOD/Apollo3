@@ -5,7 +5,7 @@ import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { Theme } from '@mui/material'
 import { AnnotationFeatureNew } from 'apollo-mst'
 import { autorun } from 'mobx'
-import { Instance, addDisposer } from 'mobx-state-tree'
+import { Instance, addDisposer, getSnapshot } from 'mobx-state-tree'
 import type { CSSProperties } from 'react'
 
 import { Coord } from '../components'
@@ -122,6 +122,11 @@ export function mouseEventsModelIntermediateFactory(
       getFeatureAndGlyphUnderMouse(
         event: CanvasMouseEvent,
       ): FeatureAndGlyphInfo {
+        const synonyms = {
+          geneSynonyms: getSnapshot(self.geneSynonyms),
+          mRNASynonyms: getSnapshot(self.mRNASynonyms),
+          exonSynonyms: getSnapshot(self.exonSynonyms),
+        }
         const mousePosition = getMousePosition(event, self.lgv)
         const { bp, regionNumber, y } = mousePosition
         const row = Math.floor(y / self.apolloRowHeight)
@@ -137,7 +142,7 @@ export function mouseEventsModelIntermediateFactory(
           return { mousePosition }
         }
         const [featureRow, topLevelFeature] = foundFeature
-        const glyph = getGlyph(topLevelFeature, self.lgv.bpPerPx)
+        const glyph = getGlyph(topLevelFeature, self.lgv.bpPerPx, synonyms)
         const feature = glyph.getFeatureFromLayout(
           topLevelFeature,
           bp,
@@ -306,12 +311,18 @@ export function mouseEventsModelFactory(
 
   return LinearApolloDisplayMouseEvents.views((self) => ({
     contextMenuItems(contextCoord?: Coord): MenuItem[] {
-      const { apolloHover, lgv } = self
+      const { apolloHover, exonSynonyms, geneSynonyms, lgv, mRNASynonyms } =
+        self
+      const synonyms = {
+        geneSynonyms: getSnapshot(geneSynonyms),
+        mRNASynonyms: getSnapshot(mRNASynonyms),
+        exonSynonyms: getSnapshot(exonSynonyms),
+      }
       const { topLevelFeature } = apolloHover ?? {}
       if (!(topLevelFeature && contextCoord)) {
         return []
       }
-      const glyph = getGlyph(topLevelFeature, lgv.bpPerPx)
+      const glyph = getGlyph(topLevelFeature, lgv.bpPerPx, synonyms)
       return glyph.getContextMenuItems(self)
     },
   }))
