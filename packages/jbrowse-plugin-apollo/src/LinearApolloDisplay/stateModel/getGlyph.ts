@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { AnnotationFeatureNew } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 
 import {
   BoxGlyph,
@@ -15,10 +15,7 @@ const genericChildGlyph = new GenericChildGlyph()
 const implicitExonGeneGlyph = new ImplicitExonGeneGlyph()
 
 /** get the appropriate glyph for the given top-level feature */
-export function getGlyph(
-  feature: AnnotationFeatureNew,
-  _bpPerPx: number,
-): Glyph {
+export function getGlyph(feature: AnnotationFeature, _bpPerPx: number): Glyph {
   if (feature.type === 'gene') {
     let hasExon = false
     for (const [, mrna] of feature.children ?? new Map()) {

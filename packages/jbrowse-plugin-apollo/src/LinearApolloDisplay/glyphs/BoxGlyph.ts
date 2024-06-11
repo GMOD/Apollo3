@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/unbound-method */
-import { AnnotationFeatureNew } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
@@ -13,13 +13,13 @@ import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 
 export class BoxGlyph extends Glyph {
-  getRowCount(_feature: AnnotationFeatureNew) {
+  getRowCount(_feature: AnnotationFeature) {
     return 1
   }
 
   protected getIsSelectedFeature(
-    feature: AnnotationFeatureNew,
-    selectedFeature: AnnotationFeatureNew | undefined,
+    feature: AnnotationFeature,
+    selectedFeature: AnnotationFeature | undefined,
   ) {
     return Boolean(selectedFeature && feature._id === selectedFeature._id)
   }
@@ -90,7 +90,7 @@ export class BoxGlyph extends Glyph {
   draw(
     stateModel: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
-    feature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
     xOffset: number,
     row: number,
     reversed: boolean,
@@ -157,16 +157,16 @@ export class BoxGlyph extends Glyph {
   }
 
   getFeatureFromLayout(
-    feature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
     _bp: number,
     _row: number,
-  ): AnnotationFeatureNew | undefined {
+  ): AnnotationFeature | undefined {
     return feature
   }
 
   getRowForFeature(
-    _feature: AnnotationFeatureNew,
-    _childFeature: AnnotationFeatureNew,
+    _feature: AnnotationFeature,
+    _childFeature: AnnotationFeature,
   ): number | undefined {
     return 0
   }
@@ -174,7 +174,7 @@ export class BoxGlyph extends Glyph {
   /** @returns undefined if mouse not on the edge of this feature, otherwise 'start' or 'end' depending on which edge */
   isMouseOnFeatureEdge(
     mousePosition: MousePosition,
-    feature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
     stateModel: LinearApolloDisplay,
   ) {
     if (!mousePosition) {

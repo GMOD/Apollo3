@@ -9,7 +9,7 @@ import {
   SerializedFeatureChange,
   ServerDataStore,
 } from '@apollo-annotation/common'
-import { AnnotationFeatureSnapshotNew } from '@apollo-annotation/mst'
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { Feature } from '@apollo-annotation/schemas'
 
 import { AddFeatureChange } from './AddFeatureChange'
@@ -19,7 +19,7 @@ interface SerializedDeleteFeatureChangeBase extends SerializedFeatureChange {
 }
 
 export interface DeleteFeatureChangeDetails {
-  deletedFeature: AnnotationFeatureSnapshotNew
+  deletedFeature: AnnotationFeatureSnapshot
   parentFeatureId?: string // Parent feature from where feature was deleted.
 }
 

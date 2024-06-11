@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { AnnotationFeatureNew } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
@@ -52,10 +52,10 @@ if ('document' in window) {
 }
 
 export class ImplicitExonGeneGlyph extends Glyph {
-  featuresForRow(feature: AnnotationFeatureNew): AnnotationFeatureNew[][] {
-    const features: AnnotationFeatureNew[][] = []
+  featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
+    const features: AnnotationFeature[][] = []
     for (const [, child] of feature.children ?? new Map()) {
-      const childFeatures: AnnotationFeatureNew[] = []
+      const childFeatures: AnnotationFeature[] = []
       for (const [, annotationFeature] of child.children ?? new Map()) {
         childFeatures.push(annotationFeature)
       }
@@ -65,7 +65,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
     return features
   }
 
-  getRowCount(feature: AnnotationFeatureNew): number {
+  getRowCount(feature: AnnotationFeature): number {
     let mrnaCount = 0
     for (const [, child] of feature.children ?? new Map()) {
       if (child.type === 'mRNA') {
@@ -78,7 +78,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
   draw(
     stateModel: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
-    feature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
     xOffset: number,
     row: number,
     reversed?: boolean,
@@ -189,7 +189,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
         ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,0.08)'
         ctx.fillRect(startPx, top, widthPx, height)
       } else {
-        let featureEntry: AnnotationFeatureNew | undefined
+        let featureEntry: AnnotationFeature | undefined
         let featureRow: number | undefined
         let i = 0
         for (const [, f] of children ?? new Map()) {
@@ -301,9 +301,9 @@ export class ImplicitExonGeneGlyph extends Glyph {
    */
   isMouseOnFeatureEdge(
     mousePosition: MousePosition,
-    feature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
     stateModel: LinearApolloDisplay,
-    topLevelFeature?: AnnotationFeatureNew,
+    topLevelFeature?: AnnotationFeature,
   ) {
     if (!mousePosition) {
       return
@@ -421,8 +421,8 @@ export class ImplicitExonGeneGlyph extends Glyph {
     }
     const parentFeature = this.getParentFeature(feature, topLevelFeature)
     const adjacentFeatures: {
-      prevFeature?: AnnotationFeatureNew
-      nextFeature?: AnnotationFeatureNew
+      prevFeature?: AnnotationFeature
+      nextFeature?: AnnotationFeature
     } = this.getAdjacentFeatures(feature, parentFeature)
     if (!feature || !currentMousePosition) {
       return
@@ -542,17 +542,17 @@ export class ImplicitExonGeneGlyph extends Glyph {
   }
 
   getFeatureFromLayout(
-    feature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
     bp: number,
     row: number,
-  ): AnnotationFeatureNew | undefined {
+  ): AnnotationFeature | undefined {
     const layoutRow = this.featuresForRow(feature)[row]
     return layoutRow.find((f) => bp >= f.start && bp <= f.end)
   }
 
   getRowForFeature(
-    feature: AnnotationFeatureNew,
-    childFeature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
+    childFeature: AnnotationFeature,
   ) {
     const rows = this.featuresForRow(feature)
     for (const [idx, row] of rows.entries()) {
@@ -602,8 +602,8 @@ export class ImplicitExonGeneGlyph extends Glyph {
 
     const parentFeature = this.getParentFeature(feature, topLevelFeature)
     const adjacentFeatures: {
-      prevFeature?: AnnotationFeatureNew
-      nextFeature?: AnnotationFeatureNew
+      prevFeature?: AnnotationFeature
+      nextFeature?: AnnotationFeature
     } = this.getAdjacentFeatures(feature, parentFeature)
     const changes: (LocationStartChange | LocationEndChange)[] = []
 
@@ -642,14 +642,14 @@ export class ImplicitExonGeneGlyph extends Glyph {
   }
 
   getAdjacentFeatures(
-    feature?: AnnotationFeatureNew,
-    parentFeature?: AnnotationFeatureNew,
+    feature?: AnnotationFeature,
+    parentFeature?: AnnotationFeature,
   ): {
-    prevFeature?: AnnotationFeatureNew
-    nextFeature?: AnnotationFeatureNew
+    prevFeature?: AnnotationFeature
+    nextFeature?: AnnotationFeature
   } {
-    let prevFeature: AnnotationFeatureNew | undefined
-    let nextFeature: AnnotationFeatureNew | undefined
+    let prevFeature: AnnotationFeature | undefined
+    let nextFeature: AnnotationFeature | undefined
     let i = 0
     if (!feature || !(parentFeature && parentFeature.children)) {
       return { prevFeature, nextFeature }
@@ -674,7 +674,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
 
   addEndLocation(
     changes: (LocationStartChange | LocationEndChange)[] = [],
-    feature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
     newBp: number,
     assembly: string,
   ) {
@@ -695,7 +695,7 @@ export class ImplicitExonGeneGlyph extends Glyph {
 
   addStartLocation(
     changes: (LocationStartChange | LocationEndChange)[] = [],
-    feature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
     newBp: number,
     assembly: string,
   ) {

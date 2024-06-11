@@ -4,10 +4,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { AnnotationFeatureNew } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import {
-  DiscontinuousLocationEndChange,
-  DiscontinuousLocationStartChange,
   LocationEndChange,
   LocationStartChange,
 } from '@apollo-annotation/shared'
@@ -22,11 +20,7 @@ import { frameColors, getFrame } from '../stateModel/rendering'
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 
-type LocationChange =
-  | DiscontinuousLocationEndChange
-  | DiscontinuousLocationStartChange
-  | LocationEndChange
-  | LocationStartChange
+type LocationChange = LocationEndChange | LocationStartChange
 
 let forwardFill: CanvasPattern | null = null
 let backwardFill: CanvasPattern | null = null
@@ -63,21 +57,21 @@ if ('document' in window) {
 }
 
 interface CanonicalGeneAnnotationFeature {
-  parent?: AnnotationFeatureNew
+  parent?: AnnotationFeature
   start?: number
   end?: number
   phase?: 0 | 1 | 2
-  annotationFeature: AnnotationFeatureNew
+  annotationFeature: AnnotationFeature
 }
 
 interface CDSFeatures {
-  parent: AnnotationFeatureNew
-  cds: AnnotationFeatureNew
+  parent: AnnotationFeature
+  cds: AnnotationFeature
   cdsDiscontinuousLocs: CDSDiscontinuousLocation[]
 }
 
 interface ExonCDSRelation {
-  exon: AnnotationFeatureNew
+  exon: AnnotationFeature
   cdsDL?: CDSDiscontinuousLocation
 }
 
@@ -86,7 +80,7 @@ export class CanonicalGeneGlyph extends Glyph {
    * Return list of all the features (exons/cds) for each row for a given feature
    */
   featuresForRow(
-    feature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
   ): CanonicalGeneAnnotationFeature[][] {
     const cdsFeatures: CDSFeatures[] = []
     for (const [, child] of feature.children ?? new Map()) {
@@ -148,7 +142,7 @@ export class CanonicalGeneGlyph extends Glyph {
     return features
   }
 
-  getRowCount(feature: AnnotationFeatureNew, _bpPerPx?: number): number {
+  getRowCount(feature: AnnotationFeature, _bpPerPx?: number): number {
     let cdsCount = 0
     for (const [, child] of feature.children ?? new Map()) {
       for (const [, grandchild] of child.children ?? new Map()) {
@@ -163,7 +157,7 @@ export class CanonicalGeneGlyph extends Glyph {
   draw(
     stateModel: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
-    feature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
     xOffset: number,
     row: number,
     reversed: boolean,
@@ -328,7 +322,7 @@ export class CanonicalGeneGlyph extends Glyph {
         ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,0.08)'
         ctx.fillRect(startPx, top, widthPx, height)
       } else {
-        let featureEntry: AnnotationFeatureNew | undefined
+        let featureEntry: AnnotationFeature | undefined
         let featureRow: number | undefined
         let i = 0
         for (const [, f] of children ?? new Map()) {
@@ -358,7 +352,7 @@ export class CanonicalGeneGlyph extends Glyph {
   }
 
   // CDS count with discontinuous locations
-  cdsCount(feature?: AnnotationFeatureNew) {
+  cdsCount(feature?: AnnotationFeature) {
     let cdsCount = 0
     for (const [, cf] of feature?.children ?? new Map()) {
       if (cf.type === 'CDS') {
@@ -433,8 +427,8 @@ export class CanonicalGeneGlyph extends Glyph {
       return
     }
 
-    let featureEntry: AnnotationFeatureNew | undefined
-    let childFeature: AnnotationFeatureNew | undefined
+    let featureEntry: AnnotationFeature | undefined
+    let childFeature: AnnotationFeature | undefined
     let featureRow: number | undefined
     let i = 0
     for (const [, f] of topLevelFeature.children ?? new Map()) {
@@ -560,9 +554,9 @@ export class CanonicalGeneGlyph extends Glyph {
    */
   isMouseOnFeatureEdge(
     mousePosition: MousePosition,
-    feature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
     stateModel: LinearApolloDisplay,
-    topLevelFeature?: AnnotationFeatureNew,
+    topLevelFeature?: AnnotationFeature,
   ) {
     if (!mousePosition || !feature) {
       return
@@ -734,8 +728,8 @@ export class CanonicalGeneGlyph extends Glyph {
   }
 
   exonCDSRelation(
-    cds?: AnnotationFeatureNew,
-    topLevelFeature?: AnnotationFeatureNew,
+    cds?: AnnotationFeature,
+    topLevelFeature?: AnnotationFeature,
   ): ExonCDSRelation[] {
     const exonCDSRelations: ExonCDSRelation[] = []
     if (!cds) {
@@ -764,9 +758,9 @@ export class CanonicalGeneGlyph extends Glyph {
   }
 
   cdsDLForExon(
-    exon: AnnotationFeatureNew,
-    cds: AnnotationFeatureNew,
-    parentFeature: AnnotationFeatureNew,
+    exon: AnnotationFeature,
+    cds: AnnotationFeature,
+    parentFeature: AnnotationFeature,
   ) {
     let discontinuousLocation
     const cdsLocs = this.getDiscontinuousLocations(parentFeature, cds)
@@ -780,15 +774,15 @@ export class CanonicalGeneGlyph extends Glyph {
   }
 
   cdsDlsForExon(
-    exon: AnnotationFeatureNew,
-    topLevelFeature?: AnnotationFeatureNew,
+    exon: AnnotationFeature,
+    topLevelFeature?: AnnotationFeature,
   ): CDSDiscontinuousLocation[] {
     const dls: CDSDiscontinuousLocation[] = []
     const parentFeature = this.getParentFeature(exon, topLevelFeature)
     if (!parentFeature?.children || !topLevelFeature) {
       return dls
     }
-    const cdsFeatures: AnnotationFeatureNew[] = []
+    const cdsFeatures: AnnotationFeature[] = []
     for (const [, f] of parentFeature.children) {
       if (f.type === 'CDS') {
         cdsFeatures.push(f)
@@ -809,10 +803,10 @@ export class CanonicalGeneGlyph extends Glyph {
   }
 
   adjacentExonsOfExon(
-    exon: AnnotationFeatureNew,
-    topLevelFeature?: AnnotationFeatureNew,
+    exon: AnnotationFeature,
+    topLevelFeature?: AnnotationFeature,
   ) {
-    const parentFeature: AnnotationFeatureNew = this.getParentFeature(
+    const parentFeature: AnnotationFeature = this.getParentFeature(
       exon,
       topLevelFeature,
     )
@@ -944,13 +938,13 @@ export class CanonicalGeneGlyph extends Glyph {
   }
 
   getFeatureFromLayout(
-    feature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
     bp: number,
     row: number,
-  ): AnnotationFeatureNew | undefined {
+  ): AnnotationFeature | undefined {
     const featuresForRow: CanonicalGeneAnnotationFeature[] =
       this.featuresForRow(feature)[row]
-    let featureFromLayout: AnnotationFeatureNew | undefined
+    let featureFromLayout: AnnotationFeature | undefined
 
     for (const f of featuresForRow) {
       if (
@@ -980,8 +974,8 @@ export class CanonicalGeneGlyph extends Glyph {
   }
 
   getRowForFeature(
-    feature: AnnotationFeatureNew,
-    childFeature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
+    childFeature: AnnotationFeature,
   ) {
     const rows = this.featuresForRow(feature)
     for (const [idx, row] of rows.entries()) {
@@ -1033,12 +1027,7 @@ export class CanonicalGeneGlyph extends Glyph {
     const region = displayedRegions[startingMousePosition.regionNumber]
     const newBp = currentMousePosition.bp
     const assembly = getAssemblyId(region.assemblyName)
-    const changes: (
-      | LocationStartChange
-      | LocationEndChange
-      | DiscontinuousLocationEndChange
-      | DiscontinuousLocationStartChange
-    )[] = []
+    const changes: (LocationStartChange | LocationEndChange)[] = []
 
     const parentFeature = glyph.getParentFeature(feature, topLevelFeature)
     const cdsLocs = glyph.getDiscontinuousLocations(parentFeature, feature)
@@ -1119,7 +1108,7 @@ export class CanonicalGeneGlyph extends Glyph {
 
   addStartLocationChange(
     changes: LocationChange[],
-    feature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
     newBp: number,
     assembly: string,
   ) {
@@ -1140,7 +1129,7 @@ export class CanonicalGeneGlyph extends Glyph {
 
   addEndLocationChange(
     changes: LocationChange[],
-    feature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
     newBp: number,
     assembly: string,
   ) {

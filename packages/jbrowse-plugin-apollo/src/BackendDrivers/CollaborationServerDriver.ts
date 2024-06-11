@@ -6,7 +6,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { AssemblySpecificChange, Change } from '@apollo-annotation/common'
 import {
-  AnnotationFeatureSnapshotNew,
+  AnnotationFeatureSnapshot,
   ApolloRefSeqI,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
@@ -72,7 +72,7 @@ export class CollaborationServerDriver extends BackendDriver {
       )
       throw new Error(errorMessage)
     }
-    return response.json() as Promise<AnnotationFeatureSnapshotNew[]>
+    return response.json() as Promise<AnnotationFeatureSnapshot[]>
   }
 
   /**
@@ -118,7 +118,7 @@ export class CollaborationServerDriver extends BackendDriver {
     }
     this.checkSocket(assemblyName, refName, internetAccount)
     return response.json() as Promise<
-      [AnnotationFeatureSnapshotNew[], CheckResultSnapshot[]]
+      [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
     >
   }
 

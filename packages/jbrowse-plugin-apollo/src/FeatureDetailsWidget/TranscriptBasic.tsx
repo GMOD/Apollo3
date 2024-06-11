@@ -1,8 +1,11 @@
-import { AbstractSessionModel, revcom } from '@jbrowse/core/util'
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { AnnotationFeature } from '@apollo-annotation/mst'
+import {
+  LocationEndChange,
+  LocationStartChange,
+} from '@apollo-annotation/shared'
+import { AbstractSessionModel, revcom } from '@jbrowse/core/util'
 import { Typography } from '@mui/material'
-import { AnnotationFeatureNew } from 'apollo-mst'
-import { LocationEndChange, LocationStartChange } from 'apollo-shared'
 import { observer } from 'mobx-react'
 import React from 'react'
 
@@ -62,7 +65,7 @@ export const TranscriptBasicInformation = observer(
     refName,
     session,
   }: {
-    feature: AnnotationFeatureNew
+    feature: AnnotationFeature
     session: ApolloSessionModel
     assembly: string
     refName: string
@@ -71,7 +74,7 @@ export const TranscriptBasicInformation = observer(
     const currentAssembly = session.apolloDataStore.assemblies.get(assembly)
     const refData = currentAssembly?.getByRefName(refName)
     const { changeManager } = session.apolloDataStore
-    const fea = feature as unknown as AnnotationFeatureNew
+    const fea = feature as unknown as AnnotationFeature
 
     function handleStartChange(
       newStart: number,
@@ -87,7 +90,7 @@ export const TranscriptBasicInformation = observer(
       const subFeature = getFeatureFromId(
         fea,
         featureId,
-      ) as unknown as AnnotationFeatureNew
+      ) as unknown as AnnotationFeature
       if (subFeature.children) {
         // Let's check CDS start and end values. And possibly update those too
         for (const child of subFeature.children) {
@@ -142,9 +145,9 @@ export const TranscriptBasicInformation = observer(
       return
     }
 
-    const featureNew = feature as unknown as AnnotationFeatureNew
+    const featureNew = feature as unknown as AnnotationFeature
     let exonsArray: ExonInfo[] = []
-    const traverse = (currentFeature: AnnotationFeatureNew) => {
+    const traverse = (currentFeature: AnnotationFeature) => {
       if (currentFeature.type === 'exon') {
         exonsArray.push({
           min: (currentFeature.min + 1) as unknown as string,
@@ -372,8 +375,8 @@ export const TranscriptBasicInformation = observer(
                 {item.type === 'three_prime_UTR'
                   ? '3 UTR'
                   : item.type === 'five_prime_UTR'
-                  ? '5 UTR'
-                  : 'CDS'}
+                    ? '5 UTR'
+                    : 'CDS'}
               </span>
               <span style={{ fontWeight: 'bold', width: '30px' }}>
                 {item.startSeq}

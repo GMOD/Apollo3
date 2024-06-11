@@ -1,4 +1,4 @@
-import { AnnotationFeatureSnapshotNew } from '@apollo-annotation/mst'
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { GFF3Feature } from '@gmod/gff'
 import ObjectID from 'bson-objectid'
 
@@ -6,7 +6,7 @@ import { gffToInternal, isGFFReservedAttribute } from './gffReservedKeys'
 
 export function gff3ToAnnotationFeature(
   gff3Feature: GFF3Feature,
-): AnnotationFeatureSnapshotNew {
+): AnnotationFeatureSnapshot {
   const [firstFeature] = gff3Feature
   const {
     attributes,
@@ -39,7 +39,7 @@ export function gff3ToAnnotationFeature(
       `feature does not have end: ${JSON.stringify(firstFeature)}`,
     )
   }
-  const feature: AnnotationFeatureSnapshotNew = {
+  const feature: AnnotationFeatureSnapshot = {
     _id: new ObjectID().toHexString(),
     refSeq: refName,
     type,
@@ -75,7 +75,7 @@ export function gff3ToAnnotationFeature(
   }
 
   if (childFeatures.length > 0) {
-    const children: Record<string, AnnotationFeatureSnapshotNew> = {}
+    const children: Record<string, AnnotationFeatureSnapshot> = {}
     for (const childFeature of childFeatures) {
       const child = gff3ToAnnotationFeature(childFeature)
       children[child._id] = child

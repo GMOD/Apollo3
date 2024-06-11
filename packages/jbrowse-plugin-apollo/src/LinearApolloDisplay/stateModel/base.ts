@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { AnnotationFeatureNew } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
@@ -117,13 +117,13 @@ export function baseModelFactory(
         }
         return assembly.name
       },
-      get selectedFeature(): AnnotationFeatureNew | undefined {
+      get selectedFeature(): AnnotationFeature | undefined {
         return (self.session as unknown as ApolloSessionModel)
           .apolloSelectedFeature
       },
     }))
     .actions((self) => ({
-      setSelectedFeature(feature?: AnnotationFeatureNew) {
+      setSelectedFeature(feature?: AnnotationFeature) {
         ;(
           self.session as unknown as ApolloSessionModel
         ).apolloSetSelectedFeature(feature)
