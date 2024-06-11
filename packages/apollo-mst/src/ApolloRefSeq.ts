@@ -7,8 +7,8 @@ import {
 } from 'mobx-state-tree'
 
 import {
-  AnnotationFeatureModelNew,
-  AnnotationFeatureSnapshotNew,
+  AnnotationFeatureModel,
+  AnnotationFeatureSnapshot,
 } from './AnnotationFeatureModel'
 
 export const Sequence = types.model({
@@ -28,11 +28,11 @@ export const ApolloRefSeq = types
     _id: types.identifier,
     name: types.string,
     description: '',
-    features: types.map(AnnotationFeatureModelNew),
+    features: types.map(AnnotationFeatureModel),
     sequence: types.array(Sequence),
   })
   .actions((self) => ({
-    addFeature(feature: AnnotationFeatureSnapshotNew) {
+    addFeature(feature: AnnotationFeatureSnapshot) {
       self.features.put(feature)
     },
     deleteFeature(featureId: string) {

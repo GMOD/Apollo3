@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 
-import { AnnotationFeatureNew } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
@@ -22,7 +22,7 @@ export function layoutsModelFactory(
       featuresMinMaxLimit: 500_000,
     })
     .volatile(() => ({
-      seenFeatures: observable.map<string, AnnotationFeatureNew>(),
+      seenFeatures: observable.map<string, AnnotationFeature>(),
     }))
     .views((self) => ({
       get featuresMinMax() {
@@ -62,7 +62,7 @@ export function layoutsModelFactory(
       },
     }))
     .actions((self) => ({
-      addSeenFeature(feature: AnnotationFeatureNew) {
+      addSeenFeature(feature: AnnotationFeature) {
         self.seenFeatures.set(feature._id, feature)
       },
       deleteSeenFeature(featureId: string) {
@@ -75,10 +75,7 @@ export function layoutsModelFactory(
           self.session as unknown as AbstractSessionModel
         return self.displayedRegions.map((region, idx) => {
           const assembly = assemblyManager.get(region.assemblyName)
-          const featureLayout = new Map<
-            number,
-            [number, AnnotationFeatureNew][]
-          >()
+          const featureLayout = new Map<number, [number, AnnotationFeature][]>()
           const minMax = self.featuresMinMax[idx]
           if (!minMax) {
             return featureLayout
@@ -159,7 +156,7 @@ export function layoutsModelFactory(
           return featureLayout
         })
       },
-      getFeatureLayoutPosition(feature: AnnotationFeatureNew) {
+      getFeatureLayoutPosition(feature: AnnotationFeature) {
         const { featureLayouts } = this
         for (const layout of featureLayouts) {
           for (const [layoutRowNum, layoutRow] of layout) {

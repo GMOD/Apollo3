@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { AnnotationFeatureNew } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import { MenuItem } from '@jbrowse/core/ui'
 import { AbstractSessionModel, SessionWithWidgets } from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
@@ -23,13 +23,13 @@ import { CanvasMouseEvent } from '../types'
 
 export abstract class Glyph {
   /** @returns number of layout rows used by this glyph with this feature and zoom level */
-  abstract getRowCount(feature: AnnotationFeatureNew, bpPerPx: number): number
+  abstract getRowCount(feature: AnnotationFeature, bpPerPx: number): number
 
   /** draw the feature's primary rendering on the canvas */
   abstract draw(
     display: LinearApolloDisplayRendering,
     ctx: CanvasRenderingContext2D,
-    feature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
     xOffset: number,
     row: number,
     reversed: boolean,
@@ -37,14 +37,14 @@ export abstract class Glyph {
 
   /** @returns the feature or subfeature at the given bp and row number in this glyph's layout */
   abstract getFeatureFromLayout(
-    feature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
     bp: number,
     row: number,
-  ): AnnotationFeatureNew | undefined
+  ): AnnotationFeature | undefined
 
   abstract getRowForFeature(
-    feature: AnnotationFeatureNew,
-    childFeature: AnnotationFeatureNew,
+    feature: AnnotationFeature,
+    childFeature: AnnotationFeature,
   ): number | undefined
 
   abstract continueDrag(
@@ -120,12 +120,12 @@ export abstract class Glyph {
   }
 
   getDiscontinuousLocations(
-    parentFeature: AnnotationFeatureNew,
-    cdsFeature: AnnotationFeatureNew,
+    parentFeature: AnnotationFeature,
+    cdsFeature: AnnotationFeature,
   ): CDSDiscontinuousLocation[] {
     const cdsDLs: CDSDiscontinuousLocation[] = []
 
-    if (parentFeature?.type !== 'mRNA') {
+    if (parentFeature.type !== 'mRNA') {
       return cdsDLs
     }
 
@@ -159,8 +159,8 @@ export abstract class Glyph {
   }
 
   getParentFeature(
-    feature?: AnnotationFeatureNew,
-    topLevelFeature?: AnnotationFeatureNew,
+    feature?: AnnotationFeature,
+    topLevelFeature?: AnnotationFeature,
   ) {
     let parentFeature
     if (!feature || !topLevelFeature?.children) {
@@ -288,14 +288,14 @@ export abstract class Glyph {
   }
 
   getAdjacentFeatures(
-    feature?: AnnotationFeatureNew,
-    parentFeature?: AnnotationFeatureNew,
+    feature?: AnnotationFeature,
+    parentFeature?: AnnotationFeature,
   ): {
-    prevFeature?: AnnotationFeatureNew
-    nextFeature?: AnnotationFeatureNew
+    prevFeature?: AnnotationFeature
+    nextFeature?: AnnotationFeature
   } {
-    let prevFeature: AnnotationFeatureNew | undefined
-    let nextFeature: AnnotationFeatureNew | undefined
+    let prevFeature: AnnotationFeature | undefined
+    let nextFeature: AnnotationFeature | undefined
     let i = 0
     if (!feature || !parentFeature?.children) {
       return { prevFeature, nextFeature }

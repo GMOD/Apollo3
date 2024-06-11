@@ -14,11 +14,11 @@ import {
 import { ApolloAssembly } from '.'
 
 const LateAnnotationFeature = types.late(
-  (): IAnyModelType => AnnotationFeatureModelNew,
+  (): IAnyModelType => AnnotationFeatureModel,
 )
 
-export const AnnotationFeatureModelNew = types
-  .model('AnnotationFeature', {
+export const AnnotationFeatureModel = types
+  .model('AnnotationFeatureModel', {
     _id: types.identifier,
     /** Unique ID of the reference sequence on which this feature is located */
     refSeq: types.string,
@@ -195,10 +195,10 @@ export const AnnotationFeatureModelNew = types
     setStrand(strand?: 1 | -1 | undefined) {
       self.strand = strand
     },
-    addChild(childFeature: AnnotationFeatureSnapshotNew) {
+    addChild(childFeature: AnnotationFeatureSnapshot) {
       if (self.children && self.children.size > 0) {
         const existingChildren = getSnapshot<
-          Record<string, AnnotationFeatureSnapshotNew>
+          Record<string, AnnotationFeatureSnapshot>
         >(self.children)
         self.children.clear()
         for (const [, child] of Object.entries({
@@ -242,39 +242,39 @@ export const AnnotationFeatureModelNew = types
   // This views block has to be last to avoid:
   // "'parent' is referenced directly or indirectly in its own type annotation."
   .views((self) => ({
-    get parent(): AnnotationFeatureNew | undefined {
-      let parent: AnnotationFeatureNew | undefined
+    get parent(): AnnotationFeature | undefined {
+      let parent: AnnotationFeature | undefined
       try {
-        parent = getParentOfType(self, AnnotationFeatureModelNew)
+        parent = getParentOfType(self, AnnotationFeatureModel)
       } catch {
         // pass
       }
       return parent
     },
-    get topLevelFeature(): AnnotationFeatureNew {
+    get topLevelFeature(): AnnotationFeature {
       let feature = self
       let parent
       do {
         try {
-          parent = getParentOfType(feature, AnnotationFeatureModelNew)
+          parent = getParentOfType(feature, AnnotationFeatureModel)
           feature = parent
         } catch {
           parent = undefined
         }
       } while (parent)
-      return feature as AnnotationFeatureNew
+      return feature as AnnotationFeature
     },
     get assemblyId(): string {
       return getParentOfType(self, ApolloAssembly)._id
     },
   }))
 
-type Children = IMSTMap<typeof AnnotationFeatureModelNew> | undefined
+type Children = IMSTMap<typeof AnnotationFeatureModel> | undefined
 
-export type AnnotationFeatureNew = Instance<typeof AnnotationFeatureModelNew>
-type AnnotationFeatureSnapshotRaw = SnapshotIn<typeof AnnotationFeatureModelNew>
-export interface AnnotationFeatureSnapshotNew
+export type AnnotationFeature = Instance<typeof AnnotationFeatureModel>
+type AnnotationFeatureSnapshotRaw = SnapshotIn<typeof AnnotationFeatureModel>
+export interface AnnotationFeatureSnapshot
   extends AnnotationFeatureSnapshotRaw {
   /** Child features of this feature */
-  children?: Record<string, AnnotationFeatureSnapshotNew>
+  children?: Record<string, AnnotationFeatureSnapshot>
 }

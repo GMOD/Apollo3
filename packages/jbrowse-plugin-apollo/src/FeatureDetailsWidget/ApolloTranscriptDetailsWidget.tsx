@@ -1,5 +1,5 @@
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import { AbstractSessionModel, getSession, revcom } from '@jbrowse/core/util'
-import { AnnotationFeatureNew } from 'apollo-mst'
 import { observer } from 'mobx-react'
 import { IAnyStateTreeNode, getRoot } from 'mobx-state-tree'
 import React from 'react'
@@ -28,13 +28,13 @@ export interface ExonInfo {
 }
 
 export const getCDSInfo = (
-  feature: AnnotationFeatureNew,
+  feature: AnnotationFeature,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   refData: any,
 ): CDSInfo[] => {
   const CDSresult: CDSInfo[] = []
   const traverse = (
-    currentFeature: AnnotationFeatureNew,
+    currentFeature: AnnotationFeature,
     isParentMRNA: boolean,
   ) => {
     if (

@@ -1,6 +1,6 @@
 import { Change, ClientDataStore } from '@apollo-annotation/common'
 import {
-  AnnotationFeatureSnapshotNew,
+  AnnotationFeatureSnapshot,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 import { ValidationResultSet } from '@apollo-annotation/shared'
@@ -20,7 +20,7 @@ export abstract class BackendDriver {
 
   abstract getFeatures(
     region: Region,
-  ): Promise<[AnnotationFeatureSnapshotNew[], CheckResultSnapshot[]]>
+  ): Promise<[AnnotationFeatureSnapshot[], CheckResultSnapshot[]]>
 
   abstract getSequence(region: Region): Promise<{ seq: string; refSeq: string }>
 
@@ -38,5 +38,5 @@ export abstract class BackendDriver {
   abstract searchFeatures(
     term: string,
     assemblies: string[],
-  ): Promise<AnnotationFeatureSnapshotNew[]>
+  ): Promise<AnnotationFeatureSnapshot[]>
 }
