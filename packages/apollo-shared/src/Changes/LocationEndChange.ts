@@ -95,8 +95,8 @@ export class LocationEndChange extends FeatureChange {
         logger.error(errMsg)
         throw new Error(errMsg)
       }
-      if (foundFeature.end !== oldEnd) {
-        const errMsg = `*** ERROR: Feature's current end value ${foundFeature.end} doesn't match with expected value ${oldEnd}`
+      if (foundFeature.max !== oldEnd) {
+        const errMsg = `*** ERROR: Feature's current end value ${foundFeature.max} doesn't match with expected value ${oldEnd}`
         logger.error(errMsg)
         throw new Error(errMsg)
       }
@@ -107,7 +107,7 @@ export class LocationEndChange extends FeatureChange {
     for (const [idx, change] of changes.entries()) {
       const { newEnd } = change
       const { feature, topLevelFeature } = featuresForChanges[idx]
-      feature.end = newEnd
+      feature.max = newEnd
       if (topLevelFeature._id.equals(feature._id)) {
         topLevelFeature.markModified('end') // Mark as modified. Without this save() -method is not updating data in database
       } else {
@@ -141,7 +141,7 @@ export class LocationEndChange extends FeatureChange {
       if (!feature) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
-      feature.setEnd(this.changes[idx].newEnd)
+      feature.setMax(this.changes[idx].newEnd)
     }
   }
 

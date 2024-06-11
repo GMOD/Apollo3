@@ -95,8 +95,8 @@ export class LocationStartChange extends FeatureChange {
         logger.error(errMsg)
         throw new Error(errMsg)
       }
-      if (foundFeature.start !== oldStart) {
-        const errMsg = `*** ERROR: Feature's current start value ${foundFeature.start} doesn't match with expected value ${oldStart}`
+      if (foundFeature.min !== oldStart) {
+        const errMsg = `*** ERROR: Feature's current start value ${foundFeature.min} doesn't match with expected value ${oldStart}`
         logger.error(errMsg)
         throw new Error(errMsg)
       }
@@ -107,7 +107,7 @@ export class LocationStartChange extends FeatureChange {
     for (const [idx, change] of changes.entries()) {
       const { newStart } = change
       const { feature, topLevelFeature } = featuresForChanges[idx]
-      feature.start = newStart
+      feature.min = newStart
       if (topLevelFeature._id.equals(feature._id)) {
         topLevelFeature.markModified('start') // Mark as modified. Without this save() -method is not updating data in database
       } else {
@@ -141,7 +141,7 @@ export class LocationStartChange extends FeatureChange {
       if (!feature) {
         throw new Error(`Could not find feature with identifier "${changedId}"`)
       }
-      feature.setStart(this.changes[idx].newStart)
+      feature.setMin(this.changes[idx].newStart)
     }
   }
 

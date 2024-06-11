@@ -5,7 +5,7 @@ import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { Theme } from '@mui/material'
 import { AnnotationFeatureNew } from 'apollo-mst'
 import { autorun } from 'mobx'
-import { Instance, addDisposer } from 'mobx-state-tree'
+import { Instance, addDisposer, getSnapshot } from 'mobx-state-tree'
 import type { CSSProperties } from 'react'
 
 import { Coord } from '../components'
@@ -50,12 +50,16 @@ function getMousePosition(
   return { x, y, refName, bp, regionNumber }
 }
 
-function getSeqRow(feature: AnnotationFeatureNew, bpPerPx: number) {
+function getSeqRow(
+  feature: AnnotationFeatureNew,
+  bpPerPx: number,
+  phase?: number,
+) {
   const rowOffset = bpPerPx <= 1 ? 5 : 3
-  if (feature.type === 'CDS' && feature.phase !== undefined) {
+  if (feature.type === 'CDS' && phase !== undefined) {
     return feature.strand === -1
-      ? ((feature.end - feature.phase) % 3) + rowOffset
-      : Math.abs(((feature.start + feature.phase) % 3) - 2)
+      ? ((feature.max - phase) % 3) + rowOffset
+      : Math.abs(((feature.min + phase) % 3) - 2)
   }
 
   if (bpPerPx <= 1) {
@@ -118,6 +122,11 @@ export function mouseEventsModelIntermediateFactory(
       getFeatureAndGlyphUnderMouse(
         event: CanvasMouseEvent,
       ): FeatureAndGlyphInfo {
+        const synonyms = {
+          geneSynonyms: getSnapshot(self.geneSynonyms),
+          mRNASynonyms: getSnapshot(self.mRNASynonyms),
+          exonSynonyms: getSnapshot(self.exonSynonyms),
+        }
         const mousePosition = getMousePosition(event, self.lgv)
         const { bp, regionNumber, y } = mousePosition
         const row = Math.floor(y / self.apolloRowHeight)
@@ -133,7 +142,7 @@ export function mouseEventsModelIntermediateFactory(
           return { mousePosition }
         }
         const [featureRow, topLevelFeature] = foundFeature
-        const glyph = getGlyph(topLevelFeature, self.lgv.bpPerPx)
+        const glyph = getGlyph(topLevelFeature, self.lgv.bpPerPx, synonyms)
         const feature = glyph.getFeatureFromLayout(
           topLevelFeature,
           bp,
@@ -222,18 +231,24 @@ export function mouseEventsSeqHightlightModelFactory(
             if (!apolloHover) {
               return
             }
-            const { feature, mousePosition } = apolloHover
-            if (!feature || !mousePosition) {
+            const { feature, glyph, mousePosition, topLevelFeature } =
+              apolloHover
+            if (!feature || !mousePosition || !glyph) {
               return
             }
 
             for (const [idx, region] of regions.entries()) {
-              const row = getSeqRow(feature, lgv.bpPerPx)
-              if (
-                feature.discontinuousLocations &&
-                feature.discontinuousLocations.length > 0
-              ) {
-                for (const dl of feature.discontinuousLocations) {
+              if (feature.type === 'CDS') {
+                const parentFeature = glyph.getParentFeature(
+                  feature,
+                  topLevelFeature,
+                )
+                const cdsLocs = glyph.getDiscontinuousLocations(
+                  parentFeature,
+                  feature,
+                )
+                for (const dl of cdsLocs) {
+                  const row = getSeqRow(feature, lgv.bpPerPx, dl.phase)
                   const offset =
                     (lgv.bpToPx({
                       refName: region.refName,
@@ -255,10 +270,11 @@ export function mouseEventsSeqHightlightModelFactory(
                   )
                 }
               } else {
+                const row = getSeqRow(feature, lgv.bpPerPx)
                 const offset =
                   (lgv.bpToPx({
                     refName: region.refName,
-                    coord: feature.start,
+                    coord: feature.min,
                     regionNumber: idx,
                   })?.offsetPx ?? 0) - lgv.offsetPx
                 const widthPx = feature.length / lgv.bpPerPx
@@ -295,12 +311,18 @@ export function mouseEventsModelFactory(
 
   return LinearApolloDisplayMouseEvents.views((self) => ({
     contextMenuItems(contextCoord?: Coord): MenuItem[] {
-      const { apolloHover, lgv } = self
+      const { apolloHover, exonSynonyms, geneSynonyms, lgv, mRNASynonyms } =
+        self
+      const synonyms = {
+        geneSynonyms: getSnapshot(geneSynonyms),
+        mRNASynonyms: getSnapshot(mRNASynonyms),
+        exonSynonyms: getSnapshot(exonSynonyms),
+      }
       const { topLevelFeature } = apolloHover ?? {}
       if (!(topLevelFeature && contextCoord)) {
         return []
       }
-      const glyph = getGlyph(topLevelFeature, lgv.bpPerPx)
+      const glyph = getGlyph(topLevelFeature, lgv.bpPerPx, synonyms)
       return glyph.getContextMenuItems(self)
     },
   }))
@@ -310,17 +332,22 @@ export function mouseEventsModelFactory(
           self.getFeatureAndGlyphUnderMouse(event)
         if (feature && topLevelFeature && glyph && mousePosition) {
           let dl, idx
-          if (
-            feature.discontinuousLocations &&
-            feature.discontinuousLocations.length > 0
-          ) {
-            for (let i = 0; i < feature.discontinuousLocations.length; i++) {
+          if (feature.type === 'CDS') {
+            const parentFeature = glyph.getParentFeature(
+              feature,
+              topLevelFeature,
+            )
+            const cdsLocs = glyph.getDiscontinuousLocations(
+              parentFeature,
+              feature,
+            )
+            for (let i = 0; i < cdsLocs.length; i++) {
               if (
-                mousePosition.bp >= feature.discontinuousLocations[i].start &&
-                mousePosition.bp <= feature.discontinuousLocations[i].end
+                mousePosition.bp >= cdsLocs[i].start &&
+                mousePosition.bp <= cdsLocs[i].end
               ) {
                 idx = i
-                dl = feature.discontinuousLocations[idx]
+                dl = cdsLocs[idx]
                 break
               }
             }
@@ -495,7 +522,6 @@ export function mouseEventsModelFactory(
               if (apolloDragging) {
                 // NOTE: the glyph where the drag started is responsible for drawing the preview.
                 // it can call methods in other glyphs to help with this though.
-
                 apolloDragging.start.glyph?.drawDragPreview(self, ctx)
               }
             },

@@ -1,3 +1,4 @@
+import { intersection2 } from '@jbrowse/core/util'
 import {
   IAnyModelType,
   IMSTMap,
@@ -106,6 +107,57 @@ export const AnnotationFeatureModelNew = types
         }
       }
       return false
+    },
+    get cdsLocations(): { min: number; max: number; phase: 0 | 1 | 2 }[][] {
+      if (self.type !== 'mRNA') {
+        throw new Error(
+          'Only features of type "mRNA" or equivalent can calculate CDS locations',
+        )
+      }
+      const children = self.children as Children
+      if (!children) {
+        throw new Error('no CDS or exons in mRNA')
+      }
+      const cdsChildren = [...children.values()].filter(
+        (child) => child.type === 'CDS',
+      )
+      if (cdsChildren.length === 0) {
+        throw new Error('no CDS in mRNA')
+      }
+      const cdsLocations: { min: number; max: number; phase: 0 | 1 | 2 }[][] =
+        []
+      for (const cds of cdsChildren) {
+        const { max: cdsMax, min: cdsMin } = cds
+        const locs: { min: number; max: number }[] = []
+        for (const [, child] of children) {
+          if (child.type !== 'exon') {
+            continue
+          }
+          const [start, end] = intersection2(
+            cdsMin,
+            cdsMax,
+            child.min,
+            child.max,
+          ) as [number, number] | []
+          if (start !== undefined && end !== undefined) {
+            locs.push({ min: start, max: end })
+          }
+        }
+        if (self.strand === -1) {
+          locs.reverse()
+        }
+        let remainder: 0 | 1 | 2 = 0
+        const phasedLocs = locs.map((loc) => {
+          const phase = remainder
+          remainder = ((3 - ((loc.max - loc.min - remainder) % 3)) % 3) as
+            | 0
+            | 1
+            | 2
+          return { ...loc, phase }
+        })
+        cdsLocations.push(phasedLocs)
+      }
+      return cdsLocations
     },
   }))
   .actions((self) => ({

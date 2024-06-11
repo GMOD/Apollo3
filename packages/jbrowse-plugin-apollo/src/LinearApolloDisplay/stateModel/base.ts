@@ -8,16 +8,36 @@ import {
   getSession,
 } from '@jbrowse/core/util'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
-// import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { AnnotationFeatureNew } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { addDisposer, getRoot, types } from 'mobx-state-tree'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
+import { OntologyManager } from '../../OntologyManager'
+import OntologyStore from '../../OntologyManager/OntologyStore'
 import { ApolloSessionModel } from '../../session'
 import { ApolloRootModel } from '../../types'
 import { TrackHeightMixin } from './trackHeightMixin'
+
+async function getSynonyms(
+  label: string,
+  ontologyStore?: OntologyStore,
+): Promise<string[]> {
+  if (!ontologyStore) {
+    return []
+  }
+  try {
+    return await ontologyStore
+      .getTermsWithLabelOrSynonym(label)
+      .then((terms) => terms.map((term) => term.lbl))
+      .then((synonyms) =>
+        synonyms.filter((synonym): synonym is string => synonym !== undefined),
+      )
+  } catch {
+    return []
+  }
+}
 
 export function baseModelFactory(
   _pluginManager: PluginManager,
@@ -36,6 +56,9 @@ export function baseModelFactory(
     .props({
       type: types.literal('LinearApolloDisplay'),
       configuration: ConfigurationReference(configSchema),
+      geneSynonyms: types.array(types.string),
+      mRNASynonyms: types.array(types.string),
+      exonSynonyms: types.array(types.string),
     })
     .volatile((self) => ({
       lgv: getContainingView(self) as unknown as LinearGenomeViewModel,
@@ -118,6 +141,27 @@ export function baseModelFactory(
       },
     }))
     .actions((self) => ({
+      setSynonyms(type: string, synonyms: string[]) {
+        switch (type) {
+          case 'gene': {
+            self.geneSynonyms.replace(synonyms)
+            break
+          }
+          case 'mRNA': {
+            self.mRNASynonyms.replace(synonyms)
+            break
+          }
+          case 'exon': {
+            self.exonSynonyms.replace(synonyms)
+            break
+          }
+          default: {
+            break
+          }
+        }
+      },
+    }))
+    .actions((self) => ({
       setSelectedFeature(feature?: AnnotationFeatureNew) {
         return (
           self.session as unknown as ApolloSessionModel
@@ -127,7 +171,7 @@ export function baseModelFactory(
         addDisposer(
           self,
           autorun(
-            () => {
+            async () => {
               if (!self.lgv.initialized || self.regionCannotBeRendered()) {
                 return
               }
@@ -137,6 +181,20 @@ export function baseModelFactory(
               void (
                 self.session as unknown as ApolloSessionModel
               ).apolloDataStore.loadRefSeq(self.regions)
+
+              const { apolloDataStore } = self.session
+              const ontologyManager =
+                apolloDataStore.ontologyManager as OntologyManager
+              const ontologyStore =
+                ontologyManager.findOntology('Sequence Ontology')?.dataStore
+
+              const geneSynonyms = await getSynonyms('gene', ontologyStore)
+              const mRNASynonyms = await getSynonyms('mRNA', ontologyStore)
+              const exonSynonyms = await getSynonyms('exon', ontologyStore)
+
+              self.setSynonyms('gene', geneSynonyms)
+              self.setSynonyms('mRNA', mRNASynonyms)
+              self.setSynonyms('exon', exonSynonyms)
             },
             { name: 'LinearApolloDisplayLoadFeatures', delay: 1000 },
           ),

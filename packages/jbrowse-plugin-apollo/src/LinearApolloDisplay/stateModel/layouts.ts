@@ -3,7 +3,7 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
 import { AnnotationFeatureNew } from 'apollo-mst'
 import { autorun, observable } from 'mobx'
-import { addDisposer, isAlive } from 'mobx-state-tree'
+import { addDisposer, getSnapshot, isAlive } from 'mobx-state-tree'
 
 import { ApolloSessionModel } from '../../session'
 import { baseModelFactory } from './base'
@@ -71,6 +71,11 @@ export function layoutsModelFactory(
       get featureLayouts() {
         const { assemblyManager } =
           self.session as unknown as AbstractSessionModel
+        const synonyms = {
+          geneSynonyms: getSnapshot(self.geneSynonyms),
+          mRNASynonyms: getSnapshot(self.mRNASynonyms),
+          exonSynonyms: getSnapshot(self.exonSynonyms),
+        }
         return self.displayedRegions.map((region, idx) => {
           const assembly = assemblyManager.get(region.assemblyName)
           const featureLayout = new Map<
@@ -95,10 +100,11 @@ export function layoutsModelFactory(
             ) {
               continue
             }
-            const rowCount = getGlyph(feature, self.lgv.bpPerPx).getRowCount(
+            const rowCount = getGlyph(
               feature,
               self.lgv.bpPerPx,
-            )
+              synonyms,
+            ).getRowCount(feature, self.lgv.bpPerPx)
             let startingRow = 0
             let placed = false
             while (!placed) {
@@ -159,6 +165,11 @@ export function layoutsModelFactory(
       },
       getFeatureLayoutPosition(feature: AnnotationFeatureNew) {
         const { featureLayouts } = this
+        const synonyms = {
+          geneSynonyms: getSnapshot(self.geneSynonyms),
+          mRNASynonyms: getSnapshot(self.mRNASynonyms),
+          exonSynonyms: getSnapshot(self.exonSynonyms),
+        }
         for (const layout of featureLayouts) {
           for (const [layoutRowNum, layoutRow] of layout) {
             for (const [featureRowNum, layoutFeature] of layoutRow) {
@@ -174,6 +185,7 @@ export function layoutsModelFactory(
                 const row = getGlyph(
                   layoutFeature,
                   self.lgv.bpPerPx,
+                  synonyms,
                 ).getRowForFeature(layoutFeature, feature)
                 if (row !== undefined) {
                   return { layoutRow: layoutRowNum, featureRow: row }

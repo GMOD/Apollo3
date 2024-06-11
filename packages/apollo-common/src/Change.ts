@@ -1,7 +1,7 @@
 import { AppRootModel, Region } from '@jbrowse/core/util'
 import {
-  AnnotationFeatureI,
-  AnnotationFeatureSnapshot,
+  AnnotationFeatureNew,
+  AnnotationFeatureSnapshotNew,
   ApolloAssemblyI,
   BackendDriverType,
   CheckResultI,
@@ -27,8 +27,8 @@ export interface ClientDataStore {
   ): AppRootModel['internetAccounts'][0]
   loadFeatures(regions: Region[]): void
   loadRefSeq(regions: Region[]): void
-  getFeature(featureId: string): AnnotationFeatureI | undefined
-  addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot): void
+  getFeature(featureId: string): AnnotationFeatureNew | undefined
+  addFeature(assemblyId: string, feature: AnnotationFeatureSnapshotNew): void
   deleteFeature(featureId: string): void
   deleteAssembly(assemblyId: string): void
   addCheckResults(checkResults: CheckResultSnapshot[]): void

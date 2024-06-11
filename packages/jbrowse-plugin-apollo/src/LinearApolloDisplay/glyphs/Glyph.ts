@@ -10,6 +10,7 @@ import {
   ModifyFeatureAttribute,
 } from '../../components'
 import {
+  CDSDiscontinuousLocation,
   LinearApolloDisplayMouseEvents,
   MousePosition,
 } from '../stateModel/mouseEvents'
@@ -114,6 +115,75 @@ export abstract class Glyph {
     return
   }
 
+  getDiscontinuousLocations(
+    parentFeature: AnnotationFeatureNew,
+    cdsFeature: AnnotationFeatureNew,
+  ): CDSDiscontinuousLocation[] {
+    const cdsDLs: CDSDiscontinuousLocation[] = []
+
+    if (parentFeature?.type !== 'mRNA') {
+      return cdsDLs
+    }
+
+    const { cdsLocations, children } = parentFeature
+
+    let i = 0
+    for (const [, child] of children ?? new Map()) {
+      if (cdsFeature._id === child._id) {
+        break
+      }
+      if (child.type === 'CDS') {
+        i++
+      }
+    }
+
+    const cdsLocation = cdsLocations[i]
+
+    if (!cdsLocation) {
+      return cdsDLs
+    }
+
+    for (const { max, min, phase } of cdsLocation) {
+      cdsDLs.push({
+        start: min,
+        end: max,
+        phase,
+      })
+    }
+
+    return cdsDLs
+  }
+
+  getParentFeature(
+    feature?: AnnotationFeatureNew,
+    topLevelFeature?: AnnotationFeatureNew,
+  ) {
+    let parentFeature
+    if (!feature || !topLevelFeature?.children) {
+      return parentFeature
+    }
+
+    for (const [, f] of topLevelFeature.children) {
+      if (f._id === feature._id) {
+        parentFeature = topLevelFeature
+        break
+      }
+      if (!f?.children) {
+        continue
+      }
+      for (const [, cf] of f.children) {
+        if (cf._id === feature._id) {
+          parentFeature = f
+          break
+        }
+      }
+      if (parentFeature) {
+        break
+      }
+    }
+    return parentFeature
+  }
+
   drawTooltip(
     display: LinearApolloDisplayMouseEvents,
     context: CanvasRenderingContext2D,
@@ -123,8 +193,8 @@ export abstract class Glyph {
     if (!apolloHover) {
       return
     }
-    const { feature, mousePosition } = apolloHover
-    if (!(feature && mousePosition)) {
+    const { feature, mousePosition, topLevelFeature } = apolloHover
+    if (!(feature && mousePosition && topLevelFeature)) {
       return
     }
     const { regionNumber, y } = mousePosition
@@ -132,11 +202,12 @@ export abstract class Glyph {
     const { refName, reversed } = displayedRegion
     const { bpPerPx, bpToPx, offsetPx } = lgv
 
-    const { discontinuousLocations } = feature
+    const parentFeature = this.getParentFeature(feature, topLevelFeature)
+    const cdsLocs = this.getDiscontinuousLocations(parentFeature, feature)
     let start: number, end: number, length: number
     let location = 'Loc: '
-    if (discontinuousLocations && discontinuousLocations.length > 0) {
-      const lastLoc = discontinuousLocations.at(-1)
+    if (feature.type === 'CDS' && cdsLocs && cdsLocs.length > 0) {
+      const lastLoc = cdsLocs.at(-1)
       if (!lastLoc) {
         return
       }
@@ -144,22 +215,25 @@ export abstract class Glyph {
       ;({ end } = lastLoc)
       length = lastLoc.end - lastLoc.start
 
-      if (discontinuousLocations.length <= 2) {
-        for (const [i, loc] of discontinuousLocations.entries()) {
+      if (cdsLocs.length <= 2) {
+        for (const [i, loc] of cdsLocs.entries()) {
           location += `${loc.start + 1}–${loc.end}`
-          if (i !== discontinuousLocations.length - 1) {
+          if (i !== cdsLocs.length - 1) {
             location += ','
           }
         }
       } else {
-        const [firstLoc] = discontinuousLocations
+        const [firstLoc] = cdsLocs
         location += `${firstLoc.start + 1}–${firstLoc.end},…,${
           lastLoc.start + 1
         }–${lastLoc.end}`
       }
     } else {
-      ;({ end, length, start } = feature)
-      location += `${start + 1}–${end}`
+      const { max, min } = feature
+      ;({ length } = feature)
+      location += `${min + 1}–${max}`
+      start = min
+      end = max
     }
 
     let startPx =
@@ -219,7 +293,7 @@ export abstract class Glyph {
     let prevFeature: AnnotationFeatureNew | undefined
     let nextFeature: AnnotationFeatureNew | undefined
     let i = 0
-    if (!feature || !(parentFeature && parentFeature.children)) {
+    if (!feature || !parentFeature?.children) {
       return { prevFeature, nextFeature }
     }
     for (const [, f] of parentFeature.children) {
@@ -238,37 +312,6 @@ export abstract class Glyph {
       nextFeature = parentFeature.children.get(key)
     }
     return { prevFeature, nextFeature }
-  }
-
-  getParentFeature(
-    feature?: AnnotationFeatureNew,
-    topLevelFeature?: AnnotationFeatureNew,
-  ) {
-    let parentFeature
-
-    if (!feature || !(topLevelFeature && topLevelFeature.children)) {
-      return parentFeature
-    }
-
-    for (const [, f] of topLevelFeature.children) {
-      if (f._id === feature._id) {
-        parentFeature = topLevelFeature
-        break
-      }
-      if (!f?.children) {
-        continue
-      }
-      for (const [, cf] of f.children) {
-        if (cf._id === feature._id) {
-          parentFeature = f
-          break
-        }
-      }
-      if (parentFeature) {
-        break
-      }
-    }
-    return parentFeature
   }
 
   getContextMenuItems(display: LinearApolloDisplayMouseEvents): MenuItem[] {
