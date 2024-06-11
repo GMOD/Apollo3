@@ -23,12 +23,13 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   publish-docker:
-    name: Build and push Docker image
     uses: ./.github/workflows/docker.yml
     with:
       tag: latest
+    secrets: inherit
   deploy:
     needs: [publish-docker]
     uses: ./.github/workflows/deploy.yml
     with:
       environment: prod
+    secrets: inherit

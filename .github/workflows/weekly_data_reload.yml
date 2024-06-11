@@ -6,16 +6,12 @@ on:
 
 jobs:
   prod-cleanup:
-    name: Clean up prod demo server
-    runs-on: ubuntu-latest
-    steps:
-      - uses: ./.github/workflows/reload_demo_data.yml
-        with:
-          environment: prod
+    uses: ./.github/workflows/reload_demo_data.yml
+    with:
+      environment: prod
+    secrets: inherit
   staging-cleanup:
-    name: Clean up staging demo server
-    runs-on: ubuntu-latest
-    steps:
-      - uses: ./.github/workflows/reload_demo_data.yml
-        with:
-          environment: staging
+    uses: ./.github/workflows/reload_demo_data.yml
+    with:
+      environment: staging
+    secrets: inherit
