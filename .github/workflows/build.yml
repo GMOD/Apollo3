@@ -1,11 +1,11 @@
-name: Build and upload artifacts
+name: Build artifacts
 
 on:
   workflow_call:
 
 jobs:
   build:
-    name: Build and upload
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Check out
