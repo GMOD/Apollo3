@@ -70,7 +70,7 @@ jobs:
       tag: devel
     secrets: inherit
   deploy:
-    needs: [build, docker]
+    needs: [docker]
     if:
       ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (
       inputs.deploy  &&  always()) }}
