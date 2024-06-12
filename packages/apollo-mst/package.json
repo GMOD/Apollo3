@@ -1,6 +1,6 @@
 {
   "name": "@apollo-annotation/mst",
-  "version": "0.1.12",
+  "version": "0.1.16",
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc"
