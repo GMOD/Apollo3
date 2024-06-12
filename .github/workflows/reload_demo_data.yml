@@ -92,4 +92,4 @@ jobs:
           EOF
 
           rsync -av cleanup_apollo.$xid.sh staging:dario/
-          ssh staging -f "bash dario/cleanup_apollo.$xid.sh > dario/cleanup_apollo.$xid.out 2> dario/cleanup_apollo.$xid.err; echo 'Exit code:' $? >> dario/cleanup_apollo.$xid.err && rm dario/cleanup_apollo.$xid.sh"
+          ssh staging -f "bash dario/cleanup_apollo.$xid.sh > dario/cleanup_apollo.$xid.out 2> dario/cleanup_apollo.$xid.err"
