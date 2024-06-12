@@ -8,10 +8,14 @@ on:
         type: string
 
 jobs:
+  build:
+    name: Build and upload artifacts
+    uses: ./.github/workflows/build_and_upload.yml
   deploy:
     name: Deploy to ${{ inputs.environment }} demo server
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+    needs: [build]
     steps:
       - name: Check out
         uses: actions/checkout@v4
