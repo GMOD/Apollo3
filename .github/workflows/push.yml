@@ -22,7 +22,7 @@ on:
 jobs:
   build:
     if: ${{ github.event_name == 'push' || (inputs.deploy  &&  always()) }}
-    uses: ./.github/workflows/build_and_upload.yml
+    uses: ./.github/workflows/build.yml
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -53,7 +53,7 @@ jobs:
       tag: devel
     secrets: inherit
   deploy:
-    needs: [build, docker]
+    needs: [docker]
     if:
       ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (
       inputs.deploy  &&  always()) }}

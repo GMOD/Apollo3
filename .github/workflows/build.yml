@@ -23,10 +23,3 @@ jobs:
       - name: Build plugin
         run: yarn build
         working-directory: packages/jbrowse-plugin-apollo
-      - name: Upload built plugin files
-        uses: actions/upload-artifact@v4
-        with:
-          name: plugin
-          path: |
-            packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js
-            packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.production.min.js

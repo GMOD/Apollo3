@@ -9,8 +9,18 @@ on:
 
 jobs:
   build:
-    name: Build and upload artifacts
-    uses: ./.github/workflows/build_and_upload.yml
+    uses: ./.github/workflows/build.yml
+  upload:
+    name: upload artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin
+          path: |
+            packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js
+            packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.production.min.js
   deploy:
     name: Deploy to ${{ inputs.environment }} demo server
     runs-on: ubuntu-latest
