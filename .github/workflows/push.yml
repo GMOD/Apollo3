@@ -1,7 +1,11 @@
 name: Push
 
 on:
-  push: null
+  push: 
+    branches:
+      - '**'
+    tags:
+      - '!**'
   workflow_dispatch:
     inputs:
       publish:
