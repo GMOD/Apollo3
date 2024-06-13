@@ -53,14 +53,17 @@ export class FeaturesController {
   /**
    * Get feature by featureId. When retrieving features by id, the features and any of its children are returned, but not any of its parent or sibling features.
    * @param featureid - featureId
+   * @param parentId - If true, the parent feature id is also returned
    * @returns Return 'HttpStatus.OK' and the feature(s) if search was successful
    * or if search data was not found or in case of error throw exception
    */
   @Validations(Role.ReadOnly)
   @Get(':featureid')
-  getFeature(@Param('featureid') featureid: string) {
-    this.logger.debug(`Get feature by featureId: ${featureid}`)
-    return this.featuresService.findById(featureid)
+  getFeature(
+    @Param('featureid') featureid: string,
+    @Query('parentId') parentId: string,
+  ) {
+    return this.featuresService.findById(featureid, parentId === 'true')
   }
 
   @Public()
