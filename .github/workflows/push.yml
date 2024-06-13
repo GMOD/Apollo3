@@ -1,29 +1,16 @@
 name: Push
 
 on:
-  push: 
+  push:
     branches:
       - '**'
     tags:
       - '!**'
-  workflow_dispatch:
-    inputs:
-      publish:
-        description: Build and publish Docker image
-        type: boolean
-        required: false
-        default: false
-      deploy:
-        description: Deploy to demo server
-        type: boolean
-        required: false
-        default: false
 
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' || (inputs.deploy  &&  always()) }}
     steps:
       - name: Check out
         uses: actions/checkout@v4
@@ -43,7 +30,6 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' }}
     steps:
       - name: Check out
         uses: actions/checkout@v4
@@ -62,18 +48,14 @@ jobs:
       - name: Lint codebase
         run: yarn eslint --ext .js,.ts,.jsx,.tsx .
   docker:
-    if:
-      ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      inputs.publish }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     uses: ./.github/workflows/docker.yml
     with:
       tag: devel
     secrets: inherit
   deploy:
     needs: [docker]
-    if:
-      ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (
-      inputs.deploy  &&  always()) }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     uses: ./.github/workflows/deploy.yml
     with:
       environment: staging

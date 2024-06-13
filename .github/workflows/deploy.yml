@@ -6,6 +6,12 @@ on:
       environment:
         required: true
         type: string
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to deploy
+        type: environment
+        required: true
 
 jobs:
   build:
@@ -21,9 +27,6 @@ jobs:
           cache: yarn
       - name: Install
         run: yarn --immutable
-      - name: Build collaboration server
-        run: yarn build
-        working-directory: packages/apollo-collaboration-server
       - name: Build plugin
         run: yarn build
         working-directory: packages/jbrowse-plugin-apollo
