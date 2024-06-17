@@ -3,6 +3,7 @@ ARG JBROWSE_VERSION
 ARG APOLLO_VERSION
 ARG FORWARD_HOSTNAME
 ARG FORWARD_PORT
+ARG URL
 COPY <<EOF /usr/local/apache2/conf/httpd.conf.append
 LoadModule proxy_module modules/mod_proxy.so
 LoadModule proxy_http_module modules/mod_proxy_http.so
@@ -50,9 +51,9 @@ COPY <<EOF /usr/local/apache2/htdocs/config.json
       "name": "My Apollo Server",
       "description": "A server for my annotations",
       "domains": [
-        "${FORWARD_HOSTNAME}"
+        "${URL}"
       ],
-      "baseURL": "${FORWARD_HOSTNAME}"
+      "baseURL": "${URL}"
     }
   ]
 }

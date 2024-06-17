@@ -2,6 +2,21 @@ Apollo 3 Deployment
 
 ## Full deployment with collaboration server
 
+<!-- vim-markdown-toc GFM -->
+
+* [Basic components](#basic-components)
+* [Deploying with Docker](#deploying-with-docker)
+    * [Name](#name)
+    * [Volumes](#volumes)
+    * [Services](#services)
+        * [Client](#client)
+        * [Apollo Collaboration Server](#apollo-collaboration-server)
+        * [MongoDB](#mongodb)
+* [Starting everything](#starting-everything)
+* [Deploying](#deploying)
+
+<!-- vim-markdown-toc -->
+
 Apollo can be used in some cases on local files with no need to set up a server,
 but this guide will focus on deploying Apollo with all the components needed for
 a hosted server that allows collaborative annotation.
@@ -109,17 +124,18 @@ compose file:
 
 ```yml
 client:
-  build:
-    args:
-      APOLLO_VERSION: 0.1.0
-      JBROWSE_VERSION: 2.10.3
-      FORWARD_HOSTNAME: apollo-collaboration-server
-      FORWARD_PORT: 3999
-    context: .
-  depends_on:
-    - apollo-collaboration-server
-  ports:
-    - '80:80'
+build:
+  args:
+    APOLLO_VERSION: 0.1.0
+    JBROWSE_VERSION: 2.10.3
+    FORWARD_HOSTNAME: apollo-collaboration-server
+    FORWARD_PORT: 3999
+    URL: http://my-apollo-site.org
+  context: .
+depends_on:
+  - apollo-collaboration-server
+ports:
+  - '80:80'
 ```
 
 This service will be a static file server that serves the JBrowse and Apollo
@@ -180,10 +196,10 @@ before starting the collaboration server, and defines which port the app is
 exposed on.
 
 The collaboration server is configured with environment variables, often in a
-`.env` file. However, we use the `environment` option to set a couple variables
-whose value depends on other places in the compose file, to try to keep the
-related options all in one place. These two variables are `MONGODB_URI` and
-`FILE_UPLOAD_FOLDER`. The example URI is
+`.env` file. However, we use the `environment` option to set a couple of
+variables whose value depends on other places in the compose file, to try to
+keep the related options all in one place. These two variables are
+`MONGODB_URI` and `FILE_UPLOAD_FOLDER`. The example URI is
 `mongodb://mongo-node-1:27017,mongo-node-2:27018/apolloDb?replicaSet=rs0`. If
 you change the names of either of the MongoDB services, their ports, or add or
 remove a MongoDB service, be sure to update this value. The value of
@@ -191,13 +207,16 @@ remove a MongoDB service, be sure to update this value. The value of
 `volumes` section (e.g. `/data/uploads`).
 
 There are a few other variables that need to be configured for the Apollo
-Collaboration Server to work. They are `URL`, `JWT_SECRET`, and `SESSION_SECRET`
-variables. `URL` is the URL of the server that's hosting Apollo. We'll discuss
-this more in a later section when talking about authentication. You can think of
-`JWT_SECRET` and `SESSION_SECRET` as kind of like passwords. They need to be a
-random string, but should be the same each time you run the server so that user
-sessions are not invalidated (unless you want to intentionally invalidate user
-sessions). You can use a password generator to create them.
+Collaboration Server to work. They are `URL`, `JWT_SECRET`, and
+`SESSION_SECRET` variables. `URL` is the URL of the server that's hosting
+Apollo. Note that the `URL` option set in the `.env` file or in the
+corresponding entry in `apollo-collaboration-server` should match the `URL` entry
+under `client` section.  We'll discuss this more in a later section when
+talking about authentication. You can think of `JWT_SECRET` and
+`SESSION_SECRET` as kind of like passwords. They need to be a random string,
+but should be the same each time you run the server so that user sessions are
+not invalidated (unless you want to intentionally invalidate user sessions).
+You can use a password generator to create them.
 
 You can put these variables in the `environment` section, or you can put them in
 a `.env` file, which has a format that looks like this
@@ -208,7 +227,8 @@ URL=https://my-apollo-site.org
 
 There are several other options you can configure. You can see [this](.env)
 sample `.env` file for a description of the other configuration options. For
-now, we will set `ALLOW_GUEST_USER` to be true to simplify testing.
+now, we will set `ALLOW_GUEST_USER` to be true to simplify testing. Options set
+in `compose.yml` take precedence over the options in the `.env` file.
 
 ##### MongoDB
 
