@@ -44,6 +44,9 @@ sed -i'' 's| ALLOW_GUEST_USER:.*| ALLOW_GUEST_USER: true|' compose.yml
 sed -i'' 's| URL: .*| URL: http://localhost|' compose.yml
 ```
 
+Note that you can set options in either `compose.yml` or `.env`. `compose.yml` takes precedence over `.env`.
+
+
 Start Apollo:
 
 ```
