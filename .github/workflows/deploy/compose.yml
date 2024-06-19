@@ -23,6 +23,7 @@ services:
       - 3999:3999
     volumes:
       - uploaded-files-volume:/data/uploads
+    restart: unless-stopped
 
   client:
     build:
@@ -37,6 +38,7 @@ services:
       - /home/ec2-user/deployment/config.json:/usr/local/apache2/htdocs/config.json
       - /home/ec2-user/deployment/data/:/usr/local/apache2/htdocs/data/
       - /home/ec2-user/deployment/demoData/:/usr/local/apache2/htdocs/demoData/
+    restart: unless-stopped
 
   mongo-node-1:
     image: mongo:7
@@ -73,6 +75,7 @@ services:
     volumes:
       - mongo-node-1_data:/data/db
       - mongo-node-1_config:/data/configdb
+    restart: unless-stopped
 
   mongo-node-2:
     image: mongo:7
@@ -87,6 +90,7 @@ services:
     volumes:
       - mongo-node-2_data:/data/db
       - mongo-node-2_config:/data/configdb
+    restart: unless-stopped
 
 volumes:
   mongo-node-1_config: null
