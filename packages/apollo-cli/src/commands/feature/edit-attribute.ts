@@ -64,15 +64,14 @@ export default class EditAttibute extends BaseCommand<typeof EditAttibute> {
     const { flags } = await this.parse(EditAttibute)
 
     if (flags.delete && flags.value) {
-      this.logToStderr(
+      this.error(
         'Error: Options --delete and --value are mutually exclusive',
       )
-      this.exit(1)
     }
 
     const ff = idReader([flags['feature-id']])
     if (ff.length !== 1) {
-      this.logToStderr(`Expected only one feature identifier. Got ${ff.length}`)
+      this.error(`Expected only one feature identifier. Got ${ff.length}`)
     }
     const [featureId] = ff
 
@@ -95,7 +94,7 @@ export default class EditAttibute extends BaseCommand<typeof EditAttibute> {
 
     if (flags.value === undefined && !flags.delete) {
       this.log(JSON.stringify(featureJson.attributes[flags.attribute]))
-      this.exit(0)
+      return
     }
 
     if (flags.delete) {

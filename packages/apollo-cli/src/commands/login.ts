@@ -86,24 +86,14 @@ export default class Login extends BaseCommand<typeof Login> {
     if (profileName === undefined) {
       profileName = process.env.APOLLO_PROFILE ?? 'default'
     }
-
-    try {
-      basicCheckConfig(configFile, profileName)
-    } catch (error) {
-      if (error instanceof ConfigError) {
-        this.logToStderr(error.message)
-        this.exit(1)
-      }
-    }
-
+    basicCheckConfig(configFile, profileName)
     const config: Config = new Config(configFile)
 
     const accessType: string | undefined = config.get('accessType', profileName)
     const address: string | undefined =
       flags.address ?? config.get('address', profileName)
     if (address === undefined) {
-      this.logToStderr('Address to apollo must be set')
-      this.exit(1)
+      this.error('Address to apollo must be set')
     }
 
     let userCredentials: UserCredentials = { accessToken: '' }
@@ -118,15 +108,13 @@ export default class Login extends BaseCommand<typeof Login> {
         const password: string | undefined =
           flags.password ?? config.get('rootCredentials.password', profileName)
         if (username === undefined || password === undefined) {
-          this.logToStderr('Username and password must be set')
-          this.exit(1)
+          this.error('Username and password must be set')
         }
         userCredentials = await this.startRootLogin(address, username, password)
       } else if (accessType === 'guest') {
         userCredentials = await this.startGuestLogin(address)
       } else if (accessType === undefined) {
-        this.logToStderr('Undefined access type')
-        this.exit(1)
+        this.error('Undefined access type')
       } else {
         userCredentials = await this.startAuthorizationCodeFlow(
           address,
@@ -139,11 +127,9 @@ export default class Login extends BaseCommand<typeof Login> {
         (error instanceof Errors.CLIError && error.message === 'ctrl-c') ||
         error instanceof Errors.ExitError
       ) {
-        this.exit(0)
+        return
       } else if (error instanceof Error) {
-        this.logToStderr(error.stack)
-        ux.action.stop(error.message)
-        this.exit(1)
+        throw error
       }
     }
     config.set('accessToken', userCredentials.accessToken, profileName)

@@ -53,16 +53,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
       profileName = process.env.APOLLO_PROFILE ?? 'default'
     }
 
-    try {
-      return await config.getAccess(profileName)
-    } catch (error) {
-      if (error instanceof ConfigError) {
-        this.logToStderr(error.message)
-        this.exit(1)
-      } else {
-        throw error
-      }
-    }
+    return await config.getAccess(profileName)
   }
 
   protected async catch(err: Error & { exitCode?: number }): Promise<unknown> {

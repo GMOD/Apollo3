@@ -97,8 +97,7 @@ export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
 
     const endCoord: number = flags.end ?? Number.MAX_SAFE_INTEGER
     if (flags.start <= 0 || endCoord <= 0) {
-      this.logToStderr('Start and end coordinates must be greater than 0.')
-      this.exit(1)
+      this.error('Start and end coordinates must be greater than 0.')
     }
 
     const access: { address: string; accessToken: string } =
@@ -110,20 +109,14 @@ export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
     }
 
     let refseqIds: string[] = []
-    try {
-      refseqIds = await getRefseqId(
-        access.address,
-        access.accessToken,
-        flags.refseq,
-        assembly,
-      )
-    } catch (error) {
-      this.logToStderr((error as Error).message)
-      this.exit(1)
-    }
+    refseqIds = await getRefseqId(
+      access.address,
+      access.accessToken,
+      flags.refseq,
+      assembly,
+    )
     if (refseqIds.length === 0) {
-      this.logToStderr('No reference sequence found')
-      this.exit(1)
+      this.error('No reference sequence found')
     }
 
     const refs: Response = await queryApollo(

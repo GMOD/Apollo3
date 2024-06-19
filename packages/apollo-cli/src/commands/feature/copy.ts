@@ -55,41 +55,34 @@ export default class Copy extends BaseCommand<typeof Copy> {
     const { flags } = await this.parse(Copy)
 
     if (flags.start <= 0) {
-      this.logToStderr('Start coordinate must be greater than 0')
-      this.exit(1)
+      this.error('Start coordinate must be greater than 0')
     }
 
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 
-    const response: Response = await getFeatureById(
+    const res: Response = await getFeatureById(
       access.address,
       access.accessToken,
       flags['feature-id'],
     )
-    if (!response.ok) {
+    if (!res.ok) {
       const errorMessage = await createFetchErrorMessage(
-        response,
+        res,
         'getFeatureById failed',
       )
       throw new Error(errorMessage)
     }
-    const feature = (await response.json()) as object
+    const feature = (await res.json()) as object
     let refseqIds: string[] = []
-    try {
-      refseqIds = await getRefseqId(
-        access.address,
-        access.accessToken,
-        flags.refseq,
-        flags.assembly,
-      )
-    } catch (error) {
-      this.logToStderr((error as Error).message)
-      this.exit(1)
-    }
+    refseqIds = await getRefseqId(
+      access.address,
+      access.accessToken,
+      flags.refseq,
+      flags.assembly,
+    )
     if (refseqIds.length === 0) {
-      this.logToStderr('No reference sequence found')
-      this.exit(1)
+      this.error('No reference sequence found')
     }
     const [refseq] = refseqIds
     const assembly = await getAssemblyFromRefseq(
@@ -109,9 +102,11 @@ export default class Copy extends BaseCommand<typeof Copy> {
       newId,
     )
     if (!rescopy.ok) {
-      const message: string = feature['message' as keyof typeof feature]
-      this.logToStderr(message)
-      this.exit(1)
+      const errorMessage = await createFetchErrorMessage(
+        rescopy,
+        'Copy feature failed',
+      )
+      throw new Error(errorMessage)
     }
     this.exit(0)
   }
@@ -155,14 +150,14 @@ export default class Copy extends BaseCommand<typeof Copy> {
         'Content-Type': 'application/json',
       },
     }
-    const response = await fetch(url, auth)
-    if (!response.ok) {
+    const res = await fetch(url, auth)
+    if (!res.ok) {
       const errorMessage = await createFetchErrorMessage(
-        response,
+        res,
         'copyFeature failed',
       )
       throw new Error(errorMessage)
     }
-    return response
+    return res
   }
 }

@@ -24,15 +24,8 @@ export default class Status extends BaseCommand<typeof Status> {
     if (configFile === undefined) {
       configFile = path.join(this.config.configDir, 'config.yaml')
     }
-    try {
-      basicCheckConfig(configFile, profileName)
-    } catch (error) {
-      if (error instanceof ConfigError) {
-        this.logToStderr(error.message)
-        this.exit(1)
-      }
-    }
-
+    basicCheckConfig(configFile, profileName)
+    
     const config: Config = new Config(configFile)
     const accessToken: string = config.get(KEYS.accessToken, profileName)
     if (accessToken === undefined || accessToken.trim() === '') {

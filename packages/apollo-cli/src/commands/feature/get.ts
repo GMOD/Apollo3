@@ -52,28 +52,18 @@ export default class Get extends BaseCommand<typeof Get> {
 
     const endCoord: number = flags.end ?? Number.MAX_SAFE_INTEGER
     if (flags.start <= 0 || endCoord <= 0) {
-      this.logToStderr('Start and end coordinates must be greater than 0.')
-      this.exit(1)
+      this.error('Start and end coordinates must be greater than 0.')
     }
 
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 
-    let refseqIds: string[] = []
-    try {
-      refseqIds = await getRefseqId(
-        access.address,
-        access.accessToken,
-        flags.refseq,
-        flags.assembly,
-      )
-    } catch (error) {
-      this.logToStderr((error as Error).message)
-      this.exit(1)
-    }
-    if (refseqIds.length === 0) {
-      this.logToStderr('No reference sequence found')
-    }
+    const refseqIds: string[] = await getRefseqId(
+      access.address,
+      access.accessToken,
+      flags.refseq,
+      flags.assembly,
+    )
 
     const results: object[] = []
     for (const refseq of refseqIds) {
@@ -113,14 +103,14 @@ export default class Get extends BaseCommand<typeof Get> {
         'Content-Type': 'application/json',
       },
     }
-    const response = await fetch(url, auth)
-    if (!response.ok) {
+    const res = await fetch(url, auth)
+    if (!res.ok) {
       const errorMessage = await createFetchErrorMessage(
-        response,
+        res,
         'Failed to access Apollo with the current address and/or access token\nThe server returned:\n',
       )
       throw new Error(errorMessage)
     }
-    return response
+    return res
   }
 }

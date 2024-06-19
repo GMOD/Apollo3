@@ -450,21 +450,16 @@ export async function uploadFile(
   }
 
   const url = new URL(localhostToAddress(`${address}/files`))
-  try {
-    const response = await fetch(url, auth)
-    if (!response.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        response,
-        'uploadFile failed',
-      )
-      throw new ConfigError(errorMessage)
-    }
-    const json = (await response.json()) as object
-    return json['_id' as keyof typeof json]
-  } catch (error) {
-    console.error(error)
-    throw error
+  const response = await fetch(url, auth)
+  if (!response.ok) {
+    const errorMessage = await createFetchErrorMessage(
+      response,
+      'uploadFile failed',
+    )
+    throw new ConfigError(errorMessage)
   }
+  const json = (await response.json()) as object
+  return json['_id' as keyof typeof json]
 }
 
 /* Wrap text to max `length` per line */

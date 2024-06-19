@@ -92,27 +92,22 @@ export default class Delete extends BaseCommand<typeof Delete> {
       await this.getAccess(flags['config-file'], flags.profile)
 
     for (const featureId of featureIds) {
-      const response: Response = await getFeatureById(
+      const res: Response = await getFeatureById(
         access.address,
         access.accessToken,
         featureId,
       )
-      if (response.status === 404 && flags.force) {
+      if (res.status === 404 && flags.force) {
         continue
       }
-      if (!response.ok) {
+      if (!res.ok) {
         const errorMessage = await createFetchErrorMessage(
-          response,
+          res,
           'getFeatureById failed',
         )
         throw new Error(errorMessage)
       }
-      const feature = JSON.parse(await response.text())
-      if (!response.ok) {
-        const message: string = feature['message' as keyof typeof feature]
-        this.logToStderr(message)
-        this.exit(1)
-      }
+      const feature = JSON.parse(await res.text())
       if (flags['dry-run']) {
         this.log(feature)
       } else {
@@ -122,10 +117,11 @@ export default class Delete extends BaseCommand<typeof Delete> {
           feature,
         )
         if (!delFet.ok) {
-          const json = (await delFet.json()) as object
-          const message: string = json['message' as keyof typeof json]
-          this.logToStderr(message)
-          this.exit(1)
+          const errorMessage = await createFetchErrorMessage(
+            delFet,
+            'Delete feature failed',
+          )
+          throw new Error(errorMessage)
         }
       }
     }

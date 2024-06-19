@@ -8,7 +8,7 @@ import { ObjectId } from 'bson'
 import { Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { submitAssembly, uploadFile, wrapLines } from '../../utils.js'
+import { createFetchErrorMessage, submitAssembly, uploadFile, wrapLines } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description = 'Add new assembly from local or external fasta file'
@@ -57,13 +57,12 @@ export default class Get extends BaseCommand<typeof Get> {
     const assemblyName = flags.assembly ?? path.basename(flags['input-file'])
 
     const isExternal = isValidHttpUrl(flags['input-file'])
-    let response: Response
+    let res: Response
     if (isExternal) {
       if (flags.index === undefined) {
-        this.logToStderr(
+        this.error(
           'Please provide the URL to the index of the external fasta file',
         )
-        this.exit(1)
       }
       const body = {
         assemblyName,
@@ -73,7 +72,7 @@ export default class Get extends BaseCommand<typeof Get> {
           fai: flags.index,
         },
       }
-      response = (await submitAssembly(
+      res = (await submitAssembly(
         access.address,
         access.accessToken,
         body,
@@ -81,37 +80,33 @@ export default class Get extends BaseCommand<typeof Get> {
       )) as unknown as Response
     } else {
       if (!isExternal && !fs.existsSync(flags['input-file'])) {
-        this.logToStderr(`File ${flags['input-file']} does not exist`)
-        this.exit(1)
+        this.error(`File ${flags['input-file']} does not exist`)
       }
-      try {
-        const fileId = await uploadFile(
-          access.address,
-          access.accessToken,
-          flags['input-file'],
-          'text/x-fasta',
-        )
-        const body = {
-          assemblyName,
-          fileId,
-          typeName: 'AddAssemblyFromFileChange',
-          assembly: new ObjectId().toHexString(),
-        }
-        response = (await submitAssembly(
-          access.address,
-          access.accessToken,
-          body,
-          flags.force,
-        )) as unknown as Response
-      } catch (error) {
-        this.logToStderr((error as Error).message)
-        this.exit(1)
+      const fileId = await uploadFile(
+        access.address,
+        access.accessToken,
+        flags['input-file'],
+        'text/x-fasta',
+      )
+      const body = {
+        assemblyName,
+        fileId,
+        typeName: 'AddAssemblyFromFileChange',
+        assembly: new ObjectId().toHexString(),
       }
+      res = (await submitAssembly(
+        access.address,
+        access.accessToken,
+        body,
+        flags.force,
+      )) as unknown as Response
     }
-    if (!response.ok) {
-      const json = JSON.parse(await response.text())
-      this.logToStderr(JSON.stringify(json, null, 2))
-      this.exit(1)
+    if (!res.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        res,
+        'Submit assembly failed',
+      )
+      throw new Error(errorMessage)
     }
     this.exit(0)
   }

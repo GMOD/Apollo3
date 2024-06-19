@@ -52,15 +52,13 @@ export default class Get extends BaseCommand<typeof Get> {
     const { flags } = await this.parse(Get)
 
     if (flags.start === undefined && flags.end === undefined) {
-      this.logToStderr(
+      this.error(
         'Please provide new start and/or end coordinates to edit',
       )
-      this.exit(1)
     }
 
     if (flags.start !== undefined && flags.start <= 0) {
-      this.logToStderr('Coordinates must be greater than 0')
-      this.exit(1)
+      this.error('Coordinates must be greater than 0')
     }
 
     if (
@@ -68,10 +66,9 @@ export default class Get extends BaseCommand<typeof Get> {
       flags.end !== undefined &&
       flags.end < flags.start
     ) {
-      this.logToStderr(
+      this.error(
         'Error: The new end coordinate is lower than the new start coordinate',
       )
-      this.exit(1)
     }
 
     if (flags.start !== undefined) {
@@ -80,26 +77,26 @@ export default class Get extends BaseCommand<typeof Get> {
 
     const ff = idReader([flags['feature-id']])
     if (ff.length !== 1) {
-      this.logToStderr(`Expected only one feature identifier. Got ${ff.length}`)
+      this.error(`Expected only one feature identifier. Got ${ff.length}`)
     }
     const [featureId] = ff
 
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 
-    const response: Response = await getFeatureById(
+    const res: Response = await getFeatureById(
       access.address,
       access.accessToken,
       featureId,
     )
-    if (!response.ok) {
+    if (!res.ok) {
       const errorMessage = await createFetchErrorMessage(
-        response,
+        res,
         'getFeatureById failed',
       )
       throw new Error(errorMessage)
     }
-    const featureJson = JSON.parse(await response.text())
+    const featureJson = JSON.parse(await res.text())
 
     const assembly = await getAssemblyFromRefseq(
       access.address,

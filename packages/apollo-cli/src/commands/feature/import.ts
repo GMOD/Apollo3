@@ -47,8 +47,7 @@ export default class Import extends BaseCommand<typeof Import> {
     const { flags } = await this.parse(Import)
 
     if (!fs.existsSync(flags['input-file'])) {
-      this.logToStderr(`File "${flags['input-file']}" does not exist`)
-      this.exit(1)
+      this.error(`File "${flags['input-file']}" does not exist`)
     }
 
     const access: { address: string; accessToken: string } =
@@ -60,10 +59,9 @@ export default class Import extends BaseCommand<typeof Import> {
       [flags.assembly],
     )
     if (assembly.length === 0) {
-      this.logToStderr(
+      this.error(
         `Assembly "${flags.assembly}" does not exist. Perhaps you want to create this assembly first`,
       )
-      this.exit(1)
     }
 
     const uploadId = await uploadFile(
@@ -73,19 +71,19 @@ export default class Import extends BaseCommand<typeof Import> {
       'text/x-gff3',
     )
 
-    const response: Response = await importFeatures(
+    const res: Response = await importFeatures(
       access.address,
       access.accessToken,
       assembly[0],
       uploadId,
       flags['delete-existing'],
     )
-
-    if (!response.ok) {
-      const json = JSON.parse(await response.text())
-      const message: string = json['message' as keyof typeof json]
-      this.logToStderr(message)
-      this.exit(1)
+    if (!res.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        res,
+        'Import features failed',
+      )
+      throw new Error(errorMessage)
     }
     this.exit(0)
   }

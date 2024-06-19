@@ -387,15 +387,15 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(contig["end"], 1)
 
         p = shell(f"{apollo} feature edit-coords {P} -i {contig_id} -s 0", strict=False)
-        self.assertEqual(p.returncode, 1)
-        self.assertEqual("Coordinates must be greater than 0", p.stderr.strip())
+        self.assertEqual(2, p.returncode)
+        self.assertTrue("Coordinates must be greater than 0" in p.stderr.strip())
 
         p = shell(
             f"{apollo} feature edit-coords {P} -i {contig_id} -s 10 -e 9", strict=False
         )
-        self.assertEqual(p.returncode, 1)
-        self.assertEqual(
-            "Error: The new end coordinate is lower than the new start coordinate",
+        self.assertEqual(2, p.returncode)
+        self.assertTrue(
+            "Error: The new end coordinate is lower than the new start coordinate" in
             p.stderr.strip(),
         )
 
@@ -763,7 +763,7 @@ class TestCLI(unittest.TestCase):
 
         # Test non-existant assembly
         p = shell(f"{apollo} assembly check {P} -a non-existant", strict=False)
-        self.assertEqual(p.returncode, 1)
+        self.assertEqual(p.returncode, 2)
         self.assertTrue("non-existant" in p.stderr)
 
         # Test non-existant check
@@ -887,6 +887,10 @@ class TestCLI(unittest.TestCase):
 
         os.remove("tmp.yaml")
 
+    def testInvalidAccess(self):
+        p = shell(f"{apollo} user get --profile foo", strict=False)
+        self.assertEqual(1, p.returncode)
+        self.assertTrue('Profile "foo" does not exist' in p.stderr)
 
 if __name__ == "__main__":
     unittest.main()

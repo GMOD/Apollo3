@@ -60,38 +60,36 @@ export default class Get extends BaseCommand<typeof Get> {
     const { flags } = await this.parse(Get)
 
     if (flags.end < flags.start) {
-      this.logToStderr(
+      this.error(
         'Error: End coordinate is lower than the start coordinate',
       )
-      this.exit(1)
     }
     if (flags.start <= 0) {
-      this.logToStderr('Coordinates must be greater than 0')
-      this.exit(1)
+      this.error('Coordinates must be greater than 0')
     }
 
     const ff = idReader([flags['feature-id']])
     if (ff.length !== 1) {
-      this.logToStderr(`Expected only one feature identifier. Got ${ff.length}`)
+      this.error(`Expected only one feature identifier. Got ${ff.length}`)
     }
     const [featureId] = ff
 
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 
-    const response: Response = await getFeatureById(
+    const res: Response = await getFeatureById(
       access.address,
       access.accessToken,
       featureId,
     )
-    if (!response.ok) {
+    if (!res.ok) {
       const errorMessage = await createFetchErrorMessage(
-        response,
+        res,
         'getFeatureById failed',
       )
       throw new Error(errorMessage)
     }
-    const feature = JSON.parse(await response.text())
+    const feature = JSON.parse(await res.text())
     const childRes = await this.addChild(
       access.address,
       access.accessToken,
@@ -101,10 +99,11 @@ export default class Get extends BaseCommand<typeof Get> {
       flags.type,
     )
     if (!childRes.ok) {
-      const obj = JSON.parse(await response.text())
-      const message: string = obj['message' as keyof typeof feature]
-      this.logToStderr(message)
-      this.exit(1)
+      const errorMessage = await createFetchErrorMessage(
+        childRes,
+        'Add child failed',
+      )
+      throw new Error(errorMessage)
     }
     this.exit(0)
   }
@@ -120,10 +119,9 @@ export default class Get extends BaseCommand<typeof Get> {
     const pStart = parentFeature['start' as keyof typeof parentFeature]
     const pEnd = parentFeature['end' as keyof typeof parentFeature]
     if (start < pStart || end > pEnd) {
-      this.logToStderr(
+      this.error(
         `Error: Child feature coordinates (${start + 1}-${end}) cannot extend beyond parent coordinates (${pStart + 1}-${pEnd})`,
       )
-      this.exit(1)
     }
     const res = await queryApollo(address, accessToken, 'refSeqs')
     const refSeqs = (await res.json()) as object[]
