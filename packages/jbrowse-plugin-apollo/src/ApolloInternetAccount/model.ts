@@ -288,9 +288,10 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         }
       }),
     }))
-    .volatile((self) => ({
-      socket: io(self.baseURL),
-    }))
+    .volatile((self) => {
+      const { origin, pathname: path } = new URL('socket.io/', self.baseURL)
+      return { socket: io(origin, { path }) }
+    })
     .actions((self) => ({
       addSocketListeners() {
         const { session } = getRoot<ApolloRootModel>(self)
@@ -305,7 +306,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         socket.on('connect', async () => {
           await self.getMissingChanges()
         })
-        socket.on('connect_error', () => {
+        socket.on('connect_error', (error) => {
+          console.error(error)
           notify('Could not connect to the Apollo server.', 'error')
         })
         socket.on('COMMON', (message: ChangeMessage | CheckResultUpdate) => {
@@ -407,7 +409,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         self.addSocketListeners()
         // request user locations
         const { baseURL } = self
-        const uri = new URL('/users/locations', baseURL).href
+        const uri = new URL('users/locations', baseURL).href
         const apolloFetch = self.getFetcher({
           locationType: 'UriLocation',
           uri,

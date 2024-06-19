@@ -101,7 +101,7 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
 
   useEffect(() => {
     async function getAssemblies() {
-      const uri = new URL('/assemblies', baseURL).href
+      const uri = new URL('assemblies', baseURL).href
       const apolloFetch = apolloInternetAccount?.getFetcher({
         locationType: 'UriLocation',
         uri,

@@ -78,7 +78,7 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
   useEffect(() => {
     async function getChecks() {
       const { baseURL, getFetcher } = selectedInternetAccount
-      const uri = new URL('/checks/types', baseURL).href
+      const uri = new URL('checks/types', baseURL).href
       const apolloFetch = getFetcher({ locationType: 'UriLocation', uri })
       const response = await apolloFetch(uri, { method: 'GET' })
       if (!response.ok) {
@@ -141,7 +141,7 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
     }
     const { notify } = session as unknown as AbstractSessionModel
     const { baseURL, getFetcher } = selectedInternetAccount
-    const uri = new URL('/assemblies/checks', baseURL).href
+    const uri = new URL('assemblies/checks', baseURL).href
     const apolloFetch = getFetcher({
       locationType: 'UriLocation',
       uri,

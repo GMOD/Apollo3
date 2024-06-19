@@ -36,7 +36,7 @@ export const AuthTypeSelector = ({
     const controller = new AbortController()
     const { signal } = controller
     async function getAuthTypes() {
-      const uri = new URL('/auth/types', baseURL).href
+      const uri = new URL('auth/types', baseURL).href
       const response = await fetch(uri, { method: 'GET', signal })
       if (!response.ok) {
         const newErrorMessage = await createFetchErrorMessage(
