@@ -289,7 +289,9 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       }),
     }))
     .volatile((self) => ({
-      socket: io(self.baseURL),
+      socket: io(self.baseURL, {
+        path: new URL('socket.io', self.baseURL).pathname,
+      }),
     }))
     .actions((self) => ({
       addSocketListeners() {
@@ -407,7 +409,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         self.addSocketListeners()
         // request user locations
         const { baseURL } = self
-        const uri = new URL('/users/locations', baseURL).href
+        const uri = new URL('users/locations', baseURL).href
         const apolloFetch = self.getFetcher({
           locationType: 'UriLocation',
           uri,

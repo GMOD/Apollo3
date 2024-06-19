@@ -91,7 +91,7 @@ export function ImportFeatures({
       }
 
       const { baseURL } = apolloInternetAccount
-      const uri = new URL('/features/count', baseURL)
+      const uri = new URL('features/count', baseURL)
       const searchParams = new URLSearchParams({
         assemblyId: selectedAssembly.name,
       })
@@ -158,7 +158,7 @@ export function ImportFeatures({
     const { baseURL } = apolloInternetAccount
 
     // First upload file
-    const url = new URL('/files', baseURL).href
+    const url = new URL('files', baseURL).href
     const formData = new FormData()
     formData.append('file', file)
     formData.append('fileName', file.name)

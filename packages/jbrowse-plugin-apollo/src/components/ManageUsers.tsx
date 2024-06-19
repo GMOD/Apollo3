@@ -71,7 +71,7 @@ export function ManageUsers({
 
   const getUsers = useCallback(async () => {
     const { baseURL } = selectedInternetAccount
-    const uri = new URL('/users', baseURL).href
+    const uri = new URL('users', baseURL).href
     const apolloFetch = selectedInternetAccount.getFetcher({
       locationType: 'UriLocation',
       uri,

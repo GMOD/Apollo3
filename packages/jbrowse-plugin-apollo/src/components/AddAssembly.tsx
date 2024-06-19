@@ -168,7 +168,7 @@ export function AddAssembly({
     const { baseURL, getFetcher, internetAccountId } = selectedInternetAccount
     if (fileType !== FileType.EXTERNAL && file) {
       // First upload file
-      const url = new URL('/files', baseURL).href
+      const url = new URL('files', baseURL).href
       const formData = new FormData()
       formData.append('file', file)
       formData.append('fileName', file.name)
