@@ -1,7 +1,7 @@
 import path from 'node:path'
 
 import { BaseCommand } from '../baseCommand.js'
-import { Config, ConfigError, KEYS } from '../Config.js'
+import { Config, KEYS } from '../Config.js'
 import { basicCheckConfig, wrapLines } from '../utils.js'
 
 export default class Logout extends BaseCommand<typeof Logout> {

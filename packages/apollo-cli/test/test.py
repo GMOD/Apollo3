@@ -395,8 +395,8 @@ class TestCLI(unittest.TestCase):
         )
         self.assertEqual(2, p.returncode)
         self.assertTrue(
-            "Error: The new end coordinate is lower than the new start coordinate" in
-            p.stderr.strip(),
+            "Error: The new end coordinate is lower than the new start coordinate"
+            in p.stderr.strip(),
         )
 
         ## Edit a feature by extending beyond the boundary of its parent and
@@ -891,6 +891,7 @@ class TestCLI(unittest.TestCase):
         p = shell(f"{apollo} user get --profile foo", strict=False)
         self.assertEqual(1, p.returncode)
         self.assertTrue('Profile "foo" does not exist' in p.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

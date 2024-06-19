@@ -8,7 +8,7 @@ import { Args, Flags } from '@oclif/core'
 import { fetch } from 'undici'
 
 import { BaseCommand } from '../baseCommand.js'
-import { Config, ConfigError, KEYS, optionDesc } from '../Config.js'
+import { Config, KEYS, optionDesc } from '../Config.js'
 import {
   createFetchErrorMessage,
   localhostToAddress,
@@ -119,8 +119,8 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
       const address: string = await this.askAddress(
         config.get(KEYS[KEYS.address], profileName),
       )
-        config.set('address', address, profileName)
-        setMe = false
+      config.set('address', address, profileName)
+      setMe = false
     }
 
     const address = config.get(KEYS[KEYS.address], profileName)

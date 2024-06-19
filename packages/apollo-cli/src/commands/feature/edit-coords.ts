@@ -52,9 +52,7 @@ export default class Get extends BaseCommand<typeof Get> {
     const { flags } = await this.parse(Get)
 
     if (flags.start === undefined && flags.end === undefined) {
-      this.error(
-        'Please provide new start and/or end coordinates to edit',
-      )
+      this.error('Please provide new start and/or end coordinates to edit')
     }
 
     if (flags.start !== undefined && flags.start <= 0) {

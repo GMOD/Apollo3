@@ -3,7 +3,6 @@ import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
-  CheckError,
   convertCheckNameToId,
   createFetchErrorMessage,
   getAssembly,

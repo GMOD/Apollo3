@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 
@@ -7,7 +5,12 @@ import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { createFetchErrorMessage, submitAssembly, uploadFile, wrapLines } from '../../utils.js'
+import {
+  createFetchErrorMessage,
+  submitAssembly,
+  uploadFile,
+  wrapLines,
+} from '../../utils.js'
 
 export default class AddGff extends BaseCommand<typeof AddGff> {
   static summary = 'Add new assembly from gff or gft file'
@@ -72,14 +75,13 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
 
     const assemblyName = flags.assembly ?? path.basename(flags['input-file'])
 
-    let res
     const body = {
       assemblyName,
       fileId,
       typeName,
       assembly: new ObjectId().toHexString(),
     }
-    res = await submitAssembly(
+    const res = await submitAssembly(
       access.address,
       access.accessToken,
       body,

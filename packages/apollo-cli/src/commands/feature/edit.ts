@@ -60,7 +60,7 @@ export default class Get extends BaseCommand<typeof Get> {
     if (!Array.isArray(json)) {
       json = [json]
     }
-    
+
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
 

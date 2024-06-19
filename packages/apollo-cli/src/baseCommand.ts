@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import { Command, Flags, Interfaces } from '@oclif/core'
 
-import { Config, ConfigError } from './Config.js'
+import { Config } from './Config.js'
 import { checkConfigfileExists } from './utils.js'
 
 export type Flags<T extends typeof Command> = Interfaces.InferredFlags<
@@ -53,7 +53,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
       profileName = process.env.APOLLO_PROFILE ?? 'default'
     }
 
-    return await config.getAccess(profileName)
+    return config.getAccess(profileName)
   }
 
   protected async catch(err: Error & { exitCode?: number }): Promise<unknown> {

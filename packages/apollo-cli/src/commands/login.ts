@@ -11,7 +11,7 @@ import open from 'open'
 import { fetch } from 'undici'
 
 import { BaseCommand } from '../baseCommand.js'
-import { Config, ConfigError } from '../Config.js'
+import { Config } from '../Config.js'
 import {
   UserCredentials,
   basicCheckConfig,
@@ -128,7 +128,8 @@ export default class Login extends BaseCommand<typeof Login> {
         error instanceof Errors.ExitError
       ) {
         return
-      } else if (error instanceof Error) {
+      }
+      if (error instanceof Error) {
         throw error
       }
     }

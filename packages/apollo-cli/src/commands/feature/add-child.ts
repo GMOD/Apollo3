@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Flags } from '@oclif/core'
@@ -60,9 +60,7 @@ export default class Get extends BaseCommand<typeof Get> {
     const { flags } = await this.parse(Get)
 
     if (flags.end < flags.start) {
-      this.error(
-        'Error: End coordinate is lower than the start coordinate',
-      )
+      this.error('Error: End coordinate is lower than the start coordinate')
     }
     if (flags.start <= 0) {
       this.error('Coordinates must be greater than 0')

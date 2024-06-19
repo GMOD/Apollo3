@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as fs from 'node:fs'
 import * as path from 'node:path'
@@ -8,7 +7,12 @@ import { ObjectId } from 'bson'
 import { Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { createFetchErrorMessage, submitAssembly, uploadFile, wrapLines } from '../../utils.js'
+import {
+  createFetchErrorMessage,
+  submitAssembly,
+  uploadFile,
+  wrapLines,
+} from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description = 'Add new assembly from local or external fasta file'

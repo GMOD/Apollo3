@@ -7,7 +7,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import Joi from 'joi'
-import YAML, { YAMLParseError } from 'yaml'
+import YAML from 'yaml'
 
 import { checkProfileExists, queryApollo } from './utils.js'
 
@@ -145,8 +145,7 @@ export class Config {
     if (fs.existsSync(configFile)) {
       const data: string = fs.readFileSync(configFile, 'utf8').trim()
       if (data !== '') {
-        let config
-        config = YAML.parse(data)
+        const config = YAML.parse(data)
         this.profiles = config
       }
     }

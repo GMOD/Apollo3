@@ -64,9 +64,7 @@ export default class EditAttibute extends BaseCommand<typeof EditAttibute> {
     const { flags } = await this.parse(EditAttibute)
 
     if (flags.delete && flags.value) {
-      this.error(
-        'Error: Options --delete and --value are mutually exclusive',
-      )
+      this.error('Error: Options --delete and --value are mutually exclusive')
     }
 
     const ff = idReader([flags['feature-id']])

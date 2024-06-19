@@ -2,7 +2,7 @@
 import path from 'node:path'
 
 import { BaseCommand } from '../baseCommand.js'
-import { Config, ConfigError, KEYS } from '../Config.js'
+import { Config, KEYS } from '../Config.js'
 import { basicCheckConfig, wrapLines } from '../utils.js'
 
 export default class Status extends BaseCommand<typeof Status> {
@@ -25,7 +25,7 @@ export default class Status extends BaseCommand<typeof Status> {
       configFile = path.join(this.config.configDir, 'config.yaml')
     }
     basicCheckConfig(configFile, profileName)
-    
+
     const config: Config = new Config(configFile)
     const accessToken: string = config.get(KEYS.accessToken, profileName)
     if (accessToken === undefined || accessToken.trim() === '') {
