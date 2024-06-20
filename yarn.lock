@@ -244,6 +244,7 @@ __metadata:
   dependencies:
     "@apollo-annotation/mst": "workspace:^"
     "@apollo-annotation/schemas": "workspace:^"
+    "@apollo-annotation/shared": "workspace:^"
     "@gmod/gff": "npm:1.2.0"
     "@jbrowse/core": "npm:^2.11.2"
     "@nestjs/common": "npm:^10.1.0"

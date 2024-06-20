@@ -106,9 +106,7 @@ export class AddAssemblyAndFeaturesFromFileChange extends FromFileBaseChange {
       )
 
       // Loop all features
-      logger.debug?.(
-        `**************** LOOPATAAN KAIKKI FEATURET SEURAAVAKSI File type: "${fileDoc.type}"`,
-      )
+      logger.debug?.(`**************** LOOPATAAN KAIKKI FEATURET SEURAAVAKSI File type: "${fileDoc.type}"`)
       const featureStream = filesService.parseGFF3(
         filesService.getFileStream(fileDoc),
       )
