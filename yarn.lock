@@ -8265,6 +8265,7 @@ __metadata:
     "@types/node": "npm:^18.14.2"
     apollo-mst: "workspace:^"
     apollo-schemas: "workspace:^"
+    apollo-shared: "workspace:^"
     bson-objectid: "npm:^2.0.4"
     mongoose: "npm:^6.12.0"
     tslib: "npm:^2.3.1"

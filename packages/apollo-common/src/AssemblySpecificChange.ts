@@ -1,7 +1,6 @@
 import { GFF3Feature } from '@gmod/gff'
-import type { AnnotationFeatureSnapshotNew } from 'apollo-mst'
 import { FileDocument, RefSeqDocument } from 'apollo-schemas'
-import ObjectID from 'bson-objectid'
+import { gff3ToAnnotationFeature } from 'apollo-shared'
 
 import { Change, ChangeOptions, SerializedChange, isChange } from './Change'
 import { ServerDataStore } from './Operation'
@@ -222,7 +221,8 @@ export abstract class AssemblySpecificChange extends Change {
     // Let's add featureId to parent feature
     const featureIds: string[] = []
 
-    const newFeature = createFeature(gff3Feature, refSeqDoc._id, featureIds)
+    // const newFeature = createFeature(gff3Feature, refSeqDoc._id, featureIds)
+    const newFeature = await gff3ToAnnotationFeature(gff3Feature, refSeqDoc._id, featureIds)
     logger.debug?.(`So far feature ids are: ${featureIds.toString()}`)
     // Add value to gffId
     if (newFeature.attributes) {
@@ -243,164 +243,3 @@ export abstract class AssemblySpecificChange extends Change {
   }
 }
 
-function createFeature(
-  gff3Feature: GFF3Feature,
-  refSeq: string,
-  featureIds?: string[],
-): AnnotationFeatureSnapshotNew {
-  const [firstFeature] = gff3Feature
-  const {
-    attributes,
-    child_features: childFeatures,
-    end,
-    score,
-    seq_id: refName,
-    source,
-    start,
-    strand,
-    type,
-  } = firstFeature
-  if (!refName) {
-    throw new Error(
-      `feature does not have seq_id: ${JSON.stringify(firstFeature)}`,
-    )
-  }
-  if (!type) {
-    throw new Error(
-      `feature does not have type: ${JSON.stringify(firstFeature)}`,
-    )
-  }
-  if (start === null) {
-    throw new Error(
-      `feature does not have start: ${JSON.stringify(firstFeature)}`,
-    )
-  }
-  if (end === null) {
-    throw new Error(
-      `feature does not have end: ${JSON.stringify(firstFeature)}`,
-    )
-  }
-  const feature: AnnotationFeatureSnapshotNew = {
-    _id: new ObjectID().toHexString(),
-    refSeq,
-    type,
-    min: start - 1,
-    max: end,
-  }
-  if (gff3Feature.length > 1) {
-    const lastEnd = Math.max(
-      ...gff3Feature.map((f) => {
-        if (f.end === null) {
-          throw new Error(`feature does not have end: ${JSON.stringify(f)}`)
-        }
-        return f.end
-      }),
-    )
-    feature.max = lastEnd
-  }
-  if (strand) {
-    if (strand === '+') {
-      feature.strand = 1
-    } else if (strand === '-') {
-      feature.strand = -1
-    } else {
-      throw new Error(`Unknown strand: "${strand}"`)
-    }
-  }
-  if (featureIds) {
-    featureIds.push(feature._id as string)
-  }
-
-  if (childFeatures?.length) {
-    const children: Record<string, AnnotationFeatureSnapshotNew> = {}
-    for (const childFeature of childFeatures) {
-      const child = createFeature(childFeature, refSeq, featureIds)
-      children[child._id] = child
-      // Add value to gffId
-      if (child.attributes) {
-        child.attributes.gffId = [child._id]
-      }
-    }
-    feature.children = children
-  }
-  if (source ?? attributes) {
-    const attrs: Record<string, string[]> = {}
-    if (source) {
-      attrs.source = [source]
-    }
-    if (score) {
-      attrs.score = [score.toString()]
-    }
-    if (attributes) {
-      for (const [key, val] of Object.entries(attributes)) {
-        if (val) {
-          const newKey = key.toLowerCase()
-          if (newKey !== 'parent') {
-            // attrs[key.toLowerCase()] = val
-            switch (key) {
-              case 'ID': {
-                attrs._id = val
-                break
-              }
-              case 'Name': {
-                attrs.gff_name = val
-                break
-              }
-              case 'Alias': {
-                attrs.gff_alias = val
-                break
-              }
-              case 'Target': {
-                attrs.gff_target = val
-                break
-              }
-              case 'Gap': {
-                attrs.gff_gap = val
-                break
-              }
-              case 'Derives_from': {
-                attrs.gff_derives_from = val
-                break
-              }
-              case 'Note': {
-                attrs.gff_note = val
-                break
-              }
-              case 'Dbxref': {
-                attrs.gff_dbxref = val
-                break
-              }
-              case 'Ontology_term': {
-                const goTerms: string[] = []
-                const otherTerms: string[] = []
-                for (const v of val) {
-                  if (v.startsWith('GO:')) {
-                    goTerms.push(v)
-                  } else {
-                    otherTerms.push(v)
-                  }
-                }
-                if (goTerms.length > 0) {
-                  attrs['Gene Ontology'] = goTerms
-                }
-                if (otherTerms.length > 0) {
-                  attrs.gff_ontology_term = otherTerms
-                }
-                break
-              }
-              case 'Is_circular': {
-                attrs.gff_is_circular = val
-                break
-              }
-              default: {
-                attrs[key.toLowerCase()] = val
-              }
-            }
-          }
-        }
-      }
-    }
-    feature.attributes = attrs
-  }
-  return feature
-}

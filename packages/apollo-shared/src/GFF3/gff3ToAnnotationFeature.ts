@@ -6,6 +6,8 @@ import { gffToInternal, isGFFReservedAttribute } from './gffReservedKeys'
 
 export function gff3ToAnnotationFeature(
   gff3Feature: GFF3Feature,
+  refSeq?: string,
+  featureIds?: string[],
 ): AnnotationFeatureSnapshotNew {
   const [firstFeature] = gff3Feature
   const {
@@ -41,11 +43,12 @@ export function gff3ToAnnotationFeature(
   }
   const feature: AnnotationFeatureSnapshotNew = {
     _id: new ObjectID().toHexString(),
-    refSeq: refName,
+    refSeq: refSeq ?? refName,
     type,
     min: start - 1,
     max: end,
   }
+
   if (gff3Feature.length > 1) {
     if (type !== 'CDS') {
       throw new Error('GFF3 features has multiple locations but is not a CDS')
@@ -64,6 +67,7 @@ export function gff3ToAnnotationFeature(
     feature.min = Math.min(...mins)
     feature.max = Math.max(...maxes)
   }
+
   if (strand) {
     if (strand === '+') {
       feature.strand = 1
@@ -73,12 +77,25 @@ export function gff3ToAnnotationFeature(
       throw new Error(`Unknown strand: "${strand}"`)
     }
   }
+  if (featureIds) {
+    featureIds.push(feature._id as string)
+  }
 
+  // console.log(`++++ CHILD FEATURES PITUUS: ${childFeatures.length} `)
   if (childFeatures?.length) {
     const children: Record<string, AnnotationFeatureSnapshotNew> = {}
     for (const childFeature of childFeatures) {
-      const child = gff3ToAnnotationFeature(childFeature)
+      // console.log(`+++ childFeature: ${JSON.stringify(childFeature)}`)
+      if (childFeature[0].type === 'three_prime_UTR' || childFeature[0].type === 'five_prime_UTR') {
+        console.log(`-++++++ CHILD FEATURE OLI UTR: ${JSON.stringify(childFeature[0])}`)
+        continue
+      }
+      const child = refSeq ? gff3ToAnnotationFeature(childFeature, refSeq, featureIds) : gff3ToAnnotationFeature(childFeature);
       children[child._id] = child
+      // Add value to gffId
+      if (child.attributes) {
+        child.attributes.gffId = [child._id]
+      }
     }
     feature.children = children
   }
@@ -95,6 +112,7 @@ export function gff3ToAnnotationFeature(
         if (!val) {
           continue
         }
+        // AO. KOODI ERILAINEN MUTTA TOIMINEE KUTEN CREATEFEATUREN FUNKTIOSSA
         if (isGFFReservedAttribute(key)) {
           if (key === 'Parent') {
             continue
