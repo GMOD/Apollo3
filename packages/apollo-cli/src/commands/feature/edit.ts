@@ -56,19 +56,9 @@ export default class Get extends BaseCommand<typeof Get> {
       jsonStr = fs.readFileSync(flags['json-input']).toString()
     }
 
-    let json
-    try {
-      json = JSON.parse(jsonStr)
-      if (!Array.isArray(json)) {
-        json = [json]
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        this.logToStderr(`Error parsing json input:\n${error.message}`)
-        this.exit(1)
-      } else {
-        throw error
-      }
+    let json = JSON.parse(jsonStr)
+    if (!Array.isArray(json)) {
+      json = [json]
     }
 
     const access: { address: string; accessToken: string } =

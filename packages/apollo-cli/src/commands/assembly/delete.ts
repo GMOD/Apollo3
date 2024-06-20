@@ -56,6 +56,6 @@ export default class Delete extends BaseCommand<typeof Delete> {
     if (flags.verbose) {
       this.log(JSON.stringify(deleted, null, 2))
     }
-    this.logToStderr(`${i} assemblies deleted`)
+    this.logToStderr(`${i} assemblies deleted`) // Keep as logToStderr
   }
 }

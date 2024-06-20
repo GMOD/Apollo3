@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 
@@ -7,7 +5,12 @@ import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { submitAssembly, uploadFile, wrapLines } from '../../utils.js'
+import {
+  createFetchErrorMessage,
+  submitAssembly,
+  uploadFile,
+  wrapLines,
+} from '../../utils.js'
 
 export default class AddGff extends BaseCommand<typeof AddGff> {
   static summary = 'Add new assembly from gff or gft file'
@@ -52,8 +55,7 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
     const { flags } = await this.parse(AddGff)
 
     if (!fs.existsSync(flags['input-file'])) {
-      this.logToStderr(`File ${flags['input-file']} does not exist`)
-      this.exit(1)
+      this.error(`File ${flags['input-file']} does not exist`)
     }
 
     const access: { address: string; accessToken: string } =
@@ -73,29 +75,24 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
 
     const assemblyName = flags.assembly ?? path.basename(flags['input-file'])
 
-    let res
-    try {
-      const body = {
-        assemblyName,
-        fileId,
-        typeName,
-        assembly: new ObjectId().toHexString(),
-      }
-      res = await submitAssembly(
-        access.address,
-        access.accessToken,
-        body,
-        flags.force,
-      )
-    } catch (error) {
-      this.logToStderr((error as Error).message)
-      this.exit(1)
+    const body = {
+      assemblyName,
+      fileId,
+      typeName,
+      assembly: new ObjectId().toHexString(),
     }
+    const res = await submitAssembly(
+      access.address,
+      access.accessToken,
+      body,
+      flags.force,
+    )
     if (!res.ok) {
-      const json = JSON.parse(await res.text())
-      const message: string = json['message' as keyof typeof json]
-      this.logToStderr(message)
-      this.exit(1)
+      const errorMessage = await createFetchErrorMessage(
+        res,
+        'getFeatureById failed',
+      )
+      throw new Error(errorMessage)
     }
     this.exit(0)
   }

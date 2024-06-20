@@ -7,7 +7,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import Joi from 'joi'
-import YAML, { YAMLParseError } from 'yaml'
+import YAML from 'yaml'
 
 import { checkProfileExists, queryApollo } from './utils.js'
 
@@ -145,22 +145,7 @@ export class Config {
     if (fs.existsSync(configFile)) {
       const data: string = fs.readFileSync(configFile, 'utf8').trim()
       if (data !== '') {
-        let config
-        try {
-          config = YAML.parse(data)
-        } catch (error) {
-          if (error instanceof YAMLParseError) {
-            process.stderr.write(
-              'Error: Configuration file is probably invalid yaml format:\n',
-            )
-            process.stderr.write(error.message)
-          } else if (error instanceof Error) {
-            process.stderr.write('Unexpected error:')
-            process.stderr.write(error.message)
-          }
-          // eslint-disable-next-line unicorn/no-process-exit
-          process.exit(1)
-        }
+        const config = YAML.parse(data)
         this.profiles = config
       }
     }

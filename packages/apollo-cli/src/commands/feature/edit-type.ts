@@ -39,7 +39,7 @@ export default class Get extends BaseCommand<typeof Get> {
 
     const ff = idReader([flags['feature-id']])
     if (ff.length !== 1) {
-      this.logToStderr(`Expected only one feature identifier. Got ${ff.length}`)
+      this.error(`Expected only one feature identifier. Got ${ff.length}`)
     }
     const [featureId] = ff
 
@@ -63,13 +63,13 @@ export default class Get extends BaseCommand<typeof Get> {
     const currentType = featureJson['type' as keyof typeof featureJson]
     if (flags.type === undefined) {
       this.log(currentType)
-      this.exit(0)
+      return
     }
     if (flags.type === currentType) {
       this.logToStderr(
         `NOTE: Feature ${featureId} is already of type "${flags.type}"`,
       )
-      this.exit(0)
+      return
     }
 
     const assembly = await getAssemblyFromRefseq(
@@ -105,5 +105,6 @@ export default class Get extends BaseCommand<typeof Get> {
       )
       throw new Error(errorMessage)
     }
+    this.exit(0)
   }
 }

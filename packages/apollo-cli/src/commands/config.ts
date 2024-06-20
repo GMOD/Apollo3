@@ -8,7 +8,7 @@ import { Args, Flags } from '@oclif/core'
 import { fetch } from 'undici'
 
 import { BaseCommand } from '../baseCommand.js'
-import { Config, ConfigError, KEYS, optionDesc } from '../Config.js'
+import { Config, KEYS, optionDesc } from '../Config.js'
 import {
   createFetchErrorMessage,
   localhostToAddress,
@@ -73,7 +73,7 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
         : path.resolve(configFile)
     if (flags['get-config-file']) {
       this.log(configFile)
-      this.exit(0)
+      return
     }
 
     const config: Config = new Config(configFile)
@@ -88,21 +88,14 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
       if (flags.profile !== undefined) {
         profileName = flags.profile
       }
-      try {
-        if (args.value === undefined) {
-          const currentValue: string | undefined = config.get(
-            args.key,
-            profileName,
-          )
-          this.log(currentValue)
-        } else {
-          config.set(args.key, args.value, profileName)
-        }
-      } catch (error) {
-        if (error instanceof Error) {
-          this.logToStderr(error.message)
-        }
-        this.exit(1)
+      if (args.value === undefined) {
+        const currentValue: string | undefined = config.get(
+          args.key,
+          profileName,
+        )
+        this.log(currentValue)
+      } else {
+        config.set(args.key, args.value, profileName)
       }
     }
 
@@ -110,15 +103,7 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
     if (v) {
       this.logToStderr(v)
     }
-
-    try {
-      config.writeConfigFile()
-    } catch (error) {
-      if (error instanceof ConfigError) {
-        this.logToStderr(error.message)
-        this.exit(1)
-      }
-    }
+    config.writeConfigFile()
   }
 
   private async interactiveSetup(
@@ -134,26 +119,13 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
       const address: string = await this.askAddress(
         config.get(KEYS[KEYS.address], profileName),
       )
-      try {
-        config.set('address', address, profileName)
-        setMe = false
-      } catch (error) {
-        if (error instanceof ConfigError) {
-          this.logToStderr(error.message)
-        }
-      }
+      config.set('address', address, profileName)
+      setMe = false
     }
 
     const address = config.get(KEYS[KEYS.address], profileName)
     let accessType = ''
-    try {
-      accessType = await this.selectAccessType(address)
-    } catch (error) {
-      if (error instanceof ConfigError) {
-        this.logToStderr(error.message)
-        this.exit(1)
-      }
-    }
+    accessType = await this.selectAccessType(address)
 
     config.set(KEYS[KEYS.accessType], accessType, profileName)
     if (accessType === 'root') {
@@ -174,7 +146,6 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
     for (const profileName of currentProfiles) {
       xchoices.push({ name: profileName, value: profileName })
     }
-
     let answer = newProfile
     if (currentProfiles.length > 1) {
       answer = await select({
@@ -182,14 +153,12 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
         choices: xchoices,
       })
     }
-
     if (answer === newProfile) {
       answer = await input({
         message: 'New profile name:',
         default: currentProfiles.includes('default') ? undefined : 'default',
       })
     }
-
     return answer
   }
 

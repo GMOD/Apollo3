@@ -1,7 +1,7 @@
 import path from 'node:path'
 
 import { BaseCommand } from '../baseCommand.js'
-import { Config, ConfigError, KEYS } from '../Config.js'
+import { Config, KEYS } from '../Config.js'
 import { basicCheckConfig, wrapLines } from '../utils.js'
 
 export default class Logout extends BaseCommand<typeof Logout> {
@@ -33,15 +33,7 @@ export default class Logout extends BaseCommand<typeof Logout> {
     if (configFile === undefined) {
       configFile = path.join(this.config.configDir, 'config.yaml')
     }
-    try {
-      basicCheckConfig(configFile, profileName)
-    } catch (error) {
-      if (error instanceof ConfigError) {
-        this.logToStderr(error.message)
-        this.exit(1)
-      }
-    }
-
+    basicCheckConfig(configFile, profileName)
     const config: Config = new Config(configFile)
 
     config.set(KEYS.accessToken, '', profileName)

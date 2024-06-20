@@ -3,7 +3,6 @@ import { Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
-  CheckError,
   convertCheckNameToId,
   createFetchErrorMessage,
   getAssembly,
@@ -87,7 +86,7 @@ export default class Check extends BaseCommand<typeof Check> {
   static summary = 'Add, view, or delete checks to assembly'
   static description = wrapLines(
     'Manage checks, i.e. the rules ensuring features in an assembly are plausible. \
-    This command only sets the check to apply, to retrieve features flagged by these checks use `apollo feature check`.',
+    This command only sets the checks to apply, to retrieve features flagged by these checks use `apollo feature check`.',
   )
 
   static examples = [
@@ -139,12 +138,11 @@ export default class Check extends BaseCommand<typeof Check> {
     )
     if (flags.check === undefined && flags.assembly === undefined) {
       this.log(JSON.stringify(checkTypes, null, 2))
-      this.exit(0)
+      return
     }
 
     if (flags.assembly === undefined) {
-      this.logToStderr('Please specify the assembly to manage for checks')
-      this.exit(1)
+      this.error('Please specify the assembly to manage for checks')
     }
 
     const asm: string[] = idReader([flags.assembly])
@@ -155,8 +153,7 @@ export default class Check extends BaseCommand<typeof Check> {
     )
 
     if (Object.keys(assembly).length === 0) {
-      this.logToStderr(`Assembly ${flags.assembly} not found`)
-      this.exit(1)
+      this.error(`Assembly ${flags.assembly} not found`)
     }
 
     const currentChecks: object[] = getCheckTypesForAssembly(
@@ -165,22 +162,15 @@ export default class Check extends BaseCommand<typeof Check> {
     )
     if (flags.check === undefined) {
       this.log(JSON.stringify(currentChecks, null, 2))
-      this.exit(0)
+      return
     }
 
     let inputCheckIds: string[] = []
-    try {
-      inputCheckIds = await convertCheckNameToId(
-        access.address,
-        access.accessToken,
-        flags.check,
-      )
-    } catch (error) {
-      if (error instanceof CheckError) {
-        this.logToStderr(error.message)
-        this.exit(1)
-      }
-    }
+    inputCheckIds = await convertCheckNameToId(
+      access.address,
+      access.accessToken,
+      flags.check,
+    )
 
     const newChecks = new Set<string>()
     if (flags.delete) {
@@ -208,7 +198,5 @@ export default class Check extends BaseCommand<typeof Check> {
       assembly['_id' as keyof typeof assembly],
       [...newChecks.values()],
     )
-
-    this.exit(0)
   }
 }
