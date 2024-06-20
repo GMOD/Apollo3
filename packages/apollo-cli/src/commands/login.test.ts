@@ -21,8 +21,8 @@ describe('apollo login: Config file does not exist', () => {
   test
     .stderr()
     .command(cmd, { root: dirname(dirname(__dirname)) })
-    .catch(ctx => {
-      expect(ctx.message).to.contain('apollo config')
+    .catch((error) => {
+      expect(error.message).to.contain('apollo config')
     })
     .it(cmd.join(' '))
 })
@@ -38,10 +38,10 @@ describe('apollo login: Profile does not exist', () => {
   test
     .stderr()
     .command(cmd, { root: dirname(dirname(__dirname)) })
-    .catch(ctx => {
-      expect(ctx.message).to.contain('apollo config')
-      expect(ctx.message).to.contain('Profile')
-      expect(ctx.message).to.contain('notavailable')
+    .catch((error) => {
+      expect(error.message).to.contain('apollo config')
+      expect(error.message).to.contain('Profile')
+      expect(error.message).to.contain('notavailable')
     })
     .it(cmd.join(' '))
 })
