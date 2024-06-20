@@ -44,8 +44,9 @@ describe('apollo config: Query config file', () => {
   test
     .stderr()
     .command(cmd, { root: dirname(dirname(__dirname)) })
-    .exit(1)
-    .do((output) => expect(output.stderr).to.contain('someInvalidKey'))
+    .catch(ctx => {
+      expect(ctx.message).to.contain('someInvalidKey')
+    })
     .it(cmd.join(' '))
 
   cmd = ['config', '--profile', 'profile1', 'address']
@@ -164,10 +165,9 @@ describe('Do not set invalid address', () => {
   test
     .stderr()
     .command(cmd, { root: dirname(dirname(__dirname)) })
-    .exit(1)
-    .do((output) =>
-      expect(output.stderr).to.contain('http://localhost:3999xxx'),
-    )
+    .catch(ctx => {
+      expect(ctx.message).to.contain('http://localhost:3999xxx')
+    })
     .it(cmd.join(' '))
 })
 

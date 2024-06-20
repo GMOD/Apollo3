@@ -172,6 +172,7 @@ export default class Login extends BaseCommand<typeof Login> {
       method: 'POST',
       body: JSON.stringify({ username, password }),
     })
+    console.log(url)
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(
         response,

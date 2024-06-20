@@ -43,8 +43,9 @@ describe('apollo status: Config file does not exist', () => {
   test
     .stderr()
     .command(cmd, { root: dirname(dirname(__dirname)) })
-    .exit(1)
-    .do((output) => expect(output.stderr).to.contain('apollo config'))
+    .catch(ctx => {
+      expect(ctx.message).to.contain('apollo config')
+    })
     .it(cmd.join(' '))
 })
 
@@ -59,9 +60,10 @@ describe('apollo status: Profile does not exist', () => {
   test
     .stderr()
     .command(cmd, { root: dirname(dirname(__dirname)) })
-    .exit(1)
-    .do((output) => expect(output.stderr).to.contain('apollo config'))
-    .do((output) => expect(output.stderr).to.contain('Profile'))
-    .do((output) => expect(output.stderr).to.contain('notavailable'))
+    .catch(ctx => {
+      expect(ctx.message).to.contain('apollo config')
+      expect(ctx.message).to.contain('Profile')
+      expect(ctx.message).to.contain('notavailable')
+    })
     .it(cmd.join(' '))
 })
