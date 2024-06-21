@@ -42,6 +42,24 @@ class TestCLI(unittest.TestCase):
         p = shell(f"{apollo} config --get-config-file")
         self.assertTrue(p.stdout.strip().startswith("/"))
 
+    def testConfigInvalidKeys(self):
+        p = shell(f"{apollo} config {P} address spam", strict=False)
+        self.assertEqual(1, p.returncode)
+        self.assertTrue("Invalid setting:" in p.stderr)
+
+        p = shell(f"{apollo} config {P} ADDRESS http://localhost:3999", strict=False)
+        self.assertEqual(1, p.returncode)
+        self.assertTrue("Unknown key:" in p.stderr)
+
+        p = shell(f"{apollo} config {P} accessType spam", strict=False)
+        self.assertEqual(1, p.returncode)
+        self.assertTrue("must be one of" in p.stderr)
+
+    def testCanChangeAccessType(self):
+        p = shell(f"{apollo} config {P} accessType google")
+        p = shell(f"{apollo} config {P} rootCredentials.username")
+        self.assertEqual("", p.stdout.strip())
+
     def testApolloStatus(self):
         p = shell(f"{apollo} status {P}")
         self.assertEqual(p.stdout.strip(), "testAdmin: Logged in")

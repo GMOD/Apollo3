@@ -11,7 +11,7 @@ import * as path from 'node:path'
 
 import { Agent, FormData, RequestInit, Response, fetch } from 'undici'
 
-import { Config, ConfigError } from './Config.js'
+import { ApolloConf, ConfigError } from './ApolloConf.js'
 
 const CONFIG_PATH = path.resolve(os.homedir(), '.clirc')
 export const CLI_SERVER_ADDRESS = 'http://127.0.0.1:5657'
@@ -47,7 +47,7 @@ export function checkConfigfileExists(configFile: string) {
   }
 }
 
-export function checkProfileExists(profileName: string, config: Config) {
+export function checkProfileExists(profileName: string, config: ApolloConf) {
   if (!config.getProfileNames().includes(profileName)) {
     throw new ConfigError(
       `Profile "${profileName}" does not exist. Please run "apollo config" to set this profile up or choose a different profile`,
@@ -57,7 +57,7 @@ export function checkProfileExists(profileName: string, config: Config) {
 
 export function basicCheckConfig(configFile: string, profileName: string) {
   checkConfigfileExists(configFile)
-  const config: Config = new Config(configFile)
+  const config: ApolloConf = new ApolloConf(configFile)
   checkProfileExists(profileName, config)
 }
 

@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import { Command, Flags, Interfaces } from '@oclif/core'
 
-import { Config } from './Config.js'
+import { ApolloConf } from './ApolloConf.js'
 import { checkConfigfileExists } from './utils.js'
 
 export type Flags<T extends typeof Command> = Interfaces.InferredFlags<
@@ -34,12 +34,12 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     this.args = args as Args<T>
   }
 
-  private getConfig(configFile: string | undefined): Config {
+  private getConfig(configFile: string | undefined): ApolloConf {
     if (configFile === undefined) {
       configFile = path.join(this.config.configDir, 'config.yaml')
     }
     checkConfigfileExists(configFile)
-    const config: Config = new Config(configFile)
+    const config: ApolloConf = new ApolloConf(configFile)
     return config
   }
 
@@ -47,7 +47,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     configFile: string | undefined,
     profileName: string | undefined,
   ): Promise<{ address: string; accessToken: string }> {
-    const config: Config = this.getConfig(configFile)
+    const config: ApolloConf = this.getConfig(configFile)
 
     if (profileName === undefined) {
       profileName = process.env.APOLLO_PROFILE ?? 'default'

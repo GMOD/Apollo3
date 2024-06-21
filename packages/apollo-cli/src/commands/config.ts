@@ -7,8 +7,8 @@ import select from '@inquirer/select'
 import { Args, Flags } from '@oclif/core'
 import { fetch } from 'undici'
 
+import { ApolloConf, KEYS, optionDesc } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
-import { Config, KEYS, optionDesc } from '../Config.js'
 import {
   createFetchErrorMessage,
   localhostToAddress,
@@ -76,7 +76,7 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
       return
     }
 
-    const config: Config = new Config(configFile)
+    const config: ApolloConf = new ApolloConf(configFile)
 
     if (args.key === undefined) {
       await this.interactiveSetup(config, flags.profile)
@@ -89,25 +89,22 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
         profileName = flags.profile
       }
       if (args.value === undefined) {
-        const currentValue: string | undefined = config.get(
-          args.key,
-          profileName,
-        )
+        const currentValue: string = config.get(
+          `${profileName}.${args.key}`,
+        ) as string
         this.log(currentValue)
+        return
+      }
+      if (args.key === 'accessType') {
+        config.setAccessType(profileName, args.value)
       } else {
-        config.set(args.key, args.value, profileName)
+        config.set(`${profileName}.${args.key}`, args.value)
       }
     }
-
-    const v = config.validate().error?.message
-    if (v) {
-      this.logToStderr(v)
-    }
-    config.writeConfigFile()
   }
 
   private async interactiveSetup(
-    config: Config,
+    config: ApolloConf,
     profileName: string | undefined,
   ) {
     if (profileName === undefined) {
@@ -117,25 +114,25 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
     let setMe = true
     while (setMe) {
       const address: string = await this.askAddress(
-        config.get(KEYS[KEYS.address], profileName),
+        config.get(`${profileName}.${KEYS[KEYS.address]}`) as string,
       )
-      config.set('address', address, profileName)
+      config.set(`${profileName}.${KEYS[KEYS.address]}`, address)
       setMe = false
     }
-
-    const address = config.get(KEYS[KEYS.address], profileName)
+    const address: string = config.get(
+      `${profileName}.${KEYS[KEYS.address]}`,
+    ) as string
     let accessType = ''
     accessType = await this.selectAccessType(address)
 
-    config.set(KEYS[KEYS.accessType], accessType, profileName)
+    config.setAccessType(profileName, accessType)
     if (accessType === 'root') {
       const username: string = await this.askUsername(
-        config.get(KEYS.rootCredentials_username, profileName),
+        config.get(`${profileName}.${KEYS.rootCredentials_username}`) as string,
       )
-      config.set('rootCredentials.username', username, profileName)
-
+      config.set(`${profileName}.rootCredentials.username`, username)
       const password: string = await this.askPassword()
-      config.set('rootCredentials.password', password, profileName)
+      config.set(`${profileName}.rootCredentials.password`, password)
     }
   }
 

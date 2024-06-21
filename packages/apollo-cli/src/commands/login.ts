@@ -10,8 +10,8 @@ import { Errors, Flags, ux } from '@oclif/core'
 import open from 'open'
 import { fetch } from 'undici'
 
+import { ApolloConf } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
-import { Config } from '../Config.js'
 import {
   UserCredentials,
   basicCheckConfig,
@@ -87,11 +87,10 @@ export default class Login extends BaseCommand<typeof Login> {
       profileName = process.env.APOLLO_PROFILE ?? 'default'
     }
     basicCheckConfig(configFile, profileName)
-    const config: Config = new Config(configFile)
-
-    const accessType: string | undefined = config.get('accessType', profileName)
-    const address: string | undefined =
-      flags.address ?? config.get('address', profileName)
+    const config: ApolloConf = new ApolloConf(configFile)
+    const accessType: string = config.get(`${profileName}.accessType`) as string
+    const address: string =
+      flags.address ?? (config.get(`${profileName}.address`) as string)
     if (address === undefined) {
       this.error('Address to apollo must be set')
     }
@@ -103,10 +102,12 @@ export default class Login extends BaseCommand<typeof Login> {
         await this.checkUserAlreadyLoggedIn()
       }
       if (accessType === 'root' || flags.username !== undefined) {
-        const username: string | undefined =
-          flags.username ?? config.get('rootCredentials.username', profileName)
-        const password: string | undefined =
-          flags.password ?? config.get('rootCredentials.password', profileName)
+        const username: string =
+          flags.username ??
+          (config.get(`${profileName}.rootCredentials.username`) as string)
+        const password: string =
+          flags.password ??
+          (config.get(`${profileName}.rootCredentials.password`) as string)
         if (username === undefined || password === undefined) {
           this.error('Username and password must be set')
         }
@@ -133,8 +134,7 @@ export default class Login extends BaseCommand<typeof Login> {
         throw error
       }
     }
-    config.set('accessToken', userCredentials.accessToken, profileName)
-    config.writeConfigFile()
+    config.set(`${profileName}.accessToken`, userCredentials.accessToken)
   }
 
   private async checkUserAlreadyLoggedIn() {
