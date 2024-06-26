@@ -138,21 +138,19 @@ export const AnnotationFeatureModel = types
             cdsMax,
             child.min,
             child.max,
-          ) as [number, number] | []
+          )
           if (start !== undefined && end !== undefined) {
             locs.push({ min: start, max: end })
           }
         }
+        locs.sort(({ min: a }, { min: b }) => a - b)
         if (self.strand === -1) {
           locs.reverse()
         }
-        let remainder: 0 | 1 | 2 = 0
+        let nextPhase : 0 | 1 | 2 = 0
         const phasedLocs = locs.map((loc) => {
-          const phase = remainder
-          remainder = ((3 - ((loc.max - loc.min - remainder) % 3)) % 3) as
-            | 0
-            | 1
-            | 2
+          const phase = nextPhase
+          nextPhase = (3 - ((loc.max - loc.min - phase + 3) % 3)) % 3 as 0 | 1 | 2
           return { ...loc, phase }
         })
         cdsLocations.push(phasedLocs)
@@ -269,7 +267,7 @@ export const AnnotationFeatureModel = types
     },
   }))
 
-type Children = IMSTMap<typeof AnnotationFeatureModel> | undefined
+export type Children = IMSTMap<typeof AnnotationFeatureModel> | undefined
 
 export type AnnotationFeature = Instance<typeof AnnotationFeatureModel>
 type AnnotationFeatureSnapshotRaw = SnapshotIn<typeof AnnotationFeatureModel>
