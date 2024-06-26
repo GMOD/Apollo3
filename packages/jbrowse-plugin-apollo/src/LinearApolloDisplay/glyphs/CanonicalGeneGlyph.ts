@@ -3,11 +3,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { AnnotationFeature } from '@apollo-annotation/mst'
+import { AnnotationFeature, Children } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
 } from '@apollo-annotation/shared'
+import { getFrame } from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
 
 import { LinearApolloDisplay } from '../stateModel'
@@ -15,7 +16,6 @@ import {
   CDSDiscontinuousLocation,
   MousePosition,
 } from '../stateModel/mouseEvents'
-import { frameColors, getFrame } from '../stateModel/rendering'
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 
@@ -81,19 +81,26 @@ export class CanonicalGeneGlyph extends Glyph {
   featuresForRow(
     feature: AnnotationFeature,
   ): CanonicalGeneAnnotationFeature[][] {
+    const { children } = feature
     const cdsFeatures: CDSFeatures[] = []
-    for (const [, child] of feature.children ?? new Map()) {
-      for (const [, annotationFeature] of child.children ?? new Map()) {
-        if (annotationFeature.type === 'CDS') {
-          const cdsDiscontinuousLocs = this.getDiscontinuousLocations(
-            child,
-            annotationFeature,
-          )
-          cdsFeatures.push({
-            parent: child,
-            cds: annotationFeature,
-            cdsDiscontinuousLocs,
-          })
+    if (children) {
+      for (const [, child] of children) {
+        const featureChild = child as AnnotationFeature
+        if (!featureChild.children) {
+          continue
+        }
+        for (const [, annotationFeature] of featureChild.children) {
+          if (annotationFeature.type === 'CDS') {
+            const cdsDiscontinuousLocs = this.getDiscontinuousLocations(
+              child,
+              annotationFeature,
+            )
+            cdsFeatures.push({
+              parent: child,
+              cds: annotationFeature,
+              cdsDiscontinuousLocs,
+            })
+          }
         }
       }
     }
@@ -166,12 +173,16 @@ export class CanonicalGeneGlyph extends Glyph {
     const rowHeight = apolloRowHeight
     const exonHeight = Math.round(0.6 * rowHeight)
     const cdsHeight = Math.round(0.9 * rowHeight)
-    const { _id, children, min, strand } = feature
+    const { _id, min, strand } = feature
+    const children = feature.children as Children
+    if (!children) {
+      return
+    }
     const { apolloSelectedFeature } = session
 
     // Draw lines on different rows for each mRNA
     let currentRow = 0
-    for (const [, mrna] of children ?? new Map()) {
+    for (const [, mrna] of children) {
       if (mrna.type !== 'mRNA') {
         continue
       }
@@ -197,14 +208,11 @@ export class CanonicalGeneGlyph extends Glyph {
 
     // Draw exon and CDS for each mRNA
     currentRow = 0
-    for (const [, mrna] of children ?? new Map()) {
+    for (const [, mrna] of children) {
       if (mrna.type !== 'mRNA') {
         continue
       }
-      for (const [, cds] of mrna.children ?? new Map()) {
-        if (cds.type !== 'CDS') {
-          continue
-        }
+      for (const cdsRow of mrna.cdsLocations) {
         for (const [, exon] of mrna.children ?? new Map()) {
           if (exon.type !== 'exon') {
             continue
@@ -247,18 +255,10 @@ export class CanonicalGeneGlyph extends Glyph {
               )
             }
           }
-
-          // draw CDS
-          if (exon.max < cds.min || exon.min > cds.max) {
-            continue
-          }
-
-          const cdsMin =
-            exon.min < cds.min && cds.min < exon.max ? cds.min : exon.min
-          const cdsMax =
-            exon.min < cds.max && cds.max < exon.max ? cds.max : exon.max
-          const cdsOffsetPx = (cdsMin - min) / bpPerPx
-          const cdsWidthPx = (cdsMax - cdsMin) / bpPerPx
+        }
+        for (const cds of cdsRow) {
+          const cdsOffsetPx = (cds.min - min) / bpPerPx
+          const cdsWidthPx = (cds.max - cds.min) / bpPerPx
           const cdsStartPx = reversed
             ? xOffset - cdsOffsetPx - cdsWidthPx
             : xOffset + cdsOffsetPx
@@ -273,12 +273,14 @@ export class CanonicalGeneGlyph extends Glyph {
               cdsWidthPx - 2,
               cdsHeight - 2,
             )
-            const frame = getFrame(cdsMin, cdsMax, cds.strand, cds.phase)
-            const cdsColorCode = frameColors.at(frame) ?? 'rgb(171,71,188)'
-            ctx.fillStyle =
-              apolloSelectedFeature && cds._id === apolloSelectedFeature._id
-                ? 'rgb(0,0,0)'
-                : cdsColorCode
+            const frame = getFrame(cds.min, cds.max, mrna.strand || 1, cds.phase)
+            const frameColor = theme?.palette.framesCDS.at(frame)?.main
+            const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
+            // ctx.fillStyle =
+            //   apolloSelectedFeature && cds._id === apolloSelectedFeature._id
+            //     ? 'rgb(0,0,0)'
+            //     : cdsColorCode
+            ctx.fillStyle = cdsColorCode
             ctx.fillRect(
               cdsStartPx + 1,
               cdsTop + 1,
@@ -311,43 +313,156 @@ export class CanonicalGeneGlyph extends Glyph {
         currentRow += 1
       }
     }
+    // for (const [, mrna] of children) {
+    //   if (mrna.type !== 'mRNA') {
+    //     continue
+    //   }
+    //   for (const [, cds] of mrna.cdsLocations) {
+    //     for (const [, exon] of mrna.children ?? new Map()) {
+    //       if (exon.type !== 'exon') {
+    //         continue
+    //       }
+    //       const offsetPx = (exon.min - min) / bpPerPx
+    //       const widthPx = exon.length / bpPerPx
+    //       const startPx = reversed
+    //         ? xOffset - offsetPx - widthPx
+    //         : xOffset + offsetPx
+    //       const top = (row + currentRow) * rowHeight
+    //       const exonTop = top + (rowHeight - exonHeight) / 2
+    //       ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+    //       ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
+    //       if (widthPx > 2) {
+    //         ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
+    //         ctx.fillStyle =
+    //           apolloSelectedFeature && exon._id === apolloSelectedFeature._id
+    //             ? 'rgb(0,0,0)'
+    //             : 'rgb(211,211,211)'
+    //         ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
+    //         if (forwardFill && backwardFill && strand) {
+    //           const reversal = reversed ? -1 : 1
+    //           const [topFill, bottomFill] =
+    //             strand * reversal === 1
+    //               ? [forwardFill, backwardFill]
+    //               : [backwardFill, forwardFill]
+    //           ctx.fillStyle = topFill
+    //           ctx.fillRect(
+    //             startPx + 1,
+    //             exonTop + 1,
+    //             widthPx - 2,
+    //             (exonHeight - 2) / 2,
+    //           )
+    //           ctx.fillStyle = bottomFill
+    //           ctx.fillRect(
+    //             startPx + 1,
+    //             exonTop + 1 + (exonHeight - 2) / 2,
+    //             widthPx - 2,
+    //             (exonHeight - 2) / 2,
+    //           )
+    //         }
+    //       }
 
-    if (apolloSelectedFeature) {
-      if (_id === apolloSelectedFeature._id) {
-        const widthPx = feature.length / bpPerPx
-        const startPx = reversed ? xOffset - widthPx : xOffset
-        const top = row * rowHeight
-        const height = this.getRowCount(feature) * rowHeight
-        ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,0.08)'
-        ctx.fillRect(startPx, top, widthPx, height)
-      } else {
-        let featureEntry: AnnotationFeature | undefined
-        let featureRow: number | undefined
-        let i = 0
-        for (const [, f] of children ?? new Map()) {
-          if (f._id === apolloSelectedFeature?._id) {
-            featureEntry = f
-            featureRow = i
-          }
-          i++
-        }
+    //       // draw CDS
+    //       if (exon.max < cds.min || exon.min > cds.max) {
+    //         continue
+    //       }
 
-        if (featureEntry === undefined || featureRow === undefined) {
-          return
-        }
-        const cdsCount = this.cdsCount(featureEntry)
-        let height = rowHeight
-        if (cdsCount > 1) {
-          height = height * cdsCount
-        }
-        const widthPx = featureEntry.length / bpPerPx
-        const offsetPx = (featureEntry.min - min) / bpPerPx
-        const startPx = reversed ? xOffset - widthPx : xOffset + offsetPx
-        const top = (row + featureRow) * rowHeight
-        ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,08)'
-        ctx.fillRect(startPx, top, widthPx, height)
-      }
-    }
+    //       const cdsMin =
+    //         exon.min < cds.min && cds.min < exon.max ? cds.min : exon.min
+    //       const cdsMax =
+    //         exon.min < cds.max && cds.max < exon.max ? cds.max : exon.max
+    //       const cdsOffsetPx = (cdsMin - min) / bpPerPx
+    //       const cdsWidthPx = (cdsMax - cdsMin) / bpPerPx
+    //       const cdsStartPx = reversed
+    //         ? xOffset - cdsOffsetPx - cdsWidthPx
+    //         : xOffset + cdsOffsetPx
+    //       ctx.fillStyle = theme?.palette.text.primary ?? 'black'
+    //       const cdsTop =
+    //         (row + currentRow) * rowHeight + (rowHeight - cdsHeight) / 2
+    //       ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
+    //       if (cdsWidthPx > 2) {
+    //         ctx.clearRect(
+    //           cdsStartPx + 1,
+    //           cdsTop + 1,
+    //           cdsWidthPx - 2,
+    //           cdsHeight - 2,
+    //         )
+    //         const frame = getFrame(cdsMin, cdsMax, mrna.strand || 1, cds.phase)
+    //         const frameColor = theme?.palette.framesCDS.at(frame)?.main
+    //         const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
+    //         // ctx.fillStyle =
+    //         //   apolloSelectedFeature && cds._id === apolloSelectedFeature._id
+    //         //     ? 'rgb(0,0,0)'
+    //         //     : cdsColorCode
+    //         ctx.fillStyle = cdsColorCode
+    //         ctx.fillRect(
+    //           cdsStartPx + 1,
+    //           cdsTop + 1,
+    //           cdsWidthPx - 2,
+    //           cdsHeight - 2,
+    //         )
+    //         if (forwardFill && backwardFill && strand) {
+    //           const reversal = reversed ? -1 : 1
+    //           const [topFill, bottomFill] =
+    //             strand * reversal === 1
+    //               ? [forwardFill, backwardFill]
+    //               : [backwardFill, forwardFill]
+    //           ctx.fillStyle = topFill
+    //           ctx.fillRect(
+    //             cdsStartPx + 1,
+    //             cdsTop + 1,
+    //             cdsWidthPx - 2,
+    //             (cdsHeight - 2) / 2,
+    //           )
+    //           ctx.fillStyle = bottomFill
+    //           ctx.fillRect(
+    //             cdsStartPx + 1,
+    //             cdsTop + (cdsHeight - 2) / 2,
+    //             cdsWidthPx - 2,
+    //             (cdsHeight - 2) / 2,
+    //           )
+    //         }
+    //       }
+    //     }
+    //     currentRow += 1
+    //   }
+    // }
+
+    // if (apolloSelectedFeature) {
+    //   if (_id === apolloSelectedFeature._id) {
+    //     const widthPx = feature.length / bpPerPx
+    //     const startPx = reversed ? xOffset - widthPx : xOffset
+    //     const top = row * rowHeight
+    //     const height = this.getRowCount(feature) * rowHeight
+    //     ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,0.08)'
+    //     ctx.fillRect(startPx, top, widthPx, height)
+    //   } else {
+    //     let featureEntry: AnnotationFeature | undefined
+    //     let featureRow: number | undefined
+    //     let i = 0
+    //     for (const [, f] of children ?? new Map()) {
+    //       if (f._id === apolloSelectedFeature._id) {
+    //         featureEntry = f
+    //         featureRow = i
+    //       }
+    //       i++
+    //     }
+
+    //     if (featureEntry === undefined || featureRow === undefined) {
+    //       return
+    //     }
+    //     const cdsCount = this.cdsCount(featureEntry)
+    //     let height = rowHeight
+    //     if (cdsCount > 1) {
+    //       height = height * cdsCount
+    //     }
+    //     const widthPx = featureEntry.length / bpPerPx
+    //     const offsetPx = (featureEntry.min - min) / bpPerPx
+    //     const startPx = reversed ? xOffset - widthPx : xOffset + offsetPx
+    //     const top = (row + featureRow) * rowHeight
+    //     ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,08)'
+    //     ctx.fillRect(startPx, top, widthPx, height)
+    //   }
+    // }
   }
 
   // CDS count with discontinuous locations
@@ -379,8 +494,8 @@ export class CanonicalGeneGlyph extends Glyph {
 
     if (feature.type === 'CDS') {
       const parentFeature = this.getParentFeature(feature, topLevelFeature)
-      const cdsLocs = this.getDiscontinuousLocations(parentFeature, feature)
-      for (const cdsLoc of cdsLocs) {
+      const {cdsLocations} = parentFeature
+      for (const cdsLoc of cdsLocations) {
         this.drawShadeForFeature(
           stateModel,
           ctx,
@@ -884,10 +999,10 @@ export class CanonicalGeneGlyph extends Glyph {
     }
     if (feature.type !== 'CDS') {
       const adjacentExons = this.adjacentExonsOfExon(feature, topLevelFeature)
-      if (adjacentExons?.nextExon && bp >= adjacentExons?.nextExon.min - 1) {
+      if (adjacentExons?.nextExon && bp >= adjacentExons.nextExon.min - 1) {
         return
       }
-      if (adjacentExons?.prevExon && bp <= adjacentExons?.prevExon.max + 1) {
+      if (adjacentExons?.prevExon && bp <= adjacentExons.prevExon.max + 1) {
         return
       }
       const dls: CDSDiscontinuousLocation[] = this.cdsDlsForExon(

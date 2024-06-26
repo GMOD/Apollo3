@@ -15,6 +15,7 @@ import { Glyph } from '../glyphs/Glyph'
 import { CanvasMouseEvent } from '../types'
 import { getGlyph } from './getGlyph'
 import { renderingModelFactory } from './rendering'
+import { Frame, getFrame } from '@jbrowse/core/util'
 
 /** extended information about the position of the mouse on the canvas, including the refName, bp, and displayedRegion number */
 export interface MousePosition {
@@ -53,22 +54,34 @@ function getMousePosition(
 }
 
 function getSeqRow(
-  feature: AnnotationFeature,
-  bpPerPx: number,
-  phase?: number,
+  frame: Frame,
+  bpPerPx,
 ) {
-  const rowOffset = bpPerPx <= 1 ? 5 : 3
-  if (feature.type === 'CDS' && phase !== undefined) {
-    return feature.strand === -1
-      ? ((feature.max - phase) % 3) + rowOffset
-      : Math.abs(((feature.min + phase) % 3) - 2)
-  }
+  const offset = bpPerPx <= 1 ? 2 : 0
+  switch (frame) {
+    case 3: {
+      return 0
+    }
+    case 2: {
+      return 1
+    }
+    case 1: {
+      return 2
+    }
+    case -1: {
+      return 3 + offset
+    }
+    case -2: {
+      return 4 + offset
+    }
+    case -3: {
+      return 5 + offset
+    }
 
-  if (bpPerPx <= 1) {
-    return feature.strand === -1 ? 4 : 3
+    default: {
+      break;
+    }
   }
-
-  return
 }
 
 function highlightSeq(
@@ -240,19 +253,19 @@ export function mouseEventsSeqHightlightModelFactory(
                   feature,
                   topLevelFeature,
                 )
-                const cdsLocs = glyph.getDiscontinuousLocations(
-                  parentFeature,
-                  feature,
-                )
+                const cdsLocs = parentFeature.cdsLocations[0]
                 for (const dl of cdsLocs) {
-                  const row = getSeqRow(feature, lgv.bpPerPx, dl.phase)
+                  const frame = getFrame(dl.min, dl.max, feature.strand, dl.phase)
+                  console.log({frame})
+                  const row = getSeqRow(frame, lgv.bpPerPx)
+                  console.log({row})
                   const offset =
                     (lgv.bpToPx({
                       refName: region.refName,
-                      coord: dl.start,
+                      coord: dl.min,
                       regionNumber: idx,
                     })?.offsetPx ?? 0) - lgv.offsetPx
-                  const widthPx = (dl.end - dl.start) / lgv.bpPerPx
+                  const widthPx = (dl.max - dl.min) / lgv.bpPerPx
                   const startPx = displayedRegions[idx].reversed
                     ? offset - widthPx
                     : offset
