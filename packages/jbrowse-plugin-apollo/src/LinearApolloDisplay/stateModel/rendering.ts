@@ -10,29 +10,6 @@ import { ApolloSessionModel } from '../../session'
 import { getGlyph } from './getGlyph'
 import { layoutsModelFactory } from './layouts'
 
-export type Frame = 1 | 2 | 3 | -1 | -2 | -3
-
-export function getFrame(
-  start: number,
-  end: number,
-  strand: 1 | -1,
-  phase: 0 | 1 | 2,
-): Frame {
-  return strand === 1
-    ? ((((start + phase) % 3) + 1) as 1 | 2 | 3)
-    : ((-1 * ((end - phase) % 3) - 1) as -1 | -2 | -3)
-}
-
-export const frameColors: [
-  null,
-  string,
-  string,
-  string,
-  string,
-  string,
-  string,
-] = [null, '#FF8080', '#80FF80', '#8080FF', '#8080FF', '#80FF80', '#FF8080']
-
 export function renderingModelIntermediateFactory(
   pluginManager: PluginManager,
   configSchema: AnyConfigurationSchemaType,
@@ -169,17 +146,13 @@ function colorCode(letter: string, theme?: Theme) {
   )
 }
 
-function codonColorCode(letter: string, rowColorCode: string, bpPerPx: number) {
-  const colorMap: Record<string, string> = {
+function codonColorCode(letter: string) {
+  const colorMap: Record<string, string|undefined> = {
     M: '#33ee33',
     '*': '#f44336',
   }
 
-  if (colorMap[letter.toUpperCase()] !== undefined) {
-    return colorMap[letter.toUpperCase()]
-  }
-
-  return bpPerPx <= 0.1 ? rowColorCode : 'lightgray'
+  return colorMap[letter.toUpperCase()]
 }
 
 function reverseCodonSeq(seq: string): string {
@@ -214,7 +187,6 @@ function drawTranslation(
   seq: string,
   i: number,
   reverse: boolean,
-  rowColorCode: string,
 ) {
   let codonSeq: string = seq.slice(i, i + 3).toUpperCase()
   if (reverse) {
@@ -225,11 +197,13 @@ function drawTranslation(
   if (!codonLetter) {
     return
   }
-  seqTrackctx.beginPath()
-  seqTrackctx.fillStyle = codonColorCode(codonLetter, rowColorCode, bpPerPx)
-  seqTrackctx.rect(trnslStartPx, trnslY, trnslWidthPx, sequenceRowHeight)
-  seqTrackctx.fill()
+  const fillColor = codonColorCode(codonLetter)
+  if (fillColor) {
+    seqTrackctx.fillStyle = fillColor
+    seqTrackctx.fillRect(trnslStartPx, trnslY, trnslWidthPx, sequenceRowHeight)
+  }
   if (bpPerPx <= 0.1) {
+    seqTrackctx.rect(trnslStartPx, trnslY, trnslWidthPx, sequenceRowHeight)
     seqTrackctx.stroke()
     drawLetter(seqTrackctx, trnslStartPx, trnslWidthPx, codonLetter, trnslY)
   }
@@ -267,6 +241,16 @@ export function sequenceRenderingModelFactory(
               self.lgv.dynamicBlocks.totalWidthPx,
               self.lgv.bpPerPx <= 1 ? 125 : 95,
             )
+            const frames = self.lgv.bpPerPx <=1 ? [3,2,1,0,0,-1,-2,-3]: [3,2,1,-1,-2,-3]
+            let height = 0
+            for (const frame of frames) {
+              const frameColor = self.theme?.palette.framesCDS.at(frame)?.main
+              if (frameColor) {
+                seqTrackctx.fillStyle = frameColor
+                seqTrackctx.fillRect(0,height,self.lgv.dynamicBlocks.totalWidthPx,self.sequenceRowHeight)
+              }
+              height += self.sequenceRowHeight
+            }
 
             for (const [idx, region] of self.regions.entries()) {
               const driver = (
@@ -295,7 +279,6 @@ export function sequenceRenderingModelFactory(
 
                 // Draw translation forward
                 for (let j = 2; j >= 0; j--) {
-                  const color = frameColors.at(j + 1) ?? '#ffffff'
                   if ((region.start + i) % 3 === j) {
                     drawTranslation(
                       seqTrackctx,
@@ -307,7 +290,6 @@ export function sequenceRenderingModelFactory(
                       seq,
                       i,
                       false,
-                      color,
                     )
                   }
                 }
@@ -370,7 +352,6 @@ export function sequenceRenderingModelFactory(
 
                 // Draw translation reverse
                 for (let k = 0; k <= 2; k++) {
-                  const color = frameColors.at(-(k + 1)) ?? '#ffffff'
                   const rowOffset = self.lgv.bpPerPx <= 1 ? 5 : 3
                   if ((region.start + i) % 3 === k) {
                     drawTranslation(
@@ -383,7 +364,6 @@ export function sequenceRenderingModelFactory(
                       seq,
                       i,
                       true,
-                      color,
                     )
                   }
                 }

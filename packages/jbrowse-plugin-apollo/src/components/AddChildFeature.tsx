@@ -33,12 +33,6 @@ interface AddChildFeatureProps {
   changeManager: ChangeManager
 }
 
-enum PhaseEnum {
-  zero = 0,
-  one = 1,
-  two = 2,
-}
-
 export function AddChildFeature({
   changeManager,
   handleClose,
@@ -50,9 +44,6 @@ export function AddChildFeature({
   const [end, setEnd] = useState(String(sourceFeature.max))
   const [start, setStart] = useState(String(sourceFeature.min + 1))
   const [type, setType] = useState('')
-  const [phase, setPhase] = useState('')
-  const [phaseAsNumber, setPhaseAsNumber] = useState<PhaseEnum>()
-  const [showPhase, setShowPhase] = useState<boolean>(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [typeWarningText, setTypeWarningText] = useState('')
 
@@ -78,22 +69,16 @@ export function AddChildFeature({
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    if (showPhase && phase === '') {
-      setErrorMessage('The phase is REQUIRED for all CDS features.')
-      return
-    }
     const change = new AddFeatureChange({
       changedIds: [sourceFeature._id],
       typeName: 'AddFeatureChange',
       assembly: sourceAssemblyId,
       addedFeature: {
         _id: new ObjectID().toHexString(),
-        gffId: '',
         refSeq: sourceFeature.refSeq,
-        start: Number(start) - 1,
-        end: Number(end),
+        min: Number(start) - 1,
+        max: Number(end),
         type,
-        phase: phaseAsNumber,
       },
       parentFeatureId: sourceFeature._id,
     })
@@ -105,35 +90,6 @@ export function AddChildFeature({
   function handleChangeType(newType: string) {
     setErrorMessage('')
     setType(newType)
-    if (newType.startsWith('CDS')) {
-      setShowPhase(true)
-      setPhase('')
-    } else {
-      setShowPhase(false)
-    }
-  }
-  function handleChangePhase(e: SelectChangeEvent) {
-    setErrorMessage('')
-    setPhase(e.target.value)
-
-    switch (Number(e.target.value)) {
-      case 0: {
-        setPhaseAsNumber(PhaseEnum.zero)
-        break
-      }
-      case 1: {
-        setPhaseAsNumber(PhaseEnum.one)
-        break
-      }
-      case 2: {
-        setPhaseAsNumber(PhaseEnum.two)
-        break
-      }
-      default: {
-        // eslint-disable-next-line unicorn/no-useless-undefined
-        setPhaseAsNumber(undefined)
-      }
-    }
   }
   const error = Number(end) <= Number(start)
   return (
@@ -202,16 +158,6 @@ export function AddChildFeature({
               }
             }}
           />
-          {showPhase ? (
-            <FormControl>
-              <InputLabel>Phase</InputLabel>
-              <Select value={phase} onChange={handleChangePhase}>
-                <MenuItem value={0}>0</MenuItem>
-                <MenuItem value={1}>1</MenuItem>
-                <MenuItem value={2}>2</MenuItem>
-              </Select>
-            </FormControl>
-          ) : null}
         </DialogContent>
         <DialogActions>
           <Button
