@@ -103,15 +103,19 @@ export function AddAssembly({
     }
     const selectedFile = e.target.files.item(0)
     setFile(selectedFile)
+    if (!selectedFile) {
+      return
+    }
+    const fileNameLower = selectedFile.name.toLowerCase()
     if (
-      selectedFile?.name.toLowerCase().endsWith('.fasta') ??
-      selectedFile?.name.toLowerCase().endsWith('.fna') ??
-      selectedFile?.name.toLowerCase().endsWith('.fa')
+      fileNameLower.endsWith('.fasta') ||
+      fileNameLower.endsWith('.fna') ||
+      fileNameLower.endsWith('.fa')
     ) {
       setFileType(FileType.FASTA)
     } else if (
-      selectedFile?.name.toLowerCase().endsWith('.gff3') ??
-      selectedFile?.name.toLowerCase().endsWith('.gff')
+      fileNameLower.endsWith('.gff3') ||
+      fileNameLower.endsWith('.gff')
     ) {
       setFileType(FileType.GFF3)
     }

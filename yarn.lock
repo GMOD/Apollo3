@@ -162,7 +162,7 @@ __metadata:
     "@emotion/styled": "npm:^11.10.6"
     "@gmod/gff": "npm:1.2.0"
     "@gmod/indexedfasta": "npm:^2.0.4"
-    "@jbrowse/core": "npm:^2.7.0"
+    "@jbrowse/core": "npm:^2.11.2"
     "@mui/base": "npm:^5.0.0-alpha.118"
     "@mui/material": "npm:^5.11.14"
     "@nestjs/cli": "npm:^10.1.10"
@@ -242,7 +242,7 @@ __metadata:
     "@apollo-annotation/mst": "workspace:^"
     "@apollo-annotation/schemas": "workspace:^"
     "@gmod/gff": "npm:1.2.0"
-    "@jbrowse/core": "npm:^2.7.0"
+    "@jbrowse/core": "npm:^2.11.2"
     "@nestjs/common": "npm:^10.1.0"
     "@nestjs/core": "npm:^10.1.0"
     "@types/node": "npm:^18.14.2"
@@ -275,7 +275,7 @@ __metadata:
     "@emotion/styled": "npm:^11.10.6"
     "@gmod/gff": "npm:1.2.0"
     "@jbrowse/cli": "npm:^2.6.2"
-    "@jbrowse/core": "npm:^2.7.0"
+    "@jbrowse/core": "npm:^2.11.2"
     "@jbrowse/development-tools": "npm:^2.1.1"
     "@jbrowse/plugin-authentication": "npm:^2.0.1"
     "@jbrowse/plugin-linear-genome-view": "npm:^2.0.1"
@@ -326,7 +326,7 @@ __metadata:
     tss-react: "npm:^4.6.1"
     typescript: "npm:^5.1.6"
   peerDependencies:
-    "@jbrowse/core": ^2.7.0
+    "@jbrowse/core": ^2.11.2
     "@mui/material": ^5.11.14
     mobx: ^6.6.1
     mobx-react: ^7.2.1
@@ -343,7 +343,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@apollo-annotation/mst@workspace:packages/apollo-mst"
   dependencies:
-    "@jbrowse/core": "npm:^2.7.0"
+    "@jbrowse/core": "npm:^2.11.2"
     mobx: "npm:^6.6.1"
     mobx-state-tree: "npm:^5.1.7"
     rxjs: "npm:^7.4.0"
@@ -379,7 +379,7 @@ __metadata:
     "@apollo-annotation/schemas": "workspace:^"
     "@gmod/gff": "npm:1.2.0"
     "@gmod/indexedfasta": "npm:^2.0.4"
-    "@jbrowse/core": "npm:^2.7.0"
+    "@jbrowse/core": "npm:^2.11.2"
     "@nestjs/common": "npm:^10.1.0"
     "@nestjs/core": "npm:^10.1.0"
     "@types/node": "npm:^18.14.2"
@@ -3843,19 +3843,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/core@npm:^2.7.0":
-  version: 2.7.0
-  resolution: "@jbrowse/core@npm:2.7.0"
+"@jbrowse/core@npm:^2.11.2":
+  version: 2.11.2
+  resolution: "@jbrowse/core@npm:2.11.2"
   dependencies:
     "@babel/runtime": "npm:^7.17.9"
     "@gmod/bgzf-filehandle": "npm:^1.4.3"
     "@mui/icons-material": "npm:^5.0.1"
+    "@mui/x-data-grid": "npm:^7.0.0"
     "@types/clone": "npm:^2.0.0"
     abortable-promise-cache: "npm:^1.5.0"
     canvas-sequencer: "npm:^3.1.0"
     canvas2svg: "npm:^1.0.16"
     clone: "npm:^2.1.2"
-    clsx: "npm:^2.0.0"
     colord: "npm:^2.9.3"
     copy-to-clipboard: "npm:^3.3.1"
     deepmerge: "npm:^4.2.2"
@@ -3867,17 +3867,16 @@ __metadata:
     http-range-fetcher: "npm:^2.0.0"
     is-object: "npm:^1.0.1"
     jexl: "npm:^2.3.0"
-    json-stable-stringify: "npm:^1.0.1"
     librpc-web-mod: "npm:^1.1.5"
     load-script: "npm:^2.0.0"
     material-ui-popup-state: "npm:^5.0.0"
     rbush: "npm:^3.0.1"
     react-error-boundary: "npm:^4.0.3"
     serialize-error: "npm:^8.0.0"
+    source-map-js: "npm:^1.0.2"
     svg-path-generator: "npm:^1.1.0"
   peerDependencies:
     "@mui/material": ^5.0.0
-    "@mui/x-data-grid": ^6.0.1
     mobx: ^6.0.0
     mobx-react: ^9.0.0
     mobx-state-tree: ^5.0.0
@@ -3886,7 +3885,7 @@ __metadata:
     react-dom: ">=16.8.0"
     rxjs: ^7.0.0
     tss-react: ^4.0.0
-  checksum: 10c0/625fe86890e88aaeab3c4d482cf5259834bfe93dcbba7462d622bad270d06b36282f4a9a22c9f49c068bf473bd40ca918615c8bb5a35b4270db3573c94bb9250
+  checksum: 10c0/e5121fe2d9a90342758ea3d645055dc214703b886413868915494e3f4847c3e464075f77d8c9cdd4bd2c4ff9b2aebec566b5a44f7d0c178a5249a9abf554587c
   languageName: node
   linkType: hard
 
@@ -15754,15 +15753,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"json-stable-stringify@npm:^1.0.1":
-  version: 1.0.2
-  resolution: "json-stable-stringify@npm:1.0.2"
-  dependencies:
-    jsonify: "npm:^0.0.1"
-  checksum: 10c0/502d021c3c59c09587faa40d7693d77c00460fd6c68bae95d6e35804909ec8c4aec71b136d3a09df61a7ebf803eb6e820f23ede76b77e74b8b02c76afb2ada8c
-  languageName: node
-  linkType: hard
-
 "json-stringify-nice@npm:^1.1.4":
   version: 1.1.4
   resolution: "json-stringify-nice@npm:1.1.4"
@@ -15826,13 +15816,6 @@ __metadata:
     graceful-fs:
       optional: true
   checksum: 10c0/4f95b5e8a5622b1e9e8f33c96b7ef3158122f595998114d1e7f03985649ea99cb3cd99ce1ed1831ae94c8c8543ab45ebd044207612f31a56fd08462140e46865
-  languageName: node
-  linkType: hard
-
-"jsonify@npm:^0.0.1":
-  version: 0.0.1
-  resolution: "jsonify@npm:0.0.1"
-  checksum: 10c0/7f5499cdd59a0967ed35bda48b7cec43d850bbc8fb955cdd3a1717bb0efadbe300724d5646de765bb7a99fc1c3ab06eb80d93503c6faaf99b4ff50a3326692f6
   languageName: node
   linkType: hard
 
@@ -20840,6 +20823,13 @@ __metadata:
   dependencies:
     is-plain-obj: "npm:^2.0.0"
   checksum: 10c0/a63304c7ba55ad3640198fbbd105a1f5a78c1d2c3eb4a7f27857b0c5aeb22983b2b16297265c3c9624d0b03955993e61b92b4601107c4886adc0875d8322f0dd
+  languageName: node
+  linkType: hard
+
+"source-map-js@npm:^1.0.2":
+  version: 1.2.0
+  resolution: "source-map-js@npm:1.2.0"
+  checksum: 10c0/7e5f896ac10a3a50fe2898e5009c58ff0dc102dcb056ed27a354623a0ece8954d4b2649e1a1b2b52ef2e161d26f8859c7710350930751640e71e374fe2d321a4
   languageName: node
   linkType: hard
 

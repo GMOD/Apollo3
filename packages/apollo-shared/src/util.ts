@@ -7,9 +7,10 @@ export function makeGFF3Feature(
   parentId?: string,
   refSeqNames?: Record<string, string | undefined>,
 ): GFF3Feature {
-  const locations = feature.discontinuousLocations?.length
-    ? feature.discontinuousLocations
-    : [{ start: feature.start, end: feature.end, phase: feature.phase }]
+  const locations = [{ start: feature.min, end: feature.max }]
+  // const locations = feature.discontinuousLocations?.length
+  //   ? feature.discontinuousLocations
+  //   : [{ start: feature.start, end: feature.end, phase: feature.phase }]
   const attributes: Record<string, string[] | undefined> = JSON.parse(
     JSON.stringify(feature.attributes),
   )
@@ -76,16 +77,18 @@ export function makeGFF3Feature(
     seq_id: refSeqNames ? refSeqNames[feature.refSeq] ?? null : feature.refSeq,
     source,
     type: feature.type,
-    score: feature.score ?? null,
+    score: null,
+    // score: feature.score ?? null,
     strand: feature.strand ? (feature.strand === 1 ? '+' : '-') : null,
-    phase:
-      location.phase === 0
-        ? '0'
-        : location.phase === 1
-          ? '1'
-          : location.phase === 2
-            ? '2'
-            : null,
+    phase: null,
+    // phase:
+    //   location.phase === 0
+    //     ? '0'
+    //     : location.phase === 1
+    //       ? '1'
+    //       : location.phase === 2
+    //         ? '2'
+    //         : null,
     attributes: Object.keys(attributes).length > 0 ? attributes : null,
     derived_features: [],
     child_features: feature.children
