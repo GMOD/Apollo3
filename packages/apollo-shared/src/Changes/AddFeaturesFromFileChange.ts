@@ -91,13 +91,17 @@ export class AddFeaturesFromFileChange extends AssemblySpecificChange {
       const featureStream = filesService.parseGFF3(
         filesService.getFileStream(fileDoc),
       )
+      let featureCount = 0
       for await (const f of featureStream) {
         const gff3Feature = f as GFF3Feature
-        logger.verbose?.(`ENTRY=${JSON.stringify(gff3Feature)}`)
 
         // Add new feature into database
         // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
         await this.addFeatureIntoDb(gff3Feature, backend)
+        featureCount++
+        if (featureCount % 1000 === 0) {
+          logger.debug?.(`Processed ${featureCount} features`)
+        }
       }
     }
     logger.debug?.('New features added into database!')

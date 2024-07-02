@@ -228,23 +228,16 @@ export abstract class AssemblySpecificChange extends Change {
     const featureIds: string[] = []
 
     const newFeature = createFeature(gff3Feature, refSeqDoc._id, featureIds)
-    logger.debug?.(`So far feature ids are: ${featureIds.toString()}`)
     // Add value to gffId
     newFeature.attributes?._id
       ? (newFeature.gffId = newFeature.attributes?._id.toString())
       : (newFeature.gffId = newFeature._id)
-    logger.debug?.(
-      `********************* Assembly specific change create ${JSON.stringify(
-        newFeature,
-      )}`,
-    )
 
     // Add into Mongo
     // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
-    const [newFeatureDoc] = await featureModel.create([
+    await featureModel.create([
       { allIds: featureIds, ...newFeature, user, status: -1 },
     ])
-    logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
   }
 }
 
