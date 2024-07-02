@@ -1,7 +1,7 @@
 import * as fs from 'node:fs'
 
 import { Flags } from '@oclif/core'
-import { Response, fetch } from 'undici'
+import { Response, fetch, Agent, RequestInit } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
@@ -83,7 +83,6 @@ export default class Import extends BaseCommand<typeof Import> {
       )
       throw new Error(errorMessage)
     }
-    this.exit(0)
   }
 }
 
@@ -101,22 +100,17 @@ async function importFeatures(
     deleteExistingFeatures,
   }
 
-  const controller = new AbortController()
-  setTimeout(
-    () => {
-      controller.abort()
-    },
-    24 * 60 * 60 * 1000,
-  )
-
-  const auth = {
+  const auth: RequestInit = {
     method: 'POST',
     body: JSON.stringify(body),
     headers: {
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
-    signal: controller.signal,
+    dispatcher: new Agent({
+      keepAliveTimeout: 60 * 60 * 1000, // 1 hour
+      keepAliveMaxTimeout: 60 * 60 * 1000, // 1 hour
+    }),
   }
 
   const url = new URL(localhostToAddress(`${address}/changes`))

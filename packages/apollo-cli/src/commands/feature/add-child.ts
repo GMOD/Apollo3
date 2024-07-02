@@ -103,7 +103,6 @@ export default class Get extends BaseCommand<typeof Get> {
       )
       throw new Error(errorMessage)
     }
-    this.exit(0)
   }
 
   private async addChild(

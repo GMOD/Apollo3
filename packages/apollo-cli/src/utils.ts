@@ -96,6 +96,10 @@ export async function deleteAssembly(
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
+    dispatcher: new Agent({
+      keepAliveTimeout: 60 * 60 * 1000, // 1 hour
+      keepAliveMaxTimeout: 60 * 60 * 1000, // 1 hour
+    }),
   }
 
   const url = new URL(localhostToAddress(`${address}/changes`))
@@ -263,7 +267,7 @@ export async function getFeatureById(
   id: string,
 ): Promise<Response> {
   const url = new URL(localhostToAddress(`${address}/features/${id}`))
-  const auth = {
+  const auth: RequestInit = {
     headers: {
       authorization: `Bearer ${accessToken}`,
     },
@@ -291,7 +295,7 @@ export async function queryApollo(
   accessToken: string,
   endpoint: string,
 ): Promise<Response> {
-  const auth = {
+  const auth: RequestInit = {
     headers: {
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
@@ -402,22 +406,18 @@ export async function submitAssembly(
       }
     }
   }
-  const controller = new AbortController()
-  setTimeout(
-    () => {
-      controller.abort()
-    },
-    24 * 60 * 60 * 1000,
-  )
 
-  const auth = {
+  const auth: RequestInit = {
     method: 'POST',
     body: JSON.stringify(body),
     headers: {
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
-    signal: controller.signal,
+    dispatcher: new Agent({
+      keepAliveTimeout: 60 * 60 * 1000, // 1 hour
+      keepAliveMaxTimeout: 60 * 60 * 1000, // 1 hour
+    }),
   }
   const url = new URL(localhostToAddress(`${address}/changes`))
   const response = await fetch(url, auth)
@@ -446,7 +446,7 @@ class ProgressTransform extends Transform {
   }
 
   _transform(
-    chunk: any,
+    chunk: Buffer,
     _encoding: BufferEncoding,
     callback: TransformCallback,
   ): void {
@@ -467,11 +467,11 @@ export async function uploadFile(
   const stream = filehandle.createReadStream()
   const progressBar = new SingleBar({ etaBuffer: 100_000_000 })
   const progressTransform = new ProgressTransform({ progressBar })
-  const body = pipeline(stream, progressTransform, (err) => {
-    if (err) {
+  const body = pipeline(stream, progressTransform, (error) => {
+    if (error) {
       progressBar.stop()
-      console.error('Error processing file.', err)
-      throw Error()
+      console.error('Error processing file.', error)
+      throw error
     }
   })
   const init: RequestInit = {

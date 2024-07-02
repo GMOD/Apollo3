@@ -134,6 +134,5 @@ export default class EditAttibute extends BaseCommand<typeof EditAttibute> {
       )
       throw new Error(errorMessage)
     }
-    this.exit(0)
   }
 }

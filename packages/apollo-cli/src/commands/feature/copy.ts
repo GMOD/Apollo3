@@ -108,7 +108,6 @@ export default class Copy extends BaseCommand<typeof Copy> {
       )
       throw new Error(errorMessage)
     }
-    this.exit(0)
   }
 
   private async copyFeature(

@@ -94,6 +94,5 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
       )
       throw new Error(errorMessage)
     }
-    this.exit(0)
   }
 }
