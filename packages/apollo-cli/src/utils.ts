@@ -9,6 +9,12 @@ import EventEmitter from 'node:events'
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
+import {
+  Transform,
+  TransformCallback,
+  TransformOptions,
+  pipeline,
+} from 'node:stream'
 
 import { SingleBar } from 'cli-progress'
 import { Agent, RequestInit, Response, fetch } from 'undici'
@@ -425,6 +431,31 @@ export async function submitAssembly(
   return response
 }
 
+interface ProgressTransformOptions extends TransformOptions {
+  progressBar: SingleBar
+}
+
+class ProgressTransform extends Transform {
+  private size = 0
+
+  private progressBar: SingleBar
+
+  constructor(opts: ProgressTransformOptions) {
+    super(opts)
+    this.progressBar = opts.progressBar
+  }
+
+  _transform(
+    chunk: any,
+    _encoding: BufferEncoding,
+    callback: TransformCallback,
+  ): void {
+    this.size += chunk.length
+    this.progressBar.update(this.size)
+    callback(null, chunk)
+  }
+}
+
 export async function uploadFile(
   address: string,
   accessToken: string,
@@ -435,15 +466,17 @@ export async function uploadFile(
   const { size } = await filehandle.stat()
   const stream = filehandle.createReadStream()
   const progressBar = new SingleBar({ etaBuffer: 100_000_000 })
-  let sizeProcesed = 0
-  stream.on('data', (chunk) => {
-    sizeProcesed += chunk.length
-    progressBar.update(sizeProcesed)
-    return chunk
+  const progressTransform = new ProgressTransform({ progressBar })
+  const body = pipeline(stream, progressTransform, (err) => {
+    if (err) {
+      progressBar.stop()
+      console.error('Error processing file.', err)
+      throw Error()
+    }
   })
   const init: RequestInit = {
     method: 'POST',
-    body: stream,
+    body,
     duplex: 'half',
     headers: {
       Authorization: `Bearer ${accessToken}`,
