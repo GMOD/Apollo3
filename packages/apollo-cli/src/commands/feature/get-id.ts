@@ -56,7 +56,6 @@ export default class Get extends BaseCommand<typeof Get> {
       results.push(res)
     }
     this.log(JSON.stringify(results, null, 2))
-
   }
 
   private async getFeatureId(

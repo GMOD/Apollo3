@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { Flags } from '@oclif/core'
-import { Response, fetch, RequestInit, Agent } from 'undici'
+import { Agent, RequestInit, Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {

@@ -7,6 +7,7 @@ import { StorageEngine } from 'multer'
 
 import { writeFileAndCalculateHash } from './filesUtil'
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 export interface UploadedFile extends Express.Multer.File {
   checksum: string
 }
@@ -22,11 +23,12 @@ export class FileStorageEngine implements StorageEngine {
   ) {
     const { FILE_UPLOAD_FOLDER } = process.env
     if (!FILE_UPLOAD_FOLDER) {
-      return cb(
+      cb(
         new InternalServerErrorException(
           'No FILE_UPLOAD_FOLDER found in .env file',
         ),
       )
+      return
     }
     const checksum = await writeFileAndCalculateHash(
       file,

@@ -202,7 +202,7 @@ export abstract class AssemblySpecificChange extends Change {
 
   async addFeatureIntoDb(gff3Feature: GFF3Feature, backend: ServerDataStore) {
     const { featureModel, refSeqModel, user } = backend
-    const { assembly, logger, refSeqCache } = this
+    const { assembly, refSeqCache } = this
 
     const [{ seq_id: refName }] = gff3Feature
     if (!refName) {

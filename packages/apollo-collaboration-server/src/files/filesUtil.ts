@@ -31,7 +31,7 @@ export async function writeFileAndCalculateHash(
   let sizeProcesed = 0
   let lastLogTime = 0
   let lastLogFraction = 0
-  stream.on('data', (chunk) => {
+  stream.on('data', (chunk: Buffer) => {
     hash.update(chunk)
     sizeProcesed += chunk.length
     const now = Date.now()

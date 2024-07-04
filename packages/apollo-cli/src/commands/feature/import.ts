@@ -1,7 +1,7 @@
 import * as fs from 'node:fs'
 
 import { Flags } from '@oclif/core'
-import { fetch, Agent, RequestInit } from 'undici'
+import { Agent, RequestInit, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
