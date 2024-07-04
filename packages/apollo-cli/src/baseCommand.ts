@@ -57,8 +57,9 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
   }
 
   protected async catch(err: Error & { exitCode?: number }): Promise<unknown> {
-    // add any custom logic to handle errors from the command
-    // or simply return the parent class error handling
+    if (err.cause instanceof Error) {
+      console.error(err.cause)
+    }
     return super.catch(err)
   }
 
