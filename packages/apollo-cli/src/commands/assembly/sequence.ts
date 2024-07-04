@@ -33,10 +33,7 @@ async function getSequence(
     headers: {
       authorization: `Bearer ${accessToken}`,
     },
-    dispatcher: new Agent({
-      keepAliveTimeout: 60 * 60 * 1000, // 1 hour
-      keepAliveMaxTimeout: 60 * 60 * 1000, // 1 hour
-    }),
+    dispatcher: new Agent({ headersTimeout: 60 * 60 * 1000 }),
   }
   const response = await fetch(uri, auth)
   if (!response.ok) {

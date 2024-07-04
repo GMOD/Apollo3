@@ -96,10 +96,7 @@ export async function deleteAssembly(
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
-    dispatcher: new Agent({
-      keepAliveTimeout: 60 * 60 * 1000, // 1 hour
-      keepAliveMaxTimeout: 60 * 60 * 1000, // 1 hour
-    }),
+    dispatcher: new Agent({ headersTimeout: 60 * 60 * 1000 }),
   }
 
   const url = new URL(localhostToAddress(`${address}/changes`))
@@ -414,10 +411,7 @@ export async function submitAssembly(
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
-    dispatcher: new Agent({
-      keepAliveTimeout: 60 * 60 * 1000, // 1 hour
-      keepAliveMaxTimeout: 60 * 60 * 1000, // 1 hour
-    }),
+    dispatcher: new Agent({ headersTimeout: 60 * 60 * 1000 }),
   }
   const url = new URL(localhostToAddress(`${address}/changes`))
   const response = await fetch(url, auth)
@@ -483,10 +477,7 @@ export async function uploadFile(
       'Content-Type': type,
       'Content-Length': String(size),
     },
-    dispatcher: new Agent({
-      keepAliveTimeout: 60 * 60 * 1000, // 1 hour
-      keepAliveMaxTimeout: 60 * 60 * 1000, // 1 hour
-    }),
+    dispatcher: new Agent({ headersTimeout: 60 * 60 * 1000 }),
   }
 
   const fileName = path.basename(file)
