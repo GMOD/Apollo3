@@ -109,4 +109,8 @@ export class FilesService {
     }
     return
   }
+
+  async findAll() {
+    return this.fileModel.find().exec()
+  }
 }

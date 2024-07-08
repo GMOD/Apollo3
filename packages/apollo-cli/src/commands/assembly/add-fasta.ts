@@ -4,15 +4,9 @@ import * as path from 'node:path'
 
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
-import { Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  createFetchErrorMessage,
-  submitAssembly,
-  uploadFile,
-  wrapLines,
-} from '../../utils.js'
+import { submitAssembly, uploadFile, wrapLines } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static description = 'Add new assembly from local or external fasta file'
@@ -61,7 +55,7 @@ export default class Get extends BaseCommand<typeof Get> {
     const assemblyName = flags.assembly ?? path.basename(flags['input-file'])
 
     const isExternal = isValidHttpUrl(flags['input-file'])
-    let res: Response
+    let rec
     if (isExternal) {
       if (flags.index === undefined) {
         this.error(
@@ -76,12 +70,12 @@ export default class Get extends BaseCommand<typeof Get> {
           fai: flags.index,
         },
       }
-      res = (await submitAssembly(
+      rec = await submitAssembly(
         access.address,
         access.accessToken,
         body,
         flags.force,
-      )) as unknown as Response
+      )
     } else {
       if (!isExternal && !fs.existsSync(flags['input-file'])) {
         this.error(`File ${flags['input-file']} does not exist`)
@@ -98,20 +92,14 @@ export default class Get extends BaseCommand<typeof Get> {
         typeName: 'AddAssemblyFromFileChange',
         assembly: new ObjectId().toHexString(),
       }
-      res = (await submitAssembly(
+      rec = await submitAssembly(
         access.address,
         access.accessToken,
         body,
         flags.force,
-      )) as unknown as Response
-    }
-    if (!res.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        res,
-        'Submit assembly failed',
       )
-      throw new Error(errorMessage)
     }
+    this.log(JSON.stringify(rec, null, 2))
     this.exit(0)
   }
 }

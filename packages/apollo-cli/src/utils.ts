@@ -383,8 +383,8 @@ export async function submitAssembly(
   accessToken: string,
   body: bodyLocalFile | bodyExternalFile,
   force: boolean,
-): Promise<Response> {
-  const assemblies = await queryApollo(address, accessToken, 'assemblies')
+): Promise<object> {
+  let assemblies = await queryApollo(address, accessToken, 'assemblies')
   for (const x of (await assemblies.json()) as object[]) {
     if (x['name' as keyof typeof x] === body.assemblyName) {
       if (force) {
@@ -418,9 +418,15 @@ export async function submitAssembly(
       response,
       'submitAssembly failed',
     )
-    throw new ConfigError(errorMessage)
+    throw new Error(errorMessage)
   }
-  return response
+  assemblies = await queryApollo(address, accessToken, 'assemblies')
+  for (const x of (await assemblies.json()) as object[]) { 
+    if (x['name' as keyof typeof x] === body.assemblyName) {
+      return x
+    }
+  }
+  throw new Error(`Failed to retrieve assembly ${body.assemblyName}`)
 }
 
 export async function uploadFile(
@@ -463,10 +469,7 @@ export async function uploadFile(
 }
 
 /* Wrap text to max `length` per line */
-export function wrapLines(s: string, length?: number): string {
-  if (length === undefined) {
-    length = 80
-  }
+export function wrapLines(s: string, length = 80): string {
   // Credit: https://stackoverflow.com/questions/14484787/wrap-text-in-javascript
   const re = new RegExp(`(?![^\\n]{1,${length}}$)([^\\n]{1,${length}})\\s`, 'g')
   s = s.replaceAll(/ +/g, ' ')

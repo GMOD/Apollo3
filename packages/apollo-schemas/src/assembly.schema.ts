@@ -28,6 +28,9 @@ export class Assembly {
 
   @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Check' }] })
   checks: Types.ObjectId[]
+
+  @Prop()
+  fileId: string
 }
 
 export const AssemblySchema = SchemaFactory.createForClass(Assembly)
