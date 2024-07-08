@@ -5,12 +5,7 @@ import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  createFetchErrorMessage,
-  submitAssembly,
-  uploadFile,
-  wrapLines,
-} from '../../utils.js'
+import { submitAssembly, uploadFile, wrapLines } from '../../utils.js'
 
 export default class AddGff extends BaseCommand<typeof AddGff> {
   static summary = 'Add new assembly from gff or gft file'
@@ -80,18 +75,12 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
       typeName,
       assembly: new ObjectId().toHexString(),
     }
-    const res = await submitAssembly(
+    const rec = await submitAssembly(
       access.address,
       access.accessToken,
       body,
       flags.force,
     )
-    if (!res.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        res,
-        'getFeatureById failed',
-      )
-      throw new Error(errorMessage)
-    }
+    this.log(JSON.stringify(rec, null, 2))
   }
 }

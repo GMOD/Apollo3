@@ -203,9 +203,11 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(len(out), 0)
 
     def testAddAssemblyFromGff(self):
-        shell(
+        p = shell(
             f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 --omit-features -f"
         )
+        out = json.loads(p.stdout)
+        self.assertTrue("fileId" in out.keys())
 
         ## Get id of assembly named vv1 and check there are no features
         p = shell(f"{apollo} assembly get {P} -a vv1")
@@ -259,7 +261,10 @@ class TestCLI(unittest.TestCase):
         os.remove("test_data/tmp.fa")
 
     def testAddAssemblyFromLocalFasta(self):
-        shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a vv1 -f")
+        p = shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a vv1 -f")
+        out = json.loads(p.stdout)
+        self.assertTrue("fileId" in out.keys())
+
         p = shell(f"{apollo} assembly get {P} -a vv1")
         self.assertTrue("vv1" in p.stdout)
         p = shell(
@@ -279,12 +284,15 @@ class TestCLI(unittest.TestCase):
         self.assertTrue("tiny.fasta" in p.stdout)
 
     def testAddAssemblyFromExternalFasta(self):
-        shell(
+        p = shell(
             f"""{apollo} assembly add-fasta {P} -a vv1 -f \
                 -i https://raw.githubusercontent.com/GMOD/Apollo3/main/packages/apollo-collaboration-server/test/data/volvox.fa \
                 -x https://raw.githubusercontent.com/GMOD/Apollo3/main/packages/apollo-collaboration-server/test/data/volvox.fa.fai
                   """
         )
+        out = json.loads(p.stdout)
+        self.assertTrue("fileId" not in out.keys())
+
         p = shell(f"{apollo} assembly get {P} -a vv1")
         self.assertTrue("vv1" in p.stdout)
 
@@ -961,6 +969,54 @@ class TestCLI(unittest.TestCase):
         )  # NB: "Timeout" comes from utils.py, not Apollo
         # This should be ok
         shell(f"{apollo} login {P} --force", timeout=5, strict=True)
+    def testFileUpload(self):
+        p = shell(f"{apollo} file upload -t text/x-fasta -i test_data/tiny.fasta")
+        out = json.loads(p.stdout)
+        self.assertEqual("text/x-fasta", out["type"])
+        self.assertTrue(out["_id"])
+
+        p = shell(f"{apollo} file upload -i test_data/tiny.fasta")
+        out = json.loads(p.stdout)
+        self.assertEqual("text/x-fasta", out["type"])
+
+        p = shell(f"{apollo} file upload -i test_data/tiny.fasta.gff3")
+        out = json.loads(p.stdout)
+        self.assertEqual("text/x-gff3", out["type"])
+
+        p = shell(f"{apollo} file upload -t text/x-gff3 -i test_data/tiny.fasta.gff3")
+        out = json.loads(p.stdout)
+        self.assertEqual("text/x-gff3", out["type"])
+
+        p = shell(f"{apollo} file upload -i test_data/guest.yaml", strict=False)
+        self.assertTrue(p.returncode != 0)
+
+    def testAddAssemblyFromFileId(self):
+        p = shell(f"{apollo} file upload -i test_data/tiny.fasta")
+        fid = json.loads(p.stdout)["_id"]
+        p = shell(f"{apollo} assembly add-file -i {fid} -a up -f")
+        out = json.loads(p.stdout)
+        self.assertEqual("up", out["name"])
+        self.assertEqual(fid, out["fileId"])
+
+        shell(f"{apollo} assembly delete -a up")
+        shell(f"{apollo} file upload -i test_data/tiny.fasta | {apollo} assembly add-file -a up -f")
+        p = shell(f"{apollo} assembly get -a up")
+        out = json.loads(p.stdout)
+        self.assertEqual("up", out[0]["name"])
+
+    def testGetFiles(self):
+        shell(f"{apollo} file upload -i test_data/tiny.fasta")
+        p = shell(f"{apollo} file upload -i test_data/tiny.fasta")
+        fid = json.loads(p.stdout)['_id']
+
+        p = shell(f"{apollo} file get")
+        out = json.loads(p.stdout)
+        self.assertTrue(len(out) >= 2)
+        self.assertTrue([x for x in out if x["_id"] == fid])
+
+        p = shell(f"{apollo} file get -i {fid} {fid}")
+        out = json.loads(p.stdout)
+        self.assertTrue(len(out) == 1)
 
 
 if __name__ == "__main__":
