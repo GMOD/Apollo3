@@ -1,10 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-
 import { Flags } from '@oclif/core'
 import { Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { filterJsonList, queryApollo, uploadFile, wrapLines } from '../../utils.js'
+import {
+  filterJsonList,
+  queryApollo,
+  uploadFile,
+  wrapLines,
+} from '../../utils.js'
 
 export default class Upload extends BaseCommand<typeof Upload> {
   static summary = 'Upload a local file to the Apollo server'

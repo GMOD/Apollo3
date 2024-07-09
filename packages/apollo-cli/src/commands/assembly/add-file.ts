@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 

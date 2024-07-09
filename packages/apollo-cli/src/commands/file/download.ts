@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { fstat, writeFileSync } from 'node:fs'
+import { writeFileSync } from 'node:fs'
+
 import { Flags } from '@oclif/core'
 import { Response } from 'undici'
 
