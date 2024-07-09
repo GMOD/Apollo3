@@ -867,7 +867,7 @@ class TestCLI(unittest.TestCase):
                 {apollo} config rootCredentials.username admin
                 {apollo} config rootCredentials.password pass
                 {apollo} login
-                {apollo} status 
+                {apollo} status
                 {apollo} user get"""
         )
         self.assertTrue("testAdmin2: Logged in" in p.stdout)
@@ -877,33 +877,33 @@ class TestCLI(unittest.TestCase):
         p = shell(
             f"""\
                 export APOLLO_DISABLE_CONFIG_CREATE=1
-                rm -f tmp.yaml
-                {apollo} config --config-file tmp.yaml address http://localhost:3999""",
+                rm -f tmp.yml
+                {apollo} config --config-file tmp.yml address http://localhost:3999""",
             strict=False,
         )
         self.assertTrue(p.returncode != 0)
         self.assertTrue("does not exist yet" in p.stderr)
-        self.assertFalse(os.path.isfile("tmp.yaml"))
+        self.assertFalse(os.path.isfile("tmp.yml"))
 
         p = shell(
             f"""\
                 export APOLLO_DISABLE_CONFIG_CREATE=0
-                rm -f tmp.yaml
-                {apollo} config --config-file tmp.yaml address http://localhost:3999"""
+                rm -f tmp.yml
+                {apollo} config --config-file tmp.yml address http://localhost:3999"""
         )
         self.assertEqual(0, p.returncode)
-        self.assertTrue(os.path.isfile("tmp.yaml"))
+        self.assertTrue(os.path.isfile("tmp.yml"))
 
         p = shell(
             f"""\
                 unset APOLLO_DISABLE_CONFIG_CREATE
-                rm -f tmp.yaml
-                {apollo} config --config-file tmp.yaml address http://localhost:3999"""
+                rm -f tmp.yml
+                {apollo} config --config-file tmp.yml address http://localhost:3999"""
         )
         self.assertEqual(0, p.returncode)
-        self.assertTrue(os.path.isfile("tmp.yaml"))
+        self.assertTrue(os.path.isfile("tmp.yml"))
 
-        os.remove("tmp.yaml")
+        os.remove("tmp.yml")
 
     def testInvalidAccess(self):
         p = shell(f"{apollo} user get --profile foo", strict=False)

@@ -22,7 +22,7 @@ export default class Status extends BaseCommand<typeof Status> {
 
     let configFile = flags['config-file']
     if (configFile === undefined) {
-      configFile = path.join(this.config.configDir, 'config.yaml')
+      configFile = path.join(this.config.configDir, 'config.yml')
     }
     basicCheckConfig(configFile, profileName)
 

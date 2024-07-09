@@ -31,7 +31,7 @@ export default class Logout extends BaseCommand<typeof Logout> {
 
     let configFile = flags['config-file']
     if (configFile === undefined) {
-      configFile = path.join(this.config.configDir, 'config.yaml')
+      configFile = path.join(this.config.configDir, 'config.yml')
     }
     basicCheckConfig(configFile, profileName)
     const config: ApolloConf = new ApolloConf(configFile)

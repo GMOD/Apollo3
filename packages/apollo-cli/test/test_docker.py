@@ -16,7 +16,7 @@ def setUpModule():
     if os.path.exists(hostTmpDir) and os.path.isdir(hostTmpDir):
         shutil.rmtree(hostTmpDir)
     os.makedirs(os.path.join(hostTmpDir), exist_ok=True)
-    cfg = open(os.path.join(hostTmpDir, "config.yaml"), "w")
+    cfg = open(os.path.join(hostTmpDir, "config.yml"), "w")
     cfg.close()
 
     shell("docker build --no-cache -t apollo .")
@@ -52,23 +52,23 @@ class TestDocker(unittest.TestCase):
 
     def testMissingConfig(self):
         p = shell(
-            f"{apollo} config address --config-file {hostTmpDir}/new.yaml http://localhost:3999",
+            f"{apollo} config address --config-file {hostTmpDir}/new.yml http://localhost:3999",
             strict=False,
         )
         self.assertTrue(p.returncode != 0)
         self.assertTrue("does not exist yet" in p.stderr)
 
         p = shell(
-            f"{apollo} config address --config-file /root/.config/apollo-cli/new.yaml http://localhost:3999",
+            f"{apollo} config address --config-file /root/.config/apollo-cli/new.yml http://localhost:3999",
             strict=False,
         )
         self.assertTrue(p.returncode != 0)
         self.assertTrue("does not exist yet" in p.stderr)
 
-        cfg = open(os.path.join(hostTmpDir, "new.yaml"), "w")
+        cfg = open(os.path.join(hostTmpDir, "new.yml"), "w")
         cfg.close()
         p = shell(
-            f"{apollo} config address --config-file /root/.config/apollo-cli/new.yaml http://localhost:3999"
+            f"{apollo} config address --config-file /root/.config/apollo-cli/new.yml http://localhost:3999"
         )
         self.assertEqual(0, p.returncode)
 

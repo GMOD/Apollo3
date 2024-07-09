@@ -36,7 +36,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
 
   private getConfig(configFile: string | undefined): ApolloConf {
     if (configFile === undefined) {
-      configFile = path.join(this.config.configDir, 'config.yaml')
+      configFile = path.join(this.config.configDir, 'config.yml')
     }
     checkConfigfileExists(configFile)
     const config: ApolloConf = new ApolloConf(configFile)

@@ -5,8 +5,8 @@ import path from 'node:path'
 export const TEST_DATA_DIR = path.resolve('test_data')
 export const VERBOSE = false
 export const CONFIG_DIR = path.join(os.homedir(), '.config', 'apollo-cli')
-export const CONFIG_FILE = path.join(CONFIG_DIR, 'config.yaml')
-const CONFIG_BAK = path.join(TEST_DATA_DIR, 'original.config.yaml.bak')
+export const CONFIG_FILE = path.join(CONFIG_DIR, 'config.yml')
+const CONFIG_BAK = path.join(TEST_DATA_DIR, 'original.config.yml.bak')
 
 function renameFile(src: string, dest: string, verbose = true) {
   if (fs.existsSync(dest)) {
