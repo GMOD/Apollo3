@@ -411,7 +411,7 @@ export async function submitAssembly(
     throw new Error(errorMessage)
   }
   assemblies = await queryApollo(address, accessToken, 'assemblies')
-  for (const x of (await assemblies.json()) as object[]) { 
+  for (const x of (await assemblies.json()) as object[]) {
     if (x['name' as keyof typeof x] === body.assemblyName) {
       return x
     }

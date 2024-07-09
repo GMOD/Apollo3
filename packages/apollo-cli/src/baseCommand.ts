@@ -13,7 +13,6 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
   static baseFlags = {
     profile: Flags.string({
       description: 'Use credentials from this profile',
-      default: 'default',
     }),
     'config-file': Flags.string({
       description: 'Use this config file (mostly for testing)',

@@ -36,13 +36,13 @@ export default class Get extends BaseCommand<typeof Get> {
       access.accessToken,
       'files',
     )
+    const json = (await files.json()) as object[]
 
     let fileIds: string[] = []
     if (flags['file-id'] !== undefined) {
       fileIds = idReader(flags['file-id'])
     }
 
-    const json = (await files.json()) as object[]
     const keep = []
     for (const x of json) {
       if (
