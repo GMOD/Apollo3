@@ -1,3 +1,5 @@
 .yarnrc.yml
 .yarn/
+tsconfig.json
 packages/apollo-cli/test_data/invalid.yml
+packages/jbrowse-plugin-apollo/test_data/*.json

@@ -7,7 +7,7 @@ module.exports = {
   plugins: [require('prettier-plugin-import-sort')],
   overrides: [
     {
-      files: ['**/devcontainer.json', '.vscode/*.json', '**/tsconfig*.json'],
+      files: ['.devcontainer/**/*.json', '.vscode/*.json', '**/tsconfig*.json'],
       options: { parser: 'jsonc' },
     },
   ],

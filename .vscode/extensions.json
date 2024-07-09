@@ -2,6 +2,6 @@
   "recommendations": [
     "arcanis.vscode-zipfs",
     "dbaeumer.vscode-eslint",
-    "ms-vscode-remote.remote-containers"
-  ]
+    "ms-vscode-remote.remote-containers",
+  ],
 }

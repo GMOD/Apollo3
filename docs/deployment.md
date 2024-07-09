@@ -143,8 +143,7 @@ up authentication with Google and get those values.
 - Enter the URL of your app as an authorized JavaScript origin, e.g.
   `http://example.com`
 - Enter the following as an authorized redirect URI, replacing the `example.com`
-  with the correct value for your URL:
-  `http://example.com:3999/auth/google`
+  with the correct value for your URL: `http://example.com:3999/auth/google`
 - Click "Create"
 - Take note of Client ID and Client secret listed
 

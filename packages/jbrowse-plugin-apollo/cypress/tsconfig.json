@@ -5,8 +5,5 @@
     "types": ["cypress", "node"],
     "strict": true,
   },
-  "include": [
-    "**/*.ts",
-    "../cypress.config.js"
-  ]
+  "include": ["**/*.ts", "../cypress.config.js"],
 }

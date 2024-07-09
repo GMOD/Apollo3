@@ -1,19 +1,19 @@
 {
   "headers": [
     {
-      "source" : "**/*",
-      "headers" : [
+      "source": "**/*",
+      "headers": [
         {
-          "key" : "Access-Control-Allow-Methods",
-          "value" : "GET,POST,PUT,OPTIONS"
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET,POST,PUT,OPTIONS"
         },
         {
-          "key" : "Access-Control-Allow-Headers",
-          "value" : "range, Cache-control, If-None-Match, Content-Type"
+          "key": "Access-Control-Allow-Headers",
+          "value": "range, Cache-control, If-None-Match, Content-Type"
         },
         {
-          "key" : "Access-Control-Expose-Headers",
-          "value" : "Content-Length, Content-Range, Content-Type"
+          "key": "Access-Control-Expose-Headers",
+          "value": "Content-Length, Content-Range, Content-Type"
         }
       ]
     }
