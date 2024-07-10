@@ -19,7 +19,7 @@ def setUpModule():
     cfg = open(os.path.join(hostTmpDir, "config.yml"), "w")
     cfg.close()
 
-    # shell("docker build --no-cache -t apollo .")
+    shell("docker build --no-cache -t apollo .")
 
     configFile = '/root/.config/apollo-cli/config.yml'
     # See apollo-collaboration-server/.development.env for credentials etc.
