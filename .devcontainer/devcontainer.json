@@ -18,13 +18,13 @@
       // Add the IDs of extensions you want installed when the container is created.
       "extensions": [
         "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
         "mongodb.mongodb-vscode",
         "arcanis.vscode-zipfs",
         "eamodio.gitlens",
       ],
     },
   },
-
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   "forwardPorts": [3999, 27017],

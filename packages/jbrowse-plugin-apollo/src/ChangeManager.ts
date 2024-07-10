@@ -46,7 +46,7 @@ export class ChangeManager {
     ) as unknown as ApolloSessionModel
 
     const job = {
-      name: `${change.typeName}`,
+      name: change.typeName,
       statusMessage: 'Pre-validating',
       progressPct: 0,
       cancelCallback: () => {

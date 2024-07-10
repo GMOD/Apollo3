@@ -88,7 +88,7 @@ export class FilesController {
       typeof acceptEncodingHeader === 'string'
         ? acceptEncodingHeader.split(',').map((s) => s.trim())
         : acceptEncodingHeader
-    const acceptGzip = encodings && encodings.includes('gzip')
+    const acceptGzip = encodings?.includes('gzip')
     res.set({
       'Content-Type': file.type,
       'Content-Disposition': `attachment; filename="${file.basename}"`,

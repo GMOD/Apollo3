@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
@@ -79,7 +80,7 @@ export default class Login extends BaseCommand<typeof Login> {
 
     let configFile = flags['config-file']
     if (configFile === undefined) {
-      configFile = path.join(this.config.configDir, 'config.yaml')
+      configFile = path.join(this.config.configDir, 'config.yml')
     }
 
     let profileName = flags.profile

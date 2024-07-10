@@ -30,7 +30,7 @@
     "mobx-state-tree": "^5.1.7",
     "mongoose": "^6.12.0",
     "rimraf": "^3.0.2",
-    "typescript": "^5.1.6"
+    "typescript": "^5.5.3"
   },
   "peerDependencies": {
     "@mui/material": "^5.11.14",

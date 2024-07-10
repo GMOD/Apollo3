@@ -19,7 +19,7 @@ class Shell {
 
     if (this.returncode != 0) {
       throw new Error(
-        `\n${this.cmd}\nSTDOUT:\n${this.stdout}\nSTDERR:\n${this.stderr}\nEXIT CODE: ${this.returncode}`,
+        `\n${this.cmd}\nSTDOUT:\n${this.stdout}\nSTDERR:\n${this.stderr}\nEXIT CODE: ${String(this.returncode)}`,
       )
     }
   }
@@ -27,7 +27,7 @@ class Shell {
 
 function checkTag(tag: string, testRegex = /v\d+.\d+.\d+.*/) {
   if (!testRegex.test(tag)) {
-    throw new Error(`Invalid tag: '${tag}' does not match regex ${testRegex}\n`)
+    throw new Error(`Invalid tag: '${tag}' does not match regex ${testRegex.toString()}\n`)
   }
 }
 

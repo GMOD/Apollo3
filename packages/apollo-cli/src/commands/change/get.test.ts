@@ -16,7 +16,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url))
 // TODO: Need valid token
 describe.skip('apollo change get: Get changes as YAML string', () => {
   before(() => {
-    copyFile(`${TEST_DATA_DIR}/complete_config.yaml`, CONFIG_FILE, VERBOSE)
+    copyFile(`${TEST_DATA_DIR}/complete_config.yml`, CONFIG_FILE, VERBOSE)
   })
   after(() => {
     fs.rmSync(CONFIG_FILE)

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 Cypress.Commands.add('loginAsGuest', () => {
   cy.visit('/?config=http://localhost:9000/jbrowse_config.json')
   cy.contains('Continue as Guest', { timeout: 10_000 }).click()
@@ -77,7 +78,8 @@ Cypress.Commands.add('searchFeatures', (query, expectedNumOfHits) => {
     cy.wait(`@search ${query}`)
   } else {
     cy.contains('Search results')
-      .parent()
+      .parents('div')
+      .first()
       .within(() => {
         cy.get('tbody')
           .find('tr')

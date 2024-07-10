@@ -9,7 +9,6 @@ module.exports = {
     'plugin:import/typescript',
     'plugin:@typescript-eslint/strict-type-checked',
     'plugin:@typescript-eslint/stylistic-type-checked',
-    'plugin:prettier/recommended',
   ],
   plugins: ['tsdoc', 'sort-destructure-keys'],
   parser: '@typescript-eslint/parser',
@@ -41,6 +40,7 @@ module.exports = {
     ],
     'no-console': ['warn', { allow: ['error', 'warn', 'debug'] }],
     'no-else-return': ['error', { allowElseIf: false }],
+    'no-extra-semi': 'off',
     'object-shorthand': 'warn',
     'prefer-destructuring': 'warn',
     'prefer-template': 'warn',
@@ -69,8 +69,6 @@ module.exports = {
     '@typescript-eslint/return-await': 'error',
     // eslint-plugin-import rules (override recommended)
     'import/no-extraneous-dependencies': 'error',
-    // eslint-plugin-prettier rules (override recommended)
-    'prettier/prettier': 'warn',
     // eslint-plugin-sort-destructure-keys rules
     'sort-destructure-keys/sort-destructure-keys': 'warn',
     // eslint-plugin-tsdoc rules

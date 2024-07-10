@@ -17,7 +17,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
 describe.skip('apollo assembly get: Fail without token', () => {
   before(() => {
-    copyFile(`${TEST_DATA_DIR}/guest.yaml`, CONFIG_FILE, VERBOSE)
+    copyFile(`${TEST_DATA_DIR}/guest.yml`, CONFIG_FILE, VERBOSE)
   })
   after(() => {
     fs.rmSync(CONFIG_FILE)
@@ -38,7 +38,7 @@ describe.skip('apollo assembly get: Fail without token', () => {
 // TODO: Need valid token
 describe.skip('apollo assembly get: Get assemblies as YAML string', () => {
   before(() => {
-    copyFile(`${TEST_DATA_DIR}/complete_config.yaml`, CONFIG_FILE, VERBOSE)
+    copyFile(`${TEST_DATA_DIR}/complete_config.yml`, CONFIG_FILE, VERBOSE)
   })
   after(() => {
     fs.rmSync(CONFIG_FILE)
@@ -54,7 +54,7 @@ describe.skip('apollo assembly get: Get assemblies as YAML string', () => {
 })
 
 describe.skip('apollo assembly get: Test nock', () => {
-  const cmd = ['assembly:get', '--config-file', 'tmp.yaml']
+  const cmd = ['assembly:get', '--config-file', 'tmp.yml']
   test
     .stdout()
     .nock('http://127.0.0.1:3999', (api) =>

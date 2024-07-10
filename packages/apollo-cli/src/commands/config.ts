@@ -69,7 +69,7 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
     let configFile = flags['config-file']
     configFile =
       configFile === undefined
-        ? path.join(this.config.configDir, 'config.yaml')
+        ? path.join(this.config.configDir, 'config.yml')
         : path.resolve(configFile)
     if (flags['get-config-file']) {
       this.log(configFile)
