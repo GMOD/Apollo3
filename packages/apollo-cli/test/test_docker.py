@@ -19,14 +19,15 @@ def setUpModule():
     cfg = open(os.path.join(hostTmpDir, "config.yml"), "w")
     cfg.close()
 
-    shell("docker build --no-cache -t apollo .")
+    # shell("docker build --no-cache -t apollo .")
 
+    configFile = '/root/.config/apollo-cli/config.yml'
     # See apollo-collaboration-server/.development.env for credentials etc.
-    shell(f"{apollo} config address http://localhost:3999")
-    shell(f"{apollo} config accessType root")
-    shell(f"{apollo} config rootCredentials.username admin")
-    shell(f"{apollo} config rootCredentials.password pass")
-    shell(f"{apollo} login", timeout=60)
+    shell(f"{apollo} config --config-file {configFile} address http://localhost:3999")
+    shell(f"{apollo} config --config-file {configFile} accessType root")
+    shell(f"{apollo} config --config-file {configFile} rootCredentials.username admin")
+    shell(f"{apollo} config --config-file {configFile} rootCredentials.password pass")
+    shell(f"{apollo} login --config-file {configFile}", timeout=60)
 
 
 def tearDownModule():
@@ -42,12 +43,14 @@ class TestDocker(unittest.TestCase):
         self.assertTrue("COMMANDS" in p.stdout)
 
     def testAddAssembly(self):
-        shell(f"{apollo} assembly add-gff -i data/tiny.fasta.gff3 -a vv1 -f")
-        p = shell(f"{apollo} assembly get -a vv1")
+        configFile = '/root/.config/apollo-cli/config.yml'
+
+        shell(f"{apollo} assembly add-gff --config-file {configFile} -i data/tiny.fasta.gff3 -a vv1 -f")
+        p = shell(f"{apollo} assembly get --config-file {configFile} -a vv1")
         self.assertTrue("vv1" in p.stdout)
 
-        shell(f"{apollo} assembly delete -a vv1")
-        p = shell(f"{apollo} assembly get -a vv1")
+        shell(f"{apollo} assembly delete --config-file {configFile} -a vv1")
+        p = shell(f"{apollo} assembly get --config-file {configFile} -a vv1")
         self.assertEqual("[]", p.stdout.strip())
 
     def testMissingConfig(self):
