@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
   Change as BaseChange,
@@ -236,7 +237,7 @@ export class ChangesService {
   async findAll(changeFilter: FindChangeDto) {
     const queryCond: FilterQuery<ChangeDocument> = { ...changeFilter }
     if (changeFilter.user) {
-      queryCond.user = { $regex: `${changeFilter.user}`, $options: 'i' }
+      queryCond.user = { $regex: changeFilter.user, $options: 'i' }
     }
     if (changeFilter.since) {
       queryCond.sequence = { $gt: Number(changeFilter.since) }

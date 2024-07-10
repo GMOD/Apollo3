@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { Flags } from '@oclif/core'
 
 import { BaseCommand } from '../../baseCommand.js'

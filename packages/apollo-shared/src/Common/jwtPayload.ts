@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import jwtDecode from 'jwt-decode'
 
 export interface JWTPayload {
