@@ -919,97 +919,99 @@ class TestCLI(unittest.TestCase):
         self.assertTrue('Profile "foo" does not exist' in p.stderr)
 
     def testFileUpload(self):
-        p = shell(f"{apollo} file upload -t text/x-fasta -i test_data/tiny.fasta")
+        p = shell(f"{apollo} file upload {P} -t text/x-fasta -i test_data/tiny.fasta")
         out = json.loads(p.stdout)
         self.assertEqual("text/x-fasta", out["type"])
         self.assertTrue(out["_id"])
 
-        p = shell(f"{apollo} file upload -i test_data/tiny.fasta")
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta")
         out = json.loads(p.stdout)
         self.assertEqual("text/x-fasta", out["type"])
 
-        p = shell(f"{apollo} file upload -i test_data/tiny.fasta.gff3")
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta.gff3")
         out = json.loads(p.stdout)
         self.assertEqual("text/x-gff3", out["type"])
 
-        p = shell(f"{apollo} file upload -t text/x-gff3 -i test_data/tiny.fasta.gff3")
+        p = shell(
+            f"{apollo} file upload {P} -t text/x-gff3 -i test_data/tiny.fasta.gff3"
+        )
         out = json.loads(p.stdout)
         self.assertEqual("text/x-gff3", out["type"])
 
-        p = shell(f"{apollo} file upload -i test_data/guest.yaml", strict=False)
+        p = shell(f"{apollo} file upload {P} -i test_data/guest.yaml", strict=False)
         self.assertTrue(p.returncode != 0)
 
     def testAddAssemblyFromFileId(self):
-        p = shell(f"{apollo} file upload -i test_data/tiny.fasta")
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta")
         fid = json.loads(p.stdout)["_id"]
-        p = shell(f"{apollo} assembly add-file -i {fid} -a up -f")
+        p = shell(f"{apollo} assembly add-file {P} -i {fid} -a up -f")
         out = json.loads(p.stdout)
         self.assertEqual("up", out["name"])
         self.assertEqual(fid, out["fileId"])
 
-        shell(f"{apollo} assembly delete -a up")
+        shell(f"{apollo} assembly delete {P} -a up")
         shell(
-            f"{apollo} file upload -i test_data/tiny.fasta | {apollo} assembly add-file -a up -f"
+            f"{apollo} file upload {P} -i test_data/tiny.fasta | {apollo} assembly add-file {P} -a up -f"
         )
-        p = shell(f"{apollo} assembly get -a up")
+        p = shell(f"{apollo} assembly get {P} -a up")
         out = json.loads(p.stdout)
         self.assertEqual("up", out[0]["name"])
 
     def testGetFiles(self):
-        shell(f"{apollo} file upload -i test_data/tiny.fasta")
-        p = shell(f"{apollo} file upload -i test_data/tiny.fasta")
+        shell(f"{apollo} file upload {P} -i test_data/tiny.fasta")
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta")
         fid = json.loads(p.stdout)["_id"]
 
-        p = shell(f"{apollo} file get")
+        p = shell(f"{apollo} file get {P}")
         out = json.loads(p.stdout)
         self.assertTrue(len(out) >= 2)
         self.assertTrue([x for x in out if x["_id"] == fid])
 
-        p = shell(f"{apollo} file get -i {fid} {fid}")
+        p = shell(f"{apollo} file get {P} -i {fid} {fid}")
         out = json.loads(p.stdout)
         self.assertTrue(len(out) == 1)
 
-        p = shell(f"{apollo} file get -i nonexists")
+        p = shell(f"{apollo} file get {P} -i nonexists")
         out = json.loads(p.stdout)
         self.assertEqual(0, len(out))
 
     def testDownloadFile(self):
-        p = shell(f"{apollo} file upload -i test_data/tiny.fasta")
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta")
         up = json.loads(p.stdout)
         if os.path.exists(up["basename"]):
             raise Exception(
                 f"File {up['basename']} exists - if safe to do so, delete it before running this test"
             )
 
-        shell(f"{apollo} file download -i {up['_id']}")
+        shell(f"{apollo} file download {P} -i {up['_id']}")
         with open(up["basename"]) as fin:
             down = "".join(fin.readlines())
             self.assertTrue(down.startswith(">"))
             self.assertTrue(down.strip().endswith("accc"))
         os.remove(up["basename"])
 
-        shell(f"{apollo} file download -i {up['_id']} -o tmp.fa")
+        shell(f"{apollo} file download {P} -i {up['_id']} -o tmp.fa")
         with open("tmp.fa") as fin:
             down = "".join(fin.readlines())
             self.assertTrue(down.startswith(">"))
             self.assertTrue(down.strip().endswith("accc"))
         os.remove("tmp.fa")
 
-        p = shell(f"{apollo} file download -i {up['_id']} -o -")
+        p = shell(f"{apollo} file download {P} -i {up['_id']} -o -")
         self.assertTrue(p.stdout.startswith(">"))
         self.assertTrue(p.stdout.strip().endswith("accc"))
 
     def testDeleteFile(self):
-        p = shell(f"{apollo} file upload -i test_data/tiny.fasta")
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta")
         up1 = json.loads(p.stdout)
-        p = shell(f"{apollo} file upload -i test_data/tiny.fasta")
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta")
         up2 = json.loads(p.stdout)
 
-        p = shell(f"{apollo} file delete -i {up1['_id']} {up2['_id']}")
+        p = shell(f"{apollo} file delete {P} -i {up1['_id']} {up2['_id']}")
         out = json.loads(p.stdout)
         self.assertEqual(2, len(out))
 
-        p = shell(f"{apollo} file get -i {up1['_id']} {up2['_id']}")
+        p = shell(f"{apollo} file get {P} -i {up1['_id']} {up2['_id']}")
         out = json.loads(p.stdout)
         self.assertEqual(0, len(out))
 

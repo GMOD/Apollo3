@@ -1,15 +1,10 @@
 import { Flags } from '@oclif/core'
 import { Response } from 'undici'
 
-import { BaseCommand } from '../../baseCommand.js'
-import {
-  filterJsonList,
-  queryApollo,
-  uploadFile,
-  wrapLines,
-} from '../../utils.js'
+import { FileCommand } from '../../fileCommand.js'
+import { filterJsonList, queryApollo, wrapLines } from '../../utils.js'
 
-export default class Upload extends BaseCommand<typeof Upload> {
+export default class Upload extends FileCommand {
   static summary = 'Upload a local file to the Apollo server'
   static description = wrapLines(
     'This command only uploads a file and returns the corresponding file id.\
@@ -58,7 +53,7 @@ export default class Upload extends BaseCommand<typeof Upload> {
       }
     }
 
-    const fileId = await uploadFile(
+    const fileId = await this.uploadFile(
       access.address,
       access.accessToken,
       flags['input-file'],

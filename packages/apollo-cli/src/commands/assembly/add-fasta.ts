@@ -5,10 +5,10 @@ import * as path from 'node:path'
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 
-import { BaseCommand } from '../../baseCommand.js'
-import { submitAssembly, uploadFile, wrapLines } from '../../utils.js'
+import { FileCommand } from '../../fileCommand.js'
+import { submitAssembly, wrapLines } from '../../utils.js'
 
-export default class Get extends BaseCommand<typeof Get> {
+export default class AddFasta extends FileCommand {
   static description = 'Add new assembly from local or external fasta file'
 
   static examples = [
@@ -47,7 +47,7 @@ export default class Get extends BaseCommand<typeof Get> {
   }
 
   public async run(): Promise<void> {
-    const { flags } = await this.parse(Get)
+    const { flags } = await this.parse(AddFasta)
 
     const access: { address: string; accessToken: string } =
       await this.getAccess(flags['config-file'], flags.profile)
@@ -80,7 +80,7 @@ export default class Get extends BaseCommand<typeof Get> {
       if (!isExternal && !fs.existsSync(flags['input-file'])) {
         this.error(`File ${flags['input-file']} does not exist`)
       }
-      const fileId = await uploadFile(
+      const fileId = await this.uploadFile(
         access.address,
         access.accessToken,
         flags['input-file'],
