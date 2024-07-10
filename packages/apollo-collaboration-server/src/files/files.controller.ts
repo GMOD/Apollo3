@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
-  Body,
   Controller,
   Delete,
   Get,
   Head,
-  Headers,
   Logger,
   Param,
   Post,
@@ -23,10 +21,9 @@ import { Request, Response } from 'express'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { FilesService } from './files.service'
-import {
-  FileStorageEngine,
-  UploadedFile as UploadedApolloFile,
-} from './FileStorageEngine'
+import { UploadedFile as UploadedApolloFile } from './filesUtil'
+import { FileStorageEngine } from './FileStorageEngine'
+import { FilesInterceptor as StreamingFileInterceptor } from './files.interceptor'
 
 @Validations(Role.ReadOnly)
 @Controller('files')
@@ -50,10 +47,11 @@ export class FilesController {
   @Post()
   @UseInterceptors(
     FileInterceptor('file', { storage: new FileStorageEngine() }),
+    StreamingFileInterceptor,
   )
   async uploadFile(
     @UploadedFile() file: UploadedApolloFile,
-    @Body() body: { type: 'text/x-gff3' | 'text/x-fasta' },
+    @Query('type') type: 'text/x-gff3' | 'text/x-fasta',
   ) {
     if (!file) {
       throw new UnprocessableEntityException('No "file" found in request')
@@ -64,30 +62,7 @@ export class FilesController {
     return this.filesService.create({
       basename: file.originalname,
       checksum: file.checksum,
-      type: body.type,
-      user: 'na',
-    })
-  }
-
-  @Validations(Role.Admin)
-  @Post('stream')
-  async streamFile(
-    @Req() req: Request,
-    @Query('name') name: string,
-    @Headers('Content-Length') contentLength: string,
-    @Headers('Content-Type') contentType: 'text/x-gff3' | 'text/x-fasta',
-  ) {
-    let size = Number.parseInt(contentLength, 10)
-    size = Number.isNaN(size) ? 0 : size
-    const checksum = await this.filesService.uploadFileFromRequest(
-      req,
-      name,
-      size,
-    )
-    return this.filesService.create({
-      basename: name,
-      checksum,
-      type: contentType,
+      type,
       user: 'na',
     })
   }

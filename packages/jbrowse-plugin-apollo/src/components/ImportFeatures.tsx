@@ -160,14 +160,16 @@ export function ImportFeatures({
     const { baseURL } = apolloInternetAccount
 
     // First upload file
-    const url = new URL('files', baseURL).href
+    const url = new URL('files', baseURL)
+    url.searchParams.set('type', 'text/x-gff3')
+    const uri = url.href
     const formData = new FormData()
     formData.append('file', file)
     formData.append('fileName', file.name)
     formData.append('type', 'text/x-gff3')
     const apolloFetchFile = apolloInternetAccount.getFetcher({
       locationType: 'UriLocation',
-      uri: url,
+      uri,
     })
 
     handleClose()
@@ -189,7 +191,7 @@ export function ImportFeatures({
 
     if (apolloFetchFile) {
       const { signal } = controller
-      const response = await apolloFetchFile(url, {
+      const response = await apolloFetchFile(uri, {
         method: 'POST',
         body: formData,
         signal,

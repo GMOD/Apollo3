@@ -7,11 +7,20 @@ import { pipeline } from 'node:stream/promises'
 import { createGzip } from 'node:zlib'
 
 import { Logger } from '@nestjs/common'
+import { Request } from 'express'
 
 interface FileUpload {
   originalname: string
   size: number
   stream: Readable
+}
+
+export interface UploadedFile extends Express.Multer.File {
+  checksum: string
+}
+
+export interface FileRequest extends Omit<Request, 'file'> {
+  file: Partial<UploadedFile>
 }
 
 export async function writeFileAndCalculateHash(

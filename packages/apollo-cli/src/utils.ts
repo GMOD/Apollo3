@@ -481,8 +481,9 @@ export async function uploadFile(
   }
 
   const fileName = path.basename(file)
-  const url = new URL(localhostToAddress(`${address}/files/stream`))
+  const url = new URL(localhostToAddress(`${address}/files`))
   url.searchParams.set('name', fileName)
+  url.searchParams.set('type', type)
   progressBar.start(size, 0)
   try {
     const response = await fetch(url, init)
