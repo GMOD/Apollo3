@@ -78,7 +78,8 @@ Cypress.Commands.add('searchFeatures', (query, expectedNumOfHits) => {
     cy.wait(`@search ${query}`)
   } else {
     cy.contains('Search results')
-      .parent()
+      .parents('div')
+      .first()
       .within(() => {
         cy.get('tbody')
           .find('tr')
