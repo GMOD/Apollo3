@@ -49,7 +49,7 @@ class TestCLI(unittest.TestCase):
 
         p = shell(f"{apollo} config {P} ADDRESS http://localhost:3999", strict=False)
         self.assertEqual(1, p.returncode)
-        self.assertTrue("Unknown key:" in p.stderr)
+        self.assertTrue("Invalid setting:" in p.stderr)
 
         p = shell(f"{apollo} config {P} accessType spam", strict=False)
         self.assertEqual(1, p.returncode)
