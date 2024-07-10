@@ -4,10 +4,10 @@ import * as path from 'node:path'
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 
-import { BaseCommand } from '../../baseCommand.js'
-import { submitAssembly, uploadFile, wrapLines } from '../../utils.js'
+import { FileCommand } from '../../fileCommand.js'
+import { submitAssembly, wrapLines } from '../../utils.js'
 
-export default class AddGff extends BaseCommand<typeof AddGff> {
+export default class AddGff extends FileCommand {
   static summary = 'Add new assembly from gff or gft file'
   static description = wrapLines(
     'The gff file is expected to contain sequences as per gff specifications. Features are also imported by default.',
@@ -55,7 +55,7 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
 
     const access = await this.getAccess()
 
-    const fileId = await uploadFile(
+    const fileId = await this.uploadFile(
       access.address,
       access.accessToken,
       flags['input-file'],

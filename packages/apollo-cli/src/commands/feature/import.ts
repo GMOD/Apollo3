@@ -4,15 +4,14 @@ import { type SerializedAddFeaturesFromFileChange } from '@apollo-annotation/sha
 import { Flags } from '@oclif/core'
 import { Agent, RequestInit, fetch } from 'undici'
 
-import { BaseCommand } from '../../baseCommand.js'
+import { FileCommand } from '../../fileCommand.js'
 import {
   convertAssemblyNameToId,
   createFetchErrorMessage,
   localhostToAddress,
-  uploadFile,
 } from '../../utils.js'
 
-export default class Import extends BaseCommand<typeof Import> {
+export default class Import extends FileCommand {
   static summary = 'Import features from local gff file'
   static description = 'By default, features are added to the existing ones.'
 
@@ -62,7 +61,7 @@ export default class Import extends BaseCommand<typeof Import> {
       )
     }
 
-    const uploadId = await uploadFile(
+    const uploadId = await this.uploadFile(
       access.address,
       access.accessToken,
       flags['input-file'],
