@@ -168,19 +168,21 @@ export function AddAssembly({
     const { baseURL, getFetcher, internetAccountId } = selectedInternetAccount
     if (fileType !== FileType.EXTERNAL && file) {
       // First upload file
-      const url = new URL('files', baseURL).href
+      const url = new URL('files', baseURL)
+      url.searchParams.set('type', fileType)
+      const uri = url.href
       const formData = new FormData()
       formData.append('file', file)
       formData.append('fileName', file.name)
       formData.append('type', fileType)
       const apolloFetchFile = getFetcher({
         locationType: 'UriLocation',
-        uri: url,
+        uri,
       })
       if (apolloFetchFile) {
         jobsManager.update(job.name, 'Uploading file, this may take awhile')
         const { signal } = controller
-        const response = await apolloFetchFile(url, {
+        const response = await apolloFetchFile(uri, {
           method: 'POST',
           body: formData,
           signal,

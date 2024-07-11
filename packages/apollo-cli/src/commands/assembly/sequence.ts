@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { Flags } from '@oclif/core'
-import { Response, fetch } from 'undici'
+import { Agent, RequestInit, Response, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
@@ -29,19 +29,11 @@ async function getSequence(
   url.search = searchParams.toString()
   const uri = url.toString()
 
-  const controller = new AbortController()
-  setTimeout(
-    () => {
-      controller.abort()
-    },
-    24 * 60 * 60 * 1000,
-  )
-
-  const auth = {
+  const auth: RequestInit = {
     headers: {
       authorization: `Bearer ${accessToken}`,
     },
-    signal: controller.signal,
+    dispatcher: new Agent({ headersTimeout: 60 * 60 * 1000 }),
   }
   const response = await fetch(uri, auth)
   if (!response.ok) {
@@ -147,7 +139,6 @@ export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
       this.log(header)
       this.log(splitStringIntoChunks(seq, 80).join('\n'))
     }
-    this.exit(0)
   }
 }
 

@@ -124,6 +124,5 @@ export default class Delete extends BaseCommand<typeof Delete> {
         }
       }
     }
-    this.exit(0)
   }
 }

@@ -1,7 +1,7 @@
 import * as fs from 'node:fs'
 
 import { Flags } from '@oclif/core'
-import { Response, fetch } from 'undici'
+import { Agent, RequestInit, fetch } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
@@ -69,64 +69,30 @@ export default class Import extends BaseCommand<typeof Import> {
       'text/x-gff3',
     )
 
-    const res: Response = await importFeatures(
-      access.address,
-      access.accessToken,
-      assembly[0],
-      uploadId,
-      flags['delete-existing'],
-    )
-    if (!res.ok) {
+    const body = {
+      typeName: 'AddFeaturesFromFileChange',
+      assembly: assembly[0],
+      fileId: uploadId,
+      deleteExistingFeatures: flags['delete-existing'],
+    }
+    const auth: RequestInit = {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: {
+        Authorization: `Bearer ${access.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      dispatcher: new Agent({ headersTimeout: 60 * 60 * 1000 }),
+    }
+
+    const url = new URL(localhostToAddress(`${access.address}/changes`))
+    const response = await fetch(url, auth)
+    if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(
-        res,
-        'Import features failed',
+        response,
+        'importFeatures failed',
       )
       throw new Error(errorMessage)
     }
-    this.exit(0)
   }
-}
-
-async function importFeatures(
-  address: string,
-  accessToken: string,
-  assembly: string,
-  fileId: string,
-  deleteExistingFeatures: boolean,
-): Promise<Response> {
-  const body = {
-    typeName: 'AddFeaturesFromFileChange',
-    assembly,
-    fileId,
-    deleteExistingFeatures,
-  }
-
-  const controller = new AbortController()
-  setTimeout(
-    () => {
-      controller.abort()
-    },
-    24 * 60 * 60 * 1000,
-  )
-
-  const auth = {
-    method: 'POST',
-    body: JSON.stringify(body),
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    signal: controller.signal,
-  }
-
-  const url = new URL(localhostToAddress(`${address}/changes`))
-  const response = await fetch(url, auth)
-  if (!response.ok) {
-    const errorMessage = await createFetchErrorMessage(
-      response,
-      'importFeatures failed',
-    )
-    throw new Error(errorMessage)
-  }
-  return response
 }

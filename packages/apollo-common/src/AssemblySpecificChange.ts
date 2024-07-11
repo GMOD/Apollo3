@@ -55,6 +55,7 @@ export abstract class AssemblySpecificChange extends Change {
     let lastLineIsIncomplete = true
     let parsingStarted = false
     logger.debug?.('starting sequence stream')
+    let lineCount = 0
     for await (const data of sequenceStream) {
       const chunk = data.toString()
       lastLineIsIncomplete = !chunk.endsWith('\n')
@@ -68,6 +69,10 @@ export abstract class AssemblySpecificChange extends Change {
         incompleteLine = lines.pop() || ''
       }
       for await (const line of lines) {
+        lineCount++
+        if (lineCount % 1_000_000 === 0) {
+          logger.debug?.(`Processed ${lineCount} lines`)
+        }
         // In case of GFF3 file we start to read sequence after '##FASTA' is found
         if (!fastaInfoStarted) {
           if (line.trim() === '##FASTA') {
@@ -89,9 +94,6 @@ export abstract class AssemblySpecificChange extends Change {
               throw new Error('No refSeq document found')
             }
             refSeqLen += sequenceBuffer.length
-            logger.debug?.(
-              `Creating refSeq chunk number ${chunkIndex} of "${refSeqDoc._id}"`,
-            )
             // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
             await refSeqChunkModel.create([
               {
@@ -138,9 +140,6 @@ export abstract class AssemblySpecificChange extends Change {
           while (sequenceBuffer.length >= chunkSize) {
             const sequence = sequenceBuffer.slice(0, chunkSize)
             refSeqLen += sequence.length
-            logger.debug?.(
-              `Creating refSeq chunk number ${chunkIndex} of "${_id}"`,
-            )
             // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
             await refSeqChunkModel.create([
               { refSeq: _id, n: chunkIndex, sequence, user, status: -1 },
@@ -148,7 +147,6 @@ export abstract class AssemblySpecificChange extends Change {
             chunkIndex++
             // Set remaining sequence
             sequenceBuffer = sequenceBuffer.slice(chunkSize)
-            logger.debug?.(`Remaining sequence: "${sequenceBuffer}"`)
           }
         }
       }
@@ -204,7 +202,7 @@ export abstract class AssemblySpecificChange extends Change {
 
   async addFeatureIntoDb(gff3Feature: GFF3Feature, backend: ServerDataStore) {
     const { featureModel, refSeqModel, user } = backend
-    const { assembly, logger, refSeqCache } = this
+    const { assembly, refSeqCache } = this
 
     const [{ seq_id: refName }] = gff3Feature
     if (!refName) {
@@ -230,23 +228,16 @@ export abstract class AssemblySpecificChange extends Change {
     const featureIds: string[] = []
 
     const newFeature = createFeature(gff3Feature, refSeqDoc._id, featureIds)
-    logger.debug?.(`So far feature ids are: ${featureIds.toString()}`)
     // Add value to gffId
     newFeature.attributes?._id
       ? (newFeature.gffId = newFeature.attributes?._id.toString())
       : (newFeature.gffId = newFeature._id)
-    logger.debug?.(
-      `********************* Assembly specific change create ${JSON.stringify(
-        newFeature,
-      )}`,
-    )
 
     // Add into Mongo
     // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
-    const [newFeatureDoc] = await featureModel.create([
+    await featureModel.create([
       { allIds: featureIds, ...newFeature, user, status: -1 },
     ])
-    logger.verbose?.(`Added docId "${newFeatureDoc._id}"`)
   }
 }
 

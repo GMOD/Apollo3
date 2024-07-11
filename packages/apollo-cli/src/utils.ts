@@ -9,8 +9,15 @@ import EventEmitter from 'node:events'
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
+import {
+  Transform,
+  TransformCallback,
+  TransformOptions,
+  pipeline,
+} from 'node:stream'
 
-import { Agent, FormData, RequestInit, Response, fetch } from 'undici'
+import { SingleBar } from 'cli-progress'
+import { Agent, RequestInit, Response, fetch } from 'undici'
 
 import { ApolloConf, ConfigError } from './ApolloConf.js'
 
@@ -89,6 +96,7 @@ export async function deleteAssembly(
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
+    dispatcher: new Agent({ headersTimeout: 60 * 60 * 1000 }),
   }
 
   const url = new URL(localhostToAddress(`${address}/changes`))
@@ -256,7 +264,7 @@ export async function getFeatureById(
   id: string,
 ): Promise<Response> {
   const url = new URL(localhostToAddress(`${address}/features/${id}`))
-  const auth = {
+  const auth: RequestInit = {
     headers: {
       authorization: `Bearer ${accessToken}`,
     },
@@ -284,7 +292,7 @@ export async function queryApollo(
   accessToken: string,
   endpoint: string,
 ): Promise<Response> {
-  const auth = {
+  const auth: RequestInit = {
     headers: {
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
@@ -395,22 +403,15 @@ export async function submitAssembly(
       }
     }
   }
-  const controller = new AbortController()
-  setTimeout(
-    () => {
-      controller.abort()
-    },
-    24 * 60 * 60 * 1000,
-  )
 
-  const auth = {
+  const auth: RequestInit = {
     method: 'POST',
     body: JSON.stringify(body),
     headers: {
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
-    signal: controller.signal,
+    dispatcher: new Agent({ headersTimeout: 60 * 60 * 1000 }),
   }
   const url = new URL(localhostToAddress(`${address}/changes`))
   const response = await fetch(url, auth)
@@ -424,43 +425,83 @@ export async function submitAssembly(
   return response
 }
 
+interface ProgressTransformOptions extends TransformOptions {
+  progressBar: SingleBar
+}
+
+class ProgressTransform extends Transform {
+  private size = 0
+
+  private progressBar: SingleBar
+
+  constructor(opts: ProgressTransformOptions) {
+    super(opts)
+    this.progressBar = opts.progressBar
+  }
+
+  _transform(
+    chunk: Buffer,
+    _encoding: BufferEncoding,
+    callback: TransformCallback,
+  ): void {
+    this.size += chunk.length
+    this.progressBar.update(this.size)
+    callback(null, chunk)
+  }
+}
+
 export async function uploadFile(
   address: string,
   accessToken: string,
   file: string,
   type: string,
-): Promise<string> {
-  const stream = fs.createReadStream(file, 'utf8')
-  const fileStream = new Response(stream)
-  const fileBlob = await fileStream.blob()
-
-  const formData = new FormData()
-  formData.append('type', type)
-  formData.append('file', fileBlob)
-
-  const auth = {
+) {
+  const filehandle = await fs.promises.open(file)
+  const { size } = await filehandle.stat()
+  const stream = filehandle.createReadStream()
+  const progressBar = new SingleBar({ etaBuffer: 100_000_000 })
+  const progressTransform = new ProgressTransform({ progressBar })
+  const body = pipeline(stream, progressTransform, (error) => {
+    if (error) {
+      progressBar.stop()
+      console.error('Error processing file.', error)
+      throw error
+    }
+  })
+  const init: RequestInit = {
     method: 'POST',
-    body: formData,
+    body,
+    duplex: 'half',
     headers: {
       Authorization: `Bearer ${accessToken}`,
+      'Content-Type': type,
+      'Content-Length': String(size),
     },
-    dispatcher: new Agent({
-      keepAliveTimeout: 10 * 60 * 1000, // 10 minutes
-      keepAliveMaxTimeout: 10 * 60 * 1000, // 10 minutes
-    }),
+    dispatcher: new Agent({ headersTimeout: 60 * 60 * 1000 }),
   }
 
+  const fileName = path.basename(file)
   const url = new URL(localhostToAddress(`${address}/files`))
-  const response = await fetch(url, auth)
-  if (!response.ok) {
-    const errorMessage = await createFetchErrorMessage(
-      response,
-      'uploadFile failed',
-    )
-    throw new ConfigError(errorMessage)
+  url.searchParams.set('name', fileName)
+  url.searchParams.set('type', type)
+  progressBar.start(size, 0)
+  try {
+    const response = await fetch(url, init)
+    if (!response.ok) {
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'uploadFile failed',
+      )
+      throw new ConfigError(errorMessage)
+    }
+    const json = (await response.json()) as object
+    return json['_id' as keyof typeof json]
+  } catch (error) {
+    console.error(error)
+    throw error
+  } finally {
+    progressBar.stop()
   }
-  const json = (await response.json()) as object
-  return json['_id' as keyof typeof json]
 }
 
 /* Wrap text to max `length` per line */

@@ -16,6 +16,7 @@ import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 
 import { CreateFileDto } from './dto/create-file.dto'
+import { writeFileAndCalculateHash, FileRequest } from './filesUtil'
 
 @Injectable()
 export class FilesService {
@@ -29,6 +30,17 @@ export class FilesService {
   ) {}
 
   private readonly logger = new Logger(FilesService.name)
+
+  async uploadFileFromRequest(req: FileRequest, name: string, size: number) {
+    const fileUploadFolder = this.configService.get('FILE_UPLOAD_FOLDER', {
+      infer: true,
+    })
+    return writeFileAndCalculateHash(
+      { originalname: name, stream: req, size },
+      fileUploadFolder,
+      this.logger,
+    )
+  }
 
   create(createFileDto: CreateFileDto) {
     this.logger.debug(
