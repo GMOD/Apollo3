@@ -7,7 +7,6 @@ import { StorageEngine } from 'multer'
 
 import { writeFileAndCalculateHash } from './filesUtil'
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 export interface UploadedFile extends Express.Multer.File {
   checksum: string
 }
