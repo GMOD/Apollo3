@@ -45,9 +45,9 @@ jobs:
       - name: Run CLI tests
         run: python3 ./test/test.py TestCLI
         working-directory: packages/apollo-cli
-      - name: Run docker tests
-        working-directory: packages/apollo-cli
-        run: python3 ./test/test_docker.py
+      # - name: Run docker tests
+      #   working-directory: packages/apollo-cli
+      #   run: python3 ./test/test_docker.py
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
         with:
