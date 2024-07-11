@@ -1,4 +1,5 @@
-import { writeFileSync } from 'node:fs'
+import { createWriteStream, writeFileSync } from 'node:fs'
+import { Writable } from 'node:stream'
 
 import { Flags } from '@oclif/core'
 import { Response } from 'undici'
@@ -60,12 +61,14 @@ export default class Download extends BaseCommand<typeof Download> {
       access.accessToken,
       `files/${fileId}`,
     )
-    const text = await res.text()
-
     let { output } = flags
     if (output === undefined) {
       output = fileRec['basename' as keyof typeof fileRec] as string
     }
-    writeFileSync(output === '-' ? 1 : output, text)
+    const fileWriteStream = createWriteStream(output)
+    await res.body?.pipeTo(
+      Writable.toWeb(output === '-' ? process.stdout : fileWriteStream),
+    )
+    fileWriteStream.close()
   }
 }
