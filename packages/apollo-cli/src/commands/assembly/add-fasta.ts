@@ -76,6 +76,21 @@ export default class AddFasta extends FileCommand {
         body,
         flags.force,
       )
+    } else if (flags.index) {
+      const body = {
+        assemblyName,
+        typeName: 'AddAssemblyFromLocalChange',
+        fileLocation: {
+          fa: flags['input-file'],
+          fai: flags.index,
+        },
+      }
+      rec = await submitAssembly(
+        access.address,
+        access.accessToken,
+        body,
+        flags.force,
+      )
     } else {
       if (!isExternal && !fs.existsSync(flags['input-file'])) {
         this.error(`File ${flags['input-file']} does not exist`)

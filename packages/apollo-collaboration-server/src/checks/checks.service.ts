@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-base-to-string */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
@@ -20,7 +22,7 @@ import {
 import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { RemoteFile } from 'generic-filehandle'
+import { LocalFile, RemoteFile } from 'generic-filehandle'
 import { Model } from 'mongoose'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
@@ -136,6 +138,27 @@ export class ChecksService {
         : new IndexedFasta({
             fasta: new RemoteFile(fa, { fetch }),
             fai: new RemoteFile(fai, { fetch }),
+          })
+      const sequence = await sequenceAdapter.getSequence(name, start, end)
+      if (sequence === undefined) {
+        throw new Error('Sequence not found')
+      }
+      return sequence
+    }
+    if (assemblyDoc.fileLocation) {
+      // Same as sequence.service.ts
+      const { fa, fai, gzi } = assemblyDoc.fileLocation
+      this.logger.debug(`Fasta file URL = ${fa}, Fasta index file URL = ${fai}`)
+
+      const sequenceAdapter = gzi
+        ? new BgzipIndexedFasta({
+            fasta: new LocalFile(fa, { fetch }),
+            fai: new LocalFile(fai, { fetch }),
+            gzi: new LocalFile(gzi, { fetch }),
+          })
+        : new IndexedFasta({
+            fasta: new LocalFile(fa, { fetch }),
+            fai: new LocalFile(fai, { fetch }),
           })
       const sequence = await sequenceAdapter.getSequence(name, start, end)
       if (sequence === undefined) {

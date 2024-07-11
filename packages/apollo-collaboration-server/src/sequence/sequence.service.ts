@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-base-to-string */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
@@ -9,11 +11,16 @@ import {
 import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { RemoteFile } from 'generic-filehandle'
+import { LocalFile, RemoteFile, GenericFilehandle } from 'generic-filehandle'
 import { Model } from 'mongoose'
 
 import { AssembliesService } from '../assemblies/assemblies.service'
 import { GetSequenceDto } from './dto/get-sequence.dto'
+
+class ApolloFastaIndexFileHandle implements GenericFilehandle {
+  // Implement what needed
+  // readFile method unzip and return all file
+}
 
 @Injectable()
 export class SequenceService {
@@ -52,6 +59,32 @@ export class SequenceService {
             fasta: new RemoteFile(fa, { fetch }),
             fai: new RemoteFile(fai, { fetch }),
           })
+      const sequence = await sequenceAdapter.getSequence(name, start, end)
+      if (sequence === undefined) {
+        throw new Error('Sequence not found')
+      }
+      return sequence
+    }
+
+    if (assemblyDoc?.fileLocation) {
+      const { fa, fai, gzi } = assemblyDoc.fileLocation
+      this.logger.debug(
+        `Local fasta file = ${fa}, Local fasta index file = ${fai}`,
+      )
+
+      // mongodb lookup to get paths from IDs
+
+      const sequenceAdapter = gzi
+        ? new BgzipIndexedFasta({
+            fasta: new LocalFile(fa),
+            fai: new LocalFile(fai), // Use ApolloFasta...
+            gzi: new LocalFile(gzi),
+          })
+        : new IndexedFasta({
+            fasta: new LocalFile(fa),
+            fai: new LocalFile(fai),
+          })
+      // extend or make a class that implements fileHandle interface to read compressed files.
       const sequence = await sequenceAdapter.getSequence(name, start, end)
       if (sequence === undefined) {
         throw new Error('Sequence not found')

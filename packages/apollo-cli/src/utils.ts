@@ -378,10 +378,19 @@ interface bodyExternalFile {
   }
 }
 
+interface bodyFileLocation {
+  assemblyName: string
+  typeName: string
+  fileLocation: {
+    fa: string
+    fai: string
+  }
+}
+
 export async function submitAssembly(
   address: string,
   accessToken: string,
-  body: bodyLocalFile | bodyExternalFile,
+  body: bodyLocalFile | bodyExternalFile | bodyFileLocation,
   force: boolean,
 ): Promise<object> {
   let assemblies = await queryApollo(address, accessToken, 'assemblies')

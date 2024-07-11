@@ -25,11 +25,17 @@ export abstract class FileCommand extends BaseCommand<typeof FileCommand> {
     formData.append('type', type)
     formData.append('file', fileBlob)
 
+    let contentEncoding = ''
+    if (file.endsWith('.gz')) {
+      contentEncoding = 'gzip'
+    }
+
     const auth = {
       method: 'POST',
       body: formData,
       headers: {
         Authorization: `Bearer ${accessToken}`,
+        'content-encoding': contentEncoding,
       },
       dispatcher: new Agent({
         keepAliveTimeout: 10 * 60 * 1000, // 10 minutes

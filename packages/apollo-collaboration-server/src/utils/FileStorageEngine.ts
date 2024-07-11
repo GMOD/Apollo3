@@ -14,6 +14,7 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common'
+import { Request } from 'express'
 import { StorageEngine } from 'multer'
 
 export interface UploadedFile extends Express.Multer.File {
@@ -25,7 +26,7 @@ export class FileStorageEngine implements StorageEngine {
   private readonly logger = new Logger(FileStorageEngine.name)
 
   async _handleFile(
-    req: Express.Request,
+    req: Request,
     file: Express.Multer.File,
     cb: (error?: unknown, info?: UploadedFile) => void,
   ) {
@@ -51,8 +52,13 @@ export class FileStorageEngine implements StorageEngine {
 
     // Check md5 checksum of saved file
     const fileWriteStream = createWriteStream(tempFullFileName)
-    const gz = createGzip()
-    await pipeline(file.stream, gz, fileWriteStream)
+    if (req.headers['content-encoding'] === 'gzip') {
+      await pipeline(file.stream, fileWriteStream)
+    } else {
+      const gz = createGzip()
+      await pipeline(file.stream, gz, fileWriteStream)
+    }
+
     this.logger.debug(`Compressed file: ${tempFullFileName}`)
     const fileChecksum = hash.digest('hex')
     this.logger.debug(`Uploaded file checksum: ${fileChecksum}`)

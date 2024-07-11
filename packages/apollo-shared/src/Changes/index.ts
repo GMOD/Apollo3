@@ -1,5 +1,6 @@
 import { AddAssemblyAndFeaturesFromFileChange } from './AddAssemblyAndFeaturesFromFileChange'
 import { AddAssemblyFromExternalChange } from './AddAssemblyFromExternalChange'
+import { AddAssemblyFromLocalChange } from './AddAssemblyFromLocalChange'
 import { AddAssemblyFromFileChange } from './AddAssemblyFromFileChange'
 import { AddFeatureChange } from './AddFeatureChange'
 import { AddFeaturesFromFileChange } from './AddFeaturesFromFileChange'
@@ -19,6 +20,7 @@ export const changes = {
   AddAssemblyAndFeaturesFromFileChange,
   AddAssemblyFromFileChange,
   AddAssemblyFromExternalChange,
+  AddAssemblyFromLocalChange,
   AddFeatureChange,
   AddFeaturesFromFileChange,
   DeleteAssemblyChange,
@@ -37,6 +39,7 @@ export const changes = {
 export * from './AddAssemblyAndFeaturesFromFileChange'
 export * from './AddAssemblyFromFileChange'
 export * from './AddAssemblyFromExternalChange'
+export * from './AddAssemblyFromLocalChange'
 export * from './AddFeatureChange'
 export * from './AddFeaturesFromFileChange'
 export * from './DeleteAssemblyChange'

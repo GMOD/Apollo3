@@ -42,9 +42,10 @@ export default class Upload extends FileCommand {
 
     let { type } = flags
     if (type === 'autodetect') {
-      if (/\.fasta$|\.fas$|\.fa$|\.fna$/.test(flags['input-file'])) {
+      const infile = flags['input-file'].replace(/\.gz$/, '')
+      if (/\.fasta$|\.fas$|\.fa$|\.fna$/.test(infile)) {
         type = 'text/x-fasta'
-      } else if (/\.gff$|\.gff3/.test(flags['input-file'])) {
+      } else if (/\.gff$|\.gff3/.test(infile)) {
         type = 'text/x-gff3'
       } else {
         this.error(
