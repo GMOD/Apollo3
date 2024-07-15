@@ -35,5 +35,10 @@ export const ApolloAssembly = types
     },
   }))
 
-export type ApolloAssemblyI = Instance<typeof ApolloAssembly>
-export type ApolloAssemblySnapshot = SnapshotIn<typeof ApolloAssembly>
+// eslint disables because of
+// https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ApolloAssemblyI extends Instance<typeof ApolloAssembly> {}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ApolloAssemblySnapshot
+  extends SnapshotIn<typeof ApolloAssembly> {}

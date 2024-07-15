@@ -13,5 +13,9 @@ export const CheckResult = types.model('CheckResult', {
   message: types.string,
 })
 
-export type CheckResultI = Instance<typeof CheckResult>
-export type CheckResultSnapshot = SnapshotIn<typeof CheckResult>
+// eslint disables because of
+// https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface CheckResultI extends Instance<typeof CheckResult> {}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface CheckResultSnapshot extends SnapshotIn<typeof CheckResult> {}

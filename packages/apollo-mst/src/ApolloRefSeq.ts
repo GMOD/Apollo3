@@ -112,5 +112,9 @@ export const ApolloRefSeq = types
     },
   }))
 
-export type ApolloRefSeqI = Instance<typeof ApolloRefSeq>
-export type ApolloRefSeqSnapshot = SnapshotIn<typeof ApolloRefSeq>
+// eslint disables because of
+// https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ApolloRefSeqI extends Instance<typeof ApolloRefSeq> {}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ApolloRefSeqSnapshot extends SnapshotIn<typeof ApolloRefSeq> {}
