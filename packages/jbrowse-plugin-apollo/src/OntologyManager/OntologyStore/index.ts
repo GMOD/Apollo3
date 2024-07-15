@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/only-throw-error */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
- 
+
 /* eslint-disable unicorn/no-await-expression-member */
 import {
   BlobLocation,
