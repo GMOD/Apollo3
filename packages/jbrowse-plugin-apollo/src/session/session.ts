@@ -379,4 +379,7 @@ export function extendSession(
 }
 
 export type ApolloSessionStateModel = ReturnType<typeof extendSession>
-export type ApolloSessionModel = Instance<ApolloSessionStateModel>
+// eslint disable because of
+// https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ApolloSessionModel extends Instance<ApolloSessionStateModel> {}

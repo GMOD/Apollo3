@@ -450,5 +450,8 @@ export function renderingModelFactory(
 export type LinearApolloDisplayRenderingModel = ReturnType<
   typeof renderingModelIntermediateFactory
 >
-export type LinearApolloDisplayRendering =
-  Instance<LinearApolloDisplayRenderingModel>
+// eslint disable because of
+// https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface LinearApolloDisplayRendering
+  extends Instance<LinearApolloDisplayRenderingModel> {}
