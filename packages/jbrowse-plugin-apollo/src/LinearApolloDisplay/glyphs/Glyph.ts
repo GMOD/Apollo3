@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { AnnotationFeature } from '@apollo-annotation/mst'
 import { MenuItem } from '@jbrowse/core/ui'
 import { AbstractSessionModel, SessionWithWidgets } from '@jbrowse/core/util'
@@ -14,7 +10,6 @@ import {
   ModifyFeatureAttribute,
 } from '../../components'
 import {
-  CDSDiscontinuousLocation,
   LinearApolloDisplayMouseEvents,
   MousePosition,
 } from '../stateModel/mouseEvents'
@@ -119,50 +114,11 @@ export abstract class Glyph {
     return
   }
 
-  getDiscontinuousLocations(
-    parentFeature: AnnotationFeature,
-    cdsFeature: AnnotationFeature,
-  ): CDSDiscontinuousLocation[] {
-    const cdsDLs: CDSDiscontinuousLocation[] = []
-
-    if (parentFeature.type !== 'mRNA') {
-      return cdsDLs
-    }
-
-    const { cdsLocations, children } = parentFeature
-
-    let i = 0
-    for (const [, child] of children ?? new Map()) {
-      if (cdsFeature._id === child._id) {
-        break
-      }
-      if (child.type === 'CDS') {
-        i++
-      }
-    }
-
-    const cdsLocation = cdsLocations[i]
-
-    if (!cdsLocation) {
-      return cdsDLs
-    }
-
-    for (const { max, min, phase } of cdsLocation) {
-      cdsDLs.push({
-        start: min,
-        end: max,
-        phase,
-      })
-    }
-
-    return cdsDLs
-  }
-
   getParentFeature(
     feature?: AnnotationFeature,
     topLevelFeature?: AnnotationFeature,
   ) {
-    let parentFeature
+    let parentFeature: AnnotationFeature | undefined
     if (!feature || !topLevelFeature?.children) {
       return parentFeature
     }
@@ -172,7 +128,7 @@ export abstract class Glyph {
         parentFeature = topLevelFeature
         break
       }
-      if (!f?.children) {
+      if (!f.children) {
         continue
       }
       for (const [, cf] of f.children) {
@@ -204,44 +160,15 @@ export abstract class Glyph {
     const { regionNumber, y } = mousePosition
     const displayedRegion = displayedRegions[regionNumber]
     const { refName, reversed } = displayedRegion
-    const { bpPerPx, bpToPx, offsetPx } = lgv
+    const { bpPerPx, offsetPx } = lgv
 
-    const parentFeature = this.getParentFeature(feature, topLevelFeature)
-    const cdsLocs = this.getDiscontinuousLocations(parentFeature, feature)
-    let start: number, end: number, length: number
     let location = 'Loc: '
-    if (feature.type === 'CDS' && cdsLocs && cdsLocs.length > 0) {
-      const lastLoc = cdsLocs.at(-1)
-      if (!lastLoc) {
-        return
-      }
-      ;({ start } = lastLoc)
-      ;({ end } = lastLoc)
-      length = lastLoc.end - lastLoc.start
 
-      if (cdsLocs.length <= 2) {
-        for (const [i, loc] of cdsLocs.entries()) {
-          location += `${loc.start + 1}–${loc.end}`
-          if (i !== cdsLocs.length - 1) {
-            location += ','
-          }
-        }
-      } else {
-        const [firstLoc] = cdsLocs
-        location += `${firstLoc.start + 1}–${firstLoc.end},…,${
-          lastLoc.start + 1
-        }–${lastLoc.end}`
-      }
-    } else {
-      const { max, min } = feature
-      ;({ length } = feature)
-      location += `${min + 1}–${max}`
-      start = min
-      end = max
-    }
+    const { length, max, min } = feature
+    location += `${min + 1}–${max}`
 
     let startPx =
-      (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
+      (lgv.bpToPx({ refName, coord: reversed ? max : min, regionNumber })
         ?.offsetPx ?? 0) - offsetPx
     const row = Math.floor(y / apolloRowHeight)
     const top = row * apolloRowHeight
@@ -323,11 +250,9 @@ export abstract class Glyph {
       apolloHover,
       apolloInternetAccount: internetAccount,
       changeManager,
-      getAssemblyId,
       regions,
       selectedFeature,
       session,
-      setSelectedFeature,
     } = display
     const { feature: sourceFeature } = apolloHover ?? {}
     const role = internetAccount ? internetAccount.role : 'admin'
@@ -336,8 +261,8 @@ export abstract class Glyph {
     const menuItems: MenuItem[] = []
     if (sourceFeature) {
       const [region] = regions
-      const sourceAssemblyId = getAssemblyId(region.assemblyName)
-      const currentAssemblyId = getAssemblyId(region.assemblyName)
+      const sourceAssemblyId = display.getAssemblyId(region.assemblyName)
+      const currentAssemblyId = display.getAssemblyId(region.assemblyName)
       menuItems.push(
         {
           label: 'Add child feature',
@@ -396,7 +321,9 @@ export abstract class Glyph {
                   sourceFeature,
                   sourceAssemblyId: currentAssemblyId,
                   selectedFeature,
-                  setSelectedFeature,
+                  setSelectedFeature: (feature?: AnnotationFeature) => {
+                    display.setSelectedFeature(feature)
+                  },
                 },
               ],
             )

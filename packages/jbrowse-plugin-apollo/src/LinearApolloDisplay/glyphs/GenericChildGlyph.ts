@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/unbound-method */
 import { AnnotationFeature } from '@apollo-annotation/mst'
 
 import { LinearApolloDisplay } from '../stateModel'
@@ -12,8 +9,8 @@ export class GenericChildGlyph extends BoxGlyph {
   featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
     const features = [[feature]]
     if (feature.children) {
-      for (const [, child] of feature.children ?? new Map()) {
-        features.push(...this.featuresForRow(child))
+      for (const [, child] of feature.children) {
+        features.push(...this.featuresForRow(child as AnnotationFeature))
       }
     }
     return features
@@ -71,7 +68,7 @@ export class GenericChildGlyph extends BoxGlyph {
     const { apolloRowHeight: heightPx, lgv, session } = stateModel
     const { bpPerPx } = lgv
     const { apolloSelectedFeature } = session
-    const offsetPx = (feature.start - topLevelFeature.min) / bpPerPx
+    const offsetPx = (feature.min - topLevelFeature.minWithChildren) / bpPerPx
     const widthPx = feature.length / bpPerPx
     const startPx = reversed ? xOffset - offsetPx - widthPx : xOffset + offsetPx
     const top = row * heightPx
@@ -100,10 +97,10 @@ export class GenericChildGlyph extends BoxGlyph {
     const { regionNumber, y } = mousePosition
     const displayedRegion = displayedRegions[regionNumber]
     const { refName, reversed } = displayedRegion
-    const { bpPerPx, bpToPx, offsetPx } = lgv
-    const { end, length, start } = feature
+    const { bpPerPx, offsetPx } = lgv
+    const { length, max, min } = feature
     const startPx =
-      (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
+      (lgv.bpToPx({ refName, coord: reversed ? max : min, regionNumber })
         ?.offsetPx ?? 0) - offsetPx
     const row = Math.floor(y / apolloRowHeight)
     const top = row * apolloRowHeight
@@ -136,7 +133,7 @@ export class GenericChildGlyph extends BoxGlyph {
 
   getFeatureFromLayout(feature: AnnotationFeature, bp: number, row: number) {
     const layoutRow = this.featuresForRow(feature)[row]
-    return layoutRow.find((f) => bp >= f.start && bp <= f.end)
+    return layoutRow.find((f) => bp >= f.min && bp <= f.max)
   }
 
   getRowForFeature(

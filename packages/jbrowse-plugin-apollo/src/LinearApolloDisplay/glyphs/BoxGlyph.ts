@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/unbound-method */
 import { AnnotationFeature } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
@@ -98,16 +96,13 @@ export class BoxGlyph extends Glyph {
     const { apolloRowHeight: heightPx, lgv, session, theme } = stateModel
     const { bpPerPx } = lgv
     const { apolloSelectedFeature } = session
-    const offsetPx = (feature.start - feature.min) / bpPerPx
+    const offsetPx = (feature.min - feature.minWithChildren) / bpPerPx
     const widthPx = feature.length / bpPerPx
     const startPx = reversed ? xOffset - offsetPx - widthPx : xOffset + offsetPx
     const top = row * heightPx
     const isSelected = this.getIsSelectedFeature(feature, apolloSelectedFeature)
     const backgroundColor = this.getBackgroundColor(theme, isSelected)
     const textColor = this.getTextColor(theme, isSelected)
-    const groupingColor = isSelected
-      ? 'rgba(130,0,0,0.45)'
-      : 'rgba(255,0,0,0.25)'
     const featureBox: [number, number, number, number] = [
       startPx,
       top,
@@ -120,40 +115,8 @@ export class BoxGlyph extends Glyph {
       return
     }
 
-    let featureLocations: { start: number; end: number; type: string }[] = [
-      feature,
-    ]
-    if (
-      feature.discontinuousLocations &&
-      feature.discontinuousLocations.length > 0
-    ) {
-      featureLocations = feature.discontinuousLocations.map((f) => ({
-        start: f.start,
-        end: f.end,
-        type: feature.type,
-      }))
-    }
-    if (featureLocations.length > 1) {
-      this.drawBoxFill(ctx, ...featureBox, groupingColor)
-      for (const location of featureLocations) {
-        const offsetPx = (location.start - feature.min) / bpPerPx
-        const widthPx = (location.end - location.start) / bpPerPx
-        const startPx = reversed
-          ? xOffset - offsetPx - widthPx
-          : xOffset + offsetPx
-        this.drawBoxOutline(ctx, startPx, top, widthPx, heightPx, textColor)
-      }
-    }
-
-    for (const location of featureLocations) {
-      const offsetPx = (location.start - feature.min) / bpPerPx
-      const widthPx = (location.end - location.start) / bpPerPx
-      const startPx = reversed
-        ? xOffset - offsetPx - widthPx
-        : xOffset + offsetPx
-      this.drawBoxFill(ctx, startPx, top, widthPx, heightPx, backgroundColor)
-      this.drawBoxText(ctx, startPx, top, widthPx, textColor, location.type)
-    }
+    this.drawBoxFill(ctx, startPx, top, widthPx, heightPx, backgroundColor)
+    this.drawBoxText(ctx, startPx, top, widthPx, textColor, feature.type)
   }
 
   getFeatureFromLayout(
@@ -177,14 +140,15 @@ export class BoxGlyph extends Glyph {
     feature: AnnotationFeature,
     stateModel: LinearApolloDisplay,
   ) {
-    if (!mousePosition) {
-      return
-    }
     const { refName, regionNumber, x } = mousePosition
     const { lgv } = stateModel
-    const { bpToPx, offsetPx } = lgv
-    const startPxInfo = bpToPx({ refName, coord: feature.start, regionNumber })
-    const endPxInfo = bpToPx({ refName, coord: feature.end, regionNumber })
+    const { offsetPx } = lgv
+    const startPxInfo = lgv.bpToPx({
+      refName,
+      coord: feature.min,
+      regionNumber,
+    })
+    const endPxInfo = lgv.bpToPx({ refName, coord: feature.max, regionNumber })
     if (startPxInfo !== undefined && endPxInfo !== undefined) {
       const startPx = startPxInfo.offsetPx - offsetPx
       const endPx = endPxInfo.offsetPx - offsetPx
@@ -192,10 +156,10 @@ export class BoxGlyph extends Glyph {
         return
       }
       if (Math.abs(startPx - x) < 4) {
-        return 'start'
+        return 'min'
       }
       if (Math.abs(endPx - x) < 4) {
-        return 'end'
+        return 'max'
       }
     }
     return
@@ -211,13 +175,13 @@ export class BoxGlyph extends Glyph {
     if (!feature || !mousePosition) {
       return
     }
-    const { bpPerPx, bpToPx, offsetPx } = lgv
+    const { bpPerPx, offsetPx } = lgv
     const displayedRegion = displayedRegions[mousePosition.regionNumber]
     const { refName, reversed } = displayedRegion
-    const { end, length, start } = feature
+    const { length, max, min } = feature
     const { regionNumber, y } = mousePosition
     const startPx =
-      (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
+      (lgv.bpToPx({ refName, coord: reversed ? max : min, regionNumber })
         ?.offsetPx ?? 0) - offsetPx
     const row = Math.floor(y / apolloRowHeight)
     const top = row * apolloRowHeight
@@ -338,7 +302,7 @@ export class BoxGlyph extends Glyph {
   ) {
     const { feature, glyph, mousePosition, topLevelFeature } =
       stateModel.apolloDragging?.start ?? {}
-    if (!(currentMousePosition && mousePosition)) {
+    if (!mousePosition) {
       return
     }
     stateModel.setDragging({
@@ -358,13 +322,7 @@ export class BoxGlyph extends Glyph {
   }
 
   executeDrag(stateModel: LinearApolloDisplay) {
-    const {
-      apolloDragging,
-      changeManager,
-      displayedRegions,
-      getAssemblyId,
-      setCursor,
-    } = stateModel
+    const { apolloDragging, changeManager, displayedRegions } = stateModel
     if (!apolloDragging) {
       return
     }
@@ -391,11 +349,11 @@ export class BoxGlyph extends Glyph {
     const { mousePosition: currentMousePosition } = apolloDragging.current
     const region = displayedRegions[startingMousePosition.regionNumber]
     const newBp = currentMousePosition.bp
-    const assembly = getAssemblyId(region.assemblyName)
+    const assembly = stateModel.getAssemblyId(region.assemblyName)
     let change: LocationEndChange | LocationStartChange
-    if (edge === 'end') {
+    if (edge === 'max') {
       const featureId = feature._id
-      const oldEnd = feature.end
+      const oldEnd = feature.max
       const newEnd = newBp
       change = new LocationEndChange({
         typeName: 'LocationEndChange',
@@ -407,7 +365,7 @@ export class BoxGlyph extends Glyph {
       })
     } else {
       const featureId = feature._id
-      const oldStart = feature.start
+      const oldStart = feature.min
       const newStart = newBp
       change = new LocationStartChange({
         typeName: 'LocationStartChange',
@@ -418,10 +376,7 @@ export class BoxGlyph extends Glyph {
         assembly,
       })
     }
-    if (!changeManager) {
-      throw new Error('no change manager')
-    }
     void changeManager.submit(change)
-    setCursor()
+    stateModel.setCursor()
   }
 }
