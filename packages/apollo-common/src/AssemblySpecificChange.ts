@@ -228,10 +228,6 @@ export abstract class AssemblySpecificChange extends Change {
     const featureIds: string[] = []
 
     const newFeature = createFeature(gff3Feature, refSeqDoc._id, featureIds)
-    // Add value to gffId
-    newFeature.attributes?._id
-      ? (newFeature.gffId = newFeature.attributes?._id.toString())
-      : (newFeature.gffId = newFeature._id)
 
     // Add into Mongo
     // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction

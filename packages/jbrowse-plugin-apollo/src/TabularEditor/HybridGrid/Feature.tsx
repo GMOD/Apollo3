@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { AnnotationFeature } from '@apollo-annotation/mst'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
