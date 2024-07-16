@@ -66,6 +66,10 @@ module.exports = {
       'warn',
       { argsIgnorePattern: '^_', ignoreRestSiblings: true },
     ],
+    '@typescript-eslint/restrict-template-expressions': [
+      'warn',
+      { allowNumber: true },
+    ],
     '@typescript-eslint/return-await': 'error',
     // eslint-plugin-import rules (override recommended)
     'import/no-extraneous-dependencies': 'error',
