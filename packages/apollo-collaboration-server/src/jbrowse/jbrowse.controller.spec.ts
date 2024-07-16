@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 
 import { JBrowseController } from './jbrowse.controller'
 
-describe('JbrowseController', () => {
+describe('JBrowseController', () => {
   let controller: JBrowseController
 
   beforeEach(async () => {

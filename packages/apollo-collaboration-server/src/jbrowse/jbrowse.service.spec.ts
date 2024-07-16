@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 
 import { JBrowseService } from './jbrowse.service'
 
-describe('JbrowseService', () => {
+describe('JBrowseService', () => {
   let service: JBrowseService
 
   beforeEach(async () => {

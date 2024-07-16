@@ -28,4 +28,4 @@ import { JBrowseService } from './jbrowse.service'
   providers: [JBrowseService],
   exports: [MongooseModule, JBrowseService],
 })
-export class JbrowseModule {}
+export class JBrowseModule {}

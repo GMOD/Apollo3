@@ -18,7 +18,7 @@ import { ExportModule } from './export/export.module'
 import { FeaturesModule } from './features/features.module'
 import { FilesModule } from './files/files.module'
 import { HealthModule } from './health/health.module'
-import { JbrowseModule } from './jbrowse/jbrowse.module'
+import { JBrowseModule } from './jbrowse/jbrowse.module'
 import { MessagesModule } from './messages/messages.module'
 import { OperationsModule } from './operations/operations.module'
 import { PluginsModule } from './plugins/plugins.module'
@@ -169,7 +169,7 @@ async function mongoDBURIFactory(
       rootPath: path.join(__dirname, '..', 'public'),
     }),
     UsersModule,
-    JbrowseModule,
+    JBrowseModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
