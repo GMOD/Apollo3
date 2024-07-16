@@ -147,10 +147,13 @@ export const AnnotationFeatureModel = types
         if (self.strand === -1) {
           locs.reverse()
         }
-        let nextPhase : 0 | 1 | 2 = 0
+        let nextPhase: 0 | 1 | 2 = 0
         const phasedLocs = locs.map((loc) => {
           const phase = nextPhase
-          nextPhase = (3 - ((loc.max - loc.min - phase + 3) % 3)) % 3 as 0 | 1 | 2
+          nextPhase = ((3 - ((loc.max - loc.min - phase + 3) % 3)) % 3) as
+            | 0
+            | 1
+            | 2
           return { ...loc, phase }
         })
         cdsLocations.push(phasedLocs)
@@ -272,8 +275,14 @@ export type Children = IMSTMap<typeof AnnotationFeatureModel> | undefined
 // eslint disables because of
 // https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface AnnotationFeature
+interface AnnotationFeatureRaw
   extends Instance<typeof AnnotationFeatureModel> {}
+// This type isn't exactly right, since "children" is actually an IMSTMap and
+// not a Map, but it's better than typing it as any.
+export interface AnnotationFeature
+  extends Omit<AnnotationFeatureRaw, 'children'> {
+  children?: Map<string, AnnotationFeature>
+}
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface AnnotationFeatureSnapshotRaw
   extends SnapshotIn<typeof AnnotationFeatureModel> {}
