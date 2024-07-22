@@ -1,13 +1,14 @@
 import { Controller, Get } from '@nestjs/common'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
 
-import { Public } from '../utils/jwt-auth.guard'
+import { Validations } from '../utils/validation/validatation.decorator'
+import { Role } from '../utils/role/role.enum'
 
 @Controller('health')
 export class HealthController {
   constructor(private health: HealthCheckService) {}
 
-  @Public()
+  @Validations(Role.None)
   @Get()
   @HealthCheck()
   check() {

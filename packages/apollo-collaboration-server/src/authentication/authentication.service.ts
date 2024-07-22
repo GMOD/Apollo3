@@ -34,7 +34,7 @@ interface ConfigValues {
   GOOGLE_CLIENT_ID?: string
   GOOGLE_CLIENT_ID_FILE?: string
   ALLOW_GUEST_USER: boolean
-  DEFAULT_NEW_USER_ROLE: Role | 'none'
+  DEFAULT_NEW_USER_ROLE: Role
   ROOT_USER_NAME: string
   ROOT_USER_PASSWORD: string
 }
@@ -42,7 +42,7 @@ interface ConfigValues {
 @Injectable()
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name)
-  private defaultNewUserRole: Role | 'none'
+  private defaultNewUserRole: Role
 
   constructor(
     private readonly usersService: UsersService,
@@ -183,9 +183,10 @@ export class AuthenticationService {
         // If there is not a non-guest user yet, the 1st user role will be admin
         newUserRole = hasAdmin ? this.defaultNewUserRole : Role.Admin
       }
-      const newUser: CreateUserDto = { email, username: name }
-      if (newUserRole !== 'none') {
-        newUser.role = newUserRole
+      const newUser: CreateUserDto = {
+        email,
+        username: name,
+        role: newUserRole,
       }
       user = await this.usersService.addNew(newUser)
     }

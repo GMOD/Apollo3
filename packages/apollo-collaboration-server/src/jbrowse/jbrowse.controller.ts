@@ -1,9 +1,10 @@
 import { Controller, Get, Logger } from '@nestjs/common'
 
-import { Public } from '../utils/jwt-auth.guard'
 import { JBrowseService } from './jbrowse.service'
+import { Role } from '../utils/role/role.enum'
+import { Validations } from '../utils/validation/validatation.decorator'
 
-@Public()
+@Validations(Role.None)
 @Controller()
 export class JBrowseController {
   constructor(private readonly jbrowseService: JBrowseService) {}

@@ -36,7 +36,7 @@ import { ApolloInternetAccountConfigModel } from './configSchema'
 
 type AuthType = 'google' | 'microsoft' | 'guest'
 
-type Role = 'admin' | 'user' | 'readOnly'
+type Role = 'admin' | 'user' | 'readOnly' | 'none'
 
 const inWebWorker = typeof sessionStorage === 'undefined'
 
