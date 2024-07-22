@@ -1,6 +1,89 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { GFF3Feature } from '@gmod/gff'
+
+import fs from 'node:fs'
+
+import { Buffer } from 'node:buffer'
+import { promisify } from 'node:util'
+import { GenericFilehandle, FilehandleOptions, Stats } from 'generic-filehandle'
+import { FileHandle } from 'node:fs/promises'
+import { gunzip } from 'node:zlib'
+
+export class LocalFileGzip implements GenericFilehandle {
+  private fileHandle: Promise<FileHandle> | undefined
+  private filename: string
+  private opts: FilehandleOptions
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public constructor(source: string, opts: FilehandleOptions = {}) {
+    this.filename = source
+    this.opts = opts
+  }
+
+  private getFileHandle(): Promise<FileHandle> {
+    if (!this.fileHandle) {
+      this.fileHandle = fs.promises.open(this.filename)
+    }
+    return this.fileHandle
+  }
+
+  public async read(
+    buffer: Buffer,
+    offset = 0,
+    length: number,
+    position = 0,
+  ): Promise<{ bytesRead: number; buffer: Buffer }> {
+    const fileHandle = await this.getFileHandle()
+    const unzippedContents = await unzip(fileHandle)
+    const str = unzippedContents.toString()
+    const substr = str.slice(position, position + length)
+    const bytesRead = buffer.write(substr, offset)
+    return {bytesRead, buffer}
+  }
+
+  public async readFile(): Promise<Buffer>
+  public async readFile(options: BufferEncoding): Promise<string>
+  public async readFile<T extends undefined>(
+    options:
+      | Omit<FilehandleOptions, 'encoding'>
+      | (Omit<FilehandleOptions, 'encoding'> & { encoding: T }),
+  ): Promise<Buffer>
+  public async readFile<T extends BufferEncoding>(
+    options: Omit<FilehandleOptions, 'encoding'> & { encoding: T },
+  ): Promise<string>
+
+  public async readFile(
+    options?: FilehandleOptions | BufferEncoding,
+  ): Promise<Buffer | string> {
+    const fileHandle = await this.getFileHandle()
+    const unzippedContents = await unzip(fileHandle)
+    if (this.opts.encoding) {
+      return unzippedContents.toString(this.opts.encoding)
+    }
+    return unzippedContents
+  }
+
+  // todo memoize
+  public async stat(): Promise<Stats> {
+    const fh = await this.getFileHandle()
+    return fh.stat()
+  }
+
+  public async close(): Promise<void> {
+    const fh = await this.getFileHandle()
+    return fh.close()
+  }
+}
+
+async function unzip(input: FileHandle): Promise<Buffer> {
+  const gunzipP = promisify(gunzip)
+  const fileContents = await input.readFile()
+  const unzippedContents = await gunzipP(fileContents)
+  return unzippedContents
+}
 
 export function makeGFF3Feature(
   feature: AnnotationFeatureSnapshot,

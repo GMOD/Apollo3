@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
 
+"""USAGE: Change to Apollo3/packages/apollo-cli, make this script executable:
+
+    chmod a+x ./test/test.py
+
+and run it:
+
+    ./test/test.py
+    ./test/test.py TestCLI.testAddAssemblyFromGff # Run only this test
+"""
+
+import hashlib
 import json
 import os
 import sys
@@ -855,6 +866,40 @@ class TestCLI(unittest.TestCase):
         p = shell(f"{apollo} feature check {P} -i {xid}")
         self.assertTrue("InternalStopCodonCheck" in p.stdout)
 
+    def testFeatureChecksIndexed(self):
+        shell(
+            f"{apollo} assembly add-fasta {P} -a v1 -i test_data/tiny.fasta.gz --no-db -f"
+        )
+        shell(f"{apollo} feature import {P} -a v1 -i test_data/tiny.fasta.gff3 -d")
+        # shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a v1 -f")
+        shell(f"{apollo} assembly check {P} -a v1 -c CDSCheck")
+        p = shell(f"{apollo} feature check {P} -a v1")
+        ## If we don't edit a feature, checks are not activated (!?)
+        self.assertEqual(p.stdout.strip(), "[]")
+
+        p = shell(f"{apollo} feature get {P} -a v1")
+        ff = json.loads(p.stdout)
+        g1 = [x for x in ff if x["gffId"] == "MyGene"][0]
+        g2 = [x for x in ff if x["gffId"] == "AnotherGene"][0]
+
+        shell(f"{apollo} feature edit-coords {P} -i {g1['_id']} -e 201")
+        shell(f"{apollo} feature edit-coords {P} -i {g2['_id']} -e 251")
+        p = shell(f"{apollo} feature check {P} -a v1")
+        out = json.loads(p.stdout)
+        self.assertTrue(len(out) > 1)
+        self.assertTrue("InternalStopCodonCheck" in p.stdout)
+
+        ## Ids with checks
+        ids = []
+        for x in out:
+            ids.extend(x["ids"])
+        self.assertTrue(len(set(ids)) > 1)
+
+        ## Retrieve by feature id
+        xid = " ".join(ids)
+        p = shell(f"{apollo} feature check {P} -i {xid}")
+        self.assertTrue("InternalStopCodonCheck" in p.stdout)
+
     def testUser(self):
         p = shell(f"{apollo} user get {P}")
         out = json.loads(p.stdout)
@@ -990,6 +1035,27 @@ class TestCLI(unittest.TestCase):
         self.assertEqual("text/x-gff3", out["type"])
 
         p = shell(f"{apollo} file upload {P} -i test_data/guest.yaml", strict=False)
+        self.assertTrue(p.returncode != 0)
+
+    def testFileUploadGzip(self):
+        # Uploading a gzip file must skip compression and just copy the file
+        with open("test_data/tiny.fasta.gz", "rb") as gz:
+            md5 = hashlib.md5(gz.read()).hexdigest()
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta.gz")
+        out = json.loads(p.stdout)
+        self.assertEqual(md5, out["checksum"])
+        shell(f"{apollo} assembly add-file {P} -f -i {out['_id']}")
+
+    def testAddAssemblyWithoutLoadingInMongo(self):
+        # It would be good to check that really there was no sequence loading
+        shell(f"{apollo} assembly add-fasta {P} -f --no-db -i test_data/tiny.fasta.gz")
+        p = shell(f"{apollo} assembly sequence {P} -a tiny.fasta.gz")
+        self.assertTrue(p.stdout.startswith(">"))
+
+        p = shell(
+            f"{apollo} assembly add-fasta {P} -f --no-db -i test_data/tiny.fasta",
+            strict=False,
+        )
         self.assertTrue(p.returncode != 0)
 
     def testAddAssemblyFromFileId(self):

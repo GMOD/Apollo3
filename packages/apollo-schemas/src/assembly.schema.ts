@@ -26,6 +26,9 @@ export class Assembly {
   @Prop({ type: { fa: String, fai: String, gzi: String } })
   externalLocation: { fa: string; fai: string; gzi?: string }
 
+  @Prop({ type: { fa: String, fai: String, gzi: String } })
+  fileIds: { fa: string; fai: string; gzi?: string } // Store fileId of fa/fai/gzi.
+
   @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Check' }] })
   checks: Types.ObjectId[]
 

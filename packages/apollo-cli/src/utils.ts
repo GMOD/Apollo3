@@ -366,11 +366,20 @@ interface bodyExternalFile {
     fai: string
   }
 }
+interface bodyFileId {
+  assemblyName: string
+  typeName: string
+  fileIds: {
+    fa: string
+    fai: string
+    gzi: string | undefined
+  }
+}
 
 export async function submitAssembly(
   address: string,
   accessToken: string,
-  body: bodyLocalFile | bodyExternalFile,
+  body: bodyLocalFile | bodyExternalFile | bodyFileId,
   force: boolean,
 ): Promise<object> {
   let assemblies = await queryApollo(address, accessToken, 'assemblies')
@@ -383,7 +392,7 @@ export async function submitAssembly(
       }
     }
   }
-
+  
   const auth: RequestInit = {
     method: 'POST',
     body: JSON.stringify(body),

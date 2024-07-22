@@ -62,6 +62,12 @@ export abstract class FileCommand extends BaseCommand<typeof FileCommand> {
         throw error
       }
     })
+
+    let contentEncoding = ''
+    if (file.endsWith('.gz')) {
+      contentEncoding = 'gzip'
+    }
+
     const init: RequestInit = {
       method: 'POST',
       body,
@@ -70,6 +76,7 @@ export abstract class FileCommand extends BaseCommand<typeof FileCommand> {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': type,
         'Content-Length': String(size),
+        'Content-Encoding': contentEncoding,
       },
       dispatcher: new Agent({ headersTimeout: 60 * 60 * 1000 }),
     }

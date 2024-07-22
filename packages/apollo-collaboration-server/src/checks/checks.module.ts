@@ -18,10 +18,12 @@ import { MessagesModule } from '../messages/messages.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
 import { ChecksController } from './checks.controller'
 import { ChecksService } from './checks.service'
+import { FilesModule } from '../files/files.module'
 
 @Module({
   providers: [ChecksService],
   imports: [
+    FilesModule,
     MessagesModule,
     RefSeqsModule,
     MongooseModule.forFeatureAsync([
