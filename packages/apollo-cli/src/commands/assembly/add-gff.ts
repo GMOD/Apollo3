@@ -29,7 +29,7 @@ export default class AddGff extends FileCommand {
   static flags = {
     'input-file': Flags.string({
       char: 'i',
-      description: 'Input gff or gtf file',
+      description: 'Input gff file',
       required: true,
     }),
     assembly: Flags.string({

@@ -61,9 +61,12 @@ export async function writeFileAndCalculateHash(
   })
 
   const fileWriteStream = createWriteStream(tmpFileName)
-  const gz = createGzip()
-  await pipeline(stream, gz, fileWriteStream)
-
+  if (originalname.endsWith('.gz')) {
+    await pipeline(stream, fileWriteStream)
+  } else {
+    const gz = createGzip()
+    await pipeline(stream, gz, fileWriteStream)
+  }
   const fileChecksum = hash.digest('hex')
   logger.debug(`Uploaded file checksum: "${fileChecksum}"`)
 

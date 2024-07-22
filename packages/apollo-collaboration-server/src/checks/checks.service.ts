@@ -12,6 +12,8 @@ import {
   CheckResult,
   CheckResultDocument,
   FeatureDocument,
+  File,
+  FileDocument,
   RefSeq,
   RefSeqChunk,
   RefSeqChunkDocument,
@@ -20,15 +22,19 @@ import {
 import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { RemoteFile } from 'generic-filehandle'
+import { LocalFile, RemoteFile } from 'generic-filehandle'
 import { Model } from 'mongoose'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { RefSeqsService } from '../refSeqs/refSeqs.service'
+import { LocalFileGzip } from '@apollo-annotation/shared'
+import path from 'node:path'
 
 @Injectable()
 export class ChecksService {
   constructor(
+    @InjectModel(File.name)
+    private readonly fileModel: Model<FileDocument>,
     @InjectModel(CheckResult.name)
     private readonly checkResultModel: Model<CheckResultDocument>,
     private readonly refSeqsService: RefSeqsService,
@@ -143,6 +149,54 @@ export class ChecksService {
       }
       return sequence
     }
+
+    if (assemblyDoc?.fileIds) {
+      const { fa, fai, gzi } = assemblyDoc.fileIds
+      this.logger.debug(
+        `Local fasta file = ${fa}, Local fasta index file = ${fai}`,
+      )
+      const { FILE_UPLOAD_FOLDER } = process.env
+      if (!FILE_UPLOAD_FOLDER) {
+        throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
+      }
+      const faDoc = (await this.fileModel.findById(fa))
+      const faChecksum = faDoc?.checksum
+      if (!faChecksum) {
+        throw new Error(`No checksum for file document ${faDoc}`)
+      }
+
+      const faiDoc = (await this.fileModel.findById(fai))
+      const faiChecksum = faiDoc?.checksum
+      if (!faiChecksum) {
+        throw new Error(`No checksum for file document ${faiDoc}`)
+      }
+
+      const gziDoc = (await this.fileModel.findById(gzi))
+      const gziChecksum = gziDoc?.checksum
+      if (!gziChecksum) {
+        throw new Error(`No checksum for file document ${gziDoc}`)
+      }
+
+      const sequenceAdapter = gzi
+        ? new BgzipIndexedFasta({
+          fasta: new LocalFile(path.join(FILE_UPLOAD_FOLDER, faChecksum)),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+          fai: new LocalFileGzip(path.join(FILE_UPLOAD_FOLDER, faiChecksum)),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+          gzi: new LocalFileGzip(path.join(FILE_UPLOAD_FOLDER, gziChecksum)),
+          })
+        : new IndexedFasta({
+            fasta: new LocalFile(fa),
+            fai: new LocalFile(fai),
+          })
+      const sequence = await sequenceAdapter.getSequence(name, start, end)
+      if (sequence === undefined) {
+        throw new Error('Sequence not found')
+      }
+      return sequence
+    }
+
+
     const startChunk = Math.floor(start / chunkSize)
     const endChunk = Math.floor(end / chunkSize)
     const seq: string[] = []

@@ -28,7 +28,8 @@ export default class Upload extends FileCommand {
     type: Flags.string({
       char: 't',
       description:
-        'File type or "autodetect" for automatic detection.\nNB: There is no check for whether the file complies to this type',
+        'File type or "autodetect" for automatic detection.\n\
+        NB: There is no check for whether the file complies to this type',
       options: ['text/x-fasta', 'text/x-gff3', 'autodetect'],
       default: 'autodetect',
     }),
@@ -42,9 +43,10 @@ export default class Upload extends FileCommand {
 
     let { type } = flags
     if (type === 'autodetect') {
-      if (/\.fasta$|\.fas$|\.fa$|\.fna$/.test(flags['input-file'])) {
+      const infile = flags['input-file'].replace(/\.gz$/, '')
+      if (/\.fasta$|\.fas$|\.fa$|\.fna$/.test(infile)) {
         type = 'text/x-fasta'
-      } else if (/\.gff$|\.gff3/.test(flags['input-file'])) {
+      } else if (/\.gff$|\.gff3/.test(infile)) {
         type = 'text/x-gff3'
       } else {
         this.error(
