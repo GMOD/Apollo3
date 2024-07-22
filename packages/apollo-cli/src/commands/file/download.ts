@@ -1,4 +1,4 @@
-import { createWriteStream, writeFileSync } from 'node:fs'
+import { createWriteStream } from 'node:fs'
 import { Writable } from 'node:stream'
 
 import { Flags } from '@oclif/core'

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
+ 
 
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { GFF3Feature } from '@gmod/gff'
@@ -17,7 +17,7 @@ export class LocalFileGzip implements GenericFilehandle {
   private fileHandle: Promise<FileHandle> | undefined
   private filename: string
   private opts: FilehandleOptions
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   public constructor(source: string, opts: FilehandleOptions = {}) {
     this.filename = source
     this.opts = opts
@@ -56,7 +56,7 @@ export class LocalFileGzip implements GenericFilehandle {
   ): Promise<string>
 
   public async readFile(
-    options?: FilehandleOptions | BufferEncoding,
+    _options?: FilehandleOptions | BufferEncoding,
   ): Promise<Buffer | string> {
     const fileHandle = await this.getFileHandle()
     const unzippedContents = await unzip(fileHandle)

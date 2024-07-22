@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+ 
 /* eslint-disable @typescript-eslint/no-base-to-string */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
@@ -97,10 +97,10 @@ export class SequenceService {
 
       const sequenceAdapter = gzi
         ? new BgzipIndexedFasta({
-          fasta: new LocalFile(path.join(FILE_UPLOAD_FOLDER, faChecksum)),
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+          fasta: new LocalFile(path.join(FILE_UPLOAD_FOLDER, faChecksum)),  
+           
           fai: new LocalFileGzip(path.join(FILE_UPLOAD_FOLDER, faiChecksum)),
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+           
           gzi: new LocalFileGzip(path.join(FILE_UPLOAD_FOLDER, gziChecksum)),
           })
         : new IndexedFasta({

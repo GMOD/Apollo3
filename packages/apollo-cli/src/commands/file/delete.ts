@@ -58,7 +58,7 @@ export default class Delete extends BaseCommand<typeof Delete> {
       }
     }
     this.log(JSON.stringify(deleted, null, 2))
-    this.logToStderr(`${deleted.length} file(s) deleted.`)
+    this.logToStderr(`${deleted.length.toString()} file(s) deleted.`)
   }
 }
 
