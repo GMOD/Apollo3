@@ -260,7 +260,7 @@ export class CollaborationServerDriver extends BackendDriver {
         errorMessage = ''
       }
       throw new Error(
-        `getRegions failed: ${response.status} (${response.statusText})${
+        `getRefNameAliases failed: ${response.status} (${response.statusText})${
           errorMessage ? ` (${errorMessage})` : ''
         }`,
       )
