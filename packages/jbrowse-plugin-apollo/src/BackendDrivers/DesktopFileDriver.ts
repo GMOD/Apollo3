@@ -19,7 +19,7 @@ import { Region, getSession } from '@jbrowse/core/util'
 import { getSnapshot } from 'mobx-state-tree'
 
 import { checkFeatures, loadAssemblyIntoClient } from '../util'
-import { BackendDriver } from './BackendDriver'
+import { BackendDriver, RefNameAliases } from './BackendDriver'
 
 export class DesktopFileDriver extends BackendDriver {
   async loadAssembly(assemblyName: string) {
@@ -43,6 +43,19 @@ export class DesktopFileDriver extends BackendDriver {
       assembly = await this.loadAssembly(assemblyName)
     }
     return assembly
+  }
+
+  async getRefNameAliases(assemblyName: string): Promise<RefNameAliases[]> {
+    const assembly = await this.getAssembly(assemblyName)
+    const refNameAliases: RefNameAliases[] = []
+    for (const [, refSeq] of assembly.refSeqs) {
+      refNameAliases.push({
+        refName: refSeq.name,
+        aliases: [refSeq._id],
+        uniqueId: `alias-${refSeq._id}`,
+      })
+    }
+    return refNameAliases
   }
 
   async getFeatures(

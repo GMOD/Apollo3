@@ -18,7 +18,8 @@ import { Socket } from 'socket.io-client'
 
 import { ChangeManager, SubmitOpts } from '../ChangeManager'
 import { createFetchErrorMessage } from '../util'
-import { BackendDriver } from './BackendDriver'
+import { BackendDriver, RefNameAliases } from './BackendDriver'
+import { ApolloRefSeqResponse } from '../session'
 
 export interface ApolloInternetAccount extends BaseInternetAccountModel {
   baseURL: string
@@ -233,6 +234,45 @@ export class CollaborationServerDriver extends BackendDriver {
     const seq = await response.text()
     apolloRefSeq.addSequence({ sequence: seq, start, stop })
     return seq
+  }
+
+  async getRefNameAliases(assemblyName: string): Promise<RefNameAliases[]> {
+    const { assemblyManager } = getSession(this.clientStore)
+    const assembly = assemblyManager.get(assemblyName)
+    if (!assembly) {
+      throw new Error(`Could not find assembly with name "${assemblyName}"`)
+    }
+    const internetAccount = this.clientStore.getInternetAccount(
+      assemblyName,
+    ) as ApolloInternetAccount
+    const { baseURL } = internetAccount
+    const url = new URL('refSeqs', baseURL)
+    const searchParams = new URLSearchParams({ assembly: assemblyName })
+    url.search = searchParams.toString()
+    const uri = url.toString()
+
+    const response = await this.fetch(internetAccount, uri)
+    if (!response.ok) {
+      let errorMessage
+      try {
+        errorMessage = await response.text()
+      } catch {
+        errorMessage = ''
+      }
+      throw new Error(
+        `getRegions failed: ${response.status} (${response.statusText})${
+          errorMessage ? ` (${errorMessage})` : ''
+        }`,
+      )
+    }
+    const refSeqs = (await response.json()) as ApolloRefSeqResponse[]
+    return refSeqs.map((refSeq) => {
+      return {
+        refName: refSeq.name,
+        aliases: [refSeq._id],
+        uniqueId: `alias-${refSeq._id}`,
+      }
+    }) as RefNameAliases[]
   }
 
   async getRegions(assemblyName: string): Promise<Region[]> {

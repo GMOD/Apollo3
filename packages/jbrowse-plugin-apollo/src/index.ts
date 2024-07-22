@@ -72,6 +72,7 @@ import {
   stateModelFactory as SixFrameFeatureDisplayStateModelFactory,
   configSchemaFactory as sixFrameFeatureDisplayConfigSchemaFactory,
 } from './SixFrameFeatureDisplay'
+import { installApolloRefNameAliasAdapter } from './ApolloRefNameAliasAdapter'
 
 interface RpcHandle {
   on(event: string, listener: (event: MessageEvent) => void): this
@@ -114,6 +115,7 @@ export default class ApolloPlugin extends Plugin {
 
   install(pluginManager: PluginManager) {
     installApolloSequenceAdapter(pluginManager)
+    installApolloRefNameAliasAdapter(pluginManager)
     installApolloTextSearchAdapter(pluginManager)
 
     pluginManager.addWidgetType(() => {
@@ -314,6 +316,28 @@ export default class ApolloPlugin extends Plugin {
                   apollo,
                   messageId,
                   regions,
+                })
+                break
+              }
+              case 'getRefNameAliases': {
+                const { assembly } = event
+                const dataStore = (
+                  pluginManager.rootModel?.session as
+                    | ApolloSessionModel
+                    | undefined
+                )?.apolloDataStore
+                if (!dataStore) {
+                  break
+                }
+                const backendDriver = dataStore.getBackendDriver(
+                  assembly,
+                ) as BackendDriver
+                const refNameAliases =
+                  await backendDriver.getRefNameAliases(assembly)
+                handle.workers[0].postMessage({
+                  apollo,
+                  messageId,
+                  refNameAliases,
                 })
                 break
               }
