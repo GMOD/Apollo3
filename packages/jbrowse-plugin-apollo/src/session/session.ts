@@ -318,11 +318,6 @@ export function extendSession(
             const ids: Record<string, string> = {}
             const refNameAliasesFeatures = f.map((contig) => {
               ids[contig.name] = contig._id
-              return {
-                refName: contig.name,
-                aliases: [contig._id],
-                uniqueId: `alias-${contig._id}`,
-              }
             })
             const assemblyConfig = {
               name: assembly._id,
@@ -344,8 +339,9 @@ export function extendSession(
               },
               refNameAliases: {
                 adapter: {
-                  type: 'FromConfigAdapter',
-                  features: refNameAliasesFeatures,
+                  type: 'ApolloRefNameAliasAdapter',
+                  assemblyId: assembly._id,
+                  baseURL: { uri: baseURL, locationType: 'UriLocation' },
                 },
               },
             }

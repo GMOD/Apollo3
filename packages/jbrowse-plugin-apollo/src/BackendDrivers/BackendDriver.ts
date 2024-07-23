@@ -9,6 +9,12 @@ import { Region } from '@jbrowse/core/util'
 
 import { SubmitOpts } from '../ChangeManager'
 
+export interface RefNameAliases {
+  refName: string
+  aliases: string[]
+  uniqueId: string
+}
+
 export abstract class BackendDriver {
   constructor(protected clientStore: ClientDataStore) {}
 
@@ -21,6 +27,8 @@ export abstract class BackendDriver {
   abstract getRegions(assemblyName: string): Promise<Region[]>
 
   abstract getAssemblies(internetAccountConfigId?: string): Assembly[]
+
+  abstract getRefNameAliases(assemblyName: string): Promise<RefNameAliases[]>
 
   abstract submitChange(
     change: Change,
