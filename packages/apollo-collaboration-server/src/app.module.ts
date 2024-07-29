@@ -39,6 +39,7 @@ const nodeEnv = process.env.NODE_ENV ?? 'production'
 const validationSchema = Joi.object({
   // Required
   URL: Joi.string().uri().required(),
+  NAME: Joi.string().required(),
   MONGODB_URI: Joi.string(),
   MONGODB_URI_FILE: Joi.string(),
   FILE_UPLOAD_FOLDER: Joi.string().required(),
@@ -54,8 +55,9 @@ const validationSchema = Joi.object({
   JWT_SECRET_FILE: Joi.string(),
   SESSION_SECRET: Joi.string(),
   SESSION_SECRET_FILE: Joi.string(),
-  ONTOLOGY_FILE: Joi.string(),
   // Optional
+  DESCRIPTION: Joi.string(),
+  PLUGIN_LOCATION: Joi.string(),
   ALLOW_ROOT_USER: Joi.boolean().default(false),
   ROOT_USER_NAME: Joi.string(),
   ROOT_USER_PASSWORD: Joi.string(),

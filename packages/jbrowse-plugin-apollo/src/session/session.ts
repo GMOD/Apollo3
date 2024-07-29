@@ -1,22 +1,29 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
 import { AnnotationFeature, AnnotationFeatureI } from '@apollo-annotation/mst'
-import { DeleteTrackChange, SaveTrackChange, UserLocation } from '@apollo-annotation/shared'
-import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
-import { getConf, readConfObject } from '@jbrowse/core/configuration'
 import {
-  BaseInternetAccountModel,
-  BaseTrackConfig,
-} from '@jbrowse/core/pluggableElementTypes'
+  DeleteTrackChange,
+  SaveTrackChange,
+  UserLocation,
+} from '@apollo-annotation/shared'
+import { readConfObject } from '@jbrowse/core/configuration'
+import { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import SaveIcon from '@mui/icons-material/Save'
 import { autorun, observable } from 'mobx'
-import { Instance, flow, getRoot, types } from 'mobx-state-tree'
+import {
+  Instance,
+  applySnapshot,
+  flow,
+  getRoot,
+  getSnapshot,
+  types,
+} from 'mobx-state-tree'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloJobModel } from '../ApolloJobModel'
@@ -29,22 +36,6 @@ export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreType & { changeManager: ChangeManager }
   apolloSelectedFeature?: AnnotationFeatureI
   apolloSetSelectedFeature(feature?: AnnotationFeatureI): void
-}
-
-interface ApolloAssemblyResponse {
-  _id: string
-  name: string
-  displayName?: string
-  description?: string
-  aliases?: string[]
-}
-
-export interface ApolloRefSeqResponse {
-  _id: string
-  name: string
-  description?: string
-  length: string
-  assembly: string
 }
 
 export interface Collaborator {
@@ -97,44 +88,6 @@ export function extendSession(
       apolloSetSelectedFeature(feature?: AnnotationFeatureI) {
         self.apolloSelectedFeature = feature
       },
-      // addApolloTrackConfig(assembly: AssemblyModel, baseURL?: string) {
-      //   const trackId = `apollo_track_${assembly.name}`
-      //   const hasTrack = (self as unknown as AbstractSessionModel).tracks.some(
-      //     (track) => track.trackId === trackId,
-      //   )
-      //   if (!hasTrack) {
-      //     ;(self as unknown as SessionWithConfigEditing).addTrackConf({
-      //       type: 'ApolloTrack',
-      //       trackId,
-      //       name: `Annotations (${
-      //         // @ts-expect-error getConf types don't quite work here for some reason
-      //         getConf(assembly, 'displayName') || assembly.name
-      //       })`,
-      //       assemblyNames: [assembly.name],
-      //       textSearching: {
-      //         textSearchAdapter: {
-      //           type: 'ApolloTextSearchAdapter',
-      //           trackId,
-      //           assemblyNames: [assembly.name],
-      //           textSearchAdapterId: `apollo_search_${assembly.name}`,
-      //           ...(baseURL
-      //             ? { baseURL: { uri: baseURL, locationType: 'UriLocation' } }
-      //             : {}),
-      //         },
-      //       },
-      //       displays: [
-      //         {
-      //           type: 'LinearApolloDisplay',
-      //           displayId: `${trackId}-LinearApolloDisplay`,
-      //         },
-      //         {
-      //           type: 'SixFrameFeatureDisplay',
-      //           displayId: `${trackId}-SixFrameFeatureDisplay`,
-      //         },
-      //       ],
-      //     })
-      //   }
-      // },
       broadcastLocations() {
         const { internetAccounts } = getRoot<ApolloRootModel>(self)
         const locations: {
@@ -187,7 +140,15 @@ export function extendSession(
     }))
     .actions((self) => ({
       afterCreate: flow(function* afterCreate() {
-        const { internetAccounts } = getRoot<ApolloRootModel>(self)
+        // When the initial config.json loads, it doesn't include the Apollo
+        // tracks, which would result in a potentially invalid session snapshot
+        // if any tracks are open. Here we copy the session snapshot, apply an
+        // empty session snapshot, and then restore the original session
+        // snapshot after the updated config.json loads.
+        const sessionSnapshot = getSnapshot(self)
+        const { id, name } = sessionSnapshot
+        applySnapshot(self, { name, id })
+        const { internetAccounts, jbrowse } = getRoot<ApolloRootModel>(self)
         autorun(
           () => {
             // broadcastLocations() // **** This is not working and therefore we need to duplicate broadcastLocations() -method code here because autorun() does not observe changes otherwise
@@ -249,8 +210,8 @@ export function extendSession(
             continue
           }
 
-          const { baseURL, configuration } = internetAccount
-          const uri = new URL('assemblies', baseURL).href
+          const { baseURL } = internetAccount
+          const uri = new URL('jbrowse/config.json', baseURL).href
           const fetch = internetAccount.getFetcher({
             locationType: 'UriLocation',
             uri,
@@ -260,7 +221,6 @@ export function extendSession(
             response = yield fetch(uri, { signal })
           } catch (error) {
             console.error(error)
-            // setError(e instanceof Error ? e : new Error(String(e)))
             continue
           }
           if (!response.ok) {
@@ -271,88 +231,19 @@ export function extendSession(
             console.error(errorMessage)
             continue
           }
-          let fetchedAssemblies
+          let jbrowseConfig
           try {
-            fetchedAssemblies =
-              (yield response.json()) as ApolloAssemblyResponse[]
+            jbrowseConfig = yield response.json()
           } catch (error) {
             console.error(error)
             continue
           }
-          for (const assembly of fetchedAssemblies) {
-            const { addAssembly, addSessionAssembly, assemblyManager } =
-              self as unknown as AbstractSessionModel & {
-                // eslint-disable-next-line @typescript-eslint/ban-types
-                addSessionAssembly: Function
-              }
-            const selectedAssembly = assemblyManager.get(assembly.name)
-            if (selectedAssembly) {
-              // self.addApolloTrackConfig(selectedAssembly, baseURL)
-              continue
-            }
-            const url = new URL('refSeqs', baseURL)
-            const searchParams = new URLSearchParams({ assembly: assembly._id })
-            url.search = searchParams.toString()
-            const uri2 = url.toString()
-            const fetch2 = internetAccount.getFetcher({
-              locationType: 'UriLocation',
-              uri: uri2,
-            })
-            const response2 = (yield fetch2(uri2, {
-              signal,
-            })) as unknown as Response
-            if (!response2.ok) {
-              let errorMessage
-              try {
-                errorMessage = yield response2.text()
-              } catch {
-                errorMessage = ''
-              }
-              throw new Error(
-                `Failed to fetch fasta info — ${response2.status} (${
-                  response2.statusText
-                })${errorMessage ? ` (${errorMessage})` : ''}`,
-              )
-            }
-            const f = (yield response2.json()) as ApolloRefSeqResponse[]
-            const ids: Record<string, string> = {}
-            const refNameAliasesFeatures = f.map((contig) => {
-              ids[contig.name] = contig._id
-            })
-            const assemblyConfig = {
-              name: assembly._id,
-              aliases: [assembly.name, ...(assembly.aliases ?? [])],
-              displayName: assembly.displayName ?? assembly.name,
-              sequence: {
-                trackId: `sequenceConfigId-${assembly.name}`,
-                type: 'ReferenceSequenceTrack',
-                adapter: {
-                  type: 'ApolloSequenceAdapter',
-                  assemblyId: assembly._id,
-                  baseURL: { uri: baseURL, locationType: 'UriLocation' },
-                },
-                metadata: {
-                  apollo: true,
-                  internetAccountConfigId: configuration.internetAccountId,
-                  ids,
-                },
-              },
-              refNameAliases: {
-                adapter: {
-                  type: 'ApolloRefNameAliasAdapter',
-                  assemblyId: assembly._id,
-                  baseURL: { uri: baseURL, locationType: 'UriLocation' },
-                },
-              },
-            }
-            // ;(addSessionAssembly || addAssembly)(assemblyConfig)
-            const a = yield assemblyManager.waitForAssembly(assemblyConfig.name)
-            // self.addApolloTrackConfig(a, baseURL)
-          }
+          applySnapshot(jbrowse, jbrowseConfig)
+          applySnapshot(self, sessionSnapshot)
         }
       }),
       beforeDestroy() {
-        aborter.abort()
+        aborter.abort('destroying session model')
       },
     }))
 

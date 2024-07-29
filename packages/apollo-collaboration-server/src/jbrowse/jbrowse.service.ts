@@ -1,91 +1,152 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { InjectModel } from '@nestjs/mongoose'
-import { Track, TrackDocument } from '@apollo-annotation/schemas'
-import { Model } from 'mongoose'
+import { Types } from 'mongoose'
 
 import { AssembliesService } from '../assemblies/assemblies.service'
 import { RefSeqsService } from '../refSeqs/refSeqs.service'
+import { ConfigService } from '@nestjs/config'
+import { Role } from '../utils/role/role.enum'
 
 @Injectable()
 export class JBrowseService {
   constructor(
     private readonly assembliesService: AssembliesService,
     private readonly refSeqsService: RefSeqsService,
-    @InjectModel(Track.name)
-    private readonly trackModel: Model<TrackDocument>,
+    private readonly configService: ConfigService<
+      {
+        URL: string
+        NAME: string
+        DESCRIPTION?: string
+        PLUGIN_LOCATION?: string
+      },
+      true
+    >,
   ) {}
 
   private readonly logger = new Logger(JBrowseService.name)
 
-  async findAllTracks() {
-    const trackArray = await this.trackModel.find({}).exec()
-    const trackConfig = trackArray.map((t) => t.trackConfig)
-    return trackConfig
+  get internetAccountId() {
+    const name = this.configService.get('NAME', { infer: true })
+    return `${name}-apolloInternetAccount`
   }
 
-  async getConfig() {
-    const assemblies = await this.assembliesService.findAll()
-    const config = this.getDefaultConfig()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const assemblyConfigs: any[] = []
-    config.assemblies = assemblyConfigs
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const trackConfigs: any[] = []
-    config.tracks = trackConfigs
-    trackConfigs.push(...(await this.findAllTracks()))
+  getConfiguration() {
+    return {
+      theme: {
+        palette: {
+          primary: {
+            main: '#0c4f4b',
+          },
+          secondary: {
+            main: '#1AA39B',
+          },
+          tertiary: {
+            main: '#4f0c10',
+          },
+          quaternary: {
+            main: '#571AA3',
+          },
+        },
+      },
+    }
+  }
 
-    for (const assembly of assemblies) {
-      const refSeqs = await this.refSeqsService.findAll({
-        assembly: assembly._id.toHexString(),
-      })
-      const ids: Record<string, string> = {}
-      const refNameAliasesFeatures = refSeqs.map((refSeq) => {
-        ids[refSeq.name] = refSeq._id
+  getPlugins() {
+    const pluginLocation =
+      this.configService.get('PLUGIN_LOCATION', { infer: true }) ?? 'apollo.js'
+    return [
+      {
+        name: 'Apollo',
+        url: pluginLocation,
+      },
+    ]
+  }
+
+  getInternetAccounts() {
+    const url = this.configService.get('URL', { infer: true })
+    const name = this.configService.get('NAME', { infer: true })
+    const description =
+      this.configService.get('DESCRIPTION', { infer: true }) ?? ''
+    const urlObj = new URL(url)
+    return [
+      {
+        type: 'ApolloInternetAccount',
+        internetAccountId: this.internetAccountId,
+        name,
+        description,
+        domains: [urlObj.host],
+        baseURL: url,
+      },
+    ]
+  }
+
+  getDefaultSession() {
+    return {
+      name: 'Apollo',
+      views: [{ type: 'LinearGenomeView' }],
+    }
+  }
+
+  async getAssemblies() {
+    const url = this.configService.get('URL', { infer: true })
+    const assemblies = await this.assembliesService.findAll()
+    return Promise.all(
+      assemblies.map(async (assembly) => {
+        const assemblyId = assembly._id.toHexString()
+        const refSeqs = await this.refSeqsService.findAll({
+          assembly: assemblyId,
+        })
+        const ids: Record<string, string> = {}
+        const refNameAliasesFeatures = refSeqs.map((refSeq) => {
+          const refSeqId = (refSeq._id as Types.ObjectId).toHexString()
+          ids[refSeq.name] = refSeqId
+          return {
+            refName: refSeq.name,
+            aliases: [refSeqId],
+            uniqueId: `alias-${refSeqId}`,
+          }
+        })
+        this.logger.debug(`generating assembly ${assemblyId}`)
         return {
-          refName: refSeq.name,
-          aliases: [refSeq._id],
-          uniqueId: `alias-${refSeq._id}`,
-        }
-      })
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const assemblyConfig: any = {
-        name: assembly._id,
-        aliases: [assembly.name, ...(assembly.aliases ?? [])],
-        displayName: assembly.displayName ?? assembly.name,
-        sequence: {
-          trackId: `sequenceConfigId-${assembly.name}`,
-          type: 'ReferenceSequenceTrack',
-          adapter: {
-            type: 'ApolloSequenceAdapter',
-            assemblyId: assembly._id,
-            baseURL: {
-              uri: 'http://localhost:3999',
-              locationType: 'UriLocation',
+          name: assemblyId,
+          aliases: [assembly.name, ...assembly.aliases],
+          displayName: assembly.name,
+          sequence: {
+            trackId: `sequenceConfigId-${assembly.name}`,
+            type: 'ReferenceSequenceTrack',
+            adapter: {
+              type: 'ApolloSequenceAdapter',
+              assemblyId,
+              baseURL: {
+                uri: url,
+                locationType: 'UriLocation',
+              },
+            },
+            metadata: {
+              apollo: true,
+              internetAccountConfigId: this.internetAccountId,
+              ids,
             },
           },
-          metadata: {
-            apollo: true,
-            internetAccountConfigId: 'apolloInternetAccount',
-            // internetAccountConfigId: configuration.internetAccountId,
-            ids,
+          refNameAliases: {
+            adapter: {
+              type: 'FromConfigAdapter',
+              features: refNameAliasesFeatures,
+            },
           },
-        },
-        refNameAliases: {
-          adapter: {
-            type: 'FromConfigAdapter',
-            features: refNameAliasesFeatures,
-          },
-        },
-      }
-      assemblyConfigs.push(assemblyConfig)
+        }
+      }),
+    )
+  }
 
-      // Tracks
+  async getTracks() {
+    const url = this.configService.get('URL', { infer: true })
+    const assemblies = await this.assembliesService.findAll()
+    return assemblies.map((assembly) => {
       const trackId = `apollo_track_${assembly.id}`
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const trackConfig: any = {
+      return {
         type: 'ApolloTrack',
         trackId,
-        name: `Annotations (${assembly.displayName ?? assembly.name})`,
+        name: `Annotations (${assembly.displayName})`,
         assemblyNames: [assembly.id],
         textSearching: {
           textSearchAdapter: {
@@ -94,7 +155,7 @@ export class JBrowseService {
             assemblyNames: [assembly.id],
             textSearchAdapterId: `apollo_search_${assembly.id}`,
             baseURL: {
-              uri: 'http://localhost:3999',
+              uri: url,
               locationType: 'UriLocation',
             },
           },
@@ -110,80 +171,25 @@ export class JBrowseService {
           },
         ],
       }
-      trackConfigs.push(trackConfig)
-    }
-    return config
+    })
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getDefaultConfig(): any {
-    return {
-      assemblies: [],
-      tracks: [],
-      configuration: {
-        theme: {
-          palette: {
-            primary: {
-              main: '#24264a',
-            },
-            secondary: {
-              main: '#6f8fa2',
-            },
-            tertiary: {
-              main: '#1e4b34',
-            },
-            quaternary: {
-              main: '#6b4e2b',
-            },
-          },
-        },
-        ApolloPlugin: {
-          ontologies: [
-            {
-              name: 'Gene Ontology',
-              version: 'full',
-              source: {
-                uri: 'https://release.geneontology.org/2023-06-11/ontology/go.json',
-                locationType: 'UriLocation',
-              },
-            },
-            {
-              name: 'Sequence Ontology',
-              version: '3.1',
-              source: {
-                uri: 'test_data/so-v3.1.json',
-                locationType: 'UriLocation',
-              },
-            },
-          ],
-        },
-      },
-      plugins: [
-        {
-          name: 'Apollo',
-          url: 'http://localhost:9000/dist/jbrowse-plugin-apollo.umd.development.js',
-        },
-      ],
-
-      internetAccounts: [
-        {
-          type: 'ApolloInternetAccount',
-          internetAccountId: 'apolloInternetAccount',
-          name: 'Demo Server',
-          description:
-            'A server hosting a small fictional organism to demonstrate Apollo capabilities',
-          domains: ['localhost:3999'],
-          baseURL: 'http://localhost:3999',
-        },
-      ],
-      defaultSession: {
-        name: 'Apollo Demo',
-        views: [
-          {
-            type: 'LinearGenomeView',
-          },
-        ],
-      },
+  async getConfig(role: Role) {
+    if (role === Role.None) {
+      return {
+        configuration: this.getConfiguration(),
+        plugins: this.getPlugins(),
+        internetAccounts: this.getInternetAccounts(),
+      }
     }
+    const generatedConfig = {
+      configuration: this.getConfiguration(),
+      assemblies: await this.getAssemblies(),
+      tracks: await this.getTracks(),
+      plugins: this.getPlugins(),
+      internetAccounts: this.getInternetAccounts(),
+      defaultSession: this.getDefaultSession(),
+    }
+    return generatedConfig
   }
 }
