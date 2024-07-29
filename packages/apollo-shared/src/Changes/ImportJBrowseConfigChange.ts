@@ -13,6 +13,7 @@ interface JBrowseAssembly {
 
 interface JBrowseTrack {
   type: string
+  trackId: string
 }
 
 interface JBrowsePlugin {
@@ -37,6 +38,32 @@ export interface SerializedImportJBrowseConfigChange {
   newJBrowseConfig?: JBrowseConfig
 }
 
+export function filterJBrowseConfig(config: JBrowseConfig): JBrowseConfig {
+  const { assemblies, internetAccounts, plugins, tracks, ...rest } = config
+  const filteredAssemblies = assemblies?.filter(
+    (a) => a.sequence.adapter.type !== 'ApolloSequenceAdapter',
+  )
+  const filteredTracks = tracks?.filter((t) => t.type !== 'ApolloTrack')
+  const filteredPlugins = plugins?.filter((p) => p.name !== 'Apollo')
+  const filteredInternetAccounts = internetAccounts?.filter(
+    (i) => i.type !== 'ApolloInternetAccount',
+  )
+  const filteredConfig = rest as JBrowseConfig
+  if (filteredAssemblies) {
+    filteredConfig.assemblies = filteredAssemblies
+  }
+  if (filteredTracks) {
+    filteredConfig.tracks = filteredTracks
+  }
+  if (filteredPlugins) {
+    filteredConfig.plugins = filteredPlugins
+  }
+  if (filteredInternetAccounts) {
+    filteredConfig.internetAccounts = filteredInternetAccounts
+  }
+  return filteredConfig
+}
+
 export class ImportJBrowseConfigChange extends Change {
   typeName = 'ImportJBrowseConfigChange' as const
   oldJBrowseConfig?: JBrowseConfig
@@ -58,31 +85,13 @@ export class ImportJBrowseConfigChange extends Change {
 
   async executeOnServer(backend: ServerDataStore) {
     const { jbrowseConfigModel } = backend
-    const { logger, newJBrowseConfig: newJBrowseConfig } = this
+    const { logger, newJBrowseConfig } = this
     await jbrowseConfigModel.deleteMany()
     if (!newJBrowseConfig) {
       return
     }
-
-    const filteredAssemblies = newJBrowseConfig.assemblies?.map(
-      (a) => a.sequence.adapter.type !== 'ApolloSequenceAdapter`',
-    )
-    const filteredTracks = newJBrowseConfig.tracks?.map(
-      (t) => t.type !== 'ApolloTrack',
-    )
-    const filteredPlugins = newJBrowseConfig.plugins?.map(
-      (p) => p.name !== 'Apollo',
-    )
-    const filteredInternetAccounts = newJBrowseConfig.internetAccounts?.map(
-      (i) => i.type !== 'ApolloInternetAccount',
-    )
-    await jbrowseConfigModel.create({
-      ...newJBrowseConfig,
-      assemblies: filteredAssemblies,
-      tracks: filteredTracks,
-      plugins: filteredPlugins,
-      internetAccounts: filteredInternetAccounts,
-    })
+    const filteredConfig = filterJBrowseConfig(newJBrowseConfig)
+    await jbrowseConfigModel.create(filteredConfig)
     logger.debug?.('Stored new JBrowse Config')
   }
 

@@ -3,10 +3,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
 import { AnnotationFeature, AnnotationFeatureI } from '@apollo-annotation/mst'
-import { UserLocation } from '@apollo-annotation/shared'
+import {
+  filterJBrowseConfig,
+  ImportJBrowseConfigChange,
+  JBrowseConfig,
+  UserLocation,
+} from '@apollo-annotation/shared'
+import { readConfObject } from '@jbrowse/core/configuration'
+import { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
+import SaveIcon from '@mui/icons-material/Save'
 import { autorun, observable } from 'mobx'
 import {
   Instance,
@@ -238,6 +246,116 @@ export function extendSession(
         aborter.abort('destroying session model')
       },
     }))
+
+    .views((self) => {
+      const superTrackActionMenuItems = (
+        self as unknown as AbstractSessionModel
+      ).getTrackActionMenuItems
+      return {
+        getTrackActionMenuItems(conf: BaseTrackConfig) {
+          if (
+            conf.type === 'ApolloTrack' ||
+            conf.type === 'ReferenceSequenceTrack'
+          ) {
+            return superTrackActionMenuItems?.(conf)
+          }
+          const trackId = readConfObject(conf, 'trackId') as string
+          const sessionTrackIdentifier = '-sessionTrack'
+          const isSessionTrack = trackId.endsWith(sessionTrackIdentifier)
+          return isSessionTrack
+            ? [
+                ...(superTrackActionMenuItems?.(conf) ?? []),
+                {
+                  label: 'Save track to Apollo',
+                  onClick: async () => {
+                    const { internetAccounts, jbrowse } =
+                      getRoot<ApolloRootModel>(self)
+                    const currentConfig = getSnapshot<JBrowseConfig>(jbrowse)
+                    let filteredConfig: JBrowseConfig | undefined
+                    filteredConfig = filterJBrowseConfig(currentConfig)
+                    if (Object.keys(filteredConfig).length === 0) {
+                      filteredConfig = undefined
+                    }
+                    let trackConfigSnapshot = getSnapshot(conf) as {
+                      trackId: string
+                      type: string
+                    }
+                    const newTrackId = trackId.slice(
+                      0,
+                      trackId.length - sessionTrackIdentifier.length,
+                    )
+                    trackConfigSnapshot = {
+                      ...trackConfigSnapshot,
+                      trackId: newTrackId,
+                    }
+                    for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
+                      if (internetAccount.type !== 'ApolloInternetAccount') {
+                        continue
+                      }
+                      const change = new ImportJBrowseConfigChange({
+                        typeName: 'ImportJBrowseConfigChange',
+                        oldJBrowseConfig: filteredConfig,
+                        newJBrowseConfig: {
+                          ...filteredConfig,
+                          tracks: filteredConfig?.tracks && [
+                            ...filteredConfig.tracks,
+                            trackConfigSnapshot,
+                          ],
+                        },
+                      })
+                      const { internetAccountId } = internetAccount
+                      await self.apolloDataStore.changeManager.submit(change, {
+                        internetAccountId,
+                      })
+                      const { notify } = self as unknown as AbstractSessionModel
+                      notify('Track added', 'success')
+                    }
+                  },
+                  icon: SaveIcon,
+                },
+              ]
+            : [
+                ...(superTrackActionMenuItems?.(conf) ?? []),
+                {
+                  label: 'Remove track from Apollo',
+                  onClick: async () => {
+                    const { internetAccounts, jbrowse } =
+                      getRoot<ApolloRootModel>(self)
+                    const currentConfig = getSnapshot<JBrowseConfig>(jbrowse)
+                    let filteredConfig: JBrowseConfig | undefined
+                    filteredConfig = filterJBrowseConfig(currentConfig)
+                    if (Object.keys(filteredConfig).length === 0) {
+                      filteredConfig = undefined
+                    }
+                    const filteredTracks = filteredConfig?.tracks?.filter(
+                      (t) => t.trackId !== trackId,
+                    )
+                    for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
+                      if (internetAccount.type !== 'ApolloInternetAccount') {
+                        continue
+                      }
+                      const change = new ImportJBrowseConfigChange({
+                        typeName: 'ImportJBrowseConfigChange',
+                        oldJBrowseConfig: filteredConfig,
+                        newJBrowseConfig: {
+                          ...filteredConfig,
+                          tracks: filteredTracks,
+                        },
+                      })
+                      const { internetAccountId } = internetAccount
+                      await self.apolloDataStore.changeManager.submit(change, {
+                        internetAccountId,
+                      })
+                      const { notify } = self as unknown as AbstractSessionModel
+                      notify('Track removed', 'success')
+                    }
+                  },
+                  icon: SaveIcon,
+                },
+              ]
+        },
+      }
+    })
 }
 
 export type ApolloSessionStateModel = ReturnType<typeof extendSession>
