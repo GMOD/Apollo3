@@ -438,6 +438,13 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             if (inWebWorker) {
               return
             }
+            const { session } = getRoot<ApolloRootModel>(self)
+            // This can be undefined if there is no session loaded, e.g. on
+            // the start screen
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            if (!session) {
+              return
+            }
             if (self.role) {
               await self.initialize(self.role)
               reaction.dispose()

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -10,7 +9,6 @@ import {
 } from '@mui/material'
 import React, { useCallback, useEffect, useState } from 'react'
 
-import type { OntologyManager } from '../OntologyManager'
 import { OntologyTerm, isDeprecated } from '../OntologyManager'
 import OntologyStore from '../OntologyManager/OntologyStore'
 import { ApolloSessionModel } from '../session'
