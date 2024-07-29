@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
-import { Track, TrackSchema } from '@apollo-annotation/schemas'
+import { JBrowseConfig, JBrowseConfigSchema } from '@apollo-annotation/schemas'
 import idValidator from 'mongoose-id-validator'
 
 import { AssembliesModule } from '../assemblies/assemblies.module'
@@ -15,10 +16,10 @@ import { JBrowseService } from './jbrowse.service'
     forwardRef(() => AssembliesModule),
     MongooseModule.forFeatureAsync([
       {
-        name: Track.name,
+        name: JBrowseConfig.name,
         useFactory: (connection) => {
-          TrackSchema.plugin(idValidator, { connection })
-          return TrackSchema
+          JBrowseConfigSchema.plugin(idValidator, { connection })
+          return JBrowseConfigSchema
         },
         inject: [getConnectionToken()],
       },

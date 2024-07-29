@@ -10,8 +10,8 @@ import {
   RefSeqChunk,
   RefSeqChunkDocument,
   RefSeqDocument,
-  Track,
-  TrackDocument,
+  JBrowseConfig,
+  JBrowseConfigDocument,
   User,
   UserDocument,
 } from '@apollo-annotation/schemas'
@@ -30,8 +30,8 @@ export class OperationsService {
     private readonly assemblyModel: Model<AssemblyDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
-    @InjectModel(Track.name)
-    private readonly trackModel: Model<TrackDocument>,
+    @InjectModel(JBrowseConfig.name)
+    private readonly jbrowseConfigModel: Model<JBrowseConfigDocument>,
     @InjectModel(Feature.name)
     private readonly featureModel: Model<FeatureDocument>,
     @InjectModel(File.name)
@@ -58,11 +58,11 @@ export class OperationsService {
       featureModel,
       fileModel,
       filesService,
+      jbrowseConfigModel,
       logger,
       pluginsService,
       refSeqChunkModel,
       refSeqModel,
-      trackModel,
       userModel,
     } = this
     const OperationType = operationRegistry.getOperationType(
@@ -78,7 +78,7 @@ export class OperationsService {
       refSeqChunkModel,
       fileModel,
       userModel,
-      trackModel,
+      jbrowseConfigModel,
       session,
       filesService,
       counterService: countersService,

@@ -1,5 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Types } from 'mongoose'
+import { InjectModel } from '@nestjs/mongoose'
+import {
+  JBrowseConfig,
+  JBrowseConfigDocument,
+} from '@apollo-annotation/schemas'
+import { Model, Types } from 'mongoose'
+import merge from 'deepmerge'
 
 import { AssembliesService } from '../assemblies/assemblies.service'
 import { RefSeqsService } from '../refSeqs/refSeqs.service'
@@ -11,6 +17,8 @@ export class JBrowseService {
   constructor(
     private readonly assembliesService: AssembliesService,
     private readonly refSeqsService: RefSeqsService,
+    @InjectModel(JBrowseConfig.name)
+    private readonly jbrowseConfigModel: Model<JBrowseConfigDocument>,
     private readonly configService: ConfigService<
       {
         URL: string
@@ -174,6 +182,11 @@ export class JBrowseService {
     })
   }
 
+  async getJBrowseConfig() {
+    const document = await this.jbrowseConfigModel.findOne().exec()
+    return document?.toJSON()
+  }
+
   async getConfig(role: Role) {
     if (role === Role.None) {
       return {
@@ -182,6 +195,7 @@ export class JBrowseService {
         internetAccounts: this.getInternetAccounts(),
       }
     }
+    const storedConfig = await this.getJBrowseConfig()
     const generatedConfig = {
       configuration: this.getConfiguration(),
       assemblies: await this.getAssemblies(),
@@ -190,6 +204,9 @@ export class JBrowseService {
       internetAccounts: this.getInternetAccounts(),
       defaultSession: this.getDefaultSession(),
     }
-    return generatedConfig
+    if (!storedConfig) {
+      return generatedConfig
+    }
+    return merge(generatedConfig, storedConfig)
   }
 }

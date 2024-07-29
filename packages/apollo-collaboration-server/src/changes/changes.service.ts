@@ -17,8 +17,8 @@ import {
   RefSeqChunk,
   RefSeqChunkDocument,
   RefSeqDocument,
-  Track,
-  TrackDocument,
+  JBrowseConfig,
+  JBrowseConfigDocument,
   User,
   UserDocument,
 } from '@apollo-annotation/schemas'
@@ -56,8 +56,8 @@ export class ChangesService {
     private readonly fileModel: Model<FileDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
-    @InjectModel(Track.name)
-    private readonly trackModel: Model<TrackDocument>,
+    @InjectModel(JBrowseConfig.name)
+    private readonly jbrowseConfigModel: Model<JBrowseConfigDocument>,
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
     private readonly filesService: FilesService,
@@ -114,7 +114,7 @@ export class ChangesService {
           refSeqChunkModel: this.refSeqChunkModel,
           fileModel: this.fileModel,
           userModel: this.userModel,
-          trackModel: this.trackModel,
+          jbrowseConfigModel: this.jbrowseConfigModel,
           session,
           filesService: this.filesService,
           counterService: this.countersService,
