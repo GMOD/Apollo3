@@ -8,7 +8,6 @@ import {
   ManageUsers,
 } from '../components'
 import { ApolloSessionModel } from '../session'
-import Add from '@mui/icons-material/Add'
 
 export function addMenuItems(rootModel: AbstractMenuManager) {
   rootModel.appendToMenu('Apollo', {
