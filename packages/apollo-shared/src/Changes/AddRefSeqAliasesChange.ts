@@ -29,21 +29,8 @@ export class AddRefSeqAliasesChange extends Change {
     this.refSeqAliases = json.refSeqAliases
   }
 
-  executeOnClient(clientDataStore: ClientDataStore): Promise<void> {
-    return new Promise((resolve) => {
-      for (const [, assembly] of clientDataStore.assemblies) {
-        if (assembly._id === this.assembly) {
-          for (const refSeqAlias of this.refSeqAliases) {
-            const { aliases, refName } = refSeqAlias
-            const refSeq = assembly.refSeqs.get(refName)
-            if (refSeq) {
-              refSeq.addRefSeqAlias(aliases)
-            }
-          }
-        }
-      }
-      resolve()
-    })
+  executeOnClient(_clientDataStore: ClientDataStore): Promise<void> {
+    throw new Error('Method not implemented')
   }
 
   getInverse(): Change {
