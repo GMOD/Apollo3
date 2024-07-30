@@ -28,12 +28,16 @@ export const ApolloRefSeq = types
     _id: types.identifier,
     name: types.string,
     description: '',
+    alias: types.array(types.string),
     features: types.map(AnnotationFeature),
     sequence: types.array(Sequence),
   })
   .actions((self) => ({
     addFeature(feature: AnnotationFeatureSnapshot) {
       self.features.put(feature)
+    },
+    addRefSeqAlias(alias: string[]) {
+      self.alias.push(...alias)
     },
     deleteFeature(featureId: string) {
       return self.features.delete(featureId)

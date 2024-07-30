@@ -3,6 +3,7 @@ import { AddAssemblyFromExternalChange } from './AddAssemblyFromExternalChange'
 import { AddAssemblyFromFileChange } from './AddAssemblyFromFileChange'
 import { AddFeatureChange } from './AddFeatureChange'
 import { AddFeaturesFromFileChange } from './AddFeaturesFromFileChange'
+import { AddRefSeqAliasesChange } from './AddRefSeqAliasesChange'
 import { DeleteAssemblyChange } from './DeleteAssemblyChange'
 import { DeleteFeatureChange } from './DeleteFeatureChange'
 import { DeleteUserChange } from './DeleteUserChange'
@@ -32,6 +33,7 @@ export const changes = {
   StrandChange,
   TypeChange,
   UserChange,
+  AddRefSeqAliasesChange,
 }
 
 export * from './AddAssemblyAndFeaturesFromFileChange'
@@ -50,3 +52,4 @@ export * from './LocationStartChange'
 export * from './StrandChange'
 export * from './TypeChange'
 export * from './UserChange'
+export * from './AddRefSeqAliasesChange'

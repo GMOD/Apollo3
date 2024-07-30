@@ -42,6 +42,7 @@ export interface ApolloRefSeqResponse {
   _id: string
   name: string
   description?: string
+  aliases: string[]
   length: string
   assembly: string
 }
@@ -316,7 +317,7 @@ export function extendSession(
             }
             const f = (yield response2.json()) as ApolloRefSeqResponse[]
             const ids: Record<string, string> = {}
-            const refNameAliasesFeatures = f.map((contig) => {
+            f.map((contig) => {
               ids[contig.name] = contig._id
             })
             const assemblyConfig = {
