@@ -1,4 +1,5 @@
 import {
+  AssemblySpecificChange,
   Change,
   ChangeOptions,
   ClientDataStore,
@@ -18,7 +19,7 @@ export interface SerializedRefSeqAliasesChange extends SerializedChange {
   refSeqAliases: SerializedRefSeqAliases[]
 }
 
-export class AddRefSeqAliasesChange extends Change {
+export class AddRefSeqAliasesChange extends AssemblySpecificChange {
   typeName = 'AddRefSeqAliasesChange'
   assembly: string
   refSeqAliases: SerializedRefSeqAliases[]
@@ -29,9 +30,8 @@ export class AddRefSeqAliasesChange extends Change {
     this.refSeqAliases = json.refSeqAliases
   }
 
-  executeOnClient(_clientDataStore: ClientDataStore): Promise<void> {
-    throw new Error('Method not implemented')
-  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  async executeOnClient(_clientDataStore: ClientDataStore) {}
 
   getInverse(): Change {
     throw new Error('Method not implemented.')
