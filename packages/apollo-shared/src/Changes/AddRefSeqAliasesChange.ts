@@ -47,11 +47,10 @@ export class AddRefSeqAliasesChange extends AssemblySpecificChange {
     const { assembly, logger, refSeqAliases } = this
 
     for (const refSeqAlias of refSeqAliases) {
-      logger.debug?.(`refSeqAlias: ${JSON.stringify(refSeqAlias)}`)
-      const { aliases, refName } = refSeqAlias
       logger.debug?.(
-        `aliases: ${JSON.stringify(aliases)}, refName: ${refName}, assembly: ${assembly}`,
+        `Updating Refname alias for assembly: ${assembly}, refSeqAlias: ${JSON.stringify(refSeqAlias)}`,
       )
+      const { aliases, refName } = refSeqAlias
       await refSeqModel
         .updateOne(
           { assembly, name: refName },
