@@ -18,6 +18,7 @@ import SaveIcon from '@mui/icons-material/Save'
 import { autorun, observable } from 'mobx'
 import {
   Instance,
+  SnapshotOut,
   applySnapshot,
   flow,
   getRoot,
@@ -55,7 +56,7 @@ export function extendSession(
     AnnotationFeature,
   ) as typeof AnnotationFeature
   const ClientDataStore = clientDataStoreFactory(AnnotationFeatureExtended)
-  return sessionModel
+  const sm = sessionModel
     .props({
       apolloDataStore: types.optional(ClientDataStore, { typeName: 'Client' }),
       apolloSelectedFeature: types.safeReference(AnnotationFeatureExtended),
@@ -356,6 +357,17 @@ export function extendSession(
         },
       }
     })
+  return types.snapshotProcessor(sm, {
+    postProcessor(snap: SnapshotOut<typeof sm>) {
+      snap.apolloSelectedFeature = undefined
+      snap.apolloDataStore = {
+        typeName: 'Client',
+        assemblies: {},
+        checkResults: {},
+      }
+      return snap
+    },
+  })
 }
 
 export type ApolloSessionStateModel = ReturnType<typeof extendSession>
