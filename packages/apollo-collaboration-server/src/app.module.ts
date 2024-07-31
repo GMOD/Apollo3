@@ -5,7 +5,6 @@ import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
 import { MongooseModule, MongooseModuleFactoryOptions } from '@nestjs/mongoose'
-import { ServeStaticModule } from '@nestjs/serve-static'
 import Joi from 'joi'
 import { Connection } from 'mongoose'
 
@@ -167,9 +166,6 @@ async function mongoDBURIFactory(
     RefSeqChunksModule,
     RefSeqsModule,
     SequenceModule,
-    ServeStaticModule.forRoot({
-      rootPath: path.join(__dirname, '..', 'public'),
-    }),
     UsersModule,
     JBrowseModule,
   ],
