@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -27,7 +26,7 @@ import { autorun } from 'mobx'
 import { Instance, flow, getRoot, types } from 'mobx-state-tree'
 import { io } from 'socket.io-client'
 
-import { ApolloSessionModel, Collaborator } from '../session'
+import { Collaborator } from '../session'
 import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 import { addMenuItems } from './addMenuItems'
@@ -36,7 +35,7 @@ import { ApolloInternetAccountConfigModel } from './configSchema'
 
 type AuthType = 'google' | 'microsoft' | 'guest'
 
-type Role = 'admin' | 'user' | 'readOnly'
+type Role = 'admin' | 'user' | 'readOnly' | 'none'
 
 const inWebWorker = typeof sessionStorage === 'undefined'
 
@@ -437,6 +436,13 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         autorun(
           async (reaction) => {
             if (inWebWorker) {
+              return
+            }
+            const { session } = getRoot<ApolloRootModel>(self)
+            // This can be undefined if there is no session loaded, e.g. on
+            // the start screen
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            if (!session) {
               return
             }
             if (self.role) {

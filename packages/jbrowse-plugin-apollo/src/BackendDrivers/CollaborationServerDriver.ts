@@ -19,7 +19,14 @@ import { Socket } from 'socket.io-client'
 import { ChangeManager, SubmitOpts } from '../ChangeManager'
 import { createFetchErrorMessage } from '../util'
 import { BackendDriver, RefNameAliases } from './BackendDriver'
-import { ApolloRefSeqResponse } from '../session'
+
+export interface ApolloRefSeqResponse {
+  _id: string
+  name: string
+  description?: string
+  length: string
+  assembly: string
+}
 
 export interface ApolloInternetAccount extends BaseInternetAccountModel {
   baseURL: string

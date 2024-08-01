@@ -4,6 +4,7 @@ import { AssembliesModule } from '../assemblies/assemblies.module'
 import { CountersModule } from '../counters/counters.module'
 import { FeaturesModule } from '../features/features.module'
 import { FilesModule } from '../files/files.module'
+import { JBrowseModule } from '../jbrowse/jbrowse.module'
 import { MessagesModule } from '../messages/messages.module'
 import { RefSeqChunksModule } from '../refSeqChunks/refSeqChunks.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
@@ -20,6 +21,7 @@ import { OperationsService } from './operations.service'
     UsersModule,
     CountersModule,
     MessagesModule,
+    JBrowseModule,
   ],
   providers: [OperationsService],
   exports: [OperationsService],

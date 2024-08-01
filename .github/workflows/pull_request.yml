@@ -41,7 +41,7 @@ jobs:
       - name: Start apollo
         run: |
           yarn --cwd packages/apollo-shared start &
-          yarn --cwd packages/apollo-collaboration-server start &
+          ALLOW_ROOT_USER=true ROOT_USER_NAME=admin ROOT_USER_PASSWORD=pass yarn --cwd packages/apollo-collaboration-server start &
       - name: Run CLI tests
         run: python3 ./test/test.py TestCLI
         working-directory: packages/apollo-cli

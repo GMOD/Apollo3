@@ -10,6 +10,7 @@ import {
   FileDocument,
   RefSeqChunkDocument,
   RefSeqDocument,
+  JBrowseConfigDocument,
   UserDocument,
 } from '@apollo-annotation/schemas'
 import type { LoggerService } from '@nestjs/common'
@@ -36,6 +37,7 @@ export interface ServerDataStore {
   refSeqChunkModel: Model<RefSeqChunkDocument>
   fileModel: Model<FileDocument>
   userModel: Model<UserDocument>
+  jbrowseConfigModel: Model<JBrowseConfigDocument>
   session: ClientSession
   filesService: {
     getFileStream(file: FileDocument): ReadStream

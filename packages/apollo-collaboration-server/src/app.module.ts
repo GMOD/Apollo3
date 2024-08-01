@@ -1,11 +1,9 @@
 import fs from 'node:fs/promises'
-import path from 'node:path'
 
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
 import { MongooseModule, MongooseModuleFactoryOptions } from '@nestjs/mongoose'
-import { ServeStaticModule } from '@nestjs/serve-static'
 import Joi from 'joi'
 import { Connection } from 'mongoose'
 
@@ -18,6 +16,7 @@ import { ExportModule } from './export/export.module'
 import { FeaturesModule } from './features/features.module'
 import { FilesModule } from './files/files.module'
 import { HealthModule } from './health/health.module'
+import { JBrowseModule } from './jbrowse/jbrowse.module'
 import { MessagesModule } from './messages/messages.module'
 import { OperationsModule } from './operations/operations.module'
 import { PluginsModule } from './plugins/plugins.module'
@@ -38,6 +37,7 @@ const nodeEnv = process.env.NODE_ENV ?? 'production'
 const validationSchema = Joi.object({
   // Required
   URL: Joi.string().uri().required(),
+  NAME: Joi.string().required(),
   MONGODB_URI: Joi.string(),
   MONGODB_URI_FILE: Joi.string(),
   FILE_UPLOAD_FOLDER: Joi.string().required(),
@@ -53,8 +53,9 @@ const validationSchema = Joi.object({
   JWT_SECRET_FILE: Joi.string(),
   SESSION_SECRET: Joi.string(),
   SESSION_SECRET_FILE: Joi.string(),
-  ONTOLOGY_FILE: Joi.string(),
   // Optional
+  DESCRIPTION: Joi.string(),
+  PLUGIN_LOCATION: Joi.string(),
   ALLOW_ROOT_USER: Joi.boolean().default(false),
   ROOT_USER_NAME: Joi.string(),
   ROOT_USER_PASSWORD: Joi.string(),
@@ -164,10 +165,8 @@ async function mongoDBURIFactory(
     RefSeqChunksModule,
     RefSeqsModule,
     SequenceModule,
-    ServeStaticModule.forRoot({
-      rootPath: path.join(__dirname, '..', 'public'),
-    }),
     UsersModule,
+    JBrowseModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
