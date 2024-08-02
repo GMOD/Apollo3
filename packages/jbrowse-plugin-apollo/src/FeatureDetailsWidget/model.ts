@@ -32,6 +32,7 @@ export const ApolloFeatureDetailsWidgetModel = types
   }))
   .actions((self) => ({
     setFeature(feature: AnnotationFeature) {
+      // @ts-expect-error Not sure why TS thinks these MST types don't match
       self.feature = feature
     },
     setTryReload(featureId?: string) {
@@ -92,6 +93,7 @@ export const ApolloTranscriptDetails = types
   }))
   .actions((self) => ({
     setFeature(feature: AnnotationFeature) {
+      // @ts-expect-error Not sure why TS thinks these MST types don't match
       self.feature = feature
     },
     setTryReload(featureId?: string) {

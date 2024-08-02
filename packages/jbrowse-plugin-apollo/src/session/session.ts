@@ -12,10 +12,13 @@ import {
   JBrowseConfig,
   UserLocation,
 } from '@apollo-annotation/shared'
-import { readConfObject } from '@jbrowse/core/configuration'
+import { readConfObject, getConf } from '@jbrowse/core/configuration'
 import { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { AbstractSessionModel } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  SessionWithConfigEditing,
+} from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import SaveIcon from '@mui/icons-material/Save'
 import { autorun, observable } from 'mobx'
@@ -35,6 +38,7 @@ import { ChangeManager } from '../ChangeManager'
 import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 import { clientDataStoreFactory } from './ClientDataStore'
+import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreType & { changeManager: ChangeManager }
@@ -90,7 +94,46 @@ export function extendSession(
     })
     .actions((self) => ({
       apolloSetSelectedFeature(feature?: AnnotationFeature) {
+        // @ts-expect-error Not sure why TS thinks these MST types don't match
         self.apolloSelectedFeature = feature
+      },
+      addApolloTrackConfig(assembly: AssemblyModel, baseURL?: string) {
+        const trackId = `apollo_track_${assembly.name}`
+        const hasTrack = (self as unknown as AbstractSessionModel).tracks.some(
+          (track) => track.trackId === trackId,
+        )
+        if (!hasTrack) {
+          ;(self as unknown as SessionWithConfigEditing).addTrackConf({
+            type: 'ApolloTrack',
+            trackId,
+            name: `Annotations (${
+              // @ts-expect-error getConf types don't quite work here for some reason
+              getConf(assembly, 'displayName') || assembly.name
+            })`,
+            assemblyNames: [assembly.name],
+            textSearching: {
+              textSearchAdapter: {
+                type: 'ApolloTextSearchAdapter',
+                trackId,
+                assemblyNames: [assembly.name],
+                textSearchAdapterId: `apollo_search_${assembly.name}`,
+                ...(baseURL
+                  ? { baseURL: { uri: baseURL, locationType: 'UriLocation' } }
+                  : {}),
+              },
+            },
+            displays: [
+              {
+                type: 'LinearApolloDisplay',
+                displayId: `${trackId}-LinearApolloDisplay`,
+              },
+              {
+                type: 'SixFrameFeatureDisplay',
+                displayId: `${trackId}-SixFrameFeatureDisplay`,
+              },
+            ],
+          })
+        }
       },
       broadcastLocations() {
         const { internetAccounts } = getRoot<ApolloRootModel>(self)
@@ -379,6 +422,7 @@ export function extendSession(
 }
 
 export type ApolloSessionStateModel = ReturnType<typeof extendSession>
+// @ts-expect-error Snapshots seem to mess up types here
 // eslint disable because of
 // https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
