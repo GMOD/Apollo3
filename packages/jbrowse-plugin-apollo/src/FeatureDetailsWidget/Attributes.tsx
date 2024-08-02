@@ -253,36 +253,37 @@ export const Attributes = observer(function Attributes({
       </Typography>
       <Grid container direction="column" spacing={1}>
         {Object.entries(attributes).map(([key, value]) => {
-          if (key !== '') {
-            const EditorComponent =
-              reservedKeys.get(key) ?? CustomAttributeValueEditor
-            return (
-              <Grid container item spacing={3} alignItems="center" key={key}>
-                <Grid item xs="auto">
-                  <Paper variant="outlined" className={classes.attributeName}>
-                    <Typography>{key}</Typography>
-                  </Paper>
-                </Grid>
-                <Grid item flexGrow={1}>
-                  <EditorComponent
-                    session={session}
-                    value={value}
-                    onChange={(newValue) => onChangeCommitted(key, newValue)}
-                  />
-                </Grid>
-                <Grid item xs={1}>
-                  <IconButton
-                    aria-label="delete"
-                    size="medium"
-                    disabled={!editable}
-                    onClick={() => onChangeCommitted(key)}
-                  >
-                    <DeleteIcon fontSize="medium" key={key} />
-                  </IconButton>
-                </Grid>
-              </Grid>
-            )
+          if (key === '') {
+            return null
           }
+          const EditorComponent =
+            reservedKeys.get(key) ?? CustomAttributeValueEditor
+          return (
+            <Grid container item spacing={3} alignItems="center" key={key}>
+              <Grid item xs="auto">
+                <Paper variant="outlined" className={classes.attributeName}>
+                  <Typography>{key}</Typography>
+                </Paper>
+              </Grid>
+              <Grid item flexGrow={1}>
+                <EditorComponent
+                  session={session}
+                  value={value}
+                  onChange={(newValue) => onChangeCommitted(key, newValue)}
+                />
+              </Grid>
+              <Grid item xs={1}>
+                <IconButton
+                  aria-label="delete"
+                  size="medium"
+                  disabled={!editable}
+                  onClick={() => onChangeCommitted(key)}
+                >
+                  <DeleteIcon fontSize="medium" key={key} />
+                </IconButton>
+              </Grid>
+            </Grid>
+          )
         })}
         <Grid item>
           <Button
