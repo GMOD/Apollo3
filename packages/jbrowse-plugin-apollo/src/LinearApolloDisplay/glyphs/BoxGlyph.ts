@@ -57,6 +57,9 @@ export class BoxGlyph extends Glyph {
     color: string,
   ) {
     this.drawBox(ctx, x, y, width, height, color)
+    if (width <= 2) {
+      return
+    }
     ctx.clearRect(x + 1, y + 1, width - 2, height - 2)
   }
 
