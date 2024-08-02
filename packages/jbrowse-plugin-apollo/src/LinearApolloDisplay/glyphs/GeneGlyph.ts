@@ -56,7 +56,7 @@ if ('document' in window) {
   }
 }
 
-interface CanonicalGeneAnnotationFeature {
+interface GeneAnnotationFeature {
   parent?: AnnotationFeature
   start?: number
   end?: number
@@ -75,18 +75,16 @@ interface ExonCDSRelation {
   cdsDL?: CDSDiscontinuousLocation
 }
 
-export class CanonicalGeneGlyph extends Glyph {
+export class GeneGlyph extends Glyph {
   /**
    * Return list of all the features (exons/cds) for each row for a given feature
    */
-  featuresForRow(
-    feature: AnnotationFeature,
-  ): CanonicalGeneAnnotationFeature[][] {
+  featuresForRow(feature: AnnotationFeature): GeneAnnotationFeature[][] {
     const { children } = feature
     const cdsFeatures: CDSFeatures[] = []
     if (children) {
       for (const [, child] of children) {
-        const featureChild = child as AnnotationFeature
+        const featureChild = child
         if (!featureChild.children) {
           continue
         }
@@ -108,9 +106,9 @@ export class CanonicalGeneGlyph extends Glyph {
 
     // console.log('cdsFeatures', cdsFeatures)
 
-    const features: CanonicalGeneAnnotationFeature[][] = []
+    const features: GeneAnnotationFeature[][] = []
     for (const f of cdsFeatures) {
-      const childFeatures: CanonicalGeneAnnotationFeature[] = []
+      const childFeatures: GeneAnnotationFeature[] = []
       for (const [, cf] of f.parent.children ?? new Map()) {
         if (cf.type === 'CDS' && cf._id !== f.cds._id) {
           continue
@@ -274,7 +272,12 @@ export class CanonicalGeneGlyph extends Glyph {
               cdsWidthPx - 2,
               cdsHeight - 2,
             )
-            const frame = getFrame(cds.min, cds.max, mrna.strand || 1, cds.phase)
+            const frame = getFrame(
+              cds.min,
+              cds.max,
+              mrna.strand || 1,
+              cds.phase,
+            )
             const frameColor = theme?.palette.framesCDS.at(frame)?.main
             const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
             // ctx.fillStyle =
@@ -495,7 +498,7 @@ export class CanonicalGeneGlyph extends Glyph {
 
     if (feature.type === 'CDS') {
       const parentFeature = this.getParentFeature(feature, topLevelFeature)
-      const {cdsLocations} = parentFeature
+      const { cdsLocations } = parentFeature
       for (const cdsLoc of cdsLocations) {
         this.drawShadeForFeature(
           stateModel,
@@ -1057,7 +1060,7 @@ export class CanonicalGeneGlyph extends Glyph {
     bp: number,
     row: number,
   ): AnnotationFeature | undefined {
-    const featuresForRow: CanonicalGeneAnnotationFeature[] =
+    const featuresForRow: GeneAnnotationFeature[] =
       this.featuresForRow(feature)[row]
     let featureFromLayout: AnnotationFeature | undefined
 

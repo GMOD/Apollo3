@@ -10,7 +10,7 @@ export class GenericChildGlyph extends BoxGlyph {
     const features = [[feature]]
     if (feature.children) {
       for (const [, child] of feature.children) {
-        features.push(...this.featuresForRow(child as AnnotationFeature))
+        features.push(...this.featuresForRow(child))
       }
     }
     return features
