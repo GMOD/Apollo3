@@ -30,12 +30,6 @@ interface AddFeatureProps {
   changeManager: ChangeManager
 }
 
-enum PhaseEnum {
-  zero = 0,
-  one = 1,
-  two = 2,
-}
-
 export function AddFeature({
   changeManager,
   handleClose,
@@ -46,19 +40,12 @@ export function AddFeature({
   const [end, setEnd] = useState(String(region.end))
   const [start, setStart] = useState(String(region.start + 1))
   const [type, setType] = useState('')
-  const [phase, setPhase] = useState('')
   const [strand, setStrand] = useState<1 | -1 | undefined>()
-  const [phaseAsNumber, setPhaseAsNumber] = useState<PhaseEnum>()
-  const [showPhase, setShowPhase] = useState<boolean>(false)
   const [errorMessage, setErrorMessage] = useState('')
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    if (showPhase && phase === '') {
-      setErrorMessage('The phase is REQUIRED for all CDS features.')
-      return
-    }
 
     let refSeqId
     for (const [, asm] of session.apolloDataStore.assemblies ?? new Map()) {
@@ -83,12 +70,10 @@ export function AddFeature({
       assembly: region.assemblyName,
       addedFeature: {
         _id: id,
-        gffId: '',
         refSeq: refSeqId,
-        start: Number(start) - 1,
-        end: Number(end),
+        min: Number(start) - 1,
+        max: Number(end),
         type,
-        phase: phaseAsNumber,
         strand,
       },
     })
@@ -101,12 +86,6 @@ export function AddFeature({
   function handleChangeType(newType: string) {
     setErrorMessage('')
     setType(newType)
-    if (newType.startsWith('CDS')) {
-      setShowPhase(true)
-      setPhase('')
-    } else {
-      setShowPhase(false)
-    }
   }
 
   function handleChangeStrand(e: SelectChangeEvent) {
@@ -124,30 +103,6 @@ export function AddFeature({
       default: {
         // eslint-disable-next-line unicorn/no-useless-undefined
         setStrand(undefined)
-      }
-    }
-  }
-
-  function handleChangePhase(e: SelectChangeEvent) {
-    setErrorMessage('')
-    setPhase(e.target.value)
-
-    switch (Number(e.target.value)) {
-      case 0: {
-        setPhaseAsNumber(PhaseEnum.zero)
-        break
-      }
-      case 1: {
-        setPhaseAsNumber(PhaseEnum.one)
-        break
-      }
-      case 2: {
-        setPhaseAsNumber(PhaseEnum.two)
-        break
-      }
-      default: {
-        // eslint-disable-next-line unicorn/no-useless-undefined
-        setPhaseAsNumber(undefined)
       }
     }
   }
@@ -224,16 +179,6 @@ export function AddFeature({
               <MenuItem value={-1}>-</MenuItem>
             </Select>
           </FormControl>
-          {showPhase ? (
-            <FormControl>
-              <InputLabel>Phase</InputLabel>
-              <Select value={phase} onChange={handleChangePhase}>
-                <MenuItem value={0}>0</MenuItem>
-                <MenuItem value={1}>1</MenuItem>
-                <MenuItem value={2}>2</MenuItem>
-              </Select>
-            </FormControl>
-          ) : null}
         </DialogContent>
         <DialogActions>
           <Button

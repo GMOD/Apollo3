@@ -1,8 +1,4 @@
-/* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import { MenuItem } from '@jbrowse/core/ui'
 import { AbstractSessionModel, SessionWithWidgets } from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
@@ -22,13 +18,13 @@ import { CanvasMouseEvent } from '../types'
 
 export abstract class Glyph {
   /** @returns number of layout rows used by this glyph with this feature and zoom level */
-  abstract getRowCount(feature: AnnotationFeatureI, bpPerPx: number): number
+  abstract getRowCount(feature: AnnotationFeature, bpPerPx: number): number
 
   /** draw the feature's primary rendering on the canvas */
   abstract draw(
     display: LinearApolloDisplayRendering,
     ctx: CanvasRenderingContext2D,
-    feature: AnnotationFeatureI,
+    feature: AnnotationFeature,
     xOffset: number,
     row: number,
     reversed: boolean,
@@ -36,14 +32,14 @@ export abstract class Glyph {
 
   /** @returns the feature or subfeature at the given bp and row number in this glyph's layout */
   abstract getFeatureFromLayout(
-    feature: AnnotationFeatureI,
+    feature: AnnotationFeature,
     bp: number,
     row: number,
-  ): AnnotationFeatureI | undefined
+  ): AnnotationFeature | undefined
 
   abstract getRowForFeature(
-    feature: AnnotationFeatureI,
-    childFeature: AnnotationFeatureI,
+    feature: AnnotationFeature,
+    childFeature: AnnotationFeature,
   ): number | undefined
 
   abstract continueDrag(
@@ -54,9 +50,6 @@ export abstract class Glyph {
   drawHover(
     _display: LinearApolloDisplayMouseEvents,
     _overlayCtx: CanvasRenderingContext2D,
-    _rowNum?: number,
-    _xOffset?: number,
-    _reversed?: boolean,
   ) {
     return
   }
@@ -118,6 +111,36 @@ export abstract class Glyph {
     return
   }
 
+  getParentFeature(
+    feature?: AnnotationFeature,
+    topLevelFeature?: AnnotationFeature,
+  ) {
+    let parentFeature: AnnotationFeature | undefined
+    if (!feature || !topLevelFeature?.children) {
+      return parentFeature
+    }
+
+    for (const [, f] of topLevelFeature.children) {
+      if (f._id === feature._id) {
+        parentFeature = topLevelFeature
+        break
+      }
+      if (!f.children) {
+        continue
+      }
+      for (const [, cf] of f.children) {
+        if (cf._id === feature._id) {
+          parentFeature = f
+          break
+        }
+      }
+      if (parentFeature) {
+        break
+      }
+    }
+    return parentFeature
+  }
+
   drawTooltip(
     display: LinearApolloDisplayMouseEvents,
     context: CanvasRenderingContext2D,
@@ -127,47 +150,22 @@ export abstract class Glyph {
     if (!apolloHover) {
       return
     }
-    const { feature, mousePosition } = apolloHover
-    if (!(feature && mousePosition)) {
+    const { feature, mousePosition, topLevelFeature } = apolloHover
+    if (!(feature && mousePosition && topLevelFeature)) {
       return
     }
     const { regionNumber, y } = mousePosition
     const displayedRegion = displayedRegions[regionNumber]
     const { refName, reversed } = displayedRegion
-    const { bpPerPx, bpToPx, offsetPx } = lgv
+    const { bpPerPx, offsetPx } = lgv
 
-    const { discontinuousLocations } = feature
-    let start: number, end: number, length: number
     let location = 'Loc: '
-    if (discontinuousLocations && discontinuousLocations.length > 0) {
-      const lastLoc = discontinuousLocations.at(-1)
-      if (!lastLoc) {
-        return
-      }
-      ;({ start } = lastLoc)
-      ;({ end } = lastLoc)
-      length = lastLoc.end - lastLoc.start
 
-      if (discontinuousLocations.length <= 2) {
-        for (const [i, loc] of discontinuousLocations.entries()) {
-          location += `${loc.start + 1}–${loc.end}`
-          if (i !== discontinuousLocations.length - 1) {
-            location += ','
-          }
-        }
-      } else {
-        const [firstLoc] = discontinuousLocations
-        location += `${firstLoc.start + 1}–${firstLoc.end},…,${
-          lastLoc.start + 1
-        }–${lastLoc.end}`
-      }
-    } else {
-      ;({ end, length, start } = feature)
-      location += `${start + 1}–${end}`
-    }
+    const { length, max, min } = feature
+    location += `${min + 1}–${max}`
 
     let startPx =
-      (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
+      (lgv.bpToPx({ refName, coord: reversed ? max : min, regionNumber })
         ?.offsetPx ?? 0) - offsetPx
     const row = Math.floor(y / apolloRowHeight)
     const top = row * apolloRowHeight
@@ -214,16 +212,16 @@ export abstract class Glyph {
   }
 
   getAdjacentFeatures(
-    feature?: AnnotationFeatureI,
-    parentFeature?: AnnotationFeatureI,
+    feature?: AnnotationFeature,
+    parentFeature?: AnnotationFeature,
   ): {
-    prevFeature?: AnnotationFeatureI
-    nextFeature?: AnnotationFeatureI
+    prevFeature?: AnnotationFeature
+    nextFeature?: AnnotationFeature
   } {
-    let prevFeature: AnnotationFeatureI | undefined
-    let nextFeature: AnnotationFeatureI | undefined
+    let prevFeature: AnnotationFeature | undefined
+    let nextFeature: AnnotationFeature | undefined
     let i = 0
-    if (!feature || !(parentFeature && parentFeature.children)) {
+    if (!feature || !parentFeature?.children) {
       return { prevFeature, nextFeature }
     }
     for (const [, f] of parentFeature.children) {
@@ -244,47 +242,14 @@ export abstract class Glyph {
     return { prevFeature, nextFeature }
   }
 
-  getParentFeature(
-    feature?: AnnotationFeatureI,
-    topLevelFeature?: AnnotationFeatureI,
-  ) {
-    let parentFeature
-
-    if (!feature || !(topLevelFeature && topLevelFeature.children)) {
-      return parentFeature
-    }
-
-    for (const [, f] of topLevelFeature.children) {
-      if (f._id === feature._id) {
-        parentFeature = topLevelFeature
-        break
-      }
-      if (!f?.children) {
-        continue
-      }
-      for (const [, cf] of f.children) {
-        if (cf._id === feature._id) {
-          parentFeature = f
-          break
-        }
-      }
-      if (parentFeature) {
-        break
-      }
-    }
-    return parentFeature
-  }
-
   getContextMenuItems(display: LinearApolloDisplayMouseEvents): MenuItem[] {
     const {
       apolloHover,
       apolloInternetAccount: internetAccount,
       changeManager,
-      getAssemblyId,
       regions,
       selectedFeature,
       session,
-      setSelectedFeature,
     } = display
     const { feature: sourceFeature } = apolloHover ?? {}
     const role = internetAccount ? internetAccount.role : 'admin'
@@ -293,8 +258,8 @@ export abstract class Glyph {
     const menuItems: MenuItem[] = []
     if (sourceFeature) {
       const [region] = regions
-      const sourceAssemblyId = getAssemblyId(region.assemblyName)
-      const currentAssemblyId = getAssemblyId(region.assemblyName)
+      const sourceAssemblyId = display.getAssemblyId(region.assemblyName)
+      const currentAssemblyId = display.getAssemblyId(region.assemblyName)
       menuItems.push(
         {
           label: 'Add child feature',
@@ -353,7 +318,9 @@ export abstract class Glyph {
                   sourceFeature,
                   sourceAssemblyId: currentAssemblyId,
                   selectedFeature,
-                  setSelectedFeature,
+                  setSelectedFeature: (feature?: AnnotationFeature) => {
+                    display.setSelectedFeature(feature)
+                  },
                 },
               ],
             )

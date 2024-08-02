@@ -1,7 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/unbound-method */
-import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 
 import { LinearApolloDisplay } from '../stateModel'
 import { MousePosition } from '../stateModel/mouseEvents'
@@ -9,24 +6,24 @@ import { CanvasMouseEvent } from '../types'
 import { BoxGlyph } from './BoxGlyph'
 
 export class GenericChildGlyph extends BoxGlyph {
-  featuresForRow(feature: AnnotationFeatureI): AnnotationFeatureI[][] {
+  featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
     const features = [[feature]]
     if (feature.children) {
-      for (const [, child] of feature.children ?? new Map()) {
+      for (const [, child] of feature.children) {
         features.push(...this.featuresForRow(child))
       }
     }
     return features
   }
 
-  getRowCount(feature: AnnotationFeatureI) {
+  getRowCount(feature: AnnotationFeature) {
     return this.featuresForRow(feature).length
   }
 
   draw(
     stateModel: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
-    feature: AnnotationFeatureI,
+    feature: AnnotationFeature,
     xOffset: number,
     row: number,
     reversed: boolean,
@@ -39,7 +36,7 @@ export class GenericChildGlyph extends BoxGlyph {
   drawRow(
     stateModel: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
-    topLevelFeature: AnnotationFeatureI,
+    topLevelFeature: AnnotationFeature,
     xOffset: number,
     row: number,
     topRow: number,
@@ -62,8 +59,8 @@ export class GenericChildGlyph extends BoxGlyph {
   private drawFeature(
     stateModel: LinearApolloDisplay,
     ctx: CanvasRenderingContext2D,
-    topLevelFeature: AnnotationFeatureI,
-    feature: AnnotationFeatureI,
+    topLevelFeature: AnnotationFeature,
+    feature: AnnotationFeature,
     xOffset: number,
     row: number,
     reversed: boolean,
@@ -71,7 +68,7 @@ export class GenericChildGlyph extends BoxGlyph {
     const { apolloRowHeight: heightPx, lgv, session } = stateModel
     const { bpPerPx } = lgv
     const { apolloSelectedFeature } = session
-    const offsetPx = (feature.start - topLevelFeature.min) / bpPerPx
+    const offsetPx = (feature.min - topLevelFeature.minWithChildren) / bpPerPx
     const widthPx = feature.length / bpPerPx
     const startPx = reversed ? xOffset - offsetPx - widthPx : xOffset + offsetPx
     const top = row * heightPx
@@ -100,10 +97,10 @@ export class GenericChildGlyph extends BoxGlyph {
     const { regionNumber, y } = mousePosition
     const displayedRegion = displayedRegions[regionNumber]
     const { refName, reversed } = displayedRegion
-    const { bpPerPx, bpToPx, offsetPx } = lgv
-    const { end, length, start } = feature
+    const { bpPerPx, offsetPx } = lgv
+    const { length, max, min } = feature
     const startPx =
-      (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
+      (lgv.bpToPx({ refName, coord: reversed ? max : min, regionNumber })
         ?.offsetPx ?? 0) - offsetPx
     const row = Math.floor(y / apolloRowHeight)
     const top = row * apolloRowHeight
@@ -134,14 +131,14 @@ export class GenericChildGlyph extends BoxGlyph {
     // pass
   }
 
-  getFeatureFromLayout(feature: AnnotationFeatureI, bp: number, row: number) {
+  getFeatureFromLayout(feature: AnnotationFeature, bp: number, row: number) {
     const layoutRow = this.featuresForRow(feature)[row]
-    return layoutRow.find((f) => bp >= f.start && bp <= f.end)
+    return layoutRow.find((f) => bp >= f.min && bp <= f.max)
   }
 
   getRowForFeature(
-    feature: AnnotationFeatureI,
-    childFeature: AnnotationFeatureI,
+    feature: AnnotationFeature,
+    childFeature: AnnotationFeature,
   ) {
     const rows = this.featuresForRow(feature)
     for (const [idx, row] of rows.entries()) {

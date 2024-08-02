@@ -228,10 +228,6 @@ export abstract class AssemblySpecificChange extends Change {
     const featureIds: string[] = []
 
     const newFeature = createFeature(gff3Feature, refSeqDoc._id, featureIds)
-    // Add value to gffId
-    newFeature.attributes?._id
-      ? (newFeature.gffId = newFeature.attributes?._id.toString())
-      : (newFeature.gffId = newFeature._id)
 
     // Add into Mongo
     // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
@@ -251,7 +247,6 @@ function createFeature(
     attributes,
     child_features: childFeatures,
     end,
-    phase,
     score,
     seq_id: refName,
     source,
@@ -281,11 +276,10 @@ function createFeature(
   }
   const feature: AnnotationFeatureSnapshot = {
     _id: new ObjectID().toHexString(),
-    gffId: '',
     refSeq,
     type,
-    start: start - 1,
-    end,
+    min: start - 1,
+    max: end,
   }
   if (gff3Feature.length > 1) {
     const lastEnd = Math.max(
@@ -296,39 +290,7 @@ function createFeature(
         return f.end
       }),
     )
-    feature.end = lastEnd
-    feature.discontinuousLocations = gff3Feature.map((f) => {
-      const { end: subEnd, phase: locationPhase, start: subStart } = f
-      if (subStart === null || subEnd === null) {
-        throw new Error(
-          `feature does not have start and/or end: ${JSON.stringify(f)}`,
-        )
-      }
-      let parsedPhase: 0 | 1 | 2 | undefined
-      if (locationPhase) {
-        switch (locationPhase) {
-          case '0': {
-            parsedPhase = 0
-
-            break
-          }
-          case '1': {
-            parsedPhase = 1
-
-            break
-          }
-          case '2': {
-            parsedPhase = 2
-
-            break
-          }
-          default: {
-            throw new Error(`Unknown phase: "${locationPhase}"`)
-          }
-        }
-      }
-      return { start: subStart - 1, end: subEnd, phase: parsedPhase }
-    })
+    feature.max = lastEnd
   }
   if (strand) {
     if (strand === '+') {
@@ -337,31 +299,6 @@ function createFeature(
       feature.strand = -1
     } else {
       throw new Error(`Unknown strand: "${strand}"`)
-    }
-  }
-  if (score !== null) {
-    feature.score = score
-  }
-  if (phase) {
-    switch (phase) {
-      case '0': {
-        feature.phase = 0
-
-        break
-      }
-      case '1': {
-        feature.phase = 1
-
-        break
-      }
-      case '2': {
-        feature.phase = 2
-
-        break
-      }
-      default: {
-        throw new Error(`Unknown phase: "${phase}"`)
-      }
     }
   }
   if (featureIds) {
@@ -374,9 +311,9 @@ function createFeature(
       const child = createFeature(childFeature, refSeq, featureIds)
       children[child._id] = child
       // Add value to gffId
-      child.attributes?._id
-        ? (child.gffId = child.attributes?._id.toString())
-        : (child.gffId = child._id)
+      if (child.attributes) {
+        child.attributes.gffId = [child._id]
+      }
     }
     feature.children = children
   }
@@ -384,6 +321,9 @@ function createFeature(
     const attrs: Record<string, string[]> = {}
     if (source) {
       attrs.source = [source]
+    }
+    if (score) {
+      attrs.score = [score.toString()]
     }
     if (attributes) {
       for (const [key, val] of Object.entries(attributes)) {

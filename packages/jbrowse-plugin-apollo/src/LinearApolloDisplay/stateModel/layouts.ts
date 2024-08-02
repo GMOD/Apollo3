@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { AnnotationFeatureI } from '@apollo-annotation/mst'
+
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
@@ -23,7 +22,7 @@ export function layoutsModelFactory(
       featuresMinMaxLimit: 500_000,
     })
     .volatile(() => ({
-      seenFeatures: observable.map<string, AnnotationFeatureI>(),
+      seenFeatures: observable.map<string, AnnotationFeature>(),
     }))
     .views((self) => ({
       get featuresMinMax() {
@@ -48,10 +47,10 @@ export function layoutsModelFactory(
             if (max === undefined) {
               ;({ max } = feature)
             }
-            if (feature.min < min) {
+            if (feature.minWithChildren < min) {
               ;({ min } = feature)
             }
-            if (feature.end > max) {
+            if (feature.maxWithChildren > max) {
               ;({ max } = feature)
             }
           }
@@ -63,7 +62,7 @@ export function layoutsModelFactory(
       },
     }))
     .actions((self) => ({
-      addSeenFeature(feature: AnnotationFeatureI) {
+      addSeenFeature(feature: AnnotationFeature) {
         self.seenFeatures.set(feature._id, feature)
       },
       deleteSeenFeature(featureId: string) {
@@ -76,10 +75,7 @@ export function layoutsModelFactory(
           self.session as unknown as AbstractSessionModel
         return self.displayedRegions.map((region, idx) => {
           const assembly = assemblyManager.get(region.assemblyName)
-          const featureLayout = new Map<
-            number,
-            [number, AnnotationFeatureI][]
-          >()
+          const featureLayout = new Map<number, [number, AnnotationFeature][]>()
           const minMax = self.featuresMinMax[idx]
           if (!minMax) {
             return featureLayout
@@ -160,7 +156,7 @@ export function layoutsModelFactory(
           return featureLayout
         })
       },
-      getFeatureLayoutPosition(feature: AnnotationFeatureI) {
+      getFeatureLayoutPosition(feature: AnnotationFeature) {
         const { featureLayouts } = this
         for (const layout of featureLayouts) {
           for (const [layoutRowNum, layoutRow] of layout) {
@@ -210,13 +206,17 @@ export function layoutsModelFactory(
                   self.session as unknown as ApolloSessionModel
                 ).apolloDataStore.assemblies.get(region.assemblyName)
                 const ref = assembly?.getByRefName(region.refName)
-                for (const [, feature] of ref?.features ?? new Map()) {
+                const features = ref?.features
+                if (!features) {
+                  continue
+                }
+                for (const [, feature] of features) {
                   if (
                     doesIntersect2(
                       region.start,
                       region.end,
-                      feature.start,
-                      feature.end,
+                      feature.min,
+                      feature.max,
                     ) &&
                     !self.seenFeatures.has(feature._id)
                   ) {

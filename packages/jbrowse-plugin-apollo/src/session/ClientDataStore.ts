@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
 import {
-  AnnotationFeature,
+  AnnotationFeatureModel,
   AnnotationFeatureSnapshot,
   ApolloAssembly,
+  ApolloAssemblySnapshot,
   ApolloRefSeq,
+  BackendDriverType,
   CheckResult,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
@@ -41,7 +42,7 @@ import {
 import { ApolloRootModel } from '../types'
 
 export function clientDataStoreFactory(
-  AnnotationFeatureExtended: typeof AnnotationFeature,
+  AnnotationFeatureExtended: typeof AnnotationFeatureModel,
 ) {
   return types
     .model('ClientDataStore', {
@@ -67,8 +68,15 @@ export function clientDataStoreFactory(
       },
     }))
     .actions((self) => ({
-      addAssembly(assemblyId: string) {
-        return self.assemblies.put({ _id: assemblyId, refSeqs: {} })
+      addAssembly(assemblyId: string, backendDriverType?: BackendDriverType) {
+        const assemblySnapshot: ApolloAssemblySnapshot = {
+          _id: assemblyId,
+          refSeqs: {},
+        }
+        if (backendDriverType) {
+          assemblySnapshot.backendDriverType = backendDriverType
+        }
+        return self.assemblies.put(assemblySnapshot)
       },
       addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot) {
         const assembly = self.assemblies.get(assemblyId)

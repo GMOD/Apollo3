@@ -1,6 +1,6 @@
-import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import { MenuItem } from '@jbrowse/core/ui'
-import { AbstractSessionModel } from '@jbrowse/core/util'
+import { AbstractSessionModel, SessionWithWidgets } from '@jbrowse/core/util'
 
 import { ChangeManager } from '../../ChangeManager'
 import {
@@ -13,11 +13,11 @@ import { ApolloSessionModel } from '../../session'
 import { getApolloInternetAccount } from '../../util'
 
 export function featureContextMenuItems(
-  feature: AnnotationFeatureI | undefined,
+  feature: AnnotationFeature | undefined,
   region: { assemblyName: string; refName: string; start: number; end: number },
   getAssemblyId: (assemblyName: string) => string,
-  selectedFeature: AnnotationFeatureI | undefined,
-  setSelectedFeature: (f: AnnotationFeatureI | undefined) => void,
+  selectedFeature: AnnotationFeature | undefined,
+  setSelectedFeature: (f: AnnotationFeature | undefined) => void,
   session: ApolloSessionModel,
   changeManager: ChangeManager,
 ) {
@@ -30,6 +30,25 @@ export function featureContextMenuItems(
     const sourceAssemblyId = getAssemblyId(region.assemblyName)
     const currentAssemblyId = getAssemblyId(region.assemblyName)
     menuItems.push(
+      {
+        label: 'Edit feature details',
+        onClick: () => {
+          const apolloFeatureWidget = (
+            session as unknown as SessionWithWidgets
+          ).addWidget(
+            'ApolloFeatureDetailsWidget',
+            'apolloFeatureDetailsWidget',
+            {
+              feature,
+              assembly: currentAssemblyId,
+              refName: region.refName,
+            },
+          )
+          ;(session as unknown as SessionWithWidgets).showWidget(
+            apolloFeatureWidget,
+          )
+        },
+      },
       {
         label: 'Add child feature',
         disabled: readOnly,
@@ -114,6 +133,28 @@ export function featureContextMenuItems(
         },
       },
     )
+    if (feature.type === 'mRNA') {
+      menuItems.push({
+        label: 'Edit transcript details',
+        onClick: () => {
+          const ses = session as unknown as AbstractSessionModel
+          if (ses) {
+            const sesWidged = session as unknown as SessionWithWidgets
+            const apolloTranscriptWidget = sesWidged.addWidget(
+              'ApolloTranscriptDetails',
+              'apolloTranscriptDetails',
+              {
+                feature,
+                assembly: currentAssemblyId,
+                changeManager,
+                refName: region.refName,
+              },
+            )
+            ses.showWidget?.(apolloTranscriptWidget)
+          }
+        },
+      })
+    }
   }
   return menuItems
 }

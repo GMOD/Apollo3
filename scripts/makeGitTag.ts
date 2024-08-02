@@ -27,7 +27,9 @@ class Shell {
 
 function checkTag(tag: string, testRegex = /v\d+.\d+.\d+.*/) {
   if (!testRegex.test(tag)) {
-    throw new Error(`Invalid tag: '${tag}' does not match regex ${testRegex.toString()}\n`)
+    throw new Error(
+      `Invalid tag: '${tag}' does not match regex ${testRegex.toString()}\n`,
+    )
   }
 }
 

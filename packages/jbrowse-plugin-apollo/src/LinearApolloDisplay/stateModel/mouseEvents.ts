@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { MenuItem } from '@jbrowse/core/ui'
@@ -15,6 +13,7 @@ import { Glyph } from '../glyphs/Glyph'
 import { CanvasMouseEvent } from '../types'
 import { getGlyph } from './getGlyph'
 import { renderingModelFactory } from './rendering'
+import { Frame, getFrame } from '@jbrowse/core/util'
 
 /** extended information about the position of the mouse on the canvas, including the refName, bp, and displayedRegion number */
 export interface MousePosition {
@@ -26,17 +25,10 @@ export interface MousePosition {
 }
 
 export interface FeatureAndGlyphInfo {
-  feature?: AnnotationFeatureI
-  topLevelFeature?: AnnotationFeatureI
+  feature?: AnnotationFeature
+  topLevelFeature?: AnnotationFeature
   glyph?: Glyph
   mousePosition?: MousePosition
-}
-
-export interface CDSDiscontinuousLocation {
-  start: number
-  end: number
-  phase: 0 | 1 | 2 | undefined
-  idx?: number
 }
 
 function getMousePosition(
@@ -45,26 +37,45 @@ function getMousePosition(
 ): MousePosition {
   const canvas = event.currentTarget
   const { clientX, clientY } = event
-  const { left, top } = canvas.getBoundingClientRect() || { left: 0, top: 0 }
+  const { left, top } = canvas.getBoundingClientRect()
   const x = clientX - left
   const y = clientY - top
   const { coord: bp, index: regionNumber, refName } = lgv.pxToBp(x)
   return { x, y, refName, bp, regionNumber }
 }
 
-function getSeqRow(feature: AnnotationFeatureI, bpPerPx: number) {
-  const rowOffset = bpPerPx <= 1 ? 5 : 3
-  if (feature.type === 'CDS' && feature.phase !== undefined) {
-    return feature.strand === -1
-      ? ((feature.end - feature.phase) % 3) + rowOffset
-      : Math.abs(((feature.start + feature.phase) % 3) - 2)
+function getTranslationRow(frame: Frame, bpPerPx: number) {
+  const offset = bpPerPx <= 1 ? 2 : 0
+  switch (frame) {
+    case 3: {
+      return 0
+    }
+    case 2: {
+      return 1
+    }
+    case 1: {
+      return 2
+    }
+    case -1: {
+      return 3 + offset
+    }
+    case -2: {
+      return 4 + offset
+    }
+    case -3: {
+      return 5 + offset
+    }
   }
+}
 
-  if (bpPerPx <= 1) {
-    return feature.strand === -1 ? 4 : 3
+function getSeqRow(
+  strand: 1 | -1 | undefined,
+  bpPerPx: number,
+): number | undefined {
+  if (bpPerPx > 1 || strand === undefined) {
+    return
   }
-
-  return
+  return strand === 1 ? 3 : 4
 }
 
 function highlightSeq(
@@ -101,15 +112,14 @@ export function mouseEventsModelIntermediateFactory(
       apolloDragging: null as {
         start: {
           glyph?: Glyph
-          feature?: AnnotationFeatureI
-          topLevelFeature?: AnnotationFeatureI
-          discontinuousLocation?: CDSDiscontinuousLocation
+          feature?: AnnotationFeature
+          topLevelFeature?: AnnotationFeature
           mousePosition: MousePosition
         }
         current: {
           glyph?: Glyph
-          feature?: AnnotationFeatureI
-          topLevelFeature?: AnnotationFeatureI
+          feature?: AnnotationFeature
+          topLevelFeature?: AnnotationFeature
           mousePosition: MousePosition
         }
       } | null,
@@ -196,6 +206,8 @@ export function mouseEventsSeqHightlightModelFactory(
         self,
         autorun(
           () => {
+            // This type is wrong in @jbrowse/core
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             if (!self.lgv.initialized || self.regionCannotBeRendered()) {
               return
             }
@@ -224,25 +236,44 @@ export function mouseEventsSeqHightlightModelFactory(
             if (!apolloHover) {
               return
             }
-            const { feature, mousePosition } = apolloHover
-            if (!feature || !mousePosition) {
+            const { feature, glyph, mousePosition, topLevelFeature } =
+              apolloHover
+            if (!feature || !mousePosition || !glyph) {
               return
             }
 
             for (const [idx, region] of regions.entries()) {
-              const row = getSeqRow(feature, lgv.bpPerPx)
-              if (
-                feature.discontinuousLocations &&
-                feature.discontinuousLocations.length > 0
-              ) {
-                for (const dl of feature.discontinuousLocations) {
+              if (feature.type === 'CDS') {
+                const parentFeature = glyph.getParentFeature(
+                  feature,
+                  topLevelFeature,
+                )
+                if (!parentFeature) {
+                  continue
+                }
+                const cdsLocs = parentFeature.cdsLocations.find(
+                  (loc) =>
+                    feature.min === loc.at(0)?.min &&
+                    feature.max === loc.at(-1)?.max,
+                )
+                if (!cdsLocs) {
+                  continue
+                }
+                for (const dl of cdsLocs) {
+                  const frame = getFrame(
+                    dl.min,
+                    dl.max,
+                    feature.strand ?? 1,
+                    dl.phase,
+                  )
+                  const row = getTranslationRow(frame, lgv.bpPerPx)
                   const offset =
                     (lgv.bpToPx({
                       refName: region.refName,
-                      coord: dl.start,
+                      coord: dl.min,
                       regionNumber: idx,
                     })?.offsetPx ?? 0) - lgv.offsetPx
-                  const widthPx = (dl.end - dl.start) / lgv.bpPerPx
+                  const widthPx = (dl.max - dl.min) / lgv.bpPerPx
                   const startPx = displayedRegions[idx].reversed
                     ? offset - widthPx
                     : offset
@@ -257,10 +288,11 @@ export function mouseEventsSeqHightlightModelFactory(
                   )
                 }
               } else {
+                const row = getSeqRow(feature.strand, lgv.bpPerPx)
                 const offset =
                   (lgv.bpToPx({
                     refName: region.refName,
-                    coord: feature.start,
+                    coord: feature.min,
                     regionNumber: idx,
                   })?.offsetPx ?? 0) - lgv.offsetPx
                 const widthPx = feature.length / lgv.bpPerPx
@@ -310,43 +342,20 @@ export function mouseEventsModelFactory(
       startDrag(event: CanvasMouseEvent) {
         const { feature, glyph, mousePosition, topLevelFeature } =
           self.getFeatureAndGlyphUnderMouse(event)
-        if (feature && topLevelFeature && glyph && mousePosition) {
-          let dl, idx
-          if (
-            feature.discontinuousLocations &&
-            feature.discontinuousLocations.length > 0
-          ) {
-            for (let i = 0; i < feature.discontinuousLocations.length; i++) {
-              if (
-                mousePosition.bp >= feature.discontinuousLocations[i].start &&
-                mousePosition.bp <= feature.discontinuousLocations[i].end
-              ) {
-                idx = i
-                dl = feature.discontinuousLocations[idx]
-                break
-              }
-            }
-          }
-          self.apolloDragging = {
-            start: {
-              glyph,
-              feature,
-              topLevelFeature,
-              discontinuousLocation: dl
-                ? {
-                    start: dl.start,
-                    end: dl.end,
-                    phase: dl.phase,
-                    idx,
-                  }
-                : undefined,
-              mousePosition,
-            },
-            current: { glyph, feature, topLevelFeature, mousePosition },
-          }
-          if (!glyph.startDrag(self, event)) {
-            self.apolloDragging = null
-          }
+        if (!(feature && topLevelFeature && glyph && mousePosition)) {
+          return
+        }
+        self.apolloDragging = {
+          start: {
+            glyph,
+            feature,
+            topLevelFeature,
+            mousePosition,
+          },
+          current: { glyph, feature, topLevelFeature, mousePosition },
+        }
+        if (!glyph.startDrag(self, event)) {
+          self.apolloDragging = null
         }
       },
       endDrag(event: CanvasMouseEvent) {
@@ -418,6 +427,8 @@ export function mouseEventsModelFactory(
           self,
           autorun(
             () => {
+              // This type is wrong in @jbrowse/core
+              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
               if (!self.lgv.initialized || self.regionCannotBeRendered()) {
                 return
               }
@@ -432,72 +443,25 @@ export function mouseEventsModelFactory(
                 self.featuresHeight,
               )
 
-              const {
-                apolloDragging,
-                apolloHover,
-                displayedRegions,
-                featureLayouts,
-                lgv,
-              } = self
+              const { apolloDragging, apolloHover } = self
               if (!apolloHover) {
                 return
               }
-              const { feature, glyph } = apolloHover
-              if (!feature) {
+              const { feature, glyph, mousePosition } = apolloHover
+              if (!(feature && glyph && mousePosition)) {
                 return
-              }
-              let rowNum = 0
-              let xOffset = 0
-              let reversed = false
-              for (const [idx, featureLayout] of featureLayouts.entries()) {
-                const displayedRegion = displayedRegions[idx]
-                for (const [row, featureLayoutRow] of featureLayout.entries()) {
-                  if (rowNum !== 0) {
-                    continue
-                  }
-                  for (const [, f] of featureLayoutRow) {
-                    for (const [, cf] of f.children ?? new Map()) {
-                      if (rowNum !== 0) {
-                        continue
-                      }
-                      xOffset =
-                        (lgv.bpToPx({
-                          refName: displayedRegion.refName,
-                          coord: feature.min,
-                          regionNumber: idx,
-                        })?.offsetPx ?? 0) - lgv.offsetPx
-                      ;({ reversed } = displayedRegion)
-
-                      if (cf._id === feature._id) {
-                        rowNum = row
-                        continue
-                      }
-                      for (const [, annotationFeature] of cf.children ??
-                        new Map()) {
-                        if (rowNum !== 0) {
-                          continue
-                        }
-                        if (annotationFeature._id === feature._id) {
-                          rowNum = row
-                          continue
-                        }
-                      }
-                    }
-                  }
-                }
               }
 
               // draw mouseover hovers
-              glyph?.drawHover(self, ctx, rowNum, xOffset, reversed)
+              glyph.drawHover(self, ctx)
 
               // draw tooltip on hover
-              glyph?.drawTooltip(self, ctx)
+              glyph.drawTooltip(self, ctx)
 
               // dragging previews
               if (apolloDragging) {
                 // NOTE: the glyph where the drag started is responsible for drawing the preview.
                 // it can call methods in other glyphs to help with this though.
-
                 apolloDragging.start.glyph?.drawDragPreview(self, ctx)
               }
             },
@@ -511,5 +475,8 @@ export function mouseEventsModelFactory(
 export type LinearApolloDisplayMouseEventsModel = ReturnType<
   typeof mouseEventsModelIntermediateFactory
 >
-export type LinearApolloDisplayMouseEvents =
-  Instance<LinearApolloDisplayMouseEventsModel>
+// eslint disable because of
+// https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface LinearApolloDisplayMouseEvents
+  extends Instance<LinearApolloDisplayMouseEventsModel> {}

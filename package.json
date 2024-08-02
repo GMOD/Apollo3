@@ -12,7 +12,8 @@
     "start:server": "yarn workspace @apollo-annotation/collaboration-server run start",
     "start:plugin": "yarn workspace @apollo-annotation/jbrowse-plugin-apollo run start",
     "start": "npm-run-all --print-label --parallel start:shared start:server start:plugin",
-    "test": "yarn workspaces foreach --all run test:ci"
+    "test": "yarn workspaces foreach --all run test:ci",
+    "postinstall": "husky"
   },
   "devDependencies": {
     "@types/cross-spawn": "^6.0.6",
