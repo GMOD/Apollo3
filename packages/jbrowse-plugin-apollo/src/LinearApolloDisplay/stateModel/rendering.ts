@@ -147,7 +147,7 @@ function colorCode(letter: string, theme?: Theme) {
 }
 
 function codonColorCode(letter: string) {
-  const colorMap: Record<string, string|undefined> = {
+  const colorMap: Record<string, string | undefined> = {
     M: '#33ee33',
     '*': '#f44336',
   }
@@ -241,13 +241,21 @@ export function sequenceRenderingModelFactory(
               self.lgv.dynamicBlocks.totalWidthPx,
               self.lgv.bpPerPx <= 1 ? 125 : 95,
             )
-            const frames = self.lgv.bpPerPx <=1 ? [3,2,1,0,0,-1,-2,-3]: [3,2,1,-1,-2,-3]
+            const frames =
+              self.lgv.bpPerPx <= 1
+                ? [3, 2, 1, 0, 0, -1, -2, -3]
+                : [3, 2, 1, -1, -2, -3]
             let height = 0
             for (const frame of frames) {
               const frameColor = self.theme?.palette.framesCDS.at(frame)?.main
               if (frameColor) {
                 seqTrackctx.fillStyle = frameColor
-                seqTrackctx.fillRect(0,height,self.lgv.dynamicBlocks.totalWidthPx,self.sequenceRowHeight)
+                seqTrackctx.fillRect(
+                  0,
+                  height,
+                  self.lgv.dynamicBlocks.totalWidthPx,
+                  self.sequenceRowHeight,
+                )
               }
               height += self.sequenceRowHeight
             }

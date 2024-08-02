@@ -1,10 +1,4 @@
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { AnnotationFeature, Children } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
@@ -13,12 +7,12 @@ import { getFrame } from '@jbrowse/core/util'
 import { alpha } from '@mui/material'
 
 import { LinearApolloDisplay } from '../stateModel'
-import {
-  CDSDiscontinuousLocation,
-  MousePosition,
-} from '../stateModel/mouseEvents'
+import { MousePosition } from '../stateModel/mouseEvents'
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
+import { BoxGlyph } from './BoxGlyph'
+
+const boxGlyph = new BoxGlyph()
 
 type LocationChange = LocationEndChange | LocationStartChange
 
@@ -56,107 +50,64 @@ if ('document' in window) {
   }
 }
 
-interface GeneAnnotationFeature {
-  parent?: AnnotationFeature
-  start?: number
-  end?: number
-  phase?: 0 | 1 | 2
-  annotationFeature: AnnotationFeature
-}
-
-interface CDSFeatures {
-  parent: AnnotationFeature
-  cds: AnnotationFeature
-  cdsDiscontinuousLocs: CDSDiscontinuousLocation[]
-}
-
-interface ExonCDSRelation {
-  exon: AnnotationFeature
-  cdsDL?: CDSDiscontinuousLocation
-}
-
 export class GeneGlyph extends Glyph {
   /**
-   * Return list of all the features (exons/cds) for each row for a given feature
+   * A list of all the subfeatures for each row for a given feature, as well as
+   * the feature itself.
+   * If the row contains an mRNA, the order is CDS -\> exon -\> mRNA -\> gene
+   * If the row does not contain an mRNA, the order is subfeature -\> gene
    */
-  featuresForRow(feature: AnnotationFeature): GeneAnnotationFeature[][] {
+  featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
+    if (feature.type !== 'gene') {
+      throw new Error('Top level feature for GeneGlyph must have type "gene"')
+    }
     const { children } = feature
-    const cdsFeatures: CDSFeatures[] = []
-    if (children) {
-      for (const [, child] of children) {
-        const featureChild = child
-        if (!featureChild.children) {
-          continue
-        }
-        for (const [, annotationFeature] of featureChild.children) {
-          if (annotationFeature.type === 'CDS') {
-            const cdsDiscontinuousLocs = this.getDiscontinuousLocations(
-              child,
-              annotationFeature,
-            )
-            cdsFeatures.push({
-              parent: child,
-              cds: annotationFeature,
-              cdsDiscontinuousLocs,
-            })
-          }
+    if (!children) {
+      return [[feature]]
+    }
+    const features: AnnotationFeature[][] = []
+    for (const [, child] of children) {
+      if (child.type !== 'mRNA') {
+        features.push([child, feature])
+        continue
+      }
+      if (!child.children) {
+        continue
+      }
+      const cdss: AnnotationFeature[] = []
+      const exons: AnnotationFeature[] = []
+      for (const [, grandchild] of child.children) {
+        if (grandchild.type === 'CDS') {
+          cdss.push(grandchild)
+        } else if (grandchild.type === 'exon') {
+          exons.push(grandchild)
         }
       }
-    }
-
-    // console.log('cdsFeatures', cdsFeatures)
-
-    const features: GeneAnnotationFeature[][] = []
-    for (const f of cdsFeatures) {
-      const childFeatures: GeneAnnotationFeature[] = []
-      for (const [, cf] of f.parent.children ?? new Map()) {
-        if (cf.type === 'CDS' && cf._id !== f.cds._id) {
-          continue
-        }
-
-        // Add all cds locations
-        if (
-          cf.type === 'CDS' &&
-          f.cdsDiscontinuousLocs &&
-          f.cdsDiscontinuousLocs.length > 0
-        ) {
-          for (const dl of f.cdsDiscontinuousLocs) {
-            childFeatures.push({
-              annotationFeature: cf,
-              parent: f.parent,
-              start: dl.start,
-              end: dl.end,
-              phase: dl.phase,
-            })
-          }
-        } else {
-          // Add all exons
-          childFeatures.push({
-            annotationFeature: cf,
-            parent: f.parent,
-          })
-        }
+      for (const cds of cdss) {
+        features.push([cds, ...exons, child, feature])
       }
-      // Add parent(mRNA) feature
-      childFeatures.push({
-        annotationFeature: f.parent,
-      })
-      features.push(childFeatures)
     }
-
     return features
   }
 
   getRowCount(feature: AnnotationFeature, _bpPerPx?: number): number {
-    let cdsCount = 0
-    for (const [, child] of feature.children ?? new Map()) {
-      for (const [, grandchild] of child.children ?? new Map()) {
-        if (grandchild.type === 'CDS') {
-          cdsCount += 1
+    const { children, type } = feature
+    if (!children) {
+      return 1
+    }
+    let rowCount = 0
+    if (type === 'mRNA') {
+      for (const [, child] of children) {
+        if (child.type === 'CDS') {
+          rowCount += 1
         }
       }
+      return rowCount
     }
-    return cdsCount
+    for (const [, child] of children) {
+      rowCount += this.getRowCount(child)
+    }
+    return rowCount
   }
 
   draw(
@@ -172,8 +123,8 @@ export class GeneGlyph extends Glyph {
     const rowHeight = apolloRowHeight
     const exonHeight = Math.round(0.6 * rowHeight)
     const cdsHeight = Math.round(0.9 * rowHeight)
-    const { _id, min, strand } = feature
-    const children = feature.children as Children
+    const { min, strand } = feature
+    const { children } = feature
     if (!children) {
       return
     }
@@ -183,9 +134,14 @@ export class GeneGlyph extends Glyph {
     let currentRow = 0
     for (const [, mrna] of children) {
       if (mrna.type !== 'mRNA') {
+        currentRow += 1
         continue
       }
-      for (const [, cds] of mrna.children ?? new Map()) {
+      const { children: childrenOfmRNA } = mrna
+      if (!childrenOfmRNA) {
+        continue
+      }
+      for (const [, cds] of childrenOfmRNA) {
         if (cds.type !== 'CDS') {
           continue
         }
@@ -207,12 +163,18 @@ export class GeneGlyph extends Glyph {
 
     // Draw exon and CDS for each mRNA
     currentRow = 0
-    for (const [, mrna] of children) {
-      if (mrna.type !== 'mRNA') {
+    for (const [, child] of children) {
+      if (child.type !== 'mRNA') {
+        boxGlyph.draw(stateModel, ctx, child, xOffset, row, reversed)
+        currentRow += 1
         continue
       }
-      for (const cdsRow of mrna.cdsLocations) {
-        for (const [, exon] of mrna.children ?? new Map()) {
+      for (const cdsRow of child.cdsLocations) {
+        const { _id, children: childrenOfmRNA } = child
+        if (!childrenOfmRNA) {
+          continue
+        }
+        for (const [, exon] of childrenOfmRNA) {
           if (exon.type !== 'exon') {
             continue
           }
@@ -275,15 +237,15 @@ export class GeneGlyph extends Glyph {
             const frame = getFrame(
               cds.min,
               cds.max,
-              mrna.strand || 1,
+              child.strand ?? 1,
               cds.phase,
             )
             const frameColor = theme?.palette.framesCDS.at(frame)?.main
             const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
-            // ctx.fillStyle =
-            //   apolloSelectedFeature && cds._id === apolloSelectedFeature._id
-            //     ? 'rgb(0,0,0)'
-            //     : cdsColorCode
+            ctx.fillStyle =
+              apolloSelectedFeature && _id === apolloSelectedFeature._id
+                ? 'rgb(0,0,0)'
+                : cdsColorCode
             ctx.fillStyle = cdsColorCode
             ctx.fillRect(
               cdsStartPx + 1,
@@ -317,292 +279,36 @@ export class GeneGlyph extends Glyph {
         currentRow += 1
       }
     }
-    // for (const [, mrna] of children) {
-    //   if (mrna.type !== 'mRNA') {
-    //     continue
-    //   }
-    //   for (const [, cds] of mrna.cdsLocations) {
-    //     for (const [, exon] of mrna.children ?? new Map()) {
-    //       if (exon.type !== 'exon') {
-    //         continue
-    //       }
-    //       const offsetPx = (exon.min - min) / bpPerPx
-    //       const widthPx = exon.length / bpPerPx
-    //       const startPx = reversed
-    //         ? xOffset - offsetPx - widthPx
-    //         : xOffset + offsetPx
-    //       const top = (row + currentRow) * rowHeight
-    //       const exonTop = top + (rowHeight - exonHeight) / 2
-    //       ctx.fillStyle = theme?.palette.text.primary ?? 'black'
-    //       ctx.fillRect(startPx, exonTop, widthPx, exonHeight)
-    //       if (widthPx > 2) {
-    //         ctx.clearRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
-    //         ctx.fillStyle =
-    //           apolloSelectedFeature && exon._id === apolloSelectedFeature._id
-    //             ? 'rgb(0,0,0)'
-    //             : 'rgb(211,211,211)'
-    //         ctx.fillRect(startPx + 1, exonTop + 1, widthPx - 2, exonHeight - 2)
-    //         if (forwardFill && backwardFill && strand) {
-    //           const reversal = reversed ? -1 : 1
-    //           const [topFill, bottomFill] =
-    //             strand * reversal === 1
-    //               ? [forwardFill, backwardFill]
-    //               : [backwardFill, forwardFill]
-    //           ctx.fillStyle = topFill
-    //           ctx.fillRect(
-    //             startPx + 1,
-    //             exonTop + 1,
-    //             widthPx - 2,
-    //             (exonHeight - 2) / 2,
-    //           )
-    //           ctx.fillStyle = bottomFill
-    //           ctx.fillRect(
-    //             startPx + 1,
-    //             exonTop + 1 + (exonHeight - 2) / 2,
-    //             widthPx - 2,
-    //             (exonHeight - 2) / 2,
-    //           )
-    //         }
-    //       }
-
-    //       // draw CDS
-    //       if (exon.max < cds.min || exon.min > cds.max) {
-    //         continue
-    //       }
-
-    //       const cdsMin =
-    //         exon.min < cds.min && cds.min < exon.max ? cds.min : exon.min
-    //       const cdsMax =
-    //         exon.min < cds.max && cds.max < exon.max ? cds.max : exon.max
-    //       const cdsOffsetPx = (cdsMin - min) / bpPerPx
-    //       const cdsWidthPx = (cdsMax - cdsMin) / bpPerPx
-    //       const cdsStartPx = reversed
-    //         ? xOffset - cdsOffsetPx - cdsWidthPx
-    //         : xOffset + cdsOffsetPx
-    //       ctx.fillStyle = theme?.palette.text.primary ?? 'black'
-    //       const cdsTop =
-    //         (row + currentRow) * rowHeight + (rowHeight - cdsHeight) / 2
-    //       ctx.fillRect(cdsStartPx, cdsTop, cdsWidthPx, cdsHeight)
-    //       if (cdsWidthPx > 2) {
-    //         ctx.clearRect(
-    //           cdsStartPx + 1,
-    //           cdsTop + 1,
-    //           cdsWidthPx - 2,
-    //           cdsHeight - 2,
-    //         )
-    //         const frame = getFrame(cdsMin, cdsMax, mrna.strand || 1, cds.phase)
-    //         const frameColor = theme?.palette.framesCDS.at(frame)?.main
-    //         const cdsColorCode = frameColor ?? 'rgb(171,71,188)'
-    //         // ctx.fillStyle =
-    //         //   apolloSelectedFeature && cds._id === apolloSelectedFeature._id
-    //         //     ? 'rgb(0,0,0)'
-    //         //     : cdsColorCode
-    //         ctx.fillStyle = cdsColorCode
-    //         ctx.fillRect(
-    //           cdsStartPx + 1,
-    //           cdsTop + 1,
-    //           cdsWidthPx - 2,
-    //           cdsHeight - 2,
-    //         )
-    //         if (forwardFill && backwardFill && strand) {
-    //           const reversal = reversed ? -1 : 1
-    //           const [topFill, bottomFill] =
-    //             strand * reversal === 1
-    //               ? [forwardFill, backwardFill]
-    //               : [backwardFill, forwardFill]
-    //           ctx.fillStyle = topFill
-    //           ctx.fillRect(
-    //             cdsStartPx + 1,
-    //             cdsTop + 1,
-    //             cdsWidthPx - 2,
-    //             (cdsHeight - 2) / 2,
-    //           )
-    //           ctx.fillStyle = bottomFill
-    //           ctx.fillRect(
-    //             cdsStartPx + 1,
-    //             cdsTop + (cdsHeight - 2) / 2,
-    //             cdsWidthPx - 2,
-    //             (cdsHeight - 2) / 2,
-    //           )
-    //         }
-    //       }
-    //     }
-    //     currentRow += 1
-    //   }
-    // }
-
-    // if (apolloSelectedFeature) {
-    //   if (_id === apolloSelectedFeature._id) {
-    //     const widthPx = feature.length / bpPerPx
-    //     const startPx = reversed ? xOffset - widthPx : xOffset
-    //     const top = row * rowHeight
-    //     const height = this.getRowCount(feature) * rowHeight
-    //     ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,0.08)'
-    //     ctx.fillRect(startPx, top, widthPx, height)
-    //   } else {
-    //     let featureEntry: AnnotationFeature | undefined
-    //     let featureRow: number | undefined
-    //     let i = 0
-    //     for (const [, f] of children ?? new Map()) {
-    //       if (f._id === apolloSelectedFeature._id) {
-    //         featureEntry = f
-    //         featureRow = i
-    //       }
-    //       i++
-    //     }
-
-    //     if (featureEntry === undefined || featureRow === undefined) {
-    //       return
-    //     }
-    //     const cdsCount = this.cdsCount(featureEntry)
-    //     let height = rowHeight
-    //     if (cdsCount > 1) {
-    //       height = height * cdsCount
-    //     }
-    //     const widthPx = featureEntry.length / bpPerPx
-    //     const offsetPx = (featureEntry.min - min) / bpPerPx
-    //     const startPx = reversed ? xOffset - widthPx : xOffset + offsetPx
-    //     const top = (row + featureRow) * rowHeight
-    //     ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,08)'
-    //     ctx.fillRect(startPx, top, widthPx, height)
-    //   }
-    // }
   }
 
-  // CDS count with discontinuous locations
-  cdsCount(feature?: AnnotationFeature) {
-    let cdsCount = 0
-    for (const [, cf] of feature?.children ?? new Map()) {
-      if (cf.type === 'CDS') {
-        cdsCount++
-      }
-    }
-    return cdsCount
-  }
-
-  drawHover(
-    stateModel: LinearApolloDisplay,
-    ctx: CanvasRenderingContext2D,
-    rowNum: number,
-    xOffset: number,
-    reversed: boolean,
-  ) {
-    const { apolloHover } = stateModel
-    if (!apolloHover) {
-      return
-    }
-    const { feature, topLevelFeature } = apolloHover
-    if (!feature || !topLevelFeature) {
-      return
-    }
-
-    if (feature.type === 'CDS') {
-      const parentFeature = this.getParentFeature(feature, topLevelFeature)
-      const { cdsLocations } = parentFeature
-      for (const cdsLoc of cdsLocations) {
-        this.drawShadeForFeature(
-          stateModel,
-          ctx,
-          cdsLoc.start,
-          cdsLoc.end,
-          cdsLoc.end - cdsLoc.start,
-        )
-      }
-    } else {
-      this.drawShadeForFeature(
-        stateModel,
-        ctx,
-        feature.min,
-        feature.max,
-        feature.length,
-        rowNum,
-        xOffset,
-        reversed,
-      )
-    }
-  }
-
-  drawShadeForFeature(
-    stateModel: LinearApolloDisplay,
-    ctx: CanvasRenderingContext2D,
-    start: number,
-    end: number,
-    length: number,
-    rowNum?: number,
-    xOffset?: number,
-    reversed?: boolean,
-  ) {
+  drawHover(stateModel: LinearApolloDisplay, ctx: CanvasRenderingContext2D) {
     const { apolloHover, apolloRowHeight, displayedRegions, lgv, theme } =
       stateModel
-    const { bpPerPx, bpToPx, offsetPx } = lgv
-
     if (!apolloHover) {
       return
     }
-    const { feature, topLevelFeature } = apolloHover
-
-    if (!feature || !topLevelFeature) {
+    const { feature, mousePosition } = apolloHover
+    if (!(feature && mousePosition)) {
       return
     }
-
-    let featureEntry: AnnotationFeature | undefined
-    let childFeature: AnnotationFeature | undefined
-    let featureRow: number | undefined
-    let i = 0
-    for (const [, f] of topLevelFeature.children ?? new Map()) {
-      if (f._id === feature._id) {
-        featureEntry = f
-        featureRow = i
-      }
-      for (const [, cf] of f.children ?? new Map()) {
-        if (cf._id === feature._id) {
-          childFeature = cf
-          featureEntry = f
-          featureRow = i
-        }
-      }
-      i++
-    }
-
-    const cdsCount = this.cdsCount(featureEntry)
-
-    if (cdsCount > 1 && rowNum && xOffset) {
-      if (featureEntry === undefined || featureRow === undefined) {
-        return
-      }
-      const widthPx = childFeature
-        ? childFeature.length / bpPerPx
-        : featureEntry.length / bpPerPx
-      const offsetPx = childFeature
-        ? (childFeature.min - feature.min) / bpPerPx
-        : (featureEntry.min - feature.min) / bpPerPx
-      const startPx = reversed ? xOffset - widthPx : xOffset + offsetPx
-      // const top = (featureRow + rowNum) * apolloRowHeight
-      const top = featureRow * apolloRowHeight
-      ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,04)'
-      ctx.fillRect(startPx, top, widthPx, apolloRowHeight * cdsCount)
-    } else {
-      const { mousePosition } = apolloHover
-      if (!mousePosition) {
-        return
-      }
-      const rowHeight = apolloRowHeight
-      const { regionNumber, y } = mousePosition
-      const rowNumber = Math.floor(y / rowHeight)
-
-      const displayedRegion = displayedRegions[regionNumber]
-      const { refName, reversed } = displayedRegion
-      const startPx =
-        (bpToPx({
-          refName,
-          coord: reversed ? end : start,
-          regionNumber,
-        })?.offsetPx ?? 0) - offsetPx
-      const top = rowNumber * rowHeight
-      const widthPx = length / bpPerPx
-      ctx.fillStyle = theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
-      ctx.fillRect(startPx, top, widthPx, rowHeight)
-    }
+    const { regionNumber, y } = mousePosition
+    const displayedRegion = displayedRegions[regionNumber]
+    const { refName, reversed } = displayedRegion
+    const { bpPerPx, offsetPx } = lgv
+    const { length, max, min } = feature
+    const startPx =
+      (lgv.bpToPx({ refName, coord: reversed ? max : min, regionNumber })
+        ?.offsetPx ?? 0) - offsetPx
+    const row = Math.floor(y / apolloRowHeight)
+    const top = row * apolloRowHeight
+    const widthPx = length / bpPerPx
+    ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,04)'
+    ctx.fillRect(
+      startPx,
+      top,
+      widthPx,
+      apolloRowHeight * this.getRowCount(feature),
+    )
   }
 
   drawDragPreview(
@@ -616,7 +322,6 @@ export class GeneGlyph extends Glyph {
       return
     }
     const {
-      discontinuousLocation,
       feature,
       glyph,
       mousePosition: startingMousePosition,
@@ -676,49 +381,44 @@ export class GeneGlyph extends Glyph {
     stateModel: LinearApolloDisplay,
     topLevelFeature?: AnnotationFeature,
   ) {
-    if (!mousePosition || !feature) {
-      return
-    }
-
     const { bp, refName, regionNumber, x } = mousePosition
     const { lgv } = stateModel
-    const { bpToPx, offsetPx } = lgv
+    const { offsetPx } = lgv
     const parentFeature = this.getParentFeature(feature, topLevelFeature)
     let startPxInfo
     let endPxInfo
 
     if (feature.type === 'CDS' && parentFeature) {
-      let discontinuousLocation
-      const cdsDiscontinuousLocs = this.getDiscontinuousLocations(
-        parentFeature,
-        feature,
-      )
-      for (const dl of cdsDiscontinuousLocs) {
-        if (bp >= dl.start && bp <= dl.end) {
-          discontinuousLocation = dl
-          break
+      let cdsLocation
+      const { cdsLocations } = parentFeature
+      for (const cdsLocRow of cdsLocations) {
+        for (const cdsLoc of cdsLocRow) {
+          if (bp >= cdsLoc.min && bp <= cdsLoc.max) {
+            cdsLocation = cdsLoc
+            break
+          }
         }
       }
-      if (!discontinuousLocation) {
+      if (!cdsLocation) {
         return
       }
-      startPxInfo = bpToPx({
+      startPxInfo = lgv.bpToPx({
         refName,
-        coord: discontinuousLocation.start,
+        coord: cdsLocation.min,
         regionNumber,
       })
-      endPxInfo = bpToPx({
+      endPxInfo = lgv.bpToPx({
         refName,
-        coord: discontinuousLocation.end,
+        coord: cdsLocation.max,
         regionNumber,
       })
     } else {
-      startPxInfo = bpToPx({
+      startPxInfo = lgv.bpToPx({
         refName,
         coord: feature.min,
         regionNumber,
       })
-      endPxInfo = bpToPx({ refName, coord: feature.max, regionNumber })
+      endPxInfo = lgv.bpToPx({ refName, coord: feature.max, regionNumber })
     }
 
     if (startPxInfo !== undefined && endPxInfo !== undefined) {
@@ -819,28 +519,26 @@ export class GeneGlyph extends Glyph {
     exonCDSRelations: ExonCDSRelation[],
   ) {
     let prevExon, nextExon, matchingExon, idx
-    if (exonCDSRelations) {
-      for (const [i, exonCDSRelation] of exonCDSRelations.entries()) {
-        const dl = exonCDSRelation.cdsDL
-        if (
-          cdsDL.start === dl?.start &&
-          cdsDL.end === dl.end &&
-          cdsDL.phase === dl.phase
-        ) {
-          idx = i
-          break
-        }
+    for (const [i, exonCDSRelation] of exonCDSRelations.entries()) {
+      const dl = exonCDSRelation.cdsDL
+      if (
+        cdsDL.start === dl?.start &&
+        cdsDL.end === dl.end &&
+        cdsDL.phase === dl.phase
+      ) {
+        idx = i
+        break
       }
-      if (idx !== undefined) {
-        const { exon } = exonCDSRelations[idx]
-        matchingExon = exon
-      }
-      if (idx !== undefined && idx > 0) {
-        prevExon = exonCDSRelations[idx - 1].exon
-      }
-      if (idx !== undefined && idx < exonCDSRelations.length - 1) {
-        nextExon = exonCDSRelations[idx + 1].exon
-      }
+    }
+    if (idx !== undefined) {
+      const { exon } = exonCDSRelations[idx]
+      matchingExon = exon
+    }
+    if (idx !== undefined && idx > 0) {
+      prevExon = exonCDSRelations[idx - 1].exon
+    }
+    if (idx !== undefined && idx < exonCDSRelations.length - 1) {
+      nextExon = exonCDSRelations[idx + 1].exon
     }
     return { prevExon, matchingExon, nextExon }
   }
@@ -928,7 +626,7 @@ export class GeneGlyph extends Glyph {
       exon,
       topLevelFeature,
     )
-    if (!(parentFeature && parentFeature.children)) {
+    if (!parentFeature.children) {
       return
     }
 
@@ -961,18 +659,13 @@ export class GeneGlyph extends Glyph {
     stateModel: LinearApolloDisplay,
     currentMousePosition: MousePosition,
   ): void {
-    const {
-      discontinuousLocation,
-      feature,
-      glyph,
-      mousePosition,
-      topLevelFeature,
-    } = stateModel.apolloDragging?.start ?? {}
-    if (!(currentMousePosition && mousePosition)) {
+    const { feature, glyph, mousePosition, topLevelFeature } =
+      stateModel.apolloDragging?.start ?? {}
+    if (!mousePosition) {
       return
     }
     const { bp } = currentMousePosition
-    if (!feature || !currentMousePosition) {
+    if (!feature) {
       return
     }
     const edge = this.isMouseOnFeatureEdge(
@@ -1013,7 +706,7 @@ export class GeneGlyph extends Glyph {
         feature,
         topLevelFeature,
       )
-      if (dls && dls.length > 0) {
+      if (dls.length > 0) {
         let stopDrag
         for (const dl of dls) {
           if (
@@ -1043,7 +736,6 @@ export class GeneGlyph extends Glyph {
         feature,
         topLevelFeature,
         glyph,
-        discontinuousLocation,
         mousePosition,
       },
       current: {
@@ -1060,35 +752,14 @@ export class GeneGlyph extends Glyph {
     bp: number,
     row: number,
   ): AnnotationFeature | undefined {
-    const featuresForRow: GeneAnnotationFeature[] =
+    const featuresForRow: AnnotationFeature[] =
       this.featuresForRow(feature)[row]
-    let featureFromLayout: AnnotationFeature | undefined
-
     for (const f of featuresForRow) {
-      if (
-        f.start !== undefined &&
-        f.end !== undefined &&
-        f.phase !== undefined
-      ) {
-        if (bp >= f.start && bp <= f.end && f.parent) {
-          featureFromLayout = f.annotationFeature
-        }
-      } else {
-        if (
-          bp >= f.annotationFeature.min &&
-          bp <= f.annotationFeature.max &&
-          f.parent
-        ) {
-          featureFromLayout = f.annotationFeature
-        }
+      if (bp >= f.min && bp <= f.max && f.parent) {
+        return f
       }
     }
-
-    if (!featureFromLayout) {
-      featureFromLayout = featuresForRow.at(-1)?.annotationFeature
-    }
-
-    return featureFromLayout
+    return feature
   }
 
   getRowForFeature(
@@ -1097,11 +768,7 @@ export class GeneGlyph extends Glyph {
   ) {
     const rows = this.featuresForRow(feature)
     for (const [idx, row] of rows.entries()) {
-      if (
-        row.some(
-          (feature) => feature.annotationFeature._id === childFeature._id,
-        )
-      ) {
+      if (row.some((feature) => feature._id === childFeature._id)) {
         return idx
       }
     }
@@ -1109,13 +776,7 @@ export class GeneGlyph extends Glyph {
   }
 
   async executeDrag(stateModel: LinearApolloDisplay) {
-    const {
-      apolloDragging,
-      changeManager,
-      displayedRegions,
-      getAssemblyId,
-      setCursor,
-    } = stateModel
+    const { apolloDragging, changeManager, displayedRegions } = stateModel
     if (!apolloDragging) {
       return
     }
@@ -1140,16 +801,13 @@ export class GeneGlyph extends Glyph {
     if (!edge) {
       return
     }
-
     const { mousePosition: currentMousePosition } = apolloDragging.current
     const region = displayedRegions[startingMousePosition.regionNumber]
     const newBp = currentMousePosition.bp
-    const assembly = getAssemblyId(region.assemblyName)
+    const assembly = stateModel.getAssemblyId(region.assemblyName)
     const changes: (LocationStartChange | LocationEndChange)[] = []
-
     const parentFeature = glyph.getParentFeature(feature, topLevelFeature)
     const cdsLocs = glyph.getDiscontinuousLocations(parentFeature, feature)
-
     if (edge === 'min') {
       if (
         discontinuousLocation?.idx !== undefined &&
@@ -1158,17 +816,12 @@ export class GeneGlyph extends Glyph {
       ) {
         this.addStartLocationChange(changes, feature, newBp, assembly)
         // feature.setMin(newBp)
-
         const exonCDSRelations = this.exonCDSRelation(feature, topLevelFeature)
         const exonForCds = this.adjacentExonsOfCdsDL(
           discontinuousLocation,
           exonCDSRelations,
         )
-        if (
-          exonForCds &&
-          exonForCds.matchingExon &&
-          newBp < exonForCds.matchingExon.min
-        ) {
+        if (exonForCds.matchingExon && newBp < exonForCds.matchingExon.min) {
           this.addStartLocationChange(
             changes,
             exonForCds.matchingExon,
@@ -1189,17 +842,12 @@ export class GeneGlyph extends Glyph {
       ) {
         this.addEndLocationChange(changes, feature, newBp, assembly)
         // feature.setMax(newBp)
-
         const exonCDSRelations = this.exonCDSRelation(feature, topLevelFeature)
         const exonForCds = this.adjacentExonsOfCdsDL(
           discontinuousLocation,
           exonCDSRelations,
         )
-        if (
-          exonForCds &&
-          exonForCds.matchingExon &&
-          newBp > exonForCds.matchingExon.max
-        ) {
+        if (exonForCds.matchingExon && newBp > exonForCds.matchingExon.max) {
           this.addEndLocationChange(
             changes,
             exonForCds.matchingExon,
@@ -1213,15 +861,10 @@ export class GeneGlyph extends Glyph {
         // feature.setMax(newBp)
       }
     }
-
-    if (!changeManager) {
-      throw new Error('no change manager')
-    }
     for (const change of changes) {
       await changeManager.submit(change)
     }
-
-    setCursor()
+    stateModel.setCursor()
   }
 
   addStartLocationChange(
