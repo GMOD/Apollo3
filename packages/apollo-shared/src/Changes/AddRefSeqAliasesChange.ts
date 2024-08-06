@@ -31,7 +31,6 @@ export class AddRefSeqAliasesChange extends AssemblySpecificChange {
     this.refSeqAliases = json.refSeqAliases
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   executeOnClient(clientDataStore: ClientDataStore) {
     const { assemblyManager } = getSession(clientDataStore)
     const assembly = assemblyManager.get(this.assembly)
