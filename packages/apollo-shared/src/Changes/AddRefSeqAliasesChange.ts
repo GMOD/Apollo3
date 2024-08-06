@@ -7,6 +7,7 @@ import {
   SerializedChange,
   ServerDataStore,
 } from '@apollo-annotation/common'
+import { getSession } from '@jbrowse/core/util'
 
 export interface SerializedRefSeqAliases {
   refName: string
@@ -31,7 +32,33 @@ export class AddRefSeqAliasesChange extends AssemblySpecificChange {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  async executeOnClient(_clientDataStore: ClientDataStore) {}
+  executeOnClient(clientDataStore: ClientDataStore) {
+    const { assemblyManager } = getSession(clientDataStore)
+    const assembly = assemblyManager.get(this.assembly)
+    if (!assembly) {
+      throw new Error(`assembly ${this.assembly} not found`)
+    }
+    // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
+    const sessionAliases: { [x: string]: string | undefined } | undefined =
+      assembly.refNameAliases
+    // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
+    const sessionLCAliases: { [x: string]: string | undefined } | undefined =
+      assembly.lowerCaseRefNameAliases
+
+    if (!sessionAliases || !sessionLCAliases) {
+      throw new Error('Session refNameAliases not found in assembly')
+    }
+
+    for (const refSeqAlias of this.refSeqAliases) {
+      const { aliases, refName } = refSeqAlias
+      for (const alias of aliases) {
+        sessionAliases[alias] = refName
+        sessionLCAliases[alias.toLowerCase()] = refName
+      }
+    }
+    assembly.setRefNameAliases(sessionAliases, sessionLCAliases)
+    return Promise.resolve()
+  }
 
   getInverse(): Change {
     throw new Error('Method not implemented.')
