@@ -16,7 +16,7 @@ $ npm install -g @apollo-annotation/cli
 $ apollo COMMAND
 running command...
 $ apollo (--version)
-@apollo-annotation/cli/0.1.18 linux-x64 node-v20.14.0
+@apollo-annotation/cli/0.1.18 darwin-x64 node-v20.10.0
 $ apollo --help [COMMAND]
 USAGE
   $ apollo COMMAND
@@ -52,6 +52,7 @@ USAGE
 - [`apollo help [COMMANDS]`](#apollo-help-commands)
 - [`apollo login`](#apollo-login)
 - [`apollo logout`](#apollo-logout)
+- [`apollo refseq add-alias`](#apollo-refseq-add-alias)
 - [`apollo refseq get`](#apollo-refseq-get)
 - [`apollo status`](#apollo-status)
 - [`apollo user get`](#apollo-user-get)
@@ -834,6 +835,36 @@ EXAMPLES
 
 _See code:
 [src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v0.1.18/packages/apollo-cli/src/commands/logout.ts)_
+
+## `apollo refseq add-alias`
+
+Add reference name aliases from a file
+
+```
+USAGE
+  $ apollo refseq add-alias -i <value> -a <value> [--profile <value>] [--config-file <value>]
+
+FLAGS
+  -a, --assembly=<value>     (required) Name for this assembly.
+  -i, --input-file=<value>   (required) Input refname alias file
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      Use credentials from this profile
+
+DESCRIPTION
+  Add reference name aliases from a file
+
+  Reference name aliasing is a process to make chromosomes that are named slightly
+  differently but which refer to the same thing render properly. This command
+  reads a file with reference name aliases and adds them to the database.
+
+EXAMPLES
+  Add reference name aliases:
+
+    $ apollo refseq add-alias -i alias.txt -a myAssembly
+```
+
+_See code:
+[src/commands/refseq/add-alias.ts](https://github.com/GMOD/Apollo3/blob/v0.1.18/packages/apollo-cli/src/commands/refseq/add-alias.ts)_
 
 ## `apollo refseq get`
 

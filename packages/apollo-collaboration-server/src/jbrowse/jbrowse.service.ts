@@ -104,14 +104,8 @@ export class JBrowseService {
           assembly: assemblyId,
         })
         const ids: Record<string, string> = {}
-        const refNameAliasesFeatures = refSeqs.map((refSeq) => {
-          const refSeqId = (refSeq._id as Types.ObjectId).toHexString()
-          ids[refSeq.name] = refSeqId
-          return {
-            refName: refSeq.name,
-            aliases: [refSeqId],
-            uniqueId: `alias-${refSeqId}`,
-          }
+        refSeqs.map((refSeq) => {
+          ids[refSeq.name] = (refSeq._id as Types.ObjectId).toHexString()
         })
         this.logger.debug(`generating assembly ${assemblyId}`)
         return {
@@ -137,8 +131,9 @@ export class JBrowseService {
           },
           refNameAliases: {
             adapter: {
-              type: 'FromConfigAdapter',
-              features: refNameAliasesFeatures,
+              type: 'ApolloRefNameAliasAdapter',
+              assemblyId,
+              baseURL: { uri: url, locationType: 'UriLocation' },
             },
           },
         }
