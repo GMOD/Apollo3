@@ -165,7 +165,7 @@ export function AddRefSeqAliases({
     }
     const change = new AddRefSeqAliasesChange({
       typeName: 'AddRefSeqAliasesChange',
-      assembly: selectedAssembly?.name,
+      assembly: selectedAssembly.name,
       refSeqAliases,
     })
     changeManager.submit(change).catch(() => {
