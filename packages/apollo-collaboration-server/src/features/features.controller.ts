@@ -1,12 +1,12 @@
 import { Controller, Get, Logger, Param, Query } from '@nestjs/common'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
-import { Public } from '../utils/jwt-auth.guard'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { FeatureCountRequest } from './dto/feature.dto'
 import { FeaturesService } from './features.service'
 
+@Validations(Role.ReadOnly)
 @Controller('features')
 export class FeaturesController {
   constructor(private readonly featuresService: FeaturesService) {}
@@ -17,7 +17,6 @@ export class FeaturesController {
    * For testing try to go to:
    * http://localhost:3999/features/searchFeatures?term=exonerate
    */
-  @Public()
   @Get('searchFeatures')
   async searchFeatures(@Query() request: { term: string; assemblies: string }) {
     return this.featuresService.searchFeatures(request)
@@ -29,7 +28,6 @@ export class FeaturesController {
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
    * or if search data was not found or in case of error throw exception
    */
-  @Validations(Role.ReadOnly)
   @Get('getFeatures')
   getFeatures(@Query() request: FeatureRangeSearchDto) {
     this.logger.debug(
@@ -39,7 +37,6 @@ export class FeaturesController {
     return this.featuresService.findByRange(request)
   }
 
-  @Validations(Role.ReadOnly)
   @Get('count')
   async getFeatureCount(@Query() featureCountRequest: FeatureCountRequest) {
     this.logger.debug(
@@ -56,14 +53,12 @@ export class FeaturesController {
    * @returns Return 'HttpStatus.OK' and the feature(s) if search was successful
    * or if search data was not found or in case of error throw exception
    */
-  @Validations(Role.ReadOnly)
   @Get(':featureid')
   getFeature(@Param('featureid') featureid: string) {
     this.logger.debug(`Get feature by featureId: ${featureid}`)
     return this.featuresService.findById(featureid)
   }
 
-  @Public()
   @Get('check/:featureid')
   checkFeature(@Param('featureid') featureid: string) {
     return this.featuresService.checkFeature(featureid)
@@ -74,7 +69,6 @@ export class FeaturesController {
    * @returns Return 'HttpStatus.OK' and array of features if search was successful
    * or if search data was not found or in case of error throw exception
    */
-  @Validations(Role.ReadOnly)
   @Get()
   getAll() {
     this.logger.debug('Get all features')

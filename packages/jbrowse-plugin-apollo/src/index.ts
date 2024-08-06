@@ -46,13 +46,14 @@ import {
 import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
 import { BackendDriver } from './BackendDrivers'
 import {
+  AddFeature,
   DownloadGFF3,
+  LogOut,
   ManageChecks,
   OpenLocalFile,
   ViewChangeLog,
+  ViewCheckResults,
 } from './components'
-import { AddFeature } from './components/AddFeature'
-import { ViewCheckResults } from './components/ViewCheckResults'
 import ApolloPluginConfigurationSchema from './config'
 import { annotationFromPileup } from './extensions'
 import {
@@ -205,6 +206,7 @@ export default class ApolloPlugin extends Plugin {
 
     pluginManager.addToExtensionPoint(
       'Core-extendSession',
+      // @ts-expect-error not sure how to deal with snapshot model types
       extendSession.bind(this, pluginManager),
     )
 
@@ -425,6 +427,22 @@ export default class ApolloPlugin extends Plugin {
           ;(session as unknown as AbstractSessionModel).queueDialog(
             (doneCallback) => [
               ViewCheckResults,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+              },
+            ],
+          )
+        },
+      })
+      pluginManager.rootModel.appendToMenu('Apollo', {
+        label: 'Log out',
+        onClick: (session: ApolloSessionModel) => {
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              LogOut,
               {
                 session,
                 handleClose: () => {

@@ -10,6 +10,7 @@ import { DeleteUserChange } from './DeleteUserChange'
 import { DiscontinuousLocationEndChange } from './DiscontinuousLocationEndChange'
 import { DiscontinuousLocationStartChange } from './DiscontinuousLocationStartChange'
 import { FeatureAttributeChange } from './FeatureAttributeChange'
+import { ImportJBrowseConfigChange } from './ImportJBrowseConfigChange'
 import { LocationEndChange } from './LocationEndChange'
 import { LocationStartChange } from './LocationStartChange'
 import { StrandChange } from './StrandChange'
@@ -28,6 +29,7 @@ export const changes = {
   DiscontinuousLocationEndChange,
   DiscontinuousLocationStartChange,
   FeatureAttributeChange,
+  ImportJBrowseConfigChange,
   LocationEndChange,
   LocationStartChange,
   StrandChange,
@@ -47,6 +49,7 @@ export * from './DeleteUserChange'
 export * from './DiscontinuousLocationEndChange'
 export * from './DiscontinuousLocationStartChange'
 export * from './FeatureAttributeChange'
+export * from './ImportJBrowseConfigChange'
 export * from './LocationEndChange'
 export * from './LocationStartChange'
 export * from './StrandChange'

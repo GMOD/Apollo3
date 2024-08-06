@@ -1,12 +1,11 @@
 import { Controller, Get, Logger, Param, Query } from '@nestjs/common'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
-import { Public } from '../utils/jwt-auth.guard'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { ChecksService } from './checks.service'
 
-@Public()
+@Validations(Role.ReadOnly)
 @Controller('checks')
 export class ChecksController {
   constructor(private readonly checksService: ChecksService) {}
@@ -28,7 +27,6 @@ export class ChecksController {
    * @param searchDto - range
    * @returns an array of checkResult -documents
    */
-  @Validations(Role.ReadOnly)
   @Get('range')
   getFeatures(@Query() request: FeatureRangeSearchDto) {
     this.logger.debug(

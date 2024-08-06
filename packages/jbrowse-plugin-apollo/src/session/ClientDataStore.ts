@@ -18,7 +18,6 @@ import { Region, getSession, isElectron } from '@jbrowse/core/util'
 import { LocalPathLocation, UriLocation } from '@jbrowse/core/util/types/mst'
 import {
   Instance,
-  SnapshotOut,
   flow,
   getParentOfType,
   getRoot,
@@ -44,7 +43,7 @@ import { ApolloRootModel } from '../types'
 export function clientDataStoreFactory(
   AnnotationFeatureExtended: typeof AnnotationFeature,
 ) {
-  const clientStoreType = types
+  return types
     .model('ClientDataStore', {
       typeName: types.optional(types.literal('Client'), 'Client'),
       assemblies: types.map(ApolloAssembly),
@@ -275,13 +274,4 @@ export function clientDataStoreFactory(
         }
       }),
     }))
-
-  // assembly and feature data isn't actually reloaded on reload unless we delete it from the snap
-  return types.snapshotProcessor(clientStoreType, {
-    postProcessor(snap: SnapshotOut<typeof clientStoreType>) {
-      snap.assemblies = {}
-      snap.checkResults = {}
-      return snap
-    },
-  })
 }

@@ -1,5 +1,6 @@
 Cypress.Commands.add('loginAsGuest', () => {
-  cy.visit('/?config=http://localhost:9000/jbrowse_config.json')
+  cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
+  cy.contains('Linear Genome View', { timeout: 10_000 }).click()
   cy.contains('Continue as Guest', { timeout: 10_000 }).click()
   // eslint-disable-next-line cypress/no-unnecessary-waiting
   cy.wait(2000)
