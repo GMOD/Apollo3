@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { AnnotationFeature } from '@apollo-annotation/mst'
 
 import { BoxGlyph, GeneGlyph, GenericChildGlyph } from '../glyphs'

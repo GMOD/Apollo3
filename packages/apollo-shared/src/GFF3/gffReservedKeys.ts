@@ -42,7 +42,7 @@ export const gffToInternal: Record<GFFReservedAttribute, GFFInternalAttribute> =
 export function isGFFReservedAttribute(
   attribute: string,
 ): attribute is GFFReservedAttribute {
-  return gffToInternal[attribute as GFFReservedAttribute] !== undefined
+  return attribute in gffToInternal
 }
 
 export const internalToGFF: Record<GFFInternalAttribute, GFFReservedAttribute> =
