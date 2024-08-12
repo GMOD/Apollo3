@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { AnnotationFeature } from '@apollo-annotation/mst'
 import { DeleteFeatureChange } from '@apollo-annotation/shared'
