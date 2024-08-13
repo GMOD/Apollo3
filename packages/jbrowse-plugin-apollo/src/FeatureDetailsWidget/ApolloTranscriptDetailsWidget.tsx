@@ -1,4 +1,4 @@
-import { AnnotationFeature } from '@apollo-annotation/mst'
+import { AnnotationFeature, ApolloRefSeqI } from '@apollo-annotation/mst'
 import { AbstractSessionModel, getSession, revcom } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
 import { IAnyStateTreeNode, getRoot } from 'mobx-state-tree'
@@ -29,8 +29,7 @@ export interface ExonInfo {
 
 export const getCDSInfo = (
   feature: AnnotationFeature,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  refData: any,
+  refData: ApolloRefSeqI,
 ): CDSInfo[] => {
   const CDSresult: CDSInfo[] = []
   const traverse = (
@@ -64,8 +63,8 @@ export const getCDSInfo = (
         max: (currentFeature.max + 1) as unknown as string,
         oldMin: (currentFeature.min + 1) as unknown as string,
         oldMax: (currentFeature.max + 1) as unknown as string,
-        startSeq: startSeq ?? '',
-        endSeq: endSeq ?? '',
+        startSeq: startSeq || '',
+        endSeq: endSeq || '',
       }
       CDSresult.push(oneCDS)
     }
@@ -106,7 +105,9 @@ export const getCDSInfo = (
 export const ApolloTranscriptDetailsWidget = observer(
   function ApolloTranscriptDetails(props: { model: IAnyStateTreeNode }) {
     const { model } = props
-    const { assembly, feature, refName } = model
+    const assembly = model.assembly as string
+    const feature = model.feature as AnnotationFeature | undefined
+    const refName = model.refName as string
     const session = getSession(model) as unknown as AbstractSessionModel
     const apolloSession = getSession(model) as unknown as ApolloSessionModel
     const currentAssembly =
@@ -126,12 +127,12 @@ export const ApolloTranscriptDetailsWidget = observer(
     if (!refSeq) {
       return null
     }
-    const { end, start } = feature
+    const { max, min } = feature
 
-    const sequence = refSeq.getSequence(start, end)
+    const sequence = refSeq.getSequence(min, max)
     if (!sequence) {
       void apolloSession.apolloDataStore.loadRefSeq([
-        { assemblyName: assembly, refName, start, end },
+        { assemblyName: assembly, refName, start: min, end: max },
       ])
     }
 
@@ -140,21 +141,21 @@ export const ApolloTranscriptDetailsWidget = observer(
         <TranscriptBasicInformation
           feature={feature}
           session={apolloSession}
-          assembly={currentAssembly ? currentAssembly._id : ''}
+          assembly={currentAssembly._id || ''}
           refName={refName}
         />
         <hr />
         <Attributes
           feature={feature}
           session={apolloSession}
-          assembly={currentAssembly ? currentAssembly._id : ''}
+          assembly={currentAssembly._id || ''}
           editable={editable}
         />
         <hr />
         <TranscriptSequence
           feature={feature}
           session={apolloSession}
-          assembly={currentAssembly ? currentAssembly._id : ''}
+          assembly={currentAssembly._id || ''}
           refName={refName}
         />
       </>

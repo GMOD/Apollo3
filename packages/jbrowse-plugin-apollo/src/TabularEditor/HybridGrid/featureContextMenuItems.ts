@@ -138,20 +138,18 @@ export function featureContextMenuItems(
         label: 'Edit transcript details',
         onClick: () => {
           const ses = session as unknown as AbstractSessionModel
-          if (ses) {
-            const sesWidged = session as unknown as SessionWithWidgets
-            const apolloTranscriptWidget = sesWidged.addWidget(
-              'ApolloTranscriptDetails',
-              'apolloTranscriptDetails',
-              {
-                feature,
-                assembly: currentAssemblyId,
-                changeManager,
-                refName: region.refName,
-              },
-            )
-            ses.showWidget?.(apolloTranscriptWidget)
-          }
+          const sesWidged = session as unknown as SessionWithWidgets
+          const apolloTranscriptWidget = sesWidged.addWidget(
+            'ApolloTranscriptDetails',
+            'apolloTranscriptDetails',
+            {
+              feature,
+              assembly: currentAssemblyId,
+              changeManager,
+              refName: region.refName,
+            },
+          )
+          ses.showWidget?.(apolloTranscriptWidget)
         },
       })
     }

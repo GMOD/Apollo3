@@ -5,7 +5,7 @@ import gff, { GFF3Comment, GFF3Feature, GFF3Sequence } from '@gmod/gff'
 // import { getSnapshot } from 'mobx-state-tree'
 // import { ClientDataStore, checkRegistry } from 'apollo-common'
 
-export async function loadAssemblyIntoClient(
+export function loadAssemblyIntoClient(
   assemblyId: string,
   gff3FileText: string,
   apolloDataStore: ClientDataStore,
@@ -68,7 +68,7 @@ export async function loadAssemblyIntoClient(
   return assembly
 }
 
-export async function checkFeatures(
+export function checkFeatures(
   _assembly: ApolloAssemblyI,
 ): Promise<CheckResultSnapshot[]> {
   return []
