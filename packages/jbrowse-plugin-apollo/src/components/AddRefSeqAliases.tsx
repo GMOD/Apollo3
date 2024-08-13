@@ -19,7 +19,7 @@ import {
   ApolloInternetAccount,
 } from '../BackendDrivers'
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
-import { DataGrid, GridColDef } from '@mui/x-data-grid'
+import { DataGrid, GridColDef, GridRowModel } from '@mui/x-data-grid'
 import {
   AddRefSeqAliasesChange,
   SerializedRefSeqAliases,
@@ -27,13 +27,18 @@ import {
 
 const columns: GridColDef[] = [
   { field: 'refName', headerName: 'Ref Name' },
-  { field: 'aliases', headerName: 'Aliases' },
+  { field: 'aliases', headerName: 'Aliases', editable: true },
 ]
 
 interface AddChildFeatureProps {
   session: ApolloSessionModel
   handleClose(): void
   changeManager: ChangeManager
+}
+
+const isGeneratedObjectId = (key: string): boolean => {
+  const pattern = /^[\da-f]{24}$/i
+  return pattern.test(key)
 }
 
 export function AddRefSeqAliases({
@@ -44,7 +49,6 @@ export function AddRefSeqAliases({
   const fileRef = useRef<HTMLInputElement>(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [enableSubmit, setEnableSubmit] = useState(false)
-  const [showTable, setShowTable] = useState(false)
   const [selectedAssembly, setSelectedAssembly] = useState<Assembly>()
   const [selectedRows, setSelectedRows] = useState<
     {
@@ -68,22 +72,42 @@ export function AddRefSeqAliases({
   const assemblies = collaborationServerDriver.getAssemblies()
 
   useEffect(() => {
-    if (!selectedAssembly) {
-      return
-    }
-    const initialMap = new Map<string, string[]>()
-    if (selectedAssembly.refNames) {
-      for (const refName of selectedAssembly.refNames) {
-        initialMap.set(refName, [])
+    let retry = 0
+    const maxRetries = 2
+    const initializeRefNameAliasMap = () => {
+      if (!selectedAssembly) {
+        return
       }
+      const initialMap = new Map<string, string[]>()
+      if (retry < maxRetries && !selectedAssembly.refNames) {
+        retry++
+        setTimeout(initializeRefNameAliasMap, 50)
+      }
+      if (!selectedAssembly.refNames) {
+        return
+      }
+      const refNameAliasess = selectedAssembly.refNameAliases
+      for (const key in refNameAliasess) {
+        const value = refNameAliasess[key]
+        if (!value || isGeneratedObjectId(key)) {
+          continue
+        }
+        if (initialMap.has(value)) {
+          const aliases = initialMap.get(value) ?? []
+          initialMap.set(value, [...aliases, key])
+        } else {
+          initialMap.set(value, [key])
+        }
+      }
+      setRefNameAliasMap(initialMap)
     }
-    setRefNameAliasMap(initialMap)
-  }, [session, selectedAssembly])
+
+    initializeRefNameAliasMap()
+  }, [selectedAssembly])
 
   const handleChangeAssembly = (e: SelectChangeEvent) => {
     const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
     setSelectedAssembly(newAssembly)
-    setShowTable(false)
     setEnableSubmit(false)
     setErrorMessage('')
     if (fileRef.current) {
@@ -100,23 +124,16 @@ export function AddRefSeqAliases({
     const fileContent = await file.text()
     const lines = fileContent.split('\n')
     const newMap = new Map(refNameAliasMap)
-    let found = false
-    setShowTable(false)
     setErrorMessage('')
     for (const line of lines) {
       const aliases = line.split('\t')
       for (const alias of aliases) {
         if (newMap.has(alias)) {
-          newMap.set(alias, aliases)
-          found = true
+          newMap.set(alias, [...(newMap.get(alias) ?? []), ...aliases])
         }
       }
     }
     setRefNameAliasMap(newMap)
-
-    if (selectedAssembly && found) {
-      setShowTable(true)
-    }
   }
 
   const handleChangeFileHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,6 +163,13 @@ export function AddRefSeqAliases({
     }))
   }
 
+  const processRowUpdate = (newRow: GridRowModel, _oldRow: GridRowModel) => {
+    const newMap = new Map(refNameAliasMap)
+    newMap.set(newRow.refName as string, (newRow.aliases as string).split(','))
+    setRefNameAliasMap(newMap)
+    return newRow
+  }
+
   const handleSubmit = () => {
     const refSeqAliases: SerializedRefSeqAliases[] = []
     for (const row of selectedRows) {
@@ -153,6 +177,7 @@ export function AddRefSeqAliases({
       const aliases: string[] = row.aliases
         .split(',')
         .map((alias) => alias.trim())
+        .filter((alias) => alias.length > 0)
       refSeqAliases.push({
         refName,
         aliases,
@@ -205,7 +230,7 @@ export function AddRefSeqAliases({
           </Grid>
           <Grid item xs={1}></Grid>
           <Grid item xs={7}>
-            <InputLabel>RefName alias file</InputLabel>
+            <InputLabel>Load RefName alias</InputLabel>
             <input
               type="file"
               onChange={handleChangeFileHandler}
@@ -214,10 +239,10 @@ export function AddRefSeqAliases({
             />
           </Grid>
         </Grid>
-        {showTable ? (
+        {selectedAssembly && refNameAliasMap.size > 0 ? (
           <div style={{ height: 200, width: '100%', marginTop: 20 }}>
             <InputLabel>
-              Following refname alias mappings were found for selected assembly.
+              Refname aliases found for selected assembly.
             </InputLabel>
             <DataGrid
               rows={getTableRows()}
@@ -231,6 +256,7 @@ export function AddRefSeqAliases({
               onRowSelectionModelChange={(ids) => {
                 rowSelectionChange(ids as number[])
               }}
+              processRowUpdate={processRowUpdate}
               checkboxSelection
             ></DataGrid>
           </div>

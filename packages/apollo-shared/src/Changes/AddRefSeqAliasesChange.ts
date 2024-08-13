@@ -78,10 +78,7 @@ export class AddRefSeqAliasesChange extends AssemblySpecificChange {
       )
       const { aliases, refName } = refSeqAlias
       await refSeqModel
-        .updateOne(
-          { assembly, name: refName },
-          { $push: { aliases: { $each: aliases } } },
-        )
+        .updateOne({ assembly, name: refName }, { $set: { aliases } })
         .session(session)
     }
   }

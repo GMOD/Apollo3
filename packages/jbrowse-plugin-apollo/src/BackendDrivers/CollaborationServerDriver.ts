@@ -24,6 +24,7 @@ export interface ApolloRefSeqResponse {
   _id: string
   name: string
   description?: string
+  aliases: string[]
   length: string
   assembly: string
 }
