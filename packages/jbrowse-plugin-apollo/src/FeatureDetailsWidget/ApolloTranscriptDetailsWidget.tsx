@@ -1,7 +1,7 @@
-import { AnnotationFeature } from '@apollo-annotation/mst'
+import { AnnotationFeature, ApolloRefSeqI } from '@apollo-annotation/mst'
 import { AbstractSessionModel, getSession, revcom } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
-import { IAnyStateTreeNode, getRoot } from 'mobx-state-tree'
+import { getRoot } from 'mobx-state-tree'
 import React from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
@@ -10,6 +10,7 @@ import { ApolloRootModel } from '../types'
 import { Attributes } from './Attributes'
 import { TranscriptBasicInformation } from './TranscriptBasic'
 import { TranscriptSequence } from './TranscriptSequence'
+import { ApolloTranscriptDetailsWidget as ApolloTranscriptDetailsWidgetState } from './model'
 
 export interface CDSInfo {
   id: string
@@ -29,8 +30,7 @@ export interface ExonInfo {
 
 export const getCDSInfo = (
   feature: AnnotationFeature,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  refData: any,
+  refData: ApolloRefSeqI,
 ): CDSInfo[] => {
   const CDSresult: CDSInfo[] = []
   const traverse = (
@@ -64,8 +64,8 @@ export const getCDSInfo = (
         max: (currentFeature.max + 1) as unknown as string,
         oldMin: (currentFeature.min + 1) as unknown as string,
         oldMax: (currentFeature.max + 1) as unknown as string,
-        startSeq: startSeq ?? '',
-        endSeq: endSeq ?? '',
+        startSeq: startSeq || '',
+        endSeq: endSeq || '',
       }
       CDSresult.push(oneCDS)
     }
@@ -104,7 +104,9 @@ export const getCDSInfo = (
 }
 
 export const ApolloTranscriptDetailsWidget = observer(
-  function ApolloTranscriptDetails(props: { model: IAnyStateTreeNode }) {
+  function ApolloTranscriptDetails(props: {
+    model: ApolloTranscriptDetailsWidgetState
+  }) {
     const { model } = props
     const { assembly, feature, refName } = model
     const session = getSession(model) as unknown as AbstractSessionModel
@@ -126,12 +128,12 @@ export const ApolloTranscriptDetailsWidget = observer(
     if (!refSeq) {
       return null
     }
-    const { end, start } = feature
+    const { max, min } = feature
 
-    const sequence = refSeq.getSequence(start, end)
+    const sequence = refSeq.getSequence(min, max)
     if (!sequence) {
       void apolloSession.apolloDataStore.loadRefSeq([
-        { assemblyName: assembly, refName, start, end },
+        { assemblyName: assembly, refName, start: min, end: max },
       ])
     }
 
@@ -140,21 +142,21 @@ export const ApolloTranscriptDetailsWidget = observer(
         <TranscriptBasicInformation
           feature={feature}
           session={apolloSession}
-          assembly={currentAssembly ? currentAssembly._id : ''}
+          assembly={currentAssembly._id || ''}
           refName={refName}
         />
         <hr />
         <Attributes
           feature={feature}
           session={apolloSession}
-          assembly={currentAssembly ? currentAssembly._id : ''}
+          assembly={currentAssembly._id || ''}
           editable={editable}
         />
         <hr />
         <TranscriptSequence
           feature={feature}
           session={apolloSession}
-          assembly={currentAssembly ? currentAssembly._id : ''}
+          assembly={currentAssembly._id || ''}
           refName={refName}
         />
       </>
