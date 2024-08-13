@@ -50,14 +50,12 @@ export function gff3ToAnnotationFeature(
     if (type !== 'CDS') {
       throw new Error('GFF3 features has multiple locations but is not a CDS')
     }
-    const mins = gff3Feature
-      .map((f) => {
-        if (f.start === null) {
-          throw new Error(`feature does not have start: ${JSON.stringify(f)}`)
-        }
-        return f.start - 1
-      })
-      .filter<number>((m): m is number => m !== null)
+    const mins = gff3Feature.map((f) => {
+      if (f.start === null) {
+        throw new Error(`feature does not have start: ${JSON.stringify(f)}`)
+      }
+      return f.start - 1
+    })
     const maxes = gff3Feature
       .map((f) => f.end)
       .filter<number>((m): m is number => m !== null)

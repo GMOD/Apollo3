@@ -19,13 +19,19 @@ import { NumberTextField } from './NumberTextField'
  * @param featureId -
  * @returns
  */
-function getFeatureFromId(feature: any, featureId: string): any | null {
+function getFeatureFromId(
+  feature: AnnotationFeature,
+  featureId: string,
+): AnnotationFeature | null {
   if (feature._id === featureId) {
     return feature
   }
   // Check if there is also childFeatures in parent feature and it's not empty
   // Let's get featureId from recursive method
-  for (const [, childFeature] of feature.children ?? new Map()) {
+  if (!feature.children) {
+    return null
+  }
+  for (const [, childFeature] of feature.children) {
     const subFeature = getFeatureFromId(childFeature, featureId)
     if (subFeature) {
       return subFeature
@@ -106,11 +112,12 @@ export const TranscriptBasicInformation = observer(
               newStart,
               assembly,
             })
-            return changeManager.submit(change)
+            changeManager.submit(change).catch(() => {
+              notify('Error updating feature start position')
+            })
           }
         }
       }
-      return
     }
 
     function handleEndChange(
@@ -123,7 +130,7 @@ export const TranscriptBasicInformation = observer(
         notify('Feature start cannot be greater than parent end', 'error')
         return
       }
-      if (subFeature.children) {
+      if (subFeature?.children) {
         // Let's check CDS start and end values. And possibly update those too
         for (const child of subFeature.children) {
           if (
@@ -138,11 +145,12 @@ export const TranscriptBasicInformation = observer(
               newEnd,
               assembly,
             })
-            return changeManager.submit(change)
+            changeManager.submit(change).catch(() => {
+              notify('Error updating feature end position')
+            })
           }
         }
       }
-      return
     }
 
     const featureNew = feature as unknown as AnnotationFeature
@@ -188,8 +196,8 @@ export const TranscriptBasicInformation = observer(
             max: dataPoint.max as unknown as string,
             oldMin: (dataPoint.min + 1) as unknown as string,
             oldMax: dataPoint.max as unknown as string,
-            startSeq: startSeq ?? '',
-            endSeq: endSeq ?? '',
+            startSeq: startSeq || '',
+            endSeq: endSeq || '',
           }
           // CDSresult.push(oneCDS)
           // Check if there is already an object with the same start and end
@@ -206,7 +214,7 @@ export const TranscriptBasicInformation = observer(
           }
 
           // Add possible UTRs
-          const foundExon = findExonInRange(
+          const foundExon: ExonInfo | null = findExonInRange(
             exonsArray,
             dataPoint.min + 1,
             dataPoint.max,
@@ -231,9 +239,11 @@ export const TranscriptBasicInformation = observer(
                 type: 'three_prime_UTR',
                 strand: Number(feature.strand),
                 min: (dataPoint.min + 1) as unknown as string,
-                max: foundExon.min + 1,
+                max: ((foundExon.min as unknown as number) +
+                  1) as unknown as string,
                 oldMin: (dataPoint.min + 1) as unknown as string,
-                oldMax: foundExon.min + 1,
+                oldMax: ((foundExon.min as unknown as number) +
+                  1) as unknown as string,
                 startSeq: '',
                 endSeq: '',
               }
@@ -302,9 +312,10 @@ export const TranscriptBasicInformation = observer(
             id: featureNew._id,
             type: 'five_prime_UTR',
             strand: Number(featureNew.strand),
-            min: (element.min + 1) as unknown as string,
+            min: ((element.min as unknown as number) + 1) as unknown as string,
             max: element.max,
-            oldMin: (element.min + 1) as unknown as string,
+            oldMin: ((element.min as unknown as number) +
+              1) as unknown as string,
             oldMax: element.max,
             startSeq: '',
             endSeq: '',
@@ -315,10 +326,12 @@ export const TranscriptBasicInformation = observer(
             id: featureNew._id,
             type: 'three_prime_UTR',
             strand: Number(featureNew.strand),
-            min: (element.min + 1) as unknown as string,
-            max: element.max + 1,
-            oldMin: (element.min + 1) as unknown as string,
-            oldMax: element.max + 1,
+            min: ((element.min as unknown as number) + 1) as unknown as string,
+            max: ((element.max as unknown as number) + 1) as unknown as string,
+            oldMin: ((element.min as unknown as number) +
+              1) as unknown as string,
+            oldMax: ((element.max as unknown as number) +
+              1) as unknown as string,
             startSeq: '',
             endSeq: '',
           }
@@ -395,9 +408,9 @@ export const TranscriptBasicInformation = observer(
                 }}
                 variant="outlined"
                 value={item.min}
-                onChangeCommitted={(newStart: number) =>
+                onChangeCommitted={(newStart: number) => {
                   handleStartChange(newStart, item.id, Number(item.oldMin))
-                }
+                }}
               />
               <span style={{ margin: '0 10px' }}>
                 {item.strand === -1 ? '-' : item.strand === 1 ? '+' : ''}
@@ -416,9 +429,9 @@ export const TranscriptBasicInformation = observer(
                 }}
                 variant="outlined"
                 value={item.max}
-                onChangeCommitted={(newEnd: number) =>
+                onChangeCommitted={(newEnd: number) => {
                   handleEndChange(newEnd, item.id, Number(item.oldMax))
-                }
+                }}
               />
               <span style={{ marginLeft: '8px', fontWeight: 'bold' }}>
                 {item.endSeq}

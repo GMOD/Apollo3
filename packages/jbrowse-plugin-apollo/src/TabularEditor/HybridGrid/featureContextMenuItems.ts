@@ -1,6 +1,10 @@
 import { AnnotationFeature } from '@apollo-annotation/mst'
 import { MenuItem } from '@jbrowse/core/ui'
-import { AbstractSessionModel, SessionWithWidgets } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  SessionWithWidgets,
+  isSessionModelWithWidgets,
+} from '@jbrowse/core/util'
 
 import { ChangeManager } from '../../ChangeManager'
 import {
@@ -133,25 +137,21 @@ export function featureContextMenuItems(
         },
       },
     )
-    if (feature.type === 'mRNA') {
+    if (feature.type === 'mRNA' && isSessionModelWithWidgets(session)) {
       menuItems.push({
         label: 'Edit transcript details',
         onClick: () => {
-          const ses = session as unknown as AbstractSessionModel
-          if (ses) {
-            const sesWidged = session as unknown as SessionWithWidgets
-            const apolloTranscriptWidget = sesWidged.addWidget(
-              'ApolloTranscriptDetails',
-              'apolloTranscriptDetails',
-              {
-                feature,
-                assembly: currentAssemblyId,
-                changeManager,
-                refName: region.refName,
-              },
-            )
-            ses.showWidget?.(apolloTranscriptWidget)
-          }
+          const apolloTranscriptWidget = session.addWidget(
+            'ApolloTranscriptDetails',
+            'apolloTranscriptDetails',
+            {
+              feature,
+              assembly: currentAssemblyId,
+              changeManager,
+              refName: region.refName,
+            },
+          )
+          session.showWidget(apolloTranscriptWidget)
         },
       })
     }
