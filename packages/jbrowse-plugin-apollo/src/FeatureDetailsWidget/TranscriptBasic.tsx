@@ -28,11 +28,11 @@ function getFeatureFromId(
   }
   // Check if there is also childFeatures in parent feature and it's not empty
   // Let's get featureId from recursive method
-  for (const [, childFeature] of feature.children ?? new Map()) {
-    const subFeature = getFeatureFromId(
-      childFeature as AnnotationFeature,
-      featureId,
-    )
+  if (!feature.children) {
+    return null
+  }
+  for (const [, childFeature] of feature.children) {
+    const subFeature = getFeatureFromId(childFeature, featureId)
     if (subFeature) {
       return subFeature
     }

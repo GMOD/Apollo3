@@ -1,7 +1,7 @@
 import { AnnotationFeature, ApolloRefSeqI } from '@apollo-annotation/mst'
 import { AbstractSessionModel, getSession, revcom } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
-import { IAnyStateTreeNode, getRoot } from 'mobx-state-tree'
+import { getRoot } from 'mobx-state-tree'
 import React from 'react'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
@@ -10,6 +10,7 @@ import { ApolloRootModel } from '../types'
 import { Attributes } from './Attributes'
 import { TranscriptBasicInformation } from './TranscriptBasic'
 import { TranscriptSequence } from './TranscriptSequence'
+import { ApolloTranscriptDetailsWidget as ApolloTranscriptDetailsWidgetState } from './model'
 
 export interface CDSInfo {
   id: string
@@ -103,11 +104,11 @@ export const getCDSInfo = (
 }
 
 export const ApolloTranscriptDetailsWidget = observer(
-  function ApolloTranscriptDetails(props: { model: IAnyStateTreeNode }) {
+  function ApolloTranscriptDetails(props: {
+    model: ApolloTranscriptDetailsWidgetState
+  }) {
     const { model } = props
-    const assembly = model.assembly as string
-    const feature = model.feature as AnnotationFeature | undefined
-    const refName = model.refName as string
+    const { assembly, feature, refName } = model
     const session = getSession(model) as unknown as AbstractSessionModel
     const apolloSession = getSession(model) as unknown as ApolloSessionModel
     const currentAssembly =

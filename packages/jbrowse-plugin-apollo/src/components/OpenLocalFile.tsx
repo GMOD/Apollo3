@@ -76,7 +76,7 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
     const fileData = await new Response(file).text()
     const assemblyId = `${assemblyName}-${file.name}-${nanoid(8)}`
     try {
-      loadAssemblyIntoClient(assemblyId, fileData, apolloDataStore)
+      await loadAssemblyIntoClient(assemblyId, fileData, apolloDataStore)
     } catch (error) {
       setErrorMessage(String(error))
       setSubmitted(false)
