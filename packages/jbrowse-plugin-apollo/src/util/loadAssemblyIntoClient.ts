@@ -1,9 +1,8 @@
-import { ClientDataStore } from '@apollo-annotation/common'
+import { ClientDataStore, checkRegistry } from '@apollo-annotation/common'
 import { ApolloAssemblyI, CheckResultSnapshot } from '@apollo-annotation/mst'
 import { gff3ToAnnotationFeature } from '@apollo-annotation/shared'
 import gff, { GFF3Comment, GFF3Feature, GFF3Sequence } from '@gmod/gff'
-// import { getSnapshot } from 'mobx-state-tree'
-// import { ClientDataStore, checkRegistry } from 'apollo-common'
+import { getSnapshot } from 'mobx-state-tree'
 
 export async function loadAssemblyIntoClient(
   assemblyId: string,
@@ -62,27 +61,26 @@ export async function loadAssemblyIntoClient(
     throw new Error('No embedded FASTA section found in GFF3')
   }
 
-  const checkResults: CheckResultSnapshot[] = []
-  // const checkResults: CheckResultSnapshot[] = await checkFeatures(assembly)
+  const checkResults: CheckResultSnapshot[] = await checkFeatures(assembly)
   apolloDataStore.addCheckResults(checkResults)
   return assembly
 }
 
 export async function checkFeatures(
-  _assembly: ApolloAssemblyI,
+  assembly: ApolloAssemblyI,
 ): Promise<CheckResultSnapshot[]> {
-  return []
-  //   const checkResults: CheckResultSnapshot[] = []
-  //   for (const ref of assembly.refSeqs.values()) {
-  //     for (const feature of ref.features.values()) {
-  //       for (const check of checkRegistry.getChecks().values()) {
-  //         const result: CheckResultSnapshot[] = await check.checkFeature(
-  //           getSnapshot(feature),
-  //           async (start: number, stop: number) => ref.getSequence(start, stop),
-  //         )
-  //         checkResults.push(...result)
-  //       }
-  //     }
-  //   }
-  //   return checkResults
+  const checkResults: CheckResultSnapshot[] = []
+  for (const ref of assembly.refSeqs.values()) {
+    for (const feature of ref.features.values()) {
+      for (const check of checkRegistry.getChecks().values()) {
+        const result: CheckResultSnapshot[] = await check.checkFeature(
+          getSnapshot(feature),
+          (start: number, stop: number) =>
+            Promise.resolve(ref.getSequence(start, stop)),
+        )
+        checkResults.push(...result)
+      }
+    }
+  }
+  return checkResults
 }
