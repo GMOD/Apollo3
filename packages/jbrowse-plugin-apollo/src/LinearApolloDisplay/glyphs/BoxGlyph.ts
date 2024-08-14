@@ -192,16 +192,23 @@ function drawHover(
   if (!apolloHover) {
     return
   }
-  const { featureAndGlyphUnderMouse, regionNumber, y } = apolloHover
+  const { feature } = apolloHover
+  const position = stateModel.getFeatureLayoutPosition(feature)
+  if (!position) {
+    return
+  }
+  const { layoutIndex, layoutRow } = position
   const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[regionNumber]
+  const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
-  const { length, max, min } = featureAndGlyphUnderMouse.feature
+  const { length, max, min } = feature
   const startPx =
-    (lgv.bpToPx({ refName, coord: reversed ? max : min, regionNumber })
-      ?.offsetPx ?? 0) - offsetPx
-  const row = Math.floor(y / apolloRowHeight)
-  const top = row * apolloRowHeight
+    (lgv.bpToPx({
+      refName,
+      coord: reversed ? max : min,
+      regionNumber: layoutIndex,
+    })?.offsetPx ?? 0) - offsetPx
+  const top = layoutRow * apolloRowHeight
   const widthPx = length / bpPerPx
   ctx.fillStyle = theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
   ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
@@ -245,7 +252,7 @@ function onMouseMove(
 ) {
   if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
     const { featureAndGlyphUnderMouse } = mousePosition
-    stateModel.setApolloHover(mousePosition)
+    stateModel.setApolloHover(featureAndGlyphUnderMouse)
     const { feature } = featureAndGlyphUnderMouse
     const edge = isMouseOnFeatureEdge(mousePosition, feature, stateModel)
     if (edge) {
@@ -327,10 +334,14 @@ function drawTooltip(
   if (!apolloHover) {
     return
   }
-  const { featureAndGlyphUnderMouse, regionNumber, y } = apolloHover
-  const { feature } = featureAndGlyphUnderMouse
+  const { feature } = apolloHover
+  const position = display.getFeatureLayoutPosition(feature)
+  if (!position) {
+    return
+  }
+  const { layoutIndex, layoutRow } = position
   const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[regionNumber]
+  const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
 
   let location = 'Loc: '
@@ -339,10 +350,12 @@ function drawTooltip(
   location += `${min + 1}–${max}`
 
   let startPx =
-    (lgv.bpToPx({ refName, coord: reversed ? max : min, regionNumber })
-      ?.offsetPx ?? 0) - offsetPx
-  const row = Math.floor(y / apolloRowHeight)
-  const top = row * apolloRowHeight
+    (lgv.bpToPx({
+      refName,
+      coord: reversed ? max : min,
+      regionNumber: layoutIndex,
+    })?.offsetPx ?? 0) - offsetPx
+  const top = layoutRow * apolloRowHeight
   const widthPx = length / bpPerPx
 
   const featureType = `Type: ${feature.type}`
@@ -391,8 +404,7 @@ function getContextMenuItems(
   if (!apolloHover) {
     return menuItems
   }
-  const { featureAndGlyphUnderMouse } = apolloHover
-  const { feature: sourceFeature } = featureAndGlyphUnderMouse
+  const { feature: sourceFeature } = apolloHover
   const role = internetAccount ? internetAccount.role : 'admin'
   const admin = role === 'admin'
   const readOnly = !(role && ['admin', 'user'].includes(role))
