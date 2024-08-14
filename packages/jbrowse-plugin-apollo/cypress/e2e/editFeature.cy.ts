@@ -1,5 +1,6 @@
 describe('Different ways of editing features', () => {
   beforeEach(() => {
+    cy.addOntologies()
     cy.deleteAssemblies()
     cy.loginAsGuest()
   })
@@ -61,7 +62,7 @@ describe('Different ways of editing features', () => {
     })
   })
 
-  it.skip('Can add gene ontology attribute', () => {
+  it('Can add gene ontology attribute', () => {
     cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
     cy.selectAssemblyToView('onegene.fasta.gff3')
     cy.searchFeatures('gx1', 1)
@@ -142,7 +143,7 @@ describe('Different ways of editing features', () => {
     cy.contains('td', '=CDS1').should('not.exist')
   })
 
-  it.skip('Suggest only valid SO terms from dropdown', () => {
+  it('Suggest only valid SO terms from dropdown', () => {
     cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
     cy.selectAssemblyToView('onegene.fasta.gff3')
     cy.searchFeatures('gx1', 1)
@@ -160,7 +161,7 @@ describe('Different ways of editing features', () => {
     )
   })
 
-  it.skip('Can add child feature via table editor', () => {
+  it('Can add child feature via table editor', () => {
     cy.addAssemblyFromGff('onegene.fasta.gff3', 'test_data/onegene.fasta.gff3')
     cy.selectAssemblyToView('onegene.fasta.gff3')
     cy.searchFeatures('gx1', 1)
