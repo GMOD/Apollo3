@@ -128,7 +128,7 @@ export function mouseEventsModelIntermediateFactory(
         edge: 'min' | 'max'
       } | null,
       cursor: undefined as CSSProperties['cursor'] | undefined,
-      apolloHover: undefined as MousePositionWithFeatureAndGlyph | undefined,
+      apolloHover: undefined as FeatureAndGlyphUnderMouse | undefined,
     }))
     .views((self) => ({
       getMousePosition(event: CanvasMouseEvent): MousePosition {
@@ -229,9 +229,7 @@ export function mouseEventsSeqHightlightModelFactory(
             if (!apolloHover) {
               return
             }
-            const { featureAndGlyphUnderMouse } = apolloHover
-            const { feature, glyph, topLevelFeature } =
-              featureAndGlyphUnderMouse
+            const { feature, glyph, topLevelFeature } = apolloHover
 
             for (const [idx, region] of regions.entries()) {
               if (feature.type === 'CDS') {
@@ -324,8 +322,7 @@ export function mouseEventsModelFactory(
       if (!(apolloHover && contextCoord)) {
         return []
       }
-      const { featureAndGlyphUnderMouse } = apolloHover
-      const { topLevelFeature } = featureAndGlyphUnderMouse
+      const { topLevelFeature } = apolloHover
       const glyph = getGlyph(topLevelFeature)
       return glyph.getContextMenuItems(self)
     },
@@ -474,8 +471,7 @@ export function mouseEventsModelFactory(
               if (!apolloHover) {
                 return
               }
-              const { featureAndGlyphUnderMouse } = apolloHover
-              const { glyph } = featureAndGlyphUnderMouse
+              const { glyph } = apolloHover
 
               // draw mouseover hovers
               glyph.drawHover(self, ctx)

@@ -158,7 +158,7 @@ export function layoutsModelFactory(
       },
       getFeatureLayoutPosition(feature: AnnotationFeature) {
         const { featureLayouts } = this
-        for (const layout of featureLayouts) {
+        for (const [idx, layout] of featureLayouts.entries()) {
           for (const [layoutRowNum, layoutRow] of layout) {
             for (const [featureRowNum, layoutFeature] of layoutRow) {
               if (featureRowNum !== 0) {
@@ -167,7 +167,11 @@ export function layoutsModelFactory(
                 continue
               }
               if (feature._id === layoutFeature._id) {
-                return { layoutRow: layoutRowNum, featureRow: featureRowNum }
+                return {
+                  layoutIndex: idx,
+                  layoutRow: layoutRowNum,
+                  featureRow: featureRowNum,
+                }
               }
               if (layoutFeature.hasDescendant(feature._id)) {
                 const row = getGlyph(layoutFeature).getRowForFeature(
@@ -175,7 +179,11 @@ export function layoutsModelFactory(
                   feature,
                 )
                 if (row !== undefined) {
-                  return { layoutRow: layoutRowNum, featureRow: row }
+                  return {
+                    layoutIndex: idx,
+                    layoutRow: layoutRowNum,
+                    featureRow: row,
+                  }
                 }
               }
             }
