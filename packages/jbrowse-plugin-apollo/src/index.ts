@@ -59,7 +59,7 @@ import { annotationFromPileup } from './extensions'
 import {
   ApolloFeatureDetailsWidget,
   ApolloFeatureDetailsWidgetModel,
-  ApolloTranscriptDetails,
+  ApolloTranscriptDetailsModel,
   ApolloTranscriptDetailsWidget,
 } from './FeatureDetailsWidget'
 import {
@@ -138,7 +138,7 @@ export default class ApolloPlugin extends Plugin {
         name: 'ApolloTranscriptDetails',
         heading: 'Apollo transcript details',
         configSchema,
-        stateModel: ApolloTranscriptDetails,
+        stateModel: ApolloTranscriptDetailsModel,
         ReactComponent: ApolloTranscriptDetailsWidget,
       })
       return widgetType

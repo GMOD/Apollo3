@@ -1,4 +1,4 @@
-import { AnnotationFeature, ApolloRefSeqI } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import { splitStringIntoChunks } from '@apollo-annotation/shared'
 import { revcom } from '@jbrowse/core/util'
 import {
@@ -52,7 +52,7 @@ export const TranscriptSequence = observer(function TranscriptSequence({
   session: ApolloSessionModel
 }) {
   const currentAssembly = session.apolloDataStore.assemblies.get(assembly)
-  const refData = currentAssembly?.getByRefName(refName) as ApolloRefSeqI
+  const refData = currentAssembly?.getByRefName(refName)
   const [showSequence, setShowSequence] = useState(false)
   const [selectedOption, setSelectedOption] = useState('Select')
 
@@ -95,8 +95,8 @@ export const TranscriptSequence = observer(function TranscriptSequence({
         textSegments.push({ text: `>${refName} : CDS\n`, color: 'black' })
         for (const item of transcriptItems) {
           if (item.type === 'CDS') {
-            const refSeq: string | undefined = refData.getSequence(
-              Number((item.min as unknown as number) + 1),
+            const refSeq: string | undefined = refData?.getSequence(
+              Number(item.min + 1),
               Number(item.max),
             )
             seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
@@ -113,8 +113,8 @@ export const TranscriptSequence = observer(function TranscriptSequence({
             item.type === 'three_prime_UTR' ||
             item.type === 'five_prime_UTR'
           ) {
-            const refSeq: string | undefined = refData.getSequence(
-              Number((item.min as unknown as number) + 1),
+            const refSeq: string | undefined = refData?.getSequence(
+              Number(item.min + 1),
               Number(item.max),
             )
             seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
@@ -142,7 +142,7 @@ export const TranscriptSequence = observer(function TranscriptSequence({
             count != transcriptItems.length
           ) {
             // Intron etc. between CDS/UTRs. No need to check this on very last item
-            const refSeq: string | undefined = refData.getSequence(
+            const refSeq: string | undefined = refData?.getSequence(
               lastEnd + 1,
               Number(item.min) - 1,
             )
@@ -154,8 +154,8 @@ export const TranscriptSequence = observer(function TranscriptSequence({
             item.type === 'three_prime_UTR' ||
             item.type === 'five_prime_UTR'
           ) {
-            const refSeq: string | undefined = refData.getSequence(
-              Number((item.min as unknown as number) + 1),
+            const refSeq: string | undefined = refData?.getSequence(
+              Number(item.min + 1),
               Number(item.max),
             )
             seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
@@ -185,7 +185,7 @@ export const TranscriptSequence = observer(function TranscriptSequence({
     }
   }
 
-  function handleChangeSeqOption(e: SelectChangeEvent) {
+  async function handleChangeSeqOption(e: SelectChangeEvent) {
     const option = e.target.value
     setSelectedOption(option)
     getSequenceAsTextSegment(option)
@@ -201,7 +201,7 @@ export const TranscriptSequence = observer(function TranscriptSequence({
         .then(() => {
           // console.log('Text copied to clipboard!')
         })
-        .catch((error_: unknown) => {
+        .catch((error_) => {
           console.error('Failed to copy text to clipboard', error_)
         })
     }
