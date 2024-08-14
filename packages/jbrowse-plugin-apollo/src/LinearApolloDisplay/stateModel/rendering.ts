@@ -281,7 +281,7 @@ export function sequenceRenderingModelFactory(
                     regionNumber: idx,
                   })?.offsetPx ?? 0) - self.lgv.offsetPx
                 const trnslWidthPx = 3 / self.lgv.bpPerPx
-                const trnslStartPx = self.displayedRegions[idx].reversed
+                const trnslStartPx = self.lgv.displayedRegions[idx].reversed
                   ? trnslXOffset - trnslWidthPx
                   : trnslXOffset
 
@@ -310,7 +310,7 @@ export function sequenceRenderingModelFactory(
                       regionNumber: idx,
                     })?.offsetPx ?? 0) - self.lgv.offsetPx
                   const widthPx = 1 / self.lgv.bpPerPx
-                  const startPx = self.displayedRegions[idx].reversed
+                  const startPx = self.lgv.displayedRegions[idx].reversed
                     ? xOffset - widthPx
                     : xOffset
 
@@ -400,21 +400,19 @@ export function renderingModelFactory(
         self,
         autorun(
           () => {
-            if (!self.lgv.initialized || self.regionCannotBeRendered()) {
+            const { canvas, featureLayouts, featuresHeight, lgv } = self
+            if (!lgv.initialized || self.regionCannotBeRendered()) {
               return
             }
-            const ctx = self.canvas?.getContext('2d')
+            const { displayedRegions, dynamicBlocks } = lgv
+
+            const ctx = canvas?.getContext('2d')
             if (!ctx) {
               return
             }
-            ctx.clearRect(
-              0,
-              0,
-              self.lgv.dynamicBlocks.totalWidthPx,
-              self.featuresHeight,
-            )
-            for (const [idx, featureLayout] of self.featureLayouts.entries()) {
-              const displayedRegion = self.displayedRegions[idx]
+            ctx.clearRect(0, 0, dynamicBlocks.totalWidthPx, featuresHeight)
+            for (const [idx, featureLayout] of featureLayouts.entries()) {
+              const displayedRegion = displayedRegions[idx]
               for (const [row, featureLayoutRow] of featureLayout.entries()) {
                 for (const [featureRow, feature] of featureLayoutRow) {
                   if (featureRow > 0) {
@@ -430,20 +428,7 @@ export function renderingModelFactory(
                   ) {
                     continue
                   }
-                  const x =
-                    (self.lgv.bpToPx({
-                      refName: displayedRegion.refName,
-                      coord: feature.min,
-                      regionNumber: idx,
-                    })?.offsetPx ?? 0) - self.lgv.offsetPx
-                  getGlyph(feature, self.lgv.bpPerPx).draw(
-                    self,
-                    ctx,
-                    feature,
-                    x,
-                    row,
-                    displayedRegion.reversed,
-                  )
+                  getGlyph(feature).draw(ctx, feature, row, self, idx)
                 }
               }
             }
