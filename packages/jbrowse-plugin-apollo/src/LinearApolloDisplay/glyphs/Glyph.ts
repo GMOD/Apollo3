@@ -3,7 +3,6 @@ import { MenuItem } from '@jbrowse/core/ui'
 
 import {
   LinearApolloDisplayMouseEvents,
-  MousePosition,
   MousePositionWithFeatureAndGlyph,
 } from '../stateModel/mouseEvents'
 import { LinearApolloDisplayRendering } from '../stateModel/rendering'
@@ -25,7 +24,7 @@ export interface Glyph {
     feature: AnnotationFeature,
     bp: number,
     row: number,
-  ): AnnotationFeature
+  ): AnnotationFeature | undefined
   getRowForFeature(
     feature: AnnotationFeature,
     childFeature: AnnotationFeature,
@@ -64,11 +63,6 @@ export interface Glyph {
     currentMousePosition: MousePositionWithFeatureAndGlyph,
     event: CanvasMouseEvent,
   ): void
-
-  getParentFeature(
-    feature?: AnnotationFeature,
-    topLevelFeature?: AnnotationFeature,
-  ): AnnotationFeature | undefined
 
   drawTooltip(
     display: LinearApolloDisplayMouseEvents,

@@ -153,6 +153,9 @@ export function mouseEventsModelIntermediateFactory(
           bp,
           featureRow,
         )
+        if (!feature) {
+          return mousePosition
+        }
         return {
           ...mousePosition,
           featureAndGlyphUnderMouse: { feature, topLevelFeature, glyph },
@@ -229,14 +232,11 @@ export function mouseEventsSeqHightlightModelFactory(
             if (!apolloHover) {
               return
             }
-            const { feature, glyph, topLevelFeature } = apolloHover
+            const { feature } = apolloHover
 
             for (const [idx, region] of regions.entries()) {
               if (feature.type === 'CDS') {
-                const parentFeature = glyph.getParentFeature(
-                  feature,
-                  topLevelFeature,
-                )
+                const parentFeature = feature.parent
                 if (!parentFeature) {
                   continue
                 }

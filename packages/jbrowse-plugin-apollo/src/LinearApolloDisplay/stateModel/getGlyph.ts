@@ -1,6 +1,6 @@
 import { AnnotationFeature } from '@apollo-annotation/mst'
 
-import { boxGlyph, GeneGlyph, GenericChildGlyph } from '../glyphs'
+import { boxGlyph, GeneGlyph, genericChildGlyph } from '../glyphs'
 import { Glyph } from '../glyphs/Glyph'
 
 // const geneGlyph = new GeneGlyph()
@@ -11,8 +11,8 @@ export function getGlyph(feature: AnnotationFeature): Glyph {
   // if (feature.type === 'gene') {
   //   return geneGlyph
   // }
-  // if (feature.children?.size) {
-  //   return genericChildGlyph
-  // }
+  if (feature.children?.size) {
+    return genericChildGlyph
+  }
   return boxGlyph
 }
