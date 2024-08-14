@@ -26,7 +26,7 @@ function getRowCount(_feature: AnnotationFeature) {
   return 1
 }
 
-function getIsSelectedFeature(
+export function isSelectedFeature(
   feature: AnnotationFeature,
   selectedFeature: AnnotationFeature | undefined,
 ) {
@@ -46,7 +46,7 @@ function getTextColor(theme: Theme | undefined, selected: boolean) {
     : theme?.palette.text.primary ?? 'black'
 }
 
-function drawBox(
+export function drawBox(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
@@ -119,7 +119,7 @@ function draw(
   const widthPx = feature.length / bpPerPx
   const startPx = reversed ? minX - widthPx : minX
   const top = row * heightPx
-  const isSelected = getIsSelectedFeature(feature, apolloSelectedFeature)
+  const isSelected = isSelectedFeature(feature, apolloSelectedFeature)
   const backgroundColor = getBackgroundColor(theme, isSelected)
   const textColor = getTextColor(theme, isSelected)
   const featureBox: [number, number, number, number] = [
@@ -294,36 +294,6 @@ function onMouseUp(
 
 function onMouseLeave(): void {
   return
-}
-
-function getParentFeature(
-  feature?: AnnotationFeature,
-  topLevelFeature?: AnnotationFeature,
-) {
-  let parentFeature: AnnotationFeature | undefined
-  if (!feature || !topLevelFeature?.children) {
-    return parentFeature
-  }
-
-  for (const [, f] of topLevelFeature.children) {
-    if (f._id === feature._id) {
-      parentFeature = topLevelFeature
-      break
-    }
-    if (!f.children) {
-      continue
-    }
-    for (const [, cf] of f.children) {
-      if (cf._id === feature._id) {
-        parentFeature = f
-        break
-      }
-    }
-    if (parentFeature) {
-      break
-    }
-  }
-  return parentFeature
 }
 
 function drawTooltip(
@@ -521,17 +491,16 @@ function getContextMenuItems(
 }
 
 export const boxGlyph: Glyph = {
-  getRowCount,
   draw,
-  getFeatureFromLayout,
-  getRowForFeature,
-  drawHover,
   drawDragPreview,
-  onMouseDown,
-  onMouseMove,
-  onMouseLeave,
-  onMouseUp,
-  getParentFeature,
+  drawHover,
   drawTooltip,
   getContextMenuItems,
+  getFeatureFromLayout,
+  getRowCount,
+  getRowForFeature,
+  onMouseDown,
+  onMouseLeave,
+  onMouseMove,
+  onMouseUp,
 }
