@@ -1,4 +1,8 @@
 import { AnnotationFeature } from '@apollo-annotation/mst'
+import {
+  LocationEndChange,
+  LocationStartChange,
+} from '@apollo-annotation/shared'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { MenuItem } from '@jbrowse/core/ui'
@@ -15,6 +19,12 @@ import { getGlyph } from './getGlyph'
 import { renderingModelFactory } from './rendering'
 import { Frame, getFrame } from '@jbrowse/core/util'
 
+export interface FeatureAndGlyphUnderMouse {
+  feature: AnnotationFeature
+  topLevelFeature: AnnotationFeature
+  glyph: Glyph
+}
+
 /** extended information about the position of the mouse on the canvas, including the refName, bp, and displayedRegion number */
 export interface MousePosition {
   x: number
@@ -22,13 +32,15 @@ export interface MousePosition {
   refName: string
   bp: number
   regionNumber: number
+  featureAndGlyphUnderMouse?: FeatureAndGlyphUnderMouse
 }
 
-export interface FeatureAndGlyphInfo {
-  feature?: AnnotationFeature
-  topLevelFeature?: AnnotationFeature
-  glyph?: Glyph
-  mousePosition?: MousePosition
+export type MousePositionWithFeatureAndGlyph = Required<MousePosition>
+
+export function isMousePositionWithFeatureAndGlyph(
+  mousePosition: MousePosition,
+): mousePosition is MousePositionWithFeatureAndGlyph {
+  return 'featureAndGlyphUnderMouse' in mousePosition
 }
 
 function getMousePosition(
@@ -110,71 +122,59 @@ export function mouseEventsModelIntermediateFactory(
   return LinearApolloDisplayRendering.named('LinearApolloDisplayMouseEvents')
     .volatile(() => ({
       apolloDragging: null as {
-        start: {
-          glyph?: Glyph
-          feature?: AnnotationFeature
-          topLevelFeature?: AnnotationFeature
-          mousePosition: MousePosition
-        }
-        current: {
-          glyph?: Glyph
-          feature?: AnnotationFeature
-          topLevelFeature?: AnnotationFeature
-          mousePosition: MousePosition
-        }
+        start: MousePosition
+        current: MousePosition
+        feature: AnnotationFeature
+        edge: 'min' | 'max'
       } | null,
       cursor: undefined as CSSProperties['cursor'] | undefined,
-      apolloHover: null as FeatureAndGlyphInfo | null,
+      apolloHover: undefined as MousePositionWithFeatureAndGlyph | undefined,
     }))
     .views((self) => ({
-      getFeatureAndGlyphUnderMouse(
-        event: CanvasMouseEvent,
-      ): FeatureAndGlyphInfo {
+      getMousePosition(event: CanvasMouseEvent): MousePosition {
         const mousePosition = getMousePosition(event, self.lgv)
         const { bp, regionNumber, y } = mousePosition
         const row = Math.floor(y / self.apolloRowHeight)
         const featureLayout = self.featureLayouts[regionNumber]
         const layoutRow = featureLayout.get(row)
         if (!layoutRow) {
-          return { mousePosition }
+          return mousePosition
         }
         const foundFeature = layoutRow.find(
           (f) => bp >= f[1].min && bp <= f[1].max,
         )
         if (!foundFeature) {
-          return { mousePosition }
+          return mousePosition
         }
         const [featureRow, topLevelFeature] = foundFeature
-        const glyph = getGlyph(topLevelFeature, self.lgv.bpPerPx)
+        const glyph = getGlyph(topLevelFeature)
         const feature = glyph.getFeatureFromLayout(
           topLevelFeature,
           bp,
           featureRow,
         )
-        return { feature, topLevelFeature, glyph, mousePosition }
+        return {
+          ...mousePosition,
+          featureAndGlyphUnderMouse: { feature, topLevelFeature, glyph },
+        }
       },
     }))
     .actions((self) => ({
-      continueDrag(event: CanvasMouseEvent) {
+      continueDrag(mousePosition: MousePosition, event: CanvasMouseEvent) {
         if (!self.apolloDragging) {
           throw new Error(
             'continueDrag() called with no current drag in progress',
           )
         }
         event.stopPropagation()
-        const { glyph } = self.apolloDragging.start
-        const { mousePosition } = self.getFeatureAndGlyphUnderMouse(event)
-        if (!(mousePosition && glyph)) {
-          return
-        }
-        glyph.continueDrag(self, mousePosition)
+        self.apolloDragging = { ...self.apolloDragging, current: mousePosition }
       },
       setDragging(dragInfo?: typeof self.apolloDragging) {
         self.apolloDragging = dragInfo ?? null
       },
     }))
     .actions((self) => ({
-      setApolloHover(n: (typeof self)['apolloHover']) {
+      setApolloHover(n?: (typeof self)['apolloHover']) {
         self.apolloHover = n
       },
       setCursor(cursor?: CSSProperties['cursor']) {
@@ -224,23 +224,14 @@ export function mouseEventsSeqHightlightModelFactory(
               self.lgv.bpPerPx <= 1 ? 125 : 95,
             )
 
-            const {
-              apolloHover,
-              displayedRegions,
-              lgv,
-              regions,
-              sequenceRowHeight,
-              theme,
-            } = self
+            const { apolloHover, lgv, regions, sequenceRowHeight, theme } = self
 
             if (!apolloHover) {
               return
             }
-            const { feature, glyph, mousePosition, topLevelFeature } =
-              apolloHover
-            if (!feature || !mousePosition || !glyph) {
-              return
-            }
+            const { featureAndGlyphUnderMouse } = apolloHover
+            const { feature, glyph, topLevelFeature } =
+              featureAndGlyphUnderMouse
 
             for (const [idx, region] of regions.entries()) {
               if (feature.type === 'CDS') {
@@ -274,7 +265,7 @@ export function mouseEventsSeqHightlightModelFactory(
                       regionNumber: idx,
                     })?.offsetPx ?? 0) - lgv.offsetPx
                   const widthPx = (dl.max - dl.min) / lgv.bpPerPx
-                  const startPx = displayedRegions[idx].reversed
+                  const startPx = lgv.displayedRegions[idx].reversed
                     ? offset - widthPx
                     : offset
 
@@ -296,7 +287,7 @@ export function mouseEventsSeqHightlightModelFactory(
                     regionNumber: idx,
                   })?.offsetPx ?? 0) - lgv.offsetPx
                 const widthPx = feature.length / lgv.bpPerPx
-                const startPx = displayedRegions[idx].reversed
+                const startPx = lgv.displayedRegions[idx].reversed
                   ? offset - widthPx
                   : offset
 
@@ -329,95 +320,131 @@ export function mouseEventsModelFactory(
 
   return LinearApolloDisplayMouseEvents.views((self) => ({
     contextMenuItems(contextCoord?: Coord): MenuItem[] {
-      const { apolloHover, lgv } = self
-      const { topLevelFeature } = apolloHover ?? {}
-      if (!(topLevelFeature && contextCoord)) {
+      const { apolloHover } = self
+      if (!(apolloHover && contextCoord)) {
         return []
       }
-      const glyph = getGlyph(topLevelFeature, lgv.bpPerPx)
+      const { featureAndGlyphUnderMouse } = apolloHover
+      const { topLevelFeature } = featureAndGlyphUnderMouse
+      const glyph = getGlyph(topLevelFeature)
       return glyph.getContextMenuItems(self)
     },
   }))
     .actions((self) => ({
-      startDrag(event: CanvasMouseEvent) {
-        const { feature, glyph, mousePosition, topLevelFeature } =
-          self.getFeatureAndGlyphUnderMouse(event)
-        if (!(feature && topLevelFeature && glyph && mousePosition)) {
-          return
-        }
+      // explicitly pass in a feature in case it's not the same as the one in
+      // mousePosition (e.g. if features are drawn overlapping).
+      startDrag(
+        mousePosition: MousePositionWithFeatureAndGlyph,
+        feature: AnnotationFeature,
+        edge: 'min' | 'max',
+      ) {
         self.apolloDragging = {
-          start: {
-            glyph,
-            feature,
-            topLevelFeature,
-            mousePosition,
-          },
-          current: { glyph, feature, topLevelFeature, mousePosition },
-        }
-        if (!glyph.startDrag(self, event)) {
-          self.apolloDragging = null
+          start: mousePosition,
+          current: mousePosition,
+          feature,
+          edge,
         }
       },
-      endDrag(event: CanvasMouseEvent) {
-        self.continueDrag(event)
-        self.apolloDragging?.start.glyph?.executeDrag(self, event)
+      endDrag() {
+        if (!self.apolloDragging) {
+          throw new Error('endDrag() called with no current drag in progress')
+        }
+        const { current, edge, feature, start } = self.apolloDragging
+        // don't do anything if it was only dragged a tiny bit
+        if (Math.abs(current.x - start.x) <= 4) {
+          self.setDragging()
+          self.setCursor()
+          return
+        }
+        const { displayedRegions } = self.lgv
+        const region = displayedRegions[start.regionNumber]
+        const assembly = self.getAssemblyId(region.assemblyName)
+
+        let change: LocationEndChange | LocationStartChange
+        if (edge === 'max') {
+          const featureId = feature._id
+          const oldEnd = feature.max
+          const newEnd = current.bp
+          change = new LocationEndChange({
+            typeName: 'LocationEndChange',
+            changedIds: [featureId],
+            featureId,
+            oldEnd,
+            newEnd,
+            assembly,
+          })
+        } else {
+          const featureId = feature._id
+          const oldStart = feature.min
+          const newStart = current.bp
+          change = new LocationStartChange({
+            typeName: 'LocationStartChange',
+            changedIds: [featureId],
+            featureId,
+            oldStart,
+            newStart,
+            assembly,
+          })
+        }
+        void self.changeManager.submit(change)
         self.setDragging()
+        self.setCursor()
       },
     }))
     .actions((self) => ({
       onMouseDown(event: CanvasMouseEvent) {
-        const { feature, glyph, topLevelFeature } =
-          self.getFeatureAndGlyphUnderMouse(event)
-        if (glyph && feature && topLevelFeature) {
-          glyph.onMouseDown(self, event)
+        const mousePosition = self.getMousePosition(event)
+        if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
+          mousePosition.featureAndGlyphUnderMouse.glyph.onMouseDown(
+            self,
+            mousePosition,
+            event,
+          )
         }
       },
       onMouseMove(event: CanvasMouseEvent) {
-        const { buttons } = event
-        const hover = self.getFeatureAndGlyphUnderMouse(event)
-        const { glyph } = hover
-        if (glyph) {
-          glyph.onMouseMove(self, event)
+        const mousePosition = self.getMousePosition(event)
+        if (self.apolloDragging) {
+          self.setCursor('col-resize')
+          self.continueDrag(mousePosition, event)
+          return
         }
-
-        if (buttons) {
-          // if button 1 is being held down while moving, we must be dragging
-          if (buttons === 1) {
-            if (self.apolloDragging) {
-              // otherwise update the drag state
-              self.continueDrag(event)
-            } else {
-              // start drag if not already dragging
-              self.startDrag(event)
-            }
-          }
+        if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
+          mousePosition.featureAndGlyphUnderMouse.glyph.onMouseMove(
+            self,
+            mousePosition,
+            event,
+          )
         } else {
-          // if no buttons, update mouseover hover
-          const { feature, topLevelFeature } = hover
-          if (feature && glyph && topLevelFeature) {
-            self.setApolloHover(hover)
-          } else {
-            self.setApolloHover(null)
-            self.setCursor()
-          }
+          self.setApolloHover()
+          self.setCursor()
         }
       },
       onMouseLeave(event: CanvasMouseEvent) {
         self.setDragging()
+        self.setApolloHover()
 
-        const { glyph } = self.getFeatureAndGlyphUnderMouse(event)
-        if (glyph) {
-          glyph.onMouseLeave(self, event)
+        const mousePosition = self.getMousePosition(event)
+        if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
+          mousePosition.featureAndGlyphUnderMouse.glyph.onMouseLeave(
+            self,
+            mousePosition,
+            event,
+          )
         }
       },
       onMouseUp(event: CanvasMouseEvent) {
-        const { glyph } = self.getFeatureAndGlyphUnderMouse(event)
-        if (glyph) {
-          glyph.onMouseUp(self, event)
+        const mousePosition = self.getMousePosition(event)
+        if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
+          mousePosition.featureAndGlyphUnderMouse.glyph.onMouseUp(
+            self,
+            mousePosition,
+            event,
+          )
         }
 
         if (self.apolloDragging) {
-          self.endDrag(event)
+          self.endDrag()
         }
       },
     }))
@@ -447,10 +474,8 @@ export function mouseEventsModelFactory(
               if (!apolloHover) {
                 return
               }
-              const { feature, glyph, mousePosition } = apolloHover
-              if (!(feature && glyph && mousePosition)) {
-                return
-              }
+              const { featureAndGlyphUnderMouse } = apolloHover
+              const { glyph } = featureAndGlyphUnderMouse
 
               // draw mouseover hovers
               glyph.drawHover(self, ctx)
@@ -462,7 +487,8 @@ export function mouseEventsModelFactory(
               if (apolloDragging) {
                 // NOTE: the glyph where the drag started is responsible for drawing the preview.
                 // it can call methods in other glyphs to help with this though.
-                apolloDragging.start.glyph?.drawDragPreview(self, ctx)
+                const glyph = getGlyph(apolloDragging.feature.topLevelFeature)
+                glyph.drawDragPreview(self, ctx)
               }
             },
             { name: 'LinearApolloDisplayRenderMouseoverAndDrag' },

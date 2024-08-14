@@ -3,9 +3,10 @@ import { AnnotationFeature } from '@apollo-annotation/mst'
 import { LinearApolloDisplay } from '../stateModel'
 import { MousePosition } from '../stateModel/mouseEvents'
 import { CanvasMouseEvent } from '../types'
-import { BoxGlyph } from './BoxGlyph'
+import { boxGlyph } from './BoxGlyph'
+import { Glyph } from './Glyph'
 
-export class GenericChildGlyph extends BoxGlyph {
+export class GenericChildGlyph implements Glyph {
   featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
     const features = [[feature]]
     if (feature.children) {
