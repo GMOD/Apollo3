@@ -25,7 +25,7 @@ export const AnnotationFeatureModel = types
     /**
      * Type of feature. Can be any string, but is usually an ontology term,
      * e.g. "gene" from the
-     * {@link http://sequenceontology.org/browser/current_release/term/SO:0005855 |Sequence Ontology}.
+     * {@link http://sequenceontology.org/browser/current_release/term/SO:0000704 |Sequence Ontology}.
      */
     type: types.string,
     /**
