@@ -10,9 +10,7 @@ import { LinearApolloDisplay } from '../stateModel'
 import { MousePosition } from '../stateModel/mouseEvents'
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
-import { BoxGlyph } from './BoxGlyph'
-
-const boxGlyph = new BoxGlyph()
+import { boxGlyph } from './BoxGlyph'
 
 type LocationChange = LocationEndChange | LocationStartChange
 
@@ -50,7 +48,7 @@ if ('document' in window) {
   }
 }
 
-export class GeneGlyph extends Glyph {
+export class GeneGlyph implements Glyph {
   /**
    * A list of all the subfeatures for each row for a given feature, as well as
    * the feature itself.
@@ -373,7 +371,7 @@ export class GeneGlyph extends Glyph {
   }
 
   /**
-   * Check If the mouse position is on the edge of the selected feature
+   * Check If the mouse position is on the edge of the given feature
    */
   isMouseOnFeatureEdge(
     mousePosition: MousePosition,
@@ -385,8 +383,8 @@ export class GeneGlyph extends Glyph {
     const { lgv } = stateModel
     const { offsetPx } = lgv
     const parentFeature = this.getParentFeature(feature, topLevelFeature)
-    let startPxInfo
-    let endPxInfo
+    let startPxInfo: { index: number; offsetPx: number } | undefined
+    let endPxInfo: { index: number; offsetPx: number } | undefined
 
     if (feature.type === 'CDS' && parentFeature) {
       let cdsLocation
@@ -413,63 +411,61 @@ export class GeneGlyph extends Glyph {
         regionNumber,
       })
     } else {
-      startPxInfo = lgv.bpToPx({
-        refName,
-        coord: feature.min,
-        regionNumber,
-      })
+      startPxInfo = lgv.bpToPx({ refName, coord: feature.min, regionNumber })
       endPxInfo = lgv.bpToPx({ refName, coord: feature.max, regionNumber })
     }
 
-    if (startPxInfo !== undefined && endPxInfo !== undefined) {
-      const startPx = startPxInfo.offsetPx - offsetPx
-      const endPx = endPxInfo.offsetPx - offsetPx
-      if (Math.abs(endPx - startPx) < 8) {
+    if (startPxInfo === undefined || endPxInfo === undefined) {
+      return
+    }
+    const startPx = startPxInfo.offsetPx - offsetPx
+    const endPx = endPxInfo.offsetPx - offsetPx
+    // Don't find edges for features that are small on-screen
+    if (Math.abs(endPx - startPx) < 8) {
+      return
+    }
+    // Limit dragging till parent feature end
+    if (parentFeature) {
+      if (parentFeature.type === 'gene') {
         return
       }
-      // Limit dragging till parent feature end
-      if (parentFeature) {
-        if (parentFeature.type === 'gene') {
-          return
-        }
-        if (feature.min <= parentFeature.min && Math.abs(startPx - x) < 4) {
-          return
-        }
-        if (feature.max >= parentFeature.max && Math.abs(endPx - x) < 4) {
-          return
-        }
+      if (feature.min <= parentFeature.min && Math.abs(startPx - x) < 4) {
+        return
       }
-      // cds drag limit issue
-      if (Math.abs(startPx - x) < 4) {
-        return 'min'
-      }
-      if (Math.abs(endPx - x) < 4) {
-        return 'max'
+      if (feature.max >= parentFeature.max && Math.abs(endPx - x) < 4) {
+        return
       }
     }
-    return
+    // cds drag limit issue
+    if (Math.abs(startPx - x) < 4) {
+      return 'min'
+    }
+    if (Math.abs(endPx - x) < 4) {
+      return 'max'
+    }
   }
 
   onMouseMove(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
     const { feature, mousePosition, topLevelFeature } =
       stateModel.getFeatureAndGlyphUnderMouse(event)
-    if (stateModel.apolloDragging) {
-      stateModel.setCursor('col-resize')
-      return
-    }
-    if (feature && mousePosition) {
-      const edge = this.isMouseOnFeatureEdge(
-        mousePosition,
-        feature,
-        stateModel,
-        topLevelFeature,
-      )
-      if (edge) {
-        stateModel.setCursor('col-resize')
-      } else {
-        stateModel.setCursor()
-      }
-    }
+    console.log(feature.type, topLevelFeature.type)
+    // if (stateModel.apolloDragging) {
+    //   stateModel.setCursor('col-resize')
+    //   return
+    // }
+    // if (feature && mousePosition) {
+    //   const edge = this.isMouseOnFeatureEdge(
+    //     mousePosition,
+    //     feature,
+    //     stateModel,
+    //     topLevelFeature,
+    //   )
+    //   if (edge) {
+    //     stateModel.setCursor('col-resize')
+    //   } else {
+    //     stateModel.setCursor()
+    //   }
+    // }
   }
 
   onMouseDown(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {

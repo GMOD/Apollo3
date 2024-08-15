@@ -75,9 +75,6 @@ export function baseModelFactory(
         )
         return regions
       },
-      get displayedRegions() {
-        return self.lgv.displayedRegions
-      },
       regionCannotBeRendered(/* region */) {
         if (self.lgv && self.lgv.bpPerPx >= 200) {
           return 'Zoom in to see annotations'
