@@ -30,10 +30,12 @@ const iupacComplements: Record<string, string | undefined> = {
   N /* G or A or T or C */: 'N',
 }
 
-interface CodonObj {
-  value: string
-  start: number
-  end: number
+interface CDSLocation {
+  _id: string
+  min: number
+  max: number
+  phase: 0 | 1 | 2
+  strand: 1 | -1 | undefined
 }
 
 function reverseComplement(dna: string): string {
@@ -53,22 +55,23 @@ function reverseComplement(dna: string): string {
 }
 
 function checkCDS(
-  parent: AnnotationFeatureSnapshot,
+  parent: AnnotationFeature,
   cdsSequence: string,
   cdsMin: number,
   cdsMax: number,
   cdsIds: string[],
-  codonObj: CodonObj[],
+  codons: string[],
+  cdsLocations: CDSLocation[],
 ): CheckResultSnapshot[] {
   const checkResults: CheckResultSnapshot[] = []
   const { _id, refSeq } = parent
 
   if (cdsSequence.length % 3 === 0) {
-    const lastCodon = codonObj.pop() // Last codon is supposed to be a stop
+    const lastCodon = codons.pop() // Last codon is supposed to be a stop
     if (!lastCodon) {
       throw new Error(`No sequence found for feature "${_id}"`)
     }
-    if (!(lastCodon.value.toUpperCase() in STOP_CODONS)) {
+    if (!(lastCodon.toUpperCase() in STOP_CODONS)) {
       checkResults.push({
         _id: new ObjectID().toHexString(),
         name: 'MissingStopCodonCheck',
@@ -90,20 +93,48 @@ function checkCDS(
       message: `The coding sequence for feature "${_id}" is not a multiple of three`,
     })
   }
-  for (const [, codon] of codonObj.entries()) {
-    if (codon.value.toUpperCase() in STOP_CODONS) {
+  for (const [i, codon] of codons.entries()) {
+    const [codonStart, codonEnd] = getOriginalCodonLocation(cdsLocations, i)
+    if (codon.toUpperCase() in STOP_CODONS) {
       checkResults.push({
         _id: new ObjectID().toHexString(),
         name: 'InternalStopCodonCheck',
         ids: cdsIds,
         refSeq: refSeq.toString(),
-        start: codon.start,
-        end: codon.end,
+        start: codonStart,
+        end: codonEnd,
         message: `The coding sequence for feature "${_id}" has an internal stop codon`,
       })
     }
   }
   return checkResults
+}
+
+function getOriginalCodonLocation(
+  cdsLocations: CDSLocation[],
+  index: number,
+): [number, number] {
+  let lengthToStart = index * 3
+  let lengthToEnd = lengthToStart + 3
+  let startLocation: number | undefined = undefined,
+    endLocation: number | undefined = undefined
+  for (const loc of cdsLocations) {
+    const locLength = loc.max - loc.min
+    if (startLocation === undefined && locLength > lengthToStart) {
+      startLocation = loc.min + lengthToStart
+    } else {
+      lengthToStart -= locLength
+    }
+    if (endLocation === undefined && locLength > lengthToEnd) {
+      endLocation = loc.min + lengthToEnd
+    } else {
+      lengthToEnd -= locLength
+    }
+    if (startLocation !== undefined && endLocation !== undefined) {
+      return [startLocation, endLocation]
+    }
+  }
+  throw new Error(`Could not find original codon location for index ${index}`)
 }
 
 export class CDSCheck extends Check {
@@ -112,7 +143,7 @@ export class CDSCheck extends Check {
   default = true
 
   async checkFeature(
-    featureSnapshot: AnnotationFeatureSnapshot,
+    _featureSnapshot: AnnotationFeatureSnapshot,
     getSequence: (start: number, end: number) => Promise<string>,
     feature?: AnnotationFeature,
   ): Promise<CheckResultSnapshot[]> {
@@ -129,7 +160,7 @@ export class CDSCheck extends Check {
     for (const cds of cdsLocations) {
       let cdsSequence = ''
       const cdsIds: string[] = []
-      const codonObj: CodonObj[] = []
+      const codons: string[] = []
       const cdsMin = cds.at(0)?.min
       const cdsMax = cds.at(-1)?.max
       const firstLocStrand = cds.at(0)?.strand
@@ -162,22 +193,11 @@ export class CDSCheck extends Check {
       }
 
       for (let i = 0; i <= cdsSequence.length - 3; i += 3) {
-        codonObj.push({
-          start: cdsMin + i,
-          end: cdsMin + i + 3,
-          value: cdsSequence.slice(i, i + 3),
-        })
+        codons.push(cdsSequence.slice(i, i + 3))
       }
 
       checkResults.push(
-        ...checkCDS(
-          featureSnapshot,
-          cdsSequence,
-          cdsMin,
-          cdsMax,
-          cdsIds,
-          codonObj,
-        ),
+        ...checkCDS(feature, cdsSequence, cdsMin, cdsMax, cdsIds, codons, cds),
       )
     }
     return checkResults
