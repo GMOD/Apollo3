@@ -8,15 +8,7 @@ import {
   TypeChange,
 } from '@apollo-annotation/shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
-import {
-  FormControl,
-  FormControlLabel,
-  FormLabel,
-  Radio,
-  RadioGroup,
-  TextField,
-  Typography,
-} from '@mui/material'
+import { TextField, Typography } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 
