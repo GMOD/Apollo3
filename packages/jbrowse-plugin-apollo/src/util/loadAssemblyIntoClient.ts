@@ -77,6 +77,7 @@ export async function checkFeatures(
           getSnapshot(feature),
           (start: number, stop: number) =>
             Promise.resolve(ref.getSequence(start, stop)),
+          feature,
         )
         checkResults.push(...result)
       }

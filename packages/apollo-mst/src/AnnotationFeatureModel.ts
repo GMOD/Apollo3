@@ -25,7 +25,7 @@ export const AnnotationFeatureModel = types
     /**
      * Type of feature. Can be any string, but is usually an ontology term,
      * e.g. "gene" from the
-     * {@link http://sequenceontology.org/browser/current_release/term/SO:0000704 |Sequence Ontology}.
+     * {@link http://sequenceontology.org/browser/current_release/term/SO:0005855 |Sequence Ontology}.
      */
     type: types.string,
     /**
@@ -108,7 +108,13 @@ export const AnnotationFeatureModel = types
       }
       return false
     },
-    get cdsLocations(): { min: number; max: number; phase: 0 | 1 | 2 }[][] {
+    get cdsLocations(): {
+      _id: string
+      min: number
+      max: number
+      phase: 0 | 1 | 2
+      strand: 1 | -1 | undefined
+    }[][] {
       if (self.type !== 'mRNA') {
         throw new Error(
           'Only features of type "mRNA" or equivalent can calculate CDS locations',
@@ -124,11 +130,21 @@ export const AnnotationFeatureModel = types
       if (cdsChildren.length === 0) {
         throw new Error('no CDS in mRNA')
       }
-      const cdsLocations: { min: number; max: number; phase: 0 | 1 | 2 }[][] =
-        []
+      const cdsLocations: {
+        _id: string
+        min: number
+        max: number
+        phase: 0 | 1 | 2
+        strand: 1 | -1 | undefined
+      }[][] = []
       for (const cds of cdsChildren) {
-        const { max: cdsMax, min: cdsMin } = cds
-        const locs: { min: number; max: number }[] = []
+        const { _id, max: cdsMax, min: cdsMin, strand } = cds
+        const locs: {
+          _id: string
+          min: number
+          max: number
+          strand: 1 | -1 | undefined
+        }[] = []
         for (const [, child] of children) {
           if (child.type !== 'exon') {
             continue
@@ -140,7 +156,7 @@ export const AnnotationFeatureModel = types
             child.max,
           )
           if (start !== undefined && end !== undefined) {
-            locs.push({ min: start, max: end })
+            locs.push({ min: start, max: end, strand, _id })
           }
         }
         locs.sort(({ min: a }, { min: b }) => a - b)
