@@ -1,8 +1,14 @@
 describe('Different ways of editing features', () => {
-  beforeEach(() => {
+  before(() => {
     cy.addOntologies()
-    cy.deleteAssemblies()
+  })
+
+  beforeEach(() => {
     cy.loginAsGuest()
+  })
+
+  afterEach(() => {
+    cy.deleteAssemblies()
   })
 
   it('Edit feature via table editor', () => {

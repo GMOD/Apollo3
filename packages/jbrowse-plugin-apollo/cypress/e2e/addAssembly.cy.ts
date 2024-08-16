@@ -1,7 +1,9 @@
 describe('Add Assembly', () => {
   beforeEach(() => {
-    cy.deleteAssemblies()
     cy.loginAsGuest()
+  })
+  afterEach(() => {
+    cy.deleteAssemblies()
   })
 
   it('Can add assembly from fasta', () => {
