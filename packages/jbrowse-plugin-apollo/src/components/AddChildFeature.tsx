@@ -7,11 +7,6 @@ import {
   DialogActions,
   DialogContent,
   DialogContentText,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
   TextField,
 } from '@mui/material'
 import ObjectID from 'bson-objectid'
@@ -128,13 +123,6 @@ export function AddChildFeature({
             error={error}
             helperText={error ? '"End" must be greater than "Start"' : null}
           />
-          {/* <Select value={type} onChange={handleChangeType} label="Type">
-              {(possibleChildTypes ?? []).map((option) => (
-                <MenuItem key={option} value={option}>
-                  {option}
-                </MenuItem>
-              ))}
-            </Select> */}
           <OntologyTermAutocomplete
             session={session}
             ontologyName="Sequence Ontology"
