@@ -3,7 +3,7 @@ import {
   AnnotationFeatureSnapshot,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
-import ObjectID from 'bson-objectid'
+// import ObjectID from 'bson-objectid'
 
 // enum STOP_CODONS {
 //   'TAG',
@@ -229,8 +229,8 @@ export class CDSCheck extends Check {
   default = true
 
   async checkFeature(
-    feature: AnnotationFeatureSnapshot,
-    getSequence: (start: number, end: number) => Promise<string>,
+    _feature: AnnotationFeatureSnapshot,
+    _getSequence: (start: number, end: number) => Promise<string>,
   ): Promise<CheckResultSnapshot[]> {
     await Promise.resolve()
     return []
