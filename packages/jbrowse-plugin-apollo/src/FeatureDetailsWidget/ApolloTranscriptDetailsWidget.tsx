@@ -1,8 +1,8 @@
-import { AnnotationFeature, ApolloRefSeqI } from '@apollo-annotation/mst'
-import { AbstractSessionModel, getSession, revcom } from '@jbrowse/core/util'
+import { AbstractSessionModel, getSession } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
 import { getRoot } from 'mobx-state-tree'
 import React from 'react'
+import { makeStyles } from 'tss-react/mui'
 
 import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloSessionModel } from '../session'
@@ -12,101 +12,17 @@ import { TranscriptBasicInformation } from './TranscriptBasic'
 import { TranscriptSequence } from './TranscriptSequence'
 import { ApolloTranscriptDetailsWidget as ApolloTranscriptDetailsWidgetState } from './model'
 
-export interface CDSInfo {
-  id: string
-  type: string
-  strand: number
-  min: string
-  oldMin: string
-  max: string
-  oldMax: string
-  startSeq: string
-  endSeq: string
-}
-export interface ExonInfo {
-  min: string
-  max: string
-}
-
-export const getCDSInfo = (
-  feature: AnnotationFeature,
-  refData: ApolloRefSeqI,
-): CDSInfo[] => {
-  const CDSresult: CDSInfo[] = []
-  const traverse = (
-    currentFeature: AnnotationFeature,
-    isParentMRNA: boolean,
-  ) => {
-    if (
-      isParentMRNA &&
-      (currentFeature.type === 'CDS' ||
-        currentFeature.type === 'three_prime_UTR' ||
-        currentFeature.type === 'five_prime_UTR')
-    ) {
-      let startSeq = refData.getSequence(
-        Number(currentFeature.min) - 2,
-        Number(currentFeature.min),
-      )
-      let endSeq = refData.getSequence(
-        Number(currentFeature.max),
-        Number(currentFeature.max) + 2,
-      )
-
-      if (currentFeature.strand === -1 && startSeq && endSeq) {
-        startSeq = revcom(startSeq)
-        endSeq = revcom(endSeq)
-      }
-      const oneCDS: CDSInfo = {
-        id: currentFeature._id,
-        type: currentFeature.type,
-        strand: Number(currentFeature.strand),
-        min: (currentFeature.min + 1) as unknown as string,
-        max: (currentFeature.max + 1) as unknown as string,
-        oldMin: (currentFeature.min + 1) as unknown as string,
-        oldMax: (currentFeature.max + 1) as unknown as string,
-        startSeq: startSeq || '',
-        endSeq: endSeq || '',
-      }
-      CDSresult.push(oneCDS)
-    }
-    if (currentFeature.children) {
-      for (const child of currentFeature.children) {
-        traverse(child[1], feature.type === 'mRNA')
-      }
-    }
-  }
-  traverse(feature, feature.type === 'mRNA')
-  CDSresult.sort((a, b) => {
-    return Number(a.min) - Number(b.min)
-  })
-  if (CDSresult.length > 0) {
-    CDSresult[0].startSeq = ''
-
-    // eslint-disable-next-line unicorn/prefer-at
-    CDSresult[CDSresult.length - 1].endSeq = ''
-
-    // Loop through the array and clear "startSeq" or "endSeq" based on the conditions
-    for (let i = 0; i < CDSresult.length; i++) {
-      if (i > 0 && CDSresult[i].min === CDSresult[i - 1].max) {
-        // Clear "startSeq" if the current item's "start" is equal to the previous item's "end"
-        CDSresult[i].startSeq = ''
-      }
-      if (
-        i < CDSresult.length - 1 &&
-        CDSresult[i].max === CDSresult[i + 1].min
-      ) {
-        // Clear "endSeq" if the next item's "start" is equal to the current item's "end"
-        CDSresult[i].endSeq = ''
-      }
-    }
-  }
-  return CDSresult
-}
+const useStyles = makeStyles()((theme) => ({
+  root: {
+    padding: theme.spacing(2),
+  },
+}))
 
 export const ApolloTranscriptDetailsWidget = observer(
   function ApolloTranscriptDetails(props: {
     model: ApolloTranscriptDetailsWidgetState
   }) {
+    const { classes } = useStyles()
     const { model } = props
     const { assembly, feature, refName } = model
     const session = getSession(model) as unknown as AbstractSessionModel
@@ -138,7 +54,7 @@ export const ApolloTranscriptDetailsWidget = observer(
     }
 
     return (
-      <>
+      <div className={classes.root}>
         <TranscriptBasicInformation
           feature={feature}
           session={apolloSession}
@@ -159,7 +75,7 @@ export const ApolloTranscriptDetailsWidget = observer(
           assembly={currentAssembly._id || ''}
           refName={refName}
         />
-      </>
+      </div>
     )
   },
 )
