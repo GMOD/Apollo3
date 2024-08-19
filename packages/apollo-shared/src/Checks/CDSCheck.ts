@@ -166,10 +166,11 @@ export class CDSCheck extends Check {
 
     const checkResults: CheckResultSnapshot[] = []
     for (const mRNA of mRNAs) {
-      const { _id, cdsLocations } = mRNA
+      const { cdsLocations } = mRNA
 
       if (cdsLocations.length === 0) {
-        throw new Error(`mRNA "${_id}" has no CDS children`)
+        // move to next mRNA
+        continue
       }
       for (const cds of cdsLocations) {
         let cdsSequence = ''
