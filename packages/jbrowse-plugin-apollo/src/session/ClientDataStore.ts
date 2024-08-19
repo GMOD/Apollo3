@@ -142,7 +142,7 @@ export function clientDataStoreFactory(
       afterCreate() {
         addDisposer(
           self,
-          autorun((reaction) => {
+          autorun(() => {
             // Merge in the ontologies from our plugin configuration.
             // Ontologies of a given name that are already in the session
             // take precedence over the ontologies in the configuration.
@@ -171,7 +171,6 @@ export function clientDataStoreFactory(
             }
             // TODO: add in any configured ontology prefixes that we don't already
             // have in the session (or hardcoded in the model)
-            reaction.dispose()
           }),
         )
       },

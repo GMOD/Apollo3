@@ -1,5 +1,15 @@
 describe('Different ways of editing features', () => {
   before(() => {
+    cy.deleteAssemblies()
+    cy.wrap(
+      window.indexedDB.databases().then((dbs) => {
+        for (const db of dbs) {
+          if (db.name) {
+            window.indexedDB.deleteDatabase(db.name)
+          }
+        }
+      }),
+    )
     cy.addOntologies()
   })
 

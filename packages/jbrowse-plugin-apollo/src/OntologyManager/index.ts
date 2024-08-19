@@ -40,7 +40,7 @@ export const OntologyRecordType = types
       addDisposer(
         self,
         autorun(() => {
-          // this.initDataStore()
+          this.initDataStore()
         }),
       )
     },
