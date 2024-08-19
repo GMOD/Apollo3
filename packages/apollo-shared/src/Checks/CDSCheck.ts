@@ -147,58 +147,81 @@ export class CDSCheck extends Check {
     getSequence: (start: number, end: number) => Promise<string>,
     feature?: AnnotationFeature,
   ): Promise<CheckResultSnapshot[]> {
-    if (!feature || feature.type !== 'mRNA') {
+    if (!feature) {
       return []
     }
 
-    const { _id, cdsLocations } = feature
-
-    if (cdsLocations.length === 0) {
-      throw new Error(`mRNA "${_id}" has no CDS children`)
-    }
-    const checkResults: CheckResultSnapshot[] = []
-    for (const cds of cdsLocations) {
-      let cdsSequence = ''
-      const cdsIds: string[] = []
-      const codons: string[] = []
-      const cdsMin = cds.at(0)?.min
-      const cdsMax = cds.at(-1)?.max
-      const firstLocStrand = cds.at(0)?.strand
-      let isValidStrand = true
-
-      if (
-        cdsMin === undefined ||
-        cdsMax === undefined ||
-        firstLocStrand === undefined
-      ) {
-        // move to next CDS
-        continue
-      }
-
-      for (const loc of cds) {
-        if (loc.strand !== firstLocStrand) {
-          isValidStrand = false
-          break
+    const mRNAs: AnnotationFeature[] = []
+    if (feature.type === 'gene' && feature.children) {
+      for (const [, child] of feature.children) {
+        if (child.type === 'mRNA') {
+          mRNAs.push(child)
         }
-        cdsSequence = cdsSequence + (await getSequence(loc.min, loc.max))
-        cdsIds.push(loc._id)
       }
+    }
 
-      if (!isValidStrand) {
-        continue
+    if (feature.type === 'mRNA') {
+      mRNAs.push(feature)
+    }
+
+    const checkResults: CheckResultSnapshot[] = []
+    for (const mRNA of mRNAs) {
+      const { _id, cdsLocations } = mRNA
+
+      if (cdsLocations.length === 0) {
+        throw new Error(`mRNA "${_id}" has no CDS children`)
       }
+      for (const cds of cdsLocations) {
+        let cdsSequence = ''
+        const cdsIds: string[] = []
+        const codons: string[] = []
+        const cdsMin = cds.at(0)?.min
+        const cdsMax = cds.at(-1)?.max
+        const firstLocStrand = cds.at(0)?.strand
+        let isValidStrand = true
 
-      if (firstLocStrand === -1) {
-        cdsSequence = reverseComplement(cdsSequence)
+        if (
+          cdsMin === undefined ||
+          cdsMax === undefined ||
+          firstLocStrand === undefined
+        ) {
+          // move to next CDS
+          continue
+        }
+
+        for (const loc of cds) {
+          if (loc.strand !== firstLocStrand) {
+            isValidStrand = false
+            break
+          }
+          cdsSequence = cdsSequence + (await getSequence(loc.min, loc.max))
+          cdsIds.push(loc._id)
+        }
+
+        if (!isValidStrand) {
+          continue
+        }
+
+        if (firstLocStrand === -1) {
+          cdsSequence = reverseComplement(cdsSequence)
+        }
+
+        for (let i = 0; i <= cdsSequence.length - 3; i += 3) {
+          codons.push(cdsSequence.slice(i, i + 3))
+        }
+
+        checkResults.push(
+          ...checkCDS(
+            feature,
+            cdsSequence,
+            cdsMin,
+            cdsMax,
+            cdsIds,
+            codons,
+            cds,
+          ),
+        )
       }
-
-      for (let i = 0; i <= cdsSequence.length - 3; i += 3) {
-        codons.push(cdsSequence.slice(i, i + 3))
-      }
-
-      checkResults.push(
-        ...checkCDS(feature, cdsSequence, cdsMin, cdsMax, cdsIds, codons, cds),
-      )
     }
     return checkResults
   }

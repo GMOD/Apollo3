@@ -140,10 +140,8 @@ export const AnnotationFeatureModel = types
       for (const cds of cdsChildren) {
         const { _id, max: cdsMax, min: cdsMin, strand } = cds
         const locs: {
-          _id: string
           min: number
           max: number
-          strand: 1 | -1 | undefined
         }[] = []
         for (const [, child] of children) {
           if (child.type !== 'exon') {
@@ -156,7 +154,7 @@ export const AnnotationFeatureModel = types
             child.max,
           )
           if (start !== undefined && end !== undefined) {
-            locs.push({ min: start, max: end, strand, _id })
+            locs.push({ min: start, max: end })
           }
         }
         locs.sort(({ min: a }, { min: b }) => a - b)
@@ -170,7 +168,7 @@ export const AnnotationFeatureModel = types
             | 0
             | 1
             | 2
-          return { ...loc, phase }
+          return { ...loc, phase, _id, strand }
         })
         cdsLocations.push(phasedLocs)
       }
