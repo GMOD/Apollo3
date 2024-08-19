@@ -12,7 +12,93 @@ import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 
 import { ApolloSessionModel } from '../session'
-import { getCDSInfo } from './ApolloTranscriptDetailsWidget'
+
+export interface CDSInfo {
+  id: string
+  type: string
+  strand: number
+  min: number
+  oldMin: number
+  max: number
+  oldMax: number
+  startSeq: string
+  endSeq: string
+}
+
+const getCDSInfo = (
+  feature: AnnotationFeature,
+  refData: ApolloRefSeqI,
+): CDSInfo[] => {
+  const CDSresult: CDSInfo[] = []
+  const traverse = (
+    currentFeature: AnnotationFeature,
+    isParentMRNA: boolean,
+  ) => {
+    if (
+      isParentMRNA &&
+      (currentFeature.type === 'CDS' ||
+        currentFeature.type === 'three_prime_UTR' ||
+        currentFeature.type === 'five_prime_UTR')
+    ) {
+      let startSeq = refData.getSequence(
+        Number(currentFeature.min) - 2,
+        Number(currentFeature.min),
+      )
+      let endSeq = refData.getSequence(
+        Number(currentFeature.max),
+        Number(currentFeature.max) + 2,
+      )
+
+      if (currentFeature.strand === -1 && startSeq && endSeq) {
+        startSeq = revcom(startSeq)
+        endSeq = revcom(endSeq)
+      }
+      const oneCDS: CDSInfo = {
+        id: currentFeature._id,
+        type: currentFeature.type,
+        strand: Number(currentFeature.strand),
+        min: currentFeature.min + 1,
+        max: currentFeature.max + 1,
+        oldMin: currentFeature.min + 1,
+        oldMax: currentFeature.max + 1,
+        startSeq: startSeq || '',
+        endSeq: endSeq || '',
+      }
+      CDSresult.push(oneCDS)
+    }
+    if (currentFeature.children) {
+      for (const child of currentFeature.children) {
+        traverse(child[1], feature.type === 'mRNA')
+      }
+    }
+  }
+  traverse(feature, feature.type === 'mRNA')
+  CDSresult.sort((a, b) => {
+    return Number(a.min) - Number(b.min)
+  })
+  if (CDSresult.length > 0) {
+    CDSresult[0].startSeq = ''
+
+    // eslint-disable-next-line unicorn/prefer-at
+    CDSresult[CDSresult.length - 1].endSeq = ''
+
+    // Loop through the array and clear "startSeq" or "endSeq" based on the conditions
+    for (let i = 0; i < CDSresult.length; i++) {
+      if (i > 0 && CDSresult[i].min === CDSresult[i - 1].max) {
+        // Clear "startSeq" if the current item's "start" is equal to the previous item's "end"
+        CDSresult[i].startSeq = ''
+      }
+      if (
+        i < CDSresult.length - 1 &&
+        CDSresult[i].max === CDSresult[i + 1].min
+      ) {
+        // Clear "endSeq" if the next item's "start" is equal to the current item's "end"
+        CDSresult[i].endSeq = ''
+      }
+    }
+  }
+  return CDSresult
+}
 
 interface Props {
   textSegments: { text: string; color: string }[]
@@ -52,11 +138,11 @@ export const TranscriptSequence = observer(function TranscriptSequence({
   session: ApolloSessionModel
 }) {
   const currentAssembly = session.apolloDataStore.assemblies.get(assembly)
-  const refData = currentAssembly?.getByRefName(refName) as ApolloRefSeqI
+  const refData = currentAssembly?.getByRefName(refName)
   const [showSequence, setShowSequence] = useState(false)
   const [selectedOption, setSelectedOption] = useState('Select')
 
-  if (!currentAssembly) {
+  if (!(currentAssembly && refData)) {
     return null
   }
   const refSeq = currentAssembly.getByRefName(refName)
@@ -90,13 +176,16 @@ export const TranscriptSequence = observer(function TranscriptSequence({
   function getSequenceAsTextSegment(option: string) {
     let seqData = ''
     textSegments = []
+    if (!refData) {
+      return
+    }
     switch (option) {
       case 'CDS': {
         textSegments.push({ text: `>${refName} : CDS\n`, color: 'black' })
         for (const item of transcriptItems) {
           if (item.type === 'CDS') {
-            const refSeq: string | undefined = refData.getSequence(
-              Number((item.min as unknown as number) + 1),
+            const refSeq: string = refData.getSequence(
+              Number(item.min + 1),
               Number(item.max),
             )
             seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
@@ -113,8 +202,8 @@ export const TranscriptSequence = observer(function TranscriptSequence({
             item.type === 'three_prime_UTR' ||
             item.type === 'five_prime_UTR'
           ) {
-            const refSeq: string | undefined = refData.getSequence(
-              Number((item.min as unknown as number) + 1),
+            const refSeq: string = refData.getSequence(
+              Number(item.min + 1),
               Number(item.max),
             )
             seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
@@ -142,7 +231,7 @@ export const TranscriptSequence = observer(function TranscriptSequence({
             count != transcriptItems.length
           ) {
             // Intron etc. between CDS/UTRs. No need to check this on very last item
-            const refSeq: string | undefined = refData.getSequence(
+            const refSeq: string = refData.getSequence(
               lastEnd + 1,
               Number(item.min) - 1,
             )
@@ -154,8 +243,8 @@ export const TranscriptSequence = observer(function TranscriptSequence({
             item.type === 'three_prime_UTR' ||
             item.type === 'five_prime_UTR'
           ) {
-            const refSeq: string | undefined = refData.getSequence(
-              Number((item.min as unknown as number) + 1),
+            const refSeq: string = refData.getSequence(
+              Number(item.min + 1),
               Number(item.max),
             )
             seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
@@ -201,8 +290,8 @@ export const TranscriptSequence = observer(function TranscriptSequence({
         .then(() => {
           // console.log('Text copied to clipboard!')
         })
-        .catch((error_: unknown) => {
-          console.error('Failed to copy text to clipboard', error_)
+        .catch((error: unknown) => {
+          console.error('Failed to copy text to clipboard', error)
         })
     }
   }

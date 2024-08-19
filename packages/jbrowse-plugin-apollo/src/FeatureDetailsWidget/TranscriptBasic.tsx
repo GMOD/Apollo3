@@ -9,8 +9,13 @@ import { observer } from 'mobx-react'
 import React from 'react'
 
 import { ApolloSessionModel } from '../session'
-import { CDSInfo, ExonInfo } from './ApolloTranscriptDetailsWidget'
+import { CDSInfo } from './TranscriptSequence'
 import { NumberTextField } from './NumberTextField'
+
+interface ExonInfo {
+  min: number
+  max: number
+}
 
 /**
  * Get single feature by featureId
@@ -54,8 +59,8 @@ function findExonInRange(
 
 function removeMatchingExon(
   exons: ExonInfo[],
-  matchStart: string,
-  matchEnd: string,
+  matchStart: number,
+  matchEnd: number,
 ): ExonInfo[] {
   // Filter the array to remove elements matching the specified start and end
   return exons.filter(
@@ -114,6 +119,7 @@ export const TranscriptBasicInformation = observer(
           })
         }
       }
+      return
     }
 
     function handleEndChange(
@@ -148,6 +154,7 @@ export const TranscriptBasicInformation = observer(
           })
         }
       }
+      return
     }
 
     const featureNew = feature
@@ -155,8 +162,8 @@ export const TranscriptBasicInformation = observer(
     const traverse = (currentFeature: AnnotationFeature) => {
       if (currentFeature.type === 'exon') {
         exonsArray.push({
-          min: (currentFeature.min + 1) as unknown as string,
-          max: currentFeature.max as unknown as string,
+          min: currentFeature.min + 1,
+          max: currentFeature.max,
         })
       }
       if (currentFeature.children) {
@@ -189,10 +196,10 @@ export const TranscriptBasicInformation = observer(
             id: featureNew._id,
             type: 'CDS',
             strand: Number(featureNew.strand),
-            min: (dataPoint.min + 1) as unknown as string,
-            max: dataPoint.max as unknown as string,
-            oldMin: (dataPoint.min + 1) as unknown as string,
-            oldMax: dataPoint.max as unknown as string,
+            min: dataPoint.min + 1,
+            max: dataPoint.max,
+            oldMin: dataPoint.min + 1,
+            oldMax: dataPoint.max,
             startSeq,
             endSeq,
           }
@@ -211,7 +218,7 @@ export const TranscriptBasicInformation = observer(
           }
 
           // Add possible UTRs
-          const foundExon: ExonInfo | null = findExonInRange(
+          const foundExon = findExonInRange(
             exonsArray,
             dataPoint.min + 1,
             dataPoint.max,
@@ -223,9 +230,9 @@ export const TranscriptBasicInformation = observer(
                 type: 'five_prime_UTR',
                 strand: Number(feature.strand),
                 min: foundExon.min,
-                max: String(dataPoint.min),
+                max: dataPoint.min,
                 oldMin: foundExon.min,
-                oldMax: String(dataPoint.min),
+                oldMax: dataPoint.min,
                 startSeq: '',
                 endSeq: '',
               }
@@ -285,13 +292,13 @@ export const TranscriptBasicInformation = observer(
             )
           }
           if (
-            dataPoint.min + 1 === Number(foundExon?.min) &&
-            dataPoint.max === Number(foundExon?.max)
+            dataPoint.min + 1 === foundExon?.min &&
+            dataPoint.max === foundExon.max
           ) {
             exonsArray = removeMatchingExon(
               exonsArray,
-              foundExon?.min,
-              foundExon?.max,
+              foundExon.min,
+              foundExon.max,
             )
           }
         }

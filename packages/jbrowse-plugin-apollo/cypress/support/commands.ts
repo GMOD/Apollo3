@@ -16,6 +16,37 @@ Cypress.Commands.add('deleteAssemblies', () => {
   }
 })
 
+Cypress.Commands.add('addOntologies', () => {
+  cy.deleteMany({}, { collection: 'jbrowseconfigs' })
+  cy.insertOne(
+    {
+      configuration: {
+        ApolloPlugin: {
+          ontologies: [
+            {
+              name: 'Gene Ontology',
+              version: 'full',
+              source: {
+                uri: 'https://release.geneontology.org/2023-06-11/ontology/go.json',
+                locationType: 'UriLocation',
+              },
+            },
+            {
+              name: 'Sequence Ontology',
+              version: '3.1',
+              source: {
+                uri: 'http://localhost:9000/test_data/so-v3.1.json',
+                locationType: 'UriLocation',
+              },
+            },
+          ],
+        },
+      },
+    },
+    { collection: 'jbrowseconfigs' },
+  )
+})
+
 Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
   cy.get('button[data-testid="dropDownMenuButton"]', { timeout: 10_000 })
     .contains('Apollo')

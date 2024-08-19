@@ -22,42 +22,6 @@ import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 import { LinearApolloDisplayRendering } from '../stateModel/rendering'
 
-function getRowCount(_feature: AnnotationFeature) {
-  return 1
-}
-
-export function isSelectedFeature(
-  feature: AnnotationFeature,
-  selectedFeature: AnnotationFeature | undefined,
-) {
-  return Boolean(selectedFeature && feature._id === selectedFeature._id)
-}
-
-function getBackgroundColor(theme: Theme | undefined, selected: boolean) {
-  return selected
-    ? theme?.palette.text.primary ?? 'black'
-    : theme?.palette.background.default ?? 'white'
-}
-
-function getTextColor(theme: Theme | undefined, selected: boolean) {
-  return selected
-    ? theme?.palette.getContrastText(getBackgroundColor(theme, selected)) ??
-        'white'
-    : theme?.palette.text.primary ?? 'black'
-}
-
-export function drawBox(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  color: string,
-) {
-  ctx.fillStyle = color
-  ctx.fillRect(x, y, width, height)
-}
-
 function drawBoxOutline(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -138,82 +102,6 @@ function draw(
   drawBoxText(ctx, startPx, top, widthPx, textColor, feature.type)
 }
 
-function getFeatureFromLayout(
-  feature: AnnotationFeature,
-  _bp: number,
-  _row: number,
-): AnnotationFeature {
-  return feature
-}
-
-function getRowForFeature(
-  _feature: AnnotationFeature,
-  _childFeature: AnnotationFeature,
-): number | undefined {
-  return 0
-}
-
-/** @returns undefined if mouse not on the edge of this feature, otherwise 'start' or 'end' depending on which edge */
-function isMouseOnFeatureEdge(
-  mousePosition: MousePosition,
-  feature: AnnotationFeature,
-  stateModel: LinearApolloDisplay,
-) {
-  const { refName, regionNumber, x } = mousePosition
-  const { lgv } = stateModel
-  const { offsetPx } = lgv
-  const startPxInfo = lgv.bpToPx({
-    refName,
-    coord: feature.min,
-    regionNumber,
-  })
-  const endPxInfo = lgv.bpToPx({ refName, coord: feature.max, regionNumber })
-  if (startPxInfo !== undefined && endPxInfo !== undefined) {
-    const startPx = startPxInfo.offsetPx - offsetPx
-    const endPx = endPxInfo.offsetPx - offsetPx
-    if (Math.abs(endPx - startPx) < 8) {
-      return
-    }
-    if (Math.abs(startPx - x) < 4) {
-      return 'min'
-    }
-    if (Math.abs(endPx - x) < 4) {
-      return 'max'
-    }
-  }
-  return
-}
-
-function drawHover(
-  stateModel: LinearApolloDisplay,
-  ctx: CanvasRenderingContext2D,
-) {
-  const { apolloHover, apolloRowHeight, lgv, theme } = stateModel
-  if (!apolloHover) {
-    return
-  }
-  const { feature } = apolloHover
-  const position = stateModel.getFeatureLayoutPosition(feature)
-  if (!position) {
-    return
-  }
-  const { layoutIndex, layoutRow } = position
-  const { bpPerPx, displayedRegions, offsetPx } = lgv
-  const displayedRegion = displayedRegions[layoutIndex]
-  const { refName, reversed } = displayedRegion
-  const { length, max, min } = feature
-  const startPx =
-    (lgv.bpToPx({
-      refName,
-      coord: reversed ? max : min,
-      regionNumber: layoutIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const top = layoutRow * apolloRowHeight
-  const widthPx = length / bpPerPx
-  ctx.fillStyle = theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
-  ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
-}
-
 function drawDragPreview(
   stateModel: LinearApolloDisplay,
   overlayCtx: CanvasRenderingContext2D,
@@ -233,12 +121,10 @@ function drawDragPreview(
     ? region.end - feature[edge]
     : feature[edge] - region.start
   const featureEdgePx = featureEdgeBp / bpPerPx - offsetPx
-
   const rectX = Math.min(current.x, featureEdgePx)
   const rectY = row * apolloRowHeight
   const rectWidth = Math.abs(current.x - featureEdgePx)
   const rectHeight = apolloRowHeight * rowCount
-
   overlayCtx.strokeStyle = theme?.palette.info.main ?? 'rgb(255,0,0)'
   overlayCtx.setLineDash([6])
   overlayCtx.strokeRect(rectX, rectY, rectWidth, rectHeight)
@@ -246,54 +132,34 @@ function drawDragPreview(
   overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
 }
 
-function onMouseMove(
+function drawHover(
   stateModel: LinearApolloDisplay,
-  mousePosition: MousePosition,
+  ctx: CanvasRenderingContext2D,
 ) {
-  if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
-    const { featureAndGlyphUnderMouse } = mousePosition
-    stateModel.setApolloHover(featureAndGlyphUnderMouse)
-    const { feature } = featureAndGlyphUnderMouse
-    const edge = isMouseOnFeatureEdge(mousePosition, feature, stateModel)
-    if (edge) {
-      stateModel.setCursor('col-resize')
-      return
-    }
-  }
-  stateModel.setCursor()
-}
-
-function onMouseDown(
-  stateModel: LinearApolloDisplay,
-  currentMousePosition: MousePositionWithFeatureAndGlyph,
-  event: CanvasMouseEvent,
-) {
-  const { featureAndGlyphUnderMouse } = currentMousePosition
-  // swallow the mouseDown if we are on the edge of the feature so that we
-  // don't start dragging the view if we try to drag the feature edge
-  const { feature } = featureAndGlyphUnderMouse
-  const edge = isMouseOnFeatureEdge(currentMousePosition, feature, stateModel)
-  if (edge) {
-    event.stopPropagation()
-    stateModel.startDrag(currentMousePosition, feature, edge)
-  }
-}
-
-function onMouseUp(
-  stateModel: LinearApolloDisplay,
-  mousePosition: MousePosition,
-) {
-  if (stateModel.apolloDragging) {
+  const { apolloHover, apolloRowHeight, lgv, theme } = stateModel
+  if (!apolloHover) {
     return
   }
-  const { featureAndGlyphUnderMouse } = mousePosition
-  if (featureAndGlyphUnderMouse?.feature) {
-    stateModel.setSelectedFeature(featureAndGlyphUnderMouse.feature)
+  const { feature } = apolloHover
+  const position = stateModel.getFeatureLayoutPosition(feature)
+  if (!position) {
+    return
   }
-}
-
-function onMouseLeave(): void {
-  return
+  const { bpPerPx, displayedRegions, offsetPx } = lgv
+  const { layoutIndex, layoutRow } = position
+  const displayedRegion = displayedRegions[layoutIndex]
+  const { refName, reversed } = displayedRegion
+  const { length, max, min } = feature
+  const startPx =
+    (lgv.bpToPx({
+      refName,
+      coord: reversed ? max : min,
+      regionNumber: layoutIndex,
+    })?.offsetPx ?? 0) - offsetPx
+  const top = layoutRow * apolloRowHeight
+  const widthPx = length / bpPerPx
+  ctx.fillStyle = theme?.palette.action.focus ?? 'rgba(0,0,0,0.04)'
+  ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
 }
 
 function drawTooltip(
@@ -357,6 +223,38 @@ function drawTooltip(
   }
   textTop = textTop + 12
   context.fillText(location, startPx + 2, textTop)
+}
+
+export function isSelectedFeature(
+  feature: AnnotationFeature,
+  selectedFeature: AnnotationFeature | undefined,
+) {
+  return Boolean(selectedFeature && feature._id === selectedFeature._id)
+}
+
+function getBackgroundColor(theme: Theme | undefined, selected: boolean) {
+  return selected
+    ? theme?.palette.text.primary ?? 'black'
+    : theme?.palette.background.default ?? 'white'
+}
+
+function getTextColor(theme: Theme | undefined, selected: boolean) {
+  return selected
+    ? theme?.palette.getContrastText(getBackgroundColor(theme, selected)) ??
+        'white'
+    : theme?.palette.text.primary ?? 'black'
+}
+
+export function drawBox(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  color: string,
+) {
+  ctx.fillStyle = color
+  ctx.fillRect(x, y, width, height)
 }
 
 function getContextMenuItems(
@@ -488,6 +386,102 @@ function getContextMenuItems(
     },
   )
   return menuItems
+}
+
+function getFeatureFromLayout(
+  feature: AnnotationFeature,
+  _bp: number,
+  _row: number,
+): AnnotationFeature {
+  return feature
+}
+
+function getRowCount(_feature: AnnotationFeature) {
+  return 1
+}
+
+function getRowForFeature(
+  _feature: AnnotationFeature,
+  _childFeature: AnnotationFeature,
+): number | undefined {
+  return 0
+}
+
+function onMouseDown(
+  stateModel: LinearApolloDisplay,
+  currentMousePosition: MousePositionWithFeatureAndGlyph,
+  event: CanvasMouseEvent,
+) {
+  const { featureAndGlyphUnderMouse } = currentMousePosition
+  // swallow the mouseDown if we are on the edge of the feature so that we
+  // don't start dragging the view if we try to drag the feature edge
+  const { feature } = featureAndGlyphUnderMouse
+  const edge = isMouseOnFeatureEdge(currentMousePosition, feature, stateModel)
+  if (edge) {
+    event.stopPropagation()
+    stateModel.startDrag(currentMousePosition, feature, edge)
+  }
+}
+
+function onMouseLeave(): void {
+  return
+}
+
+function onMouseMove(
+  stateModel: LinearApolloDisplay,
+  mousePosition: MousePosition,
+) {
+  if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
+    const { featureAndGlyphUnderMouse } = mousePosition
+    stateModel.setApolloHover(featureAndGlyphUnderMouse)
+    const { feature } = featureAndGlyphUnderMouse
+    const edge = isMouseOnFeatureEdge(mousePosition, feature, stateModel)
+    if (edge) {
+      stateModel.setCursor('col-resize')
+      return
+    }
+  }
+  stateModel.setCursor()
+}
+
+function onMouseUp(
+  stateModel: LinearApolloDisplay,
+  mousePosition: MousePosition,
+) {
+  if (stateModel.apolloDragging) {
+    return
+  }
+  const { featureAndGlyphUnderMouse } = mousePosition
+  if (featureAndGlyphUnderMouse?.feature) {
+    stateModel.setSelectedFeature(featureAndGlyphUnderMouse.feature)
+  }
+}
+
+/** @returns undefined if mouse not on the edge of this feature, otherwise 'start' or 'end' depending on which edge */
+function isMouseOnFeatureEdge(
+  mousePosition: MousePosition,
+  feature: AnnotationFeature,
+  stateModel: LinearApolloDisplay,
+) {
+  const { refName, regionNumber, x } = mousePosition
+  const { lgv } = stateModel
+  const { offsetPx } = lgv
+  const minPxInfo = lgv.bpToPx({ refName, coord: feature.min, regionNumber })
+  const maxPxInfo = lgv.bpToPx({ refName, coord: feature.max, regionNumber })
+  if (minPxInfo !== undefined && maxPxInfo !== undefined) {
+    const minPx = minPxInfo.offsetPx - offsetPx
+    const maxPx = maxPxInfo.offsetPx - offsetPx
+    if (Math.abs(maxPx - minPx) < 8) {
+      return
+    }
+    if (Math.abs(minPx - x) < 4) {
+      return 'min'
+    }
+    if (Math.abs(maxPx - x) < 4) {
+      return 'max'
+    }
+  }
+  return
 }
 
 export const boxGlyph: Glyph = {

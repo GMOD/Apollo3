@@ -2,6 +2,7 @@
 
 declare namespace Cypress {
   interface Chainable {
+    addOntologies(): Chainable<void>
     loginAsGuest(): Chainable<void>
     deleteAssemblies(): Chainable<void>
     addAssemblyFromGff(assemblyName: string, fin: string): Chainable<void>

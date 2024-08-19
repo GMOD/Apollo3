@@ -5,8 +5,11 @@ describe('Download GFF', () => {
     }).then((result) => {
       cy.log(result.stderr)
     })
-    cy.deleteAssemblies()
     cy.loginAsGuest()
+  })
+
+  afterEach(() => {
+    cy.deleteAssemblies()
   })
 
   it('Can download gff', () => {
