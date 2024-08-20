@@ -4,7 +4,7 @@ import {
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
-  SerializedChange,
+  SerializedAssemblySpecificChange,
   ServerDataStore,
 } from '@apollo-annotation/common'
 import { getSession } from '@jbrowse/core/util'
@@ -14,20 +14,18 @@ export interface SerializedRefSeqAliases {
   aliases: string[]
 }
 
-export interface SerializedRefSeqAliasesChange extends SerializedChange {
-  typeName: string
-  assembly: string
+export interface SerializedRefSeqAliasesChange
+  extends SerializedAssemblySpecificChange {
+  typeName: 'AddRefSeqAliasesChange'
   refSeqAliases: SerializedRefSeqAliases[]
 }
 
 export class AddRefSeqAliasesChange extends AssemblySpecificChange {
-  typeName = 'AddRefSeqAliasesChange'
-  assembly: string
+  typeName = 'AddRefSeqAliasesChange' as const
   refSeqAliases: SerializedRefSeqAliases[]
 
   constructor(json: SerializedRefSeqAliasesChange, options?: ChangeOptions) {
     super(json, options)
-    this.assembly = json.assembly
     this.refSeqAliases = json.refSeqAliases
   }
 
@@ -37,12 +35,8 @@ export class AddRefSeqAliasesChange extends AssemblySpecificChange {
     if (!assembly) {
       throw new Error(`assembly ${this.assembly} not found`)
     }
-    // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-    const sessionAliases: { [x: string]: string | undefined } | undefined =
-      assembly.refNameAliases
-    // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-    const sessionLCAliases: { [x: string]: string | undefined } | undefined =
-      assembly.lowerCaseRefNameAliases
+    const sessionAliases = assembly.refNameAliases
+    const sessionLCAliases = assembly.lowerCaseRefNameAliases
 
     if (!sessionAliases || !sessionLCAliases) {
       throw new Error('Session refNameAliases not found in assembly')
