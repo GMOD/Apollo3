@@ -1,7 +1,10 @@
 describe('Search features', () => {
   beforeEach(() => {
-    cy.deleteAssemblies()
     cy.loginAsGuest()
+  })
+
+  afterEach(() => {
+    cy.deleteAssemblies()
   })
 
   it('FIXME: Use of quotes', () => {

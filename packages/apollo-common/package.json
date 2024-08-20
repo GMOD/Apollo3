@@ -13,7 +13,7 @@
   "dependencies": {
     "@apollo-annotation/schemas": "workspace:^",
     "@gmod/gff": "1.2.0",
-    "@jbrowse/core": "^2.7.0",
+    "@jbrowse/core": "^2.11.2",
     "bson-objectid": "^2.0.4",
     "tslib": "^2.3.1"
   },

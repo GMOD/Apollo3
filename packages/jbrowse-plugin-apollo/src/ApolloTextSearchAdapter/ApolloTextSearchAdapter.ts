@@ -1,8 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { readConfObject } from '@jbrowse/core/configuration'
 import {
   BaseAdapter,
@@ -10,58 +6,65 @@ import {
   BaseTextSearchArgs,
 } from '@jbrowse/core/data_adapters/BaseAdapter'
 import BaseResult from '@jbrowse/core/TextSearch/BaseResults'
+import { AbstractSessionModel, UriLocation } from '@jbrowse/core/util'
+import { ApolloSessionModel } from '../session'
+import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 
 export class ApolloTextSearchAdapter
   extends BaseAdapter
   implements BaseTextSearchAdapter
 {
   get baseURL() {
-    return readConfObject(this.config, 'baseURL').uri
+    return (readConfObject(this.config, 'baseURL') as UriLocation).uri
   }
 
   get trackId() {
-    return readConfObject(this.config, 'trackId')
+    return readConfObject(this.config, 'trackId') as string
   }
 
   get assemblyNames() {
-    return readConfObject(this.config, 'assemblyNames')
+    return readConfObject(this.config, 'assemblyNames') as string[]
   }
 
   mapBaseResult(
-    features: {
-      refSeq: any // eslint-disable-line @typescript-eslint/no-explicit-any
-      start: number
-      end: number
-    }[],
+    features: AnnotationFeatureSnapshot[],
+    assembly: Assembly,
     query: string,
   ) {
-    return features.map(
-      (feature) =>
-        new BaseResult({
-          label: query,
-          trackId: this.trackId,
-          locString: `${feature.refSeq?.name}:${feature.start + 1}..${
-            feature.end
-          }`,
-        }),
-    )
+    return features.map((feature) => {
+      const refName = assembly.getCanonicalRefName(feature.refSeq)
+      return new BaseResult({
+        label: query,
+        trackId: this.trackId,
+        locString: `${refName}:${feature.min + 1}..${feature.max}`,
+      })
+    })
   }
 
   async searchIndex(args: BaseTextSearchArgs): Promise<BaseResult[]> {
-    const results = []
+    const query = args.queryString
+    const results: BaseResult[] = []
+    const session = this.pluginManager?.rootModel?.session as
+      | ApolloSessionModel
+      | undefined
+    if (!session) {
+      return results
+    }
+    const { apolloDataStore } = session
+    const { assemblyManager } = session as unknown as AbstractSessionModel
     for (const assemblyName of this.assemblyNames) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const session = this.pluginManager?.rootModel?.session as any
-      const backendDriver =
-        session?.apolloDataStore.getBackendDriver(assemblyName)
-      const r = await backendDriver.searchFeatures(args.queryString, [
+      const backendDriver = apolloDataStore.getBackendDriver(assemblyName)
+      const assembly = assemblyManager.get(assemblyName)
+      if (!(backendDriver && assembly)) {
+        continue
+      }
+      const features = await backendDriver.searchFeatures(args.queryString, [
         assemblyName,
       ])
-      results.push(...r)
+      results.push(...this.mapBaseResult(features, assembly, query))
     }
 
-    const query = args.queryString
-    return this.mapBaseResult(results, query)
+    return results
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
@@ -8,15 +8,7 @@ import {
   TypeChange,
 } from '@apollo-annotation/shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
-import {
-  FormControl,
-  FormControlLabel,
-  FormLabel,
-  Radio,
-  RadioGroup,
-  TextField,
-  Typography,
-} from '@mui/material'
+import { TextField, Typography } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 
@@ -32,14 +24,14 @@ export const BasicInformation = observer(function BasicInformation({
   feature,
   session,
 }: {
-  feature: AnnotationFeatureI
+  feature: AnnotationFeature
   session: ApolloSessionModel
   assembly: string
 }) {
   const [errorMessage, setErrorMessage] = useState('')
   const [typeWarningText, setTypeWarningText] = useState('')
 
-  const { _id, assemblyId, end, start, strand, type } = feature
+  const { _id, assemblyId, max, min, strand, type } = feature
 
   const notifyError = (e: Error) => {
     ;(session as unknown as AbstractSessionModel).notify(e.message, 'error')
@@ -80,7 +72,7 @@ export const BasicInformation = observer(function BasicInformation({
       typeName: 'LocationStartChange',
       changedIds: [_id],
       featureId: _id,
-      oldStart: start,
+      oldStart: min,
       newStart,
       assembly,
     })
@@ -92,7 +84,7 @@ export const BasicInformation = observer(function BasicInformation({
       typeName: 'LocationEndChange',
       changedIds: [_id],
       featureId: _id,
-      oldEnd: end,
+      oldEnd: max,
       newEnd,
       assembly,
     })
@@ -100,7 +92,7 @@ export const BasicInformation = observer(function BasicInformation({
   }
 
   async function fetchValidTerms(
-    parentFeature: AnnotationFeatureI | undefined,
+    parentFeature: undefined | AnnotationFeature,
     ontologyStore: OntologyStore,
     _signal: AbortSignal,
   ) {
@@ -120,14 +112,14 @@ export const BasicInformation = observer(function BasicInformation({
 
   return (
     <>
-      <Typography variant="h4">Basic information</Typography>
+      <Typography variant="h5">Basic information</Typography>
       <NumberTextField
         margin="dense"
         id="start"
         label="Start"
         fullWidth
         variant="outlined"
-        value={start + 1}
+        value={min + 1}
         onChangeCommitted={handleStartChange}
       />
       <NumberTextField
@@ -136,7 +128,7 @@ export const BasicInformation = observer(function BasicInformation({
         label="End"
         fullWidth
         variant="outlined"
-        value={end}
+        value={max}
         onChangeCommitted={handleEndChange}
       />
       <OntologyTermAutocomplete
@@ -161,18 +153,33 @@ export const BasicInformation = observer(function BasicInformation({
           }
         }}
       />
-      <FormControl>
-        <FormLabel>Strand</FormLabel>
-        <RadioGroup row value={strand ?? ''} onChange={handleStrandChange}>
-          <FormControlLabel value="1" control={<Radio />} label="Forward (+)" />
-          <FormControlLabel
-            value="-1"
-            control={<Radio />}
-            label="Reverse (-)"
-          />
-          <FormControlLabel value="" control={<Radio />} label="None" />
-        </RadioGroup>
-      </FormControl>
+      <label>
+        <input
+          type="radio"
+          value="1"
+          checked={strand === 1}
+          onChange={handleStrandChange}
+        />
+        Positive Strand (+)
+      </label>
+      <label>
+        <input
+          type="radio"
+          value="-1"
+          checked={strand === -1}
+          onChange={handleStrandChange}
+        />
+        Negative Strand (-)
+      </label>
+      <label>
+        <input
+          type="radio"
+          value=""
+          checked={strand === undefined}
+          onChange={handleStrandChange}
+        />
+        No Strand Information
+      </label>
       {errorMessage ? (
         <Typography color="error">{errorMessage}</Typography>
       ) : null}

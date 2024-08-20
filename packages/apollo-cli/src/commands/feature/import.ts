@@ -1,5 +1,6 @@
 import * as fs from 'node:fs'
 
+import { type SerializedAddFeaturesFromFileChange } from '@apollo-annotation/shared'
 import { Flags } from '@oclif/core'
 import { Agent, RequestInit, fetch } from 'undici'
 
@@ -69,7 +70,7 @@ export default class Import extends BaseCommand<typeof Import> {
       'text/x-gff3',
     )
 
-    const body = {
+    const body: SerializedAddFeaturesFromFileChange = {
       typeName: 'AddFeaturesFromFileChange',
       assembly: assembly[0],
       fileId: uploadId,

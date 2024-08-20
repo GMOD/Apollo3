@@ -1,17 +1,12 @@
-import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
 import { getSession } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
-import { getRoot } from 'mobx-state-tree'
-import React, { useMemo } from 'react'
+import React from 'react'
 import { makeStyles } from 'tss-react/mui'
 
-import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
 import { ApolloSessionModel } from '../session'
-import { ApolloRootModel } from '../types'
 import { Attributes } from './Attributes'
 import { BasicInformation } from './BasicInformation'
 import { ApolloFeatureDetailsWidget as ApolloFeatureDetails } from './model'
-import { RelatedFeatures } from './RelatedFeature'
 import { Sequence } from './Sequence'
 
 const useStyles = makeStyles()((theme) => ({
@@ -27,14 +22,6 @@ export const ApolloFeatureDetailsWidget = observer(
     const session = getSession(model) as unknown as ApolloSessionModel
     const currentAssembly = session.apolloDataStore.assemblies.get(assembly)
     const { classes } = useStyles()
-    const { internetAccounts } = getRoot<ApolloRootModel>(session)
-    const internetAccount = useMemo(() => {
-      return internetAccounts.find(
-        (ia: BaseInternetAccountModel) => ia.type === 'ApolloInternetAccount',
-      ) as ApolloInternetAccountModel | undefined
-    }, [internetAccounts])
-    const role = internetAccount ? internetAccount.role : 'admin'
-    const editable = ['admin', 'user'].includes(role ?? '')
 
     if (!(feature && currentAssembly)) {
       return null
@@ -43,11 +30,11 @@ export const ApolloFeatureDetailsWidget = observer(
     if (!refSeq) {
       return null
     }
-    const { end, start } = feature
-    const sequence = refSeq.getSequence(start, end)
+    const { max, min } = feature
+    const sequence = refSeq.getSequence(min, max)
     if (!sequence) {
       void session.apolloDataStore.loadRefSeq([
-        { assemblyName: assembly, refName, start, end },
+        { assemblyName: assembly, refName, start: min, end: max },
       ])
     }
 
@@ -63,7 +50,7 @@ export const ApolloFeatureDetailsWidget = observer(
           feature={feature}
           session={session}
           assembly={currentAssembly._id}
-          editable={editable}
+          editable={true}
         />
         <hr />
         <Sequence
@@ -71,13 +58,6 @@ export const ApolloFeatureDetailsWidget = observer(
           session={session}
           assembly={currentAssembly._id}
           refName={refName}
-        />
-        <hr />
-        <RelatedFeatures
-          feature={feature}
-          refName={refName}
-          session={session}
-          assembly={currentAssembly._id}
         />
       </div>
     )

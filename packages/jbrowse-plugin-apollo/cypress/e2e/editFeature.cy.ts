@@ -1,8 +1,24 @@
 describe('Different ways of editing features', () => {
-  beforeEach(() => {
-    cy.addOntologies()
+  before(() => {
     cy.deleteAssemblies()
+    cy.wrap(
+      window.indexedDB.databases().then((dbs) => {
+        for (const db of dbs) {
+          if (db.name) {
+            window.indexedDB.deleteDatabase(db.name)
+          }
+        }
+      }),
+    )
+    cy.addOntologies()
+  })
+
+  beforeEach(() => {
     cy.loginAsGuest()
+  })
+
+  afterEach(() => {
+    cy.deleteAssemblies()
   })
 
   it('Edit feature via table editor', () => {

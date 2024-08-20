@@ -32,7 +32,7 @@ export interface RefSeqInterface {
 }
 
 export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
-  const { addApolloTrackConfig, apolloDataStore } = session
+  const { apolloDataStore } = session
   const { addAssembly, addSessionAssembly, assemblyManager, notify } =
     session as unknown as AbstractSessionModel & {
       // eslint-disable-next-line @typescript-eslint/ban-types
@@ -104,7 +104,7 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
     const a = await assemblyManager.waitForAssembly(assemblyConfig.name)
     if (a) {
       // @ts-expect-error MST type coercion problem?
-      addApolloTrackConfig(a)
+      session.addApolloTrackConfig(a)
       notify(`Loaded GFF3 ${file.name}`, 'success')
     } else {
       notify(`Error loading GFF3 ${file.name}`, 'error')

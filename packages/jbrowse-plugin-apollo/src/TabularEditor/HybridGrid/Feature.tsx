@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
 /* eslint-disable unicorn/no-nested-ternary */
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { AnnotationFeatureI } from '@apollo-annotation/mst'
+
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import { observer } from 'mobx-react'
 import React from 'react'
@@ -23,6 +21,7 @@ import { FeatureAttributes } from './FeatureAttributes'
 import { featureContextMenuItems } from './featureContextMenuItems'
 import type { ContextMenuState } from './HybridGrid'
 import { NumberCell } from './NumberCell'
+import { getGlyph } from '../../LinearApolloDisplay/stateModel/getGlyph'
 
 const useStyles = makeStyles()((theme) => ({
   typeContent: {
@@ -61,7 +60,7 @@ const useStyles = makeStyles()((theme) => ({
 
 function makeContextMenuItems(
   display: DisplayStateModel,
-  feature: AnnotationFeatureI,
+  feature: AnnotationFeature,
 ) {
   const {
     changeManager,
@@ -82,7 +81,7 @@ function makeContextMenuItems(
   )
 }
 
-function getTopLevelFeature(feature: AnnotationFeatureI): AnnotationFeatureI {
+function getTopLevelFeature(feature: AnnotationFeature): AnnotationFeature {
   let cur = feature
   while (cur.parent) {
     cur = cur.parent
@@ -100,7 +99,7 @@ export const Feature = observer(function Feature({
   setContextMenu,
 }: {
   model: DisplayStateModel
-  feature: AnnotationFeatureI
+  feature: AnnotationFeature
   depth: number
   isHovered: boolean
   isSelected: boolean
@@ -116,16 +115,7 @@ export const Feature = observer(function Feature({
     tabularEditor: tabularEditorState,
   } = displayState
   const { featureCollapsed, filterText } = tabularEditorState
-  const {
-    _id,
-    children,
-    discontinuousLocations,
-    end,
-    phase,
-    start,
-    strand,
-    type,
-  } = feature
+  const { _id, children, max, min, strand, type } = feature
   const expanded = !featureCollapsed.get(_id)
   const toggleExpanded = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -144,6 +134,7 @@ export const Feature = observer(function Feature({
           displayState.setApolloHover({
             feature,
             topLevelFeature: getTopLevelFeature(feature),
+            glyph: getGlyph(getTopLevelFeature(feature)),
           })
         }}
         className={
@@ -224,72 +215,29 @@ export const Feature = observer(function Feature({
           </div>
         </td>
         <td>
-          {discontinuousLocations && discontinuousLocations.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {discontinuousLocations.map((loc, index) => (
-                <NumberCell
-                  key={`${_id}:${loc.start},${loc.phase}`}
-                  initialValue={loc.start + 1}
-                  notifyError={notifyError}
-                  onChangeCommitted={(newStart) =>
-                    handleFeatureStartChange(
-                      changeManager,
-                      feature,
-                      discontinuousLocations[index].start,
-                      newStart - 1,
-                      index,
-                    )
-                  }
-                />
-              ))}
-            </div>
-          ) : (
-            <NumberCell
-              initialValue={start + 1}
-              notifyError={notifyError}
-              onChangeCommitted={(newStart) =>
-                handleFeatureStartChange(
-                  changeManager,
-                  feature,
-                  start,
-                  newStart - 1,
-                )
-              }
-            />
-          )}
+          <NumberCell
+            initialValue={min + 1}
+            notifyError={notifyError}
+            onChangeCommitted={(newStart) =>
+              handleFeatureStartChange(
+                changeManager,
+                feature,
+                min,
+                newStart - 1,
+              )
+            }
+          />
         </td>
         <td>
-          {discontinuousLocations && discontinuousLocations.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {discontinuousLocations.map((loc, index) => (
-                <NumberCell
-                  key={`${_id}:${loc.end},${loc.phase}`}
-                  initialValue={loc.end}
-                  notifyError={notifyError}
-                  onChangeCommitted={(newEnd) =>
-                    handleFeatureEndChange(
-                      changeManager,
-                      feature,
-                      discontinuousLocations[index].end,
-                      newEnd,
-                      index,
-                    )
-                  }
-                />
-              ))}
-            </div>
-          ) : (
-            <NumberCell
-              initialValue={end}
-              notifyError={notifyError}
-              onChangeCommitted={(newEnd) =>
-                handleFeatureEndChange(changeManager, feature, end, newEnd)
-              }
-            />
-          )}
+          <NumberCell
+            initialValue={max}
+            notifyError={notifyError}
+            onChangeCommitted={(newEnd) =>
+              handleFeatureEndChange(changeManager, feature, max, newEnd)
+            }
+          />
         </td>
         <td>{strand === 1 ? '+' : strand === -1 ? '-' : undefined}</td>
-        <td>{phase}</td>
         <td>
           <FeatureAttributes filterText={filterText} feature={feature} />
         </td>
@@ -306,8 +254,7 @@ export const Feature = observer(function Feature({
               return text.includes(filterText)
             })
             .map(([featureId, childFeature]) => {
-              const childHovered =
-                apolloHover?.feature?._id === childFeature._id
+              const childHovered = apolloHover?.feature._id === childFeature._id
               const childSelected = selectedFeature?._id === childFeature._id
               return (
                 <Feature
@@ -327,7 +274,7 @@ export const Feature = observer(function Feature({
   )
 })
 async function fetchValidTypeTerms(
-  feature: AnnotationFeatureI,
+  feature: AnnotationFeature,
   ontologyStore: OntologyStore,
   _signal: AbortSignal,
 ) {

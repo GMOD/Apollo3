@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import { AddFeatureChange } from '@apollo-annotation/shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
@@ -7,11 +7,6 @@ import {
   DialogActions,
   DialogContent,
   DialogContentText,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
   TextField,
 } from '@mui/material'
 import ObjectID from 'bson-objectid'
@@ -28,15 +23,9 @@ import { OntologyTermAutocomplete } from './OntologyTermAutocomplete'
 interface AddChildFeatureProps {
   session: ApolloSessionModel
   handleClose(): void
-  sourceFeature: AnnotationFeatureI
+  sourceFeature: AnnotationFeature
   sourceAssemblyId: string
   changeManager: ChangeManager
-}
-
-enum PhaseEnum {
-  zero = 0,
-  one = 1,
-  two = 2,
 }
 
 export function AddChildFeature({
@@ -47,17 +36,14 @@ export function AddChildFeature({
   sourceFeature,
 }: AddChildFeatureProps) {
   const { notify } = session as unknown as AbstractSessionModel
-  const [end, setEnd] = useState(String(sourceFeature.end))
-  const [start, setStart] = useState(String(sourceFeature.start + 1))
+  const [end, setEnd] = useState(String(sourceFeature.max))
+  const [start, setStart] = useState(String(sourceFeature.min + 1))
   const [type, setType] = useState('')
-  const [phase, setPhase] = useState('')
-  const [phaseAsNumber, setPhaseAsNumber] = useState<PhaseEnum>()
-  const [showPhase, setShowPhase] = useState<boolean>(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [typeWarningText, setTypeWarningText] = useState('')
 
   async function fetchValidTerms(
-    parentFeature: AnnotationFeatureI | undefined,
+    parentFeature: AnnotationFeature | undefined,
     ontologyStore: OntologyStore,
     _signal: AbortSignal,
   ) {
@@ -78,22 +64,16 @@ export function AddChildFeature({
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage('')
-    if (showPhase && phase === '') {
-      setErrorMessage('The phase is REQUIRED for all CDS features.')
-      return
-    }
     const change = new AddFeatureChange({
       changedIds: [sourceFeature._id],
       typeName: 'AddFeatureChange',
       assembly: sourceAssemblyId,
       addedFeature: {
         _id: new ObjectID().toHexString(),
-        gffId: '',
         refSeq: sourceFeature.refSeq,
-        start: Number(start) - 1,
-        end: Number(end),
+        min: Number(start) - 1,
+        max: Number(end),
         type,
-        phase: phaseAsNumber,
       },
       parentFeatureId: sourceFeature._id,
     })
@@ -105,35 +85,6 @@ export function AddChildFeature({
   function handleChangeType(newType: string) {
     setErrorMessage('')
     setType(newType)
-    if (newType.startsWith('CDS')) {
-      setShowPhase(true)
-      setPhase('')
-    } else {
-      setShowPhase(false)
-    }
-  }
-  function handleChangePhase(e: SelectChangeEvent) {
-    setErrorMessage('')
-    setPhase(e.target.value)
-
-    switch (Number(e.target.value)) {
-      case 0: {
-        setPhaseAsNumber(PhaseEnum.zero)
-        break
-      }
-      case 1: {
-        setPhaseAsNumber(PhaseEnum.one)
-        break
-      }
-      case 2: {
-        setPhaseAsNumber(PhaseEnum.two)
-        break
-      }
-      default: {
-        // eslint-disable-next-line unicorn/no-useless-undefined
-        setPhaseAsNumber(undefined)
-      }
-    }
   }
   const error = Number(end) <= Number(start)
   return (
@@ -172,13 +123,6 @@ export function AddChildFeature({
             error={error}
             helperText={error ? '"End" must be greater than "Start"' : null}
           />
-          {/* <Select value={type} onChange={handleChangeType} label="Type">
-              {(possibleChildTypes ?? []).map((option) => (
-                <MenuItem key={option} value={option}>
-                  {option}
-                </MenuItem>
-              ))}
-            </Select> */}
           <OntologyTermAutocomplete
             session={session}
             ontologyName="Sequence Ontology"
@@ -202,16 +146,6 @@ export function AddChildFeature({
               }
             }}
           />
-          {showPhase ? (
-            <FormControl>
-              <InputLabel>Phase</InputLabel>
-              <Select value={phase} onChange={handleChangePhase}>
-                <MenuItem value={0}>0</MenuItem>
-                <MenuItem value={1}>1</MenuItem>
-                <MenuItem value={2}>2</MenuItem>
-              </Select>
-            </FormControl>
-          ) : null}
         </DialogContent>
         <DialogActions>
           <Button

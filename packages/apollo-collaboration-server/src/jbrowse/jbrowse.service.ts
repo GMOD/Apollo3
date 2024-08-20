@@ -117,7 +117,7 @@ export class JBrowseService {
         return {
           name: assemblyId,
           aliases: [assembly.name, ...assembly.aliases],
-          displayName: assembly.name,
+          displayName: assembly.displayName || assembly.name,
           sequence: {
             trackId: `sequenceConfigId-${assembly.name}`,
             type: 'ReferenceSequenceTrack',
@@ -154,7 +154,7 @@ export class JBrowseService {
       return {
         type: 'ApolloTrack',
         trackId,
-        name: `Annotations (${assembly.displayName})`,
+        name: `Annotations (${assembly.displayName || assembly.name})`,
         assemblyNames: [assembly.id],
         textSearching: {
           textSearchAdapter: {

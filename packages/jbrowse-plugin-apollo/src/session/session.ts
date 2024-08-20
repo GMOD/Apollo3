@@ -2,17 +2,23 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
-import { AnnotationFeature, AnnotationFeatureI } from '@apollo-annotation/mst'
+import {
+  AnnotationFeature,
+  AnnotationFeatureModel,
+} from '@apollo-annotation/mst'
 import {
   filterJBrowseConfig,
   ImportJBrowseConfigChange,
   JBrowseConfig,
   UserLocation,
 } from '@apollo-annotation/shared'
-import { readConfObject } from '@jbrowse/core/configuration'
+import { readConfObject, getConf } from '@jbrowse/core/configuration'
 import { BaseTrackConfig } from '@jbrowse/core/pluggableElementTypes'
 import PluginManager from '@jbrowse/core/PluginManager'
-import { AbstractSessionModel } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  SessionWithConfigEditing,
+} from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import SaveIcon from '@mui/icons-material/Save'
 import { autorun, observable } from 'mobx'
@@ -32,11 +38,12 @@ import { ChangeManager } from '../ChangeManager'
 import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 import { clientDataStoreFactory } from './ClientDataStore'
+import { AssemblyModel } from '@jbrowse/core/assemblyManager/assembly'
 
 export interface ApolloSession extends AbstractSessionModel {
   apolloDataStore: ClientDataStoreType & { changeManager: ChangeManager }
-  apolloSelectedFeature?: AnnotationFeatureI
-  apolloSetSelectedFeature(feature?: AnnotationFeatureI): void
+  apolloSelectedFeature?: AnnotationFeature
+  apolloSetSelectedFeature(feature?: AnnotationFeature): void
 }
 
 export interface Collaborator {
@@ -53,8 +60,8 @@ export function extendSession(
   const { signal } = aborter
   const AnnotationFeatureExtended = pluginManager.evaluateExtensionPoint(
     'Apollo-extendAnnotationFeature',
-    AnnotationFeature,
-  ) as typeof AnnotationFeature
+    AnnotationFeatureModel,
+  ) as typeof AnnotationFeatureModel
   const ClientDataStore = clientDataStoreFactory(AnnotationFeatureExtended)
   const sm = sessionModel
     .props({
@@ -86,8 +93,47 @@ export function extendSession(
       }
     })
     .actions((self) => ({
-      apolloSetSelectedFeature(feature?: AnnotationFeatureI) {
+      apolloSetSelectedFeature(feature?: AnnotationFeature) {
+        // @ts-expect-error Not sure why TS thinks these MST types don't match
         self.apolloSelectedFeature = feature
+      },
+      addApolloTrackConfig(assembly: AssemblyModel, baseURL?: string) {
+        const trackId = `apollo_track_${assembly.name}`
+        const hasTrack = (self as unknown as AbstractSessionModel).tracks.some(
+          (track) => track.trackId === trackId,
+        )
+        if (!hasTrack) {
+          ;(self as unknown as SessionWithConfigEditing).addTrackConf({
+            type: 'ApolloTrack',
+            trackId,
+            name: `Annotations (${
+              // @ts-expect-error getConf types don't quite work here for some reason
+              getConf(assembly, 'displayName') || assembly.name
+            })`,
+            assemblyNames: [assembly.name],
+            textSearching: {
+              textSearchAdapter: {
+                type: 'ApolloTextSearchAdapter',
+                trackId,
+                assemblyNames: [assembly.name],
+                textSearchAdapterId: `apollo_search_${assembly.name}`,
+                ...(baseURL
+                  ? { baseURL: { uri: baseURL, locationType: 'UriLocation' } }
+                  : {}),
+              },
+            },
+            displays: [
+              {
+                type: 'LinearApolloDisplay',
+                displayId: `${trackId}-LinearApolloDisplay`,
+              },
+              {
+                type: 'SixFrameFeatureDisplay',
+                displayId: `${trackId}-SixFrameFeatureDisplay`,
+              },
+            ],
+          })
+        }
       },
       broadcastLocations() {
         const { internetAccounts } = getRoot<ApolloRootModel>(self)
@@ -360,9 +406,14 @@ export function extendSession(
   return types.snapshotProcessor(sm, {
     postProcessor(snap: SnapshotOut<typeof sm>) {
       snap.apolloSelectedFeature = undefined
+      const assemblies = Object.fromEntries(
+        Object.entries(snap.apolloDataStore.assemblies).filter(
+          ([, assembly]) => assembly.backendDriverType === 'InMemoryFileDriver',
+        ),
+      )
       snap.apolloDataStore = {
         typeName: 'Client',
-        assemblies: {},
+        assemblies,
         checkResults: {},
       }
       return snap
@@ -371,4 +422,8 @@ export function extendSession(
 }
 
 export type ApolloSessionStateModel = ReturnType<typeof extendSession>
-export type ApolloSessionModel = Instance<ApolloSessionStateModel>
+// @ts-expect-error Snapshots seem to mess up types here
+// eslint disable because of
+// https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ApolloSessionModel extends Instance<ApolloSessionStateModel> {}

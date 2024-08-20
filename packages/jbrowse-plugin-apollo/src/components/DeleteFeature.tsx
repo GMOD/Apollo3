@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import { DeleteFeatureChange } from '@apollo-annotation/shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
@@ -20,11 +18,11 @@ import { Dialog } from './Dialog'
 interface DeleteFeatureProps {
   session: ApolloSessionModel
   handleClose(): void
-  sourceFeature: AnnotationFeatureI
+  sourceFeature: AnnotationFeature
   sourceAssemblyId: string
   changeManager: ChangeManager
-  selectedFeature?: AnnotationFeatureI
-  setSelectedFeature(feature?: AnnotationFeatureI): void
+  selectedFeature?: AnnotationFeature
+  setSelectedFeature(feature?: AnnotationFeature): void
 }
 
 export function DeleteFeature({

@@ -59,6 +59,8 @@ import { annotationFromPileup } from './extensions'
 import {
   ApolloFeatureDetailsWidget,
   ApolloFeatureDetailsWidgetModel,
+  ApolloTranscriptDetailsModel,
+  ApolloTranscriptDetailsWidget,
 } from './FeatureDetailsWidget'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
@@ -130,7 +132,17 @@ export default class ApolloPlugin extends Plugin {
       })
       return widgetType
     })
-
+    pluginManager.addWidgetType(() => {
+      const configSchema = ConfigurationSchema('ApolloTranscriptDetails', {})
+      const widgetType = new WidgetType({
+        name: 'ApolloTranscriptDetails',
+        heading: 'Apollo transcript details',
+        configSchema,
+        stateModel: ApolloTranscriptDetailsModel,
+        ReactComponent: ApolloTranscriptDetailsWidget,
+      })
+      return widgetType
+    })
     pluginManager.addTrackType(() => {
       const configSchema = ConfigurationSchema(
         'ApolloTrack',

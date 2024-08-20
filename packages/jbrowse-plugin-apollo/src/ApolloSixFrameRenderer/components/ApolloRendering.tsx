@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { AnnotationFeatureI } from '@apollo-annotation/mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import {
   LocationEndChange,
   LocationStartChange,
@@ -76,7 +76,7 @@ function selectColor(number: number) {
 function ApolloRendering(props: ApolloRenderingProps) {
   const [contextCoord, setContextCoord] = useState<Coord>()
   const [contextMenuFeature, setContextMenuFeature] =
-    useState<AnnotationFeatureI>()
+    useState<AnnotationFeature>()
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -86,7 +86,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   // const [overEdge, setOverEdge] = useState<'start' | 'end'>()
   const [dragging, setDragging] = useState<{
     edge: 'start' | 'end'
-    feature: AnnotationFeatureI
+    feature: AnnotationFeature
     row: number
     bp: number
     px: number
@@ -187,9 +187,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
     for (const [row, featureInfos] of featureLayout) {
       for (const [parentID, feature] of featureInfos) {
         const start = region.reversed
-          ? region.end - feature.end
-          : feature.start - region.start - 1
-        const end = feature.end - region.start - 1
+          ? region.end - feature.max
+          : feature.min - region.start - 1
+        const end = feature.max - region.start - 1
         const startPx = start / bpPerPx
         const endPx = end / bpPerPx
         const width = end - start
@@ -463,7 +463,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   //   const [parentID, feat] =
   //     layoutRow.find((f) => bp >= f[1].min && bp <= f[1].max) || []
-  //   let feature: AnnotationFeatureI | undefined = feat
+  //   let feature: AnnotationFeature | undefined = feat
   //   if (feature) {
   //     const topRow = row
   //     const startPx = (feature.start - region.start) / bpPerPx
@@ -473,7 +473,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
   //       y - topRow * height,
   //       bpPerPx,
   //       height,
-  //     ) as AnnotationFeatureI
+  //     ) as AnnotationFeature
   //   }
   //   if (feature) {
   //     // TODO: check reversed
@@ -526,7 +526,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
       let change: LocationEndChange | LocationStartChange
       if (edge === 'end') {
         const featureId = feature._id
-        const oldEnd = feature.end
+        const oldEnd = feature.max
         const newEnd = Math.round(bp)
         change = new LocationEndChange({
           typeName: 'LocationEndChange',
@@ -538,7 +538,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
         })
       } else {
         const featureId = feature._id
-        const oldStart = feature.start
+        const oldStart = feature.min
         const newStart = Math.round(bp)
         change = new LocationStartChange({
           typeName: 'LocationStartChange',
