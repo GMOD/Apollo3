@@ -77,45 +77,55 @@ export function gff3ToAnnotationFeature(
     }
   }
   if (featureIds) {
-    featureIds.push(feature._id as string)
+    featureIds.push(feature._id)
   }
 
-if (childFeatures.length > 0) {
-  const children: Record<string, AnnotationFeatureSnapshot> = {}
-  let _containsCDS = false
+  if (childFeatures.length > 0) {
+    const children: Record<string, AnnotationFeatureSnapshot> = {}
     let _cdsParent
     let _cdsFeature
-    let _cdsID
-    let _cdsMin=0
+    let _cdsID = ''
+    let _cdsMin = 0
     for (const childFeature of childFeatures) {
-      if (childFeature[0].type === 'three_prime_UTR' || childFeature[0].type === 'five_prime_UTR') {
+      if (
+        childFeature[0].type === 'three_prime_UTR' ||
+        childFeature[0].type === 'five_prime_UTR'
+      ) {
         continue
       }
       if (childFeature[0].type === 'CDS') {
         if (_cdsParent) {
-          if (childFeature[0].attributes?.Parent && childFeature[0].attributes?.ID) {
-            if (_cdsParent === childFeature[0].attributes.Parent[0]) {
-              _cdsID += ',' +  childFeature[0].attributes?.ID
-              _cdsFeature = JSON.parse(JSON.stringify(childFeature))
-              if (_cdsID && _cdsFeature[0].attributes?.ID) {
-                _cdsFeature[0].attributes.ID[0] = _cdsID
-              }
-              continue
+          if (
+            childFeature[0].attributes?.Parent &&
+            childFeature[0].attributes.ID &&
+            _cdsParent === childFeature[0].attributes.Parent[0]
+          ) {
+            _cdsID += `,${childFeature[0].attributes.ID.join(',')}`
+            _cdsFeature = JSON.parse(
+              JSON.stringify(childFeature),
+            ) as GFF3Feature
+            if (_cdsID && _cdsFeature[0].attributes?.ID) {
+              _cdsFeature[0].attributes.ID[0] = _cdsID
             }
+            continue
           }
         } else {
           // eslint-disable-next-line prefer-destructuring
-          _cdsFeature = JSON.parse(JSON.stringify(childFeature))
-          if (childFeature[0].attributes?.Parent && childFeature[0].attributes?.ID) {
-            _cdsParent = childFeature[0].attributes?.Parent[0] // Set CDS parent
-            _cdsID = childFeature[0].attributes?.ID[0]
+          _cdsFeature = JSON.parse(JSON.stringify(childFeature)) as GFF3Feature
+          if (
+            childFeature[0].attributes?.Parent &&
+            childFeature[0].attributes.ID
+          ) {
+            ;[_cdsParent] = childFeature[0].attributes.Parent // Set CDS parent
+            ;[_cdsID] = childFeature[0].attributes.ID
             _cdsMin = childFeature[0].start ?? 0
           }
         }
-        _containsCDS = true
         continue
       }
-      const child = refSeq ? gff3ToAnnotationFeature(childFeature, refSeq, featureIds) : gff3ToAnnotationFeature(childFeature)
+      const child = refSeq
+        ? gff3ToAnnotationFeature(childFeature, refSeq, featureIds)
+        : gff3ToAnnotationFeature(childFeature)
       children[child._id] = child
       // Add value to gffId
       if (child.attributes) {
@@ -125,8 +135,9 @@ if (childFeatures.length > 0) {
     // Process previous combined CDS feature if any
     if (_cdsFeature) {
       _cdsFeature[0].start = _cdsMin
-      _cdsFeature.start = _cdsMin
-      const child = refSeq ? gff3ToAnnotationFeature(_cdsFeature, refSeq, featureIds) : gff3ToAnnotationFeature(_cdsFeature);
+      const child = refSeq
+        ? gff3ToAnnotationFeature(_cdsFeature, refSeq, featureIds)
+        : gff3ToAnnotationFeature(_cdsFeature)
       children[child._id] = child
       // Add value to gffId
       if (child.attributes) {

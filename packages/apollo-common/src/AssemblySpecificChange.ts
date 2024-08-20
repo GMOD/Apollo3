@@ -3,12 +3,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { FileDocument, RefSeqDocument } from '@apollo-annotation/schemas'
 import { gff3ToAnnotationFeature } from '@apollo-annotation/shared'
 import { GFF3Feature } from '@gmod/gff'
-import ObjectID from 'bson-objectid'
 
 import { Change, ChangeOptions, SerializedChange, isChange } from './Change'
 
@@ -84,7 +81,7 @@ export abstract class AssemblySpecificChange extends Change {
         if (refSeqInfoLine) {
           parsingStarted = true
           logger.debug?.(
-            `Reference sequence information line "${refSeqInfoLine}"`,
+            `Reference sequence information line "${refSeqInfoLine[0]}"`,
           )
 
           // If there is sequence from previous reference sequence then we need to add it to previous ref seq
@@ -226,7 +223,7 @@ export abstract class AssemblySpecificChange extends Change {
     // Let's add featureId to parent feature
     const featureIds: string[] = []
 
-    const newFeature = await gff3ToAnnotationFeature(
+    const newFeature = gff3ToAnnotationFeature(
       gff3Feature,
       refSeqDoc._id,
       featureIds,
