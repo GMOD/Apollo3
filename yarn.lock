@@ -119,6 +119,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@apollo-annotation/cli@workspace:packages/apollo-cli"
   dependencies:
+    "@apollo-annotation/shared": "workspace:^"
     "@inquirer/input": "npm:^1.2.14"
     "@inquirer/password": "npm:^1.1.14"
     "@inquirer/select": "npm:^1.3.1"
