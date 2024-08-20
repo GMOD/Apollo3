@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@apollo-annotation/schemas": "workspace:^",
-    "@apollo-annotation/shared": "workspace:^",
     "@gmod/gff": "1.2.0",
     "@jbrowse/core": "^2.11.2",
     "bson-objectid": "^2.0.4",
