@@ -14,9 +14,5 @@
     "strictPropertyInitialization": false,
   },
   "include": ["./src"],
-  "references": [
-    { "path": "../apollo-schemas" },
-    { "path": "../apollo-shared" },
-    { "path": "../apollo-mst" },
-  ],
+  "references": [{ "path": "../apollo-schemas" }, { "path": "../apollo-mst" }],
 }
