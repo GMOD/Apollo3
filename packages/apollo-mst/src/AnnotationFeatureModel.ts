@@ -113,7 +113,6 @@ export const AnnotationFeatureModel = types
       min: number
       max: number
       phase: 0 | 1 | 2
-      strand: 1 | -1 | undefined
     }[][] {
       if (self.type !== 'mRNA') {
         throw new Error(
@@ -135,10 +134,9 @@ export const AnnotationFeatureModel = types
         min: number
         max: number
         phase: 0 | 1 | 2
-        strand: 1 | -1 | undefined
       }[][] = []
       for (const cds of cdsChildren) {
-        const { _id, max: cdsMax, min: cdsMin, strand } = cds
+        const { _id, max: cdsMax, min: cdsMin } = cds
         const locs: {
           min: number
           max: number
@@ -168,7 +166,7 @@ export const AnnotationFeatureModel = types
             | 0
             | 1
             | 2
-          return { ...loc, phase, _id, strand }
+          return { ...loc, phase, _id }
         })
         cdsLocations.push(phasedLocs)
       }

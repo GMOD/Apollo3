@@ -1,9 +1,9 @@
 import { Check } from '@apollo-annotation/common'
 import {
-  AnnotationFeature,
   AnnotationFeatureSnapshot,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
+import { intersection2 } from '@jbrowse/core/util'
 import ObjectID from 'bson-objectid'
 
 enum STOP_CODONS {
@@ -35,7 +35,6 @@ interface CDSLocation {
   min: number
   max: number
   phase: 0 | 1 | 2
-  strand: 1 | -1 | undefined
 }
 
 function reverseComplement(dna: string): string {
@@ -55,7 +54,7 @@ function reverseComplement(dna: string): string {
 }
 
 function checkCDS(
-  parent: AnnotationFeature,
+  parent: AnnotationFeatureSnapshot,
   cdsSequence: string,
   cdsMin: number,
   cdsMax: number,
@@ -137,36 +136,73 @@ function getOriginalCodonLocation(
   throw new Error(`Could not find original codon location for index ${index}`)
 }
 
+function getCdsLocations(mRNA: AnnotationFeatureSnapshot): CDSLocation[][] {
+  const { children, strand } = mRNA
+  if (!children) {
+    return []
+  }
+  const cdsChildren = Object.values(children).filter(
+    (child) => child.type === 'CDS',
+  )
+  if (cdsChildren.length === 0) {
+    return []
+  }
+  const cdsLocations: CDSLocation[][] = []
+  for (const cds of cdsChildren) {
+    const { _id, max: cdsMax, min: cdsMin } = cds
+    const locs: {
+      min: number
+      max: number
+    }[] = []
+    for (const child of Object.values(children)) {
+      if (child.type !== 'exon') {
+        continue
+      }
+      const [start, end] = intersection2(cdsMin, cdsMax, child.min, child.max)
+      if (start !== undefined && end !== undefined) {
+        locs.push({ min: start, max: end })
+      }
+    }
+    locs.sort(({ min: a }, { min: b }) => a - b)
+    if (strand === -1) {
+      locs.reverse()
+    }
+    let nextPhase: 0 | 1 | 2 = 0
+    const phasedLocs = locs.map((loc) => {
+      const phase = nextPhase
+      nextPhase = ((3 - ((loc.max - loc.min - phase + 3) % 3)) % 3) as 0 | 1 | 2
+      return { ...loc, phase, _id }
+    })
+    cdsLocations.push(phasedLocs)
+  }
+  return cdsLocations
+}
+
 export class CDSCheck extends Check {
   name = 'CDSCheck'
   version = 1
   default = true
 
   async checkFeature(
-    _featureSnapshot: AnnotationFeatureSnapshot,
+    featureSnapshot: AnnotationFeatureSnapshot,
     getSequence: (start: number, end: number) => Promise<string>,
-    feature?: AnnotationFeature,
   ): Promise<CheckResultSnapshot[]> {
-    if (!feature) {
-      return []
-    }
-
-    const mRNAs: AnnotationFeature[] = []
-    if (feature.type === 'gene' && feature.children) {
-      for (const [, child] of feature.children) {
+    const mRNAs: AnnotationFeatureSnapshot[] = []
+    if (featureSnapshot.type === 'gene' && featureSnapshot.children) {
+      for (const child of Object.values(featureSnapshot.children)) {
         if (child.type === 'mRNA') {
           mRNAs.push(child)
         }
       }
     }
 
-    if (feature.type === 'mRNA') {
-      mRNAs.push(feature)
+    if (featureSnapshot.type === 'mRNA') {
+      mRNAs.push(featureSnapshot)
     }
 
     const checkResults: CheckResultSnapshot[] = []
     for (const mRNA of mRNAs) {
-      const { cdsLocations } = mRNA
+      const cdsLocations = getCdsLocations(mRNA)
 
       if (cdsLocations.length === 0) {
         // move to next mRNA
@@ -178,32 +214,18 @@ export class CDSCheck extends Check {
         const codons: string[] = []
         const cdsMin = cds.at(0)?.min
         const cdsMax = cds.at(-1)?.max
-        const firstLocStrand = cds.at(0)?.strand
-        let isValidStrand = true
 
-        if (
-          cdsMin === undefined ||
-          cdsMax === undefined ||
-          firstLocStrand === undefined
-        ) {
+        if (cdsMin === undefined || cdsMax === undefined) {
           // move to next CDS
           continue
         }
 
         for (const loc of cds) {
-          if (loc.strand !== firstLocStrand) {
-            isValidStrand = false
-            break
-          }
           cdsSequence = cdsSequence + (await getSequence(loc.min, loc.max))
           cdsIds.push(loc._id)
         }
 
-        if (!isValidStrand) {
-          continue
-        }
-
-        if (firstLocStrand === -1) {
+        if (featureSnapshot.strand === -1) {
           cdsSequence = reverseComplement(cdsSequence)
         }
 
@@ -213,7 +235,7 @@ export class CDSCheck extends Check {
 
         checkResults.push(
           ...checkCDS(
-            feature,
+            featureSnapshot,
             cdsSequence,
             cdsMin,
             cdsMax,

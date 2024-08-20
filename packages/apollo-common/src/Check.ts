@@ -1,5 +1,4 @@
 import {
-  AnnotationFeature,
   AnnotationFeatureSnapshot,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
@@ -11,6 +10,5 @@ export abstract class Check {
   abstract checkFeature(
     featureSnapshot: AnnotationFeatureSnapshot,
     getSequence: (start: number, end: number) => Promise<string>,
-    feature?: AnnotationFeature,
   ): Promise<CheckResultSnapshot[]>
 }
