@@ -10,6 +10,7 @@ and run it:
     ./test/test.py TestCLI.testAddAssemblyFromGff # Run only this test
 """
 
+import argparse
 import json
 import os
 import sys
@@ -910,6 +911,27 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(1, p.returncode)
         self.assertTrue('Profile "foo" does not exist' in p.stderr)
 
+    def testRefNameAliasConfiguration(self):
+        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a asm1 -f")
+        
+        p = shell(f"{apollo} assembly get {P} -a asm1")
+        self.assertTrue("asm1" in p.stdout)
+        self.assertTrue("asm2" not in p.stdout)
+        asm_id = json.loads(p.stdout)[0]["_id"]
+
+        p = shell(f"{apollo} refseq add-alias {P} -i test_data/alias.txt -a asm2", strict=False)
+        self.assertTrue("Assembly asm2 not found" in p.stderr)
+        
+        p = shell(f"{apollo} refseq add-alias {P} -i test_data/alias.txt -a asm1", strict=False)
+        self.assertTrue("Reference name aliases added successfully to assembly asm1" in p.stdout)
+        
+        p = shell(f"{apollo} refseq get {P}")
+        refseq = json.loads(p.stdout.strip())
+        vv1ref = [x for x in refseq if x["assembly"] == asm_id]
+        refname_aliases = {x["name"]: x["aliases"] for x in vv1ref}
+        self.assertTrue(all(alias in refname_aliases.get("ctgA", []) for alias in ["ctga", "CTGA"]))
+        self.assertTrue(all(alias in refname_aliases.get("ctgB", []) for alias in ["ctgb", "CTGB"]))
+        self.assertTrue(all(alias in refname_aliases.get("ctgC", []) for alias in ["ctgc", "CTGC"]))
 
 if __name__ == "__main__":
     unittest.main()
