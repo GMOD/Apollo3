@@ -2,7 +2,7 @@ name: apollo-demo-site
 
 services:
   apollo-collaboration-server:
-    image: ghcr.io/gmod/apollo-collaboration-server:development
+    image: ghcr.io/gmod/apollo-collaboration-server:${DOCKER_TAG}
     depends_on:
       mongo-node-1:
         condition: service_healthy
