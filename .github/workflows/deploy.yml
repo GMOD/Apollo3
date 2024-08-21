@@ -96,6 +96,7 @@ jobs:
           ROOT_USER_NAME: ${{ secrets.ROOT_USER_NAME }}
           ROOT_USER_PASSWORD: ${{ secrets.ROOT_USER_PASSWORD }}
           URL: ${{ vars.URL }}
+          DOCKER_TAG: ${{ vars.DOCKER_TAG }}
         working-directory: .github/workflows/deploy
         run: |
           docker --context staging compose down
