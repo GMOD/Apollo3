@@ -110,7 +110,6 @@ export function gff3ToAnnotationFeature(
             continue
           }
         } else {
-          // eslint-disable-next-line prefer-destructuring
           _cdsFeature = JSON.parse(JSON.stringify(childFeature)) as GFF3Feature
           if (
             childFeature[0].attributes?.Parent &&
