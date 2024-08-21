@@ -28,7 +28,7 @@ services:
   client:
     build:
       args:
-        JBROWSE_VERSION: 2.10.3
+        JBROWSE_VERSION: 2.13.1
       context: .
     depends_on:
       - apollo-collaboration-server
