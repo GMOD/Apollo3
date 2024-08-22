@@ -113,7 +113,6 @@ export class AddFeatureChange extends FeatureChange {
         )
         featureCnt++
       } else {
-        // addedFeature.gffId = _id // User added manually new feature so then gffId = _id
         // Adding new child feature
         if (parentFeatureId) {
           const topLevelFeature = await featureModel

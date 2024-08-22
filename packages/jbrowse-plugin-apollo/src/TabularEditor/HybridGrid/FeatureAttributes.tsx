@@ -23,9 +23,6 @@ export const FeatureAttributes = observer(function FeatureAttributes({
       if (key === '_id') {
         return ['ID', getSnapshot(value)]
       }
-      if (key === 'gffId') {
-        return ['', getSnapshot(value)] // use empty key to filter it out later
-      }
       return [key, getSnapshot(value)]
     })
     .filter(([key]) => key) // Leave empty keys off

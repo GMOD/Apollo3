@@ -110,9 +110,6 @@ export const Attributes = observer(function Attributes({
       if (key === '_id') {
         return ['ID', getSnapshot(value)]
       }
-      if (key === 'gffId') {
-        return ['', getSnapshot(value)] // use empty key to filter it out later
-      }
       return [key, getSnapshot(value)]
     }),
   )

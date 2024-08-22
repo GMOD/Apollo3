@@ -125,10 +125,6 @@ export function gff3ToAnnotationFeature(
         ? gff3ToAnnotationFeature(childFeature, refSeq, featureIds)
         : gff3ToAnnotationFeature(childFeature)
       children[child._id] = child
-      // Add value to gffId
-      if (child.attributes) {
-        child.attributes.gffId = [child._id]
-      }
     }
     // Process previous combined CDS feature if any
     if (_cdsFeature) {
@@ -137,10 +133,6 @@ export function gff3ToAnnotationFeature(
         ? gff3ToAnnotationFeature(_cdsFeature, refSeq, featureIds)
         : gff3ToAnnotationFeature(_cdsFeature)
       children[child._id] = child
-      // Add value to gffId
-      if (child.attributes) {
-        child.attributes.gffId = [child._id]
-      }
       _cdsFeature = undefined
     }
     feature.children = children

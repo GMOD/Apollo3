@@ -24,7 +24,6 @@ async function deleteFeature(
     assembly: feature['assembly' as keyof typeof feature],
     deletedFeature: {
       _id: feature['_id' as keyof typeof feature],
-      gffId: feature['gffId' as keyof typeof feature],
       refSeq: feature['refSeq' as keyof typeof feature],
       type: feature['type' as keyof typeof feature],
       start: feature['start' as keyof typeof feature],
