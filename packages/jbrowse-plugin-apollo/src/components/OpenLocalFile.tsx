@@ -78,8 +78,10 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
     try {
       await loadAssemblyIntoClient(assemblyId, fileData, apolloDataStore)
     } catch (error) {
-      setErrorMessage(String(error))
-      setSubmitted(false)
+      console.error(error)
+      notify(`Error loading GFF3 ${file.name}, ${String(error)}`, 'error')
+      handleClose()
+      return
     }
 
     const assemblyConfig = {
