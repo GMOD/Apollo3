@@ -7,6 +7,7 @@ services:
       mongo-node-1:
         condition: service_healthy
     environment:
+      NAME: Apollo demo server
       MONGODB_URI: mongodb://mongo-node-1:27017,mongo-node-2:27018/apolloDb?replicaSet=rs0
       FILE_UPLOAD_FOLDER: /data/uploads
       LOG_LEVELS: error,warn,log,debug
@@ -35,7 +36,6 @@ services:
     ports:
       - '80:80'
     volumes:
-      - /home/ec2-user/deployment/config.json:/usr/local/apache2/htdocs/config.json
       - /home/ec2-user/deployment/data/:/usr/local/apache2/htdocs/data/
       - /home/ec2-user/deployment/demoData/:/usr/local/apache2/htdocs/demoData/
     restart: unless-stopped
