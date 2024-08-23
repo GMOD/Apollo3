@@ -131,7 +131,7 @@ export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
       const seq: string = new TextDecoder().decode(seqObj?.value)
       let header = ''
       for (const x of refSeqs) {
-        if (x['_id' as keyof typeof x] === rid) {
+        if (x._id === rid) {
           const rname = x.name
           header = `>${rname}:${flags.start}..${flags.start + seq.length - 1}`
           break

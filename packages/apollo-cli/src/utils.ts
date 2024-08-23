@@ -21,6 +21,10 @@ import { SingleBar } from 'cli-progress'
 import { Agent, RequestInit, Response, fetch } from 'undici'
 
 import { ApolloConf, ConfigError } from './ApolloConf.js'
+import {
+  ApolloAssemblySnapshot,
+  CheckResultSnapshot,
+} from '@apollo-annotation/mst'
 
 const CONFIG_PATH = path.resolve(os.homedir(), '.clirc')
 export const CLI_SERVER_ADDRESS = 'http://127.0.0.1:5657'
@@ -125,10 +129,10 @@ export async function getAssembly(
     return {}
   }
   const res: Response = await queryApollo(address, accessToken, 'assemblies')
-  const assemblies: object[] = (await res.json()) as object[]
+  const assemblies = (await res.json()) as ApolloAssemblySnapshot[]
   let assemblyObj = {}
   for (const x of assemblies) {
-    if (x['_id' as keyof typeof x] === assemblyId[0]) {
+    if (x._id === assemblyId[0]) {
       assemblyObj = JSON.parse(JSON.stringify(x))
       break
     }
@@ -193,11 +197,11 @@ async function checkNameToIdDict(
   accessToken: string,
 ): Promise<Record<string, string>> {
   const asm = await queryApollo(address, accessToken, 'checks/types')
-  const ja = (await asm.json()) as object[]
+  const ja = (await asm.json()) as CheckResultSnapshot[] // Not sure if CheckResultSnapshot is the right interface
   const nameToId: Record<string, string> = {}
   for (const x of ja) {
-    const name: string = x['name' as keyof typeof x]
-    nameToId[name] = x['_id' as keyof typeof x]
+    const { _id, name } = x // x['name' as keyof typeof x]
+    nameToId[name] = _id // x['_id' as keyof typeof x]
   }
   return nameToId
 }
