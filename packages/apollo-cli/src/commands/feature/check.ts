@@ -11,7 +11,6 @@ import {
   wrapLines,
 } from '../../utils.js'
 import {
-  ApolloAssemblyI,
   ApolloAssemblySnapshot,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'

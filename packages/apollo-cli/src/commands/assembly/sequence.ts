@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
+
 import { Flags } from '@oclif/core'
 import { Agent, RequestInit, Response, fetch } from 'undici'
 
