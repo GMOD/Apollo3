@@ -178,11 +178,8 @@ export function CopyFeature({
     const locationMove = start - newFeatureLine.min
     newFeatureLine.min = start
     newFeatureLine.max = start + featureLength
-    // Updates children start, end and gffId values
-    const updatedChildren = updateRefSeqStartEndAndGffId(
-      newFeatureLine,
-      locationMove,
-    )
+    // Updates children start and end values
+    const updatedChildren = updateRefSeqStartEnd(newFeatureLine, locationMove)
 
     const change = new AddFeatureChange({
       changedIds: [newFeatureLine._id],
@@ -212,19 +209,19 @@ export function CopyFeature({
   }
 
   /**
-   * Recursively loop children and update refSeq, start, end and gffId values
+   * Recursively loop children and update refSeq, start, and end values
    * @param feature - parent feature
    * @param locationMove - how much location has been moved from original
    * @returns
    */
-  function updateRefSeqStartEndAndGffId(
+  function updateRefSeqStartEnd(
     feature: AnnotationFeatureSnapshot,
     locationMove: number,
   ): AnnotationFeatureSnapshot {
     const children: Record<string, AnnotationFeatureSnapshot> = {}
     if (feature.children) {
       for (const child of Object.values(feature.children)) {
-        const newChild = updateRefSeqStartEndAndGffId(child, locationMove)
+        const newChild = updateRefSeqStartEnd(child, locationMove)
         newChild.refSeq = selectedRefSeqId
         newChild.min = newChild.min + locationMove
         newChild.max = newChild.max + locationMove

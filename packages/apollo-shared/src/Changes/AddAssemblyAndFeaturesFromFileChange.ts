@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/require-await */
 
 import {
-  AssemblySpecificChange,
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
@@ -10,6 +8,8 @@ import {
   ServerDataStore,
 } from '@apollo-annotation/common'
 import { GFF3Feature } from '@gmod/gff'
+
+import { FromFileBaseChange } from './FromFileBaseChange'
 
 export interface SerializedAddAssemblyAndFeaturesFromFileChangeBase
   extends SerializedAssemblySpecificChange {
@@ -34,7 +34,7 @@ export type SerializedAddAssemblyAndFeaturesFromFileChange =
   | SerializedAddAssemblyAndFeaturesFromFileChangeSingle
   | SerializedAddAssemblyAndFeaturesFromFileChangeMultiple
 
-export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange {
+export class AddAssemblyAndFeaturesFromFileChange extends FromFileBaseChange {
   typeName = 'AddAssemblyAndFeaturesFromFileChange' as const
   changes: AddAssemblyAndFeaturesFromFileChangeDetails[]
 
@@ -93,7 +93,7 @@ export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange
         { _id: assembly, name: assemblyName, user, status: -1 },
       ])
       logger.debug?.(
-        `Added new assembly "${assemblyName}", docId "${newAssemblyDoc._id}"`,
+        `Added new assembly "${assemblyName}", docId "${newAssemblyDoc._id.toHexString()}"`,
       )
       logger.debug?.(`File type: "${fileDoc.type}"`)
 
@@ -106,6 +106,9 @@ export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange
       )
 
       // Loop all features
+      logger.debug?.(
+        `**************** LOOPATAAN KAIKKI FEATURET SEURAAVAKSI File type: "${fileDoc.type}"`,
+      )
       const featureStream = filesService.parseGFF3(
         filesService.getFileStream(fileDoc),
       )

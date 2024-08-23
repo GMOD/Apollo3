@@ -136,7 +136,6 @@ export default class Get extends BaseCommand<typeof Get> {
       assembly,
       addedFeature: {
         _id: new ObjectId().toHexString(),
-        gffId: '',
         refSeq,
         start,
         end,

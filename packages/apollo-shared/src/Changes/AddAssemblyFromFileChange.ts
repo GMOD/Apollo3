@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/require-await */
 import {
-  AssemblySpecificChange,
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
   SerializedAssemblySpecificChange,
   ServerDataStore,
 } from '@apollo-annotation/common'
+
+import { FromFileBaseChange } from './FromFileBaseChange'
 
 export interface SerializedAddAssemblyFromFileChangeBase
   extends SerializedAssemblySpecificChange {
@@ -32,7 +33,7 @@ export type SerializedAddAssemblyFromFileChange =
   | SerializedAddAssemblyFromFileChangeSingle
   | SerializedAddAssemblyFromFileChangeMultiple
 
-export class AddAssemblyFromFileChange extends AssemblySpecificChange {
+export class AddAssemblyFromFileChange extends FromFileBaseChange {
   typeName = 'AddAssemblyFromFileChange' as const
   changes: AddAssemblyFromFileChangeDetails[]
 
