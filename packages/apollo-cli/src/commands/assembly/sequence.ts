@@ -12,6 +12,7 @@ import {
   queryApollo,
   wrapLines,
 } from '../../utils.js'
+import { ApolloRefSeqSnapshot } from '@apollo-annotation/mst'
 
 async function getSequence(
   address: string,
@@ -116,7 +117,7 @@ export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
       access.accessToken,
       'refSeqs',
     )
-    const refSeqs = (await refs.json()) as object[]
+    const refSeqs = (await refs.json()) as ApolloRefSeqSnapshot[]
     for (const rid of refseqIds) {
       const res = await getSequence(
         access.address,
@@ -131,7 +132,7 @@ export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
       let header = ''
       for (const x of refSeqs) {
         if (x['_id' as keyof typeof x] === rid) {
-          const rname = x['name' as keyof typeof x]
+          const rname = x.name
           header = `>${rname}:${flags.start}..${flags.start + seq.length - 1}`
           break
         }

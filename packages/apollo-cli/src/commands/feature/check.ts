@@ -10,6 +10,11 @@ import {
   queryApollo,
   wrapLines,
 } from '../../utils.js'
+import {
+  ApolloAssemblyI,
+  ApolloAssemblySnapshot,
+  CheckResultSnapshot,
+} from '@apollo-annotation/mst'
 
 export default class Check extends BaseCommand<typeof Check> {
   static summary = 'Get check results'
@@ -67,21 +72,24 @@ export default class Check extends BaseCommand<typeof Check> {
       }
     }
 
-    const checks: object[] = await getChecks(access.address, access.accessToken)
+    const checks: CheckResultSnapshot[] = await getChecks(
+      access.address,
+      access.accessToken,
+    )
     const results: object[] = []
     for (const chk of checks) {
       let keep = false
       if (flags['feature-id'] === undefined) {
         keep = true
-      } else {
-        for (const x of chk['ids' as keyof typeof chk] as string[]) {
-          if (keepFeatures.has(x)) {
+      } else if (chk.ids !== undefined) {
+        for (const x of chk.ids) {
+          if (x !== undefined && keepFeatures.has(x.toString())) {
             keep = true
             break
           }
         }
       }
-      if (keep && refseqId.has(chk['refSeq' as keyof typeof chk])) {
+      if (keep && refseqId.has(chk.refSeq)) {
         results.push(chk)
       }
     }
@@ -97,9 +105,9 @@ async function keepAssemblies(
   let keepAssembly: string[] = []
   if (assembly === undefined) {
     const res = await queryApollo(address, accessToken, 'assemblies')
-    const asm = (await res.json()) as object[]
+    const asm = (await res.json()) as ApolloAssemblySnapshot[]
     for (const x of asm) {
-      keepAssembly.push(x['_id' as keyof typeof x])
+      keepAssembly.push(x._id)
     }
   } else {
     const ids = idReader([assembly])
@@ -108,7 +116,10 @@ async function keepAssemblies(
   return keepAssembly
 }
 
-async function getChecks(address: string, token: string): Promise<object[]> {
+async function getChecks(
+  address: string,
+  token: string,
+): Promise<CheckResultSnapshot[]> {
   const url = new URL(localhostToAddress(`${address}/checks`))
   const auth = {
     headers: {
@@ -124,5 +135,5 @@ async function getChecks(address: string, token: string): Promise<object[]> {
     )
     throw new Error(errorMessage)
   }
-  return (await response.json()) as object[]
+  return (await response.json()) as CheckResultSnapshot[]
 }

@@ -1,16 +1,5 @@
 #!/usr/bin/env python3
 
-"""USAGE: Change to Apollo3/packages/apollo-cli, make this script executable:
-
-    chmod a+x ./test/test.py
-
-and run it:
-
-    ./test/test.py
-    ./test/test.py TestCLI.testAddAssemblyFromGff # Run only this test
-"""
-
-import argparse
 import json
 import os
 import sys
@@ -311,11 +300,14 @@ class TestCLI(unittest.TestCase):
         out = json.loads(p.stdout)[0]
         self.assertEqual(out["type"], "BAC")
 
+        p = shell(f"{apollo} assembly get -a vv1")
+        asm_id = json.loads(p.stdout)[0]["_id"]
+
         req = [
             {
                 "typeName": "TypeChange",
                 "changedIds": [out["_id"]],
-                "assembly": out["refSeq"]["assembly"],
+                "assembly": asm_id,
                 "featureId": out["_id"],
                 "oldType": "BAC",
                 "newType": "G_quartet",
@@ -394,16 +386,16 @@ class TestCLI(unittest.TestCase):
             f"""{apollo} feature get {P} -r {refseq} | jq '.[] | select(._id == "{contig_id}")'"""
         )
         contig = json.loads(p.stdout)
-        self.assertEqual(contig["start"], 20 - 1)
-        self.assertEqual(contig["end"], 100)
+        self.assertEqual(contig["min"], 20 - 1)
+        self.assertEqual(contig["max"], 100)
 
         p = shell(f"{apollo} feature edit-coords {P} -i {contig_id} -s 1 -e 1")
         p = shell(
             f"""{apollo} feature get {P} -r {refseq} | jq '.[] | select(._id == "{contig_id}")'"""
         )
         contig = json.loads(p.stdout)
-        self.assertEqual(contig["start"], 0)
-        self.assertEqual(contig["end"], 1)
+        self.assertEqual(contig["min"], 0)
+        self.assertEqual(contig["max"], 1)
 
         p = shell(f"{apollo} feature edit-coords {P} -i {contig_id} -s 0", strict=False)
         self.assertEqual(2, p.returncode)
@@ -420,7 +412,12 @@ class TestCLI(unittest.TestCase):
 
         ## Edit a feature by extending beyond the boundary of its parent and
         ## check it throws a meaningful error message
-        mrna = [x for x in features if x["gffId"] == "EDEN"][0]["children"]
+        eden_gene = None
+        for x in features:
+            if x["type"] == "gene" and x["attributes"]["gff_name"] == ["EDEN"]:
+                eden_gene = x
+        self.assertTrue(eden_gene is not None)
+        mrna = eden_gene["children"]
         mrna_id = list(mrna.keys())[0]
         p = shell(f"{apollo} feature edit-coords {P} -i {mrna_id} -s 1", strict=False)
         self.assertTrue(p.returncode != 0)
@@ -579,8 +576,8 @@ class TestCLI(unittest.TestCase):
         shell(f"{apollo} feature add-child {P} -i {fid} -s 10 -e 20 -t contig_read")
         p = shell(f"{apollo} feature search {P} -a vv1 -t contig_read")
         self.assertTrue("contig_read" in p.stdout)
-        self.assertTrue('"start": 9' in p.stdout)
-        self.assertTrue('"end": 20' in p.stdout)
+        self.assertTrue('"min": 9' in p.stdout)
+        self.assertTrue('"max": 20' in p.stdout)
 
         p = shell(
             f"{apollo} feature add-child {P} -i {fid} -s 10 -e 2000 -t contig_read",
@@ -639,8 +636,8 @@ class TestCLI(unittest.TestCase):
         shell(f"{apollo} feature copy {P} -i {fid} -r ctgA -a dest -s 1")
         p = shell(f"{apollo} feature search {P} -a dest -t contig")
         out = json.loads(p.stdout)[0]
-        self.assertEqual(out["start"], 0)
-        self.assertEqual(out["end"], 50)
+        self.assertEqual(out["min"], 0)
+        self.assertEqual(out["max"], 50)
 
         # RefSeq id does not need assembly
         p = shell(f"{apollo} refseq get {P} -a dest2")
@@ -649,8 +646,8 @@ class TestCLI(unittest.TestCase):
 
         p = shell(f"{apollo} feature search {P} -a dest2 -t contig")
         out = json.loads(p.stdout)[0]
-        self.assertEqual(out["start"], 1)
-        self.assertEqual(out["end"], 51)
+        self.assertEqual(out["min"], 1)
+        self.assertEqual(out["max"], 51)
 
         # Copy to same assembly
         shell(f"{apollo} feature copy {P} -i {fid} -r ctgA -a source -s 10")
@@ -821,8 +818,16 @@ class TestCLI(unittest.TestCase):
 
         p = shell(f"{apollo} feature get {P} -a v1")
         ff = json.loads(p.stdout)
-        g1 = [x for x in ff if x["gffId"] == "MyGene"][0]
-        g2 = [x for x in ff if x["gffId"] == "AnotherGene"][0]
+        g1 = [
+            x
+            for x in ff
+            if x["type"] == "gene" and x["attributes"]["gff_id"] == ["MyGene"]
+        ][0]
+        g2 = [
+            x
+            for x in ff
+            if x["type"] == "gene" and x["attributes"]["gff_id"] == ["AnotherGene"]
+        ][0]
 
         shell(f"{apollo} feature edit-coords {P} -i {g1['_id']} -e 201")
         shell(f"{apollo} feature edit-coords {P} -i {g2['_id']} -e 251")
@@ -913,25 +918,40 @@ class TestCLI(unittest.TestCase):
 
     def testRefNameAliasConfiguration(self):
         shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a asm1 -f")
-        
+
         p = shell(f"{apollo} assembly get {P} -a asm1")
         self.assertTrue("asm1" in p.stdout)
         self.assertTrue("asm2" not in p.stdout)
         asm_id = json.loads(p.stdout)[0]["_id"]
 
-        p = shell(f"{apollo} refseq add-alias {P} -i test_data/alias.txt -a asm2", strict=False)
+        p = shell(
+            f"{apollo} refseq add-alias {P} -i test_data/alias.txt -a asm2",
+            strict=False,
+        )
         self.assertTrue("Assembly asm2 not found" in p.stderr)
-        
-        p = shell(f"{apollo} refseq add-alias {P} -i test_data/alias.txt -a asm1", strict=False)
-        self.assertTrue("Reference name aliases added successfully to assembly asm1" in p.stdout)
-        
+
+        p = shell(
+            f"{apollo} refseq add-alias {P} -i test_data/alias.txt -a asm1",
+            strict=False,
+        )
+        self.assertTrue(
+            "Reference name aliases added successfully to assembly asm1" in p.stdout
+        )
+
         p = shell(f"{apollo} refseq get {P}")
         refseq = json.loads(p.stdout.strip())
         vv1ref = [x for x in refseq if x["assembly"] == asm_id]
         refname_aliases = {x["name"]: x["aliases"] for x in vv1ref}
-        self.assertTrue(all(alias in refname_aliases.get("ctgA", []) for alias in ["ctga", "CTGA"]))
-        self.assertTrue(all(alias in refname_aliases.get("ctgB", []) for alias in ["ctgb", "CTGB"]))
-        self.assertTrue(all(alias in refname_aliases.get("ctgC", []) for alias in ["ctgc", "CTGC"]))
+        self.assertTrue(
+            all(alias in refname_aliases.get("ctgA", []) for alias in ["ctga", "CTGA"])
+        )
+        self.assertTrue(
+            all(alias in refname_aliases.get("ctgB", []) for alias in ["ctgb", "CTGB"])
+        )
+        self.assertTrue(
+            all(alias in refname_aliases.get("ctgC", []) for alias in ["ctgc", "CTGC"])
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

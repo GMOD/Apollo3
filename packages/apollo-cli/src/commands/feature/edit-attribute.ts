@@ -13,6 +13,8 @@ import {
   localhostToAddress,
   wrapLines,
 } from '../../utils.js'
+import { SerializedFeatureAttributeChange } from '@apollo-annotation/shared'
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 export default class EditAttibute extends BaseCommand<typeof EditAttibute> {
   static summary = 'Add, edit, or view a feature attribute'
@@ -88,7 +90,12 @@ export default class EditAttibute extends BaseCommand<typeof EditAttibute> {
       )
       throw new Error(errorMessage)
     }
-    const featureJson = JSON.parse(await response.text())
+    const featureJson = JSON.parse(
+      await response.text(),
+    ) as AnnotationFeatureSnapshot
+    if (featureJson.attributes === undefined) {
+      featureJson.attributes = {}
+    }
 
     if (flags.value === undefined && !flags.delete) {
       this.log(JSON.stringify(featureJson.attributes[flags.attribute]))
@@ -105,15 +112,23 @@ export default class EditAttibute extends BaseCommand<typeof EditAttibute> {
     const assembly = await getAssemblyFromRefseq(
       access.address,
       access.accessToken,
-      featureJson['refSeq' as keyof typeof featureJson],
+      featureJson.refSeq,
     )
 
-    const changeJson = {
+    const attrs: Record<string, string[]> = {}
+    for (const [key, val] of Object.entries(featureJson.attributes)) {
+      if (!val) {
+        continue
+      }
+      attrs[key] = [...val]
+    }
+
+    const changeJson: SerializedFeatureAttributeChange = {
       typeName: 'FeatureAttributeChange',
       changedIds: [featureId],
       assembly,
       featureId,
-      attributes: featureJson.attributes,
+      attributes: attrs,
     }
 
     const url = new URL(localhostToAddress(`${access.address}/changes`))

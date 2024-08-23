@@ -11,7 +11,7 @@ import {
 } from '@apollo-annotation/common'
 import { getSession } from '@jbrowse/core/util'
 
-interface SerializedDeleteAssemblyChange
+export interface SerializedDeleteAssemblyChange
   extends SerializedAssemblySpecificChange {
   typeName: 'DeleteAssemblyChange'
 }

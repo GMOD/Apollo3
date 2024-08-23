@@ -50,6 +50,7 @@
     "yaml": "^2.3.4"
   },
   "devDependencies": {
+    "@apollo-annotation/mst": "workspace:^",
     "@apollo-annotation/shared": "workspace:^",
     "@istanbuljs/esm-loader-hook": "^0.2.0",
     "@istanbuljs/nyc-config-typescript": "^1.0.2",

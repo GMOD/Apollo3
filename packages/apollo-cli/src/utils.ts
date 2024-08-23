@@ -15,6 +15,8 @@ import {
   pipeline,
 } from 'node:stream'
 
+import { type SerializedDeleteAssemblyChange } from '@apollo-annotation/shared'
+
 import { SingleBar } from 'cli-progress'
 import { Agent, RequestInit, Response, fetch } from 'undici'
 
@@ -83,7 +85,7 @@ export async function deleteAssembly(
   accessToken: string,
   assemblyId: string,
 ): Promise<void> {
-  const body = {
+  const body: SerializedDeleteAssemblyChange = {
     typeName: 'DeleteAssemblyChange',
     assembly: assemblyId,
   }

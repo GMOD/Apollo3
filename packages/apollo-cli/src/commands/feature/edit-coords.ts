@@ -4,6 +4,10 @@
 import { Flags } from '@oclif/core'
 import { Response, fetch } from 'undici'
 
+import { type SerializedLocationEndChange } from '@apollo-annotation/shared'
+import { type SerializedLocationStartChange } from '@apollo-annotation/shared'
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+
 import { BaseCommand } from '../../baseCommand.js'
 import {
   createFetchErrorMessage,
@@ -94,23 +98,25 @@ export default class Get extends BaseCommand<typeof Get> {
       )
       throw new Error(errorMessage)
     }
-    const featureJson = JSON.parse(await res.text())
+    const featureJson = JSON.parse(
+      await res.text(),
+    ) as AnnotationFeatureSnapshot
 
     const assembly = await getAssemblyFromRefseq(
       access.address,
       access.accessToken,
-      featureJson['refSeq' as keyof typeof featureJson],
+      featureJson.refSeq,
     )
 
-    const currentEnd = featureJson['end' as keyof typeof featureJson]
+    const currentEnd = featureJson.max
     let edit = ['Start', 'End']
     if (flags.start !== undefined && flags.start > currentEnd) {
-      // Edit End first so you avoid an intermediate start > end
+      // Edit End (Max) first so you avoid an intermediate start > end
       edit = ['End', 'Start']
     }
 
     for (const coord of edit) {
-      const currentStart = featureJson['start' as keyof typeof featureJson]
+      const currentStart = featureJson.min
       if (
         coord === 'Start' &&
         (flags.start === undefined || flags.start === currentStart)
@@ -123,20 +129,35 @@ export default class Get extends BaseCommand<typeof Get> {
         continue
       }
 
-      const changeJson = {
-        typeName: `Location${coord}Change`,
-        changedIds: [featureId],
-        assembly,
-        featureId,
-        [`old${coord}`]:
-          featureJson[coord.toLowerCase() as keyof typeof featureJson],
-        [`new${coord}`]: flags[coord.toLowerCase() as keyof typeof flags],
+      let body: SerializedLocationStartChange | SerializedLocationEndChange
+      if (coord === 'Start' && flags.start !== undefined) {
+        const oldCoord = featureJson.min
+        body = {
+          typeName: 'LocationStartChange',
+          changedIds: [featureId],
+          assembly,
+          featureId,
+          ['oldStart']: oldCoord,
+          ['newStart']: flags.start,
+        }
+      } else if (coord === 'End' && flags.end !== undefined) {
+        const oldCoord = featureJson.max
+        body = {
+          typeName: 'LocationEndChange',
+          changedIds: [featureId],
+          assembly,
+          featureId,
+          ['oldEnd']: oldCoord,
+          ['newEnd']: flags.end,
+        }
+      } else {
+        throw new Error(`Unexpected coordinate name: "${coord}"`)
       }
 
       const url = new URL(localhostToAddress(`${access.address}/changes`))
       const auth = {
         method: 'POST',
-        body: JSON.stringify(changeJson),
+        body: JSON.stringify(body),
         headers: {
           authorization: `Bearer ${access.accessToken}`,
           'Content-Type': 'application/json',

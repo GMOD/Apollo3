@@ -32,7 +32,7 @@ interface SerializedDeleteFeatureChangeMultiple
   changes: DeleteFeatureChangeDetails[]
 }
 
-type SerializedDeleteFeatureChange =
+export type SerializedDeleteFeatureChange =
   | SerializedDeleteFeatureChangeSingle
   | SerializedDeleteFeatureChangeMultiple
 

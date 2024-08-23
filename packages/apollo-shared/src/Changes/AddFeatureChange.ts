@@ -34,7 +34,7 @@ interface SerializedAddFeatureChangeMultiple
   changes: AddFeatureChangeDetails[]
 }
 
-type SerializedAddFeatureChange =
+export type SerializedAddFeatureChange =
   | SerializedAddFeatureChangeSingle
   | SerializedAddFeatureChangeMultiple
 

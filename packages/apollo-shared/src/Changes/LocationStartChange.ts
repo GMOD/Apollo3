@@ -30,7 +30,7 @@ interface SerializedLocationStartChangeMultiple
   changes: LocationStartChangeDetails[]
 }
 
-type SerializedLocationStartChange =
+export type SerializedLocationStartChange =
   | SerializedLocationStartChangeSingle
   | SerializedLocationStartChangeMultiple
 

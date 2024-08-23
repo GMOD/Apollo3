@@ -20,7 +20,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "cypress:start": "GUEST_USER_ROLE=admin MONGODB_URI=\"mongodb://localhost:27017/apolloTestDb?directConnection=true\" LOG_LEVELS=error,warn yarn start"
+    "cypress:start": "GUEST_USER_ROLE=admin MONGODB_URI=\"mongodb://localhost:27017/apolloTestDb?directConnection=true\" LOG_LEVELS=error,warn yarn start",
+    "test:cli:start": "ALLOW_ROOT_USER=true ROOT_USER_NAME=admin ROOT_USER_PASSWORD=pass MONGODB_URI=\"mongodb://localhost:27017/apolloTestCliDb?directConnection=true\" LOG_LEVELS=error,warn yarn start"
   },
   "dependencies": {
     "@apollo-annotation/common": "workspace:^",
