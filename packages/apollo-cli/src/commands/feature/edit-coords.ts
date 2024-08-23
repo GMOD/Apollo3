@@ -4,8 +4,10 @@
 import { Flags } from '@oclif/core'
 import { Response, fetch } from 'undici'
 
-import { type SerializedLocationEndChange } from '@apollo-annotation/shared'
-import { type SerializedLocationStartChange } from '@apollo-annotation/shared'
+import {
+  SerializedLocationStartChange,
+  type SerializedLocationEndChange,
+} from '@apollo-annotation/shared'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 import { BaseCommand } from '../../baseCommand.js'
