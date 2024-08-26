@@ -76,7 +76,7 @@ jobs:
             yarn node bin/run.js "$@"
           }
 
-          apollo config address http://localhost
+          apollo config address http://localhost/apollo
           apollo config accessType root
           apollo config rootCredentials.username ${{ secrets.ROOT_USER_NAME }}
           apollo config rootCredentials.password ${{ secrets.ROOT_USER_PASSWORD }}
