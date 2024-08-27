@@ -143,6 +143,7 @@ __metadata:
     nyc: "npm:^15.1.0"
     oclif: "npm:^4.4.2"
     open: "npm:^10.1.0"
+    prettier: "npm:^3.3.2"
     react-dom: "npm:^18.2.0"
     rxjs: "npm:^7.4.0"
     shx: "npm:^0.3.3"
