@@ -124,7 +124,26 @@ export function ManageUsers({
       headerName: 'Role',
       width: 140,
       type: 'singleSelect',
-      valueOptions: ['', 'readOnly', 'user', 'admin'],
+      valueOptions: ['readOnly', 'user', 'admin', 'none'],
+      getOptionLabel(value) {
+        switch (value) {
+          case 'readOnly': {
+            return 'Read-only'
+          }
+          case 'user': {
+            return 'User'
+          }
+          case 'admin': {
+            return 'Admin'
+          }
+          case 'none': {
+            return 'None'
+          }
+          default: {
+            return 'unknown'
+          }
+        }
+      },
       editable: true,
     },
     {
