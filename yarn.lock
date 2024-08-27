@@ -143,6 +143,8 @@ __metadata:
     nyc: "npm:^15.1.0"
     oclif: "npm:^4.4.2"
     open: "npm:^10.1.0"
+    react-dom: "npm:^18.2.0"
+    rxjs: "npm:^7.4.0"
     shx: "npm:^0.3.3"
     ts-node: "npm:^10.3.0"
     tslib: "npm:^2.3.1"
@@ -167,7 +169,7 @@ __metadata:
     "@emotion/styled": "npm:^11.10.6"
     "@gmod/gff": "npm:1.2.0"
     "@gmod/indexedfasta": "npm:^2.0.4"
-    "@jbrowse/core": "npm:^2.11.2"
+    "@jbrowse/core": "npm:^2.13.1"
     "@mui/base": "npm:^5.0.0-alpha.118"
     "@mui/material": "npm:^5.11.14"
     "@nestjs/cli": "npm:^10.1.10"
@@ -246,7 +248,7 @@ __metadata:
     "@apollo-annotation/mst": "workspace:^"
     "@apollo-annotation/schemas": "workspace:^"
     "@gmod/gff": "npm:1.2.0"
-    "@jbrowse/core": "npm:^2.11.2"
+    "@jbrowse/core": "npm:^2.13.1"
     "@nestjs/common": "npm:^10.1.0"
     "@nestjs/core": "npm:^10.1.0"
     "@types/node": "npm:^18.14.2"
@@ -279,7 +281,7 @@ __metadata:
     "@emotion/styled": "npm:^11.10.6"
     "@gmod/gff": "npm:1.2.0"
     "@jbrowse/cli": "npm:^2.6.2"
-    "@jbrowse/core": "npm:^2.11.2"
+    "@jbrowse/core": "npm:^2.13.1"
     "@jbrowse/development-tools": "npm:^2.1.1"
     "@jbrowse/plugin-authentication": "npm:^2.0.1"
     "@jbrowse/plugin-linear-genome-view": "npm:^2.0.1"
@@ -330,7 +332,7 @@ __metadata:
     tss-react: "npm:^4.6.1"
     typescript: "npm:^5.5.3"
   peerDependencies:
-    "@jbrowse/core": ^2.11.2
+    "@jbrowse/core": ^2.13.1
     "@mui/material": ^5.11.14
     mobx: ^6.6.1
     mobx-react: ^7.2.1
@@ -347,9 +349,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@apollo-annotation/mst@workspace:packages/apollo-mst"
   dependencies:
-    "@jbrowse/core": "npm:^2.11.2"
+    "@jbrowse/core": "npm:^2.13.1"
     mobx: "npm:^6.6.1"
     mobx-state-tree: "npm:^5.1.7"
+    react-dom: "npm:^18.2.0"
     rxjs: "npm:^7.4.0"
     tslib: "npm:^2.3.1"
     typescript: "npm:^5.5.3"
@@ -383,7 +386,7 @@ __metadata:
     "@apollo-annotation/schemas": "workspace:^"
     "@gmod/gff": "npm:1.2.0"
     "@gmod/indexedfasta": "npm:^2.0.4"
-    "@jbrowse/core": "npm:^2.11.2"
+    "@jbrowse/core": "npm:^2.13.1"
     "@nestjs/common": "npm:^10.1.0"
     "@nestjs/core": "npm:^10.1.0"
     "@types/node": "npm:^18.14.2"
@@ -395,8 +398,10 @@ __metadata:
     mobx: "npm:^6.6.1"
     mobx-state-tree: "npm:^5.1.7"
     mongoose: "npm:^6.12.0"
+    react-dom: "npm:^18.2.0"
     regenerator-runtime: "npm:^0.13.9"
     rimraf: "npm:^3.0.2"
+    rxjs: "npm:^7.4.0"
     socket.io-client: "npm:^4.5.4"
     tslib: "npm:^2.3.1"
     tsx: "npm:^4.6.2"
@@ -3630,6 +3635,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@gmod/abortable-promise-cache@npm:^2.0.0":
+  version: 2.0.1
+  resolution: "@gmod/abortable-promise-cache@npm:2.0.1"
+  checksum: 10c0/33b39ff5e2af0856cf7fa4e2c3a46de73396f1cba76f075aa6350e2c045be526d6682072dc55f9808d01b37eb7c9dddfdfd433c1ecb10db58759d09451fb8d1a
+  languageName: node
+  linkType: hard
+
 "@gmod/bgzf-filehandle@npm:^1.4.0, @gmod/bgzf-filehandle@npm:^1.4.3":
   version: 1.4.6
   resolution: "@gmod/bgzf-filehandle@npm:1.4.6"
@@ -3651,13 +3663,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gmod/http-range-fetcher@npm:^3.0.0":
-  version: 3.0.3
-  resolution: "@gmod/http-range-fetcher@npm:3.0.3"
+"@gmod/http-range-fetcher@npm:^3.0.4":
+  version: 3.0.4
+  resolution: "@gmod/http-range-fetcher@npm:3.0.4"
   dependencies:
-    abortcontroller-polyfill: "npm:^1.2.9"
     quick-lru: "npm:^4.0.0"
-  checksum: 10c0/656c9f01f8e2e18582f88e03977c00676f5d27496d420a958c942221d75d31226e6e0299c3434e26ce9fa125a5db511d65bdac58eac7af667a396f58ea823a4b
+  checksum: 10c0/45c9cf5ed9a7163b2bff405bef15ba33f234d1e988767853e3915844f9b18027057708c1a184a1cd6ab2a2587ebcd833d76d8431132d7d8f595e0b82f116ae00
   languageName: node
   linkType: hard
 
@@ -3866,17 +3877,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jbrowse/core@npm:^2.11.2":
-  version: 2.12.3
-  resolution: "@jbrowse/core@npm:2.12.3"
+"@jbrowse/core@npm:^2.13.1":
+  version: 2.13.1
+  resolution: "@jbrowse/core@npm:2.13.1"
   dependencies:
     "@babel/runtime": "npm:^7.17.9"
+    "@gmod/abortable-promise-cache": "npm:^2.0.0"
     "@gmod/bgzf-filehandle": "npm:^1.4.3"
-    "@gmod/http-range-fetcher": "npm:^3.0.0"
+    "@gmod/http-range-fetcher": "npm:^3.0.4"
     "@mui/icons-material": "npm:^5.0.1"
     "@mui/x-data-grid": "npm:^7.0.0"
     "@types/clone": "npm:^2.0.0"
-    abortable-promise-cache: "npm:^1.5.0"
     canvas-sequencer: "npm:^3.1.0"
     canvas2svg: "npm:^1.0.16"
     clone: "npm:^2.1.2"
@@ -3903,12 +3914,11 @@ __metadata:
     mobx: ^6.0.0
     mobx-react: ^9.0.0
     mobx-state-tree: ^5.0.0
-    prop-types: ^15.0.0
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
     rxjs: ^7.0.0
     tss-react: ^4.0.0
-  checksum: 10c0/4f2e95ec5db847422fcfc3493f5c21f7911ef348d64fbea194c44fecf47de461389f857c16da26b20fc6ad175693de8e3c3eef0e453100781dad85c326c398a4
+  checksum: 10c0/8eaee9e8eddc48b35bbcb6f877f9d0a7cae4057b5c1fe997fdd23053f3a34da2e58a8b3a12faff4b9846a444a8b15d26cb5a3b4fdf18f2a6b0457a2849ec3292
   languageName: node
   linkType: hard
 
@@ -8164,22 +8174,6 @@ __metadata:
   dependencies:
     event-target-shim: "npm:^5.0.0"
   checksum: 10c0/90ccc50f010250152509a344eb2e71977fbf8db0ab8f1061197e3275ddf6c61a41a6edfd7b9409c664513131dd96e962065415325ef23efa5db931b382d24ca5
-  languageName: node
-  linkType: hard
-
-"abortable-promise-cache@npm:^1.5.0":
-  version: 1.5.0
-  resolution: "abortable-promise-cache@npm:1.5.0"
-  dependencies:
-    abortcontroller-polyfill: "npm:^1.2.9"
-  checksum: 10c0/fb330bf6612dcda00a05ca72a464c7847438a9dd32151f0e6b02372e9bbb57e83e2fc2c01a5bf4d7c4267a772fc1978240eb3ad45d664b4b39fef71618946ae6
-  languageName: node
-  linkType: hard
-
-"abortcontroller-polyfill@npm:^1.2.9":
-  version: 1.7.5
-  resolution: "abortcontroller-polyfill@npm:1.7.5"
-  checksum: 10c0/d7a5ab6fda4f9a54f22ddeb233a2564d2f4f857ec17be25fee21a91bb5090bee57c630c454634b5c4b93fc06bd90d592d1f2fc69f77cd28791ac0fe361feb7d2
   languageName: node
   linkType: hard
 
