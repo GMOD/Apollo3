@@ -11,6 +11,8 @@ import {
   localhostToAddress,
   wrapLines,
 } from '../../utils.js'
+import { SerializedAddFeatureChange } from '@apollo-annotation/shared'
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 export default class Copy extends BaseCommand<typeof Copy> {
   static summary = 'Copy a feature to another location'
@@ -73,7 +75,8 @@ export default class Copy extends BaseCommand<typeof Copy> {
       )
       throw new Error(errorMessage)
     }
-    const feature = (await res.json()) as object
+    const feature: AnnotationFeatureSnapshot =
+      (await res.json()) as AnnotationFeatureSnapshot
     let refseqIds: string[] = []
     refseqIds = await getRefseqId(
       access.address,
@@ -113,29 +116,26 @@ export default class Copy extends BaseCommand<typeof Copy> {
   private async copyFeature(
     address: string,
     accessToken: string,
-    feature: object,
+    feature: AnnotationFeatureSnapshot,
     refseq: string,
-    start: number,
+    min: number,
     assembly: string,
     newId: string,
   ): Promise<Response> {
-    const featureLen =
-      feature['end' as keyof typeof feature] -
-      feature['start' as keyof typeof feature]
-    const change = {
+    const featureLen = feature.max - feature.min
+
+    const change: SerializedAddFeatureChange = {
       typeName: 'AddFeatureChange',
       changedIds: [newId],
       assembly,
       addedFeature: {
         _id: newId,
         refSeq: refseq,
-        start: start - 1,
-        end: start + featureLen - 1,
-        type: feature['type' as keyof typeof feature],
-        attributes: feature['attributes' as keyof typeof feature],
-        discontinuousLocations:
-          feature['discontinuousLocations' as keyof typeof feature],
-        strand: feature['strand' as keyof typeof feature],
+        min: min - 1,
+        max: min + featureLen - 1,
+        type: feature.type,
+        attributes: feature.attributes,
+        strand: feature.strand,
       },
       copyFeature: true,
       allIds: [newId],

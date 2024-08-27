@@ -30,7 +30,7 @@ interface SerializedLocationEndChangeMultiple
   changes: LocationEndChangeDetails[]
 }
 
-type SerializedLocationEndChange =
+export type SerializedLocationEndChange =
   | SerializedLocationEndChangeSingle
   | SerializedLocationEndChangeMultiple
 

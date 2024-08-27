@@ -10,6 +10,8 @@ import {
 } from '../../utils.js'
 import { ConfigError } from '../../ApolloConf.js'
 
+import { type SerializedRefSeqAliasesChange } from '@apollo-annotation/shared'
+
 export default class AddRefNameAlias extends BaseCommand<
   typeof AddRefNameAlias
 > {
@@ -71,9 +73,9 @@ export default class AddRefNameAlias extends BaseCommand<
       this.error(`Assembly ${flags.assembly} not found`)
     }
 
-    const change = {
+    const change: SerializedRefSeqAliasesChange = {
       typeName: 'AddRefSeqAliasesChange',
-      assembly: assemblyId,
+      assembly: assemblyId as string,
       refSeqAliases: refNameAliases,
     }
 

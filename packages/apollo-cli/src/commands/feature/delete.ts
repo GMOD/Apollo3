@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Flags } from '@oclif/core'
 import { Response, fetch } from 'undici'
 
@@ -12,26 +9,25 @@ import {
   localhostToAddress,
   wrapLines,
 } from '../../utils.js'
+import { SerializedDeleteFeatureChange } from '@apollo-annotation/shared'
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 async function deleteFeature(
   address: string,
   accessToken: string,
-  feature: object,
+  feature: AnnotationFeatureSnapshot,
 ): Promise<Response> {
-  const changeJson = {
+  const changeJson: SerializedDeleteFeatureChange = {
     typeName: 'DeleteFeatureChange',
-    changedIds: [feature],
-    assembly: feature['assembly' as keyof typeof feature],
+    changedIds: [feature._id],
+    assembly: '111222333444555666777888', // Use a placeholder objectId (i.e. some 24 chars)
     deletedFeature: {
-      _id: feature['_id' as keyof typeof feature],
-      refSeq: feature['refSeq' as keyof typeof feature],
-      type: feature['type' as keyof typeof feature],
-      start: feature['start' as keyof typeof feature],
-      end: feature['end' as keyof typeof feature],
-      discontinuousLocations:
-        feature['discontinuousLocations' as keyof typeof feature],
-      score: feature['score' as keyof typeof feature],
-      attributes: feature['attributes' as keyof typeof feature],
+      _id: feature._id,
+      refSeq: feature.refSeq,
+      type: feature.type,
+      min: feature.min,
+      max: feature.max,
+      attributes: feature.attributes,
     },
   }
   const url = new URL(localhostToAddress(`${address}/changes`))
@@ -105,9 +101,9 @@ export default class Delete extends BaseCommand<typeof Delete> {
         )
         throw new Error(errorMessage)
       }
-      const feature = JSON.parse(await res.text())
+      const feature = JSON.parse(await res.text()) as AnnotationFeatureSnapshot
       if (flags['dry-run']) {
-        this.log(feature)
+        this.log(JSON.stringify(feature, null, 2))
       } else {
         const delFet: Response = await deleteFeature(
           access.address,

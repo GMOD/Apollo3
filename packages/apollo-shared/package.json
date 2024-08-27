@@ -15,7 +15,7 @@
     "@apollo-annotation/schemas": "workspace:^",
     "@gmod/gff": "1.2.0",
     "@gmod/indexedfasta": "^2.0.4",
-    "@jbrowse/core": "^2.11.2",
+    "@jbrowse/core": "^2.13.1",
     "bson-objectid": "^2.0.4",
     "generic-filehandle": "^3.0.0",
     "jwt-decode": "^3.1.2",
@@ -32,7 +32,9 @@
     "mobx": "^6.6.1",
     "mobx-state-tree": "^5.1.7",
     "mongoose": "^6.12.0",
+    "react-dom": "^18.2.0",
     "rimraf": "^3.0.2",
+    "rxjs": "^7.4.0",
     "tsx": "^4.6.2",
     "typescript": "^5.5.3"
   },

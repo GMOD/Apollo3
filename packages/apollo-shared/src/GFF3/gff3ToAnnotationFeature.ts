@@ -122,9 +122,9 @@ function convertFeatureAttributes(
         const existingVal = newAttributes[newKey]
         if (existingVal) {
           const valSet = new Set(...existingVal, ...val)
-          newAttributes[newKey] = [...valSet]
+          convertedAttributes[newKey] = [...valSet]
         } else {
-          newAttributes[newKey] = val
+          convertedAttributes[newKey] = val
         }
       }
     }

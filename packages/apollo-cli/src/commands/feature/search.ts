@@ -11,6 +11,7 @@ import {
   queryApollo,
   wrapLines,
 } from '../../utils.js'
+import { ApolloAssemblySnapshot } from '@apollo-annotation/mst'
 
 async function searchFeatures(
   address: string,
@@ -105,8 +106,8 @@ export default class Search extends BaseCommand<typeof Search> {
         access.accessToken,
         'assemblies',
       )
-      for (const x of (await asm.json()) as object[]) {
-        assemblyIds.push(x['_id' as keyof typeof x])
+      for (const x of (await asm.json()) as ApolloAssemblySnapshot[]) {
+        assemblyIds.push(x._id)
       }
     } else {
       const assembly = idReader(flags.assembly)

@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Flags } from '@oclif/core'
 import { Response, fetch } from 'undici'
 
@@ -13,6 +10,8 @@ import {
   localhostToAddress,
   wrapLines,
 } from '../../utils.js'
+import { SerializedTypeChange } from '@apollo-annotation/shared'
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Edit or view feature type'
@@ -58,9 +57,11 @@ export default class Get extends BaseCommand<typeof Get> {
       )
       throw new Error(errorMessage)
     }
-    const featureJson = JSON.parse(await response.text())
+    const featureJson = JSON.parse(
+      await response.text(),
+    ) as AnnotationFeatureSnapshot
 
-    const currentType = featureJson['type' as keyof typeof featureJson]
+    const currentType = featureJson.type
     if (flags.type === undefined) {
       this.log(currentType)
       return
@@ -75,10 +76,10 @@ export default class Get extends BaseCommand<typeof Get> {
     const assembly = await getAssemblyFromRefseq(
       access.address,
       access.accessToken,
-      featureJson['refSeq' as keyof typeof featureJson],
+      featureJson.refSeq,
     )
 
-    const changeJson = {
+    const changeJson: SerializedTypeChange = {
       typeName: 'TypeChange',
       changedIds: [featureId],
       assembly,

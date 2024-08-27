@@ -29,7 +29,7 @@ interface SerializedTypeChangeMultiple extends SerializedTypeChangeBase {
   changes: TypeChangeDetails[]
 }
 
-type SerializedTypeChange =
+export type SerializedTypeChange =
   | SerializedTypeChangeSingle
   | SerializedTypeChangeMultiple
 

@@ -29,7 +29,7 @@ interface SerializedFeatureAttributeChangeMultiple
   changes: FeatureAttributeChangeDetails[]
 }
 
-type SerializedFeatureAttributeChange =
+export type SerializedFeatureAttributeChange =
   | SerializedFeatureAttributeChangeSingle
   | SerializedFeatureAttributeChangeMultiple
 

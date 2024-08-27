@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
-
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 import { Response, fetch } from 'undici'
+
+import { type SerializedAddFeatureChange } from '@apollo-annotation/shared'
 
 import { BaseCommand } from '../../baseCommand.js'
 import {
@@ -16,6 +15,7 @@ import {
   queryApollo,
   wrapLines,
 } from '../../utils.js'
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Add a child feature (e.g. add an exon to an mRNA)'
@@ -108,21 +108,21 @@ export default class Get extends BaseCommand<typeof Get> {
   private async addChild(
     address: string,
     accessToken: string,
-    parentFeature: object,
-    start: number,
-    end: number,
+    parentFeature: AnnotationFeatureSnapshot,
+    min: number,
+    max: number,
     type: string,
   ): Promise<Response> {
-    const pStart = parentFeature['start' as keyof typeof parentFeature]
-    const pEnd = parentFeature['end' as keyof typeof parentFeature]
-    if (start < pStart || end > pEnd) {
+    const pMin = parentFeature.min
+    const pMax = parentFeature.max
+    if (min < pMin || max > pMax) {
       this.error(
-        `Error: Child feature coordinates (${start + 1}-${end}) cannot extend beyond parent coordinates (${pStart + 1}-${pEnd})`,
+        `Error: Child feature coordinates (${min + 1}-${max}) cannot extend beyond parent coordinates (${pMin + 1}-${pMax})`,
       )
     }
     const res = await queryApollo(address, accessToken, 'refSeqs')
     const refSeqs = (await res.json()) as object[]
-    const refSeq = parentFeature['refSeq' as keyof typeof parentFeature]
+    const { refSeq } = parentFeature
     let assembly = ''
     for (const x of refSeqs) {
       if (x['_id' as keyof typeof x] === refSeq) {
@@ -130,18 +130,20 @@ export default class Get extends BaseCommand<typeof Get> {
         break
       }
     }
-    const change = {
+    const change: SerializedAddFeatureChange = {
       typeName: 'AddFeatureChange',
-      changedIds: [parentFeature['_id' as keyof typeof parentFeature]],
+      // eslint-disable-next-line unicorn/consistent-destructuring
+      changedIds: [parentFeature._id],
       assembly,
       addedFeature: {
         _id: new ObjectId().toHexString(),
         refSeq,
-        start,
-        end,
+        min,
+        max,
         type,
       },
-      parentFeatureId: parentFeature['_id' as keyof typeof parentFeature],
+      // eslint-disable-next-line unicorn/consistent-destructuring
+      parentFeatureId: parentFeature._id,
     }
     const url = new URL(localhostToAddress(`${address}/changes`))
     const auth = {
