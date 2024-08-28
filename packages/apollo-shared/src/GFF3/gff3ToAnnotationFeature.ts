@@ -80,7 +80,7 @@ function getFeatureMinMax(gff3Feature: GFF3Feature): [number, number] {
 
 function convertFeatureAttributes(
   gff3Feature: GFF3Feature,
-): Record<string, string[]> | undefined {
+): Record<string, string[] | undefined> | undefined {
   const convertedAttributes: Record<string, string[]> = {}
   const scores = gff3Feature
     .map((f) => f.score)
