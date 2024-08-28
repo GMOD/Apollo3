@@ -1,27 +1,42 @@
 {
   "name": "@apollo-annotation/collaboration-server",
   "version": "0.1.19",
+  "private": true,
   "description": "",
-  "author": "",
   "license": "Apache-2.0",
-  "engines": {
-    "node": ">=14"
-  },
+  "author": "",
   "scripts": {
     "build": "yarn build:shared && rimraf dist && nest build",
+    "cypress:start": "GUEST_USER_ROLE=admin MONGODB_URI=\"mongodb://localhost:27017/apolloTestDb?directConnection=true\" LOG_LEVELS=error,warn yarn start",
+    "deb": "ts-node-dev src/main.ts",
     "start": "yarn build:shared && yarn start:nest --watch",
+    "start:debug": "yarn build:shared && yarn start:nest --debug --watch",
     "start:nest": "NODE_ENV=development nest start",
     "start:no-watch": "yarn build:shared && yarn start:nest",
-    "start:debug": "yarn build:shared && yarn start:nest --debug --watch",
-    "deb": "ts-node-dev src/main.ts",
     "start:prod": "NODE_ENV=production node dist/main.js",
     "test": "jest",
-    "test:watch": "jest --watch",
+    "test:cli:start": "ALLOW_ROOT_USER=true ROOT_USER_NAME=admin ROOT_USER_PASSWORD=pass MONGODB_URI=\"mongodb://localhost:27017/apolloTestCliDb?directConnection=true\" LOG_LEVELS=error,warn yarn start",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "cypress:start": "GUEST_USER_ROLE=admin MONGODB_URI=\"mongodb://localhost:27017/apolloTestDb?directConnection=true\" LOG_LEVELS=error,warn yarn start",
-    "test:cli:start": "ALLOW_ROOT_USER=true ROOT_USER_NAME=admin ROOT_USER_PASSWORD=pass MONGODB_URI=\"mongodb://localhost:27017/apolloTestCliDb?directConnection=true\" LOG_LEVELS=error,warn yarn start"
+    "test:watch": "jest --watch"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testEnvironment": "node",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    }
   },
   "dependencies": {
     "@apollo-annotation/common": "workspace:^",
@@ -104,22 +119,7 @@
     "tsconfig-paths": "^3.11.0",
     "typescript": "^5.5.3"
   },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
-  },
-  "private": true
+  "engines": {
+    "node": ">=14"
+  }
 }

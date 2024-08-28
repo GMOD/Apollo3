@@ -1,22 +1,19 @@
 {
   "name": "@apollo-annotation/cli",
-  "description": "Command line interface for the Apollo annotation server",
   "version": "0.1.19",
-  "author": "Apollo Team",
+  "description": "Command line interface for the Apollo annotation server",
   "repository": {
     "type": "git",
     "url": "https://github.com/GMOD/Apollo3.git",
     "directory": "packages/apollo-cli"
   },
-  "bin": {
-    "apollo": "./bin/run.js"
-  },
+  "author": "Apollo Team",
   "type": "module",
+  "exports": "./dist/index.js",
   "main": "",
   "types": "dist/index.d.ts",
-  "exports": "./dist/index.js",
-  "engines": {
-    "node": ">=18.0.0"
+  "bin": {
+    "apollo": "./bin/run.js"
   },
   "files": [
     "/bin",
@@ -26,13 +23,43 @@
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
     "dev": "tsx bin/dev.js",
-    "postpack": "shx rm -f oclif.manifest.json",
-    "posttest": "yarn lint",
     "prepack": "yarn build && oclif manifest && oclif readme && prettier --write README.md",
+    "postpack": "shx rm -f oclif.manifest.json",
     "prepare": "yarn build",
     "test": "mocha --require src/test/fixtures.ts 'src/**/*.test.ts'",
+    "posttest": "yarn lint",
     "test:ci": "nyc mocha 'src/**/*.test.ts'",
     "version": "oclif readme && git add README.md"
+  },
+  "oclif": {
+    "bin": "apollo",
+    "commands": "./dist/commands",
+    "dirname": "apollo-cli",
+    "helpOptions": {
+      "flagSortOrder": "none"
+    },
+    "plugins": [
+      "@oclif/plugin-help"
+    ],
+    "repositoryPrefix": "<%- repo %>/blob/v<%- version %>/packages/apollo-cli/<%- commandPath %>",
+    "topicSeparator": " ",
+    "topics": {
+      "assembly": {
+        "description": "Commands to handle assemblies"
+      },
+      "change": {
+        "description": "Commands to handle the log of changes made to the database"
+      },
+      "feature": {
+        "description": "Commands to handle features"
+      },
+      "refseq": {
+        "description": "Commands to handle reference sequences"
+      },
+      "user": {
+        "description": "Commands to handle users"
+      }
+    }
   },
   "dependencies": {
     "@inquirer/input": "^1.2.14",
@@ -72,35 +99,8 @@
     "tsx": "^4.6.2",
     "typescript": "^5.5.3"
   },
-  "oclif": {
-    "helpOptions": {
-      "flagSortOrder": "none"
-    },
-    "bin": "apollo",
-    "dirname": "apollo-cli",
-    "commands": "./dist/commands",
-    "plugins": [
-      "@oclif/plugin-help"
-    ],
-    "repositoryPrefix": "<%- repo %>/blob/v<%- version %>/packages/apollo-cli/<%- commandPath %>",
-    "topicSeparator": " ",
-    "topics": {
-      "assembly": {
-        "description": "Commands to handle assemblies"
-      },
-      "change": {
-        "description": "Commands to handle the log of changes made to the database"
-      },
-      "feature": {
-        "description": "Commands to handle features"
-      },
-      "refseq": {
-        "description": "Commands to handle reference sequences"
-      },
-      "user": {
-        "description": "Commands to handle users"
-      }
-    }
+  "engines": {
+    "node": ">=18.0.0"
   },
   "publishConfig": {
     "access": "public"

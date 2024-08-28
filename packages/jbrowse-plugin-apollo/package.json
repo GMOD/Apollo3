@@ -2,17 +2,17 @@
   "name": "@apollo-annotation/jbrowse-plugin-apollo",
   "version": "0.1.19",
   "description": "Apollo plugin for JBrowse 2",
+  "keywords": [
+    "jbrowse",
+    "jbrowse2"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/GMOD/Apollo3.git",
     "directory": "packages/jbrowse-plugin-apollo"
   },
-  "author": "JBrowse Team",
   "license": "Apache-2.0",
-  "keywords": [
-    "jbrowse",
-    "jbrowse2"
-  ],
+  "author": "JBrowse Team",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "typings": "dist/index.d.ts",
@@ -20,13 +20,6 @@
     "dist",
     "src"
   ],
-  "config": {
-    "jbrowse": {
-      "plugin": {
-        "name": "Apollo"
-      }
-    }
-  },
   "scripts": {
     "setup": "rimraf .jbrowse && jbrowse create .jbrowse",
     "clean": "rimraf dist",
@@ -47,8 +40,12 @@
     "prepack": "yarn build",
     "postversion": "git push --follow-tags"
   },
-  "jbrowse-plugin": {
-    "name": "Apollo"
+  "config": {
+    "jbrowse": {
+      "plugin": {
+        "name": "Apollo"
+      }
+    }
   },
   "dependencies": {
     "@apollo-annotation/common": "workspace:^",
@@ -73,18 +70,6 @@
     "regenerator-runtime": "^0.13.9",
     "socket.io-client": "^4.5.4",
     "tslib": "^2.3.1"
-  },
-  "peerDependencies": {
-    "@jbrowse/core": "^2.13.1",
-    "@mui/material": "^5.11.14",
-    "mobx": "^6.6.1",
-    "mobx-react": "^7.2.1",
-    "mobx-state-tree": "^5.1.7",
-    "prop-types": "^15.8.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "rxjs": "^7.4.0",
-    "tss-react": "^4.6.1"
   },
   "devDependencies": {
     "@jbrowse/cli": "^2.6.2",
@@ -123,7 +108,22 @@
     "tss-react": "^4.6.1",
     "typescript": "^5.5.3"
   },
+  "peerDependencies": {
+    "@jbrowse/core": "^2.13.1",
+    "@mui/material": "^5.11.14",
+    "mobx": "^6.6.1",
+    "mobx-react": "^7.2.1",
+    "mobx-state-tree": "^5.1.7",
+    "prop-types": "^15.8.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "rxjs": "^7.4.0",
+    "tss-react": "^4.6.1"
+  },
   "publishConfig": {
     "access": "public"
+  },
+  "jbrowse-plugin": {
+    "name": "Apollo"
   }
 }

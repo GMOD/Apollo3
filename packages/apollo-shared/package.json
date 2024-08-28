@@ -3,9 +3,9 @@
   "version": "0.1.19",
   "main": "./dist/index.js",
   "scripts": {
-    "start": "tsc --build --watch",
     "build": "yarn clean && tsc --build",
     "clean": "rimraf dist",
+    "start": "tsc --build --watch",
     "test": "glob -c \"tsx --test --test-reporter spec \" \"**/*.test.ts\"",
     "test:ci": "NODE_V8_COVERAGE=./coverage glob -c \"tsx --test --test-reporter spec --experimental-test-coverage \" \"**/*.test.ts\""
   },
