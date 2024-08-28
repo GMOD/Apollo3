@@ -12,6 +12,7 @@ services:
       FILE_UPLOAD_FOLDER: /data/uploads
       LOG_LEVELS: error,warn,log,debug
       ALLOW_GUEST_USER: true
+      DEFAULT_NEW_USER_ROLE: user
       URL: ${URL}
       JWT_SECRET: ${JWT_SECRET}
       SESSION_SECRET: ${SESSION_SECRET}
