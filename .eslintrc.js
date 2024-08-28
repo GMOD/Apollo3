@@ -5,12 +5,11 @@ module.exports = {
     'eslint:recommended',
     'plugin:unicorn/recommended',
     'plugin:cypress/recommended',
-    'plugin:import/recommended',
     'plugin:import/typescript',
     'plugin:@typescript-eslint/strict-type-checked',
     'plugin:@typescript-eslint/stylistic-type-checked',
   ],
-  plugins: ['tsdoc', 'sort-destructure-keys'],
+  plugins: ['import', 'tsdoc', 'sort-destructure-keys'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: true,
@@ -71,8 +70,11 @@ module.exports = {
       { allowNumber: true },
     ],
     '@typescript-eslint/return-await': 'error',
-    // eslint-plugin-import rules (override recommended)
+    // eslint-plugin-import rules
+    'import/export': 'error',
+    'import/no-duplicates': 'warn',
     'import/no-extraneous-dependencies': 'error',
+    'import/no-named-as-default': 'warn',
     // eslint-plugin-sort-destructure-keys rules
     'sort-destructure-keys/sort-destructure-keys': 'warn',
     // eslint-plugin-tsdoc rules

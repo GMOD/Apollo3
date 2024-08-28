@@ -398,7 +398,7 @@ __metadata:
     "@types/passport-jwt": "npm:^3.0.6"
     "@types/passport-local": "npm:^1.0.34"
     "@types/passport-microsoft": "npm:^0.0.0"
-    "@types/react": "npm:^17.0.34"
+    "@types/react": "npm:^18.3.4"
     "@types/supertest": "npm:^2.0.11"
     connect-mongodb-session: "npm:^3.1.1"
     deepmerge: "npm:^4.3.1"
@@ -496,7 +496,7 @@ __metadata:
     "@types/jsonpath": "npm:^0.2.0"
     "@types/node": "npm:^18.14.2"
     "@types/prop-types": "npm:^15"
-    "@types/react": "npm:^17.0.34"
+    "@types/react": "npm:^18.3.4"
     "@types/react-dom": "npm:^18"
     autosuggest-highlight: "npm:^3.3.4"
     bson-objectid: "npm:^2.0.4"
@@ -626,11 +626,14 @@ __metadata:
   resolution: "@apollo-annotation/website@workspace:packages/website"
   dependencies:
     "@docusaurus/core": "npm:3.5.2"
-    "@docusaurus/module-type-aliases": "npm:3.5.2"
+    "@docusaurus/module-type-aliases": "npm:^3.5.2"
     "@docusaurus/preset-classic": "npm:3.5.2"
-    "@docusaurus/tsconfig": "npm:3.5.2"
-    "@docusaurus/types": "npm:3.5.2"
+    "@docusaurus/theme-classic": "npm:^3.5.2"
+    "@docusaurus/tsconfig": "npm:^3.5.2"
+    "@docusaurus/types": "npm:^3.5.2"
     "@mdx-js/react": "npm:^3.0.0"
+    "@types/node": "npm:^18.14.2"
+    "@types/react": "npm:^18.3.4"
     clsx: "npm:^1.1.1"
     prism-react-renderer: "npm:^2.3.0"
     react: "npm:^18.2.0"
@@ -4855,7 +4858,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@docusaurus/module-type-aliases@npm:3.5.2":
+"@docusaurus/module-type-aliases@npm:3.5.2, @docusaurus/module-type-aliases@npm:^3.5.2":
   version: 3.5.2
   resolution: "@docusaurus/module-type-aliases@npm:3.5.2"
   dependencies:
@@ -5057,7 +5060,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@docusaurus/theme-classic@npm:3.5.2":
+"@docusaurus/theme-classic@npm:3.5.2, @docusaurus/theme-classic@npm:^3.5.2":
   version: 3.5.2
   resolution: "@docusaurus/theme-classic@npm:3.5.2"
   dependencies:
@@ -5154,14 +5157,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@docusaurus/tsconfig@npm:3.5.2":
+"@docusaurus/tsconfig@npm:^3.5.2":
   version: 3.5.2
   resolution: "@docusaurus/tsconfig@npm:3.5.2"
   checksum: 10c0/1cde5cfadfc94605ba9a1ec8484bc58700bcff99944fa20c6f6d93599126914dc33f15c3464ee3279cf6becafcea86909d1d25a20f8f97e95c8ddf6b1122eac8
   languageName: node
   linkType: hard
 
-"@docusaurus/types@npm:3.5.2":
+"@docusaurus/types@npm:3.5.2, @docusaurus/types@npm:^3.5.2":
   version: 3.5.2
   resolution: "@docusaurus/types@npm:3.5.2"
   dependencies:
@@ -10048,14 +10051,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^17.0.34":
-  version: 17.0.68
-  resolution: "@types/react@npm:17.0.68"
+"@types/react@npm:^18.3.4":
+  version: 18.3.4
+  resolution: "@types/react@npm:18.3.4"
   dependencies:
     "@types/prop-types": "npm:*"
-    "@types/scheduler": "npm:*"
     csstype: "npm:^3.0.2"
-  checksum: 10c0/dc323ca3a459389fb0bf9b17daffee96c34fb5ecb197d582de74fa9ccaf78c6c3031acb422cc6205f761cfb608503001386134b320cc4341ec1196b72605a5c9
+  checksum: 10c0/5c52e1e6f540cff21e3c2a5212066d02e005f6fb21e4a536a29097fae878db9f407cd7a4b43778f51359349c5f692e08bc77ddb5f5cecbfca9ca4d4e3c91a48e
   languageName: node
   linkType: hard
 
