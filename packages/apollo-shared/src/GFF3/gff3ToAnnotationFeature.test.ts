@@ -2,14 +2,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { strict as assert } from 'node:assert'
 import { describe, it } from 'node:test'
-import gff, { GFF3Feature } from '@gmod/gff'
-
 import { readFileSync } from 'node:fs'
+
+import gff, { GFF3Feature } from '@gmod/gff'
+import { assert, use } from 'chai'
+import chaiExclude from 'chai-exclude'
 
 import { gff3ToAnnotationFeature } from './gff3ToAnnotationFeature'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+
+use(chaiExclude)
 
 const testCases: [string, string, AnnotationFeatureSnapshot][] = [
   [
@@ -25,6 +28,55 @@ const testCases: [string, string, AnnotationFeatureSnapshot][] = [
         gff_source: ['example'],
         gff_name: ['Remark:hga'],
         gff_alias: ['hga'],
+      },
+    },
+  ],
+  [
+    'a feature with two children',
+    `ctgA	est	EST_match	1050	3202	.	+	.	ID=Match1;Name=agt830.5;Target=agt830.5 1 654
+ctgA	est	match_part	1050	1500	.	+	.	Parent=Match1;Name=agt830.5;Target=agt830.5 1 451
+ctgA	est	match_part	3000	3202	.	+	.	Parent=Match1;Name=agt830.5;Target=agt830.5 452 654
+`,
+    {
+      _id: '66cf9fbb4e947fa2c27d3d6a',
+      refSeq: 'ctgA',
+      type: 'EST_match',
+      min: 1049,
+      max: 3202,
+      strand: 1,
+      children: {
+        '66cf9fbb4e947fa2c27d3d68': {
+          _id: '66cf9fbb4e947fa2c27d3d68',
+          refSeq: 'ctgA',
+          type: 'match_part',
+          min: 1049,
+          max: 1500,
+          strand: 1,
+          attributes: {
+            gff_source: ['est'],
+            gff_name: ['agt830.5'],
+            gff_target: ['agt830.5 1 451'],
+          },
+        },
+        '66cf9fbb4e947fa2c27d3d69': {
+          _id: '66cf9fbb4e947fa2c27d3d69',
+          refSeq: 'ctgA',
+          type: 'match_part',
+          min: 2999,
+          max: 3202,
+          strand: 1,
+          attributes: {
+            gff_source: ['est'],
+            gff_name: ['agt830.5'],
+            gff_target: ['agt830.5 452 654'],
+          },
+        },
+      },
+      attributes: {
+        gff_source: ['est'],
+        gff_id: ['Match1'],
+        gff_name: ['agt830.5'],
+        gff_target: ['agt830.5 1 654'],
       },
     },
   ],
@@ -104,18 +156,33 @@ function renameIds(x: AnnotationFeatureSnapshot): AnnotationFeatureSnapshot {
   }
   return gene as AnnotationFeatureSnapshot
 }
+interface AnnotationFeatureSnapshotWithChildrenArray
+  extends Omit<AnnotationFeatureSnapshot, 'children'> {
+  children?: AnnotationFeatureSnapshotWithChildrenArray[]
+}
+
+function childrenToArray(
+  feature: AnnotationFeatureSnapshot,
+): AnnotationFeatureSnapshotWithChildrenArray {
+  const { children } = feature
+  if (!children) {
+    return feature as AnnotationFeatureSnapshotWithChildrenArray
+  }
+  const childrenArray = Object.values(children).map((child) =>
+    childrenToArray(child),
+  )
+  return { ...feature, children: childrenArray }
+}
 
 function compareFeatures(
   feature1: AnnotationFeatureSnapshot,
   feature2: AnnotationFeatureSnapshot,
 ) {
-  const f1 = structuredClone(feature1)
-  const f2 = structuredClone(feature2)
-  assert.ok(f1.attributes)
-  assert.ok(f2.attributes)
-  f1.attributes.testid = undefined
-  f2.attributes.testid = undefined
-  assert.deepEqual({ ...f1, _id: undefined }, { ...f2, _id: undefined })
+  assert.deepEqualExcludingEvery(
+    childrenToArray(feature1),
+    childrenToArray(feature2),
+    '_id',
+  )
 }
 
 describe('gff3ToAnnotationFeature', () => {
