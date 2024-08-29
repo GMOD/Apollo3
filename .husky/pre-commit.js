@@ -29,13 +29,30 @@ function main() {
     spawn.sync(
       'yarn',
       ['workspace', '@apollo-annotation/cli', 'oclif', 'readme'],
-      {
-        stdio: 'inherit',
-      },
+      { stdio: 'inherit' },
     )
-    spawn.sync('git', ['add', 'packages/apollo-cli/README.md'], {
-      stdio: 'inherit',
-    })
+    spawn.sync(
+      'yarn',
+      [
+        'workspace',
+        '@apollo-annotation/cli',
+        'oclif',
+        'readme',
+        '--multi',
+        '--dir',
+        '../website/docs/cli/',
+      ],
+      { stdio: 'inherit' },
+    )
+    spawn.sync(
+      'git',
+      [
+        'add',
+        'packages/apollo-cli/README.md',
+        'packages/website/docs/cli/*.md',
+      ],
+      { stdio: 'inherit' },
+    )
   }
 }
 

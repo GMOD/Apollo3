@@ -29,7 +29,7 @@
     "test": "mocha --require src/test/fixtures.ts 'src/**/*.test.ts'",
     "posttest": "yarn lint",
     "test:ci": "nyc mocha 'src/**/*.test.ts'",
-    "version": "oclif readme && git add README.md"
+    "version": "oclif readme --multi --dir ../website/docs/cli/ && oclif readme && git add README.md"
   },
   "oclif": {
     "bin": "apollo",
