@@ -57,14 +57,7 @@ jobs:
           set -o pipefail
           set -x
 
-          if [ "${{ inputs.environment }}" = "staging" ]; then
-            env=devel
-          elif [ "${{ inputs.environment }}" = "prod" ]; then
-            env=latest
-          else 
-            echo "Invalid environment: ${{ inputs.environment }}" >&2 
-          fi
-          docker pull ghcr.io/gmod/apollo-cli:${env}
+          # Download data
 
           demoDataDir=${{ '${HOME}' }}/dario/demoData
           rm -rf $demoDataDir
@@ -78,6 +71,17 @@ jobs:
           curl -O -s -L $wormbase/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3.gz
           gunzip *.gz
 
+          # Setup docker
+
+          if [ "${{ inputs.environment }}" = "staging" ]; then
+            env=devel
+          elif [ "${{ inputs.environment }}" = "prod" ]; then
+            env=latest
+          else 
+            echo "Invalid environment: ${{ inputs.environment }}" >&2 
+          fi
+          docker pull ghcr.io/gmod/apollo-cli:${env}
+
           cfgDir=${{ '${HOME}' }}/deployment/config
           mkdir -p $cfgDir
           touch $cfgDir/config.yml
@@ -88,19 +92,23 @@ jobs:
 
           cfg="--config-file /root/.config/apollo-cli/config.yml --profile auto"
 
+          # Configure Apollo
+
           apollo config $cfg address http://localhost/apollo
           apollo config $cfg accessType root
           apollo config $cfg rootCredentials.username ${{ secrets.ROOT_USER_NAME }}
-          apollo config $cfg  rootCredentials.password ${{ secrets.ROOT_USER_PASSWORD }}
+          apollo config $cfg rootCredentials.password ${{ secrets.ROOT_USER_PASSWORD }}
           apollo login $cfg 
+
+          # Cleanup & import
 
           apollo assembly get $cfg | apollo assembly delete $cfg -v -a -
 
-          apollo assembly add-fasta $cfg -i $demoDataDir/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa -a schistosoma_haematobium -f
-          apollo assembly add-fasta $cfg -i $demoDataDir/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa -a schistosoma_mansoni -f
+          apollo assembly add-fasta $cfg -i /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa -a schistosoma_haematobium -f
+          apollo assembly add-fasta $cfg -i /data/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa -a schistosoma_mansoni -f
 
-          apollo feature import $cfg -i $demoDataDir/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3 -a schistosoma_haematobium -d
-          apollo feature import $cfg -i $demoDataDir/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3 -a schistosoma_mansoni -d
+          apollo feature import $cfg -i /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3 -a schistosoma_haematobium -d
+          apollo feature import $cfg -i /data/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3 -a schistosoma_mansoni -d
           EOF
 
           rsync -av cleanup_apollo.$xid.sh "${{ inputs.environment }}":dario/
