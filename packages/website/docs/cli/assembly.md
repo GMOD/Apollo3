@@ -1,6 +1,6 @@
 # `apollo assembly`
 
-Commands to handle assemblies
+Commands to manage assemblies
 
 - [`apollo assembly add-fasta`](#apollo-assembly-add-fasta)
 - [`apollo assembly add-file`](#apollo-assembly-add-file)

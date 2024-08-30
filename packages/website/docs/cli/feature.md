@@ -1,6 +1,6 @@
 # `apollo feature`
 
-Commands to handle features
+Commands to manage features
 
 - [`apollo feature add-child`](#apollo-feature-add-child)
 - [`apollo feature check`](#apollo-feature-check)

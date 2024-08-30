@@ -1,6 +1,6 @@
 # `apollo file`
 
-Delete files from the Apollo server
+Commands to manage files
 
 - [`apollo file delete`](#apollo-file-delete)
 - [`apollo file download`](#apollo-file-download)

@@ -1,6 +1,6 @@
 # `apollo refseq`
 
-Commands to handle reference sequences
+Commands to manage reference sequences
 
 - [`apollo refseq add-alias`](#apollo-refseq-add-alias)
 - [`apollo refseq get`](#apollo-refseq-get)

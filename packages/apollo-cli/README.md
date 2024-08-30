@@ -16,7 +16,7 @@ $ npm install -g @apollo-annotation/cli
 $ apollo COMMAND
 running command...
 $ apollo (--version)
-@apollo-annotation/cli/0.1.19 linux-x64 node-v20.13.0
+@apollo-annotation/cli/0.1.19 linux-x64 node-v20.14.0
 $ apollo --help [COMMAND]
 USAGE
   $ apollo COMMAND
@@ -1015,21 +1015,21 @@ EXAMPLES
 _See code:
 [src/commands/user/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/user/get.ts)_
 - [`apollo assembly`](../website/docs/cli//assembly.md) - Commands to handle
+- [`apollo assembly`](../website/docs/cli//assembly.md) - Commands to manage
   assemblies
-- [`apollo change`](../website/docs/cli//change.md) - Commands to handle the log
-  of changes made to the database
+- [`apollo change`](../website/docs/cli//change.md) - Commands to manage the
+  change log
 - [`apollo config`](../website/docs/cli//config.md) - Get or set apollo
   configuration options
-- [`apollo feature`](../website/docs/cli//feature.md) - Commands to handle
+- [`apollo feature`](../website/docs/cli//feature.md) - Commands to manage
   features
-- [`apollo file`](../website/docs/cli//file.md) - Delete files from the Apollo
-  server
+- [`apollo file`](../website/docs/cli//file.md) - Commands to manage files
 - [`apollo help`](../website/docs/cli//help.md) - Display help for apollo.
 - [`apollo login`](../website/docs/cli//login.md) - Login to Apollo
 - [`apollo logout`](../website/docs/cli//logout.md) - Logout of Apollo
-- [`apollo refseq`](../website/docs/cli//refseq.md) - Commands to handle
+- [`apollo refseq`](../website/docs/cli//refseq.md) - Commands to manage
   reference sequences
 - [`apollo status`](../website/docs/cli//status.md) - View authentication status
-- [`apollo user`](../website/docs/cli//user.md) - Commands to handle users
+- [`apollo user`](../website/docs/cli//user.md) - Commands to manage users
 
 <!-- commandsstop -->

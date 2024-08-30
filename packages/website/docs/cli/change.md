@@ -1,6 +1,6 @@
 # `apollo change`
 
-Commands to handle the log of changes made to the database
+Commands to manage the change log
 
 - [`apollo change get`](#apollo-change-get)
 
