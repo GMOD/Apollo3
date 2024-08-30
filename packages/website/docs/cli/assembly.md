@@ -3,6 +3,7 @@
 Commands to handle assemblies
 
 - [`apollo assembly add-fasta`](#apollo-assembly-add-fasta)
+- [`apollo assembly add-file`](#apollo-assembly-add-file)
 - [`apollo assembly add-gff`](#apollo-assembly-add-gff)
 - [`apollo assembly check`](#apollo-assembly-check)
 - [`apollo assembly delete`](#apollo-assembly-delete)
@@ -15,14 +16,16 @@ Add new assembly from local or external fasta file
 
 ```
 USAGE
-  $ apollo assembly add-fasta -i <value> [--profile <value>] [--config-file <value>] [-a <value>] [-x <value>] [-f]
+  $ apollo assembly add-fasta -i <value> [--profile <value>] [--config-file <value>] [-a <value>] [-x <value>] [-f] [-n]
 
 FLAGS
   -a, --assembly=<value>     Name for this assembly. Use the file name if omitted
   -f, --force                Delete existing assembly, if it exists
   -i, --input-file=<value>   (required) Input fasta file
-  -x, --index=<value>        URL of the index. Required if input is an external source and ignored if input is a local
-                             file
+  -n, --no-db                Do not load the fasta sequence into the Apollo database. This option assumes the
+                             fasta file is bgzip'd with `bgzip` and indexed with `samtools faidx`. Indexes
+                             should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai
+  -x, --index=<value>        URL of the index. Required if input is an external source
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
 
@@ -42,6 +45,41 @@ EXAMPLES
 _See code:
 [src/commands/assembly/add-fasta.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-fasta.ts)_
 
+## `apollo assembly add-file`
+
+Add new assembly from an uploaded file
+
+```
+USAGE
+  $ apollo assembly add-file [--profile <value>] [--config-file <value>] [-i <value>] [-a <value>] [-f]
+
+FLAGS
+  -a, --assembly=<value>     Name for this assembly. If omitted use the file id
+  -f, --force                Delete existing assembly, if it exists
+  -i, --file-id=<value>      [default: -] ID of file to upload
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      Use credentials from this profile
+
+DESCRIPTION
+  Add new assembly from an uploaded file
+
+  Use the file id of a previously uploaded file to add a new assembly.
+
+  For uploading a new file see `apollo file upload`
+
+  For getting the file id of an uploaded file see `apollo file get`
+
+  For uploading & adding in a single pass see `apollo assembly add-*`
+
+EXAMPLES
+  Use file id xyz to add assembly "myAssembly":
+
+    $ apollo assembly add-file -i xyz -a myAssembly
+```
+
+_See code:
+[src/commands/assembly/add-file.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-file.ts)_
+
 ## `apollo assembly add-gff`
 
 Add new assembly from gff or gft file
@@ -53,7 +91,7 @@ USAGE
 FLAGS
   -a, --assembly=<value>     Name for this assembly. Use the file name if omitted
   -f, --force                Delete existing assembly, if it exists
-  -i, --input-file=<value>   (required) Input gff or gtf file
+  -i, --input-file=<value>   (required) Input gff file
   -o, --omit-features        Do not import features, only upload the sequences
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile

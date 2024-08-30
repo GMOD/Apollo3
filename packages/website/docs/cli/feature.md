@@ -355,7 +355,7 @@ USAGE
 FLAGS
   -a, --assembly=<value>     (required) Import into this assembly name or assembly ID
   -d, --delete-existing      Delete existing features before importing
-  -i, --input-file=<value>   (required) Input gff or gtf file
+  -i, --input-file=<value>   (required) Input gff file
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
 

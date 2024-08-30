@@ -36,8 +36,7 @@ export default class AddFasta extends FileCommand {
     }),
     index: Flags.string({
       char: 'x',
-      description:
-        'URL of the index. Required if input is an external source',
+      description: 'URL of the index. Required if input is an external source',
     }),
     force: Flags.boolean({
       char: 'f',
@@ -45,9 +44,11 @@ export default class AddFasta extends FileCommand {
     }),
     'no-db': Flags.boolean({
       char: 'n',
-      description: wrapLines("Do not load the fasta sequence into the Apollo database. \
+      description: wrapLines(
+        "Do not load the fasta sequence into the Apollo database. \
       This option assumes the fasta file is bgzip'd with `bgzip` and indexed with `samtools faidx`.\
-      Indexes should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai"),
+      Indexes should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai",
+      ),
     }),
   }
 
@@ -84,7 +85,9 @@ export default class AddFasta extends FileCommand {
       const gzi = `${flags['input-file']}.gzi`
       const fai = `${flags['input-file']}.fai`
       if (!fs.existsSync(gzi) || !fs.existsSync(fai)) {
-        this.error("Only bgzip'd and indexed fasta files are supported at the moment")
+        this.error(
+          "Only bgzip'd and indexed fasta files are supported at the moment",
+        )
       }
       // Upload fasta file
       const faId = await this.uploadFile(

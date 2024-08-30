@@ -83,19 +83,19 @@ export class AddAssemblyFromFileIdChange extends AssemblySpecificChange {
       const { assemblyName, fileIds } = change
       const { fa, fai, gzi } = fileIds
 
-      const faDoc = (await fileModel.findById(fa))
+      const faDoc = await fileModel.findById(fa)
       const faChecksum = faDoc?.checksum
       if (!faChecksum) {
         throw new Error(`No checksum for file document ${faDoc}`)
       }
 
-      const faiDoc = (await fileModel.findById(fai))
+      const faiDoc = await fileModel.findById(fai)
       const faiChecksum = faiDoc?.checksum
       if (!faiChecksum) {
         throw new Error(`No checksum for file document ${faiDoc}`)
       }
 
-      const gziDoc = (await fileModel.findById(gzi))
+      const gziDoc = await fileModel.findById(gzi)
       const gziChecksum = faiDoc?.checksum
       if (!faiChecksum) {
         throw new Error(`No checksum for file document ${gziDoc}`)
@@ -108,9 +108,9 @@ export class AddAssemblyFromFileIdChange extends AssemblySpecificChange {
             gzi: new LocalFile(path.join(FILE_UPLOAD_FOLDER, gziChecksum)),
           })
         : new IndexedFasta({
-          fasta: new LocalFile(path.join(FILE_UPLOAD_FOLDER, fa)),
-          fai: new LocalFileGzip(path.join(FILE_UPLOAD_FOLDER, fai)),
-        })
+            fasta: new LocalFile(path.join(FILE_UPLOAD_FOLDER, fa)),
+            fai: new LocalFileGzip(path.join(FILE_UPLOAD_FOLDER, fai)),
+          })
       const allSequenceSizes = await sequenceAdapter.getSequenceSizes()
 
       if (!allSequenceSizes) {
@@ -169,4 +169,3 @@ export class AddAssemblyFromFileIdChange extends AssemblySpecificChange {
     )
   }
 }
-
