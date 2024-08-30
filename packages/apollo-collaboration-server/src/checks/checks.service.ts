@@ -12,32 +12,24 @@ import {
   CheckResult,
   CheckResultDocument,
   FeatureDocument,
-  File,
-  FileDocument,
   RefSeq,
-  RefSeqChunk,
-  RefSeqChunkDocument,
   RefSeqDocument,
 } from '@apollo-annotation/schemas'
-import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { LocalFile, RemoteFile } from 'generic-filehandle'
 import { Model } from 'mongoose'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { RefSeqsService } from '../refSeqs/refSeqs.service'
-import { LocalFileGzip } from '@apollo-annotation/shared'
-import path from 'node:path'
+import { SequenceService } from '../sequence/sequence.service'
 
 @Injectable()
 export class ChecksService {
   constructor(
-    @InjectModel(File.name)
-    private readonly fileModel: Model<FileDocument>,
     @InjectModel(CheckResult.name)
     private readonly checkResultModel: Model<CheckResultDocument>,
     private readonly refSeqsService: RefSeqsService,
+    private readonly sequenceService: SequenceService,
     @InjectModel(Check.name)
     private readonly checkModel: Model<CheckDocument>,
   ) {}
@@ -114,113 +106,8 @@ export class ChecksService {
     featureDoc: FeatureDocument
     start: number
   }) {
-    const refSeqModel = featureDoc.$model<Model<RefSeqDocument>>(RefSeq.name)
     const refSeqId = featureDoc.refSeq.toString()
-    const refSeqDoc = await refSeqModel.findById(refSeqId).exec()
-    if (!refSeqDoc) {
-      throw new Error(`Could not find refSeq ${refSeqId}`)
-    }
-    const { assembly, chunkSize, name } = refSeqDoc
-    const assemblyModel = featureDoc.$model<Model<AssemblyDocument>>(
-      Assembly.name,
-    )
-    const assemblyDoc = await assemblyModel.findById(assembly)
-    if (!assemblyDoc) {
-      throw new Error(`Could not find assembly ${assembly}`)
-    }
-
-    if (assemblyDoc.externalLocation) {
-      const { fa, fai, gzi } = assemblyDoc.externalLocation
-      this.logger.debug(`Fasta file URL = ${fa}, Fasta index file URL = ${fai}`)
-
-      const sequenceAdapter = gzi
-        ? new BgzipIndexedFasta({
-            fasta: new RemoteFile(fa, { fetch }),
-            fai: new RemoteFile(fai, { fetch }),
-            gzi: new RemoteFile(gzi, { fetch }),
-          })
-        : new IndexedFasta({
-            fasta: new RemoteFile(fa, { fetch }),
-            fai: new RemoteFile(fai, { fetch }),
-          })
-      const sequence = await sequenceAdapter.getSequence(name, start, end)
-      if (sequence === undefined) {
-        throw new Error('Sequence not found')
-      }
-      return sequence
-    }
-
-    if (assemblyDoc?.fileIds) {
-      const { fa, fai, gzi } = assemblyDoc.fileIds
-      this.logger.debug(
-        `Local fasta file = ${fa}, Local fasta index file = ${fai}`,
-      )
-      const { FILE_UPLOAD_FOLDER } = process.env
-      if (!FILE_UPLOAD_FOLDER) {
-        throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
-      }
-      const faDoc = await this.fileModel.findById(fa)
-      const faChecksum = faDoc?.checksum
-      if (!faChecksum) {
-        throw new Error(`No checksum for file document ${faDoc}`)
-      }
-
-      const faiDoc = await this.fileModel.findById(fai)
-      const faiChecksum = faiDoc?.checksum
-      if (!faiChecksum) {
-        throw new Error(`No checksum for file document ${faiDoc}`)
-      }
-
-      const gziDoc = await this.fileModel.findById(gzi)
-      const gziChecksum = gziDoc?.checksum
-      if (!gziChecksum) {
-        throw new Error(`No checksum for file document ${gziDoc}`)
-      }
-
-      const sequenceAdapter = gzi
-        ? new BgzipIndexedFasta({
-            fasta: new LocalFile(path.join(FILE_UPLOAD_FOLDER, faChecksum)),
-
-            fai: new LocalFileGzip(path.join(FILE_UPLOAD_FOLDER, faiChecksum)),
-
-            gzi: new LocalFileGzip(path.join(FILE_UPLOAD_FOLDER, gziChecksum)),
-          })
-        : new IndexedFasta({
-            fasta: new LocalFile(fa),
-            fai: new LocalFile(fai),
-          })
-      const sequence = await sequenceAdapter.getSequence(name, start, end)
-      if (sequence === undefined) {
-        throw new Error('Sequence not found')
-      }
-      return sequence
-    }
-
-    const startChunk = Math.floor(start / chunkSize)
-    const endChunk = Math.floor(end / chunkSize)
-    const seq: string[] = []
-    const refSeqChunkModel = featureDoc.$model<Model<RefSeqChunkDocument>>(
-      RefSeqChunk.name,
-    )
-    for await (const refSeqChunk of refSeqChunkModel
-      .find({
-        refSeq: refSeqId,
-        $and: [{ n: { $gte: startChunk } }, { n: { $lte: endChunk } }],
-      })
-      .sort({ n: 1 })) {
-      const { n, sequence } = refSeqChunk
-      if (n === startChunk || n === endChunk) {
-        seq.push(
-          sequence.slice(
-            n === startChunk ? start - n * chunkSize : undefined,
-            n === endChunk ? end - n * chunkSize : undefined,
-          ),
-        )
-      } else {
-        seq.push(sequence)
-      }
-    }
-    return seq.join('')
+    return this.sequenceService.getSequence({ start, end, refSeq: refSeqId })
   }
 
   async clearChecksForFeature(featureDoc: FeatureDocument) {
