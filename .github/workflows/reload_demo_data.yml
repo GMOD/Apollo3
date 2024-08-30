@@ -116,5 +116,5 @@ jobs:
 
           logDir=reload_demo_data/logs
           ssh "${{ inputs.environment }}" -f "mkdir -p ${logDir}"
-          rsync -av cleanup_apollo.$xid.sh "${{ inputs.environment }}":${logDir}/logs/
+          rsync -av cleanup_apollo.$xid.sh "${{ inputs.environment }}":${logDir}/
           ssh "${{ inputs.environment }}" -f "bash ${logDir}/cleanup_apollo.$xid.sh > ${logDir}/cleanup_apollo.$xid.out 2> ${logDir}/cleanup_apollo.$xid.err"
