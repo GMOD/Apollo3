@@ -48,7 +48,7 @@ jobs:
             IdentityFile ~/.ssh/staging
           END
           ssh-keyscan -H ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }} >> ~/.ssh/known_hosts
-      - name: Test ssh
+      - name: Setup and Reload
         run: |
           xid=`date +"%Y-%m-%dT%H-%M-%S"`
           cat <<'EOF' > cleanup_apollo.$xid.sh
@@ -59,7 +59,7 @@ jobs:
 
           # Download data
 
-          demoDataDir=${{ '${HOME}' }}/dario/demoData
+          demoDataDir=${{ '${HOME}' }}/reload_demo_data/demoData
           rm -rf $demoDataDir
           mkdir -p $demoDataDir
           cd $demoDataDir
@@ -82,7 +82,7 @@ jobs:
           fi
           docker pull ghcr.io/gmod/apollo-cli:${env}
 
-          cfgDir=${{ '${HOME}' }}/deployment/config
+          cfgDir=${{ '${HOME}' }}/reload_demo_data/config
           mkdir -p $cfgDir
           touch $cfgDir/config.yml
 
@@ -110,7 +110,11 @@ jobs:
 
           apollo feature import $cfg -i /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3 -a schistosoma_haematobium -d
           apollo feature import $cfg -i /data/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3 -a schistosoma_mansoni -d
+
+          echo `date +"%Y-%m-%dT%H-%M-%S"` 'OK'
           EOF
 
-          rsync -av cleanup_apollo.$xid.sh "${{ inputs.environment }}":dario/
-          ssh "${{ inputs.environment }}" -f "bash dario/cleanup_apollo.$xid.sh > dario/cleanup_apollo.$xid.out 2> dario/cleanup_apollo.$xid.err"
+          logDir=reload_demo_data/logs
+          ssh "${{ inputs.environment }}" -f "mkdir -p ${logDir}"
+          rsync -av cleanup_apollo.$xid.sh "${{ inputs.environment }}":${logDir}/logs/
+          ssh "${{ inputs.environment }}" -f "bash ${logDir}/cleanup_apollo.$xid.sh > ${logDir}/cleanup_apollo.$xid.out 2> ${logDir}/cleanup_apollo.$xid.err"
