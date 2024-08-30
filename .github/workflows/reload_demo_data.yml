@@ -102,7 +102,8 @@ jobs:
 
           # Cleanup & import
 
-          apollo assembly get $cfg | apollo assembly delete $cfg -v -a -
+          asm=`apollo assembly get $cfg | jq -r '.[] | ._id'`
+          apollo assembly delete $cfg -v -a $asm
 
           apollo assembly add-fasta $cfg -i /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa -a schistosoma_haematobium -f
           apollo assembly add-fasta $cfg -i /data/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa -a schistosoma_mansoni -f
