@@ -30,7 +30,14 @@ export default class Upload extends FileCommand {
       description:
         'File type or "autodetect" for automatic detection.\n\
         NB: There is no check for whether the file complies to this type',
-      options: ['text/x-fasta', 'text/x-gff3', 'autodetect'],
+      options: [
+        'text/x-fasta',
+        'text/x-gff3',
+        'application/x-bgzip-fasta',
+        'text/x-fai',
+        'application/x-gzi',
+        'autodetect',
+      ],
       default: 'autodetect',
     }),
   }

@@ -27,6 +27,7 @@ export default class AddFasta extends FileCommand {
   static args = {
     'input-file': Args.string({
       description: 'Input fasta file',
+      required: true,
     }),
   }
 

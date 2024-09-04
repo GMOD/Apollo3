@@ -97,13 +97,14 @@ Upload a local file to the Apollo server
 ```
 USAGE
   $ apollo file upload -i <value> [--profile <value>] [--config-file <value>] [-t
-    text/x-fasta|text/x-gff3|autodetect]
+    text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi|autodetect]
 
 FLAGS
   -i, --input-file=<value>   (required) Local file to upload
   -t, --type=<option>        [default: autodetect] File type or "autodetect" for automatic detection.
                              NB: There is no check for whether the file complies to this type
-                             <options: text/x-fasta|text/x-gff3|autodetect>
+                             <options:
+                             text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi|autodetect>
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
 
