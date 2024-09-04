@@ -3,7 +3,7 @@
 Commands to manage assemblies
 
 - [`apollo assembly add-file`](#apollo-assembly-add-file)
-- [`apollo assembly add-from-fasta`](#apollo-assembly-add-from-fasta)
+- [`apollo assembly add-from-fasta INPUT-FILE`](#apollo-assembly-add-from-fasta-input-file)
 - [`apollo assembly add-from-gff`](#apollo-assembly-add-from-gff)
 - [`apollo assembly check`](#apollo-assembly-check)
 - [`apollo assembly delete`](#apollo-assembly-delete)
@@ -45,22 +45,25 @@ EXAMPLES
 _See code:
 [src/commands/assembly/add-file.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-file.ts)_
 
-## `apollo assembly add-from-fasta`
+## `apollo assembly add-from-fasta INPUT-FILE`
 
 Add new assembly from local or external fasta file
 
 ```
 USAGE
-  $ apollo assembly add-from-fasta -i <value> [--profile <value>] [--config-file <value>] [-a <value>] [-x <value>] [-f]
+  $ apollo assembly add-from-fasta INPUT-FILE [--profile <value>] [--config-file <value>] [-a <value>] [-x <value>] [-f]
   [-n]
+
+ARGUMENTS
+  INPUT-FILE  Input fasta file
 
 FLAGS
   -a, --assembly=<value>     Name for this assembly. Use the file name if omitted
   -f, --force                Delete existing assembly, if it exists
-  -i, --input-file=<value>   (required) Input fasta file
-  -n, --no-db                Do not load the fasta sequence into the Apollo database. This option assumes the
-                             fasta file is bgzip'd with `bgzip` and indexed with `samtools faidx`. Indexes
-                             should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai
+  -n, --not-editable         The fasta sequence is not editable. Apollo will not load it into the database
+                             and instead use the provided indexes to query it. This option assumes the fasta
+                             file is bgzip'd with `bgzip` and indexed with `samtools faidx`. Indexes should
+                             be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai
   -x, --index=<value>        URL of the index. Required if input is an external source
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
@@ -71,11 +74,11 @@ DESCRIPTION
 EXAMPLES
   From local file:
 
-    $ apollo assembly add-from-fasta -i genome.fa -a myAssembly
+    $ apollo assembly add-from-fasta genome.fa -a myAssembly
 
   From external source we also need the URL of the index:
 
-    $ apollo assembly add-from-fasta -i https://.../genome.fa -x https://.../genome.fa.fai -a myAssembly
+    $ apollo assembly add-from-fasta https://.../genome.fa -x https://.../genome.fa.fai -a myAssembly
 ```
 
 _See code:

@@ -868,7 +868,7 @@ class TestCLI(unittest.TestCase):
 
     def testFeatureChecksIndexed(self):
         shell(
-            f"{apollo} assembly add-from-fasta {P} -a v1 test_data/tiny.fasta.gz --no-db -f"
+            f"{apollo} assembly add-from-fasta {P} -a v1 test_data/tiny.fasta.gz --not-editable -f"
         )
         shell(f"{apollo} feature import {P} -a v1 -i test_data/tiny.fasta.gff3 -d")
         # shell(f"{apollo} assembly add-from-gff {P} -i test_data/tiny.fasta.gff3 -a v1 -f")
@@ -902,7 +902,7 @@ class TestCLI(unittest.TestCase):
 
     def testFeatureChecksIndexed(self):
         shell(
-            f"{apollo} assembly add-from-fasta {P} -a v1 test_data/tiny.fasta.gz --no-db -f"
+            f"{apollo} assembly add-from-fasta {P} -a v1 test_data/tiny.fasta.gz --not-editable -f"
         )
         shell(f"{apollo} feature import {P} -a v1 -i test_data/tiny.fasta.gff3 -d")
         # shell(f"{apollo} assembly add-from-gff {P} -i test_data/tiny.fasta.gff3 -a v1 -f")
@@ -1082,12 +1082,12 @@ class TestCLI(unittest.TestCase):
 
     def testAddAssemblyWithoutLoadingInMongo(self):
         # It would be good to check that really there was no sequence loading
-        shell(f"{apollo} assembly add-from-fasta {P} -f --no-db test_data/tiny.fasta.gz")
+        shell(f"{apollo} assembly add-from-fasta {P} -f --not-editable test_data/tiny.fasta.gz")
         p = shell(f"{apollo} assembly sequence {P} -a tiny.fasta.gz")
         self.assertTrue(p.stdout.startswith(">"))
 
         p = shell(
-            f"{apollo} assembly add-from-fasta {P} -f --no-db test_data/tiny.fasta",
+            f"{apollo} assembly add-from-fasta {P} -f --not-editable test_data/tiny.fasta",
             strict=False,
         )
         self.assertTrue(p.returncode != 0)
