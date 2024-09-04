@@ -9,6 +9,8 @@ import chaiExclude from 'chai-exclude'
 import { gff3ToAnnotationFeature } from './gff3ToAnnotationFeature'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
+import { GFF3Feature } from '@gmod/gff'
+
 use(chaiExclude)
 
 const testCases: [string, string, AnnotationFeatureSnapshot][] = [
