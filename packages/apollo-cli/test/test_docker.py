@@ -45,7 +45,7 @@ class TestDocker(unittest.TestCase):
     def testAddAssembly(self):
         configFile = '/root/.config/apollo-cli/config.yml'
 
-        shell(f"{apollo} assembly add-gff --config-file {configFile} -i data/tiny.fasta.gff3 -a vv1 -f")
+        shell(f"{apollo} assembly add-from-gff --config-file {configFile} -i data/tiny.fasta.gff3 -a vv1 -f")
         p = shell(f"{apollo} assembly get --config-file {configFile} -a vv1")
         self.assertTrue("vv1" in p.stdout)
 

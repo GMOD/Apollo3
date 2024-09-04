@@ -2,48 +2,13 @@
 
 Commands to manage assemblies
 
-- [`apollo assembly add-fasta`](#apollo-assembly-add-fasta)
 - [`apollo assembly add-file`](#apollo-assembly-add-file)
-- [`apollo assembly add-gff`](#apollo-assembly-add-gff)
+- [`apollo assembly add-from-fasta`](#apollo-assembly-add-from-fasta)
+- [`apollo assembly add-from-gff`](#apollo-assembly-add-from-gff)
 - [`apollo assembly check`](#apollo-assembly-check)
 - [`apollo assembly delete`](#apollo-assembly-delete)
 - [`apollo assembly get`](#apollo-assembly-get)
 - [`apollo assembly sequence`](#apollo-assembly-sequence)
-
-## `apollo assembly add-fasta`
-
-Add new assembly from local or external fasta file
-
-```
-USAGE
-  $ apollo assembly add-fasta -i <value> [--profile <value>] [--config-file <value>] [-a <value>] [-x <value>] [-f] [-n]
-
-FLAGS
-  -a, --assembly=<value>     Name for this assembly. Use the file name if omitted
-  -f, --force                Delete existing assembly, if it exists
-  -i, --input-file=<value>   (required) Input fasta file
-  -n, --no-db                Do not load the fasta sequence into the Apollo database. This option assumes the
-                             fasta file is bgzip'd with `bgzip` and indexed with `samtools faidx`. Indexes
-                             should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai
-  -x, --index=<value>        URL of the index. Required if input is an external source
-      --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      Use credentials from this profile
-
-DESCRIPTION
-  Add new assembly from local or external fasta file
-
-EXAMPLES
-  From local file:
-
-    $ apollo assembly add-fasta -i genome.fa -a myAssembly
-
-  From external source we also need the URL of the index:
-
-    $ apollo assembly add-fasta -i https://.../genome.fa -x https://.../genome.fa.fai -a myAssembly
-```
-
-_See code:
-[src/commands/assembly/add-fasta.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-fasta.ts)_
 
 ## `apollo assembly add-file`
 
@@ -80,13 +45,49 @@ EXAMPLES
 _See code:
 [src/commands/assembly/add-file.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-file.ts)_
 
-## `apollo assembly add-gff`
+## `apollo assembly add-from-fasta`
+
+Add new assembly from local or external fasta file
+
+```
+USAGE
+  $ apollo assembly add-from-fasta -i <value> [--profile <value>] [--config-file <value>] [-a <value>] [-x <value>] [-f]
+  [-n]
+
+FLAGS
+  -a, --assembly=<value>     Name for this assembly. Use the file name if omitted
+  -f, --force                Delete existing assembly, if it exists
+  -i, --input-file=<value>   (required) Input fasta file
+  -n, --no-db                Do not load the fasta sequence into the Apollo database. This option assumes the
+                             fasta file is bgzip'd with `bgzip` and indexed with `samtools faidx`. Indexes
+                             should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai
+  -x, --index=<value>        URL of the index. Required if input is an external source
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      Use credentials from this profile
+
+DESCRIPTION
+  Add new assembly from local or external fasta file
+
+EXAMPLES
+  From local file:
+
+    $ apollo assembly add-from-fasta -i genome.fa -a myAssembly
+
+  From external source we also need the URL of the index:
+
+    $ apollo assembly add-from-fasta -i https://.../genome.fa -x https://.../genome.fa.fai -a myAssembly
+```
+
+_See code:
+[src/commands/assembly/add-from-fasta.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-from-fasta.ts)_
+
+## `apollo assembly add-from-gff`
 
 Add new assembly from gff or gft file
 
 ```
 USAGE
-  $ apollo assembly add-gff -i <value> [--profile <value>] [--config-file <value>] [-a <value>] [-o] [-f]
+  $ apollo assembly add-from-gff -i <value> [--profile <value>] [--config-file <value>] [-a <value>] [-o] [-f]
 
 FLAGS
   -a, --assembly=<value>     Name for this assembly. Use the file name if omitted
@@ -105,15 +106,15 @@ DESCRIPTION
 EXAMPLES
   Import sequences and features:
 
-    $ apollo assembly add-gff -i genome.gff -a myAssembly
+    $ apollo assembly add-from-gff -i genome.gff -a myAssembly
 
   Import sequences only:
 
-    $ apollo assembly add-gff -i genome.gff -a myAssembly -o
+    $ apollo assembly add-from-gff -i genome.gff -a myAssembly -o
 ```
 
 _See code:
-[src/commands/assembly/add-gff.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-gff.ts)_
+[src/commands/assembly/add-from-gff.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-from-gff.ts)_
 
 ## `apollo assembly check`
 
