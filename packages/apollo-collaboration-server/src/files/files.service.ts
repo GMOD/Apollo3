@@ -17,6 +17,8 @@ import { Model } from 'mongoose'
 
 import { CreateFileDto } from './dto/create-file.dto'
 import { writeFileAndCalculateHash, FileRequest } from './filesUtil'
+import { GenericFilehandle, LocalFile } from 'generic-filehandle'
+import { LocalFileGzip } from '@apollo-annotation/shared/src/util'
 
 @Injectable()
 export class FilesService {
@@ -36,7 +38,12 @@ export class FilesService {
       infer: true,
     })
     return writeFileAndCalculateHash(
-      { originalname: name, stream: req, size },
+      {
+        originalname: name,
+        stream: req,
+        size,
+        mimetype: req.header('Content-Type'),
+      },
       fileUploadFolder,
       this.logger,
     )
@@ -72,6 +79,24 @@ export class FilesService {
     }
     const gunzip = createGunzip()
     return fileStream.pipe(gunzip)
+  }
+
+  getFileHandle(file: FileDocument): GenericFilehandle {
+    const fileUploadFolder = this.configService.get('FILE_UPLOAD_FOLDER', {
+      infer: true,
+    })
+    const fileName = join(fileUploadFolder, file.checksum)
+    switch (file.type) {
+      case 'application/x-bgzip-fasta':
+      case 'application/x-gzi': {
+        return new LocalFileGzip(fileName)
+      }
+      case 'text/x-gff3':
+      case 'text/x-fasta':
+      case 'text/x-fai': {
+        return new LocalFile(fileName)
+      }
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

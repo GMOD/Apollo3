@@ -13,6 +13,7 @@ interface FileUpload {
   originalname: string
   size: number
   stream: Readable
+  mimetype?: string
 }
 
 export interface UploadedFile extends Express.Multer.File {

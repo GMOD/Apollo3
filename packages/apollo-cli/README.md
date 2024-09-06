@@ -1025,11 +1025,5 @@ _See code:
   features
 - [`apollo file`](../website/docs/cli//file.md) - Commands to manage files
 - [`apollo help`](../website/docs/cli//help.md) - Display help for apollo.
-- [`apollo login`](../website/docs/cli//login.md) - Login to Apollo
-- [`apollo logout`](../website/docs/cli//logout.md) - Logout of Apollo
-- [`apollo refseq`](../website/docs/cli//refseq.md) - Commands to manage
-  reference sequences
-- [`apollo status`](../website/docs/cli//status.md) - View authentication status
-- [`apollo user`](../website/docs/cli//user.md) - Commands to manage users
 
 <!-- commandsstop -->

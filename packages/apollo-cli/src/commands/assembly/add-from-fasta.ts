@@ -8,7 +8,12 @@ import { FileCommand } from '../../fileCommand.js'
 import { submitAssembly, wrapLines } from '../../utils.js'
 
 export default class AddFasta extends FileCommand {
-  static description = 'Add new assembly from local or external fasta file'
+  static description =
+    wrapLines(`Add new assembly from a fasta file. The input file may be:
+    
+    * A local file 
+    * An external fasta file
+    * The id of a file previously uploaded to Apollo`)
 
   static examples = [
     {
@@ -26,7 +31,7 @@ export default class AddFasta extends FileCommand {
 
   static args = {
     'input-file': Args.string({
-      description: 'Input fasta file',
+      description: 'Input fasta file or file id',
       required: true,
     }),
   }
@@ -64,14 +69,15 @@ export default class AddFasta extends FileCommand {
     const assemblyName = flags.assembly ?? path.basename(args['input-file'])
 
     const isExternal = isValidHttpUrl(args['input-file'])
-    let rec
+    const isGzip = args['input-file'].endsWith('.gz')
+    let body
     if (isExternal) {
       if (flags.index === undefined) {
         this.error(
           'Please provide the URL to the index of the external fasta file',
         )
       }
-      const body = {
+      body = {
         assemblyName,
         typeName: 'AddAssemblyFromExternalChange',
         externalLocation: {
@@ -79,12 +85,12 @@ export default class AddFasta extends FileCommand {
           fai: flags.index,
         },
       }
-      rec = await submitAssembly(
-        access.address,
-        access.accessToken,
-        body,
-        flags.force,
-      )
+      // rec = await submitAssembly(
+      //   access.address,
+      //   access.accessToken,
+      //   body,
+      //   flags.force,
+      // )
     } else if (flags['not-editable']) {
       const gzi = `${args['input-file']}.gzi`
       const fai = `${args['input-file']}.fai`
@@ -99,6 +105,7 @@ export default class AddFasta extends FileCommand {
         access.accessToken,
         args['input-file'],
         'text/x-fasta',
+        isGzip,
       )
       // Upload fai index
       const faiId = await this.uploadFile(
@@ -106,6 +113,7 @@ export default class AddFasta extends FileCommand {
         access.accessToken,
         fai,
         'text/x-fasta',
+        isGzip,
       )
       // Upload gzi index
       const gziId = await this.uploadFile(
@@ -113,22 +121,23 @@ export default class AddFasta extends FileCommand {
         access.accessToken,
         gzi,
         'text/x-fasta',
+        isGzip,
       )
-      const body = {
+      body = {
         assemblyName,
-        typeName: 'AddAssemblyFromFileIdChange',
+        typeName: 'AddAssemblyFromFileChange',
         fileIds: {
           fa: faId,
           fai: faiId,
           gzi: gziId,
         },
       }
-      rec = await submitAssembly(
-        access.address,
-        access.accessToken,
-        body,
-        flags.force,
-      )
+      // rec = await submitAssembly(
+      //   access.address,
+      //   access.accessToken,
+      //   body,
+      //   flags.force,
+      // )
     } else {
       if (!isExternal && !fs.existsSync(args['input-file'])) {
         this.error(`File ${args['input-file']} does not exist`)
@@ -138,20 +147,27 @@ export default class AddFasta extends FileCommand {
         access.accessToken,
         args['input-file'],
         'text/x-fasta',
+        false,
       )
-      const body = {
+      body = {
         assemblyName,
         fileId,
         typeName: 'AddAssemblyFromFileChange',
         assembly: new ObjectId().toHexString(),
       }
-      rec = await submitAssembly(
-        access.address,
-        access.accessToken,
-        body,
-        flags.force,
-      )
+      // rec = await submitAssembly(
+      //   access.address,
+      //   access.accessToken,
+      //   body,
+      //   flags.force,
+      // )
     }
+    const rec = await submitAssembly(
+      access.address,
+      access.accessToken,
+      body,
+      flags.force,
+    )
     this.log(JSON.stringify(rec, null, 2))
   }
 }

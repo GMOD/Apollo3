@@ -49,6 +49,7 @@ export abstract class FileCommand extends BaseCommand<typeof FileCommand> {
     accessToken: string,
     file: string,
     type: string,
+    isGzip: boolean,
   ): Promise<string> {
     const filehandle = await fs.promises.open(file)
     const { size } = await filehandle.stat()
@@ -63,22 +64,21 @@ export abstract class FileCommand extends BaseCommand<typeof FileCommand> {
       }
     })
 
-    let contentEncoding = ''
-    if (file.endsWith('.gz')) {
-      contentEncoding = 'gzip'
+    const headers = new Headers({
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': type,
+      'Content-Length': String(size),
+    })
+    if (isGzip) {
+      headers.append('Content-Encoding', 'gzip')
     }
 
     const init: RequestInit = {
       method: 'POST',
       body,
       duplex: 'half',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': type,
-        'Content-Length': String(size),
-        'Content-Encoding': contentEncoding,
-      },
       dispatcher: new Agent({ headersTimeout: 60 * 60 * 1000 }),
+      headers,
     }
 
     const fileName = path.basename(file)

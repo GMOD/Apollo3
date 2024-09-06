@@ -11,9 +11,6 @@ import {
   ServerDataStore,
 } from '@apollo-annotation/common'
 import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
-import { LocalFile } from 'generic-filehandle'
-import path from 'node:path'
-import { LocalFileGzip } from '../util'
 
 export interface SerializedAddAssemblyFromFileIdChangeBase
   extends SerializedAssemblySpecificChange {
@@ -69,7 +66,8 @@ export class AddAssemblyFromFileIdChange extends AssemblySpecificChange {
    * @returns
    */
   async executeOnServer(backend: ServerDataStore) {
-    const { assemblyModel, fileModel, refSeqModel, user } = backend
+    const { assemblyModel, fileModel, filesService, refSeqModel, user } =
+      backend
     const { assembly, changes, logger } = this
     const { CHUNK_SIZE } = process.env
     const customChunkSize = CHUNK_SIZE && Number(CHUNK_SIZE)
@@ -96,20 +94,20 @@ export class AddAssemblyFromFileIdChange extends AssemblySpecificChange {
       }
 
       const gziDoc = await fileModel.findById(gzi)
-      const gziChecksum = faiDoc?.checksum
-      if (!faiChecksum) {
+      const gziChecksum = gziDoc?.checksum
+      if (!gziChecksum) {
         throw new Error(`No checksum for file document ${gziDoc}`)
       }
 
       const sequenceAdapter = gzi
         ? new BgzipIndexedFasta({
-            fasta: new LocalFile(path.join(FILE_UPLOAD_FOLDER, faChecksum)),
-            fai: new LocalFileGzip(path.join(FILE_UPLOAD_FOLDER, faiChecksum)),
-            gzi: new LocalFile(path.join(FILE_UPLOAD_FOLDER, gziChecksum)),
+            fasta: filesService.getFileHandle(faDoc),
+            fai: filesService.getFileHandle(faiDoc),
+            gzi: filesService.getFileHandle(gziDoc),
           })
         : new IndexedFasta({
-            fasta: new LocalFile(path.join(FILE_UPLOAD_FOLDER, fa)),
-            fai: new LocalFileGzip(path.join(FILE_UPLOAD_FOLDER, fai)),
+            fasta: filesService.getFileHandle(faDoc),
+            fai: filesService.getFileHandle(faiDoc),
           })
       const allSequenceSizes = await sequenceAdapter.getSequenceSizes()
 

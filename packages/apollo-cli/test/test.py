@@ -1075,7 +1075,7 @@ class TestCLI(unittest.TestCase):
         # Uploading a gzip file must skip compression and just copy the file
         with open("test_data/tiny.fasta.gz", "rb") as gz:
             md5 = hashlib.md5(gz.read()).hexdigest()
-        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta.gz")
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta.gz --gzip")
         out = json.loads(p.stdout)
         self.assertEqual(md5, out["checksum"])
         shell(f"{apollo} assembly add-file {P} -f -i {out['_id']}")

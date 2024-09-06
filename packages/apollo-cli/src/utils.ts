@@ -357,6 +357,7 @@ interface bodyLocalFile {
   assemblyName: string
   typeName: string
   fileId: string
+  assembly: string
 }
 interface bodyExternalFile {
   assemblyName: string

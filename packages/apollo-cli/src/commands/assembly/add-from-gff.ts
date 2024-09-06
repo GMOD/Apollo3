@@ -60,6 +60,7 @@ export default class AddGff extends FileCommand {
       access.accessToken,
       flags['input-file'],
       'text/x-gff3',
+      flags['input-file'].endsWith('.gz'),
     )
 
     let typeName = 'AddAssemblyAndFeaturesFromFileChange'
