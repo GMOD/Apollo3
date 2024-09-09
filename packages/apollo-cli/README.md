@@ -17,7 +17,7 @@ $ npm install -g @apollo-annotation/cli
 $ apollo COMMAND
 running command...
 $ apollo (--version)
-@apollo-annotation/cli/0.1.19 linux-x64 node-v18.20.3
+@apollo-annotation/cli/0.1.19 darwin-x64 node-v20.10.0
 $ apollo --help [COMMAND]
 USAGE
   $ apollo COMMAND
@@ -41,6 +41,8 @@ USAGE
 - [`apollo feature`](../website/docs/cli//feature.md) - Commands to handle
   features
 - [`apollo help`](../website/docs/cli//help.md) - Display help for apollo.
+- [`apollo jbrowse`](../website/docs/cli//jbrowse.md) - Get Jbrowse
+  configuration from Apollo
 - [`apollo login`](../website/docs/cli//login.md) - Login to Apollo
 - [`apollo logout`](../website/docs/cli//logout.md) - Logout of Apollo
 - [`apollo refseq`](../website/docs/cli//refseq.md) - Commands to handle
