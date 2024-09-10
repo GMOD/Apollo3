@@ -273,7 +273,7 @@ export function extendSession(
           if (!response.ok) {
             const errorMessage = yield createFetchErrorMessage(
               response,
-              'Failed to fetch assemblies',
+              'Failed to fetch jbrowse config',
             )
             console.error(errorMessage)
             continue
@@ -335,6 +335,7 @@ export function extendSession(
                       ...trackConfigSnapshot,
                       trackId: newTrackId,
                     }
+                    currentConfig.tracks?.push(trackConfigSnapshot)
                     for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
                       if (internetAccount.type !== 'ApolloInternetAccount') {
                         continue
@@ -377,6 +378,17 @@ export function extendSession(
                     const filteredTracks = filteredConfig?.tracks?.filter(
                       (t) => t.trackId !== trackId,
                     )
+                    if (currentConfig?.tracks) {
+                      for (const [
+                        index,
+                        track,
+                      ] of currentConfig.tracks.entries()) {
+                        if (track.trackId === trackId) {
+                          currentConfig.tracks.splice(index, 1)
+                          break
+                        }
+                      }
+                    }
                     for (const internetAccount of internetAccounts as ApolloInternetAccountModel[]) {
                       if (internetAccount.type !== 'ApolloInternetAccount') {
                         continue
