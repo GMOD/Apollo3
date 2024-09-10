@@ -57,7 +57,6 @@ chr1	.	gene	21000	29000	.	+	.	ID=gene30001;Name=EDEN
 chr1	.	mRNA	21050	29000	.	+	.	ID=mRNA30001;Parent=gene30001;Name=EDEN.1
 chr1	.	mRNA	21050	29000	.	+	.	ID=mRNA30002;Parent=gene30001;Name=EDEN.2
 chr1	.	mRNA	21300	29000	.	+	.	ID=mRNA30003;Parent=gene30001;Name=EDEN.3
-chr1	.	mRNA	21300	29000	.	+	.	ID=mRNA30004;Parent=gene30001;Name=EDEN.3
 chr1	.	exon	21050	21500	.	+	.	ID=exon30001;Parent=mRNA30001
 chr1	.	exon	21050	21500	.	+	.	ID=exon30002;Parent=mRNA30002
 chr1	.	exon	21300	21500	.	+	.	ID=exon30003;Parent=mRNA30003
@@ -69,10 +68,6 @@ chr1	.	exon	25000	25500	.	+	.	ID=exon30008;Parent=mRNA30003
 chr1	.	exon	27000	29000	.	+	.	ID=exon30009;Parent=mRNA30001
 chr1	.	exon	27000	29000	.	+	.	ID=exon30010;Parent=mRNA30002
 chr1	.	exon	27000	29000	.	+	.	ID=exon30011;Parent=mRNA30003
-chr1	.	exon	21300	21500	.	+	.	ID=exon30012;Parent=mRNA30004
-chr1	.	exon	23000	23902	.	+	.	ID=exon30013;Parent=mRNA30004
-chr1	.	exon	25000	25500	.	+	.	ID=exon30014;Parent=mRNA30004
-chr1	.	exon	27000	29000	.	+	.	ID=exon30015;Parent=mRNA30004
 chr1	.	CDS	21201	21500	.	+	0	ID=cds30001;Parent=mRNA30001;Name=edenprotein.1
 chr1	.	CDS	23000	23902	.	+	0	ID=cds30002;Parent=mRNA30001;Name=edenprotein.1
 chr1	.	CDS	25000	25500	.	+	0	ID=cds30003;Parent=mRNA30001;Name=edenprotein.1
@@ -83,9 +78,9 @@ chr1	.	CDS	27000	27600	.	+	0	ID=cds30007;Parent=mRNA30002;Name=edenprotein.2
 chr1	.	CDS	23301	23902	.	+	0	ID=cds30008;Parent=mRNA30003;Name=edenprotein.3
 chr1	.	CDS	25000	25500	.	+	1	ID=cds30009;Parent=mRNA30003;Name=edenprotein.3
 chr1	.	CDS	27000	27600	.	+	1	ID=cds30010;Parent=mRNA30003;Name=edenprotein.3
-chr1	.	CDS	23391	23902	.	+	0	ID=cds30011;Parent=mRNA30004;Name=edenprotein.4
-chr1	.	CDS	25000	25500	.	+	1	ID=cds30012;Parent=mRNA30004;Name=edenprotein.4
-chr1	.	CDS	27000	27600	.	+	1	ID=cds30013;Parent=mRNA30004;Name=edenprotein.4
+chr1	.	CDS	23391	23902	.	+	0	ID=cds30011;Parent=mRNA30003;Name=edenprotein.4
+chr1	.	CDS	25000	25500	.	+	1	ID=cds30012;Parent=mRNA30003;Name=edenprotein.4
+chr1	.	CDS	27000	27600	.	+	1	ID=cds30013;Parent=mRNA30003;Name=edenprotein.4
 # example 4
 chr1	.	gene	31000	39000	.	+	.	ID=gene40001;Name=EDEN
 chr1	.	mRNA	31050	39000	.	+	.	ID=mRNA40001;Parent=gene40001;Name=EDEN.1
@@ -115,64 +110,6 @@ chr1	.	CDS	37000	37600	.	+	1	ID=cds40003;Parent=mRNA40003;Name=edenprotein.3
 chr1	.	CDS	33391	33902	.	+	0	ID=cds40004;Parent=mRNA40003;Name=edenprotein.4
 chr1	.	CDS	35000	35500	.	+	1	ID=cds40004;Parent=mRNA40003;Name=edenprotein.4
 chr1	.	CDS	37000	37600	.	+	1	ID=cds40004;Parent=mRNA40003;Name=edenprotein.4
-# example 5
-chr1	.	gene	41000	49000	.	+	.	ID=gene50001;Name=EDEN
-chr1	.	mRNA	41050	49000	.	+	.	ID=mRNA50001;Parent=gene50001;Name=EDEN.1
-chr1	.	mRNA	41050	49000	.	+	.	ID=mRNA50002;Parent=gene50001;Name=EDEN.2
-chr1	.	mRNA	41300	49000	.	+	.	ID=mRNA50003;Parent=gene50001;Name=EDEN.3
-chr1	.	exon	41050	41500	.	+	.	ID=exon50001;Parent=mRNA50001,mRNA50002
-chr1	.	exon	41300	41500	.	+	.	ID=exon50002;Parent=mRNA50003
-chr1	.	exon	43000	43902	.	+	.	ID=exon50003;Parent=mRNA50001,mRNA50003
-chr1	.	exon	45000	45500	.	+	.	ID=exon50004;Parent=mRNA50001,mRNA50002,mRNA50003
-chr1	.	exon	47000	49000	.	+	.	ID=exon50005;Parent=mRNA50001,mRNA50002,mRNA50003
-chr1	.	five_prime_UTR	41050	41200	.	+	.	ID=five_prime_UTR50001;Parent=mRNA50001,mRNA50002
-chr1	.	five_prime_UTR	41300	41500	.	+	.	ID=five_prime_UTR50002;Parent=mRNA50003
-chr1	.	five_prime_UTR	43000	43300	.	+	.	ID=five_prime_UTR50003;Parent=mRNA50003
-chr1	.	five_prime_UTR	43000	43390	.	+	.	ID=five_prime_UTR50004;Parent=mRNA50003
-chr1	.	five_prime_UTR	43000	43390	.	+	.	ID=five_prime_UTR50004;Parent=mRNA50003
-chr1	.	three_prime_UTR	47601	49000	.	+	.	ID=three_prime_UTR50001;Parent=mRNA50001,mRNA50002,mRNA50003
-chr1	.	CDS	41201	41500	.	+	0	ID=cds50001;Parent=mRNA50001;Name=edenprotein.1
-chr1	.	CDS	43000	43902	.	+	0	ID=cds50001;Parent=mRNA50001;Name=edenprotein.1
-chr1	.	CDS	45000	45500	.	+	0	ID=cds50001;Parent=mRNA50001;Name=edenprotein.1
-chr1	.	CDS	47000	47600	.	+	0	ID=cds50001;Parent=mRNA50001;Name=edenprotein.1
-chr1	.	CDS	41201	41500	.	+	0	ID=cds50002;Parent=mRNA50002;Name=edenprotein.2
-chr1	.	CDS	45000	45500	.	+	0	ID=cds50002;Parent=mRNA50002;Name=edenprotein.2
-chr1	.	CDS	47000	47600	.	+	0	ID=cds50002;Parent=mRNA50002;Name=edenprotein.2
-chr1	.	CDS	43301	43902	.	+	0	ID=cds50003;Parent=mRNA50003;Name=edenprotein.3
-chr1	.	CDS	45000	45500	.	+	1	ID=cds50003;Parent=mRNA50003;Name=edenprotein.3
-chr1	.	CDS	47000	47600	.	+	1	ID=cds50003;Parent=mRNA50003;Name=edenprotein.3
-chr1	.	CDS	43391	43902	.	+	0	ID=cds50004;Parent=mRNA50003;Name=edenprotein.4
-chr1	.	CDS	45000	45500	.	+	1	ID=cds50004;Parent=mRNA50003;Name=edenprotein.4
-chr1	.	CDS	47000	47600	.	+	1	ID=cds50004;Parent=mRNA50003;Name=edenprotein.4
-# example 6
-chr1	.	gene	51000	59000	.	+	.	ID=gene60001;Name=EDEN
-chr1	.	mRNA	51050	59000	.	+	.	ID=mRNA60001;Parent=gene60001;Name=EDEN.1
-chr1	.	mRNA	51050	59000	.	+	.	ID=mRNA60002;Parent=gene60001;Name=EDEN.2
-chr1	.	mRNA	51300	59000	.	+	.	ID=mRNA60003;Parent=gene60001;Name=EDEN.3
-chr1	.	exon	51050	51500	.	+	.	ID=exon60001;Parent=mRNA60001,mRNA60002
-chr1	.	exon	51300	51500	.	+	.	ID=exon60002;Parent=mRNA60003
-chr1	.	exon	53000	53902	.	+	.	ID=exon60003;Parent=mRNA60001,mRNA60003
-chr1	.	exon	55000	55500	.	+	.	ID=exon60004;Parent=mRNA60001,mRNA60002,mRNA60003
-chr1	.	exon	57000	59000	.	+	.	ID=exon60005;Parent=mRNA60001,mRNA60002,mRNA60003
-chr1	.	five_prime_UTR	51050	51200	.	+	.	ID=five_prime_UTR60001;Parent=mRNA60001,mRNA60002
-chr1	.	five_prime_UTR	51300	51500	.	+	.	ID=five_prime_UTR60002;Parent=mRNA60003
-chr1	.	five_prime_UTR	53000	53300	.	+	.	ID=five_prime_UTR60003;Parent=mRNA60003
-chr1	.	five_prime_UTR	53000	53390	.	+	.	ID=five_prime_UTR60004;Parent=mRNA60003
-chr1	.	five_prime_UTR	53000	53390	.	+	.	ID=five_prime_UTR60004;Parent=mRNA60003
-chr1	.	three_prime_UTR	57601	59000	.	+	.	ID=three_prime_UTR60001;Parent=mRNA60001,mRNA60002,mRNA60003
-chr1	.	CDS	51201	51500	.	+	0	ID=cds60001;Parent=mRNA60001;Name=edenprotein.1
-chr1	.	CDS	53000	53902	.	+	0	ID=cds60001;Parent=mRNA60001;Name=edenprotein.1
-chr1	.	CDS	55000	55500	.	+	0	ID=cds60001;Parent=mRNA60001;Name=edenprotein.1
-chr1	.	CDS	57000	57600	.	+	0	ID=cds60001;Parent=mRNA60001;Name=edenprotein.1
-chr1	.	CDS	51201	51500	.	+	0	ID=cds60002;Parent=mRNA60002;Name=edenprotein.2
-chr1	.	CDS	55000	55500	.	+	0	ID=cds60002;Parent=mRNA60002;Name=edenprotein.2
-chr1	.	CDS	57000	57600	.	+	0	ID=cds60002;Parent=mRNA60002;Name=edenprotein.2
-chr1	.	CDS	53301	53902	.	+	0	ID=cds60003;Parent=mRNA60003;Name=edenprotein.3
-chr1	.	CDS	55000	55500	.	+	1	ID=cds60003;Parent=mRNA60003;Name=edenprotein.3
-chr1	.	CDS	57000	57600	.	+	1	ID=cds60003;Parent=mRNA60003;Name=edenprotein.3
-chr1	.	CDS	53391	53902	.	+	0	ID=cds60004;Parent=mRNA60003;Name=edenprotein.4
-chr1	.	CDS	55000	55500	.	+	1	ID=cds60004;Parent=mRNA60003;Name=edenprotein.4
-chr1	.	CDS	57000	57600	.	+	1	ID=cds60004;Parent=mRNA60003;Name=edenprotein.4
 ##FASTA
 >chr1
 cattgttgcggagttgaacaACGGCATTAGGAACACTTCCGTCTCtcacttttatacgat

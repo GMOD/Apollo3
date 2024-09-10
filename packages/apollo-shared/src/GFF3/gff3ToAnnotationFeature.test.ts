@@ -9,8 +9,6 @@ import chaiExclude from 'chai-exclude'
 import { gff3ToAnnotationFeature } from './gff3ToAnnotationFeature'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
-import { GFF3Feature } from '@gmod/gff'
-
 use(chaiExclude)
 
 const testCases: [string, string, AnnotationFeatureSnapshot][] = [
@@ -81,21 +79,6 @@ ctgA	est	match_part	3000	3202	.	+	.	Parent=Match1;Name=agt830.5;Target=agt830.5 
   ],
 ]
 
-function readSingleFeatureFile(fn: string): GFF3Feature {
-  const lines = readFileSync(fn).toString().split('\n')
-  const feature: string[] = []
-  for (const line of lines) {
-    if (!line.startsWith('#')) {
-      feature.push(line)
-    }
-  }
-  const inGff = gff.parseStringSync(feature.join('\n')) as GFF3Feature[]
-  if (inGff.length != 1) {
-    throw new Error(`Exactly 1 feature expected in file ${fn}`)
-  }
-  return inGff[0]
-}
-
 interface AnnotationFeatureSnapshotWithChildrenArray
   extends Omit<AnnotationFeatureSnapshot, 'children'> {
   children?: AnnotationFeatureSnapshotWithChildrenArray[]
@@ -125,51 +108,102 @@ function compareFeatures(
   )
 }
 
+function readFeatureFile(fn: string): GFF3Feature[] {
+  const lines = readFileSync(fn).toString().split('\n')
+  const feature: string[] = []
+  for (const line of lines) {
+    if (!line.startsWith('#')) {
+      feature.push(line)
+    }
+  }
+  const inGff = gff.parseStringSync(feature.join('\n')) as GFF3Feature[]
+  return inGff
+}
+
 function readAnnotationFeatureSnapshot(fn: string): AnnotationFeatureSnapshot {
   const lines = readFileSync(fn).toString()
   return JSON.parse(lines) as AnnotationFeatureSnapshot
 }
 
+const [ex1, ex2, ex3, ex4] = readFeatureFile(
+  'test_data/gene_representations.gff3',
+)
+
 describe('gff3ToAnnotationFeature examples', () => {
   it('Convert one CDS', () => {
     const actual = gff3ToAnnotationFeature(
-      readSingleFeatureFile('test_data/one_cds.gff3'),
+      readFeatureFile('test_data/one_cds.gff3')[0],
     )
     const expected = readAnnotationFeatureSnapshot('test_data/one_cds.json')
     compareFeatures(actual, expected)
   })
   it('Convert two CDSs', () => {
     const actual = gff3ToAnnotationFeature(
-      readSingleFeatureFile('test_data/two_cds.gff3'),
+      readFeatureFile('test_data/two_cds.gff3')[0],
     )
     const expected = readAnnotationFeatureSnapshot('test_data/two_cds.json')
     compareFeatures(actual, expected)
   })
   it('Convert example 1', () => {
-    const actual = gff3ToAnnotationFeature(
-      readSingleFeatureFile('test_data/example01.gff3'),
-    )
+    const actual = gff3ToAnnotationFeature(ex1)
+    const txt = JSON.stringify(actual, null, 2)
+
+    assert.equal(txt.match(/"type": "CDS"/g)?.length, 4)
+    assert.equal(txt.match(/"type": "TF_binding_site"/g)?.length, 1)
+
     const expected = readAnnotationFeatureSnapshot('test_data/example01.json')
     compareFeatures(actual, expected)
   })
   it('Convert example 2', () => {
-    const actual = gff3ToAnnotationFeature(
-      readSingleFeatureFile('test_data/example02.gff3'),
-    )
+    const actual = gff3ToAnnotationFeature(ex2)
+    const txt = JSON.stringify(actual, null, 2)
+    assert.equal(txt.match(/"type": "CDS"/g)?.length, 4)
     const expected = readAnnotationFeatureSnapshot('test_data/example02.json')
     compareFeatures(actual, expected)
   })
+  it('Convert example 3', () => {
+    // NB: In example 3 (and in the other examples) mRNA10003 produces two proteins.
+    // In the other examples the two proteins are identified by sharing the same cds id.
+    // In example 3 instead each cds has a unique id so the two proteins are identified by the order they
+    // appear in the gff.
+    const actual = gff3ToAnnotationFeature(ex3)
+    const txt = JSON.stringify(actual, null, 2)
+    assert.equal(txt.match(/"type": "CDS"/g)?.length, 4)
+
+    //const expected = readAnnotationFeatureSnapshot('test_data/example03.json')
+    //compareFeatures(actual, expected)
+  })
+  it('Convert example 4', () => {
+    const ft = JSON.stringify(ex4, null, 2)
+    assert.equal(ft.match(/"type": "five_prime_UTR"/g)?.length, 6)
+    assert.equal(ft.match(/"type": "three_prime_UTR"/g)?.length, 3)
+
+    const actual = gff3ToAnnotationFeature(ex4)
+    const txt = JSON.stringify(actual, null, 2)
+    assert.equal(txt.match(/"type": "CDS"/g)?.length, 4)
+    assert.equal(txt.match(/prime_UTR/g), null)
+
+    const expected = readAnnotationFeatureSnapshot('test_data/example04.json')
+    compareFeatures(actual, expected)
+  })
+  it('Convert braker gff', () => {
+    const [gffFeature] = readFeatureFile('test_data/braker.gff')
+    const actual = gff3ToAnnotationFeature(gffFeature)
+    const txt = JSON.stringify(actual, null, 2)
+    assert.equal(txt.match(/intron/g), null)
+    assert.equal(txt.match(/_codon/g), null)
+  })
 })
 
-// describe('gff3ToAnnotationFeature', () => {
-//   for (const testCase of testCases) {
-//     const [description, featureLine, convertedFeature] = testCase
-//     it(`converts ${description}`, () => {
-//       const gff3Feature = gff.parseStringSync(featureLine, {
-//         parseSequences: false,
-//       })
-//       const feature = gff3ToAnnotationFeature(gff3Feature[0])
-//       compareFeatures(convertedFeature, feature)
-//     })
-//   }
-// })
+describe('gff3ToAnnotationFeature', () => {
+  for (const testCase of testCases) {
+    const [description, featureLine, convertedFeature] = testCase
+    it(`converts ${description}`, () => {
+      const gff3Feature = gff.parseStringSync(featureLine, {
+        parseSequences: false,
+      })
+      const feature = gff3ToAnnotationFeature(gff3Feature[0])
+      compareFeatures(convertedFeature, feature)
+    })
+  }
+})
