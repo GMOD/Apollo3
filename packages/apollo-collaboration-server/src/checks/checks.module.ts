@@ -1,3 +1,4 @@
+import { forwardRef } from '@nestjs/common'
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { CheckResultSnapshot } from '@apollo-annotation/mst'
@@ -23,7 +24,7 @@ import { SequenceModule } from '../sequence/sequence.module'
 @Module({
   providers: [ChecksService],
   imports: [
-    SequenceModule,
+    forwardRef(() => SequenceModule),
     MessagesModule,
     RefSeqsModule,
     MongooseModule.forFeatureAsync([
