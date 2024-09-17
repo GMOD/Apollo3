@@ -8,7 +8,6 @@ import {
   idReader,
   localhostToAddress,
   queryApollo,
-  wrapLines,
 } from '../../utils.js'
 import {
   ApolloAssemblySnapshot,
@@ -17,10 +16,9 @@ import {
 
 export default class Check extends BaseCommand<typeof Check> {
   static summary = 'Get check results'
-  static description = wrapLines(
+  static description =
     'Use this command to view which features fail checks along with the reason for failing.\
-    Use `apollo assembly check` for managing which checks should be applied to an assembly',
-  )
+Use `apollo assembly check` for managing which checks should be applied to an assembly'
 
   static examples = [
     {

@@ -26,14 +26,12 @@ FLAGS
 DESCRIPTION
   Login to Apollo
 
-  Use the provided credentials to obtain and save the token to access Apollo. Once
-  the token for the given profile has been saved in the configuration file, users
-  do not normally need to execute this command again unless the token has expired.
-  To setup a new profile use "apollo config"
+  Use the provided credentials to obtain and save the token to access Apollo. Once the token for the given profile has
+  been saved in the configuration file, users do not normally need to execute this command again unless the token has
+  expired. To setup a new profile use "apollo config"
 
 EXAMPLES
-  The most basic and probably most typical usage is to login using the default
-  profile in configuration file:
+  The most basic and probably most typical usage is to login using the default profile in configuration file:
 
     $ apollo login
 

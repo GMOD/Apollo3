@@ -66,6 +66,7 @@ export default class Import extends FileCommand {
       access.accessToken,
       flags['input-file'],
       'text/x-gff3',
+      false,
     )
 
     const body: SerializedAddFeaturesFromFileChange = {

@@ -2,23 +2,22 @@ import { Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { idReader, submitAssembly, wrapLines } from '../../utils.js'
+import { idReader, submitAssembly } from '../../utils.js'
 
 export default class AddFile extends BaseCommand<typeof AddFile> {
   static summary = 'Add new assembly from an uploaded file'
-  static description = wrapLines(
+  static description =
     'Use the file id of a previously uploaded file to add a new assembly.\
     \n\n\
     For uploading a new file see `apollo file upload`\
-    \n\n\
+    \n\
     For getting the file id of an uploaded file see `apollo file get`\
-    \n\n\
-    For uploading & adding in a single pass see `apollo assembly add-*`',
-  )
+    \n\
+    For uploading & adding in a single pass see `apollo assembly add-*`'
 
   static examples = [
     {
-      description: wrapLines('Use file id xyz to add assembly "myAssembly":'),
+      description: 'Use file id xyz to add assembly "myAssembly":',
       command: '<%= config.bin %> <%= command.id %> -i xyz -a myAssembly',
     },
   ]

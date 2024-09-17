@@ -8,17 +8,15 @@ import {
   getFeatureById,
   idReader,
   localhostToAddress,
-  wrapLines,
 } from '../../utils.js'
 import { SerializedTypeChange } from '@apollo-annotation/shared'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Edit or view feature type'
-  static description = wrapLines(
+  static description =
     'Feature type is column 3 in gff format.\
-    It must be a valid sequence ontology term although but the valifdity of the new term is not checked.',
-  )
+It must be a valid sequence ontology term although but the valifdity of the new term is not checked.'
 
   static flags = {
     'feature-id': Flags.string({

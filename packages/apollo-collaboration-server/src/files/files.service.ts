@@ -18,7 +18,7 @@ import { Model } from 'mongoose'
 import { CreateFileDto } from './dto/create-file.dto'
 import { writeFileAndCalculateHash, FileRequest } from './filesUtil'
 import { GenericFilehandle, LocalFile } from 'generic-filehandle'
-import { LocalFileGzip } from '@apollo-annotation/shared/src/util'
+import { LocalFileGzip } from '@apollo-annotation/shared'
 
 @Injectable()
 export class FilesService {
@@ -42,7 +42,7 @@ export class FilesService {
         originalname: name,
         stream: req,
         size,
-        mimetype: req.header('Content-Type'),
+        contentEncoding: req.header('Content-Encoding'),
       },
       fileUploadFolder,
       this.logger,

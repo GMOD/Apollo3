@@ -36,6 +36,7 @@
     "commands": "./dist/commands",
     "dirname": "apollo-cli",
     "helpOptions": {
+      "maxWidth": 80,
       "flagSortOrder": "none"
     },
     "plugins": [

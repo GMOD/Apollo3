@@ -5,25 +5,22 @@ import { Args, Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 
 import { FileCommand } from '../../fileCommand.js'
-import { submitAssembly, wrapLines } from '../../utils.js'
+import { submitAssembly } from '../../utils.js'
+import Joi from 'joi'
 
 export default class AddFasta extends FileCommand {
-  static description =
-    wrapLines(`Add new assembly from a fasta file. The input file may be:
-    
+  static description = `Add new assembly from a fasta file. The input file may be:
     * A local file 
     * An external fasta file
-    * The id of a file previously uploaded to Apollo`)
+    * The id of a file previously uploaded to Apollo`
 
   static examples = [
     {
-      description: wrapLines('From local file:'),
+      description: 'From local file:',
       command: '<%= config.bin %> <%= command.id %> genome.fa -a myAssembly',
     },
     {
-      description: wrapLines(
-        'From external source we also need the URL of the index:',
-      ),
+      description: 'From external source we also need the URL of the index:',
       command:
         '<%= config.bin %> <%= command.id %> https://.../genome.fa -x https://.../genome.fa.fai -a myAssembly',
     },
@@ -51,12 +48,8 @@ export default class AddFasta extends FileCommand {
     }),
     'not-editable': Flags.boolean({
       char: 'n',
-      description: wrapLines(
-        "The fasta sequence is not editable. Apollo will not load it into the database \
-        and instead use the provided indexes to query it. \
-      This option assumes the fasta file is bgzip'd with `bgzip` and indexed with `samtools faidx`.\
-      Indexes should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai",
-      ),
+      description:
+        "The fasta sequence is not editable. Apollo will not load it into the database and instead use the provided indexes to query it. This option assumes the fasta file is bgzip'd with `bgzip` and indexed with `samtools faidx`. Indexes should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai",
     }),
   }
 
@@ -69,7 +62,8 @@ export default class AddFasta extends FileCommand {
     const assemblyName = flags.assembly ?? path.basename(args['input-file'])
 
     const isExternal = isValidHttpUrl(args['input-file'])
-    const isGzip = args['input-file'].endsWith('.gz')
+    // const inputType =  getInputType(args['input-file'])
+
     let body
     if (isExternal) {
       if (flags.index === undefined) {
@@ -105,7 +99,7 @@ export default class AddFasta extends FileCommand {
         access.accessToken,
         args['input-file'],
         'text/x-fasta',
-        isGzip,
+        true,
       )
       // Upload fai index
       const faiId = await this.uploadFile(
@@ -113,7 +107,7 @@ export default class AddFasta extends FileCommand {
         access.accessToken,
         fai,
         'text/x-fasta',
-        isGzip,
+        false,
       )
       // Upload gzi index
       const gziId = await this.uploadFile(
@@ -121,23 +115,17 @@ export default class AddFasta extends FileCommand {
         access.accessToken,
         gzi,
         'text/x-fasta',
-        isGzip,
+        false,
       )
       body = {
         assemblyName,
-        typeName: 'AddAssemblyFromFileChange',
+        typeName: 'AddAssemblyFromFileIdChange',
         fileIds: {
           fa: faId,
           fai: faiId,
           gzi: gziId,
         },
       }
-      // rec = await submitAssembly(
-      //   access.address,
-      //   access.accessToken,
-      //   body,
-      //   flags.force,
-      // )
     } else {
       if (!isExternal && !fs.existsSync(args['input-file'])) {
         this.error(`File ${args['input-file']} does not exist`)
@@ -162,6 +150,7 @@ export default class AddFasta extends FileCommand {
       //   flags.force,
       // )
     }
+
     const rec = await submitAssembly(
       access.address,
       access.accessToken,
@@ -181,3 +170,16 @@ function isValidHttpUrl(x: string) {
   }
   return url.protocol === 'http:' || url.protocol === 'https:'
 }
+
+// function getInputType(x: string): 'external' | 'local' | 'fileId' {
+//   if (isValidHttpUrl(x)) {
+//     return 'external'
+//   }
+//   if (fs.existsSync(x)) {
+//     return 'local'
+//   }
+//   if (x.length == 24) {
+//     return 'fileId'
+//   }
+//   throw new Error(`Invalid input: ${x}`)
+// }

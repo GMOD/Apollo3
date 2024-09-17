@@ -9,17 +9,16 @@ import {
   getFeatureById,
   getRefseqId,
   localhostToAddress,
-  wrapLines,
 } from '../../utils.js'
 import { SerializedAddFeatureChange } from '@apollo-annotation/shared'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 export default class Copy extends BaseCommand<typeof Copy> {
   static summary = 'Copy a feature to another location'
-  static description = wrapLines(
+  static description =
     'The feature may be copied to the same or to a different assembly. \
-    he destination reference sequence may be selected by name only if unique in the database or by name and assembly or by identifier.',
-  )
+The destination reference sequence may be selected by name only if unique in \
+the database or by name and assembly or by identifier.'
 
   static examples = [
     {

@@ -8,18 +8,16 @@ import {
   idReader,
   localhostToAddress,
   queryApollo,
-  wrapLines,
 } from '../../utils.js'
 
 export default class Delete extends BaseCommand<typeof Delete> {
   static summary = 'Delete files from the Apollo server'
-  static description = wrapLines(
-    'Deleted files are printed to stdout. See also `apollo file get` to list the files on the server',
-  )
+  static description =
+    'Deleted files are printed to stdout. See also `apollo file get` to list the files on the server'
 
   static examples = [
     {
-      description: wrapLines('Delete file multiple files:'),
+      description: 'Delete file multiple files:',
       command: '<%= config.bin %> <%= command.id %> -i 123...abc xyz...789',
     },
   ]

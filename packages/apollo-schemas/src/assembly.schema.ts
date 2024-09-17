@@ -25,6 +25,9 @@ export class Assembly {
   @Prop()
   user: string
 
+  @Prop()
+  fileId: string
+
   @Prop({ type: { fa: String, fai: String, gzi: String } })
   externalLocation: { fa: string; fai: string; gzi?: string }
 

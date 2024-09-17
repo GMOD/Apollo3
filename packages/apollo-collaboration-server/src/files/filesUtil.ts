@@ -13,7 +13,7 @@ interface FileUpload {
   originalname: string
   size: number
   stream: Readable
-  mimetype?: string
+  contentEncoding?: string
 }
 
 export interface UploadedFile extends Express.Multer.File {
@@ -29,7 +29,7 @@ export async function writeFileAndCalculateHash(
   fileUploadFolder: string,
   logger: Logger,
 ) {
-  const { originalname, size, stream } = file
+  const { contentEncoding, originalname, size, stream } = file
   await mkdir(fileUploadFolder, { recursive: true })
   logger.log(`Starting file upload: "${originalname}"`)
   const tmpDir = await mkdtemp(join(fileUploadFolder, 'upload-tmp-'))
@@ -62,7 +62,8 @@ export async function writeFileAndCalculateHash(
   })
 
   const fileWriteStream = createWriteStream(tmpFileName)
-  if (originalname.endsWith('.gz')) {
+
+  if (contentEncoding === 'gzip') {
     await pipeline(stream, fileWriteStream)
   } else {
     const gz = createGzip()

@@ -421,15 +421,6 @@ export async function submitAssembly(
   throw new Error(`Failed to retrieve assembly ${body.assemblyName}`)
 }
 
-/* Wrap text to max `length` per line */
-export function wrapLines(s: string, length = 80): string {
-  // Credit: https://stackoverflow.com/questions/14484787/wrap-text-in-javascript
-  const re = new RegExp(`(?![^\\n]{1,${length}}$)([^\\n]{1,${length}})\\s`, 'g')
-  s = s.replaceAll(/ +/g, ' ')
-  const wr = s.replace(re, '$1\n')
-  return wr
-}
-
 export async function readStdin() {
   const chunks: Buffer[] = []
   for await (const chunk of stdin) {

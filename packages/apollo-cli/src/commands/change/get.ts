@@ -2,21 +2,15 @@ import { Flags } from '@oclif/core'
 import { Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  convertAssemblyNameToId,
-  idReader,
-  queryApollo,
-  wrapLines,
-} from '../../utils.js'
+import { convertAssemblyNameToId, idReader, queryApollo } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Get list of changes'
-  static description = wrapLines(
+  static description =
     'Return the change log in json format. Note \
-  that when an assembly is deleted the link between common name and ID is lost \
-  (it can still be recovered by inspecting the change log but at present this task is left to the user). \
-  In such cases you need to use the assembly ID.',
-  )
+that when an assembly is deleted the link between common name and ID is lost \
+(it can still be recovered by inspecting the change log but at present this task is left to the user). \
+In such cases you need to use the assembly ID.'
 
   static flags = {
     assembly: Flags.string({

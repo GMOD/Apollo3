@@ -23,8 +23,7 @@ FLAGS
 DESCRIPTION
   Delete files from the Apollo server
 
-  Deleted files are printed to stdout. See also `apollo file get` to list the
-  files on the server
+  Deleted files are printed to stdout. See also `apollo file get` to list the files on the server
 
 EXAMPLES
   Delete file multiple files:
@@ -97,7 +96,7 @@ Upload a local file to the Apollo server
 ```
 USAGE
   $ apollo file upload -i <value> [--profile <value>] [--config-file <value>] [-t
-    text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi|autodetect]
+    text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi|autodetect] [-z]
 
 FLAGS
   -i, --input-file=<value>   (required) Local file to upload
@@ -105,15 +104,16 @@ FLAGS
                              NB: There is no check for whether the file complies to this type
                              <options:
                              text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi|autodetect>
+  -z, --gzip                 Input is gzip compressed
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
   Upload a local file to the Apollo server
 
-  This command only uploads a file and returns the corresponding file id. To add
-  an assembly based on this file use `apollo assembly add-file`. To upload & add
-  an assembly in a single pass see commands `apollo assembly add-*`
+  This command only uploads a file and returns the corresponding file id.
+  To add an assembly based on this file use `apollo assembly add-file`.
+  To upload & add an assembly in a single pass see commands `apollo assembly add-*`
 
 EXAMPLES
   Upload local file, type auto-detected:

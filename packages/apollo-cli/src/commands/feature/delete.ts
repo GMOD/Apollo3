@@ -7,7 +7,6 @@ import {
   getFeatureById,
   idReader,
   localhostToAddress,
-  wrapLines,
 } from '../../utils.js'
 import { SerializedDeleteFeatureChange } from '@apollo-annotation/shared'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
@@ -52,9 +51,8 @@ async function deleteFeature(
 
 export default class Delete extends BaseCommand<typeof Delete> {
   static summary = 'Delete one or more features by ID'
-  static description = wrapLines(
-    'Note that deleting a child feature after deleting its parent will result in an error unless you set -f/--force.',
-  )
+  static description =
+    'Note that deleting a child feature after deleting its parent will result in an error unless you set -f/--force.'
 
   static flags = {
     'feature-id': Flags.string({

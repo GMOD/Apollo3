@@ -6,7 +6,6 @@ import {
   createFetchErrorMessage,
   getRefseqId,
   localhostToAddress,
-  wrapLines,
 } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
@@ -19,9 +18,8 @@ export default class Get extends BaseCommand<typeof Get> {
       command: '<%= config.bin %> <%= command.id %> -a myAssembly',
     },
     {
-      description: wrapLines(
+      description:
         'Get features intersecting chr1:1..1000. You can omit the assembly name if there are no other reference sequences named chr1:',
-      ),
       command:
         '<%= config.bin %> <%= command.id %> -a myAssembly -r chr1 -s 1 -e 1000',
     },

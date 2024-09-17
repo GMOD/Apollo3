@@ -34,13 +34,13 @@ FLAGS
 DESCRIPTION
   Add a child feature (e.g. add an exon to an mRNA)
 
-  See the other commands under `apollo feature` to retrive the parent ID of
-  interest and to populate the child feature with attributes.
+  See the other commands under `apollo feature` to retrive the parent ID of interest and to populate the child feature
+  with attributes.
 
 EXAMPLES
   Add an exon at genomic coordinates 10..20 to this feature ID:
 
-    $ apollo feature add-child -i 6605826fbd0eee691f83e73f -t exon -s 10 -e 20
+    $ apollo feature add-child -i 660...73f -t exon -s 10 -e 20
 ```
 
 _See code:
@@ -63,9 +63,8 @@ FLAGS
 DESCRIPTION
   Get check results
 
-  Use this command to view which features fail checks along with the reason for
-  failing. Use `apollo assembly check` for managing which checks should be applied
-  to an assembly
+  Use this command to view which features fail checks along with the reason for failing.Use `apollo assembly check` for
+  managing which checks should be applied to an assembly
 
 EXAMPLES
   Get all check results in the database:
@@ -99,9 +98,8 @@ FLAGS
 DESCRIPTION
   Copy a feature to another location
 
-  The feature may be copied to the same or to a different assembly. he destination
-  reference sequence may be selected by name only if unique in the database or by
-  name and assembly or by identifier.
+  The feature may be copied to the same or to a different assembly. The destination reference sequence may be selected
+  by name only if unique in the database or by name and assembly or by identifier.
 
 EXAMPLES
   Copy this feature ID to chr1:100 in assembly hg38:
@@ -130,8 +128,7 @@ FLAGS
 DESCRIPTION
   Delete one or more features by ID
 
-  Note that deleting a child feature after deleting its parent will result in an
-  error unless you set -f/--force.
+  Note that deleting a child feature after deleting its parent will result in an error unless you set -f/--force.
 ```
 
 _See code:
@@ -153,12 +150,11 @@ FLAGS
 DESCRIPTION
   Edit features using an appropiate json input
 
-  Edit a feature by submitting a json input with all the required attributes for
-  Apollo to process it. This is a very low level command which most users probably
-  do not need.
+  Edit a feature by submitting a json input with all the required attributes for Apollo to process it. This is a very
+  low level command which most users probably do not need.
 
-  Input may be a json string or a json file and it may be an array of changes.
-  This is an example input for editing feature type:
+  Input may be a json string or a json file and it may be an array of changes. This is an example input for editing
+  feature type:
 
   {
   "typeName": "TypeChange",
@@ -200,9 +196,8 @@ FLAGS
 DESCRIPTION
   Add, edit, or view a feature attribute
 
-  Be aware that there is no checking whether attributes names and values are
-  valid. For example, you can create non-unique ID attributes or you can set gene
-  ontology terms to non-existing terms
+  Be aware that there is no checking whether attributes names and values are valid. For example, you can create
+  non-unique ID attributes or you can set gene ontology terms to non-existing terms
 
 EXAMPLES
   Add attribute "domains" with a list of values:
@@ -239,9 +234,8 @@ FLAGS
 DESCRIPTION
   Edit feature start and/or end coordinates
 
-  If editing a child feature that new coordinates must be within the parent's
-  coordinates. To get the identifier of the feature to edit consider using `apollo
-  feature get` or `apollo feature search`
+  If editing a child feature that new coordinates must be within the parent's coordinates.To get the identifier of the
+  feature to edit consider using `apollo feature get` or `apollo feature search`
 
 EXAMPLES
   Edit start and end:
@@ -273,8 +267,8 @@ FLAGS
 DESCRIPTION
   Edit or view feature type
 
-  Feature type is column 3 in gff format. It must be a valid sequence ontology
-  term although but the valifdity of the new term is not checked.
+  Feature type is column 3 in gff format.It must be a valid sequence ontology term although but the valifdity of the new
+  term is not checked.
 ```
 
 _See code:
@@ -305,8 +299,8 @@ EXAMPLES
 
     $ apollo feature get -a myAssembly
 
-  Get features intersecting chr1:1..1000. You can omit the assembly name if there
-  are no other reference sequences named chr1:
+  Get features intersecting chr1:1..1000. You can omit the assembly name if there are no other reference sequences
+  named chr1:
 
     $ apollo feature get -a myAssembly -r chr1 -s 1 -e 1000
 ```
@@ -323,8 +317,7 @@ USAGE
   $ apollo feature get-id [--profile <value>] [--config-file <value>] [-i <value>]
 
 FLAGS
-  -i, --feature-id=<value>...  [default: -] Retrieves feature with these IDs. Use
-                               "-" to read IDs from stdin (one per
+  -i, --feature-id=<value>...  [default: -] Retrieves feature with these IDs. Use "-" to read IDs from stdin (one per
                                line)
       --config-file=<value>    Use this config file (mostly for testing)
       --profile=<value>        Use credentials from this profile
@@ -332,8 +325,7 @@ FLAGS
 DESCRIPTION
   Get features given their identifiers
 
-  Invalid identifiers or identifiers not found in the database will be silently
-  ignored
+  Invalid identifiers or identifiers not found in the database will be silently ignored
 
 EXAMPLES
   Get features for these identifiers:
@@ -382,8 +374,8 @@ USAGE
   $ apollo feature search -t <value> [--profile <value>] [--config-file <value>] [-a <value>]
 
 FLAGS
-  -a, --assembly=<value>...  Assembly names or IDs to search; use "-" to read it from stdin. If omitted
-                             search all assemblies
+  -a, --assembly=<value>...  Assembly names or IDs to search; use "-" to read it from stdin. If omitted search all
+                             assemblies
   -t, --text=<value>         (required) Search for this text query
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
@@ -407,8 +399,7 @@ DESCRIPTION
 
   chr1 example SNP 10 30 0.987 . . "someKey=Fingerprint BAC with reads"
 
-  Queries "bac" or "mRNA" return the feature. Instead these queries will NOT
-  match:
+  Queries "bac" or "mRNA" return the feature. Instead these queries will NOT match:
 
   - "someKey"
   - "with"

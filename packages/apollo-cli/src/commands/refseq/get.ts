@@ -2,28 +2,22 @@ import { Flags } from '@oclif/core'
 import { Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  convertAssemblyNameToId,
-  idReader,
-  queryApollo,
-  wrapLines,
-} from '../../utils.js'
+import { convertAssemblyNameToId, idReader, queryApollo } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Get reference sequences'
-  static description = wrapLines(
+  static description =
     'Output the reference sequences in one or more assemblies in json format. \
-    This command returns the sequence characteristics (e.g., name, ID, etc), not the DNA sequences. \
-    Use `assembly sequence` for that.',
-  )
+This command returns the sequence characteristics (e.g., name, ID, etc), not the DNA sequences. \
+Use `assembly sequence` for that.'
 
   static examples = [
     {
-      description: wrapLines('All sequences in the database:'),
+      description: 'All sequences in the database:',
       command: '<%= config.bin %> <%= command.id %>',
     },
     {
-      description: wrapLines('Only sequences for these assemblies:'),
+      description: 'Only sequences for these assemblies:',
       command: '<%= config.bin %> <%= command.id %> -a mm9 mm10',
     },
   ]

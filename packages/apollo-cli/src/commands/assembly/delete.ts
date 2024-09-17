@@ -6,12 +6,11 @@ import {
   deleteAssembly,
   getAssembly,
   idReader,
-  wrapLines,
 } from '../../utils.js'
 
 export default class Delete extends BaseCommand<typeof Delete> {
   static summary = 'Delete assemblies'
-  static description = wrapLines('Assemblies to delete may be names or IDs')
+  static description = 'Assemblies to delete may be names or IDs'
   static examples = [
     {
       description: 'Delete multiple assemblies using name or ID:',

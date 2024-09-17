@@ -5,22 +5,16 @@ import { Flags } from '@oclif/core'
 import { Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  filterJsonList,
-  idReader,
-  queryApollo,
-  wrapLines,
-} from '../../utils.js'
+import { filterJsonList, idReader, queryApollo } from '../../utils.js'
 
 export default class Download extends BaseCommand<typeof Download> {
   static summary = 'Download a file from the Apollo server'
-  static description = wrapLines(
-    'See also `apollo file get` to list the files on the server',
-  )
+  static description =
+    'See also `apollo file get` to list the files on the server'
 
   static examples = [
     {
-      description: wrapLines('Download file with id xyz'),
+      description: 'Download file with id xyz',
       command: '<%= config.bin %> <%= command.id %> -i xyz -o genome.fa',
     },
   ]

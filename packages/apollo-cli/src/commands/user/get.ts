@@ -2,13 +2,12 @@ import { Flags } from '@oclif/core'
 import { Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { queryApollo, wrapLines } from '../../utils.js'
+import { queryApollo } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Get list of users'
-  static description = wrapLines(
-    'If set, filters username and role must be both satisfied to return an entry',
-  )
+  static description =
+    'If set, filters username and role must be both satisfied to return an entry'
 
   static examples = [
     {

@@ -2,17 +2,15 @@ import { Flags } from '@oclif/core'
 import { Response } from 'undici'
 
 import { BaseCommand } from '../../baseCommand.js'
-import { idReader, queryApollo, wrapLines } from '../../utils.js'
+import { idReader, queryApollo } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Get list of files uploaded to the Apollo server'
-  static description = wrapLines(
-    'Print to stdout the list of files in json format',
-  )
+  static description = 'Print to stdout the list of files in json format'
 
   static examples = [
     {
-      description: wrapLines('Get files by id:'),
+      description: 'Get files by id:',
       command: '<%= config.bin %> <%= command.id %> -i xyz abc',
     },
   ]

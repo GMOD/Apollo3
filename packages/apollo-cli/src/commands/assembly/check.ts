@@ -8,7 +8,6 @@ import {
   getAssembly,
   idReader,
   localhostToAddress,
-  wrapLines,
 } from '../../utils.js'
 
 async function setChecks(
@@ -84,10 +83,10 @@ function getCheckTypesForAssembly(
 
 export default class Check extends BaseCommand<typeof Check> {
   static summary = 'Add, view, or delete checks to assembly'
-  static description = wrapLines(
+  static description =
     'Manage checks, i.e. the rules ensuring features in an assembly are plausible. \
-    This command only sets the checks to apply, to retrieve features flagged by these checks use `apollo feature check`.',
-  )
+This command only sets the checks to apply, to retrieve features flagged by \
+these checks use `apollo feature check`.'
 
   static examples = [
     {

@@ -2,19 +2,16 @@ import { Flags } from '@oclif/core'
 import { Response } from 'undici'
 
 import { FileCommand } from '../../fileCommand.js'
-import { filterJsonList, queryApollo, wrapLines } from '../../utils.js'
+import { filterJsonList, queryApollo } from '../../utils.js'
 
 export default class Upload extends FileCommand {
   static summary = 'Upload a local file to the Apollo server'
-  static description = wrapLines(
-    'This command only uploads a file and returns the corresponding file id.\
-    To add an assembly based on this file use `apollo assembly add-file`.\
-    To upload & add an assembly in a single pass see commands `apollo assembly add-*`',
-  )
-
+  static description = `This command only uploads a file and returns the corresponding file id. 
+  To add an assembly based on this file use \`apollo assembly add-file\`. 
+  To upload & add an assembly in a single pass see commands \`apollo assembly add-*\``
   static examples = [
     {
-      description: wrapLines('Upload local file, type auto-detected:'),
+      description: 'Upload local file, type auto-detected:',
       command: '<%= config.bin %> <%= command.id %> -i genome.fa > file.json',
     },
   ]
@@ -39,6 +36,10 @@ export default class Upload extends FileCommand {
         'autodetect',
       ],
       default: 'autodetect',
+    }),
+    gzip: Flags.boolean({
+      char: 'z',
+      description: 'Input is gzip compressed',
     }),
   }
 
@@ -67,6 +68,8 @@ export default class Upload extends FileCommand {
       access.accessToken,
       flags['input-file'],
       type,
+      // eslint-disable-next-line unicorn/consistent-destructuring
+      flags.gzip,
     )
 
     const res: Response = await queryApollo(
