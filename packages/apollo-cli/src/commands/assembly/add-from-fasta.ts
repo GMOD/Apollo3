@@ -6,7 +6,6 @@ import { ObjectId } from 'bson'
 
 import { FileCommand } from '../../fileCommand.js'
 import { submitAssembly } from '../../utils.js'
-import Joi from 'joi'
 
 export default class AddFasta extends FileCommand {
   static description = `Add new assembly from a fasta file. The input file may be:

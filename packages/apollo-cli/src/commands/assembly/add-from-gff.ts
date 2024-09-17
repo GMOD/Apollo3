@@ -11,6 +11,7 @@ export default class AddGff extends FileCommand {
   static summary = 'Add new assembly from gff or gft file'
   static description =
     'The gff file is expected to contain sequences as per gff specifications. Features are also imported by default.'
+
   static examples = [
     {
       description: 'Import sequences and features:',
