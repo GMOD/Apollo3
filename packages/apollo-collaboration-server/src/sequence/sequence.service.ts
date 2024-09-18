@@ -100,7 +100,7 @@ export class SequenceService {
             fai: new LocalFileGzip(path.join(FILE_UPLOAD_FOLDER, faiChecksum), {
               encoding: 'utf8',
             }),
-            gzi: new LocalFile(path.join(FILE_UPLOAD_FOLDER, gziChecksum)),
+            gzi: new LocalFileGzip(path.join(FILE_UPLOAD_FOLDER, gziChecksum)),
           })
         : new IndexedFasta({
             fasta: new LocalFile(fa),
