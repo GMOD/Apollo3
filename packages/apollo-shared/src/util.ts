@@ -36,9 +36,12 @@ export class LocalFileGzip implements GenericFilehandle {
   ): Promise<{ bytesRead: number; buffer: Buffer }> {
     const fileHandle = await this.getFileHandle()
     const unzippedContents = await unzip(fileHandle)
-    const str = unzippedContents.toString()
-    const substr = str.slice(position, position + length)
-    const bytesRead = buffer.write(substr, offset)
+    const bytesRead = unzippedContents.copy(
+      buffer,
+      position,
+      offset,
+      offset + length,
+    )
     return { bytesRead, buffer }
   }
 
@@ -59,8 +62,10 @@ export class LocalFileGzip implements GenericFilehandle {
     const fileHandle = await this.getFileHandle()
     const unzippedContents = await unzip(fileHandle)
     if (this.opts.encoding) {
+      console.log(`IN: ${this.filename}`)
       return unzippedContents.toString(this.opts.encoding)
     }
+    console.log(`OUT: ${this.filename}`)
     return unzippedContents
   }
 

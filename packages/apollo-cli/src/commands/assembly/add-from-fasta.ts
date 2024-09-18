@@ -136,7 +136,7 @@ Indexes should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai unless options -
             access.accessToken,
             fai,
             'text/x-fai',
-            true,
+            false,
           )
 
       const gziId = gziIsFileId
@@ -146,7 +146,7 @@ Indexes should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai unless options -
             access.accessToken,
             gzi,
             'application/x-gzi',
-            true,
+            false,
           )
 
       body = {

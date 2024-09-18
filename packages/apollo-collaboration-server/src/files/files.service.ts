@@ -87,13 +87,13 @@ export class FilesService {
     })
     const fileName = join(fileUploadFolder, file.checksum)
     switch (file.type) {
-      case 'application/x-bgzip-fasta':
+      case 'text/x-fai':
       case 'application/x-gzi': {
         return new LocalFileGzip(fileName)
       }
+      case 'application/x-bgzip-fasta':
       case 'text/x-gff3':
-      case 'text/x-fasta':
-      case 'text/x-fai': {
+      case 'text/x-fasta': {
         return new LocalFile(fileName)
       }
     }
