@@ -19,7 +19,6 @@ import { Model } from 'mongoose'
 import { AssembliesService } from '../assemblies/assemblies.service'
 import { GetSequenceDto } from './dto/get-sequence.dto'
 import path from 'node:path'
-import { LocalFileGzip } from '@apollo-annotation/shared'
 
 @Injectable()
 export class SequenceService {
@@ -97,10 +96,8 @@ export class SequenceService {
       const sequenceAdapter = gzi
         ? new BgzipIndexedFasta({
             fasta: new LocalFile(path.join(FILE_UPLOAD_FOLDER, faChecksum)),
-
-            fai: new LocalFileGzip(path.join(FILE_UPLOAD_FOLDER, faiChecksum)),
-
-            gzi: new LocalFileGzip(path.join(FILE_UPLOAD_FOLDER, gziChecksum)),
+            fai: new LocalFile(path.join(FILE_UPLOAD_FOLDER, faiChecksum)),
+            gzi: new LocalFile(path.join(FILE_UPLOAD_FOLDER, gziChecksum)),
           })
         : new IndexedFasta({
             fasta: new LocalFile(fa),

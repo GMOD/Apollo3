@@ -5,7 +5,8 @@ import { Args, Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 
 import { FileCommand } from '../../fileCommand.js'
-import { submitAssembly } from '../../utils.js'
+import { queryApollo, submitAssembly } from '../../utils.js'
+import { Response } from 'undici'
 
 export default class AddFasta extends FileCommand {
   static description = `Add new assembly from a fasta file. The input file may be:
@@ -27,7 +28,8 @@ export default class AddFasta extends FileCommand {
 
   static args = {
     'input-file': Args.string({
-      description: 'Input fasta file or file id',
+      description:
+        'Input fasta file, local or remote, or id of a previously uploaded file',
       required: true,
     }),
   }
@@ -48,7 +50,16 @@ export default class AddFasta extends FileCommand {
     'not-editable': Flags.boolean({
       char: 'n',
       description:
-        "The fasta sequence is not editable. Apollo will not load it into the database and instead use the provided indexes to query it. This option assumes the fasta file is bgzip'd with `bgzip` and indexed with `samtools faidx`. Indexes should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai",
+        "The fasta sequence is not editable. Apollo will not load it into \
+the database and instead use the provided indexes to query it. This option assumes \
+the fasta file is bgzip'd with `bgzip` and indexed with `samtools faidx`. \
+Indexes should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai unless options --fai and --gzi are set",
+    }),
+    fai: Flags.string({
+      description: 'Fasta index of the (not-editable) fasta file',
+    }),
+    gzi: Flags.string({
+      description: 'Gzi index of the (not-editable) fasta file',
     }),
   }
 
@@ -60,8 +71,12 @@ export default class AddFasta extends FileCommand {
 
     const assemblyName = flags.assembly ?? path.basename(args['input-file'])
 
+    const fastaIsFileId = await isFileId(
+      args['input-file'],
+      access.address,
+      access.accessToken,
+    )
     const isExternal = isValidHttpUrl(args['input-file'])
-    // const inputType =  getInputType(args['input-file'])
 
     let body
     if (isExternal) {
@@ -78,47 +93,65 @@ export default class AddFasta extends FileCommand {
           fai: flags.index,
         },
       }
-      // rec = await submitAssembly(
-      //   access.address,
-      //   access.accessToken,
-      //   body,
-      //   flags.force,
-      // )
     } else if (flags['not-editable']) {
-      const gzi = `${args['input-file']}.gzi`
-      const fai = `${args['input-file']}.fai`
-      if (!fs.existsSync(gzi) || !fs.existsSync(fai)) {
+      const gzi = flags.gzi ?? `${args['input-file']}.gzi`
+      const fai = flags.fai ?? `${args['input-file']}.fai`
+
+      const gziIsFileId = await isFileId(
+        gzi,
+        access.address,
+        access.accessToken,
+      )
+      const faiIsFileId = await isFileId(
+        fai,
+        access.address,
+        access.accessToken,
+      )
+
+      if (!fs.existsSync(gzi) && !gziIsFileId) {
         this.error(
-          "Only bgzip'd and indexed fasta files are supported at the moment",
+          `Only bgzip'd and indexed fasta files are supported at the moment. "${gzi}" is neither a file or a file id`,
         )
       }
-      // Upload fasta file
-      const faId = await this.uploadFile(
-        access.address,
-        access.accessToken,
-        args['input-file'],
-        'text/x-fasta',
-        true,
-      )
-      // Upload fai index
-      const faiId = await this.uploadFile(
-        access.address,
-        access.accessToken,
-        fai,
-        'text/x-fasta',
-        false,
-      )
-      // Upload gzi index
-      const gziId = await this.uploadFile(
-        access.address,
-        access.accessToken,
-        gzi,
-        'text/x-fasta',
-        false,
-      )
+      if (!fs.existsSync(fai) && !faiIsFileId) {
+        this.error(
+          `Only bgzip'd and indexed fasta files are supported at the moment. "${fai}" is neither a file or a file id`,
+        )
+      }
+
+      const faId = fastaIsFileId
+        ? args['input-file']
+        : await this.uploadFile(
+            access.address,
+            access.accessToken,
+            args['input-file'],
+            'application/x-bgzip-fasta',
+            true,
+          )
+
+      const faiId = faiIsFileId
+        ? fai
+        : await this.uploadFile(
+            access.address,
+            access.accessToken,
+            fai,
+            'text/x-fai',
+            true,
+          )
+
+      const gziId = gziIsFileId
+        ? gzi
+        : await this.uploadFile(
+            access.address,
+            access.accessToken,
+            gzi,
+            'application/x-gzi',
+            true,
+          )
+
       body = {
         assemblyName,
-        typeName: 'AddAssemblyFromFileIdChange',
+        typeName: 'AddAssemblyFromFileChange',
         fileIds: {
           fa: faId,
           fai: faiId,
@@ -126,28 +159,24 @@ export default class AddFasta extends FileCommand {
         },
       }
     } else {
-      if (!isExternal && !fs.existsSync(args['input-file'])) {
-        this.error(`File ${args['input-file']} does not exist`)
+      if (!isExternal && !fs.existsSync(args['input-file']) && !fastaIsFileId) {
+        this.error(`Input "${args['input-file']}" is not valid`)
       }
-      const fileId = await this.uploadFile(
-        access.address,
-        access.accessToken,
-        args['input-file'],
-        'text/x-fasta',
-        false,
-      )
+      const fileId = fastaIsFileId
+        ? args['input-file']
+        : await this.uploadFile(
+            access.address,
+            access.accessToken,
+            args['input-file'],
+            'text/x-fasta',
+            false,
+          )
       body = {
         assemblyName,
-        fileId,
+        fileIds: { fa: fileId },
         typeName: 'AddAssemblyFromFileChange',
         assembly: new ObjectId().toHexString(),
       }
-      // rec = await submitAssembly(
-      //   access.address,
-      //   access.accessToken,
-      //   body,
-      //   flags.force,
-      // )
     }
 
     const rec = await submitAssembly(
@@ -170,15 +199,16 @@ function isValidHttpUrl(x: string) {
   return url.protocol === 'http:' || url.protocol === 'https:'
 }
 
-// function getInputType(x: string): 'external' | 'local' | 'fileId' {
-//   if (isValidHttpUrl(x)) {
-//     return 'external'
-//   }
-//   if (fs.existsSync(x)) {
-//     return 'local'
-//   }
-//   if (x.length == 24) {
-//     return 'fileId'
-//   }
-//   throw new Error(`Invalid input: ${x}`)
-// }
+async function isFileId(x: string, address: string, accessToken: string) {
+  if (x.length != 24) {
+    return false
+  }
+  const files: Response = await queryApollo(address, accessToken, 'files')
+  const json = (await files.json()) as object[]
+  for (const fileDoc of json) {
+    if (fileDoc['_id' as keyof typeof fileDoc] === x) {
+      return true
+    }
+  }
+  return false
+}

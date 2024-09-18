@@ -74,7 +74,7 @@ export default class AddGff extends FileCommand {
 
     const body = {
       assemblyName,
-      fileId,
+      fileIds: { fa: fileId },
       typeName,
       assembly: new ObjectId().toHexString(),
     }

@@ -353,11 +353,20 @@ export const waitFor = <T>(
   return promise
 }
 
-interface bodyLocalFile {
+interface bodyFastaFile {
   assemblyName: string
   typeName: string
-  fileId: string
+  fileIds: { fa: string }
   assembly: string
+}
+interface bodyIndexedFiles {
+  assemblyName: string
+  typeName: string
+  fileIds: {
+    fa: string
+    fai: string
+    gzi: string
+  }
 }
 interface bodyExternalFile {
   assemblyName: string
@@ -367,20 +376,11 @@ interface bodyExternalFile {
     fai: string
   }
 }
-interface bodyFileId {
-  assemblyName: string
-  typeName: string
-  fileIds: {
-    fa: string
-    fai: string
-    gzi: string | undefined
-  }
-}
 
 export async function submitAssembly(
   address: string,
   accessToken: string,
-  body: bodyLocalFile | bodyExternalFile | bodyFileId,
+  body: bodyFastaFile | bodyExternalFile | bodyIndexedFiles,
   force: boolean,
 ): Promise<object> {
   let assemblies = await queryApollo(address, accessToken, 'assemblies')

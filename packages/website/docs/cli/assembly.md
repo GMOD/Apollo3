@@ -2,7 +2,6 @@
 
 Commands to manage assemblies
 
-- [`apollo assembly add-file`](#apollo-assembly-add-file)
 - [`apollo assembly add-from-fasta INPUT-FILE`](#apollo-assembly-add-from-fasta-input-file)
 - [`apollo assembly add-from-gff INPUT-FILE`](#apollo-assembly-add-from-gff-input-file)
 - [`apollo assembly check`](#apollo-assembly-check)
@@ -10,50 +9,17 @@ Commands to manage assemblies
 - [`apollo assembly get`](#apollo-assembly-get)
 - [`apollo assembly sequence`](#apollo-assembly-sequence)
 
-## `apollo assembly add-file`
-
-Add new assembly from an uploaded file
-
-```
-USAGE
-  $ apollo assembly add-file [--profile <value>] [--config-file <value>] [-i <value>] [-a <value>] [-f]
-
-FLAGS
-  -a, --assembly=<value>     Name for this assembly. If omitted use the file id
-  -f, --force                Delete existing assembly, if it exists
-  -i, --file-id=<value>      [default: -] ID of file to upload
-      --config-file=<value>  Use this config file (mostly for testing)
-      --profile=<value>      Use credentials from this profile
-
-DESCRIPTION
-  Add new assembly from an uploaded file
-
-  Use the file id of a previously uploaded file to add a new assembly.
-
-  For uploading a new file see `apollo file upload`
-  For getting the file id of an uploaded file see `apollo file get`
-  For uploading & adding in a single pass see `apollo assembly add-*`
-
-EXAMPLES
-  Use file id xyz to add assembly "myAssembly":
-
-    $ apollo assembly add-file -i xyz -a myAssembly
-```
-
-_See code:
-[src/commands/assembly/add-file.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-file.ts)_
-
 ## `apollo assembly add-from-fasta INPUT-FILE`
 
 Add new assembly from a fasta file. The input file may be:
 
 ```
 USAGE
-  $ apollo assembly add-from-fasta INPUT-FILE [--profile <value>] [--config-file <value>] [-a <value>] [-x <value>] [-f]
-  [-n]
+  $ apollo assembly add-from-fasta INPUT-FILE [--profile <value>] [--config-file <value>] [-a <value>] [-x <value>] [-f] [-n]
+    [--fai <value>] [--gzi <value>]
 
 ARGUMENTS
-  INPUT-FILE  Input fasta file or file id
+  INPUT-FILE  Input fasta file, local or remote, or id of a previously uploaded file
 
 FLAGS
   -a, --assembly=<value>     Name for this assembly. Use the file name if omitted
@@ -61,9 +27,11 @@ FLAGS
   -n, --not-editable         The fasta sequence is not editable. Apollo will not load it into the database and instead
                              use the provided indexes to query it. This option assumes the fasta file is bgzip'd with
                              `bgzip` and indexed with `samtools faidx`. Indexes should be named <my.fasta.gz>.gzi and
-                             <my.fasta.gz>.fai
+                             <my.fasta.gz>.fai unless options --fai and --gzi are set
   -x, --index=<value>        URL of the index. Required if input is an external source
       --config-file=<value>  Use this config file (mostly for testing)
+      --fai=<value>          Fasta index of the (not-editable) fasta file
+      --gzi=<value>          Gzi index of the (not-editable) fasta file
       --profile=<value>      Use credentials from this profile
 
 DESCRIPTION

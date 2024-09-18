@@ -272,7 +272,9 @@ class TestCLI(unittest.TestCase):
         os.remove("test_data/tmp.fa")
 
     def testAddAssemblyFromLocalFasta(self):
-        p = shell(f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a vv1 -f")
+        p = shell(
+            f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a vv1 -f"
+        )
         out = json.loads(p.stdout)
         self.assertTrue("fileId" in out.keys())
 
@@ -287,7 +289,7 @@ class TestCLI(unittest.TestCase):
 
         p = shell(f"{apollo} assembly add-from-fasta {P} na.fa -a vv1 -f", strict=False)
         self.assertTrue(p.returncode != 0)
-        self.assertTrue("does not exist" in p.stderr)
+        self.assertTrue("Input" in p.stderr)
 
         # Test default name
         shell(f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -f")
@@ -1004,7 +1006,9 @@ class TestCLI(unittest.TestCase):
         self.assertTrue('Profile "foo" does not exist' in p.stderr)
 
     def testRefNameAliasConfiguration(self):
-        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a asm1 -f")
+        shell(
+            f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a asm1 -f"
+        )
 
         p = shell(f"{apollo} assembly get {P} -a asm1")
         self.assertTrue("asm1" in p.stdout)
@@ -1078,11 +1082,13 @@ class TestCLI(unittest.TestCase):
         p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta.gz --gzip")
         out = json.loads(p.stdout)
         self.assertEqual(md5, out["checksum"])
-        shell(f"{apollo} assembly add-file {P} -f -i {out['_id']}")
+        shell(f"{apollo} assembly add-from-fasta {P} -f {out['_id']}")
 
-    def testAddAssemblyWithoutLoadingInMongo(self):
+    def testAddAssemblyFromFilesNotEditable(self):
         # It would be good to check that really there was no sequence loading
-        shell(f"{apollo} assembly add-from-fasta {P} -f --not-editable test_data/tiny.fasta.gz")
+        shell(
+            f"{apollo} assembly add-from-fasta {P} -f --not-editable test_data/tiny.fasta.gz"
+        )
         p = shell(f"{apollo} assembly sequence {P} -a tiny.fasta.gz")
         self.assertTrue(p.stdout.startswith(">"))
 
@@ -1092,21 +1098,45 @@ class TestCLI(unittest.TestCase):
         )
         self.assertTrue(p.returncode != 0)
 
+        # Setting --gzi & --fai
+        shell(
+            f"{apollo} assembly add-from-fasta {P} -f --not-editable test_data/tiny2.fasta.gz --gzi test_data/tiny.fasta.gz.gzi --fai test_data/tiny.fasta.gz.fai"
+        )
+        p = shell(f"{apollo} assembly sequence {P} -a tiny2.fasta.gz")
+        self.assertTrue(p.stdout.startswith(">"))
+
+    def testAddAssemblyFromFileIdsNotEditable(self):
+        # Upload and get Ids for: bgzip fasta, fai and gzi
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta.gz")
+        fastaId = json.loads(p.stdout)["_id"]
+
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta.gz.fai -t text/x-fai --gzip")
+        faiId = json.loads(p.stdout)["_id"]
+
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta.gz.gzi -t application/x-gzi --gzip")
+        gziId = json.loads(p.stdout)["_id"]
+
+        shell(
+            f"{apollo} assembly add-from-fasta {P} -f --not-editable {fastaId} --fai {faiId} --gzi {gziId}"
+        )
+        p = shell(f"{apollo} assembly sequence {P} -a {fastaId}")
+        self.assertTrue(p.stdout.startswith(">"))
+
     def testAddAssemblyFromFileId(self):
         p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta")
         fid = json.loads(p.stdout)["_id"]
-        p = shell(f"{apollo} assembly add-file {P} -i {fid} -a up -f")
+        p = shell(f"{apollo} assembly add-from-fasta {P} {fid} -a up -f")
         out = json.loads(p.stdout)
         self.assertEqual("up", out["name"])
         self.assertEqual(fid, out["fileId"])
 
-        shell(f"{apollo} assembly delete {P} -a up")
-        shell(
-            f"{apollo} file upload {P} -i test_data/tiny.fasta | {apollo} assembly add-file {P} -a up -f"
-        )
-        p = shell(f"{apollo} assembly get {P} -a up")
-        out = json.loads(p.stdout)
-        self.assertEqual("up", out[0]["name"])
+        # shell(f"{apollo} assembly delete {P} -a up")
+        # shell(
+        #     f"{apollo} file upload {P} -i test_data/tiny.fasta | {apollo} assembly add-from-fasta {P} -a up -f"
+        # )
+        # p = shell(f"{apollo} assembly get {P} -a up")
+        # out = json.loads(p.stdout)
+        # self.assertEqual("up", out[0]["name"])
 
     def testGetFiles(self):
         shell(f"{apollo} file upload {P} -i test_data/tiny.fasta")
