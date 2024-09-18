@@ -170,8 +170,8 @@ describe('gff3ToAnnotationFeature examples', () => {
     const txt = JSON.stringify(actual, null, 2)
     assert.equal(txt.match(/"type": "CDS"/g)?.length, 4)
 
-    //const expected = readAnnotationFeatureSnapshot('test_data/example03.json')
-    //compareFeatures(actual, expected)
+    // const expected = readAnnotationFeatureSnapshot('test_data/example03.json')
+    // compareFeatures(actual, expected)
   })
   it('Convert example 4', () => {
     const ft = JSON.stringify(ex4, null, 2)
