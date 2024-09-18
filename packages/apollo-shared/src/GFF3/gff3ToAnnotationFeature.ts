@@ -80,8 +80,9 @@ function getFeatureMinMax(gff3Feature: GFF3Feature): [number, number] {
 
 function convertFeatureAttributes(
   gff3Feature: GFF3Feature,
-): Record<string, string[]> | undefined {
-  const convertedAttributes: Record<string, string[]> = {}
+): Record<string, string[] | undefined> | undefined {
+  const convertedAttributes: Record<string, string[] | undefined> | undefined =
+    {}
   const scores = gff3Feature
     .map((f) => f.score)
     .filter((score) => score !== null)
@@ -106,22 +107,21 @@ function convertFeatureAttributes(
   if (sources.length > 0) {
     let [source] = sources
     if (sources.length > 1) {
-      const sourceSet = new Set(...sources)
+      const sourceSet = new Set(sources)
       source = [...sourceSet].join(',')
     }
     convertedAttributes.gff_source = [source]
   }
   if (attributesCollections.length > 0) {
-    const newAttributes: Record<string, string[] | undefined> = {}
     for (const attributesCollection of attributesCollections) {
       for (const [key, val] of Object.entries(attributesCollection)) {
         if (!val || key === 'Parent') {
           continue
         }
         const newKey = isGFFReservedAttribute(key) ? gffToInternal[key] : key
-        const existingVal = newAttributes[newKey]
+        const existingVal = convertedAttributes[newKey]
         if (existingVal) {
-          const valSet = new Set(...existingVal, ...val)
+          const valSet = new Set([...existingVal, ...val])
           convertedAttributes[newKey] = [...valSet]
         } else {
           convertedAttributes[newKey] = val
