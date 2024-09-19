@@ -14,21 +14,21 @@ import {
 } from '../../utils.js'
 
 export default class SetConfig extends BaseCommand<typeof SetConfig> {
-  static summary = 'Add jbrowse configuration'
+  static summary = 'Set JBrowse configuration'
   static description = wrapLines(
-    'Add jbrowse configuration into apollo database',
+    'Set JBrowse configuration in Apollo collaboration server',
   )
 
   static examples = [
     {
-      description: 'Add jbrowse configuration:',
+      description: 'Add JBrowse configuration:',
       command: '<%= config.bin %> <%= command.id %> config.json',
     },
   ]
 
   static args = {
     inputFile: Args.string({
-      description: 'Input jbrowse configuration file',
+      description: 'JBrowse configuration file',
       required: true,
     }),
   }
@@ -65,10 +65,9 @@ export default class SetConfig extends BaseCommand<typeof SetConfig> {
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(
         response,
-        'Failed to add jbrowse configuration',
+        'Failed to add JBrowse configuration',
       )
       throw new ConfigError(errorMessage)
     }
-    this.log('Jbrowse configuartion added successfully to apollo')
   }
 }

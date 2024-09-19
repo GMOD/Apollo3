@@ -2,10 +2,17 @@ import { BaseCommand } from '../../baseCommand.js'
 import { wrapLines, queryApollo } from '../../utils.js'
 
 export default class GetConfig extends BaseCommand<typeof GetConfig> {
-  static summary = 'Get Jbrowse configuration from Apollo'
+  static summary = 'Get JBrowse configuration from Apollo'
   static description = wrapLines(
-    'Print to stdout the Jbrowse configuration from Apollo in json format',
+    'Print to stdout the JBrowse configuration from Apollo in JSON format',
   )
+
+  static examples = [
+    {
+      description: 'Get JBrowse configuration:',
+      command: '<%= config.bin %> <%= command.id %> > config.json',
+    },
+  ]
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(GetConfig)
@@ -20,7 +27,7 @@ export default class GetConfig extends BaseCommand<typeof GetConfig> {
     )
 
     if (!response.ok) {
-      throw new Error('Failed to fetch jbrowse configuration')
+      throw new Error('Failed to fetch JBrowse configuration')
     }
 
     const json = (await response.json()) as object
