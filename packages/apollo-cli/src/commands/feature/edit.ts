@@ -61,8 +61,7 @@ export default class Get extends BaseCommand<typeof Get> {
       json = [json]
     }
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
 
     for (const change of json) {
       const str = JSON.stringify(change)

@@ -34,14 +34,13 @@ export default class SetConfig extends BaseCommand<typeof SetConfig> {
   }
 
   async run(): Promise<void> {
-    const { args, flags } = await this.parse(SetConfig)
+    const { args } = await this.parse(SetConfig)
 
     if (!fs.existsSync(args.inputFile)) {
       this.error(`File ${args.inputFile} does not exist`)
     }
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
     const filehandle = await fs.promises.open(args.inputFile)
     const fileContent = await filehandle.readFile({ encoding: 'utf8' })
     await filehandle.close()

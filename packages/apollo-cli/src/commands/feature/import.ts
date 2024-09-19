@@ -49,8 +49,7 @@ export default class Import extends BaseCommand<typeof Import> {
       this.error(`File "${flags['input-file']}" does not exist`)
     }
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
 
     const assembly = await convertAssemblyNameToId(
       access.address,

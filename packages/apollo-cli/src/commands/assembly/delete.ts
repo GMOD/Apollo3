@@ -36,8 +36,7 @@ export default class Delete extends BaseCommand<typeof Delete> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Delete)
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
 
     const assembly: string[] = idReader(flags.assembly)
     const deleteIds = await convertAssemblyNameToId(

@@ -58,8 +58,7 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
       this.error(`File ${flags['input-file']} does not exist`)
     }
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
 
     const fileId = await uploadFile(
       access.address,

@@ -82,8 +82,7 @@ export default class Delete extends BaseCommand<typeof Delete> {
       featureIds.add(x)
     }
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
 
     for (const featureId of featureIds) {
       const res: Response = await getFeatureById(

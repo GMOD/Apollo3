@@ -82,8 +82,7 @@ export default class Get extends BaseCommand<typeof Get> {
     }
     const [featureId] = ff
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
 
     const res: Response = await getFeatureById(
       access.address,

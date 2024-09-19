@@ -96,8 +96,7 @@ export default class Search extends BaseCommand<typeof Search> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Search)
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
 
     let assemblyIds: string[] = []
     if (flags.assembly === undefined) {
