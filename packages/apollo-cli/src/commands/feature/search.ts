@@ -109,7 +109,7 @@ export default class Search extends BaseCommand<typeof Search> {
         assemblyIds.push(x._id)
       }
     } else {
-      const assembly = idReader(flags.assembly)
+      const assembly = await idReader(flags.assembly)
       assemblyIds = await convertAssemblyNameToId(
         access.address,
         access.accessToken,

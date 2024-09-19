@@ -52,7 +52,7 @@ export default class Check extends BaseCommand<typeof Check> {
 
     let keepFeatures = new Set<string>()
     if (flags['feature-id'] !== undefined) {
-      keepFeatures = new Set(idReader(flags['feature-id']))
+      keepFeatures = new Set(await idReader(flags['feature-id']))
     }
 
     const keepAsmId: string[] = await keepAssemblies(
@@ -108,7 +108,7 @@ async function keepAssemblies(
       keepAssembly.push(x._id)
     }
   } else {
-    const ids = idReader([assembly])
+    const ids = await idReader([assembly])
     keepAssembly = await convertAssemblyNameToId(address, accessToken, ids)
   }
   return keepAssembly

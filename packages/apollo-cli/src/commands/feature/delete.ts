@@ -76,7 +76,7 @@ export default class Delete extends BaseCommand<typeof Delete> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Delete)
 
-    const tmpIds = idReader(flags['feature-id'])
+    const tmpIds = await idReader(flags['feature-id'])
     const featureIds = new Set<string>()
     for (const x of tmpIds) {
       featureIds.add(x)

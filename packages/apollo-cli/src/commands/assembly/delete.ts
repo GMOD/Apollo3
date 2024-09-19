@@ -38,7 +38,7 @@ export default class Delete extends BaseCommand<typeof Delete> {
 
     const access = await this.getAccess()
 
-    const assembly: string[] = idReader(flags.assembly)
+    const assembly: string[] = await idReader(flags.assembly)
     const deleteIds = await convertAssemblyNameToId(
       access.address,
       access.accessToken,

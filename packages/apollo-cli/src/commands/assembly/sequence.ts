@@ -97,7 +97,7 @@ export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
 
     let assembly = undefined
     if (flags.assembly !== undefined) {
-      ;[assembly] = idReader([flags.assembly])
+      ;[assembly] = await idReader([flags.assembly])
     }
 
     let refseqIds: string[] = []

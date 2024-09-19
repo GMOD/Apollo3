@@ -3,6 +3,7 @@ import EventEmitter from 'node:events'
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
+import { stdin } from 'node:process'
 import {
   Transform,
   TransformCallback,
@@ -514,12 +515,23 @@ export function wrapLines(s: string, length?: number): string {
   return wr
 }
 
-export function idReader(input: string[], removeDuplicates = true): string[] {
+async function readStdin() {
+  const chunks: Buffer[] = []
+  for await (const chunk of stdin) {
+    chunks.push(Buffer.from(chunk as Buffer))
+  }
+  return Buffer.concat(chunks).toString('utf8')
+}
+
+export async function idReader(
+  input: string[],
+  removeDuplicates = true,
+): Promise<string[]> {
   let ids: string[] = []
   for (const xin of input) {
     let data: string
     if (xin == '-') {
-      data = fs.readFileSync(process.stdin.fd, 'utf8')
+      data = await readStdin()
     } else if (fs.existsSync(xin)) {
       data = fs.readFileSync(xin).toString()
     } else {

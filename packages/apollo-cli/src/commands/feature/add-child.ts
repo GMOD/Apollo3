@@ -66,7 +66,7 @@ export default class Get extends BaseCommand<typeof Get> {
       this.error('Coordinates must be greater than 0')
     }
 
-    const ff = idReader([flags['feature-id']])
+    const ff = await idReader([flags['feature-id']])
     if (ff.length !== 1) {
       this.error(`Expected only one feature identifier. Got ${ff.length}`)
     }

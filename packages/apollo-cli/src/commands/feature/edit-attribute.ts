@@ -66,7 +66,7 @@ export default class EditAttibute extends BaseCommand<typeof EditAttibute> {
       this.error('Error: Options --delete and --value are mutually exclusive')
     }
 
-    const ff = idReader([flags['feature-id']])
+    const ff = await idReader([flags['feature-id']])
     if (ff.length !== 1) {
       this.error(`Expected only one feature identifier. Got ${ff.length}`)
     }

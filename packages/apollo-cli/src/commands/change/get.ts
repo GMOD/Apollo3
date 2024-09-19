@@ -42,7 +42,7 @@ export default class Get extends BaseCommand<typeof Get> {
     let keep = json
     if (flags.assembly !== undefined) {
       keep = []
-      const assembly = idReader(flags.assembly)
+      const assembly = await idReader(flags.assembly)
       const assemblyIds = await convertAssemblyNameToId(
         access.address,
         access.accessToken,

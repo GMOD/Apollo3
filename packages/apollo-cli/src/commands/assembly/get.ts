@@ -36,7 +36,7 @@ export default class Get extends BaseCommand<typeof Get> {
 
     let assemblyIds: string[] = []
     if (flags.assembly !== undefined) {
-      const assembly = idReader(flags.assembly)
+      const assembly = await idReader(flags.assembly)
       assemblyIds = await convertAssemblyNameToId(
         access.address,
         access.accessToken,

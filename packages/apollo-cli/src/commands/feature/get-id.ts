@@ -39,7 +39,7 @@ export default class Get extends BaseCommand<typeof Get> {
 
     const access = await this.getAccess()
 
-    let ids = idReader(flags['feature-id'])
+    let ids = await idReader(flags['feature-id'])
     ids = [...new Set(ids)]
 
     const results: object[] = []

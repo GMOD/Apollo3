@@ -76,7 +76,7 @@ export default class Get extends BaseCommand<typeof Get> {
       flags.start -= 1
     }
 
-    const ff = idReader([flags['feature-id']])
+    const ff = await idReader([flags['feature-id']])
     if (ff.length !== 1) {
       this.error(`Expected only one feature identifier. Got ${ff.length}`)
     }

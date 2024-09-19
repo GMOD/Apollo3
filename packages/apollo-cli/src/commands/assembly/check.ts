@@ -144,7 +144,7 @@ export default class Check extends BaseCommand<typeof Check> {
       this.error('Please specify the assembly to manage for checks')
     }
 
-    const asm: string[] = idReader([flags.assembly])
+    const asm: string[] = await idReader([flags.assembly])
     const assembly = await getAssembly(
       access.address,
       access.accessToken,
