@@ -300,7 +300,7 @@ class TestCLI(unittest.TestCase):
         out = json.loads(p.stdout)[0]
         self.assertEqual(out["type"], "BAC")
 
-        p = shell(f"{apollo} assembly get -a vv1")
+        p = shell(f"{apollo} assembly get {P} -a vv1")
         asm_id = json.loads(p.stdout)[0]["_id"]
 
         req = [

@@ -177,10 +177,15 @@ export class AuthenticationService {
       if (isRootUser) {
         newUserRole = Role.Admin
       } else {
-        const userCount = await this.usersService.getCount()
-        const guestUser = await this.usersService.findGuest()
-        const hasAdmin = userCount > 1 || (userCount === 1 && !guestUser)
-        // If there is not a non-guest user yet, the 1st user role will be admin
+        const users = await this.usersService.findAll()
+        const hasAdmin = users.some(
+          (user) =>
+            user.role === Role.Admin &&
+            user.email !== 'root_user' &&
+            user.email !== 'guest_user',
+        )
+        // If there is not a non-guest and non-root user yet, the 1st user to
+        // log in will be made an admin
         newUserRole = hasAdmin ? this.defaultNewUserRole : Role.Admin
       }
       const newUser: CreateUserDto = {
