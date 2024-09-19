@@ -53,6 +53,9 @@
       "feature": {
         "description": "Commands to handle features"
       },
+      "jbrowse": {
+        "description": "Commands to manage the JBrowse configuration"
+      },
       "refseq": {
         "description": "Commands to handle reference sequences"
       },
