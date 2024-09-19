@@ -96,15 +96,15 @@ Upload a local file to the Apollo server
 ```
 USAGE
   $ apollo file upload -i <value> [--profile <value>] [--config-file <value>] [-t
-    text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi|autodetect] [-z]
+    text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi] [-z | -d]
 
 FLAGS
+  -d, --decompressed         Override autodetection and instruct that input is decompressed
   -i, --input-file=<value>   (required) Local file to upload
-  -t, --type=<option>        [default: autodetect] File type or "autodetect" for automatic detection.
+  -t, --type=<option>        Set file type or autodetected it if not set.
                              NB: There is no check for whether the file complies to this type
-                             <options:
-                             text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi|autodetect>
-  -z, --gzip                 Input is gzip compressed
+                             <options: text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi>
+  -z, --gzip                 Override autodetection and instruct that input is gzip compressed
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
 
@@ -112,8 +112,8 @@ DESCRIPTION
   Upload a local file to the Apollo server
 
   This command only uploads a file and returns the corresponding file id.
-  To add an assembly based on this file use `apollo assembly add-file`.
-  To upload & add an assembly in a single pass see commands `apollo assembly add-*`
+  To add an assembly based on this file or to upload & add an assembly in a single pass   see `apollo assembly
+  add-from-fasta` and `add-from-gff`
 
 EXAMPLES
   Upload local file, type auto-detected:

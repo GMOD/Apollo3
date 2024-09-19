@@ -174,7 +174,13 @@ export class AddAssemblyFromFileChange extends FromFileBaseChange {
     }
     // Add assembly
     const [newAssemblyDoc] = await assemblyModel.create([
-      { _id: this.assembly, name: assemblyName, user, status: -1, fileId },
+      {
+        _id: this.assembly,
+        name: assemblyName,
+        user,
+        status: -1,
+        fileIds: { fa: fileId },
+      },
     ])
     this.logger.debug?.(
       `Added new assembly "${assemblyName}", docId "${newAssemblyDoc._id}"`,

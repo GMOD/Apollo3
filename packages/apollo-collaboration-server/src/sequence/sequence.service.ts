@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-
 /* eslint-disable @typescript-eslint/no-base-to-string */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
@@ -67,10 +65,10 @@ export class SequenceService {
       return sequence
     }
 
-    if (assemblyDoc?.fileIds) {
+    if (assemblyDoc?.fileIds?.fai) {
       const { fa, fai, gzi } = assemblyDoc.fileIds
       this.logger.debug(
-        `Local fasta file = ${fa}, Local fasta index file = ${fai}`,
+        `Local fasta file = ${fa}, Local fasta index file = ${fai}, Local gzi index file = ${gzi}`,
       )
       const faDoc = await this.fileModel.findById(fa)
       if (!faDoc) {

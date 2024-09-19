@@ -62,10 +62,8 @@ export class LocalFileGzip implements GenericFilehandle {
     const fileHandle = await this.getFileHandle()
     const unzippedContents = await unzip(fileHandle)
     if (this.opts.encoding) {
-      console.log(`IN: ${this.filename}`)
       return unzippedContents.toString(this.opts.encoding)
     }
-    console.log(`OUT: ${this.filename}`)
     return unzippedContents
   }
 
