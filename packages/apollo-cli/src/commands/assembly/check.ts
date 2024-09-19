@@ -151,10 +151,6 @@ export default class Check extends BaseCommand<typeof Check> {
       asm[0],
     )
 
-    if (Object.keys(assembly).length === 0) {
-      this.error(`Assembly ${flags.assembly} not found`)
-    }
-
     const currentChecks: object[] = getCheckTypesForAssembly(
       checkTypes,
       assembly,
@@ -191,11 +187,8 @@ export default class Check extends BaseCommand<typeof Check> {
       }
     }
 
-    await setChecks(
-      access.address,
-      access.accessToken,
-      assembly['_id' as keyof typeof assembly],
-      [...newChecks.values()],
-    )
+    await setChecks(access.address, access.accessToken, assembly._id, [
+      ...newChecks.values(),
+    ])
   }
 }
