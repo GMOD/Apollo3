@@ -10,13 +10,12 @@ import { Errors, Flags, ux } from '@oclif/core'
 import open from 'open'
 import { fetch } from 'undici'
 
-import { ApolloConf } from '../ApolloConf.js'
+import { ApolloConf, KEYS } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
 import {
   UserCredentials,
   basicCheckConfig,
   createFetchErrorMessage,
-  getUserCredentials,
   localhostToAddress,
   waitFor,
   wrapLines,
@@ -96,10 +95,9 @@ export default class Login extends BaseCommand<typeof Login> {
     }
 
     let userCredentials: UserCredentials = { accessToken: '' }
-
     try {
       if (!flags.force) {
-        await this.checkUserAlreadyLoggedIn()
+        await this.checkUserAlreadyLoggedIn(config, profileName)
       }
       if (accessType === 'root' || flags.username !== undefined) {
         const username: string =
@@ -137,25 +135,19 @@ export default class Login extends BaseCommand<typeof Login> {
     config.set(`${profileName}.accessToken`, userCredentials.accessToken)
   }
 
-  private async checkUserAlreadyLoggedIn() {
-    const userCredentials = getUserCredentials()
-
-    if (!userCredentials) {
+  private async checkUserAlreadyLoggedIn(
+    userCredentials: ApolloConf,
+    profileName: string,
+  ) {
+    const accessToken: string = userCredentials.get(
+      `${profileName}.${KEYS.accessToken}`,
+    ) as string
+    if (!accessToken) {
       return
     }
-
-    const alreadyLoggedIn = (
-      Object.keys(userCredentials) as (keyof typeof userCredentials)[]
-    ).every((key) => Boolean(userCredentials[key]))
-
-    if (!alreadyLoggedIn) {
-      return
-    }
-
     const reAuthenticate = await ux.confirm(
       "You're already logged. Do you want to re-authenticate? (y/n)",
     )
-
     if (!reAuthenticate) {
       this.exit(0)
     }

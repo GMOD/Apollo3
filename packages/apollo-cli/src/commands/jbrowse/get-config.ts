@@ -15,10 +15,7 @@ export default class GetConfig extends BaseCommand<typeof GetConfig> {
   ]
 
   public async run(): Promise<void> {
-    const { flags } = await this.parse(GetConfig)
-
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
 
     const response = await queryApollo(
       access.address,

@@ -43,15 +43,11 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     return config
   }
 
-  public async getAccess(
-    configFile: string | undefined,
-    profileName: string | undefined,
-  ): Promise<{ address: string; accessToken: string }> {
+  public async getAccess(): Promise<{ address: string; accessToken: string }> {
+    const { 'config-file': configFile, profile } = this.flags
     const config: ApolloConf = this.getConfig(configFile)
 
-    if (profileName === undefined) {
-      profileName = process.env.APOLLO_PROFILE ?? 'default'
-    }
+    const profileName = process.env.APOLLO_PROFILE ?? profile ?? 'default'
 
     return config.getAccess(profileName)
   }

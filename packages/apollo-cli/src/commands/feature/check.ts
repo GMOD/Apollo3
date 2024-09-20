@@ -48,12 +48,11 @@ export default class Check extends BaseCommand<typeof Check> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Check)
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
 
     let keepFeatures = new Set<string>()
     if (flags['feature-id'] !== undefined) {
-      keepFeatures = new Set(idReader(flags['feature-id']))
+      keepFeatures = new Set(await idReader(flags['feature-id']))
     }
 
     const keepAsmId: string[] = await keepAssemblies(
@@ -109,7 +108,7 @@ async function keepAssemblies(
       keepAssembly.push(x._id)
     }
   } else {
-    const ids = idReader([assembly])
+    const ids = await idReader([assembly])
     keepAssembly = await convertAssemblyNameToId(address, accessToken, ids)
   }
   return keepAssembly

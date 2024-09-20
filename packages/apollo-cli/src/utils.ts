@@ -1,13 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import * as crypto from 'node:crypto'
 import EventEmitter from 'node:events'
 import * as fs from 'node:fs'
-import * as os from 'node:os'
 import * as path from 'node:path'
+import { stdin, stderr } from 'node:process'
 import {
   Transform,
   TransformCallback,
@@ -26,7 +21,6 @@ import {
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 
-const CONFIG_PATH = path.resolve(os.homedir(), '.clirc')
 export const CLI_SERVER_ADDRESS = 'http://127.0.0.1:5657'
 export const CLI_SERVER_ADDRESS_CALLBACK = `${CLI_SERVER_ADDRESS}/auth/callback`
 
@@ -119,25 +113,23 @@ export async function getAssembly(
   address: string,
   accessToken: string,
   assemblyNameOrId: string,
-): Promise<object> {
+): Promise<ApolloAssemblySnapshot> {
   const assemblyId: string[] = await convertAssemblyNameToId(
     address,
     accessToken,
     [assemblyNameOrId],
   )
   if (assemblyId.length === 0) {
-    return {}
+    throw new Error(`Assembly "${assemblyNameOrId}" not found`)
   }
   const res: Response = await queryApollo(address, accessToken, 'assemblies')
   const assemblies = (await res.json()) as ApolloAssemblySnapshot[]
-  let assemblyObj = {}
   for (const x of assemblies) {
     if (x._id === assemblyId[0]) {
-      assemblyObj = JSON.parse(JSON.stringify(x))
-      break
+      return JSON.parse(JSON.stringify(x)) as ApolloAssemblySnapshot
     }
   }
-  return assemblyObj
+  throw new Error(`Assembly "${assemblyNameOrId}" not found`)
 }
 
 export async function getRefseqId(
@@ -195,7 +187,7 @@ export async function getRefseqId(
 async function checkNameToIdDict(
   address: string,
   accessToken: string,
-): Promise<Record<string, string>> {
+): Promise<Record<string, string | undefined>> {
   const asm = await queryApollo(address, accessToken, 'checks/types')
   const ja = (await asm.json()) as CheckResultSnapshot[] // Not sure if CheckResultSnapshot is the right interface
   const nameToId: Record<string, string> = {}
@@ -228,7 +220,7 @@ export async function convertCheckNameToId(
 export async function assemblyNameToIdDict(
   address: string,
   accessToken: string,
-): Promise<Record<string, string>> {
+): Promise<Record<string, string | undefined>> {
   const asm = await queryApollo(address, accessToken, 'assemblies')
   const ja = (await asm.json()) as object[]
   const nameToId: Record<string, string> = {}
@@ -254,7 +246,7 @@ export async function convertAssemblyNameToId(
     } else if (Object.values(nameToId).includes(x)) {
       ids.push(x)
     } else if (verbose) {
-      process.stderr.write(`Warning: Omitting unknown assembly: "${x}"\n`)
+      stderr.write(`Warning: Omitting unknown assembly: "${x}"\n`)
     }
   }
   if (removeDuplicates) {
@@ -328,15 +320,6 @@ export function filterJsonList(
     }
   }
   return results
-}
-
-export const getUserCredentials = (): UserCredentials | null => {
-  try {
-    const content = fs.readFileSync(CONFIG_PATH, { encoding: 'utf8' })
-    return JSON.parse(content) as UserCredentials
-  } catch {
-    return null
-  }
 }
 
 export const generatePkceChallenge = (): {
@@ -521,26 +504,38 @@ export function wrapLines(s: string, length?: number): string {
   return wr
 }
 
-export function idReader(input: string[], removeDuplicates = true): string[] {
-  let ids = []
+export async function readStdin() {
+  const chunks: Buffer[] = []
+  for await (const chunk of stdin) {
+    chunks.push(Buffer.from(chunk as Buffer))
+  }
+  return Buffer.concat(chunks).toString('utf8')
+}
+
+export async function idReader(
+  input: string[],
+  removeDuplicates = true,
+): Promise<string[]> {
+  let ids: string[] = []
   for (const xin of input) {
-    let data
+    let data: string
     if (xin == '-') {
-      data = fs.readFileSync('/dev/stdin').toString()
+      data = await readStdin()
     } else if (fs.existsSync(xin)) {
       data = fs.readFileSync(xin).toString()
     } else {
       data = xin
     }
     try {
-      data = JSON.parse(data)
-      if (data.length === undefined) {
-        data = [data]
+      let parsedData = JSON.parse(data) as
+        | Record<string, unknown>
+        | [Record<string, unknown>]
+      if (!Array.isArray(parsedData)) {
+        parsedData = [parsedData]
       }
-      for (const x of data) {
-        const id = x['_id' as keyof typeof x]
-        if (id !== undefined) {
-          ids.push(id)
+      for (const x of parsedData) {
+        if ('_id' in x && typeof x._id === 'string') {
+          ids.push(x._id)
         }
       }
     } catch {
