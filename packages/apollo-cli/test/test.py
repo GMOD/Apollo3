@@ -779,7 +779,7 @@ class TestCLI(unittest.TestCase):
 
         # Test non-existant assembly
         p = shell(f"{apollo} assembly check {P} -a non-existant", strict=False)
-        self.assertEqual(p.returncode, 2)
+        self.assertEqual(p.returncode, 1)
         self.assertTrue("non-existant" in p.stderr)
 
         # Test non-existant check
