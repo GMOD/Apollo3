@@ -93,12 +93,11 @@ export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
       this.error('Start and end coordinates must be greater than 0.')
     }
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
 
     let assembly = undefined
     if (flags.assembly !== undefined) {
-      ;[assembly] = idReader([flags.assembly])
+      ;[assembly] = await idReader([flags.assembly])
     }
 
     let refseqIds: string[] = []

@@ -37,10 +37,9 @@ export default class Get extends BaseCommand<typeof Get> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Get)
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
 
-    let ids = idReader(flags['feature-id'])
+    let ids = await idReader(flags['feature-id'])
     ids = [...new Set(ids)]
 
     const results: object[] = []

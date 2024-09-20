@@ -3,225 +3,203 @@ import {
   AnnotationFeatureSnapshot,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
-// import ObjectID from 'bson-objectid'
+import { intersection2 } from '@jbrowse/core/util'
+import ObjectID from 'bson-objectid'
 
-// enum STOP_CODONS {
-//   'TAG',
-//   'TAA',
-//   'TGA',
-// }
+enum STOP_CODONS {
+  'TAG',
+  'TAA',
+  'TGA',
+}
 
-// const iupacComplements: Record<string, string | undefined> = {
-//   G: 'C',
-//   A: 'T',
-//   T: 'A',
-//   C: 'G',
-//   R /* G or A */: 'Y',
-//   Y /* T or C */: 'R',
-//   M /* A or C */: 'K',
-//   K /* G or T */: 'M',
-//   S /* G or C */: 'S',
-//   W /* A or T */: 'W',
-//   H /* A or C or T */: 'D',
-//   B /* G or T or C */: 'V',
-//   V /* G or C or A */: 'B',
-//   D /* G or A or T */: 'H',
-//   N /* G or A or T or C */: 'N',
-// }
+const iupacComplements: Record<string, string | undefined> = {
+  G: 'C',
+  A: 'T',
+  T: 'A',
+  C: 'G',
+  R /* G or A */: 'Y',
+  Y /* T or C */: 'R',
+  M /* A or C */: 'K',
+  K /* G or T */: 'M',
+  S /* G or C */: 'S',
+  W /* A or T */: 'W',
+  H /* A or C or T */: 'D',
+  B /* G or T or C */: 'V',
+  V /* G or C or A */: 'B',
+  D /* G or A or T */: 'H',
+  N /* G or A or T or C */: 'N',
+}
 
-// function reverseComplement(dna: string): string {
-//   const complement: string[] = []
-//   for (const nt of dna) {
-//     const rc = iupacComplements[nt.toUpperCase()]
-//     if (rc === undefined) {
-//       throw new TypeError(`Cannot complement nucleotide: "${nt}"`)
-//     }
-//     if (nt === nt.toLowerCase()) {
-//       complement.push(rc.toLowerCase())
-//     } else {
-//       complement.push(rc)
-//     }
-//   }
-//   return complement.reverse().join('')
-// }
+type CDSLocation = { min: number; max: number; phase: 0 | 1 | 2 }[]
+type CDSLocations = CDSLocation[]
 
-// async function getSequenceFromSingleFeature(
-//   feature: AnnotationFeatureSnapshot,
-//   getSequence: (start: number, end: number) => Promise<string>,
-// ) {
-//   let seq = ''
-//   if (
-//     feature.discontinuousLocations !== undefined &&
-//     feature.discontinuousLocations.length > 0
-//   ) {
-//     for (const loc of feature.discontinuousLocations) {
-//       seq = seq + (await getSequence(loc.start, loc.end))
-//     }
-//   } else {
-//     seq = await getSequence(feature.start, feature.end)
-//   }
-//   if (feature.strand === -1) {
-//     return reverseComplement(seq)
-//   }
-//   return seq
-// }
+function reverseComplement(dna: string): string {
+  const complement: string[] = []
+  for (const nt of dna) {
+    const rc = iupacComplements[nt.toUpperCase()]
+    if (rc === undefined) {
+      throw new TypeError(`Cannot complement nucleotide: "${nt}"`)
+    }
+    if (nt === nt.toLowerCase()) {
+      complement.push(rc.toLowerCase())
+    } else {
+      complement.push(rc)
+    }
+  }
+  return complement.reverse().join('')
+}
 
-// async function getSequenceFromMultipleFeatures(
-//   features: AnnotationFeatureSnapshot[],
-//   getSequence: (start: number, end: number) => Promise<string>,
-// ) {
-//   const strands = features.map((feature) => feature.strand)
-//   if (!strands.every((strand) => strand === strands[0])) {
-//     throw new Error(
-//       `Strands do not match in features: "${features
-//         .map((f) => f._id)
-//         .join(', ')}"`,
-//     )
-//   }
-//   let seq = ''
-//   for (const feature of features) {
-//     seq = seq + (await getSequence(feature.start, feature.end))
-//   }
-//   if (strands[0] === -1) {
-//     return reverseComplement(seq)
-//   }
-//   return seq
-// }
+async function getCDSSequence(
+  cdsLocation: CDSLocation,
+  strand: 1 | -1 | undefined,
+  getSequence: (start: number, end: number) => Promise<string>,
+): Promise<string> {
+  const sequences = await Promise.all(
+    cdsLocation.map(({ max, min }) => getSequence(min, max)),
+  )
+  if (strand === -1) {
+    return sequences.map((seq) => reverseComplement(seq)).join('')
+  }
+  return sequences.join('')
+}
 
-// function splitSequenceInCodons(cds: string): string[] {
-//   const codons: string[] = []
-//   for (let i = 0; i <= cds.length - 3; i += 3) {
-//     codons.push(cds.slice(i, i + 3))
-//   }
-//   return codons
-// }
+function splitSequenceInCodons(cds: string): string[] {
+  const codons: string[] = []
+  for (let i = 0; i <= cds.length - 3; i += 3) {
+    codons.push(cds.slice(i, i + 3))
+  }
+  return codons
+}
 
-// function getOriginalCodonLocation(
-//   feature: AnnotationFeatureSnapshot | AnnotationFeatureSnapshot[],
-//   index: number,
-// ): [number, number] {
-//   let lengthToStart = index * 3
-//   let lengthToEnd = lengthToStart + 3
-//   if (Array.isArray(feature)) {
-//     let startLocation: number | undefined = undefined,
-//       endLocation: number | undefined = undefined
-//     for (const f of feature) {
-//       const featureLength = f.end - f.start
-//       if (startLocation === undefined && featureLength > lengthToStart) {
-//         startLocation = f.start + lengthToStart
-//       } else {
-//         lengthToStart -= featureLength
-//       }
-//       if (endLocation === undefined && featureLength > lengthToEnd) {
-//         endLocation = f.start + lengthToEnd
-//       } else {
-//         lengthToEnd -= featureLength
-//       }
-//       if (startLocation !== undefined && endLocation !== undefined) {
-//         return [startLocation, endLocation]
-//       }
-//     }
-//     throw new Error('Could not determine original CDS location')
-//   } else {
-//     if (
-//       feature.discontinuousLocations !== undefined &&
-//       feature.discontinuousLocations.length > 0
-//     ) {
-//       let startLocation: number | undefined = undefined,
-//         endLocation: number | undefined = undefined
-//       for (const loc of feature.discontinuousLocations) {
-//         const locLength = loc.end - loc.start
-//         if (startLocation === undefined && locLength > lengthToStart) {
-//           startLocation = loc.start + lengthToStart
-//         } else {
-//           lengthToStart -= locLength
-//         }
-//         if (endLocation === undefined && locLength > lengthToEnd) {
-//           endLocation = loc.start + lengthToEnd
-//         } else {
-//           lengthToEnd -= locLength
-//         }
-//         if (startLocation !== undefined && endLocation !== undefined) {
-//           return [startLocation, endLocation]
-//         }
-//       }
-//       throw new Error('Could not determine original CDS location')
-//     } else {
-//       return [feature.start + lengthToStart, feature.start + lengthToEnd]
-//     }
-//   }
-// }
+function getOriginalCodonLocation(
+  cdsLocation: CDSLocation,
+  strand: 1 | -1 | undefined,
+  index: number,
+): [number, number] | undefined {
+  let lengthToStart = index * 3
+  let lengthToEnd = lengthToStart + 3
 
-// async function checkCDS(
-//   feature: AnnotationFeatureSnapshot | AnnotationFeatureSnapshot[],
-//   getSequence: (start: number, end: number) => Promise<string>,
-// ): Promise<CheckResultSnapshot[]> {
-//   const checkResults: CheckResultSnapshot[] = []
-//   let _id: string,
-//     ids: string[],
-//     start: number,
-//     end: number,
-//     refSeq: string,
-//     sequence: string
-//   if (Array.isArray(feature)) {
-//     sequence = await getSequenceFromMultipleFeatures(feature, getSequence)
-//     ids = feature.map((f) => f._id)
-//     _id = ids.join(',')
-//     ;[{ refSeq, start }] = feature
-//     const lastFeature = feature.at(-1)
-//     if (!lastFeature) {
-//       throw new Error('Zero-length feature array encountered')
-//     }
-//     ;({ end } = lastFeature)
-//   } else {
-//     sequence = await getSequenceFromSingleFeature(feature, getSequence)
-//     ;({ _id, end, refSeq, start } = feature)
-//     ids = [_id]
-//   }
-//   const codons = splitSequenceInCodons(sequence)
-//   if (sequence.length % 3 === 0) {
-//     const lastCodon = codons.pop() // Last codon is supposed to be a stop
-//     if (!lastCodon) {
-//       throw new Error(`No sequence found for feature "${_id}"`)
-//     }
-//     if (!(lastCodon.toUpperCase() in STOP_CODONS)) {
-//       checkResults.push({
-//         _id: new ObjectID().toHexString(),
-//         name: 'MissingStopCodonCheck',
-//         ids,
-//         refSeq: refSeq.toString(),
-//         start: end,
-//         end,
-//         message: `Feature "${_id}" is missing a stop codon`,
-//       })
-//     }
-//   } else {
-//     checkResults.push({
-//       _id: new ObjectID().toHexString(),
-//       name: 'MultipleOfThreeCheck',
-//       ids,
-//       refSeq: refSeq.toString(),
-//       start,
-//       end,
-//       message: `The coding sequence for feature "${_id}" is not a multiple of three`,
-//     })
-//   }
-//   for (const [idx, codon] of codons.entries()) {
-//     const [codonStart, codonEnd] = getOriginalCodonLocation(feature, idx)
-//     if (codon.toUpperCase() in STOP_CODONS) {
-//       checkResults.push({
-//         _id: new ObjectID().toHexString(),
-//         name: 'InternalStopCodonCheck',
-//         ids,
-//         refSeq: refSeq.toString(),
-//         start: codonStart,
-//         end: codonEnd,
-//         message: `The coding sequence for feature "${_id}" has an internal stop codon`,
-//       })
-//     }
-//   }
-//   return checkResults
-// }
+  let startLocation: number | undefined = undefined,
+    endLocation: number | undefined = undefined
+  for (const loc of cdsLocation) {
+    const locLength = loc.max - loc.min
+    if (startLocation === undefined && locLength > lengthToStart) {
+      startLocation = loc.min + lengthToStart
+    } else {
+      lengthToStart -= locLength
+    }
+    if (endLocation === undefined && locLength > lengthToEnd) {
+      endLocation = loc.min + lengthToEnd
+    } else {
+      lengthToEnd -= locLength
+    }
+    if (startLocation !== undefined && endLocation !== undefined) {
+      return [startLocation, endLocation]
+    }
+  }
+  return
+}
+
+async function checkMRNA(
+  feature: AnnotationFeatureSnapshot,
+  getSequence: (start: number, end: number) => Promise<string>,
+): Promise<CheckResultSnapshot[]> {
+  const checkResults: CheckResultSnapshot[] = []
+  const { _id, max, min, refSeq, strand } = feature
+  const cdsLocations = getCDSLocations(feature)
+  if (!cdsLocations) {
+    return checkResults
+  }
+  const ids = [_id]
+  for (const cdsLocation of cdsLocations) {
+    const sequence = await getCDSSequence(cdsLocation, strand, getSequence)
+    const codons = splitSequenceInCodons(sequence)
+    if (sequence.length % 3 === 0) {
+      const lastCodon = codons.pop() // Last codon is supposed to be a stop
+      if (lastCodon && !(lastCodon.toUpperCase() in STOP_CODONS)) {
+        checkResults.push({
+          _id: new ObjectID().toHexString(),
+          name: 'MissingStopCodonCheck',
+          ids,
+          refSeq: refSeq.toString(),
+          start: max,
+          end: max,
+          message: `Feature "${_id}" is missing a stop codon`,
+        })
+      }
+    } else {
+      checkResults.push({
+        _id: new ObjectID().toHexString(),
+        name: 'MultipleOfThreeCheck',
+        ids,
+        refSeq: refSeq.toString(),
+        start: min,
+        end: max,
+        message: `The coding sequence for feature "${_id}" is not a multiple of three`,
+      })
+    }
+    for (const [idx, codon] of codons.entries()) {
+      const location = getOriginalCodonLocation(cdsLocation, strand, idx)
+      if (location && codon.toUpperCase() in STOP_CODONS) {
+        const [codonStart, codonEnd] = location
+        checkResults.push({
+          _id: new ObjectID().toHexString(),
+          name: 'InternalStopCodonCheck',
+          ids,
+          refSeq: refSeq.toString(),
+          start: codonStart,
+          end: codonEnd,
+          message: `The coding sequence for feature "${_id}" has an internal stop codon`,
+        })
+      }
+    }
+  }
+  return checkResults
+}
+
+function getCDSLocations(
+  feature: AnnotationFeatureSnapshot,
+): CDSLocations | undefined {
+  if (feature.type !== 'mRNA') {
+    return
+  }
+  const { children, strand } = feature
+  if (!children) {
+    return
+  }
+  const cdsChildren = Object.values(children).filter(
+    (child) => child.type === 'CDS',
+  )
+  if (cdsChildren.length === 0) {
+    return
+  }
+  const cdsLocations: CDSLocations = []
+  for (const cds of cdsChildren) {
+    const { max: cdsMax, min: cdsMin } = cds
+    const locs: { min: number; max: number }[] = []
+    for (const child of Object.values(children)) {
+      if (child.type !== 'exon') {
+        continue
+      }
+      const [start, end] = intersection2(cdsMin, cdsMax, child.min, child.max)
+      if (start !== undefined && end !== undefined) {
+        locs.push({ min: start, max: end })
+      }
+    }
+    locs.sort(({ min: a }, { min: b }) => a - b)
+    if (strand === -1) {
+      locs.reverse()
+    }
+    let nextPhase: 0 | 1 | 2 = 0
+    const phasedLocs = locs.map((loc) => {
+      const phase = nextPhase
+      nextPhase = ((3 - ((loc.max - loc.min - phase + 3) % 3)) % 3) as 0 | 1 | 2
+      return { ...loc, phase }
+    })
+    cdsLocations.push(phasedLocs)
+  }
+  return cdsLocations
+}
 
 export class CDSCheck extends Check {
   name = 'CDSCheck'
@@ -229,49 +207,21 @@ export class CDSCheck extends Check {
   default = true
 
   async checkFeature(
-    _feature: AnnotationFeatureSnapshot,
-    _getSequence: (start: number, end: number) => Promise<string>,
+    feature: AnnotationFeatureSnapshot,
+    getSequence: (start: number, end: number) => Promise<string>,
   ): Promise<CheckResultSnapshot[]> {
-    await Promise.resolve()
-    return []
-    // if (feature.type === 'CDS') {
-    //   return checkCDS(feature, getSequence)
-    // }
+    if (feature.type === 'mRNA') {
+      return checkMRNA(feature, getSequence)
+    }
 
-    // if (!feature.children) {
-    //   return []
-    // }
+    if (!feature.children) {
+      return []
+    }
 
-    // if (feature.type !== 'mRNA') {
-    //   const checkResults: CheckResultSnapshot[] = []
-    //   for (const child of Object.values(feature.children)) {
-    //     checkResults.push(...(await this.checkFeature(child, getSequence)))
-    //   }
-    //   return checkResults
-    // }
-
-    // const cdsChildren = Object.values(feature.children).filter(
-    //   (child) => child.type === 'CDS',
-    // )
-    // if (cdsChildren.length === 0) {
-    //   throw new Error(`mRNA "${feature._id}" has no CDS children`)
-    // }
-    // const cdsChildrenWithDiscontinuousLocations = cdsChildren.filter(
-    //   (child) =>
-    //     child.discontinuousLocations && child.discontinuousLocations.length > 0,
-    // )
-    // if (cdsChildrenWithDiscontinuousLocations.length === 0) {
-    //   return checkCDS(cdsChildren, getSequence)
-    // }
-    // if (cdsChildrenWithDiscontinuousLocations.length === cdsChildren.length) {
-    //   const checkResults: CheckResultSnapshot[] = []
-    //   for (const child of cdsChildren) {
-    //     checkResults.push(...(await this.checkFeature(child, getSequence)))
-    //   }
-    //   return checkResults
-    // }
-    // throw new Error(
-    //   `Mix of CDS with and without discontinuous locations found in mRNA "${feature._id}"`,
-    // )
+    const checkResults: CheckResultSnapshot[] = []
+    for (const child of Object.values(feature.children)) {
+      checkResults.push(...(await this.checkFeature(child, getSequence)))
+    }
+    return checkResults
   }
 }

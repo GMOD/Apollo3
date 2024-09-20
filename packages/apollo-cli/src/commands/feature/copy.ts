@@ -60,8 +60,7 @@ export default class Copy extends BaseCommand<typeof Copy> {
       this.error('Start coordinate must be greater than 0')
     }
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
 
     const res: Response = await getFeatureById(
       access.address,

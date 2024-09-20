@@ -47,8 +47,7 @@ export default class AddRefNameAlias extends BaseCommand<
       this.error(`File ${flags['input-file']} does not exist`)
     }
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
     const filehandle = await fs.promises.open(flags['input-file'])
     const fileContent = await filehandle.readFile({ encoding: 'utf8' })
     await filehandle.close()

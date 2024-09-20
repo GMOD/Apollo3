@@ -129,8 +129,7 @@ export default class Check extends BaseCommand<typeof Check> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Check)
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
 
     const checkTypes: object[] = await getCheckTypes(
       access.address,
@@ -145,16 +144,12 @@ export default class Check extends BaseCommand<typeof Check> {
       this.error('Please specify the assembly to manage for checks')
     }
 
-    const asm: string[] = idReader([flags.assembly])
+    const asm: string[] = await idReader([flags.assembly])
     const assembly = await getAssembly(
       access.address,
       access.accessToken,
       asm[0],
     )
-
-    if (Object.keys(assembly).length === 0) {
-      this.error(`Assembly ${flags.assembly} not found`)
-    }
 
     const currentChecks: object[] = getCheckTypesForAssembly(
       checkTypes,
@@ -192,11 +187,8 @@ export default class Check extends BaseCommand<typeof Check> {
       }
     }
 
-    await setChecks(
-      access.address,
-      access.accessToken,
-      assembly['_id' as keyof typeof assembly],
-      [...newChecks.values()],
-    )
+    await setChecks(access.address, access.accessToken, assembly._id, [
+      ...newChecks.values(),
+    ])
   }
 }

@@ -30,8 +30,7 @@ export default class Get extends BaseCommand<typeof Get> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Get)
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
 
     const changes: Response = await queryApollo(
       access.address,
@@ -43,7 +42,7 @@ export default class Get extends BaseCommand<typeof Get> {
     let keep = json
     if (flags.assembly !== undefined) {
       keep = []
-      const assembly = idReader(flags.assembly)
+      const assembly = await idReader(flags.assembly)
       const assemblyIds = await convertAssemblyNameToId(
         access.address,
         access.accessToken,
