@@ -2,40 +2,44 @@
 
 Commands to manage assemblies
 
-- [`apollo assembly add-from-fasta INPUT-FILE`](#apollo-assembly-add-from-fasta-input-file)
+- [`apollo assembly add-from-fasta INPUT`](#apollo-assembly-add-from-fasta-input)
 - [`apollo assembly add-from-gff INPUT-FILE`](#apollo-assembly-add-from-gff-input-file)
 - [`apollo assembly check`](#apollo-assembly-check)
 - [`apollo assembly delete`](#apollo-assembly-delete)
 - [`apollo assembly get`](#apollo-assembly-get)
 - [`apollo assembly sequence`](#apollo-assembly-sequence)
 
-## `apollo assembly add-from-fasta INPUT-FILE`
+## `apollo assembly add-from-fasta INPUT`
 
-Add new assembly from a fasta file. The input file may be:
+Add a new assembly from fasta input
 
 ```
 USAGE
-  $ apollo assembly add-from-fasta INPUT-FILE [--profile <value>] [--config-file <value>] [-a <value>] [-x <value>] [-f] [-n]
-    [--fai <value>] [--gzi <value>]
+  $ apollo assembly add-from-fasta INPUT [--profile <value>] [--config-file <value>] [-a <value>] [-x <value>] [-f] [-n]
+    [--fai <value>] [--gzi <value>] [-z | -d]
 
 ARGUMENTS
-  INPUT-FILE  Input fasta file, local or remote, or id of a previously uploaded file
+  INPUT  Input fasta file, local or remote, or id of a previously uploaded file
 
 FLAGS
   -a, --assembly=<value>     Name for this assembly. Use the file name if omitted
+  -d, --decompressed         For local file input: Override autodetection and instruct that input is decompressed
   -f, --force                Delete existing assembly, if it exists
   -n, --not-editable         The fasta sequence is not editable. Apollo will not load it into the database and instead
                              use the provided indexes to query it. This option assumes the fasta file is bgzip'd with
                              `bgzip` and indexed with `samtools faidx`. Indexes should be named <my.fasta.gz>.gzi and
                              <my.fasta.gz>.fai unless options --fai and --gzi are set
   -x, --index=<value>        URL of the index. Required if input is an external source
+  -z, --gzip                 For local file input: Override autodetection and instruct that input is gzip compressed
       --config-file=<value>  Use this config file (mostly for testing)
       --fai=<value>          Fasta index of the (not-editable) fasta file
       --gzi=<value>          Gzi index of the (not-editable) fasta file
       --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
-  Add new assembly from a fasta file. The input file may be:
+  Add a new assembly from fasta input
+
+  Add new assembly. The input fasta may be:
   * A local file
   * An external fasta file
   * The id of a file previously uploaded to Apollo

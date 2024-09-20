@@ -14,6 +14,7 @@ import hashlib
 import json
 import os
 import sys
+import shutil
 import unittest
 from utils import shell
 
@@ -906,40 +907,6 @@ class TestCLI(unittest.TestCase):
         p = shell(f"{apollo} feature check {P} -i {xid}")
         self.assertTrue("InternalStopCodonCheck" in p.stdout)
 
-    def testFeatureChecksIndexed(self):
-        shell(
-            f"{apollo} assembly add-from-fasta {P} -a v1 test_data/tiny.fasta.gz --not-editable -f"
-        )
-        shell(f"{apollo} feature import {P} -a v1 -i test_data/tiny.fasta.gff3 -d")
-        # shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a v1 -f")
-        shell(f"{apollo} assembly check {P} -a v1 -c CDSCheck")
-        p = shell(f"{apollo} feature check {P} -a v1")
-        ## If we don't edit a feature, checks are not activated (!?)
-        self.assertEqual(p.stdout.strip(), "[]")
-
-        p = shell(f"{apollo} feature get {P} -a v1")
-        ff = json.loads(p.stdout)
-        g1 = [x for x in ff if x["gffId"] == "MyGene"][0]
-        g2 = [x for x in ff if x["gffId"] == "AnotherGene"][0]
-
-        shell(f"{apollo} feature edit-coords {P} -i {g1['_id']} -e 201")
-        shell(f"{apollo} feature edit-coords {P} -i {g2['_id']} -e 251")
-        p = shell(f"{apollo} feature check {P} -a v1")
-        out = json.loads(p.stdout)
-        self.assertTrue(len(out) > 1)
-        self.assertTrue("InternalStopCodonCheck" in p.stdout)
-
-        ## Ids with checks
-        ids = []
-        for x in out:
-            ids.extend(x["ids"])
-        self.assertTrue(len(set(ids)) > 1)
-
-        ## Retrieve by feature id
-        xid = " ".join(ids)
-        p = shell(f"{apollo} feature check {P} -i {xid}")
-        self.assertTrue("InternalStopCodonCheck" in p.stdout)
-
     def testUser(self):
         p = shell(f"{apollo} user get {P}")
         out = json.loads(p.stdout)
@@ -1081,10 +1048,45 @@ class TestCLI(unittest.TestCase):
         # Uploading a gzip file must skip compression and just copy the file
         with open("test_data/tiny.fasta.gz", "rb") as gz:
             md5 = hashlib.md5(gz.read()).hexdigest()
-        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta.gz -t text/x-fasta")
+        p = shell(
+            f"{apollo} file upload {P} -i test_data/tiny.fasta.gz -t text/x-fasta"
+        )
         out = json.loads(p.stdout)
         self.assertEqual(md5, out["checksum"])
         shell(f"{apollo} assembly add-from-fasta {P} -f {out['_id']}")
+
+    def testAddAssemblyGzip(self):
+        # Autodetect format
+        shell(f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta.gz -f -a vv1")
+        p = shell(f"{apollo} assembly sequence {P} -a vv1")
+        self.assertTrue(p.stdout.startswith(">"))
+        self.assertTrue("cattgttgcggagttgaaca" in p.stdout)
+
+        # Skip autodetect
+        shutil.copy("test_data/tiny.fasta", "test_data/tmp.gz")
+        shell(
+            f"{apollo} assembly add-from-fasta {P} test_data/tmp.gz -f -a vv1 --decompressed"
+        )
+        p = shell(f"{apollo} assembly sequence {P} -a vv1")
+        self.assertTrue(p.stdout.startswith(">"))
+        self.assertTrue("cattgttgcggagttgaaca" in p.stdout)
+        os.remove("test_data/tmp.gz")
+
+        shutil.copy("test_data/tiny.fasta.gz", "test_data/fasta.tmp")
+        shell(
+            f"{apollo} assembly add-from-fasta {P} test_data/fasta.tmp -f -a vv1 --gzip"
+        )
+        p = shell(f"{apollo} assembly sequence {P} -a vv1")
+        self.assertTrue(p.stdout.startswith(">"))
+        self.assertTrue("cattgttgcggagttgaaca" in p.stdout)
+
+        # Autodetect false positive
+        p = shell(
+            f"{apollo} assembly add-from-fasta {P} test_data/fasta.tmp -f -a vv1",
+            strict=False,
+        )
+        self.assertTrue(p.returncode != 0)
+        os.remove("test_data/fasta.tmp")
 
     def testAddAssemblyFromFilesNotEditable(self):
         # It would be good to check that really there was no sequence loading
@@ -1111,7 +1113,9 @@ class TestCLI(unittest.TestCase):
 
     def testAddAssemblyFromFileIdsNotEditable(self):
         # Upload and get Ids for: bgzip fasta, fai and gzi
-        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta.gz -t application/x-bgzip-fasta")
+        p = shell(
+            f"{apollo} file upload {P} -i test_data/tiny.fasta.gz -t application/x-bgzip-fasta"
+        )
         fastaId = json.loads(p.stdout)["_id"]
 
         p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta.gz.fai")

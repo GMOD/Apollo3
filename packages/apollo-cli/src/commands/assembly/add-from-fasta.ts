@@ -9,7 +9,8 @@ import { queryApollo, submitAssembly } from '../../utils.js'
 import { Response } from 'undici'
 
 export default class AddFasta extends FileCommand {
-  static description = `Add new assembly from a fasta file. The input file may be:
+  static summary = 'Add a new assembly from fasta input'
+  static description = `Add new assembly. The input fasta may be:
     * A local file 
     * An external fasta file
     * The id of a file previously uploaded to Apollo`
@@ -27,7 +28,7 @@ export default class AddFasta extends FileCommand {
   ]
 
   static args = {
-    'input-file': Args.string({
+    input: Args.string({
       description:
         'Input fasta file, local or remote, or id of a previously uploaded file',
       required: true,
@@ -61,6 +62,18 @@ Indexes should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai unless options -
     gzi: Flags.string({
       description: 'Gzi index of the (not-editable) fasta file',
     }),
+    gzip: Flags.boolean({
+      char: 'z',
+      description:
+        'For local file input: Override autodetection and instruct that input is gzip compressed',
+      exclusive: ['decompressed'],
+    }),
+    decompressed: Flags.boolean({
+      char: 'd',
+      description:
+        'For local file input: Override autodetection and instruct that input is decompressed',
+      exclusive: ['gzip'],
+    }),
   }
 
   public async run(): Promise<void> {
@@ -69,14 +82,14 @@ Indexes should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai unless options -
 
     const access = await this.getAccess()
 
-    const assemblyName = flags.assembly ?? path.basename(args['input-file'])
+    const assemblyName = flags.assembly ?? path.basename(args.input)
 
     const fastaIsFileId = await isFileId(
-      args['input-file'],
+      args.input,
       access.address,
       access.accessToken,
     )
-    const isExternal = isValidHttpUrl(args['input-file'])
+    const isExternal = isValidHttpUrl(args.input)
 
     let body
     if (isExternal) {
@@ -89,13 +102,13 @@ Indexes should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai unless options -
         assemblyName,
         typeName: 'AddAssemblyFromExternalChange',
         externalLocation: {
-          fa: args['input-file'],
+          fa: args.input,
           fai: flags.index,
         },
       }
     } else if (flags['not-editable']) {
-      const gzi = flags.gzi ?? `${args['input-file']}.gzi`
-      const fai = flags.fai ?? `${args['input-file']}.fai`
+      const gzi = flags.gzi ?? `${args.input}.gzi`
+      const fai = flags.fai ?? `${args.input}.fai`
 
       const gziIsFileId = await isFileId(
         gzi,
@@ -120,11 +133,11 @@ Indexes should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai unless options -
       }
 
       const faId = fastaIsFileId
-        ? args['input-file']
+        ? args.input
         : await this.uploadFile(
             access.address,
             access.accessToken,
-            args['input-file'],
+            args.input,
             'application/x-bgzip-fasta',
             true,
           )
@@ -159,17 +172,25 @@ Indexes should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai unless options -
         },
       }
     } else {
-      if (!isExternal && !fs.existsSync(args['input-file']) && !fastaIsFileId) {
-        this.error(`Input "${args['input-file']}" is not valid`)
+      if (!isExternal && !fs.existsSync(args.input) && !fastaIsFileId) {
+        this.error(`Input "${args.input}" is not valid`)
       }
+      let isGzip = args.input.endsWith('.gz')
+      if (flags.gzip) {
+        isGzip = true
+      }
+      if (flags.decompressed) {
+        isGzip = false
+      }
+
       const fileId = fastaIsFileId
-        ? args['input-file']
+        ? args.input
         : await this.uploadFile(
             access.address,
             access.accessToken,
-            args['input-file'],
+            args.input,
             'text/x-fasta',
-            false,
+            isGzip,
           )
       body = {
         assemblyName,

@@ -3,7 +3,6 @@ import { Response } from 'undici'
 
 import { FileCommand } from '../../fileCommand.js'
 import { filterJsonList, queryApollo } from '../../utils.js'
-import { gzip } from 'node:zlib'
 
 export default class Upload extends FileCommand {
   static summary = 'Upload a local file to the Apollo server'
@@ -81,6 +80,7 @@ export default class Upload extends FileCommand {
     }
 
     let isGzip = flags['input-file'].endsWith('.gz')
+    // eslint-disable-next-line unicorn/consistent-destructuring
     if (flags.gzip) {
       isGzip = true
     }
@@ -96,7 +96,7 @@ export default class Upload extends FileCommand {
       access.accessToken,
       flags['input-file'],
       type,
-      // eslint-disable-next-line unicorn/consistent-destructuring
+
       isGzip,
     )
 
