@@ -26,8 +26,7 @@ export default class Get extends BaseCommand<typeof Get> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Get)
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
 
     const files: Response = await queryApollo(
       access.address,
@@ -38,7 +37,7 @@ export default class Get extends BaseCommand<typeof Get> {
 
     let fileIds: string[] = []
     if (flags['file-id'] !== undefined) {
-      fileIds = idReader(flags['file-id'])
+      fileIds = await idReader(flags['file-id'])
     }
 
     const keep = []

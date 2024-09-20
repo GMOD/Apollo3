@@ -34,8 +34,7 @@ export default class Delete extends BaseCommand<typeof Delete> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Delete)
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
 
     const files: Response = await queryApollo(
       access.address,
@@ -44,7 +43,7 @@ export default class Delete extends BaseCommand<typeof Delete> {
     )
     const json = (await files.json()) as object[]
 
-    const ff = idReader(flags['file-id'])
+    const ff = await idReader(flags['file-id'])
     let deleted: object[] = []
     for (const id of ff) {
       const res = await deleteFile(access.address, access.accessToken, id)

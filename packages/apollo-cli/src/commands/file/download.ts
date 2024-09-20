@@ -35,10 +35,9 @@ export default class Download extends BaseCommand<typeof Download> {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Download)
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
 
-    const ff = idReader([flags['file-id']])
+    const ff = await idReader([flags['file-id']])
     let res: Response = await queryApollo(
       access.address,
       access.accessToken,

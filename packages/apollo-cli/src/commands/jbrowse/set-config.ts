@@ -7,17 +7,12 @@ import { Args } from '@oclif/core'
 import { Agent, RequestInit, fetch } from 'undici'
 import { ConfigError } from '../../ApolloConf.js'
 import { BaseCommand } from '../../baseCommand.js'
-import {
-  wrapLines,
-  localhostToAddress,
-  createFetchErrorMessage,
-} from '../../utils.js'
+import { localhostToAddress, createFetchErrorMessage } from '../../utils.js'
 
 export default class SetConfig extends BaseCommand<typeof SetConfig> {
   static summary = 'Set JBrowse configuration'
-  static description = wrapLines(
-    'Set JBrowse configuration in Apollo collaboration server',
-  )
+  static description =
+    'Set JBrowse configuration in Apollo collaboration server'
 
   static examples = [
     {

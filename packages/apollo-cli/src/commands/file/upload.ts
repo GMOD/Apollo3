@@ -6,7 +6,7 @@ import { filterJsonList, queryApollo } from '../../utils.js'
 
 export default class Upload extends FileCommand {
   static summary = 'Upload a local file to the Apollo server'
-  static description = `This command only uploads a file and returns the corresponding file id. 
+  static description = `This command only uploads a file and returns the corresponding file id.
   To add an assembly based on this file or to upload & add an assembly in a single pass \
   see \`apollo assembly add-from-fasta\` and \`add-from-gff\``
   static examples = [
@@ -52,8 +52,7 @@ export default class Upload extends FileCommand {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Upload)
 
-    const access: { address: string; accessToken: string } =
-      await this.getAccess(flags['config-file'], flags.profile)
+    const access = await this.getAccess()
 
     let { type } = flags
     if (type === undefined) {

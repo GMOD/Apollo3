@@ -16,7 +16,7 @@ $ npm install -g @apollo-annotation/cli
 $ apollo COMMAND
 running command...
 $ apollo (--version)
-@apollo-annotation/cli/0.1.19 linux-x64 node-v20.13.0
+@apollo-annotation/cli/0.1.19 linux-x64 node-v20.17.0
 $ apollo --help [COMMAND]
 USAGE
   $ apollo COMMAND
@@ -29,8 +29,8 @@ USAGE
 
 <!-- commands -->
 
-- [`apollo assembly add-fasta`](#apollo-assembly-add-fasta)
-- [`apollo assembly add-gff`](#apollo-assembly-add-gff)
+- [`apollo assembly add-from-fasta INPUT`](#apollo-assembly-add-from-fasta-input)
+- [`apollo assembly add-from-gff INPUT-FILE`](#apollo-assembly-add-from-gff-input-file)
 - [`apollo assembly check`](#apollo-assembly-check)
 - [`apollo assembly delete`](#apollo-assembly-delete)
 - [`apollo assembly get`](#apollo-assembly-get)
@@ -49,6 +49,10 @@ USAGE
 - [`apollo feature get-id`](#apollo-feature-get-id)
 - [`apollo feature import`](#apollo-feature-import)
 - [`apollo feature search`](#apollo-feature-search)
+- [`apollo file delete`](#apollo-file-delete)
+- [`apollo file download`](#apollo-file-download)
+- [`apollo file get`](#apollo-file-get)
+- [`apollo file upload`](#apollo-file-upload)
 - [`apollo help [COMMANDS]`](#apollo-help-commands)
 - [`apollo jbrowse get-config`](#apollo-jbrowse-get-config)
 - [`apollo jbrowse set-config INPUTFILE`](#apollo-jbrowse-set-config-inputfile)
@@ -59,51 +63,68 @@ USAGE
 - [`apollo status`](#apollo-status)
 - [`apollo user get`](#apollo-user-get)
 
-## `apollo assembly add-fasta`
+## `apollo assembly add-from-fasta INPUT`
 
-Add new assembly from local or external fasta file
+Add a new assembly from fasta input
 
 ```
 USAGE
-  $ apollo assembly add-fasta -i <value> [--profile <value>] [--config-file <value>] [-a <value>] [-x <value>] [-f]
+  $ apollo assembly add-from-fasta INPUT [--profile <value>] [--config-file <value>] [-a <value>] [-x <value>] [-f] [-n]
+    [--fai <value>] [--gzi <value>] [-z | -d]
+
+ARGUMENTS
+  INPUT  Input fasta file, local or remote, or id of a previously uploaded file
 
 FLAGS
   -a, --assembly=<value>     Name for this assembly. Use the file name if omitted
+  -d, --decompressed         For local file input: Override autodetection and instruct that input is decompressed
   -f, --force                Delete existing assembly, if it exists
-  -i, --input-file=<value>   (required) Input fasta file
-  -x, --index=<value>        URL of the index. Required if input is an external source and ignored if input is a local
-                             file
+  -n, --not-editable         The fasta sequence is not editable. Apollo will not load it into the database and instead
+                             use the provided indexes to query it. This option assumes the fasta file is bgzip'd with
+                             `bgzip` and indexed with `samtools faidx`. Indexes should be named <my.fasta.gz>.gzi and
+                             <my.fasta.gz>.fai unless options --fai and --gzi are set
+  -x, --index=<value>        URL of the index. Required if input is an external source
+  -z, --gzip                 For local file input: Override autodetection and instruct that input is gzip compressed
       --config-file=<value>  Use this config file (mostly for testing)
+      --fai=<value>          Fasta index of the (not-editable) fasta file
+      --gzi=<value>          Gzi index of the (not-editable) fasta file
       --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
-  Add new assembly from local or external fasta file
+  Add a new assembly from fasta input
+
+  Add new assembly. The input fasta may be:
+  * A local file
+  * An external fasta file
+  * The id of a file previously uploaded to Apollo
 
 EXAMPLES
   From local file:
 
-    $ apollo assembly add-fasta -i genome.fa -a myAssembly
+    $ apollo assembly add-from-fasta genome.fa -a myAssembly
 
   From external source we also need the URL of the index:
 
-    $ apollo assembly add-fasta -i https://.../genome.fa -x https://.../genome.fa.fai -a myAssembly
+    $ apollo assembly add-from-fasta https://.../genome.fa -x https://.../genome.fa.fai -a myAssembly
 ```
 
 _See code:
-[src/commands/assembly/add-fasta.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-fasta.ts)_
+[src/commands/assembly/add-from-fasta.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-from-fasta.ts)_
 
-## `apollo assembly add-gff`
+## `apollo assembly add-from-gff INPUT-FILE`
 
 Add new assembly from gff or gft file
 
 ```
 USAGE
-  $ apollo assembly add-gff -i <value> [--profile <value>] [--config-file <value>] [-a <value>] [-o] [-f]
+  $ apollo assembly add-from-gff INPUT-FILE [--profile <value>] [--config-file <value>] [-a <value>] [-o] [-f]
+
+ARGUMENTS
+  INPUT-FILE  Input gff file
 
 FLAGS
   -a, --assembly=<value>     Name for this assembly. Use the file name if omitted
   -f, --force                Delete existing assembly, if it exists
-  -i, --input-file=<value>   (required) Input gff or gtf file
   -o, --omit-features        Do not import features, only upload the sequences
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
@@ -111,21 +132,20 @@ FLAGS
 DESCRIPTION
   Add new assembly from gff or gft file
 
-  The gff file is expected to contain sequences as per gff specifications.
-  Features are also imported by default.
+  The gff file is expected to contain sequences as per gff specifications. Features are also imported by default.
 
 EXAMPLES
   Import sequences and features:
 
-    $ apollo assembly add-gff -i genome.gff -a myAssembly
+    $ apollo assembly add-from-gff -i genome.gff -a myAssembly
 
   Import sequences only:
 
-    $ apollo assembly add-gff -i genome.gff -a myAssembly -o
+    $ apollo assembly add-from-gff genome.gff -a myAssembly -o
 ```
 
 _See code:
-[src/commands/assembly/add-gff.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-gff.ts)_
+[src/commands/assembly/add-from-gff.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-from-gff.ts)_
 
 ## `apollo assembly check`
 
@@ -145,9 +165,8 @@ FLAGS
 DESCRIPTION
   Add, view, or delete checks to assembly
 
-  Manage checks, i.e. the rules ensuring features in an assembly are plausible.
-  This command only sets the checks to apply, to retrieve features flagged by
-  these checks use `apollo feature check`.
+  Manage checks, i.e. the rules ensuring features in an assembly are plausible. This command only sets the checks to
+  apply, to retrieve features flagged by these checks use `apollo feature check`.
 
 EXAMPLES
   View available check types:
@@ -271,10 +290,9 @@ FLAGS
 DESCRIPTION
   Get list of changes
 
-  Return the change log in json format. Note that when an assembly is deleted the
-  link between common name and ID is lost (it can still be recovered by inspecting
-  the change log but at present this task is left to the user). In such cases you
-  need to use the assembly ID.
+  Return the change log in json format. Note that when an assembly is deleted the link between common name and ID is
+  lost (it can still be recovered by inspecting the change log but at present this task is left to the user). In such
+  cases you need to use the assembly ID.
 ```
 
 _See code:
@@ -300,15 +318,14 @@ FLAGS
 DESCRIPTION
   Get or set apollo configuration options
 
-  Use this command to create or edit a user profile with credentials to access
-  Apollo. Configuration options are:
+  Use this command to create or edit a user profile with credentials to access Apollo. Configuration options are:
 
   - address:
   Address and port e.g http://localhost:3999
 
   - accessType:
-  How to access Apollo. accessType is typically one of: google, microsoft, guest,
-  root. Allowed types depend on your Apollo setup
+  How to access Apollo. accessType is typically one of: google, microsoft, guest, root. Allowed types depend on your
+  Apollo setup
 
   - accessToken:
   Access token. Usually inserted by `apollo login`
@@ -355,13 +372,13 @@ FLAGS
 DESCRIPTION
   Add a child feature (e.g. add an exon to an mRNA)
 
-  See the other commands under `apollo feature` to retrive the parent ID of
-  interest and to populate the child feature with attributes.
+  See the other commands under `apollo feature` to retrive the parent ID of interest and to populate the child feature
+  with attributes.
 
 EXAMPLES
   Add an exon at genomic coordinates 10..20 to this feature ID:
 
-    $ apollo feature add-child -i 6605826fbd0eee691f83e73f -t exon -s 10 -e 20
+    $ apollo feature add-child -i 660...73f -t exon -s 10 -e 20
 ```
 
 _See code:
@@ -384,9 +401,8 @@ FLAGS
 DESCRIPTION
   Get check results
 
-  Use this command to view which features fail checks along with the reason for
-  failing. Use `apollo assembly check` for managing which checks should be applied
-  to an assembly
+  Use this command to view which features fail checks along with the reason for failing.Use `apollo assembly check` for
+  managing which checks should be applied to an assembly
 
 EXAMPLES
   Get all check results in the database:
@@ -420,9 +436,8 @@ FLAGS
 DESCRIPTION
   Copy a feature to another location
 
-  The feature may be copied to the same or to a different assembly. he destination
-  reference sequence may be selected by name only if unique in the database or by
-  name and assembly or by identifier.
+  The feature may be copied to the same or to a different assembly. The destination reference sequence may be selected
+  by name only if unique in the database or by name and assembly or by identifier.
 
 EXAMPLES
   Copy this feature ID to chr1:100 in assembly hg38:
@@ -451,8 +466,7 @@ FLAGS
 DESCRIPTION
   Delete one or more features by ID
 
-  Note that deleting a child feature after deleting its parent will result in an
-  error unless you set -f/--force.
+  Note that deleting a child feature after deleting its parent will result in an error unless you set -f/--force.
 ```
 
 _See code:
@@ -474,12 +488,11 @@ FLAGS
 DESCRIPTION
   Edit features using an appropiate json input
 
-  Edit a feature by submitting a json input with all the required attributes for
-  Apollo to process it. This is a very low level command which most users probably
-  do not need.
+  Edit a feature by submitting a json input with all the required attributes for Apollo to process it. This is a very
+  low level command which most users probably do not need.
 
-  Input may be a json string or a json file and it may be an array of changes.
-  This is an example input for editing feature type:
+  Input may be a json string or a json file and it may be an array of changes. This is an example input for editing
+  feature type:
 
   {
   "typeName": "TypeChange",
@@ -521,9 +534,8 @@ FLAGS
 DESCRIPTION
   Add, edit, or view a feature attribute
 
-  Be aware that there is no checking whether attributes names and values are
-  valid. For example, you can create non-unique ID attributes or you can set gene
-  ontology terms to non-existing terms
+  Be aware that there is no checking whether attributes names and values are valid. For example, you can create
+  non-unique ID attributes or you can set gene ontology terms to non-existing terms
 
 EXAMPLES
   Add attribute "domains" with a list of values:
@@ -560,9 +572,8 @@ FLAGS
 DESCRIPTION
   Edit feature start and/or end coordinates
 
-  If editing a child feature that new coordinates must be within the parent's
-  coordinates. To get the identifier of the feature to edit consider using `apollo
-  feature get` or `apollo feature search`
+  If editing a child feature that new coordinates must be within the parent's coordinates.To get the identifier of the
+  feature to edit consider using `apollo feature get` or `apollo feature search`
 
 EXAMPLES
   Edit start and end:
@@ -594,8 +605,8 @@ FLAGS
 DESCRIPTION
   Edit or view feature type
 
-  Feature type is column 3 in gff format. It must be a valid sequence ontology
-  term although but the valifdity of the new term is not checked.
+  Feature type is column 3 in gff format.It must be a valid sequence ontology term although but the valifdity of the new
+  term is not checked.
 ```
 
 _See code:
@@ -626,8 +637,8 @@ EXAMPLES
 
     $ apollo feature get -a myAssembly
 
-  Get features intersecting chr1:1..1000. You can omit the assembly name if there
-  are no other reference sequences named chr1:
+  Get features intersecting chr1:1..1000. You can omit the assembly name if there are no other reference sequences
+  named chr1:
 
     $ apollo feature get -a myAssembly -r chr1 -s 1 -e 1000
 ```
@@ -644,8 +655,7 @@ USAGE
   $ apollo feature get-id [--profile <value>] [--config-file <value>] [-i <value>]
 
 FLAGS
-  -i, --feature-id=<value>...  [default: -] Retrieves feature with these IDs. Use
-                               "-" to read IDs from stdin (one per
+  -i, --feature-id=<value>...  [default: -] Retrieves feature with these IDs. Use "-" to read IDs from stdin (one per
                                line)
       --config-file=<value>    Use this config file (mostly for testing)
       --profile=<value>        Use credentials from this profile
@@ -653,8 +663,7 @@ FLAGS
 DESCRIPTION
   Get features given their identifiers
 
-  Invalid identifiers or identifiers not found in the database will be silently
-  ignored
+  Invalid identifiers or identifiers not found in the database will be silently ignored
 
 EXAMPLES
   Get features for these identifiers:
@@ -676,7 +685,7 @@ USAGE
 FLAGS
   -a, --assembly=<value>     (required) Import into this assembly name or assembly ID
   -d, --delete-existing      Delete existing features before importing
-  -i, --input-file=<value>   (required) Input gff or gtf file
+  -i, --input-file=<value>   (required) Input gff file
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
 
@@ -703,8 +712,8 @@ USAGE
   $ apollo feature search -t <value> [--profile <value>] [--config-file <value>] [-a <value>]
 
 FLAGS
-  -a, --assembly=<value>...  Assembly names or IDs to search; use "-" to read it from stdin. If omitted
-                             search all assemblies
+  -a, --assembly=<value>...  Assembly names or IDs to search; use "-" to read it from stdin. If omitted search all
+                             assemblies
   -t, --text=<value>         (required) Search for this text query
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
@@ -728,8 +737,7 @@ DESCRIPTION
 
   chr1 example SNP 10 30 0.987 . . "someKey=Fingerprint BAC with reads"
 
-  Queries "bac" or "mRNA" return the feature. Instead these queries will NOT
-  match:
+  Queries "bac" or "mRNA" return the feature. Instead these queries will NOT match:
 
   - "someKey"
   - "with"
@@ -745,6 +753,123 @@ EXAMPLES
 
 _See code:
 [src/commands/feature/search.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/feature/search.ts)_
+
+## `apollo file delete`
+
+Delete files from the Apollo server
+
+```
+USAGE
+  $ apollo file delete [--profile <value>] [--config-file <value>] [-i <value>]
+
+FLAGS
+  -i, --file-id=<value>...   [default: -] IDs of the files to delete
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      Use credentials from this profile
+
+DESCRIPTION
+  Delete files from the Apollo server
+
+  Deleted files are printed to stdout. See also `apollo file get` to list the files on the server
+
+EXAMPLES
+  Delete file multiple files:
+
+    $ apollo file delete -i 123...abc xyz...789
+```
+
+_See code:
+[src/commands/file/delete.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/file/delete.ts)_
+
+## `apollo file download`
+
+Download a file from the Apollo server
+
+```
+USAGE
+  $ apollo file download [--profile <value>] [--config-file <value>] [-i <value>] [-o <value>]
+
+FLAGS
+  -i, --file-id=<value>      [default: -] ID of the file to download
+  -o, --output=<value>       Write output to this file or "-" for stdout. Default to the name of the uploaded file.
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      Use credentials from this profile
+
+DESCRIPTION
+  Download a file from the Apollo server
+
+  See also `apollo file get` to list the files on the server
+
+EXAMPLES
+  Download file with id xyz
+
+    $ apollo file download -i xyz -o genome.fa
+```
+
+_See code:
+[src/commands/file/download.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/file/download.ts)_
+
+## `apollo file get`
+
+Get list of files uploaded to the Apollo server
+
+```
+USAGE
+  $ apollo file get [--profile <value>] [--config-file <value>] [-i <value>]
+
+FLAGS
+  -i, --file-id=<value>...   Get files matching this IDs
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      Use credentials from this profile
+
+DESCRIPTION
+  Get list of files uploaded to the Apollo server
+
+  Print to stdout the list of files in json format
+
+EXAMPLES
+  Get files by id:
+
+    $ apollo file get -i xyz abc
+```
+
+_See code:
+[src/commands/file/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/file/get.ts)_
+
+## `apollo file upload`
+
+Upload a local file to the Apollo server
+
+```
+USAGE
+  $ apollo file upload -i <value> [--profile <value>] [--config-file <value>] [-t
+    text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi] [-z | -d]
+
+FLAGS
+  -d, --decompressed         Override autodetection and instruct that input is decompressed
+  -i, --input-file=<value>   (required) Local file to upload
+  -t, --type=<option>        Set file type or autodetected it if not set.
+                             NB: There is no check for whether the file complies to this type
+                             <options: text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi>
+  -z, --gzip                 Override autodetection and instruct that input is gzip compressed
+      --config-file=<value>  Use this config file (mostly for testing)
+      --profile=<value>      Use credentials from this profile
+
+DESCRIPTION
+  Upload a local file to the Apollo server
+
+  This command only uploads a file and returns the corresponding file id.
+  To add an assembly based on this file or to upload & add an assembly in a single pass   see `apollo assembly
+  add-from-fasta` and `add-from-gff`
+
+EXAMPLES
+  Upload local file, type auto-detected:
+
+    $ apollo file upload -i genome.fa > file.json
+```
+
+_See code:
+[src/commands/file/upload.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/file/upload.ts)_
 
 ## `apollo help [COMMANDS]`
 
@@ -844,14 +969,12 @@ FLAGS
 DESCRIPTION
   Login to Apollo
 
-  Use the provided credentials to obtain and save the token to access Apollo. Once
-  the token for the given profile has been saved in the configuration file, users
-  do not normally need to execute this command again unless the token has expired.
-  To setup a new profile use "apollo config"
+  Use the provided credentials to obtain and save the token to access Apollo. Once the token for the given profile has
+  been saved in the configuration file, users do not normally need to execute this command again unless the token has
+  expired. To setup a new profile use "apollo config"
 
 EXAMPLES
-  The most basic and probably most typical usage is to login using the default
-  profile in configuration file:
+  The most basic and probably most typical usage is to login using the default profile in configuration file:
 
     $ apollo login
 
@@ -910,9 +1033,8 @@ FLAGS
 DESCRIPTION
   Add reference name aliases from a file
 
-  Reference name aliasing is a process to make chromosomes that are named slightly
-  differently but which refer to the same thing render properly. This command
-  reads a file with reference name aliases and adds them to the database.
+  Reference name aliasing is a process to make chromosomes that are named slightly differently but which refer to the
+  same thing render properly. This command reads a file with reference name aliases and adds them to the database.
 
 EXAMPLES
   Add reference name aliases:
@@ -939,9 +1061,8 @@ FLAGS
 DESCRIPTION
   Get reference sequences
 
-  Output the reference sequences in one or more assemblies in json format. This
-  command returns the sequence characteristics (e.g., name, ID, etc), not the DNA
-  sequences. Use `assembly sequence` for that.
+  Output the reference sequences in one or more assemblies in json format. This command returns the sequence
+  characteristics (e.g., name, ID, etc), not the DNA sequences. Use `assembly sequence` for that.
 
 EXAMPLES
   All sequences in the database:
@@ -971,9 +1092,8 @@ FLAGS
 DESCRIPTION
   View authentication status
 
-  This command returns "<profile>: Logged in" if the selected profile has an
-  access token and "<profile>: Logged out" otherwise. Note that this command does
-  not check the validity of the access token.
+  This command returns "<profile>: Logged in" if the selected profile has an access token and "<profile>: Logged out"
+  otherwise.Note that this command does not check the validity of the access token.
 ```
 
 _See code:
@@ -1014,22 +1134,5 @@ EXAMPLES
 
 _See code:
 [src/commands/user/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/user/get.ts)_
-- [`apollo assembly`](../website/docs/cli//assembly.md) - Commands to handle
-- [`apollo assembly`](../website/docs/cli//assembly.md) - Commands to manage
-  assemblies
-- [`apollo change`](../website/docs/cli//change.md) - Commands to manage the
-  change log
-- [`apollo config`](../website/docs/cli//config.md) - Get or set apollo
-  configuration options
-- [`apollo feature`](../website/docs/cli//feature.md) - Commands to manage
-  features
-- [`apollo file`](../website/docs/cli//file.md) - Commands to manage files
-- [`apollo help`](../website/docs/cli//help.md) - Display help for apollo.
-- [`apollo login`](../website/docs/cli//login.md) - Login to Apollo
-- [`apollo logout`](../website/docs/cli//logout.md) - Logout of Apollo
-- [`apollo refseq`](../website/docs/cli//refseq.md) - Commands to manage
-  reference sequences
-- [`apollo status`](../website/docs/cli//status.md) - View authentication status
-- [`apollo user`](../website/docs/cli//user.md) - Commands to manage users
 
 <!-- commandsstop -->
