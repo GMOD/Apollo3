@@ -21,7 +21,7 @@ class shell:
             p.wait()
             p.stdout.close()
             p.stderr.close()
-            stdout = b''
+            stdout = b""
         self.returncode = p.returncode
         self.stdout = stdout.decode()
         self.stderr = stderr.decode()

@@ -955,7 +955,9 @@ class TestCLI(unittest.TestCase):
     def testLogin(self):
         # This should wait for user's input
         p = shell(f"{apollo} login {P}", timeout=5, strict=False)
-        self.assertTrue("Timeout" in p.stderr) # NB: "Timeout" comes from utils.py, not Apollo
+        self.assertTrue(
+            "Timeout" in p.stderr
+        )  # NB: "Timeout" comes from utils.py, not Apollo
         # This should be ok
         shell(f"{apollo} login {P} --force", timeout=5, strict=True)
 
