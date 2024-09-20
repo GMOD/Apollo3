@@ -8,6 +8,7 @@ import { BaseCommand } from '../../baseCommand.js'
 import {
   createFetchErrorMessage,
   localhostToAddress,
+  readStdin,
   wrapLines,
 } from '../../utils.js'
 
@@ -51,7 +52,7 @@ export default class Get extends BaseCommand<typeof Get> {
 
     let jsonStr = flags['json-input']
     if (flags['json-input'] === '-') {
-      jsonStr = fs.readFileSync(process.stdin.fd).toString()
+      jsonStr = await readStdin()
     } else if (fs.existsSync(flags['json-input'])) {
       jsonStr = fs.readFileSync(flags['json-input']).toString()
     }

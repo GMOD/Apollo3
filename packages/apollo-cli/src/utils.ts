@@ -3,7 +3,7 @@ import EventEmitter from 'node:events'
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
-import { stdin } from 'node:process'
+import { stdin, stderr } from 'node:process'
 import {
   Transform,
   TransformCallback,
@@ -248,7 +248,7 @@ export async function convertAssemblyNameToId(
     } else if (Object.values(nameToId).includes(x)) {
       ids.push(x)
     } else if (verbose) {
-      process.stderr.write(`Warning: Omitting unknown assembly: "${x}"\n`)
+      stderr.write(`Warning: Omitting unknown assembly: "${x}"\n`)
     }
   }
   if (removeDuplicates) {
@@ -515,7 +515,7 @@ export function wrapLines(s: string, length?: number): string {
   return wr
 }
 
-async function readStdin() {
+export async function readStdin() {
   const chunks: Buffer[] = []
   for await (const chunk of stdin) {
     chunks.push(Buffer.from(chunk as Buffer))
