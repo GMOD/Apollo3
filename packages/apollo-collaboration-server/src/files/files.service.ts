@@ -16,9 +16,12 @@ import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 
 import { CreateFileDto } from './dto/create-file.dto'
-import { writeFileAndCalculateHash, FileRequest } from './filesUtil'
+import {
+  writeFileAndCalculateHash,
+  FileRequest,
+  LocalFileGzip,
+} from './filesUtil'
 import { GenericFilehandle, LocalFile } from 'generic-filehandle'
-import { LocalFileGzip } from '@apollo-annotation/shared'
 
 @Injectable()
 export class FilesService {

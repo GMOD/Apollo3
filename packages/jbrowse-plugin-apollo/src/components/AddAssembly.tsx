@@ -225,7 +225,7 @@ export function AddAssembly({
       const fileUploadChangeBase = {
         assembly: new ObjectID().toHexString(),
         assemblyName,
-        fileId,
+        fileIds: { fa: fileId },
       }
       change =
         fileType === FileType.GFF3 && importFeatures
