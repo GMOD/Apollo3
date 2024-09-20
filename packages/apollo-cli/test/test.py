@@ -886,8 +886,16 @@ class TestCLI(unittest.TestCase):
 
         p = shell(f"{apollo} feature get {P} -a v1")
         ff = json.loads(p.stdout)
-        g1 = [x for x in ff if x["gffId"] == "MyGene"][0]
-        g2 = [x for x in ff if x["gffId"] == "AnotherGene"][0]
+        g1 = [
+            x
+            for x in ff
+            if x["type"] == "gene" and x["attributes"]["gff_id"] == ["MyGene"]
+        ][0]
+        g2 = [
+            x
+            for x in ff
+            if x["type"] == "gene" and x["attributes"]["gff_id"] == ["AnotherGene"]
+        ][0]
 
         shell(f"{apollo} feature edit-coords {P} -i {g1['_id']} -e 201")
         shell(f"{apollo} feature edit-coords {P} -i {g2['_id']} -e 251")
