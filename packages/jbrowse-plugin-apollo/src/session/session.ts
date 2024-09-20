@@ -323,7 +323,7 @@ export function extendSession(
                     if (Object.keys(filteredConfig).length === 0) {
                       filteredConfig = undefined
                     }
-                    let trackConfigSnapshot = getSnapshot(conf) as {
+                    const trackConfigSnapshot = getSnapshot(conf) as {
                       trackId: string
                       type: string
                     }
@@ -331,7 +331,7 @@ export function extendSession(
                       0,
                       trackId.length - sessionTrackIdentifier.length,
                     )
-                    trackConfigSnapshot = {
+                    const newTrackConfigSnapshot = {
                       ...trackConfigSnapshot,
                       trackId: newTrackId,
                     }
@@ -346,7 +346,7 @@ export function extendSession(
                           ...filteredConfig,
                           tracks: filteredConfig?.tracks && [
                             ...filteredConfig.tracks,
-                            trackConfigSnapshot,
+                            newTrackConfigSnapshot,
                           ],
                         },
                       })
@@ -357,6 +357,10 @@ export function extendSession(
                       const { notify } = self as unknown as AbstractSessionModel
                       notify('Track added', 'success')
                     }
+                    // @ts-expect-error This method is missing in the JB types
+                    self.deleteTrackConf(conf)
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                    jbrowse.addTrackConf(newTrackConfigSnapshot)
                   },
                   icon: SaveIcon,
                 },
@@ -396,6 +400,10 @@ export function extendSession(
                       const { notify } = self as unknown as AbstractSessionModel
                       notify('Track removed', 'success')
                     }
+                    // @ts-expect-error This method is missing in the JB types
+                    self.deleteTrackConf(conf)
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                    jbrowse.deleteTrackConf(conf)
                   },
                   icon: SaveIcon,
                 },
