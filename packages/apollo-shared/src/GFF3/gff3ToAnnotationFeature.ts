@@ -158,7 +158,10 @@ function convertChildren(
     const [firstChildFeatureLocation] = childFeature
     if (
       firstChildFeatureLocation.type === 'three_prime_UTR' ||
-      firstChildFeatureLocation.type === 'five_prime_UTR'
+      firstChildFeatureLocation.type === 'five_prime_UTR' ||
+      firstChildFeatureLocation.type === 'intron' ||
+      firstChildFeatureLocation.type === 'start_codon' ||
+      firstChildFeatureLocation.type === 'stop_codon'
     ) {
       continue
     }
