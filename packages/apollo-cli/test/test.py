@@ -17,7 +17,7 @@ def setUpModule():
     shell(f"{apollo} config {P} accessType root")
     shell(f"{apollo} config {P} rootCredentials.username admin")
     shell(f"{apollo} config {P} rootCredentials.password pass")
-    shell(f"{apollo} login {P}")
+    shell(f"{apollo} login {P} -f")
 
 
 class TestCLI(unittest.TestCase):
@@ -951,6 +951,13 @@ class TestCLI(unittest.TestCase):
         self.assertTrue(
             all(alias in refname_aliases.get("ctgC", []) for alias in ["ctgc", "CTGC"])
         )
+
+    def testLogin(self):
+        # This should wait for user's input
+        p = shell(f"{apollo} login {P}", timeout=5, strict=False)
+        self.assertTrue("Timeout" in p.stderr) # NB: "Timeout" comes from utils.py, not Apollo
+        # This should be ok
+        shell(f"{apollo} login {P} --force", timeout=5, strict=True)
 
 
 if __name__ == "__main__":

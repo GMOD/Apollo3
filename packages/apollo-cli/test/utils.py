@@ -17,8 +17,11 @@ class shell:
             stdout, stderr = p.communicate(timeout=timeout)
         except subprocess.TimeoutExpired:
             p.kill()
-            sys.stderr.write(f"Error: Timeout after {timeout} seconds\n")
-            stdout, stderr = p.communicate()
+            stderr = f"Error: Timeout after {timeout} seconds\n".encode()
+            p.wait()
+            p.stdout.close()
+            p.stderr.close()
+            stdout = b''
         self.returncode = p.returncode
         self.stdout = stdout.decode()
         self.stderr = stderr.decode()
