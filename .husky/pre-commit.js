@@ -28,11 +28,6 @@ function main() {
     })
     spawn.sync(
       'yarn',
-      ['workspace', '@apollo-annotation/cli', 'oclif', 'readme'],
-      { stdio: 'inherit' },
-    )
-    spawn.sync(
-      'yarn',
       [
         'workspace',
         '@apollo-annotation/cli',
@@ -42,6 +37,11 @@ function main() {
         '--dir',
         '../website/docs/cli/',
       ],
+      { stdio: 'inherit' },
+    )
+    spawn.sync(
+      'yarn',
+      ['workspace', '@apollo-annotation/cli', 'oclif', 'readme'],
       { stdio: 'inherit' },
     )
     spawn.sync(
