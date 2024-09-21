@@ -1,18 +1,10 @@
 import * as crypto from 'node:crypto'
 import EventEmitter from 'node:events'
 import * as fs from 'node:fs'
-import * as path from 'node:path'
 import { stdin, stderr } from 'node:process'
-import {
-  Transform,
-  TransformCallback,
-  TransformOptions,
-  pipeline,
-} from 'node:stream'
 
 import { type SerializedDeleteAssemblyChange } from '@apollo-annotation/shared'
 
-import { SingleBar } from 'cli-progress'
 import { Agent, RequestInit, Response, fetch } from 'undici'
 
 import { ApolloConf, ConfigError } from './ApolloConf.js'
@@ -361,10 +353,20 @@ export const waitFor = <T>(
   return promise
 }
 
-interface bodyLocalFile {
+interface bodyFastaFile {
   assemblyName: string
   typeName: string
-  fileId: string
+  fileIds: { fa: string }
+  assembly: string
+}
+interface bodyIndexedFiles {
+  assemblyName: string
+  typeName: string
+  fileIds: {
+    fa: string
+    fai: string
+    gzi: string
+  }
 }
 interface bodyExternalFile {
   assemblyName: string
@@ -378,10 +380,10 @@ interface bodyExternalFile {
 export async function submitAssembly(
   address: string,
   accessToken: string,
-  body: bodyLocalFile | bodyExternalFile,
+  body: bodyFastaFile | bodyExternalFile | bodyIndexedFiles,
   force: boolean,
-): Promise<Response> {
-  const assemblies = await queryApollo(address, accessToken, 'assemblies')
+): Promise<object> {
+  let assemblies = await queryApollo(address, accessToken, 'assemblies')
   for (const x of (await assemblies.json()) as object[]) {
     if (x['name' as keyof typeof x] === body.assemblyName) {
       if (force) {
@@ -408,100 +410,15 @@ export async function submitAssembly(
       response,
       'submitAssembly failed',
     )
-    throw new ConfigError(errorMessage)
+    throw new Error(errorMessage)
   }
-  return response
-}
-
-interface ProgressTransformOptions extends TransformOptions {
-  progressBar: SingleBar
-}
-
-class ProgressTransform extends Transform {
-  private size = 0
-
-  private progressBar: SingleBar
-
-  constructor(opts: ProgressTransformOptions) {
-    super(opts)
-    this.progressBar = opts.progressBar
-  }
-
-  _transform(
-    chunk: Buffer,
-    _encoding: BufferEncoding,
-    callback: TransformCallback,
-  ): void {
-    this.size += chunk.length
-    this.progressBar.update(this.size)
-    callback(null, chunk)
-  }
-}
-
-export async function uploadFile(
-  address: string,
-  accessToken: string,
-  file: string,
-  type: string,
-) {
-  const filehandle = await fs.promises.open(file)
-  const { size } = await filehandle.stat()
-  const stream = filehandle.createReadStream()
-  const progressBar = new SingleBar({ etaBuffer: 100_000_000 })
-  const progressTransform = new ProgressTransform({ progressBar })
-  const body = pipeline(stream, progressTransform, (error) => {
-    if (error) {
-      progressBar.stop()
-      console.error('Error processing file.', error)
-      throw error
+  assemblies = await queryApollo(address, accessToken, 'assemblies')
+  for (const x of (await assemblies.json()) as object[]) {
+    if (x['name' as keyof typeof x] === body.assemblyName) {
+      return x
     }
-  })
-  const init: RequestInit = {
-    method: 'POST',
-    body,
-    duplex: 'half',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': type,
-      'Content-Length': String(size),
-    },
-    dispatcher: new Agent({ headersTimeout: 60 * 60 * 1000 }),
   }
-
-  const fileName = path.basename(file)
-  const url = new URL(localhostToAddress(`${address}/files`))
-  url.searchParams.set('name', fileName)
-  url.searchParams.set('type', type)
-  progressBar.start(size, 0)
-  try {
-    const response = await fetch(url, init)
-    if (!response.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        response,
-        'uploadFile failed',
-      )
-      throw new ConfigError(errorMessage)
-    }
-    const json = (await response.json()) as object
-    return json['_id' as keyof typeof json]
-  } catch (error) {
-    console.error(error)
-    throw error
-  } finally {
-    progressBar.stop()
-  }
-}
-
-/* Wrap text to max `length` per line */
-export function wrapLines(s: string, length?: number): string {
-  if (length === undefined) {
-    length = 80
-  }
-  // Credit: https://stackoverflow.com/questions/14484787/wrap-text-in-javascript
-  const re = new RegExp(`(?![^\\n]{1,${length}}$)([^\\n]{1,${length}})\\s`, 'g')
-  s = s.replaceAll(/ +/g, ' ')
-  const wr = s.replace(re, '$1\n')
-  return wr
+  throw new Error(`Failed to retrieve assembly ${body.assemblyName}`)
 }
 
 export async function readStdin() {

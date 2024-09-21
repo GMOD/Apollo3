@@ -1,6 +1,6 @@
 # `apollo refseq`
 
-Commands to handle reference sequences
+Commands to manage reference sequences
 
 - [`apollo refseq add-alias`](#apollo-refseq-add-alias)
 - [`apollo refseq get`](#apollo-refseq-get)
@@ -22,9 +22,8 @@ FLAGS
 DESCRIPTION
   Add reference name aliases from a file
 
-  Reference name aliasing is a process to make chromosomes that are named slightly
-  differently but which refer to the same thing render properly. This command
-  reads a file with reference name aliases and adds them to the database.
+  Reference name aliasing is a process to make chromosomes that are named slightly differently but which refer to the
+  same thing render properly. This command reads a file with reference name aliases and adds them to the database.
 
 EXAMPLES
   Add reference name aliases:
@@ -51,9 +50,8 @@ FLAGS
 DESCRIPTION
   Get reference sequences
 
-  Output the reference sequences in one or more assemblies in json format. This
-  command returns the sequence characteristics (e.g., name, ID, etc), not the DNA
-  sequences. Use `assembly sequence` for that.
+  Output the reference sequences in one or more assemblies in json format. This command returns the sequence
+  characteristics (e.g., name, ID, etc), not the DNA sequences. Use `assembly sequence` for that.
 
 EXAMPLES
   All sequences in the database:

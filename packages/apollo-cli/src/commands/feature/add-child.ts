@@ -13,22 +13,21 @@ import {
   idReader,
   localhostToAddress,
   queryApollo,
-  wrapLines,
 } from '../../utils.js'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Add a child feature (e.g. add an exon to an mRNA)'
-  static description = wrapLines(
-    'See the other commands under `apollo feature` to retrive the parent ID of interest and to populate the child feature with attributes.',
-  )
+  static description =
+    'See the other commands under `apollo feature` \
+to retrive the parent ID of interest and to populate the child feature with attributes.'
 
   static examples = [
     {
       description:
         'Add an exon at genomic coordinates 10..20 to this feature ID:',
       command:
-        '<%= config.bin %> <%= command.id %> -i 6605826fbd0eee691f83e73f -t exon -s 10 -e 20',
+        '<%= config.bin %> <%= command.id %> -i 660...73f -t exon -s 10 -e 20',
     },
   ]
 

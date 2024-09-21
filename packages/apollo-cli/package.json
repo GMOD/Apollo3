@@ -36,6 +36,7 @@
     "commands": "./dist/commands",
     "dirname": "apollo-cli",
     "helpOptions": {
+      "maxWidth": 80,
       "flagSortOrder": "none"
     },
     "plugins": [
@@ -45,22 +46,25 @@
     "topicSeparator": " ",
     "topics": {
       "assembly": {
-        "description": "Commands to handle assemblies"
+        "description": "Commands to manage assemblies"
       },
       "change": {
-        "description": "Commands to handle the log of changes made to the database"
+        "description": "Commands to manage the change log"
       },
       "feature": {
-        "description": "Commands to handle features"
+        "description": "Commands to manage features"
       },
       "jbrowse": {
         "description": "Commands to manage the JBrowse configuration"
       },
       "refseq": {
-        "description": "Commands to handle reference sequences"
+        "description": "Commands to manage reference sequences"
       },
       "user": {
-        "description": "Commands to handle users"
+        "description": "Commands to manage users"
+      },
+      "file": {
+        "description": "Commands to manage files"
       }
     }
   },

@@ -14,15 +14,13 @@ import {
   getFeatureById,
   idReader,
   localhostToAddress,
-  wrapLines,
 } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Edit feature start and/or end coordinates'
-  static description = wrapLines(
+  static description =
     "If editing a child feature that new coordinates must be within the parent's coordinates.\
-    To get the identifier of the feature to edit consider using `apollo feature get` or `apollo feature search`",
-  )
+To get the identifier of the feature to edit consider using `apollo feature get` or `apollo feature search`"
 
   static examples = [
     {

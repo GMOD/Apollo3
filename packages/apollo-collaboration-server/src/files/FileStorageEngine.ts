@@ -29,6 +29,7 @@ export class FileStorageEngine implements StorageEngine {
       )
       return
     }
+
     const checksum = await writeFileAndCalculateHash(
       file,
       FILE_UPLOAD_FOLDER,

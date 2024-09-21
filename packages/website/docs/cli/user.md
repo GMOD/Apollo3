@@ -1,6 +1,6 @@
 # `apollo user`
 
-Commands to handle users
+Commands to manage users
 
 - [`apollo user get`](#apollo-user-get)
 

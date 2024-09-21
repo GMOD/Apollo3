@@ -6,14 +6,12 @@ import {
   createFetchErrorMessage,
   idReader,
   localhostToAddress,
-  wrapLines,
 } from '../../utils.js'
 
 export default class Get extends BaseCommand<typeof Get> {
   static summary = 'Get features given their identifiers'
-  static description = wrapLines(
-    'Invalid identifiers or identifiers not found in the database will be silently ignored',
-  )
+  static description =
+    'Invalid identifiers or identifiers not found in the database will be silently ignored'
 
   static examples = [
     {
@@ -25,10 +23,8 @@ export default class Get extends BaseCommand<typeof Get> {
   static flags = {
     'feature-id': Flags.string({
       char: 'i',
-      description: wrapLines(
+      description:
         'Retrieves feature with these IDs. Use "-" to read IDs from stdin (one per line)',
-        40,
-      ),
       multiple: true,
       default: ['-'],
     }),

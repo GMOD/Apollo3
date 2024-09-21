@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { GFF3Feature } from '@gmod/gff'
 

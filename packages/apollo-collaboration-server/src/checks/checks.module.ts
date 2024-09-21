@@ -9,7 +9,7 @@ import {
   CheckSchema,
 } from '@apollo-annotation/schemas'
 import { CheckResultUpdate } from '@apollo-annotation/shared'
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import idValidator from 'mongoose-id-validator'
 
@@ -18,10 +18,12 @@ import { MessagesModule } from '../messages/messages.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
 import { ChecksController } from './checks.controller'
 import { ChecksService } from './checks.service'
+import { SequenceModule } from '../sequence/sequence.module'
 
 @Module({
   providers: [ChecksService],
   imports: [
+    forwardRef(() => SequenceModule),
     MessagesModule,
     RefSeqsModule,
     MongooseModule.forFeatureAsync([

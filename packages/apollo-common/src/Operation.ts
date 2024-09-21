@@ -15,6 +15,7 @@ import {
 } from '@apollo-annotation/schemas'
 import type { LoggerService } from '@nestjs/common'
 import type { ClientSession, Model } from 'mongoose'
+import { GenericFilehandle } from 'generic-filehandle'
 
 export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'
@@ -41,6 +42,7 @@ export interface ServerDataStore {
   session: ClientSession
   filesService: {
     getFileStream(file: FileDocument): ReadStream
+    getFileHandle(file: FileDocument): GenericFilehandle
     parseGFF3(stream: ReadStream): ReadStream
     create(createFileDto: CreateFileDto): void
     remove(id: string): void

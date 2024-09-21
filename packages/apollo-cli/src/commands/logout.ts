@@ -2,13 +2,12 @@ import path from 'node:path'
 
 import { ApolloConf, KEYS } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
-import { basicCheckConfig, wrapLines } from '../utils.js'
+import { basicCheckConfig } from '../utils.js'
 
 export default class Logout extends BaseCommand<typeof Logout> {
   static summary = 'Logout of Apollo'
-  static description = wrapLines(
-    'Logout by removing the access token from the selected profile',
-  )
+  static description =
+    'Logout by removing the access token from the selected profile'
 
   static examples = [
     {

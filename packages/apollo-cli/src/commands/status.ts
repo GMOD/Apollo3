@@ -3,14 +3,14 @@ import path from 'node:path'
 
 import { ApolloConf, KEYS } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
-import { basicCheckConfig, wrapLines } from '../utils.js'
+import { basicCheckConfig } from '../utils.js'
 
 export default class Status extends BaseCommand<typeof Status> {
   static summary = 'View authentication status'
-  static description = wrapLines(
-    'This command returns "<profile>: Logged in" if the selected profile has an access token and "<profile>: Logged out" otherwise.\
-    Note that this command does not check the validity of the access token.',
-  )
+  static description =
+    'This command returns "<profile>: Logged in" if the selected profile \
+has an access token and "<profile>: Logged out" otherwise.\
+Note that this command does not check the validity of the access token.'
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(Status)

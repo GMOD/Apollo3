@@ -10,7 +10,6 @@ import {
   idReader,
   localhostToAddress,
   queryApollo,
-  wrapLines,
 } from '../../utils.js'
 import { ApolloRefSeqSnapshot } from '@apollo-annotation/mst'
 
@@ -49,9 +48,8 @@ async function getSequence(
 
 export default class ApolloCmd extends BaseCommand<typeof ApolloCmd> {
   static summary = 'Get reference sequence in fasta format'
-  static description = wrapLines(
-    'Return the reference sequence for a given assembly and coordinates',
-  )
+  static description =
+    'Return the reference sequence for a given assembly and coordinates'
 
   static examples = [
     {

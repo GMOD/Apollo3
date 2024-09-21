@@ -1,59 +1,76 @@
 # `apollo assembly`
 
-Commands to handle assemblies
+Commands to manage assemblies
 
-- [`apollo assembly add-fasta`](#apollo-assembly-add-fasta)
-- [`apollo assembly add-gff`](#apollo-assembly-add-gff)
+- [`apollo assembly add-from-fasta INPUT`](#apollo-assembly-add-from-fasta-input)
+- [`apollo assembly add-from-gff INPUT-FILE`](#apollo-assembly-add-from-gff-input-file)
 - [`apollo assembly check`](#apollo-assembly-check)
 - [`apollo assembly delete`](#apollo-assembly-delete)
 - [`apollo assembly get`](#apollo-assembly-get)
 - [`apollo assembly sequence`](#apollo-assembly-sequence)
 
-## `apollo assembly add-fasta`
+## `apollo assembly add-from-fasta INPUT`
 
-Add new assembly from local or external fasta file
+Add a new assembly from fasta input
 
 ```
 USAGE
-  $ apollo assembly add-fasta -i <value> [--profile <value>] [--config-file <value>] [-a <value>] [-x <value>] [-f]
+  $ apollo assembly add-from-fasta INPUT [--profile <value>] [--config-file <value>] [-a <value>] [-x <value>] [-f] [-n]
+    [--fai <value>] [--gzi <value>] [-z | -d]
+
+ARGUMENTS
+  INPUT  Input fasta file, local or remote, or id of a previously uploaded file
 
 FLAGS
   -a, --assembly=<value>     Name for this assembly. Use the file name if omitted
+  -d, --decompressed         For local file input: Override autodetection and instruct that input is decompressed
   -f, --force                Delete existing assembly, if it exists
-  -i, --input-file=<value>   (required) Input fasta file
-  -x, --index=<value>        URL of the index. Required if input is an external source and ignored if input is a local
-                             file
+  -n, --not-editable         The fasta sequence is not editable. Apollo will not load it into the database and instead
+                             use the provided indexes to query it. This option assumes the fasta file is bgzip'd with
+                             `bgzip` and indexed with `samtools faidx`. Indexes should be named <my.fasta.gz>.gzi and
+                             <my.fasta.gz>.fai unless options --fai and --gzi are set
+  -x, --index=<value>        URL of the index. Required if input is an external source
+  -z, --gzip                 For local file input: Override autodetection and instruct that input is gzip compressed
       --config-file=<value>  Use this config file (mostly for testing)
+      --fai=<value>          Fasta index of the (not-editable) fasta file
+      --gzi=<value>          Gzi index of the (not-editable) fasta file
       --profile=<value>      Use credentials from this profile
 
 DESCRIPTION
-  Add new assembly from local or external fasta file
+  Add a new assembly from fasta input
+
+  Add new assembly. The input fasta may be:
+  * A local file
+  * An external fasta file
+  * The id of a file previously uploaded to Apollo
 
 EXAMPLES
   From local file:
 
-    $ apollo assembly add-fasta -i genome.fa -a myAssembly
+    $ apollo assembly add-from-fasta genome.fa -a myAssembly
 
   From external source we also need the URL of the index:
 
-    $ apollo assembly add-fasta -i https://.../genome.fa -x https://.../genome.fa.fai -a myAssembly
+    $ apollo assembly add-from-fasta https://.../genome.fa -x https://.../genome.fa.fai -a myAssembly
 ```
 
 _See code:
-[src/commands/assembly/add-fasta.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-fasta.ts)_
+[src/commands/assembly/add-from-fasta.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-from-fasta.ts)_
 
-## `apollo assembly add-gff`
+## `apollo assembly add-from-gff INPUT-FILE`
 
 Add new assembly from gff or gft file
 
 ```
 USAGE
-  $ apollo assembly add-gff -i <value> [--profile <value>] [--config-file <value>] [-a <value>] [-o] [-f]
+  $ apollo assembly add-from-gff INPUT-FILE [--profile <value>] [--config-file <value>] [-a <value>] [-o] [-f]
+
+ARGUMENTS
+  INPUT-FILE  Input gff file
 
 FLAGS
   -a, --assembly=<value>     Name for this assembly. Use the file name if omitted
   -f, --force                Delete existing assembly, if it exists
-  -i, --input-file=<value>   (required) Input gff or gtf file
   -o, --omit-features        Do not import features, only upload the sequences
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
@@ -61,21 +78,20 @@ FLAGS
 DESCRIPTION
   Add new assembly from gff or gft file
 
-  The gff file is expected to contain sequences as per gff specifications.
-  Features are also imported by default.
+  The gff file is expected to contain sequences as per gff specifications. Features are also imported by default.
 
 EXAMPLES
   Import sequences and features:
 
-    $ apollo assembly add-gff -i genome.gff -a myAssembly
+    $ apollo assembly add-from-gff -i genome.gff -a myAssembly
 
   Import sequences only:
 
-    $ apollo assembly add-gff -i genome.gff -a myAssembly -o
+    $ apollo assembly add-from-gff genome.gff -a myAssembly -o
 ```
 
 _See code:
-[src/commands/assembly/add-gff.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-gff.ts)_
+[src/commands/assembly/add-from-gff.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-from-gff.ts)_
 
 ## `apollo assembly check`
 
@@ -95,9 +111,8 @@ FLAGS
 DESCRIPTION
   Add, view, or delete checks to assembly
 
-  Manage checks, i.e. the rules ensuring features in an assembly are plausible.
-  This command only sets the checks to apply, to retrieve features flagged by
-  these checks use `apollo feature check`.
+  Manage checks, i.e. the rules ensuring features in an assembly are plausible. This command only sets the checks to
+  apply, to retrieve features flagged by these checks use `apollo feature check`.
 
 EXAMPLES
   View available check types:

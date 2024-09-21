@@ -31,6 +31,11 @@ export class FilesController {
   constructor(private readonly filesService: FilesService) {}
   private readonly logger = new Logger(FilesController.name)
 
+  @Get()
+  findAll() {
+    return this.filesService.findAll()
+  }
+
   @Validations(Role.Admin)
   @Head()
   filesHead() {

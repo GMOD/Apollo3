@@ -1,8 +1,20 @@
 #!/usr/bin/env python3
 
+"""USAGE: Change to Apollo3/packages/apollo-cli, make this script executable:
+
+    chmod a+x ./test/test.py
+
+and run it:
+
+    ./test/test.py
+    ./test/test.py TestCLI.testAddAssemblyFromGff # Run only this test
+"""
+
+import hashlib
 import json
 import os
 import sys
+import shutil
 import unittest
 from utils import shell
 
@@ -43,7 +55,7 @@ class TestCLI(unittest.TestCase):
 
         p = shell(f"{apollo} config {P} accessType spam", strict=False)
         self.assertEqual(1, p.returncode)
-        self.assertTrue("must be one of" in p.stderr)
+        self.assertTrue("Invalid setting:" in p.stderr)
 
     def testCanChangeAccessType(self):
         p = shell(f"{apollo} config {P} accessType google")
@@ -61,8 +73,8 @@ class TestCLI(unittest.TestCase):
         shell(f"{apollo} login {P}")
 
     def testFeatureGet(self):
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv2 -f")
+        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a vv1 -f")
+        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a vv2 -f")
 
         p = shell(f"{apollo} feature get {P} -a vv1")
         self.assertTrue("ctgA" in p.stdout)
@@ -93,9 +105,9 @@ class TestCLI(unittest.TestCase):
         self.assertTrue("returned 0 assemblies" in p.stderr)
 
     def testAssemblyGet(self):
-        shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a vv1 -f")
-        shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a vv2 -f")
-        shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a vv3 -f")
+        shell(f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a vv1 -f")
+        shell(f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a vv2 -f")
+        shell(f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a vv3 -f")
         p = shell(f"{apollo} assembly get {P}")
         self.assertTrue("vv1" in p.stdout)
         self.assertTrue("vv2" in p.stdout)
@@ -115,13 +127,13 @@ class TestCLI(unittest.TestCase):
 
     def testDeleteAssembly(self):
         shell(
-            f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a volvox1 -f"
+            f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a volvox1 -f"
         )
         shell(
-            f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a volvox2 -f"
+            f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a volvox2 -f"
         )
         shell(
-            f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a volvox3 -f"
+            f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a volvox3 -f"
         )
         p = shell(
             f"""{apollo} assembly get {P} | jq '.[] | select(.name == "volvox1") | ._id'"""
@@ -141,9 +153,9 @@ class TestCLI(unittest.TestCase):
         self.assertTrue("volvox3" in p.stdout)
 
     def testIdReader(self):
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a v1 -f")
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a v2 -f")
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a v3 -f")
+        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a v1 -f")
+        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a v2 -f")
+        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a v3 -f")
         p = shell(f"{apollo} assembly get {P}")
         xall = json.loads(p.stdout)
 
@@ -203,9 +215,11 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(len(out), 0)
 
     def testAddAssemblyFromGff(self):
-        shell(
-            f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 --omit-features -f"
+        p = shell(
+            f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a vv1 --omit-features -f"
         )
+        out = json.loads(p.stdout)
+        self.assertTrue("fa" in out["fileIds"].keys())
 
         ## Get id of assembly named vv1 and check there are no features
         p = shell(f"{apollo} assembly get {P} -a vv1")
@@ -223,14 +237,14 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(ff, [])
 
         p = shell(
-            f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1",
+            f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a vv1",
             strict=False,
         )
         self.assertTrue(p.returncode != 0)
         self.assertTrue('Error: Assembly "vv1" already exists' in p.stderr)
 
         # Default assembly name
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -f")
+        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -f")
         p = shell(f"{apollo} assembly get {P} -a tiny.fasta.gff3")
         self.assertTrue("tiny.fasta.gff3" in p.stdout)
 
@@ -243,59 +257,71 @@ class TestCLI(unittest.TestCase):
                 i += 1
 
         shell(
-            f"{apollo} assembly add-fasta {P} -i test_data/tmp.fa -a test -f",
+            f"{apollo} assembly add-from-fasta {P} test_data/tmp.fa -a test -f",
             timeout=60,
         )
         shell(
-            f"{apollo} assembly add-gff {P} -i test_data/tmp.fa -a test -f",
+            f"{apollo} assembly add-from-gff {P} test_data/tmp.fa -a test -f",
             strict=False,
             timeout=60,
         )
         shell(
-            f"{apollo} assembly add-fasta {P} -i test_data/tmp.fa -a test -f",
+            f"{apollo} assembly add-from-fasta {P} test_data/tmp.fa -a test -f",
             timeout=60,
         )
 
         os.remove("test_data/tmp.fa")
 
     def testAddAssemblyFromLocalFasta(self):
-        shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a vv1 -f")
+        p = shell(
+            f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a vv1 -f"
+        )
+        out = json.loads(p.stdout)
+        self.assertTrue("fa" in out["fileIds"].keys())
+
         p = shell(f"{apollo} assembly get {P} -a vv1")
         self.assertTrue("vv1" in p.stdout)
         p = shell(
-            f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a vv1",
+            f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a vv1",
             strict=False,
         )
         self.assertTrue(p.returncode != 0)
         self.assertTrue('Error: Assembly "vv1" already exists' in p.stderr)
 
-        p = shell(f"{apollo} assembly add-fasta {P} -i na.fa -a vv1 -f", strict=False)
+        p = shell(f"{apollo} assembly add-from-fasta {P} na.fa -a vv1 -f", strict=False)
         self.assertTrue(p.returncode != 0)
-        self.assertTrue("does not exist" in p.stderr)
+        self.assertTrue("Input" in p.stderr)
 
         # Test default name
-        shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -f")
+        shell(f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -f")
         p = shell(f"{apollo} assembly get {P} -a tiny.fasta")
         self.assertTrue("tiny.fasta" in p.stdout)
 
     def testAddAssemblyFromExternalFasta(self):
-        shell(
-            f"""{apollo} assembly add-fasta {P} -a vv1 -f \
-                -i https://raw.githubusercontent.com/GMOD/Apollo3/main/packages/apollo-collaboration-server/test/data/volvox.fa \
+        p = shell(
+            f"""{apollo} assembly add-from-fasta {P} -a vv1 -f \
+                https://raw.githubusercontent.com/GMOD/Apollo3/main/packages/apollo-collaboration-server/test/data/volvox.fa \
                 -x https://raw.githubusercontent.com/GMOD/Apollo3/main/packages/apollo-collaboration-server/test/data/volvox.fa.fai
                   """
         )
+        out = json.loads(p.stdout)
+        self.assertTrue("fa" in out["externalLocation"].keys())
+
         p = shell(f"{apollo} assembly get {P} -a vv1")
         self.assertTrue("vv1" in p.stdout)
 
+        p = shell(f"{apollo} assembly sequence {P} -a vv1 -r ctgA -s 1 -e 10")
+        seq = p.stdout.strip().split("\n")
+        self.assertEqual(seq[1], "cattgttgcg")
+
         p = shell(
-            f"{apollo} assembly add-fasta {P} -a vv1 -f -i https://x.fa -x https://x.fai",
+            f"{apollo} assembly add-from-fasta {P} -a vv1 -f https://x.fa -x https://x.fai",
             strict=False,
         )
         self.assertTrue(p.returncode != 0)
 
     def testEditFeatureFromJson(self):
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
+        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a vv1 -f")
         p = shell(f"{apollo} feature search {P} -a vv1 -t BAC")
         out = json.loads(p.stdout)[0]
         self.assertEqual(out["type"], "BAC")
@@ -320,7 +346,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(out["type"], "G_quartet")
 
     def testEditFeatureType(self):
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
+        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a vv1 -f")
 
         ## Get id of assembly named vv1
         p = shell(f"{apollo} assembly get {P} -a vv1")
@@ -356,7 +382,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(p.stdout.strip(), "region")
 
     def testEditFeatureCoords(self):
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
+        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a vv1 -f")
 
         ## Get id of assembly named vv1
         p = shell(f"{apollo} assembly get {P} -a vv1")
@@ -424,7 +450,7 @@ class TestCLI(unittest.TestCase):
         self.assertTrue("exceeds the bounds of its parent" in p.stderr)
 
     def testEditAttributes(self):
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
+        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a vv1 -f")
 
         ## Get id of assembly named vv1
         p = shell(f"{apollo} assembly get {P} -a vv1")
@@ -485,8 +511,8 @@ class TestCLI(unittest.TestCase):
         )
 
     def testSearchFeatures(self):
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv2 -f")
+        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a vv1 -f")
+        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a vv2 -f")
 
         p = shell(f"{apollo} feature search {P} -a vv1 vv2 -t EDEN")
         out = json.loads(p.stdout)
@@ -550,7 +576,7 @@ class TestCLI(unittest.TestCase):
         self.assertTrue('"Q"' in p.stdout.strip())
 
     def testDeleteFeatures(self):
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
+        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a vv1 -f")
         p = shell(f"{apollo} feature search {P} -a vv1 -t EDEN")
         fid = json.loads(p.stdout)[0]["_id"]
 
@@ -569,7 +595,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(p.returncode, 0)
 
     def testAddChildFeatures(self):
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a vv1 -f")
+        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a vv1 -f")
         p = shell(f"{apollo} feature search {P} -a vv1 -t contig")
         fid = json.loads(p.stdout)[0]["_id"]
 
@@ -594,7 +620,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(p.returncode, 0)
 
     def testImportFeatures(self):
-        shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a vv1 -f")
+        shell(f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a vv1 -f")
         shell(f"{apollo} feature import {P} -i test_data/tiny.fasta.gff3 -a vv1")
         p = shell(f"{apollo} feature search {P} -a vv1 -t contig")
         out = json.loads(p.stdout)
@@ -626,10 +652,10 @@ class TestCLI(unittest.TestCase):
 
     def testCopyFeature(self):
         shell(
-            f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a source -f"
+            f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a source -f"
         )
-        shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a dest -f")
-        shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a dest2 -f")
+        shell(f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a dest -f")
+        shell(f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a dest2 -f")
         p = shell(f"{apollo} feature search {P} -a source -t contig")
         fid = json.loads(p.stdout)[0]["_id"]
 
@@ -674,13 +700,13 @@ class TestCLI(unittest.TestCase):
 
     def testGetChanges(self):
         shell(
-            f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a myAssembly -f"
+            f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a myAssembly -f"
         )
         shell(
-            f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a yourAssembly -f"
+            f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a yourAssembly -f"
         )
         shell(
-            f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a ourAssembly -f"
+            f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a ourAssembly -f"
         )
 
         p = shell(f"{apollo} change get {P}")
@@ -702,8 +728,8 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(len(out), 0)
 
     def testGetSequence(self):
-        shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a v1 -f")
-        shell(f"{apollo} assembly add-fasta {P} -i test_data/tiny.fasta -a v2 -f")
+        shell(f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a v1 -f")
+        shell(f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta -a v2 -f")
 
         p = shell(f"{apollo} assembly sequence {P} -a nonExistant", strict=False)
         self.assertTrue(p.returncode != 0)
@@ -743,7 +769,7 @@ class TestCLI(unittest.TestCase):
         self.assertTrue("found in more than one" in p.stderr)
 
     def testGetFeatureById(self):
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a v1 -f")
+        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a v1 -f")
         p = shell(f"{apollo} feature get {P} -a v1")
         ff = json.loads(p.stdout)
 
@@ -765,7 +791,7 @@ class TestCLI(unittest.TestCase):
     def testAssemblyChecks(self):
         ## TODO: Improve tests once more checks exist (currently there is only
         ## CDSCheck)
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a v1 -f")
+        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a v1 -f")
 
         # Test view available check type
         p = shell(f"{apollo} assembly check {P}")
@@ -796,7 +822,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(out[0]["name"], "CDSCheck")
 
         # Works also with check id
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a v2 -f")
+        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a v2 -f")
         shell(f"{apollo} assembly check {P} -a v2 -c {cdsCheckId}")
         p = shell(f"{apollo} assembly check {P} -a v2")
         out = json.loads(p.stdout)
@@ -810,7 +836,49 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(p.stdout.strip(), "[]")
 
     def testFeatureChecks(self):
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a v1 -f")
+        shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a v1 -f")
+        shell(f"{apollo} assembly check {P} -a v1 -c CDSCheck")
+        p = shell(f"{apollo} feature check {P} -a v1")
+        ## If we don't edit a feature, checks are not activated (!?)
+        self.assertEqual(p.stdout.strip(), "[]")
+
+        p = shell(f"{apollo} feature get {P} -a v1")
+        ff = json.loads(p.stdout)
+        g1 = [
+            x
+            for x in ff
+            if x["type"] == "gene" and x["attributes"]["gff_id"] == ["MyGene"]
+        ][0]
+        g2 = [
+            x
+            for x in ff
+            if x["type"] == "gene" and x["attributes"]["gff_id"] == ["AnotherGene"]
+        ][0]
+
+        shell(f"{apollo} feature edit-coords {P} -i {g1['_id']} -e 201")
+        shell(f"{apollo} feature edit-coords {P} -i {g2['_id']} -e 251")
+        p = shell(f"{apollo} feature check {P} -a v1")
+        out = json.loads(p.stdout)
+        self.assertTrue(len(out) > 1)
+        self.assertTrue("InternalStopCodonCheck" in p.stdout)
+
+        ## Ids with checks
+        ids = []
+        for x in out:
+            ids.extend(x["ids"])
+        self.assertTrue(len(set(ids)) > 1)
+
+        ## Retrieve by feature id
+        xid = " ".join(ids)
+        p = shell(f"{apollo} feature check {P} -i {xid}")
+        self.assertTrue("InternalStopCodonCheck" in p.stdout)
+
+    def testFeatureChecksIndexed(self):
+        shell(
+            f"{apollo} assembly add-from-fasta {P} -a v1 test_data/tiny.fasta.gz --not-editable -f"
+        )
+        shell(f"{apollo} feature import {P} -a v1 -i test_data/tiny.fasta.gff3 -d")
+        # shell(f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a v1 -f")
         shell(f"{apollo} assembly check {P} -a v1 -c CDSCheck")
         p = shell(f"{apollo} feature check {P} -a v1")
         ## If we don't edit a feature, checks are not activated (!?)
@@ -917,7 +985,9 @@ class TestCLI(unittest.TestCase):
         self.assertTrue('Profile "foo" does not exist' in p.stderr)
 
     def testRefNameAliasConfiguration(self):
-        shell(f"{apollo} assembly add-gff {P} -i test_data/tiny.fasta.gff3 -a asm1 -f")
+        shell(
+            f"{apollo} assembly add-from-gff {P} test_data/tiny.fasta.gff3 -a asm1 -f"
+        )
 
         p = shell(f"{apollo} assembly get {P} -a asm1")
         self.assertTrue("asm1" in p.stdout)
@@ -961,6 +1031,193 @@ class TestCLI(unittest.TestCase):
         )  # NB: "Timeout" comes from utils.py, not Apollo
         # This should be ok
         shell(f"{apollo} login {P} --force", timeout=5, strict=True)
+    def testFileUpload(self):
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta")
+        out = json.loads(p.stdout)
+        self.assertEqual("text/x-fasta", out["type"])
+        self.assertTrue(out["_id"])
+
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta")
+        out = json.loads(p.stdout)
+        self.assertEqual("text/x-fasta", out["type"])
+
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta.gff3")
+        out = json.loads(p.stdout)
+        self.assertEqual("text/x-gff3", out["type"])
+
+        p = shell(f"{apollo} file upload {P} -i test_data/guest.yaml", strict=False)
+        self.assertTrue(p.returncode != 0)
+
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta.gz", strict=False)
+        self.assertTrue("it may be gzip or bgzip compressed" in p.stderr)
+        self.assertTrue(p.returncode != 0)
+
+    def testFileUploadGzip(self):
+        # Uploading a gzip file must skip compression and just copy the file
+        with open("test_data/tiny.fasta.gz", "rb") as gz:
+            md5 = hashlib.md5(gz.read()).hexdigest()
+        p = shell(
+            f"{apollo} file upload {P} -i test_data/tiny.fasta.gz -t text/x-fasta"
+        )
+        out = json.loads(p.stdout)
+        self.assertEqual(md5, out["checksum"])
+        shell(f"{apollo} assembly add-from-fasta {P} -f {out['_id']}")
+
+    def testAddAssemblyGzip(self):
+        # Autodetect format
+        shell(f"{apollo} assembly add-from-fasta {P} test_data/tiny.fasta.gz -f -a vv1")
+        p = shell(f"{apollo} assembly sequence {P} -a vv1")
+        self.assertTrue(p.stdout.startswith(">"))
+        self.assertTrue("cattgttgcggagttgaaca" in p.stdout)
+
+        # Skip autodetect
+        shutil.copy("test_data/tiny.fasta", "test_data/tmp.gz")
+        shell(
+            f"{apollo} assembly add-from-fasta {P} test_data/tmp.gz -f -a vv1 --decompressed"
+        )
+        p = shell(f"{apollo} assembly sequence {P} -a vv1")
+        self.assertTrue(p.stdout.startswith(">"))
+        self.assertTrue("cattgttgcggagttgaaca" in p.stdout)
+        os.remove("test_data/tmp.gz")
+
+        shutil.copy("test_data/tiny.fasta.gz", "test_data/fasta.tmp")
+        shell(
+            f"{apollo} assembly add-from-fasta {P} test_data/fasta.tmp -f -a vv1 --gzip"
+        )
+        p = shell(f"{apollo} assembly sequence {P} -a vv1")
+        self.assertTrue(p.stdout.startswith(">"))
+        self.assertTrue("cattgttgcggagttgaaca" in p.stdout)
+
+        # Autodetect false positive
+        p = shell(
+            f"{apollo} assembly add-from-fasta {P} test_data/fasta.tmp -f -a vv1",
+            strict=False,
+        )
+        self.assertTrue(p.returncode != 0)
+        os.remove("test_data/fasta.tmp")
+
+    def testAddAssemblyFromFilesNotEditable(self):
+        # It would be good to check that really there was no sequence loading
+        shell(
+            f"{apollo} assembly add-from-fasta {P} -f --not-editable test_data/tiny.fasta.gz"
+        )
+        p = shell(f"{apollo} assembly sequence {P} -a tiny.fasta.gz")
+        self.assertTrue(p.stdout.startswith(">"))
+        self.assertTrue("cattgttgcggagttgaaca" in p.stdout)
+
+        p = shell(
+            f"{apollo} assembly add-from-fasta {P} -f --not-editable test_data/tiny.fasta",
+            strict=False,
+        )
+        self.assertTrue(p.returncode != 0)
+
+        # Setting --gzi & --fai
+        shell(
+            f"{apollo} assembly add-from-fasta {P} -f --not-editable test_data/tiny2.fasta.gz --gzi test_data/tiny.fasta.gz.gzi --fai test_data/tiny.fasta.gz.fai"
+        )
+        p = shell(f"{apollo} assembly sequence {P} -a tiny2.fasta.gz")
+        self.assertTrue(p.stdout.startswith(">"))
+        self.assertTrue("cattgttgcggagttgaaca" in p.stdout)
+
+    def testAddAssemblyFromFileIdsNotEditable(self):
+        # Upload and get Ids for: bgzip fasta, fai and gzi
+        p = shell(
+            f"{apollo} file upload {P} -i test_data/tiny.fasta.gz -t application/x-bgzip-fasta"
+        )
+        fastaId = json.loads(p.stdout)["_id"]
+
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta.gz.fai")
+        faiId = json.loads(p.stdout)["_id"]
+
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta.gz.gzi")
+        gziId = json.loads(p.stdout)["_id"]
+
+        shell(
+            f"{apollo} assembly add-from-fasta {P} -f --not-editable {fastaId} --fai test_data/tiny.fasta.gz.fai --gzi test_data/tiny.fasta.gz.gzi"
+        )
+        p = shell(f"{apollo} assembly sequence {P} -a {fastaId}")
+        self.assertTrue(p.stdout.startswith(">"))
+        self.assertTrue("cattgttgcggagttgaaca" in p.stdout)
+
+        shell(
+            f"{apollo} assembly add-from-fasta {P} -f --not-editable {fastaId} --fai {faiId} --gzi {gziId}"
+        )
+        p = shell(f"{apollo} assembly sequence {P} -a {fastaId}")
+        self.assertTrue(p.stdout.startswith(">"))
+
+    def testAddAssemblyFromFileId(self):
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta")
+        fid = json.loads(p.stdout)["_id"]
+        p = shell(f"{apollo} assembly add-from-fasta {P} {fid} -a up -f")
+        out = json.loads(p.stdout)
+        self.assertEqual("up", out["name"])
+        self.assertEqual(fid, out["fileIds"]["fa"])
+
+        # shell(f"{apollo} assembly delete {P} -a up")
+        # shell(
+        #     f"{apollo} file upload {P} -i test_data/tiny.fasta | {apollo} assembly add-from-fasta {P} -a up -f"
+        # )
+        # p = shell(f"{apollo} assembly get {P} -a up")
+        # out = json.loads(p.stdout)
+        # self.assertEqual("up", out[0]["name"])
+
+    def testGetFiles(self):
+        shell(f"{apollo} file upload {P} -i test_data/tiny.fasta")
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta")
+        fid = json.loads(p.stdout)["_id"]
+
+        p = shell(f"{apollo} file get {P}")
+        out = json.loads(p.stdout)
+        self.assertTrue(len(out) >= 2)
+        self.assertTrue([x for x in out if x["_id"] == fid])
+
+        p = shell(f"{apollo} file get {P} -i {fid} {fid}")
+        out = json.loads(p.stdout)
+        self.assertTrue(len(out) == 1)
+
+        p = shell(f"{apollo} file get {P} -i nonexists")
+        out = json.loads(p.stdout)
+        self.assertEqual(0, len(out))
+
+    def testDownloadFile(self):
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta")
+        up = json.loads(p.stdout)
+        if os.path.exists(up["basename"]):
+            raise Exception(
+                f"File {up['basename']} exists - if safe to do so, delete it before running this test"
+            )
+
+        shell(f"{apollo} file download {P} -i {up['_id']}")
+        with open(up["basename"]) as fin:
+            down = "".join(fin.readlines())
+            self.assertTrue(down.startswith(">"))
+            self.assertTrue(down.strip().endswith("accc"))
+        os.remove(up["basename"])
+
+        shell(f"{apollo} file download {P} -i {up['_id']} -o tmp.fa")
+        with open("tmp.fa") as fin:
+            down = "".join(fin.readlines())
+            self.assertTrue(down.startswith(">"))
+            self.assertTrue(down.strip().endswith("accc"))
+        os.remove("tmp.fa")
+
+        p = shell(f"{apollo} file download {P} -i {up['_id']} -o -")
+        self.assertTrue(p.stdout.startswith(">"))
+        self.assertTrue(p.stdout.strip().endswith("accc"))
+
+    def testDeleteFile(self):
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta")
+        up1 = json.loads(p.stdout)
+        p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta")
+        up2 = json.loads(p.stdout)
+
+        p = shell(f"{apollo} file delete {P} -i {up1['_id']} {up2['_id']}")
+        out = json.loads(p.stdout)
+        self.assertEqual(2, len(out))
+
+        p = shell(f"{apollo} file get {P} -i {up1['_id']} {up2['_id']}")
+        out = json.loads(p.stdout)
+        self.assertEqual(0, len(out))
 
 
 if __name__ == "__main__":

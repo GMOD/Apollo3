@@ -6,7 +6,6 @@ import {
   createFetchErrorMessage,
   localhostToAddress,
   queryApollo,
-  wrapLines,
 } from '../../utils.js'
 import { ConfigError } from '../../ApolloConf.js'
 
@@ -16,9 +15,8 @@ export default class AddRefNameAlias extends BaseCommand<
   typeof AddRefNameAlias
 > {
   static summary = 'Add reference name aliases from a file'
-  static description = wrapLines(
-    'Reference name aliasing is a process to make chromosomes that are named slightly differently but which refer to the same thing render properly. This command reads a file with reference name aliases and adds them to the database.',
-  )
+  static description =
+    'Reference name aliasing is a process to make chromosomes that are named slightly differently but which refer to the same thing render properly. This command reads a file with reference name aliases and adds them to the database.'
 
   static examples = [
     {

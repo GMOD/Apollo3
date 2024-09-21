@@ -9,7 +9,6 @@ import {
   idReader,
   localhostToAddress,
   queryApollo,
-  wrapLines,
 } from '../../utils.js'
 import { ApolloAssemblySnapshot } from '@apollo-annotation/mst'
 
@@ -45,8 +44,7 @@ async function searchFeatures(
 
 export default class Search extends BaseCommand<typeof Search> {
   static summary = 'Free text search for feature in one or more assemblies'
-  static description = wrapLines(
-    `Return features matching a query string. This command searches only in:
+  static description = `Return features matching a query string. This command searches only in:
 
     - Attribute *values* (not attribute names)
     - Source field (which in fact is stored as an attribute)
@@ -68,8 +66,7 @@ export default class Search extends BaseCommand<typeof Search> {
     - "with"
     - "Finger"
     - "chr1"
-    - "0.987"`,
-  )
+    - "0.987"`
 
   static examples = [
     {
@@ -87,9 +84,8 @@ export default class Search extends BaseCommand<typeof Search> {
     assembly: Flags.string({
       char: 'a',
       multiple: true,
-      description: wrapLines(
+      description:
         'Assembly names or IDs to search; use "-" to read it from stdin. If omitted search all assemblies',
-      ),
     }),
   }
 

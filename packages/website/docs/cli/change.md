@@ -1,6 +1,6 @@
 # `apollo change`
 
-Commands to handle the log of changes made to the database
+Commands to manage the change log
 
 - [`apollo change get`](#apollo-change-get)
 
@@ -20,10 +20,9 @@ FLAGS
 DESCRIPTION
   Get list of changes
 
-  Return the change log in json format. Note that when an assembly is deleted the
-  link between common name and ID is lost (it can still be recovered by inspecting
-  the change log but at present this task is left to the user). In such cases you
-  need to use the assembly ID.
+  Return the change log in json format. Note that when an assembly is deleted the link between common name and ID is
+  lost (it can still be recovered by inspecting the change log but at present this task is left to the user). In such
+  cases you need to use the assembly ID.
 ```
 
 _See code:

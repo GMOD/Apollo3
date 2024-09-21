@@ -1,11 +1,10 @@
 import { BaseCommand } from '../../baseCommand.js'
-import { wrapLines, queryApollo } from '../../utils.js'
+import { queryApollo } from '../../utils.js'
 
 export default class GetConfig extends BaseCommand<typeof GetConfig> {
   static summary = 'Get JBrowse configuration from Apollo'
-  static description = wrapLines(
-    'Print to stdout the JBrowse configuration from Apollo in JSON format',
-  )
+  static description =
+    'Print to stdout the JBrowse configuration from Apollo in JSON format'
 
   static examples = [
     {

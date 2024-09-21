@@ -8,17 +8,16 @@ import {
   getFeatureById,
   idReader,
   localhostToAddress,
-  wrapLines,
 } from '../../utils.js'
 import { SerializedFeatureAttributeChange } from '@apollo-annotation/shared'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 export default class EditAttibute extends BaseCommand<typeof EditAttibute> {
   static summary = 'Add, edit, or view a feature attribute'
-  static description = wrapLines(
+  static description =
     'Be aware that there is no checking whether attributes names and values are valid. \
-    For example, you can create non-unique ID attributes or you can set gene ontology terms to non-existing terms',
-  )
+For example, you can create non-unique ID attributes or you can set gene ontology \
+terms to non-existing terms'
 
   static examples = [
     {

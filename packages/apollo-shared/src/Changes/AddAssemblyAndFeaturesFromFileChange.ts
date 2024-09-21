@@ -18,7 +18,7 @@ export interface SerializedAddAssemblyAndFeaturesFromFileChangeBase
 
 export interface AddAssemblyAndFeaturesFromFileChangeDetails {
   assemblyName: string
-  fileId: string
+  fileIds: { fa: string }
 }
 
 export interface SerializedAddAssemblyAndFeaturesFromFileChangeSingle
@@ -53,8 +53,8 @@ export class AddAssemblyAndFeaturesFromFileChange extends FromFileBaseChange {
   toJSON(): SerializedAddAssemblyAndFeaturesFromFileChange {
     const { assembly, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ assemblyName, fileId }] = changes
-      return { typeName, assembly, assemblyName, fileId }
+      const [{ assemblyName, fileIds }] = changes
+      return { typeName, assembly, assemblyName, fileIds }
     }
     return { typeName, assembly, changes }
   }
@@ -68,7 +68,8 @@ export class AddAssemblyAndFeaturesFromFileChange extends FromFileBaseChange {
     const { assemblyModel, fileModel, filesService, user } = backend
     const { assembly, changes, logger } = this
     for (const change of changes) {
-      const { assemblyName, fileId } = change
+      const { assemblyName, fileIds } = change
+      const fileId = fileIds.fa
 
       const { FILE_UPLOAD_FOLDER } = process.env
       if (!FILE_UPLOAD_FOLDER) {
@@ -90,7 +91,7 @@ export class AddAssemblyAndFeaturesFromFileChange extends FromFileBaseChange {
       }
       // Add assembly
       const [newAssemblyDoc] = await assemblyModel.create([
-        { _id: assembly, name: assemblyName, user, status: -1 },
+        { _id: assembly, name: assemblyName, user, status: -1, fileId },
       ])
       logger.debug?.(
         `Added new assembly "${assemblyName}", docId "${newAssemblyDoc._id.toHexString()}"`,

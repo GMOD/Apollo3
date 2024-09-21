@@ -1,22 +1,16 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 
-import { Flags } from '@oclif/core'
+import { Args, Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 
-import { BaseCommand } from '../../baseCommand.js'
-import {
-  createFetchErrorMessage,
-  submitAssembly,
-  uploadFile,
-  wrapLines,
-} from '../../utils.js'
+import { FileCommand } from '../../fileCommand.js'
+import { submitAssembly } from '../../utils.js'
 
-export default class AddGff extends BaseCommand<typeof AddGff> {
+export default class AddGff extends FileCommand {
   static summary = 'Add new assembly from gff or gft file'
-  static description = wrapLines(
-    'The gff file is expected to contain sequences as per gff specifications. Features are also imported by default.',
-  )
+  static description =
+    'The gff file is expected to contain sequences as per gff specifications. Features are also imported by default.'
 
   static examples = [
     {
@@ -27,16 +21,18 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
     {
       description: 'Import sequences only:',
       command:
-        '<%= config.bin %> <%= command.id %> -i genome.gff -a myAssembly -o',
+        '<%= config.bin %> <%= command.id %> genome.gff -a myAssembly -o',
     },
   ]
 
-  static flags = {
-    'input-file': Flags.string({
-      char: 'i',
-      description: 'Input gff or gtf file',
+  static args = {
+    'input-file': Args.string({
+      description: 'Input gff file',
       required: true,
     }),
+  }
+
+  static flags = {
     assembly: Flags.string({
       char: 'a',
       description: 'Name for this assembly. Use the file name if omitted',
@@ -52,19 +48,21 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
   }
 
   public async run(): Promise<void> {
+    const { args } = await this.parse(AddGff)
     const { flags } = await this.parse(AddGff)
 
-    if (!fs.existsSync(flags['input-file'])) {
-      this.error(`File ${flags['input-file']} does not exist`)
+    if (!fs.existsSync(args['input-file'])) {
+      this.error(`File ${args['input-file']} does not exist`)
     }
 
     const access = await this.getAccess()
 
-    const fileId = await uploadFile(
+    const fileId = await this.uploadFile(
       access.address,
       access.accessToken,
-      flags['input-file'],
+      args['input-file'],
       'text/x-gff3',
+      args['input-file'].endsWith('.gz'),
     )
 
     let typeName = 'AddAssemblyAndFeaturesFromFileChange'
@@ -72,26 +70,20 @@ export default class AddGff extends BaseCommand<typeof AddGff> {
       typeName = 'AddAssemblyFromFileChange'
     }
 
-    const assemblyName = flags.assembly ?? path.basename(flags['input-file'])
+    const assemblyName = flags.assembly ?? path.basename(args['input-file'])
 
     const body = {
       assemblyName,
-      fileId,
+      fileIds: { fa: fileId },
       typeName,
       assembly: new ObjectId().toHexString(),
     }
-    const res = await submitAssembly(
+    const rec = await submitAssembly(
       access.address,
       access.accessToken,
       body,
       flags.force,
     )
-    if (!res.ok) {
-      const errorMessage = await createFetchErrorMessage(
-        res,
-        'getFeatureById failed',
-      )
-      throw new Error(errorMessage)
-    }
+    this.log(JSON.stringify(rec, null, 2))
   }
 }

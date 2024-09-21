@@ -16,7 +16,12 @@ import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 
 import { CreateFileDto } from './dto/create-file.dto'
-import { writeFileAndCalculateHash, FileRequest } from './filesUtil'
+import {
+  writeFileAndCalculateHash,
+  FileRequest,
+  LocalFileGzip,
+} from './filesUtil'
+import { GenericFilehandle, LocalFile } from 'generic-filehandle'
 
 @Injectable()
 export class FilesService {
@@ -36,7 +41,12 @@ export class FilesService {
       infer: true,
     })
     return writeFileAndCalculateHash(
-      { originalname: name, stream: req, size },
+      {
+        originalname: name,
+        stream: req,
+        size,
+        contentEncoding: req.header('Content-Encoding'),
+      },
       fileUploadFolder,
       this.logger,
     )
@@ -72,6 +82,24 @@ export class FilesService {
     }
     const gunzip = createGunzip()
     return fileStream.pipe(gunzip)
+  }
+
+  getFileHandle(file: FileDocument): GenericFilehandle {
+    const fileUploadFolder = this.configService.get('FILE_UPLOAD_FOLDER', {
+      infer: true,
+    })
+    const fileName = join(fileUploadFolder, file.checksum)
+    switch (file.type) {
+      case 'text/x-fai':
+      case 'application/x-gzi': {
+        return new LocalFileGzip(fileName)
+      }
+      case 'application/x-bgzip-fasta':
+      case 'text/x-gff3':
+      case 'text/x-fasta': {
+        return new LocalFile(fileName)
+      }
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -120,5 +148,9 @@ export class FilesService {
       }
     }
     return
+  }
+
+  async findAll() {
+    return this.fileModel.find().exec()
   }
 }

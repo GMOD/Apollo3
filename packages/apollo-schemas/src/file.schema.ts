@@ -11,8 +11,22 @@ export class File {
   @Prop({ required: true })
   checksum: string
 
-  @Prop({ required: true, enum: ['text/x-gff3', 'text/x-fasta'] })
-  type: 'text/x-gff3' | 'text/x-fasta'
+  @Prop({
+    required: true,
+    enum: [
+      'text/x-gff3',
+      'text/x-fasta',
+      'application/x-bgzip-fasta',
+      'text/x-fai',
+      'application/x-gzi',
+    ],
+  })
+  type:
+    | 'text/x-gff3'
+    | 'text/x-fasta'
+    | 'application/x-bgzip-fasta'
+    | 'text/x-fai'
+    | 'application/x-gzi'
 }
 
 export const FileSchema = SchemaFactory.createForClass(File)
