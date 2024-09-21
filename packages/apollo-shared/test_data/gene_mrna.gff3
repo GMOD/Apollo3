@@ -1,0 +1,4 @@
+##gff-version 3
+##sequence-region   ctgA 1000 2000
+ctgA	example	gene	1000	2000	.	.	.	ID=gene01;Name=geneA;Alias=hga
+ctgA	example	mRNA	1000	2000	.	.	.	Parent=gene01;Name=mrnaA;Alias=hga

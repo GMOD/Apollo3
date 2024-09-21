@@ -158,7 +158,10 @@ function convertChildren(
     const [firstChildFeatureLocation] = childFeature
     if (
       firstChildFeatureLocation.type === 'three_prime_UTR' ||
-      firstChildFeatureLocation.type === 'five_prime_UTR'
+      firstChildFeatureLocation.type === 'five_prime_UTR' ||
+      firstChildFeatureLocation.type === 'intron' ||
+      firstChildFeatureLocation.type === 'start_codon' ||
+      firstChildFeatureLocation.type === 'stop_codon'
     ) {
       continue
     }
@@ -232,20 +235,17 @@ function processCDS(
       groupedLocations.push([location])
       continue
     }
-    const lastGroupLastLocation = lastGroup.at(-1)
-    if (!lastGroupLastLocation) {
-      throw new Error('Got group with no locations')
-    }
-    if (
+    const overlaps = lastGroup.some((lastGroupLoc) =>
       doesIntersect2(
         /* eslint-disable @typescript-eslint/no-non-null-assertion */
-        lastGroupLastLocation.start!,
-        lastGroupLastLocation.end!,
+        lastGroupLoc.start!,
+        lastGroupLoc.end!,
         location.start!,
         location.end!,
         /* eslint-enable @typescript-eslint/no-non-null-assertion */
-      )
-    ) {
+      ),
+    )
+    if (overlaps) {
       groupedLocations.push([location])
     } else {
       lastGroup.push(location)
