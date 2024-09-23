@@ -155,8 +155,12 @@ export const OntologyRecordConfiguration = ConfigurationSchema(
   },
 )
 
-export type OntologyManager = Instance<typeof OntologyManagerType>
-export type OntologyRecord = Instance<typeof OntologyRecordType>
+// eslint disables because of
+// https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface OntologyManager extends Instance<typeof OntologyManagerType> {}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface OntologyRecord extends Instance<typeof OntologyRecordType> {}
 
 export type OntologyTerm = OntologyDBNode
 

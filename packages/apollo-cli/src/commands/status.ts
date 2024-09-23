@@ -1,34 +1,39 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import path from 'node:path'
 
+import { ApolloConf, KEYS } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
-import { Config, KEYS } from '../Config.js'
-import { ConfigError, basicCheckConfig } from '../utils.js'
+import { basicCheckConfig } from '../utils.js'
 
 export default class Status extends BaseCommand<typeof Status> {
-  static description = 'View authentication status'
+  static summary = 'View authentication status'
+  static description =
+    'This command returns "<profile>: Logged in" if the selected profile \
+has an access token and "<profile>: Logged out" otherwise.\
+Note that this command does not check the validity of the access token.'
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(Status)
 
-    let configFile = flags['config-file']
-    if (configFile === undefined) {
-      configFile = path.join(this.config.configDir, 'config.yaml')
-    }
-    try {
-      basicCheckConfig(configFile, flags.profile)
-    } catch (error) {
-      if (error instanceof ConfigError) {
-        this.logToStderr(error.message)
-        this.exit(1)
-      }
+    let profileName = flags.profile
+    if (profileName === undefined) {
+      profileName = process.env.APOLLO_PROFILE ?? 'default'
     }
 
-    const config: Config = new Config(configFile)
-    const accessToken: string = config.get(KEYS.accessToken, flags.profile)
+    let configFile = flags['config-file']
+    if (configFile === undefined) {
+      configFile = path.join(this.config.configDir, 'config.yml')
+    }
+    basicCheckConfig(configFile, profileName)
+
+    const config: ApolloConf = new ApolloConf(configFile)
+    const accessToken: string = config.get(
+      `${profileName}.${KEYS.accessToken}`,
+    ) as string
     if (accessToken === undefined || accessToken.trim() === '') {
-      this.log('Logged out')
+      this.log(`${profileName}: Logged out`)
     } else {
-      this.log('Logged in')
+      this.log(`${profileName}: Logged in`)
     }
   }
 }

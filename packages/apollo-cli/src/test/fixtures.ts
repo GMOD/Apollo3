@@ -5,8 +5,8 @@ import path from 'node:path'
 export const TEST_DATA_DIR = path.resolve('test_data')
 export const VERBOSE = false
 export const CONFIG_DIR = path.join(os.homedir(), '.config', 'apollo-cli')
-export const CONFIG_FILE = path.join(CONFIG_DIR, 'config.yaml')
-const CONFIG_BAK = path.join(TEST_DATA_DIR, 'original.config.yaml.bak')
+export const CONFIG_FILE = path.join(CONFIG_DIR, 'config.yml')
+const CONFIG_BAK = path.join(TEST_DATA_DIR, 'original.config.yml.bak')
 
 function renameFile(src: string, dest: string, verbose = true) {
   if (fs.existsSync(dest)) {
@@ -20,8 +20,7 @@ function renameFile(src: string, dest: string, verbose = true) {
     msg = `${src} does not exist`
   }
   if (verbose) {
-    // eslint-disable-next-line no-console
-    console.log(msg)
+    process.stdout.write(`${msg}\n`)
   }
 }
 
@@ -30,17 +29,16 @@ export function copyFile(src: string, dest: string, verbose: boolean) {
   fs.copyFileSync(src, dest)
   if (verbose) {
     const msg = `cp ${src} ${dest}`
-    // eslint-disable-next-line no-console
-    console.log(`${msg} # Copied: ${fs.existsSync(dest)}`)
+    process.stdout.write(`${msg} # Copied: ${fs.existsSync(dest)}\n`)
   }
 }
 
-export async function mochaGlobalSetup() {
-  // Temporarily remove config file, if any
+export function mochaGlobalSetup() {
+  process.stdout.write(`Temporarily remove config file ${CONFIG_FILE} if any`)
   renameFile(CONFIG_FILE, CONFIG_BAK, VERBOSE)
 }
 
-export async function mochaGlobalTeardown() {
-  // Put config file back
+export function mochaGlobalTeardown() {
+  process.stdout.write(`Putting back config file ${CONFIG_FILE} if any\n`)
   renameFile(CONFIG_BAK, CONFIG_FILE, VERBOSE)
 }

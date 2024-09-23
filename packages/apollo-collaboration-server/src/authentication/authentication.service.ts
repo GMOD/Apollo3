@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import fs from 'node:fs/promises'
 
+import { JWTPayload } from '@apollo-annotation/shared'
 import {
   BadRequestException,
   Injectable,
@@ -8,7 +11,6 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
-import { JWTPayload } from 'apollo-shared'
 import { Request } from 'express'
 import { Profile as GoogleProfile } from 'passport-google-oauth20'
 
@@ -32,7 +34,7 @@ interface ConfigValues {
   GOOGLE_CLIENT_ID?: string
   GOOGLE_CLIENT_ID_FILE?: string
   ALLOW_GUEST_USER: boolean
-  DEFAULT_NEW_USER_ROLE: Role | 'none'
+  DEFAULT_NEW_USER_ROLE: Role
   ROOT_USER_NAME: string
   ROOT_USER_PASSWORD: string
 }
@@ -40,7 +42,7 @@ interface ConfigValues {
 @Injectable()
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name)
-  private defaultNewUserRole: Role | 'none'
+  private defaultNewUserRole: Role
 
   constructor(
     private readonly usersService: UsersService,
@@ -175,15 +177,21 @@ export class AuthenticationService {
       if (isRootUser) {
         newUserRole = Role.Admin
       } else {
-        const userCount = await this.usersService.getCount()
-        const guestUser = await this.usersService.findGuest()
-        const hasAdmin = userCount > 1 || (userCount === 1 && !guestUser)
-        // If there is not a non-guest user yet, the 1st user role will be admin
+        const users = await this.usersService.findAll()
+        const hasAdmin = users.some(
+          (user) =>
+            user.role === Role.Admin &&
+            user.email !== 'root_user' &&
+            user.email !== 'guest_user',
+        )
+        // If there is not a non-guest and non-root user yet, the 1st user to
+        // log in will be made an admin
         newUserRole = hasAdmin ? this.defaultNewUserRole : Role.Admin
       }
-      const newUser: CreateUserDto = { email, username: name }
-      if (newUserRole !== 'none') {
-        newUser.role = newUserRole
+      const newUser: CreateUserDto = {
+        email,
+        username: name,
+        role: newUserRole,
       }
       user = await this.usersService.addNew(newUser)
     }

@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
   ChangeOptions,
   ClientDataStore,
@@ -5,8 +8,8 @@ import {
   LocalGFF3DataStore,
   SerializedFeatureChange,
   ServerDataStore,
-} from 'apollo-common'
-import { Feature, FeatureDocument } from 'apollo-schemas'
+} from '@apollo-annotation/common'
+import { Feature, FeatureDocument } from '@apollo-annotation/schemas'
 
 interface SerializedTypeChangeBase extends SerializedFeatureChange {
   typeName: 'TypeChange'
@@ -26,7 +29,7 @@ interface SerializedTypeChangeMultiple extends SerializedTypeChangeBase {
   changes: TypeChangeDetails[]
 }
 
-type SerializedTypeChange =
+export type SerializedTypeChange =
   | SerializedTypeChangeSingle
   | SerializedTypeChangeMultiple
 

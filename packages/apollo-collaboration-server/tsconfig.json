@@ -12,11 +12,11 @@
     "incremental": true,
     "strictPropertyInitialization": false,
     "forceConsistentCasingInFileNames": false,
-    "sourceMap": true
+    "sourceMap": true,
   },
   "references": [
-    { "path": "../apollo-common"},
-    { "path": "../apollo-schemas"},
-    { "path": "../apollo-shared"},
+    { "path": "../apollo-common" },
+    { "path": "../apollo-schemas" },
+    { "path": "../apollo-shared" },
   ],
 }

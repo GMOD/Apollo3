@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
@@ -70,7 +71,9 @@ export const NumberCell = observer(function NumberCell({
             onChangeCommitted(value).catch(notifyError)
           }
         }}
-        ref={(node) => setInputNode(node)}
+        ref={(node) => {
+          setInputNode(node)
+        }}
       />
     </span>
   )

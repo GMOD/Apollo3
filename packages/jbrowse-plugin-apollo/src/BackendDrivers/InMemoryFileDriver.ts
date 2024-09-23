@@ -1,11 +1,15 @@
+/* eslint-disable @typescript-eslint/require-await */
+import { AssemblySpecificChange, Change } from '@apollo-annotation/common'
+import {
+  AnnotationFeatureSnapshot,
+  CheckResultSnapshot,
+} from '@apollo-annotation/mst'
+import { ValidationResultSet } from '@apollo-annotation/shared'
 import { getConf } from '@jbrowse/core/configuration'
 import { Region, getSession } from '@jbrowse/core/util'
-import { AssemblySpecificChange, Change } from 'apollo-common'
-import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
-import { ValidationResultSet } from 'apollo-shared'
 
 import { SubmitOpts } from '../ChangeManager'
-import { BackendDriver } from './BackendDriver'
+import { BackendDriver, RefNameAliases } from './BackendDriver'
 
 export class InMemoryFileDriver extends BackendDriver {
   async getFeatures(): Promise<
@@ -26,6 +30,22 @@ export class InMemoryFileDriver extends BackendDriver {
     }
     const seq = refSeq.getSequence(start, end)
     return { seq, refSeq: refName }
+  }
+
+  async getRefNameAliases(assemblyName: string): Promise<RefNameAliases[]> {
+    const assembly = this.clientStore.assemblies.get(assemblyName)
+    const refNameAliases: RefNameAliases[] = []
+    if (!assembly) {
+      return refNameAliases
+    }
+    for (const [, refSeq] of assembly.refSeqs) {
+      refNameAliases.push({
+        refName: refSeq.name,
+        aliases: [refSeq._id],
+        uniqueId: `alias-${refSeq._id}`,
+      })
+    }
+    return refNameAliases
   }
 
   async getRegions(assemblyName: string): Promise<Region[]> {

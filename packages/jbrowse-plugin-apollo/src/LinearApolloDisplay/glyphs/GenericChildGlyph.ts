@@ -1,151 +1,158 @@
-import { AnnotationFeatureI } from 'apollo-mst'
+import { AnnotationFeature } from '@apollo-annotation/mst'
 
 import { LinearApolloDisplay } from '../stateModel'
-import { MousePosition } from '../stateModel/mouseEvents'
-import { CanvasMouseEvent } from '../types'
-import { BoxGlyph } from './BoxGlyph'
+import { boxGlyph, isSelectedFeature, drawBox } from './BoxGlyph'
+import { Glyph } from './Glyph'
+import { LinearApolloDisplayRendering } from '../stateModel/rendering'
 
-export class GenericChildGlyph extends BoxGlyph {
-  featuresForRow(feature: AnnotationFeatureI): AnnotationFeatureI[][] {
-    const features = [[feature]]
-    if (feature.children) {
-      for (const [, child] of feature.children ?? new Map()) {
-        features.push(...this.featuresForRow(child))
-      }
-    }
-    return features
-  }
-
-  getRowCount(feature: AnnotationFeatureI) {
-    return this.featuresForRow(feature).length
-  }
-
-  draw(
-    stateModel: LinearApolloDisplay,
-    ctx: CanvasRenderingContext2D,
-    feature: AnnotationFeatureI,
-    xOffset: number,
-    row: number,
-    reversed: boolean,
-  ) {
-    for (let i = 0; i < this.getRowCount(feature); i++) {
-      this.drawRow(stateModel, ctx, feature, xOffset, row + i, row, reversed)
+function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
+  const features = [[feature]]
+  if (feature.children) {
+    for (const [, child] of feature.children) {
+      features.push(...featuresForRow(child))
     }
   }
+  return features
+}
 
-  drawRow(
-    stateModel: LinearApolloDisplay,
-    ctx: CanvasRenderingContext2D,
-    topLevelFeature: AnnotationFeatureI,
-    xOffset: number,
-    row: number,
-    topRow: number,
-    reversed: boolean,
-  ) {
-    const features = this.featuresForRow(topLevelFeature)[row - topRow]
-    for (const feature of features) {
-      this.drawFeature(
-        stateModel,
-        ctx,
-        topLevelFeature,
-        feature,
-        xOffset,
-        row,
-        reversed,
-      )
-    }
+function getRowCount(feature: AnnotationFeature) {
+  return featuresForRow(feature).length
+}
+
+function draw(
+  ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  row: number,
+  stateModel: LinearApolloDisplayRendering,
+  displayedRegionIndex: number,
+) {
+  for (let i = 0; i < getRowCount(feature); i++) {
+    drawRow(ctx, feature, row + i, row, stateModel, displayedRegionIndex)
   }
+}
 
-  private drawFeature(
-    stateModel: LinearApolloDisplay,
-    ctx: CanvasRenderingContext2D,
-    topLevelFeature: AnnotationFeatureI,
-    feature: AnnotationFeatureI,
-    xOffset: number,
-    row: number,
-    reversed: boolean,
-  ) {
-    const { apolloRowHeight: heightPx, lgv, session } = stateModel
-    const { bpPerPx } = lgv
-    const { apolloSelectedFeature } = session
-    const offsetPx = (feature.start - topLevelFeature.min) / bpPerPx
-    const widthPx = feature.length / bpPerPx
-    const startPx = reversed ? xOffset - offsetPx - widthPx : xOffset + offsetPx
-    const top = row * heightPx
-    const rowCount = this.getRowCount(feature)
-    const isSelected = this.getIsSelectedFeature(feature, apolloSelectedFeature)
-    const groupingColor = isSelected
-      ? 'rgba(130,0,0,0.45)'
-      : 'rgba(255,0,0,0.25)'
-    if (rowCount > 1) {
-      // draw background that encapsulates all child features
-      const featureHeight = rowCount * heightPx
-      this.drawBox(ctx, startPx, top, widthPx, featureHeight, groupingColor)
-    }
-    super.draw(stateModel, ctx, feature, startPx, row, reversed)
+function drawRow(
+  ctx: CanvasRenderingContext2D,
+  topLevelFeature: AnnotationFeature,
+  row: number,
+  topRow: number,
+  stateModel: LinearApolloDisplayRendering,
+  displayedRegionIndex: number,
+) {
+  const features = featuresForRow(topLevelFeature)[row - topRow]
+  for (const feature of features) {
+    drawFeature(ctx, feature, row, stateModel, displayedRegionIndex)
   }
+}
 
-  drawHover(stateModel: LinearApolloDisplay, ctx: CanvasRenderingContext2D) {
-    const { apolloHover, apolloRowHeight, displayedRegions, lgv } = stateModel
-    if (!apolloHover) {
-      return
-    }
-    const { feature, mousePosition } = apolloHover
-    if (!(feature && mousePosition)) {
-      return
-    }
-    const { regionNumber, y } = mousePosition
-    const displayedRegion = displayedRegions[regionNumber]
-    const { refName, reversed } = displayedRegion
-    const { bpPerPx, bpToPx, offsetPx } = lgv
-    const { end, length, start } = feature
-    const startPx =
-      (bpToPx({ refName, coord: reversed ? end : start, regionNumber })
-        ?.offsetPx ?? 0) - offsetPx
-    const row = Math.floor(y / apolloRowHeight)
-    const top = row * apolloRowHeight
-    const widthPx = length / bpPerPx
-    ctx.fillStyle = 'rgba(0,0,0,0.2)'
-    ctx.fillRect(
-      startPx,
-      top,
-      widthPx,
-      apolloRowHeight * this.getRowCount(feature),
-    )
+function drawFeature(
+  ctx: CanvasRenderingContext2D,
+  feature: AnnotationFeature,
+  row: number,
+  stateModel: LinearApolloDisplayRendering,
+  displayedRegionIndex: number,
+) {
+  const { apolloRowHeight: heightPx, lgv, session } = stateModel
+  const { bpPerPx, displayedRegions, offsetPx } = lgv
+  const displayedRegion = displayedRegions[displayedRegionIndex]
+  const minX =
+    (lgv.bpToPx({
+      refName: displayedRegion.refName,
+      coord: feature.min,
+      regionNumber: displayedRegionIndex,
+    })?.offsetPx ?? 0) - offsetPx
+  const { reversed } = displayedRegion
+  const { apolloSelectedFeature } = session
+  const widthPx = feature.length / bpPerPx
+  const startPx = reversed ? minX - widthPx : minX
+  const top = row * heightPx
+  const rowCount = getRowCount(feature)
+  const isSelected = isSelectedFeature(feature, apolloSelectedFeature)
+  const groupingColor = isSelected ? 'rgba(130,0,0,0.45)' : 'rgba(255,0,0,0.25)'
+  if (rowCount > 1) {
+    // draw background that encapsulates all child features
+    const featureHeight = rowCount * heightPx
+    drawBox(ctx, startPx, top, widthPx, featureHeight, groupingColor)
   }
+  boxGlyph.draw(ctx, feature, row, stateModel, displayedRegionIndex)
+}
 
-  onMouseUp(stateModel: LinearApolloDisplay, event: CanvasMouseEvent) {
-    if (stateModel.apolloDragging ?? event.button !== 0) {
-      return
-    }
-    const { feature } = stateModel.getFeatureAndGlyphUnderMouse(event)
-    if (feature) {
-      stateModel.setSelectedFeature(feature)
-    }
-  }
-
-  continueDrag(
-    _display: LinearApolloDisplay,
-    _currentMousePosition: MousePosition,
-  ): void {
-    // pass
-  }
-
-  getFeatureFromLayout(feature: AnnotationFeatureI, bp: number, row: number) {
-    const layoutRow = this.featuresForRow(feature)[row]
-    return layoutRow?.find((f) => bp >= f.start && bp <= f.end)
-  }
-
-  getRowForFeature(
-    feature: AnnotationFeatureI,
-    childFeature: AnnotationFeatureI,
-  ) {
-    const rows = this.featuresForRow(feature)
-    for (const [idx, row] of rows.entries()) {
-      if (row.some((feature) => feature._id === childFeature._id)) {
-        return idx
-      }
-    }
+function drawHover(
+  stateModel: LinearApolloDisplay,
+  ctx: CanvasRenderingContext2D,
+) {
+  const { apolloHover, apolloRowHeight, lgv } = stateModel
+  if (!apolloHover) {
     return
   }
+  const { feature } = apolloHover
+  const position = stateModel.getFeatureLayoutPosition(feature)
+  if (!position) {
+    return
+  }
+  const { featureRow, layoutIndex, layoutRow } = position
+  const { bpPerPx, displayedRegions, offsetPx } = lgv
+  const displayedRegion = displayedRegions[layoutIndex]
+  const { refName, reversed } = displayedRegion
+  const { length, max, min } = feature
+  const startPx =
+    (lgv.bpToPx({
+      refName,
+      coord: reversed ? max : min,
+      regionNumber: layoutIndex,
+    })?.offsetPx ?? 0) - offsetPx
+  const top = (layoutRow + featureRow) * apolloRowHeight
+  const widthPx = length / bpPerPx
+  ctx.fillStyle = 'rgba(0,0,0,0.2)'
+  ctx.fillRect(startPx, top, widthPx, apolloRowHeight * getRowCount(feature))
+}
+
+function getFeatureFromLayout(
+  feature: AnnotationFeature,
+  bp: number,
+  row: number,
+) {
+  const layoutRow = featuresForRow(feature)[row]
+  return layoutRow.find((f) => bp >= f.min && bp <= f.max)
+}
+
+function getRowForFeature(
+  feature: AnnotationFeature,
+  childFeature: AnnotationFeature,
+) {
+  const rows = featuresForRow(feature)
+  for (const [idx, row] of rows.entries()) {
+    if (row.some((feature) => feature._id === childFeature._id)) {
+      return idx
+    }
+  }
+  return
+}
+
+// False positive here, none of these functions use "this"
+/* eslint-disable @typescript-eslint/unbound-method */
+const {
+  drawDragPreview,
+  drawTooltip,
+  getContextMenuItems,
+  onMouseDown,
+  onMouseLeave,
+  onMouseMove,
+  onMouseUp,
+} = boxGlyph
+/* eslint-enable @typescript-eslint/unbound-method */
+
+export const genericChildGlyph: Glyph = {
+  draw,
+  drawDragPreview,
+  drawHover,
+  drawTooltip,
+  getContextMenuItems,
+  getFeatureFromLayout,
+  getRowCount,
+  getRowForFeature,
+  onMouseDown,
+  onMouseLeave,
+  onMouseMove,
+  onMouseUp,
 }

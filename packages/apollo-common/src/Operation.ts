@@ -1,16 +1,21 @@
+/* eslint-disable @typescript-eslint/no-confusing-void-expression */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import type { ReadStream } from 'node:fs'
 import type { FileHandle } from 'node:fs/promises'
 
-import type { LoggerService } from '@nestjs/common'
 import {
   AssemblyDocument,
   FeatureDocument,
   FileDocument,
   RefSeqChunkDocument,
   RefSeqDocument,
+  JBrowseConfigDocument,
   UserDocument,
-} from 'apollo-schemas'
+} from '@apollo-annotation/schemas'
+import type { LoggerService } from '@nestjs/common'
 import type { ClientSession, Model } from 'mongoose'
+import { GenericFilehandle } from 'generic-filehandle'
 
 export interface LocalGFF3DataStore {
   typeName: 'LocalGFF3'
@@ -33,9 +38,11 @@ export interface ServerDataStore {
   refSeqChunkModel: Model<RefSeqChunkDocument>
   fileModel: Model<FileDocument>
   userModel: Model<UserDocument>
+  jbrowseConfigModel: Model<JBrowseConfigDocument>
   session: ClientSession
   filesService: {
     getFileStream(file: FileDocument): ReadStream
+    getFileHandle(file: FileDocument): GenericFilehandle
     parseGFF3(stream: ReadStream): ReadStream
     create(createFileDto: CreateFileDto): void
     remove(id: string): void

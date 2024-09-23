@@ -3,7 +3,7 @@
   "compilerOptions": {
     "types": ["@types/node"],
     "noEmit": true,
-    "allowJs": true
+    "allowJs": true,
   },
   "include": ["jest.config.cjs, babel.config.js"],
 }

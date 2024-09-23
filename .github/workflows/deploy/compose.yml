@@ -1,0 +1,101 @@
+name: apollo-demo-site
+
+services:
+  apollo-collaboration-server:
+    image: ghcr.io/gmod/apollo-collaboration-server:${DOCKER_TAG}
+    depends_on:
+      mongo-node-1:
+        condition: service_healthy
+    environment:
+      NAME: Apollo demo server
+      MONGODB_URI: mongodb://mongo-node-1:27017,mongo-node-2:27018/apolloDb?replicaSet=rs0
+      FILE_UPLOAD_FOLDER: /data/uploads
+      LOG_LEVELS: error,warn,log,debug
+      ALLOW_GUEST_USER: true
+      DEFAULT_NEW_USER_ROLE: user
+      URL: ${URL}
+      JWT_SECRET: ${JWT_SECRET}
+      SESSION_SECRET: ${SESSION_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      ALLOW_ROOT_USER: true
+      ROOT_USER_NAME: ${ROOT_USER_NAME}
+      ROOT_USER_PASSWORD: ${ROOT_USER_PASSWORD}
+    ports:
+      - 3999:3999
+    volumes:
+      - uploaded-files-volume:/data/uploads
+    restart: unless-stopped
+
+  client:
+    build:
+      args:
+        JBROWSE_VERSION: 2.13.1
+      context: .
+    depends_on:
+      - apollo-collaboration-server
+    ports:
+      - '80:80'
+    volumes:
+      - /home/ec2-user/deployment/data/:/usr/local/apache2/htdocs/data/
+      - /home/ec2-user/deployment/demoData/:/usr/local/apache2/htdocs/demoData/
+    restart: unless-stopped
+
+  mongo-node-1:
+    image: mongo:7
+    command:
+      - '--replSet'
+      - rs0
+      - '--bind_ip_all'
+      - '--port'
+      - '27017'
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_interval: 5s
+      start_period: 2m
+      test: |
+        mongosh --port 27017 --quiet --eval "
+        try {
+          rs.status()
+          console.log('replica set ok')
+        } catch {
+          rs.initiate({
+            _id: 'rs0',
+            members: [
+              { _id: 0, host: 'mongo-node-1:27017', priority: 1 },
+              { _id: 1, host: 'mongo-node-2:27018', priority: 0.5 },
+            ],
+          })
+          console.log('replica set initiated')
+        }
+        "
+      timeout: 10s
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-node-1_data:/data/db
+      - mongo-node-1_config:/data/configdb
+    restart: unless-stopped
+
+  mongo-node-2:
+    image: mongo:7
+    command:
+      - '--replSet'
+      - rs0
+      - '--bind_ip_all'
+      - '--port'
+      - '27018'
+    ports:
+      - '27018:27018'
+    volumes:
+      - mongo-node-2_data:/data/db
+      - mongo-node-2_config:/data/configdb
+    restart: unless-stopped
+
+volumes:
+  mongo-node-1_config: null
+  mongo-node-1_data: null
+  mongo-node-2_config: null
+  mongo-node-2_data: null
+  uploaded-files-volume: null

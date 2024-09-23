@@ -1,11 +1,16 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import { AddFeatureChange } from '@apollo-annotation/shared'
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { DisplayType } from '@jbrowse/core/pluggableElementTypes'
 import PluggableElementBase from '@jbrowse/core/pluggableElementTypes/PluggableElementBase'
 import { getContainingView, getSession } from '@jbrowse/core/util'
 import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
-import { AddFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 
 import { ApolloSessionModel } from '../session'
@@ -101,10 +106,9 @@ export function annotationFromPileup(pluggableElement: PluggableElementBase) {
 
         const newFeature: AnnotationFeatureSnapshot = {
           _id: ObjectID().toHexString(),
-          gffId: '',
           refSeq: refSeqId,
-          start: feature.get('start'),
-          end: feature.get('end'),
+          min: feature.get('start'),
+          max: feature.get('end'),
           type: 'mRNA',
           strand: feature.get('strand'),
         }
@@ -117,22 +121,19 @@ export function annotationFromPileup(pluggableElement: PluggableElementBase) {
         const [firstExon] = exons
         const cdsFeature: AnnotationFeatureSnapshot = {
           _id: ObjectID().toHexString(),
-          gffId: '',
           refSeq: refSeqId,
-          start: firstExon.start,
-          end: firstExon.end,
+          min: firstExon.start,
+          max: firstExon.end,
           type: 'CDS',
           strand: feature.get('strand'),
-          phase: 0,
         }
         newFeature.children[cdsFeature._id] = cdsFeature
         if (exons.length === 1) {
           const exon: AnnotationFeatureSnapshot = {
             _id: ObjectID().toHexString(),
-            gffId: '',
             refSeq: refSeqId,
-            start: firstExon.start,
-            end: firstExon.end,
+            min: firstExon.start,
+            max: firstExon.end,
             type: 'exon',
             strand: feature.get('strand'),
           }
@@ -147,24 +148,22 @@ export function annotationFromPileup(pluggableElement: PluggableElementBase) {
         }[] = []
         let phase: 0 | 1 | 2 = 0
         for (const exon of exons) {
-          cdsFeature.start = Math.min(cdsFeature.start, exon.start)
-          cdsFeature.end = Math.max(cdsFeature.end, exon.end)
+          cdsFeature.min = Math.min(cdsFeature.min, exon.start)
+          cdsFeature.max = Math.max(cdsFeature.max, exon.end)
           const { end, start } = exon
-          discontinuousLocations?.push({ start, end, phase })
+          discontinuousLocations.push({ start, end, phase })
           const localPhase = (end - start) % 3
           phase = ((phase + localPhase) % 3) as 0 | 1 | 2
           const newExon: AnnotationFeatureSnapshot = {
             _id: ObjectID().toHexString(),
-            gffId: '',
             refSeq: refSeqId,
-            start,
-            end,
+            min: start,
+            max: end,
             type: 'exon',
             strand: feature.get('strand'),
           }
           newFeature.children[newExon._id] = newExon
         }
-        cdsFeature.discontinuousLocations = discontinuousLocations
         return newFeature
       },
       async onPileupFeatureContext() {
@@ -180,7 +179,7 @@ export function annotationFromPileup(pluggableElement: PluggableElementBase) {
         const session = getSession(self)
         await (
           session as unknown as ApolloSessionModel
-        ).apolloDataStore.changeManager.submit?.(change)
+        ).apolloDataStore.changeManager.submit(change)
         session.notify('Annotation added successfully', 'success')
       },
     }))

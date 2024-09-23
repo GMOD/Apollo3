@@ -1,5 +1,8 @@
+import { IDBPDatabase, openDB } from 'idb'
+
 Cypress.Commands.add('loginAsGuest', () => {
-  cy.visit('/?config=http://localhost:9000/jbrowse_config.json')
+  cy.visit('/?config=http://localhost:3999/jbrowse/config.json')
+  cy.contains('Linear Genome View', { timeout: 10_000 }).click()
   cy.contains('Continue as Guest', { timeout: 10_000 }).click()
   // eslint-disable-next-line cypress/no-unnecessary-waiting
   cy.wait(2000)
@@ -13,6 +16,84 @@ Cypress.Commands.add('deleteAssemblies', () => {
       cy.log(`Collection ${x}: ${results}` as unknown as string)
     })
   }
+})
+
+type OntologyKey = 'nodes' | 'edges' | 'meta'
+
+async function loadOntology(
+  ontologyGZip: Buffer,
+  name: string,
+  version: number,
+) {
+  const blob = new Blob([ontologyGZip])
+  const ds = new DecompressionStream('gzip')
+  const decompressedStream = blob.stream().pipeThrough(ds)
+  const ontologyBlob = await new Response(decompressedStream).blob()
+  const ontologyJSON = await ontologyBlob.text()
+  const ontologyData = JSON.parse(ontologyJSON) as Record<
+    OntologyKey,
+    unknown[]
+  >
+  await openDB(name, version, {
+    async upgrade(database: IDBPDatabase): Promise<void> {
+      const meta = database.createObjectStore('meta')
+      await meta.add(ontologyData.meta[0], 'meta')
+      const nodes = database.createObjectStore('nodes', { keyPath: 'id' })
+      nodes.createIndex('by-label', 'lbl')
+      nodes.createIndex('by-type', 'type')
+      nodes.createIndex('by-synonym', ['meta', 'synonyms', 'val'])
+      nodes.createIndex('full-text-words', 'fullTextWords', {
+        multiEntry: true,
+      })
+      for (const node of ontologyData.nodes) {
+        await nodes.add(node)
+      }
+      const edges = database.createObjectStore('edges', { autoIncrement: true })
+      edges.createIndex('by-subject', 'sub')
+      edges.createIndex('by-object', 'obj')
+      edges.createIndex('by-predicate', 'pred')
+      for (const edge of ontologyData.edges) {
+        await edges.add(edge)
+      }
+    },
+  })
+}
+
+Cypress.Commands.add('addOntologies', () => {
+  cy.deleteMany({}, { collection: 'jbrowseconfigs' })
+  cy.insertOne(
+    {
+      configuration: {
+        ApolloPlugin: {
+          ontologies: [
+            {
+              name: 'Gene Ontology',
+              version: 'full',
+              source: {
+                uri: 'https://release.geneontology.org/2023-06-11/ontology/go.json',
+                locationType: 'UriLocation',
+              },
+            },
+            {
+              name: 'Sequence Ontology',
+              version: '3.1',
+              source: {
+                uri: 'http://localhost:9000/test_data/so-v3.1.json',
+                locationType: 'UriLocation',
+              },
+            },
+          ],
+        },
+      },
+    },
+    { collection: 'jbrowseconfigs' },
+  )
+  cy.readFile('cypress/data/go.json.gz', null).then((goGZip: Buffer) => {
+    cy.wrap<Promise<void>>(
+      loadOntology(goGZip, 'Apollo Ontology "Gene Ontology" "full"', 2),
+      { timeout: 120_000 },
+    )
+  })
 })
 
 Cypress.Commands.add('addAssemblyFromGff', (assemblyName, fin) => {
@@ -51,7 +132,7 @@ Cypress.Commands.add('selectAssemblyToView', (assemblyName) => {
   cy.get('input[data-testid="assembly-selector"]')
     .parent()
     .then((el) => {
-      if (el.text().includes(assemblyName) === false) {
+      if (!el.text().includes(assemblyName)) {
         cy.get('input[data-testid="assembly-selector"]').parent().click()
         cy.get('li').contains(assemblyName).click()
       }
@@ -77,7 +158,8 @@ Cypress.Commands.add('searchFeatures', (query, expectedNumOfHits) => {
     cy.wait(`@search ${query}`)
   } else {
     cy.contains('Search results')
-      .parent()
+      .parents('div')
+      .first()
       .within(() => {
         cy.get('tbody')
           .find('tr')

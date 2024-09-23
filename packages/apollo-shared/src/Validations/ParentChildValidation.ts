@@ -1,5 +1,7 @@
-import { Change } from 'apollo-common'
-import { Feature, FeatureDocument } from 'apollo-schemas'
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+import { Change } from '@apollo-annotation/common'
+import { Feature, FeatureDocument } from '@apollo-annotation/schemas'
 import { ClientSession, Model } from 'mongoose'
 
 import {
@@ -70,11 +72,11 @@ export class ParentChildValidation extends Validation {
     }
     for (const [, childFeature] of feature.children || new Map()) {
       if (
-        feature.start !== null &&
-        feature.end !== null &&
-        childFeature.start !== null &&
-        childFeature.end !== null &&
-        (childFeature.end > feature.end || childFeature.start < feature.start)
+        feature.min !== null &&
+        feature.max !== null &&
+        childFeature.min !== null &&
+        childFeature.max !== null &&
+        (childFeature.max > feature.max || childFeature.min < feature.min)
       ) {
         throw new Error(
           `Feature "${childFeature._id}" exceeds the bounds of its parent, "${feature._id}"`,

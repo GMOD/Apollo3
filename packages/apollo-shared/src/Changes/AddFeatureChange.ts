@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
   ChangeOptions,
   ClientDataStore,
@@ -5,8 +9,8 @@ import {
   LocalGFF3DataStore,
   SerializedFeatureChange,
   ServerDataStore,
-} from 'apollo-common'
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
+} from '@apollo-annotation/common'
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 
 import { DeleteFeatureChange } from './DeleteFeatureChange'
 
@@ -30,7 +34,7 @@ interface SerializedAddFeatureChangeMultiple
   changes: AddFeatureChangeDetails[]
 }
 
-type SerializedAddFeatureChange =
+export type SerializedAddFeatureChange =
   | SerializedAddFeatureChangeSingle
   | SerializedAddFeatureChangeMultiple
 
@@ -109,7 +113,6 @@ export class AddFeatureChange extends FeatureChange {
         )
         featureCnt++
       } else {
-        addedFeature.gffId = _id // User added manually new feature so then gffId = _id
         // Adding new child feature
         if (parentFeatureId) {
           const topLevelFeature = await featureModel
@@ -154,7 +157,7 @@ export class AddFeatureChange extends FeatureChange {
           // Child features should be sorted for click and drag of gene glyphs to work properly
           parentFeature.children = new Map(
             [...parentFeature.children.entries()].sort(
-              (a, b) => a[1].start - b[1].start,
+              (a, b) => a[1].min - b[1].min,
             ),
           )
           const childIds = this.getChildFeatureIds(addedFeature)

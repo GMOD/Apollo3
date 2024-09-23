@@ -1,26 +1,25 @@
-import gff, { GFF3Item } from '@gmod/gff'
-import { getConf } from '@jbrowse/core/configuration'
-import { Region, getSession } from '@jbrowse/core/util'
+/* eslint-disable @typescript-eslint/require-await */
 import {
   AssemblySpecificChange,
   Change,
   isAssemblySpecificChange,
-} from 'apollo-common'
-import { AnnotationFeatureSnapshot, CheckResultSnapshot } from 'apollo-mst'
-import { ValidationResultSet, makeGFF3Feature } from 'apollo-shared'
+} from '@apollo-annotation/common'
+import {
+  AnnotationFeatureSnapshot,
+  CheckResultSnapshot,
+} from '@apollo-annotation/mst'
+import {
+  ValidationResultSet,
+  makeGFF3Feature,
+  splitStringIntoChunks,
+} from '@apollo-annotation/shared'
+import gff, { GFF3Item } from '@gmod/gff'
+import { getConf } from '@jbrowse/core/configuration'
+import { Region, getSession } from '@jbrowse/core/util'
 import { getSnapshot } from 'mobx-state-tree'
 
 import { checkFeatures, loadAssemblyIntoClient } from '../util'
-import { BackendDriver } from './BackendDriver'
-
-function splitStringIntoChunks(input: string, chunkSize: number): string[] {
-  const chunks: string[] = []
-  for (let i = 0; i < input.length; i += chunkSize) {
-    const chunk = input.slice(i, i + chunkSize)
-    chunks.push(chunk)
-  }
-  return chunks
-}
+import { BackendDriver, RefNameAliases } from './BackendDriver'
 
 export class DesktopFileDriver extends BackendDriver {
   async loadAssembly(assemblyName: string) {
@@ -44,6 +43,19 @@ export class DesktopFileDriver extends BackendDriver {
       assembly = await this.loadAssembly(assemblyName)
     }
     return assembly
+  }
+
+  async getRefNameAliases(assemblyName: string): Promise<RefNameAliases[]> {
+    const assembly = await this.getAssembly(assemblyName)
+    const refNameAliases: RefNameAliases[] = []
+    for (const [, refSeq] of assembly.refSeqs) {
+      refNameAliases.push({
+        refName: refSeq.name,
+        aliases: [refSeq._id],
+        uniqueId: `alias-${refSeq._id}`,
+      })
+    }
+    return refNameAliases
   }
 
   async getFeatures(

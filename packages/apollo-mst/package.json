@@ -1,19 +1,22 @@
 {
-  "name": "apollo-mst",
-  "version": "1.0.0-alpha.0",
+  "name": "@apollo-annotation/mst",
+  "version": "0.1.19",
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc"
   },
   "dependencies": {
-    "@jbrowse/core": "^2.7.0",
+    "@jbrowse/core": "^2.13.1",
     "mobx": "^6.6.1",
     "mobx-state-tree": "^5.1.7",
+    "react-dom": "^18.2.0",
     "rxjs": "^7.4.0",
     "tslib": "^2.3.1"
   },
   "devDependencies": {
-    "typescript": "^5.1.6"
+    "typescript": "^5.5.3"
   },
-  "private": true
+  "publishConfig": {
+    "access": "public"
+  }
 }

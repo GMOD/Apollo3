@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/require-await */
 import {
   LocalGFF3DataStore,
   Operation,
   OperationOptions,
   SerializedOperation,
   ServerDataStore,
-} from 'apollo-common'
+} from '@apollo-annotation/common'
 
 interface SerializedGetFeaturesOperation extends SerializedOperation {
   typeName: 'GetFeaturesOperation'
@@ -44,8 +45,8 @@ export class GetFeaturesOperation extends Operation {
     return backend.featureModel
       .find({
         refSeq: this.refSeq,
-        start: { $lte: this.end },
-        end: { $gte: this.start },
+        min: { $lte: this.end },
+        max: { $gte: this.start },
         status: 0,
       })
       .exec()

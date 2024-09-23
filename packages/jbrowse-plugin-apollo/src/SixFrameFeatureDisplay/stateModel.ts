@@ -1,3 +1,11 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/unbound-method */
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import { ConfigurationReference } from '@jbrowse/core/configuration'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
@@ -13,7 +21,6 @@ import { BaseBlock } from '@jbrowse/core/util/blockTypes'
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { Instance, addDisposer, types } from 'mobx-state-tree'
 
@@ -42,7 +49,7 @@ export function stateModelFactory(
       showIntronLines: true,
     })
     .volatile(() => ({
-      apolloFeatureUnderMouse: undefined as AnnotationFeatureI | undefined,
+      apolloFeatureUnderMouse: undefined as AnnotationFeature | undefined,
       apolloRowUnderMouse: undefined as number | undefined,
     }))
     .views((self) => {
@@ -141,7 +148,7 @@ export function stateModelFactory(
       },
       get changeManager() {
         const session = getSession(self) as ApolloSession
-        return session.apolloDataStore?.changeManager
+        return session.apolloDataStore.changeManager
       },
       get sequence() {
         const { regions } = self
@@ -163,7 +170,7 @@ export function stateModelFactory(
       get features() {
         const { regions } = self
         const session = getSession(self) as ApolloSession
-        const features = new Map<string, Map<string, AnnotationFeatureI>>()
+        const features = new Map<string, Map<string, AnnotationFeature>>()
         for (const region of regions) {
           const assembly = session.apolloDataStore.assemblies.get(
             region.assemblyName,
@@ -171,7 +178,7 @@ export function stateModelFactory(
           const ref = assembly?.getByRefName(region.refName)
           let filteredRef = features.get(region.refName)
           if (!filteredRef) {
-            filteredRef = new Map<string, AnnotationFeatureI>()
+            filteredRef = new Map<string, AnnotationFeature>()
             features.set(region.refName, filteredRef)
           }
           for (const [featureId, feature] of ref?.features.entries() ??
@@ -198,7 +205,7 @@ export function stateModelFactory(
             if (featureLocation.min < min) {
               ;({ min } = featureLocation)
             }
-            if (featureLocation.end > max) {
+            if (featureLocation.max > max) {
               ;({ max } = featureLocation)
             }
           }
@@ -263,7 +270,7 @@ export function stateModelFactory(
         return codonLayout
       },
       get featureLayout() {
-        const featureLayout = new Map<number, [string, AnnotationFeatureI][]>()
+        const featureLayout = new Map<number, [string, AnnotationFeature][]>()
         for (const [refSeq, featuresForRefSeq] of this.features || []) {
           if (!featuresForRefSeq) {
             continue
@@ -336,7 +343,7 @@ export function stateModelFactory(
         }
         return assembly.name
       },
-      get selectedFeature(): AnnotationFeatureI | undefined {
+      get selectedFeature(): AnnotationFeature | undefined {
         const session = getSession(self) as ApolloSession
         return session.apolloSelectedFeature
       },
@@ -346,11 +353,11 @@ export function stateModelFactory(
       },
     }))
     .actions((self) => ({
-      setSelectedFeature(feature?: AnnotationFeatureI) {
+      setSelectedFeature(feature?: AnnotationFeature) {
         const session = getSession(self) as ApolloSession
-        return session.apolloSetSelectedFeature(feature)
+        session.apolloSetSelectedFeature(feature)
       },
-      setApolloFeatureUnderMouse(feature?: AnnotationFeatureI) {
+      setApolloFeatureUnderMouse(feature?: AnnotationFeature) {
         self.apolloFeatureUnderMouse = feature
       },
       setApolloRowUnderMouse(row?: number) {
@@ -388,19 +395,25 @@ export function stateModelFactory(
             label: 'Show start codons',
             type: 'checkbox',
             checked: self.showStartCodons,
-            onClick: () => self.toggleShowStartCodons(),
+            onClick: () => {
+              self.toggleShowStartCodons()
+            },
           },
           {
             label: 'Show stop codons',
             type: 'checkbox',
             checked: self.showStopCodons,
-            onClick: () => self.toggleShowStopCodons(),
+            onClick: () => {
+              self.toggleShowStopCodons()
+            },
           },
           {
             label: 'Show intron lines',
             type: 'checkbox',
             checked: self.showIntronLines,
-            onClick: () => self.toggleShowIntronLines(),
+            onClick: () => {
+              self.toggleShowIntronLines()
+            },
           },
         ]
       },
@@ -410,4 +423,8 @@ export function stateModelFactory(
 export type SixFrameFeatureDisplayStateModel = ReturnType<
   typeof stateModelFactory
 >
-export type SixFrameFeatureDisplay = Instance<SixFrameFeatureDisplayStateModel>
+// eslint disable because of
+// https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface SixFrameFeatureDisplay
+  extends Instance<SixFrameFeatureDisplayStateModel> {}

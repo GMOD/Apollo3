@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-misused-promises */
+import { AnnotationFeature } from '@apollo-annotation/mst'
+import { FeatureAttributeChange } from '@apollo-annotation/shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
@@ -16,8 +21,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
-import { FeatureAttributeChange } from 'apollo-shared'
 import { getRoot, getSnapshot } from 'mobx-state-tree'
 import React, { useMemo, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
@@ -32,7 +35,7 @@ import { OntologyTermMultiSelect } from './OntologyTermMultiSelect'
 interface ModifyFeatureAttributeProps {
   session: ApolloSessionModel
   handleClose(): void
-  sourceFeature: AnnotationFeatureI
+  sourceFeature: AnnotationFeature
   sourceAssemblyId: string
   changeManager: ChangeManager
 }
@@ -219,7 +222,7 @@ export function ModifyFeatureAttribute({
       featureId: sourceFeature._id,
       attributes: attrs,
     })
-    await changeManager.submit?.(change)
+    await changeManager.submit(change)
     notify('Feature attributes modified successfully', 'success')
     handleClose()
     event.preventDefault()

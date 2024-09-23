@@ -1,16 +1,40 @@
 name: Push
 
-on: push
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - '!**'
 
 jobs:
   build:
-    name: Lint and build
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Check out
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: yarn
+      - name: Install
+        run: yarn --immutable
+      - name: Build collaboration server
+        run: yarn build
+        working-directory: packages/apollo-collaboration-server
+      - name: Build plugin
+        run: yarn build
+        working-directory: packages/jbrowse-plugin-apollo
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: yarn
@@ -23,9 +47,16 @@ jobs:
         working-directory: packages/apollo-shared
       - name: Lint codebase
         run: yarn eslint --ext .js,.ts,.jsx,.tsx .
-      - name: Build collaboration server
-        run: yarn build
-        working-directory: packages/apollo-collaboration-server
-      - name: Build plugin
-        run: yarn build
-        working-directory: packages/jbrowse-plugin-apollo
+  docker:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    uses: ./.github/workflows/docker.yml
+    with:
+      tag: devel
+    secrets: inherit
+  deploy:
+    needs: [docker]
+    if: ${{ github.ref == 'refs/heads/main' }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: staging
+    secrets: inherit

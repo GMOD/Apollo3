@@ -2,6 +2,7 @@ import { AbstractMenuManager, AbstractSessionModel } from '@jbrowse/core/util'
 
 import {
   AddAssembly,
+  AddRefSeqAliases,
   DeleteAssembly,
   ImportFeatures,
   ManageUsers,
@@ -54,8 +55,24 @@ export function addMenuItems(rootModel: AbstractMenuManager) {
             handleClose: () => {
               doneCallback()
             },
-            changeManager: (session as ApolloSessionModel).apolloDataStore
-              .changeManager,
+            changeManager: session.apolloDataStore.changeManager,
+          },
+        ],
+      )
+    },
+  })
+  rootModel.appendToMenu('Apollo', {
+    label: 'Add reference sequence aliases',
+    onClick: (session: ApolloSessionModel) => {
+      ;(session as unknown as AbstractSessionModel).queueDialog(
+        (doneCallback) => [
+          AddRefSeqAliases,
+          {
+            session,
+            handleClose: () => {
+              doneCallback()
+            },
+            changeManager: session.apolloDataStore.changeManager,
           },
         ],
       )
@@ -72,8 +89,7 @@ export function addMenuItems(rootModel: AbstractMenuManager) {
             handleClose: () => {
               doneCallback()
             },
-            changeManager: (session as ApolloSessionModel).apolloDataStore
-              .changeManager,
+            changeManager: session.apolloDataStore.changeManager,
           },
         ],
       )

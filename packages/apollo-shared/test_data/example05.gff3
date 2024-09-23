@@ -1,0 +1,30 @@
+##gff-version 3
+# example 5
+chr1	.	gene	1000	9000	.	+	.	ID=gene10001;Name=EDEN;testid=t003
+chr1	.	mRNA	1050	9000	.	+	.	ID=mRNA10001;Parent=gene10001;Name=EDEN.1;testid=t004
+chr1	.	mRNA	1050	9000	.	+	.	ID=mRNA10002;Parent=gene10001;Name=EDEN.2;testid=t005
+chr1	.	mRNA	1300	9000	.	+	.	ID=mRNA10003;Parent=gene10001;Name=EDEN.3;testid=t006
+chr1	.	exon	1050	1500	.	+	.	ID=exon10001;Parent=mRNA10001,mRNA10002;testid=t007
+chr1	.	exon	1300	1500	.	+	.	ID=exon10002;Parent=mRNA10003;testid=t008
+chr1	.	exon	3000	3902	.	+	.	ID=exon10003;Parent=mRNA10001,mRNA10003;testid=t009
+chr1	.	exon	5000	5500	.	+	.	ID=exon10004;Parent=mRNA10001,mRNA10002,mRNA10003;testid=t010
+chr1	.	exon	7000	9000	.	+	.	ID=exon10005;Parent=mRNA10001,mRNA10002,mRNA10003;testid=t011
+chr1	.	five_prime_UTR	1050	1200	.	+	.	ID=five_prime_UTR10001;Parent=mRNA10001,mRNA10002;testid=t012
+chr1	.	five_prime_UTR	1300	1500	.	+	.	ID=five_prime_UTR10002;Parent=mRNA10003;testid=t013
+chr1	.	five_prime_UTR	3000	3300	.	+	.	ID=five_prime_UTR10003;Parent=mRNA10003;testid=t014
+chr1	.	five_prime_UTR	3000	3390	.	+	.	ID=five_prime_UTR10004;Parent=mRNA10003;testid=t015
+chr1	.	five_prime_UTR	3000	3390	.	+	.	ID=five_prime_UTR10004;Parent=mRNA10003;testid=t016
+chr1	.	three_prime_UTR	7601	9000	.	+	.	ID=three_prime_UTR10001;Parent=mRNA10001,mRNA10002,mRNA10003;testid=t017
+chr1	.	CDS	1201	1500	.	+	0	ID=cds10001;Parent=mRNA10001;Name=edenprotein.1;testid=t018
+chr1	.	CDS	3000	3902	.	+	0	ID=cds10001;Parent=mRNA10001;Name=edenprotein.1;testid=t019
+chr1	.	CDS	5000	5500	.	+	0	ID=cds10001;Parent=mRNA10001;Name=edenprotein.1;testid=t020
+chr1	.	CDS	7000	7600	.	+	0	ID=cds10001;Parent=mRNA10001;Name=edenprotein.1;testid=t021
+chr1	.	CDS	1201	1500	.	+	0	ID=cds10002;Parent=mRNA10002;Name=edenprotein.2;testid=t022
+chr1	.	CDS	5000	5500	.	+	0	ID=cds10002;Parent=mRNA10002;Name=edenprotein.2;testid=t023
+chr1	.	CDS	7000	7600	.	+	0	ID=cds10002;Parent=mRNA10002;Name=edenprotein.2;testid=t024
+chr1	.	CDS	3301	3902	.	+	0	ID=cds10003;Parent=mRNA10003;Name=edenprotein.3;testid=t025
+chr1	.	CDS	5000	5500	.	+	1	ID=cds10003;Parent=mRNA10003;Name=edenprotein.3;testid=t026
+chr1	.	CDS	7000	7600	.	+	1	ID=cds10003;Parent=mRNA10003;Name=edenprotein.3;testid=t027
+chr1	.	CDS	3391	3902	.	+	0	ID=cds10004;Parent=mRNA10003;Name=edenprotein.4;testid=t028
+chr1	.	CDS	5000	5500	.	+	1	ID=cds10004;Parent=mRNA10003;Name=edenprotein.4;testid=t029
+chr1	.	CDS	7000	7600	.	+	1	ID=cds10004;Parent=mRNA10003;Name=edenprotein.4;testid=t030

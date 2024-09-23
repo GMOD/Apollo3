@@ -1,21 +1,29 @@
-import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
-import { Injectable, Logger } from '@nestjs/common'
-import { InjectModel } from '@nestjs/mongoose'
+/* eslint-disable @typescript-eslint/no-base-to-string */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
+  File,
+  FileDocument,
   RefSeq,
   RefSeqChunk,
   RefSeqChunkDocument,
   RefSeqDocument,
-} from 'apollo-schemas'
+} from '@apollo-annotation/schemas'
+import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
+import { Injectable, Logger } from '@nestjs/common'
+import { InjectModel } from '@nestjs/mongoose'
 import { RemoteFile } from 'generic-filehandle'
 import { Model } from 'mongoose'
 
 import { AssembliesService } from '../assemblies/assemblies.service'
+import { FilesService } from '../files/files.service'
 import { GetSequenceDto } from './dto/get-sequence.dto'
 
 @Injectable()
 export class SequenceService {
   constructor(
+    @InjectModel(File.name)
+    private readonly fileModel: Model<FileDocument>,
+    private readonly filesService: FilesService,
     @InjectModel(RefSeqChunk.name)
     private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
     @InjectModel(RefSeq.name)
@@ -49,6 +57,43 @@ export class SequenceService {
         : new IndexedFasta({
             fasta: new RemoteFile(fa, { fetch }),
             fai: new RemoteFile(fai, { fetch }),
+          })
+      const sequence = await sequenceAdapter.getSequence(name, start, end)
+      if (sequence === undefined) {
+        throw new Error('Sequence not found')
+      }
+      return sequence
+    }
+
+    if (assemblyDoc?.fileIds?.fai) {
+      const { fa, fai, gzi } = assemblyDoc.fileIds
+      this.logger.debug(
+        `Local fasta file = ${fa}, Local fasta index file = ${fai}, Local gzi index file = ${gzi}`,
+      )
+      const faDoc = await this.fileModel.findById(fa)
+      if (!faDoc) {
+        throw new Error(`No checksum for file document ${fa}`)
+      }
+
+      const faiDoc = await this.fileModel.findById(fai)
+      if (!faiDoc) {
+        throw new Error(`File document not found for ${fai}`)
+      }
+
+      const gziDoc = await this.fileModel.findById(gzi)
+      if (!gziDoc) {
+        throw new Error(`File document not found for ${gzi}`)
+      }
+
+      const sequenceAdapter = gzi
+        ? new BgzipIndexedFasta({
+            fasta: this.filesService.getFileHandle(faDoc),
+            fai: this.filesService.getFileHandle(faiDoc),
+            gzi: this.filesService.getFileHandle(gziDoc),
+          })
+        : new IndexedFasta({
+            fasta: this.filesService.getFileHandle(faDoc),
+            fai: this.filesService.getFileHandle(faiDoc),
           })
       const sequence = await sequenceAdapter.getSequence(name, start, end)
       if (sequence === undefined) {

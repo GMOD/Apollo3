@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-confusing-void-expression */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   Readable,
   Transform,
@@ -6,10 +11,7 @@ import {
   pipeline,
 } from 'node:stream'
 
-import gff from '@gmod/gff'
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
-import { InjectModel } from '@nestjs/mongoose'
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import {
   Assembly,
   AssemblyDocument,
@@ -21,8 +23,14 @@ import {
   RefSeqChunk,
   RefSeqChunkDocument,
   RefSeqDocument,
-} from 'apollo-schemas'
-import { makeGFF3Feature } from 'apollo-shared'
+} from '@apollo-annotation/schemas'
+import {
+  makeGFF3Feature,
+  splitStringIntoChunks,
+} from '@apollo-annotation/shared'
+import gff from '@gmod/gff'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import StreamConcat from 'stream-concat'
 
@@ -92,15 +100,6 @@ class FastaTransform extends Transform {
     this.flushLineBuffer()
     callback()
   }
-}
-
-function splitStringIntoChunks(input: string, chunkSize: number): string[] {
-  const chunks: string[] = []
-  for (let i = 0; i < input.length; i += chunkSize) {
-    const chunk = input.slice(i, i + chunkSize)
-    chunks.push(chunk)
-  }
-  return chunks
 }
 
 @Injectable()

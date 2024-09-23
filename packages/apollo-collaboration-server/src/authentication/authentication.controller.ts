@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await */
 import {
   BadRequestException,
   Body,
@@ -12,14 +13,15 @@ import {
 } from '@nestjs/common'
 
 import { GoogleAuthGuard } from '../utils/google.guard'
-import { Public } from '../utils/jwt-auth.guard'
 import { MicrosoftAuthGuard } from '../utils/microsoft.guard'
 import {
   AuthenticationService,
   RequestWithUserToken,
 } from './authentication.service'
+import { Validations } from '../utils/validation/validatation.decorator'
+import { Role } from '../utils/role/role.enum'
 
-@Public()
+@Validations(Role.None)
 @Controller('auth')
 export class AuthenticationController {
   private readonly logger = new Logger(AuthenticationController.name)

@@ -1,19 +1,25 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { ClientDataStore as ClientDataStoreType } from '@apollo-annotation/common'
+import {
+  AnnotationFeatureModel,
+  AnnotationFeatureSnapshot,
+  ApolloAssembly,
+  ApolloAssemblySnapshot,
+  ApolloRefSeq,
+  BackendDriverType,
+  CheckResult,
+  CheckResultSnapshot,
+} from '@apollo-annotation/mst'
 import { getConf, readConfObject } from '@jbrowse/core/configuration'
 import { ConfigurationModel } from '@jbrowse/core/configuration/types'
 import { Region, getSession, isElectron } from '@jbrowse/core/util'
 import { LocalPathLocation, UriLocation } from '@jbrowse/core/util/types/mst'
-import { ClientDataStore as ClientDataStoreType } from 'apollo-common'
-import {
-  AnnotationFeature,
-  AnnotationFeatureSnapshot,
-  ApolloAssembly,
-  ApolloRefSeq,
-  CheckResult,
-  CheckResultSnapshot,
-} from 'apollo-mst'
 import {
   Instance,
-  SnapshotOut,
+  addDisposer,
   flow,
   getParentOfType,
   getRoot,
@@ -35,11 +41,12 @@ import {
   TextIndexFieldDefinition,
 } from '../OntologyManager'
 import { ApolloRootModel } from '../types'
+import { autorun } from 'mobx'
 
 export function clientDataStoreFactory(
-  AnnotationFeatureExtended: typeof AnnotationFeature,
+  AnnotationFeatureExtended: typeof AnnotationFeatureModel,
 ) {
-  const clientStoreType = types
+  return types
     .model('ClientDataStore', {
       typeName: types.optional(types.literal('Client'), 'Client'),
       assemblies: types.map(ApolloAssembly),
@@ -63,8 +70,15 @@ export function clientDataStoreFactory(
       },
     }))
     .actions((self) => ({
-      addAssembly(assemblyId: string) {
-        return self.assemblies.put({ _id: assemblyId, refSeqs: {} })
+      addAssembly(assemblyId: string, backendDriverType?: BackendDriverType) {
+        const assemblySnapshot: ApolloAssemblySnapshot = {
+          _id: assemblyId,
+          refSeqs: {},
+        }
+        if (backendDriverType) {
+          assemblySnapshot.backendDriverType = backendDriverType
+        }
+        return self.assemblies.put(assemblySnapshot)
       },
       addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot) {
         const assembly = self.assemblies.get(assemblyId)
@@ -126,36 +140,39 @@ export function clientDataStoreFactory(
     }))
     .actions((self) => ({
       afterCreate() {
-        // Merge in the ontologies from our plugin configuration.
-        // Ontologies of a given name that are already in the session
-        // take precedence over the ontologies in the configuration.
-        const { ontologyManager, pluginConfiguration } = self
-        const configuredOntologies =
-          pluginConfiguration.ontologies as ConfigurationModel<
-            typeof OntologyRecordConfiguration
-          >[]
-
-        for (const ont of configuredOntologies || []) {
-          const [name, version, source, indexFields] = [
-            readConfObject(ont, 'name') as string,
-            readConfObject(ont, 'version') as string,
-            readConfObject(ont, 'source') as
-              | Instance<typeof LocalPathLocation>
-              | Instance<typeof UriLocation>,
-            readConfObject(
-              ont,
-              'textIndexFields',
-            ) as TextIndexFieldDefinition[],
-          ]
-          if (!ontologyManager.findOntology(name)) {
-            ontologyManager.addOntology(name, version, source, {
-              textIndexing: { indexFields },
-            })
-          }
-        }
-
-        // TODO: add in any configured ontology prefixes that we don't already
-        // have in the session (or hardcoded in the model)
+        addDisposer(
+          self,
+          autorun(() => {
+            // Merge in the ontologies from our plugin configuration.
+            // Ontologies of a given name that are already in the session
+            // take precedence over the ontologies in the configuration.
+            const { ontologyManager, pluginConfiguration } = self
+            const configuredOntologies =
+              pluginConfiguration.ontologies as ConfigurationModel<
+                typeof OntologyRecordConfiguration
+              >[]
+            for (const ont of configuredOntologies || []) {
+              const [name, version, source, indexFields] = [
+                readConfObject(ont, 'name') as string,
+                readConfObject(ont, 'version') as string,
+                readConfObject(ont, 'source') as
+                  | Instance<typeof LocalPathLocation>
+                  | Instance<typeof UriLocation>,
+                readConfObject(
+                  ont,
+                  'textIndexFields',
+                ) as TextIndexFieldDefinition[],
+              ]
+              if (!ontologyManager.findOntology(name)) {
+                ontologyManager.addOntology(name, version, source, {
+                  textIndexing: { indexFields },
+                })
+              }
+            }
+            // TODO: add in any configured ontology prefixes that we don't already
+            // have in the session (or hardcoded in the model)
+          }),
+        )
       },
     }))
     .views((self) => ({
@@ -270,13 +287,4 @@ export function clientDataStoreFactory(
         }
       }),
     }))
-
-  // assembly and feature data isn't actually reloaded on reload unless we delete it from the snap
-  return types.snapshotProcessor(clientStoreType, {
-    postProcessor(snap: SnapshotOut<typeof clientStoreType>) {
-      snap.assemblies = {}
-      snap.checkResults = {}
-      return snap
-    },
-  })
 }

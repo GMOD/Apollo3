@@ -1,3 +1,10 @@
+/* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-misused-promises */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import { DeleteUserChange, UserChange } from '@apollo-annotation/shared'
 import { AbstractRootModel } from '@jbrowse/core/util'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
@@ -19,7 +26,6 @@ import {
   GridRowParams,
   GridToolbar,
 } from '@mui/x-data-grid'
-import { DeleteUserChange, UserChange } from 'apollo-shared'
 import { getRoot } from 'mobx-state-tree'
 import React, { useCallback, useEffect, useState } from 'react'
 
@@ -66,8 +72,8 @@ export function ManageUsers({
 
   const getUsers = useCallback(async () => {
     const { baseURL } = selectedInternetAccount
-    const uri = new URL('/users', baseURL).href
-    const apolloFetch = selectedInternetAccount?.getFetcher({
+    const uri = new URL('users', baseURL).href
+    const apolloFetch = selectedInternetAccount.getFetcher({
       locationType: 'UriLocation',
       uri,
     })
@@ -87,7 +93,9 @@ export function ManageUsers({
   }, [selectedInternetAccount])
 
   useEffect(() => {
-    getUsers().catch((error) => setErrorMessage(String(error)))
+    getUsers().catch((error) => {
+      setErrorMessage(String(error))
+    })
   }, [getUsers])
 
   async function deleteUser(id: GridRowId) {
@@ -116,7 +124,26 @@ export function ManageUsers({
       headerName: 'Role',
       width: 140,
       type: 'singleSelect',
-      valueOptions: ['', 'readOnly', 'user', 'admin'],
+      valueOptions: ['readOnly', 'user', 'admin', 'none'],
+      getOptionLabel(value) {
+        switch (value) {
+          case 'readOnly': {
+            return 'Read-only'
+          }
+          case 'user': {
+            return 'User'
+          }
+          case 'admin': {
+            return 'Admin'
+          }
+          case 'none': {
+            return 'None'
+          }
+          default: {
+            return 'unknown'
+          }
+        }
+      },
       editable: true,
     },
     {
@@ -138,7 +165,7 @@ export function ManageUsers({
     },
   ]
 
-  function handleChangeInternetAccount(e: SelectChangeEvent<string>) {
+  function handleChangeInternetAccount(e: SelectChangeEvent) {
     const newlySelectedInternetAccount = apolloInternetAccounts.find(
       (ia) => ia.internetAccountId === e.target.value,
     )
@@ -199,7 +226,9 @@ export function ManageUsers({
               !isCurrentUser(params.id)
             }
             processRowUpdate={processRowUpdate}
-            onProcessRowUpdateError={(error) => setErrorMessage(String(error))}
+            onProcessRowUpdateError={(error) => {
+              setErrorMessage(String(error))
+            }}
           />
         </div>
       </DialogContent>

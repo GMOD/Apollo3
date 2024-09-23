@@ -6,7 +6,7 @@
       "type": "shell",
       "command": "yarn",
       "detail": "yarn",
-      "problemMatcher": []
+      "problemMatcher": [],
     },
     {
       "label": "start shared",
@@ -16,7 +16,7 @@
       "problemMatcher": [],
       "detail": "tsc --build --watch",
       "dependsOn": ["yarn"],
-      "isBackground": true
+      "isBackground": true,
     },
     {
       "label": "start server",
@@ -26,7 +26,7 @@
       "problemMatcher": [],
       "detail": "yarn build:shared && yarn start:nest --watch",
       "dependsOn": ["yarn"],
-      "isBackground": true
+      "isBackground": true,
     },
     {
       "label": "start plugin watch",
@@ -39,8 +39,8 @@
       "isBackground": true,
       "dependsOn": ["yarn"],
       "presentation": {
-        "group": "plugin-terminal"
-      }
+        "group": "plugin-terminal",
+      },
     },
     {
       "label": "start plugin server",
@@ -52,25 +52,48 @@
       "dependsOn": ["yarn"],
       "isBackground": true,
       "presentation": {
-        "group": "plugin-terminal"
-      }
+        "group": "plugin-terminal",
+      },
     },
     {
       "label": "start plugin",
-      "dependsOn": [
-        "start plugin watch",
-        "start plugin server"
-      ],
-      "problemMatcher": []
+      "dependsOn": ["start plugin watch", "start plugin server"],
+      "problemMatcher": [],
     },
     {
       "label": "Start",
-      "dependsOn": [
-        "start shared",
-        "start server",
-        "start plugin"
-      ],
-      "problemMatcher": []
-    }
-  ]
+      "dependsOn": ["start shared", "start server", "start plugin"],
+      "problemMatcher": [],
+    },
+    {
+      "label": "start server cypress",
+      "type": "npm",
+      "script": "cypress:start",
+      "path": "packages/apollo-collaboration-server",
+      "problemMatcher": [],
+      "detail": "yarn build:shared && yarn start:nest --watch",
+      "dependsOn": ["yarn"],
+      "isBackground": true,
+    },
+    {
+      "label": "start server cli test",
+      "type": "npm",
+      "script": "test:cli:start",
+      "path": "packages/apollo-collaboration-server",
+      "problemMatcher": [],
+      "detail": "yarn build:shared && yarn start:nest --watch",
+      "dependsOn": ["yarn"],
+      "isBackground": true,
+    },
+    {
+      "label": "Start-cypress",
+      "dependsOn": ["start shared", "start server cypress", "start plugin"],
+      "problemMatcher": [],
+    },
+    {
+      "label": "Start-cli-test",
+      "dependsOn": ["start shared", "start server cli test", "start plugin"],
+      "problemMatcher": [],
+    },
+  ],
 }

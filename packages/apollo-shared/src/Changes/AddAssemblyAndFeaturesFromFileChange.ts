@@ -1,12 +1,15 @@
-import { GFF3Feature } from '@gmod/gff'
+/* eslint-disable @typescript-eslint/require-await */
+
 import {
-  AssemblySpecificChange,
   ChangeOptions,
   ClientDataStore,
   LocalGFF3DataStore,
   SerializedAssemblySpecificChange,
   ServerDataStore,
-} from 'apollo-common'
+} from '@apollo-annotation/common'
+import { GFF3Feature } from '@gmod/gff'
+
+import { FromFileBaseChange } from './FromFileBaseChange'
 
 export interface SerializedAddAssemblyAndFeaturesFromFileChangeBase
   extends SerializedAssemblySpecificChange {
@@ -15,7 +18,7 @@ export interface SerializedAddAssemblyAndFeaturesFromFileChangeBase
 
 export interface AddAssemblyAndFeaturesFromFileChangeDetails {
   assemblyName: string
-  fileId: string
+  fileIds: { fa: string }
 }
 
 export interface SerializedAddAssemblyAndFeaturesFromFileChangeSingle
@@ -31,7 +34,7 @@ export type SerializedAddAssemblyAndFeaturesFromFileChange =
   | SerializedAddAssemblyAndFeaturesFromFileChangeSingle
   | SerializedAddAssemblyAndFeaturesFromFileChangeMultiple
 
-export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange {
+export class AddAssemblyAndFeaturesFromFileChange extends FromFileBaseChange {
   typeName = 'AddAssemblyAndFeaturesFromFileChange' as const
   changes: AddAssemblyAndFeaturesFromFileChangeDetails[]
 
@@ -50,8 +53,8 @@ export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange
   toJSON(): SerializedAddAssemblyAndFeaturesFromFileChange {
     const { assembly, changes, typeName } = this
     if (changes.length === 1) {
-      const [{ assemblyName, fileId }] = changes
-      return { typeName, assembly, assemblyName, fileId }
+      const [{ assemblyName, fileIds }] = changes
+      return { typeName, assembly, assemblyName, fileIds }
     }
     return { typeName, assembly, changes }
   }
@@ -65,7 +68,8 @@ export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange
     const { assemblyModel, fileModel, filesService, user } = backend
     const { assembly, changes, logger } = this
     for (const change of changes) {
-      const { assemblyName, fileId } = change
+      const { assemblyName, fileIds } = change
+      const fileId = fileIds.fa
 
       const { FILE_UPLOAD_FOLDER } = process.env
       if (!FILE_UPLOAD_FOLDER) {
@@ -87,10 +91,10 @@ export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange
       }
       // Add assembly
       const [newAssemblyDoc] = await assemblyModel.create([
-        { _id: assembly, name: assemblyName, user, status: -1 },
+        { _id: assembly, name: assemblyName, user, status: -1, fileId },
       ])
       logger.debug?.(
-        `Added new assembly "${assemblyName}", docId "${newAssemblyDoc._id}"`,
+        `Added new assembly "${assemblyName}", docId "${newAssemblyDoc._id.toHexString()}"`,
       )
       logger.debug?.(`File type: "${fileDoc.type}"`)
 
@@ -103,6 +107,9 @@ export class AddAssemblyAndFeaturesFromFileChange extends AssemblySpecificChange
       )
 
       // Loop all features
+      logger.debug?.(
+        `**************** LOOPATAAN KAIKKI FEATURET SEURAAVAKSI File type: "${fileDoc.type}"`,
+      )
       const featureStream = filesService.parseGFF3(
         filesService.getFileStream(fileDoc),
       )

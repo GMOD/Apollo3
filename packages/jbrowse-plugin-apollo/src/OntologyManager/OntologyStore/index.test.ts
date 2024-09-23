@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import path from 'node:path'
 
 import { beforeAll, describe, expect, it, jest } from '@jest/globals'
@@ -17,7 +19,7 @@ const prefixes = new Map([
 // different "Object". This intercepts calls to "query" in this test and makes
 // sure the main scope "Object" is used.
 jest.mock('jsonpath', () => {
-  const original = jest.requireActual('jsonpath') as typeof import('jsonpath')
+  const original = jest.requireActual<typeof import('jsonpath')>('jsonpath')
   return {
     ...original,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

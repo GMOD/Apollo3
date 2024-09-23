@@ -7,9 +7,9 @@ import {
 } from 'mobx-state-tree'
 
 import {
-  AnnotationFeature,
+  AnnotationFeatureModel,
   AnnotationFeatureSnapshot,
-} from './AnnotationFeature'
+} from './AnnotationFeatureModel'
 
 export const Sequence = types.model({
   start: types.number,
@@ -28,7 +28,7 @@ export const ApolloRefSeq = types
     _id: types.identifier,
     name: types.string,
     description: '',
-    features: types.map(AnnotationFeature),
+    features: types.map(AnnotationFeatureModel),
     sequence: types.array(Sequence),
   })
   .actions((self) => ({
@@ -61,23 +61,26 @@ export const ApolloRefSeq = types
       })
       newSequences.sort((s1, s2) => s1.start - s2.start)
       // eslint-disable-next-line unicorn/no-array-reduce
-      const consolidatedSequences = newSequences.reduce((result, current) => {
-        const lastRange = result.at(-1)
-        if (lastRange === undefined) {
-          return [current]
-        }
-        if (lastRange.stop >= current.start) {
-          if (current.stop > lastRange.stop) {
-            lastRange.stop = current.stop
-            lastRange.sequence += current.sequence.slice(
-              current.stop - lastRange.stop,
-            )
+      const consolidatedSequences = newSequences.reduce<SequenceSnapshot[]>(
+        (result, current) => {
+          const lastRange = result.at(-1)
+          if (lastRange === undefined) {
+            return [current]
           }
-        } else {
-          result.push(current)
-        }
-        return result
-      }, [] as SequenceSnapshot[])
+          if (lastRange.stop >= current.start) {
+            if (current.stop > lastRange.stop) {
+              lastRange.stop = current.stop
+              lastRange.sequence += current.sequence.slice(
+                current.stop - lastRange.stop,
+              )
+            }
+          } else {
+            result.push(current)
+          }
+          return result
+        },
+        [],
+      )
       if (
         self.sequence.length === consolidatedSequences.length &&
         self.sequence.every(
@@ -109,5 +112,9 @@ export const ApolloRefSeq = types
     },
   }))
 
-export type ApolloRefSeqI = Instance<typeof ApolloRefSeq>
-export type ApolloRefSeqSnapshot = SnapshotIn<typeof ApolloRefSeq>
+// eslint disables because of
+// https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ApolloRefSeqI extends Instance<typeof ApolloRefSeq> {}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ApolloRefSeqSnapshot extends SnapshotIn<typeof ApolloRefSeq> {}

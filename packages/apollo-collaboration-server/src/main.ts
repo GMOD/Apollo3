@@ -1,14 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import fs from 'node:fs'
 
-import { LogLevel } from '@nestjs/common'
-import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import {
   Check,
   changeRegistry,
   checkRegistry,
   operationRegistry,
-} from 'apollo-common'
-import { CheckSchema } from 'apollo-schemas'
+} from '@apollo-annotation/common'
+import { CheckSchema } from '@apollo-annotation/schemas'
 import {
   CDSCheck,
   CoreValidation,
@@ -16,7 +17,9 @@ import {
   changes,
   operations,
   validationRegistry,
-} from 'apollo-shared'
+} from '@apollo-annotation/shared'
+import { LogLevel } from '@nestjs/common'
+import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import connectMongoDBSession from 'connect-mongodb-session'
 import session from 'express-session'
 import mongoose from 'mongoose'
@@ -108,8 +111,7 @@ async function bootstrap() {
 
   // Add/update checks if needed
   const checksMap: Map<string, Check> = checkRegistry.getChecks()
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  await mongoose.connect(MONGODB_URI!, {})
+  await mongoose.connect(mongodbURI, {})
   const ChecksModel = mongoose.model('checks', CheckSchema)
   for (const [key, check] of checksMap.entries()) {
     const checkByName = await ChecksModel.find({ name: key }).exec()

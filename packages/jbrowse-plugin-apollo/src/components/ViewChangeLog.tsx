@@ -1,3 +1,10 @@
+/* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import { changeRegistry } from '@apollo-annotation/common'
 import {
   Button,
   DialogActions,
@@ -13,7 +20,6 @@ import {
   GridRowsProp,
   GridToolbar,
 } from '@mui/x-data-grid'
-import { changeRegistry } from 'apollo-common'
 import { getRoot } from 'mobx-state-tree'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
@@ -76,9 +82,11 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
       headerName: 'Change JSON',
       width: 600,
       renderCell: ({ value }) => (
-        <textarea className={classes.changeTextarea} readOnly>
-          {JSON.stringify(value)}
-        </textarea>
+        <textarea
+          className={classes.changeTextarea}
+          value={JSON.stringify(value)}
+          readOnly
+        />
       ),
       valueFormatter: ({ value }) => JSON.stringify(value),
     },
@@ -88,13 +96,13 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
       headerName: 'Time',
       width: 160,
       type: 'dateTime',
-      valueGetter: ({ value }) => value && new Date(value),
+      valueGetter: (value) => value && new Date(value),
     },
   ]
 
   useEffect(() => {
     async function getAssemblies() {
-      const uri = new URL('/assemblies', baseURL).href
+      const uri = new URL('assemblies', baseURL).href
       const apolloFetch = apolloInternetAccount?.getFetcher({
         locationType: 'UriLocation',
         uri,
@@ -113,7 +121,9 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
         setAssemblyCollection(data)
       }
     }
-    getAssemblies().catch((error) => setErrorMessage(String(error)))
+    getAssemblies().catch((error) => {
+      setErrorMessage(String(error))
+    })
   }, [apolloInternetAccount, baseURL])
 
   useEffect(() => {
@@ -153,11 +163,13 @@ export function ViewChangeLog({ handleClose, session }: ViewChangeLogProps) {
         setDisplayGridData(data)
       }
     }
-    getGridData().catch((error) => setErrorMessage(String(error)))
+    getGridData().catch((error) => {
+      setErrorMessage(String(error))
+    })
   }, [assemblyId, apolloInternetAccount, baseURL])
 
-  async function handleChangeAssembly(e: SelectChangeEvent<string>) {
-    setAssemblyId(e.target.value as string)
+  function handleChangeAssembly(e: SelectChangeEvent) {
+    setAssemblyId(e.target.value)
   }
 
   return (

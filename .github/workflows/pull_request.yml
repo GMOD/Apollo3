@@ -8,9 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: yarn
@@ -22,7 +22,9 @@ jobs:
         run: yarn build
         working-directory: packages/apollo-shared
       - name: Lint codebase
-        run: yarn eslint --report-unused-disable-directives --max-warnings 0 --ext .js,.ts,.jsx,.tsx .
+        run:
+          yarn eslint --report-unused-disable-directives --max-warnings 0 --ext
+          .js,.ts,.jsx,.tsx .
       - name: Run Jest tests
         run: yarn test
       - name: Get latest JBrowse
@@ -36,7 +38,17 @@ jobs:
       - name: Run Cypress tests
         run: yarn run test:e2e
         working-directory: packages/jbrowse-plugin-apollo
+      - name: Start apollo
+        run: |
+          yarn --cwd packages/apollo-shared start &
+          ALLOW_ROOT_USER=true ROOT_USER_NAME=admin ROOT_USER_PASSWORD=pass yarn --cwd packages/apollo-collaboration-server start &
+      - name: Run CLI tests
+        run: python3 ./test/test.py TestCLI
+        working-directory: packages/apollo-cli
+      # - name: Run docker tests
+      #   working-directory: packages/apollo-cli
+      #   run: python3 ./test/test_docker.py
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import PluginManager from '@jbrowse/core/PluginManager'
 import { AbstractSessionModel, doesIntersect2 } from '@jbrowse/core/util'
-import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun, observable } from 'mobx'
 import { addDisposer, isAlive } from 'mobx-state-tree'
 
@@ -20,13 +22,13 @@ export function layoutsModelFactory(
       featuresMinMaxLimit: 500_000,
     })
     .volatile(() => ({
-      seenFeatures: observable.map<string, AnnotationFeatureI>(),
+      seenFeatures: observable.map<string, AnnotationFeature>(),
     }))
     .views((self) => ({
       get featuresMinMax() {
         const { assemblyManager } =
           self.session as unknown as AbstractSessionModel
-        return self.displayedRegions.map((region) => {
+        return self.lgv.displayedRegions.map((region) => {
           const assembly = assemblyManager.get(region.assemblyName)
           let min: number | undefined
           let max: number | undefined
@@ -45,10 +47,10 @@ export function layoutsModelFactory(
             if (max === undefined) {
               ;({ max } = feature)
             }
-            if (feature.min < min) {
+            if (feature.minWithChildren < min) {
               ;({ min } = feature)
             }
-            if (feature.end > max) {
+            if (feature.maxWithChildren > max) {
               ;({ max } = feature)
             }
           }
@@ -60,7 +62,7 @@ export function layoutsModelFactory(
       },
     }))
     .actions((self) => ({
-      addSeenFeature(feature: AnnotationFeatureI) {
+      addSeenFeature(feature: AnnotationFeature) {
         self.seenFeatures.set(feature._id, feature)
       },
       deleteSeenFeature(featureId: string) {
@@ -71,12 +73,9 @@ export function layoutsModelFactory(
       get featureLayouts() {
         const { assemblyManager } =
           self.session as unknown as AbstractSessionModel
-        return self.displayedRegions.map((region, idx) => {
+        return self.lgv.displayedRegions.map((region, idx) => {
           const assembly = assemblyManager.get(region.assemblyName)
-          const featureLayout = new Map<
-            number,
-            [number, AnnotationFeatureI][]
-          >()
+          const featureLayout = new Map<number, [number, AnnotationFeature][]>()
           const minMax = self.featuresMinMax[idx]
           if (!minMax) {
             return featureLayout
@@ -95,7 +94,7 @@ export function layoutsModelFactory(
             ) {
               continue
             }
-            const rowCount = getGlyph(feature, self.lgv.bpPerPx).getRowCount(
+            const rowCount = getGlyph(feature).getRowCount(
               feature,
               self.lgv.bpPerPx,
             )
@@ -157,9 +156,9 @@ export function layoutsModelFactory(
           return featureLayout
         })
       },
-      getFeatureLayoutPosition(feature: AnnotationFeatureI) {
+      getFeatureLayoutPosition(feature: AnnotationFeature) {
         const { featureLayouts } = this
-        for (const layout of featureLayouts) {
+        for (const [idx, layout] of featureLayouts.entries()) {
           for (const [layoutRowNum, layoutRow] of layout) {
             for (const [featureRowNum, layoutFeature] of layoutRow) {
               if (featureRowNum !== 0) {
@@ -168,15 +167,23 @@ export function layoutsModelFactory(
                 continue
               }
               if (feature._id === layoutFeature._id) {
-                return { layoutRow: layoutRowNum, featureRow: featureRowNum }
+                return {
+                  layoutIndex: idx,
+                  layoutRow: layoutRowNum,
+                  featureRow: featureRowNum,
+                }
               }
               if (layoutFeature.hasDescendant(feature._id)) {
-                const row = getGlyph(
+                const row = getGlyph(layoutFeature).getRowForFeature(
                   layoutFeature,
-                  self.lgv.bpPerPx,
-                ).getRowForFeature(layoutFeature, feature)
+                  feature,
+                )
                 if (row !== undefined) {
-                  return { layoutRow: layoutRowNum, featureRow: row }
+                  return {
+                    layoutIndex: idx,
+                    layoutRow: layoutRowNum,
+                    featureRow: row,
+                  }
                 }
               }
             }
@@ -207,13 +214,17 @@ export function layoutsModelFactory(
                   self.session as unknown as ApolloSessionModel
                 ).apolloDataStore.assemblies.get(region.assemblyName)
                 const ref = assembly?.getByRefName(region.refName)
-                for (const [, feature] of ref?.features ?? new Map()) {
+                const features = ref?.features
+                if (!features) {
+                  continue
+                }
+                for (const [, feature] of features) {
                   if (
                     doesIntersect2(
                       region.start,
                       region.end,
-                      feature.start,
-                      feature.end,
+                      feature.min,
+                      feature.max,
                     ) &&
                     !self.seenFeatures.has(feature._id)
                   ) {

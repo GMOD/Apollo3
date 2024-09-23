@@ -1,5 +1,5 @@
-import { Change, ClientDataStore } from 'apollo-common'
-import { FeatureDocument } from 'apollo-schemas'
+import { Change, ClientDataStore } from '@apollo-annotation/common'
+import { FeatureDocument } from '@apollo-annotation/schemas'
 import { ClientSession, Model } from 'mongoose'
 
 import { Context, Validation, ValidationResult } from './Validation'

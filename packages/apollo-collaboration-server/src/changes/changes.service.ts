@@ -1,14 +1,9 @@
-import {
-  Logger,
-  NotFoundException,
-  UnprocessableEntityException,
-} from '@nestjs/common'
-import { InjectModel } from '@nestjs/mongoose'
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
   Change as BaseChange,
   isAssemblySpecificChange,
   isFeatureChange,
-} from 'apollo-common'
+} from '@apollo-annotation/common'
 import {
   Assembly,
   AssemblyDocument,
@@ -22,15 +17,23 @@ import {
   RefSeqChunk,
   RefSeqChunkDocument,
   RefSeqDocument,
+  JBrowseConfig,
+  JBrowseConfigDocument,
   User,
   UserDocument,
-} from 'apollo-schemas'
+} from '@apollo-annotation/schemas'
 import {
   ChangeMessage,
   DecodedJWT,
   makeUserSessionId,
   validationRegistry,
-} from 'apollo-shared'
+} from '@apollo-annotation/shared'
+import {
+  Logger,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common'
+import { InjectModel } from '@nestjs/mongoose'
 import { FilterQuery, Model } from 'mongoose'
 
 import { CountersService } from '../counters/counters.service'
@@ -38,6 +41,14 @@ import { FilesService } from '../files/files.service'
 import { MessagesGateway } from '../messages/messages.gateway'
 import { PluginsService } from '../plugins/plugins.service'
 import { FindChangeDto } from './dto/find-change.dto'
+
+const STATUS_ZERO_CHANGE_TYPES = new Set([
+  'AddAssemblyAndFeaturesFromFileChange',
+  'AddAssemblyFromExternalChange',
+  'AddAssemblyFromFileChange',
+  'AddFeaturesFromFileChange',
+  'AddFeatureChange',
+])
 
 export class ChangesService {
   constructor(
@@ -53,6 +64,8 @@ export class ChangesService {
     private readonly fileModel: Model<FileDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
+    @InjectModel(JBrowseConfig.name)
+    private readonly jbrowseConfigModel: Model<JBrowseConfigDocument>,
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
     private readonly filesService: FilesService,
@@ -109,6 +122,7 @@ export class ChangesService {
           refSeqChunkModel: this.refSeqChunkModel,
           fileModel: this.fileModel,
           userModel: this.userModel,
+          jbrowseConfigModel: this.jbrowseConfigModel,
           session,
           filesService: this.filesService,
           counterService: this.countersService,
@@ -152,51 +166,54 @@ export class ChangesService {
         )
       }
     })
-    this.logger.debug?.('*** TEMPORARY DATA INSERTTED ***')
-    // Set "temporary document" -status --> "valid" -status i.e. (-1 --> 0)
-    await this.featureModel.db.transaction(async () => {
-      this.logger.debug(
-        'Updates "temporary document" -status --> "valid" -status',
-      )
-      try {
-        // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
-        await this.refSeqChunkModel.updateMany(
-          { $and: [{ status: -1, user: uniqUserId }] },
-          { $set: { status: 0 } },
-        )
-        await this.featureModel.updateMany(
-          { $and: [{ status: -1, user: uniqUserId }] },
-          { $set: { status: 0 } },
-        )
-        await this.assemblyModel.updateMany(
-          { $and: [{ status: -1, user: uniqUserId }] },
-          { $set: { status: 0 } },
-        )
-        await this.refSeqModel.updateMany(
-          { $and: [{ status: -1, user: uniqUserId }] },
-          { $set: { status: 0 } },
-        )
-      } catch (error) {
-        // Clean up old "temporary document" -documents
+
+    if (STATUS_ZERO_CHANGE_TYPES.has(change.typeName)) {
+      this.logger.debug?.('*** TEMPORARY DATA INSERTTED ***')
+      // Set "temporary document" -status --> "valid" -status i.e. (-1 --> 0)
+      await this.featureModel.db.transaction(async () => {
         this.logger.debug(
-          '*** UPDATE STATUS EXCEPTION - Start to clean up old temporary documents...',
+          'Updates "temporary document" -status --> "valid" -status',
         )
-        // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
-        await this.assemblyModel.deleteMany({
-          $and: [{ status: -1, user: uniqUserId }],
-        })
-        await this.featureModel.deleteMany({
-          $and: [{ status: -1, user: uniqUserId }],
-        })
-        await this.refSeqModel.deleteMany({
-          $and: [{ status: -1, user: uniqUserId }],
-        })
-        await this.refSeqChunkModel.deleteMany({
-          $and: [{ status: -1, user: uniqUserId }],
-        })
-        throw new UnprocessableEntityException(String(error))
-      }
-    })
+        try {
+          // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
+          await this.refSeqChunkModel.updateMany(
+            { $and: [{ status: -1, user: uniqUserId }] },
+            { $set: { status: 0 } },
+          )
+          await this.featureModel.updateMany(
+            { $and: [{ status: -1, user: uniqUserId }] },
+            { $set: { status: 0 } },
+          )
+          await this.assemblyModel.updateMany(
+            { $and: [{ status: -1, user: uniqUserId }] },
+            { $set: { status: 0 } },
+          )
+          await this.refSeqModel.updateMany(
+            { $and: [{ status: -1, user: uniqUserId }] },
+            { $set: { status: 0 } },
+          )
+        } catch (error) {
+          // Clean up old "temporary document" -documents
+          this.logger.debug(
+            '*** UPDATE STATUS EXCEPTION - Start to clean up old temporary documents...',
+          )
+          // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
+          await this.assemblyModel.deleteMany({
+            $and: [{ status: -1, user: uniqUserId }],
+          })
+          await this.featureModel.deleteMany({
+            $and: [{ status: -1, user: uniqUserId }],
+          })
+          await this.refSeqModel.deleteMany({
+            $and: [{ status: -1, user: uniqUserId }],
+          })
+          await this.refSeqChunkModel.deleteMany({
+            $and: [{ status: -1, user: uniqUserId }],
+          })
+          throw new UnprocessableEntityException(String(error))
+        }
+      })
+    }
 
     this.logger.debug?.(`CHANGE DOC: ${JSON.stringify(changeDoc)}`)
     if (!changeDoc) {
@@ -235,7 +252,7 @@ export class ChangesService {
   async findAll(changeFilter: FindChangeDto) {
     const queryCond: FilterQuery<ChangeDocument> = { ...changeFilter }
     if (changeFilter.user) {
-      queryCond.user = { $regex: `${changeFilter.user}`, $options: 'i' }
+      queryCond.user = { $regex: changeFilter.user, $options: 'i' }
     }
     if (changeFilter.since) {
       queryCond.sequence = { $gt: Number(changeFilter.since) }

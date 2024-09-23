@@ -1,13 +1,17 @@
-import { getSession } from '@jbrowse/core/util'
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   AssemblySpecificChange,
   ClientDataStore,
   LocalGFF3DataStore,
   SerializedAssemblySpecificChange,
   ServerDataStore,
-} from 'apollo-common'
+} from '@apollo-annotation/common'
+import { getSession } from '@jbrowse/core/util'
 
-interface SerializedDeleteAssemblyChange
+export interface SerializedDeleteAssemblyChange
   extends SerializedAssemblySpecificChange {
   typeName: 'DeleteAssemblyChange'
 }

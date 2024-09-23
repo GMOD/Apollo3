@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
 import { isAbortException } from '@jbrowse/core/util'
 import {
   Button,
@@ -36,7 +37,7 @@ export const AuthTypeSelector = ({
     const controller = new AbortController()
     const { signal } = controller
     async function getAuthTypes() {
-      const uri = new URL('/auth/types', baseURL).href
+      const uri = new URL('auth/types', baseURL).href
       const response = await fetch(uri, { method: 'GET', signal })
       if (!response.ok) {
         const newErrorMessage = await createFetchErrorMessage(
@@ -49,9 +50,9 @@ export const AuthTypeSelector = ({
       const data = (await response.json()) as string[]
       setLoginTypes(data)
     }
-    getAuthTypes().catch((error) =>
-      isAbortException(error) ? '' : setErrorMessage(String(error)),
-    )
+    getAuthTypes().catch((error) => {
+      isAbortException(error) ? '' : setErrorMessage(String(error))
+    })
     return () => {
       controller.abort()
     }
@@ -84,19 +85,27 @@ export const AuthTypeSelector = ({
         {allowGoogle ? (
           <GoogleButton
             disabled={!allowGoogle}
-            onClick={() => handleClick('google')}
+            onClick={() => {
+              handleClick('google')
+            }}
           />
         ) : null}
         {allowMicrosoft ? (
           <MicrosoftButton
             disabled={!allowMicrosoft}
-            onClick={() => handleClick('microsoft')}
+            onClick={() => {
+              handleClick('microsoft')
+            }}
           />
         ) : null}
         {allowGuest ? (
           <>
             <Divider className={classes.divider} />
-            <GuestButton onClick={() => handleClick('guest')} />
+            <GuestButton
+              onClick={() => {
+                handleClick('guest')
+              }}
+            />
           </>
         ) : null}
       </DialogContent>

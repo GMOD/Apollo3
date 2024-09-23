@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-misused-promises */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import EventEmitter from 'node:events'
 import * as http from 'node:http'
 import path from 'node:path'
@@ -5,14 +8,15 @@ import * as querystring from 'node:querystring'
 
 import { Errors, Flags, ux } from '@oclif/core'
 import open from 'open'
+import { fetch } from 'undici'
 
+import { ApolloConf, KEYS } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
-import { Config } from '../Config.js'
 import {
-  ConfigError,
   UserCredentials,
   basicCheckConfig,
-  getUserCredentials,
+  createFetchErrorMessage,
+  localhostToAddress,
   waitFor,
 } from '../utils.js'
 
@@ -21,7 +25,23 @@ interface AuthorizationCodeCallbackParams {
 }
 
 export default class Login extends BaseCommand<typeof Login> {
-  static description = 'Log in to Apollo'
+  static summary = 'Login to Apollo'
+  static description =
+    'Use the provided credentials to obtain and save the token to access Apollo. \
+Once the token for the given profile has been saved in the configuration file, users do not normally \
+need to execute this command again unless the token has expired. To setup a new profile use "apollo config"'
+
+  static examples = [
+    {
+      description:
+        'The most basic and probably most typical usage is to login using the default profile in configuration file:',
+      command: '<%= config.bin %> <%= command.id %>',
+    },
+    {
+      description: 'Login with a different profile:',
+      command: '<%= config.bin %> <%= command.id %> --profile my-profile',
+    },
+  ]
 
   static flags = {
     address: Flags.string({
@@ -43,6 +63,11 @@ export default class Login extends BaseCommand<typeof Login> {
       char: 'f',
       description: 'Force re-authentication even if user is already logged in',
     }),
+    port: Flags.integer({
+      description:
+        'Get token by listening to this port number (usually this is >= 1024 and < 65536)',
+      default: 3000,
+    }),
   }
 
   public async run(): Promise<void> {
@@ -50,57 +75,47 @@ export default class Login extends BaseCommand<typeof Login> {
 
     let configFile = flags['config-file']
     if (configFile === undefined) {
-      configFile = path.join(this.config.configDir, 'config.yaml')
-    }
-    try {
-      basicCheckConfig(configFile, flags.profile)
-    } catch (error) {
-      if (error instanceof ConfigError) {
-        this.logToStderr(error.message)
-        this.exit(1)
-      }
+      configFile = path.join(this.config.configDir, 'config.yml')
     }
 
-    const config: Config = new Config(configFile)
-
-    const accessType: string | undefined = config.get(
-      'accessType',
-      flags.profile,
-    )
-    const address: string | undefined =
-      flags.address ?? config.get('address', flags.profile)
+    let profileName = flags.profile
+    if (profileName === undefined) {
+      profileName = process.env.APOLLO_PROFILE ?? 'default'
+    }
+    basicCheckConfig(configFile, profileName)
+    const config: ApolloConf = new ApolloConf(configFile)
+    const accessType: string = config.get(`${profileName}.accessType`) as string
+    const address: string =
+      flags.address ?? (config.get(`${profileName}.address`) as string)
     if (address === undefined) {
-      this.logToStderr('Address to apollo must be set')
-      this.exit(1)
+      this.error('Address to apollo must be set')
     }
 
     let userCredentials: UserCredentials = { accessToken: '' }
-
     try {
       if (!flags.force) {
-        await this.checkUserAlreadyLoggedIn()
+        await this.checkUserAlreadyLoggedIn(config, profileName)
       }
       if (accessType === 'root' || flags.username !== undefined) {
-        const username: string | undefined =
+        const username: string =
           flags.username ??
-          config.get('rootCredentials.username', flags.profile)
-        const password: string | undefined =
+          (config.get(`${profileName}.rootCredentials.username`) as string)
+        const password: string =
           flags.password ??
-          config.get('rootCredentials.password', flags.profile)
+          (config.get(`${profileName}.rootCredentials.password`) as string)
         if (username === undefined || password === undefined) {
-          this.logToStderr('Username and password must be set')
-          this.exit(1)
+          this.error('Username and password must be set')
         }
         userCredentials = await this.startRootLogin(address, username, password)
       } else if (accessType === 'guest') {
         userCredentials = await this.startGuestLogin(address)
       } else if (accessType === undefined) {
-        this.logToStderr('Undefined access type')
-        this.exit(1)
+        this.error('Undefined access type')
       } else {
         userCredentials = await this.startAuthorizationCodeFlow(
           address,
           accessType,
+          flags.port,
         )
       }
     } catch (error) {
@@ -108,36 +123,28 @@ export default class Login extends BaseCommand<typeof Login> {
         (error instanceof Errors.CLIError && error.message === 'ctrl-c') ||
         error instanceof Errors.ExitError
       ) {
-        this.exit(0)
-      } else if (error instanceof Error) {
-        this.logToStderr(error.message)
-        ux.action.stop(error.message)
-        this.exit(1)
+        return
+      }
+      if (error instanceof Error) {
+        throw error
       }
     }
-    config.set('accessToken', userCredentials.accessToken, flags.profile)
-    config.writeConfigFile()
+    config.set(`${profileName}.accessToken`, userCredentials.accessToken)
   }
 
-  private async checkUserAlreadyLoggedIn() {
-    const userCredentials = getUserCredentials()
-
-    if (!userCredentials) {
+  private async checkUserAlreadyLoggedIn(
+    userCredentials: ApolloConf,
+    profileName: string,
+  ) {
+    const accessToken: string = userCredentials.get(
+      `${profileName}.${KEYS.accessToken}`,
+    ) as string
+    if (!accessToken) {
       return
     }
-
-    const alreadyLoggedIn = (
-      Object.keys(userCredentials) as (keyof typeof userCredentials)[]
-    ).every((key) => Boolean(userCredentials[key]))
-
-    if (!alreadyLoggedIn) {
-      return
-    }
-
     const reAuthenticate = await ux.confirm(
       "You're already logged. Do you want to re-authenticate? (y/n)",
     )
-
     if (!reAuthenticate) {
       this.exit(0)
     }
@@ -148,41 +155,51 @@ export default class Login extends BaseCommand<typeof Login> {
     username: string,
     password: string,
   ): Promise<UserCredentials> {
-    const url = `${address}/auth/root`
+    const url = localhostToAddress(`${address}/auth/root`)
     const response = await fetch(url, {
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
       body: JSON.stringify({ username, password }),
     })
     if (!response.ok) {
-      // FIXME: Better error handling
-      throw new Error('Failed to post request')
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'startRootLogin failed',
+      )
+      throw new Error(errorMessage)
     }
     const dat = await response.json()
-    return { accessToken: dat.token }
+    if (typeof dat === 'object' && dat !== null && 'token' in dat) {
+      return { accessToken: dat.token as string }
+    }
+    throw new Error(`Unexpected response: ${JSON.stringify(dat)}`)
   }
 
   private async startGuestLogin(address: string): Promise<UserCredentials> {
-    const url = `${address}/auth/login?type=guest`
+    const url = localhostToAddress(`${address}/auth/login?type=guest`)
     const response = await fetch(url, {
       headers: { 'Content-Type': 'application/json' },
     })
     if (!response.ok) {
-      // FIXME: Better error handling
-      throw new Error('Failed to post request')
+      const errorMessage = await createFetchErrorMessage(
+        response,
+        'startGuestLogin failed',
+      )
+      throw new Error(errorMessage)
     }
     const dat = await response.json()
-    return { accessToken: dat.token }
+    if (typeof dat === 'object' && dat !== null && 'token' in dat) {
+      return { accessToken: dat.token as string }
+    }
+    throw new Error(`Unexpected response: ${JSON.stringify(dat)}`)
   }
 
   private async startAuthorizationCodeFlow(
     address: string,
     accessType: string,
+    port: number,
   ): Promise<UserCredentials> {
     const callbackPath = '/'
-    const port = 3000
-    const authorizationCodeURL = `${address}/auth/login?type=${accessType}&redirect_uri=http://localhost:${port}${callbackPath}`
-
     // eslint-disable-next-line unicorn/prefer-event-target
     const emitter = new EventEmitter()
     const eventName = 'authorication_code_callback_params'
@@ -192,11 +209,10 @@ export default class Login extends BaseCommand<typeof Login> {
           const params = querystring.decode(
             req?.url.replace(`${callbackPath}?`, ''),
           )
-
           emitter.emit(eventName, params)
-
-          res.end('You can close this browser now.')
-
+          res.end(
+            'This browser window was opened by `apollo login`, you can close it now.',
+          )
           res.socket?.end()
           res.socket?.destroy()
           server.close()
@@ -208,16 +224,30 @@ export default class Login extends BaseCommand<typeof Login> {
       })
       .listen(port)
 
-    await ux.anykey('Press any key to open your browser')
+    server.on('error', async (e) => {
+      if (e.message.includes('EADDRINUSE')) {
+        this.logToStderr(
+          `It appears that port ${port} is in use. Perhaps you have JBrowse running?\nTry using a different port using the --port option or temporarily stop JBrowse`,
+        )
+        // eslint-disable-next-line unicorn/no-process-exit
+        process.exit(1)
+      } else {
+        this.logToStderr(e.message)
+        // eslint-disable-next-line unicorn/no-process-exit
+        process.exit(1)
+      }
+    })
 
+    // await ux.anykey('Press any key to open your browser') // Do we need this?
+    const authorizationCodeURL = `${address}/auth/login?type=${accessType}&redirect_uri=http://localhost:${port}${callbackPath}`
     await open(authorizationCodeURL)
-
     ux.action.start('Waiting for authentication')
 
     const { access_token } = await waitFor<AuthorizationCodeCallbackParams>(
       eventName,
       emitter,
     )
+
     return { accessToken: access_token }
   }
 }

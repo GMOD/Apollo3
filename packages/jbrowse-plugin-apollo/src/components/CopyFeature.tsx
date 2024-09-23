@@ -1,3 +1,12 @@
+/* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-misused-promises */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import {
+  AnnotationFeature,
+  AnnotationFeatureSnapshot,
+} from '@apollo-annotation/mst'
+import { AddFeatureChange } from '@apollo-annotation/shared'
 import { readConfObject } from '@jbrowse/core/configuration'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
@@ -10,8 +19,6 @@ import {
   SelectChangeEvent,
   TextField,
 } from '@mui/material'
-import { AnnotationFeatureI, AnnotationFeatureSnapshot } from 'apollo-mst'
-import { AddFeatureChange } from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import { IKeyValueMap } from 'mobx'
 import { getSnapshot } from 'mobx-state-tree'
@@ -24,7 +31,7 @@ import { Dialog } from './Dialog'
 interface CopyFeatureProps {
   session: ApolloSessionModel
   handleClose(): void
-  sourceFeature: AnnotationFeatureI
+  sourceFeature: AnnotationFeature
   sourceAssemblyId: string
   changeManager: ChangeManager
 }
@@ -82,10 +89,10 @@ export function CopyFeature({
   >(assemblies.find((a) => a.name !== sourceAssemblyId)?.name)
   const [refNames, setRefNames] = useState<Collection[]>([])
   const [selectedRefSeqId, setSelectedRefSeqId] = useState('')
-  const [start, setStart] = useState(sourceFeature.start)
+  const [start, setStart] = useState(sourceFeature.min)
   const [errorMessage, setErrorMessage] = useState('')
 
-  async function handleChangeAssembly(e: SelectChangeEvent<string>) {
+  function handleChangeAssembly(e: SelectChangeEvent) {
     setSelectedAssemblyId(e.target.value)
   }
 
@@ -110,11 +117,13 @@ export function CopyFeature({
       setRefNames(newRefNames)
       setSelectedRefSeqId(newRefNames[0]?._id || '')
     }
-    getRefNames().catch((error) => setErrorMessage(String(error)))
+    getRefNames().catch((error) => {
+      setErrorMessage(String(error))
+    })
   }, [selectedAssemblyId, assemblyManager])
 
-  async function handleChangeRefSeq(e: SelectChangeEvent<string>) {
-    const refSeq = e.target.value as string
+  function handleChangeRefSeq(e: SelectChangeEvent) {
+    const refSeq = e.target.value
     setSelectedRefSeqId(refSeq)
   }
 
@@ -130,7 +139,7 @@ export function CopyFeature({
       setErrorMessage(`Assembly not found: ${selectedAssemblyId}.`)
       return
     }
-    const canonicalRefName = assembly?.getCanonicalRefName(selectedRefSeqId)
+    const canonicalRefName = assembly.getCanonicalRefName(selectedRefSeqId)
     const region = assembly.regions?.find((r) => r.refName === canonicalRefName)
     if (!region) {
       setErrorMessage(`RefSeq not found: ${selectedRefSeqId}.`)
@@ -165,22 +174,12 @@ export function CopyFeature({
       delete attributeMap.Parent
     }
 
-    // Update gffId value if it's ObjectId
-    if (
-      newFeatureLine.gffId &&
-      ObjectID.isValid(newFeatureLine.gffId.toString())
-    ) {
-      newFeatureLine.gffId = newFeatureLine._id
-    }
     newFeatureLine.refSeq = selectedRefSeqId
-    const locationMove = start - newFeatureLine.start
-    newFeatureLine.start = start
-    newFeatureLine.end = start + featureLength
-    // Updates children start, end and gffId values
-    const updatedChildren = updateRefSeqStartEndAndGffId(
-      newFeatureLine,
-      locationMove,
-    )
+    const locationMove = start - newFeatureLine.min
+    newFeatureLine.min = start
+    newFeatureLine.max = start + featureLength
+    // Updates children start and end values
+    const updatedChildren = updateRefSeqStartEnd(newFeatureLine, locationMove)
 
     const change = new AddFeatureChange({
       changedIds: [newFeatureLine._id],
@@ -189,23 +188,20 @@ export function CopyFeature({
       addedFeature: {
         _id: newFeatureLine._id,
         refSeq: newFeatureLine.refSeq,
-        start: newFeatureLine.start,
-        end: newFeatureLine.end,
+        min: newFeatureLine.min,
+        max: newFeatureLine.max,
         type: newFeatureLine.type,
         children: updatedChildren.children as unknown as Record<
           string,
           AnnotationFeatureSnapshot
         >,
         attributes: attributeMap,
-        discontinuousLocations: newFeatureLine.discontinuousLocations,
         strand: newFeatureLine.strand,
-        score: newFeatureLine.score,
-        phase: newFeatureLine.phase,
       },
       copyFeature: true,
       allIds: featureIds,
     })
-    await changeManager.submit?.(change)
+    await changeManager.submit(change)
 
     notify('Feature copied successfully', 'success')
     handleClose()
@@ -213,27 +209,22 @@ export function CopyFeature({
   }
 
   /**
-   * Recursively loop children and update refSeq, start, end and gffId values
+   * Recursively loop children and update refSeq, start, and end values
    * @param feature - parent feature
    * @param locationMove - how much location has been moved from original
    * @returns
    */
-  function updateRefSeqStartEndAndGffId(
+  function updateRefSeqStartEnd(
     feature: AnnotationFeatureSnapshot,
     locationMove: number,
   ): AnnotationFeatureSnapshot {
     const children: Record<string, AnnotationFeatureSnapshot> = {}
     if (feature.children) {
       for (const child of Object.values(feature.children)) {
-        const newChild = updateRefSeqStartEndAndGffId(child, locationMove)
-        // Update gffId value if it's ObjectId
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        if (ObjectID.isValid(newChild.gffId!.toString())) {
-          newChild.gffId = newChild._id
-        }
+        const newChild = updateRefSeqStartEnd(child, locationMove)
         newChild.refSeq = selectedRefSeqId
-        newChild.start = newChild.start + locationMove
-        newChild.end = newChild.end + locationMove
+        newChild.min = newChild.min + locationMove
+        newChild.max = newChild.max + locationMove
         children[newChild._id] = newChild
       }
     }

@@ -1,14 +1,17 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import { GFF3Feature } from '@gmod/gff'
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
 
 export function makeGFF3Feature(
   feature: AnnotationFeatureSnapshot,
   parentId?: string,
   refSeqNames?: Record<string, string | undefined>,
 ): GFF3Feature {
-  const locations = feature.discontinuousLocations?.length
-    ? feature.discontinuousLocations
-    : [{ start: feature.start, end: feature.end, phase: feature.phase }]
+  const locations = [{ start: feature.min, end: feature.max }]
+  // const locations = feature.discontinuousLocations?.length
+  //   ? feature.discontinuousLocations
+  //   : [{ start: feature.start, end: feature.end, phase: feature.phase }]
   const attributes: Record<string, string[] | undefined> = JSON.parse(
     JSON.stringify(feature.attributes),
   )
@@ -75,16 +78,18 @@ export function makeGFF3Feature(
     seq_id: refSeqNames ? refSeqNames[feature.refSeq] ?? null : feature.refSeq,
     source,
     type: feature.type,
-    score: feature.score ?? null,
+    score: null,
+    // score: feature.score ?? null,
     strand: feature.strand ? (feature.strand === 1 ? '+' : '-') : null,
-    phase:
-      location.phase === 0
-        ? '0'
-        : location.phase === 1
-        ? '1'
-        : location.phase === 2
-        ? '2'
-        : null,
+    phase: null,
+    // phase:
+    //   location.phase === 0
+    //     ? '0'
+    //     : location.phase === 1
+    //       ? '1'
+    //       : location.phase === 2
+    //         ? '2'
+    //         : null,
     attributes: Object.keys(attributes).length > 0 ? attributes : null,
     derived_features: [],
     child_features: feature.children
@@ -93,4 +98,16 @@ export function makeGFF3Feature(
         )
       : [],
   }))
+}
+
+export function splitStringIntoChunks(
+  input: string,
+  chunkSize: number,
+): string[] {
+  const chunks: string[] = []
+  for (let i = 0; i < input.length; i += chunkSize) {
+    const chunk = input.slice(i, i + chunkSize)
+    chunks.push(chunk)
+  }
+  return chunks
 }

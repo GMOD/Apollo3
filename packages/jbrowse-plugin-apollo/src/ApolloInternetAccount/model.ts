@@ -1,11 +1,11 @@
-import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
-import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
-import {
-  AbstractSessionModel,
-  isAbstractMenuManager,
-  isElectron,
-} from '@jbrowse/core/util'
-import { Change } from 'apollo-common'
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-misused-promises */
+import { Change } from '@apollo-annotation/common'
 import {
   ChangeMessage,
   CheckResultUpdate,
@@ -14,12 +14,19 @@ import {
   UserLocationMessage,
   getDecodedToken,
   makeUserSessionId,
-} from 'apollo-shared'
+} from '@apollo-annotation/shared'
+import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
+import { InternetAccount } from '@jbrowse/core/pluggableElementTypes'
+import {
+  AbstractSessionModel,
+  isAbstractMenuManager,
+  isElectron,
+} from '@jbrowse/core/util'
 import { autorun } from 'mobx'
 import { Instance, flow, getRoot, types } from 'mobx-state-tree'
 import { io } from 'socket.io-client'
 
-import { ApolloSessionModel, Collaborator } from '../session'
+import { Collaborator } from '../session'
 import { ApolloRootModel } from '../types'
 import { createFetchErrorMessage } from '../util'
 import { addMenuItems } from './addMenuItems'
@@ -28,7 +35,7 @@ import { ApolloInternetAccountConfigModel } from './configSchema'
 
 type AuthType = 'google' | 'microsoft' | 'guest'
 
-type Role = 'admin' | 'user' | 'readOnly'
+type Role = 'admin' | 'user' | 'readOnly' | 'none'
 
 const inWebWorker = typeof sessionStorage === 'undefined'
 
@@ -88,8 +95,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           reject: (error: Error) => void,
         ) {
           listener = (event) => {
-            // this should probably get better handling, but ignored for now
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             this.finishOAuthWindow(event, resolve, reject)
           }
           window.addEventListener('message', listener)
@@ -97,7 +102,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         deleteMessageChannel() {
           window.removeEventListener('message', listener)
         },
-        async finishOAuthWindow(
+        finishOAuthWindow(
           event: MessageEvent,
           resolve: (token: string) => void,
           reject: (error: Error) => void,
@@ -105,7 +110,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           if (
             event.data.name !== `JBrowseAuthWindow-${self.internetAccountId}`
           ) {
-            return this.deleteMessageChannel()
+            this.deleteMessageChannel()
+            return
           }
           const redirectUriWithInfo = event.data.redirectUri
           const fixedQueryString = redirectUriWithInfo.replace('#', '?')
@@ -115,11 +121,12 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           const token = urlParams.get('access_token')
           this.deleteMessageChannel()
           if (!token) {
-            return reject(new Error('Error with token endpoint'))
+            reject(new Error('Error with token endpoint'))
+            return
           }
           self.storeToken(token)
           self.setRole()
-          return resolve(token)
+          resolve(token)
         },
         async openAuthWindow(
           type: string,
@@ -149,7 +156,6 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             const eventFromDesktop = new MessageEvent('message', {
               data: { name: eventName, redirectUri: redirectUriFromElectron },
             })
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             this.finishOAuthWindow(eventFromDesktop, resolve, reject)
           } else {
             this.addMessageChannel(resolve, reject)
@@ -204,7 +210,8 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             response,
             'Error when logging in',
           )
-          return reject(new Error(errorMessage))
+          reject(new Error(errorMessage))
+          return
         }
         const { token } = await response.json()
         resolve(token)
@@ -246,8 +253,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
       ),
       getMissingChanges: flow(function* getMissingChanges() {
         const { session } = getRoot<ApolloRootModel>(self)
-        const { changeManager } = (session as ApolloSessionModel)
-          .apolloDataStore
+        const { changeManager } = session.apolloDataStore
         if (!self.lastChangeSequenceNumber) {
           throw new Error(
             'No LastChangeSequence stored in session. Please, refresh you browser to get last updates from server',
@@ -277,13 +283,14 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         const serializedChanges = yield response.json()
         for (const serializedChange of serializedChanges) {
           const change = Change.fromJSON(serializedChange)
-          void changeManager?.submit(change, { submitToBackend: false })
+          void changeManager.submit(change, { submitToBackend: false })
         }
       }),
     }))
-    .volatile((self) => ({
-      socket: io(self.baseURL),
-    }))
+    .volatile((self) => {
+      const { origin, pathname: path } = new URL('socket.io/', self.baseURL)
+      return { socket: io(origin, { path }) }
+    })
     .actions((self) => ({
       addSocketListeners() {
         const { session } = getRoot<ApolloRootModel>(self)
@@ -293,13 +300,13 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           throw new Error('No Token found')
         }
         const { socket } = self
-        const { addCheckResult, changeManager, deleteCheckResult } = (
-          session as ApolloSessionModel
-        ).apolloDataStore
+        const { addCheckResult, changeManager, deleteCheckResult } =
+          session.apolloDataStore
         socket.on('connect', async () => {
           await self.getMissingChanges()
         })
-        socket.on('connect_error', () => {
+        socket.on('connect_error', (error) => {
+          console.error(error)
           notify('Could not connect to the Apollo server.', 'error')
         })
         socket.on('COMMON', (message: ChangeMessage | CheckResultUpdate) => {
@@ -320,7 +327,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             return // we did this change, no need to apply it again
           }
           const change = Change.fromJSON(message.changeInfo)
-          void changeManager?.submit(change, { submitToBackend: false })
+          void changeManager.submit(change, { submitToBackend: false })
         })
         socket.on('USER_LOCATION', (message: UserLocationMessage) => {
           const { channel, locations, userName, userSessionId } = message
@@ -380,7 +387,9 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         let timeoutId: ReturnType<typeof setTimeout>
         return (userLocation: UserLocation[]) => {
           clearTimeout(timeoutId)
-          timeoutId = setTimeout(() => fn(userLocation), debounceTimeout)
+          timeoutId = setTimeout(() => {
+            fn(userLocation)
+          }, debounceTimeout)
         }
       }
       return { postUserLocation: debouncePostUserLocation(postUserLocation) }
@@ -399,7 +408,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         self.addSocketListeners()
         // request user locations
         const { baseURL } = self
-        const uri = new URL('/users/locations', baseURL).href
+        const uri = new URL('users/locations', baseURL).href
         const apolloFetch = self.getFetcher({
           locationType: 'UriLocation',
           uri,
@@ -429,6 +438,13 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
             if (inWebWorker) {
               return
             }
+            const { session } = getRoot<ApolloRootModel>(self)
+            // This can be undefined if there is no session loaded, e.g. on
+            // the start screen
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            if (!session) {
+              return
+            }
             if (self.role) {
               await self.initialize(self.role)
               reaction.dispose()
@@ -444,5 +460,8 @@ export default stateModelFactory
 export type ApolloInternetAccountStateModel = ReturnType<
   typeof stateModelFactory
 >
-export type ApolloInternetAccountModel =
-  Instance<ApolloInternetAccountStateModel>
+// eslint disable because of
+// https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ApolloInternetAccountModel
+  extends Instance<ApolloInternetAccountStateModel> {}

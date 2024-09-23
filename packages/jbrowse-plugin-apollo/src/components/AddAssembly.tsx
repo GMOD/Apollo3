@@ -1,3 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-misused-promises */
+import {
+  AddAssemblyAndFeaturesFromFileChange,
+  AddAssemblyFromExternalChange,
+  AddAssemblyFromFileChange,
+} from '@apollo-annotation/shared'
 import { readConfObject } from '@jbrowse/core/configuration'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import LinkIcon from '@mui/icons-material/Link'
@@ -22,11 +33,6 @@ import {
 } from '@mui/material'
 import InputAdornment from '@mui/material/InputAdornment'
 import LinearProgress from '@mui/material/LinearProgress'
-import {
-  AddAssemblyAndFeaturesFromFileChange,
-  AddAssemblyFromExternalChange,
-  AddAssemblyFromFileChange,
-} from 'apollo-shared'
 import ObjectID from 'bson-objectid'
 import { getRoot } from 'mobx-state-tree'
 import React, { useState } from 'react'
@@ -78,7 +84,7 @@ export function AddAssembly({
   const [fastaGziIndexFile, setFastaGziIndexFile] = useState('')
   const [loading, setLoading] = useState(false)
 
-  function handleChangeInternetAccount(e: SelectChangeEvent<string>) {
+  function handleChangeInternetAccount(e: SelectChangeEvent) {
     setSubmitted(false)
     const newlySelectedInternetAccount = apolloInternetAccounts.find(
       (ia) => ia.internetAccountId === e.target.value,
@@ -97,15 +103,19 @@ export function AddAssembly({
     }
     const selectedFile = e.target.files.item(0)
     setFile(selectedFile)
+    if (!selectedFile) {
+      return
+    }
+    const fileNameLower = selectedFile.name.toLowerCase()
     if (
-      selectedFile?.name.toLowerCase().endsWith('.fasta') ??
-      selectedFile?.name.toLowerCase().endsWith('.fna') ??
-      selectedFile?.name.toLowerCase().endsWith('.fa')
+      fileNameLower.endsWith('.fasta') ||
+      fileNameLower.endsWith('.fna') ||
+      fileNameLower.endsWith('.fa')
     ) {
       setFileType(FileType.FASTA)
     } else if (
-      selectedFile?.name.toLowerCase().endsWith('.gff3') ??
-      selectedFile?.name.toLowerCase().endsWith('.gff')
+      fileNameLower.endsWith('.gff3') ||
+      fileNameLower.endsWith('.gff')
     ) {
       setFileType(FileType.GFF3)
     }
@@ -162,19 +172,21 @@ export function AddAssembly({
     const { baseURL, getFetcher, internetAccountId } = selectedInternetAccount
     if (fileType !== FileType.EXTERNAL && file) {
       // First upload file
-      const url = new URL('/files', baseURL).href
+      const url = new URL('files', baseURL)
+      url.searchParams.set('type', fileType)
+      const uri = url.href
       const formData = new FormData()
       formData.append('file', file)
       formData.append('fileName', file.name)
       formData.append('type', fileType)
       const apolloFetchFile = getFetcher({
         locationType: 'UriLocation',
-        uri: url,
+        uri,
       })
       if (apolloFetchFile) {
         jobsManager.update(job.name, 'Uploading file, this may take awhile')
         const { signal } = controller
-        const response = await apolloFetchFile(url, {
+        const response = await apolloFetchFile(uri, {
           method: 'POST',
           body: formData,
           signal,
@@ -213,7 +225,7 @@ export function AddAssembly({
       const fileUploadChangeBase = {
         assembly: new ObjectID().toHexString(),
         assemblyName,
-        fileId,
+        fileIds: { fa: fileId },
       }
       change =
         fileType === FileType.GFF3 && importFeatures
@@ -350,9 +362,9 @@ export function AddAssembly({
                 fullWidth
                 variant="outlined"
                 error={!validFastaFile}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setFastaFile(e.target.value)
-                }
+                }}
                 disabled={submitted && !errorMessage}
                 InputProps={{
                   startAdornment: (
@@ -371,9 +383,9 @@ export function AddAssembly({
                 fullWidth
                 variant="outlined"
                 error={!validFastaIndexFile}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setFastaIndexFile(e.target.value)
-                }
+                }}
                 disabled={submitted && !errorMessage}
                 InputProps={{
                   startAdornment: (
@@ -392,9 +404,9 @@ export function AddAssembly({
                 fullWidth
                 variant="outlined"
                 error={Boolean(fastaGziIndexFile) && !validFastaGziIndexFile}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setFastaGziIndexFile(e.target.value)
-                }
+                }}
                 disabled={submitted && !errorMessage}
                 InputProps={{
                   startAdornment: (
@@ -417,7 +429,9 @@ export function AddAssembly({
                   control={
                     <Checkbox
                       checked={fileType === FileType.GFF3 && importFeatures}
-                      onChange={() => setImportFeatures(!importFeatures)}
+                      onChange={() => {
+                        setImportFeatures(!importFeatures)
+                      }}
                       disabled={
                         fileType !== FileType.GFF3 ||
                         (submitted && !errorMessage)

@@ -5,8 +5,11 @@ describe('Download GFF', () => {
     }).then((result) => {
       cy.log(result.stderr)
     })
-    cy.deleteAssemblies()
     cy.loginAsGuest()
+  })
+
+  afterEach(() => {
+    cy.deleteAssemblies()
   })
 
   it('Can download gff', () => {
@@ -32,7 +35,7 @@ describe('Download GFF', () => {
       cy.readFile(`${Cypress.config('downloadsFolder')}/${gff[0]}`).then(
         (x: string) => {
           const lines: string[] = x.trim().split('\n')
-          expect(lines.length).eq(952)
+          expect(lines.length).eq(933)
         },
       )
     })

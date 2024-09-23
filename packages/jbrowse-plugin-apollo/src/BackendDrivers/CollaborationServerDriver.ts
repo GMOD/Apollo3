@@ -1,18 +1,33 @@
-import { getConf } from '@jbrowse/core/configuration'
-import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
-import { Region, getSession } from '@jbrowse/core/util'
-import { AssemblySpecificChange, Change } from 'apollo-common'
+/* eslint-disable @typescript-eslint/no-base-to-string */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+import { AssemblySpecificChange, Change } from '@apollo-annotation/common'
 import {
   AnnotationFeatureSnapshot,
   ApolloRefSeqI,
   CheckResultSnapshot,
-} from 'apollo-mst'
-import { ChangeMessage, ValidationResultSet } from 'apollo-shared'
+} from '@apollo-annotation/mst'
+import { ChangeMessage, ValidationResultSet } from '@apollo-annotation/shared'
+import { getConf } from '@jbrowse/core/configuration'
+import { BaseInternetAccountModel } from '@jbrowse/core/pluggableElementTypes'
+import { Region, getSession } from '@jbrowse/core/util'
 import { Socket } from 'socket.io-client'
 
 import { ChangeManager, SubmitOpts } from '../ChangeManager'
 import { createFetchErrorMessage } from '../util'
-import { BackendDriver } from './BackendDriver'
+import { BackendDriver, RefNameAliases } from './BackendDriver'
+
+export interface ApolloRefSeqResponse {
+  _id: string
+  name: string
+  description?: string
+  aliases: string[]
+  length: string
+  assembly: string
+}
 
 export interface ApolloInternetAccount extends BaseInternetAccountModel {
   baseURL: string
@@ -102,7 +117,7 @@ export class CollaborationServerDriver extends BackendDriver {
       )
       throw new Error(errorMessage)
     }
-    await this.checkSocket(assemblyName, refName, internetAccount)
+    this.checkSocket(assemblyName, refName, internetAccount)
     return response.json() as Promise<
       [AnnotationFeatureSnapshot[], CheckResultSnapshot[]]
     >
@@ -114,7 +129,7 @@ export class CollaborationServerDriver extends BackendDriver {
    * @param refSeq - refSeqName
    * @param internetAccount - internet account
    */
-  async checkSocket(
+  checkSocket(
     assembly: string,
     refSeq: string,
     internetAccount: ApolloInternetAccount,
@@ -167,7 +182,7 @@ export class CollaborationServerDriver extends BackendDriver {
     if (!apolloAssembly) {
       apolloAssembly = this.clientStore.addAssembly(assemblyName)
     }
-    let apolloRefSeq = apolloAssembly?.refSeqs.get(refSeq)
+    let apolloRefSeq = apolloAssembly.refSeqs.get(refSeq)
     if (!apolloRefSeq) {
       apolloRefSeq = apolloAssembly.addRefSeq(refSeq, refName)
     }
@@ -198,7 +213,7 @@ export class CollaborationServerDriver extends BackendDriver {
     )
     this.inFlight.set(inFlightKey, seqPromise)
     const seq = await seqPromise
-    await this.checkSocket(assemblyName, refName, internetAccount)
+    this.checkSocket(assemblyName, refName, internetAccount)
     this.inFlight.delete(inFlightKey)
     return { seq, refSeq }
   }
@@ -227,6 +242,45 @@ export class CollaborationServerDriver extends BackendDriver {
     const seq = await response.text()
     apolloRefSeq.addSequence({ sequence: seq, start, stop })
     return seq
+  }
+
+  async getRefNameAliases(assemblyName: string): Promise<RefNameAliases[]> {
+    const { assemblyManager } = getSession(this.clientStore)
+    const assembly = assemblyManager.get(assemblyName)
+    if (!assembly) {
+      throw new Error(`Could not find assembly with name "${assemblyName}"`)
+    }
+    const internetAccount = this.clientStore.getInternetAccount(
+      assemblyName,
+    ) as ApolloInternetAccount
+    const { baseURL } = internetAccount
+    const url = new URL('refSeqs', baseURL)
+    const searchParams = new URLSearchParams({ assembly: assemblyName })
+    url.search = searchParams.toString()
+    const uri = url.toString()
+
+    const response = await this.fetch(internetAccount, uri)
+    if (!response.ok) {
+      let errorMessage
+      try {
+        errorMessage = await response.text()
+      } catch {
+        errorMessage = ''
+      }
+      throw new Error(
+        `getRefNameAliases failed: ${response.status} (${response.statusText})${
+          errorMessage ? ` (${errorMessage})` : ''
+        }`,
+      )
+    }
+    const refSeqs = (await response.json()) as ApolloRefSeqResponse[]
+    return refSeqs.map((refSeq) => {
+      return {
+        refName: refSeq.name,
+        aliases: [refSeq._id, ...refSeq.aliases],
+        uniqueId: `alias-${refSeq._id}`,
+      }
+    }) as RefNameAliases[]
   }
 
   async getRegions(assemblyName: string): Promise<Region[]> {

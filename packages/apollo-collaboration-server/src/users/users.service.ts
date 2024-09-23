@@ -1,13 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { InjectModel } from '@nestjs/mongoose'
-import { UserDocument, User as UserSchema } from 'apollo-schemas'
+import { UserDocument, User as UserSchema } from '@apollo-annotation/schemas'
 import {
   DecodedJWT,
   RequestUserInformationMessage,
   UserLocationMessage,
   makeUserSessionId,
-} from 'apollo-shared'
+} from '@apollo-annotation/shared'
+import { Injectable, Logger } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 
 import { MessagesGateway } from '../messages/messages.gateway'

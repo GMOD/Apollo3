@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
-  Body,
   Controller,
   Delete,
   Get,
@@ -7,6 +7,7 @@ import {
   Logger,
   Param,
   Post,
+  Query,
   Req,
   Res,
   StreamableFile,
@@ -17,19 +18,23 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express/multer'
 import { Request, Response } from 'express'
 
-import {
-  FileStorageEngine,
-  UploadedFile as UploadedApolloFile,
-} from '../utils/FileStorageEngine'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { FilesService } from './files.service'
+import { UploadedFile as UploadedApolloFile } from './filesUtil'
+import { FileStorageEngine } from './FileStorageEngine'
+import { FilesInterceptor as StreamingFileInterceptor } from './files.interceptor'
 
 @Validations(Role.ReadOnly)
 @Controller('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
   private readonly logger = new Logger(FilesController.name)
+
+  @Get()
+  findAll() {
+    return this.filesService.findAll()
+  }
 
   @Validations(Role.Admin)
   @Head()
@@ -47,10 +52,11 @@ export class FilesController {
   @Post()
   @UseInterceptors(
     FileInterceptor('file', { storage: new FileStorageEngine() }),
+    StreamingFileInterceptor,
   )
   async uploadFile(
     @UploadedFile() file: UploadedApolloFile,
-    @Body() body: { type: 'text/x-gff3' | 'text/x-fasta' },
+    @Query('type') type: 'text/x-gff3' | 'text/x-fasta',
   ) {
     if (!file) {
       throw new UnprocessableEntityException('No "file" found in request')
@@ -61,7 +67,7 @@ export class FilesController {
     return this.filesService.create({
       basename: file.originalname,
       checksum: file.checksum,
-      type: body.type,
+      type,
       user: 'na',
     })
   }
@@ -87,7 +93,7 @@ export class FilesController {
       typeof acceptEncodingHeader === 'string'
         ? acceptEncodingHeader.split(',').map((s) => s.trim())
         : acceptEncodingHeader
-    const acceptGzip = encodings && encodings.includes('gzip')
+    const acceptGzip = encodings?.includes('gzip')
     res.set({
       'Content-Type': file.type,
       'Content-Disposition': `attachment; filename="${file.basename}"`,

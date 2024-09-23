@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import PluginManager from '@jbrowse/core/PluginManager'
 import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { Typography } from '@mui/material'
-import { alpha } from '@mui/material/styles'
+import { Typography, alpha } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { makeStyles } from 'tss-react/mui'
@@ -174,10 +174,9 @@ export const DisplayComponent = observer(function DisplayComponent({
   }
 
   const canvasScrollContainerRef = useRef<HTMLDivElement>(null)
-  useEffect(
-    () => scrollSelectedFeatureIntoView(model, canvasScrollContainerRef),
-    [model, selectedFeature],
-  )
+  useEffect(() => {
+    scrollSelectedFeatureIntoView(model, canvasScrollContainerRef)
+  }, [model, selectedFeature])
   return (
     <div className={classes.details} style={{ height: overallHeight }}>
       <AccordionControl

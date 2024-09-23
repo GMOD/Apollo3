@@ -1,14 +1,16 @@
-import { Module } from '@nestjs/common'
-import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
-import { CheckResultSnapshot } from 'apollo-mst'
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { CheckResultSnapshot } from '@apollo-annotation/mst'
 import {
   Check,
   CheckResult,
   CheckResultDocument,
   CheckResultSchema,
   CheckSchema,
-} from 'apollo-schemas'
-import { CheckResultUpdate } from 'apollo-shared'
+} from '@apollo-annotation/schemas'
+import { CheckResultUpdate } from '@apollo-annotation/shared'
+import { Module, forwardRef } from '@nestjs/common'
+import { MongooseModule, getConnectionToken } from '@nestjs/mongoose'
 import idValidator from 'mongoose-id-validator'
 
 import { MessagesGateway } from '../messages/messages.gateway'
@@ -16,10 +18,12 @@ import { MessagesModule } from '../messages/messages.module'
 import { RefSeqsModule } from '../refSeqs/refSeqs.module'
 import { ChecksController } from './checks.controller'
 import { ChecksService } from './checks.service'
+import { SequenceModule } from '../sequence/sequence.module'
 
 @Module({
   providers: [ChecksService],
   imports: [
+    forwardRef(() => SequenceModule),
     MessagesModule,
     RefSeqsModule,
     MongooseModule.forFeatureAsync([

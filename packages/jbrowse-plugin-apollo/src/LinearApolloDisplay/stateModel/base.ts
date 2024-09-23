@@ -1,3 +1,9 @@
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+import { AnnotationFeature } from '@apollo-annotation/mst'
 import { ConfigurationReference, getConf } from '@jbrowse/core/configuration'
 import { AnyConfigurationSchemaType } from '@jbrowse/core/configuration/configurationSchema'
 import { BaseDisplay } from '@jbrowse/core/pluggableElementTypes'
@@ -10,7 +16,6 @@ import {
 import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
-import { AnnotationFeatureI } from 'apollo-mst'
 import { autorun } from 'mobx'
 import { addDisposer, getRoot, types } from 'mobx-state-tree'
 
@@ -70,9 +75,6 @@ export function baseModelFactory(
         )
         return regions
       },
-      get displayedRegions() {
-        return self.lgv.displayedRegions
-      },
       regionCannotBeRendered(/* region */) {
         if (self.lgv && self.lgv.bpPerPx >= 200) {
           return 'Zoom in to see annotations'
@@ -101,7 +103,7 @@ export function baseModelFactory(
       },
       get changeManager() {
         return (self.session as unknown as ApolloSessionModel).apolloDataStore
-          ?.changeManager
+          .changeManager
       },
       getAssemblyId(assemblyName: string) {
         const { assemblyManager } =
@@ -112,14 +114,14 @@ export function baseModelFactory(
         }
         return assembly.name
       },
-      get selectedFeature(): AnnotationFeatureI | undefined {
+      get selectedFeature(): AnnotationFeature | undefined {
         return (self.session as unknown as ApolloSessionModel)
           .apolloSelectedFeature
       },
     }))
     .actions((self) => ({
-      setSelectedFeature(feature?: AnnotationFeatureI) {
-        return (
+      setSelectedFeature(feature?: AnnotationFeature) {
+        ;(
           self.session as unknown as ApolloSessionModel
         ).apolloSetSelectedFeature(feature)
       },

@@ -1,4 +1,9 @@
+import path from 'node:path'
+
 import { Command, Flags, Interfaces } from '@oclif/core'
+
+import { ApolloConf } from './ApolloConf.js'
+import { checkConfigfileExists } from './utils.js'
 
 export type Flags<T extends typeof Command> = Interfaces.InferredFlags<
   (typeof BaseCommand)['baseFlags'] & T['flags']
@@ -8,7 +13,6 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
   static baseFlags = {
     profile: Flags.string({
       description: 'Use credentials from this profile',
-      default: 'default',
     }),
     'config-file': Flags.string({
       description: 'Use this config file (mostly for testing)',
@@ -30,9 +34,28 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     this.args = args as Args<T>
   }
 
+  private getConfig(configFile: string | undefined): ApolloConf {
+    if (configFile === undefined) {
+      configFile = path.join(this.config.configDir, 'config.yml')
+    }
+    checkConfigfileExists(configFile)
+    const config: ApolloConf = new ApolloConf(configFile)
+    return config
+  }
+
+  public async getAccess(): Promise<{ address: string; accessToken: string }> {
+    const { 'config-file': configFile, profile } = this.flags
+    const config: ApolloConf = this.getConfig(configFile)
+
+    const profileName = process.env.APOLLO_PROFILE ?? profile ?? 'default'
+
+    return config.getAccess(profileName)
+  }
+
   protected async catch(err: Error & { exitCode?: number }): Promise<unknown> {
-    // add any custom logic to handle errors from the command
-    // or simply return the parent class error handling
+    if (err.cause instanceof Error) {
+      console.error(err.cause)
+    }
     return super.catch(err)
   }
 

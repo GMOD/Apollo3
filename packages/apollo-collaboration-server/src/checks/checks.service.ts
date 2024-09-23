@@ -1,8 +1,9 @@
-import { BgzipIndexedFasta, IndexedFasta } from '@gmod/indexedfasta'
-import { Injectable, Logger } from '@nestjs/common'
-import { InjectModel } from '@nestjs/mongoose'
-import { checkRegistry } from 'apollo-common'
-import { AnnotationFeatureSnapshot } from 'apollo-mst'
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-base-to-string */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+import { checkRegistry } from '@apollo-annotation/common'
+import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import {
   Assembly,
   AssemblyDocument,
@@ -12,15 +13,15 @@ import {
   CheckResultDocument,
   FeatureDocument,
   RefSeq,
-  RefSeqChunk,
-  RefSeqChunkDocument,
   RefSeqDocument,
-} from 'apollo-schemas'
-import { RemoteFile } from 'generic-filehandle'
+} from '@apollo-annotation/schemas'
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common'
+import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { RefSeqsService } from '../refSeqs/refSeqs.service'
+import { SequenceService } from '../sequence/sequence.service'
 
 @Injectable()
 export class ChecksService {
@@ -28,6 +29,8 @@ export class ChecksService {
     @InjectModel(CheckResult.name)
     private readonly checkResultModel: Model<CheckResultDocument>,
     private readonly refSeqsService: RefSeqsService,
+    @Inject(forwardRef(() => SequenceService))
+    private readonly sequenceService: SequenceService,
     @InjectModel(Check.name)
     private readonly checkModel: Model<CheckDocument>,
   ) {}
@@ -104,66 +107,8 @@ export class ChecksService {
     featureDoc: FeatureDocument
     start: number
   }) {
-    const refSeqModel = featureDoc.$model<Model<RefSeqDocument>>(RefSeq.name)
     const refSeqId = featureDoc.refSeq.toString()
-    const refSeqDoc = await refSeqModel.findById(refSeqId).exec()
-    if (!refSeqDoc) {
-      throw new Error(`Could not find refSeq ${refSeqId}`)
-    }
-    const { assembly, chunkSize, name } = refSeqDoc
-    const assemblyModel = featureDoc.$model<Model<AssemblyDocument>>(
-      Assembly.name,
-    )
-    const assemblyDoc = await assemblyModel.findById(assembly)
-    if (!assemblyDoc) {
-      throw new Error(`Could not find assembly ${assembly}`)
-    }
-
-    if (assemblyDoc.externalLocation) {
-      const { fa, fai, gzi } = assemblyDoc.externalLocation
-      this.logger.debug(`Fasta file URL = ${fa}, Fasta index file URL = ${fai}`)
-
-      const sequenceAdapter = gzi
-        ? new BgzipIndexedFasta({
-            fasta: new RemoteFile(fa, { fetch }),
-            fai: new RemoteFile(fai, { fetch }),
-            gzi: new RemoteFile(gzi, { fetch }),
-          })
-        : new IndexedFasta({
-            fasta: new RemoteFile(fa, { fetch }),
-            fai: new RemoteFile(fai, { fetch }),
-          })
-      const sequence = await sequenceAdapter.getSequence(name, start, end)
-      if (sequence === undefined) {
-        throw new Error('Sequence not found')
-      }
-      return sequence
-    }
-    const startChunk = Math.floor(start / chunkSize)
-    const endChunk = Math.floor(end / chunkSize)
-    const seq: string[] = []
-    const refSeqChunkModel = featureDoc.$model<Model<RefSeqChunkDocument>>(
-      RefSeqChunk.name,
-    )
-    for await (const refSeqChunk of refSeqChunkModel
-      .find({
-        refSeq: refSeqId,
-        $and: [{ n: { $gte: startChunk } }, { n: { $lte: endChunk } }],
-      })
-      .sort({ n: 1 })) {
-      const { n, sequence } = refSeqChunk
-      if (n === startChunk || n === endChunk) {
-        seq.push(
-          sequence.slice(
-            n === startChunk ? start - n * chunkSize : undefined,
-            n === endChunk ? end - n * chunkSize : undefined,
-          ),
-        )
-      } else {
-        seq.push(sequence)
-      }
-    }
-    return seq.join('')
+    return this.sequenceService.getSequence({ start, end, refSeq: refSeqId })
   }
 
   async clearChecksForFeature(featureDoc: FeatureDocument) {

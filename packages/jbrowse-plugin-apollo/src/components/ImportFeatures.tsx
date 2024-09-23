@@ -1,3 +1,11 @@
+/* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-misused-promises */
+import { AddFeaturesFromFileChange } from '@apollo-annotation/shared'
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
 import {
@@ -12,7 +20,6 @@ import {
 import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import LinearProgress from '@mui/material/LinearProgress'
-import { AddFeaturesFromFileChange } from 'apollo-shared'
 import React, { useEffect, useState } from 'react'
 
 import {
@@ -55,7 +62,7 @@ export function ImportFeatures({
   }
   const assemblies = collaborationServerDriver.getAssemblies()
 
-  function handleChangeAssembly(e: SelectChangeEvent<string>) {
+  function handleChangeAssembly(e: SelectChangeEvent) {
     const newAssembly = assemblies.find((asm) => asm.name === e.target.value)
     setSelectedAssembly(newAssembly)
     setSubmitted(false)
@@ -85,12 +92,12 @@ export function ImportFeatures({
       }
 
       const { baseURL } = apolloInternetAccount
-      const uri = new URL('/features/count', baseURL)
+      const uri = new URL('features/count', baseURL)
       const searchParams = new URLSearchParams({
         assemblyId: selectedAssembly.name,
       })
       uri.search = searchParams.toString()
-      const fetch = apolloInternetAccount?.getFetcher({
+      const fetch = apolloInternetAccount.getFetcher({
         locationType: 'UriLocation',
         uri: uri.toString(),
       })
@@ -152,14 +159,16 @@ export function ImportFeatures({
     const { baseURL } = apolloInternetAccount
 
     // First upload file
-    const url = new URL('/files', baseURL).href
+    const url = new URL('files', baseURL)
+    url.searchParams.set('type', 'text/x-gff3')
+    const uri = url.href
     const formData = new FormData()
     formData.append('file', file)
     formData.append('fileName', file.name)
     formData.append('type', 'text/x-gff3')
-    const apolloFetchFile = apolloInternetAccount?.getFetcher({
+    const apolloFetchFile = apolloInternetAccount.getFetcher({
       locationType: 'UriLocation',
-      uri: url,
+      uri,
     })
 
     handleClose()
@@ -181,7 +190,7 @@ export function ImportFeatures({
 
     if (apolloFetchFile) {
       const { signal } = controller
-      const response = await apolloFetchFile(url, {
+      const response = await apolloFetchFile(uri, {
         method: 'POST',
         body: formData,
         signal,

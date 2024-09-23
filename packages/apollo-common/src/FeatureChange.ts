@@ -1,5 +1,7 @@
-import type { AnnotationFeatureSnapshot } from 'apollo-mst'
-import { Feature } from 'apollo-schemas'
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import type { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
+import { Feature } from '@apollo-annotation/schemas'
 import ObjectID from 'bson-objectid'
 import type { Types } from 'mongoose'
 

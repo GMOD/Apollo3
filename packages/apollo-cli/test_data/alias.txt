@@ -1,0 +1,3 @@
+ctgA	ctga	CTGA
+ctgB	ctgb	CTGB
+ctgC	ctgc	CTGC

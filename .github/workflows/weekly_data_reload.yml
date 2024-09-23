@@ -1,0 +1,17 @@
+name: Weekly cleanup of data on demo servers
+
+on:
+  schedule:
+    - cron: 13 9 * * MON
+
+jobs:
+  prod-cleanup:
+    uses: ./.github/workflows/reload_demo_data.yml
+    with:
+      environment: prod
+    secrets: inherit
+  staging-cleanup:
+    uses: ./.github/workflows/reload_demo_data.yml
+    with:
+      environment: staging
+    secrets: inherit

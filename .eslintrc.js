@@ -5,13 +5,11 @@ module.exports = {
     'eslint:recommended',
     'plugin:unicorn/recommended',
     'plugin:cypress/recommended',
-    'plugin:import/recommended',
     'plugin:import/typescript',
-    'plugin:@typescript-eslint/strict',
+    'plugin:@typescript-eslint/strict-type-checked',
     'plugin:@typescript-eslint/stylistic-type-checked',
-    'plugin:prettier/recommended',
   ],
-  plugins: ['tsdoc', 'sort-destructure-keys'],
+  plugins: ['import', 'tsdoc', 'sort-destructure-keys'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: true,
@@ -41,6 +39,7 @@ module.exports = {
     ],
     'no-console': ['warn', { allow: ['error', 'warn', 'debug'] }],
     'no-else-return': ['error', { allowElseIf: false }],
+    'no-extra-semi': 'off',
     'object-shorthand': 'warn',
     'prefer-destructuring': 'warn',
     'prefer-template': 'warn',
@@ -66,11 +65,16 @@ module.exports = {
       'warn',
       { argsIgnorePattern: '^_', ignoreRestSiblings: true },
     ],
+    '@typescript-eslint/restrict-template-expressions': [
+      'warn',
+      { allowNumber: true },
+    ],
     '@typescript-eslint/return-await': 'error',
-    // eslint-plugin-import rules (override recommended)
+    // eslint-plugin-import rules
+    'import/export': 'error',
+    'import/no-duplicates': 'warn',
     'import/no-extraneous-dependencies': 'error',
-    // eslint-plugin-prettier rules (override recommended)
-    'prettier/prettier': 'warn',
+    'import/no-named-as-default': 'warn',
     // eslint-plugin-sort-destructure-keys rules
     'sort-destructure-keys/sort-destructure-keys': 'warn',
     // eslint-plugin-tsdoc rules
@@ -81,10 +85,6 @@ module.exports = {
     'unicorn/no-null': 'off', // A lot of null in React and other libraries
     'unicorn/prefer-module': 'off', // Cypress and apollo-collaboration-server need this
     'unicorn/prevent-abbreviations': 'off', // Doesn't guess a lot of abbreviations correctly
-    // Special case @typescript-eslint/eslint-plugin rule
-    // Will be part of "plugin:@typescript-eslint/recommended-type-checked" when
-    // that extension is enabled. Remove from here at that time.
-    '@typescript-eslint/no-floating-promises': 'error',
   },
   overrides: [
     // Only use React-specific lint rules in jbrowse-plugin-apollo

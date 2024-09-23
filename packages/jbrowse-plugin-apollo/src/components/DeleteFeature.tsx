@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
+import { AnnotationFeature } from '@apollo-annotation/mst'
+import { DeleteFeatureChange } from '@apollo-annotation/shared'
 import { AbstractSessionModel } from '@jbrowse/core/util'
 import {
   Button,
@@ -5,8 +8,6 @@ import {
   DialogContent,
   DialogContentText,
 } from '@mui/material'
-import { AnnotationFeatureI } from 'apollo-mst'
-import { DeleteFeatureChange } from 'apollo-shared'
 import { getSnapshot } from 'mobx-state-tree'
 import React, { useState } from 'react'
 
@@ -17,11 +18,11 @@ import { Dialog } from './Dialog'
 interface DeleteFeatureProps {
   session: ApolloSessionModel
   handleClose(): void
-  sourceFeature: AnnotationFeatureI
+  sourceFeature: AnnotationFeature
   sourceAssemblyId: string
   changeManager: ChangeManager
-  selectedFeature?: AnnotationFeatureI
-  setSelectedFeature(feature?: AnnotationFeatureI): void
+  selectedFeature?: AnnotationFeature
+  setSelectedFeature(feature?: AnnotationFeature): void
 }
 
 export function DeleteFeature({
@@ -51,7 +52,7 @@ export function DeleteFeature({
       deletedFeature: getSnapshot(sourceFeature),
       parentFeatureId: sourceFeature.parent?._id,
     })
-    await changeManager.submit?.(change)
+    await changeManager.submit(change)
     notify('Feature deleted successfully', 'success')
     handleClose()
     event.preventDefault()

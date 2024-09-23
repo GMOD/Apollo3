@@ -24,6 +24,9 @@ export class RefSeq {
   @Prop()
   description: string
 
+  @Prop()
+  aliases: string[]
+
   @Prop({ required: true })
   length: number
 

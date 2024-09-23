@@ -1,9 +1,17 @@
+/* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
+/* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
+/* eslint-disable @typescript-eslint/no-confusing-void-expression */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import fs from 'node:fs'
 import fsPromises from 'node:fs/promises'
 import path from 'node:path'
 
+import {
+  ApolloPlugin,
+  ApolloPluginConstructor,
+} from '@apollo-annotation/common'
 import { DynamicModule, Logger, Module, Provider } from '@nestjs/common'
-import { ApolloPlugin, ApolloPluginConstructor } from 'apollo-common'
 import fetch from 'node-fetch'
 import sanitize from 'sanitize-filename'
 

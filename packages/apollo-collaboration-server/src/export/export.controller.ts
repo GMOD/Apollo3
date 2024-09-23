@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Controller,
   Get,
@@ -8,7 +9,6 @@ import {
 } from '@nestjs/common'
 import { Response as ExpressResponse } from 'express'
 
-import { Public } from '../utils/jwt-auth.guard'
 import { Role } from '../utils/role/role.enum'
 import { Validations } from '../utils/validation/validatation.decorator'
 import { ExportService } from './export.service'
@@ -38,7 +38,7 @@ export class ExportController {
    * @param res -
    * @returns A StreamableFile of the GFF3
    */
-  @Public()
+  @Validations(Role.None)
   @Get()
   async exportGFF3(
     @Query() request: { exportID: string; fastaWidth?: number },

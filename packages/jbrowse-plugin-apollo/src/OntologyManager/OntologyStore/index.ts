@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/only-throw-error */
+
+/* eslint-disable unicorn/no-await-expression-member */
 import {
   BlobLocation,
   LocalPathLocation,
@@ -193,7 +196,7 @@ export default class OntologyStore {
     return myTx.objectStore('nodes').count()
   }
 
-  private async unique<ITEM extends { id: string }>(nodes: ITEM[]) {
+  private unique<ITEM extends { id: string }>(nodes: ITEM[]) {
     const seen = new Map<string, boolean>()
     const result: ITEM[] = []
     for (const node of nodes) {
@@ -303,10 +306,7 @@ export default class OntologyStore {
       await Promise.all(
         [...queryIds].map(async (queryId) => {
           const theseResults = (
-            (await myTx
-              .objectStore('edges')
-              .index(queryIndex)
-              .getAll(queryId)) as OntologyDBEdge[]
+            await myTx.objectStore('edges').index(queryIndex).getAll(queryId)
           )
             .filter((element) => filterEdge(element))
             .map((edge) => edge[resultProp])

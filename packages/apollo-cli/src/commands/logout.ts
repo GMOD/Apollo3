@@ -1,31 +1,39 @@
 import path from 'node:path'
 
+import { ApolloConf, KEYS } from '../ApolloConf.js'
 import { BaseCommand } from '../baseCommand.js'
-import { Config, KEYS } from '../Config.js'
-import { ConfigError, basicCheckConfig } from '../utils.js'
+import { basicCheckConfig } from '../utils.js'
 
 export default class Logout extends BaseCommand<typeof Logout> {
-  static description = 'Log out of Apollo'
+  static summary = 'Logout of Apollo'
+  static description =
+    'Logout by removing the access token from the selected profile'
+
+  static examples = [
+    {
+      description: 'Logout default profile:',
+      command: '<%= config.bin %> <%= command.id %>',
+    },
+    {
+      description: 'Logout selected profile',
+      command: '<%= config.bin %> <%= command.id %> --profile my-profile',
+    },
+  ]
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(Logout)
 
+    let profileName = flags.profile
+    if (profileName === undefined) {
+      profileName = process.env.APOLLO_PROFILE ?? 'default'
+    }
+
     let configFile = flags['config-file']
     if (configFile === undefined) {
-      configFile = path.join(this.config.configDir, 'config.yaml')
+      configFile = path.join(this.config.configDir, 'config.yml')
     }
-    try {
-      basicCheckConfig(configFile, flags.profile)
-    } catch (error) {
-      if (error instanceof ConfigError) {
-        this.logToStderr(error.message)
-        this.exit(1)
-      }
-    }
-
-    const config: Config = new Config(configFile)
-
-    config.set(KEYS.accessToken, '', flags.profile)
-    config.writeConfigFile()
+    basicCheckConfig(configFile, profileName)
+    const config: ApolloConf = new ApolloConf(configFile)
+    config.delete(`${profileName}.${KEYS.accessToken}`)
   }
 }

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { AbstractSessionModel, isElectron } from '@jbrowse/core/util'
 import {
   Button,
@@ -30,7 +32,7 @@ export interface RefSeqInterface {
 }
 
 export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
-  const { addApolloTrackConfig, apolloDataStore } = session
+  const { apolloDataStore } = session
   const { addAssembly, addSessionAssembly, assemblyManager, notify } =
     session as unknown as AbstractSessionModel & {
       // eslint-disable-next-line @typescript-eslint/ban-types
@@ -43,7 +45,7 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
   const [submitted, setSubmitted] = useState(false)
   const theme = useTheme()
 
-  async function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChangeFile(e: React.ChangeEvent<HTMLInputElement>) {
     const selectedFile = e.target.files?.item(0)
     if (!selectedFile) {
       return
@@ -76,8 +78,10 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
     try {
       await loadAssemblyIntoClient(assemblyId, fileData, apolloDataStore)
     } catch (error) {
-      setErrorMessage(String(error))
-      setSubmitted(false)
+      console.error(error)
+      notify(`Error loading GFF3 ${file.name}, ${String(error)}`, 'error')
+      handleClose()
+      return
     }
 
     const assemblyConfig = {
@@ -102,10 +106,10 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
     const a = await assemblyManager.waitForAssembly(assemblyConfig.name)
     if (a) {
       // @ts-expect-error MST type coercion problem?
-      addApolloTrackConfig(a)
-      notify(`Loaded GFF3 ${file?.name}`, 'success')
+      session.addApolloTrackConfig(a)
+      notify(`Loaded GFF3 ${file.name}`, 'success')
     } else {
-      notify(`Error loading GFF3 ${file?.name}`, 'error')
+      notify(`Error loading GFF3 ${file.name}`, 'error')
     }
     handleClose()
   }

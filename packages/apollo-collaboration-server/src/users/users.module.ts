@@ -1,6 +1,6 @@
+import { User, UserSchema } from '@apollo-annotation/schemas'
 import { Module, OnApplicationBootstrap } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
-import { User, UserSchema } from 'apollo-schemas'
 
 import { MessagesModule } from '../messages/messages.module'
 import { UsersController } from './users.controller'

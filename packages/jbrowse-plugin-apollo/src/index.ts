@@ -1,3 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-misused-promises */
+import { changeRegistry, checkRegistry } from '@apollo-annotation/common'
+import {
+  CDSCheck,
+  CoreValidation,
+  ParentChildValidation,
+  changes,
+  validationRegistry,
+} from '@apollo-annotation/shared'
 import { ConfigurationSchema } from '@jbrowse/core/configuration'
 import {
   DisplayType,
@@ -5,6 +17,7 @@ import {
   PluggableElementType,
   TrackType,
   ViewType,
+  WidgetType,
   createBaseTrackConfig,
   createBaseTrackModel,
 } from '@jbrowse/core/pluggableElementTypes'
@@ -18,14 +31,6 @@ import {
 } from '@jbrowse/core/util'
 import { LinearGenomeViewStateModel } from '@jbrowse/plugin-linear-genome-view'
 import AddIcon from '@mui/icons-material/Add'
-import { changeRegistry, checkRegistry } from 'apollo-common'
-import {
-  CDSCheck,
-  CoreValidation,
-  ParentChildValidation,
-  changes,
-  validationRegistry,
-} from 'apollo-shared'
 
 import { version } from '../package.json'
 import {
@@ -41,15 +46,22 @@ import {
 import { installApolloTextSearchAdapter } from './ApolloTextSearchAdapter'
 import { BackendDriver } from './BackendDrivers'
 import {
+  AddFeature,
   DownloadGFF3,
+  LogOut,
   ManageChecks,
   OpenLocalFile,
   ViewChangeLog,
+  ViewCheckResults,
 } from './components'
-import { AddFeature } from './components/AddFeature'
-import { ViewCheckResults } from './components/ViewCheckResults'
 import ApolloPluginConfigurationSchema from './config'
 import { annotationFromPileup } from './extensions'
+import {
+  ApolloFeatureDetailsWidget,
+  ApolloFeatureDetailsWidgetModel,
+  ApolloTranscriptDetailsModel,
+  ApolloTranscriptDetailsWidget,
+} from './FeatureDetailsWidget'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
   configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
@@ -63,6 +75,7 @@ import {
   stateModelFactory as SixFrameFeatureDisplayStateModelFactory,
   configSchemaFactory as sixFrameFeatureDisplayConfigSchemaFactory,
 } from './SixFrameFeatureDisplay'
+import { installApolloRefNameAliasAdapter } from './ApolloRefNameAliasAdapter'
 
 interface RpcHandle {
   on(event: string, listener: (event: MessageEvent) => void): this
@@ -105,7 +118,31 @@ export default class ApolloPlugin extends Plugin {
 
   install(pluginManager: PluginManager) {
     installApolloSequenceAdapter(pluginManager)
+    installApolloRefNameAliasAdapter(pluginManager)
     installApolloTextSearchAdapter(pluginManager)
+
+    pluginManager.addWidgetType(() => {
+      const configSchema = ConfigurationSchema('ApolloFeatureDetailsWidget', {})
+      const widgetType = new WidgetType({
+        name: 'ApolloFeatureDetailsWidget',
+        heading: 'Apollo feature details',
+        configSchema,
+        stateModel: ApolloFeatureDetailsWidgetModel,
+        ReactComponent: ApolloFeatureDetailsWidget,
+      })
+      return widgetType
+    })
+    pluginManager.addWidgetType(() => {
+      const configSchema = ConfigurationSchema('ApolloTranscriptDetails', {})
+      const widgetType = new WidgetType({
+        name: 'ApolloTranscriptDetails',
+        heading: 'Apollo transcript details',
+        configSchema,
+        stateModel: ApolloTranscriptDetailsModel,
+        ReactComponent: ApolloTranscriptDetailsWidget,
+      })
+      return widgetType
+    })
     pluginManager.addTrackType(() => {
       const configSchema = ConfigurationSchema(
         'ApolloTrack',
@@ -181,6 +218,7 @@ export default class ApolloPlugin extends Plugin {
 
     pluginManager.addToExtensionPoint(
       'Core-extendSession',
+      // @ts-expect-error not sure how to deal with snapshot model types
       extendSession.bind(this, pluginManager),
     )
 
@@ -295,6 +333,28 @@ export default class ApolloPlugin extends Plugin {
                 })
                 break
               }
+              case 'getRefNameAliases': {
+                const { assembly } = event
+                const dataStore = (
+                  pluginManager.rootModel?.session as
+                    | ApolloSessionModel
+                    | undefined
+                )?.apolloDataStore
+                if (!dataStore) {
+                  break
+                }
+                const backendDriver = dataStore.getBackendDriver(
+                  assembly,
+                ) as BackendDriver
+                const refNameAliases =
+                  await backendDriver.getRefNameAliases(assembly)
+                handle.workers[0].postMessage({
+                  apollo,
+                  messageId,
+                  refNameAliases,
+                })
+                break
+              }
               default: {
                 break
               }
@@ -379,6 +439,22 @@ export default class ApolloPlugin extends Plugin {
           ;(session as unknown as AbstractSessionModel).queueDialog(
             (doneCallback) => [
               ViewCheckResults,
+              {
+                session,
+                handleClose: () => {
+                  doneCallback()
+                },
+              },
+            ],
+          )
+        },
+      })
+      pluginManager.rootModel.appendToMenu('Apollo', {
+        label: 'Log out',
+        onClick: (session: ApolloSessionModel) => {
+          ;(session as unknown as AbstractSessionModel).queueDialog(
+            (doneCallback) => [
+              LogOut,
               {
                 session,
                 handleClose: () => {

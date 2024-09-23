@@ -1,4 +1,5 @@
-/* eslint-disable import/no-named-as-default-member */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 // jsonpath triggers this rule for some reason. import { query } from 'jsonpath' does not work
 
 import { checkAbortSignal } from '@jbrowse/core/util'

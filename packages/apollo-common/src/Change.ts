@@ -1,11 +1,14 @@
-import { AppRootModel, Region } from '@jbrowse/core/util'
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
-  AnnotationFeatureI,
+  AnnotationFeature,
   AnnotationFeatureSnapshot,
   ApolloAssemblyI,
+  BackendDriverType,
   CheckResultI,
   CheckResultSnapshot,
-} from 'apollo-mst'
+} from '@apollo-annotation/mst'
+import { AppRootModel, Region } from '@jbrowse/core/util'
 
 import { changeRegistry } from './ChangeTypeRegistry'
 import {
@@ -26,12 +29,15 @@ export interface ClientDataStore {
   ): AppRootModel['internetAccounts'][0]
   loadFeatures(regions: Region[]): void
   loadRefSeq(regions: Region[]): void
-  getFeature(featureId: string): AnnotationFeatureI | undefined
+  getFeature(featureId: string): AnnotationFeature | undefined
   addFeature(assemblyId: string, feature: AnnotationFeatureSnapshot): void
   deleteFeature(featureId: string): void
   deleteAssembly(assemblyId: string): void
   addCheckResults(checkResults: CheckResultSnapshot[]): void
-  addAssembly(assemblyId: string): ApolloAssemblyI
+  addAssembly(
+    assemblyId: string,
+    backendDriverType?: BackendDriverType,
+  ): ApolloAssemblyI
 }
 
 export type SerializedChange = SerializedOperation

@@ -1,0 +1,34 @@
+name: Deploy Docusaurus to website
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  reload:
+    name: Deploy Docusaurus to website
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: yarn
+      - name: Install
+        run: yarn --immutable
+      - name: Build website
+        working-directory: packages/website
+        run: yarn build
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Upload
+        working-directory: packages/website
+        run: |
+          aws s3 sync --delete build/ s3://apollo.jbrowse.org/
+          aws cloudfront create-invalidation --distribution-id EL84YTOVCGNJZ --paths '/*'
