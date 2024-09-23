@@ -141,9 +141,9 @@ export class FeaturesService {
       )
       if (subFeature) {
         if (
-          subFeature?.attributes &&
+          subFeature.attributes &&
           includeParentId &&
-          !subFeature.attributes.parent_id
+          !('parent_id' in subFeature.attributes)
         ) {
           subFeature.attributes.parent_id = [feature._id.toString()]
         }
