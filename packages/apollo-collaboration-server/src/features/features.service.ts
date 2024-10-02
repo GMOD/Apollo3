@@ -72,9 +72,10 @@ export class FeaturesService {
   /**
    * Get feature by featureId. When retrieving features by id, the features and any of its children are returned, but not any of its parent or sibling features.
    * @param featureId - featureId
+   * @param topLevel - If true, return the top level feature and its children. If false, return the requested feature and its children.
    * @returns Return the feature(s) if search was successful. Otherwise throw exception
    */
-  async findById(featureId: string) {
+  async findById(featureId: string, topLevel: boolean) {
     // Search correct feature
     const topLevelFeature = await this.featureModel
       .findOne({ allIds: featureId })
@@ -87,7 +88,11 @@ export class FeaturesService {
     }
 
     // Now we need to find correct top level feature or sub-feature inside the feature
-    const foundFeature = this.getFeatureFromId(topLevelFeature, featureId)
+    const foundFeature = this.getFeatureFromId(
+      topLevelFeature,
+      featureId,
+      topLevel,
+    )
     if (!foundFeature) {
       const errMsg = 'ERROR when searching feature by featureId'
       this.logger.error(errMsg)
@@ -103,13 +108,21 @@ export class FeaturesService {
    * @param featureId -
    * @returns
    */
-  getFeatureFromId(feature: Feature, featureId: string): Feature | null {
+  getFeatureFromId(
+    feature: Feature,
+    featureId: string,
+    topLevel: boolean,
+    parent?: Feature | null,
+  ): Feature | null {
     this.logger.verbose(`Entry=${JSON.stringify(feature)}`)
 
     if (feature._id.equals(featureId)) {
       this.logger.debug(
         `Top level featureId matches in object ${JSON.stringify(feature)}`,
       )
+      if (topLevel && parent) {
+        return parent
+      }
       return feature
     }
     // Check if there is also childFeatures in parent feature and it's not empty
@@ -118,8 +131,16 @@ export class FeaturesService {
       'FeatureId was not found on top level so lets make recursive call...',
     )
     for (const [, childFeature] of feature.children ?? new Map()) {
-      const subFeature = this.getFeatureFromId(childFeature, featureId)
+      const subFeature = this.getFeatureFromId(
+        childFeature,
+        featureId,
+        topLevel,
+        feature,
+      )
       if (subFeature) {
+        if (topLevel) {
+          return feature
+        }
         return subFeature
       }
     }

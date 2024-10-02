@@ -54,9 +54,12 @@ export class FeaturesController {
    * or if search data was not found or in case of error throw exception
    */
   @Get(':featureid')
-  getFeature(@Param('featureid') featureid: string) {
+  getFeature(
+    @Param('featureid') featureid: string,
+    @Query('topLevel') topLevel: string,
+  ) {
     this.logger.debug(`Get feature by featureId: ${featureid}`)
-    return this.featuresService.findById(featureid)
+    return this.featuresService.findById(featureid, topLevel == 'true')
   }
 
   @Get('check/:featureid')
