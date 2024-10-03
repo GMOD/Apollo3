@@ -14,6 +14,9 @@ import { TrackLines } from './SixFrameFeatureDisplay/components'
 import { SixFrameFeatureDisplay } from './SixFrameFeatureDisplay/stateModel'
 import { TabularEditorPane } from './TabularEditor'
 
+import { getSession } from '@jbrowse/core/util'
+import { ApolloSessionModel } from './session'
+
 const accordionControlHeight = 12
 
 const useStyles = makeStyles()((theme) => ({
@@ -155,6 +158,11 @@ export const DisplayComponent = observer(function DisplayComponent({
 }: {
   model: LinearApolloDisplayI
 }) {
+  const session = getSession(model) as unknown as ApolloSessionModel
+  const { ontologyManager } = session.apolloDataStore
+  const { featureTypeOntology } = ontologyManager
+  const ontologyStore = featureTypeOntology?.dataStore
+
   const { classes } = useStyles()
 
   const {
@@ -175,6 +183,29 @@ export const DisplayComponent = observer(function DisplayComponent({
 
   const onDetailsResize = (delta: number) => {
     model.setDetailsHeight(detailsHeight - delta)
+  }
+
+  if (!ontologyStore) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '25%',
+        }}
+      >
+        <p
+          style={{
+            color: 'DimGray',
+            fontSize: '100%',
+            backgroundColor: 'white',
+          }}
+        >
+          {'Sequence ontology not found. Please load one before continuing'}
+        </p>
+      </div>
+    )
   }
 
   if (graphical && table) {
