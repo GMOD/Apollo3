@@ -40,7 +40,6 @@ jobs:
           platforms: linux/arm64/v8,linux/amd64
           push: true
           tags: ghcr.io/gmod/apollo-cli:${{ inputs.tag }}
-          context: packages/apollo-cli
           file:
             ${{ inputs.tag == 'dev' && 'packages/apollo-cli/dev.Dockerfile' ||
             'packages/apollo-cli/Dockerfile' }}
