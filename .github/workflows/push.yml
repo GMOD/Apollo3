@@ -51,7 +51,7 @@ jobs:
     if: ${{ github.ref == 'refs/heads/main' }}
     uses: ./.github/workflows/docker.yml
     with:
-      tag: devel
+      tag: dev
     secrets: inherit
   deploy:
     needs: [docker]
