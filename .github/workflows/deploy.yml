@@ -101,4 +101,4 @@ jobs:
         run: |
           docker --context staging compose down
           docker --context staging compose pull
-          docker --context staging compose up --build --detach
+          docker --context staging compose up --build --detach --wait --wait-timeout 120
