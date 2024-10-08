@@ -15,8 +15,7 @@ on:
 
 jobs:
   build:
-    name: Build and upload
-    if: inputs.environment == 'staging'
+    name: Build or fetch and upload
     runs-on: ubuntu-latest
     steps:
       - name: Check out
@@ -27,24 +26,18 @@ jobs:
           node-version: 18
           cache: yarn
       - name: Install
+        if: inputs.environment == 'staging'
         run: yarn --immutable
       - name: Build plugin
+        if: inputs.environment == 'staging'
         run: yarn build
         working-directory: packages/jbrowse-plugin-apollo
-      - name: Upload built plugin files
-        uses: actions/upload-artifact@v4
-        with:
-          name: plugin
-          path: |
-            packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js
-            packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.production.min.js
-  fetch:
-    name: Fetch from NPM and upload
-    if: inputs.environment == 'prod'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fetch from NPM
+      - name: Fetch plugin
+        if: inputs.environment == 'prod'
+        working-directory: packages/jbrowse-plugin-apollo
         run: |
+          mkdir --parents dist
+          cd dist/
           wget --output-document=- --quiet https://registry.npmjs.org/@apollo-annotation/jbrowse-plugin-apollo/ > jpa.json
           LATEST_VERSION=$(jq --raw-output '."dist-tags".latest' jpa.json)
           TARBALL=$(jq --raw-output ".versions.\"${LATEST_VERSION}\".dist.tarball" jpa.json)
@@ -55,8 +48,8 @@ jobs:
         with:
           name: plugin
           path: |
-            ./jbrowse-plugin-apollo.umd.development.js
-            ./jbrowse-plugin-apollo.umd.production.min.js
+            packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js
+            packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.production.min.js
   deploy:
     name: Deploy to ${{ inputs.environment }} demo server
     runs-on: ubuntu-latest
