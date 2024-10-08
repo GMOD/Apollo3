@@ -46,10 +46,8 @@ jobs:
             HostName ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }}
             User ec2-user
             IdentityFile ~/.ssh/staging
-            LogLevel VERBOSE
             ServerAliveInterval 60
             ServerAliveCountMax 10
-            TCPKeepAlive no
           END
           ssh-keyscan -H ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }} >> ~/.ssh/known_hosts
       - name: Create Docker context
@@ -74,6 +72,7 @@ jobs:
               "$@"
           }
 
+          set -x
           apollo config address http://host.docker.internal/apollo
           apollo config accessType root
           apollo config rootCredentials.username ${{ secrets.ROOT_USER_NAME }}
@@ -106,5 +105,5 @@ jobs:
 
           apollo feature \
             import \
-            --input-file /data/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.genes.gff3 \
+            --input-file /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.genes.gff3 \
             --assembly 'Schistosoma haematobium'
