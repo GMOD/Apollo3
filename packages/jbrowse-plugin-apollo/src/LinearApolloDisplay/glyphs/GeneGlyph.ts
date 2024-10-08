@@ -304,28 +304,19 @@ function getFeatureFromLayout(
       featureObj.parent &&
       featureObj.parent.type === 'mRNA'
     ) {
-      const { max, min } = featureObj
       const { cdsLocations } = featureObj.parent
       for (const cdsLoc of cdsLocations) {
-        const firstLoc = cdsLoc.at(0)
-        const lastLoc = cdsLoc.at(-1)
-
-        if (
-          firstLoc &&
-          firstLoc.min === min &&
-          lastLoc &&
-          lastLoc.max === max
-        ) {
-          for (const loc of cdsLoc) {
-            if (bp >= loc.min && bp <= loc.max) {
-              return featureObj
-            }
+        for (const loc of cdsLoc) {
+          if (bp >= loc.min && bp <= loc.max) {
+            return featureObj
           }
-          break
         }
       }
+
+      // If mouse position is in the intron region, return the mRNA
       return featureObj.parent
     }
+    // If mouse position is in a feature that is not a CDS, return the feature
     return featureObj
   }
   return feature
