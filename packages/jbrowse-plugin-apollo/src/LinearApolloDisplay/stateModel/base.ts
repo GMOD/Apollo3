@@ -136,6 +136,12 @@ export function baseModelFactory(
         return (self.session as unknown as ApolloSessionModel)
           .apolloSelectedFeature
       },
+      get showGraphical() {
+        return self.graphical
+      },
+      get showTable() {
+        return self.table
+      },
     }))
     .actions((self) => ({
       setScrollTop(scrollTop: number) {
