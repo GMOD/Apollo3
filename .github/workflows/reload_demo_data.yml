@@ -68,15 +68,13 @@ jobs:
               --rm \
               --interactive \
               --add-host host.docker.internal=host-gateway \
-              --volume ~/.config/apollo-cli:/root/.config/apollo-cli \
-              --volume ~/data:/data \
+              --volume /home/ec2-user/.config/apollo-cli:/root/.config/apollo-cli \
+              --volume /home/ec2-user/data:/data \
               --env APOLLO_PROFILE=auto \
               ghcr.io/gmod/apollo-cli:${{ vars.DOCKER_TAG }} \
               "$@"
           }
 
-          mkdir --parents ~/.config/apollo-cli
-          touch ~/.config/apollo-cli/config.yml
           apollo config address http://host.docker.internal/apollo
           apollo config accessType root
           apollo config rootCredentials.username ${{ secrets.ROOT_USER_NAME }}
