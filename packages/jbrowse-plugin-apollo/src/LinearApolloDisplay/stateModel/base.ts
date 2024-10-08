@@ -42,7 +42,7 @@ export function baseModelFactory(
       type: types.literal('LinearApolloDisplay'),
       configuration: ConfigurationReference(configSchema),
       graphical: true,
-      table: false,
+      table: true,
     })
     .volatile((self) => ({
       lgv: getContainingView(self) as unknown as LinearGenomeViewModel,
