@@ -55,11 +55,6 @@ jobs:
             --description "Staging server"
       - name: Load data
         run: |
-          set -e
-          set -u
-          set -o pipefail
-          set -x
-
           docker pull ghcr.io/gmod/apollo-cli:${{ vars.DOCKER_TAG }}
           function apollo() {
             docker \
