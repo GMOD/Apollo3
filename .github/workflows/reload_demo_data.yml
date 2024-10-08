@@ -73,6 +73,7 @@ jobs:
               "$@"
           }
 
+          mkdir --parents ~/.config/apollo-cli
           touch ~/.config/apollo-cli/config.yml
           apollo config address http://host.docker.internal/apollo
           apollo config accessType root
