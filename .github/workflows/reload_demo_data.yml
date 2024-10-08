@@ -55,6 +55,8 @@ jobs:
             --description "Staging server"
       - name: Load data
         run: |
+          ssh -G staging
+          exit 147
           docker pull ghcr.io/gmod/apollo-cli:${{ vars.DOCKER_TAG }}
           function apollo() {
             docker \
