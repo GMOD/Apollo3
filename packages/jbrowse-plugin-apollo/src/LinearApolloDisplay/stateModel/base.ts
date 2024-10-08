@@ -41,6 +41,8 @@ export function baseModelFactory(
     .props({
       type: types.literal('LinearApolloDisplay'),
       configuration: ConfigurationReference(configSchema),
+      graphical: true,
+      table: false,
     })
     .volatile((self) => ({
       lgv: getContainingView(self) as unknown as LinearGenomeViewModel,
@@ -118,7 +120,65 @@ export function baseModelFactory(
         return (self.session as unknown as ApolloSessionModel)
           .apolloSelectedFeature
       },
+      get showGraphical() {
+        return self.graphical
+      },
+      get showTable() {
+        return self.table
+      },
     }))
+    .actions((self) => ({
+      showGraphicalOnly() {
+        self.graphical = true
+        self.table = false
+      },
+      showTableOnly() {
+        self.graphical = false
+        self.table = true
+      },
+      showGraphicalAndTable() {
+        self.graphical = true
+        self.table = true
+      },
+    }))
+    .views((self) => {
+      const { trackMenuItems: superTrackMenuItems } = self
+
+      return {
+        trackMenuItems() {
+          return [
+            ...superTrackMenuItems(),
+            {
+              label: 'Show graphical display',
+              type: 'radio',
+              // eslint-disable-next-line unicorn/consistent-destructuring
+              checked: self.graphical && !self.table,
+              onClick: () => {
+                self.showGraphicalOnly()
+              },
+            },
+            {
+              label: 'Show table display',
+              type: 'radio',
+              // eslint-disable-next-line unicorn/consistent-destructuring
+              checked: self.table && !self.graphical,
+              onClick: () => {
+                self.showTableOnly()
+              },
+            },
+            {
+              label: 'Show both graphical and table display',
+              type: 'radio',
+              // eslint-disable-next-line unicorn/consistent-destructuring
+              checked: self.table && self.graphical,
+              onClick: () => {
+                self.showGraphicalAndTable()
+              },
+            },
+          ]
+        },
+      }
+    })
     .actions((self) => ({
       setSelectedFeature(feature?: AnnotationFeature) {
         ;(
