@@ -73,6 +73,7 @@ jobs:
               "$@"
           }
 
+          touch ~/.config/apollo-cli/config.yml
           apollo config address http://host.docker.internal/apollo
           apollo config accessType root
           apollo config rootCredentials.username ${{ secrets.ROOT_USER_NAME }}
