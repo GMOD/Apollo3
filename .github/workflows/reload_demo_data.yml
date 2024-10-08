@@ -82,6 +82,15 @@ jobs:
           apollo assembly get | apollo assembly delete --verbose --assembly -
           apollo file get | apollo file delete
 
+
+          apollo assembly \
+            add-from-fasta \
+            /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz \
+            --fai /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz.fai \
+            --gzi /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz.gzi \
+            --assembly 'Schistosoma haematobium' \
+            --not-editable
+
           apollo assembly \
             add-from-fasta \
             /data/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz \
@@ -92,18 +101,10 @@ jobs:
 
           apollo feature \
             import \
-            --input-file /data/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.genes.gff3 \
-            --assembly 'Schistosoma mansoni'
-
-          apollo assembly \
-            add-from-fasta \
-            /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa \
-            --fai /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz.fai \
-            --gzi /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz.gzi \
-            --assembly 'Schistosoma haematobium' \
-            --not-editable
+            --input-file /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.genes.gff3 \
+            --assembly 'Schistosoma haematobium'
 
           apollo feature \
             import \
-            --input-file /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.genes.gff3 \
-            --assembly 'Schistosoma haematobium'
+            --input-file /data/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.genes.gff3 \
+            --assembly 'Schistosoma mansoni'
