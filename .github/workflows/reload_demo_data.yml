@@ -79,7 +79,7 @@ jobs:
           apollo config accessType root
           apollo config rootCredentials.username ${{ secrets.ROOT_USER_NAME }}
           apollo config rootCredentials.password ${{ secrets.ROOT_USER_PASSWORD }}
-          apollo login
+          apollo login --force
 
           apollo assembly get | apollo assembly delete --verbose --assembly -
           apollo file get | apollo file delete
