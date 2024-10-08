@@ -46,6 +46,8 @@ jobs:
             HostName ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }}
             User ec2-user
             IdentityFile ~/.ssh/staging
+            ServerAliveInterval 60
+            ServerAliveCountMax 10
           END
           ssh-keyscan -H ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }} >> ~/.ssh/known_hosts
       - name: Create Docker context
@@ -55,11 +57,6 @@ jobs:
             --description "Staging server"
       - name: Load data
         run: |
-          set -e
-          set -u
-          set -o pipefail
-          set -x
-
           docker pull ghcr.io/gmod/apollo-cli:${{ vars.DOCKER_TAG }}
           function apollo() {
             docker \
@@ -75,6 +72,7 @@ jobs:
               "$@"
           }
 
+          set -x
           apollo config address http://host.docker.internal/apollo
           apollo config accessType root
           apollo config rootCredentials.username ${{ secrets.ROOT_USER_NAME }}
@@ -83,6 +81,15 @@ jobs:
 
           apollo assembly get | apollo assembly delete --verbose --assembly -
           apollo file get | apollo file delete
+
+
+          apollo assembly \
+            add-from-fasta \
+            /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz \
+            --fai /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz.fai \
+            --gzi /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz.gzi \
+            --assembly 'Schistosoma haematobium' \
+            --not-editable
 
           apollo assembly \
             add-from-fasta \
@@ -94,18 +101,10 @@ jobs:
 
           apollo feature \
             import \
-            --input-file /data/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.genes.gff3 \
-            --assembly 'Schistosoma mansoni'
-
-          apollo assembly \
-            add-from-fasta \
-            /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa \
-            --fai /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz.fai \
-            --gzi /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz.gzi \
-            --assembly 'Schistosoma haematobium' \
-            --not-editable
+            --input-file /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.genes.gff3 \
+            --assembly 'Schistosoma haematobium'
 
           apollo feature \
             import \
             --input-file /data/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.genes.gff3 \
-            --assembly 'Schistosoma haematobium'
+            --assembly 'Schistosoma mansoni'
