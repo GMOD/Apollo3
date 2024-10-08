@@ -48,48 +48,62 @@ jobs:
             IdentityFile ~/.ssh/staging
           END
           ssh-keyscan -H ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }} >> ~/.ssh/known_hosts
-      - name: Test ssh
+      - name: Create Docker context
         run: |
-          xid=`date +"%Y-%m-%dT%H-%M-%S"`
-          cat <<'EOF' > cleanup_apollo.$xid.sh
+          docker context create staging \
+            --docker host=ssh://staging \
+            --description "Staging server"
+      - name: Load data
+        run: |
           set -e
           set -u
           set -o pipefail
           set -x
 
-          demoDataDir=${{ '${HOME}' }}/dario/demoData
-          rm -rf $demoDataDir
-          mkdir -p $demoDataDir
-          cd $demoDataDir
-
-          wormbase='https://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS19/species'
-          curl -O -s -L $wormbase/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz
-          curl -O -s -L $wormbase/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz
-          curl -O -s -L $wormbase/schistosoma_haematobium/TD2_PRJEB44434/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3.gz
-          curl -O -s -L $wormbase/schistosoma_mansoni/PRJEA36577/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3.gz
-          gunzip *.gz
-
-          cd ${{ '${HOME}' }}/Apollo3/packages/apollo-cli
-
-          export APOLLO_PROFILE=auto
-          function apollo () {
-            yarn node bin/run.js "$@"
+          docker pull ghcr.io/gmod/apollo-cli:${{ vars.DOCKER_TAG }}
+          function apollo() {
+            docker run \
+              --rm \
+              --interactive \
+              --add-host host.docker.internal=host-gateway \
+              --volume ~/.config/apollo-cli:/root/.config/apollo-cli \
+              --volume ~/data:/data \
+              --env APOLLO_PROFILE=auto \
+              ghcr.io/gmod/apollo-cli:${{ vars.DOCKER_TAG }} \
+              "$@"
           }
 
-          apollo config address http://localhost
+          apollo config address http://host.docker.internal/apollo
           apollo config accessType root
           apollo config rootCredentials.username ${{ secrets.ROOT_USER_NAME }}
           apollo config rootCredentials.password ${{ secrets.ROOT_USER_PASSWORD }}
           apollo login
 
-          apollo assembly get | apollo assembly delete -v -a -
+          apollo assembly get | apollo assembly delete --verbose --assembly -
+          apollo file get | apollo file delete
 
-          apollo assembly add-from-fasta $demoDataDir/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa -a schistosoma_haematobium -f
-          apollo assembly add-from-fasta $demoDataDir/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa -a schistosoma_mansoni -f
+          apollo assembly \
+            add-from-fasta \
+            /data/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz \
+            --fai /data/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz.fai \
+            --gzi /data/schistosoma_mansoni.PRJEA36577.WBPS19.genomic.fa.gz.gzi \
+            --assembly 'Schistosoma mansoni' \
+            --not-editable
 
-          apollo feature import -i $demoDataDir/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.gff3 -a schistosoma_haematobium -d
-          apollo feature import -i $demoDataDir/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.gff3 -a schistosoma_mansoni -d
-          EOF
+          apollo feature \
+            import \
+            --input-file /data/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.genes.gff3 \
+            --assembly 'Schistosoma mansoni'
 
-          rsync -av cleanup_apollo.$xid.sh staging:dario/
-          ssh staging -f "bash dario/cleanup_apollo.$xid.sh > dario/cleanup_apollo.$xid.out 2> dario/cleanup_apollo.$xid.err"
+          apollo assembly \
+            add-from-fasta \
+            /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa \
+            --fai /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz.fai \
+            --gzi /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.genomic.fa.gz.gzi \
+            --assembly 'Schistosoma haematobium' \
+            --not-editable
+
+          apollo feature \
+            import \
+            --input-file /data/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.genes.gff3 \
+            --assembly 'Schistosoma haematobium'
