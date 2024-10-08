@@ -62,14 +62,15 @@ jobs:
 
           docker pull ghcr.io/gmod/apollo-cli:${{ vars.DOCKER_TAG }}
           function apollo() {
-            docker run \
+            docker \
+              --context staging \
+              run \
               --rm \
               --interactive \
               --add-host host.docker.internal=host-gateway \
               --volume ~/.config/apollo-cli:/root/.config/apollo-cli \
               --volume ~/data:/data \
               --env APOLLO_PROFILE=auto \
-              --context staging \
               ghcr.io/gmod/apollo-cli:${{ vars.DOCKER_TAG }} \
               "$@"
           }
