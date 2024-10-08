@@ -16,6 +16,7 @@ on:
 jobs:
   build:
     name: Build and upload
+    if: inputs.environment == 'staging'
     runs-on: ubuntu-latest
     steps:
       - name: Check out
@@ -37,6 +38,25 @@ jobs:
           path: |
             packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.development.js
             packages/jbrowse-plugin-apollo/dist/jbrowse-plugin-apollo.umd.production.min.js
+  fetch:
+    name: Fetch from NPM and upload
+    if: inputs.environment == 'prod'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch from NPM
+        run: |
+          wget --output-document=- --quiet https://registry.npmjs.org/@apollo-annotation/jbrowse-plugin-apollo/ > jpa.json
+          LATEST_VERSION=$(jq --raw-output '."dist-tags".latest' jpa.json)
+          TARBALL=$(jq --raw-output ".versions.\"${LATEST_VERSION}\".dist.tarball" jpa.json)
+          wget --output-document=- --quiet ${TARBALL} | \
+            tar --extract --gzip --file=- --strip=2 package/dist/jbrowse-plugin-apollo.umd.development.js package/dist/jbrowse-plugin-apollo.umd.production.min.js
+      - name: Upload built plugin files
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin
+          path: |
+            ./jbrowse-plugin-apollo.umd.development.js
+            ./jbrowse-plugin-apollo.umd.production.min.js
   deploy:
     name: Deploy to ${{ inputs.environment }} demo server
     runs-on: ubuntu-latest
