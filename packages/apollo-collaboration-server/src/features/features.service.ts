@@ -75,7 +75,7 @@ export class FeaturesService {
    * @param topLevel - If true, return the top level feature and its children. If false, return the requested feature and its children.
    * @returns Return the feature(s) if search was successful. Otherwise throw exception
    */
-  async findById(featureId: string, topLevel: boolean) {
+  async findById(featureId: string, topLevel?: boolean) {
     // Search correct feature
     const topLevelFeature = await this.featureModel
       .findOne({ allIds: featureId })
@@ -111,7 +111,7 @@ export class FeaturesService {
   getFeatureFromId(
     feature: Feature,
     featureId: string,
-    topLevel: boolean,
+    topLevel?: boolean,
     parent?: Feature | null,
   ): Feature | null {
     this.logger.verbose(`Entry=${JSON.stringify(feature)}`)
