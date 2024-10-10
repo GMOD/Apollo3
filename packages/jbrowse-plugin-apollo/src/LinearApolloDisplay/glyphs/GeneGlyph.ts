@@ -66,26 +66,30 @@ function draw(
     return
   }
   const { apolloSelectedFeature } = session
-  const topLevelFeatureMinX =
-    (lgv.bpToPx({
-      refName,
-      coord: min,
-      regionNumber: displayedRegionIndex,
-    })?.offsetPx ?? 0) - offsetPx
-  const topLevelFeatureWidthPx = feature.length / bpPerPx
-  const topLevelFeatureStartPx = reversed
-    ? topLevelFeatureMinX - topLevelFeatureWidthPx
-    : topLevelFeatureMinX
-  const topLevelFeatureTop = row * rowHeight
-  const topLevelFeatureHeight = getRowCount(feature) * rowHeight
 
-  ctx.fillStyle = alpha(theme?.palette.tertiary.main ?? 'rgb(255,0,0)', 0.2)
-  ctx.fillRect(
-    topLevelFeatureStartPx,
-    topLevelFeatureTop,
-    topLevelFeatureWidthPx,
-    topLevelFeatureHeight,
-  )
+  // Draw background for gene
+  if (feature.type === 'gene') {
+    const topLevelFeatureMinX =
+      (lgv.bpToPx({
+        refName,
+        coord: min,
+        regionNumber: displayedRegionIndex,
+      })?.offsetPx ?? 0) - offsetPx
+    const topLevelFeatureWidthPx = feature.length / bpPerPx
+    const topLevelFeatureStartPx = reversed
+      ? topLevelFeatureMinX - topLevelFeatureWidthPx
+      : topLevelFeatureMinX
+    const topLevelFeatureTop = row * rowHeight
+    const topLevelFeatureHeight = getRowCount(feature) * rowHeight
+
+    ctx.fillStyle = alpha(theme?.palette.tertiary.main ?? 'rgb(255,0,0)', 0.2)
+    ctx.fillRect(
+      topLevelFeatureStartPx,
+      topLevelFeatureTop,
+      topLevelFeatureWidthPx,
+      topLevelFeatureHeight,
+    )
+  }
 
   // Draw lines on different rows for each mRNA
   let currentRow = 0
