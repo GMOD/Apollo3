@@ -61,12 +61,31 @@ function draw(
   const rowHeight = apolloRowHeight
   const exonHeight = Math.round(0.6 * rowHeight)
   const cdsHeight = Math.round(0.9 * rowHeight)
-  const { strand } = feature
-  const { children } = feature
+  const { children, min, strand } = feature
   if (!children) {
     return
   }
   const { apolloSelectedFeature } = session
+  const topLevelFeatureMinX =
+    (lgv.bpToPx({
+      refName,
+      coord: min,
+      regionNumber: displayedRegionIndex,
+    })?.offsetPx ?? 0) - offsetPx
+  const topLevelFeatureWidthPx = feature.length / bpPerPx
+  const topLevelFeatureStartPx = reversed
+    ? topLevelFeatureMinX - topLevelFeatureWidthPx
+    : topLevelFeatureMinX
+  const topLevelFeatureTop = row * rowHeight
+  const topLevelFeatureHeight = getRowCount(feature) * rowHeight
+
+  ctx.fillStyle = alpha(theme?.palette.tertiary.main ?? 'rgb(255,0,0)', 0.2)
+  ctx.fillRect(
+    topLevelFeatureStartPx,
+    topLevelFeatureTop,
+    topLevelFeatureWidthPx,
+    topLevelFeatureHeight,
+  )
 
   // Draw lines on different rows for each mRNA
   let currentRow = 0
@@ -289,7 +308,8 @@ function getFeatureFromLayout(
   bp: number,
   row: number,
 ): AnnotationFeature | undefined {
-  const featureInThisRow: AnnotationFeature[] = featuresForRow(feature)[row]
+  const featureInThisRow: AnnotationFeature[] =
+    featuresForRow(feature)[row] || []
   for (const f of featureInThisRow) {
     if (bp >= f.min && bp <= f.max && f.parent) {
       return f
