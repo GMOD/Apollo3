@@ -8,6 +8,7 @@
   "scripts": {
     "lint": "cross-env NODE_OPTIONS='--max-old-space-size=4096' yarn eslint --report-unused-disable-directives --max-warnings 0 --ext .js,.ts,.jsx,.tsx .",
     "build:shared": "yarn workspace @apollo-annotation/shared run build",
+    "release": "tsx scripts/makeGitTag.ts",
     "start:shared": "yarn workspace @apollo-annotation/shared run start",
     "start:server": "yarn workspace @apollo-annotation/collaboration-server run start",
     "start:plugin": "yarn workspace @apollo-annotation/jbrowse-plugin-apollo run start",
@@ -18,6 +19,7 @@
   "devDependencies": {
     "@types/cross-spawn": "^6.0.6",
     "@types/node": "^18.14.2",
+    "@types/semver": "^7",
     "@types/yargs": "^17.0.32",
     "@typescript-eslint/eslint-plugin": "^7.16.0",
     "@typescript-eslint/parser": "^7.16.0",
@@ -44,6 +46,8 @@
     "prettier": "^3.3.2",
     "prettier-plugin-packagejson": "^2.5.2",
     "react": "^18.2.0",
+    "semver": "^7.6.3",
+    "tslib": "^2.3.1",
     "tsx": "^4.6.2",
     "typescript": "^5.5.3",
     "yargs": "^17.7.2"

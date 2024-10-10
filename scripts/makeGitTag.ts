@@ -1,35 +1,26 @@
 import { sync } from 'cross-spawn'
+import { inc } from 'semver'
 import yargs from 'yargs/yargs'
 
-class Shell {
-  stdout: string
-  stderr: string
-  returncode: number | null
-  cmd: string
-  constructor(cmd: string, args: string[], verbose = true) {
-    this.cmd = `${cmd} ${args.join(' ')}`
-    if (verbose) {
-      process.stderr.write(`${this.cmd}\n`)
-    }
+import fs from 'node:fs'
+import path from 'node:path'
 
-    const child = sync(cmd, args)
-    this.stdout = child.stdout.toString()
-    this.stderr = child.stderr.toString()
-    this.returncode = child.status
-
-    if (this.returncode != 0) {
-      throw new Error(
-        `\n${this.cmd}\nSTDOUT:\n${this.stdout}\nSTDERR:\n${this.stderr}\nEXIT CODE: ${String(this.returncode)}`,
-      )
-    }
-  }
+function getCurrentVersion() {
+  const packageJSONRaw = fs.readFileSync(
+    path.join('packages', 'apollo-cli', 'package.json'),
+    'utf8',
+  )
+  const packageJSON = JSON.parse(packageJSONRaw) as { version: string }
+  return packageJSON.version
 }
 
-function checkTag(tag: string, testRegex = /v\d+.\d+.\d+.*/) {
-  if (!testRegex.test(tag)) {
-    throw new Error(
-      `Invalid tag: '${tag}' does not match regex ${testRegex.toString()}\n`,
-    )
+function exec(executable: string, args?: string[]) {
+  const child = sync(executable, args, { stdio: 'inherit' })
+  if (child.error) {
+    throw child.error
+  }
+  if (child.status !== 0) {
+    throw new Error(`Process failed with code ${child.status}`)
   }
 }
 
@@ -51,10 +42,10 @@ const argv = yargs(process.argv.slice(2))
   .version('0.1.0')
   .example('$0 -t v1.2.3 -m "New relase"', '')
   .options({
-    tag: {
-      demandOption: true,
-      alias: 't',
-      describe: 'Version for this tag, e.g. v1.2.3',
+    strategy: {
+      alias: 's',
+      choices: ['patch', 'minor', 'major'],
+      default: 'patch',
     },
     message: {
       alias: 'm',
@@ -66,22 +57,33 @@ const argv = yargs(process.argv.slice(2))
       default: '.',
       describe: 'Root directory of Apollo source code',
     },
-    'update-only': { describe: 'Only update package versions and exit' },
   })
   .parseSync()
 
-const tag = argv.tag as string
+const { message, strategy } = argv
 
 process.chdir(argv['root-dir'])
 
-let m: string | undefined = argv.message
-if (m === undefined) {
-  m = `Tag release ${tag}`
+const currentVersion = getCurrentVersion()
+const newVersion = inc(currentVersion, strategy as 'patch' | 'minor' | 'major')
+if (!newVersion) {
+  throw new Error('Could not determine next version')
 }
 
-checkTag(tag)
-new Shell('yarn', ['workspaces', 'foreach', '--all', 'version', tag])
-new Shell('git', ['add', '--force', '*package.json'])
-new Shell('git', ['commit', '--message', m, '--', '*package.json'])
-new Shell('git', ['tag', '--annotate', tag, '--message', m])
-new Shell('git', ['push', '--follow-tags'])
+let m: string | undefined = message
+if (m === undefined) {
+  m = `Tag release v${newVersion}`
+}
+
+exec('yarn', [
+  'workspaces',
+  'foreach',
+  '--all',
+  '--no-private',
+  'version',
+  strategy,
+])
+exec('git', ['add', '--force', 'packages/**/package.json'])
+exec('git', ['commit', '--message', m])
+exec('git', ['tag', '--annotate', `v${newVersion}`, '--message', m])
+exec('git', ['push', '--follow-tags'])
