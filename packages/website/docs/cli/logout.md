@@ -32,4 +32,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/logout.ts)_
+[src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/logout.ts)_

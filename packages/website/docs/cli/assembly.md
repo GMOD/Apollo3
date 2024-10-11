@@ -55,7 +55,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/assembly/add-from-fasta.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-from-fasta.ts)_
+[src/commands/assembly/add-from-fasta.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/assembly/add-from-fasta.ts)_
 
 ## `apollo assembly add-from-gff INPUT-FILE`
 
@@ -91,7 +91,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/assembly/add-from-gff.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/add-from-gff.ts)_
+[src/commands/assembly/add-from-gff.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/assembly/add-from-gff.ts)_
 
 ## `apollo assembly check`
 
@@ -133,7 +133,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/assembly/check.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/check.ts)_
+[src/commands/assembly/check.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/assembly/check.ts)_
 
 ## `apollo assembly delete`
 
@@ -161,7 +161,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/assembly/delete.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/delete.ts)_
+[src/commands/assembly/delete.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/assembly/delete.ts)_
 
 ## `apollo assembly get`
 
@@ -183,7 +183,7 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/assembly/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/get.ts)_
+[src/commands/assembly/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/assembly/get.ts)_
 
 ## `apollo assembly sequence`
 
@@ -218,4 +218,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/assembly/sequence.ts](https://github.com/GMOD/Apollo3/blob/v0.1.19/packages/apollo-cli/src/commands/assembly/sequence.ts)_
+[src/commands/assembly/sequence.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/assembly/sequence.ts)_
