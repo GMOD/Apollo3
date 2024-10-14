@@ -138,9 +138,6 @@ export class FeaturesService {
         feature,
       )
       if (subFeature) {
-        if (topLevel) {
-          return feature
-        }
         return subFeature
       }
     }
