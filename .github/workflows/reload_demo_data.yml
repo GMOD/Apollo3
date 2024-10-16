@@ -79,9 +79,10 @@ jobs:
           apollo config rootCredentials.password ${{ secrets.ROOT_USER_PASSWORD }}
           apollo login --force
 
+          apollo jbrowse set-config /data/config.json
+
           apollo assembly get | apollo assembly delete --verbose --assembly -
           apollo file get | apollo file delete
-
 
           apollo assembly \
             add-from-fasta \
