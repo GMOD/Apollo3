@@ -64,7 +64,6 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
     setSeqTrackCanvas,
     setSeqTrackOverlayCanvas,
     setTheme,
-    tabularEditor,
   } = model
   const { classes } = useStyles()
   const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
@@ -170,9 +169,6 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
               onMouseLeave={onMouseLeave}
               onMouseDown={onMouseDown}
               onMouseUp={onMouseUp}
-              onClick={() => {
-                tabularEditor.showPane()
-              }}
               className={classes.canvas}
               style={{ cursor: cursor ?? 'default' }}
               data-testid="overlayCanvas"
