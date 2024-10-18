@@ -1,5 +1,4 @@
 // TODO: get this added to LGV runtime exports so we don't have to duplicate it
-import { getConf } from '@jbrowse/core/configuration'
 import { types } from 'mobx-state-tree'
 
 const minDisplayHeight = 20
@@ -23,8 +22,7 @@ export const TrackHeightMixin = types
   }))
   .views((self) => ({
     get height() {
-      // @ts-expect-error getConf needs self.configuration
-      return self.heightPreConfig ?? (getConf(self, 'height') as number)
+      return self.heightPreConfig ?? 500
     },
   }))
   .actions((self) => ({
