@@ -64,7 +64,7 @@ import {
 } from './FeatureDetailsWidget'
 import {
   stateModelFactory as LinearApolloDisplayStateModelFactory,
-  configSchemaFactory as linearApolloDisplayConfigSchemaFactory,
+  configSchema as linearApolloDisplayConfigSchema,
 } from './LinearApolloDisplay'
 import {
   DisplayComponent,
@@ -174,7 +174,7 @@ export default class ApolloPlugin extends Plugin {
     })
 
     pluginManager.addDisplayType(() => {
-      const configSchema = linearApolloDisplayConfigSchemaFactory(pluginManager)
+      const configSchema = linearApolloDisplayConfigSchema
       return new DisplayType({
         name: 'LinearApolloDisplay',
         configSchema,

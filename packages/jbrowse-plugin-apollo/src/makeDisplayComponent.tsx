@@ -158,48 +158,72 @@ export const DisplayComponent = observer(function DisplayComponent({
   const { classes } = useStyles()
 
   const {
+    detailsHeight,
+    graphical,
     height: overallHeight,
     isShown,
     selectedFeature,
+    table,
     tabularEditor,
     toggleShown,
   } = model
-  const detailsHeight = tabularEditor.isShown ? model.detailsHeight : 0
-  const featureAreaHeight = isShown
-    ? overallHeight - detailsHeight - accordionControlHeight * 2
-    : 0
-
-  const onDetailsResize = (delta: number) => {
-    model.setDetailsHeight(model.detailsHeight - delta)
-  }
 
   const canvasScrollContainerRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     scrollSelectedFeatureIntoView(model, canvasScrollContainerRef)
   }, [model, selectedFeature])
-  return (
-    <div className={classes.details} style={{ height: overallHeight }}>
-      <AccordionControl
-        open={isShown}
-        title="Graphical"
-        onClick={toggleShown}
-      />
+
+  const onDetailsResize = (delta: number) => {
+    model.setDetailsHeight(detailsHeight - delta)
+  }
+
+  if (graphical && table) {
+    const tabularHeight = tabularEditor.isShown ? detailsHeight : 0
+    const featureAreaHeight = isShown
+      ? overallHeight - detailsHeight - accordionControlHeight * 2
+      : 0
+    return (
+      <div style={{ height: overallHeight }}>
+        <AccordionControl
+          open={isShown}
+          title="Graphical"
+          onClick={toggleShown}
+        />
+        <div
+          className={classes.shading}
+          ref={canvasScrollContainerRef}
+          style={{ height: featureAreaHeight }}
+        >
+          <LinearApolloDisplay model={model} {...other} />
+        </div>
+        <AccordionControl
+          title="Table"
+          open={tabularEditor.isShown}
+          onClick={tabularEditor.togglePane}
+          onResize={onDetailsResize}
+        />
+        <div className={classes.details} style={{ height: tabularHeight }}>
+          <TabularEditorPane model={model} />
+        </div>
+      </div>
+    )
+  }
+
+  if (graphical) {
+    return (
       <div
         className={classes.shading}
         ref={canvasScrollContainerRef}
-        style={{ height: featureAreaHeight }}
+        style={{ height: overallHeight }}
       >
         <LinearApolloDisplay model={model} {...other} />
       </div>
-      <AccordionControl
-        title="Table"
-        open={tabularEditor.isShown}
-        onClick={tabularEditor.togglePane}
-        onResize={onDetailsResize}
-      />
-      <div style={{ height: detailsHeight }}>
-        <TabularEditorPane model={model} />
-      </div>
+    )
+  }
+
+  return (
+    <div className={classes.details} style={{ height: overallHeight }}>
+      <TabularEditorPane model={model} />
     </div>
   )
 })
