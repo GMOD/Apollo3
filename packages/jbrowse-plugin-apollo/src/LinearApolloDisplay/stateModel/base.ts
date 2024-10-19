@@ -22,29 +22,27 @@ import { addDisposer, getRoot, types } from 'mobx-state-tree'
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { ApolloSessionModel } from '../../session'
 import { ApolloRootModel } from '../../types'
-import { TrackHeightMixin } from './trackHeightMixin'
+
+const minDisplayHeight = 20
 
 export function baseModelFactory(
   _pluginManager: PluginManager,
   configSchema: AnyConfigurationSchemaType,
 ) {
-  // TODO: Restore this when TRackHeightMixin is in LGV runtime exports
-
-  // const LGVPlugin = pluginManager.getPlugin(
-  //   'LinearGenomeViewPlugin',
-  // ) as LinearGenomeViewPlugin
-  // const { TrackHeightMixin } = LGVPlugin.exports
-
-  return types
-    .compose(BaseDisplay, TrackHeightMixin)
-    .named('BaseLinearApolloDisplay')
+  return BaseDisplay.named('BaseLinearApolloDisplay')
     .props({
       type: types.literal('LinearApolloDisplay'),
       configuration: ConfigurationReference(configSchema),
+      graphical: true,
+      table: false,
+      heightPreConfig: types.maybe(
+        types.refinement(
+          'displayHeight',
+          types.number,
+          (n) => n >= minDisplayHeight,
+        ),
+      ),
     })
-    .volatile((self) => ({
-      lgv: getContainingView(self) as unknown as LinearGenomeViewModel,
-    }))
     .views((self) => {
       const { configuration, renderProps: superRenderProps } = self
       return {
@@ -57,6 +55,26 @@ export function baseModelFactory(
         },
       }
     })
+    .volatile(() => ({
+      scrollTop: 0,
+    }))
+    .views((self) => ({
+      get lgv() {
+        return getContainingView(self) as unknown as LinearGenomeViewModel
+      },
+      get height() {
+        if (self.heightPreConfig) {
+          return self.heightPreConfig
+        }
+        if (self.graphical && self.table) {
+          return 500
+        }
+        if (self.graphical) {
+          return 200
+        }
+        return 300
+      },
+    }))
     .views((self) => ({
       get rendererTypeName() {
         return self.configuration.renderer.type
@@ -119,6 +137,73 @@ export function baseModelFactory(
           .apolloSelectedFeature
       },
     }))
+    .actions((self) => ({
+      setScrollTop(scrollTop: number) {
+        self.scrollTop = scrollTop
+      },
+      setHeight(displayHeight: number) {
+        self.heightPreConfig = Math.max(displayHeight, minDisplayHeight)
+        return self.height
+      },
+      resizeHeight(distance: number) {
+        const oldHeight = self.height
+        const newHeight = this.setHeight(self.height + distance)
+        return newHeight - oldHeight
+      },
+      showGraphicalOnly() {
+        self.graphical = true
+        self.table = false
+      },
+      showTableOnly() {
+        self.graphical = false
+        self.table = true
+      },
+      showGraphicalAndTable() {
+        self.graphical = true
+        self.table = true
+      },
+    }))
+    .views((self) => {
+      const { trackMenuItems: superTrackMenuItems } = self
+      return {
+        trackMenuItems() {
+          const { graphical, table } = self
+          return [
+            ...superTrackMenuItems(),
+            {
+              type: 'subMenu',
+              label: 'Appearance',
+              subMenu: [
+                {
+                  label: 'Show graphical display',
+                  type: 'radio',
+                  checked: graphical && !table,
+                  onClick: () => {
+                    self.showGraphicalOnly()
+                  },
+                },
+                {
+                  label: 'Show table display',
+                  type: 'radio',
+                  checked: table && !graphical,
+                  onClick: () => {
+                    self.showTableOnly()
+                  },
+                },
+                {
+                  label: 'Show both graphical and table display',
+                  type: 'radio',
+                  checked: table && graphical,
+                  onClick: () => {
+                    self.showGraphicalAndTable()
+                  },
+                },
+              ],
+            },
+          ]
+        },
+      }
+    })
     .actions((self) => ({
       setSelectedFeature(feature?: AnnotationFeature) {
         ;(
