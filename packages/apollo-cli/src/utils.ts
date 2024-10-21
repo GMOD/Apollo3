@@ -3,7 +3,11 @@ import EventEmitter from 'node:events'
 import * as fs from 'node:fs'
 import { stdin, stderr } from 'node:process'
 
-import { type SerializedDeleteAssemblyChange } from '@apollo-annotation/shared'
+import {
+  SerializedAddAssemblyFromExternalChange,
+  SerializedAddAssemblyFromFileChange,
+  type SerializedDeleteAssemblyChange,
+} from '@apollo-annotation/shared'
 
 import { Agent, RequestInit, Response, fetch } from 'undici'
 
@@ -353,43 +357,29 @@ export const waitFor = <T>(
   return promise
 }
 
-interface bodyFastaFile {
-  assemblyName: string
-  typeName: string
-  fileIds: { fa: string }
-  assembly: string
-}
-interface bodyIndexedFiles {
-  assemblyName: string
-  typeName: string
-  fileIds: {
-    fa: string
-    fai: string
-    gzi: string
-  }
-}
-interface bodyExternalFile {
-  assemblyName: string
-  typeName: string
-  externalLocation: {
-    fa: string
-    fai: string
-  }
-}
-
 export async function submitAssembly(
   address: string,
   accessToken: string,
-  body: bodyFastaFile | bodyExternalFile | bodyIndexedFiles,
+  body:
+    | SerializedAddAssemblyFromFileChange
+    | SerializedAddAssemblyFromExternalChange,
   force: boolean,
 ): Promise<object> {
   let assemblies = await queryApollo(address, accessToken, 'assemblies')
-  for (const x of (await assemblies.json()) as object[]) {
-    if (x['name' as keyof typeof x] === body.assemblyName) {
-      if (force) {
-        await deleteAssembly(address, accessToken, x['_id' as keyof typeof x])
-      } else {
-        throw new Error(`Error: Assembly "${body.assemblyName}" already exists`)
+  for (const x of (await assemblies.json()) as {
+    name: string
+    _id: string
+  }[]) {
+    const addedAssemblies = 'changes' in body ? body.changes : [body]
+    for (const addedAssembly of addedAssemblies) {
+      if (x.name === addedAssembly.assemblyName) {
+        if (force) {
+          await deleteAssembly(address, accessToken, x._id)
+        } else {
+          throw new Error(
+            `Error: Assembly "${addedAssembly.assemblyName}" already exists`,
+          )
+        }
       }
     }
   }
@@ -413,12 +403,18 @@ export async function submitAssembly(
     throw new Error(errorMessage)
   }
   assemblies = await queryApollo(address, accessToken, 'assemblies')
-  for (const x of (await assemblies.json()) as object[]) {
-    if (x['name' as keyof typeof x] === body.assemblyName) {
-      return x
+  for (const x of (await assemblies.json()) as {
+    name: string
+    _id: string
+  }[]) {
+    const addedAssemblies = 'changes' in body ? body.changes : [body]
+    for (const addedAssembly of addedAssemblies) {
+      if (x.name === addedAssembly.assemblyName) {
+        return x
+      }
     }
   }
-  throw new Error(`Failed to retrieve assembly ${body.assemblyName}`)
+  throw new Error(`Failed to retrieve assembly from ${body.assembly}`)
 }
 
 export async function readStdin() {
