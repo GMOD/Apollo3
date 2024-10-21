@@ -17,12 +17,13 @@ import { getParentRenderProps } from '@jbrowse/core/util/tracks'
 // import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import type { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { autorun } from 'mobx'
-import { addDisposer, getRoot, types } from 'mobx-state-tree'
+import { addDisposer, cast, getRoot, types, getSnapshot } from 'mobx-state-tree'
 
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { ApolloSessionModel } from '../../session'
 import { ApolloRootModel } from '../../types'
 import { TrackHeightMixin } from './trackHeightMixin'
+import { FilterFeatures } from '../../components/FilterFeatures'
 
 export function baseModelFactory(
   _pluginManager: PluginManager,
@@ -43,6 +44,7 @@ export function baseModelFactory(
       configuration: ConfigurationReference(configSchema),
       graphical: true,
       table: true,
+      filteredFeatureTypes: types.optional(types.array(types.string), ['gene']),
     })
     .volatile((self) => ({
       lgv: getContainingView(self) as unknown as LinearGenomeViewModel,
@@ -126,6 +128,9 @@ export function baseModelFactory(
       get showTable() {
         return self.table
       },
+      get getFilteredFeatureTypes() {
+        return self.filteredFeatureTypes
+      },
     }))
     .actions((self) => ({
       showGraphicalOnly() {
@@ -139,6 +144,9 @@ export function baseModelFactory(
       showGraphicalAndTable() {
         self.graphical = true
         self.table = true
+      },
+      updateFilteredFeatureTypes(types: string[]) {
+        self.filteredFeatureTypes = cast(types)
       },
     }))
     .views((self) => {
@@ -173,6 +181,28 @@ export function baseModelFactory(
               checked: self.table && self.graphical,
               onClick: () => {
                 self.showGraphicalAndTable()
+              },
+            },
+            {
+              label: 'Filter features by type',
+              onClick: () => {
+                const session = self.session as unknown as ApolloSessionModel
+                ;(self.session as unknown as AbstractSessionModel).queueDialog(
+                  (doneCallback) => [
+                    FilterFeatures,
+                    {
+                      session,
+                      handleClose: () => {
+                        doneCallback()
+                      },
+                      // eslint-disable-next-line unicorn/consistent-destructuring
+                      featureTypes: getSnapshot(self.filteredFeatureTypes),
+                      onUpdate: (types: string[]) => {
+                        self.updateFilteredFeatureTypes(types)
+                      },
+                    },
+                  ],
+                )
               },
             },
           ]
