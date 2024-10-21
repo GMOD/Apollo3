@@ -226,7 +226,9 @@ export function layoutsModelFactory(
                       feature.min,
                       feature.max,
                     ) &&
-                    !self.seenFeatures.has(feature._id)
+                    !self.seenFeatures.has(feature._id) &&
+                    self.filteredFeatureTypes &&
+                    self.filteredFeatureTypes.includes(feature.type)
                   ) {
                     self.addSeenFeature(feature)
                   }
