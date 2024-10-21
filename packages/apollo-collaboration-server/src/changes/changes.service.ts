@@ -181,15 +181,15 @@ export class ChangesService {
         )
         try {
           // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
+          await this.assemblyModel.updateMany(
+            { $and: [{ status: -1, user: uniqUserId }] },
+            { $set: { status: 0 } },
+          )
           await this.refSeqChunkModel.updateMany(
             { $and: [{ status: -1, user: uniqUserId }] },
             { $set: { status: 0 } },
           )
           await this.featureModel.updateMany(
-            { $and: [{ status: -1, user: uniqUserId }] },
-            { $set: { status: 0 } },
-          )
-          await this.assemblyModel.updateMany(
             { $and: [{ status: -1, user: uniqUserId }] },
             { $set: { status: 0 } },
           )
