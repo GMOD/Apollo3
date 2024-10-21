@@ -65,7 +65,7 @@ export class AddAssemblyAndFeaturesFromFileChange extends FromFileBaseChange {
    * @returns
    */
   async executeOnServer(backend: ServerDataStore) {
-    const { assemblyModel, fileModel, filesService, user } = backend
+    const { assemblyModel, checkModel, fileModel, filesService, user } = backend
     const { assembly, changes, logger } = this
     for (const change of changes) {
       const { assemblyName, fileIds } = change
@@ -89,9 +89,12 @@ export class AddAssemblyAndFeaturesFromFileChange extends FromFileBaseChange {
       if (assemblyDoc) {
         throw new Error(`Assembly "${assemblyName}" already exists`)
       }
+      // get checks
+      const checkDocs = await checkModel.find({ default: true }).exec()
+      const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
       // Add assembly
       const [newAssemblyDoc] = await assemblyModel.create([
-        { _id: assembly, name: assemblyName, user, status: -1, fileId },
+        { _id: assembly, name: assemblyName, user, status: -1, fileId, checks },
       ])
       logger.debug?.(
         `Added new assembly "${assemblyName}", docId "${newAssemblyDoc._id.toHexString()}"`,

@@ -88,8 +88,14 @@ export class AddAssemblyFromFileChange extends FromFileBaseChange {
     }
 
     const { fa, fai, gzi } = fileIds
-    const { assemblyModel, fileModel, filesService, refSeqModel, user } =
-      backend
+    const {
+      assemblyModel,
+      checkModel,
+      fileModel,
+      filesService,
+      refSeqModel,
+      user,
+    } = backend
 
     const faDoc = await fileModel.findById(fa)
     const faChecksum = faDoc?.checksum
@@ -122,6 +128,8 @@ export class AddAssemblyFromFileChange extends FromFileBaseChange {
     if (assemblyDoc) {
       throw new Error(`Assembly "${assemblyName}" already exists`)
     }
+    const checkDocs = await checkModel.find({ default: true }).exec()
+    const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
     const [newAssemblyDoc] = await assemblyModel.create([
       {
         _id: this.assembly,
@@ -129,6 +137,7 @@ export class AddAssemblyFromFileChange extends FromFileBaseChange {
         user,
         status: -1,
         fileIds,
+        checks,
       },
     ])
     this.logger.debug?.(
@@ -157,7 +166,7 @@ export class AddAssemblyFromFileChange extends FromFileBaseChange {
     assemblyName: string,
     fileId: string,
   ) {
-    const { assemblyModel, fileModel, user } = backend
+    const { assemblyModel, checkModel, fileModel, user } = backend
     // Get file checksum
     const fileDoc = await fileModel.findById(fileId).exec()
     if (!fileDoc) {
@@ -172,6 +181,8 @@ export class AddAssemblyFromFileChange extends FromFileBaseChange {
     if (assemblyDoc) {
       throw new Error(`Assembly "${assemblyName}" already exists`)
     }
+    const checkDocs = await checkModel.find({ default: true }).exec()
+    const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
     // Add assembly
     const [newAssemblyDoc] = await assemblyModel.create([
       {
@@ -180,6 +191,7 @@ export class AddAssemblyFromFileChange extends FromFileBaseChange {
         user,
         status: -1,
         fileIds: { fa: fileId },
+        checks,
       },
     ])
     this.logger.debug?.(
