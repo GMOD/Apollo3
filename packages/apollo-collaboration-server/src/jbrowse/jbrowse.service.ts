@@ -25,6 +25,7 @@ export class JBrowseService {
         NAME: string
         DESCRIPTION?: string
         PLUGIN_LOCATION?: string
+        FEATURE_TYPE_ONTOLOGY_LOCATION?: string
       },
       true
     >,
@@ -38,6 +39,10 @@ export class JBrowseService {
   }
 
   getConfiguration() {
+    const feature_type_ontology_location =
+      this.configService.get('FEATURE_TYPE_ONTOLOGY_LOCATION', {
+        infer: true,
+      }) ?? 'sequence_ontology.json'
     return {
       theme: {
         palette: {
@@ -54,6 +59,17 @@ export class JBrowseService {
             main: '#571AA3',
           },
         },
+      },
+      ApolloPlugin: {
+        ontologies: [
+          {
+            name: 'Sequence Ontology',
+            source: {
+              uri: feature_type_ontology_location,
+              locationType: 'UriLocation',
+            },
+          },
+        ],
       },
     }
   }

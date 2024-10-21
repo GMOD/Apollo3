@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { createWriteStream, Stats } from 'node:fs'
+import { createWriteStream } from 'node:fs'
 import {
   FileHandle,
   mkdir,
@@ -16,7 +16,7 @@ import { createGzip, gunzip } from 'node:zlib'
 
 import { Logger } from '@nestjs/common'
 import { Request } from 'express'
-import { GenericFilehandle, FilehandleOptions } from 'generic-filehandle'
+import { GenericFilehandle, FilehandleOptions, Stats } from 'generic-filehandle'
 
 interface FileUpload {
   originalname: string
@@ -100,6 +100,7 @@ async function unzip(input: FileHandle): Promise<Buffer> {
 
 export class LocalFileGzip implements GenericFilehandle {
   private fileHandle: Promise<FileHandle> | undefined
+  private contents: Promise<Buffer> | undefined
   private filename: string
   private opts: FilehandleOptions
 
@@ -115,14 +116,21 @@ export class LocalFileGzip implements GenericFilehandle {
     return this.fileHandle
   }
 
+  private async getContents(): Promise<Buffer> {
+    if (!this.contents) {
+      const fileHandle = await this.getFileHandle()
+      this.contents = unzip(fileHandle)
+    }
+    return this.contents
+  }
+
   public async read(
     buffer: Buffer,
     offset = 0,
     length: number,
     position = 0,
   ): Promise<{ bytesRead: number; buffer: Buffer }> {
-    const fileHandle = await this.getFileHandle()
-    const unzippedContents = await unzip(fileHandle)
+    const unzippedContents = await this.getContents()
     const bytesRead = unzippedContents.copy(
       buffer,
       position,
@@ -146,8 +154,7 @@ export class LocalFileGzip implements GenericFilehandle {
   public async readFile(
     _options?: FilehandleOptions | BufferEncoding,
   ): Promise<Buffer | string> {
-    const fileHandle = await this.getFileHandle()
-    const unzippedContents = await unzip(fileHandle)
+    const unzippedContents = await this.getContents()
     if (this.opts.encoding) {
       return unzippedContents.toString(this.opts.encoding)
     }
@@ -156,8 +163,8 @@ export class LocalFileGzip implements GenericFilehandle {
 
   // todo memoize
   public async stat(): Promise<Stats> {
-    const fh = await this.getFileHandle()
-    return fh.stat()
+    const contents = await this.getContents()
+    return { size: contents.length }
   }
 
   public async close(): Promise<void> {

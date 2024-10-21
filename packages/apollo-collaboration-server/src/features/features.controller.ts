@@ -1,4 +1,11 @@
-import { Controller, Get, Logger, Param, Query } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Logger,
+  Param,
+  ParseBoolPipe,
+  Query,
+} from '@nestjs/common'
 
 import { FeatureRangeSearchDto } from '../entity/gff3Object.dto'
 import { Role } from '../utils/role/role.enum'
@@ -54,9 +61,13 @@ export class FeaturesController {
    * or if search data was not found or in case of error throw exception
    */
   @Get(':featureid')
-  getFeature(@Param('featureid') featureid: string) {
+  getFeature(
+    @Param('featureid') featureid: string,
+    @Query('topLevel', new ParseBoolPipe({ optional: true }))
+    topLevel: boolean | undefined,
+  ) {
     this.logger.debug(`Get feature by featureId: ${featureid}`)
-    return this.featuresService.findById(featureid)
+    return this.featuresService.findById(featureid, topLevel)
   }
 
   @Get('check/:featureid')

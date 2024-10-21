@@ -1,6 +1,6 @@
 {
   "name": "@apollo-annotation/cli",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "description": "Command line interface for the Apollo annotation server",
   "repository": {
     "type": "git",
@@ -36,8 +36,8 @@
     "commands": "./dist/commands",
     "dirname": "apollo-cli",
     "helpOptions": {
-      "maxWidth": 80,
-      "flagSortOrder": "none"
+      "flagSortOrder": "none",
+      "maxWidth": 80
     },
     "plugins": [
       "@oclif/plugin-help"
@@ -54,6 +54,9 @@
       "feature": {
         "description": "Commands to manage features"
       },
+      "file": {
+        "description": "Commands to manage files"
+      },
       "jbrowse": {
         "description": "Commands to manage the JBrowse configuration"
       },
@@ -62,9 +65,6 @@
       },
       "user": {
         "description": "Commands to manage users"
-      },
-      "file": {
-        "description": "Commands to manage files"
       }
     }
   },
