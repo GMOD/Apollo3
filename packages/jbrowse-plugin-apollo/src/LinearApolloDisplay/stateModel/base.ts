@@ -22,6 +22,7 @@ import { addDisposer, cast, getRoot, types, getSnapshot } from 'mobx-state-tree'
 import { ApolloInternetAccountModel } from '../../ApolloInternetAccount/model'
 import { ApolloSessionModel } from '../../session'
 import { ApolloRootModel } from '../../types'
+import { FilterFeatures } from '../../components/FilterFeatures'
 
 const minDisplayHeight = 20
 
@@ -136,15 +137,6 @@ export function baseModelFactory(
       get selectedFeature(): AnnotationFeature | undefined {
         return (self.session as unknown as ApolloSessionModel)
           .apolloSelectedFeature
-      },
-      get showGraphical() {
-        return self.graphical
-      },
-      get showTable() {
-        return self.table
-      },
-      get getFilteredFeatureTypes() {
-        return self.filteredFeatureTypes
       },
     }))
     .actions((self) => ({
