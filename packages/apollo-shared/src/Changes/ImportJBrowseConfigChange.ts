@@ -39,7 +39,8 @@ export interface SerializedImportJBrowseConfigChange {
 }
 
 export function filterJBrowseConfig(config: JBrowseConfig): JBrowseConfig {
-  const { assemblies, internetAccounts, plugins, tracks, ...rest } = config
+  const { __v, _id, assemblies, internetAccounts, plugins, tracks, ...rest } =
+    config
   const filteredAssemblies = assemblies?.filter(
     (a) => a.sequence.adapter.type !== 'ApolloSequenceAdapter',
   )
