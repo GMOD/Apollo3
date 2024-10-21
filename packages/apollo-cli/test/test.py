@@ -299,10 +299,7 @@ class TestCLI(unittest.TestCase):
 
     def testAddAssemblyFromExternalFasta(self):
         p = shell(
-            f"""{apollo} assembly add-from-fasta {P} -a vv1 -f \
-                https://raw.githubusercontent.com/GMOD/Apollo3/main/packages/apollo-collaboration-server/test/data/volvox.fa \
-                -x https://raw.githubusercontent.com/GMOD/Apollo3/main/packages/apollo-collaboration-server/test/data/volvox.fa.fai
-                  """
+            f"{apollo} assembly add-from-fasta {P} -a vv1 -f http://localhost:3131/volvox.fa.gz"
         )
         out = json.loads(p.stdout)
         self.assertTrue("fa" in out["externalLocation"].keys())
