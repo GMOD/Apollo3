@@ -102,10 +102,10 @@ jobs:
 
           apollo feature \
             import \
-            --input-file /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.genes.gff3 \
+            /data/schistosoma_haematobium.TD2_PRJEB44434.WBPS19.annotations.genes.gff3 \
             --assembly 'Schistosoma haematobium'
 
           apollo feature \
             import \
-            --input-file /data/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.genes.gff3 \
+            /data/schistosoma_mansoni.PRJEA36577.WBPS19.annotations.genes.gff3 \
             --assembly 'Schistosoma mansoni'

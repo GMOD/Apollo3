@@ -5,7 +5,7 @@ Commands to manage files
 - [`apollo file delete`](#apollo-file-delete)
 - [`apollo file download`](#apollo-file-download)
 - [`apollo file get`](#apollo-file-get)
-- [`apollo file upload`](#apollo-file-upload)
+- [`apollo file upload INPUT-FILE`](#apollo-file-upload-input-file)
 
 ## `apollo file delete`
 
@@ -89,18 +89,20 @@ EXAMPLES
 _See code:
 [src/commands/file/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/file/get.ts)_
 
-## `apollo file upload`
+## `apollo file upload INPUT-FILE`
 
 Upload a local file to the Apollo server
 
 ```
 USAGE
-  $ apollo file upload -i <value> [--profile <value>] [--config-file <value>] [-t
+  $ apollo file upload INPUT-FILE [--profile <value>] [--config-file <value>] [-t
     text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi] [-z | -d]
+
+ARGUMENTS
+  INPUT-FILE  Local file to upload
 
 FLAGS
   -d, --decompressed         Override autodetection and instruct that input is decompressed
-  -i, --input-file=<value>   (required) Local file to upload
   -t, --type=<option>        Set file type or autodetected it if not set.
                              NB: There is no check for whether the file complies to this type
                              <options: text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi>
@@ -118,7 +120,7 @@ DESCRIPTION
 EXAMPLES
   Upload local file, type auto-detected:
 
-    $ apollo file upload -i genome.fa > file.json
+    $ apollo file upload genome.fa > file.json
 ```
 
 _See code:

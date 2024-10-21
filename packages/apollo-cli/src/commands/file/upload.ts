@@ -1,4 +1,4 @@
-import { Flags } from '@oclif/core'
+import { Args, Flags } from '@oclif/core'
 import { Response } from 'undici'
 
 import { FileCommand } from '../../fileCommand.js'
@@ -12,16 +12,18 @@ export default class Upload extends FileCommand {
   static examples = [
     {
       description: 'Upload local file, type auto-detected:',
-      command: '<%= config.bin %> <%= command.id %> -i genome.fa > file.json',
+      command: '<%= config.bin %> <%= command.id %> genome.fa > file.json',
     },
   ]
 
-  static flags = {
-    'input-file': Flags.string({
-      char: 'i',
+  static args = {
+    'input-file': Args.string({
       description: 'Local file to upload',
       required: true,
     }),
+  }
+
+  static flags = {
     type: Flags.string({
       char: 't',
       description:
@@ -50,18 +52,18 @@ export default class Upload extends FileCommand {
   }
 
   public async run(): Promise<void> {
-    const { flags } = await this.parse(Upload)
+    const { args, flags } = await this.parse(Upload)
 
     const access = await this.getAccess()
 
     let { type } = flags
     if (type === undefined) {
-      const hasGzipExt = flags['input-file'].endsWith('.gz')
-      const infile = flags['input-file'].replace(/\.gz$/, '')
+      const hasGzipExt = args['input-file'].endsWith('.gz')
+      const infile = args['input-file'].replace(/\.gz$/, '')
 
       if (/\.fasta$|\.fas$|\.fa$|\.fna$/.test(infile) && hasGzipExt) {
         this.error(
-          `Unable to auto-detect file type for "${flags['input-file']}" since it may be gzip or bgzip compressed. Please set the -t/--type option`,
+          `Unable to auto-detect file type for "${args['input-file']}" since it may be gzip or bgzip compressed. Please set the -t/--type option`,
         )
       } else if (/\.fasta$|\.fas$|\.fa$|\.fna$/.test(infile)) {
         type = 'text/x-fasta'
@@ -73,12 +75,12 @@ export default class Upload extends FileCommand {
         type = 'application/x-gzi'
       } else {
         this.error(
-          `Unable to auto-detect the type of file "${flags['input-file']}". Please set the --type/-t option.`,
+          `Unable to auto-detect the type of file "${args['input-file']}". Please set the --type/-t option.`,
         )
       }
     }
 
-    let isGzip = flags['input-file'].endsWith('.gz')
+    let isGzip = args['input-file'].endsWith('.gz')
     // eslint-disable-next-line unicorn/consistent-destructuring
     if (flags.gzip) {
       isGzip = true
@@ -93,7 +95,7 @@ export default class Upload extends FileCommand {
     const fileId = await this.uploadFile(
       access.address,
       access.accessToken,
-      flags['input-file'],
+      args['input-file'],
       type,
 
       isGzip,

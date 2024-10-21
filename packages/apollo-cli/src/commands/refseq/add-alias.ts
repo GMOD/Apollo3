@@ -1,6 +1,6 @@
 import * as fs from 'node:fs'
 import { Agent, RequestInit, Response, fetch } from 'undici'
-import { Flags } from '@oclif/core'
+import { Args, Flags } from '@oclif/core'
 import { BaseCommand } from '../../baseCommand.js'
 import {
   createFetchErrorMessage,
@@ -21,16 +21,18 @@ export default class AddRefNameAlias extends BaseCommand<
   static examples = [
     {
       description: 'Add reference name aliases:',
-      command: '<%= config.bin %> <%= command.id %> -i alias.txt -a myAssembly',
+      command: '<%= config.bin %> <%= command.id %> alias.txt -a myAssembly',
     },
   ]
 
-  static flags = {
-    'input-file': Flags.string({
-      char: 'i',
+  static args = {
+    'input-file': Args.string({
       description: 'Input refname alias file',
       required: true,
     }),
+  }
+
+  static flags = {
     assembly: Flags.string({
       char: 'a',
       description: 'Name for this assembly.',
@@ -39,14 +41,14 @@ export default class AddRefNameAlias extends BaseCommand<
   }
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(AddRefNameAlias)
+    const { args, flags } = await this.parse(AddRefNameAlias)
 
-    if (!fs.existsSync(flags['input-file'])) {
-      this.error(`File ${flags['input-file']} does not exist`)
+    if (!fs.existsSync(args['input-file'])) {
+      this.error(`File ${args['input-file']} does not exist`)
     }
 
     const access = await this.getAccess()
-    const filehandle = await fs.promises.open(flags['input-file'])
+    const filehandle = await fs.promises.open(args['input-file'])
     const fileContent = await filehandle.readFile({ encoding: 'utf8' })
     await filehandle.close()
     const lines = fileContent.split('\n')

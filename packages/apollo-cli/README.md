@@ -47,18 +47,18 @@ USAGE
 - [`apollo feature edit-type`](#apollo-feature-edit-type)
 - [`apollo feature get`](#apollo-feature-get)
 - [`apollo feature get-id`](#apollo-feature-get-id)
-- [`apollo feature import`](#apollo-feature-import)
+- [`apollo feature import INPUT-FILE`](#apollo-feature-import-input-file)
 - [`apollo feature search`](#apollo-feature-search)
 - [`apollo file delete`](#apollo-file-delete)
 - [`apollo file download`](#apollo-file-download)
 - [`apollo file get`](#apollo-file-get)
-- [`apollo file upload`](#apollo-file-upload)
+- [`apollo file upload INPUT-FILE`](#apollo-file-upload-input-file)
 - [`apollo help [COMMANDS]`](#apollo-help-commands)
 - [`apollo jbrowse get-config`](#apollo-jbrowse-get-config)
 - [`apollo jbrowse set-config INPUTFILE`](#apollo-jbrowse-set-config-inputfile)
 - [`apollo login`](#apollo-login)
 - [`apollo logout`](#apollo-logout)
-- [`apollo refseq add-alias`](#apollo-refseq-add-alias)
+- [`apollo refseq add-alias INPUT-FILE`](#apollo-refseq-add-alias-input-file)
 - [`apollo refseq get`](#apollo-refseq-get)
 - [`apollo status`](#apollo-status)
 - [`apollo user get`](#apollo-user-get)
@@ -137,7 +137,7 @@ DESCRIPTION
 EXAMPLES
   Import sequences and features:
 
-    $ apollo assembly add-from-gff -i genome.gff -a myAssembly
+    $ apollo assembly add-from-gff genome.gff -a myAssembly
 
   Import sequences only:
 
@@ -674,18 +674,20 @@ EXAMPLES
 _See code:
 [src/commands/feature/get-id.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/feature/get-id.ts)_
 
-## `apollo feature import`
+## `apollo feature import INPUT-FILE`
 
 Import features from local gff file
 
 ```
 USAGE
-  $ apollo feature import -i <value> -a <value> [--profile <value>] [--config-file <value>] [-d]
+  $ apollo feature import INPUT-FILE -a <value> [--profile <value>] [--config-file <value>] [-d]
+
+ARGUMENTS
+  INPUT-FILE  Input gff file
 
 FLAGS
   -a, --assembly=<value>     (required) Import into this assembly name or assembly ID
   -d, --delete-existing      Delete existing features before importing
-  -i, --input-file=<value>   (required) Input gff file
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
 
@@ -697,7 +699,7 @@ DESCRIPTION
 EXAMPLES
   Delete features in myAssembly and then import features.gff3:
 
-    $ apollo feature import -d -i features.gff3 -a myAssembly
+    $ apollo feature import features.gff3 -d -a myAssembly
 ```
 
 _See code:
@@ -836,18 +838,20 @@ EXAMPLES
 _See code:
 [src/commands/file/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/file/get.ts)_
 
-## `apollo file upload`
+## `apollo file upload INPUT-FILE`
 
 Upload a local file to the Apollo server
 
 ```
 USAGE
-  $ apollo file upload -i <value> [--profile <value>] [--config-file <value>] [-t
+  $ apollo file upload INPUT-FILE [--profile <value>] [--config-file <value>] [-t
     text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi] [-z | -d]
+
+ARGUMENTS
+  INPUT-FILE  Local file to upload
 
 FLAGS
   -d, --decompressed         Override autodetection and instruct that input is decompressed
-  -i, --input-file=<value>   (required) Local file to upload
   -t, --type=<option>        Set file type or autodetected it if not set.
                              NB: There is no check for whether the file complies to this type
                              <options: text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi>
@@ -865,7 +869,7 @@ DESCRIPTION
 EXAMPLES
   Upload local file, type auto-detected:
 
-    $ apollo file upload -i genome.fa > file.json
+    $ apollo file upload genome.fa > file.json
 ```
 
 _See code:
@@ -1016,17 +1020,19 @@ EXAMPLES
 _See code:
 [src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/logout.ts)_
 
-## `apollo refseq add-alias`
+## `apollo refseq add-alias INPUT-FILE`
 
 Add reference name aliases from a file
 
 ```
 USAGE
-  $ apollo refseq add-alias -i <value> -a <value> [--profile <value>] [--config-file <value>]
+  $ apollo refseq add-alias INPUT-FILE -a <value> [--profile <value>] [--config-file <value>]
+
+ARGUMENTS
+  INPUT-FILE  Input refname alias file
 
 FLAGS
   -a, --assembly=<value>     (required) Name for this assembly.
-  -i, --input-file=<value>   (required) Input refname alias file
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
 
@@ -1039,7 +1045,7 @@ DESCRIPTION
 EXAMPLES
   Add reference name aliases:
 
-    $ apollo refseq add-alias -i alias.txt -a myAssembly
+    $ apollo refseq add-alias alias.txt -a myAssembly
 ```
 
 _See code:

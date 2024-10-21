@@ -83,7 +83,7 @@ DESCRIPTION
 EXAMPLES
   Import sequences and features:
 
-    $ apollo assembly add-from-gff -i genome.gff -a myAssembly
+    $ apollo assembly add-from-gff genome.gff -a myAssembly
 
   Import sequences only:
 

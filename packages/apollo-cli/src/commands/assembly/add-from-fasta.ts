@@ -11,7 +11,7 @@ import { Response } from 'undici'
 export default class AddFasta extends FileCommand {
   static summary = 'Add a new assembly from fasta input'
   static description = `Add new assembly. The input fasta may be:
-    * A local file 
+    * A local file
     * An external fasta file
     * The id of a file previously uploaded to Apollo`
 
@@ -77,8 +77,7 @@ Indexes should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai unless options -
   }
 
   public async run(): Promise<void> {
-    const { args } = await this.parse(AddFasta)
-    const { flags } = await this.parse(AddFasta)
+    const { args, flags } = await this.parse(AddFasta)
 
     const access = await this.getAccess()
 

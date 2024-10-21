@@ -2,20 +2,22 @@
 
 Commands to manage reference sequences
 
-- [`apollo refseq add-alias`](#apollo-refseq-add-alias)
+- [`apollo refseq add-alias INPUT-FILE`](#apollo-refseq-add-alias-input-file)
 - [`apollo refseq get`](#apollo-refseq-get)
 
-## `apollo refseq add-alias`
+## `apollo refseq add-alias INPUT-FILE`
 
 Add reference name aliases from a file
 
 ```
 USAGE
-  $ apollo refseq add-alias -i <value> -a <value> [--profile <value>] [--config-file <value>]
+  $ apollo refseq add-alias INPUT-FILE -a <value> [--profile <value>] [--config-file <value>]
+
+ARGUMENTS
+  INPUT-FILE  Input refname alias file
 
 FLAGS
   -a, --assembly=<value>     (required) Name for this assembly.
-  -i, --input-file=<value>   (required) Input refname alias file
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
 
@@ -28,7 +30,7 @@ DESCRIPTION
 EXAMPLES
   Add reference name aliases:
 
-    $ apollo refseq add-alias -i alias.txt -a myAssembly
+    $ apollo refseq add-alias alias.txt -a myAssembly
 ```
 
 _See code:

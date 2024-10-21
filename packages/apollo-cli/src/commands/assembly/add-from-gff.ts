@@ -15,8 +15,7 @@ export default class AddGff extends FileCommand {
   static examples = [
     {
       description: 'Import sequences and features:',
-      command:
-        '<%= config.bin %> <%= command.id %> -i genome.gff -a myAssembly',
+      command: '<%= config.bin %> <%= command.id %> genome.gff -a myAssembly',
     },
     {
       description: 'Import sequences only:',
@@ -48,8 +47,7 @@ export default class AddGff extends FileCommand {
   }
 
   public async run(): Promise<void> {
-    const { args } = await this.parse(AddGff)
-    const { flags } = await this.parse(AddGff)
+    const { args, flags } = await this.parse(AddGff)
 
     if (!fs.existsSync(args['input-file'])) {
       this.error(`File ${args['input-file']} does not exist`)
