@@ -27,6 +27,10 @@ export default class GetConfig extends BaseCommand<typeof GetConfig> {
     }
 
     const json = (await response.json()) as object
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete json['_id' as keyof typeof json]
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete json['__v' as keyof typeof json]
     this.log(JSON.stringify(json, null, 2))
   }
 }

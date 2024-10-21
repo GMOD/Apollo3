@@ -1031,6 +1031,7 @@ class TestCLI(unittest.TestCase):
         )  # NB: "Timeout" comes from utils.py, not Apollo
         # This should be ok
         shell(f"{apollo} login {P} --force", timeout=5, strict=True)
+
     def testFileUpload(self):
         p = shell(f"{apollo} file upload {P} -i test_data/tiny.fasta")
         out = json.loads(p.stdout)
@@ -1218,6 +1219,31 @@ class TestCLI(unittest.TestCase):
         p = shell(f"{apollo} file get {P} -i {up1['_id']} {up2['_id']}")
         out = json.loads(p.stdout)
         self.assertEqual(0, len(out))
+
+    def testGetAndSetJbrowseConfig(self):
+        shell(f"{apollo} jbrowse get-config {P} > tmp.jb.json")
+        shell(
+            """
+        jq '.configuration += { 
+            "ApolloPlugin": {
+              "featureTypeOntology": "Some Ontology Name",
+              "ontologies": [
+                {
+                  "name": "Some Ontology Name",
+                  "version": "full",
+                  "source": {
+                    "uri": "http://localhost:9000/test_data/so-v3.1.json",
+                    "locationType": "UriLocation"
+                  }
+                }
+              ]
+            }
+        }' tmp.jb.json > tmp.jb2.json
+        """
+        )
+        shell(f"{apollo} jbrowse set-config {P} tmp.jb2.json")
+        os.remove("tmp.jb.json")
+        os.remove("tmp.jb2.json")
 
 
 if __name__ == "__main__":
