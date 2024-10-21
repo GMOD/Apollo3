@@ -8,7 +8,6 @@ import { FileCommand } from '../../fileCommand.js'
 import { queryApollo, submitAssembly } from '../../utils.js'
 import { Response } from 'undici'
 import {
-  SerializedAddAssemblyAndFeaturesFromFileChange,
   SerializedAddAssemblyFromExternalChange,
   SerializedAddAssemblyFromFileChange,
 } from '@apollo-annotation/shared'
