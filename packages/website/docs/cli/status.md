@@ -24,4 +24,4 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/status.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/status.ts)_
+[src/commands/status.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/status.ts)_
