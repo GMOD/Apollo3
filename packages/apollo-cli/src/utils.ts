@@ -3,10 +3,11 @@ import EventEmitter from 'node:events'
 import * as fs from 'node:fs'
 import { stdin, stderr } from 'node:process'
 
-import {
+import type {
+  SerializedAddAssemblyAndFeaturesFromFileChange,
   SerializedAddAssemblyFromExternalChange,
   SerializedAddAssemblyFromFileChange,
-  type SerializedDeleteAssemblyChange,
+  SerializedDeleteAssemblyChange,
 } from '@apollo-annotation/shared'
 
 import { Agent, RequestInit, Response, fetch } from 'undici'
@@ -362,7 +363,8 @@ export async function submitAssembly(
   accessToken: string,
   body:
     | SerializedAddAssemblyFromFileChange
-    | SerializedAddAssemblyFromExternalChange,
+    | SerializedAddAssemblyFromExternalChange
+    | SerializedAddAssemblyAndFeaturesFromFileChange,
   force: boolean,
 ): Promise<object> {
   let assemblies = await queryApollo(address, accessToken, 'assemblies')

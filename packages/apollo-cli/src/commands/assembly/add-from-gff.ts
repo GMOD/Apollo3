@@ -6,6 +6,11 @@ import { ObjectId } from 'bson'
 
 import { FileCommand } from '../../fileCommand.js'
 import { submitAssembly } from '../../utils.js'
+import type {
+  SerializedAddAssemblyAndFeaturesFromFileChange,
+  SerializedAddAssemblyFromExternalChange,
+  SerializedAddAssemblyFromFileChange,
+} from '@apollo-annotation/shared'
 
 export default class AddGff extends FileCommand {
   static summary = 'Add new assembly from gff or gft file'
@@ -63,19 +68,24 @@ export default class AddGff extends FileCommand {
       args['input-file'].endsWith('.gz'),
     )
 
-    let typeName = 'AddAssemblyAndFeaturesFromFileChange'
-    if (flags['omit-features']) {
-      typeName = 'AddAssemblyFromFileChange'
-    }
-
     const assemblyName = flags.assembly ?? path.basename(args['input-file'])
 
-    const body = {
-      assemblyName,
-      fileIds: { fa: fileId },
-      typeName,
-      assembly: new ObjectId().toHexString(),
-    }
+    const body:
+      | SerializedAddAssemblyFromFileChange
+      | SerializedAddAssemblyFromExternalChange
+      | SerializedAddAssemblyAndFeaturesFromFileChange = flags['omit-features']
+      ? {
+          assemblyName,
+          fileIds: { fa: fileId },
+          typeName: 'AddAssemblyFromFileChange',
+          assembly: new ObjectId().toHexString(),
+        }
+      : {
+          assemblyName,
+          fileIds: { fa: fileId },
+          typeName: 'AddAssemblyAndFeaturesFromFileChange',
+          assembly: new ObjectId().toHexString(),
+        }
     const rec = await submitAssembly(
       access.address,
       access.accessToken,

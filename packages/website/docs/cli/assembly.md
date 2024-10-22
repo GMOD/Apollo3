@@ -15,21 +15,20 @@ Add a new assembly from fasta input
 
 ```
 USAGE
-  $ apollo assembly add-from-fasta INPUT [--profile <value>] [--config-file <value>] [-a <value>] [-x <value>] [-f] [-n]
-    [--fai <value>] [--gzi <value>] [-z | -d]
+  $ apollo assembly add-from-fasta INPUT [--profile <value>] [--config-file <value>] [-a <value>] [-f] [-e] [--fai <value>]
+    [--gzi <value>] [-z | -d]
 
 ARGUMENTS
-  INPUT  Input fasta file, local or remote, or id of a previously uploaded file
+  INPUT  Input fasta file, local or remote, or id of a previously uploaded file. For local or remote files, it is
+         assumed the file is bgzip'd with `bgzip` and indexed with `samtools faidx`. The indexes are assumed to be at
+         <my.fasta.gz>.fai and <my.fasta.gz>.gzi unless the options --fai and --gzi are provided.
 
 FLAGS
   -a, --assembly=<value>     Name for this assembly. Use the file name if omitted
   -d, --decompressed         For local file input: Override autodetection and instruct that input is decompressed
+  -e, --editable             Instead of using indexed fasta lookup, the sequence is loaded into the Apollo database and
+                             is editable. Use with caution, as editing the sequence often has unintended side effects.
   -f, --force                Delete existing assembly, if it exists
-  -n, --not-editable         The fasta sequence is not editable. Apollo will not load it into the database and instead
-                             use the provided indexes to query it. This option assumes the fasta file is bgzip'd with
-                             `bgzip` and indexed with `samtools faidx`. Indexes should be named <my.fasta.gz>.gzi and
-                             <my.fasta.gz>.fai unless options --fai and --gzi are set
-  -x, --index=<value>        URL of the index. Required if input is an external source
   -z, --gzip                 For local file input: Override autodetection and instruct that input is gzip compressed
       --config-file=<value>  Use this config file (mostly for testing)
       --fai=<value>          Fasta index of the (not-editable) fasta file
