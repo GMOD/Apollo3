@@ -12,7 +12,7 @@ Commands to manage features
 - [`apollo feature edit-type`](#apollo-feature-edit-type)
 - [`apollo feature get`](#apollo-feature-get)
 - [`apollo feature get-id`](#apollo-feature-get-id)
-- [`apollo feature import`](#apollo-feature-import)
+- [`apollo feature import INPUT-FILE`](#apollo-feature-import-input-file)
 - [`apollo feature search`](#apollo-feature-search)
 
 ## `apollo feature add-child`
@@ -336,18 +336,20 @@ EXAMPLES
 _See code:
 [src/commands/feature/get-id.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/feature/get-id.ts)_
 
-## `apollo feature import`
+## `apollo feature import INPUT-FILE`
 
 Import features from local gff file
 
 ```
 USAGE
-  $ apollo feature import -i <value> -a <value> [--profile <value>] [--config-file <value>] [-d]
+  $ apollo feature import INPUT-FILE -a <value> [--profile <value>] [--config-file <value>] [-d]
+
+ARGUMENTS
+  INPUT-FILE  Input gff file
 
 FLAGS
   -a, --assembly=<value>     (required) Import into this assembly name or assembly ID
   -d, --delete-existing      Delete existing features before importing
-  -i, --input-file=<value>   (required) Input gff file
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
 
@@ -359,7 +361,7 @@ DESCRIPTION
 EXAMPLES
   Delete features in myAssembly and then import features.gff3:
 
-    $ apollo feature import -d -i features.gff3 -a myAssembly
+    $ apollo feature import features.gff3 -d -a myAssembly
 ```
 
 _See code:

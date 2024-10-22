@@ -7,11 +7,15 @@ import { ObjectId } from 'bson'
 import { FileCommand } from '../../fileCommand.js'
 import { queryApollo, submitAssembly } from '../../utils.js'
 import { Response } from 'undici'
+import {
+  SerializedAddAssemblyFromExternalChange,
+  SerializedAddAssemblyFromFileChange,
+} from '@apollo-annotation/shared'
 
 export default class AddFasta extends FileCommand {
   static summary = 'Add a new assembly from fasta input'
   static description = `Add new assembly. The input fasta may be:
-    * A local file 
+    * A local file
     * An external fasta file
     * The id of a file previously uploaded to Apollo`
 
@@ -30,7 +34,11 @@ export default class AddFasta extends FileCommand {
   static args = {
     input: Args.string({
       description:
-        'Input fasta file, local or remote, or id of a previously uploaded file',
+        "Input fasta file, local or remote, or id of a previously uploaded \
+file. For local or remote files, it is assumed the file is bgzip'd with \
+`bgzip` and indexed with `samtools faidx`. The indexes are assumed to be at \
+<my.fasta.gz>.fai and <my.fasta.gz>.gzi unless the options --fai and --gzi are \
+provided.",
       required: true,
     }),
   }
@@ -40,21 +48,16 @@ export default class AddFasta extends FileCommand {
       char: 'a',
       description: 'Name for this assembly. Use the file name if omitted',
     }),
-    index: Flags.string({
-      char: 'x',
-      description: 'URL of the index. Required if input is an external source',
-    }),
     force: Flags.boolean({
       char: 'f',
       description: 'Delete existing assembly, if it exists',
     }),
-    'not-editable': Flags.boolean({
-      char: 'n',
+    editable: Flags.boolean({
+      char: 'e',
       description:
-        "The fasta sequence is not editable. Apollo will not load it into \
-the database and instead use the provided indexes to query it. This option assumes \
-the fasta file is bgzip'd with `bgzip` and indexed with `samtools faidx`. \
-Indexes should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai unless options --fai and --gzi are set",
+        'Instead of using indexed fasta lookup, the sequence is loaded into \
+the Apollo database and is editable. Use with caution, as editing the sequence \
+often has unintended side effects.',
     }),
     fai: Flags.string({
       description: 'Fasta index of the (not-editable) fasta file',
@@ -77,8 +80,7 @@ Indexes should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai unless options -
   }
 
   public async run(): Promise<void> {
-    const { args } = await this.parse(AddFasta)
-    const { flags } = await this.parse(AddFasta)
+    const { args, flags } = await this.parse(AddFasta)
 
     const access = await this.getAccess()
 
@@ -91,22 +93,46 @@ Indexes should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai unless options -
     )
     const isExternal = isValidHttpUrl(args.input)
 
-    let body
+    let body:
+      | SerializedAddAssemblyFromFileChange
+      | SerializedAddAssemblyFromExternalChange
     if (isExternal) {
-      if (flags.index === undefined) {
-        this.error(
-          'Please provide the URL to the index of the external fasta file',
-        )
-      }
+      const fai = flags.fai ?? `${args.input}.fai`
+      const gzi = flags.gzi ?? `${args.input}.gzi`
       body = {
         assemblyName,
         typeName: 'AddAssemblyFromExternalChange',
-        externalLocation: {
-          fa: args.input,
-          fai: flags.index,
-        },
+        externalLocation: { fa: args.input, fai, gzi },
+        assembly: new ObjectId().toHexString(),
       }
-    } else if (flags['not-editable']) {
+    } else if (flags.editable) {
+      if (!isExternal && !fs.existsSync(args.input) && !fastaIsFileId) {
+        this.error(`Input "${args.input}" is not valid`)
+      }
+      let isGzip = args.input.endsWith('.gz')
+      if (flags.gzip) {
+        isGzip = true
+      }
+      if (flags.decompressed) {
+        isGzip = false
+      }
+
+      const fileId = fastaIsFileId
+        ? args.input
+        : await this.uploadFile(
+            access.address,
+            access.accessToken,
+            args.input,
+            'text/x-fasta',
+            isGzip,
+          )
+      body = {
+        assemblyName,
+        fileIds: { fa: fileId },
+        typeName: 'AddAssemblyFromFileChange',
+        assembly: new ObjectId().toHexString(),
+      }
+    } else {
       const gzi = flags.gzi ?? `${args.input}.gzi`
       const fai = flags.fai ?? `${args.input}.fai`
 
@@ -165,41 +191,10 @@ Indexes should be named <my.fasta.gz>.gzi and <my.fasta.gz>.fai unless options -
       body = {
         assemblyName,
         typeName: 'AddAssemblyFromFileChange',
-        fileIds: {
-          fa: faId,
-          fai: faiId,
-          gzi: gziId,
-        },
-      }
-    } else {
-      if (!isExternal && !fs.existsSync(args.input) && !fastaIsFileId) {
-        this.error(`Input "${args.input}" is not valid`)
-      }
-      let isGzip = args.input.endsWith('.gz')
-      if (flags.gzip) {
-        isGzip = true
-      }
-      if (flags.decompressed) {
-        isGzip = false
-      }
-
-      const fileId = fastaIsFileId
-        ? args.input
-        : await this.uploadFile(
-            access.address,
-            access.accessToken,
-            args.input,
-            'text/x-fasta',
-            isGzip,
-          )
-      body = {
-        assemblyName,
-        fileIds: { fa: fileId },
-        typeName: 'AddAssemblyFromFileChange',
+        fileIds: { fa: faId, fai: faiId, gzi: gziId },
         assembly: new ObjectId().toHexString(),
       }
     }
-
     const rec = await submitAssembly(
       access.address,
       access.accessToken,

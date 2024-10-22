@@ -97,7 +97,7 @@ import { SequenceModule } from '../sequence/sequence.module'
     ]),
   ],
 
-  exports: [ChecksService],
+  exports: [ChecksService, MongooseModule],
   controllers: [ChecksController],
 })
 export class ChecksModule {}
