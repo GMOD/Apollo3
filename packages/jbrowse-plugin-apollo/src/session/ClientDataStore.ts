@@ -51,6 +51,7 @@ export function clientDataStoreFactory(
       typeName: types.optional(types.literal('Client'), 'Client'),
       assemblies: types.map(ApolloAssembly),
       checkResults: types.map(CheckResult),
+      ontologyManager: types.optional(OntologyManagerType, {}),
     })
     .views((self) => ({
       get internetAccounts() {
@@ -136,7 +137,6 @@ export function clientDataStoreFactory(
       desktopFileDriver: isElectron
         ? new DesktopFileDriver(self as unknown as ClientDataStoreType)
         : undefined,
-      ontologyManager: OntologyManagerType.create(),
     }))
     .actions((self) => ({
       afterCreate() {
