@@ -1,4 +1,7 @@
-import { ConfigurationSchema } from '@jbrowse/core/configuration'
+import {
+  ConfigurationReference,
+  readConfObject,
+} from '@jbrowse/core/configuration'
 import {
   BlobLocation,
   LocalPathLocation,
@@ -10,6 +13,8 @@ import { Instance, addDisposer, getSnapshot, types } from 'mobx-state-tree'
 import OntologyStore, { OntologyStoreOptions } from './OntologyStore'
 import { OntologyDBNode } from './OntologyStore/indexeddb-schema'
 import { applyPrefixes, expandPrefixes } from './OntologyStore/prefixes'
+
+import ApolloPluginConfigurationSchema from '../config'
 
 export { isDeprecated } from './OntologyStore/indexeddb-schema'
 
@@ -54,16 +59,25 @@ export const OntologyManagerType = types
       'GO:': 'http://purl.obolibrary.org/obo/GO_',
       'SO:': 'http://purl.obolibrary.org/obo/SO_',
     }),
+    pluginConfiguration: ConfigurationReference(
+      ApolloPluginConfigurationSchema,
+    ),
   })
+  .views((self) => ({
+    get featureTypeOntologyName(): string {
+      return readConfObject(
+        self.pluginConfiguration,
+        'featureTypeOntologyName',
+      ) as string
+    },
+  }))
   .views((self) => ({
     /**
      * gets the OntologyRecord for the ontology we should be
      * using for feature types (e.g. SO or maybe biotypes)
      **/
     get featureTypeOntology() {
-      // TODO: change this to read some configuration for which feature type ontology
-      // we should be using. currently hardcoded to use SO.
-      return this.findOntology('Sequence Ontology')
+      return this.findOntology(self.featureTypeOntologyName)
     },
 
     findOntology(name: string, version?: string) {
@@ -112,48 +126,6 @@ export const OntologyManagerType = types
   }))
 
 export default OntologyManagerType
-
-export interface TextIndexFieldDefinition {
-  /** name to display in the UI for text taken from this field or fields */
-  displayName: string
-  /** JSONPath of the field(s) */
-  jsonPath: string
-}
-export const defaultTextIndexFields: TextIndexFieldDefinition[] = [
-  { displayName: 'Label', jsonPath: '$.lbl' },
-  { displayName: 'Synonym', jsonPath: '$.meta.synonyms[*].val' },
-  { displayName: 'Definition', jsonPath: '$.meta.definition.val' },
-]
-
-export const OntologyRecordConfiguration = ConfigurationSchema(
-  'OntologyRecord',
-  {
-    name: {
-      type: 'string',
-      description: 'the full name of the ontology, e.g. "Gene Ontology"',
-      defaultValue: 'My Ontology',
-    },
-    version: {
-      type: 'string',
-      description: "the ontology's version string",
-      defaultValue: 'unversioned',
-    },
-    source: {
-      type: 'fileLocation',
-      description: "the download location for the ontology's source file",
-      defaultValue: {
-        locationType: 'UriLocation',
-        uri: 'http://example.com/myontology.json',
-      },
-    },
-    textIndexFields: {
-      type: 'frozen',
-      description:
-        'JSON paths for text fields that will be indexed for text searching',
-      defaultValue: defaultTextIndexFields,
-    },
-  },
-)
 
 // eslint disables because of
 // https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time

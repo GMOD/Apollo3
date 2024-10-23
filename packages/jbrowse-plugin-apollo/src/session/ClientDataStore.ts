@@ -34,12 +34,11 @@ import {
   InMemoryFileDriver,
 } from '../BackendDrivers'
 import { ChangeManager } from '../ChangeManager'
-import ApolloPluginConfigurationSchema from '../config'
-import {
-  OntologyManagerType,
+import ApolloPluginConfigurationSchema, {
   OntologyRecordConfiguration,
   TextIndexFieldDefinition,
-} from '../OntologyManager'
+} from '../config'
+import { OntologyManagerType } from '../OntologyManager'
 import { ApolloRootModel } from '../types'
 import { autorun } from 'mobx'
 
@@ -136,7 +135,9 @@ export function clientDataStoreFactory(
       desktopFileDriver: isElectron
         ? new DesktopFileDriver(self as unknown as ClientDataStoreType)
         : undefined,
-      ontologyManager: OntologyManagerType.create(),
+      ontologyManager: OntologyManagerType.create({
+        pluginConfiguration: self.pluginConfiguration,
+      }),
     }))
     .actions((self) => ({
       afterCreate() {

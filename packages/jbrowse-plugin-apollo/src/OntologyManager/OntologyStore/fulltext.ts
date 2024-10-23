@@ -9,7 +9,7 @@ import { stopwords } from './fulltext-stopwords'
 import { OntologyDBNode } from './indexeddb-schema'
 import { applyPrefixes } from './prefixes'
 import OntologyStore, { Transaction } from '.'
-import { TextIndexFieldDefinition } from '..'
+import { TextIndexFieldDefinition } from '../../config'
 
 /** special value of jsonPath that gets the IRI (that is, ID) of the node with the configured prefixes applied */
 export const PREFIXED_ID_PATH = '$PREFIXED_ID'

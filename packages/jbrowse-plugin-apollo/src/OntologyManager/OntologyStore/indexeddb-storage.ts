@@ -11,7 +11,7 @@ import {
 } from './indexeddb-schema'
 import { GraphDocument } from './obo-graph-json-schema'
 import OntologyStore from '.'
-import { defaultTextIndexFields } from '..'
+import { defaultTextIndexFields } from '../../config'
 
 /** schema version we are currently on, used for the IndexedDB schema open call */
 const schemaVersion = 2
