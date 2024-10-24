@@ -47,13 +47,13 @@ if ('document' in window) {
   }
 }
 
-function draw(
+async function draw(
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
   stateModel: LinearApolloDisplayRendering,
   displayedRegionIndex: number,
-): void {
+): Promise<void> {
   const { apolloRowHeight, lgv, session, theme } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
@@ -66,7 +66,17 @@ function draw(
   if (!children) {
     return
   }
-  const { apolloSelectedFeature } = session
+  const { apolloDataStore, apolloSelectedFeature } = session
+
+  const os = apolloDataStore.ontologyManager.findOntology(
+    apolloDataStore.ontologyManager.featureTypeOntologyName,
+  )
+  if (!(os?.name ?? os?.version ?? os?.source)) {
+    throw new Error('Ontology not defined')
+  }
+  const xx = apolloDataStore.ontologyManager.ontologies.at(0)
+  const g = await xx?.dataStore?.getTermsWithLabelOrSynonym('gene')
+  console.log(`HERE ${JSON.stringify(g, null, 2)}`)
 
   // Draw lines on different rows for each mRNA
   let currentRow = 0
