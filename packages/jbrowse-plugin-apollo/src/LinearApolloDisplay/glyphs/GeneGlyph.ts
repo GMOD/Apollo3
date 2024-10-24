@@ -70,10 +70,9 @@ async function draw(
 
   const os = apolloDataStore.ontologyManager.findOntology(
     apolloDataStore.ontologyManager.featureTypeOntologyName,
-  )
-  if (!(os?.name ?? os?.version ?? os?.source)) {
-    throw new Error('Ontology not defined')
-  }
+  )?.dataStore
+  await os?.getTermsWithLabelOrSynonym('gene')
+
   const xx = apolloDataStore.ontologyManager.ontologies.at(0)
   const g = await xx?.dataStore?.getTermsWithLabelOrSynonym('gene')
   console.log(`HERE ${JSON.stringify(g, null, 2)}`)
