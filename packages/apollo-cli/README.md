@@ -16,7 +16,7 @@ $ npm install -g @apollo-annotation/cli
 $ apollo COMMAND
 running command...
 $ apollo (--version)
-@apollo-annotation/cli/0.1.20 linux-x64 node-v20.17.0
+@apollo-annotation/cli/0.1.21 linux-x64 node-v20.17.0
 $ apollo --help [COMMAND]
 USAGE
   $ apollo COMMAND
@@ -47,18 +47,18 @@ USAGE
 - [`apollo feature edit-type`](#apollo-feature-edit-type)
 - [`apollo feature get`](#apollo-feature-get)
 - [`apollo feature get-id`](#apollo-feature-get-id)
-- [`apollo feature import`](#apollo-feature-import)
+- [`apollo feature import INPUT-FILE`](#apollo-feature-import-input-file)
 - [`apollo feature search`](#apollo-feature-search)
 - [`apollo file delete`](#apollo-file-delete)
 - [`apollo file download`](#apollo-file-download)
 - [`apollo file get`](#apollo-file-get)
-- [`apollo file upload`](#apollo-file-upload)
+- [`apollo file upload INPUT-FILE`](#apollo-file-upload-input-file)
 - [`apollo help [COMMANDS]`](#apollo-help-commands)
 - [`apollo jbrowse get-config`](#apollo-jbrowse-get-config)
 - [`apollo jbrowse set-config INPUTFILE`](#apollo-jbrowse-set-config-inputfile)
 - [`apollo login`](#apollo-login)
 - [`apollo logout`](#apollo-logout)
-- [`apollo refseq add-alias`](#apollo-refseq-add-alias)
+- [`apollo refseq add-alias INPUT-FILE`](#apollo-refseq-add-alias-input-file)
 - [`apollo refseq get`](#apollo-refseq-get)
 - [`apollo status`](#apollo-status)
 - [`apollo user get`](#apollo-user-get)
@@ -69,21 +69,20 @@ Add a new assembly from fasta input
 
 ```
 USAGE
-  $ apollo assembly add-from-fasta INPUT [--profile <value>] [--config-file <value>] [-a <value>] [-x <value>] [-f] [-n]
-    [--fai <value>] [--gzi <value>] [-z | -d]
+  $ apollo assembly add-from-fasta INPUT [--profile <value>] [--config-file <value>] [-a <value>] [-f] [-e] [--fai <value>]
+    [--gzi <value>] [-z | -d]
 
 ARGUMENTS
-  INPUT  Input fasta file, local or remote, or id of a previously uploaded file
+  INPUT  Input fasta file, local or remote, or id of a previously uploaded file. For local or remote files, it is
+         assumed the file is bgzip'd with `bgzip` and indexed with `samtools faidx`. The indexes are assumed to be at
+         <my.fasta.gz>.fai and <my.fasta.gz>.gzi unless the options --fai and --gzi are provided.
 
 FLAGS
   -a, --assembly=<value>     Name for this assembly. Use the file name if omitted
   -d, --decompressed         For local file input: Override autodetection and instruct that input is decompressed
+  -e, --editable             Instead of using indexed fasta lookup, the sequence is loaded into the Apollo database and
+                             is editable. Use with caution, as editing the sequence often has unintended side effects.
   -f, --force                Delete existing assembly, if it exists
-  -n, --not-editable         The fasta sequence is not editable. Apollo will not load it into the database and instead
-                             use the provided indexes to query it. This option assumes the fasta file is bgzip'd with
-                             `bgzip` and indexed with `samtools faidx`. Indexes should be named <my.fasta.gz>.gzi and
-                             <my.fasta.gz>.fai unless options --fai and --gzi are set
-  -x, --index=<value>        URL of the index. Required if input is an external source
   -z, --gzip                 For local file input: Override autodetection and instruct that input is gzip compressed
       --config-file=<value>  Use this config file (mostly for testing)
       --fai=<value>          Fasta index of the (not-editable) fasta file
@@ -109,7 +108,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/assembly/add-from-fasta.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/assembly/add-from-fasta.ts)_
+[src/commands/assembly/add-from-fasta.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/assembly/add-from-fasta.ts)_
 
 ## `apollo assembly add-from-gff INPUT-FILE`
 
@@ -137,7 +136,7 @@ DESCRIPTION
 EXAMPLES
   Import sequences and features:
 
-    $ apollo assembly add-from-gff -i genome.gff -a myAssembly
+    $ apollo assembly add-from-gff genome.gff -a myAssembly
 
   Import sequences only:
 
@@ -145,7 +144,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/assembly/add-from-gff.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/assembly/add-from-gff.ts)_
+[src/commands/assembly/add-from-gff.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/assembly/add-from-gff.ts)_
 
 ## `apollo assembly check`
 
@@ -187,7 +186,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/assembly/check.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/assembly/check.ts)_
+[src/commands/assembly/check.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/assembly/check.ts)_
 
 ## `apollo assembly delete`
 
@@ -215,7 +214,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/assembly/delete.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/assembly/delete.ts)_
+[src/commands/assembly/delete.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/assembly/delete.ts)_
 
 ## `apollo assembly get`
 
@@ -237,7 +236,7 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/assembly/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/assembly/get.ts)_
+[src/commands/assembly/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/assembly/get.ts)_
 
 ## `apollo assembly sequence`
 
@@ -272,7 +271,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/assembly/sequence.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/assembly/sequence.ts)_
+[src/commands/assembly/sequence.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/assembly/sequence.ts)_
 
 ## `apollo change get`
 
@@ -296,7 +295,7 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/change/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/change/get.ts)_
+[src/commands/change/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/change/get.ts)_
 
 ## `apollo config [KEY] [VALUE]`
 
@@ -351,7 +350,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/config.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/config.ts)_
+[src/commands/config.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/config.ts)_
 
 ## `apollo feature add-child`
 
@@ -382,7 +381,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/add-child.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/feature/add-child.ts)_
+[src/commands/feature/add-child.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/feature/add-child.ts)_
 
 ## `apollo feature check`
 
@@ -415,7 +414,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/check.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/feature/check.ts)_
+[src/commands/feature/check.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/feature/check.ts)_
 
 ## `apollo feature copy`
 
@@ -446,7 +445,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/copy.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/feature/copy.ts)_
+[src/commands/feature/copy.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/feature/copy.ts)_
 
 ## `apollo feature delete`
 
@@ -470,7 +469,7 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/feature/delete.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/feature/delete.ts)_
+[src/commands/feature/delete.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/feature/delete.ts)_
 
 ## `apollo feature edit`
 
@@ -512,7 +511,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/edit.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/feature/edit.ts)_
+[src/commands/feature/edit.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/feature/edit.ts)_
 
 ## `apollo feature edit-attribute`
 
@@ -552,7 +551,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/edit-attribute.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/feature/edit-attribute.ts)_
+[src/commands/feature/edit-attribute.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/feature/edit-attribute.ts)_
 
 ## `apollo feature edit-coords`
 
@@ -586,7 +585,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/edit-coords.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/feature/edit-coords.ts)_
+[src/commands/feature/edit-coords.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/feature/edit-coords.ts)_
 
 ## `apollo feature edit-type`
 
@@ -610,7 +609,7 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/feature/edit-type.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/feature/edit-type.ts)_
+[src/commands/feature/edit-type.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/feature/edit-type.ts)_
 
 ## `apollo feature get`
 
@@ -644,7 +643,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/feature/get.ts)_
+[src/commands/feature/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/feature/get.ts)_
 
 ## `apollo feature get-id`
 
@@ -672,20 +671,22 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/get-id.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/feature/get-id.ts)_
+[src/commands/feature/get-id.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/feature/get-id.ts)_
 
-## `apollo feature import`
+## `apollo feature import INPUT-FILE`
 
 Import features from local gff file
 
 ```
 USAGE
-  $ apollo feature import -i <value> -a <value> [--profile <value>] [--config-file <value>] [-d]
+  $ apollo feature import INPUT-FILE -a <value> [--profile <value>] [--config-file <value>] [-d]
+
+ARGUMENTS
+  INPUT-FILE  Input gff file
 
 FLAGS
   -a, --assembly=<value>     (required) Import into this assembly name or assembly ID
   -d, --delete-existing      Delete existing features before importing
-  -i, --input-file=<value>   (required) Input gff file
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
 
@@ -697,11 +698,11 @@ DESCRIPTION
 EXAMPLES
   Delete features in myAssembly and then import features.gff3:
 
-    $ apollo feature import -d -i features.gff3 -a myAssembly
+    $ apollo feature import features.gff3 -d -a myAssembly
 ```
 
 _See code:
-[src/commands/feature/import.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/feature/import.ts)_
+[src/commands/feature/import.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/feature/import.ts)_
 
 ## `apollo feature search`
 
@@ -752,7 +753,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/feature/search.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/feature/search.ts)_
+[src/commands/feature/search.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/feature/search.ts)_
 
 ## `apollo file delete`
 
@@ -779,7 +780,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/file/delete.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/file/delete.ts)_
+[src/commands/file/delete.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/file/delete.ts)_
 
 ## `apollo file download`
 
@@ -807,7 +808,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/file/download.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/file/download.ts)_
+[src/commands/file/download.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/file/download.ts)_
 
 ## `apollo file get`
 
@@ -834,20 +835,22 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/file/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/file/get.ts)_
+[src/commands/file/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/file/get.ts)_
 
-## `apollo file upload`
+## `apollo file upload INPUT-FILE`
 
 Upload a local file to the Apollo server
 
 ```
 USAGE
-  $ apollo file upload -i <value> [--profile <value>] [--config-file <value>] [-t
+  $ apollo file upload INPUT-FILE [--profile <value>] [--config-file <value>] [-t
     text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi] [-z | -d]
+
+ARGUMENTS
+  INPUT-FILE  Local file to upload
 
 FLAGS
   -d, --decompressed         Override autodetection and instruct that input is decompressed
-  -i, --input-file=<value>   (required) Local file to upload
   -t, --type=<option>        Set file type or autodetected it if not set.
                              NB: There is no check for whether the file complies to this type
                              <options: text/x-fasta|text/x-gff3|application/x-bgzip-fasta|text/x-fai|application/x-gzi>
@@ -865,11 +868,11 @@ DESCRIPTION
 EXAMPLES
   Upload local file, type auto-detected:
 
-    $ apollo file upload -i genome.fa > file.json
+    $ apollo file upload genome.fa > file.json
 ```
 
 _See code:
-[src/commands/file/upload.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/file/upload.ts)_
+[src/commands/file/upload.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/file/upload.ts)_
 
 ## `apollo help [COMMANDS]`
 
@@ -916,7 +919,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/jbrowse/get-config.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/jbrowse/get-config.ts)_
+[src/commands/jbrowse/get-config.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/jbrowse/get-config.ts)_
 
 ## `apollo jbrowse set-config INPUTFILE`
 
@@ -945,7 +948,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/jbrowse/set-config.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/jbrowse/set-config.ts)_
+[src/commands/jbrowse/set-config.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/jbrowse/set-config.ts)_
 
 ## `apollo login`
 
@@ -984,7 +987,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/login.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/login.ts)_
+[src/commands/login.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/login.ts)_
 
 ## `apollo logout`
 
@@ -1014,19 +1017,21 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/logout.ts)_
+[src/commands/logout.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/logout.ts)_
 
-## `apollo refseq add-alias`
+## `apollo refseq add-alias INPUT-FILE`
 
 Add reference name aliases from a file
 
 ```
 USAGE
-  $ apollo refseq add-alias -i <value> -a <value> [--profile <value>] [--config-file <value>]
+  $ apollo refseq add-alias INPUT-FILE -a <value> [--profile <value>] [--config-file <value>]
+
+ARGUMENTS
+  INPUT-FILE  Input refname alias file
 
 FLAGS
   -a, --assembly=<value>     (required) Name for this assembly.
-  -i, --input-file=<value>   (required) Input refname alias file
       --config-file=<value>  Use this config file (mostly for testing)
       --profile=<value>      Use credentials from this profile
 
@@ -1039,11 +1044,11 @@ DESCRIPTION
 EXAMPLES
   Add reference name aliases:
 
-    $ apollo refseq add-alias -i alias.txt -a myAssembly
+    $ apollo refseq add-alias alias.txt -a myAssembly
 ```
 
 _See code:
-[src/commands/refseq/add-alias.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/refseq/add-alias.ts)_
+[src/commands/refseq/add-alias.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/refseq/add-alias.ts)_
 
 ## `apollo refseq get`
 
@@ -1075,7 +1080,7 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/refseq/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/refseq/get.ts)_
+[src/commands/refseq/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/refseq/get.ts)_
 
 ## `apollo status`
 
@@ -1097,7 +1102,7 @@ DESCRIPTION
 ```
 
 _See code:
-[src/commands/status.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/status.ts)_
+[src/commands/status.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/status.ts)_
 
 ## `apollo user get`
 
@@ -1133,6 +1138,6 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/user/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/user/get.ts)_
+[src/commands/user/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/user/get.ts)_
 
 <!-- commandsstop -->

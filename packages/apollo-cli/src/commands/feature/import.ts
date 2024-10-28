@@ -1,7 +1,7 @@
 import * as fs from 'node:fs'
 
 import { type SerializedAddFeaturesFromFileChange } from '@apollo-annotation/shared'
-import { Flags } from '@oclif/core'
+import { Args, Flags } from '@oclif/core'
 import { Agent, RequestInit, fetch } from 'undici'
 
 import { FileCommand } from '../../fileCommand.js'
@@ -20,16 +20,18 @@ export default class Import extends FileCommand {
       description:
         'Delete features in myAssembly and then import features.gff3:',
       command:
-        '<%= config.bin %> <%= command.id %> -d -i features.gff3 -a myAssembly',
+        '<%= config.bin %> <%= command.id %> features.gff3 -d -a myAssembly',
     },
   ]
 
-  static flags = {
-    'input-file': Flags.string({
-      char: 'i',
+  static args = {
+    'input-file': Args.string({
       description: 'Input gff file',
       required: true,
     }),
+  }
+
+  static flags = {
     assembly: Flags.string({
       char: 'a',
       description: 'Import into this assembly name or assembly ID',
@@ -42,10 +44,10 @@ export default class Import extends FileCommand {
   }
 
   public async run(): Promise<void> {
-    const { flags } = await this.parse(Import)
+    const { args, flags } = await this.parse(Import)
 
-    if (!fs.existsSync(flags['input-file'])) {
-      this.error(`File "${flags['input-file']}" does not exist`)
+    if (!fs.existsSync(args['input-file'])) {
+      this.error(`File "${args['input-file']}" does not exist`)
     }
 
     const access = await this.getAccess()
@@ -64,7 +66,7 @@ export default class Import extends FileCommand {
     const uploadId = await this.uploadFile(
       access.address,
       access.accessToken,
-      flags['input-file'],
+      args['input-file'],
       'text/x-gff3',
       false,
     )

@@ -55,6 +55,7 @@ const validationSchema = Joi.object({
   SESSION_SECRET_FILE: Joi.string(),
   // Optional
   DESCRIPTION: Joi.string(),
+  FEATURE_TYPE_ONTOLOGY_LOCATION: Joi.string(),
   PLUGIN_LOCATION: Joi.string(),
   ALLOW_ROOT_USER: Joi.boolean().default(false),
   ROOT_USER_NAME: Joi.string(),

@@ -56,8 +56,7 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
   ]
 
   public async run(): Promise<void> {
-    const { args } = await this.parse(ApolloConfig)
-    const { flags } = await this.parse(ApolloConfig)
+    const { args, flags } = await this.parse(ApolloConfig)
 
     let configFile = flags['config-file']
     configFile =
