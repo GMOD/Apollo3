@@ -399,7 +399,7 @@ export function renderingModelFactory(
       addDisposer(
         self,
         autorun(
-          () => {
+          async () => {
             const { canvas, featureLayouts, featuresHeight, lgv } = self
             if (!lgv.initialized || self.regionCannotBeRendered()) {
               return
@@ -428,7 +428,7 @@ export function renderingModelFactory(
                   ) {
                     continue
                   }
-                  getGlyph(feature).draw(ctx, feature, row, self, idx)
+                  await getGlyph(feature).draw(ctx, feature, row, self, idx)
                 }
               }
             }

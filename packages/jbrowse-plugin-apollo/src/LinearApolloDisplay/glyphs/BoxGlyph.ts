@@ -62,13 +62,15 @@ function drawBoxText(
   ctx.fillText(text, textStart, y + 11, textWidth)
 }
 
-function draw(
+// Add async only to comply with Glyph interface. await not needed here
+// eslint-disable-next-line @typescript-eslint/require-await
+async function draw(
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
   stateModel: LinearApolloDisplayRendering,
   displayedRegionIndex: number,
-) {
+): Promise<void> {
   const { apolloRowHeight: heightPx, lgv, session, theme } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
@@ -132,7 +134,7 @@ function drawDragPreview(
   overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
 }
 
-function drawHover(
+async function drawHover(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
@@ -141,7 +143,10 @@ function drawHover(
     return
   }
   const { feature } = apolloHover
-  const position = stateModel.getFeatureLayoutPosition(feature)
+  const position = await stateModel.getFeatureLayoutPosition(
+    feature,
+    stateModel,
+  )
   if (!position) {
     return
   }
@@ -162,16 +167,17 @@ function drawHover(
   ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
 }
 
-function drawTooltip(
+async function drawTooltip(
   display: LinearApolloDisplayMouseEvents,
   context: CanvasRenderingContext2D,
-): void {
+  stateModel: LinearApolloDisplay,
+): Promise<void> {
   const { apolloHover, apolloRowHeight, lgv, theme } = display
   if (!apolloHover) {
     return
   }
   const { feature } = apolloHover
-  const position = display.getFeatureLayoutPosition(feature)
+  const position = await display.getFeatureLayoutPosition(feature, stateModel)
   if (!position) {
     return
   }
@@ -388,11 +394,12 @@ function getContextMenuItems(
   return menuItems
 }
 
-function getFeatureFromLayout(
+// eslint-disable-next-line @typescript-eslint/require-await
+async function getFeatureFromLayout(
   feature: AnnotationFeature,
   _bp: number,
   _row: number,
-): AnnotationFeature {
+): Promise<AnnotationFeature> {
   return feature
 }
 
@@ -400,14 +407,16 @@ function getRowCount(_feature: AnnotationFeature) {
   return 1
 }
 
-function getRowForFeature(
+// eslint-disable-next-line @typescript-eslint/require-await
+async function getRowForFeature(
   _feature: AnnotationFeature,
   _childFeature: AnnotationFeature,
-): number | undefined {
+): Promise<number | undefined> {
   return 0
 }
 
-function onMouseDown(
+// eslint-disable-next-line @typescript-eslint/require-await
+async function onMouseDown(
   stateModel: LinearApolloDisplay,
   currentMousePosition: MousePositionWithFeatureAndGlyph,
   event: CanvasMouseEvent,
@@ -427,7 +436,8 @@ function onMouseLeave(): void {
   return
 }
 
-function onMouseMove(
+// eslint-disable-next-line @typescript-eslint/require-await
+async function onMouseMove(
   stateModel: LinearApolloDisplay,
   mousePosition: MousePosition,
 ) {

@@ -13,6 +13,7 @@ import { LinearApolloDisplay as LinearApolloDisplayI } from './LinearApolloDispl
 import { TrackLines } from './SixFrameFeatureDisplay/components'
 import { SixFrameFeatureDisplay } from './SixFrameFeatureDisplay/stateModel'
 import { TabularEditorPane } from './TabularEditor'
+import { LinearApolloDisplayRendering } from './LinearApolloDisplay/stateModel/rendering'
 
 const accordionControlHeight = 12
 
@@ -54,13 +55,17 @@ const useStyles = makeStyles()((theme) => ({
   },
 }))
 
-function scrollSelectedFeatureIntoView(
+async function scrollSelectedFeatureIntoView(
   model: LinearApolloDisplayI,
   scrollContainerRef: React.RefObject<HTMLDivElement>,
+  stateModel: LinearApolloDisplayRendering,
 ) {
   const { apolloRowHeight, selectedFeature } = model
   if (scrollContainerRef.current && selectedFeature) {
-    const position = model.getFeatureLayoutPosition(selectedFeature)
+    const position = await model.getFeatureLayoutPosition(
+      selectedFeature,
+      stateModel,
+    )
     if (position) {
       const row = position.layoutRow + position.featureRow
       const top = row * apolloRowHeight

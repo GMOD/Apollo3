@@ -389,17 +389,17 @@ export function mouseEventsModelFactory(
       },
     }))
     .actions((self) => ({
-      onMouseDown(event: CanvasMouseEvent) {
+      async onMouseDown(event: CanvasMouseEvent) {
         const mousePosition = self.getMousePosition(event)
         if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
-          mousePosition.featureAndGlyphUnderMouse.glyph.onMouseDown(
+          await mousePosition.featureAndGlyphUnderMouse.glyph.onMouseDown(
             self,
             mousePosition,
             event,
           )
         }
       },
-      onMouseMove(event: CanvasMouseEvent) {
+      async onMouseMove(event: CanvasMouseEvent) {
         const mousePosition = self.getMousePosition(event)
         if (self.apolloDragging) {
           self.setCursor('col-resize')
@@ -407,7 +407,7 @@ export function mouseEventsModelFactory(
           return
         }
         if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
-          mousePosition.featureAndGlyphUnderMouse.glyph.onMouseMove(
+          await mousePosition.featureAndGlyphUnderMouse.glyph.onMouseMove(
             self,
             mousePosition,
             event,
@@ -450,7 +450,7 @@ export function mouseEventsModelFactory(
         addDisposer(
           self,
           autorun(
-            () => {
+            async () => {
               // This type is wrong in @jbrowse/core
               // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
               if (!self.lgv.initialized || self.regionCannotBeRendered()) {
@@ -474,10 +474,10 @@ export function mouseEventsModelFactory(
               const { glyph } = apolloHover
 
               // draw mouseover hovers
-              glyph.drawHover(self, ctx)
+              await glyph.drawHover(self, ctx)
 
               // draw tooltip on hover
-              glyph.drawTooltip(self, ctx)
+              await glyph.drawTooltip(self, ctx)
 
               // dragging previews
               if (apolloDragging) {

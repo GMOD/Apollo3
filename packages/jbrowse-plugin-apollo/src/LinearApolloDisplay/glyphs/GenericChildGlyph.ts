@@ -19,7 +19,8 @@ function getRowCount(feature: AnnotationFeature) {
   return featuresForRow(feature).length
 }
 
-function draw(
+// eslint-disable-next-line @typescript-eslint/require-await
+async function draw(
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
@@ -74,10 +75,10 @@ function drawFeature(
     const featureHeight = rowCount * heightPx
     drawBox(ctx, startPx, top, widthPx, featureHeight, groupingColor)
   }
-  boxGlyph.draw(ctx, feature, row, stateModel, displayedRegionIndex)
+  void boxGlyph.draw(ctx, feature, row, stateModel, displayedRegionIndex)
 }
 
-function drawHover(
+async function drawHover(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
@@ -86,7 +87,10 @@ function drawHover(
     return
   }
   const { feature } = apolloHover
-  const position = stateModel.getFeatureLayoutPosition(feature)
+  const position = await stateModel.getFeatureLayoutPosition(
+    feature,
+    stateModel,
+  )
   if (!position) {
     return
   }
@@ -107,7 +111,8 @@ function drawHover(
   ctx.fillRect(startPx, top, widthPx, apolloRowHeight * getRowCount(feature))
 }
 
-function getFeatureFromLayout(
+// eslint-disable-next-line @typescript-eslint/require-await
+async function getFeatureFromLayout(
   feature: AnnotationFeature,
   bp: number,
   row: number,
@@ -116,7 +121,8 @@ function getFeatureFromLayout(
   return layoutRow.find((f) => bp >= f.min && bp <= f.max)
 }
 
-function getRowForFeature(
+// eslint-disable-next-line @typescript-eslint/require-await
+async function getRowForFeature(
   feature: AnnotationFeature,
   childFeature: AnnotationFeature,
 ) {

@@ -13,6 +13,8 @@ import { Glyph } from './Glyph'
 import { boxGlyph } from './BoxGlyph'
 import { LinearApolloDisplayRendering } from '../stateModel/rendering'
 
+import OntologyStore from '../../OntologyManager/OntologyStore'
+
 let forwardFill: CanvasPattern | null = null
 let backwardFill: CanvasPattern | null = null
 if ('document' in window) {
@@ -47,6 +49,31 @@ if ('document' in window) {
   }
 }
 
+function getSequenceOntology(
+  stateModel: LinearApolloDisplayRendering,
+): OntologyStore {
+  const { session } = stateModel
+  const { apolloDataStore } = session
+  const ontologyStore = apolloDataStore.ontologyManager.findOntology(
+    apolloDataStore.ontologyManager.featureTypeOntologyName,
+  )?.dataStore
+  if (!ontologyStore) {
+    throw new Error(
+      `Ontology is ${apolloDataStore.ontologyManager.featureTypeOntologyName} is undefined`,
+    )
+  }
+  return ontologyStore
+}
+
+async function getTermsWithLabelOrSynonym(
+  os: OntologyStore,
+  term: string,
+): Promise<string[]> {
+  const terms = await os.getTermsWithLabelOrSynonym(term)
+  const lbl: string[] = terms.map((x) => x.lbl).filter((x) => x != undefined)
+  return lbl
+}
+
 async function draw(
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
@@ -66,21 +93,16 @@ async function draw(
   if (!children) {
     return
   }
-  const { apolloDataStore, apolloSelectedFeature } = session
-
-  const os = apolloDataStore.ontologyManager.findOntology(
-    apolloDataStore.ontologyManager.featureTypeOntologyName,
-  )?.dataStore
-  await os?.getTermsWithLabelOrSynonym('gene')
-
-  const xx = apolloDataStore.ontologyManager.ontologies.at(0)
-  const g = await xx?.dataStore?.getTermsWithLabelOrSynonym('gene')
-  console.log(`HERE ${JSON.stringify(g, null, 2)}`)
-
+  const { apolloSelectedFeature } = session
   // Draw lines on different rows for each mRNA
   let currentRow = 0
+  const ontologyStore = getSequenceOntology(stateModel)
+  const mrnaTypes: string[] = await getTermsWithLabelOrSynonym(
+    ontologyStore,
+    'mRNA',
+  )
   for (const [, mrna] of children) {
-    if (mrna.type !== 'mRNA') {
+    if (mrnaTypes.includes(mrna.type)) {
       currentRow += 1
       continue
     }
@@ -89,7 +111,11 @@ async function draw(
       continue
     }
     for (const [, cds] of childrenOfmRNA) {
-      if (cds.type !== 'CDS') {
+      const cdsTypes: string[] = await getTermsWithLabelOrSynonym(
+        ontologyStore,
+        'CDS',
+      )
+      if (cdsTypes.includes(cds.type)) {
         continue
       }
       const minX =
@@ -114,8 +140,8 @@ async function draw(
   // Draw exon and CDS for each mRNA
   currentRow = 0
   for (const [, child] of children) {
-    if (child.type !== 'mRNA') {
-      boxGlyph.draw(ctx, child, row, stateModel, displayedRegionIndex)
+    if (mrnaTypes.includes(child.type)) {
+      await boxGlyph.draw(ctx, child, row, stateModel, displayedRegionIndex)
       currentRow += 1
       continue
     }
@@ -125,7 +151,11 @@ async function draw(
         continue
       }
       for (const [, exon] of childrenOfmRNA) {
-        if (exon.type !== 'exon') {
+        const exonTypes: string[] = await getTermsWithLabelOrSynonym(
+          ontologyStore,
+          'exon',
+        )
+        if (exonTypes.includes(exon.type)) {
           continue
         }
         const minX =
@@ -262,7 +292,7 @@ function drawDragPreview(
   overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
 }
 
-function drawHover(
+async function drawHover(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
@@ -271,7 +301,10 @@ function drawHover(
     return
   }
   const { feature } = apolloHover
-  const position = stateModel.getFeatureLayoutPosition(feature)
+  const position = await stateModel.getFeatureLayoutPosition(
+    feature,
+    stateModel,
+  )
   if (!position) {
     return
   }
@@ -293,12 +326,14 @@ function drawHover(
   ctx.fillRect(startPx, top, widthPx, apolloRowHeight * getRowCount(feature))
 }
 
-function getFeatureFromLayout(
+async function getFeatureFromLayout(
   feature: AnnotationFeature,
   bp: number,
   row: number,
-): AnnotationFeature | undefined {
-  const featureInThisRow: AnnotationFeature[] = featuresForRow(feature)[row]
+  stateModel: LinearApolloDisplayRendering,
+): Promise<AnnotationFeature | undefined> {
+  const ff = await featuresForRow(feature, stateModel)
+  const featureInThisRow: AnnotationFeature[] = ff[row]
   for (const f of featureInThisRow) {
     if (bp >= f.min && bp <= f.max && f.parent) {
       return f
@@ -333,17 +368,29 @@ function getRowCount(feature: AnnotationFeature, _bpPerPx?: number): number {
  * If the row contains an mRNA, the order is CDS -\> exon -\> mRNA -\> gene
  * If the row does not contain an mRNA, the order is subfeature -\> gene
  */
-function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
-  if (feature.type !== 'gene') {
+async function featuresForRow(
+  feature: AnnotationFeature,
+  stateModel: LinearApolloDisplayRendering,
+): Promise<AnnotationFeature[][]> {
+  const ontologyStore = getSequenceOntology(stateModel)
+  const geneTypes: string[] = await getTermsWithLabelOrSynonym(
+    ontologyStore,
+    'gene',
+  )
+  if (geneTypes.includes(feature.type)) {
     throw new Error('Top level feature for GeneGlyph must have type "gene"')
   }
   const { children } = feature
   if (!children) {
     return [[feature]]
   }
+  const mrnaTypes: string[] = await getTermsWithLabelOrSynonym(
+    ontologyStore,
+    'mRNA',
+  )
   const features: AnnotationFeature[][] = []
   for (const [, child] of children) {
-    if (child.type !== 'mRNA') {
+    if (!mrnaTypes.includes(child.type)) {
       features.push([child, feature])
       continue
     }
@@ -352,10 +399,18 @@ function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
     }
     const cdss: AnnotationFeature[] = []
     const exons: AnnotationFeature[] = []
+    const cdsTypes: string[] = await getTermsWithLabelOrSynonym(
+      ontologyStore,
+      'CDS',
+    )
+    const exonTypes: string[] = await getTermsWithLabelOrSynonym(
+      ontologyStore,
+      'exon',
+    )
     for (const [, grandchild] of child.children) {
-      if (grandchild.type === 'CDS') {
+      if (cdsTypes.includes(grandchild.type)) {
         cdss.push(grandchild)
-      } else if (grandchild.type === 'exon') {
+      } else if (exonTypes.includes(grandchild.type)) {
         exons.push(grandchild)
       }
     }
@@ -366,11 +421,12 @@ function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
   return features
 }
 
-function getRowForFeature(
+async function getRowForFeature(
   feature: AnnotationFeature,
   childFeature: AnnotationFeature,
+  stateModel: LinearApolloDisplayRendering,
 ) {
-  const rows = featuresForRow(feature)
+  const rows = await featuresForRow(feature, stateModel)
   for (const [idx, row] of rows.entries()) {
     if (row.some((feature) => feature._id === childFeature._id)) {
       return idx
@@ -379,7 +435,7 @@ function getRowForFeature(
   return
 }
 
-function onMouseDown(
+async function onMouseDown(
   stateModel: LinearApolloDisplay,
   currentMousePosition: MousePositionWithFeatureAndGlyph,
   event: CanvasMouseEvent,
@@ -388,7 +444,7 @@ function onMouseDown(
   // swallow the mouseDown if we are on the edge of the feature so that we
   // don't start dragging the view if we try to drag the feature edge
   const { feature } = featureAndGlyphUnderMouse
-  const draggableFeature = getDraggableFeatureInfo(
+  const draggableFeature = await getDraggableFeatureInfo(
     currentMousePosition,
     feature,
     stateModel,
@@ -403,7 +459,7 @@ function onMouseDown(
   }
 }
 
-function onMouseMove(
+async function onMouseMove(
   stateModel: LinearApolloDisplay,
   mousePosition: MousePosition,
 ) {
@@ -411,7 +467,7 @@ function onMouseMove(
     const { featureAndGlyphUnderMouse } = mousePosition
     stateModel.setApolloHover(featureAndGlyphUnderMouse)
     const { feature } = featureAndGlyphUnderMouse
-    const draggableFeature = getDraggableFeatureInfo(
+    const draggableFeature = await getDraggableFeatureInfo(
       mousePosition,
       feature,
       stateModel,
@@ -437,12 +493,29 @@ function onMouseUp(
   }
 }
 
-function getDraggableFeatureInfo(
+async function getDraggableFeatureInfo(
   mousePosition: MousePosition,
   feature: AnnotationFeature,
   stateModel: LinearApolloDisplay,
-): { feature: AnnotationFeature; edge: 'min' | 'max' } | undefined {
-  if (feature.type === 'gene' || feature.type === 'mRNA') {
+): Promise<{ feature: AnnotationFeature; edge: 'min' | 'max' } | undefined> {
+  const ontologyStore = getSequenceOntology(stateModel)
+  const geneTypes: string[] = await getTermsWithLabelOrSynonym(
+    ontologyStore,
+    'gene',
+  )
+  const mrnaTypes: string[] = await getTermsWithLabelOrSynonym(
+    ontologyStore,
+    'mRNA',
+  )
+  const cdsTypes: string[] = await getTermsWithLabelOrSynonym(
+    ontologyStore,
+    'CDS',
+  )
+  const exonTypes: string[] = await getTermsWithLabelOrSynonym(
+    ontologyStore,
+    'exon',
+  )
+  if (geneTypes.includes(feature.type) || mrnaTypes.includes(feature.type)) {
     return
   }
   const { bp, refName, regionNumber, x } = mousePosition
@@ -465,13 +538,13 @@ function getDraggableFeatureInfo(
   if (Math.abs(maxPx - x) < 4) {
     return { feature, edge: 'max' }
   }
-  if (feature.type === 'CDS') {
+  if (cdsTypes.includes(feature.type)) {
     const mRNA = feature.parent
     if (!mRNA?.children) {
       return
     }
-    const exonChildren = [...mRNA.children.values()].filter(
-      (child) => child.type === 'exon',
+    const exonChildren = [...mRNA.children.values()].filter((child) =>
+      exonTypes.includes(child.type),
     )
     const overlappingExon = exonChildren.find((child) => {
       const [start, end] = intersection2(bp, bp + 1, child.min, child.max)

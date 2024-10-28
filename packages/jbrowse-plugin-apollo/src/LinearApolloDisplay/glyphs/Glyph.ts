@@ -18,22 +18,24 @@ export interface Glyph {
     row: number,
     stateModel: LinearApolloDisplayRendering,
     displayedRegionIndex: number,
-  ): void
+  ): Promise<void>
   /** @returns the feature or subfeature at the given bp and row number in this glyph's layout */
   getFeatureFromLayout(
     feature: AnnotationFeature,
     bp: number,
     row: number,
-  ): AnnotationFeature | undefined
+    stateModel: LinearApolloDisplayRendering,
+  ): Promise<AnnotationFeature | undefined>
   getRowForFeature(
     feature: AnnotationFeature,
     childFeature: AnnotationFeature,
-  ): number | undefined
+    stateModel: LinearApolloDisplayRendering,
+  ): Promise<number | undefined>
 
   drawHover(
     display: LinearApolloDisplayMouseEvents,
     overlayCtx: CanvasRenderingContext2D,
-  ): void
+  ): Promise<void>
 
   drawDragPreview(
     display: LinearApolloDisplayMouseEvents,
@@ -44,13 +46,13 @@ export interface Glyph {
     display: LinearApolloDisplayMouseEvents,
     currentMousePosition: MousePositionWithFeatureAndGlyph,
     event: CanvasMouseEvent,
-  ): void
+  ): Promise<void>
 
   onMouseMove(
     display: LinearApolloDisplayMouseEvents,
     currentMousePosition: MousePositionWithFeatureAndGlyph,
     event: CanvasMouseEvent,
-  ): void
+  ): Promise<void>
 
   onMouseLeave(
     display: LinearApolloDisplayMouseEvents,
@@ -67,7 +69,8 @@ export interface Glyph {
   drawTooltip(
     display: LinearApolloDisplayMouseEvents,
     context: CanvasRenderingContext2D,
-  ): void
+    stateModel: LinearApolloDisplayRendering,
+  ): Promise<void>
 
   getContextMenuItems(display: LinearApolloDisplayMouseEvents): MenuItem[]
 }
