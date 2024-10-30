@@ -16,7 +16,7 @@ import {
 import { ApolloSessionModel } from '../../session'
 import { getApolloInternetAccount } from '../../util'
 
-export function featureContextMenuItems(
+export async function featureContextMenuItems(
   feature: AnnotationFeature | undefined,
   region: { assemblyName: string; refName: string; start: number; end: number },
   getAssemblyId: (assemblyName: string) => string,
@@ -137,7 +137,13 @@ export function featureContextMenuItems(
         },
       },
     )
-    if (feature.type === 'mRNA' && isSessionModelWithWidgets(session)) {
+    if (
+      (await session.apolloDataStore.ontologyManager.isTypeOf(
+        feature.type,
+        'mRNA',
+      )) &&
+      isSessionModelWithWidgets(session)
+    ) {
       menuItems.push({
         label: 'Edit transcript details',
         onClick: () => {

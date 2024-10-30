@@ -73,7 +73,7 @@ function selectColor(number: number) {
   return `hsl(${hue},100%,50%)`
 }
 
-function ApolloRendering(props: ApolloRenderingProps) {
+async function ApolloRendering(props: ApolloRenderingProps) {
   const [contextCoord, setContextCoord] = useState<Coord>()
   const [contextMenuFeature, setContextMenuFeature] =
     useState<AnnotationFeature>()
@@ -117,9 +117,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
     apolloRowUnderMouse,
     changeManager,
     codonLayout,
-    featureLayout,
     features,
-    featuresHeight: totalHeight,
     getAssemblyId,
     selectedFeature,
     setApolloFeatureUnderMouse,
@@ -129,6 +127,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
     showStartCodons: showStarts,
     showStopCodons: showStops,
   } = displayModel
+  const featureLayout = await displayModel.getFeatureLayout()
+  const totalHeight = await displayModel.getFeaturesHeight()
+
   // use this to convince useEffect that the features really did change
   const featureSnap = [...features.values()].map((a) =>
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment

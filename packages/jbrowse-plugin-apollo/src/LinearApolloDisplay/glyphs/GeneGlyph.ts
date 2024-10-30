@@ -12,8 +12,7 @@ import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 import { boxGlyph } from './BoxGlyph'
 import { LinearApolloDisplayRendering } from '../stateModel/rendering'
-
-import OntologyStore from '../../OntologyManager/OntologyStore'
+import { OntologyManager } from '../../OntologyManager'
 
 let forwardFill: CanvasPattern | null = null
 let backwardFill: CanvasPattern | null = null
@@ -49,31 +48,6 @@ if ('document' in window) {
   }
 }
 
-function getSequenceOntology(
-  stateModel: LinearApolloDisplayRendering,
-): OntologyStore {
-  const { session } = stateModel
-  const { apolloDataStore } = session
-  const ontologyStore = apolloDataStore.ontologyManager.findOntology(
-    apolloDataStore.ontologyManager.featureTypeOntologyName,
-  )?.dataStore
-  if (!ontologyStore) {
-    throw new Error(
-      `Ontology is ${apolloDataStore.ontologyManager.featureTypeOntologyName} is undefined`,
-    )
-  }
-  return ontologyStore
-}
-
-async function getTermsWithLabelOrSynonym(
-  os: OntologyStore,
-  term: string,
-): Promise<string[]> {
-  const terms = await os.getTermsWithLabelOrSynonym(term)
-  const lbl: string[] = terms.map((x) => x.lbl).filter((x) => x != undefined)
-  return lbl
-}
-
 async function draw(
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
@@ -82,6 +56,7 @@ async function draw(
   displayedRegionIndex: number,
 ): Promise<void> {
   const { apolloRowHeight, lgv, session, theme } = stateModel
+  const { apolloDataStore } = session
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const { refName, reversed } = displayedRegion
@@ -96,13 +71,12 @@ async function draw(
   const { apolloSelectedFeature } = session
   // Draw lines on different rows for each mRNA
   let currentRow = 0
-  const ontologyStore = getSequenceOntology(stateModel)
-  const mrnaTypes: string[] = await getTermsWithLabelOrSynonym(
-    ontologyStore,
-    'mRNA',
-  )
   for (const [, mrna] of children) {
-    if (mrnaTypes.includes(mrna.type)) {
+    const isMrna = await apolloDataStore.ontologyManager.isTypeOf(
+      mrna.type,
+      'mRNA',
+    )
+    if (isMrna) {
       currentRow += 1
       continue
     }
@@ -111,11 +85,11 @@ async function draw(
       continue
     }
     for (const [, cds] of childrenOfmRNA) {
-      const cdsTypes: string[] = await getTermsWithLabelOrSynonym(
-        ontologyStore,
+      const isCds = await apolloDataStore.ontologyManager.isTypeOf(
+        cds.type,
         'CDS',
       )
-      if (cdsTypes.includes(cds.type)) {
+      if (isCds) {
         continue
       }
       const minX =
@@ -140,7 +114,11 @@ async function draw(
   // Draw exon and CDS for each mRNA
   currentRow = 0
   for (const [, child] of children) {
-    if (mrnaTypes.includes(child.type)) {
+    const isMrna = await apolloDataStore.ontologyManager.isTypeOf(
+      child.type,
+      'mRNA',
+    )
+    if (isMrna) {
       await boxGlyph.draw(ctx, child, row, stateModel, displayedRegionIndex)
       currentRow += 1
       continue
@@ -151,11 +129,11 @@ async function draw(
         continue
       }
       for (const [, exon] of childrenOfmRNA) {
-        const exonTypes: string[] = await getTermsWithLabelOrSynonym(
-          ontologyStore,
+        const isExon = await apolloDataStore.ontologyManager.isTypeOf(
+          child.type,
           'exon',
         )
-        if (exonTypes.includes(exon.type)) {
+        if (isExon) {
           continue
         }
         const minX =
@@ -263,10 +241,11 @@ async function draw(
   }
 }
 
-function drawDragPreview(
+// eslint-disable-next-line @typescript-eslint/require-await
+async function drawDragPreview(
   stateModel: LinearApolloDisplay,
   overlayCtx: CanvasRenderingContext2D,
-) {
+): Promise<void> {
   const { apolloDragging, apolloRowHeight, lgv, theme } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   if (!apolloDragging) {
@@ -296,15 +275,12 @@ async function drawHover(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
-  const { apolloHover, apolloRowHeight, lgv, theme } = stateModel
+  const { apolloHover, apolloRowHeight, lgv, session, theme } = stateModel
   if (!apolloHover) {
     return
   }
   const { feature } = apolloHover
-  const position = await stateModel.getFeatureLayoutPosition(
-    feature,
-    stateModel,
-  )
+  const position = await stateModel.getFeatureLayoutPosition(feature)
   if (!position) {
     return
   }
@@ -323,16 +299,22 @@ async function drawHover(
   const top = row * apolloRowHeight
   const widthPx = length / bpPerPx
   ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,04)'
-  ctx.fillRect(startPx, top, widthPx, apolloRowHeight * getRowCount(feature))
+  ctx.fillRect(
+    startPx,
+    top,
+    widthPx,
+    apolloRowHeight *
+      (await getRowCount(feature, session.apolloDataStore.ontologyManager)),
+  )
 }
 
 async function getFeatureFromLayout(
   feature: AnnotationFeature,
   bp: number,
   row: number,
-  stateModel: LinearApolloDisplayRendering,
+  ontologyManager: OntologyManager,
 ): Promise<AnnotationFeature | undefined> {
-  const ff = await featuresForRow(feature, stateModel)
+  const ff = await featuresForRow(feature, ontologyManager)
   const featureInThisRow: AnnotationFeature[] = ff[row]
   for (const f of featureInThisRow) {
     if (bp >= f.min && bp <= f.max && f.parent) {
@@ -342,22 +324,28 @@ async function getFeatureFromLayout(
   return feature
 }
 
-function getRowCount(feature: AnnotationFeature, _bpPerPx?: number): number {
+async function getRowCount(
+  feature: AnnotationFeature,
+  ontologyManager: OntologyManager,
+  _bpPerPx?: number,
+): Promise<number> {
   const { children, type } = feature
   if (!children) {
     return 1
   }
   let rowCount = 0
-  if (type === 'mRNA') {
+  const isMrna = await ontologyManager.isTypeOf(type, 'mRNA')
+  if (isMrna) {
     for (const [, child] of children) {
-      if (child.type === 'CDS') {
+      const isCds = await ontologyManager.isTypeOf(child.type, 'CDS')
+      if (isCds) {
         rowCount += 1
       }
     }
     return rowCount
   }
   for (const [, child] of children) {
-    rowCount += getRowCount(child)
+    rowCount += await getRowCount(child, ontologyManager)
   }
   return rowCount
 }
@@ -370,27 +358,20 @@ function getRowCount(feature: AnnotationFeature, _bpPerPx?: number): number {
  */
 async function featuresForRow(
   feature: AnnotationFeature,
-  stateModel: LinearApolloDisplayRendering,
+  ontologyManager: OntologyManager,
 ): Promise<AnnotationFeature[][]> {
-  const ontologyStore = getSequenceOntology(stateModel)
-  const geneTypes: string[] = await getTermsWithLabelOrSynonym(
-    ontologyStore,
-    'gene',
-  )
-  if (geneTypes.includes(feature.type)) {
+  const isGene = await ontologyManager.isTypeOf(feature.type, 'gene')
+  if (!isGene) {
     throw new Error('Top level feature for GeneGlyph must have type "gene"')
   }
   const { children } = feature
   if (!children) {
     return [[feature]]
   }
-  const mrnaTypes: string[] = await getTermsWithLabelOrSynonym(
-    ontologyStore,
-    'mRNA',
-  )
   const features: AnnotationFeature[][] = []
   for (const [, child] of children) {
-    if (!mrnaTypes.includes(child.type)) {
+    const isMrna = await ontologyManager.isTypeOf(feature.type, 'mrna')
+    if (!isMrna) {
       features.push([child, feature])
       continue
     }
@@ -399,18 +380,12 @@ async function featuresForRow(
     }
     const cdss: AnnotationFeature[] = []
     const exons: AnnotationFeature[] = []
-    const cdsTypes: string[] = await getTermsWithLabelOrSynonym(
-      ontologyStore,
-      'CDS',
-    )
-    const exonTypes: string[] = await getTermsWithLabelOrSynonym(
-      ontologyStore,
-      'exon',
-    )
     for (const [, grandchild] of child.children) {
-      if (cdsTypes.includes(grandchild.type)) {
+      const isCds = await ontologyManager.isTypeOf(grandchild.type, 'CDS')
+      const isExon = await ontologyManager.isTypeOf(grandchild.type, 'exon')
+      if (isCds) {
         cdss.push(grandchild)
-      } else if (exonTypes.includes(grandchild.type)) {
+      } else if (isExon) {
         exons.push(grandchild)
       }
     }
@@ -424,9 +399,9 @@ async function featuresForRow(
 async function getRowForFeature(
   feature: AnnotationFeature,
   childFeature: AnnotationFeature,
-  stateModel: LinearApolloDisplayRendering,
+  ontologyManager: OntologyManager,
 ) {
-  const rows = await featuresForRow(feature, stateModel)
+  const rows = await featuresForRow(feature, ontologyManager)
   for (const [idx, row] of rows.entries()) {
     if (row.some((feature) => feature._id === childFeature._id)) {
       return idx
@@ -498,24 +473,21 @@ async function getDraggableFeatureInfo(
   feature: AnnotationFeature,
   stateModel: LinearApolloDisplay,
 ): Promise<{ feature: AnnotationFeature; edge: 'min' | 'max' } | undefined> {
-  const ontologyStore = getSequenceOntology(stateModel)
-  const geneTypes: string[] = await getTermsWithLabelOrSynonym(
-    ontologyStore,
+  const { session } = stateModel
+  const { apolloDataStore } = session
+  const isGene = await apolloDataStore.ontologyManager.isTypeOf(
+    feature.type,
     'gene',
   )
-  const mrnaTypes: string[] = await getTermsWithLabelOrSynonym(
-    ontologyStore,
+  const isMrna = await apolloDataStore.ontologyManager.isTypeOf(
+    feature.type,
     'mRNA',
   )
-  const cdsTypes: string[] = await getTermsWithLabelOrSynonym(
-    ontologyStore,
+  const isCds = await apolloDataStore.ontologyManager.isTypeOf(
+    feature.type,
     'CDS',
   )
-  const exonTypes: string[] = await getTermsWithLabelOrSynonym(
-    ontologyStore,
-    'exon',
-  )
-  if (geneTypes.includes(feature.type) || mrnaTypes.includes(feature.type)) {
+  if (isGene || isMrna) {
     return
   }
   const { bp, refName, regionNumber, x } = mousePosition
@@ -538,14 +510,21 @@ async function getDraggableFeatureInfo(
   if (Math.abs(maxPx - x) < 4) {
     return { feature, edge: 'max' }
   }
-  if (cdsTypes.includes(feature.type)) {
+  if (isCds) {
     const mRNA = feature.parent
     if (!mRNA?.children) {
       return
     }
-    const exonChildren = [...mRNA.children.values()].filter((child) =>
-      exonTypes.includes(child.type),
-    )
+    const exonChildren: AnnotationFeature[] = []
+    for (const child of mRNA.children.values()) {
+      const isExon = await apolloDataStore.ontologyManager.isTypeOf(
+        child.type,
+        'exon',
+      )
+      if (isExon) {
+        exonChildren.push(child)
+      }
+    }
     const overlappingExon = exonChildren.find((child) => {
       const [start, end] = intersection2(bp, bp + 1, child.min, child.max)
       return start !== undefined && end !== undefined

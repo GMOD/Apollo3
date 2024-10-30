@@ -21,6 +21,7 @@ import {
 import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 import { LinearApolloDisplayRendering } from '../stateModel/rendering'
+import { OntologyManager } from '../../OntologyManager'
 
 function drawBoxOutline(
   ctx: CanvasRenderingContext2D,
@@ -104,11 +105,11 @@ async function draw(
   drawBoxText(ctx, startPx, top, widthPx, textColor, feature.type)
 }
 
-function drawDragPreview(
+async function drawDragPreview(
   stateModel: LinearApolloDisplay,
   overlayCtx: CanvasRenderingContext2D,
-) {
-  const { apolloDragging, apolloRowHeight, lgv, theme } = stateModel
+): Promise<void> {
+  const { apolloDragging, apolloRowHeight, lgv, session, theme } = stateModel
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   if (!apolloDragging) {
     return
@@ -117,7 +118,10 @@ function drawDragPreview(
 
   const row = Math.floor(start.y / apolloRowHeight)
   const region = displayedRegions[start.regionNumber]
-  const rowCount = getRowCount(feature)
+  const rowCount = await getRowCount(
+    feature,
+    session.apolloDataStore.ontologyManager,
+  )
 
   const featureEdgeBp = region.reversed
     ? region.end - feature[edge]
@@ -143,10 +147,7 @@ async function drawHover(
     return
   }
   const { feature } = apolloHover
-  const position = await stateModel.getFeatureLayoutPosition(
-    feature,
-    stateModel,
-  )
+  const position = await stateModel.getFeatureLayoutPosition(feature)
   if (!position) {
     return
   }
@@ -170,14 +171,13 @@ async function drawHover(
 async function drawTooltip(
   display: LinearApolloDisplayMouseEvents,
   context: CanvasRenderingContext2D,
-  stateModel: LinearApolloDisplay,
 ): Promise<void> {
   const { apolloHover, apolloRowHeight, lgv, theme } = display
   if (!apolloHover) {
     return
   }
   const { feature } = apolloHover
-  const position = await display.getFeatureLayoutPosition(feature, stateModel)
+  const position = await display.getFeatureLayoutPosition(feature)
   if (!position) {
     return
   }
@@ -403,7 +403,11 @@ async function getFeatureFromLayout(
   return feature
 }
 
-function getRowCount(_feature: AnnotationFeature) {
+// eslint-disable-next-line @typescript-eslint/require-await
+async function getRowCount(
+  _feature: AnnotationFeature,
+  _ontologyManager: OntologyManager,
+): Promise<number> {
   return 1
 }
 

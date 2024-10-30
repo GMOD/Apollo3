@@ -83,9 +83,9 @@ export const TranscriptBasicInformation = observer(
     const { notify } = session as unknown as AbstractSessionModel
     const currentAssembly = session.apolloDataStore.assemblies.get(assembly)
     const refData = currentAssembly?.getByRefName(refName)
-    const { changeManager } = session.apolloDataStore
+    const { changeManager, ontologyManager } = session.apolloDataStore
 
-    function handleStartChange(
+    async function handleStartChange(
       newStart: number,
       featureId: string,
       oldStart: number,
@@ -103,7 +103,8 @@ export const TranscriptBasicInformation = observer(
       // Let's check CDS start and end values. And possibly update those too
       for (const child of subFeature.children) {
         if (
-          (child[1].type === 'CDS' || child[1].type === 'exon') &&
+          ((await ontologyManager.isTypeOf(child[1].type, 'CDS')) ||
+            (await ontologyManager.isTypeOf(child[1].type, 'exon'))) &&
           child[1].min === oldStart
         ) {
           const change = new LocationStartChange({
@@ -122,7 +123,7 @@ export const TranscriptBasicInformation = observer(
       return
     }
 
-    function handleEndChange(
+    async function handleEndChange(
       newEnd: number,
       featureId: string,
       oldEnd: number,
@@ -138,7 +139,8 @@ export const TranscriptBasicInformation = observer(
       // Let's check CDS start and end values. And possibly update those too
       for (const child of subFeature.children) {
         if (
-          (child[1].type === 'CDS' || child[1].type === 'exon') &&
+          ((await ontologyManager.isTypeOf(child[1].type, 'CDS')) ||
+            (await ontologyManager.isTypeOf(child[1].type, 'exon'))) &&
           child[1].max === oldEnd
         ) {
           const change = new LocationEndChange({
@@ -409,7 +411,8 @@ export const TranscriptBasicInformation = observer(
                 variant="outlined"
                 value={item.min}
                 onChangeCommitted={(newStart: number) => {
-                  handleStartChange(newStart, item.id, Number(item.oldMin))
+                  // handleStartChange returns Promise<void>. Is this ok?
+                  void handleStartChange(newStart, item.id, Number(item.oldMin))
                 }}
               />
               <span style={{ margin: '0 10px' }}>
@@ -431,7 +434,7 @@ export const TranscriptBasicInformation = observer(
                 variant="outlined"
                 value={item.max}
                 onChangeCommitted={(newEnd: number) => {
-                  handleEndChange(newEnd, item.id, Number(item.oldMax))
+                  void handleEndChange(newEnd, item.id, Number(item.oldMax))
                 }}
               />
               <span style={{ marginLeft: '8px', fontWeight: 'bold' }}>

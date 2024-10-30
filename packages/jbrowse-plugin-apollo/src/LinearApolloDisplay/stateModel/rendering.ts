@@ -37,9 +37,10 @@ export function renderingModelIntermediateFactory(
       theme: undefined as Theme | undefined,
     }))
     .views((self) => ({
-      get featuresHeight() {
+      async getFeaturesHeight() {
+        const highestRow = await self.getHighestRow()
         return (
-          (self.highestRow + 1) * self.apolloRowHeight +
+          (highestRow + 1) * self.apolloRowHeight +
           self.lastRowTooltipBufferHeight
         )
       },
@@ -78,7 +79,7 @@ export function renderingModelIntermediateFactory(
         addDisposer(
           self,
           autorun(
-            () => {
+            async () => {
               if (!self.lgv.initialized || self.regionCannotBeRendered()) {
                 return
               }
@@ -90,7 +91,7 @@ export function renderingModelIntermediateFactory(
                 0,
                 0,
                 self.lgv.dynamicBlocks.totalWidthPx,
-                self.featuresHeight,
+                await self.getFeaturesHeight(),
               )
               for (const collaborator of (
                 self.session as unknown as ApolloSessionModel
@@ -400,7 +401,8 @@ export function renderingModelFactory(
         self,
         autorun(
           async () => {
-            const { canvas, featureLayouts, featuresHeight, lgv } = self
+            const featuresHeight = await self.getFeaturesHeight()
+            const { canvas, featureLayouts, lgv } = self
             if (!lgv.initialized || self.regionCannotBeRendered()) {
               return
             }
@@ -413,7 +415,8 @@ export function renderingModelFactory(
             ctx.clearRect(0, 0, dynamicBlocks.totalWidthPx, featuresHeight)
             for (const [idx, featureLayout] of featureLayouts.entries()) {
               const displayedRegion = displayedRegions[idx]
-              for (const [row, featureLayoutRow] of featureLayout.entries()) {
+              const fl = await featureLayout
+              for (const [row, featureLayoutRow] of fl.entries()) {
                 for (const [featureRow, feature] of featureLayoutRow) {
                   if (featureRow > 0) {
                     continue
@@ -428,7 +431,8 @@ export function renderingModelFactory(
                   ) {
                     continue
                   }
-                  await getGlyph(feature).draw(ctx, feature, row, self, idx)
+                  const glyph = await getGlyph(feature)
+                  await glyph.draw(ctx, feature, row, self, idx)
                 }
               }
             }

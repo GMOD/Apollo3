@@ -269,7 +269,8 @@ export function stateModelFactory(
         }
         return codonLayout
       },
-      get featureLayout() {
+      async getFeatureLayout() {
+        const session = getSession(self) as unknown as ApolloSessionModel
         const featureLayout = new Map<number, [string, AnnotationFeature][]>()
         for (const [refSeq, featuresForRefSeq] of this.features || []) {
           if (!featuresForRefSeq) {
@@ -295,11 +296,21 @@ export function stateModelFactory(
             },
           )) {
             for (const [, childFeature] of feature.children ?? new Map()) {
-              if (childFeature.type === 'mRNA') {
+              if (
+                await session.apolloDataStore.ontologyManager.isTypeOf(
+                  childFeature.type,
+                  'mRNA',
+                )
+              ) {
                 for (const [, grandChildFeature] of childFeature.children ||
                   new Map()) {
                   let startingRow
-                  if (grandChildFeature.type === 'CDS') {
+                  if (
+                    await session.apolloDataStore.ontologyManager.isTypeOf(
+                      grandChildFeature.type,
+                      'CDS',
+                    )
+                  ) {
                     let discontinuousLocations
                     if (grandChildFeature.discontinuousLocations.length > 0) {
                       ;({ discontinuousLocations } = grandChildFeature)
@@ -374,19 +385,20 @@ export function stateModelFactory(
       },
     }))
     .views((self) => ({
-      get highestRow() {
-        if (self.featureLayout.size === 0) {
+      async getHighestRow() {
+        const fl = await self.getFeatureLayout()
+        if (fl.size === 0) {
           return 0
         }
-        return Math.max(...self.featureLayout.keys())
+        return Math.max(...fl.keys())
       },
-      get featuresHeight() {
-        return (this.highestRow + 1) * self.apolloRowHeight
+      async getFeaturesHeight() {
+        return ((await this.getHighestRow()) + 1) * self.apolloRowHeight
       },
-      get detailsHeight() {
+      async getDetailsHeight() {
         return Math.max(
           self.detailsMinHeight,
-          self.height - this.featuresHeight,
+          self.height - (await this.getFeaturesHeight()),
         )
       },
       trackMenuItems() {

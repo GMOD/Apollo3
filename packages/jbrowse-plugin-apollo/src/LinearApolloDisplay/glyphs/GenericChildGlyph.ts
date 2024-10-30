@@ -4,6 +4,7 @@ import { LinearApolloDisplay } from '../stateModel'
 import { boxGlyph, isSelectedFeature, drawBox } from './BoxGlyph'
 import { Glyph } from './Glyph'
 import { LinearApolloDisplayRendering } from '../stateModel/rendering'
+import { OntologyManager } from '../../OntologyManager'
 
 function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
   const features = [[feature]]
@@ -15,11 +16,14 @@ function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
   return features
 }
 
-function getRowCount(feature: AnnotationFeature) {
+// eslint-disable-next-line @typescript-eslint/require-await
+async function getRowCount(
+  feature: AnnotationFeature,
+  _ontologyManager: OntologyManager,
+) {
   return featuresForRow(feature).length
 }
 
-// eslint-disable-next-line @typescript-eslint/require-await
 async function draw(
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
@@ -27,12 +31,20 @@ async function draw(
   stateModel: LinearApolloDisplayRendering,
   displayedRegionIndex: number,
 ) {
-  for (let i = 0; i < getRowCount(feature); i++) {
-    drawRow(ctx, feature, row + i, row, stateModel, displayedRegionIndex)
+  for (
+    let i = 0;
+    i <
+    (await getRowCount(
+      feature,
+      stateModel.session.apolloDataStore.ontologyManager,
+    ));
+    i++
+  ) {
+    await drawRow(ctx, feature, row + i, row, stateModel, displayedRegionIndex)
   }
 }
 
-function drawRow(
+async function drawRow(
   ctx: CanvasRenderingContext2D,
   topLevelFeature: AnnotationFeature,
   row: number,
@@ -42,11 +54,11 @@ function drawRow(
 ) {
   const features = featuresForRow(topLevelFeature)[row - topRow]
   for (const feature of features) {
-    drawFeature(ctx, feature, row, stateModel, displayedRegionIndex)
+    await drawFeature(ctx, feature, row, stateModel, displayedRegionIndex)
   }
 }
 
-function drawFeature(
+async function drawFeature(
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
@@ -54,6 +66,7 @@ function drawFeature(
   displayedRegionIndex: number,
 ) {
   const { apolloRowHeight: heightPx, lgv, session } = stateModel
+  const { apolloDataStore } = session
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const minX =
@@ -67,7 +80,7 @@ function drawFeature(
   const widthPx = feature.length / bpPerPx
   const startPx = reversed ? minX - widthPx : minX
   const top = row * heightPx
-  const rowCount = getRowCount(feature)
+  const rowCount = await getRowCount(feature, apolloDataStore.ontologyManager)
   const isSelected = isSelectedFeature(feature, apolloSelectedFeature)
   const groupingColor = isSelected ? 'rgba(130,0,0,0.45)' : 'rgba(255,0,0,0.25)'
   if (rowCount > 1) {
@@ -87,10 +100,7 @@ async function drawHover(
     return
   }
   const { feature } = apolloHover
-  const position = await stateModel.getFeatureLayoutPosition(
-    feature,
-    stateModel,
-  )
+  const position = await stateModel.getFeatureLayoutPosition(feature)
   if (!position) {
     return
   }
@@ -108,7 +118,14 @@ async function drawHover(
   const top = (layoutRow + featureRow) * apolloRowHeight
   const widthPx = length / bpPerPx
   ctx.fillStyle = 'rgba(0,0,0,0.2)'
-  ctx.fillRect(startPx, top, widthPx, apolloRowHeight * getRowCount(feature))
+  const { session } = stateModel
+  ctx.fillRect(
+    startPx,
+    top,
+    widthPx,
+    apolloRowHeight *
+      (await getRowCount(feature, session.apolloDataStore.ontologyManager)),
+  )
 }
 
 // eslint-disable-next-line @typescript-eslint/require-await

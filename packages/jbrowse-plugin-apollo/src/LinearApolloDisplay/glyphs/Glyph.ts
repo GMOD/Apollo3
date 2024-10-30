@@ -7,10 +7,15 @@ import {
 } from '../stateModel/mouseEvents'
 import { LinearApolloDisplayRendering } from '../stateModel/rendering'
 import { CanvasMouseEvent } from '../types'
+import { OntologyManager } from '../../OntologyManager'
 
 export interface Glyph {
   /** @returns number of layout rows used by this glyph with this feature and zoom level */
-  getRowCount(feature: AnnotationFeature, bpPerPx: number): number
+  getRowCount(
+    feature: AnnotationFeature,
+    ontologyManager: OntologyManager,
+    bpPerPx: number,
+  ): Promise<number>
   /** draw the feature's primary rendering on the canvas */
   draw(
     ctx: CanvasRenderingContext2D,
@@ -24,12 +29,12 @@ export interface Glyph {
     feature: AnnotationFeature,
     bp: number,
     row: number,
-    stateModel: LinearApolloDisplayRendering,
+    ontologyManager: OntologyManager,
   ): Promise<AnnotationFeature | undefined>
   getRowForFeature(
     feature: AnnotationFeature,
     childFeature: AnnotationFeature,
-    stateModel: LinearApolloDisplayRendering,
+    ontologyManager: OntologyManager,
   ): Promise<number | undefined>
 
   drawHover(
@@ -40,7 +45,7 @@ export interface Glyph {
   drawDragPreview(
     display: LinearApolloDisplayMouseEvents,
     ctx: CanvasRenderingContext2D,
-  ): void
+  ): Promise<void>
 
   onMouseDown(
     display: LinearApolloDisplayMouseEvents,

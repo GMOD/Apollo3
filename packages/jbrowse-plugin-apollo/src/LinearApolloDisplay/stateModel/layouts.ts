@@ -10,7 +10,6 @@ import { addDisposer, isAlive } from 'mobx-state-tree'
 import { ApolloSessionModel } from '../../session'
 import { baseModelFactory } from './base'
 import { getGlyph } from './getGlyph'
-import { LinearApolloDisplayRendering } from './rendering'
 
 export function layoutsModelFactory(
   pluginManager: PluginManager,
@@ -74,7 +73,7 @@ export function layoutsModelFactory(
       get featureLayouts() {
         const { assemblyManager } =
           self.session as unknown as AbstractSessionModel
-        return self.lgv.displayedRegions.map((region, idx) => {
+        return self.lgv.displayedRegions.map(async (region, idx) => {
           const assembly = assemblyManager.get(region.assemblyName)
           const featureLayout = new Map<number, [number, AnnotationFeature][]>()
           const minMax = self.featuresMinMax[idx]
@@ -95,8 +94,10 @@ export function layoutsModelFactory(
             ) {
               continue
             }
-            const rowCount = getGlyph(feature).getRowCount(
+            const glyph = await getGlyph(feature)
+            const rowCount = await glyph.getRowCount(
               feature,
+              self.session.apolloDataStore.ontologyManager,
               self.lgv.bpPerPx,
             )
             let startingRow = 0
@@ -157,13 +158,10 @@ export function layoutsModelFactory(
           return featureLayout
         })
       },
-      async getFeatureLayoutPosition(
-        feature: AnnotationFeature,
-        stateModel: LinearApolloDisplayRendering,
-      ) {
+      async getFeatureLayoutPosition(feature: AnnotationFeature) {
         const { featureLayouts } = this
         for (const [idx, layout] of featureLayouts.entries()) {
-          for (const [layoutRowNum, layoutRow] of layout) {
+          for (const [layoutRowNum, layoutRow] of await layout) {
             for (const [featureRowNum, layoutFeature] of layoutRow) {
               if (featureRowNum !== 0) {
                 // Same top-level feature in all feature rows, so only need to
@@ -178,10 +176,11 @@ export function layoutsModelFactory(
                 }
               }
               if (layoutFeature.hasDescendant(feature._id)) {
-                const row = await getGlyph(layoutFeature).getRowForFeature(
+                const glyph = await getGlyph(layoutFeature)
+                const row = await glyph.getRowForFeature(
                   layoutFeature,
                   feature,
-                  stateModel,
+                  self.session.apolloDataStore.ontologyManager,
                 )
                 if (row !== undefined) {
                   return {
@@ -198,11 +197,19 @@ export function layoutsModelFactory(
       },
     }))
     .views((self) => ({
-      get highestRow() {
-        return Math.max(
-          0,
-          ...self.featureLayouts.map((layout) => Math.max(...layout.keys())),
-        )
+      async getHighestRow(): Promise<number> {
+        const { featureLayouts } = self
+        let highestRow = 0
+        for (const [, layout] of featureLayouts.entries()) {
+          const ll = await layout
+          const heights = ll.keys()
+          for (const x of heights) {
+            if (x > highestRow) {
+              highestRow = x
+            }
+          }
+        }
+        return highestRow
       },
     }))
     .actions((self) => ({
