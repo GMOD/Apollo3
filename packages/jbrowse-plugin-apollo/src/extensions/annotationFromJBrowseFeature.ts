@@ -43,8 +43,36 @@ function simpleFeatureToAnnotationFeature(
   if (convertedChildren) {
     f.children = convertedChildren
   }
+
+  const convertedAttributes = convertFeatureAttributes(feature)
+  f.attributes = convertedAttributes
   featureIds.push(f._id)
   return f
+}
+
+function convertFeatureAttributes(
+  feature: SimpleFeatureSerializedNoId,
+): Record<string, string[]> {
+  const attributes: Record<string, string[]> = {}
+  const defaultFields = new Set([
+    'start',
+    'end',
+    'type',
+    'strand',
+    'refName',
+    'subfeatures',
+    'derived_features',
+    'phase',
+  ])
+  for (const [key, value] of Object.entries(feature)) {
+    if (defaultFields.has(key)) {
+      continue
+    }
+    attributes[key] = Array.isArray(value)
+      ? value.map((v) => (typeof v === 'string' ? v : String(v)))
+      : [typeof value === 'string' ? value : String(value)]
+  }
+  return attributes
 }
 
 function convertSubFeatures(
@@ -128,6 +156,7 @@ function processCDS(
       max,
       type: 'CDS',
       strand: cds[0].strand as 1 | -1 | undefined,
+      attributes: convertFeatureAttributes(cds[0]),
     }
     featureIds.push(f._id)
     annotationFeatures.push(f)
@@ -160,6 +189,7 @@ function processCDS(
       max,
       type: 'CDS',
       strand: sortedCDSLocations[0].strand as 1 | -1 | undefined,
+      attributes: convertFeatureAttributes(sortedCDSLocations[0]),
     }
     featureIds.push(f._id)
     annotationFeatures.push(f)
