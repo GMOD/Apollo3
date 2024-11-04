@@ -7,6 +7,7 @@ import DisplayType from '@jbrowse/core/pluggableElementTypes/DisplayType'
 import PluggableElementBase from '@jbrowse/core/pluggableElementTypes/PluggableElementBase'
 import AddIcon from '@mui/icons-material/Add'
 import {
+  AbstractSessionModel,
   doesIntersect2,
   getContainingView,
   getSession,
@@ -16,8 +17,7 @@ import { LinearGenomeViewModel } from '@jbrowse/plugin-linear-genome-view'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
 import ObjectID from 'bson-objectid'
 import { SimpleFeatureSerializedNoId } from '@jbrowse/core/util/simpleFeature'
-import { AddFeatureChange } from '@apollo-annotation/shared'
-import { ApolloSessionModel } from '../session'
+import { CreateApolloAnnotation } from '../components/CreateApolloAnnotation'
 
 // Map Jbrowse SimpleFeature to Apollo AnnotationFeature. This is similar to gff3ToAnnotationFeature.ts
 function simpleFeatureToAnnotationFeature(
@@ -44,8 +44,7 @@ function simpleFeatureToAnnotationFeature(
     f.children = convertedChildren
   }
 
-  const convertedAttributes = convertFeatureAttributes(feature)
-  f.attributes = convertedAttributes
+  f.attributes = convertFeatureAttributes(feature)
   featureIds.push(f._id)
   return f
 }
@@ -68,9 +67,7 @@ function convertFeatureAttributes(
     if (defaultFields.has(key)) {
       continue
     }
-    attributes[key] = Array.isArray(value)
-      ? value.map((v) => (typeof v === 'string' ? v : String(v)))
-      : [typeof value === 'string' ? value : String(value)]
+    attributes[key] = Array.isArray(value) ? value.map(String) : [String(value)]
   }
   return attributes
 }
@@ -176,7 +173,6 @@ function processCDS(
     if (!nextLoc) {
       return false
     }
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return doesIntersect2(loc.start, loc.end, nextLoc.start, nextLoc.end)
   })
   // If no overlaps, assume it's a single CDS feature
@@ -194,7 +190,44 @@ function processCDS(
     featureIds.push(f._id)
     annotationFeatures.push(f)
   }
-  // TODO: Handle overlapping CDS features
+
+  const groupedLocations: SimpleFeatureSerializedNoId[][] = []
+  for (const location of cdsWithoutIds) {
+    const lastGroup = groupedLocations.at(-1)
+    if (!lastGroup) {
+      groupedLocations.push([location])
+      continue
+    }
+    const overlaps = lastGroup.some((lastGroupLoc) =>
+      doesIntersect2(
+        /* eslint-disable @typescript-eslint/no-non-null-assertion */
+        lastGroupLoc.start,
+        lastGroupLoc.end,
+        location.start,
+        location.end,
+        /* eslint-enable @typescript-eslint/no-non-null-assertion */
+      ),
+    )
+    if (overlaps) {
+      groupedLocations.push([location])
+    } else {
+      lastGroup.push(location)
+    }
+  }
+  for (const group of groupedLocations) {
+    const [min, max] = getFeatureMinMax(group)
+    const f: AnnotationFeatureSnapshot = {
+      _id: ObjectID().toHexString(),
+      refSeq: refSeqId,
+      min,
+      max,
+      type: 'CDS',
+      strand: group[0].strand as 1 | -1 | undefined,
+      attributes: convertFeatureAttributes(group[0]),
+    }
+    featureIds.push(f._id)
+    annotationFeatures.push(f)
+  }
 
   return annotationFeatures
 }
@@ -243,35 +276,20 @@ export function annotationFromJBrowseFeature(
         }
         return refSeqId
       },
-      async createApolloAnnotation() {
-        const session = getSession(self)
+      getAnnotationFeature(assembly: Assembly) {
         // Map SimpleFeature to Apollo AnnotationFeature
         const feature: SimpleFeatureSerializedNoId =
           self.contextMenuFeature.data
-        const assembly = self.getAssembly()
         const refSeqId = self.getRefSeqId(assembly)
         const featureIds: string[] = []
-        const annotationFeature = simpleFeatureToAnnotationFeature(
-          feature,
-          refSeqId,
-          featureIds,
-        )
-
-        // Add feature to Apollo
-        const change = new AddFeatureChange({
-          changedIds: [annotationFeature._id],
-          typeName: 'AddFeatureChange',
-          assembly: assembly.name,
-          addedFeature: annotationFeature,
-        })
-        await (
-          session as unknown as ApolloSessionModel
-        ).apolloDataStore.changeManager.submit(change)
-        session.notify('Annotation added successfully', 'success')
+        return simpleFeatureToAnnotationFeature(feature, refSeqId, featureIds)
       },
     }))
     .views((self) => {
       const superContextMenuItems = self.contextMenuItems
+      const session = getSession(self)
+      const assembly = self.getAssembly()
+
       return {
         contextMenuItems() {
           const feature = self.contextMenuFeature
@@ -283,7 +301,21 @@ export function annotationFromJBrowseFeature(
             {
               label: 'Create Apollo annotation',
               icon: AddIcon,
-              onClick: self.createApolloAnnotation,
+              onClick: () => {
+                ;(session as unknown as AbstractSessionModel).queueDialog(
+                  (doneCallback) => [
+                    CreateApolloAnnotation,
+                    {
+                      session,
+                      handleClose: () => {
+                        doneCallback()
+                      },
+                      annotationFeature: self.getAnnotationFeature(assembly),
+                      assembly,
+                    },
+                  ],
+                )
+              },
             },
           ]
         },
