@@ -73,7 +73,7 @@ function selectColor(number: number) {
   return `hsl(${hue},100%,50%)`
 }
 
-async function ApolloRendering(props: ApolloRenderingProps) {
+function ApolloRendering(props: ApolloRenderingProps) {
   const [contextCoord, setContextCoord] = useState<Coord>()
   const [contextMenuFeature, setContextMenuFeature] =
     useState<AnnotationFeature>()
@@ -109,6 +109,25 @@ async function ApolloRendering(props: ApolloRenderingProps) {
     [],
   )
 
+  const [totalHeight, setTotalHeight] = useState<number>()
+  useEffect(() => {
+    async function getTotalHeight() {
+      const totalHeight = await displayModel.getFeaturesHeight()
+      setTotalHeight(totalHeight)
+    }
+    void getTotalHeight()
+  })
+
+  const [featureLayout, setFeatureLayout] =
+    useState<Map<number, [string, AnnotationFeature][]>>()
+  useEffect(() => {
+    async function getFeatureLayout() {
+      const featureLayout = await displayModel.getFeatureLayout()
+      setFeatureLayout(featureLayout)
+    }
+    void getFeatureLayout()
+  })
+
   const [region] = regions
   const totalWidth = (region.end - region.start) / bpPerPx
   const {
@@ -127,8 +146,8 @@ async function ApolloRendering(props: ApolloRenderingProps) {
     showStartCodons: showStarts,
     showStopCodons: showStops,
   } = displayModel
-  const featureLayout = await displayModel.getFeatureLayout()
-  const totalHeight = await displayModel.getFeaturesHeight()
+  // const featureLayout = await displayModel.getFeatureLayout()
+  // const totalHeight = await displayModel.getFeaturesHeight()
 
   // use this to convince useEffect that the features really did change
   const featureSnap = [...features.values()].map((a) =>
@@ -183,6 +202,13 @@ async function ApolloRendering(props: ApolloRenderingProps) {
     if (!ctx) {
       return
     }
+
+    async function getFeatureLayout() {
+      const featureLayout = await displayModel.getFeatureLayout()
+      setFeatureLayout(featureLayout)
+    }
+    void getFeatureLayout()
+
     const transcript: Record<string, [number, number][]> = {}
     ctx.clearRect(0, 0, totalWidth, totalHeight)
     for (const [row, featureInfos] of featureLayout) {

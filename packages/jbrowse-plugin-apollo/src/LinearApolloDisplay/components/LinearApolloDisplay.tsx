@@ -64,12 +64,17 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
     setSeqTrackOverlayCanvas,
     setTheme,
   } = model
-  const featuresHeight = await model.getFeaturesHeight()
   const { classes } = useStyles()
   const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
 
-  // const [featuresHeight, setFeatureHeight] = useState<number>()
-  // useEffect()
+  const [featuresHeight, setFeatureHeight] = useState<number>()
+  useEffect(() => {
+    async function getFeaturesHeight() {
+      const featuresHeight = await model.getFeaturesHeight()
+      setFeatureHeight(featuresHeight)
+    }
+    void getFeaturesHeight()
+  })
 
   useEffect(() => {
     setTheme(theme)
@@ -85,6 +90,7 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
       height: number
     } | null)[]
   >([])
+
   useEffect(() => {
     async function getCheckInfo() {
       const info = await Promise.all(
