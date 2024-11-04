@@ -175,7 +175,7 @@ function drawTooltip(
   if (!position) {
     return
   }
-  const { layoutIndex, layoutRow } = position
+  const { featureRow, layoutIndex, layoutRow } = position
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
@@ -191,7 +191,7 @@ function drawTooltip(
       coord: reversed ? max : min,
       regionNumber: layoutIndex,
     })?.offsetPx ?? 0) - offsetPx
-  const top = layoutRow * apolloRowHeight
+  const top = (layoutRow + featureRow) * apolloRowHeight
   const widthPx = length / bpPerPx
 
   const featureType = `Type: ${feature.type}`
