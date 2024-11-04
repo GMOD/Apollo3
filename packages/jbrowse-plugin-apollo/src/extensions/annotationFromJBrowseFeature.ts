@@ -200,12 +200,10 @@ function processCDS(
     }
     const overlaps = lastGroup.some((lastGroupLoc) =>
       doesIntersect2(
-        /* eslint-disable @typescript-eslint/no-non-null-assertion */
         lastGroupLoc.start,
         lastGroupLoc.end,
         location.start,
         location.end,
-        /* eslint-enable @typescript-eslint/no-non-null-assertion */
       ),
     )
     if (overlaps) {
