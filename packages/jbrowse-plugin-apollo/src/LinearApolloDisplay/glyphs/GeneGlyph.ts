@@ -5,7 +5,6 @@ import { alpha } from '@mui/material'
 import { LinearApolloDisplay } from '../stateModel'
 import {
   isMousePositionWithFeatureAndGlyph,
-  LinearApolloDisplayMouseEvents,
   MousePosition,
   MousePositionWithFeatureAndGlyph,
 } from '../stateModel/mouseEvents'
