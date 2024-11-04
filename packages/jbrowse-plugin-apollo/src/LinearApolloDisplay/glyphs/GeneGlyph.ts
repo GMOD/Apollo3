@@ -291,9 +291,32 @@ function getFeatureFromLayout(
 ): AnnotationFeature | undefined {
   const featureInThisRow: AnnotationFeature[] = featuresForRow(feature)[row]
   for (const f of featureInThisRow) {
+    let featureObj
     if (bp >= f.min && bp <= f.max && f.parent) {
-      return f
+      featureObj = f
     }
+    if (!featureObj) {
+      continue
+    }
+    if (
+      featureObj.type === 'CDS' &&
+      featureObj.parent &&
+      featureObj.parent.type === 'mRNA'
+    ) {
+      const { cdsLocations } = featureObj.parent
+      for (const cdsLoc of cdsLocations) {
+        for (const loc of cdsLoc) {
+          if (bp >= loc.min && bp <= loc.max) {
+            return featureObj
+          }
+        }
+      }
+
+      // If mouse position is in the intron region, return the mRNA
+      return featureObj.parent
+    }
+    // If mouse position is in a feature that is not a CDS, return the feature
+    return featureObj
   }
   return feature
 }
