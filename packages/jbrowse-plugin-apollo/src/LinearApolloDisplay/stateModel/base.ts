@@ -221,9 +221,11 @@ export function baseModelFactory(
               void (
                 self.session as unknown as ApolloSessionModel
               ).apolloDataStore.loadFeatures(self.regions)
-              void (
-                self.session as unknown as ApolloSessionModel
-              ).apolloDataStore.loadRefSeq(self.regions)
+              if (self.lgv.bpPerPx <= 3) {
+                void (
+                  self.session as unknown as ApolloSessionModel
+                ).apolloDataStore.loadRefSeq(self.regions)
+              }
             },
             { name: 'LinearApolloDisplayLoadFeatures', delay: 1000 },
           ),
