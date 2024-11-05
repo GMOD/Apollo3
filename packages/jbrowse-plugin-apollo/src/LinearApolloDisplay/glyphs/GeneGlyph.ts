@@ -13,35 +13,49 @@ import { Glyph } from './Glyph'
 import { boxGlyph } from './BoxGlyph'
 import { LinearApolloDisplayRendering } from '../stateModel/rendering'
 
-let forwardFill: CanvasPattern | null = null
-let backwardFill: CanvasPattern | null = null
+let forwardFillLight: CanvasPattern | null = null
+let backwardFillLight: CanvasPattern | null = null
+let forwardFillDark: CanvasPattern | null = null
+let backwardFillDark: CanvasPattern | null = null
 if ('document' in window) {
   for (const direction of ['forward', 'backward']) {
-    const canvas = document.createElement('canvas')
-    const canvasSize = 10
-    canvas.width = canvas.height = canvasSize
-    const ctx = canvas.getContext('2d')
-    if (ctx) {
-      const stripeColor1 = 'rgba(0,0,0,0)'
-      const stripeColor2 = 'rgba(255,255,255,0.25)'
-      const gradient =
-        direction === 'forward'
-          ? ctx.createLinearGradient(0, canvasSize, canvasSize, 0)
-          : ctx.createLinearGradient(0, 0, canvasSize, canvasSize)
-      gradient.addColorStop(0, stripeColor1)
-      gradient.addColorStop(0.25, stripeColor1)
-      gradient.addColorStop(0.25, stripeColor2)
-      gradient.addColorStop(0.5, stripeColor2)
-      gradient.addColorStop(0.5, stripeColor1)
-      gradient.addColorStop(0.75, stripeColor1)
-      gradient.addColorStop(0.75, stripeColor2)
-      gradient.addColorStop(1, stripeColor2)
-      ctx.fillStyle = gradient
-      ctx.fillRect(0, 0, 10, 10)
-      if (direction === 'forward') {
-        forwardFill = ctx.createPattern(canvas, 'repeat')
-      } else {
-        backwardFill = ctx.createPattern(canvas, 'repeat')
+    for (const themeMode of ['light', 'dark']) {
+      const canvas = document.createElement('canvas')
+      const canvasSize = 10
+      canvas.width = canvas.height = canvasSize
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        const stripeColor1 =
+          themeMode === 'light' ? 'rgba(0,0,0,0)' : 'rgba(0,0,0,0.75)'
+        const stripeColor2 =
+          themeMode === 'light' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.50)'
+        const gradient =
+          direction === 'forward'
+            ? ctx.createLinearGradient(0, canvasSize, canvasSize, 0)
+            : ctx.createLinearGradient(0, 0, canvasSize, canvasSize)
+        gradient.addColorStop(0, stripeColor1)
+        gradient.addColorStop(0.25, stripeColor1)
+        gradient.addColorStop(0.25, stripeColor2)
+        gradient.addColorStop(0.5, stripeColor2)
+        gradient.addColorStop(0.5, stripeColor1)
+        gradient.addColorStop(0.75, stripeColor1)
+        gradient.addColorStop(0.75, stripeColor2)
+        gradient.addColorStop(1, stripeColor2)
+        ctx.fillStyle = gradient
+        ctx.fillRect(0, 0, 10, 10)
+        if (direction === 'forward') {
+          if (themeMode === 'light') {
+            forwardFillLight = ctx.createPattern(canvas, 'repeat')
+          } else {
+            forwardFillDark = ctx.createPattern(canvas, 'repeat')
+          }
+        } else {
+          if (themeMode === 'light') {
+            backwardFillLight = ctx.createPattern(canvas, 'repeat')
+          } else {
+            backwardFillDark = ctx.createPattern(canvas, 'repeat')
+          }
+        }
       }
     }
   }
@@ -123,6 +137,10 @@ function draw(
     }
   }
 
+  const forwardFill =
+    theme?.palette.mode === 'dark' ? forwardFillDark : forwardFillLight
+  const backwardFill =
+    theme?.palette.mode === 'dark' ? backwardFillDark : backwardFillLight
   // Draw exon and CDS for each mRNA
   currentRow = 0
   for (const [, child] of children) {
