@@ -202,6 +202,12 @@ function ApolloRendering(props: ApolloRenderingProps) {
     if (!ctx) {
       return
     }
+    if (!totalHeight) {
+      return
+    }
+    if (!featureLayout) {
+      return
+    }
 
     async function getFeatureLayout() {
       const featureLayout = await displayModel.getFeatureLayout()
@@ -299,6 +305,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
     if (!ctx) {
       return
     }
+    if (!totalHeight) {
+      return
+    }
 
     ctx.clearRect(0, 0, totalWidth, totalHeight)
     for (const [row, { starts, stops }] of codonLayout) {
@@ -369,6 +378,9 @@ function ApolloRendering(props: ApolloRenderingProps) {
     }
     const ctx = canvas.getContext('2d')
     if (!ctx) {
+      return
+    }
+    if (!totalHeight) {
       return
     }
     ctx.clearRect(0, 0, totalWidth, totalHeight)

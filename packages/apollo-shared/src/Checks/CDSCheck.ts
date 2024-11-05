@@ -3,7 +3,6 @@ import {
   AnnotationFeatureSnapshot,
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
-import { OntologyManager } from '@apollo-annotation/jbrowse-plugin-apollo'
 import { intersection2 } from '@jbrowse/core/util'
 import ObjectID from 'bson-objectid'
 
