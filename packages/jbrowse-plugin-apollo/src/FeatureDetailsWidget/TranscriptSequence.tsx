@@ -9,10 +9,9 @@ import {
   Typography,
 } from '@mui/material'
 import { observer } from 'mobx-react'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
 import { ApolloSessionModel } from '../session'
-import { OntologyManager } from '../OntologyManager'
 
 export interface CDSInfo {
   id: string
@@ -26,21 +25,20 @@ export interface CDSInfo {
   endSeq: string
 }
 
-const getCDSInfo = async (
+const getCDSInfo = (
   feature: AnnotationFeature,
   refData: ApolloRefSeqI,
-  om: OntologyManager,
-): Promise<CDSInfo[]> => {
-  const isMrnaFeature = await om.isTypeOf(feature.type, 'mRNA')
+): CDSInfo[] => {
   const CDSresult: CDSInfo[] = []
-  const traverse = async (
+  const traverse = (
     currentFeature: AnnotationFeature,
     isParentMRNA: boolean,
   ) => {
     if (
-      (isParentMRNA && (await om.isTypeOf(currentFeature.type, 'CDS'))) ||
-      (await om.isTypeOf(currentFeature.type, 'three_prime_UTR')) ||
-      (await om.isTypeOf(currentFeature.type, 'five_prime_UTR'))
+      isParentMRNA &&
+      (currentFeature.type === 'CDS' ||
+        currentFeature.type === 'three_prime_UTR' ||
+        currentFeature.type === 'five_prime_UTR')
     ) {
       let startSeq = refData.getSequence(
         Number(currentFeature.min) - 2,
@@ -70,11 +68,11 @@ const getCDSInfo = async (
     }
     if (currentFeature.children) {
       for (const child of currentFeature.children) {
-        await traverse(child[1], isMrnaFeature)
+        traverse(child[1], feature.type === 'mRNA')
       }
     }
   }
-  await traverse(feature, isMrnaFeature)
+  traverse(feature, feature.type === 'mRNA')
   CDSresult.sort((a, b) => {
     return Number(a.min) - Number(b.min)
   })
@@ -128,7 +126,7 @@ export const genomeColor = 'rgb(20,230,20)' // Slightly brighter green
 
 let textSegments = [{ text: '', color: '' }]
 
-export const TranscriptSequence = observer(async function TranscriptSequence({
+export const TranscriptSequence = observer(function TranscriptSequence({
   assembly,
   feature,
   refName,
@@ -139,251 +137,147 @@ export const TranscriptSequence = observer(async function TranscriptSequence({
   refName: string
   session: ApolloSessionModel
 }) {
-  const om = session.apolloDataStore.ontologyManager
   const currentAssembly = session.apolloDataStore.assemblies.get(assembly)
   const refData = currentAssembly?.getByRefName(refName)
   const [showSequence, setShowSequence] = useState(false)
   const [selectedOption, setSelectedOption] = useState('Select')
-  const [sequence, setSequence] = useState('')
 
+  if (!(currentAssembly && refData)) {
+    return null
+  }
+  const refSeq = currentAssembly.getByRefName(refName)
+  if (!refSeq) {
+    return null
+  }
+  const transcriptItems = getCDSInfo(feature, refData)
   const { max, min } = feature
+  let sequence = ''
+  if (showSequence) {
+    getSequenceAsString(min, max)
+  }
 
-  useEffect(() => {
-    async function getSequenceAsTextSegment(option: string) {
-      let seqData = ''
-      textSegments = []
-      if (!refData) {
-        return
-      }
-      const transcriptItems = await getCDSInfo(feature, refData, om)
-      switch (option) {
-        case 'CDS': {
-          textSegments.push({ text: `>${refName} : CDS\n`, color: 'black' })
-          for (const item of transcriptItems) {
-            if (await om.isTypeOf(item.type, 'CDS')) {
-              const refSeq: string = refData.getSequence(
-                Number(item.min + 1),
-                Number(item.max),
-              )
-              seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
-              textSegments.push({ text: seqData, color: cdsColor })
-            }
-          }
-          break
-        }
-        case 'cDNA': {
-          textSegments.push({ text: `>${refName} : cDNA\n`, color: 'black' })
-          for (const item of transcriptItems) {
-            if (
-              (await om.isTypeOf(item.type, 'CDS')) ||
-              (await om.isTypeOf(item.type, 'three_prime_UTR')) ||
-              (await om.isTypeOf(item.type, 'five_prime_UTR'))
-            ) {
-              const refSeq: string = refData.getSequence(
-                Number(item.min + 1),
-                Number(item.max),
-              )
-              seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
-              if (await om.isTypeOf(item.type, 'CDS')) {
-                textSegments.push({ text: seqData, color: cdsColor })
-              } else {
-                textSegments.push({ text: seqData, color: utrColor })
-              }
-            }
-          }
-          break
-        }
-        case 'Full': {
-          textSegments.push({
-            text: `>${refName} : Full genomic\n`,
-            color: 'black',
-          })
-          let lastEnd = 0
-          let count = 0
-          for (const item of transcriptItems) {
-            const isCds = await om.isTypeOf(item.type, 'CDS')
-            const is3utr = await om.isTypeOf(item.type, 'three_prime_UTR')
-            const is5utr = await om.isTypeOf(item.type, 'five_prime_UTR')
-            count++
-            if (
-              lastEnd != 0 &&
-              lastEnd != Number(item.min) &&
-              count != transcriptItems.length
-            ) {
-              // Intron etc. between CDS/UTRs. No need to check this on very last item
-              const refSeq: string = refData.getSequence(
-                lastEnd + 1,
-                Number(item.min) - 1,
-              )
-              seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
-              textSegments.push({ text: seqData, color: 'black' })
-            }
-            if (isCds || is3utr || is5utr) {
-              const refSeq: string = refData.getSequence(
-                Number(item.min + 1),
-                Number(item.max),
-              )
-              seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
-              if (isCds) {
-                textSegments.push({ text: seqData, color: cdsColor })
-              } else if (is3utr) {
-                textSegments.push({ text: seqData, color: utrColor })
-              } else if (is5utr) {
-                textSegments.push({ text: seqData, color: utrColor })
-              } else {
-                textSegments.push({ text: seqData, color: 'black' })
-              }
-            }
-            lastEnd = Number(item.max)
-          }
-          break
-        }
-      }
+  function getSequenceAsString(start: number, end: number): string {
+    sequence = refSeq?.getSequence(start, end) ?? ''
+    if (sequence === '') {
+      void session.apolloDataStore.loadRefSeq([
+        { assemblyName: assembly, refName, start, end },
+      ])
+    } else {
+      sequence = formatSequence(sequence, refName, start, end)
     }
-
-    async function fetchSequence() {
-      if (!showSequence) {
-        return
-      }
-      if (!(currentAssembly && refData)) {
-        return
-      }
-      const refSeq = currentAssembly.getByRefName(refName)
-      if (!refSeq) {
-        return
-      }
-      let fetchsequence = refSeq.getSequence(min, max)
-      if (sequence === '') {
-        void session.apolloDataStore.loadRefSeq([
-          { assemblyName: assembly, refName, start: min, end: max },
-        ])
-      } else {
-        fetchsequence = formatSequence(sequence, refName, min, max)
-      }
-      await getSequenceAsTextSegment(selectedOption) // For color coded sequence
-      return sequence
-    }
-    fetchSequence()
-  }, [])
-
-  // let sequence = ''
-  // if (showSequence) {
-  //   await getSequenceAsString(min, max)
-  // }
-
-  // async function getSequenceAsString(start: number, end: number): Promise<string> {
-  //   sequence = refSeq?.getSequence(start, end) ?? ''
-  //   if (sequence === '') {
-  //     void session.apolloDataStore.loadRefSeq([
-  //       { assemblyName: assembly, refName, start, end },
-  //     ])
-  //   } else {
-  //     sequence = formatSequence(sequence, refName, start, end)
-  //   }
-  //   await getSequenceAsTextSegment(selectedOption) // For color coded sequence
-  //   return sequence
-  // }
+    getSequenceAsTextSegment(selectedOption) // For color coded sequence
+    return sequence
+  }
 
   const handleSeqButtonClick = () => {
     setShowSequence(!showSequence)
   }
 
-  // async function getSequenceAsTextSegment(option: string) {
-  //   let seqData = ''
-  //   textSegments = []
-  //   if (!refData) {
-  //     return
-  //   }
-  //   const transcriptItems = await getCDSInfo(feature, refData, om)
-  //   switch (option) {
-  //     case 'CDS': {
-  //       textSegments.push({ text: `>${refName} : CDS\n`, color: 'black' })
-  //       for (const item of transcriptItems) {
-  //         if (await om.isTypeOf(item.type, 'CDS')) {
-  //           const refSeq: string = refData.getSequence(
-  //             Number(item.min + 1),
-  //             Number(item.max),
-  //           )
-  //           seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
-  //           textSegments.push({ text: seqData, color: cdsColor })
-  //         }
-  //       }
-  //       break
-  //     }
-  //     case 'cDNA': {
-  //       textSegments.push({ text: `>${refName} : cDNA\n`, color: 'black' })
-  //       for (const item of transcriptItems) {
-  //         if (
-  //           await om.isTypeOf(item.type, 'CDS') ||
-  //           await om.isTypeOf(item.type, 'three_prime_UTR') ||
-  //           await om.isTypeOf(item.type, 'five_prime_UTR')
-  //         ) {
-  //           const refSeq: string = refData.getSequence(
-  //             Number(item.min + 1),
-  //             Number(item.max),
-  //           )
-  //           seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
-  //           if (await om.isTypeOf(item.type, 'CDS')) {
-  //             textSegments.push({ text: seqData, color: cdsColor })
-  //           } else {
-  //             textSegments.push({ text: seqData, color: utrColor })
-  //           }
-  //         }
-  //       }
-  //       break
-  //     }
-  //     case 'Full': {
-  //       textSegments.push({
-  //         text: `>${refName} : Full genomic\n`,
-  //         color: 'black',
-  //       })
-  //       let lastEnd = 0
-  //       let count = 0
-  //       for (const item of transcriptItems) {
-  //         const isCds = await om.isTypeOf(item.type, 'CDS')
-  //         const is3utr = await om.isTypeOf(item.type, 'three_prime_UTR')
-  //         const is5utr = await om.isTypeOf(item.type, 'five_prime_UTR')
-  //         count++
-  //         if (
-  //           lastEnd != 0 &&
-  //           lastEnd != Number(item.min) &&
-  //           count != transcriptItems.length
-  //         ) {
-  //           // Intron etc. between CDS/UTRs. No need to check this on very last item
-  //           const refSeq: string = refData.getSequence(
-  //             lastEnd + 1,
-  //             Number(item.min) - 1,
-  //           )
-  //           seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
-  //           textSegments.push({ text: seqData, color: 'black' })
-  //         }
-  //         if (isCds || is3utr || is5utr) {
-  //           const refSeq: string = refData.getSequence(
-  //             Number(item.min + 1),
-  //             Number(item.max),
-  //           )
-  //           seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
-  //           if (isCds) {
-  //             textSegments.push({ text: seqData, color: cdsColor })
-  //           } else if (is3utr) {
-  //             textSegments.push({ text: seqData, color: utrColor })
-  //           } else if (is5utr) {
-  //             textSegments.push({ text: seqData, color: utrColor })
-  //           } else {
-  //             textSegments.push({ text: seqData, color: 'black' })
-  //           }
-  //         }
-  //         lastEnd = Number(item.max)
-  //       }
-  //       break
-  //     }
-  //   }
-  // }
+  function getSequenceAsTextSegment(option: string) {
+    let seqData = ''
+    textSegments = []
+    if (!refData) {
+      return
+    }
+    switch (option) {
+      case 'CDS': {
+        textSegments.push({ text: `>${refName} : CDS\n`, color: 'black' })
+        for (const item of transcriptItems) {
+          if (item.type === 'CDS') {
+            const refSeq: string = refData.getSequence(
+              Number(item.min + 1),
+              Number(item.max),
+            )
+            seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
+            textSegments.push({ text: seqData, color: cdsColor })
+          }
+        }
+        break
+      }
+      case 'cDNA': {
+        textSegments.push({ text: `>${refName} : cDNA\n`, color: 'black' })
+        for (const item of transcriptItems) {
+          if (
+            item.type === 'CDS' ||
+            item.type === 'three_prime_UTR' ||
+            item.type === 'five_prime_UTR'
+          ) {
+            const refSeq: string = refData.getSequence(
+              Number(item.min + 1),
+              Number(item.max),
+            )
+            seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
+            if (item.type === 'CDS') {
+              textSegments.push({ text: seqData, color: cdsColor })
+            } else {
+              textSegments.push({ text: seqData, color: utrColor })
+            }
+          }
+        }
+        break
+      }
+      case 'Full': {
+        textSegments.push({
+          text: `>${refName} : Full genomic\n`,
+          color: 'black',
+        })
+        let lastEnd = 0
+        let count = 0
+        for (const item of transcriptItems) {
+          count++
+          if (
+            lastEnd != 0 &&
+            lastEnd != Number(item.min) &&
+            count != transcriptItems.length
+          ) {
+            // Intron etc. between CDS/UTRs. No need to check this on very last item
+            const refSeq: string = refData.getSequence(
+              lastEnd + 1,
+              Number(item.min) - 1,
+            )
+            seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
+            textSegments.push({ text: seqData, color: 'black' })
+          }
+          if (
+            item.type === 'CDS' ||
+            item.type === 'three_prime_UTR' ||
+            item.type === 'five_prime_UTR'
+          ) {
+            const refSeq: string = refData.getSequence(
+              Number(item.min + 1),
+              Number(item.max),
+            )
+            seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
+            switch (item.type) {
+              case 'CDS': {
+                textSegments.push({ text: seqData, color: cdsColor })
+                break
+              }
+              case 'three_prime_UTR': {
+                textSegments.push({ text: seqData, color: utrColor })
+                break
+              }
+              case 'five_prime_UTR': {
+                textSegments.push({ text: seqData, color: utrColor })
+                break
+              }
+              default: {
+                textSegments.push({ text: seqData, color: 'black' })
+                break
+              }
+            }
+          }
+          lastEnd = Number(item.max)
+        }
+        break
+      }
+    }
+  }
 
   function handleChangeSeqOption(e: SelectChangeEvent) {
     const option = e.target.value
     setSelectedOption(option)
-    await getSequenceAsTextSegment(option)
+    getSequenceAsTextSegment(option)
   }
 
   // Function to copy text to clipboard
