@@ -7,7 +7,12 @@ import {
   UriLocation,
   isUriLocation,
 } from '@jbrowse/core/util'
-import { IDBPTransaction, IndexNames, StoreNames } from 'idb/with-async-ittr'
+import {
+  deleteDB,
+  IDBPTransaction,
+  IndexNames,
+  StoreNames,
+} from 'idb/with-async-ittr'
 
 import { textSearch } from './fulltext'
 import { OntologyDB, OntologyDBEdge, isDeprecated } from './indexeddb-schema'
@@ -176,18 +181,24 @@ export default class OntologyStore {
       return db
     }
 
-    const { sourceLocation, sourceType } = this
-    if (sourceType === 'obo-graph-json') {
-      await this.loadOboGraphJson(db)
-    } else {
-      throw new Error(
-        `ontology source file ${JSON.stringify(
-          sourceLocation,
-        )} has type ${sourceType}, which is not yet supported`,
-      )
-    }
+    try {
+      const { sourceLocation, sourceType } = this
+      if (sourceType === 'obo-graph-json') {
+        await this.loadOboGraphJson(db)
+      } else {
+        throw new Error(
+          `ontology source file ${JSON.stringify(
+            sourceLocation,
+          )} has type ${sourceType}, which is not yet supported`,
+        )
+      }
 
-    return db
+      return db
+    } catch (error) {
+      db.close()
+      await deleteDB(this.dbName)
+      throw error
+    }
   }
 
   async termCount(tx?: Transaction<['nodes']>) {
