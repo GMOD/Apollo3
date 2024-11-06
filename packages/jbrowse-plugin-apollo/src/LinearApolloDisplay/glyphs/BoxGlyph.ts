@@ -62,7 +62,8 @@ function drawBoxText(
   ctx.fillText(text, textStart, y + 11, textWidth)
 }
 
-function draw(
+// eslint-disable-next-line @typescript-eslint/require-await
+async function draw(
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
@@ -132,7 +133,7 @@ function drawDragPreview(
   overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
 }
 
-function drawHover(
+async function drawHover(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
@@ -141,7 +142,7 @@ function drawHover(
     return
   }
   const { feature } = apolloHover
-  const position = stateModel.getFeatureLayoutPosition(feature)
+  const position = await stateModel.getFeatureLayoutPosition(feature)
   if (!position) {
     return
   }
@@ -162,16 +163,16 @@ function drawHover(
   ctx.fillRect(startPx, top, widthPx, apolloRowHeight)
 }
 
-function drawTooltip(
+async function drawTooltip(
   display: LinearApolloDisplayMouseEvents,
   context: CanvasRenderingContext2D,
-): void {
+): Promise<void> {
   const { apolloHover, apolloRowHeight, lgv, theme } = display
   if (!apolloHover) {
     return
   }
   const { feature } = apolloHover
-  const position = display.getFeatureLayoutPosition(feature)
+  const position = await display.getFeatureLayoutPosition(feature)
   if (!position) {
     return
   }
@@ -388,11 +389,12 @@ function getContextMenuItems(
   return menuItems
 }
 
-function getFeatureFromLayout(
+// eslint-disable-next-line @typescript-eslint/require-await
+async function getFeatureFromLayout(
   feature: AnnotationFeature,
   _bp: number,
   _row: number,
-): AnnotationFeature {
+): Promise<AnnotationFeature> {
   return feature
 }
 
@@ -400,10 +402,11 @@ function getRowCount(_feature: AnnotationFeature) {
   return 1
 }
 
-function getRowForFeature(
+// eslint-disable-next-line @typescript-eslint/require-await
+async function getRowForFeature(
   _feature: AnnotationFeature,
   _childFeature: AnnotationFeature,
-): number | undefined {
+): Promise<number | undefined> {
   return 0
 }
 

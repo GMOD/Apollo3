@@ -37,7 +37,7 @@ export function renderingModelIntermediateFactory(
       theme: undefined as Theme | undefined,
     }))
     .views((self) => ({
-      get featuresHeight() {
+      getFeaturesHeight() {
         return (
           (self.highestRow + 1) * self.apolloRowHeight +
           self.lastRowTooltipBufferHeight
@@ -90,7 +90,7 @@ export function renderingModelIntermediateFactory(
                 0,
                 0,
                 self.lgv.dynamicBlocks.totalWidthPx,
-                self.featuresHeight,
+                self.getFeaturesHeight(),
               )
               for (const collaborator of (
                 self.session as unknown as ApolloSessionModel
@@ -399,8 +399,9 @@ export function renderingModelFactory(
       addDisposer(
         self,
         autorun(
-          () => {
-            const { canvas, featureLayouts, featuresHeight, lgv } = self
+          async () => {
+            const featuresHeight = self.getFeaturesHeight()
+            const { canvas, featureLayouts, lgv } = self
             if (!lgv.initialized || self.regionCannotBeRendered()) {
               return
             }
@@ -428,7 +429,7 @@ export function renderingModelFactory(
                   ) {
                     continue
                   }
-                  getGlyph(feature).draw(ctx, feature, row, self, idx)
+                  await getGlyph(feature).draw(ctx, feature, row, self, idx)
                 }
               }
             }

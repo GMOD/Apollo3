@@ -131,7 +131,7 @@ export function mouseEventsModelIntermediateFactory(
       apolloHover: undefined as FeatureAndGlyphUnderMouse | undefined,
     }))
     .views((self) => ({
-      getMousePosition(event: CanvasMouseEvent): MousePosition {
+      async getMousePosition(event: CanvasMouseEvent): Promise<MousePosition> {
         const mousePosition = getMousePosition(event, self.lgv)
         const { bp, regionNumber, y } = mousePosition
         const row = Math.floor(y / self.apolloRowHeight)
@@ -148,10 +148,11 @@ export function mouseEventsModelIntermediateFactory(
         }
         const [featureRow, topLevelFeature] = foundFeature
         const glyph = getGlyph(topLevelFeature)
-        const feature = glyph.getFeatureFromLayout(
+        const feature = await glyph.getFeatureFromLayout(
           topLevelFeature,
           bp,
           featureRow,
+          self.session.apolloDataStore.ontologyManager,
         )
         if (!feature) {
           return mousePosition
@@ -389,8 +390,8 @@ export function mouseEventsModelFactory(
       },
     }))
     .actions((self) => ({
-      onMouseDown(event: CanvasMouseEvent) {
-        const mousePosition = self.getMousePosition(event)
+      async onMouseDown(event: CanvasMouseEvent) {
+        const mousePosition = await self.getMousePosition(event)
         if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
           mousePosition.featureAndGlyphUnderMouse.glyph.onMouseDown(
             self,
@@ -399,8 +400,8 @@ export function mouseEventsModelFactory(
           )
         }
       },
-      onMouseMove(event: CanvasMouseEvent) {
-        const mousePosition = self.getMousePosition(event)
+      async onMouseMove(event: CanvasMouseEvent) {
+        const mousePosition = await self.getMousePosition(event)
         if (self.apolloDragging) {
           self.setCursor('col-resize')
           self.continueDrag(mousePosition, event)
@@ -417,11 +418,11 @@ export function mouseEventsModelFactory(
           self.setCursor()
         }
       },
-      onMouseLeave(event: CanvasMouseEvent) {
+      async onMouseLeave(event: CanvasMouseEvent) {
         self.setDragging()
         self.setApolloHover()
 
-        const mousePosition = self.getMousePosition(event)
+        const mousePosition = await self.getMousePosition(event)
         if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
           mousePosition.featureAndGlyphUnderMouse.glyph.onMouseLeave(
             self,
@@ -430,8 +431,8 @@ export function mouseEventsModelFactory(
           )
         }
       },
-      onMouseUp(event: CanvasMouseEvent) {
-        const mousePosition = self.getMousePosition(event)
+      async onMouseUp(event: CanvasMouseEvent) {
+        const mousePosition = await self.getMousePosition(event)
         if (isMousePositionWithFeatureAndGlyph(mousePosition)) {
           mousePosition.featureAndGlyphUnderMouse.glyph.onMouseUp(
             self,
@@ -450,7 +451,7 @@ export function mouseEventsModelFactory(
         addDisposer(
           self,
           autorun(
-            () => {
+            async () => {
               // This type is wrong in @jbrowse/core
               // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
               if (!self.lgv.initialized || self.regionCannotBeRendered()) {
@@ -464,7 +465,8 @@ export function mouseEventsModelFactory(
                 0,
                 0,
                 self.lgv.dynamicBlocks.totalWidthPx,
-                self.featuresHeight,
+
+                self.getFeaturesHeight(),
               )
 
               const { apolloDragging, apolloHover } = self
@@ -474,10 +476,10 @@ export function mouseEventsModelFactory(
               const { glyph } = apolloHover
 
               // draw mouseover hovers
-              glyph.drawHover(self, ctx)
+              await glyph.drawHover(self, ctx)
 
               // draw tooltip on hover
-              glyph.drawTooltip(self, ctx)
+              await glyph.drawTooltip(self, ctx)
 
               // dragging previews
               if (apolloDragging) {

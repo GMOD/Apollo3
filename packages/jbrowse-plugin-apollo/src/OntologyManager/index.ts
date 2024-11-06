@@ -114,6 +114,21 @@ export const OntologyManagerType = types
     expandPrefixes(uri: string) {
       return expandPrefixes(uri, self.prefixes)
     },
+    /**
+     * Return true if `queryType` is a type of `typeOf`.
+     * E.g. isTypeOf('protein_coding_gene', 'gene') = true
+     * */
+    async isTypeOf(queryType: string, typeOf: string): Promise<boolean> {
+      const os = this.featureTypeOntology?.dataStore
+      if (!os) {
+        throw new Error(`Ontology ${self.featureTypeOntologyName} is undefined`)
+      }
+      const types = await os.getTermsWithLabelOrSynonym(typeOf)
+      const lbl: string[] = types
+        .map((x) => x.lbl)
+        .filter((x) => x != undefined)
+      return lbl.includes(queryType)
+    },
   }))
   .actions((self) => ({
     addOntology(

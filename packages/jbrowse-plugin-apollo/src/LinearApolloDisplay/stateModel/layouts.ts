@@ -156,7 +156,7 @@ export function layoutsModelFactory(
           return featureLayout
         })
       },
-      getFeatureLayoutPosition(feature: AnnotationFeature) {
+      async getFeatureLayoutPosition(feature: AnnotationFeature) {
         const { featureLayouts } = this
         for (const [idx, layout] of featureLayouts.entries()) {
           for (const [layoutRowNum, layoutRow] of layout) {
@@ -174,9 +174,10 @@ export function layoutsModelFactory(
                 }
               }
               if (layoutFeature.hasDescendant(feature._id)) {
-                const row = getGlyph(layoutFeature).getRowForFeature(
+                const row = await getGlyph(layoutFeature).getRowForFeature(
                   layoutFeature,
                   feature,
+                  self.session.apolloDataStore.ontologyManager,
                 )
                 if (row !== undefined) {
                   return {

@@ -13,7 +13,7 @@ import { Alert, Avatar, Tooltip, useTheme } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useEffect, useState } from 'react'
 import { makeStyles } from 'tss-react/mui'
-
+import { CheckResultI } from '@apollo-annotation/mst'
 import { LinearApolloDisplay as LinearApolloDisplayI } from '../stateModel'
 
 interface LinearApolloDisplayProps {
@@ -50,7 +50,6 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
     apolloRowHeight,
     contextMenuItems: getContextMenuItems,
     cursor,
-    featuresHeight,
     isShown,
     onMouseDown,
     onMouseLeave,
@@ -68,16 +67,92 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
   const { classes } = useStyles()
   const lgv = getContainingView(model) as unknown as LinearGenomeViewModel
 
+  const [featuresHeight, setFeatureHeight] = useState<number>()
+  useEffect(() => {
+    function getFeaturesHeight() {
+      const featuresHeight = model.getFeaturesHeight()
+      setFeatureHeight(featuresHeight)
+    }
+    getFeaturesHeight()
+  })
+
   useEffect(() => {
     setTheme(theme)
   }, [theme, setTheme])
+
+  const { assemblyManager } = session as unknown as AbstractSessionModel
+
+  const [checkInfo, setCheckInfo] = useState<
+    ({
+      checkResult: CheckResultI
+      top: number
+      left: number
+      height: number
+    } | null)[]
+  >([])
+
+  useEffect(() => {
+    async function getCheckInfo() {
+      const info = await Promise.all(
+        lgv.displayedRegions.flatMap((region, idx) => {
+          const assembly = assemblyManager.get(region.assemblyName)
+          return [...session.apolloDataStore.checkResults.values()]
+            .filter(
+              (checkResult) =>
+                assembly?.isValidRefName(checkResult.refSeq) &&
+                assembly.getCanonicalRefName(checkResult.refSeq) ===
+                  region.refName &&
+                doesIntersect2(
+                  region.start,
+                  region.end,
+                  checkResult.start,
+                  checkResult.end,
+                ),
+            )
+            .map(async (checkResult) => {
+              const left =
+                (lgv.bpToPx({
+                  refName: region.refName,
+                  coord: checkResult.start,
+                  regionNumber: idx,
+                })?.offsetPx ?? 0) - lgv.offsetPx
+              const [feature] = checkResult.ids
+              if (!feature) {
+                return null
+              }
+              const { topLevelFeature } = feature
+
+              let row = 0
+              if (parent) {
+                const pos =
+                  await model.getFeatureLayoutPosition(topLevelFeature)
+                if (pos?.layoutRow) {
+                  row = pos.layoutRow
+                }
+              }
+              const top = row * apolloRowHeight
+              const height = apolloRowHeight
+              return { checkResult, top, left, height }
+            })
+        }),
+      )
+      setCheckInfo(info)
+    }
+    void getCheckInfo()
+  }, [
+    apolloRowHeight,
+    assemblyManager,
+    lgv,
+    model,
+    session.apolloDataStore.checkResults,
+  ])
+
   const [contextCoord, setContextCoord] = useState<Coord>()
   const [contextMenuItems, setContextMenuItems] = useState<MenuItem[]>([])
   const message = regionCannotBeRendered()
   if (!isShown) {
     return null
   }
-  const { assemblyManager } = session as unknown as AbstractSessionModel
   return (
     <>
       {lgv.bpPerPx <= 3 ? (
@@ -173,50 +248,21 @@ export const LinearApolloDisplay = observer(function LinearApolloDisplay(
               style={{ cursor: cursor ?? 'default' }}
               data-testid="overlayCanvas"
             />
-            {lgv.displayedRegions.flatMap((region, idx) => {
-              const assembly = assemblyManager.get(region.assemblyName)
-              return [...session.apolloDataStore.checkResults.values()]
-                .filter(
-                  (checkResult) =>
-                    assembly?.isValidRefName(checkResult.refSeq) &&
-                    assembly.getCanonicalRefName(checkResult.refSeq) ===
-                      region.refName &&
-                    doesIntersect2(
-                      region.start,
-                      region.end,
-                      checkResult.start,
-                      checkResult.end,
-                    ),
-                )
-                .map((checkResult) => {
-                  const left =
-                    (lgv.bpToPx({
-                      refName: region.refName,
-                      coord: checkResult.start,
-                      regionNumber: idx,
-                    })?.offsetPx ?? 0) - lgv.offsetPx
-                  const [feature] = checkResult.ids
-                  if (!feature) {
-                    return null
-                  }
-                  const { topLevelFeature } = feature
-                  const row = parent
-                    ? model.getFeatureLayoutPosition(topLevelFeature)
-                        ?.layoutRow ?? 0
-                    : 0
-                  const top = row * apolloRowHeight
-                  const height = apolloRowHeight
-                  return (
-                    <Tooltip key={checkResult._id} title={checkResult.message}>
-                      <Avatar
-                        className={classes.avatar}
-                        style={{ top, left, height, width: height }}
-                      >
-                        <ErrorIcon />
-                      </Avatar>
-                    </Tooltip>
-                  )
-                })
+            {checkInfo.map((info) => {
+              if (!info) {
+                return null
+              }
+              const { checkResult, height, left, top } = info
+              return (
+                <Tooltip key={checkResult._id} title={checkResult.message}>
+                  <Avatar
+                    className={classes.avatar}
+                    style={{ top, left, height, width: height }}
+                  >
+                    <ErrorIcon />
+                  </Avatar>
+                </Tooltip>
+              )
             })}
             <Menu
               open={contextMenuItems.length > 0}

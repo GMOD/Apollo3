@@ -19,7 +19,7 @@ function getRowCount(feature: AnnotationFeature) {
   return featuresForRow(feature).length
 }
 
-function draw(
+async function draw(
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
@@ -27,11 +27,11 @@ function draw(
   displayedRegionIndex: number,
 ) {
   for (let i = 0; i < getRowCount(feature); i++) {
-    drawRow(ctx, feature, row + i, row, stateModel, displayedRegionIndex)
+    await drawRow(ctx, feature, row + i, row, stateModel, displayedRegionIndex)
   }
 }
 
-function drawRow(
+async function drawRow(
   ctx: CanvasRenderingContext2D,
   topLevelFeature: AnnotationFeature,
   row: number,
@@ -41,11 +41,11 @@ function drawRow(
 ) {
   const features = featuresForRow(topLevelFeature)[row - topRow]
   for (const feature of features) {
-    drawFeature(ctx, feature, row, stateModel, displayedRegionIndex)
+    await drawFeature(ctx, feature, row, stateModel, displayedRegionIndex)
   }
 }
 
-function drawFeature(
+async function drawFeature(
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
@@ -74,10 +74,10 @@ function drawFeature(
     const featureHeight = rowCount * heightPx
     drawBox(ctx, startPx, top, widthPx, featureHeight, groupingColor)
   }
-  boxGlyph.draw(ctx, feature, row, stateModel, displayedRegionIndex)
+  await boxGlyph.draw(ctx, feature, row, stateModel, displayedRegionIndex)
 }
 
-function drawHover(
+async function drawHover(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
@@ -86,7 +86,7 @@ function drawHover(
     return
   }
   const { feature } = apolloHover
-  const position = stateModel.getFeatureLayoutPosition(feature)
+  const position = await stateModel.getFeatureLayoutPosition(feature)
   if (!position) {
     return
   }
@@ -107,7 +107,8 @@ function drawHover(
   ctx.fillRect(startPx, top, widthPx, apolloRowHeight * getRowCount(feature))
 }
 
-function getFeatureFromLayout(
+// eslint-disable-next-line @typescript-eslint/require-await
+async function getFeatureFromLayout(
   feature: AnnotationFeature,
   bp: number,
   row: number,
@@ -116,7 +117,8 @@ function getFeatureFromLayout(
   return layoutRow.find((f) => bp >= f.min && bp <= f.max)
 }
 
-function getRowForFeature(
+// eslint-disable-next-line @typescript-eslint/require-await
+async function getRowForFeature(
   feature: AnnotationFeature,
   childFeature: AnnotationFeature,
 ) {

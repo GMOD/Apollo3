@@ -12,6 +12,7 @@ import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 import { boxGlyph } from './BoxGlyph'
 import { LinearApolloDisplayRendering } from '../stateModel/rendering'
+import { OntologyManager } from '../../OntologyManager'
 
 let forwardFill: CanvasPattern | null = null
 let backwardFill: CanvasPattern | null = null
@@ -47,14 +48,15 @@ if ('document' in window) {
   }
 }
 
-function draw(
+async function draw(
   ctx: CanvasRenderingContext2D,
   feature: AnnotationFeature,
   row: number,
   stateModel: LinearApolloDisplayRendering,
   displayedRegionIndex: number,
-): void {
+): Promise<void> {
   const { apolloRowHeight, lgv, session, theme } = stateModel
+  const { apolloDataStore } = session
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[displayedRegionIndex]
   const { refName, reversed } = displayedRegion
@@ -71,7 +73,11 @@ function draw(
   // Draw lines on different rows for each mRNA
   let currentRow = 0
   for (const [, mrna] of children) {
-    if (mrna.type !== 'mRNA') {
+    const isMrna = await apolloDataStore.ontologyManager.isTypeOf(
+      mrna.type,
+      'mRNA',
+    )
+    if (!isMrna) {
       currentRow += 1
       continue
     }
@@ -106,7 +112,7 @@ function draw(
   currentRow = 0
   for (const [, child] of children) {
     if (child.type !== 'mRNA') {
-      boxGlyph.draw(ctx, child, row, stateModel, displayedRegionIndex)
+      await boxGlyph.draw(ctx, child, row, stateModel, displayedRegionIndex)
       currentRow += 1
       continue
     }
@@ -253,7 +259,7 @@ function drawDragPreview(
   overlayCtx.fillRect(rectX, rectY, rectWidth, rectHeight)
 }
 
-function drawHover(
+async function drawHover(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
@@ -262,7 +268,7 @@ function drawHover(
     return
   }
   const { feature } = apolloHover
-  const position = stateModel.getFeatureLayoutPosition(feature)
+  const position = await stateModel.getFeatureLayoutPosition(feature)
   if (!position) {
     return
   }
@@ -284,12 +290,14 @@ function drawHover(
   ctx.fillRect(startPx, top, widthPx, apolloRowHeight * getRowCount(feature))
 }
 
-function getFeatureFromLayout(
+async function getFeatureFromLayout(
   feature: AnnotationFeature,
   bp: number,
   row: number,
-): AnnotationFeature | undefined {
-  const featureInThisRow: AnnotationFeature[] = featuresForRow(feature)[row]
+  ontologyManager: OntologyManager,
+): Promise<AnnotationFeature | undefined> {
+  const ff = await featuresForRow(feature, ontologyManager)
+  const featureInThisRow: AnnotationFeature[] = ff[row]
   for (const f of featureInThisRow) {
     if (bp >= f.min && bp <= f.max && f.parent) {
       return f
@@ -324,8 +332,12 @@ function getRowCount(feature: AnnotationFeature, _bpPerPx?: number): number {
  * If the row contains an mRNA, the order is CDS -\> exon -\> mRNA -\> gene
  * If the row does not contain an mRNA, the order is subfeature -\> gene
  */
-function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
-  if (feature.type !== 'gene') {
+async function featuresForRow(
+  feature: AnnotationFeature,
+  ontologyManager: OntologyManager,
+): Promise<AnnotationFeature[][]> {
+  const isGene = await ontologyManager.isTypeOf(feature.type, 'gene')
+  if (!isGene) {
     throw new Error('Top level feature for GeneGlyph must have type "gene"')
   }
   const { children } = feature
@@ -357,11 +369,12 @@ function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
   return features
 }
 
-function getRowForFeature(
+async function getRowForFeature(
   feature: AnnotationFeature,
   childFeature: AnnotationFeature,
+  ontologyManager: OntologyManager,
 ) {
-  const rows = featuresForRow(feature)
+  const rows = await featuresForRow(feature, ontologyManager)
   for (const [idx, row] of rows.entries()) {
     if (row.some((feature) => feature._id === childFeature._id)) {
       return idx

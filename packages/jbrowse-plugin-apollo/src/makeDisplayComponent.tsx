@@ -54,13 +54,13 @@ const useStyles = makeStyles()((theme) => ({
   },
 }))
 
-function scrollSelectedFeatureIntoView(
+async function scrollSelectedFeatureIntoView(
   model: LinearApolloDisplayI,
   scrollContainerRef: React.RefObject<HTMLDivElement>,
 ) {
   const { apolloRowHeight, selectedFeature } = model
   if (scrollContainerRef.current && selectedFeature) {
-    const position = model.getFeatureLayoutPosition(selectedFeature)
+    const position = await model.getFeatureLayoutPosition(selectedFeature)
     if (position) {
       const row = position.layoutRow + position.featureRow
       const top = row * apolloRowHeight
@@ -170,7 +170,9 @@ export const DisplayComponent = observer(function DisplayComponent({
 
   const canvasScrollContainerRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    scrollSelectedFeatureIntoView(model, canvasScrollContainerRef)
+    void (async () => {
+      await scrollSelectedFeatureIntoView(model, canvasScrollContainerRef)
+    })()
   }, [model, selectedFeature])
 
   const onDetailsResize = (delta: number) => {

@@ -7,6 +7,7 @@ import {
 } from '../stateModel/mouseEvents'
 import { LinearApolloDisplayRendering } from '../stateModel/rendering'
 import { CanvasMouseEvent } from '../types'
+import { OntologyManager } from '../../OntologyManager'
 
 export interface Glyph {
   /** @returns number of layout rows used by this glyph with this feature and zoom level */
@@ -18,22 +19,24 @@ export interface Glyph {
     row: number,
     stateModel: LinearApolloDisplayRendering,
     displayedRegionIndex: number,
-  ): void
+  ): Promise<void>
   /** @returns the feature or subfeature at the given bp and row number in this glyph's layout */
   getFeatureFromLayout(
     feature: AnnotationFeature,
     bp: number,
     row: number,
-  ): AnnotationFeature | undefined
+    ontologyManager: OntologyManager,
+  ): Promise<AnnotationFeature | undefined>
   getRowForFeature(
     feature: AnnotationFeature,
     childFeature: AnnotationFeature,
-  ): number | undefined
+    ontologyManager: OntologyManager,
+  ): Promise<number | undefined>
 
   drawHover(
     display: LinearApolloDisplayMouseEvents,
     overlayCtx: CanvasRenderingContext2D,
-  ): void
+  ): Promise<void>
 
   drawDragPreview(
     display: LinearApolloDisplayMouseEvents,
@@ -67,7 +70,7 @@ export interface Glyph {
   drawTooltip(
     display: LinearApolloDisplayMouseEvents,
     context: CanvasRenderingContext2D,
-  ): void
+  ): Promise<void>
 
   getContextMenuItems(display: LinearApolloDisplayMouseEvents): MenuItem[]
 }
