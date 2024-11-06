@@ -3,7 +3,7 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { Typography, alpha } from '@mui/material'
+import { Alert, Typography, alpha } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { makeStyles } from 'tss-react/mui'
@@ -54,6 +54,11 @@ const useStyles = makeStyles()((theme) => ({
   title: {
     // position: 'relative',
     userSelect: 'none',
+  },
+  alertContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 }))
 
@@ -187,23 +192,8 @@ export const DisplayComponent = observer(function DisplayComponent({
 
   if (!ontologyStore) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '25%',
-        }}
-      >
-        <p
-          style={{
-            color: 'DimGray',
-            fontSize: '100%',
-            backgroundColor: 'white',
-          }}
-        >
-          {'Sequence ontology not found. Please load one before continuing'}
-        </p>
+      <div className={classes.alertContainer}>
+        <Alert severity="error">Could not load feature type ontology.</Alert>
       </div>
     )
   }
