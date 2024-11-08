@@ -9,8 +9,19 @@ import { observer } from 'mobx-react'
 import React from 'react'
 
 import { ApolloSessionModel } from '../session'
-import { CDSInfo } from './TranscriptSequence'
 import { NumberTextField } from './NumberTextField'
+
+interface CDSInfo {
+  id: string
+  type: string
+  strand: number
+  min: number
+  oldMin: number
+  max: number
+  oldMax: number
+  startSeq: string
+  endSeq: string
+}
 
 interface ExonInfo {
   min: number
