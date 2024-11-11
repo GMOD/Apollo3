@@ -58,6 +58,15 @@ export class JBrowseService {
           quaternary: {
             main: '#571AA3',
           },
+          framesCDS: [
+            null,
+            { main: 'rgb(204,121,167)' },
+            { main: 'rgb(230,159,0)' },
+            { main: 'rgb(240,228,66)' },
+            { main: 'rgb(86,180,233)' },
+            { main: 'rgb(0,114,178)' },
+            { main: 'rgb(0,158,115)' },
+          ],
         },
       },
       ApolloPlugin: {
