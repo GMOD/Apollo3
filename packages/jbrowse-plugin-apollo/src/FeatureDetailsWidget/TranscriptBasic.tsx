@@ -3,7 +3,7 @@ import {
   LocationEndChange,
   LocationStartChange,
 } from '@apollo-annotation/shared'
-import { AbstractSessionModel, revcom } from '@jbrowse/core/util'
+import { AbstractSessionModel, getFrame, revcom } from '@jbrowse/core/util'
 import {
   Paper,
   Typography,
@@ -12,6 +12,7 @@ import {
   TableCell,
   TableContainer,
   TableRow,
+  useTheme,
 } from '@mui/material'
 import { observer } from 'mobx-react'
 import React from 'react'
@@ -35,6 +36,7 @@ export const TranscriptBasicInformation = observer(
     const currentAssembly = session.apolloDataStore.assemblies.get(assembly)
     const refData = currentAssembly?.getByRefName(refName)
     const { changeManager } = session.apolloDataStore
+    const theme = useTheme()
 
     function handleLocationChange(
       oldLocation: number,
@@ -95,7 +97,11 @@ export const TranscriptBasicInformation = observer(
         }
         let fivePrimeSpliceSite
         let threePrimeSpliceSite
+        let frameColor
         if (type === 'CDS') {
+          const { phase } = loc
+          const frame = getFrame(min, max, strand ?? 1, phase)
+          frameColor = theme.palette.framesCDS.at(frame)?.main
           const previousLoc = firstLocation.at(idx - 1)
           const nextLoc = firstLocation.at(idx + 1)
           if (strand === 1) {
@@ -114,7 +120,14 @@ export const TranscriptBasicInformation = observer(
             }
           }
         }
-        return { min, max, label, fivePrimeSpliceSite, threePrimeSpliceSite }
+        return {
+          min,
+          max,
+          label,
+          fivePrimeSpliceSite,
+          threePrimeSpliceSite,
+          frameColor,
+        }
       })
       .filter((loc) => loc.label !== 'intron')
 
@@ -129,7 +142,11 @@ export const TranscriptBasicInformation = observer(
             <TableBody>
               {locationData.map((loc) => (
                 <TableRow key={`${loc.label}:${loc.min}-${loc.max}`}>
-                  <TableCell component="th" scope="row">
+                  <TableCell
+                    component="th"
+                    scope="row"
+                    style={{ background: loc.frameColor }}
+                  >
                     {loc.label}
                   </TableCell>
                   <TableCell>{loc.fivePrimeSpliceSite ?? ''}</TableCell>
