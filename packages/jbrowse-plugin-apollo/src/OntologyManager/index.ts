@@ -5,7 +5,13 @@ import {
   UriLocation,
 } from '@jbrowse/core/util/types/mst'
 import { autorun } from 'mobx'
-import { Instance, addDisposer, getSnapshot, types } from 'mobx-state-tree'
+import {
+  Instance,
+  addDisposer,
+  flow,
+  getSnapshot,
+  types,
+} from 'mobx-state-tree'
 
 import OntologyStore, { OntologyStoreOptions } from './OntologyStore'
 import { OntologyDBNode } from './OntologyStore/indexeddb-schema'
@@ -19,6 +25,7 @@ export const OntologyRecordType = types
     version: 'unversioned',
     source: types.union(LocalPathLocation, UriLocation, BlobLocation),
     options: types.frozen<OntologyStoreOptions>(),
+    equivalentTypes: types.map(types.array(types.string)),
   })
   .volatile((_self) => ({
     dataStore: undefined as undefined | OntologyStore,
@@ -43,6 +50,43 @@ export const OntologyRecordType = types
           this.initDataStore()
         }),
       )
+    },
+    setEquivalentTypes(type: string, equivalentTypes: string[]) {
+      self.equivalentTypes.set(type, equivalentTypes)
+    },
+  }))
+  .actions((self) => ({
+    loadEquivalentTypes: flow(function* loadEquivalentTypes(type: string) {
+      if (!self.dataStore) {
+        return
+      }
+      const terms = (yield self.dataStore.getTermsWithLabelOrSynonym(
+        type,
+      )) as unknown as OntologyTerm[]
+      const equivalents: string[] = terms
+        .map((term) => term.lbl)
+        .filter((term) => term != undefined)
+      console.log('loading', type, equivalents)
+      self.setEquivalentTypes(type, equivalents)
+    }),
+  }))
+  .views((self) => ({
+    isTypeOf(queryType: string, typeOf: string): boolean {
+      if (queryType === typeOf) {
+        return true
+      }
+      if (!self.dataStore) {
+        return false
+      }
+      const equivalents = self.equivalentTypes.get(typeOf)
+      if (!equivalents) {
+        void self.loadEquivalentTypes(typeOf)
+        return false
+      }
+      if (equivalents.includes(queryType)) {
+        return true
+      }
+      return false
     },
   }))
 
