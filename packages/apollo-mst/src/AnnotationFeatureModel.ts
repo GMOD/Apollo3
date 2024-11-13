@@ -1,4 +1,4 @@
-import { intersection2 } from '@jbrowse/core/util'
+import { getSession, intersection2 } from '@jbrowse/core/util'
 import {
   IAnyModelType,
   IMSTMap,
@@ -127,7 +127,14 @@ export const AnnotationFeatureModel = types
       return false
     },
     get transcriptParts(): TranscriptParts[] {
-      if (self.type !== 'mRNA') {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+      const session = getSession(self) as any
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const { apolloDataStore } = session
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      const { featureTypeOntology } = apolloDataStore.ontologyManager
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      if (!featureTypeOntology.isTypeOf(self.type, 'mRNA')) {
         throw new Error(
           'Only features of type "mRNA" or equivalent can calculate CDS locations',
         )
@@ -137,7 +144,8 @@ export const AnnotationFeatureModel = types
         throw new Error('no CDS or exons in mRNA')
       }
       const cdsChildren = [...children.values()].filter(
-        (child) => child.type === 'CDS',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        (child) => featureTypeOntology.isTypeOf(child.type, 'CDS'),
       )
       if (cdsChildren.length === 0) {
         throw new Error('no CDS in mRNA')
@@ -149,7 +157,8 @@ export const AnnotationFeatureModel = types
         let hasIntersected = false
         const exonLocations: TranscriptPartLocation[] = []
         for (const [, child] of children) {
-          if (child.type === 'exon') {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+          if (!featureTypeOntology.isTypeOf(child.type, 'exon')) {
             exonLocations.push({ min: child.min, max: child.max })
           }
         }

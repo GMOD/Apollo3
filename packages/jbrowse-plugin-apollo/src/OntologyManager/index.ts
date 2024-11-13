@@ -72,7 +72,6 @@ export const OntologyRecordType = types
       const equivalents: string[] = terms
         .map((term) => term.lbl)
         .filter((term) => term != undefined)
-      console.log('loading', type, equivalents)
       self.setEquivalentTypes(type, equivalents)
     }),
   }))
