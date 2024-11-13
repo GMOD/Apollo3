@@ -136,9 +136,14 @@ export function layoutsModelFactory(
             ) {
               continue
             }
+            const { featureTypeOntology } =
+              self.session.apolloDataStore.ontologyManager
+            if (!featureTypeOntology) {
+              throw new Error('featureTypeOntology is undefined')
+            }
             const rowCount = self
               .getGlyph(feature)
-              .getRowCount(feature, self.lgv.bpPerPx)
+              .getRowCount(feature, featureTypeOntology, self.lgv.bpPerPx)
             let startingRow = 0
             let placed = false
             while (!placed) {
@@ -199,6 +204,8 @@ export function layoutsModelFactory(
       },
       getFeatureLayoutPosition(feature: AnnotationFeature) {
         const { featureLayouts } = this
+        const { featureTypeOntology } =
+          self.session.apolloDataStore.ontologyManager
         for (const [idx, layout] of featureLayouts.entries()) {
           for (const [layoutRowNum, layoutRow] of layout) {
             for (const [featureRowNum, layoutFeature] of layoutRow) {
@@ -215,9 +222,12 @@ export function layoutsModelFactory(
                 }
               }
               if (layoutFeature.hasDescendant(feature._id)) {
+                if (!featureTypeOntology) {
+                  throw new Error('featureTypeOntology is undefined')
+                }
                 const row = self
                   .getGlyph(layoutFeature)
-                  .getRowForFeature(layoutFeature, feature)
+                  .getRowForFeature(layoutFeature, feature, featureTypeOntology)
                 if (row !== undefined) {
                   return {
                     layoutIndex: idx,

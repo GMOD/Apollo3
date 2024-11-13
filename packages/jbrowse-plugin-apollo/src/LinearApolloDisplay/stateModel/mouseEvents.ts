@@ -147,10 +147,16 @@ export function mouseEventsModelIntermediateFactory(
         }
         const [featureRow, topLevelFeature] = foundFeature
         const glyph = self.getGlyph(topLevelFeature)
+        const { featureTypeOntology } =
+          self.session.apolloDataStore.ontologyManager
+        if (!featureTypeOntology) {
+          throw new Error('featureTypeOntology is undefined')
+        }
         const feature = glyph.getFeatureFromLayout(
           topLevelFeature,
           bp,
           featureRow,
+          featureTypeOntology,
         )
         if (!feature) {
           return mousePosition
@@ -226,15 +232,27 @@ export function mouseEventsSeqHightlightModelFactory(
               self.lgv.bpPerPx <= 1 ? 125 : 95,
             )
 
-            const { apolloHover, lgv, regions, sequenceRowHeight, theme } = self
+            const {
+              apolloHover,
+              lgv,
+              regions,
+              sequenceRowHeight,
+              session,
+              theme,
+            } = self
 
             if (!apolloHover) {
               return
             }
             const { feature } = apolloHover
 
+            const { featureTypeOntology } =
+              session.apolloDataStore.ontologyManager
+            if (!featureTypeOntology) {
+              throw new Error('featureTypeOntology is undefined')
+            }
             for (const [idx, region] of regions.entries()) {
-              if (feature.type === 'CDS') {
+              if (featureTypeOntology.isTypeOf(feature.type, 'CDS')) {
                 const parentFeature = feature.parent
                 if (!parentFeature) {
                   continue

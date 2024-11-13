@@ -12,6 +12,7 @@ import { CanvasMouseEvent } from '../types'
 import { Glyph } from './Glyph'
 import { boxGlyph } from './BoxGlyph'
 import { LinearApolloDisplayRendering } from '../stateModel/rendering'
+import { OntologyRecord } from '../../OntologyManager'
 
 let forwardFillLight: CanvasPattern | null = null
 let backwardFillLight: CanvasPattern | null = null
@@ -80,6 +81,11 @@ function draw(
     return
   }
   const { apolloSelectedFeature } = session
+  const { apolloDataStore } = session
+  const { featureTypeOntology } = apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
 
   // Draw background for gene
   const topLevelFeatureMinX =
@@ -93,7 +99,8 @@ function draw(
     ? topLevelFeatureMinX - topLevelFeatureWidthPx
     : topLevelFeatureMinX
   const topLevelFeatureTop = row * rowHeight
-  const topLevelFeatureHeight = getRowCount(feature) * rowHeight
+  const topLevelFeatureHeight =
+    getRowCount(feature, featureTypeOntology) * rowHeight
 
   ctx.fillStyle = alpha(theme?.palette.background.paper ?? '#ffffff', 0.6)
   ctx.fillRect(
@@ -106,7 +113,8 @@ function draw(
   // Draw lines on different rows for each mRNA
   let currentRow = 0
   for (const [, mrna] of children) {
-    if (mrna.type !== 'mRNA') {
+    const isMrna = featureTypeOntology.isTypeOf(mrna.type, 'mRNA')
+    if (!isMrna) {
       currentRow += 1
       continue
     }
@@ -115,7 +123,7 @@ function draw(
       continue
     }
     for (const [, cds] of childrenOfmRNA) {
-      if (cds.type !== 'CDS') {
+      if (!featureTypeOntology.isTypeOf(cds.type, 'CDS')) {
         continue
       }
       const minX =
@@ -144,7 +152,7 @@ function draw(
   // Draw exon and CDS for each mRNA
   currentRow = 0
   for (const [, child] of children) {
-    if (child.type !== 'mRNA') {
+    if (!featureTypeOntology.isTypeOf(child.type, 'mRNA')) {
       boxGlyph.draw(ctx, child, row, stateModel, displayedRegionIndex)
       currentRow += 1
       continue
@@ -155,7 +163,7 @@ function draw(
         continue
       }
       for (const [, exon] of childrenOfmRNA) {
-        if (exon.type !== 'exon') {
+        if (!featureTypeOntology.isTypeOf(exon.type, 'exon')) {
           continue
         }
         const minX =
@@ -202,6 +210,7 @@ function draw(
         }
       }
       for (const cds of cdsRow) {
+        console.log(`HERE: ${JSON.stringify(cds)}`)
         const cdsWidthPx = (cds.max - cds.min) / bpPerPx
         const minX =
           (lgv.bpToPx({
@@ -296,7 +305,9 @@ function drawHover(
   stateModel: LinearApolloDisplay,
   ctx: CanvasRenderingContext2D,
 ) {
-  const { apolloHover, apolloRowHeight, lgv, theme } = stateModel
+  const { apolloHover, apolloRowHeight, lgv, session, theme } = stateModel
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+
   if (!apolloHover) {
     return
   }
@@ -320,16 +331,26 @@ function drawHover(
   const top = row * apolloRowHeight
   const widthPx = length / bpPerPx
   ctx.fillStyle = theme?.palette.action.selected ?? 'rgba(0,0,0,04)'
-  ctx.fillRect(startPx, top, widthPx, apolloRowHeight * getRowCount(feature))
+
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  ctx.fillRect(
+    startPx,
+    top,
+    widthPx,
+    apolloRowHeight * getRowCount(feature, featureTypeOntology),
+  )
 }
 
 function getFeatureFromLayout(
   feature: AnnotationFeature,
   bp: number,
   row: number,
+  featureTypeOntology: OntologyRecord,
 ): AnnotationFeature | undefined {
   const featureInThisRow: AnnotationFeature[] =
-    featuresForRow(feature)[row] || []
+    featuresForRow(feature, featureTypeOntology)[row] || []
   for (const f of featureInThisRow) {
     let featureObj
     if (bp >= f.min && bp <= f.max && f.parent) {
@@ -339,9 +360,9 @@ function getFeatureFromLayout(
       continue
     }
     if (
-      featureObj.type === 'CDS' &&
+      featureTypeOntology.isTypeOf(featureObj.type, 'CDS') &&
       featureObj.parent &&
-      featureObj.parent.type === 'mRNA'
+      featureTypeOntology.isTypeOf(featureObj.parent.type, 'mRNA')
     ) {
       const { cdsLocations } = featureObj.parent
       for (const cdsLoc of cdsLocations) {
@@ -361,22 +382,28 @@ function getFeatureFromLayout(
   return feature
 }
 
-function getRowCount(feature: AnnotationFeature, _bpPerPx?: number): number {
+function getRowCount(
+  feature: AnnotationFeature,
+  featureTypeOntology: OntologyRecord,
+  _bpPerPx?: number,
+): number {
   const { children, type } = feature
   if (!children) {
     return 1
   }
+  const isMrna = featureTypeOntology.isTypeOf(type, 'mRNA')
   let rowCount = 0
-  if (type === 'mRNA') {
+  if (isMrna) {
     for (const [, child] of children) {
-      if (child.type === 'CDS') {
+      const isCds = featureTypeOntology.isTypeOf(child.type, 'CDS')
+      if (isCds) {
         rowCount += 1
       }
     }
     return rowCount
   }
   for (const [, child] of children) {
-    rowCount += getRowCount(child)
+    rowCount += getRowCount(child, featureTypeOntology)
   }
   return rowCount
 }
@@ -387,8 +414,12 @@ function getRowCount(feature: AnnotationFeature, _bpPerPx?: number): number {
  * If the row contains an mRNA, the order is CDS -\> exon -\> mRNA -\> gene
  * If the row does not contain an mRNA, the order is subfeature -\> gene
  */
-function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
-  if (feature.type !== 'gene') {
+function featuresForRow(
+  feature: AnnotationFeature,
+  featureTypeOntology: OntologyRecord,
+): AnnotationFeature[][] {
+  const isGene = featureTypeOntology.isTypeOf(feature.type, 'gene')
+  if (!isGene) {
     throw new Error('Top level feature for GeneGlyph must have type "gene"')
   }
   const { children } = feature
@@ -397,7 +428,7 @@ function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
   }
   const features: AnnotationFeature[][] = []
   for (const [, child] of children) {
-    if (child.type !== 'mRNA') {
+    if (!featureTypeOntology.isTypeOf(child.type, 'mRNA')) {
       features.push([child, feature])
       continue
     }
@@ -407,9 +438,9 @@ function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
     const cdss: AnnotationFeature[] = []
     const exons: AnnotationFeature[] = []
     for (const [, grandchild] of child.children) {
-      if (grandchild.type === 'CDS') {
+      if (featureTypeOntology.isTypeOf(grandchild.type, 'CDS')) {
         cdss.push(grandchild)
-      } else if (grandchild.type === 'exon') {
+      } else if (featureTypeOntology.isTypeOf(grandchild.type, 'exon')) {
         exons.push(grandchild)
       }
     }
@@ -423,8 +454,9 @@ function featuresForRow(feature: AnnotationFeature): AnnotationFeature[][] {
 function getRowForFeature(
   feature: AnnotationFeature,
   childFeature: AnnotationFeature,
+  featureTypeOntology: OntologyRecord,
 ) {
-  const rows = featuresForRow(feature)
+  const rows = featuresForRow(feature, featureTypeOntology)
   for (const [idx, row] of rows.entries()) {
     if (row.some((feature) => feature._id === childFeature._id)) {
       return idx
@@ -496,7 +528,16 @@ function getDraggableFeatureInfo(
   feature: AnnotationFeature,
   stateModel: LinearApolloDisplay,
 ): { feature: AnnotationFeature; edge: 'min' | 'max' } | undefined {
-  if (feature.type === 'gene' || feature.type === 'mRNA') {
+  const { session } = stateModel
+  const { apolloDataStore } = session
+  const { featureTypeOntology } = apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  const isGene = featureTypeOntology.isTypeOf(feature.type, 'gene')
+  const isMrna = featureTypeOntology.isTypeOf(feature.type, 'mRNA')
+  const isCds = featureTypeOntology.isTypeOf(feature.type, 'CDS')
+  if (isGene || isMrna) {
     return
   }
   const { bp, refName, regionNumber, x } = mousePosition
@@ -519,14 +560,19 @@ function getDraggableFeatureInfo(
   if (Math.abs(maxPx - x) < 4) {
     return { feature, edge: 'max' }
   }
-  if (feature.type === 'CDS') {
+  if (isCds) {
     const mRNA = feature.parent
     if (!mRNA?.children) {
       return
     }
-    const exonChildren = [...mRNA.children.values()].filter(
-      (child) => child.type === 'exon',
-    )
+    const exonChildren: AnnotationFeature[] = []
+    for (const child of mRNA.children.values()) {
+      const childIsExon = featureTypeOntology.isTypeOf(child.type, 'exon')
+      if (childIsExon) {
+        exonChildren.push(child)
+      }
+    }
+
     const overlappingExon = exonChildren.find((child) => {
       const [start, end] = intersection2(bp, bp + 1, child.min, child.max)
       return start !== undefined && end !== undefined

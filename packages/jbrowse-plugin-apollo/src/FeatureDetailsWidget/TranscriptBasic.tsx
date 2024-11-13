@@ -83,8 +83,11 @@ export const TranscriptBasicInformation = observer(
     const { notify } = session as unknown as AbstractSessionModel
     const currentAssembly = session.apolloDataStore.assemblies.get(assembly)
     const refData = currentAssembly?.getByRefName(refName)
-    const { changeManager } = session.apolloDataStore
-
+    const { changeManager, ontologyManager } = session.apolloDataStore
+    const { featureTypeOntology } = ontologyManager
+    if (!featureTypeOntology) {
+      throw new Error('featureTypeOntology is undefined')
+    }
     function handleStartChange(
       newStart: number,
       featureId: string,
@@ -100,10 +103,14 @@ export const TranscriptBasicInformation = observer(
       if (!subFeature?.children) {
         return
       }
+      if (!featureTypeOntology) {
+        throw new Error('featureTypeOntology is undefined')
+      }
       // Let's check CDS start and end values. And possibly update those too
       for (const child of subFeature.children) {
         if (
-          (child[1].type === 'CDS' || child[1].type === 'exon') &&
+          (featureTypeOntology.isTypeOf(child[1].type, 'CDS') ||
+            featureTypeOntology.isTypeOf(child[1].type, 'exon')) &&
           child[1].min === oldStart
         ) {
           const change = new LocationStartChange({
@@ -135,10 +142,14 @@ export const TranscriptBasicInformation = observer(
       if (!subFeature?.children) {
         return
       }
+      if (!featureTypeOntology) {
+        throw new Error('featureTypeOntology is undefined')
+      }
       // Let's check CDS start and end values. And possibly update those too
       for (const child of subFeature.children) {
         if (
-          (child[1].type === 'CDS' || child[1].type === 'exon') &&
+          (featureTypeOntology.isTypeOf(child[1].type, 'CDS') ||
+            featureTypeOntology.isTypeOf(child[1].type, 'exon')) &&
           child[1].max === oldEnd
         ) {
           const change = new LocationEndChange({
@@ -160,7 +171,7 @@ export const TranscriptBasicInformation = observer(
     const featureNew = feature
     let exonsArray: ExonInfo[] = []
     const traverse = (currentFeature: AnnotationFeature) => {
-      if (currentFeature.type === 'exon') {
+      if (featureTypeOntology.isTypeOf(currentFeature.type, 'exon')) {
         exonsArray.push({
           min: currentFeature.min + 1,
           max: currentFeature.max,
@@ -384,10 +395,10 @@ export const TranscriptBasicInformation = observer(
           {transcriptItems.map((item, index) => (
             <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
               <span style={{ marginLeft: '20px', width: '50px' }}>
-                {item.type === 'three_prime_UTR'
+                {featureTypeOntology.isTypeOf(item.type, 'three_prime_UTR')
                   ? '3 UTR'
                   : // eslint-disable-next-line unicorn/no-nested-ternary
-                    item.type === 'five_prime_UTR'
+                    featureTypeOntology.isTypeOf(item.type, 'five_prime_UTR')
                     ? '5 UTR'
                     : 'CDS'}
               </span>
@@ -397,7 +408,7 @@ export const TranscriptBasicInformation = observer(
               <NumberTextField
                 margin="dense"
                 id={item.id}
-                disabled={item.type !== 'CDS'}
+                disabled={!featureTypeOntology.isTypeOf(item.type, 'CDS')}
                 style={{
                   width: '150px',
                   marginLeft: '8px',
@@ -419,7 +430,7 @@ export const TranscriptBasicInformation = observer(
               <NumberTextField
                 margin="dense"
                 id={item.id}
-                disabled={item.type !== 'CDS'}
+                disabled={!featureTypeOntology.isTypeOf(item.type, 'CDS')}
                 style={{
                   width: '150px',
                   backgroundColor:
