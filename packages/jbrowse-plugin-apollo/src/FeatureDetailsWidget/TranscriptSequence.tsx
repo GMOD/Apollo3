@@ -12,6 +12,7 @@ import { observer } from 'mobx-react'
 import React, { useState } from 'react'
 
 import { ApolloSessionModel } from '../session'
+import { OntologyRecord } from '../OntologyManager'
 
 export interface CDSInfo {
   id: string
@@ -28,6 +29,7 @@ export interface CDSInfo {
 const getCDSInfo = (
   feature: AnnotationFeature,
   refData: ApolloRefSeqI,
+  featureTypeOntology: OntologyRecord,
 ): CDSInfo[] => {
   const CDSresult: CDSInfo[] = []
   const traverse = (
@@ -36,9 +38,9 @@ const getCDSInfo = (
   ) => {
     if (
       isParentMRNA &&
-      (currentFeature.type === 'CDS' ||
-        currentFeature.type === 'three_prime_UTR' ||
-        currentFeature.type === 'five_prime_UTR')
+      (featureTypeOntology.isTypeOf(currentFeature.type, 'CDS') ||
+        featureTypeOntology.isTypeOf(currentFeature.type, 'three_prime_UTR') ||
+        featureTypeOntology.isTypeOf(currentFeature.type, 'five_prime_UTR'))
     ) {
       let startSeq = refData.getSequence(
         Number(currentFeature.min) - 2,
@@ -149,14 +151,22 @@ export const TranscriptSequence = observer(function TranscriptSequence({
   if (!refSeq) {
     return null
   }
-  const transcriptItems = getCDSInfo(feature, refData)
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  const transcriptItems = getCDSInfo(feature, refData, featureTypeOntology)
   const { max, min } = feature
   let sequence = ''
   if (showSequence) {
-    getSequenceAsString(min, max)
+    getSequenceAsString(min, max, featureTypeOntology)
   }
 
-  function getSequenceAsString(start: number, end: number): string {
+  function getSequenceAsString(
+    start: number,
+    end: number,
+    featureTypeOntology: OntologyRecord,
+  ): string {
     sequence = refSeq?.getSequence(start, end) ?? ''
     if (sequence === '') {
       void session.apolloDataStore.loadRefSeq([
@@ -165,7 +175,7 @@ export const TranscriptSequence = observer(function TranscriptSequence({
     } else {
       sequence = formatSequence(sequence, refName, start, end)
     }
-    getSequenceAsTextSegment(selectedOption) // For color coded sequence
+    getSequenceAsTextSegment(selectedOption, featureTypeOntology) // For color coded sequence
     return sequence
   }
 
@@ -173,7 +183,10 @@ export const TranscriptSequence = observer(function TranscriptSequence({
     setShowSequence(!showSequence)
   }
 
-  function getSequenceAsTextSegment(option: string) {
+  function getSequenceAsTextSegment(
+    option: string,
+    featureTypeOntology: OntologyRecord,
+  ) {
     let seqData = ''
     textSegments = []
     if (!refData) {
@@ -183,7 +196,7 @@ export const TranscriptSequence = observer(function TranscriptSequence({
       case 'CDS': {
         textSegments.push({ text: `>${refName} : CDS\n`, color: 'black' })
         for (const item of transcriptItems) {
-          if (item.type === 'CDS') {
+          if (featureTypeOntology.isTypeOf(item.type, 'CDS')) {
             const refSeq: string = refData.getSequence(
               Number(item.min + 1),
               Number(item.max),
@@ -198,16 +211,16 @@ export const TranscriptSequence = observer(function TranscriptSequence({
         textSegments.push({ text: `>${refName} : cDNA\n`, color: 'black' })
         for (const item of transcriptItems) {
           if (
-            item.type === 'CDS' ||
-            item.type === 'three_prime_UTR' ||
-            item.type === 'five_prime_UTR'
+            featureTypeOntology.isTypeOf(item.type, 'CDS') ||
+            featureTypeOntology.isTypeOf(item.type, 'three_prime_UTR') ||
+            featureTypeOntology.isTypeOf(item.type, 'five_prime_UTR')
           ) {
             const refSeq: string = refData.getSequence(
               Number(item.min + 1),
               Number(item.max),
             )
             seqData += item.strand === -1 && refSeq ? revcom(refSeq) : refSeq
-            if (item.type === 'CDS') {
+            if (featureTypeOntology.isTypeOf(item.type, 'CDS')) {
               textSegments.push({ text: seqData, color: cdsColor })
             } else {
               textSegments.push({ text: seqData, color: utrColor })
@@ -239,9 +252,9 @@ export const TranscriptSequence = observer(function TranscriptSequence({
             textSegments.push({ text: seqData, color: 'black' })
           }
           if (
-            item.type === 'CDS' ||
-            item.type === 'three_prime_UTR' ||
-            item.type === 'five_prime_UTR'
+            featureTypeOntology.isTypeOf(item.type, 'CDS') ||
+            featureTypeOntology.isTypeOf(item.type, 'three_prime_UTR') ||
+            featureTypeOntology.isTypeOf(item.type, 'five_prime_UTR')
           ) {
             const refSeq: string = refData.getSequence(
               Number(item.min + 1),
@@ -274,10 +287,13 @@ export const TranscriptSequence = observer(function TranscriptSequence({
     }
   }
 
-  function handleChangeSeqOption(e: SelectChangeEvent) {
+  function handleChangeSeqOption(
+    e: SelectChangeEvent,
+    featureTypeOntology: OntologyRecord,
+  ) {
     const option = e.target.value
     setSelectedOption(option)
-    getSequenceAsTextSegment(option)
+    getSequenceAsTextSegment(option, featureTypeOntology)
   }
 
   // Function to copy text to clipboard
@@ -329,7 +345,9 @@ export const TranscriptSequence = observer(function TranscriptSequence({
         {showSequence && (
           <Select
             value={selectedOption}
-            onChange={handleChangeSeqOption}
+            onChange={(e: SelectChangeEvent) => {
+              handleChangeSeqOption(e, featureTypeOntology)
+            }}
             style={{ width: '150px', marginLeft: '15px', height: '25px' }}
           >
             <MenuItem value={'Select'}>Select</MenuItem>

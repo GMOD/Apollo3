@@ -21,7 +21,6 @@ import { FeatureAttributes } from './FeatureAttributes'
 import { featureContextMenuItems } from './featureContextMenuItems'
 import type { ContextMenuState } from './HybridGrid'
 import { NumberCell } from './NumberCell'
-import { getGlyph } from '../../LinearApolloDisplay/stateModel/getGlyph'
 
 const useStyles = makeStyles()((theme) => ({
   typeContent: {
@@ -134,7 +133,7 @@ export const Feature = observer(function Feature({
           displayState.setApolloHover({
             feature,
             topLevelFeature: getTopLevelFeature(feature),
-            glyph: getGlyph(getTopLevelFeature(feature)),
+            glyph: displayState.getGlyph(getTopLevelFeature(feature)),
           })
         }}
         className={
