@@ -419,6 +419,7 @@ export function extendSession(
           ([, assembly]) => assembly.backendDriverType === 'InMemoryFileDriver',
         ),
       )
+      // @ts-expect-error ontologyManager isn't actually required
       snap.apolloDataStore = {
         typeName: 'Client',
         assemblies,
