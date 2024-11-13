@@ -210,7 +210,6 @@ function draw(
         }
       }
       for (const cds of cdsRow) {
-        console.log(`HERE: ${JSON.stringify(cds)}`)
         const cdsWidthPx = (cds.max - cds.min) / bpPerPx
         const minX =
           (lgv.bpToPx({
