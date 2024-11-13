@@ -23,6 +23,7 @@ type SegmentListType = 'CDS' | 'cDNA' | 'genomic'
 interface SequenceSegment {
   type: SegmentType
   sequenceLines: string[]
+  locs: { min: number; max: number }[]
 }
 
 function getSequenceSegments(
@@ -54,7 +55,11 @@ function getSequenceSegments(
             sequence,
             SEQUENCE_WRAP_LENGTH,
           )
-          segments.push({ type, sequenceLines })
+          segments.push({
+            type,
+            sequenceLines,
+            locs: [{ min: loc.min, max: loc.max }],
+          })
           continue
         }
         if (previousSegment.type === type) {
@@ -65,6 +70,7 @@ function getSequenceSegments(
             previousSegmentFirstLine,
             ...splitStringIntoChunks(newSequence, SEQUENCE_WRAP_LENGTH),
           ]
+          previousSegment.locs.push({ min: loc.min, max: loc.max })
         } else {
           const count = segments.reduce(
             (accumulator, currentSegment) =>
@@ -90,6 +96,7 @@ function getSequenceSegments(
           segments.push({
             type,
             sequenceLines: [newSegmentFirstLine, ...newSegmentRemainderLines],
+            locs: [{ min: loc.min, max: loc.max }],
           })
         }
       }
@@ -98,18 +105,20 @@ function getSequenceSegments(
     case 'CDS': {
       let wholeSequence = ''
       const [firstLocation] = cdsLocations
+      const locs: { min: number; max: number }[] = []
       for (const loc of firstLocation) {
         let sequence = getSequence(loc.min, loc.max)
         if (strand === -1) {
           sequence = revcom(sequence)
         }
         wholeSequence += sequence
+        locs.push({ min: loc.min, max: loc.max })
       }
       const sequenceLines = splitStringIntoChunks(
         wholeSequence,
         SEQUENCE_WRAP_LENGTH,
       )
-      segments.push({ type: 'CDS', sequenceLines })
+      segments.push({ type: 'CDS', sequenceLines, locs })
       return segments
     }
   }
@@ -193,6 +202,23 @@ export const TranscriptSequence = observer(function TranscriptSequence({
         refData.getSequence(min, max),
       )
     : []
+  const locationIntervals: { min: number; max: number }[] = []
+  if (showSequence) {
+    const allLocs = sequenceSegments.flatMap((segment) => segment.locs)
+    let [previous] = allLocs
+    for (let i = 1; i < allLocs.length; i++) {
+      if (previous.min === allLocs[i].max || previous.max === allLocs[i].min) {
+        previous = {
+          min: Math.min(previous.min, allLocs[i].min),
+          max: Math.max(previous.max, allLocs[i].max),
+        }
+      } else {
+        locationIntervals.push(previous)
+        previous = allLocs[i]
+      }
+    }
+    locationIntervals.push(previous)
+  }
 
   return (
     <>
@@ -210,8 +236,8 @@ export const TranscriptSequence = observer(function TranscriptSequence({
             onChange={handleChangeSeqOption}
           >
             <MenuItem value="CDS">CDS</MenuItem>
-            <MenuItem value={'cDNA'}>cDNA</MenuItem>
-            <MenuItem value={'genomic'}>Genomic</MenuItem>
+            <MenuItem value="cDNA">cDNA</MenuItem>
+            <MenuItem value="genomic">Genomic</MenuItem>
           </Select>
           <Paper
             style={{
@@ -221,6 +247,16 @@ export const TranscriptSequence = observer(function TranscriptSequence({
             }}
             ref={seqRef}
           >
+            &gt;{refSeq.name}:
+            {locationIntervals
+              .map((interval) =>
+                feature.strand === 1
+                  ? `${interval.min + 1}-${interval.max}`
+                  : `${interval.max}-${interval.min + 1}`,
+              )
+              .join(';')}
+            ({feature.strand === 1 ? '+' : '-'})
+            <br />
             {sequenceSegments.map((segment, index) => (
               <span
                 key={`${segment.type}-${index}`}
