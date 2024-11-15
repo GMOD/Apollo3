@@ -9,7 +9,7 @@ module.exports = {
     'plugin:@typescript-eslint/strict-type-checked',
     'plugin:@typescript-eslint/stylistic-type-checked',
   ],
-  plugins: ['import', 'tsdoc', 'sort-destructure-keys'],
+  plugins: ['import', 'tsdoc'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: true,
@@ -75,8 +75,6 @@ module.exports = {
     'import/no-duplicates': 'warn',
     'import/no-extraneous-dependencies': 'error',
     'import/no-named-as-default': 'warn',
-    // eslint-plugin-sort-destructure-keys rules
-    'sort-destructure-keys/sort-destructure-keys': 'warn',
     // eslint-plugin-tsdoc rules
     'tsdoc/syntax': 'warn',
     // eslint-plugin-unicorn rules (override recommended)
