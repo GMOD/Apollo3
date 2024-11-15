@@ -42,6 +42,7 @@ import {
 } from '../OntologyManager'
 import { ApolloRootModel } from '../types'
 import { autorun } from 'mobx'
+import { ApolloSessionModel } from './session'
 
 export function clientDataStoreFactory(
   AnnotationFeatureExtended: typeof AnnotationFeatureModel,
@@ -164,8 +165,27 @@ export function clientDataStoreFactory(
                 ) as TextIndexFieldDefinition[],
               ]
               if (!ontologyManager.findOntology(name)) {
+                // eslint-disable-next-line no-inner-declarations
+                function update(message: string, progress: number) {
+                  const session = getSession(
+                    self,
+                  ) as unknown as ApolloSessionModel
+                  const { jobsManager } = session
+                  const controller = new AbortController()
+                  const job = {
+                    name: message,
+                    statusMessage: 'Uploading ontology, this may take awhile',
+                    progressPct: progress,
+                    cancelCallback: () => {
+                      controller.abort()
+                      jobsManager.abortJob(job.name)
+                    },
+                  }
+                  jobsManager.runJob(job)
+                }
                 ontologyManager.addOntology(name, version, source, {
                   textIndexing: { indexFields },
+                  update,
                 })
               }
             }
