@@ -347,7 +347,11 @@ export const waitFor = <T>(
 ): Promise<T> => {
   const promise = new Promise<T>((resolve, reject) => {
     const handleEvent = (eventData: T): void => {
-      eventData instanceof Error ? reject(eventData) : resolve(eventData)
+      if (eventData instanceof Error) {
+        reject(eventData)
+      } else {
+        resolve(eventData)
+      }
 
       emitter.removeListener(eventName, handleEvent)
     }

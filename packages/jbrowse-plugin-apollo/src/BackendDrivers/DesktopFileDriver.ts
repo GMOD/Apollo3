@@ -31,7 +31,8 @@ export class DesktopFileDriver extends BackendDriver {
     const { file } = getConf(assembly, ['sequence', 'metadata']) as {
       file: string
     }
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const fs = require('node:fs') as typeof import('fs')
     const fileContents = await fs.promises.readFile(file, 'utf8')
     return loadAssemblyIntoClient(assemblyName, fileContents, this.clientStore)
@@ -165,7 +166,7 @@ export class DesktopFileDriver extends BackendDriver {
 
     const gff3Contents = gff.formatSync(gff3Items)
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const fs = require('node:fs') as typeof import('fs')
     await fs.promises.writeFile(file, gff3Contents, 'utf8')
 

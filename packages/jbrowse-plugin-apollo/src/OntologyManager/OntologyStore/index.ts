@@ -5,6 +5,7 @@ import {
   BlobLocation,
   LocalPathLocation,
   UriLocation,
+  isLocalPathLocation,
   isUriLocation,
 } from '@jbrowse/core/util'
 import {
@@ -42,15 +43,6 @@ export type Transaction<
 
 /** the format of the loading data source */
 type SourceType = 'obo-graph-json' | 'obo' | 'owl'
-
-/**
- * @deprecated use the one from jbrowse core when it is published
- **/
-function isLocalPathLocation(location: unknown): location is LocalPathLocation {
-  return (
-    typeof location === 'object' && location !== null && 'localPath' in location
-  )
-}
 
 async function arrayFromAsync<T>(iter: AsyncIterable<T>) {
   const a = []
@@ -508,7 +500,7 @@ export default class OntologyStore {
 
     // fetch the full nodes and filter out deprecated ones
     const terms: OntologyClass[] = []
-    for await (const termId of termIds) {
+    for (const termId of termIds) {
       const node = await myTx.objectStore('nodes').get(termId)
       if (node && isOntologyClass(node) && !isDeprecated(node)) {
         terms.push(node)

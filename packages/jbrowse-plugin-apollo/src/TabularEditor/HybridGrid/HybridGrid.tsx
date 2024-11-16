@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Menu, MenuItem } from '@jbrowse/core/ui'
 import { useTheme } from '@mui/material'
 import { observer } from 'mobx-react'

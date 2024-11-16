@@ -15,6 +15,7 @@ export interface UploadedFile extends Express.Multer.File {
 export class FileStorageEngine implements StorageEngine {
   private readonly logger = new Logger(FileStorageEngine.name)
 
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   async _handleFile(
     req: Express.Request,
     file: Express.Multer.File,

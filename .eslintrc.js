@@ -52,11 +52,6 @@ module.exports = {
       { line: { markers: ['/'] } },
     ],
     // @typescript-eslint/eslint-plugin rules (override recommended)
-    '@typescript-eslint/lines-between-class-members': [
-      'warn',
-      'always',
-      { exceptAfterSingleLine: true },
-    ],
     '@typescript-eslint/no-extraneous-class': [
       'error',
       { allowWithDecorator: true },
@@ -147,6 +142,13 @@ module.exports = {
       files: ['**/*.js'],
       rules: {
         'tsdoc/syntax': 'off',
+      },
+    },
+    // Temporary override
+    {
+      files: ['packages/apollo-cli/src/**/*.ts'],
+      rules: {
+        '@typescript-eslint/no-deprecated': 'off',
       },
     },
   ],

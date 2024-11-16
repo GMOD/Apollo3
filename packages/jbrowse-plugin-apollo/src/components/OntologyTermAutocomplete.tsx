@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import { AbstractSessionModel, isAbortException } from '@jbrowse/core/util'
 import {
   Autocomplete,
@@ -93,7 +92,7 @@ export function OntologyTermAutocomplete({
             setCurrentOntologyTerm(term)
           }
         },
-        (error) => {
+        (error: unknown) => {
           if (!signal.aborted && !isAbortException(error)) {
             setCurrentOntologyTermInvalid(String(error))
           }
@@ -116,10 +115,10 @@ export function OntologyTermAutocomplete({
             setTermChoices(soTerms)
           }
         },
-        (error) => {
+        (error: unknown) => {
           if (!signal.aborted && !isAbortException(error)) {
             ;(session as unknown as AbstractSessionModel).notify(
-              error.message,
+              error instanceof Error ? error.message : String(error),
               'error',
             )
           }

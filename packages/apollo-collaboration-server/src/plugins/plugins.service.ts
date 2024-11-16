@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { ApolloPlugin } from '@apollo-annotation/common'
 import { Inject, Injectable } from '@nestjs/common'
 
@@ -5,7 +6,7 @@ import { APOLLO_PLUGINS } from './plugins.constants'
 
 @Injectable()
 export class PluginsService {
-  // eslint-disable-next-line @typescript-eslint/ban-types
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   extensionPoints = new Map<string, Function[]>()
 
   constructor(@Inject(APOLLO_PLUGINS) private plugins: ApolloPlugin[]) {

@@ -128,15 +128,15 @@ export class LocalFileGzip implements GenericFilehandle {
     return { bytesRead, buffer }
   }
 
-  public async readFile(): Promise<Buffer>
-  public async readFile(options: BufferEncoding): Promise<string>
-  public async readFile<T extends undefined>(
-    options:
+  public async readFile(
+    options?:
       | Omit<FilehandleOptions, 'encoding'>
-      | (Omit<FilehandleOptions, 'encoding'> & { encoding: T }),
+      | (Omit<FilehandleOptions, 'encoding'> & { encoding: undefined }),
   ): Promise<Buffer>
-  public async readFile<T extends BufferEncoding>(
-    options: Omit<FilehandleOptions, 'encoding'> & { encoding: T },
+  public async readFile(
+    options:
+      | BufferEncoding
+      | (Omit<FilehandleOptions, 'encoding'> & { encoding: BufferEncoding }),
   ): Promise<string>
 
   public async readFile(

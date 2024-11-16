@@ -51,7 +51,9 @@ export const AuthTypeSelector = ({
       setLoginTypes(data)
     }
     getAuthTypes().catch((error) => {
-      isAbortException(error) ? '' : setErrorMessage(String(error))
+      if (!isAbortException(error)) {
+        setErrorMessage(String(error))
+      }
     })
     return () => {
       controller.abort()

@@ -345,14 +345,9 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         socket.on(
           'REQUEST_INFORMATION',
           (message: RequestUserInformationMessage) => {
-            const { channel, reqType, userSessionId } = message
+            const { channel, userSessionId } = message
             if (channel === 'REQUEST_INFORMATION' && userSessionId !== token) {
-              switch (reqType) {
-                case 'CURRENT_LOCATION': {
-                  session.broadcastLocations()
-                  break
-                }
-              }
+              session.broadcastLocations()
             }
           },
         )
@@ -462,6 +457,6 @@ export type ApolloInternetAccountStateModel = ReturnType<
 >
 // eslint disable because of
 // https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ApolloInternetAccountModel
   extends Instance<ApolloInternetAccountStateModel> {}

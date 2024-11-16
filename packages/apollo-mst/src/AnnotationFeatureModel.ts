@@ -264,7 +264,7 @@ export const AnnotationFeatureModel = types
         self.max = max
       }
     },
-    setStrand(strand?: 1 | -1 | undefined) {
+    setStrand(strand?: 1 | -1) {
       self.strand = strand
     },
     addChild(childFeature: AnnotationFeatureSnapshot) {
@@ -345,7 +345,7 @@ export type Children = IMSTMap<typeof AnnotationFeatureModel> | undefined
 
 // eslint disables because of
 // https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface AnnotationFeatureRaw
   extends Instance<typeof AnnotationFeatureModel> {}
 // This type isn't exactly right, since "children" is actually an IMSTMap and
@@ -354,7 +354,7 @@ export interface AnnotationFeature
   extends Omit<AnnotationFeatureRaw, 'children'> {
   children?: Map<string, AnnotationFeature>
 }
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface AnnotationFeatureSnapshotRaw
   extends SnapshotIn<typeof AnnotationFeatureModel> {}
 export interface AnnotationFeatureSnapshot
