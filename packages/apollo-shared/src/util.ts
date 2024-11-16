@@ -12,6 +12,7 @@ export function makeGFF3Feature(
   // const locations = feature.discontinuousLocations?.length
   //   ? feature.discontinuousLocations
   //   : [{ start: feature.start, end: feature.end, phase: feature.phase }]
+  // eslint-disable-next-line unicorn/prefer-structured-clone
   const attributes: Record<string, string[] | undefined> = JSON.parse(
     JSON.stringify(feature.attributes),
   )

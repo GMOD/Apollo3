@@ -81,11 +81,11 @@ export default class Upload extends FileCommand {
     }
 
     let isGzip = args['input-file'].endsWith('.gz')
-    // eslint-disable-next-line unicorn/consistent-destructuring
+
     if (flags.gzip) {
       isGzip = true
     }
-    // eslint-disable-next-line unicorn/consistent-destructuring
+
     if (flags.decompressed) {
       isGzip = false
     }

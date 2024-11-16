@@ -95,9 +95,9 @@ const ResizeHandle = ({
     (event: MouseEvent) => {
       event.stopPropagation()
       event.preventDefault()
-      window.removeEventListener('mousemove', mouseMove)
-      window.removeEventListener('mouseup', cancelDrag)
-      window.removeEventListener('mouseleave', cancelDrag)
+      globalThis.removeEventListener('mousemove', mouseMove)
+      globalThis.removeEventListener('mouseup', cancelDrag)
+      globalThis.removeEventListener('mouseleave', cancelDrag)
     },
     [mouseMove],
   )
@@ -107,9 +107,9 @@ const ResizeHandle = ({
     <div
       onMouseDown={(event: React.MouseEvent) => {
         event.stopPropagation()
-        window.addEventListener('mousemove', mouseMove)
-        window.addEventListener('mouseup', cancelDrag)
-        window.addEventListener('mouseleave', cancelDrag)
+        globalThis.addEventListener('mousemove', mouseMove)
+        globalThis.addEventListener('mouseup', cancelDrag)
+        globalThis.addEventListener('mouseleave', cancelDrag)
       }}
       onClick={(e) => {
         e.stopPropagation()

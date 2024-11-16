@@ -551,7 +551,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
       }
       await changeManager.submit(change)
     }
-    // eslint-disable-next-line unicorn/no-useless-undefined
+
     setDragging(undefined)
     setMovedDuringLastMouseDown(false)
   }
@@ -575,7 +575,6 @@ function ApolloRendering(props: ApolloRenderingProps) {
         }
         data-testid="base_linear_display_context_menu"
         onClose={() => {
-          // eslint-disable-next-line unicorn/no-useless-undefined
           setContextMenuFeature(undefined)
         }}
       >
@@ -595,7 +594,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
                   session,
                   handleClose: () => {
                     doneCallback()
-                    // eslint-disable-next-line unicorn/no-useless-undefined
+
                     setContextMenuFeature(undefined)
                   },
                   changeManager,
@@ -625,7 +624,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
                   session,
                   handleClose: () => {
                     doneCallback()
-                    // eslint-disable-next-line unicorn/no-useless-undefined
+
                     setContextMenuFeature(undefined)
                   },
                   changeManager,
@@ -654,7 +653,7 @@ function ApolloRendering(props: ApolloRenderingProps) {
                   session,
                   handleClose: () => {
                     doneCallback()
-                    // eslint-disable-next-line unicorn/no-useless-undefined
+
                     setContextMenuFeature(undefined)
                   },
                   changeManager,

@@ -75,7 +75,6 @@ export function OntologyTermAutocomplete({
   // effect for clearing choices when not open
   useEffect(() => {
     if (!open) {
-      // eslint-disable-next-line unicorn/no-useless-undefined
       setTermChoices(undefined)
     }
   }, [open])
@@ -144,7 +143,6 @@ export function OntologyTermAutocomplete({
       return
     }
     if (typeof newValue === 'string') {
-      // eslint-disable-next-line unicorn/no-useless-undefined
       setCurrentOntologyTerm(undefined)
       onChange(valueString, newValue)
     } else if (newValue.lbl !== valueString) {
@@ -211,7 +209,7 @@ async function getCurrentTerm(
     currentTermLabel,
     { includeSubclasses: false },
   )
-  const term = terms.find(filterTerms ?? (() => true))
+  const term = terms.find((term) => (filterTerms ?? (() => true))(term))
   if (!term) {
     throw new Error(`not a valid ${ontologyStore.ontologyName} term`)
   }

@@ -182,7 +182,7 @@ export function ManageChecks({ handleClose, session }: ManageChecksProps) {
       }
     } else {
       const index = checks.indexOf(_id, 0)
-      if (index > -1) {
+      if (index !== -1) {
         checks.splice(index, 1)
       }
       setSelectedChecks(checks)

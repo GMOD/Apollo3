@@ -102,7 +102,6 @@ export function AddFeature({
         break
       }
       default: {
-        // eslint-disable-next-line unicorn/no-useless-undefined
         setStrand(undefined)
       }
     }

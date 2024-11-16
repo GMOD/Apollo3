@@ -123,7 +123,7 @@ export async function getAssembly(
   const assemblies = (await res.json()) as ApolloAssemblySnapshot[]
   for (const x of assemblies) {
     if (x._id === assemblyId[0]) {
-      return JSON.parse(JSON.stringify(x)) as ApolloAssemblySnapshot
+      return structuredClone(x)
     }
   }
   throw new Error(`Assembly "${assemblyNameOrId}" not found`)

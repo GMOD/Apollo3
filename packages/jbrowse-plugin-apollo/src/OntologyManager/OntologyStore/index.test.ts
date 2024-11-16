@@ -24,8 +24,7 @@ jest.mock('jsonpath', () => {
     ...original,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     query: jest.fn((obj: any, pathExpression: string, count?: number) => {
-      const newObj =
-        obj instanceof Object ? obj : JSON.parse(JSON.stringify(obj))
+      const newObj = obj instanceof Object ? obj : structuredClone(obj)
       return original.query(newObj, pathExpression, count)
     }),
   }

@@ -130,7 +130,7 @@ to retrive the parent ID of interest and to populate the child feature with attr
     }
     const change: SerializedAddFeatureChange = {
       typeName: 'AddFeatureChange',
-      // eslint-disable-next-line unicorn/consistent-destructuring
+
       changedIds: [parentFeature._id],
       assembly,
       addedFeature: {
@@ -140,7 +140,7 @@ to retrive the parent ID of interest and to populate the child feature with attr
         max,
         type,
       },
-      // eslint-disable-next-line unicorn/consistent-destructuring
+
       parentFeatureId: parentFeature._id,
     }
     const url = new URL(localhostToAddress(`${address}/changes`))

@@ -1,6 +1,6 @@
 import { ReadStream, createReadStream } from 'node:fs'
 import { unlink } from 'node:fs/promises'
-import { join } from 'node:path'
+import path from 'node:path'
 import { Gunzip, createGunzip } from 'node:zlib'
 
 import { File, FileDocument } from '@apollo-annotation/schemas'
@@ -76,7 +76,9 @@ export class FilesService {
     const fileUploadFolder = this.configService.get('FILE_UPLOAD_FOLDER', {
       infer: true,
     })
-    const fileStream = createReadStream(join(fileUploadFolder, file.checksum))
+    const fileStream = createReadStream(
+      path.join(fileUploadFolder, file.checksum),
+    )
     if (compressed) {
       return fileStream
     }
@@ -90,7 +92,7 @@ export class FilesService {
     const fileUploadFolder = this.configService.get('FILE_UPLOAD_FOLDER', {
       infer: true,
     })
-    const fileName = join(fileUploadFolder, file.checksum)
+    const fileName = path.join(fileUploadFolder, file.checksum)
     switch (file.type) {
       case 'text/x-fai':
       case 'application/x-gzi': {
@@ -142,7 +144,7 @@ export class FilesService {
       const fileUploadFolder = this.configService.get('FILE_UPLOAD_FOLDER', {
         infer: true,
       })
-      const compressedFullFileName = join(fileUploadFolder, file.checksum)
+      const compressedFullFileName = path.join(fileUploadFolder, file.checksum)
       this.logger.debug(
         `Delete the file "${compressedFullFileName}" from server folder`,
       )

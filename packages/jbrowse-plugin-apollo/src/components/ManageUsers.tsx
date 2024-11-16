@@ -155,7 +155,7 @@ export function ManageUsers({
           key={`delete-${params.id}`}
           icon={<DeleteIcon />}
           onClick={async () => {
-            if (window.confirm('Delete this user?')) {
+            if (globalThis.confirm('Delete this user?')) {
               await deleteUser(params.id)
             }
           }}

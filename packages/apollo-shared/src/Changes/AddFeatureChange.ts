@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import {
@@ -143,7 +143,7 @@ export class AddFeatureChange extends FeatureChange {
             }
             attributes = {
               _id: [parentFeature._id.toString()],
-              ...JSON.parse(JSON.stringify(attributes)),
+              ...structuredClone(attributes),
             }
             parentFeature.attributes = attributes
           }

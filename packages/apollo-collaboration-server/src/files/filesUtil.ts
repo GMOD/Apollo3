@@ -8,7 +8,7 @@ import {
   rename,
   rmdir,
 } from 'node:fs/promises'
-import { join } from 'node:path'
+import path from 'node:path'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { promisify } from 'node:util'
@@ -41,8 +41,8 @@ export async function writeFileAndCalculateHash(
   const { contentEncoding, originalname, size, stream } = file
   await mkdir(fileUploadFolder, { recursive: true })
   logger.log(`Starting file upload: "${originalname}"`)
-  const tmpDir = await mkdtemp(join(fileUploadFolder, 'upload-tmp-'))
-  const tmpFileName = join(tmpDir, `${originalname}.gz`)
+  const tmpDir = await mkdtemp(path.join(fileUploadFolder, 'upload-tmp-'))
+  const tmpFileName = path.join(tmpDir, `${originalname}.gz`)
   logger.debug(`Uploading to temporary file "${tmpFileName}"`)
 
   // We calculate the md5 hash as the file is being uploaded
@@ -81,7 +81,7 @@ export async function writeFileAndCalculateHash(
   const fileChecksum = hash.digest('hex')
   logger.debug(`Uploaded file checksum: "${fileChecksum}"`)
 
-  const uploadedFileName = join(fileUploadFolder, fileChecksum)
+  const uploadedFileName = path.join(fileUploadFolder, fileChecksum)
   logger.debug(
     `File uploaded successfully, moving temporary file to final location: "${uploadedFileName}"`,
   )

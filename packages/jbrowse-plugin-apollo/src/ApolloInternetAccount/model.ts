@@ -135,7 +135,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         ) {
           const redirectUri = isElectron
             ? 'http://localhost/auth'
-            : window.location.origin + window.location.pathname
+            : globalThis.location.origin + globalThis.location.pathname
           const url = new URL('auth/login', self.baseURL)
           const params = new URLSearchParams({
             type,
@@ -144,7 +144,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           url.search = params.toString()
           const eventName = `JBrowseAuthWindow-${self.internetAccountId}`
           if (isElectron) {
-            const { ipcRenderer } = window.require('electron')
+            const { ipcRenderer } = globalThis.require('electron')
             const redirectUriFromElectron = await ipcRenderer.invoke(
               'openAuthWindow',
               {

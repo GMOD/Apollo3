@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as fs from 'node:fs'
-import * as path from 'node:path'
+import path from 'node:path'
 import { Args, Flags } from '@oclif/core'
 import { ObjectId } from 'bson'
 
