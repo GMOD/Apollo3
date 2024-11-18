@@ -3,7 +3,7 @@ import PluginManager from '@jbrowse/core/PluginManager'
 import type LinearGenomeViewPlugin from '@jbrowse/plugin-linear-genome-view'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { Typography, alpha } from '@mui/material'
+import { Alert, Typography, alpha } from '@mui/material'
 import { observer } from 'mobx-react'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { makeStyles } from 'tss-react/mui'
@@ -13,6 +13,9 @@ import { LinearApolloDisplay as LinearApolloDisplayI } from './LinearApolloDispl
 import { TrackLines } from './SixFrameFeatureDisplay/components'
 import { SixFrameFeatureDisplay } from './SixFrameFeatureDisplay/stateModel'
 import { TabularEditorPane } from './TabularEditor'
+
+import { getSession } from '@jbrowse/core/util'
+import { ApolloSessionModel } from './session'
 
 const accordionControlHeight = 12
 
@@ -51,6 +54,11 @@ const useStyles = makeStyles()((theme) => ({
   title: {
     // position: 'relative',
     userSelect: 'none',
+  },
+  alertContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 }))
 
@@ -155,6 +163,11 @@ export const DisplayComponent = observer(function DisplayComponent({
 }: {
   model: LinearApolloDisplayI
 }) {
+  const session = getSession(model) as unknown as ApolloSessionModel
+  const { ontologyManager } = session.apolloDataStore
+  const { featureTypeOntology } = ontologyManager
+  const ontologyStore = featureTypeOntology?.dataStore
+
   const { classes } = useStyles()
 
   const {
@@ -175,6 +188,14 @@ export const DisplayComponent = observer(function DisplayComponent({
 
   const onDetailsResize = (delta: number) => {
     model.setDetailsHeight(detailsHeight - delta)
+  }
+
+  if (!ontologyStore) {
+    return (
+      <div className={classes.alertContainer}>
+        <Alert severity="error">Could not load feature type ontology.</Alert>
+      </div>
+    )
   }
 
   if (graphical && table) {

@@ -38,4 +38,4 @@ EXAMPLES
 ```
 
 _See code:
-[src/commands/user/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.20/packages/apollo-cli/src/commands/user/get.ts)_
+[src/commands/user/get.ts](https://github.com/GMOD/Apollo3/blob/v0.1.21/packages/apollo-cli/src/commands/user/get.ts)_

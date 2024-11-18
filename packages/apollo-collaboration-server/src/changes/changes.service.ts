@@ -9,6 +9,8 @@ import {
   AssemblyDocument,
   Change,
   ChangeDocument,
+  Check,
+  CheckDocument,
   Feature,
   FeatureDocument,
   File,
@@ -68,6 +70,8 @@ export class ChangesService {
     private readonly jbrowseConfigModel: Model<JBrowseConfigDocument>,
     @InjectModel(Change.name)
     private readonly changeModel: Model<ChangeDocument>,
+    @InjectModel(Check.name)
+    private readonly checkModel: Model<CheckDocument>,
     private readonly filesService: FilesService,
     private readonly countersService: CountersService,
     private readonly pluginsService: PluginsService,
@@ -123,6 +127,7 @@ export class ChangesService {
           fileModel: this.fileModel,
           userModel: this.userModel,
           jbrowseConfigModel: this.jbrowseConfigModel,
+          checkModel: this.checkModel,
           session,
           filesService: this.filesService,
           counterService: this.countersService,
@@ -176,15 +181,15 @@ export class ChangesService {
         )
         try {
           // We cannot use Mongo 'session' / transaction here because Mongo has 16 MB limit for transaction
+          await this.assemblyModel.updateMany(
+            { $and: [{ status: -1, user: uniqUserId }] },
+            { $set: { status: 0 } },
+          )
           await this.refSeqChunkModel.updateMany(
             { $and: [{ status: -1, user: uniqUserId }] },
             { $set: { status: 0 } },
           )
           await this.featureModel.updateMany(
-            { $and: [{ status: -1, user: uniqUserId }] },
-            { $set: { status: 0 } },
-          )
-          await this.assemblyModel.updateMany(
             { $and: [{ status: -1, user: uniqUserId }] },
             { $set: { status: 0 } },
           )

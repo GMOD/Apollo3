@@ -1,15 +1,26 @@
-import { ConfigurationSchema } from '@jbrowse/core/configuration'
+import {
+  AnyConfigurationModel,
+  ConfigurationSchema,
+  readConfObject,
+} from '@jbrowse/core/configuration'
 import {
   BlobLocation,
   LocalPathLocation,
   UriLocation,
 } from '@jbrowse/core/util/types/mst'
 import { autorun } from 'mobx'
-import { Instance, addDisposer, getSnapshot, types } from 'mobx-state-tree'
-
+import {
+  Instance,
+  addDisposer,
+  getRoot,
+  getSnapshot,
+  types,
+} from 'mobx-state-tree'
 import OntologyStore, { OntologyStoreOptions } from './OntologyStore'
 import { OntologyDBNode } from './OntologyStore/indexeddb-schema'
 import { applyPrefixes, expandPrefixes } from './OntologyStore/prefixes'
+import ApolloPluginConfigurationSchema from '../config'
+import { ApolloRootModel } from '../types'
 
 export { isDeprecated } from './OntologyStore/indexeddb-schema'
 
@@ -56,14 +67,26 @@ export const OntologyManagerType = types
     }),
   })
   .views((self) => ({
+    get featureTypeOntologyName(): string {
+      const jbConfig = getRoot<ApolloRootModel>(self).jbrowse
+        .configuration as AnyConfigurationModel
+      const pluginConfiguration = jbConfig.ApolloPlugin as Instance<
+        typeof ApolloPluginConfigurationSchema
+      >
+      const featureTypeOntologyName = readConfObject(
+        pluginConfiguration,
+        'featureTypeOntologyName',
+      ) as string
+      return featureTypeOntologyName
+    },
+  }))
+  .views((self) => ({
     /**
      * gets the OntologyRecord for the ontology we should be
      * using for feature types (e.g. SO or maybe biotypes)
      **/
     get featureTypeOntology() {
-      // TODO: change this to read some configuration for which feature type ontology
-      // we should be using. currently hardcoded to use SO.
-      return this.findOntology('Sequence Ontology')
+      return this.findOntology(self.featureTypeOntologyName)
     },
 
     findOntology(name: string, version?: string) {

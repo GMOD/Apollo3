@@ -2,6 +2,8 @@ import { Operation, operationRegistry } from '@apollo-annotation/common'
 import {
   Assembly,
   AssemblyDocument,
+  Check,
+  CheckDocument,
   Feature,
   FeatureDocument,
   File,
@@ -40,6 +42,8 @@ export class OperationsService {
     private readonly refSeqModel: Model<RefSeqDocument>,
     @InjectModel(RefSeqChunk.name)
     private readonly refSeqChunkModel: Model<RefSeqChunkDocument>,
+    @InjectModel(Check.name)
+    private readonly checkModel: Model<CheckDocument>,
     private readonly filesService: FilesService,
     private readonly countersService: CountersService,
     private readonly pluginsService: PluginsService,
@@ -53,6 +57,7 @@ export class OperationsService {
   ): Promise<ReturnType<T['executeOnServer']>> {
     const {
       assemblyModel,
+      checkModel,
       connection,
       countersService,
       featureModel,
@@ -79,6 +84,7 @@ export class OperationsService {
       fileModel,
       userModel,
       jbrowseConfigModel,
+      checkModel,
       session,
       filesService,
       counterService: countersService,

@@ -428,6 +428,7 @@ __metadata:
     rimraf: "npm:^3.0.2"
     rxjs: "npm:^7.4.0"
     sanitize-filename: "npm:^1.6.3"
+    serve: "npm:^14.0.1"
     socket.io: "npm:^4.5.3"
     source-map-support: "npm:^0.5.20"
     stream-concat: "npm:^1.0.0"

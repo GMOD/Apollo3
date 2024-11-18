@@ -6,6 +6,7 @@ import idValidator from 'mongoose-id-validator'
 
 import { AssembliesModule } from '../assemblies/assemblies.module'
 import { CountersModule } from '../counters/counters.module'
+import { ChecksModule } from '../checks/checks.module'
 import { FeaturesModule } from '../features/features.module'
 import { FilesModule } from '../files/files.module'
 import { JBrowseModule } from '../jbrowse/jbrowse.module'
@@ -37,6 +38,7 @@ import { ChangesService } from './changes.service'
     FilesModule,
     UsersModule,
     CountersModule,
+    ChecksModule,
     MessagesModule,
     JBrowseModule,
   ],

@@ -2,7 +2,11 @@ import { AnnotationFeature } from '@apollo-annotation/mst'
 import { Theme, alpha } from '@mui/material'
 import { MenuItem } from '@jbrowse/core/ui'
 
-import { AbstractSessionModel, SessionWithWidgets } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  isSessionModelWithWidgets,
+  SessionWithWidgets,
+} from '@jbrowse/core/util'
 
 import {
   AddChildFeature,
@@ -175,7 +179,7 @@ function drawTooltip(
   if (!position) {
     return
   }
-  const { layoutIndex, layoutRow } = position
+  const { featureRow, layoutIndex, layoutRow } = position
   const { bpPerPx, displayedRegions, offsetPx } = lgv
   const displayedRegion = displayedRegions[layoutIndex]
   const { refName, reversed } = displayedRegion
@@ -191,7 +195,7 @@ function drawTooltip(
       coord: reversed ? max : min,
       regionNumber: layoutIndex,
     })?.offsetPx ?? 0) - offsetPx
-  const top = layoutRow * apolloRowHeight
+  const top = (layoutRow + featureRow) * apolloRowHeight
   const widthPx = length / bpPerPx
 
   const featureType = `Type: ${feature.type}`
@@ -385,6 +389,24 @@ function getContextMenuItems(
       },
     },
   )
+  if (sourceFeature.type === 'mRNA' && isSessionModelWithWidgets(session)) {
+    menuItems.push({
+      label: 'Edit transcript details',
+      onClick: () => {
+        const apolloTranscriptWidget = session.addWidget(
+          'ApolloTranscriptDetails',
+          'apolloTranscriptDetails',
+          {
+            feature: sourceFeature,
+            assembly: currentAssemblyId,
+            changeManager,
+            refName: region.refName,
+          },
+        )
+        session.showWidget(apolloTranscriptWidget)
+      },
+    })
+  }
   return menuItems
 }
 

@@ -67,7 +67,7 @@ export class AddAssemblyFromExternalChange extends AssemblySpecificChange {
    * @returns
    */
   async executeOnServer(backend: ServerDataStore) {
-    const { assemblyModel, refSeqModel, user } = backend
+    const { assemblyModel, checkModel, refSeqModel, user } = backend
     const { assembly, changes, logger } = this
     const { CHUNK_SIZE } = process.env
     const customChunkSize = CHUNK_SIZE && Number(CHUNK_SIZE)
@@ -97,6 +97,8 @@ export class AddAssemblyFromExternalChange extends AssemblySpecificChange {
       if (assemblyDoc) {
         throw new Error(`Assembly "${assemblyName}" already exists`)
       }
+      const checkDocs = await checkModel.find({ default: true }).exec()
+      const checks = checkDocs.map((checkDoc) => checkDoc._id.toHexString())
       const [newAssemblyDoc] = await assemblyModel.create([
         {
           _id: assembly,
@@ -104,6 +106,7 @@ export class AddAssemblyFromExternalChange extends AssemblySpecificChange {
           user,
           status: -1,
           externalLocation,
+          checks,
         },
       ])
       logger.debug?.(

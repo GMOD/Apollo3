@@ -12,6 +12,7 @@ import {
   RefSeqDocument,
   JBrowseConfigDocument,
   UserDocument,
+  CheckDocument,
 } from '@apollo-annotation/schemas'
 import type { LoggerService } from '@nestjs/common'
 import type { ClientSession, Model } from 'mongoose'
@@ -36,6 +37,7 @@ export interface ServerDataStore {
   assemblyModel: Model<AssemblyDocument>
   refSeqModel: Model<RefSeqDocument>
   refSeqChunkModel: Model<RefSeqChunkDocument>
+  checkModel: Model<CheckDocument>
   fileModel: Model<FileDocument>
   userModel: Model<UserDocument>
   jbrowseConfigModel: Model<JBrowseConfigDocument>

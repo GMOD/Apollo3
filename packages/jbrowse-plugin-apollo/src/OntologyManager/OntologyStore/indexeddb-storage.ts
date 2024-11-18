@@ -84,9 +84,14 @@ export async function loadOboGraphJson(this: OntologyStore, db: Database) {
   // TODO: using file streaming along with an event-based json parser
   // instead of JSON.parse and .readFile could probably make this faster
   // and less memory intensive
-  const oboGraph = JSON.parse(
-    await openLocation(this.sourceLocation).readFile('utf8'),
-  ) as GraphDocument
+  let oboGraph: GraphDocument
+  try {
+    oboGraph = JSON.parse(
+      await openLocation(this.sourceLocation).readFile('utf8'),
+    ) as GraphDocument
+  } catch {
+    throw new Error('Error in loading ontology')
+  }
 
   const parseTime = Date.now()
 

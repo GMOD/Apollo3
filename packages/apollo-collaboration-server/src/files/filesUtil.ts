@@ -99,29 +99,17 @@ async function unzip(input: FileHandle): Promise<Buffer> {
 }
 
 export class LocalFileGzip implements GenericFilehandle {
-  private fileHandle: Promise<FileHandle> | undefined
-  private contents: Promise<Buffer> | undefined
+  private fileHandle: Promise<FileHandle>
+  private contents: Promise<Buffer>
   private filename: string
   private opts: FilehandleOptions
 
   public constructor(source: string, opts: FilehandleOptions = {}) {
     this.filename = source
     this.opts = opts
-  }
-
-  private getFileHandle(): Promise<FileHandle> {
-    if (!this.fileHandle) {
-      this.fileHandle = open(this.filename)
-    }
-    return this.fileHandle
-  }
-
-  private async getContents(): Promise<Buffer> {
-    if (!this.contents) {
-      const fileHandle = await this.getFileHandle()
-      this.contents = unzip(fileHandle)
-    }
-    return this.contents
+    const fhPromise = open(source)
+    this.fileHandle = fhPromise
+    this.contents = fhPromise.then((fh) => unzip(fh))
   }
 
   public async read(
@@ -130,7 +118,7 @@ export class LocalFileGzip implements GenericFilehandle {
     length: number,
     position = 0,
   ): Promise<{ bytesRead: number; buffer: Buffer }> {
-    const unzippedContents = await this.getContents()
+    const unzippedContents = await this.contents
     const bytesRead = unzippedContents.copy(
       buffer,
       position,
@@ -154,7 +142,7 @@ export class LocalFileGzip implements GenericFilehandle {
   public async readFile(
     _options?: FilehandleOptions | BufferEncoding,
   ): Promise<Buffer | string> {
-    const unzippedContents = await this.getContents()
+    const unzippedContents = await this.contents
     if (this.opts.encoding) {
       return unzippedContents.toString(this.opts.encoding)
     }
@@ -163,12 +151,12 @@ export class LocalFileGzip implements GenericFilehandle {
 
   // todo memoize
   public async stat(): Promise<Stats> {
-    const contents = await this.getContents()
+    const contents = await this.contents
     return { size: contents.length }
   }
 
   public async close(): Promise<void> {
-    const fh = await this.getFileHandle()
+    const fh = await this.fileHandle
     return fh.close()
   }
 }
