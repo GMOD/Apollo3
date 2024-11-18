@@ -310,6 +310,7 @@ export function annotationFromJBrowseFeature(
                       },
                       annotationFeature: self.getAnnotationFeature(assembly),
                       assembly,
+                      refSeqId: self.getRefSeqId(assembly),
                     },
                   ],
                 )

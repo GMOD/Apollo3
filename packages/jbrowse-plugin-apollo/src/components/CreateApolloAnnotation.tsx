@@ -21,9 +21,7 @@ import {
 import { Dialog } from './Dialog'
 import { ApolloSessionModel } from '../session'
 import { AnnotationFeatureSnapshot } from '@apollo-annotation/mst'
-import { getRoot } from 'mobx-state-tree'
-import { ApolloRootModel } from '../types'
-import { ApolloInternetAccountModel } from '../ApolloInternetAccount/model'
+import { getSnapshot } from 'mobx-state-tree'
 import { AddFeatureChange } from '@apollo-annotation/shared'
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { AbstractSessionModel } from '@jbrowse/core/util'
@@ -33,6 +31,7 @@ interface CreateApolloAnnotationProps {
   handleClose(): void
   annotationFeature: AnnotationFeatureSnapshot
   assembly: Assembly
+  refSeqId: string
 }
 
 // TODO: Integrate SO
@@ -55,21 +54,27 @@ export function CreateApolloAnnotation({
   annotationFeature,
   assembly,
   handleClose,
+  refSeqId,
   session,
 }: CreateApolloAnnotationProps) {
   const apolloSessionModel = session as unknown as ApolloSessionModel
-  const { internetAccounts } = getRoot<ApolloRootModel>(session)
-  const apolloInternetAccounts = internetAccounts.filter(
-    (ia) => ia.type === 'ApolloInternetAccount',
-  ) as ApolloInternetAccountModel[]
-  if (apolloInternetAccounts.length === 0) {
-    throw new Error('No Apollo internet account found')
-  }
-  const [apolloInternetAccount] = apolloInternetAccounts
   const childIds = useMemo(
     () => Object.keys(annotationFeature.children ?? {}),
     [annotationFeature],
   )
+
+  const features = useMemo(() => {
+    for (const [, asm] of apolloSessionModel.apolloDataStore.assemblies) {
+      if (asm._id === assembly.name) {
+        for (const [, refSeq] of asm.refSeqs) {
+          if (refSeq._id === refSeqId) {
+            return refSeq.features
+          }
+        }
+      }
+    }
+    return []
+  }, [])
 
   const [parentFeatureChecked, setParentFeatureChecked] = useState(true)
   const [checkedChildrens, setCheckedChildrens] = useState<string[]>(childIds)
@@ -80,56 +85,45 @@ export function CreateApolloAnnotation({
   const [selectedDestinationFeature, setSelectedDestinationFeature] =
     useState<AnnotationFeatureSnapshot>()
 
-  useEffect(() => {
-    const getFeatures = async (min: number, max: number) => {
-      const { baseURL } = apolloInternetAccount
-      const uri = new URL('features/getFeatures', baseURL)
-      const searchParams = new URLSearchParams({
-        refSeq: annotationFeature.refSeq,
-        start: min.toString(),
-        end: max.toString(),
-      })
-      uri.search = searchParams.toString()
-      const fetch = apolloInternetAccount.getFetcher({
-        locationType: 'UriLocation',
-        uri: uri.toString(),
-      })
+  const getFeatures = (min: number, max: number) => {
+    const filteredFeatures: AnnotationFeatureSnapshot[] = []
 
-      const response = await fetch(uri.toString(), { method: 'GET' })
-
-      if (response.ok) {
-        const [features] = (await response.json()) as [
-          AnnotationFeatureSnapshot[],
-        ]
-        return features
+    for (const [, f] of features) {
+      const featureSnapshot = getSnapshot(f)
+      if (min >= featureSnapshot.min && max <= featureSnapshot.max) {
+        filteredFeatures.push(featureSnapshot)
       }
-      return []
     }
 
-    if (childIds.every((childId) => checkedChildrens.includes(childId))) {
-      setParentFeatureChecked(true)
-    } else {
-      setSelectedDestinationFeature(undefined)
+    return filteredFeatures
+  }
+
+  useEffect(() => {
+    setErrorMessage('')
+    if (checkedChildrens.length === 0) {
       setParentFeatureChecked(false)
+      return
+    }
 
-      if (annotationFeature.children) {
-        const checkedAnnotationFeatureChildren = Object.values(
-          annotationFeature.children,
-        )
-          .filter((child) => isTranscript(child))
-          .filter((child) => checkedChildrens.includes(child._id))
-        const mins = checkedAnnotationFeatureChildren.map((f) => f.min)
-        const maxes = checkedAnnotationFeatureChildren.map((f) => f.max)
-        const min = Math.min(...mins)
-        const max = Math.max(...maxes)
+    if (annotationFeature.children) {
+      const checkedAnnotationFeatureChildren = Object.values(
+        annotationFeature.children,
+      )
+        .filter((child) => isTranscript(child))
+        .filter((child) => checkedChildrens.includes(child._id))
+      const mins = checkedAnnotationFeatureChildren.map((f) => f.min)
+      const maxes = checkedAnnotationFeatureChildren.map((f) => f.max)
+      const min = Math.min(...mins)
+      const max = Math.max(...maxes)
+      const filteredFeatures = getFeatures(min, max)
+      setDestinationFeatures(filteredFeatures)
 
-        getFeatures(min, max)
-          .then((features) => {
-            setDestinationFeatures(features)
-          })
-          .catch(() => {
-            setErrorMessage('Failed to fetch destination features')
-          })
+      if (
+        filteredFeatures.length === 0 &&
+        checkedChildrens.length > 0 &&
+        !parentFeatureChecked
+      ) {
+        setErrorMessage('No destination features found')
       }
     }
   }, [checkedChildrens])
