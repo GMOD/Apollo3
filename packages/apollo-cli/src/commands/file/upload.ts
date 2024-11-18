@@ -57,6 +57,7 @@ export default class Upload extends FileCommand {
     const access = await this.getAccess()
 
     let { type } = flags
+    const { gzip, decompressed } = flags
     if (type === undefined) {
       const hasGzipExt = args['input-file'].endsWith('.gz')
       const infile = args['input-file'].replace(/\.gz$/, '')
@@ -82,11 +83,11 @@ export default class Upload extends FileCommand {
 
     let isGzip = args['input-file'].endsWith('.gz')
 
-    if (flags.gzip) {
+    if (gzip) {
       isGzip = true
     }
 
-    if (flags.decompressed) {
+    if (decompressed) {
       isGzip = false
     }
 

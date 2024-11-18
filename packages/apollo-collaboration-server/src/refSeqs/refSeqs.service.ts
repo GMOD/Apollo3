@@ -21,7 +21,6 @@ export class RefSeqsService {
   }
 
   findAll(filter?: FindRefSeqDto) {
-    // eslint-disable-next-line unicorn/no-array-callback-reference
     return this.refSeqModel.find(filter ?? {}).exec()
   }
 

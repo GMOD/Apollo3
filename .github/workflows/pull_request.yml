@@ -22,9 +22,7 @@ jobs:
         run: yarn build
         working-directory: packages/apollo-shared
       - name: Lint codebase
-        run:
-          yarn eslint --report-unused-disable-directives --max-warnings 0 --ext
-          .js,.ts,.jsx,.tsx .
+        run: yarn eslint --max-warnings 0
       - name: Run Jest tests
         run: yarn test
       - name: Get latest JBrowse

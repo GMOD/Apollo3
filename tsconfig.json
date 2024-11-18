@@ -5,5 +5,14 @@
     "noEmit": true,
     "allowJs": true,
   },
-  "include": ["./*.js", "./*.mjs", "./*.cjs", "scripts/*.ts"],
+  "include": [
+    "./*.js",
+    "./.*.js",
+    "./*.mjs",
+    "./.*.mjs",
+    "./*.cjs",
+    "./.*.cjs",
+    "scripts/*.ts",
+    ".husky/*.js",
+  ],
 }
