@@ -96,20 +96,22 @@ export const FilterFeatures = observer(function FilterFeatures({
           </Grid>
         </Grid>
         {selectedFeatureTypes.length > 0 && (
-          <div style={{ width: 300 }}>
+          <div>
             <hr />
-            <DialogContentText>Selected feature types:</DialogContentText>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-              {selectedFeatureTypes.map((value) => (
-                <Chip
-                  key={value}
-                  label={value}
-                  onDelete={() => {
-                    handleFeatureTypeDelete(value)
-                  }}
-                />
-              ))}
-            </Box>
+            <div style={{ width: 300 }}>
+              <DialogContentText>Selected feature types:</DialogContentText>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {selectedFeatureTypes.map((value) => (
+                  <Chip
+                    key={value}
+                    label={value}
+                    onDelete={() => {
+                      handleFeatureTypeDelete(value)
+                    }}
+                  />
+                ))}
+              </Box>
+            </div>
           </div>
         )}
       </DialogContent>
