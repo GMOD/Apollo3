@@ -12,7 +12,10 @@ module.exports = {
   plugins: ['import', 'tsdoc'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: true,
+    projectService: {
+      allowDefaultProject: ['packages/jbrowse-plugin-apollo/*.js'],
+    },
+    defaultProject: 'tsconfig.json',
   },
   env: { 'shared-node-browser': true },
   settings: {
@@ -118,19 +121,6 @@ module.exports = {
       files: ['./packages/apollo-cli/*.{c,}js'],
       parserOptions: {
         project: 'packages/apollo-cli/tsconfig.eslint.json',
-      },
-      env: { node: true },
-    },
-    // Specify Node env and tsconfig for cypress testing and config files
-    {
-      files: ['packages/jbrowse-plugin-apollo/cypress.config.js'],
-      parserOptions: {
-        projectService: {
-          allowDefaultProject: [
-            'packages/jbrowse-plugin-apollo/cypress.config.js',
-          ],
-        },
-        defaultProject: 'packages/jbrowse-plugin-apollo/cypress/tsconfig.json',
       },
       env: { node: true },
     },
