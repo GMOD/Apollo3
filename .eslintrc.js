@@ -123,12 +123,14 @@ module.exports = {
     },
     // Specify Node env and tsconfig for cypress testing and config files
     {
-      files: [
-        './packages/jbrowse-plugin-apollo/cypress.config.js',
-        './packages/jbrowse-plugin-apollo/cypress/**/*.{j,t}s',
-      ],
+      files: ['packages/jbrowse-plugin-apollo/cypress.config.js'],
       parserOptions: {
-        project: 'packages/jbrowse-plugin-apollo/cypress/tsconfig.json',
+        projectService: {
+          allowDefaultProject: [
+            'packages/jbrowse-plugin-apollo/cypress.config.js',
+          ],
+        },
+        defaultProject: 'packages/jbrowse-plugin-apollo/cypress/tsconfig.json',
       },
       env: { node: true },
     },
