@@ -177,7 +177,7 @@ export function clientDataStoreFactory(
                   const controller = new AbortController()
                   const job = {
                     name: message,
-                    statusMessage: 'Uploading ontology, this may take awhile',
+                    statusMessage: `Uploading ontology "${name}", version "${version}", this may take awhile`,
                     progressPct: progress,
                     cancelCallback: () => {
                       controller.abort()
