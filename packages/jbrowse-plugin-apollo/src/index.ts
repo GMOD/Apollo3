@@ -55,7 +55,10 @@ import {
   ViewCheckResults,
 } from './components'
 import ApolloPluginConfigurationSchema from './config'
-import { annotationFromPileup } from './extensions'
+import {
+  annotationFromPileup,
+  annotationFromJBrowseFeature,
+} from './extensions'
 import {
   ApolloFeatureDetailsWidget,
   ApolloFeatureDetailsWidgetModel,
@@ -275,6 +278,10 @@ export default class ApolloPlugin extends Plugin {
     pluginManager.addToExtensionPoint(
       'Core-extendPluggableElement',
       annotationFromPileup,
+    )
+    pluginManager.addToExtensionPoint(
+      'Core-extendPluggableElement',
+      annotationFromJBrowseFeature,
     )
     if (!inWebWorker) {
       pluginManager.addToExtensionPoint(
