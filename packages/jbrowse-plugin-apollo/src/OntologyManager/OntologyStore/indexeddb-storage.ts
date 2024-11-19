@@ -137,7 +137,8 @@ export async function loadOboGraphJson(this: OntologyStore, db: Database) {
 
     // record some metadata about this ontology and load operation
     const tx2 = db.transaction('meta', 'readwrite')
-    const { update, ...otherOptions } = this.options
+    const { ...otherOptions } = this.options
+    otherOptions.update = undefined
     await tx2.objectStore('meta').add(
       {
         ontologyRecord: {
