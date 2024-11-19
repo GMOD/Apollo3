@@ -166,22 +166,31 @@ export function clientDataStoreFactory(
               ]
               if (!ontologyManager.findOntology(name)) {
                 // eslint-disable-next-line no-inner-declarations
-                function update(message: string, progress: number) {
-                  const session = getSession(
-                    self,
-                  ) as unknown as ApolloSessionModel
-                  const { jobsManager } = session
-                  const controller = new AbortController()
-                  const job = {
-                    name: message,
-                    statusMessage: `Uploading ontology "${name}", version "${version}", this may take awhile`,
-                    progressPct: progress,
-                    cancelCallback: () => {
-                      controller.abort()
-                      jobsManager.abortJob(job.name)
-                    },
+                const session = getSession(
+                  self,
+                ) as unknown as ApolloSessionModel
+                const { jobsManager } = session
+                const controller = new AbortController()
+                const jobName = `Loading ontology "${name}"`
+                const job = {
+                  name: jobName,
+                  statusMessage: `Loading ontology "${name}", version "${version}", this may take awhile`,
+                  progressPct: 0,
+                  cancelCallback: () => {
+                    controller.abort()
+                    jobsManager.abortJob(job.name)
+                  },
+                }
+                const update = (message: string, progress: number) => {
+                  if (progress === 0) {
+                    jobsManager.runJob(job)
+                    return
                   }
-                  jobsManager.runJob(job)
+                  if (progress === 100) {
+                    jobsManager.done(job)
+                    return
+                  }
+                  jobsManager.update(jobName, message, progress)
                 }
                 ontologyManager.addOntology(name, version, source, {
                   textIndexing: { indexFields },

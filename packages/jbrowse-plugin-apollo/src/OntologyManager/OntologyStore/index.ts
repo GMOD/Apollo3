@@ -185,11 +185,10 @@ export default class OntologyStore {
     try {
       const { options, sourceLocation, sourceType } = this
       if (sourceType === 'obo-graph-json') {
-        if (options.update) {
-          options.update('Importing', 0)
-        }
+        options.update?.('', 0)
         // add more updates inside `loadOboGraphJson`
         await this.loadOboGraphJson(db)
+        options.update?.('', 100)
       } else {
         throw new Error(
           `ontology source file ${JSON.stringify(

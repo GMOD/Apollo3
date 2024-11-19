@@ -81,6 +81,7 @@ function serializeWords(foundWords: Iterable<[string, string]>): string[] {
 export async function loadOboGraphJson(this: OntologyStore, db: Database) {
   const startTime = Date.now()
 
+  this.options.update?.('Parsing JSON', 1)
   // TODO: using file streaming along with an event-based json parser
   // instead of JSON.parse and .readFile could probably make this faster
   // and less memory intensive
@@ -92,6 +93,7 @@ export async function loadOboGraphJson(this: OntologyStore, db: Database) {
   } catch {
     throw new Error('Error in loading ontology')
   }
+  this.options.update?.('Parsing JSON complete', 10)
 
   const parseTime = Date.now()
 
