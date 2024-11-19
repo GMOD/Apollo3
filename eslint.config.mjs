@@ -47,7 +47,7 @@ export default [
         tsconfigRootDir: import.meta.dirname,
       },
     },
-    settings: { react: { version: '18.2.0' } },
+    settings: { react: { version: 'detect' } },
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     plugins: { tsdoc: pluginTSDoc, import: pluginImport },
     rules: {
