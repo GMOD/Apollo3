@@ -38,6 +38,10 @@ jobs:
           echo "INSTANCE_ADDRESS=$INSTANCE_ADDRESS" >> "$GITHUB_OUTPUT"
       - name: Set up SSH
         run: |
+          set -e
+          set -u
+          set -o pipefail
+          set -x
           mkdir --parents ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/staging
           chmod 600 ~/.ssh/staging
