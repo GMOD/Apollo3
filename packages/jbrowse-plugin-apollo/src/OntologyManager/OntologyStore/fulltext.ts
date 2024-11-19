@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 // jsonpath triggers this rule for some reason. import { query } from 'jsonpath' does not work
 
-import { checkAbortSignal } from '@jbrowse/core/util'
+import { checkAbortSignal } from '@jbrowse/core/util/aborting'
 import jsonpath from 'jsonpath'
 
 import { stopwords } from './fulltext-stopwords'

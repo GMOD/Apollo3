@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 
-import { AbstractSessionModel, isAbortException } from '@jbrowse/core/util'
+import { AbstractSessionModel } from '@jbrowse/core/util'
+import { isAbortException } from '@jbrowse/core/util/aborting'
 import {
   Autocomplete,
   AutocompleteRenderInputParams,

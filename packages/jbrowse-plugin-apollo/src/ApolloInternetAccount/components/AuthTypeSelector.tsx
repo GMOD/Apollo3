@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
-import { isAbortException } from '@jbrowse/core/util'
+import { isAbortException } from '@jbrowse/core/util/aborting'
 import {
   Button,
   DialogActions,

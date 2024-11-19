@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/use-unknown-in-catch-callback-variable */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { isAbortException } from '@jbrowse/core/util'
+import { isAbortException } from '@jbrowse/core/util/aborting'
 import {
   Autocomplete,
   AutocompleteRenderGetTagProps,
