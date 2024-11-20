@@ -49,6 +49,7 @@ jobs:
             ServerAliveInterval 60
             ServerAliveCountMax 10
           END
+          touch -a ~/.ssh/known_hosts
           ssh-keygen -F ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }} || \
             ssh-keyscan -H ${{ steps.ec2-describe-instances.outputs.INSTANCE_ADDRESS }} >> ~/.ssh/known_hosts
       - name: Create Docker context
