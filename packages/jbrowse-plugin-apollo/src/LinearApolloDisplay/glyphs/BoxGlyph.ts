@@ -2,7 +2,11 @@ import { AnnotationFeature } from '@apollo-annotation/mst'
 import { Theme, alpha } from '@mui/material'
 import { MenuItem } from '@jbrowse/core/ui'
 
-import { AbstractSessionModel, SessionWithWidgets } from '@jbrowse/core/util'
+import {
+  AbstractSessionModel,
+  isSessionModelWithWidgets,
+  SessionWithWidgets,
+} from '@jbrowse/core/util'
 
 import {
   AddChildFeature,
@@ -385,6 +389,24 @@ function getContextMenuItems(
       },
     },
   )
+  if (sourceFeature.type === 'mRNA' && isSessionModelWithWidgets(session)) {
+    menuItems.push({
+      label: 'Edit transcript details',
+      onClick: () => {
+        const apolloTranscriptWidget = session.addWidget(
+          'ApolloTranscriptDetails',
+          'apolloTranscriptDetails',
+          {
+            feature: sourceFeature,
+            assembly: currentAssemblyId,
+            changeManager,
+            refName: region.refName,
+          },
+        )
+        session.showWidget(apolloTranscriptWidget)
+      },
+    })
+  }
   return menuItems
 }
 
