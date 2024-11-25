@@ -168,7 +168,6 @@ export function clientDataStoreFactory(
                 ) as TextIndexFieldDefinition[],
               ]
               if (!ontologyManager.findOntology(name)) {
-                // eslint-disable-next-line no-inner-declarations
                 const session = getSession(
                   self,
                 ) as unknown as ApolloSessionModel
@@ -184,7 +183,7 @@ export function clientDataStoreFactory(
                     jobsManager.abortJob(job.name)
                   },
                 }
-                const update = (message: string, progress: number) => {
+                const update = (message: string, progress: number): void => {
                   if (progress === 0) {
                     jobsManager.runJob(job)
                     return
@@ -194,6 +193,7 @@ export function clientDataStoreFactory(
                     return
                   }
                   jobsManager.update(jobName, message, progress)
+                  return
                 }
                 ontologyManager.addOntology(name, version, source, {
                   textIndexing: { indexFields },
