@@ -4,7 +4,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { ApolloAssembly } from '@apollo-annotation/mst'
-import { makeGFF3Feature } from '@apollo-annotation/shared'
 import gff, { GFF3Item } from '@gmod/gff'
 import { Assembly } from '@jbrowse/core/assemblyManager/assembly'
 import { getConf } from '@jbrowse/core/configuration'
@@ -29,6 +28,7 @@ import {
 import { ApolloSessionModel } from '../session'
 import { createFetchErrorMessage } from '../util'
 import { Dialog } from './Dialog'
+import { annotationFeatureToGFF3 } from '@apollo-annotation/shared/src/GFF3/annotationFeatureToGFF3'
 
 interface DownloadGFF3Props {
   session: ApolloSessionModel
@@ -153,7 +153,7 @@ export function DownloadGFF3({ handleClose, session }: DownloadGFF3Props) {
         continue
       }
       for (const [, feature] of features) {
-        gff3Items.push(makeGFF3Feature(getSnapshot(feature)))
+        gff3Items.push(annotationFeatureToGFF3(getSnapshot(feature)))
       }
     }
     for (const sequenceFeature of sequenceFeatures) {

@@ -1,0 +1,69 @@
+{
+  "_id": "66d70e4ccc30b55b65e5f619",
+  "refSeq": "chr1",
+  "type": "gene",
+  "min": 999,
+  "max": 9000,
+  "strand": 1,
+  "attributes": {
+    "gff_id": ["gene10001"],
+    "gff_name": ["EDEN"],
+    "gff_score": ["123"],
+    "gff_source": ["test_data"],
+    "testid": ["t003"]
+  },
+  "children": {
+    "66d70e4ccc30b55b65e5f618": {
+      "_id": "66d70e4ccc30b55b65e5f618",
+      "refSeq": "chr1",
+      "type": "mRNA",
+      "min": 1049,
+      "max": 9000,
+      "strand": 1,
+      "children": {
+        "66d70e4ccc30b55b65e5f615": {
+          "_id": "66d70e4ccc30b55b65e5f615",
+          "refSeq": "chr1",
+          "type": "exon",
+          "min": 1049,
+          "max": 1500,
+          "strand": 1,
+          "attributes": {
+            "gff_id": ["exon10001"],
+            "testid": ["t007"]
+          }
+        },
+        "66d70e4ccc30b55b65e5f616": {
+          "_id": "66d70e4ccc30b55b65e5f616",
+          "refSeq": "chr1",
+          "type": "exon",
+          "min": 4999,
+          "max": 5500,
+          "strand": 1,
+          "attributes": {
+            "gff_id": ["exon10004"],
+            "testid": ["t010"]
+          }
+        },
+        "66d70e4ccc30b55b65e5f617": {
+          "_id": "66d70e4ccc30b55b65e5f617",
+          "refSeq": "chr1",
+          "type": "CDS",
+          "min": 1200,
+          "max": 5000,
+          "strand": 1,
+          "attributes": {
+            "gff_id": ["cds10001"],
+            "gff_name": ["edenprotein.1"],
+            "testid": ["t012", "t013", "t014", "t015"]
+          }
+        }
+      },
+      "attributes": {
+        "gff_id": ["mRNA10001"],
+        "gff_name": ["EDEN.1"],
+        "testid": ["t004", "t001", "t004"]
+      }
+    }
+  }
+}
