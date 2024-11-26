@@ -13,10 +13,10 @@ export const FeatureDetailsNavigation = observer(
   }) {
     const { feature, model } = props
     const { children, parent } = feature
-    const childrenSnapshot = []
+    const childFeatures = []
     if (children) {
       for (const [, child] of children) {
-        childrenSnapshot.push(child)
+        childFeatures.push(child)
       }
     }
 
@@ -35,10 +35,10 @@ export const FeatureDetailsNavigation = observer(
             </Button>
           </div>
         )}
-        {childrenSnapshot.length > 0 && (
+        {childFeatures.length > 0 && (
           <div>
             <Typography variant="h5">Children: </Typography>
-            {childrenSnapshot.map((child) => (
+            {childFeatures.map((child) => (
               <div key={child._id} style={{ marginBottom: 5 }}>
                 <Button
                   variant="contained"
