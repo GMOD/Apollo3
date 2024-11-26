@@ -10,9 +10,9 @@ import {
 } from '@apollo-annotation/mst'
 import {
   ValidationResultSet,
-  makeGFF3Feature,
   splitStringIntoChunks,
 } from '@apollo-annotation/shared'
+import { annotationFeatureToGFF3 } from '@apollo-annotation/shared/src/GFF3/annotationFeatureToGFF3'
 import gff, { GFF3Item } from '@gmod/gff'
 import { getConf } from '@jbrowse/core/configuration'
 import { Region, getSession } from '@jbrowse/core/util'
@@ -148,7 +148,7 @@ export class DesktopFileDriver extends BackendDriver {
     for (const [, refSeq] of clientAssembly.refSeqs) {
       const { features } = refSeq
       for (const [, feature] of features) {
-        gff3Items.push(makeGFF3Feature(getSnapshot(feature)))
+        gff3Items.push(annotationFeatureToGFF3(getSnapshot(feature)))
       }
     }
     for (const [, refSeq] of clientAssembly.refSeqs) {
