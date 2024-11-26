@@ -434,5 +434,5 @@ export type ApolloSessionStateModel = ReturnType<typeof extendSession>
 // @ts-expect-error Snapshots seem to mess up types here
 // eslint disable because of
 // https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ApolloSessionModel extends Instance<ApolloSessionStateModel> {}

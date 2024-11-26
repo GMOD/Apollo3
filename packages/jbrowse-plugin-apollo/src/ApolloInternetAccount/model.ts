@@ -135,7 +135,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         ) {
           const redirectUri = isElectron
             ? 'http://localhost/auth'
-            : window.location.origin + window.location.pathname
+            : globalThis.location.origin + globalThis.location.pathname
           const url = new URL('auth/login', self.baseURL)
           const params = new URLSearchParams({
             type,
@@ -144,7 +144,7 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
           url.search = params.toString()
           const eventName = `JBrowseAuthWindow-${self.internetAccountId}`
           if (isElectron) {
-            const { ipcRenderer } = window.require('electron')
+            const { ipcRenderer } = globalThis.require('electron')
             const redirectUriFromElectron = await ipcRenderer.invoke(
               'openAuthWindow',
               {
@@ -345,14 +345,9 @@ const stateModelFactory = (configSchema: ApolloInternetAccountConfigModel) => {
         socket.on(
           'REQUEST_INFORMATION',
           (message: RequestUserInformationMessage) => {
-            const { channel, reqType, userSessionId } = message
+            const { channel, userSessionId } = message
             if (channel === 'REQUEST_INFORMATION' && userSessionId !== token) {
-              switch (reqType) {
-                case 'CURRENT_LOCATION': {
-                  session.broadcastLocations()
-                  break
-                }
-              }
+              session.broadcastLocations()
             }
           },
         )
@@ -462,6 +457,6 @@ export type ApolloInternetAccountStateModel = ReturnType<
 >
 // eslint disable because of
 // https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ApolloInternetAccountModel
   extends Instance<ApolloInternetAccountStateModel> {}

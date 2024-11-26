@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { AbstractSessionModel, isElectron } from '@jbrowse/core/util'
@@ -35,7 +37,7 @@ export function OpenLocalFile({ handleClose, session }: OpenLocalFileProps) {
   const { apolloDataStore } = session
   const { addAssembly, addSessionAssembly, assemblyManager, notify } =
     session as unknown as AbstractSessionModel & {
-      // eslint-disable-next-line @typescript-eslint/ban-types
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
       addSessionAssembly: Function
     }
 

@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import { dirname } from 'node:path'
+import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { test } from '@oclif/test'
@@ -25,7 +25,7 @@ describe.skip('apollo change get: Get changes as YAML string', () => {
   const cmd = ['change:get']
   test
     .stdout()
-    .command(cmd, { root: dirname(dirname(__dirname)) })
+    .command(cmd, { root: path.dirname(path.dirname(__dirname)) })
     .it(cmd.join(' '), (output) => {
       JSON.parse(output.stdout)
     })

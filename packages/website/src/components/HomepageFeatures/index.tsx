@@ -1,17 +1,19 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { clsx } from 'clsx'
 import Heading from '@theme/Heading'
+import React from 'react'
 import styles from './styles.module.css'
 
 interface FeatureItem {
   title: string
   Svg: React.ComponentType<React.ComponentProps<'svg'>>
-  description: JSX.Element
+  description: React.JSX.Element
 }
 
 const FeatureList: FeatureItem[] = [
   {
     title: 'Easy to Use',
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <>
@@ -22,7 +24,7 @@ const FeatureList: FeatureItem[] = [
   },
   {
     title: 'Focus on What Matters',
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
     description: (
       <>
@@ -33,7 +35,7 @@ const FeatureList: FeatureItem[] = [
   },
   {
     title: 'Powered by React',
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
     description: (
       <>
@@ -58,7 +60,7 @@ function Feature({ Svg, description, title }: FeatureItem) {
   )
 }
 
-export default function HomepageFeatures(): JSX.Element {
+export default function HomepageFeatures(): React.JSX.Element {
   return (
     <section className={styles.features}>
       <div className="container">

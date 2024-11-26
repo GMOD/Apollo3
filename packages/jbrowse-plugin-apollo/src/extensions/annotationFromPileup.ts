@@ -17,7 +17,7 @@ import { ApolloSessionModel } from '../session'
 
 function parseCigar(cigar: string): [string | undefined, number][] {
   return (cigar.toUpperCase().match(/\d+\D/g) ?? []).map((op) => {
-    return [(op.match(/\D/) ?? [])[0], Number.parseInt(op, 10)]
+    return [(/\D/.exec(op) ?? [])[0], Number.parseInt(op, 10)]
   })
 }
 

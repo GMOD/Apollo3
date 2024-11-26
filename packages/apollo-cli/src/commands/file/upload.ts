@@ -57,6 +57,7 @@ export default class Upload extends FileCommand {
     const access = await this.getAccess()
 
     let { type } = flags
+    const { gzip, decompressed } = flags
     if (type === undefined) {
       const hasGzipExt = args['input-file'].endsWith('.gz')
       const infile = args['input-file'].replace(/\.gz$/, '')
@@ -81,12 +82,12 @@ export default class Upload extends FileCommand {
     }
 
     let isGzip = args['input-file'].endsWith('.gz')
-    // eslint-disable-next-line unicorn/consistent-destructuring
-    if (flags.gzip) {
+
+    if (gzip) {
       isGzip = true
     }
-    // eslint-disable-next-line unicorn/consistent-destructuring
-    if (flags.decompressed) {
+
+    if (decompressed) {
       isGzip = false
     }
 

@@ -4,6 +4,7 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
 import Heading from '@theme/Heading'
 import Layout from '@theme/Layout'
 import { clsx } from 'clsx'
+import React from 'react'
 
 import styles from './index.module.css'
 
@@ -29,7 +30,7 @@ function HomepageHeader() {
   )
 }
 
-export default function Home(): JSX.Element {
+export default function Home(): React.JSX.Element {
   const { siteConfig } = useDocusaurusContext()
   return (
     <Layout title={siteConfig.title} description={siteConfig.tagline}>

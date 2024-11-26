@@ -499,6 +499,6 @@ export type LinearApolloDisplayMouseEventsModel = ReturnType<
 >
 // eslint disable because of
 // https://mobx-state-tree.js.org/tips/typescript#using-a-mst-type-at-design-time
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface LinearApolloDisplayMouseEvents
   extends Instance<LinearApolloDisplayMouseEventsModel> {}
