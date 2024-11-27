@@ -28,7 +28,7 @@ import {
 import { ApolloSessionModel } from '../session'
 import { createFetchErrorMessage } from '../util'
 import { Dialog } from './Dialog'
-import { annotationFeatureToGFF3 } from '@apollo-annotation/shared/src/GFF3/annotationFeatureToGFF3'
+import { annotationFeatureToGFF3 } from '@apollo-annotation/shared'
 
 interface DownloadGFF3Props {
   session: ApolloSessionModel
