@@ -9,10 +9,10 @@ import {
   CheckResultSnapshot,
 } from '@apollo-annotation/mst'
 import {
+  annotationFeatureToGFF3,
   ValidationResultSet,
   splitStringIntoChunks,
 } from '@apollo-annotation/shared'
-import { annotationFeatureToGFF3 } from '@apollo-annotation/shared/src/GFF3/annotationFeatureToGFF3'
 import gff, { GFF3Item } from '@gmod/gff'
 import { getConf } from '@jbrowse/core/configuration'
 import { Region, getSession } from '@jbrowse/core/util'
