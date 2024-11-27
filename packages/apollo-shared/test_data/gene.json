@@ -10,7 +10,17 @@
     "gff_name": ["EDEN"],
     "gff_score": ["123"],
     "gff_source": ["test_data"],
-    "testid": ["t003"]
+    "testid": ["t001", "t003"],
+    "gff_ontology_term": ["GO1234"],
+    "Gene Ontology": ["GO4567"],
+    "Sequence Ontology": ["SO1234"],
+    "gff_alias": ["myalias"],
+    "gff_target": ["mytarget"],
+    "gff_gap": ["mygap"],
+    "gff_derives_from": ["myderives"],
+    "gff_note": ["mynote"],
+    "gff_dbxref": ["mydbxref"],
+    "gff_is_circular": ["true"]
   },
   "children": {
     "66d70e4ccc30b55b65e5f618": {
@@ -20,6 +30,11 @@
       "min": 1049,
       "max": 9000,
       "strand": 1,
+      "attributes": {
+        "gff_id": ["mRNA10001"],
+        "gff_name": ["EDEN.1"],
+        "testid": ["t004", "t001", "t004"]
+      },
       "children": {
         "66d70e4ccc30b55b65e5f615": {
           "_id": "66d70e4ccc30b55b65e5f615",
@@ -58,11 +73,6 @@
             "testid": ["t012", "t013", "t014", "t015"]
           }
         }
-      },
-      "attributes": {
-        "gff_id": ["mRNA10001"],
-        "gff_name": ["EDEN.1"],
-        "testid": ["t004", "t001", "t004"]
       }
     }
   }
