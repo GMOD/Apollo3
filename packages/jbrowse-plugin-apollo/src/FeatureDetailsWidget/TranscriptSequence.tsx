@@ -1,6 +1,6 @@
 import { AnnotationFeature } from '@apollo-annotation/mst'
 import { splitStringIntoChunks } from '@apollo-annotation/shared'
-import { revcom } from '@jbrowse/core/util'
+import { defaultCodonTable, revcom } from '@jbrowse/core/util'
 import {
   Button,
   MenuItem,
@@ -18,7 +18,7 @@ import { ApolloSessionModel } from '../session'
 const SEQUENCE_WRAP_LENGTH = 60
 
 type SegmentType = 'upOrDownstream' | 'UTR' | 'CDS' | 'intron' | 'protein'
-type SegmentListType = 'CDS' | 'cDNA' | 'genomic'
+type SegmentListType = 'CDS' | 'cDNA' | 'genomic' | 'protein'
 
 interface SequenceSegment {
   type: SegmentType
@@ -119,6 +119,28 @@ function getSequenceSegments(
         SEQUENCE_WRAP_LENGTH,
       )
       segments.push({ type: 'CDS', sequenceLines, locs })
+      return segments
+    }
+    case 'protein': {
+      let wholeSequence = ''
+      const [firstLocation] = cdsLocations
+      const locs: { min: number; max: number }[] = []
+      for (const loc of firstLocation) {
+        let sequence = getSequence(loc.min, loc.max)
+        if (strand === -1) {
+          sequence = revcom(sequence)
+        }
+        wholeSequence += sequence
+        locs.push({ min: loc.min, max: loc.max })
+      }
+      let protein = ''
+      for (let i = 0; i < wholeSequence.length; i += 3) {
+        let codonSeq: string = wholeSequence.slice(i, i + 3).toUpperCase()
+        protein +=
+          defaultCodonTable[codonSeq as keyof typeof defaultCodonTable] || '&'
+      }
+      const sequenceLines = splitStringIntoChunks(protein, SEQUENCE_WRAP_LENGTH)
+      segments.push({ type: 'protein', sequenceLines, locs })
       return segments
     }
   }
@@ -238,6 +260,7 @@ export const TranscriptSequence = observer(function TranscriptSequence({
             <MenuItem value="CDS">CDS</MenuItem>
             <MenuItem value="cDNA">cDNA</MenuItem>
             <MenuItem value="genomic">Genomic</MenuItem>
+            <MenuItem value="protein">Protein</MenuItem>
           </Select>
           <Paper
             style={{
