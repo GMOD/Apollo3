@@ -58,6 +58,19 @@
           "attributes": {
             "gff_id": ["exon10004"],
             "testid": ["t010"]
+          },
+          "children": {
+            "xyz": {
+              "_id": "xyz",
+              "refSeq": "chr1",
+              "type": "exon_region",
+              "min": 5300,
+              "max": 5400,
+              "strand": 1,
+              "attributes": {
+                "gff_id": ["exon_region10001"]
+              }
+            }
           }
         },
         "66d70e4ccc30b55b65e5f617": {
@@ -65,12 +78,37 @@
           "refSeq": "chr1",
           "type": "CDS",
           "min": 1200,
-          "max": 5000,
+          "max": 5100,
           "strand": 1,
           "attributes": {
             "gff_id": ["cds10001"],
             "gff_name": ["edenprotein.1"],
             "testid": ["t012", "t013", "t014", "t015"]
+          },
+          "children": {
+            "abc": {
+              "id": "abc",
+              "refSeq": "chr1",
+              "type": "CDS_region",
+              "min": "1350",
+              "max": "1400",
+              "strand": 1,
+              "attributes": {
+                "gff_id": ["cds_region10001"]
+              }
+            }
+          }
+        },
+        "66e049f17b9cedae9ad89106": {
+          "_id": "66e049f17b9cedae9ad89106",
+          "refSeq": "chr1",
+          "type": "CDS",
+          "min": 1300,
+          "max": 5200,
+          "strand": 1,
+          "attributes": {
+            "gff_id": ["cds10004"],
+            "gff_name": ["edenprotein.4"]
           }
         }
       }
