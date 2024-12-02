@@ -57,7 +57,7 @@ jobs:
             --description "Staging server"
       - name: Load data
         run: |
-          docker pull ghcr.io/gmod/apollo-cli:${{ vars.DOCKER_TAG }}
+          docker --context staging pull ghcr.io/gmod/apollo-cli:${{ vars.DOCKER_TAG }}
           function apollo() {
             docker \
               --context staging \
