@@ -481,8 +481,6 @@ URL=https://my-apollo-site.org
   # but can be used in the Apollo CLI as an account that can log in without
   # needing an identity provider (such as Google). Defaults to false.
   # ALLOW_ROOT_USER=false
-  # The username for the root user, if allowed
-  # ROOT_USER_NAME=root
   # The password for the root user, if allowed
   # ROOT_USER_PASSWORD=
   # Alternatively, can be a path to a file with the root password

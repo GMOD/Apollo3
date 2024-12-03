@@ -329,10 +329,7 @@ DESCRIPTION
   - accessToken:
   Access token. Usually inserted by `apollo login`
 
-  - rootCredentials.username:
-  Username of root account. Only set this for "root" access type
-
-  - rootCredentials.password:
+  - rootPassword:
   Password for root account. Only set this for "root" access type
 
 EXAMPLES
