@@ -120,7 +120,9 @@ function readFeatureFile(fn: string): GFF3Feature[] {
   return inGff
 }
 
-function readAnnotationFeatureSnapshot(fn: string): AnnotationFeatureSnapshot {
+export function readAnnotationFeatureSnapshot(
+  fn: string,
+): AnnotationFeatureSnapshot {
   const lines = readFileSync(fn).toString()
   return JSON.parse(lines) as AnnotationFeatureSnapshot
 }
