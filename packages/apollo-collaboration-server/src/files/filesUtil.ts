@@ -91,25 +91,22 @@ export async function writeFileAndCalculateHash(
   return fileChecksum
 }
 
-async function unzip(input: FileHandle): Promise<Buffer> {
+async function loadContents(input: FileHandle): Promise<Buffer> {
   const gunzipP = promisify(gunzip)
   const fileContents = await input.readFile()
   const unzippedContents = await gunzipP(fileContents)
+  await input.close()
   return unzippedContents
 }
 
 export class LocalFileGzip implements GenericFilehandle {
-  private fileHandle: Promise<FileHandle>
   private contents: Promise<Buffer>
-  private filename: string
   private opts: FilehandleOptions
 
   public constructor(source: string, opts: FilehandleOptions = {}) {
-    this.filename = source
     this.opts = opts
     const fhPromise = open(source)
-    this.fileHandle = fhPromise
-    this.contents = fhPromise.then((fh) => unzip(fh))
+    this.contents = fhPromise.then((fh) => loadContents(fh))
   }
 
   public async read(
@@ -155,8 +152,7 @@ export class LocalFileGzip implements GenericFilehandle {
     return { size: contents.length }
   }
 
-  public async close(): Promise<void> {
-    const fh = await this.fileHandle
-    return fh.close()
+  public close(): Promise<void> {
+    return Promise.resolve()
   }
 }
