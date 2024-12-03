@@ -121,9 +121,9 @@ export class LocalFileGzip implements GenericFilehandle {
     const unzippedContents = await this.contents
     const bytesRead = unzippedContents.copy(
       buffer,
-      position,
       offset,
-      offset + length,
+      position,
+      position + length,
     )
     return { bytesRead, buffer }
   }
