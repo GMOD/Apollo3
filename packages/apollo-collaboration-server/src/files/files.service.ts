@@ -86,8 +86,6 @@ export class FilesService {
     return fileStream.pipe(gunzip)
   }
 
-  private fileHandleCache: Record<string, GenericFilehandle | undefined> = {}
-
   getFileHandle(file: FileDocument): GenericFilehandle {
     const fileUploadFolder = this.configService.get('FILE_UPLOAD_FOLDER', {
       infer: true,
@@ -96,13 +94,7 @@ export class FilesService {
     switch (file.type) {
       case 'text/x-fai':
       case 'application/x-gzi': {
-        const fileHandleCacheHit = this.fileHandleCache[fileName]
-        if (fileHandleCacheHit) {
-          return fileHandleCacheHit
-        }
-        const fh = new LocalFileGzip(fileName)
-        this.fileHandleCache[fileName] = fh
-        return fh
+        return new LocalFileGzip(fileName)
       }
       case 'application/x-bgzip-fasta':
       case 'text/x-gff3':
