@@ -66,36 +66,30 @@ export class SequenceService {
     }
 
     if (assemblyDoc?.fileIds?.fai) {
-      const { fa, fai, gzi } = assemblyDoc.fileIds
-      this.logger.debug(
-        `Local fasta file = ${fa}, Local fasta index file = ${fai}, Local gzi index file = ${gzi}`,
-      )
-      const faDoc = await this.fileModel.findById(fa)
+      const { fa: faId, fai: faiId, gzi: gziId } = assemblyDoc.fileIds
+      const faDoc = await this.fileModel.findById(faId)
       if (!faDoc) {
-        throw new Error(`No checksum for file document ${fa}`)
+        throw new Error(`No checksum for file document ${faId}`)
       }
 
-      const faiDoc = await this.fileModel.findById(fai)
+      const faiDoc = await this.fileModel.findById(faiId)
       if (!faiDoc) {
-        throw new Error(`File document not found for ${fai}`)
+        throw new Error(`File document not found for ${faiId}`)
       }
 
-      const gziDoc = await this.fileModel.findById(gzi)
+      const gziDoc = await this.fileModel.findById(gziId)
       if (!gziDoc) {
-        throw new Error(`File document not found for ${gzi}`)
+        throw new Error(`File document not found for ${gziId}`)
       }
 
-      const sequenceAdapter = gzi
-        ? new BgzipIndexedFasta({
-            fasta: this.filesService.getFileHandle(faDoc),
-            fai: this.filesService.getFileHandle(faiDoc),
-            gzi: this.filesService.getFileHandle(gziDoc),
-          })
-        : new IndexedFasta({
-            fasta: this.filesService.getFileHandle(faDoc),
-            fai: this.filesService.getFileHandle(faiDoc),
-          })
+      const fasta = this.filesService.getFileHandle(faDoc)
+      const fai = this.filesService.getFileHandle(faiDoc)
+      const gzi = gziId ? this.filesService.getFileHandle(gziDoc) : undefined
+      const sequenceAdapter = gziId
+        ? new BgzipIndexedFasta({ fasta, fai, gzi })
+        : new IndexedFasta({ fasta, fai })
       const sequence = await sequenceAdapter.getSequence(name, start, end)
+      await Promise.all([fasta.close(), fai.close(), gzi?.close()])
       if (sequence === undefined) {
         throw new Error('Sequence not found')
       }

@@ -87,7 +87,7 @@ export class AddAssemblyFromFileChange extends FromFileBaseChange {
       throw new Error('No FILE_UPLOAD_FOLDER found in .env file')
     }
 
-    const { fa, fai, gzi } = fileIds
+    const { fa: faId, fai: faiId, gzi: gziId } = fileIds
     const {
       assemblyModel,
       checkModel,
@@ -97,30 +97,30 @@ export class AddAssemblyFromFileChange extends FromFileBaseChange {
       user,
     } = backend
 
-    const faDoc = await fileModel.findById(fa)
+    const faDoc = await fileModel.findById(faId)
     const faChecksum = faDoc?.checksum
     if (!faChecksum) {
       throw new Error(`No checksum for file document ${faDoc}`)
     }
 
-    const faiDoc = await fileModel.findById(fai)
+    const faiDoc = await fileModel.findById(faiId)
     const faiChecksum = faiDoc?.checksum
     if (!faiChecksum) {
       throw new Error(`No checksum for file document ${faiDoc}`)
     }
 
-    const gziDoc = await fileModel.findById(gzi)
+    const gziDoc = await fileModel.findById(gziId)
     const gziChecksum = gziDoc?.checksum
     if (!gziChecksum) {
       throw new Error(`No checksum for file document ${gziDoc}`)
     }
 
-    const sequenceAdapter = new BgzipIndexedFasta({
-      fasta: filesService.getFileHandle(faDoc),
-      fai: filesService.getFileHandle(faiDoc),
-      gzi: filesService.getFileHandle(gziDoc),
-    })
+    const fasta = filesService.getFileHandle(faDoc)
+    const fai = filesService.getFileHandle(faiDoc)
+    const gzi = filesService.getFileHandle(gziDoc)
+    const sequenceAdapter = new BgzipIndexedFasta({ fasta, fai, gzi })
     const allSequenceSizes = await sequenceAdapter.getSequenceSizes()
+    await Promise.all([fasta.close(), fai.close(), gzi.close()])
 
     const assemblyDoc = await assemblyModel
       .findOne({ name: assemblyName })
