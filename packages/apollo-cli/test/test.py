@@ -882,11 +882,11 @@ class TestCLI(unittest.TestCase):
         self.assertTrue(len(out) > 0)
         self.assertTrue(len(out) > len(out2))
 
-        p = shell(f"{apollo} user get {P} -r admin -u admin")
+        p = shell(f"{apollo} user get {P} -r admin -u root")
         out = json.loads(p.stdout)
         self.assertEqual(len(out), 1)
 
-        p = shell(f"{apollo} user get {P} -r readOnly -u admin")
+        p = shell(f"{apollo} user get {P} -r readOnly -u root")
         out = json.loads(p.stdout)
         self.assertEqual(len(out), 0)
 
