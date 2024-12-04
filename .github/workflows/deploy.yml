@@ -106,7 +106,6 @@ jobs:
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          ROOT_USER_NAME: ${{ secrets.ROOT_USER_NAME }}
           ROOT_USER_PASSWORD: ${{ secrets.ROOT_USER_PASSWORD }}
           URL: ${{ vars.URL }}
           DOCKER_TAG: ${{ vars.DOCKER_TAG }}

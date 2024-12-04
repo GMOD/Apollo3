@@ -119,12 +119,8 @@ export default class ApolloConfig extends BaseCommand<typeof ApolloConfig> {
 
     config.setAccessType(profileName, accessType)
     if (accessType === 'root') {
-      const username: string = await this.askUsername(
-        config.get(`${profileName}.${KEYS.rootCredentials_username}`) as string,
-      )
-      config.set(`${profileName}.rootCredentials.username`, username)
       const password: string = await this.askPassword()
-      config.set(`${profileName}.rootCredentials.password`, password)
+      config.set(`${profileName}.rootPassword`, password)
     }
   }
 

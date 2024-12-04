@@ -25,8 +25,7 @@ def setUpModule():
     # See apollo-collaboration-server/.development.env for credentials etc.
     shell(f"{apollo} config --config-file {configFile} address http://localhost:3999")
     shell(f"{apollo} config --config-file {configFile} accessType root")
-    shell(f"{apollo} config --config-file {configFile} rootCredentials.username admin")
-    shell(f"{apollo} config --config-file {configFile} rootCredentials.password pass")
+    shell(f"{apollo} config --config-file {configFile} rootPassword pass")
     shell(f"{apollo} login --config-file {configFile}", timeout=60)
 
 

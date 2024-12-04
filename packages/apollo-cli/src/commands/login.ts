@@ -97,16 +97,13 @@ need to execute this command again unless the token has expired. To setup a new 
         await this.checkUserAlreadyLoggedIn(config, profileName)
       }
       if (accessType === 'root' || flags.username !== undefined) {
-        const username: string =
-          flags.username ??
-          (config.get(`${profileName}.rootCredentials.username`) as string)
         const password: string =
           flags.password ??
-          (config.get(`${profileName}.rootCredentials.password`) as string)
-        if (username === undefined || password === undefined) {
+          (config.get(`${profileName}.rootPassword`) as string)
+        if (password === undefined) {
           this.error('Username and password must be set')
         }
-        userCredentials = await this.startRootLogin(address, username, password)
+        userCredentials = await this.startRootLogin(address, password)
       } else if (accessType === 'guest') {
         userCredentials = await this.startGuestLogin(address)
       } else if (accessType === undefined) {
@@ -152,14 +149,13 @@ need to execute this command again unless the token has expired. To setup a new 
 
   private async startRootLogin(
     address: string,
-    username: string,
     password: string,
   ): Promise<UserCredentials> {
     const url = localhostToAddress(`${address}/auth/root`)
     const response = await fetch(url, {
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ password }),
     })
     if (!response.ok) {
       const errorMessage = await createFetchErrorMessage(

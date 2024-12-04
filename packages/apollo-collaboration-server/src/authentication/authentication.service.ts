@@ -35,9 +35,10 @@ interface ConfigValues {
   GOOGLE_CLIENT_ID_FILE?: string
   ALLOW_GUEST_USER: boolean
   DEFAULT_NEW_USER_ROLE: Role
-  ROOT_USER_NAME: string
   ROOT_USER_PASSWORD: string
 }
+
+const ROOT_USER_NAME = 'root'
 
 @Injectable()
 export class AuthenticationService {
@@ -147,17 +148,11 @@ export class AuthenticationService {
     throw new UnauthorizedException('Guest users are not allowed')
   }
 
-  async rootLogin(username: string, password: string) {
-    const root_user_name: string = this.configService.get('ROOT_USER_NAME')
-    if (
-      username === root_user_name &&
-      password === this.configService.get('ROOT_USER_PASSWORD')
-    ) {
-      return this.logIn(root_user_name, ROOT_USER_EMAIL)
+  async rootLogin(password: string) {
+    if (password === this.configService.get('ROOT_USER_PASSWORD')) {
+      return this.logIn(ROOT_USER_NAME, ROOT_USER_EMAIL)
     }
-    throw new UnauthorizedException(
-      'Invalid username or password for ROOT user',
-    )
+    throw new UnauthorizedException('Invalid password for ROOT user')
   }
 
   /**
@@ -171,9 +166,7 @@ export class AuthenticationService {
     let user = await this.usersService.findByEmail(email)
     if (!user) {
       let newUserRole = this.defaultNewUserRole
-      const isRootUser =
-        name === this.configService.get('ROOT_USER_NAME') &&
-        email === ROOT_USER_EMAIL
+      const isRootUser = name === ROOT_USER_NAME && email === ROOT_USER_EMAIL
       if (isRootUser) {
         newUserRole = Role.Admin
       } else {

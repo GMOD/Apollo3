@@ -8,8 +8,7 @@ P="--profile auto"
 
 apollo config ${P} address http://localhost:3999
 apollo config ${P} accessType root
-apollo config ${P} rootCredentials.username admin
-apollo config ${P} rootCredentials.password pass
+apollo config ${P} rootPassword pass
 apollo login ${P}
 
 mkdir -p demoData # or some other dir of your choice

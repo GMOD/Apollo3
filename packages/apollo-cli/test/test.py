@@ -27,8 +27,7 @@ def setUpModule():
     # See apollo-collaboration-server/.development.env for credentials etc.
     shell(f"{apollo} config {P} address http://localhost:3999")
     shell(f"{apollo} config {P} accessType root")
-    shell(f"{apollo} config {P} rootCredentials.username admin")
-    shell(f"{apollo} config {P} rootCredentials.password pass")
+    shell(f"{apollo} config {P} rootPassword pass")
     shell(f"{apollo} login {P} -f")
 
 
@@ -59,7 +58,6 @@ class TestCLI(unittest.TestCase):
 
     def testCanChangeAccessType(self):
         p = shell(f"{apollo} config {P} accessType google")
-        p = shell(f"{apollo} config {P} rootCredentials.username")
         self.assertEqual("", p.stdout.strip())
 
     def testApolloStatus(self):
@@ -884,11 +882,11 @@ class TestCLI(unittest.TestCase):
         self.assertTrue(len(out) > 0)
         self.assertTrue(len(out) > len(out2))
 
-        p = shell(f"{apollo} user get {P} -r admin -u admin")
+        p = shell(f"{apollo} user get {P} -r admin -u root")
         out = json.loads(p.stdout)
         self.assertEqual(len(out), 1)
 
-        p = shell(f"{apollo} user get {P} -r readOnly -u admin")
+        p = shell(f"{apollo} user get {P} -r readOnly -u root")
         out = json.loads(p.stdout)
         self.assertEqual(len(out), 0)
 
@@ -897,8 +895,7 @@ class TestCLI(unittest.TestCase):
             f"""export APOLLO_PROFILE=testAdmin2
                 {apollo} config address http://localhost:3999
                 {apollo} config accessType root
-                {apollo} config rootCredentials.username admin
-                {apollo} config rootCredentials.password pass
+                {apollo} config rootPassword pass
                 {apollo} login
                 {apollo} status
                 {apollo} user get"""
