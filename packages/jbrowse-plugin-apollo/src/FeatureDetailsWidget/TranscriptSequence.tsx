@@ -169,7 +169,11 @@ export const TranscriptSequence = observer(function TranscriptSequence({
   if (!refSeq) {
     return null
   }
-  if (feature.type !== 'mRNA') {
+  const { featureTypeOntology } = session.apolloDataStore.ontologyManager
+  if (!featureTypeOntology) {
+    throw new Error('featureTypeOntology is undefined')
+  }
+  if (featureTypeOntology.isTypeOf(feature.type, 'mRNA')) {
     return null
   }
 

@@ -76,7 +76,7 @@ Cypress.Commands.add('addOntologies', () => {
             },
             {
               name: 'Sequence Ontology',
-              version: '3.1',
+              version: 'unversioned',
               source: {
                 uri: 'http://localhost:9000/test_data/so-v3.1.json',
                 locationType: 'UriLocation',
@@ -91,6 +91,16 @@ Cypress.Commands.add('addOntologies', () => {
   cy.readFile('cypress/data/go.json.gz', null).then((goGZip: Buffer) => {
     cy.wrap<Promise<void>>(
       loadOntology(goGZip, 'Apollo Ontology "Gene Ontology" "full"', 2),
+      { timeout: 120_000 },
+    )
+  })
+  cy.readFile('cypress/data/so.json.gz', null).then((soGZip: Buffer) => {
+    cy.wrap<Promise<void>>(
+      loadOntology(
+        soGZip,
+        'Apollo Ontology "Sequence Ontology" "unversioned"',
+        2,
+      ),
       { timeout: 120_000 },
     )
   })
