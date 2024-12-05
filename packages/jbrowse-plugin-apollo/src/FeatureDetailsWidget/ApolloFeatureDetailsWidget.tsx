@@ -8,6 +8,7 @@ import { Attributes } from './Attributes'
 import { BasicInformation } from './BasicInformation'
 import { ApolloFeatureDetailsWidget as ApolloFeatureDetails } from './model'
 import { Sequence } from './Sequence'
+import { FeatureDetailsNavigation } from './FeatureDetailsNavigation'
 
 const useStyles = makeStyles()((theme) => ({
   root: {
@@ -59,6 +60,9 @@ export const ApolloFeatureDetailsWidget = observer(
           assembly={currentAssembly._id}
           refName={refName}
         />
+        <hr />
+        <FeatureDetailsNavigation model={model} feature={feature} />
+        <hr />
       </div>
     )
   },
