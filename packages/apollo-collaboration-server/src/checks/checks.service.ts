@@ -73,7 +73,7 @@ export class ChecksService {
   }
 
   async checkFeatures(docs: FeatureDocument[], checkTimestamps = true) {
-    if (docs.length > 0) {
+    if (docs.length > 1) {
       this.logger.debug(`Checking ${docs.length} features`)
     }
     let docsChecked = 1
