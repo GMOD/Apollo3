@@ -72,10 +72,29 @@ export class ChecksService {
     return assemblyDoc.checks as unknown as CheckDocument[]
   }
 
+  async checkFeatures(docs: FeatureDocument[], checkTimestamps = true) {
+    if (docs.length > 1) {
+      this.logger.debug(`Checking ${docs.length} features`)
+    }
+    let docsChecked = 1
+    for (const doc of docs) {
+      if (docsChecked % 1000 === 0) {
+        this.logger.debug(`checked ${docsChecked} features`)
+      }
+      // @ts-expect-error ownerDocument does exist, TS just doesn't know it
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      if (doc.ownerDocument() === doc && doc.status === 0) {
+        await this.checkFeature(doc, checkTimestamps)
+      }
+      docsChecked += 1
+    }
+  }
+
   async checkFeature(
     doc: FeatureDocument,
     checkTimestamps = true,
   ): Promise<void> {
+    await this.clearChecksForFeature(doc)
     const flatDoc: AnnotationFeatureSnapshot = doc.toObject({
       flattenMaps: true,
     })

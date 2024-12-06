@@ -46,7 +46,6 @@ export class SequenceService {
 
     if (assemblyDoc?.externalLocation) {
       const { fa, fai, gzi } = assemblyDoc.externalLocation
-      this.logger.debug(`Fasta file URL = ${fa}, Fasta index file URL = ${fai}`)
 
       const sequenceAdapter = gzi
         ? new BgzipIndexedFasta({
