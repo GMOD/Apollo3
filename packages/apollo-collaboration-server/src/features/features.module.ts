@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   Feature,
   FeatureDocument,
@@ -31,11 +30,10 @@ import { FeaturesService } from './features.service'
         useFactory: (connection: Connection, checksService: ChecksService) => {
           FeatureSchema.plugin(idValidator, { connection })
           const runChecksOnDocument = async (doc: FeatureDocument) => {
-            // @ts-expect-error ownerDocument does exist, TS just doesn't know it
-            if (doc.ownerDocument() === doc && doc.status === 0) {
-              await checksService.clearChecksForFeature(doc)
-              await checksService.checkFeature(doc, false)
-            }
+            await checksService.checkFeatures([doc])
+          }
+          const runChecksOnDocuments = async (docs: FeatureDocument[]) => {
+            await checksService.checkFeatures(docs)
           }
           FeatureSchema.post('save', runChecksOnDocument)
           FeatureSchema.post('updateOne', runChecksOnDocument)
@@ -43,17 +41,13 @@ import { FeaturesService } from './features.service'
             const features = await this.model.find<FeatureDocument>(
               this.getQuery(),
             )
-            for (const feature of features) {
-              await runChecksOnDocument(feature)
-            }
+            await runChecksOnDocuments(features)
           })
           FeatureSchema.post('findOneAndUpdate', async function () {
             const features = await this.model.find<FeatureDocument>(
               this.getQuery(),
             )
-            for (const feature of features) {
-              await runChecksOnDocument(feature)
-            }
+            await runChecksOnDocuments(features)
           })
           FeatureSchema.post('updateMany', async function () {
             const query = this.getQuery()
@@ -61,17 +55,13 @@ import { FeaturesService } from './features.service'
               delete query.$and[0].status
             }
             const features = await this.model.find<FeatureDocument>(query)
-            for (const feature of features) {
-              await runChecksOnDocument(feature)
-            }
+            await runChecksOnDocuments(features)
           })
           FeatureSchema.post('replaceOne', async function () {
             const features = await this.model.find<FeatureDocument>(
               this.getQuery(),
             )
-            for (const feature of features) {
-              await runChecksOnDocument(feature)
-            }
+            await runChecksOnDocuments(features)
           })
           return FeatureSchema
         },
