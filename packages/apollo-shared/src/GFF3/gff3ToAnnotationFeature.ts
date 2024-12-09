@@ -154,8 +154,19 @@ function convertChildren(
   const { child_features: childFeatures } = firstFeature
 
   const cdsFeatures: GFF3Feature[] = []
+  const exonFeatures: GFF3Feature[] = []
+  const utrFeatures: GFF3Feature[] = []
   for (const childFeature of childFeatures) {
     const [firstChildFeatureLocation] = childFeature
+    if (firstChildFeatureLocation.type === 'exon') {
+      exonFeatures.push(childFeature)
+    }
+    if (
+      firstChildFeatureLocation.type === 'three_prime_UTR' ||
+      firstChildFeatureLocation.type === 'five_prime_UTR'
+    ) {
+      utrFeatures.push(childFeature)
+    }
     if (
       firstChildFeatureLocation.type === 'three_prime_UTR' ||
       firstChildFeatureLocation.type === 'five_prime_UTR' ||
@@ -174,14 +185,115 @@ function convertChildren(
   }
   const processedCDS =
     cdsFeatures.length > 0 ? processCDS(cdsFeatures, refSeq, featureIds) : []
+
   for (const cds of processedCDS) {
     convertedChildren[cds._id] = cds
+  }
+
+  const missingExons = inferMissingExons(
+    cdsFeatures,
+    exonFeatures,
+    utrFeatures,
+    refSeq,
+  )
+  for (const exon of missingExons) {
+    convertedChildren[exon._id] = exon
   }
 
   if (Object.keys(convertedChildren).length > 0) {
     return convertedChildren
   }
   return
+}
+
+function inferMissingExons(
+  cdsFeatures: GFF3Feature[],
+  existingExons: GFF3Feature[],
+  utrFeatures: GFF3Feature[],
+  refSeq?: string,
+): AnnotationFeatureSnapshot[] {
+  if (!refSeq) {
+    return []
+    // throw new Error('refSeq is missing')
+  }
+  const missingExons: AnnotationFeatureSnapshot[] = []
+  for (const protein of cdsFeatures) {
+    for (const cds of protein) {
+      let exonFound = false
+      for (const x of existingExons) {
+        if (x.length != 1) {
+          throw new Error('Unexpected number fo exons')
+        }
+        const [exon] = x
+        if (
+          exon.start &&
+          exon.end &&
+          cds.start &&
+          cds.end &&
+          exon.start <= cds.start &&
+          exon.end >= cds.end
+        ) {
+          exonFound = true
+          break
+        }
+      }
+      if (!exonFound) {
+        if (!cds.start || !cds.end) {
+          throw new Error('Invalid CDS feature')
+        }
+        const newExon: AnnotationFeatureSnapshot = {
+          _id: new ObjectID().toHexString(),
+          refSeq,
+          type: 'exon',
+          min: cds.start - 1,
+          max: cds.end,
+          strand: cds.strand === '+' ? 1 : cds.strand === '-' ? -1 : undefined,
+        }
+        for (const utr of utrFeatures) {
+          if (utr.length != 1 || !utr[0].start || !utr[0].end) {
+            throw new Error('Too many  UTRs')
+          }
+          // If the new exon is adjacent to a UTR, merge the UTR
+          if (utr[0].end === newExon.min) {
+            newExon.min = utr[0].start - 1
+            break
+          }
+          if (newExon.max + 1 === utr[0].start) {
+            newExon.max = utr[0].end
+            break
+          }
+        }
+        missingExons.push(newExon)
+      }
+    }
+  }
+  const mergedExons = mergeAnnotationFeatures(missingExons)
+  return mergedExons
+}
+
+function mergeAnnotationFeatures(
+  features: AnnotationFeatureSnapshot[],
+): AnnotationFeatureSnapshot[] {
+  if (features.length === 0) {
+    return []
+  }
+  features.sort((a, b) => a.min - b.min)
+
+  const res = []
+  res.push(features[0])
+
+  for (let i = 1; i < features.length; i++) {
+    const last = res.at(-1)
+    const curr = features[i]
+
+    // If current interval overlaps with the last merged interval, merge them
+    if (last && curr.min <= last.max) {
+      last.max = Math.max(last.max, curr.max)
+    } else {
+      res.push(curr)
+    }
+  }
+  return res
 }
 
 /**

@@ -197,6 +197,14 @@ describe('gff3ToAnnotationFeature examples', () => {
   })
 })
 
+describe('CDS without exons', () => {
+  it('Convert mRNA with CDS but without exon', () => {
+    const [gffFeature] = readFeatureFile('test_data/cds_without_exon.gff')
+    const actual = gff3ToAnnotationFeature(gffFeature)
+    assert.deepEqual(JSON.stringify(actual), '')
+  })
+})
+
 describe('gff3ToAnnotationFeature', () => {
   for (const testCase of testCases) {
     const [description, featureLine, convertedFeature] = testCase
