@@ -3,7 +3,6 @@
 ctgA	example	gene	1050	9000	.	+	.	ID=eden
 ctgA	example	mRNA	1050	9000	.	+	.	ID=eden.1;Parent=eden
 ctgA	example	five_prime_UTR	1050	1210	.	+	0	ID=five1;Parent=eden.1
-ctgA	example	exon	1211	1510	.	+	0	ID=exon2;Parent=eden.1
 ctgA	example	CDS	1211	1510	.	+	0	ID=cds2;Parent=eden.1
 ctgA	example	CDS	1611	1710	.	+	0	ID=cds2;Parent=eden.1
 ctgA	example	three_prime_UTR	1711	1800	.	+	0	ID=three1;Parent=eden.1

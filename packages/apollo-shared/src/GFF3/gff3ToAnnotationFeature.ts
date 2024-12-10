@@ -183,21 +183,23 @@ function convertChildren(
       convertedChildren[child._id] = child
     }
   }
-  const processedCDS =
-    cdsFeatures.length > 0 ? processCDS(cdsFeatures, refSeq, featureIds) : []
 
-  for (const cds of processedCDS) {
-    convertedChildren[cds._id] = cds
-  }
+  if (cdsFeatures.length > 0) {
+    const processedCDS = processCDS(cdsFeatures, refSeq, featureIds)
 
-  const missingExons = inferMissingExons(
-    cdsFeatures,
-    exonFeatures,
-    utrFeatures,
-    refSeq,
-  )
-  for (const exon of missingExons) {
-    convertedChildren[exon._id] = exon
+    for (const cds of processedCDS) {
+      convertedChildren[cds._id] = cds
+    }
+
+    const missingExons = inferMissingExons(
+      cdsFeatures,
+      exonFeatures,
+      utrFeatures,
+      processedCDS[0].refSeq,
+    )
+    for (const exon of missingExons) {
+      convertedChildren[exon._id] = exon
+    }
   }
 
   if (Object.keys(convertedChildren).length > 0) {
@@ -210,15 +212,12 @@ function inferMissingExons(
   cdsFeatures: GFF3Feature[],
   existingExons: GFF3Feature[],
   utrFeatures: GFF3Feature[],
-  refSeq?: string,
+  refSeq: string,
 ): AnnotationFeatureSnapshot[] {
-  if (!refSeq) {
-    return []
-    // throw new Error('refSeq is missing')
-  }
   const missingExons: AnnotationFeatureSnapshot[] = []
   for (const protein of cdsFeatures) {
     for (const cds of protein) {
+      // For CDS check if there is an exon containing it. If not, create an exon with same coords as the CDS.
       let exonFound = false
       for (const x of existingExons) {
         if (x.length != 1) {
@@ -241,19 +240,25 @@ function inferMissingExons(
         if (!cds.start || !cds.end) {
           throw new Error('Invalid CDS feature')
         }
+        let strand: 1 | -1 | undefined = undefined
+        if (cds.strand === '+') {
+          strand = 1
+        } else if (cds.strand === '-') {
+          strand = -1
+        }
         const newExon: AnnotationFeatureSnapshot = {
           _id: new ObjectID().toHexString(),
           refSeq,
           type: 'exon',
           min: cds.start - 1,
           max: cds.end,
-          strand: cds.strand === '+' ? 1 : cds.strand === '-' ? -1 : undefined,
+          strand,
         }
         for (const utr of utrFeatures) {
-          if (utr.length != 1 || !utr[0].start || !utr[0].end) {
-            throw new Error('Too many  UTRs')
-          }
           // If the new exon is adjacent to a UTR, merge the UTR
+          if (utr.length != 1 || !utr[0].start || !utr[0].end) {
+            throw new Error('Too many UTRs or invalid UTR')
+          }
           if (utr[0].end === newExon.min) {
             newExon.min = utr[0].start - 1
             break
