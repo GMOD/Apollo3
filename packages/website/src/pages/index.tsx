@@ -1,7 +1,8 @@
 // import Link from '@docusaurus/Link'
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
 import Head from '@docusaurus/Head'
-// import HomepageFeatures from '@site/src/components/HomepageFeatures'
+import DemoLink from '@site/src/components/DemoLink'
+import HomepageFeatures from '@site/src/components/HomepageFeatures'
 import Heading from '@theme/Heading'
 import Layout from '@theme/Layout'
 import { clsx } from 'clsx'
@@ -18,14 +19,6 @@ function HomepageHeader() {
           {siteConfig.title}
         </Heading>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
-        {/* <div className={styles.buttons}>
-          <Link
-            className="button button--secondary button--lg"
-            to="/docs/intro"
-          >
-            Docusaurus Tutorial - 5min ⏱️
-          </Link>
-        </div> */}
       </div>
     </header>
   )
@@ -48,8 +41,9 @@ ml('account', '770673');
       <Layout title={siteConfig.title} description={siteConfig.tagline}>
         <HomepageHeader />
         <main>
+          <DemoLink />
+          <HomepageFeatures />
           <div className="ml-embedded" data-form="fAN2W8"></div>
-          {/* <HomepageFeatures /> */}
         </main>
       </Layout>
     </>
