@@ -1,8 +1,7 @@
-# Apollo 3 Deployment
+# Deploying with Docker Compose
 
-This guide will walk you through the deployment of a basic Apollo 3
-installation. By the end of this guide you will be ready to start loading in
-data and annotating in Apollo 3.
+One way to deploy Apollo is to use Docker Compose to organize all the needed
+pieces. This is what we use to deploy our demo Apollo site.
 
 ## Prerequisites
 
@@ -28,9 +27,9 @@ instance.
 
 ## Initial setup
 
-Create three files on your server called `apollo.env`, `docker-compose.yml`, and
-`config.json`. The location of the files doesn't matter, and for this guide
-we'll assume you've created them in a directory called `apollo/` in your home
+Create three files on your server called `apollo.env`, `compose.yml`, and
+`Dockerfile`. The location of the files doesn't matter, and for this guide we'll
+assume you've created them in a directory called `apollo/` in your home
 directory.
 
 ```sh
@@ -41,18 +40,15 @@ touch docker-compose.yml apollo.env config.json
 ```
 
 Using whatever file editing method you'd like, copy the contents of these sample
-files into `apollo.env`, `docker-compose.yml`, and `config.json`:
-[sample env file](./apollo.env),
-[sample docker-compose file](./docker-compose.yml), and
-[sample JBrowse config file](./config.json). Then we'll need to update a few
-values in `apollo.env`. Where it says `URL=http://example.com`, replace
-`http://example.com` with the URL of your server using the domain name mentioned
-above. You'll also need to change `JWT_SECRET`. This value can be anything, but
-it's best if it's a secure random value. One option is to use a password
-generator to create a password to put here. The last value you'll need to change
-is `SESSION_SECRET`. This should also be a random value, the same as
-`JWT_SECRET`. All the other entries in this file can be left as they are for
-now.
+files into `apollo.env`, `docker-compose.yml`, and `config.json`. Then we'll
+need to update a few values in `apollo.env`. Where it says
+`URL=http://example.com`, replace `http://example.com` with the URL of your
+server using the domain name mentioned above. You'll also need to change
+`JWT_SECRET`. This value can be anything, but it's best if it's a secure random
+value. One option is to use a password generator to create a password to put
+here. The last value you'll need to change is `SESSION_SECRET`. This should also
+be a random value, the same as `JWT_SECRET`. All the other entries in this file
+can be left as they are for now.
 
 We'll also need to change a couple things in `config.json`. Under
 "internetAccounts" where it says "baseURL", change it to the same URL you used
