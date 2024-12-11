@@ -18,7 +18,7 @@ Apollo3.
    ![alt text](image-1.png)
 
    - Upload gff3 file containing annotation along with sequence. If we want to
-     upload annotations along with the sequence, we needc to select
+     upload annotations along with the sequence, we need to select
      `Also load features from GFF3 file`.
 
    ![alt text](image-2.png)

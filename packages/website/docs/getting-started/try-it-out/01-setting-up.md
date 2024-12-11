@@ -19,59 +19,11 @@ unzip data.zip
 rm data.zip
 ```
 
-You'll now have a folder called `data/` in your directory.
-
-## Setting up the Apollo CLI
-
-The Apollo CLI is used to configure and load data into Apollo. We'll need a
-config file for our CLI configuration. For simplicity, we'll create an empty
-file called `config.yml` in a new directory.
-
-```sh
-mkdir cli
-touch cli/config.yml
-```
-
-We'll use Docker to run the Apollo CLI. To avoid having to re-type the Docker
-commands, we use this function:
-
-```sh
-function apollo() {
-  docker \
-    run \
-    --rm \
-    --interactive \
-    --add-host host.docker.internal=host-gateway \
-    --volume ./cli:/root/.config/apollo-cli \
-    --volume ./data:/data \
-    ghcr.io/gmod/apollo-cli \
-    "$@"
-}
-```
-
-Paste and run the above command in your terminal to create the function, then
-run `apollo version` in your terminal. You should see something like this
-output:
-
-```
-$ apollo --version
-@apollo-annotation/cli/0.1.20 linux-x64 node-v18.20.4
-```
-
-:::tip
-
-If you're familiar with installing Node.js packages you can install the Apollo
-CLI instead of using Docker.
-
-```bash npm2yarn
-npm install -g @apollo-annotation/cli
-```
-
-:::
+You'll now have two directories called `data/` and `jbrowse_data/`.
 
 ## Running Apollo
 
-Create a file called `config.yml` and paste the following contents into the
+Create a file called `compose.yml` and paste the following contents into the
 file:
 
 ```yml title="compose.yml"
@@ -90,6 +42,7 @@ services:
       ALLOW_GUEST_USER: true
       GUEST_USER_ROLE: admin
       ALLOW_ROOT_USER: true
+      ROOT_USER_NAME: root
       ROOT_USER_PASSWORD: password
       JWT_SECRET: local_testing_only
       SESSION_SECRET: local_testing_only
@@ -170,6 +123,6 @@ volumes:
   uploads: null
 ```
 
-Now in the terminal, run `cd apollo3-annotation/` and `docker compose up`.
-Apollo is now running! You can use <kbd>Ctrl</kbd> + <kbd>C</kbd> to stop it
-when you are done.
+Now in the terminal, run `docker compose up`. You should see a stream of logs
+from the Docker containers. If you do, Apollo is now running! You can use
+<kbd>Ctrl</kbd> + <kbd>C</kbd> in the terminal to stop Apollo when you are done.
