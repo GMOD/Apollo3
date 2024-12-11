@@ -58,6 +58,17 @@ $ apollo --version
 @apollo-annotation/cli/0.1.20 linux-x64 node-v18.20.4
 ```
 
+:::tip
+
+If you're familiar with installing Node.js packages you can install the Apollo
+CLI instead of using Docker.
+
+```bash npm2yarn
+npm install -g @apollo-annotation/cli
+```
+
+:::
+
 ## Running Apollo
 
 Create a file called `config.yml` and paste the following contents into the
