@@ -1,6 +1,7 @@
 import { themes as prismThemes } from 'prism-react-renderer'
 import type { Config } from '@docusaurus/types'
 import type * as Preset from '@docusaurus/preset-classic'
+import remarkPluginNpm2Yarn from '@docusaurus/remark-plugin-npm2yarn'
 
 const config: Config = {
   title: 'Apollo',
@@ -40,6 +41,7 @@ const config: Config = {
           // Remove this to remove the "edit this page" links.
           editUrl:
             'https://github.com/GMOD/Apollo3/tree/main/packages/website/',
+          remarkPlugins: [[remarkPluginNpm2Yarn, { sync: true }]],
         },
         theme: {
           customCss: './src/css/custom.css',
