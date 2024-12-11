@@ -1,12 +1,62 @@
 # Loading data
 
+## Setting up the Apollo CLI
+
+The Apollo CLI is used to configure and load data into Apollo. We'll need a
+config file for our CLI configuration. For simplicity, we'll create an empty
+file called `config.yml` in a new directory.
+
+```sh
+mkdir cli
+touch cli/config.yml
+```
+
+We'll use Docker to run the Apollo CLI. To avoid having to re-type the Docker
+commands, we use this function:
+
+```sh
+function apollo() {
+  docker \
+    run \
+    --rm \
+    --interactive \
+    --add-host host.docker.internal=host-gateway \
+    --volume ./cli:/root/.config/apollo-cli \
+    --volume ./data:/data \
+    ghcr.io/gmod/apollo-cli \
+    "$@"
+}
+```
+
+Paste and run the above command in your terminal to create the function, then
+run `apollo version` in your terminal. You should see something like this
+output:
+
+```
+$ apollo --version
+@apollo-annotation/cli/0.1.20 linux-x64 node-v18.20.4
+```
+
+:::tip
+
+If you're familiar with installing Node.js packages you can install the Apollo
+CLI instead of using Docker.
+
+```bash npm2yarn
+npm install -g @apollo-annotation/cli
+```
+
+:::
+
+## Configuring the Apollo CLI
+
 Open a new terminal in the same directory where you ran the setup commands. To
 use the Apollo CLI, we need to configure it with the information for the running
 Apollo installation. You can have multiple profiles configured, but we will use
 a single default profile. Run these commands:
 
 ```sh
-apollo config address http://localhost/apollo
+apollo config address http://host.docker.internal/apollo
 apollo config accessType root
 apollo config rootCredentials.username root
 apollo config rootCredentials.password password
@@ -15,6 +65,8 @@ apollo login
 
 If you need to log in again, run `apollo logout` first, or use
 `apollo login --force`.
+
+## Adding assemblies
 
 The next step is to add an assembly. We're going to use use trimmed-down
 assembly that only includes a single chromosome. This is so that the data is
@@ -34,7 +86,7 @@ apollo assembly \
   --assembly 'Schistosoma mansoni'
 ```
 
-Now that we have an assembly, lets add the annotations we want to curate. They
+Now that we have an assembly, let's add the annotations we want to curate. They
 are stored in a GFF3 file. Run this command to import the annotations:
 
 ```sh
@@ -43,6 +95,8 @@ apollo feature \
   ./data/Schistosoma/mansoni/SM_V10_3/smansoni_SM_v10_3_subset.gff3 \
   --assembly 'Schistosoma mansoni'
 ```
+
+## Adding annotations
 
 Next we're going to add a second assembly and set of annotations. This assembly
 is from the related species Schistosoma haematobium. Run these two commands to
@@ -61,6 +115,8 @@ apollo feature \
   ./data/Schistosoma/haematobium/CHR_3/shaematobium_CHR_3_subset.gff3 \
   --assembly 'Schistosoma haematobium'
 ```
+
+## Adding evidence tracks
 
 Apollo is now set up to be able to annotate these genomes. In order to help with
 the annotation, though, it's often useful to include evidence tracks. Apollo is
