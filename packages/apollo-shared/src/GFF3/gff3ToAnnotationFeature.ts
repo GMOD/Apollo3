@@ -214,14 +214,48 @@ function inferMissingExons(
   utrFeatures: GFF3Feature[],
   refSeq: string,
 ): AnnotationFeatureSnapshot[] {
+  // Convert utrFeatures from GFF3Feature to AnnotationFeatureSnapshot
+  const utrExons: AnnotationFeatureSnapshot[] = []
+  for (const utrs of utrFeatures) {
+    for (const utr of utrs) {
+      if (!utr.start || !utr.end) {
+        throw new Error(
+          `UTR has undefined start and/or end\n: ${JSON.stringify(utr, null, 2)}`,
+        )
+      }
+      let strand: 1 | -1 | undefined = undefined
+      if (utr.strand === '+') {
+        strand = 1
+      } else if (utr.strand === '-') {
+        strand = -1
+      }
+      utrExons.push({
+        _id: new ObjectID().toHexString(),
+        refSeq,
+        type: 'exon',
+        min: utr.start - 1,
+        max: utr.end,
+        strand,
+      })
+    }
+  }
+  utrExons.sort((a, b) => a.min - b.min)
+
   const missingExons: AnnotationFeatureSnapshot[] = []
   for (const protein of cdsFeatures) {
-    for (const cds of protein) {
+    protein.sort((a, b) => {
+      if (!a.start || !b.start) {
+        throw new Error('CDS has undefined start')
+      }
+      return a.start - b.start
+    })
+    for (let cdsIdx = 0; cdsIdx < protein.length; cdsIdx++) {
+      const cds = protein[cdsIdx]
       // For CDS check if there is an exon containing it. If not, create an exon with same coords as the CDS.
       let exonFound = false
       for (const x of existingExons) {
         if (x.length != 1) {
-          throw new Error('Unexpected number fo exons')
+          throw new Error('Unexpected number of exons')
         }
         const [exon] = x
         if (
@@ -238,7 +272,9 @@ function inferMissingExons(
       }
       if (!exonFound) {
         if (!cds.start || !cds.end) {
-          throw new Error('Invalid CDS feature')
+          throw new Error(
+            `CDS has undefined start and/or end: ${JSON.stringify(cds, null, 2)}`,
+          )
         }
         let strand: 1 | -1 | undefined = undefined
         if (cds.strand === '+') {
@@ -254,18 +290,32 @@ function inferMissingExons(
           max: cds.end,
           strand,
         }
-        for (const utr of utrFeatures) {
-          // If the new exon is adjacent to a UTR, merge the UTR
-          if (utr.length != 1 || !utr[0].start || !utr[0].end) {
-            throw new Error('Too many UTRs or invalid UTR')
+        if (cdsIdx === 0) {
+          // If this CDS is the leftmost (or the only CDS in this protein), check if we need to add UTRs before it
+          for (const utr of utrExons) {
+            if (utr.max > newExon.min) {
+              break
+            }
+            if (utr.max === newExon.min) {
+              // UTR ends where exon begins: Extend the exon to include this UTR
+              newExon.min = utr.min
+            } else {
+              missingExons.push(utr)
+            }
           }
-          if (utr[0].end === newExon.min) {
-            newExon.min = utr[0].start - 1
-            break
-          }
-          if (newExon.max + 1 === utr[0].start) {
-            newExon.max = utr[0].end
-            break
+        }
+        if (cdsIdx === protein.length - 1) {
+          // If this CDS is the rightmost (or the only CDS in this protein), check if we need to add UTRs after it
+          for (const utr of utrExons) {
+            if (utr.min < newExon.max) {
+              continue
+            }
+            if (utr.min === newExon.max) {
+              // UTR begins where exon end: Extend the exon to include this UTR
+              newExon.max = utr.max
+            } else {
+              missingExons.push(utr)
+            }
           }
         }
         missingExons.push(newExon)
