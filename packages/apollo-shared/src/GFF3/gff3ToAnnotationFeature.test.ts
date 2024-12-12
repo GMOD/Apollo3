@@ -120,7 +120,9 @@ function readFeatureFile(fn: string): GFF3Feature[] {
   return inGff
 }
 
-function readAnnotationFeatureSnapshot(fn: string): AnnotationFeatureSnapshot {
+export function readAnnotationFeatureSnapshot(
+  fn: string,
+): AnnotationFeatureSnapshot {
   const lines = readFileSync(fn).toString()
   return JSON.parse(lines) as AnnotationFeatureSnapshot
 }
@@ -192,6 +194,37 @@ describe('gff3ToAnnotationFeature examples', () => {
     const txt = JSON.stringify(actual, null, 2)
     assert.equal(txt.match(/intron/g), null)
     assert.equal(txt.match(/_codon/g), null)
+  })
+})
+
+describe('CDS without exons', () => {
+  it('Convert mRNA with CDS but without exon', () => {
+    const [gffFeature] = readFeatureFile('test_data/cds_without_exon.gff')
+    const actual = gff3ToAnnotationFeature(gffFeature)
+    const expected = readAnnotationFeatureSnapshot(
+      'test_data/cds_without_exon.json',
+    )
+    compareFeatures(actual, expected)
+  })
+  it('Convert mRNA with CDS but without exon and spliced UTR', () => {
+    const [gffFeature] = readFeatureFile(
+      'test_data/cds_without_exon_spliced_utr.gff',
+    )
+    const actual = gff3ToAnnotationFeature(gffFeature)
+    const expected = readAnnotationFeatureSnapshot(
+      'test_data/cds_without_exon_spliced_utr.json',
+    )
+    compareFeatures(actual, expected)
+  })
+  it('Convert mRNA with one CDS, without exons non-adjacent UTR', () => {
+    const [gffFeature] = readFeatureFile(
+      'test_data/onecds_without_exon_spliced_utr.gff',
+    )
+    const actual = gff3ToAnnotationFeature(gffFeature)
+    const expected = readAnnotationFeatureSnapshot(
+      'test_data/onecds_without_exon_spliced_utr.json',
+    )
+    compareFeatures(actual, expected)
   })
 })
 

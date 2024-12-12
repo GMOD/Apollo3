@@ -1,0 +1,74 @@
+{
+  "_id": "67581b7d5890a8eb1bedab6e",
+  "refSeq": "ctgA",
+  "type": "gene",
+  "min": 1049,
+  "max": 9000,
+  "strand": 1,
+  "children": {
+    "67581b7d5890a8eb1bedab6c": {
+      "_id": "67581b7d5890a8eb1bedab6c",
+      "refSeq": "ctgA",
+      "type": "mRNA",
+      "min": 1049,
+      "max": 9000,
+      "strand": 1,
+      "children": {
+        "67581b7d5890a8eb1bedab66": {
+          "_id": "67581b7d5890a8eb1bedab66",
+          "refSeq": "ctgA",
+          "type": "exon",
+          "min": 1200,
+          "max": 1500,
+          "strand": 1,
+          "attributes": { "gff_source": ["example"], "gff_id": ["exon1"] }
+        },
+        "67581b7d5890a8eb1bedab67": {
+          "_id": "67581b7d5890a8eb1bedab67",
+          "refSeq": "ctgA",
+          "type": "CDS",
+          "min": 1210,
+          "max": 1710,
+          "strand": 1,
+          "attributes": { "gff_source": ["example"], "gff_id": ["cds2"] }
+        },
+        "67581b7d5890a8eb1bedab68": {
+          "_id": "67581b7d5890a8eb1bedab68",
+          "refSeq": "ctgA",
+          "type": "CDS",
+          "min": 1200,
+          "max": 1700,
+          "strand": 1,
+          "attributes": { "gff_source": ["example"], "gff_id": ["cds1"] }
+        },
+        "67581b7d5890a8eb1bedab69": {
+          "_id": "67581b7d5890a8eb1bedab69",
+          "refSeq": "ctgA",
+          "type": "exon",
+          "min": 1049,
+          "max": 1510,
+          "strand": 1
+        },
+        "67581b7d5890a8eb1bedab6b": {
+          "_id": "67581b7d5890a8eb1bedab6b",
+          "refSeq": "ctgA",
+          "type": "exon",
+          "min": 1600,
+          "max": 1800,
+          "strand": 1
+        }
+      },
+      "attributes": { "gff_source": ["example"], "gff_id": ["eden.1"] }
+    },
+    "67581b7d5890a8eb1bedab6d": {
+      "_id": "67581b7d5890a8eb1bedab6d",
+      "refSeq": "ctgA",
+      "type": "TF_binding_site",
+      "min": 1049,
+      "max": 1100,
+      "strand": 1,
+      "attributes": { "gff_source": ["example"] }
+    }
+  },
+  "attributes": { "gff_source": ["example"], "gff_id": ["eden"] }
+}
