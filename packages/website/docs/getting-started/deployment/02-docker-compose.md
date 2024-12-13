@@ -252,12 +252,11 @@ JBrowse versions, and it's much easier to download the exact versions you
 specify when deploying your app.
 
 Docker Compose will expect this Dockerfile to be named `Dockerfile` and be
-located next to the `compose.yml` in the filesystem. There is an example
-Dockerfile [here](Dockerfile) which configures the file server, downloads the
-specified versions of Apollo and JBrowse, and adds the JBrowse and Apollo
-configuration. The `FORWARD_HOSTNAME` and `FORWARD_PORT` args should match the
-service name and port of the Apollo Collaboration Server service (described in
-the next section).
+located next to the `compose.yml` in the filesystem. The above Dockerfile
+configures the file server, downloads the specified versions of Apollo and
+JBrowse, and adds the JBrowse and Apollo configuration. The `FORWARD_HOSTNAME`
+and `FORWARD_PORT` args should match the service name and port of the Apollo
+Collaboration Server service (described in the next section).
 
 The configuration added to the `httpd.conf` file in that Dockerfile makes it so
 that any request that comes to the server that doesn't match a file hosted on
@@ -323,10 +322,6 @@ a `.env` file, which has a format that looks like this
 ```env
 URL=https://my-apollo-site.org
 ```
-
-There are several other options you can configure. You can see [this](.env)
-sample `.env` file for a description of the other configuration options. For
-now, we will set `ALLOW_GUEST_USER` to be true to simplify testing.
 
 #### MongoDB
 
