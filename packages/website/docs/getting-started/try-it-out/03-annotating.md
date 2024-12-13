@@ -4,16 +4,16 @@ Open a new browser tab and navigate to http://localhost.
 
 Click on Linear Genome View on the JBrowse start screen.
 
- <img src="jbrowse-start-screen.png" width="25%">
+ <img src="jbrowse-start-screen.png" width="50%">
 
 Click on "Continue as Guest"
 
-<img src="login.png" width="25%">
+<img src="login.png" width="50%">
 
 Select "Schistosoma mansoni" as the assembly and put the region
 `SM_V10_3:9,657,491..9,659,958` in the location box, then click "Open".
 
-<img src="select-assembly-location.png" width="50%">
+<img src="select-assembly-location.png" width="100%">
 
 Alternatively, you could leave the location box alone and click "Open", and then
 put the above region in the location box and press "Enter".
@@ -21,7 +21,7 @@ put the above region in the location box and press "Enter".
 Click "Open track selector". Select track called "Annotations (Schistosoma
 mansoni)".
 
-<img src="track-selector.svg" width="50%">
+<img src="track-selector.svg" width="100%">
 
 Try out clicking and dragging to move back and forth, as well as using the arrow
 buttons in the header. Also try out clicking the zoom buttons.
@@ -29,7 +29,7 @@ buttons in the header. Also try out clicking the zoom buttons.
 Let's focus on the end of the CDS. If we hover over the warning, we'll see that
 the CDS is missing a stop codon.
 
-<img src="cds-warning.svg" width="50%">
+<img src="cds-warning.svg" width="100%">
 
 Click and drag in the ruler the area around the end of the CDS and then select
 "Zoom to region". We can see that the CDS stop short of the stop codon. Click
@@ -37,7 +37,7 @@ and drag the right side of the CDS 3 bases to the right to fix it. Zoom back out
 so you can see the whole gene again, and you will see the warning about the stop
 codon is gone as well.
 
-<img src="fix-stop-codon.svg" width="50%">
+<img src="fix-stop-codon.svg" width="100%">
 
 Now click the checkbox to open the RNA-seq track. It looks like this feature's
 3\` UTR is actually longer. Let's extend the exon to fix that. Click on the
@@ -47,7 +47,7 @@ the current annotation is now shown at the bottom of the track. In the "gene"
 row, change then "end" value to `9659388`, and then do the same for the "mRNA"
 column.
 
-<img src="rnaseq-table-editor.svg" widht="50%">
+<img src="rnaseq-table-editor.svg" widht="100%">
 
 We could also do the same for the exon, but we'll do it a different way as a
 demonstration. Right-click on the exon and choose "Edit feature details". Change
